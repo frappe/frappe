@@ -94,6 +94,11 @@ export function createFlowStore(client, options = {}) {
 		cwd: null,
 		sidebarOpen: true,
 		sidebarWidth: 288,
+		openFolders: [], // the sidebar's expanded workspace folders
+		sidebarGroup: "workspace", // "workspace" | "list": the sidebar's chats under their folders, or in one list
+		sidebarOrder: "updated", // "updated" | "manual": newest activity first, or as dragged
+		chatOrder: [], // session ids in their manual order
+		folderOrder: [], // workspace folders in their manual order
 		workspaceWidth: 460,
 		explorerWidth: 220,
 		...readJSON(keys.prefs, {}),
@@ -1358,6 +1363,18 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
+	function setFolderOpen(cwd, open) {
+		const others = state.prefs.openFolders.filter((path) => path !== cwd)
+		state.prefs.openFolders = open ? [...others, cwd] : others
+		savePrefs()
+	}
+
+	// any of sidebarGroup, sidebarOrder, chatOrder and folderOrder
+	function setSidebarView(view) {
+		Object.assign(state.prefs, view)
+		savePrefs()
+	}
+
 	function setCustomInstructions(text) {
 		state.prefs.customInstructions = text
 		savePrefs()
@@ -1540,6 +1557,8 @@ export function createFlowStore(client, options = {}) {
 		setExplorerWidth,
 		setSidebarOpen,
 		setSidebarWidth,
+		setFolderOpen,
+		setSidebarView,
 		setCustomInstructions,
 		setSettingsOpen,
 		setTranscriptOpen,

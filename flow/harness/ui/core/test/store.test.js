@@ -909,7 +909,14 @@ test("saved state lives under the host's storage key, and an old saved theme mov
 	try {
 		const flow = createFlowStore({}, { storageKey: "flow.ui:site:user" })
 		flow.setSidebarOpen(false)
-		assert.equal(JSON.parse(backing.get("flow.ui:site:user.prefs")).sidebarOpen, false)
+		flow.setFolderOpen("/w/app", true)
+		flow.setFolderOpen("/w/api", true)
+		flow.setFolderOpen("/w/app", false)
+		flow.setSidebarView({ sidebarOrder: "manual", chatOrder: ["s2", "s1"] })
+		const saved = JSON.parse(backing.get("flow.ui:site:user.prefs"))
+		assert.equal(saved.sidebarOpen, false)
+		assert.deepEqual(saved.openFolders, ["/w/api"])
+		assert.deepEqual([saved.sidebarGroup, saved.sidebarOrder, saved.chatOrder], ["workspace", "manual", ["s2", "s1"]])
 		assert.equal(backing.has("flow.ui.prefs"), false)
 
 		// the theme used to live in the default key's prefs

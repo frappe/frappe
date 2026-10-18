@@ -14,11 +14,12 @@
 			// no transform while open: a transformed aside would become the containing
 			// block for PopMenu's fixed backdrop, clipping it to the sidebar
 			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
+			dragging && 'flow-reordering',
 		]"
 		:style="{ '--sidebar-w': width + 'px' }"
 		:inert="!open"
 	>
-		<div class="flex h-12 items-center gap-2.5 px-3.5">
+		<div class="flex h-12 flex-none items-center gap-2.5 pl-3.5 pr-2">
 			<BrandMark :size="22" />
 			<span class="text-sm font-semibold text-ink-gray-9">Flow</span>
 			<span class="flex-1" />
@@ -27,140 +28,185 @@
 			</button>
 		</div>
 
-		<div class="px-2.5 pb-1.5">
-			<button
-				class="flex h-9 w-full items-center gap-2 rounded-6 px-2.5 text-xs font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-2"
-				@click="startNewChat"
-			>
-				<FeatherIcon name="plus" class="h-4 w-4 text-ink-gray-6" />
-				New chat
-			</button>
+		<div class="mt-1.5 flex flex-none flex-col gap-0.5 px-2">
+			<SidebarItem icon="lucide-square-pen" @click="startNewChat()">
+				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
+			</SidebarItem>
 		</div>
 
-		<div class="px-2.5 pb-1.5">
-			<div
-				class="flex h-8 items-center gap-2 rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
+		<!-- outside the scroller, so search stays in reach down a long list -->
+		<div v-if="flow.state.sessions.length || searchOpen" class="mt-4 flex h-7 flex-none items-center gap-0.5 px-2">
+			<label
+				v-if="searchOpen"
+				class="flex h-full min-w-0 flex-1 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 transition-colors focus-within:border-outline-gray-3"
 			>
-				<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
+				<span class="lucide-search size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 				<input
+					ref="searchInput"
 					v-model="query"
 					placeholder="Search chats"
+					aria-label="Search chats"
 					spellcheck="false"
-					class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					@keydown.esc="closeSearch"
+					@blur="query || closeSearch()"
 				/>
 				<button
-					v-if="query"
-					class="grid h-4 w-4 flex-none place-items-center rounded-4 text-ink-gray-4 hover:text-ink-gray-8"
-					title="Clear"
-					@click="query = ''"
+					class="grid h-full w-6 flex-none place-items-center text-ink-gray-5 hover:text-ink-gray-8"
+					title="Close search"
+					@click="closeSearch"
 				>
-					<FeatherIcon name="x" class="h-3 w-3" />
+					<span class="lucide-x size-3.5" aria-hidden="true" />
 				</button>
-			</div>
-		</div>
-
-		<div
-			v-if="flow.state.sessions.length"
-			class="flex items-center justify-between px-5 pb-1 pt-2 text-2xs font-medium text-ink-gray-5"
-		>
-			<span class="py-1">Sessions</span>
-			<div v-if="projects.length" class="relative min-w-0">
+			</label>
+			<template v-else>
+				<h3 class="min-w-0 flex-1 truncate pl-2 text-xs font-medium text-ink-gray-5">
+					{{ grouped ? "Workspaces" : "Sessions" }}
+				</h3>
 				<button
-					class="flex max-w-[128px] items-center gap-1 rounded-5 px-1.5 py-1 font-normal text-ink-gray-6 transition-colors hover:bg-surface-gray-2 hover:text-ink-gray-8"
-					title="Filter sessions by project"
-					aria-haspopup="menu"
-					:aria-expanded="projectMenu"
-					@click="projectMenu = !projectMenu"
+					class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
+					title="Search chats"
+					@click="openSearch"
 				>
-					<span class="truncate">{{ selectedProjectLabel }}</span>
-					<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none" />
+					<span class="lucide-search size-4" aria-hidden="true" />
 				</button>
-				<PopMenu
-					:open="projectMenu"
-					label="Filter sessions by project"
-					align="right"
-					placement="bottom"
-					:width="220"
-					@close="projectMenu = false"
+				<Dropdown v-if="hasWorkspaces" align="end" :options="viewOptions">
+					<template #trigger>
+						<button
+							class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7 data-[state=open]:bg-surface-gray-3 data-[state=open]:text-ink-gray-7"
+							title="Group and sort"
+						>
+							<span class="lucide-sliders-horizontal size-4" aria-hidden="true" />
+						</button>
+					</template>
+				</Dropdown>
+				<button
+					v-if="hasWorkspaces"
+					class="grid size-7 flex-none place-items-center rounded-4 text-ink-gray-5 transition-colors hover:bg-surface-gray-3 hover:text-ink-gray-7"
+					title="New workspace"
+					@click="newWorkspace"
 				>
-					<button
-						role="menuitemradio"
-						:aria-checked="selectedProject === null"
-						class="flex w-full items-center gap-2 rounded-5 px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
-						@click="selectProject(null)"
-					>
-						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
-						<span class="min-w-0 flex-1 truncate">All projects</span>
-						<FeatherIcon v-if="selectedProject === null" name="check" class="h-3.5 w-3.5 flex-none" />
-					</button>
-					<button
-						v-for="project in projects"
-						:key="project.cwd"
-						role="menuitemradio"
-						:aria-checked="selectedProject === project.cwd"
-						:title="project.cwd"
-						class="flex w-full items-center gap-2 rounded-5 px-2.5 py-2 text-left text-xs text-ink-gray-8 hover:bg-surface-gray-2"
-						@click="selectProject(project.cwd)"
-					>
-						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
-						<span class="min-w-0 flex-1 truncate">{{ project.name }}</span>
-						<FeatherIcon
-							v-if="selectedProject === project.cwd"
-							name="check"
-							class="h-3.5 w-3.5 flex-none"
-						/>
-					</button>
-				</PopMenu>
-			</div>
+					<span class="lucide-folder-plus size-4" aria-hidden="true" />
+				</button>
+			</template>
 		</div>
 
-		<div class="flex flex-1 flex-col gap-0.5 overflow-y-auto px-2.5 pb-2.5">
-			<div
-				v-for="s in filtered"
-				:key="s.session_id"
-				role="button"
-				tabindex="0"
-				class="group relative flex cursor-pointer select-none items-center rounded-6 px-2.5 py-2 hover:bg-surface-gray-2 focus-visible:bg-surface-gray-2 focus-visible:outline-none"
-				:class="[
-					s.session_id === flow.state.sessionId ? 'bg-surface-gray-3' : '',
-					menuFor === s.session_id ? 'menu-open bg-surface-gray-2' : '',
-				]"
-				@click="pick(s)"
-				@keydown.enter.prevent="pick(s)"
-				@keydown.space.prevent="pick(s)"
-				@pointerdown="pressStart(s, $event)"
-				@pointerup="pressEnd"
-				@pointercancel="pressEnd"
-				@pointerleave="pressEnd"
-			>
-				<span
-					class="session-title block min-w-0 w-full truncate text-xs leading-snug"
-					:class="s.session_id === flow.state.sessionId ? 'font-medium text-ink-gray-9' : 'text-ink-gray-8'"
-				>
-					{{ flow.sessionTitle(s) }}
-				</span>
-				<ChatMenu
-					:session-id="s.session_id"
-					:title="flow.sessionTitle(s)"
-					:open="menuFor === s.session_id"
-					@update:open="(open) => (menuFor = open ? s.session_id : null)"
-				>
-					<button
-						class="absolute right-1 top-1/2 z-10 grid h-7 w-7 -translate-y-1/2 place-items-center rounded-5 text-ink-gray-5 transition-[color,background-color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8 focus-visible:bg-surface-gray-4 focus-visible:opacity-100"
-						:class="
-							menuFor === s.session_id
-								? 'bg-surface-gray-4 text-ink-gray-8 opacity-100'
-								: 'bg-transparent opacity-0 group-hover:opacity-100'
-						"
-						title="Session options"
-						@click.stop
-						@pointerdown.stop
-						@keydown.enter.stop
-						@keydown.space.stop
+		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-1">
+			<!-- one wrapper for the rows: as children of the scroller they would shrink to fit -->
+			<div class="flex flex-col gap-0.5">
+				<template v-for="group in groups" :key="group.cwd ?? ''">
+					<!-- the new-chat button floats over the row's end, so a click anywhere else on the row folds it -->
+					<SidebarItem
+						v-if="group.cwd"
+						class="group relative h-8 select-none"
+						:class="dragClass(group.cwd)"
+						:title="group.cwd"
+						:aria-expanded="group.open"
+						:data-reorder="canReorder ? 'folder' : null"
+						:data-key="group.cwd"
+						@click="toggleWorkspace(group.cwd)"
+						@pointerdown="dragStart('folder', group.cwd, $event)"
 					>
-						<FeatherIcon name="more-horizontal" class="h-[13px] w-[13px]" />
-					</button>
-				</ChatMenu>
+						<template #prefix>
+							<span
+								class="size-4 text-ink-gray-6"
+								:class="group.open ? 'lucide-folder-open' : 'lucide-folder'"
+								aria-hidden="true"
+							/>
+						</template>
+						<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug text-ink-gray-8">
+							{{ group.name }}
+						</span>
+						<template #suffix>
+							<button
+								class="row-action flow-hover-reveal absolute right-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
+								:title="`New chat in ${group.name}`"
+								@click="startNewChat(group.cwd)"
+								@pointerdown.stop
+							>
+								<span class="lucide-square-pen size-3.5" aria-hidden="true" />
+							</button>
+						</template>
+					</SidebarItem>
+					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-2xs font-medium text-ink-gray-5">
+						Sessions
+					</h3>
+					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
+					<Transition name="flow-fold">
+						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold">
+							<div class="grid min-h-0 grid-cols-1 gap-0.5">
+								<SidebarItem
+									v-for="s in group.chats"
+									:key="s.session_id"
+									:label="flow.sessionTitle(s)"
+									class="group relative h-8 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-7"
+									:class="[menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
+									:active="s.session_id === flow.state.sessionId"
+									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
+									:data-key="s.session_id"
+									@click="pick(s)"
+									@pointerdown="pressStart(s, $event); dragStart(`chat:${group.cwd ?? ''}`, s.session_id, $event)"
+									@pointerup="pressEnd"
+									@pointercancel="pressEnd"
+									@pointerenter="crawlTitle"
+									@pointerleave="pressEnd(); restTitle($event)"
+								>
+									<!-- an empty icon lane lines a workspace's chats up under its name; loose chats line up with the label -->
+									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
+									<HoverCard
+										side="right"
+										:offset="12"
+										:hover-delay="500"
+										:leave-delay="0"
+										:open="cardFor === s.session_id"
+										@update:open="(open) => showCard(s, open)"
+									>
+										<template #trigger>
+											<span
+												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug"
+												:class="!group.cwd && '-ml-2'"
+											>
+												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
+											</span>
+										</template>
+										<div class="flex max-w-80 flex-col gap-1.5 px-3 py-2.5">
+											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
+											<p v-if="s.cwd" class="flex items-center gap-1.5 text-xs text-ink-gray-6">
+												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
+												<span class="truncate">{{ workspaceName(s.cwd) }}</span>
+											</p>
+										</div>
+									</HoverCard>
+									<template #suffix>
+										<ChatMenu
+											:session-id="s.session_id"
+											:title="flow.sessionTitle(s)"
+											:open="menuFor === s.session_id"
+											@update:open="(open) => setMenu(s, open)"
+										>
+											<button
+												class="row-action absolute right-1 top-1/2 z-10 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:text-ink-gray-7 focus-visible:opacity-100"
+												:class="
+													menuFor === s.session_id
+														? 'text-ink-gray-7 opacity-100'
+														: 'opacity-0 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100'
+												"
+												title="Session options"
+												@pointerdown.stop
+											>
+												<span class="lucide-ellipsis size-3.5" aria-hidden="true" />
+											</button>
+										</ChatMenu>
+									</template>
+								</SidebarItem>
+								<SidebarItem v-if="group.toggle" :label="group.toggle" @click="toggleShowAll(group.cwd)">
+									<template #prefix><span class="size-4" /></template>
+									<span class="text-xs leading-snug text-ink-gray-5">{{ group.toggle }}</span>
+								</SidebarItem>
+							</div>
+						</div>
+					</Transition>
+				</template>
 			</div>
 			<LoadingState
 				v-if="filtered.length === 0 && flow.state.sessionsLoading"
@@ -188,20 +234,19 @@
 			@dblclick="resetWidth"
 		/>
 
-		<footer class="border-t border-outline-gray-1 px-2.5 py-1.5">
-			<button
-				class="flex h-9 w-full items-center gap-2 rounded-6 px-2.5 text-xs font-medium text-ink-gray-8 transition-colors hover:bg-surface-gray-2"
-				@click="flow.setSettingsOpen(true)"
-			>
-				<FeatherIcon name="settings" class="h-4 w-4 text-ink-gray-6" />
-				Settings
-			</button>
+		<footer class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
+			<SidebarItem icon="lucide-settings" @click="flow.setSettingsOpen(true)">
+				<span class="truncate text-xs font-medium text-ink-gray-8">Settings</span>
+			</SidebarItem>
 		</footer>
 	</aside>
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import { computed, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
+import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
+import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
+import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
@@ -209,7 +254,6 @@ import { sidebarIsDrawer } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
-import PopMenu from "./PopMenu.vue"
 
 const props = defineProps({ open: { type: Boolean, default: true } })
 const emit = defineEmits(["close"])
@@ -218,6 +262,17 @@ const flow = inject("flow")
 const query = ref("")
 const debouncedQuery = useDebouncedValue(query, 150)
 watch(debouncedQuery, (q) => flow.searchSessions(q))
+
+const searchOpen = ref(false)
+const searchInput = ref(null)
+function openSearch() {
+	searchOpen.value = true
+	nextTick(() => searchInput.value?.focus())
+}
+function closeSearch() {
+	query.value = ""
+	searchOpen.value = false
+}
 
 // the row under the last session: scrolling it into view asks for the next page, and a
 // click asks again after a page that failed
@@ -235,35 +290,234 @@ watch(sentinel, (el, old) => {
 	if (el) observer?.observe(el)
 })
 onBeforeUnmount(() => observer?.disconnect())
-const projectMenu = ref(false)
-const selectedProject = ref(null)
 const menuFor = ref(null)
 
-function projectName(cwd) {
+// a chat's card shows after a hover dwell, never beside its open menu or during a drag
+const cardFor = ref(null)
+function showCard(session, open) {
+	if (open && !menuFor.value && !dragging.value) cardFor.value = session.session_id
+	else if (cardFor.value === session.session_id) cardFor.value = null
+}
+function setMenu(session, open) {
+	menuFor.value = open ? session.session_id : null
+	cardFor.value = null
+}
+
+// a long chat title crawls left at reading speed while its row is hovered, until its end
+// shows clear of the row's ••• (the hover fade starts 3rem from the end); leaving puts it back
+const CRAWL_PX_PER_S = 30
+let crawlTimer = null
+function crawlTitle(event) {
+	clearTimeout(crawlTimer)
+	if (event.pointerType !== "mouse" || dragging.value) return
+	const title = event.currentTarget.querySelector(".row-title")
+	crawlTimer = setTimeout(() => {
+		const rem = parseFloat(getComputedStyle(document.documentElement).fontSize)
+		const range = title.firstElementChild.offsetWidth - (title.clientWidth - 3 * rem)
+		if (range < 8) return // a few pixels of travel reads as jitter
+		title.style.setProperty("--crawl", `${-range}px`)
+		title.style.setProperty("--crawl-time", `${range / CRAWL_PX_PER_S}s`)
+		title.dataset.crawl = ""
+	}, 300)
+}
+function restTitle(event) {
+	clearTimeout(crawlTimer)
+	delete event.currentTarget.querySelector(".row-title")?.dataset.crawl
+}
+onBeforeUnmount(() => clearTimeout(crawlTimer))
+
+function workspaceName(cwd) {
 	return cwd.replace(/[\\/]+$/, "").split(/[\\/]/).filter(Boolean).pop() ?? cwd
 }
 
-const projects = computed(() => {
-	const unique = new Map()
-	for (const session of flow.state.sessions) {
-		const cwd = session.cwd?.trim()
-		if (cwd && !unique.has(cwd)) unique.set(cwd, { cwd, name: projectName(cwd) })
-	}
-	return [...unique.values()].sort((left, right) => left.name.localeCompare(right.name))
-})
-
-const selectedProjectLabel = computed(() =>
-	selectedProject.value ? projectName(selectedProject.value) : "All projects",
+const CHATS_SHOWN = 5
+const searching = computed(() => !!debouncedQuery.value.trim())
+const showingAll = ref([]) // workspaces listing all their chats, by folder
+const hasWorkspaces = computed(() => flow.state.sessions.some((session) => session.cwd?.trim()))
+const grouped = computed(() => hasWorkspaces.value && flow.state.prefs.sidebarGroup !== "list")
+const manual = computed(() => flow.state.prefs.sidebarOrder === "manual")
+// rows drag only where the filters menu shows, so the order can be set back, and over the
+// whole list, since a drop saves every chat's place
+const canReorder = computed(
+	() => hasWorkspaces.value && !searching.value && !flow.state.sessionsMore && !flow.state.sessionQuery,
 )
 
-function selectProject(cwd) {
-	selectedProject.value = cwd
-	projectMenu.value = false
+// the filters menu, its current choices ticked
+const tick = () => h("span", { class: "lucide-check ml-auto size-4 text-ink-gray-7", "aria-hidden": "true" })
+const viewOptions = computed(() => {
+	const option = (label, icon, chosen, view) => ({
+		label,
+		icon,
+		slots: chosen ? { suffix: tick } : {},
+		onClick: () => flow.setSidebarView(view),
+	})
+	return [
+		{
+			group: "Group by",
+			options: [
+				option("Workspace", "lucide-folder", grouped.value, { sidebarGroup: "workspace" }),
+				option("In one list", "lucide-list", !grouped.value, { sidebarGroup: "list" }),
+			],
+		},
+		{
+			group: "Order by",
+			options: [
+				option("Manual", "lucide-chevrons-up-down", manual.value, { sidebarOrder: "manual" }),
+				option("Last updated", "lucide-clock", !manual.value, { sidebarOrder: "updated" }),
+			],
+		},
+	]
+})
+
+// items in a saved manual order; ones it hasn't placed yet go first, in the order given
+function arrange(items, order = [], keyOf = (item) => item) {
+	const place = new Map(order.map((key, i) => [key, i]))
+	return [...items].sort((a, b) => (place.get(keyOf(a)) ?? -1) - (place.get(keyOf(b)) ?? -1))
+}
+
+// every chat and workspace in its manual place, the ones not placed yet newest first on
+// top; `fresh` starts from the newest-first order instead
+function manualOrders(fresh = false) {
+	const { sessions, prefs } = flow.state
+	const folders = new Set(sessions.map((session) => session.cwd?.trim()).filter(Boolean))
+	return {
+		chatOrder: arrange(sessions.map((session) => session.session_id), fresh ? [] : prefs.chatOrder),
+		folderOrder: arrange([...folders], fresh ? [] : prefs.folderOrder),
+	}
+}
+
+// in manual order a new chat or workspace takes the top, then keeps its place; only a
+// full list can say which saved places are gone
+watch(
+	() => manual.value && !flow.state.sessionsMore && !flow.state.sessionQuery && flow.state.sessions,
+	(sessions) => {
+		if (!sessions?.length) return
+		const orders = manualOrders()
+		const same = (a, b = []) => a.length === b.length && a.every((key, i) => key === b[i])
+		if (!same(orders.chatOrder, flow.state.prefs.chatOrder) || !same(orders.folderOrder, flow.state.prefs.folderOrder))
+			flow.setSidebarView(orders)
+	},
+	{ immediate: true },
+)
+
+// a workspace per folder, most recent or in manual order; chats with no folder come
+// last, ungrouped, and in one list nothing groups
+const groups = computed(() => {
+	const chats = manual.value ? arrange(filtered.value, flow.state.prefs.chatOrder, (s) => s.session_id) : filtered.value
+	if (!grouped.value) return [{ cwd: null, open: true, chats }]
+	const workspaces = new Map()
+	const loose = []
+	for (const session of chats) {
+		const cwd = session.cwd?.trim()
+		if (!cwd) loose.push(session)
+		else if (workspaces.has(cwd)) workspaces.get(cwd).chats.push(session)
+		else workspaces.set(cwd, { cwd, name: workspaceName(cwd), chats: [session] })
+	}
+	let folders = [...workspaces.values()]
+	if (manual.value) folders = arrange(folders, flow.state.prefs.folderOrder, (folder) => folder.cwd)
+	const groups = folders.map(({ cwd, name, chats }) => {
+		const all = searching.value || showingAll.value.includes(cwd)
+		const shown = all ? chats : chats.filter((s, i) => i < CHATS_SHOWN || s.session_id === flow.state.sessionId)
+		const hidden = chats.length - shown.length
+		const collapsible = !searching.value && all && chats.length > CHATS_SHOWN
+		return {
+			cwd,
+			name,
+			open: searching.value || flow.state.prefs.openFolders.includes(cwd),
+			chats: shown,
+			toggle: hidden ? `Show ${hidden} more` : collapsible ? "Show less" : null,
+		}
+	})
+	if (loose.length) groups.push({ cwd: null, open: true, chats: loose })
+	return groups
+})
+
+function toggleWorkspace(cwd) {
+	if (pressed) {
+		pressed = false
+		return
+	}
+	if (searching.value) return // a search holds every workspace with a match open
+	flow.setFolderOpen(cwd, !flow.state.prefs.openFolders.includes(cwd))
+}
+
+function toggleShowAll(cwd) {
+	const all = showingAll.value
+	showingAll.value = all.includes(cwd) ? all.filter((path) => path !== cwd) : [...all, cwd]
+}
+
+// the chat on screen opens its workspace, each time another one comes on screen
+watch(
+	[() => flow.state.sessionId, () => (flow.state.sessionId ? flow.state.session?.config?.cwd : flow.state.prefs.cwd) ?? null],
+	([, cwd]) => {
+		if (cwd && !flow.state.prefs.openFolders.includes(cwd)) flow.setFolderOpen(cwd, true)
+	},
+	{ immediate: true },
+)
+
+// a row dragged with the mouse lands before or after the row it is let go over, among the
+// rows of its own scope: the workspaces, or one workspace's chats. A drop in last-updated
+// order switches to manual, starting from the order on screen
+const dragging = ref(null) // { scope, key, over, after }
+let endDrag = null // ends the drag in flight, dropping nothing
+onBeforeUnmount(() => endDrag?.({ type: "pointercancel" }))
+function dragStart(scope, key, event) {
+	pressed = false
+	// a Mac's ctrl-click is a right click, whose context menu swallows the release
+	if (!canReorder.value || event.pointerType !== "mouse" || event.button !== 0 || event.ctrlKey) return
+	const startY = event.clientY
+	const move = (e) => {
+		if (!(e.buttons & 1)) return end(e) // the release never came: nothing drops
+		if (!dragging.value && Math.abs(e.clientY - startY) < 4) return
+		cardFor.value = null
+		const row = document.elementFromPoint(e.clientX, e.clientY)?.closest("[data-reorder]")
+		const target = row?.dataset.reorder === scope && row.dataset.key !== key ? row : null
+		const box = target?.getBoundingClientRect()
+		dragging.value = { scope, key, over: target?.dataset.key, after: !!box && e.clientY > box.top + box.height / 2 }
+	}
+	const end = (e) => {
+		endDrag = null
+		window.removeEventListener("pointermove", move)
+		window.removeEventListener("pointerup", end)
+		window.removeEventListener("pointercancel", end)
+		const drop = dragging.value
+		dragging.value = null
+		if (!drop) return
+		// the click this release makes must not open or fold a row; no later one is it
+		pressed = true
+		setTimeout(() => (pressed = false))
+		if (drop.over && e.type === "pointerup") reorder(drop)
+	}
+	endDrag = end
+	window.addEventListener("pointermove", move)
+	window.addEventListener("pointerup", end)
+	window.addEventListener("pointercancel", end)
+}
+
+function reorder({ scope, key, over, after }) {
+	const orders = manualOrders(!manual.value)
+	const name = scope === "folder" ? "folderOrder" : "chatOrder"
+	const order = orders[name].filter((k) => k !== key)
+	order.splice(order.indexOf(over) + (after ? 1 : 0), 0, key)
+	flow.setSidebarView({ ...orders, [name]: order, sidebarOrder: "manual" })
+	// a chat dropped beside the open one, shown past its workspace's first chats, can land
+	// among the hidden ones: the workspace then shows them all
+	const cwd = scope.slice("chat:".length)
+	const shown = groups.value.find((group) => group.cwd === cwd)?.chats.some((s) => s.session_id === key)
+	if (scope !== "folder" && cwd && !shown) showingAll.value = [...showingAll.value, cwd]
+}
+
+// the dragged row dims, and a line shows where it would land
+function dragClass(key) {
+	const drop = dragging.value
+	if (drop?.key === key) return "opacity-50"
+	if (drop?.over === key) return drop.after ? "drop-after" : "drop-before"
+	return null
 }
 
 // touch has no hover to reveal a row's menu button: a long press opens its menu instead
 let pressTimer = null
-let pressed = false // the click that ends a long press must not open the chat
+let pressed = false // the click that ends a long press or a drag must not open or fold a row
 function pressStart(session, event) {
 	clearTimeout(pressTimer)
 	pressed = false
@@ -288,16 +542,17 @@ function pick(session) {
 	if (sidebarIsDrawer()) emit("close")
 }
 
-function startNewChat() {
-	flow.startNewChat({ cwd: selectedProject.value })
+// with no folder, the new chat starts in the open chat's
+function startNewChat(cwd = null) {
+	flow.startNewChat({ cwd })
 	if (sidebarIsDrawer()) emit("close")
 }
 
-watch(projects, (available) => {
-	if (selectedProject.value && !available.some((project) => project.cwd === selectedProject.value)) {
-		selectedProject.value = null
-	}
-})
+// a chat in a folder picked in the daemon's folder dialog
+async function newWorkspace() {
+	const cwd = await flow.pickFolder()
+	if (cwd) startNewChat(cwd)
+}
 
 const DEFAULT_WIDTH = 288
 const clampWidth = (w) => Math.min(420, Math.max(224, w))
@@ -332,15 +587,11 @@ onMounted(() => requestAnimationFrame(() => (ready.value = true)))
 
 const filtered = computed(() => {
 	const q = debouncedQuery.value.trim().toLowerCase()
-	return flow.state.sessions.filter((session) => {
-		if (selectedProject.value && session.cwd !== selectedProject.value) return false
-		return !q || flow.sessionTitle(session).toLowerCase().includes(q)
-	})
+	return flow.state.sessions.filter((session) => !q || flow.sessionTitle(session).toLowerCase().includes(q))
 })
 
 const emptyMessage = computed(() => {
 	if (query.value) return "No matches."
-	if (selectedProject.value) return "No chats in this project."
 	return "No chats yet — start one."
 })
 </script>
@@ -361,10 +612,97 @@ const emptyMessage = computed(() => {
 	z-index: 40;
 }
 
-.group:hover .session-title,
-.group:focus-within .session-title,
-.group.menu-open .session-title {
+/* finger-sized rows in the phone drawer */
+@media (max-width: 767px) {
+	aside :deep([data-slot="sidebar-item"]) {
+		height: 2.25rem;
+	}
+}
+
+/* chat and workspace names a half step over text-xs, keeping its weight and spacing; a
+   long one fades out at the row's end */
+.row-title {
+	font-size: 13.5px;
+	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+	mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
+}
+
+/* a row's button covers the end of its title, so a long title fades out before it; touch
+   screens show a workspace's button without a hover */
+.group:hover .row-title,
+.group:has(:focus-visible) .row-title,
+.group.menu-open .row-title {
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 	mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+}
+@media (hover: none) {
+	.folder-name {
+		-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+		mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+	}
+}
+
+/* a crawling title also fades in from its start */
+.row-title[data-crawl] {
+	-webkit-mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+	mask-image: linear-gradient(to right, transparent, #000 0.75rem, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+}
+.row-title[data-crawl] > span {
+	transform: translateX(var(--crawl));
+	transition: transform var(--crawl-time) linear;
+}
+
+/* a workspace's chats fold away and back; the column keeps a long title from widening the row */
+.flow-fold {
+	display: grid;
+	grid-template-rows: 1fr;
+	grid-template-columns: minmax(0, 1fr);
+}
+.flow-fold-enter-active,
+.flow-fold-leave-active {
+	transition:
+		grid-template-rows 0.2s ease,
+		opacity 0.2s ease;
+}
+.flow-fold-enter-active > div,
+.flow-fold-leave-active > div {
+	overflow: hidden;
+}
+.flow-fold-enter-from,
+.flow-fold-leave-to {
+	grid-template-rows: 0fr;
+	opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+	.row-title[data-crawl] > span,
+	.flow-fold-enter-active,
+	.flow-fold-leave-active {
+		transition: none;
+	}
+}
+
+/* where a dragged row would land: a line in the gap above or below the row */
+.drop-before::before,
+.drop-after::after {
+	content: "";
+	position: absolute;
+	left: 0.5rem;
+	right: 0.5rem;
+	height: 2px;
+	border-radius: 1px;
+	background: var(--ink-gray-5);
+}
+.drop-before::before {
+	top: -2px;
+}
+.drop-after::after {
+	bottom: -2px;
+}
+.flow-reordering :deep(*) {
+	cursor: grabbing !important;
+}
+.flow-reordering .row-action {
+	visibility: hidden;
 }
 </style>

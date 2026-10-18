@@ -49,11 +49,16 @@ function mount(t, component, props, flow) {
 	const app = createApp(component, props)
 	app.provide("flow", flow)
 	const vm = app.mount(el)
+	let mounted = true
+	const unmount = () => {
+		if (mounted) app.unmount()
+		mounted = false
+	}
 	t.after(() => {
-		app.unmount()
+		unmount()
 		el.remove()
 	})
-	return { el, vm }
+	return { el, vm, unmount }
 }
 
 // jsdom measures nothing: a test that needs boxes stubs them for its duration
@@ -1667,18 +1672,38 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 	assert.equal(panel.querySelectorAll("button").length, 1) // only the close button
 })
 
-test("the chat list says it is loading, not that there are no chats or matches", async (t) => {
+test("the chat list groups chats by their folder, and says it is loading, not that there are no chats or matches", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const opened = [] // what the rows' buttons asked for
 	const flow = {
 		options: {},
-		state: reactive({ sessions: [], sessionsLoading: true, sessionsMore: false, sessionId: null, prefs: {} }),
+		state: reactive({
+			sessions: [],
+			sessionsLoading: true,
+			sessionsMore: false,
+			sessionId: null,
+			prefs: { openFolders: [] },
+		}),
+		startNewChat({ cwd }) {
+			opened.push(`new chat in ${cwd}`)
+		},
+		openSession(sid) {
+			opened.push(sid)
+		},
 		sessionTitle: (session) => session.title,
 		// past a full page, a search goes to the host
 		searchSessions() {
 			flow.state.sessionsLoading = true
 		},
+		setFolderOpen(cwd, open) {
+			const others = flow.state.prefs.openFolders.filter((path) => path !== cwd)
+			flow.state.prefs.openFolders = open ? [...others, cwd] : others
+		},
+		setSidebarView(view) {
+			Object.assign(flow.state.prefs, view)
+		},
 	}
-	const { el } = mount(t, SessionSidebar, {}, flow)
+	const { el, unmount } = mount(t, SessionSidebar, {}, flow)
 	assert.ok(el.textContent.includes("Loading"))
 	assert.ok(!el.textContent.includes("No chats yet"))
 	flow.state.sessionsLoading = false
@@ -1686,13 +1711,187 @@ test("the chat list says it is loading, not that there are no chats or matches",
 	assert.ok(!el.textContent.includes("Loading"))
 	assert.ok(el.textContent.includes("No chats yet"))
 
+	// the search sits in the list's header
+	const button = (title) => el.querySelector(`button[title='${title}']`)
 	flow.state.sessions = [{ session_id: "s1", title: "Alpha" }]
+	await nextTick()
+	button("Search chats").click()
+	await nextTick()
 	await typeSearch(t, el, "beta")
 	assert.ok(el.textContent.includes("Loading"))
 	assert.ok(!el.textContent.includes("No matches"))
 	flow.state.sessionsLoading = false
 	await nextTick()
 	assert.ok(el.textContent.includes("No matches"))
+
+	// chats without a folder list flat
+	const rows = () => [...el.querySelectorAll("[data-stub=SidebarItem]")]
+	const labels = () => rows().map((row) => row.textContent.trim())
+	const click = async (label) => {
+		rows().find((row) => row.textContent.trim() === label).querySelector("button").click()
+		await nextTick()
+	}
+	button("Close search").click()
+	await nextTick()
+	t.mock.timers.tick(200) // the cleared query's debounce
+	await settle()
+	assert.deepEqual(labels(), ["New chat", "Alpha", "Settings"])
+	assert.ok(el.textContent.includes("Sessions") && !el.textContent.includes("Workspaces"))
+
+	// with one, under its workspace, most recent first, the latest five and the open chat
+	const app = Array.from({ length: 7 }, (_, i) => ({ session_id: `a${i}`, title: `App ${i}`, cwd: "/w/app" }))
+	flow.state.sessions = [app[0], { session_id: "b", title: "Api work", cwd: "/w/api" }, ...app.slice(1)]
+	flow.state.sessionId = "a6" // the chat on screen opens its workspace
+	flow.state.session = { config: { cwd: "/w/app" } }
+	await settle()
+	const workspaces = ["app", "App 0", "App 1", "App 2", "App 3", "App 4", "App 6", "Show 1 more", "api"]
+	assert.deepEqual(labels(), ["New chat", ...workspaces, "Settings"])
+	assert.ok(el.textContent.includes("Workspaces"))
+
+	// a hovered chat's card shows its whole title and its workspace
+	const card = () => el.querySelector("[data-card]")
+	const trigger = rows().find((row) => row.textContent.trim() === "App 1").querySelector("[data-stub=HoverCard]")
+	trigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	assert.deepEqual([...card().firstElementChild.children].map((line) => line.textContent.trim()), ["App 1", "app"])
+	trigger.dispatchEvent(new window.PointerEvent("pointerleave"))
+	await nextTick()
+	assert.equal(card(), null)
+	await click("Show 1 more")
+	assert.deepEqual(labels().slice(7, 10), ["App 5", "App 6", "Show less"])
+	await click("api")
+	await click("app")
+	t.mock.timers.runAll() // the folded rows leave once their animation's frames pass
+	assert.deepEqual(labels(), ["New chat", "app", "api", "Api work", "Settings"])
+	assert.deepEqual(flow.state.prefs.openFolders, ["/w/api"])
+
+	// a search opens every workspace with a match
+	button("Search chats").click()
+	await nextTick()
+	await typeSearch(t, el, "app 5")
+	assert.deepEqual(labels(), ["New chat", "app", "App 5", "Settings"])
+	assert.equal(rows()[1].querySelector("button").getAttribute("aria-expanded"), "true")
+	assert.equal(el.querySelector("input").getAttribute("aria-label"), "Search chats") // not its close button's title
+	await click("app") // the search holds it open: a click folds nothing, now or after
+	assert.deepEqual(flow.state.prefs.openFolders, ["/w/api"])
+
+	// an empty search closes once it loses focus
+	button("Close search").click()
+	await nextTick()
+	button("Search chats").click()
+	await nextTick()
+	el.querySelector("input").dispatchEvent(new window.Event("blur"))
+	await nextTick()
+	assert.ok(button("Search chats") && !el.querySelector("input"))
+
+	// the filters menu lists the chats in one list; a drag puts a chat where it's dropped and
+	// switches to manual order, where each keeps its place and a new chat lands on top
+	t.mock.timers.tick(200) // the cleared query's debounce
+	await settle()
+	const pickView = async (label) => {
+		const item = () => [...el.querySelectorAll("[role=menuitem]")].find((option) => option.textContent === label)
+		if (!item()) button("Group and sort").click()
+		await nextTick()
+		item().click()
+		await nextTick()
+	}
+	await pickView("In one list")
+	assert.deepEqual(labels().slice(1, 4), ["App 0", "Api work", "App 1"])
+	const row = (label) => rows().find((item) => item.textContent.trim() === label)
+	const pointer = (type, target, init = {}) =>
+		target.dispatchEvent(
+			new window.PointerEvent(type, {
+				pointerType: "mouse",
+				clientY: type === "pointerdown" ? 100 : 0,
+				buttons: type === "pointerup" ? 0 : 1,
+				bubbles: true,
+				...init,
+			}),
+		)
+	t.after(() => delete document.elementFromPoint)
+	const drag = async (from, to) => {
+		document.elementFromPoint = () => row(to).querySelector("button") // jsdom has no layout: the pointer is over `to`, above its middle
+		pointer("pointerdown", row(from))
+		pointer("pointermove", window)
+		await nextTick()
+		assert.ok(row(to).classList.contains("drop-before"))
+		pointer("pointerup", window)
+		await nextTick()
+	}
+	// a press whose release never comes drops nothing: a move with no button held ends it, and
+	// a ctrl-click (a Mac's right click) never starts one
+	document.elementFromPoint = () => row("App 0").querySelector("button")
+	pointer("pointerdown", row("App 1"))
+	pointer("pointermove", window)
+	await nextTick()
+	assert.ok(row("App 0").classList.contains("drop-before"))
+	pointer("pointermove", window, { buttons: 0 })
+	await nextTick()
+	assert.ok(!row("App 0").classList.contains("drop-before"))
+	pointer("pointerdown", row("App 1"), { ctrlKey: true })
+	pointer("pointermove", window)
+	await nextTick()
+	assert.ok(!row("App 0").classList.contains("drop-before"))
+	pointer("pointerup", window)
+	assert.equal(flow.state.prefs.sidebarOrder, undefined)
+	flow.state.prefs.chatOrder = ["b"] // an older manual order gives way to the one on screen
+	await drag("App 6", "App 0")
+	assert.deepEqual(labels().slice(1, 4), ["App 6", "App 0", "Api work"])
+	assert.equal(flow.state.prefs.sidebarOrder, "manual")
+	await pickView("Workspace")
+	await drag("api", "app")
+	assert.deepEqual(labels(), ["New chat", "api", "Api work", "app", "Settings"])
+
+	// a list with pages still to load can't be reordered: a drop saves every chat's place
+	flow.state.sessionsMore = true
+	await nextTick()
+	assert.equal(row("Api work").querySelector("button").getAttribute("data-reorder"), null)
+	flow.state.sessionsMore = false
+	await nextTick()
+
+	// a row's own buttons act alone and start no drag: the new-chat button leaves its workspace
+	// folded, and a chat's ••• doesn't open the chat
+	for (const [label, title] of [["app", "New chat in app"], ["Api work", "Session options"]]) {
+		const own = row(label).querySelector(`button[title='${title}']`)
+		pointer("pointerdown", own)
+		pointer("pointermove", window)
+		await nextTick()
+		assert.ok(!el.querySelector("aside").classList.contains("flow-reordering"))
+		pointer("pointerup", window)
+		own.click()
+		await nextTick()
+	}
+	assert.deepEqual(opened, ["new chat in /w/app"])
+	assert.deepEqual(labels(), ["New chat", "api", "Api work", "app", "Settings"])
+	flow.state.sessions = [{ session_id: "n", title: "New one", cwd: "/w/api" }, ...flow.state.sessions]
+	await settle()
+	assert.deepEqual(labels(), ["New chat", "api", "New one", "Api work", "app", "Settings"])
+	assert.equal(flow.state.prefs.chatOrder[0], "n")
+
+	// a new chat on screen opens its folded workspace
+	flow.state.sessions = [{ session_id: "a7", title: "App 7", cwd: "/w/app" }, ...flow.state.sessions]
+	flow.state.sessionId = "a7"
+	await settle()
+	const appChats = () => labels().slice(labels().indexOf("app") + 1, -1)
+	assert.deepEqual(appChats(), ["App 7", "App 6", "App 0", "App 1", "App 2", "App 3", "App 4", "App 5", "Show less"])
+
+	// a chat dropped beside the open chat shown past the first five stays in view
+	await click("Show less")
+	flow.state.sessionId = "a5"
+	await settle()
+	assert.deepEqual(appChats(), ["App 7", "App 6", "App 0", "App 1", "App 2", "App 5", "Show 2 more"])
+	await drag("App 7", "App 5")
+	assert.deepEqual(appChats(), ["App 6", "App 0", "App 1", "App 2", "App 3", "App 4", "App 7", "App 5", "Show less"])
+
+	// a drag in flight when the sidebar goes ends there, dropping nothing
+	const order = [...flow.state.prefs.chatOrder]
+	document.elementFromPoint = () => row("App 6").querySelector("button")
+	pointer("pointerdown", row("App 0"))
+	pointer("pointermove", window)
+	await nextTick()
+	unmount()
+	pointer("pointerup", window)
+	assert.deepEqual(flow.state.prefs.chatOrder, order)
 })
 
 test("the model list says it is loading, not that no provider is connected", async (t) => {

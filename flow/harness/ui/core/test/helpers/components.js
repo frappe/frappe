@@ -17,7 +17,7 @@ function stubURL(name) {
 const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
 // a test sets the dialog.* calls it expects
 export const { dialog } = await import(dialogs)
-// frappe-ui's Dropdown as its trigger, and its options once it is clicked or held open
+// frappe-ui's Dropdown as its trigger, and its options, groups flattened, once it is clicked or held open
 const dropdown = moduleURL(`
 	import { h, ref } from ${JSON.stringify(vue)}
 	export default {
@@ -26,9 +26,41 @@ const dropdown = moduleURL(`
 			const shown = ref(false)
 			return () => h("div", { "data-stub": "Dropdown" }, [
 				h("div", { onClick: () => (shown.value = !shown.value) }, slots.trigger?.()),
-				...((props.open ?? shown.value) ? props.options ?? [] : []).map((o) =>
+				...((props.open ?? shown.value) ? props.options ?? [] : []).flatMap((o) => o.options ?? [o]).map((o) =>
 					h("button", { role: "menuitem", onClick: o.onClick }, o.label)),
 			])
+		},
+	}
+`)
+// frappe-ui's SidebarItem split as it is: the row takes class, style and listeners, its button the
+// click and every other attribute, and the suffix sits beside the button, outside its click
+const sidebarItem = moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export default {
+		inheritAttrs: false,
+		props: ["active", "label", "icon", "onClick"],
+		setup(props, { attrs, slots }) {
+			const rowAttr = (key) => key === "class" || key === "style" || /^on[A-Z]/.test(key)
+			const split = (row) => Object.fromEntries(Object.entries(attrs).filter(([key]) => rowAttr(key) === row))
+			return () => h("div", { "data-stub": "SidebarItem", ...split(true) }, [
+				h("button", { type: "button", ...split(false), onClick: props.onClick }, [slots.prefix?.(), slots.default?.()]),
+				slots.suffix?.(),
+			])
+		},
+	}
+`)
+// frappe-ui's HoverCard as its trigger, and its card while open; a hover asks to open or close it
+const hoverCard = moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export default {
+		props: ["open"],
+		emits: ["update:open"],
+		setup(props, { slots, emit }) {
+			return () => h("div", {
+				"data-stub": "HoverCard",
+				onPointerenter: () => emit("update:open", true),
+				onPointerleave: () => emit("update:open", false),
+			}, [slots.trigger?.(), props.open ? h("div", { "data-card": "" }, slots.default?.()) : null])
 		},
 	}
 `)
@@ -116,6 +148,10 @@ async function componentURL(url) {
 		let resolved
 		if (specifier === "frappe-ui/src/components/Dropdown/Dropdown.vue") {
 			resolved = dropdown
+		} else if (specifier === "frappe-ui/src/components/HoverCard/HoverCard.vue") {
+			resolved = hoverCard
+		} else if (specifier === "frappe-ui/src/components/Sidebar/SidebarItem.vue") {
+			resolved = sidebarItem
 		} else if (specifier.endsWith(".vue")) {
 			const name = specifier.split("/").pop()
 			resolved = components.has(name) ? await componentURL(new URL(specifier, url)) : stubURL(name.slice(0, -4))

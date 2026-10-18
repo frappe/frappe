@@ -519,7 +519,7 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 	const el = mountPage(t);
 	const agent = () => el.querySelector("button[title^='The agent is fixed']");
 	await until(() => el.textContent.includes("Listed chat"));
-	[...el.querySelectorAll("[role=button]")]
+	[...el.querySelectorAll("[data-stub=SidebarItem]")]
 		.find((row) => row.textContent.includes("Listed chat"))
 		.click();
 	await until(() => pending.length === 1);
