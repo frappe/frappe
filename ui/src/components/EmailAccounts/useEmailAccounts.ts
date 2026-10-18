@@ -1,6 +1,11 @@
 import { reactive } from "vue";
 import { call, frappeRequest } from "frappe-ui";
-import { authKind, missingDefaults, newAccount } from "./services";
+import {
+  authKind,
+  markSignInStarted,
+  missingDefaults,
+  newAccount,
+} from "./services";
 import type {
   EmailAccount,
   EmailAccountDoc,
@@ -160,6 +165,7 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
           email_account: emailAccount,
         },
       );
+      if (!emailAccount) markSignInStarted();
       window.location.assign(url);
     },
 

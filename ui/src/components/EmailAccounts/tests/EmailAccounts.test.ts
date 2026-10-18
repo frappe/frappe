@@ -3,6 +3,7 @@ import { toast } from "frappe-ui";
 import { createApp, nextTick } from "vue";
 import type { App, VNode } from "vue";
 import EmailAccounts from "../EmailAccounts.vue";
+import { markSignInStarted } from "../services";
 
 const { call, request } = vi.hoisted(() => ({
   call: vi.fn(),
@@ -239,19 +240,29 @@ it("reports a new one-click mailbox only once its account loads", async () => {
   expect(onCreated).toHaveBeenCalledWith("GMail");
 });
 
+const defaultsSet = () =>
+  call.mock.calls
+    .filter(([method]) => method === "frappe.client.set_value")
+    .map(([, args]) => [args.name, args.fieldname, args.value]);
+
 it("makes a new one-click mailbox the default when no account is", async () => {
+  markSignInStarted();
   await landWith(
     "email_oauth=connected&email_oauth_mailbox=sales%40example.com",
   );
   await settle();
-  expect(
-    call.mock.calls
-      .filter(([method]) => method === "frappe.client.set_value")
-      .map(([, args]) => [args.name, args.fieldname, args.value]),
-  ).toEqual([
+  expect(defaultsSet()).toEqual([
     ["Sales", "default_incoming", 1],
     ["Sales", "default_outgoing", 1],
   ]);
+});
+
+it("changes no default for a sign-in result this tab did not start", async () => {
+  await landWith(
+    "email_oauth=connected&email_oauth_mailbox=sales%40example.com",
+  );
+  await settle();
+  expect(defaultsSet()).toEqual([]);
 });
 
 it("does not report a reconnected mailbox as created", async () => {

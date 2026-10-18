@@ -32,7 +32,7 @@ import { translate as __ } from "../../utils/translate";
 import AccountAdd from "./AccountAdd.vue";
 import AccountEdit from "./AccountEdit.vue";
 import AccountList from "./AccountList.vue";
-import { errorText, mailboxAddress, missingDefaults } from "./services";
+import { errorText, mailboxAddress, missingDefaults, takeSignInStarted } from "./services";
 import type { EmailAccount } from "./types";
 import { useEmailAccounts } from "./useEmailAccounts";
 
@@ -57,6 +57,7 @@ const controller = useEmailAccounts(props.doctype);
 const landing = new URL(window.location.href);
 const oauthResult = ref(landing.searchParams.get("email_oauth"));
 const mailbox = mailboxAddress(landing.searchParams.get("email_oauth_mailbox"));
+const signInStarted = Boolean(oauthResult.value) && takeSignInStarted();
 if (oauthResult.value) {
 	landing.searchParams.delete("email_oauth");
 	landing.searchParams.delete("email_oauth_mailbox");
@@ -109,6 +110,7 @@ if (connected) {
 			if (!account) return;
 			stop();
 			emit("created", account.service);
+			if (!signInStarted) return;
 			try {
 				for (const kind of missingDefaults(accounts, account)) {
 					await controller.setDefault(kind, account.name);
