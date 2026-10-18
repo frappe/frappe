@@ -1,5 +1,7 @@
+import contextlib
 import os
 import platform
+import signal
 import subprocess
 import threading
 import time
@@ -219,9 +221,22 @@ class ChromiumManager:
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace"
+				command_args,
+				stdout=subprocess.DEVNULL,
+				stderr=subprocess.PIPE,
+				text=True,
+				errors="replace",
+				start_new_session=True,
 			)
 		return self._chromium_process
+
+	def _signal_chromium(self, kill=False):
+		process = self._chromium_process
+		if platform.system().lower() == "windows":
+			process.kill() if kill else process.terminate()
+			return
+		with contextlib.suppress(ProcessLookupError):
+			os.killpg(process.pid, signal.SIGKILL if kill else signal.SIGTERM)
 
 	def _reap_orphaned_chromium(self):
 		"""Kill chromium processes leaked by dead workers.
@@ -303,7 +318,7 @@ class ChromiumManager:
 		chromium_output = "".join(output).strip() or "<no output on stderr>"
 
 		if exit_code is None:
-			self._chromium_process.terminate()
+			self._signal_chromium()
 			raise TimeoutError(
 				f"Chromium did not report a DevTools URL within {self.START_TIMEOUT}s. "
 				f"Raise `chromium_start_timeout` in site config if this machine is slow.\n"
@@ -329,11 +344,11 @@ class ChromiumManager:
 		if getattr(self, "USE_PERSISTENT_CHROMIUM", False):
 			return
 		if self._chromium_process:
-			self._chromium_process.terminate()
+			self._signal_chromium()
 			try:
 				self._chromium_process.wait(timeout=5)
 			except subprocess.TimeoutExpired:
-				self._chromium_process.kill()
+				self._signal_chromium(kill=True)
 				self._chromium_process.wait()
 		ChromiumManager._instance = None
 		self._chromium_process = None
