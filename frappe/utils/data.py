@@ -2122,7 +2122,7 @@ def get_absolute_url(doctype: str, name: str) -> str:
 
 	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/desk/sales-invoice/INV-00001'
 	"""
-	return f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
+	return f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
@@ -2134,7 +2134,7 @@ def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	if not name:
 		uri = f"/desk/{quoted(slug(doctype))}"
 	else:
-		uri = f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
+		uri = f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 	return get_url(uri=uri)
 
@@ -2159,9 +2159,9 @@ def get_url_to_report(name, report_type: str | None = None, doctype: str | None 
 	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/desk/sales-invoice/view/report/Revenue'
 	"""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quoted(name)}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quote(cstr(name), safe='')}")
 	else:
-		return get_url(uri=f"/desk/query-report/{quoted(name)}")
+		return get_url(uri=f"/desk/query-report/{quote(cstr(name), safe='')}")
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
@@ -2169,7 +2169,7 @@ def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None
 	if report_type == "Report Builder":
 		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report?{filters}")
 
-	return get_url(uri=f"/desk/query-report/{quoted(name)}?{filters}")
+	return get_url(uri=f"/desk/query-report/{quote(cstr(name), safe='')}?{filters}")
 
 
 def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:
