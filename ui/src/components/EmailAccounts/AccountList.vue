@@ -41,10 +41,7 @@
 					class="text-ink-gray-8 underline"
 				>
 					{{ __("How to turn it on") }}
-					<span
-						class="lucide-arrow-up-right inline-block size-3"
-						aria-hidden="true"
-					/>
+					<span class="lucide-arrow-up-right inline-block size-3" aria-hidden="true" />
 					<span class="sr-only">{{ __("(opens in new tab)") }}</span>
 				</a>
 			</template>
