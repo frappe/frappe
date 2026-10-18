@@ -87,7 +87,126 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
+<<<<<<< HEAD
 	def test_smart_shrinking_is_opt_in(self):
+=======
+	def test_password_with_output_writer_appends_pages(self):
+		from pypdf import PdfWriter
+
+		output = pdfgen.get_pdf("<p>first</p>", options={"password": "qwe"}, output=PdfWriter())
+		self.assertEqual(len(output.pages), 1)
+
+	def test_repeated_header_marked_hidden_pdf_still_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"><b>REPORT HEADER</b></div><p>report body</p>'
+		)
+		text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+		self.assertIn("REPORT HEADER", text)
+		self.assertIn("report body", text)
+
+	def test_empty_header_and_footer_are_skipped(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"></div><p>body text</p><div id="footer-html"></div>'
+		)
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_print_format_margins_keep_header_and_footer_on_every_page(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		rows = "".join(f"<p>row {i}</p>" for i in range(150))
+		pdf = pdfgen.get_pdf(
+			"<style>.print-format { margin-top: 30mm; margin-bottom: 20mm; }</style>"
+			'<div class="print-format"><div id="header-html"><b>TOP</b></div>'
+			f"{rows}"
+			'<div id="footer-html">Page <span class="page"></span> of <span class="topage"></span></div></div>'
+		)
+		pages = PdfReader(io.BytesIO(pdf)).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			text = page.extract_text()
+			self.assertIn("TOP", text)
+			self.assertIn(f"Page {number} of {len(pages)}", text)
+
+	def test_bulk_pdf_with_password_keeps_every_document(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"bulk {i}"}).insert().name for i in range(2)
+		]
+
+		_download_multi_pdf(
+			"ToDo", json.dumps(names), format="Standard", options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertGreaterEqual(len(reader.pages), 2)
+
+	def test_large_pdf_is_optimized_before_encryption(self):
+		import os
+
+		from PIL import Image
+
+		path = frappe.get_site_path("public", "files", "_test_large_photo.jpg")
+		Image.effect_noise((3000, 3000), 80).convert("RGB").save(path, quality=95)
+		self.addCleanup(os.remove, path)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		html = '<p>photo</p><img src="/files/_test_large_photo.jpg" style="width: 80px">'
+		self.assertLess(len(pdfgen.get_pdf(html)), pdfgen.LARGE_PDF_SIZE)
+
+		reader = PdfReader(io.BytesIO(pdfgen.get_pdf(html, {"password": "qwe"})))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+
+	def test_large_pdf_without_images_is_not_optimized(self):
+		from unittest.mock import patch
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		with (
+			patch.object(pdfgen, "LARGE_PDF_SIZE", 0),
+			patch.object(pdfgen, "optimize_pdf") as optimize_pdf,
+		):
+			pdfgen.get_pdf("<p>Renew the example.com domain</p>")
+
+		optimize_pdf.assert_not_called()
+
+	def test_large_pdf_with_translucent_image_is_optimized(self):
+		import os
+
+		from PIL import Image
+
+		path = frappe.get_site_path("public", "files", "_test_translucent_photo.jpg")
+		Image.effect_noise((3000, 3000), 80).convert("RGB").save(path, quality=95)
+		self.addCleanup(os.remove, path)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		html = '<img src="/files/_test_translucent_photo.jpg" style="width: 80px; opacity: 0.5">'
+		self.assertLess(len(pdfgen.get_pdf(html)), pdfgen.LARGE_PDF_SIZE)
+
+	def test_pdf_visibility_classes_apply_to_the_body(self):
+		pdf = pdfgen.get_pdf(
+			"<style>.visible-pdf { display: none; }</style>"
+			'<p class="hidden-pdf">screen only</p><p class="visible-pdf">pdf only</p>'
+		)
+		text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+		self.assertIn("pdf only", text)
+		self.assertNotIn("screen only", text)
+
+	def test_on_print_pdf_hook_runs_for_chrome_prints(self):
+>>>>>>> 89c0462 (test(pdf): large pdfs without images skip optimization)
 		from unittest.mock import patch
 
 		captured = {}
