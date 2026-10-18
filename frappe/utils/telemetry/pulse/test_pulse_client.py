@@ -315,7 +315,7 @@ class TestBootConfig(TestPulseClient):
 	def test_boot_config_when_enabled(self, mock_enabled):
 		"""Test the config frappe-ui apps load the pulse client with"""
 		conf = {"pulse_api_key": "k", "pulse_host": "pulse.example.com/", "fc_team": "team_x"}
-		with patch.dict(frappe.conf, conf):
+		with patch.dict(frappe.conf, conf), patch("frappe.utils.telemetry.site_age", return_value=3):
 			config = boot_config()
 
 		self.assertTrue(config["enabled"])
@@ -324,7 +324,7 @@ class TestBootConfig(TestPulseClient):
 		self.assertEqual(config["key"], "k")
 		self.assertEqual(config["site"], frappe.local.site)
 		self.assertEqual(config["team"], "team_x")
-		self.assertGreaterEqual(config["site_age"], 1)
+		self.assertEqual(config["site_age"], 3)
 
 	@patch("frappe.utils.telemetry.pulse.client.is_enabled", return_value=True)
 	def test_boot_config_user(self, mock_enabled):
