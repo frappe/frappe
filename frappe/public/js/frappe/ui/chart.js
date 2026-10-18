@@ -3,7 +3,21 @@ import { Chart } from "frappe-charts/dist/frappe-charts.esm";
 import { is_legacy_chart_config } from "./island/chart/legacy_config.js";
 
 frappe.provide("frappe.ui");
-frappe.Chart = Chart;
+
+frappe.Chart = class extends Chart {
+	constructor(...args) {
+		deprecated("frappe.Chart", "use frappe.ui.chart");
+		super(...args);
+	}
+};
+
+const warned = new Set();
+
+function deprecated(name, advice) {
+	if (warned.has(name)) return;
+	warned.add(name);
+	console.warn(`${name} is deprecated, ${advice}`);
+}
 
 /**
  * Draws a chart into `el` and returns its handle at once.
@@ -15,7 +29,7 @@ frappe.Chart = Chart;
  * `config` is a frappe-ui chart config. A frappe-charts config (`data.labels` /
  * `data.datasets`, heatmap `data.dataPoints`) is converted, and its handle also carries `data`
  * and `draw()`. While System Settings keeps classic charts, frappe-charts draws it and the
- * handle is the `frappe.Chart` itself. See
+ * handle is the frappe-charts chart itself. See
  * ui/island/decisions/0016-desk-charts-are-frappe-ui-charts.md.
  *
  * @param {HTMLElement|JQuery} el
@@ -86,13 +100,26 @@ function legacy_island_chart(el, config) {
 }
 
 function classic_chart(el, config) {
-	const chart = new frappe.Chart(el, config);
+	const chart = new Chart(el, config);
 	chart.ready = Promise.resolve(chart);
 	return chart;
 }
 
-frappe.ui.RealtimeChart = class RealtimeChart extends frappe.Chart {
+frappe.utils.make_chart = function (wrapper, custom_options = {}) {
+	deprecated("frappe.utils.make_chart", "use frappe.ui.chart");
+	// a chart that names no colours of its own gets Espresso's
+	if (!custom_options.colors?.length) {
+		custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
+	}
+	return new Chart(wrapper, frappe.utils.get_chart_args(custom_options));
+};
+
+frappe.ui.RealtimeChart = class RealtimeChart extends Chart {
 	constructor(element, socketEvent, maxLabelPoints = 8, data) {
+		deprecated(
+			"frappe.ui.RealtimeChart",
+			"call frappe.ui.chart and update(data) with the growing data object"
+		);
 		super(element, data);
 		if (data.data.datasets[0].values.length > maxLabelPoints) {
 			frappe.throw(

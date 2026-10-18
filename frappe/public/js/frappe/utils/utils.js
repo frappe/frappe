@@ -1605,14 +1605,6 @@ Object.assign(frappe.utils, {
 		return exists;
 	},
 
-	make_chart(wrapper, custom_options = {}) {
-		// a chart that names no colours of its own gets Espresso's
-		if (!custom_options.colors?.length) {
-			custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
-		}
-		return new frappe.Chart(wrapper, frappe.utils.get_chart_args(custom_options));
-	},
-
 	get_chart_args(custom_options = {}) {
 		let chart_args = {
 			type: "bar",

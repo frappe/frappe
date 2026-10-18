@@ -10,9 +10,11 @@ Values read the way desk prints a field. `fieldtype`, `options` and `precision`,
 
 The frappe-charts shape (`data.labels` / `data.datasets`, heatmap `data.dataPoints`) is an input, not a second contract. `legacy_config.js` converts it inside the island, in one place, and every render point and every saved `custom_options` goes through that one conversion. A key it has no equivalent for is dropped. In developer mode it warns once per key. A frappe-charts pie draws as a donut.
 
-The flag lives in `frappe.ui.chart` and nowhere else. A legacy config draws with frappe-charts while System Settings' `use_classic_charts` is on. Any other config always draws with the island. Render points call `frappe.ui.chart` unconditionally. A caller whose classic path differs asks `frappe.ui.chart.is_classic(config)`, so the setting's name stays in one file. A classic chart's handle is the `frappe.Chart` itself, so an app that reaches into it keeps working while the setting is on. The island's handle for a legacy config keeps the `data` and `draw()` that apps already reach for, and nothing else of `frappe.Chart`.
+The flag lives in `frappe.ui.chart` and nowhere else. A legacy config draws with frappe-charts while System Settings' `use_classic_charts` is on. Any other config always draws with the island. Render points call `frappe.ui.chart` unconditionally. A caller whose classic path differs asks `frappe.ui.chart.is_classic(config)`, so the setting's name stays in one file. A classic chart's handle is the frappe-charts chart itself, so an app that reaches into it keeps working while the setting is on. The island's handle for a legacy config keeps the `data` and `draw()` that apps already reach for, and nothing else of `frappe.Chart`.
 
 `frappe.Chart`, `frappe.utils.make_chart` and `frappe.ui.RealtimeChart` stay frappe-charts, unchanged. Apps that call them keep what they draw.
+
+Each is deprecated. It warns once per page, the first time an app calls it, and names `frappe.ui.chart`. Removal waits for a later major release. Desk's own paths, `frappe.ui.chart` under classic charts included, hold their own reference to frappe-charts and never warn. The old calls are not shimmed onto the island: an app that reaches into a frappe-charts instance would break with no warning, where the warning lets it move while its chart still draws. See the rejected compat shim below.
 
 ## Rejected: the frappe-charts shape stays the contract
 

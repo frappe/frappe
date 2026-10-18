@@ -100,4 +100,54 @@ test.describe("Desk charts", () => {
 		await expect_frappe_charts(await open_dashboard_chart(page));
 		await expect_frappe_charts(await open_report_chart(page));
 	});
+
+	test("the old chart APIs warn once, frappe.ui.chart never", async ({ page, admin, desk }) => {
+		await set_classic_charts(admin, 1);
+		await page.goto("/desk/todo");
+		await desk.ready();
+
+		const result = await page.evaluate(() => {
+			const warn = console.warn;
+			const warnings = [];
+			console.warn = (message) => warnings.push(message);
+
+			const config = () => ({
+				type: "bar",
+				data: { labels: ["Open", "Closed"], datasets: [{ values: [3, 5] }] },
+			});
+			const draw = (make) => {
+				const el = document.createElement("div");
+				document.body.append(el);
+				return make(el);
+			};
+
+			const result = {};
+			try {
+				result.is_classic = frappe.ui.chart.is_classic(config());
+				draw((el) => frappe.ui.chart(el, config()));
+				result.after_chart = [...warnings];
+
+				draw((el) => new frappe.ui.RealtimeChart(el, "chart_test", 8, config()));
+				result.after_realtime = [...warnings];
+
+				const charts = [1, 2].map(() => draw((el) => new frappe.Chart(el, config())));
+				result.draws_frappe_charts = charts.every((chart) => chart.addDataPoint);
+				result.after_frappe_chart = [...warnings];
+			} finally {
+				console.warn = warn;
+			}
+			return result;
+		});
+
+		expect(result.is_classic).toBe(true);
+		expect(result.after_chart).toEqual([]);
+		expect(result.after_realtime).toEqual([
+			"frappe.ui.RealtimeChart is deprecated, call frappe.ui.chart and update(data) with the growing data object",
+		]);
+		expect(result.draws_frappe_charts).toBe(true);
+		expect(result.after_frappe_chart).toEqual([
+			...result.after_realtime,
+			"frappe.Chart is deprecated, use frappe.ui.chart",
+		]);
+	});
 });
