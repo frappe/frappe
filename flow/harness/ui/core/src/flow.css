@@ -30,24 +30,33 @@
 	background: color-mix(in srgb, var(--ink-gray-9) 10%, transparent);
 }
 
-/* Floating "Add to chat" pill rendered as a monaco content widget */
+/* Floating "Add to chat" pill: over a thread selection, and as a monaco content
+   widget (which sets display: block, so line-height sizes it, not flex) */
 .flow-add-to-chat {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
 	margin-bottom: 4px;
-	padding: 4px 8px;
+	padding: 5px 10px;
 	border: 1px solid var(--outline-gray-2);
-	border-radius: 6px;
-	background: var(--surface-base);
+	border-radius: 8px;
+	background: var(--surface-elevation-2);
 	color: var(--ink-gray-8);
-	font-size: 12px;
+	font-size: 13px;
 	font-weight: 500;
-	line-height: 1;
+	line-height: 16px;
 	white-space: nowrap;
-	box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+	box-shadow: var(--elevation-md);
 	cursor: pointer;
+	animation: flow-reveal 0.12s ease-out;
 }
 .flow-add-to-chat:hover {
 	background: var(--surface-gray-2);
 	color: var(--ink-gray-9);
+}
+/* dark gray-2 is the pill's own surface: step one further */
+[data-theme="dark"] .flow-add-to-chat:hover {
+	background: var(--surface-gray-3);
 }
 
 .flow-icon-btn {

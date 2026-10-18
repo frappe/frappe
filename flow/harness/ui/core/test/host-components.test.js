@@ -5,7 +5,7 @@ import { JSDOM } from "jsdom"
 
 // Vue's DOM runtime captures document at import time.
 const dom = new JSDOM("<body></body>", { url: "http://localhost" })
-for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement", "Node"]) {
+for (const name of ["window", "document", "Document", "Element", "SVGElement", "HTMLElement", "Node", "NodeFilter"]) {
 	globalThis[name] = dom.window[name]
 }
 dom.window.HTMLElement.prototype.scrollIntoView = () => {}
@@ -60,10 +60,16 @@ function mount(t, component, props, flow) {
 const box = (left, top, right, bottom) => ({ left, top, right, bottom, width: right - left, height: bottom - top })
 function measure(t, boxes) {
 	const protos = { element: dom.window.Element.prototype, range: dom.window.Range.prototype }
-	const before = { element: protos.element.getBoundingClientRect, range: protos.range.getBoundingClientRect }
+	const before = { element: protos.element.getBoundingClientRect, range: protos.range.getBoundingClientRect, lines: protos.range.getClientRects }
 	for (const kind of ["element", "range"]) protos[kind].getBoundingClientRect = () => boxes[kind]
+	// a text piece's line boxes: what the test lists for its text, else the range's one box
+	protos.range.getClientRects = function () {
+		if (!this.toString().trim()) return [] // collapsed, or whitespace between blocks
+		return boxes.lines?.[this.startContainer.data] ?? [boxes.range]
+	}
 	t.after(() => {
 		for (const kind of ["element", "range"]) protos[kind].getBoundingClientRect = before[kind]
+		protos.range.getClientRects = before.lines
 	})
 }
 
@@ -489,14 +495,17 @@ test("selecting text in the thread shows Add to chat, which quotes it for the co
 	const { el } = mount(t, MessageList, {}, flow)
 	await nextTick()
 	const pill = () => el.querySelector(".flow-add-to-chat")
-	const select = (node) => {
-		const range = document.createRange()
-		range.selectNodeContents(node)
+	const selectRange = (range) => {
 		document.getSelection().removeAllRanges()
 		document.getSelection().addRange(range)
 		t.mock.timers.tick(150) // jsdom's queued selectionchange arms the pill
 		t.mock.timers.tick(150) // the debounce
 		return nextTick()
+	}
+	const select = (node) => {
+		const range = document.createRange()
+		range.selectNodeContents(node)
+		return selectRange(range)
 	}
 
 	await select(el.querySelector("[data-prompt-key] .whitespace-pre-wrap"))
@@ -505,6 +514,21 @@ test("selecting text in the thread shows Add to chat, which quotes it for the co
 	assert.equal(pill().style.left, "200px")
 	assert.equal(pill().style.top, "200px")
 	assert.ok(pill().style.transform.includes("-100%"))
+	// over several lines the box spans the column: the pill stays over the first line…
+	boxes.range = box(0, 200, 800, 268)
+	boxes.lines = { "the daemon pins the list": [box(100, 200, 160, 220), box(0, 224, 800, 244), box(0, 248, 240, 268)] }
+	document.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.equal(pill().style.left, "130px")
+	assert.equal(pill().style.top, "200px")
+	// …or goes under the last one when there is no room above
+	boxes.range = box(0, 10, 800, 78)
+	boxes.lines = { "the daemon pins the list": [box(100, 10, 160, 30), box(0, 34, 800, 54), box(0, 58, 240, 78)] }
+	document.dispatchEvent(new window.Event("scroll"))
+	await nextTick()
+	assert.equal(pill().style.left, "120px")
+	assert.equal(pill().style.top, "78px")
+	delete boxes.lines
 
 	// scrolled out of view, the selection takes the pill with it; scrolled back, it returns
 	boxes.range = box(100, -40, 300, -20)
@@ -521,13 +545,38 @@ test("selecting text in the thread shows Add to chat, which quotes it for the co
 	boxes.range = box(100, -40, 300, 900)
 	document.dispatchEvent(new window.Event("scroll"))
 	await nextTick()
-	assert.equal(pill().style.top, "570px")
+	assert.equal(pill().style.top, "564px")
 
 	pill().click()
 	await nextTick()
 	assert.deepEqual(quotes, ["the daemon pins the list"])
 	assert.equal(document.getSelection().rangeCount, 0)
 	assert.equal(pill(), null)
+
+	// bold and italic split a line into runs, and a drag from the end of the line above
+	// covers whole blocks: either way the pill centers on the first line's selected text
+	const block = document.createElement("div")
+	block.innerHTML = "<p>Here it is:</p>\n<p><strong>Done</strong> so <em>far</em></p>"
+	el.querySelector(".flow-thread").append(block)
+	const [intro, line] = block.querySelectorAll("p")
+	const far = line.querySelector("em").firstChild
+	boxes.range = box(0, 260, 800, 320)
+	boxes.lines = {
+		"Here it is:": [box(0, 260, 90, 280)],
+		Done: [box(100, 300, 140, 320)],
+		" so ": [box(140, 300, 170, 320)],
+		far: [box(170, 300, 200, 320)],
+	}
+	for (const [node, offset] of [[line.querySelector("strong").firstChild, 0], [intro.firstChild, "Here it is:".length]]) {
+		const range = document.createRange()
+		range.setStart(node, offset)
+		range.setEnd(far, far.length)
+		await selectRange(range)
+		assert.equal(pill().style.left, "150px")
+		assert.equal(pill().style.top, "300px")
+	}
+	delete boxes.lines
+	block.remove()
 
 	// text outside the thread is not the thread's to quote
 	const outside = document.createElement("p")
