@@ -16,7 +16,7 @@
 				:is="flow.state.sessionId ? 'span' : 'button'"
 				v-if="cwd"
 				class="hidden min-w-0 flex-none items-center gap-1.5 text-sm text-ink-gray-5 sm:flex"
-				:class="!flow.state.sessionId && 'rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8'"
+				:class="!flow.state.sessionId && '-mx-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8'"
 				:title="flow.state.sessionId ? undefined : 'Change working directory'"
 				@click="!flow.state.sessionId && chooseFolder()"
 			>
