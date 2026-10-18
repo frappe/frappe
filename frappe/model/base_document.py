@@ -816,7 +816,9 @@ class BaseDocument:
 				# usable, which catching the error below would not.
 				conflict_handler = "on conflict do nothing"
 		elif ignore_if_duplicate and frappe.db.db_type == "sqlite":
-			conflict_handler = "on conflict (name) do nothing"
+			# Any unique index, not only the primary key: `on conflict (name)` would
+			# still abort on secondary unique indexes (e.g. `module_name` on Module Def).
+			conflict_handler = "on conflict do nothing"
 
 		if not self.creation:
 			self.creation = self.modified = now()

@@ -230,6 +230,30 @@ class TestBaseDocument(IntegrationTestCase):
 			self.assertTrue(hasattr(unpickled_instance, "on_update"))
 			self.assertTrue(hasattr(unpickled_instance, "validate"))
 
+	def test_db_insert_ignore_if_duplicate_covers_secondary_unique_indexes(self):
+		"""ignore_if_duplicate must skip rows conflicting on any unique index,
+		not only the primary key (Module Def's module_name on sqlite, #44524)."""
+		module_name = "_Test Ignore If Duplicate Module"
+		frappe.db.delete("Module Def", {"module_name": module_name})
+		self.addCleanup(frappe.db.delete, "Module Def", {"module_name": module_name})
+
+		frappe.get_doc({"doctype": "Module Def", "module_name": module_name}).insert()
+
+		# Same module_name (secondary unique index), different name (primary key):
+		# only the secondary unique index conflicts.
+		doc = frappe.get_doc({"doctype": "Module Def", "module_name": module_name})
+		doc.name = f"{module_name} Alt"
+
+		doc.db_insert(ignore_if_duplicate=True)
+
+		if frappe.db.db_type in ("sqlite", "postgres"):
+			# The row must be skipped by the engine itself, not by raising and
+			# swallowing an IntegrityError inside db_insert's except block.
+			self.assertIn("on conflict do nothing", frappe.db.last_query.lower())
+			self.assertNotIn("on conflict (name)", frappe.db.last_query.lower())
+
+		self.assertEqual(frappe.db.count("Module Def", {"module_name": module_name}), 1)
+
 	def test_get_valid_dict_json_field_with_list(self):
 		"""Test that get_valid_dict properly handles and serializes JSON fields with list values."""
 		from frappe import _dict
