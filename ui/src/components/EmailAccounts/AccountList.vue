@@ -93,7 +93,7 @@
 				<ul
 					ref="rows"
 					:aria-labelledby="ids.heading"
-					class="mt-2 divide-y divide-outline-gray-1 border-t border-outline-gray-1"
+					class="mt-2 divide-y divide-outline-gray-2 border-t border-outline-gray-2"
 				>
 					<li v-for="account in controller.accounts" :key="account.name">
 						<div class="-mx-3 flex rounded-4 hover:bg-surface-gray-1">
@@ -161,7 +161,7 @@
 					{{ __("Default settings") }}
 				</h3>
 				<!-- SettingsRow can't take the smaller text-p-sm description these settings use -->
-				<div class="flex flex-col divide-y divide-outline-gray-1">
+				<div class="flex flex-col divide-y divide-outline-gray-2">
 					<div class="flex items-center gap-8 py-3.5">
 						<div class="min-w-0 flex-1">
 							<label

@@ -106,7 +106,7 @@
 				</div>
 			</div>
 		</template>
-		<div class="flex flex-col divide-y divide-outline-gray-1">
+		<div class="flex flex-col divide-y divide-outline-gray-2">
 			<SettingsRow
 				v-if="!service.outgoingOnly"
 				:title="__('Receive email')"
