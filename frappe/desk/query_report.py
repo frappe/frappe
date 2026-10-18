@@ -354,14 +354,6 @@ def _run(
 
 
 def add_custom_column_data(custom_columns, result):
-	doctype_names_from_custom_field = []
-	for column in custom_columns:
-		if len(column["fieldname"].split("-")) > 1:
-			# length greater than 1, means that the column is a custom field with conflicting fieldname
-			doctype_name = frappe.unscrub(column["fieldname"].split("-")[1])
-			doctype_names_from_custom_field.append(doctype_name)
-		column["fieldname"] = column["fieldname"].split("-")[0]
-
 	pending_columns = custom_columns
 
 	while pending_columns:
@@ -386,8 +378,6 @@ def add_custom_column_data(custom_columns, result):
 				# possible if the row is empty
 				if not row_reference:
 					continue
-				if key[0] in doctype_names_from_custom_field:
-					column["fieldname"] = column.get("id")
 				row[column.get("fieldname")] = custom_column_data.get(key).get(row_reference)
 
 		if len(unresolved_columns) == len(pending_columns):
@@ -933,8 +923,9 @@ def get_data_for_custom_report(columns, result):
 			names = list(set(names))
 
 			if names:
+				# a fieldname clashing with a report column comes as `fieldname-doctype`
 				doc_field_value_map[(doctype, fieldname)] = get_data_for_custom_field(
-					doctype, fieldname, names
+					doctype, fieldname.split("-")[0], names
 				)
 	return doc_field_value_map
 
