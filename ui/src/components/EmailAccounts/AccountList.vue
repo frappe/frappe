@@ -19,44 +19,54 @@
 				@click="emit('add')"
 			/>
 		</div>
+		<Banner
+			v-if="oauthResult"
+			class="mt-6 shrink-0"
+			:theme="oauthResult === 'cancelled' ? 'gray' : 'red'"
+			:title="
+				oauthMailbox
+					? __('Couldn\'t connect {0}', [oauthMailbox])
+					: __('Couldn\'t connect the mailbox')
+			"
+			dismissible
+			@dismiss="dismissResult"
+		>
+			<template #description>
+				{{ oauthMessage(oauthResult) }}
+				<a
+					v-if="oauthResult === 'smtp_disabled'"
+					href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission#enable-smtp-auth-for-specific-mailboxes"
+					target="_blank"
+					rel="noopener"
+					class="text-ink-gray-8 underline"
+				>
+					{{ __("How to turn it on") }}
+					<span
+						class="lucide-arrow-up-right inline-block size-3"
+						aria-hidden="true"
+					/>
+					<span class="sr-only">{{ __("(opens in new tab)") }}</span>
+				</a>
+			</template>
+		</Banner>
 		<div
 			v-if="controller.loading && !controller.accounts.length && !controller.error"
 			class="flex flex-1 items-center justify-center"
 		>
 			<Spinner size="lg" class="text-ink-gray-5" />
 		</div>
+		<div
+			v-else-if="!controller.error && !controller.accounts.length"
+			class="flex flex-1 flex-col items-center justify-center gap-2 text-center"
+		>
+			<span class="lucide-mail size-6 text-ink-gray-5" aria-hidden="true" />
+			<p class="text-base-medium text-ink-gray-8">{{ __("No email accounts yet") }}</p>
+			<p class="text-p-sm text-ink-gray-6">
+				{{ __("Add one to start sending and receiving email.") }}
+			</p>
+			<Button class="mt-2" :label="__('New email account')" @click="emit('add')" />
+		</div>
 		<ScrollArea v-else class="-mx-3 min-h-0 flex-1" viewport-class="px-3">
-			<Banner
-				v-if="oauthResult"
-				class="mt-6"
-				:theme="oauthResult === 'cancelled' ? 'gray' : 'red'"
-				:title="
-					oauthMailbox
-						? __('Couldn\'t connect {0}', [oauthMailbox])
-						: __('Couldn\'t connect the mailbox')
-				"
-				dismissible
-				@dismiss="dismissResult"
-			>
-				<template #description>
-					{{ oauthMessage(oauthResult) }}
-					<a
-						v-if="oauthResult === 'smtp_disabled'"
-						href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission#enable-smtp-auth-for-specific-mailboxes"
-						target="_blank"
-						rel="noopener"
-						class="text-ink-gray-8 underline"
-					>
-						{{ __("How to turn it on") }}
-						<span
-							class="lucide-arrow-up-right inline-block size-3"
-							aria-hidden="true"
-						/>
-						<span class="sr-only">{{ __("(opens in new tab)") }}</span>
-					</a>
-				</template>
-			</Banner>
-
 			<Banner
 				v-if="controller.error"
 				ref="loadError"
@@ -74,18 +84,6 @@
 					/>
 				</template>
 			</Banner>
-			<div
-				v-else-if="!controller.accounts.length"
-				class="mt-16 flex flex-col items-center gap-2 text-center"
-			>
-				<span class="lucide-mail size-6 text-ink-gray-5" aria-hidden="true" />
-				<p class="text-base-medium text-ink-gray-8">{{ __("No email accounts yet") }}</p>
-				<p class="text-p-sm text-ink-gray-6">
-					{{ __("Add one to start sending and receiving email.") }}
-				</p>
-				<Button class="mt-2" :label="__('New email account')" @click="emit('add')" />
-			</div>
-
 			<template v-else>
 				<p class="mt-6 text-sm text-ink-gray-5">
 					{{ __("Email account name") }}
