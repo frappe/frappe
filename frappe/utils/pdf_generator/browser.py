@@ -279,7 +279,9 @@ class Browser:
 		if any(self.options.get(key) for key in ("page-size", "page-width", "page-height")):
 			return
 		css = "".join(cstr(tag.string) for tag in self.soup.find_all("style"))
-		self.options.update(get_page_rule_size(css))
+		for key, value in get_page_rule_size(css).items():
+			if not self.options.get(key):
+				self.options[key] = value
 
 	def _get_print_format_page_margins(self):
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer

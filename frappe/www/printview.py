@@ -745,9 +745,15 @@ def get_page_rule_properties(css: str):
 	import cssutils
 
 	cssutils.log.setLog(frappe.logger("cssutils"))
-	for rule in cssutils.parseString(css):
+	rules = list(cssutils.parseString(css))
+	while rules:
+		rule = rules.pop(0)
 		if isinstance(rule, cssutils.css.CSSPageRule) and not rule.selectorText:
 			yield from rule.style
+		elif isinstance(rule, cssutils.css.CSSMediaRule) and {"all", "print"} & {
+			medium.strip().lower() for medium in rule.media.mediaText.split(",")
+		}:
+			rules[:0] = list(rule.cssRules)
 
 
 def get_page_rule_margins(css: str) -> dict[str, str]:
@@ -776,30 +782,37 @@ def get_page_rule_margins(css: str) -> dict[str, str]:
 
 
 def get_page_rule_size(css: str) -> dict[str, str]:
-	from frappe.utils.pdf_generator.browser import PageSize
-
-	page_sizes = {name.lower(): name for name in PageSize.page_sizes}
 	size = {}
+	important = False
 	for prop in get_page_rule_properties(css):
-		if prop.name != "size":
+		if prop.name != "size" or (important and not prop.priority):
 			continue
-		parts = prop.value.split()
-		if 0 < len(parts) <= 2 and all(re.fullmatch(PAGE_LENGTH, part) for part in parts):
-			size = {"page-width": parts[0], "page-height": parts[-1]}
-			continue
-		options = {}
-		for part in parts:
-			if part.lower() in ("portrait", "landscape"):
-				options["orientation"] = part.lower()
-			elif part.lower() in page_sizes:
-				options["page-size"] = page_sizes[part.lower()]
-			else:
-				options = {}
-				break
-		if options:
-			size = options
+		if (value := parse_page_size(prop.value)) is not None:
+			size = value
+			important = important or bool(prop.priority)
 
 	return size
+
+
+def parse_page_size(value: str) -> dict[str, str] | None:
+	from frappe.utils.pdf_generator.browser import PageSize
+
+	page_sizes = {name.lower(): dimensions for name, dimensions in PageSize.page_sizes.items()}
+	parts = value.lower().split()
+	if parts == ["auto"]:
+		return {}
+	if 0 < len(parts) <= 2 and all(re.fullmatch(PAGE_LENGTH, part) for part in parts):
+		return {"page-width": parts[0], "page-height": parts[-1]}
+	size = {}
+	for part in parts:
+		if part in ("portrait", "landscape") and "orientation" not in size:
+			size["orientation"] = part
+		elif part in page_sizes and "page-width" not in size:
+			width, height = sorted(page_sizes[part])
+			size |= {"page-width": f"{width}mm", "page-height": f"{height}mm"}
+		else:
+			return None
+	return size or None
 
 
 def get_font(
