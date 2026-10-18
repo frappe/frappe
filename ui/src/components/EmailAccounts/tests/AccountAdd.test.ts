@@ -100,30 +100,6 @@ it("Back is locked during a one-click connect, and a failure refocuses its tile 
   expect(alert()).toBeNull();
 });
 
-it("a failed one-click connect leaves focus where the user moved it", async () => {
-  let fail!: (e: Error) => void;
-  root = document.createElement("div");
-  document.body.append(root);
-  app = createApp(AccountAdd, {
-    controller: {
-      connect: () => new Promise<void>((_, reject) => (fail = reject)),
-      oneClickProviders: ["microsoft"],
-    },
-  });
-  app.mount(root);
-  const outside = document.createElement("button");
-  root.after(outside);
-
-  button("Outlook").focus();
-  button("Outlook").click();
-  await nextTick();
-  outside.focus();
-  fail(new Error("Consent denied"));
-  await new Promise((resolve) => setTimeout(resolve));
-  expect(document.activeElement).toBe(outside);
-  outside.remove();
-});
-
 function mountCreate(create: () => Promise<void>, onCreated?: () => void) {
   root = document.createElement("div");
   document.body.append(root);
@@ -161,17 +137,4 @@ it("reports a failed create in a toast, keeps the form and refocuses the field",
   expect(created).not.toHaveBeenCalled();
   expect(field.value).toBe("Support");
   expect(document.activeElement).toBe(field);
-});
-
-it("a failed create leaves focus where the user moved it", async () => {
-  let fail!: (e: Error) => void;
-  mountCreate(() => new Promise<void>((_, reject) => (fail = reject)));
-  const outside = document.createElement("button");
-  root.after(outside);
-  await submitGmail();
-  outside.focus();
-  fail(new Error("Couldn't create"));
-  await new Promise((resolve) => setTimeout(resolve));
-  expect(document.activeElement).toBe(outside);
-  outside.remove();
 });

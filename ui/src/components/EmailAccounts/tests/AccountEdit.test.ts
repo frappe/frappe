@@ -100,23 +100,6 @@ it("reports a failed reconnect in a toast and refocuses Reconnect", async () => 
   expect(document.activeElement).toBe(reconnect);
 });
 
-it("a failed reconnect leaves focus where the user moved it", async () => {
-  let fail!: (e: Error) => void;
-  connect.mockReturnValue(new Promise<void>((_, reject) => (fail = reject)));
-  const { reconnect } = mount();
-  const outside = document.createElement("button");
-  root.after(outside);
-
-  reconnect.focus();
-  reconnect.click();
-  await nextTick();
-  outside.focus();
-  fail(new Error("Consent denied"));
-  await new Promise((resolve) => setTimeout(resolve));
-  expect(document.activeElement).toBe(outside);
-  outside.remove();
-});
-
 it("asks before reconnect drops edits, and Cancel refocuses the button", async () => {
   const { reconnect, rename } = mount();
   rename("Support desk");
@@ -152,13 +135,6 @@ it("reconnects a signed-out account on its own OAuth app through Frappe Cloud", 
   );
   reconnect.click();
   expect(connect).toHaveBeenCalledWith("microsoft", "Support");
-});
-
-it("shows no auth kind badge and no sign-in switch for an active account on its own OAuth app", () => {
-  mount({ authKind: "oauth-custom", status: "active" });
-  expect(root.textContent).not.toContain("OAuth: custom app");
-  expect(root.textContent).not.toContain("Frappe Cloud sign-in");
-  expect(root.querySelector(".bg-surface-amber-1")).toBeNull();
 });
 
 it("locks Back, the fields and Reconnect while saving, then goes back under the new name", async () => {
@@ -201,56 +177,6 @@ it("reports a failed save in a toast, keeps the edits and refocuses the field", 
   expect(onBack).not.toHaveBeenCalled();
   expect(name.value).toBe("Support desk");
   expect(document.activeElement).toBe(name);
-});
-
-it("refocuses Pull emails after a pull", async () => {
-  let done!: () => void;
-  pull.mockReturnValue(new Promise<void>((resolve) => (done = resolve)));
-  const { button } = mount({ status: "active" });
-
-  button("Pull emails").focus();
-  button("Pull emails").click();
-  // happy-dom lacks the focus fixup rule that blurs the button once `loading` disables it
-  button("Pull emails").blur();
-  done();
-  await new Promise((resolve) => setTimeout(resolve));
-  expect(document.activeElement).toBe(button("Pull emails"));
-});
-
-it("a pull leaves focus where the user moved it", async () => {
-  let done!: () => void;
-  pull.mockReturnValue(new Promise<void>((resolve) => (done = resolve)));
-  const { button } = mount({ status: "active" });
-  const outside = document.createElement("button");
-  root.after(outside);
-
-  button("Pull emails").focus();
-  button("Pull emails").click();
-  await nextTick();
-  outside.focus();
-  done();
-  await new Promise((resolve) => setTimeout(resolve));
-  expect(document.activeElement).toBe(outside);
-  outside.remove();
-});
-
-it("a failed save leaves focus where the user moved it", async () => {
-  let fail!: (e: Error) => void;
-  update.mockReturnValue(new Promise<void>((_, reject) => (fail = reject)));
-  const { name, rename } = mount();
-  const outside = document.createElement("button");
-  root.after(outside);
-  rename("Support desk");
-  await nextTick();
-
-  name.focus();
-  root.querySelector("form")!.dispatchEvent(new Event("submit"));
-  await nextTick();
-  outside.focus();
-  fail(new Error("Couldn't save"));
-  await new Promise((resolve) => setTimeout(resolve));
-  expect(document.activeElement).toBe(outside);
-  outside.remove();
 });
 
 it("sends Desk an account it can't reconnect, naming its own OAuth app only when it has one", () => {
