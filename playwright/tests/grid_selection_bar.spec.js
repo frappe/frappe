@@ -101,6 +101,24 @@ test.describe("Grid Selection Bar", () => {
 		await expect(menu_item("Duplicate")).toHaveCount(0);
 	});
 
+	test("hides delete and duplicate on a sortable only grid", async ({ page }) => {
+		const table = get_table(page);
+		const menu_item = (label) =>
+			page.locator('.es-menu [role="menuitem"]', { hasText: label });
+
+		await page.waitForFunction(() => window.cur_frm?.get_field("phone_nos"));
+		await page.evaluate(() => {
+			const grid = cur_frm.get_field("phone_nos").grid;
+			grid.only_sortable();
+			grid.refresh();
+		});
+
+		await table.locator('.grid-row[data-idx="1"] .grid-row-check').click();
+		await get_bar(page).getByRole("button", { name: "Actions" }).click();
+		await expect(menu_item("Delete")).toHaveCount(0);
+		await expect(menu_item("Duplicate")).toHaveCount(0);
+	});
+
 	test("runs row remove events when every row is deleted", async ({ page }) => {
 		const table = page.locator('.frappe-control[data-fieldname="email_ids"]');
 

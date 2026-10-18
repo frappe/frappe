@@ -60,7 +60,8 @@ export default class GridSelectionBar {
 
 	get_actions() {
 		const { grid } = this;
-		const can_add_rows = !(grid.cannot_add_rows || grid.df.cannot_add_rows);
+		const editable = grid.is_editable();
+		const can_add_rows = editable && !(grid.cannot_add_rows || grid.df.cannot_add_rows);
 
 		const built_in = {
 			edit: grid.frm &&
@@ -74,12 +75,13 @@ export default class GridSelectionBar {
 				icon: "copy",
 				onclick: () => grid.duplicate_rows(),
 			},
-			delete: !grid.df.cannot_delete_rows && {
-				label: __("Delete"),
-				icon: "trash",
-				theme: "red",
-				onclick: () => this.delete_rows(),
-			},
+			delete: editable &&
+				!grid.df.cannot_delete_rows && {
+					label: __("Delete"),
+					icon: "trash",
+					theme: "red",
+					onclick: () => this.delete_rows(),
+				},
 		};
 
 		const visible = Object.entries(built_in)
