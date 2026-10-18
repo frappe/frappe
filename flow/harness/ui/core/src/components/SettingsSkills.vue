@@ -70,7 +70,7 @@
 					<button
 						v-for="row in scope.rows"
 						:key="row.path"
-						class="flex w-full items-center gap-4 px-4 py-3 text-left first:rounded-t-6 last:rounded-b-6 hover:bg-surface-gray-1"
+						class="flex w-full items-center gap-4 px-3.5 py-3 text-left first:rounded-t-6 last:rounded-b-6 hover:bg-surface-gray-1"
 						@click="open(row)"
 					>
 						<div class="min-w-0 flex-1">
