@@ -317,6 +317,44 @@ class TestSearch(IntegrationTestCase):
 		# page_length=1 leaves the python relevance_sorter no second row to reorder
 		self.assertEqual("es", search_link("Language", "", page_length=1)[0]["value"])
 
+	def test_empty_search_keeps_doctype_sort_order(self):
+		titles = ["Web Form", "Phone", "Email"]
+		role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+		self.addCleanup(partial(frappe.delete_doc, "Role", role, force=True))
+		user = frappe.get_doc(
+			doctype="User",
+			email=f"sort-order-{frappe.generate_hash(length=8)}@example.com",
+			first_name="Sort Order",
+			send_welcome_email=0,
+			roles=[{"role": role}],
+		).insert()
+		self.addCleanup(partial(frappe.delete_doc, "User", user.name, force=True))
+
+		for translated_doctype in (0, 1):
+			doctype = new_doctype(
+				translated_doctype=translated_doctype,
+				autoname="field:title",
+				sort_field="sequence",
+				sort_order="ASC",
+				fields=[
+					{"label": "Title", "fieldname": "title", "fieldtype": "Data"},
+					{"label": "Sequence", "fieldname": "sequence", "fieldtype": "Int"},
+				],
+				permissions=[{"role": role, "read": 1}],
+			).insert()
+			self.addCleanup(partial(frappe.delete_doc, "DocType", doctype.name, force=True))
+
+			for sequence, title in enumerate(titles, start=1):
+				frappe.get_doc({"doctype": doctype.name, "title": title, "sequence": sequence * 10}).insert()
+
+			for query in (None, "frappe.tests.test_search.paginated_query"):
+				with (
+					self.subTest(translated_doctype=translated_doctype, query=query),
+					self.set_user(user.name),
+				):
+					results = search_link(doctype.name, "", query=query, page_length=10)
+					self.assertEqual([r["value"] for r in results], titles)
+
 	def test_search_with_paren(self):
 		search = partial(search_link, doctype="Language", filters=None, page_length=10)
 		result = search(txt="(txt)")
@@ -663,6 +701,106 @@ class TestSearch(IntegrationTestCase):
 
 			with self.assertRaisesRegex(frappe.ValidationError, "not found"):
 				values(ignore_user_permissions=True, reference_doctype=parent, link_fieldname="unknown_field")
+
+	def test_search_link_ignore_user_permissions_needs_a_field_the_user_can_type_in(self):
+		"""Read-only and hidden fields, like amended_from, have no search box, so a request through
+		them keeps user permissions. Grid rows send the child doctype as the reference."""
+
+		target = "Test Search Locked Target"
+		child = "Test Search Locked Row"
+		form = "Test Search Locked Form"
+		locked_form = "Test Search Locked Table Form"
+
+		for dt in (form, locked_form, child, target):
+			if frappe.db.exists("DocType", dt):
+				frappe.delete_doc("DocType", dt, force=True)
+
+		def make_doctype(name, fields, **kwargs):
+			new_doctype(name=name, fields=fields, **kwargs).insert()
+			self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
+
+		def link_to_target(fieldname, **kwargs):
+			return {
+				"label": fieldname,
+				"fieldname": fieldname,
+				"fieldtype": "Link",
+				"options": target,
+				"ignore_user_permissions": 1,
+				**kwargs,
+			}
+
+		def rows(fieldname, **kwargs):
+			return {
+				"label": fieldname,
+				"fieldname": fieldname,
+				"fieldtype": "Table",
+				"options": child,
+				**kwargs,
+			}
+
+		make_doctype(
+			target,
+			[{"label": "Title", "fieldname": "title", "fieldtype": "Data"}],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
+			search_fields="title",
+		)
+		make_doctype(child, [link_to_target("member"), link_to_target("linked", read_only=1)], istable=1)
+		make_doctype(
+			form,
+			[
+				link_to_target("linked"),
+				link_to_target("amended_from", read_only=1),
+				rows("rows"),
+				{"label": "Value", "fieldname": "value", "fieldtype": "Float"},
+			],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
+		)
+		make_doctype(
+			locked_form,
+			[link_to_target("linked", ignore_user_permissions=0), rows("locked_rows", read_only=1)],
+			permissions=[{"role": "System Manager", "read": 1, "write": 1}],
+		)
+
+		allowed = frappe.get_doc({"doctype": target, "title": "Allowed Document"}).insert()
+		restricted = frappe.get_doc({"doctype": target, "title": "Restricted Document"}).insert()
+
+		test_user = "test_search_locked_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{"doctype": "User", "email": test_user, "first_name": test_user, "user_type": "System User"}
+			).insert(ignore_permissions=True).add_roles("System Manager")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+		add_user_permission(target, allowed.name, test_user)
+		self.addCleanup(
+			lambda: [
+				frappe.delete_doc("User Permission", name, force=True)
+				for name in frappe.get_all("User Permission", {"user": test_user}, pluck="name")
+			]
+		)
+
+		def values(reference_doctype, link_fieldname):
+			with self.set_user(test_user):
+				return [
+					r["value"]
+					for r in search_link(
+						doctype=target,
+						txt="Document",
+						ignore_user_permissions=True,
+						reference_doctype=reference_doctype,
+						link_fieldname=link_fieldname,
+					)
+				]
+
+		self.assertIn(restricted.name, values(form, "linked"))
+		self.assertIn(restricted.name, values(form, "member"))
+		self.assertIn(restricted.name, values(child, "member"))
+		# bulk edit sends "value", which here is also a Float field of the form
+		self.assertIn(restricted.name, values(form, "value"))
+
+		self.assertEqual(values(form, "amended_from"), [allowed.name])
+		self.assertEqual(values(child, "linked"), [allowed.name])
+		self.assertEqual(values(locked_form, "member"), [allowed.name])
+		self.assertEqual(values(locked_form, "linked"), [allowed.name])
 
 	def test_search_link_ignore_user_permissions_dangling_child_table(self):
 		"""A child table pointing at a deleted doctype should not escape as DoesNotExistError."""

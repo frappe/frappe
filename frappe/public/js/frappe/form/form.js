@@ -66,7 +66,7 @@ frappe.ui.form.get_breadcrumbs = function (frm) {
 	}
 
 	let title = frappe.model.get_doc_title(frm.doc);
-	title = __(title) || __(frm.doc.name);
+	title = __(title);
 	if (frappe.utils.is_html(title)) title = strip_html(title);
 	items.push({ label: title });
 
@@ -1680,6 +1680,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		delete this.opendocs[old];
 		this.opendocs[name] = true;
+
+		if (this.active_tab_map?.[old]) {
+			this.active_tab_map[name] = this.active_tab_map[old];
+			delete this.active_tab_map[old];
+		}
 
 		if (this.meta.in_dialog || !this.in_form) {
 			return;

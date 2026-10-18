@@ -362,7 +362,7 @@
     "@floating-ui/utils" "^0.2.11"
     vue-demi ">=0.13.0"
 
-"@framework/ui@link:../../..":
+"@framework/ui@link:../ui":
   version "0.0.0"
   dependencies:
     cropperjs "^2.1.1"

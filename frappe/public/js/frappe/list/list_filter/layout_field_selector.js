@@ -270,8 +270,8 @@ export default class LayoutFieldSelector {
 			],
 		});
 
-		d.set_primary_action(__("Save"), () => {
-			const values = d.get_values().fields || [];
+		d.set_primary_action(__("Save"), (dialog_values) => {
+			const values = dialog_values.fields || [];
 
 			this.fields = [];
 			this.set_subject_field(this.meta);

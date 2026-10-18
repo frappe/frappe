@@ -2,12 +2,14 @@
 # License: MIT. See LICENSE
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
 	append_totals_row,
+	delete_bulk,
 	export_query,
 	extract_fieldnames,
 	get,
@@ -16,6 +18,7 @@ from frappe.desk.reportview import (
 	get_stats,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import get_log_db
 
 
 class TestReportview(IntegrationTestCase):
@@ -213,6 +216,20 @@ class TestReportview(IntegrationTestCase):
 		unchanged = _reorder_by_visible_names(ret_no_name, fields_without_name, "DocType", ["x"])
 		self.assertEqual(unchanged, ret_no_name)
 
+	def test_reorder_by_visible_names_keeps_duplicate_name_child_rows(self):
+		fields = ["`tabDocType`.`name`", "`tabDocField`.`fieldname`"]
+		ret = [
+			("DocType", "module"),
+			("DocType", "istable"),
+			("DocField", "label"),
+		]
+		visible_names = ["DocType", "DocType", "DocField"]
+		reordered = _reorder_by_visible_names(ret, fields, "DocType", visible_names)
+		self.assertEqual(
+			reordered,
+			[("DocType", "module"), ("DocType", "istable"), ("DocField", "label")],
+		)
+
 	def test_export_query_preserves_visible_names_order(self):
 		from csv import DictReader
 		from io import StringIO
@@ -232,6 +249,41 @@ class TestReportview(IntegrationTestCase):
 			rows = list(DictReader(buf))
 		names_in_export = [row["ID"] for row in rows if row.get("ID") in desired_order]
 		self.assertEqual(names_in_export, desired_order)
+
+	def test_export_query_keeps_distinct_child_rows(self):
+		from csv import reader
+		from io import StringIO
+
+		members = ["test_rv_a@example.com", "test_rv_b@example.com", "test_rv_c@example.com"]
+		for email in members:
+			create_user(email)
+		exporter = create_user("test_rv_export@example.com")
+
+		group = frappe.get_doc(
+			{
+				"doctype": "User Group",
+				"name": "Report Export Child Rows",
+				"user_group_members": [{"user": email} for email in members],
+			}
+		).insert()
+		self.addCleanup(group.delete)
+
+		with self.set_user(exporter.name):
+			frappe.local.form_dict = frappe._dict(
+				doctype="User Group",
+				file_format_type="CSV",
+				fields=["`tabUser Group`.`name`", "`tabUser Group Member`.`user`"],
+				filters={"name": group.name},
+				# client sends the parent name once per visible child row
+				visible_names=json.dumps([group.name] * len(members)),
+			)
+			export_query()
+
+		with StringIO(frappe.response["filecontent"].decode("utf-8")) as buf:
+			rows = list(reader(buf))[1:]
+
+		exported_members = [cell for row in rows for cell in row if cell in set(members)]
+		self.assertEqual(sorted(exported_members), sorted(members))
 
 	def test_extract_fieldname(self):
 		self.assertEqual(
@@ -448,3 +500,99 @@ class TestReportview(IntegrationTestCase):
 
 		self.assertEqual(result["keys"], ["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"])
 		self.assertEqual(sorted(map(tuple, result["values"])), sorted(map(tuple, expected)))
+
+	def test_delete_bulk_reports_reason_per_document(self):
+		email_queue = frappe.get_doc(
+			doctype="Email Queue", sender="test@example.com", message="Your report is ready"
+		).insert()
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with self.set_user(user.name), patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			undeleted = delete_bulk("Email Queue", [email_queue.name])
+
+		self.assertEqual(undeleted, [email_queue.name])
+		self.assertIn("Only Administrator can delete Email Queue", frappe.message_log[-1].message[0])
+
+	def test_delete_bulk_reports_missing_permission(self):
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with self.set_user(user.name), patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			delete_bulk("User", ["Guest", "Administrator"])
+
+		message = frappe.message_log[-1].message
+		self.assertEqual(len(message), 1)
+		self.assertIn("You need the 'delete' permission", message[0])
+
+	def test_delete_bulk_keeps_other_permission_errors(self):
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with (
+			self.set_user(user.name),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch(
+				"frappe.delete_doc",
+				side_effect=lambda doctype, name: frappe.has_permission(
+					"User", "write", "Administrator", throw=True
+				),
+			),
+		):
+			delete_bulk("Auto Repeat", ["AUT-AR-00001"])
+
+		self.assertIn("No permission for", frappe.message_log[-1].message[0])
+
+	def test_delete_bulk_logs_unexpected_error(self):
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with (
+			self.set_user(user.name),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch("frappe.delete_doc", side_effect=frappe.QueryTimeoutError),
+		):
+			delete_bulk("User", ["test@example.com"])
+
+		error_log = get_log_db().get_value(
+			"Error Log",
+			{"reference_name": "test@example.com"},
+			["name", "fingerprint"],
+			as_dict=True,
+			order_by="creation desc",
+		)
+		self.assertIn(error_log.name, frappe.message_log[-1].message[0])
+		self.assertTrue(error_log.fingerprint)
+
+	def test_delete_bulk_logs_unexpected_error_once(self):
+		logged_before = get_log_db().count("Error Log", {"reference_name": "test1@example.com"})
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+		with (
+			self.set_user(user.name),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch(
+				"frappe.delete_doc", side_effect=[None, frappe.QueryTimeoutError, frappe.QueryTimeoutError]
+			),
+		):
+			delete_bulk("User", ["test@example.com", "test1@example.com"])
+
+		self.assertEqual(
+			get_log_db().count("Error Log", {"reference_name": "test1@example.com"}), logged_before + 1
+		)
+
+	def test_delete_bulk_hides_error_log_link_without_permission(self):
+		user = create_user("test_reportview_bulk_delete@example.com", "Website Manager")
+		with (
+			self.set_user(user.name),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+			patch("frappe.delete_doc", side_effect=frappe.QueryTimeoutError),
+		):
+			delete_bulk("User", ["test@example.com"])
+
+		self.assertNotIn("error-log", frappe.message_log[-1].message[0])
+
+	def test_delete_bulk_lists_what_each_document_is_linked_with(self):
+		salutation = frappe.get_doc(doctype="Salutation", salutation="Professor").insert()
+		contact = frappe.get_doc(doctype="Contact", first_name="Priya", salutation=salutation.name).insert()
+		user = create_user("test_reportview_bulk_delete_manager@example.com", "System Manager")
+
+		with self.set_user(user.name), patch.object(frappe.db, "commit"), patch.object(frappe.db, "rollback"):
+			delete_bulk("Salutation", [salutation.name])
+
+		self.assertIn(contact.name, frappe.message_log[-1].message[0])

@@ -64,7 +64,7 @@ class TestSourceWatch(unittest.TestCase):
 class TestCloseInheritedFds(unittest.TestCase):
 	"""Which descriptors reach the next generation of the runner.
 
-	The call closes the descriptors of the whole process, so it runs in a child.
+	The call marks the descriptors of the whole process, so it runs in a child.
 	"""
 
 	def _run(self, body: str) -> str:
@@ -73,20 +73,45 @@ class TestCloseInheritedFds(unittest.TestCase):
 		self.assertEqual(child.returncode, 0, child.stderr)
 		return child.stdout.strip()
 
-	def test_an_open_file_is_closed(self):
+	def test_an_open_file_closes_on_exec(self):
+		# macOS kills a process that closes a guarded descriptor, so the call only
+		# marks it and the exec closes it.
 		output = self._run("""
 			import os
 			from frappe.runner import close_inherited_fds
 
 			fd = os.open(os.devnull, os.O_RDONLY)
+			os.set_inheritable(fd, True)
 			close_inherited_fds()
-			try:
-				os.fstat(fd)
-				print("open")
-			except OSError:
-				print("closed")
+			os.fstat(fd)
+			print(os.get_inheritable(fd))
 		""")
-		self.assertEqual(output, "closed")
+		self.assertEqual(output, "False")
+
+	def test_the_systemd_socket_survives(self):
+		output = self._run("""
+			import os
+			import socket
+			from frappe.runner import close_inherited_fds, systemd_socket_fd
+
+			listener = socket.socket()
+			os.dup2(listener.fileno(), 3)
+			os.set_inheritable(3, True)  # as systemd passes it
+			os.environ.update(LISTEN_PID=str(os.getpid()), LISTEN_FDS="1")
+			close_inherited_fds()
+			print(systemd_socket_fd(), os.get_inheritable(3))
+		""")
+		self.assertEqual(output, "3 True")
+
+	def test_a_socket_for_another_process_is_ignored(self):
+		output = self._run("""
+			import os
+			from frappe.runner import systemd_socket_fd
+
+			os.environ.update(LISTEN_PID=str(os.getppid()), LISTEN_FDS="1")
+			print(systemd_socket_fd())
+		""")
+		self.assertEqual(output, "None")
 
 	def test_the_standard_streams_survive(self):
 		output = self._run("""
@@ -97,8 +122,9 @@ class TestCloseInheritedFds(unittest.TestCase):
 			os.write(1, b"stdout\\n")
 			os.fstat(0)
 			os.fstat(2)
+			print(all(os.get_inheritable(fd) for fd in (0, 1, 2)))
 		""")
-		self.assertEqual(output, "stdout")
+		self.assertEqual(output, "stdout\nTrue")
 
 	def test_the_count_stays_flat_across_execs(self):
 		output = self._run("""
