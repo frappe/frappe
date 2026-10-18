@@ -29,7 +29,7 @@
 
 		<span class="min-w-2 flex-1" />
 
-		<span class="flex flex-none items-center gap-4">
+		<span class="mr-1 flex flex-none items-center gap-3">
 			<!-- the readout opens the transcript: the same totals, step by step -->
 			<button
 				v-if="contextTokens > 0 || spent > 0"
@@ -57,6 +57,11 @@
 				</span>
 			</button>
 
+			<ChatMenu v-if="menu" :session-id="flow.state.sessionId" :title="title" :actions="actions">
+				<button class="flow-icon-btn" title="Chat options">
+					<FeatherIcon name="more-horizontal" class="h-4 w-4" />
+				</button>
+			</ChatMenu>
 			<button
 				v-if="workspace && !workspaceOpen"
 				class="flow-icon-btn"
@@ -65,11 +70,6 @@
 			>
 				<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
 			</button>
-			<ChatMenu v-if="menu" :session-id="flow.state.sessionId" :title="title" :actions="actions">
-				<button class="flow-icon-btn -ml-1 mr-1" title="Chat options">
-					<FeatherIcon name="more-horizontal" class="h-4 w-4" />
-				</button>
-			</ChatMenu>
 		</span>
 	</header>
 </template>
