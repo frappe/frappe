@@ -640,6 +640,25 @@ data = columns, result
 			result[0],
 		)
 
+	def test_custom_column_with_clashing_fieldname(self):
+		"""Custom column whose fieldname clashes with a report column keeps both values"""
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		user = create_user("test_custom_column_clash@example.com")
+		with self.set_user(user.name):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "Send the signed lease"}).insert()
+			custom_columns = [
+				{
+					"fieldname": "status-todo",
+					"doctype": "ToDo",
+					"link_field": {"fieldname": "todo", "names": []},
+				}
+			]
+
+			result = add_custom_column_data(custom_columns, [{"todo": todo.name, "status": "Overdue"}])
+
+		self.assertDictEqual({"todo": todo.name, "status": "Overdue", "status-todo": "Open"}, result[0])
+
 	def test_xlsx_styles_structure(self):
 		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""
 		data = create_mock_data()
