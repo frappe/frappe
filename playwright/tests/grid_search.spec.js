@@ -41,7 +41,11 @@ test.describe("Grid Search", () => {
 	test("Test search row visibility", async ({ page }) => {
 		const table = get_table(page);
 		await table.locator(".grid-row-check").last().click();
-		await table.locator(".grid-footer").getByText("Delete").first().click();
+		await table
+			.locator(".grid-selection-bar")
+			.getByRole("button", { name: "Actions" })
+			.click();
+		await page.locator('.es-menu [role="menuitem"]', { hasText: "Delete" }).click();
 		await expect(page.locator(".grid-heading-row .grid-row .search")).toHaveCount(0);
 	});
 
