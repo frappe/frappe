@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Frappe Framework VERSION\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-10-17 17:34+0000\n"
-"PO-Revision-Date: 2026-10-17 17:34+0000\n"
+"POT-Creation-Date: 2026-10-18 09:35+0000\n"
+"PO-Revision-Date: 2026-10-18 09:35+0000\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: developers@frappe.io\n"
 "MIME-Version: 1.0\n"
@@ -1169,7 +1169,7 @@ msgstr ""
 msgid "Accounts User"
 msgstr ""
 
-#: frappe/public/js/frappe/form/dashboard.js:526
+#: frappe/public/js/frappe/form/dashboard.js:535
 msgid "Accurate count can not be fetched, click here to view all documents"
 msgstr ""
 
@@ -1199,7 +1199,7 @@ msgstr ""
 msgid "Action / Route"
 msgstr ""
 
-#: frappe/model/document.py:2029
+#: frappe/model/document.py:2033
 msgid "Action Failed"
 msgstr ""
 
@@ -3264,7 +3264,7 @@ msgstr ""
 msgid "Are you sure you want to generate a new report?"
 msgstr ""
 
-#: frappe/public/js/frappe/desk.js:427
+#: frappe/public/js/frappe/desk.js:426
 msgid "Are you sure you want to log out?"
 msgstr ""
 
@@ -5293,11 +5293,11 @@ msgstr ""
 msgid "Cannot cancel {0}."
 msgstr ""
 
-#: frappe/model/document.py:1139
+#: frappe/model/document.py:1143
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr ""
 
-#: frappe/model/document.py:1153
+#: frappe/model/document.py:1157
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr ""
 
@@ -5402,7 +5402,7 @@ msgstr ""
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr ""
 
-#: frappe/model/document.py:1159
+#: frappe/model/document.py:1163
 msgid "Cannot edit cancelled document"
 msgstr ""
 
@@ -5455,7 +5455,7 @@ msgstr ""
 msgid "Cannot import table with more than 5000 rows."
 msgstr ""
 
-#: frappe/model/document.py:1227
+#: frappe/model/document.py:1231
 #, python-brace-format
 msgid "Cannot link cancelled document: {0}"
 msgstr ""
@@ -6202,7 +6202,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/sidebar/attachments.js:241
 #: frappe/public/js/frappe/ui/components/panel_header.js:47
 #: frappe/public/js/frappe/ui/components/toast.js:65
-#: frappe/public/js/frappe/ui/messages.js:270
+#: frappe/public/js/frappe/ui/messages.js:277
 #: frappe/public/js/frappe/ui/side_panel.js:461
 #: frappe/public/js/print_format_builder/components/inspector/FieldInspector.vue:23
 #: frappe/website/js/bootstrap-4.js:39
@@ -7300,7 +7300,7 @@ msgstr ""
 msgid "Could not convert this print format"
 msgstr ""
 
-#: frappe/model/document.py:1223
+#: frappe/model/document.py:1227
 #, python-brace-format
 msgid "Could not find {0}"
 msgstr ""
@@ -7462,7 +7462,7 @@ msgstr ""
 msgid "Count Filter"
 msgstr ""
 
-#: frappe/public/js/frappe/form/dashboard.js:525
+#: frappe/public/js/frappe/form/dashboard.js:534
 msgid "Count of linked documents"
 msgstr ""
 
@@ -10553,7 +10553,7 @@ msgid "Document Types and Permissions"
 msgstr ""
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:2100
+#: frappe/model/document.py:2104
 msgid "Document Unlocked"
 msgstr ""
 
@@ -10731,7 +10731,7 @@ msgstr ""
 #: frappe/public/js/frappe/form/form_tour.js:16
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:302
 #: frappe/public/js/frappe/ui/components/toast.js:171
-#: frappe/public/js/frappe/ui/messages.js:257
+#: frappe/public/js/frappe/ui/messages.js:264
 #: frappe/public/js/frappe/ui/sidebar/sidebar_manager.js:703
 #: frappe/public/js/frappe/widgets/onboarding_widget.js:475
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:17
@@ -16005,7 +16005,7 @@ msgstr ""
 #: frappe/public/js/frappe/views/file/file_view.js:82
 #: frappe/public/js/frappe/views/pageview.js:154 frappe/templates/doc.html:19
 #: frappe/templates/includes/navbar/navbar.html:9
-#: frappe/tests/test_background_jobs.py:72
+#: frappe/tests/test_background_jobs.py:85
 #: frappe/users/sidebar/users/users.json:18
 #: frappe/website/doctype/website_settings/website_settings.json:428
 #: frappe/website/sidebar/website/website.json:18
@@ -17166,12 +17166,12 @@ msgstr ""
 msgid "Incorrect configuration"
 msgstr ""
 
-#: frappe/model/document.py:1689
+#: frappe/model/document.py:1693
 #, python-brace-format
 msgid "Incorrect value in row {0}:"
 msgstr ""
 
-#: frappe/model/document.py:1691
+#: frappe/model/document.py:1695
 msgid "Incorrect value:"
 msgstr ""
 
@@ -17846,7 +17846,7 @@ msgstr ""
 msgid "Invalid direction in Order By: {0}. Must be 'ASC' or 'DESC'."
 msgstr ""
 
-#: frappe/model/document.py:1142 frappe/model/document.py:1156
+#: frappe/model/document.py:1146 frappe/model/document.py:1160
 msgid "Invalid docstatus"
 msgstr ""
 
@@ -24072,7 +24072,7 @@ msgstr ""
 msgid "Only an {0} Server Script can be run from a flow"
 msgstr ""
 
-#: frappe/model/document.py:1369
+#: frappe/model/document.py:1373
 msgid "Only draft documents can be discarded"
 msgstr ""
 
@@ -25289,7 +25289,7 @@ msgstr ""
 msgid "Path {0} is not within module {1}"
 msgstr ""
 
-#: frappe/website/path_resolver.py:244
+#: frappe/website/path_resolver.py:248
 #, python-brace-format
 msgid "Path {0} it not a valid path"
 msgstr ""
@@ -25978,7 +25978,7 @@ msgstr ""
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr ""
 
-#: frappe/model/document.py:1114
+#: frappe/model/document.py:1118
 msgid "Please refresh to get the latest document."
 msgstr ""
 
@@ -27257,7 +27257,7 @@ msgstr ""
 msgid "Queue"
 msgstr ""
 
-#: frappe/utils/background_jobs.py:731
+#: frappe/utils/background_jobs.py:741
 msgid "Queue Overloaded"
 msgstr ""
 
@@ -27284,7 +27284,7 @@ msgstr ""
 msgid "Queue in Background (BETA)"
 msgstr ""
 
-#: frappe/utils/background_jobs.py:559
+#: frappe/utils/background_jobs.py:569
 #, python-brace-format
 msgid "Queue should be one of {0}"
 msgstr ""
@@ -34823,7 +34823,7 @@ msgstr ""
 msgid "Table updated"
 msgstr ""
 
-#: frappe/model/document.py:1712
+#: frappe/model/document.py:1716
 #, python-brace-format
 msgid "Table {0} cannot be empty"
 msgstr ""
@@ -36733,7 +36733,7 @@ msgstr ""
 msgid "Too many changes to database in single action."
 msgstr ""
 
-#: frappe/utils/background_jobs.py:730
+#: frappe/utils/background_jobs.py:740
 #, python-brace-format
 msgid "Too many queued background jobs ({0}). Please retry after some time."
 msgstr ""
@@ -38792,7 +38792,7 @@ msgstr ""
 msgid "Value Too Long"
 msgstr ""
 
-#: frappe/model/base_document.py:1197 frappe/model/document.py:922
+#: frappe/model/base_document.py:1197 frappe/model/document.py:924
 #, python-brace-format
 msgid "Value cannot be changed for {0}"
 msgstr ""
@@ -43268,7 +43268,7 @@ msgstr ""
 msgid "{0} m"
 msgstr ""
 
-#: frappe/desk/notifications.py:464
+#: frappe/desk/notifications.py:482
 #, python-brace-format
 msgid "{0} mentioned you in a comment in {1} {2}"
 msgstr ""
@@ -43308,27 +43308,27 @@ msgstr ""
 msgid "{0} must be a hex color code like #1a5fb4"
 msgstr ""
 
-#: frappe/model/document.py:1949
+#: frappe/model/document.py:1953
 #, python-brace-format
 msgid "{0} must be after {1}"
 msgstr ""
 
-#: frappe/model/document.py:1698
+#: frappe/model/document.py:1702
 #, python-brace-format
 msgid "{0} must be beginning with '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1700
+#: frappe/model/document.py:1704
 #, python-brace-format
 msgid "{0} must be equal to '{1}'"
 msgstr ""
 
-#: frappe/model/document.py:1696
+#: frappe/model/document.py:1700
 #, python-brace-format
 msgid "{0} must be none of {1}"
 msgstr ""
 
-#: frappe/model/document.py:1694 frappe/utils/csvutils.py:196
+#: frappe/model/document.py:1698 frappe/utils/csvutils.py:196
 #, python-brace-format
 msgid "{0} must be one of {1}"
 msgstr ""
@@ -43348,7 +43348,7 @@ msgstr ""
 msgid "{0} must be unique"
 msgstr ""
 
-#: frappe/model/document.py:1702
+#: frappe/model/document.py:1706
 #, python-brace-format
 msgid "{0} must be {1} {2}"
 msgstr ""
@@ -43513,7 +43513,7 @@ msgstr ""
 msgid "{0} role does not have permission on any doctype"
 msgstr ""
 
-#: frappe/model/document.py:1940
+#: frappe/model/document.py:1944
 #, python-brace-format
 msgid "{0} row #{1}:"
 msgstr ""
