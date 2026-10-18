@@ -170,7 +170,7 @@ class ConnectedApp(Document):
 				# Central passes on the provider's error code as the message
 				if isinstance(e, InvalidGrantError) or str(e) == "invalid_grant":
 					# in a job, so neither the caller's rollback nor another worker's row lock gets in the way
-					frappe.enqueue(
+					frappe.enqueue(  # not after commit: a rolled-back caller would drop the job  # nosemgrep
 						"frappe.integrations.doctype.connected_app.connected_app.delete_token_cache",
 						job_id=f"delete_token_cache:{token_cache.name}",
 						deduplicate=True,
