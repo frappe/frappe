@@ -35,13 +35,13 @@ LETTER_HEAD_STYLE = re.compile(r"<style data-letter-head>(.*?)</style>", re.IGNO
 GRID = re.compile(r"display\W+(inline-)?grid\b", re.IGNORECASE)
 
 
-def resolve_container_queries(html: str, width: float) -> str:
+def resolve_container_queries(css: str, width: float) -> str:
 	def resolve(query):
 		limit = float(query.group(2)) * PX_PER_UNIT[query.group(3).lower()]
 		matches = width >= limit if query.group(1).lower() == "min" else width <= limit
 		return "@media all" if matches else "@media not all"
 
-	return CONTAINER_QUERY.sub(resolve, html)
+	return CONTAINER_QUERY.sub(resolve, css)
 
 
 def plutoprint_can_render(html: str) -> bool:
@@ -210,8 +210,11 @@ class PlutoPage:
 			plutoprint.PageSize(width, height), plutoprint.PageMargins(*margins), plutoprint.MEDIA_TYPE_PRINT
 		)
 		book.custom_resource_fetcher = self.fetcher
-		html = CSS_IN_HTML.sub(lambda css: BREAK_WORD.sub(r"\1normal", css.group(0)), self.html)
-		html = resolve_container_queries(html, (width - margins[1] - margins[3]) / POINTS_PER_PX)
+		content_width = (width - margins[1] - margins[3]) / POINTS_PER_PX
+		html = CSS_IN_HTML.sub(
+			lambda css: resolve_container_queries(BREAK_WORD.sub(r"\1normal", css.group(0)), content_width),
+			self.html,
+		)
 		book.load_html(
 			html + page_rule,
 			user_style=BASE_STYLE + user_style,
