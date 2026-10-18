@@ -536,7 +536,6 @@ frappe.ui.form.PrintView = class {
 	refresh_print_format() {
 		this.toggle_style_picker();
 		this.set_default_print_language();
-		this.toggle_raw_printing();
 		this.update_letterhead_for_print_format().then(() => this.preview());
 	}
 
@@ -832,6 +831,7 @@ frappe.ui.form.PrintView = class {
 
 	preview() {
 		this.toggle_style_picker();
+		this.toggle_raw_printing();
 		let print_format = this.get_print_format();
 		if (!print_format.raw_printing) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
