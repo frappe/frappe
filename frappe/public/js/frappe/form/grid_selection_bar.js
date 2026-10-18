@@ -43,7 +43,7 @@ export default class GridSelectionBar {
 
 	go_to_page(step) {
 		const pagination = this.grid.grid_pagination;
-		pagination.go_to_page(pagination.page_index + step);
+		pagination.go_to_page(cint(pagination.page_index) + step);
 		this.refresh_pager();
 	}
 
