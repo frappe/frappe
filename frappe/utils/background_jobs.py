@@ -343,6 +343,7 @@ def start_worker_pool(
 	import frappe.database.query  # sqlparse and indirect imports
 	import frappe.query_builder  # pypika
 	import frappe.utils  # common utils
+	import frappe.utils.logger
 	import frappe.utils.safe_exec
 	import frappe.utils.scheduler
 	import frappe.utils.typing_validations  # any whitelisted method uses this
