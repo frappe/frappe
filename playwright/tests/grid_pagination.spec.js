@@ -46,6 +46,27 @@ test.describe("Grid Pagination", () => {
 		await expect(heading).toBeInViewport();
 	});
 
+	test("moves from a typed page number with the selection bar pager", async ({ page }) => {
+		const table = get_table(page);
+		const bar = table.locator(".grid-selection-bar");
+		const page_number = table.locator(".current-page-number");
+
+		await page_number.focus();
+		await page_number.clear();
+		await page_number.pressSequentially("2");
+		await page_number.blur();
+		await expect(table.locator(".grid-body .grid-row").first()).toHaveAttribute(
+			"data-idx",
+			"51"
+		);
+
+		await table.locator(".grid-body .grid-row .grid-row-check").first().click();
+		await bar.getByRole("button", { name: "Next page" }).click();
+		await expect(bar.locator(".grid-selection-page")).toHaveText("3 of 20");
+		await bar.getByRole("button", { name: "Previous page" }).click();
+		await expect(bar.locator(".grid-selection-page")).toHaveText("2 of 20");
+	});
+
 	test("adds and deletes rows and changes page", async ({ page }) => {
 		const table = get_table(page);
 		await table.getByRole("button", { name: "Add row", exact: true }).click();
