@@ -23,6 +23,16 @@
 	background-color: var(--surface-gray-3);
 }
 
+/* frappe-ui menus at the UI's size, like the sidebar's rows: their text-base is
+   this app's 15px chat text */
+.menu-content [data-slot="item-list-row"] {
+	font-size: 13.5px;
+}
+.menu-content [data-slot="group-label"] {
+	height: 1.5rem;
+	font-size: 12.5px;
+}
+
 /* Diff overview ruler: monaco paints the viewport overlay with the scrollbar
    slider color, which our editor theme makes opaque — that would hide the
    red/green marks under it. Keep just this overlay translucent. */
