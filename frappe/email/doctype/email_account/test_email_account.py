@@ -8,6 +8,7 @@ from datetime import datetime, timedelta
 from unittest.mock import patch
 
 import frappe
+from frappe import _
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import notify_unreplied
@@ -382,7 +383,7 @@ class TestEmailAccount(FrappeTestCase):
 
 		def validate(doc):
 			if doc.name == "_Test Email Account 1":
-				frappe.throw("This mailbox needs reconnecting")
+				frappe.throw(_("This mailbox needs reconnecting"))
 
 		with (
 			self.set_user("test@example.com"),
