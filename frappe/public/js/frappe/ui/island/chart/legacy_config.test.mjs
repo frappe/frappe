@@ -4,7 +4,11 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
 
-import { from_legacy_config, is_legacy_chart_config } from "./legacy_config.js";
+import {
+  from_legacy_config,
+  is_legacy_chart_config,
+  with_desk_defaults,
+} from "./legacy_config.js";
 
 // a heatmap's unix-second keys read in the browser's zone
 process.env.TZ = "Asia/Kolkata";
@@ -66,7 +70,6 @@ describe("axis charts", () => {
         series_1: { label: "Total Views", color: "#7cd6fd" },
         series_2: { label: "Unique Visits", color: "#5e64ff" },
       },
-      height: 240,
     });
   });
 
@@ -459,7 +462,6 @@ describe("slice charts", () => {
       },
       stacked: "normalized",
       horizontal: true,
-      height: 240,
     });
   });
 });
@@ -588,5 +590,31 @@ describe("unknown keys", () => {
     );
 
     assert.deepEqual(unknown, []);
+  });
+});
+
+describe("with_desk_defaults", () => {
+  test("any config gets frappe-charts' height", () => {
+    assert.equal(with_desk_defaults({ type: "bar", data: [] }).height, 240);
+    assert.equal(
+      with_desk_defaults({ type: "bar", data: [], height: 160 }).height,
+      160
+    );
+  });
+
+  test("a calendar's weeks start on the site's first day unless it names its own", () => {
+    const site = { first_day_of_the_week: "Monday" };
+    const calendar = { type: "calendar-heatmap", data: [] };
+    assert.equal(with_desk_defaults(calendar, site).weekStart, "monday");
+    assert.equal(
+      with_desk_defaults({ ...calendar, weekStart: "saturday" }, site)
+        .weekStart,
+      "saturday"
+    );
+    assert.equal("weekStart" in with_desk_defaults(calendar), false);
+    assert.equal(
+      "weekStart" in with_desk_defaults({ type: "bar", data: [] }, site),
+      false
+    );
   });
 });

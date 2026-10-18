@@ -83,6 +83,7 @@ function build_desk_context() {
 			frappe.utils.html2text(frappe.format(value, df, { inline: true }, doc)),
 		format_axis_number,
 		developer_mode: Boolean(boot.developer_mode),
+		first_day_of_the_week: frappe.sys_defaults?.first_day_of_the_week || null,
 	};
 
 	return context;

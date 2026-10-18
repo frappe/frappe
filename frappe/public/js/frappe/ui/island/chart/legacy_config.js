@@ -125,7 +125,7 @@ export function from_legacy_config(
 	return without_undefined({
 		...convert(legacy, { today, center_label }),
 		title: legacy.title || undefined,
-		height: legacy.height || DEFAULT_HEIGHT,
+		height: legacy.height || undefined,
 		...format_keys(legacy),
 	});
 }
@@ -262,6 +262,25 @@ function calendar_heatmap_chart(legacy, { today }) {
 }
 
 /** `currency` names the currency a `Currency` value is in. The config is the doc its options read. */
+/**
+ * `config` with what desk fills in when a config leaves it out: frappe-charts' height, and a
+ * calendar's weeks starting on the site's first day of the week.
+ *
+ * @param {Object} config  a frappe-ui chart config
+ * @param {{ first_day_of_the_week?: string }} [site]  as System Settings names the day
+ */
+export function with_desk_defaults(config, { first_day_of_the_week } = {}) {
+	const week_start =
+		config.type === "calendar-heatmap" && !config.weekStart
+			? first_day_of_the_week?.toLowerCase()
+			: undefined;
+	return without_undefined({
+		...config,
+		height: config.height || DEFAULT_HEIGHT,
+		weekStart: config.weekStart || week_start,
+	});
+}
+
 export function format_keys({ fieldtype, options, currency }) {
 	if (!currency) return { fieldtype, options };
 	const currency_fieldtype = fieldtype || "Currency";

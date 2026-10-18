@@ -14,7 +14,12 @@ import {
 } from "frappe-ui/charts";
 import { useHost } from "@framework/ui/island";
 
-import { format_keys, from_legacy_config, is_legacy_chart_config } from "./legacy_config.js";
+import {
+	format_keys,
+	from_legacy_config,
+	is_legacy_chart_config,
+	with_desk_defaults,
+} from "./legacy_config.js";
 
 const props = defineProps({
 	config: { type: Object, required: true },
@@ -37,12 +42,15 @@ const CHARTS = {
 
 const parsed = computed(() => {
 	try {
-		const config = is_legacy_chart_config(props.config)
-			? from_legacy_config(props.config, {
-					center_label: __("Total"),
-					on_unknown_key: warn_unknown_key,
-			  })
-			: { ...props.config, ...format_keys(props.config) };
+		const config = with_desk_defaults(
+			is_legacy_chart_config(props.config)
+				? from_legacy_config(props.config, {
+						center_label: __("Total"),
+						on_unknown_key: warn_unknown_key,
+				  })
+				: { ...props.config, ...format_keys(props.config) },
+			{ first_day_of_the_week: host.first_day_of_the_week }
+		);
 		if (!CHARTS[config.type]) {
 			throw new Error(__("Unknown chart type {0}", [config.type]));
 		}
