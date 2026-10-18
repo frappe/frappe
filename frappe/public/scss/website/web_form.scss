@@ -257,20 +257,12 @@
 							.left-area {
 								display: flex;
 								flex: 1;
-
-								@include media-breakpoint-down(sm) {
-									order: 1;
-								}
 							}
 
 							.right-area {
 								display: flex;
 								justify-content: flex-end;
 								flex: 1;
-
-								@include media-breakpoint-down(sm) {
-									order: 2;
-								}
 							}
 						}
 					}
