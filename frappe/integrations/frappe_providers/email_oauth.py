@@ -143,7 +143,9 @@ def callback(
 		frappe.db.rollback()
 		frappe.log_error("Email OAuth connect failed")
 		result = "failed"
-	frappe.db.commit()  # GET requests are rolled back otherwise; keeps the mailbox or the Error Log
+	# the provider can only send the browser back with a GET, which is rolled back unless it commits;
+	# the state note above ties this request to the user's own sign-in
+	frappe.db.commit()  # keeps the mailbox or the Error Log  # nosemgrep
 	land(note["redirect_to"], result, account_email if account_name else email)
 
 
