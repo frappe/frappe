@@ -482,9 +482,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		if (this.allow_edit && data.name) {
 			$(".success-footer").append(`
-				<a href="/${this.route}/${
+				<a href="/${this.route}/${encodeURIComponent(
 				data.name
-			}/edit${request_query}" class="edit-button btn btn-default btn-md">
+			)}/edit${request_query}" class="edit-button btn btn-default btn-md">
 					${__("Edit your response", null, "Button in web form")}
 				</a>
 			`);
@@ -492,7 +492,9 @@ export default class WebForm extends frappe.ui.FieldGroup {
 
 		if (this.login_required && !this.allow_multiple && !this.show_list && data.name) {
 			$(".success-footer").append(`
-				<a href="/${this.route}/${data.name}${request_query}" class="view-button btn btn-default btn-md">
+				<a href="/${this.route}/${encodeURIComponent(
+				data.name
+			)}${request_query}" class="view-button btn btn-default btn-md">
 					${__("View your response", null, "Button in web form")}
 				</a>
 			`);
