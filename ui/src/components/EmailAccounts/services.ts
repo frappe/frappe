@@ -240,6 +240,26 @@ export function newAccount(
   };
 }
 
+const SIGN_IN_STARTED = "email_oauth_sign_in_started";
+
+/** Marks this tab as having left for a new mailbox's sign-in, so its landing can be trusted. */
+export function markSignInStarted() {
+  try {
+    sessionStorage.setItem(SIGN_IN_STARTED, "1");
+  } catch {}
+}
+
+/** Whether this tab left for a new mailbox's sign-in; clears the mark. */
+export function takeSignInStarted() {
+  try {
+    const started = sessionStorage.getItem(SIGN_IN_STARTED) === "1";
+    sessionStorage.removeItem(SIGN_IN_STARTED);
+    return started;
+  } catch {
+    return false;
+  }
+}
+
 /** The directions `account` sends or receives that no account in `accounts` is the default for. */
 export function missingDefaults(
   accounts: Pick<EmailAccount, "default_incoming" | "default_outgoing">[],
