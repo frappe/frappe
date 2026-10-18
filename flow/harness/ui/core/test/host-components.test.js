@@ -49,11 +49,16 @@ function mount(t, component, props, flow) {
 	const app = createApp(component, props)
 	app.provide("flow", flow)
 	const vm = app.mount(el)
+	let mounted = true
+	const unmount = () => {
+		if (mounted) app.unmount()
+		mounted = false
+	}
 	t.after(() => {
-		app.unmount()
+		unmount()
 		el.remove()
 	})
-	return { el, vm }
+	return { el, vm, unmount }
 }
 
 // jsdom measures nothing: a test that needs boxes stubs them for its duration
@@ -1669,6 +1674,7 @@ test("the transcript shows each step as raw JSON, with usage under its request",
 
 test("the chat list groups chats by their folder, and says it is loading, not that there are no chats or matches", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const opened = [] // what the rows' buttons asked for
 	const flow = {
 		options: {},
 		state: reactive({
@@ -1678,6 +1684,12 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 			sessionId: null,
 			prefs: { openFolders: [] },
 		}),
+		startNewChat({ cwd }) {
+			opened.push(`new chat in ${cwd}`)
+		},
+		openSession(sid) {
+			opened.push(sid)
+		},
 		sessionTitle: (session) => session.title,
 		// past a full page, a search goes to the host
 		searchSessions() {
@@ -1691,7 +1703,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 			Object.assign(flow.state.prefs, view)
 		},
 	}
-	const { el } = mount(t, SessionSidebar, {}, flow)
+	const { el, unmount } = mount(t, SessionSidebar, {}, flow)
 	assert.ok(el.textContent.includes("Loading"))
 	assert.ok(!el.textContent.includes("No chats yet"))
 	flow.state.sessionsLoading = false
@@ -1716,7 +1728,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	const rows = () => [...el.querySelectorAll("[data-stub=SidebarItem]")]
 	const labels = () => rows().map((row) => row.textContent.trim())
 	const click = async (label) => {
-		rows().find((row) => row.textContent.trim() === label).click()
+		rows().find((row) => row.textContent.trim() === label).querySelector("button").click()
 		await nextTick()
 	}
 	button("Close search").click()
@@ -1758,7 +1770,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await nextTick()
 	await typeSearch(t, el, "app 5")
 	assert.deepEqual(labels(), ["New chat", "app", "App 5", "Settings"])
-	assert.equal(rows()[1].getAttribute("aria-expanded"), "true")
+	assert.equal(rows()[1].querySelector("button").getAttribute("aria-expanded"), "true")
 	assert.equal(el.querySelector("input").getAttribute("aria-label"), "Search chats") // not its close button's title
 	await click("app") // the search holds it open: a click folds nothing, now or after
 	assert.deepEqual(flow.state.prefs.openFolders, ["/w/api"])
@@ -1798,7 +1810,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 		)
 	t.after(() => delete document.elementFromPoint)
 	const drag = async (from, to) => {
-		document.elementFromPoint = () => row(to) // jsdom has no layout: the pointer is over `to`, above its middle
+		document.elementFromPoint = () => row(to).querySelector("button") // jsdom has no layout: the pointer is over `to`, above its middle
 		pointer("pointerdown", row(from))
 		pointer("pointermove", window)
 		await nextTick()
@@ -1808,7 +1820,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	}
 	// a press whose release never comes drops nothing: a move with no button held ends it, and
 	// a ctrl-click (a Mac's right click) never starts one
-	document.elementFromPoint = () => row("App 0")
+	document.elementFromPoint = () => row("App 0").querySelector("button")
 	pointer("pointerdown", row("App 1"))
 	pointer("pointermove", window)
 	await nextTick()
@@ -1829,6 +1841,28 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await pickView("Workspace")
 	await drag("api", "app")
 	assert.deepEqual(labels(), ["New chat", "api", "Api work", "app", "Settings"])
+
+	// a list with pages still to load can't be reordered: a drop saves every chat's place
+	flow.state.sessionsMore = true
+	await nextTick()
+	assert.equal(row("Api work").querySelector("button").getAttribute("data-reorder"), null)
+	flow.state.sessionsMore = false
+	await nextTick()
+
+	// a row's own buttons act alone and start no drag: the new-chat button leaves its workspace
+	// folded, and a chat's ••• doesn't open the chat
+	for (const [label, title] of [["app", "New chat in app"], ["Api work", "Session options"]]) {
+		const own = row(label).querySelector(`button[title='${title}']`)
+		pointer("pointerdown", own)
+		pointer("pointermove", window)
+		await nextTick()
+		assert.ok(!el.querySelector("aside").classList.contains("flow-reordering"))
+		pointer("pointerup", window)
+		own.click()
+		await nextTick()
+	}
+	assert.deepEqual(opened, ["new chat in /w/app"])
+	assert.deepEqual(labels(), ["New chat", "api", "Api work", "app", "Settings"])
 	flow.state.sessions = [{ session_id: "n", title: "New one", cwd: "/w/api" }, ...flow.state.sessions]
 	await settle()
 	assert.deepEqual(labels(), ["New chat", "api", "New one", "Api work", "app", "Settings"])
@@ -1848,6 +1882,16 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	assert.deepEqual(appChats(), ["App 7", "App 6", "App 0", "App 1", "App 2", "App 5", "Show 2 more"])
 	await drag("App 7", "App 5")
 	assert.deepEqual(appChats(), ["App 6", "App 0", "App 1", "App 2", "App 3", "App 4", "App 7", "App 5", "Show less"])
+
+	// a drag in flight when the sidebar goes ends there, dropping nothing
+	const order = [...flow.state.prefs.chatOrder]
+	document.elementFromPoint = () => row("App 6").querySelector("button")
+	pointer("pointerdown", row("App 0"))
+	pointer("pointermove", window)
+	await nextTick()
+	unmount()
+	pointer("pointerup", window)
+	assert.deepEqual(flow.state.prefs.chatOrder, order)
 })
 
 test("the model list says it is loading, not that no provider is connected", async (t) => {

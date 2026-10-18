@@ -32,6 +32,23 @@ const dropdown = moduleURL(`
 		},
 	}
 `)
+// frappe-ui's SidebarItem split as it is: the row takes class, style and listeners, its button the
+// click and every other attribute, and the suffix sits beside the button, outside its click
+const sidebarItem = moduleURL(`
+	import { h } from ${JSON.stringify(vue)}
+	export default {
+		inheritAttrs: false,
+		props: ["active", "label", "icon", "onClick"],
+		setup(props, { attrs, slots }) {
+			const rowAttr = (key) => key === "class" || key === "style" || /^on[A-Z]/.test(key)
+			const split = (row) => Object.fromEntries(Object.entries(attrs).filter(([key]) => rowAttr(key) === row))
+			return () => h("div", { "data-stub": "SidebarItem", ...split(true) }, [
+				h("button", { type: "button", ...split(false), onClick: props.onClick }, [slots.prefix?.(), slots.default?.()]),
+				slots.suffix?.(),
+			])
+		},
+	}
+`)
 // frappe-ui's HoverCard as its trigger, and its card while open; a hover asks to open or close it
 const hoverCard = moduleURL(`
 	import { h } from ${JSON.stringify(vue)}
@@ -133,6 +150,8 @@ async function componentURL(url) {
 			resolved = dropdown
 		} else if (specifier === "frappe-ui/src/components/HoverCard/HoverCard.vue") {
 			resolved = hoverCard
+		} else if (specifier === "frappe-ui/src/components/Sidebar/SidebarItem.vue") {
+			resolved = sidebarItem
 		} else if (specifier.endsWith(".vue")) {
 			const name = specifier.split("/").pop()
 			resolved = components.has(name) ? await componentURL(new URL(specifier, url)) : stubURL(name.slice(0, -4))

@@ -336,8 +336,11 @@ const showingAll = ref([]) // workspaces listing all their chats, by folder
 const hasWorkspaces = computed(() => flow.state.sessions.some((session) => session.cwd?.trim()))
 const grouped = computed(() => hasWorkspaces.value && flow.state.prefs.sidebarGroup !== "list")
 const manual = computed(() => flow.state.prefs.sidebarOrder === "manual")
-// rows drag only where the filters menu shows, so the order can be set back
-const canReorder = computed(() => hasWorkspaces.value && !searching.value)
+// rows drag only where the filters menu shows, so the order can be set back, and over the
+// whole list, since a drop saves every chat's place
+const canReorder = computed(
+	() => hasWorkspaces.value && !searching.value && !flow.state.sessionsMore && !flow.state.sessionQuery,
+)
 
 // the filters menu, its current choices ticked
 const tick = () => h("span", { class: "lucide-check ml-auto size-4 text-ink-gray-7", "aria-hidden": "true" })
@@ -456,6 +459,8 @@ watch(
 // rows of its own scope: the workspaces, or one workspace's chats. A drop in last-updated
 // order switches to manual, starting from the order on screen
 const dragging = ref(null) // { scope, key, over, after }
+let endDrag = null // ends the drag in flight, dropping nothing
+onBeforeUnmount(() => endDrag?.({ type: "pointercancel" }))
 function dragStart(scope, key, event) {
 	pressed = false
 	// a Mac's ctrl-click is a right click, whose context menu swallows the release
@@ -471,6 +476,7 @@ function dragStart(scope, key, event) {
 		dragging.value = { scope, key, over: target?.dataset.key, after: !!box && e.clientY > box.top + box.height / 2 }
 	}
 	const end = (e) => {
+		endDrag = null
 		window.removeEventListener("pointermove", move)
 		window.removeEventListener("pointerup", end)
 		window.removeEventListener("pointercancel", end)
@@ -482,6 +488,7 @@ function dragStart(scope, key, event) {
 		setTimeout(() => (pressed = false))
 		if (drop.over && e.type === "pointerup") reorder(drop)
 	}
+	endDrag = end
 	window.addEventListener("pointermove", move)
 	window.addEventListener("pointerup", end)
 	window.addEventListener("pointercancel", end)
