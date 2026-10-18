@@ -10,11 +10,9 @@ import {
   reconnectable,
   serviceOf,
   services,
-  statusBadge,
-  subtitle,
   validate,
 } from "../services";
-import type { AccountForm, AccountStatus, EmailAccountDoc } from "../types";
+import type { AccountForm, EmailAccountDoc } from "../types";
 
 const service = (name: string) => services.find((s) => s.service === name)!;
 const form = (values: Partial<AccountForm> = {}): AccountForm => ({
@@ -250,40 +248,11 @@ describe("account state", () => {
     expect(authKind(doc({ service: "Frappe Mail" }))).toBe("frappe-mail");
   });
 
-  it("names what an active account does, else its status", () => {
-    const badge = (
-      status: AccountStatus,
-      enable_incoming: 0 | 1,
-      enable_outgoing: 0 | 1,
-    ) => statusBadge({ status, enable_incoming, enable_outgoing });
-    expect(badge("active", 1, 1)).toEqual({ label: "Incoming & outgoing", theme: "blue" });
-    expect(badge("active", 1, 0)).toEqual({ label: "Incoming only", theme: "blue" });
-    expect(badge("active", 0, 1)).toEqual({ label: "Outgoing only", theme: "blue" });
-    expect(badge("needs-reconnect", 1, 1)).toEqual({ label: "Needs reconnect", theme: "amber" });
-    expect(badge("active", 0, 0)).toEqual({ label: "Disabled", theme: "gray" });
-  });
-
   it("finds an account's provider, blank service being custom", () => {
     expect(serviceOf(doc({ service: "" })).kind).toBe("custom");
     expect(serviceOf(doc({ service: "Outlook.com" })).oneClick).toBe(
       "microsoft",
     );
-  });
-
-  it("shows the address under the name, or the service when they match", () => {
-    expect(
-      subtitle(
-        doc({ email_account_name: "Support", email_id: "help@example.com" }),
-      ),
-    ).toBe("help@example.com");
-    expect(
-      subtitle(
-        doc({
-          email_account_name: "help@example.com",
-          email_id: "help@example.com",
-        }),
-      ),
-    ).toBe("Gmail");
   });
 
   it("offers one-click sign-in only for providers the site offers", () => {

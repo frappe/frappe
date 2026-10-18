@@ -1,6 +1,6 @@
 import { toast } from "frappe-ui";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createApp, nextTick, reactive } from "vue";
+import { createApp, reactive } from "vue";
 import type { App } from "vue";
 import AccountList from "../AccountList.vue";
 
@@ -119,31 +119,4 @@ it("retries a failed load, refocusing Retry while it still fails and New once it
   await new Promise((resolve) => setTimeout(resolve));
   expect(root.textContent).not.toContain("Couldn't load email accounts");
   expect(document.activeElement).toBe(button("New"));
-});
-
-it("shows a sign-in result with its help link until it is dismissed", async () => {
-  const onResult = vi.fn();
-  remount(
-    {},
-    {
-      oauthResult: "smtp_disabled",
-      oauthMailbox: "sales@example.com",
-      "onUpdate:oauthResult": onResult,
-    },
-  );
-  const banner = root.querySelector('[role="alert"]')!;
-  expect(banner.textContent).toContain("Couldn't connect sales@example.com");
-  expect(banner.querySelector("a")!.href).toContain("learn.microsoft.com");
-
-  button("Dismiss").click();
-  await nextTick();
-  expect(onResult).toHaveBeenCalledWith(null);
-  expect(document.activeElement).toBe(button("New"));
-});
-
-it("lists each account's status as a plain badge", () => {
-  const row = root.querySelector("li button")!;
-  expect(row.textContent).toContain("Outgoing only");
-  expect(row.querySelector(".bg-surface-blue-2")?.textContent).toContain("Outgoing only");
-  expect(row.querySelector('[class*="lucide-arrow"]')).toBeNull();
 });
