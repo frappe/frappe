@@ -22,7 +22,7 @@ CSS_IN_HTML = re.compile(
 	r"(<style\b[^>]*>.*?</style>|\sstyle\s*=\s*(?:\"[^\"]*\"|'[^']*'))", re.IGNORECASE | re.DOTALL
 )
 MULTI_PAGE_STYLE = (
-	"body, .row:has(> :only-child) { display: flow-root !important; }"
+	"body, .row:has(> :only-child) { display: block !important; padding-top: 0.02px; padding-bottom: 0.02px; }"
 	".row:has(> :nth-child(2)), .section:has(> .section-label + .row > :nth-child(2)) { break-inside: avoid; }"
 )
 MEASURE_STYLE = "html, body, .print-format { height: auto !important; min-height: 0 !important; }"
