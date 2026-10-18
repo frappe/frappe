@@ -738,35 +738,68 @@ def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
 PAGE_MARGIN_SIDES = ("margin-top", "margin-right", "margin-bottom", "margin-left")
 
 
-def get_page_rule_margins(css: str) -> dict[str, str]:
+PAGE_LENGTH = r"[+-]?(\d*\.)?\d+(px|mm|cm|in)"
+
+
+def get_page_rule_properties(css: str):
 	import cssutils
 
 	cssutils.log.setLog(frappe.logger("cssutils"))
+	for rule in cssutils.parseString(css):
+		if isinstance(rule, cssutils.css.CSSPageRule) and not rule.selectorText:
+			yield from rule.style
+
+
+def get_page_rule_margins(css: str) -> dict[str, str]:
 	margins = {}
 	important = set()
-	for rule in cssutils.parseString(css):
-		if not isinstance(rule, cssutils.css.CSSPageRule) or rule.selectorText:
+	for prop in get_page_rule_properties(css):
+		if prop.name == "margin" and (values := [v.cssText for v in prop.propertyValue]):
+			top = values[0]
+			right = values[1] if len(values) > 1 else top
+			bottom = values[2] if len(values) > 2 else top
+			left = values[3] if len(values) > 3 else right
+			updates = zip(PAGE_MARGIN_SIDES, (top, right, bottom, left), strict=True)
+		elif prop.name in PAGE_MARGIN_SIDES:
+			updates = [(prop.name, prop.value)]
+		else:
 			continue
-		for prop in rule.style:
-			if prop.name == "margin" and (values := [v.cssText for v in prop.propertyValue]):
-				top = values[0]
-				right = values[1] if len(values) > 1 else top
-				bottom = values[2] if len(values) > 2 else top
-				left = values[3] if len(values) > 3 else right
-				updates = zip(PAGE_MARGIN_SIDES, (top, right, bottom, left), strict=True)
-			elif prop.name in PAGE_MARGIN_SIDES:
-				updates = [(prop.name, prop.value)]
-			else:
+		for side, value in updates:
+			if not re.fullmatch(f"0|{PAGE_LENGTH}", value.strip()):
 				continue
-			for side, value in updates:
-				if not re.fullmatch(r"0|[+-]?(\d*\.)?\d+(px|mm|cm|in)", value.strip()):
-					continue
-				if prop.priority or side not in important:
-					margins[side] = value
-					if prop.priority:
-						important.add(side)
+			if prop.priority or side not in important:
+				margins[side] = value
+				if prop.priority:
+					important.add(side)
 
 	return margins
+
+
+def get_page_rule_size(css: str) -> dict[str, str]:
+	from frappe.utils.pdf_generator.browser import PageSize
+
+	page_sizes = {name.lower(): name for name in PageSize.page_sizes}
+	size = {}
+	for prop in get_page_rule_properties(css):
+		if prop.name != "size":
+			continue
+		parts = prop.value.split()
+		if 0 < len(parts) <= 2 and all(re.fullmatch(PAGE_LENGTH, part) for part in parts):
+			size = {"page-width": parts[0], "page-height": parts[-1]}
+			continue
+		options = {}
+		for part in parts:
+			if part.lower() in ("portrait", "landscape"):
+				options["orientation"] = part.lower()
+			elif part.lower() in page_sizes:
+				options["page-size"] = page_sizes[part.lower()]
+			else:
+				options = {}
+				break
+		if options:
+			size = options
+
+	return size
 
 
 def get_font(
