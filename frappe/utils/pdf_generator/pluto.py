@@ -18,6 +18,9 @@ MAX_SHRINK = 0.5
 SCRIPT = re.compile(r"<script|\son[a-z]+\s*=", re.IGNORECASE)
 BASE_STYLE = "* { font-variant-ligatures: no-contextual; }"
 BREAK_WORD = re.compile(r"((?:overflow|word)-wrap\s*:\s*)(?:break-word|anywhere)", re.IGNORECASE)
+CSS_IN_HTML = re.compile(
+	r"(<style\b[^>]*>.*?</style>|\sstyle\s*=\s*(?:\"[^\"]*\"|'[^']*'))", re.IGNORECASE | re.DOTALL
+)
 MULTI_PAGE_STYLE = (
 	"body, .row:has(> :only-child) { display: flow-root !important; }"
 	".row:has(> :nth-child(2)), .section:has(> .section-label + .row > :nth-child(2)) { break-inside: avoid; }"
@@ -195,7 +198,7 @@ class PlutoPage:
 		)
 		book.custom_resource_fetcher = self.fetcher
 		book.load_html(
-			BREAK_WORD.sub(r"\1normal", self.html) + page_rule,
+			CSS_IN_HTML.sub(lambda css: BREAK_WORD.sub(r"\1normal", css.group(0)), self.html) + page_rule,
 			user_style=BASE_STYLE + user_style,
 			base_url=get_host_url(),
 		)
