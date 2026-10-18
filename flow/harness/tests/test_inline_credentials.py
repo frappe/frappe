@@ -26,66 +26,108 @@ def _client(store: SessionStore, policy: ServerPolicy | None = None) -> TestClie
 def test_local_default_refuses_inline_credentials(tmp_path):
 	store = _store(tmp_path)
 	c = _client(store)
-	for body in ({"api_key": KEY}, {"api_base": "http://gw.localhost"}):
+	params = {"api_base": "http://gw.localhost"}
+	for body in (
+		{"api_key": KEY},
+		{"api_base": "http://gw.localhost"},
+		{"model_params": params},
+		{"subagents": [{"name": "a", "model_params": params}]},
+	):
 		r = c.post("/sessions", json={"cwd": str(tmp_path), **body})
-		assert r.status_code == 400
-		assert "server policy" in r.json()["detail"]
+		assert r.status_code == 400, body
+		assert "server policy" in r.json()["detail"], body
 	sid = c.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
-	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "api_key": KEY})
-	assert r.status_code == 400
-	assert store.get(sid).config.api_key is None
+	for body in ({"api_key": KEY}, {"model_params": params}):
+		r = c.post(f"/sessions/{sid}/model", json={"model": "mock", **body})
+		assert r.status_code == 400, body
+	config = store.get(sid).config
+	assert (config.api_key, config.model_params) == (None, {})
 
 
 def test_inline_credentials_accepted_and_redacted(tmp_path):
-	store = _store(tmp_path)
-	c = _client(store, ServerPolicy(inline_credentials=True))
-	r = c.post(
-		"/sessions",
-		json={"cwd": str(tmp_path), "api_key": KEY, "api_base": "http://gw.localhost/v1"},
+	params = {"api_base": "http://gw.localhost"}
+	local = _store(tmp_path / "local")
+	deployed = _store(
+		tmp_path / "deployed",
+		tool_allowlist=DEPLOYED.tool_allowlist,
+		callback_hosts=DEPLOYED.callback_hosts,
 	)
-	assert r.status_code == 200
-	sid = r.json()["session_id"]
-	assert r.json()["config"]["api_key"] == "***"
-	assert r.json()["config"]["api_base"] == "http://gw.localhost/v1"
-	assert store.get(sid).config.api_key == KEY
-	for response in (
-		r,
-		c.get(f"/sessions/{sid}"),
-		c.get("/sessions"),
-		c.patch(f"/sessions/{sid}/config", json={"title": "renamed"}),
-	):
-		assert response.status_code == 200
-		assert KEY not in response.text
+	clients = [
+		("inline_credentials", local, _client(local, ServerPolicy(inline_credentials=True))),
+		(
+			"deployed",
+			deployed,
+			TestClient(
+				create_app(deployed, policy=DEPLOYED, auth_token="test-token"),
+				headers={"Authorization": "Bearer test-token"},
+			),
+		),
+	]
+	for policy, store, c in clients:
+		r = c.post(
+			"/sessions",
+			json={
+				"cwd": str(tmp_path),
+				"api_key": KEY,
+				"api_base": "http://gw.localhost/v1",
+				"model_params": params,
+			},
+		)
+		assert r.status_code == 200, policy
+		sid = r.json()["session_id"]
+		assert r.json()["config"]["api_key"] == "***", policy
+		assert r.json()["config"]["api_base"] == "http://gw.localhost/v1", policy
+		assert r.json()["config"]["model_params"] == params, policy
+		assert store.get(sid).config.api_key == KEY, policy
+		for response in (
+			r,
+			c.get(f"/sessions/{sid}"),
+			c.get("/sessions"),
+			c.patch(f"/sessions/{sid}/config", json={"title": "renamed"}),
+		):
+			assert response.status_code == 200, policy
+			assert KEY not in response.text, policy
 
 
-def test_set_model_replaces_the_inline_pair(tmp_path):
+def test_set_model_replaces_key_base_and_params_as_one_unit(tmp_path):
+	"""Flow sends the inline fields on every switch, so a key never lands on a stale
+	endpoint or with stale params."""
 	store = _store(tmp_path)
 	c = _client(store, ServerPolicy(inline_credentials=True))
-	sid = c.post("/sessions", json={"cwd": str(tmp_path), "api_key": "sk-first"}).json()["session_id"]
+	body = {"cwd": str(tmp_path), "api_key": KEY, "model_params": {"route": "first"}}
+	sid = c.post("/sessions", json=body).json()["session_id"]
 	config = store.get(sid).config
 
-	# same model, new key: rotation without a model change
-	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "api_key": "sk-second"})
-	assert r.status_code == 200
+	def switch(model, **inline):
+		r = c.post(f"/sessions/{sid}/model", json={"model": model, **inline})
+		assert r.status_code == 200
+		return r
+
+	# a new key alone: rotation without a model change, and the old params go
+	r = switch("mock", api_key="sk-second")
 	assert KEY not in r.text and "sk-second" not in r.text
-	assert (config.api_key, config.api_base) == ("sk-second", None)
+	assert (config.api_key, config.api_base, config.model_params) == ("sk-second", None, {})
+	# the rotated key survives a restart
+	assert _store(tmp_path).get(sid).config.api_key == "sk-second"
 
-	# no pair sent: the stored pair stays
-	assert c.post(f"/sessions/{sid}/model", json={"model": "mock-b"}).status_code == 200
-	assert config.api_key == "sk-second"
+	switch("mock-b", api_key="sk-second", model_params={"route": "b"})
+	assert (config.api_key, config.api_base, config.model_params) == ("sk-second", None, {"route": "b"})
 
-	# explicit nulls clear a previous pair (Flow sends both fields on every switch)
-	r = c.post(
-		f"/sessions/{sid}/model",
-		json={"model": "mock", "api_key": None, "api_base": None},
-	)
-	assert r.status_code == 200
-	assert (config.api_key, config.api_base) == (None, None)
+	# nothing inline sent: the stored ones stay
+	switch("mock")
+	assert (config.api_key, config.api_base, config.model_params) == ("sk-second", None, {"route": "b"})
 
-	# half a pair sent: both replaced, so a key never lands on a stale endpoint
-	r = c.post(f"/sessions/{sid}/model", json={"model": "mock", "api_base": "http://gw.localhost"})
-	assert r.status_code == 200
-	assert (config.api_key, config.api_base) == (None, "http://gw.localhost")
+	# half a pair sent: all replaced
+	switch("mock", api_base="http://gw.localhost")
+	assert (config.api_key, config.api_base, config.model_params) == (None, "http://gw.localhost", {})
+
+	# params alone replace the whole unit too
+	switch("mock-b", model_params={"route": "c"})
+	assert (config.api_key, config.api_base, config.model_params) == (None, None, {"route": "c"})
+
+	# explicit nulls clear it
+	switch("mock", api_key=None, api_base=None)
+	assert (config.api_key, config.api_base, config.model_params) == (None, None, {})
 
 
 def test_failed_persist_reverts_the_model_change_too(tmp_path, monkeypatch):
@@ -107,17 +149,6 @@ def test_failed_persist_reverts_the_model_change_too(tmp_path, monkeypatch):
 	assert (session.config.api_key, session.config.model_params) == (KEY, {"route": "a"})
 
 
-def test_inline_credentials_survive_restart(tmp_path):
-	store = _store(tmp_path)
-	c = _client(store, ServerPolicy(inline_credentials=True))
-	sid = c.post("/sessions", json={"cwd": str(tmp_path), "api_key": KEY}).json()["session_id"]
-	assert (
-		c.post(f"/sessions/{sid}/model", json={"model": "mock", "api_key": "sk-rotated"}).status_code == 200
-	)
-	reopened = _store(tmp_path)
-	assert reopened.get(sid).config.api_key == "sk-rotated"
-
-
 def test_resolve_model_auth_prefers_inline(tmp_path):
 	store = CredentialStore(str(tmp_path / "credentials.json"))
 	store.set_api_key("anthropic", "sk-stored")
@@ -134,80 +165,7 @@ def test_resolve_model_auth_prefers_inline(tmp_path):
 	assert resolve().api_key == "sk-stored"
 
 
-def test_run_path_passes_inline_credentials(tmp_path, monkeypatch):
-	from flow_harness.agent import loop
-
-	captured = {}
-
-	async def fake_resolve(model, store, *, provider_id=None, api_key=None, api_base=None):
-		captured.update(api_key=api_key, api_base=api_base)
-		return ResolvedModelAuth(api_key=api_key, base_url=api_base)
-
-	monkeypatch.setattr(loop, "resolve_model_auth", fake_resolve)
-	monkeypatch.setattr(loop, "get_model", lambda name, **kw: object())
-	inputs = loop.LoopInputs(
-		config=SessionConfig(cwd=str(tmp_path), api_key="sk-run", api_base="http://gw.localhost"),
-		messages=[],
-		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
-		abort=asyncio.Event(),
-		model_name="mock",
-	)
-	asyncio.run(loop._authenticated_model(inputs))
-	assert captured == {"api_key": "sk-run", "api_base": "http://gw.localhost"}
-
-
-def test_deployed_accepts_inline_credentials(tmp_path):
-	store = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist, callback_hosts=DEPLOYED.callback_hosts)
-	app = create_app(store, policy=DEPLOYED, auth_token="test-token")
-	c = TestClient(app, headers={"Authorization": "Bearer test-token"})
-	r = c.post("/sessions", json={"cwd": str(tmp_path), "api_key": KEY})
-	assert r.status_code == 200
-	assert r.json()["config"]["api_key"] == "***"
-	assert KEY not in r.text
-
-
-def test_model_params_need_the_inline_credentials_switch(tmp_path):
-	store = _store(tmp_path)
-	params = {"api_base": "http://gw.localhost"}
-	for body in ({"model_params": params}, {"subagents": [{"name": "a", "model_params": params}]}):
-		r = _client(store).post("/sessions", json={"cwd": str(tmp_path), **body})
-		assert r.status_code == 400
-		assert "server policy" in r.json()["detail"]
-	sid = _client(store).post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
-	r = _client(store).post(f"/sessions/{sid}/model", json={"model": "mock", "model_params": params})
-	assert r.status_code == 400
-	assert store.get(sid).config.model_params == {}
-	r = _client(store, ServerPolicy(inline_credentials=True)).post(
-		"/sessions", json={"cwd": str(tmp_path), "model_params": params}
-	)
-	assert r.status_code == 200
-	assert r.json()["config"]["model_params"] == params
-
-
-def test_set_model_replaces_the_model_params_with_the_pair(tmp_path):
-	store = _store(tmp_path)
-	c = _client(store, ServerPolicy(inline_credentials=True))
-	body = {"cwd": str(tmp_path), "api_key": KEY, "model_params": {"route": "first"}}
-	sid = c.post("/sessions", json=body).json()["session_id"]
-	config = store.get(sid).config
-
-	# a switch to a model without params clears the old ones (Flow sends the pair on every switch)
-	c.post(f"/sessions/{sid}/model", json={"model": "mock-b", "api_key": KEY, "api_base": None})
-	assert config.model_params == {}
-
-	c.post(f"/sessions/{sid}/model", json={"model": "mock", "api_key": KEY, "model_params": {"route": "b"}})
-	assert config.model_params == {"route": "b"}
-
-	# params alone replace the whole unit too
-	c.post(f"/sessions/{sid}/model", json={"model": "mock-b", "model_params": {"route": "c"}})
-	assert (config.api_key, config.model_params) == (None, {"route": "c"})
-
-	# nothing inline sent: the stored ones stay
-	c.post(f"/sessions/{sid}/model", json={"model": "mock"})
-	assert config.model_params == {"route": "c"}
-
-
-async def test_every_model_call_carries_the_model_params(tmp_path, monkeypatch):
+async def test_every_model_call_carries_the_inline_credentials_and_params(tmp_path, monkeypatch):
 	calls = []
 
 	async def completion(**kwargs):
@@ -220,6 +178,7 @@ async def test_every_model_call_carries_the_model_params(tmp_path, monkeypatch):
 			cwd=str(tmp_path),
 			model="openai/test",
 			api_key=KEY,
+			api_base="http://gw.localhost",
 			model_params={"provider": {"zdr": True}},
 			stream=False,
 		)
@@ -229,4 +188,9 @@ async def test_every_model_call_carries_the_model_params(tmp_path, monkeypatch):
 	await session._title_task
 
 	assert len(calls) == 2  # the turn and the title
-	assert all(call["provider"] == {"zdr": True} for call in calls)
+	for call in calls:
+		assert (call["api_key"], call["api_base"], call["provider"]) == (
+			KEY,
+			"http://gw.localhost",
+			{"zdr": True},
+		)

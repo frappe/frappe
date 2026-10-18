@@ -51,7 +51,7 @@ ONE = _auth("site1.localhost", "token-one")
 TWO = _auth("site2.localhost", "token-two")
 
 
-def test_load_tenants_parses_the_template():
+def test_load_tenants_parses_the_template_and_rejects_broken_ones():
 	template = {
 		"token_file": "/srv/{site}/site_config.json",
 		"token_key": "flow_server_secret",
@@ -77,8 +77,6 @@ def test_load_tenants_parses_the_template():
 	)
 	assert (minimal.callback_hosts, minimal.data_dir) == (None, None)
 
-
-def test_load_tenants_rejects_broken_templates():
 	token_fields = '"token_file": "/s/{site}/t.json", "token_key": "k"'
 	base = f'{token_fields}, "allowed_roots": ["/x"]'
 	cases = [
@@ -108,7 +106,8 @@ def test_load_tenants_rejects_broken_templates():
 
 
 def test_lookup_fills_the_template_from_the_sites_own_file(tmp_path):
-	folder = _site(tmp_path, "site1.localhost", "token-one")
+	folder, _ = _two_sites(tmp_path)
+	(tmp_path / "sites" / "assets").mkdir()
 	tenants = _tenants(
 		tmp_path,
 		allowed_roots=(str(tmp_path / "sites" / "{site}"), "/srv/apps"),
@@ -118,6 +117,7 @@ def test_lookup_fills_the_template_from_the_sites_own_file(tmp_path):
 		data_dir=str(tmp_path / "sites" / "{site}" / "flow"),
 		extensions=(str(tmp_path / "sites" / "{site}" / "flow" / "extensions"),),
 	)
+	assert tenants.sites() == ["site1.localhost", "site2.localhost"]  # every name with a token file
 	assert tenants.lookup("site1.localhost") == Tenant(
 		site="site1.localhost",
 		token="token-one",
@@ -133,12 +133,6 @@ def test_lookup_fills_the_template_from_the_sites_own_file(tmp_path):
 	(tmp_path / "sites" / "broken.localhost" / "site.json").write_text('{"tok')
 	for name in ("missing.localhost", "tokenless.localhost", "broken.localhost", "..", ".hidden", "a/b", ""):
 		assert tenants.lookup(name) is None, name
-
-
-def test_sites_lists_every_name_with_a_token_file(tmp_path):
-	_two_sites(tmp_path)
-	(tmp_path / "sites" / "assets").mkdir()
-	assert _tenants(tmp_path).sites() == ["site1.localhost", "site2.localhost"]
 
 
 def test_path_for_site_moves_another_sites_folder_to_this_one():
@@ -169,9 +163,6 @@ def test_for_site_partitions_sessions_and_credentials(tmp_path):
 	assert own.sessions_dir == str(tmp_path / "site3" / "flow" / "sessions")
 	assert own.credential_store.path == str(tmp_path / "site3" / "flow" / "credentials.json")
 
-
-def test_for_site_rejects_unsafe_names(tmp_path):
-	store = _store(tmp_path)
 	for name in ("..", ".", "a/b", "../escape", ".hidden", ""):
 		with pytest.raises(ValueError, match="invalid site name"):
 			store.for_site(name)
@@ -202,7 +193,7 @@ def test_startup_reports_unconfirmed_run_ends_in_every_partition(tmp_path, monke
 	]
 
 
-def test_a_site_arriving_later_reports_its_run_ends_on_its_first_request(tmp_path, monkeypatch):
+def test_a_sites_token_file_is_read_on_every_request(tmp_path, monkeypatch):
 	events = []
 	monkeypatch.setattr(
 		SessionStore, "report_unconfirmed_run_ends", lambda store: events.append(store.data_dir)
@@ -214,89 +205,89 @@ def test_a_site_arriving_later_reports_its_run_ends_on_its_first_request(tmp_pat
 		"for_site",
 		lambda store, site, *a, **kw: made.append(site) or for_site(store, site, *a, **kw),
 	)
-	with TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path))) as c:
+	data_dir = str(tmp_path / "sites" / "{site}" / "flow")
+	with TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path, data_dir=data_dir))) as c:
 		assert c.get("/healthz").status_code == 200  # serves with no site at all
 		assert c.get("/sessions", headers=ONE).status_code == 401
-		_site(tmp_path, "site1.localhost", "token-one")  # moved onto this bench by a deploy
-		assert c.get("/sessions", headers=ONE).status_code == 200
+		cwd = _site(tmp_path, "site1.localhost", "token-one")  # moved onto this bench by a deploy
+		assert c.post("/sessions", json={"cwd": cwd}, headers=ONE).status_code == 200
 		_site(tmp_path, "site1.localhost", "token-new")
 		assert c.get("/sessions", headers=ONE).status_code == 401
-		assert c.get("/sessions", headers=_auth("site1.localhost", "token-new")).status_code == 200
-	partition = str(tmp_path / "data" / "tenants" / "site1.localhost")
-	assert events == [str(tmp_path / "data"), partition]
-	assert made == ["site1.localhost"]  # a new secret keeps the partition and its live sessions
+		new = _auth("site1.localhost", "token-new")
+		assert c.get("/sessions", headers=new).status_code == 200
+		partition = os.path.join(cwd, "flow")
+		assert events == [str(tmp_path / "data"), partition]
+		assert made == ["site1.localhost"]  # a new secret keeps the partition and its live sessions
+
+		# Flow uninstalled: its secret and data removed; other sites carry on
+		_site(tmp_path, "site2.localhost", "token-two")
+		_site(tmp_path, "site1.localhost", "")
+		assert c.get("/sessions", headers=new).status_code == 401
+		assert c.get("/sessions", headers=TWO).status_code == 200
+		shutil.rmtree(partition)
+
+		# a reinstall makes a new secret and works without a restart
+		_site(tmp_path, "site1.localhost", "token-again")
+		again = _auth("site1.localhost", "token-again")
+		assert c.get("/sessions", headers=again).json()["sessions"] == []
+		assert c.post("/sessions", json={"cwd": cwd}, headers=again).status_code == 200
+	assert made == ["site1.localhost", "site2.localhost", "site1.localhost"]
 
 
-def test_sites_only_see_their_own_sessions(tmp_path):
-	cwd, _ = _two_sites(tmp_path)
+def test_a_site_token_reaches_only_its_own_sessions(tmp_path):
+	one, two = _two_sites(tmp_path)
 	c = TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path)))
-	r = c.post("/sessions", json={"cwd": cwd}, headers=ONE)
+	r = c.post("/sessions", json={"cwd": one}, headers=ONE)
 	assert r.status_code == 200
 	sid = r.json()["session_id"]
 	assert c.get(f"/sessions/{sid}", headers=ONE).status_code == 200
-	sessions = c.get("/sessions", headers=TWO).json()["sessions"]
-	assert sessions == []
+	assert c.get("/sessions", headers=TWO).json()["sessions"] == []
 	assert c.get(f"/sessions/{sid}", headers=TWO).status_code == 404
 	assert c.get(f"/sessions/{sid}/entries", headers=TWO).status_code == 404
 	assert c.delete(f"/sessions/{sid}", headers=TWO).status_code == 404
-	assert c.get("/sessions").status_code == 401
-	assert c.get("/sessions", headers={"Authorization": "Bearer token-one"}).status_code == 401
-	assert c.get("/sessions", headers=_auth("site1.localhost", "wrong")).status_code == 401
-	# a token opens only its own site
-	assert c.get("/sessions", headers=_auth("site2.localhost", "token-one")).status_code == 401
+	# no site, a wrong token, or another site's token
+	for headers in (
+		None,
+		{"Authorization": "Bearer token-one"},
+		_auth("site1.localhost", "wrong"),
+		_auth("site2.localhost", "token-one"),
+	):
+		assert c.get("/sessions", headers=headers).status_code == 401, headers
 	assert c.get("/healthz").status_code == 200
 
+	# nor another site's folder
+	r = c.post("/sessions", json={"cwd": two}, headers=ONE)
+	assert r.status_code == 400
+	assert "allowed root" in r.json()["detail"]
 
-def test_tenant_tokens_never_reach_provider_routes(tmp_path):
-	"""The credential store is daemon-wide; a site token managing it could tamper
-	with every other site's providers — so tenants mode disables those routes."""
-	_two_sites(tmp_path)
-	c = TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path)))
+	# the credential store is daemon-wide, so no site token may manage it
 	assert c.get("/providers", headers=ONE).status_code == 403
 	r = c.post("/providers/anthropic/api-key", json={"api_key": "sk-x"}, headers=ONE)
 	assert r.status_code == 403
 	assert "server policy" in r.json()["detail"]
 
 
-def test_same_session_id_allowed_on_two_sites(tmp_path):
-	sites = _two_sites(tmp_path)
-	c = TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path)))
-	for cwd, auth in zip(sites, (ONE, TWO), strict=True):
-		body = {"cwd": cwd, "session_id": "shared-id"}
-		assert c.post("/sessions", json=body, headers=auth).status_code == 200
+def test_sink_events_include_the_site(tmp_path):
+	for name, policy in (("local", None), ("deployed", DEPLOYED)):
+		root = tmp_path / name
+		received = []
+		store = _store(root, event_sink=lambda sid, event: received.append((sid, event)))
+		sites = _two_sites(root)
+		c = TestClient(create_app(store, tenants=_tenants(root), policy=policy))
+		for cwd, auth in zip(sites, (ONE, TWO), strict=True):
+			# the same session id on two sites
+			body = {"model": "mock", "cwd": cwd, "session_id": "shared-id"}
+			assert c.post("/sessions", json=body, headers=auth).status_code == 200, name
+			response = c.post(
+				"/sessions/shared-id/run",
+				params={"wait": "true"},
+				json={"message": "hello"},
+				headers=auth,
+			)
+			assert response.status_code == 200, name
 
-
-@pytest.mark.parametrize("policy", [None, DEPLOYED], ids=["local", "deployed"])
-def test_sink_events_include_the_site(tmp_path, policy):
-	received = []
-	store = _store(tmp_path, event_sink=lambda sid, event: received.append((sid, event)))
-	sites = _two_sites(tmp_path)
-	c = TestClient(create_app(store, tenants=_tenants(tmp_path), policy=policy))
-	for cwd, auth in zip(sites, (ONE, TWO), strict=True):
-		sid = c.post(
-			"/sessions",
-			json={"model": "mock", "cwd": cwd, "session_id": "shared-id"},
-			headers=auth,
-		).json()["session_id"]
-		response = c.post(
-			f"/sessions/{sid}/run",
-			params={"wait": "true"},
-			json={"message": "hello"},
-			headers=auth,
-		)
-		assert response.status_code == 200
-
-	assert {event["site"] for _sid, event in received} == {"site1.localhost", "site2.localhost"}
-	assert {sid for sid, _event in received} == {"shared-id"}
-
-
-def test_each_site_is_fenced_to_its_own_folder(tmp_path):
-	one, two = _two_sites(tmp_path)
-	c = TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path)))
-	assert c.post("/sessions", json={"cwd": one}, headers=ONE).status_code == 200
-	r = c.post("/sessions", json={"cwd": two}, headers=ONE)
-	assert r.status_code == 400
-	assert "allowed root" in r.json()["detail"]
+		assert {event["site"] for _sid, event in received} == {"site1.localhost", "site2.localhost"}, name
+		assert {sid for sid, _event in received} == {"shared-id"}, name
 
 
 HELLO_EXTENSION = """
@@ -340,51 +331,24 @@ def _callback_status(c: TestClient, cwd: str, auth: dict[str, str], host: str) -
 
 def test_site_callback_hosts_replace_the_daemon_wide_fence(tmp_path):
 	one, _ = _two_sites(tmp_path)
-	store = _store(tmp_path, callback_hosts=["shared.localhost:8000"])
+	store = _store(tmp_path / "local", callback_hosts=["shared.localhost:8000"])
 	c = TestClient(create_app(store, tenants=_tenants(tmp_path, callback_hosts=("bench.localhost:8000",))))
 	assert _callback_status(c, one, ONE, "bench.localhost:8000") == 200
 	assert _callback_status(c, one, ONE, "shared.localhost:8000") == 400
 
-
-def test_site_callback_hosts_satisfy_deployed(tmp_path):
-	"""Deployed refuses callbacks until hosts are configured; the template's list is
-	enough, so a bench needs no FLOW_CALLBACK_HOSTS."""
-	one, _ = _two_sites(tmp_path)
-	store = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist, callback_hosts=DEPLOYED.callback_hosts)
+	# deployed refuses callbacks until hosts are configured; the template's list is
+	# enough, so a bench needs no FLOW_CALLBACK_HOSTS
+	store = _store(
+		tmp_path / "deployed", tool_allowlist=DEPLOYED.tool_allowlist, callback_hosts=DEPLOYED.callback_hosts
+	)
 	tenants = _tenants(tmp_path, callback_hosts=("127.0.0.1:8000",))
 	c = TestClient(create_app(store, policy=DEPLOYED, tenants=tenants))
 	assert _callback_status(c, one, ONE, "127.0.0.1:8000") == 200
 	assert _callback_status(c, one, ONE, "evil.example.com") == 400
-
-
-def test_tenants_satisfy_deployed_auth(tmp_path):
-	one, _ = _two_sites(tmp_path)
-	store = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist, callback_hosts=DEPLOYED.callback_hosts)
-	c = TestClient(create_app(store, policy=DEPLOYED, tenants=_tenants(tmp_path)))
+	# tenants satisfy deployed auth, and its allowlist caps a site's tools
 	r = c.post("/sessions", json={"cwd": one}, headers=ONE)
 	assert r.status_code == 200
 	assert r.json()["config"]["tools"] == ["read"]
-
-
-def test_a_site_whose_token_is_gone_is_refused(tmp_path):
-	_two_sites(tmp_path)
-	c = TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path)))
-	assert c.get("/sessions", headers=TWO).status_code == 200
-	_site(tmp_path, "site2.localhost", "")  # Flow uninstalled: its secret removed
-	assert c.get("/sessions", headers=TWO).status_code == 401
-	assert c.get("/sessions", headers=ONE).status_code == 200
-
-
-def test_a_reinstalled_site_works_without_a_restart(tmp_path):
-	cwd = _site(tmp_path, "site1.localhost", "token-one")
-	data_dir = str(tmp_path / "sites" / "{site}" / "flow")
-	c = TestClient(create_app(_store(tmp_path), tenants=_tenants(tmp_path, data_dir=data_dir)))
-	assert c.post("/sessions", json={"cwd": cwd}, headers=ONE).status_code == 200
-	shutil.rmtree(os.path.join(cwd, "flow"))  # uninstall deletes the site's data
-	_site(tmp_path, "site1.localhost", "token-new")  # reinstall makes a new secret
-	again = _auth("site1.localhost", "token-new")
-	assert c.get("/sessions", headers=again).json()["sessions"] == []
-	assert c.post("/sessions", json={"cwd": cwd}, headers=again).status_code == 200
 
 
 def _renaming_bench(tmp_path) -> TenantTemplate:
@@ -432,23 +396,20 @@ def _serve_args(tmp_path) -> Namespace:
 	)
 
 
-def test_serve_refuses_token_and_tenants_together(tmp_path, monkeypatch):
+def test_serve_refuses_a_bad_tenants_config(tmp_path, monkeypatch):
 	from flow_harness import config
 
 	cli_main = importlib.import_module("flow_harness.cli.main")
-	monkeypatch.setattr(config, "AUTH_TOKEN", "secret")
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
-	monkeypatch.setattr(config, "TENANTS", '{"token_file": "/s/{site}/t.json", "allowed_roots": ["/s"]}')
-	with pytest.raises(DaemonError, match="not both"):
-		cli_main._serve(_serve_args(tmp_path))
-
-
-def test_serve_wraps_template_errors(tmp_path, monkeypatch):
-	from flow_harness import config
-
-	cli_main = importlib.import_module("flow_harness.cli.main")
-	monkeypatch.setattr(config, "AUTH_TOKEN", None)
-	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
-	monkeypatch.setattr(config, "TENANTS", '{"token_file": "/s/t.json", "allowed_roots": ["/s"]}')
-	with pytest.raises(DaemonError, match="cannot load FLOW_TENANTS: token_file must"):
-		cli_main._serve(_serve_args(tmp_path))
+	for token, tenants, match in (
+		("secret", '{"token_file": "/s/{site}/t.json", "allowed_roots": ["/s"]}', "not both"),
+		(
+			None,
+			'{"token_file": "/s/t.json", "allowed_roots": ["/s"]}',
+			"cannot load FLOW_TENANTS: token_file must",
+		),
+	):
+		monkeypatch.setattr(config, "AUTH_TOKEN", token)
+		monkeypatch.setattr(config, "TENANTS", tenants)
+		with pytest.raises(DaemonError, match=match):
+			cli_main._serve(_serve_args(tmp_path))

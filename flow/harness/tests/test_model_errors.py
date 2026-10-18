@@ -11,231 +11,147 @@ from flow_harness.model.errors import (
 
 
 def test_http_error_classification():
+	overflow = {
+		"error": {
+			"code": "context_length_exceeded",
+			"message": "Your input exceeds the context window of this model.",
+		}
+	}
 	cases = [
 		(429, {"error": {"message": "slow down"}}, "rate_limit", True),
 		(503, {"error": {"message": "overloaded"}}, "overloaded", True),
 		(400, {"error": {"message": "bad parameter"}}, "invalid_request", False),
+		(400, overflow, "context_overflow", False),
 		(401, {"error": {"message": "invalid API key"}}, "auth", False),
 		(401, {"error": {"message": "access token expired"}}, "auth", True),
+		# transient by LLM-API convention rather than HTTP semantics
+		(409, "", "overloaded", True),
+		(425, "", "overloaded", True),
 	]
 	for status, body, kind, retryable in cases:
 		error = provider_error_from_http(status_code=status, provider="test", body=body)
-		assert error.kind == kind
-		assert error.retryable is retryable
-		assert error.status_code == status
-
-
-def test_context_overflow_is_distinct_from_invalid_request():
-	error = provider_error_from_http(
-		status_code=400,
-		provider="openai",
-		body={
-			"error": {
-				"code": "context_length_exceeded",
-				"message": "Your input exceeds the context window of this model.",
-			}
-		},
-	)
-
-	assert error.kind == "context_overflow"
-	assert error.retryable is False
+		assert (error.kind, error.retryable, error.status_code) == (kind, retryable, status), body
+	error = provider_error_from_http(status_code=400, provider="openai", body=overflow)
 	assert "context_length_exceeded" in error.detail
 
-
-def test_provider_codes_match_regardless_of_separator():
-	"""Codex reports transient failures as snake_case codes on a 200 SSE frame, so
-	there is no status to fall back on and the marker must match either spelling."""
-	for code in ("service_unavailable", "temporarily_unavailable", "internal_error", "server_error"):
-		error = normalize_provider_error(RuntimeError(f"error: {code}: upstream"), provider="codex")
-		assert (error.kind, error.retryable) == ("overloaded", True), code
-
-	spaced = normalize_provider_error(RuntimeError("503 Service Unavailable"), provider="codex")
-	assert (spaced.kind, spaced.retryable) == ("overloaded", True)
-
-
-def test_conflict_and_too_early_are_transient():
-	"""409/425 are transient by LLM-API convention rather than HTTP semantics."""
-	for status in (409, 425):
-		error = provider_error_from_http(status_code=status, provider="codex")
-		assert (error.kind, error.retryable) == ("overloaded", True), status
-
-
-def test_subscription_usage_limits_are_not_transient_rate_limits():
-	cases = [
+	# quota and subscription usage limits are not transient rate limits
+	for body in (
+		{"error": {"code": "insufficient_quota", "message": "billing quota exceeded"}},
 		{"detail": "You've hit your usage limit. Try again after your quota resets."},
 		{"error": {"type": "GoUsageLimitError", "message": "Monthly usage limit reached"}},
 		{"error": {"message": "Enable available balance usage to continue."}},
-	]
-	for body in cases:
+	):
 		error = provider_error_from_http(status_code=429, provider="opencode-go", body=body)
 		assert (error.kind, error.retryable) == ("rate_limit", False), body
 
-
-def test_body_decoding_failure_is_a_transport_fault():
-	request = httpx.Request("POST", "https://provider.test")
-	error = normalize_provider_error(httpx.DecodingError("bad gzip", request=request), provider="codex")
-
-	assert (error.kind, error.retryable) == ("transport", True)
-
-
-def test_quota_exhaustion_is_not_a_transient_rate_limit():
-	error = provider_error_from_http(
-		status_code=429,
-		provider="openai",
-		body={"error": {"code": "insufficient_quota", "message": "billing quota exceeded"}},
-	)
-
-	assert error.kind == "rate_limit"
-	assert error.retryable is False
-
-
-def test_retry_after_seconds_and_milliseconds_are_normalized():
 	seconds = provider_error_from_http(
-		status_code=429,
-		provider="test",
-		headers=httpx.Headers({"Retry-After": "2.5"}),
+		status_code=429, provider="test", headers=httpx.Headers({"Retry-After": "2.5"})
 	)
 	milliseconds = provider_error_from_http(
-		status_code=503,
-		provider="test",
-		headers=httpx.Headers({"retry-after-ms": "750"}),
+		status_code=503, provider="test", headers=httpx.Headers({"retry-after-ms": "750"})
 	)
-
-	assert seconds.retry_after_seconds == 2.5
-	assert milliseconds.retry_after_seconds == 0.75
+	assert (seconds.retry_after_seconds, milliseconds.retry_after_seconds) == (2.5, 0.75)
 
 
-def test_transport_and_timeout_exceptions_are_typed():
+def test_raised_failures_are_typed():
 	request = httpx.Request("POST", "https://provider.test")
-	timeout = normalize_provider_error(httpx.ReadTimeout("slow", request=request), provider="test")
-	transport = normalize_provider_error(httpx.ConnectError("refused", request=request), provider="test")
-	protocol = normalize_provider_error(
-		httpx.RemoteProtocolError("disconnected", request=request),
-		provider="test",
-	)
-
-	assert (timeout.kind, timeout.retryable) == ("timeout", True)
-	assert (transport.kind, transport.retryable) == ("transport", True)
-	assert (protocol.kind, protocol.retryable) == ("transport", True)
+	cases = [
+		(httpx.ReadTimeout("slow", request=request), "timeout"),
+		(httpx.ConnectError("refused", request=request), "transport"),
+		(httpx.RemoteProtocolError("disconnected", request=request), "transport"),
+		(httpx.DecodingError("bad gzip", request=request), "transport"),
+		# Codex reports transient failures as snake_case codes on a 200 SSE frame, so
+		# there is no status to fall back on and the marker must match either spelling
+		*[
+			(RuntimeError(f"error: {code}: upstream"), "overloaded")
+			for code in ("service_unavailable", "temporarily_unavailable", "internal_error", "server_error")
+		],
+		(RuntimeError("503 Service Unavailable"), "overloaded"),
+	]
+	for raised, kind in cases:
+		error = normalize_provider_error(raised, provider="codex")
+		assert (error.kind, error.retryable) == (kind, True), raised
 
 
 def test_litellm_exception_types_are_the_primary_classification_boundary():
 	from litellm import exceptions as litellm_exceptions
 
 	request = httpx.Request("POST", "https://provider.test")
-	response_403 = httpx.Response(403, request=request)
+	source = {"model": "test", "llm_provider": "anthropic"}
 	cases = [
 		(
 			litellm_exceptions.ContextWindowExceededError(
-				message="Context Window exceeded for given call",
-				model="test",
-				llm_provider="anthropic",
+				message="Context Window exceeded for given call", **source
 			),
 			"context_overflow",
 			False,
+			None,
 		),
+		(litellm_exceptions.Timeout(message="request stalled", **source), "timeout", True, None),
 		(
-			litellm_exceptions.Timeout(
-				message="request stalled",
-				model="test",
-				llm_provider="anthropic",
-			),
-			"timeout",
-			True,
-		),
-		(
-			litellm_exceptions.APIConnectionError(
-				message="connection closed",
-				model="test",
-				llm_provider="anthropic",
-			),
+			litellm_exceptions.APIConnectionError(message="connection closed", **source),
 			"transport",
 			True,
+			None,
 		),
 		(
 			litellm_exceptions.PermissionDeniedError(
-				message="not permitted",
-				model="test",
-				llm_provider="anthropic",
-				response=response_403,
+				message="not permitted", response=httpx.Response(403, request=request), **source
 			),
 			"auth",
 			False,
+			None,
 		),
 		(
-			litellm_exceptions.ServiceUnavailableError(
-				message="provider busy",
-				model="test",
-				llm_provider="anthropic",
-			),
+			litellm_exceptions.ServiceUnavailableError(message="provider busy", **source),
 			"overloaded",
 			True,
+			None,
 		),
 		(
-			litellm_exceptions.BadRequestError(
-				message="invalid tool schema",
-				model="test",
-				llm_provider="anthropic",
-			),
+			litellm_exceptions.BadRequestError(message="invalid tool schema", **source),
 			"invalid_request",
 			False,
+			None,
 		),
 		(
-			litellm_exceptions.APIResponseValidationError(
-				message="invalid provider response",
-				model="test",
-				llm_provider="anthropic",
-			),
+			litellm_exceptions.APIResponseValidationError(message="invalid provider response", **source),
 			"unknown",
 			False,
+			None,
+		),
+		# structured rate-limit fields override message guessing
+		(
+			litellm_exceptions.RateLimitError(
+				message="request capacity exhausted",
+				response=httpx.Response(429, headers={"retry-after": "4"}, request=request),
+				rate_limit_type="requests",
+				**source,
+			),
+			"rate_limit",
+			True,
+			4,
+		),
+		(
+			litellm_exceptions.RateLimitError(
+				message="request capacity exhausted", rate_limit_type="budget", **source
+			),
+			"rate_limit",
+			False,
+			None,
+		),
+		(
+			litellm_exceptions.BudgetExceededError(current_cost=11, max_budget=10, llm_provider="anthropic"),
+			"rate_limit",
+			False,
+			None,
 		),
 	]
 
-	for native, kind, retryable in cases:
+	for native, kind, retryable, retry_after in cases:
 		error = normalize_litellm_error(native, provider="anthropic")
-		assert (error.kind, error.retryable) == (kind, retryable)
-
-
-def test_litellm_structured_rate_limit_fields_override_message_guessing():
-	from litellm import exceptions as litellm_exceptions
-
-	request = httpx.Request("POST", "https://provider.test")
-	response = httpx.Response(429, headers={"retry-after": "4"}, request=request)
-	transient = normalize_litellm_error(
-		litellm_exceptions.RateLimitError(
-			message="request capacity exhausted",
-			model="test",
-			llm_provider="anthropic",
-			response=response,
-			rate_limit_type="requests",
-		),
-		provider="anthropic",
-	)
-	budget = normalize_litellm_error(
-		litellm_exceptions.RateLimitError(
-			message="request capacity exhausted",
-			model="test",
-			llm_provider="anthropic",
-			rate_limit_type="budget",
-		),
-		provider="anthropic",
-	)
-	explicit_budget = normalize_litellm_error(
-		litellm_exceptions.BudgetExceededError(
-			current_cost=11,
-			max_budget=10,
-			llm_provider="anthropic",
-		),
-		provider="anthropic",
-	)
-
-	assert (transient.kind, transient.retryable, transient.retry_after_seconds) == (
-		"rate_limit",
-		True,
-		4,
-	)
-	assert (budget.kind, budget.retryable) == ("rate_limit", False)
-	assert (explicit_budget.kind, explicit_budget.retryable) == ("rate_limit", False)
+		assert (error.kind, error.retryable) == (kind, retryable), native
+		assert error.retry_after_seconds == retry_after, native
 
 
 def test_openrouter_rate_limit_waits_until_its_reset(monkeypatch):

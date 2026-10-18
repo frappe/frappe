@@ -12,96 +12,44 @@ from flow.lib.tool import Tool, ToolContext, tool
 
 
 class TestSchemaFromCode(UnitTestCase):
-	def _props(self, code: str) -> dict[str, Any]:
-		return schema_from_code(code)["properties"]
+	def test_each_annotation_maps_to_its_json_schema(self):
+		for annotation, expected in (
+			("str", {"type": "string"}),
+			("int", {"type": "integer"}),
+			("float", {"type": "number"}),
+			("bool", {"type": "boolean"}),
+			(None, {}),
+			("list[str]", {"type": "array", "items": {"type": "string"}}),
+			("list", {"type": "array"}),
+			("dict", {"type": "object"}),
+			('Literal["celsius", "fahrenheit"]', {"enum": ["celsius", "fahrenheit"], "type": "string"}),
+			("Optional[str]", {"type": "string"}),
+			("str | None", {"type": "string"}),
+			("int | str", {"anyOf": [{"type": "integer"}, {"type": "string"}]}),
+			('Annotated[str, "City name"]', {"type": "string", "description": "City name"}),
+			("SomeModel", {}),
+		):
+			arg = f"x: {annotation}" if annotation else "x"
+			with self.subTest(annotation=annotation):
+				self.assertEqual(
+					schema_from_code(f"def main({arg}):\n\treturn x\n")["properties"], {"x": expected}
+				)
 
-	def test_primitive_types(self):
-		code = "def main(a: str, b: int, c: float, d: bool):\n\treturn 1\n"
-		self.assertEqual(
-			self._props(code),
-			{
-				"a": {"type": "string"},
-				"b": {"type": "integer"},
-				"c": {"type": "number"},
-				"d": {"type": "boolean"},
-			},
-		)
-
-	def test_unannotated_arg_has_no_constraint(self):
-		self.assertEqual(self._props("def main(x):\n\treturn x\n"), {"x": {}})
-
-	def test_list_of_strings(self):
-		self.assertEqual(
-			self._props("def main(tags: list[str]):\n\treturn tags\n"),
-			{"tags": {"type": "array", "items": {"type": "string"}}},
-		)
-
-	def test_bare_list_and_dict(self):
-		self.assertEqual(
-			self._props("def main(a: list, b: dict):\n\treturn 1\n"),
-			{"a": {"type": "array"}, "b": {"type": "object"}},
-		)
-
-	def test_literal_becomes_enum(self):
-		code = 'def main(unit: Literal["celsius", "fahrenheit"]):\n\treturn unit\n'
-		self.assertEqual(
-			self._props(code),
-			{"unit": {"enum": ["celsius", "fahrenheit"], "type": "string"}},
-		)
-
-	def test_optional_unwraps_to_inner_type(self):
-		self.assertEqual(
-			self._props("def main(name: Optional[str] = None):\n\treturn name\n"),
-			{"name": {"type": "string"}},
-		)
-
-	def test_pep604_union_with_none_unwraps(self):
-		self.assertEqual(
-			self._props("def main(name: str | None = None):\n\treturn name\n"),
-			{"name": {"type": "string"}},
-		)
-
-	def test_union_of_two_types_is_anyof(self):
-		self.assertEqual(
-			self._props("def main(x: int | str):\n\treturn x\n"),
-			{"x": {"anyOf": [{"type": "integer"}, {"type": "string"}]}},
-		)
-
-	def test_annotated_attaches_description(self):
-		code = 'def main(city: Annotated[str, "City name"]):\n\treturn city\n'
-		self.assertEqual(
-			self._props(code),
-			{"city": {"type": "string", "description": "City name"}},
-		)
-
-	def test_unknown_type_falls_back_to_no_constraint(self):
-		self.assertEqual(self._props("def main(x: SomeModel):\n\treturn x\n"), {"x": {}})
-
-	def test_required_excludes_defaults(self):
-		code = "def main(a: str, b: int = 3):\n\treturn 1\n"
-		self.assertEqual(schema_from_code(code)["required"], ["a"])
-
-	def test_no_required_key_when_all_optional(self):
-		self.assertNotIn("required", schema_from_code("def main(a: str = 'x'):\n\treturn a\n"))
-
-	def test_keyword_only_required(self):
-		code = "def main(*, a: str, b: int = 1):\n\treturn 1\n"
-		self.assertEqual(schema_from_code(code)["required"], ["a"])
-
-	def test_additional_properties_false(self):
-		self.assertFalse(schema_from_code("def main():\n\treturn 1\n")["additionalProperties"])
-
-
-@tool
-def _sample_weather(city: str, *, ctx: ToolContext) -> str:
-	"""Sample weather tool."""
-	return f"sunny in {city}"
+	def test_required_lists_the_arguments_without_defaults(self):
+		for signature, required in (("a: str, b: int = 3", ["a"]), ("*, a: str, b: int = 1", ["a"])):
+			with self.subTest(signature=signature):
+				self.assertEqual(
+					schema_from_code(f"def main({signature}):\n\treturn 1\n")["required"], required
+				)
+		schema = schema_from_code("def main(a: str = 'x'):\n\treturn a\n")
+		self.assertNotIn("required", schema)
+		self.assertFalse(schema["additionalProperties"])
 
 
 @tool(display_template="Checking the weather in {{ city }}")
 def _templated_weather(city: str, *, ctx: ToolContext) -> str:
 	"""Sample weather tool with a display template."""
-	return city
+	return f"sunny in {city}"
 
 
 def _plain_callable(city: str, days: int = 1, *, ctx: ToolContext) -> str:
@@ -141,67 +89,48 @@ def _script_doc(**overrides: Any) -> dict:
 class TestResolveTool(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
-		cls.enterClassContext(cls.enable_safe_exec())
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 		super().setUpClass()
 
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_module_tool_object_is_resolved(self):
-		doc = frappe.get_doc(_module_doc()).insert()
-		with patch("frappe.get_attr", return_value=_sample_weather):
-			runtime = doc.to_tool()
-
-		self.assertIsInstance(runtime, Tool)
-		self.assertEqual(runtime.name, "weather")
-		self.assertEqual(runtime.description, "Look up the weather.")
-		self.assertEqual(runtime.parameters, _sample_weather.parameters)
-		self.assertEqual(runtime(city="Paris", ctx=CTX), "sunny in Paris")
-
-	def test_a_module_tools_display_template_is_kept(self):
-		doc = frappe.get_doc(_module_doc()).insert()
-		with patch("frappe.get_attr", return_value=_templated_weather):
-			runtime = doc.to_tool()
-
-		self.assertEqual(runtime.to_dict()["display_template"], "Checking the weather in {{ city }}")
-
-	def test_module_plain_callable_schema_from_hints(self):
-		doc = frappe.get_doc(_module_doc()).insert()
-		with patch("frappe.get_attr", return_value=_plain_callable):
-			runtime = doc.to_tool()
-
-		self.assertEqual(runtime.parameters["properties"]["city"], {"type": "string"})
-		self.assertEqual(runtime.parameters["properties"]["days"], {"type": "integer"})
-		self.assertEqual(runtime.parameters["required"], ["city"])
-
-	def test_background_comes_from_the_row(self):
+	def test_an_imported_tool_resolves_from_its_import_path(self):
 		doc = frappe.get_doc(_module_doc(background=1)).insert()
-		with patch("frappe.get_attr", return_value=_plain_callable):
-			self.assertTrue(doc.to_tool().background)
+		with self.subTest("a Tool object"):
+			with patch("frappe.get_attr", return_value=_templated_weather):
+				runtime = doc.to_tool()
+			self.assertIsInstance(runtime, Tool)
+			self.assertEqual((runtime.name, runtime.description), ("weather", "Look up the weather."))
+			self.assertEqual(runtime.parameters, _templated_weather.parameters)
+			self.assertEqual(runtime.to_dict()["display_template"], "Checking the weather in {{ city }}")
+			self.assertEqual(runtime(city="Paris", ctx=CTX), "sunny in Paris")
 
-	def test_module_import_failure_throws(self):
-		doc = frappe.get_doc(_module_doc()).insert()
-		with patch("frappe.get_attr", side_effect=ImportError("nope")):
-			with self.assertRaisesRegex(frappe.ValidationError, "import"):
+		with self.subTest("a plain callable"):
+			with patch("frappe.get_attr", return_value=_plain_callable):
+				runtime = doc.to_tool()
+			self.assertEqual(
+				runtime.parameters["properties"], {"city": {"type": "string"}, "days": {"type": "integer"}}
+			)
+			self.assertEqual(runtime.parameters["required"], ["city"])
+			self.assertTrue(runtime.background)
+
+		for label, attr, error in (
+			("a failed import", {"side_effect": ImportError("nope")}, "import"),
+			("not callable", {"return_value": 42}, "not a Tool or callable"),
+		):
+			with (
+				self.subTest(label),
+				patch("frappe.get_attr", **attr),
+				self.assertRaisesRegex(frappe.ValidationError, error),
+			):
 				doc.to_tool()
 
-	def test_module_non_callable_throws(self):
-		doc = frappe.get_doc(_module_doc()).insert()
-		with patch("frappe.get_attr", return_value=42):
-			with self.assertRaisesRegex(frappe.ValidationError, "not a Tool or callable"):
-				doc.to_tool()
-
-	def test_script_tool_executes_in_sandbox(self):
-		doc = frappe.get_doc(_script_doc()).insert()
-		runtime = doc.to_tool()
-
+	def test_a_script_tool_runs_main_in_the_sandbox(self):
+		runtime = frappe.get_doc(_script_doc()).insert().to_tool()
 		self.assertEqual(runtime.name, "script_weather")
 		self.assertEqual(runtime.parameters["properties"], {"city": {"type": "string"}})
 		self.assertEqual(runtime(city="Paris", ctx=CTX), "sunny in Paris")
 
-	def test_script_tool_with_no_args_executes(self):
-		doc = frappe.get_doc(
-			_script_doc(slug="ping", title="Ping", code="def main():\n\treturn 'pong'\n")
-		).insert()
-		runtime = doc.to_tool()
-		self.assertEqual(runtime(ctx=CTX), "pong")
+		ping = frappe.get_doc(_script_doc(slug="ping", title="Ping", code="def main():\n\treturn 'pong'\n"))
+		self.assertEqual(ping.insert().to_tool()(ctx=CTX), "pong")

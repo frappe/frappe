@@ -1,68 +1,60 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
 from flow.utils.conditions import evaluate_condition, validate_condition
 
 
-class TestValidateCondition(IntegrationTestCase):
-	def test_empty_condition_is_valid(self):
-		validate_condition(None)
-		validate_condition("")
-
-	def test_expression_is_valid(self):
-		validate_condition("doc.status == 'Open' and doc.priority == 'High'")
-
-	def test_script_setting_result_is_valid(self):
-		validate_condition("status = doc.status\nresult = status == 'Open'")
-
-	def test_script_without_result_is_rejected(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "result"):
-			validate_condition("status = doc.status")
-
-	def test_syntax_error_is_rejected(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Invalid condition"):
-			validate_condition("doc.status ==")
-
-	def test_result_in_control_flow_is_valid(self):
-		validate_condition("if doc.status == 'Open':\n\tresult = True\nelse:\n\tresult = False")
-
-	def test_result_only_in_nested_scope_is_rejected(self):
-		# `result` set inside a def never reaches the exec globals, so it must be rejected.
-		with self.assertRaisesRegex(frappe.ValidationError, "result"):
-			validate_condition("def check():\n\tresult = True")
-
-
-class TestEvaluateCondition(IntegrationTestCase):
+class TestConditions(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.enterClassContext(cls.enable_safe_exec())
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_expression_verdict(self):
-		doc = frappe._dict(status="Open")
-		self.assertTrue(evaluate_condition("doc.status == 'Open'", {"doc": doc}))
-		self.assertFalse(evaluate_condition("doc.status == 'Closed'", {"doc": doc}))
+	def test_validate_condition_needs_an_expression_or_a_script_setting_result(self):
+		for condition, error in (
+			(None, None),
+			("", None),
+			("doc.status == 'Open' and doc.priority == 'High'", None),
+			("status = doc.status\nresult = status == 'Open'", None),
+			("if doc.status == 'Open':\n\tresult = True\nelse:\n\tresult = False", None),
+			("status = doc.status", "result"),
+			("doc.status ==", "Invalid condition"),
+			# `result` set inside a def never reaches the exec globals
+			("def check():\n\tresult = True", "result"),
+		):
+			with self.subTest(condition=condition):
+				if error:
+					with self.assertRaisesRegex(frappe.ValidationError, error):
+						validate_condition(condition)
+				else:
+					validate_condition(condition)
 
-	def test_multiline_script_verdict(self):
-		script = "words = doc.description.split()\nresult = len(words) > 2"
-		self.assertTrue(evaluate_condition(script, {"doc": frappe._dict(description="a b c d")}))
-		self.assertFalse(evaluate_condition(script, {"doc": frappe._dict(description="a b")}))
-
-	def test_condition_can_query_db(self):
+	def test_evaluate_condition_returns_the_verdict_from_the_sandbox(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "db check", "status": "Closed"}).insert()
-		condition = 'frappe.db.get_value("ToDo", doc.name, "status") == "Closed"'
-		self.assertTrue(evaluate_condition(condition, {"doc": frappe._dict(name=todo.name)}))
+		script = "words = doc.description.split()\nresult = len(words) > 2"
+		for condition, doc, verdict in (
+			("doc.status == 'Open'", frappe._dict(status="Open"), True),
+			("doc.status == 'Closed'", frappe._dict(status="Open"), False),
+			(script, frappe._dict(description="a b c d"), True),
+			(script, frappe._dict(description="a b"), False),
+			(
+				'frappe.db.get_value("ToDo", doc.name, "status") == "Closed"',
+				frappe._dict(name=todo.name),
+				True,
+			),
+		):
+			with self.subTest(condition=condition, doc=doc):
+				self.assertIs(evaluate_condition(condition, {"doc": doc}), verdict)
 
-	def test_runtime_error_raises(self):
-		with self.assertRaises(Exception):
-			evaluate_condition("undefined_name > 1", {"doc": frappe._dict()})
-
-	def test_sandbox_blocks_imports(self):
-		with self.assertRaises(Exception):
-			evaluate_condition("import os\nresult = True", {"doc": frappe._dict()})
+		# a runtime error, or an import the sandbox blocks
+		for condition in ("undefined_name > 1", "import os\nresult = True"):
+			with self.subTest(condition=condition), self.assertRaises(Exception):
+				evaluate_condition(condition, {"doc": frappe._dict()})

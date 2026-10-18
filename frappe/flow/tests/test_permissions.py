@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
 from frappe.tests import IntegrationTestCase
 
@@ -57,11 +59,8 @@ class TestFlowAccess(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_the_role_exists_with_desk_access(self):
-		ensure_flow_role()
+	def test_flow_is_open_only_to_the_role_and_system_managers(self):
 		self.assertEqual(frappe.db.get_value("Role", FLOW_USER_ROLE, "desk_access"), 1)
-
-	def test_the_doctype_rows_follow_the_role(self):
 		outsider = _user("flow-access-none@example.com")
 		member = _user("flow-access-member@example.com", FLOW_USER_ROLE)
 		manager = _user("flow-access-manager@example.com", "System Manager")
@@ -70,6 +69,45 @@ class TestFlowAccess(IntegrationTestCase):
 				self.assertFalse(frappe.has_permission(doctype, "read", user=outsider))
 				self.assertTrue(frappe.has_permission(doctype, "read", user=member))
 				self.assertTrue(frappe.has_permission(doctype, "read", user=manager))
+
+		# every endpoint refuses a user without the role
+		agent = _agent()
+		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent}).insert(ignore_permissions=True)
+		run = frappe.get_doc(
+			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
+		).insert(ignore_permissions=True)
+		calls = {
+			"boot": {},
+			"create_session": {"agent": agent},
+			"session": {"session": session.name},
+			"list_sessions": {},
+			"run": {"session": session.name, "message": "hi"},
+			"resume": {"session": session.name, "answers": "{}"},
+			"abort": {"session": session.name},
+			"cancel_pending": {"session": session.name},
+			"rewind": {"session": session.name, "target_seq": 0},
+			"compact": {"session": session.name},
+			"entries": {"session": session.name},
+			"set_model": {"session": session.name, "model": "m"},
+			"set_title": {"session": session.name, "title": "t"},
+			"set_auto_approve": {"session": session.name, "auto_approve": 1},
+			"delete_session": {"session": session.name},
+			"list_shares": {"session": session.name},
+			"share_session": {"session": session.name, "user": "Administrator"},
+			"unshare_session": {"session": session.name, "user": "Administrator"},
+			"find_users": {"query": "a"},
+			"set_general_access": {"session": session.name, "access": "Everyone"},
+			"sync_session": {"session": session.name},
+			"submit_feedback": {"run_name": run.name, "rating": "Up"},
+			"attach_file": {"file": "x"},
+			"cleanup_attachments": {"session": session.name},
+			"skills": {"session": session.name},
+		}
+		self.assertEqual(set(calls), set(api.__all__))
+		frappe.set_user(outsider)
+		for name, kwargs in calls.items():
+			with self.subTest(name), self.assertRaises(frappe.PermissionError):
+				getattr(api, name)(**kwargs)
 
 	def test_sessions_runs_and_personal_memories_stay_private_to_their_owner(self):
 		self.addCleanup(memory_store.drop_table)
@@ -147,45 +185,6 @@ class TestFlowAccess(IntegrationTestCase):
 				with self.assertRaises(refusal):
 					doc.save()
 
-	def test_every_endpoint_refuses_a_user_without_the_role(self):
-		agent = _agent()
-		session = frappe.get_doc({"doctype": "Flow Session", "agent": agent}).insert(ignore_permissions=True)
-		run = frappe.get_doc(
-			{"doctype": "Flow Run", "session": session.name, "source": "Manual", "status": "Completed"}
-		).insert(ignore_permissions=True)
-		calls = {
-			"boot": {},
-			"create_session": {"agent": agent},
-			"session": {"session": session.name},
-			"list_sessions": {},
-			"run": {"session": session.name, "message": "hi"},
-			"resume": {"session": session.name, "answers": "{}"},
-			"abort": {"session": session.name},
-			"cancel_pending": {"session": session.name},
-			"rewind": {"session": session.name, "target_seq": 0},
-			"compact": {"session": session.name},
-			"entries": {"session": session.name},
-			"set_model": {"session": session.name, "model": "m"},
-			"set_title": {"session": session.name, "title": "t"},
-			"set_auto_approve": {"session": session.name, "auto_approve": 1},
-			"delete_session": {"session": session.name},
-			"list_shares": {"session": session.name},
-			"share_session": {"session": session.name, "user": "Administrator"},
-			"unshare_session": {"session": session.name, "user": "Administrator"},
-			"find_users": {"query": "a"},
-			"set_general_access": {"session": session.name, "access": "Everyone"},
-			"sync_session": {"session": session.name},
-			"submit_feedback": {"run_name": run.name, "rating": "Up"},
-			"attach_file": {"file": "x"},
-			"cleanup_attachments": {"session": session.name},
-			"skills": {"session": session.name},
-		}
-		self.assertEqual(set(calls), set(api.__all__))
-		frappe.set_user(_user("flow-access-none@example.com"))
-		for name, kwargs in calls.items():
-			with self.subTest(name), self.assertRaises(frappe.PermissionError):
-				getattr(api, name)(**kwargs)
-
 	def test_the_patch_keeps_managers_and_trigger_accounts_on_flow(self):
 		manager = _user("flow-grant-manager@example.com", "System Manager")
 		plain = _user("flow-grant-plain@example.com")
@@ -210,7 +209,8 @@ class TestFlowAccess(IntegrationTestCase):
 			title="Flow Grant Dormant Trigger", run_as=dormant_operator, enabled=0
 		)
 
-		grant_flow_role()
+		with patch("frappe.log_error"):
+			grant_flow_role()
 
 		for name in (manager, profiled, operator):
 			self.assertIn(FLOW_USER_ROLE, frappe.get_roles(name), name)

@@ -85,6 +85,18 @@ async function until(check) {
 
 const ann = { name: "ann@example.com", full_name: "Ann", user_image: null };
 const bob = { name: "bob@example.com", full_name: "Bob", user_image: null };
+function mountPage(t, props = { boot }) {
+	const el = document.createElement("div");
+	document.body.append(el);
+	const app = createApp(FlowPage, props).use(router);
+	app.mount(el);
+	t.after(() => {
+		app.unmount();
+		el.remove();
+	});
+	return el;
+}
+
 // the share dialog on its own, for chat S1 unless the test passes the chat's state
 function shareDialog(t, client, { state, page = { boot } } = {}) {
 	const el = document.createElement("div");
@@ -104,14 +116,7 @@ function shareDialog(t, client, { state, page = { boot } } = {}) {
 }
 
 test("the agent is picked in a palette, before the model, and a new chat starts with it", async (t) => {
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
+	const el = mountPage(t);
 	await until(() => called("flow.api.list_sessions"));
 	await nextTick();
 	assert.ok(!called("flow.api.boot"), "the page's own boot serves the first load");
@@ -168,21 +173,20 @@ test("the agent is picked in a palette, before the model, and a new chat starts 
 	assert.equal(agent.textContent.trim(), "Reviewer");
 });
 
-test("boot is refetched only when a record it lists is saved or deleted", async () => {
+test("boot is refetched only for the records it lists, and a renamed agent or model stays the one a new chat starts with", async () => {
 	const { createPage } = await import("../src/page.js");
 	let refreshes = 0;
-	const page = createPage(boot, { refresh: () => refreshes++ });
+	const models = [];
+	const page = createPage(boot, {
+		refresh: () => refreshes++,
+		renamedModel: (...args) => models.push(args),
+	});
 	page.changed("Flow Skill");
 	assert.equal(refreshes, 0);
 	page.changed("Flow Model");
 	page.changed("Flow Agent");
 	assert.equal(refreshes, 2);
-});
 
-test("a renamed agent or model stays the one a new chat starts with", async () => {
-	const { createPage } = await import("../src/page.js");
-	const models = [];
-	const page = createPage(boot, { renamedModel: (...args) => models.push(args) });
 	page.renamed("Flow Agent", "someone-else", "Other");
 	page.renamed("Flow Skill", "flow", "Other");
 	assert.equal(page.state.agent, "flow");
@@ -194,14 +198,7 @@ test("a renamed agent or model stays the one a new chat starts with", async () =
 });
 
 test("without a model the normal page shows the setup state and a disabled composer", async (t) => {
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot: { ...boot, models: [] } }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
+	const el = mountPage(t, { boot: { ...boot, models: [] } });
 	await until(() => called("flow.api.list_sessions"));
 	await nextTick();
 	assert.ok(el.querySelector("[data-stub=SetupState]"));
@@ -210,25 +207,31 @@ test("without a model the normal page shows the setup state and a disabled compo
 	assert.ok(el.querySelector("button[title='Agent']").matches(":disabled"));
 });
 
-test("an explicit conversation URL opens even outside the recent session list", async (t) => {
+test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {
 	await router.replace("/s/older");
 	transport.calls.length = 0;
-	transport.answers["flow.api.session"] = { ...session, name: "older" };
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	const runs = (status) => ({ ...session, name: "older", runs: [{ name: "R1", status }] });
+	Object.assign(transport.answers, {
+		"flow.api.session": runs("Running"),
+		"flow.api.entries": {
+			entries: [
+				{ type: "run_started", seq: 1, run_id: "a" },
+				{ type: "run_ended", seq: 2, reason: "done" },
+			],
+			latest_seq: 2,
+			preview: [],
+		},
+		"flow.api.sync_session": runs("Completed"),
 	});
-	await until(() => called("flow.api.session") || routeChanged());
-	function routeChanged() {
-		return router.currentRoute.value.path !== "/s/older";
-	}
-	assert.equal(called("flow.api.session"), true);
+	mountPage(t);
+	await until(
+		() => called("flow.api.sync_session") || router.currentRoute.value.path !== "/s/older"
+	);
 	assert.equal(args("flow.api.session").session, "older");
 	assert.equal(router.currentRoute.value.path, "/s/older");
+	assert.deepEqual(args("flow.api.sync_session"), { session: "older" });
 });
 
 test("the chat list offers the next page on demand and asks for it past the last row", async (t) => {
@@ -242,14 +245,7 @@ test("the chat list offers the next page on demand and asks for it past the last
 	transport.answers["flow.api.list_sessions"] = (args) =>
 		args.before ? [{ ...page[0], name: "OLD", title: "Older chat", modified: "t0" }] : page;
 	t.after(() => (transport.answers["flow.api.list_sessions"] = []));
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
+	const el = mountPage(t);
 	const loadMore = () =>
 		[...el.querySelectorAll("button")].find((b) => b.textContent.trim() === "Load more");
 	await until(() => loadMore());
@@ -265,71 +261,43 @@ test("the chat list offers the next page on demand and asks for it past the last
 	assert.equal(loadMore(), undefined, "a short page is the last");
 });
 
-test("a chat the user may only view shows no composer", async (t) => {
-	await router.replace("/s/theirs");
-	transport.answers["flow.api.session"] = {
-		...session,
-		name: "theirs",
-		owner: "owner@example.com",
-		owner_name: "Olive Owner",
-		read_only: true,
+test("a chat the user may only view shows no composer or menu, and only the owner's menu offers Share", async (t) => {
+	transport.calls.length = 0;
+	const chats = {
+		theirs: { owner: "owner@example.com", owner_name: "Olive Owner", read_only: true },
+		admins: { title: "Ann's chat", owner: "owner@example.com" },
+		S1: { title: "Q3 plan" },
 	};
-	t.after(() => (transport.answers["flow.api.session"] = session));
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
+	Object.assign(transport.answers, {
+		"flow.api.session": ({ session: name }) => ({ ...session, name, ...chats[name] }),
+		"flow.api.list_shares": [],
+		"flow.api.find_users": [],
 	});
-	// and says whose chat it is
+	t.after(() => {
+		transport.answers["flow.api.session"] = session;
+		delete transport.answers["flow.api.list_shares"];
+		delete transport.answers["flow.api.find_users"];
+	});
+	const header = (el) => el.querySelector("header")?.textContent ?? "";
+	await router.replace("/s/theirs");
+	const el = mountPage(t);
+	// a viewer is told whose chat it is
 	await until(() => el.textContent.includes("Only Olive Owner can send messages in this chat."));
 	assert.equal(el.querySelector("textarea"), null);
 	assert.equal(chatMenu(el), null, "nor a menu to share, rename or delete it");
-});
 
-test("a chat someone else owns offers no Share, even to a user who may write to it", async (t) => {
+	// someone else's chat offers no Share, even to a user who may write to it
 	await router.replace("/s/admins");
-	transport.answers["flow.api.session"] = {
-		...session,
-		name: "admins",
-		title: "Ann's chat",
-		owner: "owner@example.com",
-	};
-	t.after(() => (transport.answers["flow.api.session"] = session));
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
-	// the title shows once the session has loaded, and with it who owns it
-	await until(() => el.querySelector("header")?.textContent.includes("Ann's chat"));
+	await until(() => header(el).includes("Ann's chat"));
 	assert.ok(el.querySelector("textarea"));
 	chatMenu(el).click();
 	await nextTick();
 	assert.deepEqual(menuItems(el), ["Rename", "Delete"]);
-});
+	chatMenu(el).click();
 
-test("the owner's chat menu leads with Share, which opens the share dialog", async (t) => {
+	// the owner's leads with Share, which opens the share dialog
 	await router.replace("/s/S1");
-	Object.assign(transport.answers, { "flow.api.list_shares": [], "flow.api.find_users": [] });
-	t.after(() => {
-		delete transport.answers["flow.api.list_shares"];
-		delete transport.answers["flow.api.find_users"];
-	});
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
-	await until(() => chatMenu(el));
+	await until(() => header(el).includes("Q3 plan"));
 	chatMenu(el).click();
 	await nextTick();
 	assert.deepEqual(menuItems(el), ["Share", "Rename", "Delete"]);
@@ -338,13 +306,14 @@ test("the owner's chat menu leads with Share, which opens the share dialog", asy
 	assert.deepEqual(args("flow.api.list_shares"), { session: "S1" });
 });
 
-test("the share dialog lists the owner and who may view, adds people found and removes them", async (t) => {
+test("the share dialog opens with its members in, lists the owner and who may view, adds people found and removes them", async (t) => {
 	const calls = [];
 	let viewers = [ann];
+	let listed;
 	const { el, vm } = shareDialog(t, {
-		async shares(sid) {
+		shares(sid) {
 			calls.push(["shares", sid]);
-			return viewers;
+			return new Promise((resolve) => (listed = () => resolve(viewers)));
 		},
 		async findUsers(query) {
 			calls.push(["find", query]);
@@ -361,7 +330,11 @@ test("the share dialog lists the owner and who may view, adds people found and r
 	});
 	assert.equal(el.querySelector("[role=dialog]"), null);
 
+	// it opens once its members are in, so it keeps its size
 	vm.show();
+	await nextTick();
+	assert.equal(el.querySelector("[role=dialog]"), null, "not before its members are in");
+	listed();
 	await until(() => el.textContent.includes("ann@example.com"));
 	assert.equal(
 		el.querySelector("[role=dialog]").getAttribute("aria-label"),
@@ -369,7 +342,7 @@ test("the share dialog lists the owner and who may view, adds people found and r
 	);
 	// the owner leads the list and stays; each person added has a remove (×) button
 	const row = (who) => [...el.querySelectorAll("li")].find((li) => li.textContent.includes(who));
-	assert.equal(el.querySelectorAll("li").length, 2);
+	assert.equal(el.querySelectorAll("li").length, 2, "the owner and Ann, no loading row");
 	assert.ok(row("tester@example.com").textContent.includes("Owner (you)"));
 	assert.equal(row("tester@example.com").querySelector("button"), null);
 	assert.equal(row("ann@example.com").querySelector("button").title, "Remove Ann's access");
@@ -404,27 +377,15 @@ test("the share dialog lists the owner and who may view, adds people found and r
 			["unshare", "S1", "bob@example.com"],
 		]
 	);
-});
-
-test("the share dialog opens with its members in, so it keeps its size; a slow list opens it anyway", async (t) => {
-	const share = (shares) => {
-		const { el, vm } = shareDialog(t, { shares, findUsers: async () => [] });
-		vm.show();
-		return el;
-	};
-	let answer;
-	const el = share(() => new Promise((resolve) => (answer = resolve)));
-	await nextTick();
-	assert.equal(el.querySelector("[role=dialog]"), null, "not before its members are in");
-	answer([ann]);
-	await until(() => el.querySelector("[role=dialog]"));
-	assert.equal(el.querySelectorAll("li").length, 2, "the owner and Ann, no loading row");
-	assert.ok(el.textContent.includes("ann@example.com"));
 
 	// a list that doesn't come opens the dialog after a moment, saying it is loading
-	const slow = share(() => new Promise(() => {}));
-	await until(() => slow.querySelector("[role=dialog]"));
-	assert.ok(slow.textContent.includes("Loading…"));
+	const slow = shareDialog(t, {
+		shares: () => new Promise(() => {}),
+		findUsers: async () => [],
+	});
+	slow.vm.show();
+	await until(() => slow.el.querySelector("[role=dialog]"));
+	assert.ok(slow.el.textContent.includes("Loading…"));
 });
 
 test("the share dialog acts only on the chat it opened for, and a late list never undoes a newer one", async (t) => {
@@ -537,33 +498,9 @@ test("the thumbs show under a finished run, but not in a chat the user may only 
 	}
 });
 
-test("a chat opened from its link names no agent or model until it loads", async (t) => {
-	await router.replace("/s/slow");
-	let answer;
-	transport.answers["flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
-	t.after(() => (transport.answers["flow.api.session"] = session));
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
-	await until(() => answer);
-	await nextTick();
-	const agent = el.querySelector("button[title^='The agent is fixed']");
-	assert.equal(agent.textContent.trim(), "");
-	assert.ok(!el.textContent.includes("Choose Model"));
-
-	answer({ ...session, name: "slow" });
-	await until(() => agent.textContent.trim() === "Reviewer");
-	assert.ok(el.textContent.includes("Sonnet"));
-});
-
-test("a chat picked in the sidebar shows its agent and model before it loads", async (t) => {
+test("a loading chat shows the agent and model of its sidebar row, and names none opened from a link", async (t) => {
 	await router.replace("/");
-	let answer;
+	const pending = [];
 	transport.answers["flow.api.list_sessions"] = [
 		{
 			name: "listed",
@@ -573,61 +510,33 @@ test("a chat picked in the sidebar shows its agent and model before it loads", a
 			modified: "2026-10-09",
 		},
 	];
-	transport.answers["flow.api.session"] = () => new Promise((resolve) => (answer = resolve));
+	transport.answers["flow.api.session"] = ({ session: name }) =>
+		new Promise((resolve) => pending.push(() => resolve({ ...session, name })));
 	t.after(() => {
 		transport.answers["flow.api.list_sessions"] = [];
 		transport.answers["flow.api.session"] = session;
 	});
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
+	const el = mountPage(t);
+	const agent = () => el.querySelector("button[title^='The agent is fixed']");
 	await until(() => el.textContent.includes("Listed chat"));
 	[...el.querySelectorAll("[role=button]")]
 		.find((row) => row.textContent.includes("Listed chat"))
 		.click();
-	await until(() => answer);
+	await until(() => pending.length === 1);
 	await nextTick();
-	assert.equal(
-		el.querySelector("button[title^='The agent is fixed']").textContent.trim(),
-		"Reviewer"
-	);
+	assert.equal(agent().textContent.trim(), "Reviewer");
 	assert.ok(el.querySelector("button[title^='Sonnet']"));
-	answer({ ...session, name: "listed" });
-});
+	pending[0]();
 
-test("a chat opened just as its run ended syncs that run", async (t) => {
-	await router.replace("/s/ended");
-	transport.calls.length = 0;
-	const saved = { ...transport.answers };
-	t.after(() => Object.assign(transport.answers, saved));
-	const runs = (status) => ({ ...session, name: "ended", runs: [{ name: "R1", status }] });
-	Object.assign(transport.answers, {
-		"flow.api.session": runs("Running"),
-		"flow.api.entries": {
-			entries: [
-				{ type: "run_started", seq: 1, run_id: "a" },
-				{ type: "run_ended", seq: 2, reason: "done" },
-			],
-			latest_seq: 2,
-			preview: [],
-		},
-		"flow.api.sync_session": runs("Completed"),
-	});
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
-	await until(() => called("flow.api.sync_session"));
-	assert.deepEqual(args("flow.api.sync_session"), { session: "ended" });
+	// opened from its link, a chat outside the list names neither until it loads
+	await router.replace("/s/slow");
+	await until(() => pending.length === 2);
+	await nextTick();
+	assert.equal(agent().textContent.trim(), "");
+	assert.ok(!el.textContent.includes("Choose Model"));
+	pending[1]();
+	await until(() => agent().textContent.trim() === "Reviewer");
+	assert.ok(el.textContent.includes("Sonnet"));
 });
 
 test("a first message sent while the chat list loads keeps the page on its new chat", async (t) => {
@@ -649,14 +558,7 @@ test("a first message sent while the chat list loads keeps the page on its new c
 	let created;
 	transport.answers["flow.api.create_session"] = () =>
 		new Promise((resolve) => (created = resolve));
-	const el = document.createElement("div");
-	document.body.append(el);
-	const app = createApp(FlowPage, { boot }).use(router);
-	app.mount(el);
-	t.after(() => {
-		app.unmount();
-		el.remove();
-	});
+	const el = mountPage(t);
 	await until(() => called("flow.api.list_sessions"));
 
 	const textarea = el.querySelector("textarea");

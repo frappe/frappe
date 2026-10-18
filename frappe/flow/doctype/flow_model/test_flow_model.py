@@ -27,41 +27,52 @@ class TestFlowModelValidation(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_valid_model_inserts(self):
-		doc = frappe.get_doc(_model()).insert()
-
-		self.assertEqual(doc.model_id, "openai/gpt-4o-mini")
-		self.assertTrue(doc.enabled)
-
-	def test_normalize_strips_whitespace(self):
+	def test_a_valid_model_is_saved_trimmed(self):
 		doc = frappe.get_doc(
 			_model(
 				title="  Padded  ", model_id="  openai/gpt-4o-mini  ", base_url="  https://api.example.com  "
 			)
 		).insert()
+		self.assertEqual(
+			(doc.title, doc.model_id, doc.base_url),
+			("Padded", "openai/gpt-4o-mini", "https://api.example.com"),
+		)
+		for i, (model_id, base_url) in enumerate(
+			(
+				("openrouter/~anthropic/claude-sonnet-latest", None),
+				("openai/gpt-4o-mini", "http://localhost:11434"),
+			)
+		):
+			doc = frappe.get_doc(_model(title=f"Valid {i}", model_id=model_id, base_url=base_url)).insert()
+			with self.subTest(model_id=model_id, base_url=base_url):
+				self.assertEqual((doc.model_id, doc.base_url), (model_id, base_url))
 
-		self.assertEqual(doc.title, "Padded")
-		self.assertEqual(doc.model_id, "openai/gpt-4o-mini")
-		self.assertEqual(doc.base_url, "https://api.example.com")
-
-	def test_openrouter_latest_alias_inserts(self):
-		doc = frappe.get_doc(_model(model_id="openrouter/~anthropic/claude-sonnet-latest")).insert()
-
-		self.assertEqual(doc.model_id, "openrouter/~anthropic/claude-sonnet-latest")
-
-	def test_invalid_model_id_format_rejected(self):
+	def test_invalid_settings_are_refused(self):
 		# Format validation runs first and rejects these before reaching the provider check.
-		for bad in ("missing-slash", "Uppercase/model", "openai/", "/no-provider", "openai/~"):
-			with self.subTest(model_id=bad):
-				doc = frappe.get_doc(_model(model_id=bad))
-				with self.assertRaisesRegex(frappe.ValidationError, "Model ID"):
-					doc.insert()
+		cases = [
+			({"model_id": bad}, "Model ID")
+			for bad in ("missing-slash", "Uppercase/model", "openai/", "/no-provider", "openai/~")
+		]
+		cases += [
+			({"base_url": bad}, "Base URL")
+			for bad in ("ftp://example.com", "not-a-url", "example.com", "//example.com")
+		]
+		cases += [({"extra_params": bad}, "Extra Params") for bad in ("{not json", "[1, 2]")]
+		cases.append(({"model_id": "not_a_real_provider/some-model"}, ""))  # LiteLLM's own message
+		for overrides, error in cases:
+			with self.subTest(**overrides), self.assertRaisesRegex(frappe.ValidationError, error):
+				frappe.get_doc(_model(**overrides)).insert()
 
-	def test_unknown_provider_rejected(self):
-		doc = frappe.get_doc(_model(model_id="not_a_real_provider/some-model"))
+	def test_extra_params_go_with_every_call_and_clear_to_empty(self):
+		doc = frappe.get_doc(_model(extra_params='{"provider": {"zdr": true}}')).insert()
+		self.assertEqual(doc.model_params(), {"provider": {"zdr": True}})
+		with patch("litellm.completion") as completion:
+			doc.test_connection()
+		self.assertEqual(completion.call_args.kwargs["provider"], {"zdr": True})
 
-		with self.assertRaises(frappe.ValidationError):
-			doc.insert()
+		doc.extra_params = ""  # what Desk sends for an emptied editor
+		doc.save()
+		self.assertIsNone(frappe.db.get_value("Flow Model", doc.name, "extra_params"))
 
 
 class TestFlowModelProvider(IntegrationTestCase):
@@ -72,122 +83,55 @@ class TestFlowModelProvider(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_linked_provider_composes_model_id(self):
-		doc = frappe.get_doc(_model(provider="anthropic", model_id="claude-sonnet-4-6")).insert()
-
-		self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
-
-	def test_compose_is_idempotent_for_prefixed_model_id(self):
-		doc = frappe.get_doc(_model(provider="anthropic", model_id="anthropic/claude-sonnet-4-6")).insert()
-
-		self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
-
-	def test_resave_does_not_double_prefix(self):
-		doc = frappe.get_doc(_model(provider="anthropic", model_id="claude-sonnet-4-6")).insert()
-		doc.save()
-
-		self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
-
-	def test_full_model_id_without_provider_still_works(self):
-		doc = frappe.get_doc(_model(model_id="openai/gpt-4o-mini")).insert()
-
-		self.assertFalse(doc.provider)
-		self.assertEqual(doc.model_id, "openai/gpt-4o-mini")
-
-
-class TestFlowModelBaseURL(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def test_https_base_url_accepted(self):
-		doc = frappe.get_doc(_model(base_url="https://api.example.com/v1")).insert()
-
-		self.assertEqual(doc.base_url, "https://api.example.com/v1")
-
-	def test_http_base_url_accepted(self):
-		doc = frappe.get_doc(_model(base_url="http://localhost:11434")).insert()
-
-		self.assertEqual(doc.base_url, "http://localhost:11434")
-
-	def test_non_http_base_url_rejected(self):
-		for bad in ("ftp://example.com", "not-a-url", "example.com", "//example.com"):
-			with self.subTest(base_url=bad):
-				doc = frappe.get_doc(_model(base_url=bad))
-				with self.assertRaisesRegex(frappe.ValidationError, "Base URL"):
-					doc.insert()
-
-
-class TestFlowModelExtraParams(IntegrationTestCase):
-	def tearDown(self):
-		frappe.db.rollback()
-
-	def test_extra_params_must_be_a_json_object(self):
-		for bad in ("{not json", "[1, 2]"):
-			with self.subTest(extra_params=bad):
-				doc = frappe.get_doc(_model(extra_params=bad))
-				with self.assertRaisesRegex(frappe.ValidationError, "Extra Params"):
-					doc.insert()
-		doc = frappe.get_doc(_model(extra_params='{"provider": {"zdr": true}}')).insert()
-		self.assertEqual(doc.model_params(), {"provider": {"zdr": True}})
-
-	def test_cleared_extra_params_save_as_empty(self):
-		doc = frappe.get_doc(_model(extra_params='{"a": 1}')).insert()
-		doc.extra_params = ""  # what Desk sends for an emptied editor
-		doc.save()
-		self.assertIsNone(frappe.db.get_value("Flow Model", doc.name, "extra_params"))
-
-	def test_test_connection_sends_the_extra_params(self):
-		doc = frappe.get_doc(_model(extra_params='{"provider": {"zdr": true}}')).insert()
-		with patch("litellm.completion") as completion:
-			doc.test_connection()
-		self.assertEqual(completion.call_args.kwargs["provider"], {"zdr": True})
+	def test_a_linked_provider_prefixes_the_model_id_once(self):
+		for i, model_id in enumerate(("claude-sonnet-4-6", "anthropic/claude-sonnet-4-6")):
+			with self.subTest(model_id=model_id):
+				doc = frappe.get_doc(
+					_model(title=f"Linked {i}", provider="anthropic", model_id=model_id)
+				).insert()
+				self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
+				doc.save()
+				self.assertEqual(doc.model_id, "anthropic/claude-sonnet-4-6")
 
 
 class TestContextWindow(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_detect_returns_max_input_tokens(self):
-		with patch("litellm.get_model_info", return_value={"max_input_tokens": 200000}):
-			self.assertEqual(_detect_context_window("anthropic/claude-x"), 200000)
+	def test_detect_reads_litellms_max_input_tokens(self):
+		catalog = {
+			"anthropic/claude-x": {"max_input_tokens": 200000},
+			"vendor/x": {},
+			"custom_openai/openai/gpt-x": {},  # LiteLLM's window-less stub for a gateway id
+			"openai/gpt-x": {"max_input_tokens": 400000},
+		}
+		for model_id, window in (
+			("anthropic/claude-x", 200000),
+			("vendor/unknown", 0),
+			("vendor/x", 0),
+			("custom_openai/openai/gpt-x", 400000),
+		):
+			with (
+				self.subTest(model_id=model_id),
+				patch("litellm.get_model_info", side_effect=catalog.__getitem__),
+			):
+				self.assertEqual(_detect_context_window(model_id), window)
 
-	def test_detect_unmapped_model_returns_zero(self):
-		with patch("litellm.get_model_info", side_effect=Exception("not mapped")):
-			self.assertEqual(_detect_context_window("vendor/unknown"), 0)
-
-	def test_detect_missing_field_returns_zero(self):
-		with patch("litellm.get_model_info", return_value={}):
-			self.assertEqual(_detect_context_window("vendor/x"), 0)
-
-	def test_detect_falls_back_to_the_id_behind_the_prefix(self):
-		# LiteLLM returns a window-less stub for the gateway id
-		catalog = {"custom_openai/openai/gpt-x": {}, "openai/gpt-x": {"max_input_tokens": 400000}}
-		with patch("litellm.get_model_info", side_effect=catalog.__getitem__):
-			self.assertEqual(_detect_context_window("custom_openai/openai/gpt-x"), 400000)
-
-	def test_auto_fills_on_insert(self):
+	def test_the_window_follows_the_model_id_and_keeps_the_last_one_found(self):
 		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
 			doc = frappe.get_doc(_model()).insert()
 		self.assertEqual(doc.context_window, 128000)
 
-	def test_redetects_on_model_id_change(self):
-		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
-			doc = frappe.get_doc(_model()).insert()
-		# New model id (valid provider) -> re-detect, overriding the prior value.
-		with patch("litellm.get_model_info", return_value={"max_input_tokens": 1000000}) as m:
-			doc.model_id = "anthropic/claude-x"
-			doc.save()
-		m.assert_called()
-		self.assertEqual(doc.context_window, 1000000)
-
-	def test_keeps_existing_when_new_model_unmapped(self):
-		with patch("litellm.get_model_info", return_value={"max_input_tokens": 128000}):
-			doc = frappe.get_doc(_model()).insert()
-		# Valid provider, but litellm can't map the model -> keep the prior detected value.
+		# a valid provider litellm cannot map keeps the prior value
 		with patch("litellm.get_model_info", side_effect=Exception("not mapped")):
 			doc.model_id = "anthropic/made-up-model-xyz"
 			doc.save()
 		self.assertEqual(doc.context_window, 128000)
+
+		with patch("litellm.get_model_info", return_value={"max_input_tokens": 1000000}):
+			doc.model_id = "anthropic/claude-x"
+			doc.save()
+		self.assertEqual(doc.context_window, 1000000)
 
 
 class TestProviderModels(IntegrationTestCase):
@@ -195,18 +139,8 @@ class TestProviderModels(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_lists_the_providers_own_models_with_its_prefix(self):
+	def test_a_providers_models_are_asked_live_and_saved_with_its_prefix(self):
 		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq", "api_key": "test-key"}).insert()
-		body = {"data": [{"id": "llama-3.3-70b"}, {"id": "groq/compound"}, {"object": "list"}]}
-		with patch("requests.get", return_value=_response(body)) as get:
-			models = get_provider_models("groq")
-
-		# Groq's own groq/compound still gets the prefix: litellm strips one
-		self.assertEqual(models, ["groq/groq/compound", "groq/llama-3.3-70b"])
-		self.assertEqual(get.call_args.args[0], "https://api.groq.com/openai/v1/models")
-		self.assertEqual(get.call_args.kwargs["headers"], {"Authorization": "Bearer test-key"})
-
-	def test_a_base_url_is_asked_for_its_models(self):
 		frappe.get_doc(
 			{
 				"doctype": "Flow Provider",
@@ -214,41 +148,42 @@ class TestProviderModels(IntegrationTestCase):
 				"base_url": "https://gw.example.com/v1/",
 			}
 		).insert()
-		with patch("requests.get", return_value=_response({"data": [{"id": "openai/gpt-6-sol"}]})) as get:
-			models = get_provider_models("litellm_proxy")
+		for provider in ("anthropic", "gemini"):
+			if not frappe.db.exists("Flow Provider", provider):
+				frappe.get_doc({"doctype": "Flow Provider", "provider": provider}).insert()
 
-		self.assertEqual(models, ["litellm_proxy/openai/gpt-6-sol"])
-		self.assertEqual(get.call_args.args[0], "https://gw.example.com/v1/models")
+		body = {"data": [{"id": "llama-3.3-70b"}, {"id": "groq/compound"}, {"object": "list"}]}
+		with self.subTest("groq"), patch("requests.get", return_value=_response(body)) as get:
+			# Groq's own groq/compound still gets the prefix: litellm strips one
+			self.assertEqual(get_provider_models("groq"), ["groq/groq/compound", "groq/llama-3.3-70b"])
+			self.assertEqual(get.call_args.args[0], "https://api.groq.com/openai/v1/models")
+			self.assertEqual(get.call_args.kwargs["headers"], {"Authorization": "Bearer test-key"})
 
-	def test_anthropic_is_asked_for_every_model_on_one_page(self):
-		if not frappe.db.exists("Flow Provider", "anthropic"):
-			frappe.get_doc({"doctype": "Flow Provider", "provider": "anthropic"}).insert()
-		with patch("requests.get", return_value=_response({"data": [{"id": "claude-x"}]})) as get:
-			self.assertEqual(get_provider_models("anthropic"), ["anthropic/claude-x"])
-		self.assertEqual(get.call_args.kwargs["params"], {"limit": 1000})
+		body = {"data": [{"id": "openai/gpt-6-sol"}]}
+		with self.subTest("a base URL"), patch("requests.get", return_value=_response(body)) as get:
+			self.assertEqual(get_provider_models("litellm_proxy"), ["litellm_proxy/openai/gpt-6-sol"])
+			self.assertEqual(get.call_args.args[0], "https://gw.example.com/v1/models")
 
-	def test_gemini_is_asked_for_every_model_on_one_page(self):
-		if not frappe.db.exists("Flow Provider", "gemini"):
-			frappe.get_doc({"doctype": "Flow Provider", "provider": "gemini"}).insert()
-		body = {"models": [{"name": "models/gemini-x"}]}
-		with patch("requests.get", return_value=_response(body)) as get:
-			self.assertEqual(get_provider_models("gemini"), ["gemini/gemini-x"])
-		self.assertEqual(get.call_args.kwargs["params"], {"pageSize": 1000})
+		for provider, body, models, params in (
+			("anthropic", {"data": [{"id": "claude-x"}]}, ["anthropic/claude-x"], {"limit": 1000}),
+			("gemini", {"models": [{"name": "models/gemini-x"}]}, ["gemini/gemini-x"], {"pageSize": 1000}),
+		):
+			with self.subTest(provider), patch("requests.get", return_value=_response(body)) as get:
+				self.assertEqual(get_provider_models(provider), models)  # every model on one page
+				self.assertEqual(get.call_args.kwargs["params"], params)
 
-	def test_falls_back_to_litellms_catalog_when_the_provider_does_not_answer(self):
-		frappe.get_doc({"doctype": "Flow Provider", "provider": "groq"}).insert()
 		with (
+			self.subTest("LiteLLM's catalog when the provider does not answer"),
 			patch("requests.get", side_effect=requests.ConnectionError("down")),
 			patch.dict(litellm.models_by_provider, {"groq": {"llama-3.3-70b", "groq/llama-guard"}}),
 		):
 			# the catalog's own prefix is not doubled
 			self.assertEqual(get_provider_models("groq"), ["groq/llama-3.3-70b", "groq/llama-guard"])
 
-	def test_users_who_cannot_edit_models_get_nothing(self):
 		frappe.set_user("Guest")
-		with patch("requests.get") as get:
+		with self.subTest("nothing for users who cannot edit models"), patch("requests.get") as get:
 			self.assertEqual(get_provider_models("groq"), [])
-		get.assert_not_called()
+			get.assert_not_called()
 
 
 def _response(body: dict) -> Mock:

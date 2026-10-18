@@ -37,6 +37,8 @@ class LiveServerCase(IntegrationTestCase):
 		cls.enterClassContext(patch.object(lifecycle, "runtime_dir", return_value=root))
 		cls.enterClassContext(patch.object(lifecycle, "log_path", return_value=root / "flow-server.log"))
 		cls.enterClassContext(patch.object(lifecycle, "_redis_url", return_value=None))
+		# the real lock file lives in the bench's config folder
+		cls.enterClassContext(patch.object(lifecycle, "filelock"))
 		cls.enterClassContext(patch.dict(frappe.local.conf, {"flow_server_secret": TOKEN}))
 		site.mkdir(parents=True)
 		(site / "site_config.json").write_text(json.dumps({"flow_server_secret": TOKEN}))

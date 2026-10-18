@@ -35,35 +35,27 @@ def _store(tmp_path) -> CredentialStore:
 	return CredentialStore(str(tmp_path / "credentials.json"))
 
 
-def test_nothing_configured_yields_no_models(tmp_path, bare_env):
+def test_only_configured_providers_contribute_models(tmp_path, bare_env, monkeypatch):
 	store = _store(tmp_path)
 	assert configured_providers(store) == []
 	assert list_models(store) == []
 
+	# native providers are covered only by live discovery, not the static catalog
+	store.set_oauth("codex", OAuthCredential(access="a", refresh="r", expires=1))
+	assert [provider.id for provider in configured_providers(store)] == ["codex"]
+	assert list_models(store) == []
 
-def test_env_key_configures_a_provider(tmp_path, bare_env, monkeypatch):
 	monkeypatch.setenv("OPENAI_API_KEY", "k")
-	store = _store(tmp_path)
-	assert [provider.id for provider in configured_providers(store)] == ["openai"]
+	assert [provider.id for provider in configured_providers(store)] == ["openai", "codex"]
 	names = [model.name for model in list_models(store)]
 	# prefixed, chat-only, tool-capable, no ft: templates, no other providers
 	assert names == ["openai/gpt-4o"]
 
-
-def test_stored_key_configures_a_provider_and_prefixes_are_not_doubled(tmp_path, bare_env):
-	store = _store(tmp_path)
+	# stored keys count too, and an already prefixed id is not prefixed again
 	store.set_api_key("anthropic", "k")
 	store.set_api_key("gemini", "k")
-	models = list_models(store)
-	assert [(model.name, model.provider) for model in models] == [
+	assert [(model.name, model.provider) for model in list_models(store)] == [
 		("anthropic/claude-sonnet-4", "anthropic"),
 		("gemini/gemini-2.0-flash", "gemini"),
+		("openai/gpt-4o", "openai"),
 	]
-
-
-def test_native_providers_have_no_static_models(tmp_path, bare_env):
-	"""Native providers are covered only by live discovery, not the static catalog."""
-	store = _store(tmp_path)
-	store.set_oauth("codex", OAuthCredential(access="a", refresh="r", expires=1))
-	assert [provider.id for provider in configured_providers(store)] == ["codex"]
-	assert list_models(store) == []

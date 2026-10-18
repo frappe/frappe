@@ -17,7 +17,7 @@ from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment impo
 from flow.lib.session import new_session
 from flow.memory import store as memory_store
 from flow.permissions import FLOW_USER_ROLE
-from flow.tests.test_fake_daemon import FakeDaemon, child_pause, pause
+from flow.tests.test_fake_daemon import PENDING, FakeDaemon, child_pause, pause
 from flow.tests.test_live_server import LiveServerCase
 from flow.tools.builtins import sync_builtin_tools
 
@@ -58,55 +58,37 @@ class TestAttachFile(IntegrationTestCase):
 			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
 		).insert()
 
-	def test_attach_file_returns_chip_metadata_and_stages_text(self):
+	def test_attach_file_stages_the_upload_for_the_next_turn(self):
 		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
 
 		file_doc = self._file()
-		chip = attach_file(file_doc.name)
+		chip = attach_file(f"  {file_doc.name}  ")
 
 		self.assertEqual(chip["file"], file_doc.name)
 		self.assertEqual(chip["file_name"], "report.txt")
 		self.assertNotIn("extracted_text", chip)
 		self.assertEqual(staged_attachment(file_doc.name)["extracted_text"], "report body")
 
-	def test_attach_file_strips_and_resolves_input(self):
-		file_doc = self._file()
-		chip = attach_file(f"  {file_doc.name}  ")
-		self.assertEqual(chip["file"], file_doc.name)
-
-	def test_attach_file_rejects_empty_input(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "File is required"):
-			attach_file("")
-
-	def test_attach_file_rejects_whitespace_input(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "File is required"):
-			attach_file("   ")
-
-	def test_attach_file_stages_an_image_without_ocr_when_no_model_rules_it_out(self):
-		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
-
-		file_doc = self._file(file_name="pic.png", content=png_bytes())
+		# an image is not OCRed when no model rules it out
+		image = self._file(file_name="pic.png", content=png_bytes())
 		with patch(
 			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file"
 		) as extract:
-			self.assertEqual(attach_file(file_doc.name)["file_name"], "pic.png")
+			self.assertEqual(attach_file(image.name)["file_name"], "pic.png")
 		extract.assert_not_called()
-		data = staged_attachment(file_doc.name)
+		data = staged_attachment(image.name)
 		self.assertIsNone(data["extracted_text"])
 		self.assertNotIn("ocr_text", data)
 
-	def test_attach_file_hands_the_pickers_model_to_staging(self):
-		with patch(
-			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.stage_attachment",
-			return_value={},
-		) as stage:
-			attach_file(" F ", "GPT")
-		stage.assert_called_once_with("F", "GPT")
-
-	def test_attach_file_unsupported_type_surfaces_at_upload(self):
-		file_doc = self._file(file_name="data.bin", content="x")
-		with self.assertRaisesRegex(frappe.ValidationError, "Unsupported file type"):
-			attach_file(file_doc.name)
+	def test_attach_file_refuses_what_it_cannot_stage(self):
+		unsupported = self._file(file_name="data.bin", content="x").name
+		for file, error in (
+			("", "File is required"),
+			("   ", "File is required"),
+			(unsupported, "Unsupported file type"),
+		):
+			with self.subTest(file=file), self.assertRaisesRegex(frappe.ValidationError, error):
+				attach_file(file)
 
 
 def _ensure_user(email: str) -> str:
@@ -192,101 +174,74 @@ class TestSubmitFeedback(IntegrationTestCase):
 			.name
 		)
 
-	def test_up_rating_persists(self):
+	def test_feedback_on_a_finished_run_is_recorded_and_cleared(self):
 		run = self._run()
 		self.assertEqual(submit_feedback(run, "Up"), {"rating": "Up"})
 		self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), "Up")
 
-	def test_denied_run_is_finished(self):
-		run = self._run(status="Denied")
-		self.assertEqual(submit_feedback(run, "Up"), {"rating": "Up"})
-
-	def test_down_with_comment_persists(self):
-		run = self._run()
-		submit_feedback(run, "Down", comment="Wrong item code.")
+		# a thumbs-down comment is saved as agent memory until the rating is withdrawn
+		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")
 		doc = frappe.get_doc("Flow Run", run)
-		self.assertEqual(doc.feedback_rating, "Down")
-		self.assertEqual(doc.feedback_comment, "Wrong item code.")
+		self.assertEqual((doc.feedback_rating, doc.feedback_comment), ("Down", "Widget A maps to WGT-001."))
+		memory = frappe.get_doc("Flow Agent Memory", result["memory"])
+		self.assertEqual(
+			(memory.agent, memory.scope, memory.source, memory.source_run, memory.content),
+			(self.agent.name, "Agent", "Feedback", run, "Widget A maps to WGT-001."),
+		)
+		self.assertEqual(submit_feedback(run, "None"), {"rating": None, "forgotten": 1})
+		self.assertFalse(frappe.db.exists("Flow Agent Memory", memory.name))
+		doc.reload()
+		self.assertFalse(doc.feedback_rating)
+		self.assertIsNone(doc.feedback_comment)
+		self.assertEqual(submit_feedback(run, "None"), {"rating": None})
 
-	def test_rejects_invalid_rating(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Rating"):
-			submit_feedback(self._run(), "Sideways")
+		# a denied run is finished too
+		self.assertEqual(submit_feedback(self._run(status="Denied"), "Up"), {"rating": "Up"})
 
-	def test_rejects_unfinished_run(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "finished"):
-			submit_feedback(self._run(status="Running"), "Up")
+	def test_only_a_commented_thumbs_down_on_a_memory_agent_saves_memory(self):
+		plain = frappe.get_doc(_agent_doc(self.model.name, title="Feedback No Memory Agent")).insert()
+		for agent, rating, comment in (
+			(self.agent.name, "Up", "Nice."),
+			(self.agent.name, "Down", None),
+			(plain.name, "Down", "Fix it."),
+		):
+			with self.subTest(agent=agent, rating=rating, comment=comment):
+				run = self._run(agent=agent)
+				self.assertNotIn("memory", submit_feedback(run, rating, comment=comment))
+				self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), rating)
+				self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": agent}))
 
-	def test_rejects_overlong_comment(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "characters"):
-			submit_feedback(self._run(), "Down", comment="x" * 501)
+	def test_refuses_invalid_feedback(self):
+		for status, rating, comment, error in (
+			("Completed", "Sideways", None, "Rating"),
+			("Running", "Up", None, "finished"),
+			("Completed", "Down", "x" * 501, "characters"),
+		):
+			run = self._run(status=status)
+			with self.subTest(error), self.assertRaisesRegex(frappe.ValidationError, error):
+				submit_feedback(run, rating, comment=comment)
 
-	def test_rejects_other_users_run(self):
+	def test_only_someone_who_may_write_to_the_chat_rates_its_runs(self):
 		run = self._run()
-		frappe.set_user(_ensure_user("feedback-other-user@example.com"))
-		with self.assertRaises(frappe.PermissionError):
-			submit_feedback(run, "Up")
-
-	def test_read_only_share_cannot_change_feedback(self):
-		run = self._run()
-		other = _ensure_user("feedback-read-only@example.com")
-		frappe.share.add("Flow Run", run, other, read=1, write=0)
-		frappe.set_user(other)
-		with self.assertRaises(frappe.PermissionError):
-			submit_feedback(run, "Up")
-
-	def test_a_viewer_who_recorded_a_run_still_cannot_rate_it(self):
+		session = frappe.db.get_value("Flow Run", run, "session")
+		stranger = _ensure_user("feedback-other-user@example.com")
+		reader = _ensure_user("feedback-read-only@example.com")
+		frappe.share.add("Flow Run", run, reader, read=1, write=0)
 		viewer = _ensure_user("feedback-viewer@example.com")
-		session = frappe.db.get_value("Flow Run", self._run(), "session")
 		frappe.share.add("Flow Session", session, viewer)
 		frappe.set_user(viewer)
 		# a viewer's sync records a run the site had no row for, so they own that row
-		run = frappe.get_doc(
+		recorded = frappe.get_doc(
 			{"doctype": "Flow Run", "session": session, "source": "Manual", "status": "Completed"}
 		).insert(ignore_permissions=True)
-		with self.assertRaises(frappe.PermissionError):
-			submit_feedback(run.name, "Down", comment="Not my chat.")
-
-	def test_down_comment_saved_as_memory(self):
-		run = self._run()
-		result = submit_feedback(run, "Down", comment="Widget A maps to WGT-001.")
-		memory = frappe.get_doc("Flow Agent Memory", result["memory"])
-		self.assertEqual(memory.agent, self.agent.name)
-		self.assertEqual(memory.scope, "Agent")
-		self.assertEqual(memory.source, "Feedback")
-		self.assertEqual(memory.source_run, run)
-		self.assertEqual(memory.content, "Widget A maps to WGT-001.")
-
-	def test_withdrawing_a_thumbs_down_forgets_its_memory(self):
-		run = self._run()
-		memory = submit_feedback(run, "Down", comment="Wrong item code.")["memory"]
-		self.assertEqual(submit_feedback(run, "None"), {"rating": None, "forgotten": 1})
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", memory))
-
-	def test_down_comment_without_memory_tool_records_but_skips_memory(self):
-		other = frappe.get_doc(_agent_doc(self.model.name, title="Feedback No Memory Agent")).insert()
-		run = self._run(agent=other.name)
-		result = submit_feedback(run, "Down", comment="Fix it.")
-		self.assertNotIn("memory", result)
-		self.assertEqual(frappe.db.get_value("Flow Run", run, "feedback_rating"), "Down")
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": other.name}))
-
-	def test_up_never_saves_memory(self):
-		result = submit_feedback(self._run(), "Up", comment="Nice.")
-		self.assertNotIn("memory", result)
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": self.agent.name}))
-
-	def test_down_without_comment_saves_no_memory(self):
-		result = submit_feedback(self._run(), "Down")
-		self.assertNotIn("memory", result)
-		self.assertFalse(frappe.db.exists("Flow Agent Memory", {"agent": self.agent.name}))
-
-	def test_none_clears_rating(self):
-		run = self._run()
-		submit_feedback(run, "Up")
-		self.assertEqual(submit_feedback(run, "None"), {"rating": None})
-		doc = frappe.get_doc("Flow Run", run)
-		self.assertFalse(doc.feedback_rating)
-		self.assertIsNone(doc.feedback_comment)
+		for user, name, rating, comment in (
+			(stranger, run, "Up", None),
+			(reader, run, "Up", None),
+			(viewer, recorded.name, "Down", "Not my chat."),
+		):
+			frappe.set_user(user)
+			with self.subTest(user), self.assertRaises(frappe.PermissionError):
+				submit_feedback(name, rating, comment=comment)
 
 
 class ApiCase(IntegrationTestCase):
@@ -298,6 +253,10 @@ class ApiCase(IntegrationTestCase):
 		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
+		# a failed send writes an Error Log, which a rollback keeps
+		self.enterContext(
+			patch("frappe.desk.doctype.notification_log.notification_log.send_notification_email")
+		)
 		self.model = frappe.get_doc(_model_doc(title="Endpoint Model")).insert()
 		self.agent = frappe.get_doc(_agent_doc(self.model.name, title="Endpoint Agent")).insert()
 
@@ -311,26 +270,31 @@ class ApiCase(IntegrationTestCase):
 	def run_status(self, run: str) -> str:
 		return frappe.db.get_value("Flow Run", run, "status")
 
+	def upload(self, file_name: str, content: str):
+		return frappe.get_doc(
+			{"doctype": "File", "file_name": file_name, "content": content, "is_private": 1}
+		).insert()
+
 
 class TestSessionEndpoints(ApiCase):
 	def test_every_endpoint_is_whitelisted(self):
 		for name in api.__all__:
 			frappe.is_whitelisted(frappe.get_attr(f"flow.api.{name}"))
 
-	def test_boot_lists_enabled_agents_and_models(self):
+	def test_boot_lists_what_a_client_needs_and_the_users_rights(self):
+		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+
+		sync_builtin_assistant(self.model.name)
 		hidden = frappe.get_doc(_agent_doc(self.model.name, title="Hidden Agent", enabled=0)).insert()
 		data = api.boot()
 		names = [row.name for row in data["agents"]]
 		self.assertIn(self.agent.name, names)
 		self.assertNotIn(hidden.name, names)
+		self.assertEqual(data["default_agent"], ASSISTANT_AGENT_TITLE)
 		model = next(row for row in data["models"] if row.name == self.model.name)
 		self.assertEqual(model.model_id, "openai/gpt-4o-mini")
 		self.assertIn("context_window", model)
 		self.assertIn("txt", data["file_types"])
-		self.assertIn("default_agent", data)
-
-	def test_boot_names_the_user_and_their_settings_rights(self):
-		data = api.boot()
 		self.assertEqual(data["user"]["name"], "Administrator")
 		self.assertIn("full_name", data["user"])
 		self.assertEqual(data["permissions"]["Flow Provider"], ["read", "write", "create", "delete"])
@@ -343,85 +307,79 @@ class TestSessionEndpoints(ApiCase):
 	def test_create_session_names_the_agent_and_keeps_auto_approve(self):
 		data = api.create_session(self.agent.name, model=self.model.name, title=" Hello ", auto_approve="1")
 		self.assertEqual(
-			(data["agent"], data["model"], data["title"], data["source"], data["auto_approve"], data["runs"]),
-			(self.agent.name, self.model.name, "Hello", "Manual", True, []),
+			(
+				data["agent"],
+				data["model"],
+				data["title"],
+				data["source"],
+				data["auto_approve"],
+				data["owner"],
+				data["runs"],
+			),
+			(self.agent.name, self.model.name, "Hello", "Manual", True, "Administrator", []),
 		)
-		self.assertTrue(self.daemon.configs[data["name"]]["auto_approve"])
+		config = self.daemon.configs[data["name"]]
+		self.assertEqual(
+			(config["session_id"], config["title"], config["model"], config["auto_approve"]),
+			(data["name"], "Hello", "openai/gpt-4o-mini", True),
+		)
 		plain = api.create_session(self.agent.name)
 		self.assertFalse(plain["auto_approve"])
 		self.assertEqual(plain["model"], self.model.name)  # the agent's model, with no override
 		self.assertIsNone(frappe.db.get_value("Flow Session", plain["name"], "model"))
 
-	def test_cleanup_only_deletes_files_the_run_did_not_claim(self):
+	def test_cleanup_deletes_only_the_callers_unclaimed_uploads(self):
 		name = self.create()
-		unused = frappe.get_doc(
-			{"doctype": "File", "file_name": "unused.txt", "content": "unused", "is_private": 1}
-		).insert()
-		claimed = frappe.get_doc(
-			{"doctype": "File", "file_name": "claimed.txt", "content": "claimed", "is_private": 1}
-		).insert()
+		unused, claimed, draft, other = (
+			self.upload(f"{label}.txt", label) for label in ("unused", "claimed", "draft", "other")
+		)
 		doc = frappe.get_doc("Flow Session", name)
 		doc.append(
 			"attachments",
 			{"file": claimed.name, "file_name": claimed.file_name, "file_size": claimed.file_size},
 		)
 		doc.save(ignore_permissions=True)
+		frappe.db.set_value("File", other.name, "owner", OTHER)
 
-		result = cleanup_attachments(name, [unused.name, claimed.name])
-
-		self.assertEqual(result, {"removed": [unused.name]})
+		self.assertEqual(cleanup_attachments(name, [unused.name, claimed.name]), {"removed": [unused.name]})
 		self.assertFalse(frappe.db.exists("File", unused.name))
 		self.assertTrue(frappe.db.exists("File", claimed.name))
-
-	def test_cleanup_before_session_creation_keeps_other_users_files(self):
-		own = frappe.get_doc(
-			{"doctype": "File", "file_name": "draft.txt", "content": "draft", "is_private": 1}
-		).insert()
-		other = frappe.get_doc(
-			{"doctype": "File", "file_name": "other.txt", "content": "other", "is_private": 1}
-		).insert()
-		frappe.db.set_value("File", other.name, "owner", OTHER)
-		result = cleanup_attachments(attachments=[own.name, other.name])
-		self.assertEqual(result, {"removed": [own.name]})
+		# before a session exists, another user's upload stays too
+		self.assertEqual(cleanup_attachments(attachments=[draft.name, other.name]), {"removed": [draft.name]})
 		self.assertTrue(frappe.db.exists("File", other.name))
 
-	def test_an_admitted_attachment_is_owned_by_its_session(self):
+	def test_run_sends_attached_files_and_claims_them_for_the_session(self):
+		notes = self.upload("notes.txt", "the body")
 		name = self.create()
-		file = frappe.get_doc(
-			{"doctype": "File", "file_name": "claimed.txt", "content": "claimed", "is_private": 1}
-		).insert()
-
-		api.run(name, "read it", [file.name])
-
+		run = api.run(name, "read", attachments=json.dumps([notes.name]))["run"]
+		self.assertEqual(
+			self.daemon.calls[-1], ("run", name, 'read\n<file name="notes.txt">\nthe body\n</file>')
+		)
+		self.assertEqual(frappe.db.get_value("Flow Run", run, "input"), "read")
+		[row] = frappe.get_doc("Flow Session", name).attachments
+		self.assertEqual(
+			(row.file, row.file_name, row.run, row.mode, row.extracted_text),
+			(notes.name, "notes.txt", run, "Inline", "the body"),
+		)
 		self.assertEqual(
 			frappe.db.get_value(
 				"File",
-				file.name,
+				notes.name,
 				["attached_to_doctype", "attached_to_name", "attached_to_field"],
 			),
 			("Flow Session", name, "attachments"),
 		)
 
-	def test_sync_repairs_an_attachment_whose_file_was_deleted(self):
-		name = self.create()
-		file = frappe.get_doc(
-			{"doctype": "File", "file_name": "gone.txt", "content": "gone", "is_private": 1}
-		).insert()
-		api.run(name, "read it", [file.name])
-		frappe.db.delete("File", {"name": file.name})
-
+		# a file may go without a message
+		gone = self.upload("gone.txt", "gone")
+		self.assertEqual(api.run(name, "", attachments=[gone.name])["status"], "started")
+		self.assertEqual(self.daemon.calls[-1], ("run", name, '\n<file name="gone.txt">\ngone\n</file>'))
+		# a sync drops the row of a file deleted since
+		frappe.db.delete("File", {"name": gone.name})
 		api.sync_session(name)
+		self.assertEqual([row.file for row in frappe.get_doc("Flow Session", name).attachments], [notes.name])
 
-		self.assertFalse(frappe.db.exists("Flow Session Attachment", {"parent": name, "file": file.name}))
-
-	def test_create_session_defaults_to_the_assistant(self):
-		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
-
-		sync_builtin_assistant(self.model.name)
-		self.assertEqual(api.create_session()["agent"], ASSISTANT_AGENT_TITLE)
-		self.assertEqual(api.boot()["default_agent"], ASSISTANT_AGENT_TITLE)
-
-	def test_blank_input_is_refused(self):
+	def test_blank_or_malformed_input_is_refused(self):
 		name = self.create()
 		with self.assertRaisesRegex(frappe.ValidationError, "Session is required"):
 			api.session("  ")
@@ -437,28 +395,31 @@ class TestSessionEndpoints(ApiCase):
 		for answers in ("nope", "[1]"):
 			with self.assertRaisesRegex(frappe.ValidationError, "JSON object"):
 				api.resume(name, answers)
+		for bad in ("not json", json.dumps([1]), json.dumps({"a": 1}), json.dumps([""])):
+			with self.assertRaisesRegex(frappe.ValidationError, "Attachments must be a list"):
+				api.run(name, "hi", attachments=bad)
+		self.assertEqual([c for c in self.daemon.calls if c[0] == "run"], [])
 
 	def test_sessions_are_for_their_owner(self):
-		name = self.create()
-		frappe.set_user(_ensure_user(OTHER))
+		manager, other = _ensure_manager(), _ensure_user(OTHER)
+		frappe.set_user(_ensure_user(SHARER))
+		chat = self.create()
+		fired = new_session(self.agent.name, source="Trigger").name
+		self.assertFalse(api.session(fired)["read_only"])
+
+		frappe.set_user(other)
 		for call in (
-			lambda: api.session(name),
-			lambda: api.run(name, "hi"),
-			lambda: api.set_title(name, "x"),
-			lambda: api.delete_session(name),
+			lambda: api.session(chat),
+			lambda: api.run(chat, "hi"),
+			lambda: api.set_title(chat, "x"),
+			lambda: api.delete_session(chat),
 		):
 			with self.assertRaises(frappe.PermissionError):
 				call()
 		self.assertEqual(api.list_sessions(), [])
 
-	def test_a_system_manager_views_others_trigger_sessions_only_and_writes_only_their_own(self):
-		manager = _ensure_manager()
-		frappe.set_user(_ensure_user(OTHER))
-		chat = self.create()
-		fired = new_session(self.agent.name, source="Trigger").name
-		self.assertFalse(api.session(fired)["read_only"])
+		# a System Manager views others' trigger sessions only, and writes only their own
 		frappe.set_user(manager)
-
 		with self.assertRaises(frappe.PermissionError):
 			api.session(chat)
 		self.assertTrue(api.session(fired)["read_only"])
@@ -487,6 +448,9 @@ class TestSessionEndpoints(ApiCase):
 
 	def test_an_owner_shares_a_chat_to_view_only_and_takes_it_back(self):
 		owner, viewer = _ensure_user(SHARER), _ensure_user(OTHER)
+		member = _ensure_user("api-share-member@example.com")
+		desk, portal = _desk_user("api-open-desk@example.com"), _portal_user("api-open-portal@example.com")
+		manager = _ensure_manager()
 		frappe.set_user(owner)
 		name = self.create(title="Q3 plan")
 		for grant in ({"write": 1}, {"share": 1}):
@@ -500,8 +464,9 @@ class TestSessionEndpoints(ApiCase):
 			frappe.share.add("Flow Session", name, everyone=1)
 		self.assertEqual([row.name for row in api.share_session(name, viewer)], [viewer])
 		self.assertEqual([row.name for row in api.list_shares(name)], [viewer])
-		frappe.set_user(viewer)
+		self.assertEqual(api.session(name)["general_access"], "Restricted")
 
+		frappe.set_user(viewer)
 		data = api.session(name)
 		self.assertTrue(data["read_only"])
 		self.assertEqual(data["owner_name"], frappe.db.get_value("User", owner, "full_name"))
@@ -518,52 +483,12 @@ class TestSessionEndpoints(ApiCase):
 			with self.assertRaises(frappe.PermissionError):
 				call()
 
+		# General access opens it to every Flow user to view
 		frappe.set_user(owner)
-		self.assertEqual(api.unshare_session(name, viewer), [])
-		frappe.set_user(viewer)
-		with self.assertRaises(frappe.PermissionError):
-			api.session(name)
-
-	def test_taking_a_view_back_has_the_live_relay_recheck_who_follows_the_chat(self):
-		owner, viewer = _ensure_user(SHARER), _ensure_user(OTHER)
-		frappe.set_user(owner)
-		name = self.create()
-		api.share_session(name, viewer)
-		api.set_general_access(name, "Everyone")
-		frappe.db.after_commit.reset()  # leave only the removals' work queued
-		with (
-			patch("flow.flow.doctype.flow_session.flow_session._redis_url", return_value="redis://relay"),
-			patch("redis.Redis.from_url") as connect,
-		):
-			api.unshare_session(name, viewer)
-			api.set_general_access(name, "Restricted")
-			# the relay asks the site again, so only once the removal is saved
-			connect.return_value.publish.assert_not_called()
-			frappe.db.after_commit.run()
-		publish = connect.return_value.publish
-		self.assertEqual(
-			{call.args[0] for call in publish.call_args_list}, {f"flow-access:{frappe.local.site}"}
-		)
-		# it names who lost the view, or no one when general access closes, and the owner it leaves alone
-		self.assertEqual(
-			[json.loads(call.args[1]) for call in publish.call_args_list],
-			[
-				{"session": name, "user": viewer, "owner": owner},
-				{"session": name, "user": None, "owner": owner},
-			],
-		)
-
-	def test_an_owner_opens_a_chat_to_every_flow_user_to_view(self):
-		owner, member = _ensure_user(SHARER), _ensure_user(OTHER)
-		desk, portal = _desk_user("api-open-desk@example.com"), _portal_user("api-open-portal@example.com")
-		frappe.set_user(owner)
-		name = self.create(title="Q3 plan")
-		self.assertEqual(api.session(name)["general_access"], "Restricted")
 		with self.assertRaises(frappe.ValidationError):
 			api.set_general_access(name, "Public")
 		self.assertEqual(api.set_general_access(name, "Everyone"), "Everyone")
 		self.assertEqual(api.session(name)["general_access"], "Everyone")
-
 		frappe.set_user(member)
 		self.assertTrue(api.session(name)["read_only"])
 		api.entries(name)
@@ -582,15 +507,37 @@ class TestSessionEndpoints(ApiCase):
 			with self.subTest(user):
 				self.assertFalse(frappe.has_permission("Flow Session", "read", name, user=user))
 		# a System Manager may read it like any Flow user, but not delete it
-		manager = _ensure_manager()
 		self.assertTrue(frappe.has_permission("Flow Session", "read", name, user=manager))
 		self.assertFalse(frappe.has_permission("Flow Session", "delete", name, user=manager))
 
+		# taking both back has the live relay recheck who follows the chat
 		frappe.set_user(owner)
-		api.set_general_access(name, "Restricted")
-		frappe.set_user(member)
-		with self.assertRaises(frappe.PermissionError):
-			api.session(name)
+		frappe.db.after_commit.reset()  # leave only the removals' work queued
+		with (
+			patch("flow.flow.doctype.flow_session.flow_session._redis_url", return_value="redis://relay"),
+			patch("redis.Redis.from_url") as connect,
+		):
+			self.assertEqual(api.unshare_session(name, viewer), [])
+			api.set_general_access(name, "Restricted")
+			# the relay asks the site again, so only once the removal is saved
+			connect.return_value.publish.assert_not_called()
+			frappe.db.after_commit.run()
+		publish = connect.return_value.publish
+		self.assertEqual(
+			{call.args[0] for call in publish.call_args_list}, {f"flow-access:{frappe.local.site}"}
+		)
+		# it names who lost the view, or no one when general access closes, and the owner it leaves alone
+		self.assertEqual(
+			[json.loads(call.args[1]) for call in publish.call_args_list],
+			[
+				{"session": name, "user": viewer, "owner": owner},
+				{"session": name, "user": None, "owner": owner},
+			],
+		)
+		for user in (viewer, member):
+			frappe.set_user(user)
+			with self.subTest(user), self.assertRaises(frappe.PermissionError):
+				api.session(name)
 
 	def test_a_shared_chat_notifies_each_viewer_once_with_a_link_to_it(self):
 		viewer = _ensure_user(OTHER)
@@ -610,11 +557,18 @@ class TestSessionEndpoints(ApiCase):
 		self.assertEqual((logs[1].type, logs[1].link), ("Share", get_url(f"/flow/s/{name}")))
 		self.assertIn("&lt;b&gt;Q3&lt;/b&gt;", logs[1].subject)
 
-	def test_a_chat_is_shared_only_with_someone_who_uses_flow(self):
+	def test_a_chat_is_shared_only_with_active_flow_users(self):
 		name = self.create()
+		found = _ensure_user("api-share-found@example.com")
+		frappe.db.set_value("User", found, "full_name", "Quentin Sharefound")
 		disabled = _ensure_user("api-share-disabled@example.com")
 		frappe.db.set_value("User", disabled, "enabled", 0)
-		desk = _desk_user("api-share-desk@example.com")
+		manager, desk = _ensure_manager(), _desk_user("api-share-desk@example.com")
+		# found by name or email; a System Manager may use Flow without the Flow User role
+		self.assertEqual([row.name for row in api.find_users("Quentin")], [found])
+		self.assertEqual([row.name for row in api.find_users("api-share-found@")], [found])
+		self.assertEqual([row.name for row in api.find_users(manager)], [manager])
+		self.assertEqual(api.find_users(desk), [])
 		for user in ("api-share-nobody@example.com", "Guest", disabled, desk):
 			with self.subTest(user), self.assertRaises(frappe.ValidationError):
 				api.share_session(name, user)
@@ -622,29 +576,19 @@ class TestSessionEndpoints(ApiCase):
 		with self.assertRaises((frappe.ValidationError, frappe.FrappeTypeError)):
 			api.share_session(name, ["like", "%"])
 		self.assertEqual(api.list_shares(name), [])
-		# a System Manager may use Flow without the Flow User role
-		manager = _ensure_manager()
 		self.assertEqual([row.name for row in api.share_session(name, manager)], [manager])
-
-	def test_people_to_share_with_are_active_flow_users_found_by_name_or_email(self):
-		found = _ensure_user("api-share-found@example.com")
-		frappe.db.set_value("User", found, "full_name", "Quentin Sharefound")
-		manager, desk = _ensure_manager(), _desk_user("api-share-desk@example.com")
-		self.assertEqual([row.name for row in api.find_users("Quentin")], [found])
-		self.assertEqual([row.name for row in api.find_users("api-share-found@")], [found])
-		self.assertEqual([row.name for row in api.find_users(manager)], [manager])
-		self.assertEqual(api.find_users(desk), [])
 		frappe.db.set_value("User", found, "enabled", 0)
 		self.assertEqual(api.find_users("Quentin"), [])
 
 	def test_list_sessions_shows_own_manual_sessions_newest_first(self):
+		picked = frappe.get_doc(_model_doc(title="Picked Model")).insert()
 		first = self.create(title="First")
-		second = self.create(title="Second")
+		on_agents_model = self.create(title="On the agent's model")
+		second = self.create(title="Second", model=picked.name)
 		trigger = frappe.get_doc(
 			{"doctype": "Flow Session", "agent": self.agent.name, "source": "Trigger", "title": "Fired"}
 		).insert()
 		frappe.db.set_value("Flow Session", first, "modified", "2026-01-01 00:00:00", update_modified=False)
-		# the test site keeps older committed sessions, so only the newest position is fixed
 		frappe.set_user(_ensure_user(OTHER))
 		foreign = frappe.get_doc(
 			{"doctype": "Flow Session", "agent": self.agent.name, "title": "Theirs"}
@@ -654,133 +598,103 @@ class TestSessionEndpoints(ApiCase):
 		rows = api.list_sessions()
 		names = [row.name for row in rows]
 		self.assertEqual(names[0], second)
-		self.assertIn(first, names)
 		self.assertNotIn(trigger.name, names)
 		self.assertNotIn(foreign.name, names)
 		self.assertEqual(set(rows[0].keys()), {"name", "title", "agent", "model", "modified"})
 		self.assertEqual([row.name for row in api.list_sessions(limit=1)], [second])
+		# the model in force: the chat's own pick, else its agent's
+		models = {row.name: row.model for row in rows}
+		self.assertEqual((models[second], models[on_agents_model]), (picked.name, self.model.name))
+		with self.subTest("an older chat"):
+			# the test site keeps older committed sessions, so only the newest position is fixed
+			self.assertIn(first, names)
 
-	def test_list_sessions_names_the_model_in_force(self):
-		picked = frappe.get_doc(_model_doc(title="Picked Model")).insert()
-		on_agent = self.create(title="On the agent's model")
-		on_pick = self.create(title="On its own model", model=picked.name)
-		models = {row.name: row.model for row in api.list_sessions()}
-		self.assertEqual(models[on_agent], self.model.name)
-		self.assertEqual(models[on_pick], picked.name)
-
-	def test_list_sessions_escapes_like_wildcards_in_the_query(self):
+	def test_list_sessions_narrows_by_title_and_continues_past_the_last_row_shown(self):
 		percent = self.create(title="100% done")
-		self.create(title="100 percent done")
+		spelled = self.create(title="100 percent done")
 		underscore = self.create(title="a_b")
 		self.create(title="aXb")
+		# like wildcards in the query match only themselves
 		self.assertEqual([row.name for row in api.list_sessions("100%")], [percent])
 		self.assertEqual([row.name for row in api.list_sessions("a_b")], [underscore])
-		self.assertEqual(len(api.list_sessions("done")), 2)
-
-	def test_list_sessions_continues_past_the_last_row_shown(self):
-		names = [self.create(title=f"Paged {i}") for i in range(3)]
-		for i, name in enumerate(names):
-			frappe.db.set_value(
-				"Flow Session", name, "modified", f"2026-02-0{i + 1} 00:00:00", update_modified=False
-			)
-		first = api.list_sessions("Paged", limit=2)
-		self.assertEqual([row.name for row in first], [names[2], names[1]])
+		frappe.db.set_value("Flow Session", percent, "modified", "2026-02-01 00:00:00", update_modified=False)
+		frappe.db.set_value("Flow Session", spelled, "modified", "2026-02-02 00:00:00", update_modified=False)
+		first = api.list_sessions("done", limit=1)
+		self.assertEqual([row.name for row in first], [spelled])
 		# the browser sends the timestamp back as text
-		rest = api.list_sessions("Paged", limit=2, before=str(first[-1].modified))
-		self.assertEqual([row.name for row in rest], [names[0]])
+		rest = api.list_sessions("done", before=str(first[-1].modified))
+		self.assertEqual([row.name for row in rest], [percent])
 
-	def test_run_answers_started_and_sync_session_completes_the_run(self):
+	def test_run_answers_started_and_a_sync_completes_the_run(self):
 		name = self.create()
 		started = api.run(name, "hi")
 		self.assertEqual(started["status"], "started")
-		self.assertEqual(self.run_status(started["run"]), "Running")
+		placeholder = frappe.get_doc("Flow Run", started["run"])
+		self.assertEqual(
+			(
+				placeholder.session,
+				placeholder.input,
+				placeholder.source,
+				placeholder.status,
+				placeholder.output,
+				placeholder.iterations,
+				placeholder.daemon_run_id,
+			),
+			(name, "hi", "Manual", "Running", None, 0, None),
+		)
 		self.assertEqual(self.daemon.calls[-1], ("run", name, "hi"))
+		# its rows wait for the next sync
+		self.assertEqual(frappe.db.count("Flow Session Message", {"parent": name}), 0)
 
-		data = api.sync_session(name)
+		# opening the session syncs a run still open, and nothing once all are settled
+		self.daemon.calls.clear()
+		data = api.session(name)
+		self.assertEqual(self.daemon.calls[0], ("get_session", name))
 		self.assertEqual(
 			[(run.name, run.status, run.error) for run in data["runs"]], [(started["run"], "Completed", None)]
 		)
 		self.assertEqual(data["title"], self.daemon.title)
-		again = api.sync_session(name)
-		self.assertEqual(again, data)
+		self.daemon.calls.clear()
+		self.assertEqual(api.session(name), data)
+		self.assertEqual(self.daemon.calls, [])
+		# sync_session always syncs, and records nothing twice
+		self.assertEqual(api.sync_session(name), data)
 		self.assertEqual(frappe.db.count("Flow Run", {"session": name}), 1)
 		self.assertEqual(frappe.db.count("Flow Session Message", {"parent": name}), 4)
 
-	def test_run_syncs_again_when_a_run_ends_own_sync_commits_first(self):
-		# a queued message goes out the moment a run ends, beside that run's own syncs
-		name = self.create()
+	def test_verbs_sync_again_when_a_concurrent_sync_commits_first(self):
+		# e.g. a queued message goes out the moment a run ends, beside that run's own syncs
 		real_sync = FlowSession.sync
-		syncs = []
 
-		def sync(doc):
-			syncs.append(doc.name)
-			if len(syncs) == 1:
-				raise frappe.TimestampMismatchError
-			return real_sync(doc)
+		def losing_first_sync(error):
+			syncs = []
 
-		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
-			self.assertEqual(api.run(name, "hi")["status"], "started")
-		self.assertEqual(self.daemon.calls[-1], ("run", name, "hi"))
+			def sync(doc):
+				syncs.append(doc.name)
+				if len(syncs) == 1:
+					raise error
+				return real_sync(doc)
 
-	def test_resume_syncs_again_when_a_concurrent_sync_commits_first(self):
+			return patch.object(FlowSession, "sync", sync)
+
 		self.daemon.answer = pause
 		name = self.create()
-		run = api.run(name, "delete it")["run"]
-		real_sync = FlowSession.sync
-		syncs = []
-
-		def sync(doc):
-			syncs.append(doc.name)
-			if len(syncs) == 1:
-				raise frappe.TimestampMismatchError
-			return real_sync(doc)
-
-		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
-			self.assertEqual(api.resume(name, '{"c9": "Approve"}'), {"run": run, "status": "started"})
-		self.assertEqual(self.run_status(run), "Running")
-
-	def test_cancel_pending_syncs_again_when_a_concurrent_sync_commits_first(self):
-		self.daemon.answer = pause
-		name = self.create()
-		run = api.run(name, "delete it")["run"]
-		real_sync = FlowSession.sync
-		syncs = []
-
-		def sync(doc):
-			syncs.append(doc.name)
-			if len(syncs) == 1:
-				raise frappe.QueryDeadlockError
-			return real_sync(doc)
-
-		with patch.object(FlowSession, "sync", sync), patch.object(frappe.db, "rollback"):
-			self.assertEqual(api.cancel_pending(name), {"status": "cancelled"})
-		self.assertEqual(self.run_status(run), "Failed")
-
-	def test_run_takes_attachments_as_a_json_list(self):
-		file_doc = frappe.get_doc(
-			{"doctype": "File", "file_name": "notes.txt", "content": "the body", "is_private": 1}
-		).insert()
-		name = self.create()
-		api.run(name, "read", attachments=json.dumps([file_doc.name]))
+		with patch.object(frappe.db, "rollback"):
+			with losing_first_sync(frappe.TimestampMismatchError):
+				run = api.run(name, "delete it")
+			self.assertEqual(run["status"], "started")
+			self.assertEqual(self.daemon.calls[-1], ("run", name, "delete it"))
+			with losing_first_sync(frappe.TimestampMismatchError):
+				self.assertEqual(
+					api.resume(name, '{"c9": "Approve"}'), {"run": run["run"], "status": "started"}
+				)
+			self.assertEqual(self.run_status(run["run"]), "Running")
+			second = api.run(name, "delete that")["run"]
+			with losing_first_sync(frappe.QueryDeadlockError):
+				self.assertEqual(api.cancel_pending(name), {"status": "cancelled"})
 		self.assertEqual(
-			self.daemon.calls[-1], ("run", name, 'read\n<file name="notes.txt">\nthe body\n</file>')
+			frappe.db.get_value("Flow Run", second, ["status", "error"]), ("Failed", "Stopped by user.")
 		)
-		self.assertEqual(frappe.db.count("Flow Session Attachment", {"parent": name}), 1)
-
-	def test_run_sends_a_file_without_a_message(self):
-		file_doc = frappe.get_doc(
-			{"doctype": "File", "file_name": "notes.txt", "content": "the body", "is_private": 1}
-		).insert()
-		name = self.create()
-		self.assertEqual(api.run(name, "", attachments=json.dumps([file_doc.name]))["status"], "started")
-		self.assertEqual(self.daemon.calls[-1], ("run", name, '\n<file name="notes.txt">\nthe body\n</file>'))
-
-	def test_run_refuses_a_malformed_attachment_list(self):
-		name = self.create()
-		for bad in ("not json", json.dumps([1]), json.dumps({"a": 1}), json.dumps([""])):
-			with self.assertRaisesRegex(frappe.ValidationError, "Attachments must be a list"):
-				api.run(name, "hi", attachments=bad)
-		self.assertEqual([c for c in self.daemon.calls if c[0] == "run"], [])
 
 	def test_run_answers_steered_with_the_active_run(self):
 		self.daemon.answer = lambda seq, run_id, message: []
@@ -788,17 +702,27 @@ class TestSessionEndpoints(ApiCase):
 		first = api.run(name, "hi")["run"]
 		self.daemon.running = True
 		self.assertEqual(api.run(name, "and this"), {"run": first, "status": "steered"})
+		self.assertEqual(self.daemon.calls[-1], ("run", name, "and this"))
 		self.assertEqual(frappe.db.count("Flow Run", {"session": name}), 1)
 
 	def test_resume_answers_the_paused_run(self):
 		self.daemon.answer = pause
 		name = self.create()
+		with self.assertRaisesRegex(frappe.ValidationError, "no paused run"):
+			api.resume(name, '{"c1": "Approve"}')
 		run = api.run(name, "delete it")["run"]
 		self.assertEqual(api.sync_session(name)["runs"][0]["status"], "Paused")
+		doc = frappe.get_doc("Flow Run", run)
+		self.assertEqual((doc.approval_seq, json.loads(doc.questions)), (4, [PENDING]))
 		self.assertEqual(api.resume(name, '{"c9": "Approve"}'), {"run": run, "status": "started"})
-		self.assertEqual(self.daemon.calls[-1], ("resume", name, {"c9": "Approve"}, 4))
-		self.assertEqual(self.run_status(run), "Running")
+		self.assertEqual(
+			[c for c in self.daemon.calls if c[0] == "resume"], [("resume", name, {"c9": "Approve"}, 4)]
+		)
+		doc.reload()
+		self.assertEqual((doc.status, doc.approval_seq), ("Running", 0))
+		self.assertFalse(doc.questions)
 		self.assertEqual(api.sync_session(name)["runs"][0]["status"], "Completed")
+		self.assertEqual(frappe.db.count("Flow Run", {"session": name}), 1)
 
 	def test_resume_answers_a_sub_agents_batch_while_the_run_keeps_running(self):
 		self.daemon.answer = child_pause
@@ -824,8 +748,10 @@ class TestSessionEndpoints(ApiCase):
 		# a link on another site can't rewind a chat: GET skips Frappe's CSRF check
 		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.rewind], ("POST",))
 
-	def test_compact_runs_as_a_run_of_its_own_labelled_with_the_command(self):
-		name = self.create()
+	def test_a_compaction_is_a_manual_run_of_its_own_and_a_refused_one_leaves_none(self):
+		name = new_session(self.agent.name, source="Trigger").name
+		with self.assertRaisesRegex(frappe.ValidationError, "nothing to compact"):
+			api.compact(name)
 		api.run(name, "hi")
 		api.sync_session(name)
 		started = api.compact(name)
@@ -833,26 +759,16 @@ class TestSessionEndpoints(ApiCase):
 
 		api.sync_session(name)
 		run = frappe.get_doc("Flow Run", started["run"])
-		self.assertEqual((run.input, run.status, run.daemon_run_id), ("/compact", "Completed", "r2"))
+		self.assertEqual(
+			(run.input, run.source, run.status, run.daemon_run_id), ("/compact", "Manual", "Completed", "r2")
+		)
 		self.assertEqual(json.loads(run.usage)["input_tokens"], 40)
 		self.assertEqual(len(frappe.get_doc("Flow Session", name).messages), 4)  # the summary adds none
-		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.compact], ("POST",))
-
-	def test_a_compaction_is_a_manual_run_even_in_a_trigger_session(self):
-		name = new_session(self.agent.name, source="Trigger").name
-		api.run(name, "hi")
-		run = api.compact(name)["run"]
-		self.assertEqual(frappe.db.get_value("Flow Run", run, "source"), "Manual")
-
-	def test_a_refused_compaction_leaves_no_run_behind(self):
-		name = self.create()
-		with self.assertRaisesRegex(frappe.ValidationError, "nothing to compact"):
-			api.compact(name)
-		api.run(name, "hi")
 		self.daemon.running = True
 		with self.assertRaisesRegex(frappe.ValidationError, "a run is already active"):
 			api.compact(name)
-		self.assertFalse(frappe.db.exists("Flow Run", {"session": name, "input": "/compact"}))
+		self.assertEqual(frappe.db.count("Flow Run", {"session": name, "input": "/compact"}), 1)
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[api.compact], ("POST",))
 
 	def test_abort_cancel_and_entries_pass_through(self):
 		name = self.create()
@@ -861,53 +777,74 @@ class TestSessionEndpoints(ApiCase):
 		api.run(name, "hi")
 		self.assertEqual(api.entries(name, since="2")["entries"][0]["seq"], 3)
 		self.assertEqual(self.daemon.calls[-1], ("entries", name, 2, "active"))
+		self.daemon.running = True
+		self.assertEqual(api.abort(name), {"status": "aborting"})
 
-	def test_set_model_passes_the_reasoning_effort_to_the_flow_server(self):
+	def test_set_model_sends_the_models_credentials_and_reasoning_effort(self):
 		name = self.create()
+		other = frappe.get_doc(
+			_model_doc(
+				title="Endpoint Other Model",
+				model_id="openai/gpt-4o",
+				api_key="sk-other",
+				base_url="https://other.example.com",
+				extra_params='{"provider": {"zdr": true}}',
+			)
+		).insert()
 		self.assertEqual(
-			api.set_model(name, self.model.name, reasoning_effort="high"),
-			{"model": self.model.name, "reasoning_effort": "high"},
+			api.set_model(name, f" {other.name} ", reasoning_effort="high"),
+			{"model": other.name, "reasoning_effort": "high"},
 		)
-		self.assertEqual(self.daemon.calls[-1][3]["reasoning_effort"], "high")
-		self.assertEqual(api.set_model(name, self.model.name, reasoning_effort="")["reasoning_effort"], None)
+		self.assertEqual(
+			self.daemon.calls[-1],
+			(
+				"set_model",
+				name,
+				"openai/gpt-4o",
+				{
+					"api_key": "sk-other",
+					"api_base": "https://other.example.com",
+					"model_params": {"provider": {"zdr": True}},
+					"reasoning_effort": "high",
+				},
+			),
+		)
+		self.assertEqual(frappe.db.get_value("Flow Session", name, "model"), other.name)
+		self.assertEqual(api.set_model(name, other.name, reasoning_effort="")["reasoning_effort"], None)
 		self.assertIsNone(self.daemon.calls[-1][3]["reasoning_effort"])
 		with self.assertRaisesRegex(frappe.ValidationError, "Reasoning effort must be one of"):
-			api.set_model(name, self.model.name, reasoning_effort="extreme")
+			api.set_model(name, other.name, reasoning_effort="extreme")
+		other.db_set("enabled", 0)
+		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
+			api.set_model(name, other.name)
+		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 2)
 
-	def test_settings_persist_on_the_session(self):
+	def test_title_and_auto_approve_persist_on_both_sides(self):
 		name = self.create()
-		other = frappe.get_doc(_model_doc(title="Endpoint Other Model")).insert()
-		self.assertEqual(
-			api.set_model(name, f" {other.name} "),
-			{"model": other.name, "reasoning_effort": None},
-		)
 		self.assertEqual(api.set_title(name, "  Renamed  "), {"title": "Renamed"})
 		self.assertEqual(api.set_auto_approve(name, "1"), {"auto_approve": True})
 		doc = frappe.get_doc("Flow Session", name)
-		self.assertEqual((doc.model, doc.title, doc.auto_approve), (other.name, "Renamed", 1))
+		self.assertEqual((doc.title, doc.auto_approve), ("Renamed", 1))
 		self.assertEqual(api.set_auto_approve(name, 0), {"auto_approve": False})
 		self.assertEqual(api.session(name)["auto_approve"], False)
+		self.assertEqual(
+			[c for c in self.daemon.calls if c[0] == "patch_config"],
+			[
+				("patch_config", name, {"title": "Renamed"}),
+				("patch_config", name, {"auto_approve": True}),
+				("patch_config", name, {"auto_approve": False}),
+			],
+		)
 		self.assertEqual(self.daemon.configs[name]["auto_approve"], False)
 
-	def test_trigger_sessions_cannot_disable_auto_approve(self):
-		doc = frappe.get_doc(
-			{"doctype": "Flow Session", "agent": self.agent.name, "source": "Trigger"}
+		# a trigger session always auto-approves
+		fired = frappe.get_doc(
+			{"doctype": "Flow Session", "agent": self.agent.name, "source": "Trigger", "auto_approve": 0}
 		).insert()
+		self.assertTrue(fired.auto_approve)
 		with self.assertRaisesRegex(frappe.ValidationError, "always auto-approve"):
-			api.set_auto_approve(doc.name, 0)
-		self.assertEqual(api.set_auto_approve(doc.name, 1), {"auto_approve": True})
-
-	def test_session_syncs_an_open_run_but_not_a_settled_one(self):
-		name = self.create()
-		run = api.run(name, "hi")["run"]
-		self.daemon.calls.clear()
-		data = api.session(name)
-		self.assertEqual(data["runs"][0]["status"], "Completed")
-		self.assertEqual(self.daemon.calls[0], ("get_session", name))
-		self.daemon.calls.clear()
-		self.assertEqual(api.session(name), data)
-		self.assertEqual(self.daemon.calls, [])
-		self.assertEqual(self.run_status(run), "Completed")
+			api.set_auto_approve(fired.name, 0)
+		self.assertEqual(api.set_auto_approve(fired.name, 1), {"auto_approve": True})
 
 	def test_skills_lists_what_a_user_may_start_in_a_session_or_with_an_agent(self):
 		frappe.get_doc(
@@ -929,35 +866,36 @@ class TestSessionEndpoints(ApiCase):
 			with self.assertRaisesRegex(frappe.ValidationError, "Session or agent"):
 				api.skills(**bad)
 
-	def test_delete_session_removes_the_session_and_its_server_copy(self):
-		name = self.create()
+	def test_delete_session_needs_the_flow_servers_consent(self):
+		name, lost = self.create(), self.create()
 		with patch("flow.knowledge.attachment_store.delete"):
+			self.daemon.running = True
+			with self.assertRaisesRegex(frappe.ValidationError, "409"):
+				api.delete_session(name)
+			self.assertTrue(frappe.db.exists("Flow Session", name))
+			self.daemon.running = False
 			self.assertEqual(api.delete_session(name), {"status": "deleted"})
+			# a session the flow server no longer has goes too
+			self.daemon.missing = True
+			self.assertEqual(api.delete_session(lost), {"status": "deleted"})
 		self.assertFalse(frappe.db.exists("Flow Session", name))
-		self.assertIn(("delete_session", name), self.daemon.calls)
+		self.assertFalse(frappe.db.exists("Flow Session", lost))
+		self.assertEqual(
+			[c for c in self.daemon.calls if c[0] == "delete_session"],
+			[("delete_session", name), ("delete_session", name), ("delete_session", lost)],
+		)
 
 
 class TestLiveEndpoints(LiveServerCase):
-	def test_a_run_returns_its_placeholder_and_a_terminal_sync_completes_it(self):
-		name = api.create_session(self.agent.name)["name"]
-		started = frappe.call("flow.api.run", session=name, message="hello there")
-		self.assertEqual(started["status"], "started")
-		self.assertEqual(frappe.db.get_value("Flow Run", started["run"], "status"), "Running")
-
-		self.wait_idle(name)
-		data = api.sync_session(name)
-		self.assertEqual([(run.name, run.status) for run in data["runs"]], [(started["run"], "Completed")])
-		self.assertEqual(data["title"], "hello there")
-		self.assertEqual(api.entries(name)["entries"][-1]["type"], "run_ended")
-		self.assertEqual(
-			frappe.db.get_value("Flow Run", started["run"], "output"), "Mock reply to: hello there"
-		)
-
 	def test_a_rewind_takes_the_chat_back_to_before_a_message_and_the_next_turn_branches_there(self):
 		name = api.create_session(self.agent.name)["name"]
-		for message in ("one", "two"):
-			frappe.call("flow.api.run", session=name, message=message)
-			self.wait_idle(name)
+		started = frappe.call("flow.api.run", session=name, message="one")
+		# the run answers with its placeholder at once
+		self.assertEqual(started["status"], "started")
+		self.assertEqual(frappe.db.get_value("Flow Run", started["run"], "status"), "Running")
+		self.wait_idle(name)
+		frappe.call("flow.api.run", session=name, message="two")
+		self.wait_idle(name)
 		two = next(row for row in api.entries(name)["entries"] if row.get("content") == "two")
 		# the page's target: the entry before the message's run_started
 		self.assertEqual(api.rewind(name, two["parent_seq"] - 1), {"status": "rewound"})
@@ -966,8 +904,12 @@ class TestLiveEndpoints(LiveServerCase):
 		data = api.sync_session(name)
 
 		self.assertEqual([run.status for run in data["runs"]], ["Completed"] * 3)
+		self.assertEqual(data["title"], "one")
+		self.assertEqual(frappe.db.get_value("Flow Run", started["run"], "output"), "Mock reply to: one")
+		entries = api.entries(name)["entries"]
+		self.assertEqual(entries[-1]["type"], "run_ended")
 		self.assertEqual(
-			[row["content"] for row in api.entries(name)["entries"] if row["type"] == "user_message"],
+			[row["content"] for row in entries if row["type"] == "user_message"],
 			["one", "three"],
 		)
 		self.assertEqual(

@@ -55,15 +55,13 @@ def test_resolve_policy_profiles():
 	assert not deployed.tools_api
 	with pytest.raises(ValueError, match="unknown profile"):
 		resolve_policy("production")
-
-
-def test_resolve_policy_fills_callback_hosts_for_deployed_only():
+	# configured callback hosts fill the deployed profile only
 	deployed = resolve_policy("deployed", callback_hosts=["site.localhost:8000"])
 	assert deployed.callback_hosts == frozenset({"site.localhost:8000"})
 	assert resolve_policy("local", callback_hosts=["site.localhost:8000"]).callback_hosts is None
 
 
-def test_policy_overrides_adjust_individual_switches():
+def test_policy_overrides_adjust_switches_but_never_weaken_auth_or_audit():
 	overrides = '{"skills_api": true, "tool_allowlist": ["read", "grep", "bash"], "max_request_bytes": null}'
 	policy = resolve_policy("deployed", overrides=overrides)
 	assert policy.skills_api
@@ -73,66 +71,75 @@ def test_policy_overrides_adjust_individual_switches():
 	hardened = resolve_policy("local", overrides='{"require_auth": true, "extensions": false}')
 	assert hardened.require_auth
 	assert not hardened.extensions
-
-
-def test_policy_overrides_win_over_callback_hosts_env():
+	# hardening local on stays allowed; false-on-false is a no-op, not an error
+	hardened = resolve_policy("local", overrides='{"require_auth": true, "audit_log": true}')
+	assert hardened.require_auth and hardened.audit_log
+	assert resolve_policy("local", overrides='{"audit_log": false}').audit_log is False
+	# overrides win over the callback hosts env
 	policy = resolve_policy(
 		"deployed", callback_hosts=["a.local:1"], overrides='{"callback_hosts": ["b.local:2"]}'
 	)
 	assert policy.callback_hosts == frozenset({"b.local:2"})
 
-
-def test_policy_overrides_cannot_weaken_auth_or_audit():
-	for field in ("require_auth", "audit_log"):
-		with pytest.raises(ValueError, match=f"cannot turn off {field}"):
-			resolve_policy("deployed", overrides=f'{{"{field}": false}}')
-	# hardening local on stays allowed; false-on-false is a no-op, not an error
-	hardened = resolve_policy("local", overrides='{"require_auth": true, "audit_log": true}')
-	assert hardened.require_auth and hardened.audit_log
-	assert resolve_policy("local", overrides='{"audit_log": false}').audit_log is False
-
-
-def test_policy_overrides_refuse_bad_input():
-	for overrides in (
-		"not json",
-		'["skills_api"]',
-		'{"profile": "local"}',
-		'{"nope": true}',
-		'{"skills_api": "yes"}',
-		'{"tool_allowlist": "bash"}',
-		'{"max_request_bytes": -5}',
-		'{"max_request_bytes": true}',
+	# turning auth or audit off, and malformed input, are refused
+	for overrides, error in (
+		('{"require_auth": false}', "cannot turn off require_auth"),
+		('{"audit_log": false}', "cannot turn off audit_log"),
+		("not json", "FLOW_POLICY"),
+		('["skills_api"]', "FLOW_POLICY"),
+		('{"profile": "local"}', "FLOW_POLICY"),
+		('{"nope": true}', "FLOW_POLICY"),
+		('{"skills_api": "yes"}', "FLOW_POLICY"),
+		('{"tool_allowlist": "bash"}', "FLOW_POLICY"),
+		('{"max_request_bytes": -5}', "FLOW_POLICY"),
+		('{"max_request_bytes": true}', "FLOW_POLICY"),
 	):
-		with pytest.raises(ValueError, match="FLOW_POLICY"):
+		with pytest.raises(ValueError, match=error):
 			resolve_policy("deployed", overrides=overrides)
 
 
-def test_deployed_rejects_explicit_tools_outside_cap(tmp_path):
+def _write_extension(directory: Path, name: str, body: str) -> Path:
+	directory.mkdir(parents=True, exist_ok=True)
+	path = directory / f"{name}.py"
+	path.write_text(body)
+	return path
+
+
+def test_tool_allowlist_caps_builtin_extension_and_stored_session_tools(tmp_path):
 	c = _deployed_client(tmp_path)
-	r = c.post("/sessions", json={"cwd": str(tmp_path), "tools": ["bash"]})
-	assert r.status_code == 400
-	assert "bash" in r.json()["detail"]
-	r = c.post("/sessions", json={"cwd": str(tmp_path), "tools": ["read", "write", "edit"]})
-	assert r.status_code == 400
-	assert "edit, write" in r.json()["detail"]
+	cases = [
+		# requested tools, status, the names refused or the tools kept
+		(["bash"], 400, "bash"),
+		(["read", "write", "edit"], 400, "edit, write"),
+		(["grep"], 200, ["grep"]),
+		(None, 200, ["read"]),  # the defaulted list is clamped, not refused
+	]
+	for tools, status, expected in cases:
+		body = {"cwd": str(tmp_path)} if tools is None else {"cwd": str(tmp_path), "tools": tools}
+		r = c.post("/sessions", json=body)
+		assert r.status_code == status, tools
+		if status == 400:
+			assert expected in r.json()["detail"], tools
+		else:
+			assert r.json()["config"]["tools"] == expected, tools
+
+	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
+	open_store = _store(tmp_path / "open", extension_paths=[str(extension)])
+	assert "hello" in open_store.create(SessionConfig(cwd=str(tmp_path))).server_tools
+	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read"])
+	# left unsent, the list is clamped rather than refused, like the built-in default
+	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read"}
+	with pytest.raises(PolicyError, match="hello"):
+		capped.create(SessionConfig(cwd=str(tmp_path), extension_tools=["hello"]))
+
+	# a session stored before the cap loads filtered
+	sid = _store(tmp_path / "stored").create(SessionConfig(cwd=str(tmp_path))).id
+	reopened = _store(tmp_path / "stored", tool_allowlist=DEPLOYED.tool_allowlist)
+	assert set(reopened.get(sid).server_tools) == {"read"}
 
 
-def test_deployed_clamps_defaulted_tools(tmp_path):
-	c = _deployed_client(tmp_path)
-	r = c.post("/sessions", json={"cwd": str(tmp_path)})
-	assert r.status_code == 200
-	assert r.json()["config"]["tools"] == ["read"]
-
-
-def test_deployed_allows_capped_subset(tmp_path):
-	c = _deployed_client(tmp_path)
-	r = c.post("/sessions", json={"cwd": str(tmp_path), "tools": ["grep"]})
-	assert r.status_code == 200
-	assert r.json()["config"]["tools"] == ["grep"]
-
-
-def test_deployed_route_gates(tmp_path):
-	c = _deployed_client(tmp_path)
+def test_deployed_gates_route_groups_that_local_keeps_on(tmp_path):
+	c = _deployed_client(tmp_path / "deployed")
 	target = {"cwd": str(tmp_path), "path": "notes.txt", "content": "hi"}
 	assert c.put("/fs/file", json=target).status_code == 403
 	assert not (tmp_path / "notes.txt").exists()
@@ -148,10 +155,8 @@ def test_deployed_route_gates(tmp_path):
 	assert c.get("/sessions/any/skills").status_code == 403
 	assert c.get("/sessions/any/file/diff", params={"path": "x"}).status_code == 403
 
-
-def test_local_defaults_keep_everything_on(tmp_path):
-	c = _client(tmp_path)
-	r = c.put("/fs/file", json={"cwd": str(tmp_path), "path": "notes.txt", "content": "hi"})
+	c = _client(tmp_path / "local")
+	r = c.put("/fs/file", json=target)
 	assert r.status_code == 200
 	assert (tmp_path / "notes.txt").read_text() == "hi"
 	assert c.get("/fs/files", params={"cwd": str(tmp_path)}).status_code == 200
@@ -162,92 +167,44 @@ def test_local_defaults_keep_everything_on(tmp_path):
 	assert r.json()["config"]["tools"] == ["bash"]
 
 
-def _write_extension(directory: Path, name: str, body: str) -> Path:
-	directory.mkdir(parents=True, exist_ok=True)
-	path = directory / f"{name}.py"
-	path.write_text(body)
-	return path
-
-
-def test_allowlist_caps_extension_tools(tmp_path):
-	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
-	open_store = _store(tmp_path / "open", extension_paths=[str(extension)])
-	assert "hello" in open_store.create(SessionConfig(cwd=str(tmp_path))).server_tools
-	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read"])
-	session = capped.create(SessionConfig(cwd=str(tmp_path)))
-	assert set(session.server_tools) == {"read"}
-
-
-def test_allowlist_rejects_explicitly_requested_extension_tools(tmp_path):
-	extension = _write_extension(tmp_path / "ext", "hello", HELLO_EXTENSION)
-	capped = _store(tmp_path / "capped", extension_paths=[str(extension)], tool_allowlist=["read"])
-	with pytest.raises(PolicyError, match="hello"):
-		capped.create(SessionConfig(cwd=str(tmp_path), extension_tools=["hello"]))
-	# left unsent, the list is clamped rather than refused, like the built-in default
-	assert set(capped.create(SessionConfig(cwd=str(tmp_path))).server_tools) == {"read"}
-
-
-def test_allowlist_filters_stored_session_on_load(tmp_path):
-	sid = _store(tmp_path).create(SessionConfig(cwd=str(tmp_path))).id
-	reopened = _store(tmp_path, tool_allowlist=DEPLOYED.tool_allowlist)
-	assert set(reopened.get(sid).server_tools) == {"read"}
-
-
 def test_callback_url_fenced_to_allowed_hosts(tmp_path):
 	c = _client(tmp_path, callback_hosts=["site.localhost:8000"])
 
-	def create(url: str):
-		return c.post("/sessions", json={"cwd": str(tmp_path), "callback_url": url})
+	def create(client, url: str):
+		return client.post("/sessions", json={"cwd": str(tmp_path), "callback_url": url})
 
-	assert create("http://site.localhost:8000/api/method/tool_callback").status_code == 200
-	for url in (
-		"http://site.localhost:9000/cb",  # wrong port
-		"http://169.254.169.254/latest/meta-data",  # internal service
-		"ftp://site.localhost:8000/cb",  # wrong scheme
+	assert create(c, "http://site.localhost:8000/api/method/tool_callback").status_code == 200
+	for client, url in (
+		(c, "http://site.localhost:9000/cb"),  # wrong port
+		(c, "http://169.254.169.254/latest/meta-data"),  # internal service
+		(c, "ftp://site.localhost:8000/cb"),  # wrong scheme
+		(_deployed_client(tmp_path), "http://localhost:8000/cb"),  # deployed without configured hosts
 	):
-		response = create(url)
-		assert response.status_code == 400
-		assert "callback_url" in response.json()["detail"]
+		response = create(client, url)
+		assert response.status_code == 400, url
+		assert "callback_url" in response.json()["detail"], url
 
-
-def test_deployed_refuses_callbacks_without_configured_hosts(tmp_path):
-	c = _deployed_client(tmp_path)
-	r = c.post("/sessions", json={"cwd": str(tmp_path), "callback_url": "http://localhost:8000/cb"})
-	assert r.status_code == 400
-	assert "callback_url" in r.json()["detail"]
-
-
-def test_callback_url_checked_when_loading_stored_session(tmp_path):
+	# a stored session behind a tightened fence is refused when it loads
 	session_config = SessionConfig(cwd=str(tmp_path), callback_url="http://internal:9000/steal")
 	sid = _store(tmp_path).create(session_config).id
-	reopened = _store(tmp_path, callback_hosts=frozenset())
 	with pytest.raises(PolicyError, match="callback_url"):
-		reopened.get(sid)
-
-
-def test_stored_session_behind_a_tightened_fence_answers_400(tmp_path):
-	session_config = SessionConfig(cwd=str(tmp_path), callback_url="http://internal:9000/steal")
-	sid = _store(tmp_path).create(session_config).id
-	client = _client(tmp_path, callback_hosts=frozenset())
-	response = client.get(f"/sessions/{sid}")
+		_store(tmp_path, callback_hosts=frozenset()).get(sid)
+	response = _client(tmp_path, callback_hosts=frozenset()).get(f"/sessions/{sid}")
 	assert response.status_code == 400
 	assert "callback_url" in response.json()["detail"]
 
 
-def test_create_app_refuses_deployed_without_token(tmp_path):
-	with pytest.raises(ValueError, match="requires auth"):
-		create_app(_store(tmp_path), policy=DEPLOYED)
-
-
-def test_serve_refuses_deployed_without_token(tmp_path, monkeypatch):
+def test_deployed_refuses_to_start_without_a_token(tmp_path, monkeypatch):
 	import importlib
 	from argparse import Namespace
 
 	from flow_harness import config
 	from flow_harness.model.auth import AuthError
 
-	cli_main = importlib.import_module("flow_harness.cli.main")
+	with pytest.raises(ValueError, match="requires auth"):
+		create_app(_store(tmp_path), policy=DEPLOYED)
 
+	cli_main = importlib.import_module("flow_harness.cli.main")
 	monkeypatch.setattr(config, "AUTH_TOKEN", None)
 	monkeypatch.setattr(config, "AUTH_TOKEN_FILE", None)
 	monkeypatch.setattr(config, "TENANTS", None)

@@ -7,49 +7,35 @@ const started = (seq, run_id) => ({ type: "run_started", seq, run_id });
 const ended = (seq, reason = "done") => ({ type: "run_ended", seq, reason });
 const user = (seq) => ({ type: "user_message", seq });
 
-test("each run's rows form a span from run_started to run_ended", () => {
-	const spans = runSpans([started(1, "a"), user(2), ended(5), started(6, "b"), user(7)]);
-	assert.deepEqual(spans, [
-		{ startSeq: 1, endSeq: 5, runIds: ["a"] },
-		{ startSeq: 6, endSeq: null, runIds: ["b"] },
-	]);
-});
-
-test("a resume after a pause continues the same run; a cancelled batch does not", () => {
-	const resumed = runSpans([
-		started(1, "a"),
-		user(2),
-		ended(4, "paused"),
-		started(5, "a2"),
-		ended(9),
-	]);
-	assert.deepEqual(resumed, [{ startSeq: 1, endSeq: 9, runIds: ["a", "a2"] }]);
-	const cancelled = runSpans([
-		started(1, "a"),
-		user(2),
-		ended(4, "paused"),
-		{ type: "tool_result", seq: 5 },
-		started(6, "b"),
-		user(7),
-	]);
-	assert.equal(cancelled.length, 2);
-	assert.deepEqual(cancelled[1], { startSeq: 6, endSeq: null, runIds: ["b"] });
-});
-
-test("a model or thinking change while paused keeps the resumed run on its turn", () => {
-	const rows = [
-		started(1, "a"),
-		user(2),
-		ended(4, "paused"),
-		{ type: "model_changed", seq: 5 },
-		started(6, "a2"),
-		ended(9),
+test("a run spans run_started to run_ended; a resume after a pause continues it, unless a cancelled batch came between", () => {
+	const cases = [
+		[
+			[started(1, "a"), user(2), ended(5), started(6, "b"), user(7)],
+			[
+				{ startSeq: 1, endSeq: 5, runIds: ["a"] },
+				{ startSeq: 6, endSeq: null, runIds: ["b"] },
+			],
+		],
+		[
+			[started(1, "a"), user(2), ended(4, "paused"), started(5, "a2"), ended(9)],
+			[{ startSeq: 1, endSeq: 9, runIds: ["a", "a2"] }],
+		],
+		[
+			[
+				started(1, "a"),
+				user(2),
+				ended(4, "paused"),
+				{ type: "tool_result", seq: 5 },
+				started(6, "b"),
+				user(7),
+			],
+			[
+				{ startSeq: 1, endSeq: 4, runIds: ["a"] },
+				{ startSeq: 6, endSeq: null, runIds: ["b"] },
+			],
+		],
 	];
-	const resumed = { name: "R1", daemon_run_id: "a2" };
-	assert.equal(runsByUserMessage(rows, [resumed]).get(2), resumed);
-	// nor does a spare unsynced run take the turn instead
-	const spare = { name: "R2", daemon_run_id: null };
-	assert.equal(runsByUserMessage(rows, [resumed, spare]).get(2), resumed);
+	for (const [rows, spans] of cases) assert.deepEqual(runSpans(rows), spans);
 });
 
 test("synced rows match by their daemon run id, the rest by order", () => {
@@ -60,24 +46,18 @@ test("synced rows match by their daemon run id, the rest by order", () => {
 		ended(6),
 		started(7, "c"),
 	]);
-	const runs = [
-		{ name: "R1", daemon_run_id: "a" },
-		{ name: "R2", daemon_run_id: null },
-		{ name: "R3", daemon_run_id: null },
-	];
+	const names = (runs) => matchRuns(spans, runs).map((run) => (run ? run.name : null));
+	const R1 = { name: "R1", daemon_run_id: "a" };
 	assert.deepEqual(
-		matchRuns(spans, runs).map((run) => (run ? run.name : null)),
+		names([R1, { name: "R2", daemon_run_id: null }, { name: "R3", daemon_run_id: null }]),
 		["R1", "R2", "R3"]
 	);
 	// a row synced later names its segment even when the order disagrees
-	const swapped = [
-		{ name: "R2", daemon_run_id: "b" },
-		{ name: "R1", daemon_run_id: "a" },
-	];
-	assert.deepEqual(
-		matchRuns(spans, swapped).map((run) => (run ? run.name : null)),
-		["R1", "R2", null]
-	);
+	assert.deepEqual(names([{ name: "R2", daemon_run_id: "b" }, R1]), ["R1", "R2", null]);
+	// "b" was rewound off the branch before "c" started: only the unsynced R3 may take it
+	const rewound = runSpans([started(1, "a"), user(2), ended(3), started(6, "c"), user(7)]);
+	const runs = [R1, { name: "R2", daemon_run_id: "b" }, { name: "R3", daemon_run_id: null }];
+	assert.deepEqual(matchRuns(rewound, runs), [runs[0], runs[2]]);
 });
 
 test("a turn finds its run by its user message position", () => {
@@ -90,6 +70,19 @@ test("a turn finds its run by its user message position", () => {
 	assert.equal(runsByUserMessage(rows, runs).get(7).name, "R2");
 	assert.equal(runsByUserMessage(rows, runs).get(8).name, "R2"); // a steered message joins the run
 	assert.equal(runsByUserMessage(rows, runs).get(0), undefined);
+
+	// a model or thinking change while paused keeps the resumed run on its turn
+	const paused = [
+		started(1, "a"),
+		user(2),
+		ended(4, "paused"),
+		{ type: "model_changed", seq: 5 },
+		started(6, "a2"),
+		ended(9),
+	];
+	const resumed = { name: "R1", daemon_run_id: "a2" };
+	const spare = { name: "R2", daemon_run_id: null };
+	assert.equal(runsByUserMessage(paused, [resumed, spare]).get(2), resumed);
 });
 
 test("feedback lookups share the session scan and update when rows or runs change", async () => {
@@ -123,25 +116,25 @@ test("feedback lookups share the session scan and update when rows or runs chang
 	page.onRows("s", [started(1, "b"), user(2)], { replace: true });
 	assert.equal(page.runForTurn("s", "turn:2").name, "R2");
 	assert.equal(page.runForTurn("s", "turn:7"), null);
-});
 
-test("a sub-agent's rows belong to its own thread, not to a run", async () => {
-	const { createPage } = await import("../src/page.js");
-	const page = createPage({ agents: [] });
+	// a sub-agent's rows belong to its own thread, not to a run
 	const child = { subagent_id: "c1" };
-	const rows = [
-		started(1, "a"),
-		user(2),
-		{ ...started(3, "a-c1"), ...child },
-		{ ...user(4), ...child },
-		{ ...ended(5, "paused"), ...child },
-		{ ...started(6, "a-c2"), ...child },
-		{ ...ended(7), ...child },
-		ended(9),
-		started(10, "b"),
-		user(11),
-	];
-	page.onRows("s", rows, { replace: true });
+	page.onRows(
+		"s",
+		[
+			started(1, "a"),
+			user(2),
+			{ ...started(3, "a-c1"), ...child },
+			{ ...user(4), ...child },
+			{ ...ended(5, "paused"), ...child },
+			{ ...started(6, "a-c2"), ...child },
+			{ ...ended(7), ...child },
+			ended(9),
+			started(10, "b"),
+			user(11),
+		],
+		{ replace: true }
+	);
 	page.onSession({ name: "s", runs: [{ name: "R1" }, { name: "R2" }] });
 	assert.equal(page.state.log.s.length, 5);
 	assert.equal(page.runForTurn("s", "turn:2").name, "R1");
@@ -163,15 +156,4 @@ test("a chat opened just as its run ended syncs it, since its stream starts past
 	page.onSession({ name: "s", runs: [{ name: "R1", daemon_run_id: "a", status: "Completed" }] });
 	page.onRows("s", rows, { replace: true });
 	assert.deepEqual(synced, ["s"]);
-});
-
-test("a run rewound off the branch never takes a turn that is not synced yet", () => {
-	// "b" ran, then the chat went back to before it and "c" started; only R3 is unsynced
-	const rows = [started(1, "a"), user(2), ended(3), started(6, "c"), user(7)];
-	const runs = [
-		{ name: "R1", daemon_run_id: "a" },
-		{ name: "R2", daemon_run_id: "b" },
-		{ name: "R3", daemon_run_id: null },
-	];
-	assert.equal(runsByUserMessage(rows, runs).get(7), runs[2]);
 });

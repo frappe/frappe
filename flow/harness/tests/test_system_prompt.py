@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 from fastapi.testclient import TestClient
 
@@ -17,10 +18,9 @@ def _home(tmp_path):
 	return home
 
 
-def test_default_compose_shape(tmp_path):
+def test_default_body_follows_the_active_tools(tmp_path):
 	home = _home(tmp_path)
-	config = SessionConfig(cwd=str(tmp_path / "work"))
-	prompt = build_system_prompt(config, home=str(home))
+	prompt = build_system_prompt(SessionConfig(cwd=str(tmp_path / "work")), home=str(home))
 	assert prompt.startswith(DEFAULT_INTRO)
 	assert "Available tools:" in prompt
 	assert "- bash: " in prompt
@@ -29,190 +29,6 @@ def test_default_compose_shape(tmp_path):
 	assert "- Be concise in your responses" in prompt
 	assert prompt.endswith(f"Current working directory: {tmp_path / 'work'}")
 	assert "<project_context>" not in prompt
-
-
-def test_tools_list_follows_config(tmp_path):
-	home = _home(tmp_path)
-	config = SessionConfig(cwd=str(tmp_path), tools=["read", "grep"])
-	prompt = build_system_prompt(config, home=str(home))
-	assert "- read: " in prompt
-	assert "- grep: " in prompt
-	assert "- bash: " not in prompt
-	assert "- edit: " not in prompt
-	# guidelines follow the active tools too
-	assert "Use read to examine files" in prompt
-	assert "Use write only" not in prompt
-
-
-def test_global_agents_md_included_with_provenance(tmp_path):
-	home = _home(tmp_path)
-	(home / "AGENTS.md").write_text("always use tabs")
-	config = SessionConfig(cwd=str(tmp_path / "work"))
-	prompt = build_system_prompt(config, home=str(home))
-	assert prompt.startswith(DEFAULT_INTRO)
-	assert "<project_context>" in prompt
-	assert f'<project_instructions path="{home / "AGENTS.md"}">' in prompt
-	assert "always use tabs" in prompt
-
-
-def test_project_chain_outermost_first(tmp_path):
-	home = _home(tmp_path)
-	(home / "AGENTS.md").write_text("global rules")
-	repo = home / "repo"
-	sub = repo / "pkg" / "sub"
-	sub.mkdir(parents=True)
-	(repo / ".git").mkdir()
-	(repo / "AGENTS.md").write_text("repo rules")
-	(sub / "AGENTS.md").write_text("sub rules")
-	config = SessionConfig(cwd=str(sub))
-	prompt = build_system_prompt(config, home=str(home))
-	order = [prompt.index(marker) for marker in ("global rules", "repo rules", "sub rules")]
-	assert order == sorted(order)
-	assert f'<project_instructions path="{repo / "AGENTS.md"}">' in prompt
-	assert f'<project_instructions path="{sub / "AGENTS.md"}">' in prompt
-
-
-def test_walk_stops_at_git_root(tmp_path):
-	home = _home(tmp_path)
-	outer = tmp_path / "outer"
-	repo = outer / "repo"
-	repo.mkdir(parents=True)
-	(repo / ".git").mkdir()
-	(outer / "AGENTS.md").write_text("outside the repo")
-	(repo / "AGENTS.md").write_text("repo rules")
-	config = SessionConfig(cwd=str(repo))
-	prompt = build_system_prompt(config, home=str(home))
-	assert "repo rules" in prompt
-	assert "outside the repo" not in prompt
-
-
-def test_cwd_at_home_reads_agents_md_once(tmp_path):
-	home = _home(tmp_path)
-	(home / "AGENTS.md").write_text("home rules")
-	config = SessionConfig(cwd=str(home))
-	prompt = build_system_prompt(config, home=str(home))
-	assert prompt.count("home rules") == 1
-	assert prompt.count("<project_instructions") == 1
-
-
-def test_git_file_marks_a_worktree_root(tmp_path):
-	home = _home(tmp_path)
-	(tmp_path / "AGENTS.md").write_text("outside the worktree")
-	worktree = tmp_path / "wt"
-	worktree.mkdir()
-	(worktree / ".git").write_text("gitdir: /elsewhere")
-	(worktree / "AGENTS.md").write_text("worktree rules")
-	config = SessionConfig(cwd=str(worktree))
-	prompt = build_system_prompt(config, home=str(home))
-	assert "worktree rules" in prompt
-	assert "outside the worktree" not in prompt
-
-
-def test_empty_and_missing_agents_md_are_skipped(tmp_path):
-	home = _home(tmp_path)
-	(home / "AGENTS.md").write_text("   \n\n")
-	config = SessionConfig(cwd=str(tmp_path / "nowhere"))
-	prompt = build_system_prompt(config, home=str(home))
-	assert "<project_context>" not in prompt
-
-
-def test_preamble_override_and_suffix(tmp_path):
-	home = _home(tmp_path)
-	(home / "AGENTS.md").write_text("global rules")
-	config = SessionConfig(
-		cwd=str(tmp_path),
-		system_preamble="short preamble",
-		system_suffix="client notes",
-	)
-	prompt = build_system_prompt(config, home=str(home))
-	assert prompt.startswith("short preamble")
-	assert DEFAULT_INTRO not in prompt
-	assert "Available tools:" not in prompt
-	# suffix comes before the context block and cwd trailer, like pi's append prompt
-	assert prompt.index("client notes") < prompt.index("global rules")
-	assert prompt.endswith(f"Current working directory: {tmp_path}")
-
-
-def test_verbatim_system_prompt_skips_composition(tmp_path):
-	home = _home(tmp_path)
-	(home / "AGENTS.md").write_text("must not appear")
-	config = SessionConfig(
-		cwd=str(tmp_path),
-		system_prompt="exact prompt",
-		system_suffix="also ignored",
-	)
-	assert build_system_prompt(config, home=str(home)) == "exact prompt"
-
-
-def test_store_composes_once_and_persists(tmp_path, monkeypatch):
-	home = _home(tmp_path)
-	monkeypatch.setenv("HOME", str(home))
-	project = tmp_path / "project"
-	project.mkdir()
-	(project / "AGENTS.md").write_text("project rules")
-	data_dir = str(tmp_path / "data")
-	session = SessionStore(data_dir).create(SessionConfig(cwd=str(project)))
-	assert "project rules" in session.config.system_prompt
-
-	# an AGENTS.md edit after create must not change the session
-	(project / "AGENTS.md").write_text("changed later")
-	reloaded = SessionStore(data_dir).get(session.id)
-	assert reloaded.config.system_prompt == session.config.system_prompt
-
-	meta_path = next((tmp_path / "data" / "sessions").rglob(f"{session.id}.meta.json"))
-	meta = json.loads(meta_path.read_text())
-	assert "project rules" in meta["system_prompt"]
-
-
-def test_server_reports_composed_prompt(tmp_path, monkeypatch):
-	home = _home(tmp_path)
-	(home / "AGENTS.md").write_text("global rules")
-	monkeypatch.setenv("HOME", str(home))
-	c = TestClient(create_app(SessionStore(str(tmp_path / "data"))))
-	created = c.post("/sessions", json={"model": "mock", "cwd": str(tmp_path)}).json()
-	prompt = created["config"]["system_prompt"]
-	assert prompt.startswith(DEFAULT_INTRO)
-	assert "global rules" in prompt
-	got = c.get(f"/sessions/{created['session_id']}").json()
-	assert got["config"]["system_prompt"] == prompt
-
-
-def test_append_lands_after_the_cwd_trailer(tmp_path):
-	home = _home(tmp_path)
-	config = SessionConfig(cwd=str(tmp_path), system_append="stay terse")
-	prompt = build_system_prompt(config, home=str(home))
-	assert prompt.startswith(DEFAULT_INTRO)
-	assert prompt.endswith("stay terse")
-	assert prompt.index(f"Current working directory: {tmp_path}") < prompt.index("stay terse")
-
-
-def test_append_applies_to_a_verbatim_prompt(tmp_path):
-	home = _home(tmp_path)
-	config = SessionConfig(cwd=str(tmp_path), system_prompt="exact prompt", system_append="stay terse")
-	assert build_system_prompt(config, home=str(home)) == "exact prompt\n\nstay terse"
-
-
-def test_blank_append_changes_nothing(tmp_path):
-	home = _home(tmp_path)
-	base = build_system_prompt(SessionConfig(cwd=str(tmp_path)), home=str(home))
-	config = SessionConfig(cwd=str(tmp_path), system_append="  \n")
-	assert build_system_prompt(config, home=str(home)) == base
-
-
-def test_server_append_option_joins_the_client_append(tmp_path, monkeypatch):
-	monkeypatch.setenv("HOME", str(_home(tmp_path)))
-	c = TestClient(create_app(SessionStore(str(tmp_path / "data")), system_append="operator rules"))
-	created = c.post(
-		"/sessions", json={"model": "mock", "cwd": str(tmp_path), "system_append": "client rules"}
-	).json()
-	prompt = created["config"]["system_prompt"]
-	assert prompt.endswith("client rules\n\noperator rules")
-
-
-def test_docs_pointer_names_the_extension_guide(tmp_path):
-	home = _home(tmp_path)
-	config = SessionConfig(cwd=str(tmp_path))
-	prompt = build_system_prompt(config, home=str(home))
 	docs = _docs_dir("docs")
 	assert docs is not None and os.path.isfile(os.path.join(docs, "extensions.md"))
 	assert f"- Docs: {docs}" in prompt
@@ -220,15 +36,109 @@ def test_docs_pointer_names_the_extension_guide(tmp_path):
 	examples = _docs_dir("examples")
 	assert examples is not None and os.path.isdir(os.path.join(examples, "extensions"))
 	assert f"- Examples: {examples}" in prompt
-	# the pointer is part of the composed body, so a preamble override replaces it
-	override = SessionConfig(cwd=str(tmp_path), system_preamble="short preamble")
-	assert "Flow documentation" not in build_system_prompt(override, home=str(home))
+
+	narrow = build_system_prompt(SessionConfig(cwd=str(tmp_path), tools=["read", "grep"]), home=str(home))
+	assert "- read: " in narrow
+	assert "- grep: " in narrow
+	assert "- bash: " not in narrow
+	assert "- edit: " not in narrow
+	# guidelines follow the active tools too
+	assert "Use read to examine files" in narrow
+	assert "Use write only" not in narrow
+	# the docs pointer needs a tool that can read them
+	write_only = SessionConfig(cwd=str(tmp_path), tools=["write"])
+	assert "Flow documentation" not in build_system_prompt(write_only, home=str(home))
 
 
-def test_docs_pointer_needs_a_tool_that_can_read_it(tmp_path):
+def test_project_context_reads_agents_md_from_home_down_to_the_cwd(tmp_path):
 	home = _home(tmp_path)
-	config = SessionConfig(cwd=str(tmp_path), tools=["write"])
-	assert "Flow documentation" not in build_system_prompt(config, home=str(home))
+	(home / "AGENTS.md").write_text("global rules")
+	outer = home / "outer"
+	repo = outer / "repo"
+	sub = repo / "pkg" / "sub"
+	sub.mkdir(parents=True)
+	(outer / "AGENTS.md").write_text("outside the repo")
+	(repo / ".git").mkdir()
+	(repo / "AGENTS.md").write_text("repo rules")
+	(repo / "pkg" / "AGENTS.md").write_text("   \n\n")
+	(sub / "AGENTS.md").write_text("sub rules")
+	worktree = outer / "wt"
+	worktree.mkdir()
+	(worktree / ".git").write_text("gitdir: /elsewhere")
+	(worktree / "AGENTS.md").write_text("worktree rules")
+	cases = [
+		# outermost first; the walk stops at the git root and skips an empty file
+		(sub, [(home, "global rules"), (repo, "repo rules"), (sub, "sub rules")]),
+		# a .git file marks a worktree root
+		(worktree, [(home, "global rules"), (worktree, "worktree rules")]),
+		# at home, its AGENTS.md is read once
+		(home, [(home, "global rules")]),
+	]
+	for cwd, expected in cases:
+		prompt = build_system_prompt(SessionConfig(cwd=str(cwd)), home=str(home))
+		assert prompt.startswith(DEFAULT_INTRO), cwd
+		assert "<project_context>" in prompt, cwd
+		found = re.findall(r'<project_instructions path="([^"]+)">\n(.*?)\n</project_instructions>', prompt)
+		assert found == [(str(directory / "AGENTS.md"), text) for directory, text in expected], cwd
+
+
+def test_overrides_and_append_compose_in_order(tmp_path):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("global rules")
+	trailer = f"Current working directory: {tmp_path}"
+	config = SessionConfig(cwd=str(tmp_path), system_preamble="short preamble", system_suffix="client notes")
+	prompt = build_system_prompt(config, home=str(home))
+	assert prompt.startswith("short preamble")
+	assert DEFAULT_INTRO not in prompt
+	assert "Available tools:" not in prompt
+	# the docs pointer is part of the composed body, so a preamble replaces it
+	assert "Flow documentation" not in prompt
+	# suffix comes before the context block and cwd trailer, like pi's append prompt
+	assert prompt.index("client notes") < prompt.index("global rules")
+	assert prompt.endswith(trailer)
+
+	verbatim = SessionConfig(cwd=str(tmp_path), system_prompt="exact prompt", system_suffix="also ignored")
+	assert build_system_prompt(verbatim, home=str(home)) == "exact prompt"
+
+	# an append lands last, on a composed or a verbatim prompt; a blank one changes nothing
+	appended = build_system_prompt(
+		SessionConfig(cwd=str(tmp_path), system_append="stay terse"), home=str(home)
+	)
+	assert appended.startswith(DEFAULT_INTRO)
+	assert appended.endswith("stay terse")
+	assert appended.index(trailer) < appended.index("stay terse")
+	verbatim = SessionConfig(cwd=str(tmp_path), system_prompt="exact prompt", system_append="stay terse")
+	assert build_system_prompt(verbatim, home=str(home)) == "exact prompt\n\nstay terse"
+	base = build_system_prompt(SessionConfig(cwd=str(tmp_path)), home=str(home))
+	blank = SessionConfig(cwd=str(tmp_path), system_append="  \n")
+	assert build_system_prompt(blank, home=str(home)) == base
+
+
+def test_a_session_prompt_is_composed_once_at_create(tmp_path, monkeypatch):
+	home = _home(tmp_path)
+	(home / "AGENTS.md").write_text("global rules")
+	monkeypatch.setenv("HOME", str(home))
+	project = tmp_path / "project"
+	project.mkdir()
+	(project / "AGENTS.md").write_text("project rules")
+	data = str(tmp_path / "data")
+	c = TestClient(create_app(SessionStore(data), system_append="operator rules"))
+	created = c.post(
+		"/sessions", json={"model": "mock", "cwd": str(project), "system_append": "client rules"}
+	).json()
+	sid = created["session_id"]
+	prompt = created["config"]["system_prompt"]
+	assert prompt.startswith(DEFAULT_INTRO)
+	assert "global rules" in prompt and "project rules" in prompt
+	# the server's append option joins the client's
+	assert prompt.endswith("client rules\n\noperator rules")
+	assert c.get(f"/sessions/{sid}").json()["config"]["system_prompt"] == prompt
+
+	# an AGENTS.md edit after create must not change the session
+	(project / "AGENTS.md").write_text("changed later")
+	assert SessionStore(data).get(sid).config.system_prompt == prompt
+	meta_path = next((tmp_path / "data" / "sessions").rglob(f"{sid}.meta.json"))
+	assert json.loads(meta_path.read_text())["system_prompt"] == prompt
 
 
 class _ReadsDocsModel(Model):

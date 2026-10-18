@@ -18,16 +18,29 @@ from flow_harness.model import Model, ModelRequest
 from flow_harness.model.mock import MockModel
 
 
-async def test_run_streams_a_full_turn(tmp_path):
-	mock = MockModel(replies=[AssistantMessage(content="hello world")])
-	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path))
-	types = [ev.type async for ev in agent.run("hi")]
-	assert types[0] == "run_started"
-	assert "assistant_message" in types
-	assert types[-1] == "run_ended"
+async def test_event_iterator_fails_cleanly_instead_of_hanging(tmp_path, monkeypatch):
+	agent = Agent(
+		model=MockModel(replies=[AssistantMessage(content="done")]),
+		data_dir=str(tmp_path),
+		cwd=str(tmp_path),
+	)
+	original_append = agent.session.log.append
 
+	def fail_terminal(event):
+		if isinstance(event, RunEnded):
+			raise OSError("log unavailable")
+		return original_append(event)
 
-async def test_slow_embedded_subscriber_fails_cleanly(tmp_path, monkeypatch):
+	monkeypatch.setattr(agent.session.log, "append", fail_terminal)
+
+	async def consume():
+		return [event async for event in agent.run("hi")]
+
+	with pytest.raises(OSError, match="log unavailable"):
+		await asyncio.wait_for(consume(), timeout=0.5)
+	assert agent.session.is_running is False
+
+	# a subscriber that falls behind is cut off with an error
 	monkeypatch.setattr("flow_harness.session.session._SUBSCRIBER_QUEUE_SIZE", 2)
 
 	class BurstyModel(Model):
@@ -60,11 +73,13 @@ async def test_run_then_resume_across_pause(tmp_path):
 	mock = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
 	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path), confirm_tools=["read"])
 
-	pending = None
-	async for ev in agent.run("read it"):
-		if ev.type == "approval_required":
-			pending = ev.calls
-	assert pending and pending[0].id == "c1"
+	events = [ev async for ev in agent.run("read it")]
+	types = [ev.type for ev in events]
+	assert types[0] == "run_started"
+	assert "assistant_message" in types
+	assert types[-1] == "run_ended"
+	pending = next(ev.calls for ev in events if ev.type == "approval_required")
+	assert pending[0].id == "c1"
 
 	results = [ev async for ev in agent.resume({"c1": "Approve"})]
 	tool_results = [ev for ev in results if ev.type == "tool_result"]
@@ -73,30 +88,7 @@ async def test_run_then_resume_across_pause(tmp_path):
 	assert results[-1].reason == "done"
 
 
-async def test_event_iterator_does_not_hang_if_terminal_commit_fails(tmp_path, monkeypatch):
-	agent = Agent(
-		model=MockModel(replies=[AssistantMessage(content="done")]),
-		data_dir=str(tmp_path),
-		cwd=str(tmp_path),
-	)
-	original_append = agent.session.log.append
-
-	def fail_terminal(event):
-		if isinstance(event, RunEnded):
-			raise OSError("log unavailable")
-		return original_append(event)
-
-	monkeypatch.setattr(agent.session.log, "append", fail_terminal)
-
-	async def consume():
-		return [event async for event in agent.run("hi")]
-
-	with pytest.raises(OSError, match="log unavailable"):
-		await asyncio.wait_for(consume(), timeout=0.5)
-	assert agent.session.is_running is False
-
-
-async def test_abort_stops_in_process_run_and_next_run_gets_fresh_signal(tmp_path):
+async def test_abort_keeps_the_streamed_content_and_the_next_run_gets_a_fresh_signal(tmp_path):
 	class AbortThenFinishModel(Model):
 		name = "abort-then-finish"
 
@@ -108,13 +100,13 @@ async def test_abort_stops_in_process_run_and_next_run_gets_fresh_signal(tmp_pat
 		async def run(self, request: ModelRequest):
 			self.calls += 1
 			if self.calls == 1:
+				yield ThinkingDelta(thinking="checking")
+				yield TextDelta(text="Partial answer")
 				self.started.set()
 				try:
 					await asyncio.Event().wait()
 				finally:
 					self.cancelled.set()
-				if False:
-					yield
 				return
 			assert request.cancellation is not None
 			assert not request.cancellation.is_set()
@@ -130,7 +122,12 @@ async def test_abort_stops_in_process_run_and_next_run_gets_fresh_signal(tmp_pat
 	events = await asyncio.wait_for(first, timeout=1)
 
 	assert model.cancelled.is_set()
-	assert [event.stop_reason for event in events if event.type == "assistant_message"] == ["aborted"]
+	[assistant] = [event for event in events if event.type == "assistant_message"]
+	assert assistant.stop_reason == "aborted"
+	assert isinstance(assistant.content[0], ThinkingContent)
+	assert assistant.thinking_text == "checking"
+	assert assistant.text == "Partial answer"
+	assert agent.session.transcript.messages[-1] == assistant
 	assert events[-1].type == "run_ended"
 	assert events[-1].reason == "aborted"
 	assert agent.session.is_running is False
@@ -141,45 +138,11 @@ async def test_abort_stops_in_process_run_and_next_run_gets_fresh_signal(tmp_pat
 	assert second[-1].reason == "done"
 
 
-async def test_abort_persists_streamed_assistant_content(tmp_path):
-	class PartialThenBlockModel(Model):
-		name = "partial-then-block"
-		provider = "test"
-		model = "partial-then-block"
-
-		def __init__(self):
-			self.started = asyncio.Event()
-
-		async def run(self, request: ModelRequest):
-			yield ThinkingDelta(thinking="checking")
-			yield TextDelta(text="Partial answer")
-			self.started.set()
-			await asyncio.Event().wait()
-			if False:
-				yield
-
-	model = PartialThenBlockModel()
-	agent = Agent(model=model, data_dir=str(tmp_path), cwd=str(tmp_path))
-	run = asyncio.create_task(_collect(agent.run("wait")))
-	await model.started.wait()
-	assert agent.abort() is True
-	events = await asyncio.wait_for(run, timeout=1)
-
-	assistant = next(event for event in events if event.type == "assistant_message")
-	assert assistant.stop_reason == "aborted"
-	assert isinstance(assistant.content[0], ThinkingContent)
-	assert assistant.thinking_text == "checking"
-	assert assistant.text == "Partial answer"
-	assert agent.session.transcript.messages[-1] == assistant
-
-
-async def test_set_model_records_for_a_name_constructed_agent(tmp_path):
+async def test_set_model_records_a_name_but_refuses_an_injected_model(tmp_path):
 	agent = Agent(model="mock", data_dir=str(tmp_path), cwd=str(tmp_path))
 	await agent.set_model("mock/v2")
 	assert agent.session.model == "mock/v2"
 
-
-async def test_set_model_conflicts_with_an_injected_model_instance(tmp_path):
 	mock = MockModel(replies=[AssistantMessage(content="hello")])
 	agent = Agent(model=mock, data_dir=str(tmp_path), cwd=str(tmp_path))
 	with pytest.raises(RuntimeError, match="injected Model instance"):

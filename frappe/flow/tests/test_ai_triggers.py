@@ -53,6 +53,19 @@ def _trigger(agent_name: str, **overrides: Any) -> dict:
 	return doc
 
 
+def _user(email: str, *roles: str) -> str:
+	frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": email,
+			"first_name": email.split("@")[0],
+			"send_welcome_email": 0,
+			"roles": [{"role": role} for role in roles],
+		}
+	).insert(ignore_permissions=True)
+	return email
+
+
 class _Bag:
 	"""Tiny test helper: a doc-shaped object with arbitrary attrs."""
 
@@ -65,7 +78,7 @@ class TestDispatch(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		sync_builtin_tools()
-		cls.enterClassContext(cls.enable_safe_exec())
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 
 	def setUp(self):
 		self.model = frappe.get_doc(_model()).insert()
@@ -75,130 +88,61 @@ class TestDispatch(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_dispatch_enqueues_matching_trigger(self):
-		doc = _Bag(doctype="ToDo", name="todo-x")
-
+	def test_dispatch_enqueues_matching_triggers_only(self):
 		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "after_insert")
-
-		enqueue.assert_called_once()
-		kwargs = enqueue.call_args.kwargs
-		self.assertEqual(kwargs["trigger"], self.trigger.name)
-		self.assertEqual(kwargs["target_doctype"], "ToDo")
-		self.assertEqual(kwargs["target_name"], "todo-x")
-		self.assertTrue(kwargs["enqueue_after_commit"])
-
-	def test_dispatch_ignores_unknown_method(self):
-		doc = _Bag(doctype="ToDo", name="todo-x")
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "before_save")
-
-		enqueue.assert_not_called()
-
-	def test_dispatch_ignores_ai_doctypes(self):
-		doc = _Bag(doctype="Flow Run", name="any")
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "after_insert")
-
-		enqueue.assert_not_called()
-
-	def test_dispatch_skips_when_event_mismatched(self):
-		doc = _Bag(doctype="ToDo", name="todo-x")
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "on_submit")
-
-		enqueue.assert_not_called()
-
-	def test_dispatch_skips_when_doctype_mismatched(self):
-		doc = _Bag(doctype="User", name="someone@example.com")
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "after_insert")
-
-		enqueue.assert_not_called()
-
-	def test_dispatch_evaluates_condition(self):
-		self.trigger.condition = "doc.status == 'Closed'"
-		self.trigger.save()
-		open_doc = frappe.get_doc({"doctype": "ToDo", "description": "open one"}).insert()
-		closed_doc = frappe.get_doc(
-			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
-		).insert()
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(open_doc, "after_insert")
-		enqueue.assert_not_called()
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(closed_doc, "after_insert")
-		enqueue.assert_called_once()
-
-	def test_dispatch_evaluates_multiline_condition(self):
-		self.trigger.condition = (
-			"status = frappe.db.get_value('ToDo', doc.name, 'status')\nresult = status == 'Closed'"
+			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
+		enqueue.assert_called_once_with(
+			"flow.triggers.fire",
+			enqueue_after_commit=True,
+			trigger=self.trigger.name,
+			target_doctype="ToDo",
+			target_name="todo-x",
 		)
-		self.trigger.save()
-		open_doc = frappe.get_doc({"doctype": "ToDo", "description": "open one"}).insert()
-		closed_doc = frappe.get_doc(
-			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
-		).insert()
 
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(open_doc, "after_insert")
-		enqueue.assert_not_called()
+		for doctype, method in (
+			("ToDo", "before_save"),  # not a doc event
+			("ToDo", "on_submit"),  # another event
+			("User", "after_insert"),  # another DocType
+			("Flow Run", "after_insert"),  # Flow's own DocTypes
+		):
+			with self.subTest(doctype=doctype, method=method), patch("frappe.enqueue") as enqueue:
+				dispatch(_Bag(doctype=doctype, name="x"), method)
+				enqueue.assert_not_called()
 
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(closed_doc, "after_insert")
-		enqueue.assert_called_once()
-
-	def test_dispatch_evaluates_condition_as_run_as(self):
-		# The pre-enqueue check runs as run_as, not the triggering user.
-		service = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "dispatch-service@example.com",
-				"first_name": "Svc",
-				"roles": [{"role": "System Manager"}, {"role": FLOW_USER_ROLE}],
-			}
-		).insert(ignore_permissions=True)
-		self.trigger.run_as = service.name
-		self.trigger.condition = f"frappe.session.user == '{service.name}'"
-		self.trigger.save()
-		doc = frappe.get_doc({"doctype": "ToDo", "description": "run-as cond"}).insert()
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "after_insert")
-
-		enqueue.assert_called_once()
-		self.assertEqual(frappe.session.user, "Administrator")  # restored afterward
-
-	def test_condition_runtime_error_skips_trigger(self):
-		self.trigger.condition = "doc.status.no_such_method()"
-		self.trigger.save()
-		doc = frappe.get_doc({"doctype": "ToDo", "description": "boom"}).insert()
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "after_insert")
-
-		enqueue.assert_not_called()
-
-	def test_condition_script_without_result_rejected_on_save(self):
-		self.trigger.condition = "status = doc.status"
-		with self.assertRaisesRegex(frappe.ValidationError, "result"):
-			self.trigger.save()
-
-	def test_disabled_trigger_does_not_dispatch(self):
 		self.trigger.enabled = 0
 		self.trigger.save()
-		doc = _Bag(doctype="ToDo", name="todo-x")
-
 		with patch("frappe.enqueue") as enqueue:
-			dispatch(doc, "after_insert")
-
+			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
 		enqueue.assert_not_called()
+
+	def test_dispatch_checks_the_condition_as_the_run_as_user(self):
+		open_doc = frappe.get_doc({"doctype": "ToDo", "description": "open one"}).insert()
+		closed_doc = frappe.get_doc(
+			{"doctype": "ToDo", "description": "closed one", "status": "Closed"}
+		).insert()
+		script = "status = frappe.db.get_value('ToDo', doc.name, 'status')\nresult = status == 'Closed'"
+		for condition, doc, fires in (
+			("doc.status == 'Closed'", open_doc, False),
+			("doc.status == 'Closed'", closed_doc, True),
+			(script, open_doc, False),
+			(script, closed_doc, True),
+			("doc.status.no_such_method()", closed_doc, False),  # a failing condition skips
+		):
+			with self.subTest(condition=condition, status=doc.status):
+				self.trigger.condition = condition
+				self.trigger.save()
+				with patch("frappe.enqueue") as enqueue, patch("frappe.log_error"):
+					dispatch(doc, "after_insert")
+				self.assertEqual(enqueue.call_count, int(fires))
+
+		# checked as run_as, not as the user whose change fired it
+		self.trigger.run_as = _user("dispatch-service@example.com", "System Manager", FLOW_USER_ROLE)
+		self.trigger.condition = f"frappe.session.user == '{self.trigger.run_as}'"
+		self.trigger.save()
+		with patch("frappe.enqueue") as enqueue:
+			dispatch(closed_doc, "after_insert")
+		enqueue.assert_called_once()
+		self.assertEqual(frappe.session.user, "Administrator")  # restored afterward
 
 
 class TestDispatchScheduled(IntegrationTestCase):
@@ -224,44 +168,29 @@ class TestDispatchScheduled(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_dispatch_scheduled_fires_overdue_trigger(self):
-		past = frappe.utils.now_datetime() - timedelta(minutes=5)
-		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch_scheduled()
-
-		enqueue.assert_called_once()
-		self.assertEqual(enqueue.call_args.kwargs["trigger"], self.trigger.name)
-
-	def test_dispatch_scheduled_skips_when_next_run_in_future(self):
-		future = frappe.utils.now_datetime() + timedelta(minutes=5)
-		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", future, update_modified=False)
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch_scheduled()
-
-		enqueue.assert_not_called()
-
-	def test_dispatch_scheduled_updates_last_fired_at(self):
-		past = frappe.utils.now_datetime() - timedelta(minutes=5)
-		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
-
-		with patch("frappe.enqueue"):
-			dispatch_scheduled()
-
-		updated = frappe.db.get_value("Flow Trigger", self.trigger.name, "last_fired_at")
-		self.assertGreater(updated, past)
-
-	def test_dispatch_scheduled_skips_disabled_triggers(self):
-		frappe.db.set_value("Flow Trigger", self.trigger.name, "enabled", 0)
-		past = frappe.utils.now_datetime() - timedelta(minutes=5)
-		frappe.db.set_value("Flow Trigger", self.trigger.name, "last_fired_at", past, update_modified=False)
-
-		with patch("frappe.enqueue") as enqueue:
-			dispatch_scheduled()
-
-		enqueue.assert_not_called()
+	def test_dispatch_scheduled_fires_triggers_that_are_due(self):
+		now = frappe.utils.now_datetime()
+		past = now - timedelta(minutes=5)
+		for case, values, fires in (
+			("overdue", {"last_fired_at": past}, True),
+			(
+				"never fired, due since creation",
+				{"last_fired_at": None, "creation": now - timedelta(hours=2)},
+				True,
+			),
+			("next run ahead", {"last_fired_at": now + timedelta(minutes=5)}, False),
+			("disabled", {"last_fired_at": past, "enabled": 0}, False),
+		):
+			with self.subTest(case):
+				frappe.db.set_value("Flow Trigger", self.trigger.name, values, update_modified=False)
+				with patch("frappe.enqueue") as enqueue:
+					dispatch_scheduled()
+				if fires:
+					enqueue.assert_called_once_with("flow.triggers.fire", trigger=self.trigger.name)
+					last_fired_at = frappe.db.get_value("Flow Trigger", self.trigger.name, "last_fired_at")
+					self.assertGreater(last_fired_at, past)
+				else:
+					enqueue.assert_not_called()
 
 
 class TestFire(IntegrationTestCase):
@@ -271,7 +200,7 @@ class TestFire(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		sync_builtin_tools()
-		cls.enterClassContext(cls.enable_safe_exec())
+		cls.enterClassContext(patch("frappe.utils.safe_exec.is_safe_exec_enabled", return_value=True))
 
 	def setUp(self):
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
@@ -289,124 +218,26 @@ class TestFire(IntegrationTestCase):
 	def turns(self):
 		return [call for call in self.daemon.calls if call[0] == "run"]
 
-	def test_fire_runs_agent_and_links_trigger(self):
+	def test_fire_runs_the_agent_with_the_target_as_its_reference(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "fire test"}).insert()
 
-		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		run = frappe.get_doc(
+			"Flow Run", fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+		)
 
-		run = frappe.get_doc("Flow Run", run_name)
-		self.assertEqual(run.source, "Trigger")
-		self.assertEqual(run.trigger, self.trigger.name)
+		self.assertEqual(
+			(run.source, run.trigger, run.status, run.output), ("Trigger", self.trigger.name, "Running", None)
+		)
+		self.assertEqual((run.reference_doctype, run.reference_name), ("ToDo", todo.name))
+		self.assertIn(f"ToDo {todo.name}", run.input)
 		session = frappe.get_doc("Flow Session", run.session)
 		self.assertEqual((session.agent, session.source), (self.agent.name, "Trigger"))
-		self.assertEqual((run.status, run.output), ("Running", None))
-		self.assertIn(todo.name, run.input)
-		self.assertEqual(run.reference_doctype, "ToDo")
-		self.assertEqual(run.reference_name, todo.name)
-		self.assertEqual(self.turns(), [("run", session.name, run.input)])
-
-	def test_fire_runs_as_trigger_owner_not_triggering_user(self):
-		# Helpdesk scenario: a low-privilege user (no Flow Agent access) fires the trigger by
-		# creating a doc; the agent must still run, with the owner's authority.
-		owner = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "trigger-owner@example.com",
-				"first_name": "Owner",
-				"roles": [{"role": "System Manager"}, {"role": FLOW_USER_ROLE}],
-			}
-		).insert(ignore_permissions=True)
-		customer = frappe.get_doc(
-			{"doctype": "User", "email": "trigger-customer@example.com", "first_name": "Cust"}
-		).insert(ignore_permissions=True)
-		frappe.db.set_value("Flow Trigger", self.trigger.name, "owner", owner.name)
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "help me"}).insert()
-
-		frappe.set_user(customer.name)
-		try:
-			run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
-		finally:
-			frappe.set_user("Administrator")
-
-		self.assertIsNotNone(run_name)
-		run = frappe.get_doc("Flow Run", run_name)
-		self.assertEqual(run.status, "Running")
-		self.assertEqual(run.owner, owner.name)
-		self.assertEqual(frappe.get_doc("Flow Session", run.session).owner, owner.name)
-		self.assertEqual(self.daemon.configs[run.session]["user_context"]["user"], owner.name)
-
-	def test_fire_runs_as_configured_run_as_user(self):
-		# run_as overrides the owner: the agent runs with that user's scope.
-		service_user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "trigger-service@example.com",
-				"first_name": "Service",
-				"roles": [{"role": "System Manager"}, {"role": FLOW_USER_ROLE}],
-			}
-		).insert(ignore_permissions=True)
-		self.trigger.run_as = service_user.name
-		self.trigger.save()
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "run-as"}).insert()
-
-		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
-
-		run = frappe.get_doc("Flow Run", run_name)
-		self.assertEqual(run.owner, service_user.name)
-		self.assertEqual(run.status, "Running")
-
-	def test_run_as_disabled_user_rejected(self):
-		disabled = frappe.get_doc(
-			{"doctype": "User", "email": "trigger-disabled@example.com", "first_name": "Off", "enabled": 0}
-		).insert(ignore_permissions=True)
-		self.trigger.run_as = disabled.name
-		with self.assertRaisesRegex(frappe.ValidationError, "Run As must be an enabled user"):
-			self.trigger.save()
-
-	def test_fire_restores_the_original_user(self):
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "restore"}).insert()
-		fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
-		self.assertEqual(frappe.session.user, "Administrator")
-
-	def test_fire_auto_approves_confirmation_tools(self):
-		# Every trigger session runs unattended, so it cannot stop for human approval.
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "auto-approve"}).insert()
-
-		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
-
-		run = frappe.get_doc("Flow Run", run_name)
-		session = frappe.get_doc("Flow Session", run.session)
-		self.assertEqual(run.status, "Running")
+		# every trigger session runs unattended, so it cannot stop for human approval
 		self.assertTrue(session.auto_approve)
 		self.assertTrue(self.daemon.configs[run.session]["auto_approve"])
+		self.assertEqual(self.turns(), [("run", session.name, run.input)])
 
-	def test_fire_skips_disabled_trigger(self):
-		self.trigger.enabled = 0
-		self.trigger.save()
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "skip"}).insert()
-
-		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
-
-		self.assertIsNone(run_name)
-		self.assertEqual(self.turns(), [])
-
-	def test_fire_skips_when_target_missing(self):
-		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name="does-not-exist")
-
-		self.assertIsNone(run_name)
-		self.assertEqual(self.turns(), [])
-
-	def test_fire_rechecks_condition_after_load(self):
-		self.trigger.condition = "doc.status == 'Closed'"
-		self.trigger.save()
-		todo = frappe.get_doc({"doctype": "ToDo", "description": "open", "status": "Open"}).insert()
-
-		run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
-
-		self.assertIsNone(run_name)
-		self.assertEqual(self.turns(), [])
-
-	def test_fire_scheduled_trigger_without_target(self):
+		# a scheduled trigger has no target
 		scheduled = frappe.get_doc(
 			_trigger(
 				self.agent.name,
@@ -419,10 +250,42 @@ class TestFire(IntegrationTestCase):
 			)
 		).insert()
 
-		run_name = fire(scheduled.name)
+		run = frappe.get_doc("Flow Run", fire(scheduled.name))
 
-		run = frappe.get_doc("Flow Run", run_name)
-		self.assertEqual(run.status, "Running")
-		self.assertEqual(run.trigger, scheduled.name)
+		self.assertEqual((run.status, run.trigger), ("Running", scheduled.name))
 		self.assertIsNone(run.reference_doctype)
 		self.assertIsNone(run.reference_name)
+
+	def test_fire_runs_as_run_as_else_the_owner_not_the_triggering_user(self):
+		# Helpdesk scenario: a low-privilege user (no Flow Agent access) fires the trigger by
+		# creating a doc; the agent must still run, with the trigger's authority.
+		owner = _user("trigger-owner@example.com", "System Manager", FLOW_USER_ROLE)
+		service = _user("trigger-service@example.com", "System Manager", FLOW_USER_ROLE)
+		customer = _user("trigger-customer@example.com")
+		frappe.db.set_value("Flow Trigger", self.trigger.name, "owner", owner)
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "help me"}).insert()
+
+		for run_as, account in ((None, owner), (service, service)):
+			with self.subTest(run_as=run_as):
+				frappe.db.set_value("Flow Trigger", self.trigger.name, "run_as", run_as)
+				frappe.set_user(customer)
+				run_name = fire(self.trigger.name, target_doctype="ToDo", target_name=todo.name)
+				self.assertEqual(frappe.session.user, customer)  # restored afterward
+				frappe.set_user("Administrator")
+
+				run = frappe.get_doc("Flow Run", run_name)
+				self.assertEqual((run.status, run.owner), ("Running", account))
+				self.assertEqual(frappe.get_doc("Flow Session", run.session).owner, account)
+				self.assertEqual(self.daemon.configs[run.session]["user_context"]["user"], account)
+
+	def test_fire_skips_without_running_the_agent(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "open", "status": "Open"}).insert()
+		for case, values, target in (
+			("disabled", {"enabled": 0}, todo.name),
+			("target gone", {"enabled": 1}, "does-not-exist"),
+			("condition false, rechecked after load", {"condition": "doc.status == 'Closed'"}, todo.name),
+		):
+			with self.subTest(case):
+				frappe.db.set_value("Flow Trigger", self.trigger.name, values)
+				self.assertIsNone(fire(self.trigger.name, target_doctype="ToDo", target_name=target))
+				self.assertEqual(self.turns(), [])

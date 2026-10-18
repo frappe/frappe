@@ -32,15 +32,18 @@ def make_log(tmp_path, *events) -> SessionLog:
 	return log
 
 
-def test_replay_roundtrip(tmp_path):
-	log = make_log(
-		tmp_path,
+def test_replay_roundtrip_matches_live_recording(tmp_path):
+	events = [
 		UserMessage(content="do it"),
 		AssistantMessage(
 			content=[
-				ThinkingContent(thinking="plan", provider_state={"id": "r1"}),
-				TextContent(text="working"),
-				ToolCall(id="c1", name="bash", arguments={"command": "ls"}),
+				ThinkingContent(
+					thinking="plan", thinking_signature="sig", provider_state={"item": {"id": "r1"}}
+				),
+				TextContent(text="working", provider_state={"id": "msg_1", "phase": "commentary"}),
+				ToolCall(
+					id="c1", name="bash", arguments={"command": "ls"}, provider_state={"item_id": "fc_1"}
+				),
 			],
 			api="openai-codex-responses",
 			provider="codex",
@@ -49,7 +52,10 @@ def test_replay_roundtrip(tmp_path):
 			stop_reason="tool_use",
 		),
 		ToolResult(tool_call_id="c1", name="bash", content="file.txt"),
-	)
+		AssistantMessage(content="done"),
+		RunEnded(reason="done"),
+	]
+	log = make_log(tmp_path, *events)
 
 	transcript = Transcript.replay(log)
 
@@ -57,273 +63,148 @@ def test_replay_roundtrip(tmp_path):
 	assert isinstance(msgs[0], UserMessage)
 	assert isinstance(msgs[1], AssistantMessage)
 	assert [block.type for block in msgs[1].content] == ["thinking", "text", "tool_call"]
-	assert msgs[1].content[0].provider_state == {"id": "r1"}
+	# opaque provider round-trip data survives on every block
+	assert msgs[1].content[0].provider_state == {"item": {"id": "r1"}}
+	assert msgs[1].content[0].thinking_signature == "sig"
+	assert msgs[1].content[1].provider_state == {"id": "msg_1", "phase": "commentary"}
+	assert msgs[1].tool_calls[0].provider_state == {"item_id": "fc_1"}
 	assert msgs[1].response_id == "resp_1"
 	assert isinstance(msgs[2], ToolResult)
 	assert msgs[2].content == "file.txt"
 	assert transcript.pending_approval is None
 	assert transcript.missing_results() == ()
 
-
-def test_first_result_wins_and_unmatched_results_are_dropped(tmp_path):
-	log = make_log(
-		tmp_path,
-		UserMessage(content="do it"),
-		AssistantMessage(content=[ToolCall(id="c1", name="bash", arguments={})], stop_reason="tool_use"),
-		ToolResult(tool_call_id="c1", name="bash", content="first"),
-		ToolResult(tool_call_id="c1", name="bash", content="second"),
-		ToolResult(tool_call_id="unknown", name="bash", content="orphan"),
-	)
-
-	transcript = Transcript.replay(log)
-
-	results = [m for m in transcript.messages if isinstance(m, ToolResult)]
-	assert [r.content for r in results] == ["first"]
-	calls = {c.id for m in transcript.messages if isinstance(m, AssistantMessage) for c in m.tool_calls}
-	assert all(r.tool_call_id in calls for r in results)
+	live = Transcript()
+	for event in events:  # seqs were assigned by the appends above
+		live.record(event)
+	assert [m.model_dump() for m in live.messages] == [m.model_dump() for m in msgs]
 
 
-def test_results_are_ordered_by_call_order_not_arrival(tmp_path):
+def test_results_land_in_call_order_and_strays_are_dropped(tmp_path):
 	log = make_log(
 		tmp_path,
 		AssistantMessage(
 			content=[
 				ToolCall(id="c1", name="read", arguments={"path": "first.txt"}),
 				ToolCall(id="c2", name="read", arguments={"path": "second.txt"}),
+				ToolCall(id="c3", name="bash", arguments={}),
 			],
 			stop_reason="tool_use",
 		),
-		ToolResult(tool_call_id="c2", name="read", content="second result"),
-		ToolResult(tool_call_id="c1", name="read", content=INTERRUPTED, is_error=True),
+		ToolResult(tool_call_id="c2", name="read", content="second"),
+		ToolResult(tool_call_id="c1", name="read", content="first"),
+		ToolResult(tool_call_id="c1", name="read", content="duplicate"),  # the first result wins
+		ToolResult(tool_call_id="unknown", name="bash", content="orphan"),  # answers no call
+		UserMessage(content="never mind"),  # closes the turn
+		ToolResult(tool_call_id="c3", name="bash", content="late"),  # its turn already closed
 	)
 
-	transcript = Transcript.replay(log)
+	messages = Transcript.replay(log).messages
 
-	assert [message.type for message in transcript.messages] == [
-		"assistant_message",
-		"tool_result",
-		"tool_result",
-	]
-	assert [message.tool_call_id for message in transcript.messages[1:]] == ["c1", "c2"]
+	assert [m.type for m in messages] == ["assistant_message", "tool_result", "tool_result", "user_message"]
+	assert [(m.tool_call_id, m.content) for m in messages[1:3]] == [("c1", "first"), ("c2", "second")]
 
 
-def test_missing_results_close_an_interrupted_turn(tmp_path):
+def test_missing_results_close_unanswered_calls_but_spare_the_pause(tmp_path):
 	log = make_log(
 		tmp_path,
 		AssistantMessage(
 			content=[
 				ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
 				ToolCall(id="c2", name="bash", arguments={"command": "ls"}),
+				ToolCall(id="c3", name="bash", arguments={"command": "rm x"}),
 			],
 			stop_reason="tool_use",
 		),
 		ToolResult(tool_call_id="c2", name="bash", content="done"),
+		ApprovalRequired(calls=[PendingCall(id="c3", name="bash", args={"command": "rm x"})]),
+		RunEnded(reason="paused"),
 	)
 
-	repairs = Transcript.replay(log).missing_results()
+	transcript = Transcript.replay(log)
+	repairs = transcript.missing_results()
 
 	assert [r.tool_call_id for r in repairs] == ["c1"]
 	assert repairs[0].is_error
 	assert repairs[0].content == INTERRUPTED
 	assert repairs[0].details == {"repair": "interrupted"}
 	assert repairs[0].name == "read"
-
-
-def test_missing_results_spare_calls_awaiting_approval(tmp_path):
-	call = ToolCall(id="c1", name="bash", arguments={"command": "rm x"})
-	log = make_log(
-		tmp_path,
-		AssistantMessage(content=[call], stop_reason="tool_use"),
-		ApprovalRequired(calls=[PendingCall(id=call.id, name=call.name, args=call.args)]),
-		RunEnded(reason="paused"),
-	)
-
-	transcript = Transcript.replay(log)
-
-	assert transcript.missing_results() == ()
-	approval = transcript.pending_approval
+	approval = transcript.pending_approval  # the gated call is the pause, not missing
 	assert approval is not None
-	assert [c.id for c in approval.calls] == ["c1"]
+	assert [c.id for c in approval.calls] == ["c3"]
 
 
-def test_pending_approval_scopes_reused_tool_ids_to_the_latest_approval(tmp_path):
-	call = ToolCall(id="c1", name="read", arguments={"path": "a.txt"})
-	pending = PendingCall(id="c1", name="read", args={"path": "a.txt"})
-	log = make_log(
-		tmp_path,
-		AssistantMessage(content=[call], stop_reason="tool_use"),
-		ApprovalRequired(calls=[pending]),
-		ToolResult(tool_call_id="c1", name="read", content="old"),
-		RunEnded(reason="done"),
-		UserMessage(content="again"),
-		AssistantMessage(content=[call], stop_reason="tool_use"),
-		ApprovalRequired(calls=[pending]),
-		RunEnded(reason="paused"),
-	)
+def test_pending_approval_holds_only_the_open_gated_calls(tmp_path):
+	pending = PendingCall(id="c1", name="bash", args={"command": "rm x"})
 
-	approval = Transcript.replay(log).pending_approval
+	def gated_turn():
+		return [
+			AssistantMessage(
+				content=[ToolCall(id="c1", name="bash", arguments={"command": "rm x"})],
+				stop_reason="tool_use",
+			),
+			ApprovalRequired(calls=[pending]),
+		]
 
-	assert approval is not None
-	assert approval.calls == (pending,)
-	assert approval.seq == 7  # the latest approval event, not the answered one
-
-
-def test_approval_is_resolved_by_matching_results(tmp_path):
-	call = ToolCall(id="c1", name="bash", arguments={})
-	log = make_log(
-		tmp_path,
-		AssistantMessage(content=[call], stop_reason="tool_use"),
-		ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={})]),
-		ToolResult(tool_call_id="c1", name="bash", content="approved and ran"),
-	)
-
-	assert Transcript.replay(log).pending_approval is None
-
-
-def test_run_started_clears_a_stale_approval(tmp_path):
-	call = ToolCall(id="c1", name="bash", arguments={})
-	log = make_log(
-		tmp_path,
-		AssistantMessage(content=[call], stop_reason="tool_use"),
-		ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={})]),
-		RunStarted(run_id="r2"),
-	)
-
-	assert Transcript.replay(log).pending_approval is None
-
-
-def test_a_free_siblings_result_does_not_settle_the_pause(tmp_path):
-	"""Only the gated calls hold the pause; the rest of the turn runs and reports."""
-	log = make_log(
-		tmp_path,
-		AssistantMessage(
-			content=[
-				ToolCall(id="c1", name="bash", arguments={"command": "rm x"}),
-				ToolCall(id="c2", name="read", arguments={"path": "a.txt"}),
+	cases = {
+		"a matching result resolves it": (
+			[*gated_turn(), ToolResult(tool_call_id="c1", name="bash", content="approved and ran")],
+			None,
+		),
+		"a new run clears a stale one": ([*gated_turn(), RunStarted(run_id="r2")], None),
+		# once a newer turn opens nothing can answer the gated call, so the pause goes with
+		# its turn — otherwise a later call reusing that id would silently settle it
+		"it does not outlive its turn": (
+			[
+				*gated_turn(),
+				UserMessage(content="do something else"),
+				AssistantMessage(
+					content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})],
+					stop_reason="tool_use",
+				),
 			],
-			stop_reason="tool_use",
+			None,
 		),
-		ToolResult(tool_call_id="c2", name="read", content="contents"),
-		ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={"command": "rm x"})]),
-		RunEnded(reason="paused"),
-	)
-
-	approval = Transcript.replay(log).pending_approval
-
-	assert approval is not None
-	assert [c.id for c in approval.calls] == ["c1"]
-
-
-def test_a_pause_does_not_outlive_the_turn_it_belongs_to(tmp_path):
-	"""Once a newer turn opens, nothing can answer the gated call, so the pause goes with
-	its turn — otherwise a later call reusing that id would silently settle it."""
-	log = make_log(
-		tmp_path,
-		AssistantMessage(
-			content=[ToolCall(id="c1", name="bash", arguments={"command": "rm x"})],
-			stop_reason="tool_use",
+		"a reused id scopes to the latest approval": (
+			[
+				*gated_turn(),
+				ToolResult(tool_call_id="c1", name="bash", content="old"),
+				RunEnded(reason="done"),
+				UserMessage(content="again"),
+				*gated_turn(),  # the approval is seq 7
+				RunEnded(reason="paused"),
+			],
+			(7, (pending,)),
 		),
-		ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={"command": "rm x"})]),
-		UserMessage(content="do something else"),
-		AssistantMessage(
-			content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})],
-			stop_reason="tool_use",
+		"a free sibling's result does not settle it": (
+			[
+				AssistantMessage(
+					content=[
+						ToolCall(id="c1", name="bash", arguments={"command": "rm x"}),
+						ToolCall(id="c2", name="read", arguments={"path": "a.txt"}),
+					],
+					stop_reason="tool_use",
+				),
+				ToolResult(tool_call_id="c2", name="read", content="contents"),
+				ApprovalRequired(calls=[pending]),  # seq 3
+				RunEnded(reason="paused"),
+			],
+			(3, (pending,)),
 		),
-	)
-
-	assert Transcript.replay(log).pending_approval is None
-
-
-def test_approval_without_preceding_tool_calls_is_rejected(tmp_path):
-	log = make_log(tmp_path, ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={})]))
+	}
+	for index, (case, (events, expected)) in enumerate(cases.items()):
+		approval = Transcript.replay(make_log(tmp_path / str(index), *events)).pending_approval
+		assert (None if approval is None else (approval.seq, approval.calls)) == expected, case
 
 	with pytest.raises(ValueError, match="approval event has no preceding assistant tool calls"):
-		Transcript.replay(log)
+		Transcript.replay(make_log(tmp_path / "orphan", ApprovalRequired(calls=[pending])))
 
 
-def test_live_recording_matches_replaying_the_log(tmp_path):
-	events = [
-		UserMessage(content="go"),
-		AssistantMessage(content=[ToolCall(id="c1", name="bash", arguments={})], stop_reason="tool_use"),
-		ToolResult(tool_call_id="c1", name="bash", content="ok"),
-		AssistantMessage(content="done"),
-		RunEnded(reason="done"),
-	]
-	log = make_log(tmp_path, *events)
-
-	live = Transcript()
-	for event in events:  # seqs were assigned by the appends above
-		live.record(event)
-
-	assert [m.model_dump() for m in live.messages] == [
-		m.model_dump() for m in Transcript.replay(log).messages
-	]
+def _texts(transcript):
+	return [m.content if isinstance(m, UserMessage) else m.text for m in transcript.messages]
 
 
-def test_result_arriving_after_its_turn_closed_is_dropped(tmp_path):
-	log = make_log(
-		tmp_path,
-		AssistantMessage(content=[ToolCall(id="c1", name="bash", arguments={})], stop_reason="tool_use"),
-		UserMessage(content="never mind"),
-		ToolResult(tool_call_id="c1", name="bash", content="late"),
-	)
-
-	assert [m.type for m in Transcript.replay(log).messages] == ["assistant_message", "user_message"]
-
-
-def test_replay_spans_runs_with_a_repair_and_a_reused_call_id(tmp_path):
-	"""A crashed run whose repair was persisted at the next load, then a second run
-	reusing the same call id and pausing for approval."""
-	log = make_log(
-		tmp_path,
-		RunStarted(run_id="run_1"),
-		UserMessage(content="read two files"),
-		AssistantMessage(
-			content=[
-				ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
-				ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
-			],
-			stop_reason="tool_use",
-		),
-		ToolResult(tool_call_id="c2", name="read", content="b"),
-		# the run was interrupted here; the repair is appended before any new entry
-		ToolResult(
-			tool_call_id="c1",
-			name="read",
-			content=INTERRUPTED,
-			is_error=True,
-			details={"repair": "interrupted"},
-		),
-		RunStarted(run_id="run_2"),
-		UserMessage(content="now delete one"),
-		AssistantMessage(
-			content=[ToolCall(id="c1", name="bash", arguments={"command": "rm a.txt"})],
-			stop_reason="tool_use",
-		),
-		ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={"command": "rm a.txt"})]),
-		RunEnded(reason="paused"),
-	)
-
-	transcript = Transcript.replay(log)
-
-	assert [m.type for m in transcript.messages] == [
-		"user_message",
-		"assistant_message",
-		"tool_result",
-		"tool_result",
-		"user_message",
-		"assistant_message",
-	]
-	# the late repair still lands beside its own batch, in call order
-	assert [m.tool_call_id for m in transcript.messages[2:4]] == ["c1", "c2"]
-	# the reused id neither resolves the new approval nor counts as missing
-	approval = transcript.pending_approval
-	assert approval is not None
-	assert [c.id for c in approval.calls] == ["c1"]
-	assert transcript.missing_results() == ()
-
-
-def test_replay_follows_the_active_branch_after_a_rewind(tmp_path):
+def test_replay_follows_the_branch_that_ends_at_the_leaf(tmp_path):
 	log = make_log(
 		tmp_path,
 		RunStarted(run_id="run_1"),  # 1
@@ -335,68 +216,24 @@ def test_replay_follows_the_active_branch_after_a_rewind(tmp_path):
 		UserMessage(content="B", parent_seq=6),  # 7
 		AssistantMessage(content="Y", parent_seq=7),  # 8
 		RunEnded(parent_seq=8),  # 9
+		Rewind(target_seq=1, parent_seq=9),  # 10
+		UserMessage(content="C", parent_seq=1),  # 11, a sibling of 2
+		Rewind(target_seq=3, parent_seq=11),  # 12, back to the abandoned first branch
+		Rewind(target_seq=0, parent_seq=3),  # 13
+		UserMessage(content="D", parent_seq=0),  # 14, a new root child
 	)
 
-	transcript = Transcript.replay(log)
-
-	# "X" is off the conversation
-	assert [
-		(m.type, getattr(m, "text", None) or getattr(m, "content", None)) for m in transcript.messages
-	] == [
-		("user_message", "A"),
-		("user_message", "B"),
-		("assistant_message", "Y"),
-	]
-	assert transcript.leaf_seq == 9
-
-
-def test_rewind_to_a_runs_start_replaces_the_user_message(tmp_path):
-	log = make_log(
-		tmp_path,
-		RunStarted(run_id="run_1"),  # 1
-		UserMessage(content="A"),  # 2
-		AssistantMessage(content="X"),  # 3
-		RunEnded(),  # 4
-		Rewind(target_seq=1),  # 5
-		UserMessage(content="B", parent_seq=1),  # 6, sibling of 2
-		AssistantMessage(content="Y", parent_seq=6),  # 7
-	)
-
-	transcript = Transcript.replay(log)
-
-	assert [getattr(m, "text", None) or m.content for m in transcript.messages] == ["B", "Y"]
-
-
-def test_explicit_leaf_previews_an_earlier_point(tmp_path):
-	log = make_log(
-		tmp_path,
-		RunStarted(run_id="run_1"),  # 1
-		UserMessage(content="A"),  # 2
-		AssistantMessage(content="X"),  # 3
-		RunEnded(),  # 4
-	)
-
-	preview = Transcript.replay(log, leaf_seq=2)
-
-	assert [m.content for m in preview.messages] == ["A"]
-	assert preview.leaf_seq == 2
-
-
-def test_a_later_rewind_switches_back_to_an_abandoned_branch(tmp_path):
-	log = make_log(
-		tmp_path,
-		RunStarted(run_id="run_1"),  # 1
-		UserMessage(content="A"),  # 2
-		AssistantMessage(content="X"),  # 3
-		Rewind(target_seq=1),  # 4
-		UserMessage(content="B", parent_seq=1),  # 5
-		Rewind(target_seq=3, parent_seq=5),  # 6, back to the first branch
-	)
-
-	transcript = Transcript.replay(log)
-
-	assert [getattr(m, "text", None) or m.content for m in transcript.messages] == ["A", "X"]
-	assert transcript.leaf_seq == 3
+	for leaf, texts, resolved_leaf in (
+		(9, ["A", "B", "Y"], 9),  # "X" is off the conversation
+		(11, ["C"], 11),  # a rewind to a run's start replaces its user message
+		(2, ["A"], 2),  # an explicit leaf previews an earlier point
+		(12, ["A", "X"], 3),  # a marker leaf means the branch it moved to
+		(13, [], 0),
+		(0, [], 0),  # the root, before everything
+		(None, ["D"], 14),  # the stored leaf: started over from the root
+	):
+		transcript = Transcript.replay(log, leaf_seq=leaf)
+		assert (_texts(transcript), transcript.leaf_seq) == (texts, resolved_leaf), leaf
 
 
 def test_active_path_rejects_bad_targets():
@@ -420,155 +257,27 @@ def test_active_path_rejects_bad_targets():
 		active_path(forward)
 
 
-def test_a_marker_leaf_means_the_branch_it_moved_to():
-	rows = [
-		{"seq": 1, "type": "run_started"},
-		{"seq": 2, "type": "user_message", "parent_seq": 1},
-		{"seq": 3, "type": "rewind", "target_seq": 1, "parent_seq": 2},
-		{"seq": 4, "type": "user_message", "parent_seq": 1},
-	]
-
-	assert [row["seq"] for row in active_path(rows, leaf_seq=3)] == [1]
-	assert [row["seq"] for row in active_path(rows, leaf_seq=4)] == [1, 4]
-	rows.append({"seq": 5, "type": "rewind", "target_seq": 0, "parent_seq": 4})
-	assert active_path(rows, leaf_seq=5) == []
-
-
-def test_rewind_to_the_root_starts_over(tmp_path):
-	log = make_log(
-		tmp_path,
-		RunStarted(run_id="run_1"),  # 1
-		UserMessage(content="A"),  # 2
-		AssistantMessage(content="X"),  # 3
-		RunEnded(),  # 4
-		Rewind(target_seq=0),  # 5
-		UserMessage(content="B", parent_seq=0),  # 6, a new root child
-	)
-
-	assert Transcript.replay(log, leaf_seq=0).messages == []
-	transcript = Transcript.replay(log)
-	assert [m.content for m in transcript.messages] == ["B"]
-	assert transcript.leaf_seq == 6
-
-
-def test_model_change_folds_without_touching_the_conversation(tmp_path):
+def test_model_changes_fold_per_branch_without_touching_the_conversation(tmp_path):
 	log = make_log(
 		tmp_path,
 		UserMessage(content="A"),  # 1
 		AssistantMessage(content="X"),  # 2
-		ModelChanged(model="mock/v2", credential_id="work"),  # 3
+		ModelChanged(model="mock/v2"),  # 3
+		ModelChanged(model="mock/v3", credential_id="work"),  # 4
 	)
 
 	transcript = Transcript.replay(log)
 
-	assert (transcript.model, transcript.credential_id) == ("mock/v2", "work")
-	assert [getattr(m, "text", None) or m.content for m in transcript.messages] == ["A", "X"]
-	assert transcript.leaf_seq == 3  # the next entry hangs off the change
-
-
-def test_replay_to_before_a_model_change_forgets_it(tmp_path):
-	log = make_log(
-		tmp_path,
-		UserMessage(content="A"),  # 1
-		ModelChanged(model="mock/v2"),  # 2
-		ModelChanged(model="mock/v3", credential_id="work"),  # 3
-	)
-
-	assert Transcript.replay(log).model == "mock/v3"  # the last change on the path wins
-	earlier = Transcript.replay(log, leaf_seq=2)
+	# the last change on the path wins
+	assert (transcript.model, transcript.credential_id) == ("mock/v3", "work")
+	assert _texts(transcript) == ["A", "X"]
+	assert transcript.leaf_seq == 4  # the next entry hangs off the change
+	earlier = Transcript.replay(log, leaf_seq=3)
 	assert (earlier.model, earlier.credential_id) == ("mock/v2", None)
-	assert Transcript.replay(log, leaf_seq=1).model is None  # back to the session config
+	assert Transcript.replay(log, leaf_seq=2).model is None  # back to the session config
 
 
-def _texts(transcript):
-	return [m.content if isinstance(m, UserMessage) else m.text for m in transcript.messages]
-
-
-def test_compaction_folds_the_prefix_into_a_summary(tmp_path):
-	log = make_log(
-		tmp_path,
-		RunStarted(run_id="r1"),  # 1
-		UserMessage(content="A"),  # 2
-		AssistantMessage(content="X"),  # 3
-		RunEnded(),  # 4
-		Compaction(reason="manual", summary="S", compact_up_to_seq=3),  # 5
-		UserMessage(content="B"),  # 6
-	)
-
-	transcript = Transcript.replay(log)
-
-	assert [m.type for m in transcript.messages] == ["user_message", "user_message"]
-	summary = transcript.messages[0]
-	assert summary.content == COMPACTION_SUMMARY_PREFIX + "S"
-	assert summary.seq == 3  # retained messages stay newer than the compacted boundary
-	assert transcript.messages[1].content == "B"
-	assert transcript.leaf_seq == 6
-	assert transcript.missing_results() == ()
-
-
-def test_a_standalone_call_spends_without_moving_the_context_reading(tmp_path):
-	"""The summarizer prompts with the transcript it is compacting; that is not
-	the conversation's new size, which only the next real request reports."""
-	log = make_log(
-		tmp_path,
-		UserMessage(content="A"),  # 1
-		AssistantMessage(content="X"),  # 2
-		Usage(input_tokens=900, output_tokens=40),  # 3
-		Compaction(reason="threshold", summary="S", compact_up_to_seq=2),  # 4
-		Usage(input_tokens=880, output_tokens=120, standalone=True),  # 5
-	)
-
-	transcript = Transcript.replay(log)
-
-	assert transcript.context_tokens is None  # the compaction cleared it, the summarizer did not set it
-	assert transcript.context_message_count == 0
-
-
-def test_live_compaction_mutates_the_messages_list_in_place(tmp_path):
-	log = make_log(tmp_path, UserMessage(content="A"), AssistantMessage(content="X"))
-	transcript = Transcript.replay(log)
-	messages = transcript.messages  # a running loop reads this exact list
-
-	compaction = Compaction(reason="threshold", summary="S", compact_up_to_seq=2)
-	log.append(compaction)
-	transcript.record(compaction)
-
-	assert transcript.messages is messages
-	assert [m.content for m in messages] == [COMPACTION_SUMMARY_PREFIX + "S"]
-
-
-def test_second_compaction_supersedes_the_first_summary(tmp_path):
-	log = make_log(
-		tmp_path,
-		UserMessage(content="A"),  # 1
-		AssistantMessage(content="X"),  # 2
-		Compaction(reason="threshold", summary="first", compact_up_to_seq=2),  # 3
-		UserMessage(content="B"),  # 4
-		AssistantMessage(content="Y"),  # 5
-		Compaction(reason="threshold", summary="second", compact_up_to_seq=4),  # 6
-		UserMessage(content="C"),  # 7
-	)
-
-	transcript = Transcript.replay(log)
-
-	assert _texts(transcript) == [COMPACTION_SUMMARY_PREFIX + "second", "Y", "C"]
-
-
-def test_rewind_to_before_a_compaction_restores_the_conversation(tmp_path):
-	log = make_log(
-		tmp_path,
-		UserMessage(content="A"),  # 1
-		AssistantMessage(content="X"),  # 2
-		Compaction(reason="manual", summary="S", compact_up_to_seq=2),  # 3
-		Rewind(target_seq=2),  # 4
-	)
-
-	assert _texts(Transcript.replay(log)) == ["A", "X"]
-
-
-def test_compaction_boundary_is_by_seq_not_list_position(tmp_path):
-	# parallel results arrive out of call order, so list position and seq disagree
-	# inside the replaced turn; only the seq filter drops all of it
+def test_compaction_folds_the_prefix_by_seq_into_a_summary(tmp_path):
 	log = make_log(
 		tmp_path,
 		AssistantMessage(
@@ -578,17 +287,43 @@ def test_compaction_boundary_is_by_seq_not_list_position(tmp_path):
 			],
 			stop_reason="tool_use",
 		),  # 1
+		# parallel results arrive out of call order, so list position and seq disagree
 		ToolResult(tool_call_id="c2", name="read", content="second"),  # 2, list index 2
 		ToolResult(tool_call_id="c1", name="read", content="first"),  # 3, list index 1
-		UserMessage(content="next"),  # 4
-		Compaction(reason="manual", summary="S", compact_up_to_seq=3),  # 5
+		UserMessage(content="B"),  # 4
 	)
+	live = Transcript.replay(log)
+	messages = live.messages  # a running loop reads this exact list
 
-	transcript = Transcript.replay(log)
+	for event in (
+		Compaction(reason="manual", summary="S1", compact_up_to_seq=3),  # 5, drops the whole turn
+		AssistantMessage(content="Y"),  # 6
+		Usage(input_tokens=900, output_tokens=40),  # 7
+		Compaction(reason="threshold", summary="S2", compact_up_to_seq=4),  # 8, supersedes S1
+		# the summarizer prompts with the transcript it is compacting; that is not the
+		# conversation's new size, which only the next real request reports
+		Usage(input_tokens=880, output_tokens=120, standalone=True),  # 9
+		UserMessage(content="C"),  # 10
+	):
+		log.append(event)
+		live.record(event)
 
-	assert [m.type for m in transcript.messages] == ["user_message", "user_message"]
-	assert transcript.messages[0].seq == 3  # the compacted boundary
-	assert transcript.messages[1].content == "next"
+	assert live.messages is messages
+	assert _texts(live) == [COMPACTION_SUMMARY_PREFIX + "S2", "Y", "C"]
+	assert live.messages[0].seq == 4  # retained messages stay newer than the compacted boundary
+	assert live.context_tokens is None
+	assert live.context_message_count == 0
+	assert live.leaf_seq == 10
+	assert live.missing_results() == ()
+	assert [m.model_dump() for m in Transcript.replay(log).messages] == [m.model_dump() for m in messages]
+	assert _texts(Transcript.replay(log, leaf_seq=5)) == [COMPACTION_SUMMARY_PREFIX + "S1", "B"]
+	# a leaf before the compaction restores the conversation
+	assert [m.type for m in Transcript.replay(log, leaf_seq=4).messages] == [
+		"assistant_message",
+		"tool_result",
+		"tool_result",
+		"user_message",
+	]
 
 
 def test_a_subagents_rows_advance_the_leaf_but_stay_out_of_the_conversation(tmp_path):

@@ -23,18 +23,15 @@ class TestModelConfig(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_the_config_carries_the_models_credentials(self):
+	def test_the_config_carries_the_models_settings_unless_it_is_disabled(self):
 		self.assertEqual(
 			model_config(self.model.name),
 			{"model": "openai/gpt-4o-mini", "api_key": "sk-model", "api_base": "http://gateway.local"},
 		)
 
-	def test_the_config_carries_the_models_extra_params(self):
 		self.model.db_set("extra_params", '{"provider": {"zdr": true}}')
 		self.assertEqual(model_config(self.model.name)["model_params"], {"provider": {"zdr": True}})
 
-	def test_a_disabled_model_is_refused(self):
 		self.model.db_set("enabled", 0)
-
 		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
 			model_config(self.model.name)

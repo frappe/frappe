@@ -42,41 +42,31 @@ class FakeController:
 		pass
 
 
-async def test_up_browses_history_and_down_restores_draft():
+async def test_up_browses_history_and_submitted_prompts_join_it():
 	fake = FakeController(["older session", "first current", "latest current"])
 	async with FlowApp(fake).run_test() as pilot:
 		await pilot.pause()
+		composer = pilot.app.query_one(Composer)
 		await pilot.press(*"draft")
 		await pilot.press("up")
-		assert pilot.app.query_one(Composer).text == "latest current"
+		assert composer.text == "latest current"
 		await pilot.press("up", "up")
-		assert pilot.app.query_one(Composer).text == "older session"
+		assert composer.text == "older session"
 		await pilot.press("up")
-		assert pilot.app.query_one(Composer).text == "older session"
+		assert composer.text == "older session"
 		await pilot.press("down", "down", "down")
-		assert pilot.app.query_one(Composer).text == "draft"
+		assert composer.text == "draft"
 
-
-async def test_submitted_prompt_is_available_immediately():
-	fake = FakeController([])
-	async with FlowApp(fake).run_test() as pilot:
-		await pilot.press(*"new prompt", "enter")
-		await pilot.pause()
-		assert fake.submitted == ["new prompt"]
-		await pilot.press("up")
-		assert pilot.app.query_one(Composer).text == "new prompt"
-
-
-async def test_submitted_skill_prompt_is_available_immediately():
-	fake = FakeController([])
-	async with FlowApp(fake).run_test() as pilot:
-		composer = pilot.app.query_one(Composer)
+		# submitted prompts, skill directives included, are available immediately
+		await pilot.press("enter")
 		composer.load_text("/skill:review check auth")
 		await pilot.press("enter")
 		await pilot.pause()
-		assert fake.submitted == ["/skill:review check auth"]
+		assert fake.submitted == ["draft", "/skill:review check auth"]
 		await pilot.press("up")
 		assert composer.text == "/skill:review check auth"
+		await pilot.press("up")
+		assert composer.text == "draft"
 
 
 class HistoryClient:

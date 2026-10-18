@@ -34,75 +34,12 @@ async def test_nothing_configured_discovers_nothing(tmp_path, bare_env):
 	assert catalog == type(catalog)(models=[], errors=[])
 
 
-async def test_opencode_go_models_come_from_the_gateway(tmp_path, bare_env, monkeypatch):
-	monkeypatch.setenv("OPENCODE_API_KEY", "sk-go")
-	seen = {}
-
-	def handler(request):
-		seen["url"] = str(request.url)
-		seen["auth"] = request.headers.get("Authorization")
-		return httpx.Response(200, json={"data": [{"id": "kimi-k3"}, {"id": "grok-4.5"}]})
-
-	catalog = await available_models(_store(tmp_path), client=_client(handler))
-	assert seen["url"] == "https://opencode.ai/zen/go/v1/models"
-	assert seen["auth"] == "Bearer sk-go"
-	assert catalog.models == [
-		ModelInfo(name="opencode-go/grok-4.5", provider="opencode-go", supports_images=True),
-		ModelInfo(name="opencode-go/kimi-k3", provider="opencode-go", supports_images=True),
-	]
-	assert catalog.errors == []
-
-
-async def test_provider_specific_headers_and_id_cleaning(tmp_path, bare_env):
-	store = _store(tmp_path)
-	store.set_api_key("anthropic", "sk-ant")
-	store.set_api_key("gemini", "sk-gem")
-
-	def handler(request):
-		if "anthropic" in request.url.host:
-			assert request.headers["x-api-key"] == "sk-ant"
-			return httpx.Response(200, json={"data": [{"id": "claude-sonnet-4"}]})
-		assert request.headers["x-goog-api-key"] == "sk-gem"
-		return httpx.Response(200, json={"models": [{"name": "models/gemini-2.0-flash"}]})
-
-	catalog = await available_models(store, client=_client(handler))
-	assert catalog.models == [
-		ModelInfo(name="anthropic/claude-sonnet-4", provider="anthropic"),
-		ModelInfo(name="gemini/gemini-2.0-flash", provider="gemini"),
-	]
-
-
-async def test_codex_queries_with_client_version_and_filters_unlisted(tmp_path, bare_env, monkeypatch):
-	monkeypatch.setenv("FLOW_CODEX_CLIENT_VERSION", "9.9.9")
-	store = _store(tmp_path)
-	store.set_oauth(
-		"codex",
-		OAuthCredential(access="tok", refresh="r", expires=2**62, account_id="acc"),
-	)
-
-	def handler(request):
-		assert request.url.path.endswith("/codex/models")
-		assert request.url.params["client_version"] == "9.9.9"
-		assert request.headers["Authorization"] == "Bearer tok"
-		assert request.headers["chatgpt-account-id"] == "acc"
-		return httpx.Response(
-			200,
-			json={
-				"models": [
-					{"slug": "gpt-5-codex"},
-					{"slug": "gpt-5-internal", "visibility": "hidden"},
-					{"slug": "gpt-5-web", "supported_in_api": False},
-				]
-			},
-		)
-
-	catalog = await available_models(store, client=_client(handler))
-	assert catalog.models == [ModelInfo(name="codex/gpt-5-codex", provider="codex", supports_images=True)]
-
-
-async def test_failed_provider_falls_back_to_static_catalog(tmp_path, bare_env, monkeypatch):
+async def test_each_provider_is_queried_its_own_way(tmp_path, bare_env, monkeypatch):
+	"""Each provider's endpoint, auth headers and id cleanup; a provider whose query fails
+	falls back to its static catalog entries and reports the failure."""
 	monkeypatch.setenv("OPENCODE_API_KEY", "sk-go")
 	monkeypatch.setenv("OPENAI_API_KEY", "sk-oai")
+	monkeypatch.setenv("FLOW_CODEX_CLIENT_VERSION", "9.9.9")
 	monkeypatch.setattr(
 		litellm,
 		"model_cost",
@@ -115,15 +52,50 @@ async def test_failed_provider_falls_back_to_static_catalog(tmp_path, bare_env, 
 			}
 		},
 	)
+	store = _store(tmp_path)
+	store.set_api_key("anthropic", "sk-ant")
+	store.set_api_key("gemini", "sk-gem")
+	store.set_oauth(
+		"codex",
+		OAuthCredential(access="tok", refresh="r", expires=2**62, account_id="acc"),
+	)
 
 	def handler(request):
-		if request.url.host == "api.openai.com":
+		url, headers = request.url, request.headers
+		if url.host == "api.openai.com":
 			return httpx.Response(500, text="boom")
-		return httpx.Response(200, json={"data": [{"id": "kimi-k3"}]})
+		if "anthropic" in url.host:
+			assert headers["x-api-key"] == "sk-ant"
+			return httpx.Response(200, json={"data": [{"id": "claude-sonnet-4"}]})
+		if "googleapis" in url.host:
+			assert headers["x-goog-api-key"] == "sk-gem"
+			return httpx.Response(200, json={"models": [{"name": "models/gemini-2.0-flash"}]})
+		if url.path.endswith("/codex/models"):
+			assert url.params["client_version"] == "9.9.9"
+			assert headers["Authorization"] == "Bearer tok"
+			assert headers["chatgpt-account-id"] == "acc"
+			return httpx.Response(
+				200,
+				json={
+					"models": [
+						{"slug": "gpt-5-codex"},
+						{"slug": "gpt-5-internal", "visibility": "hidden"},
+						{"slug": "gpt-5-web", "supported_in_api": False},
+					]
+				},
+			)
+		assert str(url) == "https://opencode.ai/zen/go/v1/models"
+		assert headers["Authorization"] == "Bearer sk-go"
+		return httpx.Response(200, json={"data": [{"id": "kimi-k3"}, {"id": "grok-4.5"}]})
 
-	catalog = await available_models(_store(tmp_path), client=_client(handler))
+	catalog = await available_models(store, client=_client(handler))
+
 	assert catalog.models == [
+		ModelInfo(name="anthropic/claude-sonnet-4", provider="anthropic"),
+		ModelInfo(name="codex/gpt-5-codex", provider="codex", supports_images=True),
+		ModelInfo(name="gemini/gemini-2.0-flash", provider="gemini"),
 		ModelInfo(name="openai/gpt-4o", provider="openai", supports_images=True),
+		ModelInfo(name="opencode-go/grok-4.5", provider="opencode-go", supports_images=True),
 		ModelInfo(name="opencode-go/kimi-k3", provider="opencode-go", supports_images=True),
 	]
 	assert len(catalog.errors) == 1 and catalog.errors[0].startswith("openai:")

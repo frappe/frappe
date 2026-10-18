@@ -30,49 +30,39 @@ class TestFlowProviderValidation(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_inserts_with_known_provider(self):
-		doc = frappe.get_doc(_provider()).insert()
-		self.assertEqual(doc.name, "openrouter")
-
-	def test_provider_name_normalized_lowercase(self):
-		doc = frappe.get_doc(_provider(provider="OpenRouter")).insert()
-		self.assertEqual(doc.provider, "openrouter")
-
-	def test_unknown_provider_rejected(self):
-		doc = frappe.get_doc(_provider(provider="not-a-real-provider"))
-		with self.assertRaisesRegex(frappe.ValidationError, "Unknown provider"):
-			doc.insert()
-
-	def test_invalid_base_url_rejected(self):
-		doc = frappe.get_doc(_provider(base_url="not-a-url"))
-		with self.assertRaisesRegex(frappe.ValidationError, "Base URL"):
-			doc.insert()
+	def test_a_provider_is_a_known_litellm_name_with_an_http_base_url(self):
+		for overrides, error in (
+			({"provider": "not-a-real-provider"}, "Unknown provider"),
+			({"base_url": "not-a-url"}, "Base URL"),
+		):
+			with self.subTest(**overrides), self.assertRaisesRegex(frappe.ValidationError, error):
+				frappe.get_doc(_provider(**overrides)).insert()
+		with self.subTest("named by its lowercase name"):
+			doc = frappe.get_doc(_provider(provider="OpenRouter")).insert()
+			self.assertEqual((doc.name, doc.provider), ("openrouter", "openrouter"))
 
 
 class TestProviderCredentialResolution(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_model_resolves_key_from_provider(self):
-		frappe.get_doc(_provider(api_key="sk-from-provider")).insert()
-		m = frappe.get_doc(_model()).insert()
-		self.assertEqual(model_config(m.name)["api_key"], "sk-from-provider")
-
-	def test_model_own_key_overrides_provider(self):
-		frappe.get_doc(_provider(api_key="sk-from-provider")).insert()
-		m = frappe.get_doc(_model(api_key="sk-on-model")).insert()
-		self.assertEqual(model_config(m.name)["api_key"], "sk-on-model")
-
-	def test_disabled_provider_not_used(self):
-		frappe.get_doc(_provider(api_key="sk-from-provider", enabled=0)).insert()
-		m = frappe.get_doc(_model()).insert()
-		self.assertIsNone(model_config(m.name)["api_key"])
-
-	def test_no_provider_row_leaves_key_empty(self):
-		m = frappe.get_doc(_model()).insert()
-		self.assertIsNone(model_config(m.name)["api_key"])
-
-	def test_provider_base_url_used_when_model_has_none(self):
-		frappe.get_doc(_provider(base_url="http://gateway.local")).insert()
-		m = frappe.get_doc(_model()).insert()
-		self.assertEqual(model_config(m.name)["api_base"], "http://gateway.local")
+	def test_a_model_takes_what_it_lacks_from_its_enabled_provider(self):
+		for label, provider, model, key, expected in (
+			("the provider's key", {}, {}, "api_key", "sk-from-provider"),
+			("the model's own key first", {}, {"api_key": "sk-on-model"}, "api_key", "sk-on-model"),
+			("no key from a disabled provider", {"enabled": 0}, {}, "api_key", None),
+			("no key without a provider row", None, {}, "api_key", None),
+			(
+				"the provider's base URL",
+				{"base_url": "http://gateway.local"},
+				{},
+				"api_base",
+				"http://gateway.local",
+			),
+		):
+			with self.subTest(label):
+				if provider is not None:
+					frappe.get_doc(_provider(api_key="sk-from-provider", **provider)).insert()
+				doc = frappe.get_doc(_model(**model)).insert()
+				self.assertEqual(model_config(doc.name)[key], expected)
+			frappe.db.rollback()

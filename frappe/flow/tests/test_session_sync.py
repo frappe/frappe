@@ -72,8 +72,8 @@ class TestSync(IntegrationTestCase):
 		session.reload()
 		return daemon
 
-	def messages(self):
-		return [(m.role, m.content, m.run) for m in self.session.messages]
+	def messages(self, session=None):
+		return [(m.role, m.content, m.run) for m in (session or self.session).messages]
 
 	def test_a_finished_turn_lands_on_the_placeholder(self):
 		run = self.placeholder()
@@ -135,7 +135,7 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual((run.input, run.output), (code, code))
 		self.assertEqual([m.content for m in self.session.messages], [code, code])
 
-	def test_a_sync_reads_only_what_is_new(self):
+	def test_each_sync_reads_only_what_is_new_and_a_rewind_drops_what_followed_its_target(self):
 		self.placeholder()
 		daemon = self.sync(FakeDaemon(turn(1, "r1")))
 		self.sync(daemon)
@@ -152,12 +152,7 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(daemon.calls[-1], ("entries", self.session.name, 8, "all"))
 		self.assertEqual(self.session.last_synced_seq, 16)
 
-	def test_a_rewind_drops_the_messages_after_its_target_and_the_next_turn_follows_on(self):
-		self.placeholder()
-		daemon = self.sync(FakeDaemon(turn(1, "r1")))
-		second = self.placeholder(message="again")
-		daemon.rows += turn(9, "r2", message="again")
-		self.sync(daemon)
+		# back to before the second message, and the next turn follows on from there
 		third = self.placeholder(message="instead")
 		daemon.rows += [row(17, "rewind", target_seq=8), *turn(18, "r3", message="instead")]
 		self.sync(daemon)
@@ -195,6 +190,14 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 1)
 		self.assertEqual([m[0] for m in self.messages()], ["user", "assistant", "tool", "assistant"])
 
+		# read in one sync, a pause and its resume stay one run too
+		session = self.new_session()
+		run = self.placeholder(session, message="delete it")
+		self.sync(FakeDaemon(pause(1, "r1") + resumed(6, "r2")), session)
+		run.reload()
+		self.assertEqual((run.status, run.daemon_run_id), ("Completed", "r2"))
+		self.assertEqual(frappe.db.count("Flow Run", {"session": session.name}), 1)
+
 	def test_a_sub_agents_rows_stay_out_of_the_run_and_only_its_usage_counts(self):
 		run = self.placeholder(message="look it up")
 		child = {"subagent_id": "c1"}
@@ -229,13 +232,6 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(json.loads(run.usage)["input_tokens"], 33)
 		self.assertEqual(self.session.last_synced_seq, 18)
 
-	def test_a_pause_and_its_resume_in_one_sync_stay_one_run(self):
-		run = self.placeholder(message="delete it")
-		self.sync(FakeDaemon(pause(1, "r1") + resumed(6, "r2")))
-		run.reload()
-		self.assertEqual((run.status, run.daemon_run_id), ("Completed", "r2"))
-		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 1)
-
 	def test_how_a_run_ends_decides_its_status(self):
 		cases = [
 			("done", None, "Completed", None),
@@ -258,42 +254,44 @@ class TestSync(IntegrationTestCase):
 				run.reload()
 				self.assertEqual((run.status, run.error), (status, error))
 
-	def test_a_run_the_server_dropped_is_failed(self):
-		run = self.placeholder()
-		self.sync(FakeDaemon(turn(1, "r1")[:2], running=False))
-		run.reload()
-		self.assertEqual((run.status, run.error), ("Failed", sessions.ABANDONED))
-		self.assertEqual(self.messages(), [("user", "hi", run.name)])
-
-	def test_a_run_still_going_is_left_alone(self):
-		run = self.placeholder()
-		self.sync(FakeDaemon(turn(1, "r1")[:2], running=True))
-		run.reload()
-		self.assertEqual((run.status, run.daemon_run_id), ("Running", "r1"))
-
-	def test_a_message_steered_into_a_run_stays_inside_it(self):
-		run = self.placeholder()
-		rows = [*turn(1, "r1")[:2], row(3, "user_message", content="and this"), *turn(1, "r1")[2:]]
-		for seq, entry in enumerate(rows, start=1):
-			entry["seq"] = seq
-		self.sync(FakeDaemon(rows))
-		run.reload()
-		self.assertEqual((run.status, run.input), ("Completed", "hi"))
-		self.assertEqual(self.messages()[:2], [("user", "hi", run.name), ("user", "and this", run.name)])
-		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 1)
-
-	def test_a_session_the_server_lost_fails_its_running_run(self):
-		run = self.placeholder()
-		self.sync(FakeDaemon(missing=True))
-		run.reload()
-		self.assertEqual((run.status, run.error), ("Failed", sessions.GONE))
-		self.assertIsNone(self.session.title)
-
-	def test_a_server_error_surfaces(self):
+	def test_a_run_that_has_not_ended_follows_the_servers_state(self):
+		# still going, dropped by the server, or the session lost along with it
+		for state, status, error, run_id, title in (
+			({"running": True}, "Running", None, "r1", TITLE),
+			({"running": False}, "Failed", sessions.ABANDONED, "r1", TITLE),
+			({"missing": True}, "Failed", sessions.GONE, None, None),
+		):
+			with self.subTest(**state):
+				session = self.new_session()
+				run = self.placeholder(session)
+				self.sync(FakeDaemon(turn(1, "r1")[:2], **state), session)
+				run.reload()
+				self.assertEqual((run.status, run.error, run.daemon_run_id), (status, error, run_id))
+				self.assertEqual(session.title, title)
+				self.assertEqual(self.messages(session), [("user", "hi", run.name)] if run_id else [])
 		with self.assertRaisesRegex(frappe.ValidationError, "500"):
 			self.sync(FakeDaemon(broken=self.session.name))
 
-	def test_a_sync_that_loses_to_a_concurrent_one_runs_again_in_a_new_transaction(self):
+	def test_rows_go_to_the_oldest_open_run_and_a_steered_message_stays_in_its_run(self):
+		first = self.placeholder(message="one")
+		second = self.placeholder(message="two")
+		rows = [
+			*turn(1, "r1", "one")[:2],
+			row(3, "user_message", content="and this"),
+			*turn(1, "r1", "one")[2:],
+			*turn(1, "r2", "two"),
+		]
+		for seq, entry in enumerate(rows, start=1):
+			entry["seq"] = seq
+		self.sync(FakeDaemon(rows))
+		first.reload()
+		second.reload()
+		self.assertEqual((first.daemon_run_id, first.status, first.input), ("r1", "Completed", "one"))
+		self.assertEqual((second.daemon_run_id, second.status), ("r2", "Completed"))
+		self.assertEqual(self.messages()[:2], [("user", "one", first.name), ("user", "and this", first.name)])
+		self.assertEqual(frappe.db.count("Flow Run", {"session": self.session.name}), 2)
+
+	def test_a_sync_that_loses_to_a_concurrent_one_runs_again_once_in_a_new_transaction(self):
 		for error in (frappe.TimestampMismatchError, frappe.QueryDeadlockError):
 			session = Mock(**{"sync.side_effect": [error, None]})
 			with self.subTest(error=error.__name__), patch.object(frappe.db, "rollback") as rollback:
@@ -301,70 +299,49 @@ class TestSync(IntegrationTestCase):
 				rollback.assert_called_once_with()
 				# no reload: sync must take the lock before anything is read
 				self.assertEqual(session.method_calls, [call.sync(), call.sync()])
-
-	def test_a_sync_is_retried_only_once(self):
 		session = Mock(**{"sync.side_effect": frappe.TimestampMismatchError})
 		with patch.object(frappe.db, "rollback"), self.assertRaises(frappe.TimestampMismatchError):
 			sessions.sync_with_retry(session)
 		self.assertEqual(session.sync.call_count, 2)
 
-	def test_sync_recovers_a_run_whose_placeholder_was_rolled_back(self):
+	def test_a_run_whose_placeholder_was_rolled_back_is_recovered(self):
 		session = self.new_session(source="Trigger")
-		self.sync(FakeDaemon(turn(1, "r1", message="from trigger")), session)
-		run = frappe.get_doc("Flow Run", {"session": session.name})
-		self.assertEqual(
-			(run.daemon_run_id, run.input, run.source, run.status, run.output),
-			("r1", "from trigger", "Trigger", "Completed", "done"),
-		)
-
-	def test_chat_recovers_a_missing_placeholder_before_starting_the_next_run(self):
 		daemon = FakeDaemon(turn(1, "r1", message="first"))
 		daemon.turns = 1
+		# the next chat records it before starting its own run
 		with patch.object(DaemonClient, "for_site", return_value=daemon):
-			second = self.session.chat("second")
-			self.session.sync()
+			second = session.chat("second")
+			session.sync()
+		first = frappe.get_doc("Flow Run", {"session": session.name, "daemon_run_id": "r1"})
+		self.assertEqual(
+			(first.input, first.source, first.status, first.output), ("first", "Trigger", "Completed", "done")
+		)
 		second.reload()
-		first = frappe.get_doc("Flow Run", {"session": self.session.name, "daemon_run_id": "r1"})
-		self.assertEqual((first.input, first.status), ("first", "Completed"))
 		self.assertEqual((second.input, second.daemon_run_id, second.status), ("second", "r2", "Completed"))
 
-	def test_rows_after_a_pause_stay_with_the_paused_run(self):
-		run = self.placeholder(message="delete it")
+	def test_a_pause_stays_open_until_the_server_is_idle(self):
+		old = self.placeholder(message="delete it")
 		daemon = self.sync(FakeDaemon(pause(1, "r1")))
+		# rows logged after the pause, such as a cancelled call, stay with the paused run
 		cancelled = '{"status": "cancelled"}'
 		daemon.rows.append(
 			row(6, "tool_result", tool_call_id="c9", name="delete", content=cancelled, is_error=True)
 		)
 		self.sync(daemon)
-		run.reload()
-		self.assertEqual(run.status, "Paused")
-		self.assertEqual(self.messages()[-1], ("tool", cancelled, run.name))
-
-	def test_an_idle_server_closes_a_stale_pause_before_the_next_run(self):
-		old = self.placeholder(message="delete it")
-		daemon = self.sync(FakeDaemon(pause(1, "r1")))
 		old.reload()
 		self.assertEqual(old.status, "Paused")
+		self.assertEqual(self.messages()[-1], ("tool", cancelled, old.name))
 
+		# an idle server closes the stale pause before the next run
 		daemon.paused = False
 		daemon.turns = 1
 		with patch.object(DaemonClient, "for_site", return_value=daemon):
 			new = self.session.chat("next")
 			self.session.sync()
-
 		old.reload()
 		new.reload()
 		self.assertEqual((old.status, old.error), ("Failed", sessions.STOPPED))
 		self.assertEqual((new.daemon_run_id, new.status, new.input), ("r2", "Completed", "next"))
-
-	def test_two_placeholders_are_matched_oldest_first(self):
-		first = self.placeholder(message="one")
-		second = self.placeholder(message="two")
-		self.sync(FakeDaemon(turn(1, "r1", "one") + turn(9, "r2", "two")))
-		first.reload()
-		second.reload()
-		self.assertEqual((first.daemon_run_id, second.daemon_run_id), ("r1", "r2"))
-		self.assertEqual((first.status, second.status), ("Completed", "Completed"))
 
 	def test_the_title_follows_the_server(self):
 		self.session.db_set("title", "Renamed")
@@ -376,15 +353,15 @@ class TestSync(IntegrationTestCase):
 		self.assertEqual(self.session.title, "Generated")
 
 	def test_on_complete_is_called_once_the_run_ends_and_only_once(self):
-		run = self.placeholder()
-		run.db_set("on_complete", ON_COMPLETE)
-		daemon = FakeDaemon(turn(1, "r1")[:2], running=True)
-		with patch(ON_COMPLETE) as on_complete:
-			self.sync(daemon)
+		daemon = FakeDaemon(answer=lambda seq, run_id, message: turn(seq, run_id, message)[:2])
+		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_COMPLETE) as on_complete:
+			run = self.session.chat("hi", on_complete=ON_COMPLETE)
+			daemon.running = True
+			self.session.sync()
 			sessions.call_on_complete(self.session)
 			on_complete.assert_not_called()
 			daemon.rows, daemon.running = turn(1, "r1"), False
-			self.sync(daemon)
+			self.session.sync()
 			sessions.call_on_complete(self.session)
 			sessions.call_on_complete(self.session)
 		on_complete.assert_called_once()
@@ -394,15 +371,21 @@ class TestSync(IntegrationTestCase):
 		)
 		self.assertIsNone(frappe.db.get_value("Flow Run", run.name, "on_complete"))
 
-	def test_opening_a_session_records_the_end_but_never_calls_on_complete(self):
+	def test_recording_a_runs_end_never_calls_on_complete(self):
 		run = self.placeholder()
 		run.db_set("on_complete", ON_COMPLETE)
 		daemon = FakeDaemon(turn(1, "r1"))
+		daemon.turns = 1
 		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_COMPLETE) as on_complete:
+			# a chat records the ended run before its own turn
+			self.session.chat("next")
+			run.reload()
+			self.assertEqual((run.status, run.on_complete), ("Completed", ON_COMPLETE))
+			# opening the session syncs too
 			api.session(self.session.name)
-		on_complete.assert_not_called()
-		run.reload()
-		self.assertEqual((run.status, run.on_complete), ("Completed", ON_COMPLETE))
+			on_complete.assert_not_called()
+			sessions.call_on_complete(self.session)
+		self.assertEqual(on_complete.call_args.args[0].name, run.name)
 
 	def test_a_failing_on_complete_is_logged_and_its_writes_undone(self):
 		run = self.placeholder()
@@ -412,53 +395,25 @@ class TestSync(IntegrationTestCase):
 			frappe.db.set_value("Flow Session", run.session, "title", "Changed")
 			raise RuntimeError("boom")
 
-		with patch(ON_COMPLETE, side_effect=fail):
+		with patch(ON_COMPLETE, side_effect=fail), patch("frappe.log_error") as log_error:
 			self.sync(FakeDaemon(turn(1, "r1"), title=None))
 			sessions.call_on_complete(self.session)
 		run.reload()
 		self.assertEqual((run.status, run.on_complete), ("Completed", None))
 		self.assertIsNone(frappe.db.get_value("Flow Session", self.session.name, "title"))
-		self.assertTrue(
-			frappe.get_all("Error Log", {"reference_doctype": "Flow Run", "reference_name": run.name})
-		)
+		self.assertEqual(log_error.call_args.kwargs["reference_name"], run.name)
 
-	def test_chat_gives_its_run_the_on_complete(self):
-		with (
-			patch.object(DaemonClient, "for_site", return_value=FakeDaemon()),
-			patch(ON_COMPLETE) as on_complete,
-		):
-			run = self.session.chat("hi", on_complete=ON_COMPLETE)
-			self.session.sync()
-			sessions.call_on_complete(self.session)
-		self.assertEqual(on_complete.call_args.args[0].name, run.name)
-
-	def test_chat_records_an_ended_run_but_leaves_its_on_complete_for_later(self):
-		run = self.placeholder()
-		run.db_set("on_complete", ON_COMPLETE)
-		daemon = FakeDaemon(turn(1, "r1"))
-		daemon.turns = 1
-		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_COMPLETE) as on_complete:
-			self.session.chat("next")
-			on_complete.assert_not_called()
-			sessions.call_on_complete(self.session)
-		self.assertEqual(on_complete.call_args.args[0].name, run.name)
-
-	def test_cancelling_a_paused_runs_approvals_calls_on_complete(self):
+	def test_a_paused_run_refuses_a_rewind_and_cancelling_it_calls_on_complete(self):
 		run = self.placeholder(message="delete it")
 		run.db_set("on_complete", ON_COMPLETE)
 		daemon = self.sync(FakeDaemon(pause(1, "r1")))
 		with patch.object(DaemonClient, "for_site", return_value=daemon), patch(ON_COMPLETE) as on_complete:
-			self.session.cancel_pending()
-		self.assertEqual(on_complete.call_args.args[0].status, "Failed")
-
-	def test_a_rewind_is_refused_while_a_run_waits_for_approval(self):
-		run = self.placeholder(message="delete it")
-		daemon = self.sync(FakeDaemon(pause(1, "r1")))
-		with patch.object(DaemonClient, "for_site", return_value=daemon):
 			with self.assertRaisesRegex(frappe.ValidationError, "paused for approval"):
 				self.session.rewind(0)
-		run.reload()
-		self.assertEqual(run.status, "Paused")
+			run.reload()
+			self.assertEqual(run.status, "Paused")
+			self.session.cancel_pending()
+		self.assertEqual(on_complete.call_args.args[0].status, "Failed")
 
 	def test_a_steered_message_gives_a_run_its_first_on_complete_only(self):
 		run = self.placeholder()

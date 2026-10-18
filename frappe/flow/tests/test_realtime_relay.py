@@ -67,10 +67,13 @@ class FakeSocket:
 
 
 class TestRealtimeRelay(UnitTestCase):
-	def test_relays_session_events_to_a_subscribed_socket(self):
+	def test_relays_session_events_only_to_a_socket_that_may_read_them(self):
 		async def run():
 			pubsub = FakePubSub()
 			relay = handlers.Relay()
+			self.assertFalse(await relay.subscribe(FakeSocket(allowed=False), "session-1"))
+			self.assertEqual(relay.subscriptions, {})
+
 			socket = FakeSocket(allowed=True)
 			with patch.object(handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
 				self.assertTrue(await relay.subscribe(socket, "session-1"))
@@ -83,42 +86,30 @@ class TestRealtimeRelay(UnitTestCase):
 
 		asyncio.run(run())
 
-	def test_a_retry_after_a_failed_subscribe_listens_for_access_changes(self):
-		async def run():
-			pubsub = FakePubSub()
-			pubsub.fail_next = True
-			relay = handlers.Relay()
-			with patch.object(handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
-				with self.assertRaises(ConnectionError):
-					await relay.subscribe(FakeSocket(allowed=True), "session-1")
-				self.assertTrue(await relay.subscribe(FakeSocket(allowed=True), "session-2"))
-			relay.listener.cancel()
-			self.assertIn("flow-access:s1", pubsub.channels)
-
-		asyncio.run(run())
-
-	def test_a_disconnect_during_a_failed_subscribe_leaves_no_channel_behind(self):
+	def test_a_failed_subscribe_forgets_its_channels_so_a_retry_listens_again(self):
 		async def run():
 			pubsub = FakePubSub()
 			relay = handlers.Relay()
 			socket = FakeSocket(allowed=True)
+			subscribe = pubsub.subscribe
 
 			async def disconnect_then_fail(*channels):
+				pubsub.subscribe = subscribe
 				await relay.release(socket, "session-1")
 				raise ConnectionError("redis is down")
 
-			pubsub.subscribe = disconnect_then_fail
 			with patch.object(handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
+				pubsub.fail_next = True
 				with self.assertRaises(ConnectionError):
 					await relay.subscribe(socket, "session-1")
-			self.assertEqual(relay.channel_ready, {})
+				# a disconnect while the retry is in flight leaves no channel behind either
+				pubsub.subscribe = disconnect_then_fail
+				with self.assertRaises(ConnectionError):
+					await relay.subscribe(socket, "session-1")
+				self.assertEqual(relay.channel_ready, {})
 
-		asyncio.run(run())
-
-	def test_a_socket_that_may_not_read_the_session_is_refused(self):
-		async def run():
-			relay = handlers.Relay()
-			self.assertFalse(await relay.subscribe(FakeSocket(allowed=False), "session-1"))
-			self.assertEqual(relay.subscriptions, {})
+				self.assertTrue(await relay.subscribe(FakeSocket(allowed=True), "session-2"))
+			relay.listener.cancel()
+			self.assertIn("flow-access:s1", pubsub.channels)
 
 		asyncio.run(run())

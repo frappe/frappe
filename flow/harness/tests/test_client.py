@@ -25,11 +25,6 @@ def _store(tmp_path) -> SessionStore:
 	)
 
 
-def _asgi_client(tmp_path, **app_kw) -> FlowClient:
-	transport = httpx.ASGITransport(app=create_app(_store(tmp_path), **app_kw))
-	return FlowClient("http://test", transport=transport)
-
-
 @asynccontextmanager
 async def _live_server(app):
 	sock = socket.socket()
@@ -75,15 +70,21 @@ class _BlockingModel(Model):
 # --- REST over ASGITransport ----------------------------------------------
 
 
-async def test_rest_roundtrip(tmp_path, monkeypatch):
+async def test_rest_roundtrip_auth_and_errors(tmp_path, monkeypatch):
 	from flow_harness.model.catalog import PROVIDERS
 
 	# no developer API key may leak in, or /models would query providers live
 	for provider in PROVIDERS:
 		for name in provider.api_key_envs:
 			monkeypatch.delenv(name, raising=False)
-	async with _asgi_client(tmp_path) as client:
+	transport = httpx.ASGITransport(app=create_app(_store(tmp_path), auth_token="secret"))
+	async with FlowClient("http://test", transport=transport) as anonymous:
+		with pytest.raises(FlowAPIError) as e:
+			await anonymous.list_sessions()
+		assert e.value.status_code == 401
+	async with FlowClient("http://test", token="secret", transport=transport) as client:
 		assert await client.healthz()
+		assert await client.list_sessions() == []
 
 		sid = await client.create_session(SessionConfig(model="mock", cwd=str(tmp_path)))
 		result = await client.run(sid, "hello", wait=True)
@@ -115,6 +116,15 @@ async def test_rest_roundtrip(tmp_path, monkeypatch):
 		assert (await client.rewind(sid, rows["entries"][0]["seq"]))["status"] == "rewound"
 		assert (await client.abort(sid))["status"] == "idle"
 		assert (await client.cancel_pending(sid))["status"] == "idle"
+
+		# errors carry the status and the server's detail
+		with pytest.raises(FlowAPIError) as e:
+			await client.get_session("nope")
+		assert e.value.status_code == 404
+		with pytest.raises(FlowAPIError) as e:
+			await client.resume(sid, approval_seq=1, answers={})
+		assert e.value.status_code == 409
+		assert "approval" in str(e.value.detail)
 
 
 async def test_entries_restore_an_active_preview(tmp_path, monkeypatch):
@@ -162,33 +172,10 @@ async def test_entries_restore_an_active_preview(tmp_path, monkeypatch):
 		assert all("revision" not in event for event in finished["entries"])
 
 
-async def test_rest_errors_carry_status_and_detail(tmp_path):
-	async with _asgi_client(tmp_path) as client:
-		with pytest.raises(FlowAPIError) as e:
-			await client.get_session("nope")
-		assert e.value.status_code == 404
-
-		sid = await client.create_session(SessionConfig(model="mock", cwd=str(tmp_path)))
-		with pytest.raises(FlowAPIError) as e:
-			await client.resume(sid, approval_seq=1, answers={})
-		assert e.value.status_code == 409
-		assert "approval" in str(e.value.detail)
-
-
-async def test_bearer_token_is_sent(tmp_path):
-	transport = httpx.ASGITransport(app=create_app(_store(tmp_path), auth_token="secret"))
-	async with FlowClient("http://test", transport=transport) as anonymous:
-		with pytest.raises(FlowAPIError) as e:
-			await anonymous.list_sessions()
-		assert e.value.status_code == 401
-	async with FlowClient("http://test", token="secret", transport=transport) as client:
-		assert await client.list_sessions() == []
-
-
 # --- live SSE over uvicorn -------------------------------------------------
 
 
-async def test_follow_stream_spans_runs_and_ignores_keepalives(tmp_path, monkeypatch):
+async def test_follow_stream_spans_runs_and_raises_on_http_errors(tmp_path, monkeypatch):
 	# a fast cadence proves keepalives really flow between the runs below
 	monkeypatch.setattr("flow_harness.server.utils.sse.KEEPALIVE_SECONDS", 0.05)
 	app = create_app(_store(tmp_path))
@@ -210,6 +197,12 @@ async def test_follow_stream_spans_runs_and_ignores_keepalives(tmp_path, monkeyp
 
 		await stream.stop()
 		await asyncio.wait_for(collector, timeout=5)
+
+		# an HTTP error status raises instead of retrying
+		with pytest.raises(FlowAPIError) as e:
+			async for _ in EventStream(client, "nope"):
+				pass
+		assert e.value.status_code == 404
 
 
 async def test_reconnect_mid_run_resumes_from_cursor_without_duplicates(tmp_path, monkeypatch):
@@ -254,16 +247,6 @@ async def test_reconnect_mid_run_resumes_from_cursor_without_duplicates(tmp_path
 
 		await stream.stop()
 		await asyncio.wait_for(collector, timeout=5)
-
-
-async def test_stream_raises_on_http_error_instead_of_retrying(tmp_path):
-	app = create_app(_store(tmp_path))
-	async with _live_server(app) as url, FlowClient(url) as client:
-		stream = EventStream(client, "nope")
-		with pytest.raises(FlowAPIError) as e:
-			async for _ in stream:
-				pass
-		assert e.value.status_code == 404
 
 
 async def _collect(stream: EventStream, into: list) -> None:

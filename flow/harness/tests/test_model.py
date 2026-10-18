@@ -25,8 +25,6 @@ from flow_harness.model.discovery import context_window_for
 from flow_harness.model.litellm import (
 	_build_tool_call,
 	_openai_messages,
-	_reasoning_blocks,
-	_reasoning_field,
 	_stop_reason,
 	_usage_event,
 )
@@ -35,6 +33,8 @@ from flow_harness.model.tool_display import (
 	extract_tool_call_display_metadata,
 	tool_call_display_ready_event,
 )
+
+_CACHE = {"type": "ephemeral"}
 
 
 def _chunk(delta: dict, finish_reason: str | None = None) -> dict:
@@ -56,14 +56,12 @@ async def _collect(gen):
 	return [ev async for ev in gen]
 
 
-def test_tool_call_display_metadata_is_early_and_bounded():
+def test_tool_call_display_is_early_bounded_and_complete():
 	partial = '{"path":"ui/App.vue","edits":[{"old":"' + ("x" * 10_000)
 
 	assert extract_tool_call_display_metadata(partial) == {"path": "ui/App.vue"}
 	assert extract_tool_call_display_metadata({"command": "x" * 1_000}) == {"command": "x" * 512}
 
-
-def test_tool_call_display_waits_for_every_referenced_argument():
 	template = "Searching {{ source }} for {{ query }}"
 
 	def ready(template, arguments, **kwargs):
@@ -79,21 +77,13 @@ def test_tool_call_display_waits_for_every_referenced_argument():
 	assert ready("Opening page {{ page }}", '{"page":1') is None
 	assert ready("Opening page {{ page }}", '{"page":10}', complete=True) == "Opening page 10"
 
-
-def test_static_tool_display_is_ready_before_arguments_arrive():
-	event = tool_call_display_ready_event(
-		"call-1",
-		"bash",
-		"",
-		display_template="Running command",
-	)
-
-	assert event is not None
-	assert event.arguments == {}
-	assert event.display == [DisplaySegment(text="Running command")]
+	# a static label is ready before any argument arrives
+	static = tool_call_display_ready_event("call-1", "bash", "", display_template="Running command")
+	assert static is not None
+	assert (static.arguments, static.display) == ({}, [DisplaySegment(text="Running command")])
 
 
-async def test_mock_streaming_sequence():
+async def test_mock_echoes_with_deltas_only_when_streaming():
 	events = await _collect(MockModel().run(ModelRequest(messages=[UserMessage(content="hi there")])))
 	types = [e.type for e in events]
 	assert types[-2:] == ["assistant_message", "usage"]
@@ -104,49 +94,37 @@ async def test_mock_streaming_sequence():
 	assert assistant.text == "Mock reply to: hi there"
 	assert "".join(e.text for e in events[:-2]) == assistant.text
 
-
-async def test_mock_non_streaming_has_no_deltas():
-	events = await _collect(MockModel().run(ModelRequest(messages=[UserMessage(content="hi")], stream=False)))
-	assert [e.type for e in events] == ["assistant_message", "usage"]
-
-
-async def test_mock_renders_custom_tool_display_in_live_and_durable_calls():
-	model = MockModel(
-		replies=[
-			AssistantMessage(content=[ToolCall(id="c1", name="web_search", arguments={"query": "Flow"})])
-		]
-	)
-	request = ModelRequest(
-		messages=[UserMessage(content="search")],
-		tool_display_templates={"web_search": "Searching the web for {{ query }}"},
-	)
-
-	events = await _collect(model.run(request))
-
-	display = [
-		DisplaySegment(text="Searching the web for "),
-		DisplaySegment(text="Flow", arg="query"),
-	]
-	assert events[1].display == display
-	assert events[2].tool_calls[0].display == display
+	quiet = await _collect(MockModel().run(ModelRequest(messages=[UserMessage(content="hi")], stream=False)))
+	assert [e.type for e in quiet] == ["assistant_message", "usage"]
 
 
 async def test_mock_scripted_replies_multi_turn():
-	call = ToolCall(id="c1", name="bash", arguments={"command": "ls"})
+	call = ToolCall(id="c1", name="web_search", arguments={"query": "Flow"})
 	model = MockModel(replies=[AssistantMessage(content=[call]), AssistantMessage(content="done")])
+	request = ModelRequest(
+		messages=[UserMessage(content="go")],
+		tool_display_templates={"web_search": "Searching the web for {{ query }}"},
+	)
 
-	first = await _collect(model.run(ModelRequest(messages=[UserMessage(content="go")])))
+	first = await _collect(model.run(request))
 	assert [e.type for e in first] == [
 		"tool_call_started",
 		"tool_call_display_ready",
 		"assistant_message",
 		"usage",
 	]
-	assert first[0].id == "c1" and first[0].name == "bash"
-	assert first[1].arguments == {"command": "ls"}
-	assert first[2].tool_calls[0].args == {"command": "ls"}
+	assert first[0].id == "c1" and first[0].name == "web_search"
+	assert first[1].arguments == {"query": "Flow"}
+	assert first[2].tool_calls[0].args == {"query": "Flow"}
+	# the display renders on the live event and the durable call alike
+	display = [
+		DisplaySegment(text="Searching the web for "),
+		DisplaySegment(text="Flow", arg="query"),
+	]
+	assert first[1].display == display
+	assert first[2].tool_calls[0].display == display
 
-	second = await _collect(model.run(ModelRequest(messages=[UserMessage(content="go")])))
+	second = await _collect(model.run(request))
 	assert second[-2].text == "done"
 
 
@@ -228,16 +206,31 @@ async def test_litellm_disables_sdk_retries_and_owns_the_attempts(monkeypatch):
 	assert raised.value.retry_after_seconds == 3
 
 
-def test_get_model_mock():
+def test_get_model_dispatches_on_the_name_prefix():
 	assert isinstance(get_model("mock"), MockModel)
 
+	async def refresh_auth(rejected_token):
+		raise AssertionError("never called here")
 
-def test_get_model_falls_through_to_litellm():
+	codex = get_model("codex/gpt-test", api_key="token", refresh_auth=refresh_auth)
+	assert isinstance(codex, CodexModel)
+	assert codex._refresh_auth is refresh_auth
+
+	sentinel = MockModel()
+	register_provider("dummy", lambda name, **kwargs: sentinel)
+	try:
+		assert get_model("dummy/whatever") is sentinel
+	finally:
+		_NATIVE_PROVIDERS.pop("dummy", None)
+
+	# any other prefix falls through to litellm
 	model = get_model("anthropic/claude-3-5-sonnet", api_key="sk-test", api_base="https://x")
 	assert isinstance(model, LiteLLMModel)
-	assert model.name == "anthropic/claude-3-5-sonnet"
-	assert model._api_key == "sk-test"
-	assert model._api_base == "https://x"
+	assert (model.name, model._api_key, model._api_base) == (
+		"anthropic/claude-3-5-sonnet",
+		"sk-test",
+		"https://x",
+	)
 
 
 def test_gateway_model_takes_limits_from_the_id_behind_its_prefix(monkeypatch):
@@ -259,62 +252,33 @@ def test_gateway_model_takes_limits_from_the_id_behind_its_prefix(monkeypatch):
 	assert LiteLLMModel("custom_openai/vendor/unmapped").context_window is None
 
 
-def test_register_provider_dispatch():
-	sentinel = MockModel()
-	register_provider("dummy", lambda name, **kwargs: sentinel)
-	try:
-		assert get_model("dummy/whatever") is sentinel
-	finally:
-		_NATIVE_PROVIDERS.pop("dummy", None)
+def test_opencode_go_routes_each_family_to_its_wire_protocol():
+	go = "https://opencode.ai/zen/go/v1"
+	cases = [
+		# (name, api_base override, litellm route, base sent)
+		("opencode-go/grok-4.5", None, "openai/grok-4.5", go),
+		("opencode-go/minimax-m3", None, "anthropic/minimax-m3", f"{go}/messages"),
+		("opencode-go/qwen3.7-max", None, "anthropic/qwen3.7-max", f"{go}/messages"),
+		("opencode-go/kimi-k3", "https://proxy.test/v1", "openai/kimi-k3", "https://proxy.test/v1"),
+		(
+			"opencode-go/minimax-m3",
+			"https://proxy.test/v1",
+			"anthropic/minimax-m3",
+			"https://proxy.test/v1/messages",
+		),
+		# litellm appends /v1/messages itself when the base is not a versioned root
+		("opencode-go/minimax-m3", "https://proxy.test", "anthropic/minimax-m3", "https://proxy.test"),
+	]
+	for name, api_base, route, base in cases:
+		model = get_model(name, api_key="sk-go", api_base=api_base)
+		assert isinstance(model, LiteLLMModel), name
+		assert (model.name, model._api_base, model.provider, model.model) == (
+			route,
+			base,
+			"opencode-go",
+			name,
+		), (name, api_base)
 
-
-def test_get_model_dispatches_codex():
-	model = get_model("codex/gpt-test", api_key="token")
-	assert isinstance(model, CodexModel)
-
-
-def test_get_model_forwards_the_refresh_hook():
-	async def refresh_auth(rejected_token):
-		raise AssertionError("never called here")
-
-	model = get_model("codex/gpt-test", api_key="token", refresh_auth=refresh_auth)
-	assert model._refresh_auth is refresh_auth
-
-
-def test_opencode_go_routes_openai_family_to_chat_completions():
-	model = get_model("opencode-go/grok-4.5", api_key="sk-go")
-	assert isinstance(model, LiteLLMModel)
-	assert model.name == "openai/grok-4.5"
-	assert model._api_base == "https://opencode.ai/zen/go/v1"
-	assert model.provider == "opencode-go"
-	assert model.model == "opencode-go/grok-4.5"
-
-
-def test_opencode_go_routes_anthropic_families_to_messages():
-	for name, route in (
-		("opencode-go/minimax-m3", "anthropic/minimax-m3"),
-		("opencode-go/qwen3.7-max", "anthropic/qwen3.7-max"),
-	):
-		model = get_model(name, api_key="sk-go")
-		assert isinstance(model, LiteLLMModel)
-		assert model.name == route
-		assert model._api_base == "https://opencode.ai/zen/go/v1/messages"
-		assert model.model == name
-
-
-def test_opencode_go_honours_api_base_override():
-	def api_base(name, base):
-		model = get_model(name, api_base=base)
-		assert isinstance(model, LiteLLMModel)
-		return model._api_base
-
-	assert api_base("opencode-go/kimi-k3", "https://proxy.test/v1") == "https://proxy.test/v1"
-	assert api_base("opencode-go/minimax-m3", "https://proxy.test/v1") == "https://proxy.test/v1/messages"
-	# litellm appends /v1/messages itself when the base is not a versioned root
-	assert api_base("opencode-go/minimax-m3", "https://proxy.test") == "https://proxy.test"
-
-
-def test_opencode_go_rejects_bare_prefix():
 	with pytest.raises(ValueError, match="opencode-go/<model-id>"):
 		get_model("opencode-go")
 
@@ -326,32 +290,6 @@ def test_stop_reason_prefers_the_provider_signal_over_tool_presence():
 	assert _stop_reason("stop", has_tools=True) == "tool_use"
 	assert _stop_reason(None, has_tools=True) == "tool_use"
 	assert _stop_reason("tool_calls", has_tools=False) == "tool_use"
-
-
-async def test_litellm_streaming_truncated_tool_call_reports_length(monkeypatch):
-	_stream(
-		monkeypatch,
-		[
-			_chunk(
-				{
-					"tool_calls": [
-						{
-							"index": 0,
-							"id": "c1",
-							"function": {"name": "bash", "arguments": '{"command":"ls"}'},
-						}
-					]
-				}
-			),
-			_chunk({}, "length"),
-		],
-	)
-
-	events = await _collect(LiteLLMModel("gpt-4").run(ModelRequest(messages=[UserMessage(content="hi")])))
-
-	assistant = next(e for e in events if isinstance(e, AssistantMessage))
-	assert assistant.tool_calls[0].id == "c1"
-	assert assistant.stop_reason == "length"
 
 
 async def test_litellm_emits_metadata_before_large_arguments_finish(monkeypatch):
@@ -411,324 +349,234 @@ async def test_litellm_emits_metadata_before_large_arguments_finish(monkeypatch)
 	assert events[2].tool_calls[0].display == display
 
 
-async def test_litellm_emits_ready_for_a_no_argument_tool_at_stream_end(monkeypatch):
-	_stream(
-		monkeypatch,
-		[
-			_chunk({"tool_calls": [{"index": 0, "id": "c1", "function": {"name": "refresh"}}]}),
-			_chunk({}, "tool_calls"),
-		],
-	)
-
-	events = await _collect(LiteLLMModel("gpt-4").run(ModelRequest(messages=[UserMessage(content="hi")])))
-
-	assert [event.type for event in events] == [
-		"tool_call_started",
-		"tool_call_display_ready",
-		"assistant_message",
-		"usage",
+async def test_litellm_settles_tool_calls_when_the_stream_ends(monkeypatch):
+	cases = [
+		# a no-argument tool is ready only once the stream ends
+		({"name": "refresh"}, "tool_calls", {}, "tool_use"),
+		# a truncated call is still reported, but stays "length" so it never runs
+		({"name": "bash", "arguments": '{"command":"ls"}'}, "length", {"command": "ls"}, "length"),
 	]
-	assert events[1].arguments == {}
+	for function, finish_reason, arguments, stop_reason in cases:
+		_stream(
+			monkeypatch,
+			[
+				_chunk({"tool_calls": [{"index": 0, "id": "c1", "function": function}]}),
+				_chunk({}, finish_reason),
+			],
+		)
+
+		events = await _collect(LiteLLMModel("gpt-4").run(ModelRequest(messages=[UserMessage(content="hi")])))
+
+		assert [event.type for event in events] == [
+			"tool_call_started",
+			"tool_call_display_ready",
+			"assistant_message",
+			"usage",
+		], finish_reason
+		assert events[1].arguments == arguments, finish_reason
+		assert (events[2].tool_calls[0].id, events[2].stop_reason) == ("c1", stop_reason), finish_reason
 
 
-def test_build_tool_call_valid():
-	tc = _build_tool_call("c1", "bash", '{"command": "ls"}')
-	assert tc.args == {"command": "ls"}
-	assert tc.error is None
-
-
-def test_build_tool_call_empty_args():
-	tc = _build_tool_call("c1", "read", "")
-	assert tc.args == {}
-	assert tc.error is None
-
-
-def test_build_tool_call_malformed_json():
-	tc = _build_tool_call("c1", "bash", '{"command": ')
-	assert tc.args == {}
-	assert tc.error is not None
-
-
-def test_build_tool_call_non_object():
-	tc = _build_tool_call("c1", "bash", "[1, 2, 3]")
-	assert tc.args == {}
-	assert tc.error is not None
+def test_build_tool_call_reports_bad_arguments_instead_of_raising():
+	cases = [
+		('{"command": "ls"}', {"command": "ls"}, False),
+		("", {}, False),
+		('{"command": ', {}, True),  # malformed JSON
+		("[1, 2, 3]", {}, True),  # not an object
+	]
+	for raw, args, failed in cases:
+		tc = _build_tool_call("c1", "bash", raw)
+		assert tc.args == args, raw
+		assert (tc.error is not None) is failed, raw
 
 
 def test_litellm_replays_reasoning_only_to_the_same_model():
-	source = AssistantMessage(
-		content=[
-			ThinkingContent(thinking="plan", thinking_signature="opaque"),
-			TextContent(text="answer"),
-		],
-		api="litellm",
-		provider="anthropic",
-		model="anthropic/claude",
-	)
-	same = LiteLLMModel("anthropic/claude")
-	different = LiteLLMModel("anthropic/claude-new")
+	def wire(content, model="anthropic/claude", target="anthropic/claude"):
+		source = AssistantMessage(
+			content=content, api="litellm", provider=model.split("/", 1)[0], model=model
+		)
+		return _openai_messages([source], LiteLLMModel(target), "system")[1]
 
-	same_wire = _openai_messages([source], same, "system")[1]
-	different_wire = _openai_messages([source], different, "system")[1]
+	signed = [ThinkingContent(thinking="plan", thinking_signature="opaque"), TextContent(text="answer")]
+	same = wire(signed)
+	assert same["reasoning_content"] == "plan"
+	assert same["thinking_blocks"] == [{"type": "thinking", "thinking": "plan", "signature": "opaque"}]
+	assert same["content"] == "answer"
 
-	assert same_wire["reasoning_content"] == "plan"
-	assert same_wire["thinking_blocks"] == [{"type": "thinking", "thinking": "plan", "signature": "opaque"}]
-	assert same_wire["content"] == "answer"
-	assert "reasoning_content" not in different_wire
-	assert "thinking_blocks" not in different_wire
-	assert different_wire["content"] == "plananswer"
+	# another model gets the thinking as plain text
+	different = wire(signed, target="anthropic/claude-new")
+	assert "reasoning_content" not in different
+	assert "thinking_blocks" not in different
+	assert different["content"] == "plananswer"
 
+	# redacted thinking replays as its opaque payload only
+	redacted = wire([ThinkingContent(thinking="", thinking_signature="enc", redacted=True)])
+	assert redacted["thinking_blocks"] == [{"type": "redacted_thinking", "data": "enc"}]
+	assert "reasoning_content" not in redacted
 
-def test_litellm_replays_redacted_thinking_as_its_opaque_payload():
-	source = AssistantMessage(
-		content=[ThinkingContent(thinking="", thinking_signature="enc", redacted=True)],
-		api="litellm",
-		provider="anthropic",
-		model="anthropic/claude",
-	)
-	wire = _openai_messages([source], LiteLLMModel("anthropic/claude"), "system")[1]
+	# unsigned thinking cannot be verified upstream, so it never goes out as a block
+	unsigned = wire([ThinkingContent(thinking="plan")])
+	assert "thinking_blocks" not in unsigned
+	assert unsigned["reasoning_content"] == "plan"
 
-	assert wire["thinking_blocks"] == [{"type": "redacted_thinking", "data": "enc"}]
-	assert "reasoning_content" not in wire
-
-
-def test_litellm_does_not_replay_unsigned_thinking_as_a_block():
-	source = AssistantMessage(
-		content=[ThinkingContent(thinking="plan")],
-		api="litellm",
-		provider="anthropic",
-		model="anthropic/claude",
-	)
-	wire = _openai_messages([source], LiteLLMModel("anthropic/claude"), "system")[1]
-
-	assert "thinking_blocks" not in wire
-	assert wire["reasoning_content"] == "plan"
+	# Groq rejects reasoning_content on its own turns
+	groq = "groq/openai/gpt-oss-120b"
+	groq_wire = wire([ThinkingContent(thinking="plan"), TextContent(text="answer")], groq, groq)
+	assert "reasoning_content" not in groq_wire
+	assert groq_wire["content"] == "answer"
 
 
-def test_litellm_omits_reasoning_content_for_groq():
-	source = AssistantMessage(
-		content=[ThinkingContent(thinking="plan"), TextContent(text="answer")],
-		api="litellm",
-		provider="groq",
-		model="groq/openai/gpt-oss-120b",
-	)
-	model = LiteLLMModel("groq/openai/gpt-oss-120b")
-	wire = _openai_messages([source], model, "system")[1]
-
-	assert "reasoning_content" not in wire
-	assert wire["content"] == "answer"
-
-
-def test_litellm_only_persists_actual_reasoning_signatures():
-	assert _reasoning_field({"reasoning_content": "plan"}) == ("plan", None)
-	assert _reasoning_field({"reasoning": {"content": "plan", "signature": "opaque"}}) == (
-		"plan",
-		"opaque",
-	)
-
-
-def test_litellm_reads_signatures_from_thinking_blocks():
-	blocks = _reasoning_blocks(
-		{
-			"reasoning_content": "plan",
-			"thinking_blocks": [{"type": "thinking", "thinking": "plan", "signature": "sig"}],
-		}
-	)
-	assert [(b.thinking, b.thinking_signature, b.redacted) for b in blocks] == [("plan", "sig", False)]
-
-	redacted = _reasoning_blocks({"thinking_blocks": [{"type": "redacted_thinking", "data": "enc"}]})
-	assert [(b.thinking, b.thinking_signature, b.redacted) for b in redacted] == [("", "enc", True)]
-
-
-async def test_litellm_streams_thinking_and_seals_the_signature(monkeypatch):
-	# litellm repeats the accumulated thinking on the signature chunk and blanks
-	# reasoning_content there (llms/anthropic/chat/handler.py).
-	_stream(
-		monkeypatch,
-		[
-			_chunk(
-				{"reasoning_content": "plan ", "thinking_blocks": [{"type": "thinking", "thinking": "plan "}]}
-			),
-			_chunk(
-				{"reasoning_content": "more", "thinking_blocks": [{"type": "thinking", "thinking": "more"}]}
-			),
-			_chunk(
+async def test_litellm_streams_thinking_and_seals_each_signature(monkeypatch):
+	cases = [
+		(
+			# litellm repeats the accumulated thinking on the signature chunk and blanks
+			# reasoning_content there (llms/anthropic/chat/handler.py)
+			"anthropic/claude",
+			[
+				{
+					"reasoning_content": "plan ",
+					"thinking_blocks": [{"type": "thinking", "thinking": "plan "}],
+				},
+				{"reasoning_content": "more", "thinking_blocks": [{"type": "thinking", "thinking": "more"}]},
 				{
 					"reasoning_content": "",
 					"thinking_blocks": [{"type": "thinking", "thinking": "plan more", "signature": "sig-1"}],
-				}
-			),
-			_chunk({"content": "answer"}, finish_reason="stop"),
-		],
-	)
-	events = await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[])))
-
-	assert [e.type for e in events] == [
-		"thinking_delta",
-		"thinking_delta",
-		"text_delta",
-		"assistant_message",
-		"usage",
-	]
-	assert [e.thinking for e in events[:2]] == ["plan ", "more"]
-	content = events[-2].content
-	assert [b.type for b in content] == ["thinking", "text"]
-	assert (content[0].thinking, content[0].thinking_signature) == ("plan more", "sig-1")
-	assert content[1].text == "answer"
-
-
-async def test_litellm_starts_a_new_thinking_block_after_each_signature(monkeypatch):
-	_stream(
-		monkeypatch,
-		[
-			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "first"}]}),
-			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "first", "signature": "sig-a"}]}),
-			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "second"}]}),
-			# litellm resets its per-block accumulator on content_block_start, so the
-			# second signature restates only the second block.
-			_chunk(
+				},
+			],
+			["plan ", "more"],
+			[("plan more", "sig-1", False)],
+		),
+		(
+			# a signature seals its block; litellm resets its per-block accumulator on
+			# content_block_start, so the second signature restates only the second block
+			"anthropic/claude",
+			[
+				{"thinking_blocks": [{"type": "thinking", "thinking": "first"}]},
+				{"thinking_blocks": [{"type": "thinking", "thinking": "first", "signature": "sig-a"}]},
+				{"thinking_blocks": [{"type": "thinking", "thinking": "second"}]},
 				{"thinking_blocks": [{"type": "thinking", "thinking": "second", "signature": "sig-b"}]},
-				finish_reason="stop",
-			),
-		],
-	)
-	content = (await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[]))))[-2].content
-
-	assert [(b.thinking, b.thinking_signature) for b in content] == [
-		("first", "sig-a"),
-		("second", "sig-b"),
+			],
+			["first", "second"],
+			[("first", "sig-a", False), ("second", "sig-b", False)],
+		),
+		(
+			# Gemini signs the thought part it streams, so the text is new, not a replay
+			"gemini/gemini-3-pro",
+			[
+				{"thinking_blocks": [{"type": "thinking", "thinking": "weigh "}]},
+				{"thinking_blocks": [{"type": "thinking", "thinking": "options", "signature": "sig-g"}]},
+			],
+			["weigh ", "options"],
+			[("weigh options", "sig-g", False)],
+		),
+		(
+			# redacted thinking streams no delta
+			"anthropic/claude",
+			[{"thinking_blocks": [{"type": "redacted_thinking", "data": "enc"}]}],
+			[],
+			[("", "enc", True)],
+		),
 	]
+	for model, deltas, streamed, blocks in cases:
+		_stream(monkeypatch, [*map(_chunk, deltas), _chunk({"content": "answer"}, finish_reason="stop")])
+		events = await _collect(LiteLLMModel(model).run(ModelRequest(messages=[])))
 
-
-async def test_litellm_keeps_new_text_that_arrives_with_its_signature(monkeypatch):
-	# Gemini signs the thought part it streams, so the text is new, not a replay.
-	_stream(
-		monkeypatch,
-		[
-			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "weigh "}]}),
-			_chunk({"thinking_blocks": [{"type": "thinking", "thinking": "options", "signature": "sig-g"}]}),
-			_chunk({"content": "answer"}, finish_reason="stop"),
-		],
-	)
-	events = await _collect(LiteLLMModel("gemini/gemini-3-pro").run(ModelRequest(messages=[])))
-
-	assert [e.thinking for e in events if e.type == "thinking_delta"] == ["weigh ", "options"]
-	content = events[-2].content
-	assert (content[0].thinking, content[0].thinking_signature) == ("weigh options", "sig-g")
-
-
-async def test_litellm_streams_redacted_thinking_without_a_delta(monkeypatch):
-	_stream(
-		monkeypatch,
-		[
-			_chunk({"thinking_blocks": [{"type": "redacted_thinking", "data": "enc"}]}),
-			_chunk({"content": "answer"}, finish_reason="stop"),
-		],
-	)
-	events = await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[])))
-
-	assert [e.type for e in events] == ["text_delta", "assistant_message", "usage"]
-	content = events[-2].content
-	assert [b.type for b in content] == ["thinking", "text"]
-	assert (content[0].thinking, content[0].thinking_signature, content[0].redacted) == ("", "enc", True)
+		assert [e.type for e in events] == ["thinking_delta"] * len(streamed) + [
+			"text_delta",
+			"assistant_message",
+			"usage",
+		], blocks
+		assert [e.thinking for e in events[: len(streamed)]] == streamed, blocks
+		content = events[-2].content
+		assert [(b.thinking, b.thinking_signature, b.redacted) for b in content[:-1]] == blocks
+		assert content[-1].text == "answer", blocks
 
 
 async def test_litellm_non_streaming_keeps_thinking_signatures(monkeypatch):
-	async def completion(**kwargs):
-		return {
-			"id": "resp_1",
-			"choices": [
-				{
-					"message": {
-						"content": "answer",
-						"reasoning_content": "plan",
-						"thinking_blocks": [{"type": "thinking", "thinking": "plan", "signature": "sig-1"}],
-					},
-					"finish_reason": "stop",
-				}
-			],
-			"usage": {"prompt_tokens": 3, "completion_tokens": 5},
-		}
-
-	monkeypatch.setattr("litellm.acompletion", completion)
-	events = await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[], stream=False)))
-
-	content = events[0].content
-	assert [b.type for b in content] == ["thinking", "text"]
-	assert (content[0].thinking, content[0].thinking_signature) == ("plan", "sig-1")
-
-
-def test_litellm_does_not_replay_failed_assistant_response():
-	failed = AssistantMessage(
-		content="partial",
-		api="litellm",
-		provider="openai",
-		model="openai/gpt",
-		stop_reason="error",
-		error_message="network failed",
-	)
-
-	assert _openai_messages([failed], LiteLLMModel("openai/gpt"), "system") == [
-		{"role": "system", "content": "system"}
+	cases = [
+		(
+			{
+				"reasoning_content": "plan",
+				"thinking_blocks": [{"type": "thinking", "thinking": "plan", "signature": "sig-1"}],
+			},
+			("plan", "sig-1", False),
+		),
+		({"thinking_blocks": [{"type": "redacted_thinking", "data": "enc"}]}, ("", "enc", True)),
+		# a plain reasoning field carries a signature only when it states one
+		({"reasoning_content": "plan"}, ("plan", None, False)),
+		({"reasoning": {"content": "plan", "signature": "opaque"}}, ("plan", "opaque", False)),
 	]
+	for reasoning, thinking in cases:
+
+		async def completion(**kwargs):
+			return {
+				"id": "resp_1",
+				"choices": [{"message": {"content": "answer", **reasoning}, "finish_reason": "stop"}],
+				"usage": {"prompt_tokens": 3, "completion_tokens": 5},
+			}
+
+		monkeypatch.setattr("litellm.acompletion", completion)
+		events = await _collect(LiteLLMModel("anthropic/claude").run(ModelRequest(messages=[], stream=False)))
+
+		content = events[0].content
+		assert [b.type for b in content] == ["thinking", "text"], reasoning
+		assert (content[0].thinking, content[0].thinking_signature, content[0].redacted) == thinking
 
 
-def test_litellm_drops_results_answering_a_dropped_assistant_turn():
-	aborted = AssistantMessage(
-		content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})],
-		api="litellm",
-		provider="openai",
-		model="openai/gpt",
-		stop_reason="aborted",
-	)
+def test_litellm_drops_failed_turns_and_the_results_answering_them():
+	def turn(content, stop_reason):
+		return AssistantMessage(
+			content=content,
+			api="litellm",
+			provider="openai",
+			model="openai/gpt",
+			stop_reason=stop_reason,
+		)
+
+	failed = turn("partial", "error")
+	aborted = turn([ToolCall(id="c1", name="read", arguments={"path": "a.txt"})], "aborted")
 	repair = ToolResult(tool_call_id="c1", name="read", content="interrupted", is_error=True)
 
-	# the call and its answer must both be dropped
-	assert _openai_messages([aborted, repair], LiteLLMModel("openai/gpt"), "system") == [
+	# a call and its answer must both be dropped
+	assert _openai_messages([failed, aborted, repair], LiteLLMModel("openai/gpt"), "system") == [
 		{"role": "system", "content": "system"}
 	]
 
 
-def test_litellm_marks_cache_breakpoints_for_anthropic():
+def test_litellm_marks_cache_breakpoints_from_the_wire_model():
 	tools = [
 		{"type": "function", "function": {"name": "read", "parameters": {}}},
 		{"type": "function", "function": {"name": "bash", "parameters": {}}},
 	]
 	request = ModelRequest(messages=[UserMessage(content="hi")], tools=tools, system_prompt="system")
+	cases = [
+		("anthropic/claude", "gateway", True),
+		("claude-sonnet-4-20250514", None, True),
+		("bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0", None, True),
+		("vertex_ai/claude-sonnet-4@20250514", None, True),
+		("openrouter/anthropic/claude-sonnet-4", None, True),
+		("openrouter/~anthropic/claude-sonnet-latest", None, True),
+		("openrouter/google/gemini-2.5-pro", None, True),
+		("openrouter/minimax/minimax-m2.5", None, True),
+		("azure_ai/claude-sonnet-4-5", None, True),
+		("databricks/databricks-claude-sonnet-4", None, True),
+		("openai/gpt", None, False),
+		("vertex_ai/gemini-2.5-pro", None, False),
+		("openrouter/openai/gpt-5", None, False),
+		("databricks/databricks-meta-llama-3-3-70b-instruct", None, False),
+	]
+	for name, provider, caches in cases:
+		kwargs = LiteLLMModel(name, provider=provider)._completion_kwargs(request)
 
-	kwargs = LiteLLMModel("anthropic/claude")._completion_kwargs(request)
+		mark = _CACHE if caches else None
+		# the system prompt, the last user turn and the last tool
+		assert [message.get("cache_control") for message in kwargs["messages"]] == [mark, mark], name
+		assert [tool.get("cache_control") for tool in kwargs["tools"]] == [None, mark], name
+		if not caches:
+			assert kwargs["tools"] is tools, name
+	assert all("cache_control" not in tool for tool in tools)
 
-	assert kwargs["messages"][0]["cache_control"] == {"type": "ephemeral"}
-	assert kwargs["messages"][-1]["cache_control"] == {"type": "ephemeral"}
-	assert "cache_control" not in kwargs["tools"][0]
-	assert kwargs["tools"][1]["cache_control"] == {"type": "ephemeral"}
-	assert "cache_control" not in tools[1]
-
-
-@pytest.mark.parametrize(
-	("name", "provider"),
-	[
-		("anthropic/claude", "gateway"),
-		("claude-sonnet-4-20250514", None),
-		("bedrock/anthropic.claude-3-5-sonnet-20241022-v2:0", None),
-		("vertex_ai/claude-sonnet-4@20250514", None),
-		("openrouter/anthropic/claude-sonnet-4", None),
-		("openrouter/~anthropic/claude-sonnet-latest", None),
-		("openrouter/google/gemini-2.5-pro", None),
-		("openrouter/minimax/minimax-m2.5", None),
-		("azure_ai/claude-sonnet-4-5", None),
-		("databricks/databricks-claude-sonnet-4", None),
-	],
-)
-def test_litellm_marks_cache_breakpoints_from_the_wire_model(name, provider):
-	request = ModelRequest(messages=[UserMessage(content="hi")], system_prompt="system")
-
-	kwargs = LiteLLMModel(name, provider=provider)._completion_kwargs(request)
-
-	assert all(message["cache_control"] == {"type": "ephemeral"} for message in kwargs["messages"])
-
-
-def test_litellm_cache_breakpoint_lands_on_the_last_tool_result():
+	# a trailing tool result takes the last breakpoint
 	call = AssistantMessage(
 		content=[ToolCall(id="c1", name="bash", arguments={"command": "ls"})],
 		api="litellm",
@@ -740,73 +588,26 @@ def test_litellm_cache_breakpoint_lands_on_the_last_tool_result():
 
 	messages = LiteLLMModel("anthropic/claude")._completion_kwargs(request)["messages"]
 
-	assert messages[-1]["role"] == "tool"
-	assert messages[-1]["cache_control"] == {"type": "ephemeral"}
-	assert "cache_control" not in messages[1]
+	assert [(message["role"], message.get("cache_control")) for message in messages] == [
+		("system", _CACHE),
+		("user", None),
+		("assistant", None),
+		("tool", _CACHE),
+	]
 
 
-@pytest.mark.parametrize(
-	"name",
-	[
-		"openai/gpt",
-		"vertex_ai/gemini-2.5-pro",
-		"openrouter/openai/gpt-5",
-		"databricks/databricks-meta-llama-3-3-70b-instruct",
-	],
-)
-def test_litellm_skips_cache_breakpoints_for_other_providers(name):
-	tools = [{"type": "function", "function": {"name": "bash", "parameters": {}}}]
-	request = ModelRequest(messages=[UserMessage(content="hi")], tools=tools, system_prompt="system")
+async def test_litellm_usage_maps_cache_tokens_and_the_stream_cost(monkeypatch):
+	cases = [
+		({"cache_read_input_tokens": 100, "cache_creation_input_tokens": 15}, (100, 15)),
+		({"prompt_tokens_details": {"cached_tokens": 40, "cache_creation_tokens": 6}}, (40, 6)),
+		({"prompt_tokens_details": {"cached_tokens": 40, "cache_write_tokens": 6}}, (40, 6)),
+	]
+	for fields, cache in cases:
+		usage = _usage_event({"prompt_tokens": 120, "completion_tokens": 5, **fields})
+		assert (usage.input_tokens, usage.output_tokens) == (120, 5), fields
+		assert (usage.cache_read_tokens, usage.cache_write_tokens) == cache, fields
 
-	kwargs = LiteLLMModel(name)._completion_kwargs(request)
-
-	assert all("cache_control" not in message for message in kwargs["messages"])
-	assert kwargs["tools"] is tools
-	assert "cache_control" not in tools[0]
-
-
-def test_usage_event_maps_anthropic_cache_fields():
-	usage = _usage_event(
-		{
-			"prompt_tokens": 120,
-			"completion_tokens": 5,
-			"cache_read_input_tokens": 100,
-			"cache_creation_input_tokens": 15,
-		},
-		cost=0.01,
-	)
-
-	assert (usage.input_tokens, usage.output_tokens) == (120, 5)
-	assert (usage.cache_read_tokens, usage.cache_write_tokens) == (100, 15)
-
-
-def test_usage_event_falls_back_to_prompt_tokens_details():
-	usage = _usage_event(
-		{
-			"prompt_tokens": 50,
-			"completion_tokens": 3,
-			"prompt_tokens_details": {"cached_tokens": 40, "cache_creation_tokens": 6},
-		},
-		cost=0.0,
-	)
-
-	assert (usage.cache_read_tokens, usage.cache_write_tokens) == (40, 6)
-
-
-def test_usage_event_maps_cache_write_tokens_detail():
-	usage = _usage_event(
-		{
-			"prompt_tokens": 50,
-			"completion_tokens": 3,
-			"prompt_tokens_details": {"cached_tokens": 40, "cache_write_tokens": 6},
-		},
-		cost=0.0,
-	)
-
-	assert (usage.cache_read_tokens, usage.cache_write_tokens) == (40, 6)
-
-
-async def test_litellm_stream_takes_its_cost_from_the_final_usage(monkeypatch):
+	# a stream states its cost on the final usage chunk, which has no choices
 	_stream(
 		monkeypatch,
 		[
