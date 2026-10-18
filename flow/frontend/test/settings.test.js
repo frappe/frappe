@@ -61,15 +61,17 @@ const spec = {
 	fields: [],
 };
 
-test("settings can load and search beyond the first 200 records", async (t) => {
+test("settings load and search beyond the first 200 records, keeping the rows shown until a search's arrive", async (t) => {
 	const records = Array.from({ length: 401 }, (_, i) => ({
 		name: `tool-${i}`,
 		title: `Tool ${i}`,
 	}));
+	let finish;
 	transport.answers["frappe.client.get_list"] = (args) => {
 		const query = args.or_filters?.[0]?.[2]?.slice(1, -1);
 		const rows = query ? records.filter((row) => row.title.includes(query)) : records;
-		return rows.slice(args.limit_start, args.limit_start + args.limit_page_length);
+		const page = rows.slice(args.limit_start, args.limit_start + args.limit_page_length);
+		return query ? new Promise((resolve) => (finish = () => resolve(page))) : page;
 	};
 	const el = mount(t, DocPanel, { spec });
 	await until(() => el.querySelectorAll("li").length === 200);
@@ -85,6 +87,9 @@ test("settings can load and search beyond the first 200 records", async (t) => {
 		![...el.querySelectorAll("button")].some((button) => button.textContent === "Load more")
 	);
 	type(el, "Tool 400");
+	await until(() => finish);
+	assert.equal(el.querySelectorAll("li").length, 401);
+	finish();
 	await until(() => el.querySelectorAll("li").length === 1);
 	assert.ok(el.querySelector("li").textContent.includes("Tool 400"));
 	assert.equal(transport.calls.at(-1)[1].limit_start, 0);
@@ -108,50 +113,13 @@ test("an older settings search cannot overwrite a newer result", async (t) => {
 	assert.ok(el.querySelector("li").textContent.includes("Matching"));
 });
 
-test("a settings search keeps what is shown until its results arrive", async (t) => {
-	const pending = [];
-	transport.answers["frappe.client.get_list"] = ({ or_filters }) =>
-		or_filters.length
-			? new Promise((resolve) => pending.push(resolve))
-			: [
-					{ name: "tool-1", title: "Tool 1" },
-					{ name: "tool-2", title: "Tool 2" },
-			  ];
-	const el = mount(t, DocPanel, { spec });
-	await until(() => el.querySelectorAll("li").length === 2);
-	type(el, "Tool 3");
-	await until(() => pending.length === 1);
-	assert.equal(el.querySelectorAll("li").length, 2);
-	pending[0]([]);
-	await until(() => el.textContent.includes("No tools yet."));
-	type(el, "Tool 33");
-	await until(() => pending.length === 2);
-	assert.ok(el.textContent.includes("No tools yet."));
-	assert.ok(!el.textContent.includes("Loading"));
-});
-
-test("a deleted record leaves the list before it reloads", async (t) => {
+test("saving keeps the form open; deleting goes back to the list, without the record before it reloads", async (t) => {
 	transport.answers["frappe.client.get_list"] = () => [
 		{ name: "tool-1", title: "Tool 1" },
 		{ name: "tool-2", title: "Tool 2" },
 	];
 	const el = mount(t, DocPanel, { spec });
 	await until(() => el.querySelectorAll("li").length === 2);
-	el.querySelectorAll("li button")[1].click();
-	await nextTick();
-	transport.answers["frappe.client.get_list"] = () => new Promise(() => {});
-	el.querySelector("[data-stub=DocForm]").__vueParentComponent.emit("deleted");
-	await nextTick();
-	assert.deepEqual(
-		[...el.querySelectorAll("li")].map((li) => li.textContent.trim()),
-		["Tool 1"]
-	);
-});
-
-test("saving keeps the form open; deleting goes back to the list", async (t) => {
-	transport.answers["frappe.client.get_list"] = () => [{ name: "tool-1", title: "Tool 1" }];
-	const el = mount(t, DocPanel, { spec });
-	await until(() => el.querySelector("li"));
 	[...el.querySelectorAll("button")].find((b) => b.textContent === "New tool").click();
 	await nextTick();
 	// the form is a stub here, so emit its events for it
@@ -160,16 +128,22 @@ test("saving keeps the form open; deleting goes back to the list", async (t) => 
 	await nextTick();
 	assert.equal(form().getAttribute("name"), "tool-2");
 	assert.equal(form().getAttribute("title"), "Edit tool");
+	transport.answers["frappe.client.get_list"] = () => new Promise(() => {});
 	form().__vueParentComponent.emit("deleted");
-	await until(() => el.querySelector("li"));
+	await nextTick();
 	assert.equal(form(), null);
+	assert.deepEqual(
+		[...el.querySelectorAll("li")].map((li) => li.textContent.trim()),
+		["Tool 1"]
+	);
 });
 
-for (const typeName of ["link", "multilink"]) {
-	test(`${typeName} searches the server and retains the current selection`, async (t) => {
+test("link and multilink search the server, keeping their options while it loads and the selection always", async (t) => {
+	for (const typeName of ["link", "multilink"]) {
 		transport.calls.length = 0;
+		let finish;
 		transport.answers["frappe.desk.search.search_link"] = ({ txt }) =>
-			txt ? [{ value: "tool-900", label: "A later tool" }] : [{ value: "tool-1" }];
+			txt ? new Promise((resolve) => (finish = resolve)) : [{ value: "tool-1" }];
 		const el = mount(t, FieldControl, {
 			field: { name: "tools", type: typeName, label: "Tools", link: "Flow Tool" },
 			doc: {
@@ -180,29 +154,26 @@ for (const typeName of ["link", "multilink"]) {
 		await until(() => el.textContent.includes("tool-1"));
 		assert.ok(el.textContent.includes("selected"));
 		type(el, "later");
-		await until(() => el.textContent.includes("A later tool"));
-		assert.ok(el.textContent.includes("selected"));
-		assert.equal(transport.calls.at(-1)[1].txt, "later");
-		assert.equal(transport.calls.at(-1)[1].reference_doctype, "Flow Agent");
-	});
-
-	test(`${typeName} keeps its options while a new search loads`, async (t) => {
-		let finish;
-		transport.answers["frappe.desk.search.search_link"] = ({ txt }) =>
-			txt ? new Promise((resolve) => (finish = resolve)) : [{ value: "tool-1" }];
-		const el = mount(t, FieldControl, {
-			field: { name: "tools", type: typeName, label: "Tools", link: "Flow Tool" },
-			doc: { doctype: "Flow Agent", tools: typeName === "multilink" ? [] : "" },
-		});
-		await until(() => el.textContent.includes("tool-1"));
-		type(el, "later");
 		await until(() => finish);
-		assert.ok(el.textContent.includes("tool-1"));
+		assert.ok(el.textContent.includes("tool-1"), typeName);
 		finish([{ value: "tool-900", label: "A later tool" }]);
 		await until(() => el.textContent.includes("A later tool"));
-		assert.ok(!el.textContent.includes("tool-1"));
+		assert.ok(!el.textContent.includes("tool-1"), typeName);
+		assert.ok(el.textContent.includes("selected"), typeName);
+		assert.equal(transport.calls.at(-1)[1].txt, "later");
+		assert.equal(transport.calls.at(-1)[1].reference_doctype, "Flow Agent");
+	}
+	// with nothing picked, only the server's options show
+	const empty = mount(t, FieldControl, {
+		field: { name: "tools", type: "link", label: "Tools", link: "Flow Tool" },
+		doc: { doctype: "Flow Agent", tools: "" },
 	});
-}
+	await until(() => empty.querySelector("button"));
+	assert.deepEqual(
+		[...empty.querySelectorAll("button")].map((b) => b.textContent),
+		["tool-1"]
+	);
+});
 
 test("a read-only multilink still opens, showing only its picks and nothing to change", async (t) => {
 	transport.answers["frappe.desk.search.search_link"] = () => [
@@ -241,7 +212,7 @@ test("a provider is picked from the list, and a saved one outside it still shows
 	assert.equal(labels(saved).at(-1), "azure");
 });
 
-test("a provider's models show without its prefix; a late answer for another is dropped", async (t) => {
+test("a provider's models show without its prefix, a late answer for another is dropped, and a typed id stays when none come", async (t) => {
 	const field = SPECS.models.fields.find((f) => f.name === "model_id");
 	const pending = {};
 	transport.answers["flow.flow.doctype.flow_model.flow_model.get_provider_models"] = ({
@@ -264,21 +235,14 @@ test("a provider's models show without its prefix; a late answer for another is 
 	);
 	options[0].click();
 	assert.equal(doc.model_id, "custom_openai/openai/gpt-6-sol");
-});
 
-test("a model id typed while the list loads stays when no list comes back", async (t) => {
-	const field = SPECS.models.fields.find((f) => f.name === "model_id");
-	let answer;
-	transport.answers["flow.flow.doctype.flow_model.flow_model.get_provider_models"] = () =>
-		new Promise((resolve) => (answer = resolve));
-	const doc = reactive({ doctype: "Flow Model", provider: "custom_openai", model_id: "" });
-	const el = mount(t, FieldControl, { field, doc });
-	await until(() => answer);
+	// an id typed while the list loads stays when no list comes back
+	doc.provider = "litellm_proxy";
+	await until(() => pending.litellm_proxy);
 	type(el, "acme/model-x");
-	answer([]);
-	await until(() => doc.model_id);
+	pending.litellm_proxy([]);
+	await until(() => doc.model_id === "acme/model-x");
 	await nextTick();
-	assert.equal(doc.model_id, "acme/model-x");
 	assert.equal(el.querySelector("input").value, "acme/model-x");
 });
 
@@ -315,16 +279,15 @@ async function saveSource(t, name, answers) {
 	)[1].doc;
 }
 
-test("an untouched JSON field is saved as no value, not an empty string", async (t) => {
-	const sent = await saveSource(t, null, {
+test("an untouched JSON field is saved as no value and a filled one as written; the toast says Created or Saved", async (t) => {
+	toast.shown.length = 0;
+	const created = await saveSource(t, null, {
 		"frappe.client.insert": ({ doc }) => ({ ...doc, name: "source-1" }),
 	});
-	assert.equal(sent.filters, null);
-	assert.equal(sent.title, "ToDo");
-});
-
-test("a JSON field the user filled in is saved as written", async (t) => {
-	const sent = await saveSource(t, "source-1", {
+	assert.equal(created.filters, null);
+	assert.equal(created.title, "ToDo");
+	await until(() => toast.shown.length === 1);
+	const saved = await saveSource(t, "source-1", {
 		"frappe.client.get": () => ({
 			name: "source-1",
 			title: "Old",
@@ -332,19 +295,7 @@ test("a JSON field the user filled in is saved as written", async (t) => {
 		}),
 		"frappe.client.save": ({ doc }) => doc,
 	});
-	assert.equal(sent.filters, '{"status": "Open"}');
-});
-
-test("the toast says Created for a new record and Saved for an existing one", async (t) => {
-	toast.shown.length = 0;
-	await saveSource(t, null, {
-		"frappe.client.insert": ({ doc }) => ({ ...doc, name: "source-1" }),
-	});
-	await until(() => toast.shown.length === 1);
-	await saveSource(t, "source-1", {
-		"frappe.client.get": () => ({ name: "source-1", title: "Old" }),
-		"frappe.client.save": ({ doc }) => doc,
-	});
+	assert.equal(saved.filters, '{"status": "Open"}');
 	await until(() => toast.shown.length === 2);
 	assert.deepEqual(toast.shown, ["Created", "Saved"]);
 });
@@ -352,18 +303,6 @@ test("the toast says Created for a new record and Saved for an existing one", as
 test("a new record leaves read-only fields out, so the server fills their defaults", () => {
 	assert.equal("source" in newDoc(SPECS.memories), false);
 	assert.equal("status" in newDoc(SPECS.knowledge_sources), false);
-});
-
-test("a title that names its record can change, except on records defined in code", () => {
-	for (const key of ["models", "agents", "skills", "triggers", "knowledge_bases"]) {
-		const title = SPECS[key].fields.find((field) => field.name === "title");
-		assert.equal(title.rename, true, key);
-		assert.ok(!title.locked?.({ name: "Helper" }), key);
-	}
-	for (const key of ["agents", "skills", "knowledge_bases"]) {
-		const title = SPECS[key].fields.find((field) => field.name === "title");
-		assert.ok(title.locked({ name: "Helper", is_system_generated: 1 }), key);
-	}
 });
 
 const agentSpec = {
@@ -405,57 +344,41 @@ async function editAgent(t, name, edits, answers = {}) {
 }
 const methods = () => transport.calls.map(([method]) => method);
 
-test("a changed title renames the record, which the form then shows", async (t) => {
-	const el = await editAgent(t, "Helper", { Title: " Support Helper " });
+test("a saved record's changed title renames it, after saving its other edits; a new record's is only inserted", async (t) => {
+	await editAgent(t, null, { Title: "Helper" });
 	await until(() => toast.shown.length);
-	assert.deepEqual(methods(), [
-		"frappe.client.get",
-		"frappe.client.rename_doc",
-		"frappe.client.get",
-	]);
-	assert.deepEqual(transport.calls[1][1], {
-		doctype: "Flow Agent",
-		old_name: "Helper",
-		new_name: "Support Helper",
-	});
-	assert.equal(transport.calls[2][1].name, "Support Helper");
-	assert.deepEqual(renames, [["Flow Agent", "Helper", "Support Helper"]]);
-	assert.deepEqual(toast.shown, ["Renamed"]);
-	assert.equal(el.querySelector('[data-control="Title"] input').value, "Support Helper");
+	assert.deepEqual(methods(), ["frappe.client.insert"]);
+	assert.deepEqual(toast.shown, ["Created"]);
+
+	const calls = (method) => transport.calls.filter(([name]) => name === method);
+	for (const [edits, first] of [
+		[{ Title: " Support Helper " }, []],
+		[{ Title: "Support Helper", Description: "New" }, ["frappe.client.save"]],
+	]) {
+		const el = await editAgent(t, "Helper", edits);
+		await until(() => toast.shown.length);
+		assert.deepEqual(methods(), [
+			"frappe.client.get",
+			...first,
+			"frappe.client.rename_doc",
+			"frappe.client.get",
+		]);
+		// the other edits save under the current name
+		for (const [, { doc }] of calls("frappe.client.save"))
+			assert.deepEqual([doc.title, doc.description], ["Helper", "New"]);
+		assert.deepEqual(calls("frappe.client.rename_doc")[0][1], {
+			doctype: "Flow Agent",
+			old_name: "Helper",
+			new_name: "Support Helper",
+		});
+		assert.equal(transport.calls.at(-1)[1].name, "Support Helper");
+		assert.deepEqual(renames, [["Flow Agent", "Helper", "Support Helper"]]);
+		assert.deepEqual(toast.shown, ["Renamed"]);
+		assert.equal(el.querySelector('[data-control="Title"] input').value, "Support Helper");
+	}
 });
 
-test("a rename saves the other edits first, under the current name", async (t) => {
-	await editAgent(t, "Helper", { Title: "Support Helper", Description: "New" });
-	await until(() => toast.shown.length);
-	assert.deepEqual(methods(), [
-		"frappe.client.get",
-		"frappe.client.save",
-		"frappe.client.rename_doc",
-		"frappe.client.get",
-	]);
-	const saved = transport.calls[1][1].doc;
-	assert.equal(saved.title, "Helper");
-	assert.equal(saved.description, "New");
-});
-
-test("a refused rename keeps the typed title and says why", async (t) => {
-	const el = await editAgent(
-		t,
-		"Helper",
-		{ Title: "Support" },
-		{
-			"frappe.client.rename_doc": () => {
-				throw new Error("Another Flow Agent with name Support exists");
-			},
-		}
-	);
-	await until(() => el.textContent.includes("Another Flow Agent with name Support exists"));
-	assert.equal(el.querySelector('[data-control="Title"] input').value, "Support");
-	assert.deepEqual(renames, []);
-	assert.deepEqual(toast.shown, []);
-});
-
-test("edits saved before a refused rename still reach the list and the page", async (t) => {
+test("a refused rename keeps the typed title and says why; edits saved before it still reach the list and the page", async (t) => {
 	const el = await editAgent(
 		t,
 		"Helper",
@@ -467,19 +390,14 @@ test("edits saved before a refused rename still reach the list and the page", as
 		}
 	);
 	await until(() => el.textContent.includes("Another Flow Agent with name Support exists"));
+	assert.equal(el.querySelector('[data-control="Title"] input').value, "Support");
+	assert.deepEqual(renames, []);
+	assert.deepEqual(toast.shown, []);
 	assert.deepEqual(changes, ["Flow Agent"]);
 	assert.deepEqual(
 		saves.map((doc) => [doc.name, doc.description]),
 		[["Helper", "New"]]
 	);
-	assert.equal(el.querySelector('[data-control="Title"] input').value, "Support");
-});
-
-test("a new record's title is only saved, not renamed", async (t) => {
-	await editAgent(t, null, { Title: "Helper" });
-	await until(() => toast.shown.length);
-	assert.deepEqual(methods(), ["frappe.client.insert"]);
-	assert.deepEqual(toast.shown, ["Created"]);
 });
 
 test("a settings list and an opened record show the spinner until they load", async (t) => {

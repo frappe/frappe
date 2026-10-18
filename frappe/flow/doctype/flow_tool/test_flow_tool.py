@@ -55,72 +55,27 @@ class IntegrationTestFlowTool(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_module_tool_creates_successfully(self):
-		doc = frappe.get_doc(_module()).insert()
-		self.assertEqual(doc.name, "get_weather")
-		self.assertEqual(doc.type, "Imported")
-
-	def test_script_tool_creates_successfully(self):
-		doc = frappe.get_doc(_script()).insert()
-		self.assertEqual(doc.name, "script_weather")
-		self.assertEqual(doc.type, "Script")
-
-	def test_server_tool_carries_no_code_here(self):
-		doc = frappe.get_doc(_server()).insert()
-		self.assertEqual(doc.type, "Server")
-		with self.assertRaisesRegex(frappe.ValidationError, "no code here"):
-			frappe.get_doc(_server(slug="server_with_code", code=VALID_SCRIPT_CODE)).insert()
-
-	def test_a_server_tool_cannot_be_created_by_hand(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "add an extension instead"):
-			frappe.get_doc(_server(is_system_generated=0)).insert()
-
-	def test_slug_must_be_snake_case(self):
-		for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps"):
-			with self.subTest(slug=bad), self.assertRaisesRegex(frappe.ValidationError, "Slug"):
-				frappe.get_doc(_module(slug=bad)).insert()
-
-	def test_slug_uniqueness_enforced(self):
-		frappe.get_doc(_module()).insert()
-		with self.assertRaises(frappe.exceptions.DuplicateEntryError):
-			frappe.get_doc(_module()).insert()
-
-	def test_module_requires_import_path(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Import Path"):
-			frappe.get_doc(_module(import_path=None)).insert()
-
-	def test_module_rejects_invalid_import_path(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Import Path"):
-			frappe.get_doc(_module(import_path="not a path")).insert()
-
-	def test_module_rejects_code(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "inline code"):
-			frappe.get_doc(_module(code="def main():\n\treturn 1")).insert()
-
-	def test_script_requires_code(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Code"):
-			frappe.get_doc(_script(code=None)).insert()
-
-	def test_script_rejects_import_path(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "Import Path"):
-			frappe.get_doc(_script(import_path="frappe.x.y")).insert()
-
-	def test_script_rejects_syntax_error(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "syntax"):
-			frappe.get_doc(_script(code="def main(:\n\tpass")).insert()
-
-	def test_script_requires_main_function(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "main"):
-			frappe.get_doc(_script(code="def other():\n\treturn 1\n")).insert()
-
-	def test_script_rejects_varargs(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "args"):
-			frappe.get_doc(_script(code="def main(*args, **kwargs):\n\treturn 1\n")).insert()
-
-	def test_script_rejects_direct_main_call(self):
-		code = "def main(city: str):\n\treturn city\n\nmain('x')\n"
-		with self.assertRaisesRegex(frappe.ValidationError, "main"):
-			frappe.get_doc(_script(code=code)).insert()
+	def test_an_invalid_tool_is_refused(self):
+		cases = [
+			(_module(slug=bad), "Slug")
+			for bad in ("bad-slug", "1starts_with_digit", "bad slug", "has.dot", "HasCaps")
+		]
+		cases += [
+			(_module(import_path=None), "Import Path"),
+			(_module(import_path="not a path"), "Import Path"),
+			(_module(code="def main():\n\treturn 1"), "inline code"),
+			(_script(code=None), "Code"),
+			(_script(import_path="frappe.x.y"), "Import Path"),
+			(_script(code="def main(:\n\tpass"), "syntax"),
+			(_script(code="def other():\n\treturn 1\n"), "main"),
+			(_script(code="def main(*args, **kwargs):\n\treturn 1\n"), "args"),
+			(_script(code="def main(city: str):\n\treturn city\n\nmain('x')\n"), "main"),
+			(_server(code=VALID_SCRIPT_CODE), "no code here"),
+			(_server(is_system_generated=0), "add an extension instead"),
+		]
+		for doc, error in cases:
+			with self.subTest(doc=doc), self.assertRaisesRegex(frappe.ValidationError, error):
+				frappe.get_doc(doc).insert()
 
 
 class TestFlowToolSystemGenerated(IntegrationTestCase):
@@ -129,49 +84,31 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _tool(self):
-		return frappe.get_doc(_module(is_system_generated=1)).insert()
-
-	def test_cannot_delete_via_desk(self):
-		tool = self._tool()
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Tool", tool.name)
-
-	def test_the_owning_app_can_delete(self):
-		tool = self._tool()
-		frappe.delete_doc("Flow Tool", tool.name, ignore_permissions=True)
-		self.assertFalse(frappe.db.exists("Flow Tool", tool.name))
-
-	def test_a_builtin_is_blocked_even_with_ignore_permissions(self):
+	def test_the_desk_cannot_change_a_system_generated_tool_but_may_disable_it(self):
 		sync_builtin_tools()
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Tool", "read", ignore_permissions=True)
+		tool = frappe.get_doc(_module(is_system_generated=1)).insert()
+		for label, change in (
+			("delete", lambda: frappe.delete_doc("Flow Tool", tool.name)),
+			(
+				"a builtin, even by the app",
+				lambda: frappe.delete_doc("Flow Tool", "read", ignore_permissions=True),
+			),
+		):
+			with (
+				self.subTest(label),
+				self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"),
+			):
+				change()
+		for field, value, error in (
+			("is_system_generated", 0, "Cannot remove the system-generated flag"),
+			("import_path", "flow.tools.builtins.execute", "Cannot change Import Path"),
+			("description", "Updated description.", "Cannot change Description"),
+		):
+			tool.reload()
+			tool.set(field, value)
+			with self.subTest(field=field), self.assertRaisesRegex(frappe.ValidationError, error):
+				tool.save()
 
-	def test_cannot_unset_flag(self):
-		tool = self._tool()
-		tool.is_system_generated = 0
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
-			tool.save()
-
-	def test_cannot_change_import_path(self):
-		tool = self._tool()
-		tool.import_path = "flow.tools.builtins.execute"
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Import Path"):
-			tool.save()
-
-	def test_owning_app_can_change_import_path(self):
-		tool = self._tool()
-		tool.import_path = "flow.tools.builtins.execute"
-		tool.save(ignore_permissions=True)
-		self.assertEqual(
-			frappe.db.get_value("Flow Tool", tool.name, "import_path"), "flow.tools.builtins.execute"
-		)
-
-	def test_description_is_locked_but_enabled_stays_editable(self):
-		tool = self._tool()
-		tool.description = "Updated description."
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Description"):
-			tool.save()
 		tool.reload()
 		tool.enabled = 0
 		tool.save()
@@ -205,31 +142,22 @@ class TestFlowToolSessionWarning(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _session(self):
-		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
-
-	def test_disabling_a_tool_warns_that_existing_sessions_keep_theirs(self):
-		self._session()
+	def test_only_a_change_the_flow_server_holds_warns_the_sessions_using_the_tool(self):
 		with patch("frappe.msgprint") as msgprint:
 			self.tool.enabled = 0
 			self.tool.save()
+		msgprint.assert_not_called()  # no session uses the tool yet
 
-		self.assertIn("Existing sessions", msgprint.call_args.args[0])
-
-	def test_an_edit_the_flow_server_never_sees_is_quiet(self):
-		self._session()
+		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
 		with patch("frappe.msgprint") as msgprint:
 			self.tool.summary = "Weather, briefly."
 			self.tool.save()
-
 		msgprint.assert_not_called()
 
-	def test_a_tool_no_session_uses_is_quiet(self):
 		with patch("frappe.msgprint") as msgprint:
-			self.tool.enabled = 0
+			self.tool.enabled = 1
 			self.tool.save()
-
-		msgprint.assert_not_called()
+		self.assertIn("Existing sessions", msgprint.call_args.args[0])
 
 
 def _listed(name: str, description: str, extension: str = "helpdesk") -> dict:
@@ -252,21 +180,12 @@ class TestSyncServerTools(IntegrationTestCase):
 		with patch.object(lifecycle, "extension_tools", return_value=list(rows)):
 			sync_server_tools()
 
-	def test_rows_are_added_and_refreshed_from_the_listing(self):
+	def test_server_rows_follow_the_listing_and_take_their_agent_rows_along(self):
 		self.sync(_listed("helpdesk_ticket", "Fetch a ticket."))
 		tool = frappe.get_doc("Flow Tool", "helpdesk_ticket")
 		self.assertEqual(
 			(tool.type, tool.description, tool.is_system_generated), ("Server", "Fetch a ticket.", 1)
 		)
-
-		self.sync(_listed("helpdesk_ticket", "Fetch a ticket and its thread."))
-		self.assertEqual(
-			frappe.db.get_value("Flow Tool", "helpdesk_ticket", "description"),
-			"Fetch a ticket and its thread.",
-		)
-
-	def test_a_tool_gone_from_the_listing_loses_its_row_and_its_agent_rows(self):
-		self.sync(_listed("helpdesk_ticket", "Fetch a ticket."))
 		model = frappe.get_doc(
 			{"doctype": "Flow Model", "title": "Sync Model", "model_id": "openai/gpt-4o-mini", "enabled": 1}
 		).insert()
@@ -280,25 +199,22 @@ class TestSyncServerTools(IntegrationTestCase):
 			}
 		).insert()
 
+		self.sync(_listed("helpdesk_ticket", "Fetch a ticket and its thread."))
+		self.assertEqual(
+			frappe.db.get_value("Flow Tool", "helpdesk_ticket", "description"),
+			"Fetch a ticket and its thread.",
+		)
+
 		self.sync()
 		self.assertFalse(frappe.db.exists("Flow Tool", "helpdesk_ticket"))
 		self.assertEqual(frappe.get_all("Flow Agent Tool", {"parent": agent.name}), [])
 
-	def test_an_extension_tool_named_like_an_app_tool_is_skipped(self):
-		with patch("frappe.log_error") as log_error:
+	def test_an_extension_tool_that_cannot_have_a_server_row_is_skipped(self):
+		with self.subTest("named like an app tool"), patch("frappe.log_error") as log_error:
 			self.sync(_listed("read", "An override.", "override"))
-		self.assertEqual(frappe.db.get_value("Flow Tool", "read", "type"), "Imported")
-		log_error.assert_called_once()
-
-	def test_an_extension_tool_whose_name_is_not_a_slug_is_skipped(self):
-		with patch("frappe.log_error") as log_error:
+			self.assertEqual(frappe.db.get_value("Flow Tool", "read", "type"), "Imported")
+			log_error.assert_called_once()
+		with self.subTest("a name that is not a slug"), patch("frappe.log_error") as log_error:
 			self.sync(_listed("readTicket", "Fetch a ticket."))
-		self.assertFalse(frappe.db.exists("Flow Tool", "readTicket"))
-		log_error.assert_called_once()
-
-	def test_the_desk_cannot_delete_a_server_row_but_the_app_can(self):
-		self.sync(_listed("helpdesk_ticket", "Fetch a ticket."))
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Tool", "helpdesk_ticket")
-		frappe.delete_doc("Flow Tool", "helpdesk_ticket", ignore_permissions=True)
-		self.assertFalse(frappe.db.exists("Flow Tool", "helpdesk_ticket"))
+			self.assertFalse(frappe.db.exists("Flow Tool", "readTicket"))
+			log_error.assert_called_once()

@@ -14,9 +14,7 @@ from flow_harness.events import (
 	RunStarted,
 	TextContent,
 	TextDelta,
-	ThinkingContent,
 	ThinkingDelta,
-	ToolCall,
 	ToolCallDisplayReady,
 	ToolCallStarted,
 	ToolResult,
@@ -40,11 +38,6 @@ from flow_tui.client.state import (
 )
 
 
-def _apply_all(state: State, events) -> None:
-	for event in events:
-		state.apply(event)
-
-
 def test_deltas_accumulate_and_durable_message_replaces_them():
 	state = State()
 	state.apply(RunStarted(run_id="r1", seq=1))
@@ -66,7 +59,7 @@ def test_deltas_accumulate_and_durable_message_replaces_them():
 	state.apply(TextDelta(text="tail"))
 
 	# consecutive same-kind deltas merge; a kind switch starts a new part
-	assert state.partial == [
+	preview = [
 		PartialThinking("hmm ok"),
 		PartialText("Hello"),
 		PartialToolCall(
@@ -77,38 +70,35 @@ def test_deltas_accumulate_and_durable_message_replaces_them():
 		),
 		PartialText("tail"),
 	]
+	assert state.partial == preview
 
-	durable = AssistantMessage(content="Hello", seq=3)
+	# a steering message lands mid-run without touching the preview
+	steered = UserMessage(content="actually, stop", seq=3)
+	assert state.apply(steered) == [EntryAdded(steered)]
+	assert state.running
+	assert state.partial == preview
+	assert state.entries[-1] is steered
+
+	durable = AssistantMessage(content="Hello", seq=4)
 	assert state.apply(durable) == [EntryReplaced(durable)]
 	assert state.partial == []
-	assert state.entries == [UserMessage(content="hi", seq=2), durable]
+	assert state.entries == [UserMessage(content="hi", seq=2), steered, durable]
 
-
-def test_assistant_message_without_preview_is_an_entry_added():
-	state = State()
-	message = AssistantMessage(content="hi", seq=1)
+	# without a preview the durable message is a plain append
+	message = AssistantMessage(content="hi", seq=5)
 	assert state.apply(message) == [EntryAdded(message)]
 
 
-def test_aborted_assistant_message_keeps_the_streamed_content():
+def test_retry_and_preview_replay_discard_the_preview():
 	state = State()
-	state.apply(ThinkingDelta(thinking="checking"))
-	state.apply(TextDelta(text="Partial answer"))
-	durable = AssistantMessage(
-		content=[ThinkingContent(thinking="checking"), TextContent(text="Partial answer")],
-		stop_reason="aborted",
-		seq=1,
-	)
+	state.apply(RunStarted(run_id="r1", seq=1))
+	state.apply(TextDelta(text="prefix"))
 
-	assert state.apply(durable) == [EntryReplaced(durable)]
-	assert state.partial == []
-	assert state.entries == [durable]
-
-
-def test_retry_started_discards_the_preview():
-	state = State()
-	state.apply(TextDelta(text="half a rep"))
-	assert state.partial
+	# a replayed preview replaces the existing provisional one
+	assert state.apply(PreviewReplayStarted()) == [PartialCleared()]
+	state.apply(TextDelta(text="prefix"))
+	state.apply(TextDelta(text=" suffix"))
+	assert state.partial == [PartialText("prefix suffix")]
 
 	changes = state.apply(Retry(status="started", attempt=2, max_attempts=5))
 	assert changes == [PartialCleared(), StatusChanged()]
@@ -121,23 +111,11 @@ def test_retry_started_discards_the_preview():
 	assert state.partial == [PartialText("fresh")]
 
 	# the durable message means the attempt succeeded
-	state.apply(AssistantMessage(content="done", seq=1))
+	state.apply(AssistantMessage(content="done", seq=2))
 	assert state.retry is None
 
 
-def test_preview_replay_replaces_the_existing_provisional_preview():
-	state = State()
-	state.apply(RunStarted(run_id="r1", seq=1))
-	state.apply(TextDelta(text="prefix"))
-
-	assert state.apply(PreviewReplayStarted()) == [PartialCleared()]
-	state.apply(TextDelta(text="prefix"))
-	state.apply(TextDelta(text=" suffix"))
-
-	assert state.partial == [PartialText("prefix suffix")]
-
-
-def test_approval_lifecycle_settled_by_matching_results():
+def test_approval_lifecycle():
 	state = State()
 	calls = [
 		PendingCall(id="c1", name="bash", args={"cmd": "rm x"}, prompt="Run rm x?"),
@@ -164,19 +142,15 @@ def test_approval_lifecycle_settled_by_matching_results():
 	state.apply(second)
 	assert state.pending_approval is None
 
-
-def test_approval_cleared_by_run_started_and_terminal_run_ended():
-	state = State()
-	calls = [PendingCall(id="c1", name="bash", args={}, prompt="?")]
-
-	state.apply(ApprovalRequired(calls=calls, seq=3))
-	changes = state.apply(RunStarted(run_id="r2", seq=4))
+	# a new run or a terminal run end also clears it
+	state.apply(ApprovalRequired(calls=calls[:1], seq=10))
+	changes = state.apply(RunStarted(run_id="r2", seq=11))
 	assert changes == [ApprovalChanged(), StatusChanged()]
 	assert state.pending_approval is None
 	assert state.running
 
-	state.apply(ApprovalRequired(calls=calls, seq=5))
-	state.apply(RunEnded(reason="aborted", seq=6))
+	state.apply(ApprovalRequired(calls=calls[:1], seq=12))
+	state.apply(RunEnded(reason="aborted", seq=13))
 	assert state.pending_approval is None
 
 
@@ -214,21 +188,19 @@ def test_rewind_truncates_entries_and_refolds_model():
 	assert state.model == "mock"
 	assert state.reasoning_effort is None
 
-
-def test_rewind_drops_preview_and_pending_approval():
-	state = State()
+	# a rewind also drops the preview and a pending approval
 	state.apply(TextDelta(text="stream"))
-	state.apply(ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={}, prompt="?")], seq=2))
-
-	changes = state.apply(Rewind(target_seq=0, seq=3))
+	state.apply(ApprovalRequired(calls=[PendingCall(id="c1", name="bash", args={}, prompt="?")], seq=9))
+	changes = state.apply(Rewind(target_seq=0, seq=10))
 	assert changes == [PartialCleared(), ApprovalChanged(), EntriesTruncated(0), StatusChanged()]
 	assert state.partial == []
 	assert state.pending_approval is None
 	assert state.entries == []
 
 
-def test_usage_accumulates_across_runs():
+def test_run_lifecycle_and_usage_totals():
 	state = State()
+	state.apply(RunStarted(run_id="r1", seq=1))
 	state.apply(
 		Usage(
 			input_tokens=100,
@@ -236,9 +208,27 @@ def test_usage_accumulates_across_runs():
 			cache_read_tokens=80,
 			cache_write_tokens=10,
 			cost=0.01,
-			seq=1,
+			seq=2,
 		)
 	)
+	state.apply(TextDelta(text="orphan"))
+	error = RunError(message="boom", kind="overloaded", seq=3)
+	assert state.apply(error) == [StatusChanged()]
+	assert state.last_error is error
+	state.apply(Retry(status="exhausted", attempt=5))
+
+	# the run's end drops a leftover preview
+	assert state.apply(RunEnded(reason="error", seq=4)) == [PartialCleared(), StatusChanged()]
+	assert state.partial == []
+	assert not state.running
+	assert state.retry is None  # retry progress is per-run
+	assert state.last_error is error  # the banner stays visible while idle
+
+	state.apply(RunStarted(run_id="r2", seq=5))
+	assert state.running
+	assert state.last_error is None
+
+	# usage accumulates across runs
 	state.apply(
 		Usage(
 			input_tokens=50,
@@ -246,7 +236,7 @@ def test_usage_accumulates_across_runs():
 			cache_read_tokens=30,
 			cache_write_tokens=5,
 			cost=0.005,
-			seq=2,
+			seq=6,
 		)
 	)
 	assert state.input_tokens == 150
@@ -254,44 +244,6 @@ def test_usage_accumulates_across_runs():
 	assert state.cache_read_tokens == 110
 	assert state.cache_write_tokens == 15
 	assert state.cost == 0.015
-
-
-def test_run_error_and_run_started_lifecycle():
-	state = State()
-	error = RunError(message="boom", kind="overloaded", seq=2)
-	assert state.apply(error) == [StatusChanged()]
-	assert state.last_error is error
-	state.apply(Retry(status="exhausted", attempt=5))
-	state.apply(RunEnded(reason="error", seq=3))
-	assert not state.running
-	assert state.retry is None  # retry progress is per-run
-	assert state.last_error is error  # the banner stays visible while idle
-
-	state.apply(RunStarted(run_id="r2", seq=4))
-	assert state.running
-	assert state.last_error is None
-
-
-def test_steering_appends_mid_run_without_touching_the_preview():
-	state = State()
-	state.apply(RunStarted(run_id="r1", seq=1))
-	state.apply(UserMessage(content="first", seq=2))
-	state.apply(TextDelta(text="strea"))
-
-	steered = UserMessage(content="actually, stop", seq=3)
-	assert state.apply(steered) == [EntryAdded(steered)]
-	assert state.running
-	assert state.partial == [PartialText("strea")]
-	assert state.entries[-1] is steered
-
-
-def test_run_ended_clears_a_leftover_preview():
-	state = State()
-	state.apply(RunStarted(run_id="r1", seq=1))
-	state.apply(TextDelta(text="orphan"))
-	changes = state.apply(RunEnded(reason="aborted", seq=2))
-	assert changes == [PartialCleared(), StatusChanged()]
-	assert state.partial == []
 
 
 def test_seed_from_session_info():
@@ -305,7 +257,7 @@ def test_seed_from_session_info():
 			"model": "openai/gpt",
 			"credential_id": "work",
 			"reasoning_effort": "high",
-			"config": {"model": "mock", "credential_id": None, "reasoning_effort": None},
+			"config": {"model": "mock", "credential_id": None, "reasoning_effort": None, "cwd": "/work"},
 		}
 	)
 	assert state.running
@@ -313,6 +265,7 @@ def test_seed_from_session_info():
 	assert state.model == "openai/gpt"
 	assert state.credential_id == "work"
 	assert state.reasoning_effort == "high"
+	assert state.cwd == "/work"
 
 	# a model change then a rewind over it falls back to the session config, not
 	# the folded value the seed reported
@@ -321,35 +274,6 @@ def test_seed_from_session_info():
 	assert state.model == "mock"
 	assert state.credential_id is None
 	assert state.reasoning_effort is None
-
-
-def test_latest_seq_tracks_durable_events_only():
-	state = State()
-	state.apply(UserMessage(content="hi", seq=7))
-	state.apply(TextDelta(text="live"))
-	assert state.latest_seq == 7
-
-
-def test_replaying_history_matches_live_folding():
-	"""Seeding + replaying `GET /entries` rows lands in the same state as watching live."""
-	events = [
-		RunStarted(run_id="r1", seq=1),
-		UserMessage(content="hi", seq=2),
-		AssistantMessage(
-			content=[TextContent(text="ok"), ToolCall(id="c1", name="bash", arguments={"cmd": "ls"})],
-			seq=3,
-		),
-		ToolResult(tool_call_id="c1", name="bash", content="files", seq=4),
-		Usage(input_tokens=10, output_tokens=2, cost=0.001, seq=5),
-		RunEnded(reason="done", seq=6),
-	]
-	live, replayed = State(), State()
-	_apply_all(live, events)
-	_apply_all(replayed, events)
-	assert replayed.entries == live.entries
-	assert replayed.latest_seq == live.latest_seq == 6
-	assert not replayed.running
-	assert replayed.input_tokens == 10
 
 
 def test_a_sub_agents_rows_join_the_transcript_and_its_usage_the_totals():

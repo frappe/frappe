@@ -80,7 +80,7 @@ test("read_records links each record to its Desk form, skipping fields nothing f
 	);
 });
 
-test("run_report tables rows under the report's labels, its total pinned below", (t) => {
+test("run_report tables rows under the report's labels, its total pinned below and labelled where Frappe left it blank", (t) => {
 	const args = { report_name: "Accounts Receivable" };
 	// two columns share a label, and numeric fieldnames would sort first as object keys
 	const report = {
@@ -112,10 +112,9 @@ test("run_report tables rows under the report's labels, its total pinned below",
 		presentTool("run_report", args, json({ ...report, row_count: 25 })).stat,
 		"25 rows"
 	);
-});
 
-test("run_report labels a total row Frappe left unlabelled, never a data row", (t) => {
-	const report = {
+	// a blank first cell is labelled only on the total row
+	const dated = {
 		columns: [
 			{ fieldname: "posting_date", label: "Posting Date" },
 			{ fieldname: "amount", label: "Amount" },
@@ -127,22 +126,35 @@ test("run_report labels a total row Frappe left unlabelled, never a data row", (
 		row_count: 2,
 		total_row: { posting_date: "", amount: 15 },
 	};
-	const el = mount(t, ReportView, { arguments: {}, result: json(report) });
-	assert.deepEqual(texts(el, "tbody tr:last-child td"), ["", "5"]);
-	assert.deepEqual(texts(el, "tfoot td"), ["Total", "15"]);
+	const unlabelled = mount(t, ReportView, { arguments: {}, result: json(dated) });
+	assert.deepEqual(texts(unlabelled, "tbody tr:last-child td"), ["", "5"]);
+	assert.deepEqual(texts(unlabelled, "tfoot td"), ["Total", "15"]);
 });
 
-test("delete links its targets until they are gone", (t) => {
-	const args = { doctype: "Sales Invoice", names: ["INV-001", "INV-002"] };
-	const card = mount(t, NamesView, { arguments: args });
-	assert.deepEqual(texts(card, "th"), ["Name"]);
-	assert.deepEqual(hrefs(card), ["/app/sales-invoice/INV-001", "/app/sales-invoice/INV-002"]);
-
-	const result = json({ doctype: "Sales Invoice", deleted: ["INV-001", "INV-002"] });
-	const step = mount(t, NamesView, { arguments: args, result });
-	assert.deepEqual(hrefs(step), []);
-	assert.deepEqual(texts(step, "th"), ["Name"]);
-	assert.equal(presentTool("delete", args, result).stat, "2 deleted");
+test("delete lists its targets a page at a time, linked to their forms until they are gone", async (t) => {
+	const names = Array.from({ length: 41 }, (_, i) => `INV-${i + 1}`);
+	const args = { doctype: "Sales Invoice", names };
+	const result = json({ doctype: "Sales Invoice", deleted: names });
+	const linked = names.slice(0, 20).map((name) => `/app/sales-invoice/${name}`);
+	for (const [outcome, links] of [
+		[null, linked],
+		[result, []],
+	]) {
+		const el = mount(t, NamesView, { arguments: args, result: outcome });
+		assert.deepEqual(texts(el, "th"), ["Name"]);
+		assert.deepEqual(hrefs(el), links);
+		assert.equal(el.querySelectorAll("tbody tr").length, 20);
+		for (const count of [40, 41]) {
+			const more = el.querySelector("button");
+			assert.ok(more, "hidden rows must be reachable");
+			more.click();
+			await nextTick();
+			assert.equal(el.querySelectorAll("tbody tr").length, count);
+		}
+		assert.ok(el.textContent.includes("INV-41"));
+		assert.equal(el.querySelector("button"), null);
+	}
+	assert.equal(presentTool("delete", args, result).stat, "41 deleted");
 });
 
 test("update shows the values it applies to its targets", (t) => {
@@ -154,7 +166,28 @@ test("update shows the values it applies to its targets", (t) => {
 	assert.equal(presentTool("update", args, json({ updated: ["INV-001"] })).stat, "1 updated");
 });
 
-test("run_action names its verb and shows what each record did", (t) => {
+async function openDetails(el) {
+	const details = el.querySelector("details");
+	assert.ok(details, "structured values must have inspectable details");
+	details.open = true;
+	details.dispatchEvent(new Event("toggle"));
+	await nextTick();
+	return JSON.parse(details.querySelector("pre").textContent);
+}
+
+// A child table unfolds under its row on a click; in a values list it is already open.
+async function childTable(el) {
+	const toggle = el.querySelector("td button");
+	if (toggle) {
+		toggle.click();
+		await nextTick();
+	}
+	const table = el.querySelector("td table");
+	assert.ok(table, "child rows must render as a table");
+	return { columns: texts(table, "th"), cells: texts(table, "td") };
+}
+
+test("run_action names its verb and shows what each record did, structured returns included", async (t) => {
 	const rename = {
 		doctype: "Item",
 		names: ["OLD"],
@@ -175,6 +208,18 @@ test("run_action names its verb and shows what each record did", (t) => {
 	});
 	assert.equal(presentTool("run_action", submit, submitted).label, "Submitting");
 	assert.equal(presentTool("run_action", submit, submitted).stat, "1 done");
+
+	const returning = (outcome) =>
+		mount(t, NamesView, {
+			arguments: { doctype: "Sales Invoice", names: ["INV-1"], action: "make_payment" },
+			result: json({ results: [{ name: "INV-1", result: outcome }] }),
+		});
+	const record = { payment_entry: "PAY-1", amount: 123 };
+	assert.deepEqual(await openDetails(returning(record)), record);
+	assert.deepEqual(await childTable(returning([{ name: "PAY-1", amount: 123 }])), {
+		columns: ["Name", "Amount"],
+		cells: ["PAY-1", "123"],
+	});
 });
 
 test("execute keeps the code and pretty-prints what it returned", (t) => {
@@ -192,15 +237,13 @@ test("execute keeps the code and pretty-prints what it returned", (t) => {
 	);
 });
 
-test("a result saved before its tool's return changed shows as text, without a count", () => {
+test("a result its view cannot read, saved before its tool's return changed or cut, shows as text without a count, except under execute's code", () => {
 	const saved = json([{ name: "A" }, { name: "B" }]);
 	const read = presentTool("read_records", {}, saved);
 	assert.equal(read.stat, "");
 	assert.equal(read.resultComponent, JsonView);
 	assert.equal(presentTool("find_doctypes", {}, saved).stat, "");
-});
-
-test("a cut result shows as text, except under execute's code", () => {
+	// a cut result is no longer JSON
 	const cut = {
 		content: '[{"name": "A"}, {"na\n\n[Cut to the first 50 KB of 2.0 MB.]',
 		details: { truncation: { truncated: true } },
@@ -239,6 +282,8 @@ test("lookups report a count and open nothing", () => {
 		["describe", json({ fields: [1, 2, 3] }), "3 fields"],
 		["update_memory", json({ memory_id: "m1", action: "added" }), "added"],
 		["load_skill", { content: "do the thing" }, ""],
+		// a sub-agent row keeps the core's own look
+		["subagent", null, ""],
 	];
 	for (const [name, result, stat] of cases) {
 		const presented = presentTool(name, {}, result);
@@ -248,75 +293,20 @@ test("lookups report a count and open nothing", () => {
 	}
 });
 
-test("a sub-agent row keeps the core's own look and opens nothing", () => {
-	const presented = presentTool("subagent", {
-		task: "Count the beans",
-		description: "count beans",
-	});
-	assert.equal(presented.icon, "bot");
-	assert.equal(presented.label, "Sub-agent");
-	assert.equal(presented.subject, "count beans");
-	assert.equal(presented.expandable, false);
-	assert.equal(presented.resultComponent, undefined);
-});
+test("an approval card gets the view, a custom tool always shows its output, and the server's file tools keep the core's rows", (t) => {
+	assert.equal(presentTool("create", createArgs).argsComponent, CreateView);
+	assert.equal(presentTool("read_records", {}).argsComponent, undefined);
+	assert.equal(presentTool("read_records", {}).resultComponent, ReadView);
 
-test("the flow server's read and grep keep the core's own rows", () => {
-	const read = { content: "import frappe", details: { total_lines: 1 } };
-	assert.deepEqual(presentTool("read", { path: "flow/hooks.py" }, read), {});
-	const grep = { content: "flow/hooks.py:1:import frappe", details: { matches: 1 } };
-	assert.deepEqual(presentTool("grep", { pattern: "frappe" }, grep), {});
-});
-
-test("a custom tool always shows its output, unfolded", (t) => {
 	const presented = presentTool("send_email", { to: "a@b.c" }, json({ sent: true }));
 	assert.equal(presented.resultComponent, JsonView);
 	const el = mount(t, JsonView, { arguments: {}, result: json({ sent: true }) });
 	assert.equal(el.querySelector("pre").textContent, '{\n  "sent": true\n}');
-});
 
-test("an approval card gets the view, a bare row does not", () => {
-	assert.equal(presentTool("create", createArgs).argsComponent, CreateView);
-	assert.equal(presentTool("read_records", {}).argsComponent, undefined);
-	assert.equal(presentTool("read_records", {}).resultComponent, ReadView);
-});
-
-async function openDetails(el) {
-	const details = el.querySelector("details");
-	assert.ok(details, "structured values must have inspectable details");
-	details.open = true;
-	details.dispatchEvent(new Event("toggle"));
-	await nextTick();
-	return JSON.parse(details.querySelector("pre").textContent);
-}
-
-// A child table unfolds under its row on a click; in a values list it is already open.
-async function childTable(el) {
-	const toggle = el.querySelector("td button");
-	if (toggle) {
-		toggle.click();
-		await nextTick();
-	}
-	const table = el.querySelector("td table");
-	assert.ok(table, "child rows must render as a table");
-	return { columns: texts(table, "th"), cells: texts(table, "td") };
-}
-
-test("bulk targets beyond the first page can be revealed", async (t) => {
-	const names = Array.from({ length: 41 }, (_, i) => `INV-${i + 1}`);
-	const args = { doctype: "Sales Invoice", names };
-	for (const result of [null, json({ deleted: names })]) {
-		const el = mount(t, NamesView, { arguments: args, result });
-		assert.equal(el.querySelectorAll("tbody tr").length, 20);
-		for (const count of [40, 41]) {
-			const more = el.querySelector("button");
-			assert.ok(more, "hidden rows must be reachable");
-			more.click();
-			await nextTick();
-			assert.equal(el.querySelectorAll("tbody tr").length, count);
-		}
-		assert.ok(el.textContent.includes("INV-41"));
-		assert.equal(el.querySelector("button"), null);
-	}
+	const read = { content: "import frappe", details: { total_lines: 1 } };
+	assert.deepEqual(presentTool("read", { path: "flow/hooks.py" }, read), {});
+	const grep = { content: "flow/hooks.py:1:import frappe", details: { matches: 1 } };
+	assert.deepEqual(presentTool("grep", { pattern: "frappe" }, grep), {});
 });
 
 test("create and update approvals unfold child records as tables", async (t) => {
@@ -345,18 +335,4 @@ test("create and update approvals unfold child records as tables", async (t) => 
 	card.querySelector("td button").click();
 	await nextTick();
 	assert.equal(card.querySelector("td table"), null);
-});
-
-test("document actions preserve structured returns", async (t) => {
-	const returning = (outcome) =>
-		mount(t, NamesView, {
-			arguments: { doctype: "Sales Invoice", names: ["INV-1"], action: "make_payment" },
-			result: json({ results: [{ name: "INV-1", result: outcome }] }),
-		});
-	const record = { payment_entry: "PAY-1", amount: 123 };
-	assert.deepEqual(await openDetails(returning(record)), record);
-	assert.deepEqual(await childTable(returning([{ name: "PAY-1", amount: 123 }])), {
-		columns: ["Name", "Amount"],
-		cells: ["PAY-1", "123"],
-	});
 });

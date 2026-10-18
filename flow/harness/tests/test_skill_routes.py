@@ -49,17 +49,11 @@ def test_lists_global_and_project_skills_with_errors(tmp_path, monkeypatch):
 	# no cwd: only the global root is listed
 	assert [row["scope"] for row in c.get("/skills").json()["skills"]] == ["global"]
 
-
-def test_listing_reports_a_scope_cut_off_by_the_scan_cap(tmp_path, monkeypatch):
-	c, home = _client(tmp_path, monkeypatch)
-	monkeypatch.setattr(skills_module, "MAX_SKILL_DIRECTORY_ENTRIES", 2)
-	for name in ("a", "b", "c"):
-		_write(home / ".agents" / "skills", name)
-
-	data = c.get("/skills").json()
-
+	# a scope cut off by the scan cap is reported
+	monkeypatch.setattr(skills_module, "MAX_SKILL_DIRECTORY_ENTRIES", 1)
+	data = c.get("/skills", params={"cwd": str(project)}).json()
 	assert len(data["skills"]) == 2
-	assert data["truncated"] == ["global"]
+	assert data["truncated"] == ["project"]
 
 
 def test_write_read_delete_roundtrip(tmp_path, monkeypatch):
@@ -107,7 +101,7 @@ def test_only_skill_files_under_a_root_are_managed(tmp_path, monkeypatch):
 	)
 
 
-def test_symlinked_skill_directories_are_managed_like_discovery(tmp_path, monkeypatch):
+def test_skill_paths_follow_symlinks_but_obey_the_fence(tmp_path, monkeypatch):
 	c, home = _client(tmp_path, monkeypatch)
 	target = _write(tmp_path / "elsewhere", "linked")  # e.g. a skill shared from another harness
 	root = home / ".agents" / "skills"
@@ -120,20 +114,17 @@ def test_symlinked_skill_directories_are_managed_like_discovery(tmp_path, monkey
 	c.put("/skills/file", json={"path": path, "content": SKILL.format(name="linked") + "More.\n"})
 	assert target.read_text().endswith("More.\n")
 
-	# a fenced daemon refuses a link whose target is outside every allowed root
-	fenced, home = _client(tmp_path / "fenced", monkeypatch, allowed_roots=[str(tmp_path / "allowed")])
+	# a fenced daemon refuses a link whose target is outside every allowed root,
+	# and a project root outside them
+	allowed = tmp_path / "allowed"
+	allowed.mkdir()
+	fenced, home = _client(tmp_path / "fenced", monkeypatch, allowed_roots=[str(allowed)])
 	root = home / ".agents" / "skills"
 	root.mkdir(parents=True)
 	(root / "linked").symlink_to(target.parent)
 	assert fenced.get("/skills/file", params={"path": str(root / "linked" / "SKILL.md")}).status_code == 400
-
-
-def test_project_root_obeys_the_cwd_fence(tmp_path, monkeypatch):
-	allowed = tmp_path / "allowed"
-	allowed.mkdir()
-	c, _ = _client(tmp_path, monkeypatch, allowed_roots=[str(allowed)])
-	assert c.get("/skills", params={"cwd": str(allowed)}).status_code == 200
-	assert c.get("/skills", params={"cwd": str(tmp_path / "other")}).status_code == 400
+	assert fenced.get("/skills", params={"cwd": str(allowed)}).status_code == 200
+	assert fenced.get("/skills", params={"cwd": str(tmp_path / "other")}).status_code == 400
 
 
 def test_deployed_policy_disables_skill_management_and_the_tool_list(tmp_path, monkeypatch):
@@ -143,12 +134,7 @@ def test_deployed_policy_disables_skill_management_and_the_tool_list(tmp_path, m
 	assert c.get("/tools").status_code == 403
 
 
-def test_tools_list_is_capped_by_the_allowlist(tmp_path, monkeypatch):
-	c, _ = _client(tmp_path, monkeypatch, tool_allowlist={"read", "grep"})
-	assert [t["name"] for t in c.get("/tools").json()["tools"]] == ["read", "grep"]
-
-
-def test_tools_lists_every_builtin_without_a_cap(tmp_path, monkeypatch):
+def test_tools_list_every_builtin_up_to_the_allowlist(tmp_path, monkeypatch):
 	c, _ = _client(tmp_path, monkeypatch)
 	tools = c.get("/tools").json()["tools"]
 	assert [t["name"] for t in tools if t["extension"] is None] == [
@@ -160,3 +146,6 @@ def test_tools_lists_every_builtin_without_a_cap(tmp_path, monkeypatch):
 		"grep",
 	]
 	assert all(t["description"] for t in tools)
+
+	capped, _ = _client(tmp_path / "capped", monkeypatch, tool_allowlist={"read", "grep"})
+	assert [t["name"] for t in capped.get("/tools").json()["tools"]] == ["read", "grep"]

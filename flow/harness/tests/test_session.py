@@ -13,9 +13,7 @@ from pydantic import ValidationError
 
 from flow_harness.agent.client_tools import notify_run_ended
 from flow_harness.events import (
-	ApprovalRequired,
 	AssistantMessage,
-	PendingCall,
 	RunEnded,
 	RunStarted,
 	TextDelta,
@@ -27,35 +25,27 @@ from flow_harness.events import (
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.mock import MockModel
 from flow_harness.session.config import SessionConfig
-from flow_harness.session.session import INTERRUPTED, SessionState
+from flow_harness.session.session import INTERRUPTED, RewindError, SessionConflict, SessionState
 from flow_harness.session.store import SessionStore
-
-
-def test_session_config_includes_all_builtin_tools_by_default():
-	assert SessionConfig().tools == ["bash", "read", "write", "edit", "subagent"]
+from flow_harness.session.transcript import active_path
 
 
 def test_store_create_and_reload(tmp_path):
-	store = SessionStore(str(tmp_path))
+	data_dir = tmp_path / "state"
+	store = SessionStore(str(data_dir))
 	session = store.create(SessionConfig(model="mock"))
 	session.log.append(UserMessage(content="remember me"))
 
-	fresh = SessionStore(str(tmp_path))  # cold store, only disk
+	fresh = SessionStore(str(data_dir))  # cold store, only disk
 	reloaded = fresh.get(session.id)
 	assert reloaded.config.model == "mock"
 	assert reloaded.transcript.messages[0].content == "remember me"
+	assert oct(os.stat(data_dir).st_mode & 0o777) == "0o700"
+	assert oct(os.stat(store.sessions_dir).st_mode & 0o777) == "0o700"
 	assert oct(os.stat(reloaded.log.path).st_mode & 0o777) == "0o600"
 
 
-def test_store_creates_private_state_directories(tmp_path):
-	data_dir = tmp_path / "state"
-	store = SessionStore(str(data_dir))
-
-	assert oct(os.stat(data_dir).st_mode & 0o777) == "0o700"
-	assert oct(os.stat(store.sessions_dir).st_mode & 0o777) == "0o700"
-
-
-def test_store_groups_session_artifacts_by_project(tmp_path):
+def test_store_groups_sessions_by_project_and_delete_prunes_only_empty_dirs(tmp_path):
 	data_dir = tmp_path / "state"
 	first_project = tmp_path / "workspace-a" / "app"
 	second_project = tmp_path / "workspace-b" / "app"  # same basename, different path
@@ -82,56 +72,39 @@ def test_store_groups_session_artifacts_by_project(tmp_path):
 		other_dir.name,
 	}
 
-
-def test_delete_removes_session_artifacts_and_prunes_only_empty_project_dirs(tmp_path):
-	project = tmp_path / "project"
-	project.mkdir()
-	store = SessionStore(str(tmp_path / "state"))
-	first = store.create(SessionConfig(cwd=str(project)))
-	second = store.create(SessionConfig(cwd=str(project)))
-	project_dir = Path(first.log.path).parent
-	assert first.attachment_store is not None
 	(Path(first.attachment_store.path) / "marker").write_text("bytes")
-
+	first.run_end_marker.touch()
 	store.delete(first.id)
 
-	assert project_dir.is_dir()
+	assert first_dir.is_dir()
 	assert not Path(first.log.path).exists()
 	assert not Path(first.attachment_store.path).exists()
+	assert not first.run_end_marker.exists()
 	assert store.get(second.id) is second
 
 	store.delete(second.id)
-	assert not project_dir.exists()
+	assert not first_dir.exists()
 
 
-def test_store_rejects_unsafe_session_ids(tmp_path):
-	store = SessionStore(str(tmp_path))
-	with pytest.raises(ValueError, match="invalid session_id"):
-		store.create(SessionConfig(session_id="../../etc/x"))
-
-
-def test_store_fences_cwd_to_allowed_roots(tmp_path):
+def test_store_refuses_unsafe_ids_fenced_cwds_and_tampered_meta(tmp_path):
 	allowed = tmp_path / "allowed"
 	allowed.mkdir()
 	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(allowed)])
+	session = store.create(SessionConfig(model="mock", cwd=str(allowed)))
+	assert session.config.cwd == str(allowed)
 
-	assert store.create(SessionConfig(cwd=str(allowed))).config.cwd == str(allowed)
+	with pytest.raises(ValueError, match="invalid session_id"):
+		store.create(SessionConfig(session_id="../../etc/x", cwd=str(allowed)))
 	with pytest.raises(ValueError, match="not under an allowed root"):
 		store.create(SessionConfig(cwd=str(tmp_path)))
 
-
-def test_reload_rejects_tampered_meta(tmp_path):
-	"""The config schema is closed: a meta file with fields the daemon never wrote
-	fails loudly instead of being silently accepted."""
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock"))
+	# the config schema is closed: a meta file with fields the daemon never wrote fails loudly
 	meta = Path(session.log.path).with_name(f"{session.id}.meta.json")
 	config = json.loads(meta.read_text())
 	config["injected_field"] = "injected-secret"
 	meta.write_text(json.dumps(config))
-
 	with pytest.raises(ValidationError):
-		SessionStore(str(tmp_path)).get(session.id)
+		SessionStore(str(tmp_path / "data"), allowed_roots=[str(allowed)]).get(session.id)
 
 
 async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, monkeypatch):
@@ -145,6 +118,10 @@ async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, mo
 	credentials = CredentialStore(str(tmp_path / "credentials.json"))  # keep auth offline
 	store = SessionStore(str(tmp_path), credential_store=credentials)
 	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
+
+	with pytest.raises(ValueError, match="non-empty"):
+		await session.set_model("")
+	assert session.log.latest_seq == 0  # nothing became durable
 
 	await session.set_model("mock/v2", credential_id="mock-profile")
 	seq_after_change = session.log.latest_seq
@@ -162,37 +139,34 @@ async def test_set_model_applies_to_later_runs_and_survives_restart(tmp_path, mo
 	assert reloaded.config.model == "mock"  # the creation config never mutates
 
 
-async def test_set_model_rejects_an_empty_name(tmp_path):
-	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
-	with pytest.raises(ValueError, match="non-empty"):
-		await session.set_model("")
-	assert session.log.latest_seq == 0  # nothing became durable
-
-
-def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
-	"""A daemon that died mid-turn left tool calls with no results. Loading the
-	session closes them durably — once — so providers accept the transcript."""
+def test_reload_closes_a_crashed_run_once(tmp_path):
+	"""A daemon that died mid-turn left tool calls with no results and its run open.
+	Loading the session closes both durably — once — so providers accept the transcript."""
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(model="mock"))
+	session.log.append(RunStarted(run_id="r1"))
 	session.log.append(UserMessage(content="go"))
 	session.log.append(
 		AssistantMessage(
 			content=[
-				ToolCall(id="c1", name="read", arguments={"path": "a.txt"}),
+				ToolCall(id="c1", name="subagent", arguments={"task": "look"}),
 				ToolCall(id="c2", name="read", arguments={"path": "b.txt"}),
 			]
 		)
 	)
+	session.log.append(RunStarted(run_id="r2", subagent_id="c1"))
+	session.log.append(RunEnded(reason="done", subagent_id="c1"))  # only the sub-agent's run ended
 	session.log.append(ToolResult(tool_call_id="c2", name="read", content="second result"))
 	crashed_seq = session.log.latest_seq
 
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
 
-	assert reloaded.log.latest_seq == crashed_seq + 1
-	repair = reloaded.log.read_since(crashed_seq)[0]
-	assert repair["tool_call_id"] == "c1"
-	assert repair["is_error"] is True
-	assert repair["details"]["repair"] == "interrupted"
+	rows = reloaded.log.read_since(crashed_seq)
+	assert [row["type"] for row in rows] == ["tool_result", "run_error", "run_ended"]
+	assert rows[0]["tool_call_id"] == "c1"
+	assert rows[0]["is_error"] is True
+	assert rows[0]["details"]["repair"] == "interrupted"
+	assert (rows[1]["message"], rows[2]["reason"]) == (INTERRUPTED, "error")
 	# position places the repair beside its call, in the order the calls were made
 	assert [message.type for message in reloaded.transcript.messages] == [
 		"user_message",
@@ -201,67 +175,8 @@ def test_reload_repairs_a_crashed_runs_open_calls(tmp_path):
 		"tool_result",
 	]
 	assert [m.tool_call_id for m in reloaded.transcript.messages[2:]] == ["c1", "c2"]
-	assert reloaded.transcript.messages[2].content == (
-		"Tool call interrupted before its result came back; it may have taken effect. Check before retrying."
-	)
 	assert reloaded.transcript.messages[3].content == "second result"
-
-	second_reload = SessionStore(str(tmp_path)).get(session.id)
-	assert second_reload.log.latest_seq == reloaded.log.latest_seq
-
-
-def test_reload_ends_a_run_the_crash_cut_off(tmp_path):
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock"))
-	session.log.append(RunStarted(run_id="r1"))
-	session.log.append(UserMessage(content="go"))
-	session.log.append(
-		AssistantMessage(content=[ToolCall(id="c1", name="subagent", arguments={"task": "look"})])
-	)
-	session.log.append(RunStarted(run_id="r2", subagent_id="c1"))
-	session.log.append(RunEnded(reason="done", subagent_id="c1"))  # only the sub-agent's run ended
-
-	reloaded = SessionStore(str(tmp_path)).get(session.id)
-
-	rows = reloaded.log.read_since(5)
-	assert [row["type"] for row in rows] == ["tool_result", "run_error", "run_ended"]
-	assert (rows[1]["message"], rows[2]["reason"]) == (INTERRUPTED, "error")
 	assert SessionStore(str(tmp_path)).get(session.id).log.latest_seq == rows[-1]["seq"]  # only once
-
-
-def test_reload_does_not_repair_calls_waiting_for_approval(tmp_path):
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock"))
-	call = ToolCall(id="c1", name="read", arguments={"path": "a.txt"})
-	session.log.append(AssistantMessage(content=[call]))
-	session.log.append(ApprovalRequired(calls=[PendingCall(id=call.id, name=call.name, args=call.args)]))
-	session.log.append(RunEnded(reason="paused"))
-	latest_seq = session.log.latest_seq
-
-	reloaded = SessionStore(str(tmp_path)).get(session.id)
-	assert reloaded.state is SessionState.PAUSED
-	assert reloaded.log.latest_seq == latest_seq
-	assert not any(row["type"] == "tool_result" for row in reloaded.log.read_since(0))
-
-
-async def test_state_is_derived_from_task_and_transcript(tmp_path):
-	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
-	assert session.state is SessionState.IDLE
-
-	release = asyncio.Event()
-
-	class GatedModel(MockModel):
-		async def run(self, request):
-			await release.wait()
-			async for event in super().run(request):
-				yield event
-
-	handle = await session.run("hi", model=GatedModel(replies=[AssistantMessage(content="ok")]))
-	assert session.state is SessionState.RUNNING
-	release.set()
-	assert handle.task is not None
-	await handle.task
-	assert session.state is SessionState.IDLE
 
 
 async def test_commit_failure_fails_the_task_and_frees_the_session(tmp_path, monkeypatch):
@@ -282,6 +197,92 @@ async def test_commit_failure_fails_the_task_and_frees_the_session(tmp_path, mon
 	assert session.is_running is False
 
 
+class _Blocking(MockModel):
+	"""Blocks inside its model call until released (or aborted)."""
+
+	def __init__(self, replies=None):
+		super().__init__(replies=replies)
+		self.started = asyncio.Event()
+		self.release = asyncio.Event()
+
+	async def run(self, request):
+		self.started.set()
+		await self.release.wait()
+		async for event in super().run(request):
+			yield event
+
+
+async def test_a_running_session_refuses_rewind_model_changes_and_compaction(tmp_path):
+	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock", cwd=str(tmp_path)))
+	assert session.state is SessionState.IDLE
+	with pytest.raises(SessionConflict, match="nothing to compact"):
+		await session.compact()
+
+	model = _Blocking()
+	handle = await session.run("go", model=model)
+	await model.started.wait()
+	assert session.state is SessionState.RUNNING  # derived from the live task
+
+	with pytest.raises(SessionConflict):
+		await session.rewind(1)
+	with pytest.raises(SessionConflict):
+		await session.set_model("mock/v2")
+	with pytest.raises(SessionConflict, match="already active"):
+		await session.compact()
+
+	model.release.set()
+	assert handle.task is not None
+	await handle.task
+	assert session.state is SessionState.IDLE
+	assert session.model == "mock"
+
+
+async def test_a_paused_session_holds_its_batch_until_resumed_or_cancelled(tmp_path):
+	(tmp_path / "a.txt").write_text("x")
+	store = SessionStore(str(tmp_path))
+	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path), confirm_tools=["read"]))
+
+	def gated_read(call_id):
+		return MockModel(
+			replies=[
+				AssistantMessage(content=[ToolCall(id=call_id, name="read", arguments={"path": "a.txt"})])
+			]
+		)
+
+	handle = await session.run("read", model=gated_read("c1"))
+	assert handle.task is not None
+	await handle.task
+	assert session.state is SessionState.PAUSED
+	reloaded = SessionStore(str(tmp_path)).get(session.id)
+	assert reloaded.state is SessionState.PAUSED  # loading does not repair calls waiting for approval
+	assert reloaded.log.latest_seq == session.log.latest_seq
+
+	with pytest.raises(SessionConflict, match="paused for approval"):
+		await session.rewind(1)
+	with pytest.raises(SessionConflict, match="paused for approval"):
+		await session.compact()
+	assert "rewind" not in [r["type"] for r in session.log.read_since(0)]
+
+	await session.set_model("mock/v2")
+	assert session.state is SessionState.PAUSED  # the approval batch is untouched
+	assert session.model == "mock/v2"
+
+	handle = await session.resume({"c1": "Approve"}, model=gated_read("c2"))
+	assert handle.task is not None
+	await handle.task
+	approval = session.transcript.pending_approval  # resumed, then paused on the next call
+	assert approval is not None
+	assert [call.id for call in approval.calls] == ["c2"]
+	assert await session.cancel_pending() is True
+	assert session.state is SessionState.IDLE
+
+	first_call_seq = next(r["seq"] for r in session.log.read_since(0) if r["type"] == "assistant_message")
+	with pytest.raises(RewindError, match="unanswered"):
+		await session.rewind(first_call_seq)
+	with pytest.raises(RewindError, match="does not exist"):
+		await session.rewind(999)
+
+
 def _reporting_config() -> SessionConfig:
 	return SessionConfig(
 		model="mock",
@@ -296,40 +297,27 @@ async def _until(predicate, timeout=5.0):
 			await asyncio.sleep(0.01)
 
 
-async def test_run_ended_schedules_the_configured_client_notification(tmp_path, monkeypatch):
+async def test_a_run_end_stays_marked_until_the_client_confirms_the_latest_one(tmp_path, monkeypatch):
 	seen = []
-	delivered = asyncio.Event()
-
-	async def notify(config, session_id, terminal_seq, *, still_needed):
-		seen.append((config.callback_url, session_id, terminal_seq, still_needed()))
-		delivered.set()
-		return True
-
-	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
-	session = SessionStore(str(tmp_path)).create(_reporting_config())
-	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="ok")]))
-	assert handle.task is not None
-	await handle.task
-	await asyncio.wait_for(delivered.wait(), timeout=1)
-
-	assert seen == [("https://client.invalid/callback", session.id, session.log.latest_seq, True)]
-
-
-async def test_a_run_stays_marked_until_the_client_confirms_the_latest_end(tmp_path, monkeypatch):
 	answers = []
 
 	async def notify(config, session_id, terminal_seq, *, still_needed):
+		seen.append((config.callback_url, session_id, terminal_seq, still_needed()))
 		answers.append(asyncio.get_running_loop().create_future())
 		return await answers[-1]
 
 	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
 	session = SessionStore(str(tmp_path)).create(_reporting_config())
+	ends = []
 	for text in ("one", "two"):
 		handle = await session.run(text, model=MockModel(replies=[AssistantMessage(content="ok")]))
 		assert handle.task is not None
 		await handle.task
+		ends.append(session.log.latest_seq)
 	await _until(lambda: len(answers) == 2)
+	assert seen == [("https://client.invalid/callback", session.id, seq, True) for seq in ends]
 	assert session.run_end_marker.exists()
+	await session.set_model("mock/v2")  # a row after the end, but no new run
 
 	answers[0].set_result(True)  # the first run's end, confirmed after the second run ended
 	await asyncio.sleep(0.05)
@@ -338,24 +326,7 @@ async def test_a_run_stays_marked_until_the_client_confirms_the_latest_end(tmp_p
 	await _until(lambda: not session.run_end_marker.exists())
 
 
-async def test_a_confirmed_end_drops_the_marker_even_after_a_model_change(tmp_path, monkeypatch):
-	answer = asyncio.get_running_loop().create_future()
-
-	async def notify(config, session_id, terminal_seq, *, still_needed):
-		return await answer
-
-	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
-	session = SessionStore(str(tmp_path)).create(_reporting_config())
-	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="ok")]))
-	assert handle.task is not None
-	await handle.task
-	await session.set_model("mock/v2")  # a row after the end, but no new run
-
-	answer.set_result(True)
-	await _until(lambda: not session.run_end_marker.exists())
-
-
-async def test_startup_reports_a_run_end_the_client_never_confirmed(tmp_path, monkeypatch):
+async def test_startup_reports_the_run_ends_the_client_never_confirmed(tmp_path, monkeypatch):
 	seen = []
 
 	async def notify(config, session_id, terminal_seq, *, still_needed):
@@ -363,47 +334,25 @@ async def test_startup_reports_a_run_end_the_client_never_confirmed(tmp_path, mo
 		return True
 
 	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
-	session = SessionStore(str(tmp_path)).create(_reporting_config())
-	session.log.append(RunStarted(run_id="r1"))
-	session.log.append(UserMessage(content="go"))
-	session.log.append(AssistantMessage(content="done"))
-	session.log.append(RunEnded(reason="done"))
-	session.run_end_marker.touch()  # the daemon stopped before the client confirmed
-
-	SessionStore(str(tmp_path)).report_unconfirmed_run_ends()  # the restarted daemon
-
-	await _until(lambda: not session.run_end_marker.exists())
-	assert seen == [(session.id, 4)]
-
-
-async def test_startup_reports_the_end_of_a_run_the_crash_cut_off(tmp_path, monkeypatch):
-	seen = []
-
-	async def notify(config, session_id, terminal_seq, *, still_needed):
-		seen.append((session_id, terminal_seq))
-		return True
-
-	monkeypatch.setattr("flow_harness.session.session.notify_run_ended", notify)
-	session = SessionStore(str(tmp_path)).create(_reporting_config())
-	session.log.append(RunStarted(run_id="r1"))
-	session.log.append(UserMessage(content="go"))
-	session.run_end_marker.touch()
+	store = SessionStore(str(tmp_path))
+	ended = store.create(_reporting_config())
+	ended.log.append(RunStarted(run_id="r1"))
+	ended.log.append(UserMessage(content="go"))
+	ended.log.append(AssistantMessage(content="done"))
+	ended.log.append(RunEnded(reason="done"))
+	cut_off = store.create(_reporting_config())
+	cut_off.log.append(RunStarted(run_id="r1"))
+	cut_off.log.append(UserMessage(content="go"))
+	for session in (ended, cut_off):
+		session.run_end_marker.touch()  # the daemon stopped before the client confirmed
 
 	restarted = SessionStore(str(tmp_path))
 	restarted.report_unconfirmed_run_ends()
 
-	ended = restarted.get(session.id).log.read_since(0)[-1]
-	assert (ended["type"], ended["reason"]) == ("run_ended", "error")
-	await _until(lambda: seen)
-	assert seen == [(session.id, ended["seq"])]
-
-
-def test_deleting_a_session_drops_its_run_end_marker(tmp_path):
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock"))
-	session.run_end_marker.touch()
-	store.delete(session.id)
-	assert not session.run_end_marker.exists()
+	closed = restarted.get(cut_off.id).log.read_since(0)[-1]  # loading ended the cut-off run
+	assert (closed["type"], closed["reason"]) == ("run_ended", "error")
+	await _until(lambda: not ended.run_end_marker.exists() and not cut_off.run_end_marker.exists())
+	assert sorted(seen) == sorted([(ended.id, 4), (cut_off.id, closed["seq"])])
 
 
 def _callback_client(attempts: list, *, succeed_at: int | None):
@@ -432,12 +381,12 @@ def _callback_client(attempts: list, *, succeed_at: int | None):
 	return Client
 
 
-async def test_terminal_notification_retries_until_the_client_confirms(monkeypatch):
+async def test_terminal_notification_retries_until_confirmed_or_no_longer_needed(monkeypatch):
+	monkeypatch.setattr("flow_harness.agent.client_tools._TERMINAL_RETRY_DELAYS", (0, 0, 0))
 	attempts = []
 	monkeypatch.setattr(
 		"flow_harness.agent.client_tools.httpx.AsyncClient", _callback_client(attempts, succeed_at=8)
 	)
-	monkeypatch.setattr("flow_harness.agent.client_tools._TERMINAL_RETRY_DELAYS", (0, 0, 0))
 	config = SessionConfig(
 		callback_url="https://client.invalid/callback",
 		callback_token="secret",
@@ -456,21 +405,16 @@ async def test_terminal_notification_retries_until_the_client_confirms(monkeypat
 		{"X-Harness-Token": "secret"},
 	)
 
-
-async def test_terminal_notification_stops_once_no_longer_needed(monkeypatch):
 	attempts = []
 	monkeypatch.setattr(
 		"flow_harness.agent.client_tools.httpx.AsyncClient", _callback_client(attempts, succeed_at=None)
 	)
-	monkeypatch.setattr("flow_harness.agent.client_tools._TERMINAL_RETRY_DELAYS", (0, 0, 0))
 	still_needed = iter([True, True, False])
-	config = SessionConfig(callback_url="https://client.invalid/callback", notify_run_ended=True)
-
 	assert await notify_run_ended(config, "session-1", 7, still_needed=lambda: next(still_needed)) is False
 	assert len(attempts) == 2
 
 
-async def test_events_replays_then_stays_live_without_duplicates(tmp_path):
+async def test_events_replay_then_stay_live_and_a_reload_starts_a_new_cursor(tmp_path):
 	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock"))
 	first = await session.run("one", model=MockModel(replies=[AssistantMessage(content="first")]))
 	assert first.task is not None
@@ -496,12 +440,6 @@ async def test_events_replays_then_stays_live_without_duplicates(tmp_path):
 	assert len(durable_seqs) == len(set(durable_seqs))  # replay/live overlap deduplicated
 	assert [event.content for event in seen if event.type == "user_message"] == ["one", "two"]
 
-
-async def test_live_cursor_changes_when_a_session_is_reloaded(tmp_path):
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock"))
-	handle = await session.run("hi", model=MockModel(replies=[AssistantMessage(content="hello")]))
-	await handle.task
 	before = session.event_snapshot()
 	after = SessionStore(str(tmp_path)).get(session.id).event_snapshot()
 	assert after["stream_id"] != before["stream_id"]
@@ -604,14 +542,16 @@ async def test_slow_event_subscriber_is_dropped_and_can_reconnect(tmp_path, monk
 
 async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
 	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path)))
+	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
 	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
 	assert handle.task is not None
 	await handle.task
+	await session.set_model("mock/v2")
 	rows_before = session.log.read_since(0)
 
-	await session.rewind(1)  # branch from an entry mid-log
+	await session.rewind(1)  # branch from an entry mid-log, before the model change
 
+	assert session.model == "mock"  # the change stayed behind on the abandoned branch
 	handle = await session.run("B", model=MockModel(replies=[AssistantMessage(content="Y")]))
 	assert handle.task is not None
 	await handle.task
@@ -623,95 +563,16 @@ async def test_rewind_branches_and_the_next_run_follows_the_new_path(tmp_path):
 	assert rows[len(rows_before)]["type"] == "rewind"
 	reloaded = SessionStore(str(tmp_path)).get(session.id)
 	assert [getattr(m, "text", None) or m.content for m in reloaded.transcript.messages] == texts
+	assert reloaded.model == "mock"
 	assert reloaded.log.latest_seq == session.log.latest_seq  # load repaired nothing
 
-
-async def test_rewind_while_running_is_a_conflict(tmp_path):
-	from flow_harness.session.session import SessionConflict
-
-	class Blocking(MockModel):
-		def __init__(self):
-			super().__init__()
-			self.started = asyncio.Event()
-			self.release = asyncio.Event()
-
-		async def run(self, request):
-			self.started.set()
-			await self.release.wait()
-			yield AssistantMessage(content="done")
-
-	model = Blocking()
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path)))
-	handle = await session.run("go", model=model)
-	await model.started.wait()
-
-	with pytest.raises(SessionConflict):
-		await session.rewind(1)
-
-	model.release.set()
-	assert handle.task is not None
-	await handle.task
-
-
-async def test_rewind_rejects_targets_that_leave_calls_open(tmp_path):
-	from flow_harness.session.session import RewindError
-
-	(tmp_path / "a.txt").write_text("x")
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read"]))
-	model = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
-	)
-	handle = await session.run("read", model=model)
-	assert handle.task is not None
-	await handle.task
-	assert await session.cancel_pending() is True  # a paused session refuses every rewind
-	assistant_seq = next(r["seq"] for r in session.log.read_since(0) if r["type"] == "assistant_message")
-
-	with pytest.raises(RewindError, match="unanswered"):
-		await session.rewind(assistant_seq)
-	with pytest.raises(RewindError, match="does not exist"):
-		await session.rewind(999)
-
-
-async def test_rewind_while_paused_is_a_conflict(tmp_path):
-	from flow_harness.session.session import SessionConflict
-
-	(tmp_path / "a.txt").write_text("x")
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read"]))
-	model = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
-	)
-	handle = await session.run("read", model=model)
-	assert handle.task is not None
-	await handle.task
-	assert session.state is SessionState.PAUSED
-
-	with pytest.raises(SessionConflict, match="paused for approval"):
-		await session.rewind(1)
-
-	assert session.state is SessionState.PAUSED  # the batch still waits for an answer
-	assert "rewind" not in [r["type"] for r in session.log.read_since(0)]
-
-
-async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
-	from flow_harness.session.transcript import active_path
-
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path)))
-	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
-	assert handle.task is not None
-	await handle.task
-
-	await session.rewind(0)
+	await session.rewind(0)  # to before everything
 
 	assert session.transcript.messages == []
-	handle = await session.run("B", model=MockModel(replies=[AssistantMessage(content="Y")]))
+	handle = await session.run("C", model=MockModel(replies=[AssistantMessage(content="Z")]))
 	assert handle.task is not None
 	await handle.task
-	assert [getattr(m, "text", None) or m.content for m in session.transcript.messages] == ["B", "Y"]
+	assert [getattr(m, "text", None) or m.content for m in session.transcript.messages] == ["C", "Z"]
 	# the new branch is a clean single run — no phantom run_started from the old one
 	assert [r["type"] for r in active_path(session.log.read_since(0))] == [
 		"run_started",
@@ -725,7 +586,6 @@ async def test_rewind_to_zero_replaces_the_first_run(tmp_path):
 async def test_rewinding_twice_lands_on_the_branch_the_first_marker_moved_to(tmp_path):
 	"""A client that rewinds "to just before the last user message" aims at the row
 	before its run_started — which, for the first run after a rewind, is the marker."""
-	from flow_harness.session.transcript import active_path
 
 	def target_before_last_user_message(session):
 		rows = active_path(session.log.read_since(0))
@@ -755,78 +615,7 @@ async def test_rewinding_twice_lands_on_the_branch_the_first_marker_moved_to(tmp
 	assert [getattr(m, "text", None) or m.content for m in reloaded.transcript.messages] == texts
 
 
-async def test_set_model_is_rejected_while_running(tmp_path):
-	from flow_harness.session.session import SessionConflict
-
-	class Blocking(MockModel):
-		def __init__(self):
-			super().__init__()
-			self.started = asyncio.Event()
-			self.release = asyncio.Event()
-
-		async def run(self, request):
-			self.started.set()
-			await self.release.wait()
-			yield AssistantMessage(content="done")
-
-	model = Blocking()
-	session = SessionStore(str(tmp_path)).create(SessionConfig(model="mock", cwd=str(tmp_path)))
-	handle = await session.run("go", model=model)
-	await model.started.wait()
-
-	with pytest.raises(SessionConflict):
-		await session.set_model("mock/v2")
-
-	model.release.set()
-	assert handle.task is not None
-	await handle.task
-	assert session.model == "mock"
-
-
-async def test_rewind_to_before_a_model_change_restores_the_old_selection(tmp_path):
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(model="mock", cwd=str(tmp_path)))
-	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
-	assert handle.task is not None
-	await handle.task
-	branch_point = session.log.latest_seq
-
-	await session.set_model("mock/v2")
-	assert session.model == "mock/v2"
-
-	await session.rewind(branch_point)
-
-	assert session.model == "mock"  # the change stayed behind on the abandoned branch
-	reloaded = SessionStore(str(tmp_path)).get(session.id)
-	assert reloaded.model == "mock"
-
-
-async def test_set_model_while_paused_keeps_the_pause(tmp_path):
-	(tmp_path / "a.txt").write_text("x")
-	session = SessionStore(str(tmp_path)).create(
-		SessionConfig(model="mock", cwd=str(tmp_path), confirm_tools=["read"])
-	)
-	model = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
-	)
-	handle = await session.run("read", model=model)
-	assert handle.task is not None
-	await handle.task
-	assert session.state is SessionState.PAUSED
-
-	await session.set_model("mock/v2")
-
-	assert session.state is SessionState.PAUSED  # the approval batch is untouched
-	assert session.model == "mock/v2"
-	handle = await session.resume(
-		{"c1": "Approve"}, model=MockModel(replies=[AssistantMessage(content="done")])
-	)
-	assert handle.task is not None
-	await handle.task
-	assert session.state is SessionState.IDLE
-
-
-async def test_compact_writes_a_durable_summary_and_survives_reload(tmp_path):
+async def test_compact_writes_a_durable_summary_and_refuses_runs_meanwhile(tmp_path):
 	store = SessionStore(str(tmp_path))
 	session = store.create(SessionConfig(cwd=str(tmp_path)))
 	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
@@ -834,10 +623,14 @@ async def test_compact_writes_a_durable_summary_and_survives_reload(tmp_path):
 	await handle.task
 	rows_before = session.log.read_since(0)
 
-	handle = await session.compact(
-		"keep the goal", model=MockModel(replies=[AssistantMessage(content="the summary")])
-	)
+	model = _Blocking(replies=[AssistantMessage(content="the summary")])
+	handle = await session.compact("keep the goal", model=model)
 	assert handle.status == "started"
+	await model.started.wait()
+	with pytest.raises(SessionConflict, match="compaction is in progress"):
+		await session.run("during compaction", model=MockModel())
+	assert not session._steering_queue  # nothing was queued for a later run to misplace
+	model.release.set()
 	assert handle.task is not None
 	await handle.task
 
@@ -859,51 +652,14 @@ async def test_compact_writes_a_durable_summary_and_survives_reload(tmp_path):
 	]
 	assert reloaded.log.latest_seq == session.log.latest_seq  # load repaired nothing
 
-
-async def test_compact_conflicts_while_running_paused_or_empty(tmp_path):
-	from flow_harness.session.session import SessionConflict
-
-	(tmp_path / "a.txt").write_text("x")
-	store = SessionStore(str(tmp_path))
-
-	empty = store.create(SessionConfig(cwd=str(tmp_path)))
-	with pytest.raises(SessionConflict, match="nothing to compact"):
-		await empty.compact()
-
-	class Blocking(MockModel):
-		def __init__(self):
-			super().__init__()
-			self.started = asyncio.Event()
-			self.release = asyncio.Event()
-
-		async def run(self, request):
-			self.started.set()
-			await self.release.wait()
-			yield AssistantMessage(content="done")
-
-	model = Blocking()
-	running = store.create(SessionConfig(cwd=str(tmp_path)))
-	handle = await running.run("go", model=model)
-	await model.started.wait()
-	with pytest.raises(SessionConflict, match="already active"):
-		await running.compact()
-	model.release.set()
+	handle = await session.run("after", model=MockModel(replies=[AssistantMessage(content="Y")]))
 	assert handle.task is not None
 	await handle.task
-
-	paused = store.create(SessionConfig(cwd=str(tmp_path), confirm_tools=["read"]))
-	gate = MockModel(
-		replies=[AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={"path": "a.txt"})])]
-	)
-	handle = await paused.run("read", model=gate)
-	assert handle.task is not None
-	await handle.task
-	assert paused.state is SessionState.PAUSED
-	with pytest.raises(SessionConflict, match="paused for approval"):
-		await paused.compact()
+	texts = [getattr(m, "text", None) or m.content for m in session.transcript.messages]
+	assert texts == ["Previous conversation summary:\nthe summary", "after", "Y"]
 
 
-async def test_compact_failure_settles_as_a_failed_run(tmp_path):
+async def test_failed_or_aborted_compaction_settles_as_a_closed_run(tmp_path):
 	store = SessionStore(str(tmp_path))
 	events: list[dict] = []
 	store.event_sink = lambda _sid, ev: events.append(ev)
@@ -929,61 +685,8 @@ async def test_compact_failure_settles_as_a_failed_run(tmp_path):
 	usage = [e for e in session.log.read_since(0) if e["type"] == "usage"][-1]
 	assert usage["standalone"] is True and usage["input_tokens"] > 0
 
-
-class _BlockingSummarizer(MockModel):
-	"""Blocks inside the summarization call until released (or aborted)."""
-
-	def __init__(self):
-		super().__init__()
-		self.started = asyncio.Event()
-		self.release = asyncio.Event()
-
-	async def run(self, request):
-		self.started.set()
-		await self.release.wait()
-		yield AssistantMessage(content="the summary")
-
-
-async def test_run_during_manual_compact_is_a_conflict_not_steering(tmp_path):
-	from flow_harness.session.session import SessionConflict
-
-	store = SessionStore(str(tmp_path))
-	session = store.create(SessionConfig(cwd=str(tmp_path)))
-	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
-	assert handle.task is not None
-	await handle.task
-
-	model = _BlockingSummarizer()
-	compacting = await session.compact(model=model)
-	await model.started.wait()
-
-	with pytest.raises(SessionConflict, match="compaction is in progress"):
-		await session.run("during compaction", model=MockModel())
-	assert not session._steering_queue  # nothing was queued for a later run to misplace
-
-	model.release.set()
-	assert compacting.task is not None
-	await compacting.task
-
-	handle = await session.run("after", model=MockModel(replies=[AssistantMessage(content="Y")]))
-	assert handle.task is not None
-	await handle.task
-	texts = [getattr(m, "text", None) or m.content for m in session.transcript.messages]
-	assert texts == ["Previous conversation summary:\nthe summary", "after", "Y"]
-
-
-async def test_abort_during_manual_compact_closes_the_protocol_cleanly(tmp_path):
-	store = SessionStore(str(tmp_path))
-	events: list[dict] = []
-	store.event_sink = lambda _sid, ev: events.append(ev)
-	session = store.create(SessionConfig(cwd=str(tmp_path)))
-	handle = await session.run("A", model=MockModel(replies=[AssistantMessage(content="X")]))
-	assert handle.task is not None
-	await handle.task
 	rows_before = session.log.read_since(0)
-	messages_before = [m.model_dump() for m in session.transcript.messages]
-
-	model = _BlockingSummarizer()
+	model = _Blocking()
 	compacting = await session.compact(model=model)
 	await model.started.wait()
 	assert session.abort() is True

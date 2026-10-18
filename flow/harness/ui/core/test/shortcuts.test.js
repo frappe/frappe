@@ -12,34 +12,23 @@ const event = (over = {}) => ({
 	...over,
 })
 
-test("cmd+b and ctrl+b match the sidebar shortcut", () => {
-	assert.equal(findShortcut(event({ metaKey: true })), SHORTCUTS[0])
-	assert.equal(findShortcut(event({ ctrlKey: true })), SHORTCUTS[0])
-})
-
-test("cmd+option+b matches the workspace shortcut", () => {
-	assert.equal(findShortcut(event({ metaKey: true, altKey: true })), SHORTCUTS[1])
-	assert.equal(findShortcut(event({ ctrlKey: true, altKey: true })), SHORTCUTS[1])
-})
-
-test("cmd+comma and ctrl+comma open settings", () => {
-	assert.equal(findShortcut(event({ metaKey: true, code: "Comma" })), SHORTCUTS[2])
-	assert.equal(findShortcut(event({ ctrlKey: true, code: "Comma" })), SHORTCUTS[2])
-	assert.equal(findShortcut(event({ code: "Comma" })), null)
-})
-
-test("modifiers must match exactly", () => {
-	assert.equal(findShortcut(event()), null)
-	assert.equal(findShortcut(event({ metaKey: true, shiftKey: true })), null)
-	assert.equal(findShortcut(event({ metaKey: true, code: "KeyA" })), null)
-})
-
-test("a combo follows the character typed, or the key's place when that isn't a plain one", () => {
-	// Dvorak: the B key types x, so Cmd+X stays cut, and the key that types b is the shortcut
-	assert.equal(findShortcut(event({ metaKey: true, key: "x" })), null)
-	assert.equal(findShortcut(event({ metaKey: true, code: "KeyN", key: "b" })), SHORTCUTS[0])
-	assert.equal(findShortcut(event({ ctrlKey: true, code: "KeyW", key: "," })), SHORTCUTS[2])
-	// Option+B types "∫" on a mac, and a Cyrillic layout types "и": the key's place decides
-	assert.equal(findShortcut(event({ metaKey: true, altKey: true, key: "∫" })), SHORTCUTS[1])
-	assert.equal(findShortcut(event({ ctrlKey: true, key: "и" })), SHORTCUTS[0])
+test("a combo needs Cmd or Ctrl and exact modifiers, and follows the typed character, else the key's place", () => {
+	const [sidebar, workspace, settings] = SHORTCUTS
+	for (const [over, shortcut] of [
+		[{ metaKey: true }, sidebar],
+		[{ ctrlKey: true }, sidebar],
+		[{ metaKey: true, altKey: true }, workspace],
+		[{ ctrlKey: true, code: "Comma" }, settings],
+		[{}, null],
+		[{ metaKey: true, shiftKey: true }, null],
+		[{ metaKey: true, code: "KeyA" }, null],
+		// Dvorak: the B key types x, so Cmd+X stays cut, and the key that types b is the shortcut
+		[{ metaKey: true, key: "x" }, null],
+		[{ metaKey: true, code: "KeyN", key: "b" }, sidebar],
+		[{ ctrlKey: true, code: "KeyW", key: "," }, settings],
+		// Option+B types "∫" on a mac, and a Cyrillic layout types "и": the key's place decides
+		[{ metaKey: true, altKey: true, key: "∫" }, workspace],
+		[{ ctrlKey: true, key: "и" }, sidebar],
+	])
+		assert.equal(findShortcut(event(over)), shortcut, JSON.stringify(over))
 })

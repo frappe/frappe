@@ -38,7 +38,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_model_insert_auto_creates_assistant(self):
+	def test_model_insert_auto_creates_a_locked_assistant(self):
 		# Model setUp insert triggers after_insert → sync_builtin_assistant.
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 
@@ -48,13 +48,12 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertTrue(doc.enabled)
 		expected_slugs = sorted(t.name for t in BUILTIN_TOOLS)
 		self.assertEqual(sorted(row.tool for row in doc.tools), expected_slugs)
-
-	def test_the_prompt_names_the_session_user_and_today(self):
-		prompt = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).render_instructions()
 		self.assertIn(
 			f"You are helping Administrator (Administrator). Session started on {get_weekday()}, {today()}.",
-			prompt,
+			doc.render_instructions(),
 		)
+		with self.assertRaisesRegex(frappe.ValidationError, "system-generated"):
+			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
 
 	def test_install_adds_builtin_tools_before_any_model(self):
 		self.assertIn(
@@ -73,18 +72,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		)
 		self.assertFalse(frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE))
 
-	def test_sync_updates_instructions_on_existing_system_agent(self):
-		# sync_builtin_assistant should overwrite instructions on a system-generated agent.
-		original = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
-		original.instructions = "stale instructions"
-		original.save(ignore_permissions=True)
-
-		sync_builtin_assistant(model=self.model.name)
-
-		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
-		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
-
-	def test_sync_restores_the_complete_definition_but_keeps_site_choices(self):
+	def test_sync_restores_the_system_assistant_but_never_a_user_owned_one(self):
 		other_model = frappe.get_doc(
 			{
 				"doctype": "Flow Model",
@@ -120,56 +108,40 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [])
 		self.assertEqual((doc.model, doc.enabled), (other_model.name, 0))
 
-	def test_sync_is_noop_for_user_owned_agent(self):
-		# If is_system_generated was cleared (user took ownership), sync must not touch it.
-		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
-		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "instructions", "user customised")
-
+		# a user who took it over (cleared is_system_generated) keeps their changes
+		frappe.db.set_value(
+			"Flow Agent", ASSISTANT_AGENT_TITLE, {"is_system_generated": 0, "instructions": "user customised"}
+		)
 		sync_builtin_assistant(model=self.model.name)
+		self.assertEqual(
+			frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_TITLE, "instructions"), "user customised"
+		)
 
-		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
-		self.assertEqual(doc.instructions, "user customised")
-
-	def test_the_assistant_gets_every_app_skill_past_the_desk_cap(self):
-		skills = AppSkills(self)
-		names = [f"skill-{i:02d}" for i in range(MAX_SKILLS + 1)]
-		for name in names:
-			skills.write(name)
-
-		sync_builtin_assistant(model=self.model.name)
-
-		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
-		self.assertEqual([row.skill for row in doc.skills], names)
-
-	def test_installing_or_removing_an_app_updates_the_assistant_skills(self):
+	def test_the_assistant_follows_every_app_skill_past_the_desk_cap(self):
 		for hook in ("after_app_install", "after_app_uninstall"):
 			self.assertIn("flow.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="flow"))
-		folder = AppSkills(self).write("close-todos")
+		skills = AppSkills(self)
+		names = [f"skill-{i:02d}" for i in range(MAX_SKILLS + 1)]
+		folders = [skills.write(name) for name in names]
 
 		sync_assistant_skills("myapp")
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
-		self.assertEqual([row.skill for row in doc.skills], ["close-todos"])
+		self.assertEqual([row.skill for row in doc.skills], names)
 
-		shutil.rmtree(folder)
+		for folder in folders:
+			shutil.rmtree(folder)
 		sync_assistant_skills("myapp")
 		doc.reload()
 		self.assertEqual(doc.skills, [])
 
-	def test_assistant_cannot_be_deleted(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "system-generated"):
-			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
-
-	def test_a_later_model_leaves_the_assistant_alone(self):
+	def test_a_new_model_replaces_only_one_the_assistant_lost(self):
 		with patch("flow.assistant.assistant.sync_builtin_assistant") as sync:
 			self.insert_model("Second Model")
 		sync.assert_not_called()
 
-	def test_a_new_model_replaces_one_the_assistant_lost(self):
 		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model", "Gone Model")
-
-		second = self.insert_model("Second Model")
-
-		self.assertEqual(frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model"), second.name)
+		third = self.insert_model("Third Model")
+		self.assertEqual(frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model"), third.name)
 
 	def insert_model(self, title: str):
 		return frappe.get_doc(

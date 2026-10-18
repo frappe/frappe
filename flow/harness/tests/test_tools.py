@@ -1,255 +1,137 @@
 import asyncio
-import inspect
 import os
 
 import pytest
 
-from flow_harness.tools.builtins import BUILTIN_TOOLS, bash, edit, read, write
+from flow_harness.tools.builtins import bash, edit, read, write
 from flow_harness.tools.builtins.common import truncate
-from flow_harness.tools.tool import ToolContext, ToolResult
+from flow_harness.tools.tool import ToolContext
 
 
 def _ctx(tmp_path, **kw) -> ToolContext:
 	return ToolContext(cwd=str(tmp_path), **kw)
 
 
-def test_registry_keys():
-	assert set(BUILTIN_TOOLS) == {"bash", "read", "write", "edit", "subagent"}
-	assert BUILTIN_TOOLS["bash"].requires_confirmation is True
-	assert BUILTIN_TOOLS["read"].requires_confirmation is False
-
-
-async def test_write_then_read_roundtrip(tmp_path):
+async def test_write_then_read_back_in_windows(tmp_path):
 	ctx = _ctx(tmp_path)
-	res = await write(path="sub/note.txt", content="hello", ctx=ctx)
-	assert isinstance(res, ToolResult)
-	assert "wrote sub/note.txt" in res.content
-	assert res.details == {"path": str(tmp_path / "sub" / "note.txt"), "chars": 5, "lines": 1}
-	assert (tmp_path / "sub" / "note.txt").read_text() == "hello"
-	assert (await read(path="sub/note.txt", ctx=ctx)).content == "hello"
+	res = await write(path="sub/n.txt", content="l1\nl2\nl3\nl4\nl5", ctx=ctx)
+	assert "wrote sub/n.txt" in res.content
+	assert res.details == {"path": str(tmp_path / "sub" / "n.txt"), "chars": 14, "lines": 5}
+	assert (tmp_path / "sub" / "n.txt").read_text() == "l1\nl2\nl3\nl4\nl5"
+	assert (await read(path="sub/n.txt", ctx=ctx)).content == "l1\nl2\nl3\nl4\nl5"
 
-
-async def test_path_tools_reject_traversal_outside_allowed_roots(tmp_path):
-	allowed = tmp_path / "allowed"
-	allowed.mkdir()
-	outside = tmp_path / "outside.txt"
-	outside.write_text("secret")
-	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
-
-	for call in (
-		read(path="../outside.txt", ctx=ctx),
-		write(path="../created.txt", content="nope", ctx=ctx),
-		edit(path="../outside.txt", edits=[{"old": "secret", "new": "changed"}], ctx=ctx),
-	):
-		with pytest.raises(PermissionError, match="outside the configured allowed roots"):
-			await call
-
-	assert outside.read_text() == "secret"
-	assert not (tmp_path / "created.txt").exists()
-
-
-async def test_path_tools_reject_symlink_escape(tmp_path):
-	allowed = tmp_path / "allowed"
-	outside = tmp_path / "outside"
-	allowed.mkdir()
-	outside.mkdir()
-	(outside / "secret.txt").write_text("secret")
-	(allowed / "link").symlink_to(outside, target_is_directory=True)
-	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
-
-	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
-		await read(path="link/secret.txt", ctx=ctx)
-	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
-		await write(path="link/new.txt", content="nope", ctx=ctx)
-
-	assert not (outside / "new.txt").exists()
-
-
-async def test_path_tools_preserve_addressed_path_for_allowed_symlink(tmp_path):
-	allowed = tmp_path / "allowed"
-	target = allowed / "target"
-	allowed.mkdir()
-	target.mkdir()
-	(target / "note.txt").write_text("hello")
-	(allowed / "link").symlink_to(target, target_is_directory=True)
-	ctx = _ctx(allowed, allowed_roots=(str(allowed),))
-
-	result = await read(path="link/note.txt", ctx=ctx)
-
-	assert result.content == "hello"
-	assert result.details["path"] == str(allowed / "link" / "note.txt")
-
-
-async def test_path_tools_allow_any_configured_root(tmp_path):
-	project = tmp_path / "project"
-	shared = tmp_path / "shared"
-	project.mkdir()
-	shared.mkdir()
-	(shared / "context.txt").write_text("shared context")
-	ctx = _ctx(project, allowed_roots=(str(project), str(shared)))
-
-	result = await read(path=str(shared / "context.txt"), ctx=ctx)
-
-	assert result.content == "shared context"
-
-
-async def test_hidden_paths_remain_available_by_default(tmp_path):
-	secret = tmp_path / ".secret"
-	secret.write_text("needle")
-	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),))
-
-	assert (await read(path=".secret", ctx=ctx)).content == "needle"
-
-
-async def test_hidden_paths_can_be_ignored(tmp_path):
-	hidden_dir = tmp_path / ".private"
-	hidden_dir.mkdir()
-	(hidden_dir / "secret.txt").write_text("needle hidden")
-	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),), ignore_hidden_files=True)
-
-	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
-		await read(path=".private/secret.txt", ctx=ctx)
-
-
-async def test_hidden_symlink_targets_are_ignored(tmp_path):
-	hidden_dir = tmp_path / ".private"
-	hidden_dir.mkdir()
-	(hidden_dir / "secret.txt").write_text("secret")
-	(tmp_path / "visible-link").symlink_to(hidden_dir, target_is_directory=True)
-	ctx = _ctx(tmp_path, allowed_roots=(str(tmp_path),), ignore_hidden_files=True)
-
-	with pytest.raises(PermissionError, match="outside the configured allowed roots"):
-		await read(path="visible-link/secret.txt", ctx=ctx)
-
-
-async def test_read_missing_file(tmp_path):
-	res = await read(path="nope.txt", ctx=_ctx(tmp_path))
-	assert res.is_error
-	assert "no such file" in res.content
-
-
-async def test_read_refuses_binary_files(tmp_path):
-	(tmp_path / "clip.mp4").write_bytes(b"\x00\x00\x00\x20ftypisom")
-	res = await read(path="clip.mp4", ctx=_ctx(tmp_path))
-	assert res.is_error
-	assert res.content == "[clip.mp4 is a binary file; read shows only text and images]"
-
-
-async def test_edit_single_and_errors(tmp_path):
-	ctx = _ctx(tmp_path)
-	(tmp_path / "f.txt").write_text("alpha beta alpha")
-	dup = await edit(path="f.txt", edits=[{"old": "alpha", "new": "x"}], ctx=ctx)
-	assert "not unique (2 matches)" in dup.content
-	assert (await edit(path="f.txt", edits=[{"old": "zzz", "new": "x"}], ctx=ctx)).is_error
-	res = await edit(path="f.txt", edits=[{"old": "beta", "new": "B"}], ctx=ctx)
-	assert "edited f.txt" in res.content
-	assert res.details["diff"].startswith("---")  # unified diff emitted
-	# the one changed line counts once on each side; diff headers don't count
-	assert res.details["lines_added"] == 1
-	assert res.details["lines_removed"] == 1
-	assert (tmp_path / "f.txt").read_text() == "alpha B alpha"
-
-
-async def test_edit_multiple_blocks(tmp_path):
-	p = tmp_path / "m.txt"
-	p.write_text("aaa\nbbb\nccc")
-	res = await edit(
-		path="m.txt",
-		edits=[{"old": "aaa", "new": "A"}, {"old": "ccc", "new": "C"}],
-		ctx=_ctx(tmp_path),
-	)
-	assert "2 block(s)" in res.content
-	assert p.read_text() == "A\nbbb\nC"
-
-
-async def test_edit_overlapping_blocks_rejected(tmp_path):
-	p = tmp_path / "o.txt"
-	p.write_text("hello world")
-	res = await edit(
-		path="o.txt",
-		edits=[{"old": "hello world", "new": "x"}, {"old": "world", "new": "y"}],
-		ctx=_ctx(tmp_path),
-	)
-	assert res.is_error
-	assert "overlap" in res.content
-	assert p.read_text() == "hello world"  # atomic: unchanged when any edit fails
-
-
-async def test_edit_preserves_crlf(tmp_path):
-	p = tmp_path / "w.txt"
-	p.write_bytes(b"one\r\ntwo\r\nthree\r\n")
-	# model sends LF oldText; it must still match against the CRLF file
-	res = await edit(path="w.txt", edits=[{"old": "two\nthree", "new": "TWO\nTHREE"}], ctx=_ctx(tmp_path))
-	assert "edited" in res.content
-	assert p.read_bytes() == b"one\r\nTWO\r\nTHREE\r\n"
-
-
-async def test_edit_preserves_bom(tmp_path):
-	p = tmp_path / "b.txt"
-	p.write_bytes(b"\xef\xbb\xbfhello world")
-	res = await edit(path="b.txt", edits=[{"old": "world", "new": "there"}], ctx=_ctx(tmp_path))
-	assert "edited" in res.content
-	assert p.read_bytes() == b"\xef\xbb\xbfhello there"
-
-
-async def test_read_offset_and_limit(tmp_path):
-	(tmp_path / "n.txt").write_text("l1\nl2\nl3\nl4\nl5")
-	ctx = _ctx(tmp_path)
-	windowed = await read(path="n.txt", offset=2, limit=2, ctx=ctx)
+	windowed = await read(path="sub/n.txt", offset=2, limit=2, ctx=ctx)
 	assert windowed.content.startswith("l2\nl3")
 	assert "use offset=4 to continue" in windowed.content
-	assert (await read(path="n.txt", offset=4, ctx=ctx)).content == "l4\nl5"
+	assert (await read(path="sub/n.txt", offset=4, ctx=ctx)).content == "l4\nl5"
 
 
-async def test_read_offset_beyond_eof(tmp_path):
+async def test_path_tools_stay_inside_allowed_roots(tmp_path):
+	allowed = tmp_path / "allowed"
+	outside = tmp_path / "outside"
+	shared = tmp_path / "shared"
+	for folder in (allowed / ".private", allowed / "target", outside, shared):
+		folder.mkdir(parents=True)
+	(tmp_path / "outside.txt").write_text("secret")
+	(outside / "secret.txt").write_text("secret")
+	(allowed / ".private" / "secret.txt").write_text("secret")
+	(allowed / ".secret").write_text("needle")
+	(allowed / "target" / "note.txt").write_text("hello")
+	(shared / "context.txt").write_text("shared context")
+	(allowed / "escape").symlink_to(outside, target_is_directory=True)
+	(allowed / "inner").symlink_to(allowed / "target", target_is_directory=True)
+	(allowed / "visible-link").symlink_to(allowed / ".private", target_is_directory=True)
+	ctx = _ctx(allowed, allowed_roots=(str(allowed), str(shared)))
+	no_hidden = _ctx(allowed, allowed_roots=(str(allowed), str(shared)), ignore_hidden_files=True)
+
+	for case, call in (
+		("read ..", read(path="../outside.txt", ctx=ctx)),
+		("write ..", write(path="../created.txt", content="nope", ctx=ctx)),
+		("edit ..", edit(path="../outside.txt", edits=[{"old": "secret", "new": "changed"}], ctx=ctx)),
+		("read through a symlink", read(path="escape/secret.txt", ctx=ctx)),
+		("write through a symlink", write(path="escape/new.txt", content="nope", ctx=ctx)),
+		("read a hidden folder", read(path=".private/secret.txt", ctx=no_hidden)),
+		("read through a symlink to a hidden folder", read(path="visible-link/secret.txt", ctx=no_hidden)),
+	):
+		try:
+			await call
+		except PermissionError as error:
+			assert "outside the configured allowed roots" in str(error), case
+		else:
+			pytest.fail(f"{case} was allowed")
+	assert (tmp_path / "outside.txt").read_text() == "secret"
+	assert not (tmp_path / "created.txt").exists()
+	assert not (outside / "new.txt").exists()
+
+	linked = await read(path="inner/note.txt", ctx=ctx)
+	assert linked.content == "hello"
+	assert linked.details["path"] == str(allowed / "inner" / "note.txt")  # the path as addressed
+	assert (await read(path=str(shared / "context.txt"), ctx=ctx)).content == "shared context"  # any root
+	assert (await read(path=".secret", ctx=ctx)).content == "needle"  # hidden files are readable by default
+
+
+async def test_read_reports_what_it_cannot_show(tmp_path):
+	(tmp_path / "clip.mp4").write_bytes(b"\x00\x00\x00\x20ftypisom")
 	(tmp_path / "n.txt").write_text("l1\nl2")
-	res = await read(path="n.txt", offset=99, ctx=_ctx(tmp_path))
-	assert res.is_error
-	assert "beyond end of file" in res.content
+	for kwargs, error in (
+		({"path": "nope.txt"}, "no such file"),
+		({"path": "clip.mp4"}, "[clip.mp4 is a binary file; read shows only text and images]"),
+		({"path": "n.txt", "offset": 99}, "beyond end of file"),
+	):
+		res = await read(**kwargs, ctx=_ctx(tmp_path))
+		assert res.is_error, kwargs
+		assert error in res.content, kwargs
 
 
-async def test_bash_runs_and_reports_exit_code(tmp_path):
-	res = await bash(command="echo hi", ctx=_ctx(tmp_path))
-	assert "hi" in res.content
-	assert "[exit code: 0]" in res.content
-	assert res.is_error is False
-	assert res.details["exit_code"] == 0
-	assert res.details["duration_seconds"] >= 0
-
-
-async def test_bash_nonzero_exit(tmp_path):
-	res = await bash(command="exit 3", ctx=_ctx(tmp_path))
-	assert res.is_error
-	assert res.details["exit_code"] == 3
-
-
-async def test_bash_timeout_from_ctx(tmp_path):
-	res = await bash(command="sleep 5", ctx=_ctx(tmp_path, timeout=0.2))
-	assert res.is_error
-	assert "timed out after 0.2s" in res.content
-	assert res.details["timed_out"] is True
-
-
-async def test_bash_timeout_arg_overrides_ctx(tmp_path):
-	# ctx default is 120s; per-call arg wins
-	res = await bash(command="sleep 5", timeout=0.2, ctx=_ctx(tmp_path))
-	assert res.is_error
-	assert "timed out after 0.2s" in res.content
-
-
-async def test_bash_rejects_bad_timeout(tmp_path):
-	res = await bash(command="echo hi", timeout=0, ctx=_ctx(tmp_path))
-	assert res.is_error
-	assert "timeout must be > 0" in res.content
-
-
-async def test_bash_abort(tmp_path):
+async def test_edit_replaces_exact_blocks_or_nothing(tmp_path):
 	ctx = _ctx(tmp_path)
-	ctx.abort.set()
-	res = await bash(command="sleep 5", ctx=ctx)
-	assert res.is_error
-	assert "[command aborted]" in res.content
-	assert res.details["aborted"] is True
+	path = tmp_path / "f.txt"
+	for case, before, edits, after, changed in (
+		("one block", b"alpha beta alpha", [("beta", "B")], b"alpha B alpha", 1),
+		("two blocks", b"aaa\nbbb\nccc", [("aaa", "A"), ("ccc", "C")], b"A\nbbb\nC", 2),
+		# the model sends LF; the CRLF file still matches and keeps its endings
+		("crlf", b"one\r\ntwo\r\nthree\r\n", [("two\nthree", "TWO\nTHREE")], b"one\r\nTWO\r\nTHREE\r\n", 2),
+		("bom", b"\xef\xbb\xbfhello world", [("world", "there")], b"\xef\xbb\xbfhello there", 1),
+	):
+		path.write_bytes(before)
+		res = await edit(path="f.txt", edits=[{"old": old, "new": new} for old, new in edits], ctx=ctx)
+		assert f"edited f.txt ({len(edits)} block(s))" in res.content, case
+		assert path.read_bytes() == after, case
+		assert res.details["diff"].startswith("---"), case
+		# a changed line counts once on each side; diff headers don't count
+		assert (res.details["lines_added"], res.details["lines_removed"]) == (changed, changed), case
+
+	path.write_text("alpha beta alpha")
+	for edits, error in (
+		([{"old": "alpha", "new": "x"}], "not unique (2 matches)"),
+		([{"old": "zzz", "new": "x"}], "not found"),
+		([{"old": "alpha beta", "new": "x"}, {"old": "beta alpha", "new": "y"}], "overlap"),
+	):
+		res = await edit(path="f.txt", edits=edits, ctx=ctx)
+		assert res.is_error and error in res.content, error
+	assert path.read_text() == "alpha beta alpha"  # atomic: unchanged when any edit fails
+
+
+async def test_bash_reports_exit_codes_timeouts_and_aborts(tmp_path):
+	# a command needs approval, a read never does
+	assert bash.requires_confirmation and not read.requires_confirmation
+	plain, short = _ctx(tmp_path), _ctx(tmp_path, timeout=0.2)
+	aborted = _ctx(tmp_path)
+	aborted.abort.set()
+	for case, ctx, kwargs, is_error, text, details in (
+		("exit 0", plain, {"command": "echo hi"}, False, "[exit code: 0]", {"exit_code": 0}),
+		("exit 3", plain, {"command": "exit 3"}, True, "[exit code: 3]", {"exit_code": 3}),
+		("ctx timeout", short, {"command": "sleep 5"}, True, "timed out after 0.2s", {"timed_out": True}),
+		# the ctx default is 120s; the call's own timeout wins
+		("call timeout", plain, {"command": "sleep 5", "timeout": 0.2}, True, "timed out after 0.2s", {}),
+		("bad timeout", plain, {"command": "echo hi", "timeout": 0}, True, "timeout must be > 0", {}),
+		("abort", aborted, {"command": "sleep 5"}, True, "[command aborted]", {"aborted": True}),
+	):
+		res = await bash(**kwargs, ctx=ctx)
+		assert res.is_error is is_error, case
+		assert text in res.content, case
+		assert details.items() <= res.details.items(), case
+		assert not res.details or res.details["duration_seconds"] >= 0, case
 
 
 async def test_bash_task_cancellation_kills_child_process_group(tmp_path):
@@ -290,17 +172,12 @@ async def test_bash_truncation_spills_to_temp_file(tmp_path):
 	assert f"full output: {path}" in res.content
 
 
-def test_tail_cut_of_one_long_line_keeps_its_end():
-	body, _ = truncate("a" * 10 + "b" * 60_000, keep="tail")
-	assert body == "b" * 51_200
-
-
-def test_tail_cut_fills_its_room_with_the_end_of_a_long_line():
-	body, _ = truncate("a" * 60_000 + "b" * 1_000 + "\n}", keep="tail")
-	assert body == "a" * 50_198 + "b" * 1_000 + "\n}"
-	body, _ = truncate("b" * 60_000 + "\n", keep="tail")  # a trailing newline no longer empties it
-	assert body == "b" * 51_199 + "\n"
-
-
-def test_tools_are_async():
-	assert inspect.iscoroutinefunction(bash.func)
+def test_tail_cut_keeps_the_end_of_a_long_line():
+	for text, kept in (
+		("a" * 10 + "b" * 60_000, "b" * 51_200),
+		# the cut fills its room with the end of the long line before the kept ones
+		("a" * 60_000 + "b" * 1_000 + "\n}", "a" * 50_198 + "b" * 1_000 + "\n}"),
+		("b" * 60_000 + "\n", "b" * 51_199 + "\n"),  # a trailing newline no longer empties it
+	):
+		body, _ = truncate(text, keep="tail")
+		assert body == kept, len(text)

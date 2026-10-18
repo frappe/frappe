@@ -53,12 +53,22 @@ def _no_delay(monkeypatch):
 
 
 async def test_transient_failure_retries_before_the_terminal_commits(monkeypatch):
+	"""A failed attempt's live deltas are already out; `started` marks where a client
+	drops them and the fresh attempt re-streams."""
 	_no_delay(monkeypatch)
-	flaky = Flaky([provider_error()])
+	flaky = Flaky([provider_error()], deltas=True)
 
 	events = await _collect(run_with_retries(flaky))
 
 	assert flaky.attempts == 2
+	assert [e.type for e in events] == [
+		"text_delta",
+		"retry",
+		"retry",
+		"text_delta",
+		"assistant_message",
+		"usage",
+	]
 	retries = [e for e in events if e.type == "retry"]
 	assert [(r.status, r.attempt) for r in retries] == [("scheduled", 2), ("started", 2)]
 	assert retries[0].max_attempts == 3
@@ -67,57 +77,62 @@ async def test_transient_failure_retries_before_the_terminal_commits(monkeypatch
 
 async def test_exhaustion_has_one_typed_lifecycle(monkeypatch):
 	_no_delay(monkeypatch)
-	flaky = Flaky([provider_error(), provider_error(), provider_error()])
 
-	events = []
-	with pytest.raises(ProviderError) as raised:
-		async for event in run_with_retries(flaky):
-			events.append(event)
+	async def refresh_auth():
+		return None
 
-	assert flaky.attempts == 3
-	statuses = [(e.status, e.attempt) for e in events if e.type == "retry"]
-	assert statuses == [("scheduled", 2), ("started", 2), ("scheduled", 3), ("started", 3), ("exhausted", 3)]
-	assert raised.value.kind == "overloaded"
-	assert not any(e.type == "assistant_message" for e in events)
+	cases = [
+		# the transient budget runs out
+		(
+			[provider_error(), provider_error(), provider_error()],
+			None,
+			[("scheduled", 2), ("started", 2), ("scheduled", 3), ("started", 3), ("exhausted", 3)],
+			"overloaded",
+		),
+		# auth fails again once its one refresh is used
+		(
+			[
+				provider_error("auth", detail="access token expired"),
+				provider_error("auth", detail="access token expired"),
+			],
+			refresh_auth,
+			[("scheduled", 2), ("started", 2), ("exhausted", 2)],
+			"auth",
+		),
+	]
+	for failures, refresh, statuses, kind in cases:
+		flaky = Flaky(failures)
 
+		events = []
+		with pytest.raises(ProviderError) as raised:
+			async for event in run_with_retries(flaky, refresh_auth=refresh):
+				events.append(event)
 
-async def test_nonretryable_failure_raises_immediately():
-	flaky = Flaky([provider_error("invalid_request", retryable=False)])
-
-	events = []
-	with pytest.raises(ProviderError):
-		async for event in run_with_retries(flaky):
-			events.append(event)
-
-	assert flaky.attempts == 1
-	assert [e for e in events if e.type == "retry"] == []
-
-
-async def test_oversized_provider_retry_hint_is_not_slept_out():
-	flaky = Flaky([provider_error("rate_limit", detail="daily limit reached", retry_after=3600)])
-
-	events = []
-	with pytest.raises(ProviderError) as raised:
-		async for event in run_with_retries(flaky):
-			events.append(event)
-
-	assert flaky.attempts == 1
-	assert [e for e in events if e.type == "retry"] == []
-	assert raised.value.kind == "rate_limit"
+		assert flaky.attempts == len(failures), kind
+		assert [(e.status, e.attempt) for e in events if e.type == "retry"] == statuses, kind
+		assert raised.value.kind == kind
+		assert not any(e.type == "assistant_message" for e in events), kind
 
 
-async def test_retry_started_is_the_discard_boundary_for_streamed_deltas(monkeypatch):
-	"""A failed attempt's live deltas are already out; `started` marks where a client
-	drops them and the fresh attempt re-streams."""
-	_no_delay(monkeypatch)
-	flaky = Flaky([provider_error()], deltas=True)
+async def test_failures_that_cannot_retry_raise_immediately():
+	cases = [
+		provider_error("invalid_request", retryable=False),
+		# a provider hint this long is not slept out
+		provider_error("rate_limit", detail="daily limit reached", retry_after=3600),
+		# auth with no refresh hook to recover it
+		provider_error("auth", detail="access token expired"),
+	]
+	for error in cases:
+		flaky = Flaky([error])
 
-	events = await _collect(run_with_retries(flaky))
+		events = []
+		with pytest.raises(ProviderError) as raised:
+			async for event in run_with_retries(flaky):
+				events.append(event)
 
-	timeline = [e.type for e in events]
-	boundary = timeline.index("retry")  # first retry event follows the failed delta
-	assert timeline[:boundary] == ["text_delta"]
-	assert timeline[boundary:] == ["retry", "retry", "text_delta", "assistant_message", "usage"]
+		assert flaky.attempts == 1, error.kind
+		assert events == [], error.kind
+		assert raised.value is error
 
 
 async def test_abandoning_the_turn_closes_the_active_attempt():
@@ -209,18 +224,6 @@ async def test_expired_auth_refreshes_once_and_succeeds():
 	assert [e.text for e in events if e.type == "assistant_message"] == ["authenticated"]
 
 
-async def test_auth_failure_without_refresh_raises_immediately():
-	flaky = Flaky([provider_error("auth", detail="access token expired")])
-
-	events = []
-	with pytest.raises(ProviderError):
-		async for event in run_with_retries(flaky):
-			events.append(event)
-
-	assert flaky.attempts == 1
-	assert [e for e in events if e.type == "retry"] == []
-
-
 async def test_refresh_failure_is_typed_and_exhausts(monkeypatch):
 	"""The token endpoint is a second provider call; its transport faults must not
 	escape untyped."""
@@ -240,26 +243,3 @@ async def test_refresh_failure_is_typed_and_exhausts(monkeypatch):
 	assert statuses == [("scheduled", "auth"), ("exhausted", "auth")]
 	assert (raised.value.kind, raised.value.retryable) == ("auth", False)
 	assert "token endpoint unreachable" in raised.value.detail
-
-
-async def test_auth_failure_after_refresh_used_is_not_retried_again(monkeypatch):
-	_no_delay(monkeypatch)
-
-	async def refresh_auth():
-		return None
-
-	flaky = Flaky(
-		[
-			provider_error("auth", detail="access token expired"),
-			provider_error("auth", detail="access token expired"),
-		]
-	)
-
-	events = []
-	with pytest.raises(ProviderError):
-		async for event in run_with_retries(flaky, refresh_auth=refresh_auth):
-			events.append(event)
-
-	assert flaky.attempts == 2
-	statuses = [(e.status, e.attempt) for e in events if e.type == "retry"]
-	assert statuses == [("scheduled", 2), ("started", 2), ("exhausted", 2)]

@@ -13,11 +13,22 @@ from flow.www.flow import index
 
 
 class TestFlowPage(IntegrationTestCase):
+	def setUp(self):
+		# the page commits its CSRF token, which would keep the test's writes too
+		self.enterContext(patch.object(frappe.db, "commit"))
+
 	def tearDown(self):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_a_guest_is_sent_to_login_and_back(self):
+	def test_the_page_boots_a_user_and_sends_a_guest_to_login_and_back(self):
+		boot = index.get_context(frappe._dict()).boot
+		self.assertTrue(boot["csrf_token"])
+		self.assertEqual(boot["site_name"], frappe.local.site)
+		self.assertIn("socketio_port", boot)
+		self.assertEqual(boot["flow_boot"]["user"]["name"], "Administrator")
+		self.assertIn("agents", boot["flow_boot"])
+
 		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
 		set_request(path="/flow/s/4uaiaqp7g3")
 		frappe.set_user("Guest")
@@ -25,15 +36,6 @@ class TestFlowPage(IntegrationTestCase):
 			index.get_context(frappe._dict())
 		# back to the chat asked for, not just the page
 		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=%2Fflow%2Fs%2F4uaiaqp7g3")
-
-	def test_the_page_carries_what_the_app_boots_from(self):
-		context = index.get_context(frappe._dict())
-		boot = context.boot
-		self.assertTrue(boot["csrf_token"])
-		self.assertEqual(boot["site_name"], frappe.local.site)
-		self.assertIn("socketio_port", boot)
-		self.assertEqual(boot["flow_boot"]["user"]["name"], "Administrator")
-		self.assertIn("agents", boot["flow_boot"])
 
 	def test_the_dev_boot_needs_developer_mode(self):
 		with patch.dict(frappe.local.conf, {"developer_mode": 0}):

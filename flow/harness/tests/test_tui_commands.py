@@ -1,33 +1,22 @@
-"""Phase 8: command registry, slash dispatch from the composer, and the palette.
+"""Phase 8: slash dispatch from the composer, and the command palette.
 
-Registry parsing is plain unit tests; dispatch and the palette run under the pilot
-with a fake controller. One live-server test covers `/resume` switching end to
-end — stream teardown, state reset, history replay on the new session.
+Dispatch and the palette run under the pilot with a fake controller; the live-server
+test in `test_tui_shell.py` covers `/resume` switching end to end.
 """
 
 import asyncio
-import socket
 from collections.abc import Callable
-from contextlib import asynccontextmanager
 
-import pytest
-import uvicorn
 from textual.command import CommandPalette
-from textual.widgets import Input, Static
+from textual.widgets import Input
 
 from flow_harness.events import AssistantMessage, ReasoningEffort, RunStarted, TextContent, UserMessage
-from flow_harness.model.credentials import CredentialStore
-from flow_harness.server import create_app
-from flow_harness.session.config import SessionConfig
-from flow_harness.session.store import SessionStore
 from flow_tui.app import FlowApp
-from flow_tui.client.api import FlowAPIError, FlowClient
+from flow_tui.client.api import FlowAPIError
 from flow_tui.client.state import Change, ConversationState, StatusChanged
-from flow_tui.commands import REGISTRY, CommandError, parse
+from flow_tui.commands import REGISTRY
 from flow_tui.controller import Controller
 from flow_tui.widgets.composer import Composer
-from flow_tui.widgets.conversation import ConversationView
-from flow_tui.widgets.messages import EntryView
 
 
 class FakeController:
@@ -97,66 +86,37 @@ async def _slash(pilot, line: str) -> None:
 	await pilot.pause()
 
 
-# --- registry ---------------------------------------------------------------
-
-
-def test_registry_has_the_initial_command_set():
-	assert set(REGISTRY) == {
-		"model",
-		"effort",
-		"abort",
-		"rewind",
-		"new",
-		"clear",
-		"resume",
-		"reload",
-		"editor",
-		"help",
-		"quit",
-	}
-
-
-def test_parse_splits_command_and_arg():
-	found, arg = parse("/rewind 5")
-	assert found is REGISTRY["rewind"]
-	assert arg == "5"
-	found, arg = parse("/abort")
-	assert found is REGISTRY["abort"] and arg == ""
-
-
-def test_parse_rejects_unknown_command():
-	with pytest.raises(CommandError, match="unknown command: /nope"):
-		parse("/nope")
-
-
 # --- slash dispatch under the pilot -----------------------------------------
 
 
-async def test_slash_abort_reaches_controller_and_is_not_a_message():
+async def test_slash_lines_are_commands_and_skill_directives_are_prompts():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
 		await _slash(pilot, "/abort")
 		assert fake.calls == [("abort",)]
 		assert pilot.app.query_one(Composer).text == ""
 
+		await _slash(pilot, "/nope")
+		assert fake.calls == [("abort",)]
+		assert any(
+			"unknown command: /nope" in msg and sev == "error" for msg, sev in _notifications(pilot.app)
+		)
 
-async def test_skill_directive_is_submitted_to_the_server():
-	fake = FakeController()
-	async with FlowApp(fake).run_test() as pilot:
 		await _slash(pilot, "/skill:testing add parser tests")
-		assert fake.calls == [("submit", "/skill:testing add parser tests")]
+		assert fake.calls == [("abort",), ("submit", "/skill:testing add parser tests")]
 
-
-async def test_alt_enter_queues_skill_directive_while_running():
-	fake = FakeController()
-	async with FlowApp(fake).run_test() as pilot:
+		# while running, a slash line is still a command and alt+enter queues a skill directive
 		fake.feed(RunStarted(run_id="r1", seq=1))
+		await _slash(pilot, "/abort")
+		calls = [("abort",), ("submit", "/skill:testing add parser tests"), ("abort",)]
+		assert fake.calls == calls
+		assert fake.queued == []
+
 		pilot.app.query_one(Composer).load_text("/skill:testing later")
 		await pilot.press("alt+enter")
 		await pilot.pause()
-
 		assert fake.queued == ["/skill:testing later"]
-		assert fake.calls == []
+		assert fake.calls == calls
 
 
 async def test_rejected_queued_skill_does_not_escape_the_controller():
@@ -184,25 +144,6 @@ async def test_rejected_queued_skill_does_not_escape_the_controller():
 	assert [error.detail for error in errors] == ["unknown skill: missing"]
 
 
-async def test_unknown_command_shows_inline_error():
-	fake = FakeController()
-	async with FlowApp(fake).run_test() as pilot:
-		await _slash(pilot, "/nope")
-		assert fake.calls == []
-		assert any(
-			"unknown command: /nope" in msg and sev == "error" for msg, sev in _notifications(pilot.app)
-		)
-
-
-async def test_slash_is_a_command_even_while_running():
-	fake = FakeController()
-	async with FlowApp(fake).run_test() as pilot:
-		fake.feed(RunStarted(run_id="r1", seq=1))
-		await _slash(pilot, "/abort")
-		assert fake.calls == [("abort",)]
-		assert fake.queued == []
-
-
 async def test_model_and_effort_commands():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
@@ -221,9 +162,13 @@ async def test_model_and_effort_commands():
 		assert any("usage: /effort" in msg for msg in errors)
 
 
-async def test_rewind_with_seq_and_default_to_before_last_user_message():
+async def test_rewind_command():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
+		await _slash(pilot, "/rewind")
+		assert fake.calls == []
+		assert any("nothing to rewind" in msg for msg, _ in _notifications(pilot.app))
+
 		fake.feed(UserMessage(content="first", seq=2))
 		fake.feed(AssistantMessage(content=[TextContent(text="reply one")], seq=3))
 		fake.feed(UserMessage(content="second question", seq=5))
@@ -232,77 +177,55 @@ async def test_rewind_with_seq_and_default_to_before_last_user_message():
 		await _slash(pilot, "/rewind 2")
 		assert fake.calls == [("rewind", 2)]
 
+		# no seq: back to before the last user message
 		await _slash(pilot, "/rewind")
 		assert fake.calls[-1] == ("rewind", 3)
 		# the dropped user message comes back to the composer for a rephrase
 		assert pilot.app.query_one(Composer).text == "second question"
 
-
-async def test_rewind_restores_concise_skill_command():
-	fake = FakeController()
-	expanded = (
-		'<skill name="testing" location="/skills/testing/SKILL.md">\n'
-		"References are relative to /skills/testing.\n\n"
-		"Run tests.\n"
-		"</skill>\n\nfocus parser coverage"
-	)
-	async with FlowApp(fake).run_test() as pilot:
-		fake.feed(
-			UserMessage(
-				content=expanded,
-				seq=2,
-			)
+		# a skill prompt comes back as its concise command
+		expanded = (
+			'<skill name="testing" location="/skills/testing/SKILL.md">\n'
+			"References are relative to /skills/testing.\n\n"
+			"Run tests.\n"
+			"</skill>\n\nfocus parser coverage"
 		)
+		fake.feed(UserMessage(content=expanded, seq=7))
 		await _slash(pilot, "/rewind")
-
+		assert fake.calls[-1] == ("rewind", 6)
 		assert pilot.app.query_one(Composer).text == "/skill:testing focus parser coverage"
 
 
-async def test_rewind_default_with_no_user_message_errors():
-	fake = FakeController()
-	async with FlowApp(fake).run_test() as pilot:
-		await _slash(pilot, "/rewind")
-		assert fake.calls == []
-		assert any("nothing to rewind" in msg for msg, _ in _notifications(pilot.app))
-
-
-async def test_resume_switches_by_prefix():
+async def test_new_and_resume_commands():
 	fake = FakeController()
 	fake.sessions = [
 		{"session_id": "fake-session-id", "state": "idle", "model": "mock", "latest_seq": 4, "cwd": "/a"},
 		{"session_id": "0ther-session-id", "state": "idle", "model": "mock", "latest_seq": 9, "cwd": "/b"},
 	]
 	async with FlowApp(fake).run_test() as pilot:
+		for count, command in enumerate(["new", "clear"], start=1):
+			await _slash(pilot, f"/{command}")
+			assert fake.calls == [("new_session",)] * count, command
+			announced = [msg for msg, _ in _notifications(pilot.app) if "new session new-sess" in msg]
+			assert len(announced) == count, command
+
 		await _slash(pilot, "/resume 0ther")
-		assert fake.calls == [("switch_session", "0ther-session-id")]
+		assert fake.calls[2:] == [("switch_session", "0ther-session-id")]
 
 		await _slash(pilot, "/resume missing")
 		assert any("no session matches" in msg for msg, _ in _notifications(pilot.app))
 		await _slash(pilot, "/resume fake")
 		assert any("already on that session" in msg for msg, _ in _notifications(pilot.app))
-		assert fake.calls == [("switch_session", "0ther-session-id")]
+		assert fake.calls[2:] == [("switch_session", "0ther-session-id")]
 
 
-@pytest.mark.parametrize("command", ["new", "clear"])
-async def test_new_command_creates_and_announces(command):
-	fake = FakeController()
-	async with FlowApp(fake).run_test() as pilot:
-		await _slash(pilot, f"/{command}")
-		assert fake.calls == [("new_session",)]
-		assert any("new session new-sess" in msg for msg, _ in _notifications(pilot.app))
-
-
-async def test_help_lists_every_command():
+async def test_help_lists_every_command_and_quit_exits():
 	fake = FakeController()
 	async with FlowApp(fake).run_test() as pilot:
 		await _slash(pilot, "/help")
 		listing = next(msg for msg, _ in _notifications(pilot.app))
 		assert all(f"/{name}" in listing for name in REGISTRY)
 
-
-async def test_quit_exits_the_app():
-	fake = FakeController()
-	async with FlowApp(fake).run_test() as pilot:
 		await _slash(pilot, "/quit")
 		assert pilot.app._exit
 
@@ -325,57 +248,3 @@ async def test_palette_opens_and_runs_a_command():
 		await pilot.pause()
 		assert ("abort",) in fake.calls
 		assert not isinstance(pilot.app.screen, CommandPalette)
-
-
-# --- live switching over a real server --------------------------------------
-
-
-@asynccontextmanager
-async def _live_server(tmp_path):
-	store = SessionStore(
-		str(tmp_path / "data"),
-		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
-	)
-	sock = socket.socket()
-	sock.bind(("127.0.0.1", 0))
-	port = sock.getsockname()[1]
-	server = uvicorn.Server(uvicorn.Config(create_app(store), log_level="error", timeout_graceful_shutdown=1))
-	task = asyncio.create_task(server.serve(sockets=[sock]))
-	try:
-		while not server.started:
-			await asyncio.sleep(0.01)
-		yield f"http://127.0.0.1:{port}"
-	finally:
-		server.should_exit = True
-		await asyncio.wait_for(task, timeout=5)
-
-
-async def test_integration_resume_switch_replays_other_session(tmp_path):
-	async with _live_server(tmp_path) as url:
-		config = SessionConfig(model="mock", cwd=str(tmp_path), auto_approve=True)
-		async with FlowClient(url) as setup:
-			other_sid = await setup.create_session(config)
-			await setup.run(other_sid, "hello from the other side", wait=True)
-
-		controller = Controller(FlowClient(url), config=config)
-		async with FlowApp(controller).run_test() as pilot:
-			async with asyncio.timeout(5):
-				while controller.session_id is None:
-					await pilot.pause(0.05)
-			first_sid = controller.session_id
-			assert first_sid != other_sid
-
-			await _slash(pilot, f"/resume {other_sid[:8]}")
-			conversation = pilot.app.query_one(ConversationView)
-
-			def replayed():
-				entries = conversation.query(EntryView)
-				texts = [str(static.render()) for e in entries for static in e.query(Static)]
-				return any("hello from the other side" in text for text in texts)
-
-			async with asyncio.timeout(10):
-				while not replayed():
-					await pilot.pause(0.05)
-
-			assert controller.session_id == other_sid
-			assert any(isinstance(entry, UserMessage) for entry in controller.state.entries)

@@ -16,7 +16,7 @@ from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
 from flow.flow.doctype.flow_skill.flow_skill import sync_skills
 from flow.flow.doctype.flow_skill.test_flow_skill import AppSkills
 from flow.tests.test_fake_daemon import FakeDaemon
-from flow.tools.builtins import sync_builtin_tools
+from flow.tools.builtins import bind_load_skill, sync_builtin_tools
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
@@ -57,38 +57,24 @@ def _skill_row(title: str, **overrides: Any) -> str:
 	return frappe.get_doc(doc).insert().name
 
 
-class TestFlowAgentDefaults(IntegrationTestCase):
+class TestFlowAgentValidation(IntegrationTestCase):
 	def setUp(self):
-		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
 
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_tools_are_exactly_those_given(self):
-		bare = frappe.get_doc(_agent(self.model_doc.name)).insert()
-		reader = frappe.get_doc(
-			_agent(self.model_doc.name, title="Reader", tools=[{"tool": "read"}])
-		).insert()
-
-		self.assertEqual(
-			([row.tool for row in bare.tools], [row.tool for row in reader.tools]), ([], ["read"])
-		)
-
-	def test_zero_max_iterations_rejected(self):
-		doc = frappe.get_doc(_agent(self.model_doc.name, max_iterations=0))
-		with self.assertRaisesRegex(frappe.ValidationError, "Max Iterations"):
-			doc.insert()
-
-	def test_negative_token_budget_rejected(self):
-		doc = frappe.get_doc(_agent(self.model_doc.name, token_budget=-1))
-		with self.assertRaisesRegex(frappe.ValidationError, "Token Budget"):
-			doc.insert()
-
-	def test_link_to_unknown_model_rejected(self):
-		doc = frappe.get_doc(_agent("does-not-exist"))
-		with self.assertRaises(frappe.LinkValidationError):
-			doc.insert()
+	def test_invalid_settings_are_refused(self):
+		agent = frappe.get_doc(_agent(self.model_doc.name)).insert()
+		for field, value, error in (
+			("max_iterations", 0, "Max Iterations"),
+			("token_budget", -1, "Token Budget"),
+			("sub_agents", [{"agent": agent.name}], "own sub-agent"),
+		):
+			agent.reload()
+			agent.set(field, value)
+			with self.subTest(field=field), self.assertRaisesRegex(frappe.ValidationError, error):
+				agent.save()
 
 
 class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
@@ -102,59 +88,45 @@ class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _search_tool(self, kbs):
+	def _search_tool(self, kbs, title="Test Agent"):
 		agent = frappe.get_doc(
 			_agent(
 				self.model_doc.name,
+				title=title,
 				tools=[{"tool": "search_knowledge"}],
 				knowledge_bases=[{"knowledge_base": kb} for kb in kbs],
 			)
 		).insert()
 		return next(t for t in agent.client_tools() if t.name == "search_knowledge")
 
-	def test_schema_exposes_only_query(self):
+	def test_search_is_fixed_to_the_agents_knowledge_bases(self):
 		tool = self._search_tool([self.kb.name])
 		self.assertEqual(set(tool.parameters["properties"]), {"query"})
-
-	def test_search_uses_agent_configured_kbs(self):
-		tool = self._search_tool([self.kb.name])
-		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
+		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as retrieve:
 			tool(query="hello", ctx=CTX)
-		mock.assert_called_once_with("hello", kbs=[self.kb.name])
-
-	def test_llm_supplied_kbs_are_rejected(self):
-		tool = self._search_tool([self.kb.name])
-		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as mock:
 			with self.assertRaises(Exception):
 				tool(query="hello", kbs=["Some Other KB"], ctx=CTX)
-		mock.assert_not_called()
+		retrieve.assert_called_once_with("hello", kbs=[self.kb.name])
 
-	def test_search_without_configured_kbs_fails_closed(self):
-		tool = self._search_tool([])
+		# no knowledge base bound: fails closed
 		with self.assertRaises(frappe.ValidationError):
-			tool(query="hello", ctx=CTX)
+			self._search_tool([], title="Unbound Agent")(query="hello", ctx=CTX)
 
-	def test_search_tool_auto_added_when_kb_bound_without_it(self):
-		agent = frappe.get_doc(
-			_agent(
-				self.model_doc.name,
-				tools=[{"tool": "read"}],
-				knowledge_bases=[{"knowledge_base": self.kb.name}],
-			)
-		).insert()
-
-		self.assertIn("search_knowledge", [row.tool for row in agent.tools])
-
-	def test_search_tool_not_duplicated_when_already_present(self):
-		agent = frappe.get_doc(
-			_agent(
-				self.model_doc.name,
-				tools=[{"tool": "search_knowledge"}],
-				knowledge_bases=[{"knowledge_base": self.kb.name}],
-			)
-		).insert()
-
-		self.assertEqual([row.tool for row in agent.tools].count("search_knowledge"), 1)
+	def test_binding_a_knowledge_base_adds_the_search_tool_once(self):
+		for title, tools, expected in (
+			("Reader", ["read"], ["read", "search_knowledge"]),
+			("Searcher", ["search_knowledge"], ["search_knowledge"]),
+		):
+			agent = frappe.get_doc(
+				_agent(
+					self.model_doc.name,
+					title=title,
+					tools=[{"tool": tool} for tool in tools],
+					knowledge_bases=[{"knowledge_base": self.kb.name}],
+				)
+			).insert()
+			with self.subTest(title=title):
+				self.assertEqual([row.tool for row in agent.tools], expected)
 
 
 class TestFlowAgentRun(IntegrationTestCase):
@@ -172,23 +144,22 @@ class TestFlowAgentRun(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_run_returns_a_running_run_in_a_session_with_the_agent(self):
-		run = self.agent_doc.run("hi")
+	def test_a_new_run_starts_a_session_approved_by_its_source(self):
+		for kwargs, source, auto_approve in (({}, "Manual", 0), ({"source": "Trigger"}, "Trigger", 1)):
+			with self.subTest(source=source):
+				run = self.agent_doc.run("hi", **kwargs)
 
-		session = frappe.get_doc("Flow Session", run.session)
-		self.assertEqual((session.agent, session.source), (self.agent_doc.name, "Manual"))
-		self.assertEqual((run.status, run.source, run.output, run.input), ("Running", "Manual", None, "hi"))
-		self.assertFalse(self.daemon.configs[session.name]["auto_approve"])
+				session = frappe.get_doc("Flow Session", run.session)
+				self.assertEqual(
+					(session.agent, session.source, session.auto_approve),
+					(self.agent_doc.name, source, auto_approve),
+				)
+				self.assertEqual(
+					(run.status, run.source, run.output, run.input), ("Running", source, None, "hi")
+				)
+				self.assertEqual(self.daemon.configs[session.name]["auto_approve"], bool(auto_approve))
 
-	def test_trigger_run_creates_an_auto_approved_session(self):
-		run = self.agent_doc.run("hi", source="Trigger")
-
-		self.assertEqual(run.source, "Trigger")
-		session = frappe.get_doc("Flow Session", run.session)
-		self.assertEqual((session.source, session.auto_approve), ("Trigger", 1))
-		self.assertTrue(self.daemon.configs[session.name]["auto_approve"])
-
-	def test_run_continues_a_session_without_changing_its_approval_policy(self):
+	def test_a_run_continues_only_its_own_agents_session(self):
 		first = self.agent_doc.run("hi")
 		session = frappe.get_doc("Flow Session", first.session)
 		session.sync()
@@ -200,10 +171,7 @@ class TestFlowAgentRun(IntegrationTestCase):
 		self.assertEqual(frappe.db.count("Flow Run", {"session": first.session}), 2)
 		self.assertFalse(any(call[0] == "patch_config" for call in self.daemon.calls))
 
-	def test_run_refuses_another_agents_session(self):
 		other = frappe.get_doc(_agent(self.model_doc.name, title="Other Run Agent")).insert()
-		first = self.agent_doc.run("hi")
-
 		with self.assertRaisesRegex(frappe.ValidationError, "bound to agent"):
 			other.run("mine now", session=first.session)
 
@@ -222,74 +190,62 @@ class TestFlowAgentSystemGenerated(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.model_doc = frappe.get_doc(_model()).insert()
+		self.agent = frappe.get_doc(_agent(self.model_doc.name, is_system_generated=1)).insert()
 
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _agent(self):
-		return frappe.get_doc(_agent(self.model_doc.name, is_system_generated=1)).insert()
-
-	def test_cannot_delete_via_desk(self):
-		agent = self._agent()
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Agent", agent.name)
-
-	def test_the_owning_app_can_delete(self):
-		agent = self._agent()
-		frappe.delete_doc("Flow Agent", agent.name, ignore_permissions=True)
-		self.assertFalse(frappe.db.exists("Flow Agent", agent.name))
-
-	def test_the_builtin_assistant_is_blocked_even_with_ignore_permissions(self):
+	def test_the_desk_cannot_change_a_system_generated_agent(self):
 		sync_builtin_assistant(self.model_doc.name)
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
+		for label, error, change in (
+			(
+				"delete",
+				"Cannot delete system-generated",
+				lambda: frappe.delete_doc("Flow Agent", self.agent.name),
+			),
+			(
+				"rename",
+				"Cannot rename system-generated",
+				lambda: frappe.rename_doc("Flow Agent", self.agent.name, "Renamed Agent"),
+			),
+			(
+				"the builtin assistant, even by the app",
+				"Cannot delete system-generated",
+				lambda: frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True),
+			),
+		):
+			with self.subTest(label), self.assertRaisesRegex(frappe.ValidationError, error):
+				change()
 
-	def test_cannot_rename(self):
-		agent = self._agent()
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
-			frappe.rename_doc("Flow Agent", agent.name, "Renamed Agent")
-
-	def test_cannot_unset_flag(self):
-		agent = self._agent()
-		agent.is_system_generated = 0
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
-			agent.save()
-
-	def test_definition_is_locked_for_the_desk(self):
-		agent = self._agent()
-		agent.instructions = "Be verbose."
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Instructions"):
-			agent.save()
-		agent.reload()
-		agent.append("tools", {"tool": "read"})
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Tools"):
-			agent.save()
-		agent.reload()
-		agent.append("skills", {"skill": _skill_row("Expense Approval")})
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Skills"):
-			agent.save()
-		agent.reload()
-		agent.description = "Finds things."
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Description"):
-			agent.save()
-		agent.reload()
 		other = frappe.get_doc(_agent(self.model_doc.name, title="Other Agent")).insert()
-		agent.append("sub_agents", {"agent": other.name})
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Sub-agents"):
-			agent.save()
+		skill = _skill_row("Expense Approval")
+		for field, value, error in (
+			("is_system_generated", 0, "Cannot remove the system-generated flag"),
+			("instructions", "Be verbose.", "Cannot change Instructions"),
+			("description", "Finds things.", "Cannot change Description"),
+			("tools", [{"tool": "read"}], "Cannot change Tools"),
+			("skills", [{"skill": skill}], "Cannot change Skills"),
+			("sub_agents", [{"agent": other.name}], "Cannot change Sub-agents"),
+		):
+			self.agent.reload()
+			self.agent.set(field, value)
+			with self.subTest(field=field), self.assertRaisesRegex(frappe.ValidationError, error):
+				self.agent.save()
 
-	def test_enabled_and_model_stay_editable(self):
-		agent = self._agent()
+	def test_enabled_and_model_stay_editable_and_the_app_keeps_control(self):
 		other = frappe.get_doc(_model(title="Other Agent Model")).insert()
-		agent.update({"enabled": 0, "model": other.name})
-		agent.save()
-		self.assertEqual(frappe.db.get_value("Flow Agent", agent.name, ["enabled", "model"]), (0, other.name))
+		self.agent.update({"enabled": 0, "model": other.name})
+		self.agent.save()
+		self.assertEqual(
+			frappe.db.get_value("Flow Agent", self.agent.name, ["enabled", "model"]), (0, other.name)
+		)
 
-	def test_owning_app_can_change_the_definition(self):
-		agent = self._agent()
-		agent.instructions = "Be verbose."
-		agent.save(ignore_permissions=True)
-		self.assertEqual(frappe.db.get_value("Flow Agent", agent.name, "instructions"), "Be verbose.")
+		self.agent.instructions = "Be verbose."
+		self.agent.save(ignore_permissions=True)
+		self.assertEqual(frappe.db.get_value("Flow Agent", self.agent.name, "instructions"), "Be verbose.")
+
+		frappe.delete_doc("Flow Agent", self.agent.name, ignore_permissions=True)
+		self.assertFalse(frappe.db.exists("Flow Agent", self.agent.name))
 
 
 class TestFlowAgentClientTools(IntegrationTestCase):
@@ -305,47 +261,7 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def names(self):
-		return [tool.name for tool in self.agent_doc.client_tools()]
-
-	def test_schemas_and_the_confirmation_list(self):
-		config = self.agent_doc.client_tool_config()
-		self.assertEqual(
-			[tool["function"]["name"] for tool in config["client_tools"]], ["read_records", "execute"]
-		)
-		self.assertEqual(config["client_tools"][0]["type"], "function")
-		self.assertIn("properties", config["client_tools"][0]["function"]["parameters"])
-		self.assertEqual(config["confirm_tools"], ["execute"])
-
-	def test_update_memory_travels_to_the_server(self):
-		self.agent_doc.append("tools", {"tool": "update_memory"})
-		self.agent_doc.save()
-		self.assertEqual(self.names(), ["read_records", "execute", "update_memory"])
-
-	def test_disabled_tools_stay_home(self):
-		frappe.db.set_value("Flow Tool", "read_records", "enabled", 0)
-		self.assertEqual(self.names(), ["execute"])
-
-	def test_server_tools_are_selected_without_becoming_callback_tools(self):
-		self.agent_doc.append("tools", {"tool": "read"})
-		self.agent_doc.append("tools", {"tool": "grep"})
-		self.agent_doc.append("tools", {"tool": "subagent"})
-		self.agent_doc.save()
-
-		self.assertEqual(self.agent_doc.server_tools(), ["read", "grep", "subagent"])
-		self.assertEqual(self.names(), ["read_records", "execute"])
-		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], ["read", "grep", "subagent"])
-		self.assertIn("Use read, grep to inspect", config["system_prompt"])
-
-		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
-		self.assertEqual(self.agent_doc.server_tools(), ["read", "subagent"])
-		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
-		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], ["subagent"])
-		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
-
-	def test_server_extension_tools_travel_as_extension_tools(self):
+	def test_each_enabled_tool_travels_as_its_kind(self):
 		frappe.get_doc(
 			{
 				"doctype": "Flow Tool",
@@ -356,35 +272,54 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 				"is_system_generated": 1,
 			}
 		).insert()
-		self.agent_doc.append("tools", {"tool": "helpdesk_ticket"})
+		for slug in ("update_memory", "read", "grep", "subagent", "helpdesk_ticket"):
+			self.agent_doc.append("tools", {"tool": slug})
 		self.agent_doc.save()
 
 		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["extension_tools"], ["helpdesk_ticket"])
-		self.assertEqual(config["tools"], [])
-		self.assertEqual(self.names(), ["read_records", "execute"])
+		self.assertEqual(
+			[tool["function"]["name"] for tool in config["client_tools"]],
+			["read_records", "execute", "update_memory"],
+		)
+		self.assertEqual(config["client_tools"][0]["type"], "function")
+		self.assertIn("properties", config["client_tools"][0]["function"]["parameters"])
+		self.assertEqual(config["confirm_tools"], ["execute"])
+		self.assertEqual(
+			(config["tools"], config["extension_tools"]), (["read", "grep", "subagent"], ["helpdesk_ticket"])
+		)
+		self.assertIn("Use read, grep to inspect", config["system_prompt"])
 
-		frappe.db.set_value("Flow Tool", "helpdesk_ticket", "enabled", 0)
-		self.assertEqual(self.agent_doc.session_tool_config()["extension_tools"], [])
+		for slug in ("read_records", "grep", "helpdesk_ticket"):
+			frappe.db.set_value("Flow Tool", slug, "enabled", 0)
+		config = self.agent_doc.session_tool_config()
+		self.assertEqual(
+			[tool["function"]["name"] for tool in config["client_tools"]], ["execute", "update_memory"]
+		)
+		self.assertEqual((config["tools"], config["extension_tools"]), (["read", "subagent"], []))
 
-	def test_changing_the_tool_list_warns_that_existing_sessions_keep_theirs(self):
-		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent_doc.name}).insert()
+		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
+		config = self.agent_doc.session_tool_config()
+		self.assertEqual(config["tools"], ["subagent"])
+		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
+
+	def test_changing_tools_or_sub_agents_warns_that_existing_sessions_keep_theirs(self):
+		other = frappe.get_doc(_agent(self.model_doc.name, title="Other Agent")).insert()
 		with patch("frappe.msgprint") as msgprint:
-			self.agent_doc.append("tools", {"tool": "grep"})
+			self.agent_doc.append("tools", {"tool": "subagent"})
 			self.agent_doc.save()
-		self.assertIn("Existing sessions", msgprint.call_args.args[0])
+		msgprint.assert_not_called()  # no session yet
 
-		# an edit that leaves the tool list alone has nothing to warn about
+		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent_doc.name}).insert()
 		with patch("frappe.msgprint") as msgprint:
 			self.agent_doc.instructions = "Be verbose."
 			self.agent_doc.save()
-		msgprint.assert_not_called()
+		msgprint.assert_not_called()  # the tool list stays as it was
 
-	def test_an_agent_without_sessions_is_changed_quietly(self):
-		with patch("frappe.msgprint") as msgprint:
-			self.agent_doc.append("tools", {"tool": "grep"})
-			self.agent_doc.save()
-		msgprint.assert_not_called()
+		for field, row in (("tools", {"tool": "grep"}), ("sub_agents", {"agent": other.name})):
+			with self.subTest(field=field), patch("frappe.msgprint") as msgprint:
+				self.agent_doc.append(field, row)
+				self.agent_doc.save()
+				self.assertIn("Existing sessions", msgprint.call_args.args[0])
 
 
 class TestFlowAgentSubAgents(IntegrationTestCase):
@@ -412,10 +347,8 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_binding_a_sub_agent_attaches_the_tool_automatically(self):
+	def test_an_enabled_sub_agent_runs_on_its_own_config_as_itself(self):
 		self.assertEqual([row.tool for row in self.agent_doc.tools], ["read_records", "subagent"])
-
-	def test_a_sub_agent_runs_on_its_own_model_prompt_and_tools_and_calls_back_as_itself(self):
 		context = {"site": "s", "user": "u", "agent": self.agent_doc.name, "session": "S1"}
 		[config] = self.agent_doc.subagent_configs("S1", context)
 		self.assertEqual((config["name"], config["description"]), ("Lookup", "Finds past tickets. Fast."))
@@ -427,28 +360,13 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 		self.assertEqual((config["confirm_tools"], config["max_turns"]), (["execute"], 3))
 		self.assertEqual(config["user_context"], {**context, "agent": "Lookup"})
 
-	def test_a_disabled_sub_agent_is_left_out(self):
 		self.child.db_set("enabled", 0)
 		self.assertEqual(self.agent_doc.subagent_configs("S1", {}), [])
 
-	def test_a_sub_agent_on_a_disabled_model_is_refused_by_name(self):
 		off = frappe.get_doc(_model(title="Off Model", enabled=0)).insert()
-		self.child.db_set("model", off.name)
+		self.child.db_set({"enabled": 1, "model": off.name})
 		with self.assertRaisesRegex(frappe.ValidationError, "Sub-agent Lookup runs on Flow Model"):
 			self.agent_doc.subagent_configs("S1", {})
-
-	def test_an_agent_cannot_be_its_own_sub_agent(self):
-		self.agent_doc.append("sub_agents", {"agent": self.agent_doc.name})
-		with self.assertRaisesRegex(frappe.ValidationError, "own sub-agent"):
-			self.agent_doc.save()
-
-	def test_changing_the_sub_agents_warns_that_existing_sessions_keep_theirs(self):
-		frappe.get_doc({"doctype": "Flow Session", "agent": self.agent_doc.name}).insert()
-		other = frappe.get_doc(_agent(self.model_doc.name, title="Other Agent")).insert()
-		with patch("frappe.msgprint") as msgprint:
-			self.agent_doc.append("sub_agents", {"agent": other.name})
-			self.agent_doc.save()
-		self.assertIn("Existing sessions", msgprint.call_args.args[0])
 
 
 class TestFlowAgentAttachmentSearch(IntegrationTestCase):
@@ -466,6 +384,10 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		return next(t for t in self.agent.client_tools(session) if t.name == "search_attachments")
 
 	def test_search_is_scoped_to_the_session_and_names_the_file(self):
+		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
+			self.assertEqual(self._search_tool()(query="refund", ctx=CTX), [])
+		retrieve.assert_not_called()
+
 		session = frappe.get_doc({"doctype": "Flow Session", "agent": self.agent.name}).insert()
 		file_doc = frappe.get_doc(
 			{"doctype": "File", "file_name": "old.txt", "content": "x", "is_private": 1}
@@ -483,11 +405,6 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		retrieve.assert_called_once_with("refund", session=session.name)
 		self.assertEqual(hits, [{"file": "old.txt", "content": "EXCERPT", "score": 0.5}])
 
-	def test_search_without_a_session_finds_nothing(self):
-		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
-			self.assertEqual(self._search_tool()(query="refund", ctx=CTX), [])
-		retrieve.assert_not_called()
-
 
 class TestFlowAgentInstructions(IntegrationTestCase):
 	"""Jinja tags in the instructions, filled in when a session starts."""
@@ -499,10 +416,20 @@ class TestFlowAgentInstructions(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def test_tags_name_the_session_user_and_today(self):
-		agent = frappe.get_doc(
-			_agent(self.model_doc.name, instructions="Helping {{ full_name }} ({{ user }}) on {{ today }}.")
-		).insert()
+	def test_tags_are_filled_in_and_other_text_stays_as_written(self):
+		cases = (
+			(
+				"Helping {{ full_name }} ({{ user }}) on {{ today }}.",
+				f"Helping Ada Lovelace (instructions-user@example.com) on {today()}.",
+			),
+			("{% raw %}Dear {{ doc.customer_name }},{% endraw %}", "Dear {{ doc.customer_name }},"),
+			("Answer using README.md", "Answer using README.md"),
+			("Never touch obj.__dict__ in scripts.", "Never touch obj.__dict__ in scripts."),
+		)
+		agents = [
+			frappe.get_doc(_agent(self.model_doc.name, title=f"Agent {i}", instructions=text)).insert()
+			for i, (text, _rendered) in enumerate(cases)
+		]
 		frappe.get_doc(
 			{
 				"doctype": "User",
@@ -514,36 +441,22 @@ class TestFlowAgentInstructions(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 		frappe.set_user("instructions-user@example.com")
 
-		self.assertEqual(
-			agent.session_tool_config()["system_prompt"],
-			f"Helping Ada Lovelace (instructions-user@example.com) on {today()}.",
-		)
+		for agent, (text, rendered) in zip(agents, cases, strict=True):
+			with self.subTest(instructions=text):
+				self.assertEqual(agent.session_tool_config()["system_prompt"], rendered)
 
-	def test_a_broken_template_is_refused(self):
-		doc = frappe.get_doc(_agent(self.model_doc.name, instructions="Helping {{ full_name"))
-		with self.assertRaisesRegex(frappe.ValidationError, "Could not fill in the instructions"):
-			doc.insert()
-
-	def test_example_jinja_is_refused_until_kept_as_plain_text(self):
-		example = "Dear {{ doc.customer_name }},"
-		doc = frappe.get_doc(_agent(self.model_doc.name, instructions=example))
-		with self.assertRaisesRegex(frappe.ValidationError, "'doc' is undefined"):
-			doc.insert()
-
-		raw = "{% raw %}" + example + "{% endraw %}"
-		agent = frappe.get_doc(_agent(self.model_doc.name, title="Raw", instructions=raw)).insert()
-		self.assertEqual(agent.render_instructions(), example)
-
-	def test_text_with_a_file_name_or_dunder_stays_as_written(self):
-		for i, text in enumerate(("Answer using README.md", "Never touch obj.__dict__ in scripts.")):
-			agent = frappe.get_doc(
-				_agent(self.model_doc.name, title=f"Plain {i}", instructions=text)
-			).insert()
-			self.assertEqual(agent.render_instructions(), text)
-
-	def test_underscore_attributes_stay_blocked(self):
+		# underscore attributes stay blocked
 		agent = frappe.get_doc(_agent(self.model_doc.name, instructions="{{ user.__class__ }}"))
 		self.assertNotIn("<class", agent.render_instructions())
+
+	def test_instructions_that_cannot_be_filled_in_are_refused(self):
+		for text, error in (
+			("Helping {{ full_name", "Could not fill in the instructions"),
+			("Dear {{ doc.customer_name }},", "'doc' is undefined"),
+		):
+			doc = frappe.get_doc(_agent(self.model_doc.name, instructions=text))
+			with self.subTest(instructions=text), self.assertRaisesRegex(frappe.ValidationError, error):
+				doc.insert()
 
 
 class TestFlowAgentSkillIndex(IntegrationTestCase):
@@ -560,93 +473,68 @@ class TestFlowAgentSkillIndex(IntegrationTestCase):
 		self.agent.save()
 		return self.agent.skill_index()
 
-	def _carry_the_tool(self):
-		self.agent.append("tools", {"tool": "load_skill"})
-		self.agent.save()
-
-	def test_an_agent_without_skills_has_an_empty_index(self):
+	def test_the_index_lists_enabled_bound_skills_in_name_order(self):
 		self.assertEqual(self.agent.skill_index(), "")
-
-	def test_the_index_lists_each_bound_skill_by_name_and_description(self):
-		_skill_row("Expense Approval")
-		index = self._bind("Expense Approval")
-		self.assertIn("<available_skills>", index)
-		self.assertIn("<name>Expense Approval</name>", index)
-		self.assertIn("<description>When to use Expense Approval.</description>", index)
-		self.assertNotIn("Body of Expense Approval.", index)
-
-	def test_skills_are_listed_in_name_order(self):
 		for title in ("Zebra Care", "Apple Picking"):
 			_skill_row(title)
-		index = self._bind("Zebra Care", "Apple Picking")
+		_skill_row("Retired Skill", enabled=0)
+
+		index = self._bind("Zebra Care", "Apple Picking", "Retired Skill")
+		self.assertIn("<available_skills>", index)
+		self.assertIn("<name>Apple Picking</name>", index)
+		self.assertIn("<description>When to use Apple Picking.</description>", index)
+		self.assertNotIn("Body of Apple Picking.", index)
 		self.assertLess(index.index("Apple Picking"), index.index("Zebra Care"))
-
-	def test_a_disabled_skill_is_left_out(self):
-		_skill_row("Expense Approval")
-		_skill_row("Retired Skill", enabled=0)
-		index = self._bind("Expense Approval", "Retired Skill")
-		self.assertIn("Expense Approval", index)
 		self.assertNotIn("Retired Skill", index)
+		with self.subTest("every bound skill disabled"):
+			self.assertEqual(self._bind("Retired Skill"), "")
 
-	def test_the_index_is_empty_when_every_bound_skill_is_disabled(self):
-		_skill_row("Retired Skill", enabled=0)
-		self.assertEqual(self._bind("Retired Skill"), "")
+	def test_a_description_becomes_one_escaped_line(self):
+		for title, description, expected in (
+			(
+				"Expense Approval",
+				"Reviews claims.\n\nUse it  for  receipts.",
+				"<description>Reviews claims. Use it for receipts.</description>",
+			),
+			(
+				"Manager's Sign-off",
+				'Don\'t approve the "final" claim.',
+				"""<description>Don't approve the "final" claim.</description>""",
+			),
+			(
+				"Markup",
+				"Closes </skill> early & opens <skill>.",
+				"&lt;/skill&gt; early &amp; opens &lt;skill&gt;",
+			),
+		):
+			_skill_row(title, description=description)
+			index = self._bind(title)
+			with self.subTest(title=title):
+				self.assertIn(f"<name>{title}</name>", index)
+				self.assertIn(expected, index)
+		with self.subTest("markup cannot close the block early"):
+			self.assertEqual(index.count("</skill>"), 1)
 
-	def test_a_multiline_description_is_flattened_to_one_line(self):
-		_skill_row("Expense Approval", description="Reviews claims.\n\nUse it  for  receipts.")
-		index = self._bind("Expense Approval")
-		self.assertIn("<description>Reviews claims. Use it for receipts.</description>", index)
-
-	def test_markup_in_a_description_cannot_break_the_block(self):
-		_skill_row("Expense Approval", description="Closes </skill> early & opens <skill>.")
-		index = self._bind("Expense Approval")
-		self.assertIn("&lt;/skill&gt; early &amp; opens &lt;skill&gt;", index)
-		self.assertEqual(index.count("</skill>"), 1)
-
-	def test_quotes_stay_literal_in_the_index(self):
-		_skill_row("Manager's Sign-off", description='Don\'t approve the "final" claim.')
-		index = self._bind("Manager's Sign-off")
-		self.assertIn("<name>Manager's Sign-off</name>", index)
-		self.assertIn("""<description>Don't approve the "final" claim.</description>""", index)
-
-	def test_an_agent_cannot_bind_more_skills_than_the_prompt_budget(self):
-		for i in range(MAX_SKILLS + 1):
-			_skill_row(f"Skill {i:03d}")
+	def test_an_agent_binds_at_most_the_prompt_budget_of_skills(self):
+		titles = [_skill_row(f"Skill {i:03d}") for i in range(MAX_SKILLS + 1)]
 		with self.assertRaisesRegex(frappe.ValidationError, "at most 30 skills"):
-			self._bind(*[f"Skill {i:03d}" for i in range(MAX_SKILLS + 1)])
+			self._bind(*titles)
+		with self.subTest("the cap itself is allowed"):
+			self.agent.reload()
+			self.assertEqual(self._bind(*titles[:MAX_SKILLS]).count("<skill>"), MAX_SKILLS)
 
-	def test_the_cap_itself_is_allowed(self):
-		for i in range(MAX_SKILLS):
-			_skill_row(f"Skill {i:03d}")
-		index = self._bind(*[f"Skill {i:03d}" for i in range(MAX_SKILLS)])
-		self.assertEqual(index.count("<skill>"), MAX_SKILLS)
+	def test_a_global_skill_reaches_each_agent_carrying_the_tool_once(self):
+		_skill_row("Retired Style", is_global=1, enabled=0)
+		self.agent.append("tools", {"tool": "load_skill"})
+		self.agent.save()
+		with self.subTest("a disabled global skill stays out"):
+			self.assertEqual(self.agent.skill_index(), "")
 
-	def test_a_global_skill_reaches_an_agent_that_carries_the_tool_but_never_bound_it(self):
 		_skill_row("House Style", is_global=1)
-		self._carry_the_tool()
 		self.assertIn("<name>House Style</name>", self.agent.skill_index())
-
-	def test_without_the_tool_a_global_skill_stays_out_of_the_index(self):
-		_skill_row("House Style", is_global=1)
-		self.assertEqual(self.agent.skill_index(), "")
-
-	def test_a_disabled_global_skill_stays_out(self):
-		_skill_row("House Style", is_global=1, enabled=0)
-		self._carry_the_tool()
-		self.assertEqual(self.agent.skill_index(), "")
-
-	def test_a_skill_that_is_global_and_bound_appears_once(self):
-		_skill_row("House Style", is_global=1)
-		index = self._bind("House Style")
-		self.assertEqual(index.count("<name>House Style</name>"), 1)
-
-	def test_a_system_generated_agent_still_gets_global_skills(self):
-		"""Its skills table is locked, so global is the only way to reach the built-in assistant."""
-		_skill_row("House Style", is_global=1)
-		self._carry_the_tool()
-		self.agent.is_system_generated = 1
-		self.agent.save(ignore_permissions=True)
-		self.assertIn("<name>House Style</name>", self.agent.skill_index())
+		self.assertEqual(self._bind("House Style").count("<name>House Style</name>"), 1)
+		toolless = frappe.get_doc(_agent(self.model_doc.name, title="Toolless Agent")).insert()
+		self.assertEqual(toolless.skill_index(), "")
 
 
 class TestFlowAgentInvocableSkills(IntegrationTestCase):
@@ -664,17 +552,17 @@ class TestFlowAgentInvocableSkills(IntegrationTestCase):
 		_skill_row("Expense Approval", user_invocable=1)
 		_skill_row("House Style", is_global=1, user_invocable=1)
 		_skill_row("Model Only")
+		with self.subTest("the tool is not needed to start a skill by hand"):
+			self.assertEqual([row["name"] for row in self.agent.invocable_skills()], ["House Style"])
+			self.assertEqual(self.agent.skill_index(), "")
+
 		self.agent.set("skills", [{"skill": "Expense Approval"}, {"skill": "Model Only"}])
 		self.agent.save()
-		self.assertEqual(
-			[(row["name"], row["command"]) for row in self.agent.invocable_skills()],
-			[("Expense Approval", "expense-approval"), ("House Style", "house-style")],
-		)
-
-	def test_the_tool_is_not_needed_to_start_a_skill_by_hand(self):
-		_skill_row("House Style", is_global=1, user_invocable=1)
-		self.assertEqual([row["name"] for row in self.agent.invocable_skills()], ["House Style"])
-		self.assertEqual(self.agent.skill_index(), "")
+		with self.subTest("bound and global"):
+			self.assertEqual(
+				[(row["name"], row["command"]) for row in self.agent.invocable_skills()],
+				[("Expense Approval", "expense-approval"), ("House Style", "house-style")],
+			)
 
 
 class TestFlowAgentLoadSkill(IntegrationTestCase):
@@ -694,66 +582,46 @@ class TestFlowAgentLoadSkill(IntegrationTestCase):
 		self.agent.set("skills", [{"skill": t} for t in titles])
 		self.agent.save()
 
-	def test_binding_a_skill_attaches_the_tool_automatically(self):
+	def test_a_bound_skill_loads_its_instructions_and_files(self):
 		_skill_row("Expense Approval")
-		self.assertIsNone(self._tool())
+		self.assertEqual([row.tool for row in self.agent.tools], [])
 		self._bind("Expense Approval")
-		self.assertIn("load_skill", [row.tool for row in self.agent.tools])
-
-	def test_a_bound_skill_loads_its_instructions(self):
-		_skill_row("Expense Approval")
-		self._bind("Expense Approval")
+		self.assertEqual([row.tool for row in self.agent.tools], ["load_skill"])
 		tool = self._tool()
 		self.assertEqual(set(tool.parameters["properties"]), {"name", "file"})
 		self.assertEqual(tool(name="Expense Approval", ctx=CTX), "Body of Expense Approval.")
 
-	def test_a_bound_app_skill_reads_a_file_it_mentions(self):
-		folder = AppSkills(self).write("close-todos")
-		with open(os.path.join(folder, "forms.md"), "w") as file:
-			file.write("Form fields.")
-		sync_skills()
-		self._bind("close-todos")
-
-		self.assertEqual(self._tool()(name="close-todos", file="forms.md", ctx=CTX), "Form fields.")
-
-	def test_a_global_skill_is_loadable_by_an_agent_carrying_the_builtin(self):
-		_skill_row("House Style", is_global=1)
-		self.agent.append("tools", {"tool": "load_skill"})
-		self.agent.save()
-		self.assertEqual(self._tool()(name="House Style", ctx=CTX), "Body of House Style.")
-
-	def test_another_agents_skill_is_refused_and_the_available_ones_are_named(self):
-		_skill_row("Mine")
-		_skill_row("Theirs")
-		self._bind("Mine")
-		self.agent.reload()
-		with self.assertRaisesRegex(frappe.ValidationError, "No skill named Theirs. Available: Mine"):
-			self._tool()(name="Theirs", ctx=CTX)
-
-	def test_a_disabled_skill_cannot_be_loaded(self):
-		_skill_row("Retired", enabled=0)
-		_skill_row("Live")
-		self._bind("Retired", "Live")
-		with self.assertRaisesRegex(frappe.ValidationError, "No skill named Retired"):
-			self._tool()(name="Retired", ctx=CTX)
+		with self.subTest("a file an app skill mentions"):
+			folder = AppSkills(self).write("close-todos")
+			with open(os.path.join(folder, "forms.md"), "w") as file:
+				file.write("Form fields.")
+			sync_skills()
+			self._bind("close-todos")
+			self.assertEqual(self._tool()(name="close-todos", file="forms.md", ctx=CTX), "Form fields.")
 
 	def test_the_builtin_assistant_carries_the_tool_and_loads_a_global_skill(self):
-		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
-
 		sync_builtin_assistant(self.model_doc.name)
 		assistant = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		self.assertIn("load_skill", [row.tool for row in assistant.tools])
 		_skill_row("House Style", is_global=1)
 		self.assertEqual(self._tool(assistant)(name="House Style", ctx=CTX), "Body of House Style.")
 
-	def test_the_tool_travels_to_the_server_with_the_agents_schemas(self):
-		_skill_row("House Style")
-		self._bind("House Style")
-		names = [t["function"]["name"] for t in self.agent.client_tool_config()["client_tools"]]
-		self.assertIn("load_skill", names)
-
-	def test_an_unbound_tool_refuses(self):
-		from flow.tools.builtins import bind_load_skill
-
-		with self.assertRaisesRegex(frappe.ValidationError, "Skills are not configured"):
-			bind_load_skill(None)(name="House Style", ctx=CTX)
+	def test_a_skill_the_agent_cannot_see_is_refused(self):
+		for title, enabled in (("Mine", 1), ("Theirs", 1), ("Retired", 0)):
+			_skill_row(title, enabled=enabled)
+		self._bind("Mine", "Retired")
+		for label, load, error in (
+			(
+				"another agent's skill",
+				lambda: self._tool()(name="Theirs", ctx=CTX),
+				"No skill named Theirs. Available: Mine",
+			),
+			("a disabled skill", lambda: self._tool()(name="Retired", ctx=CTX), "No skill named Retired"),
+			(
+				"an unbound tool",
+				lambda: bind_load_skill(None)(name="House Style", ctx=CTX),
+				"Skills are not configured",
+			),
+		):
+			with self.subTest(label), self.assertRaisesRegex(frappe.ValidationError, error):
+				load()

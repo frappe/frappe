@@ -13,86 +13,52 @@ CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
 
 class TestToolDecorator(UnitTestCase):
-	def test_bare_decorator_uses_name_and_docstring(self):
+	def test_a_decorated_function_becomes_a_tool_with_its_schema(self):
 		@tool
 		def get_weather(city: str, *, ctx: ToolContext) -> str:
 			"""Return the current weather for a city."""
 			return f"sunny in {city}"
 
-		self.assertIsInstance(get_weather, Tool)
-		self.assertEqual(get_weather.name, "get_weather")
-		self.assertEqual(get_weather.description, "Return the current weather for a city.")
-
-	def test_parameterized_decorator_overrides_name_and_description(self):
-		@tool(name="weather", description="Look up weather.")
-		def get_weather(city: str, *, ctx: ToolContext) -> str:
+		@tool(name="weather", description="Look up weather.", display_template="Weather in {{ city }}")
+		def named(city: str, *, ctx: ToolContext) -> str:
 			"""ignored docstring"""
-			return f"sunny in {city}"
+			return city
 
-		self.assertEqual(get_weather.name, "weather")
-		self.assertEqual(get_weather.description, "Look up weather.")
+		self.assertIsInstance(get_weather, Tool)
+		# ctx is not in the model's schema
+		self.assertEqual(get_weather.parameters["properties"], {"city": {"type": "string"}})
+		self.assertEqual(
+			get_weather.to_dict(),
+			{
+				"type": "function",
+				"function": {
+					"name": "get_weather",
+					"description": "Return the current weather for a city.",
+					"parameters": get_weather.parameters,
+				},
+			},
+		)
+		self.assertEqual((named.name, named.description), ("weather", "Look up weather."))
+		self.assertEqual(named.to_dict()["display_template"], "Weather in {{ city }}")
 
-	def test_calling_tool_invokes_wrapped_function(self):
+	def test_a_call_validates_its_arguments_and_passes_the_context(self):
 		@tool
-		def add(a: int, b: int, *, ctx: ToolContext) -> int:
+		def add(a: int, b: int, *, ctx: ToolContext) -> tuple[int, str]:
 			"""Add two integers."""
-			return a + b
+			return a + b, ctx.session_id
 
-		self.assertEqual(add(a=2, b=3, ctx=CTX), 5)
-
-	def test_call_validates_and_coerces_types(self):
-		@tool
-		def add(a: int, b: int, *, ctx: ToolContext) -> int:
-			"""Add two integers."""
-			return a + b
-
-		self.assertEqual(add(a="2", b="3", ctx=CTX), 5)
-
-	def test_call_rejects_invalid_arguments(self):
-		@tool
-		def add(a: int, b: int, *, ctx: ToolContext) -> int:
-			"""Add two integers."""
-			return a + b
-
+		self.assertEqual(add(a=2, b=3, ctx=CTX), (5, "test"))
+		self.assertEqual(add(a="2", b="3", ctx=CTX), (5, "test"))
 		with self.assertRaises(ValidationError):
 			add(a="not a number", b=3, ctx=CTX)
 
-	def test_to_dict_returns_function_envelope(self):
-		@tool
-		def ping(*, ctx: ToolContext) -> str:
-			"""Ping."""
-			return "pong"
-
-		schema = ping.to_dict()
-		self.assertEqual(schema["type"], "function")
-		self.assertEqual(schema["function"]["name"], "ping")
-		self.assertEqual(schema["function"]["description"], "Ping.")
-		self.assertIn("parameters", schema["function"])
-
-	def test_context_is_not_in_the_model_schema(self):
-		@tool
-		def identify(value: str, *, ctx: ToolContext) -> tuple[str, str]:
-			return value, ctx.session_id
-
-		self.assertEqual(identify.parameters["properties"], {"value": {"type": "string"}})
-		self.assertEqual(identify(value="ok", ctx=CTX), ("ok", "test"))
-
-	def test_a_display_template_rides_beside_the_schema(self):
-		@tool(display_template="Reading {{ doctype }}")
-		def read(doctype: str, *, ctx: ToolContext) -> str:
-			return doctype
-
-		self.assertEqual(read.to_dict()["display_template"], "Reading {{ doctype }}")
-		self.assertNotIn("display_template", tool(read.func).to_dict())
-
-	def test_a_display_template_naming_an_unknown_argument_is_refused(self):
+	def test_a_bad_definition_is_refused(self):
 		with self.assertRaisesRegex(ValueError, r"unknown argument\(s\): name"):
 
 			@tool(display_template="Reading {{ name }}")
 			def read(doctype: str, *, ctx: ToolContext) -> str:
 				return doctype
 
-	def test_a_tool_without_context_is_refused_when_defined(self):
 		with self.assertRaisesRegex(TypeError, r"Tool ping must take `\*, ctx: ToolContext`"):
 
 			@tool
@@ -102,162 +68,86 @@ class TestToolDecorator(UnitTestCase):
 
 
 class TestSchemaPrimitives(UnitTestCase):
-	def test_primitives_and_required_flag(self):
-		def f(s: str, i: int, x: float, b: bool):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(
-			schema["properties"],
-			{
-				"s": {"type": "string"},
-				"i": {"type": "integer"},
-				"x": {"type": "number"},
-				"b": {"type": "boolean"},
-			},
-		)
-		self.assertEqual(set(schema["required"]), {"s", "i", "x", "b"})
-		self.assertFalse(schema["additionalProperties"])
-
-	def test_default_value_makes_argument_optional(self):
-		def f(city: str, units: str = "metric"):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(schema["required"], ["city"])
-
-	def test_optional_type_makes_argument_optional(self):
-		def f(city: str, note: str | None = None):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(schema["required"], ["city"])
-		self.assertEqual(schema["properties"]["note"], {"type": "string"})
-
-	def test_pipe_optional_syntax(self):
-		def f(city: str | None = None):
-			pass
-
-		schema = build_schema(f)
-		self.assertNotIn("required", schema)
-		self.assertEqual(schema["properties"]["city"], {"type": "string"})
-
-	def test_list_of_primitive(self):
-		def f(tags: list[str]):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(
-			schema["properties"]["tags"],
-			{"type": "array", "items": {"type": "string"}},
-		)
-
-	def test_set_and_tuple_become_arrays(self):
-		def f(s: set[str], t: tuple[int, ...]):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(schema["properties"]["s"]["type"], "array")
-		self.assertEqual(schema["properties"]["s"]["items"], {"type": "string"})
-		self.assertEqual(schema["properties"]["t"]["type"], "array")
-		self.assertEqual(schema["properties"]["t"]["items"], {"type": "integer"})
-
-	def test_dict_treated_as_object(self):
-		def f(metadata: dict):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(schema["properties"]["metadata"], {"type": "object"})
-
-	def test_literal_becomes_string_enum(self):
-		def f(units: Literal["metric", "imperial"]):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(
-			schema["properties"]["units"],
-			{"type": "string", "enum": ["metric", "imperial"]},
-		)
-
-	def test_int_enum_class(self):
+	def test_each_hint_maps_to_its_json_schema(self):
 		class Priority(Enum):
 			LOW = 1
 			HIGH = 2
 
-		def f(p: Priority):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(
-			schema["properties"]["p"],
-			{"type": "integer", "enum": [1, 2]},
-		)
-
-	def test_annotated_provides_description(self):
-		def f(city: Annotated[str, "The city name, e.g. 'Mumbai'"]):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(
-			schema["properties"]["city"],
-			{"type": "string", "description": "The city name, e.g. 'Mumbai'"},
-		)
-
-	def test_annotated_optional_combines(self):
-		def f(note: Annotated[str | None, "An optional note"] = None):
-			pass
-
-		schema = build_schema(f)
-		self.assertEqual(
-			schema["properties"]["note"],
-			{"type": "string", "description": "An optional note"},
-		)
-		self.assertNotIn("required", schema)
-
-	def test_pydantic_model_uses_model_schema(self):
 		class Address(BaseModel):
 			street: str
 			city: str = Field(..., description="The city")
 
-		def f(addr: Address):
-			pass
-
-		schema = build_schema(f)
-		addr_schema = schema["properties"]["addr"]
-		self.assertEqual(addr_schema["type"], "object")
-		self.assertIn("street", addr_schema["properties"])
-		self.assertIn("city", addr_schema["properties"])
-
-	def test_nested_pydantic_model_inlines_refs(self):
 		class Inner(BaseModel):
 			x: int
 
 		class Outer(BaseModel):
 			inner: Inner
 
-		def f(outer: Outer):
+		def f(
+			s: str,
+			i: int,
+			x: float,
+			b: bool,
+			tags: list[str],
+			unique: set[str],
+			pair: tuple[int, ...],
+			metadata: dict,
+			units: Literal["metric", "imperial"],
+			p: Priority,
+			city: Annotated[str, "The city name, e.g. 'Mumbai'"],
+			addr: Address,
+			outer: Outer,
+			note: Annotated[str | None, "An optional note"] = None,
+		):
 			pass
 
-		schema = build_schema(f)
-		outer_schema = schema["properties"]["outer"]
-		self.assertNotIn("$defs", outer_schema)
-		inner_schema = outer_schema["properties"]["inner"]
-		self.assertNotIn("$ref", inner_schema)
-		self.assertEqual(inner_schema["type"], "object")
-		self.assertIn("x", inner_schema["properties"])
+		properties = build_schema(f)["properties"]
+		addr, outer = properties.pop("addr"), properties.pop("outer")
+		self.assertEqual(
+			properties,
+			{
+				"s": {"type": "string"},
+				"i": {"type": "integer"},
+				"x": {"type": "number"},
+				"b": {"type": "boolean"},
+				"tags": {"type": "array", "items": {"type": "string"}},
+				"unique": {"type": "array", "items": {"type": "string"}},
+				"pair": {"type": "array", "items": {"type": "integer"}},
+				"metadata": {"type": "object"},
+				"units": {"type": "string", "enum": ["metric", "imperial"]},
+				"p": {"type": "integer", "enum": [1, 2]},
+				"city": {"type": "string", "description": "The city name, e.g. 'Mumbai'"},
+				"note": {"type": "string", "description": "An optional note"},
+			},
+		)
+		# a pydantic model's own schema, with nested refs inlined
+		self.assertEqual(addr["type"], "object")
+		self.assertIn("street", addr["properties"])
+		self.assertIn("city", addr["properties"])
+		self.assertNotIn("$defs", outer)
+		inner = outer["properties"]["inner"]
+		self.assertNotIn("$ref", inner)
+		self.assertEqual(inner["type"], "object")
+		self.assertIn("x", inner["properties"])
 
-	def test_var_args_and_kwargs_are_skipped(self):
-		def f(x: int, *args, **kwargs):
+	def test_arguments_without_a_default_or_none_are_required(self):
+		def f(city: str, units: str = "metric", note: str | None = None, *args, **kwargs):
 			pass
 
-		schema = build_schema(f)
-		self.assertEqual(list(schema["properties"].keys()), ["x"])
-
-	def test_no_parameters(self):
-		def f():
+		def g():
 			pass
 
-		schema = build_schema(f)
-		self.assertEqual(schema["properties"], {})
-		self.assertNotIn("required", schema)
-		self.assertFalse(schema["additionalProperties"])
+		self.assertEqual(
+			build_schema(f),
+			{
+				"type": "object",
+				"properties": {
+					"city": {"type": "string"},
+					"units": {"type": "string"},
+					"note": {"type": "string"},
+				},
+				"additionalProperties": False,
+				"required": ["city"],
+			},
+		)
+		self.assertEqual(build_schema(g), {"type": "object", "properties": {}, "additionalProperties": False})

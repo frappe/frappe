@@ -151,7 +151,7 @@ test("a seq gap, a resync notice, a reconnect, a relay drop and a new stream id 
 	stream.close();
 });
 
-test("each terminal run_ended is reported exactly once, replayed or re-fetched", async () => {
+test("each terminal run_ended is reported exactly once, replayed or re-fetched; a sub-agent's is not terminal", async () => {
 	const socket = fakeSocket();
 	const terminals = [];
 	const stream = new SessionStream({
@@ -159,12 +159,15 @@ test("each terminal run_ended is reported exactly once, replayed or re-fetched",
 		session: "s1",
 		since: 0,
 		fetchEntries: async (cursor) => ({
-			entries: [ended(2), ended(5)].filter((row) => row.seq > cursor),
+			entries: [ended(2), ended(3, { subagent_id: "c1" }), ended(5)].filter(
+				(row) => row.seq > cursor
+			),
 		}),
 		onTerminal: (seq) => terminals.push(seq),
 	});
 	const iterator = stream[Symbol.asyncIterator]();
 	assert.equal((await iterator.next()).value.seq, 2);
+	assert.equal((await iterator.next()).value.seq, 3);
 	assert.equal((await iterator.next()).value.seq, 5);
 	socket.fire("flow:event", ended(5, { stream_id: "a", revision: 9 }));
 	socket.fire("flow:event", ended(2, { stream_id: "a", revision: 9 }));
@@ -178,21 +181,6 @@ test("each terminal run_ended is reported exactly once, replayed or re-fetched",
 	});
 	assert.equal((await iterator.next()).value.text, "!");
 	assert.deepEqual(terminals, [2, 5]);
-	stream.close();
-});
-
-test("a sub-agent's run_ended is not a terminal event", async () => {
-	const socket = fakeSocket();
-	const terminals = [];
-	const stream = new SessionStream({
-		socket,
-		session: "s1",
-		since: 0,
-		fetchEntries: async () => ({ entries: [ended(3, { subagent_id: "c1" }), ended(4)] }),
-		onTerminal: (seq) => terminals.push(seq),
-	});
-	await collect(stream, 2);
-	assert.deepEqual(terminals, [4]);
 	stream.close();
 });
 
@@ -240,8 +228,8 @@ test("a refused subscription ends the stream with an error, and releases the roo
 	assert.deepEqual(late.emitted.at(-1), ["flow:unsubscribe", "s1"]);
 });
 
-for (const notice of ["connect", "flow:resync"]) {
-	test(`${notice} replaces the streaming preview instead of appending it`, async (t) => {
+test("a reconnect or a resync replaces the streaming preview instead of appending it", async (t) => {
+	for (const notice of ["connect", "flow:resync"]) {
 		const socket = fakeSocket();
 		let preview = "Hello";
 		const stream = new SessionStream({
@@ -255,17 +243,17 @@ for (const notice of ["connect", "flow:resync"]) {
 		t.after(() => stream.close());
 		const state = initialConversation();
 		const iterator = stream[Symbol.asyncIterator]();
-		async function readPreview() {
+		const readPreview = async () => {
 			let event;
 			do {
 				event = (await iterator.next()).value;
 				applyEvent(state, event);
 			} while (event.type !== "text_delta");
-		}
+		};
 		await readPreview();
 		preview = "Hello world";
 		socket.fire(notice, { session: "s1" });
 		await readPreview();
-		assert.deepEqual(state.partial, [{ type: "text", text: "Hello world" }]);
-	});
-}
+		assert.deepEqual(state.partial, [{ type: "text", text: "Hello world" }], notice);
+	}
+});

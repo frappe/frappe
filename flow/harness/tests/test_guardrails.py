@@ -32,7 +32,7 @@ def test_request_size_cap(tmp_path):
 	assert open_client.post("/sessions", json=big).status_code == 200
 
 
-def test_audit_log_records_sensitive_calls(tmp_path):
+def test_audit_log_records_sensitive_calls_and_their_site(tmp_path):
 	store = _store(tmp_path)
 	app = create_app(store, auth_token="secret", policy=ServerPolicy(audit_log=True))
 	client = TestClient(app, headers={"Authorization": "Bearer secret"})
@@ -52,12 +52,11 @@ def test_audit_log_records_sensitive_calls(tmp_path):
 	]
 	assert all(isinstance(row["ts"], float) and "site" not in row for row in rows)
 
-
-def test_audit_log_records_the_site(tmp_path):
+	# a tenant's calls name its site
 	site_root = tmp_path / "sites" / "alpha"
 	site_root.mkdir(parents=True)
 	(site_root / "site.json").write_text('{"token": "alpha-token"}')
-	store = _store(tmp_path)
+	store = _store(tmp_path / "tenant")
 	tenants = TenantTemplate(
 		token_file=str(tmp_path / "sites" / "{site}" / "site.json"),
 		token_key="token",

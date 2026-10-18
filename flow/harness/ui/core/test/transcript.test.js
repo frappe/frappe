@@ -9,19 +9,15 @@ import {
 	codeRefLabel,
 	compactDisplayText,
 	conversationTitle,
-	displayText,
 	formatDuration,
-	humanizeToolName,
 	initialConversation,
 	invokedSkills,
 	normalizeSkillCommand,
-	parseSkillInvocation,
 	quoteBlock,
-	skillCommand,
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
-	stepLiveLabel,
+	stepLabel,
 	stepStat,
 	stepSubject,
 	subagentId,
@@ -34,17 +30,7 @@ function toolGroups(conversation) {
 	return buildItems(conversation).filter((item) => item.kind === "group")
 }
 
-test("a durable user message keeps the turn visibly working until it ends", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "Review this" })
-	assert.equal(conversation.running, false)
-	assert.equal(conversation.liveLabel, "Working")
-	applyEvent(conversation, { type: "run_ended", seq: 3, reason: "done" })
-	assert.equal(conversation.running, false)
-	assert.equal(conversation.liveLabel, null)
-})
-
-test("user content helpers support durable attachment blocks", () => {
+test("a user message splits back into its text, attachments, code refs and quotes", () => {
 	const entry = {
 		content: [
 			{ type: "text", text: "review this" },
@@ -54,9 +40,8 @@ test("user content helpers support durable attachment blocks", () => {
 	assert.equal(userText(entry), "review this")
 	assert.deepEqual(userAttachments(entry).map((item) => item.name), ["screen.png"])
 	assert.equal(userText({ content: "legacy" }), "legacy")
-})
 
-test("code references appended by the composer split back out of the text", () => {
+	// code references the composer appended
 	const { body, refs } = splitCodeRefs("hi\n\n@src/flow_harness/agent/agent.py:10-15\n@/abs/config.py:17")
 	assert.equal(body, "hi")
 	assert.deepEqual(refs, [
@@ -66,44 +51,32 @@ test("code references appended by the composer split back out of the text", () =
 	assert.equal(codeRefLabel(refs[0]), "agent.py (10-15)")
 	assert.equal(codeRefLabel(refs[1]), "config.py (17)")
 	assert.deepEqual(splitCodeRefs("plain text"), { body: "plain text", refs: [] })
-})
 
-test("quotes added to chat travel as blockquotes under the text and split back out", () => {
+	// quotes added to chat travel as blockquotes under the text
 	assert.equal(quoteBlock("a\n\nb"), "> a\n>\n> b")
 	assert.deepEqual(splitQuotes("hi\n\n> a\n>\n> b\n\n> c"), { body: "hi", quotes: ["a\n\nb", "c"] })
 	assert.deepEqual(splitQuotes("> only"), { body: "", quotes: ["only"] })
 	assert.deepEqual(splitQuotes("> top\n\nplain"), { body: "> top\n\nplain", quotes: [] })
-	assert.deepEqual(splitQuotes("plain"), { body: "plain", quotes: [] })
 })
 
-test("expanded skill messages render as the command the user typed", () => {
+test("a skill message renders as the command the user typed, where they typed it", () => {
 	const expanded =
 		'<skill name="security-review" location="/skills/security-review/SKILL.md">\n' +
 		"References are relative to /skills/security-review.\n\n" +
 		"large model-only instructions\n</skill>\n\ncheck this branch"
-	const entry = {
-		type: "user_message",
-		content: expanded,
-	}
-
-	assert.deepEqual(parseSkillInvocation(expanded).names, ["security-review"])
+	const entry = { type: "user_message", content: expanded }
 	assert.equal(userText(entry), "/skill:security-review check this branch")
-	assert.equal(skillCommand(entry), "/skill:security-review check this branch")
 	assert.equal(conversationTitle({ entries: [entry] }), "check this branch")
 	const typed = { type: "user_message", content: [{ type: "text", text: "/skill:review fix the tests" }] }
 	assert.equal(conversationTitle({ entries: [], sending: [{ entry: typed }] }), "fix the tests")
-	assert.equal(userText({ content: "ordinary" }), "ordinary")
-	assert.equal(normalizeSkillCommand("/skill:security-review\n\ncheck this branch"), "/skill:security-review check this branch")
-})
 
-test("skill commands later in a message render where they were typed", () => {
+	// commands later in a message render where they were typed
 	const block = (name) => `<skill name="${name}" location="/skills/${name}/SKILL.md">\nbody\n</skill>`
-	const typed = "check /skill:review then /skill:tests"
-	const entry = { type: "user_message", content: `${block("review")}\n\n${block("tests")}\n\n${typed}` }
-
-	assert.deepEqual(invokedSkills(entry), ["review", "tests"])
-	assert.equal(userText(entry), typed)
-	assert.equal(conversationTitle({ entries: [entry] }), typed)
+	const later = "check /skill:review then /skill:tests"
+	const laterEntry = { type: "user_message", content: `${block("review")}\n\n${block("tests")}\n\n${later}` }
+	assert.deepEqual(invokedSkills(laterEntry), ["review", "tests"])
+	assert.equal(userText(laterEntry), later)
+	assert.equal(conversationTitle({ entries: [laterEntry] }), later)
 	// a leading command gave way to its skill; a later one is still in the text
 	const leading = { type: "user_message", content: `${block("review")}\n\n${block("tests")}\n\nfix with /skill:tests` }
 	assert.equal(userText(leading), "/skill:review fix with /skill:tests")
@@ -127,41 +100,10 @@ test("skill commands later in a message render where they were typed", () => {
 	assert.equal(userText(quoted), "/skill:review fix\n\n> see /skill:review")
 })
 
-test("declarative tool displays drive live labels", () => {
-	const display = [
-		{ text: "Reading file " },
-		{ text: "src/flow_harness/model/base.py", arg: "path" },
-	]
-	// the live line shortens read paths to the file name; the full path stays in displayText
-	assert.equal(
-		stepLiveLabel({ name: "read", arguments: { path: "src/flow_harness/model/base.py" }, display }),
-		"Reading file base.py",
-	)
-	assert.equal(displayText(display), "Reading file src/flow_harness/model/base.py")
-})
-
-test("known tools retain generic fallbacks for older events", () => {
-	assert.equal(
-		stepLiveLabel({ name: "read", arguments: { path: "src/app.py" } }),
-		"Reading file app.py",
-	)
-	assert.equal(stepLiveLabel({ name: "bash", arguments: { command: "git status" } }), "Running command")
-	assert.equal(stepLiveLabel({ name: "grep", arguments: { pattern: "TODO" } }), "Searching code")
-})
-
 test("unknown tool names are humanized for future custom tools", () => {
-	assert.equal(humanizeToolName("send_email_now"), "Send email now")
-	assert.equal(humanizeToolName("create-calendar-event"), "Create calendar event")
-	assert.equal(humanizeToolName("fetchAccountDetails"), "Fetch account details")
-	assert.equal(stepLiveLabel({ name: "send_email_now", arguments: {} }), "Running send email now")
-	assert.equal(
-		stepLiveLabel({
-			name: "web_search",
-			arguments: { query: "Flow" },
-			display: [{ text: "Searching the web for " }, { text: "Flow", arg: "query" }],
-		}),
-		"Searching the web for Flow",
-	)
+	assert.equal(stepLabel("send_email_now"), "Send email now")
+	assert.equal(stepLabel("create-calendar-event"), "Create calendar event")
+	assert.equal(stepLabel("fetchAccountDetails"), "Fetch account details")
 })
 
 test("tool row argument text compacts paths for display", () => {
@@ -181,185 +123,92 @@ test("tool row argument text compacts paths for display", () => {
 	assert.equal(compactDisplayText("src/main.py", null), "src/main.py")
 })
 
-test("live chat statuses do not use ellipses", () => {
+test("the status line tracks the run: Working, Retrying, Compacting, then clear", () => {
 	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
+	// the server's copy of a message keeps the turn visibly working until it ends
+	applyEvent(conversation, { type: "user_message", seq: 2, content: "Review this" })
+	assert.equal(conversation.running, false)
 	assert.equal(conversation.liveLabel, "Working")
-	// tool names never reach the status line — the row is the tool's only UI
-	applyEvent(conversation, { type: "tool_call_started", name: "read" })
-	assert.equal(conversation.liveLabel, "Working")
-	applyEvent(conversation, {
-		type: "tool_call_display_ready",
-		id: "call-1",
-		name: "read",
-		arguments: { path: "src/events.py" },
-		display: [{ text: "Inspecting " }, { text: "src/events.py", arg: "path" }],
-	})
-	assert.equal(conversation.liveLabel, "Working")
-	assert.deepEqual(conversation.partial[0].display, [
-		{ text: "Inspecting " },
-		{ text: "src/events.py", arg: "path" },
-	])
-	applyEvent(conversation, { type: "tool_call_started", name: "send_email_now" })
-	assert.equal(conversation.liveLabel, "Working")
-	applyEvent(conversation, { type: "retry", status: "scheduled" })
-	assert.equal(conversation.liveLabel, "Retrying")
-	applyEvent(conversation, { type: "compaction_started" })
-	assert.equal(conversation.liveLabel, "Compacting context")
+	for (const [event, label] of [
+		[{ type: "run_started", seq: 3 }, "Working"],
+		// tool names never reach the status line: the row is the tool's only UI
+		[{ type: "tool_call_started", name: "read" }, "Working"],
+		[{ type: "tool_call_display_ready", id: "call-1", name: "read", arguments: { path: "src/events.py" } }, "Working"],
+		[{ type: "retry", status: "scheduled" }, "Retrying"],
+		[{ type: "retry", status: "started" }, "Working"],
+		[{ type: "compaction_started", reason: "threshold" }, "Compacting context"],
+		[{ type: "compaction_ended", reason: "threshold" }, "Working"],
+		// a run that ends mid-compaction, its compaction_ended never seen, leaves none behind
+		[{ type: "compaction_started" }, "Compacting context"],
+		[{ type: "run_ended", seq: 4, reason: "error" }, null],
+	]) {
+		applyEvent(conversation, event)
+		assert.equal(conversation.liveLabel, label, JSON.stringify(event))
+	}
+	assert.equal(conversation.running, false)
+	assert.equal(conversation.compacting, false)
 })
 
-test("context window never carries across a model change", () => {
-	const conversation = initialConversation()
-	conversation.model = "codex/gpt-5.6-sol"
-	conversation.contextWindow = 272_000
-	conversation.contextTokens = 80_000
-
-	applyEvent(conversation, { type: "model_changed", model: "deepseek/deepseek-chat" })
-	assert.equal(conversation.contextWindow, null)
-	assert.equal(conversation.contextTokens, 0)
-
-	applyEvent(conversation, { type: "usage", context_window: 1_000_000 })
-	assert.equal(conversation.contextWindow, 1_000_000)
-
-	// Changing only reasoning effort keeps the selected model's known limit.
-	applyEvent(conversation, {
-		type: "model_changed",
-		model: "deepseek/deepseek-chat",
-		reasoning_effort: "high",
-	})
-	assert.equal(conversation.contextWindow, 1_000_000)
-})
-
-test("usage keeps cumulative spend separate from the current context", () => {
+test("the context reading clears on a compaction or a model change, while spend adds up", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "usage", input_tokens: 70_000, output_tokens: 1_000 })
 	applyEvent(conversation, { type: "usage", input_tokens: 80_000, output_tokens: 2_000 })
-
 	assert.equal(conversation.usage.input + conversation.usage.output, 153_000)
 	assert.equal(conversation.contextTokens, 82_000)
-
 	applyEvent(conversation, { type: "compaction", seq: 1, compact_up_to_seq: 0 })
 	assert.equal(conversation.usage.input + conversation.usage.output, 153_000)
 	assert.equal(conversation.contextTokens, 0)
+
+	// the context window never carries across a model change
+	applyEvent(conversation, { type: "model_changed", model: "codex/gpt-5.6-sol" })
+	applyEvent(conversation, { type: "usage", input_tokens: 80_000, context_window: 272_000 })
+	applyEvent(conversation, { type: "model_changed", model: "deepseek/deepseek-chat" })
+	assert.equal(conversation.contextWindow, null)
+	assert.equal(conversation.contextTokens, 0)
+	applyEvent(conversation, { type: "usage", context_window: 1_000_000 })
+	assert.equal(conversation.contextWindow, 1_000_000)
+	// changing only reasoning effort keeps the selected model's known limit
+	applyEvent(conversation, { type: "model_changed", model: "deepseek/deepseek-chat", reasoning_effort: "high" })
+	assert.equal(conversation.contextWindow, 1_000_000)
 })
 
-test("identity-only tool starts stay hidden until actionable arguments arrive", () => {
+test("a streamed tool call shows once its arguments are ready, in provider order; a retry drops it", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
-
-	assert.deepEqual(conversation.partial, [
-		{ type: "tool_call", id: "call-1", name: "read", arguments: null },
-	])
-	assert.deepEqual(toolGroups(conversation), [])
-	assert.equal(conversation.liveLabel, "Working")
-})
-
-test("ready tool metadata creates one exact provisional step", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
+	// a repeated start renames its placeholder instead of adding a ghost step
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "edit" })
-	applyEvent(conversation, {
-		type: "tool_call_display_ready",
-		id: "call-1",
-		name: "edit",
-		arguments: { path: "ui/App.vue" },
-		display: [{ text: "Editing file " }, { text: "ui/App.vue", arg: "path" }],
-	})
-	applyEvent(conversation, {
-		type: "tool_call_display_ready",
-		id: "call-1",
-		name: "edit",
-		arguments: { path: "ui/Renamed.vue" },
-		display: [{ text: "Editing file " }, { text: "ui/Renamed.vue", arg: "path" }],
-	})
-
-	assert.equal(conversation.partial.length, 1)
-	assert.equal(conversation.liveLabel, "Working")
-	const groups = toolGroups(conversation)
-	assert.equal(groups.length, 1)
-	assert.equal(groups[0].steps[0].call.arguments.path, "ui/Renamed.vue")
-})
-
-test("repeated identity-only tool starts never create ghost steps", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "write" })
-
+	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "bash" })
 	assert.deepEqual(conversation.partial, [
-		{ type: "tool_call", id: "call-1", name: "write", arguments: null },
+		{ type: "tool_call", id: "call-1", name: "edit", arguments: null },
+		{ type: "tool_call", id: "call-2", name: "bash", arguments: null },
 	])
 	assert.deepEqual(toolGroups(conversation), [])
-})
+	assert.equal(conversation.liveLabel, "Working")
 
-test("ready metadata preserves the provider order for parallel calls", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "bash" })
-	applyEvent(conversation, {
-		type: "tool_call_display_ready",
-		id: "call-2",
-		name: "bash",
-		arguments: { command: "pwd" },
-	})
-	applyEvent(conversation, {
+	const ready = (path) => ({
 		type: "tool_call_display_ready",
 		id: "call-1",
-		name: "read",
-		arguments: { path: "README.md" },
+		name: "edit",
+		arguments: { path },
+		display: [{ text: "Editing file " }, { text: path, arg: "path" }],
 	})
-
-	assert.deepEqual(
-		toolGroups(conversation)[0].steps.map((step) => step.call.id),
-		["call-1", "call-2"],
-	)
-})
-
-test("durable assistant call creates the first visible step and receives the result", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
-
-	const durableCall = {
-		type: "tool_call",
-		id: "call-1",
-		name: "read",
-		arguments: { path: "src/flow_harness/events.py" },
-	}
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 1,
-		content: [durableCall],
-		stop_reason: "tool_use",
-	})
-	assert.deepEqual(conversation.partial, [])
-
-	applyEvent(conversation, {
-		type: "tool_result",
-		seq: 2,
-		tool_call_id: "call-1",
-		name: "read",
-		content: "contents",
-	})
-
+	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-2", name: "bash", arguments: { command: "pwd" } })
+	applyEvent(conversation, ready("ui/App.vue"))
+	// metadata sent again replaces its step
+	applyEvent(conversation, ready("ui/Renamed.vue"))
+	assert.equal(conversation.partial.length, 2)
 	const groups = toolGroups(conversation)
 	assert.equal(groups.length, 1)
-	assert.equal(groups[0].key, "g:call-1")
-	assert.equal(groups[0].steps.length, 1)
-	assert.strictEqual(groups[0].steps[0].call, durableCall)
-	assert.equal(groups[0].steps[0].result.content, "contents")
-})
+	assert.deepEqual(
+		groups[0].steps.map((step) => [step.call.id, step.call.arguments]),
+		[
+			["call-1", { path: "ui/Renamed.vue" }],
+			["call-2", { command: "pwd" }],
+		],
+	)
 
-test("announced calls stay hidden and failed attempts leave no ghost steps", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "grep" })
-	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "bash" })
-
-	assert.deepEqual(toolGroups(conversation), [])
-
+	// a failed attempt leaves no ghost steps
 	applyEvent(conversation, { type: "retry", status: "started" })
 	assert.deepEqual(conversation.partial, [])
 	assert.deepEqual(toolGroups(conversation), [])
@@ -381,103 +230,75 @@ test("a preview replay replaces an existing provisional preview", () => {
 	assert.deepEqual(conversation.partial, [{ type: "text", text: "prefix suffix" }])
 })
 
-test("streamed thinking joins the trailing tool group's dropdown", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 1,
-		content: [{ type: "tool_call", id: "call-1", name: "grep", arguments: { pattern: "x" } }],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 2, tool_call_id: "call-1", name: "grep", content: "hit" })
-	applyEvent(conversation, { type: "thinking_delta", thinking: "next I should" })
-
-	assert.equal(conversation.liveLabel, "Thinking")
-	const steps = toolGroups(conversation)[0].steps
-	assert.deepEqual(steps[steps.length - 1].thought, { type: "thinking", thinking: "next I should" })
-	// its chunks are still arriving, so the thought row shimmers as "Thinking"
-	assert.equal(steps[steps.length - 1].live, true)
-	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
-
-	// a tool call after it ends the thought: the row settles to "Thought"
-	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "write" })
-	const settled = toolGroups(conversation)[0].steps
-	assert.equal(settled.findLast((step) => step.thought)?.live, false)
-	assert.equal(conversation.liveLabel, "Working")
-})
-
-test("whitespace-only text between a thought and its tool call renders nothing", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 1,
-		content: [
-			{ type: "thinking", thinking: "look at the file" },
-			{ type: "text", text: "  " },
-			{ type: "tool_call", id: "call-1", name: "read", arguments: { path: "sign.jpg" } },
-		],
-		stop_reason: "tool_use",
-	})
-
-	const items = buildItems(conversation)
-	// the thought folds into the tool group instead of standing alone above an empty text item
-	assert.deepEqual(items.map((item) => item.kind), ["group"])
-	assert.deepEqual(items[0].steps[0].thought, { type: "thinking", thinking: "look at the file" })
-})
-
-test("streamed thinking stays visible until the actionable tool call arrives", () => {
+test("a streamed thought and call hand over to the durable message, keeping their ids", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
 	applyEvent(conversation, { type: "thinking_delta", thinking: "let me see" })
+	const thinking = () => buildItems(conversation).find((item) => item.kind === "thinking")
+	assert.equal(thinking().key, "turn:1:th:0")
+	assert.equal(thinking().block.thinking, "let me see")
+	assert.equal(thinking().live, true)
 
-	const live = buildItems(conversation).find((item) => item.kind === "thinking")
-	assert.ok(live?.live)
-	assert.equal(live.block.thinking, "let me see")
-
-	// Identity alone does not hide the thought or announce a metadata-free tool.
+	// a call's identity alone ends the thought, but neither hides it nor shows a row
 	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "read" })
-	assert.equal(buildItems(conversation).find((item) => item.kind === "thinking")?.block.thinking, "let me see")
+	assert.equal(thinking().block.thinking, "let me see")
+	assert.equal(thinking().live, false)
+	assert.equal(conversation.liveLabel, "Working")
 	assert.deepEqual(toolGroups(conversation), [])
 
-	// Complete live metadata arrives before execution and moves the thought into
-	// the group with its filename available.
+	// its arguments move the thought, id and all, into the call's group
+	const display = [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }]
 	applyEvent(conversation, {
 		type: "tool_call_display_ready",
 		id: "call-1",
 		name: "read",
 		arguments: { path: "src/app.js" },
-		display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
+		display,
 	})
-	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
-	let steps = toolGroups(conversation)[0].steps
-	assert.deepEqual(steps.map((step) => step.thought?.thinking ?? step.call?.id), ["let me see", "call-1"])
-	assert.equal(stepLiveLabel(steps[1].call), "Reading file app.js")
+	const ids = () => toolGroups(conversation)[0].steps.map((step) => step.call?.id ?? step.id)
+	assert.equal(thinking(), undefined)
+	assert.deepEqual(ids(), ["turn:1:th:0", "call-1"])
+	assert.deepEqual(toolGroups(conversation)[0].steps[1].call.display, display)
 
-	// The durable call atomically replaces the provisional copy without duplicating it.
+	// the durable message replaces the preview; a text-less (redacted) thought that never
+	// streamed takes no ordinal, and whitespace-only text renders nothing
+	const call = { type: "tool_call", id: "call-1", name: "read", arguments: { path: "src/app.js" }, display }
 	applyEvent(conversation, {
 		type: "assistant_message",
 		seq: 2,
 		content: [
+			{ type: "thinking", thinking: "", redacted: true },
 			{ type: "thinking", thinking: "let me see" },
-			{
-				type: "tool_call",
-				id: "call-1",
-				name: "read",
-				arguments: { path: "src/app.js" },
-				display: [{ text: "Reading file " }, { text: "src/app.js", arg: "path" }],
-			},
+			{ type: "text", text: "  " },
+			call,
 		],
 		stop_reason: "tool_use",
 	})
-	assert.ok(!buildItems(conversation).some((item) => item.kind === "thinking"))
-	steps = toolGroups(conversation)[0].steps
-	assert.deepEqual(steps.map((step) => step.thought?.thinking ?? step.call?.id), ["let me see", "call-1"])
-	assert.equal(stepLiveLabel(steps[1].call), "Reading file app.js")
+	assert.deepEqual(conversation.partial, [])
+	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", name: "read", content: "contents" })
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "group"])
+	assert.deepEqual(ids(), ["th:2:0", "turn:1:th:0", "call-1"])
+	const [group] = toolGroups(conversation)
+	assert.equal(group.key, "g:call-1")
+	assert.deepEqual(group.steps[1].thought, { type: "thinking", thinking: "let me see" })
+	assert.strictEqual(group.steps[2].call, call)
+	assert.equal(group.steps[2].result.content, "contents")
+
+	// the next thought streams into the group's dropdown, and settles once the next call starts
+	applyEvent(conversation, { type: "thinking_delta", thinking: "now write" })
+	assert.equal(conversation.liveLabel, "Thinking")
+	assert.equal(thinking(), undefined)
+	assert.deepEqual(ids(), ["th:2:0", "turn:1:th:0", "call-1", "turn:1:th:1"])
+	const last = () => toolGroups(conversation)[0].steps[3]
+	assert.deepEqual(last().thought, { type: "thinking", thinking: "now write" })
+	assert.equal(last().live, true)
+	applyEvent(conversation, { type: "tool_call_started", id: "call-2", name: "write" })
+	assert.equal(last().live, false)
+	assert.equal(conversation.liveLabel, "Working")
 })
 
-test("streamed thought, text, and tool call keep their order until the durable message", () => {
+test("streamed thought, text, and tool call keep their order and keys until the durable message", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started" })
 	applyEvent(conversation, { type: "user_message", seq: 1, content: "understand the project" })
@@ -519,8 +340,16 @@ test("streamed thought, text, and tool call keep their order until the durable m
 	assert.deepEqual(conversation.partial, [])
 	const durableItems = buildItems(conversation)
 	assert.deepEqual(durableItems.map((item) => item.kind), ["user", "thinking", "text", "group"])
-	assert.equal(durableItems.filter((item) => item.kind === "group").length, 1)
 	assert.equal(durableItems[3].key, "g:call-1")
+
+	// a later text keeps its own key from the streamed preview to the durable message
+	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })
+	applyEvent(conversation, { type: "text_delta", text: "| a |" })
+	const textKeys = () => buildItems(conversation).filter((item) => item.kind === "text").map((item) => item.key)
+	const live = textKeys()
+	applyEvent(conversation, { type: "assistant_message", seq: 4, content: [{ type: "text", text: "| a |" }] })
+	assert.deepEqual(textKeys(), live)
+	assert.equal(new Set(live).size, 2)
 })
 
 test("duration formatting matches compact t3code-style buckets", () => {
@@ -584,54 +413,25 @@ test("settled turns collapse intermediate work and preserve the final response",
 	assert.equal(expanded[4].steps[0].call.id, "call-1")
 })
 
-test("the active turn never folds while previous settled turns remain collapsed", () => {
+test("a settled turn stays folded while the next runs, with messages on their way below", () => {
 	const conversation = initialConversation()
+	// no timestamps: a plain Worked label
 	for (const entry of [
-		{ type: "user_message", seq: 1, ts: 10, content: "First" },
+		{ type: "user_message", seq: 1, content: "First" },
 		{
 			type: "assistant_message",
 			seq: 2,
-			ts: 12,
 			content: [
 				{ type: "thinking", thinking: "First thought" },
 				{ type: "text", text: "First answer" },
 			],
 			stop_reason: "stop",
 		},
-	]) applyEvent(conversation, entry)
-	applyEvent(conversation, { type: "run_started", seq: 3, ts: 20 })
-	applyEvent(conversation, { type: "user_message", seq: 4, ts: 20, content: "Second" })
-	applyEvent(conversation, { type: "thinking_delta", thinking: "Still working" })
-
-	const items = buildItems(conversation)
-	assert.deepEqual(items.map((item) => item.kind), [
-		"user",
-		"turn-fold",
-		"text",
-		"turn-copy",
-		"user",
-		"thinking",
-	])
-	assert.equal(items.at(-1).live, true)
-})
-
-test("a message in flight folds the turn before it, run_started or not", () => {
-	const conversation = initialConversation()
-	for (const entry of [
-		{ type: "user_message", seq: 1, ts: 10, content: "First" },
-		{
-			type: "assistant_message",
-			seq: 2,
-			ts: 12,
-			content: [
-				{ type: "thinking", thinking: "First thought" },
-				{ type: "text", text: "First answer" },
-			],
-			stop_reason: "stop",
-		},
-		{ type: "run_ended", seq: 3, ts: 13, reason: "done" },
+		{ type: "run_ended", seq: 3, reason: "done" },
 	]) applyEvent(conversation, entry)
 	const settled = buildItems(conversation).map((item) => item.kind)
+	assert.deepEqual(settled, ["user", "turn-fold", "text", "turn-copy"])
+	assert.equal(buildItems(conversation)[1].label, "Worked")
 
 	conversation.sending.push({
 		key: "sending:1",
@@ -639,77 +439,82 @@ test("a message in flight folds the turn before it, run_started or not", () => {
 	})
 	// the run starts before the server's copy of the message that started it
 	applyEvent(conversation, { type: "run_started", seq: 4, ts: 20 })
-
 	assert.deepEqual(buildItems(conversation).map((item) => item.kind), [...settled, "user"])
-})
-
-test("a steered message waits below the running turn without settling it", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "First" })
-	applyEvent(conversation, { type: "text_delta", text: "Looking into it" })
-	const live = buildItems(conversation)
-
-	conversation.steering.push({ key: "steering:1", entry: { type: "user_message", content: "Also this", ts: 11 } })
-	const items = buildItems(conversation)
-	assert.deepEqual(items.slice(0, -1), live)
-	assert.deepEqual([items.at(-1).kind, items.at(-1).key], ["user", "steering:1"])
-})
-
-test("a steered message waits below the message still on its way, whose run it joins", () => {
-	const conversation = initialConversation()
-	conversation.sending.push({ key: "sending:1", entry: { type: "user_message", content: "Next", ts: 10 } })
-	conversation.steering.push({ key: "steering:2", entry: { type: "user_message", content: "And this", ts: 11 } })
+	// a message steered into that run waits below the one still on its way
+	conversation.steering.push({ key: "steering:2", entry: { type: "user_message", content: "And this", ts: 21 } })
 	assert.deepEqual(
-		buildItems(conversation).map((item) => item.key),
+		buildItems(conversation).slice(-2).map((item) => item.key),
 		["sending:1", "steering:2"],
 	)
+
+	// the running turn never folds, and the steered message waits below it without settling it
+	applyEvent(conversation, { type: "user_message", seq: 5, ts: 20, content: "Second" })
+	applyEvent(conversation, { type: "thinking_delta", thinking: "Still working" })
+	const items = buildItems(conversation)
+	assert.deepEqual(items.map((item) => item.kind), [...settled, "user", "thinking", "user"])
+	assert.equal(items.at(-2).live, true)
+	assert.equal(items.at(-1).key, "steering:2")
+	assert.deepEqual(items.slice(0, -1), buildItems({ ...conversation, steering: [] }))
 })
 
-test("a steered message joins its run's turn: nothing folds until the run ends, then one fold and one bar", () => {
+test("a turn folds only once its run ends, approval pauses and steered messages included", () => {
 	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 100, content: "Find my interview" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 105,
-		content: [
-			{ type: "text", text: "Let me search the applicants." },
-			{ type: "tool_call", id: "call-1", name: "read_records", arguments: { doctype: "Job Applicant" } },
-		],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 106, tool_call_id: "call-1", content: "[]" })
-	applyEvent(conversation, { type: "user_message", seq: 5, ts: 107, content: "Use frappe interview" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 6,
-		ts: 110,
-		content: [{ type: "tool_call", id: "call-2", name: "read_records", arguments: { doctype: "Frappe Interview" } }],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 7, ts: 111, tool_call_id: "call-2", content: "[]" })
+	for (const event of [
+		{ type: "run_started", seq: 1, ts: 100 },
+		{ type: "user_message", seq: 2, ts: 100, content: "Change it" },
+		{
+			type: "assistant_message",
+			seq: 3,
+			ts: 105,
+			content: [
+				{ type: "thinking", thinking: "This needs approval." },
+				{ type: "text", text: "Let me write a.js." },
+				{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "a.js" } },
+			],
+			stop_reason: "tool_use",
+		},
+		{ type: "approval_required", seq: 4, ts: 105, calls: [{ id: "call-1", name: "write", args: { path: "a.js" } }] },
+		{ type: "run_ended", seq: 5, ts: 105, reason: "paused" },
+	])
+		applyEvent(conversation, event)
+	// paused, nothing folds; the gated call waits in the approval card
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text"])
 
-	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "text", "group", "user", "group"])
+	// a message steered into the resumed run joins its turn
+	for (const event of [
+		{ type: "run_started", seq: 6, ts: 110 },
+		{ type: "tool_result", seq: 7, ts: 110, tool_call_id: "call-1", content: "[wrote]" },
+		{ type: "user_message", seq: 8, ts: 112, content: "Also b.js" },
+		{
+			type: "assistant_message",
+			seq: 9,
+			ts: 115,
+			content: [{ type: "tool_call", id: "call-2", name: "write", arguments: { path: "b.js" } }],
+			stop_reason: "tool_use",
+		},
+		{ type: "tool_result", seq: 10, ts: 116, tool_call_id: "call-2", content: "[wrote]" },
+	])
+		applyEvent(conversation, event)
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text", "group", "user", "group"])
 
 	applyEvent(conversation, {
 		type: "assistant_message",
-		seq: 8,
-		ts: 132,
-		content: [{ type: "text", text: "Found it!" }],
+		seq: 11,
+		ts: 130,
+		content: [{ type: "text", text: "Done." }],
 		stop_reason: "stop",
 	})
-	applyEvent(conversation, { type: "run_ended", seq: 9, ts: 132.5, reason: "done" })
+	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 130.5, reason: "done" })
 
 	const collapsed = buildItems(conversation)
 	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
-	assert.equal(collapsed[1].label, "Worked for 32s")
-	assert.equal(collapsed.at(-1).text, "Found it!")
+	assert.equal(collapsed[1].label, "Worked for 30s")
+	assert.equal(collapsed.at(-1).text, "Done.")
 	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
 	assert.deepEqual(expanded.map((item) => item.kind), [
 		"user",
 		"turn-fold",
+		"thinking",
 		"text",
 		"group",
 		"user",
@@ -719,50 +524,7 @@ test("a steered message joins its run's turn: nothing folds until the run ends, 
 	])
 })
 
-test("a message steered into a run resumed after approval joins its turn too", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Change it" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 12,
-		content: [{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "a.js" } }],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, {
-		type: "approval_required",
-		seq: 4,
-		ts: 12,
-		calls: [{ id: "call-1", name: "write", args: { path: "a.js" } }],
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 12, reason: "paused" })
-	applyEvent(conversation, { type: "run_started", seq: 6, ts: 15 })
-	applyEvent(conversation, { type: "tool_result", seq: 7, ts: 15, tool_call_id: "call-1", content: "[wrote]" })
-	applyEvent(conversation, { type: "user_message", seq: 8, ts: 16, content: "Also b.js" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 9,
-		ts: 18,
-		content: [{ type: "tool_call", id: "call-2", name: "write", arguments: { path: "b.js" } }],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 10, ts: 19, tool_call_id: "call-2", content: "[wrote]" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 11,
-		ts: 20,
-		content: [{ type: "text", text: "Done." }],
-		stop_reason: "stop",
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 20, reason: "done" })
-
-	const items = buildItems(conversation)
-	assert.deepEqual(items.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
-	assert.equal(items[1].label, "Worked for 10s")
-})
-
-test("a manual compaction after a turn stays below its copy row", () => {
+test("a /compact after a turn leaves it folded, adds no time to it, and sits below its copy row", () => {
 	const conversation = initialConversation()
 	for (const event of [
 		{ type: "run_started", seq: 1, ts: 10 },
@@ -777,12 +539,18 @@ test("a manual compaction after a turn stays below its copy row", () => {
 		{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "ok" },
 		{ type: "assistant_message", seq: 5, ts: 15, content: [{ type: "text", text: "Done." }], stop_reason: "stop" },
 		{ type: "run_ended", seq: 6, ts: 15, reason: "done" },
-		{ type: "run_started", seq: 7, ts: 30 },
-		{ type: "compaction", seq: 8, ts: 31, reason: "manual", summary: "Fixed it.", compact_up_to_seq: 6 },
-		{ type: "run_ended", seq: 9, ts: 31, reason: "done" },
-	]) applyEvent(conversation, event)
+		{ type: "run_started", seq: 7, ts: 3600 },
+		{ type: "compaction_started", reason: "manual" },
+	])
+		applyEvent(conversation, event)
+	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
 
+	applyEvent(conversation, { type: "compaction_ended", reason: "manual" })
+	assert.equal(conversation.liveLabel, null)
+	applyEvent(conversation, { type: "compaction", seq: 8, ts: 3700, reason: "manual", summary: "Fixed it.", compact_up_to_seq: 6 })
+	applyEvent(conversation, { type: "run_ended", seq: 9, ts: 3700, reason: "done" })
 	const collapsed = buildItems(conversation)
+	assert.equal(collapsed[1].label, "Worked for 5s")
 	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
 	assert.deepEqual(expanded.map((item) => item.kind), [
 		"user",
@@ -794,139 +562,42 @@ test("a manual compaction after a turn stays below its copy row", () => {
 	])
 })
 
-test("the copy row closes the turn, below the work that follows the response text", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Check the records" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 12,
-		content: [
-			{ type: "thinking", thinking: "One more lookup." },
-			{ type: "text", text: "Let me look once more." },
-			{ type: "tool_call", id: "call-1", name: "read_records", arguments: { doctype: "ToDo" } },
-		],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "[]" })
-	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 13, reason: "max_turns" })
+test("the copy row closes a turn with its last text that said something", () => {
+	const closing = (content) => [
+		{ type: "assistant_message", seq: 5, ts: 14, content, stop_reason: "stop" },
+		{ type: "run_ended", seq: 6, ts: 14, reason: "done" },
+	]
+	for (const [ending, kinds] of [
+		// an empty closing message leaves the answer before it standing
+		[closing([]), ["user", "text", "turn-fold", "turn-copy"]],
+		[closing([{ type: "text", text: "\n" }]), ["user", "text", "turn-fold", "turn-copy"]],
+		[closing([{ type: "thinking", thinking: "Done." }]), ["user", "text", "turn-fold", "turn-copy"]],
+		// a run cut off at its turn limit: the copy row goes below the work and the notice
+		[[{ type: "run_ended", seq: 5, ts: 14, reason: "max_turns" }], ["user", "text", "turn-fold", "notice", "turn-copy"]],
+	]) {
+		const conversation = initialConversation()
+		for (const event of [
+			{ type: "run_started", seq: 1, ts: 10 },
+			{ type: "user_message", seq: 2, ts: 10, content: "Make the invoice" },
+			{
+				type: "assistant_message",
+				seq: 3,
+				ts: 12,
+				content: [
+					{ type: "text", text: "Created invoice INV-1." },
+					{ type: "tool_call", id: "call-1", name: "update_memory", arguments: { note: "INV-1" } },
+				],
+				stop_reason: "tool_use",
+			},
+			{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "saved" },
+			...ending,
+		])
+			applyEvent(conversation, event)
 
-	const collapsed = buildItems(conversation)
-	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "text", "notice", "turn-copy"])
-	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
-	assert.deepEqual(expanded.map((item) => item.kind), [
-		"user",
-		"turn-fold",
-		"thinking",
-		"text",
-		"group",
-		"notice",
-		"turn-copy",
-	])
-})
-
-test("a run that ends mid-compaction leaves no compaction behind", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "compaction_started", reason: "manual" })
-	// the stream dropped compaction_ended, or the run was cut off before it
-	applyEvent(conversation, { type: "run_ended", seq: 2, ts: 11, reason: "error" })
-	assert.equal(conversation.compacting, false)
-})
-
-test("a paused approval turn stays fully visible until the user resolves it", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Change it" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 12,
-		content: [
-			{ type: "thinking", thinking: "This needs approval." },
-			{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "src/app.js" } },
-		],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, {
-		type: "approval_required",
-		seq: 4,
-		ts: 12.1,
-		calls: [{ id: "call-1", name: "write", args: { path: "src/app.js" } }],
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 12.2, reason: "paused" })
-
-	const items = buildItems(conversation)
-	assert.ok(!items.some((item) => item.kind === "turn-fold"))
-	assert.ok(items.some((item) => item.kind === "thinking"))
-})
-
-test("a denied tool call leaves a durable notice like an abort", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Change it" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 12,
-		content: [{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "src/app.js" } }],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, {
-		type: "approval_required",
-		seq: 4,
-		ts: 12.1,
-		calls: [{ id: "call-1", name: "write", args: { path: "src/app.js" } }],
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 12.2, reason: "paused" })
-	applyEvent(conversation, {
-		type: "tool_result",
-		seq: 6,
-		ts: 14,
-		tool_call_id: "call-1",
-		content: '{"status": "denied", "message": "User denied this tool call."}',
-		is_error: true,
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 7, ts: 14.1, reason: "denied" })
-
-	const items = buildItems(conversation)
-	const notice = items.find((item) => item.kind === "notice")
-	assert.equal(notice?.text, "Tool call denied by user")
-})
-
-test("settled work without timestamps falls back to a plain Worked label", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 1, content: "Inspect" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 2,
-		content: [
-			{ type: "thinking", thinking: "Inspecting" },
-			{ type: "text", text: "Done" },
-		],
-		stop_reason: "stop",
-	})
-
-	assert.equal(buildItems(conversation).find((item) => item.kind === "turn-fold")?.label, "Worked")
-})
-
-test("interrupted turns use t3code's stopped-duration label", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 30 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 31, content: "Start" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 35,
-		content: [{ type: "thinking", thinking: "Working" }],
-		stop_reason: "aborted",
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 4, ts: 36, reason: "aborted" })
-
-	const items = buildItems(conversation)
-	assert.equal(items.find((item) => item.kind === "turn-fold")?.label, "You stopped after 5s")
-	assert.ok(items.some((item) => item.kind === "notice"))
+		const items = buildItems(conversation)
+		assert.deepEqual(items.map((item) => item.kind), kinds, JSON.stringify(ending))
+		assert.equal(items.at(-1).text, "Created invoice INV-1.")
+	}
 })
 
 test("aborted response keeps its partial assistant content", () => {
@@ -948,96 +619,71 @@ test("aborted response keeps its partial assistant content", () => {
 	assert.equal(buildItems(conversation)[0].block.text, "Partial answer")
 })
 
-test("a denied turn folds its narration with the work", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 10 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 10, content: "Create it" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 14,
-		content: [
-			{ type: "text", text: "Let me create it now." },
-			{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "hello.html" } },
+test("a turn the user stopped or denied folds all its text with the work", () => {
+	for (const [events, label, expanded] of [
+		[
+			[
+				{ type: "run_started", seq: 1, ts: 30 },
+				{ type: "user_message", seq: 2, ts: 30, content: "Do it" },
+				{
+					type: "assistant_message",
+					seq: 3,
+					ts: 32,
+					content: [
+						{ type: "text", text: "I will run a command." },
+						{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "echo hi" } },
+					],
+					stop_reason: "tool_use",
+				},
+				{ type: "tool_result", seq: 4, ts: 33, tool_call_id: "call-1", content: "hi" },
+				{ type: "assistant_message", seq: 5, ts: 36, content: [{ type: "text", text: "Partial resp" }], stop_reason: "aborted" },
+				{ type: "run_ended", seq: 6, ts: 36, reason: "aborted" },
+			],
+			"You stopped after 6s",
+			// the commentary, the tool group, and the aborted partial
+			["user", "turn-fold", "text", "group", "text", "notice"],
 		],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, {
-		type: "approval_required",
-		seq: 4,
-		ts: 14,
-		calls: [{ id: "call-1", name: "write", args: { path: "hello.html" } }],
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 5, ts: 14, reason: "paused" })
-	applyEvent(conversation, { type: "run_started", seq: 6, ts: 17 })
-	applyEvent(conversation, {
-		type: "tool_result",
-		seq: 7,
-		ts: 17,
-		tool_call_id: "call-1",
-		content: '{"status": "denied", "message": "User denied this tool call."}',
-		is_error: true,
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 8, ts: 17, reason: "denied" })
-
-	const collapsed = buildItems(conversation)
-	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "notice"])
-	assert.equal(collapsed[1].label, "Worked for 7s")
-
-	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
-	assert.deepEqual(expanded.map((item) => item.kind), ["user", "turn-fold", "text", "group", "notice"])
-})
-
-test("an aborted turn folds its partial response with the stopped work", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 30 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 30, content: "Do it" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 32,
-		content: [
-			{ type: "text", text: "I will run a command." },
-			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "echo hi" } },
+		[
+			[
+				{ type: "run_started", seq: 1, ts: 10 },
+				{ type: "user_message", seq: 2, ts: 10, content: "Create it" },
+				{
+					type: "assistant_message",
+					seq: 3,
+					ts: 14,
+					content: [
+						{ type: "text", text: "Let me create it now." },
+						{ type: "tool_call", id: "call-1", name: "write", arguments: { path: "hello.html" } },
+					],
+					stop_reason: "tool_use",
+				},
+				{ type: "approval_required", seq: 4, ts: 14, calls: [{ id: "call-1", name: "write", args: { path: "hello.html" } }] },
+				{ type: "run_ended", seq: 5, ts: 14, reason: "paused" },
+				{ type: "run_started", seq: 6, ts: 17 },
+				{
+					type: "tool_result",
+					seq: 7,
+					ts: 17,
+					tool_call_id: "call-1",
+					content: '{"status": "denied", "message": "User denied this tool call."}',
+					is_error: true,
+				},
+				{ type: "run_ended", seq: 8, ts: 17, reason: "denied" },
+			],
+			"Worked for 7s",
+			["user", "turn-fold", "text", "group", "notice"],
 		],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 4, ts: 33, tool_call_id: "call-1", content: "hi" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 5,
-		ts: 36,
-		content: [{ type: "text", text: "Partial resp" }],
-		stop_reason: "aborted",
-	})
-	applyEvent(conversation, { type: "run_ended", seq: 6, ts: 36, reason: "aborted" })
-
-	const collapsed = buildItems(conversation)
-	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "notice"])
-	assert.equal(collapsed[1].label, "You stopped after 6s")
-
-	// expanding reveals the commentary, the tool group, and the aborted partial
-	const expanded = buildItems(conversation, new Set([collapsed[1].turnKey]))
-	assert.deepEqual(expanded.map((item) => item.kind), ["user", "turn-fold", "text", "group", "text", "notice"])
+	]) {
+		const conversation = initialConversation()
+		for (const event of events) applyEvent(conversation, event)
+		const collapsed = buildItems(conversation)
+		assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "notice"], label)
+		assert.equal(collapsed[1].label, label)
+		assert.deepEqual(buildItems(conversation, new Set([collapsed[1].turnKey])).map((item) => item.kind), expanded, label)
+	}
 })
 
-test("a started tool call takes the live status over from streamed thinking", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "thinking_delta", thinking: "planning the call" })
-
-	let thinking = buildItems(conversation).find((item) => item.kind === "thinking")
-	assert.equal(thinking.live, true)
-
-	// the row renders only once arguments land; until then the thinking block
-	// settles to "Thought" and the generic status line covers the wait
-	applyEvent(conversation, { type: "tool_call_started", id: "call-1", name: "write" })
-	thinking = buildItems(conversation).find((item) => item.kind === "thinking")
-	assert.equal(thinking.live, false)
-	assert.equal(conversation.liveLabel, "Working")
-})
-
-test("settled edit and write calls surface a changed-files section after the response", () => {
+test("a settled turn lists the files its successful edits and writes changed", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })
 	applyEvent(conversation, { type: "user_message", seq: 2, ts: 101, content: "Change it" })
@@ -1061,6 +707,8 @@ test("settled edit and write calls surface a changed-files section after the res
 		content: "[edited]",
 		details: { path: "/proj/src/app.js", lines_added: 3, lines_removed: 1 },
 	})
+	// none while the turn runs
+	assert.ok(!buildItems(conversation).some((item) => item.kind === "turn-files"))
 	applyEvent(conversation, {
 		type: "tool_result",
 		seq: 5,
@@ -1106,104 +754,6 @@ test("settled edit and write calls surface a changed-files section after the res
 		{ path: "/proj/src/app.js", added: 5, removed: 3 },
 		{ path: "/proj/src/new.js", added: 12, removed: 0 },
 	])
-})
-
-test("a running turn shows no changed-files section until the response settles", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1, ts: 100 })
-	applyEvent(conversation, { type: "user_message", seq: 2, ts: 101, content: "Change it" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 3,
-		ts: 102,
-		content: [{ type: "tool_call", id: "e1", name: "edit", arguments: { path: "src/app.js" } }],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, {
-		type: "tool_result",
-		seq: 4,
-		tool_call_id: "e1",
-		name: "edit",
-		content: "[edited]",
-		details: { path: "/proj/src/app.js", lines_added: 1, lines_removed: 1 },
-	})
-
-	assert.ok(!buildItems(conversation).some((item) => item.kind === "turn-files"))
-})
-
-test("a thought keeps its id from the streamed preview through its merge into a tool group", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
-	applyEvent(conversation, { type: "thinking_delta", thinking: "let me see" })
-	assert.equal(buildItems(conversation).find((item) => item.kind === "thinking").key, "turn:1:th:0")
-
-	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
-	assert.equal(toolGroups(conversation)[0].steps[0].id, "turn:1:th:0")
-
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 2,
-		content: [
-			{ type: "thinking", thinking: "let me see" },
-			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
-		],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })
-	applyEvent(conversation, { type: "thinking_delta", thinking: "now write" })
-	assert.deepEqual(
-		toolGroups(conversation)[0].steps.map((step) => step.call?.id ?? step.id),
-		["turn:1:th:0", "call-1", "turn:1:th:1"],
-	)
-})
-
-test("a text-less thinking block in the durable message takes no thought ordinal", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
-	applyEvent(conversation, { type: "thinking_delta", thinking: "let me see" })
-	applyEvent(conversation, { type: "tool_call_display_ready", id: "call-1", name: "bash", arguments: { command: "ls" } })
-	assert.equal(toolGroups(conversation)[0].steps[0].id, "turn:1:th:0")
-
-	// the redacted block never streamed; it lands only in the durable message
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 2,
-		content: [
-			{ type: "thinking", thinking: "", redacted: true },
-			{ type: "thinking", thinking: "let me see" },
-			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
-		],
-		stop_reason: "tool_use",
-	})
-	assert.deepEqual(
-		toolGroups(conversation)[0].steps.map((step) => step.call?.id ?? step.id),
-		["th:2:0", "turn:1:th:0", "call-1"],
-	)
-})
-
-test("a text block keeps its key from the streamed preview to the durable message", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started" })
-	applyEvent(conversation, { type: "user_message", seq: 1, content: "hi" })
-	applyEvent(conversation, {
-		type: "assistant_message",
-		seq: 2,
-		content: [
-			{ type: "text", text: "Checking" },
-			{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } },
-		],
-		stop_reason: "tool_use",
-	})
-	applyEvent(conversation, { type: "tool_result", seq: 3, tool_call_id: "call-1", content: "a.js" })
-	applyEvent(conversation, { type: "text_delta", text: "| a |" })
-	const textKeys = () => buildItems(conversation).filter((item) => item.kind === "text").map((item) => item.key)
-	const live = textKeys()
-
-	applyEvent(conversation, { type: "assistant_message", seq: 4, content: [{ type: "text", text: "| a |" }] })
-	assert.deepEqual(textKeys(), live)
-	assert.equal(new Set(live).size, 2)
 })
 
 test("a settled turn stays unfolded while one of its rows is open", () => {
@@ -1356,44 +906,9 @@ function repliedWith(conversation, seq, calls) {
 	})
 }
 
-test("the transcript opens with a stand-in for the system prompt, never its text", () => {
+test("usage goes to the response that made the call, never a message or tool result", () => {
 	const conversation = initialConversation()
 	assert.deepEqual(buildTranscriptRows(conversation), [])
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
-	const [first] = buildTranscriptRows(conversation)
-	assert.equal(first.kind, "system")
-	assert.equal(first.body, "System prompt.")
-})
-
-test("the first request's input and output stay with its assistant response", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
-	repliedWith(conversation, 3, [])
-	applyEvent(conversation, usageEvent(4, 1000, 10))
-
-	const rows = buildTranscriptRows(conversation)
-	assert.deepEqual(rows.map((row) => row.kind), ["system", "user", "assistant"])
-	assert.equal(rows[1].usage, undefined)
-	assert.equal(rows[2].usage.input_tokens, 1000)
-	assert.equal(rows[2].usage.output_tokens, 10)
-})
-
-test("a tool result has no fabricated token count", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
-	repliedWith(conversation, 3, ["a"])
-	applyEvent(conversation, usageEvent(4, 1000, 10))
-	applyEvent(conversation, { type: "tool_result", seq: 5, tool_call_id: "a", name: "read", content: "x".repeat(400) })
-	repliedWith(conversation, 6, [])
-	applyEvent(conversation, usageEvent(7, 1200, 20))
-
-	const rows = buildTranscriptRows(conversation)
-	assert.equal(rows.find((row) => row.kind === "tool").usage, undefined)
-	assert.deepEqual(rows.filter((row) => row.kind === "assistant").map((row) => row.usage.input_tokens), [1000, 1200])
-})
-
-test("parallel tool results stay separate from the next request's usage", () => {
-	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
 	repliedWith(conversation, 3, ["a", "b"])
 	applyEvent(conversation, usageEvent(4, 1000, 10))
@@ -1401,38 +916,35 @@ test("parallel tool results stay separate from the next request's usage", () => 
 	applyEvent(conversation, { type: "tool_result", seq: 6, tool_call_id: "b", name: "read", content: "x".repeat(1200) })
 	repliedWith(conversation, 7, [])
 	applyEvent(conversation, usageEvent(8, 1410, 20))
+	// an aborted response's empty usage report is not a model call
+	applyEvent(conversation, { type: "assistant_message", seq: 9, content: [{ type: "text", text: "x".repeat(400) }], stop_reason: "aborted" })
+	applyEvent(conversation, { type: "usage", seq: 10 }) // what the adapters yield on cancel
+	applyEvent(conversation, { type: "run_ended", seq: 11, reason: "aborted" })
+	applyEvent(conversation, { type: "user_message", seq: 12, content: "again" })
+	repliedWith(conversation, 13, [])
+	applyEvent(conversation, usageEvent(14, 1200, 20))
 
+	assert.deepEqual(conversation.requests.map((usage) => usage.seq), [4, 8, 14])
 	const rows = buildTranscriptRows(conversation)
-	assert.deepEqual(rows.filter((row) => row.kind === "tool").map((row) => row.usage), [undefined, undefined])
-	assert.equal(rows.filter((row) => row.kind === "assistant")[1].usage.input_tokens, 1410)
-})
-
-test("an aborted response without usage stays uncounted", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
-	repliedWith(conversation, 3, [])
-	applyEvent(conversation, usageEvent(4, 1000, 10))
-	applyEvent(conversation, { type: "assistant_message", seq: 5, content: [{ type: "text", text: "x".repeat(400) }], stop_reason: "aborted" })
-	applyEvent(conversation, { type: "run_ended", seq: 6, reason: "aborted" })
-	applyEvent(conversation, { type: "user_message", seq: 7, content: "again" })
-	repliedWith(conversation, 8, [])
-	applyEvent(conversation, usageEvent(9, 1200, 20))
-
-	const rows = buildTranscriptRows(conversation)
-	const aborted = rows.find((row) => row.key === "a:5")
-	assert.equal(aborted.usage, undefined)
-	assert.equal(rows.find((row) => row.key === "u:7").usage, undefined)
-	assert.equal(rows.find((row) => row.key === "a:8").usage.input_tokens, 1200)
-})
-
-test("an aborted turn's empty usage report is not a model call", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "go" })
-	applyEvent(conversation, { type: "assistant_message", seq: 3, content: [{ type: "text", text: "half a th" }], stop_reason: "aborted" })
-	applyEvent(conversation, { type: "usage", seq: 4 }) // what the adapters yield on cancel
-
-	assert.deepEqual(conversation.requests, [])
-	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").usage, undefined)
+	// the system prompt opens the transcript as a stand-in, never its text
+	assert.equal(rows[0].body, "System prompt.")
+	assert.deepEqual(
+		rows.map((row) => [row.kind, row.usage?.input_tokens]),
+		[
+			["system", undefined],
+			["user", undefined],
+			["assistant", 1000],
+			["tool", undefined],
+			["tool", undefined],
+			["assistant", 1410],
+			["assistant", undefined],
+			["user", undefined],
+			["assistant", 1200],
+		],
+	)
+	assert.equal(rows[2].usage.output_tokens, 10)
+	assert.equal(rows[6].usage, undefined)
+	assert.ok(rows.every((row) => row.kind === "assistant" || row.usage === undefined))
 })
 
 test("rows show each entry as sent, minus Flow's own fields", () => {
@@ -1450,48 +962,36 @@ test("rows show each entry as sent, minus Flow's own fields", () => {
 	})
 	applyEvent(conversation, { ...logged(4), type: "usage", input_tokens: 10, output_tokens: 2, context_window: 1000, standalone: false })
 	applyEvent(conversation, { ...logged(5), type: "tool_result", tool_call_id: "a", name: "read", content: "ENOENT", is_error: true, details: { lines: 0 } })
+	// a reply cut off before its first block still shows
+	applyEvent(conversation, { ...logged(6), type: "assistant_message", content: [], stop_reason: "aborted" })
 
-	const [, user, assistant, tool] = buildTranscriptRows(conversation)
+	const [, user, assistant, tool, cut] = buildTranscriptRows(conversation)
 	assert.deepEqual(user.entry, { type: "user_message", content: [{ type: "text", text: "hi" }] })
 	assert.deepEqual(assistant.entry, { type: "assistant_message", content: [call], model: "m", stop_reason: "tool_use" })
 	assert.deepEqual(assistant.usage, { type: "usage", input_tokens: 10, output_tokens: 2 })
 	assert.deepEqual(tool.input, call)
 	assert.deepEqual(tool.output, { type: "tool_result", tool_call_id: "a", name: "read", content: "ENOENT", is_error: true })
+	assert.deepEqual(cut.entry, { type: "assistant_message", content: [], stop_reason: "aborted" })
 })
 
-test("a reply cut off before its first block still shows", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "go" })
-	applyEvent(conversation, { type: "assistant_message", seq: 3, content: [], stop_reason: "aborted" })
-
-	const assistant = buildTranscriptRows(conversation).find((row) => row.kind === "assistant")
-	assert.deepEqual(assistant.entry, { type: "assistant_message", content: [], stop_reason: "aborted" })
-})
-
-test("a compaction owns the summarizer's call without moving the context reading", () => {
+test("a summarizer's call belongs to its compaction, never a response or the context reading", () => {
 	const conversation = initialConversation()
 	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
 	applyEvent(conversation, { type: "assistant_message", seq: 3, content: [{ type: "text", text: "hi" }] })
 	applyEvent(conversation, usageEvent(4, 1000, 10))
 	applyEvent(conversation, { type: "compaction", seq: 5, reason: "threshold", summary: "so far…", compact_up_to_seq: 3 })
 	applyEvent(conversation, { ...usageEvent(6, 880, 120), standalone: true })
-
 	// the summarizer prompted with the transcript, not with the new context
 	assert.equal(conversation.contextTokens, 0)
-	const compaction = buildTranscriptRows(conversation).find((row) => row.kind === "compaction")
-	assert.equal(compaction.usage.input_tokens, 880)
-	assert.equal(conversation.usage.output, 130) // its spend still counts
-})
+	// a summary that failed right after a response leaves its call to no row
+	applyEvent(conversation, { type: "assistant_message", seq: 7, content: [{ type: "text", text: "more" }] })
+	applyEvent(conversation, { ...usageEvent(8, 500, 50), standalone: true })
+	applyEvent(conversation, { type: "run_error", seq: 9, message: "summary failed" })
 
-test("failed compaction usage does not attach to an assistant response", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "user_message", seq: 2, content: "hello" })
-	applyEvent(conversation, { type: "assistant_message", seq: 3, content: [{ type: "text", text: "hi" }] })
-	applyEvent(conversation, { ...usageEvent(4, 880, 120), standalone: true })
-	applyEvent(conversation, { type: "run_error", seq: 5, message: "summary failed" })
-
-	assert.equal(buildTranscriptRows(conversation).find((row) => row.kind === "assistant").usage, undefined)
-	assert.equal(conversation.usage.output, 120)
+	const rows = buildTranscriptRows(conversation)
+	assert.equal(rows.find((row) => row.kind === "compaction").usage.input_tokens, 880)
+	assert.equal(rows.find((row) => row.key === "a:7").usage, undefined)
+	assert.equal(conversation.usage.output, 180) // its spend still counts
 })
 
 test("a sub-agent call shows what its own run spent", () => {
@@ -1513,77 +1013,4 @@ test("a sub-agent call shows what its own run spent", () => {
 	assert.deepEqual(first.usage, { input_tokens: 4000, output_tokens: 200, cache_read_tokens: 0, cache_write_tokens: 0, cost: 0.01 })
 	assert.equal(second.usage.input_tokens, 5000) // still running: what it has spent so far
 	assert.ok(rows.every((row) => row.kind === "tool" || !row.usage)) // never the session's own rows
-})
-
-test("an empty closing message leaves the answer before it standing", () => {
-	for (const closing of [[], [{ type: "text", text: "\n" }], [{ type: "thinking", thinking: "Done." }]]) {
-		const conversation = initialConversation()
-		for (const event of [
-			{ type: "run_started", seq: 1, ts: 10 },
-			{ type: "user_message", seq: 2, ts: 10, content: "Make the invoice" },
-			{
-				type: "assistant_message",
-				seq: 3,
-				ts: 12,
-				content: [
-					{ type: "text", text: "Created invoice INV-1." },
-					{ type: "tool_call", id: "call-1", name: "update_memory", arguments: { note: "INV-1" } },
-				],
-				stop_reason: "tool_use",
-			},
-			{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "saved" },
-			{ type: "assistant_message", seq: 5, ts: 14, content: closing, stop_reason: "stop" },
-			{ type: "run_ended", seq: 6, ts: 14, reason: "done" },
-		])
-			applyEvent(conversation, event)
-
-		const items = buildItems(conversation)
-		assert.deepEqual(items.map((item) => item.kind), ["user", "text", "turn-fold", "turn-copy"])
-		assert.equal(items[3].text, "Created invoice INV-1.")
-	}
-})
-
-function settledTurnThenCompact() {
-	const conversation = initialConversation()
-	for (const event of [
-		{ type: "run_started", seq: 1, ts: 10 },
-		{ type: "user_message", seq: 2, ts: 10, content: "Fix it" },
-		{
-			type: "assistant_message",
-			seq: 3,
-			ts: 12,
-			content: [{ type: "tool_call", id: "call-1", name: "bash", arguments: { command: "ls" } }],
-			stop_reason: "tool_use",
-		},
-		{ type: "tool_result", seq: 4, ts: 13, tool_call_id: "call-1", content: "ok" },
-		{ type: "assistant_message", seq: 5, ts: 15, content: [{ type: "text", text: "Done." }], stop_reason: "stop" },
-		{ type: "run_ended", seq: 6, ts: 15, reason: "done" },
-		{ type: "run_started", seq: 7, ts: 3600 },
-		{ type: "compaction_started", reason: "manual" },
-	])
-		applyEvent(conversation, event)
-	return conversation
-}
-
-test("a /compact leaves the turn before it folded while it runs, and adds no time to it", () => {
-	const conversation = settledTurnThenCompact()
-	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "turn-fold", "text", "turn-copy"])
-
-	applyEvent(conversation, { type: "compaction_ended", reason: "manual" })
-	assert.equal(conversation.liveLabel, null)
-	applyEvent(conversation, { type: "compaction", seq: 8, ts: 3700, reason: "manual", summary: "Fixed it.", compact_up_to_seq: 6 })
-	applyEvent(conversation, { type: "run_ended", seq: 9, ts: 3700, reason: "done" })
-	assert.equal(buildItems(conversation)[1].label, "Worked for 5s")
-})
-
-test("the status line comes back once a compaction or a retry hands the run back", () => {
-	const conversation = initialConversation()
-	applyEvent(conversation, { type: "run_started", seq: 1 })
-	applyEvent(conversation, { type: "compaction_started", reason: "threshold" })
-	assert.equal(conversation.liveLabel, "Compacting context")
-	applyEvent(conversation, { type: "compaction_ended", reason: "threshold" })
-	assert.equal(conversation.liveLabel, "Working")
-	applyEvent(conversation, { type: "retry", status: "scheduled" })
-	applyEvent(conversation, { type: "retry", status: "started" })
-	assert.equal(conversation.liveLabel, "Working")
 })

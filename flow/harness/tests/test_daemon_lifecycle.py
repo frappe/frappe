@@ -12,27 +12,11 @@ from flow_harness.cli.daemon import bind_unix, spawn_private, teardown
 from flow_harness.config import UDS_URL
 
 
-@pytest.fixture
-def daemon(tmp_path):
-	d = spawn_private(str(tmp_path / "data"), timeout=15.0)
-	yield d
-	teardown(d)
-
-
 def _client(d, **kw):
 	return httpx.Client(base_url=UDS_URL, transport=httpx.HTTPTransport(uds=d.socket_path), **kw)
 
 
-def test_private_daemon_requires_its_token(daemon):
-	with _client(daemon, timeout=5.0) as http:
-		assert http.get("/healthz").json() == {"ok": True}
-		assert http.get("/sessions").status_code == 401
-		authed = http.get("/sessions", headers={"Authorization": f"Bearer {daemon.token}"})
-		assert authed.status_code == 200
-		assert "sessions" in authed.json()
-
-
-def test_private_daemon_with_an_unrelated_flow_package(tmp_path, monkeypatch):
+def test_private_daemon_requires_its_token_and_stops_on_teardown(tmp_path, monkeypatch):
 	# A Frappe bench provides its own `flow`; the daemon must never import it,
 	# including when its CLI launches a fresh Python process.
 	package = tmp_path / "flow"
@@ -43,16 +27,13 @@ def test_private_daemon_with_an_unrelated_flow_package(tmp_path, monkeypatch):
 	d = spawn_private(str(tmp_path / "data"), timeout=15.0)
 	try:
 		with _client(d, timeout=5.0) as http:
+			assert http.get("/healthz").json() == {"ok": True}
+			assert http.get("/sessions").status_code == 401
 			response = http.get("/sessions", headers={"Authorization": f"Bearer {d.token}"})
 			assert response.status_code == 200
 			assert response.json() == {"sessions": []}
 	finally:
 		teardown(d)
-
-
-def test_teardown_stops_the_daemon(tmp_path):
-	d = spawn_private(str(tmp_path / "data"), timeout=15.0)
-	teardown(d)
 	assert d.process.poll() is not None
 	assert not os.path.exists(d.socket_path)
 	with _client(d, timeout=1.0) as http, pytest.raises(httpx.TransportError):

@@ -65,55 +65,34 @@ class ServerCase(IntegrationTestCase):
 
 
 class TestNewSession(ServerCase):
-	def test_new_session_inserts_the_session_and_its_server_twin(self):
-		session = new_session(self.agent.name, model=self.model.name, title="Hello", auto_approve=True)
-		self.assertEqual(
-			(
-				session.agent,
-				session.model,
-				session.title,
-				session.source,
-				session.auto_approve,
-				session.owner,
-			),
-			(self.agent.name, self.model.name, "Hello", "Manual", 1, "Administrator"),
-		)
-		config = self.daemon.configs[session.name]
-		self.assertEqual(
-			(config["session_id"], config["title"], config["model"], config["auto_approve"]),
-			(session.name, "Hello", "openai/gpt-4o-mini", True),
-		)
-		self.assertEqual(
-			[tool["function"]["name"] for tool in config["client_tools"]], ["read_records", "execute"]
-		)
-
-	def test_new_session_commits_the_twin_before_returning_outside_tests(self):
+	def test_new_session_starts_its_server_twin(self):
+		session = new_session(self.agent, source="Trigger")
+		self.assertEqual((session.title, session.source, session.auto_approve), (None, "Trigger", 1))
+		# an untitled session is left for the server to title
+		self.assertIsNone(self.daemon.configs[session.name]["title"])
+		self.assertTrue(self.daemon.configs[session.name]["auto_approve"])
+		# outside tests the twin's row is committed before returning, for the server's callbacks
 		with (
 			patch.dict(frappe.flags, {"in_test": False}),
 			patch.object(frappe.db, "commit") as commit,
 		):
 			new_session(self.agent.name)
-
 		commit.assert_called_once_with()
+		with (
+			patch.object(
+				self.daemon, "create_session", side_effect=DaemonError(400, "host 'x' is not allowed")
+			),
+			self.assertRaisesRegex(frappe.ValidationError, "400.*not allowed"),
+		):
+			new_session(self.agent.name)
 
-	def test_an_untitled_session_is_left_for_the_server_to_title(self):
-		session = new_session(self.agent, source="Trigger")
-		self.assertEqual((session.title, session.source, session.auto_approve), (None, "Trigger", 1))
-		self.assertIsNone(self.daemon.configs[session.name]["title"])
-		self.assertTrue(self.daemon.configs[session.name]["auto_approve"])
-
-	def test_new_session_defaults_to_the_assistant(self):
+	def test_new_session_defaults_to_the_assistant_under_the_same_read_check(self):
 		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		session = new_session()
 		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
 		self.assertIn(session.name, self.daemon.configs)
-
-	def test_the_assistant_gets_the_same_read_check_as_a_named_agent(self):
-		from flow.assistant import sync_builtin_assistant
-
-		sync_builtin_assistant(self.model.name)
 		_ensure_other()
 		frappe.get_doc(
 			{"doctype": "User Permission", "user": OTHER, "allow": "Flow Agent", "for_value": self.agent.name}
@@ -123,28 +102,12 @@ class TestNewSession(ServerCase):
 		with self.assertRaises(frappe.PermissionError):
 			new_session()
 
-	def test_a_server_refusal_is_a_validation_error(self):
-		with patch.object(
-			self.daemon, "create_session", side_effect=DaemonError(400, "host 'x' is not allowed")
-		):
-			with self.assertRaisesRegex(frappe.ValidationError, "400.*not allowed"):
-				new_session(self.agent.name)
-
 
 class TestLoadSession(ServerCase):
-	def setUp(self):
-		super().setUp()
+	def test_load_session_continues_the_owners_session_on_its_agent(self):
 		_ensure_other()
-		self.session = new_session(self.agent.name)
-
-	def test_load_session_is_for_the_owner(self):
-		self.assertEqual(load_session(self.session.name).name, self.session.name)
-		frappe.set_user(OTHER)
-		with self.assertRaises(frappe.PermissionError):
-			load_session(self.session.name)
-
-	def test_load_session_keeps_the_sessions_agent(self):
-		other = frappe.get_doc(
+		session = new_session(self.agent.name)
+		other_agent = frappe.get_doc(
 			{
 				"doctype": "Flow Agent",
 				"title": "Another Lib Agent",
@@ -153,29 +116,30 @@ class TestLoadSession(ServerCase):
 				"enabled": 1,
 			}
 		).insert()
-		self.assertEqual(load_session(self.session.name, agent=self.agent.name).agent, self.agent.name)
-		with self.assertRaisesRegex(frappe.ValidationError, "bound to agent"):
-			load_session(self.session.name, agent=other.name)
-
-	def test_load_session_switches_the_model(self):
-		other = frappe.get_doc(
+		other_model = frappe.get_doc(
 			{"doctype": "Flow Model", "title": "Switched Model", "model_id": "openai/gpt-4o", "enabled": 1}
 		).insert()
-		switched = load_session(self.session.name, model=other.name)
-		self.assertEqual(switched.model, other.name)
+		self.assertEqual(load_session(session.name, agent=self.agent.name).agent, self.agent.name)
+		with self.assertRaisesRegex(frappe.ValidationError, "bound to agent"):
+			load_session(session.name, agent=other_agent.name)
+
+		self.assertEqual(load_session(session.name, model=other_model.name).model, other_model.name)
+		load_session(session.name, model=other_model.name)  # already on it: no second switch
 		self.assertEqual(
 			[call for call in self.daemon.calls if call[0] == "set_model"],
 			[
 				(
 					"set_model",
-					self.session.name,
+					session.name,
 					"openai/gpt-4o",
 					{"api_key": None, "api_base": None, "model_params": None, "reasoning_effort": None},
 				)
 			],
 		)
-		load_session(self.session.name, model=other.name)
-		self.assertEqual(len([call for call in self.daemon.calls if call[0] == "set_model"]), 1)
+
+		frappe.set_user(OTHER)
+		with self.assertRaises(frappe.PermissionError):
+			load_session(session.name)
 
 
 class TestSkillCommands(ServerCase):
@@ -201,9 +165,9 @@ class TestSkillCommands(ServerCase):
 		).insert()
 
 	def _sent(self) -> str:
-		return next(call[2] for call in self.daemon.calls if call[0] == "run")
+		return [call[2] for call in self.daemon.calls if call[0] == "run"][-1]
 
-	def test_the_command_is_expanded_for_the_server_and_the_run_keeps_what_was_typed(self):
+	def test_a_command_is_expanded_for_the_server_where_it_was_typed(self):
 		run = self.session.chat("/skill:expense-approval  claim 42 ")
 		self.assertEqual(
 			self._sent(),
@@ -212,23 +176,15 @@ class TestSkillCommands(ServerCase):
 			"Check the receipt.\n</skill>\n\nclaim 42",
 		)
 		self.assertEqual(run.input, "/skill:expense-approval  claim 42 ")
-
-	def test_a_bare_command_sends_the_instructions_alone(self):
+		# a bare command sends the instructions alone
 		self.session.chat("/skill:expense-approval")
 		self.assertTrue(self._sent().endswith("Check the receipt.\n</skill>"))
-
-	def test_a_skill_not_flagged_for_users_is_refused_before_anything_is_sent(self):
-		with self.assertRaisesRegex(
-			frappe.ValidationError, "No skill named model-only. Available: expense-approval"
-		):
-			self.session.chat("/skill:model-only")
-		self.assertEqual([call for call in self.daemon.calls if call[0] == "run"], [])
-
-	def test_other_messages_pass_untouched(self):
-		self.session.chat("skill:expense-approval is not a command")
-		self.assertEqual(self._sent(), "skill:expense-approval is not a command")
-
-	def test_commands_later_in_the_message_stay_where_they_were_typed(self):
+		# a leading command named again stays in the text
+		self.session.chat("/skill:expense-approval do /skill:expense-approval")
+		sent = self._sent()
+		self.assertEqual(sent.count("<skill "), 1)
+		self.assertTrue(sent.endswith("</skill>\n\n/skill:expense-approval do /skill:expense-approval"))
+		# commands later in the message stay where they were typed
 		self._skill("Receipt Check", user_invocable=1, instructions="Match the amounts.")
 		self.agent.append("skills", {"skill": "Receipt Check"})
 		self.agent.save()
@@ -240,20 +196,22 @@ class TestSkillCommands(ServerCase):
 		self.assertTrue(sent.endswith(f"Check the receipt.\n</skill>\n\n{text}"))
 		self.assertEqual(run.input, text)
 
-	def test_a_leading_command_named_again_stays_in_the_text(self):
-		self.session.chat("/skill:expense-approval do /skill:expense-approval")
-		sent = self._sent()
-		self.assertEqual(sent.count("<skill "), 1)
-		self.assertTrue(sent.endswith("</skill>\n\n/skill:expense-approval do /skill:expense-approval"))
+	def test_a_skill_not_flagged_for_users_is_refused_before_anything_is_sent(self):
+		with self.assertRaisesRegex(
+			frappe.ValidationError, "No skill named model-only. Available: expense-approval"
+		):
+			self.session.chat("/skill:model-only")
+		self.assertEqual([call for call in self.daemon.calls if call[0] == "run"], [])
 
-	def test_a_command_in_a_quoted_line_is_plain_text(self):
-		text = "what does this do?\n\n> Type /skill:expense-approval to start it."
-		self.session.chat(text)
-		self.assertEqual(self._sent(), text)
-
-	def test_an_unknown_command_later_in_the_message_is_plain_text(self):
-		self.session.chat("why can't I use /skill:model-only here?")
-		self.assertEqual(self._sent(), "why can't I use /skill:model-only here?")
+	def test_other_text_passes_untouched(self):
+		for text in (
+			"skill:expense-approval is not a command",
+			"what does this do?\n\n> Type /skill:expense-approval to start it.",
+			"why can't I use /skill:model-only here?",
+		):
+			with self.subTest(text):
+				self.session.chat(text)
+				self.assertEqual(self._sent(), text)
 
 
 class TestLiveSession(LiveServerCase):

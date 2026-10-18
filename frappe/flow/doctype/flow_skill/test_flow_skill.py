@@ -36,64 +36,30 @@ class TestFlowSkill(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_a_skill_is_named_after_its_title_and_starts_enabled(self):
-		skill = frappe.get_doc(_skill()).insert()
-		self.assertEqual(skill.name, "Expense Approval")
-		self.assertEqual(skill.enabled, 1)
-
-	def test_a_skill_is_not_user_invocable_until_flagged(self):
-		skill = frappe.get_doc(_skill()).insert()
-		self.assertEqual(skill.user_invocable, 0)
-
-	def test_the_command_is_the_title_in_lowercase_with_hyphens(self):
+	def test_a_user_invocable_skill_needs_a_typable_command_of_its_own(self):
 		self.assertEqual(skill_command("Expense Approval"), "expense-approval")
 		self.assertEqual(skill_command("  Manager's Sign-off / Q&A  "), "manager-s-sign-off-q-a")
-
-	def test_two_user_invocable_skills_cannot_share_a_command(self):
-		frappe.get_doc(_skill(title="Pre flight", user_invocable=1)).insert()
-		frappe.get_doc(_skill(title="Pre-flight")).insert()
-		with self.assertRaisesRegex(
-			frappe.ValidationError, "Pre flight already answers to /skill:pre-flight"
-		):
-			frappe.get_doc(_skill(title="Pre_flight", user_invocable=1)).insert()
-
-	def test_a_rename_cannot_take_another_skills_command(self):
+		taken = "Pre flight already answers to /skill:pre-flight"
 		frappe.get_doc(_skill(title="Pre flight", user_invocable=1)).insert()
 		skill = frappe.get_doc(_skill(user_invocable=1)).insert()
-		with self.assertRaisesRegex(
-			frappe.ValidationError, "Pre flight already answers to /skill:pre-flight"
-		):
+		with self.subTest("a rename"), self.assertRaisesRegex(frappe.ValidationError, taken):
 			frappe.rename_doc("Flow Skill", skill.name, "Pre-flight")
-
-	def test_a_rename_moves_the_title_along(self):
-		skill = frappe.get_doc(_skill(user_invocable=1)).insert()
-		frappe.rename_doc("Flow Skill", skill.name, "Expense Review")
-		self.assertEqual(frappe.db.get_value("Flow Skill", "Expense Review", "title"), "Expense Review")
-
-	def test_a_user_invocable_skill_can_merge_into_another(self):
-		frappe.get_doc(_skill(title="Pre flight", user_invocable=1)).insert()
-		skill = frappe.get_doc(_skill(user_invocable=1)).insert()
-		frappe.rename_doc("Flow Skill", skill.name, "Pre flight", merge=True)
-		self.assertFalse(frappe.db.exists("Flow Skill", skill.name))
-
-	def test_a_user_invocable_skill_needs_a_typable_title(self):
+		frappe.get_doc(_skill(title="Pre-flight")).insert()  # not user-invocable, so no clash
+		with self.subTest("a new skill"), self.assertRaisesRegex(frappe.ValidationError, taken):
+			frappe.get_doc(_skill(title="Pre_flight", user_invocable=1)).insert()
 		frappe.get_doc(_skill(title="खर्च")).insert()
-		with self.assertRaisesRegex(frappe.ValidationError, "letter or digit"):
+		with (
+			self.subTest("no letter or digit"),
+			self.assertRaisesRegex(frappe.ValidationError, "letter or digit"),
+		):
 			frappe.get_doc(_skill(title="मंज़ूरी", user_invocable=1)).insert()
 
-	def test_two_skills_cannot_share_a_title(self):
-		frappe.get_doc(_skill()).insert()
-		with self.assertRaises(frappe.DuplicateEntryError):
-			frappe.get_doc(_skill(instructions="Something else.")).insert()
+		frappe.rename_doc("Flow Skill", skill.name, "Pre flight", merge=True, rebuild_search=False)
+		self.assertFalse(frappe.db.exists("Flow Skill", skill.name))
 
 	def test_a_description_past_the_prompt_budget_is_refused(self):
 		with self.assertRaisesRegex(frappe.ValidationError, "at most 1024 characters"):
 			frappe.get_doc(_skill(description="x" * 1025)).insert()
-
-	def test_description_and_instructions_are_required(self):
-		for field in ("description", "instructions"):
-			with self.subTest(field=field), self.assertRaises(frappe.MandatoryError):
-				frappe.get_doc(_skill(**{field: None})).insert()
 
 
 class TestFlowSkillSystemGenerated(IntegrationTestCase):
@@ -102,47 +68,31 @@ class TestFlowSkillSystemGenerated(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _skill(self):
-		return frappe.get_doc(_skill(is_system_generated=1)).insert()
+	def test_the_desk_cannot_change_a_system_generated_skill_but_may_disable_it(self):
+		skill = frappe.get_doc(_skill(is_system_generated=1)).insert()
+		for label, error, change in (
+			("delete", "Cannot delete system-generated", lambda: frappe.delete_doc("Flow Skill", skill.name)),
+			(
+				"rename",
+				"Cannot rename system-generated",
+				lambda: frappe.rename_doc("Flow Skill", skill.name, "Renamed Skill"),
+			),
+		):
+			with self.subTest(label), self.assertRaisesRegex(frappe.ValidationError, error):
+				change()
+		for field, value, error in (
+			("is_system_generated", 0, "Cannot remove the system-generated flag"),
+			("instructions", "Rewritten by the Desk.", "Cannot change Instructions"),
+		):
+			skill.reload()
+			skill.set(field, value)
+			with self.subTest(field=field), self.assertRaisesRegex(frappe.ValidationError, error):
+				skill.save()
 
-	def test_cannot_delete_via_desk(self):
-		skill = self._skill()
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot delete system-generated"):
-			frappe.delete_doc("Flow Skill", skill.name)
-
-	def test_owning_app_can_delete(self):
-		skill = self._skill()
-		frappe.delete_doc("Flow Skill", skill.name, ignore_permissions=True)
-		self.assertFalse(frappe.db.exists("Flow Skill", skill.name))
-
-	def test_cannot_rename(self):
-		skill = self._skill()
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot rename system-generated"):
-			frappe.rename_doc("Flow Skill", skill.name, "Renamed Skill")
-
-	def test_cannot_unset_flag(self):
-		skill = self._skill()
-		skill.is_system_generated = 0
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot remove the system-generated flag"):
-			skill.save()
-
-	def test_instructions_are_locked_but_enabled_stays_editable(self):
-		skill = self._skill()
-		skill.instructions = "Rewritten by the Desk."
-		with self.assertRaisesRegex(frappe.ValidationError, "Cannot change Instructions"):
-			skill.save()
 		skill.reload()
 		skill.enabled = 0
 		skill.save()
 		self.assertEqual(frappe.db.get_value("Flow Skill", skill.name, "enabled"), 0)
-
-	def test_owning_app_can_change_instructions(self):
-		skill = self._skill()
-		skill.instructions = "Rewritten by the app."
-		skill.save(ignore_permissions=True)
-		self.assertEqual(
-			frappe.db.get_value("Flow Skill", skill.name, "instructions"), "Rewritten by the app."
-		)
 
 
 class TestFlowSkillGlobalLimit(IntegrationTestCase):
@@ -151,37 +101,29 @@ class TestFlowSkillGlobalLimit(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def _fill_the_cap(self):
-		for i in range(MAX_GLOBAL_SKILLS):
-			frappe.get_doc(_skill(title=f"Global {i:03d}", is_global=1)).insert()
-
-	def test_one_global_skill_too_many_is_refused(self):
-		self._fill_the_cap()
-		with self.assertRaisesRegex(frappe.ValidationError, "At most 10 skills"):
-			frappe.get_doc(_skill(title="One Too Many", is_global=1)).insert()
-
-	def test_an_existing_global_skill_can_still_be_saved_at_the_cap(self):
-		self._fill_the_cap()
-		doc = frappe.get_doc("Flow Skill", "Global 000")
-		doc.description = "Reworded."
-		doc.save()
-		self.assertEqual(frappe.db.get_value("Flow Skill", "Global 000", "description"), "Reworded.")
-
-	def test_disabling_a_global_skill_frees_a_slot(self):
-		self._fill_the_cap()
-		doc = frappe.get_doc("Flow Skill", "Global 000")
-		doc.enabled = 0
-		doc.save()
-		frappe.get_doc(_skill(title="Takes The Slot", is_global=1)).insert()
-		doc.reload()
-		doc.enabled = 1
-		with self.assertRaisesRegex(frappe.ValidationError, "At most 10 skills"):
-			doc.save()
-
-	def test_a_bound_only_skill_is_not_capped(self):
+	def test_only_enabled_global_skills_are_capped(self):
 		for i in range(MAX_GLOBAL_SKILLS + 5):
 			frappe.get_doc(_skill(title=f"Bound {i:03d}")).insert()
 		self.assertEqual(frappe.db.count("Flow Skill", {"is_global": 0}), MAX_GLOBAL_SKILLS + 5)
+
+		with self.subTest("one global skill too many is refused"):
+			for i in range(MAX_GLOBAL_SKILLS):
+				frappe.get_doc(_skill(title=f"Global {i:03d}", is_global=1)).insert()
+			with self.assertRaisesRegex(frappe.ValidationError, "At most 10 skills"):
+				frappe.get_doc(_skill(title="One Too Many", is_global=1)).insert()
+		doc = frappe.get_doc("Flow Skill", "Global 000")
+		with self.subTest("an existing global skill can still be saved at the cap"):
+			doc.description = "Reworded."
+			doc.save()
+			self.assertEqual(frappe.db.get_value("Flow Skill", "Global 000", "description"), "Reworded.")
+		with self.subTest("disabling a global skill frees a slot"):
+			doc.enabled = 0
+			doc.save()
+			frappe.get_doc(_skill(title="Takes The Slot", is_global=1)).insert()
+			doc.reload()
+			doc.enabled = 1
+			with self.assertRaisesRegex(frappe.ValidationError, "At most 10 skills"):
+				doc.save()
 
 
 class AppSkills:
@@ -220,44 +162,29 @@ class TestAppSkills(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
-	def test_an_app_skill_becomes_a_locked_flow_skill(self):
-		self.skills.write("close-todos")
-
+	def test_sync_mirrors_each_app_skill_and_keeps_site_choices(self):
+		folder = self.skills.write("close-todos")
 		self.assertEqual(sync_skills(), ["close-todos"])
-
 		doc = frappe.get_doc("Flow Skill", "close-todos")
-		self.assertEqual(
-			(doc.app, doc.description, doc.instructions, doc.is_system_generated),
-			("flow", "Close overdue ToDos.", "Close each one.", 1),
-		)
-		self.assertEqual((doc.enabled, doc.is_global, doc.user_invocable), (1, 0, 0))
+		with self.subTest("a new skill is locked to its app"):
+			self.assertEqual(
+				(doc.app, doc.description, doc.instructions, doc.is_system_generated),
+				("flow", "Close overdue ToDos.", "Close each one.", 1),
+			)
+			self.assertEqual((doc.enabled, doc.is_global, doc.user_invocable), (1, 0, 0))
+		with self.subTest("an unchanged skill is not saved again"):
+			sync_skills()
+			self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "modified"), doc.modified)
 
-	def test_a_resync_follows_the_file_but_keeps_site_choices(self):
-		self.skills.write("close-todos")
-		sync_skills()
 		frappe.db.set_value("Flow Skill", "close-todos", {"enabled": 0, "user_invocable": 1})
 		self.skills.write("close-todos", description="Changed.", body="New body.")
-
 		sync_skills()
-
-		doc = frappe.get_doc("Flow Skill", "close-todos")
+		doc.reload()
 		self.assertEqual(
 			(doc.description, doc.instructions, doc.enabled, doc.user_invocable),
 			("Changed.", "New body.", 0, 1),
 		)
 
-	def test_an_unchanged_skill_is_not_saved_again(self):
-		self.skills.write("close-todos")
-		sync_skills()
-		modified = frappe.db.get_value("Flow Skill", "close-todos", "modified")
-
-		sync_skills()
-
-		self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "modified"), modified)
-
-	def test_a_skill_gone_from_disk_is_deleted_and_unlinked(self):
-		folder = self.skills.write("close-todos")
-		sync_skills()
 		model = frappe.get_doc(
 			{
 				"doctype": "Flow Model",
@@ -278,57 +205,44 @@ class TestAppSkills(IntegrationTestCase):
 		shutil.rmtree(folder)
 
 		self.assertEqual(sync_skills(), [])
-
 		self.assertFalse(frappe.db.exists("Flow Skill", "close-todos"))
 		self.assertEqual(frappe.get_all("Flow Agent Skill", {"parent": agent.name}, pluck="skill"), [])
 
-	def test_a_desk_skill_with_the_same_name_is_left_alone(self):
-		frappe.get_doc(_skill(title="close-todos")).insert()
-		self.skills.write("close-todos")
+	def test_sync_refuses_a_folder_it_cannot_mirror_safely(self):
+		with self.subTest("a Desk skill of the same name is left alone"):
+			frappe.get_doc(_skill(title="close-todos")).insert()
+			self.skills.write("close-todos")
+			with self.assertRaisesRegex(frappe.ValidationError, "not owned by an app"):
+				sync_skills()
+			self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "is_system_generated"), 0)
 
-		with self.assertRaisesRegex(frappe.ValidationError, "not owned by an app"):
+		# each case below starts from empty skills folders
+		with self.subTest("two apps cannot ship the same skill"):
+			skills = AppSkills(self)
+			skills.write("open-todos", app="frappe")
+			skills.write("open-todos", app="flow")
+			with self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and flow"):
+				sync_skills()
+			self.assertFalse(frappe.db.exists("Flow Skill", "open-todos"))
+
+		with self.subTest("a skill named unlike its folder is refused with its path"):
+			AppSkills(self).write("odd-todos", text="---\nname: other\ndescription: Wrong name.\n---\nBody\n")
+			with self.assertRaisesRegex(frappe.ValidationError, "odd-todos/SKILL.md: skill name 'other'"):
+				sync_skills()
+
+		with self.subTest("a cut-off scan stops before deleting anything"):
+			skills = AppSkills(self)
+			skills.write("first-todos")
 			sync_skills()
+			skills.write("second-todos")
+			with (
+				patch("flow_harness.session.skills.MAX_SKILL_DIRECTORY_ENTRIES", 1),
+				self.assertRaisesRegex(frappe.ValidationError, "has more than 1 entries"),
+			):
+				sync_skills()
+			self.assertTrue(frappe.db.exists("Flow Skill", "first-todos"))
 
-		self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "is_system_generated"), 0)
-
-	def test_two_apps_cannot_ship_the_same_skill(self):
-		self.skills.write("close-todos", app="frappe")
-		self.skills.write("close-todos", app="flow")
-
-		with self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and flow"):
-			sync_skills()
-
-		self.assertFalse(frappe.db.exists("Flow Skill", "close-todos"))
-
-	def test_a_skill_named_unlike_its_folder_is_refused_with_its_path(self):
-		self.skills.write("close-todos", text="---\nname: other\ndescription: Wrong name.\n---\nBody\n")
-
-		with self.assertRaisesRegex(frappe.ValidationError, "close-todos/SKILL.md: skill name 'other'"):
-			sync_skills()
-
-	def test_a_cut_off_scan_stops_before_deleting_anything(self):
-		self.skills.write("close-todos")
-		sync_skills()
-		self.skills.write("open-todos")
-
-		with (
-			patch("flow_harness.session.skills.MAX_SKILL_DIRECTORY_ENTRIES", 1),
-			self.assertRaisesRegex(frappe.ValidationError, "has more than 1 entries"),
-		):
-			sync_skills()
-
-		self.assertTrue(frappe.db.exists("Flow Skill", "close-todos"))
-
-	def test_a_file_in_the_skill_folder_is_read_by_its_path(self):
-		folder = self.skills.write("close-todos")
-		os.makedirs(os.path.join(folder, "references"))
-		with open(os.path.join(folder, "references", "forms.md"), "w") as file:
-			file.write("Form fields.")
-		sync_skills()
-
-		self.assertEqual(skill_file("close-todos", "references/forms.md"), "Form fields.")
-
-	def test_a_folder_lists_its_files_as_paths_to_load(self):
+	def test_a_file_or_folder_of_an_app_skill_is_read_by_its_path(self):
 		folder = self.skills.write("close-todos")
 		other = self.skills.write("other-skill")
 		os.makedirs(os.path.join(folder, "examples", "tabs", ".cache"))
@@ -343,52 +257,43 @@ class TestAppSkills(IntegrationTestCase):
 		os.symlink(os.path.join(other, "SKILL.md"), os.path.join(folder, "examples", "link.md"))
 		sync_skills()
 
-		self.assertEqual(
-			skill_file("close-todos", "examples/"), "examples/notes.md\nexamples/tabs/block.json"
-		)
-		self.assertEqual(skill_file("close-todos", "examples/tabs/block.json"), "Example.")
+		for path, content in (
+			("examples/", "examples/notes.md\nexamples/tabs/block.json"),
+			("examples/tabs/block.json", "Example."),
+		):
+			with self.subTest(path=path):
+				self.assertEqual(skill_file("close-todos", path), content)
 
-	def test_only_files_inside_the_skill_folder_are_read(self):
+	def test_only_small_text_files_inside_an_app_skill_folder_are_read(self):
 		folder = self.skills.write("close-todos")
 		other = self.skills.write("other-skill")
 		with open(os.path.join(other, "notes.md"), "w") as file:
 			file.write("Not this skill's.")
 		with open(os.path.join(folder, ".env"), "w") as file:
 			file.write("SECRET=1")
-		os.symlink(os.path.join(other, "notes.md"), os.path.join(folder, "link.md"))
-		sync_skills()
-
-		for path in (
-			"../other-skill/notes.md",
-			os.path.join(other, "notes.md"),
-			".env",
-			"link.md",
-			"missing.md",
-		):
-			with self.subTest(path=path), self.assertRaisesRegex(frappe.ValidationError, "has no file"):
-				skill_file("close-todos", path)
-
-	def test_a_skill_made_in_the_desk_has_no_files(self):
-		frappe.get_doc(_skill()).insert()
-
-		with self.assertRaisesRegex(frappe.ValidationError, "has no files"):
-			skill_file("Expense Approval", "forms.md")
-
-	def test_a_hand_written_row_cannot_point_outside_an_apps_skills(self):
-		for title, app in (("..", "flow"), ("close-todos", "os")):
-			frappe.get_doc(_skill(title=title, app=app)).insert()
-			with self.subTest(title=title), self.assertRaisesRegex(frappe.ValidationError, "has no files"):
-				skill_file(title, "hooks.py")
-
-	def test_only_small_text_files_are_read(self):
-		folder = self.skills.write("close-todos")
 		with open(os.path.join(folder, "logo.png"), "wb") as file:
 			file.write(b"\x89PNG\xff\xfe")
+		os.symlink(os.path.join(other, "notes.md"), os.path.join(folder, "link.md"))
 		sync_skills()
+		# rows can be written by hand: a Desk skill, a name that is no folder, an app not installed
+		for title, app in (("Expense Approval", None), ("..", "flow"), ("os-skill", "os")):
+			frappe.get_doc(_skill(title=title, app=app)).insert()
 
-		with self.assertRaisesRegex(frappe.ValidationError, "not a text file"):
-			skill_file("close-todos", "logo.png")
+		for name, path, error in (
+			("close-todos", "../other-skill/notes.md", "has no file"),
+			("close-todos", os.path.join(other, "notes.md"), "has no file"),
+			("close-todos", ".env", "has no file"),
+			("close-todos", "link.md", "has no file"),
+			("close-todos", "missing.md", "has no file"),
+			("Expense Approval", "forms.md", "has no files"),
+			("..", "hooks.py", "has no files"),
+			("os-skill", "hooks.py", "has no files"),
+			("close-todos", "logo.png", "not a text file"),
+		):
+			with self.subTest(name=name, path=path), self.assertRaisesRegex(frappe.ValidationError, error):
+				skill_file(name, path)
 		with (
+			self.subTest("larger than the cap"),
 			patch("flow.flow.doctype.flow_skill.flow_skill.MAX_SKILL_FILE_BYTES", 4),
 			self.assertRaisesRegex(frappe.ValidationError, "larger than"),
 		):

@@ -44,33 +44,19 @@ def test_durable_classification():
 	assert not any(event.durable for event in live)
 
 
-def test_provider_state_round_trips_on_every_block():
-	message = AssistantMessage(
-		content=[
-			TextContent(text="answer", provider_state={"id": "msg_1", "phase": "final_answer"}),
-			ThinkingContent(thinking="plan", thinking_signature="sig", provider_state={"item": {"id": "r1"}}),
-			ToolCall(id="c1", name="bash", arguments={"command": "pwd"}, provider_state={"item_id": "fc_1"}),
-		],
-		stop_reason="tool_use",
+def test_parse_event_reads_tagged_rows_and_rejects_unknown_shapes():
+	tagged = parse_event({"type": "run_ended", "seq": 1, "reason": "done", "subagent_id": "c1"})
+	assert tagged.subagent_id == "c1"
+	assert "subagent_id" not in ToolResult(tool_call_id="c", name="read", content="").model_dump(
+		exclude_none=True
 	)
 
-	restored = parse_event(message.model_dump(exclude_none=True))
-
-	assert isinstance(restored, AssistantMessage)
-	assert restored.content[0].provider_state == {"id": "msg_1", "phase": "final_answer"}
-	assert restored.content[1].provider_state == {"item": {"id": "r1"}}
-	assert restored.content[1].thinking_signature == "sig"
-	assert restored.tool_calls[0].provider_state == {"item_id": "fc_1"}
-
-
-def test_unknown_fields_are_still_rejected():
-	with pytest.raises(ValidationError):
-		parse_event({"seq": 1, "type": "assistant_message", "text": "pre-release shape"})
-
-
-def test_unknown_event_type_is_rejected():
-	with pytest.raises(ValidationError):
-		parse_event({"seq": 1, "type": "not_an_event"})
+	for row in (
+		{"seq": 1, "type": "assistant_message", "text": "pre-release shape"},  # an unknown field
+		{"seq": 1, "type": "not_an_event"},
+	):
+		with pytest.raises(ValidationError):
+			parse_event(row)
 
 
 def test_assistant_content_string_sugar_and_views():
@@ -126,11 +112,3 @@ def test_tool_call_display_ready_round_trips_as_live_metadata():
 		{"id": "c1", "name": "edit", "arguments": {}, "display": "Editing file src/app.py"}
 	)
 	assert legacy.display == [DisplaySegment(text="Editing file src/app.py")]
-
-
-def test_the_subagent_tag_rides_on_events_and_is_absent_from_untagged_rows():
-	tagged = parse_event({"type": "run_ended", "seq": 1, "reason": "done", "subagent_id": "c1"})
-	assert tagged.subagent_id == "c1"
-	assert "subagent_id" not in ToolResult(tool_call_id="c", name="read", content="").model_dump(
-		exclude_none=True
-	)

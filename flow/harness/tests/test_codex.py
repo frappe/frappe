@@ -80,8 +80,9 @@ def _success_sse(text="ok"):
 # --- OAuth provider --------------------------------------------------------
 
 
-def test_authorize_url():
-	url = get_auth_provider("codex").authorize_url(challenge="CH", state="ST")
+async def test_oauth_login_refresh_and_runtime_auth():
+	provider = get_auth_provider("codex")
+	url = provider.authorize_url(challenge="CH", state="ST")
 	assert url.startswith("https://auth.openai.com/oauth/authorize?")
 	for fragment in (
 		f"client_id={CLIENT_ID}",
@@ -92,69 +93,45 @@ def test_authorize_url():
 	):
 		assert fragment in url
 
-
-async def test_exchange_builds_credential():
-	captured = {}
+	bodies = []
 
 	def handler(request):
-		captured["body"] = request.content.decode()
-		return httpx.Response(
-			200,
-			json={
-				"access_token": _jwt({"chatgpt_account_id": "acc-1"}),
-				"refresh_token": "refresh-1",
-				"expires_in": 3600,
-			},
-		)
+		bodies.append(request.content.decode())
+		if len(bodies) == 1:
+			return httpx.Response(
+				200,
+				json={
+					"access_token": _jwt({"chatgpt_account_id": "acc-1"}),
+					"refresh_token": "refresh-1",
+					"expires_in": 3600,
+				},
+			)
+		return httpx.Response(200, json={"access_token": _jwt({}), "expires_in": 100})
 
 	async with _mock_client(handler) as client:
-		cred = await get_auth_provider("codex").exchange(
-			"the-code", "the-verifier", client=client, now_ms=1_000
-		)
+		cred = await provider.exchange("the-code", "the-verifier", client=client, now_ms=1_000)
+		refreshed = await provider.refresh(cred, client=client, now_ms=0)
 
-	assert "grant_type=authorization_code" in captured["body"]
-	assert "code=the-code" in captured["body"]
-	assert "code_verifier=the-verifier" in captured["body"]
+	assert "grant_type=authorization_code" in bodies[0]
+	assert "code=the-code" in bodies[0]
+	assert "code_verifier=the-verifier" in bodies[0]
 	assert cred.refresh == "refresh-1"
 	assert cred.account_id == "acc-1"
 	assert cred.expires == 1_000 + 3600 * 1000
+	# a refresh response without a refresh token keeps the old one
+	assert "grant_type=refresh_token" in bodies[1]
+	assert refreshed.refresh == "refresh-1"
 
-
-async def test_refresh_keeps_old_refresh_token_when_absent():
-	def handler(request):
-		assert "grant_type=refresh_token" in request.content.decode()
-		return httpx.Response(200, json={"access_token": _jwt({}), "expires_in": 100})
-
-	old = OAuthCredential(access="old", refresh="keep-me", expires=0, account_id="acc")
-	async with _mock_client(handler) as client:
-		cred = await get_auth_provider("codex").refresh(old, client=client, now_ms=0)
-	assert cred.refresh == "keep-me"
-
-
-def test_runtime_auth_headers():
-	auth = get_auth_provider("codex").runtime_auth(
-		OAuthCredential(access="tok", refresh="r", expires=0, account_id="acc-9")
-	)
+	auth = provider.runtime_auth(OAuthCredential(access="tok", refresh="r", expires=0, account_id="acc-9"))
 	assert auth.token == "tok"
 	assert auth.base_url == "https://chatgpt.com/backend-api"
 	assert auth.headers["chatgpt-account-id"] == "acc-9"
 	assert auth.headers["originator"] == "flow"
-
-
-def test_runtime_auth_requires_account_id():
 	with pytest.raises(AuthError, match="account id"):
-		get_auth_provider("codex").runtime_auth(OAuthCredential(access="tok", refresh="r", expires=1))
+		provider.runtime_auth(OAuthCredential(access="tok", refresh="r", expires=1))
 
 
-def test_codex_subscription_limits_have_a_conservative_fallback():
-	model = CodexModel("codex/gpt-5.6-sol", api_key="token")
-
-	assert model.context_window == 272_000
-	assert model.max_output_tokens == 128_000
-	assert model.auto_compact_threshold_tokens == 244_800
-
-
-async def test_loads_and_caches_account_model_limits(monkeypatch):
+async def test_model_limits_fall_back_until_the_account_catalog_loads_once(monkeypatch):
 	monkeypatch.setenv("FLOW_CODEX_CLIENT_VERSION", "9.9.9")
 	requests = []
 
@@ -183,6 +160,10 @@ async def test_loads_and_caches_account_model_limits(monkeypatch):
 			headers={"chatgpt-account-id": "acc"},
 			client=client,
 		)
+		# conservative subscription fallbacks until the catalog answers
+		assert model.context_window == 272_000
+		assert model.max_output_tokens == 128_000
+		assert model.auto_compact_threshold_tokens == 244_800
 		await model.load_model_limits()
 		await model.load_model_limits()
 
@@ -194,11 +175,6 @@ async def test_loads_and_caches_account_model_limits(monkeypatch):
 	assert model.context_window == 1_050_000
 	assert model.max_output_tokens == 128_000
 	assert model.auto_compact_threshold_tokens == 900_000
-
-
-def test_client_version_prefers_env_then_default(monkeypatch):
-	monkeypatch.setenv("FLOW_CODEX_CLIENT_VERSION", "1.2.3")
-	assert codex_client_version() == "1.2.3"
 
 	monkeypatch.delenv("FLOW_CODEX_CLIENT_VERSION")
 	assert codex_client_version() == DEFAULT_CODEX_CLIENT_VERSION
@@ -254,6 +230,16 @@ async def test_streams_text_tools_and_usage():
 		captured["payload"] = json.loads(request.content)
 		return httpx.Response(200, text=sse)
 
+	tools = [
+		{
+			"type": "function",
+			"function": {
+				"name": "bash",
+				"description": "run",
+				"parameters": {"type": "object"},
+			},
+		}
+	]
 	async with _mock_client(handler) as client:
 		model = CodexModel(
 			"codex/gpt-test",
@@ -262,23 +248,20 @@ async def test_streams_text_tools_and_usage():
 			headers={"chatgpt-account-id": "acc", "Authorization": "must-not-win"},
 			client=client,
 		)
-		events = await _collect(
-			model,
-			[UserMessage(content="hi")],
-			[
-				{
-					"type": "function",
-					"function": {
-						"name": "bash",
-						"description": "run",
-						"parameters": {"type": "object"},
-					},
-				}
-			],
-			system_prompt="be useful",
-			max_output_tokens=12_345,
-			tool_display_templates={"bash": "Running {{ command }}"},
-		)
+
+		def run(stream):
+			return _collect(
+				model,
+				[UserMessage(content="hi")],
+				tools,
+				system_prompt="be useful",
+				stream=stream,
+				max_output_tokens=12_345,
+				tool_display_templates={"bash": "Running {{ command }}"},
+			)
+
+		events = await run(True)
+		quiet = await run(False)
 
 	assert captured["url"] == "https://example.test/backend-api/codex/responses"
 	assert captured["headers"]["authorization"] == "Bearer oauth-token"
@@ -324,374 +307,279 @@ async def test_streams_text_tools_and_usage():
 	assert events[-1].input_tokens == 12
 	assert events[-1].output_tokens == 4
 	assert events[-1].cache_read_tokens == 9
+	# without streaming no live deltas go out, only the same final message
+	assert [event.type for event in quiet] == ["assistant_message", "usage"]
+	assert quiet[0].content == message.content
 
 
-async def test_parallel_tool_calls_are_not_duplicated_by_their_done_items():
-	sse = "\n\n".join(
-		[
-			(
-				'data: {"type":"response.output_item.added","item":'
-				'{"type":"function_call","id":"item_1","call_id":"call_1","name":"bash"}}'
-			),
-			(
-				'data: {"type":"response.output_item.added","item":'
-				'{"type":"function_call","id":"item_2","call_id":"call_2","name":"read"}}'
-			),
-			(
-				'data: {"type":"response.output_item.done","item":'
-				'{"type":"function_call","id":"item_1","call_id":"call_1",'
-				'"name":"bash","arguments":"{\\"command\\":\\"pwd\\"}"}}'
-			),
-			(
-				'data: {"type":"response.output_item.done","item":'
-				'{"type":"function_call","id":"item_2","call_id":"call_2",'
-				'"name":"read","arguments":"{\\"path\\":\\"a.txt\\"}"}}'
-			),
-			'data: {"type":"response.completed","response":{}}',
-		]
+async def test_streamed_tool_calls_are_reported_once_with_their_stop_reason():
+	bash_done = (
+		'data: {"type":"response.output_item.done","item":'
+		'{"type":"function_call","id":"item_1","call_id":"call_1",'
+		'"name":"bash","arguments":"{\\"command\\":\\"pwd\\"}"}}'
 	)
-
-	async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
-
-	calls = events[-2].tool_calls
-	assert [(call.id, call.name) for call in calls] == [("call_1", "bash"), ("call_2", "read")]
-	assert calls[0].args == {"command": "pwd"}
-	assert calls[1].args == {"path": "a.txt"}
-
-
-async def test_incomplete_response_keeps_length_over_tool_use():
-	sse = "\n\n".join(
-		[
-			(
-				'data: {"type":"response.output_item.done","item":'
-				'{"type":"function_call","id":"item_1","call_id":"call_1",'
-				'"name":"bash","arguments":"{\\"command\\":\\"pwd\\"}"}}'
-			),
-			'data: {"type":"response.incomplete","response":{"id":"resp_1","usage":{}}}',
-			"data: [DONE]",
-		]
-	)
-
-	async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
-		model = CodexModel("codex/gpt-test", api_key="t", api_base="https://e.test", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
-
-	assert events[-2].tool_calls  # the truncated call is still reported
-	assert events[-2].stop_reason == "length"
-
-
-async def test_non_streaming_suppresses_live_deltas():
-	sse = "\n\n".join(
-		[
-			'data: {"type":"response.output_text.delta","delta":"done"}',
-			'data: {"type":"response.completed","response":{}}',
-		]
-	)
-
-	async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")], stream=False)
-
-	assert [event.type for event in events] == ["assistant_message", "usage"]
-	assert events[0].text == "done"
-
-
-async def test_streams_reasoning_summary_deltas():
-	sse = "\n\n".join(
-		[
-			(
-				'data: {"type":"response.output_item.added","item":'
-				'{"type":"reasoning","id":"reason_1","summary":[]}}'
-			),
-			'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1","delta":"weigh "}',
-			'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1","delta":"options"}',
-			(
-				'data: {"type":"response.output_item.done","item":'
-				'{"type":"reasoning","id":"reason_1","encrypted_content":"opaque",'
-				'"summary":[{"type":"summary_text","text":"weigh options"}]}}'
-			),
-			'data: {"type":"response.completed","response":{}}',
-		]
-	)
-
-	async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
-
-	assert [event.type for event in events] == [
-		"thinking_delta",
-		"thinking_delta",
-		"assistant_message",
-		"usage",
+	parallel = [
+		(
+			'data: {"type":"response.output_item.added","item":'
+			'{"type":"function_call","id":"item_1","call_id":"call_1","name":"bash"}}'
+		),
+		(
+			'data: {"type":"response.output_item.added","item":'
+			'{"type":"function_call","id":"item_2","call_id":"call_2","name":"read"}}'
+		),
+		bash_done,
+		(
+			'data: {"type":"response.output_item.done","item":'
+			'{"type":"function_call","id":"item_2","call_id":"call_2",'
+			'"name":"read","arguments":"{\\"path\\":\\"a.txt\\"}"}}'
+		),
+		'data: {"type":"response.completed","response":{}}',
 	]
-	assert [event.thinking for event in events[:2]] == ["weigh ", "options"]
-	thinking = events[-2].content[0]
-	assert isinstance(thinking, ThinkingContent)
-	assert thinking.thinking == "weigh options"
-	assert thinking.provider_state["item"]["encrypted_content"] == "opaque"
-
-
-async def test_preserves_boundaries_between_reasoning_summary_parts():
-	sse = "\n\n".join(
-		[
-			(
-				'data: {"type":"response.output_item.added","item":'
-				'{"type":"reasoning","id":"reason_1","summary":[]}}'
-			),
-			(
-				'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1",'
-				'"summary_index":0,"delta":"**Planning detailed single-file inspections**"}'
-			),
-			(
-				'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1",'
-				'"summary_index":1,"delta":"**Starting sequential inspection phase**"}'
-			),
-			(
-				'data: {"type":"response.output_item.done","item":'
-				'{"type":"reasoning","id":"reason_1","summary":['
-				'{"type":"summary_text","text":"**Planning detailed single-file inspections**"},'
-				'{"type":"summary_text","text":"**Starting sequential inspection phase**"}]}}'
-			),
-			'data: {"type":"response.completed","response":{}}',
-		]
-	)
-
-	async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
-
-	assert [event.thinking for event in events[:2]] == [
-		"**Planning detailed single-file inspections**",
-		"\n\n**Starting sequential inspection phase**",
+	incomplete = [
+		bash_done,
+		'data: {"type":"response.incomplete","response":{"id":"resp_1","usage":{}}}',
+		"data: [DONE]",
 	]
-	thinking = events[-2].content[0]
-	assert isinstance(thinking, ThinkingContent)
-	assert thinking.thinking == (
-		"**Planning detailed single-file inspections**\n\n**Starting sequential inspection phase**"
+	cases = [
+		# parallel calls are not duplicated by their done items
+		(
+			parallel,
+			[("call_1", "bash", {"command": "pwd"}), ("call_2", "read", {"path": "a.txt"})],
+			"tool_use",
+		),
+		# a truncated call is still reported, but keeps "length" over tool_use
+		(incomplete, [("call_1", "bash", {"command": "pwd"})], "length"),
+	]
+	for lines, calls, stop_reason in cases:
+		sse = "\n\n".join(lines)
+		async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
+			model = CodexModel("codex/gpt-test", api_key="token", client=client)
+			events = await _collect(model, [UserMessage(content="hi")])
+
+		message = events[-2]
+		assert [(call.id, call.name, call.args) for call in message.tool_calls] == calls, stop_reason
+		assert message.stop_reason == stop_reason
+
+
+async def test_streams_reasoning_into_one_thinking_block():
+	added = (
+		'data: {"type":"response.output_item.added","item":{"type":"reasoning","id":"reason_1","summary":[]}}'
 	)
+	planning = "**Planning detailed single-file inspections**"
+	starting = "**Starting sequential inspection phase**"
+	cases = [
+		(
+			# summary deltas stream live; the done item seals the block
+			[
+				added,
+				'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1","delta":"weigh "}',
+				'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1","delta":"options"}',
+				(
+					'data: {"type":"response.output_item.done","item":'
+					'{"type":"reasoning","id":"reason_1","encrypted_content":"opaque",'
+					'"summary":[{"type":"summary_text","text":"weigh options"}]}}'
+				),
+			],
+			["weigh ", "options"],
+			"weigh options",
+			"opaque",
+		),
+		(
+			# boundaries between summary parts are kept
+			[
+				added,
+				(
+					'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1",'
+					'"summary_index":0,"delta":"**Planning detailed single-file inspections**"}'
+				),
+				(
+					'data: {"type":"response.reasoning_summary_text.delta","item_id":"reason_1",'
+					'"summary_index":1,"delta":"**Starting sequential inspection phase**"}'
+				),
+				(
+					'data: {"type":"response.output_item.done","item":'
+					'{"type":"reasoning","id":"reason_1","summary":['
+					'{"type":"summary_text","text":"**Planning detailed single-file inspections**"},'
+					'{"type":"summary_text","text":"**Starting sequential inspection phase**"}]}}'
+				),
+			],
+			[planning, f"\n\n{starting}"],
+			f"{planning}\n\n{starting}",
+			None,
+		),
+		(
+			# streamed reasoning survives a done item that omits it
+			[
+				'data: {"type":"response.reasoning_text.delta","item_id":"reason_1","delta":"raw thought"}',
+				(
+					'data: {"type":"response.output_item.done","item":'
+					'{"type":"reasoning","id":"reason_1","encrypted_content":"opaque"}}'
+				),
+			],
+			["raw thought"],
+			"raw thought",
+			"opaque",
+		),
+	]
+	for lines, deltas, text, encrypted in cases:
+		sse = "\n\n".join([*lines, 'data: {"type":"response.completed","response":{}}'])
+		async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
+			model = CodexModel("codex/gpt-test", api_key="token", client=client)
+			events = await _collect(model, [UserMessage(content="hi")])
 
-
-async def test_keeps_streamed_reasoning_when_the_done_item_omits_it():
-	sse = "\n\n".join(
-		[
-			'data: {"type":"response.reasoning_text.delta","item_id":"reason_1","delta":"raw thought"}',
-			(
-				'data: {"type":"response.output_item.done","item":'
-				'{"type":"reasoning","id":"reason_1","encrypted_content":"opaque"}}'
-			),
-			'data: {"type":"response.completed","response":{}}',
-		]
-	)
-
-	async with _mock_client(lambda _r: httpx.Response(200, text=sse)) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
-
-	thinking = events[-2].content[0]
-	assert isinstance(thinking, ThinkingContent)
-	assert thinking.thinking == "raw thought"
-	assert thinking.provider_state["item"]["encrypted_content"] == "opaque"
+		assert [event.type for event in events] == ["thinking_delta"] * len(deltas) + [
+			"assistant_message",
+			"usage",
+		], text
+		assert [event.thinking for event in events[: len(deltas)]] == deltas, text
+		thinking = events[-2].content[0]
+		assert isinstance(thinking, ThinkingContent), text
+		assert thinking.thinking == text
+		assert thinking.provider_state["item"].get("encrypted_content") == encrypted, text
 
 
 # --- cancellation ----------------------------------------------------------
 
 
-async def test_cancellation_closes_active_http_stream():
-	class BlockingSSE(httpx.AsyncByteStream):
-		def __init__(self):
+async def test_cancellation_releases_the_request_wherever_it_waits():
+	class BlockingBody(httpx.AsyncByteStream):
+		def __init__(self, head):
+			self.head = head
 			self.started = asyncio.Event()
 			self.closed = asyncio.Event()
 
 		async def __aiter__(self):
-			yield b'data: {"type":"response.output_text.delta","delta":"partial"}\n\n'
+			if self.head:
+				yield self.head
 			self.started.set()
 			await asyncio.Event().wait()
 
 		async def aclose(self):
 			self.closed.set()
 
-	body = BlockingSSE()
-	cancellation = asyncio.Event()
-	async with _mock_client(lambda _r: httpx.Response(200, stream=body)) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		task = asyncio.create_task(_collect(model, [UserMessage(content="hi")], cancellation=cancellation))
-		await body.started.wait()
-		cancellation.set()
-		events = await asyncio.wait_for(task, timeout=1)
+	partial = b'data: {"type":"response.output_text.delta","delta":"partial"}\n\n'
+	cases = [
+		# (status, body head, events, text); no status: the headers never arrive
+		(None, b"", ["assistant_message", "usage"], ""),
+		(500, b"", ["assistant_message", "usage"], ""),
+		(200, partial, ["text_delta", "assistant_message", "usage"], "partial"),
+	]
+	for status, head, types, text in cases:
+		body = BlockingBody(head)
 
-	assert body.closed.is_set()
-	assert [event.type for event in events] == ["text_delta", "assistant_message", "usage"]
-	assert events[-2].text == "partial"
-	assert events[-2].stop_reason == "aborted"
+		async def handler(request):
+			if status is None:
+				body.started.set()
+				try:
+					await asyncio.Event().wait()
+				finally:
+					body.closed.set()
+			return httpx.Response(status, stream=body)
 
+		cancellation = asyncio.Event()
+		async with _mock_client(handler) as client:
+			model = CodexModel("codex/gpt-test", api_key="token", client=client)
+			task = asyncio.create_task(
+				_collect(model, [UserMessage(content="hi")], cancellation=cancellation)
+			)
+			await body.started.wait()
+			cancellation.set()
+			events = await asyncio.wait_for(task, timeout=1)
 
-async def test_cancellation_interrupts_response_header_wait():
-	request_started = asyncio.Event()
-	request_cancelled = asyncio.Event()
-
-	async def handler(request):
-		request_started.set()
-		try:
-			await asyncio.Event().wait()
-		finally:
-			request_cancelled.set()
-
-	cancellation = asyncio.Event()
-	async with _mock_client(handler) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		task = asyncio.create_task(_collect(model, [UserMessage(content="hi")], cancellation=cancellation))
-		await request_started.wait()
-		cancellation.set()
-		events = await asyncio.wait_for(task, timeout=1)
-
-	assert request_cancelled.is_set()
-	assert [event.type for event in events] == ["assistant_message", "usage"]
-	assert events[0].stop_reason == "aborted"
-
-
-async def test_cancellation_interrupts_error_body_read_and_closes_stream():
-	class BlockingErrorBody(httpx.AsyncByteStream):
-		def __init__(self):
-			self.started = asyncio.Event()
-			self.closed = asyncio.Event()
-
-		async def __aiter__(self):
-			self.started.set()
-			await asyncio.Event().wait()
-			if False:
-				yield b""
-
-		async def aclose(self):
-			self.closed.set()
-
-	body = BlockingErrorBody()
-	cancellation = asyncio.Event()
-	async with _mock_client(lambda _r: httpx.Response(500, stream=body)) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		task = asyncio.create_task(_collect(model, [UserMessage(content="hi")], cancellation=cancellation))
-		await body.started.wait()
-		cancellation.set()
-		events = await asyncio.wait_for(task, timeout=1)
-
-	assert body.closed.is_set()
-	assert [event.type for event in events] == ["assistant_message", "usage"]
-	assert events[0].stop_reason == "aborted"
+		assert body.closed.is_set(), status
+		assert [event.type for event in events] == types, status
+		assert events[-2].text == text, status
+		assert events[-2].stop_reason == "aborted", status
 
 
 # --- retries + refresh inside the adapter ----------------------------------
 
 
-@pytest.mark.parametrize("status", [429, 500, 503])
-async def test_http_transient_failure_retries_in_stream(status):
-	attempts = 0
-
-	def handler(request):
-		nonlocal attempts
-		attempts += 1
-		if attempts == 1:
-			return httpx.Response(
-				status,
-				headers={"retry-after": "0"},
-				json={"error": {"message": "provider temporarily unavailable"}},
-			)
-		return httpx.Response(200, text=_success_sse())
-
-	async with _mock_client(handler) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
-
-	assert attempts == 2
-	retries = [event for event in events if event.type == "retry"]
-	assert [(retry.status, retry.attempt) for retry in retries] == [("scheduled", 2), ("started", 2)]
-	assert retries[0].delay_seconds == 0.0
-	assert [event.type for event in events[-2:]] == ["assistant_message", "usage"]
-
-
-async def test_timeout_retries_in_stream(monkeypatch):
-	monkeypatch.setattr("flow_harness.model.retry._retry_delay_seconds", lambda error, retry_index: 0)
-	attempts = 0
-
-	def handler(request):
-		nonlocal attempts
-		attempts += 1
-		if attempts == 1:
-			raise httpx.ReadTimeout("provider stalled", request=request)
-		return httpx.Response(200, text=_success_sse())
-
-	async with _mock_client(handler) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
-
-	assert attempts == 2
-	assert [event.kind for event in events if event.type == "retry"] == ["timeout", None]
-
-
-async def test_in_stream_overload_retries_before_the_terminal_commits():
-	attempts = 0
+async def test_transient_failures_retry_in_stream(monkeypatch):
+	# no backoff wait, while a provider's own retry hint still applies
+	monkeypatch.setattr("flow_harness.model.retry._RETRY_BASE_DELAY_SECONDS", 0)
 	overloaded = (
 		'data: {"type":"error","error":{"type":"service_unavailable_error",'
 		'"code":"server_is_overloaded","message":"server overloaded"}}'
 	)
 
-	def handler(request):
-		nonlocal attempts
-		attempts += 1
-		return httpx.Response(200, text=overloaded if attempts == 1 else _success_sse())
+	def status(code):
+		return lambda request: httpx.Response(
+			code,
+			headers={"retry-after": "0.001"},
+			json={"error": {"message": "provider temporarily unavailable"}},
+		)
 
-	async with _mock_client(handler) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = await _collect(model, [UserMessage(content="hi")])
+	def stall(request):
+		raise httpx.ReadTimeout("provider stalled", request=request)
 
-	assert attempts == 2
-	assert next(event.kind for event in events if event.type == "retry") == "overloaded"
-	assert len([event for event in events if event.type == "assistant_message"]) == 1
+	cases = [
+		(status(429), "rate_limit", 0.001),
+		(status(500), "overloaded", 0.001),
+		(status(503), "overloaded", 0.001),
+		(stall, "timeout", 0),
+		# an error frame on a 200 stream, before the terminal commits
+		(lambda request: httpx.Response(200, text=overloaded), "overloaded", 0),
+	]
+	for fail, kind, delay in cases:
+		attempts = 0
+
+		def handler(request):
+			nonlocal attempts
+			attempts += 1
+			return fail(request) if attempts == 1 else httpx.Response(200, text=_success_sse())
+
+		async with _mock_client(handler) as client:
+			model = CodexModel("codex/gpt-test", api_key="token", client=client)
+			events = await _collect(model, [UserMessage(content="hi")])
+
+		assert attempts == 2, kind
+		assert [event.type for event in events] == [
+			"retry",
+			"retry",
+			"text_delta",
+			"assistant_message",
+			"usage",
+		], kind
+		retries = events[:2]
+		assert [(retry.status, retry.attempt, retry.kind) for retry in retries] == [
+			("scheduled", 2, kind),
+			("started", 2, None),
+		]
+		assert retries[0].delay_seconds == delay, kind
 
 
-async def test_invalid_request_does_not_retry():
-	attempts = 0
-
-	def handler(request):
-		nonlocal attempts
-		attempts += 1
-		return httpx.Response(400, json={"error": {"message": "invalid tool schema"}})
-
-	async with _mock_client(handler) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		events = []
-		with pytest.raises(ProviderError) as raised:
-			async for event in model.run(ModelRequest(messages=[UserMessage(content="hi")])):
-				events.append(event)
-
-	assert attempts == 1
-	assert [event for event in events if event.type == "retry"] == []
-	assert raised.value.kind == "invalid_request"
-
-
-async def test_context_overflow_is_typed_and_not_retried():
-	attempts = 0
-
-	def handler(request):
-		nonlocal attempts
-		attempts += 1
-		return httpx.Response(
-			400,
-			json={
+async def test_permanent_failures_are_typed_and_not_retried():
+	cases = [
+		({"error": {"message": "invalid tool schema"}}, "invalid_request"),
+		(
+			{
 				"error": {
 					"code": "context_length_exceeded",
 					"message": "Your input exceeds the context window of this model.",
 				}
 			},
-		)
+			"context_overflow",
+		),
+	]
+	for body, kind in cases:
+		attempts = 0
 
-	async with _mock_client(handler) as client:
-		model = CodexModel("codex/gpt-test", api_key="token", client=client)
-		with pytest.raises(ProviderError) as raised:
-			await _collect(model, [UserMessage(content="hi")])
+		def handler(request):
+			nonlocal attempts
+			attempts += 1
+			return httpx.Response(400, json=body)
 
-	assert attempts == 1
-	assert raised.value.kind == "context_overflow"
+		events = []
+		async with _mock_client(handler) as client:
+			model = CodexModel("codex/gpt-test", api_key="token", client=client)
+			with pytest.raises(ProviderError) as raised:
+				async for event in model.run(ModelRequest(messages=[UserMessage(content="hi")])):
+					events.append(event)
+
+		assert attempts == 1, kind
+		assert events == [], kind
+		assert raised.value.kind == kind
 
 
 async def test_rejected_token_refreshes_credentials_and_retries():
@@ -727,52 +615,34 @@ async def test_rejected_token_refreshes_credentials_and_retries():
 # --- transcript replay -----------------------------------------------------
 
 
-def test_replays_opaque_reasoning_before_tool_turn():
+def test_replays_provider_identities_only_to_the_same_model():
 	reasoning = {"type": "reasoning", "id": "reason_1", "encrypted_content": "opaque"}
 	model = CodexModel("codex/gpt-test", api_key="token")
+
+	def turn(content, source=model.model):
+		return AssistantMessage(content=content, api=model.api, provider=model.provider, model=source)
+
 	items = _responses_input(
 		[
-			AssistantMessage(
-				content=[
+			turn(
+				[
 					ThinkingContent(thinking="", provider_state={"item": reasoning}),
+					TextContent(text="working", provider_state={"id": "msg_1", "phase": "commentary"}),
 					ToolCall(
 						id="call_1",
 						name="bash",
 						arguments={},
 						provider_state={"item_id": "item_1"},
 					),
-				],
-				api=model.api,
-				provider=model.provider,
-				model=model.model,
+				]
 			),
 			ToolResult(tool_call_id="call_1", name="bash", content="ok"),
 		],
 		model,
 	)
 
-	assert items[0] == reasoning
-	assert items[1]["type"] == "function_call"
-	assert items[1]["call_id"] == "call_1"
-	assert items[1]["id"] == "item_1"
-	assert items[2] == {"type": "function_call_output", "call_id": "call_1", "output": "ok"}
-
-
-def test_replays_text_item_identity_and_phase_to_the_same_model():
-	model = CodexModel("codex/gpt-test", api_key="token")
-	items = _responses_input(
-		[
-			AssistantMessage(
-				content=[TextContent(text="working", provider_state={"id": "msg_1", "phase": "commentary"})],
-				api=model.api,
-				provider=model.provider,
-				model=model.model,
-			)
-		],
-		model,
-	)
-
 	assert items == [
+		reasoning,
 		{
 			"type": "message",
 			"role": "assistant",
@@ -780,26 +650,16 @@ def test_replays_text_item_identity_and_phase_to_the_same_model():
 			"status": "completed",
 			"id": "msg_1",
 			"phase": "commentary",
-		}
+		},
+		{"type": "function_call", "call_id": "call_1", "name": "bash", "arguments": "{}", "id": "item_1"},
+		{"type": "function_call_output", "call_id": "call_1", "output": "ok"},
 	]
 
-
-def test_does_not_replay_reasoning_to_a_different_model():
-	reasoning = {"type": "reasoning", "id": "reason_1", "encrypted_content": "opaque"}
-	target = CodexModel("codex/gpt-new", api_key="token")
-	items = _responses_input(
-		[
-			AssistantMessage(
-				content=[ThinkingContent(thinking="safe summary", provider_state={"item": reasoning})],
-				api=target.api,
-				provider=target.provider,
-				model="codex/gpt-old",
-			)
-		],
-		target,
+	# another model gets the reasoning summary as plain text
+	other = turn(
+		[ThinkingContent(thinking="safe summary", provider_state={"item": reasoning})], "codex/gpt-old"
 	)
-
-	assert items == [
+	assert _responses_input([other], model) == [
 		{
 			"type": "message",
 			"role": "assistant",
@@ -810,29 +670,20 @@ def test_does_not_replay_reasoning_to_a_different_model():
 	]
 
 
-def test_does_not_replay_aborted_assistant_response():
+def test_drops_failed_turns_and_the_results_answering_them():
 	target = CodexModel("codex/gpt-test", api_key="token")
-	aborted = AssistantMessage(
-		content="partial",
-		api=target.api,
-		provider=target.provider,
-		model=target.model,
-		stop_reason="aborted",
-	)
 
-	assert _responses_input([aborted], target) == []
+	def aborted(content):
+		return AssistantMessage(
+			content=content,
+			api=target.api,
+			provider=target.provider,
+			model=target.model,
+			stop_reason="aborted",
+		)
 
-
-def test_drops_results_answering_a_dropped_assistant_turn():
-	target = CodexModel("codex/gpt-test", api_key="token")
-	aborted = AssistantMessage(
-		content=[ToolCall(id="call_1", name="read", arguments={"path": "a.txt"})],
-		api=target.api,
-		provider=target.provider,
-		model=target.model,
-		stop_reason="aborted",
-	)
+	call = aborted([ToolCall(id="call_1", name="read", arguments={"path": "a.txt"})])
 	repair = ToolResult(tool_call_id="call_1", name="read", content="interrupted", is_error=True)
 
-	# the call and its answer must both be dropped
-	assert _responses_input([aborted, repair], target) == []
+	# a call and its answer must both be dropped
+	assert _responses_input([aborted("partial"), call, repair], target) == []

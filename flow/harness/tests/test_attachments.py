@@ -5,9 +5,9 @@ import json
 import struct
 import zlib
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
-from pathlib import Path
 from threading import Event
 
+import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 
@@ -29,6 +29,7 @@ from flow_harness.model.content import (
 	resolve_tool_images,
 	resolve_user_content,
 )
+from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.litellm import _TOOL_IMAGE_PREFACE, LiteLLMModel, _openai_messages
 from flow_harness.model.mock import MockModel
 from flow_harness.model.providers.codex import CodexModel, _responses_input
@@ -49,143 +50,87 @@ def _png(width: int = 8, height: int = 6) -> bytes:
 	return output.getvalue()
 
 
-def test_attachment_store_keeps_bytes_out_of_metadata(tmp_path):
+def test_attachment_store_add_bytes_takes_only_safe_images(tmp_path, monkeypatch):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	data = _png()
-	attachment = store.add_bytes("screen.png", data)
-	metadata = json.loads((tmp_path / "attachments" / f"{attachment.id}.json").read_text())
+	png = store.add_bytes("screenshot.bin", data)  # detected from the bytes, not the name
+	metadata = json.loads((tmp_path / "attachments" / f"{png.id}.json").read_text())
+	assert (png.kind, png.mime_type, png.width, png.height) == ("image", "image/png", 8, 6)
+	assert store.read(png.id) == data
+	assert "data" not in metadata  # the bytes stay out of the metadata
 
-	assert attachment.kind == "image"
-	assert store.read(attachment.id) == data
-	assert "data" not in metadata
-
-
-def test_attachment_store_detects_images_from_bytes(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	attachment = store.add_bytes("screenshot.bin", _png())
-
-	assert attachment.kind == "image"
-	assert attachment.mime_type == "image/png"
-	assert (attachment.width, attachment.height) == (8, 6)
-
-
-def test_attachment_store_resizes_large_images_and_converts_bmp(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	large = store.add_bytes("wide.png", _png(2_500, 10))
+	assert store.add_bytes("wide.png", _png(2_500, 10)).width == 2_000
 	bmp_data = io.BytesIO()
 	Image.new("RGB", (4, 3), "blue").save(bmp_data, format="BMP")
 	bmp = store.add_bytes("old.bmp", bmp_data.getvalue())
-
-	assert large.width == 2_000
 	assert bmp.mime_type == "image/png"
 	assert store.read(bmp.id).startswith(b"\x89PNG")
 
-
-def test_attachment_store_rejects_oversized_dimensions_before_decode(tmp_path, monkeypatch):
-	def chunk(kind: bytes, data: bytes) -> bytes:
-		checksum = zlib.crc32(kind + data) & 0xFFFFFFFF
-		return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", checksum)
-
-	header = struct.pack(">IIBBBBB", 7_000, 6_000, 8, 2, 0, 0, 0)
-	compressed = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IEND", b"")
-	monkeypatch.setattr(Image.Image, "load", lambda self: (_ for _ in ()).throw(AssertionError("decoded")))
-
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	try:
-		store.add_bytes("bomb.png", compressed)
-	except AttachmentError as error:
-		assert "dimensions" in str(error)
-	else:
-		raise AssertionError("oversized image was accepted")
-
-
-def test_attachment_store_rejects_non_images(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	for name, data in (("notes.txt", b"hello"), ("archive.bin", b"\x00\xff\x00")):
+	for name, body in (("notes.txt", b"hello"), ("archive.bin", b"\x00\xff\x00")):
 		try:
-			store.add_bytes(name, data)
+			store.add_bytes(name, body)
 		except AttachmentError as error:
 			assert str(error) == f"{name} is not a supported image"
 		else:
 			raise AssertionError(f"non-image attachment was accepted: {name}")
 
+	def chunk(kind: bytes, data: bytes) -> bytes:
+		checksum = zlib.crc32(kind + data) & 0xFFFFFFFF
+		return struct.pack(">I", len(data)) + kind + data + struct.pack(">I", checksum)
 
-def test_attachment_store_add_file_keeps_the_path_and_decides_by_content(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	attachment = store.add_file(
-		"src/notes.txt", b"hello world", tools=(), path=str(tmp_path / "src/notes.txt")
-	)
-
-	assert attachment.kind == "text"
-	assert attachment.name == "src/notes.txt"  # mentions keep their directories
-	assert attachment.mime_type == "text/plain"
-	assert store.read(attachment.id) == b"hello world"
-
-	image = store.add_file("img/shot", _png(), tools=(), path=str(tmp_path / "img/shot"))  # no extension
-	assert (image.kind, image.name, image.mime_type) == ("image", "img/shot", "image/png")
+	header = struct.pack(">IIBBBBB", 7_000, 6_000, 8, 2, 0, 0, 0)
+	bomb = b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", header) + chunk(b"IEND", b"")
+	# a bomb is refused from its header, before any pixel is decoded
+	monkeypatch.setattr(Image.Image, "load", lambda self: (_ for _ in ()).throw(AssertionError("decoded")))
+	with pytest.raises(AttachmentError, match="dimensions"):
+		store.add_bytes("bomb.png", bomb)
 
 
-def test_attachment_store_points_at_what_cannot_go_inline(tmp_path):
-	"""Big text and binary are not copied: the model's tools open the project file."""
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	try:
-		store.add_file("empty.txt", b"", tools={"bash"}, path="/project/empty.txt")
-	except AttachmentError as error:
-		assert "empty" in str(error)
-	else:
-		raise AssertionError("empty attachment was accepted")
-
-	big_text = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
-	big = store.add_file("big.txt", big_text, tools={"bash"}, path="/project/big.txt")
-	pdf = store.add_file("docs/q3.pdf", b"%PDF-1.7\n\xff\x00", tools={"bash"}, path="/project/docs/q3.pdf")
-
-	assert (big.kind, big.path) == ("file", "/project/big.txt")
-	assert (pdf.kind, pdf.mime_type, pdf.path) == ("file", "application/pdf", "/project/docs/q3.pdf")
-	assert {item.suffix for item in (tmp_path / "attachments").iterdir()} == {".json"}  # metadata only
-
-
-def test_a_file_the_agent_cannot_open_is_refused(tmp_path):
-	"""bash opens any file and read only text; with neither, only what goes inline is taken."""
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	pdf = b"%PDF-1.7\n\xff\x00"
-	big_text = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
-
-	assert store.add_file("report.pdf", pdf, tools={"bash"}, path="/p/report.pdf").kind == "file"
-	assert store.add_file("big.txt", big_text, tools={"read"}, path="/p/big.txt").kind == "file"
-	for name, data, tools in (
-		("report.pdf", pdf, {"read"}),
-		("report.pdf", pdf, ()),
-		("big.txt", big_text, ()),
-	):
-		try:
-			store.add_file(name, data, tools=tools, path=f"/p/{name}")
-		except AttachmentError as error:
-			assert str(error) == f"{name} can't be opened by this agent"
-		else:
-			raise AssertionError(f"{name} was accepted with tools {tools}")
-
-
-def test_a_mentioned_animation_too_big_to_send_goes_by_path(tmp_path, monkeypatch):
-	"""A GIF over the image limits is pointed at instead of failing; an upload still errors."""
+def test_attachment_store_add_file_inlines_what_it_can_and_points_at_the_rest(tmp_path, monkeypatch):
+	"""Images and small text go inline; anything else goes by path when the agent can open it:
+	bash opens any file, read only text."""
 	monkeypatch.setattr(attachment_module, "MAX_IMAGE_DIMENSION", 16)
 	frames = [Image.new("RGB", (40, 40), color) for color in ("red", "blue")]
 	output = io.BytesIO()
 	frames[0].save(output, format="GIF", save_all=True, append_images=frames[1:])
+	gif, pdf, png = output.getvalue(), b"%PDF-1.7\n\xff\x00", _png()
+	big_text = b"x" * (attachment_module.MAX_TEXT_BYTES + 1)
 	store = AttachmentStore(str(tmp_path / "attachments"))
 
-	attachment = store.add_file("demo.gif", output.getvalue(), tools={"bash"}, path="/p/demo.gif")
+	for name, data, tools, kind, mime_type in (
+		("src/notes.txt", b"hello world", (), "text", "text/plain"),  # a mention keeps its directories
+		("img/shot", png, (), "image", "image/png"),  # no extension: decided by content
+		("big.txt", big_text, {"bash"}, "file", "text/plain"),
+		("big.txt", big_text, {"read"}, "file", "text/plain"),
+		("docs/q3.pdf", pdf, {"bash"}, "file", "application/pdf"),
+		("demo.gif", gif, {"bash"}, "file", "image/gif"),  # an animation over the image limits
+	):
+		attachment = store.add_file(name, data, tools=tools, path=f"/p/{name}")
+		assert (attachment.name, attachment.kind, attachment.mime_type) == (name, kind, mime_type), name
+		if kind == "file":  # metadata only: the tools open the project file
+			assert attachment.path == f"/p/{name}", name
+			assert not (tmp_path / "attachments" / f"{attachment.id}.bin").exists(), name
+		else:
+			assert store.read(attachment.id) == data, name
 
-	assert (attachment.kind, attachment.mime_type) == ("file", "image/gif")
-	try:
-		store.add_bytes("demo.gif", output.getvalue())
-	except AttachmentError as error:
-		assert "animated image" in str(error)
-	else:
-		raise AssertionError("an oversized animation upload was accepted")
+	for name, data, tools, error in (
+		("empty.txt", b"", {"bash"}, "empty"),
+		("report.pdf", pdf, {"read"}, "report.pdf can't be opened by this agent"),
+		("report.pdf", pdf, (), "report.pdf can't be opened by this agent"),
+		("big.txt", big_text, (), "big.txt can't be opened by this agent"),
+	):
+		try:
+			store.add_file(name, data, tools=tools, path=f"/p/{name}")
+		except AttachmentError as exc:
+			assert error in str(exc), (name, tools)
+		else:
+			raise AssertionError(f"{name} was accepted with tools {tools}")
+	with pytest.raises(AttachmentError, match="animated image"):
+		store.add_bytes("demo.gif", gif)  # an upload has no path to fall back on
 
 
-def test_a_file_reaches_the_model_as_a_note_with_its_path():
-	attachment = AttachmentContent(
+def test_user_content_resolves_by_kind_and_image_capability():
+	file = AttachmentContent(
 		id="a" * 24,
 		name="clip.mp4",
 		mime_type="video/mp4",
@@ -193,164 +138,92 @@ def test_a_file_reaches_the_model_as_a_note_with_its_path():
 		kind="file",
 		path="/data/clip.mp4",
 	)
-	message = UserMessage(content=[TextContent(text="what happens here?"), attachment])
+	image = AttachmentContent(id="b" * 24, name="screen.png", mime_type="image/png", size=3, kind="image")
+	message = UserMessage(content=[TextContent(text="what happens here?"), file, image])
+	data = {image.id: b"png"}  # a file's bytes are never read
+	note = "what happens here?\n[Attached file: clip.mp4 (video/mp4, 3.0 MB)]\n" + FILE_PLACEHOLDER.format(
+		path="/data/clip.mp4"
+	)
 
-	def unread(_: str) -> bytes:
-		raise AssertionError("a file's bytes were read")
+	# an unknown capability sends the image and lets the provider decide
+	text, images = resolve_user_content(message, resolve_attachment=data.__getitem__)
+	assert text == note
+	assert [(i.name, i.mime_type, i.data) for i in images] == [("screen.png", "image/png", b"png")]
 
-	text, images = resolve_user_content(message, resolve_attachment=unread)
-
+	text, images = resolve_user_content(message, resolve_attachment=data.__getitem__, supports_images=False)
 	assert images == []
-	assert text == (
-		"what happens here?\n[Attached file: clip.mp4 (video/mp4, 3.0 MB)]\n"
-		+ FILE_PLACEHOLDER.format(path="/data/clip.mp4")
-	)
-	assert attachment_summary(message) == text  # compaction keeps the path
+	assert text.startswith(note) and NON_VISION_IMAGE_PLACEHOLDER in text and "screen.png" in text
+	result = _tool_result("c1", "screen.png", [image])
+	assert resolve_tool_images(result, resolve_attachment=data.__getitem__, supports_images=False) == []
+	assert attachment_summary(message) == f"{note}\n[Attached image: screen.png]"  # compaction keeps the path
 
 
-def test_images_resolve_when_capability_is_unknown():
-	attachment = AttachmentContent(
-		id="a" * 24,
-		name="screen.png",
-		mime_type="image/png",
-		size=3,
-		kind="image",
-	)
-	message = UserMessage(content=[TextContent(text="inspect this"), attachment])
-	text, images = resolve_user_content(message, resolve_attachment=lambda _: b"png")
-
-	assert [(image.name, image.mime_type, image.data) for image in images] == [
-		("screen.png", "image/png", b"png")
-	]
-	assert text == "inspect this"
-
-
-def test_known_non_vision_model_gets_image_placeholder():
-	attachment = AttachmentContent(
-		id="a" * 24, name="screen.png", mime_type="image/png", size=3, kind="image"
-	)
-	message = UserMessage(content=[TextContent(text="inspect this"), attachment])
-	text, images = resolve_user_content(message, resolve_attachment=lambda _: b"png", supports_images=False)
-
-	assert images == []
-	assert NON_VISION_IMAGE_PLACEHOLDER in text and "screen.png" in text
-	result = _tool_result("c1", "shot.png", [attachment])
-	assert resolve_tool_images(result, resolve_attachment=lambda _: b"png", supports_images=False) == []
-	assert LiteLLMModel("custom/gpt-4o").supports_images is None  # a gateway model stays ungated
-
-
-def test_litellm_wire_contains_text_file_and_image_data_url():
-	text_attachment = AttachmentContent(
-		id="a" * 24,
-		name="notes.txt",
-		mime_type="text/plain",
-		size=5,
-		kind="text",
-	)
-	image_attachment = AttachmentContent(
-		id="b" * 24,
-		name="screen.png",
-		mime_type="image/png",
-		size=3,
-		kind="image",
-	)
-	message = UserMessage(content=[TextContent(text="review"), text_attachment, image_attachment])
-	data = {text_attachment.id: b"hello", image_attachment.id: b"png"}
-	wire = _openai_messages(
-		[message],
-		LiteLLMModel("openai/gpt-4o"),
-		"system",
-		resolve_attachment=data.__getitem__,
-	)[1]
-
-	assert wire["content"][0]["text"] == 'review\n<file name="notes.txt">\nhello\n</file>'
-	assert wire["content"][1]["image_url"]["url"].startswith("data:image/png;base64,")
-
-
-def test_codex_wire_uses_responses_image_blocks():
-	attachment = AttachmentContent(
-		id="a" * 24,
-		name="screen.png",
-		mime_type="image/png",
-		size=3,
-		kind="image",
-	)
-	message = UserMessage(content=[TextContent(text="review"), attachment])
-	items = _responses_input(
-		[message],
-		CodexModel("codex/gpt-5.4", api_key="token"),
-		resolve_attachment=lambda _: b"png",
-	)
-
-	assert items[0]["content"][0] == {"type": "input_text", "text": "review"}
-	assert items[0]["content"][1]["type"] == "input_image"
-	assert items[0]["content"][1]["image_url"].startswith("data:image/png;base64,")
-
-
-def test_opencode_runtime_uses_catalog_image_capability():
+def test_image_capability_comes_from_the_catalog():
 	assert opencode_go_model("opencode-go/kimi-k3", api_key="token").supports_images
 	assert not opencode_go_model("opencode-go/deepseek-v4-pro", api_key="token").supports_images
 	assert model_supports_images("opencode-go/kimi-k2.6") is True
 	assert model_supports_images("codex/gpt-5.6-terra") is True
 	assert model_supports_images("custom/gpt-4o") is None
+	assert LiteLLMModel("custom/gpt-4o").supports_images is None  # a gateway model stays ungated
 
 
-def test_cleanup_removes_only_unclaimed_attachments(tmp_path):
-	store = SessionStore(str(tmp_path / "data"))
-	client = TestClient(create_app(store))
-	sid = client.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
-
-	def upload(name: str) -> str:
-		response = client.post(
-			f"/sessions/{sid}/attachments",
-			files=[("files", (name, _png(), "image/png"))],
-		)
-		return response.json()["attachments"][0]["id"]
-
-	unused = upload("unused.png")
-	used = upload("used.png")
-	client.post(f"/sessions/{sid}/run", json={"message": "read", "attachments": [used]})
-	response = client.request(
-		"DELETE",
-		f"/sessions/{sid}/attachments",
-		json={"attachments": [unused, used]},
-	)
-
-	assert response.json() == {"removed": 1}
-	session = store.get(sid)
-	assert session.attachment_store is not None
-	assert session.attachment_store.read(used) == _png()
-	try:
-		session.attachment_store.read(unused)
-	except AttachmentError:
-		pass
-	else:
-		raise AssertionError("unclaimed attachment was retained")
-
-
-def test_cold_session_delete_removes_attachments_and_empty_project_directory(tmp_path):
+def test_attachment_http_upload_preview_claim_and_cleanup(tmp_path):
 	data_dir = tmp_path / "data"
 	project = tmp_path / "project"
 	project.mkdir()
-	store = SessionStore(str(data_dir))
+	store = SessionStore(str(data_dir), credential_store=CredentialStore(str(tmp_path / "credentials.json")))
 	client = TestClient(create_app(store))
 	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	uploaded = client.post(
-		f"/sessions/{sid}/attachments",
-		files=[("files", ("screen.png", _png(), "image/png"))],
-	)
-	assert uploaded.status_code == 200
-	session = store.get(sid)
-	assert session.attachment_store is not None
-	attachments_dir = Path(session.attachment_store.path)
-	project_dir = attachments_dir.parent
-	assert any(attachments_dir.iterdir())
+	image = _png()
 
+	def upload(*files: tuple[str, bytes, str]):
+		return client.post(f"/sessions/{sid}/attachments", files=[("files", file) for file in files])
+
+	# one bad file fails the batch and leaves nothing behind
+	failed = upload(("screen.png", image, "image/png"), ("notes.txt", b"hello", "text/plain"))
+	assert failed.status_code == 400
+	assert failed.json() == {"detail": "notes.txt is not a supported image"}
+	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
+	assert list(attachments_dir.iterdir()) == []
+
+	used, unused = (
+		upload((name, image, "image/png")).json()["attachments"][0]["id"]
+		for name in ("used.png", "unused.png")
+	)
+	preview = client.get(f"/sessions/{sid}/attachments/{used}")
+	assert preview.status_code == 200
+	assert preview.content == image
+	assert preview.headers["content-type"] == "image/png"
+	assert preview.headers["cache-control"] == "private, max-age=31536000, immutable"
+
+	# a run claims its attachments on admission, so cleanup removes only the unclaimed one
+	started = client.post(f"/sessions/{sid}/run", json={"message": "read", "attachments": [used]})
+	assert started.json() == {"status": "started"}
+	cleanup = client.request("DELETE", f"/sessions/{sid}/attachments", json={"attachments": [unused, used]})
+	assert cleanup.json() == {"removed": 1}
+	attachment_store = store.get(sid).attachment_store
+	assert attachment_store is not None
+	assert attachment_store.read(used) == image
+	with pytest.raises(AttachmentError):
+		attachment_store.read(unused)
+
+	response = client.post(
+		f"/sessions/{sid}/run",
+		params={"wait": "true"},
+		json={"message": "read this", "attachments": [used]},
+	)
+	assert response.status_code == 200
+	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
+	user = next(entry for entry in entries if entry["type"] == "user_message")
+	assert user["content"][1]["name"] == "used.png"
+	log = next((data_dir / "sessions").rglob(f"{sid}.jsonl"))
+	assert base64.b64encode(image).decode() not in log.read_text()  # a reference, not the bytes
+
+	# deleting the session from a cold store removes its attachments and the emptied project folder
 	cold = TestClient(create_app(SessionStore(str(data_dir))))
 	assert cold.delete(f"/sessions/{sid}").json() == {"status": "deleted"}
-
 	assert not attachments_dir.exists()
-	assert not project_dir.exists()
+	assert not attachments_dir.parent.exists()
 
 
 def test_claim_and_cleanup_are_atomic(tmp_path, monkeypatch):
@@ -385,219 +258,97 @@ def test_claim_and_cleanup_are_atomic(tmp_path, monkeypatch):
 	assert store.read(attachment.id) == data
 
 
-def test_attachment_http_rejects_non_images_and_cleans_partial_batch(tmp_path):
-	data_dir = tmp_path / "data"
-	store = SessionStore(str(data_dir))
-	client = TestClient(create_app(store))
-	sid = client.post("/sessions", json={"cwd": str(tmp_path)}).json()["session_id"]
-
-	response = client.post(
-		f"/sessions/{sid}/attachments",
-		files=[
-			("files", ("screen.png", _png(), "image/png")),
-			("files", ("notes.txt", b"hello", "text/plain")),
-		],
-	)
-
-	assert response.status_code == 400
-	assert response.json() == {"detail": "notes.txt is not a supported image"}
-	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
-	assert list(attachments_dir.iterdir()) == []
-
-
-def test_attachment_http_flow_persists_reference_not_bytes(tmp_path):
-	data_dir = tmp_path / "data"
-	store = SessionStore(str(data_dir))
-	client = TestClient(create_app(store))
-	project = tmp_path / "project"
-	project.mkdir()
-
-	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	image = _png()
-	uploaded = client.post(
-		f"/sessions/{sid}/attachments",
-		files=[("files", ("screen.png", image, "image/png"))],
-	)
-	assert uploaded.status_code == 200
-	attachment = uploaded.json()["attachments"][0]
-	preview = client.get(f"/sessions/{sid}/attachments/{attachment['id']}")
-	assert preview.status_code == 200
-	assert preview.content == image
-	assert preview.headers["content-type"] == "image/png"
-	assert preview.headers["cache-control"] == "private, max-age=31536000, immutable"
-
-	response = client.post(
-		f"/sessions/{sid}/run",
-		params={"wait": "true"},
-		json={"message": "read this", "attachments": [attachment["id"]]},
-	)
-	assert response.status_code == 200
-	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
-	user = next(entry for entry in entries if entry["type"] == "user_message")
-	assert user["content"][1]["name"] == "screen.png"
-	log = next((data_dir / "sessions").rglob(f"{sid}.jsonl"))
-	assert base64.b64encode(image).decode() not in log.read_text()
-
-
 def test_attach_files_http_reads_project_files_by_path(tmp_path):
-	data_dir = tmp_path / "data"
-	store = SessionStore(str(data_dir))
-	client = TestClient(create_app(store))
+	"""The kind comes from the content, not the name; the name is the cwd-relative path."""
 	project = tmp_path / "project"
-	project.mkdir()
-	(project / "src").mkdir()
+	(project / "src").mkdir(parents=True)
 	(project / "src" / "notes.txt").write_text("hello from disk")
-
-	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["src/notes.txt"]})
-
-	assert response.status_code == 200
-	attachment = response.json()["attachments"][0]
-	assert attachment["kind"] == "text"
-	assert attachment["name"] == "src/notes.txt"  # the cwd-relative path, not the basename
-
-	run = client.post(
-		f"/sessions/{sid}/run",
-		params={"wait": "true"},
-		json={"message": "read this", "attachments": [attachment["id"]]},
-	)
-	assert run.status_code == 200
-	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
-	user = next(entry for entry in entries if entry["type"] == "user_message")
-	assert user["content"][1]["name"] == "src/notes.txt"
-
-
-def test_attach_files_http_classifies_by_content_not_extension(tmp_path):
-	"""A filename is not evidence of type: an extensionless image still attaches as one,
-	and a .png that holds text is stored as text rather than failing the image sniff."""
-	store = SessionStore(str(tmp_path / "data"))
-	client = TestClient(create_app(store))
-	project = tmp_path / "project"
-	project.mkdir()
-	(project / "screenshot").write_bytes(_png())  # image, no extension
-	(project / "notes.png").write_text("actually just text")  # text wearing an image name
-
-	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["screenshot", "notes.png"]})
-
-	assert response.status_code == 200
-	by_name = {item["name"]: item for item in response.json()["attachments"]}
-	assert by_name["screenshot"]["kind"] == "image"
-	assert by_name["screenshot"]["mime_type"] == "image/png"
-	assert by_name["notes.png"]["kind"] == "text"
-
-
-def test_attach_files_http_reads_image_files_by_extension(tmp_path):
-	data_dir = tmp_path / "data"
-	store = SessionStore(str(data_dir))
-	client = TestClient(create_app(store))
-	project = tmp_path / "project"
-	project.mkdir()
 	(project / "logo.png").write_bytes(_png())
-
+	(project / "screenshot").write_bytes(_png())  # an image without an extension
+	(project / "notes.png").write_text("actually just text")  # text wearing an image name
+	credentials = CredentialStore(str(tmp_path / "credentials.json"))
+	client = TestClient(create_app(SessionStore(str(tmp_path / "data"), credential_store=credentials)))
 	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["logo.png"]})
+
+	response = client.post(
+		f"/sessions/{sid}/attachments/files",
+		json={"paths": ["src/notes.txt", "logo.png", "screenshot", "notes.png"]},
+	)
 
 	assert response.status_code == 200
-	attachment = response.json()["attachments"][0]
-	assert attachment["kind"] == "image"
-	assert attachment["mime_type"] == "image/png"
-	assert (attachment["width"], attachment["height"]) == (8, 6)
+	attachments = response.json()["attachments"]
+	kinds = [("src/notes.txt", "text"), ("logo.png", "image"), ("screenshot", "image"), ("notes.png", "text")]
+	assert [(item["name"], item["kind"]) for item in attachments] == kinds
+	logo, screenshot = attachments[1], attachments[2]
+	assert (logo["mime_type"], logo["width"], logo["height"]) == ("image/png", 8, 6)
+	assert screenshot["mime_type"] == "image/png"
 
 	run = client.post(
 		f"/sessions/{sid}/run",
 		params={"wait": "true"},
-		json={"message": "what is this", "attachments": [attachment["id"]]},
+		json={"message": "read these", "attachments": [item["id"] for item in attachments]},
 	)
 	assert run.status_code == 200
 	entries = client.get(f"/sessions/{sid}/entries").json()["entries"]
 	user = next(entry for entry in entries if entry["type"] == "user_message")
-	assert user["content"][1]["kind"] == "image"
+	assert [(item["name"], item["kind"]) for item in user["content"][1:]] == kinds
 
 
 def test_attach_files_http_points_at_project_files_it_cannot_inline(tmp_path, monkeypatch):
-	"""A binary file, or one over the read cap, goes by path and nothing is copied."""
+	"""A binary file, or one over the read cap, goes by path if the agent can open it."""
 	monkeypatch.setattr(session_routes, "MAX_SOURCE_BYTES", 1024)
 	data_dir = tmp_path / "data"
-	client = TestClient(create_app(SessionStore(str(data_dir))))
-	project = tmp_path / "project"
-	project.mkdir()
-	(project / "report.pdf").write_bytes(b"%PDF-1.7\n\xff\x00")
-	(project / "app.log").write_text("x" * 2048)  # over the read cap
-
-	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["report.pdf"]})
-	too_big = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["app.log"]})
-
-	assert response.status_code == 200
-	[pdf] = response.json()["attachments"]
-	assert (pdf["kind"], pdf["path"]) == ("file", str(project / "report.pdf"))
-	assert too_big.status_code == 200
-	[log] = too_big.json()["attachments"]
-	assert (log["kind"], log["size"], log["path"]) == ("file", 2048, str(project / "app.log"))
-	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
-	assert {item.suffix for item in attachments_dir.iterdir()} == {".json"}  # metadata only
-
-
-def test_attachment_http_refuses_a_file_the_agent_cannot_open(tmp_path, monkeypatch):
-	"""A read-only agent is refused a PDF or a big binary, but gets big text."""
-	monkeypatch.setattr(session_routes, "MAX_SOURCE_BYTES", 1024)
 	project = tmp_path / "project"
 	project.mkdir()
 	(project / "report.pdf").write_bytes(b"%PDF-1.7\n\xff\x00")
 	(project / "dump.bin").write_bytes(b"\x00" * 2048)
-	(project / "app.log").write_text("x" * 2048)
-	client = TestClient(create_app(SessionStore(str(tmp_path / "data"))))
-	sid = client.post("/sessions", json={"cwd": str(project), "tools": ["read"]}).json()["session_id"]
+	(project / "app.log").write_text("x" * 2048)  # over the read cap
+	client = TestClient(create_app(SessionStore(str(data_dir))))
 
-	pdf = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["report.pdf"]})
-	big_binary = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["dump.bin"]})
-	big_text = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["app.log"]})
+	def attach(sid: str, path: str):
+		return client.post(f"/sessions/{sid}/attachments/files", json={"paths": [path]})
 
-	assert pdf.status_code == 400
-	assert pdf.json() == {"detail": "report.pdf can't be opened by this agent"}
-	assert big_binary.status_code == 400
-	assert big_binary.json() == {"detail": "dump.bin can't be opened by this agent"}
+	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
+	for path, size in (("report.pdf", 11), ("app.log", 2048)):
+		response = attach(sid, path)
+		assert response.status_code == 200, path
+		[attachment] = response.json()["attachments"]
+		assert (attachment["kind"], attachment["size"]) == ("file", size), path
+		assert attachment["path"] == str(project / path), path
+	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
+	assert {item.suffix for item in attachments_dir.iterdir()} == {".json"}  # metadata only
+
+	# a read-only agent is refused a PDF or a big binary, but gets big text
+	read_only = client.post("/sessions", json={"cwd": str(project), "tools": ["read"]}).json()["session_id"]
+	for path in ("report.pdf", "dump.bin"):
+		response = attach(read_only, path)
+		assert response.status_code == 400, path
+		assert response.json() == {"detail": f"{path} can't be opened by this agent"}
+	big_text = attach(read_only, "app.log")
 	assert big_text.status_code == 200
 	assert big_text.json()["attachments"][0]["kind"] == "file"
 
 
-def test_attach_files_http_rejects_path_outside_allowed_roots(tmp_path):
+def test_attach_files_http_keeps_nothing_from_a_refused_request(tmp_path):
 	allowed = tmp_path / "allowed"
 	outside = tmp_path / "outside"
 	allowed.mkdir()
 	outside.mkdir()
+	(allowed / "real.txt").write_text("present")
 	(outside / "secret.txt").write_text("nope")
 	store = SessionStore(str(tmp_path / "data"), allowed_roots=[str(allowed)])
 	client = TestClient(create_app(store))
-
 	sid = client.post("/sessions", json={"cwd": str(allowed)}).json()["session_id"]
-	response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": ["../outside/secret.txt"]})
-
-	# the shared explorer fence answers 403 for a path outside the allowed roots
-	assert response.status_code == 403
 	attachments_dir = next((tmp_path / "data" / "sessions").rglob(f"{sid}.attachments"))
-	assert list(attachments_dir.iterdir()) == []
 
-
-def test_attach_files_http_cleans_up_partial_batch_on_missing_file(tmp_path):
-	data_dir = tmp_path / "data"
-	store = SessionStore(str(data_dir))
-	client = TestClient(create_app(store))
-	project = tmp_path / "project"
-	project.mkdir()
-	(project / "real.txt").write_text("present")
-
-	sid = client.post("/sessions", json={"cwd": str(project)}).json()["session_id"]
-	response = client.post(
-		f"/sessions/{sid}/attachments/files",
-		json={"paths": ["real.txt", "missing.txt"]},
-	)
-
-	assert response.status_code == 404
-	assert response.json() == {"detail": "file not found"}
-	attachments_dir = next((data_dir / "sessions").rglob(f"{sid}.attachments"))
-	assert list(attachments_dir.iterdir()) == []
+	for paths, status, detail in (
+		# the shared explorer fence refuses a path outside the allowed roots
+		(["../outside/secret.txt"], 403, "path is outside the allowed roots"),
+		(["real.txt", "missing.txt"], 404, "file not found"),  # the partial batch is cleaned up
+	):
+		response = client.post(f"/sessions/{sid}/attachments/files", json={"paths": paths})
+		assert (response.status_code, response.json()) == (status, {"detail": detail}), paths
+		assert list(attachments_dir.iterdir()) == [], paths
 
 
 async def test_abort_discards_undelivered_steering_attachments(tmp_path):
@@ -648,15 +399,20 @@ def _stored(store: AttachmentStore, name: str = "shot.png") -> AttachmentContent
 	return store.add_bytes(name, _png())
 
 
-async def test_read_stores_an_image_and_returns_only_metadata(tmp_path):
+async def test_read_stores_images_by_content_and_returns_only_metadata(tmp_path):
 	store = AttachmentStore(str(tmp_path / "attachments"))
 	target = tmp_path / "diagram.png"
 	target.write_bytes(_png(40, 30))
+	(tmp_path / "screenshot").write_bytes(_png())  # an image without an extension
+	(tmp_path / "notes.png").write_text("just text")  # text wearing an image name
+	# a real signature with no image behind it
+	(tmp_path / "broken.png").write_bytes(b"\x89PNG\r\n\x1a\n" + b"junk")
 
 	async def sink(name: str, data: bytes) -> AttachmentContent:
 		return await asyncio.to_thread(store.add_bytes, name, data)
 
-	result = await read(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
+	ctx = ToolContext(cwd=str(tmp_path), store_image=sink)
+	result = await read(path=str(target), ctx=ctx)
 
 	assert not result.is_error
 	[stored] = result.attachments
@@ -669,51 +425,18 @@ async def test_read_stores_an_image_and_returns_only_metadata(tmp_path):
 	assert store.read(stored.id) == target.read_bytes()
 	# the model sees a summary, never the bytes
 	assert result.content == f"[Image: {target} (image/png, 40x30)]"
-	assert "base64" not in result.content
 
-
-async def test_read_image_without_a_store_degrades_to_text(tmp_path):
-	target = tmp_path / "diagram.png"
-	target.write_bytes(_png())
-
-	result = await read(path=str(target), ctx=ToolContext(cwd=str(tmp_path)))
+	assert [item.kind for item in (await read(path="screenshot", ctx=ctx)).attachments] == ["image"]
+	text = await read(path="notes.png", ctx=ctx)
+	assert (text.is_error, text.attachments, text.content) == (False, [], "just text")
+	broken = await read(path="broken.png", ctx=ctx)
+	assert broken.is_error and broken.attachments == []
+	assert "cannot read image" in broken.content
 
 	# no attachment store (an embedded Agent) is not an error; the file is fine
-	assert not result.is_error
-	assert result.attachments == []
-	assert "unavailable in this session" in result.content
-
-
-async def test_read_sniffs_images_by_content_not_name(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	(tmp_path / "screenshot").write_bytes(_png())  # image, no extension
-	(tmp_path / "notes.png").write_text("just text")  # text wearing an image name
-
-	async def sink(name: str, data: bytes) -> AttachmentContent:
-		return await asyncio.to_thread(store.add_bytes, name, data)
-
-	ctx = ToolContext(cwd=str(tmp_path), store_image=sink)
-	image = await read(path="screenshot", ctx=ctx)
-	text = await read(path="notes.png", ctx=ctx)
-
-	assert [item.kind for item in image.attachments] == ["image"]
-	assert not text.is_error and text.attachments == []
-	assert text.content == "just text"
-
-
-async def test_read_reports_a_broken_image_as_an_error(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	target = tmp_path / "broken.png"
-	target.write_bytes(b"\x89PNG\r\n\x1a\n" + b"junk")  # a real signature, no image behind it
-
-	async def sink(name: str, data: bytes) -> AttachmentContent:
-		return await asyncio.to_thread(store.add_bytes, name, data)
-
-	result = await read(path=str(target), ctx=ToolContext(cwd=str(tmp_path), store_image=sink))
-
-	assert result.is_error
-	assert result.attachments == []
-	assert "cannot read image" in result.content
+	bare = await read(path=str(target), ctx=ToolContext(cwd=str(tmp_path)))
+	assert (bare.is_error, bare.attachments) == (False, [])
+	assert "unavailable in this session" in bare.content
 
 
 async def test_tool_image_bytes_never_reach_the_session_log(tmp_path):
@@ -737,46 +460,16 @@ async def test_tool_image_bytes_never_reach_the_session_log(tmp_path):
 	assert stored.id in log  # the reference is there, the bytes are not
 
 
-def test_litellm_wire_sends_tool_result_images_after_the_result(tmp_path):
+def test_litellm_wire_inlines_attachments_and_sends_tool_images_after_each_batch(tmp_path):
+	"""A tool message must directly follow its call, so a batch's images go out as one user turn
+	after the batch, before the next assistant turn."""
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	stored = _stored(store)
-	messages = [
-		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
-		_tool_result("c1", "shot.png", [stored]),
-	]
-
-	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
-
-	assert [m["role"] for m in wire] == ["system", "assistant", "tool", "user"]
-	parts = wire[-1]["content"]
-	assert parts[0] == {"type": "text", "text": _TOOL_IMAGE_PREFACE}
-	assert parts[1]["image_url"]["url"].startswith("data:image/png;base64,")
-
-
-def test_codex_wire_puts_tool_result_images_inside_the_output(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	stored = _stored(store)
-	messages = [
-		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
-		_tool_result("c1", "shot.png", [stored]),
-	]
-
-	items = _responses_input(
-		messages, CodexModel("codex/gpt-5.4", api_key="token"), resolve_attachment=store.read
+	notes = store.add_file("notes.txt", b"hello", tools=(), path=str(tmp_path / "notes.txt"))
+	screen, first, second, third = (
+		_stored(store, name) for name in ("screen.png", "a.png", "b.png", "c.png")
 	)
-
-	output = items[-1]
-	assert output["type"] == "function_call_output"
-	assert output["output"][0] == {"type": "input_text", "text": "[Image: shot.png]"}
-	assert output["output"][1]["type"] == "input_image"
-	assert output["output"][1]["image_url"].startswith("data:image/png;base64,")
-
-
-def test_tool_images_flush_once_after_a_batch_of_results(tmp_path):
-	"""Inline images would split the tool batch, which the provider rejects."""
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	first, second = _stored(store, "a.png"), _stored(store, "b.png")
 	messages = [
+		UserMessage(content=[TextContent(text="review"), notes, screen]),
 		AssistantMessage(
 			content=[
 				ToolCall(id="c1", name="read", arguments={}),
@@ -786,41 +479,50 @@ def test_tool_images_flush_once_after_a_batch_of_results(tmp_path):
 		),
 		_tool_result("c1", "a.png", [first]),
 		_tool_result("c2", "b.png", [second]),
+		AssistantMessage(
+			content=[TextContent(text="One more."), ToolCall(id="c3", name="read", arguments={})],
+			stop_reason="tool_use",
+		),
+		_tool_result("c3", "c.png", [third]),
 	]
+	model = LiteLLMModel("openai/gpt-4o")
 
-	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
+	wire = _openai_messages(messages, model, "system", resolve_attachment=store.read)
 
-	# both tool results stay adjacent to their call; one user turn carries both images
-	assert [m["role"] for m in wire] == ["system", "assistant", "tool", "tool", "user"]
-	images = [p for p in wire[-1]["content"] if p["type"] == "image_url"]
-	assert len(images) == 2
+	roles = ["system", "user", "assistant", "tool", "tool", "user", "assistant", "tool", "user"]
+	assert [m["role"] for m in wire] == roles
+	assert wire[1]["content"][0]["text"] == 'review\n<file name="notes.txt">\nhello\n</file>'
+	assert wire[1]["content"][1]["image_url"]["url"].startswith("data:image/png;base64,")
+	for turn, count in ((wire[5], 2), (wire[8], 1)):
+		assert turn["content"][0] == {"type": "text", "text": _TOOL_IMAGE_PREFACE}
+		urls = [part["image_url"]["url"] for part in turn["content"][1:]]
+		assert len(urls) == count and all(url.startswith("data:image/png;base64,") for url in urls)
+
+	# bytes that went away are skipped, not fatal: the tool's own text already names the image
+	for stored in (first, second, third):
+		store.remove(stored.id)
+	wire = _openai_messages(messages, model, "system", resolve_attachment=store.read)
+	assert [m["role"] for m in wire] == ["system", "user", "assistant", "tool", "tool", "assistant", "tool"]
 
 
-def test_tool_images_flush_before_the_next_assistant_turn(tmp_path):
+def test_codex_wire_sends_images_as_input_image_blocks(tmp_path):
+	"""User images go in the message; tool images go inside the function call's output."""
 	store = AttachmentStore(str(tmp_path / "attachments"))
-	stored = _stored(store)
+	screen, shot = _stored(store, "screen.png"), _stored(store)
 	messages = [
+		UserMessage(content=[TextContent(text="review"), screen]),
 		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
-		_tool_result("c1", "shot.png", [stored]),
-		AssistantMessage(content="I can see it."),
+		_tool_result("c1", "shot.png", [shot]),
 	]
 
-	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
+	items = _responses_input(
+		messages, CodexModel("codex/gpt-5.4", api_key="token"), resolve_attachment=store.read
+	)
 
-	# the images land before the reply, not stranded at the end of the conversation
-	assert [m["role"] for m in wire] == ["system", "assistant", "tool", "user", "assistant"]
-
-
-def test_missing_tool_image_bytes_are_skipped_not_fatal(tmp_path):
-	store = AttachmentStore(str(tmp_path / "attachments"))
-	stored = _stored(store)
-	store.remove(stored.id)  # the bytes went away; the event still references them
-	messages = [
-		AssistantMessage(content=[ToolCall(id="c1", name="read", arguments={})], stop_reason="tool_use"),
-		_tool_result("c1", "shot.png", [stored]),
-	]
-
-	wire = _openai_messages(messages, LiteLLMModel("openai/gpt-4o"), "system", resolve_attachment=store.read)
-
-	# no image turn, no crash: the tool's own text already names what it read
-	assert [m["role"] for m in wire] == ["system", "assistant", "tool"]
+	user, output = items[0]["content"], items[-1]
+	assert user[0] == {"type": "input_text", "text": "review"}
+	assert output["type"] == "function_call_output"
+	assert output["output"][0] == {"type": "input_text", "text": "[Image: shot.png]"}
+	for block in (user[1], output["output"][1]):
+		assert block["type"] == "input_image"
+		assert block["image_url"].startswith("data:image/png;base64,")

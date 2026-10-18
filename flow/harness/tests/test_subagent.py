@@ -103,11 +103,19 @@ async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
 				AssistantMessage(content=[_spawn("c1", "count the beans")]),
 				AssistantMessage(content="done"),
 			],
-			"count the beans": [AssistantMessage(content="forty-two beans")],
+			"count the beans": [
+				AssistantMessage(content=[ToolCall(id="c2", name="read", arguments={"path": "a.txt"})]),
+				AssistantMessage(content="forty-two beans"),
+			],
 		}
 	)
+	seen: list[str] = []
 
-	await _run(session, "go", model)
+	def before(call, ctx):
+		seen.append(call.name)
+		return HookDecision(result="not for you", is_error=True) if call.name == "read" else None
+
+	await _run(session, "go", model, before_tool_call=before)
 
 	# the child saw only its task, with the session's prompt and tools minus subagent
 	child = next(r for r in model.requests if _last_user(r.messages) == "count the beans")
@@ -118,6 +126,9 @@ async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
 	)
 	assert "- subagent: " in session.config.system_prompt and "- subagent: " not in child.system_prompt
 	assert "subagent" not in [t["function"]["name"] for t in child.tools]
+	# the run's hooks reach the child
+	assert seen == ["subagent", "read"]
+	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "not for you"
 	# the parent got the answer and nothing of the child's steps
 	result = _of(events, "tool_result")[0]
 	assert result["content"] == "forty-two beans\n\n[subagent_id: c1]"
@@ -125,7 +136,14 @@ async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
 	assert result["details"]["end_reason"] == "done" and result["details"]["subagent_id"] == "c1"
 	# the child's rows share the log under the call id and stay out of the session's transcript
 	durable = [e for e in events if e.get("subagent_id") == "c1" and "seq" in e and e["type"] != "usage"]
-	assert [e["type"] for e in durable] == ["run_started", "user_message", "assistant_message", "run_ended"]
+	assert [e["type"] for e in durable] == [
+		"run_started",
+		"user_message",
+		"assistant_message",
+		"tool_result",
+		"assistant_message",
+		"run_ended",
+	]
 	assert [m.type for m in session.transcript.messages] == [
 		"user_message",
 		"assistant_message",
@@ -133,57 +151,13 @@ async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
 		"assistant_message",
 	]
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
-
-
-async def test_a_named_agent_runs_with_its_own_prompt_and_tools(tmp_path):
-	agents = [
-		SubagentConfig(
-			name="Lookup", description="finds things", system_prompt="you look things up", tools=["read"]
-		)
-	]
-	session, events = _session(tmp_path, subagents=agents)
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(content=[_spawn("c1", "find it", agent="Lookup")]),
-				AssistantMessage(content="done"),
-			],
-			"find it": [AssistantMessage(content="found")],
-		}
-	)
-
-	await _run(session, "go", model)
-
-	parent, child = model.requests[0], model.requests[1]
-	description = next(
-		t["function"]["description"] for t in parent.tools if t["function"]["name"] == "subagent"
-	)
-	assert description.endswith(
-		"Available agents:\n- general: a copy of you with a fresh context\n- Lookup: finds things"
-	)
-	assert child.system_prompt == "you look things up"
-	assert [t["function"]["name"] for t in child.tools] == ["read"]
-	result = _of(events, "tool_result")[0]
-	assert result["content"] == "found\n\n[subagent_id: c1]" and result["details"]["agent"] == "Lookup"
-
-
-async def test_a_named_agent_runs_at_its_own_effort(tmp_path):
-	careful = SubagentConfig(name="Careful", reasoning_effort="low")
-	session, _ = _session(tmp_path, reasoning_effort="high", subagents=[careful])
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(content=[_spawn("c1", "think", agent="Careful")]),
-				AssistantMessage(content="done"),
-			],
-			"think": [AssistantMessage(content="thought")],
-		}
-	)
-
-	await _run(session, "go", model)
-
-	parent, child = model.requests[0], model.requests[1]
-	assert (parent.params["reasoning_effort"], child.params["reasoning_effort"]) == ("high", "low")
+	# the wait summary reports the session's answer, with the child's usage counted in
+	summary = _summary(session, 0)
+	assert summary["output"] == "done"
+	assert summary["reason"] == "done"
+	child_usage = sum(e["output_tokens"] for e in _of(session.log.read_since(0), "usage", subagent="c1"))
+	assert child_usage > 0
+	assert summary["usage"]["output_tokens"] > child_usage
 
 
 def _schema(name):
@@ -193,7 +167,19 @@ def _schema(name):
 	}
 
 
-async def test_a_named_agent_calls_its_own_client_tools_back_with_its_own_context(tmp_path, monkeypatch):
+GREET_EXTENSION = """
+from flow_harness.tools import ToolResult, tool
+
+@tool
+async def greet(who: str = "world", *, ctx):
+    return ToolResult(content=f"hi {who}")
+
+def setup(flow):
+    flow.register_tool(greet)
+"""
+
+
+async def test_a_named_agent_runs_with_its_own_prompt_tools_and_settings(tmp_path, monkeypatch):
 	posted = []
 
 	class RecordingClient:
@@ -219,15 +205,36 @@ async def test_a_named_agent_calls_its_own_client_tools_back_with_its_own_contex
 			return Response()
 
 	monkeypatch.setattr("flow_harness.agent.client_tools.httpx.AsyncClient", RecordingClient)
-	lookup = SubagentConfig(
-		name="Lookup", client_tools=[_schema("find_ticket")], user_context={"agent": "Lookup"}
+	extension = tmp_path / "extensions" / "greet.py"
+	extension.parent.mkdir()
+	extension.write_text(GREET_EXTENSION)
+	events: list[dict] = []
+	store = SessionStore(
+		str(tmp_path / "data"),
+		event_sink=lambda _sid, ev: events.append(ev),
+		extension_paths=[str(extension)],
 	)
-	session, events = _session(
-		tmp_path,
-		client_tools=[_schema("check_mail")],
-		callback_url="https://client.invalid/tools",
-		user_context={"agent": "Flow"},
-		subagents=[lookup],
+	lookup = SubagentConfig(
+		name="Lookup",
+		description="finds things",
+		system_prompt="you look things up",
+		tools=["read"],
+		extension_tools=["greet"],
+		client_tools=[_schema("find_ticket")],
+		user_context={"agent": "Lookup"},
+		reasoning_effort="low",
+	)
+	session = store.create(
+		SessionConfig(
+			cwd=str(tmp_path),
+			tools=["read", "subagent"],
+			extension_tools=[],
+			client_tools=[_schema("check_mail")],
+			callback_url="https://client.invalid/tools",
+			user_context={"agent": "Flow"},
+			reasoning_effort="high",
+			subagents=[lookup],
+		)
 	)
 	model = ScriptedModel(
 		{
@@ -245,9 +252,17 @@ async def test_a_named_agent_calls_its_own_client_tools_back_with_its_own_contex
 	await _run(session, "go", model)
 
 	parent, child = model.requests[0], model.requests[1]
-	assert "check_mail" in [t["function"]["name"] for t in parent.tools]
-	names = [t["function"]["name"] for t in child.tools]
-	assert "find_ticket" in names and "check_mail" not in names
+	description = next(
+		t["function"]["description"] for t in parent.tools if t["function"]["name"] == "subagent"
+	)
+	assert description.endswith(
+		"Available agents:\n- general: a copy of you with a fresh context\n- Lookup: finds things"
+	)
+	assert [t["function"]["name"] for t in parent.tools] == ["read", "subagent", "check_mail"]
+	assert child.system_prompt == "you look things up"
+	assert [t["function"]["name"] for t in child.tools] == ["read", "greet", "find_ticket"]
+	assert (parent.params["reasoning_effort"], child.params["reasoning_effort"]) == ("high", "low")
+	# its client tools are called back with its own context
 	assert posted[0].pop("result_token")
 	assert posted == [
 		{
@@ -260,151 +275,26 @@ async def test_a_named_agent_calls_its_own_client_tools_back_with_its_own_contex
 		}
 	]
 	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "ticket 7: resolved"
-
-
-GREET_EXTENSION = """
-from flow_harness.tools import ToolResult, tool
-
-@tool
-async def greet(who: str = "world", *, ctx):
-    return ToolResult(content=f"hi {who}")
-
-def setup(flow):
-    flow.register_tool(greet)
-"""
-
-
-async def test_a_named_agent_picks_its_own_extension_tools(tmp_path):
-	extension = tmp_path / "extensions" / "greet.py"
-	extension.parent.mkdir()
-	extension.write_text(GREET_EXTENSION)
-	store = SessionStore(str(tmp_path / "data"), extension_paths=[str(extension)])
-	greeter = SubagentConfig(name="Greeter", extension_tools=["greet"])
-	session = store.create(
-		SessionConfig(cwd=str(tmp_path), tools=["read", "subagent"], extension_tools=[], subagents=[greeter])
-	)
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(content=[_spawn("c1", "greet", agent="Greeter")]),
-				AssistantMessage(content="done"),
-			],
-			"greet": [AssistantMessage(content="hi")],
-		}
-	)
-
-	await _run(session, "go", model)
-
-	parent, child = model.requests[0], model.requests[1]
-	assert [t["function"]["name"] for t in parent.tools] == ["read", "subagent"]
-	assert [t["function"]["name"] for t in child.tools] == ["read", "greet"]
-
-
-async def test_a_named_agents_confirm_list_gates_its_own_calls(tmp_path):
-	careful = SubagentConfig(name="Careful", confirm_tools=["read"])
-	session, events = _session(tmp_path, subagents=[careful])
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(content=[_spawn("c1", "look", agent="Careful")]),
-				AssistantMessage(content="done"),
-			],
-			"look": [AssistantMessage(content=[ToolCall(id="c2", name="read", arguments={"path": "x"})])],
-		}
-	)
-
-	handle = await session.run("go", model=model)
-	await _until(lambda: _of(events, "approval_required", subagent="c1"))
-
-	approval = _of(events, "approval_required", subagent="c1")[0]
-	assert [call["name"] for call in approval["calls"]] == ["read"]
-	assert not _of(events, "approval_required")  # the session's own list never named read
-	await session.resume({"c2": "Deny"}, approval_seq=approval["seq"])
-	assert handle.task is not None
-	await handle.task
-	assert _of(events, "run_ended", subagent="c1")[-1]["reason"] == "denied"
-
-
-async def test_a_named_agent_stops_at_its_own_turn_cap(tmp_path):
-	quick = SubagentConfig(name="Quick", max_turns=1)
-	session, events = _session(tmp_path, auto_approve=True, subagents=[quick])
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(content=[_spawn("c1", "count", agent="Quick")]),
-				AssistantMessage(content="done"),
-			],
-			"count": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="counted")],
-		}
-	)
-
-	await _run(session, "go", model)
-
-	assert _of(events, "run_ended", subagent="c1")[0]["reason"] == "max_turns"
 	result = _of(events, "tool_result")[0]
-	assert result["is_error"] and "[sub-agent stopped: max_turns]" in result["content"]
-	assert _of(events, "run_ended")[-1]["reason"] == "done"
+	assert result["content"] == "found\n\n[subagent_id: c1]" and result["details"]["agent"] == "Lookup"
 
 
-async def test_an_unknown_agent_is_an_error_result(tmp_path):
-	session, events = _session(tmp_path, subagents=[SubagentConfig(name="Lookup")])
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(content=[_spawn("c1", "x", agent="Nobody")]),
-				AssistantMessage(content="done"),
-			]
-		}
-	)
-
-	await _run(session, "go", model)
-
-	result = _of(events, "tool_result")[0]
-	assert result["is_error"] and result["content"] == "[unknown agent 'Nobody'; available: general, Lookup]"
-	assert not [e for e in events if e.get("subagent_id")]
-
-
-async def test_empty_arguments_count_as_left_out(tmp_path):
-	session, events = _session(tmp_path, subagents=[SubagentConfig(name="Lookup")])
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(
-					content=[
-						_spawn("c1", "find it", agent="Lookup", subagent_id=""),
-						_spawn("c2", "ask it", agent="", subagent_id=""),
-					]
-				),
-				AssistantMessage(content="done"),
-			],
-			"find it": [AssistantMessage(content="found")],
-			"ask it": [AssistantMessage(content="answered")],
-		}
-	)
-
-	await _run(session, "go", model)
-
-	results = {r["tool_call_id"]: r for r in _of(events, "tool_result")}
-	assert (
-		results["c1"]["content"] == "found\n\n[subagent_id: c1]"
-		and results["c1"]["details"]["agent"] == "Lookup"
-	)
-	assert (
-		results["c2"]["content"] == "answered\n\n[subagent_id: c2]"
-		and results["c2"]["details"]["agent"] == "general"
-	)
-
-
-def test_a_child_takes_credentials_with_its_model_or_on_their_own(tmp_path):
-	config = SessionConfig(cwd=str(tmp_path), api_key="parent-key", api_base="http://parent")
+def test_a_child_takes_the_run_model_and_budget_unless_its_agent_picks_its_own(tmp_path):
+	budget = TokenBudget(limit=100)
 	inputs = LoopInputs(
-		config=config,
+		config=SessionConfig(
+			cwd=str(tmp_path),
+			api_key="parent-key",
+			api_base="http://parent",
+			model_params={"route": "parent"},
+		),
 		messages=[],
 		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
 		abort=asyncio.Event(),
 		model_name="mock",
 		credential_id="cred",
 		model=MockModel(replies=[]),
+		budget=budget,
 	)
 
 	def child(**definition):
@@ -418,71 +308,41 @@ def test_a_child_takes_credentials_with_its_model_or_on_their_own(tmp_path):
 			child_inputs.credential_id,
 			child_inputs.config.api_key,
 			child_inputs.config.api_base,
+			child_inputs.config.model_params,
+			child_inputs.reasoning_effort,
 		)
 
-	assert selection(child()) == (inputs.model, "mock", "cred", "parent-key", "http://parent")
-	assert selection(child(api_key="child-key")) == (None, "mock", None, "child-key", None)
-	assert selection(child(model="other")) == (None, "other", None, None, None)
-	assert child().reasoning_effort is None and child(reasoning_effort="low").reasoning_effort == "low"
+	parent = (inputs.model, "mock", "cred", "parent-key", "http://parent", {"route": "parent"}, None)
+	cases = [
+		({}, parent),
+		({"reasoning_effort": "low"}, (*parent[:-1], "low")),
+		# credentials and model params travel with a model, or come on their own
+		({"api_key": "child-key"}, (None, "mock", None, "child-key", None, {}, None)),
+		({"model": "other"}, (None, "other", None, None, None, {}, None)),
+		({"model_params": {"route": "child"}}, (None, "mock", None, None, None, {"route": "child"}, None)),
+	]
+	for definition, expected in cases:
+		assert selection(child(**definition)) == expected, definition
 
-
-def test_a_childs_model_params_travel_with_its_model(tmp_path):
-	inputs = LoopInputs(
-		config=SessionConfig(cwd=str(tmp_path), model_params={"route": "parent"}),
-		messages=[],
-		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
-		abort=asyncio.Event(),
-		model_name="mock",
-	)
-
-	def params(**definition):
-		agent = SubagentConfig(name="a", **definition)
-		child = _child_inputs(inputs, Transcript("c1"), agent, lambda config: select_tools(config.tools))
-		return child.config.model_params
-
-	assert params() == {"route": "parent"}
-	assert params(model="other") == {}
-	assert params(model_params={"route": "child"}) == {"route": "child"}
-
-
-def test_a_child_spends_the_run_budget_its_parent_is_spending(tmp_path):
-	budget = TokenBudget(limit=100)
-	inputs = LoopInputs(
-		config=SessionConfig(cwd=str(tmp_path)),
-		messages=[],
-		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
-		abort=asyncio.Event(),
-		model_name="mock",
-		budget=budget,
-	)
-	agent = SubagentConfig(name="a")
-	child = _child_inputs(inputs, Transcript("c1"), agent, lambda config: select_tools(config.tools))
-
-	assert child.budget is budget  # the same object, so siblings share one ceiling
+	assert child().budget is budget  # the same object, so siblings share one ceiling
 	# adapters report cache reads inside input_tokens, so they come back out
-	child.budget.add(Usage(input_tokens=50, output_tokens=10, cache_read_tokens=20))
+	child().budget.add(Usage(input_tokens=50, output_tokens=10, cache_read_tokens=20))
 	assert budget.spent == 40 and not budget.exhausted
 	budget.add(Usage(input_tokens=1_060, cache_read_tokens=1_000))
 	assert budget.spent == 100 and budget.exhausted
 
 
-def test_config_checks_agent_names_and_redacts_their_keys():
+def test_agent_definitions_are_checked_and_their_keys_redacted(tmp_path):
 	with pytest.raises(ValidationError, match="reserved"):
 		SessionConfig(subagents=[SubagentConfig(name="general")])
 	with pytest.raises(ValidationError, match="unique"):
 		SessionConfig(subagents=[SubagentConfig(name="a"), SubagentConfig(name="a")])
-	config = SessionConfig(subagents=[SubagentConfig(name="a", api_key="sk-secret")])
-	assert config.redacted()["subagents"][0]["api_key"] == "***"
-
-
-def test_an_agents_tools_must_pass_the_allowlist(tmp_path):
-	store = SessionStore(str(tmp_path / "data"), tool_allowlist={"read", "subagent"})
+	capped = SessionStore(str(tmp_path / "capped"), tool_allowlist={"read", "subagent"})
 	config = SessionConfig(cwd=str(tmp_path), subagents=[SubagentConfig(name="a", tools=["bash", "read"])])
 	with pytest.raises(PolicyError, match="bash"):
-		store.create(config)
+		capped.create(config)
 
-
-def test_the_api_refuses_agent_credentials_like_the_sessions_and_redacts_them(tmp_path):
+	# the API refuses inline agent credentials like the session's, and echoes them redacted
 	store = SessionStore(str(tmp_path / "data"))
 	agents = [{"name": "Lookup", "description": "finds things", "model": "mock", "api_key": "sk-secret"}]
 	body = {"cwd": str(tmp_path), "subagents": agents}
@@ -496,27 +356,54 @@ def test_the_api_refuses_agent_credentials_like_the_sessions_and_redacts_them(tm
 	assert client.post("/sessions", json=reserved).status_code == 422
 
 
-async def test_a_subagent_cannot_start_subagents(tmp_path):
-	session, events = _session(tmp_path)
+async def test_subagent_arguments_are_resolved_or_refused(tmp_path):
+	session, events = _session(tmp_path, subagents=[SubagentConfig(name="Lookup")])
 	model = ScriptedModel(
 		{
-			"go": [AssistantMessage(content=[_spawn("c1", "delegate")]), AssistantMessage(content="done")],
-			"delegate": [
-				AssistantMessage(content=[_spawn("c2", "deeper")]),
-				AssistantMessage(content="gave up"),
+			"go": [
+				AssistantMessage(
+					content=[
+						_spawn("c1", "slow"),
+						_spawn("c2", "more", subagent_id="c1"),
+						_spawn("c3", "more", subagent_id="nope"),
+						_spawn("c4", "more", agent="general", subagent_id="c1"),
+						_spawn("c5", "x", agent="Nobody"),
+						# empty arguments count as left out
+						_spawn("c6", "find it", agent="Lookup", subagent_id=""),
+						_spawn("c7", "ask it", agent="", subagent_id=""),
+					]
+				),
+				AssistantMessage(content="done"),
 			],
+			"slow": [AssistantMessage(content="late")],
+			"find it": [AssistantMessage(content="found")],
+			"ask it": [AssistantMessage(content="answered")],
 		}
 	)
+	model.gate("slow")
 
-	await _run(session, "go", model)
+	handle = await session.run("go", model=model)
+	await model.started["slow"].wait()
+	model.gates["slow"].set()
+	assert handle.task is not None
+	await handle.task
 
-	nested = _of(events, "tool_result", subagent="c1")[0]
-	assert nested["tool_call_id"] == "c2" and nested["is_error"]
-	assert "unknown tool: subagent" in nested["content"]
-	assert "gave up" in _of(events, "tool_result")[0]["content"]
+	results = {r["tool_call_id"]: r for r in _of(events, "tool_result")}
+	assert {cid: (r["content"], r["is_error"]) for cid, r in results.items()} == {
+		"c1": ("late\n\n[subagent_id: c1]", False),
+		"c2": ("[sub-agent 'c1' is still running]", True),
+		"c3": ("[unknown subagent_id 'nope']", True),
+		"c4": ("[pass either agent or subagent_id, not both]", True),
+		"c5": ("[unknown agent 'Nobody'; available: general, Lookup]", True),
+		"c6": ("found\n\n[subagent_id: c6]", False),
+		"c7": ("answered\n\n[subagent_id: c7]", False),
+	}
+	assert (results["c6"]["details"]["agent"], results["c7"]["details"]["agent"]) == ("Lookup", "general")
+	# a refused call starts no child
+	assert {e["subagent_id"] for e in events if e.get("subagent_id")} == {"c1", "c6", "c7"}
 
 
-async def test_a_child_has_no_runner_so_nothing_inside_it_can_delegate(tmp_path):
+async def test_nothing_inside_a_child_can_delegate(tmp_path):
 	@tool
 	async def delegate(*, ctx: ToolContext) -> ToolResult:
 		return ToolResult(content="runner: " + ("absent" if ctx.run_subagent is None else "present"))
@@ -534,135 +421,122 @@ async def test_a_child_has_no_runner_so_nothing_inside_it_can_delegate(tmp_path)
 				AssistantMessage(content="done"),
 			],
 			"try it": [
-				AssistantMessage(content=[ToolCall(id="c2", name="delegate", arguments={})]),
-				AssistantMessage(content="tried"),
+				AssistantMessage(
+					content=[_spawn("c2", "deeper"), ToolCall(id="c3", name="delegate", arguments={})]
+				),
+				AssistantMessage(content="gave up"),
 			],
 		}
 	)
 
 	await _run(session, "go", model)
 
-	assert _of(events, "tool_result")[0]["content"] == "runner: present"
-	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "runner: absent"
+	nested = {r["tool_call_id"]: r for r in _of(events, "tool_result", subagent="c1")}
+	assert nested["c2"]["is_error"] and "unknown tool: subagent" in nested["c2"]["content"]
+	assert nested["c3"]["content"] == "runner: absent"
+	results = {r["tool_call_id"]: r for r in _of(events, "tool_result")}
+	assert results["p1"]["content"] == "runner: present"
+	assert "gave up" in results["c1"]["content"]
 	assert {e["subagent_id"] for e in events if e.get("subagent_id")} == {"c1"}
 
 
-async def test_subagents_called_in_one_turn_run_together(tmp_path):
-	session, events = _session(tmp_path)
+async def test_subagents_in_one_turn_run_together_up_to_the_cap(tmp_path):
+	session, events = _session(tmp_path, max_concurrent_subagents=2)
 	model = ScriptedModel(
 		{
 			"go": [
-				AssistantMessage(content=[_spawn("c1", "left"), _spawn("c2", "right")]),
+				AssistantMessage(
+					content=[_spawn("c1", "left"), _spawn("c2", "right"), _spawn("c3", "third")]
+				),
 				AssistantMessage(content="done"),
 			],
 			"left": [AssistantMessage(content="L")],
 			"right": [AssistantMessage(content="R")],
+			"third": [AssistantMessage(content="3")],
 		}
 	)
-	model.gate("left")
-	model.gate("right")
+	for key in ("left", "right", "third"):
+		model.gate(key)
 
 	handle = await session.run("go", model=model)
-	# both children are inside their model turn at once
+	# two children are inside their model turn at once; the third waits for a slot
 	await asyncio.wait_for(asyncio.gather(model.started["left"].wait(), model.started["right"].wait()), 5)
+	await asyncio.sleep(0.05)
+	assert not model.started["third"].is_set()
 	model.gates["left"].set()
+	await asyncio.wait_for(model.started["third"].wait(), 5)
 	model.gates["right"].set()
+	model.gates["third"].set()
 	assert handle.task is not None
 	await handle.task
 
 	assert {r["tool_call_id"]: r["content"] for r in _of(events, "tool_result")} == {
 		"c1": "L\n\n[subagent_id: c1]",
 		"c2": "R\n\n[subagent_id: c2]",
+		"c3": "3\n\n[subagent_id: c3]",
 	}
-	assert {e["subagent_id"] for e in events if e.get("subagent_id")} == {"c1", "c2"}
+	assert {e["subagent_id"] for e in events if e.get("subagent_id")} == {"c1", "c2", "c3"}
 
 
-async def test_the_cap_holds_back_extra_subagents(tmp_path):
-	session, events = _session(tmp_path, max_concurrent_subagents=1)
+async def test_abort_ends_every_child_running_paused_or_waiting_for_a_slot(tmp_path):
+	session, events = _session(tmp_path, max_concurrent_subagents=2)
 	model = ScriptedModel(
 		{
 			"go": [
-				AssistantMessage(content=[_spawn("c1", "first"), _spawn("c2", "second")]),
-				AssistantMessage(content="done"),
+				AssistantMessage(content=[_spawn("c1", "slow"), _spawn("c2", "risky"), _spawn("c3", "later")])
 			],
-			"first": [AssistantMessage(content="1")],
-			"second": [AssistantMessage(content="2")],
+			"slow": [AssistantMessage(content="1")],
+			"risky": [AssistantMessage(content=[_bash("c9")])],
+			"later": [AssistantMessage(content="3")],
 		}
 	)
-	model.gate("first")
-	model.gate("second")
-
-	handle = await session.run("go", model=model)
-	await model.started["first"].wait()
-	await asyncio.sleep(0.05)
-	assert not model.started["second"].is_set()
-	model.gates["first"].set()
-	await model.started["second"].wait()
-	model.gates["second"].set()
-	assert handle.task is not None
-	await handle.task
-
-	assert len(_of(events, "tool_result")) == 2
-
-
-async def test_abort_stops_a_running_child(tmp_path):
-	session, events = _session(tmp_path)
-	model = ScriptedModel({"go": [AssistantMessage(content=[_spawn("c1", "slow")])]})
 	model.gate("slow")
 
 	handle = await session.run("go", model=model)
 	await model.started["slow"].wait()
+	await _until(lambda: _of(events, "run_ended", subagent="c2"))  # paused for approval
 	assert session.abort() is True
 	assert handle.task is not None
 	await handle.task
 
 	assert _of(events, "run_ended", subagent="c1")[0]["reason"] == "aborted"
+	assert [e["reason"] for e in _of(events, "run_ended", subagent="c2")] == ["paused", "aborted"]
+	assert _of(events, "run_ended", subagent="c3") == []  # never started, so nothing to settle
+	assert {r["tool_call_id"] for r in _of(events, "tool_result")} == {"c1", "c2", "c3"}
 	assert _of(events, "run_ended")[0]["reason"] == "aborted"
 	assert session.state == "idle"
 
 
-async def test_abort_releases_a_child_still_waiting_for_a_slot(tmp_path):
-	session, events = _session(tmp_path, max_concurrent_subagents=1)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "first"), _spawn("c2", "second")])],
-			"first": [AssistantMessage(content="1")],
-			"second": [AssistantMessage(content="2")],
-		}
-	)
-	model.gate("first")
-
-	handle = await session.run("go", model=model)
-	await model.started["first"].wait()
-	await asyncio.sleep(0.05)
-	assert session.abort() is True
-	assert handle.task is not None
-	await handle.task
-
-	assert _of(events, "run_ended", subagent="c1")[0]["reason"] == "aborted"
-	assert _of(events, "run_ended", subagent="c2") == []  # never started, so nothing to settle
-	assert {r["tool_call_id"] for r in _of(events, "tool_result")} == {"c1", "c2"}
-	assert _of(events, "run_ended")[0]["reason"] == "aborted"
-
-
-async def test_a_failing_child_is_an_error_result_and_the_session_carries_on(tmp_path):
-	session, events = _session(tmp_path)
+async def test_a_child_that_stops_short_is_an_error_result_and_the_session_carries_on(tmp_path):
+	quick = SubagentConfig(name="Quick", max_turns=1)
+	session, events = _session(tmp_path, auto_approve=True, subagents=[quick])
 	error = ProviderError(kind="auth", retryable=False, status_code=401, provider="mock", detail="bad key")
 	model = ScriptedModel(
-		{"go": [AssistantMessage(content=[_spawn("c1", "boom")]), AssistantMessage(content="done")]},
+		{
+			"go": [
+				AssistantMessage(content=[_spawn("c1", "count", agent="Quick"), _spawn("c2", "boom")]),
+				AssistantMessage(content="done"),
+			],
+			"count": [AssistantMessage(content=[_bash("c3")]), AssistantMessage(content="counted")],
+		},
 		errors={"boom": error},
 	)
 
 	await _run(session, "go", model)
 
-	assert _of(events, "run_error", subagent="c1")[0]["kind"] == "auth"
-	assert _of(events, "run_ended", subagent="c1")[0]["reason"] == "error"
-	result = _of(events, "tool_result")[0]
-	assert result["is_error"] and "[sub-agent stopped: error: ProviderError:" in result["content"]
+	# one stops at its agent's own turn cap, the other on a provider error
+	assert _of(events, "run_ended", subagent="c1")[0]["reason"] == "max_turns"
+	assert _of(events, "run_error", subagent="c2")[0]["kind"] == "auth"
+	assert _of(events, "run_ended", subagent="c2")[0]["reason"] == "error"
+	results = {r["tool_call_id"]: r for r in _of(events, "tool_result")}
+	assert results["c1"]["is_error"] and "[sub-agent stopped: max_turns]" in results["c1"]["content"]
+	assert (
+		results["c2"]["is_error"] and "[sub-agent stopped: error: ProviderError:" in results["c2"]["content"]
+	)
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 
-async def test_a_child_approval_pauses_only_the_child_and_resume_reaches_it(tmp_path):
+async def test_a_child_approval_pauses_only_the_child_and_takes_one_answer(tmp_path):
 	session, events = _session(tmp_path)
 	model = ScriptedModel(
 		{
@@ -670,8 +544,16 @@ async def test_a_child_approval_pauses_only_the_child_and_resume_reaches_it(tmp_
 			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
 		}
 	)
+	gate = model.gate("risky")
 
 	handle = await session.run("go", model=model)
+	await model.started["risky"].wait()
+	# nothing is answerable while no child waits
+	with pytest.raises(SessionConflict):
+		await session.resume({"c2": "Approve"}, approval_seq=99)
+	with pytest.raises(SessionConflict):
+		await session.cancel_pending()
+	gate.set()
 	await _until(lambda: _of(events, "run_ended", subagent="c1"))
 
 	approval = _of(events, "approval_required", subagent="c1")[0]
@@ -683,6 +565,10 @@ async def test_a_child_approval_pauses_only_the_child_and_resume_reaches_it(tmp_
 
 	resumed = await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
 	assert resumed.status == "resumed" and resumed.task is None
+	with pytest.raises(SessionConflict):  # answered, but the child has not woken yet
+		await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
+	with pytest.raises(SessionConflict):
+		await session.cancel_pending()
 	assert handle.task is not None
 	await handle.task
 
@@ -693,100 +579,74 @@ async def test_a_child_approval_pauses_only_the_child_and_resume_reaches_it(tmp_
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
 
-@pytest.mark.parametrize("initial_auto_approve", [True, False])
-async def test_an_approval_mode_change_reaches_a_running_childs_next_gate(tmp_path, initial_auto_approve):
-	session, events = _session(tmp_path, auto_approve=initial_auto_approve)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
-			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
-		}
-	)
-	gate = model.gate("risky")
+async def test_an_approval_mode_change_reaches_a_running_childs_next_gate(tmp_path):
+	for initial_auto_approve in (True, False):
+		cwd = tmp_path / str(initial_auto_approve)
+		cwd.mkdir()
+		session, events = _session(cwd, auto_approve=initial_auto_approve)
+		model = ScriptedModel(
+			{
+				"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
+				"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
+			}
+		)
+		gate = model.gate("risky")
 
-	handle = await session.run("go", model=model)
-	await model.started["risky"].wait()  # the child is running, its tool call still to come
-	session.config.auto_approve = not initial_auto_approve  # PATCH /config mutates this object
-	gate.set()
+		handle = await session.run("go", model=model)
+		await model.started["risky"].wait()  # the child is running, its tool call still to come
+		session.config.auto_approve = not initial_auto_approve  # PATCH /config mutates this object
+		gate.set()
 
-	if initial_auto_approve:
-		await _until(lambda: _of(events, "approval_required", subagent="c1"))
+		if initial_auto_approve:
+			await _until(lambda: _of(events, "approval_required", subagent="c1"))
+			approval = _of(events, "approval_required", subagent="c1")[0]
+			await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
+		assert handle.task is not None
+		await asyncio.wait_for(handle.task, timeout=5)
+		assert bool(_of(events, "approval_required", subagent="c1")) is initial_auto_approve
+		assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]", initial_auto_approve
+
+
+async def test_a_denied_or_cancelled_child_is_an_error_result(tmp_path):
+	for how in ("deny", "cancel"):
+		cwd = tmp_path / how
+		cwd.mkdir()
+		# a named agent's confirm list gates its own calls
+		careful = SubagentConfig(name="Careful", confirm_tools=["read"])
+		session, events = _session(cwd, subagents=[careful])
+		model = ScriptedModel(
+			{
+				"go": [
+					AssistantMessage(content=[_spawn("c1", "look", agent="Careful")]),
+					AssistantMessage(content="done"),
+				],
+				"look": [
+					AssistantMessage(content=[ToolCall(id="c2", name="read", arguments={"path": "x"})]),
+					AssistantMessage(content="never reached"),
+				],
+			}
+		)
+
+		handle = await session.run("go", model=model)
+		await _until(lambda: _of(events, "run_ended", subagent="c1"))
 		approval = _of(events, "approval_required", subagent="c1")[0]
-		await session.resume({"c2": "Approve"}, approval_seq=approval["seq"])
-	assert handle.task is not None
-	await asyncio.wait_for(handle.task, timeout=5)
-	assert bool(_of(events, "approval_required", subagent="c1")) is initial_auto_approve
-	assert _of(events, "tool_result")[0]["content"] == "ran it\n\n[subagent_id: c1]"
+		assert [call["name"] for call in approval["calls"]] == ["read"], how
+		assert not _of(events, "approval_required"), how  # the session's own list never named read
+		if how == "deny":
+			await session.resume({"c2": "Deny"}, approval_seq=approval["seq"])
+		else:
+			assert await session.cancel_pending() is True
+		assert handle.task is not None
+		await handle.task
 
-
-@pytest.mark.parametrize("how", ["deny", "cancel"])
-async def test_a_denied_or_cancelled_child_is_an_error_result(tmp_path, how):
-	session, events = _session(tmp_path)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
-			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="never reached")],
-		}
-	)
-
-	handle = await session.run("go", model=model)
-	await _until(lambda: _of(events, "run_ended", subagent="c1"))
-	if how == "deny":
-		seq = _of(events, "approval_required", subagent="c1")[0]["seq"]
-		await session.resume({"c2": "Deny"}, approval_seq=seq)
-	else:
-		assert await session.cancel_pending() is True
-	assert handle.task is not None
-	await handle.task
-
-	stopped = "denied" if how == "deny" else "cancelled"
-	child = _of(events, "tool_result", subagent="c1")[0]
-	assert child["tool_call_id"] == "c2" and child["is_error"] and stopped in child["content"]
-	result = _of(events, "tool_result")[0]
-	assert result["is_error"] and f"[sub-agent stopped: {stopped}]" in result["content"]
-	assert session.state == "idle" and _of(events, "run_ended")[-1]["reason"] == "done"
-
-
-async def test_a_batch_answered_twice_is_refused_the_second_time(tmp_path):
-	session, events = _session(tmp_path)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "risky")]), AssistantMessage(content="done")],
-			"risky": [AssistantMessage(content=[_bash("c2")]), AssistantMessage(content="ran it")],
-		}
-	)
-
-	handle = await session.run("go", model=model)
-	await _until(lambda: _of(events, "run_ended", subagent="c1"))
-	seq = _of(events, "approval_required", subagent="c1")[0]["seq"]
-	await session.resume({"c2": "Approve"}, approval_seq=seq)
-	with pytest.raises(SessionConflict):  # answered, but the child has not woken yet
-		await session.resume({"c2": "Approve"}, approval_seq=seq)
-	with pytest.raises(SessionConflict):
-		await session.cancel_pending()
-	assert handle.task is not None
-	await handle.task
-
-	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused", "done"]
-
-
-async def test_abort_ends_a_child_waiting_for_approval(tmp_path):
-	session, events = _session(tmp_path)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "risky")])],
-			"risky": [AssistantMessage(content=[_bash("c2")])],
-		}
-	)
-
-	handle = await session.run("go", model=model)
-	await _until(lambda: _of(events, "run_ended", subagent="c1"))
-	assert session.abort() is True
-	assert handle.task is not None
-	await handle.task
-
-	assert [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["paused", "aborted"]
-	assert _of(events, "run_ended")[0]["reason"] == "aborted" and session.state == "idle"
+		stopped = "denied" if how == "deny" else "cancelled"
+		if how == "deny":
+			assert _of(events, "run_ended", subagent="c1")[-1]["reason"] == "denied"
+		child = _of(events, "tool_result", subagent="c1")[0]
+		assert child["tool_call_id"] == "c2" and child["is_error"] and stopped in child["content"], how
+		result = _of(events, "tool_result")[0]
+		assert result["is_error"] and f"[sub-agent stopped: {stopped}]" in result["content"], how
+		assert session.state == "idle" and _of(events, "run_ended")[-1]["reason"] == "done", how
 
 
 async def test_the_agent_facade_answers_a_child_batch_and_streams_the_whole_run(tmp_path):
@@ -812,24 +672,6 @@ async def test_the_agent_facade_answers_a_child_batch_and_streams_the_whole_run(
 	assert [e.reason for e in seen if e.type == "run_ended" and e.subagent_id == "c1"] == ["paused", "done"]
 	assert [e.reason for e in seen if e.type == "run_ended" and e.subagent_id is None] == ["done"]
 	assert seen[-1].type == "run_ended" and seen[-1].subagent_id is None
-
-
-async def test_answers_and_cancellation_are_refused_while_no_child_waits(tmp_path):
-	session, _ = _session(tmp_path)
-	model = ScriptedModel(
-		{"go": [AssistantMessage(content=[_spawn("c1", "slow")])], "slow": [AssistantMessage()]}
-	)
-	model.gate("slow")
-
-	handle = await session.run("go", model=model)
-	await model.started["slow"].wait()
-	with pytest.raises(SessionConflict):
-		await session.resume({"c2": "Approve"}, approval_seq=99)
-	with pytest.raises(SessionConflict):
-		await session.cancel_pending()
-	model.gates["slow"].set()
-	assert handle.task is not None
-	await handle.task
 
 
 async def test_continuing_a_child_keeps_its_context_and_agent_even_after_a_reload(tmp_path):
@@ -876,124 +718,52 @@ async def test_continuing_a_child_keeps_its_context_and_agent_even_after_a_reloa
 	] * 3
 
 
-async def test_a_continuation_is_refused_for_a_running_child_an_unknown_id_or_with_an_agent(tmp_path):
-	session, events = _session(tmp_path)
-	model = ScriptedModel(
-		{
-			"go": [
-				AssistantMessage(
-					content=[
-						_spawn("c1", "slow"),
-						_spawn("c2", "more", subagent_id="c1"),
-						_spawn("c3", "more", subagent_id="nope"),
-						_spawn("c4", "more", agent="general", subagent_id="c1"),
-					]
-				),
-				AssistantMessage(content="done"),
-			],
-			"slow": [AssistantMessage(content="late")],
-		}
-	)
-	model.gate("slow")
+async def test_a_continued_child_has_what_an_abort_or_a_crash_left_open_closed_first(tmp_path):
+	for how in ("abort", "restart"):
+		base = tmp_path / how
+		base.mkdir()
+		session, events = _session(base)
+		model = ScriptedModel(
+			{
+				"go": [AssistantMessage(content=[_spawn("c1", "first")]), AssistantMessage(content="done")],
+				"first": [AssistantMessage(content="one")],
+				"more": [AssistantMessage(content=[_spawn("c2", "second", subagent_id="c1")])],
+				"second": [AssistantMessage(content=[_bash("c9")])],
+				"again": [
+					AssistantMessage(content=[_spawn("c3", "third", subagent_id="c1")]),
+					AssistantMessage(content="done"),
+				],
+				"third": [AssistantMessage(content="three")],
+			}
+		)
 
-	handle = await session.run("go", model=model)
-	await model.started["slow"].wait()
-	model.gates["slow"].set()
-	assert handle.task is not None
-	await handle.task
+		await _run(session, "go", model)
+		handle = await session.run("more", model=model)
+		await _until(
+			lambda: [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["done", "paused"]
+		)
+		assert handle.task is not None
+		if how == "abort":
+			assert session.abort() is True
+			await handle.task
+			continued = session
+		else:  # the log as a crash leaves it, opened by a fresh process
+			shutil.copytree(base / "data", base / "restarted")
+			continued = SessionStore(
+				str(base / "restarted"), event_sink=lambda _sid, ev: events.append(ev)
+			).get(session.id)
+		await _run(continued, "again", model)
 
-	results = {r["tool_call_id"]: r for r in _of(events, "tool_result")}
-	assert results["c1"]["content"] == "late\n\n[subagent_id: c1]" and not results["c1"]["is_error"]
-	assert results["c2"]["content"] == "[sub-agent 'c1' is still running]"
-	assert results["c3"]["content"] == "[unknown subagent_id 'nope']"
-	assert results["c4"]["content"] == "[pass either agent or subagent_id, not both]"
-	assert all(results[cid]["is_error"] for cid in ("c2", "c3", "c4"))
-
-
-@pytest.mark.parametrize("how", ["abort", "restart"])
-async def test_a_continued_child_has_what_an_abort_or_a_crash_left_open_closed_first(tmp_path, how):
-	session, events = _session(tmp_path)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "first")]), AssistantMessage(content="done")],
-			"first": [AssistantMessage(content="one")],
-			"more": [AssistantMessage(content=[_spawn("c2", "second", subagent_id="c1")])],
-			"second": [AssistantMessage(content=[_bash("c9")])],
-			"again": [
-				AssistantMessage(content=[_spawn("c3", "third", subagent_id="c1")]),
-				AssistantMessage(content="done"),
-			],
-			"third": [AssistantMessage(content="three")],
-		}
-	)
-
-	await _run(session, "go", model)
-	handle = await session.run("more", model=model)
-	await _until(lambda: [e["reason"] for e in _of(events, "run_ended", subagent="c1")] == ["done", "paused"])
-	assert handle.task is not None
-	if how == "abort":
-		assert session.abort() is True
-		await handle.task
-		continued = session
-	else:  # the log as a crash leaves it, opened by a fresh process
-		shutil.copytree(tmp_path / "data", tmp_path / "restarted")
-		continued = SessionStore(
-			str(tmp_path / "restarted"), event_sink=lambda _sid, ev: events.append(ev)
-		).get(session.id)
-	await _run(continued, "again", model)
-
-	third = next(r for r in model.requests if _last_user(r.messages) == "third")
-	assert [m.type for m in third.messages] == ["user_message", "assistant_message"] * 2 + [
-		"tool_result",
-		"user_message",
-	]
-	closed = third.messages[4]
-	assert (
-		closed.tool_call_id == "c9" and ("interrupted" if how == "abort" else "cancelled") in closed.content
-	)
-	assert _of(events, "tool_result")[-1]["content"] == "three\n\n[subagent_id: c1]"
-	if how == "restart":  # the paused session's own run is still parked in this process
-		session.abort()
-		await handle.task
-
-
-async def test_the_run_hooks_reach_the_child(tmp_path):
-	session, events = _session(tmp_path)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "look")]), AssistantMessage(content="done")],
-			"look": [
-				AssistantMessage(content=[ToolCall(id="c2", name="read", arguments={"path": "a.txt"})]),
-				AssistantMessage(content="seen"),
-			],
-		}
-	)
-	seen: list[str] = []
-
-	def before(call, ctx):
-		seen.append(call.name)
-		return HookDecision(result="not for you", is_error=True) if call.name == "read" else None
-
-	await _run(session, "go", model, before_tool_call=before)
-
-	assert seen == ["subagent", "read"]
-	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "not for you"
-
-
-async def test_the_wait_summary_reports_the_session_answer_with_the_child_usage(tmp_path):
-	session, _ = _session(tmp_path)
-	model = ScriptedModel(
-		{
-			"go": [AssistantMessage(content=[_spawn("c1", "work")]), AssistantMessage(content="the answer")],
-			"work": [AssistantMessage(content="child text that is not the answer")],
-		}
-	)
-
-	await _run(session, "go", model)
-
-	summary = _summary(session, 0)
-	assert summary["output"] == "the answer"
-	assert summary["reason"] == "done"
-	child_usage = sum(e["output_tokens"] for e in _of(session.log.read_since(0), "usage", subagent="c1"))
-	assert child_usage > 0
-	assert summary["usage"]["output_tokens"] > child_usage
+		third = next(r for r in model.requests if _last_user(r.messages) == "third")
+		assert [m.type for m in third.messages] == ["user_message", "assistant_message"] * 2 + [
+			"tool_result",
+			"user_message",
+		], how
+		closed = third.messages[4]
+		assert closed.tool_call_id == "c9" and (
+			("interrupted" if how == "abort" else "cancelled") in closed.content
+		), how
+		assert _of(events, "tool_result")[-1]["content"] == "three\n\n[subagent_id: c1]", how
+		if how == "restart":  # the paused session's own run is still parked in this process
+			session.abort()
+			await handle.task
