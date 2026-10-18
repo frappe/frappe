@@ -100,6 +100,25 @@ describe("useEmailAccounts", () => {
     });
   });
 
+  it("makes a new account the default only where no account is", async () => {
+    const listed = call.getMockImplementation()!;
+    call.mockImplementation(async (method: string, args: Record<string, any>) =>
+      method === "frappe.client.get_list" && args.doctype === "Email Account"
+        ? ACCOUNTS.map((a) => ({ ...a, default_outgoing: 0 }))
+        : listed(method, args),
+    );
+    const c = useEmailAccounts("HD Ticket");
+    await c.load();
+    await c.create(services[0], {
+      ...emptyForm(),
+      email_account_name: "Support Inbox",
+    });
+
+    const [{ doc }] = calls("frappe.client.insert");
+    expect(doc.default_outgoing).toBe(1);
+    expect(doc).not.toHaveProperty("default_incoming");
+  });
+
   it("creates through frappe.client.insert, then reloads", async () => {
     const c = useEmailAccounts("HD Ticket");
     await c.create(services[0], {

@@ -240,6 +240,17 @@ export function newAccount(
   };
 }
 
+/** The directions `account` sends or receives that no account in `accounts` is the default for. */
+export function missingDefaults(
+  accounts: Pick<EmailAccount, "default_incoming" | "default_outgoing">[],
+  account: Record<"enable_incoming" | "enable_outgoing", number>,
+) {
+  return (["incoming", "outgoing"] as const).filter(
+    (kind) =>
+      account[`enable_${kind}`] && !accounts.some((a) => a[`default_${kind}`]),
+  );
+}
+
 /** The first problem with `form`, and the field it is on. A blank secret is fine when editing. */
 export function validate(
   service: EmailService,

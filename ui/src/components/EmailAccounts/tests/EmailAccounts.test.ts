@@ -239,6 +239,21 @@ it("reports a new one-click mailbox only once its account loads", async () => {
   expect(onCreated).toHaveBeenCalledWith("GMail");
 });
 
+it("makes a new one-click mailbox the default when no account is", async () => {
+  await landWith(
+    "email_oauth=connected&email_oauth_mailbox=sales%40example.com",
+  );
+  await settle();
+  expect(
+    call.mock.calls
+      .filter(([method]) => method === "frappe.client.set_value")
+      .map(([, args]) => [args.name, args.fieldname, args.value]),
+  ).toEqual([
+    ["Sales", "default_incoming", 1],
+    ["Sales", "default_outgoing", 1],
+  ]);
+});
+
 it("does not report a reconnected mailbox as created", async () => {
   const onCreated = await landWith(
     "email_oauth=reconnected&email_oauth_mailbox=sales%40example.com",

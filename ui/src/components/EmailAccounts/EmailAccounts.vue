@@ -32,7 +32,7 @@ import { translate as __ } from "../../utils/translate";
 import AccountAdd from "./AccountAdd.vue";
 import AccountEdit from "./AccountEdit.vue";
 import AccountList from "./AccountList.vue";
-import { mailboxAddress } from "./services";
+import { errorText, mailboxAddress, missingDefaults } from "./services";
 import type { EmailAccount } from "./types";
 import { useEmailAccounts } from "./useEmailAccounts";
 
@@ -102,13 +102,20 @@ if (connected || oauthResult.value === "reconnected") {
 if (connected) {
 	const stop = watch(
 		() => controller.accounts,
-		(accounts) => {
+		async (accounts) => {
 			const account = accounts.find(
 				(a) => a.email_id.toLowerCase() === mailbox?.toLowerCase()
 			);
 			if (!account) return;
 			stop();
 			emit("created", account.service);
+			try {
+				for (const kind of missingDefaults(accounts, account)) {
+					await controller.setDefault(kind, account.name);
+				}
+			} catch (e) {
+				toast.error(errorText(e) || __("Couldn't change the default account"));
+			}
 		}
 	);
 }
