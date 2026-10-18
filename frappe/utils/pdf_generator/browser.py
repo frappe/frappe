@@ -61,10 +61,11 @@ class Browser:
 							page.close()
 						except Exception:
 							frappe.log_error(f"Failed to close {attr} in Chrome")
-				try:
-					self.close()
-				except Exception:
-					frappe.log_error("Failed to disconnect CDP session")
+				if getattr(self, "session", None):
+					try:
+						self.close()
+					except Exception:
+						frappe.log_error("Failed to disconnect CDP session")
 			generator.remove_browser(self.browserID)
 		if self.debug_mode:
 			generator.detach_debug_browser()
