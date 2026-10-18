@@ -111,9 +111,7 @@ class TestRQJob(FrappeTestCase):
 			for q in ["default", "short"]:
 				frappe.enqueue(self.BG_JOB, sleep=1, queue=q)
 
-		_, stderr = execute_in_shell(
-			"bench worker-pool --queue short,default --burst --num-workers=4", check_exit_code=True
-		)
+		stderr = _diag_run_pool("bench worker-pool --queue short,default --burst --num-workers=4")
 		self.assertIn("quitting", cstr(stderr))
 
 	def test_job_id_manual_dedup(self):
@@ -194,3 +192,53 @@ def test_func(fail=False, sleep=0):
 		time.sleep(sleep)
 
 	return True
+
+
+def _diag_run_pool(cmd):
+	import os
+	import shutil
+	import signal
+	import subprocess
+	import tempfile
+
+	import psutil
+
+	env = dict(os.environ, PYTHONFAULTHANDLER="1")
+	with tempfile.TemporaryFile() as err:
+		p = subprocess.Popen(cmd, shell=True, stdout=err, stderr=err, env=env, executable="/bin/bash")
+		try:
+			p.wait(timeout=20)
+		except subprocess.TimeoutExpired:
+			print("\n===== DIAG: worker-pool hang =====", flush=True)
+			procs = psutil.Process(p.pid).children(recursive=True)
+			for c in procs:
+				try:
+					print("DIAG proc", c.pid, c.ppid(), c.status(), c.cmdline(), flush=True)
+				except Exception as e:
+					print("DIAG proc", c.pid, e, flush=True)
+			if shutil.which("py-spy"):
+				for c in procs:
+					r = subprocess.run(
+						["sudo", "-n", shutil.which("py-spy"), "dump", "--native", "--locals", "--pid", str(c.pid)],
+						capture_output=True,
+						text=True,
+					)
+					print(f"===== DIAG py-spy {c.pid} =====\n{r.stdout}\n{r.stderr}", flush=True)
+			for c in reversed(procs):
+				try:
+					os.kill(c.pid, signal.SIGABRT)
+				except Exception:
+					pass
+			time.sleep(3)
+			for c in procs:
+				try:
+					c.kill()
+				except Exception:
+					pass
+			p.kill()
+			p.wait()
+			err.seek(0)
+			print("===== DIAG stderr =====\n" + cstr(err.read()), flush=True)
+			raise Exception("worker-pool hang")
+		err.seek(0)
+		return err.read()

@@ -48,6 +48,8 @@ jobs:
 
     strategy:
       fail-fast: false
+      matrix:
+        run: [1, 2, 3, 4, 5, 6]
 
     services:
       mariadb:
@@ -134,7 +136,12 @@ jobs:
           DB: 'mariadb'
 
       - name: Run Tests
-        run: bench --site test_site run-parallel-tests
+        run: |
+          pip install py-spy
+          for i in $(seq 12); do
+            echo "##### DIAG iteration $i"
+            bench --site test_site run-tests --module frappe.core.doctype.rq_job.test_rq_job || echo "##### DIAG FAILED iteration $i"
+          done
         working-directory: /home/runner/frappe-bench
 
       - name: Show bench output
