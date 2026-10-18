@@ -22,6 +22,8 @@ SEARCH_LIMIT = 50
 class SearchDoctypesArguments(ToolArguments):
 	query: str | None = Field(default=None, min_length=1)
 	module: str | None = Field(default=None, min_length=1)
+	is_single: bool | None = None
+	is_submittable: bool | None = None
 
 
 class DoctypeArguments(ToolArguments):
@@ -40,16 +42,25 @@ class DocumentMethodSchemaArguments(DoctypeArguments):
 	method: str = Field(min_length=1)
 
 
-def search_doctypes(query: str | None = None, module: str | None = None) -> list[dict]:
+def search_doctypes(
+	query: str | None = None,
+	module: str | None = None,
+	is_single: bool | None = None,
+	is_submittable: bool | None = None,
+) -> list[dict]:
 	filters = {"istable": 0}
 	if query is not None:
 		filters["name"] = ("like", f"%{query}%")
 	if module is not None:
 		filters["module"] = module
+	if is_single is not None:
+		filters["issingle"] = is_single
+	if is_submittable is not None:
+		filters["is_submittable"] = is_submittable
 	return frappe.get_all(
 		"DocType",
 		filters=filters,
-		fields=["name", "module", "issingle", "is_submittable"],
+		fields=["name", "module"],
 		order_by="name",
 		limit=SEARCH_LIMIT,
 	)
@@ -111,7 +122,7 @@ def without(data: dict, *keys: str) -> dict:
 
 SEARCH_DOCTYPES = Tool(
 	name="search_doctypes",
-	description="Search DocTypes by name or module. Returns up to 50, without child tables.",
+	description="Search DocTypes by name, module, is_single, and is_submittable. Returns up to 50, without child tables.",
 	arguments=SearchDoctypesArguments,
 	handler=search_doctypes,
 	annotations={"readOnlyHint": True},

@@ -71,6 +71,27 @@ class TestDiscover(McpTestCase):
 		self.assertTrue(result["result"])
 		self.assertTrue(all(row["module"] == "Desk" for row in result["result"]))
 
+	def test_search_filters_metadata(self):
+		for name, is_single, is_submittable, matches in (
+			("System Settings", True, False, True),
+			("System Settings", False, False, False),
+			("System Settings", True, True, False),
+			("MapReduce Job", False, True, True),
+			("MapReduce Job", False, False, False),
+			("MapReduce Job", True, True, False),
+		):
+			with self.subTest(name=name, is_single=is_single, is_submittable=is_submittable):
+				result = self.result(
+					"search_doctypes",
+					{
+						"query": name,
+						"module": "Core",
+						"is_single": is_single,
+						"is_submittable": is_submittable,
+					},
+				)
+				self.assertEqual(result["result"], [{"name": name, "module": "Core"}] if matches else [])
+
 	def test_schema_fields_and_permissions(self):
 		result = self.result("get_doctype_schema", {"doctype": "ToDo"})
 		self.assertEqual(result["title_field"], "description")
@@ -115,6 +136,8 @@ class TestDiscover(McpTestCase):
 	def test_invalid_arguments_and_unknown_doctype(self):
 		for tool, arguments in (
 			("search_doctypes", {"query": []}),
+			("search_doctypes", {"is_single": "true"}),
+			("search_doctypes", {"is_submittable": "false"}),
 			("search_doctypes", {"query": "ToDo", "doctype": "ToDo"}),
 			("get_doctype_schema", {}),
 			("get_doctype_schema", {"doctype": 1}),
