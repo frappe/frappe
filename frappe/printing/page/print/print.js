@@ -1196,7 +1196,8 @@ frappe.ui.form.PrintView = class {
 					(this.get_print_style()
 						? "&style=" + encodeURIComponent(this.get_print_style())
 						: "") +
-					(pdf_generator ? "&pdf_generator=" + encodeURIComponent(pdf_generator) : "")
+					"&pdf_generator=" +
+					encodeURIComponent(pdf_generator || "chrome")
 			)
 		);
 		if (!w) {
