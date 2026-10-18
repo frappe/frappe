@@ -41,7 +41,7 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 
 	A beta format that picked Typst always renders with Typst. Otherwise an explicit
 	choice wins, then the format's own setting, then the PDF Generator in Print
-	Settings, which falls back to Chromium for a format PlutoPrint cannot render.
+	Settings. PlutoPrint falls back to Chromium for a format it cannot render.
 
 	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
 	HTML pipeline's PDF consumers reach the Typst renderer too.
@@ -52,10 +52,11 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	if print_format and uses_beta_renderer(print_format) and print_format.get("pdf_generator") == "Typst":
 		return "Typst"
 	known = get_pdf_generators()
-	for generator in (pdf_generator, print_format and print_format.get("pdf_generator")):
-		if generator and generator in known:
-			return generator
-	generator = frappe.db.get_single_value("Print Settings", "pdf_generator") or "PlutoPrint"
+	generator = next(
+		(g for g in (pdf_generator, print_format and print_format.get("pdf_generator")) if g and g in known),
+		None,
+	)
+	generator = generator or frappe.db.get_single_value("Print Settings", "pdf_generator") or "PlutoPrint"
 	if generator == "PlutoPrint" and plutoprint_blockers(print_format):
 		return "chrome"
 	return generator
