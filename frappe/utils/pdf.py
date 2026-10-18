@@ -28,6 +28,7 @@ from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
 cssutils.log.setLog(frappe.logger("cssutils"))
 
+<<<<<<< HEAD
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
 	"ContentOperationNotPermittedError",
@@ -51,6 +52,13 @@ class FrappePDFKit(OriginalPDFKit):
 pdfkit.PDFKit = FrappePDFKit
 pdfkit.pdfkit.PDFKit = FrappePDFKit
 pdfkit.api.PDFKit = FrappePDFKit
+=======
+if TYPE_CHECKING:
+	import cssutils
+	from bs4 import BeautifulSoup
+	from pypdf import PdfReader, PdfWriter
+	from pypdf.generic import DictionaryObject
+>>>>>>> 8a2195f (perf(pdf): skip optimizing large pdfs that have no images)
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
@@ -170,7 +178,20 @@ def measure_time(func):
 
 
 @measure_time
+<<<<<<< HEAD
 def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
+=======
+def get_pdf(
+	html: str,
+	options: dict | None = None,
+	output: "PdfWriter" | None = None,
+	print_format: str | None = None,
+):
+	"""Render `html` to PDF with Chromium."""
+	from pypdf import PdfReader
+
+	from frappe.utils.chromium import ChromiumManager
+>>>>>>> 8a2195f (perf(pdf): skip optimizing large pdfs that have no images)
 	from frappe.utils.pdf_generator.browser import Browser
 	from frappe.utils.pdf_generator.chrome_pdf_generator import ChromePDFGenerator
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
@@ -188,7 +209,21 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 		# transforms and merges header, footer into body pdf and returns merged pdf
 		return transformer.transform_pdf(output=output)
 	finally:
+<<<<<<< HEAD
 		generator._close_browser()
+=======
+		generator.release(token)
+
+	if output:
+		return pdf
+	if len(pdf) > LARGE_PDF_SIZE and any(
+		_has_image_xobject(page) for page in PdfReader(io.BytesIO(pdf)).pages
+	):
+		pdf = optimize_pdf(pdf, notify=False)
+	if password:
+		pdf = encrypt_pdf(pdf, password)
+	return pdf
+>>>>>>> 8a2195f (perf(pdf): skip optimizing large pdfs that have no images)
 
 
 def get_file_data_from_writer(writer_obj):
@@ -488,6 +523,142 @@ def pdf_contains_js(file_content: bytes):
 	return False
 
 
+<<<<<<< HEAD
+=======
+def _reader_has_signature(reader: "PdfReader") -> bool:
+	"""Check an already-open PdfReader for a signed digital-signature field.
+
+	Optimizing a signed PDF would silently break its signature,
+	so callers should skip optimization when this returns True.
+
+	Returns True (fail-safe) if the fields can't be inspected.
+	"""
+	from pypdf.errors import PyPdfError
+
+	try:
+		fields = reader.get_fields() or {}
+		return any(field.get("/FT") == "/Sig" and field.get("/V") for field in fields.values())
+	except (PyPdfError, KeyError, ValueError):
+		return True
+
+
+def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
+	"""Check declared image XObject dimensions without decoding any pixel data.
+	Avoid exhausting memory in loading image.
+	"""
+	for page in reader.pages:
+		try:
+			xobjects = page["/Resources"]["/XObject"]
+		except KeyError:
+			continue
+		for xobj in xobjects.values():
+			xobj = xobj.get_object()
+			if xobj.get("/Subtype") != "/Image":
+				continue
+			width = int(xobj.get("/Width", 0))
+			height = int(xobj.get("/Height", 0))
+			if width * height > max_pixels:
+				return True
+	return False
+
+
+def _has_image_xobject(page_or_form: "DictionaryObject") -> bool:
+	"""Look for image XObjects, including inside form XObjects, without the inline image scan of
+	every content stream that `page.images` runs, which takes seconds on long text-only PDFs.
+	"""
+	try:
+		xobjects = page_or_form["/Resources"]["/XObject"]
+	except KeyError:
+		return False
+	for xobj in xobjects.values():
+		xobj = xobj.get_object()
+		if xobj.get("/Subtype") == "/Image":
+			return True
+		if xobj.get("/Subtype") == "/Form" and _has_image_xobject(xobj):
+			return True
+	return False
+
+
+def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600, notify: bool = True) -> bytes:
+	"""Recompress embedded raster images and compress content streams to shrink a PDF.
+
+	Only benefits image-heavy PDFs (e.g. scanned documents); text/vector-only PDFs
+	won't shrink meaningfully. Falls back to the original content if optimization
+	fails, doesn't actually reduce the size, if the PDF is digitally signed, or if
+	it contains an image large enough to risk exhausting memory on decode.
+	"""
+	import zlib
+	from io import BytesIO
+
+	from PIL import Image, UnidentifiedImageError
+	from pypdf import PdfReader, PdfWriter
+	from pypdf.errors import PyPdfError
+
+	try:
+		reader = PdfReader(BytesIO(content))
+
+		if _reader_has_signature(reader):
+			return content
+
+		if _pdf_has_oversized_image(reader, Image.MAX_IMAGE_PIXELS):
+			return content
+
+		writer = PdfWriter(clone_from=reader)
+
+		unexpected_image_error_logged = False
+		for page in writer.pages:
+			for image_id in page.images.keys():
+				try:
+					img_file = page.images[image_id]
+					image = img_file.image
+					if image.width > max_dim or image.height > max_dim:
+						image.thumbnail((max_dim, max_dim), Image.Resampling.LANCZOS)
+					img_file.replace(image, quality=quality, optimize=True)
+				except (
+					PyPdfError,
+					UnidentifiedImageError,
+					Image.DecompressionBombError,
+					OSError,
+					ValueError,
+					EOFError,
+					zlib.error,
+				):
+					# skip this image rather than abandoning the whole document
+					continue
+				except Exception:
+					if not unexpected_image_error_logged:
+						frappe.log_error(
+							title=_("Unexpected error while optimizing one image in PDF"),
+							defer_insert=True,
+						)
+						unexpected_image_error_logged = True
+					continue
+			page.compress_content_streams()  # This is CPU intensive!
+
+		writer.compress_identical_objects(remove_duplicates=True, remove_unreferenced=True)
+
+		output = BytesIO()
+		writer.write(output)
+		optimized_content = output.getvalue()
+		return optimized_content if len(optimized_content) < len(content) else content
+	except (
+		PyPdfError,
+		UnidentifiedImageError,
+		Image.DecompressionBombError,
+		OSError,
+		ValueError,
+		EOFError,
+		zlib.error,
+	) as e:
+		if notify:
+			frappe.msgprint(_("Failed to optimize PDF: {0}").format(str(e)))
+		return content
+	except Exception:
+		frappe.log_error(title=_("Unexpected error while optimizing PDF"))
+		return content
+
+
+>>>>>>> 8a2195f (perf(pdf): skip optimizing large pdfs that have no images)
 def get_host_url():
 	if frappe.request:
 		return frappe.request.host_url
