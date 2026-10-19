@@ -1,7 +1,7 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
 import {
 	applyEvent,
 	approvalToAnswer,
@@ -101,6 +101,8 @@ export function createFlowStore(client, options = {}) {
 		folderOrder: [], // workspace folders in their manual order
 		workspaceWidth: 460,
 		explorerWidth: 220,
+		chatFontSize: CHAT_FONT_SIZE.default,
+		chatFontWeight: CHAT_FONT_WEIGHT.default,
 		...readJSON(keys.prefs, {}),
 	}
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
@@ -1380,6 +1382,18 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
+	// to the hundredth: stepping 15.01 by 1 would otherwise land on 16.009999999999998
+	function setChatFontSize(px) {
+		const size = Math.min(CHAT_FONT_SIZE.max, Math.max(CHAT_FONT_SIZE.min, px))
+		state.prefs.chatFontSize = Math.round(size * 100) / 100
+		savePrefs()
+	}
+
+	function setChatFontWeight(weight) {
+		state.prefs.chatFontWeight = weight
+		savePrefs()
+	}
+
 	function setSettingsOpen(open) {
 		state.settingsOpen = open
 	}
@@ -1560,6 +1574,8 @@ export function createFlowStore(client, options = {}) {
 		setFolderOpen,
 		setSidebarView,
 		setCustomInstructions,
+		setChatFontSize,
+		setChatFontWeight,
 		setSettingsOpen,
 		setTranscriptOpen,
 		activePreset,

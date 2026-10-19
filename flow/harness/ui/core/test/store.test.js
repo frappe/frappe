@@ -913,7 +913,17 @@ test("saved state lives under the host's storage key, and an old saved theme mov
 		flow.setFolderOpen("/w/api", true)
 		flow.setFolderOpen("/w/app", false)
 		flow.setSidebarView({ sidebarOrder: "manual", chatOrder: ["s2", "s1"] })
+		// the chat text size starts at 14.5px, steps only within its bounds and keeps two decimals
+		assert.equal(flow.state.prefs.chatFontSize, 14.5)
+		flow.setChatFontSize(30)
+		assert.equal(flow.state.prefs.chatFontSize, 22)
+		flow.setChatFontSize(4)
+		assert.equal(flow.state.prefs.chatFontSize, 12)
+		flow.setChatFontSize(15.01 + 1) // 16.009999999999998
+		flow.setChatFontWeight(500)
 		const saved = JSON.parse(backing.get("flow.ui:site:user.prefs"))
+		assert.equal(saved.chatFontSize, 16.01)
+		assert.equal(saved.chatFontWeight, 500)
 		assert.equal(saved.sidebarOpen, false)
 		assert.deepEqual(saved.openFolders, ["/w/api"])
 		assert.deepEqual([saved.sidebarGroup, saved.sidebarOrder, saved.chatOrder], ["workspace", "manual", ["s2", "s1"]])

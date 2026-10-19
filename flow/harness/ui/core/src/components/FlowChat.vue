@@ -1,6 +1,12 @@
 <template>
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel -->
-	<div class="flex h-full min-h-0 overflow-clip bg-surface-base text-base text-ink-gray-8">
+	<div
+		class="flex h-full min-h-0 overflow-clip bg-surface-base text-base text-ink-gray-8"
+		:style="{
+			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
+			'--flow-chat-weight': store.state.prefs.chatFontWeight,
+		}"
+	>
 		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
 		<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
 			<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
@@ -41,6 +47,7 @@
 		<Dialogs />
 		<SettingsDialog :groups="SETTINGS">
 			<template #general><SettingsGeneral /></template>
+			<template #appearance><SettingsAppearance /></template>
 			<template #presets><SettingsPresets /></template>
 			<template #skills><SettingsSkills /></template>
 		</SettingsDialog>
@@ -76,6 +83,7 @@ import Composer from "./Composer.vue"
 import EditorView from "./EditorView.vue"
 import MessageList from "./MessageList.vue"
 import SessionSidebar from "./SessionSidebar.vue"
+import SettingsAppearance from "./SettingsAppearance.vue"
 import SettingsDialog from "./SettingsDialog.vue"
 import SettingsGeneral from "./SettingsGeneral.vue"
 import SettingsPresets from "./SettingsPresets.vue"
@@ -88,6 +96,7 @@ const SETTINGS = [
 		label: "Settings",
 		tabs: [
 			{ id: "general", label: "General", icon: "sliders" },
+			{ id: "appearance", label: "Appearance", icon: "palette" },
 			{ id: "presets", label: "Agent presets", icon: "layers" },
 			{ id: "skills", label: "Skills", icon: "book-open" },
 		],

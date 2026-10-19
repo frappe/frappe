@@ -188,7 +188,7 @@
 					<button class="underline" :disabled="locked" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
 				<!-- 16px on phones: iPhone Safari zooms into smaller fields (the overlay mirrors the box) -->
-				<div class="relative">
+				<div class="flow-draft relative">
 					<div
 						v-if="skillParts"
 						aria-hidden="true"
