@@ -1,3 +1,10 @@
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
+
+from babel.messages.catalog import Catalog
+from babel.messages.pofile import read_po, write_po
+
 from frappe.gettext.translate import (
 	generate_pot,
 	get_is_gitignored_function_for_app,
@@ -5,6 +12,7 @@ from frappe.gettext.translate import (
 	get_mo_path,
 	get_po_path,
 	get_pot_path,
+	migrate,
 	new_catalog,
 	new_po,
 	write_binary,
@@ -63,6 +71,34 @@ class TestTranslate(IntegrationTestCase):
 
 		self.assertTrue(po_path.exists())
 		self.assertIn("msgid", po_path.read_text())
+
+	def test_migrate_csv_to_po(self):
+		with tempfile.TemporaryDirectory() as app_path:
+			app_path = Path(app_path)
+			locale_dir = app_path / "locale"
+			locale_dir.mkdir()
+			catalog = Catalog()
+			for message in ("% Billed", "From Dash", "From Underscore"):
+				catalog.add(message)
+			with (locale_dir / "main.pot").open("wb") as pot_file:
+				write_po(pot_file, catalog)
+
+			translations_dir = app_path / "translations"
+			translations_dir.mkdir()
+			(translations_dir / "zh-TW.csv").write_text(
+				'"% Billed","% verrechnet"\n"From Dash","Mit Bindestrich"\n'
+			)
+			(translations_dir / "zh_tw.csv").write_text('"From Underscore","Mit Unterstrich"\n')
+
+			with patch("frappe.gettext.translate.frappe.get_app_path", return_value=str(app_path)):
+				migrate("test_app")
+
+			with (locale_dir / "zh_TW.po").open("rb") as po_file:
+				catalog = read_po(po_file)
+
+			self.assertEqual(catalog.get("% Billed").string, "% verrechnet")
+			self.assertEqual(catalog.get("From Dash").string, "Mit Bindestrich")
+			self.assertEqual(catalog.get("From Underscore").string, "Mit Unterstrich")
 
 	def test_gitignore(self):
 		import os
