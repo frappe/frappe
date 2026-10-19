@@ -200,7 +200,7 @@ export function islandConfig(context) {
 			// the legacy pipeline's output or another app's islands. An entry
 			// the app dropped leaves in the same build.
 			emptyOutDir: true,
-			minify: context.mode === "production" ? "esbuild" : false,
+			minify: context.mode === "production",
 			sourcemap: false,
 			// One stylesheet for the app, adopted into every island's shadow
 			// root. ../../island/decisions/0004-an-app-ships-one-island-stylesheet.md
