@@ -397,12 +397,24 @@ def get_user_facing_error(traceback: str | None) -> str:
 
 	lines = traceback.strip().splitlines()
 	message = lines[-1]
-	# a traceback ends in "module.Exception: message", a single line is already the message
+
 	if len(lines) > 1:
-		message = message.partition(": ")[2]
+		# Find the last traceback header, in case there are chained exceptions.
+		start = max(
+			(i for i, line in enumerate(lines) if line.startswith("Traceback ")),
+			default=0,
+		)
+
+		# Skip stack frames and find the first non-indented line after the header.
+		exception_line = next(
+			(line for line in lines[start + 1 :] if line and not line[0].isspace()),
+			message,
+		)
+
+		# Remove the exception class, keeping only its message.
+		message = exception_line.partition(": ")[2]
 
 	message = re.sub(r"<[^>]*>", " ", message)
-
 	return unescape(" ".join(message.split()))
 
 

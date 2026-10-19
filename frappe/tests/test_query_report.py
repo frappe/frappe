@@ -63,6 +63,17 @@ class TestQueryReport(IntegrationTestCase):
 				thrown.format("TypeError: unsupported operand type(s) for /: 'int' and 'str'")
 			),
 		)
+		# postgres adds the query and a caret below the message
+		self.assertEqual(
+			'relation "tabNoSuchTable" does not exist',
+			get_user_facing_error(
+				thrown.format(
+					'psycopg2.errors.UndefinedTable: relation "tabNoSuchTable" does not exist\n'
+					'LINE 1: select * from "tabNoSuchTable"\n'
+					"                      ^"
+				)
+			),
+		)
 		# nothing to say when the exception carried no message
 		self.assertEqual("", get_user_facing_error(thrown.format("frappe.exceptions.ValidationError")))
 		self.assertEqual("", get_user_facing_error(None))
