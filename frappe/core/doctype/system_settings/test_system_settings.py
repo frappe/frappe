@@ -41,7 +41,8 @@ class TestClassicChartsOnUpgrade(IntegrationTestCase):
 		frappe.db.set_default("use_classic_charts", 0)
 
 	def test_an_upgrading_site_keeps_classic_charts(self):
-		frappe.get_attr(self.PATCH + ".execute")()
+		with patch("frappe.is_setup_complete", return_value=True):
+			frappe.get_attr(self.PATCH + ".execute")()
 
 		self.assertEqual(frappe.db.get_single_value("System Settings", "use_classic_charts"), 1)
 		self.assertEqual(frappe.defaults.get_defaults()["use_classic_charts"], "1")
