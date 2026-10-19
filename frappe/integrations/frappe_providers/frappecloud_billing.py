@@ -143,7 +143,6 @@ def send_verification_code():
 	request = post(
 		"press.api.developer.saas.send_verification_code",
 		json={"domain": get_site_name()},
-		timeout=(5, 10),
 	)
 	if request.status_code == 200:
 		return request.json().get("message")
@@ -156,7 +155,6 @@ def verify_verification_code(verification_code: str, route: str):
 	request = post(
 		"press.api.developer.saas.verify_verification_code",
 		json={"domain": get_site_name(), "verification_code": verification_code, "route": route},
-		timeout=(5, 10),
 	)
 
 	if request.status_code == 200:
