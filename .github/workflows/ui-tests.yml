@@ -132,10 +132,67 @@ jobs:
             cat $f
           done
 
+  studio:
+    name: Studio Component Tests
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      NODE_ENV: "production"
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3 --tmpfs=/var/lib/mysql:rw,noexec,nosuid,size=2g
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+
+      # the editor's yarn install (part of bench build) downloads the Cypress binary
+      - name: Cache Cypress binary
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('studio/yarn.lock') }}
+
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: '3.14'
+          node-version: 24
+          build-assets: true
+          disable-socketio: true
+          disable-workers: true
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: mariadb
+
+      # the data-source specs call the test site through the dev server's proxy
+      - name: Run Component Tests
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio
+          yarn test:cypress
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-screenshots
+          path: apps/${{ github.event.repository.name }}/studio/cypress/screenshots
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+
   # TIP: Require this single check in branch protection, e.g. UI / Success
   success:
     name: UI Success
-    needs: [test]
+    needs: [test, studio]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -144,6 +201,7 @@ jobs:
         run: |
           stati = [
             '${{ needs.test.result }}',
+            '${{ needs.studio.result }}',
           ]
 
           nopass = ["failure", "cancelled"]
