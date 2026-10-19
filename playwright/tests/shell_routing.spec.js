@@ -634,4 +634,21 @@ test.describe("Desk URL shell segment", () => {
 		expect(result.open_after_escape).toBe(false);
 		expect(result.focus_handed_back, "focus handed back").toBe(true);
 	});
+
+	test("keeps a collapsed sidebar collapsed when a dock tile is clicked", async ({
+		page,
+		desk,
+	}) => {
+		await open_desk(page, desk);
+		await page.evaluate(() => frappe.app.sidebar.close());
+		const from = pathname(page);
+
+		await page.locator(".dock-items .dock-item:not(.active)").first().click();
+
+		await expect.poll(() => pathname(page)).not.toBe(from);
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
+		await page.reload();
+		await desk.ready();
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
+	});
 });

@@ -14,6 +14,7 @@ frappe.ui.Dock = class Dock {
 		this.is_pinned = false;
 		this.opener = null;
 		this.tooltips = [];
+		this.utility_tooltips = [];
 		this.make();
 	}
 
@@ -29,6 +30,7 @@ frappe.ui.Dock = class Dock {
 					</div>
 				</a>
 			</div>
+			<div class="dock-utilities"></div>
 			<div class="dock-items"></div>
 			<div class="dock-user">
 				<button class="dock-item dock-user-button" aria-label="${__("User Menu")}">
@@ -51,6 +53,7 @@ frappe.ui.Dock = class Dock {
 		this.$header.on("click", () => this.close());
 
 		this.setup_user_menu();
+		this.render_utilities();
 		this.setup_reveal();
 		this.setup_shortcut();
 		this.apply_open_state();
@@ -98,6 +101,50 @@ frappe.ui.Dock = class Dock {
 			offset: 10,
 			class: "es-tooltip--plain",
 		});
+	}
+
+	// Search and notifications lead the tray, and the sidebar drops its own rows for them while
+	// the dock is active (see dock.scss). The classes are what the search modal and the
+	// notifications panel already listen on.
+	render_utilities() {
+		if (frappe.session.user === "Guest") return;
+		const $utilities = this.$dock.find(".dock-utilities");
+
+		if (frappe.boot.desk_settings.search_bar) {
+			$utilities.append(
+				this.make_utility({
+					label: __("Search"),
+					icon: "search",
+					css_class: "navbar-modal-search-mobile",
+				})
+			);
+		}
+
+		if (frappe.boot.desk_settings.notifications) {
+			const unread = frappe.boot.notification_unread_count || 0;
+			const $bell = this.make_utility({
+				label: __("Notifications"),
+				icon: "bell",
+				css_class: "sidebar-notification",
+				badge: `<span class="notification-count dock-item-dot ${
+					unread > 0 ? "" : "hidden"
+				}" aria-live="polite"></span>`,
+			});
+			$bell.on("click", () => frappe.ui.sidebar_panels.toggle("notifications"));
+			$utilities.append($bell);
+		}
+	}
+
+	make_utility({ label, icon, css_class, badge = "" }) {
+		const $item =
+			$(`<button class="dock-item ${css_class}" aria-label="${frappe.utils.escape_html(
+				label
+			)}">
+			<span class="dock-item-icon">${frappe.utils.icon(icon, "sm")}</span>
+			${badge}
+		</button>`);
+		this.name_tile($item, label, this.utility_tooltips);
+		return $item;
 	}
 
 	// `any-hover`, not `hover`: a tablet with a trackpad reports touch as its primary input.
@@ -189,7 +236,7 @@ frappe.ui.Dock = class Dock {
 		this.opener = null;
 
 		this.is_open = false;
-		this.tooltips.forEach((tip) => tip.hide());
+		[...this.tooltips, ...this.utility_tooltips].forEach((tip) => tip.hide());
 		this.apply_open_state();
 
 		// Focus in a dock turning inert would fall to <body>.
@@ -270,8 +317,8 @@ frappe.ui.Dock = class Dock {
 			: frappe.utils.desktop_icon(label, "gray", "sm");
 	}
 
-	name_tile($el, label) {
-		this.tooltips.push(
+	name_tile($el, label, tooltips = this.tooltips) {
+		tooltips.push(
 			new frappe.ui.Tooltip($el[0], {
 				text: label,
 				side: "right",
