@@ -111,6 +111,8 @@ ADAPTERS.register_loader("uuid", TextLoader)
 
 # Postgres only accepts bound parameters in these statements; the rest are bound client-side.
 SERVER_BOUND_QUERY_TYPES = frozenset(("select", "insert", "update", "delete", "with"))
+# the protocol counts parameters in 16 bits
+MAX_BOUND_PARAMETERS = 65_535
 PLACEHOLDER_PATTERN = re.compile(
 	r"%%|(?P<keyword>\b(?P<negated>not\s+)?in\s*)?%(?:\((?P<key>[^)]+)\))?s", flags=re.IGNORECASE
 )
@@ -401,7 +403,9 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return bind_values(query, values)
 
 	def execute_query(self, query, values=None):
-		if values and get_query_type(query) not in SERVER_BOUND_QUERY_TYPES:
+		if values and (
+			len(values) > MAX_BOUND_PARAMETERS or get_query_type(query) not in SERVER_BOUND_QUERY_TYPES
+		):
 			query, values = self.mogrify(query, values), None
 		return self._cursor.execute(query, values)
 
