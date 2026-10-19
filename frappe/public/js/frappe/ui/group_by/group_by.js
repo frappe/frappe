@@ -341,11 +341,13 @@ frappe.ui.GroupBy = class {
 		let get_fieldname = (name) => name.split(".")[1].replace(/`/g, "");
 		let get_doctype = (name) => name.split(".")[0].replace(/`/g, "").replace(/^tab/, "");
 
-		this.group_by_fields_selected = settings.group_by.map((group_by) =>
-			group_by.startsWith("`tab")
-				? { fieldname: get_fieldname(group_by), doctype: get_doctype(group_by) }
-				: { fieldname: group_by, doctype: this.doctype }
-		);
+		this.group_by_fields_selected = settings.group_by
+			.map((group_by) =>
+				group_by.startsWith("`tab")
+					? { fieldname: get_fieldname(group_by), doctype: get_doctype(group_by) }
+					: { fieldname: group_by, doctype: this.doctype }
+			)
+			.filter((f) => this.report_view.is_queryable_field(f.fieldname, f.doctype));
 
 		this.aggregates = settings.aggregates.map((aggregate) => {
 			const aggregate_on = aggregate.aggregate_on;

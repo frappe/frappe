@@ -564,14 +564,11 @@ export default class ChartWidget extends Widget {
 		let dialog = new frappe.ui.Dialog({
 			title: __("Set Filters for {0}", [__(this.chart_doc.chart_name)]),
 			fields: fields,
-			primary_action: function () {
-				let values = this.get_values();
-				if (values) {
-					this.hide();
-					me.filters = values;
-					me.save_chart_config_for_user({ filters: me.filters });
-					me.fetch_and_update_chart();
-				}
+			primary_action: function (values) {
+				this.hide();
+				me.filters = values;
+				me.save_chart_config_for_user({ filters: me.filters });
+				me.fetch_and_update_chart();
 			},
 			primary_action_label: __("Set"),
 		});

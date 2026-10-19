@@ -15,6 +15,26 @@ function add_typed_text(control, reason, free_text) {
 	const match = cb.match_option(query);
 	if (match) cb.add_value(match);
 	else if (free_text) cb.add_value(query);
+	// rows not loaded yet (a paste, then Tab): look the text up, as the Link field does
+	else if (cb.rows_pending) return look_up_typed_text(control, query);
+}
+
+function look_up_typed_text(control, query) {
+	const cb = control.combobox;
+	const lookup = (control.typed_lookup = {});
+	const values_at_close = JSON.stringify(cb.get_value());
+	const doc_at_close = control.frm?.doc;
+	// false only when outdated: a waiting Ctrl+S is then not sent
+	return Promise.resolve(control.fetch_options(query))
+		.then((result) => {
+			// a newer lookup, a change to the field (Clear all, a pick) or another document wins
+			if (control.typed_lookup !== lookup || control.frm?.doc !== doc_at_close) return false;
+			if (JSON.stringify(cb.get_value()) !== values_at_close) return false;
+			const rows = Array.isArray(result) ? result : result.rows;
+			const found = frappe.ui.Combobox.match_in(rows, query);
+			if (found && cb.trigger_el.isConnected) cb.add_value(found);
+		})
+		.catch(() => {});
 }
 
 // ---- Table MultiSelect: child rows, searched like a Link field ----
@@ -48,10 +68,12 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 				this.autocomplete_open = true;
 				this.picked_query = null;
 			},
-			// Ctrl+S waits for picks still being saved
+			// Ctrl+S waits for the typed text lookup and the picks still being saved
 			on_close: (reason) => {
 				this.autocomplete_open = false;
-				add_typed_text(this, reason, false);
+				const lookup = add_typed_text(this, reason, false);
+				if (lookup)
+					return lookup.then((done) => (done === false ? false : this.sync_chain));
 				return this.sync_pending ? this.sync_chain : undefined;
 			},
 			on_change: () => {
@@ -161,6 +183,7 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 				if (--this.sync_pending) return;
 				// show what was saved: a value that failed validation drops out
 				this.set_formatted_input(this._get_rows());
+				this.$input.trigger("awesomplete-selectcomplete");
 			});
 	}
 
@@ -256,7 +279,7 @@ frappe.ui.form.ControlMultiSelectPillsCombobox = class ControlMultiSelectPillsCo
 				);
 			});
 		}
-		// a get_data override (the email composer) loads rows and calls set_data
+		// a get_data set on the control loads rows and calls set_data, as on the classic control
 		if (Object.prototype.hasOwnProperty.call(this, "get_data")) {
 			if (query !== this.asked_query) {
 				this.asked_query = query;
@@ -331,7 +354,10 @@ frappe.ui.form.ControlMultiSelectPillsCombobox = class ControlMultiSelectPillsCo
 
 	on_pick_values(values) {
 		this.rows = values;
-		this.validate_and_set_in_model(this.model_value(values));
+		// dialogs refresh depends_on on this event; "change" would set the value twice
+		this.validate_and_set_in_model(this.model_value(values)).then(() =>
+			this.$input.trigger("awesomplete-selectcomplete")
+		);
 	}
 
 	model_value(values) {

@@ -137,7 +137,10 @@ def resolve_redirect(path, query_string=None):
 		frappe.flags.redirect_location = redirect_location
 		raise frappe.Redirect(status_code)
 
-	redirect_to = frappe.cache.hget("website_redirects", path or "/")
+	redirects = frappe.get_hooks("website_redirects")
+	use_cache = not (query_string and any(rule.get("match_with_query_string") for rule in redirects))
+
+	redirect_to = frappe.cache.hget("website_redirects", path or "/") if use_cache else None
 	if redirect_to:
 		if isinstance(redirect_to, dict):
 			raise_redirect(
@@ -151,8 +154,7 @@ def resolve_redirect(path, query_string=None):
 	if redirect_to is False:
 		return
 
-	redirects = frappe.get_hooks("website_redirects")
-	redirects += [
+	redirects = redirects + [
 		{
 			"source": r.source,
 			"target": r.target,
@@ -180,19 +182,21 @@ def resolve_redirect(path, query_string=None):
 			redirect_to = re.sub(pattern, rule["target"], path_to_match)
 			status_code = rule.get("redirect_http_status") or 301
 
-			frappe.cache.hset(
-				"website_redirects",
-				path_to_match or "/",
-				{
-					"path": redirect_to,
-					"status_code": status_code,
-					"forward_query_parameters": rule.get("forward_query_parameters"),
-				},
-			)
+			if use_cache:
+				frappe.cache.hset(
+					"website_redirects",
+					path or "/",
+					{
+						"path": redirect_to,
+						"status_code": status_code,
+						"forward_query_parameters": rule.get("forward_query_parameters"),
+					},
+				)
 
 			raise_redirect(redirect_to, status_code, rule.get("forward_query_parameters"))
 
-	frappe.cache.hset("website_redirects", path_to_match or "/", False)
+	if use_cache:
+		frappe.cache.hset("website_redirects", path or "/", False)
 
 
 def resolve_path(path):
@@ -226,7 +230,7 @@ def get_website_rules():
 	"""Get website route rules from hooks and DocType route"""
 
 	def _get():
-		rules = frappe.get_hooks("website_route_rules")
+		rules = list(frappe.get_hooks("website_route_rules"))
 		for d in frappe.get_all("DocType", "name, route", dict(has_web_view=1)):
 			if d.route:
 				rules.append(dict(from_route="/" + d.route.strip("/"), to_route=d.name))

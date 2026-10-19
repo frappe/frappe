@@ -7,6 +7,28 @@ const TITLE = ".navbar-breadcrumbs:visible li:last-child";
 
 const doctype_name = custom_submittable_doctype.name;
 
+function track_failed_report_requests(page) {
+	const failed_requests = [];
+	page.on("response", (response) => {
+		if (response.url().includes("frappe.desk.reportview.get") && !response.ok()) {
+			failed_requests.push(response.url());
+		}
+	});
+	return failed_requests;
+}
+
+async function save_report_group_by({ desk, api }, doctype, group_by = null) {
+	// the open view saves its own settings on render, let it finish before replacing them
+	await desk.ready();
+	const report = group_by
+		? { group_by: { group_by, aggregates: [{ aggregate_function: "count" }] } }
+		: {};
+	await api.call("frappe.model.utils.user_settings.save", {
+		doctype,
+		user_settings: JSON.stringify({ Report: report }),
+	});
+}
+
 test.describe("Report View", () => {
 	test.beforeAll(async ({ admin }) => {
 		await admin.insert_doc("DocType", custom_submittable_doctype, true);
@@ -213,6 +235,42 @@ test.describe("Report View group by button", () => {
 		await expect(popover).toBeHidden();
 	});
 
+	test("opens a saved view grouped by a field that cannot be queried", async ({
+		page,
+		api,
+		desk,
+	}) => {
+		const failed_requests = track_failed_report_requests(page);
+		const open_with_saved_group_by = async (group_by) => {
+			await save_report_group_by({ desk, api }, doctype, group_by);
+			await page.goto("/desk/report-group-by-label/view/report");
+			await expect(page.locator(".dt-row-0")).toBeVisible();
+		};
+		const comments = "`tabReport Group By Label`.`_comments`";
+		const category = "`tabReport Group By Label`.`category`";
+
+		try {
+			await open_with_saved_group_by([comments, category]);
+			expect(await page.evaluate(() => window.cur_list.group_by_control.group_by)).toBe(
+				category
+			);
+			await expect
+				.poll(() =>
+					page.evaluate(() => window.cur_list.data.map((row) => row.category).sort())
+				)
+				.toEqual(["A", "B"]);
+
+			await open_with_saved_group_by([comments]);
+			expect(
+				await page.evaluate(() => window.cur_list.group_by_control.group_by)
+			).toBeFalsy();
+
+			expect(failed_requests).toEqual([]);
+		} finally {
+			await save_report_group_by({ desk, api }, doctype);
+		}
+	});
+
 	test("keeps decimals in minimum and maximum totals", async ({ page }) => {
 		await page.evaluate(() => {
 			const amount = "`tabReport Group By Label`.`amount`";
@@ -237,5 +295,89 @@ test.describe("Report View group by button", () => {
 				})
 			)
 			.toEqual([10.25, 20.25]);
+	});
+});
+
+test.describe("Report View child table group by", () => {
+	const test_user = "test_report_child_group_by@example.com";
+	const role = "Report Child Group By Test Role";
+	const doctype = "Report Child Group By Parent";
+	const child_doctype = "Report Child Group By Row";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc("Role", { role_name: role, desk_access: 1 }, true);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: child_doctype,
+				custom: 1,
+				istable: 1,
+				module: "Custom",
+				fields: [
+					{ fieldname: "label", fieldtype: "Data", label: "Label" },
+					{ fieldname: "note", fieldtype: "Data", label: "Note", is_virtual: 1 },
+				],
+			},
+			true
+		);
+		await admin.insert_doc(
+			"DocType",
+			{
+				name: doctype,
+				custom: 1,
+				module: "Custom",
+				fields: [
+					{ fieldname: "label", fieldtype: "Data", label: "Label", is_virtual: 1 },
+					{
+						fieldname: "rows",
+						fieldtype: "Table",
+						label: "Rows",
+						options: child_doctype,
+					},
+				],
+				permissions: [{ role, read: 1, report: 1 }],
+			},
+			true
+		);
+		await admin.call("frappe.tests.ui_test_helpers.create_test_user", { username: test_user });
+		await admin.call("frappe.tests.ui_test_helpers.add_remove_role", {
+			action: "add",
+			user: test_user,
+			role,
+		});
+		await admin.insert_doc(doctype, { rows: [{ label: "A" }, { label: "B" }] });
+	});
+
+	test("checks the virtual flag on the child table", async ({ page, api, desk }) => {
+		await desk.login(test_user);
+		await page.goto("/desk/report-child-group-by-parent/view/report");
+		await expect(page.locator(".dt-row-0")).toBeVisible();
+
+		const failed_requests = track_failed_report_requests(page);
+		const open_with_saved_group_by = async (group_by) => {
+			await save_report_group_by({ desk, api }, doctype, group_by);
+			await page.goto("/desk/report-child-group-by-parent/view/report");
+			await expect(page.locator(".dt-row-0")).toBeVisible();
+		};
+		const child_label = "`tabReport Child Group By Row`.`label`";
+		const child_note = "`tabReport Child Group By Row`.`note`";
+
+		try {
+			// the parent has a virtual field of the same name, the child field is stored
+			await open_with_saved_group_by([child_label]);
+			expect(await page.evaluate(() => window.cur_list.group_by_control.group_by)).toBe(
+				child_label
+			);
+			await expect.poll(() => page.evaluate(() => window.cur_list.data.length)).toBe(2);
+
+			await open_with_saved_group_by([child_note]);
+			expect(
+				await page.evaluate(() => window.cur_list.group_by_control.group_by)
+			).toBeFalsy();
+
+			expect(failed_requests).toEqual([]);
+		} finally {
+			await save_report_group_by({ desk, api }, doctype);
+		}
 	});
 });

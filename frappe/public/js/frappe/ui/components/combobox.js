@@ -27,7 +27,8 @@ frappe.provide("frappe.ui");
  * @property {"custom"} type
  * @property {string|function} label Row text, or a function of { query }.
  * @property {string} [icon] Lucide icon name.
- * @property {function} onclick Called with { query, combobox }; closes the panel.
+ * @property {function} onclick Called with { query, combobox }; closes the panel, unless `keep_open`.
+ * @property {boolean} [keep_open] Keep the panel open after the click (MultiCombobox).
  * @property {function} [condition] Called with { query }; false hides the row.
  */
 
@@ -50,7 +51,7 @@ frappe.provide("frappe.ui");
  * @property {boolean} [open_on_focus=false] With `value_input`: focus opens the panel.
  * @property {boolean} [arrow_keys_open=true] Arrow keys open the closed trigger.
  * @property {Array<{icon: string, title: string, href?: string, css_class?: string, onclick?: function, shortcut?: "ctrl+enter"}>} [actions] Extra trigger buttons (`action_els`).
- * @property {function} [before_open] Called with the instance before the panel is built.
+ * @property {function} [before_open] Called with the instance before the panel is built; return false to keep it closed.
  * @property {function} [on_change] Called with (value, option).
  * @property {function} [on_open]
  * @property {function} [on_close] Called with the reason: "select" | "escape" | "outside" | "tab" | "owner" (a click on the trigger, a host's close) | "disabled" | "hidden".
@@ -524,7 +525,7 @@ frappe.ui.Combobox = class Combobox {
 
 	// clear opens the panel; on_change fires once, with the pick or null on close
 	clear() {
-		if (this.value == null) return;
+		if (this.value == null || this.disabled) return;
 		this.cleared_value = this.value;
 		this.cleared_option = this.selected;
 		this.set_value(null, { silent: true });
@@ -614,7 +615,7 @@ frappe.ui.Combobox = class Combobox {
 
 	open({ motion = "animated", query = "" } = {}) {
 		if (this.panel || this.disabled) return;
-		this.opts.before_open && this.opts.before_open(this);
+		if (this.opts.before_open && this.opts.before_open(this) === false) return;
 
 		const panel = document.createElement("div");
 		panel.className = "es-menu es-combobox__panel flex flex-col overflow-hidden";

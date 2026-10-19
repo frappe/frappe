@@ -132,7 +132,7 @@ def typst_blockers(print_format, layout) -> list[str]:
 		blockers.append(_("Custom HTML format"))
 		return blockers
 	if not print_format.get("print_format_builder_beta"):
-		blockers.append(_("Not a builder format"))
+		blockers.append(_("Not made in the Print Format Editor"))
 		return blockers
 	if (print_format.get("css") or "").strip():
 		blockers.append(_("Custom CSS in the Style box"))
@@ -149,6 +149,12 @@ def typst_blockers(print_format, layout) -> list[str]:
 			as_dict=True,
 		)
 		blockers.extend(letterhead_blockers(lh))
+
+	background = layout.get("background")
+	if isinstance(background, dict) and str(background.get("image") or "").startswith(
+		("http://", "https://", "//")
+	):
+		blockers.append(_("Background image loaded from a web address"))
 
 	colors = _unsafe_colors(print_format)
 	styled_fields = []
@@ -606,6 +612,9 @@ class TypstEmitter:
 		)
 		page_width, page_height = self._page_size_mm()
 		args = [f"width: {page_width}mm", f"height: {page_height}mm", f"margin: {margins}"]
+		background = self._page_background()
+		if background:
+			args.append(f"background: {background}")
 
 		slots = {"header": [], "footer": []}
 		position = PAGE_NUMBER_POSITIONS.get(pf.get("page_number") or "")
@@ -633,6 +642,24 @@ class TypstEmitter:
 			elif footer_zone:
 				args.append("footer-descent: 8pt")
 		return "#set page(" + ", ".join(args) + ")"
+
+	def _page_background(self) -> str | None:
+		background = self.layout.get("background")
+		if not background:
+			return None
+		name = self._embed_image(background["image"])
+		if not name:
+			frappe.throw(
+				_("The Typst renderer cannot embed this background image: {0}").format(
+					frappe.bold(background["image"][:100])
+				),
+				title=_("Typst renderer unavailable"),
+			)
+		veil = round(255 * (100 - background["opacity"]) / 100)
+		return (
+			f'[#image("{name}", width: 100%, height: 100%, fit: "stretch")'
+			f"#place(top + left, rect(width: 100%, height: 100%, fill: rgb(255, 255, 255, {veil})))]"
+		)
 
 	def _text_setup(self) -> str:
 		pf = self.print_format

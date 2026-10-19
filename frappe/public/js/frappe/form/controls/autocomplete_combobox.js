@@ -154,13 +154,13 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 
 	// ---- picking ----
 
-	// trigger change so the value is set and .on("change") listeners run
 	drop_lookup() {
 		this.lookup = null;
 		this.pending_text = null;
 		this.combobox.release_clear();
 	}
 
+	// trigger change so the value is set and .on("change") listeners run
 	on_pick(value) {
 		// a pick cancels the typed text check
 		this.drop_lookup();

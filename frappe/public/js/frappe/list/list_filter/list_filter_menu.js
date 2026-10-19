@@ -313,8 +313,8 @@ export const ListFilterMenu = {
 		this._applying_layout = true;
 		lv.last_args = null;
 		lv.sort_by = sort_by;
-		lv.sort_order = sort_order;
-		lv.sort_selector?.set_value(sort_by, sort_order);
+		lv.sort_order = sort_order.toLowerCase();
+		lv.sort_selector?.set_value(sort_by, lv.sort_order);
 
 		const apply_columns = () => {
 			lv.column_max_widths = {};

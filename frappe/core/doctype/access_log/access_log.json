@@ -131,8 +131,9 @@
    "read_only": 1
   }
  ],
+ "is_virtual": 1,
  "links": [],
- "modified": "2024-03-23 16:01:26.702078",
+ "modified": "2026-10-06 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Access Log",

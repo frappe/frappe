@@ -35,7 +35,7 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.background_jobs import get_queue, get_running_jobs_in_queue
+from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
@@ -342,6 +342,7 @@ class User(Document):
 		frappe.clear_cache(user=self.name)
 		now = frappe.in_test or frappe.flags.in_install
 		self.send_password_notification(self.__new_password)
+		self.__new_password = None
 		frappe.enqueue(
 			"frappe.core.doctype.user.user.create_contact",
 			user=self,
@@ -404,6 +405,34 @@ class User(Document):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
+			self.last_password_reset_date = today()
+			frappe.db.set_value(
+				"User",
+				self.name,
+				"last_password_reset_date",
+				self.last_password_reset_date,
+				update_modified=False,
+			)
+
+			if frappe.session.user != self.name:
+				from frappe.desk.doctype.notification_log.notification_log import (
+					enqueue_create_notification,
+				)
+				from frappe.utils import get_fullname
+
+				enqueue_create_notification(
+					[self.name],
+					{
+						"type": "Alert",
+						"document_type": "User",
+						"document_name": self.name,
+						"from_user": frappe.session.user,
+						"subject": _("Your password was changed by {0}").format(
+							get_fullname(frappe.session.user)
+						),
+					},
+				)
+
 			outgoing_email_exists = frappe.db.exists(
 				"Email Account", {"default_outgoing": 1, "awaiting_password": 0}
 			)
@@ -611,7 +640,6 @@ class User(Document):
 			with_container=True,
 			wrapper=wrapper,
 			delayed=(not now) if now is not None else self.flags.delay_emails,
-			retry=3,
 			redact_message_after_send=True,
 		)
 
@@ -713,7 +741,7 @@ class User(Document):
 		pending_names = {
 			job.kwargs["kwargs"].get(key)
 			for job in queue.jobs + get_running_jobs_in_queue(queue)
-			if job.kwargs.get("site") == frappe.local.site
+			if get_queue_args(job).get("site") == frappe.local.site
 			and job.kwargs.get("method") == "frappe.core.doctype.user.user.rewrite_owner_fields"
 			for key in ("old_name", "new_name")
 		}
@@ -968,7 +996,8 @@ class User(Document):
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.scroll_to_user_roles_field",
+				"client_action": "frappe.set_route",
+				"args": f"{self.get_url()}?scroll_to=roles_html",
 			},
 		)
 

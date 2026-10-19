@@ -5,6 +5,8 @@
 
 import json
 import re
+from collections import deque
+from decimal import Decimal
 from functools import lru_cache
 from typing import Any
 
@@ -16,11 +18,12 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
-from frappe.utils import add_user_info, cint, format_duration
+from frappe.utils import add_user_info, cint, cstr, format_duration, get_link_to_form
 from frappe.utils.data import sbool
+from frappe.utils.html_utils import clean_html
 
 DISALLOWED_PARAMS = ("cmd", "data", "ignore_permissions", "view", "user", "csrf_token", "join")
 SUPPORTED_AGGREGATE_FUNCTIONS = ("count", "sum", "avg", "min", "max")
@@ -36,6 +39,11 @@ def get():
 
 	# If virtual doctype, get data from controller get_list method
 	if is_virtual_doctype(args.doctype):
+		# The non-virtual branch below goes through `DatabaseQuery`, which applies read
+		# permissions itself. Dispatching straight to a controller skips that, so check here:
+		# a controller receives no `ignore_permissions` (`frappe.call` strips it) and cannot
+		# tell an internal caller from a request.
+		frappe.has_permission(args.doctype, "read", throw=True)
 		controller = get_controller(args.doctype)
 		data = compress(frappe.call(controller.get_list, args=args, **args))
 	else:
@@ -67,6 +75,7 @@ def get_list():
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
+		frappe.has_permission(args.doctype, "read", throw=True)
 		controller = get_controller(args.doctype)
 		data = frappe.call(controller.get_list, args=args, **args)
 	else:
@@ -84,6 +93,7 @@ def get_count() -> int | None:
 	args = get_form_params()
 
 	if is_virtual_doctype(args.doctype):
+		frappe.has_permission(args.doctype, "read", throw=True)
 		controller = get_controller(args.doctype)
 		return frappe.call(controller.get_count, args=args, **args)
 
@@ -547,11 +557,18 @@ def _export_query(form_params, csv_params, populate_response=True):
 	from frappe.utils.xlsxutils import get_default_xlsx_styles, handle_html, make_xlsx
 
 	doctype = form_params.pop("doctype")
-	owner_field = f"`tab{doctype}`.`owner`"
-	if isinstance(form_params["fields"], list):
-		form_params["fields"].append(owner_field)
-	elif isinstance(form_params["fields"], tuple):
-		form_params["fields"] = form_params["fields"] + (owner_field,)
+	check_owner = not frappe.permissions.can_export(doctype)
+	if check_owner and not frappe.permissions.can_export(doctype, is_owner=True):
+		raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+	if check_owner:
+		owner_field = f"`tab{doctype}`.`owner`"
+		if isinstance(form_params["fields"], list):
+			form_params["fields"].append(owner_field)
+		elif isinstance(form_params["fields"], tuple):
+			form_params["fields"] = form_params["fields"] + (owner_field,)
+		# such a user only reads their own rows, so grouping by owner splits no group
+		if form_params.get("group_by"):
+			form_params["group_by"] += f", {owner_field}"
 	file_format_type = form_params.pop("file_format_type")
 	title = form_params.pop("title", doctype)
 	add_totals_row = cint(form_params.pop("add_totals_row", 0))
@@ -590,15 +607,12 @@ def _export_query(form_params, csv_params, populate_response=True):
 	if visible_names:
 		ret = _reorder_by_visible_names(ret, form_params.get("fields", []), doctype, visible_names)
 
-	if not frappe.permissions.can_export(doctype):
-		if frappe.permissions.can_export(doctype, is_owner=True):
-			for row in ret:
-				if row[-1] != frappe.session.user:
-					raise frappe.PermissionError(
-						_("You are not allowed to export {} doctype").format(doctype)
-					)
-		else:
-			raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+	if check_owner:
+		for row in ret:
+			if row[-1] != frappe.session.user:
+				raise frappe.PermissionError(_("You are not allowed to export {} doctype").format(doctype))
+		ret = [row[:-1] for row in ret]
+		db_query.fields = db_query.fields[:-1]
 
 	if add_totals_row:
 		ret = append_totals_row(ret, db_query.fields)
@@ -660,6 +674,11 @@ def _reorder_by_visible_names(ret, fields, doctype, visible_names):
 	`visible_names` are dropped. If the primary key column can't be located in
 	`fields`, `ret` is returned unchanged (server-order fallback).
 
+	A child-table column makes several rows share one primary key, so rows are
+	grouped per name and consumed in order: each occurrence of a name in
+	`visible_names` takes that name's next unused row, instead of collapsing the
+	group to a single row.
+
 	Only the primary doctype's `name` column is a valid match.
 	Using linked doctype's `name` as the reorder key
 	would silently rebuild the export against the wrong identifier."""
@@ -673,8 +692,17 @@ def _reorder_by_visible_names(ret, fields, doctype, visible_names):
 			break
 	if name_idx is None:
 		return ret
-	ret_by_name = {row[name_idx]: row for row in ret}
-	return [ret_by_name[n] for n in visible_names if n in ret_by_name]
+
+	rows_by_name = {}
+	for row in ret:
+		rows_by_name.setdefault(row[name_idx], deque()).append(row)
+
+	reordered = []
+	for name in visible_names:
+		group = rows_by_name.get(name)
+		if group:
+			reordered.append(group.popleft())
+	return reordered
 
 
 def append_totals_row(data, fields=None):
@@ -697,9 +725,13 @@ def append_totals_row(data, fields=None):
 		for i in range(len(row)):
 			if isinstance(row[i], float | int):
 				if totals[i] == "" or functions[i] not in ("MIN", "MAX"):
-					totals[i] = (totals[i] or 0) + row[i]
+					totals[i] = (totals[i] or 0) + (
+						Decimal(str(row[i])) if isinstance(row[i], float) else row[i]
+					)
 				else:
 					totals[i] = (min if functions[i] == "MIN" else max)(totals[i], row[i])
+
+	totals = [float(total) if isinstance(total, Decimal) else total for total in totals]
 
 	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"
@@ -998,10 +1030,14 @@ def delete_items():
 	return delete_bulk(doctype, items)
 
 
-def delete_bulk(doctype, items):
+def delete_bulk(doctype, items, error_logs=None):
 	"""Delete documents one by one. Returns names that could not be deleted."""
-	undeleted_items = []
+	if error_logs is None:
+		error_logs = {}
+	undeleted_items = {}
+	linked_with = {}
 	for i, d in enumerate(items):
+		message_count = len(frappe.message_log)
 		try:
 			frappe.flags.in_bulk_delete = True
 			frappe.delete_doc(doctype, d)
@@ -1017,21 +1053,78 @@ def delete_bulk(doctype, items):
 				)
 			# Commit after successful deletion
 			frappe.db.commit()
-		except Exception:
+		except Exception as e:
 			# rollback if any record failed to delete
 			# if not rollbacked, queries get committed on after_request method in app.py
-			undeleted_items.append(d)
+			reasons = [
+				"<br>".join(message.message) if message.as_list else cstr(message.message)
+				for message in frappe.message_log[message_count:]
+				if message.raise_exception
+			]
+			del frappe.message_log[message_count:]
+			if frappe.flags.error_message:
+				delete_denied = _("You need the '{0}' permission on {1} {2} to perform this action.")
+				reasons.append(
+					delete_denied.format(_("delete"), frappe.bold(_(doctype)), "")
+					if frappe.flags.error_message
+					== delete_denied.format(_("delete"), frappe.bold(_(doctype)), d)
+					else frappe.flags.error_message
+				)
+				frappe.flags.error_message = None
 			frappe.db.rollback()
+			link_error = e.__context__ if isinstance(e.__context__, frappe.LinkExistsError) else e
+			if isinstance(link_error, frappe.LinkExistsError) and link_error.linked_with:
+				linked_with[d] = link_error.linked_with
+				reasons = [] if link_error is e else [str(e)]
+			elif not reasons:
+				if d not in error_logs:
+					error_logs[d] = frappe.log_error(
+						title=f"Failed to delete {doctype} {d}", reference_doctype=doctype, reference_name=d
+					)
+				can_read_error_log = frappe.has_permission("Error Log")
+				reasons = [
+					_("Check the Error Log for more information: {0}").format(
+						get_link_to_form("Error Log", error_logs[d].name)
+					)
+					if error_logs[d] and can_read_error_log
+					else _("An unexpected error occurred. Please contact your System Manager.")
+				]
+			undeleted_items[d] = reasons
 	if undeleted_items and len(items) != len(undeleted_items):
 		frappe.clear_messages()
-		return delete_bulk(doctype, undeleted_items)
+		return delete_bulk(doctype, list(undeleted_items), error_logs)
 	elif undeleted_items:
+		documents_by_reason = {}
+		for name, reasons in undeleted_items.items():
+			for reason in reasons:
+				documents_by_reason.setdefault(reason, []).append(name)
+
+		links = {name: clean_html(get_link_to_form(doctype, name)) for name in undeleted_items}
+		already_shown = set(linked_with)
+		for name, reasons in undeleted_items.items():
+			if any(links[name] in reason for reason in reasons):
+				already_shown.add(name)
+
+		message = []
+		if linked_with:
+			documents = "".join(f"<li>{links[name]}<br>{linked_with[name]}</li>" for name in linked_with)
+			message.append(
+				_("These documents are linked with other documents and cannot be deleted:")
+				+ f"<ul>{documents}</ul>"
+			)
+		for reason, names in sorted(documents_by_reason.items(), key=lambda item: len(item[1])):
+			documents = "".join(f"<li>{links[name]}</li>" for name in names if name not in already_shown)
+			message.append(f"{reason}<ul>{documents}</ul>" if documents else reason)
+
 		frappe.msgprint(
-			_("Failed to delete {0} documents: {1}").format(len(undeleted_items), ", ".join(undeleted_items)),
-			realtime=True,
-			title=_("Bulk Operation Failed"),
+			message,
+			as_list=True,
+			indicator="red",
+			is_minimizable=True,
+			realtime=bool(frappe.job),
+			title=_("Failed to delete {0} documents").format(len(undeleted_items)),
 		)
-		return undeleted_items
+		return list(undeleted_items)
 
 	frappe.msgprint(
 		_("Deleted {0} records from {1} doctype").format(len(items), doctype),

@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+import json
 from datetime import datetime
 from itertools import pairwise
 from unittest.mock import patch
@@ -13,6 +14,7 @@ from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 from frappe.tests import IntegrationTestCase
 from frappe.utils import formatdate, get_last_day, getdate, now_datetime
 from frappe.utils.dateutils import get_period, get_period_ending
+from frappe.utils.logging import connection_for
 
 
 class TestDashboardChart(IntegrationTestCase):
@@ -86,11 +88,27 @@ class TestDashboardChart(IntegrationTestCase):
 			self.assertEqual(result.get("labels")[idx], get_period(month))
 			cur_date += relativedelta(months=1)
 
+	def _own_error_logs(self):
+		"""Scope a chart to this test's own Error Logs.
+
+		The rows live in the log database and are committed as they are written, so they
+		outlast the test transaction: emptying the table to get a predictable count would
+		permanently destroy a real site's logs. Filtering the chart to a value only this
+		test writes makes the data deterministic without touching anything else.
+		"""
+		method = f"_test-{frappe.generate_hash(length=10)}"
+		self.addCleanup(self._remove_error_logs, method)
+
+		return method
+
+	def _remove_error_logs(self, method):
+		log_db = connection_for("Error Log")
+		log_db.delete("Error Log", {"method": method})
+		log_db.commit()
+
 	def test_empty_dashboard_chart(self):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart")
-
-		frappe.db.delete("Error Log")
 
 		frappe.get_doc(
 			doctype="Dashboard Chart",
@@ -100,7 +118,7 @@ class TestDashboardChart(IntegrationTestCase):
 			based_on="creation",
 			timespan="Last Year",
 			time_interval="Monthly",
-			filters_json="[]",
+			filters_json=json.dumps({"method": self._own_error_logs()}),
 			timeseries=1,
 		).insert()
 
@@ -138,10 +156,10 @@ class TestDashboardChart(IntegrationTestCase):
 		if frappe.db.exists("Dashboard Chart", "Test Empty Dashboard Chart 2"):
 			frappe.delete_doc("Dashboard Chart", "Test Empty Dashboard Chart 2")
 
-		frappe.db.delete("Error Log")
+		method = self._own_error_logs()
 
 		# create one data point
-		frappe.get_doc(doctype="Error Log", creation="2018-06-01 00:00:00").insert()
+		frappe.get_doc(doctype="Error Log", method=method, creation="2018-06-01 00:00:00").insert()
 
 		frappe.get_doc(
 			doctype="Dashboard Chart",
@@ -151,7 +169,7 @@ class TestDashboardChart(IntegrationTestCase):
 			based_on="creation",
 			timespan="Last Year",
 			time_interval="Monthly",
-			filters_json="[]",
+			filters_json=json.dumps({"method": method}),
 			timeseries=1,
 		).insert()
 
@@ -188,6 +206,29 @@ class TestDashboardChart(IntegrationTestCase):
 		todo_status_count = frappe.db.count("ToDo", {"status": result.get("labels")[0]})
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
+
+	def test_group_by_chart_labels_empty_values(self):
+		user = "chart-empty-label@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(doctype="User", email=user, first_name="Chart", send_welcome_email=0).insert()
+
+		chart = {
+			"name": "Test Group By Empty Label",
+			"chart_type": "Group By",
+			"group_by_type": "Count",
+			"document_type": "ToDo",
+			"group_by_based_on": "role",
+			"filters_json": "[]",
+		}
+
+		with self.set_user(user):
+			for role in (None, None, "System Manager"):
+				frappe.get_doc(doctype="ToDo", description="test", role=role).insert()
+
+			result = get(chart=frappe.as_json(chart), no_cache=1)
+
+		counts = dict(zip(result["labels"], result["datasets"][0]["values"], strict=True))
+		self.assertEqual(counts, {"No Role": 2, "System Manager": 1})
 
 	def test_value_based_on_required_for_sum_and_average(self):
 		for chart_type in ("Sum", "Average"):

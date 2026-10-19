@@ -49,7 +49,8 @@ import "./icon";
 import "./phone";
 import "./json";
 
-// fieldtypes with a combobox variant behind the System Settings toggle
+// fieldtypes with a combobox variant behind the System Settings toggle; the email
+// composer's "MultiSelect Pills" stays classic, as it builds on the classic pills
 const COMBOBOX_FIELDTYPES = new Set([
 	"Link",
 	"Dynamic Link",

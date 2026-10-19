@@ -107,7 +107,7 @@ test.describe("Control Link (combobox)", () => {
 
 		await expect(rows(page).first()).toBeVisible();
 		await expect(search(page)).toHaveCount(0);
-		await page.keyboard.type("sys");
+		await page.keyboard.type("system m");
 		await expect(panel(page).locator("[role='option'][data-highlighted]")).toContainText(
 			"System Manager"
 		);
