@@ -309,11 +309,8 @@ def migrate(app: str | None = None, locale: str | None = None):
 
 
 def csv_to_po(app: str, csv_file: Path):
-	locale = csv_file.stem.replace("-", "_")
-	for po_file in get_po_dir(app).glob("*.po"):
-		if po_file.stem.lower() == locale.lower():
-			locale = po_file.stem
-			break
+	language, _, region = csv_file.stem.replace("-", "_").partition("_")
+	locale = f"{language}_{region.upper()}" if region else language
 
 	catalog: Catalog = get_catalog(app, locale) if get_po_path(app, locale).exists() else get_catalog(app)
 	msgid_context_map = defaultdict(list)
