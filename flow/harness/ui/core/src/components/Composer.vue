@@ -180,8 +180,9 @@
 					Could not prepare {{ item.name }}: {{ item.error }}
 					<button class="underline" :disabled="locked" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
-				<!-- 16px on phones: iPhone Safari zooms into smaller fields (the overlay mirrors the box) -->
-				<div class="flow-draft relative">
+				<!-- 16px on phones: iPhone Safari zooms into smaller fields (the overlay mirrors the box).
+				     It rises over an open list's click-catcher, so clicking back into it keeps the list. -->
+				<div class="flow-draft relative" :class="listOpen ? 'z-20' : ''">
 					<div
 						v-if="skillParts"
 						aria-hidden="true"
@@ -785,6 +786,8 @@ const menuOpen = computed(
 			(!!slash.value && !slashDismissed.value && (!slashMidMessage.value || matches.value.length > 0))),
 )
 const menuItems = computed(() => (menuOpen.value ? matches.value : []))
+// any list over the box: its text is the list's search
+const listOpen = computed(() => menuOpen.value || subPage.value || mentionActive.value)
 
 // An IME's Enter picks a candidate and its Escape drops one; Safari sends the closing key
 // after compositionend, marked only by keyCode 229.

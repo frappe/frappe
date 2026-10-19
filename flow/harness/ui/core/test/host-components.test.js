@@ -2303,14 +2303,17 @@ test("a spreadsheet range pastes as its text, a screenshot as a picture", async 
 	assert.equal(paste({ "text/plain": "https://e.x/a.png", "text/html": '<meta charset="utf-8"><img src="https://e.x/a.png">' }), true)
 })
 
-test("a palette's Enter picks from the rows that answer its search, whose top row takes the highlight, and the keyboard's row keeps it under a resting pointer", async (t) => {
+test("a palette's Enter picks from the rows that answer its search, whose top row takes the highlight, the keyboard's row keeps it under a resting pointer, and a click on the list leaves the focus in the composer", async (t) => {
 	const PalettePanel = await loadComponent("PalettePanel")
 	globalThis.MutationObserver = dom.window.MutationObserver
 	t.after(() => delete globalThis.MutationObserver)
 	const picked = []
 	const list = reactive({ query: "", busy: false, rows: ["openai/gpt-5"] })
 	const row = (name) => h("button", { key: name, "data-palette-item": "", onClick: () => picked.push(name) }, name)
-	const Host = { render: () => h(PalettePanel, { title: "Models", query: list.query, busy: list.busy }, () => list.rows.map(row)) }
+	const Host = {
+		// a provider's page puts a form field in the panel
+		render: () => h(PalettePanel, { title: "Models", query: list.query, busy: list.busy }, () => [...list.rows.map(row), h("input")]),
+	}
 	const { el } = mount(t, Host, {}, {})
 	await settle()
 
@@ -2348,6 +2351,15 @@ test("a palette's Enter picks from the rows that answer its search, whose top ro
 	list.busy = false
 	await settle()
 	assert.equal(active(), "b")
+
+	// a press on a row keeps the composer focused; a form field still takes the focus
+	const press = (target) => {
+		const event = new window.MouseEvent("mousedown", { bubbles: true, cancelable: true })
+		target.dispatchEvent(event)
+		return event.defaultPrevented
+	}
+	assert.equal(press(el.querySelector("[data-palette-item]")), true)
+	assert.equal(press(el.querySelector("input")), false)
 })
 
 test("a message that overflows once the thread narrows gets its Show more", async (t) => {

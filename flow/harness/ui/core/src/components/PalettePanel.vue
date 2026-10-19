@@ -5,9 +5,9 @@
 	<div class="fixed inset-0 z-10" @click="emit('close')" />
 	<section
 		ref="panel"
-		tabindex="-1"
 		:aria-label="title"
-		class="flow-palette-panel absolute bottom-[calc(100%+4px)] left-0 z-20 flex max-h-[min(352px,72vh)] w-full flex-col overflow-hidden rounded-8 py-1 border border-outline-gray-1 bg-surface-base shadow-[0_6px_20px_rgba(0,0,0,0.05)] outline-none"
+		class="flow-palette-panel absolute bottom-[calc(100%+4px)] left-0 z-20 flex max-h-[min(352px,72vh)] w-full flex-col overflow-hidden rounded-8 py-1 border border-outline-gray-1 bg-surface-base shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
+		@mousedown="keepFocus"
 		@pointermove="onPointerMove"
 	>
 		<!-- a slim bar only for a page's way back and controls, in the list's heading style;
@@ -75,6 +75,12 @@ function highlightTop() {
 	const rows = items()
 	setActive((props.query ? null : rows.find((row) => row.getAttribute("aria-current") === "true")) ?? rows[0] ?? null)
 	activeItem?.scrollIntoView?.({ block: "nearest" })
+}
+
+// a click on the panel leaves the focus in the composer, whose text is the search; a form
+// field (a provider's key) still takes it
+function keepFocus(event) {
+	if (!event.target.closest("input, textarea, select")) event.preventDefault()
 }
 
 // Only a moving pointer takes the highlight: rows the keyboard scrolls under a resting
