@@ -1184,6 +1184,36 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(other.sql("show transaction_isolation")[0][0], "read committed")
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_server_bound_parameters_postgres_cannot_type(self):
+		from frappe.query_builder.functions import Concat
+
+		doctype = frappe.qb.DocType("DocType")
+		query = frappe.qb.from_(doctype).select(Concat("DT-", doctype.name)).where(doctype.name == "User")
+		self.assertEqual(query.run(), (("DT-User",),))
+		self.assertEqual(frappe.db.sql("select 1 where 1.5 in %s", ([1, 1.5],)), ((1,),))
+		names = [f"name-{i}" for i in range(70_000)]
+		in_list = ", ".join(["%s"] * len(names))
+		self.assertEqual(
+			frappe.db.sql(f"select count(*) from tabDocType where name in ({in_list})", names), ((0,),)
+		)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_reconnect_closes_the_replaced_connection(self):
+		frappe.db.sql("select 1 where 1 in %s", ([1],))
+		replaced = frappe.db._conn
+		frappe.db.connect()
+		self.assertTrue(replaced.closed)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_search_path_keeps_the_schema_case(self):
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		with patch.dict(frappe.conf, {"db_schema": "Tenant A"}):
+			other = connect_again()
+		self.addCleanup(other.close)
+		self.assertEqual(other.sql("show search_path")[0][0], '"Tenant A"')
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_escape_round_trips_backslashes(self):
 		value = "C:\\temp\\it's"
 		self.assertEqual(frappe.db.sql(f"select {frappe.db.escape(value, percent=False)}")[0][0], value)
