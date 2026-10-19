@@ -805,10 +805,10 @@ result = [
 		total_row = add_total_row(result, columns)[-1]
 		self.assertEqual(total_row, ["Total", "", 34])
 
-	def test_add_total_row_rounds_to_the_column_precision(self):
+	def test_add_total_row_sums_without_float_noise(self):
 		columns = [
 			{"fieldname": "item", "label": "Item", "fieldtype": "Data"},
-			{"fieldname": "stock_qty", "label": "Stock Qty", "fieldtype": "Float", "precision": 2},
+			{"fieldname": "stock_qty", "label": "Stock Qty", "fieldtype": "Float"},
 		]
 		result = [
 			{"item": "Copper Wire", "stock_qty": 0.1},
