@@ -95,7 +95,7 @@ const SETTINGS = [
 	{
 		label: "Settings",
 		tabs: [
-			{ id: "general", label: "General", icon: "sliders" },
+			{ id: "general", label: "General", icon: "settings" },
 			{ id: "appearance", label: "Appearance", icon: "palette" },
 			{ id: "presets", label: "Agent presets", icon: "layers" },
 			{ id: "skills", label: "Skills", icon: "book-open" },
