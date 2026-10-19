@@ -12,7 +12,14 @@ test.describe("Dashboard Chart Legend", () => {
 		"Workspace Sidebar Item",
 	];
 
+	let original_classic_charts;
+
 	test.beforeAll(async ({ admin }) => {
+		// the legend asserted below is frappe-charts markup
+		original_classic_charts = (await admin.get_doc("System Settings", "System Settings")).data
+			.use_classic_charts;
+		await admin.set_value("System Settings", "System Settings", { use_classic_charts: 1 });
+
 		await admin.create_records(
 			long_labels.map((reference_type) => ({
 				doctype: "ToDo",
@@ -47,6 +54,12 @@ test.describe("Dashboard Chart Legend", () => {
 			},
 			true
 		);
+	});
+
+	test.afterAll(async ({ admin }) => {
+		await admin.set_value("System Settings", "System Settings", {
+			use_classic_charts: original_classic_charts || 0,
+		});
 	});
 
 	test("keeps long legend labels truncated when a circular chart is re-rendered", async ({

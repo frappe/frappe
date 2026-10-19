@@ -229,13 +229,9 @@ The island is named `<app>.page.<page name>`, derived from the Page on both side
 
 Framework then builds nothing for the page and scaffolds nothing beside its json, so the page needs no folder and need not be Standard. Desk mounts the named island and the page keeps everything the type gives it: the mount, the unmount, the route race, `route` and `query` as props, and the head. The island is the app's own, so it takes its content from props and not from the desk route.
 
-**One setup step, once per bench.** The toolchain's dependencies are not in any lockfile a bench installs:
+**Framework's own islands.** Desk draws its charts with `frappe.chart`, an island framework builds from a fixed table in `ui/vite/island/framework.js`, on the same toolchain, into `dist/island/`. `bench build` runs that build on every bench, and its failure fails the command. See [decision 0015](island/decisions/0015-framework-builds-its-own-islands.md). Apps draw with `frappe.ui.chart(el, config)`. `frappe.Chart`, `frappe.utils.make_chart` and `frappe.ui.RealtimeChart` are deprecated, see [decision 0016](island/decisions/0016-desk-charts-are-frappe-ui-charts.md).
 
-```bash
-yarn install --cwd apps/frappe/island-toolchain
-```
-
-A bench with no Frappe UI page never needs it. Without it, the build says so and names this command, and every Frappe UI page shows an unbuilt state that says the same.
+**The toolchain installs itself.** The first build on a bench runs `yarn install` in `apps/frappe/island-toolchain/`. If the install fails, `bench build` fails and names the command to run by hand.
 
 ### CSS
 

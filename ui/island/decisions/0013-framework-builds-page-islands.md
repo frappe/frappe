@@ -14,6 +14,8 @@ Amended by [0014](0014-assets-json-is-the-island-registry.md). Such a page keeps
 
 One build and not one per app, for the reason in [0002](0002-an-app-builds-its-islands-together.md) and again for [0003](0003-tailwind-scans-the-module-list-not-a-glob.md): every page island on the bench shares one vue chunk and one frappe-ui chunk, and the scan's throwaway first pass runs once instead of once per app. `after_app_build` runs it, because any app's build can be the one that added a page.
 
+Amended by [0015](0015-framework-builds-its-own-islands.md). Framework's own islands, such as `frappe.chart`, are a second build that `bench build` runs itself, and its failure fails the command.
+
 Output is `sites/assets/frappe/dist/page-island/`, not `dist/island/`. A build owns every assets.json key pointing into its own directory, so framework's build and an app's own build need two directories or they drop each other's keys.
 
 Discovery reads each page's json for its name and its type, rather than reading the folder. The folder is the scrubbed name, and scrubbing is not reversible: `sales_dashboard` could be either `sales-dashboard` or `sales_dashboard`, and the name the build picks has to be the one `page_island_name` picks in Python.
