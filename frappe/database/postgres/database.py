@@ -96,14 +96,15 @@ REGEXP_PATTERN = re.compile(
 	""",
 	flags=re.IGNORECASE | re.DOTALL | re.VERBOSE,
 )
+# A string continued on a new line keeps its type.
+STRING_CONTINUATION_REGEX = r"'[ \t\f\v]*(?:--[^\n\r]*)?[\n\r](?:[ \t\n\r\f\v]|--[^\n\r]*[\n\r])*'"
 # Lexes a query the way postgres does to find statement separators.
 SQL_TOKEN_REGEX = r"""
 	  (?P<space>[ \t\n\r\f\v]+|--[^\n\r]*)
 	| (?P<comment>/\*)
 	| (?P<separator>;)
-	| {escape_prefix}'(?:[^'\\]|''|\\.)*'?                               # escape string: a \' does not end it
-	  (?:[ \t\f\v]*(?:--[^\n\r]*)?[\n\r](?:[ \t\n\r\f\v]|--[^\n\r]*[\n\r])*
-	  '(?:[^'\\]|''|\\.)*'?)*                                            # continued after a newline, still escaped
+	| [bBxX]'[^']*(?:{continuation}[^']*)*'?                             # bit or hex string: no escapes
+	| {escape_prefix}'(?:[^'\\]|''|\\.)*(?:{continuation}(?:[^'\\]|''|\\.)*)*'?  # escape string: a \' does not end it
 	| '(?:[^']|'')*'?                                                    # string literal (only '' escapes a quote)
 	| "(?:[^"]|"")*"?                                                    # quoted identifier
 	| \$(?P<tag>(?:[A-Za-z_\x80-\U0010ffff][A-Za-z_0-9\x80-\U0010ffff]*)?)\$
@@ -112,10 +113,14 @@ SQL_TOKEN_REGEX = r"""
 	| [A-Za-z_\x80-\U0010ffff][A-Za-z_0-9$\x80-\U0010ffff]*              # identifier: a $ inside it is not a quote
 	| .
 """
-SQL_TOKEN_PATTERN = re.compile(SQL_TOKEN_REGEX.format(escape_prefix="[eE]"), flags=re.DOTALL | re.VERBOSE)
+SQL_TOKEN_PATTERN = re.compile(
+	SQL_TOKEN_REGEX.format(escape_prefix="[eE]", continuation=STRING_CONTINUATION_REGEX),
+	flags=re.DOTALL | re.VERBOSE,
+)
 # with standard_conforming_strings off, a backslash escapes in every string
 NONSTANDARD_SQL_TOKEN_PATTERN = re.compile(
-	SQL_TOKEN_REGEX.format(escape_prefix="[eE]?"), flags=re.DOTALL | re.VERBOSE
+	SQL_TOKEN_REGEX.format(escape_prefix="[eE]?", continuation=STRING_CONTINUATION_REGEX),
+	flags=re.DOTALL | re.VERBOSE,
 )
 COMMENT_DELIMITER_PATTERN = re.compile(r"/\*|\*/")
 
