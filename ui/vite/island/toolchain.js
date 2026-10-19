@@ -4,6 +4,8 @@
 // ../../island/decisions/0013-framework-builds-page-islands.md.
 
 import { spawnSync } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -21,6 +23,10 @@ export const TOOLCHAIN_ROOT = path.resolve(here, "../../../island-toolchain");
  * which yarn skips under NODE_ENV=production unless told otherwise. Exits the
  * process when the install fails.
  *
+ * The install gets a cache of its own. Yarn caches a GitHub tarball under its
+ * package version alone, so a shared cache can hand back another frappe-ui commit
+ * of the same version, cached by an app or by this toolchain's previous pin.
+ *
  * @param {string} [root]  the toolchain folder
  */
 export function installToolchain(root = TOOLCHAIN_ROOT) {
@@ -31,13 +37,17 @@ export function installToolchain(root = TOOLCHAIN_ROOT) {
 	if (check.status === 0) return;
 
 	console.log(`[island] installing the island toolchain at ${root}`);
-	const install = spawnSync("yarn", ["install", "--frozen-lockfile", ...flags], {
-		stdio: "inherit",
-	});
+	const cache = fs.mkdtempSync(path.join(os.tmpdir(), "island-toolchain-"));
+	const install = spawnSync(
+		"yarn",
+		["install", "--frozen-lockfile", "--cache-folder", cache, ...flags],
+		{ stdio: "inherit" }
+	);
+	fs.rmSync(cache, { recursive: true, force: true });
 	if (install.status !== 0) {
 		console.error(
 			`[island] could not install the island toolchain at ${root}.\n` +
-				`Run it once for this bench:\n\n    yarn install --production=false --cwd ${root}\n`
+				`Run it once for this bench:\n\n    yarn install --production=false --cwd ${root} --cache-folder "$(mktemp -d)"\n`
 		);
 		process.exit(1);
 	}
