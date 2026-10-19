@@ -103,6 +103,13 @@ class TestReportview(IntegrationTestCase):
 
 		self.assertEqual(totals, ["Total", 30, 1, 20])
 
+	def test_append_totals_row_sums_without_float_noise(self):
+		data = [("Ballpoint Pen", 100.1), ("Notebook", 62.3)]
+
+		totals = append_totals_row(data)[-1]
+
+		self.assertEqual(totals, ["Total", 162.4])
+
 	def test_csv(self):
 		from csv import QUOTE_ALL, QUOTE_MINIMAL, QUOTE_NONE, QUOTE_NONNUMERIC, DictReader
 		from io import StringIO

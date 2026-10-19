@@ -6,6 +6,7 @@
 import json
 import re
 from collections import deque
+from decimal import Decimal
 from functools import lru_cache
 from typing import Any
 
@@ -724,9 +725,13 @@ def append_totals_row(data, fields=None):
 		for i in range(len(row)):
 			if isinstance(row[i], float | int):
 				if totals[i] == "" or functions[i] not in ("MIN", "MAX"):
-					totals[i] = (totals[i] or 0) + row[i]
+					totals[i] = (totals[i] or 0) + (
+						Decimal(str(row[i])) if isinstance(row[i], float) else row[i]
+					)
 				else:
 					totals[i] = (min if functions[i] == "MIN" else max)(totals[i], row[i])
+
+	totals = [float(total) if isinstance(total, Decimal) else total for total in totals]
 
 	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"
