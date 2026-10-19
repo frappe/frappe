@@ -451,15 +451,13 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		return !!this.entries.get(key)?.added;
 	}
 
-	// The app's layer gets a cross as well as an eye, because up there the two mean different
-	// things and both are wanted. Its arrangement *is* the base, so a row left out of it is gone
-	// -- from the document's table and from the file the save exports -- while the eye ships the
-	// row switched off, which a layer above can switch back on.
+	// One control on every layer: the cross. What it does follows from what a layer is.
 	//
-	// The two layers above take a row off with the cross alone. A row left out of them means "no
-	// opinion" and the base shows through, so there the cross writes what the eye did, the row
-	// stored hidden, and the row leaves the list as it leaves the sidebar. Adding the same entry
-	// again is how it comes back (see `place`).
+	// The app's arrangement *is* the base, so there the cross deletes the row, from the document's
+	// table and from the file the save exports. On the two layers above, a row left out means "no
+	// opinion" and the base shows through, so there the cross stores the row hidden. Either way the
+	// row leaves the list as it leaves the sidebar, and adding the same entry again is how it comes
+	// back (see `place`).
 	//
 	// A row this layer added is not given a second cross; it already carries one of its own.
 	can_remove(key) {
@@ -467,11 +465,13 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	can_hide() {
-		return this.layer === "app";
+		return false;
 	}
 
+	// A hidden row draws nowhere and has no control left to bring it back, so it is not listed. It
+	// is still saved as it was.
 	is_listed(key) {
-		return this.layer === "app" || !this.hidden.has(key);
+		return !this.hidden.has(key);
 	}
 
 	// A private page cannot be taken out of the Private shell. That shell is where every page its
