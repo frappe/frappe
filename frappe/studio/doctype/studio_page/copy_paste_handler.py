@@ -73,11 +73,11 @@ def paste_page(app_name: str, page: dict | str, target_page: str | None = None):
 @frappe.whitelist(methods=["POST"])
 def create_missing_dependencies(
 	app_name: str,
-	components=None,
-	files=None,
+	components: list | str | None = None,
+	files: list | str | None = None,
 	page_name: str | None = None,
-	resources=None,
-	variables=None,
+	resources: list | str | None = None,
+	variables: list | str | None = None,
 	overwrite_conflicts: bool = False,
 ):
 	"""Install missing paste dependencies and report names whose target definitions differ."""

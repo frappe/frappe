@@ -10,11 +10,10 @@ from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
+from frappe.studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
+from frappe.studio.doctype.studio_app.studio_app import StudioApp, studio_apps_txt_path
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
-
-from frappe.studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
-from frappe.studio.doctype.studio_app.studio_app import StudioApp
 
 
 class TestStudioApp(FrappeTestCase):
@@ -83,7 +82,7 @@ class TestStudioApp(FrappeTestCase):
 			app, page = make_exported_app_with_files("moving-app")
 			old_folder = app.get_folder_path()
 
-			app.enable_app_export("frappe")
+			app.enable_app_export("other_app")
 
 			page.reload()
 			self.assertFalse(os.path.exists(old_folder))
@@ -104,7 +103,7 @@ class TestStudioApp(FrappeTestCase):
 
 			app = frappe.get_doc("Studio App", "dashed_app")
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
-			StudioApp.remove_from_studio_apps_txt.assert_not_called()
+			self.assertEqual(frappe.get_file_items(studio_apps_txt_path()), ["dashed_app"])
 
 	def test_exported_apps_cannot_be_changed_outside_developer_mode(self):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
@@ -138,9 +137,10 @@ class TestStudioApp(FrappeTestCase):
 
 	def test_boot_drops_a_failing_contributor(self):
 		app = unsaved_studio_app("broken-boot-app")
-		with patch_boot_hook(app.name, f"{__name__}.failing_contribution"), patch(
-			"frappe.log_error"
-		) as log_error:
+		with (
+			patch_boot_hook(app.name, f"{__name__}.failing_contribution"),
+			patch("frappe.log_error") as log_error,
+		):
 			self.assertEqual(app.get_boot(), {})
 		log_error.assert_called_once_with(title=f"studio_app_boot failed for {app.name}")
 
@@ -443,8 +443,9 @@ class TestStudioAppBuilder(FrappeTestCase):
 			return run.return_value
 
 		builder = StudioAppBuilder(app.name, is_standard=False)
-		with patch("frappe.studio.build.subprocess.run", side_effect=read_content_file) as run, patch(
-			"frappe.studio.build.os.makedirs"
+		with (
+			patch("frappe.studio.build.subprocess.run", side_effect=read_content_file) as run,
+			patch("frappe.studio.build.os.makedirs"),
 		):
 			run.return_value.returncode = 0
 			builder.build()
@@ -454,11 +455,14 @@ class TestStudioAppBuilder(FrappeTestCase):
 
 	def test_passes_the_app_folder_to_tailwind(self):
 		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="frappe")
-		with mock_studio_app_files(
-			"folder-app", pages={"page": {"blocks": [{"componentName": "Button"}]}}
-		) as studio_folder, patch("frappe.studio.build.get_studio_folder", return_value=studio_folder), patch(
-			"frappe.studio.build.subprocess.run"
-		) as run, patch("frappe.studio.build.os.makedirs"):
+		with (
+			mock_studio_app_files(
+				"folder-app", pages={"page": {"blocks": [{"componentName": "Button"}]}}
+			) as studio_folder,
+			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
+			patch("frappe.studio.build.subprocess.run") as run,
+			patch("frappe.studio.build.os.makedirs"),
+		):
 			run.return_value.returncode = 0
 			builder.build()
 
@@ -511,8 +515,9 @@ class TestStudioAppBuilder(FrappeTestCase):
 	def test_passes_the_router_file_to_the_build(self):
 		builder = StudioAppBuilder("routed-app", is_standard=True, frappe_app="frappe")
 		builder.components = {"Button"}
-		with mock_studio_app_files("routed-app", router="{}") as studio_folder, patch(
-			"frappe.studio.build.get_studio_folder", return_value=studio_folder
+		with (
+			mock_studio_app_files("routed-app", router="{}") as studio_folder,
+			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
 		):
 			self.assertEqual(
 				get_router_file("frappe", "routed-app"),
@@ -534,8 +539,9 @@ class TestStudioAppBuilder(FrappeTestCase):
 			run.call_args.args[0],
 		)
 
-		with mock_studio_app_files("routed-app") as studio_folder, patch(
-			"frappe.studio.build.get_studio_folder", return_value=studio_folder
+		with (
+			mock_studio_app_files("routed-app") as studio_folder,
+			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
 		):
 			self.assertIsNone(get_router_file("frappe", "routed-app"))
 
@@ -544,7 +550,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
 
 		self.assertIn("public/app_builds", builder.out_dir)
-		self.assertEqual(builder.base, f"/assets/studio/app_builds/{app_name}/")
+		self.assertEqual(builder.base, f"/assets/frappe/app_builds/{app_name}/")
 
 	def test_build_paths_for_custom_app(self):
 		app_name = "custom-app"
@@ -555,11 +561,9 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertEqual(builder.base, f"/files/app_builds/{app_name}/")
 
 	def test_build_resolves_framework_ui(self):
-		"""A bench never installs frappe/ui/node_modules, so @framework/ui's own dependencies
+		"""A bench never installs ui/node_modules, so @framework/ui's own dependencies
 		(marked, leaflet, …) must resolve from Studio's node_modules in app builds."""
 		framework_ui_package = os.path.join(frappe.get_app_source_path("frappe"), "ui", "package.json")
-		if not os.path.exists(framework_ui_package):
-			self.skipTest("@framework/ui is not available on this frappe version")
 
 		app = make_studio_app(app_title="Framework UI App", app_name="framework-ui-app")
 		blocks = json.dumps([{"componentName": "FormLayout", "children": []}])
@@ -585,6 +589,7 @@ ROUTER_SCRIPT = """{
 
 @contextmanager
 def exports_in_tempdir():
+	"""Exports of every app, frappe's `studio_apps.txt` included, land in a temp dir."""
 	with (
 		tempfile.TemporaryDirectory() as tmpdir,
 		# scrubbed like the real one, so `routed-app` resolves to `routed_app` everywhere
@@ -593,9 +598,9 @@ def exports_in_tempdir():
 			side_effect=lambda app, *path: os.path.join(tmpdir, app, *map(frappe.scrub, path)),
 		),
 		patch.dict(frappe.conf, {"developer_mode": 1}),
-		patch.object(StudioApp, "add_to_studio_apps_txt"),
-		patch.object(StudioApp, "remove_from_studio_apps_txt"),
 	):
+		os.makedirs(os.path.join(tmpdir, "frappe", "studio"))
+		open(os.path.join(tmpdir, "frappe", "studio", "studio_apps.txt"), "w").close()
 		yield
 
 
