@@ -124,7 +124,7 @@ body {
 			}
 
 			.otp-setup-key {
-				padding: 6px 8px;
+				padding: var(--input-padding);
 				border-radius: var(--radius);
 				background-color: var(--surface-gray-2);
 				color: var(--ink-gray-8);
