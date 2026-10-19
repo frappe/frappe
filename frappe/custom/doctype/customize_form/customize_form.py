@@ -814,6 +814,7 @@ docfield_properties = {
 	"columns": "Int",
 	"remember_last_selected_value": "Check",
 	"allow_bulk_edit": "Check",
+	"make_attachment_public": "Check",
 	"auto_repeat": "Link",
 	"allow_in_quick_entry": "Check",
 	"hide_border": "Check",
