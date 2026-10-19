@@ -38,6 +38,7 @@ from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
 from frappe.query_builder.functions import Concat
 from frappe.utils import cint, cstr, flt, get_datetime, is_a_property, random_string
+from frappe.utils.business_modules import validate_show_for_module
 from frappe.website.utils import clear_cache
 
 if TYPE_CHECKING:
@@ -211,6 +212,9 @@ class DocType(Document):
 		self.set("can_change_name_type", validate_autoincrement_autoname(self))
 		self.validate_document_type()
 		validate_fields(self)
+		# not in validate_fields: that also runs on other saves, for fields nobody changed
+		for d in self.fields:
+			validate_show_for_module(d, self.name)
 		self.check_indexing_for_dashboard_links()
 		if not self.istable:
 			validate_permissions(self)

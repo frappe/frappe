@@ -36,6 +36,7 @@
   "visibility_section",
   "button_color",
   "hidden",
+  "show_for_module",
   "show_on_timeline",
   "bold",
   "allow_in_quick_entry",
@@ -295,6 +296,13 @@
    "oldfieldtype": "Check",
    "print_width": "50px",
    "width": "50px"
+  },
+  {
+   "depends_on": "eval:!doc.reqd && !doc.mandatory_depends_on && frappe.boot.business_modules && frappe.boot.business_modules.length",
+   "description": "Show this field only when this module is on. Leave empty to always show it.",
+   "fieldname": "show_for_module",
+   "fieldtype": "Select",
+   "label": "Show for Module"
   },
   {
    "default": "0",
@@ -698,7 +706,7 @@
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-09-23 14:47:18.443497",
+ "modified": "2026-09-30 17:52:55.550046",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocField",

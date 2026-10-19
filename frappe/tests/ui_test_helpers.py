@@ -899,3 +899,33 @@ def create_webform_with_child_table_dropdown():
 			],
 		}
 	).insert()
+
+
+@whitelist_for_tests()
+def create_business_module_doctypes():
+	"""Two doctypes for the business module UI test.
+
+	"Test Module Fields" has a plain field, a field tagged "Stock", and a child
+	table whose "tagged_col" column is tagged "Stock".
+	"""
+	create_child_doctype(
+		"Test Module Child",
+		[
+			{"label": "Plain Column", "fieldname": "plain_col", "fieldtype": "Data", "in_list_view": 1},
+			{"label": "Tagged Column", "fieldname": "tagged_col", "fieldtype": "Data", "in_list_view": 1},
+		],
+	)
+	create_doctype(
+		"Test Module Fields",
+		[
+			{"label": "Plain", "fieldname": "plain", "fieldtype": "Data"},
+			{"label": "Tagged", "fieldname": "tagged", "fieldtype": "Data"},
+			{"label": "Items", "fieldname": "items", "fieldtype": "Table", "options": "Test Module Child"},
+		],
+	)
+	# No app registers modules on a test site, so set the tag directly.
+	for parent, fieldname in (("Test Module Fields", "tagged"), ("Test Module Child", "tagged_col")):
+		frappe.db.set_value(
+			"DocField", {"parent": parent, "fieldname": fieldname}, "show_for_module", "Stock"
+		)
+		frappe.clear_cache(doctype=parent)
