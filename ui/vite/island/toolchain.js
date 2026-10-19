@@ -16,23 +16,28 @@ export const TOOLCHAIN_ROOT = path.resolve(here, "../../../island-toolchain");
  * Bring the toolchain's node_modules up to its lockfile.
  *
  * Its dependencies are pinned in its own package.json and lockfile. Nothing else
- * installs them, so every build asks yarn, whose integrity check makes this a
- * no-op until the lockfile changes. They are all devDependencies, which yarn
- * skips under NODE_ENV=production unless told otherwise. Exits the process when
- * the install fails.
+ * installs them, so every build asks yarn's integrity check, and installs only
+ * when node_modules no longer matches the lockfile. They are all devDependencies,
+ * which yarn skips under NODE_ENV=production unless told otherwise. Exits the
+ * process when the install fails.
  *
  * @param {string} [root]  the toolchain folder
  */
 export function installToolchain(root = TOOLCHAIN_ROOT) {
-	const install = spawnSync(
-		"yarn",
-		["install", "--frozen-lockfile", "--production=false", "--silent", "--cwd", root],
-		{ stdio: "inherit" }
-	);
+	const flags = ["--production=false", "--cwd", root];
+	const check = spawnSync("yarn", ["check", "--integrity", "--silent", ...flags], {
+		stdio: "ignore",
+	});
+	if (check.status === 0) return;
+
+	console.log(`[island] installing the island toolchain at ${root}`);
+	const install = spawnSync("yarn", ["install", "--frozen-lockfile", ...flags], {
+		stdio: "inherit",
+	});
 	if (install.status !== 0) {
 		console.error(
 			`[island] could not install the island toolchain at ${root}.\n` +
-				`Run it once for this bench:\n\n    yarn install --cwd ${root}\n`
+				`Run it once for this bench:\n\n    yarn install --production=false --cwd ${root}\n`
 		);
 		process.exit(1);
 	}

@@ -136,11 +136,14 @@ def watch(apps=None):
 
 	# The island watchers, on their own tooling, beside esbuild rather than inside
 	# it. They live exactly as long as the esbuild watcher below, which blocks.
-	# Each brings the toolchain up to its lockfile, so that happens once, before both.
-	frappe.commands.popen(
+	# Each would install the toolchain it lacks, so it is installed once, before both.
+	islands = []
+	if frappe.commands.popen(
 		island_build_command("install-toolchain.js"), cwd=frappe_app_path, env=get_node_env()
-	)
-	islands = [watch_islands(script) for script in ("build-framework.js", "build-pages.js")]
+	):
+		click.secho("The island toolchain did not install, so islands are not watched.", fg="yellow")
+	else:
+		islands = [watch_islands(script) for script in ("build-framework.js", "build-pages.js")]
 	try:
 		frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 	finally:
@@ -177,7 +180,7 @@ def build_framework_islands(production: bool = False):
 		toolchain = os.path.join(frappe_app_path, "island-toolchain")
 		raise click.ClickException(
 			f"The framework island build failed ({command}). Desk cannot draw its charts until this passes. "
-			f"If the island toolchain did not install, run: yarn install --cwd {toolchain}"
+			f"If the island toolchain did not install, run: yarn install --production=false --cwd {toolchain}"
 		)
 
 
