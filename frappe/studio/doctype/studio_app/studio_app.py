@@ -358,6 +358,7 @@ class StudioApp(WebsiteGenerator):
 				"frappe_app": target_app,
 			},
 		)
+		frappe.db.set_value("Studio Component", {"studio_app": self.name}, "is_standard", 1)
 
 		self.is_standard = 1
 		self.frappe_app = target_app
@@ -394,6 +395,7 @@ class StudioApp(WebsiteGenerator):
 
 		app_path = self.create_app_folder()
 		self.export_studio_pages(app_path)
+		self.export_studio_components()
 		self.add_to_studio_apps_txt()
 
 	def create_app_folder(self) -> str:
@@ -430,6 +432,10 @@ class StudioApp(WebsiteGenerator):
 		for page in self.pages:
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.export_page()
+
+	def export_studio_components(self):
+		for component in frappe.get_all("Studio Component", {"studio_app": self.name}, pluck="name"):
+			frappe.get_doc("Studio Component", component).export_component()
 
 	def get_router_file_path(self) -> str:
 		return os.path.join(self.get_folder_path(), "router.ts")

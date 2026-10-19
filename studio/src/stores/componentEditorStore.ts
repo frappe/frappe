@@ -125,13 +125,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 				`Are you sure you want to delete the component '${component.component_name}'?`,
 			)
 			if (confirmed) {
-				const store = useStudioStore()
-				studioComponents.runDocMethod
-					.submit({
-						method: "delete_component",
-						name: component.component_id,
-						studio_app: store.activeApp?.name,
-					})
+				studioComponents.delete
+					.submit(component.component_id)
 					.then(() => {
 						toast.success(`Component '${component.component_name}' deleted`)
 						studioComponents.reload()

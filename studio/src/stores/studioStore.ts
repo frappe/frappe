@@ -149,7 +149,7 @@ const useStudioStore = defineStore("store", () => {
 		await studioPages.reload()
 	}
 
-	// components made before components had an app have no owner, so every app lists them
+	// components without an app are listed everywhere, in case the owner patch did not run
 	async function setAppComponents(appName: string) {
 		studioComponents.filters = { is_disabled: 0, studio_app: ["in", [appName, ""]] }
 		await studioComponents.reload()

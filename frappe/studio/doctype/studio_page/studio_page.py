@@ -114,7 +114,6 @@ class StudioPage(Document):
 			# script lives in the companion .ts (code mode), so keep it out of the JSON
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
 			self.relocate_on_retitle()
-			self.export_components()
 
 	def export_script_to_file(self):
 		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
@@ -216,49 +215,6 @@ class StudioPage(Document):
 		if os.path.exists(old_page_script):
 			os.rename(old_page_script, self.get_script_file_path())
 		delete_folder(old_folder)
-
-	def export_components(self):
-		if components := self.get_studio_components():
-			folder = self.get_component_folder_path()
-			frappe.create_folder(folder)
-			for component in components:
-				doc = frappe.get_doc("Studio Component", component)
-				# components made before components had an app join the first app that exports them
-				if not (doc.is_standard and doc.studio_app):
-					doc.db_set({"is_standard": 1, "studio_app": doc.studio_app or self.studio_app})
-				write_document_file(doc, folder=folder)
-
-	def get_studio_components(self):
-		components = set()
-
-		def add_component(block):
-			if block.get("isStudioComponent"):
-				components.add(block.get("componentName"))
-
-			for child in block.get("children", []):
-				add_component(child)
-
-			if slots := block.get("componentSlots"):
-				for slot in slots.values():
-					content = slot.get("slotContent")
-					if not isinstance(content, list):
-						continue
-					for slot_child in content:
-						add_component(slot_child)
-
-		def get_root_block(blocks):
-			if isinstance(blocks, str):
-				blocks = frappe.parse_json(blocks)
-			return blocks[0]
-
-		if self.has_blocks():
-			root_block = get_root_block(self.blocks)
-			add_component(root_block)
-		if self.has_blocks(check_draft=True):
-			root_block = get_root_block(self.draft_blocks)
-			add_component(root_block)
-
-		return components
 
 	def has_blocks(self, check_draft: bool = False):
 		if check_draft:
@@ -432,10 +388,6 @@ class StudioPage(Document):
 		path = ["studio", self.studio_app, "studio_page", self.get_export_docname()]
 		if with_filename:
 			path.append(self.get_file_name())
-		return frappe.get_app_source_path(self.frappe_app, *path)
-
-	def get_component_folder_path(self) -> str:
-		path = ["studio", self.studio_app, "studio_components"]
 		return frappe.get_app_source_path(self.frappe_app, *path)
 
 	def get_file_name(self):
