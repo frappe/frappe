@@ -18,6 +18,7 @@ from frappe.integrations.doctype.webhook.webhook import (
 	get_webhook_data,
 	get_webhook_headers,
 	retry_failed_webhooks,
+	retry_webhook_delivery,
 	send_webhook_request,
 )
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -597,6 +598,23 @@ class TestWebhook(IntegrationTestCase):
 			log.reload()
 			self.assertEqual(log.status, "Exhausted")
 			self.assertIsNone(log.next_retry)
+
+	@timeout(5, "Test webhooks should never wait, check mocked responses.")
+	def test_retry_skips_request_already_delivered(self):
+		"""A retry job for a request delivered in the meantime does not send it again"""
+		url = "https://httpbin.org/retry-delivered"
+		self.responses.add(responses.POST, url, status=200, json={})
+
+		with get_test_webhook(self.retry_webhook_config(url)) as wh:
+			doc = frappe.new_doc("Note")
+			doc.title = "Delivered Retry Note"
+			enqueue_webhook(doc, wh)
+
+			log = frappe.get_last_doc("Webhook Request Log", filters={"webhook": wh.name})
+			retry_webhook_delivery(log.name)
+
+			log.reload()
+			self.assertEqual(log.attempt, 1)
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def test_manual_retry_redelivers_exhausted_request(self):
