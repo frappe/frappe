@@ -1,6 +1,7 @@
 const path = require("path");
 const fs = require("fs");
 const glob = require("fast-glob");
+const { update_assets_json } = require("./assets_json");
 const esbuild = require("esbuild");
 const vue = require("esbuild-plugin-vue3");
 const yargs = require("yargs");
@@ -461,12 +462,15 @@ async function write_assets_json(metafile) {
 		}
 	}
 
-	let { obj: assets_json, path: assets_json_path } = await get_assets_json_path_and_obj(rtl);
-	// update with new values
-	let new_assets_json = Object.assign({}, assets_json, out);
+	const { next: new_assets_json } = await update_assets_json(
+		get_assets_json_path(rtl),
+		(assets_json) => ({
+			...assets_json,
+			...out,
+		})
+	);
 	curr_assets_json = new_assets_json;
 
-	await fs.promises.writeFile(assets_json_path, JSON.stringify(new_assets_json, null, 4));
 	await update_assets_json_in_cache();
 	if (argv["save-metafiles"]) {
 		// use current timestamp in readable formate as a suffix for filename
@@ -500,9 +504,12 @@ async function update_assets_json_in_cache() {
 	});
 }
 
+function get_assets_json_path(is_rtl) {
+	return path.resolve(assets_path, is_rtl ? "assets-rtl.json" : "assets.json");
+}
+
 async function get_assets_json_path_and_obj(is_rtl) {
-	const file_name = is_rtl ? "assets-rtl.json" : "assets.json";
-	const assets_json_path = path.resolve(assets_path, file_name);
+	const assets_json_path = get_assets_json_path(is_rtl);
 	let assets_json;
 	try {
 		assets_json = await fs.promises.readFile(assets_json_path, "utf-8");
