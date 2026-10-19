@@ -62,7 +62,7 @@ Examples show tool arguments, which the client sends through `tools/call`.
 
 | Tool | Purpose | Example arguments |
 | --- | --- | --- |
-| `search_doctypes` | Find DocTypes by name, module, `is_single`, and `is_submittable`. | `{"query":"ToDo"}` |
+| `search_doctypes` | Find DocTypes by name, module, `is_single`, and `is_submittable`; return names grouped by module. | `{"query":"ToDo"}` |
 | `get_doctype_schema` | Inspect fields and permissions. | `{"doctype":"ToDo"}` |
 | `search_methods` | Find whitelisted methods. | `{"query":"get_count"}` |
 | `get_method_schema` | Inspect an API function's arguments. | `{"method":"frappe.client.get_count"}` |

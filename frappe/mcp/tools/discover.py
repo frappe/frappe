@@ -47,7 +47,7 @@ def search_doctypes(
 	module: str | None = None,
 	is_single: bool | None = None,
 	is_submittable: bool | None = None,
-) -> list[dict]:
+) -> dict[str, list[str]]:
 	filters = {"istable": 0}
 	if query is not None:
 		filters["name"] = ("like", f"%{query}%")
@@ -57,13 +57,16 @@ def search_doctypes(
 		filters["issingle"] = is_single
 	if is_submittable is not None:
 		filters["is_submittable"] = is_submittable
-	return frappe.get_all(
+	result: dict[str, list[str]] = {}
+	for doctype in frappe.get_all(
 		"DocType",
 		filters=filters,
 		fields=["name", "module"],
 		order_by="name",
 		limit=SEARCH_LIMIT,
-	)
+	):
+		result.setdefault(doctype.module, []).append(doctype.name)
+	return result
 
 
 def search_methods(query: str) -> list[dict]:
@@ -122,7 +125,7 @@ def without(data: dict, *keys: str) -> dict:
 
 SEARCH_DOCTYPES = Tool(
 	name="search_doctypes",
-	description="Search DocTypes by name, module, is_single, and is_submittable. Returns up to 50, without child tables.",
+	description="Search DocTypes by name, module, is_single, and is_submittable. Returns up to 50 names grouped by module, without child tables.",
 	arguments=SearchDoctypesArguments,
 	handler=search_doctypes,
 	annotations={"readOnlyHint": True},

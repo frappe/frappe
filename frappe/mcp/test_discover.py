@@ -63,13 +63,13 @@ class TestDiscover(McpTestCase):
 	def test_doctype_search_does_not_search_methods(self):
 		with patch("frappe.api.discovery.search") as methods:
 			result = self.result("search_doctypes", {"query": "ToDo"})
-		self.assertIn("ToDo", [row["name"] for row in result["result"]])
+		self.assertIn("ToDo", result["Desk"])
 		methods.assert_not_called()
 
 	def test_search_filters_module(self):
 		result = self.result("search_doctypes", {"module": "Desk"})
-		self.assertTrue(result["result"])
-		self.assertTrue(all(row["module"] == "Desk" for row in result["result"]))
+		self.assertTrue(result["Desk"])
+		self.assertEqual(set(result), {"Desk"})
 
 	def test_search_filters_metadata(self):
 		for name, is_single, is_submittable, matches in (
@@ -90,7 +90,7 @@ class TestDiscover(McpTestCase):
 						"is_submittable": is_submittable,
 					},
 				)
-				self.assertEqual(result["result"], [{"name": name, "module": "Core"}] if matches else [])
+				self.assertEqual(result, {"Core": [name]} if matches else {})
 
 	def test_schema_fields_and_permissions(self):
 		result = self.result("get_doctype_schema", {"doctype": "ToDo"})
@@ -175,7 +175,7 @@ class TestDiscover(McpTestCase):
 		):
 			self.assertTrue(self.discover("search_methods", {"query": "ToDo"}).json["result"]["isError"])
 			result = self.result("search_doctypes", {"query": "ToDo"})
-		self.assertIn("ToDo", [row["name"] for row in result["result"]])
+		self.assertIn("ToDo", result["Desk"])
 
 	def test_manager_cannot_discover_nonwhitelisted_methods(self):
 		with self.manager(), self.method_cache():
@@ -199,10 +199,13 @@ class TestDiscover(McpTestCase):
 
 	def test_search_is_bounded_and_sorted(self):
 		result = self.result("search_doctypes", {"query": "%"})
-		names = [row["name"] for row in result["result"]]
+		names = [name for group in result.values() for name in group]
 		self.assertLessEqual(len(names), 50)
 		# Database collation can sort mixed-case names differently from Python.
 		expected = frappe.get_all(
-			"DocType", filters={"name": ["in", names]}, pluck="name", order_by="name asc"
+			"DocType", filters={"istable": 0}, fields=["name", "module"], order_by="name", limit=50
 		)
-		self.assertEqual(names, expected)
+		self.assertCountEqual(names, [row.name for row in expected])
+		self.assertEqual(set(result), {row.module for row in expected})
+		for module, group in result.items():
+			self.assertEqual(group, [row.name for row in expected if row.module == module])
