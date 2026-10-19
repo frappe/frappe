@@ -73,6 +73,16 @@ test.describe("List filter", () => {
 			expect(await field_value()).toBe("ToDo.status");
 		});
 
+		test("finds a child table's fields by the table's name", async ({ page, desk }) => {
+			await desk.go_to_list("User");
+			await desk.clear_filters();
+			await desk.open_list_filter();
+
+			const picker = page.locator(".es-combobox__panel[data-state='open']");
+			await picker.locator(".es-combobox__input").fill("Roles Assigned");
+			await expect(picker.getByRole("option", { name: "Role", exact: true })).toBeVisible();
+		});
+
 		test("focuses the panel, not a saved filter, and keeps focus in it", async ({
 			page,
 			desk,
