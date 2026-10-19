@@ -415,13 +415,18 @@ var request_otp = function (r) {
 	$('.login-content').empty();
 	$('.login-content:visible').append(
 		`<div id="twofactor_div">
-			<form class="form-verify">
-				<div class="page-card-head p-0">
-					<span class="indicator blue" data-text="Verification">{{ _("Verification") | e }}</span>
+			<form class="form-verify flex flex-col gap-8">
+				<div class="page-card-body flex flex-col gap-4">
+					<div class="page-card-head p-0">
+						<span class="indicator blue" data-text="Verification">{{ _("Verification") | e }}</span>
+					</div>
+					<div id="otp_div" class="flex flex-col gap-4 text-p-base text-ink-gray-6"></div>
+					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+						<label class="text-base text-ink-gray-5 w-full mb-0" for="login_token">{{ _("Verification Code") | e }}</label>
+						<input type="text" id="login_token" autocomplete="one-time-code" inputmode="numeric" class="form-control" placeholder="123456" required="">
+					</div>
 				</div>
-				<div id="otp_div"></div>
-				<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder="{{ _("Verification Code") | e }}" required="">
-				<button class="es-button w-full mt-3" data-variant="solid" id="verify_token">{{ _("Verify") | e }}</button>
+				<button class="es-button w-full" data-variant="solid" id="verify_token">{{ _("Verify") | e }}</button>
 			</form>
 		</div>`
 	);
@@ -432,17 +437,19 @@ var request_otp = function (r) {
 
 var continue_otp_app = function (setup, qrcode, otp_secret) {
 	request_otp();
-	var qrcode_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
+	var qrcode_div = $('<div></div>');
 
 	if (qrcode) {
-		qrcode_div.append(
+		qrcode_div.addClass('flex flex-col gap-4').append(
 			$('<div>').attr('id', 'qr_info').text({{ _("Scan the QR Code and enter the resulting code displayed.") | tojson }}),
-			$('<img>').attr({
+			$('<img class="otp-qr-code">').attr({
 				src: "data:image/svg+xml;base64," + qrcode,
 				alt: {{ _("QR code to scan with your authenticator app") | tojson }},
 			}),
-			$('<p>').text({{ _("Can't scan the code?") | tojson }} + " " + {{ _("Enter this setup key manually:") | tojson }}),
-			$('<input type="text" readonly class="form-control">').val(otp_secret).on("focus", function () { this.select(); })
+			$('<div class="flex flex-col gap-1.5">').append(
+				$('<div>').text({{ _("Can't scan the code?") | tojson }} + " " + {{ _("Enter this setup key manually:") | tojson }}),
+				$('<code class="otp-setup-key">').append(otp_secret.match(/.{1,4}/g).map((chunk) => $('<span>').text(chunk)))
+			)
 		);
 		$('#otp_div').prepend(qrcode_div);
 	} else if (setup) {
@@ -458,7 +465,7 @@ var continue_otp_app = function (setup, qrcode, otp_secret) {
 
 var continue_sms = function (setup, prompt) {
 	request_otp();
-	var sms_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
+	var sms_div = $('<div></div>');
 
 	if (setup) {
 		sms_div.append(prompt)
@@ -472,7 +479,7 @@ var continue_sms = function (setup, prompt) {
 
 var continue_email = function (setup, prompt) {
 	request_otp();
-	var email_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
+	var email_div = $('<div></div>');
 
 	if (setup) {
 		email_div.append(prompt)
