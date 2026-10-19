@@ -206,6 +206,13 @@
 
 // The row that opens the Add form, drawn as a row so it reads as the next one.
 .ws-add-row {
+	// A global icon rule centres glyphs with auto margins, which here would float the plus away
+	// from its label.
+	svg {
+		flex: none;
+		margin: 0;
+	}
+
 	display: flex;
 	align-items: center;
 	gap: calc(var(--spacing) * 2);
@@ -272,15 +279,28 @@
 	}
 
 	.ws-panel-hint {
-		margin-top: calc(var(--spacing) * -1);
+		margin: calc(var(--spacing) * -1) 0 calc(var(--spacing) * 3);
 		font-size: var(--text-xs);
 		color: var(--ink-gray-5);
 	}
 
-	// A field group lays itself out for a form page. Here it is a short stack of fields.
-	.form-section,
-	.form-column,
-	.section-body {
+	// The kind of entry being added, over the fields that depend on it.
+	.ws-panel-choice {
+		display: flex;
+		margin-bottom: calc(var(--spacing) * 3);
+
+		.es-pill {
+			flex: 1;
+			justify-content: center;
+		}
+	}
+
+	// A field group lays itself out for a form page. Here it is a short stack of fields, so the
+	// page's section spacing goes. Scoped through the layout to outrank the form's own rules.
+	.form-layout .form-section,
+	.form-layout .form-column,
+	.form-layout .form-section .section-body {
+		margin: 0;
 		padding: 0;
 		border: none;
 	}

@@ -326,7 +326,6 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 						{ value: "Section", label: __("Section") },
 					],
 					default: "Link",
-					reqd: 1,
 				},
 				{
 					fieldtype: "Select",
@@ -335,7 +334,6 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					options: LINK_TYPES,
 					default: "DocType",
 					depends_on: 'eval:doc.kind == "Link"',
-					mandatory_depends_on: 'eval:doc.kind == "Link"',
 				},
 				{
 					fieldtype: "Dynamic Link",
@@ -343,7 +341,6 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					label: __("Item", null, "Workspace Sidebar"),
 					options: "link_type",
 					depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
-					mandatory_depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
 					// Only shared workspaces are offered. A private page is already in the
 					// list, put there by the page itself, and one belonging to somebody else is
 					// a page this user cannot open (`drop_private_workspaces`).
@@ -364,9 +361,8 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					fieldname: "url",
 					label: __("URL"),
 					depends_on: 'eval:doc.kind == "Link" && doc.link_type == "URL"',
-					mandatory_depends_on: 'eval:doc.kind == "Link" && doc.link_type == "URL"',
 				},
-				{ fieldtype: "Data", fieldname: "label", label: __("Label"), reqd: 1 },
+				{ fieldtype: "Data", fieldname: "label", label: __("Label") },
 				// A section header draws no icon on the sidebar, so it is not offered one. A
 				// section's own fields follow the same rule.
 				{
@@ -376,8 +372,18 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					depends_on: 'eval:doc.kind == "Link"',
 				},
 			],
+			choice: "kind",
 			primary: (values) => {
-				if (values && this.place(values)) this.close_panel();
+				const target =
+					values.kind === "Section"
+						? []
+						: values.link_type === "URL"
+						? ["url"]
+						: ["link_to"];
+				if (panel.flag_missing([...target, "label"].filter((field) => !values[field]))) {
+					return;
+				}
+				if (this.place(values)) this.close_panel();
 			},
 		});
 	}

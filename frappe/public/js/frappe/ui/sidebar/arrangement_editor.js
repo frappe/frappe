@@ -590,8 +590,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 	// Open a panel of fields beside the column, level with the row `key` names. `on_change` is
 	// called with the panel's values whenever one changes, for fields that apply as they are
-	// edited; `primary` adds a button that acts on them, for a form such as Add.
-	open_panel({ key, title, fields, on_change, primary_label, primary }) {
+	// edited; `primary` adds a button that acts on them, for a form such as Add. `choice` names a
+	// Select field to draw as a row of pills over the others, for a form that starts from a kind.
+	open_panel({ key, title, fields, on_change, primary_label, primary, choice }) {
 		this.close_panel();
 		this.panel = new frappe.ui.ArrangementPanel({
 			editor: this,
@@ -601,6 +602,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			on_change,
 			primary_label,
 			primary,
+			choice,
 		});
 		this.render_list();
 		return this.panel;
@@ -718,8 +720,17 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 // A panel of fields beside the sidebar column, level with the row it belongs to. It follows the
 // row as the list scrolls and as the list is redrawn, and closes when the row is no longer shown.
 frappe.ui.ArrangementPanel = class ArrangementPanel {
-	constructor({ editor, key, title, fields, on_change, primary_label, primary }) {
-		Object.assign(this, { editor, key, title, fields, on_change, primary_label, primary });
+	constructor({ editor, key, title, fields, on_change, primary_label, primary, choice }) {
+		Object.assign(this, {
+			editor,
+			key,
+			title,
+			fields,
+			on_change,
+			primary_label,
+			primary,
+			choice,
+		});
 		this.make();
 	}
 
@@ -744,11 +755,12 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 		// after it is made, a tick at a time, and a value read in between is missing the fields not
 		// set yet, which would read as those fields having been cleared.
 		this.ready = false;
-		const fields = this.fields.map((df) =>
-			this.on_change && df.fieldname
+		const fields = this.fields.map((df) => {
+			if (df.fieldname === this.choice) return { ...df, hidden: 1 };
+			return this.on_change && df.fieldname
 				? { ...df, change: () => this.ready && this.changed() }
-				: df
-		);
+				: df;
+		});
 		this.field_group = new frappe.ui.FieldGroup({
 			fields,
 			body: this.$wrapper.find(".ws-panel-body")[0],
@@ -756,9 +768,10 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 		});
 		this.field_group.make();
 		setTimeout(() => (this.ready = true), 200);
+		if (this.choice) this.make_choice();
 
 		if (this.primary) {
-			const submit = () => this.primary(this.field_group.get_values(), this.field_group);
+			const submit = () => this.primary(this.field_group.get_values(true), this.field_group);
 			this.$wrapper.find(".ws-panel-foot").append(
 				frappe.ui.button({
 					label: this.primary_label,
@@ -786,6 +799,42 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 
 	changed() {
 		this.on_change(this.field_group.get_values(true), this.field_group);
+	}
+
+	// The `choice` field as pills over the form. The field itself stays, hidden, so the others'
+	// `depends_on` still read it.
+	make_choice() {
+		const df = this.fields.find((f) => f.fieldname === this.choice);
+		const pills = new frappe.ui.TabButtons({
+			label: df.label,
+			options: df.options.map(({ label, value }) => ({ label, value })),
+			value: df.default,
+			on_change: (value) => this.field_group.set_value(df.fieldname, value),
+		});
+		pills.el.classList.add("ws-panel-choice");
+		this.$wrapper.find(".ws-panel-body").prepend(pills.el);
+	}
+
+	// Mark the fields a form cannot go without, once it is submitted without them rather than as
+	// soon as it opens. Returns whether any were missing.
+	flag_missing(fieldnames) {
+		this.flagged = this.flagged || new Set();
+		for (const field of this.field_group.fields_list) {
+			const name = field.df.fieldname;
+			const missing = fieldnames.includes(name);
+			if (!missing && !this.flagged.has(name)) continue;
+
+			field.$wrapper.toggleClass("has-error", missing);
+			if (missing) {
+				this.flagged.add(name);
+				field.set_new_description(__("Required"));
+			} else {
+				this.flagged.delete(name);
+				field.set_new_description(field.df.description || "");
+				if (!field.df.description) field.toggle_description(false);
+			}
+		}
+		return fieldnames.length > 0;
 	}
 
 	// Beside the column, with its top level with the row, kept on screen.

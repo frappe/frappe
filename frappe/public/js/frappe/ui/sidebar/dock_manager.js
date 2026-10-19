@@ -421,7 +421,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 						{ value: "URL", label: __("Web address") },
 					],
 					default: "Sidebar",
-					reqd: 1,
 					onchange: () => this.describe_target(panel.field_group),
 				},
 				{
@@ -451,17 +450,23 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					depends_on: "eval:doc.opens == 'URL'",
 				},
 				{ fieldtype: "HTML", fieldname: "hint" },
-				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon"), reqd: 1 },
+				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
 				{
 					fieldtype: "Data",
 					fieldname: "title",
 					label: __("Title"),
-					reqd: 1,
 					description: __("How it reads on the rail."),
 				},
 			],
+			choice: "opens",
 			primary: (values) => {
-				const entry = values && this.entry_from(values);
+				const target = { Sidebar: "module", Workspace: "workspace", URL: "url" }[
+					values.opens
+				];
+				const missing = [target, "icon", "title"].filter((field) => !values[field]);
+				if (panel.flag_missing(missing)) return;
+
+				const entry = this.entry_from(values);
 				if (!entry) return;
 				this.close_panel();
 				this.place(entry);
