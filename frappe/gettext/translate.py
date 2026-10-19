@@ -312,7 +312,8 @@ def csv_to_po(app: str, csv_file: Path):
 	language, _, region = csv_file.stem.replace("-", "_").partition("_")
 	locale = f"{language}_{region.upper()}" if region else language
 
-	catalog: Catalog = get_catalog(app, locale) if get_po_path(app, locale).exists() else get_catalog(app)
+	catalog: Catalog = get_catalog(app, locale)
+	catalog.update(get_catalog(app), no_fuzzy_matching=True)
 	msgid_context_map = defaultdict(list)
 	for message in catalog:
 		msgid_context_map[message.id].append(message.context)
