@@ -27,7 +27,8 @@ frappe.provide("frappe.ui");
  * @property {"custom"} type
  * @property {string|function} label Row text, or a function of { query }.
  * @property {string} [icon] Lucide icon name.
- * @property {function} onclick Called with { query, combobox }; closes the panel.
+ * @property {function} onclick Called with { query, combobox }; closes the panel, unless `keep_open`.
+ * @property {boolean} [keep_open] Keep the panel open after the click (MultiCombobox).
  * @property {function} [condition] Called with { query }; false hides the row.
  */
 
@@ -524,7 +525,7 @@ frappe.ui.Combobox = class Combobox {
 
 	// clear opens the panel; on_change fires once, with the pick or null on close
 	clear() {
-		if (this.value == null) return;
+		if (this.value == null || this.disabled) return;
 		this.cleared_value = this.value;
 		this.cleared_option = this.selected;
 		this.set_value(null, { silent: true });

@@ -15,7 +15,7 @@
 }
 
 .es-combobox:focus-visible,
-.es-combobox:has(> .es-combobox__value:focus),
+.es-combobox:has(.es-combobox__value:focus),
 .es-combobox[data-state="open"] {
     outline: var(--focus-outline-default);
     outline-offset: 0;
