@@ -937,6 +937,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					if (this.chart_options) {
 						this.render_chart(this.chart_options);
 					} else {
+						this.chart?.destroy();
 						this.$chart.empty();
 						if (this.chart_fields) {
 							this.chart_options = frappe.report_utils.make_chart_options(
@@ -1312,9 +1313,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	render_chart(options) {
+		this.chart?.destroy();
 		this.$chart.empty();
 		this.$chart.show();
-		this.chart = new frappe.Chart(this.$chart[0], options);
+		this.chart = frappe.ui.chart(this.$chart, options);
 	}
 
 	open_create_chart_dialog() {
@@ -1351,8 +1353,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 					values
 				);
 				me.chart_fields = values;
+				me.preview_chart?.destroy();
 				wrapper.empty();
-				new frappe.Chart(wrapper[0], options);
+				me.preview_chart = frappe.ui.chart(wrapper, options);
 				wrapper.find(".chart-container .title, .chart-container .sub-title").hide();
 				wrapper.show();
 

@@ -225,6 +225,31 @@ class TestAuth(IntegrationTestCase):
 		self.assertNotEqual(frappe.local.response.get("message"), "Password Reset")
 		self.assertNotIn("redirect_to", frappe.local.response)
 
+	def test_forced_password_reset_counts_from_account_creation(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, set_request, today
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+
+		frappe.db.set_value(
+			"User",
+			self.test_user_email,
+			{"last_password_reset_date": None, "creation": add_days(today(), -2)},
+		)
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.response = frappe._dict()
+		frappe.local.request_ip = "127.0.0.70"
+		self.addCleanup(frappe.form_dict.clear)
+
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+
+		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
