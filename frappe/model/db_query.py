@@ -881,7 +881,6 @@ from {tables}
 			if hook_cond := frappe.call(frappe.get_attr(method), self.user, doctype=doctype):
 				# replace only field-level references (`tabDoctype`.field or `tabDoctype`.`field`)
 				# with the alias, not bare table names inside subqueries (`from `tabDoctype``)
-				# parenthesised so an `or` in the hook can't escape the `and` join
 				conditions.append("(" + hook_cond.replace(f"`tab{doctype}`.", f"{table_alias}.") + ")")
 
 		if script_name := get_server_script_map().get("permission_query", {}).get(doctype):
