@@ -8,6 +8,7 @@ import re
 import redis
 
 import frappe
+from frappe.model.document import get_controller
 from frappe.utils import cint, strip_html_tags
 from frappe.utils.data import cstr
 from frappe.utils.html_utils import unescape_html
@@ -70,8 +71,6 @@ def rebuild_for_doctype(doctype):
 	searchable fields
 	:param doctype: Doctype
 	"""
-	from frappe.model.document import get_controller
-
 	if frappe.local.conf.get("disable_global_search"):
 		return
 

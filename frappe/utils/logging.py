@@ -274,7 +274,7 @@ def is_log_doctype(doctype: str) -> bool:
 	retention command -- uses this to tell a log DocType apart from an ordinary one,
 	because a log DocType owns no table in the site's primary database.
 	"""
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 	from frappe.utils.sqlite_document import SQLiteLogDocument
 
 	try:

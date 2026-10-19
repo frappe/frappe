@@ -36,7 +36,7 @@ class SQLiteLogDocument(Document):
 		if not self.name:
 			set_new_name(self)
 
-		# `BaseDocument.db_insert` stamps these when they are unset, and callers rely on it:
+		# `Document.db_insert` stamps these when they are unset, and callers rely on it:
 		# `make_access_log` reaches for `db_insert` directly rather than `insert`, which is the
 		# path that would otherwise have filled them in. Without this the row lands with a NULL
 		# `creation`, which hides it from retention (`creation < cutoff` never matches) and from
@@ -53,7 +53,7 @@ class SQLiteLogDocument(Document):
 		try:
 			db.sql(qb.into(table).columns(*d.keys()).insert(*d.values()))
 		except Exception as e:
-			# Mirrors `BaseDocument.db_insert`. Log DocTypes are named by hash, and a collision
+			# Mirrors `Document.db_insert`. Log DocTypes are named by hash, and a collision
 			# has to be retried with a fresh name rather than surfacing -- `_handle_hash_conflict`
 			# clears `name` and calls back in here, giving up after five tries. Anything else is
 			# re-raised as `DuplicateEntryError` so callers that retry on it keep working
