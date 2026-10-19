@@ -7,10 +7,10 @@ from typing import TYPE_CHECKING, Any, Union
 import frappe
 from frappe import _
 from frappe.model.docstatus import DocStatus
+from frappe.model.document import Document
 from frappe.utils import cint
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
 	from frappe.workflow.doctype.workflow.workflow import Workflow
 
 
