@@ -1,7 +1,7 @@
 frappe.listview_settings["Email Account"] = {
 	onload(listview) {
 		// "+ Add" (and the empty-list button) offers one-click provider sign-in on Frappe Cloud
-		if (frappe.boot.cloud_settings?.enabled) {
+		if (frappe.boot.is_v2_site) {
 			listview.settings.primary_action = add_email_account_dialog;
 		}
 
