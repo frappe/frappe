@@ -1,5 +1,5 @@
 <template>
-	<PalettePanel title="Thinking" back :query="query" @close="emit('close')" @back="emit('back')">
+	<PalettePanel title="Thinking" :back="!dropdown" :dropdown="dropdown" :query="query" @close="emit('close')" @back="emit('back')">
 		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<button
 				v-for="level in levels"
@@ -10,10 +10,11 @@
 				@click="choose(level.id)"
 			>
 				<span class="flex-none">{{ level.label }}</span>
-				<FeatherIcon v-if="level.id === currentEffort" name="check" class="h-4 w-4 flex-none" />
 				<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ level.desc }}</span>
+				<!-- the hint follows the label, so the tick takes the right edge -->
+				<FeatherIcon v-if="level.id === currentEffort" name="check" class="h-4 w-4 flex-none" />
 			</button>
-			<div v-if="!levels.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
+			<div v-if="!levels.length" class="flow-palette-empty">
 				No matching levels
 			</div>
 		</div>
@@ -27,7 +28,10 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { EFFORTS, EFFORT_LABELS } from "../transcript.js"
 import PalettePanel from "./PalettePanel.vue"
 
-const props = defineProps({ query: { type: String, default: "" } }) // the composer's text after its "/"
+const props = defineProps({
+	query: { type: String, default: "" }, // the composer's text after its "/"
+	dropdown: { type: Boolean, default: false }, // hung from the model button, not over the composer
+})
 const emit = defineEmits(["close", "back"])
 const flow = inject("flow")
 

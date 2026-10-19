@@ -26,12 +26,10 @@
 				<FeatherIcon
 					v-if="agent.name === current"
 					name="check"
-					class="h-4 w-4 flex-none"
+					class="ml-auto h-4 w-4 flex-none"
 				/>
 			</button>
-			<div v-if="!options.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
-				No agents found
-			</div>
+			<div v-if="!options.length" class="flow-palette-empty">No agents found</div>
 		</div>
 	</PalettePanel>
 </template>

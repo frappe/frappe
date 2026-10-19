@@ -163,6 +163,7 @@ export function createFlowStore(client, options = {}) {
 		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
 		sidebarOpen: sidebarFromPrefs(),
 		settingsOpen: false,
+		settingsTab: null, // the settings dialog's tab, for a host that binds it; null is its first
 		transcriptOpen: false,
 		prefs,
 		// agent presets: { id, name, tools, extensionTools, promptMode, prompt }
@@ -1315,11 +1316,23 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
+	// a new chat's branch line, which a failure leaves out as quietly
+	async function gitBranch() {
+		const cwd = explorerCwd()
+		if (!cwd || typeof client.gitBranch !== "function") return null
+		try {
+			return await client.gitBranch(cwd)
+		} catch {
+			return null
+		}
+	}
+
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
 	function showFilesView() {
 		state.workspace.open = true
 		state.workspace.view = "files"
 		state.workspace.active = null
+		state.workspace.focusSearch = true // once, for the files bar; never saved
 		persistWorkspace()
 	}
 
@@ -1490,8 +1503,21 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
-	function setSettingsOpen(open) {
+	function setSettingsOpen(open, tab = null) {
+		if (tab) state.settingsTab = tab
 		state.settingsOpen = open
+	}
+
+	// "Create a preset": settings, on a blank one; the presets tab takes the ask once, as it opens
+	let newPresetAsked = false
+	function createPreset() {
+		newPresetAsked = true
+		setSettingsOpen(true, "presets")
+	}
+	function takeNewPreset() {
+		const asked = newPresetAsked
+		newPresetAsked = false
+		return asked
 	}
 
 	function setTranscriptOpen(open) {
@@ -1651,6 +1677,7 @@ export function createFlowStore(client, options = {}) {
 		listFiles,
 		searchFiles,
 		gitChanges,
+		gitBranch,
 		selectFile,
 		openSubagent,
 		showFilesView,
@@ -1676,6 +1703,8 @@ export function createFlowStore(client, options = {}) {
 		savePreset,
 		deletePreset,
 		setActivePreset,
+		createPreset,
+		takeNewPreset,
 		defaultPreset,
 		saveDefaultPreset,
 		renameSession,

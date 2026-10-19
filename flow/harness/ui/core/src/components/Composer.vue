@@ -42,7 +42,7 @@
 							<FeatherIcon v-if="m.stacked" name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
 						</button>
 					</template>
-					<div v-if="!menuItems.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
+					<div v-if="!menuItems.length" class="flow-palette-empty">
 						No matching commands
 					</div>
 				</div>
@@ -53,6 +53,7 @@
 				v-if="mentionActive"
 				:query="mention.query"
 				@pick="pickMention"
+				@browse="replaceMention('@')"
 				@close="mentionDismissed = true"
 			/>
 
@@ -99,10 +100,42 @@
 				</div>
 			</div>
 
+			<!-- a new chat's folder, branch and preset, or a host's own pickers, until its first message
+			     goes out; out of the flow, so a list opening over the box covers it. The icon lines up with
+			     the box's text. A phone leaves the branch out, and the row spans the box, for their lists -->
+			<div
+				v-if="$slots.start ? starting : startCwd"
+				ref="startRow"
+				class="start-row absolute bottom-full left-0 right-0 mb-1.5 flex min-w-0 max-w-full items-center gap-3 px-[9px] text-xs text-ink-gray-7 sm:right-auto dark:text-ink-gray-8"
+			>
+				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
+				<slot name="start" :insert="replaceSlash">
+					<button
+						class="flex min-w-0 items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						title="Change working directory"
+						:disabled="disabled"
+						@click="chooseFolder"
+					>
+						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none" />
+						<span class="truncate">{{ startCwd.split("/").filter(Boolean).pop() }}</span>
+					</button>
+					<span v-if="git" class="hidden min-w-0 items-center gap-1.5 px-1.5 sm:flex" title="Branch">
+						<FeatherIcon name="git-branch" class="h-3.5 w-3.5 flex-none" />
+						<span class="truncate">{{ git.branch }}</span>
+						<!-- a linked worktree says so, as quietly as the model button's thinking level -->
+						<template v-if="git.worktree">
+							<span class="h-[3px] w-[3px] flex-none rounded-full bg-surface-gray-4" />
+							<span class="flex-none text-ink-gray-4 dark:text-ink-gray-6">worktree</span>
+						</template>
+					</span>
+					<PresetButton :disabled="disabled" />
+				</slot>
+			</div>
+
 			<!-- a fieldset: disabling it disables every control inside, a host's pickers included -->
 			<fieldset
 				:disabled="disabled"
-				class="flow-composer-surface flex min-w-0 flex-col gap-2 rounded-7 border border-outline-gray-2 p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)] dark:border-outline-gray-1"
+				class="flow-composer-surface flow-composer-edge flex min-w-0 flex-col gap-2 rounded-7 border p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
 			>
 				<button
 					v-if="needsCwd"
@@ -199,7 +232,7 @@
 						:disabled="locked"
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
-						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 max-sm:text-[16px]"
+						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 dark:placeholder:text-ink-gray-6 max-sm:text-[16px]"
 						:class="skillParts ? 'text-transparent' : 'text-ink-gray-9'"
 						@keydown="onKey"
 						@paste="onPaste"
@@ -224,7 +257,7 @@
 				<div class="flex min-w-0 items-center gap-1">
 					<!-- attach files -->
 					<button
-						class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9"
+						class="grid h-7 w-7 flex-none place-items-center rounded-5 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-9 dark:text-ink-gray-8"
 						:title="imagesOnly ? 'Attach images' : 'Attach files'"
 						:disabled="locked"
 						@click="openFilePicker"
@@ -232,48 +265,59 @@
 						<FeatherIcon name="plus" class="h-4 w-4" />
 					</button>
 
-					<!-- the pickers; a host adds its own around the model button -->
-					<slot name="toolbar" :open-palette="openPalette">
-						<ModelButton @open="openPalette" />
-					</slot>
+					<!-- approval mode; its list hangs from it, on a phone from the whole composer -->
+					<span class="flex-none sm:relative">
+						<button
+							ref="modeButton"
+							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+							:class="modeMenu ? 'bg-surface-gray-2' : ''"
+							title="Approval mode"
+							:aria-expanded="modeMenu"
+							@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
+						>
+							{{ modeLabel }}
+							<FeatherIcon
+								name="chevron-down"
+								class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+								:class="modeMenu ? 'rotate-180' : ''"
+							/>
+						</button>
+						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
+						     enough for a description to keep to one line by the tick. The corners nest in the panel's -->
+						<PalettePanel v-if="modeMenu" title="Approval mode" dropdown align="left" :width="344" @close="closeModeMenu">
+							<div class="p-1">
+								<button
+									v-for="m in modes"
+									:key="m.id"
+									data-palette-item
+									:aria-current="currentMode === m.id ? 'true' : undefined"
+									class="flow-palette-row h-auto rounded-[16px] py-1.5"
+									@click="chooseMode(m.id)"
+								>
+									<span class="min-w-0 flex-1">
+										<span class="block truncate">{{ m.label }}</span>
+										<span class="flow-palette-hint block text-xs leading-snug">{{ m.desc }}</span>
+									</span>
+									<FeatherIcon v-if="currentMode === m.id" name="check" class="h-4 w-4 flex-none" />
+								</button>
+							</div>
+						</PalettePanel>
+					</span>
 
 					<span class="min-w-2 flex-1" />
 
-					<!-- approval mode -->
-					<span class="relative flex-none">
-						<button
-							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-							:class="modeMenu ? 'bg-surface-gray-2' : ''"
-							title="Approval mode"
-							aria-haspopup="menu"
-							:aria-expanded="modeMenu"
-							@click="modeMenu = !modeMenu"
-						>
-							{{ modeLabel }}
-							<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none text-ink-gray-4" />
-						</button>
-						<PopMenu :open="modeMenu" label="Approval mode" align="right" :width="266" @close="modeMenu = false">
-							<button
-								v-for="m in modes"
-								:key="m.id"
-								role="menuitemradio"
-								:aria-checked="currentMode === m.id"
-								class="flex w-full items-start gap-2 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
-								@click="chooseMode(m.id)"
-							>
-								<span class="min-w-0 flex-1">
-									<span class="block text-xs font-medium text-ink-gray-9">{{ m.label }}</span>
-									<span class="mt-0.5 block text-2xs leading-snug text-ink-gray-5">{{ m.desc }}</span>
-								</span>
-								<FeatherIcon
-									v-if="currentMode === m.id"
-									name="check"
-									class="mt-0.5 h-3 w-3 flex-none text-ink-gray-7"
-								/>
-							</button>
-						</PopMenu>
-					</span>
+					<!-- the pickers, by the send button; a host adds its own around the model button -->
+					<slot name="toolbar" :open-palette="openPalette">
+						<ModelButton :providers="has('providers')" @open="openPalette" />
+					</slot>
 
+					<span
+						v-if="running && !submitting && elapsed"
+						class="ml-1 flex-none text-xs tabular-nums text-ink-gray-5 dark:text-ink-gray-6"
+						title="How long this reply has run"
+					>
+						{{ elapsed }}
+					</span>
 					<button
 						v-if="running && !submitting"
 						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base shadow-sm hover:opacity-90"
@@ -314,7 +358,9 @@ import {
 	APPROVAL_MODES,
 	approvalToAnswer,
 	codeRefLabel,
+	formatDuration,
 	quoteBlock,
+	runningSince,
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
@@ -326,7 +372,7 @@ import ImageViewer from "./ImageViewer.vue"
 import ModelButton from "./ModelButton.vue"
 import ModelPalette from "./ModelPalette.vue"
 import PalettePanel from "./PalettePanel.vue"
-import PopMenu from "./PopMenu.vue"
+import PresetButton from "./PresetButton.vue"
 import ProvidersDialog from "./ProvidersDialog.vue"
 import ThinkingPalette from "./ThinkingPalette.vue"
 
@@ -519,13 +565,7 @@ watch(
 )
 
 function pickMention(path) {
-	const m = mention.value
-	if (!m) return
-	// remove the whole "@word" the caret sits in, not just its "@"-to-caret prefix —
-	// picking mid-word (caret moved back into the query) must not strand the tail
-	const queryEnd = m.start + 1 + m.query.length
-	const tailLength = text.value.slice(queryEnd).match(/^\S*/)[0].length
-	text.value = text.value.slice(0, m.start) + text.value.slice(queryEnd + tailLength)
+	if (!replaceMention("")) return
 	if (!attachments.value.some((item) => item.mentionPath === path) && !atAttachmentLimit()) {
 		attachments.value.push({
 			key: `mention:${attachmentKey++}`,
@@ -534,11 +574,23 @@ function pickMention(path) {
 			mentionPath: path,
 		})
 	}
+}
+
+// puts `word` in place of the whole "@word" the caret sits in, not just its "@"-to-caret
+// prefix — picking mid-word (caret moved back into the query) must not strand the tail
+function replaceMention(word) {
+	const m = mention.value
+	if (!m) return false
+	const queryEnd = m.start + 1 + m.query.length
+	const tailLength = text.value.slice(queryEnd).match(/^\S*/)[0].length
+	text.value = text.value.slice(0, m.start) + word + text.value.slice(queryEnd + tailLength)
+	const caret = m.start + word.length
 	nextTick(() => {
 		box.value?.focus()
-		box.value?.setSelectionRange(m.start, m.start)
+		box.value?.setSelectionRange(caret, caret)
 		syncCaret()
 	})
+	return true
 }
 
 // the palette is one stacked surface: commands is the root page, models,
@@ -582,8 +634,6 @@ watch(text, (value) => {
 		subSearch.value = false
 		paletteView.value = null
 	}
-	// Load the invocable skills; without a session this previews without creating one.
-	if (skillsEnabled.value && (slash.value || value.includes("/skill:"))) void flow.loadSkills?.()
 })
 
 // grow with content (wrapped lines included) up to the CSS max-height, then scroll
@@ -621,6 +671,7 @@ watch(
 )
 
 const modeMenu = ref(false)
+const modeButton = ref(null)
 
 // a toolbar picker: with nothing typed the composer is its search, as from a "/"
 function openPalette(view) {
@@ -683,6 +734,25 @@ const skillParts = computed(() => {
 	return parts.some((part) => part.skill) ? parts : null
 })
 const running = computed(() => flow.state.conversation.running)
+// how long the reply has run, beside its Stop button: on the server's clock, so a reload keeps it
+const since = computed(() => runningSince(flow.state.conversation))
+const now = ref(Date.now())
+let ticker = null
+watch(
+	since,
+	(start) => {
+		clearInterval(ticker)
+		ticker = start == null ? null : setInterval(() => (now.value = Date.now()), 1000)
+		now.value = Date.now()
+	},
+	{ immediate: true },
+)
+onBeforeUnmount(() => clearInterval(ticker))
+const elapsed = computed(() => {
+	if (since.value == null) return ""
+	const seconds = Math.max(0, Math.floor(now.value / 1000 - since.value))
+	return seconds ? formatDuration(seconds * 1000) : "0s"
+})
 const compacting = computed(() => flow.state.conversation.compacting)
 const approval = computed(() => {
 	const conversation = flow.state.conversation
@@ -727,6 +797,26 @@ const chipRemoveClass =
 	"grid h-5 w-5 flex-none place-items-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-8"
 // an existing session's cwd is frozen in its config; only new chats need one picked
 const needsCwd = computed(() => flow.options.requireCwd && !flow.state.sessionId && !flow.state.prefs.cwd)
+// a new chat, until its first message goes out; its folder, and the branch there where the host reads git
+const starting = computed(() => !flow.state.sessionId && !flow.state.conversation.sending.length)
+const startCwd = computed(() => {
+	const cwd = flow.state.prefs?.cwd
+	return cwd && cwd !== "." && starting.value ? cwd : null
+})
+// the shell counts it in the composer's height, which the list centres a new chat's heading above
+const startRow = ref(null)
+// { branch, worktree }: null on a detached HEAD or outside a repository
+const git = ref(null)
+watch(
+	startCwd,
+	async (cwd) => {
+		git.value = null
+		if (!cwd || typeof flow.gitBranch !== "function") return
+		const head = await flow.gitBranch()
+		if (cwd === startCwd.value && head?.branch) git.value = head
+	},
+	{ immediate: true },
+)
 const canSend = computed(
 	() =>
 		!submitting.value &&
@@ -765,6 +855,20 @@ watch(
 	(start) => {
 		if (start !== undefined) slashDismissed.value = false
 	},
+)
+// Load the invocable skills; without a session this previews without creating one. The slash
+// is watched, not just the text: a typed "/" reaches the text before the caret passes it.
+watch([slash, text], ([word, value]) => {
+	if (skillsEnabled.value && (word || value.includes("/skill:"))) void flow.loadSkills?.()
+})
+// a new chat's load up front (an opened chat's come with it), so the first "/" list opens
+// whole instead of growing when they arrive
+watch(
+	[() => flow.state.sessionId, () => flow.state.prefs?.cwd],
+	([sid]) => {
+		if (!sid && skillsEnabled.value) void flow.loadSkills?.()
+	},
+	{ immediate: true },
 )
 const atStart = (index) => !text.value.slice(0, index).trim()
 // mid-message only skills are offered: they are part of the message, commands act on the app
@@ -992,8 +1096,14 @@ function dropQueued(item) {
 	box.value?.focus()
 }
 
-function chooseMode(mode) {
+// the menu gives the keyboard back to its button, as the model button's does
+function closeModeMenu() {
 	modeMenu.value = false
+	nextTick(() => modeButton.value?.focus())
+}
+
+function chooseMode(mode) {
+	closeModeMenu()
 	flow.setMode(mode)
 }
 
@@ -1003,5 +1113,12 @@ function prefill(value) {
 	nextTick(() => box.value?.focus())
 }
 
-defineExpose({ prefill })
+defineExpose({ prefill, startRow })
 </script>
+
+<style scoped>
+/* the new chat's folder row: half a step over text-xs, keeping its weight and spacing */
+.start-row {
+	font-size: 13.5px;
+}
+</style>

@@ -47,6 +47,7 @@ export class FrappeClient {
 		return {
 			models: boot.models.map((m) => ({
 				name: m.name,
+				display_name: m.title, // already a name for people: the core shows it as it is
 				provider: m.provider || m.model_id.split("/")[0],
 				model_id: m.model_id,
 				context_window: m.context_window || null,

@@ -7,7 +7,7 @@ const extraIcons = {
   bot: {
     attrs: { xmlns: 'http://www.w3.org/2000/svg', viewBox: '0 0 24 24', class: 'feather feather-bot' },
     contents:
-      '<rect x="4" y="8" width="16" height="12" rx="2"/><path d="M12 8V5"/><circle cx="12" cy="4" r="1"/><path d="M2 14h2M20 14h2M9 13v2M15 13v2"/>',
+      '<rect x="3" y="7" width="18" height="14" rx="4.5"/><path d="M12 7V3.5"/><circle cx="9" cy="14" r=".5" fill="currentColor"/><circle cx="15" cy="14" r=".5" fill="currentColor"/>',
   },
   // lucide's palette (ISC)
   palette: {

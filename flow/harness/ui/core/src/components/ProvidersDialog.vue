@@ -38,29 +38,27 @@
 				<FeatherIcon v-else name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
 			</button>
 			<LoadingState v-if="loading && !rows.length" class="justify-center px-3 py-7 text-xs text-ink-gray-5" />
-			<!-- pinned at the bottom: local runtimes and private gateways; it waits for the list,
-			     so the first provider, not it, takes the highlight -->
-			<template v-if="rows.length || !loading">
-				<div class="mx-2 my-1 border-t border-outline-gray-1" />
-				<button
-					data-palette-item
-					class="flow-palette-row"
-					@click="select(CUSTOM_OPTION)"
-				>
-					<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
-					<span class="flex-none">Add custom endpoint</span>
-					<span class="flow-palette-hint min-w-0 flex-1 truncate">
-						Ollama, LM Studio, or any OpenAI-compatible URL
-					</span>
-					<FeatherIcon name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
-				</button>
-			</template>
 			<div
 				v-if="!filtered.length && debouncedQuery && !loading"
-				class="px-3 py-7 text-center text-xs text-ink-gray-5"
+				class="flow-palette-empty"
 			>
 				No providers found
 			</div>
+			<!-- the last row: local runtimes and private gateways; it waits for the list, so the
+			     first provider, not it, takes the highlight -->
+			<button
+				v-if="rows.length || !loading"
+				data-palette-item
+				class="flow-palette-row"
+				@click="select(CUSTOM_OPTION)"
+			>
+				<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
+				<span class="flex-none">Add custom endpoint</span>
+				<span class="flow-palette-hint min-w-0 flex-1 truncate">
+					Ollama, LM Studio, or any OpenAI-compatible URL
+				</span>
+				<FeatherIcon name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
+			</button>
 		</div>
 
 		<!-- provider detail -->

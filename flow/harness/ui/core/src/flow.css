@@ -2,6 +2,15 @@
    consuming app, after Tailwind's layers. Colors come exclusively from
    frappe-ui's themed CSS variables so dark mode follows [data-theme]. */
 
+/* the app's own text shows the arrow, as in a desktop app; what is read or typed (messages,
+   thoughts, code and tool output, fields) keeps the text cursor */
+body {
+	cursor: default;
+}
+:is(.flow-md, .flow-prose, pre, input, textarea, [contenteditable]) {
+	cursor: auto;
+}
+
 /* the composer, and the lists that open over it */
 .flow-composer-surface {
 	background: color-mix(in srgb, var(--surface-base) 90%, var(--surface-gray-1));
@@ -9,14 +18,28 @@
 [data-theme="dark"] .flow-composer-surface {
 	background: var(--surface-gray-1);
 }
+/* a list hung from a button on the composer covers the box: in dark mode half a step lighter than
+   it, as the "/" list is over the chat. A phone hangs it above the box, like the rest */
+@media (min-width: 640px) {
+	[data-theme="dark"] .flow-composer-surface.flow-dropdown {
+		background: color-mix(in srgb, var(--surface-gray-1) 50%, var(--surface-gray-2));
+	}
+}
+/* the composer box's edge: in light mode half a step under outline-gray-2 */
+.flow-composer-edge {
+	border-color: color-mix(in srgb, var(--outline-gray-1) 50%, var(--outline-gray-2));
+}
+[data-theme="dark"] .flow-composer-edge {
+	border-color: var(--outline-gray-1);
+}
 
-/* the sidebar, and the frame the chat panel stands on; in dark mode a step lighter than
-   the chat */
+/* the sidebar, and the frame the chat panel stands on; in dark mode the composer's colour,
+   a step lighter than the chat */
 .flow-sidebar-surface {
 	background: var(--surface-sidebar);
 }
 [data-theme="dark"] .flow-sidebar-surface {
-	background: color-mix(in srgb, var(--surface-base) 50%, var(--surface-gray-1));
+	background: var(--surface-gray-1);
 }
 
 /* Long dropdown menus: the page itself never scrolls, so a menu taller than
@@ -96,9 +119,9 @@
 	color: var(--ink-gray-9);
 }
 
-/* A row of the lists over the composer (PalettePanel): 14px on 32px, the active row a
-   pill. The pointer and the keyboard share that one highlight (PalettePanel), so a row
-   has no hover color. A description or other aside takes flow-palette-hint. */
+/* A row of the lists over the composer (PalettePanel): 14px on 32px, 2px apart, the active
+   row a pill. The pointer and the keyboard share that one highlight (PalettePanel), so a
+   row has no hover color. A description or other aside takes flow-palette-hint. */
 .flow-palette-row {
 	display: flex;
 	width: 100%;
@@ -111,8 +134,24 @@
 	color: var(--ink-gray-8);
 	text-align: left;
 }
+.flow-palette-row + .flow-palette-row {
+	margin-top: 2px;
+}
 .flow-palette-hint {
 	color: var(--ink-gray-4);
+}
+/* a list with nothing to show says so in one muted line, a row's height */
+.flow-palette-empty {
+	display: flex;
+	height: 32px;
+	align-items: center;
+	padding: 0 11px;
+	font-size: 14px;
+	color: var(--ink-gray-5);
+}
+/* under a header or search field it rises into the gap their row leaves, midway to what follows */
+.flow-palette-panel > * + .flow-palette-list > .flow-palette-empty:first-child {
+	margin: -8px 0 4px;
 }
 /* a list with more below fades out over its last 16px, until it is scrolled to the end */
 @property --flow-fade {

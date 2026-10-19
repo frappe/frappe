@@ -22,6 +22,7 @@
 				>
 					<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
 					<input
+						ref="searchInput"
 						v-model="fileQuery"
 						placeholder="Search files"
 						spellcheck="false"
@@ -77,33 +78,41 @@
 						Searching…
 					</LoadingState>
 					<template v-else>
-						<div
-							v-for="row in searchRows"
-							:key="row.path"
-							role="button"
-							tabindex="0"
-							:aria-expanded="row.type === 'dir' ? row.open : undefined"
-							class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
-							:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
-							:title="row.path"
-							@click="activateRow(row)"
-							@keydown.enter.prevent="activateRow(row)"
-							@keydown.space.prevent="activateRow(row)"
-						>
-							<span
-								v-for="level in row.depth"
-								:key="level"
-								class="pointer-events-none absolute inset-y-0 w-px bg-[--outline-gray-1]"
-								:style="{ left: (level - 1) * 16 + 16 + 'px' }"
+						<template v-for="row in searchRows" :key="row.path">
+							<!-- a folder found by its name opens onto all it holds, not just what else was found -->
+							<FileTree
+								v-if="row.type === 'found'"
+								:entry="{ name: row.name, type: 'dir' }"
+								:dir="row.dir"
+								:depth="row.depth"
 							/>
-							<span class="grid h-4 w-4 flex-none place-items-center">
-								<FeatherIcon
-									:name="row.type === 'dir' ? (row.open ? 'chevron-down' : 'chevron-right') : 'file'"
-									class="h-3.5 w-3.5 text-ink-gray-5"
+							<div
+								v-else
+								role="button"
+								tabindex="0"
+								:aria-expanded="row.type === 'dir' ? row.open : undefined"
+								class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
+								:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
+								:title="row.path"
+								@click="activateRow(row)"
+								@keydown.enter.prevent="activateRow(row)"
+								@keydown.space.prevent="activateRow(row)"
+							>
+								<span
+									v-for="level in row.depth"
+									:key="level"
+									class="pointer-events-none absolute inset-y-0 w-px bg-[--outline-gray-1]"
+									:style="{ left: (level - 1) * 16 + 16 + 'px' }"
 								/>
-							</span>
-							<span class="min-w-0 truncate">{{ row.name }}</span>
-						</div>
+								<span class="grid h-4 w-4 flex-none place-items-center">
+									<FeatherIcon
+										:name="row.type === 'dir' ? (row.open ? 'chevron-down' : 'chevron-right') : 'file'"
+										class="h-3.5 w-3.5 text-ink-gray-5"
+									/>
+								</span>
+								<span class="min-w-0 truncate">{{ row.name }}</span>
+							</div>
+						</template>
 						<div v-if="!searchRows.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
 							No matches
 						</div>
@@ -217,9 +226,21 @@ watch(
 )
 
 // Search runs server-side (recursive, pruned to matches); the result renders
-// as a fully opened tree of only the branches that contain matches. Clearing
+// as an opened tree of only the branches that contain matches. Clearing
 // the query falls back to the normal lazy tree with its manual expansion.
 const fileQuery = ref("")
+const searchInput = ref(null)
+// the Files view opened by hand puts the caret in its search, a restored one leaves it be.
+// Two timeouts: a menu it was opened from hands the focus back to its trigger in one, set as it closes
+watch(
+	() => props.open && props.mode === "files" && flow.state.workspace.focusSearch,
+	(asked) => {
+		if (!asked) return
+		flow.state.workspace.focusSearch = false
+		setTimeout(() => setTimeout(() => searchInput.value?.focus({ preventScroll: true })))
+	},
+	{ immediate: true },
+)
 const debouncedFileQuery = useDebouncedValue(fileQuery, 200)
 const searchActive = computed(() => debouncedFileQuery.value.trim() !== "")
 const searchRoot = ref(null)
@@ -257,18 +278,24 @@ const searchRows = computed(() => {
 	if (!searchMatches.value?.length || !searchRoot.value) return []
 	const tree = { dirs: new Map(), files: [] }
 	for (const rel of searchMatches.value) {
-		const parts = rel.split("/")
+		const folder = rel.endsWith("/") // a folder's ends in a slash
+		const parts = rel.replace(/\/$/, "").split("/")
 		let node = tree
-		for (const part of parts.slice(0, -1)) {
+		for (const part of folder ? parts : parts.slice(0, -1)) {
 			if (!node.dirs.has(part)) node.dirs.set(part, { dirs: new Map(), files: [] })
 			node = node.dirs.get(part)
 		}
-		node.files.push(parts.at(-1))
+		if (folder) node.found = true
+		else node.files.push(parts.at(-1))
 	}
 	const rows = []
 	const walk = (node, dir, depth) => {
 		for (const [name, child] of node.dirs) {
 			const path = `${dir}/${name}`
+			if (child.found) {
+				rows.push({ type: "found", name, path, dir, depth })
+				continue
+			}
 			const open = !collapsedDirs.has(path)
 			rows.push({ type: "dir", name, path, depth, open })
 			if (open) walk(child, path, depth + 1)

@@ -1,13 +1,23 @@
 <!-- The shared dropdown shell for everything that floats above the composer:
      slash commands, model picker, thinking, providers. Overlay + panel +
-     header; the composer's own text is the search. -->
+     header; the composer's own text is the search. A `dropdown` hangs from
+     a toolbar button instead, the model and approval mode buttons' own
+     lists; on a phone it spans the composer like the rest. -->
 <template>
 	<div class="fixed inset-0 z-10" @click="emit('close')" />
 	<section
 		ref="panel"
 		:aria-label="title"
-		class="flow-palette-panel absolute bottom-[calc(100%+4px)] left-0 z-20 flex max-h-[min(352px,72vh)] w-full flex-col overflow-hidden rounded-8 py-1 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
-		:class="{ 'h-[min(352px,72vh)]': full }"
+		class="flow-palette-panel absolute bottom-[calc(100%+4px)] z-20 flex w-full flex-col overflow-hidden rounded-8 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
+		:class="[
+			dropdown && align === 'right' ? 'right-0' : 'left-0',
+			dropdown && 'flow-dropdown sm:bottom-[calc(100%+8px)] sm:w-[var(--dropdown-width)]',
+		]"
+		:style="{
+			maxHeight: `${cap}px`,
+			height: full ? `${cap}px` : undefined,
+			'--dropdown-width': dropdown ? `${width}px` : undefined,
+		}"
 		@mousedown="keepFocus"
 		@pointermove="onPointerMove"
 	>
@@ -47,13 +57,26 @@ const props = defineProps({
 	busy: { type: Boolean, default: false },
 	// the rows are still loading: the panel holds its full height, so it doesn't open short and jump
 	full: { type: Boolean, default: false },
+	// hung from a toolbar button, not spread over the composer: lined up with its `align` edge,
+	// `width` wide (a phone gives it the composer's width)
+	dropdown: { type: Boolean, default: false },
+	align: { type: String, default: "right" },
+	width: { type: Number, default: 304 },
 })
 const emit = defineEmits(["close", "back"])
 const panel = ref(null)
+// 352px tall at most, and no taller than the room above it, 8px short of the page's top: a
+// phone's keyboard can leave less
+const cap = ref(352)
 let activeItem = null
 let observer = null
+let sizer = null
 let enterWaits = false
 let topWaits = false
+
+function fit() {
+	cap.value = Math.min(352, Math.floor(panel.value.getBoundingClientRect().bottom) - 8)
+}
 
 function items() {
 	return [...(panel.value?.querySelectorAll("[data-palette-item]:not(:disabled)") ?? [])]
@@ -150,12 +173,22 @@ onMounted(async () => {
 	window.addEventListener("keydown", onKey, true)
 	observer = new MutationObserver(syncItems)
 	observer.observe(panel.value, { childList: true, subtree: true })
+	// refitted as the page (the keyboard) or what it hangs from (a growing composer) resizes
+	if (typeof ResizeObserver !== "undefined") {
+		fit()
+		sizer = new ResizeObserver(fit)
+		sizer.observe(document.documentElement)
+		if (panel.value.offsetParent) sizer.observe(panel.value.offsetParent)
+	}
 	await nextTick()
 	syncItems()
+	// a list opens on its current row, however far down it sits, clear of the bottom fade
+	activeItem?.scrollIntoView?.({ block: "center" })
 })
 onBeforeUnmount(() => {
 	window.removeEventListener("keydown", onKey, true)
 	observer?.disconnect()
+	sizer?.disconnect()
 })
 </script>
 
@@ -166,5 +199,12 @@ onBeforeUnmount(() => {
 }
 .flow-palette-panel :deep([data-palette-active="true"] .flow-palette-hint) {
 	color: var(--ink-gray-5);
+}
+/* a dark dropdown over the composer is half a step lighter than the box (flow.css): its highlight
+   steps up with it */
+@media (min-width: 640px) {
+	[data-theme="dark"] .flow-palette-panel.flow-dropdown :deep([data-palette-item][data-palette-active="true"]) {
+		background: color-mix(in srgb, var(--surface-gray-2) 50%, var(--surface-gray-3));
+	}
 }
 </style>

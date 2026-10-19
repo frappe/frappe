@@ -1,52 +1,58 @@
 <template>
-	<span class="relative min-w-0 max-w-[360px]">
-		<!-- the row shrinks the wrapper; the button, sized to its text, must follow it -->
+	<span class="min-w-0 max-w-[360px] sm:relative">
+		<!-- the row shrinks the wrapper; the button, sized to its text, must follow it. Its lists
+		     hang from it, but on a phone from the whole composer, which has the room -->
 		<button
-			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2"
-			:class="menu ? 'bg-surface-gray-2' : ''"
+			ref="trigger"
+			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+			:class="pane ? 'bg-surface-gray-2' : ''"
 			:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
-			aria-haspopup="menu"
-			:aria-expanded="menu"
-			@click="menu = !menu"
+			:aria-expanded="!!pane"
+			@click="pane ? close() : (pane = 'root')"
 		>
 			<span class="min-w-0 truncate">{{ modelLabel }}</span>
 			<template v-if="currentEffort !== 'default'">
 				<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
-				<span class="flex-none font-normal text-ink-gray-5">{{ effortLabel }}</span>
+				<span class="flex-none font-normal text-ink-gray-5 dark:text-ink-gray-6">{{ effortLabel }}</span>
 			</template>
-			<FeatherIcon name="chevron-down" class="h-3 w-3 flex-none text-ink-gray-4" />
+			<FeatherIcon
+				name="chevron-down"
+				class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+				:class="pane ? 'rotate-180' : ''"
+			/>
 		</button>
-		<PopMenu :open="menu" label="Model and thinking" :width="266" @close="menu = false">
-			<button
-				v-for="entry in entries"
-				:key="entry.view"
-				role="menuitem"
-				class="flex w-full items-start gap-2.5 rounded-[10px] px-2.5 py-2 text-left hover:bg-surface-gray-2"
-				@click="choose(entry.view)"
-			>
-				<FeatherIcon :name="entry.icon" class="h-3.5 w-3.5 flex-none self-center text-ink-gray-5" />
-				<span class="min-w-0 flex-1">
-					<span class="block text-xs font-medium leading-4 text-ink-gray-9">{{ entry.label }}</span>
-					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ entry.value }}</span>
-				</span>
-				<FeatherIcon name="chevron-right" class="h-3.5 w-3.5 flex-none self-center text-ink-gray-4" />
-			</button>
-		</PopMenu>
+		<!-- its own lists, hung from it: a row each for the model and thinking, whose list takes their place -->
+		<PalettePanel v-if="pane === 'root'" title="Model and thinking" dropdown @close="close">
+			<div class="p-1">
+				<button v-for="entry in entries" :key="entry.pane" data-palette-item class="flow-palette-row" @click="pane = entry.pane">
+					<FeatherIcon :name="entry.icon" class="h-4 w-4 flex-none" />
+					<span class="flex-none">{{ entry.label }}</span>
+					<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ entry.value }}</span>
+					<FeatherIcon name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
+				</button>
+			</div>
+		</PalettePanel>
+		<ModelPalette v-else-if="pane === 'models'" dropdown :providers="providers" @close="close" @providers="openProviders" />
+		<ThinkingPalette v-else-if="pane === 'thinking'" dropdown @close="close" />
 	</span>
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue"
+import { computed, inject, nextTick, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
-import { EFFORT_LABELS } from "../transcript.js"
-import PopMenu from "./PopMenu.vue"
+import { EFFORT_LABELS, modelTitle } from "../transcript.js"
+import ModelPalette from "./ModelPalette.vue"
+import PalettePanel from "./PalettePanel.vue"
+import ThinkingPalette from "./ThinkingPalette.vue"
 
-// The composer's model button: a menu of the model and thinking palettes, which
-// the composer owns — `open` names the one to show.
+// The composer's model button, with its own model and thinking lists; `open` asks the
+// composer for its providers page, where an empty model list sends the user.
+defineProps({ providers: { type: Boolean, default: false } })
 const emit = defineEmits(["open"])
 const flow = inject("flow")
-const menu = ref(false)
+const pane = ref(null) // null | "root" | "models" | "thinking"
+const trigger = ref(null)
 
 // a chat that is still loading shows its own model once known, never the last one picked
 const currentModel = computed(
@@ -56,21 +62,24 @@ const currentModel = computed(
 const currentEffort = computed(
 	() => (flow.state.sessionId ? flow.state.conversation.reasoningEffort : flow.state.prefs.lastEffort) ?? "default",
 )
-// The button shows only the final model id; routed names can have multiple
-// namespace segments (for example openrouter/openai/gpt).
 const modelLabel = computed(() => {
 	const model = currentModel.value
 	if (!model) return flow.state.loading ? "" : "Choose Model"
-	return model.split("/").filter(Boolean).pop() || model
+	return modelTitle(model, flow.state.models)
 })
 const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
 const entries = computed(() => [
-	{ view: "models", label: "Model", icon: "cpu", value: modelLabel.value },
-	{ view: "thinking", label: "Thinking", icon: "zap", value: effortLabel.value },
+	{ pane: "models", label: "Model", icon: "cpu", value: modelLabel.value },
+	{ pane: "thinking", label: "Thinking", icon: "zap", value: effortLabel.value },
 ])
 
-function choose(view) {
-	menu.value = false
-	emit("open", view)
+function close() {
+	pane.value = null
+	nextTick(() => trigger.value?.focus())
+}
+
+function openProviders() {
+	pane.value = null
+	emit("open", "providers")
 }
 </script>

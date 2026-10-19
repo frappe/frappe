@@ -8,10 +8,11 @@ const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent"]);
 // What the page keeps beside the chat store: the boot data, the agent a new chat starts
 // with, the settings tab to open, and each session's Flow Runs and run log (for per-turn
 // feedback). `refresh` re-fetches boot when a record it lists changes; `sync` re-reads a
-// session's runs; `renamedModel` passes a model's new name on to the chat store.
+// session's runs; `renamedModel` passes a model's new name on to the chat store;
+// `reloadSkills` re-reads the skills a chat may start.
 export function createPage(
 	boot,
-	{ refresh = () => {}, sync = () => {}, renamedModel = () => {} } = {}
+	{ refresh = () => {}, sync = () => {}, renamedModel = () => {}, reloadSkills = () => {} } = {}
 ) {
 	const runIndexes = new Map();
 	const state = reactive({
@@ -74,9 +75,23 @@ export function createPage(
 		if (run) Object.assign(run, fields);
 	}
 
-	// the settings forms report every save and delete; only boot's own doctypes matter
+	// the settings forms report every save and delete; boot's own doctypes refetch it, and a
+	// skill or an agent's list of them changes what a chat may start
 	function changed(doctype) {
 		if (BOOT_DOCTYPES.has(doctype)) refresh();
+		if (doctype === "Flow Skill" || doctype === "Flow Agent") reloadSkills();
+	}
+
+	// "Add a skill" over the composer: settings on that tab, on a blank record its panel takes once
+	let newRecord = null;
+	function createRecord(key) {
+		newRecord = key;
+		state.settingsTab = key;
+	}
+	function takeNewRecord(key) {
+		const asked = newRecord === key;
+		if (asked) newRecord = null;
+		return asked;
 	}
 
 	// a renamed agent or model stays the one a new chat starts with
@@ -85,7 +100,19 @@ export function createPage(
 		if (doctype === "Flow Model") renamedModel(from, to);
 	}
 
-	return { state, can, onBoot, onSession, onRows, runForTurn, updateRun, changed, renamed };
+	return {
+		state,
+		can,
+		onBoot,
+		onSession,
+		onRows,
+		runForTurn,
+		updateRun,
+		changed,
+		renamed,
+		createRecord,
+		takeNewRecord,
+	};
 }
 
 function defaultAgent(boot) {

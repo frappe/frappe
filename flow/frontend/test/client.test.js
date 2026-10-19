@@ -176,6 +176,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 			models: [
 				{
 					name: "GPT",
+					title: "GPT",
 					model_id: "openai/gpt-4o",
 					provider: null,
 					context_window: 0,
@@ -197,6 +198,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 	assert.deepEqual(models, [
 		{
 			name: "GPT",
+			display_name: "GPT",
 			provider: "openai",
 			model_id: "openai/gpt-4o",
 			context_window: null,

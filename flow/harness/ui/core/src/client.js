@@ -121,6 +121,9 @@ export class DaemonClient {
 	gitChanges(cwd) {
 		return this.request("GET", "/fs/git/changes", { params: { cwd } })
 	}
+	gitBranch(cwd) {
+		return this.request("GET", "/fs/git/branch", { params: { cwd } })
+	}
 	gitFileDiff(cwd, path) {
 		return this.request("GET", "/fs/git/file/diff", { params: { cwd, path } })
 	}

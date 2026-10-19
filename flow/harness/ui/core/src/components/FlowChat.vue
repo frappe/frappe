@@ -48,7 +48,7 @@
 
 		<!-- host for frappe-ui's imperative dialog.* stack (confirm/danger/prompt) -->
 		<Dialogs />
-		<SettingsDialog :groups="SETTINGS">
+		<SettingsDialog v-model:tab="store.state.settingsTab" :groups="SETTINGS">
 			<template #general><SettingsGeneral /></template>
 			<template #appearance><SettingsAppearance /></template>
 			<template #presets><SettingsPresets /></template>
@@ -81,6 +81,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 
 import { installShortcuts } from "../shortcuts.js"
 import { installFocusRings } from "../focusRings.js"
+import { installViewport } from "../viewport.js"
 import { provideComposerHeight } from "../composerHeight.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
@@ -126,13 +127,16 @@ const composer = ref(null)
 provideComposerHeight(composer)
 let uninstallShortcuts = null
 let uninstallFocusRings = null
+let uninstallViewport = null
 onMounted(() => {
 	uninstallShortcuts = installShortcuts(props.store)
 	uninstallFocusRings = installFocusRings()
+	uninstallViewport = installViewport()
 })
 onBeforeUnmount(() => {
 	uninstallShortcuts?.()
 	uninstallFocusRings?.()
+	uninstallViewport?.()
 })
 
 const toast = ref(null)

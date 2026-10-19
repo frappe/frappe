@@ -12,7 +12,7 @@
 		:class="[
 			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
 			// no transform while open: a transformed aside would become the containing
-			// block for PopMenu's fixed backdrop, clipping it to the sidebar
+			// block for a menu's fixed backdrop, clipping it to the sidebar
 			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 			dragging && 'flow-reordering',
 		]"
@@ -156,8 +156,10 @@
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
 						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold" :class="group.cwd && '-mt-px'">
-							<!-- chats sit 30px apart, the first 31px under its workspace's name -->
-							<div class="grid min-h-0 grid-cols-1 gap-0.5">
+							<!-- chats sit 30px apart, the first 31px under its workspace's name; 34px
+							     apart in one list, which has no names to space against. A phone's
+							     taller rows keep the 2px gaps -->
+							<div class="grid min-h-0 grid-cols-1" :class="grouped ? 'gap-0.5' : 'gap-0.5 md:gap-1.5'">
 								<SidebarItem
 									v-for="s in group.chats"
 									:key="s.session_id"
@@ -247,8 +249,9 @@
 			</button>
 		</div>
 
+		<!-- in the 4px gap beside the raised chat panel, so its bar fills that gap -->
 		<div
-			class="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3] md:block"
+			class="absolute inset-y-0 -right-1 z-10 hidden w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3] md:block"
 			title="Drag to resize · double-click to reset"
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
@@ -739,6 +742,15 @@ const emptyMessage = computed(() => {
 }
 .drop-after::after {
 	bottom: -2px;
+}
+/* one list's 6px gaps, wider than a phone: the line keeps to their middle */
+@media (min-width: 768px) {
+	.quiet.drop-before::before {
+		top: -4px;
+	}
+	.quiet.drop-after::after {
+		bottom: -4px;
+	}
 }
 .flow-reordering :deep(*) {
 	cursor: grabbing !important;
