@@ -1,4 +1,5 @@
 from frappe.model.base_document import BaseDocument
+from frappe.model.document import Document
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -15,3 +16,16 @@ class TestBaseDocument(FrappeTestCase):
 		doc.docstatus = 2
 		self.assertTrue(doc.docstatus.is_cancelled())
 		self.assertEqual(doc.docstatus, 2)
+
+	def test_super_document_init_sets_values(self):
+		class LegacyVirtualToDo(Document):
+			def load_from_db(self):
+				super(Document, self).__init__(
+					{"doctype": "ToDo", "name": self.name, "description": "legacy"}
+				)
+
+		with self.assertWarns(DeprecationWarning):
+			doc = LegacyVirtualToDo("ToDo", "legacy-todo")
+
+		self.assertEqual(doc.name, "legacy-todo")
+		self.assertEqual(doc.description, "legacy")

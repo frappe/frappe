@@ -32,7 +32,6 @@ from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.link_count import notify_link_count
-from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.modules import load_doctype_module
 from frappe.types import DF
 from frappe.utils import (
@@ -50,7 +49,6 @@ from frappe.utils import (
 	strip_html,
 )
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
-from frappe.utils.global_search import update_global_search
 from frappe.utils.html_utils import unescape_html
 
 if TYPE_CHECKING:
@@ -186,7 +184,19 @@ def get_doc(*args, **kwargs):
 	raise ImportError(doctype)
 
 
-class Document:
+# Keeps `super(Document, self).__init__(d)` working in controllers written before `Document.init_from_dict`.
+class _DocumentBase:
+	def __init__(self, d):
+		from frappe.utils.deprecations import deprecation_warning
+
+		deprecation_warning(
+			"`super(Document, self).__init__(d)` is deprecated and will be removed in v17, "
+			"use `self.init_from_dict(d)` instead."
+		)
+		self.init_from_dict(d)
+
+
+class Document(_DocumentBase):
 	"""All controllers inherit from `Document`."""
 
 	doctype: DF.Data
@@ -231,13 +241,25 @@ class Document:
 
 		if kwargs:
 			# init base document
-			self._init_from_dict(kwargs)
+			self.init_from_dict(kwargs)
 			self.init_child_tables()
 			self.init_valid_columns()
 
 		else:
 			# incorrect arguments. let's not proceed.
 			raise ValueError("Illegal arguments")
+
+	def init_from_dict(self, d: dict) -> None:
+		"""Set values from `d` on this document without loading anything from the database."""
+		if d.get("doctype"):
+			self.doctype = d["doctype"]
+
+		self._table_fieldnames = {df.fieldname for df in self._get_table_fields()}
+		self.update(d)
+		self.dont_update_if_missing = []
+
+		if hasattr(self, "__setup__"):
+			self.__setup__()
 
 	@property
 	def is_locked(self):
@@ -261,7 +283,7 @@ class Document:
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
-			self._init_from_dict(single_doc)
+			self.init_from_dict(single_doc)
 			self.init_valid_columns()
 			self._fix_numeric_types()
 
@@ -280,7 +302,7 @@ class Document:
 					frappe.DoesNotExistError(doctype=self.doctype),
 				)
 
-			self._init_from_dict(d)
+			self.init_from_dict(d)
 		self.flags.pop("ignore_children", None)
 
 		for df in self._get_table_fields():
@@ -785,6 +807,8 @@ class Document:
 
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""
+		from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
+
 		if frappe.flags.in_install == "frappe":
 			return
 		workflow = self.meta.get_workflow()
@@ -1297,6 +1321,8 @@ class Document:
 
 		if self.flags.get("notify_update", True):
 			self.notify_update()
+
+		from frappe.utils.global_search import update_global_search
 
 		update_global_search(self)
 
@@ -1837,17 +1863,6 @@ class Document:
 			"dont_update_if_missing",
 		)
 	)
-
-	def _init_from_dict(self, d):
-		if d.get("doctype"):
-			self.doctype = d["doctype"]
-
-		self._table_fieldnames = {df.fieldname for df in self._get_table_fields()}
-		self.update(d)
-		self.dont_update_if_missing = []
-
-		if hasattr(self, "__setup__"):
-			self.__setup__()
 
 	@cached_property
 	def meta(self):
