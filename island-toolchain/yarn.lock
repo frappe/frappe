@@ -1535,9 +1535,9 @@ fraction.js@^5.3.4:
   resolved "https://registry.yarnpkg.com/fraction.js/-/fraction.js-5.3.4.tgz#8c0fcc6a9908262df4ed197427bdeef563e0699a"
   integrity sha512-1X1NTtiJphryn/uLQz3whtY6jK3fTqoE3ohKs0tT+Ujr1W59oopxmoEh7Lu5p6vBaPbgoM0bzveAW4Qi5RyWDQ==
 
-"frappe-ui@github:nextchamp-saqib/frappe-ui#ed33e24d4c40738314b125cbf188e0d154ef106d":
+"frappe-ui@github:nextchamp-saqib/frappe-ui#693737cbe938eb0cf50bde77a37f1f51d05fc73b":
   version "1.0.2"
-  resolved "https://codeload.github.com/nextchamp-saqib/frappe-ui/tar.gz/ed33e24d4c40738314b125cbf188e0d154ef106d"
+  resolved "https://codeload.github.com/nextchamp-saqib/frappe-ui/tar.gz/693737cbe938eb0cf50bde77a37f1f51d05fc73b"
   dependencies:
     "@codemirror/autocomplete" "^6.0.0"
     "@codemirror/commands" "^6.0.0"

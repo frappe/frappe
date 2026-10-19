@@ -10,6 +10,7 @@ import {
 	LineChart,
 	NumberCard,
 	OTHERS_KEY,
+	PercentageBarChart,
 	SankeyChart,
 	ScatterChart,
 } from "frappe-ui/charts";
@@ -37,6 +38,7 @@ const CHARTS = {
 	funnel: FunnelChart,
 	heatmap: HeatmapChart,
 	"calendar-heatmap": CalendarHeatmapChart,
+	"percentage-bar": PercentageBarChart,
 	sankey: SankeyChart,
 	scatter: ScatterChart,
 	number: NumberCard,
@@ -48,6 +50,7 @@ const parsed = computed(() => {
 			is_legacy_chart_config(props.config)
 				? from_legacy_config(props.config, {
 						center_label: __("Total"),
+						others_key: OTHERS_KEY,
 						on_unknown_key: warn_unknown_key,
 				  })
 				: { ...props.config, ...format_keys(props.config) },

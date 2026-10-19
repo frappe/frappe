@@ -19,7 +19,7 @@
     "@vitejs/plugin-vue": "^6.0.8",
     "@vueuse/core": "^11.3.0",
     "autoprefixer": "^10.5.4",
-    "frappe-ui": "github:nextchamp-saqib/frappe-ui#ed33e24d4c40738314b125cbf188e0d154ef106d",
+    "frappe-ui": "github:nextchamp-saqib/frappe-ui#693737cbe938eb0cf50bde77a37f1f51d05fc73b",
     "tailwindcss": "^3.4.19",
     "typescript": "^5.9.3",
     "vite": "^8.1.5",

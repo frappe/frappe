@@ -9,6 +9,12 @@
 // frappe-charts draws at this height when a config names none
 const DEFAULT_HEIGHT = 240;
 
+// frappe-charts' percentage chart groups the labels past this many into Others
+const PERCENTAGE_MAX_SLICES = 20;
+
+// charts with no plot to fill, which a fixed height would only pad
+const CONTENT_SIZED = ["number", "percentage-bar"];
+
 // frappe-charts' preset names, as the frappe-ui categorical slot of the same hue. frappe-ui's
 // ramp holds five hue families, each a dark slot then its light partner.
 const NAMED_COLORS = {
@@ -104,14 +110,15 @@ export function is_legacy_chart_config(config) {
 
 /**
  * @param {Object} legacy  a frappe-charts config
- * @param {{ today?: Date, center_label?: string, on_unknown_key?: (path: string) => void }} [options]
+ * @param {{ today?: Date, center_label?: string, others_key?: string, on_unknown_key?: (path: string) => void }} [options]
  *        `today` anchors a heatmap that names no range, as frappe-charts does.
  *        `center_label` captions a donut's total, translated by the caller.
+ *        `others_key` is the key frappe-ui names a percentage bar's Others slice by.
  * @returns {Object} a frappe-ui chart config
  */
 export function from_legacy_config(
 	legacy,
-	{ today = new Date(), center_label = "Total", on_unknown_key } = {}
+	{ today = new Date(), center_label = "Total", others_key, on_unknown_key } = {}
 ) {
 	if (on_unknown_key) report_unknown_keys(legacy, on_unknown_key);
 
@@ -123,7 +130,7 @@ export function from_legacy_config(
 	}
 
 	return without_undefined({
-		...convert(legacy, { today, center_label }),
+		...convert(legacy, { today, center_label, others_key }),
 		title: legacy.title || undefined,
 		height: legacy.height || undefined,
 		...format_keys(legacy),
@@ -215,29 +222,22 @@ function slice_chart(legacy, { center_label }) {
 }
 
 /** One bar split into a share per label: what frappe-charts' percentage chart draws. */
-function percentage_chart(legacy) {
+function percentage_chart(legacy, { others_key }) {
 	const { labels = [], datasets = [] } = legacy.data;
 	const colors = legacy.colors || [];
 
-	const seriesConfig = {};
-	labels.forEach((label, i) => {
-		if (colors[i]) seriesConfig[label] = { color: to_color(colors[i]) };
-	});
+	// Keyed by label, as frappe-ui reorders slices by size; a label folded into Others takes Others' colour.
+	const pins = labels
+		.map((label, i) => [label, to_color(colors[i])])
+		.filter(([, color]) => color);
 
 	return {
-		type: "bar",
-		data: labels.map((label, i) => ({
-			label: "",
-			category: label,
-			value: total_at(datasets, i),
-		})),
-		x: "label",
-		y: "value",
-		splitBy: "category",
-		maxSeries: legacy.maxSlices || undefined,
-		seriesConfig: colors.length ? seriesConfig : undefined,
-		stacked: "normalized",
-		horizontal: true,
+		type: "percentage-bar",
+		data: labels.map((label, i) => ({ category: label, value: total_at(datasets, i) })),
+		category: "category",
+		value: "value",
+		maxSlices: legacy.maxSlices || PERCENTAGE_MAX_SLICES,
+		colors: { ...Object.fromEntries(pins), [others_key]: GRAY_COLORS.grey },
 	};
 }
 
@@ -268,7 +268,7 @@ function calendar_heatmap_chart(legacy, { today }) {
 /**
  * `config` with what desk fills in when a config leaves it out: frappe-charts' height for a
  * chart, and a calendar's weeks starting on the site's first day of the week. A number card is
- * as tall as its text.
+ * as tall as its text, and a percentage bar as tall as its bar and legend.
  *
  * @param {Object} config  a frappe-ui chart config
  * @param {{ first_day_of_the_week?: string }} [site]  as System Settings names the day
@@ -280,7 +280,8 @@ export function with_desk_defaults(config, { first_day_of_the_week } = {}) {
 			: undefined;
 	return without_undefined({
 		...config,
-		height: config.height || (config.type === "number" ? undefined : DEFAULT_HEIGHT),
+		height:
+			config.height || (CONTENT_SIZED.includes(config.type) ? undefined : DEFAULT_HEIGHT),
 		weekStart: config.weekStart || week_start,
 	});
 }

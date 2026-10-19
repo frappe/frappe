@@ -460,33 +460,71 @@ describe("slice charts", () => {
   });
 
   // erpnext/projects/report/delayed_tasks_summary
-  test("percentage: one normalized horizontal bar with a share per label", () => {
-    const config = convert({
-      data: {
-        labels: ["On Track", "Delayed"],
-        datasets: [{ name: "Delayed", values: [7, 3] }],
+  test("percentage: a percentage bar with a slice per label", () => {
+    const config = convert(
+      {
+        data: {
+          labels: ["On Track", "Delayed"],
+          datasets: [{ name: "Delayed", values: [7, 3] }],
+        },
+        type: "percentage",
+        colors: ["#84D5BA", "#CB4B5F"],
+        maxSlices: 6,
       },
-      type: "percentage",
-      colors: ["#84D5BA", "#CB4B5F"],
-      maxSlices: 6,
-    });
+      { others_key: "__others__" }
+    );
 
     assert.deepEqual(config, {
-      type: "bar",
+      type: "percentage-bar",
       data: [
-        { label: "", category: "On Track", value: 7 },
-        { label: "", category: "Delayed", value: 3 },
+        { category: "On Track", value: 7 },
+        { category: "Delayed", value: 3 },
       ],
-      x: "label",
-      y: "value",
-      splitBy: "category",
-      maxSeries: 6,
-      seriesConfig: {
-        "On Track": { color: "#84D5BA" },
-        Delayed: { color: "#CB4B5F" },
+      category: "category",
+      value: "value",
+      maxSlices: 6,
+      colors: {
+        "On Track": "#84D5BA",
+        Delayed: "#CB4B5F",
+        __others__: "var(--ink-gray-4)",
       },
-      stacked: "normalized",
-      horizontal: true,
+    });
+  });
+
+  test("percentage: frappe-charts' 20 slices, and a grey Others when no colours are given", () => {
+    const config = convert(
+      {
+        type: "percentage",
+        data: {
+          labels: ["a", "b"],
+          datasets: [{ values: [1, 2] }, { values: [3, 4] }],
+        },
+      },
+      { others_key: "__others__" }
+    );
+
+    assert.equal(config.maxSlices, 20);
+    assert.deepEqual(config.data, [
+      { category: "a", value: 4 },
+      { category: "b", value: 6 },
+    ]);
+    assert.deepEqual(config.colors, { __others__: "var(--ink-gray-4)" });
+  });
+
+  test("percentage: a named colour pins its label, a missing one leaves the palette", () => {
+    const config = convert(
+      {
+        type: "percentage",
+        data: { labels: ["a", "b", "c"], datasets: [{ values: [1, 2, 3] }] },
+        colors: ["red", undefined, "light-grey"],
+      },
+      { others_key: "__others__" }
+    );
+
+    assert.deepEqual(config.colors, {
+      a: "var(--chart-categorical-9)",
+      c: "var(--ink-gray-2)",
+      __others__: "var(--ink-gray-4)",
     });
   });
 });
@@ -632,6 +670,12 @@ describe("with_desk_defaults", () => {
       "height" in with_desk_defaults({ type: "number", title: "", value: 1 }),
       false
     );
+  });
+
+  test("a percentage bar is as tall as its bar and legend unless it names a height", () => {
+    const bar = { type: "percentage-bar", data: [], category: "c", value: "v" };
+    assert.equal("height" in with_desk_defaults(bar), false);
+    assert.equal(with_desk_defaults({ ...bar, height: 280 }).height, 280);
   });
 
   test("a calendar's weeks start on the site's first day unless it names its own", () => {

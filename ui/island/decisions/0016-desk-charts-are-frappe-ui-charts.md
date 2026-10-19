@@ -4,7 +4,7 @@ Desk draws its charts with frappe-charts. frappe-ui ships a family of charts tha
 
 ## Decision
 
-The chart config is frappe-ui's: the props of the chart component `type` names (`bar`, `line`, `area`, `donut`, `funnel`, `heatmap`, `calendar-heatmap`, `sankey`, `scatter`, and `number` for `NumberCard`), plus `fieldtype`, `options`, `precision` and `height`. It is JSON only, so a report or a Dashboard Chart can store it and the server can send it.
+The chart config is frappe-ui's: the props of the chart component `type` names (`bar`, `line`, `area`, `donut`, `funnel`, `heatmap`, `calendar-heatmap`, `percentage-bar`, `sankey`, `scatter`, and `number` for `NumberCard`), plus `fieldtype`, `options`, `precision` and `height`. It is JSON only, so a report or a Dashboard Chart can store it and the server can send it.
 
 Values read the way desk prints a field. `fieldtype`, `options` and `precision`, on the chart or on one series, form the df desk's formatter reads, and the island calls it through the desk context (`format`, `format_axis_number`). A value axis is shortened and reads as its first series, so a Currency axis keeps its symbol. A config never carries a function. The config is the doc the formatter reads, so `options: "currency"` takes the chart's `currency`, as report charts already send it. `currency` alone implies `fieldtype: "Currency"`. `echartOptions` passes through to frappe-ui but is not part of the contract: it couples a saved config to echarts' option tree.
 
