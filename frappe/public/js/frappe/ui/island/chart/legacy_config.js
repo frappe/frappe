@@ -9,8 +9,8 @@
 // frappe-charts draws at this height when a config names none
 const DEFAULT_HEIGHT = 240;
 
-// frappe-charts' percentage chart groups the labels past this many into Others
-const PERCENTAGE_MAX_SLICES = 20;
+// frappe-charts' pie, donut and percentage charts group the labels past this many into Others
+const MAX_SLICES = 20;
 
 // charts with no plot to fill, which a fixed height would only pad
 const CONTENT_SIZED = ["number", "percentage-bar"];
@@ -113,7 +113,7 @@ export function is_legacy_chart_config(config) {
  * @param {{ today?: Date, center_label?: string, others_key?: string, on_unknown_key?: (path: string) => void }} [options]
  *        `today` anchors a heatmap that names no range, as frappe-charts does.
  *        `center_label` captions a donut's total, translated by the caller.
- *        `others_key` is the key frappe-ui names a percentage bar's Others slice by.
+ *        `others_key` is the key frappe-ui names a donut's or percentage bar's Others slice by.
  * @returns {Object} a frappe-ui chart config
  */
 export function from_legacy_config(
@@ -194,51 +194,53 @@ function axis_chart(legacy) {
 	};
 }
 
-function slice_chart(legacy, { center_label }) {
+function slice_chart(legacy, { center_label, others_key }) {
 	const { labels = [], datasets = [] } = legacy.data;
-	const colors = legacy.colors || [];
-	// frappe-ui orders slices by size and colors them in that order. Sorting here first
-	// keeps each legacy colour on the label it was given for.
-	const slices = labels
-		.map((label, i) => ({
-			label,
-			value: total_at(datasets, i),
-			color: palette_color(colors, i),
-		}))
-		.sort((a, b) => b.value - a.value);
-
 	const name = datasets.length === 1 ? datasets[0].name : undefined;
 	const value = name && name !== "label" ? name : "value";
 
 	return {
 		type: "donut",
-		data: slices.map((slice) => ({ label: slice.label, [value]: slice.value })),
+		data: labels.map((label, i) => ({ label, [value]: total_at(datasets, i) })),
 		category: "label",
 		value,
 		centerLabel: center_label,
-		maxSlices: legacy.maxSlices || undefined,
-		palette: colors.length ? slices.map((slice) => slice.color) : undefined,
+		...slice_keys(legacy, others_key),
 	};
 }
 
 /** One bar split into a share per label: what frappe-charts' percentage chart draws. */
 function percentage_chart(legacy, { others_key }) {
 	const { labels = [], datasets = [] } = legacy.data;
-	const colors = legacy.colors || [];
-
-	// Keyed by label, as frappe-ui reorders slices by size; a label folded into Others takes Others' colour.
-	const pins = labels
-		.map((label, i) => [label, to_color(colors[i])])
-		.filter(([, color]) => color);
-
 	return {
 		type: "percentage-bar",
 		data: labels.map((label, i) => ({ category: label, value: total_at(datasets, i) })),
 		category: "category",
 		value: "value",
-		maxSlices: legacy.maxSlices || PERCENTAGE_MAX_SLICES,
+		...slice_keys(legacy, others_key),
+	};
+}
+
+/**
+ * frappe-charts' slice count and colours. Colours are keyed by label, as frappe-ui reorders
+ * slices by size; a label folded into Others takes Others' grey.
+ */
+function slice_keys(legacy, others_key) {
+	const labels = legacy.data.labels || [];
+	const colors = legacy.colors || [];
+	const pins = labels
+		.map((label, i) => [slice_name(label), to_color(colors[i])])
+		.filter(([, color]) => color);
+
+	return {
+		maxSlices: legacy.maxSlices || MAX_SLICES,
 		colors: { ...Object.fromEntries(pins), [others_key]: GRAY_COLORS.grey },
 	};
+}
+
+/** The name frappe-ui's `categoryLabel` gives a slice, which its `colors` are looked up by. */
+function slice_name(label) {
+	return label === null || label === undefined || label === "" ? "(Blank)" : String(label);
 }
 
 function calendar_heatmap_chart(legacy, { today }) {
@@ -315,11 +317,6 @@ function to_number(value) {
 	if (value === null) return null;
 	const number = Number(value);
 	return Number.isNaN(number) ? 0 : number;
-}
-
-/** A label past the end of a legacy list takes frappe-ui's own slot for its place. */
-function palette_color(colors, i) {
-	return to_color(colors[i]) || `var(--chart-categorical-${(i % 10) + 1})`;
 }
 
 function to_color(color) {

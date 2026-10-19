@@ -389,53 +389,58 @@ describe("slice charts", () => {
           datasets: [{ name: "Lead Source", values: [2, 9, 4] }],
         },
       },
-      { on_unknown_key: (key) => unknown.push(key) }
+      { others_key: "__others__", on_unknown_key: (key) => unknown.push(key) }
     );
 
     assert.deepEqual(unknown, []);
     assert.deepEqual(config, {
       type: "donut",
       data: [
+        { label: "Campaign", "Lead Source": 2 },
         { label: "Website", "Lead Source": 9 },
         { label: "Cold Calling", "Lead Source": 4 },
-        { label: "Campaign", "Lead Source": 2 },
       ],
       category: "label",
       value: "Lead Source",
       centerLabel: "Total",
       maxSlices: 8,
-      palette: [
-        "var(--chart-categorical-1)",
-        "#00ff00",
-        "var(--chart-categorical-9)",
-      ],
+      colors: {
+        Campaign: "var(--chart-categorical-9)",
+        Website: "var(--chart-categorical-1)",
+        "Cold Calling": "#00ff00",
+        __others__: "var(--ink-gray-4)",
+      },
       height: 240,
     });
   });
 
-  test("a pie is a donut that sums every dataset per label and fills missing colours from frappe-ui's ramp", () => {
-    const config = convert({
-      type: "pie",
-      colors: ["orange"],
-      data: {
-        labels: ["a", "b"],
-        datasets: [
-          { name: "x", values: [1, 5] },
-          { name: "y", values: [1, 0] },
-        ],
+  test("a pie is a donut that sums every dataset per label, with frappe-charts' 20 slices and a grey Others", () => {
+    const config = convert(
+      {
+        type: "pie",
+        colors: ["orange"],
+        data: {
+          labels: ["a", "b"],
+          datasets: [
+            { name: "x", values: [1, 5] },
+            { name: "y", values: [1, 0] },
+          ],
+        },
       },
-    });
+      { others_key: "__others__" }
+    );
 
     assert.equal(config.type, "donut");
     assert.equal(config.value, "value");
+    assert.equal(config.maxSlices, 20);
     assert.deepEqual(config.data, [
-      { label: "b", value: 5 },
       { label: "a", value: 2 },
+      { label: "b", value: 5 },
     ]);
-    assert.deepEqual(config.palette, [
-      "var(--chart-categorical-2)",
-      "var(--chart-categorical-7)",
-    ]);
+    assert.deepEqual(config.colors, {
+      a: "var(--chart-categorical-7)",
+      __others__: "var(--ink-gray-4)",
+    });
   });
 
   test("the caller's caption names the total in the hole", () => {
@@ -451,12 +456,33 @@ describe("slice charts", () => {
   });
 
   test("no colours leaves frappe-ui's palette", () => {
-    const config = convert({
-      type: "donut",
-      data: { labels: ["a"], datasets: [{ values: [1] }] },
-    });
+    const config = convert(
+      {
+        type: "donut",
+        data: { labels: ["a"], datasets: [{ values: [1] }] },
+      },
+      { others_key: "__others__" }
+    );
 
     assert.equal("palette" in config, false);
+    assert.deepEqual(config.colors, { __others__: "var(--ink-gray-4)" });
+  });
+
+  test("a blank label keeps its colour under frappe-ui's (Blank) name", () => {
+    const config = convert(
+      {
+        type: "donut",
+        data: { labels: ["", null, 3], datasets: [{ values: [1, 2, 3] }] },
+        colors: ["#111111", "#222222", "#333333"],
+      },
+      { others_key: "__others__" }
+    );
+
+    assert.deepEqual(config.colors, {
+      "(Blank)": "#222222",
+      3: "#333333",
+      __others__: "var(--ink-gray-4)",
+    });
   });
 
   // erpnext/projects/report/delayed_tasks_summary
