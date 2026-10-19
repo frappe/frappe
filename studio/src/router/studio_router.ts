@@ -1,4 +1,5 @@
-import { createRouter, createWebHistory } from "vue-router"
+import { createRouter, createWebHistory, type RouteLocationNormalized } from "vue-router"
+import { call } from "frappe-ui"
 import session from "@/utils/session"
 
 const routes = [
@@ -20,6 +21,12 @@ const routes = [
 		path: "/app/:appID/:pageID",
 		name: "StudioPage",
 		component: () => import("@/pages/StudioPage.vue"),
+		beforeEnter: blockStandardAppEditing,
+	},
+	{
+		path: "/app/:appID/not-editable",
+		name: "NotEditable",
+		component: () => import("@/pages/NotEditable.vue"),
 	},
 	{
 		path: "/not-permitted",
@@ -51,6 +58,28 @@ router.beforeEach(async (to, _, next) => {
 	}
 	return next()
 })
+
+async function blockStandardAppEditing(to: RouteLocationNormalized) {
+	if (window.is_developer_mode) return
+	const appID = to.params.appID as string
+	if (await isStandardApp(appID)) {
+		return { name: "NotEditable", params: { appID }, replace: true }
+	}
+}
+
+async function isStandardApp(appID: string) {
+	try {
+		const app = await call("frappe.client.get_value", {
+			doctype: "Studio App",
+			filters: appID,
+			fieldname: "is_standard",
+		})
+		return Boolean(app?.is_standard)
+	} catch {
+		// the editor shows its own error for a missing or forbidden app
+		return false
+	}
+}
 
 // Patch router to resolve unmatched routes to NotFound page
 // This ensures router-link renders correctly for the app being edited in studio
