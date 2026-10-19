@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
-from frappe.model.base_document import BaseDocument
 from frappe.model.docstatus import DocStatus
 from frappe.utils import cint
 
@@ -477,7 +476,7 @@ def print_workflow_log(messages, title, doctype, indicator):
 
 
 @frappe.whitelist()
-def get_common_transition_actions(docs: str | list[dict[str, Any] | BaseDocument], doctype: str):
+def get_common_transition_actions(docs: str | list[dict[str, Any] | Document], doctype: str):
 	common_actions = []
 	docs = frappe.parse_json(docs)
 	try:
