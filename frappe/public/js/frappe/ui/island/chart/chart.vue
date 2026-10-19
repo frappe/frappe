@@ -8,6 +8,7 @@ import {
 	FunnelChart,
 	HeatmapChart,
 	LineChart,
+	NumberCard,
 	OTHERS_KEY,
 	SankeyChart,
 	ScatterChart,
@@ -38,6 +39,7 @@ const CHARTS = {
 	"calendar-heatmap": CalendarHeatmapChart,
 	sankey: SankeyChart,
 	scatter: ScatterChart,
+	number: NumberCard,
 };
 
 const parsed = computed(() => {

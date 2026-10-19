@@ -43,9 +43,14 @@ frappe.ui.chart = function (el, config) {
 	return legacy_island_chart(target, config);
 };
 
-/** Whether `frappe.ui.chart` draws `config` with frappe-charts, for a caller that styles its markup. */
+/**
+ * Whether System Settings keeps `config` classic, for a caller whose classic path differs:
+ * `frappe.ui.chart` draws a legacy config with frappe-charts, and a number card stays the
+ * caller's own markup.
+ */
 frappe.ui.chart.is_classic = (config) =>
-	is_legacy_chart_config(config) && frappe.defaults.is_enabled("use_classic_charts");
+	(is_legacy_chart_config(config) || config?.type === "number") &&
+	frappe.defaults.is_enabled("use_classic_charts");
 
 function island_chart(el, config) {
 	el.classList.add("frappe-ui-chart");

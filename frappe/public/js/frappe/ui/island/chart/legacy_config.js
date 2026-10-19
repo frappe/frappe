@@ -266,8 +266,9 @@ function calendar_heatmap_chart(legacy, { today }) {
 }
 
 /**
- * `config` with what desk fills in when a config leaves it out: frappe-charts' height, and a
- * calendar's weeks starting on the site's first day of the week.
+ * `config` with what desk fills in when a config leaves it out: frappe-charts' height for a
+ * chart, and a calendar's weeks starting on the site's first day of the week. A number card is
+ * as tall as its text.
  *
  * @param {Object} config  a frappe-ui chart config
  * @param {{ first_day_of_the_week?: string }} [site]  as System Settings names the day
@@ -279,7 +280,7 @@ export function with_desk_defaults(config, { first_day_of_the_week } = {}) {
 			: undefined;
 	return without_undefined({
 		...config,
-		height: config.height || DEFAULT_HEIGHT,
+		height: config.height || (config.type === "number" ? undefined : DEFAULT_HEIGHT),
 		weekStart: config.weekStart || week_start,
 	});
 }

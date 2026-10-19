@@ -627,6 +627,13 @@ describe("with_desk_defaults", () => {
     );
   });
 
+  test("a number card is as tall as its text", () => {
+    assert.equal(
+      "height" in with_desk_defaults({ type: "number", title: "", value: 1 }),
+      false
+    );
+  });
+
   test("a calendar's weeks start on the site's first day unless it names its own", () => {
     const site = { first_day_of_the_week: "Monday" };
     const calendar = { type: "calendar-heatmap", data: [] };
