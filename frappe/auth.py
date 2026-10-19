@@ -151,10 +151,9 @@ class LoginManager:
 		if frappe.get_system_settings("disable_user_pass_login"):
 			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
 
-		# clear cache
-		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
+		frappe.clear_cache(user=self.user)
 
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)
