@@ -307,6 +307,11 @@ function build_style_files({ files, outdir, rtl_style = false }) {
 		postCssPlugin({
 			plugins: plugins,
 			sassOptions: sass_options,
+			// The plugin writes each entry to its temp dir at the entry's path relative to
+			// rootDir's parent. Its default, the cwd, is the app's real path. When the app is
+			// a symlink, that path climbs out of the temp dir, and the LTR and RTL builds
+			// write the same file.
+			rootDir: path.resolve(apps_path, "frappe"),
 		}),
 	];
 
