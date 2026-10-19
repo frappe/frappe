@@ -78,6 +78,47 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(response.json["verification"]["otp_secret"], self.secret)
 
+	def test_otp_attempt_limit_survives_login_restarts(self):
+		tmp_id = self.start_login()
+		code = self.email_code(tmp_id)
+		for credentials in (
+			{"usr": self.user, "pwd": self.password},
+			{"usr": self.user, "tmp_id": tmp_id},
+			{"tmp_id": tmp_id},
+		):
+			response = self.post_login(credentials)
+			self.assertEqual(response.status_code, 200)
+			response = self.post_login({"tmp_id": tmp_id, "otp": "wrong-code"})
+			self.assertEqual(response.status_code, 401)
+
+		response = self.post_login({"tmp_id": tmp_id, "otp": code})
+		self.assertEqual(response.json.get("exc_type"), "SecurityException")
+		response = self.post_login({"usr": self.user, "pwd": self.password})
+		self.assertEqual(response.json.get("exc_type"), "SecurityException")
+
+	def test_otp_success_resets_attempt_limit(self):
+		tmp_id = self.start_login()
+		response = self.post_login({"tmp_id": tmp_id, "otp": "wrong-code"})
+		self.assertEqual(response.status_code, 401)
+		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(response.json["verification"]["otp_secret"], self.secret)
+		tracker = get_login_attempt_tracker(self.user)
+		self.assertEqual(tracker.login_failed_count, 1)
+		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
+		self.assert_logged_in(response)
+		self.assertFalse(tracker.login_failed_count)
+
+	def test_password_login_resets_attempt_limit_without_2fa(self):
+		with self.change_settings("System Settings", {"enable_two_factor_auth": 0}, commit=True):
+			response = self.post_login({"usr": self.user, "pwd": "wrong-password"})
+			self.assertEqual(response.status_code, 401)
+			tracker = get_login_attempt_tracker(self.user)
+			self.assertEqual(tracker.login_failed_count, 1)
+			response = self.post_login({"usr": self.user, "pwd": self.password})
+			self.assert_logged_in(response)
+			self.assertFalse(tracker.login_failed_count)
+
 	def start_login(self, method="Email"):
 		response = self.post_login({"usr": self.user, "pwd": self.password})
 		self.assertEqual(response.status_code, 200)
@@ -93,6 +134,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 			site=frappe.local.site,
 		)
 		frappe.db.rollback()
+		frappe.local.cache = {}
 		if tmp_id := response.json.get("tmp_id"):
 			self.tmp_ids.append(tmp_id)
 		return response
