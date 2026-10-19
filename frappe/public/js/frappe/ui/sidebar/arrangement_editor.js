@@ -773,7 +773,7 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 		// set yet, which would read as those fields having been cleared.
 		this.ready = false;
 		const fields = this.fields.map((df) => {
-			if (df.fieldname === this.choice) return { ...df, hidden: 1 };
+			if (this.choice && df.fieldname === this.choice) return { ...df, hidden: 1 };
 			return this.on_change && df.fieldname
 				? { ...df, change: () => this.ready && this.changed() }
 				: df;

@@ -507,6 +507,15 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 		await open_sidebar_editor(page, { [APP_READ]: ITEMS, [APP_SAVE]: { module_sidebars } });
 
 		await expect(page.locator(".ws-row .ws-eye")).toHaveCount(0);
+
+		// The app's layer holds the section itself, so its panel says how it draws.
+		await page.locator(".ws-row").nth(1).click();
+		const panel = page.locator(".ws-panel");
+		await expect(panel).toContainText("Edit Section");
+		await expect(panel.locator(".frappe-control[data-fieldname='indent']")).toBeVisible();
+		await expect(panel.locator(".frappe-control[data-fieldname='collapsible']")).toBeVisible();
+		await page.keyboard.press("Escape");
+
 		await row_control(page, 0, ".ws-remove").click({ force: true });
 		await expect(page.locator(".ws-row")).toHaveCount(2);
 
