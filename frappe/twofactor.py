@@ -166,7 +166,6 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	if hotp_token:
 		if hotp.verify(otp, int(hotp_token)):
 			frappe.cache.delete_value(tmp_id + "_token")
-			tracker.add_success_attempt()
 			if otp_setup_pending:
 				frappe.cache.set_value(
 					tmp_id + "_email_verified", 1, expires_in_sec=frappe.flags.token_expiry or 300
@@ -174,6 +173,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 				frappe.local.response["verification"] = get_otp_app_setup_obj(login_manager.user, otp_secret)
 				frappe.local.response["tmp_id"] = tmp_id
 				return False
+			tracker.add_success_attempt()
 			return True
 		else:
 			tracker.add_failure_attempt()
