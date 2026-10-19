@@ -179,74 +179,41 @@
 			width: fit-content;
 			height: fit-content;
 			cursor: pointer;
+			border-radius: var(--radius-lg);
+
+			&:focus-visible {
+				outline: none;
+				box-shadow: var(--focus-default);
+			}
 		}
 
 		.sidebar-image,
 		.sidebar-standard-image {
-			transition: opacity 0.3s;
 			width: var(--form-sidebar-image-width);
 			height: var(--form-sidebar-image-width);
 			border-radius: var(--radius-lg);
 		}
 
-		.sidebar-image-wrapper:hover {
-			.sidebar-image,
-			.sidebar-standard-image {
-				opacity: 0.5;
-			}
-
-			.sidebar-image-actions {
-				display: block;
-			}
-		}
-
-		.sidebar-image-actions {
-			display: none;
+		.sidebar-image-edit {
 			position: absolute;
-			inset: 0;
-			z-index: 1;
-
-			.sidebar-image-upload-hint {
-				position: absolute;
-				bottom: 0;
-				left: 0;
-				right: 0;
-				height: 50%;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-				background: color-mix(in srgb, var(--gray-900) 15%, transparent);
-				border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-				color: var(--text-color);
-				line-height: 0;
-				pointer-events: none;
-			}
-
-			.sidebar-image-remove {
-				position: absolute;
-				top: 0;
-				right: 0;
-				transform: translate(50%, -50%);
-				background: var(--bg-color);
-				border-radius: var(--radius-full);
-				padding: 2px;
-				line-height: 0;
-				display: flex;
-				align-items: center;
-				justify-content: center;
-
-				&:hover {
-					background: var(--subtle-fg);
-				}
-			}
+			right: calc(var(--spacing) * -1);
+			bottom: calc(var(--spacing) * -1);
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: calc(var(--spacing) * 6);
+			height: calc(var(--spacing) * 6);
+			border: 1px solid var(--outline-gray-2);
+			border-radius: var(--radius-full);
+			background: var(--surface-base);
+			box-shadow: var(--shadow-md);
+			--icon-stroke: var(--ink-gray-6);
+			transition: box-shadow 0.15s;
 		}
 
-		// TODO: find better fix
-		.sidebar-standard-image {
-			.standard-image {
-				height: 0;
-				padding: 50% 0;
-			}
+		.sidebar-image-wrapper:hover .sidebar-image-edit {
+			box-shadow: var(--shadow-lg);
+			--icon-stroke: var(--ink-gray-8);
 		}
 	}
 
@@ -845,4 +812,9 @@ body[data-route^="Form"] .attachment-preview {
 
 .shared-user {
 	margin-bottom: 10px;
+}
+
+// menus open on the body, under the narrow-screen sidebar (1300)
+body:has(.overlay-sidebar.opened) .es-menu {
+	z-index: 1301;
 }

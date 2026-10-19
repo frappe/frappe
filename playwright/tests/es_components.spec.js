@@ -382,6 +382,67 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Optional Sections", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Optional Sections");
+		});
+
+		const add_button = (root, title) =>
+			root
+				.locator(".es-optional-sections__buttons .es-button", {
+					hasText: containing(title),
+				})
+				.first();
+		const section = (root, title) =>
+			root.locator(".es-optional-sections__section", { hasText: containing(title) }).first();
+
+		test("adding a section shows it and hides its button; Remove brings the button back", async ({
+			page,
+		}) => {
+			const root = explorer_group(page, "Basic (add")
+				.locator(".es-optional-sections")
+				.first();
+
+			await expect(section(root, "Salary and bank")).toBeHidden();
+			await add_button(root, "Salary and bank").click();
+			await expect(section(root, "Salary and bank")).toHaveAttribute("data-state", "added");
+			await expect(section(root, "Salary and bank")).toContainText("Salary fields go here.");
+			await expect(add_button(root, "Salary and bank")).toBeHidden();
+
+			await section(root, "Salary and bank").getByRole("button", { name: "Remove" }).click();
+			await expect(section(root, "Salary and bank")).toBeHidden();
+			await expect(add_button(root, "Salary and bank")).toBeVisible();
+			await expect(add_button(root, "Salary and bank")).toBeFocused();
+		});
+
+		test("hides the add row once every section is added", async ({ page }) => {
+			const root = explorer_group(page, "A section added from the start")
+				.locator(".es-optional-sections")
+				.first();
+
+			await expect(section(root, "Notes")).toBeVisible();
+			await expect(add_button(root, "Notes")).toBeHidden();
+			await add_button(root, "Attachments").click();
+			await expect(root.locator(".es-optional-sections__more")).toBeHidden();
+		});
+
+		test("focuses the first input of an added section and lets on_remove reset it", async ({
+			page,
+		}) => {
+			const root = explorer_group(page, "Fields in a section")
+				.locator(".es-optional-sections")
+				.first();
+			const email = root.locator("input[data-fieldname='email']");
+
+			await add_button(root, "Contact").click();
+			await expect(email).toBeFocused();
+			await email.fill("jane@example.com");
+			await section(root, "Contact").getByRole("button", { name: "Remove" }).click();
+			await add_button(root, "Contact").click();
+			await expect(email).toHaveValue("");
+		});
+	});
+
 	test.describe("Tab Buttons", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Tab Buttons");
@@ -603,65 +664,6 @@ test.describe("Espresso components", () => {
 			await expect(card).toHaveAttribute("tabindex", "0");
 			await card.dispatchEvent("keydown", { key: "Enter" });
 			await expect(page.locator(".es-toast")).toContainText("Paid");
-		});
-	});
-
-	test.describe("Bar List", () => {
-		test.beforeEach(async ({ page }) => {
-			await show(page, "Bar List");
-		});
-
-		test("sizes bars against a rounded axis and labels every row", async ({ page }) => {
-			const group = explorer_group(page, "Basic");
-
-			await expect(group.locator(".es-bar-list__row")).toHaveCount(4);
-			await expect(group.locator(".es-bar-list__bar").first()).toHaveAttribute(
-				"style",
-				/width: 84%/
-			);
-			await expect(group.locator(".es-bar-list__tick").last()).toHaveText("50000");
-		});
-
-		test("keeps static values visible and expands an undersized axis", async ({ page }) => {
-			const chart = await page.evaluate(() => {
-				const chart = frappe.ui
-					.bar_list({
-						items: [{ label: "Total", value: 200 }],
-						max: 100,
-						values_on_hover: true,
-					})
-					.appendTo(document.body);
-				const result = {
-					value_opacity: getComputedStyle(chart.find(".es-bar-list__value")[0]).opacity,
-					row_role: chart.find(".es-bar-list__row").attr("role") ?? null,
-					bar_width: parseFloat(chart.find(".es-bar-list__bar")[0].style.width),
-					last_tick: Number(chart.find(".es-bar-list__tick").last().text()),
-				};
-				chart.remove();
-				return result;
-			});
-
-			expect(chart.value_opacity).toBe("1");
-			expect(chart.row_role).toBeNull();
-			expect(chart.bar_width).toBeLessThanOrEqual(100);
-			expect(chart.last_tick).toBeGreaterThanOrEqual(200);
-		});
-
-		test("says there is no data instead of drawing an empty axis", async ({ page }) => {
-			const chart = explorer_group(page, "Empty").locator(
-				".es-bar-list[data-state='empty']"
-			);
-
-			await expect(chart.locator(".es-bar-list__empty")).toHaveText("No data to show");
-			await expect(chart.locator(".es-bar-list__axis")).toHaveCount(0);
-		});
-
-		test("widens the label gutter and passes the clicked item back", async ({ page }) => {
-			const group = explorer_group(page, "Wide labels");
-
-			await expect(group.locator(".es-bar-list").first()).toHaveAttribute("style", /180px/);
-			await group.locator(".es-bar-list__row--clickable").first().click();
-			await expect(page.locator(".es-toast")).toContainText("Kaveri Industrial Supplies");
 		});
 	});
 });

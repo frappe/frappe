@@ -16,6 +16,7 @@ from frappe.core.doctype.user.user import (
 	User,
 	bulk_add_roles,
 	bulk_remove_roles,
+	change_password,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -34,7 +35,7 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 from frappe.tests.utils import toggle_test_mode
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import add_to_date, get_url, now_datetime, sha256_hash
+from frappe.utils import add_days, add_to_date, get_url, getdate, now_datetime, sha256_hash, today
 from frappe.utils.data import orjson_dumps
 from frappe.www.login import sanitize_redirect
 
@@ -728,6 +729,15 @@ class TestUser(IntegrationTestCase):
 		self.assertIsNone(reset_password(user="random"))
 		self.assertEqual(frappe.message_log[0].get("message"), _GENERIC_MSG)
 
+	def test_change_password_sets_last_password_reset_date(self):
+		user = "testpassword@example.com"
+		frappe.db.set_value("User", user, "last_password_reset_date", add_days(today(), -2))
+
+		frappe.set_user(user)
+		change_password(user, "Eastern_43A1W")
+
+		self.assertEqual(frappe.db.get_value("User", user, "last_password_reset_date"), getdate())
+
 	def test_user_onload_modules(self):
 		"""The editor lists custom modules, and keeps a blocked module even after it is deleted"""
 		from frappe.desk.form.load import getdoc
@@ -832,6 +842,52 @@ class TestUser(IntegrationTestCase):
 			with patch.object(user_module, "is_password_reused", side_effect=competing_request) as probe:
 				self.assertEqual(update_password("Eastern_43A1W", key=key), "me")
 			probe.assert_called_once()
+			frappe.set_user("Administrator")
+
+	@contextmanager
+	def outgoing_email_account(self):
+		exists = frappe.db.exists
+
+		def exists_with_outgoing_account(doctype, *args, **kwargs):
+			if doctype == "Email Account":
+				return "Test Outgoing Account"
+			return exists(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=exists_with_outgoing_account):
+			yield
+
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.add_roles("_Test Role")
+				user.save()
+
+			sendmail.assert_not_called()
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.save()
+
+			sendmail.assert_called_once()
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
 			frappe.set_user("Administrator")
 
 	def test_bulk_add_roles(self):

@@ -227,6 +227,33 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt("qwe"))
 
+	def test_large_pdf_without_images_is_not_optimized(self):
+		from unittest.mock import patch
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		with (
+			patch.object(pdfgen, "LARGE_PDF_SIZE", 0),
+			patch.object(pdfgen, "optimize_pdf") as optimize_pdf,
+		):
+			pdfgen.get_pdf("<p>Renew the example.com domain</p>")
+
+		optimize_pdf.assert_not_called()
+
+	def test_large_pdf_with_translucent_image_is_optimized(self):
+		import os
+
+		from PIL import Image
+
+		path = frappe.get_site_path("public", "files", "_test_translucent_photo.jpg")
+		Image.effect_noise((3000, 3000), 80).convert("RGB").save(path, quality=95)
+		self.addCleanup(os.remove, path)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		html = '<img src="/files/_test_translucent_photo.jpg" style="width: 80px; opacity: 0.5">'
+		self.assertLess(len(pdfgen.get_pdf(html)), pdfgen.LARGE_PDF_SIZE)
+
 	def test_pdf_visibility_classes_apply_to_the_body(self):
 		pdf = pdfgen.get_pdf(
 			"<style>.visible-pdf { display: none; }</style>"

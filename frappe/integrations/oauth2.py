@@ -3,6 +3,7 @@ import json
 from typing import Literal, cast
 from urllib.parse import quote, urlencode
 
+from oauthlib.common import Request
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from oauthlib.openid.connect.core.endpoints.pre_configured import Server as WebApplicationServer
 from pydantic import ValidationError
@@ -256,8 +257,42 @@ def get_openid_configuration():
 	return response
 
 
+def authenticate_introspection_caller() -> str | None:
+	"""Authenticate the calling OAuth client per RFC 7662 §2.1.
+
+	Uses the same client authentication as the token and revocation endpoints. Credentials
+	must be explicit, and public clients (auth method None) are rejected, so a bare token
+	never identifies its own client. Only the request body and headers are read, never the
+	query string.
+
+	Returns the authenticated client_id, or None if the caller could not be authenticated.
+	"""
+	r = frappe.request
+	request = Request(r.base_url, http_method=r.method, body=r.form, headers=r.headers)
+	validator = get_oauth_server().request_validator
+
+	try:
+		has_credentials = request.client_id or validator.get_basic_auth_credentials(request)
+	except ValueError:
+		return None
+
+	if not has_credentials or not validator.authenticate_client(request):
+		return None
+
+	if request.client["token_endpoint_auth_method"] == "None":
+		return None
+
+	return request.client_id
+
+
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def introspect_token(token: str, token_type_hint: str | None = None):
+	authenticated_client_id = authenticate_introspection_caller()
+	if not authenticated_client_id:
+		frappe.local.response = frappe._dict({"error": "invalid_client"})
+		frappe.local.response["http_status_code"] = 401
+		return
+
 	if token_type_hint not in ["access_token", "refresh_token"]:
 		token_type_hint = "access_token"
 	try:
@@ -270,6 +305,10 @@ def introspect_token(token: str, token_type_hint: str | None = None):
 			)
 
 		client = frappe.get_cached_doc("OAuth Client", bearer_token.client)
+
+		if client.client_id != authenticated_client_id:
+			frappe.local.response = frappe._dict({"active": False})
+			return
 
 		token_response = frappe._dict(
 			{
@@ -349,6 +388,7 @@ def _get_authorization_server_metadata():
 		revocation_endpoint=f"{issuer}{ENDPOINTS['revocation_endpoint']}",
 		revocation_endpoint_auth_methods_supported=["none", "client_secret_basic", "client_secret_post"],
 		introspection_endpoint=f"{issuer}{ENDPOINTS['introspection_endpoint']}",
+		introspection_endpoint_auth_methods_supported=["client_secret_basic", "client_secret_post"],
 		userinfo_endpoint=f"{issuer}{ENDPOINTS['userinfo_endpoint']}",
 		code_challenge_methods_supported=["S256"],
 	)

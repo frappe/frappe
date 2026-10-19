@@ -335,7 +335,7 @@ class DatabaseQuery:
 		Returns:
 			List of results from controller.get_list()
 		"""
-		from frappe.model.base_document import get_controller
+		from frappe.model.document import get_controller
 		from frappe.types.filter import Filters
 
 		controller = get_controller(self.doctype)

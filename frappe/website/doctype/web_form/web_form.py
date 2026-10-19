@@ -225,6 +225,12 @@ def get_context(context):
 """
 					)
 
+	def clear_cache(self):
+		frappe.cache.delete_key("bootinfo")
+		frappe.db.after_commit.add(lambda: frappe.cache.delete_key("bootinfo"))
+		frappe.db.after_rollback.add(lambda: frappe.cache.delete_key("bootinfo"))
+		return super().clear_cache()
+
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
 		context.in_edit_mode = False
@@ -1371,4 +1377,8 @@ def get_link_options(
 
 @redis_cache(ttl=60 * 60)
 def get_published_web_forms() -> dict[str, str]:
-	return frappe.get_all("Web Form", ["name", "route", "modified", "module"], {"published": 1})
+	return frappe.get_all(
+		"Web Form",
+		["name", "title", "route", "modified", "module", "doc_type", "key_required", "allow_edit"],
+		{"published": 1},
+	)

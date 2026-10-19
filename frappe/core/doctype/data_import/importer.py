@@ -171,6 +171,7 @@ class Importer:
 
 		# dont import if there are non-ignorable warnings
 		from frappe.core.doctype.data_import.value_mapping import (
+			create_missing_link_records,
 			get_blocking_warnings,
 			get_skipped_row_numbers,
 		)
@@ -193,6 +194,8 @@ class Importer:
 					user=frappe.session.user,
 				)
 			return
+
+		create_missing_link_records(self.data_import)
 
 		# Read previous status before 'In Progress' overwrites it; retry purge needs it.
 		previous_status = self.data_import.status
@@ -661,10 +664,11 @@ class Importer:
 		if not self.data_import or not self.data_import.skipped_rows:
 			return
 
+		# Read from the file: row_data is only filled for rows the preview carried.
+		skipped = {cint(row.row_number) for row in self.data_import.skipped_rows}
 		header_row = [col.header_title for col in self.import_file.columns]
 		rows = [header_row]
-		for skipped in sorted(self.data_import.skipped_rows, key=lambda r: r.row_number):
-			rows.append(frappe.parse_json(skipped.row_data))
+		rows += [row.data for row in self.import_file.data if row.row_number in skipped]
 
 		build_csv_response(rows, _(self.doctype))
 
@@ -927,6 +931,9 @@ class ImportFile:
 			out.data = out.data[:MAX_ROWS_IN_PREVIEW]
 			out.max_rows_exceeded = True
 			out.max_rows_in_preview = MAX_ROWS_IN_PREVIEW
+			# Fix issues shows a warned row's cells, which may fall past the preview.
+			warned = {cint(w.get("row")) for w in out.warnings if w.get("row")}
+			out.warning_rows = [row for row in data[MAX_ROWS_IN_PREVIEW:] if row[0] in warned]
 
 		return out
 
@@ -2255,24 +2262,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 
 def get_df_for_column_header(doctype, header):
-	from frappe.core.doctype.data_import.import_provider import get_import_provider
-
-	if get_import_provider(doctype):
-		# A provider's fields can depend on the user (e.g. their permissions) and on other
-		# DocTypes, so they can't be shared or cleared with this DocType's cache.
-		return _get_provider_fields_dict(doctype, frappe.session.user).get(header)
-
-	def build_fields_dict_for_doctype():
-		return build_fields_dict_for_column_matching(doctype)
-
-	df_by_labels_and_fieldname = frappe.cache.hget(
-		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
-	)
-	return df_by_labels_and_fieldname.get(header)
+	return _get_fields_dict(doctype, frappe.session.user).get(header)
 
 
 @request_cache
-def _get_provider_fields_dict(doctype, user):
+def _get_fields_dict(doctype, user):
+	# A provider's fields can depend on the user (e.g. their permissions)
 	return build_fields_dict_for_column_matching(doctype)
 
 

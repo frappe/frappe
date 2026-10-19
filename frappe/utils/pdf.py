@@ -16,6 +16,7 @@ if TYPE_CHECKING:
 	import cssutils
 	from bs4 import BeautifulSoup
 	from pypdf import PdfReader, PdfWriter
+	from pypdf.generic import DictionaryObject
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
@@ -90,6 +91,8 @@ def get_pdf(
 	print_format: str | None = None,
 ):
 	"""Render `html` to PDF with Chromium."""
+	from pypdf import PdfReader
+
 	from frappe.utils.chromium import ChromiumManager
 	from frappe.utils.pdf_generator.browser import Browser
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
@@ -105,7 +108,9 @@ def get_pdf(
 
 	if output:
 		return pdf
-	if len(pdf) > LARGE_PDF_SIZE:
+	if len(pdf) > LARGE_PDF_SIZE and any(
+		_has_image_xobject(page) for page in PdfReader(io.BytesIO(pdf)).pages
+	):
 		pdf = optimize_pdf(pdf, notify=False)
 	if password:
 		pdf = encrypt_pdf(pdf, password)
@@ -272,6 +277,23 @@ def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 			height = int(xobj.get("/Height", 0))
 			if width * height > max_pixels:
 				return True
+	return False
+
+
+def _has_image_xobject(page_or_form: "DictionaryObject") -> bool:
+	"""Look for image XObjects, including inside form XObjects, without the inline image scan of
+	every content stream that `page.images` runs, which takes seconds on long text-only PDFs.
+	"""
+	try:
+		xobjects = page_or_form["/Resources"]["/XObject"]
+	except KeyError:
+		return False
+	for xobj in xobjects.values():
+		xobj = xobj.get_object()
+		if xobj.get("/Subtype") == "/Image":
+			return True
+		if xobj.get("/Subtype") == "/Form" and _has_image_xobject(xobj):
+			return True
 	return False
 
 

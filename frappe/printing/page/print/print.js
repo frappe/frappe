@@ -233,13 +233,14 @@ frappe.ui.form.PrintView = class {
 			fieldname: "page_orientation",
 			label: __("Orientation"),
 			options: [
+				{ label: __("Default"), value: "" },
 				{ label: __("Portrait"), value: "Portrait" },
 				{ label: __("Landscape"), value: "Landscape" },
 			],
 			change() {
-				set("page_orientation", this.get_value() === "Landscape" ? "Landscape" : "");
+				set("page_orientation", this.get_value());
 			},
-		}).set_input("Portrait");
+		});
 	}
 
 	make_default_format() {
@@ -535,7 +536,6 @@ frappe.ui.form.PrintView = class {
 	refresh_print_format() {
 		this.toggle_style_picker();
 		this.set_default_print_language();
-		this.toggle_raw_printing();
 		this.update_letterhead_for_print_format().then(() => this.preview());
 	}
 
@@ -831,6 +831,7 @@ frappe.ui.form.PrintView = class {
 
 	preview() {
 		this.toggle_style_picker();
+		this.toggle_raw_printing();
 		let print_format = this.get_print_format();
 		if (!print_format.raw_printing) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
@@ -1124,8 +1125,8 @@ frappe.ui.form.PrintView = class {
 								options: r.message,
 							},
 						],
-						primary_action: function () {
-							localStorage.setItem("network_printer", d.get_values().printer);
+						primary_action: function (values) {
+							localStorage.setItem("network_printer", values.printer);
 							if (typeof callback == "function") {
 								callback();
 							}
@@ -1371,8 +1372,8 @@ frappe.ui.form.PrintView = class {
 						],
 					},
 				],
-				primary_action: () => {
-					let printer_mapping = dialog.get_values()["printer_mapping"];
+				primary_action: (values) => {
+					let printer_mapping = values["printer_mapping"];
 					if (printer_mapping && printer_mapping.length) {
 						let print_format_list = printer_mapping.map((a) => a.print_format);
 						let has_duplicate = print_format_list.some(

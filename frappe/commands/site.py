@@ -1263,6 +1263,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 			sys.exit(1)
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
+		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
 		frappe.db.commit()
 	finally:
 		frappe.destroy()
@@ -1353,7 +1354,7 @@ def browse(
 	if not site:
 		raise SiteNotSpecifiedError
 
-	if site not in frappe.utils.get_sites():
+	if site not in frappe.utils.get_sites() and not os.path.isfile(os.path.join(site, "site_config.json")):
 		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
 		sys.exit(1)
 

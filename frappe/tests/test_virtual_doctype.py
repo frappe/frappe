@@ -55,7 +55,7 @@ class VirtualDoctypeTest(Document):
 	def load_from_db(self):
 		data = self.get_current_data()
 		d = data.get(self.name)
-		super(Document, self).__init__(d)
+		self.init_from_dict(d)
 
 	def db_update(self, *args, **kwargs):
 		# For this example insert and update are same operation,
