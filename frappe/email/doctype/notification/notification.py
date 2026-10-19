@@ -619,7 +619,6 @@ def get_context(context):
 			message=message,
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
-			throw=False,  # A failed external delivery must not prevent an additional system notification.
 		)
 
 	def send_sms(self, doc, context):
