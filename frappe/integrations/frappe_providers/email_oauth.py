@@ -62,7 +62,7 @@ def initiate_mailbox_connect(
 	client = WebApplicationClient(None)
 	verifier = client.create_code_verifier(64)
 	state = secrets.token_urlsafe(16)
-	link = relay(
+	link = call_central_method(
 		"start",
 		provider=provider,
 		state=state,
@@ -87,21 +87,21 @@ def initiate_mailbox_connect(
 	return link["authorize_url"]
 
 
-def relay(method: str, **data) -> dict:
-	"""Call Central's central.api.email_oauth.<method> through this site's Pilot."""
-	client = PilotClient()
-	return client.post(client.site_path(f"central/central.api.email_oauth.{method}"), data)
-
-
 def relay_refresh(app, token_cache) -> dict:
 	"""Refresh for a Connected App whose Token URI starts with FRAPPE_CLOUD_RELAY; Central adds the secret."""
-	return relay(
+	return call_central_method(
 		"relay_token",
 		provider=app.token_uri.removeprefix(FRAPPE_CLOUD_RELAY),
 		grant_type="refresh_token",
 		refresh_token=token_cache.get_password("refresh_token"),
 		scope=" ".join(app.get_scopes()),
 	)
+
+
+def call_central_method(method: str, **data) -> dict:
+	"""Call Central's central.api.email_oauth.<method> through this site's Pilot."""
+	client = PilotClient()
+	return client.post(client.site_path(f"central/central.api.email_oauth.{method}"), data)
 
 
 @frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
@@ -159,7 +159,7 @@ def connect(
 
 	provider = note["provider"]
 	try:
-		token = relay(
+		token = call_central_method(
 			"relay_token",
 			provider=provider,
 			grant_type="authorization_code",
