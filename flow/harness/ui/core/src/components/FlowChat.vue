@@ -77,6 +77,7 @@ import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { installShortcuts } from "../shortcuts.js"
+import { installFocusRings } from "../focusRings.js"
 import { provideComposerHeight } from "../composerHeight.js"
 import ChatHeader from "./ChatHeader.vue"
 import Composer from "./Composer.vue"
@@ -121,10 +122,15 @@ const composer = ref(null)
 
 provideComposerHeight(composer)
 let uninstallShortcuts = null
+let uninstallFocusRings = null
 onMounted(() => {
 	uninstallShortcuts = installShortcuts(props.store)
+	uninstallFocusRings = installFocusRings()
 })
-onBeforeUnmount(() => uninstallShortcuts?.())
+onBeforeUnmount(() => {
+	uninstallShortcuts?.()
+	uninstallFocusRings?.()
+})
 
 const toast = ref(null)
 let toastTimer = null

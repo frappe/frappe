@@ -185,12 +185,8 @@
 											@update:open="(open) => setMenu(s, open)"
 										>
 											<button
-												class="row-action absolute right-1 top-1/2 z-10 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:text-ink-gray-7 focus-visible:opacity-100"
-												:class="
-													menuFor === s.session_id
-														? 'text-ink-gray-7 opacity-100'
-														: 'opacity-0 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100'
-												"
+												class="row-action chat-options absolute right-1 top-1/2 z-10 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:text-ink-gray-7"
+												:class="menuFor === s.session_id ? 'text-ink-gray-7 opacity-100' : 'opacity-0 group-hover:opacity-100'"
 												title="Session options"
 												@pointerdown.stop
 											>
@@ -630,10 +626,14 @@ const emptyMessage = computed(() => {
 /* a row's button covers the end of its title, so a long title fades out before it; touch
    screens show a workspace's button without a hover */
 .group:hover .row-title,
-.group:has(:focus-visible) .row-title,
+[data-flow-tabbing] .group:has(:focus-visible) .row-title,
 .group.menu-open .row-title {
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 	mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+}
+/* Tab onto a chat shows its options button, as a hover does (focusRings.js marks the root) */
+[data-flow-tabbing] .group:has(:focus-visible) .chat-options {
+	opacity: 1;
 }
 @media (hover: none) {
 	.folder-name {

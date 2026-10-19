@@ -74,6 +74,7 @@ import SessionSidebar from "@flow/ui-core/components/SessionSidebar.vue";
 import TranscriptDialog from "@flow/ui-core/components/TranscriptDialog.vue";
 import WorkspacePanel from "@flow/ui-core/components/WorkspacePanel.vue";
 import { installShortcuts } from "@flow/ui-core/shortcuts.js";
+import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
@@ -217,8 +218,10 @@ watch(
 );
 
 let uninstallShortcuts = null;
+let uninstallFocusRings = null;
 onMounted(async () => {
 	uninstallShortcuts = installShortcuts(store);
+	uninstallFocusRings = installFocusRings();
 	store.refreshModels();
 	await store.refreshSessions();
 	// the route watcher, a click or a first message may have moved on while the list loaded
@@ -233,6 +236,7 @@ onMounted(async () => {
 });
 onBeforeUnmount(() => {
 	uninstallShortcuts?.();
+	uninstallFocusRings?.();
 	store.detach();
 	socket.disconnect();
 });
