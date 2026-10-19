@@ -1,5 +1,7 @@
+import contextlib
 import os
 import platform
+import signal
 import subprocess
 import time
 from pathlib import Path
@@ -193,9 +195,21 @@ class ChromePDFGenerator:
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
+				command_args,
+				stdout=subprocess.PIPE,
+				stderr=subprocess.PIPE,
+				text=True,
+				start_new_session=True,
 			)
 		return self._chromium_process
+
+	def _signal_chromium(self, kill=False):
+		process = self._chromium_process
+		if platform.system().lower() == "windows":
+			process.kill() if kill else process.terminate()
+			return
+		with contextlib.suppress(ProcessLookupError):
+			os.killpg(process.pid, signal.SIGKILL if kill else signal.SIGTERM)
 
 	def _reap_orphaned_chromium(self):
 		"""Kill chromium processes leaked by dead workers.
@@ -247,7 +261,7 @@ class ChromePDFGenerator:
 					break
 
 		if not self._devtools_url:
-			self._chromium_process.terminate()
+			self._signal_chromium()
 			raise TimeoutError("Chromium took too long to start.")
 
 	def _close_browser(self):
@@ -258,7 +272,7 @@ class ChromePDFGenerator:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
 		if self._chromium_process:
-			self._chromium_process.terminate()
+			self._signal_chromium()
 		ChromePDFGenerator._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
