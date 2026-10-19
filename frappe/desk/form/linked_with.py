@@ -9,13 +9,7 @@ import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
-<<<<<<< HEAD
-from frappe.model.meta import is_single
-=======
-from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_docs
-from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
 from frappe.model.dynamic_links import get_dynamic_link_map
->>>>>>> ea11d39 (fix(linked_with): stop caching data-dependent dynamic links)
 from frappe.modules import load_doctype_module
 
 
