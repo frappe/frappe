@@ -11,8 +11,6 @@ from frappe.utils import cint
 
 def setup_database():
 	root_conn = get_root_connection()
-	root_conn.commit()
-	root_conn.sql("end")
 	postgres_version = _get_server_version(root_conn)
 	_drop_database(root_conn, frappe.conf.db_name, postgres_version)
 
@@ -173,7 +171,7 @@ def get_root_connection():
 				or getpass("Postgres super user password: ")
 			)
 
-		frappe.local.flags.root_connection = frappe.database.get_db(
+		root_conn = frappe.database.get_db(
 			socket=frappe.conf.db_socket,
 			host=frappe.conf.db_host,
 			port=frappe.conf.db_port,
@@ -181,17 +179,17 @@ def get_root_connection():
 			password=frappe.flags.root_password,
 			cur_db_name=frappe.flags.root_login,
 		)
+		root_conn.autocommit = True
+		frappe.local.flags.root_connection = root_conn
 
 	return frappe.local.flags.root_connection
 
 
 def drop_user_and_database(db_name, db_user):
 	root_conn = get_root_connection()
-	root_conn.commit()
 	root_conn.sql(
 		"SELECT pg_terminate_backend (pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = %s",
 		(db_name,),
 	)
-	root_conn.sql("end")
 	_drop_database(root_conn, db_name, _get_server_version(root_conn))
 	root_conn.execute_query(sql.SQL("DROP USER IF EXISTS {}").format(sql.Identifier(db_user)))

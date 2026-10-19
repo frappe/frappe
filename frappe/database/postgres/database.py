@@ -254,6 +254,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	MAX_COLUMN_LENGTH = 63
 	default_port = "5432"
 	_transaction_has_schema_changes = False
+	# admin connections set this: CREATE and DROP DATABASE can't run inside a transaction block
+	autocommit = False
 
 	def setup_type_map(self):
 		self.db_type = "postgres"
@@ -323,7 +325,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 		# frappe opens a connection per request or job, so prepare early to reuse within one
 		conn = psycopg.connect(
-			**conn_settings, context=ADAPTERS, cursor_factory=PostgresCursor, prepare_threshold=2
+			**conn_settings,
+			autocommit=self.autocommit,
+			context=ADAPTERS,
+			cursor_factory=PostgresCursor,
+			prepare_threshold=2,
 		)
 		conn.isolation_level = IsolationLevel.REPEATABLE_READ
 
