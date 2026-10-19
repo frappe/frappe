@@ -15,6 +15,7 @@
 			<EmailAccounts
 				:key="`${cloud}-${empty}-${landings}`"
 				doctype="ToDo"
+				:is-v2-site="cloud"
 				@created="(...a) => log('created', a)"
 			/>
 		</div>
@@ -116,7 +117,6 @@ function land(code: string | number | null) {
 type Args = Record<string, any>;
 const answers: Record<string, (args: Args) => unknown> = {
 	"frappe.client.get_list": () => (empty.value ? [] : accounts),
-	get_one_click_providers: () => (cloud.value ? ["microsoft"] : []),
 	has_token: (args) => !["relay-billing", "own-app"].includes(args.connected_app),
 	"frappe.client.set_value": ({ name, fieldname, value }) => {
 		if (typeof fieldname !== "string") return;

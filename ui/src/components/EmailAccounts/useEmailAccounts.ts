@@ -1,16 +1,16 @@
 import { reactive } from "vue";
-import { call, frappeRequest } from "frappe-ui";
+import { call } from "frappe-ui";
 import {
   authKind,
   markSignInStarted,
   missingDefaults,
   newAccount,
+  services,
 } from "./services";
 import type {
   EmailAccount,
   EmailAccountDoc,
   EmailAccountsController,
-  OneClickProvider,
 } from "./types";
 
 const FIELDS = [
@@ -42,27 +42,24 @@ const FIELDS = [
 
 /**
  * Data behind `EmailAccounts`: reads and writes Email Account through Frappe's own
- * methods. `doctype` is what incoming mail is appended to.
+ * methods. `doctype` is what incoming mail is appended to; `isV2Site` turns on one-click sign-in.
  */
-export function useEmailAccounts(doctype: string): EmailAccountsController {
+export function useEmailAccounts(
+  doctype: string,
+  isV2Site = false,
+): EmailAccountsController {
   let seq = 0;
 
   async function load() {
     const mine = ++seq;
     controller.loading = true;
     try {
-      const [docs, providers] = await Promise.all([
-        call<EmailAccountDoc[]>("frappe.client.get_list", {
-          doctype: "Email Account",
-          fields: FIELDS,
-          order_by: "creation desc",
-          limit_page_length: 0,
-        }),
-        frappeRequest<OneClickProvider[]>({
-          url: "frappe.integrations.frappe_providers.email_oauth.get_one_click_providers",
-          method: "GET",
-        }),
-      ]);
+      const docs = await call<EmailAccountDoc[]>("frappe.client.get_list", {
+        doctype: "Email Account",
+        fields: FIELDS,
+        order_by: "creation desc",
+        limit_page_length: 0,
+      });
       const accounts = await Promise.all(
         docs.map(async (doc): Promise<EmailAccount> => {
           const hasToken =
@@ -85,7 +82,6 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
         }),
       );
       if (mine !== seq) return;
-      controller.oneClickProviders = providers;
       controller.accounts = accounts;
       controller.error = null;
     } catch (e) {
@@ -99,7 +95,7 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
     accounts: [] as EmailAccount[],
     loading: true,
     error: null,
-    oneClickProviders: [] as OneClickProvider[],
+    oneClickProviders: isV2Site ? services.flatMap((s) => s.oneClick ?? []) : [],
     load,
 
     async create(service, form) {

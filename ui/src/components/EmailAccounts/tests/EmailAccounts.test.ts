@@ -5,15 +5,13 @@ import type { App, VNode } from "vue";
 import EmailAccounts from "../EmailAccounts.vue";
 import { markSignInStarted } from "../services";
 
-const { call, request } = vi.hoisted(() => ({
+const { call } = vi.hoisted(() => ({
   call: vi.fn(),
-  request: vi.fn(),
 }));
 vi.mock("frappe-ui", async (importOriginal) => ({
   ...(await importOriginal<typeof import("frappe-ui")>()),
   toast: { success: vi.fn(), error: vi.fn() },
   call: (...args: unknown[]) => call(...args),
-  frappeRequest: (...args: unknown[]) => request(...args),
 }));
 
 const CONNECT =
@@ -39,7 +37,6 @@ beforeEach(() => {
     if (method === CONNECT) return "https://login.example.com/authorize";
     return null;
   });
-  request.mockReset().mockResolvedValue([]);
   vi.mocked(toast.success).mockClear();
 });
 
@@ -178,8 +175,7 @@ it("signs in to Outlook in one click only when the site offers it", async () => 
     href: "https://example.com/helpdesk/tickets?status=Open",
     assign,
   });
-  request.mockResolvedValue(["microsoft", "google"]);
-  await openTiles();
+  await openTiles({ isV2Site: true });
   button("Outlook").click();
   await settle();
   expect(call.mock.calls.filter(([m]) => m === CONNECT)).toEqual([
