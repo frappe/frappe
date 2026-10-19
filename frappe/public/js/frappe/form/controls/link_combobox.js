@@ -275,6 +275,8 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 	before_open() {
 		// no try/catch: a Single doctype should show "not a valid DocType"
 		this.open_args = this.get_search_args("") || null;
+		// nothing to search yet, e.g. a Dynamic Link with no doctype
+		if (!this.open_args) return false;
 		this.open_mode = this.resolve_mode();
 		const searching = this.open_mode === "Search";
 		const opts = this.combobox.opts;
@@ -346,8 +348,10 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			args.filters = filters_str;
 		}
 
-		const key = cache_key(args, [args.txt, args.start || 0, args.page_length]);
-		const cached = created_new || no_cache ? null : search_cache.get(key);
+		// typed text always asks the server, as the classic field does: a match may be new
+		const use_cache = !created_new && !no_cache && !args.txt;
+		const key = cache_key(args, [args.start || 0, args.page_length]);
+		const cached = use_cache ? search_cache.get(key) : null;
 		if (cached && Date.now() - cached.time < SEARCH_CACHE_MS) {
 			return cached.result;
 		}
@@ -372,7 +376,7 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 				const options = rows.map((row) => this.to_option(row, context));
 				// count before removing duplicates
 				const result = paged ? { rows: options, has_more: more } : options;
-				if (!no_cache) {
+				if (use_cache) {
 					remember(search_cache, key, { result, time: Date.now() }, SEARCH_CACHE_MAX);
 				}
 				return result;
