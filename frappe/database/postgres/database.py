@@ -312,7 +312,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return frappe.conf.get("db_schema", "public").replace("'", "").replace('"', "")
 
 	def get_connection(self):
-		search_path = self.db_schema.replace("\\", "\\\\").replace(" ", "\\ ")
+		# quoted, so postgres doesn't lowercase it; libpq splits options on unescaped spaces
+		search_path = f'"{self.db_schema}"'.replace("\\", "\\\\").replace(" ", "\\ ")
 		conn_settings = {
 			"dbname": self.cur_db_name,
 			"user": self.user,
