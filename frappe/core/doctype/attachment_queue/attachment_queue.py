@@ -56,9 +56,8 @@ class AttachmentQueue(Document):
 		# created_document is a Dynamic Link, so a claim always reads back as a string.
 		document_name = cstr(document_name)
 
-		claimed, source_file = frappe.db.get_value(
-			"Attachment Queue", self.name, ["created_document", "source_file"], for_update=True
-		)
+		claimed = self.created_document
+		source_file = self.source_file
 
 		if claimed:
 			if claimed == document_name:
