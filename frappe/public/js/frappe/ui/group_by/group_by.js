@@ -142,6 +142,8 @@ frappe.ui.GroupBy = class {
 					// re-rendering the popover detaches the clicked element
 					document.body.contains(e.target) &&
 					$(e.target).parents(".group-by-popover").length === 0 &&
+					// the field picker's list opens in <body>
+					$(e.target).closest(".es-menu").length === 0 &&
 					$(e.target).parents(".group-by-box").length === 0 &&
 					$(e.target).parents(".group-by-button").length === 0 &&
 					!$(e.target).is(this.group_by_button)

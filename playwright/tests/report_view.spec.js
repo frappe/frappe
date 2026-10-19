@@ -167,6 +167,30 @@ test.describe("Report View group by button", () => {
 		await expect(button_label.locator("b")).toHaveCount(0);
 	});
 
+	test("keeps the group by popover open when a field is picked with the mouse", async ({
+		page,
+	}) => {
+		const popover = page.locator(".group-by-popover");
+		await page.evaluate(() => {
+			const control = window.cur_list.group_by_control;
+			control.remove_group_by();
+			// the popover fades out, so catch the hide itself
+			control.group_by_button.on("hide.bs.popover", () => (window.group_by_hidden = true));
+		});
+
+		await page.locator(".group-by-button").click();
+		await page
+			.locator(".es-combobox__panel[data-state='open']")
+			.getByRole("option", { name: label })
+			.click();
+
+		await expect(popover.locator("select.aggregate-function")).toBeVisible();
+		expect(await page.evaluate(() => window.group_by_hidden)).toBeUndefined();
+		expect(
+			await page.evaluate(() => window.cur_list.group_by_control.get_group_bys())
+		).toEqual([{ doctype, fieldname: "category" }]);
+	});
+
 	test("keeps keyboard focus in the group by popover", async ({ page }) => {
 		const button = page.locator(".group-by-button");
 		const popover = page.locator(".group-by-popover");
