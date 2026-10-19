@@ -136,7 +136,7 @@ def watch(apps=None):
 
 	# The island watchers, on their own tooling, beside esbuild rather than inside
 	# it. They live exactly as long as the esbuild watcher below, which blocks.
-	# Each installs the toolchain it lacks, so it is installed once, before both.
+	# Each brings the toolchain up to its lockfile, so that happens once, before both.
 	frappe.commands.popen(
 		island_build_command("install-toolchain.js"), cwd=frappe_app_path, env=get_node_env()
 	)
