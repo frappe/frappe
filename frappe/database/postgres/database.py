@@ -278,7 +278,10 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if not self.socket and self.port:
 			conn_settings["port"] = self.port
 
-		conn = psycopg.connect(**conn_settings, context=ADAPTERS, cursor_factory=PostgresCursor)
+		# frappe opens a connection per request or job, so prepare early to reuse within one
+		conn = psycopg.connect(
+			**conn_settings, context=ADAPTERS, cursor_factory=PostgresCursor, prepare_threshold=2
+		)
 		conn.isolation_level = IsolationLevel.REPEATABLE_READ
 
 		return conn
