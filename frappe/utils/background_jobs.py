@@ -316,6 +316,7 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = f"{method.__module__}.{method.__qualname__}"
 
+	previous_job = getattr(frappe.local, "job", None)
 	frappe.local.job = frappe._dict(
 		site=site,
 		method=method_name,
@@ -398,6 +399,14 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 					sentry_sdk.flush()
 				frappe.destroy()
+
+		# put back the previous frappe.local.job, since sync jobs skip frappe.destroy();
+		# a retry calls execute_job again, so every call must undo its own change
+		if not is_async:
+			if previous_job is None:
+				del frappe.local.job
+			else:
+				frappe.local.job = previous_job
 
 
 def start_worker(
