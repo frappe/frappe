@@ -100,6 +100,8 @@ ADAPTERS.register_loader("time", TimedeltaLoader)
 # frappe models JSON fields as strings (MariaDB's longtext) and json.loads them on demand
 ADAPTERS.register_loader("json", TextLoader)
 ADAPTERS.register_loader("jsonb", TextLoader)
+# names of UUID-autonamed doctypes are strings everywhere else in frappe
+ADAPTERS.register_loader("uuid", TextLoader)
 
 # Postgres only accepts bound parameters in these statements; the rest are bound client-side.
 SERVER_BOUND_QUERY_TYPES = frozenset(("select", "insert", "update", "delete", "with"))
