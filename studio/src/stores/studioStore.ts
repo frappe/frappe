@@ -7,6 +7,7 @@ import { fetchApp, fetchPage, confirm, getInitialVariableValue, getRouteVariable
 import { getBlockInstance, getRootBlock, getBlockCopyWithoutParent, jsToJson } from "@/utils/serializer"
 import { studioPages } from "@/data/studioPages"
 import { studioApps } from "@/data/studioApps"
+import { studioComponents } from "@/data/studioComponents"
 import { studioVariables } from "@/data/studioVariables"
 
 import Block from "@/utils/block"
@@ -107,7 +108,7 @@ const useStudioStore = defineStore("store", () => {
 		if (!appDoc) return
 		activeApp.value = appDoc
 		await setAppBoot(appName)
-		await setAppPages(appName)
+		await Promise.all([setAppPages(appName), setAppComponents(appName)])
 		await setCustomComponents()
 		await setupPageScripts()
 	}
@@ -146,6 +147,12 @@ const useStudioStore = defineStore("store", () => {
 		}
 		studioPages.filters = { studio_app: appName }
 		await studioPages.reload()
+	}
+
+	// components made before components had an app have no owner, so every app lists them
+	async function setAppComponents(appName: string) {
+		studioComponents.filters = { is_disabled: 0, studio_app: ["in", [appName, ""]] }
+		await studioComponents.reload()
 	}
 
 	function updateActiveApp(key: string, value: string) {

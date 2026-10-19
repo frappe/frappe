@@ -223,6 +223,9 @@ class StudioPage(Document):
 			frappe.create_folder(folder)
 			for component in components:
 				doc = frappe.get_doc("Studio Component", component)
+				# components made before components had an app join the first app that exports them
+				if not (doc.is_standard and doc.studio_app):
+					doc.db_set({"is_standard": 1, "studio_app": doc.studio_app or self.studio_app})
 				write_document_file(doc, folder=folder)
 
 	def get_studio_components(self):

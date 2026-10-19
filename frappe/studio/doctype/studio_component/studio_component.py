@@ -7,7 +7,13 @@ import frappe
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
-from studio.export import delete_file, parse_json, remove_empty_values
+from studio.export import (
+	can_export,
+	delete_file,
+	parse_json,
+	remove_empty_values,
+	validate_standard_app_change,
+)
 from studio.realtime import publish_doc_change
 from studio.utils import walk_blocks
 
@@ -28,6 +34,8 @@ class StudioComponent(Document):
 		component_name: DF.Data | None
 		inputs: DF.Table[StudioComponentInput]
 		is_disabled: DF.Check
+		is_standard: DF.Check
+		studio_app: DF.Link | None
 	# end: auto-generated types
 
 	def before_insert(self):
@@ -45,17 +53,25 @@ class StudioComponent(Document):
 		if isinstance(self.block, dict):
 			self.block = frappe.as_json(self.block, indent=None)
 
+	def validate(self):
+		validate_standard_app_change(self)
+
 	def on_update(self):
 		publish_doc_change("Studio Component", self.name)
+
+	def on_trash(self):
+		validate_standard_app_change(self)
 
 	@frappe.whitelist()
 	def delete_component(self, studio_app: str | None = None):
 		self.delete()
+		# an unowned component can still be exported into the app it was deleted from
+		studio_app = self.studio_app or studio_app
 		if not studio_app:
 			return
 
 		app = frappe.db.get_value("Studio App", studio_app, ["frappe_app", "is_standard"], as_dict=True)
-		if app.is_standard:
+		if can_export(app):
 			app_path = frappe.get_app_source_path(app.frappe_app, "studio", studio_app, "studio_components")
 			component_path = os.path.join(app_path, f"{self.component_id}.json")
 			print("Deleting component file at:", component_path)
@@ -94,7 +110,7 @@ def fetch_component_batch(names: set[str]) -> list[dict]:
 	components = frappe.get_all(
 		"Studio Component",
 		filters={"name": ["in", names]},
-		fields=["name", "component_name", "component_id", "block", "is_disabled"],
+		fields=["name", "component_name", "component_id", "block", "is_disabled", "studio_app"],
 	)
 	if not components:
 		return []

@@ -19,7 +19,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const componentStore = useComponentStore()
 
 	async function createComponent(componentName: string, block?: Block | null) {
-		const component: any = { component_name: componentName }
+		const component: any = { component_name: componentName, studio_app: useStudioStore().activeApp?.name }
 		if (block) {
 			component.block = getBlockObjectCopy(block)
 			if (component.block?.parentSlotName) {

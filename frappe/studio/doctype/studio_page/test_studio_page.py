@@ -31,9 +31,15 @@ TODO_RESOURCE = {
 }
 
 
-def make_component(component_name: str, block: dict | None = None, inputs: list[dict] | None = None):
+def make_component(
+	component_name: str,
+	block: dict | None = None,
+	inputs: list[dict] | None = None,
+	studio_app: str | None = None,
+):
 	component = frappe.new_doc("Studio Component")
 	component.component_name = component_name
+	component.studio_app = studio_app
 	component.block = frappe.as_json(block or {"componentName": "div", "children": []}, indent=None)
 	for input_row in inputs or []:
 		component.append("inputs", input_row)
@@ -179,6 +185,36 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual(pasted.component_name, "Card")
 		self.assertEqual(pasted.block, component.block)
 		self.assertEqual([i.input_name for i in pasted.inputs], ["title"])
+
+	def test_paste_copies_components_owned_by_another_app(self):
+		owner = make_studio_app(app_name="owner-" + frappe.generate_hash(length=10))
+		borrower = make_studio_app(app_name="borrower-" + frappe.generate_hash(length=10))
+		badge = make_component("Badge", studio_app=owner.name)
+		card = make_component(
+			"Card", {"componentName": "div", "children": [component_ref(badge)]}, studio_app=owner.name
+		)
+		blocks = [component_ref(card)]
+		copy = make_studio_page(owner.name).get_copy(blocks)
+		target = make_studio_page(borrower.name)
+
+		paste_page(borrower.name, {**copy, "blocks": blocks}, target_page=target.name)
+
+		target.reload()
+		card_copy = frappe.get_doc(
+			"Studio Component", frappe.parse_json(target.draft_blocks)[0]["componentName"]
+		)
+		badge_copy = frappe.get_doc(
+			"Studio Component", frappe.parse_json(card_copy.block)["children"][0]["componentName"]
+		)
+		self.assertNotIn(card_copy.name, (card.name, badge.name))
+		self.assertNotIn(badge_copy.name, (card.name, badge.name))
+		self.assertEqual({card_copy.studio_app, badge_copy.studio_app}, {borrower.name})
+		self.assertEqual(badge_copy.component_name, "Badge")
+		self.assertEqual(frappe.db.get_value("Studio Component", card.name, "studio_app"), owner.name)
+
+		components = frappe.db.count("Studio Component")
+		paste_page(borrower.name, {**copy, "blocks": blocks}, target_page=target.name)
+		self.assertEqual(frappe.db.count("Studio Component"), components)
 
 	def test_paste_data_source(self):
 		app = make_studio_app(app_name="resource-" + frappe.generate_hash(length=10))

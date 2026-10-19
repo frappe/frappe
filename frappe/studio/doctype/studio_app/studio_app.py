@@ -205,6 +205,8 @@ class StudioApp(WebsiteGenerator):
 		validate_standard_app_change(self)
 		for page in self.pages:
 			frappe.delete_doc("Studio Page", page, force=True)
+		for component in frappe.get_all("Studio Component", {"studio_app": self.name}, pluck="name"):
+			frappe.delete_doc("Studio Component", component, force=True)
 
 		if can_export(self):
 			self.delete_app_folder()
@@ -373,6 +375,7 @@ class StudioApp(WebsiteGenerator):
 		router_restored = self.restore_router_script_from_file()
 
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
+		frappe.db.set_value("Studio Component", {"studio_app": self.name}, "is_standard", 0)
 
 		self.is_standard = 0
 		self.save()

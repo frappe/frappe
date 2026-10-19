@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
 
+import hashlib
+
 import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
@@ -8,6 +10,7 @@ from frappe.utils import cint
 
 from studio.export import can_export, parse_json
 from studio.studio.doctype.studio_component.studio_component import fetch_component_batch
+from studio.utils import walk_blocks
 
 PAGE_RESOURCE_FIELDS = (
 	"resource_type",
@@ -60,7 +63,8 @@ def paste_page(app_name: str, page: dict | str, target_page: str | None = None):
 	else:
 		frappe.has_permission("Studio Page", ptype="create", throw=True)
 		doc = new_page_from_copy(app, copy)
-	install_dependencies(app, copy.get("components"), copy.get("files"))
+	_conflicts, renamed_components = install_dependencies(app, copy.get("components"), copy.get("files"))
+	rename_component_references(blocks, renamed_components)
 	doc.draft_blocks = blocks
 	doc.set("resources", [pick(row, PAGE_RESOURCE_FIELDS) for row in resources])
 	doc.set("variables", [pick(row, PAGE_VARIABLE_FIELDS) for row in variables])
@@ -86,12 +90,17 @@ def create_missing_dependencies(
 	page = get_writable_page(page_name, app.name) if page_name else None
 	resources = parse_dict_list(resources, "resources")
 	variables = parse_dict_list(variables, "variables")
-	conflicts = {
-		"components": install_dependencies(app, components, files, overwrite_conflicts=overwrite_conflicts)
-	}
+	component_conflicts, renamed_components = install_dependencies(
+		app, components, files, overwrite_conflicts=overwrite_conflicts
+	)
+	conflicts = {"components": component_conflicts}
 	if page_name:
 		conflicts.update(add_page_data(page, resources, variables, overwrite_conflicts=overwrite_conflicts))
-	return {"conflicts": conflicts, "modified": page.modified if page else None}
+	return {
+		"conflicts": conflicts,
+		"renamed_components": renamed_components,
+		"modified": page.modified if page else None,
+	}
 
 
 @frappe.whitelist(methods=["POST"])
@@ -134,12 +143,12 @@ def get_writable_page(page_name: str, app_name: str):
 
 
 def install_dependencies(app, components, files, *, overwrite_conflicts=False):
-	conflicts = create_missing_components(
-		parse_dict_list(components, "components"), overwrite_conflicts=overwrite_conflicts
+	conflicts, renamed_components = create_missing_components(
+		parse_dict_list(components, "components"), app, overwrite_conflicts=overwrite_conflicts
 	)
 	if can_export(app):
 		app.write_files(parse_dict_list(files, "files"))
-	return conflicts
+	return conflicts, renamed_components
 
 
 def parse_list(value, label: str) -> list:
@@ -245,23 +254,32 @@ def pick(row, fields) -> dict:
 	return {field: row.get(field) for field in fields}
 
 
-def create_missing_components(components: list[dict], *, overwrite_conflicts=False):
+def create_missing_components(components: list[dict], app, *, overwrite_conflicts=False):
+	"""Return the conflicts, and the new names of the components copied from other apps."""
 	for component in components:
 		validate_component_copy(component)
 	if not components:
-		return []
+		return [], {}
 
 	frappe.has_permission("Studio Component", ptype="read", throw=True)
+	names = {component["name"] for component in components}
 	existing_by_name = {
 		component.name: component
-		for component in fetch_component_batch({component["name"] for component in components})
+		for component in fetch_component_batch(names | {get_copy_name(name, app) for name in names})
+	}
+	# an app only uses its own components, so another app's component is copied into it
+	renamed = {
+		name: get_copy_name(name, app)
+		for name in names
+		if (owner := existing_by_name.get(name, {}).get("studio_app")) and owner != app.name
 	}
 	conflicts = []
 	for component in components:
+		component = rename_component_copy(component, renamed)
 		existing = existing_by_name.get(component["name"])
 
 		if not existing:
-			new_component_from_copy(component).insert()
+			new_component_from_copy(component, app).insert()
 			continue
 
 		if component_signature(existing) == component_signature(component):
@@ -276,7 +294,28 @@ def create_missing_components(components: list[dict], *, overwrite_conflicts=Fal
 		if overwrite_conflicts:
 			existing = frappe.get_doc("Studio Component", component["name"])
 			update_component_from_copy(existing, component).save()
-	return conflicts
+	return conflicts, renamed
+
+
+def get_copy_name(name: str, app) -> str:
+	"""The same component copied into the same app always gets the same name, so pasting it again reuses the copy."""
+	return f"{name}-{hashlib.sha256(f'{name}:{app.name}'.encode()).hexdigest()[:8]}"
+
+
+def rename_component_copy(component: dict, renamed: dict[str, str]) -> dict:
+	if not renamed:
+		return component
+	name = renamed.get(component["name"], component["name"])
+	block = frappe.parse_json(component["block"])
+	rename_component_references(block, renamed)
+	return {**component, "name": name, "component_id": name, "block": block}
+
+
+def rename_component_references(blocks, renamed: dict[str, str]):
+	"""Point blocks at the copies made of other apps' components."""
+	for block in walk_blocks(blocks):
+		if block.get("isStudioComponent") and block.get("componentName") in renamed:
+			block["componentName"] = renamed[block["componentName"]]
 
 
 def component_signature(component):
@@ -318,11 +357,12 @@ def validate_component_copy(component):
 		frappe.throw(_("Invalid component inputs in copied content."))
 
 
-def new_component_from_copy(component):
+def new_component_from_copy(component, app):
 	return update_component_from_copy(
 		frappe.get_doc(
 			doctype="Studio Component",
 			component_id=component["component_id"],
+			studio_app=app.name,
 		),
 		component,
 	)

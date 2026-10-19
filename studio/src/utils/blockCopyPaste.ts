@@ -4,6 +4,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { usePageScope } from "@/stores/codeStore"
 import useComponentStore from "@/stores/componentStore"
 import { studioPages } from "@/data/studioPages"
+import { studioComponents } from "@/data/studioComponents"
 import { hasPageScript as hasCompiledPageScript } from "@/data/studioPageScripts"
 import {
 	showPasteConflictDialog,
@@ -205,7 +206,9 @@ function isPageScriptExcluded(source?: ClipboardSource): boolean {
 async function pasteCopiedBlocks(payload: ClipboardPayload) {
 	let conflicts: PasteConflicts
 	try {
-		conflicts = await createMissingDependencies(payload)
+		const result = await createMissingDependencies(payload)
+		conflicts = result.conflicts
+		renameComponentReferences(payload.blocks, result.renamedComponents)
 	} catch (error: any) {
 		toast.error("Could not paste blocks", {
 			description: error?.messages?.join(", ") || error?.message,
@@ -223,6 +226,19 @@ async function pasteCopiedBlocks(payload: ClipboardPayload) {
 
 	if (isPageScriptExcluded(payload.source)) {
 		showPasteWarningToast(removePastedBlocks)
+	}
+}
+
+// the server copies another app's components into this app under new names
+function renameComponentReferences(blocks: Array<Block | BlockOptions>, renamed: Record<string, string>) {
+	for (const block of blocks) {
+		if (block.isStudioComponent && renamed[block.componentName]) {
+			block.componentName = renamed[block.componentName]
+		}
+		renameComponentReferences(block.children || [], renamed)
+		for (const slot of Object.values(block.componentSlots || {})) {
+			if (Array.isArray(slot.slotContent)) renameComponentReferences(slot.slotContent, renamed)
+		}
 	}
 }
 
@@ -391,9 +407,11 @@ async function fetchDependencies(blocks: BlockOptions[]): Promise<Dependencies> 
 async function createMissingDependencies(
 	payload: Partial<Dependencies>,
 	overwriteConflicts = false,
-): Promise<PasteConflicts> {
+): Promise<{ conflicts: PasteConflicts; renamedComponents: Record<string, string> }> {
 	const { components, files, resources, variables } = payload
-	if (![components, files, resources, variables].some((list) => list?.length)) return {}
+	if (![components, files, resources, variables].some((list) => list?.length)) {
+		return { conflicts: {}, renamedComponents: {} }
+	}
 	const store = useStudioStore()
 	const pageName = store.activePage!.name
 	const result = await call(
@@ -412,11 +430,12 @@ async function createMissingDependencies(
 	if (components?.length && overwriteConflicts) {
 		await Promise.all(components.map(({ name }) => useComponentStore().reloadComponent(name)))
 	}
+	if (components?.length) studioComponents.reload()
 	if (files?.length) await store.setCustomComponents()
 	if (resources?.length || variables?.length) {
 		await store.setPageData(store.activePage!)
 	}
-	return result.conflicts || {}
+	return { conflicts: result.conflicts || {}, renamedComponents: result.renamed_components || {} }
 }
 
 function handlePastePage(payload: ClipboardPayload) {
