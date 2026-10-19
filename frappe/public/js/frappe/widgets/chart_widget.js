@@ -89,7 +89,11 @@ export default class ChartWidget extends Widget {
 	}
 
 	setup_heatmap_container() {
-		this.widget.addClass("heatmap-chart");
+		// `heatmap-chart` sizes and offsets the widget for frappe-charts' heatmap
+		this.widget.toggleClass(
+			"heatmap-chart",
+			frappe.ui.chart.is_classic({ type: "heatmap", data: {} })
+		);
 		this.widget.removeClass("full-width").addClass("full-width");
 		this.width = "Full";
 	}
