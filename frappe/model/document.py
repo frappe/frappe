@@ -42,7 +42,6 @@ from frappe.model.dynamic_links import invalidate_distinct_link_doctypes
 from frappe.model.naming import set_new_name, validate_name
 from frappe.model.utils import is_virtual_doctype, simple_singledispatch
 from frappe.model.utils.link_count import notify_link_count
-from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
 from frappe.modules import load_doctype_module
 from frappe.types import DF
 from frappe.types.filter import FilterSignature
@@ -63,7 +62,6 @@ from frappe.utils import (
 )
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.defaults import get_not_null_defaults
-from frappe.utils.global_search import update_global_search
 from frappe.utils.html_utils import has_html_tags, unescape_html
 
 if TYPE_CHECKING:
@@ -406,7 +404,20 @@ def get_doc_permission_check(doc: "Document", check_permission: str | bool | Non
 	return doc
 
 
-class Document:
+# Keeps `super(Document, self).__init__(d)` working in controllers written before `Document.init_from_dict`.
+class _DocumentBase:
+	def __init__(self, d):
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2026-10-19",
+			"v18",
+			"`super(Document, self).__init__(d)` is deprecated, use `self.init_from_dict(d)` instead.",
+		)
+		self.init_from_dict(d)
+
+
+class Document(_DocumentBase):
 	"""All controllers inherit from `Document`."""
 
 	doctype: DF.Data
@@ -446,12 +457,23 @@ class Document:
 				kwargs = first_arg
 
 		if kwargs:
-			self._init_from_dict(kwargs)
+			self.init_from_dict(kwargs)
 			self.init_child_tables()
 			self.init_valid_columns()
 			return
 
 		raise ValueError("Illegal arguments")
+
+	def init_from_dict(self, d: dict) -> None:
+		"""Set values from `d` on this document without loading anything from the database."""
+		if d.get("doctype"):
+			self.doctype = d["doctype"]
+
+		self.update(d)
+		self.dont_update_if_missing = []
+
+		if hasattr(self, "__setup__"):
+			self.__setup__()
 
 	@property
 	def is_locked(self):
@@ -478,7 +500,7 @@ class Document:
 				single_doc["name"] = self.doctype
 				del single_doc["__islocal"]
 
-			self._init_from_dict(single_doc)
+			self.init_from_dict(single_doc)
 			self.init_valid_columns()
 			self._fix_numeric_types()
 
@@ -512,7 +534,7 @@ class Document:
 					frappe.DoesNotExistError(doctype=self.doctype),
 				)
 
-			self._init_from_dict(d)
+			self.init_from_dict(d)
 		self.flags.pop("ignore_children", None)
 
 		self.load_children_from_db()
@@ -1105,6 +1127,8 @@ class Document:
 
 	def validate_workflow(self):
 		"""Validate if the workflow transition is valid"""
+		from frappe.model.workflow import set_workflow_state_on_action, validate_workflow
+
 		if frappe.flags.in_install == "frappe":
 			return
 		workflow = self.meta.get_workflow()
@@ -1688,6 +1712,8 @@ class Document:
 		if self.flags.get("notify_update", True):
 			self.notify_update()
 
+		from frappe.utils.global_search import update_global_search
+
 		update_global_search(self)
 
 		self.save_version()
@@ -2227,16 +2253,6 @@ class Document:
 		parent = f" parent={self.parent}" if getattr(self, "parent", None) else ""
 
 		return f"<{self.__class__.__name__}: {doctype} {name}{docstatus}{parent}>"
-
-	def _init_from_dict(self, d):
-		if d.get("doctype"):
-			self.doctype = d["doctype"]
-
-		self.update(d)
-		self.dont_update_if_missing = []
-
-		if hasattr(self, "__setup__"):
-			self.__setup__()
 
 	def __json__(self):
 		return self.as_dict(no_nulls=True)
