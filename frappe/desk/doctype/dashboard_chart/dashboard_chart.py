@@ -221,6 +221,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 			else get_period(r[0], timegrain)
 			for r in result
 		],
+		# each period's first day, so a chart can place it on a time axis
+		"dates": [str(get_period_beginning(r[0], timegrain)) for r in result],
 		"datasets": [{"name": _(chart.name), "values": [r[1] for r in result]}],
 	}
 

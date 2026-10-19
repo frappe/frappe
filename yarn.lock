@@ -1205,10 +1205,10 @@ fill-range@^7.1.1:
   dependencies:
     to-regex-range "^5.0.1"
 
-frappe-charts@2.0.0-rc30:
-  version "2.0.0-rc30"
-  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc30.tgz#3a2ba6f6f56a61d28b280b3dbf72a98fc8d29ef4"
-  integrity sha512-UCamj9769xFPnikWf1dUWalz4jzjaSCqJsB1MO8bcuEiW18OxcW2j20Ljttn1OE170O72O8aNhpp9EcsuQr+yw==
+frappe-charts@2.0.0-rc31:
+  version "2.0.0-rc31"
+  resolved "https://registry.yarnpkg.com/frappe-charts/-/frappe-charts-2.0.0-rc31.tgz#84bf967667fe1f7019697d752d10cd048479295a"
+  integrity sha512-N9girfYw5OYQd9MOwn0lq78FTOFhOXSp99yn1lQ0PYBCIKXU++2eUw5kpao1fonuAJuANq2yLNEnh2+VAxWv4g==
 
 frappe-datatable@1.21.3:
   version "1.21.3"

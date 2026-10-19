@@ -46,6 +46,26 @@ test.describe("Report View", () => {
 		}
 	});
 
+	test("drops a saved chart that has no Y axis", async ({ page, api, desk }) => {
+		const errors = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		await page.goto(`/desk/List/${doctype_name}/Report`);
+		// the open view saves its own settings on render, let it finish before replacing them
+		await desk.ready();
+		await api.call("frappe.model.utils.user_settings.save", {
+			doctype: doctype_name,
+			user_settings: JSON.stringify({
+				Report: { chart_args: { chart_type: "bar", x_axis: "name", y_axes: [] } },
+			}),
+		});
+
+		await page.reload();
+
+		await expect(page.locator(".dt-row-0")).toBeVisible();
+		await expect(page.locator(".charts-wrapper")).toBeHidden();
+		expect(errors).toEqual([]);
+	});
+
 	test("Field with enabled allow_on_submit should be editable.", async ({ page, api }) => {
 		const value_update = page.waitForResponse(
 			(res) =>

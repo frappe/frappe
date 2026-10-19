@@ -1155,7 +1155,9 @@ frappe.ui.Combobox = class Combobox {
 		this.more_el = null;
 		this.list_el.replaceChildren();
 		for (const group of this.view_groups(groups)) {
-			const options = group.options.filter(filter);
+			// a group's name finds its rows too
+			const group_hit = this.filterable && matches({ label: group.group }, query);
+			const options = group_hit ? group.options : group.options.filter(filter);
 			if (!options.length) continue;
 			const group_el = this.make_group_el({ ...group, options });
 			const reserve = needs_icon_space(options);
