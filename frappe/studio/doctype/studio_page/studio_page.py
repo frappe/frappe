@@ -15,6 +15,7 @@ from studio.export import (
 	delete_file,
 	delete_folder,
 	parse_json,
+	validate_standard_app_change,
 	write_code_file,
 	write_document_file,
 )
@@ -96,6 +97,7 @@ class StudioPage(Document):
 			self.route = f"/{self.route}"
 
 	def validate(self):
+		validate_standard_app_change(self)
 		# passed from the frontend for faster page saves when variables & resources are not changed
 		if not hasattr(self, "_skip_validate"):
 			self.validate_variables()
@@ -264,6 +266,7 @@ class StudioPage(Document):
 		return False
 
 	def on_trash(self):
+		validate_standard_app_change(self)
 		self.delete_ai_sessions()
 		if can_export(self):
 			delete_folder(self.get_folder_path())

@@ -3,6 +3,7 @@ import shutil
 from pathlib import Path
 
 import frappe
+from frappe import _
 from frappe.modules import scrub
 from frappe.modules.export_file import strip_default_fields
 
@@ -66,6 +67,24 @@ def can_export(doc) -> bool:
 		and not frappe.flags.in_install
 		and not frappe.flags.in_uninstall
 		and not frappe.flags.in_import
+	)
+
+
+def validate_standard_app_change(doc):
+	"""Outside developer mode, only syncing from the app's files may change a standard app or its pages"""
+	if frappe.conf.developer_mode:
+		return
+	previous = doc.get_doc_before_save()
+	# turning off is_standard is a change to a standard app too
+	if not (doc.is_standard or (previous and previous.is_standard)):
+		return
+	sync_flags = ("in_import", "in_migrate", "in_install", "in_uninstall", "in_patch")
+	if any(frappe.flags.get(flag) for flag in sync_flags):
+		return
+	frappe.throw(
+		_("Standard apps can only be edited in developer mode."),
+		frappe.PermissionError,
+		title=_("Not Allowed"),
 	)
 
 

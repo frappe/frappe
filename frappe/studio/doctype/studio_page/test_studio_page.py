@@ -382,6 +382,17 @@ class TestStudioPage(IntegrationTestCase):
 		target.reload()
 		self.assertEqual(target.variables[0].variable_type, "Number")
 
+	def test_standard_pages_cannot_be_changed_outside_developer_mode(self):
+		app = make_studio_app(app_name="deployed-" + frappe.generate_hash(length=10))
+		page = make_studio_page(app.name)
+		app.db_set({"is_standard": 1, "frappe_app": "studio"})
+		page.db_set("is_standard", 1)
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			page.page_title = "Edited Page"
+			self.assertRaises(frappe.PermissionError, page.save)
+			self.assertRaises(frappe.PermissionError, make_studio_page, app.name, route="/new-page")
+			self.assertRaises(frappe.PermissionError, frappe.delete_doc, "Studio Page", page.name)
+
 	def test_paste_rejects_target_page_from_another_app(self):
 		app = make_studio_app(app_name="target-" + frappe.generate_hash(length=10))
 		other_app = make_studio_app(app_name="other-" + frappe.generate_hash(length=10))
