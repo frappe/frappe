@@ -454,25 +454,24 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// The app's layer gets a cross as well as an eye, because up there the two mean different
 	// things and both are wanted. Its arrangement *is* the base, so a row left out of it is gone
 	// -- from the document's table and from the file the save exports -- while the eye ships the
-	// row switched off, which a layer above can switch back on. On the two layers above there is
-	// no such choice: a row left out means "no opinion" and the base shows through regardless, so
-	// hiding is the only way to take something off.
+	// row switched off, which a layer above can switch back on.
+	//
+	// The two layers above take a row off with the cross alone. A row left out of them means "no
+	// opinion" and the base shows through, so there the cross writes what the eye did, the row
+	// stored hidden, and the row leaves the list as it leaves the sidebar. Adding the same entry
+	// again is how it comes back (see `place`).
 	//
 	// A row this layer added is not given a second cross; it already carries one of its own.
-	//
-	// The site's layer takes a row off with the cross alone. There the cross writes what the eye
-	// did, the row stored hidden, and the row leaves the list as it leaves the sidebar. Adding the
-	// same entry again is how it comes back (see `place`). A person's own layer keeps the eye.
 	can_remove(key) {
-		return (this.layer === "app" || this.layer === "site") && !this.is_own_add(key);
+		return !this.is_own_add(key);
 	}
 
 	can_hide() {
-		return this.layer !== "site";
+		return this.layer === "app";
 	}
 
 	is_listed(key) {
-		return !(this.layer === "site" && this.hidden.has(key));
+		return this.layer === "app" || !this.hidden.has(key);
 	}
 
 	// A private page cannot be taken out of the Private shell. That shell is where every page its
@@ -489,7 +488,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// there. The rule is `on_move`'s -- the row above decides -- re-applied from where the
 	// removed row was, forward, until a row that was not a member of anything.
 	remove(key) {
-		if (this.layer === "site" && !this.is_own_add(key)) {
+		if (this.layer !== "app" && !this.is_own_add(key)) {
 			if (this.panel?.key === key) this.close_panel();
 			this.hide(key);
 			this.render_list();
