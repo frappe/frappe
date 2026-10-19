@@ -73,7 +73,7 @@ const KNOWN_KEYS = {
 		"chart_type",
 		"summary",
 	],
-	data: ["labels", "datasets", "yMarkers", "dataPoints", "start", "end"],
+	data: ["labels", "datasets", "dates", "yMarkers", "dataPoints", "start", "end"],
 	"data.datasets[]": ["name", "values", "chartType", "type", "color", "formatted"],
 	"data.yMarkers[]": ["label", "value", "lineType", "options"],
 	barOptions: ["stacked", "spaceRatio", "horizontal"],
@@ -131,7 +131,7 @@ export function from_legacy_config(
 }
 
 function axis_chart(legacy) {
-	const { labels = [], datasets = [], yMarkers } = legacy.data;
+	const { labels = [], datasets = [], yMarkers, dates } = legacy.data;
 	const bar_options = legacy.barOptions || {};
 	const line_options = legacy.lineOptions || {};
 	const colors = legacy.colors || [];
@@ -157,23 +157,27 @@ function axis_chart(legacy) {
 
 	// frappe-charts places a label by its position and frappe-ui by its value, which would draw
 	// two rows sharing a label as one. A series axis keeps its labels, which read as time when
-	// they are dates.
-	const is_series = Boolean(legacy.axisOptions?.xIsSeries);
-	const x = is_series ? "label" : "position";
+	// they are dates. `dates`, one ISO date per label, puts the rows on a time axis.
+	const [x, x_values] = dates
+		? ["date", dates]
+		: legacy.axisOptions?.xIsSeries
+		? ["label", labels]
+		: ["position", labels.map((_, row) => row)];
 
 	return {
 		type,
-		data: labels.map((label, row) => {
-			const values = { [x]: is_series ? label : row };
+		data: x_values.map((x_value, row) => {
+			const values = { [x]: x_value };
 			datasets.forEach((dataset, i) => (values[keys[i]] = to_number(dataset.values?.[row])));
 			return values;
 		}),
 		x,
 		y: keys,
 		seriesConfig,
-		xAxis: is_series
-			? undefined
-			: { type: "category", format: (row) => String(labels[row] ?? "") },
+		xAxis:
+			x === "position"
+				? { type: "category", format: (row) => String(labels[row] ?? "") }
+				: undefined,
 		// frappe-charts stacks bars only
 		stacked: bar_options.stacked && marks.includes("bar") ? true : undefined,
 		horizontal: bar_options.horizontal && type === "bar" ? true : undefined,

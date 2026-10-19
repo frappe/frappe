@@ -250,8 +250,33 @@ describe("axis charts", () => {
     assert.deepEqual(config.seriesConfig, { series_1: { color: "#e24c4c" } });
   });
 
-  // frappe/public/js/frappe/views/reports/report_view.js
-  test("report view: preset colour names and a tooltip function", () => {
+  // frappe/desk/doctype/dashboard_chart/dashboard_chart.py, a timeseries chart
+  test("dashboard chart timeseries: its dates go on a time axis", () => {
+    const unknown = [];
+    const config = convert(
+      {
+        type: "bar",
+        axisOptions: { xIsSeries: 1 },
+        data: {
+          labels: ["Oct 2025", "Nov 2025"],
+          dates: ["2025-10-01", "2025-11-01"],
+          datasets: [{ name: "Outgoing Bills", values: [19700, 4330] }],
+        },
+      },
+      { on_unknown_key: (key) => unknown.push(key) }
+    );
+
+    assert.deepEqual(unknown, []);
+    assert.equal(config.x, "date");
+    assert.equal(config.xAxis, undefined);
+    assert.deepEqual(config.data, [
+      { date: "2025-10-01", series_1: 19700 },
+      { date: "2025-11-01", series_1: 4330 },
+    ]);
+  });
+
+  // what frappe/public/js/frappe/views/reports/report_view.js sent before it took desk's palette
+  test("preset colour names and a tooltip function", () => {
     const unknown = [];
     const config = convert(
       {
