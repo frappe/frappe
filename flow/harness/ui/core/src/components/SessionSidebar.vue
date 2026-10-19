@@ -29,7 +29,7 @@
 		</div>
 
 		<!-- 7px over, 9px under: New chat sits midway between the brand mark and the list's header;
-		     it and the header (or search) are as tall as a chat row -->
+		     it and the header (or search) are as tall as a workspace row -->
 		<div class="mt-[7px] flex flex-none flex-col gap-0.5 px-2">
 			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
 				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
@@ -38,9 +38,10 @@
 
 		<!-- outside the scroller, so search stays in reach down a long list -->
 		<div v-if="flow.state.sessions.length || searchOpen" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
+			<!-- 4px short of the header and at its top, so the field stands clear of the first row -->
 			<label
 				v-if="searchOpen"
-				class="flex h-full min-w-0 flex-1 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 transition-colors focus-within:border-outline-gray-3"
+				class="flex h-[calc(100%-4px)] min-w-0 flex-1 items-center gap-1.5 self-start rounded-4 bg-surface-base pl-2.5 pr-0.5"
 			>
 				<span class="lucide-search size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 				<input
@@ -154,13 +155,14 @@
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
-						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold">
+						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold" :class="group.cwd && '-mt-px'">
+							<!-- chats sit 30px apart, the first 31px under its workspace's name -->
 							<div class="grid min-h-0 grid-cols-1 gap-0.5">
 								<SidebarItem
 									v-for="s in group.chats"
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
-									class="group relative h-8 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
+									class="group relative h-7 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
 									:class="[menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
@@ -724,7 +726,7 @@ const emptyMessage = computed(() => {
 	right: 0.5rem;
 	height: 2px;
 	border-radius: 1px;
-	background: var(--ink-gray-5);
+	background: var(--ink-gray-3);
 }
 .drop-before::before {
 	top: -2px;
