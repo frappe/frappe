@@ -1,12 +1,10 @@
 # Copyright (c) 2026, Frappe Technologies Pvt Ltd and contributors
 # For license information, please see license.txt
 
-import hashlib
-
 import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
-from frappe.utils import cint
+from frappe.utils import cint, sha256_hash
 
 from studio.export import can_export, parse_json
 from studio.studio.doctype.studio_component.studio_component import fetch_component_batch
@@ -262,17 +260,7 @@ def create_missing_components(components: list[dict], app, *, overwrite_conflict
 		return [], {}
 
 	frappe.has_permission("Studio Component", ptype="read", throw=True)
-	names = {component["name"] for component in components}
-	existing_by_name = {
-		component.name: component
-		for component in fetch_component_batch(names | {get_copy_name(name, app) for name in names})
-	}
-	# an app only uses its own components, so another app's component is copied into it
-	renamed = {
-		name: get_copy_name(name, app)
-		for name in names
-		if (owner := existing_by_name.get(name, {}).get("studio_app")) and owner != app.name
-	}
+	existing_by_name, renamed = get_existing_components(components, app)
 	conflicts = []
 	for component in components:
 		component = rename_component_copy(component, renamed)
@@ -297,9 +285,26 @@ def create_missing_components(components: list[dict], app, *, overwrite_conflict
 	return conflicts, renamed
 
 
+def get_existing_components(components: list[dict], app) -> tuple[dict, dict[str, str]]:
+	"""Return the site's components by name, and the new names of those owned by another app.
+
+	An app only uses its own components, so another app's component is copied into it."""
+	names = {component["name"] for component in components}
+	existing_by_name = {
+		component.name: component
+		for component in fetch_component_batch(names | {get_copy_name(name, app) for name in names})
+	}
+	renamed = {
+		name: get_copy_name(name, app)
+		for name in names
+		if (owner := existing_by_name.get(name, {}).get("studio_app")) and owner != app.name
+	}
+	return existing_by_name, renamed
+
+
 def get_copy_name(name: str, app) -> str:
 	"""The same component copied into the same app always gets the same name, so pasting it again reuses the copy."""
-	return f"{name}-{hashlib.sha256(f'{name}:{app.name}'.encode()).hexdigest()[:8]}"
+	return f"{name}-{sha256_hash(f'{name}:{app.name}')[:8]}"
 
 
 def rename_component_copy(component: dict, renamed: dict[str, str]) -> dict:
@@ -308,7 +313,7 @@ def rename_component_copy(component: dict, renamed: dict[str, str]) -> dict:
 	name = renamed.get(component["name"], component["name"])
 	block = frappe.parse_json(component["block"])
 	rename_component_references(block, renamed)
-	return {**component, "name": name, "component_id": name, "block": block}
+	return {**component, "name": name, "component_id": name, "block": frappe.as_json(block, indent=None)}
 
 
 def rename_component_references(blocks, renamed: dict[str, str]):
