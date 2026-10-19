@@ -34,6 +34,8 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 		# personal accounts (outlook.com, hotmail) share this tenant ID and use other servers
 		"personal_tenant": "9188040d-6c67-4c5b-b112-36a304b66dad",
 		"personal_servers": {"email_server": "imap-mail.outlook.com", "smtp_server": "smtp-mail.outlook.com"},
+		# codes in the error description that mean the tenant's admin must approve the app
+		"admin_approval_errors": ("AADSTS65001", "AADSTS90094"),
 	},
 }
 
@@ -128,7 +130,7 @@ def callback(
 
 	email = None
 	try:
-		result, email = connect(note, code, error, error_description, account_email)
+		result, email = connect_mailbox(note, code, error, error_description, account_email)
 	except Exception:
 		frappe.db.rollback()
 		frappe.log_error("Email OAuth connect failed")
@@ -139,7 +141,7 @@ def callback(
 	land(note["redirect_to"], result, account_email if account_name else email)
 
 
-def connect(
+def connect_mailbox(
 	note: dict,
 	code: str | None,
 	error: str | None,
@@ -148,7 +150,8 @@ def connect(
 ) -> tuple[str, str | None]:
 	"""Return the result code, and the address signed in to once the provider has given it."""
 	if error:
-		if any(c in (error_description or "") for c in ("AADSTS65001", "AADSTS90094")):
+		admin_approval_errors = ONE_CLICK_PROVIDERS[note["provider"]].get("admin_approval_errors", ())
+		if any(c in (error_description or "") for c in admin_approval_errors):
 			return "admin_approval", None
 		if error == "access_denied":
 			return "cancelled", None
@@ -184,10 +187,30 @@ def connect(
 	elif frappe.db.exists("Email Account", {"email_id": email}):
 		return "already_connected", email
 
+	connected_app = create_relay_app(note, email, token)
+	try:
+		save_email_account(note, email, connected_app, personal)
+	except Exception as e:
+		frappe.db.rollback()
+		delete_relay_app(connected_app)
+		frappe.log_error("Email OAuth connect failed")
+		message = str(e)
+		if "SmtpClientAuthentication" in message:
+			return ("smtp_disabled_personal" if personal else "smtp_disabled"), email
+		if "authenticated but not connected" in message:
+			return "imap_disabled", email
+		return "failed", email
+
+	return ("reconnected" if account_name else "connected"), email
+
+
+def create_relay_app(note: dict, email: str, token: dict) -> str:
+	"""Create the Connected App that refreshes through Central, with this user's tokens; commits."""
+	provider = note["provider"]
 	app = frappe.get_doc(
 		{
 			"doctype": "Connected App",
-			"provider_name": f"{config['label']} ({email})",
+			"provider_name": f"{ONE_CLICK_PROVIDERS[provider]['label']} ({email})",
 			"client_id": note["client_id"],
 			"authorization_uri": note["authorization_uri"],
 			"token_uri": FRAPPE_CLOUD_RELAY + provider,
@@ -197,10 +220,16 @@ def connect(
 	frappe.get_doc(
 		{"doctype": "Token Cache", "connected_app": app.name, "user": frappe.session.user}
 	).update_data(token)  # commits
+	return app.name
 
+
+def save_email_account(note: dict, email: str, connected_app: str, personal: bool) -> None:
+	"""Add the mailbox, or point the one being reconnected at `connected_app`.
+	Saving logs in over IMAP and SMTP, and raises if either is refused."""
+	config = ONE_CLICK_PROVIDERS[note["provider"]]
 	mail_settings = {
 		"auth_method": "OAuth",
-		"connected_app": app.name,
+		"connected_app": connected_app,
 		"connected_user": frappe.session.user,
 		"backend_app_flow": 0,
 		"use_imap": 1,
@@ -212,40 +241,27 @@ def connect(
 		"service": config["service"],
 		**(config["personal_servers"] if personal else config["servers"]),
 	}
-	try:
-		if account_name:
-			account = frappe.get_doc("Email Account", account_name).update(mail_settings)
-			if not account.imap_folder:
-				account.append("imap_folder", {"folder_name": "INBOX", "append_to": account.append_to})
-			account.save()
-		else:
-			frappe.get_doc(
-				{
-					"doctype": "Email Account",
-					"email_account_name": email,
-					"email_id": email,
-					"enable_incoming": 1,
-					"enable_outgoing": 1,
-					"email_sync_option": "ALL",
-					"initial_sync_count": 100,
-					"create_contact": 1,
-					"track_email_status": 1,
-					"imap_folder": [{"folder_name": "INBOX", "append_to": note["target_doctype"]}],
-					**mail_settings,
-				}
-			).insert()
-	except Exception as e:
-		frappe.db.rollback()
-		delete_relay_app(app.name)
-		frappe.log_error("Email OAuth connect failed")
-		message = str(e)
-		if "SmtpClientAuthentication" in message:
-			return ("smtp_disabled_personal" if personal else "smtp_disabled"), email
-		if "authenticated but not connected" in message:
-			return "imap_disabled", email
-		return "failed", email
-
-	return ("reconnected" if account_name else "connected"), email
+	if account_name := note.get("email_account"):
+		account = frappe.get_doc("Email Account", account_name).update(mail_settings)
+		if not account.imap_folder:
+			account.append("imap_folder", {"folder_name": "INBOX", "append_to": account.append_to})
+		account.save()
+	else:
+		frappe.get_doc(
+			{
+				"doctype": "Email Account",
+				"email_account_name": email,
+				"email_id": email,
+				"enable_incoming": 1,
+				"enable_outgoing": 1,
+				"email_sync_option": "ALL",
+				"initial_sync_count": 100,
+				"create_contact": 1,
+				"track_email_status": 1,
+				"imap_folder": [{"folder_name": "INBOX", "append_to": note["target_doctype"]}],
+				**mail_settings,
+			}
+		).insert()
 
 
 def delete_relay_app(connected_app: str | None) -> None:
