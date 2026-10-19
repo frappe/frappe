@@ -5,7 +5,7 @@ outgoing account, add a mailbox (password, Frappe Mail, custom IMAP/SMTP, or one
 sign-in through Frappe Cloud), edit one, and reconnect a mailbox whose sign-in has expired.
 
 It reads and writes **Email Account** through Frappe's own methods (`frappe.client.*`,
-`email_oauth.get_one_click_providers`, `email_oauth.initiate_mailbox_connect`,
+`email_oauth.initiate_mailbox_connect`,
 `connected_app.has_token`, `pull_emails`), so any app can host it. The host passes in only what
 is app-specific.
 
@@ -31,6 +31,8 @@ const unsaved = ref(false);
 - **`providers`**: the Email Account `service` values to offer tiles for when adding an
   account, such as `["GMail", "Outlook.com", ""]`, where `""` is Custom email. All of them by
   default.
+- **`isV2Site`**: whether the site is on Frappe Cloud V2, which the host reads from its boot
+  (`is_v2_site()` in `frappe.integrations.frappe_providers.cloud_settings`). False by default.
 - **`created(service)`**: a mailbox was added, with a password or API key, or by one-click
   sign-in, for host side effects such as onboarding steps and telemetry. A reconnect is not a
   new mailbox and does not emit it.
@@ -38,8 +40,7 @@ const unsaved = ref(false);
   save, after confirming Back, and when the panel unmounts. The panel's own Back asks before
   dropping changes; the host uses `dirty` to guard its own navigation, such as closing its
   settings dialog or switching to another settings screen. Unmounting the panel drops the draft.
-- **One-click sign-in** is offered where the site supports it, which the panel asks Frappe
-  (`get_one_click_providers`, only on Frappe Cloud v2 sites). Elsewhere the Outlook tile falls
+- **One-click sign-in** is offered only when `isV2Site` is true. Elsewhere the Outlook tile falls
   back to the password form. Sign-in leaves the page and lands back on it with
   `?email_oauth=<result>&email_oauth_mailbox=<address>` appended. The panel reads both when it
   mounts and removes them from the URL. The host's only job is to open the panel when the page

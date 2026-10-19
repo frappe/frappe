@@ -1,5 +1,5 @@
 /** Providers the panel signs a mailbox in with through Frappe Cloud. */
-export type OneClickProvider = "microsoft" | "google";
+export type OneClickProvider = "microsoft";
 
 export type AuthKind = "password" | "frappe-mail" | "oauth" | "oauth-custom";
 
@@ -84,7 +84,7 @@ export interface EmailAccountsController {
   loading: boolean;
   /** Why the last `load()` failed, until one succeeds. */
   error: unknown;
-  /** Providers this site offers one-click sign-in for, as the last `load()` read them. */
+  /** Providers this site offers one-click sign-in for. */
   oneClickProviders: OneClickProvider[];
   load(): Promise<void>;
   create(service: EmailService, form: AccountForm): Promise<void>;

@@ -1,10 +1,8 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const call = vi.fn();
-const request = vi.fn();
 vi.mock("frappe-ui", () => ({
   call: (...args: unknown[]) => call(...args),
-  frappeRequest: (...args: unknown[]) => request(...args),
 }));
 
 const { useEmailAccounts } = await import("../useEmailAccounts");
@@ -68,7 +66,6 @@ const calls = (method: string) =>
 
 beforeEach(() => {
   call.mockReset();
-  request.mockReset().mockResolvedValue(["microsoft"]);
   backend();
 });
 
@@ -82,11 +79,6 @@ describe("useEmailAccounts", () => {
       ["Sales", "password", "active"],
       ["Legacy", "oauth-custom", "active"],
     ]);
-    expect(c.oneClickProviders).toEqual(["microsoft"]);
-    expect(request).toHaveBeenCalledWith({
-      url: "frappe.integrations.frappe_providers.email_oauth.get_one_click_providers",
-      method: "GET",
-    });
     expect(calls("frappe.client.get_list")[0]).toMatchObject({
       order_by: "creation desc",
     });
@@ -98,6 +90,13 @@ describe("useEmailAccounts", () => {
       connected_app: "relay-app",
       connected_user: "admin@example.com",
     });
+  });
+
+  it("offers one-click sign-in only on a Frappe Cloud V2 site", () => {
+    expect(useEmailAccounts("HD Ticket", true).oneClickProviders).toEqual([
+      "microsoft",
+    ]);
+    expect(useEmailAccounts("HD Ticket").oneClickProviders).toEqual([]);
   });
 
   it("makes a new account the default only where no account is", async () => {
@@ -223,7 +222,6 @@ describe("useEmailAccounts", () => {
     call.mockImplementationOnce(
       () => new Promise((resolve) => (finishFirst = resolve)),
     );
-    request.mockResolvedValueOnce([]);
 
     const first = c.load();
     await c.load();
@@ -231,7 +229,6 @@ describe("useEmailAccounts", () => {
     await first;
 
     expect(c.accounts).toHaveLength(3);
-    expect(c.oneClickProviders).toEqual(["microsoft"]);
     expect(c.loading).toBe(false);
   });
 

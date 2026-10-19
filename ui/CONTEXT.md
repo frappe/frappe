@@ -120,7 +120,7 @@ _Avoid_: email config, email setup.
 **One-click sign-in**:
 Connecting a mailbox by signing in to its provider through Frappe Cloud
 (`email_oauth.initiate_mailbox_connect`), with no password or OAuth app to set up. Only on
-Frappe Cloud v2 sites (`email_oauth.get_one_click_providers`).
+Frappe Cloud v2 sites, which the host tells the panel from its boot (`isV2Site`).
 _Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
 
 **Auth kind**:
