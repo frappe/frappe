@@ -378,6 +378,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def execute_query(self, query, values=None):
 		# psycopg2.sql.Composed queries are built from quoted identifiers
 		if isinstance(query, str):
+			if values is not None:
+				# a value can close a comment or string opened in the query
+				query = self._cursor.mogrify(query, values).decode(
+					psycopg2.extensions.encodings[self._conn.encoding]
+				)
+				values = None
 			standard_strings = self._conn.info.parameter_status("standard_conforming_strings") == "on"
 			check_single_statement(query, standard_strings)
 		return super().execute_query(query, values)
