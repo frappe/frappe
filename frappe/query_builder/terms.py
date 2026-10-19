@@ -82,6 +82,19 @@ class SQLiteParameterizedValueWrapper(ParameterizedValueWrapper, SQLLiteValueWra
 	pass
 
 
+# postgres can't infer the type of a parameter passed to their variadic "any" arguments
+TEXT_PARAMETER_FUNCTIONS = frozenset(("CONCAT", "CONCAT_WS"))
+
+
+def get_text_parameter_function_sql(function: Function, **kwargs: Any) -> str:
+	args = ",".join(
+		arg.get_sql(with_alias=False, subquery=True, **kwargs)
+		+ ("::text" if isinstance(arg, ValueWrapper) else "")
+		for arg in function.args
+	)
+	return f"{function.name}({args})"
+
+
 class ParameterizedFunction(Function):
 	"""
 	Class to monkey patch pypika.terms.Functions
@@ -96,12 +109,16 @@ class ParameterizedFunction(Function):
 		dialect = kwargs.pop("dialect", None)
 		param_wrapper = kwargs.pop("param_wrapper", None)
 
-		function_sql = self.get_function_sql(
-			with_namespace=with_namespace,
-			quote_char=quote_char,
-			param_wrapper=param_wrapper,
-			dialect=dialect,
-		)
+		function_kwargs = {
+			"with_namespace": with_namespace,
+			"quote_char": quote_char,
+			"param_wrapper": param_wrapper,
+			"dialect": dialect,
+		}
+		if dialect == Dialects.POSTGRESQL and self.name in TEXT_PARAMETER_FUNCTIONS:
+			function_sql = get_text_parameter_function_sql(self, **function_kwargs)
+		else:
+			function_sql = self.get_function_sql(**function_kwargs)
 
 		if self.schema is not None:
 			function_sql = "{schema}.{function}".format(
