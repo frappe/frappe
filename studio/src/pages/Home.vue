@@ -86,6 +86,7 @@
 									:options="[
 										{
 											label: 'Edit',
+											condition: () => canEditApp(app),
 											onClick: () => {
 												activeApp = app
 												showAppDialog = true
@@ -99,6 +100,7 @@
 										},
 										{
 											label: 'Delete',
+											condition: () => canEditApp(app),
 											onClick: () => store.deleteApp(app.name, app.app_title),
 											icon: 'lucide-trash-2',
 											theme: 'red',
@@ -138,6 +140,7 @@ import session from "@/utils/session"
 import { watchDebounced } from "@vueuse/core"
 import useStudioStore from "@/stores/studioStore"
 import { openAppInDesk } from "@/utils/helpers"
+import type { StudioApp } from "@/types/Studio/StudioApp"
 
 const store = useStudioStore()
 
@@ -162,4 +165,8 @@ watchDebounced([searchFilter, appType], fetchApps, { debounce: 300, immediate: t
 
 const showAppDialog = ref(false)
 const activeApp = ref()
+
+function canEditApp(app: StudioApp) {
+	return window.is_developer_mode || !app.is_standard
+}
 </script>
