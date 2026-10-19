@@ -105,13 +105,21 @@ function classic_chart(el, config) {
 	return chart;
 }
 
+/**
+ * `config` with Espresso's palette when frappe-charts draws it and it names no colours of its
+ * own. frappe-charts reads colours as literal values; the new charts follow the theme.
+ */
+frappe.ui.chart.with_classic_palette = (config) =>
+	frappe.ui.chart.is_classic(config) ? with_palette(config) : config;
+
+function with_palette(config) {
+	if (config.colors?.length) return config;
+	return { ...config, colors: frappe.utils.get_chart_palette() };
+}
+
 frappe.utils.make_chart = function (wrapper, custom_options = {}) {
 	deprecated("frappe.utils.make_chart", "use frappe.ui.chart");
-	// a chart that names no colours of its own gets Espresso's
-	if (!custom_options.colors?.length) {
-		custom_options = { ...custom_options, colors: frappe.utils.get_chart_palette() };
-	}
-	return new Chart(wrapper, frappe.utils.get_chart_args(custom_options));
+	return new Chart(wrapper, frappe.utils.get_chart_args(with_palette(custom_options)));
 };
 
 frappe.ui.RealtimeChart = class RealtimeChart extends Chart {

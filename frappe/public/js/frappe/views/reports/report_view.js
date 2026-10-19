@@ -98,8 +98,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_charts_area() {
 		this.$charts_wrapper = $(`<div class="charts-wrapper hidden">
-			<div class="text-right"><button class="btn btn-default btn-xs btn-chart-configure"
-				style="margin-right: 15px; margin-top: 15px">Configure</button></div>
+			<div class="charts-head">
+				<div class="charts-title">${__("{0} Chart", [__(this.doctype)])}</div>
+				<button class="es-button btn-chart-configure" data-variant="subtle">
+					<span class="es-button__label">${__("Configure")}</span>
+				</button>
+			</div>
 			<div class="charts-inner-wrapper"></div>
 		</div>`);
 		this.$result.append(this.$charts_wrapper);
@@ -553,6 +557,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					fieldtype: "Select",
 					fieldname: "x_axis",
 					options: x_fields,
+					reqd: 1,
 					default: defaults.x_axis,
 				},
 				{
@@ -560,6 +565,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					fieldtype: "MultiSelect",
 					fieldname: "y_axes",
 					options: y_fields,
+					reqd: 1,
 					description: __("Showing only Numeric fields from Report"),
 					default: defaults.y_axes ? defaults.y_axes.join(", ") : null,
 					include_default: true,
@@ -631,14 +637,12 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.$charts_wrapper.removeClass("hidden");
 
 		this.chart?.destroy();
-		this.chart = frappe.ui.chart(this.$charts_wrapper.find(".charts-inner-wrapper"), {
-			title: __("{0} Chart", [this.doctype]),
+		const config = frappe.ui.chart.with_classic_palette({
 			data: data,
 			type: args.chart_type,
 			fieldtype,
 			options,
 			truncateLegends: 1,
-			colors: ["#70E078", "light-blue", "orange", "red"],
 			axisOptions: {
 				shortenYAxisNumbers: 1,
 				numberFormatter: frappe.utils.format_chart_axis_number,
@@ -652,6 +656,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				},
 			},
 		});
+		this.chart = frappe.ui.chart(this.$charts_wrapper.find(".charts-inner-wrapper"), config);
 	}
 
 	refresh_charts() {

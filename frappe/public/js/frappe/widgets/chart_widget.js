@@ -727,7 +727,7 @@ export default class ChartWidget extends Widget {
 
 	async render() {
 		let setup_dashboard_chart = () => {
-			const chart_args = this.with_classic_palette(
+			const chart_args = frappe.ui.chart.with_classic_palette(
 				frappe.utils.get_chart_args(this.get_chart_args())
 			);
 
@@ -805,7 +805,10 @@ export default class ChartWidget extends Widget {
 		if (sample && frappe.ui.chart.is_classic(sample)) {
 			const $sample = $(`<div class="chart-empty-sample" aria-hidden="true"></div>`);
 			$sample.appendTo(this.empty);
-			this.empty_sample = frappe.ui.chart($sample, this.with_classic_palette(sample));
+			this.empty_sample = frappe.ui.chart(
+				$sample,
+				frappe.ui.chart.with_classic_palette(sample)
+			);
 		}
 
 		this.empty.append(
@@ -919,15 +922,6 @@ export default class ChartWidget extends Widget {
 	counts_documents() {
 		const { chart_type, group_by_type } = this.chart_doc;
 		return chart_type == "Count" || (chart_type == "Group By" && group_by_type == "Count");
-	}
-
-	// frappe-charts reads colours as literal values, so a classic chart that names none takes
-	// Espresso's palette resolved. The new charts follow the theme on their own.
-	with_classic_palette(chart_args) {
-		if (chart_args.colors?.length || !frappe.ui.chart.is_classic(chart_args)) {
-			return chart_args;
-		}
-		return { ...chart_args, colors: frappe.utils.get_chart_palette() };
 	}
 
 	// One colour per series. A series without its own takes Espresso's colour for its place, and a
