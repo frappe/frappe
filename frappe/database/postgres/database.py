@@ -102,6 +102,8 @@ SQL_TOKEN_REGEX = r"""
 	| (?P<comment>/\*)
 	| (?P<separator>;)
 	| {escape_prefix}'(?:[^'\\]|''|\\.)*'?                               # escape string: a \' does not end it
+	  (?:[ \t\f\v]*(?:--[^\n\r]*)?[\n\r](?:[ \t\n\r\f\v]|--[^\n\r]*[\n\r])*
+	  '(?:[^'\\]|''|\\.)*'?)*                                            # continued after a newline, still escaped
 	| '(?:[^']|'')*'?                                                    # string literal (only '' escapes a quote)
 	| "(?:[^"]|"")*"?                                                    # quoted identifier
 	| \$(?P<tag>(?:[A-Za-z_\x80-\U0010ffff][A-Za-z_0-9\x80-\U0010ffff]*)?)\$
