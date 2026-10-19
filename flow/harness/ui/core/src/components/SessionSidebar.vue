@@ -8,7 +8,7 @@
 		/>
 	</Transition>
 	<aside
-		class="fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col border-r border-outline-gray-1 bg-surface-sidebar md:relative"
+		class="flow-sidebar-surface fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col md:relative"
 		:class="[
 			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
 			// no transform while open: a transformed aside would become the containing

@@ -9,6 +9,15 @@
 	background: var(--surface-gray-1);
 }
 
+/* the sidebar, and the frame the chat panel stands on; in dark mode a step lighter than
+   the chat */
+.flow-sidebar-surface {
+	background: var(--surface-sidebar);
+}
+[data-theme="dark"] .flow-sidebar-surface {
+	background: color-mix(in srgb, var(--surface-base) 50%, var(--surface-gray-1));
+}
+
 /* Long dropdown menus: the page itself never scrolls, so a menu taller than
    the viewport would be unreachable. Cap it to the space reka reports for the
    popper and scroll inside instead. */

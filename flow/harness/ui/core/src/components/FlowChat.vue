@@ -1,47 +1,50 @@
 <template>
-	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel -->
+	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
+	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
-		class="flex h-full min-h-0 overflow-clip bg-surface-base text-base text-ink-gray-8"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8"
 		:style="{
 			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
 			'--flow-chat-weight': store.state.prefs.chatFontWeight,
 		}"
 	>
 		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
-		<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
-			<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
-			<MessageList ref="list" />
-			<Composer ref="composer" />
-		</main>
-		<WorkspacePanel>
-			<!-- the daemon's file views: the "+" menu, the editor and the picker -->
-			<template #actions>
-				<Dropdown class="flex-none" :options="addTabOptions">
-					<template #trigger>
-						<button class="flow-icon-btn" title="New tab">
-							<FeatherIcon name="plus" class="h-3.5 w-3.5" />
-						</button>
-					</template>
-				</Dropdown>
-			</template>
-			<template #view><EditorView /></template>
-			<template #empty>
-				<button
-					class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
-					@click="store.showFilesView()"
-				>
-					<FeatherIcon name="folder" class="h-4 w-4 flex-none text-ink-gray-5" />
-					Files
-				</button>
-				<button
-					class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
-					@click="store.showDiffView()"
-				>
-					<FeatherIcon name="columns" class="h-4 w-4 flex-none text-ink-gray-5" />
-					Diffs
-				</button>
-			</template>
-		</WorkspacePanel>
+		<div class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm">
+			<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
+				<ChatHeader :sidebar-open="sidebarOpen" @open-sidebar="store.setSidebarOpen(true)" />
+				<MessageList ref="list" />
+				<Composer ref="composer" />
+			</main>
+			<WorkspacePanel>
+				<!-- the daemon's file views: the "+" menu, the editor and the picker -->
+				<template #actions>
+					<Dropdown class="flex-none" :options="addTabOptions">
+						<template #trigger>
+							<button class="flow-icon-btn" title="New tab">
+								<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+							</button>
+						</template>
+					</Dropdown>
+				</template>
+				<template #view><EditorView /></template>
+				<template #empty>
+					<button
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						@click="store.showFilesView()"
+					>
+						<FeatherIcon name="folder" class="h-4 w-4 flex-none text-ink-gray-5" />
+						Files
+					</button>
+					<button
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						@click="store.showDiffView()"
+					>
+						<FeatherIcon name="columns" class="h-4 w-4 flex-none text-ink-gray-5" />
+						Diffs
+					</button>
+				</template>
+			</WorkspacePanel>
+		</div>
 
 		<!-- host for frappe-ui's imperative dialog.* stack (confirm/danger/prompt) -->
 		<Dialogs />
