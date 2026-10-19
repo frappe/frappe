@@ -127,11 +127,13 @@ def test_skill_paths_follow_symlinks_but_obey_the_fence(tmp_path, monkeypatch):
 	assert fenced.get("/skills", params={"cwd": str(tmp_path / "other")}).status_code == 400
 
 
-def test_deployed_policy_disables_skill_management_and_the_tool_list(tmp_path, monkeypatch):
+def test_deployed_policy_disables_skill_management_the_tool_list_and_settings(tmp_path, monkeypatch):
 	c, _ = _client(tmp_path, monkeypatch, policy=DEPLOYED, auth="t", tool_allowlist=DEPLOYED.tool_allowlist)
 	assert c.get("/skills").status_code == 403
 	assert c.put("/skills/file", json={"path": "/x/y/SKILL.md", "content": ""}).status_code == 403
 	assert c.get("/tools").status_code == 403
+	assert c.get("/settings").status_code == 403
+	assert c.patch("/settings", json={"settings": {"theme": "dark"}}).status_code == 403
 
 
 def test_tools_list_every_builtin_up_to_the_allowlist(tmp_path, monkeypatch):

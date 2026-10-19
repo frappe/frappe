@@ -1,8 +1,8 @@
 """The daemon's HTTP boundary: thin handlers over the Session verbs.
 
 Assembly only — auth/origin middleware, error mapping, and the route groups
-(`routes/sessions`, `routes/providers`, `routes/fs`, `routes/skills`, `routes/tools`). The run/stream ergonomics
-are documented on `routes/sessions`."""
+(`routes/sessions`, `routes/providers`, `routes/fs`, `routes/skills`, `routes/tools`,
+`routes/settings`). The run/stream ergonomics are documented on `routes/sessions`."""
 
 from __future__ import annotations
 
@@ -31,6 +31,7 @@ from flow_harness.server.request_limits import RequestSizeLimit
 from flow_harness.server.routes.fs import create_fs_router
 from flow_harness.server.routes.providers import create_providers_router
 from flow_harness.server.routes.sessions import create_sessions_router
+from flow_harness.server.routes.settings import create_settings_router
 from flow_harness.server.routes.skills import create_skills_router
 from flow_harness.server.routes.tools import create_tools_router
 from flow_harness.server.tenants import SITE_HEADER, Tenant, TenantTemplate
@@ -210,14 +211,17 @@ def create_app(
 	async def healthz():
 		return {"ok": True}
 
-	# the credential store is daemon-wide, so no site token may manage it
-	providers_policy = replace(policy, providers_api=False) if tenants is not None else policy
+	# the credential store and the settings file are daemon-wide, so no site token may manage them
+	providers_policy = (
+		replace(policy, providers_api=False, settings_api=False) if tenants is not None else policy
+	)
 	routers = (
 		create_providers_router(store.credential_store, oauth, policy=providers_policy),
 		create_fs_router(resolve_store, policy=policy),
 		create_sessions_router(resolve_store, system_append=system_append, policy=policy),
 		create_skills_router(resolve_store, policy=policy),
 		create_tools_router(resolve_store, policy=policy),
+		create_settings_router(policy=providers_policy),
 	)
 	for router in routers:
 		app.include_router(router)

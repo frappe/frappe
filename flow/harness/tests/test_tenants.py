@@ -260,11 +260,12 @@ def test_a_site_token_reaches_only_its_own_sessions(tmp_path):
 	assert r.status_code == 400
 	assert "allowed root" in r.json()["detail"]
 
-	# the credential store is daemon-wide, so no site token may manage it
+	# the credential store and the settings file are daemon-wide, so no site token may manage them
 	assert c.get("/providers", headers=ONE).status_code == 403
 	r = c.post("/providers/anthropic/api-key", json={"api_key": "sk-x"}, headers=ONE)
 	assert r.status_code == 403
 	assert "server policy" in r.json()["detail"]
+	assert c.patch("/settings", json={"settings": {"theme": "dark"}}, headers=ONE).status_code == 403
 
 
 def test_sink_events_include_the_site(tmp_path):
