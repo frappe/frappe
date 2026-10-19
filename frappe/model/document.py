@@ -3606,7 +3606,7 @@ RESERVED_KEYWORDS = frozenset(
 
 
 @get_doc.register(Document)
-def _basedoc(doc: Document, *args, **kwargs) -> Document:
+def _identity(doc: Document, *args, **kwargs) -> Document:
 	return doc
 
 
@@ -3767,7 +3767,7 @@ class LazyDocument:
 	@override
 	def append(self, key: str, value: D | dict | None = None, position: int = -1) -> D:
 		# Ensure that table descriptor is triggered at least once
-		# key is assumed to be a table fieldname (as expected by BaseDocument.append)
+		# key is assumed to be a table fieldname (as expected by Document.append)
 		if key not in self.__dict__:
 			getattr(self, key, None)
 		return super().append(key, value, position)
@@ -3814,8 +3814,6 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	import copy
 	from types import MappingProxyType
 
-	from frappe.model.base_document import BaseDocument
-
 	def remove_no_copy_fields(d):
 		for df in d.meta.get("fields", {"no_copy": 1}):
 			if hasattr(d, df.fieldname):
@@ -3826,7 +3824,7 @@ def copy_doc(doc: "Document", ignore_no_copy: bool = True) -> "Document":
 	if not frappe.in_test:
 		fields_to_clear.append("docstatus")
 
-	if isinstance(doc, BaseDocument):
+	if isinstance(doc, Document):
 		d = doc.as_dict()
 	elif isinstance(doc, MappingProxyType):  # global test record
 		d = dict(doc)

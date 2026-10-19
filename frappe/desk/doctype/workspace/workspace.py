@@ -589,7 +589,7 @@ def sanitize_content(content: str | None) -> str | None:
 	left.
 
 	`content` is a Long Text field holding a JSON document, and every write of a Long Text field
-	goes through the XSS sanitizer (`BaseDocument._sanitize_content`). That sanitizer reads the
+	goes through the XSS sanitizer (`Document._sanitize_content`). That sanitizer reads the
 	whole field as HTML, so the markup a header block carries, such as `<span class=\\"h4\\">` with
 	quotes escaped because it lives inside a JSON string, comes back as `class="\\&quot;h4\\&quot;"`
 	and the field is no longer JSON. Every reader then raises, and the desk itself reads `Home`.

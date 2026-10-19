@@ -39,7 +39,7 @@ def whitelist_for_tests(**whitelist_kwargs):
 
 def check_orpahned_doctypes():
 	"""Check that all doctypes in DB actually exist after patch test"""
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 
 	doctypes = frappe.get_all("DocType", {"custom": 0}, pluck="name")
 	orpahned_doctypes = []
