@@ -50,6 +50,12 @@ class PostgresCursor(psycopg.Cursor):
 				]
 		return self._description
 
+	def execute(self, query, params=None, **kwargs):
+		# a generic plan scans an `= ANY` array parameter linearly; a literal array gets hashed
+		if params and any(isinstance(value, list) for value in _iter_values(params)):
+			kwargs["prepare"] = False
+		return super().execute(query, params, **kwargs)
+
 
 class FloatNumericDumper(Dumper):
 	"""Send floats as numeric, like the float literals frappe's SQL was written against."""
@@ -1042,14 +1048,17 @@ def bind_values(query, values):
 	if not values:
 		return query, values
 
-	named = isinstance(values, dict)
-	if not any(isinstance(value, list | tuple) for value in (values.values() if named else values)):
-		if named:
+	if not any(isinstance(value, list | tuple) for value in _iter_values(values)):
+		if isinstance(values, dict):
 			return query, {key: _coerce(value) for key, value in values.items()}
 		return query, [_coerce(value) for value in values]
 
 	binder = _SequenceBinder(values)
 	return PLACEHOLDER_PATTERN.sub(binder, query), binder.bound
+
+
+def _iter_values(values):
+	return values.values() if isinstance(values, dict) else values
 
 
 def _coerce(value):
