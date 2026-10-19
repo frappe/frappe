@@ -6,6 +6,7 @@ declare global {
 	namespace Cypress {
 		interface Chainable {
 			login(email?: string, password?: string): Chainable<void>
+			asGuest(): Chainable<void>
 			call(method: string, args?: object): Chainable<any>
 			get_doc(doctype: string, name: string): Chainable<any>
 			insert_doc(doctype: string, args: object, ignore_duplicate?: boolean): Chainable<any>
@@ -36,6 +37,14 @@ Cypress.Commands.add("login", (email?: string, password?: string) => {
 		cy.intercept("/api/**", (request) => {
 			Object.assign(request.headers, siteHeader())
 		})
+	})
+})
+
+// Drops the session a hook logged in with, so the app's own fetches reach the site as Guest
+Cypress.Commands.add("asGuest", () => {
+	cy.clearCookies()
+	cy.intercept("/api/**", (request) => {
+		Object.assign(request.headers, siteHeader())
 	})
 })
 
