@@ -378,8 +378,8 @@ def search_widget(
 
 
 def page_translated(values: list, txt: str, as_dict: bool, start: int, page_length: int) -> list:
-	"""Translated doctypes are matched in Python: filter, sort and page here.
-	The whole list is filtered before slicing, so every page slices the same order."""
+	"""Translated doctypes are matched in Python: filter, sort by relevance when there is
+	search text, and page here. Every page slices the same order."""
 	values = filter_translated(values, txt, as_dict)
 	if txt:
 		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))

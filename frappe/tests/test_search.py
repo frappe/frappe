@@ -117,7 +117,7 @@ class TestSearch(IntegrationTestCase):
 		self.assertEqual(len(second), 5)
 		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
 
-		# only membership: each page is relevance-sorted on its own
+		# only membership: with search text each page would be relevance-sorted on its own
 		both = search_link(doctype=doctype.name, txt="", page_length=10)
 		self.assertEqual({r["value"] for r in both}, {r["value"] for r in first + second})
 
@@ -142,7 +142,7 @@ class TestSearch(IntegrationTestCase):
 		self.assertEqual(len(first), 10)
 		self.assertEqual(len(second), 10)
 		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
-		# later pages ask to keep order; the list is sorted once, so they still match
+		# later pages ask to keep order; the whole list is paged in one order, so they still match
 		self.assertEqual(search_link("DocType", "", page_length=10, start=10, keep_order=True), second)
 		self.assertEqual(search_link("DocType", "", page_length=20)[10:], second)
 
@@ -193,36 +193,20 @@ class TestSearch(IntegrationTestCase):
 	def test_image_field_behind_a_permlevel_is_not_returned(self):
 		from frappe.desk.search import get_image_field
 
-		frappe.get_doc(
-			{
-				"doctype": "Property Setter",
-				"doctype_or_field": "DocField",
-				"doc_type": "User",
-				"field_name": "user_image",
-				"property": "permlevel",
-				"property_type": "Int",
-				"value": "1",
-			}
-		).insert(ignore_permissions=True, ignore_if_duplicate=True)
-		self.addCleanup(frappe.clear_cache, doctype="User")
-		self.addCleanup(frappe.delete_doc, "Property Setter", "User-user_image-permlevel", force=True)
-		frappe.clear_cache(doctype="User")
-
-		# rows are read with permissions off, so the field itself is the gate;
-		# past the read check, only the permlevel stops it
-		with self.set_user("Guest"), patch("frappe.has_permission", return_value=True):
-			self.assertEqual(frappe.get_meta("User").get_permlevel_access("read"), set())
-			self.assertIsNone(get_image_field("User"))
-
-		self.assertEqual(get_image_field("User"), "user_image")
+		# the user reads the record but not the image's permlevel
+		doctype, user = self.make_image_doctype(read=1, image_permlevel=1)
+		with self.set_user(user):
+			self.assertIsNone(get_image_field(doctype))
+		self.assertEqual(get_image_field(doctype), "image")
 
 	def test_image_field_needs_read_access(self):
 		from frappe.desk.search import get_image_field
 
 		# select-only access covers the search fields, not the image
-		with patch("frappe.has_permission", return_value=False):
-			self.assertIsNone(get_image_field("User"))
-		self.assertEqual(get_image_field("User"), "user_image")
+		doctype, user = self.make_image_doctype(read=0)
+		with self.set_user(user):
+			self.assertIsNone(get_image_field(doctype))
+		self.assertEqual(get_image_field(doctype), "image")
 
 	def test_boot_link_settings_skip_disabled_apps(self):
 		from frappe.boot import get_link_settings
@@ -1097,6 +1081,34 @@ class TestSearch(IntegrationTestCase):
 		return get_report_link_titles(
 			[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
 		)
+
+	def make_image_doctype(self, *, read: int, image_permlevel: int = 0) -> tuple[str, str]:
+		with self.set_user("Administrator"):
+			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+			permissions = [{"role": role, "select": 1, "read": read}, {"role": "System Manager", "read": 1}]
+			if image_permlevel:
+				# someone must be able to read the image's permlevel
+				permissions.append({"role": "System Manager", "read": 1, "permlevel": image_permlevel})
+			doctype = new_doctype(
+				fields=[
+					{
+						"fieldname": "image",
+						"fieldtype": "Attach Image",
+						"label": "Image",
+						"permlevel": image_permlevel,
+					}
+				],
+				image_field="image",
+				permissions=permissions,
+			).insert()
+			user = frappe.get_doc(
+				doctype="User",
+				email=f"image-{frappe.generate_hash(length=8)}@example.com",
+				first_name="Image Reader",
+				send_welcome_email=0,
+				roles=[{"role": role}],
+			).insert()
+			return doctype.name, user.name
 
 	def make_select_only_titled_doc(self, *, search_fields=None, **title_properties):
 		with self.set_user("Administrator"):
