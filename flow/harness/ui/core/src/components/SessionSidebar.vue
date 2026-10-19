@@ -139,7 +139,7 @@
 									v-for="s in group.chats"
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
-									class="group relative h-8 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-7"
+									class="group relative h-8 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
 									:class="[menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
