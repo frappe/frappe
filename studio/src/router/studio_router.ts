@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory, type RouteLocationNormalized } from "vue-router"
+import { createRouter, createWebHistory } from "vue-router"
 import { call } from "frappe-ui"
 import session from "@/utils/session"
 
@@ -21,7 +21,6 @@ const routes = [
 		path: "/app/:appID/:pageID",
 		name: "StudioPage",
 		component: () => import("@/pages/StudioPage.vue"),
-		beforeEnter: blockStandardAppEditing,
 	},
 	{
 		path: "/app/:appID/not-editable",
@@ -56,16 +55,13 @@ router.beforeEach(async (to, _, next) => {
 	if (!session.hasPermission && to.path !== "/not-permitted") {
 		return next("/not-permitted")
 	}
+	// standard apps can only be edited in developer mode
+	const appID = to.params.appID as string
+	if (to.name === "StudioPage" && !window.is_developer_mode && (await isStandardApp(appID))) {
+		return next({ name: "NotEditable", params: { appID }, replace: true })
+	}
 	return next()
 })
-
-async function blockStandardAppEditing(to: RouteLocationNormalized) {
-	if (window.is_developer_mode) return
-	const appID = to.params.appID as string
-	if (await isStandardApp(appID)) {
-		return { name: "NotEditable", params: { appID }, replace: true }
-	}
-}
 
 async function isStandardApp(appID: string) {
 	try {
