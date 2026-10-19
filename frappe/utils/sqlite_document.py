@@ -164,7 +164,7 @@ class SQLiteLogDocument(Document):
 			raise frappe.DoesNotExistError(doctype=self.doctype)
 
 		# Bypass Document.__init__, which would try to load the document again.
-		super(Document, self).__init__(row)
+		self.init_from_dict(row)
 
 	def delete(self, *args, **kwargs):
 		"""Delete this document from the log database."""

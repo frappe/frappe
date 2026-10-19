@@ -1,8 +1,10 @@
 import pickle
 
 import frappe
+from frappe.deprecation_dumpster import FrappeDeprecationWarning
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.model.base_document import BaseDocument, _get_extended_class
+from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase
 
 
@@ -70,6 +72,19 @@ class TestBaseDocument(IntegrationTestCase):
 		doc.docstatus = 2
 		self.assertTrue(doc.docstatus.is_cancelled())
 		self.assertEqual(doc.docstatus, 2)
+
+	def test_super_document_init_sets_values(self):
+		class LegacyVirtualToDo(Document):
+			def load_from_db(self):
+				super(Document, self).__init__(
+					{"doctype": "ToDo", "name": self.name, "description": "legacy"}
+				)
+
+		with self.assertWarns(FrappeDeprecationWarning):
+			doc = LegacyVirtualToDo("ToDo", "legacy-todo")
+
+		self.assertEqual(doc.name, "legacy-todo")
+		self.assertEqual(doc.description, "legacy")
 
 	def test_get_extended_class_with_no_extensions(self):
 		"""Test that _get_extended_class returns the base class when no extensions are provided."""
