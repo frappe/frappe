@@ -82,7 +82,7 @@ ask_clarification = Tool(
 	description=(
 		"Ask the user ONE focused question to gather information you need (e.g. brand name, "
 		"positioning, audience, visual style). Ends your turn and waits for their reply. Provide "
-		"2–5 short options when there are sensible choices; omit options for open-ended answers "
+		"2-5 short options when there are sensible choices; omit options for open-ended answers "
 		"like a name (the user can type their reply)."
 	),
 	parameters={
@@ -92,7 +92,7 @@ ask_clarification = Tool(
 			"options": {
 				"type": "array",
 				"items": {"type": "string"},
-				"description": "Optional: 2–5 short plain-text answer choices. Omit for open-ended questions.",
+				"description": "Optional: 2-5 short plain-text answer choices. Omit for open-ended questions.",
 			},
 		},
 		"required": ["question"],
@@ -130,7 +130,7 @@ propose_plan = Tool(
 			"layout_plan": {
 				"type": "string",
 				"description": (
-					"The LAYOUT — 3–5 sections as ONE string, each on its OWN LINE (not a JSON array). Make "
+					"The LAYOUT — 3-5 sections as ONE string, each on its OWN LINE (not a JSON array). Make "
 					"each line decision-useful: the real headline/key copy (in 'single quotes'), what's in "
 					"it, the layout, and which data_plan source/variable it binds to."
 				),

@@ -346,7 +346,7 @@ class AgentRunner:
 		try:
 			for _round in range(MAX_ROUNDS):
 				tool_operations, summary_text, raw_tool_calls = self.call_tool_llm(messages)
-				terminal_ops, artifact_ops, server_ops, client_ops = self._classify(tool_operations)
+				terminal_ops, artifact_ops, _server_ops, client_ops = self._classify(tool_operations)
 
 				# A terminal tool ends the turn and hands control back to the user. If the
 				# model emits more than one, the first wins (the turn is over).

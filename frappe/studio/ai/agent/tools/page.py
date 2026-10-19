@@ -39,7 +39,7 @@ def save_page(page) -> str | None:
 	except frappe.ValidationError as e:
 		frappe.db.rollback()
 		return str(e)
-	except Exception:  # noqa: BLE001 — surface a safe message; keep the real cause in the log
+	except Exception:  # surface a safe message; keep the real cause in the log
 		frappe.db.rollback()
 		frappe.log_error("Studio AI page child-table write failed", frappe.get_traceback(with_context=True))
 		return "could not save the change (see error log)."

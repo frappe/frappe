@@ -1,9 +1,11 @@
+from typing import ClassVar
+
 import frappe
 from frappe.studio.utils import has_page_write_perm
 
 
 class ModelRegistry:
-	AVAILABLE = [
+	AVAILABLE: ClassVar[list[dict]] = [
 		{
 			"id": "openrouter/anthropic/claude-sonnet-4-6",
 			"label": "Claude Sonnet 4.6",

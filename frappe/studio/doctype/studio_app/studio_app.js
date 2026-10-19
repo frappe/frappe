@@ -91,14 +91,14 @@ function get_router_script_help() {
 		.append(
 			$("<p>").text(
 				__(
-					"Write a JavaScript object without import or export statements. All fields are optional.",
-				),
+					"Write a JavaScript object without import or export statements. All fields are optional."
+				)
 			),
 			$('<pre class="mb-2">').append($("<code>").text(script)),
 			$('<p class="mb-0">').text(
 				__(
-					"Replace Tasks and Onboarding with your page titles. Provide boot.onboarding_complete through the studio_app_boot hook.",
-				),
-			),
+					"Replace Tasks and Onboarding with your page titles. Provide boot.onboarding_complete through the studio_app_boot hook."
+				)
+			)
 		);
 }
