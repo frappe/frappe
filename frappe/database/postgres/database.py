@@ -1,6 +1,7 @@
 import datetime
 import re
 from contextlib import contextmanager
+from decimal import Decimal
 from itertools import batched
 
 import psycopg
@@ -1065,6 +1066,11 @@ def _iter_values(values):
 	return values.values() if isinstance(values, dict) else values
 
 
+def _untyped(value):
+	"""An array takes one dumper, so [1, 1.5] can't mix str and float: send every number as a string."""
+	return str(value) if isinstance(value, float | Decimal) else _coerce(value)
+
+
 def _coerce(value):
 	if isinstance(value, bool):
 		return str(int(value))
@@ -1092,7 +1098,7 @@ class _SequenceBinder:
 			and not any(isinstance(v, list | tuple) for v in value)
 		):
 			operator = "<> ALL" if match["negated"] else "= ANY"
-			return f"{operator}({self._placeholder(key, [_coerce(item) for item in value])})"
+			return f"{operator}({self._placeholder(key, [_untyped(item) for item in value])})"
 		return keyword + self._expand(key, value)
 
 	def _expand(self, key, value):
