@@ -301,9 +301,7 @@ def migrate(app: str | None = None, locale: str | None = None):
 
 	for app in apps:
 		app_path = Path(frappe.get_app_path(app))
-		for filename in sorted((app_path / "translations").iterdir()):
-			if filename.suffix != ".csv":
-				continue
+		for filename in sorted((app_path / "translations").glob("*.csv")):
 			if locale and filename.stem.replace("-", "_").lower() != locale.replace("-", "_").lower():
 				continue
 			csv_to_po(app, filename)
