@@ -1,7 +1,7 @@
 import datetime
 import re
 from contextlib import contextmanager
-from decimal import Decimal
+from itertools import batched
 
 import psycopg
 from psycopg import ClientCursor, IsolationLevel, errors, sql
@@ -59,6 +59,39 @@ class FloatNumericDumper(Dumper):
 	def dump(self, obj: float) -> bytes:
 		return repr(obj).encode()
 
+
+class CheckDumper(Dumper):
+	"""COPY bools as 1/0: Check fields are smallint, which rejects COPY's t/f."""
+
+	def dump(self, obj: bool) -> bytes:
+		return b"1" if obj else b"0"
+
+
+class TimeOfDayDumper(Dumper):
+	"""COPY a Time field's timedelta as HH:MM:SS, wrapped to one day like an INSERT into `time`."""
+
+	def dump(self, obj: datetime.timedelta) -> bytes:
+		seconds, microseconds = divmod(
+			(obj // datetime.timedelta(microseconds=1)) % 86_400_000_000, 1_000_000
+		)
+		hours, remainder = divmod(seconds, 3600)
+		minutes, seconds = divmod(remainder, 60)
+		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
+		return (f"{encoded}.{microseconds:06d}" if microseconds else encoded).encode()
+
+
+class UncopyableDumper(Dumper):
+	def dump(self, obj):
+		raise TypeError(f"bulk_insert cannot COPY a {type(obj).__name__} value")
+
+
+COPY_DUMPERS = {
+	bool: CheckDumper,
+	datetime.timedelta: TimeOfDayDumper,
+	list: UncopyableDumper,
+	tuple: UncopyableDumper,
+	dict: UncopyableDumper,
+}
 
 ADAPTERS = AdaptersMap(psycopg.adapters)
 ADAPTERS.register_dumper(float, FloatNumericDumper)
@@ -927,8 +960,6 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if ignore_duplicates:
 			return super().bulk_insert(doctype, fields, values, ignore_duplicates=True, chunk_size=chunk_size)
 
-		import io
-
 		table_name = get_table_name(doctype)
 		copy_sql = sql.SQL("COPY {}.{} ({}) FROM STDIN").format(
 			sql.Identifier(self.db_schema),
@@ -938,17 +969,16 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if not self._conn:
 			self.connect()
 		cursor = self._conn.cursor()
+		for python_type, dumper in COPY_DUMPERS.items():
+			cursor.adapters.register_dumper(python_type, dumper)
 		integer_positions = self._get_integer_positions(table_name, fields)
-		buffer = io.StringIO()
 		try:
-			row_count = 0
-			for value in values:
-				encoded = (_copy_encode(column, i in integer_positions) for i, column in enumerate(value))
-				buffer.write("\t".join(encoded) + "\n")
-				row_count += 1
-				if row_count % chunk_size == 0:
-					self._copy_flush(cursor, copy_sql, buffer)
-			self._copy_flush(cursor, copy_sql, buffer)
+			for chunk in batched(values, chunk_size, strict=False):
+				with cursor.copy(copy_sql) as copy:
+					for row in chunk:
+						copy.write_row(_integral_floats_as_ints(row, integer_positions))
+				# COPY bypasses `sql`, so count each chunk as one write, like an INSERT
+				self.transaction_writes += 1
 		finally:
 			cursor.close()
 
@@ -962,51 +992,16 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		)
 		return {position for position, field in enumerate(fields) if field in integer_columns}
 
-	def _copy_flush(self, cursor, copy_sql, buffer):
-		"""Send the buffered rows. COPY bypasses `sql`, so count the chunk as one write, like an INSERT."""
-		if not buffer.tell():
-			return
-		with cursor.copy(copy_sql) as copy:
-			copy.write(buffer.getvalue())
-		buffer.seek(0)
-		buffer.truncate(0)
-		self.transaction_writes += 1
 
-
-def _copy_encode(value, integer_column: bool = False):
-	"""Encode one value for postgres COPY text format (tab-delimited, ``\\N`` = NULL)."""
-	if value is None:
-		return r"\N"
-	if value is True:
-		# Frappe Check fields are smallint, not boolean; smallint_in("true") errors under COPY.
-		# "1"/"0" is accepted by both smallint and boolean input functions, matching INSERT.
-		return "1"
-	if value is False:
-		return "0"
-	if integer_column and isinstance(value, float) and value.is_integer():
-		# INSERT sends 1.0 as a numeric literal that an Int or Check column casts; COPY rejects "1.0".
-		return str(int(value))
-	if isinstance(value, bytes | bytearray | memoryview):
-		# bytea hex input, as INSERT sends it, with the backslash escaped for COPY
-		return "\\\\x" + value.hex()
-	if isinstance(value, datetime.timedelta):
-		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
-		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
-		# Wrap into a single day the way the INSERT path does: psycopg adapts a timedelta to an
-		# interval and postgres reduces it mod 24h on the way into a `time` column, so a 25:03:04
-		# duration stores as 01:03:04 there. A literal "25:03:04" is out of range for `time` and
-		# would make COPY fail where the row-by-row path succeeds.
-		microseconds = (
-			(value.days * 86_400 + value.seconds) * 1_000_000 + value.microseconds
-		) % 86_400_000_000
-		seconds, microseconds = divmod(microseconds, 1_000_000)
-		hours, remainder = divmod(seconds, 3600)
-		minutes, seconds = divmod(remainder, 60)
-		encoded = f"{hours:02d}:{minutes:02d}:{seconds:02d}"
-		return f"{encoded}.{microseconds:06d}" if microseconds else encoded
-	if not isinstance(value, str | int | float | Decimal | datetime.date | datetime.time):
-		raise TypeError(f"bulk_insert cannot COPY a {type(value).__name__} value")
-	return str(value).replace("\\", "\\\\").replace("\t", "\\t").replace("\n", "\\n").replace("\r", "\\r")
+def _integral_floats_as_ints(row, integer_positions: set[int]):
+	"""COPY rejects "1.0" for an integer column, where an INSERT casts the numeric."""
+	if not integer_positions:
+		return row
+	row = list(row)
+	for position in integer_positions:
+		if isinstance(row[position], float) and row[position].is_integer():
+			row[position] = int(row[position])
+	return row
 
 
 def modify_query(query):
