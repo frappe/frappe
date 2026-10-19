@@ -93,8 +93,10 @@ test("a slash offers skills, mid-message only skills, and puts the one picked wh
 		const box = el.querySelector("textarea")
 		vm.prefill("/")
 		await nextTick()
-		assert.ok(el.textContent.includes("start a fresh conversation"))
-		assert.equal(el.textContent.includes("/skill:review"), enabled)
+		assert.ok(el.textContent.includes("Start a fresh conversation"))
+		// a skill row reads its name and description, not its /skill: form
+		assert.equal(el.textContent.includes("Review files"), enabled)
+		assert.ok(!el.textContent.includes("/skill:review"))
 		assert.equal(loads, enabled ? 1 : 0)
 		vm.prefill("/skill:review investigate")
 		await nextTick()
@@ -103,8 +105,8 @@ test("a slash offers skills, mid-message only skills, and puts the one picked wh
 
 		vm.prefill("fix this /")
 		await nextTick()
-		assert.ok(el.textContent.includes("/skill:review"))
-		assert.ok(!el.textContent.includes("start a fresh conversation"))
+		assert.ok(el.textContent.includes("Review files"))
+		assert.ok(!el.textContent.includes("Start a fresh conversation"))
 		// a slash no skill matches, like a path, opens nothing
 		vm.prefill("see /usr")
 		await nextTick()
@@ -116,7 +118,7 @@ test("a slash offers skills, mid-message only skills, and puts the one picked wh
 		box.setSelectionRange(7, 7)
 		box.dispatchEvent(new window.Event("click"))
 		await nextTick()
-		rowButton(el, "/skill:review").click()
+		rowButton(el, "Review files").click()
 		await nextTick()
 		assert.equal(box.value, "fix /skill:review that")
 		assert.equal(el.querySelector(".text-ink-blue-6").textContent, "/skill:review")
@@ -306,7 +308,8 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 				h("button", { "data-test": "agent", onClick: () => openPalette("thinking") }, "Agent"),
 				h(ModelButton, { onOpen: openPalette }),
 			],
-			palette: ({ view, close }) => (view === "agents" ? h("div", { "data-test": "host-palette", onClick: close }, view) : null),
+			palette: ({ view, query, close }) =>
+				view === "agents" ? h("div", { "data-test": "host-palette", onClick: close }, `${view}:${query}`) : null,
 		}),
 	}, {}, flow)
 	const agent = el.querySelector("[data-test=agent]")
@@ -325,17 +328,80 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	await nextTick()
 	assert.equal(el.querySelector("[role=menuitem]"), null)
 	assert.ok(el.querySelector("[data-stub=ModelPalette]"))
+	// a picker opened over an empty composer searches with it, and its "/" goes when it closes
+	const box = el.querySelector("textarea")
+	assert.equal(box.value, "/")
+	el.querySelector("[data-stub=ModelPalette]").dispatchEvent(new window.Event("close"))
+	await nextTick()
+	assert.equal(box.value, "")
 
 	// the host's own command opens its palette slot
 	vm.$refs.composer.prefill("/")
 	await nextTick()
-	assert.deepEqual([...el.querySelectorAll("[data-palette-item] code")].map((c) => c.textContent), ["/agents", "/model"])
+	// the host's command first, each row its label and what it does
+	const rows = [...el.querySelectorAll("[data-palette-item]")]
+	assert.deepEqual(rows.map((row) => [...row.querySelectorAll("span")].map((span) => span.textContent)), [
+		["Agent", "choose the agent"],
+		["Model", "Choose the model"],
+	])
 	el.querySelector("[data-palette-item]").click()
 	await nextTick()
-	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents")
+	// the page searches with the composer's text after its "/"
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:")
+	vm.$refs.composer.prefill("/sa")
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:sa")
+	// Backspace on the bare "/" goes back to the commands, keeping the "/"
+	vm.$refs.composer.prefill("/")
+	await nextTick()
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Backspace", bubbles: true, cancelable: true }))
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]"), null)
+	assert.equal(box.value, "/")
+	assert.equal(el.querySelectorAll("[data-palette-item]").length, 2)
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
 	el.querySelector("[data-test=host-palette]").click()
 	await nextTick()
 	assert.equal(el.querySelector("[data-test=host-palette]"), null)
+	assert.equal(box.value, "")
+	// a "/command" at the head of a draft opens its page unfiltered, and the draft outlives it
+	vm.$refs.composer.prefill("/ag\nplease fix the login bug")
+	await nextTick()
+	box.setSelectionRange(3, 3)
+	box.dispatchEvent(new window.Event("select"))
+	await nextTick()
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:")
+	el.querySelector("[data-test=host-palette]").click()
+	await nextTick()
+	assert.equal(box.value, "\nplease fix the login bug")
+	// one after spaces alone is all the box holds: its page searches from a bare "/"
+	vm.$refs.composer.prefill("  /ag")
+	await nextTick()
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:")
+	assert.equal(box.value, "/")
+	el.querySelector("[data-test=host-palette]").click()
+	await nextTick()
+	// back from a toolbar picker over a "/" whose list Escape put away brings the commands back
+	vm.$refs.composer.prefill("/")
+	await nextTick()
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+	await nextTick()
+	assert.equal(el.querySelectorAll("[data-palette-item]").length, 0)
+	model.click()
+	await nextTick()
+	el.querySelector("[role=menuitem]").click()
+	await nextTick()
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Backspace", bubbles: true, cancelable: true }))
+	await nextTick()
+	assert.equal(el.querySelectorAll("[data-palette-item]").length, 2)
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+	vm.$refs.composer.prefill("")
+	await nextTick()
 
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Sales…")
 	const mode = el.querySelector("button[title='Approval mode']")
@@ -931,7 +997,7 @@ test("rewind is offered on a logged message of a chat that can rewind, and nowhe
 		const composer = mount(t, Composer, { mentions: false }, store)
 		composer.vm.prefill("/rewind")
 		await nextTick()
-		assert.equal(composer.el.textContent.includes("branch from before your last message"), supported)
+		assert.equal(composer.el.textContent.includes("Branch from before your last message"), supported)
 	}
 
 	const store = createFlowStore({ rewind() {} }, { requireCwd: false, skillsEnabled: false })
@@ -2237,15 +2303,15 @@ test("a spreadsheet range pastes as its text, a screenshot as a picture", async 
 	assert.equal(paste({ "text/plain": "https://e.x/a.png", "text/html": '<meta charset="utf-8"><img src="https://e.x/a.png">' }), true)
 })
 
-test("an Enter pressed while a palette's rows lag its search picks from the rows that answer it", async (t) => {
+test("a palette's Enter picks from the rows that answer its search, whose top row takes the highlight, and the keyboard's row keeps it under a resting pointer", async (t) => {
 	const PalettePanel = await loadComponent("PalettePanel")
 	globalThis.MutationObserver = dom.window.MutationObserver
 	t.after(() => delete globalThis.MutationObserver)
 	const picked = []
-	const list = reactive({ busy: false, rows: ["openai/gpt-5"] })
+	const list = reactive({ query: "", busy: false, rows: ["openai/gpt-5"] })
 	const row = (name) => h("button", { key: name, "data-palette-item": "", onClick: () => picked.push(name) }, name)
-	const Host = { render: () => h(PalettePanel, { title: "Models", busy: list.busy }, () => list.rows.map(row)) }
-	mount(t, Host, {}, {})
+	const Host = { render: () => h(PalettePanel, { title: "Models", query: list.query, busy: list.busy }, () => list.rows.map(row)) }
+	const { el } = mount(t, Host, {}, {})
 	await settle()
 
 	keydown(document.body, { key: "Enter", isComposing: true }) // an IME's, picking its candidate
@@ -2257,6 +2323,31 @@ test("an Enter pressed while a palette's rows lag its search picks from the rows
 	list.busy = false
 	await settle()
 	assert.deepEqual(picked, ["anthropic/claude-opus"])
+
+	// the keyboard walks past the list's edge, scrolling another row under the resting pointer
+	list.rows = ["a", "b", "c"]
+	await settle()
+	const pointer = (type, name, clientX) =>
+		[...el.querySelectorAll("[data-palette-item]")]
+			.find((item) => item.textContent === name)
+			.dispatchEvent(new window.PointerEvent(type, { bubbles: true, clientX, clientY: 10 }))
+	const active = () => el.querySelector("[data-palette-active]").textContent
+	pointer("pointermove", "a", 5)
+	keydown(document.body, { key: "ArrowDown" })
+	pointer("pointerover", "c", 5)
+	pointer("pointermove", "c", 5)
+	assert.equal(active(), "b")
+	pointer("pointermove", "c", 6)
+	assert.equal(active(), "c")
+
+	// a new search hands the highlight to its top row, though the old row still answers it
+	list.query = "b"
+	list.busy = true
+	await nextTick()
+	list.rows = ["b", "c"]
+	list.busy = false
+	await settle()
+	assert.equal(active(), "b")
 })
 
 test("a message that overflows once the thread narrows gets its Show more", async (t) => {

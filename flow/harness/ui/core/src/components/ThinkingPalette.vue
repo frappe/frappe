@@ -1,24 +1,21 @@
 <template>
-	<PalettePanel title="Thinking" back @close="emit('close')" @back="emit('back')">
-		<div class="min-h-0 flex-1 overflow-y-auto p-1.5">
+	<PalettePanel title="Thinking" back :query="query" @close="emit('close')" @back="emit('back')">
+		<div class="min-h-0 flex-1 overflow-y-auto p-1">
 			<button
-				v-for="level in LEVELS"
+				v-for="level in levels"
 				:key="level.id"
 				data-palette-item
 				:aria-current="level.id === currentEffort ? 'true' : undefined"
-				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flow-palette-row"
 				@click="choose(level.id)"
 			>
-				<span class="min-w-0 flex-1">
-					<span class="block text-xs font-medium leading-4 text-ink-gray-9">{{ level.label }}</span>
-					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ level.desc }}</span>
-				</span>
-				<FeatherIcon
-					v-if="level.id === currentEffort"
-					name="check"
-					class="h-4 w-4 flex-none text-ink-gray-7"
-				/>
+				<span class="flex-none">{{ level.label }}</span>
+				<FeatherIcon v-if="level.id === currentEffort" name="check" class="h-4 w-4 flex-none" />
+				<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ level.desc }}</span>
 			</button>
+			<div v-if="!levels.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
+				No matching levels
+			</div>
 		</div>
 	</PalettePanel>
 </template>
@@ -30,6 +27,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { EFFORTS, EFFORT_LABELS } from "../transcript.js"
 import PalettePanel from "./PalettePanel.vue"
 
+const props = defineProps({ query: { type: String, default: "" } }) // the composer's text after its "/"
 const emit = defineEmits(["close", "back"])
 const flow = inject("flow")
 
@@ -46,6 +44,10 @@ const DESCRIPTIONS = {
 
 // order and ids come from the wire-level list, so a new effort needs only a description
 const LEVELS = EFFORTS.map((id) => ({ id, label: EFFORT_LABELS[id], desc: DESCRIPTIONS[id] }))
+const levels = computed(() => {
+	const q = props.query.trim().toLowerCase()
+	return LEVELS.filter((level) => level.label.toLowerCase().includes(q))
+})
 
 // an open chat runs at its own level (none is the provider's default); a new chat at the last one picked
 const currentEffort = computed(

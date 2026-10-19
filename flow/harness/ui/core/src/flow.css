@@ -86,6 +86,25 @@
 	color: var(--ink-gray-9);
 }
 
+/* A row of the lists over the composer (PalettePanel): 14px on 32px, the active row a
+   pill. The pointer and the keyboard share that one highlight (PalettePanel), so a row
+   has no hover color. A description or other aside takes flow-palette-hint. */
+.flow-palette-row {
+	display: flex;
+	width: 100%;
+	height: 32px;
+	align-items: center;
+	gap: 8px;
+	padding: 0 11px;
+	border-radius: 9999px;
+	font-size: 14px;
+	color: var(--ink-gray-8);
+	text-align: left;
+}
+.flow-palette-hint {
+	color: var(--ink-gray-4);
+}
+
 .flow-btn-primary,
 .flow-btn-secondary,
 .flow-btn-ghost {

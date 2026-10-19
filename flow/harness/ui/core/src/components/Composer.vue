@@ -1,52 +1,45 @@
 <template>
 	<div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-5 pb-3.5">
-		<div class="pointer-events-auto relative mx-auto max-w-[800px]">
+		<div ref="stack" class="pointer-events-auto relative mx-auto max-w-[800px]">
 			<ModelPalette
 				v-if="paletteView === 'models'"
 				:providers="has('providers')"
+				:query="subQuery"
 				@close="closePalettes"
 				@back="openCommands"
 				@providers="paletteView = 'providers'"
 			/>
 			<ThinkingPalette
 				v-if="paletteView === 'thinking'"
+				:query="subQuery"
 				@close="closePalettes"
 				@back="openCommands"
 			/>
 			<ProvidersDialog
 				v-if="paletteView === 'providers'"
+				:query="subQuery"
 				@close="closePalettes"
 				@back="openCommands"
 			/>
 			<!-- a host's own pages, opened by its commands or toolbar pickers -->
-			<slot name="palette" :view="paletteView" :close="closePalettes" :back="openCommands" />
+			<slot name="palette" :view="paletteView" :query="subQuery" :close="closePalettes" :back="openCommands" />
 
 			<!-- slash-command palette -->
-			<PalettePanel v-if="menuOpen" title="Commands" :autofocus="false" @close="closePalettes">
-				<div class="overflow-y-auto p-1.5">
+			<PalettePanel v-if="menuOpen" title="Commands" :query="slash?.query ?? ''" @close="closePalettes">
+				<div class="overflow-y-auto p-1">
 					<template v-for="(m, i) in menuItems" :key="m.name">
-						<div
-							v-if="m.section"
-							class="px-2.5 pb-1 text-2xs font-medium text-ink-gray-5"
-							:class="i ? 'mt-1 border-t border-outline-gray-1 pt-2.5' : 'pt-1.5'"
-						>
+						<!-- a heading takes a row's height, and a gap above it sets its section off; the
+						     first sits in the list's top padding -->
+						<div v-if="m.section" class="flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
 							{{ m.section }}
 						</div>
-						<button
-							data-palette-item
-							class="flex w-full items-center gap-3 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
-							@click="pick(m)"
-						>
-							<span
-								class="flex h-7 w-7 flex-none items-center justify-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
-							>
-								<FeatherIcon :name="m.icon" class="h-3.5 w-3.5" />
-							</span>
-							<span class="min-w-0 flex-1">
-								<span class="block text-xs font-medium leading-4 text-ink-gray-9">{{ m.label }}</span>
-								<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ m.hint }}</span>
-							</span>
-							<code class="text-2xs text-ink-gray-4">/{{ m.name }}</code>
+						<button data-palette-item class="flow-palette-row" @click="pick(m)">
+							<!-- skills go without: their section names them -->
+							<FeatherIcon v-if="!m.skill" :name="m.icon" class="h-4 w-4 flex-none" />
+							<span class="max-w-[40%] flex-none truncate">{{ m.label }}</span>
+							<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ m.hint }}</span>
+							<!-- a command that opens another list says so -->
+							<FeatherIcon v-if="m.stacked" name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
 						</button>
 					</template>
 					<div v-if="!menuItems.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
@@ -548,17 +541,34 @@ function pickMention(path) {
 }
 
 // the palette is one stacked surface: commands is the root page, models,
-// thinking and providers are sub-pages whose back arrow returns to it
+// thinking and providers (and a host's own) are sub-pages whose back arrow returns to it.
+// A sub-page opened from a "/command" that is all the box holds searches with the composer:
+// the text after the "/" is its query, Backspace on the bare "/" goes back, and the "/…" goes
+// when the page closes. Opened from the head of a draft, it leaves the draft be.
 const paletteView = ref(null) // null | "commands" | "models" | "thinking" | "providers"
+const subSearch = ref(false)
+const subPage = computed(() => !!paletteView.value && paletteView.value !== "commands")
+const subQuery = computed(() => (subSearch.value && text.value.startsWith("/") ? text.value.slice(1) : ""))
+const stack = ref(null)
 
 function closePalettes() {
+	const searched = subPage.value && subSearch.value
 	paletteView.value = null
-	if (slash.value) slashDismissed.value = true
+	subSearch.value = false
+	if (searched) prefill("")
+	else if (slash.value) slashDismissed.value = true
 	nextTick(() => box.value?.focus())
 }
 
 function openCommands() {
-	paletteView.value = "commands"
+	// back to the "/" a sub-page searched from, whose list is the commands again, though
+	// Escape had put that "/"'s list away before a toolbar picker took it over
+	if (subSearch.value) {
+		subSearch.value = false
+		paletteView.value = null
+		slashDismissed.value = false
+		prefill("/")
+	} else paletteView.value = "commands"
 	if (skillsEnabled.value) void flow.loadSkills?.()
 	nextTick(() => box.value?.focus())
 }
@@ -566,6 +576,11 @@ function openCommands() {
 // typing a normal message dismisses a commands page left open by back-navigation
 watch(text, (value) => {
 	if (paletteView.value === "commands" && value && !slash.value) paletteView.value = null
+	// a sub-page's search cut away with its "/" (select all, cut): the page goes too
+	if (subSearch.value && !value.startsWith("/")) {
+		subSearch.value = false
+		paletteView.value = null
+	}
 	// Load the invocable skills; without a session this previews without creating one.
 	if (skillsEnabled.value && (slash.value || value.includes("/skill:"))) void flow.loadSkills?.()
 })
@@ -606,8 +621,14 @@ watch(
 
 const modeMenu = ref(false)
 
+// a toolbar picker: with nothing typed the composer is its search, as from a "/"
 function openPalette(view) {
 	paletteView.value = view
+	if (!text.value || text.value === "/") {
+		prefill("/")
+		subSearch.value = true
+	}
+	nextTick(() => box.value?.focus())
 }
 
 async function chooseFolder() {
@@ -619,16 +640,16 @@ async function chooseFolder() {
 }
 
 const COMMANDS = [
-	{ name: "model", label: "Model", icon: "cpu", hint: "choose the model", stacked: true, run: () => (paletteView.value = "models") },
-	{ name: "thinking", label: "Thinking", icon: "zap", hint: "set the reasoning effort", stacked: true, run: () => (paletteView.value = "thinking") },
-	{ name: "providers", label: "Providers", icon: "key", hint: "connect model providers", stacked: true, run: () => (paletteView.value = "providers") },
-	{ name: "transcript", label: "Transcript", icon: "list", hint: "every step and what it cost in tokens", run: () => flow.setTranscriptOpen(true) },
-	{ name: "new", label: "New chat", icon: "plus", hint: "start a fresh conversation", run: () => flow.startNewChat() },
-	{ name: "rewind", label: "Rewind", icon: "rotate-ccw", hint: "branch from before your last message", run: rewind },
-	{ name: "compact", label: "Compact", icon: "minimize-2", hint: "summarize and shrink context", run: () => flow.compact() },
-	{ name: "reload", label: "Reload extensions", icon: "refresh-cw", hint: "re-import server extensions", run: () => flow.reloadExtensions() },
-	{ name: "abort", label: "Abort", icon: "square", hint: "interrupt the running turn", run: () => flow.abort() },
-	{ name: "settings", label: "Settings", icon: "settings", hint: "custom instructions, defaults and theme", run: () => flow.setSettingsOpen(true) },
+	{ name: "model", label: "Model", icon: "cpu", hint: "Choose the model", stacked: true, run: () => (paletteView.value = "models") },
+	{ name: "thinking", label: "Thinking", icon: "zap", hint: "Set the reasoning effort", stacked: true, run: () => (paletteView.value = "thinking") },
+	{ name: "providers", label: "Providers", icon: "key", hint: "Connect model providers", stacked: true, run: () => (paletteView.value = "providers") },
+	{ name: "transcript", label: "Transcript", icon: "list", hint: "Every step and what it cost in tokens", run: () => flow.setTranscriptOpen(true) },
+	{ name: "new", label: "New chat", icon: "plus", hint: "Start a fresh conversation", run: () => flow.startNewChat() },
+	{ name: "rewind", label: "Rewind", icon: "rotate-ccw", hint: "Branch from before your last message", run: rewind },
+	{ name: "compact", label: "Compact", icon: "minimize-2", hint: "Summarize and shrink context", run: () => flow.compact() },
+	{ name: "reload", label: "Reload extensions", icon: "refresh-cw", hint: "Re-import server extensions", run: () => flow.reloadExtensions() },
+	{ name: "abort", label: "Abort", icon: "square", hint: "Interrupt the running turn", run: () => flow.abort() },
+	{ name: "settings", label: "Settings", icon: "settings", hint: "Custom instructions, defaults and theme", run: () => flow.setSettingsOpen(true) },
 	// typed only, "/cwd <path>": the way in that the folder notice names on a host with no folder dialog
 	{ name: "cwd", hidden: true, run: cwdCommand },
 ]
@@ -759,8 +780,9 @@ const matches = computed(() => {
 // mid-message, a "/" no skill matches (a path, a fraction) opens nothing
 const menuOpen = computed(
 	() =>
-		paletteView.value === "commands" ||
-		(!!slash.value && !slashDismissed.value && (!slashMidMessage.value || matches.value.length > 0)),
+		!subPage.value &&
+		(paletteView.value === "commands" ||
+			(!!slash.value && !slashDismissed.value && (!slashMidMessage.value || matches.value.length > 0))),
 )
 const menuItems = computed(() => (menuOpen.value ? matches.value : []))
 
@@ -770,9 +792,18 @@ const composing = (e) => e.isComposing || e.keyCode === 229
 
 function onKey(e) {
 	if (composing(e)) return
+	const searching = subPage.value && subSearch.value
 	if (e.key === "Enter" && !e.shiftKey) {
 		e.preventDefault()
-		submit()
+		// a sub-page's search is never a message, even when no row answers it
+		if (!searching) submit()
+	}
+	// Backspace on a sub-page's bare "/" goes back a page, as its back arrow does
+	if (e.key === "Backspace" && searching && text.value === "/" && box.value?.selectionStart === 1) {
+		e.preventDefault()
+		const back = stack.value?.querySelector('.flow-palette-panel button[title="Back"]')
+		if (back) back.click()
+		else openCommands()
 	}
 	if (e.key === "Escape") {
 		// close whatever is open first; a bare Escape stops the running turn.
@@ -817,9 +848,14 @@ function pick(command) {
 		replaceSlash(`/${command.name} `)
 		return
 	}
-	if (slash.value) replaceSlash("")
-	// stacked commands swap to their sub-page (run assigns it); the rest close
+	// stacked commands swap to their sub-page (run assigns it); the rest close. A "/word" that
+	// is all the box holds leaves a bare "/" for the page to search from; a draft around it stays
+	const [start, end] = slashRange()
+	const alone = !!slash.value && !text.value.slice(0, start).trim() && !text.value.slice(end).trim()
+	subSearch.value = !!command.stacked && alone
 	if (!command.stacked) paletteView.value = null
+	if (subSearch.value) prefill("/")
+	else if (slash.value) replaceSlash("")
 	command.run()
 }
 

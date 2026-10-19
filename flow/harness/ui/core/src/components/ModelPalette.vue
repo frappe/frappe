@@ -1,8 +1,8 @@
 <template>
-	<PalettePanel title="Models" back :busy="query !== debounced" @close="emit('close')" @back="emit('back')">
+	<PalettePanel title="Models" back :query="query" :busy="query !== debounced" @close="emit('close')" @back="emit('back')">
 		<template #actions>
 			<button
-				class="flex h-7 w-7 items-center justify-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-2"
+				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
@@ -14,36 +14,21 @@
 			</button>
 		</template>
 
-		<template #search>
-			<PaletteSearch v-model="query" placeholder="Search models" autofocus />
-		</template>
-
-		<div class="min-h-0 flex-1 overflow-y-auto p-1.5">
+		<div class="min-h-0 flex-1 overflow-y-auto p-1">
 			<button
 				v-for="m in options"
 				:key="m.name"
 				data-palette-item
 				:aria-current="m.name === currentModel ? 'true' : undefined"
-				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flow-palette-row"
 				@click="choose(m.name)"
 			>
-				<span
-					class="flex h-7 w-7 flex-none items-center justify-center"
-					:class="m.custom ? 'rounded-5 border border-dashed border-outline-gray-3' : ''"
-				>
-					<ProviderIcon :provider-id="m.provider" :size="22" />
+				<span class="min-w-0 truncate">
+					{{ m.custom ? `Use "${m.name}"` : shortName(m.name) }}
 				</span>
-				<span class="min-w-0 flex-1">
-					<span class="block truncate text-xs font-medium leading-4 text-ink-gray-9">
-						{{ m.custom ? `Use "${m.name}"` : shortName(m.name) }}
-					</span>
-					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ m.provider }}</span>
-				</span>
-				<FeatherIcon
-					v-if="m.name === currentModel"
-					name="check"
-					class="h-4 w-4 flex-none text-ink-gray-7"
-				/>
+				<!-- the current model is ticked by its name, so the provider keeps the right edge -->
+				<FeatherIcon v-if="m.name === currentModel" name="check" class="h-4 w-4 flex-none" />
+				<span class="flow-palette-hint ml-auto flex-none">{{ m.provider }}</span>
 			</button>
 			<LoadingState
 				v-if="!options.length && flow.state.modelsLoading"
@@ -67,22 +52,22 @@
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue"
+import { computed, inject, toRef } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
-import PaletteSearch from "./PaletteSearch.vue"
-import ProviderIcon from "./ProviderIcon.vue"
 
-// hosts that manage providers elsewhere hide the setup link
-defineProps({ providers: { type: Boolean, default: true } })
+const props = defineProps({
+	// hosts that manage providers elsewhere hide the setup link
+	providers: { type: Boolean, default: true },
+	query: { type: String, default: "" }, // the composer's text after its "/"
+})
 const emit = defineEmits(["close", "back", "providers"])
 const flow = inject("flow")
 
-const query = ref("")
-const debounced = useDebouncedValue(query, 150)
+const debounced = useDebouncedValue(toRef(props, "query"), 150)
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 

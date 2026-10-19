@@ -1,32 +1,27 @@
 <template>
-	<PalettePanel :title="title" :autofocus="false" :busy="loading || query !== debouncedQuery" @close="emit('close')">
-		<div class="overflow-y-auto p-1.5">
+	<PalettePanel :title="title" :query="query" :busy="loading || query !== debouncedQuery" @close="emit('close')">
+		<div class="overflow-y-auto p-1">
+			<div class="-mt-1 flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5">
+				<span class="truncate">{{ title }}</span>
+			</div>
 			<button
 				v-if="!searchActive && dir"
 				data-palette-item
-				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flow-palette-row"
 				@click="goUp"
 			>
-				<span
-					class="flex h-7 w-7 flex-none items-center justify-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
-				>
-					<FeatherIcon name="corner-left-up" class="h-3.5 w-3.5" />
-				</span>
-				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-5">..</span>
+				<FeatherIcon name="corner-left-up" class="h-4 w-4 flex-none" />
+				<span class="flow-palette-hint min-w-0 flex-1 truncate">..</span>
 			</button>
 			<button
 				v-for="row in rows"
 				:key="row.path"
 				data-palette-item
-				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flow-palette-row"
 				@click="choose(row)"
 			>
-				<span
-					class="flex h-7 w-7 flex-none items-center justify-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
-				>
-					<FeatherIcon :name="row.dir ? 'folder' : 'file-text'" class="h-3.5 w-3.5" />
-				</span>
-				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-9">{{ row.label }}</span>
+				<FeatherIcon :name="row.dir ? 'folder' : 'file-text'" class="h-4 w-4 flex-none" />
+				<span class="min-w-0 flex-1 truncate">{{ row.label }}</span>
 			</button>
 			<LoadingState v-if="rows === null" class="justify-center px-3 py-8 text-xs text-ink-gray-5" />
 			<div v-else-if="!rows.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">

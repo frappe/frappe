@@ -37,8 +37,13 @@
 					<span aria-hidden="true" class="flex-none text-xs text-ink-gray-3">/</span>
 					<ModelButton @open="openPalette" />
 				</template>
-				<template #palette="{ view, close, back }">
-					<AgentPalette v-if="view === 'agents'" @close="close" @back="back" />
+				<template #palette="{ view, query, close, back }">
+					<AgentPalette
+						v-if="view === 'agents'"
+						:query="query"
+						@close="close"
+						@back="back"
+					/>
 				</template>
 			</Composer>
 			<p
@@ -93,7 +98,7 @@ import { presentTool } from "./toolMeta.js";
 // the composer commands Flow serves, its own agent picker first; the rest need the
 // daemon's file system or providers
 const COMMANDS = [
-	{ name: "agents", label: "Agent", icon: "bot", hint: "choose the agent", view: "agents" },
+	{ name: "agents", label: "Agent", icon: "bot", hint: "Choose the agent", view: "agents" },
 	"model",
 	"thinking",
 	"transcript",
