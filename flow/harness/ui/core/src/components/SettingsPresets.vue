@@ -143,7 +143,7 @@ const dirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== op
 
 const listRows = computed(() => {
 	// inside a chat, mark the preset that chat was created with, not the pick for new chats
-	const wanted = inSession.value ? flow.state.sessionPresets[flow.state.sessionId] : flow.state.prefs.activePreset
+	const wanted = inSession.value ? flow.state.session?.config?.preset : flow.state.prefs.activePreset
 	const active = flow.state.presets.some((p) => p.id === wanted) ? wanted : null
 	return [
 		{ id: null, name: "Default", summary: defaultSummary(), active: !active },

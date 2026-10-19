@@ -78,7 +78,6 @@ export function createFlowStore(client, options = {}) {
 	const keys = {
 		prefs: `${options.storageKey}.prefs`,
 		titles: `${options.storageKey}.titles`,
-		sessionPresets: `${options.storageKey}.sessionPresets`,
 		workspace: `${options.storageKey}.workspace`,
 		presets: `${options.storageKey}.presets`,
 		queue: `${options.storageKey}.queue`,
@@ -143,7 +142,6 @@ export function createFlowStore(client, options = {}) {
 			(p) => p && typeof p.id === "string" && Array.isArray(p.tools),
 		),
 		titles: readJSON(keys.titles, {}),
-		sessionPresets: readJSON(keys.sessionPresets, {}), // session id -> the preset it was created with
 	})
 
 	onSidebarLayoutChange(() => (state.sidebarOpen = sidebarFromPrefs()))
@@ -561,6 +559,7 @@ export function createFlowStore(client, options = {}) {
 		}
 		if (picked?.tools) config.tools = picked.tools
 		if (picked?.extensionTools) config.extension_tools = picked.extensionTools
+		if (preset) config.preset = preset.id // the chat keeps it, for the settings tab
 		const prompt = preset?.prompt?.trim() ?? ""
 		if (prompt && preset.promptMode === "replace") config.system_preamble = prompt
 		const suffix = [preset?.promptMode === "append" ? prompt : "", state.prefs.customInstructions.trim()]
@@ -573,10 +572,6 @@ export function createFlowStore(client, options = {}) {
 		if (useModel) config.model = useModel
 		const data = await guard(() => client.createSession(config), { rethrow: false })
 		if (!data) return null
-		if (preset) {
-			state.sessionPresets[data.session_id] = preset.id
-			localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
-		}
 		const effort = state.prefs.lastEffort
 		if (effort) {
 			await guard(() =>
@@ -1426,10 +1421,6 @@ export function createFlowStore(client, options = {}) {
 		state.presets = state.presets.filter((p) => p.id !== id)
 		savePresets()
 		if (state.prefs.activePreset === id) setActivePreset(null)
-		for (const [sid, presetId] of Object.entries(state.sessionPresets)) {
-			if (presetId === id) delete state.sessionPresets[sid]
-		}
-		localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
 	}
 
 	function setActivePreset(id) {
@@ -1474,10 +1465,6 @@ export function createFlowStore(client, options = {}) {
 		if (workspaceBySession[sid]) {
 			delete workspaceBySession[sid]
 			localStorage.setItem(keys.workspace, JSON.stringify(workspaceBySession))
-		}
-		if (state.sessionPresets[sid]) {
-			delete state.sessionPresets[sid]
-			localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
 		}
 		if (state.sessionId === sid) startNewChat()
 		heldBySession.delete(sid)

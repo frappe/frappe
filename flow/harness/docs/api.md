@@ -41,7 +41,8 @@ One daemon can serve many sites (a Frappe bench), each one a folder. `FLOW_TENAN
 - `cwd`, `tools`, `extension_tools` (omit it to get every loaded extension tool), `client_tools`, and `auto_approve` (default: `false`);
 - `subagents`, the sub-agents the `subagent` tool may run beside `general`, and `max_concurrent_subagents`, how many may run at once (see [tools.md](tools.md#sub-agents)); an agent's `api_key`, `api_base` and `model_params` are refused wherever the session's own are;
 - `system_prompt` for a complete prompt override, or `system_preamble`, `system_suffix`, and `system_append` for composition;
-- `skills_enabled`, `skill_paths`, and compaction settings.
+- `skills_enabled`, `skill_paths`, and compaction settings;
+- `preset`, the id of the client's own preset the session was made from, stored and returned but never read.
 
 The server resolves credentials and prompt context itself; do not send API keys, provider URLs, or tokens in session or run requests. The one exception is a policy opt-in for clients that manage credentials themselves (the deployed profile turns it on, since e.g. Frappe resolves credentials per site): `api_key` and an optional `api_base` may then be sent on session create and on `POST /sessions/{sid}/model`, and replace the daemon's credential resolution for that session. On set-model the key, the endpoint and `model_params` are replaced as a unit — sending any of them replaces all three, sending none keeps the stored ones. The key persists with the session (owner-only files) and is redacted to `***` in every API response. The same switch gates `model_params` on session create and set-model, extra provider params sent with every model call (e.g. `{"provider": {"zdr": true}}` for OpenRouter), since they can carry a key or endpoint too. When the policy switch is off (the default), a request carrying these fields is a 400.
 

@@ -711,7 +711,7 @@ test("the active preset and custom instructions shape new sessions", async () =>
 	assert.equal(configs[1].auto_approve, false)
 	assert.equal("model" in configs[1], false)
 	assert.equal("effort" in configs[1], false)
-	assert.equal(flow.state.sessionPresets.s2, id) // remembered per chat, for the settings tab
+	assert.equal(configs[1].preset, id) // the chat keeps it, for the settings tab
 
 	flow.savePreset({ ...flow.activePreset(), promptMode: "replace" })
 	await flow.newSession()
@@ -720,12 +720,11 @@ test("the active preset and custom instructions shape new sessions", async () =>
 
 	flow.deletePreset(id)
 	assert.equal(flow.state.prefs.activePreset, null)
-	assert.equal("s2" in flow.state.sessionPresets, false) // the chat's record goes with the preset
 	await flow.newSession()
 	assert.equal("tools" in configs[3], false)
 	assert.equal("extension_tools" in configs[3], false)
 	assert.equal(configs[3].system_suffix, "Be brief.")
-	assert.equal("s4" in flow.state.sessionPresets, false)
+	assert.equal("preset" in configs[3], false)
 
 	// a preset saves where randomUUID is missing, as on plain http to a LAN address
 	const randomUUID = Object.getOwnPropertyDescriptor(crypto, "randomUUID")
@@ -774,7 +773,7 @@ test("the Default preset adds bundled and extension tools on top of the core too
 	await flow.newSession()
 	assert.deepEqual(configs[1].tools, ["bash", "read", "grep"])
 	assert.deepEqual(configs[1].extension_tools, [])
-	assert.equal("s2" in flow.state.sessionPresets, false) // not a saved preset
+	assert.equal("preset" in configs[1], false) // not a saved preset
 
 	// a core tool the daemon adds later is on without a re-save
 	flow.state.tools.push({ name: "agent", extension: null, bundled: false })

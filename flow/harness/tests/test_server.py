@@ -937,11 +937,11 @@ def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypat
 	}
 
 
-def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
+def test_list_sessions_includes_cold_on_disk_sessions_which_keep_their_preset(tmp_path):
 	c = _client(tmp_path)
 	used = c.post(
 		"/sessions",
-		json={"model": "mock", "cwd": str(tmp_path / "a")},
+		json={"model": "mock", "cwd": str(tmp_path / "a"), "preset": "review"},
 	).json()["session_id"]
 	fresh = c.post(
 		"/sessions",
@@ -963,3 +963,4 @@ def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
 		}
 		# `fresh` has no durable entries — nothing to resume, so the listing omits it
 		assert fresh not in rows
+		assert client.get(f"/sessions/{used}").json()["config"]["preset"] == "review"
