@@ -16,6 +16,8 @@ The flag lives in `frappe.ui.chart` and nowhere else. A legacy config draws with
 
 Each is deprecated. It warns once per page, the first time an app calls it, and names `frappe.ui.chart`. Removal waits for a later major release. Desk's own paths, `frappe.ui.chart` under classic charts included, hold their own reference to frappe-charts and never warn. The old calls are not shimmed onto the island: an app that reaches into a frappe-charts instance would break with no warning, where the warning lets it move while its chart still draws. See the rejected compat shim below.
 
+An empty Line Dashboard Chart draws its sample line under classic charts only. frappe-ui has no line chart without axes, and its shadow root keeps out the desk CSS that strips them.
+
 ## Rejected: the frappe-charts shape stays the contract
 
 Every render point already builds it, so converting at the island would be the whole change.

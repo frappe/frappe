@@ -265,7 +265,6 @@ function calendar_heatmap_chart(legacy, { today }) {
 	};
 }
 
-/** `currency` names the currency a `Currency` value is in. The config is the doc its options read. */
 /**
  * `config` with what desk fills in when a config leaves it out: frappe-charts' height, and a
  * calendar's weeks starting on the site's first day of the week.
@@ -285,6 +284,7 @@ export function with_desk_defaults(config, { first_day_of_the_week } = {}) {
 	});
 }
 
+/** `currency` names the currency a `Currency` value is in. The config is the doc its options read. */
 export function format_keys({ fieldtype, options, currency }) {
 	if (!currency) return { fieldtype, options };
 	const currency_fieldtype = fieldtype || "Currency";
