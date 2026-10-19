@@ -4,7 +4,7 @@ from contextlib import contextmanager
 from itertools import batched
 
 import psycopg
-from psycopg import ClientCursor, IsolationLevel, errors, sql
+from psycopg import ClientCursor, errors, sql
 from psycopg.adapt import AdaptersMap, Dumper, Loader
 from psycopg.pq import ExecStatus, TransactionStatus
 from psycopg.types.numeric import FloatLoader
@@ -307,7 +307,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			"user": self.user,
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
-			"options": f"-c search_path={search_path}",
+			"options": f"-c search_path={search_path} -c default_transaction_isolation=repeatable\\ read",
 		}
 		# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer RQ work
 		# horses segfault on fork ("work-horse terminated unexpectedly"). The option exists from
@@ -323,15 +323,17 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if not self.socket and self.port:
 			conn_settings["port"] = self.port
 
-		# frappe opens a connection per request or job, so prepare early to reuse within one
+		# frappe sends its own START TRANSACTION and COMMIT, so psycopg must not add a BEGIN of its
+		# own. Connections last one request or job, so prepare early to reuse within one.
 		conn = psycopg.connect(
 			**conn_settings,
-			autocommit=self.autocommit,
+			autocommit=True,
 			context=ADAPTERS,
 			cursor_factory=PostgresCursor,
 			prepare_threshold=2,
 		)
-		conn.isolation_level = IsolationLevel.REPEATABLE_READ
+		if not self.autocommit:
+			conn.execute("START TRANSACTION")
 
 		return conn
 
