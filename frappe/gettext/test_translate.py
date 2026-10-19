@@ -100,6 +100,25 @@ class TestTranslate(IntegrationTestCase):
 			self.assertEqual(catalog.get("From Dash").string, "Mit Bindestrich")
 			self.assertEqual(catalog.get("From Underscore").string, "Mit Unterstrich")
 
+	def test_migrate_csv_to_po_canonical_locale(self):
+		with tempfile.TemporaryDirectory() as app_path:
+			app_path = Path(app_path)
+			locale_dir = app_path / "locale"
+			locale_dir.mkdir()
+			catalog = Catalog()
+			catalog.add("Loan")
+			with (locale_dir / "main.pot").open("wb") as pot_file:
+				write_po(pot_file, catalog)
+
+			translations_dir = app_path / "translations"
+			translations_dir.mkdir()
+			(translations_dir / "zh_tw.csv").write_text('"Loan","借款"\n')
+
+			with patch("frappe.gettext.translate.frappe.get_app_path", return_value=str(app_path)):
+				migrate("test_app")
+
+			self.assertEqual([po.name for po in locale_dir.glob("*.po")], ["zh_TW.po"])
+
 	def test_migrate_csv_to_po_without_translations(self):
 		with tempfile.TemporaryDirectory() as app_path:
 			with patch("frappe.gettext.translate.frappe.get_app_path", return_value=app_path):
