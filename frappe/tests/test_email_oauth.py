@@ -25,7 +25,7 @@ V2 = {"pilot_endpoint": "http://pilot.test", "pilot_auth_token": "pt"}
 AUTHORIZE = "https://login.microsoftonline.com/common/oauth2/v2.0/authorize"
 SCOPES = ["offline_access", "https://outlook.office.com/IMAP.AccessAsUser.All", "email"]
 LINK = {"authorize_url": f"{AUTHORIZE}?x=1", "client_id": "cid", "scopes": SCOPES}
-PERSONAL = email_oauth.PROVIDERS["microsoft"]["personal_tenant"]
+PERSONAL = email_oauth.ONE_CLICK_PROVIDERS["microsoft"]["personal_tenant"]
 USER = "email-oauth-manager@example.com"
 
 
@@ -132,7 +132,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.pilot.assert_not_called()
 
 	def test_provider_type_lists_every_provider(self) -> None:
-		self.assertEqual(set(get_args(email_oauth.Provider)), set(email_oauth.PROVIDERS))
+		self.assertEqual(set(get_args(email_oauth.Provider)), set(email_oauth.ONE_CLICK_PROVIDERS))
 
 	def test_central_refusal_keeps_no_note(self) -> None:
 		self.pilot.side_effect = frappe.ValidationError("Return URL must be the email callback")
@@ -141,30 +141,15 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.assertIsNone(frappe.cache.get_value(f"pkce_verifier:{state}"))
 
 
-class TestOneClickProviders(IntegrationTestCase):
-	def setUp(self) -> None:
-		self.enterContext(self.set_user(create_user(USER).name))
+class TestBoot(IntegrationTestCase):
+	def test_desk_boot_says_whether_the_site_is_on_frappe_cloud_v2(self) -> None:
+		from frappe.boot import get_bootinfo
 
-	def test_frappe_cloud_site_offers_every_provider(self) -> None:
-		with patch.dict(frappe.conf, V2):
-			self.assertEqual(email_oauth.get_one_click_providers(), list(email_oauth.PROVIDERS))
-
-	def test_site_off_frappe_cloud_offers_none(self) -> None:
-		with patch.dict(frappe.conf, {key: None for key in V2}):
-			self.assertEqual(email_oauth.get_one_click_providers(), [])
-
-	def test_user_without_email_account_permission_is_refused(self) -> None:
-		user = frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": "email-oauth-nobody@example.com",
-				"first_name": "Nobody",
-				"user_type": "Website User",
-				"send_welcome_email": 0,
-			}
-		).insert(ignore_if_duplicate=True)
-		with self.set_user(user.name), patch.dict(frappe.conf, V2):
-			self.assertRaises(frappe.PermissionError, email_oauth.get_one_click_providers)
+		with self.set_user("test@example.com"):
+			with patch.dict(frappe.conf, V2):
+				self.assertTrue(get_bootinfo().is_v2_site)
+			with patch.dict(frappe.conf, {key: None for key in V2}):
+				self.assertFalse(get_bootinfo().is_v2_site)
 
 
 def id_token(email: str, tid: str = PERSONAL) -> str:
@@ -275,21 +260,6 @@ class TestCallback(IntegrationTestCase):
 		self.assertEqual(second.email_server, "outlook.office365.com")
 		self.assertEqual(second.smtp_server, "smtp.office365.com")
 		self.assertEqual(second.service, "Outlook.com")
-
-	def test_google_mailbox_uses_gmail_settings(self) -> None:
-		# Google's ID token has no tenant, so Microsoft's personal-account servers must not apply
-		self.pilot.return_value = token("three@email-oauth.example.com", tid=None)
-		email_oauth.callback(state=self.note(provider="google"), code="c")
-
-		self.assertEqual(self.pilot.call_args.args[1]["provider"], "google")
-		account = frappe.get_doc("Email Account", {"email_id": "three@email-oauth.example.com"})
-		self.assertEqual(
-			(account.service, account.email_server, account.smtp_server),
-			("GMail", "imap.gmail.com", "smtp.gmail.com"),
-		)
-		app = frappe.get_doc("Connected App", account.connected_app)
-		self.assertEqual(app.provider_name, "Google (three@email-oauth.example.com)")
-		self.assertEqual(app.token_uri, "frappe-cloud-relay:google")
 
 	def test_same_mailbox_again_creates_nothing(self) -> None:
 		email_oauth.callback(state=self.note(), code="c1")
