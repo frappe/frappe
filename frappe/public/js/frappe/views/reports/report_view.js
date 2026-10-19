@@ -676,7 +676,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	chart_axes_valid(chart_args) {
 		const { x_axis, y_axes } = chart_args;
-		return this.columns_map[x_axis] && y_axes.every((y_axis) => this.columns_map[y_axis]);
+		return (
+			this.columns_map[x_axis] &&
+			y_axes.length &&
+			y_axes.every((y_axis) => this.columns_map[y_axis])
+		);
 	}
 
 	reset_chart_state() {
