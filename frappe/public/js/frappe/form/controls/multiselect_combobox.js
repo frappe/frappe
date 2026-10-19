@@ -21,8 +21,15 @@ function add_typed_text(control, reason, free_text) {
 
 function look_up_typed_text(control, query) {
 	const cb = control.combobox;
+	const lookup = (control.typed_lookup = {});
+	const values_at_close = JSON.stringify(cb.get_value());
+	const doc_at_close = control.frm?.doc;
+	// false only when outdated: a waiting Ctrl+S is then not sent
 	return Promise.resolve(control.fetch_options(query))
 		.then((result) => {
+			// a newer lookup, a change to the field (Clear all, a pick) or another document wins
+			if (control.typed_lookup !== lookup || control.frm?.doc !== doc_at_close) return false;
+			if (JSON.stringify(cb.get_value()) !== values_at_close) return false;
 			const rows = Array.isArray(result) ? result : result.rows;
 			const found = frappe.ui.Combobox.match_in(rows, query);
 			if (found && cb.trigger_el.isConnected) cb.add_value(found);
@@ -65,7 +72,8 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 			on_close: (reason) => {
 				this.autocomplete_open = false;
 				const lookup = add_typed_text(this, reason, false);
-				if (lookup) return lookup.then(() => this.sync_chain);
+				if (lookup)
+					return lookup.then((done) => (done === false ? false : this.sync_chain));
 				return this.sync_pending ? this.sync_chain : undefined;
 			},
 			on_change: () => {
@@ -271,7 +279,7 @@ frappe.ui.form.ControlMultiSelectPillsCombobox = class ControlMultiSelectPillsCo
 				);
 			});
 		}
-		// a get_data override (the email composer) loads rows and calls set_data
+		// a get_data set on the control loads rows and calls set_data, as on the classic control
 		if (Object.prototype.hasOwnProperty.call(this, "get_data")) {
 			if (query !== this.asked_query) {
 				this.asked_query = query;
