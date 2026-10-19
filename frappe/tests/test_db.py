@@ -2622,47 +2622,28 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		):
 			self.cleanup()
 
-		frappe.db.sql(
-			f"""
-			CREATE SCHEMA alt_schema;
-
-			CREATE TABLE "public"."tab{self.test_table_name}" (
-					col_a VARCHAR,
-					col_b VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tab{self.test_table_name}" (
-					col_c VARCHAR PRIMARY KEY,
-					col_d VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tab{self.test_table_name}_2" (
-					col_c VARCHAR,
-					col_d VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tabUser" (
-					col_c VARCHAR,
-					col_d VARCHAR
-			);
-
-			insert into "public"."tab{self.test_table_name}" (col_a, col_b) values ('a', 'b');
-			"""
-		)
+		for query in (
+			"CREATE SCHEMA alt_schema",
+			f'CREATE TABLE "public"."tab{self.test_table_name}" (col_a VARCHAR, col_b VARCHAR)',
+			f'CREATE TABLE "alt_schema"."tab{self.test_table_name}" (col_c VARCHAR PRIMARY KEY, col_d VARCHAR)',
+			f'CREATE TABLE "alt_schema"."tab{self.test_table_name}_2" (col_c VARCHAR, col_d VARCHAR)',
+			'CREATE TABLE "alt_schema"."tabUser" (col_c VARCHAR, col_d VARCHAR)',
+			f"""insert into "public"."tab{self.test_table_name}" (col_a, col_b) values ('a', 'b')""",
+		):
+			frappe.db.sql(query)
 
 	def tearDown(self) -> None:
 		self.cleanup()
 
 	def cleanup(self) -> None:
-		frappe.db.sql(
-			f"""
-				DROP TABLE "public"."tab{self.test_table_name}";
-				DROP TABLE "alt_schema"."tab{self.test_table_name}";
-				DROP TABLE "alt_schema"."tab{self.test_table_name}_2";
-				DROP TABLE "alt_schema"."tabUser";
-				DROP SCHEMA "alt_schema" CASCADE;
-				"""
-		)
+		for query in (
+			f'DROP TABLE "public"."tab{self.test_table_name}"',
+			f'DROP TABLE "alt_schema"."tab{self.test_table_name}"',
+			f'DROP TABLE "alt_schema"."tab{self.test_table_name}_2"',
+			'DROP TABLE "alt_schema"."tabUser"',
+			'DROP SCHEMA "alt_schema" CASCADE',
+		):
+			frappe.db.sql(query)
 
 	def test_get_tables(self) -> None:
 		tables = frappe.db.get_tables(cached=False)
