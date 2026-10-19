@@ -289,6 +289,8 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	draw_number(config) {
+		// the card's data can arrive after the dashboard removed it
+		if (this.destroyed) return;
 		const card = { type: "number", title: "", card: false, ...config };
 		if (this.number_chart) {
 			this.number_chart.update(card);
@@ -303,6 +305,7 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	destroy() {
+		this.destroyed = true;
 		this.number_chart?.destroy();
 		delete this.number_chart;
 	}

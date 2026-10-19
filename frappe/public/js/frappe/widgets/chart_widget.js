@@ -57,7 +57,7 @@ export default class ChartWidget extends Widget {
 
 	setup_container() {
 		// The chart lives on a node inside the body, so it goes before the body does.
-		this.destroy();
+		this.release_chart();
 		this.body.empty();
 
 		// `type` says how desk draws a chart. An app draws an island, so a
@@ -110,6 +110,8 @@ export default class ChartWidget extends Widget {
 
 	make_chart() {
 		this.get_settings().then(() => {
+			// the chart's settings can arrive after the dashboard removed it
+			if (this.destroyed) return;
 			if (this.island) return this.make_island();
 
 			if (!this.settings) {
@@ -240,6 +242,11 @@ export default class ChartWidget extends Widget {
 	}
 
 	destroy() {
+		this.destroyed = true;
+		this.release_chart();
+	}
+
+	release_chart() {
 		this.unmount_island();
 		this.dashboard_chart?.destroy();
 		delete this.dashboard_chart;
@@ -726,7 +733,9 @@ export default class ChartWidget extends Widget {
 	}
 
 	async render() {
+		if (this.destroyed) return;
 		let setup_dashboard_chart = () => {
+			if (this.destroyed) return;
 			const chart_args = frappe.ui.chart.with_classic_palette(
 				frappe.utils.get_chart_args(this.get_chart_args())
 			);
