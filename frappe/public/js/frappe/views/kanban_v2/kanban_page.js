@@ -6,10 +6,10 @@ frappe.views.kanban_system_fields = ["owner", "creation", "modified", "modified_
 
 // badge style per Select value (lowercase keys); unknown values get a guessed color
 const SELECT_STYLES = {
-	low: { theme: "gray", icon: "signal-low" },
-	medium: { theme: "amber", icon: "signal-medium" },
-	high: { theme: "red", icon: "signal-high" },
-	urgent: { theme: "red", icon: "signal" },
+	low: { theme: "gray", icon: "priority-low" },
+	medium: { theme: "amber", icon: "priority-medium" },
+	high: { theme: "red", icon: "priority-high" },
+	urgent: { theme: "red", icon: "priority-urgent" },
 
 	draft: { theme: "gray", icon: "circle-dashed" },
 	submitted: { theme: "blue", icon: "send" },
