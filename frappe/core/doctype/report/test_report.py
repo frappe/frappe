@@ -805,6 +805,19 @@ result = [
 		total_row = add_total_row(result, columns)[-1]
 		self.assertEqual(total_row, ["Total", "", 34])
 
+	def test_add_total_row_rounds_to_the_column_precision(self):
+		columns = [
+			{"fieldname": "item", "label": "Item", "fieldtype": "Data"},
+			{"fieldname": "stock_qty", "label": "Stock Qty", "fieldtype": "Float", "precision": 2},
+		]
+		result = [
+			{"item": "Copper Wire", "stock_qty": 0.1},
+			{"item": "Steel Rod", "stock_qty": 0.2},
+		]
+
+		total_row = add_total_row(result, columns)[-1]
+		self.assertEqual(total_row, ["Total", 0.3])
+
 	def test_read_path_blocked_by_has_role(self):
 		"""has_permission hook raises PermissionError for unpermitted user on frappe.get_doc."""
 		role = "Test Read Path Role"
