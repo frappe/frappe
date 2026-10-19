@@ -54,9 +54,9 @@ class TestToolExecution(McpTestCase):
 			("list_documents", {"doctype": "ToDo", "name": "missing"}),
 			("get_document", {"doctype": "ToDo", "name": "missing", "filters": {}}),
 			("count_documents", {"doctype": "ToDo", "limit": 20}),
-			("create_document", {"doctype": "ToDo", "data": {}, "name": "missing"}),
-			("update_document", {"doctype": "ToDo", "data": {}}),
-			("delete_document", {"doctype": "ToDo", "name": "missing", "data": {}}),
+			("create_documents", {"doctype": "ToDo", "data": {}, "name": "missing"}),
+			("update_documents", {"doctype": "ToDo", "data": {}}),
+			("delete_documents", {"doctype": "ToDo", "name": "missing", "data": {}}),
 			("call_method", {"method": "add_comment", "doctype": "ToDo", "name": "missing"}),
 			("call_document_method", {"method": "add_comment", "doctype": "ToDo"}),
 		)

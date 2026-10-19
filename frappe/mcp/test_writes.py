@@ -8,6 +8,7 @@ from frappe import _
 from frappe.api import v2
 from frappe.desk.doctype.todo.todo import ToDo
 from frappe.mcp.test_utils import McpTestCase
+from frappe.mcp.tools.documents import BATCH_LIMIT
 
 
 class TestWriteDocument(McpTestCase):
@@ -30,7 +31,7 @@ class TestWriteDocument(McpTestCase):
 		finally:
 			super().tearDown()
 
-	def write(self, *, tool="create_document", **arguments):
+	def write(self, *, tool="create_documents", **arguments):
 		return self.request(
 			{
 				"jsonrpc": "2.0",
@@ -45,82 +46,101 @@ class TestWriteDocument(McpTestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertFalse(response.json["result"]["isError"], response.json["result"])
 		result = response.json["result"]["structuredContent"]
-		if arguments.get("tool", "create_document") == "create_document":
-			self.names.append(result["name"])
+		if arguments.get("tool", "create_documents") == "create_documents":
+			self.names.extend(result["names"])
 		return result
 
 	def test_create(self):
-		result = self.result(
-			tool="create_document", doctype="ToDo", data={"description": "Created through MCP"}
-		)
-		self.assertEqual(result["owner"], self.user)
-		self.assertEqual(frappe.db.get_value("ToDo", result["name"], "description"), "Created through MCP")
+		for size in (1, BATCH_LIMIT):
+			with self.subTest(size=size):
+				data = [{"description": f"Created through MCP {index}"} for index in range(size)]
+				names = self.result(doctype="ToDo", documents=data)["names"]
+				self.assertEqual(len(set(names)), size)
+				for name, values in zip(names, data, strict=True):
+					doc = frappe.get_doc("ToDo", name)
+					self.assertEqual(doc.owner, self.user)
+					self.assertEqual(doc.description, values["description"])
 
 	def test_update(self):
-		result = self.result(
-			tool="update_document", doctype="ToDo", name=self.own, data={"description": "Updated through MCP"}
-		)
-		self.assertEqual(result["name"], self.own)
-		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "Updated through MCP")
+		other = self.result(doctype="ToDo", documents=[{"description": "Second document"}])["names"][0]
+		for names in ([self.own], [self.own, other]):
+			with self.subTest(names=names):
+				documents = [{"name": name, "data": {"description": name}} for name in names]
+				result = self.result(tool="update_documents", doctype="ToDo", documents=documents)
+				self.assertEqual(result, {"names": names})
+				for name in names:
+					self.assertEqual(frappe.db.get_value("ToDo", name, "description"), name)
 
 	def test_delete(self):
-		result = self.result(tool="delete_document", doctype="ToDo", name=self.own)
-		self.assertEqual(result, {"result": None})
-		self.assertFalse(frappe.db.exists("ToDo", self.own))
+		created = self.result(doctype="ToDo", documents=[{"description": "Delete fixture"}] * 2)["names"]
+		for names in ([self.own], created):
+			with self.subTest(names=names):
+				result = self.result(tool="delete_documents", doctype="ToDo", names=names)
+				self.assertEqual(result, {"names": names})
+				for name in names:
+					self.assertFalse(frappe.db.exists("ToDo", name))
 
 	def test_unauthorized_update_and_delete(self):
 		for action in ("update", "delete"):
-			arguments = {"tool": f"{action}_document", "doctype": "ToDo", "name": self.private}
+			arguments = {"tool": f"{action}_documents", "doctype": "ToDo"}
 			if action == "update":
-				arguments["data"] = {"description": "Forbidden update"}
+				arguments["documents"] = [
+					{"name": self.own, "data": {"status": "Closed"}},
+					{"name": self.private, "data": {"allocated_to": self.user}},
+				]
+			else:
+				arguments["names"] = [self.own, self.private]
 			response = self.write(**arguments)
 			self.assertTrue(response.json["result"]["isError"])
 			self.assertEqual(frappe.db.get_value("ToDo", self.private, "description"), "MCP write fixture")
-
-	def test_update_cannot_grant_itself_document_access(self):
-		response = self.write(
-			tool="update_document", doctype="ToDo", name=self.private, data={"allocated_to": self.user}
-		)
-		self.assertTrue(response.json["result"]["isError"])
-		self.assertIsNone(frappe.db.get_value("ToDo", self.private, "allocated_to"))
+			self.assertIsNone(frappe.db.get_value("ToDo", self.private, "allocated_to"))
+			self.assertEqual(frappe.db.get_value("ToDo", self.own, "status"), "Open")
 
 	def test_create_requires_doctype_permission(self):
 		response = self.write(
-			tool="create_document",
+			tool="create_documents",
 			doctype="User",
-			data={"email": "mcp.forbidden@example.com", "first_name": "Forbidden"},
+			documents=[{"email": "mcp.forbidden@example.com", "first_name": "Forbidden"}],
 		)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertFalse(frappe.db.exists("User", "mcp.forbidden@example.com"))
 
 	def test_client_flags_cannot_bypass_permissions(self):
 		response = self.write(
-			tool="update_document",
+			tool="update_documents",
 			doctype="ToDo",
-			name=self.private,
-			data={"description": "Forbidden update", "flags": {"ignore_permissions": True}},
+			documents=[
+				{
+					"name": self.private,
+					"data": {"description": "Forbidden update", "flags": {"ignore_permissions": True}},
+				}
+			],
 		)
 		self.assertTrue(response.json["result"]["isError"])
 		response = self.write(
-			tool="create_document",
+			tool="create_documents",
 			doctype="User",
-			data={
-				"email": "mcp.forbidden@example.com",
-				"first_name": "Forbidden",
-				"flags": {"ignore_permissions": True},
-			},
+			documents=[
+				{
+					"email": "mcp.forbidden@example.com",
+					"first_name": "Forbidden",
+					"flags": {"ignore_permissions": True},
+				}
+			],
 		)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertFalse(frappe.db.exists("User", "mcp.forbidden@example.com"))
 
 	def test_required_document_fields(self):
-		response = self.write(tool="create_document", doctype="ToDo", data={})
+		response = self.write(tool="create_documents", doctype="ToDo", documents=[{}])
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertIn("description", response.json["result"]["content"][0]["text"])
 
 	def test_frappe_field_validation(self):
 		response = self.write(
-			tool="update_document", doctype="ToDo", name=self.own, data={"status": "Invalid status"}
+			tool="update_documents",
+			doctype="ToDo",
+			documents=[{"name": self.own, "data": {"status": "Invalid status"}}],
 		)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "status"), "Open")
@@ -128,15 +148,31 @@ class TestWriteDocument(McpTestCase):
 	def test_invalid_arguments_do_not_execute(self):
 		cases = (
 			{},
-			{"action": "submit", "doctype": "ToDo"},
-			{"tool": "create_document", "doctype": "ToDo"},
-			{"tool": "update_document", "doctype": "ToDo", "data": {}},
-			{"tool": "delete_document", "doctype": "ToDo"},
-			{"tool": "create_document", "doctype": "ToDo", "data": []},
-			{"tool": "create_document", "doctype": "ToDo", "name": self.own, "data": {}},
-			{"tool": "delete_document", "doctype": "ToDo", "name": self.own, "data": {}},
-			{"tool": "delete_document", "doctype": "ToDo", "name": self.own, "ignore_permissions": True},
+			{"tool": "create_documents", "doctype": "ToDo"},
+			{"tool": "update_documents", "doctype": "ToDo", "documents": [{"data": {}}]},
+			{"tool": "delete_documents", "doctype": "ToDo"},
+			{"tool": "create_documents", "doctype": "ToDo", "documents": {}},
+			{
+				"tool": "create_documents",
+				"doctype": "ToDo",
+				"documents": [{"description": "Invalid batch"}, "bad"],
+			},
+			{
+				"tool": "update_documents",
+				"doctype": "ToDo",
+				"documents": [{"name": self.own, "data": {}, "extra": True}],
+			},
+			{"tool": "delete_documents", "doctype": "ToDo", "names": [self.own, True]},
+			{"tool": "delete_documents", "doctype": "ToDo", "names": [self.own], "ignore_permissions": True},
 		)
+		for tool, key, item in (
+			("create_documents", "documents", {"description": "Invalid batch"}),
+			("update_documents", "documents", {"name": self.own, "data": {}}),
+			("delete_documents", "names", self.own),
+		):
+			cases += tuple(
+				{"tool": tool, "doctype": "ToDo", key: [item] * size} for size in (0, BATCH_LIMIT + 1)
+			)
 		with (
 			patch("frappe.api.v2.create_doc") as create,
 			patch("frappe.api.v2.update_doc") as update,
@@ -157,15 +193,18 @@ class TestWriteDocument(McpTestCase):
 		def on_update(doc):
 			original_on_update(doc)
 			frappe.db.after_commit.add(callback)
-			frappe.db.after_rollback.add(cleanup)
-			frappe.throw(_("Update hook failed"))
+			if doc.description == "Rolled back update":
+				frappe.db.after_rollback.add(cleanup)
+				frappe.throw(_("Update hook failed"))
 
 		with patch.object(ToDo, "on_update", on_update):
 			response = self.write(
-				tool="update_document",
+				tool="update_documents",
 				doctype="ToDo",
-				name=self.own,
-				data={"description": "Rolled back update"},
+				documents=[
+					{"name": self.own, "data": {"description": "Earlier update"}},
+					{"name": self.own, "data": {"description": "Rolled back update"}},
+				],
 			)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP write fixture")
@@ -176,7 +215,10 @@ class TestWriteDocument(McpTestCase):
 		with patch.object(
 			ToDo, "after_delete", side_effect=frappe.ValidationError("Delete hook failed"), create=True
 		):
-			response = self.write(tool="delete_document", doctype="ToDo", name=self.own)
+			response = self.write(tool="delete_documents", doctype="ToDo", names=[self.own])
+		self.assertTrue(response.json["result"]["isError"])
+		self.assertTrue(frappe.db.exists("ToDo", self.own))
+		response = self.write(tool="delete_documents", doctype="ToDo", names=[self.own, self.own])
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertTrue(frappe.db.exists("ToDo", self.own))
 
@@ -185,35 +227,38 @@ class TestWriteDocument(McpTestCase):
 
 		def update(doctype, name):
 			original_update(doctype, name)
-			return {"value": float("nan")}
+			return {"name": float("nan")}
 
 		with patch("frappe.api.v2.update_doc", update):
 			response = self.write(
-				tool="update_document",
+				tool="update_documents",
 				doctype="ToDo",
-				name=self.own,
-				data={"description": "Rolled back update"},
+				documents=[{"name": self.own, "data": {"description": "Rolled back update"}}],
 			)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertEqual(frappe.db.get_value("ToDo", self.own, "description"), "MCP write fixture")
 
 	def test_rest_parity(self):
 		result = self.result(
-			tool="create_document", doctype="ToDo", data={"description": "MCP parity fixture"}
+			tool="create_documents", doctype="ToDo", documents=[{"description": "MCP parity fixture"}]
 		)
-		mcp_name = result["name"]
+		mcp_name = result["names"][0]
 		response = self.request(
 			{"description": "REST parity fixture"}, method="POST", path="/api/v2/document/ToDo"
 		)
 		self.assertEqual(response.status_code, 200)
 		rest_name = response.json["data"]["name"]
 		self.names.append(rest_name)
-		self.assertEqual(response.json["data"]["owner"], result["owner"])
-		result = self.result(tool="update_document", doctype="ToDo", name=mcp_name, data={"status": "Closed"})
+		self.assertEqual(response.json["data"]["owner"], frappe.db.get_value("ToDo", mcp_name, "owner"))
+		self.result(
+			tool="update_documents",
+			doctype="ToDo",
+			documents=[{"name": mcp_name, "data": {"status": "Closed"}}],
+		)
 		response = self.request({"status": "Closed"}, method="PUT", path=f"/api/v2/document/ToDo/{rest_name}")
 		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["data"]["status"], result["status"])
-		self.result(tool="delete_document", doctype="ToDo", name=mcp_name)
+		self.assertEqual(response.json["data"]["status"], frappe.db.get_value("ToDo", mcp_name, "status"))
+		self.result(tool="delete_documents", doctype="ToDo", names=[mcp_name])
 		response = self.request({}, method="DELETE", path=f"/api/v2/document/ToDo/{rest_name}")
 		self.assertEqual(response.status_code, 202)
 		self.assertFalse(frappe.db.exists("ToDo", mcp_name))
@@ -224,27 +269,36 @@ class TestWriteDocument(McpTestCase):
 
 		def after_insert(doc):
 			frappe.db.after_commit.add(callback)
-			frappe.throw(_("Create hook failed"))
+			if doc.description == "MCP failed create fixture":
+				frappe.throw(_("Create hook failed"))
 
 		with patch.object(ToDo, "after_insert", after_insert, create=True):
 			response = self.write(
-				tool="create_document", doctype="ToDo", data={"description": "MCP failed create fixture"}
+				tool="create_documents",
+				doctype="ToDo",
+				documents=[
+					{"description": "MCP earlier create fixture"},
+					{"description": "MCP failed create fixture"},
+				],
 			)
 		self.assertTrue(response.json["result"]["isError"])
 		self.assertFalse(frappe.db.exists("ToDo", {"description": "MCP failed create fixture"}))
+		self.assertFalse(frappe.db.exists("ToDo", {"description": "MCP earlier create fixture"}))
 		callback.assert_not_called()
 
 	def test_embedded_doctype_cannot_change_create_target(self):
 		result = self.result(
-			tool="create_document",
+			tool="create_documents",
 			doctype="ToDo",
-			data={"doctype": "User", "description": "MCP target fixture"},
+			documents=[{"doctype": "User", "description": "MCP target fixture"}],
 		)
-		self.assertEqual(result["doctype"], "ToDo")
+		self.assertTrue(frappe.db.exists("ToDo", result["names"][0]))
 
 	def test_custom_name_on_create(self):
 		name = f"mcp-write-{self.own}"
 		result = self.result(
-			tool="create_document", doctype="ToDo", data={"name": name, "description": "MCP named fixture"}
+			tool="create_documents",
+			doctype="ToDo",
+			documents=[{"name": name, "description": "MCP named fixture"}],
 		)
-		self.assertEqual(result["name"], name)
+		self.assertEqual(result, {"names": [name]})

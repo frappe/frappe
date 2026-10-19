@@ -10,6 +10,8 @@ import frappe
 from frappe.api import v2
 from frappe.mcp.tools import DocumentName, Tool, ToolArguments, form_dict
 
+BATCH_LIMIT = 20
+
 
 class DoctypeArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
@@ -30,12 +32,21 @@ class ListDocumentsArguments(CountDocumentsArguments):
 	limit: int = Field(default=20, ge=1)
 
 
-class CreateDocumentArguments(DoctypeArguments):
+class CreateDocumentsArguments(DoctypeArguments):
+	documents: list[dict[str, Any]] = Field(min_length=1, max_length=BATCH_LIMIT)
+
+
+class DocumentUpdate(ToolArguments):
+	name: DocumentName
 	data: dict[str, Any]
 
 
-class UpdateDocumentArguments(DocumentArguments):
-	data: dict[str, Any]
+class UpdateDocumentsArguments(DoctypeArguments):
+	documents: list[DocumentUpdate] = Field(min_length=1, max_length=BATCH_LIMIT)
+
+
+class DeleteDocumentsArguments(DoctypeArguments):
+	names: list[DocumentName] = Field(min_length=1, max_length=BATCH_LIMIT)
 
 
 def get_document(doctype: str, name: str) -> dict:
@@ -63,18 +74,26 @@ def list_documents(
 	return {"documents": documents, "has_next_page": has_next_page}
 
 
-def create_document(doctype: str, data: dict[str, Any]) -> dict:
-	with form_dict(data):
-		return v2.create_doc(doctype)
+def create_documents(doctype: str, documents: list[dict[str, Any]]) -> dict:
+	names = []
+	for data in documents:
+		with form_dict(data):
+			names.append(v2.create_doc(doctype)["name"])
+	return {"names": names}
 
 
-def update_document(doctype: str, name: str, data: dict[str, Any]) -> dict:
-	with form_dict(data):
-		return v2.update_doc(doctype, name)
+def update_documents(doctype: str, documents: list[dict[str, Any]]) -> dict:
+	names = []
+	for document in documents:
+		with form_dict(document["data"]):
+			names.append(v2.update_doc(doctype, document["name"])["name"])
+	return {"names": names}
 
 
-def delete_document(doctype: str, name: str) -> None:
-	v2.delete_doc(doctype, name)
+def delete_documents(doctype: str, names: list[str]) -> dict:
+	for name in names:
+		v2.delete_doc(doctype, name)
+	return {"names": names}
 
 
 LIST_DOCUMENTS = Tool(
@@ -100,23 +119,23 @@ COUNT_DOCUMENTS = Tool(
 	annotations={"readOnlyHint": True},
 )
 
-CREATE_DOCUMENT = Tool(
-	name="create_document",
-	arguments=CreateDocumentArguments,
-	handler=create_document,
+CREATE_DOCUMENTS = Tool(
+	name="create_documents",
+	arguments=CreateDocumentsArguments,
+	handler=create_documents,
 	annotations={"destructiveHint": False},
 )
 
-UPDATE_DOCUMENT = Tool(
-	name="update_document",
-	arguments=UpdateDocumentArguments,
-	handler=update_document,
+UPDATE_DOCUMENTS = Tool(
+	name="update_documents",
+	arguments=UpdateDocumentsArguments,
+	handler=update_documents,
 	annotations={"destructiveHint": True},
 )
 
-DELETE_DOCUMENT = Tool(
-	name="delete_document",
-	arguments=DocumentArguments,
-	handler=delete_document,
+DELETE_DOCUMENTS = Tool(
+	name="delete_documents",
+	arguments=DeleteDocumentsArguments,
+	handler=delete_documents,
 	annotations={"destructiveHint": True},
 )
