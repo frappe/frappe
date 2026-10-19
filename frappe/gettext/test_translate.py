@@ -100,6 +100,13 @@ class TestTranslate(FrappeTestCase):
 			self.assertEqual(catalog.get("From Dash").string, "Mit Bindestrich")
 			self.assertEqual(catalog.get("From Underscore").string, "Mit Unterstrich")
 
+	def test_migrate_csv_to_po_without_translations(self):
+		with tempfile.TemporaryDirectory() as app_path:
+			with patch("frappe.gettext.translate.frappe.get_app_path", return_value=app_path):
+				migrate("test_app", "de")
+
+			self.assertFalse((Path(app_path) / "locale").exists())
+
 	def test_gitignore(self):
 		import os
 
