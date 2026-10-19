@@ -9,7 +9,7 @@ import orjson
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
-from werkzeug.wrappers import Request, Response
+from werkzeug.wrappers import Request, Response  # nosemgrep: frappe-monkey-patching-not-allowed
 from werkzeug.wsgi import ClosingIterator
 
 import frappe
@@ -72,7 +72,7 @@ preload_database_drivers()
 # better werkzeug default
 # this is necessary because frappe desk sends most requests as form data
 # and some of them can exceed werkzeug's default limit of 500kb
-Request.max_form_memory_size = None
+Request.max_form_memory_size = None  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 # Callbacks that run after every response, before any deferred during the request
