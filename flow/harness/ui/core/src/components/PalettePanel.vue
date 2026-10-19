@@ -6,7 +6,7 @@
 	<section
 		ref="panel"
 		:aria-label="title"
-		class="flow-palette-panel absolute bottom-[calc(100%+4px)] left-0 z-20 flex max-h-[min(352px,72vh)] w-full flex-col overflow-hidden rounded-8 py-1 border border-outline-gray-1 bg-surface-base shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
+		class="flow-palette-panel absolute bottom-[calc(100%+4px)] left-0 z-20 flex max-h-[min(352px,72vh)] w-full flex-col overflow-hidden rounded-8 py-1 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
 		:class="{ 'h-[min(352px,72vh)]': full }"
 		@mousedown="keepFocus"
 		@pointermove="onPointerMove"
