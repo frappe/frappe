@@ -4,6 +4,7 @@
 		back
 		:query="query"
 		:busy="!selected && query !== debouncedQuery"
+		:full="loading && !rows.length"
 		@close="emit('close')"
 		@back="selected ? deselect() : emit('back')"
 	>
