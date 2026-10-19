@@ -28,14 +28,16 @@
 			</button>
 		</div>
 
-		<div class="mt-1.5 flex flex-none flex-col gap-0.5 px-2">
-			<SidebarItem icon="lucide-square-pen" @click="startNewChat()">
+		<!-- 7px over, 9px under: New chat sits midway between the brand mark and the list's header;
+		     it and the header (or search) are as tall as a chat row -->
+		<div class="mt-[7px] flex flex-none flex-col gap-0.5 px-2">
+			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
 				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
 			</SidebarItem>
 		</div>
 
 		<!-- outside the scroller, so search stays in reach down a long list -->
-		<div v-if="flow.state.sessions.length || searchOpen" class="mt-4 flex h-7 flex-none items-center gap-0.5 px-2">
+		<div v-if="flow.state.sessions.length || searchOpen" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
 			<label
 				v-if="searchOpen"
 				class="flex h-full min-w-0 flex-1 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 transition-colors focus-within:border-outline-gray-3"
@@ -91,7 +93,7 @@
 			</template>
 		</div>
 
-		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-1">
+		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-0.5">
 			<!-- one wrapper for the rows: as children of the scroller they would shrink to fit -->
 			<div class="flex flex-col gap-0.5">
 				<template v-for="group in groups" :key="group.cwd ?? ''">
@@ -610,7 +612,8 @@ const emptyMessage = computed(() => {
 
 /* finger-sized rows in the phone drawer */
 @media (max-width: 767px) {
-	aside :deep([data-slot="sidebar-item"]) {
+	aside :deep([data-slot="sidebar-item"]),
+	.list-head {
 		height: 2.25rem;
 	}
 }
