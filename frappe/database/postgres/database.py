@@ -6,7 +6,7 @@ from decimal import Decimal
 import psycopg
 from psycopg import ClientCursor, IsolationLevel, errors, sql
 from psycopg.adapt import AdaptersMap, Dumper, Loader
-from psycopg.pq import TransactionStatus
+from psycopg.pq import ExecStatus, TransactionStatus
 from psycopg.types.numeric import FloatLoader
 from psycopg.types.string import TextLoader
 
@@ -28,16 +28,26 @@ class TimedeltaLoader(Loader):
 
 
 class PostgresCursor(psycopg.Cursor):
-	"""Build `description` once per result; psycopg rebuilds it on every access and frappe reads it repeatedly."""
+	"""Describe each result once, by column name and type only.
+
+	psycopg rebuilds full `Column` objects on every access; frappe reads the names several times.
+	"""
 
 	_description = None
 	_described = None
 
 	@property
 	def description(self):
-		if self._described is not self.pgresult:
-			self._description = super().description
-			self._described = self.pgresult
+		result = self.pgresult
+		if result is not self._described:
+			self._described = result
+			self._description = None
+			if result and (result.nfields or result.status == ExecStatus.TUPLES_OK):
+				encoding = self.connection.info.encoding
+				self._description = [
+					(result.fname(i).decode(encoding), result.ftype(i), None, None, None, None, None)
+					for i in range(result.nfields)
+				]
 		return self._description
 
 
