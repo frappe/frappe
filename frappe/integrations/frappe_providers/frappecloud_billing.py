@@ -74,11 +74,15 @@ def post(method: str, json: dict | None = None):
 	"""POST to a whitelisted method on Frappe Cloud with this site's credentials."""
 	import requests
 
-	return requests.post(f"{get_base_url()}/api/method/{method}", headers=get_headers(), json=json)
+	return requests.post(
+		f"{get_base_url()}/api/method/{method}", headers=get_headers(), json=json, timeout=(5, 10)
+	)
 
 
 @frappe.whitelist()
 def current_site_info():
+	import requests
+
 	from frappe.utils import cint
 
 	frappe.only_for("System Manager")
@@ -92,16 +96,10 @@ def current_site_info():
 		return cached_data
 
 	res = {}
-<<<<<<< HEAD
 	try:
-		request = requests.post(
-			f"{get_base_url()}/api/method/press.saas.api.site.info", headers=get_headers(), timeout=(5, 10)
-		)
+		request = post("press.saas.api.site.info")
 	except requests.RequestException:
 		return None
-=======
-	request = post("press.saas.api.site.info")
->>>>>>> c26995c (perf: lazy-import requests in CSV and Frappe Cloud providers)
 	if request.status_code == 200:
 		res = request.json().get("message")
 		if not res or not isinstance(res, dict):
@@ -123,16 +121,7 @@ def current_site_info():
 def api(method: str, data: str | dict[str, Any] | None = None):
 	if data is None:
 		data = {}
-<<<<<<< HEAD
-	request = requests.post(
-		f"{get_base_url()}/api/method/press.saas.api.{method}",
-		headers=get_headers(),
-		json=data,
-		timeout=(5, 10),
-	)
-=======
 	request = post(f"press.saas.api.{method}", json=data)
->>>>>>> c26995c (perf: lazy-import requests in CSV and Frappe Cloud providers)
 	if request.status_code == 200:
 		return request.json().get("message")
 	else:

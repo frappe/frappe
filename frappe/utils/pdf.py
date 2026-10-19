@@ -104,16 +104,12 @@ def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
 	)
 
 
-<<<<<<< HEAD
 def get_pdf(html, options=None, output: PdfWriter | None = None, smart_shrinking: bool = False):
 	"""Render `html` to PDF.
 
 	:param smart_shrinking: scale content that is wider than the page down to fit it, instead of
 	        clipping the overflow.
 	"""
-=======
-def get_pdf(html, options=None, output: "PdfWriter" | None = None):
->>>>>>> be4b649 (perf: lazy-import pypdf to reduce active memory footprint)
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 

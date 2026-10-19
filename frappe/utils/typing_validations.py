@@ -1,8 +1,4 @@
-<<<<<<< HEAD
-=======
-import inspect
 import sys
->>>>>>> 770a02a (perf: lazy-import pydantic and unittest.mock in type validation)
 from collections.abc import Callable
 from functools import lru_cache, wraps
 from inspect import _empty, isclass

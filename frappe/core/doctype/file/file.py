@@ -9,12 +9,6 @@ import shutil
 import zipfile
 from urllib.parse import quote, unquote
 
-<<<<<<< HEAD
-from PIL import Image, ImageFile, ImageOps
-=======
-import filetype
->>>>>>> 91f4aca (perf: lazy-import Pillow image helpers)
-
 import frappe
 from frappe import _
 from frappe.database.schema import SPECIAL_CHAR_PATTERN

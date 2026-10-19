@@ -132,13 +132,8 @@ def enqueue_events_for_site(site: str) -> None:
 
 def enqueue_events() -> list[str] | None:
 	if schedule_jobs_based_on_activity():
-<<<<<<< HEAD
-=======
 		from croniter import CroniterBadCronError
 
-		from frappe.core.doctype.scheduled_job_type.scheduled_job_type import get_disabled_app_job_methods
-
->>>>>>> 490e4cf (perf: lazy-import filelock and croniter)
 		enqueued_jobs = []
 		all_jobs = frappe.get_all("Scheduled Job Type", filters={"stopped": 0}, fields="*")
 		random.shuffle(all_jobs)

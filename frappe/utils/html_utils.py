@@ -164,14 +164,10 @@ def sanitize_html(html, linkify=False, always_sanitize=False, disallowed_tags=No
 		return html
 
 	if not always_sanitize:
-<<<<<<< HEAD
 		if is_json(html):
 			return html
 
-		if not bool(BeautifulSoup(html, "html.parser").find()):
-=======
 		if not has_html_tags(html):
->>>>>>> afb3812 (perf: lazy-import bs4, markdownify, and template helpers)
 			return html
 
 	tags = (
