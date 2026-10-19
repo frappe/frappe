@@ -3,7 +3,7 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.utils.data import cint, flt
+from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
