@@ -296,6 +296,20 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 
 def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
+	previous_job = getattr(frappe.local, "job", None)
+	try:
+		return _execute_job(site, method, event, job_name, kwargs, user=user, is_async=is_async, retry=retry)
+	finally:
+		# sync jobs skip frappe.destroy(), so put back the caller's frappe.local.job;
+		# a retry calls execute_job again, so every call undoes its own change
+		if not is_async:
+			if previous_job is not None:
+				frappe.local.job = previous_job
+			elif hasattr(frappe.local, "job"):
+				del frappe.local.job
+
+
+def _execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
 	retval = None
 	retrying = False
 
@@ -316,7 +330,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	else:
 		method_name = f"{method.__module__}.{method.__qualname__}"
 
-	previous_job = getattr(frappe.local, "job", None)
 	frappe.local.job = frappe._dict(
 		site=site,
 		method=method_name,
@@ -399,14 +412,6 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 
 					sentry_sdk.flush()
 				frappe.destroy()
-
-		# put back the previous frappe.local.job, since sync jobs skip frappe.destroy();
-		# a retry calls execute_job again, so every call must undo its own change
-		if not is_async:
-			if previous_job is None:
-				del frappe.local.job
-			else:
-				frappe.local.job = previous_job
 
 
 def start_worker(

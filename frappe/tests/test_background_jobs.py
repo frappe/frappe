@@ -271,8 +271,16 @@ class TestBackgroundJobs(IntegrationTestCase):
 		)
 
 	def test_sync_job_does_not_leave_job_context_behind(self):
-		execute_job(frappe.local.site, "frappe.ping", None, "ping", {}, is_async=False)
-		self.assertFalse(hasattr(frappe.local, "job"))
+		with self.set_user("test@example.com"):
+			execute_job(frappe.local.site, "frappe.ping", None, "ping", {}, is_async=False)
+			self.assertFalse(hasattr(frappe.local, "job"))
+
+			with (
+				patch("frappe.get_hooks", return_value=["frappe.tests.test_background_jobs.fail_function"]),
+				self.assertRaises(ZeroDivisionError),
+			):
+				execute_job(frappe.local.site, "frappe.ping", None, "ping", {}, is_async=False)
+			self.assertFalse(hasattr(frappe.local, "job"))
 
 
 def echo_retry(retry=None):
