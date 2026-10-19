@@ -682,6 +682,7 @@ def _is_oauth_client_auth(authorization_header) -> bool:
 	client_auth_methods = {
 		ENDPOINTS["token_endpoint"].rpartition("/")[2],
 		ENDPOINTS["revocation_endpoint"].rpartition("/")[2],
+		ENDPOINTS["introspection_endpoint"].rpartition("/")[2],
 	}
 	return bool(
 		client_auth_methods & {frappe.request.path.removesuffix("/").rpartition("/")[2], frappe.form_dict.cmd}
