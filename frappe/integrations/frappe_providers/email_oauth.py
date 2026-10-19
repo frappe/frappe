@@ -23,10 +23,10 @@ CALLBACK_PATH = "/api/method/frappe.integrations.frappe_providers.email_oauth.ca
 # through relay_refresh
 FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:"
 DEFAULT_LANDING = "/desk/email-account"
-# PROVIDERS' keys; frappe checks whitelisted arguments against this type
-Provider = Literal["microsoft", "google"]
+# ONE_CLICK_PROVIDERS' keys; frappe checks whitelisted arguments against this type
+Provider = Literal["microsoft"]
 # Mail settings per provider, keyed like Central's PROVIDERS; Central sends the OAuth side (scopes)
-PROVIDERS: dict[Provider, dict] = {
+ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 	"microsoft": {
 		"label": "Microsoft",
 		"service": "Outlook.com",  # the only Microsoft option, also for work accounts
@@ -34,11 +34,6 @@ PROVIDERS: dict[Provider, dict] = {
 		# personal accounts (outlook.com, hotmail) share this tenant ID and use other servers
 		"personal_tenant": "9188040d-6c67-4c5b-b112-36a304b66dad",
 		"personal_servers": {"email_server": "imap-mail.outlook.com", "smtp_server": "smtp-mail.outlook.com"},
-	},
-	"google": {
-		"label": "Google",
-		"service": "GMail",
-		"servers": {"email_server": "imap.gmail.com", "smtp_server": "smtp.gmail.com"},
 	},
 }
 
@@ -59,7 +54,9 @@ def initiate_mailbox_connect(
 		frappe.has_permission("Email Account", "create", throw=True)
 	if not is_v2_site():
 		frappe.throw(
-			_("Sign in with {0} is only available on Frappe Cloud").format(PROVIDERS[provider]["label"])
+			_("Sign in with {0} is only available on Frappe Cloud").format(
+				ONE_CLICK_PROVIDERS[provider]["label"]
+			)
 		)
 
 	client = WebApplicationClient(None)
@@ -88,13 +85,6 @@ def initiate_mailbox_connect(
 		expires_in_sec=NOTE_TTL,
 	)
 	return link["authorize_url"]
-
-
-@frappe.whitelist(methods=["GET"])
-def get_one_click_providers() -> list[Provider]:
-	"""The providers `initiate_mailbox_connect` signs in with on this site; none off Frappe Cloud."""
-	frappe.has_permission("Email Account", "read", throw=True)
-	return list(PROVIDERS) if is_v2_site() else []
 
 
 def relay(method: str, **data) -> dict:
@@ -184,7 +174,7 @@ def connect(
 	# straight from the token endpoint over TLS, so no signature check (OIDC Core 3.1.3.7)
 	claims = jwt.decode(token["id_token"], options={"verify_signature": False})
 	email = claims.get("email") or claims["preferred_username"]
-	config = PROVIDERS[provider]
+	config = ONE_CLICK_PROVIDERS[provider]
 	personal = "personal_tenant" in config and claims.get("tid") == config["personal_tenant"]
 	if account_name := note.get("email_account"):
 		if not account_email:
