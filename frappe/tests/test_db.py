@@ -1172,6 +1172,18 @@ class TestDB(IntegrationTestCase):
 		)
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_transactions_after_commit_use_the_session_isolation(self):
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		other = connect_again()
+		self.addCleanup(other.close)
+		other.commit()
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "repeatable read")
+		other.sql("SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL READ COMMITTED")
+		other.commit()
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "read committed")
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_escape_round_trips_backslashes(self):
 		value = "C:\\temp\\it's"
 		self.assertEqual(frappe.db.sql(f"select {frappe.db.escape(value, percent=False)}")[0][0], value)
