@@ -102,7 +102,6 @@
 						v-if="group.cwd"
 						class="group relative h-8 select-none"
 						:class="dragClass(group.cwd)"
-						:title="group.cwd"
 						:aria-expanded="group.open"
 						:data-reorder="canReorder ? 'folder' : null"
 						:data-key="group.cwd"
@@ -116,9 +115,27 @@
 								aria-hidden="true"
 							/>
 						</template>
-						<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug text-ink-gray-8">
-							{{ group.name }}
-						</span>
+						<HoverCard
+							side="right"
+							:offset="12"
+							:hover-delay="500"
+							:leave-delay="0"
+							:open="cardFor === group.cwd"
+							@update:open="(open) => showCard(group.cwd, open)"
+						>
+							<template #trigger>
+								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug text-ink-gray-8">
+									{{ group.name }}
+								</span>
+							</template>
+							<div class="flex max-w-80 flex-col gap-1.5 px-3 py-2.5">
+								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
+								<p class="flex items-start gap-1.5 text-xs leading-4 text-ink-gray-6">
+									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
+									<span class="break-all">{{ group.cwd }}</span>
+								</p>
+							</div>
+						</HoverCard>
 						<template #suffix>
 							<button
 								class="row-action flow-hover-reveal absolute right-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
@@ -161,7 +178,7 @@
 										:hover-delay="500"
 										:leave-delay="0"
 										:open="cardFor === s.session_id"
-										@update:open="(open) => showCard(s, open)"
+										@update:open="(open) => showCard(s.session_id, open)"
 									>
 										<template #trigger>
 											<span
@@ -290,11 +307,12 @@ watch(sentinel, (el, old) => {
 onBeforeUnmount(() => observer?.disconnect())
 const menuFor = ref(null)
 
-// a chat's card shows after a hover dwell, never beside its open menu or during a drag
+// a row's card (a chat's id, a workspace's folder) shows after a hover dwell, never beside
+// an open menu or during a drag
 const cardFor = ref(null)
-function showCard(session, open) {
-	if (open && !menuFor.value && !dragging.value) cardFor.value = session.session_id
-	else if (cardFor.value === session.session_id) cardFor.value = null
+function showCard(key, open) {
+	if (open && !menuFor.value && !dragging.value) cardFor.value = key
+	else if (cardFor.value === key) cardFor.value = null
 }
 function setMenu(session, open) {
 	menuFor.value = open ? session.session_id : null

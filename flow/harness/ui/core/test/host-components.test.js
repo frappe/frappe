@@ -1757,6 +1757,13 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	trigger.dispatchEvent(new window.PointerEvent("pointerleave"))
 	await nextTick()
 	assert.equal(card(), null)
+	// and a workspace's, its name and folder
+	const folderTrigger = rows().find((row) => row.textContent.trim() === "app").querySelector("[data-stub=HoverCard]")
+	folderTrigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	assert.deepEqual([...card().firstElementChild.children].map((line) => line.textContent.trim()), ["app", "/w/app"])
+	folderTrigger.dispatchEvent(new window.PointerEvent("pointerleave"))
+	await nextTick()
 	await click("Show 1 more")
 	assert.deepEqual(labels().slice(7, 10), ["App 5", "App 6", "Show less"])
 	await click("api")
