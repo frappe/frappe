@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 from collections.abc import Iterable
-from datetime import timedelta
+from datetime import datetime, timedelta
 from functools import cached_property, lru_cache
 from typing import Any
 
@@ -529,6 +529,13 @@ class User(Document):
 	@Document.hook
 	def validate_reset_password(self):
 		pass
+
+	def has_unexpired_reset_password_key(self) -> bool:
+		return bool(
+			self.reset_password_key
+			and self.last_reset_password_key_generated_on
+			and not _is_reset_password_key_expired(self.last_reset_password_key_generated_on)
+		)
 
 	def _reset_password(self, send_email=False, password_expired=False):
 		from frappe.utils import get_url
@@ -1207,14 +1214,7 @@ def _get_user_for_update_password(key, old_password):
 		)
 		result.user, last_reset_password_key_generated_on = user or (None, None)
 		if result.user:
-			reset_password_link_expiry = cint(
-				frappe.get_system_settings("reset_password_link_expiry_duration")
-			)
-			if (
-				reset_password_link_expiry
-				and now_datetime()
-				> last_reset_password_key_generated_on + timedelta(seconds=reset_password_link_expiry)
-			):
+			if _is_reset_password_key_expired(last_reset_password_key_generated_on):
 				result.message = _("The reset password link has been expired")
 			else:
 				# consume the key while the row is locked; clearing sessions later commits and releases it
@@ -1227,6 +1227,13 @@ def _get_user_for_update_password(key, old_password):
 		user = frappe.session.user
 		result.user = user
 	return result
+
+
+def _is_reset_password_key_expired(generated_on: datetime) -> bool:
+	reset_password_link_expiry = cint(frappe.get_system_settings("reset_password_link_expiry_duration"))
+	return bool(reset_password_link_expiry) and now_datetime() > generated_on + timedelta(
+		seconds=reset_password_link_expiry
+	)
 
 
 def rewrite_owner_fields(old_name: str, new_name: str, commit: bool = False):
