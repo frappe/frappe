@@ -68,7 +68,6 @@ class TestNotificationWebhookMigration(IntegrationTestCase):
 		slack = self._make_webhook(show_document_link=0)
 		discord = self._make_webhook("Discord", show_document_link=1)
 		notification = self._make_notification(slack.name)
-		frappe.db.set_value("Notification Webhook URL", slack.name, "service", None)
 		frappe.db.set_value("Notification", notification.name, "channel", "Slack")
 
 		execute()

@@ -8,9 +8,6 @@ from frappe.model.utils.rename_field import (
 
 
 def execute():
-	frappe.db.set_value(
-		"Notification Webhook URL", {"service": ["is", "not set"]}, "service", "Slack", update_modified=False
-	)
 	if frappe.db.has_column("Notification", "slack_webhook_url"):
 		migrate_notification_links()
 
