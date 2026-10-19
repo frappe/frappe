@@ -96,12 +96,12 @@ const COMMANDS = [
 	{ name: "agents", label: "Agent", icon: "bot", hint: "choose the agent", view: "agents" },
 	"model",
 	"thinking",
-	"settings",
 	"transcript",
 	"new",
 	"rewind",
 	"compact",
 	"abort",
+	"settings",
 ];
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
