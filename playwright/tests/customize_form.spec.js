@@ -29,4 +29,39 @@ test.describe("Customize Form", () => {
 			await expect(desk.get_field("autoname", "Data")).toHaveValue(value);
 		}
 	});
+
+	test("saves a changed color on an existing document state", async ({ page, desk, api }) => {
+		await page.goto("/desk/customize-form");
+		await desk.ready();
+		await desk.fill_field("doc_type", "Note", "Link");
+		await expect(page.locator(".form-builder-container")).toBeVisible();
+		await page.evaluate(() => {
+			cur_frm.clear_table("states");
+			cur_frm.add_child("states", { title: "Reviewed", color: "Blue" });
+			return frappe.customize_form.save_customization(cur_frm);
+		});
+
+		await page.reload();
+		await desk.ready();
+		await expect(page.locator(".form-builder-container")).toBeVisible();
+		await page.getByRole("tab", { name: "Details", exact: true }).click();
+		await page
+			.locator('.frappe-control[data-fieldname="states"] [data-idx="1"] .btn-open-row')
+			.click();
+		await desk.fill_table_field("states", "1", "color", "Green", "Select");
+		await page.locator(".grid-row-open .grid-collapse-row").click();
+		await desk.click_primary_button("Update");
+
+		await expect
+			.poll(async () => {
+				const { message } = await api.call("frappe.client.get_value", {
+					doctype: "DocType State",
+					parent: "DocType",
+					filters: { parent: "Note", title: "Reviewed" },
+					fieldname: "color",
+				});
+				return message?.color;
+			})
+			.toBe("Green");
+	});
 });
