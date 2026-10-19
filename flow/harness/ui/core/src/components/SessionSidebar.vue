@@ -163,7 +163,7 @@
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
 									class="group relative h-7 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
-									:class="[menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
+									:class="[!grouped && 'quiet', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
@@ -648,6 +648,12 @@ const emptyMessage = computed(() => {
 	.list-head {
 		height: 2.25rem;
 	}
+}
+
+/* in one list, chats rest half a step quieter, so the long column reads calmer; the one
+   under the pointer and the open one keep full ink */
+.quiet[data-state="inactive"]:not(:hover, .menu-open) {
+	color: color-mix(in srgb, var(--ink-gray-7) 50%, var(--ink-gray-8));
 }
 
 /* chat and workspace names a half step over text-xs, keeping its weight and spacing; a
