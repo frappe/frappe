@@ -155,9 +155,21 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return false;
 	}
 
-	// Whether an entry a lower layer holds may also be deleted here, beside its eye.
+	// Whether an entry a lower layer holds may be deleted here, beside its eye or instead of it.
 	can_remove() {
 		return false;
+	}
+
+	// Whether an entry a lower layer holds carries the eye. A surface whose layer takes entries
+	// off with the cross instead says no here.
+	can_hide() {
+		return true;
+	}
+
+	// Whether an entry is shown in the list at all. A surface where taking an entry off removes it
+	// from view, rather than dimming it in place, leaves the hidden ones out.
+	is_listed() {
+		return true;
 	}
 
 	// Whether an entry is arranged here but never taken off, so it carries no eye and no cross.
@@ -427,10 +439,11 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 	render_list() {
 		this.$list.empty();
-		if (!this.order.length) {
+		const listed = this.order.filter((key) => this.is_listed(key));
+		if (!listed.length) {
 			this.$list.append(`<div class="ws-empty">${this.copy().list_empty}</div>`);
 		}
-		this.order.forEach((key) => this.$list.append(this.list_row(key)));
+		listed.forEach((key) => this.$list.append(this.list_row(key)));
 
 		this.$add?.toggleClass("is-open", this.panel?.key === ADD_ANCHOR);
 		this.on_render();
@@ -447,10 +460,10 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		$row.append($(`<div class="ws-row-body"></div>`).append(this.row_content(key)));
 
 		const $controls = $(`<span class="ws-row-controls"></span>`);
-		if (!this.is_pinned(key)) {
-			$controls.append(
-				this.is_own_add(key) ? this.remove_button(key) : this.visibility_button(key)
-			);
+		if (this.is_own_add(key)) {
+			$controls.append(this.remove_button(key));
+		} else if (!this.is_pinned(key)) {
+			if (this.can_hide(key)) $controls.append(this.visibility_button(key));
 			// After the eye, so the destructive control is not the first one under the cursor.
 			if (this.can_remove(key)) $controls.append(this.remove_button(key));
 		}
@@ -553,14 +566,15 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	}
 
 	// The list as the drop left it. Rows carried along with the dragged one stayed where they were
-	// in the document while hidden, so they are put back directly under it.
+	// in the document while hidden, so they are put back directly under it. Entries the list does
+	// not show keep the places they had, so a drag cannot drop them from the arrangement.
 	sync_order(moved) {
 		const carried = new Set(this.carried_keys || []);
-		const order = $.map(this.$list.find(".ws-row"), (el) => el.dataset.key).filter(
+		const dropped = $.map(this.$list.find(".ws-row"), (el) => el.dataset.key).filter(
 			(key) => !carried.has(key)
 		);
-		order.splice(order.indexOf(moved) + 1, 0, ...(this.carried_keys || []));
-		this.order = order;
+		dropped.splice(dropped.indexOf(moved) + 1, 0, ...(this.carried_keys || []));
+		this.order = this.order.map((key) => (this.is_listed(key) ? dropped.shift() : key));
 	}
 
 	// The arrangement on screen as stored rows: every entry, in the order the list holds it, each

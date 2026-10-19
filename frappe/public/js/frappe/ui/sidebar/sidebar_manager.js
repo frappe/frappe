@@ -459,8 +459,20 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// hiding is the only way to take something off.
 	//
 	// A row this layer added is not given a second cross; it already carries one of its own.
+	//
+	// The site's layer takes a row off with the cross alone. There the cross writes what the eye
+	// did, the row stored hidden, and the row leaves the list as it leaves the sidebar. Adding the
+	// same entry again is how it comes back (see `place`). A person's own layer keeps the eye.
 	can_remove(key) {
-		return this.layer === "app" && !this.is_own_add(key);
+		return (this.layer === "app" || this.layer === "site") && !this.is_own_add(key);
+	}
+
+	can_hide() {
+		return this.layer !== "site";
+	}
+
+	is_listed(key) {
+		return !(this.layer === "site" && this.hidden.has(key));
 	}
 
 	// A private page cannot be taken out of the Private shell. That shell is where every page its
@@ -477,6 +489,13 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	// there. The rule is `on_move`'s -- the row above decides -- re-applied from where the
 	// removed row was, forward, until a row that was not a member of anything.
 	remove(key) {
+		if (this.layer === "site" && !this.is_own_add(key)) {
+			if (this.panel?.key === key) this.close_panel();
+			this.hide(key);
+			this.render_list();
+			return;
+		}
+
 		const at = this.order.indexOf(key);
 		const was_section = this.is_section(key);
 		super.remove(key);
@@ -504,12 +523,13 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 	}
 
 	// The section a row sits under, if any: the nearest section above it, reached through an
-	// unbroken run of members. See `on_move`, which is the same rule.
+	// unbroken run of members. See `on_move`, which is the same rule. A section the list no longer
+	// shows has nothing for its rows to sit under, so they draw on their own.
 	section_of(key) {
 		if (!this.entries.get(key)?.child) return null;
 		for (let i = this.order.indexOf(key) - 1; i >= 0; i--) {
 			const above = this.order[i];
-			if (this.is_section(above)) return above;
+			if (this.is_section(above)) return this.is_listed(above) ? above : null;
 			if (!this.entries.get(above).child) return null;
 		}
 		return null;
