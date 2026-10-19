@@ -638,17 +638,14 @@ def get_context(context):
 			if self.allow_comments:
 				context.comment_list = get_comment_list(reference_doc.doctype, reference_doc.name)
 
-			doc_dict = reference_doc.as_dict(no_nulls=True)
-			# A request key authorises access to the bound document without any
-			# document permission check, so its holder must only ever see the
-			# fields the Web Form itself exposes.
-			if frappe.session.user == "Guest" or web_form_request:
-				allowed_fields = {"name", "doctype", *(field.fieldname for field in self.web_form_fields)}
-				context.reference_doc = {
-					fieldname: doc_dict[fieldname] for fieldname in allowed_fields if fieldname in doc_dict
-				}
-			else:
-				context.reference_doc = doc_dict
+			context.reference_doc = self.get_exposed_doc_dict(reference_doc, no_nulls=True)
+
+	def get_exposed_doc_dict(self, doc, no_nulls=False) -> dict:
+		"""Values of `doc` for the fields this Web Form exposes, plus `name` and `doctype`."""
+		doc.apply_fieldlevel_read_permissions()
+		doc_dict = doc.as_dict(no_nulls=no_nulls)
+		allowed_fields = {"name", "doctype", *(field.fieldname for field in self.web_form_fields)}
+		return {fieldname: doc_dict[fieldname] for fieldname in allowed_fields if fieldname in doc_dict}
 
 	def add_custom_context_and_script(self, context):
 		"""Update context from module if standard and append script"""
@@ -867,6 +864,23 @@ def get_web_form_module(doc):
 		return get_doc_module(doc.module, doc.doctype, doc.name)
 
 
+def restore_unreadable_values(doc):
+	"""The page never receives values above the user's read level, so the submitted form
+	carries blanks for them. Put the stored values back, as `validate_higher_perm_levels`
+	does for a regular save, which the Web Form skips with `ignore_permissions`."""
+	if frappe.session.user == "Administrator":
+		return
+
+	has_access_to = doc.get_permlevel_access("read")
+	if fields := doc.meta.get_high_permlevel_fields():
+		doc.reset_values_if_no_permlevel_access(has_access_to, fields)
+
+	for table_field in doc.meta.get_table_fields():
+		if fields := frappe.get_meta(table_field.options).get_high_permlevel_fields():
+			for row in doc.get(table_field.fieldname):
+				row.reset_values_if_no_permlevel_access(has_access_to, fields)
+
+
 @frappe.whitelist(methods=["POST", "PUT"], allow_guest=True)
 @rate_limit(key="web_form", limit=10, seconds=60)
 def accept(web_form: str, data: str | dict, web_form_request_key: str | None = None):
@@ -932,6 +946,9 @@ def accept(web_form: str, data: str | dict, web_form_request_key: str | None = N
 		for fieldname, value in web_form_request.get_doc_values().items():
 			if meta.has_field(fieldname):
 				doc.set(fieldname, value)
+
+	if doc.name:
+		restore_unreadable_values(doc)
 
 	web_form.validate_submission(doc, uploaded_fields={fieldname for fieldname, _ in files})
 
@@ -1180,7 +1197,7 @@ def get_form_data(
 	if docname:
 		doc = frappe.get_doc(doctype, docname)
 		if web_form.has_web_form_permission(doctype, docname, ptype="read"):
-			out.doc = doc
+			out.doc = frappe._dict(web_form.get_exposed_doc_dict(doc))
 		else:
 			frappe.throw(_("Not permitted"), frappe.PermissionError)
 

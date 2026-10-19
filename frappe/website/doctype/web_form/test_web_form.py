@@ -893,6 +893,125 @@ class TestWebForm(IntegrationTestCase):
 		self.assertNotIn("event_type", reference_doc)
 		self.assertNotIn("owner", reference_doc)
 
+	def test_logged_in_owner_reference_doc_exposes_only_web_form_fields(self):
+		self.set_web_form_settings(login_required=1, key_required=0, allow_edit=1, allow_multiple=1)
+		user = self.create_website_user("_test_web_form_owner@example.com")
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": "_Test Owner Reference",
+				"starts_on": "2026-05-10",
+				"event_type": "Private",
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Event", event.name, {"owner": user, "modified_by": "reviewer@example.com"})
+
+		frappe.set_user(user)
+		frappe.local.path = f"manage-events/{event.name}/edit"
+		frappe.local.form_dict = frappe._dict(name=event.name, is_edit=1)
+		context = frappe._dict()
+		web_form = frappe.get_doc("Web Form", "manage-events")
+		web_form.get_context(context)
+		form_data = get_form_data("Event", event.name, "manage-events")
+
+		allowed_fields = {"name", "doctype", *(f.fieldname for f in web_form.web_form_fields)}
+		for exposed in (context.reference_doc, form_data.doc):
+			self.assertLessEqual(set(exposed.keys()), allowed_fields)
+			self.assertEqual(exposed["subject"], "_Test Owner Reference")
+			self.assertNotIn("modified_by", exposed)
+			self.assertNotIn("owner", exposed)
+			self.assertNotIn("event_type", exposed)
+
+	def test_edit_keeps_value_of_form_field_above_read_level(self):
+		self.set_permlevel("Event", "description")
+		web_form = self.make_temp_web_form(allow_edit=1)
+		event, user = self.make_owned_event("_Test Permlevel Round Trip")
+
+		frappe.set_user(user)
+		context = self.get_edit_context(web_form, event)
+		self.assertNotIn("description", context.reference_doc)
+		self.assertIsNone(get_form_data("Event", event.name, web_form.name).doc.get("description"))
+
+		accept(
+			web_form=web_form.name,
+			data=json.dumps(
+				{"name": event.name, "subject": "_Test Permlevel Round Trip 2", "description": ""}
+			),
+		)
+		self.assertEqual(frappe.db.get_value("Event", event.name, "subject"), "_Test Permlevel Round Trip 2")
+		self.assertEqual(frappe.db.get_value("Event", event.name, "description"), "_Test stored value")
+
+	def test_edit_keeps_child_column_above_read_level(self):
+		self.set_permlevel("Event Participants", "email")
+		web_form = self.make_temp_web_form(
+			allow_edit=1,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Participants",
+					"options": "Event Participants",
+				},
+			],
+		)
+		event, user = self.make_owned_event("_Test Child Permlevel")
+		event.reload()
+		participant = event.append(
+			"event_participants", {"reference_doctype": "User", "reference_docname": "Administrator"}
+		)
+		participant.email = "hidden@example.com"
+		event.save(ignore_permissions=True)
+		row = frappe.db.get_value("Event Participants", {"parent": event.name}, "name")
+
+		frappe.set_user(user)
+		context = self.get_edit_context(web_form, event)
+		self.assertNotIn("email", context.reference_doc["event_participants"][0])
+
+		accept(
+			web_form=web_form.name,
+			data=json.dumps(
+				{
+					"name": event.name,
+					"subject": "_Test Child Permlevel 2",
+					"event_participants": [
+						{"name": row, "reference_doctype": "User", "reference_docname": "Administrator"}
+					],
+				}
+			),
+		)
+		self.assertEqual(frappe.db.get_value("Event Participants", row, "email"), "hidden@example.com")
+
+	def set_permlevel(self, doctype, fieldname):
+		make_property_setter(doctype, fieldname, "permlevel", 1, "Int")
+		self.addCleanup(frappe.clear_cache, doctype=doctype)
+		self.addCleanup(
+			frappe.db.delete,
+			"Property Setter",
+			{"doc_type": doctype, "property": "permlevel", "field_name": fieldname},
+		)
+		frappe.clear_cache(doctype=doctype)
+
+	def make_owned_event(self, subject):
+		user = self.create_website_user("_test_web_form_permlevel@example.com")
+		event = frappe.get_doc(
+			{
+				"doctype": "Event",
+				"subject": subject,
+				"starts_on": "2026-05-10",
+				"description": "_Test stored value",
+			}
+		).insert(ignore_permissions=True)
+		frappe.db.set_value("Event", event.name, "owner", user)
+		return event, user
+
+	def get_edit_context(self, web_form, event):
+		frappe.local.path = f"{web_form.route}/{event.name}/edit"
+		frappe.local.form_dict = frappe._dict(name=event.name, is_edit=1)
+		context = frappe._dict()
+		web_form.get_context(context)
+		return context
+
 	def test_guest_with_valid_key_can_render_bound_document_page(self):
 		"""A Guest holding a valid request key bound to a document must be able
 		to render the view/edit page instead of being redirected to /new."""
