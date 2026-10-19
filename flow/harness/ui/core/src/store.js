@@ -110,7 +110,7 @@ export function createFlowStore(client, options = {}) {
 	}
 	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here; a host whose
 	// daemon keeps settings passes it in (options.colorScheme) to save and restore it with them
-	const prefs = {
+	const defaults = {
 		mode: "ask", // "ask" | "auto" — applied at session create
 		customInstructions: "", // sent as system_suffix at session create
 		activePreset: null, // id of the agent preset applied to new chats
@@ -129,8 +129,9 @@ export function createFlowStore(client, options = {}) {
 		explorerWidth: 220,
 		chatFontSize: CHAT_FONT_SIZE.default,
 		chatFontWeight: CHAT_FONT_WEIGHT.default,
-		...readJSON(keys.prefs, {}),
 	}
+	// only what differs from these is saved, so a setting left alone follows a new default
+	const prefs = { ...copy(defaults), ...readJSON(keys.prefs, {}) }
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
 
 	// the docked sidebar follows the saved preference; a drawer starts closed and is never saved
@@ -209,12 +210,19 @@ export function createFlowStore(client, options = {}) {
 	let settingsSaving = Promise.resolve()
 
 	function savePrefs() {
-		localStorage.setItem(keys.prefs, JSON.stringify(state.prefs))
+		localStorage.setItem(keys.prefs, JSON.stringify(changedPrefs()))
 		queueSettings()
 	}
 
+	function changedPrefs() {
+		return Object.fromEntries(Object.entries(state.prefs).filter(([key, value]) => !same(value, defaults[key])))
+	}
+
+	// a setting at its default goes as null, so every browser keeps following the default
 	function currentSettings() {
-		const current = Object.fromEntries(SYNCED_PREFS.map((key) => [key, state.prefs[key]]))
+		const current = Object.fromEntries(
+			SYNCED_PREFS.map((key) => [key, same(state.prefs[key], defaults[key]) ? null : state.prefs[key]]),
+		)
 		current.presets = state.presets
 		if (options.colorScheme) current.theme = options.colorScheme.colorScheme.value
 		return current
@@ -237,12 +245,12 @@ export function createFlowStore(client, options = {}) {
 				const theirs = [].concat(copy(value)).filter(isPreset)
 				const mine = agreed ? [] : state.presets.filter((preset) => !theirs.some((their) => their.id === preset.id))
 				state.presets = [...theirs, ...mine]
-			} else state.prefs[key] = copy(value)
+			} else state.prefs[key] = copy(value ?? defaults[key])
 		}
 		if (typeof state.prefs.customInstructions !== "string") state.prefs.customInstructions = ""
 		agreed = saved
 		settingsLoaded = true
-		localStorage.setItem(keys.prefs, JSON.stringify(state.prefs))
+		localStorage.setItem(keys.prefs, JSON.stringify(changedPrefs()))
 		localStorage.setItem(keys.presets, JSON.stringify(state.presets))
 		localStorage.setItem(keys.synced, JSON.stringify(agreed))
 		saveSettings()

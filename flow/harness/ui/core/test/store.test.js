@@ -899,7 +899,7 @@ test("a first message needs a project folder, unless the host has no filesystem"
 	hostless.detach()
 })
 
-test("saved state lives under the host's storage key, an old saved theme moves to frappe-ui's, and a daemon that keeps settings has the last change from either side", async (t) => {
+test("saved state lives under the host's storage key and keeps only what differs from the defaults, an old saved theme moves to frappe-ui's, and a daemon that keeps settings has the last change from either side", async (t) => {
 	const backing = new Map()
 	const previousStorage = globalThis.localStorage
 	globalThis.localStorage = {
@@ -926,7 +926,9 @@ test("saved state lives under the host's storage key, an old saved theme moves t
 		assert.equal(saved.chatFontWeight, 500)
 		assert.equal(saved.sidebarOpen, false)
 		assert.deepEqual(saved.openFolders, ["/w/api"])
-		assert.deepEqual([saved.sidebarGroup, saved.sidebarOrder, saved.chatOrder], ["workspace", "manual", ["s2", "s1"]])
+		assert.deepEqual([saved.sidebarOrder, saved.chatOrder], ["manual", ["s2", "s1"]])
+		// a setting at its default isn't kept, so it follows a new default
+		assert.equal("sidebarGroup" in saved || "mode" in saved, false)
 		assert.equal(backing.has("flow.ui.prefs"), false)
 
 		// the theme used to live in the default key's prefs
@@ -994,6 +996,17 @@ test("saved state lives under the host's storage key, an old saved theme moves t
 		await settled()
 		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [300, 20])
 		assert.equal(daemon.settings.chatFontWeight, 300)
+
+		// a setting put back to its default goes as null, so every browser follows the default again
+		reloaded.setChatFontWeight(400)
+		t.mock.timers.tick(500)
+		await settled()
+		assert.equal(daemon.settings.chatFontWeight, null)
+		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:other.prefs")), false)
+		const firstAgain = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
+		await settled()
+		assert.equal(firstAgain.state.prefs.chatFontWeight, 400)
+		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:site:user.prefs")), false)
 	} finally {
 		globalThis.localStorage = previousStorage
 	}
