@@ -171,7 +171,9 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 			frappe.cache.delete(tmp_id + "_token")
 			tracker.add_success_attempt()
 			if otp_setup_pending:
-				frappe.cache.set(tmp_id + "_email_verified", 1, frappe.flags.token_expiry or 300)
+				frappe.cache.set_value(
+					tmp_id + "_email_verified", 1, expires_in_sec=frappe.flags.token_expiry or 300
+				)
 				frappe.local.response["verification"] = get_otp_app_setup_obj(
 					login_manager.user, frappe.safe_decode(otp_secret)
 				)
@@ -182,7 +184,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 			tracker.add_failure_attempt()
 			login_manager.fail(_("Incorrect Verification code"), login_manager.user)
 
-	if otp_setup_pending and not frappe.cache.get(tmp_id + "_email_verified"):
+	if otp_setup_pending and not frappe.cache.get_value(tmp_id + "_email_verified"):
 		tracker.add_failure_attempt()
 		login_manager.fail(_("Incorrect Verification code"), login_manager.user)
 

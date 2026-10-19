@@ -168,7 +168,7 @@ class TestTwoFactor(IntegrationTestCase):
 		self.assertEqual(frappe.local.response["verification"]["method"], "Email")
 
 		otp_secret = get_otpsecret_for_(self.user)
-		email_code = pyotp.HOTP(otp_secret).at(int(frappe.cache.get(tmp_id + "_token")))
+		email_code = pyotp.HOTP(otp_secret).at(int(frappe.cache.get(tmp_id + "_token")))  # nosemgrep
 		frappe.local.response["verification"] = None
 		self.assertFalse(confirm_otp_token(self.login_manager, otp=email_code, tmp_id=tmp_id))
 
