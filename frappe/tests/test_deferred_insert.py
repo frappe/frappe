@@ -23,6 +23,14 @@ class TestDeferredInsert(IntegrationTestCase):
 		frappe.cache.delete_value(f"{queue_prefix}Route History")
 		super().tearDown()
 
+	def test_log_table_check_keeps_the_site_column_cache(self):
+		frappe.db.get_db_table_columns("tabToDo")
+		frappe.local.log_tables_ready = set()
+
+		ensure_log_table("Route History")
+
+		self.assertIsNotNone(frappe.client_cache.get_value("table_columns::tabToDo"))
+
 	def test_deferred_insert(self):
 		route_history = {"route": frappe.generate_hash(), "user": "Administrator"}
 		deferred_insert("Route History", [route_history])
