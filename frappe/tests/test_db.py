@@ -484,6 +484,9 @@ class TestDB(IntegrationTestCase):
 			'select 1 as é$b$; select 2 as "$b$"',
 			'select 1 as a\u00a0$b$; select 2 as "$b$"',
 			"select 1 -- \r; select 2",
+			"select E'a'\n'\\''; select 2 --'",
+			"select E'a' -- c\n\n'\\''; select 2 --'",
+			"select E'a' '\\'; select 2 --'",
 		):
 			with self.subTest(query=query), self.assertRaises(frappe.db.ProgrammingError):
 				frappe.db.sql(query)
@@ -497,6 +500,7 @@ class TestDB(IntegrationTestCase):
 			"select $$;$$",
 			"select $t$ $$; $t$",
 			"select 1 /* /* */ ; */",
+			"select E'a'\n'\\'; select 2'",
 		):
 			with self.subTest(query=query):
 				frappe.db.sql(query)
@@ -504,6 +508,7 @@ class TestDB(IntegrationTestCase):
 	@run_only_if(db_type_is.POSTGRES)
 	def test_multi_statements_postgres_nonstandard_strings(self):
 		frappe.db.sql("SET LOCAL standard_conforming_strings = off")
+		self.addCleanup(frappe.db.sql, "RESET standard_conforming_strings")
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select '\\'' ; select 2 --'")
 
