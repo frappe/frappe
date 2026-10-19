@@ -101,6 +101,7 @@
   "column_break_ewhs",
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
+  "use_classic_charts",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -851,12 +852,19 @@
    "fieldtype": "Int",
    "label": "Max Zip Extract Size (MB)",
    "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "Draw charts the way earlier versions did. Sites updated from an earlier version start with this on.",
+   "fieldname": "use_classic_charts",
+   "fieldtype": "Check",
+   "label": "Use Classic Charts"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-10-17 15:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
