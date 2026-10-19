@@ -1171,6 +1171,20 @@ class TestDB(IntegrationTestCase):
 			bind_values("(a, b) in %s", (((1, 2), (3, 4)),)),
 		)
 
+	@run_only_if(db_type_is.POSTGRES)
+	def test_escape_round_trips_backslashes(self):
+		value = "C:\\temp\\it's"
+		self.assertEqual(frappe.db.sql(f"select {frappe.db.escape(value, percent=False)}")[0][0], value)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_sql_binds_sequences_and_utility_statements(self):
+		names = frappe.db.sql(
+			"select name from tabDocType where name in %s order by name", (["Role", "User"],)
+		)
+		self.assertEqual(names, (("Role",), ("User",)))
+		frappe.db.sql("set local statement_timeout = %s", 1234)
+		self.assertEqual(frappe.db.sql("show statement_timeout")[0][0], "1234ms")
+
 	def test_callbacks(self):
 		order_of_execution = []
 
