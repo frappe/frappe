@@ -82,7 +82,9 @@ class TestTwoFactor(IntegrationTestCase):
 		self.assertTrue(verification_obj)
 		self.assertTrue(tmp_id)
 		for k in ["_usr", "_pwd", "_otp_secret"]:
-			self.assertTrue(frappe.cache.get(f"{tmp_id}{k}"), f"{k} not available")
+			self.assertTrue(
+				frappe.cache.get_value(f"{tmp_id}{k}", use_local_cache=False), f"{k} not available"
+			)
 
 	def test_two_factor_is_enabled(self):
 		"""
@@ -168,7 +170,9 @@ class TestTwoFactor(IntegrationTestCase):
 		self.assertEqual(frappe.local.response["verification"]["method"], "Email")
 
 		otp_secret = get_otpsecret_for_(self.user)
-		email_code = pyotp.HOTP(otp_secret).at(int(frappe.cache.get(tmp_id + "_token")))  # nosemgrep
+		email_code = pyotp.HOTP(otp_secret).at(
+			frappe.cache.get_value(tmp_id + "_token", use_local_cache=False)
+		)
 		frappe.local.response["verification"] = None
 		self.assertFalse(confirm_otp_token(self.login_manager, otp=email_code, tmp_id=tmp_id))
 
@@ -193,7 +197,7 @@ class TestTwoFactor(IntegrationTestCase):
 			with self.assertRaises(frappe.AuthenticationError):
 				confirm_otp_token(self.login_manager, otp=get_otp(self.user), tmp_id=tmp_id)
 
-			frappe.cache.delete(tmp_id + "_token")
+			frappe.cache.delete_value(tmp_id + "_token")
 			with self.assertRaises(frappe.AuthenticationError):
 				confirm_otp_token(self.login_manager, otp=get_otp(self.user), tmp_id=tmp_id)
 		self.assertFalse(get_default(self.user + "_otplogin"))
