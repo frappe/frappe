@@ -267,6 +267,9 @@ def enqueue_webhook_retry(log_name: str, queue: str) -> bool:
 
 def retry_webhook_delivery(log_name: str):
 	log = frappe.get_doc("Webhook Request Log", log_name)
+	if log.status == "Delivered":
+		return
+
 	webhook = frappe.db.get_value(
 		"Webhook",
 		log.webhook,
