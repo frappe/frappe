@@ -315,11 +315,11 @@ class LoginManager:
 		reset_pwd_after_days = cint(frappe.get_system_settings("force_user_to_reset_password"))
 
 		if reset_pwd_after_days:
-			last_password_reset_date = (
-				frappe.db.get_value("User", self.user, "last_password_reset_date") or today()
+			last_password_reset_date, creation = frappe.db.get_value(
+				"User", self.user, ["last_password_reset_date", "creation"]
 			)
 
-			last_pwd_reset_days = date_diff(today(), last_password_reset_date)
+			last_pwd_reset_days = date_diff(today(), last_password_reset_date or creation)
 
 			if last_pwd_reset_days > reset_pwd_after_days:
 				return True
