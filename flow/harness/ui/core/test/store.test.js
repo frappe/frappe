@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import { ref } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
 import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
@@ -898,7 +899,7 @@ test("a first message needs a project folder, unless the host has no filesystem"
 	hostless.detach()
 })
 
-test("saved state lives under the host's storage key, and an old saved theme moves to frappe-ui's", () => {
+test("saved state lives under the host's storage key, an old saved theme moves to frappe-ui's, and a daemon that keeps settings has the last change from either side", async (t) => {
 	const backing = new Map()
 	const previousStorage = globalThis.localStorage
 	globalThis.localStorage = {
@@ -935,6 +936,64 @@ test("saved state lives under the host's storage key, and an old saved theme mov
 		assert.equal("theme" in defaults.state.prefs, false)
 		assert.equal(JSON.parse(backing.get("flow.ui.prefs")).theme, undefined)
 		assert.equal(defaults.state.prefs.mode, "auto")
+
+		// on first use the daemon gets this browser's settings, but not its window's layout
+		t.mock.timers.enable({ apis: ["setTimeout"] })
+		const settled = () => new Promise((resolve) => setImmediate(resolve))
+		const daemon = { settings: null, saves: [], away: false }
+		const client = {
+			async settings() {
+				return { settings: daemon.settings }
+			},
+			async updateSettings(changed) {
+				if (daemon.away) throw new Error("connection refused")
+				daemon.saves.push(Object.keys(changed))
+				daemon.settings = { ...daemon.settings, ...changed }
+			},
+		}
+		const scheme = (value) => {
+			const colorScheme = ref(value)
+			return { colorScheme, setColorScheme: (next) => (colorScheme.value = next) }
+		}
+		const first = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
+		await settled()
+		assert.deepEqual(
+			[daemon.settings.chatFontSize, daemon.settings.chatOrder, daemon.settings.theme, daemon.settings.presets],
+			[16.01, ["s2", "s1"], "dark", []],
+		)
+		assert.equal("openFolders" in daemon.settings || "sidebarOpen" in daemon.settings, false)
+		// a change follows a moment later, alone
+		first.setChatFontSize(18)
+		first.setSidebarWidth(300)
+		t.mock.timers.tick(500)
+		await settled()
+		assert.deepEqual(daemon.saves.at(-1), ["chatFontSize"])
+
+		// another browser shows the daemon's settings, and keeps its own presets beside the daemon's
+		first.savePreset({ name: "Reviewer", tools: ["read"] })
+		t.mock.timers.tick(500)
+		await settled()
+		backing.set("flow.ui:other.presets", JSON.stringify([{ id: "mine", name: "Mine", tools: [] }]))
+		const otherScheme = scheme("system")
+		const other = createFlowStore(client, { storageKey: "flow.ui:other", colorScheme: otherScheme })
+		await settled()
+		assert.deepEqual([other.state.prefs.chatFontSize, other.state.prefs.sidebarOrder, otherScheme.colorScheme.value], [18, "manual", "dark"])
+		assert.deepEqual(daemon.settings.presets.map((preset) => preset.name), ["Reviewer", "Mine"])
+		assert.deepEqual(daemon.saves.at(-1), ["presets"])
+
+		// a change the daemon missed goes to it at the next load, over the copy it has
+		daemon.away = true
+		other.setChatFontWeight(300)
+		t.mock.timers.tick(500)
+		await settled()
+		daemon.away = false
+		first.setChatFontSize(20)
+		t.mock.timers.tick(500)
+		await settled()
+		const reloaded = createFlowStore(client, { storageKey: "flow.ui:other", colorScheme: otherScheme })
+		await settled()
+		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [300, 20])
+		assert.equal(daemon.settings.chatFontWeight, 300)
 	} finally {
 		globalThis.localStorage = previousStorage
 	}

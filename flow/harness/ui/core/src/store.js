@@ -45,6 +45,29 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 	}
 }
 
+const isPreset = (preset) => preset && typeof preset.id === "string" && Array.isArray(preset.tools)
+const same = (left, right) => JSON.stringify(left) === JSON.stringify(right)
+const copy = (value) => JSON.parse(JSON.stringify(value))
+
+// The prefs a daemon that keeps settings (client.settings) saves with the presets and the
+// theme, so they outlive the browser's storage and follow the user to another browser. The
+// rest (panel sizes, open folders, the folder for new chats) belong to this browser.
+const SYNCED_PREFS = [
+	"mode",
+	"customInstructions",
+	"activePreset",
+	"defaultPreset",
+	"lastModel",
+	"lastEffort",
+	"sidebarGroup",
+	"sidebarOrder",
+	"chatOrder",
+	"folderOrder",
+	"chatFontSize",
+	"chatFontWeight",
+]
+const COLOR_SCHEMES = ["system", "light", "dark"]
+
 // One store per connected daemon. `client` implements the DaemonClient surface;
 // Flow's Frappe shell passes a proxy-backed client instead.
 //
@@ -64,6 +87,8 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  the turn's key, response text and timestamp as props
 //   listedModel    true when a session-list row's `model` is the chat's current one, so a
 //                  chat being opened shows it before it loads (the daemon's can lag)
+//   colorScheme    frappe-ui's useColorScheme(), for a host whose daemon keeps the theme
+//                  with the other settings
 export function createFlowStore(client, options = {}) {
 	const capabilities = { rewind: typeof client.rewind === "function" }
 	options = {
@@ -81,8 +106,10 @@ export function createFlowStore(client, options = {}) {
 		workspace: `${options.storageKey}.workspace`,
 		presets: `${options.storageKey}.presets`,
 		queue: `${options.storageKey}.queue`,
+		synced: `${options.storageKey}.synced`,
 	}
-	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here
+	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here; a host whose
+	// daemon keeps settings passes it in (options.colorScheme) to save and restore it with them
 	const prefs = {
 		mode: "ask", // "ask" | "auto" — applied at session create
 		customInstructions: "", // sent as system_suffix at session create
@@ -138,9 +165,7 @@ export function createFlowStore(client, options = {}) {
 		transcriptOpen: false,
 		prefs,
 		// agent presets: { id, name, tools, extensionTools, promptMode, prompt }
-		presets: [].concat(readJSON(keys.presets, [])).filter(
-			(p) => p && typeof p.id === "string" && Array.isArray(p.tools),
-		),
+		presets: [].concat(readJSON(keys.presets, [])).filter(isPreset),
 		titles: readJSON(keys.titles, {}),
 	})
 
@@ -175,8 +200,76 @@ export function createFlowStore(client, options = {}) {
 	let loadedSkillsFor = null // key of the list in state.skills
 	let toolsLoading = null // the /tools fetch in flight; a first send waits for it
 
+	// The daemon's settings: the page starts from this browser's copy, then takes the daemon's,
+	// except for a setting changed here since the two last agreed, which goes to the daemon
+	// instead. A change is saved here at once and there a moment later.
+	let agreed = readJSON(keys.synced, null) // what the daemon was last known to hold
+	let settingsLoaded = false
+	let settingsTimer = null
+	let settingsSaving = Promise.resolve()
+
 	function savePrefs() {
 		localStorage.setItem(keys.prefs, JSON.stringify(state.prefs))
+		queueSettings()
+	}
+
+	function currentSettings() {
+		const current = Object.fromEntries(SYNCED_PREFS.map((key) => [key, state.prefs[key]]))
+		current.presets = state.presets
+		if (options.colorScheme) current.theme = options.colorScheme.colorScheme.value
+		return current
+	}
+
+	async function loadSettings() {
+		let saved
+		try {
+			saved = (await client.settings()).settings ?? {}
+		} catch {
+			return // an older daemon, or one whose policy keeps settings off: this browser's copy stands
+		}
+		const current = currentSettings()
+		for (const [key, value] of Object.entries(saved)) {
+			if (!(key in current) || (agreed && !same(current[key], agreed[key]))) continue
+			if (key === "theme") {
+				if (COLOR_SCHEMES.includes(value)) options.colorScheme.setColorScheme(value)
+			} else if (key === "presets") {
+				// a browser's first sync keeps its own presets beside the daemon's
+				const theirs = [].concat(copy(value)).filter(isPreset)
+				const mine = agreed ? [] : state.presets.filter((preset) => !theirs.some((their) => their.id === preset.id))
+				state.presets = [...theirs, ...mine]
+			} else state.prefs[key] = copy(value)
+		}
+		if (typeof state.prefs.customInstructions !== "string") state.prefs.customInstructions = ""
+		agreed = saved
+		settingsLoaded = true
+		localStorage.setItem(keys.prefs, JSON.stringify(state.prefs))
+		localStorage.setItem(keys.presets, JSON.stringify(state.presets))
+		localStorage.setItem(keys.synced, JSON.stringify(agreed))
+		saveSettings()
+	}
+
+	// a moment after a change; before the first load, the load sends it
+	function queueSettings() {
+		if (!settingsLoaded) return
+		clearTimeout(settingsTimer)
+		settingsTimer = setTimeout(saveSettings, 500)
+	}
+
+	// one save at a time, of what the daemon lacks; a failed one is sent again with the next
+	// change, or by the next load
+	function saveSettings() {
+		settingsSaving = settingsSaving.then(async () => {
+			const changed = Object.entries(currentSettings()).filter(([key, value]) => !same(value, agreed[key]))
+			if (!changed.length) return
+			const sent = copy(Object.fromEntries(changed))
+			try {
+				await client.updateSettings(sent)
+			} catch {
+				return
+			}
+			agreed = { ...agreed, ...sent }
+			localStorage.setItem(keys.synced, JSON.stringify(agreed))
+		})
 	}
 
 	// the theme used to live in prefs; frappe-ui's useColorScheme keeps it under "theme"
@@ -1399,6 +1492,7 @@ export function createFlowStore(client, options = {}) {
 
 	function savePresets() {
 		localStorage.setItem(keys.presets, JSON.stringify(state.presets))
+		queueSettings()
 	}
 
 	function activePreset() {
@@ -1497,6 +1591,11 @@ export function createFlowStore(client, options = {}) {
 
 	function detach() {
 		closeStream()
+	}
+
+	if (typeof client.settings === "function") {
+		if (options.colorScheme) watch(options.colorScheme.colorScheme, queueSettings)
+		void loadSettings()
 	}
 
 	return {

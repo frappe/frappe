@@ -78,6 +78,13 @@ export class DaemonClient {
 	tools() {
 		return this.request("GET", "/tools")
 	}
+	// the web UI's settings, kept by the daemon; a save merges the keys it sends
+	settings() {
+		return this.request("GET", "/settings")
+	}
+	updateSettings(settings) {
+		return this.request("PATCH", "/settings", { body: { settings } })
+	}
 	// skill files under the global root and, with a cwd, the project's
 	skillFiles(cwd = null) {
 		return this.request("GET", "/skills", { params: cwd ? { cwd } : {} })

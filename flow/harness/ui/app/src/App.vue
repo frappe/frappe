@@ -48,6 +48,7 @@
 
 <script setup>
 import { onMounted, ref } from "vue"
+import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 import { DaemonClient, FlowChat, LoadingState, createFlowStore } from "@flow/ui-core"
 
 const CONNECTION_KEY = "flow.ui.connection"
@@ -73,7 +74,8 @@ async function tryConnect(config, { silent = false } = {}) {
 		await client.sessions()
 		if (own !== attempt) return
 		localStorage.setItem(CONNECTION_KEY, JSON.stringify(config))
-		store.value = createFlowStore(client)
+		// the daemon keeps the theme with the other settings
+		store.value = createFlowStore(client, { colorScheme: useColorScheme() })
 	} catch (err) {
 		if (own !== attempt) return
 		// a refused token shows even on the silent check: only the form can fix it
