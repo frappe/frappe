@@ -1530,9 +1530,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 						${frappe.utils.icon("ban")}
 					</div>`;
 			} else if (df.fieldtype === "Select") {
+				// badge.html escapes the label itself, so pass the raw value
 				html = frappe.ui.badge.html({
-					label: __(_value),
-					theme: frappe.utils.guess_colour(_value),
+					label: __(value_display),
+					theme: frappe.utils.guess_colour(value_display),
 					css_class: `${filterable} ellipsis`.trim(),
 					attrs: {
 						"data-filter": `${escaped_fieldname},=,${escaped_value}`,
