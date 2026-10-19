@@ -20,6 +20,5 @@ onUnmounted(() => scope.teardownPage())
 onUnmounted(onPageScriptHotUpdate((name, setup) => scope.applyPageScriptHotUpdate(name, setup)))
 
 useAppStore().activePage = page
-const tabTitle = page.tab_title
-if (tabTitle) usePageMeta(() => ({ title: scope.evaluateDynamicValues(tabTitle) || page.page_title }))
+usePageMeta(() => ({ title: page.tab_title ? scope.evaluateDynamicValues(page.tab_title) : page.page_title }))
 </script>
