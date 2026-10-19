@@ -256,8 +256,8 @@
 /* Conversation typography. */
 .flow-prose {
 	/* font-family: Inter; */
-	font-size: 15.5px;
-	line-height: 1.65;
+	font-size: 14.5px;
+	line-height: 1.6;
 	font-weight: 400;
 	letter-spacing: normal;
 }
