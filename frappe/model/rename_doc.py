@@ -77,7 +77,7 @@ def update_document_title(
 
 			doc.queue_action("rename", name=transformed_name, merge=merge, queue=queue, timeout=36000)
 		else:
-			doc.rename(updated_name, merge=merge)
+			doc._rename(updated_name, merge=merge)
 
 	if title_updated:
 		if action_enqueued and name_updated:

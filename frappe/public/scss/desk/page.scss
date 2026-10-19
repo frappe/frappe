@@ -4,39 +4,6 @@
 	padding: 0 15px;
 	min-width: 0;
 
-	.sidebar-toggle-btn {
-		display: flex;
-		margin-right: var(--margin-sm);
-		cursor: pointer;
-		--icon-stroke: var(--gray-700);
-
-		.sidebar-toggle-icon {
-			display: none;
-		}
-
-		.sidebar-toggle-icon,
-		.sidebar-toggle-placeholder {
-			@include transition(all 0.5s ease-in-out);
-		}
-
-		&:hover {
-			.sidebar-toggle-icon {
-				display: block;
-			}
-
-			.sidebar-toggle-placeholder {
-				display: none;
-			}
-		}
-	}
-
-	@media (min-width: 992px) {
-		// only for small screens
-		.sidebar-toggle-btn {
-			display: none;
-		}
-	}
-
 	.title-area {
 		display: inline-flex;
 		align-items: center;

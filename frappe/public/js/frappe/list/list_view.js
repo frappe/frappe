@@ -177,7 +177,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	validate_filters(filters) {
 		let valid_fields = this.meta.fields.map((df) => df.fieldname);
 		valid_fields = valid_fields.concat(frappe.model.std_fields_list);
-		return filters.filter((f) => valid_fields.includes(f[1])).uniqBy((f) => f[1]);
+		const table_doctypes = frappe.meta.get_table_fields(this.doctype).map((df) => df.options);
+		return filters
+			.filter(
+				(f) =>
+					valid_fields.includes(f[1]) ||
+					(table_doctypes.includes(f[0]) && frappe.meta.has_field(f[0], f[1]))
+			)
+			.uniqBy((f) => `${f[0]}.${f[1]}`);
 	}
 
 	setup_page() {
@@ -197,6 +204,51 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					this._virtualization_bundle_failed = true;
 				});
 			}
+		});
+		this.setup_load_on_scroll();
+	}
+
+	// On a phone the plain list view hides the page-size pills and Load More (see
+	// toggle_result_area) and loads the next page as the end of the list nears the screen.
+	// Other views built on ListView keep their paging area: Report shows its count there
+	// and Gantt its zoom buttons.
+	setup_load_on_scroll() {
+		if (this.view_name !== "List" || typeof IntersectionObserver === "undefined") return;
+		this.load_on_scroll = true;
+		this.$list_end = $(`<div class="list-end" aria-hidden="true"></div>`);
+		this.$result.after(this.$list_end);
+	}
+
+	// Past the virtualization threshold the rows scroll in their own box, so the early
+	// margin has to be measured against that box rather than the screen.
+	observe_list_end() {
+		const root = this.virtualization_state?.enabled
+			? this.virtualization_state.container
+			: null;
+		// a new observer also reports a list end that is already in view; an existing one
+		// only reports changes
+		this.scroll_observer?.disconnect();
+		this.scroll_observer = new IntersectionObserver(
+			(entries) => {
+				if (entries.some((entry) => entry.isIntersecting)) this.load_more_on_scroll();
+			},
+			{ root, rootMargin: "0px 0px 600px 0px" }
+		);
+		this.scroll_observer.observe(this.$list_end[0]);
+	}
+
+	load_more_on_scroll() {
+		// a short last page means there is nothing more; this is when Load More hides
+		if (!frappe.is_mobile() || this.loading_more || this.data.length < this.page_length)
+			return;
+		this.loading_more = true;
+		this.start = this.data.length;
+		this.page_length = this.selected_page_count;
+		// a newer refresh can render while this one is pending, and then drop its response;
+		// its own check of the list end came while this load still held loading_more
+		this.refresh_now().finally(() => {
+			this.loading_more = false;
+			this.observe_list_end();
 		});
 	}
 
@@ -319,6 +371,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	patch_refresh_and_load_lib() {
 		// throttle refresh for 1s
 		this.refresh = this.refresh.bind(this);
+		// a scroll load skips the throttle: loading_more already keeps it to one at a time,
+		// and inside the window the throttle hands back the last refresh's settled promise
+		this.refresh_now = this.refresh;
 		this.refresh = frappe.utils.throttle(this.refresh, 1000);
 		this.load_lib = new Promise((resolve) => {
 			if (this.required_libs) {
@@ -858,6 +913,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	toggle_result_area() {
 		super.toggle_result_area();
 		this.toggle_actions_menu_button(this.checked_docnames.size > 0);
+		// scroll loading replaces the paging area on a phone (setup_load_on_scroll)
+		if (this.load_on_scroll && frappe.is_mobile()) this.$paging_area.hide();
 	}
 
 	toggle_actions_menu_button(toggle) {
@@ -1027,6 +1084,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	after_render() {
 		this.$no_result.html(this.get_no_result_message());
 		this.setup_new_doc_event();
+		// after every render, not only a scroll load: a first page or a filtered page that
+		// fits on screen leaves the list end in view, and nothing else would report it
+		if (this.load_on_scroll) this.observe_list_end();
 	}
 
 	render() {
@@ -1703,12 +1763,22 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		let assigned_users = doc._assign ? JSON.parse(doc._assign) : [];
 		if (assigned_users.length) {
+			// clicking an avatar filters the list by that assignee (setup_filterable)
+			const avatars = assigned_users.map((user) => {
+				const { fullname, image } = frappe.user_info(user);
+				return {
+					label: fullname,
+					image,
+					css_class: "filterable",
+					attrs: { "data-filter": `_assign,like,%${user}%` },
+				};
+			});
 			assigned_to = `<div class="list-assignments d-flex align-items-center">
-					${
-						frappe.avatar_group(assigned_users, this.max_number_of_avatars - 1, {
-							filterable: true,
-						})[0].outerHTML
-					}
+					${frappe.ui.avatar_group.html({
+						avatars,
+						max: this.max_number_of_avatars - 1,
+						size: "md",
+					})}
 				</div>`;
 		}
 
@@ -2479,10 +2549,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	on_row_checked() {
-		this.$list_head_subject =
-			this.$list_head_subject || this.$result.find("header .list-header-subject");
-		this.$checkbox_actions =
-			this.$checkbox_actions || this.$result.find("header .checkbox-actions");
+		this.$list_head_subject = this.$result.find("header .list-header-subject");
+		this.$checkbox_actions = this.$result.find("header .checkbox-actions");
 
 		// checked_docnames = full selection across all rows; $checks = only what's in the DOM right now.
 		const checked_count = this.checked_docnames.size;

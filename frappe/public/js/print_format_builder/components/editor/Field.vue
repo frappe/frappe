@@ -15,7 +15,7 @@
 		:data-fieldtype="preview_data_attr(df.fieldtype)"
 		:data-field-uid="field_uid(df)"
 		v-show="!df.remove"
-		:title="df.label || df.fieldname"
+		:title="section_hidden_reason || df.label || df.fieldname"
 		:aria-label="df.label || df.fieldname"
 		tabindex="0"
 		@click.stop="select_field($event)"
@@ -45,6 +45,7 @@ import { field_menu_options } from "../../composables/useNodeMenu";
 
 const props = defineProps(["df", "field_orientation"]);
 const store = inject("$store");
+const section_hidden_reason = inject("section_hidden_reason", null);
 const chip = ref(null);
 
 const preview_doc = computed(() => store.preview_doc.value);

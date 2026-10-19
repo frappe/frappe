@@ -41,6 +41,13 @@ async function move_second_section_to_new_page(page) {
 		.click();
 }
 
+async function rename_page(page, index, name) {
+	const tab = page_tabs(page).nth(index);
+	await tab.locator("> div").dblclick();
+	await tab.locator("input").fill(name);
+	await tab.locator("input").press("Enter");
+}
+
 async function open_add_field_picker(page) {
 	await first_column(page).locator(".add-new-field-btn button").click();
 }
@@ -128,6 +135,28 @@ test.describe("Web Form Builder", () => {
 		await expect(canvas_field(page, "public")).not.toHaveCount(0);
 	});
 
+	test("Saves page names on Page Break rows, page 1's in row 1", async ({ page, desk, api }) => {
+		await seed_web_form(api, SPLITTABLE_FIELDS);
+		await open_builder(page);
+
+		await rename_page(page, 0, "About You");
+		await rename_page(page, 1, "Contact Details");
+		await desk.save();
+
+		await expect_web_form_fields(page, (fields) => {
+			expect(fields[0].fieldtype, "page 1's break is row 1").toBe("Page Break");
+			const page_breaks = fields.filter((f) => f.fieldtype === "Page Break");
+			expect(page_breaks.map((f) => f.label)).toEqual(["About You", "Contact Details"]);
+		});
+		// the row names page 1 and opens no extra page
+		await expect(page_tabs(page)).toHaveCount(2);
+
+		// an unnamed page still shows its position
+		await page_tabs(page).first().click();
+		await move_second_section_to_new_page(page);
+		await page_labels_should_be(page, ["About You", "Page 2", "Contact Details"]);
+	});
+
 	test("Stops Move sections to new page at the page limit", async ({ page, api }) => {
 		await seed_web_form(api, SPLITTABLE_FIELDS);
 		await open_builder(page);
@@ -146,9 +175,7 @@ test.describe("Web Form Builder", () => {
 		await expect(page.locator(".msgprint-dialog:visible .modal-title")).toContainText(
 			"Too Many Pages"
 		);
-		await expect(page.locator(".msgprint")).toContainText(
-			"There can be only 9 Page Break fields"
-		);
+		await expect(page.locator(".msgprint")).toContainText("There can be only 10 pages");
 		await expect(page_tabs(page)).toHaveCount(10);
 	});
 
@@ -188,7 +215,7 @@ test.describe("Web Form Builder", () => {
 		await expect(page_status(page)).not.toContainText("Not Saved");
 	});
 
-	test("Writes the pages and a section label back without a Page Break for page one", async ({
+	test("Writes the pages and a section label back without a Page Break for an unnamed page one", async ({
 		page,
 		desk,
 		api,

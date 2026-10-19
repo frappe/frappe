@@ -13,6 +13,7 @@ same handlers. Per event, dispatch:
   frappe_context handler run in a worker thread with a SyncSocket
 
 Handler errors are logged and swallowed so one bad handler never drops the socket.
+The last result a handler returns that is not None answers the client's acknowledgement.
 Concrete events are bound (rather than a combined catch-all) to avoid ambiguity in
 python-socketio's argument order; the namespace is always prepended for namespace="*".
 """
@@ -39,27 +40,26 @@ logger = logging.getLogger("frappe.realtime")
 RESERVED_EVENTS = ("connect", "disconnect")
 
 
-def _run_in_context(handler: Handler, socket: SyncSocket, args: tuple[object, ...]) -> None:
+def _run_in_context(handler: Handler, socket: SyncSocket, args: tuple[object, ...]) -> object:
 	"""Run a handler inside a Frappe context. Called on a worker thread."""
 	with frappe_context(socket.site, socket.user):
-		handler.fn(socket, *args)
+		return handler.fn(socket, *args)
 
 
-async def _call(handler: Handler, socket: Socket, args: tuple[object, ...]) -> None:
+async def _call(handler: Handler, socket: Socket, args: tuple[object, ...]) -> object:
 	"""Run one handler, moving it off the loop if it blocks."""
 	if is_async_callable(handler.fn):
-		await handler.fn(socket, *args)
-		return
+		return await handler.fn(socket, *args)
 
 	sync_socket = SyncSocket(socket, asyncio.get_running_loop())
 	if handler.frappe_context:
-		await asyncio.to_thread(_run_in_context, handler, sync_socket, args)
-		return
+		return await asyncio.to_thread(_run_in_context, handler, sync_socket, args)
 
 	result = await asyncio.to_thread(handler.fn, sync_socket, *args)
 	# A decorator can hide a coroutine function behind a plain wrapper.
 	if inspect.isawaitable(result):
-		await result
+		result = await result
+	return result
 
 
 async def _run_handlers(
@@ -68,7 +68,7 @@ async def _run_handlers(
 	namespace: str,
 	sid: str,
 	args: tuple[object, ...],
-) -> None:
+) -> object:
 	handlers = realtime.handlers_for(event)
 	if not handlers:
 		return
@@ -80,20 +80,25 @@ async def _run_handlers(
 
 	socket = Socket(sio, sid, namespace, session)
 
+	result = None
 	for handler in handlers:
 		if handler.app not in socket.installed_apps:
 			continue
 		if socket.user == "Guest" and not handler.allow_guest:
 			continue
 		try:
-			await _call(handler, socket, args)
+			value = await _call(handler, socket, args)
 		except Exception:
 			logger.exception("handler error: event=%s app=%s", event, handler.app)
+			continue
+		if value is not None:
+			result = value
+	return result
 
 
 def _make_dispatcher(sio: AsyncServer, event: str) -> Callable[..., Coroutine]:
-	async def dispatcher(namespace: str, sid: str, *args: object) -> None:
-		await _run_handlers(sio, event, namespace, sid, args)
+	async def dispatcher(namespace: str, sid: str, *args: object) -> object:
+		return await _run_handlers(sio, event, namespace, sid, args)
 
 	return dispatcher
 

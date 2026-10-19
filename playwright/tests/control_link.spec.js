@@ -33,6 +33,7 @@ test.describe("Control Link", () => {
 		await admin.set_value("User", TEST_USER, { language: "en" });
 		await admin.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link", true);
 		await admin.remove_doc("Property Setter", "ToDo-assigned_by-default", true);
+		await admin.remove_doc("Property Setter", "ToDo-main-show_preview_popup", true);
 	});
 
 	async function get_dialog_with_link(desk) {
@@ -140,6 +141,43 @@ test.describe("Control Link", () => {
 		await input.blur();
 		await validated;
 		await expect(input).toHaveValue("");
+	});
+
+	test("should keep typed text when the window loses focus", async ({ page, desk }) => {
+		await get_dialog_with_link(desk);
+
+		const input = await focus_link_input(page);
+		await input.pressSequentially("invalid value", { delay: 100 });
+
+		let validated = false;
+		page.on("request", (req) => {
+			validated ||= req.url().includes("/api/method/frappe.client.validate_link_and_fetch");
+		});
+		await input.evaluate((el) => {
+			document.hasFocus = () => false;
+			el.dispatchEvent(new Event("change", { bubbles: true }));
+			el.dispatchEvent(new FocusEvent("blur"));
+		});
+		await page.evaluate(() => frappe.xcall("ping"));
+
+		expect(validated).toBe(false);
+		await expect(input).toHaveValue("invalid value");
+	});
+
+	test("should show the results again when the window regains focus", async ({ page, desk }) => {
+		await get_dialog_with_link(desk);
+
+		const input = await focus_link_input(page);
+		await input.pressSequentially(todo_stamp, { delay: 100 });
+		const result = get_dropdown(input).locator("div[role='option']").first();
+		await expect(result).toContainText(todo_stamp);
+
+		await input.evaluate((el) => el.dispatchEvent(new FocusEvent("blur")));
+		await expect(get_dropdown(input)).toBeHidden();
+		await input.evaluate((el) => el.dispatchEvent(new FocusEvent("focus")));
+
+		await expect(result).toContainText(todo_stamp);
+		await expect(get_dropdown(input)).toBeVisible();
 	});
 
 	test("should be possible set empty value explicitly", async ({ page, desk }) => {
@@ -382,5 +420,106 @@ test.describe("Control Link", () => {
 			return query_frm === frm;
 		});
 		expect(form_passed).toBe(true);
+	});
+
+	async function setup_todo_preview({ page, desk, api }) {
+		const [other_todo] = await api.create_records({
+			doctype: "ToDo",
+			description: `another test todo for link preview ${todo_stamp}`,
+		});
+		created_todos.push(other_todo);
+		await api.insert_doc(
+			"Property Setter",
+			{
+				doctype: "Property Setter",
+				doc_type: "ToDo",
+				property: "show_preview_popup",
+				property_type: "Check",
+				doctype_or_field: "DocType",
+				value: "1",
+			},
+			true
+		);
+		// link_preview_doctypes comes with the boot, which stays cached per user
+		await api.call("frappe.sessions.clear");
+		await page.reload();
+		await desk.ready();
+
+		const dialog = await get_dialog_with_link(desk);
+		await page.evaluate(() => document.activeElement?.blur());
+		return {
+			other_todo,
+			dialog,
+			input: page.locator(".frappe-control[data-fieldname=link] input"),
+			preview: page.locator(".link-preview-popover"),
+			leave: () => desk.get_open_dialog().locator(".modal-title").hover(),
+		};
+	}
+
+	const is_preview_of = (name) => (res) =>
+		res.url().includes("get_preview_data") &&
+		new URL(res.url()).searchParams.get("docname") === name;
+
+	test("previews the doc the field holds after its value is set in code", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const { other_todo, dialog, input, preview, leave } = await setup_todo_preview({
+			page,
+			desk,
+			api,
+		});
+
+		// a form reused for another doc sets its fields like this: no "change" event
+		for (const name of [todo, other_todo]) {
+			await dialog.evaluate((d, name) => d.set_value("link", name), name);
+			await input.hover();
+			await expect(preview).toContainText(name);
+			await leave();
+			await expect(preview).toHaveCount(0);
+		}
+	});
+
+	test("drops a preview that arrives after the field moved to another doc", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const { other_todo, dialog, input, preview, leave } = await setup_todo_preview({
+			page,
+			desk,
+			api,
+		});
+
+		let release;
+		const held = new Promise((resolve) => (release = resolve));
+		await page.route(
+			(url) =>
+				url.pathname.endsWith("get_preview_data") &&
+				url.searchParams.get("docname") === todo,
+			async (route) => {
+				await held;
+				await route.continue();
+			}
+		);
+
+		await dialog.evaluate((d, name) => d.set_value("link", name), todo);
+		const first_requested = page.waitForRequest((req) => is_preview_of(todo)(req));
+		await input.hover();
+		await first_requested;
+
+		await dialog.evaluate((d, name) => d.set_value("link", name), other_todo);
+		await leave();
+		const second_loaded = page.waitForResponse(is_preview_of(other_todo));
+		await input.hover();
+		await second_loaded;
+
+		const first_loaded = page.waitForResponse(is_preview_of(todo));
+		release();
+		await first_loaded;
+
+		await expect(preview).toContainText(other_todo);
+		await expect(preview).not.toContainText(todo);
 	});
 });

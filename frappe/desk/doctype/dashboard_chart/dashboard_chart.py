@@ -288,8 +288,11 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 				item.name = _(item.get("name", "Not Specified"))
 
 	if data:
+		empty_label = (
+			_("No {0}").format(_(group_by_field_field.label)) if group_by_field_field else _("Not Set")
+		)
 		return {
-			"labels": [item.name for item in data],
+			"labels": [item.name or empty_label for item in data],
 			"datasets": [{"name": _(chart.name), "values": [item["count"] for item in data]}],
 		}
 	return None

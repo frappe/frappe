@@ -152,11 +152,13 @@ def is_server_side_code(file):
 
 def is_ci(file):
 	"""Check if the file is related to CI configuration."""
-	return ".github" in file and "VOUCHED.td" not in file
+	return ".github" in file and "VOUCHED.td" not in file and not file.endswith(".md")
 
 
 def is_frontend_code(file):
 	"""Check if the file is frontend code."""
+	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
+		return True
 	return file.lower().endswith(
 		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg")
 	)
@@ -217,12 +219,45 @@ def select_tests(files_list):
 
 
 def is_docs(file):
-	"""Check if the file is documentation or image."""
-	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE")
+	"""Check if the file is documentation, image or the translation template (no runtime effect)."""
+	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE|/locale/main\.pot$")
 	return bool(regex.search(file))
 
 
+def _selftest():
+	import tempfile
+	from datetime import UTC, datetime
+
+	assert is_docs("frappe/locale/main.pot"), "translation template alone must skip tests"
+	assert not is_docs("frappe/locale/de.po"), "translations change output, must run tests"
+
+	impact = {
+		"generated_at": datetime.now(UTC).isoformat(),
+		"map": {"frappe/a.py": ["frappe/tests/test_a.py"]},
+	}
+	cwd = os.getcwd()
+	with tempfile.TemporaryDirectory() as tree:
+		os.chdir(tree)
+		try:
+			with open(IMPACT_MAP_FILE, "w") as f:
+				json.dump(impact, f)
+			assert select_tests(["frappe/locale/main.pot", "frappe/a.py"]) == ["frappe/tests/test_a.py"], (
+				"main.pot must not force the full suite"
+			)
+			assert select_tests(["frappe/locale/de.po", "frappe/a.py"]) is None, (
+				".po must force the full suite"
+			)
+		finally:
+			os.chdir(cwd)
+
+	print("roulette selftest OK")
+
+
 if __name__ == "__main__":
+	if sys.argv[1:] == ["selftest"]:
+		_selftest()
+		sys.exit(0)
+
 	files_list = sys.argv[1:]
 	build_type = os.environ.get("TYPE")
 	pr_number = os.environ.get("PR_NUMBER")

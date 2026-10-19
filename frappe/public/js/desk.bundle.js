@@ -13,6 +13,7 @@ import "./frappe/ui/components/badge.js";
 import "./frappe/ui/components/skeleton.js";
 import "./frappe/ui/components/divider.js";
 import "./frappe/ui/components/avatar.js";
+import "./frappe/ui/components/avatar_group.js";
 import "./frappe/ui/components/alert.js";
 import "./frappe/ui/components/breadcrumbs.js";
 import "./frappe/ui/components/toast.js";
@@ -30,6 +31,7 @@ import "./frappe/ui/components/stepper.js";
 import "./frappe/ui/components/empty_state.js";
 import "./frappe/ui/components/panel_header.js";
 import "./frappe/ui/sidebar/sidebar_panel.js";
+import "./frappe/ui/mobile_nav_loader.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";

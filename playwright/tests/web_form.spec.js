@@ -207,12 +207,12 @@ test.describe("Web Form", () => {
 
 	test("Custom Breadcrumbs", async ({ page, desk }) => {
 		const breadcrumbs = '[{"label": _("Notes"), "route":"note"}]';
-		await open_settings(page, "Customization");
+		await open_settings(page);
 
 		await desk.fill_field("breadcrumbs", breadcrumbs, "Code");
 		await expect.poll(() => page.evaluate(() => cur_frm.doc.breadcrumbs)).toBe(breadcrumbs);
 		await page
-			.locator(".form-tabs .nav-item .nav-link", { hasText: "Customization" })
+			.locator(".form-tabs .nav-item .nav-link", { hasText: "Settings" })
 			.first()
 			.click();
 		await desk.save();

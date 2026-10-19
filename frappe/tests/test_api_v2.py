@@ -6,10 +6,14 @@ import requests
 
 import frappe
 from frappe.api import discovery
+from frappe.api.v2 import run_doc_method
+from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
-from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.permissions import add_permission, update_permission_property
+from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, wait_for_job, whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
+from frappe.utils import get_test_client, set_request
 
 authorization_token = None
 
@@ -176,6 +180,64 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertFalse(response.json["errors"][0].get("exception"))
 
 
+class TestApiV2UpdatePermissions(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.user = "api.permissions@example.com"
+		self.created_user = not frappe.db.exists("User", self.user)
+		if self.created_user:
+			frappe.get_doc(
+				doctype="User", email=self.user, first_name="API Permissions", send_welcome_email=0
+			).insert()
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		self.names = []
+		for allocated_to in (self.user, None):
+			doc = frappe.get_doc(
+				doctype="ToDo", description="API v2 permission fixture", allocated_to=allocated_to
+			).insert()
+			self.names.append(doc.name)
+		# Requests use a separate connection and must see these fixtures.
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			for name in self.names:
+				frappe.delete_doc_if_exists("ToDo", name)
+			if self.created_user:
+				frappe.delete_doc("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def update_document(self, name, data):
+		return make_request(
+			get_test_client(use_cookies=False).put,
+			args=(self.resource("ToDo", name),),
+			kwargs={"json": data, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def test_update_cannot_grant_access_using_payload(self):
+		name = self.names[1]
+		for field in ("allocated_to", "assigned_by", "owner"):
+			with self.subTest(field=field):
+				before = frappe.db.get_value("ToDo", name, field)
+				response = self.update_document(name, {field: self.user})
+				self.assertEqual(response.status_code, 403)
+				self.assertEqual(frappe.db.get_value("ToDo", name, field), before)
+
+	def test_permitted_update_still_succeeds(self):
+		name = self.names[0]
+		response = self.update_document(name, {"description": "Permitted API update"})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
+
+
 class TestMethodAPIV2(FrappeAPITestCase):
 	version = "v2"
 
@@ -255,6 +317,57 @@ class TestMethodAPIV2(FrappeAPITestCase):
 			},
 		)
 		self.assertEqual(response.status_code, 200)
+
+	def test_run_doc_method_on_unsaved_doc_needs_create_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Email Group")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Email Group Creator"}).insert()
+		add_permission("Email Group", role.name, ptype="create")
+		update_permission_property("Email Group", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "email-group-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		group = {"doctype": "Email Group", "welcome_url": "https://example.com"}
+		saved = frappe.get_doc({**group, "title": "Saved Group"}).insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			unsaved = {**group, "title": "Unsaved Group", "__islocal": 1}
+			self.assertEqual(run_doc_method("preview_welcome_url", unsaved), "https://example.com")
+
+			# a saved doc still needs write, even when the client marks it as local
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("preview_welcome_url", {**saved.as_dict(), "__islocal": 1})
+
+	def test_run_doc_method_on_single_needs_write_v2(self):
+		self.addCleanup(frappe.clear_cache, doctype="Document Naming Settings")
+		role = frappe.get_doc({"doctype": "Role", "role_name": "Naming Settings Creator"}).insert()
+		add_permission("Document Naming Settings", role.name, ptype="create")
+		update_permission_property("Document Naming Settings", role.name, 0, "read", 1)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "naming-settings-creator@example.com",
+				"first_name": "Creator",
+				"send_welcome_email": 0,
+			}
+		)
+		user.append_roles(role.name)
+		user.insert()
+
+		with self.set_user(user.name), patch.object(frappe.local, "request", None, create=True):
+			set_request(method="POST")
+			# a Single exists whatever name the client sends
+			settings = {"doctype": "Document Naming Settings", "name": "not-the-single", "__islocal": 1}
+			with self.assertRaises(frappe.PermissionError):
+				run_doc_method("update_series", settings)
 
 	def test_logs_v2(self):
 		method = "frappe.tests.test_api.test"
@@ -599,11 +712,13 @@ class TestDocTypeAPIV2(FrappeAPITestCase):
 
 class TestDiscoveryAPIV2(FrappeAPITestCase):
 	version = "v2"
-	TEST_USER = "api-discovery-user@example.com"
+	DESK_USER = "api-discovery-desk-user@example.com"
+	WEBSITE_USER = "api-discovery-website-user@example.com"
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.delete_doc_if_exists("User", cls.TEST_USER, force=True)
+		for user in (cls.DESK_USER, cls.WEBSITE_USER):
+			frappe.delete_doc_if_exists("User", user, force=True)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -616,28 +731,39 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 	def discovery_path(self, *parts):
 		return self.get_path("discovery", *parts)
 
-	def non_developer_sid(self) -> str:
+	def user_sid(self, email: str, *roles: str) -> str:
 		from frappe.auth import CookieManager, LoginManager
 		from frappe.utils import set_request
 
-		if not frappe.db.exists("User", self.TEST_USER):
+		if not frappe.db.exists("User", email):
 			user = frappe.get_doc(
 				{
 					"doctype": "User",
-					"email": self.TEST_USER,
+					"email": email,
 					"first_name": "API Discovery User",
 					"send_welcome_email": 0,
 				}
 			)
-			user.append_roles("Website Manager")
+			user.append_roles(*roles)
 			user.insert(ignore_permissions=True)
-			frappe.db.commit()
+			# HTTP requests use another connection and must see this user.
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 		set_request(path="/")
 		frappe.local.cookie_manager = CookieManager()
 		frappe.local.login_manager = LoginManager()
-		frappe.local.login_manager.login_as(self.TEST_USER)
+		frappe.local.login_manager.login_as(email)
 		return frappe.session.sid
+
+	def discovery_paths(self):
+		return (
+			self.discovery_path(),
+			self.discovery_path("search"),
+			self.discovery_path("method"),
+			self.discovery_path("method", "frappe.tests.test_api.test"),
+			self.discovery_path("doctype", "User"),
+			self.discovery_path("doctype", "User", "method", "add_comment"),
+		)
 
 	def test_search_v2(self):
 		response = self.get(
@@ -833,17 +959,16 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 		self.assertNotIn("Retry-After", response.headers)
 		log_error.assert_not_called()
 
-	def test_discovery_requires_developer_role_v2(self):
-		sid = self.non_developer_sid()
-		paths = (
-			self.discovery_path(),
-			self.discovery_path("search"),
-			self.discovery_path("method"),
-			self.discovery_path("method", "frappe.tests.test_api.test"),
-			self.discovery_path("doctype", "User"),
-			self.discovery_path("doctype", "User", "method", "add_comment"),
-		)
-		for path in paths:
+	def test_discovery_allows_desk_user_v2(self):
+		sid = self.user_sid(self.DESK_USER, "Website Manager")
+		for path in self.discovery_paths():
+			with self.subTest(path=path):
+				response = self.get(path, {"sid": sid})
+				self.assertEqual(response.status_code, 200)
+
+	def test_discovery_rejects_website_user_v2(self):
+		sid = self.user_sid(self.WEBSITE_USER)
+		for path in self.discovery_paths():
 			with self.subTest(path=path):
 				with suppress_stdout():
 					response = self.get(path, {"sid": sid})

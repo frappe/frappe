@@ -72,6 +72,32 @@ def make_test_image_file(private=False):
 		_test_file.delete()
 
 
+@contextmanager
+def make_test_pdf_file(private=False):
+	import io
+
+	from PIL import Image
+
+	image_path = frappe.get_app_path("frappe", "tests/data/sample_image_for_optimization.jpg")
+	buf = io.BytesIO()
+	Image.open(image_path).save(buf, format="PDF")
+
+	test_file = frappe.get_doc(
+		{
+			"doctype": "File",
+			"file_name": "sample_pdf_for_optimization.pdf",
+			"content": buf.getvalue(),
+			"is_private": private,
+		}
+	).insert()
+	_test_file: File = frappe.get_doc("File", test_file.name)
+
+	try:
+		yield _test_file
+	finally:
+		_test_file.delete()
+
+
 class TestSimpleFile(IntegrationTestCase):
 	def setUp(self):
 		self.attached_to_doctype, self.attached_to_docname = make_test_doc()
@@ -1507,6 +1533,18 @@ class TestChildTableAttachments(IntegrationTestCase):
 
 		self.assertFalse(frappe.has_permission("File", doc=reloaded_victim, ptype="read"))
 
+	def test_file_url_change_permission(self):
+		frappe.set_user("test@example.com")
+		file = self.make_unattached_file(b"url-change-bytes", is_private=1)
+
+		frappe.set_user("test4@example.com")
+		other = frappe.get_doc(
+			doctype="File", file_url="https://example.com/x.pdf", file_name="x.pdf", is_private=1
+		).insert()
+
+		other.file_url = file.file_url
+		self.assertRaises(frappe.PermissionError, other.save)
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
@@ -1878,10 +1916,12 @@ class TestFileUtils(IntegrationTestCase):
 		final_response = MagicMock(is_redirect=False, content=image_bytes)
 		final_response.raise_for_status.return_value = None
 
-		with patch("requests.get", side_effect=[redirect_response, final_response]) as mock_get:
+		session = MagicMock()
+		session.get.side_effect = [redirect_response, final_response]
+		with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
 			_, _, extn = get_web_image("http://8.8.8.8/initial.jpg")
 
-		self.assertEqual(mock_get.call_count, 2)
+		self.assertEqual(session.get.call_count, 2)
 		self.assertEqual(extn, "jpg")
 
 	def test_resolved_file_path_stays_within_files_directory(self):
@@ -1944,7 +1984,9 @@ class TestFileUtils(IntegrationTestCase):
 	def test_get_web_image_rejects_redirect_to_restricted_address(self):
 		redirect_response = MagicMock(is_redirect=True, headers={"Location": "http://127.0.0.1/secret"})
 
-		with patch("requests.get", side_effect=[redirect_response]) as mock_get:
+		session = MagicMock()
+		session.get.side_effect = [redirect_response]
+		with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
 			self.assertRaisesRegex(
 				ValidationError,
 				"restricted address",
@@ -1952,7 +1994,20 @@ class TestFileUtils(IntegrationTestCase):
 				"http://8.8.8.8/initial.jpg",
 			)
 
-		mock_get.assert_called_once()
+		session.get.assert_called_once()
+
+	def test_get_web_image_uses_guarded_session_for_external_urls(self):
+		with self.assertRaises(ValidationError):
+			get_web_image("http://127.0.0.1:6379/x.jpg")
+
+		with patch("requests.get") as plain_get:
+			session = MagicMock()
+			session.get.return_value = MagicMock(is_redirect=False, content=b"not an image")
+			with patch("frappe.utils.safe_exec.get_safe_request_session", return_value=session):
+				with self.assertRaises(Exception):
+					get_web_image("http://8.8.8.8/x.jpg")
+			session.get.assert_called_once()
+			plain_get.assert_not_called()
 
 
 class TestFileOptimization(IntegrationTestCase):
@@ -2074,6 +2129,18 @@ class TestFileOptimization(IntegrationTestCase):
 		# both the original and the copy must pass, regardless of DB row ordering
 		frappe.get_doc("File", source.name).validate_file_url_matches_record()
 		frappe.get_doc("File", copy.name).validate_file_url_matches_record()
+
+	def test_optimize_pdf(self):
+		with make_test_pdf_file() as test_file:
+			original_size = test_file.file_size
+			original_content_hash = test_file.content_hash
+
+			test_file.optimize_file()
+			optimized_size = test_file.file_size
+			updated_content_hash = test_file.content_hash
+
+			self.assertLess(optimized_size, original_size)
+			self.assertNotEqual(original_content_hash, updated_content_hash)
 
 	def test_optimize_svg(self):
 		file_path = frappe.get_app_path("frappe", "tests/data/sample_svg.svg")

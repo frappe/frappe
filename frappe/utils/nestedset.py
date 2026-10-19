@@ -14,6 +14,7 @@ from collections.abc import Iterator
 
 import frappe
 from frappe import _
+from frappe.core.doctype.user_permission.user_permission import clear_descendant_user_permissions
 from frappe.model.document import Document
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Coalesce, Max
@@ -61,6 +62,8 @@ def update_nsm(doc):
 	doc.set(old_parent_field, parent)
 	frappe.db.set_value(doc.doctype, doc.name, old_parent_field, parent or "", update_modified=False)
 	frappe.clear_document_cache(doc.doctype)
+	if old_parent != parent:
+		clear_descendant_user_permissions(doc.doctype)
 
 	doc.reload()
 
@@ -284,19 +287,6 @@ class NestedSet(Document):
 	def __setup__(self):
 		if self.meta.get("nsm_parent_field"):
 			self.nsm_parent_field = self.meta.nsm_parent_field
-
-	def after_insert(self):
-		if (
-			frappe.flags.in_import
-			or frappe.flags.in_patch
-			or frappe.flags.in_migrate
-			or frappe.flags.in_install
-		):
-			return
-
-		# Clear user permissions cache, otherwise user can't access the new document
-		if frappe.db.exists("User Permission", {"user": frappe.session.user, "allow": self.doctype}):
-			frappe.cache.hdel("user_permissions", frappe.session.user)
 
 	def on_update(self):
 		update_nsm(self)

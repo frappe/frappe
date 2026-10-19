@@ -321,47 +321,70 @@ export default class OnboardingWidget extends Widget {
 			: `${frappe.router.slug(step.reference_document)}/new`;
 		const return_to = frappe.get_route();
 
-		frappe.route_hooks = {};
-		frappe.route_hooks.after_load = (frm) => {
-			const on_finish = () => this.complete_and_return(step, return_to);
-			frm.tour.init({ tour_name: step.form_tour, on_finish }).then(() => frm.tour.start());
-		};
+		this.set_route_hooks(step, {
+			after_load: (frm) => {
+				const on_finish = () => this.complete_and_return(step, return_to);
+				frm.tour
+					.init({ tour_name: step.form_tour, on_finish })
+					.then(() => frm.tour.start());
+			},
+		});
 		frappe.set_route(route);
 	}
 
 	update_settings(step) {
 		const return_to = frappe.get_route();
 
-		frappe.route_hooks = {};
-		frappe.route_hooks.after_load = (frm) => {
-			frm.scroll_to_field(step.field);
-			frm.doc.__unsaved = true;
-		};
-		// the server checks the saved value; if it is not the expected one the user stays on the
-		// form with the reason
-		frappe.route_hooks.after_save = () => this.complete_and_return(step, return_to);
+		this.set_route_hooks(step, {
+			after_load: (frm) => {
+				frm.scroll_to_field(step.field);
+				frm.doc.__unsaved = true;
+			},
+			// the server checks the saved value; if it is not the expected one the user stays on
+			// the form with the reason
+			after_save: () => this.complete_and_return(step, return_to),
+		});
 		frappe.set_route("Form", step.reference_document);
+	}
+
+	// frappe.route_hooks is one global that the next form to load, save or submit takes, whatever
+	// its doctype. A hook for this step's form that reaches another form puts itself back and does
+	// nothing there, so leaving the step half done and submitting, say, a Sales Invoice neither
+	// ticks the step on the wrong form nor uses the hook up before the step's own form comes back.
+	set_route_hooks(step, hooks) {
+		frappe.route_hooks = {};
+		for (const [event, callback] of Object.entries(hooks)) {
+			const hook = (frm) => {
+				if (frm?.doctype !== step.reference_document) {
+					frappe.route_hooks[event] = hook;
+					return;
+				}
+				callback(frm);
+			};
+			frappe.route_hooks[event] = hook;
+		}
 	}
 
 	async create_entry(step) {
 		const return_to = frappe.get_route();
 		const docname = await this.get_first_document(step.reference_document);
 
-		frappe.route_hooks = {};
+		const hooks = {};
 		if (step.form_tour) {
-			frappe.route_hooks.after_load = (frm) => {
+			hooks.after_load = (frm) => {
 				frm.tour.init({ tour_name: step.form_tour }).then(() => frm.tour.start());
 			};
 		}
 
 		if (step.is_submittable) {
-			frappe.route_hooks.after_save = () => {
+			hooks.after_save = () => {
 				frappe.ui.toast({ message: __("Submit it to finish this step."), type: "info" });
 			};
-			frappe.route_hooks.after_submit = () => this.complete_and_return(step, return_to);
+			hooks.after_submit = () => this.complete_and_return(step, return_to);
 		} else {
-			frappe.route_hooks.after_save = () => this.complete_and_return(step, return_to);
+			hooks.after_save = () => this.complete_and_return(step, return_to);
 		}
+		this.set_route_hooks(step, hooks);
 
 		frappe.set_route("Form", step.reference_document, docname);
 	}

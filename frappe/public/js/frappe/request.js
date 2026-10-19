@@ -153,12 +153,17 @@ frappe.request.call = function (opts) {
 			opts.error_callback && opts.error_callback();
 		},
 		404: function (xhr) {
-			frappe.msgprint({
-				title: __("Not found"),
-				indicator: "red",
-				message: __("The resource you are looking for is not available"),
-				re_route: true,
-			});
+			if (xhr.responseJSON?._server_messages && frappe.msg_dialog?.msg_area.html()) {
+				// cleanup has already shown the server's messages
+				frappe.re_route_on_msgprint_hide();
+			} else {
+				frappe.msgprint({
+					title: __("Not found"),
+					indicator: "red",
+					message: __("The resource you are looking for is not available"),
+					re_route: true,
+				});
+			}
 			opts.error_callback && opts.error_callback();
 		},
 		403: function (xhr) {
@@ -457,7 +462,7 @@ frappe.request.handle_session_expiry = function (response) {
 	// the dialog and the redirect live on frappe.app, which only exists once
 	// start_app() has run on document ready. Requests fired from top level module
 	// code can land before that, so fall through to the regular handlers instead.
-	if (!frappe.app) return false;
+	if (!frappe.app || frappe.app.logged_out) return false;
 
 	if (!frappe.app.session_expired_dialog && !frappe.request.is_session_expired(response)) {
 		return false;

@@ -125,7 +125,7 @@ frappe.ui.empty_state = function (opts = {}) {
 	}
 	if (opts.description) {
 		const desc = document.createElement("div");
-		desc.className = "text-p-sm text-ink-gray-5 max-w-xs";
+		desc.className = "text-p-sm text-ink-gray-5 max-w-sm";
 		desc.textContent = opts.description;
 		text.appendChild(desc);
 	}

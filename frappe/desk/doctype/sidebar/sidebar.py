@@ -226,10 +226,8 @@ class Sidebar(Document, DeskViews):
 
 		Titling a sidebar after its own module is the default and is allowed.
 		"""
-		if self.title == self.module:
-			return
-
-		if frappe.db.exists("Module Def", self.title, cache=True):
+		other = frappe.db.get_value("Module Def", self.title, cache=True)
+		if other and other != self.module:
 			frappe.throw(
 				_("{0} is another module's name, and a sidebar's title is what the desk calls it by.").format(
 					frappe.bold(self.title)
@@ -332,6 +330,13 @@ class Sidebar(Document, DeskViews):
 		from frappe.desk.doctype.dock.dock import rename_sidebar_rows
 
 		rename_sidebar_rows(old_name, new_name)
+
+	def on_trash(self):
+		from frappe.desk.doctype.dock.dock import remove_sidebar_rows
+
+		# a dock row is a Dynamic Link, which no delete checks, so it would stay behind pointing at
+		# nothing
+		remove_sidebar_rows(self.name)
 
 	def validate_item_routes(self):
 		for item in self.items:

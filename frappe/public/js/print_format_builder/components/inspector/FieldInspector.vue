@@ -49,26 +49,6 @@
 				></button>
 			</div>
 
-			<!-- Breadcrumb: navigate up to parent section when a field is selected -->
-			<div
-				v-if="selected_field && parent_section && !is_multi_select"
-				class="pfb-breadcrumb"
-			>
-				<button
-					class="pfb-breadcrumb-btn"
-					@click="select_parent_section"
-					:title="__('Select parent section (Esc)')"
-				>
-					<span v-html="frappe.utils.icon('arrow-up', 'xs')"></span>
-					<span class="pfb-breadcrumb-label">{{ __("Section:") }}</span>
-					<span class="pfb-breadcrumb-name">{{
-						parent_section.label ||
-						zone_label(layout, parent_section) ||
-						__("Untitled")
-					}}</span>
-				</button>
-			</div>
-
 			<!-- Nothing selected: canvas-wide print settings -->
 			<div v-if="!has_selection" class="pfb-insp-body">
 				<PrintSettingsPanel />
@@ -103,7 +83,7 @@
 
 <script setup>
 import { computed, inject } from "vue";
-import { section_of, zone_label } from "../../layout";
+import { zone_label } from "../../layout";
 import LetterHeadZoneInspector from "./LetterHeadZoneInspector.vue";
 import SectionPropertiesPanel from "./SectionPropertiesPanel.vue";
 import RepeaterFieldInspector from "./RepeaterFieldInspector.vue";
@@ -194,17 +174,6 @@ let inspector_subtitle = computed(() => {
 	}
 	return "";
 });
-
-let parent_section = computed(() =>
-	selected_field.value ? section_of(layout.value, selected_field.value) : null
-);
-
-function select_parent_section() {
-	if (parent_section.value) {
-		store.selected_section.value = parent_section.value;
-		store.selected_field.value = null;
-	}
-}
 </script>
 
 <style scoped>
@@ -266,44 +235,6 @@ function select_parent_section() {
 	content: "·";
 	margin-right: 6px;
 	opacity: 0.4;
-}
-
-/* ── Breadcrumb ──────────────────────────────────────────── */
-.pfb-breadcrumb {
-	padding: 4px 16px;
-	border-bottom: 1px solid var(--border-color);
-	background: var(--fg-color);
-}
-
-.pfb-breadcrumb-btn {
-	display: inline-flex;
-	align-items: center;
-	gap: 4px;
-	margin-left: -6px;
-	padding: 2px 6px;
-	border: none;
-	background: transparent;
-	cursor: pointer;
-	border-radius: var(--radius);
-	color: var(--text-muted);
-	font-size: var(--text-xs);
-	transition: background 0.1s, color 0.1s;
-	max-width: 100%;
-}
-
-.pfb-breadcrumb-btn:hover {
-	background: var(--surface-gray-2);
-}
-
-.pfb-breadcrumb-label {
-	font-weight: 500;
-	flex-shrink: 0;
-}
-
-.pfb-breadcrumb-name {
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 }
 
 /* ── Canvas settings (nothing selected) ──────────────────── */

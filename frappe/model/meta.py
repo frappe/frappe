@@ -31,12 +31,11 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import (
+from frappe.model.document import (
 	DOCTYPE_TABLE_FIELDS,
 	TABLE_DOCTYPES_FOR_DOCTYPE,
-	BaseDocument,
+	Document,
 )
-from frappe.model.document import Document
 from frappe.model.utils import is_single_doctype
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
@@ -118,9 +117,9 @@ def load_doctype_from_file(doctype):
 	for d in txt.get("permissions", []):
 		d["doctype"] = "DocPerm"
 
-	txt["fields"] = [BaseDocument(d) for d in txt["fields"]]
+	txt["fields"] = [Document(d) for d in txt["fields"]]
 	if "permissions" in txt:
-		txt["permissions"] = [BaseDocument(d) for d in txt["permissions"]]
+		txt["permissions"] = [Document(d) for d in txt["permissions"]]
 
 	return txt
 
@@ -393,8 +392,8 @@ class Meta(Document):
 		if field := self.get_field(fieldname):
 			return field.translatable
 
-	def get_workflow(self):
-		return get_workflow_name(self.name)
+	def get_workflow(self, doc=None):
+		return get_workflow_name(self.name, doc)
 
 	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
@@ -1052,7 +1051,7 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 def trim_table(doctype, dry_run=True):
 	key = f"table_columns::tab{doctype}"
-	frappe.cache.delete_value(key)
+	frappe.client_cache.delete_value(key)
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
@@ -1070,8 +1069,8 @@ def trim_table(doctype, dry_run=True):
 	DROPPED_COLUMNS = columns_to_remove[:]
 
 	if columns_to_remove and not dry_run:
-		columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
-		frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
+		frappe.db.drop_columns(doctype, columns_to_remove)
+		frappe.client_cache.delete_value(key)
 
 	return DROPPED_COLUMNS
 
@@ -1112,7 +1111,7 @@ def _serialize(doc, no_nulls=False, *, is_child=False):
 				continue
 
 			if isinstance(value, ListOrTuple):
-				if value and isinstance(value[0], BaseDocument):
+				if value and isinstance(value[0], Document):
 					out[key] = [_serialize(d, no_nulls=no_nulls, is_child=True) for d in value]
 
 				continue

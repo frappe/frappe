@@ -1263,6 +1263,7 @@ def set_user_password(site, user, password, logout_all_sessions=False):
 			sys.exit(1)
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
+		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
 		frappe.db.commit()
 	finally:
 		frappe.destroy()
@@ -1353,7 +1354,7 @@ def browse(
 	if not site:
 		raise SiteNotSpecifiedError
 
-	if site not in frappe.utils.get_sites():
+	if site not in frappe.utils.get_sites() and not os.path.isfile(os.path.join(site, "site_config.json")):
 		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
 		sys.exit(1)
 
@@ -1480,6 +1481,7 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 	"""
 	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
+	from frappe.utils.logging import is_log_doctype
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -1491,17 +1493,25 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 		if doctype not in frappe.get_hooks("default_log_clearing_doctypes", {}):
 			raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
+		stored_in_log_db = is_log_doctype(doctype)
+
 		if not no_backup:
-			scheduled_backup(
-				ignore_conf=False,
-				include_doctypes=doctype,
-				ignore_files=True,
-				force=True,
-			)
-			click.echo(f"Backed up {doctype}")
+			if stored_in_log_db:
+				# `scheduled_backup` dumps tables out of the site's primary database, and a
+				# log DocType has none there -- asking for one aborts the whole command.
+				click.echo(f"Skipping backup: {doctype} is stored in the site's log database")
+			else:
+				scheduled_backup(
+					ignore_conf=False,
+					include_doctypes=doctype,
+					ignore_files=True,
+					force=True,
+				)
+				click.echo(f"Backed up {doctype}")
 
 		try:
-			click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
+			if not stored_in_log_db:
+				click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
 			clear_logs(doctype, days=days)
 		except Exception as e:
 			click.echo(f"Log cleanup for {doctype} failed:\n{e}")
@@ -1535,25 +1545,7 @@ def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 		frappe.init(site)
 		frappe.connect()
 
-		TABLES_TO_DROP = []
-		STANDARD_TABLES = get_standard_tables()
-		information_schema = frappe.qb.Schema("information_schema")
-		table_name = frappe.qb.Field("table_name").as_("name")
-
-		database_tables: list[str] = (
-			frappe.qb.from_(information_schema.tables)
-			.select(table_name)
-			.where(information_schema.tables.table_schema == frappe.conf.db_name)
-			.where(information_schema.tables.table_type == "BASE TABLE")
-			.run(pluck=True)
-		)
-		doctype_tables = frappe.get_all("DocType", pluck="name")
-
-		for table_name in database_tables:
-			if not table_name.startswith("tab"):
-				continue
-			if table_name.replace("tab", "", 1) not in doctype_tables and table_name not in STANDARD_TABLES:
-				TABLES_TO_DROP.append(table_name)
+		TABLES_TO_DROP = get_ghost_tables()
 
 		if not TABLES_TO_DROP:
 			if format == "text":
@@ -1588,6 +1580,7 @@ def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 					print(f"* Dropping Table '{table}'...")
 				frappe.db.sql_ddl(f"drop table `{table}`")
 
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 			ALL_DATA[frappe.local.site] = TABLES_TO_DROP
 		frappe.destroy()
 
@@ -1595,6 +1588,40 @@ def trim_database(context: CliCtxObj, dry_run, format, no_backup, yes=False):
 		import json
 
 		print(json.dumps(ALL_DATA, indent=1))
+
+
+def get_ghost_tables() -> list[str]:
+	"""Return tables of DocTypes that no longer exist."""
+	ghost_tables = []
+	standard_tables = get_standard_tables()
+	doctype_tables = [
+		f"tab{doctype}"[: frappe.db.MAX_COLUMN_LENGTH] for doctype in frappe.get_all("DocType", pluck="name")
+	]
+
+	for table_name in get_base_tables():
+		if not table_name.startswith("tab"):
+			continue
+		if table_name not in doctype_tables and table_name not in standard_tables:
+			ghost_tables.append(table_name)
+
+	return ghost_tables
+
+
+def get_base_tables() -> list[str]:
+	"""Return database tables, leaving out views and sequences."""
+	if frappe.db.db_type != "mariadb":
+		return frappe.db.get_tables(cached=False)
+
+	information_schema = frappe.qb.Schema("information_schema")
+	table_name = frappe.qb.Field("table_name").as_("name")
+
+	return (
+		frappe.qb.from_(information_schema.tables)
+		.select(table_name)
+		.where(information_schema.tables.table_schema == frappe.conf.db_name)
+		.where(information_schema.tables.table_type == "BASE TABLE")
+		.run(pluck=True)
+	)
 
 
 def get_standard_tables():

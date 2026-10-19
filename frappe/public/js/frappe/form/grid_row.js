@@ -475,11 +475,11 @@ export default class GridRow {
 				},
 			],
 			secondary_action_label: __("Select All"),
-			secondary_action: () => this.select_all_columns(docfields),
+			secondary_action: () => d.fields_dict.fields.select_all(),
 		});
 
-		d.set_primary_action(__("Add"), () => {
-			let selected_fields = d.get_values().fields;
+		d.set_primary_action(__("Add"), (values) => {
+			let selected_fields = values.fields;
 			const existing_settings = {};
 			this.selected_columns_for_grid.forEach((col) => {
 				existing_settings[col.fieldname] = col;
@@ -510,17 +510,6 @@ export default class GridRow {
 		});
 
 		d.show();
-	}
-
-	select_all_columns(docfields) {
-		docfields.forEach((docfield) => {
-			if (docfield.checked) {
-				return;
-			}
-			$(`.checkbox.unit-checkbox input[type="checkbox"][data-unit="${docfield.value}"]`)
-				.prop("checked", true)
-				.trigger("change");
-		});
 	}
 
 	prepare_columns_for_dialog(selected_fields) {

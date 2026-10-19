@@ -630,6 +630,25 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 
 		self.assertEqual(frappe.get_doc("Dock", layer.name).items[0].link_to, self.RENAMED)
 
+	def test_deleting_the_sidebar_drops_the_dock_rows_naming_it(self):
+		"""`Dock Item.link_to` is a Dynamic Link, which no delete checks, so without `on_trash` the
+		row would stay behind pointing at a sidebar that is gone."""
+		doc = make_sidebar(self.MODULE)
+		frappe.db.delete("Dock", {"app": "frappe", "user": "test@example.com"})
+		layer = frappe.get_doc(
+			{
+				"doctype": "Dock",
+				"app": "frappe",
+				"user": "test@example.com",
+				"items": [{"link_type": "Sidebar", "link_to": self.MODULE}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Dock", layer.name, force=True, ignore_permissions=True)
+
+		frappe.delete_doc("Sidebar", doc.name, force=True, ignore_permissions=True)
+
+		self.assertEqual(frappe.get_doc("Dock", layer.name).items, [])
+
 	def test_deleting_the_module_deletes_every_sidebar_it_owns(self):
 		"""Deleting by name reached exactly one, which was every one of them while a module
 		could only have one."""
@@ -767,6 +786,13 @@ class TestSidebarTitleIsRoutable(IntegrationTestCase):
 		self.addCleanup(self.drop_module, module)
 
 		self.assertEqual(make_sidebar(module, title=title).name, title)
+
+	def test_a_sidebar_may_take_its_own_module_name_in_other_case(self):
+		"""Module Def names compare without case in the database, so a title that differs from its
+		own module only in case still finds that module.
+		"""
+		title = self.MODULE.upper()
+		self.assertEqual(make_sidebar(self.MODULE, title=title).name, title)
 
 	def test_renaming_a_sidebar_to_its_own_slug_is_allowed(self):
 		"""Changing only the case or the spacing of a title leaves its segment where it was, and

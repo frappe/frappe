@@ -66,7 +66,7 @@ frappe.ui.form.get_breadcrumbs = function (frm) {
 	}
 
 	let title = frappe.model.get_doc_title(frm.doc);
-	title = __(title) || __(frm.doc.name);
+	title = __(title);
 	if (frappe.utils.is_html(title)) title = strip_html(title);
 	items.push({ label: title });
 
@@ -1596,7 +1596,7 @@ frappe.ui.form.Form = class FrappeForm {
 			this.perm[0].submit &&
 			!this.is_dirty() &&
 			!this.is_new() &&
-			!frappe.model.has_workflow(this.doctype) && // show only if no workflow
+			!frappe.workflow.has_workflow(this.doc) && // show only if no workflow
 			this.doc.docstatus === 0
 		) {
 			this.dashboard.add_comment(__("Submit this document to confirm"), "blue", true);
@@ -1680,6 +1680,11 @@ frappe.ui.form.Form = class FrappeForm {
 
 		delete this.opendocs[old];
 		this.opendocs[name] = true;
+
+		if (this.active_tab_map?.[old]) {
+			this.active_tab_map[name] = this.active_tab_map[old];
+			delete this.active_tab_map[old];
+		}
 
 		if (this.meta.in_dialog || !this.in_form) {
 			return;
@@ -1767,8 +1772,9 @@ frappe.ui.form.Form = class FrappeForm {
 		this.shared.show();
 	}
 
-	email_doc(message) {
+	email_doc(message, opts) {
 		return new frappe.views.CommunicationComposer({
+			...opts,
 			doc: this.doc,
 			frm: this,
 			subject: __(this.meta.name) + ": " + this.docname,
@@ -1962,7 +1968,10 @@ frappe.ui.form.Form = class FrappeForm {
 	set_currency_labels(fields_list, currency, parentfield) {
 		// To set the currency in the label
 		// For example Total Cost(INR), Total Cost(USD)
-		if (!currency) return;
+		if (!currency) {
+			this.reset_currency_labels(fields_list, parentfield);
+			return;
+		}
 		var me = this;
 		var doctype = parentfield ? this.fields_dict[parentfield].grid.doctype : this.doc.doctype;
 		var field_label_map = {};

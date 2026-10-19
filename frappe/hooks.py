@@ -9,7 +9,7 @@ app_description = "Full stack web framework with Python, Javascript, MariaDB, Re
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 develop_version = "17.x.x-develop"
-app_home = "/app/build"
+app_home = "/desk/build"
 
 app_email = "developers@frappe.io"
 
@@ -309,6 +309,7 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.storage.gc.collect_garbage",
 	],
 	"daily_long": [],
 	"daily_maintenance": [
@@ -504,6 +505,12 @@ before_request = [
 after_request = [
 	"frappe.monitor.stop",
 ]
+
+# Routes whose PUT body init_request must not buffer through make_form_dict or
+# cap at the generic upload size. The route reads request.stream itself and must
+# bound the body on its own. Paths match as written, so list every API mount a
+# route is reached on.
+streaming_request_paths = []
 
 # Background Job Hooks
 before_job = [

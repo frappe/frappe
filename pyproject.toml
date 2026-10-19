@@ -9,7 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
-    "Babel~=2.16.0",
+    "Babel~=2.18.0",
     "Click~=8.4.1",
     "filelock~=3.29.3",
     "filetype~=1.2.0",
@@ -28,7 +28,7 @@ dependencies = [
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
-    "Werkzeug==3.1.6",
+    "Werkzeug==3.1.9",
     "beautifulsoup4~=4.15.0",
     "bleach-allowlist~=1.0.3",
     "chardet~=7.4.3",
@@ -51,7 +51,6 @@ dependencies = [
     "xlsxwriter~=3.2.9",
     "orjson~=3.11.5",
     "passlib~=1.7.4",
-    "pdfkit~=1.0.0",
     "phonenumbers~=9.0.23",
     "premailer~=3.10.0",
     "psutil~=7.2.2",
@@ -81,6 +80,7 @@ dependencies = [
     "traceback-with-variables~=2.2.1",
     "typst~=0.15.0",
     "typing_extensions>=4.15.0,<5",
+    "tzdata~=2026.5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.2",
@@ -215,7 +215,6 @@ docstring-code-format = true
 nixpkgs-deps = [
     "mariadb",
     "restic",
-    "wkhtmltopdf-bin",
     "which",
     "gzip",
     "bash",
@@ -276,7 +275,6 @@ module = [
     "google.oauth2.credentials",
     "markdown2",
     "num2words",
-    "pdfkit",
     "premailer",
     "pyngrok",
     "pyqrcode",

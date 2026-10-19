@@ -2,6 +2,7 @@
 # See license.txt
 
 import frappe
+from frappe.core.doctype.doctype.doctype import HiddenAndMandatoryWithoutDefaultError
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.document_naming_settings.document_naming_settings import (
 	DocumentNamingSettings,
@@ -77,6 +78,68 @@ class TestNamingSeries(IntegrationTestCase):
 		self.dns.naming_series_options = self.dns.get_options() + "\n" + test_series
 		self.dns.update_series()
 		self.assertIn(test_series, frappe.get_meta(self.ns_doctype).get_naming_series_options())
+
+	def test_update_series_replaces_default(self):
+		for hidden in (0, 1):
+			with self.subTest(hidden=hidden):
+				doctype = self.make_doctype_with_naming_series(hidden)
+				self.dns.transaction_type = doctype
+				self.dns.naming_series_options = f"{frappe.generate_hash()}-.###"
+				self.dns.user_must_always_select = 0
+
+				with self.set_user("test@example.com"):
+					self.dns.update_series()
+
+				field = frappe.get_meta(doctype, cached=False).get_field("naming_series")
+				self.assertEqual(field.options, self.dns.naming_series_options)
+				self.assertEqual(field.default, self.dns.naming_series_options)
+				self.assertEqual(field.hidden, hidden)
+				self.assertEqual(field.reqd, 1)
+
+	def test_update_series_requires_selection(self):
+		doctype = self.make_doctype_with_naming_series(hidden=0)
+		series = f"{frappe.generate_hash()}-.###"
+		self.dns.transaction_type = doctype
+		self.dns.naming_series_options = series
+		self.dns.user_must_always_select = 1
+
+		with self.set_user("test@example.com"):
+			self.dns.update_series()
+
+		field = frappe.get_meta(doctype, cached=False).get_field("naming_series")
+		self.assertEqual(field.options, f"\n{series}")
+		self.assertFalse(field.default)
+
+	def test_update_hidden_mandatory_series_requires_default(self):
+		doctype = self.make_doctype_with_naming_series(hidden=1)
+		self.dns.transaction_type = doctype
+		self.dns.naming_series_options = f"{frappe.generate_hash()}-.###"
+		self.dns.user_must_always_select = 1
+
+		with self.set_user("test@example.com"):
+			with self.assertRaises(HiddenAndMandatoryWithoutDefaultError):
+				self.dns.update_series()
+
+	def make_doctype_with_naming_series(self, hidden):
+		series = f"{frappe.generate_hash()}-.###"
+		return (
+			new_doctype(
+				fields=[
+					{
+						"label": "Series",
+						"fieldname": "naming_series",
+						"fieldtype": "Select",
+						"options": series,
+						"default": series,
+						"reqd": 1,
+						"hidden": hidden,
+					}
+				],
+				autoname="naming_series:",
+			)
+			.insert()
+			.name
+		)
 
 	def test_update_series_counter(self):
 		for series in self.get_valid_serieses():
