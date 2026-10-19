@@ -505,6 +505,11 @@ class TestDB(IntegrationTestCase):
 			with self.subTest(query=query):
 				frappe.db.sql(query)
 
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select 1 -- %s", ("\n; select 2",))
+
+		self.assertEqual(frappe.db.sql("select %s", ("a; b",)), (("a; b",),))
+
 	@run_only_if(db_type_is.POSTGRES)
 	def test_multi_statements_postgres_nonstandard_strings(self):
 		frappe.db.sql("SET LOCAL standard_conforming_strings = off")
