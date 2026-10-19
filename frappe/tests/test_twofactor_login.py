@@ -12,6 +12,8 @@ from frappe.utils import get_test_client
 
 
 class TestTwoFactorLogin(IntegrationTestCase):
+	"""HTTP requests use separate database connections, so fixtures and cleanup require commits."""
+
 	user = "twofactor-login@example.com"
 	password = "TwoFactor-login-43A1W"
 	role = "_Test Two Factor Login"
@@ -45,7 +47,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 			roles=[{"role": self.role}],
 		).insert()
 		self.secret = get_otpsecret_for_(self.user)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 
 	def test_otp_app_enrollment(self):
 		tmp_id = self.start_login()
@@ -58,7 +60,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 	def test_enrolled_otp_app_login(self):
 		set_default(self.user + "_otplogin", 1)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
 		tmp_id = self.start_login(method="OTP App")
 		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
 		self.assert_logged_in(response)
@@ -160,4 +162,4 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		for doctype, name in (("User", self.user), ("Role", self.role)):
 			if frappe.db.exists(doctype, name):
 				frappe.delete_doc(doctype, name, force=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
