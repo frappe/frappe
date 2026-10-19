@@ -1159,16 +1159,16 @@ class TestDB(IntegrationTestCase):
 		# bool is a subclass of int, it must not end up as "True"
 		self.assertEqual(("%s %s", ["1", "0"]), bind_values("%s %s", (True, False)))
 		self.assertEqual(
-			("a in (%s, %s) and b like '1%%' and c = %s", ["1", "abc", None]),
-			bind_values("a in %s and b like '1%%' and c = %s", ([1, "abc"], None)),
+			("a = ANY(%s) and b like '1%%' and c <> ALL(%s) and d = %s", [["1", "abc"], ["x"], None]),
+			bind_values("a in %s and b like '1%%' and c NOT IN %s and d = %s", ([1, "abc"], ("x",), None)),
 		)
 		self.assertEqual(
-			("a in (%(a__0)s, %(a__1)s) or %(b)s", {"a__0": "1", "a__1": "abc", "b": "x"}),
+			("a = ANY(%(a)s) or %(b)s", {"a": ["1", "abc"], "b": "x"}),
 			bind_values("a in %(a)s or %(b)s", {"a": (1, "abc"), "b": "x", "unused": 1}),
 		)
 		self.assertEqual(
-			("(a, b) in ((%s, %s), (%s, %s))", ["1", "2", "3", "4"]),
-			bind_values("(a, b) in %s", (((1, 2), (3, 4)),)),
+			("(a, b) in ((%s, %s), (%s, %s)) and c = (%s, %s)", ["1", "2", "3", "4", "x", "y"]),
+			bind_values("(a, b) in %s and c = %s", (((1, 2), (3, 4)), ("x", "y"))),
 		)
 
 	@run_only_if(db_type_is.POSTGRES)
@@ -1182,6 +1182,8 @@ class TestDB(IntegrationTestCase):
 			"select name from tabDocType where name in %s order by name", (["Role", "User"],)
 		)
 		self.assertEqual(names, (("Role",), ("User",)))
+		self.assertFalse(frappe.db.sql("select name from tabDocType where issingle in %s", ((5, 6),)))
+		self.assertFalse(frappe.db.sql("select name from tabDocType where name in %s", ((),)))
 		frappe.db.sql("set local statement_timeout = %s", 1234)
 		self.assertEqual(frappe.db.sql("show statement_timeout")[0][0], "1234ms")
 
