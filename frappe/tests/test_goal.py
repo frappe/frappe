@@ -78,3 +78,22 @@ class TestGoal(IntegrationTestCase):
 		self.assertEqual(float(data["data"]["datasets"][0]["values"][-1]), 1)
 		self.assertEqual(data["fieldtype"], "Text Editor")
 		self.assertIsNone(data["currency"])
+
+	def test_monthly_goal_graph_data_for_a_standard_field(self):
+		docname = frappe.get_list("Event", filters={"subject": ["=", "_Test Event 1"]})[0]["name"]
+		data = get_monthly_goal_graph_data(
+			"Test",
+			"Event",
+			docname,
+			"idx",
+			"idx",
+			"description",
+			"Event",
+			"",
+			"description",
+			"creation",
+			filters={"starts_on": "2014-01-01"},
+			aggregation="count",
+		)
+		self.assertIsNone(data["fieldtype"])
+		self.assertIsNone(data["currency"])

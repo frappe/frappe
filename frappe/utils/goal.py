@@ -153,7 +153,7 @@ def get_monthly_goal_graph_data(
 		dataset_values.insert(0, val)
 		values_formatted.insert(0, format_value(val, meta.get_field(goal_total_field), doc))
 
-	total_df = meta.get_field(goal_total_field)
+	total_df = meta.get_field(goal_total_field) or frappe._dict()
 	return {
 		"title": title,
 		"fieldtype": total_df.fieldtype,
