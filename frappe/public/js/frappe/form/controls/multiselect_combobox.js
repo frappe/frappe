@@ -15,6 +15,19 @@ function add_typed_text(control, reason, free_text) {
 	const match = cb.match_option(query);
 	if (match) cb.add_value(match);
 	else if (free_text) cb.add_value(query);
+	// rows not loaded yet (a paste, then Tab): look the text up, as the Link field does
+	else if (cb.rows_pending) return look_up_typed_text(control, query);
+}
+
+function look_up_typed_text(control, query) {
+	const cb = control.combobox;
+	return Promise.resolve(control.fetch_options(query))
+		.then((result) => {
+			const rows = Array.isArray(result) ? result : result.rows;
+			const found = frappe.ui.Combobox.match_in(rows, query);
+			if (found && cb.trigger_el.isConnected) cb.add_value(found);
+		})
+		.catch(() => {});
 }
 
 // ---- Table MultiSelect: child rows, searched like a Link field ----
@@ -48,10 +61,11 @@ frappe.ui.form.ControlTableMultiSelectCombobox = class ControlTableMultiSelectCo
 				this.autocomplete_open = true;
 				this.picked_query = null;
 			},
-			// Ctrl+S waits for picks still being saved
+			// Ctrl+S waits for the typed text lookup and the picks still being saved
 			on_close: (reason) => {
 				this.autocomplete_open = false;
-				add_typed_text(this, reason, false);
+				const lookup = add_typed_text(this, reason, false);
+				if (lookup) return lookup.then(() => this.sync_chain);
 				return this.sync_pending ? this.sync_chain : undefined;
 			},
 			on_change: () => {
