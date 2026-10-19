@@ -367,7 +367,7 @@ login.login_handlers = (function () {
 				document.cookie = "tmp_id=" + data.tmp_id;
 
 				if (data.verification.method == 'OTP App') {
-					continue_otp_app(data.verification.setup, data.verification.qrcode);
+					continue_otp_app(data.verification.setup, data.verification.qrcode, data.verification.otp_secret);
 				} else if (data.verification.method == 'SMS') {
 					continue_sms(data.verification.setup, data.verification.prompt);
 				} else if (data.verification.method == 'Email') {
@@ -430,11 +430,22 @@ var request_otp = function (r) {
 	$("#login_token").get(0)?.focus();
 }
 
-var continue_otp_app = function (setup, qrcode) {
+var continue_otp_app = function (setup, qrcode, otp_secret) {
 	request_otp();
 	var qrcode_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
 
-	if (setup) {
+	if (qrcode) {
+		qrcode_div.append(
+			$('<div>').attr('id', 'qr_info').text({{ _("Scan the QR Code and enter the resulting code displayed.") | tojson }}),
+			$('<img>').attr({
+				src: "data:image/svg+xml;base64," + qrcode,
+				alt: {{ _("QR code to scan with your authenticator app") | tojson }},
+			}),
+			$('<p>').text({{ _("Can't scan the code?") | tojson }} + " " + {{ _("Enter this setup key manually:") | tojson }}),
+			$('<input type="text" readonly class="form-control">').val(otp_secret).on("focus", function () { this.select(); })
+		);
+		$('#otp_div').prepend(qrcode_div);
+	} else if (setup) {
 		direction = $('<div>').attr('id', 'qr_info').text({{ _("Enter Code displayed in OTP App.") | tojson }});
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);

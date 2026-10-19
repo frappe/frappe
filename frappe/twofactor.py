@@ -10,7 +10,7 @@ import frappe
 import frappe.defaults
 from frappe import _
 from frappe.permissions import ALL_USER_ROLE
-from frappe.utils import cint, get_datetime, get_url, time_diff_in_seconds
+from frappe.utils import cint, get_datetime, time_diff_in_seconds
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.password import decrypt, encrypt
 
@@ -98,8 +98,8 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 
 	pipeline = frappe.cache.pipeline()
 
-	# set increased expiry time for SMS and Email
-	if verification_method in ["SMS", "Email"]:
+	# set increased expiry time for SMS, Email and the email step of OTP App setup
+	if verification_method in ["SMS", "Email"] or not get_default(user + "_otplogin"):
 		expiry_time = frappe.flags.token_expiry or 300
 		pipeline.set(tmp_id + "_token", token, expiry_time)
 	else:
@@ -162,15 +162,29 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 
 	tracker = get_login_attempt_tracker(login_manager.user)
 
+	otp_setup_pending = get_verification_method() == "OTP App" and not get_default(
+		login_manager.user + "_otplogin"
+	)
 	hotp = pyotp.HOTP(otp_secret)
 	if hotp_token:
 		if hotp.verify(otp, int(hotp_token)):
 			frappe.cache.delete(tmp_id + "_token")
 			tracker.add_success_attempt()
+			if otp_setup_pending:
+				frappe.cache.set(tmp_id + "_email_verified", 1, frappe.flags.token_expiry or 300)
+				frappe.local.response["verification"] = get_otp_app_setup_obj(
+					login_manager.user, frappe.safe_decode(otp_secret)
+				)
+				frappe.local.response["tmp_id"] = tmp_id
+				return False
 			return True
 		else:
 			tracker.add_failure_attempt()
 			login_manager.fail(_("Incorrect Verification code"), login_manager.user)
+
+	if otp_setup_pending and not frappe.cache.get(tmp_id + "_email_verified"):
+		tracker.add_failure_attempt()
+		login_manager.fail(_("Incorrect Verification code"), login_manager.user)
 
 	totp = pyotp.TOTP(otp_secret)
 	if totp.verify(otp):
@@ -185,6 +199,17 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		login_manager.fail(_("Incorrect Verification code"), login_manager.user)
 
 
+def get_otp_app_setup_obj(user, otp_secret):
+	"""Return the QR code and secret to register the user's OTP App."""
+	otp_issuer = frappe.get_system_settings("otp_issuer_name")
+	totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
+	return {
+		"method": "OTP App",
+		"qrcode": get_qr_svg_code(totp_uri).decode(),
+		"otp_secret": otp_secret,
+	}
+
+
 def get_verification_obj(user, token, otp_secret):
 	otp_issuer = frappe.get_system_settings("otp_issuer_name")
 	verification_method = get_verification_method()
@@ -192,9 +217,9 @@ def get_verification_obj(user, token, otp_secret):
 	if verification_method == "SMS":
 		verification_obj = process_2fa_for_sms(user, token, otp_secret)
 	elif verification_method == "OTP App":
-		# check if this if the first time that the user is trying to login. If so, send an email
+		# first login: verify the email address before showing the QR code
 		if not get_default(user + "_otplogin"):
-			verification_obj = process_2fa_for_email(user, token, otp_secret, otp_issuer, method="OTP App")
+			verification_obj = process_2fa_for_email(user, token, otp_secret, otp_issuer)
 		else:
 			verification_obj = process_2fa_for_otp_app(user, otp_secret, otp_issuer)
 	elif verification_method == "Email":
@@ -225,25 +250,10 @@ def process_2fa_for_otp_app(user, otp_secret, otp_issuer):
 	return {"method": "OTP App", "setup": otp_setup_completed}
 
 
-def process_2fa_for_email(user, token, otp_secret, otp_issuer, method="Email"):
+def process_2fa_for_email(user, token, otp_secret, otp_issuer):
 	"""Process Email method for 2fa."""
-	subject = None
-	message = None
-	status = True
-	prompt = ""
-	if method == "OTP App" and not get_default(user + "_otplogin"):
-		"""Sending one-time email for OTP App"""
-		totp_uri = pyotp.TOTP(otp_secret).provisioning_uri(user, issuer_name=otp_issuer)
-		qrcode_link = get_link_for_qrcode(user, totp_uri, otp_secret)
-		message = get_email_body_for_qr_code({"qrcode_link": qrcode_link})
-		subject = get_email_subject_for_qr_code({"qrcode_link": qrcode_link})
-		prompt = _(
-			"Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it."
-		)
-	else:
-		"""Sending email verification"""
-		prompt = _("Verification code has been sent to your registered email address.")
-	status = send_token_via_email(user, token, otp_secret, otp_issuer, subject=subject, message=message)
+	prompt = _("Verification code has been sent to your registered email address.")
+	status = send_token_via_email(user, token, otp_secret, otp_issuer)
 	return {
 		"token_delivery": status,
 		"prompt": status and prompt,
@@ -266,33 +276,6 @@ def get_email_body_for_2fa(kwargs_dict):
 		"templates/emails/verification_code.html",
 		{"code": kwargs_dict.get("otp"), "minutes": (frappe.flags.token_expiry or 300) // 60},
 	)
-
-
-def get_email_subject_for_qr_code(kwargs_dict):
-	"""Get QRCode email subject."""
-	subject_template = _("One Time Password (OTP) Registration Code from {}").format(
-		frappe.get_system_settings("otp_issuer_name")
-	)
-	return frappe.render_template(subject_template, kwargs_dict, restrict_globals=True)
-
-
-def get_email_body_for_qr_code(kwargs_dict):
-	"""Get QRCode email body."""
-	return frappe.render_template("templates/emails/two_factor_setup.html", kwargs_dict)
-
-
-def get_link_for_qrcode(user, totp_uri, otp_secret=None):
-	"""Get link to temporary page showing QRCode."""
-	key = frappe.generate_hash(length=20)
-	key_user = f"{key}_user"
-	key_uri = f"{key}_uri"
-	key_secret = f"{key}_secret"
-	lifespan = int(frappe.get_system_settings("lifespan_qrcode_image")) or 240
-	frappe.cache.set_value(key_uri, totp_uri, expires_in_sec=lifespan)
-	frappe.cache.set_value(key_user, user, expires_in_sec=lifespan)
-	if otp_secret:
-		frappe.cache.set_value(key_secret, otp_secret, expires_in_sec=lifespan)
-	return get_url(f"/qrcode?k={key}")
 
 
 def send_token_via_sms(otpsecret, token=None, phone_no=None):
