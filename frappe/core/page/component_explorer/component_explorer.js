@@ -28,6 +28,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 
 	// the quick entry example's fields, read back by its Save action
 	let explorer_todo_fields;
+	let explorer_contact_fields;
 	// the search box and the button of the BottomSheet multi-select example
 	const explorer_assign = {};
 	// rows of the BottomSheet search example: the caller decides what matches
@@ -985,6 +986,79 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 										sheet.close();
 									},
 								}),
+						},
+					],
+				},
+			],
+		},
+		"Optional Sections": {
+			helper: "frappe.ui.optional_sections",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (add a section, Remove puts its button back)"),
+					items: [
+						{
+							label: "Add more now",
+							sections: [
+								{ title: "Contact", content: "Contact fields go here." },
+								{ title: "Salary and bank", content: "Salary fields go here." },
+								{
+									title: "Emergency contact",
+									content: "Emergency contact fields go here.",
+								},
+							],
+							on_add: (i, section) =>
+								frappe.ui.toast({ message: `${section.title} added` }),
+						},
+					],
+				},
+				{
+					title: __("A section added from the start"),
+					items: [
+						{
+							label: "Add more now",
+							sections: [
+								{ title: "Notes", content: "Shown until removed.", added: true },
+								{ title: "Attachments", content: "Attachment fields go here." },
+							],
+						},
+					],
+				},
+				{
+					title: __("Fields in a section, cleared on Remove"),
+					items: [
+						{
+							__code: 'let fields;\nfrappe.ui.optional_sections({\n  label: "Add more now",\n  sections: [{\n    title: "Contact",\n    content: () => {\n      const body = document.createElement("div");\n      fields = new frappe.ui.FieldGroup({ body, fields: contact_fields });\n      fields.make();\n      return body;\n    },\n  }],\n  on_remove: () => fields.set_values({ email: "", mobile: "" }),\n})',
+							label: "Add more now",
+							sections: [
+								{
+									title: "Contact",
+									content: () => {
+										const body = document.createElement("div");
+										explorer_contact_fields = new frappe.ui.FieldGroup({
+											body,
+											fields: [
+												{
+													fieldtype: "Data",
+													fieldname: "email",
+													label: "Email",
+												},
+												{ fieldtype: "Column Break", fieldname: "column" },
+												{
+													fieldtype: "Data",
+													fieldname: "mobile",
+													label: "Mobile",
+												},
+											],
+										});
+										explorer_contact_fields.make();
+										return body;
+									},
+								},
+							],
+							on_remove: () =>
+								explorer_contact_fields.set_values({ email: "", mobile: "" }),
 						},
 					],
 				},
@@ -2260,6 +2334,10 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		}
 		if (name === "BottomSheet") {
 			await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
+			if (selected_component !== name) return;
+		}
+		if (name === "Optional Sections") {
+			await frappe.require(["optional_sections.bundle.js", "optional_sections.bundle.css"]);
 			if (selected_component !== name) return;
 		}
 		const component = COMPONENTS[name];
