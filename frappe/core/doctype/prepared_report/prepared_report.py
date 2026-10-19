@@ -132,7 +132,7 @@ def generate_report(prepared_report):
 		frappe.get_doc(
 			{
 				"doctype": "Notification Log",
-				"subject": f"{instance.report_name} report is ready.",
+				"subject": _("{0} report is ready.").format(instance.report_name),
 				"for_user": frappe.session.user,
 				"type": "Alert",
 				"document_type": "Report",
