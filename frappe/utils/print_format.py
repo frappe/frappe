@@ -7,8 +7,6 @@ from io import BytesIO
 from typing import Literal
 from urllib.parse import urlparse
 
-from pypdf import PdfWriter
-
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -212,6 +210,8 @@ def _download_multi_pdf(
 	Publishes a link to the PDF to the given task ID
 	"""
 	filename = ""
+
+	from pypdf import PdfWriter
 
 	pdf_writer = PdfWriter()
 
@@ -529,6 +529,9 @@ def print_by_server(
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
 		conn = cups.Connection()
+
+		from pypdf import PdfWriter
+
 		output = PdfWriter()
 		output = frappe.get_print(
 			doctype,

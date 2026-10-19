@@ -1,7 +1,6 @@
 import os
 import re
 
-import click
 import werkzeug.routing.exceptions
 from werkzeug.routing import Rule
 
@@ -91,6 +90,8 @@ class PathResolver:
 
 	@staticmethod
 	def get_custom_page_renderers():
+		import click
+
 		custom_renderers = []
 		for renderer_path in frappe.get_hooks("page_renderer") or []:
 			try:

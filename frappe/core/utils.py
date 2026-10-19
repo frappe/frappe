@@ -2,8 +2,6 @@
 # License: MIT. See LICENSE
 
 
-from markdownify import markdownify as md
-
 import frappe
 
 
@@ -87,6 +85,8 @@ def ljust_list(_list, length, fill_word=None):
 
 def html2text(html: str, strip_links=False, wrap=True) -> str:
 	"""Return the given `html` as markdown text."""
+	from markdownify import markdownify as md
+
 	strip = ["a"] if strip_links else None
 	return md(html, heading_style="ATX", strip=strip, wrap=wrap)
 
