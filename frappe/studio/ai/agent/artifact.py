@@ -15,15 +15,14 @@ here. No DB status or out-of-band heuristic gates generation.
 import logging
 
 import frappe
+from frappe.studio.ai import llm
+from frappe.studio.ai.agent.tools.introspect import describe_page_data
+from frappe.studio.ai.block_codec import BlockCodec
+from frappe.studio.ai.models import ModelRegistry
+from frappe.studio.ai.prompts import GENERATION
+from frappe.studio.ai.session import AISession
 
-from studio.ai import llm
-from studio.ai.agent.tools.introspect import describe_page_data
-from studio.ai.block_codec import BlockCodec
-from studio.ai.models import ModelRegistry
-from studio.ai.prompts import GENERATION
-from studio.ai.session import AISession
-
-logger = frappe.logger("studio.ai.agent.artifact")
+logger = frappe.logger("frappe.studio.ai.agent.artifact")
 logger.setLevel(logging.INFO)
 
 
@@ -60,7 +59,7 @@ def generate_page_json(ctx, args: dict) -> list[dict]:
 				stream.close()
 			except Exception:
 				pass
-			from studio.ai.agent.loop import CancelledError
+			from frappe.studio.ai.agent.loop import CancelledError
 
 			raise CancelledError
 		if not chunk.choices:

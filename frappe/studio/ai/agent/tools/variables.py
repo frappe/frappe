@@ -16,10 +16,9 @@ that, so the model just passes a plain value.
 import json
 
 import frappe
-
-from studio.ai.agent.registry import Tool
-from studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
-from studio.ai.block_codec import BlockCodec
+from frappe.studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
+from frappe.studio.ai.block_codec import BlockCodec
 
 VARIABLE_TYPES = ("String", "Number", "Boolean", "Object")
 

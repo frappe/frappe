@@ -4,10 +4,9 @@
 import frappe
 from frappe import _
 from frappe.model.naming import append_number_if_name_exists
+from frappe.studio.doctype.studio_component.studio_component import fetch_component_batch
+from frappe.studio.export import can_export, parse_json
 from frappe.utils import cint
-
-from studio.export import can_export, parse_json
-from studio.studio.doctype.studio_component.studio_component import fetch_component_batch
 
 PAGE_RESOURCE_FIELDS = (
 	"resource_type",

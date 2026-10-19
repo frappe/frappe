@@ -1,4 +1,5 @@
 import click
+
 import frappe
 from frappe.commands import get_site, pass_context
 
@@ -9,7 +10,7 @@ from frappe.commands import get_site, pass_context
 @pass_context
 def build_studio_app(context, app_name: str, site: str | None = None):
 	"""Build the studio app"""
-	from studio.studio.doctype.studio_app.studio_app import StudioApp
+	from frappe.studio.doctype.studio_app.studio_app import StudioApp
 
 	if not site:
 		site = get_site(context)
@@ -31,7 +32,7 @@ def build_studio_app(context, app_name: str, site: str | None = None):
 @pass_context
 def watch_studio(context):
 	"""Watch studio folders and sync changed JSON into the DB"""
-	from studio.watch import watch
+	from frappe.studio.watch import watch
 
 	site = get_site(context)
 	frappe.init(site)

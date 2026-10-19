@@ -2,16 +2,15 @@
 
 Only for STANDARD (exported) apps: their frontend is a real TypeScript project on disk under
 `<frappe_app>/studio/<studio_app>/`. These server tools wrap the jailed studio-file API in
-studio.api, which already enforces the path jail, the editable-extension allowlist, developer mode
+frappe.studio.api, which already enforces the path jail, the editable-extension allowlist, developer mode
 and the System Manager role — so the model never touches anything outside the app folder. A page
 edits its own logic with set_page_script; these tools are for the SHARED code around it, imported
 into page scripts via the app's `@app/*` alias.
 """
 
 import frappe
-
-from studio.ai.agent.registry import Tool
-from studio.ai.agent.tools.page import load_page, text_arg
+from frappe.studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.tools.page import load_page, text_arg
 
 
 def run_list_app_files(ctx, args: dict) -> str:

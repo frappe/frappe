@@ -37,9 +37,9 @@ describe("data source editor", () => {
 	beforeEach(() => {
 		setActivePinia(pinia)
 		cy.login()
-		cy.intercept("/api/method/studio.api.get_doctype_fields*").as("getDocTypeFields")
-		cy.intercept("/api/method/studio.api.get_sort_fields*").as("getSortFields")
-		cy.intercept("/api/method/studio.api.get_whitelisted_methods*").as("getWhitelistedMethods")
+		cy.intercept("/api/method/frappe.studio.api.get_doctype_fields*").as("getDocTypeFields")
+		cy.intercept("/api/method/frappe.studio.api.get_sort_fields*").as("getSortFields")
+		cy.intercept("/api/method/frappe.studio.api.get_whitelisted_methods*").as("getWhitelistedMethods")
 		// pages stay until after(): a data source from an earlier test may still refetch its page
 		cy.insert_doc("Studio App", { app_name: APP_NAME, app_title: "Cypress Data Sources" }, true)
 		cy.insert_doc("Studio Page", { studio_app: APP_NAME }).then((createdPage) => {

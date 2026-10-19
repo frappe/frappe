@@ -7,14 +7,14 @@ loop and tools talk to LLMs exclusively through the functions defined here.
 import json
 import logging
 
-import frappe
 import litellm
 
-from studio.ai.models import ModelRegistry
+import frappe
+from frappe.studio.ai.models import ModelRegistry
 
 litellm.drop_params = True
 
-logger = frappe.logger("studio.ai.llm")
+logger = frappe.logger("frappe.studio.ai.llm")
 logger.setLevel(logging.INFO)
 
 

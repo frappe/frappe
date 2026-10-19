@@ -1,9 +1,10 @@
 import json
 import re
 
+from json_repair import repair_json
+
 import frappe
 from frappe import _
-from json_repair import repair_json
 
 
 class BlockCodec:

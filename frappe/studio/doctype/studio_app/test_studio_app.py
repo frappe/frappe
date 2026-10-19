@@ -13,8 +13,8 @@ import frappe
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
 
-from studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
-from studio.studio.doctype.studio_app.studio_app import StudioApp
+from frappe.studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
+from frappe.studio.doctype.studio_app.studio_app import StudioApp
 
 
 class TestStudioApp(FrappeTestCase):
@@ -32,7 +32,7 @@ class TestStudioApp(FrappeTestCase):
 			self.assertEqual(context.router_script, ROUTER_SCRIPT)
 			self.assertIsNone(context.router_file)
 
-			app.enable_app_export("studio")
+			app.enable_app_export("frappe")
 			app.reload()
 			self.assertFalse(app.router_script)
 			self.assertEqual(
@@ -56,7 +56,7 @@ class TestStudioApp(FrappeTestCase):
 
 	def test_app_favicon(self):
 		app = make_studio_app(app_title="Favicon App", app_name="favicon-app")
-		self.assertIn('href="/assets/studio/frontend/favicon.png"', render_app_template(app))
+		self.assertIn('href="/assets/frappe/studio/favicon.png"', render_app_template(app))
 
 		app.favicon = "/files/favicon-app.png"
 		self.assertIn('href="/files/favicon-app.png"', render_app_template(app))
@@ -98,7 +98,7 @@ class TestStudioApp(FrappeTestCase):
 	def test_rename_keeps_the_app_json_when_the_names_scrub_the_same(self):
 		with exports_in_tempdir():
 			app = make_studio_app(app_title="Dashed App", app_name="dashed-app")
-			app.enable_app_export("studio")
+			app.enable_app_export("frappe")
 
 			frappe.rename_doc("Studio App", app.name, "dashed_app")
 
@@ -108,7 +108,7 @@ class TestStudioApp(FrappeTestCase):
 
 	def test_exported_apps_cannot_be_changed_outside_developer_mode(self):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
-		app.db_set({"is_standard": 1, "frappe_app": "studio"})
+		app.db_set({"is_standard": 1, "frappe_app": "frappe"})
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
 			self.assertRaises(
 				frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, "deployed-renamed"
@@ -277,7 +277,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		standard_app = make_studio_app(app_title="Standard Excluded", app_name="standard-excluded")
 		blocks = json.dumps([{"componentName": "Alert", "children": []}])
 		make_studio_page(standard_app.name, page_title="Std Page", blocks=blocks, published=1)
-		standard_app.db_set({"is_standard": 1, "frappe_app": "studio"})
+		standard_app.db_set({"is_standard": 1, "frappe_app": "frappe"})
 
 		result = get_published_custom_apps()
 		self.assertIn(app.name, result)
@@ -297,8 +297,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 		}
 
 		with mock_studio_app_files(app_name, pages={"my_page": page_data}) as studio_folder:
-			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("TextEditor", builder.components)
@@ -319,8 +319,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 		}
 
 		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
-			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Avatar", builder.components)
@@ -332,8 +332,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page_data = {"blocks": json.dumps(blocks)}
 
 		with mock_studio_app_files(app_name, pages={"page": page_data}) as studio_folder:
-			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Alert", builder.components)
@@ -350,8 +350,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 		with mock_studio_app_files(
 			app_name, pages={"page": page_data}, components={"my_widget": comp_data}
 		) as studio_folder:
-			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 			self.assertIn("Alert", builder.components)
@@ -406,8 +406,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 		with mock_studio_app_files(
 			app_name, pages={"page": page_data}, components={"file_widget": comp_data}
 		) as studio_folder:
-			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
-			with patch("studio.build.get_studio_folder", return_value=studio_folder):
+			builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
+			with patch("frappe.studio.build.get_studio_folder", return_value=studio_folder):
 				builder.get_app_components_from_files()
 
 		self.assertEqual(builder.icons, {"lucide-house", "lucide-bell"})
@@ -443,8 +443,8 @@ class TestStudioAppBuilder(FrappeTestCase):
 			return run.return_value
 
 		builder = StudioAppBuilder(app.name, is_standard=False)
-		with patch("studio.build.subprocess.run", side_effect=read_content_file) as run, patch(
-			"studio.build.os.makedirs"
+		with patch("frappe.studio.build.subprocess.run", side_effect=read_content_file) as run, patch(
+			"frappe.studio.build.os.makedirs"
 		):
 			run.return_value.returncode = 0
 			builder.build()
@@ -453,12 +453,12 @@ class TestStudioAppBuilder(FrappeTestCase):
 			self.assertIn(css_class, page_sources["text"])
 
 	def test_passes_the_app_folder_to_tailwind(self):
-		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="studio")
+		builder = StudioAppBuilder("folder-app", is_standard=True, frappe_app="frappe")
 		with mock_studio_app_files(
 			"folder-app", pages={"page": {"blocks": [{"componentName": "Button"}]}}
-		) as studio_folder, patch("studio.build.get_studio_folder", return_value=studio_folder), patch(
-			"studio.build.subprocess.run"
-		) as run, patch("studio.build.os.makedirs"):
+		) as studio_folder, patch("frappe.studio.build.get_studio_folder", return_value=studio_folder), patch(
+			"frappe.studio.build.subprocess.run"
+		) as run, patch("frappe.studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder.build()
 
@@ -474,7 +474,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page = {"blocks": [{"componentName": "Button", "children": []}]}
 		with (
 			mock_studio_app_files("tailwind-app", pages={"page": page}) as studio_folder,
-			patch("studio.build.get_studio_folder", return_value=studio_folder),
+			patch("frappe.studio.build.get_studio_folder", return_value=studio_folder),
 		):
 			frappe_app = os.path.dirname(studio_folder)
 			write_file(os.path.join(frappe_app, "shared", "Shared.vue"), '<p class="tracking-[0.111em]" />')
@@ -483,7 +483,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 				os.path.join(studio_folder, "tailwind_app", "tailwind.config.js"),
 				'export default { content: ["../../shared/**/*.vue"], safelist: ["tracking-[0.333em]"] }',
 			)
-			builder = StudioAppBuilder("tailwind-app", is_standard=True, frappe_app="studio")
+			builder = StudioAppBuilder("tailwind-app", is_standard=True, frappe_app="frappe")
 			builder.out_dir = tempfile.mkdtemp()
 			self.addCleanup(shutil.rmtree, builder.out_dir)
 			builder.build()
@@ -497,36 +497,36 @@ class TestStudioAppBuilder(FrappeTestCase):
 		builder.components = {"Button"}
 		builder.icons = {"lucide-x", "lucide-check"}
 
-		with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder._run_vite_build()
 		self.assertIn(" --icons lucide-check,lucide-x", run.call_args.args[0])
 
 		builder.icons = set()
-		with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder._run_vite_build()
 		self.assertNotIn("--icons", run.call_args.args[0])
 
 	def test_passes_the_router_file_to_the_build(self):
-		builder = StudioAppBuilder("routed-app", is_standard=True, frappe_app="studio")
+		builder = StudioAppBuilder("routed-app", is_standard=True, frappe_app="frappe")
 		builder.components = {"Button"}
 		with mock_studio_app_files("routed-app", router="{}") as studio_folder, patch(
-			"studio.build.get_studio_folder", return_value=studio_folder
+			"frappe.studio.build.get_studio_folder", return_value=studio_folder
 		):
 			self.assertEqual(
-				get_router_file("studio", "routed-app"),
+				get_router_file("frappe", "routed-app"),
 				os.path.join(studio_folder, "routed_app", "router.ts"),
 			)
-			builder.router_file = get_router_file("studio", "routed-app")
-			with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+			builder.router_file = get_router_file("frappe", "routed-app")
+			with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 				run.return_value.returncode = 0
 				builder._run_vite_build()
 			self.assertIn(f" --router-file {builder.router_file}", run.call_args.args[0])
 
 		# a bench path with spaces must reach vite as one argument
 		builder.router_file = "/Users/me/my bench/apps/studio/studio/routed_app/router.ts"
-		with patch("studio.build.subprocess.run") as run, patch("studio.build.os.makedirs"):
+		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder._run_vite_build()
 		self.assertIn(
@@ -535,13 +535,13 @@ class TestStudioAppBuilder(FrappeTestCase):
 		)
 
 		with mock_studio_app_files("routed-app") as studio_folder, patch(
-			"studio.build.get_studio_folder", return_value=studio_folder
+			"frappe.studio.build.get_studio_folder", return_value=studio_folder
 		):
-			self.assertIsNone(get_router_file("studio", "routed-app"))
+			self.assertIsNone(get_router_file("frappe", "routed-app"))
 
 	def test_build_paths_for_standard_app(self):
 		app_name = "standard-app"
-		builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="studio")
+		builder = StudioAppBuilder(app_name, is_standard=True, frappe_app="frappe")
 
 		self.assertIn("public/app_builds", builder.out_dir)
 		self.assertEqual(builder.base, f"/assets/studio/app_builds/{app_name}/")
@@ -614,7 +614,7 @@ def make_exported_app_with_files(app_name):
 	app.reload()  # the first page becomes the app home
 	app.router_script = ROUTER_SCRIPT
 	app.save()
-	app.enable_app_export("studio")
+	app.enable_app_export("frappe")
 	with open(os.path.join(app.get_folder_path(), "Extra.vue"), "w") as f:
 		f.write("<template>kept</template>")
 	return app, page

@@ -1,7 +1,7 @@
 """Block-editing tools. All are client-side: the loop batches the operations
 and the frontend applies them to the canvas block tree."""
 
-from studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.registry import Tool
 
 update_block = Tool(
 	name="update_block",

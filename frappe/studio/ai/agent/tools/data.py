@@ -12,10 +12,15 @@ canvas; add the data source FIRST, then lay out and bind the blocks — that ord
 keeps the canvas block edits from racing this save.
 """
 
-from studio.ai.agent.registry import Tool
-from studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
-from studio.ai.block_codec import BlockCodec
-from studio.ai.prompt_fragments import FILTER_FORMAT_RULE, ON_ERROR_RULE, ON_SUCCESS_RULE, TRANSFORM_RULE
+from frappe.studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.tools.page import dangling_binding_warning, load_page, save_page, text_arg
+from frappe.studio.ai.block_codec import BlockCodec
+from frappe.studio.ai.prompt_fragments import (
+	FILTER_FORMAT_RULE,
+	ON_ERROR_RULE,
+	ON_SUCCESS_RULE,
+	TRANSFORM_RULE,
+)
 
 RESOURCE_TYPES = ("Document List", "Document", "API Resource")
 

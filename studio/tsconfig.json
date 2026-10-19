@@ -21,8 +21,8 @@
 	  "allowJs": true,
 	  "paths": {
 		"@/*": ["src/*"],
-		"@framework/ui": ["../../frappe/ui/src/index.ts"],
-  		"@framework/ui/*": ["../../frappe/ui/src/*"]
+		"@framework/ui": ["../ui/src/index.ts"],
+  		"@framework/ui/*": ["../ui/src/*"]
 	  },
 	  "lib": [
 		"esnext",

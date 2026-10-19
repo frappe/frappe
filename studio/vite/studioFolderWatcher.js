@@ -1,6 +1,7 @@
 import path from "path"
 import fs from "fs"
 import { isCSSRequest } from "vite"
+import { getStudioRoots } from "./studioApps.js"
 
 /**
  * Vite plugin for editing exported apps' `<app>/studio/` folders from Studio.
@@ -21,28 +22,21 @@ import { isCSSRequest } from "vite"
  *    component still hot-update via Vue's HMR.
  */
 function studioFolderWatcher(appsDir) {
-	let studioFoldersCache = null
+	let watchedFoldersCache = null
 
-	function getStudioFolders() {
-		if (studioFoldersCache) return studioFoldersCache
-		const folders = []
-		if (fs.existsSync(appsDir)) {
-			for (const appName of fs.readdirSync(appsDir)) {
-				// Skip studio itself, already watched
-				if (appName === "studio") continue
-				const studioDir = path.join(appsDir, appName, "studio")
-				if (fs.existsSync(studioDir) && fs.statSync(studioDir).isDirectory()) {
-					folders.push(normalize(studioDir))
-				}
-			}
-		}
-		studioFoldersCache = folders
-		return folders
+	// Folders holding exported studio apps: `<app>/studio` for every app, except frappe where only
+	// the listed exported apps count (the rest of its studio/ folder is this editor).
+	function getWatchedFolders() {
+		if (watchedFoldersCache) return watchedFoldersCache
+		watchedFoldersCache = getStudioRoots(appsDir).flatMap(({ frappeApp, root, folders }) =>
+			(frappeApp === "frappe" ? folders : [root]).map(normalize),
+		)
+		return watchedFoldersCache
 	}
 
 	function isUnderStudioFolder(filePath) {
 		const file = normalize(filePath)
-		return getStudioFolders().some((folder) => file.startsWith(folder + "/"))
+		return getWatchedFolders().some((folder) => file.startsWith(folder + "/"))
 	}
 
 	return {
@@ -57,6 +51,7 @@ function studioFolderWatcher(appsDir) {
 		// sibling JSON so the editor can match it to the active page. Stores keep their singleton
 		// state across this (they refresh code only via their own acceptHMRUpdate).
 		transform(code, id) {
+			if (!isUnderStudioFolder(id.split("?")[0].replace(/^\/@fs/, ""))) return
 			if (isRouterFile(id)) return { code: code + ROUTER_HMR_FOOTER, map: null }
 			const pageName = pageScriptName(id)
 			if (!pageName) return
@@ -82,11 +77,11 @@ function studioFolderWatcher(appsDir) {
 		},
 
 		configureServer(server) {
-			const studioFolders = getStudioFolders()
-			if (!studioFolders.length) return
+			const watchedFolders = getWatchedFolders()
+			if (!watchedFolders.length) return
 
 			const watcher = server.watcher
-			for (const folder of studioFolders) {
+			for (const folder of watchedFolders) {
 				watcher.add(folder)
 			}
 
@@ -98,8 +93,11 @@ function studioFolderWatcher(appsDir) {
 			// client uses to identify a file (its open-file path prefixed with the studio app name).
 			function studioRelativePath(filePath) {
 				const file = normalize(filePath)
-				const folder = getStudioFolders().find((f) => file.startsWith(f + "/"))
-				return folder ? file.slice(folder.length + 1) : null
+				if (!isUnderStudioFolder(file)) return null
+				const root = getStudioRoots(appsDir)
+					.map(({ root }) => normalize(root))
+					.find((r) => file.startsWith(r + "/"))
+				return root ? file.slice(root.length + 1) : null
 			}
 
 			// A studio file was added/removed/renamed: refresh the file explorer tree, and the

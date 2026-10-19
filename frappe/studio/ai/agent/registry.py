@@ -85,7 +85,7 @@ def _build_shared_registry() -> ToolRegistry:
 	"""Tools common to every app: generation, block/UI wiring, data sources, bindings, interactivity.
 	These act on the block tree the shared renderer consumes, identical in both modes. Imported lazily
 	to avoid import cycles (tool handlers reference the agent context type)."""
-	from studio.ai.agent.tools import (
+	from frappe.studio.ai.agent.tools import (
 		bindings,
 		blocks,
 		conversation,
@@ -111,7 +111,7 @@ def _build_shared_registry() -> ToolRegistry:
 def build_custom_page_registry() -> ToolRegistry:
 	"""Non-exported (visual/DB) app: reactive state as Studio Page variables, page logic as a bare
 	interpreted script. No file surface — the app lives in the DB."""
-	from studio.ai.agent.tools import router, scripts, variables
+	from frappe.studio.ai.agent.tools import router, scripts, variables
 
 	registry = _build_shared_registry()
 	registry.extend(variables.TOOLS)
@@ -124,7 +124,7 @@ def build_standard_page_registry() -> ToolRegistry:
 	"""Standard (exported) app: a real TypeScript codebase. State/logic live in setup() modules,
 	stores and composables edited as files — so it gets the file tools and the module script form, and
 	NO variable-doctype tools (state is declared in code instead)."""
-	from studio.ai.agent.tools import files, scripts
+	from frappe.studio.ai.agent.tools import files, scripts
 
 	registry = _build_shared_registry()
 	registry.extend(files.TOOLS)

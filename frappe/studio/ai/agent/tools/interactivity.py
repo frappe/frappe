@@ -11,7 +11,7 @@ script context in scope — variables (as refs: read/write via `.value`, e.g.
 `counter.value++`), data sources, page-script bindings, and `route`/`router`.
 """
 
-from studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.registry import Tool
 
 set_event_handler = Tool(
 	name="set_event_handler",

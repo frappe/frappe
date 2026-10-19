@@ -31,7 +31,7 @@ function sharedDependencyResolver(STUDIO_ROOT) {
 			if (!importer || importer.startsWith(STUDIO_ROOT)) return null
 
 			// Re-resolve from Studio's project root so Vite finds the right copy
-			const resolved = await this.resolve(source, path.join(STUDIO_ROOT, "frontend", "_virtual.js"), {
+			const resolved = await this.resolve(source, path.join(STUDIO_ROOT, "_virtual.js"), {
 				...options,
 				skipSelf: true,
 			})

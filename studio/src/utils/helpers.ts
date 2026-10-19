@@ -296,7 +296,7 @@ async function fetchPage(pageName: string) {
 // Data the page renders stays permission-checked by the endpoints its resources call.
 async function fetchAppPage(appName: string, pageName: string, preview: boolean = false) {
 	const page = createResource({
-		url: "studio.studio.doctype.studio_page.studio_page.get_page",
+		url: "frappe.studio.doctype.studio_page.studio_page.get_page",
 		method: "GET",
 		params: { app_name: appName, page_name: pageName, preview },
 		// a published page changes only on publish; the preview must see every draft save

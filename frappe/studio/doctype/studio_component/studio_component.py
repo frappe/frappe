@@ -7,10 +7,10 @@ import frappe
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
-from studio.export import delete_file, parse_json, remove_empty_values, validate_standard_app_change
-from studio.realtime import publish_doc_change
-from studio.sync_json import get_studio_folders
-from studio.utils import walk_blocks
+from frappe.studio.export import delete_file, parse_json, remove_empty_values, validate_standard_app_change
+from frappe.studio.realtime import publish_doc_change
+from frappe.studio.sync_json import get_studio_folders
+from frappe.studio.utils import walk_blocks
 
 
 class StudioComponent(Document):
@@ -22,7 +22,7 @@ class StudioComponent(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		from studio.studio.doctype.studio_component_input.studio_component_input import StudioComponentInput
+		from frappe.studio.doctype.studio_component_input.studio_component_input import StudioComponentInput
 
 		block: DF.LongText | None
 		component_id: DF.Data | None

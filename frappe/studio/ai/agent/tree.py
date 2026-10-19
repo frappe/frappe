@@ -15,7 +15,7 @@ turn has no ref the model can target, so its bindings are baked into its props
 at creation instead of applied afterward.
 """
 
-from studio.ai.agent.selectors import child_blocks, find_block, walk_blocks
+from frappe.studio.ai.agent.selectors import child_blocks, find_block, walk_blocks
 
 
 class WorkingTree:

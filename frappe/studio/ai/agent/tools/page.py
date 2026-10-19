@@ -10,8 +10,7 @@ field shapes.
 import re
 
 import frappe
-
-from studio.ai.agent.selectors import walk_blocks
+from frappe.studio.ai.agent.selectors import walk_blocks
 
 
 def text_arg(value) -> str:

@@ -11,11 +11,11 @@ import os
 import threading
 import traceback
 
-import frappe
 from filelock import FileLock, Timeout
-from frappe.utils.synchronization import LOCKS_DIR
 
-from studio.sync_json import get_studio_folders, sync_file
+import frappe
+from frappe.studio.sync_json import get_studio_folders, sync_file
+from frappe.utils.synchronization import LOCKS_DIR
 
 try:
 	from watchdog.events import FileSystemEventHandler

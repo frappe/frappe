@@ -13,15 +13,15 @@ from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
 from frappe.website.website_generator import WebsiteGenerator
 
-from studio.export import (
+from frappe.studio.export import (
 	can_export,
 	delete_file,
 	delete_folder,
 	validate_standard_app_change,
 	write_document_file,
 )
-from studio.realtime import publish_doc_change
-from studio.utils import walk_blocks
+from frappe.studio.realtime import publish_doc_change
+from frappe.studio.utils import walk_blocks
 
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
@@ -143,7 +143,7 @@ class StudioApp(WebsiteGenerator):
 	def get_router_file(self) -> str | None:
 		if not (self.is_standard and self.frappe_app):
 			return None
-		from studio.build import get_router_file
+		from frappe.studio.build import get_router_file
 
 		return get_router_file(self.frappe_app, self.name)
 
@@ -264,7 +264,7 @@ class StudioApp(WebsiteGenerator):
 	def build_app_bundle(self):
 		"""Build the app bundle, raising on failure — background jobs enqueue this
 		so a failed build marks the job as failed instead of looking successful."""
-		from studio.build import StudioAppBuilder
+		from frappe.studio.build import StudioAppBuilder
 
 		StudioAppBuilder(
 			studio_app=self.name, is_standard=self.is_standard, frappe_app=self.frappe_app
@@ -449,7 +449,7 @@ class StudioApp(WebsiteGenerator):
 		return True
 
 	def remove_from_studio_apps_txt(self, name: str):
-		if self.frappe_app != "studio":
+		if self.frappe_app != "frappe":
 			return
 
 		path = studio_apps_txt_path()
@@ -460,7 +460,7 @@ class StudioApp(WebsiteGenerator):
 				f.write("\n".join(apps))
 
 	def add_to_studio_apps_txt(self):
-		if self.frappe_app != "studio":
+		if self.frappe_app != "frappe":
 			return
 
 		apps = None
@@ -582,7 +582,7 @@ def validate_app_name(name: str):
 
 
 def studio_apps_txt_path() -> str:
-	return frappe.get_app_path("studio", "studio_apps.txt")
+	return frappe.get_app_source_path("frappe", "studio", "studio_apps.txt")
 
 
 def move_folder(source: str, destination: str):

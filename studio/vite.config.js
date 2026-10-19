@@ -37,9 +37,7 @@ const isStudioAppTsconfig = (file) =>
 // https://vitejs.dev/config/
 export default defineConfig(async () => {
 	// Only pull in @framework/ui's vite plugin + source aliases when it exists.
-	const frameworkUIPlugins = frameworkUIAvailable
-		? [(await import("@framework/ui/vite")).default()]
-		: []
+	const frameworkUIPlugins = frameworkUIAvailable ? [(await import("@framework/ui/vite")).default()] : []
 	// When absent, alias @framework/ui/* to a stub so the dev server can resolve the
 	// (dead-branch) imports in globals.ts. Production builds DCE them; the dev server
 	// doesn't, so without this it errors "Failed to resolve import @framework/ui/...".
@@ -118,7 +116,7 @@ export default defineConfig(async () => {
 					renderer: path.resolve(__dirname, "renderer.html"),
 				},
 			},
-			outDir: `../studio/public/frontend`,
+			outDir: "../frappe/public/studio",
 			emptyOutDir: true,
 			target: "es2015",
 			sourcemap: true,

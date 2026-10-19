@@ -2,17 +2,16 @@ import os
 import shutil
 
 import frappe
-from frappe.tests import IntegrationTestCase
-from frappe.utils import add_to_date, now_datetime
-
-from studio.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
-from studio.studio.doctype.studio_page.test_studio_page import (
+from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from frappe.studio.doctype.studio_page.test_studio_page import (
 	PAGE_SCRIPT,
 	component_ref,
 	exports_in_tempdir,
 	make_component,
 )
-from studio.sync import before_app_uninstall, remove_orphaned_apps_and_pages, sync_studio_apps
+from frappe.studio.sync import before_app_uninstall, remove_orphaned_apps_and_pages, sync_studio_apps
+from frappe.tests import IntegrationTestCase
+from frappe.utils import add_to_date, now_datetime
 
 
 def make_standard_app(frappe_app="frappe"):
@@ -94,7 +93,7 @@ class TestSync(IntegrationTestCase):
 
 	def test_remove_orphaned_apps_and_pages(self):
 		with exports_in_tempdir():
-			app = make_standard_app(frappe_app="studio")
+			app = make_standard_app(frappe_app="frappe")
 			kept = make_studio_page(app.name, page_title="Kept", route="/kept")
 			gone = make_studio_page(app.name, page_title="Gone", route="/gone")
 

@@ -46,7 +46,7 @@ let socket
 studio_router.isReady().then(async () => {
 	if (import.meta.env.DEV) {
 		await frappeRequest({
-			url: "/api/method/studio.www.studio.get_context_for_dev",
+			url: "/api/method/frappe.www.studio.get_context_for_dev",
 		}).then(async (values: Record<string, any>) => {
 			for (let key in values) {
 				window[key] = values[key]

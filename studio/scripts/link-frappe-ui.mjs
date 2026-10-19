@@ -1,4 +1,5 @@
-// Symlink node_modules/frappe-ui -> the local ../frappe-ui checkout so EVERY
+// Symlink node_modules/frappe-ui -> a local frappe-ui checkout (apps/frappe-ui, or
+// $FRAPPE_UI_PATH) so EVERY
 // resolver consumes one copy: Vite (JS), Node (Tailwind's config loader,
 // frappe-ui/vite plugin), and vue-tsc all follow the same files. A Vite alias
 // would only cover the Vite door and leave Node-loaded tooling (Tailwind
@@ -12,13 +13,13 @@ import { fileURLToPath } from "node:url"
 import { execSync } from "node:child_process"
 
 const frontendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-const checkout = resolve(frontendDir, "../frappe-ui")
+const checkout = resolve(frontendDir, process.env.FRAPPE_UI_PATH || "../../frappe-ui")
 const linkPath = resolve(frontendDir, "node_modules/frappe-ui")
 const relTarget = relative(dirname(linkPath), checkout)
 
 if (!existsSync(resolve(checkout, "package.json"))) {
 	console.error(`✗ No local frappe-ui checkout at ${checkout}`)
-	console.error("  Initialize the submodule (git submodule update --init frappe-ui),")
+	console.error("  Clone frappe-ui there (or point FRAPPE_UI_PATH at a checkout),")
 	console.error("  or use `yarn dev` for the published package.")
 	process.exit(1)
 }

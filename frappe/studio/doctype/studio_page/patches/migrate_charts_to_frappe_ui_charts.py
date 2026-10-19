@@ -1,6 +1,5 @@
 import frappe
-
-from studio.utils import walk_blocks
+from frappe.studio.utils import walk_blocks
 
 CHART_MARKS = {"line": "LineChart", "area": "AreaChart"}
 DEFAULT_HEIGHT = "300px"

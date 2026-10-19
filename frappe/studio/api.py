@@ -7,10 +7,9 @@ from typing import Literal
 import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
+from frappe.studio.constants import STANDARD_COMPONENT_NAMES
+from frappe.studio.utils import has_page_write_perm
 from frappe.utils import sbool
-
-from studio.constants import STANDARD_COMPONENT_NAMES
-from studio.utils import has_page_write_perm
 
 
 @frappe.whitelist()

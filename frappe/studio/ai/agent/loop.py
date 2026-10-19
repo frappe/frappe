@@ -21,16 +21,15 @@ import logging
 import time
 
 import frappe
+from frappe.studio.ai import llm
+from frappe.studio.ai.agent.registry import get_tool_registry_for_mode
+from frappe.studio.ai.agent.tree import WorkingTree
+from frappe.studio.ai.block_codec import BlockCodec
+from frappe.studio.ai.models import ModelRegistry
+from frappe.studio.ai.prompts import get_system_prompt_for_mode
+from frappe.studio.ai.session import AISession
 
-from studio.ai import llm
-from studio.ai.agent.registry import get_tool_registry_for_mode
-from studio.ai.agent.tree import WorkingTree
-from studio.ai.block_codec import BlockCodec
-from studio.ai.models import ModelRegistry
-from studio.ai.prompts import get_system_prompt_for_mode
-from studio.ai.session import AISession
-
-logger = frappe.logger("studio.ai.agent.loop")
+logger = frappe.logger("frappe.studio.ai.agent.loop")
 logger.setLevel(logging.INFO)
 
 # One turn may span several rounds: server-tool reads plus a model that applies a

@@ -268,7 +268,7 @@ const selectedBlock = computed(() => {
 const isModifyMode = computed(() => !!selectedBlock.value)
 
 const aiModels = createResource({
-	url: "studio.ai.models.get_ai_models",
+	url: "frappe.studio.ai.models.get_ai_models",
 	auto: true,
 })
 
@@ -287,7 +287,7 @@ const isVisionModel = computed(() => {
 })
 
 const sessionResource = createResource({
-	url: "studio.ai.api.get_ai_session",
+	url: "frappe.studio.ai.api.get_ai_session",
 	onSuccess(data: any) {
 		messages.value = data.messages ?? []
 		controller.sessionId = data.session_id ?? ""
@@ -437,7 +437,7 @@ function sendPrompt(text: string) {
 }
 
 async function clearSession() {
-	await call("studio.ai.api.clear_ai_session", { page_id: pageId.value })
+	await call("frappe.studio.ai.api.clear_ai_session", { page_id: pageId.value })
 	messages.value = []
 }
 </script>

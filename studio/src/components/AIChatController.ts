@@ -34,7 +34,7 @@ export interface AIChatContext {
 
 /**
  * Orchestrates one Studio AI agent turn: sends the user prompt to
- * `studio.ai.api.run` and reacts to the `ai_chat_*` realtime events. Block-tree
+ * `frappe.studio.ai.api.run` and reacts to the `ai_chat_*` realtime events. Block-tree
  * mutation lives in ToolDispatcher; full-page generation streams as `page_json`.
  */
 export class AIChatController {
@@ -91,7 +91,7 @@ export class AIChatController {
 		this.pendingAssistantId = this.pushMessage("assistant", "Thinking…")
 		this.ctx.scrollToBottom()
 		try {
-			const res: any = await call("studio.ai.api.run", {
+			const res: any = await call("frappe.studio.ai.api.run", {
 				prompt: promptText,
 				page_id: this.ctx.pageId(),
 				page_context: this.ctx.getPageContext(),
@@ -112,7 +112,7 @@ export class AIChatController {
 		if (!this.sessionId) return
 		this.ctx.statusMessage.value = "Cancelling…"
 		try {
-			await call("studio.ai.api.cancel", { session_id: this.sessionId })
+			await call("frappe.studio.ai.api.cancel", { session_id: this.sessionId })
 		} catch {
 			// Ignore — the user will see the cancelled event when it arrives.
 		}

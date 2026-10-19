@@ -27,10 +27,9 @@ import os
 import re
 
 import frappe
-
-from studio.ai.agent.registry import Tool
-from studio.ai.agent.tools.page import load_page, save_page
-from studio.export import can_export, write_code_file
+from frappe.studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.tools.page import load_page, save_page
+from frappe.studio.export import can_export, write_code_file
 
 
 def run_get_page_script(ctx, args: dict) -> str:

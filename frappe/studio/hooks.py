@@ -13,7 +13,7 @@ add_to_apps_screen = [
 		"logo": "/assets/studio/frontend/studio-logo.svg",
 		"title": app_title,
 		"route": "/studio",
-		"has_permission": "studio.api.check_app_permission",
+		"has_permission": "frappe.studio.api.check_app_permission",
 	}
 ]
 
@@ -71,8 +71,8 @@ website_generators = ["Studio App"]
 
 # add methods and filters to jinja environment
 # jinja = {
-# 	"methods": "studio.utils.jinja_methods",
-# 	"filters": "studio.utils.jinja_filters"
+# 	"methods": "frappe.studio.utils.jinja_methods",
+# 	"filters": "frappe.studio.utils.jinja_filters"
 # }
 
 # Installation
@@ -80,8 +80,8 @@ website_generators = ["Studio App"]
 
 # before_install = "studio.install.before_install"
 # after_install = "studio.install.after_install"
-after_migrate = "studio.sync.after_migrate"
-after_app_build = "studio.build.after_app_build"
+after_migrate = "frappe.studio.sync.after_migrate"
+after_app_build = "frappe.studio.build.after_app_build"
 
 # Uninstallation
 # ------------
@@ -94,16 +94,16 @@ after_app_build = "studio.build.after_app_build"
 # To set up dependencies/integrations with other apps
 # Name of the app being installed is passed as an argument
 
-# before_app_install = "studio.utils.before_app_install"
-after_app_install = "studio.sync.after_app_install"
+# before_app_install = "frappe.studio.utils.before_app_install"
+after_app_install = "frappe.studio.sync.after_app_install"
 
 # Integration Cleanup
 # -------------------
 # To clean up dependencies/integrations with other apps
 # Name of the app being uninstalled is passed as an argument
 
-before_app_uninstall = "studio.sync.before_app_uninstall"
-# after_app_uninstall = "studio.utils.after_app_uninstall"
+before_app_uninstall = "frappe.studio.sync.before_app_uninstall"
+# after_app_uninstall = "frappe.studio.utils.after_app_uninstall"
 
 # Desk Notifications
 # ------------------
@@ -194,13 +194,13 @@ before_app_uninstall = "studio.sync.before_app_uninstall"
 
 # Request Events
 # ----------------
-# before_request = ["studio.utils.before_request"]
-# after_request = ["studio.utils.after_request"]
+# before_request = ["frappe.studio.utils.before_request"]
+# after_request = ["frappe.studio.utils.after_request"]
 
 # Job Events
 # ----------
-# before_job = ["studio.utils.before_job"]
-# after_job = ["studio.utils.after_job"]
+# before_job = ["frappe.studio.utils.before_job"]
+# after_job = ["frappe.studio.utils.after_job"]
 
 # User Data Protection
 # --------------------
@@ -236,7 +236,7 @@ before_app_uninstall = "studio.sync.before_app_uninstall"
 website_route_rules = [
 	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
 ]
-page_renderer = "studio.studio.doctype.studio_app.studio_app.StudioAppRenderer"
+page_renderer = "frappe.studio.doctype.studio_app.studio_app.StudioAppRenderer"
 
 # Automatically update python controller files with type annotations for this app.
 export_python_type_annotations = True

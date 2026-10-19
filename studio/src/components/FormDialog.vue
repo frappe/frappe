@@ -105,7 +105,7 @@ const formMeta = ref<{
 })
 
 const doctypeFields = createResource({
-	url: "studio.api.get_doctype_fields",
+	url: "frappe.studio.api.get_doctype_fields",
 	makeParams() {
 		return { doctype: formMeta.value.doctype }
 	},

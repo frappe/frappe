@@ -14,21 +14,21 @@ interface StudioFileLocation {
 }
 
 export function listStudioFiles(location: StudioFileLocation): Promise<StudioFileNode[]> {
-	return call("studio.api.list_studio_files", { ...location })
+	return call("frappe.studio.api.list_studio_files", { ...location })
 }
 
 export function readStudioFile(
 	location: StudioFileLocation,
 	file_path: string,
 ): Promise<{ path: string; content: string; hash: string }> {
-	return call("studio.api.read_studio_file", { ...location, file_path })
+	return call("frappe.studio.api.read_studio_file", { ...location, file_path })
 }
 
 export function readStudioFileIfExists(
 	location: StudioFileLocation,
 	file_path: string,
 ): Promise<{ path: string; content: string | null; hash: string | null }> {
-	return call("studio.api.read_studio_file", { ...location, file_path, ignore_missing: true })
+	return call("frappe.studio.api.read_studio_file", { ...location, file_path, ignore_missing: true })
 }
 
 export function writeStudioFile(
@@ -37,21 +37,21 @@ export function writeStudioFile(
 	content: string,
 	known_hash?: string,
 ): Promise<{ path: string; hash: string }> {
-	return call("studio.api.write_studio_file", { ...location, file_path, content, known_hash })
+	return call("frappe.studio.api.write_studio_file", { ...location, file_path, content, known_hash })
 }
 
 export function createStudioFile(
 	location: StudioFileLocation,
 	file_path: string,
 ): Promise<{ path: string; hash: string }> {
-	return call("studio.api.create_studio_file", { ...location, file_path })
+	return call("frappe.studio.api.create_studio_file", { ...location, file_path })
 }
 
 export function createStudioFolder(
 	location: StudioFileLocation,
 	folder_path: string,
 ): Promise<{ path: string }> {
-	return call("studio.api.create_studio_folder", { ...location, folder_path })
+	return call("frappe.studio.api.create_studio_folder", { ...location, folder_path })
 }
 
 export function renameStudioFile(
@@ -59,11 +59,11 @@ export function renameStudioFile(
 	file_path: string,
 	new_path: string,
 ): Promise<{ path: string }> {
-	return call("studio.api.rename_studio_file", { ...location, file_path, new_path })
+	return call("frappe.studio.api.rename_studio_file", { ...location, file_path, new_path })
 }
 
 export function deleteStudioFile(location: StudioFileLocation, file_path: string): Promise<void> {
-	return call("studio.api.delete_studio_file", { ...location, file_path })
+	return call("frappe.studio.api.delete_studio_file", { ...location, file_path })
 }
 
 // Map a file extension to the language mode the Code editor understands.

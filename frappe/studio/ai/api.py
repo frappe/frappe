@@ -11,15 +11,14 @@ import logging
 
 import frappe
 from frappe import _
+from frappe.studio.ai import llm
+from frappe.studio.ai.agent.loop import run_agent_job
+from frappe.studio.ai.block_codec import BlockCodec
+from frappe.studio.ai.models import ModelRegistry
+from frappe.studio.ai.session import AISession
+from frappe.studio.utils import has_page_write_perm
 
-from studio.ai import llm
-from studio.ai.agent.loop import run_agent_job
-from studio.ai.block_codec import BlockCodec
-from studio.ai.models import ModelRegistry
-from studio.ai.session import AISession
-from studio.utils import has_page_write_perm
-
-logger = frappe.logger("studio.ai.api")
+logger = frappe.logger("frappe.studio.ai.api")
 logger.setLevel(logging.INFO)
 
 

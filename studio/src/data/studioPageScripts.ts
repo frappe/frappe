@@ -5,7 +5,7 @@ type ModuleNamespace = Record<string, any>
 type PageScriptImporter = () => Promise<ModuleNamespace>
 
 export const studioPageScriptsResource = createResource({
-	url: "studio.api.get_studio_page_scripts",
+	url: "frappe.studio.api.get_studio_page_scripts",
 	makeParams: ({ frappe_app }: { frappe_app: string }) => {
 		return {
 			frappe_app: frappe_app,

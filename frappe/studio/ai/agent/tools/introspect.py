@@ -8,9 +8,8 @@ the agent sees exactly what a human binding data would see.
 """
 
 import frappe
-
-from studio.ai.agent.registry import Tool
-from studio.ai.block_codec import BlockCodec
+from frappe.studio.ai.agent.registry import Tool
+from frappe.studio.ai.block_codec import BlockCodec
 
 # Field metadata is verbose; the model only needs these keys to pick fields/filters.
 _FIELD_KEYS = ("fieldname", "label", "fieldtype", "options")
@@ -85,7 +84,7 @@ def run_get_doctype_fields(ctx, args: dict) -> str:
 		return f"DocType '{doctype}' not found."
 	if not frappe.has_permission(doctype, "read"):
 		return f"You do not have read access to '{doctype}'."
-	from studio.api import get_doctype_fields
+	from frappe.studio.api import get_doctype_fields
 
 	fields = get_doctype_fields(doctype)[:_MAX_FIELDS]
 	trimmed = [{k: f.get(k) for k in _FIELD_KEYS if f.get(k)} for f in fields]
@@ -96,7 +95,7 @@ def run_get_sort_fields(ctx, args: dict) -> str:
 	doctype = (args.get("doctype") or "").strip()
 	if not doctype or not frappe.db.exists("DocType", doctype):
 		return f"DocType '{doctype}' not found."
-	from studio.api import get_sort_fields
+	from frappe.studio.api import get_sort_fields
 
 	fields = [{"fieldname": f["fieldname"], "label": f.get("label")} for f in get_sort_fields(doctype)]
 	return f"Sortable fields of {doctype}:\n" + BlockCodec.to_json(fields)
@@ -106,7 +105,7 @@ def run_get_whitelisted_methods(ctx, args: dict) -> str:
 	doctype = (args.get("doctype") or "").strip()
 	if not doctype or not frappe.db.exists("DocType", doctype):
 		return f"DocType '{doctype}' not found."
-	from studio.api import get_whitelisted_methods
+	from frappe.studio.api import get_whitelisted_methods
 
 	methods = get_whitelisted_methods(doctype)
 	if not methods:

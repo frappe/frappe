@@ -115,7 +115,7 @@ const useStudioStore = defineStore("store", () => {
 	// the canvas is not a rendered app page, so it asks for the app's studio_app_boot dict
 	async function setAppBoot(appName: string) {
 		try {
-			window.boot = await call("studio.api.get_app_boot", { app_name: appName })
+			window.boot = await call("frappe.studio.api.get_app_boot", { app_name: appName })
 		} catch (error) {
 			console.error("Failed to load app boot", error)
 			window.boot = {}
@@ -181,7 +181,7 @@ const useStudioStore = defineStore("store", () => {
 	async function duplicateAppPage(appName: string, page: StudioPage) {
 		toast.promise(
 			createResource({
-				url: "studio.studio.doctype.studio_page.copy_paste_handler.duplicate_page",
+				url: "frappe.studio.doctype.studio_page.copy_paste_handler.duplicate_page",
 				method: "POST",
 				params: {
 					page_name: page.name,
@@ -207,7 +207,7 @@ const useStudioStore = defineStore("store", () => {
 		targetPage?: string,
 	) {
 		const appName = activeApp.value!.name
-		const page: StudioPage = await call("studio.studio.doctype.studio_page.copy_paste_handler.paste_page", {
+		const page: StudioPage = await call("frappe.studio.doctype.studio_page.copy_paste_handler.paste_page", {
 			app_name: appName,
 			page: copy,
 			target_page: targetPage,

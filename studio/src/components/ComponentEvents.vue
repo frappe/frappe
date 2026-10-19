@@ -246,7 +246,7 @@ const selectDoctype = async (doctype: string) => {
 
 const loadDoctypeFields = async (doctype: string) => {
 	const fields = createResource({
-		url: "studio.api.get_doctype_fields",
+		url: "frappe.studio.api.get_doctype_fields",
 		params: { doctype },
 		transform: (data: DocTypeField[]) => {
 			return data.map((field) => {

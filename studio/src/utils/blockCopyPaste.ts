@@ -163,7 +163,7 @@ async function createDataSource(resource: DataSourceClipboardPayload) {
 
 	try {
 		const result = await call(
-			"studio.studio.doctype.studio_page.copy_paste_handler.paste_data_source",
+			"frappe.studio.doctype.studio_page.copy_paste_handler.paste_data_source",
 			{
 				app_name: store.activeApp!.name,
 				page_name: page.name,
@@ -397,7 +397,7 @@ async function createMissingDependencies(
 	const store = useStudioStore()
 	const pageName = store.activePage!.name
 	const result = await call(
-		"studio.studio.doctype.studio_page.copy_paste_handler.create_missing_dependencies",
+		"frappe.studio.doctype.studio_page.copy_paste_handler.create_missing_dependencies",
 		{
 			app_name: store.activeApp!.name,
 			page_name: pageName,

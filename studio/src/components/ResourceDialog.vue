@@ -269,7 +269,7 @@ const newResource = ref<Resource>({ ...emptyResource })
 const filterFields = ref<DocTypeField[]>([])
 
 const doctypeFields = createResource({
-	url: "studio.api.get_doctype_fields",
+	url: "frappe.studio.api.get_doctype_fields",
 	makeParams: () => ({ ...makeParams(), with_standard_fields: true }),
 	transform: (data: DocTypeField[]) => {
 		filterFields.value = data
@@ -283,7 +283,7 @@ const doctypeFields = createResource({
 })
 
 const whitelistedMethods = createResource({
-	url: "studio.api.get_whitelisted_methods",
+	url: "frappe.studio.api.get_whitelisted_methods",
 	makeParams,
 	transform: (data: string[]) => {
 		return data.map((method) => {
@@ -296,7 +296,7 @@ const whitelistedMethods = createResource({
 })
 
 const sortFields = createResource({
-	url: "studio.api.get_sort_fields",
+	url: "frappe.studio.api.get_sort_fields",
 	makeParams,
 })
 

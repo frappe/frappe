@@ -29,7 +29,7 @@
 								:style="{
 									background: modelValue
 										? modelValue
-										: `url(/assets/studio/frontend/color-circle.png) center / contain`,
+										: `url(/assets/frappe/studio/color-circle.png) center / contain`,
 								}"
 							></div>
 						</template>

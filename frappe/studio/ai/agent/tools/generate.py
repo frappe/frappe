@@ -7,8 +7,8 @@ and returns the canonical client op the frontend applies. The agent calling this
 tool is the only trigger for generation — see agent/artifact.py.
 """
 
-from studio.ai.agent.artifact import generate_page_json
-from studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.artifact import generate_page_json
+from frappe.studio.ai.agent.registry import Tool
 
 generate_page = Tool(
 	name="generate_page",

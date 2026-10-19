@@ -1,6 +1,7 @@
 import fs from "node:fs"
 import path from "node:path"
 import loadTailwindConfig from "tailwindcss/loadConfig.js"
+import { findStudioAppFolders } from "../vite/studioApps.js"
 
 const CONFIG_FILE = "tailwind.config.js"
 const SUPPORTED_KEYS = ["content", "safelist"]
@@ -22,12 +23,7 @@ export function mergeStudioAppConfigs(baseConfig, appFolders) {
 	}
 }
 
-export function findStudioAppFolders(appsDir) {
-	return fs.readdirSync(appsDir).flatMap((frappeApp) => {
-		const studioDir = path.join(appsDir, frappeApp, "studio")
-		return listFolder(studioDir).map((folder) => path.join(studioDir, folder))
-	})
-}
+export { findStudioAppFolders }
 
 function loadStudioAppConfig(configPath) {
 	const config = loadTailwindConfig(configPath)
@@ -61,8 +57,4 @@ function warnUnsupportedKeys(configPath, config) {
 			`${configPath}: only ${SUPPORTED_KEYS.join(", ")} are supported, ignoring ${ignored.join(", ")}`,
 		)
 	}
-}
-
-function listFolder(folder) {
-	return fs.existsSync(folder) ? fs.readdirSync(folder) : []
 }

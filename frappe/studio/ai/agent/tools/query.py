@@ -8,9 +8,9 @@ it deterministically, then applies one `update_blocks` call. Text is returned in
 FULL — translation/rewrite needs every block's real copy.
 """
 
-from studio.ai.agent.registry import Tool
-from studio.ai.agent.selectors import block_text, find_block, match_block, walk_blocks
-from studio.ai.block_codec import BlockCodec
+from frappe.studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.selectors import block_text, find_block, match_block, walk_blocks
+from frappe.studio.ai.block_codec import BlockCodec
 
 
 def run_query_blocks(ctx, args: dict) -> str:

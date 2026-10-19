@@ -4,8 +4,8 @@ import frappe
 from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 
-from studio.build import build_custom_apps
-from studio.studio.doctype.studio_component.studio_component import mark_components_standard
+from frappe.studio.build import build_custom_apps
+from frappe.studio.doctype.studio_component.studio_component import mark_components_standard
 
 
 def after_migrate():
@@ -38,8 +38,8 @@ def sync_studio_apps(app_name: str | None = None):
 		if not os.path.exists(studio_folder_path):
 			continue
 
-		if app == "studio":
-			app_list = frappe.get_file_items(frappe.get_app_path("studio", "studio_apps.txt"))
+		if app == "frappe":
+			app_list = frappe.get_file_items(frappe.get_app_source_path("frappe", "studio", "studio_apps.txt"))
 		else:
 			app_list = os.listdir(studio_folder_path)
 

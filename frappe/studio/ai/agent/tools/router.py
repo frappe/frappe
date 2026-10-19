@@ -8,9 +8,8 @@ import subprocess
 import tempfile
 
 import frappe
-
-from studio.ai.agent.registry import Tool
-from studio.ai.agent.tools.page import load_page
+from frappe.studio.ai.agent.registry import Tool
+from frappe.studio.ai.agent.tools.page import load_page
 
 
 def run_get_router_script(ctx, args: dict) -> str:
