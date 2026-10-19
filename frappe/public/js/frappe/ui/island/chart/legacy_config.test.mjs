@@ -275,7 +275,7 @@ describe("axis charts", () => {
     ]);
   });
 
-  // what frappe/public/js/frappe/views/reports/report_view.js sent before it took desk's palette
+  // a preset-named palette, as apps still send it
   test("preset colour names and a tooltip function", () => {
     const unknown = [];
     const config = convert(
