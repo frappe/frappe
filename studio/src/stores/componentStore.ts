@@ -47,6 +47,8 @@ const useComponentStore = defineStore("componentStore", () => {
 				const componentDoc = await fetchComponent(componentName);
 				cacheComponent(componentDoc)
 			} catch {
+				// the page payload may have cached it while this fetch was failing
+				if (componentMap.has(componentName)) return
 				const missingComponentDoc = {
 					name: componentName,
 					component_id: componentName,

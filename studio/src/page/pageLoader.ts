@@ -3,6 +3,7 @@ import { useRouter, type Router, type RouteLocationNormalized } from "vue-router
 import { fetchAppPage } from "@/utils/helpers"
 import { getBlockInstance } from "@/utils/serializer"
 import { createPageScope, type PageScope } from "@/page/pageScope"
+import useComponentStore from "@/stores/componentStore"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import type Block from "@/utils/block"
 
@@ -39,6 +40,8 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 		document.title = page.page_title || ""
 		await scope.setPageScript(page, Boolean(page.is_standard))
 		if (navigation !== latestNavigation) return scope.teardownPage()
+		// before the block tree, so no block fetches its component (Guests can't read Studio Component)
+		useComponentStore().setComponents(page.components || [])
 		const root = getBlockInstance(JSON.parse(page.blocks)[0])
 		loadedPages.set(to.fullPath, { page, scope, pageRoute, root })
 	} catch (error) {

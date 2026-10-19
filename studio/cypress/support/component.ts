@@ -8,9 +8,10 @@ export const pinia = createPinia()
 setActivePinia(pinia)
 
 declare global {
-	// declared in src/main.ts, which specs don't load
+	// declared in src/main.ts and src/renderer.ts, which specs don't load
 	interface Window {
 		is_developer_mode?: boolean
+		app_name?: string
 	}
 
 	namespace Cypress {
