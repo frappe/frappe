@@ -195,17 +195,10 @@ class ChromePDFGenerator:
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-<<<<<<< HEAD:frappe/utils/pdf_generator/chrome_pdf_generator.py
-				command_args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True
-			)
-		return self._chromium_process
-
-=======
 				command_args,
-				stdout=subprocess.DEVNULL,
+				stdout=subprocess.PIPE,
 				stderr=subprocess.PIPE,
 				text=True,
-				errors="replace",
 				start_new_session=True,
 			)
 		return self._chromium_process
@@ -218,30 +211,6 @@ class ChromePDFGenerator:
 		with contextlib.suppress(ProcessLookupError):
 			os.killpg(process.pid, signal.SIGKILL if kill else signal.SIGTERM)
 
-	def _reap_orphaned_chromium(self):
-		"""Kill chromium processes leaked by dead workers.
-
-		Cleanup normally happens in the caller's `finally`, but a worker killed
-		mid-render (dev auto-reload, SIGKILL, crash) never runs it and its
-		chromium survives forever. Such processes are reparented to init/launchd
-		(ppid 1), so kill anything running this bench's chromium binary whose
-		parent is gone before starting a new one.
-		"""
-		chromium_path = os.path.realpath(self._chromium_path)
-		for proc in psutil.process_iter(["exe", "ppid", "cmdline"]):
-			try:
-				if (
-					proc.info["ppid"] == 1
-					and proc.info["exe"] == chromium_path
-					and "--headless" in (proc.info["cmdline"] or [])
-				):
-					for child in proc.children(recursive=True):
-						child.kill()
-					proc.kill()
-			except (psutil.NoSuchProcess, psutil.AccessDenied):
-				continue
-
->>>>>>> d3da748 (fix: stop every chromium process when chromium_path is a wrapper script):frappe/utils/chromium/process.py
 	def _set_devtools_url(self):
 		"""
 		Monitor Chromium's stderr for the DevTools WebSocket URL
@@ -268,50 +237,9 @@ class ChromePDFGenerator:
 					self._devtools_url = line[url_start:].strip()
 					break
 
-<<<<<<< HEAD:frappe/utils/pdf_generator/chrome_pdf_generator.py
 		if not self._devtools_url:
-			self._chromium_process.terminate()
-			raise TimeoutError("Chromium took too long to start.")
-=======
-		if self._devtools_url:
-			self._drain_stderr(stderr)
-			return
-
-		self._raise_start_failure(output)
-
-	def _drain_stderr(self, stderr):
-		"""Keep reading chromium's stderr for the rest of its lifetime.
-
-		Nothing consumes it after the DevTools URL line, and a chatty chromium
-		(GPU fallback spam, broken resources) blocks on write once the ~64KB
-		pipe buffer fills, hanging the render."""
-		threading.Thread(target=stderr.read, daemon=True).start()
-
-	def _raise_start_failure(self, output):
-		"""Report why Chromium never handed us a DevTools URL, quoting its own stderr.
-
-		stderr reaching EOF races the process becoming reapable, so give a dead Chromium
-		a moment to be collected rather than misreporting it as a live one.
-		"""
-		try:
-			exit_code = self._chromium_process.wait(timeout=1)
-		except subprocess.TimeoutExpired:
-			exit_code = None
-		chromium_output = "".join(output).strip() or "<no output on stderr>"
-
-		if exit_code is None:
 			self._signal_chromium()
-			raise TimeoutError(
-				f"Chromium did not report a DevTools URL within {self.START_TIMEOUT}s. "
-				f"Raise `chromium_start_timeout` in site config if this machine is slow.\n"
-				f"Chromium output:\n{chromium_output}"
-			)
-
-		raise RuntimeError(
-			f"Chromium exited with code {exit_code} before reporting a DevTools URL.\n"
-			f"Chromium output:\n{chromium_output}"
-		)
->>>>>>> d3da748 (fix: stop every chromium process when chromium_path is a wrapper script):frappe/utils/chromium/process.py
+			raise TimeoutError("Chromium took too long to start.")
 
 	def _close_browser(self):
 		"""
@@ -321,18 +249,8 @@ class ChromePDFGenerator:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
 		if self._chromium_process:
-<<<<<<< HEAD:frappe/utils/pdf_generator/chrome_pdf_generator.py
-			self._chromium_process.terminate()
-		ChromePDFGenerator._instance = None
-=======
 			self._signal_chromium()
-			try:
-				self._chromium_process.wait(timeout=5)
-			except subprocess.TimeoutExpired:
-				self._signal_chromium(kill=True)
-				self._chromium_process.wait()
-		ChromiumManager._instance = None
->>>>>>> d3da748 (fix: stop every chromium process when chromium_path is a wrapper script):frappe/utils/chromium/process.py
+		ChromePDFGenerator._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
 		frappe.log("Headless Chromium closed successfully.")
