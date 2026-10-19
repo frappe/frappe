@@ -10,7 +10,7 @@ import frappe
 import frappe.defaults
 from frappe import _
 from frappe.permissions import ALL_USER_ROLE
-from frappe.utils import cint, get_datetime, time_diff_in_seconds
+from frappe.utils import cint
 from frappe.utils.background_jobs import enqueue
 from frappe.utils.password import decrypt, encrypt
 
@@ -191,7 +191,6 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		# show qr code only once
 		if not get_default(login_manager.user + "_otplogin"):
 			set_default(login_manager.user + "_otplogin", 1)
-			delete_qrimage(login_manager.user)
 		tracker.add_success_attempt()
 		return True
 	else:
@@ -363,50 +362,6 @@ def get_qr_svg_code(totp_uri):
 	finally:
 		stream.close()
 	return svg
-
-
-def create_barcode_folder():
-	"""Get Barcodes folder."""
-	folder_name = "Barcodes"
-	folder = frappe.db.exists("File", {"file_name": folder_name})
-	if folder:
-		return folder
-	folder = frappe.get_doc({"doctype": "File", "file_name": folder_name, "is_folder": 1, "folder": "Home"})
-	folder.insert(ignore_permissions=True)
-	return folder.name
-
-
-def delete_qrimage(user, check_expiry=False):
-	"""Delete Qrimage when user logs in."""
-	user_barcodes = frappe.get_all(
-		"File", {"attached_to_doctype": "User", "attached_to_name": user, "folder": "Home/Barcodes"}
-	)
-
-	for barcode in user_barcodes:
-		if check_expiry and not should_remove_barcode_image(barcode):
-			continue
-		barcode = frappe.get_doc("File", barcode.name)
-		frappe.delete_doc("File", barcode.name, ignore_permissions=True)
-
-
-def delete_all_barcodes_for_users():
-	"""Task to delete all barcodes for user."""
-
-	users = frappe.get_all("User", {"enabled": 1})
-	for user in users:
-		if not two_factor_is_enabled(user=user.name):
-			continue
-		delete_qrimage(user.name, check_expiry=True)
-
-
-def should_remove_barcode_image(barcode):
-	"""Check if it's time to delete barcode image from server."""
-	if isinstance(barcode, str):
-		barcode = frappe.get_doc("File", barcode)
-	lifespan = frappe.get_system_settings("lifespan_qrcode_image") or 240
-	if time_diff_in_seconds(get_datetime(), barcode.creation) > int(lifespan):
-		return True
-	return False
 
 
 def disable():
