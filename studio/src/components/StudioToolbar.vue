@@ -76,6 +76,7 @@
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-1">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
+						<Badge label="Beta" size="sm" theme="blue" />
 						<span
 							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
 							class="h-4 w-4 text-ink-gray-6"

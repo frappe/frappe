@@ -2,6 +2,7 @@
  "actions": [],
  "allow_rename": 1,
  "autoname": "field:app_name",
+ "beta": 1,
  "creation": "2026-09-30 18:07:15.467992",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -94,7 +95,7 @@
    "link_fieldname": "studio_app"
   }
  ],
- "modified": "2026-10-09 12:00:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio App",

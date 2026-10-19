@@ -18,6 +18,7 @@
 						<StudioLogo class="h-7 w-7"></StudioLogo>
 						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
 							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
+							<Badge label="Beta" size="sm" theme="blue" />
 						</router-link>
 						<span
 							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"

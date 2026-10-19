@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "beta": 1,
  "creation": "2025-05-24 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
@@ -22,7 +23,7 @@
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-05-26 17:44:02.690418",
+ "modified": "2026-10-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Settings",
