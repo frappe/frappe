@@ -311,6 +311,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	def db_schema(self):
 		return frappe.conf.get("db_schema", "public").replace("'", "").replace('"', "")
 
+	def connect(self):
+		# psycopg's array dumpers form a reference cycle, so a replaced connection would stay open,
+		# transaction and locks included, until garbage collection
+		self.close()
+		super().connect()
+
 	def get_connection(self):
 		# quoted, so postgres doesn't lowercase it; libpq splits options on unescaped spaces
 		search_path = f'"{self.db_schema}"'.replace("\\", "\\\\").replace(" ", "\\ ")
