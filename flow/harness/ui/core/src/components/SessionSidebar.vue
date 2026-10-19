@@ -106,7 +106,9 @@
 						:data-reorder="canReorder ? 'folder' : null"
 						:data-key="group.cwd"
 						@click="toggleWorkspace(group.cwd)"
+						@pointerdown.capture="holdCard(group.cwd)"
 						@pointerdown="dragStart('folder', group.cwd, $event)"
+						@pointerleave="releaseCard(group.cwd)"
 					>
 						<template #prefix>
 							<span
@@ -164,11 +166,12 @@
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
 									@click="pick(s)"
+									@pointerdown.capture="holdCard(s.session_id)"
 									@pointerdown="pressStart(s, $event); dragStart(`chat:${group.cwd ?? ''}`, s.session_id, $event)"
 									@pointerup="pressEnd"
 									@pointercancel="pressEnd"
 									@pointerenter="crawlTitle"
-									@pointerleave="pressEnd(); restTitle($event)"
+									@pointerleave="pressEnd(); restTitle($event); releaseCard(s.session_id)"
 								>
 									<!-- an empty icon lane lines a workspace's chats up under its name; loose chats line up with the label -->
 									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
@@ -308,11 +311,20 @@ onBeforeUnmount(() => observer?.disconnect())
 const menuFor = ref(null)
 
 // a row's card (a chat's id, a workspace's folder) shows after a hover dwell, never beside
-// an open menu or during a drag
+// an open menu or during a drag; a press anywhere on its row (a click, its buttons, a drag)
+// puts it away until the pointer leaves the row
 const cardFor = ref(null)
+let cardHeld = null
 function showCard(key, open) {
-	if (open && !menuFor.value && !dragging.value) cardFor.value = key
+	if (open && !menuFor.value && !dragging.value && cardHeld !== key) cardFor.value = key
 	else if (cardFor.value === key) cardFor.value = null
+}
+function holdCard(key) {
+	cardHeld = key
+	cardFor.value = null
+}
+function releaseCard(key) {
+	if (cardHeld === key) cardHeld = null
 }
 function setMenu(session, open) {
 	menuFor.value = open ? session.session_id : null

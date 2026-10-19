@@ -1757,6 +1757,22 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	trigger.dispatchEvent(new window.PointerEvent("pointerleave"))
 	await nextTick()
 	assert.equal(card(), null)
+	// a press on the row puts its card away, even one still in its hover dwell, until the pointer leaves
+	const chatRow = trigger.closest("[data-stub=SidebarItem]")
+	trigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	chatRow.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true }))
+	await nextTick()
+	assert.equal(card(), null)
+	trigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	assert.equal(card(), null)
+	chatRow.dispatchEvent(new window.PointerEvent("pointerleave"))
+	trigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	assert.ok(card())
+	trigger.dispatchEvent(new window.PointerEvent("pointerleave"))
+	await nextTick()
 	// and a workspace's, its name and folder
 	const folderTrigger = rows().find((row) => row.textContent.trim() === "app").querySelector("[data-stub=HoverCard]")
 	folderTrigger.dispatchEvent(new window.PointerEvent("pointerenter"))
@@ -1805,7 +1821,10 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await pickView("In one list")
 	assert.deepEqual(labels().slice(1, 4), ["App 0", "Api work", "App 1"])
 	const row = (label) => rows().find((item) => item.textContent.trim() === label)
-	const pointer = (type, target, init = {}) =>
+	const pointer = (type, target, init = {}) => {
+		// Vue skips the row's drag listener for a press in the millisecond the row was made, once its
+		// card-hold listener has seen it; a person's press always comes later
+		if (type === "pointerdown") for (const at = Date.now(); Date.now() === at; );
 		target.dispatchEvent(
 			new window.PointerEvent(type, {
 				pointerType: "mouse",
@@ -1815,6 +1834,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 				...init,
 			}),
 		)
+	}
 	t.after(() => delete document.elementFromPoint)
 	const drag = async (from, to) => {
 		document.elementFromPoint = () => row(to).querySelector("button") // jsdom has no layout: the pointer is over `to`, above its middle
