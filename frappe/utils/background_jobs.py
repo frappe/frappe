@@ -14,9 +14,9 @@ from uuid import uuid4
 
 import redis
 from redis.exceptions import BusyLoadingError, ConnectionError
-from rq import Callback, Queue, Worker
+from rq import Callback, Queue, Retry, Worker
 from rq.defaults import DEFAULT_WORKER_TTL
-from rq.exceptions import InvalidJobOperation, NoSuchJobError
+from rq.exceptions import DeserializationError, InvalidJobOperation, NoSuchJobError
 from rq.job import Job, JobStatus
 from rq.logutils import setup_loghandlers
 from rq.timeouts import JobTimeoutException
@@ -48,6 +48,51 @@ QUEUE_STARVATION_THRESHOLD = 16
 
 
 _redis_queue_conn = None
+
+
+class _DeferredEnqueueAfterCommit:
+	"""Keep after-commit jobs pending across intermediate commits."""
+
+	def __init__(self):
+		self.callbacks = CallbackManager()
+		self.parent_callbacks = None
+		self.cancelled = False
+
+	def __enter__(self):
+		self.parent_callbacks = getattr(frappe.local, "deferred_enqueue_after_commit", None)
+		frappe.local.deferred_enqueue_after_commit = self.callbacks
+		return self
+
+	def __exit__(self, exc_type, exc_value, traceback):
+		try:
+			if exc_type is None and not self.cancelled:
+				self._release_after_transaction_commit()
+		finally:
+			if self.parent_callbacks is None:
+				del frappe.local.deferred_enqueue_after_commit
+			else:
+				frappe.local.deferred_enqueue_after_commit = self.parent_callbacks
+			self.callbacks.reset()
+
+	def cancel(self):
+		"""Discard held jobs when a workflow handles an error without raising it."""
+		self.cancelled = True
+
+	def _release_after_transaction_commit(self):
+		"""Move held jobs to the enclosing deferral or the database commit callbacks."""
+		target = self.parent_callbacks or frappe.db.after_commit
+		for callback in self.callbacks.cut(0):
+			target.add(callback)
+
+
+def defer_enqueue_after_commit():
+	"""Hold after-commit jobs across intermediate commits in a larger workflow.
+
+	A clean context exit moves held jobs to the real transaction callbacks. An
+	exception discards them. Call ``cancel`` only when an error is handled inside
+	the context and therefore does not escape it.
+	"""
+	return _DeferredEnqueueAfterCommit()
 
 
 @lru_cache
@@ -97,7 +142,7 @@ def enqueue(
 	job_id: str | None = None,
 	deduplicate=False,
 	at_front_when_starved=False,
-	retry=None,
+	rq_retry: Retry | None = None,
 	**kwargs,
 ) -> Job | Any:
 	"""
@@ -121,6 +166,7 @@ def enqueue(
 	:param job_id: Assigning unique job id, which can be checked using `is_job_enqueued`
 	:param at_front_when_starved: If the queue appears to be starved then new jobs are
 	automatically inserted in LIFO fashion.
+	:param rq_retry: rq.Retry for re-running the job when it fails
 	"""
 	# To handle older implementations
 	is_async = kwargs.pop("async", is_async)
@@ -210,11 +256,12 @@ def enqueue(
 			failure_ttl=frappe.conf.get("rq_job_failure_ttl") or RQ_JOB_FAILURE_TTL,
 			result_ttl=frappe.conf.get("rq_results_ttl") or RQ_RESULTS_TTL,
 			job_id=job_id,
-			retry=retry,
+			retry=rq_retry,
 		)
 
 	if enqueue_after_commit:
-		frappe.db.after_commit.add(enqueue_call)
+		callbacks = getattr(frappe.local, "deferred_enqueue_after_commit", None)
+		(callbacks or frappe.db.after_commit).add(enqueue_call)
 		return
 
 	return enqueue_call()
@@ -250,6 +297,7 @@ def run_doc_method(doctype, name, doc_method, **kwargs):
 def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True, retry=0):
 	"""Executes job in a worker, performs commit/rollback and logs if there is any error"""
 	retval = None
+	retrying = False
 
 	if is_async:
 		frappe.init(site, force=True, is_job=True)
@@ -283,11 +331,19 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 	try:
 		retval = method(**kwargs)
 
-	except (frappe.db.InternalError, frappe.RetryBackgroundJobError) as e:
+	except (
+		frappe.db.InternalError,
+		frappe.QueryDeadlockError,
+		frappe.QueryTimeoutError,
+		frappe.RetryBackgroundJobError,
+	) as e:
 		frappe.db.rollback(chain=True)
 
 		if retry < 5 and (
-			isinstance(e, frappe.RetryBackgroundJobError)
+			isinstance(
+				e,
+				(frappe.QueryDeadlockError, frappe.QueryTimeoutError, frappe.RetryBackgroundJobError),
+			)
 			or (frappe.db.is_deadlocked(e) or frappe.db.is_timedout(e))
 		):
 			# retry the job if
@@ -295,10 +351,21 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 			# 1205 = lock wait timeout
 			# or RetryBackgroundJobError is explicitly raised
 			frappe.job.after_job.reset()
-			frappe.destroy()
+			retrying = True
+			if is_async:
+				frappe.destroy()
 			time.sleep(retry + 1)
 
-			return execute_job(site, method, event, job_name, kwargs, is_async=is_async, retry=retry + 1)
+			return execute_job(
+				site,
+				method,
+				event,
+				job_name,
+				kwargs,
+				user=user,
+				is_async=is_async,
+				retry=retry + 1,
+			)
 
 		else:
 			frappe.log_error(title=method_name)
@@ -317,15 +384,20 @@ def execute_job(site, method, event, job_name, kwargs, user=None, is_async=True,
 		return retval
 
 	finally:
-		if not hasattr(frappe.local, "site"):
-			frappe.init(site, force=True, is_job=True)
-			frappe.connect()
-		for after_job_task in frappe.get_hooks("after_job"):
-			frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
-		frappe.local.job.after_job.run()
+		if not retrying:
+			if not hasattr(frappe.local, "site"):
+				frappe.init(site, force=True, is_job=True)
+				frappe.connect()
+			for after_job_task in frappe.get_hooks("after_job"):
+				frappe.call(after_job_task, method=method_name, kwargs=kwargs, result=retval)
+			frappe.local.job.after_job.run()
 
-		if is_async:
-			frappe.destroy()
+			if is_async:
+				if os.getenv("FRAPPE_SENTRY_DSN"):
+					import sentry_sdk
+
+					sentry_sdk.flush()
+				frappe.destroy()
 
 
 def start_worker(
@@ -358,7 +430,7 @@ def start_worker(
 	if quiet:
 		logging_level = "WARNING"
 
-	worker = Worker(queues, connection=redis_connection)
+	worker = FrappeBaseWorker(queues, connection=redis_connection)
 	worker.work(
 		logging_level=logging_level,
 		burst=burst,
@@ -369,7 +441,17 @@ def start_worker(
 	)
 
 
-class FrappeWorker(Worker):
+class FrappeBaseWorker(Worker):
+	def heartbeat(self, *args, **kwargs):
+		"""Re-register if the worker key expired, e.g. after host sleep or a Redis restart."""
+		# RQ keeps writing to an expired key, leaving a hash without pid or queues.
+		if not self.connection.hexists(self.key, "birth"):
+			self.connection.delete(self.key)
+			self.register_birth()
+		return super().heartbeat(*args, **kwargs)
+
+
+class FrappeWorker(FrappeBaseWorker):
 	def work(self, *args, **kwargs):
 		self.start_frappe_scheduler()
 		kwargs["with_scheduler"] = False  # Always disable RQ scheduler
@@ -502,7 +584,9 @@ def get_jobs(site=None, queue=None, key="method"):
 		q = get_queue(_queue)
 		jobs = q.jobs + get_running_jobs_in_queue(q)
 		for job in jobs:
-			if job.kwargs.get("site"):
+			if not (queue_args := get_queue_args(job)):
+				continue
+			if queue_args.get("site"):
 				# if job belongs to current site, or if all jobs are requested
 				if (job.kwargs["site"] == site) or site is None:
 					add_to_dict(job)
@@ -543,6 +627,14 @@ def get_running_jobs_in_queue(queue):
 		if current_job:
 			jobs.append(current_job)
 	return jobs
+
+
+def get_queue_args(job: Job) -> dict:
+	"""Return the arguments `enqueue` stored on the job, or an empty dict when they no longer load (e.g. its method was renamed)."""
+	try:
+		return job.kwargs
+	except DeserializationError:
+		return {}
 
 
 def get_queue(qtype: str, is_async: bool = True) -> Queue:
@@ -722,7 +814,7 @@ def truncate_failed_registry(job, connection, type, value, traceback):
 	"""Ensures that number of failed jobs don't exceed specified limits."""
 	from frappe.utils import create_batch
 
-	conf = frappe.conf if frappe.conf else frappe.get_conf(site=job.kwargs.get("site"))
+	conf = frappe.conf if frappe.conf else frappe.get_conf(site=get_queue_args(job).get("site"))
 	limit = (conf.get("rq_failed_jobs_limit") or RQ_FAILED_JOBS_LIMIT) - 1
 
 	for queue in get_queues(connection=connection):
@@ -810,6 +902,7 @@ def mapreduce(
 	data: str,
 	document_type: str,
 	document_name: str,
+	job_name: str,
 ):
 	doc = frappe.new_doc("MapReduce Job")
 	doc.map = map_method
@@ -818,16 +911,34 @@ def mapreduce(
 	doc.data = frappe.json.dumps(data)
 	doc.document_type = document_type
 	doc.document_name = document_name
+	doc.job_name = job_name
 	doc.insert().submit()
 	return doc
 
 
 def cancel_mapreduce_job(document_type: str, document_name: str):
 	jobs = frappe.db.get_all(
-		"MapReduce Job", {"document_type": document_type, "document_name": document_name}
+		"MapReduce Job", {"document_type": document_type, "document_name": document_name, "docstatus": 1}
 	)
 	for j in jobs:
 		frappe.get_doc("MapReduce Job", j.name).cancel()
+
+	# stop running background task
+	if jobs:
+		if tasks := frappe.db.get_all(
+			"Background Task",
+			filters={
+				"status": ["in", ["Queued", "Running"]],
+				"ref_doctype": "MapReduce Job",
+				"ref_docname": ["in", [j.name for j in jobs]],
+			},
+			fields="task_id",
+			pluck="task_id",
+		):
+			from frappe.core.doctype.background_task.background_task import stop_task
+
+			for t in tasks:
+				stop_task(task_id=t)
 
 
 def remove_mapreduce_job(document_type: str, document_name: str):

@@ -7,8 +7,9 @@ import frappe
 import frappe.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.custom.doctype.customize_form.test_customize_form import TestCustomizeForm
-from frappe.desk.notifications import get_open_count
+from frappe.desk.notifications import get_doc_count, get_open_count
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_query_builder import db_type_is, unimplemented_for
 
 
 class TestDashboardConnections(IntegrationTestCase):
@@ -104,6 +105,7 @@ class TestDashboardConnections(IntegrationTestCase):
 				"external_links_found": [
 					{
 						"doctype": "Test Doctype B With Child Table With Link To Doctype A",
+						"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
 						"open_count": 0,
 						"count": 1,
 					}
@@ -121,6 +123,46 @@ class TestDashboardConnections(IntegrationTestCase):
 				get_open_count("Test Doctype A With Child Table With Link To Doctype B", "Saturn"),
 				expected_open_count,
 			)
+
+	def test_external_link_count_with_shared_link_field_in_child_tables(self):
+		jupiter = frappe.get_doc(
+			doctype="Test Doctype A With Child Table With Link To Doctype B", title="Jupiter"
+		).insert()
+
+		voyager = frappe.get_doc(doctype="Test Doctype C With Duplicate Link To Doctype A", title="Voyager")
+		voyager.append(
+			"child_table",
+			{
+				"title": "Voyager",
+				"test_doctype_a_with_test_child_table_with_link_to_doctype_b": "Jupiter",
+			},
+		)
+		voyager.insert()
+
+		dashboard = frappe._dict(
+			fieldname="test_doctype_a_with_test_child_table_with_link_to_doctype_b",
+			transactions=[
+				{"label": "Reference", "items": ["Test Doctype C With Duplicate Link To Doctype A"]}
+			],
+		)
+
+		with patch.object(jupiter.meta, "get_dashboard_data", return_value=dashboard):
+			connections = get_open_count("Test Doctype A With Child Table With Link To Doctype B", "Jupiter")[
+				"count"
+			]
+
+		self.assertEqual(
+			connections["external_links_found"],
+			[
+				{
+					"doctype": "Test Doctype C With Duplicate Link To Doctype A",
+					"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
+					"open_count": 0,
+					"count": 1,
+					"names": ["Voyager"],
+				}
+			],
+		)
 
 	def test_internal_link_without_external_field_reports_zero(self):
 		venus = frappe.get_doc(
@@ -187,6 +229,64 @@ class TestDashboardConnections(IntegrationTestCase):
 		todo.links = todo.links[:-2]
 		todo.run_method("save_customization")
 
+	def test_external_link_count_per_link_fieldname(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test", allocated_to="test@example.com").insert()
+		frappe.get_doc(doctype="Test Doctype D", title="d-001", doclink=todo.name).insert()
+
+		dashboard = frappe._dict(
+			non_standard_fieldnames={"Test Doctype D": "follow_up"},
+			transactions=[
+				{"label": "Linked", "items": ["Test Doctype D"], "fieldnames": {"Test Doctype D": "doclink"}},
+				{
+					"label": "Follow Up",
+					"items": ["Test Doctype D"],
+					"fieldnames": {"Test Doctype D": "follow_up"},
+				},
+			],
+		)
+
+		# an internal link with no rows falls back to counting the external links
+		for internal_and_external_links in ({}, {"Test Doctype D": ["child_table", "doclink"]}):
+			dashboard.internal_and_external_links = internal_and_external_links
+
+			with (
+				self.subTest(internal_and_external_links=internal_and_external_links),
+				self.set_user("test@example.com"),
+				patch.object(todo.meta, "get_dashboard_data", return_value=dashboard),
+			):
+				connections = get_open_count("ToDo", todo.name)["count"]
+
+				self.assertEqual(
+					connections["external_links_found"],
+					[
+						{"doctype": "Test Doctype D", "fieldname": "doclink", "open_count": 0, "count": 1},
+						{"doctype": "Test Doctype D", "fieldname": "follow_up", "open_count": 0, "count": 0},
+					],
+				)
+
+	def test_open_count_restores_the_execution_timeout(self):
+		execution_timeout = frappe.db.get_execution_timeout()
+
+		get_open_count("User", "Administrator")
+
+		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
+
+
+class TestLinkedDocumentCount(IntegrationTestCase):
+	@unimplemented_for(db_type_is.SQLITE)
+	def test_timed_out_count_keeps_the_transaction_usable(self):
+		execution_timeout = frappe.db.get_execution_timeout()
+
+		with frappe.db.execution_timeout(0.1), patch.object(frappe, "get_all", sleep_past_the_timeout):
+			self.assertEqual(get_doc_count("ToDo", {}), "?")
+			self.assertEqual(get_doc_count("ToDo", {}), "?")
+
+		self.assertEqual(frappe.db.get_execution_timeout(), execution_timeout)
+
+
+def sleep_past_the_timeout(*args, **kwargs):
+	frappe.db.multisql({"mariadb": "select sleep(1)", "postgres": "select pg_sleep(1)"})
+
 
 def create_test_data():
 	create_test_child_table_with_link_to_doctype_a()
@@ -195,6 +295,7 @@ def create_test_data():
 	create_test_doctype_b_with_test_child_table_with_link_to_doctype_a()
 	create_linked_doctypes()
 	add_links_in_child_tables()
+	create_test_doctype_c_with_duplicate_link_to_doctype_a()
 
 
 def delete_test_data():
@@ -205,6 +306,8 @@ def delete_test_data():
 		"Test Doctype B With Child Table With Link To Doctype A",
 		"Test Doctype D",
 		"Test Doctype E",
+		"Test Doctype C With Duplicate Link To Doctype A",
+		"Test Unrelated Child Table With Link To Doctype A",
 	]
 	for doctype in doctypes:
 		if frappe.db.table_exists(doctype):
@@ -316,6 +419,45 @@ def create_test_doctype_b_with_test_child_table_with_link_to_doctype_a():
 	).insert(ignore_if_duplicate=True)
 
 
+def create_test_doctype_c_with_duplicate_link_to_doctype_a():
+	new_doctype(
+		"Test Unrelated Child Table With Link To Doctype A",
+		istable=1,
+		fields=[
+			{
+				"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
+				"fieldtype": "Link",
+				"label": "Test Doctype A With Child Table With Link To Doctype B",
+				"options": "Test Doctype A With Child Table With Link To Doctype B",
+			}
+		],
+		custom=False,
+	).insert(ignore_if_duplicate=True)
+
+	new_doctype(
+		"Test Doctype C With Duplicate Link To Doctype A",
+		fields=[
+			{"fieldname": "title", "fieldtype": "Data", "label": "Title", "unique": 1},
+			# scanned before `child_table`, so a filter on the shared fieldname lands here
+			{
+				"fieldname": "unrelated_child_table",
+				"fieldtype": "Table",
+				"label": "Unrelated Child Table",
+				"options": "Test Unrelated Child Table With Link To Doctype A",
+			},
+			{
+				"fieldname": "child_table",
+				"fieldtype": "Table",
+				"label": "Child Table",
+				"options": "Test Child Table With Link To Doctype A",
+			},
+		],
+		custom=False,
+		autoname="field:title",
+		naming_rule="By fieldname",
+	).insert(ignore_if_duplicate=True)
+
+
 def get_dashboard_for_test_doctype_a_with_test_child_table_with_link_to_doctype_b():
 	dashboard = frappe._dict()
 
@@ -351,6 +493,12 @@ def create_linked_doctypes():
 				"fieldname": "doclink",
 				"fieldtype": "Link",
 				"label": "DocLink",
+				"options": "ToDo",
+			},
+			{
+				"fieldname": "follow_up",
+				"fieldtype": "Link",
+				"label": "Follow Up",
 				"options": "ToDo",
 			},
 		],

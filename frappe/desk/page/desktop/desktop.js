@@ -55,6 +55,14 @@ class DesktopPage {
 		// re-running setup would stack another modal + handler and open duplicate
 		// dialogs on Ctrl+K. Keep this flag out of `make()` so it survives navigation.
 		this.awesomebar_setup = false;
+		// An app's title is cut to one line with an ellipsis; name it in full on hover, but only
+		// when it was actually cut. Delegated on the page body, which outlives every re-render in
+		// `make()`, so this is set up once.
+		frappe.ui.Tooltip.delegate(this.page.body, ".icon-title", {
+			only_on_overflow: true,
+			side: "bottom",
+			delay: 150,
+		});
 	}
 	update() {
 		this.make();
@@ -75,8 +83,7 @@ class DesktopPage {
 		// surfaced as `frappe.boot.app_data`; show one icon per opted-in app.
 		// Order by the hook's `sequence_id` (lower first); Framework declares 1000 so it
 		// always trails. Ties keep installed-apps order since sort() is stable.
-		// The destination is the landing ladder: the route the app declares, then its first
-		// visible rail entry, then its first navigable module (see app_landing_route).
+		// The destination is the landing ladder (see app_landing_route).
 		//
 		// An app that resolves to none of the three keeps its icon. It used to be filtered out,
 		// which was tolerable while every app's rail was every module it owned. Now that a rail
@@ -87,7 +94,7 @@ class DesktopPage {
 			.filter((app) => app.on_apps_screen)
 			.map((app) => ({
 				...app,
-				route: frappe.app.sidebar?.app_landing_route(app) || app.app_route || "/desk",
+				route: frappe.app.sidebar?.app_landing_route(app) || "/desk",
 			}))
 			.sort((a, b) => (a.sequence_id ?? 100) - (b.sequence_id ?? 100));
 
@@ -110,8 +117,6 @@ class DesktopPage {
 			};
 			this.add_icon($grid, icon_data, app.route);
 		});
-
-		$('[data-toggle="tooltip"]').tooltip({ placement: "bottom" });
 	}
 	add_icon($grid, icon_data, route) {
 		const $icon = $(frappe.render_template("desktop_icon", { icon: icon_data }));
@@ -328,6 +333,9 @@ class DesktopPage {
 		}
 	}
 	handle_route_change() {
+		// setup() runs on every render, but one listener is enough
+		if (this.route_change_bound) return;
+		this.route_change_bound = true;
 		const me = this;
 		frappe.router.on("change", function () {
 			if (frappe.get_route()[0] == "desktop" || frappe.get_route()[0] == "") {
@@ -338,3 +346,6 @@ class DesktopPage {
 		});
 	}
 }
+
+// The Desktop Icons grid in desktop_icons.bundle.js extends this page, so both modes share it.
+frappe.ui.DesktopPage = DesktopPage;

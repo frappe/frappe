@@ -1,20 +1,27 @@
+import os
 import time
 from contextlib import contextmanager
+from contextvars import copy_context
 from unittest.mock import patch
 
 from rq import Queue
+from rq.job import Job
 from werkzeug.local import Local
 
 import frappe
 from frappe.core.doctype.rq_job.rq_job import remove_failed_jobs
+from frappe.core.doctype.rq_worker.rq_worker import RQWorker
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils.background_jobs import (
 	RQ_JOB_FAILURE_TTL,
 	RQ_RESULTS_TTL,
+	FrappeBaseWorker,
 	create_job_id,
 	execute_job,
 	generate_qname,
+	get_jobs,
+	get_queue,
 	get_queues_timeout,
 	get_redis_conn,
 )
@@ -57,6 +64,19 @@ class TestBackgroundJobs(IntegrationTestCase):
 		self.assertEqual(timeouts["long"], 1500)
 		self.assertLessEqual(builtin, set(timeouts))
 
+	def test_worker_reregisters_after_its_key_expires(self):
+		conn = get_redis_conn()
+		worker = FrappeBaseWorker([get_queue("short")], connection=conn)
+		worker.register_birth()
+		# What RQ leaves once the worker key has expired.
+		conn.delete(worker.key)
+		conn.hset(worker.key, "state", "idle")
+
+		# Short TTL so this worker does not show up in later worker checks.
+		worker.heartbeat(timeout=5)
+
+		self.assertIn(worker.name, [w.name for w in RQWorker.get_list()])
+
 	def test_enqueue_at_front(self):
 		kwargs = {
 			"method": "frappe.handler.ping",
@@ -72,6 +92,22 @@ class TestBackgroundJobs(IntegrationTestCase):
 
 		# lesser is earlier
 		self.assertTrue(high_priority_job.get_position() < low_priority_job.get_position())
+
+	def test_enqueue_passes_retry_kwarg_to_method(self):
+		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
+		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
+		self.assertIsNone(job.retries_left)
+
+	def test_get_jobs_skips_job_with_renamed_method(self):
+		job = frappe.enqueue(method=echo_retry, queue="short")
+		stale_job = Job.fetch(job.id, connection=get_redis_conn())
+		with (
+			patch.dict(globals()),
+			patch("frappe.utils.background_jobs.get_running_jobs_in_queue", return_value=[stale_job]),
+		):
+			del globals()["echo_retry"]
+			jobs = get_jobs(site=frappe.local.site, queue="short")
+		self.assertNotIn(echo_retry, jobs[frappe.local.site])
 
 	def test_job_translation_resolves_user_language(self):
 		real_get_cached_value = frappe.get_cached_value
@@ -112,6 +148,131 @@ class TestBackgroundJobs(IntegrationTestCase):
 			)
 			self.assertEqual(r, "pong")
 			self.assertLess(_test_JOB_HOOK.get("before_job"), _test_JOB_HOOK.get("after_job"))
+
+	def test_async_job_flushes_sentry_events(self):
+		with (
+			freeze_local() as locals,
+			frappe.init_site(locals.site),
+			patch.dict(os.environ, {"FRAPPE_SENTRY_DSN": "https://publickey@sentry.example.com/1"}),
+			patch("sentry_sdk.flush") as flush_sentry,
+		):
+			frappe.connect()
+			execute_job(
+				site=frappe.local.site,
+				method="frappe.handler.ping",
+				event=None,
+				job_name="frappe.handler.ping",
+				is_async=True,
+				kwargs={},
+			)
+
+		flush_sentry.assert_called_once_with()
+
+	def test_job_retries_framework_deadlock_errors(self):
+		attempts = 0
+
+		def locked_once():
+			nonlocal attempts
+			attempts += 1
+			if attempts == 1:
+				raise frappe.QueryDeadlockError("database is locked")
+			return "completed"
+
+		with (
+			patch.object(frappe.db, "rollback") as rollback,
+			patch.object(frappe.db, "commit") as commit,
+			patch("frappe.utils.background_jobs.time.sleep") as sleep,
+			patch("frappe.utils.background_jobs.frappe.destroy"),
+			patch("frappe.utils.background_jobs.frappe.get_hooks", return_value=[]),
+		):
+			result = execute_job(
+				site=frappe.local.site,
+				method=locked_once,
+				event=None,
+				job_name="locked-once",
+				kwargs={},
+				is_async=False,
+			)
+
+		self.assertEqual(result, "completed")
+		self.assertEqual(attempts, 2)
+		rollback.assert_called_once_with(chain=True)
+		commit.assert_called_once_with(chain=True)
+		sleep.assert_called_once_with(1)
+
+	def test_async_job_retry_keeps_cleanup_context(self):
+		attempts = 0
+		after_job_calls = 0
+		database_class = type(frappe.local.db)
+		site = frappe.local.site
+
+		def record_after_job():
+			nonlocal after_job_calls
+			after_job_calls += 1
+
+		def locked_once():
+			nonlocal attempts
+			attempts += 1
+			if attempts == 1:
+				raise frappe.QueryDeadlockError("database is locked")
+			frappe.local.job.after_job.add(record_after_job)
+			return "completed"
+
+		with (
+			patch.object(database_class, "rollback"),
+			patch.object(database_class, "commit"),
+			patch("frappe.utils.background_jobs.time.sleep"),
+			patch("frappe.utils.background_jobs.frappe.get_hooks", return_value=[]),
+		):
+			result = copy_context().run(
+				execute_job,
+				site,
+				locked_once,
+				None,
+				"async-locked-once",
+				{},
+				is_async=True,
+			)
+
+		self.assertEqual(result, "completed")
+		self.assertEqual(attempts, 2)
+		self.assertEqual(after_job_calls, 1)
+
+	def test_job_retry_preserves_user(self):
+		def locked_once():
+			raise frappe.QueryDeadlockError("database is locked")
+
+		with (
+			patch("frappe.utils.background_jobs.execute_job", return_value="completed") as retry_job,
+			patch("frappe.utils.background_jobs.time.sleep"),
+			patch("frappe.utils.background_jobs.frappe.destroy"),
+			patch("frappe.utils.background_jobs.frappe.get_hooks", return_value=[]),
+		):
+			result = execute_job(
+				site=frappe.local.site,
+				user="test@example.com",
+				method=locked_once,
+				event=None,
+				job_name="locked-once-as-user",
+				is_async=False,
+				kwargs={},
+			)
+
+		self.assertEqual(result, "completed")
+		retry_job.assert_called_once_with(
+			frappe.local.site,
+			locked_once,
+			None,
+			"locked-once-as-user",
+			{},
+			user="test@example.com",
+			is_async=False,
+			retry=1,
+		)
+
+
+def echo_retry(retry=None):
+	return retry
 
 
 def fail_function():

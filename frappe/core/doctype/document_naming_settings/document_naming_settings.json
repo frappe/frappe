@@ -3,6 +3,7 @@
  "creation": "2022-05-30 07:24:07.736646",
  "description": "Configure various aspects of how document naming works like naming series, current counter.",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/document-naming-settings",
  "engine": "InnoDB",
  "field_order": [
   "naming_series_tab",

@@ -5,7 +5,8 @@ from contextlib import suppress
 
 import frappe
 from frappe import _
-from frappe.query_builder.functions import DateFormat, Function
+from frappe.model import get_permitted_fields
+from frappe.query_builder.functions import DateFormat
 from frappe.query_builder.utils import DocType
 from frappe.utils.data import add_to_date, cstr, flt, now_datetime
 from frappe.utils.formatters import format_value
@@ -31,6 +32,15 @@ def get_monthly_results(
 	if date_col not in valid_fields:
 		frappe.throw(f"Invalid date field: {date_col}")
 
+	# The Engine checks the aggregated field, but not the raw DateFormat term
+	if date_col not in get_permitted_fields(goal_doctype, ignore_virtual=True):
+		frappe.throw(
+			_("You do not have permission to access field: {0}").format(
+				frappe.bold(f"{goal_doctype}.{date_col}")
+			),
+			frappe.PermissionError,
+		)
+
 	Table = DocType(goal_doctype)
 	date_format = "%m-%Y" if frappe.db.db_type != "postgres" else "MM-YYYY"
 
@@ -39,7 +49,7 @@ def get_monthly_results(
 			table=goal_doctype,
 			fields=[
 				DateFormat(Table[date_col], date_format).as_("month_year"),
-				Function(aggregation, Table[goal_field]),
+				{aggregation.upper(): goal_field},
 			],
 			filters=filters,
 			ignore_permissions=False,

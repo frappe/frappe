@@ -8,7 +8,6 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 	is_notifications_enabled,
 )
 from frappe.model.document import Document
-from frappe.utils.caching import http_cache
 
 
 class NotificationLog(Document):
@@ -253,10 +252,19 @@ def format_email_header(header_map, language, docname):
 
 
 @frappe.whitelist()
-@http_cache(max_age=60, stale_while_revalidate=60 * 60)
-def get_notification_logs(limit: int = 20):
+def get_notification_logs(limit: int = 20, read: int | None = None):
+	# Administrator may read everyone's logs, but the panel and the badge are about their own
+	filters = {"for_user": frappe.session.user}
+	# the phone page lists read and unread logs apart, so neither crowds the other out of the limit
+	if read is not None:
+		filters["read"] = read
+
 	notification_logs = frappe.db.get_list(
-		"Notification Log", fields=["*"], limit=limit, order_by="creation desc"
+		"Notification Log",
+		fields=["*"],
+		filters=filters,
+		limit=limit,
+		order_by="creation desc",
 	)
 
 	users = [log.from_user for log in notification_logs]
@@ -271,23 +279,22 @@ def get_notification_logs(limit: int = 20):
 
 @frappe.whitelist()
 def mark_all_as_read():
-	frappe.db.set_value(
-		"Notification Log",
-		{"read": 0, "for_user": frappe.session.user},
-		"read",
-		1,
-		update_modified=False,
-	)
+	_mark_as_read({})
 
 
 @frappe.whitelist()
 def mark_as_read(docname: str):
-	if frappe.flags.read_only or not docname:
+	if docname:
+		_mark_as_read({"name": str(docname)})
+
+
+def _mark_as_read(filters: dict):
+	if frappe.flags.read_only:
 		return
 
 	frappe.db.set_value(
 		"Notification Log",
-		{"name": str(docname), "for_user": frappe.session.user, "read": 0},
+		{**filters, "for_user": frappe.session.user, "read": 0},
 		"read",
 		1,
 		update_modified=False,

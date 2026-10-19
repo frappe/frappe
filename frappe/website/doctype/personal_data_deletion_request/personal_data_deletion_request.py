@@ -6,10 +6,12 @@ import re
 
 import frappe
 from frappe import _
+from frappe.core.doctype.user.user import rewrite_owner_fields
 from frappe.core.utils import find
 from frappe.desk.doctype.notification_settings.notification_settings import is_email_notifications_enabled
 from frappe.model.document import Document
 from frappe.utils import add_days, get_datetime, get_fullname, now_datetime, time_diff_in_hours
+from frappe.utils.logging import connection_for, is_log_doctype
 from frappe.utils.user import get_system_managers
 from frappe.utils.verified_command import get_signed_params, verify_request
 
@@ -37,7 +39,11 @@ class PersonalDataDeletionRequest(Document):
 	def __init__(self, *args, **kwargs):
 		super().__init__(*args, **kwargs)
 
-		self.user_data_fields = frappe.get_hooks("user_data_fields")
+		user_data_fields = frappe.get_hooks("user_data_fields")
+
+		# Log rows live in the log database, which the redaction `UPDATE` cannot reach.
+		self.log_privacy_docs = [x for x in user_data_fields if is_log_doctype(x["doctype"])]
+		self.user_data_fields = [x for x in user_data_fields if not is_log_doctype(x["doctype"])]
 		self.full_match_privacy_docs = [x for x in self.user_data_fields if x.get("redact_fields")]
 		self.partial_privacy_docs = [
 			x for x in self.user_data_fields if x.get("partial") or not x.get("redact_fields")
@@ -157,7 +163,7 @@ class PersonalDataDeletionRequest(Document):
 		if self.deletion_steps:
 			return
 
-		for step in self.full_match_privacy_docs + self.partial_privacy_docs:
+		for step in self.full_match_privacy_docs + self.partial_privacy_docs + self.log_privacy_docs:
 			row_data = {
 				"status": "Pending",
 				"document_type": step.get("doctype"),
@@ -170,6 +176,40 @@ class PersonalDataDeletionRequest(Document):
 		self.anonymization_matrix = json.dumps(self.anonymization_value_map, indent=4)
 		self.save()
 		self.reload()
+
+	def delete_log_data(self, email):
+		"""Delete this user's rows from every log DocType in `user_data_fields`, and commit."""
+		for ref in self.log_privacy_docs:
+			doctype = ref["doctype"]
+			meta = frappe.get_meta(doctype)
+
+			# Creates the table when nothing has been logged on this site yet, so a user
+			# cannot be left undeletable by the absence of the rows being deleted.
+			log_db = connection_for(doctype)
+
+			# A log DocType may record the user in `owner`, in `user`, or in both.
+			columns = [ref["filter_by"]] if ref.get("filter_by") else ["owner", "user"]
+			swept = False
+
+			for column in columns:
+				if column not in log_db.DEFAULT_COLUMNS and not meta.get_field(column):
+					continue
+
+				log_db.delete(doctype, {column: email})
+				swept = True
+
+			# Deleting nothing because no column exists is a broken `user_data_fields` entry,
+			# not a user who happens to have no rows, and must not be reported as done.
+			if not swept:
+				frappe.throw(
+					_("{0} has no field to identify the user by. Tried: {1}.").format(
+						doctype, ", ".join(columns)
+					),
+					title=_("Invalid Personal Data Deletion Configuration"),
+				)
+
+			log_db.commit()
+			self.set_step_status(doctype)
 
 	def redact_partial_match_data(self, doctype):
 		self.__redact_partial_match_data(doctype)
@@ -292,7 +332,24 @@ class PersonalDataDeletionRequest(Document):
 			if commit:
 				frappe.db.commit()
 
-		frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		# Must run before the rename, which rewrites `owner` to the anonymised name.
+		self.delete_log_data(email)
+
+		frappe.flags.in_personal_data_deletion = True
+		try:
+			frappe.rename_doc("User", email, anon, force=True, show_alert=False)
+		finally:
+			frappe.flags.in_personal_data_deletion = False
+		rewrite_owner_fields(email, anon, commit=commit)
+
+		pending = [step.document_type for step in self.deletion_steps if step.status != "Deleted"]
+
+		if pending:
+			frappe.throw(
+				_("Data deletion is incomplete for: {0}").format(", ".join(pending)),
+				title=_("Personal Data Deletion Failed"),
+			)
+
 		self.db_set("status", "Deleted")
 
 		if commit:

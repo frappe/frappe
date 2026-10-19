@@ -28,6 +28,7 @@ class TestOAuthClient(IntegrationTestCase):
 		client = self.create_dynamic_client()
 
 		self.assertTrue(client.is_dynamic_client)
+		self.assertEqual(client.token_endpoint_auth_method, "Client Secret Basic")
 
 	def test_deletes_unused_dynamic_client_after_grace_period(self):
 		client = self.create_dynamic_client()

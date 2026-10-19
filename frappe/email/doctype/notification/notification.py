@@ -14,7 +14,15 @@ from frappe.desk.doctype.notification_log.notification_log import enqueue_create
 from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validate_email_address
+from frappe.utils import (
+	add_to_date,
+	cast,
+	cint,
+	get_email_address,
+	now_datetime,
+	nowdate,
+	validate_email_address,
+)
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
@@ -46,6 +54,7 @@ class Notification(Document):
 		datetime_last_run: DF.Datetime | None
 		days_in_advance: DF.Int
 		document_type: DF.Link
+		email_template: DF.Link | None
 		enabled: DF.Check
 		event: DF.Literal[
 			"",
@@ -112,13 +121,15 @@ class Notification(Document):
 	def preview_message(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
-			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
-			if self.is_standard:
-				self.load_standard_properties(context)
-			msg = frappe.render_template(self.message, context, restrict_globals=True)
+			template_content = self.get_email_template_content(doc)
+			if template_content:
+				msg = template_content["message"]
+			else:
+				context = get_context(doc)
+				context.update({"alert": self, "comments": get_comments_for_context(doc)})
+				if self.is_standard:
+					self.load_standard_properties(context)
+				msg = frappe.render_template(self.message, context, restrict_globals=True)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
 			return msg
@@ -129,10 +140,11 @@ class Notification(Document):
 	def preview_subject(self, preview_document: str | int):
 		try:
 			doc = frappe.get_cached_doc(self.document_type, preview_document)
+			template_content = self.get_email_template_content(doc)
+			if template_content:
+				return template_content["subject"] or _("No subject")
 			context = get_context(doc)
-			context.update({"alert": self, "comments": None})
-			if doc.get("_comments"):
-				context["comments"] = json.loads(doc.get("_comments"))
+			context.update({"alert": self, "comments": get_comments_for_context(doc)})
 			if self.is_standard:
 				self.load_standard_properties(context)
 			if not self.subject:
@@ -172,6 +184,14 @@ class Notification(Document):
 
 		if self.attach_files == "From Field" and not self.from_attach_field:
 			frappe.throw(_("Please specify the field from which to attach files"))
+
+		if self.email_template and self.channel != "Email":
+			frappe.throw(_("Email Template can only be used with the Email channel"))
+
+		if self.email_template:
+			email_template = frappe.get_cached_doc("Email Template", self.email_template)
+			if not email_template.response_:
+				frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
 
 		self.validate_forbidden_document_types()
 		self.validate_condition()
@@ -381,9 +401,7 @@ def get_context(context):
 		"""Build recipients and send Notification"""
 
 		context = get_context(doc)
-		context.update({"alert": self, "comments": None})
-		if doc.get("_comments"):
-			context["comments"] = json.loads(doc.get("_comments"))
+		context.update({"alert": self, "comments": get_comments_for_context(doc)})
 
 		if self.is_standard:
 			self.load_standard_properties(context)
@@ -420,23 +438,46 @@ def get_context(context):
 	def send_notification_by_channel(self, doc, context):
 		"""Send notification based on the specified channel."""
 		try:
+			template_content = self.get_email_template_content(doc)
+
 			if self.channel == "Email":
-				self.send_an_email(doc, context)
+				self.send_an_email(doc, context, template_content)
 			elif self.channel == "Slack":
 				self.send_a_slack_msg(doc, context)
 			elif self.channel == "SMS":
 				self.send_sms(doc, context)
 			elif self.channel == "System Notification":
-				self.create_system_notification(doc, context)
+				self.create_system_notification(doc, context, template_content)
 
 			# Additionally, if explicitly enabled, create a system notification
 			# even when the primary channel is not "System Notification".
 			if self.send_system_notification and self.channel != "System Notification":
-				self.create_system_notification(doc, context)
+				self.create_system_notification(doc, context, template_content)
 		except Exception:
 			self.log_error("Failed to send Notification")
 
-	def create_system_notification(self, doc, context):
+	def get_email_template_content(self, doc):
+		"""Return {"subject", "message"} from `email_template`, or None.
+
+		Uses EmailTemplate's own renderer since its content expects bare `{{ field }}`, not `{{ doc.field }}`.
+		"""
+		if not self.email_template:
+			return None
+
+		email_template = frappe.get_cached_doc("Email Template", self.email_template)
+		doc_dict = doc.as_dict()
+		if email_template.use_html:
+			doc_dict = email_template.inject_email_account(doc_dict, self.sender_email)
+
+		subject = frappe.render_template(email_template.subject, doc_dict, restrict_globals=True)
+		message = frappe.render_template(email_template.response_, doc_dict, restrict_globals=True)
+
+		if not message:
+			frappe.throw(_("Email Template {0} has no content to send").format(self.email_template))
+
+		return {"subject": subject, "message": message}
+
+	def create_system_notification(self, doc, context, template_content=None):
 		def _render(template):
 			# Subject and Message come from the rule, authored by System Managers — the same
 			# trusted source as the other render_template calls in this controller.
@@ -446,7 +487,14 @@ def get_context(context):
 				template, context
 			)
 
-		subject = _render(self.subject)
+		if template_content is None:
+			template_content = self.get_email_template_content(doc)
+		if template_content:
+			subject = template_content["subject"]
+			email_content = template_content["message"]
+		else:
+			subject = _render(self.subject)
+			email_content = _render(self.message)
 
 		attachments = self.get_attachment(doc)
 
@@ -467,20 +515,26 @@ def get_context(context):
 			"app": frappe.db.get_value("Module Def", self.module, "app_name") if self.module else None,
 			"title": subject,
 			"subject": subject,
-			"email_content": _render(self.message),
+			"email_content": email_content,
 			"from_user": doc.modified_by or doc.owner,
 			"attached_file": json.dumps(attachments) if attachments else None,
 		}
 		enqueue_create_notification(users, notification_doc)
 
-	def send_an_email(self, doc, context):
+	def send_an_email(self, doc, context, template_content=None):
 		from email.utils import formataddr
 
 		from frappe.core.doctype.communication.email import _make as make_communication
 
-		subject = self.subject
-		if "{" in subject:
-			subject = frappe.render_template(self.subject, context, restrict_globals=True)
+		if template_content is None:
+			template_content = self.get_email_template_content(doc)
+		if template_content:
+			subject, message = template_content["subject"], template_content["message"]
+		else:
+			subject = self.subject
+			if "{" in subject:
+				subject = frappe.render_template(self.subject, context, restrict_globals=True)
+			message = frappe.render_template(self.message, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -488,7 +542,6 @@ def get_context(context):
 			return
 
 		sender = None
-		message = frappe.render_template(self.message, context, restrict_globals=True)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 
@@ -598,11 +651,15 @@ def get_context(context):
 				if child_field:
 					for d in doc.get(child_field):
 						email_id = d.get(data_field)
+						if email_id == "Administrator":
+							email_id = get_email_address("Administrator")
 						if validate_email_address(email_id):
 							recipients.append(email_id)
 				# field from current doc
 				else:
 					email_ids_value = doc.get(data_field)
+					if email_ids_value == "Administrator":
+						email_ids_value = get_email_address("Administrator")
 					if validate_email_address(email_ids_value):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
@@ -858,6 +915,37 @@ def evaluate_alert(doc: Document, alert, event=None):
 		frappe.log_error(title=title, message=message)
 		msg = f"<details><summary>{title}</summary>{message}</details>"
 		frappe.throw(msg, title=_("Error in Notification"))
+
+
+def get_comments_for_context(doc):
+	"""`{{ comments }}` for notification templates, in the shape the `_comments` cache had."""
+	if not doc.get("name"):
+		return None
+
+	reference = {"reference_doctype": doc.doctype, "reference_name": doc.name}
+	comments = frappe.get_all(
+		"Comment",
+		fields=["name", "content", "comment_email as by", "owner", "creation"],
+		filters=reference | {"comment_type": "Comment"},
+		order_by="creation desc",
+		limit=100,
+	) + frappe.get_all(
+		"Communication",
+		fields=["name", "content", "sender as by", "owner", "creation"],
+		filters=reference,
+		order_by="creation desc",
+		limit=100,
+	)
+	comments.sort(key=lambda c: c.creation)
+	return [
+		{"comment": truncate(c.content), "by": c.by or c.owner, "name": c.name} for c in comments[-100:]
+	] or None
+
+
+def truncate(content):
+	"""Preview length the `_comments` cache used to hand templates."""
+	content = content or ""
+	return (content[:97] + "...") if len(content) > 100 else content
 
 
 def get_context(doc):

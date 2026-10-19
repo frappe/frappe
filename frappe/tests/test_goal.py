@@ -3,9 +3,13 @@
 
 import frappe
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_db_query import setup_patched_blog_post, setup_test_user
+from frappe.tests.test_helpers import setup_for_tests
 from frappe.tests.utils import make_test_objects
 from frappe.utils import format_date, today
 from frappe.utils.goal import get_monthly_goal_graph_data, get_monthly_results
+
+EXTRA_TEST_RECORD_DEPENDENCIES = ["User"]
 
 
 class TestGoal(IntegrationTestCase):
@@ -42,6 +46,16 @@ class TestGoal(IntegrationTestCase):
 		)
 
 		self.assertEqual(result_dict.get(format_date(today(), "MM-yyyy")), 2)
+
+	def test_get_monthly_results_field_permissions(self):
+		setup_for_tests()
+		with setup_patched_blog_post(), setup_test_user(set_user=True):
+			get_monthly_results("Test Blog Post", "idx", "creation", {}, "max")
+
+			for goal_field, date_col in (("published", "creation"), ("idx", "published")):
+				with self.subTest(goal_field=goal_field, date_col=date_col):
+					with self.assertRaises(frappe.PermissionError):
+						get_monthly_results("Test Blog Post", goal_field, date_col, {}, "max")
 
 	def test_get_monthly_goal_graph_data(self):
 		"""Test for accurate values in graph data (based on test_get_monthly_results)"""

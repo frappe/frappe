@@ -8,10 +8,10 @@
 .sidebar-panel {
 	position: absolute;
 	top: 0;
-	// The mount point is .body-sidebar-container, which is 0 wide in every state now that the
-	// sidebar is an overlay -- so this is the rail's right edge, which is where the panel belongs
-	// while the sidebar is away. Where it belongs when the sidebar is out is below: the offset has
-	// to be named, because it no longer falls out of the box's own width.
+	// The mount point is .body-sidebar-container. This is its left edge, which is where the panel
+	// belongs whenever the sidebar is not beside it -- a drawer below md, or a page that hid the
+	// sidebar. Where it belongs when the sidebar is out is below: the offset has to be named,
+	// because the panel is a sibling of the sidebar rather than a box after it.
 	left: 0;
 	z-index: 1000;
 
@@ -33,7 +33,7 @@
 }
 
 // With the sidebar out, the panel opens past it rather than over it: the two are siblings in the
-// same 0-width box, so one would otherwise be drawn on top of the other.
+// same box, so one would otherwise be drawn on top of the other.
 .body-sidebar-container.expanded .sidebar-panel {
 	left: var(--sidebar-width);
 }

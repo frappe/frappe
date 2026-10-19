@@ -3,7 +3,7 @@
  "creation": "2026-08-03 19:24:16.567748",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "mail",
+ "header_icon": "email-envelope-duotone",
  "idx": 0,
  "items": [
   {
@@ -104,7 +104,7 @@
   }
  ],
  "merged_from": "[\"Email\"]",
- "modified": "2026-08-12 16:08:08.646656",
+ "modified": "2026-10-01 01:05:00.000000",
  "modified_by": "Administrator",
  "module": "Email",
  "name": "Email",

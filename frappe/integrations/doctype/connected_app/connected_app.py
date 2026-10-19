@@ -54,6 +54,7 @@ class ConnectedApp(Document):
 
 	@frappe.whitelist()
 	def get_openid_configuration(self):
+		self.check_permission("write")
 		if not self.openid_configuration:
 			frappe.throw(_("Please enter OpenID Configuration URL"))
 		return make_get_request(self.openid_configuration)
@@ -195,7 +196,9 @@ class ConnectedApp(Document):
 		return token_cache
 
 
-@frappe.whitelist(methods=["GET"], allow_guest=True)
+# OAuth providers must be able to return here before authentication; guests are redirected
+# to login below, and authenticated callbacks must match the stored OAuth state.
+@frappe.whitelist(methods=["GET"], allow_guest=True)  # nosemgrep: guest-whitelisted-method
 def callback(code: str | None = None, state: str | None = None):
 	"""Handle client's code.
 
@@ -221,10 +224,15 @@ def callback(code: str | None = None, state: str | None = None):
 
 	oauth_session = connected_app.get_oauth2_session(init=True)
 	query_params = connected_app.get_query_params()
+	client_secret = connected_app.get_password("client_secret")
+	if frappe.db.db_type == "sqlite":
+		# The token endpoint can write through another connection. End this read-only
+		# snapshot first so saving the returned token starts from the latest database state.
+		frappe.db.rollback()
 	token = oauth_session.fetch_token(
 		connected_app.token_uri,
 		code=code,
-		client_secret=connected_app.get_password("client_secret"),
+		client_secret=client_secret,
 		include_client_id=True,
 		**query_params,
 	)

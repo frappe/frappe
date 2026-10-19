@@ -6,7 +6,7 @@
 		<div class="flex flex-col gap-1">
 			<slot>
 				<div class="inline-flex gap-2 items-center font-medium">
-					<FeatherIcon class="h-4" name="info" />
+					<LucideInfo class="size-4" />
 					Loved the demo?
 				</div>
 				<div class="text-ink-gray-7 text-p-sm">
@@ -20,12 +20,13 @@
 			</template>
 		</Button>
 	</div>
-	<Button v-else @click="signupNow">
+	<Button v-else aria-label="Sign up now" @click="signupNow">
 		<LightningIcon class="h-4 my-0.5 shrink-0" />
 	</Button>
 </template>
 <script setup lang="ts">
-import { Button, FeatherIcon } from "frappe-ui";
+import { Button } from "frappe-ui";
+import LucideInfo from "~icons/lucide/info";
 import { LightningIcon } from "frappe-ui/icons";
 import type { SignupBannerProps } from "./types";
 

@@ -18,6 +18,7 @@ from frappe.query_builder import DocType
 from frappe.utils.data import get_link_to_form
 from frappe.utils.file_manager import remove_all
 from frappe.utils.global_search import delete_for_document
+from frappe.utils.logging import connection_for
 from frappe.utils.password import delete_all_passwords_for
 
 
@@ -114,6 +115,7 @@ def delete_doc(
 
 		doc = None
 		if doctype == "DocType":
+			custom_field_parents = []
 			if for_reload:
 				try:
 					doc = frappe.get_doc(doctype, name)
@@ -130,6 +132,11 @@ def delete_doc(
 				update_flags(doc, flags, ignore_permissions)
 				check_permission_and_not_submitted(doc)
 				# delete custom table fields using this doctype.
+				custom_field_parents = frappe.get_all(
+					"Custom Field",
+					filters={"options": name, "fieldtype": ("in", frappe.model.table_fields)},
+					pluck="dt",
+				)
 				frappe.db.delete(
 					"Custom Field", {"options": name, "fieldtype": ("in", frappe.model.table_fields)}
 				)
@@ -154,6 +161,8 @@ def delete_doc(
 					pass
 
 			frappe.clear_cache(doctype=name)
+			for parent_doctype in custom_field_parents:
+				frappe.clear_cache(doctype=parent_doctype)
 
 		else:
 			# Lock the doc without waiting
@@ -207,7 +216,12 @@ def delete_doc(
 					"frappe.model.delete_doc.delete_dynamic_links",
 					doctype=doc.doctype,
 					name=doc.name,
-					now=frappe.in_test,
+					now=(
+						frappe.in_test
+						or frappe.flags.in_install
+						or frappe.flags.in_migrate
+						or frappe.flags.in_setup_wizard
+					),
 					enqueue_after_commit=True,
 				)
 
@@ -461,6 +475,8 @@ def get_dynamic_linked_docs(doc, method="Delete", limit: int | None = None) -> l
 			# filter before limiting, or irrelevant rows could fill the limit
 			if method == "Delete":
 				query = query.where(RefDoc.docstatus != DocStatus.cancelled())
+				if df.parent == "Submission Queue":
+					query = query.where(RefDoc.status == "Queued")
 			elif method == "Cancel":
 				query = query.where(RefDoc.docstatus == DocStatus.submitted())
 			if limit:
@@ -516,15 +532,18 @@ def raise_link_exists_exception(doc, reference_doctype, reference_docname, row="
 	if reference_doctype == reference_docname:
 		reference_doctype = ""
 
+	exception = frappe.LinkExistsError()
+	exception.linked_with = f"{_(reference_doctype)} {reference_link} {row}"
 	frappe.throw(
 		_("Cannot delete or cancel because {0} {1} is linked with {2} {3} {4}").format(
 			_(doc.doctype), doc_link, _(reference_doctype), reference_link, row
 		),
-		frappe.LinkExistsError,
+		exception,
 	)
 
 
 def delete_dynamic_links(doctype, name):
+	delete_references("Submission Queue", doctype, name, "ref_doctype", "ref_docname")
 	delete_references("ToDo", doctype, name, "reference_type")
 	delete_references("Email Unsubscribe", doctype, name)
 	delete_references("DocShare", doctype, name, "share_doctype", "share_name")
@@ -549,7 +568,9 @@ def delete_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.delete(
+	# `connection_for` rather than `frappe.db`: this list mixes ordinary DocTypes with log
+	# DocTypes, whose rows live in the site's SQLite log database.
+	connection_for(doctype).delete(
 		doctype, {reference_doctype_field: reference_doctype, reference_name_field: reference_name}
 	)
 
@@ -561,7 +582,10 @@ def clear_references(
 	reference_doctype_field="reference_doctype",
 	reference_name_field="reference_name",
 ):
-	frappe.db.sql(
+	# Activity Log is a log DocType, so this runs on the log database; Communication is not,
+	# so it runs on the site database. The statement is identical on both -- backtick-quoted
+	# identifiers and `%s` placeholders mean the same thing to each backend.
+	connection_for(doctype).sql(
 		f"""update
 			`tab{doctype}`
 		set

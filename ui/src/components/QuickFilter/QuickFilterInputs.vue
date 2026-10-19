@@ -43,6 +43,7 @@
 					:is="valueControl(field).is"
 					v-bind="valueControl(field).props"
 					class="w-full"
+					:aria-label="field.label"
 					:modelValue="displayValue(field)"
 					@update:modelValue="(v: FilterValue) => setValue(field, v)"
 				>

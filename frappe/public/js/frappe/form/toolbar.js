@@ -3,6 +3,7 @@
 import "./linked_with";
 import "./form_viewers";
 import "./template_manager";
+import { safe_href } from "../ui/components/utils.js";
 import { ReminderManager } from "./reminders";
 
 frappe.ui.form.Toolbar = class Toolbar {
@@ -71,7 +72,8 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 		title = __(title);
 		this.page.set_title(title);
-		if (this.frm.meta.title_field) {
+		// Skip document title changes for forms embedded in dialogs
+		if (this.frm.meta.title_field && !this.frm.in_dialog) {
 			frappe.utils.set_title(title + " - " + this.frm.docname);
 		}
 		this.page.$title_area.toggleClass(
@@ -107,7 +109,12 @@ frappe.ui.form.Toolbar = class Toolbar {
 		}
 	}
 	can_rename() {
-		return this.frm.perm[0].write && this.frm.meta.allow_rename && !this.frm.doc.__islocal;
+		return (
+			this.frm.perm[0].write &&
+			this.frm.meta.allow_rename &&
+			!this.frm.doc.__islocal &&
+			!this.frm.meta.issingle
+		);
 	}
 	show_unchanged_document_alert() {
 		frappe.show_alert({
@@ -374,6 +381,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		this.add_delete();
 		this.add_duplicate();
 		this.add_new();
+		this.add_web_form_request();
 		this.page.add_divider();
 		this.add_audit_trail();
 		this.add_jump_to_field();
@@ -420,6 +428,25 @@ frappe.ui.form.Toolbar = class Toolbar {
 				}
 			);
 		}
+	}
+
+	add_web_form_request() {
+		if (
+			this.frm.is_new() ||
+			!this.frm.perm[0].write ||
+			!frappe.boot.web_form_request_forms[this.frm.doctype]
+		) {
+			return;
+		}
+
+		this.page.add_menu_item(
+			__("Request via Web Form"),
+			() =>
+				frappe.require("web_form_request.bundle.js", () =>
+					new frappe.ui.form.WebFormRequestDialog({ frm: this.frm }).show()
+				),
+			true
+		);
 	}
 
 	add_jump_to_field() {
@@ -691,6 +718,18 @@ frappe.ui.form.Toolbar = class Toolbar {
 				);
 			}
 		}
+
+		// as on the list view's menu
+		const docs = safe_href(this.frm.meta.documentation, "form");
+		if (docs) {
+			this.page.add_dropdown_item({
+				label: __("Documentation"),
+				click: () => window.open(docs, "_blank"),
+				standard: true,
+				parent: this.page.menu,
+				icon_right: "external-link",
+			});
+		}
 	}
 
 	can_repeat() {
@@ -724,9 +763,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 		return this.get_docstatus() === 2 && this.frm.perm[0].amend && !this.read_only;
 	}
 	has_workflow() {
-		if (this._has_workflow === undefined)
-			this._has_workflow = frappe.model.has_workflow(this.frm.doctype);
-		return this._has_workflow;
+		return frappe.workflow.has_workflow(this.frm.doc);
 	}
 	get_docstatus() {
 		return cint(this.frm.doc.docstatus);
@@ -835,6 +872,7 @@ frappe.ui.form.Toolbar = class Toolbar {
 				frappe
 					.xcall("frappe.model.workflow.can_cancel_document", {
 						doctype: this.frm.doc.doctype,
+						docname: this.frm.doc.name,
 					})
 					.then((can_cancel) => {
 						if (can_cancel) {
@@ -1002,14 +1040,20 @@ frappe.ui.form.Toolbar = class Toolbar {
 
 	setup_overlay_sidebar(sidebar_wrapper) {
 		sidebar_wrapper.find(".close-sidebar").remove();
+		sidebar_wrapper.css("display", "");
 		let overlay_sidebar = sidebar_wrapper.find(".overlay-sidebar").addClass("opened");
 		$('<div class="close-sidebar">').hide().appendTo(sidebar_wrapper).fadeIn();
 		let scroll_container = $("html").css("overflow-y", "hidden");
+		const close_on_wide = () => {
+			if (!window.matchMedia("(max-width: 992px)").matches) this.close_sidebar();
+		};
 
 		sidebar_wrapper.find(".close-sidebar").on("click", (e) => this.close_sidebar(e));
 		sidebar_wrapper.on("click", "button:not(.dropdown-toggle)", (e) => this.close_sidebar(e));
+		$(window).on("resize", close_on_wide);
 
 		this.close_sidebar = () => {
+			$(window).off("resize", close_on_wide);
 			scroll_container.css("overflow-y", "");
 			sidebar_wrapper.find("div.close-sidebar").fadeOut(() => {
 				overlay_sidebar

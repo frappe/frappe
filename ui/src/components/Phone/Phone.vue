@@ -221,7 +221,6 @@ const inputClasses = computed(() => {
 		sm: "h-7 rounded-4",
 		md: "h-8 rounded-4",
 		lg: "h-10 rounded-5",
-		xl: "h-10 rounded-5",
 	}[props.size];
 
 	const variantClasses = props.disabled

@@ -16,6 +16,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	get_customization,
 )
 from frappe.desk.utils import is_item_allowed
+from frappe.utils import cint
 from frappe.utils.caching import request_cache
 
 
@@ -51,6 +52,7 @@ class Workspace(DeskViews):
 			self.doc = frappe.get_cached_doc("Workspace", self.page_name)
 
 		self.can_read = self.get_cached("user_perm_can_read", self.get_can_read_items)
+		self.onboarding_list = []
 
 		if not minimal:
 			if self.doc.content:
@@ -78,6 +80,13 @@ class Workspace(DeskViews):
 		"""
 		from frappe.utils import has_common
 		from frappe.utils.modules import is_module_visible
+
+		# A page you made yourself is yours whatever its module. Blocking a module hides a product's
+		# navigation, and it used to hide the user's own private pages with it: a page filed under
+		# Accounts vanished for its own owner if they had Accounts blocked, from their private shell
+		# as well as from the Accounts sidebar, and the desk offered no way to get it back.
+		if self.doc.for_user and self.doc.for_user == frappe.session.user:
+			return True
 
 		if not is_module_visible(self.doc.module):
 			return False
@@ -119,10 +128,9 @@ class Workspace(DeskViews):
 		if not frappe.get_system_settings("enable_onboarding"):
 			return None
 
-		if not self.onboarding_list:
-			return None
-
-		if frappe.db.get_value("Module Onboarding", onboarding, "is_complete"):
+		# a block can outlive the onboarding it names; that hides the block, not the workspace
+		is_complete = frappe.db.get_value("Module Onboarding", onboarding, "is_complete")
+		if is_complete is None or is_complete:
 			return None
 
 		doc = frappe.get_doc("Module Onboarding", onboarding)
@@ -139,11 +147,27 @@ class Workspace(DeskViews):
 
 		return doc
 
+	def get_onboardings(self):
+		from frappe.desk.doctype.onboarding_step.onboarding_step import get_step_details
+
+		onboardings = []
+		for name in self.onboarding_list:
+			doc = self.get_onboarding_doc(name)
+			if doc:
+				onboardings.append(
+					{
+						"label": name,
+						"title": _(doc.title),
+						"items": [get_step_details(row.step, row.is_optional) for row in doc.steps],
+					}
+				)
+		return onboardings
+
 	def build_workspace(self):
 		self.cards = {"items": self.get_links()}
 		self.charts = {"items": self.get_charts()}
 		self.shortcuts = {"items": self.get_shortcuts()}
-		self.onboardings = {"items": []}
+		self.onboardings = {"items": self.get_onboardings()}
 		self.quick_lists = {"items": self.get_quick_lists()}
 		self.number_cards = {"items": self.get_number_cards()}
 		self.custom_blocks = {"items": self.get_custom_blocks()}
@@ -694,66 +718,27 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 	        value: Value to be updated
 
 	"""
-	from frappe.utils.telemetry import capture
+	from frappe.desk.doctype.module_onboarding.module_onboarding import (
+		can_update_step,
+		capture_step_update,
+		update_completion,
+	)
 
 	allowed_fields = ["is_skipped", "is_complete"]
 	if field not in allowed_fields:
 		return
-	frappe.db.set_value("Onboarding Step", name, field, value)
 
-	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
+	if not can_update_step(name):
+		frappe.throw(_("You are not allowed to update this onboarding step"), frappe.PermissionError)
+
+	if field == "is_complete" and cint(value):
+		frappe.get_doc("Onboarding Step", name).throw_if_unfinished()
+
+	frappe.db.set_value("Onboarding Step", name, field, cint(value))
+	capture_step_update(name, field, cint(value))
+	update_completion(name)
 
 
 @frappe.whitelist()
 def get_installed_apps():
 	return frappe.get_active_apps()
-
-
-@frappe.whitelist()
-@frappe.read_only()
-def get_onboarding_data(module: str):
-	"""Get onboarding data for a page
-
-	Args:
-	        page (string): page name
-
-	Return:
-	        dict: onboarding data
-	"""
-	if not frappe.get_system_settings("enable_onboarding"):
-		return []
-
-	onboardings = []
-	onboarding_doc = frappe.get_doc("Module Onboarding", module)
-	if onboarding_doc.is_complete:
-		return []
-
-	# Check if user is allowed
-	allowed_roles = set(onboarding_doc.get_allowed_roles())
-	user_roles = set(frappe.get_roles())
-	if not allowed_roles & user_roles:
-		return None
-
-	item = {
-		"label": _(module),
-		"title": _(onboarding_doc.title),
-		"items": [],
-	}
-
-	maps = get_onboarding_step_maps(onboarding_doc.name)
-	for step in maps:
-		steps = frappe.get_all("Onboarding Step", filters={"name": step}, order_by="idx", fields=["*"])
-
-		if steps:
-			item["items"].append(steps[0])
-
-	onboardings.append(item)
-
-	if all(step.get("is_complete") or step.get("is_skipped") for step in item["items"]):
-		return []
-
-	return onboardings
-
-
-def get_onboarding_step_maps(onboarding):
-	return frappe.get_all("Onboarding Step Map", filters={"parent": onboarding}, pluck="step", order_by="idx")

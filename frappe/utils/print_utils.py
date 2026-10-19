@@ -7,13 +7,18 @@ from frappe.utils.data import cint, cstr
 # Chromium download/setup helpers were moved to `frappe.utils.chromium.download`.
 
 
-def _print_format_doc_or_none(print_format: str | None):
+def _print_format_doc_or_none(print_format: str | None, doctype: str | None = None):
 	"""Return the Print Format doc, or None for an empty/"Standard"/deleted name.
+
+	With a doctype, an empty name means the doctype's default print format, the one
+	printview renders, so the PDF engine is picked for the format that is printed.
 
 	Degrading a missing name to None (instead of raising DoesNotExistError) keeps
 	notifications and scheduled jobs that reference a removed format from breaking
 	mid-send — they fall back to the Standard render.
 	"""
+	if not print_format and doctype:
+		print_format = frappe.get_meta(doctype).default_print_format
 	if not print_format or print_format == "Standard":
 		return None
 	try:
@@ -23,12 +28,17 @@ def _print_format_doc_or_none(print_format: str | None):
 		return None
 
 
+def get_pdf_generators() -> list[str]:
+	"""PDF engines a Print Format can pick, including ones apps add as options."""
+	return (frappe.get_meta("Print Format").get_field("pdf_generator").options or "").split("\n")
+
+
 def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
 	"""Pick the PDF engine for a render.
 
 	The beta renderer emits flexbox layouts that only Chromium lays out correctly, so a
 	beta format pins itself to Chrome. Everything else honours an explicit choice, then
-	the format's own setting, then the site default in Print Settings.
+	the format's own setting. Anything that is not a known engine renders with Chromium.
 
 	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
 	HTML pipeline's PDF consumers reach the Typst renderer too.
@@ -39,11 +49,17 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 		if print_format.get("pdf_generator") == "Typst":
 			return "Typst"
 		return "chrome"
-	if pdf_generator:
-		return pdf_generator
-	if print_format and print_format.get("pdf_generator"):
-		return print_format.get("pdf_generator")
-	return frappe.db.get_single_value("Print Settings", "pdf_generator") or "wkhtmltopdf"
+	known = get_pdf_generators()
+	for generator in (pdf_generator, print_format and print_format.get("pdf_generator")):
+		if generator in known:
+			return generator
+	return "chrome"
+
+
+def _run_print_pdf_hooks(doctype, name, print_format):
+	for hook in frappe.get_hooks("on_print_pdf"):
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
 
 def get_print(
@@ -58,7 +74,8 @@ def get_print(
 	password=None,
 	pdf_options=None,
 	letterhead=None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+	pdf_generator: Literal["chrome", "Typst"] | None = None,
+	settings=None,
 ):
 	"""Get Print Format for given document.
 	:param doctype: DocType of document.
@@ -67,7 +84,7 @@ def get_print(
 	:param style: Print Format style.
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None
-	:param pdf_generator: PDF generator to use. Default 'wkhtmltopdf'
+	:param pdf_generator: PDF generator to use. Default 'chrome'
 	"""
 
 	"""
@@ -80,12 +97,14 @@ def get_print(
 	from frappe.website.serve import get_response_without_exception_handling
 
 	local = frappe.local
-	if "pdf_generator" not in local.form_dict:
-		pf_doc = _print_format_doc_or_none(print_format)
-		local.form_dict.pdf_generator = resolve_pdf_generator(pf_doc, pdf_generator)
+	pf_doc = _print_format_doc_or_none(print_format, doctype)
+	generator = resolve_pdf_generator(pf_doc, local.form_dict.get("pdf_generator") or pdf_generator)
+
+	settings = settings or local.form_dict.get("settings")
 
 	original_form_dict = copy.deepcopy(local.form_dict)
 	try:
+		local.form_dict.pdf_generator = generator
 		local.form_dict.doctype = doctype
 		local.form_dict.name = name
 		local.form_dict.format = print_format
@@ -93,33 +112,77 @@ def get_print(
 		local.form_dict.doc = doc
 		local.form_dict.no_letterhead = no_letterhead
 		local.form_dict.letterhead = letterhead
+		local.form_dict.settings = settings
 
 		pdf_options = pdf_options or {}
 		if password:
 			pdf_options["password"] = password
 
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+
+		standard_pdf_options = set(pdf_options) <= {"password"}
+		if (
+			as_pdf
+			and generator == "chrome"
+			and ((pf_doc is None and standard_pdf_options) or (pf_doc and uses_beta_renderer(pf_doc)))
+		):
+			from frappe.core.doctype.access_log.access_log import make_access_log
+			from frappe.model.document import Document
+			from frappe.printing.doctype.print_format.classic_converter import get_default_print_format
+			from frappe.www.printview import validate_print
+
+			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
+			validate_print(doc_obj)
+			_run_print_pdf_hooks(doctype, name, print_format)
+			render_format = pf_doc or get_default_print_format(doc_obj.doctype)
+			pdf = _render_builder_pdf(
+				render_format,
+				doc_obj,
+				letterhead,
+				no_letterhead,
+				pdf_options.get("password"),
+				style,
+				settings=settings,
+			)
+			make_access_log(
+				doctype=doc_obj.doctype,
+				document=doc_obj.name,
+				file_type="PDF",
+				method="Print",
+				page=f"Print Format: {render_format.name}",
+			)
+			if output:
+				from io import BytesIO
+
+				from pypdf import PdfReader
+
+				for page in PdfReader(BytesIO(pdf)).pages:
+					output.add_page(page)
+				return output
+			return pdf
+
 		response = get_response_without_exception_handling("printview", 200)
 		html = str(response.data, "utf-8")
-	finally:
-		local.form_dict = original_form_dict
 
-	if not as_pdf:
-		return html
+		if not as_pdf:
+			return html
 
-	if local.form_dict.pdf_generator != "wkhtmltopdf":
+		_run_print_pdf_hooks(doctype, name, print_format)
+
 		hook_func = frappe.get_hooks("pdf_generator")
 		for hook in hook_func:
 			"""
 			check pdf_generator value in your hook function.
 			if it matches run and return pdf else return None
 			"""
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
 			pdf = frappe.call(
 				hook,
 				print_format=print_format,
 				html=html,
 				options=pdf_options,
 				output=output,
-				pdf_generator=local.form_dict.pdf_generator,
+				pdf_generator=generator,
 			)
 			# if hook returns a value, assume it was the correct pdf_generator and return it
 			if pdf:
@@ -134,10 +197,26 @@ def get_print(
 					return output
 				return pdf
 
-	for hook in frappe.get_hooks("on_print_pdf"):
-		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+		return get_pdf(html, options=pdf_options, output=output, print_format=print_format)
+	finally:
+		local.form_dict = original_form_dict
 
-	return get_pdf(html, options=pdf_options, output=output)
+
+def _render_builder_pdf(
+	print_format, doc, letterhead, no_letterhead, password=None, style=None, settings=None
+):
+	"""PDF of a builder format through its own renderer, which applies the format's margins."""
+	from frappe.utils.print_format_generator import PrintFormatGenerator
+
+	generator = PrintFormatGenerator(
+		print_format,
+		doc,
+		letterhead,
+		style=style,
+		settings=frappe.parse_json(settings) if settings else None,
+		no_letterhead=no_letterhead,
+	)
+	return generator.render_pdf(password=password)
 
 
 def attach_print(
@@ -152,18 +231,13 @@ def attach_print(
 	print_letterhead=True,
 	password=None,
 	letterhead=None,
+	settings=None,
 ):
 	from frappe.translate import print_language
 	from frappe.utils import scrub_urls
 	from frappe.utils.pdf import get_pdf
 
 	print_settings = frappe.db.get_singles_dict("Print Settings")
-	if print_letterhead and not letterhead:
-		if not doc:
-			doc = frappe.get_cached_doc(doctype, name)
-		letterhead = doc.get("letter_head") or frappe.get_cached_value(
-			"Letter Head", {"is_default": 1}, "name"
-		)
 	kwargs = dict(
 		print_format=print_format,
 		style=style,
@@ -171,6 +245,7 @@ def attach_print(
 		no_letterhead=not print_letterhead,
 		letterhead=letterhead,
 		password=password,
+		settings=settings,
 	)
 
 	frappe.local.flags.ignore_print_permissions = True
@@ -180,30 +255,30 @@ def attach_print(
 		uses_beta_renderer,
 	)
 
-	pf_doc = _print_format_doc_or_none(print_format)
-	render_via_generator = (pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(
-		pf_doc
-	) == "chrome"
+	pf_doc = _print_format_doc_or_none(print_format, doctype)
+	render_via_generator = pf_doc is None or uses_beta_renderer(pf_doc)
 
 	try:
-		with print_language(lang or frappe.local.lang):
+		with print_language(lang):
 			content = ""
 			if cint(print_settings.send_print_as_pdf):
 				ext = ".pdf"
 				if html:
 					content = get_pdf(html, options={"password": password} if password else None)
 				elif render_via_generator:
-					from frappe.utils.print_format_generator import PrintFormatGenerator
 					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
-					letterhead_name = letterhead if print_letterhead else None
-					pf = pf_doc or get_default_print_format(doc_obj.doctype)
-					generator = PrintFormatGenerator(
-						pf, doc_obj, letterhead_name, no_letterhead=not print_letterhead
+					content = _render_builder_pdf(
+						pf_doc or get_default_print_format(doc_obj.doctype),
+						doc_obj,
+						letterhead if print_letterhead else None,
+						not print_letterhead,
+						password,
+						style=style,
+						settings=settings,
 					)
-					content = generator.render_pdf(password=password)
 				else:
 					kwargs["as_pdf"] = True
 					content = get_print(doctype, name, **kwargs)
@@ -269,12 +344,14 @@ def convert_uom(
 			"to_in": unit_values["cm"] / unit_values["in"],
 		},
 	)
-	from_in = {
-		"to_in": 1,
-		"to_px": unit_values["in"] / unit_values["px"],
-		"to_mm": unit_values["in"] / unit_values["mm"],
-		"to_cm": unit_values["in"] / unit_values["cm"],
-	}
+	from_in = (
+		{
+			"to_in": 1,
+			"to_px": unit_values["in"] / unit_values["px"],
+			"to_mm": unit_values["in"] / unit_values["mm"],
+			"to_cm": unit_values["in"] / unit_values["cm"],
+		},
+	)
 	converstion_factor = ({"from_px": from_px, "from_mm": from_mm, "from_cm": from_cm, "from_in": from_in},)
 	if only_number:
 		return round(number * converstion_factor[0][f"from_{from_uom}"][0][f"to_{to_uom}"], 3)

@@ -5,6 +5,7 @@
  "creation": "2014-06-05 02:22:36.029850",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/address-template",
  "engine": "InnoDB",
  "field_order": [
   "country",

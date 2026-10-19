@@ -16,14 +16,21 @@ Usage:
     python impact_map.py selftest
 """
 
+import glob
 import json
 import os
+import re
 import sys
+import tempfile
 from datetime import UTC, datetime, timedelta, timezone
 from functools import cache
+from pathlib import Path
 
 # A map older than this is not trusted; callers fall back to the full suite.
 MAX_AGE = timedelta(days=7)
+
+# Test modules all live under the `frappe` package. Bounding the walk keeps `node_modules` out.
+TEST_GLOB = "frappe/**/test_*.py"
 
 
 @cache
@@ -79,21 +86,66 @@ def is_stale(impact_map: dict) -> bool:
 	return datetime.now(UTC) - generated_at > MAX_AGE
 
 
-def select(impact_map: dict, py_files: list[str]) -> list[str] | None:
+def is_test_module(file: str) -> bool:
+	"""Is this a test file, as opposed to the source it tests?"""
+	return file.endswith(".py") and os.path.basename(file).startswith("test_")
+
+
+def importers(test_files: set[str], root: str = ".") -> set[str]:
+	"""`test_files` plus every test module that imports one of them, directly or transitively.
+
+	A shared helper like `frappe/tests/test_api.py` or `test_helpers.py` is a test module that
+	other test modules subclass and import from. Coverage omits `*/tests/*` (see `ci.py`), so
+	those helpers have no map entry and nothing pulls their importers in -- yet changing a base
+	class breaks its subclasses.
+
+	Found by literal dotted path, which is the one edge in this codebase a text search can be
+	trusted with: a helper import is `from frappe.tests.test_api import ...`, never a runtime
+	lookup. Matching inside a string or comment only over-selects.
+	"""
+	if not test_files:
+		return set()
+
+	sources = {
+		os.path.relpath(path, root): open(path, encoding="utf-8").read()
+		for path in glob.iglob(os.path.join(root, TEST_GLOB), recursive=True)
+	}
+
+	found = set(test_files)
+	while True:
+		# `\b` keeps `...test_api` from matching `...test_api_v2`: `_` is a word character.
+		pattern = re.compile(r"\b(?:%s)\b" % "|".join(re.escape(f[:-3].replace("/", ".")) for f in found))
+		if not (new := {f for f, src in sources.items() if f not in found and pattern.search(src)}):
+			return found
+		found |= new
+
+
+def unmapped(impact_map: dict, py_files: list[str]) -> list[str]:
+	"""The changed files the map has no answer for.
+
+	A file maps to no tests when it is brand new, when no test imports it, or when it only ever
+	ran at import time (`__init__.py` and the like) -- none of which is evidence that changing it
+	is safe, so any of them forces the full suite.
+
+	Test modules are the exception: the tests a test module's content can break are its own and
+	those of the modules importing it, which `importers` resolves without the map.
+	"""
+	return [f for f in py_files if not impact_map["map"].get(f) and not is_test_module(f)]
+
+
+def select(impact_map: dict, py_files: list[str], root: str = ".") -> list[str] | None:
 	"""Test files needed for `py_files`, or None if the map cannot answer.
 
-	Returning None means "run everything". A file maps to no tests when it is brand new, when
-	no test imports it, or when it only ever ran at import time (`__init__.py` and the like) --
-	none of which is evidence that changing it is safe.
+	Returning None means "run everything".
 	"""
-	if is_stale(impact_map):
+	if is_stale(impact_map) or unmapped(impact_map, py_files):
 		return None
 
-	tests = set()
+	# A changed test module always runs itself, plus whatever imports it for helpers. Anything the
+	# map attributes to it on top of that is a test that executed its lines, and needs to run too.
+	tests = importers({f for f in py_files if is_test_module(f)}, root)
 	for py_file in py_files:
-		if not (tests_for_file := impact_map["map"].get(py_file)):
-			return None
-		tests.update(tests_for_file)
+		tests.update(impact_map["map"].get(py_file) or ())
 
 	return sorted(tests)
 
@@ -123,6 +175,46 @@ def _selftest():
 	assert select(import_only, ["frappe/__init__.py"]) is None, "import-time-only file must bail out"
 	assert select(one, []) == [], "no python changes selects no tests"
 	assert select({**one, "generated_at": old}, ["frappe/a.py"]) is None, "stale map must bail out"
+
+	with tempfile.TemporaryDirectory() as tree:
+		os.makedirs(os.path.join(tree, "frappe/tests"))
+		for name, src in {
+			"test_helpers.py": "x = 1\n",
+			"test_db_query.py": "from frappe.tests.test_helpers import x\n",
+			"test_user.py": "from frappe.tests.test_db_query import y\n",
+			"test_helpers_extra.py": "z = 2\n",
+			"test_unrelated.py": "from frappe.tests.test_helpers_extra import z\n",
+		}.items():
+			(Path(tree) / "frappe/tests" / name).write_text(src)
+
+		assert importers(set(), tree) == set()
+		assert importers({"frappe/tests/test_helpers.py"}, tree) == {
+			"frappe/tests/test_helpers.py",
+			"frappe/tests/test_db_query.py",
+			"frappe/tests/test_user.py",
+		}, "importers must be transitive, and must not match test_helpers_extra"
+
+		# A test module runs itself and its importers whether or not the map knows it --
+		# coverage omits `*/tests/*`, so shared helpers are absent by design.
+		assert select(one, ["frappe/tests/test_helpers.py"], tree) == [
+			"frappe/tests/test_db_query.py",
+			"frappe/tests/test_helpers.py",
+			"frappe/tests/test_user.py",
+		]
+		assert select(one, ["frappe/a.py", "frappe/tests/test_helpers_extra.py"], tree) == [
+			"frappe/tests/test_a.py",
+			"frappe/tests/test_helpers_extra.py",
+			"frappe/tests/test_unrelated.py",
+		]
+		helper = {"generated_at": fresh, "map": {"frappe/tests/test_user.py": ["frappe/tests/test_a.py"]}}
+		assert select(helper, ["frappe/tests/test_user.py"], tree) == [
+			"frappe/tests/test_a.py",
+			"frappe/tests/test_user.py",
+		], "a measured test module keeps the tests the map attributes to it"
+
+	assert unmapped(one, ["frappe/a.py", "frappe/tests/test_new.py"]) == []
+	assert unmapped(one, ["frappe/unknown.py"]) == ["frappe/unknown.py"]
+	assert unmapped(import_only, ["frappe/__init__.py"]) == ["frappe/__init__.py"]
 
 	assert all_tests(merged) == {
 		"frappe/tests/test_a.py",

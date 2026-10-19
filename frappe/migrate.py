@@ -26,7 +26,6 @@ from frappe.desk.notifications import clear_notifications
 from frappe.installer import reapply_disabled_app_state
 from frappe.modules.patch_handler import PatchType
 from frappe.modules.utils import sync_customizations
-from frappe.search.website_search import build_index_for_all_routes
 from frappe.utils.connections import check_connection
 from frappe.utils.dashboard import sync_dashboards
 from frappe.utils.data import cint, comma_and
@@ -76,11 +75,8 @@ class SiteMigration:
 	- run after migrate hooks
 	"""
 
-	def __init__(
-		self, skip_failing: bool = False, skip_search_index: bool = False, skip_fixtures: bool = False
-	) -> None:
+	def __init__(self, skip_failing: bool = False, skip_fixtures: bool = False) -> None:
 		self.skip_failing = skip_failing
-		self.skip_search_index = skip_search_index
 		self.skip_fixtures = skip_fixtures
 
 	def setUp(self):
@@ -108,10 +104,6 @@ class SiteMigration:
 
 		with open(self.touched_tables_file, "w") as f:
 			json.dump(list(frappe.flags.touched_tables), f, sort_keys=True, indent=4)
-
-		if not self.skip_search_index:
-			print(f"Queued rebuilding of search index for {frappe.local.site}")
-			frappe.enqueue(build_index_for_all_routes, queue="long")
 
 		frappe.publish_realtime("version-update")
 		frappe.flags.touched_tables.clear()

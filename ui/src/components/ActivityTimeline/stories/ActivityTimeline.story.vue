@@ -39,7 +39,7 @@
 						<template v-if="withSlots" #actions>
 							<Button
 								variant="ghost"
-								icon="trash-2"
+								icon="lucide-trash-2"
 								@click="log('delete', activity.data.name)"
 							/>
 						</template>

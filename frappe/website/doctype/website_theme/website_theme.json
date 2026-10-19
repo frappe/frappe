@@ -5,6 +5,7 @@
  "creation": "2015-02-18 12:46:38.168929",
  "doctype": "DocType",
  "document_type": "Setup",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/website-theme",
  "engine": "InnoDB",
  "field_order": [
   "bootstrap_theme_section",

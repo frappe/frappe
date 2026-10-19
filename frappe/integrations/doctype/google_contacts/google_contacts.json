@@ -3,6 +3,7 @@
  "autoname": "format:GC-{email_id}",
  "creation": "2019-06-14 00:09:39.441961",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/erpnext/user/manual/en/google_contacts",
  "engine": "InnoDB",
  "field_order": [
   "enable",

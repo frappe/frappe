@@ -23,16 +23,17 @@ defineProps({
 	align-items: center;
 	gap: 10px;
 	padding: 8px 10px;
-	border-radius: var(--radius);
-	border: 1px solid var(--border-color);
-	background: var(--gray-50);
+	border-radius: var(--radius-md);
+	/* the card is drawn by its outline, not by a fill, so the panel stays quiet */
+	border: 1px solid var(--outline-gray-2);
+	background: var(--fg-color);
 	cursor: grab;
-	margin-top: 6px;
+	margin: 8px 16px 0;
 }
 
 .pfb-block-card:hover {
-	background: var(--gray-100);
-	border-color: var(--gray-500);
+	background: var(--surface-gray-1);
+	border-color: var(--outline-gray-3);
 }
 
 .pfb-block-icon {
@@ -42,7 +43,7 @@ defineProps({
 	width: 28px;
 	height: 28px;
 	border-radius: var(--radius);
-	background: var(--gray-200);
+	background: var(--surface-gray-2);
 	flex-shrink: 0;
 }
 

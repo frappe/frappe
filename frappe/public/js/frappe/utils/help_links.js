@@ -79,7 +79,7 @@ frappe.help.help_links["Form/Print Settings"] = [
 
 frappe.help.help_links["print-format-builder"] = [
 	{
-		label: "Print Format Builder",
-		url: "https://docs.erpnext.com/docs/user/manual/en/print-format-builder",
+		label: "Print Format Editor",
+		url: "https://docs.frappe.io/framework/user/en/printing/print-format-editor",
 	},
 ];

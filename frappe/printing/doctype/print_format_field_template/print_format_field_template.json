@@ -4,6 +4,7 @@
  "autoname": "Prompt",
  "creation": "2021-10-05 14:23:56.508499",
  "doctype": "DocType",
+ "documentation": "https://docs.frappe.io/framework/user/en/desk/printing",
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [

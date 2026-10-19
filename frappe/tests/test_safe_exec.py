@@ -5,8 +5,14 @@ import frappe
 import frappe.integrations.utils
 import frappe.utils.safe_exec as safe_exec_utils
 from frappe.tests import IntegrationTestCase
-from frappe.utils.jinja import get_jenv, render_template
-from frappe.utils.safe_exec import SafeDoc, ServerScriptNotEnabled, get_safe_globals, safe_exec
+from frappe.utils.jinja import get_jenv, get_jinja_hooks, render_template
+from frappe.utils.safe_exec import (
+	SAFE_EXEC_CONFIG_KEY,
+	SafeDoc,
+	ServerScriptNotEnabled,
+	get_safe_globals,
+	safe_exec,
+)
 
 
 class TestSafeExec(IntegrationTestCase):
@@ -17,6 +23,43 @@ class TestSafeExec(IntegrationTestCase):
 
 	def test_import_fails(self):
 		self.assertRaises(ImportError, safe_exec, "import os")
+
+	def test_enable_safe_exec_restores_existing_setting_after_error(self):
+		with (
+			patch("frappe.get_common_site_config", return_value={SAFE_EXEC_CONFIG_KEY: 1}),
+			patch("frappe.installer.update_site_config") as update_config,
+			self.assertRaisesRegex(RuntimeError, "test error"),
+			self.enable_safe_exec(),
+		):
+			raise RuntimeError("test error")
+
+		self.assertEqual(
+			[call.args[:2] for call in update_config.call_args_list],
+			[(SAFE_EXEC_CONFIG_KEY, 1), (SAFE_EXEC_CONFIG_KEY, 1)],
+		)
+
+	def test_enable_safe_exec_removes_setting_that_was_originally_absent(self):
+		missing = object()
+		previous_local_value = frappe.local.conf.get(SAFE_EXEC_CONFIG_KEY, missing)
+		frappe.local.conf[SAFE_EXEC_CONFIG_KEY] = 1
+		try:
+			with (
+				patch("frappe.get_common_site_config", return_value={}),
+				patch("frappe.installer.update_site_config") as update_config,
+				self.enable_safe_exec(),
+			):
+				pass
+
+			self.assertEqual(
+				[call.args[:2] for call in update_config.call_args_list],
+				[(SAFE_EXEC_CONFIG_KEY, 1), (SAFE_EXEC_CONFIG_KEY, "None")],
+			)
+			self.assertNotIn(SAFE_EXEC_CONFIG_KEY, frappe.local.conf)
+		finally:
+			if previous_local_value is missing:
+				frappe.local.conf.pop(SAFE_EXEC_CONFIG_KEY, None)
+			else:
+				frappe.local.conf[SAFE_EXEC_CONFIG_KEY] = previous_local_value
 
 	def test_internal_attributes(self):
 		self.assertRaises(SyntaxError, safe_exec, "().__class__.__call__")
@@ -416,7 +459,8 @@ class TestSafeDoc(IntegrationTestCase):
 
 class TestNoSafeExec(IntegrationTestCase):
 	def test_safe_exec_disabled_by_default(self):
-		self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
+		with patch("frappe.get_common_site_config", return_value={}):
+			self.assertRaises(ServerScriptNotEnabled, safe_exec, "pass")
 
 
 class TestJinjaGlobals(IntegrationTestCase):
@@ -450,3 +494,35 @@ class TestJinjaGlobals(IntegrationTestCase):
 		self.assertIsNot(jenv_restricted.globals, jenv_unrestricted.globals)
 		self.assertIs(get_jenv(restrict_globals=True), jenv_restricted)
 		self.assertIs(get_jenv(restrict_globals=False), jenv_unrestricted)
+
+	def test_module_path_hook_excludes_merely_imported_functions(self):
+		"""Module-path jinja hooks must not expose functions merely imported into that module."""
+		from subprocess import check_output
+
+		fixture = types.ModuleType("frappe_test_jinja_hook_fixture")
+
+		def run_echo(cmd):
+			# uses the module-level import internally; this must keep working
+			return check_output(cmd)
+
+		run_echo.__module__ = fixture.__name__
+		fixture.run_echo = run_echo
+		fixture.check_output = check_output  # imported, not defined here
+
+		with (
+			patch.object(
+				frappe,
+				"get_hooks",
+				return_value={"methods": ["frappe_test_jinja_hook_fixture"], "filters": []},
+			),
+			patch.object(frappe, "get_module", return_value=fixture),
+		):
+			method_dict, _ = get_jinja_hooks()
+
+		self.assertIn("run_echo", method_dict)
+		self.assertIs(method_dict["run_echo"], run_echo)
+		self.assertNotIn("check_output", method_dict)
+
+		# the filter only controls what's exposed to templates; the function's own
+		# internal use of the imported name is completely unaffected
+		self.assertEqual(method_dict["run_echo"](["echo", "ok"]).strip(), b"ok")

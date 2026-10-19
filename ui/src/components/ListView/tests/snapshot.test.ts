@@ -89,6 +89,7 @@ describe("useListView snapshot / restore", () => {
         { fieldname: "customer", label: "Account", width: "200px" },
       ] as Column[],
       quickFilterFields: [STATUS],
+      groupBy: { fields: ["status"], aggregates: [{ function: "count" }] },
     };
 
     view.restore(snapshot);
@@ -97,6 +98,7 @@ describe("useListView snapshot / restore", () => {
     expect(view.sort.by.value).toEqual(snapshot.sort);
     expect(view.columns.shown.value).toEqual(snapshot.columns);
     expect(view.quickFilter.fields.value).toEqual(snapshot.quickFilterFields);
+    expect(view.groupBy.value).toEqual(snapshot.groupBy);
     // A restored column counts as a customization, so Reset becomes available.
     expect(view.columns.isCustomized.value).toBe(true);
   });
@@ -145,6 +147,10 @@ describe("useListView snapshot / restore", () => {
       { fieldname: "status", label: "Status", width: "150px" },
     ];
     source.quickFilter.fields.value = [STATUS];
+    source.groupBy.value = {
+      fields: ["status"],
+      aggregates: [{ function: "sum", fieldname: "amount" }],
+    };
 
     // Through a JSON round-trip, as a host persisting to a backend would.
     const persisted = JSON.parse(JSON.stringify(source.snapshot.value));
@@ -152,5 +158,16 @@ describe("useListView snapshot / restore", () => {
     restored.restore(persisted);
 
     expect(restored.snapshot.value).toEqual(source.snapshot.value);
+  });
+
+  it("restores an ungrouped list from a null groupBy, and leaves it when absent", () => {
+    const view = useListView("Sales Order");
+    view.groupBy.value = { fields: ["status"], aggregates: [] };
+
+    view.restore({ sort: [] });
+    expect(view.groupBy.value).not.toBeNull();
+
+    view.restore({ groupBy: null });
+    expect(view.groupBy.value).toBeNull();
   });
 });

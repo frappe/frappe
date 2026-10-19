@@ -19,13 +19,14 @@ import frappe.handler
 import frappe.monitor
 import frappe.rate_limiter
 import frappe.recorder
+import frappe.storage.serve
 import frappe.utils.response
 from frappe import _
 from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, check_request_ip, validate_auth
 from frappe.integrations.oauth2 import get_resource_url, handle_wellknown, is_oauth_metadata_enabled
 from frappe.middlewares import StaticDataMiddleware
 from frappe.permissions import handle_does_not_exist_error
-from frappe.utils import CallbackManager, cint, get_site_name
+from frappe.utils import CallbackManager, cint, get_request_host, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error, log_error_snapshot
 from frappe.website.page_renderers.error_page import ErrorPage
@@ -136,8 +137,14 @@ def application(request: Request):
 		elif request.path.startswith("/backups"):
 			response = frappe.utils.response.download_backup(request.path)
 
+		# not gated on storage_v2: blob URLs stored while the flag was on must
+		# keep working after it is turned off
 		elif request.path.startswith("/private/files/"):
-			response = frappe.utils.response.download_private_file(request.path)
+			response = frappe.storage.serve.serve_private_file(request.path)
+
+		elif request.path.startswith("/files/"):
+			# nginx serves files found on disk; this is everything else
+			response = frappe.storage.serve.serve_public_file(request.path)
 
 		elif request.path == "/.well-known/security.txt" and request.method == "GET":
 			if request.scheme != "https":
@@ -187,8 +194,23 @@ def run_after_request_hooks(request, response):
 		frappe.call(after_request_task, response=response, request=request)
 
 
+UPLOAD_FILE_PATHS = ("/api/method/upload_file", "/api/v1/method/upload_file", "/api/v2/method/upload_file")
+
+
+def is_streaming_request(request: Request) -> bool:
+	"""True for a PUT to a ``streaming_request_paths`` route.
+
+	Its body has no size cap, so only the route's handler may read it."""
+	if request.method != "PUT":
+		return False
+	streaming_paths = {
+		path.rstrip("/") for path in frappe.get_hooks("streaming_request_paths") if path.rstrip("/")
+	}
+	return any(request.path == path or request.path.startswith(f"{path}/") for path in streaming_paths)
+
+
 def init_request(request):
-	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
+	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(get_request_host(request))
 	try:
 		frappe.init(site, sites_path=_sites_path, force=True, is_request=True)
 	finally:
@@ -206,13 +228,20 @@ def init_request(request):
 		else:
 			raise frappe.SessionStopped("Session Stopped")
 
-	if request.path.startswith("/api/method/upload_file"):
+	streaming_request = is_streaming_request(request)
+	if streaming_request:
+		request.max_content_length = None
+		frappe.local.form_dict = frappe._dict(request.args)
+		# Keep query handling consistent with make_form_dict without reading the body.
+		frappe.local.form_dict.pop("_", None)
+	elif request.path.startswith(UPLOAD_FILE_PATHS):
 		from frappe.core.api.file import get_max_file_size
 
 		request.max_content_length = get_max_file_size()
 	else:
 		request.max_content_length = cint(frappe.local.conf.get("max_file_size")) or 25 * 1024 * 1024
-	make_form_dict(request)
+	if not streaming_request:
+		make_form_dict(request)
 
 	if request.method != "OPTIONS":
 		frappe.local.http_request = HTTPRequest()
@@ -243,7 +272,7 @@ def log_request(request, response):
 	if hasattr(frappe.local, "conf") and frappe.local.conf.enable_frappe_logger:
 		frappe.logger("frappe.web", allow_site=frappe.local.site).info(
 			{
-				"site": get_site_name(request.host),
+				"site": frappe.local.site,
 				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
 				"pid": os.getpid(),
 				"user": getattr(frappe.local.session, "user", "NOTFOUND"),
@@ -373,7 +402,12 @@ def handle_exception(e):
 		# usually.
 		frappe.session.user = "Guest"
 
-	if respond_as_json:
+	if getattr(frappe.local, "mcp_request", None):
+		from frappe.mcp.transport import error_response
+
+		response = error_response(e)
+
+	elif respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)

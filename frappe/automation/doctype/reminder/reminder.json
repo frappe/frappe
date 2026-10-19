@@ -1,5 +1,6 @@
 {
  "actions": [],
+ "allow_bulk_edit": 1,
  "autoname": "hash",
  "creation": "2023-02-22 11:23:58.183276",
  "default_view": "List",
@@ -64,6 +65,7 @@
    "label": "notified"
   }
  ],
+ "icon": "bell-ring",
  "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2024-03-23 16:03:36.224060",
@@ -83,6 +85,7 @@
   }
  ],
  "quick_entry": 1,
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": [],

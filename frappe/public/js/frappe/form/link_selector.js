@@ -79,7 +79,9 @@ frappe.ui.form.LinkSelector = class LinkSelector {
 			this.target.fieldinfo[this.fieldname] &&
 			this.target.fieldinfo[this.fieldname].get_query
 		) {
-			$.extend(args, this.target.fieldinfo[this.fieldname].get_query(cur_frm.doc));
+			const frm = this.target.frm;
+			const get_query = this.target.fieldinfo[this.fieldname].get_query;
+			$.extend(args, get_query(frm.doc, this.target.doctype, null, frm));
 		}
 
 		frappe.link_search(

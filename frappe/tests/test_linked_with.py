@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.user_permission.user_permission import get_applicable_for_doctype_list
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_linked_docs
@@ -907,6 +908,57 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertIsInstance(out, dict)
 		parent_record.delete()
 
+	def test_get_finds_dynamic_links_added_after_first_lookup(self):
+		# a new doctype, so no earlier Child DocType1 row links to it
+		target_doctype = new_doctype().insert().name
+		try:
+			target = frappe.new_doc(target_doctype).insert()
+			self.assertNotIn("Child DocType1", linked_with.get(target_doctype, target.name))
+
+			child_record = frappe.get_doc(
+				{
+					"doctype": "Child DocType1",
+					"reference_doctype": target_doctype,
+					"reference_name": target.name,
+				}
+			).insert()
+
+			linked_docs = linked_with.get(target_doctype, target.name)["Child DocType1"]["docs"]
+			self.assertEqual([doc.name for doc in linked_docs], [child_record.name])
+		finally:
+			frappe.delete_doc("DocType", target_doctype)
+
+	def test_same_request_lookup_finds_a_new_dynamic_link(self):
+		# new doctypes, so no earlier row links the target
+		all_can_edit = [{"role": "All", "read": 1, "write": 1, "create": 1}]
+		target_doctype = new_doctype(permissions=all_can_edit).insert().name
+		link_fields = [
+			{"fieldname": "reference_doctype", "fieldtype": "Link", "options": "DocType"},
+			{"fieldname": "reference_name", "fieldtype": "Dynamic Link", "options": "reference_doctype"},
+		]
+		linking_doctype = new_doctype(fields=link_fields, permissions=all_can_edit).insert().name
+		try:
+			# outside tests the dynamic link map is built once per request
+			with self.set_user("test@example.com"), patch.object(frappe, "in_test", False):
+				frappe.local.dynamic_link_map = None
+				target = frappe.new_doc(target_doctype).insert()
+				self.assertNotIn(linking_doctype, linked_with.get(target_doctype, target.name))
+
+				link = frappe.get_doc(
+					{
+						"doctype": linking_doctype,
+						"reference_doctype": target_doctype,
+						"reference_name": target.name,
+					}
+				).insert()
+
+				linked_docs = linked_with.get(target_doctype, target.name)[linking_doctype]["docs"]
+				self.assertEqual([doc.name for doc in linked_docs], [link.name])
+		finally:
+			frappe.local.dynamic_link_map = None
+			frappe.delete_doc("DocType", linking_doctype)
+			frappe.delete_doc("DocType", target_doctype)
+
 	def test_check_delete_integrity(self):
 		"""Don't allow deleting cancelled document if amendment exists"""
 		doc = frappe.get_doc({"doctype": "Parent DocType"}).insert()
@@ -967,6 +1019,53 @@ class TestLinkedWith(IntegrationTestCase):
 			)
 		finally:
 			for doctype in ("Virtual Child Parent", "Virtual Linked Child", "Linked Target DocType"):
+				frappe.delete_doc("DocType", doctype)
+
+	def test_linked_fields_keep_direct_link_alongside_child_table_link(self):
+		target_link = {"fieldname": "target", "fieldtype": "Link", "options": "Linked Target DocType"}
+		new_doctype("Linked Target DocType").insert()
+		new_doctype("Linked Target Child", fields=[target_link], istable=1).insert()
+		new_doctype(
+			"Linked Target Parent",
+			fields=[
+				target_link,
+				{"fieldname": "items", "fieldtype": "Table", "options": "Linked Target Child"},
+			],
+		).insert()
+
+		try:
+			self.assertEqual(
+				linked_with.get_linked_fields("Linked Target DocType")["Linked Target Parent"],
+				{
+					"fieldname": ["target"],
+					"child_links": [{"child_doctype": "Linked Target Child", "fieldname": ["target"]}],
+				},
+			)
+
+			target = frappe.new_doc("Linked Target DocType").insert()
+			parents = [
+				frappe.new_doc(
+					"Linked Target Parent", target=target.name, items=[{"target": target.name}] * 2
+				),
+				frappe.new_doc("Linked Target Parent", items=[{"target": target.name}]),
+			]
+			for parent in parents:
+				parent.insert()
+
+			linked_docs = linked_with.get("Linked Target DocType", target.name)["Linked Target Parent"]
+			self.assertCountEqual(
+				[doc.name for doc in linked_docs["docs"]], [parent.name for parent in parents]
+			)
+			self.assertEqual(linked_docs["hidden_count"], 0)
+
+			self.assertIn(
+				["Linked Target Child"],
+				get_applicable_for_doctype_list(
+					"DocType", "", "name", 0, 20, {"doctype": "Linked Target DocType"}
+				),
+			)
+		finally:
+			for doctype in ("Linked Target Parent", "Linked Target Child", "Linked Target DocType"):
 				frappe.delete_doc("DocType", doctype)
 
 	def test_reserved_keywords(self):

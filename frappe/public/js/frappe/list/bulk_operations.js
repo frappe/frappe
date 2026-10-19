@@ -127,6 +127,16 @@ export default class BulkOperations {
 						let task_id = response.message.task_id;
 						frappe.realtime.task_subscribe(task_id);
 						frappe.realtime.on(`task_complete:${task_id}`, (data) => {
+							frappe.realtime.task_unsubscribe(task_id);
+							frappe.realtime.off(`task_complete:${task_id}`);
+							if (data.error) {
+								frappe.msgprint({
+									title: __("Bulk PDF Export"),
+									indicator: "red",
+									message: data.error,
+								});
+								return;
+							}
 							frappe.msgprint({
 								title: __("Bulk PDF Export"),
 								message: __("Your PDF is ready for download"),
@@ -136,8 +146,6 @@ export default class BulkOperations {
 									args: data.file_url,
 								},
 							});
-							frappe.realtime.task_unsubscribe(task_id);
-							frappe.realtime.off(`task_complete:${task_id}`);
 						});
 					});
 			} else {
@@ -472,9 +480,8 @@ export default class BulkOperations {
 				},
 			],
 			primary_action_label: __("Add"),
-			primary_action: () => {
-				let args = dialog.get_values();
-				if (args && args.tags) {
+			primary_action: (args) => {
+				if (args.tags) {
 					return frappe.call({
 						method: "frappe.desk.doctype.tag.tag.add_tags",
 						args: {

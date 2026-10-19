@@ -8,6 +8,7 @@
                 alt="{{ _("App Logo") |e }}"
             >
         </div>
+        <p class="desktop-navbar-title">{{ _("Desktop") }}</p>
         {% if (show_search_bar) %}
             <div class="search-widget-wrapper input-group search-bar">
                 <button id="search-widget-button" class="btn-reset search-widget-button"
@@ -33,7 +34,6 @@
                     <use href="#icon-cloud"></use>
                 </svg>
             </button>
-            <!-- the panel is a popover built by frappe.ui.Notifications off this button -->
             <div class="desktop-notifications">
                 <button class="btn-reset nav-link text-muted desktop-notification-icon" aria-label="{{ _("Notifications") }}">
                     <svg
@@ -59,4 +59,7 @@
                 {{ _("Save") }}
             </button>
     </div>
+    {% if desktop_layout is defined %}
+        <div class="hidden" id="desktop-layout">{{ desktop_layout |e }}</div>
+    {% endif %}
 </div>

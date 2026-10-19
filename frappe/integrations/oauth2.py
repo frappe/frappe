@@ -1,9 +1,9 @@
 import datetime
-import hmac
 import json
 from typing import Literal, cast
-from urllib.parse import quote, urlencode, urlparse
+from urllib.parse import quote, urlencode
 
+from oauthlib.common import Request
 from oauthlib.oauth2 import FatalClientError, OAuth2Error
 from oauthlib.openid.connect.core.endpoints.pre_configured import Server as WebApplicationServer
 from pydantic import ValidationError
@@ -241,6 +241,7 @@ def get_openid_configuration():
 			"userinfo_endpoint": f"{frappe_server_url}{ENDPOINTS['userinfo_endpoint']}",
 			"revocation_endpoint": f"{frappe_server_url}{ENDPOINTS['revocation_endpoint']}",
 			"introspection_endpoint": f"{frappe_server_url}{ENDPOINTS['introspection_endpoint']}",
+			"token_endpoint_auth_methods_supported": ["none", "client_secret_basic", "client_secret_post"],
 			"response_types_supported": [
 				"code",
 				"token",
@@ -257,39 +258,37 @@ def get_openid_configuration():
 
 
 def authenticate_introspection_caller() -> str | None:
-	"""Verify the calling OAuth client's credentials per RFC 7662 §2.1 (Client Secret Post).
+	"""Authenticate the calling OAuth client per RFC 7662 §2.1.
 
-	Note: HTTP Basic auth (Client Secret Basic) is not supported here - Frappe's own
-	request-level auth (validate_auth_via_api_keys) claims the Authorization: Basic
-	header globally for API key/secret pairs and 401s before this handler ever runs.
+	Uses the same client authentication as the token and revocation endpoints. Credentials
+	must be explicit, and public clients (auth method None) are rejected, so a bare token
+	never identifies its own client. Only the request body and headers are read, never the
+	query string.
 
 	Returns the authenticated client_id, or None if the caller could not be authenticated.
 	"""
-	client_id = frappe.form_dict.get("client_id")
-	client_secret = frappe.form_dict.get("client_secret")
+	r = frappe.request
+	request = Request(r.base_url, http_method=r.method, body=r.form, headers=r.headers)
+	validator = get_oauth_server().request_validator
 
-	if (
-		not isinstance(client_id, str)
-		or not isinstance(client_secret, str)
-		or not client_id
-		or not client_secret
-	):
+	try:
+		has_credentials = request.client_id or validator.get_basic_auth_credentials(request)
+	except ValueError:
 		return None
 
-	stored_secret = frappe.db.get_value("OAuth Client", client_id, "client_secret")
-	if not stored_secret or not hmac.compare_digest(stored_secret, client_secret):
+	if not has_credentials or not validator.authenticate_client(request):
 		return None
 
-	return client_id
+	if request.client["token_endpoint_auth_method"] == "None":
+		return None
+
+	return request.client_id
 
 
 @frappe.whitelist(allow_guest=True, methods=["POST"])
 def introspect_token(token: str, token_type_hint: str | None = None):
 	authenticated_client_id = authenticate_introspection_caller()
 	if not authenticated_client_id:
-		# RFC 7662 §2.3: invalid client credentials are an authentication failure, not an
-		# inactive token. Keep it distinguishable so a caller with a bad secret does not
-		# silently read every token as inactive.
 		frappe.local.response = frappe._dict({"error": "invalid_client"})
 		frappe.local.response["http_status_code"] = 401
 		return
@@ -384,11 +383,12 @@ def _get_authorization_server_metadata():
 		response_types_supported=["code"],
 		response_modes_supported=["query"],
 		grant_types_supported=["authorization_code", "refresh_token"],
-		token_endpoint_auth_methods_supported=["none", "client_secret_basic"],
+		token_endpoint_auth_methods_supported=["none", "client_secret_basic", "client_secret_post"],
 		service_documentation="https://docs.frappe.io/framework/user/en/guides/integration/how_to_set_up_oauth#add-a-client-app",
 		revocation_endpoint=f"{issuer}{ENDPOINTS['revocation_endpoint']}",
-		revocation_endpoint_auth_methods_supported=["client_secret_basic"],
+		revocation_endpoint_auth_methods_supported=["none", "client_secret_basic", "client_secret_post"],
 		introspection_endpoint=f"{issuer}{ENDPOINTS['introspection_endpoint']}",
+		introspection_endpoint_auth_methods_supported=["client_secret_basic", "client_secret_post"],
 		userinfo_endpoint=f"{issuer}{ENDPOINTS['userinfo_endpoint']}",
 		code_challenge_methods_supported=["S256"],
 	)
@@ -553,9 +553,7 @@ def is_oauth_metadata_enabled(label: Literal["resource", "auth_server"]):
 
 
 def get_resource_url():
-	"""Uses request URL to reflect the resource URL"""
-	request_url = urlparse(frappe.request.url)
-	return f"{request_url.scheme}://{request_url.netloc}"
+	return frappe.utils.get_url()
 
 
 def _del_none_values(d: dict):

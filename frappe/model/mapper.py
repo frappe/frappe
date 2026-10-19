@@ -76,6 +76,8 @@ def get_mapped_doc(
 			target_parent = table_maps[from_doctype].get("on_parent")
 			if isinstance(target_parent, str):
 				target_parent = frappe.get_doc(json.loads(target_parent))
+			elif isinstance(target_parent, dict):
+				target_parent = frappe.get_doc(target_parent)
 			target_parentfield = target_parent.get_parentfield_of_doctype(target_doctype)
 			target_doc = frappe.new_doc(
 				target_doctype, parent_doc=target_parent, parentfield=target_parentfield

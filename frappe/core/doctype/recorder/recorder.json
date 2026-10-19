@@ -160,6 +160,7 @@
   }
  ],
  "hide_toolbar": 1,
+ "icon": "monitor-cog",
  "in_create": 1,
  "index_web_pages_for_search": 1,
  "is_virtual": 1,
@@ -180,6 +181,7 @@
    "share": 1
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "duration",
  "sort_order": "DESC",
  "states": [],

@@ -123,7 +123,11 @@ class MyImage extends Image {
 		return {
 			align: node.align,
 			style: node.style.cssText,
-			src: node.src,
+			// node.src is the resolved (always-absolute) property; getAttribute returns the
+			// attribute as written. Using node.src here bakes the current site's host into the
+			// image src on every paste/drag-drop/resize (any Quill value->create round trip),
+			// turning a relative /private/files/... URL permanently into an absolute one.
+			src: node.getAttribute("src"),
 		};
 	}
 }
