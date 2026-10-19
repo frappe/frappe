@@ -60,7 +60,9 @@ ADAPTERS.register_loader("jsonb", TextLoader)
 
 # Postgres only accepts bound parameters in these statements; the rest are bound client-side.
 SERVER_BOUND_QUERY_TYPES = frozenset(("select", "insert", "update", "delete", "with"))
-PLACEHOLDER_PATTERN = re.compile(r"%%|%(?:\(([^)]+)\))?s")
+PLACEHOLDER_PATTERN = re.compile(
+	r"%%|(?P<keyword>\b(?P<negated>not\s+)?in\s*)?%(?:\((?P<key>[^)]+)\))?s", flags=re.IGNORECASE
+)
 
 LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
@@ -1015,27 +1017,23 @@ def modify_query(query):
 
 
 def bind_values(query: str, values):
-	"""Coerce values for frappe's MariaDB-style SQL and expand sequences into `(%s, %s, ...)`.
+	"""Coerce values for frappe's MariaDB-style SQL and bind sequences, which psycopg sends as records.
 
 	Ints and bools go as untyped strings, so postgres casts them to the column's type the way
-	MariaDB compares loosely. psycopg would send a tuple as a record, not as an IN list.
+	MariaDB compares loosely. `IN %s` becomes `= ANY(%s)` with one array parameter, so the
+	statement is the same for every list length; other sequences expand to `(%s, %s, ...)`.
 	"""
 	if not values:
 		return query, values
 
-	if isinstance(values, dict):
-		if not any(isinstance(value, list | tuple) for value in values.values()):
+	named = isinstance(values, dict)
+	if not any(isinstance(value, list | tuple) for value in (values.values() if named else values)):
+		if named:
 			return query, {key: _coerce(value) for key, value in values.items()}
-		bound = {}
-		query = PLACEHOLDER_PATTERN.sub(lambda match: _bind_named(match, values, bound), query)
-		return query, bound
-
-	if not any(isinstance(value, list | tuple) for value in values):
 		return query, [_coerce(value) for value in values]
-	bound = []
-	positional = iter(values)
-	query = PLACEHOLDER_PATTERN.sub(lambda match: _bind_positional(match, positional, bound), query)
-	return query, bound
+
+	binder = _SequenceBinder(values)
+	return PLACEHOLDER_PATTERN.sub(binder, query), binder.bound
 
 
 def _coerce(value):
@@ -1046,34 +1044,41 @@ def _coerce(value):
 	return value
 
 
-def _bind_positional(match: re.Match, positional, bound: list) -> str:
-	if match.group(0) == "%%" or match.group(1):
-		return match.group(0)
-	return _positional_placeholders(next(positional), bound)
+class _SequenceBinder:
+	def __init__(self, values):
+		self.named = isinstance(values, dict)
+		self.values = values if self.named else iter(values)
+		self.bound = {} if self.named else []
 
+	def __call__(self, match: re.Match) -> str:
+		key = match["key"]
+		if match[0] == "%%" or self.named != bool(key):
+			return match[0]
 
-def _positional_placeholders(value, bound: list) -> str:
-	if isinstance(value, list | tuple):
-		return "(" + ", ".join(_positional_placeholders(item, bound) for item in value) + ")"
-	bound.append(_coerce(value))
-	return "%s"
+		value = self.values[key] if self.named else next(self.values)
+		keyword = match["keyword"] or ""
+		if (
+			keyword
+			and isinstance(value, list | tuple)
+			and not any(isinstance(v, list | tuple) for v in value)
+		):
+			operator = "<> ALL" if match["negated"] else "= ANY"
+			return f"{operator}({self._placeholder(key, [_coerce(item) for item in value])})"
+		return keyword + self._expand(key, value)
 
-
-def _bind_named(match: re.Match, values: dict, bound: dict) -> str:
-	if not (key := match.group(1)):
-		return match.group(0)
-	return _named_placeholders(key, values[key], bound)
-
-
-def _named_placeholders(key: str, value, bound: dict) -> str:
-	if isinstance(value, list | tuple):
+	def _expand(self, key: str | None, value) -> str:
+		if not isinstance(value, list | tuple):
+			return self._placeholder(key, _coerce(value))
 		return (
-			"("
-			+ ", ".join(_named_placeholders(f"{key}__{i}", item, bound) for i, item in enumerate(value))
-			+ ")"
+			"(" + ", ".join(self._expand(key and f"{key}__{i}", item) for i, item in enumerate(value)) + ")"
 		)
-	bound[key] = _coerce(value)
-	return f"%({key})s"
+
+	def _placeholder(self, key: str | None, value) -> str:
+		if self.named:
+			self.bound[key] = value
+			return f"%({key})s"
+		self.bound.append(value)
+		return "%s"
 
 
 def replace_locate_with_strpos(query):
