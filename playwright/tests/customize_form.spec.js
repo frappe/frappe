@@ -1,6 +1,21 @@
 import { test, expect } from "../support";
 
 test.describe("Customize Form", () => {
+	test.afterAll(async ({ admin }) => {
+		const { docs } = await admin.call("run_doc_method", {
+			method: "fetch_to_customize",
+			docs: JSON.stringify({
+				doctype: "Customize Form",
+				name: "Customize Form",
+				doc_type: "Note",
+			}),
+		});
+		await admin.call("run_doc_method", {
+			method: "save_customization",
+			docs: JSON.stringify({ ...docs[0], states: [] }),
+		});
+	});
+
 	test("Changing to naming rule should update autoname", async ({ page, desk }) => {
 		await page.goto("/desk/customize-form");
 		await desk.ready();
