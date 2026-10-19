@@ -397,9 +397,9 @@ frappe.ui.Filter = class {
 			this.on_change();
 		});
 		// a combobox pick or clear reaches the input as a change (Enter happens
-		// in its panel, outside the wrapper)
+		// in its panel, outside the wrapper); a MultiSelect pick as awesomplete-selectcomplete
 		if (this.field.combobox) {
-			this.field.$input.on("change", () => {
+			this.field.$input.on("change awesomplete-selectcomplete", () => {
 				if (this.field.get_value() === this.field.applied_value) return;
 				this.field.applied_value = this.field.get_value();
 				this.on_change();
