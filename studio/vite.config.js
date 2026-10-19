@@ -9,7 +9,7 @@ import studioFolderWatcher from "./vite/studioFolderWatcher"
 import studioRootAlias from "./vite/studioRootAlias"
 import frameworkUIAlias from "./vite/frameworkUIAlias"
 import lucideStaticAlias from "./vite/lucideStaticAlias"
-import skipBuiltRendererInDevMode from "./vite/skipBuiltRendererInDevMode"
+import frameworkui from "@framework/ui/vite"
 
 const viteDevServerPort = getViteDevServerPort()
 const appsDir = path.resolve(__dirname, "../../")
@@ -25,31 +25,18 @@ const appSymlinkedSources = fs.readdirSync(appsDir).flatMap((entry) => {
 		return []
 	}
 })
-
-// @framework/ui (apps/frappe/ui) only exists on newer frappe (develop). On older
-// frappe it's absent, so its vite plugin, aliases, and component imports must be
-// skipped or the studio build breaks. This flag gates all of them.
-const frameworkUIAvailable = fs.existsSync(path.resolve(appsDir, "frappe", "ui", "package.json"))
 // Each exported studio app carries a tsconfig.json (for the @app/ alias). Ignore changes to these files to avoid unnecessary HMR reloads.
 const isStudioAppTsconfig = (file) =>
 	/^[^/]+\/studio\/[^/]+\/tsconfig\.json$/.test(path.relative(appsDir, file).replace(/\\/g, "/"))
 
 // https://vitejs.dev/config/
-export default defineConfig(async () => {
-	// Only pull in @framework/ui's vite plugin + source aliases when it exists.
-	const frameworkUIPlugins = frameworkUIAvailable ? [(await import("@framework/ui/vite")).default()] : []
-	// When absent, alias @framework/ui/* to a stub so the dev server can resolve the
-	// (dead-branch) imports in globals.ts. Production builds DCE them; the dev server
-	// doesn't, so without this it errors "Failed to resolve import @framework/ui/...".
-	const frameworkUIAliases = frameworkUIAvailable
-		? frameworkUIAlias(appsDir)
-		: [{ find: /^@framework\/ui(\/.*)?$/, replacement: path.resolve(__dirname, "src/stubs/frameworkUI.ts") }]
-
+export default defineConfig(({ command }) => {
 	return {
+		// the built editor is served from frappe's assets; the dev server stays at the root
+		base: command === "build" ? "/assets/frappe/studio/" : "/",
 		define: {
 			__VUE_PROD_HYDRATION_MISMATCH_DETAILS__: false,
 			__VUE_PROD_DEVTOOLS__: true,
-			__FRAMEWORK_UI_AVAILABLE__: JSON.stringify(frameworkUIAvailable),
 		},
 		server: {
 			// explicitly set origin of generated assets (images, fonts, etc) during development.
@@ -81,16 +68,15 @@ export default defineConfig(async () => {
 				codeLanguages: false,
 				jinjaBootData: false,
 			}),
-			...frameworkUIPlugins,
+			frameworkui(),
 			studioRootAlias(),
 			// Root must be the frontend dir
 			sharedDependencyResolver(path.resolve(__dirname)),
 			studioFolderWatcher(appsDir),
-			skipBuiltRendererInDevMode(),
 		],
 		resolve: {
 			alias: [
-				...frameworkUIAliases,
+				...frameworkUIAlias(appsDir),
 				lucideStaticAlias(__dirname),
 				{ find: "@", replacement: path.resolve(__dirname, "src") },
 			],
@@ -118,6 +104,8 @@ export default defineConfig(async () => {
 			},
 			outDir: "../frappe/public/studio",
 			emptyOutDir: true,
+			// www/studio.html and the renderer template read the entry assets from here
+			manifest: true,
 			target: "es2015",
 			sourcemap: true,
 			chunkSizeWarningLimit: 1000,

@@ -17,6 +17,7 @@ import path from "node:path"
 import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
+import frameworkui from "@framework/ui/vite"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
@@ -25,10 +26,6 @@ import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
 // bench apps folder (scripts -> src -> frontend -> studio -> apps)
 const APPS_DIR = path.resolve(__dirname, "../../../../")
-
-// @framework/ui (apps/frappe/ui) is absent on older frappe. Skip its imports and
-// aliases so the exported-app build doesn't try to resolve a missing package.
-const frameworkUIAvailable = fs.existsSync(path.resolve(APPS_DIR, "frappe", "ui", "package.json"))
 
 // @framework/ui components are spread across the root barrel and per-widget subpath
 // exports, so their imports must be grouped by source module. Components with a
@@ -150,9 +147,7 @@ function findComponentSources(appComponents, customComponents = {}) {
 		} else if (FRAPPE_UI_CHARTS.includes(component)) {
 			frappeUICharts.push(component)
 		} else if (FRAMEWORK_UI_COMPONENTS.includes(component)) {
-			// Drop @framework/ui components when the package isn't on this bench —
-			// a stale app reference must not break the build with an unresolvable import.
-			if (frameworkUIAvailable) frameworkUIComponents.push(component)
+			frameworkUIComponents.push(component)
 		} else if (STUDIO_COMPONENTS.includes(component)) {
 			studioComponents.push(component)
 		} else {
@@ -331,18 +326,11 @@ async function buildWithVite(
 			}),
 			studioRootAlias(),
 			sharedDependencyResolver(path.resolve(__dirname, "../../")),
-			...(frameworkUIAvailable
-				? [
-						// Resolves @framework/ui's own deps from studio's node_modules
-						(await import("@framework/ui/vite")).default(),
-					]
-				: []),
+			// resolves @framework/ui's own deps from studio's node_modules
+			frameworkui(),
 		],
 		resolve: {
-			alias: [
-				...(frameworkUIAvailable ? frameworkUIAlias(APPS_DIR) : []),
-				{ find: "@", replacement: path.resolve(__dirname, "../") },
-			],
+			alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
 			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
 			// share the app's runtime — Pinia breaks with duplicate copies
 			dedupe: [

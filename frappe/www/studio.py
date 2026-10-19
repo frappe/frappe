@@ -1,4 +1,5 @@
 import frappe
+from frappe.studio.build import get_editor_assets
 from frappe.utils import cint
 
 no_cache = 1
@@ -11,6 +12,7 @@ def get_context(context):
 	context.site_url = get_site_url()
 	context.site_name = frappe.local.site
 	context.is_developer_mode = cint(frappe.conf.developer_mode)
+	context.assets = get_editor_assets("index.html")
 
 
 @frappe.whitelist(methods=["POST"], allow_guest=True)

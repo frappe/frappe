@@ -16,6 +16,7 @@ from frappe.studio.utils import walk_blocks
 from frappe.utils import get_files_path
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+EDITOR_ASSETS_BASE = "/assets/frappe/studio/"
 LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
 
 
@@ -398,6 +399,38 @@ def is_vue_component(component_name: str | None) -> bool:
 	"""Vue components are PascalCase; lowercase names are native elements (div, span, …)
 	or layout blocks (container) that need no import."""
 	return bool(component_name) and component_name[0].isupper()
+
+
+def get_editor_assets(entry: str) -> dict | None:
+	"""Script, module preloads and stylesheets vite's manifest lists for the editor entry
+	`index.html` or `renderer.html`, or None until `bench build` has built the editor."""
+	manifest_path = frappe.get_app_path("frappe", "public", "studio", ".vite", "manifest.json")
+	if not os.path.exists(manifest_path):
+		return None
+	with open(manifest_path) as f:
+		manifest = json.load(f)
+	if entry not in manifest:
+		return None
+
+	preloads, stylesheets, seen = [], [], set()
+
+	def collect(key):
+		if key in seen:
+			return
+		seen.add(key)
+		chunk = manifest[key]
+		for imported in chunk.get("imports", []):
+			collect(imported)
+		if key != entry:
+			preloads.append(EDITOR_ASSETS_BASE + chunk["file"])
+		stylesheets.extend(EDITOR_ASSETS_BASE + css for css in chunk.get("css", []))
+
+	collect(entry)
+	return {
+		"script": EDITOR_ASSETS_BASE + manifest[entry]["file"],
+		"preloads": preloads,
+		"stylesheets": list(dict.fromkeys(stylesheets)),
+	}
 
 
 def after_app_build(built_apps: list[str]) -> None:

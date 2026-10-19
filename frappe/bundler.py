@@ -136,11 +136,13 @@ def watch(apps=None):
 	# A second watcher, on its own tooling, beside esbuild rather than inside it.
 	# It lives exactly as long as the esbuild watcher below, which blocks.
 	page_islands = watch_page_islands()
+	studio_editor = watch_studio_editor()
 	try:
 		frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env())
 	finally:
-		if page_islands:
-			page_islands.terminate()
+		for watcher in (page_islands, studio_editor):
+			if watcher:
+				watcher.terminate()
 
 
 def page_island_build_command(production: bool = False, watch: bool = False) -> str:
@@ -176,6 +178,35 @@ def build_page_islands(built_apps: list[str] | None = None):
 			"Every Frappe UI page shows its unbuilt state until this passes.",
 			fg="red",
 		)
+
+
+def watch_studio_editor():
+	"""Start the studio editor's vite dev server, or `None` if it cannot start.
+
+	Runs beside the esbuild watcher like the page-island watcher below, but only in
+	developer mode: that is the only mode in which exported apps can be edited and
+	the preview renderer loads from this server. The editor itself is then served by
+	vite on its own port; `/studio` keeps serving the last build.
+	"""
+	# The same reading `bench build` uses to pick its own mode.
+	if not (frappe.local.conf.developer_mode or frappe._dev_server):
+		return None
+
+	studio_path = os.path.join(frappe.get_app_source_path("frappe"), "studio")
+	if not os.path.exists(os.path.join(studio_path, "node_modules")):
+		click.secho("Studio editor dependencies are not installed; run `bench build` once.", fg="yellow")
+		return None
+
+	try:
+		return subprocess.Popen(
+			"yarn dev",
+			shell=True,
+			cwd=studio_path,
+			env=dict(os.environ, **get_node_env()),
+		)
+	except OSError as e:
+		click.secho(f"Could not watch the studio editor: {e}", fg="yellow")
+		return None
 
 
 def watch_page_islands():

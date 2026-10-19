@@ -8,11 +8,7 @@ from urllib.parse import quote
 
 import frappe
 from frappe import _
-from frappe.utils import get_files_path
-from frappe.website.page_renderers.document_page import DocumentPage
-from frappe.website.utils import cleanup_page_name
-from frappe.website.website_generator import WebsiteGenerator
-
+from frappe.studio.build import get_editor_assets
 from frappe.studio.export import (
 	can_export,
 	delete_file,
@@ -22,6 +18,10 @@ from frappe.studio.export import (
 )
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import walk_blocks
+from frappe.utils import get_files_path
+from frappe.website.page_renderers.document_page import DocumentPage
+from frappe.website.utils import cleanup_page_name
+from frappe.website.website_generator import WebsiteGenerator
 
 IMPORT_RE = re.compile(r"""(?:from|import)\s*\(?\s*['"]((?:@app/|\.\.?/)[^'"]+)['"]""")
 EXTENSIONS = (".ts", ".js", ".vue", ".json", ".css")
@@ -70,7 +70,7 @@ class StudioAppRenderer(DocumentPage):
 		if self.is_preview():
 			self.context.is_preview = True
 			self.context.app_route = f"dev/{self.context.app_route}"
-			self.context.template = "templates/generators/studio_renderer.html"
+			self.use_studio_renderer()
 			self.context.app_pages = frappe.get_all(
 				"Studio Page", dict(studio_app=self.context.app_name), ["name", "page_title", "route"]
 			)
@@ -81,8 +81,13 @@ class StudioAppRenderer(DocumentPage):
 				self.context.stylesheets = manifest.get("stylesheets", [])
 				self.context.script = manifest.get("script")
 			else:
-				self.context.template = "templates/generators/studio_renderer.html"
+				self.use_studio_renderer()
 				self.context.assets_not_found = True
+
+	def use_studio_renderer(self):
+		"""Serve the app with the editor's own renderer instead of its published build."""
+		self.context.template = "templates/generators/studio_renderer.html"
+		self.context.assets = get_editor_assets("renderer.html")
 
 	def is_preview(self):
 		return self.path.startswith("dev/")

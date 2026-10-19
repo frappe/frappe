@@ -1131,13 +1131,6 @@ function isFrameworkUIComponent(name: string) {
 	return FRAMEWORK_UI_COMPONENTS.includes(name)
 }
 
-// True when @framework/ui (apps/frappe/ui) is present in this build. Older frappe
-// versions don't ship it, so its components are hidden from the panel. Guard the
-// build-time constant with typeof so non-vite tooling (type extraction) doesn't throw.
-function isFrameworkUIAvailable() {
-	return typeof __FRAMEWORK_UI_AVAILABLE__ === "undefined" || __FRAMEWORK_UI_AVAILABLE__
-}
-
 function getComponentGroups(list: FrappeUIComponent[]) {
 	const inFrappe = (c: FrappeUIComponent) => isFrappeUIComponent(c.name)
 	const inFramework = (c: FrappeUIComponent) => isFrameworkUIComponent(c.name)
@@ -1145,10 +1138,8 @@ function getComponentGroups(list: FrappeUIComponent[]) {
 	const groups = [
 		{ label: "Core", components: list.filter((c) => !inFrappe(c) && !inFramework(c)) },
 		{ label: "Frappe UI", components: list.filter(inFrappe) },
+		{ label: "Framework UI", components: list.filter(inFramework) },
 	]
-	if (isFrameworkUIAvailable()) {
-		groups.push({ label: "Framework UI", components: list.filter(inFramework) })
-	}
 	return groups.filter((group) => group.components.length)
 }
 
@@ -1174,7 +1165,6 @@ export default {
 	isFrappeUIComponent,
 	isDeprecatedComponent,
 	isFrameworkUIComponent,
-	isFrameworkUIAvailable,
 	getComponentGroups,
 	getParts,
 	get,
