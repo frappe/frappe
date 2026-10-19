@@ -487,6 +487,7 @@ class TestDB(IntegrationTestCase):
 			"select E'a'\n'\\''; select 2 --'",
 			"select E'a' -- c\n\n'\\''; select 2 --'",
 			"select E'a' '\\'; select 2 --'",
+			"select E''\v\n'\\' -- '; select 2",
 		):
 			with self.subTest(query=query), self.assertRaises(frappe.db.ProgrammingError):
 				frappe.db.sql(query)
@@ -516,6 +517,8 @@ class TestDB(IntegrationTestCase):
 		self.addCleanup(frappe.db.sql, "RESET standard_conforming_strings")
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select '\\'' ; select 2 --'")
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select B'1\\' ; select 2 -- '")
 
 		frappe.db.sql("select 'a\\'; select 2'")
 
