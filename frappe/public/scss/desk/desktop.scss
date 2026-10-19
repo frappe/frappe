@@ -236,6 +236,11 @@ body {
 
 		.widget-body {
 			padding-top: 7px;
+
+			// lines a frappe-ui chart up with the head, as frappe-charts pads its own svg
+			&:has(.frappe-island) {
+				padding-inline: 8px;
+			}
 		}
 
 		.widget-control {
