@@ -20,7 +20,7 @@ from frappe.utils import cstr, get_table_name
 class TimedeltaLoader(Loader):
 	"""Load `time` as `timedelta`, which is what frappe models Time fields as (and MariaDB returns)."""
 
-	def load(self, data) -> datetime.timedelta:
+	def load(self, data: bytes | memoryview) -> datetime.timedelta:
 		hms, _, frac = bytes(data).decode().partition(".")
 		microseconds = int(frac.ljust(6, "0")[:6]) if frac else 0
 		hours, minutes, seconds = (int(part) for part in hms.split(":"))
@@ -993,7 +993,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		return {position for position, field in enumerate(fields) if field in integer_columns}
 
 
-def _integral_floats_as_ints(row, integer_positions: set[int]):
+def _integral_floats_as_ints(row, integer_positions):
 	"""COPY rejects "1.0" for an integer column, where an INSERT casts the numeric."""
 	if not integer_positions:
 		return row
@@ -1024,12 +1024,10 @@ def modify_query(query):
 	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
 
 
-def bind_values(query: str, values):
-	"""Coerce values for frappe's MariaDB-style SQL and bind sequences, which psycopg sends as records.
+def bind_values(query, values):
+	"""Send ints and bools as untyped strings, so postgres casts them like MariaDB compares loosely.
 
-	Ints and bools go as untyped strings, so postgres casts them to the column's type the way
-	MariaDB compares loosely. `IN %s` becomes `= ANY(%s)` with one array parameter, so the
-	statement is the same for every list length; other sequences expand to `(%s, %s, ...)`.
+	`IN %s` becomes `= ANY(%s)`, one statement for any list length; other sequences expand to `(%s, ...)`.
 	"""
 	if not values:
 		return query, values
@@ -1074,14 +1072,14 @@ class _SequenceBinder:
 			return f"{operator}({self._placeholder(key, [_coerce(item) for item in value])})"
 		return keyword + self._expand(key, value)
 
-	def _expand(self, key: str | None, value) -> str:
+	def _expand(self, key, value):
 		if not isinstance(value, list | tuple):
 			return self._placeholder(key, _coerce(value))
 		return (
 			"(" + ", ".join(self._expand(key and f"{key}__{i}", item) for i, item in enumerate(value)) + ")"
 		)
 
-	def _placeholder(self, key: str | None, value) -> str:
+	def _placeholder(self, key, value):
 		if self.named:
 			self.bound[key] = value
 			return f"%({key})s"
