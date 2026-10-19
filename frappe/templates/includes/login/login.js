@@ -448,7 +448,7 @@ var continue_otp_app = function (setup, qrcode, otp_secret) {
 			}),
 			$('<div class="flex flex-col gap-1.5">').append(
 				$('<div>').text({{ _("Can't scan the code?") | tojson }} + " " + {{ _("Enter this setup key manually:") | tojson }}),
-				$('<code class="otp-setup-key">').append(otp_secret.match(/.{1,4}/g).map((chunk) => $('<span>').text(chunk)))
+				$('<code class="otp-setup-key" dir="ltr">').append(otp_secret.match(/.{1,4}/g).map((chunk) => $('<span>').text(chunk)))
 			)
 		);
 		$('#otp_div').prepend(qrcode_div);
