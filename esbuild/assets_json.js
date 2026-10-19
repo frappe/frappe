@@ -48,11 +48,14 @@ function is_stale(lock) {
 }
 
 function read(assets_json_path) {
+	let contents;
 	try {
-		return JSON.parse(fs.readFileSync(assets_json_path, "utf-8"));
-	} catch {
-		return {};
+		contents = fs.readFileSync(assets_json_path, "utf-8");
+	} catch (error) {
+		if (error.code === "ENOENT") return {};
+		throw error;
 	}
+	return JSON.parse(contents);
 }
 
 module.exports = { update_assets_json };

@@ -52,3 +52,22 @@ test("a failed update frees the lock", async () => {
   );
   assert.equal(fs.existsSync(file + ".lock"), false);
 });
+
+test("a missing file starts empty, and an unreadable one is left as it is", async () => {
+  const file = path.join(
+    fs.mkdtempSync(path.join(os.tmpdir(), "assets-json-")),
+    "assets.json"
+  );
+  const { previous } = await update_assets_json(file, () => ({
+    "a.js": "a.1.js",
+  }));
+  assert.deepEqual(previous, {});
+
+  fs.writeFileSync(file, "{");
+  await assert.rejects(
+    update_assets_json(file, () => ({})),
+    SyntaxError
+  );
+  assert.equal(fs.readFileSync(file, "utf-8"), "{");
+  assert.equal(fs.existsSync(file + ".lock"), false);
+});
