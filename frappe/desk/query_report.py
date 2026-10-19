@@ -6,6 +6,7 @@ import json
 import os
 import re
 from datetime import timedelta
+from decimal import Decimal
 from html import unescape
 from typing import TYPE_CHECKING, Any
 
@@ -17,7 +18,6 @@ from frappe.database.duckdb.database import get_latest_complete_sync
 from frappe.desk.form.load import get_attachments
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.desk.reportview import clean_params, parse_json
-from frappe.model.meta import get_field_precision
 from frappe.model.utils import render_include
 from frappe.modules import get_module_path, scrub
 from frappe.monitor import add_data_to_monitor
@@ -822,7 +822,7 @@ def add_total_row(
 		if isinstance(col, dict) and col.get("disable_total"):
 			continue
 
-		fieldtype, options, fieldname, precision = None, None, None, None
+		fieldtype, options, fieldname = None, None, None
 		if isinstance(col, str):
 			if meta:
 				# get fieldtype from the meta
@@ -830,7 +830,6 @@ def add_total_row(
 				if field:
 					fieldtype = meta.get_field(col).fieldtype
 					fieldname = meta.get_field(col).fieldname
-					precision = field.precision
 			else:
 				col = col.split(":")
 				if len(col) > 1:
@@ -844,7 +843,6 @@ def add_total_row(
 			fieldtype = col.get("fieldtype")
 			fieldname = col.get("fieldname")
 			options = col.get("options")
-			precision = col.get("precision")
 
 		for row in result:
 			# Skip if column index is out of bounds for list/tuple rows
@@ -859,7 +857,7 @@ def add_total_row(
 					fieldtype = "Float"
 			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(cell):
 				if not (is_tree and row.get(parent_field)):
-					total_row[col_idx] = flt(total_row[col_idx]) + flt(cell)
+					total_row[col_idx] = Decimal(total_row[col_idx] or 0) + Decimal(str(flt(cell)))
 
 			if fieldtype == "Percent" and col_idx not in has_percent:
 				has_percent.append(col_idx)
@@ -872,12 +870,11 @@ def add_total_row(
 		if fieldtype == "Link" and options == "Currency":
 			total_row[col_idx] = result[0].get(fieldname) if is_row_dict else result[0][col_idx]
 
-		if col_idx in has_percent:
-			total_row[col_idx] = flt(total_row[col_idx]) / len(result)
+		if isinstance(total_row[col_idx], Decimal):
+			total_row[col_idx] = float(total_row[col_idx])
 
-		if isinstance(total_row[col_idx], float):
-			df = frappe._dict(fieldtype=fieldtype, precision=precision)
-			total_row[col_idx] = flt(total_row[col_idx], get_field_precision(df))
+	for col_idx in has_percent:
+		total_row[col_idx] = flt(total_row[col_idx]) / len(result)
 
 	first_col_fieldtype = None
 	if isinstance(columns[0], str):
