@@ -468,10 +468,46 @@ class TestDB(IntegrationTestCase):
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
 
-	@unimplemented_for(db_type_is.POSTGRES)
 	def test_multi_statements(self):
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select 1; select 1")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_multi_statements_postgres_lexing(self):
+		for query in (
+			"select 1 /* ; */; select 2",
+			"select 1 -- ;\n; select 2",
+			"select 1 /* /* */ */; select 2",
+			"select 'a\\'; select 2",
+			"select E'\\''; select 2",
+			'select 1 as a$b$; select 2 as "$b$"',
+			'select 1 as é$b$; select 2 as "$b$"',
+			'select 1 as a\u00a0$b$; select 2 as "$b$"',
+			"select 1 -- \r; select 2",
+		):
+			with self.subTest(query=query), self.assertRaises(frappe.db.ProgrammingError):
+				frappe.db.sql(query)
+
+		for query in (
+			"select 1;",
+			"select 1; -- trailing",
+			"select 'a''; select 2'",
+			"select E'\\'; select 2'",
+			'select 1 as "a;b"',
+			"select $$;$$",
+			"select $t$ $$; $t$",
+			"select 1 /* /* */ ; */",
+		):
+			with self.subTest(query=query):
+				frappe.db.sql(query)
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_multi_statements_postgres_nonstandard_strings(self):
+		frappe.db.sql("SET LOCAL standard_conforming_strings = off")
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select '\\'' ; select 2 --'")
+
+		frappe.db.sql("select 'a\\'; select 2'")
 
 	def test_savepoints(self):
 		frappe.db.rollback()
