@@ -96,9 +96,10 @@ frappe.ui.FilterGroup = class {
 					frappe.ui.button({
 						label: __("Clear all"),
 						css_class: "filter-sheet-clear",
+						// like removing each row: Apply clears them, closing keeps them
 						onclick: () => {
-							this.sheet.close("action");
-							this.clear_all();
+							this.filters.forEach((f) => f.remove());
+							this.render_sheet_rows();
 						},
 					}),
 				],

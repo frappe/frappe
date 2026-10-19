@@ -241,6 +241,31 @@ test.describe("List filter", () => {
 		}
 	});
 
+	test('an "in" pick on a Select field applies while its list is open', async ({
+		page,
+		desk,
+	}) => {
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		// the combobox for this page only: other tests run with the setting as it is
+		await page.evaluate(() => (frappe.sys_defaults.enable_combobox_link_field = 1));
+		await page.evaluate(() =>
+			cur_list.filter_area.add([["ToDo", "priority", "in", ["High"]]])
+		);
+		// the list has loaded with it, so a later refresh can only come from the pick
+		const url = () => page.evaluate(() => decodeURIComponent(location.search));
+		await expect.poll(url).toContain("High");
+		await settled(page);
+		await desk.open_list_filter();
+
+		await page.locator(".filter-popover .filter-field .es-combobox").click();
+		const picker = page.locator(".es-combobox__panel[data-state='open']");
+		await picker.getByRole("option", { name: "Medium", exact: true }).click();
+		// the list refreshes with the pick, not only once the panel closes
+		await expect.poll(url).toContain("Medium");
+		await expect(picker).toHaveCount(1);
+	});
+
 	test.describe("sheet on a phone", () => {
 		test.use({ viewport: { width: 402, height: 800 } });
 
@@ -301,6 +326,30 @@ test.describe("List filter", () => {
 			await expect(title(page)).toHaveText("Edit filter");
 			await expect(value).not.toHaveValue(before);
 			await expect(value).not.toHaveValue("");
+		});
+
+		test("clears every filter on Apply, and keeps them when closed without it", async ({
+			page,
+		}) => {
+			await page.evaluate(() => cur_list.page.fields_dict.status.set_value("Closed"));
+			await page.evaluate(() => cur_list.filter_area.add([["ToDo", "role", "=", "Guest"]]));
+			await expect.poll(() => applied(page)).toHaveLength(2);
+			const rows = page.locator(".filter-sheet-row");
+
+			await open_sheet(page);
+			await page.locator(".filter-sheet-clear").click();
+			await expect(rows).toHaveCount(0);
+			await page.locator(".es-bottom-sheet").dispatchEvent("keydown", { key: "Escape" });
+			await expect(page.locator(".es-bottom-sheet")).toHaveCount(0);
+			await settled(page);
+			expect(await applied(page)).toHaveLength(2);
+
+			await open_sheet(page);
+			await expect(rows).toHaveCount(2);
+			await page.locator(".filter-sheet-clear").click();
+			await footer_button(page, "Apply").click();
+			await expect.poll(() => applied(page)).toHaveLength(0);
+			expect(await box_value(page, "status")).toBeFalsy();
 		});
 
 		test("shows option labels, forgets an abandoned filter and discards edits without Apply", async ({
