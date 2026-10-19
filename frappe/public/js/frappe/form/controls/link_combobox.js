@@ -16,7 +16,6 @@ frappe.ui.form.is_combobox_link_enabled = function () {
 // Select mode loads up to this many rows; more than that uses Search
 const PRELOAD_LIMIT = 1000;
 
-// small cache: drops the oldest entry when full
 // search filters in the format get_list accepts
 function stamp_filters(filters) {
 	if (!filters || Array.isArray(filters)) return filters || {};
@@ -36,6 +35,7 @@ function same_values(a, b) {
 	);
 }
 
+// small cache: drops the oldest entry when full
 function remember(map, key, value, max) {
 	if (map.has(key)) map.delete(key);
 	else if (map.size >= max) map.delete(map.keys().next().value);
@@ -91,7 +91,9 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			actions: [
 				{
 					icon: "arrow-right",
-					title: __("Open Link") + " (Ctrl+Enter)",
+					title: __("Open Link ({0})", [
+						frappe.ui.keys.get_shortcut_label("ctrl+enter"),
+					]),
 					href: "#",
 					css_class: "btn-open",
 					shortcut: "ctrl+enter",
@@ -280,16 +282,16 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 		this.open_mode = this.resolve_mode();
 		const searching = this.open_mode === "Search";
 		const opts = this.combobox.opts;
-		opts.search_placeholder = __("Search {0}...", [__(this.open_args?.doctype || "")]);
+		opts.search_placeholder = __("Search {0}...", [__(this.open_args.doctype)]);
 		opts.footer = this.get_footer_rows();
 		// Select: no search box; typing still jumps to a row
 		opts.hide_search = !searching;
-		opts.page_size = searching && this.open_args ? this.open_args.page_length : null;
+		opts.page_size = searching ? this.open_args.page_length : null;
 	}
 
 	// Select, unless set to Search or the list is too long
 	resolve_mode() {
-		if (this.display_mode() === "Search" || !this.open_args) return "Search";
+		if (this.display_mode() === "Search") return "Search";
 		// a custom query limits its results, so use Search
 		if (this.open_args.query) return "Search";
 		return preload_fallback.has(cache_key(this.open_args)) ? "Search" : "Select";
@@ -364,7 +366,7 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			.then((rows) => {
 				this.$input._created_new_doc = false;
 				rows = rows || [];
-				// a full page may have more rows
+				// a full page may have more rows; count before removing duplicates
 				const more = !!args.page_length && rows.length >= args.page_length;
 				rows = this.merge_duplicates(rows);
 				for (const row of rows) {
@@ -374,7 +376,6 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 					}
 				}
 				const options = rows.map((row) => this.to_option(row, context));
-				// count before removing duplicates
 				const result = paged ? { rows: options, has_more: more } : options;
 				if (use_cache) {
 					remember(search_cache, key, { result, time: Date.now() }, SEARCH_CACHE_MAX);
@@ -450,10 +451,6 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 
 	// list too long: switch to Search
 	fall_back_to_search(key, open_args) {
-		console.warn(
-			`Link field: ${open_args.doctype} has more than ${PRELOAD_LIMIT} records, ` +
-				`falling back to Search mode (set its Link Display Mode to Search)`
-		);
 		preload_fallback.add(key);
 		preload_cache.delete(key);
 		// reopen the panel in Search mode
@@ -600,7 +597,6 @@ frappe.ui.form.ControlLinkCombobox = class ControlLinkCombobox extends frappe.ui
 			});
 		}
 
-		// no Advanced Search: the panel loads more on scroll
 		return rows;
 	}
 
