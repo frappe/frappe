@@ -27,13 +27,13 @@ test.describe("Control Link", () => {
 		for (const name of created_todos) {
 			await admin.remove_doc("ToDo", name, true);
 		}
+		await admin.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link", true);
+		await admin.remove_doc("Property Setter", "ToDo-assigned_by-default", true);
+		await admin.remove_doc("Property Setter", "ToDo-main-show_preview_popup", true);
 	});
 
 	test.afterAll(async ({ admin }) => {
 		await admin.set_value("User", TEST_USER, { language: "en" });
-		await admin.remove_doc("Property Setter", "ToDo-main-show_title_field_in_link", true);
-		await admin.remove_doc("Property Setter", "ToDo-assigned_by-default", true);
-		await admin.remove_doc("Property Setter", "ToDo-main-show_preview_popup", true);
 	});
 
 	async function get_dialog_with_link(desk) {
