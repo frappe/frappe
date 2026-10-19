@@ -41,6 +41,22 @@
   {
    "added": 0,
    "child": 0,
+   "collapsible": 0,
+   "hidden": 0,
+   "icon": "layout-template",
+   "indent": 0,
+   "is_default_module": 0,
+   "keep_closed": 0,
+   "label": "Studio",
+   "link_type": "URL",
+   "open_in_new_tab": 0,
+   "show_arrow": 0,
+   "type": "Link",
+   "url": "/studio"
+  },
+  {
+   "added": 0,
+   "child": 0,
    "collapsible": 1,
    "hidden": 0,
    "icon": "sliders-horizontal",
@@ -616,7 +632,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-30 21:16:00.000000",
+ "modified": "2026-10-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Build",
  "name": "Build",

@@ -4,3 +4,7 @@
 # the repo. Unless a later match takes precedence,
 
 *                 @frappe/frappe-review-team
+
+# Studio: the low-code app builder (python package and editor)
+frappe/studio/     @ruchamahabal
+studio/            @ruchamahabal
