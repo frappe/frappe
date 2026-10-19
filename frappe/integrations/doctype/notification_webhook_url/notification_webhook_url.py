@@ -201,6 +201,7 @@ class NotificationWebhookURL(Document):
 
 	def validate(self) -> None:
 		if self.webhook_url:
+			self.webhook_url = self.webhook_url.strip()
 			validate_url(self.webhook_url, throw=True, valid_schemes=("http", "https"))
 			if not urlparse(self.webhook_url).netloc:
 				frappe.throw(_("'{0}' is not a valid URL").format(frappe.bold(self.webhook_url)))
