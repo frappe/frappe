@@ -12,7 +12,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 from frappe.tests import IntegrationTestCase
-from frappe.utils import formatdate, get_last_day, getdate, now_datetime
+from frappe.utils import formatdate, get_first_day, get_last_day, getdate, now_datetime
 from frappe.utils.dateutils import get_period, get_period_ending
 from frappe.utils.logging import connection_for
 
@@ -86,6 +86,7 @@ class TestDashboardChart(IntegrationTestCase):
 			month = get_last_day(cur_date)
 			month = formatdate(month.strftime("%Y-%m-%d"))
 			self.assertEqual(result.get("labels")[idx], get_period(month))
+			self.assertEqual(result["dates"][idx], str(get_first_day(cur_date)))
 			cur_date += relativedelta(months=1)
 
 	def _own_error_logs(self):
@@ -206,6 +207,29 @@ class TestDashboardChart(IntegrationTestCase):
 		todo_status_count = frappe.db.count("ToDo", {"status": result.get("labels")[0]})
 
 		self.assertEqual(result.get("datasets")[0].get("values")[0], todo_status_count)
+
+	def test_group_by_chart_labels_empty_values(self):
+		user = "chart-empty-label@example.com"
+		if not frappe.db.exists("User", user):
+			frappe.get_doc(doctype="User", email=user, first_name="Chart", send_welcome_email=0).insert()
+
+		chart = {
+			"name": "Test Group By Empty Label",
+			"chart_type": "Group By",
+			"group_by_type": "Count",
+			"document_type": "ToDo",
+			"group_by_based_on": "role",
+			"filters_json": "[]",
+		}
+
+		with self.set_user(user):
+			for role in (None, None, "System Manager"):
+				frappe.get_doc(doctype="ToDo", description="test", role=role).insert()
+
+			result = get(chart=frappe.as_json(chart), no_cache=1)
+
+		counts = dict(zip(result["labels"], result["datasets"][0]["values"], strict=True))
+		self.assertEqual(counts, {"No Role": 2, "System Manager": 1})
 
 	def test_value_based_on_required_for_sum_and_average(self):
 		for chart_type in ("Sum", "Average"):

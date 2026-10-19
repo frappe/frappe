@@ -165,6 +165,34 @@ class TestListFilter(UnitTestCase):
 		self.assertEqual(json.loads(updated["filters"]), [])
 		self.assertEqual(updated["route_signature"], "")
 
+	def test_sanitize_filters_keeps_child_table_fields(self):
+		owner = self._ensure_desk_user(LIST_FILTER_OWNER)
+		frappe.set_user(owner)
+		doc = frappe.get_doc(
+			{
+				"doctype": "List Filter",
+				"filter_name": "_test_filter_child_table",
+				"reference_doctype": "Contact",
+				"for_user": owner,
+				"filters": json.dumps(
+					[
+						["Dynamic Link", "link_name", "=", "owner@example.com"],
+						["Contact Email", "email_id", "=", "owner@example.com"],
+						["Contact Email", "invalid_field_xyz", "=", "x"],
+						["ToDo", "description", "=", "x"],
+					]
+				),
+			}
+		).insert()
+
+		self.assertEqual(
+			json.loads(doc.filters),
+			[
+				["Dynamic Link", "link_name", "=", "owner@example.com"],
+				["Contact Email", "email_id", "=", "owner@example.com"],
+			],
+		)
+
 	def test_sanitize_columns_drops_invalid_field(self):
 		doc = self._create_filter()
 		updated = update_list_filter(

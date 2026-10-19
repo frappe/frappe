@@ -7,7 +7,7 @@ import orjson
 
 import frappe
 from frappe.core.doctype.migration_hash.migration_hash import get_migration_hash, set_migration_hash
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.modules import get_module_path, scrub_dt_dn
 from frappe.query_builder import DocType
 from frappe.utils import get_datetime, now

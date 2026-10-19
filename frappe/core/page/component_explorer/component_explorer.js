@@ -28,6 +28,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 
 	// the quick entry example's fields, read back by its Save action
 	let explorer_todo_fields;
+	let explorer_contact_fields;
 	// the search box and the button of the BottomSheet multi-select example
 	const explorer_assign = {};
 	// rows of the BottomSheet search example: the caller decides what matches
@@ -990,6 +991,79 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Optional Sections": {
+			helper: "frappe.ui.optional_sections",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (add a section, Remove puts its button back)"),
+					items: [
+						{
+							label: "Add more now",
+							sections: [
+								{ title: "Contact", content: "Contact fields go here." },
+								{ title: "Salary and bank", content: "Salary fields go here." },
+								{
+									title: "Emergency contact",
+									content: "Emergency contact fields go here.",
+								},
+							],
+							on_add: (i, section) =>
+								frappe.ui.toast({ message: `${section.title} added` }),
+						},
+					],
+				},
+				{
+					title: __("A section added from the start"),
+					items: [
+						{
+							label: "Add more now",
+							sections: [
+								{ title: "Notes", content: "Shown until removed.", added: true },
+								{ title: "Attachments", content: "Attachment fields go here." },
+							],
+						},
+					],
+				},
+				{
+					title: __("Fields in a section, cleared on Remove"),
+					items: [
+						{
+							__code: 'let fields;\nfrappe.ui.optional_sections({\n  label: "Add more now",\n  sections: [{\n    title: "Contact",\n    content: () => {\n      const body = document.createElement("div");\n      fields = new frappe.ui.FieldGroup({ body, fields: contact_fields });\n      fields.make();\n      return body;\n    },\n  }],\n  on_remove: () => fields.set_values({ email: "", mobile: "" }),\n})',
+							label: "Add more now",
+							sections: [
+								{
+									title: "Contact",
+									content: () => {
+										const body = document.createElement("div");
+										explorer_contact_fields = new frappe.ui.FieldGroup({
+											body,
+											fields: [
+												{
+													fieldtype: "Data",
+													fieldname: "email",
+													label: "Email",
+												},
+												{ fieldtype: "Column Break", fieldname: "column" },
+												{
+													fieldtype: "Data",
+													fieldname: "mobile",
+													label: "Mobile",
+												},
+											],
+										});
+										explorer_contact_fields.make();
+										return body;
+									},
+								},
+							],
+							on_remove: () =>
+								explorer_contact_fields.set_values({ email: "", mobile: "" }),
+						},
+					],
+				},
+			],
+		},
 		Tabs: {
 			helper: "frappe.ui.tabs",
 			stacked: true,
@@ -1301,6 +1375,45 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Vertical (each step with its content)"),
+					items: [
+						{
+							orientation: "vertical",
+							current: 1,
+							steps: [
+								{
+									label: __("Chart of Accounts"),
+									content: () =>
+										$(`<p class="text-p-sm text-ink-gray-6 m-0"></p>`).text(
+											__("Kept the chart made during setup.")
+										),
+								},
+								{
+									label: __("Opening balances"),
+									content: () =>
+										$(`<div class="flex flex-col gap-2 items-start"></div>`)
+											.append(
+												$(
+													`<p class="text-p-sm text-ink-gray-6 m-0"></p>`
+												).text(
+													__(
+														"Bring the closing balances from your old books."
+													)
+												)
+											)
+											.append(
+												frappe.ui.button({
+													label: __("Open"),
+													variant: "solid",
+												})
+											),
+								},
+								{ label: __("Go Live") },
+							],
+						},
+					],
+				},
+				{
 					title: __("Compact (narrow layouts)"),
 					items: [
 						{
@@ -1456,99 +1569,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							onclick: () => frappe.ui.toast({ message: "Paid" }),
 						},
 					],
-				},
-			],
-		},
-		"Bar List": {
-			helper: "frappe.ui.bar_list",
-			stacked: true,
-			groups: [
-				{
-					title: __("Basic"),
-					items: [
-						{
-							items: [
-								{ label: "Not due", value: 42000 },
-								{ label: "1–30 days", value: 18000 },
-								{ label: "31–60 days", value: 9500 },
-								{ label: "60+ days", value: 3000 },
-							],
-						},
-					],
-				},
-				{
-					title: __("Formatted, coloured, values on hover"),
-					items: [
-						{
-							items: [
-								{ label: "Laptops", value: 120 },
-								{ label: "Monitors", value: 84 },
-								{ label: "Keyboards", value: 51 },
-							],
-							format: (value) => value + " units",
-							color: "var(--green-600)",
-							name: __("In stock"),
-							tooltip_format: (value) => __("{0} units in the warehouse", [value]),
-							values_on_hover: true,
-						},
-					],
-				},
-				{
-					title: __("Wide labels + clickable rows"),
-					items: [
-						{
-							items: [
-								{ label: "Kaveri Industrial Supplies", value: 540000 },
-								{ label: "Northwind Traders", value: 320000 },
-							],
-							label_width: 180,
-							onclick: (item) => frappe.ui.toast({ message: item.label }),
-						},
-					],
-				},
-				{
-					title: __("Empty"),
-					items: [{ items: [] }],
-				},
-			],
-		},
-		Donut: {
-			helper: "frappe.ui.donut",
-			groups: [
-				{
-					title: __("Centre value + legend"),
-					items: [
-						{
-							segments: [
-								{ label: "Paid", value: 70 },
-								{ label: "Unpaid", value: 20 },
-								{ label: "Overdue", value: 10 },
-							],
-							center: { value: "70%", label: "paid" },
-						},
-					],
-				},
-				{
-					title: __("Custom colours + format"),
-					items: [
-						{
-							segments: [
-								{ label: "Used", value: 55000, color: "var(--blue-600)" },
-								{
-									label: "Available",
-									value: 45000,
-									color: "var(--blue-400)",
-								},
-							],
-							center: { value: "55%", label: "used" },
-							format: (value) => format_currency(value),
-							size: 180,
-						},
-					],
-				},
-				{
-					title: __("Empty"),
-					items: [{ segments: [], size: 180 }],
 				},
 			],
 		},
@@ -2308,12 +2328,16 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	let selected_component;
 	async function render_component(name) {
 		selected_component = name;
-		if (["Stat Card", "Bar List", "Donut"].includes(name)) {
+		if (name === "Stat Card") {
 			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
 			if (selected_component !== name) return;
 		}
 		if (name === "BottomSheet") {
 			await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
+			if (selected_component !== name) return;
+		}
+		if (name === "Optional Sections") {
+			await frappe.require(["optional_sections.bundle.js", "optional_sections.bundle.css"]);
 			if (selected_component !== name) return;
 		}
 		const component = COMPONENTS[name];

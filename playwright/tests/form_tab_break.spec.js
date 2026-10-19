@@ -32,4 +32,19 @@ test.describe("Form Tab Break", () => {
 		await page.locator(".form-tabs > .nav-item").nth(0).click();
 		await expect(form.getByText("Profile", { exact: true })).toBeVisible();
 	});
+
+	test("Should stay on the active tab after the first save", async ({ page, desk }) => {
+		await desk.new_form(doctype_name);
+		const tab_2 = page.getByRole("tab", { name: "Tab 2", exact: true });
+
+		await desk.fill_field("username", "Test");
+		await expect.poll(() => page.evaluate(() => cur_frm.doc.username)).toBe("Test");
+		await tab_2.click();
+		await desk.fill_field("phone", "12345678");
+		await expect.poll(() => page.evaluate(() => cur_frm.doc.phone)).toBe("12345678");
+		await desk.save();
+		await expect(page.locator("body")).not.toHaveAttribute("data-route", /\/new-/);
+
+		await expect(tab_2).toHaveClass(/active/);
+	});
 });

@@ -197,11 +197,12 @@ class Dashboard {
 	}
 
 	// The page drops the nodes. A widget group holds more than its nodes,
-	// because a chart widget can hold a mounted island, so the group releases
-	// itself.
+	// because a chart or number card widget can hold a mounted island, so the
+	// group releases itself.
 	destroy() {
 		this.destroyed = true;
 		this.chart_group?.destroy();
+		this.number_card_group?.destroy();
 	}
 
 	set_breadcrumbs(docname) {

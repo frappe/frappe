@@ -29,9 +29,8 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
-from frappe.model.document import Document
+from frappe.model.document import RESERVED_KEYWORDS, Document, get_controller
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
@@ -1121,7 +1120,7 @@ class DocType(Document):
 				title="Invalid Name",
 			)
 
-		validate_route_conflict(self.doctype, self.name)
+		validate_route_conflict(self.doctype, name, self.name)
 
 	@frappe.whitelist()
 	def check_pending_migration(self) -> bool:

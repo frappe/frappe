@@ -9,7 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
-    "Babel~=2.16.0",
+    "Babel~=2.18.0",
     "Click~=8.4.1",
     "filelock~=3.29.3",
     "filetype~=1.2.0",
@@ -80,6 +80,7 @@ dependencies = [
     "traceback-with-variables~=2.2.1",
     "typst~=0.15.0",
     "typing_extensions>=4.15.0,<5",
+    "tzdata~=2026.5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.2",
