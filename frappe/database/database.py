@@ -55,8 +55,8 @@ if TYPE_CHECKING:
 
 	from MySQLdb.connections import Connection as MySQLdbConnection
 	from MySQLdb.cursors import Cursor as MySQLdbCursor
-	from psycopg2 import connection as PostgresConnection
-	from psycopg2 import cursor as PostgresCursor
+	from psycopg import Connection as PostgresConnection
+	from psycopg import Cursor as PostgresCursor
 	from pymysql.connections import Connection as MariadbConnection
 	from pymysql.cursors import Cursor as MariadbCursor
 
@@ -382,12 +382,6 @@ class Database:
 
 		if auto_commit:
 			self.commit()
-
-		if self.db_type == "postgres" and getattr(self._cursor, "name", None):
-			"""named cursors in Postgres are lazy and don't retrieve column names immediately,
-			so explicitly performed here to avoid early exit during `unbuffered_cursor` usage
-			"""
-			self._cursor.fetchmany(0)
 
 		if not self._cursor.description:
 			return ()

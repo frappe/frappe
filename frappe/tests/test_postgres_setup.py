@@ -1,6 +1,6 @@
 from unittest.mock import MagicMock, call
 
-from psycopg2 import sql
+from psycopg import sql
 
 from frappe.database.postgres.setup_db import _drop_database, _set_database_owner
 from frappe.tests import UnitTestCase

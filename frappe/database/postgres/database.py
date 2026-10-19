@@ -3,75 +3,64 @@ import re
 from contextlib import contextmanager
 from decimal import Decimal
 
-import psycopg2
-import psycopg2.extensions
-from psycopg2 import sql
-from psycopg2.errorcodes import (
-	CLASS_INTEGRITY_CONSTRAINT_VIOLATION,
-	DATETIME_FIELD_OVERFLOW,
-	DEADLOCK_DETECTED,
-	DUPLICATE_COLUMN,
-	INSUFFICIENT_PRIVILEGE,
-	INVALID_DATETIME_FORMAT,
-	INVALID_TEXT_REPRESENTATION,
-	NUMERIC_VALUE_OUT_OF_RANGE,
-	SERIALIZATION_FAILURE,
-	STRING_DATA_RIGHT_TRUNCATION,
-	UNDEFINED_COLUMN,
-	UNDEFINED_TABLE,
-	UNIQUE_VIOLATION,
-)
-from psycopg2.errors import (
-	InterfaceError,
-	LockNotAvailable,
-	ReadOnlySqlTransaction,
-	SequenceGeneratorLimitExceeded,
-	SyntaxError,
-)
-from psycopg2.extensions import ISOLATION_LEVEL_REPEATABLE_READ, TRANSACTION_STATUS_INERROR
+import psycopg
+from psycopg import ClientCursor, IsolationLevel, errors, sql
+from psycopg.adapt import AdaptersMap, Dumper, Loader
+from psycopg.pq import TransactionStatus
+from psycopg.types.numeric import FloatLoader
+from psycopg.types.string import TextLoader
 
 import frappe
 from frappe.database.database import CREATE_OR_DROP, DDL_QUERY_TYPES, Database
 from frappe.database.postgres.schema import PostgresTable
-from frappe.database.utils import EmptyQueryValues, LazyDecode, convert_backtick_identifiers
+from frappe.database.utils import EmptyQueryValues, convert_backtick_identifiers, get_query_type
 from frappe.utils import cstr, get_table_name
 
-# cast decimals as floats
-DEC2FLOAT = psycopg2.extensions.new_type(
-	psycopg2.extensions.DECIMAL.values,
-	"DEC2FLOAT",
-	lambda value, curs: float(value) if value is not None else None,
-)
 
-psycopg2.extensions.register_type(DEC2FLOAT)
+class TimedeltaLoader(Loader):
+	"""Load `time` as `timedelta`, which is what frappe models Time fields as (and MariaDB returns)."""
 
-
-def _cast_time_as_timedelta(value, cursor):
-	"""Return TIME columns as ``timedelta`` to match MariaDB.
-
-	psycopg2 decodes a postgres ``time without time zone`` to ``datetime.time``, but frappe models
-	Time fields as ``timedelta`` everywhere (that is what MariaDB's driver returns). Returning
-	``datetime.time`` here makes the two backends diverge and breaks frappe's typed value handling.
-	"""
-	if value is None:
-		return None
-	hms, _, frac = value.partition(".")
-	microseconds = int(frac.ljust(6, "0")[:6]) if frac else 0
-	hours, minutes, seconds = (int(part) for part in hms.split(":"))
-	return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
+	def load(self, data) -> datetime.timedelta:
+		hms, _, frac = bytes(data).decode().partition(".")
+		microseconds = int(frac.ljust(6, "0")[:6]) if frac else 0
+		hours, minutes, seconds = (int(part) for part in hms.split(":"))
+		return datetime.timedelta(hours=hours, minutes=minutes, seconds=seconds, microseconds=microseconds)
 
 
-# OID 1083 == `time without time zone` (the type frappe uses for Time fields)
-TIME2TIMEDELTA = psycopg2.extensions.new_type((1083,), "TIME2TIMEDELTA", _cast_time_as_timedelta)
-psycopg2.extensions.register_type(TIME2TIMEDELTA)
+class PostgresCursor(psycopg.Cursor):
+	"""Build `description` once per result; psycopg rebuilds it on every access and frappe reads it repeatedly."""
 
-# OIDs 114 / 3802 == `json` / `jsonb`. psycopg2 auto-parses these into python dict/list, but frappe
-# models JSON fields as *strings* (the value MariaDB's longtext returns) and json.loads them on
-# demand. A parsed value diverges from MariaDB and breaks round-tripping -- e.g. re-saving a doc
-# whose JSON field came back as a list fails get_valid_dict's "cannot be a list" check. Return the
-# raw text instead so both backends behave identically.
-JSON2STR = psycopg2.extensions.new_type((114, 3802), "JSON2STR", lambda value, cursor: value)
-psycopg2.extensions.register_type(JSON2STR)
+	_description = None
+	_described = None
+
+	@property
+	def description(self):
+		if self._described is not self.pgresult:
+			self._description = super().description
+			self._described = self.pgresult
+		return self._description
+
+
+class FloatNumericDumper(Dumper):
+	"""Send floats as numeric, like the float literals frappe's SQL was written against."""
+
+	oid = psycopg.adapters.types["numeric"].oid
+
+	def dump(self, obj: float) -> bytes:
+		return repr(obj).encode()
+
+
+ADAPTERS = AdaptersMap(psycopg.adapters)
+ADAPTERS.register_dumper(float, FloatNumericDumper)
+ADAPTERS.register_loader("numeric", FloatLoader)
+ADAPTERS.register_loader("time", TimedeltaLoader)
+# frappe models JSON fields as strings (MariaDB's longtext) and json.loads them on demand
+ADAPTERS.register_loader("json", TextLoader)
+ADAPTERS.register_loader("jsonb", TextLoader)
+
+# Postgres only accepts bound parameters in these statements; the rest are bound client-side.
+SERVER_BOUND_QUERY_TYPES = frozenset(("select", "insert", "update", "delete", "with"))
+PLACEHOLDER_PATTERN = re.compile(r"%%|%(?:\(([^)]+)\))?s")
 
 LOCATE_SUB_PATTERN = re.compile(r"locate\(([^,]+),([^)]+)(\)?)\)", flags=re.IGNORECASE)
 LOCATE_QUERY_PATTERN = re.compile(r"locate\(", flags=re.IGNORECASE)
@@ -110,14 +99,14 @@ INDEX_METHODS = frozenset({"gin_trgm", "gin_fulltext", "btree", "hash", "gist", 
 
 
 class PostgresExceptionUtil:
-	ProgrammingError = psycopg2.ProgrammingError
-	TableMissingError = psycopg2.ProgrammingError
-	OperationalError = psycopg2.OperationalError
-	InternalError = psycopg2.InternalError
-	SQLError = psycopg2.ProgrammingError
-	DataError = psycopg2.DataError
-	InterfaceError = psycopg2.InterfaceError
-	SequenceGeneratorLimitExceeded = SequenceGeneratorLimitExceeded
+	ProgrammingError = psycopg.ProgrammingError
+	TableMissingError = psycopg.ProgrammingError
+	OperationalError = psycopg.OperationalError
+	InternalError = psycopg.InternalError
+	SQLError = psycopg.ProgrammingError
+	DataError = psycopg.DataError
+	InterfaceError = psycopg.InterfaceError
+	SequenceGeneratorLimitExceeded = errors.SequenceGeneratorLimitExceeded
 
 	@staticmethod
 	def is_deadlocked(e):
@@ -126,24 +115,23 @@ class PostgresExceptionUtil:
 		# wait, but postgres aborts the loser with SERIALIZATION_FAILURE ("could not serialize
 		# access due to concurrent update"). Classifying it here routes it through frappe's deadlock
 		# retry instead of surfacing as an unhandled query error.
-		return getattr(e, "pgcode", None) in (DEADLOCK_DETECTED, SERIALIZATION_FAILURE)
+		return isinstance(e, errors.DeadlockDetected | errors.SerializationFailure)
 
 	@staticmethod
 	def is_timedout(e):
-		# http://initd.org/psycopg/docs/extensions.html?highlight=datatype#psycopg2.extensions.QueryCanceledError
-		return isinstance(e, (psycopg2.extensions.QueryCanceledError | LockNotAvailable))
+		return isinstance(e, errors.QueryCanceled | errors.LockNotAvailable)
 
 	@staticmethod
 	def is_read_only_mode_error(e) -> bool:
-		return isinstance(e, ReadOnlySqlTransaction)
+		return isinstance(e, errors.ReadOnlySqlTransaction)
 
 	@staticmethod
 	def is_syntax_error(e):
-		return isinstance(e, SyntaxError)
+		return isinstance(e, errors.SyntaxError)
 
 	@staticmethod
 	def is_table_missing(e):
-		return getattr(e, "pgcode", None) == UNDEFINED_TABLE
+		return isinstance(e, errors.UndefinedTable)
 
 	@staticmethod
 	def is_missing_table(e):
@@ -151,19 +139,19 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_missing_column(e):
-		return getattr(e, "pgcode", None) == UNDEFINED_COLUMN
+		return isinstance(e, errors.UndefinedColumn)
 
 	@staticmethod
 	def is_access_denied(e):
-		return getattr(e, "pgcode", None) == INSUFFICIENT_PRIVILEGE
+		return isinstance(e, errors.InsufficientPrivilege)
 
 	@staticmethod
 	def cant_drop_field_or_key(e):
-		return getattr(e, "pgcode", None) == CLASS_INTEGRITY_CONSTRAINT_VIOLATION
+		return isinstance(e, errors.IntegrityConstraintViolation)
 
 	@staticmethod
 	def is_duplicate_entry(e):
-		return getattr(e, "pgcode", None) == UNIQUE_VIOLATION
+		return isinstance(e, errors.UniqueViolation)
 
 	@staticmethod
 	def is_primary_key_violation(e):
@@ -183,7 +171,7 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_duplicate_fieldname(e):
-		return getattr(e, "pgcode", None) == DUPLICATE_COLUMN
+		return isinstance(e, errors.DuplicateColumn)
 
 	@staticmethod
 	def is_statement_timeout(e):
@@ -191,7 +179,7 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_data_too_long(e):
-		return getattr(e, "pgcode", None) == STRING_DATA_RIGHT_TRUNCATION
+		return isinstance(e, errors.StringDataRightTruncation)
 
 	@staticmethod
 	def is_data_truncated(e):
@@ -199,11 +187,12 @@ class PostgresExceptionUtil:
 		# "not a number" to Int. MariaDB reports TRUNCATED_WRONG_VALUE; postgres aborts the ALTER
 		# when a value fails the cast (invalid representation / numeric out of range / invalid date
 		# or time). A datatype mismatch means a missing USING cast, not bad data, so it stays raw.
-		return getattr(e, "pgcode", None) in (
-			INVALID_TEXT_REPRESENTATION,
-			NUMERIC_VALUE_OUT_OF_RANGE,
-			INVALID_DATETIME_FORMAT,
-			DATETIME_FIELD_OVERFLOW,
+		return isinstance(
+			e,
+			errors.InvalidTextRepresentation
+			| errors.NumericValueOutOfRange
+			| errors.InvalidDatetimeFormat
+			| errors.DatetimeFieldOverflow,
 		)
 
 	@staticmethod
@@ -212,7 +201,7 @@ class PostgresExceptionUtil:
 
 	@staticmethod
 	def is_interface_error(e):
-		return isinstance(e, InterfaceError)
+		return isinstance(e, psycopg.InterfaceError)
 
 
 class PostgresDatabase(PostgresExceptionUtil, Database):
@@ -261,30 +250,23 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		}
 
 	@property
-	def last_query(self):
-		return LazyDecode(self._cursor.query)
-
-	@property
 	def db_schema(self):
 		return frappe.conf.get("db_schema", "public").replace("'", "").replace('"', "")
 
-	def connect(self):
-		super().connect()
-
-		self._cursor.execute("SET search_path TO %s", (self.db_schema,))
-
 	def get_connection(self):
+		search_path = self.db_schema.replace("\\", "\\\\").replace(" ", "\\ ")
 		conn_settings = {
 			"dbname": self.cur_db_name,
 			"user": self.user,
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
+			"options": f"-c search_path={search_path}",
 		}
 		# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer RQ work
 		# horses segfault on fork ("work-horse terminated unexpectedly"). The option exists from
 		# libpq 12, so guard on the runtime version (an older client lib would reject it); validate
 		# any site-config override against libpq's modes so a bad value can't break every connection.
-		if psycopg2.extensions.libpq_version() >= 120000:
+		if psycopg.pq.version() >= 120000:
 			gssencmode = str(frappe.conf.get("db_gssencmode") or "disable")
 			if gssencmode not in ("disable", "allow", "prefer", "require"):
 				gssencmode = "disable"
@@ -294,8 +276,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if not self.socket and self.port:
 			conn_settings["port"] = self.port
 
-		conn = psycopg2.connect(**conn_settings)
-		conn.set_isolation_level(ISOLATION_LEVEL_REPEATABLE_READ)
+		conn = psycopg.connect(**conn_settings, context=ADAPTERS, cursor_factory=PostgresCursor)
+		conn.isolation_level = IsolationLevel.REPEATABLE_READ
 
 		return conn
 
@@ -315,7 +297,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		try:
 			yield
 		finally:
-			if self._conn.get_transaction_status() != TRANSACTION_STATUS_INERROR:
+			if self._conn.info.transaction_status != TransactionStatus.INERROR:
 				self.set_execution_timeout(previous_timeout)
 
 	def set_session_time_zone(self, timezone: str):
@@ -335,9 +317,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if percent:
 			s = s.replace("%", "%%")
 
-		s = s.encode("utf-8")
-
-		return str(psycopg2.extensions.QuotedString(s))
+		return sql.quote(s, self._conn)
 
 	def get_database_size(self):
 		"""Return database size in MB"""
@@ -351,9 +331,23 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	# pylint: disable=W0221
 	def sql(self, query, values=EmptyQueryValues, *args, **kwargs):
-		return super().sql(modify_query(query), modify_values(values), *args, **kwargs)
+		return super().sql(modify_query(query), values, *args, **kwargs)
 
-	def lazy_mogrify(self, *args, **kwargs) -> str:
+	def _transform_query(self, query, values):
+		return bind_values(query, values)
+
+	def execute_query(self, query, values=None):
+		if values and get_query_type(query) not in SERVER_BOUND_QUERY_TYPES:
+			query, values = self.mogrify(query, values), None
+		return self._cursor.execute(query, values)
+
+	def mogrify(self, query, values):
+		if not values:
+			return query
+		return ClientCursor(self._conn).mogrify(query, values)
+
+	def log_query(self, query, query_type, values=None, debug=False):
+		self.last_query = super().log_query(query, query_type, values, debug)
 		return self.last_query
 
 	def get_tables(self, cached=True):
@@ -428,11 +422,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 	# column type
 	@staticmethod
 	def is_type_number(code):
-		return code == psycopg2.NUMBER
+		return code == psycopg.NUMBER
 
 	@staticmethod
 	def is_type_datetime(code):
-		return code == psycopg2.DATETIME
+		return code == psycopg.DATETIME
 
 	def rename_table(self, old_name: str, new_name: str) -> list | tuple:
 		old_name = get_table_name(old_name)
@@ -921,8 +915,7 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		import io
 
 		table_name = get_table_name(doctype)
-		# Compose identifiers with psycopg2.sql so a field/table name is always correctly quoted.
-		copy_statement = sql.SQL("COPY {}.{} ({}) FROM STDIN").format(
+		copy_sql = sql.SQL("COPY {}.{} ({}) FROM STDIN").format(
 			sql.Identifier(self.db_schema),
 			sql.Identifier(table_name),
 			sql.SQL(", ").join(sql.Identifier(field) for field in fields),
@@ -930,7 +923,6 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		if not self._conn:
 			self.connect()
 		cursor = self._conn.cursor()
-		copy_sql = copy_statement.as_string(cursor)
 		integer_positions = self._get_integer_positions(table_name, fields)
 		buffer = io.StringIO()
 		try:
@@ -959,8 +951,8 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		"""Send the buffered rows. COPY bypasses `sql`, so count the chunk as one write, like an INSERT."""
 		if not buffer.tell():
 			return
-		buffer.seek(0)
-		cursor.copy_expert(copy_sql, buffer)
+		with cursor.copy(copy_sql) as copy:
+			copy.write(buffer.getvalue())
 		buffer.seek(0)
 		buffer.truncate(0)
 		self.transaction_writes += 1
@@ -985,7 +977,7 @@ def _copy_encode(value, integer_column: bool = False):
 	if isinstance(value, datetime.timedelta):
 		# Frappe Time fields are timedelta; str() on a >=1 day delta is "1 day, H:MM:SS", which
 		# postgres cannot parse as time. Emit HH:MM:SS[.ffffff] so the COPY text is always valid.
-		# Wrap into a single day the way the INSERT path does: psycopg2 adapts a timedelta to an
+		# Wrap into a single day the way the INSERT path does: psycopg adapts a timedelta to an
 		# interval and postgres reduces it mod 24h on the way into a `time` column, so a 25:03:04
 		# duration stores as 01:03:04 there. A literal "25:03:04" is out of range for `time` and
 		# would make COPY fail where the row-by-row path succeeds.
@@ -1022,39 +1014,66 @@ def modify_query(query):
 	return PG_TRANSFORM_PATTERN.sub(r"\1 '\2'", query)
 
 
-def modify_values(values):
-	def modify_value(value):
-		if isinstance(value, list | tuple):
-			value = tuple(modify_values(value))
+def bind_values(query: str, values):
+	"""Coerce values for frappe's MariaDB-style SQL and expand sequences into `(%s, %s, ...)`.
 
-		elif isinstance(value, bool):
-			value = str(int(value))
-
-		elif isinstance(value, int):
-			value = str(value)
-
-		return value
-
-	if not values or values == EmptyQueryValues:
-		return values
+	Ints and bools go as untyped strings, so postgres casts them to the column's type the way
+	MariaDB compares loosely. psycopg would send a tuple as a record, not as an IN list.
+	"""
+	if not values:
+		return query, values
 
 	if isinstance(values, dict):
-		# Build a new dict instead of mutating the caller's: callers frequently pass a
-		# shared/reused dict as query params (e.g. get_stock_ledger_entries passes the
-		# same args dict that the caller keeps reading afterwards). Mutating int values
-		# to str in place silently corrupts that dict on postgres only, diverging from
-		# mariadb (which has no such transform).
-		values = {k: modify_value(v) for k, v in values.items()}
-	elif isinstance(values, tuple | list):
-		new_values = []
-		for val in values:
-			new_values.append(modify_value(val))
+		if not any(isinstance(value, list | tuple) for value in values.values()):
+			return query, {key: _coerce(value) for key, value in values.items()}
+		bound = {}
+		query = PLACEHOLDER_PATTERN.sub(lambda match: _bind_named(match, values, bound), query)
+		return query, bound
 
-		values = new_values
-	else:
-		values = modify_value(values)
+	if not any(isinstance(value, list | tuple) for value in values):
+		return query, [_coerce(value) for value in values]
+	bound = []
+	positional = iter(values)
+	query = PLACEHOLDER_PATTERN.sub(lambda match: _bind_positional(match, positional, bound), query)
+	return query, bound
 
-	return values
+
+def _coerce(value):
+	if isinstance(value, bool):
+		return str(int(value))
+	if isinstance(value, int):
+		return str(value)
+	return value
+
+
+def _bind_positional(match: re.Match, positional, bound: list) -> str:
+	if match.group(0) == "%%" or match.group(1):
+		return match.group(0)
+	return _positional_placeholders(next(positional), bound)
+
+
+def _positional_placeholders(value, bound: list) -> str:
+	if isinstance(value, list | tuple):
+		return "(" + ", ".join(_positional_placeholders(item, bound) for item in value) + ")"
+	bound.append(_coerce(value))
+	return "%s"
+
+
+def _bind_named(match: re.Match, values: dict, bound: dict) -> str:
+	if not (key := match.group(1)):
+		return match.group(0)
+	return _named_placeholders(key, values[key], bound)
+
+
+def _named_placeholders(key: str, value, bound: dict) -> str:
+	if isinstance(value, list | tuple):
+		return (
+			"("
+			+ ", ".join(_named_placeholders(f"{key}__{i}", item, bound) for i, item in enumerate(value))
+			+ ")"
+		)
+	bound[key] = _coerce(value)
+	return f"%({key})s"
 
 
 def replace_locate_with_strpos(query):

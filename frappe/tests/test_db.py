@@ -1149,18 +1149,26 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(matched, ["Administrator"])
 
 	@run_only_if(db_type_is.POSTGRES)
-	def test_modify_values(self):
-		from frappe.database.postgres.database import modify_values
+	def test_bind_values(self):
+		from frappe.database.postgres.database import bind_values
 
 		self.assertEqual(
-			{"a": "23", "b": 23.0, "c": 23.0345, "d": "wow", "e": ("1", "2", "3", "abc")},
-			modify_values({"a": 23, "b": 23.0, "c": 23.0345, "d": "wow", "e": [1, 2, 3, "abc"]}),
+			("a = %(a)s and b = %(b)s", {"a": "23", "b": 23.5, "c": "wow"}),
+			bind_values("a = %(a)s and b = %(b)s", {"a": 23, "b": 23.5, "c": "wow"}),
 		)
 		# bool is a subclass of int, it must not end up as "True"
-		self.assertEqual({"a": "1", "b": "0"}, modify_values({"a": True, "b": False}))
+		self.assertEqual(("%s %s", ["1", "0"]), bind_values("%s %s", (True, False)))
 		self.assertEqual(
-			["23", 23.0, 23.00004345, "wow", ("1", "2", "3", "abc")],
-			modify_values((23, 23.0, 23.00004345, "wow", [1, 2, 3, "abc"])),
+			("a in (%s, %s) and b like '1%%' and c = %s", ["1", "abc", None]),
+			bind_values("a in %s and b like '1%%' and c = %s", ([1, "abc"], None)),
+		)
+		self.assertEqual(
+			("a in (%(a__0)s, %(a__1)s) or %(b)s", {"a__0": "1", "a__1": "abc", "b": "x"}),
+			bind_values("a in %(a)s or %(b)s", {"a": (1, "abc"), "b": "x", "unused": 1}),
+		)
+		self.assertEqual(
+			("(a, b) in ((%s, %s), (%s, %s))", ["1", "2", "3", "4"]),
+			bind_values("(a, b) in %s", (((1, 2), (3, 4)),)),
 		)
 
 	def test_callbacks(self):
@@ -2032,7 +2040,7 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		self.assertSequenceEqual([("id",), ("content",)], frappe.db.describe(self.test_table_name))
 
 	def test_change_type(self) -> None:
-		from psycopg2.errors import DatatypeMismatch
+		from psycopg.errors import DatatypeMismatch
 
 		def get_table_description():
 			return frappe.db.sql(
@@ -2097,7 +2105,7 @@ class TestDDLCommandsPost(IntegrationTestCase):
 		self.assertEqual(advisory_count(), before)
 
 	def test_advisory_lock_query_error_keeps_the_callers_savepoint(self) -> None:
-		from psycopg2.errors import UndefinedTable
+		from psycopg.errors import UndefinedTable
 
 		frappe.db.sql(f'INSERT INTO "tab{self.test_table_name}" VALUES (1, %s)', ("before the lock",))
 		with savepoint(catch=UndefinedTable):
@@ -2241,7 +2249,7 @@ class TestDDLCommandsPost(IntegrationTestCase):
 			frappe.db.add_index(self.test_table_name, ["id"], include=['content") ; DROP TABLE x --'])
 
 	def test_json_columns_return_strings(self) -> None:
-		# Regression: psycopg2 auto-parses json/jsonb into python objects, but frappe models JSON
+		# Regression: psycopg auto-parses json/jsonb into python objects, but frappe models JSON
 		# fields as strings (like MariaDB's longtext) and json.loads them on demand. A parsed value
 		# diverges from MariaDB and breaks re-saving a doc whose JSON field came back as a list.
 		row = frappe.db.sql("""SELECT '[1, 2]'::jsonb AS a, '{"k": 1}'::json AS b""", as_dict=True)[0]
@@ -2782,6 +2790,7 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		)  # there should be a single row in the public table
 
 		# when schema is changed to alt_schema, the alt_schema tables should be addressed by search path
+		self.addCleanup(frappe.db.connect)
 		frappe.conf["db_schema"] = "alt_schema"
 		frappe.db.connect()
 		rows = frappe.db.sql(f'select * from "tab{self.test_table_name}"')
@@ -2906,21 +2915,14 @@ class TestMariaDBExceptionUtil(IntegrationTestCase):
 		"""Postgres serialization failures (REPEATABLE READ write conflicts) must be retriable like
 		deadlocks; otherwise they surface as unhandled query errors (e.g. on the per-request session
 		update under concurrency)."""
-		from psycopg2.errorcodes import DEADLOCK_DETECTED, SERIALIZATION_FAILURE
+		from psycopg.errors import DeadlockDetected, SerializationFailure, UniqueViolation
 
 		from frappe.database.postgres.database import PostgresExceptionUtil
 
-		class _E(Exception):
-			pass
+		for error in (SerializationFailure, DeadlockDetected):
+			self.assertTrue(PostgresExceptionUtil.is_deadlocked(error()))
 
-		for code in (SERIALIZATION_FAILURE, DEADLOCK_DETECTED):
-			e = _E()
-			e.pgcode = code
-			self.assertTrue(PostgresExceptionUtil.is_deadlocked(e))
-
-		unrelated = _E()
-		unrelated.pgcode = "12345"
-		self.assertFalse(PostgresExceptionUtil.is_deadlocked(unrelated))
+		self.assertFalse(PostgresExceptionUtil.is_deadlocked(UniqueViolation()))
 
 
 class TestSQLiteExceptionUtil(UnitTestCase):

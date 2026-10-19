@@ -2,7 +2,7 @@ import os
 import re
 from contextlib import contextmanager
 
-from psycopg2 import sql
+from psycopg import sql
 
 import frappe
 from frappe.database.db_manager import DbManager
