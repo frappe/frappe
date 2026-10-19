@@ -100,9 +100,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.$charts_wrapper = $(`<div class="charts-wrapper hidden">
 			<div class="charts-head">
 				<div class="charts-title">${__("{0} Chart", [__(this.doctype)])}</div>
-				<button class="es-button btn-chart-configure" data-variant="subtle">
-					<span class="es-button__label">${__("Configure")}</span>
-				</button>
+				${frappe.ui.button.html({ label: __("Configure"), css_class: "btn-chart-configure" })}
 			</div>
 			<div class="charts-inner-wrapper"></div>
 		</div>`);
