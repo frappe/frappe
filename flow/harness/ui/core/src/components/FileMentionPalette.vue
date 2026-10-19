@@ -1,6 +1,6 @@
 <template>
 	<PalettePanel :title="title" :query="query" :busy="loading || query !== debouncedQuery" @close="emit('close')">
-		<div class="overflow-y-auto p-1">
+		<div class="flow-palette-list overflow-y-auto p-1">
 			<div class="-mt-1 flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5">
 				<span class="truncate">{{ title }}</span>
 			</div>

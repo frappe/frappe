@@ -1,6 +1,6 @@
 <template>
 	<PalettePanel title="Thinking" back :query="query" @close="emit('close')" @back="emit('back')">
-		<div class="min-h-0 flex-1 overflow-y-auto p-1">
+		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<button
 				v-for="level in levels"
 				:key="level.id"

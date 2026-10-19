@@ -26,7 +26,7 @@
 
 			<!-- slash-command palette -->
 			<PalettePanel v-if="menuOpen" title="Commands" :query="slash?.query ?? ''" @close="closePalettes">
-				<div class="overflow-y-auto p-1">
+				<div class="flow-palette-list overflow-y-auto p-1">
 					<template v-for="(m, i) in menuItems" :key="m.name">
 						<!-- a heading takes a row's height, and a gap above it sets its section off; the
 						     first sits in the list's top padding -->

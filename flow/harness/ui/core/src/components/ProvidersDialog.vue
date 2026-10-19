@@ -19,7 +19,7 @@
 		</template>
 
 		<!-- provider list -->
-		<div v-if="!selected" class="min-h-0 flex-1 overflow-y-auto p-1">
+		<div v-if="!selected" class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<button
 				v-for="p in filtered"
 				:key="p.id"

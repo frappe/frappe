@@ -14,7 +14,7 @@
 			</button>
 		</template>
 
-		<div class="min-h-0 flex-1 overflow-y-auto p-1">
+		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<button
 				v-for="m in options"
 				:key="m.name"

@@ -7,7 +7,7 @@
 		@close="emit('close')"
 		@back="emit('back')"
 	>
-		<div class="min-h-0 flex-1 overflow-y-auto p-1">
+		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<div v-if="locked" class="px-2 pb-1.5 pt-1 text-2xs text-ink-gray-5">
 				The agent is fixed once the conversation starts.
 			</div>

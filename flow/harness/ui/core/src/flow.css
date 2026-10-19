@@ -104,6 +104,28 @@
 .flow-palette-hint {
 	color: var(--ink-gray-4);
 }
+/* a list with more below fades out over its last 16px, until it is scrolled to the end */
+@property --flow-fade {
+	syntax: "<length>";
+	inherits: false;
+	initial-value: 0px;
+}
+@supports (animation-timeline: scroll()) {
+	.flow-palette-list {
+		mask-image: linear-gradient(to bottom, #000 calc(100% - var(--flow-fade)), transparent);
+		animation: flow-fade-end linear both;
+		animation-timeline: scroll(self);
+		animation-range: calc(100% - 16px) 100%;
+	}
+}
+@keyframes flow-fade-end {
+	from {
+		--flow-fade: 16px;
+	}
+	to {
+		--flow-fade: 0px;
+	}
+}
 
 .flow-btn-primary,
 .flow-btn-secondary,
