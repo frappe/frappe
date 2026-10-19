@@ -1,6 +1,18 @@
+import path from "node:path"
+import { fileURLToPath } from "node:url"
 import frappeUIPreset, { content as frappeUIContent } from "frappe-ui/tailwind"
 import plugin from "tailwindcss/plugin"
 import { cssVariables } from "frappe-ui/tailwind/tokens"
+import { findStudioAppFolders } from "./vite/studioApps.js"
+
+const appsDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../../")
+// Every exported studio app on the bench, minus the node_modules a shared folder may carry.
+// Listed per app (not `*/studio/**`) since this editor's own node_modules, frappe-ui's
+// sources included, sit under frappe's studio/ folder too.
+const exportedAppContent = findStudioAppFolders(appsDir).flatMap((folder) => [
+	`${folder}/**/*.{vue,js,ts,jsx,tsx,json}`,
+	`!${folder}/**/node_modules/**`,
+])
 
 export default {
 	presets: [frappeUIPreset],
@@ -42,9 +54,7 @@ export default {
 		"./src/**/*.{vue,js,ts,jsx,tsx}",
 		...frappeUIContent,
 		"../../frappe/ui/src/**/*.{vue,js,ts,jsx,tsx}",
-		"../../*/studio/**/*.{vue,js,ts,jsx,tsx,json}",
-		"!../../*/studio/**/node_modules/**",
-		"!../../frappe/frappe/public/**",
+		...exportedAppContent,
 	],
 	theme: {
 		extend: {},
