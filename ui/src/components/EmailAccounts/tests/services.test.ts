@@ -1,12 +1,13 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   authKind,
   credentials,
   emptyForm,
   errorText,
   mailboxAddress,
+  manualSetup,
   newAccount,
-  oneClick,
+  oneClickServices,
   reconnectable,
   serviceOf,
   services,
@@ -250,28 +251,57 @@ describe("account state", () => {
 
   it("finds an account's provider, blank service being custom", () => {
     expect(serviceOf(doc({ service: "" })).kind).toBe("custom");
-    expect(serviceOf(doc({ service: "Outlook.com" })).oneClick).toBe(
-      "microsoft",
-    );
+    expect(serviceOf(doc({ service: "Outlook.com" })).label).toBe("Outlook");
+  });
+});
+
+describe("reconnectable", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reconnects a Frappe Cloud sign-in only on a Frappe Cloud V2 site, an own OAuth app anywhere", () => {
+    expect(reconnectable({ authKind: "oauth" })).toBe(false);
+    expect(reconnectable({ authKind: "oauth-custom" })).toBe(true);
+
+    vi.stubGlobal("is_v2_site", true);
+    expect(reconnectable({ authKind: "oauth" })).toBe(true);
+    expect(reconnectable({ authKind: "oauth-custom" })).toBe(true);
+    expect(reconnectable({ authKind: "password" })).toBe(false);
   });
 
-  it("offers one-click sign-in only for providers the site offers", () => {
-    expect(oneClick(service("Outlook.com"), ["microsoft"])).toBe("microsoft");
-    expect(oneClick(service("Outlook.com"), [])).toBeUndefined();
-    expect(oneClick(service("GMail"), ["microsoft"])).toBeUndefined();
+  it("reads the V2 flag from Desk's boot when the host page has no global for it", () => {
+    vi.stubGlobal("frappe", { boot: { is_v2_site: true } });
+    expect(reconnectable({ authKind: "oauth" })).toBe(true);
   });
+});
 
-  it("reconnects in one click any OAuth account whose provider the site offers", () => {
-    const account = (
-      authKind: "oauth" | "oauth-custom" | "password",
-      service = "Outlook.com",
-    ) => ({ service, authKind });
-    expect(reconnectable(account("oauth"), ["microsoft"])).toBe(true);
-    expect(reconnectable(account("oauth-custom"), ["microsoft"])).toBe(true);
-    expect(reconnectable(account("oauth"), [])).toBe(false);
-    expect(reconnectable(account("oauth-custom"), [])).toBe(false);
-    expect(reconnectable(account("oauth-custom", "GMail"), ["microsoft"])).toBe(false);
-    expect(reconnectable(account("password"), ["microsoft"])).toBe(false);
+describe("oneClickServices", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("reads the host's global first, then Desk's boot, else none", () => {
+    expect(oneClickServices()).toEqual({});
+
+    vi.stubGlobal("frappe", {
+      boot: { one_click_email_services: { "Outlook.com": "Microsoft" } },
+    });
+    expect(oneClickServices()).toEqual({ "Outlook.com": "Microsoft" });
+
+    vi.stubGlobal("one_click_email_services", { GMail: "Google" });
+    expect(oneClickServices()).toEqual({ GMail: "Google" });
+  });
+});
+
+describe("manualSetup", () => {
+  afterEach(() => vi.unstubAllGlobals());
+
+  it("marks a password or own OAuth app account only on a Frappe Cloud V2 site", () => {
+    expect(manualSetup({ authKind: "password" })).toBe(false);
+    expect(manualSetup({ authKind: "oauth-custom" })).toBe(false);
+
+    vi.stubGlobal("is_v2_site", true);
+    expect(manualSetup({ authKind: "password" })).toBe(true);
+    expect(manualSetup({ authKind: "oauth-custom" })).toBe(true);
+    expect(manualSetup({ authKind: "oauth" })).toBe(false);
+    expect(manualSetup({ authKind: "frappe-mail" })).toBe(false);
   });
 });
 

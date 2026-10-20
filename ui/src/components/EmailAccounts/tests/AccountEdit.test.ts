@@ -12,7 +12,7 @@ vi.mock("frappe-ui", async (importOriginal) => ({
   frappeRequest: async () => [],
 }));
 
-const connect = vi.fn();
+const reconnect = vi.fn();
 const pull = vi.fn();
 const update = vi.fn();
 const onBack = vi.fn();
@@ -33,17 +33,12 @@ const account = {
 let app: App;
 let root: HTMLElement;
 
-function mount(overrides = {}, oneClickProviders = ["microsoft"]) {
+function mount(overrides = {}) {
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(AccountEdit, {
     account: { ...account, ...overrides },
-    controller: {
-      connect,
-      pull,
-      update,
-      oneClickProviders,
-    },
+    controller: { reconnect, pull, update },
     onBack,
   });
   app.mount(root);
@@ -65,7 +60,8 @@ function mount(overrides = {}, oneClickProviders = ["microsoft"]) {
 
 beforeEach(() => {
   confirm.mockReset();
-  connect.mockReset();
+  reconnect.mockReset();
+  vi.stubGlobal("is_v2_site", true);
   pull.mockReset();
   update.mockReset();
   onBack.mockReset();
@@ -75,66 +71,59 @@ beforeEach(() => {
 afterEach(() => {
   app.unmount();
   root.remove();
+  vi.unstubAllGlobals();
 });
 
 it("reconnects straight away when nothing is edited", () => {
   mount().reconnect.click();
   expect(confirm).not.toHaveBeenCalled();
-  expect(connect).toHaveBeenCalledWith("microsoft", "Support");
+  expect(reconnect).toHaveBeenCalledWith(expect.objectContaining({ name: "Support" }));
 });
 
 it("reports a failed reconnect in a toast and refocuses Reconnect", async () => {
   let fail!: (e: Error) => void;
-  connect.mockReturnValue(new Promise<void>((_, reject) => (fail = reject)));
-  const { reconnect } = mount();
+  reconnect.mockReturnValue(new Promise<void>((_, reject) => (fail = reject)));
+  const button = mount().reconnect;
 
-  reconnect.focus();
-  reconnect.click();
+  button.focus();
+  button.click();
   // happy-dom lacks the focus fixup rule that blurs the button once `loading` disables it
-  reconnect.blur();
+  button.blur();
   await nextTick();
   expect((root.querySelector("h2 button") as HTMLButtonElement).disabled).toBe(true);
-  fail(new Error("Consent denied"));
+  fail(new Error("Sign in with Microsoft isn't available right now"));
   await new Promise((resolve) => setTimeout(resolve));
-  expect(toast.error).toHaveBeenCalledWith("Consent denied");
-  expect(document.activeElement).toBe(reconnect);
+  expect(toast.error).toHaveBeenCalledWith(
+    "Sign in with Microsoft isn't available right now",
+  );
+  expect(document.activeElement).toBe(button);
 });
 
 it("asks before reconnect drops edits, and Cancel refocuses the button", async () => {
-  const { reconnect, rename } = mount();
+  const { reconnect: button, rename } = mount();
   rename("Support desk");
   await nextTick();
 
-  reconnect.click();
-  expect(connect).not.toHaveBeenCalled();
+  button.click();
+  expect(reconnect).not.toHaveBeenCalled();
   expect(confirm.mock.calls[0][0]).toMatchObject({
     title: "Unsaved changes",
     message: "Are you sure you want to leave? Unsaved changes will be lost.",
   });
   await confirm.mock.calls[0][0].onCancel();
-  expect(document.activeElement).toBe(reconnect);
+  expect(document.activeElement).toBe(button);
 
-  connect.mockRejectedValue(new Error("Consent denied"));
-  reconnect.click();
+  reconnect.mockRejectedValue(new Error("Consent denied"));
+  button.click();
   // stands in for the confirm's button, which keeps focus while the dialog animates out
   const confirmButton = document.createElement("button");
   root.after(confirmButton);
   confirmButton.focus();
   await confirm.mock.calls[1][0].onConfirm({ close: vi.fn() });
-  expect(connect).toHaveBeenCalledWith("microsoft", "Support");
+  expect(reconnect).toHaveBeenCalledWith(expect.objectContaining({ name: "Support" }));
   await new Promise((resolve) => setTimeout(resolve));
-  expect(document.activeElement).toBe(reconnect);
+  expect(document.activeElement).toBe(button);
   confirmButton.remove();
-});
-
-it("reconnects a signed-out account on its own OAuth app through Frappe Cloud", () => {
-  const custom = { authKind: "oauth-custom", token_uri: "https://login.microsoftonline.com/token" };
-  const { reconnect } = mount(custom);
-  expect(root.querySelector(".bg-surface-amber-1")!.textContent).toContain(
-    "This mailbox needs to be reconnected",
-  );
-  reconnect.click();
-  expect(connect).toHaveBeenCalledWith("microsoft", "Support");
 });
 
 it("locks Back, the fields and Reconnect while saving, then goes back under the new name", async () => {
@@ -179,21 +168,50 @@ it("reports a failed save in a toast, keeps the edits and refocuses the field", 
   expect(document.activeElement).toBe(name);
 });
 
-it("sends Desk an account it can't reconnect, naming its own OAuth app only when it has one", () => {
-  const notice = () => root.querySelector(".bg-surface-amber-1")!.textContent;
-  const openInDesk = () =>
-    root.querySelector('[href="/desk/email-account/Support"]')?.textContent;
-  mount({ service: "GMail" });
-  expect(notice()).toContain("Reconnect it in Desk.");
-  expect(notice()).not.toContain("own OAuth app");
+it("sends Desk a Frappe Cloud sign-in off Frappe Cloud V2", () => {
+  vi.stubGlobal("is_v2_site", false);
+  const { reconnect: button } = mount();
+  expect(root.querySelector(".bg-surface-amber-1")!.textContent).toContain(
+    "Reconnect it in Desk.",
+  );
+  expect(
+    root.querySelector('[href="/desk/email-account/Support"]')?.textContent,
+  ).toContain("Open in Desk");
+  expect(button).toBeUndefined();
+});
+
+it("reconnects a mailbox with its own OAuth app, on or off Frappe Cloud V2", () => {
+  vi.stubGlobal("is_v2_site", false);
+  const { reconnect: button } = mount({
+    authKind: "oauth-custom",
+    token_uri: "https://login.microsoftonline.com/token",
+  });
+  const notice = root.querySelector(".bg-surface-amber-1")!.textContent;
+  expect(notice).toContain("This mailbox needs to be reconnected");
+  expect(notice).toContain("Sign in again to keep email flowing.");
+  expect(root.querySelector('[href="/desk/email-account/Support"]')).toBeNull();
+
+  button.click();
+  expect(reconnect).toHaveBeenCalledWith(
+    expect.objectContaining({ name: "Support", authKind: "oauth-custom" }),
+  );
+});
+
+it("badges a manually set up account on Frappe Cloud V2, not a one-click one", () => {
+  const badged = () => root.textContent!.includes("Manual setup");
+  mount();
+  expect(badged()).toBe(false);
   app.unmount();
   root.remove();
 
-  mount({ authKind: "oauth-custom" }, []);
-  expect(notice()).toContain("This mailbox needs to be authorized again");
-  expect(notice()).toContain("It uses its own OAuth app. Authorize it again in Desk.");
-  expect(openInDesk()).toContain("Open in Desk");
-  expect(connect).not.toHaveBeenCalled();
+  mount({ authKind: "oauth-custom", token_uri: "https://login.microsoftonline.com/token" });
+  expect(badged()).toBe(true);
+  app.unmount();
+  root.remove();
+
+  vi.stubGlobal("is_v2_site", false);
+  mount({ authKind: "oauth-custom", token_uri: "https://login.microsoftonline.com/token" });
+  expect(badged()).toBe(false);
 });
 
 it("has nothing to save after retyping a saved port", async () => {

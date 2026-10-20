@@ -35,7 +35,6 @@ function mount(controller = {}, props = {}) {
       accounts: [account("Sales", 1), account("Support", 0)],
       loading: false,
       error: null,
-      oneClickProviders: [],
       setDefault,
       ...controller,
     }),
@@ -53,6 +52,48 @@ beforeEach(() => {
 afterEach(() => {
   app.unmount();
   root.remove();
+  vi.unstubAllGlobals();
+});
+
+it("offers reconnect for an own OAuth app anywhere, and for a Frappe Cloud sign-in on Frappe Cloud V2", () => {
+  const signedOut = (name: string, authKind: string) => ({
+    ...account(name, 0),
+    auth_method: "OAuth",
+    authKind,
+    status: "needs-reconnect",
+  });
+  const notices = () =>
+    [...root.querySelectorAll(".text-ink-amber-8 .truncate")].map((n) => n.textContent?.trim());
+  const accounts = [signedOut("Support", "oauth"), signedOut("Legacy", "oauth-custom")];
+
+  remount({ accounts });
+  expect(notices()).toEqual([
+    "Mailbox signed out. Reconnect it in Desk.",
+    "Mailbox signed out. Reconnect it.",
+  ]);
+
+  vi.stubGlobal("is_v2_site", true);
+  remount({ accounts });
+  expect(notices()).toEqual([
+    "Mailbox signed out. Reconnect it.",
+    "Mailbox signed out. Reconnect it.",
+  ]);
+});
+
+it("badges a manually set up account on Frappe Cloud V2, not a one-click one", () => {
+  const manual = () =>
+    [...root.querySelectorAll("li")].map((li) => li.textContent?.includes("Manual setup"));
+  const accounts = [
+    account("Sales", 0),
+    { ...account("Support", 0), auth_method: "OAuth", authKind: "oauth" },
+  ];
+
+  remount({ accounts });
+  expect(manual()).toEqual([false, false]);
+
+  vi.stubGlobal("is_v2_site", true);
+  remount({ accounts });
+  expect(manual()).toEqual([true, false]);
 });
 
 const button = (name: string) =>

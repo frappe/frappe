@@ -15,7 +15,6 @@
 			<EmailAccounts
 				:key="`${cloud}-${empty}-${landings}`"
 				doctype="ToDo"
-				:is-v2-site="cloud"
 				@created="(...a) => log('created', a)"
 			/>
 		</div>
@@ -24,13 +23,29 @@
 
 <script setup lang="ts">
 import { Select, Switch } from "frappe-ui";
-import { onBeforeUnmount, ref } from "vue";
+import { onBeforeUnmount, ref, watch } from "vue";
 import EmailAccounts from "../EmailAccounts.vue";
 import type { EmailAccountDoc } from "../types";
 
 const cloud = ref(true);
 const empty = ref(false);
 const landings = ref(0);
+const host = window as {
+	is_v2_site?: boolean;
+	one_click_email_services?: Record<string, string>;
+};
+watch(
+	cloud,
+	(value) => {
+		host.is_v2_site = value;
+		host.one_click_email_services = value ? { "Outlook.com": "Microsoft" } : {};
+	},
+	{ immediate: true }
+);
+onBeforeUnmount(() => {
+	delete host.is_v2_site;
+	delete host.one_click_email_services;
+});
 const results = [
 	"connected",
 	"reconnected",
@@ -126,6 +141,10 @@ const answers: Record<string, (args: Args) => unknown> = {
 	},
 	initiate_mailbox_connect: (args) => {
 		log("connect", args);
+		return args.email_account || args.service === "Outlook.com" ? "#" : null;
+	},
+	run_doc_method: (args) => {
+		log("reconnect", args);
 		return "#";
 	},
 };
@@ -138,7 +157,9 @@ window.fetch = async (input, init) => {
 	const answer = Object.entries(answers).find(([m]) => method.endsWith(m))?.[1];
 	await new Promise((r) => setTimeout(r, 300));
 	const message = answer?.(init?.body ? JSON.parse(String(init.body)) : {}) ?? null;
-	return new Response(JSON.stringify({ message }), {
+	// run_doc_method sends the document back with its result
+	const docs = method.endsWith("run_doc_method") ? { docs: [] } : {};
+	return new Response(JSON.stringify({ ...docs, message }), {
 		headers: { "Content-Type": "application/json" },
 	});
 };

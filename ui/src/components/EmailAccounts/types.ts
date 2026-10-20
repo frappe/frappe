@@ -1,6 +1,3 @@
-/** Providers the panel signs a mailbox in with through Frappe Cloud. */
-export type OneClickProvider = "microsoft";
-
 export type AuthKind = "password" | "frappe-mail" | "oauth" | "oauth-custom";
 
 /** An account's state, shown in the list's status badge. */
@@ -45,8 +42,6 @@ export interface EmailService {
   label: string;
   logo?: string;
   kind: "password" | "frappe-mail" | "custom";
-  /** Signs in through Frappe Cloud when the site offers this provider. */
-  oneClick?: OneClickProvider;
   /** Sends only, so incoming mail can't be turned on. */
   outgoingOnly?: boolean;
   help?: string;
@@ -84,8 +79,6 @@ export interface EmailAccountsController {
   loading: boolean;
   /** Why the last `load()` failed, until one succeeds. */
   error: unknown;
-  /** Providers this site offers one-click sign-in for. */
-  oneClickProviders: OneClickProvider[];
   load(): Promise<void>;
   create(service: EmailService, form: AccountForm): Promise<void>;
   /** Saves `changes` on `account`, then renames it when `newName` differs. */
@@ -96,7 +89,15 @@ export interface EmailAccountsController {
   ): Promise<void>;
   /** Makes `name` the default incoming/outgoing account, or clears it with `null`. */
   setDefault(kind: "incoming" | "outgoing", name: string | null): Promise<void>;
-  /** Starts sign-in and leaves the page; with `emailAccount`, reconnects it. */
-  connect(provider: OneClickProvider, emailAccount?: string): Promise<void>;
+  /**
+   * Leaves the page for a new `service` mailbox's one-click sign-in; false, staying on the page,
+   * when Frappe Cloud can't sign it in right now, so the form is the way to add it.
+   */
+  connect(service: string): Promise<boolean>;
+  /**
+   * Signs `account` in again and leaves the page: one-click sign-in for a Frappe Cloud one, its
+   * own Connected App's flow, as `connected_user`, for any other OAuth account.
+   */
+  reconnect(account: EmailAccount): Promise<void>;
   pull(name: string): Promise<void>;
 }

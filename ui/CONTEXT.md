@@ -120,7 +120,10 @@ _Avoid_: email config, email setup.
 **One-click sign-in**:
 Connecting a mailbox by signing in to its provider through Frappe Cloud
 (`email_oauth.initiate_mailbox_connect`), with no password or OAuth app to set up. Only on
-Frappe Cloud v2 sites, which the host tells the panel from its boot (`isV2Site`).
+Frappe Cloud v2 sites, which the host tells the panel from its boot, along with the services that
+can sign in this way (`is_v2_site` and `one_click_email_services` on `window`, or both in
+`frappe.boot` in Desk). Picking one of those services signs in; any other opens the form. When
+Frappe Cloud can't sign the service in right now, the panel opens the form instead.
 _Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
 
 **Auth kind**:
@@ -134,12 +137,18 @@ with no token left (Frappe drops the token when the provider rejects its refresh
 Anything else is **Active**, and its badge says which way it works: **Incoming & outgoing**,
 **Incoming only**, **Outgoing only**, or **Disabled** when neither.
 
+**Manual setup**:
+A **Password** or **OAuth: custom app** account on a Frappe Cloud v2 site, badged in the list
+and on its edit screen to tell it from one-click sign-in. Not shown elsewhere, where every
+account is set up by hand.
+
 **Reconnect**:
-Running one-click sign-in again for an existing **OAuth** account, from its edit screen or
-its Desk form, which moves it to a fresh token without creating a new account. A signed-out
-**OAuth: custom app** account whose provider the site offers one-click sign-in for is
-reconnected the same way, which moves it to one-click sign-in and leaves its own app in place.
-Anywhere else, it is authorized again in Desk.
+Signing an existing OAuth account in again, from its edit screen or its Desk form, which moves
+it to a fresh token without creating a new account. An **OAuth** account runs one-click
+sign-in again, only on Frappe Cloud v2 sites; elsewhere it is reconnected in Desk. An
+**OAuth: custom app** account runs its own Connected App's flow
+(`initiate_web_application_flow`) as its connected user, on any site; signing in for another
+user needs write access to the Connected App.
 _Avoid_: re-authorize (Desk's name for a custom app's flow).
 
 **Default incoming / Default outgoing**:

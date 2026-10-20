@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { EmailAccount } from "../types";
 
 const call = vi.fn();
 vi.mock("frappe-ui", () => ({
@@ -6,7 +7,10 @@ vi.mock("frappe-ui", () => ({
 }));
 
 const { useEmailAccounts } = await import("../useEmailAccounts");
-const { emptyForm, services } = await import("../services");
+const { emptyForm, services, takeSignInStarted } = await import("../services");
+
+const CONNECT =
+  "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect";
 
 const ACCOUNTS = [
   {
@@ -90,13 +94,6 @@ describe("useEmailAccounts", () => {
       connected_app: "relay-app",
       connected_user: "admin@example.com",
     });
-  });
-
-  it("offers one-click sign-in only on a Frappe Cloud V2 site", () => {
-    expect(useEmailAccounts("HD Ticket", true).oneClickProviders).toEqual([
-      "microsoft",
-    ]);
-    expect(useEmailAccounts("HD Ticket").oneClickProviders).toEqual([]);
   });
 
   it("makes a new account the default only where no account is", async () => {
@@ -254,30 +251,92 @@ describe("useEmailAccounts", () => {
     ]);
   });
 
-  it("starts sign-in for a mailbox to reconnect and lands back on the host, minus the last result", async () => {
+  function stubLocation() {
     const assign = vi.fn();
     vi.stubGlobal("location", {
       ...window.location,
       href: "https://example.com/helpdesk?tab=email&email_oauth=cancelled&email_oauth_mailbox=support%40example.com",
       assign,
     });
+    return assign;
+  }
+
+  it("leaves for a new mailbox's sign-in and marks it started, landing back on the host minus the last result", async () => {
+    const assign = stubLocation();
     const c = useEmailAccounts("HD Ticket");
 
-    await c.connect("microsoft", "Support");
+    expect(await c.connect("Outlook.com")).toBe(true);
 
-    expect(
-      calls(
-        "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
-      ),
-    ).toEqual([
+    expect(calls(CONNECT)).toEqual([
       {
-        provider: "microsoft",
+        service: "Outlook.com",
         redirect_to: "/helpdesk?tab=email",
         target_doctype: "HD Ticket",
-        email_account: "Support",
       },
     ]);
     expect(assign).toHaveBeenCalledWith("https://login.example.com/authorize");
+    expect(takeSignInStarted()).toBe(true);
+    vi.unstubAllGlobals();
+  });
+
+  it("stays on the page when Frappe Cloud can't sign the service in", async () => {
+    const assign = stubLocation();
+    const listed = call.getMockImplementation()!;
+    call.mockImplementation(async (method: string, args: Record<string, any>) =>
+      method === CONNECT ? null : listed(method, args),
+    );
+    const c = useEmailAccounts("HD Ticket");
+
+    expect(await c.connect("Outlook.com")).toBe(false);
+    expect(assign).not.toHaveBeenCalled();
+    expect(takeSignInStarted()).toBe(false);
+    vi.unstubAllGlobals();
+  });
+
+  it("starts sign-in again for a mailbox to reconnect", async () => {
+    const assign = stubLocation();
+    const c = useEmailAccounts("HD Ticket");
+
+    await c.reconnect({ ...ACCOUNTS[0], authKind: "oauth" } as EmailAccount);
+
+    expect(calls(CONNECT)).toEqual([
+      {
+        email_account: "Support",
+        redirect_to: "/helpdesk?tab=email",
+        target_doctype: "HD Ticket",
+      },
+    ]);
+    expect(assign).toHaveBeenCalledWith("https://login.example.com/authorize");
+    expect(takeSignInStarted()).toBe(false);
+    vi.unstubAllGlobals();
+  });
+
+  it("signs a mailbox with its own OAuth app in again through that app, as its connected user", async () => {
+    const assign = stubLocation();
+    call.mockResolvedValue({ message: "https://login.example.com/own-app" });
+    const c = useEmailAccounts("HD Ticket");
+
+    await c.reconnect({
+      ...ACCOUNTS[2],
+      connected_user: "support@example.com",
+      authKind: "oauth-custom",
+    } as EmailAccount);
+
+    expect(call.mock.calls).toEqual([
+      [
+        "frappe.handler.run_doc_method",
+        {
+          dt: "Connected App",
+          dn: "own-app",
+          method: "initiate_web_application_flow",
+          args: {
+            success_uri: "/helpdesk?tab=email",
+            user: "support@example.com",
+          },
+        },
+      ],
+    ]);
+    expect(assign).toHaveBeenCalledWith("https://login.example.com/own-app");
     vi.unstubAllGlobals();
   });
 });

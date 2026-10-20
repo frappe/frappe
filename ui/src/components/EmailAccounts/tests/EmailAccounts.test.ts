@@ -158,34 +158,25 @@ it("offers every provider by default, and only the host's `providers` when given
   ]);
 });
 
-it("signs in to Outlook in one click only when the site offers it", async () => {
-  await openTiles();
-  button("Outlook").click();
-  await settle();
-  expect(call.mock.calls.filter(([m]) => m === CONNECT)).toEqual([]);
-  expect(root.querySelector("h2")!.textContent).toContain(
-    "New Outlook account",
-  );
-  app.unmount();
-  root.remove();
-
+it("signs in on Frappe Cloud V2 when the provider has one-click sign-in", async () => {
   const assign = vi.fn();
   vi.stubGlobal("location", {
     ...window.location,
     href: "https://example.com/helpdesk/tickets?status=Open",
     assign,
   });
-  await openTiles({ isV2Site: true });
+  vi.stubGlobal("is_v2_site", true);
+  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Microsoft" });
+  await openTiles();
   button("Outlook").click();
   await settle();
   expect(call.mock.calls.filter(([m]) => m === CONNECT)).toEqual([
     [
       CONNECT,
       {
-        provider: "microsoft",
+        service: "Outlook.com",
         redirect_to: "/helpdesk/tickets?status=Open",
         target_doctype: "HD Ticket",
-        email_account: undefined,
       },
     ],
   ]);
