@@ -693,6 +693,88 @@ test.describe("Arrangement editor: an app's dock", () => {
 		expect(rows.map((row) => row.link_to)).toEqual([modules[1], modules[0]]);
 	});
 
+	async function add_module_named(page, name) {
+		await page.locator("#desk-dock .ws-add-row").click();
+		await expect(page.locator(".ws-panel")).toBeVisible();
+		await page.evaluate(
+			(name) => window.__editor.panel.field_group.set_value("name", name),
+			name
+		);
+		await page
+			.locator(".ws-panel .ws-panel-foot")
+			.getByRole("button", { name: "Add" })
+			.click();
+	}
+
+	test("adds a module by name, created on Save before the layer that names it", async ({
+		page,
+	}) => {
+		const ADD_MODULE = "frappe.desk.doctype.dock.dock.add_module";
+		await stub_xcall(page, {
+			[READ]: modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
+			[BASE]: [],
+			[SAVE]: await page.evaluate(() => frappe.boot.dock),
+			[ADD_MODULE]: await page.evaluate(() => ({
+				workspace_pages: frappe.boot.workspaces,
+				module_sidebars: {
+					...frappe.boot.module_sidebars,
+					"Field Trips": { name: "Field Trips", app: "frappe", header_icon: "folder" },
+				},
+				entity_module: frappe.boot.entity_module,
+			})),
+		});
+		await page.evaluate(
+			() => (frappe.model.can_create = (doctype) => doctype === "Module Def")
+		);
+		await open_dock_editor(page);
+
+		await add_module_named(page, "Field Trips");
+		await expect(tiles(page)).toHaveCount(modules.length + 1);
+		// Nothing is created until Save, so Cancel would leave nothing behind.
+		expect(await stubbed_calls(page)).not.toContain(ADD_MODULE);
+
+		await bar_button(page, "Save").click();
+		const rows = await saved_rows(page, SAVE);
+		// A row a layer adds stores an icon of its own, so it takes the new module's.
+		expect(rows.find((row) => row.link_to === "Field Trips")).toMatchObject({
+			added: 1,
+			icon: "folder",
+			title: "Field Trips",
+		});
+		expect((await stubbed_calls(page)).filter((m) => m !== READ && m !== BASE)).toEqual([
+			ADD_MODULE,
+			SAVE,
+		]);
+		expect(await saved_args(page, ADD_MODULE)).toEqual({
+			app: "frappe",
+			module: "Field Trips",
+		});
+	});
+
+	test("puts a tile taken off back when Add names it, rather than making another", async ({
+		page,
+	}) => {
+		await page.evaluate(
+			() => (frappe.model.can_create = (doctype) => doctype === "Module Def")
+		);
+		await open_dock_editor(page);
+		await tiles(page).first().click();
+		await page
+			.locator(".ws-panel .ws-panel-head")
+			.getByRole("button", { name: "Remove" })
+			.click();
+		await expect(tiles(page)).toHaveCount(modules.length - 1);
+
+		await add_module_named(page, modules[0]);
+		await expect(tiles(page)).toHaveCount(modules.length);
+	});
+
+	test("offers Add only to someone who may create a module", async ({ page }) => {
+		await page.evaluate(() => (frappe.model.can_create = () => false));
+		await open_dock_editor(page);
+		await expect(page.locator("#desk-dock .ws-add-row")).toHaveCount(0);
+	});
+
 	test("stores no row for the app at all when Reset takes everything off", async ({ page }) => {
 		await open_dock_editor(page);
 		await page.locator(".ws-bar .ws-more").click();

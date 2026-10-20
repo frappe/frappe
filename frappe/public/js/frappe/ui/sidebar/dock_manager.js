@@ -20,6 +20,7 @@
 // the list, the eye and the shape of a saved row, is the same whichever layer is on screen.
 const RESET_FOR_EVERYONE = "frappe.desk.doctype.dock.dock.reset_dock_for_everyone";
 const MARK_AS_STANDARD = "frappe.desk.doctype.dock.dock.mark_as_standard";
+const ADD_MODULE = "frappe.desk.doctype.dock.dock.add_module";
 
 const DOCK_LAYERS = {
 	user: {
@@ -69,6 +70,8 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.app = frappe.app.sidebar.get_sidebar_app();
 		this.base_hidden = new Set();
 		this.own_adds = new Set();
+		// Modules Add has put on the rail, created on Save so that Cancel leaves nothing behind.
+		this.new_modules = new Set();
 		// Writing a file into an app is a developer action, so the promotion is offered only where
 		// app content is authored. It is not gated by a role: the two layers above are what a site
 		// rearranges, and neither needs this.
@@ -82,7 +85,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 
 	copy() {
 		return {
-			add_label: __("Add to the dock"),
+			add_label: __("New module"),
 			reset_title: __("Bring every entry back onto the dock."),
 			list_empty: __("This app has nothing to arrange"),
 			load_error: __("Could not load the dock. Please try again."),
@@ -333,6 +336,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.own_adds = new Set(
 			(layer || []).filter((row) => row.added).map((row) => this.key(row))
 		);
+		this.new_modules = new Set();
 		// What the apps ship, so a row the app itself hid can say so. The hidden flag alone does
 		// not say who hid it, and un-hiding an app's deliberate default should be a choice rather
 		// than an accident.
@@ -442,11 +446,9 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return shown.length ? shown : this.all_keys();
 	}
 
-	// Every layer may add an entry. The server bounds this by reach, so a user may put on their
-	// rail anything they can already navigate to, and never by base membership, which is what the
-	// old "never add" rule claimed but did not enforce.
+	// Add creates a module, so it is offered to whoever may create one.
 	can_add() {
-		return !!this.app;
+		return !!this.app && frappe.model.can_create("Module Def");
 	}
 
 	is_own_add(key) {
@@ -470,7 +472,10 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	}
 
 	remove(key) {
-		if (this.is_own_add(key)) return super.remove(key);
+		if (this.is_own_add(key)) {
+			this.new_modules.delete(this.entries.get(key)?.link_to);
+			return super.remove(key);
+		}
 		if (this.panel?.key === key) this.close_panel();
 		this.hide(key);
 		this.render_list();
@@ -567,6 +572,39 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return { app: this.app.app_name, items: JSON.stringify(mine) };
 	}
 
+	async save() {
+		if (!this.loaded || this.saving) return false;
+		this.saving = true;
+		try {
+			await this.create_new_modules();
+		} finally {
+			this.saving = false;
+		}
+		return super.save();
+	}
+
+	// The modules Add put on the rail, created before any write that names them. Each creation
+	// returns the desk's pages and sidebars, swapped in at once so the new tile resolves on the
+	// rail and its Home page routes.
+	//
+	// A row a layer adds stores an icon of its own, and Add asks only for a name, so the tile takes
+	// the icon the new module's sidebar resolved to.
+	async create_new_modules() {
+		for (const module of this.new_modules) {
+			const payload = await frappe.xcall(ADD_MODULE, { app: this.app.app_name, module });
+			this.new_modules.delete(module);
+			frappe.boot.workspaces = payload.workspace_pages;
+			frappe.app.setup_workspaces();
+			frappe.boot.module_sidebars = payload.module_sidebars;
+			frappe.boot.entity_module = payload.entity_module;
+			frappe.app.sidebar.all_sidebar_items = frappe.boot.module_sidebars;
+
+			const key = this.all_keys().find((k) => this.entries.get(k).link_to === module);
+			const entry = this.entries.get(key);
+			if (entry && !entry.icon) entry.icon = payload.module_sidebars[module]?.header_icon;
+		}
+	}
+
 	// Both saves return this app's resolved rail, its own dock with the site's arrangement and
 	// this user's on top, so the rail can be redrawn in place whichever layer was written. Only
 	// this app's key is replaced, because only this app's document was saved.
@@ -577,120 +615,47 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		frappe.app.sidebar.refresh_header();
 	}
 
-	// Add, kind first: what it opens, then the target, then how it reads.
+	// Add asks for a name and nothing else, and puts a new module of that name on the rail. On Save
+	// it becomes a module the site owns, placed in this app, opening on a Home page of its own.
 	//
-	// The pool is never drawn. Anything nameable is an unbounded set, covering every workspace,
-	// every module and any URL, so it lives in the picker's own search instead.
-	//
-	// Icon and title start empty, with no prefill and no placeholder holding the module's title.
-	// Prefilling would make divergence look like inheritance: a site that renames a module sees
-	// the new name in the sidebar header and the old one on the rail, and a prefilled field gives
-	// the author no reason to suspect the two can differ. The cost is that filling an empty rail
-	// takes a round trip per entry with two fields typed by hand.
+	// A name this app's dock already offers is that tile, not a new module, so it is put back on
+	// the rail instead. Add is how a tile taken off comes back. Any other module of that name is
+	// refused here rather than on Save, where the error would arrive after the panel had gone.
 	add() {
 		if (!this.loaded) return;
 
-		const sidebar = frappe.app.sidebar;
 		const panel = this.open_add_panel({
-			title: __("Add to the dock"),
+			title: __("New module"),
 			fields: [
 				{
-					fieldtype: "Select",
-					fieldname: "opens",
-					label: __("What it opens"),
-					options: [
-						{ value: "Sidebar", label: __("Module") },
-						{ value: "Workspace", label: __("Workspace") },
-						{ value: "URL", label: __("Web address") },
-					],
-					default: "Sidebar",
-					onchange: () => this.describe_target(panel.field_group),
-				},
-				{
-					fieldtype: "Autocomplete",
-					fieldname: "module",
-					label: __("Module"),
-					depends_on: "eval:doc.opens == 'Sidebar'",
-					// The app's navigable modules, which is what `get_app_modules` returns, rather
-					// than a link query, which would show only the few modules that have a
-					// `Sidebar` document.
-					options: sidebar.navigable_app_modules(this.app).map((shell) => ({
-						value: shell,
-						label: frappe.boot.module_sidebars[shell]?.label || shell,
-					})),
-				},
-				{
-					fieldtype: "Link",
-					fieldname: "workspace",
-					label: __("Workspace"),
-					options: "Workspace",
-					depends_on: "eval:doc.opens == 'Workspace'",
-				},
-				{
 					fieldtype: "Data",
-					fieldname: "url",
-					label: __("Web address"),
-					depends_on: "eval:doc.opens == 'URL'",
-				},
-				{ fieldtype: "HTML", fieldname: "hint" },
-				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
-				{
-					fieldtype: "Data",
-					fieldname: "title",
-					label: __("Title"),
-					description: __("How it reads on the rail."),
+					fieldname: "name",
+					label: __("Name"),
+					description: __("A module in this app, with a Home page to open on."),
 				},
 			],
-			choice: "opens",
 			primary: (values) => {
-				const target = { Sidebar: "module", Workspace: "workspace", URL: "url" }[
-					values.opens
-				];
-				const missing = [target, "icon", "title"].filter((field) => !values[field]);
-				if (panel.flag_missing(missing)) return;
+				const name = (values.name || "").trim();
+				if (panel.flag_missing(name ? [] : ["name"])) return;
 
-				const entry = this.entry_from(values);
-				if (!entry) return;
+				const existing = this.all_keys().find(
+					(key) => this.entries.get(key).link_to === name
+				);
+				if (existing) {
+					this.close_panel();
+					this.hidden.delete(existing);
+					this.render_list();
+					return;
+				}
+				if (frappe.boot.module_sidebars?.[name] || this.new_modules.has(name)) {
+					frappe.throw(__("There is already a module called {0}.", [name]));
+				}
+
 				this.close_panel();
-				this.place(entry);
+				this.new_modules.add(name);
+				this.place({ link_type: "Sidebar", link_to: name, module: name, label: name });
 			},
 		});
-
-		this.describe_target(panel.field_group);
-	}
-
-	// One line under the target saying what the row will do, because the two common shapes behave
-	// differently and their fields alone do not show that.
-	describe_target(form) {
-		const hints = {
-			Sidebar: __("Opens the module's home and shows its sidebar."),
-			Workspace: __("Its sidebar is derived from the module that owns it."),
-			URL: __("Leaves the desk. It has no sidebar."),
-		};
-		$(form.fields_dict.hint.$wrapper).html(
-			`<div class="ws-panel-hint">${hints[form.get_value("opens")] || ""}</div>`
-		);
-	}
-
-	// The Add form's values as a rail entry, or nothing if it named nothing.
-	entry_from(values) {
-		const row =
-			values.opens === "Sidebar"
-				? { link_type: "Sidebar", link_to: values.module }
-				: values.opens === "Workspace"
-				? { link_type: "Workspace", link_to: values.workspace }
-				: { link_type: "URL", url: values.url };
-
-		if (!(row.link_to || row.url)) {
-			frappe.throw(__("Pick something for it to open."));
-		}
-
-		return {
-			...row,
-			module: row.link_type === "Sidebar" ? row.link_to : null,
-			icon: values.icon,
-			label: values.title,
-		};
 	}
 
 	// Put a newly added entry into the arrangement on screen. Nothing is saved yet; Save does
@@ -724,6 +689,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// Save first. Promotion reads what is stored, so exporting with unsaved drags on screen
 		// would silently ship the arrangement the author had before they started, which is the
 		// worst way to be wrong about a file that goes into git.
+		await this.create_new_modules();
 		await frappe.xcall(this.layer_config.save, this.save_args());
 		await frappe.xcall(MARK_AS_STANDARD, { app: this.app.app_name });
 		// The app now ships a dock, so the third value in the switch has something to write to.

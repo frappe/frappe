@@ -233,7 +233,8 @@
 
 // The panel beside the surface, level with the row it belongs to: an espresso popover, placed by
 // script, so this only lays out what is inside it.
-.ws-panel {
+.ws-panel,
+.ws-panel-closing {
 	max-height: calc(100vh - 16px);
 
 	.ws-panel-head {

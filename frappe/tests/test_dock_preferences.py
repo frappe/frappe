@@ -14,6 +14,7 @@ from frappe.boot import get_app_modules, get_module_sidebars
 from frappe.desk.doctype.dock.dock import (
 	DOCK_ITEM_FIELDS,
 	Dock,
+	add_module,
 	destination,
 	dock_key,
 	docked_apps,
@@ -2220,6 +2221,57 @@ class TestTheDeskDoor(IntegrationTestCase):
 		`desk_route` off one never gets `undefined`."""
 		with patch.object(frappe, "get_hooks", _with_desk_route("/desk/crm", denied=True)):
 			self.assertEqual(self.app_entry("frappe")["desk_route"], "")
+
+
+class TestAddModule(IntegrationTestCase):
+	"""Add on the dock creates a module the site owns, placed in the app's dock, with a page of its
+	own to open on, so it is on the desk the moment it exists."""
+
+	MODULE = "Test Dock Added Module"
+	MANAGER = "test-dock-add-module@example.com"
+	DESK_USER = "test-dock-add-module-desk@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		for email, roles in ((self.MANAGER, ["System Manager"]), (self.DESK_USER, [])):
+			if not frappe.db.exists("User", email):
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": "Dock",
+						"send_welcome_email": 0,
+						"roles": [{"role": role} for role in roles],
+					}
+				).insert()
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		for name in frappe.get_all("Workspace", {"module": self.MODULE}, pluck="name"):
+			frappe.delete_doc("Workspace", name, force=True)
+		frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
+		for email in (self.MANAGER, self.DESK_USER):
+			frappe.delete_doc("User", email, force=True, ignore_missing=True)
+
+	def test_creates_a_custom_module_in_the_app_with_a_page_to_open_on(self):
+		frappe.set_user(self.MANAGER)
+		payload = add_module("frappe", self.MODULE)
+		frappe.set_user("Administrator")
+
+		module = frappe.get_doc("Module Def", self.MODULE)
+		self.assertEqual((module.custom, module.app_name), (1, "frappe"))
+		self.assertTrue(frappe.db.exists("Workspace", {"module": self.MODULE}))
+		# The payload carries the new shell and its page, so the dock can draw the tile and route to
+		# it without a reload.
+		self.assertEqual(payload["module_sidebars"][self.MODULE]["app"], "frappe")
+		self.assertIn(self.MODULE, [page["name"] for page in payload["workspace_pages"]["pages"]])
+
+	def test_needs_the_right_to_create_a_module(self):
+		frappe.set_user(self.DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			add_module("frappe", self.MODULE)
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Module Def", self.MODULE))
 
 
 def _with_desk_route(route: str, denied: bool = False):

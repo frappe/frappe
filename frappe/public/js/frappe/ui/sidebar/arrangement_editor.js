@@ -911,12 +911,16 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 		this.$wrapper.css({ top, left: column.right + 8 });
 	}
 
-	// The popover's exit animation plays first.
+	// The popover's exit animation plays first. While it fades it is no longer the panel, so the
+	// next one opened meanwhile is the only `.ws-panel`.
 	destroy() {
 		this.observer?.disconnect();
 		this.editor.$scroll?.off("scroll.ws-panel");
 		$(window).off("resize.ws-panel");
-		const $wrapper = this.$wrapper.attr("data-state", "closed");
+		const $wrapper = this.$wrapper
+			.attr("data-state", "closed")
+			.removeClass("ws-panel")
+			.addClass("ws-panel-closing");
 		setTimeout(() => $wrapper.remove(), 150);
 	}
 };
