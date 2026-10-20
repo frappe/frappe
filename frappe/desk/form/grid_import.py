@@ -235,7 +235,14 @@ class GridImportRow(Row):
 		return parsed.date() if isinstance(parsed, datetime.datetime) else parsed
 
 	def get_datetime(self, value, column):
-		time_format = get_user_time_format().replace("HH", "%H").replace("mm", "%M").replace("ss", "%S")
+		time_format = (
+			get_user_time_format()
+			.replace("HH", "%H")
+			.replace("hh", "%I")
+			.replace("mm", "%M")
+			.replace("ss", "%S")
+			.replace(" a", " %p")
+		)
 		return parse_datetime(value, (f"{column.date_format} {time_format}", "%Y-%m-%d %H:%M:%S"))
 
 

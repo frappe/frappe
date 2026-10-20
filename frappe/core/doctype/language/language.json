@@ -65,10 +65,11 @@
    "options": "\nyyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\ndd.mm.yyyy\nmm/dd/yyyy\nmm-dd-yyyy"
   },
   {
+   "description": "HH:mm is the 24-hour clock (14:30), hh:mm a is the 12-hour clock (02:30 PM)",
    "fieldname": "time_format",
    "fieldtype": "Select",
    "label": "Time Format",
-   "options": "\nHH:mm:ss\nHH:mm"
+   "options": "\nHH:mm:ss\nHH:mm\nhh:mm:ss a\nhh:mm a"
   },
   {
    "fieldname": "number_format",
@@ -86,7 +87,7 @@
  "icon": "languages",
  "in_create": 1,
  "links": [],
- "modified": "2024-07-21 08:25:25.130166",
+ "modified": "2026-10-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Language",

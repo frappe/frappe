@@ -248,7 +248,7 @@ frappe.form.formatters = {
 			return moment(frappe.datetime.convert_to_user_tz(value)).format(
 				frappe.boot.sysdefaults.date_format.toUpperCase() +
 					" " +
-					(frappe.boot.sysdefaults.time_format || "HH:mm:ss")
+					frappe.datetime.get_user_time_fmt()
 			);
 		} else {
 			return "";

@@ -433,7 +433,8 @@ class XLSXStyleBuilder:
 
 	@staticmethod
 	def get_time_format() -> str:
-		return frappe.get_system_settings("time_format")
+		# Excel switches to the 12-hour clock when the format has AM/PM
+		return frappe.get_system_settings("time_format").replace(" a", " AM/PM")
 
 	@staticmethod
 	def get_datetime_format() -> str:

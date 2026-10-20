@@ -110,7 +110,7 @@ class SystemSettings(Document):
 		strip_exif_metadata_from_uploaded_images: DF.Check
 		sync_in_batch: DF.Check
 		sync_timeout: DF.Int
-		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
+		time_format: DF.Literal["HH:mm:ss", "HH:mm", "hh:mm:ss a", "hh:mm a"]
 		time_zone: DF.Literal[None]
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
 		use_classic_charts: DF.Check

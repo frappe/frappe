@@ -179,10 +179,11 @@
   },
   {
    "default": "HH:mm:ss",
+   "description": "HH:mm is the 24-hour clock (14:30), hh:mm a is the 12-hour clock (02:30 PM)",
    "fieldname": "time_format",
    "fieldtype": "Select",
    "label": "Time Format",
-   "options": "HH:mm:ss\nHH:mm",
+   "options": "HH:mm:ss\nHH:mm\nhh:mm:ss a\nhh:mm a",
    "reqd": 1
   },
   {
@@ -856,7 +857,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-19 22:36:28.316692",
+ "modified": "2026-10-21 10:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

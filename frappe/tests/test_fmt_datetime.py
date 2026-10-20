@@ -30,6 +30,8 @@ test_date_formats = {
 test_time_formats = {
 	"HH:mm:ss": test_date_obj.strftime("%H:%M:%S"),
 	"HH:mm": test_date_obj.strftime("%H:%M"),
+	"hh:mm:ss a": test_date_obj.strftime("%I:%M:%S %p"),
+	"hh:mm a": test_date_obj.strftime("%I:%M %p"),
 }
 
 

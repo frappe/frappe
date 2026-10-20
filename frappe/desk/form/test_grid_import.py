@@ -225,6 +225,9 @@ class TestGridImport(IntegrationTestCase):
 			self.assertEqual(row.get_datetime(value, date_col), when)
 		self.assertEqual(row.get_datetime("tomorrow", date_col), "tomorrow")
 
+		with patch("frappe.desk.form.grid_import.get_user_time_format", return_value="hh:mm:ss a"):
+			self.assertEqual(row.get_datetime("25-08-2026 02:05:09 PM", date_col), when)
+
 		row.validate_value("3600", duration_col)
 		row.validate_value("1h 30m", duration_col)
 		self.assertEqual(row.warnings, [])

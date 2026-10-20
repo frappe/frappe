@@ -44,7 +44,7 @@ class Language(Document):
 			"#.###",
 			"#,###",
 		]
-		time_format: DF.Literal["", "HH:mm:ss", "HH:mm"]
+		time_format: DF.Literal["", "HH:mm:ss", "HH:mm", "hh:mm:ss a", "hh:mm a"]
 	# end: auto-generated types
 
 	def validate(self):

@@ -3,6 +3,7 @@
 
 import datetime
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.link_title import get_report_link_titles
@@ -738,6 +739,16 @@ data = columns, result
 		date_style = resolve(3)
 		self.assertIn("num_format", date_style)
 		self.assertEqual(date_style.get("align"), "right")
+
+	def test_xlsx_style_builder_time_format_follows_clock(self):
+		"""A 12-hour time format exports as an AM/PM number format"""
+		for time_format, num_format in (
+			("HH:mm:ss", "HH:mm:ss"),
+			("hh:mm:ss a", "hh:mm:ss AM/PM"),
+			("hh:mm a", "hh:mm AM/PM"),
+		):
+			with patch("frappe.get_system_settings", return_value=time_format):
+				self.assertEqual(XLSXStyleBuilder.get_time_format(), num_format)
 
 	def test_xlsx_style_builder_float_indent_is_whole_number(self):
 		"""Excel ignores a fractional alignment indent, so float tree levels must become integers"""

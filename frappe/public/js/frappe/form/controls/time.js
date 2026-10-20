@@ -12,17 +12,14 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 		this.refresh();
 	}
 	set_time_options() {
-		let sysdefaults = frappe.boot.sysdefaults;
-
-		let time_format =
-			sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
+		let time_format = frappe.datetime.get_user_time_fmt();
 
 		this.time_format = frappe.defaultTimeFormat;
 		this.datepicker_options = {
 			language: "en",
 			timepicker: true,
 			onlyTimepicker: true,
-			timeFormat: time_format.toLowerCase().replace("mm", "ii"),
+			timeFormat: frappe.datetime.get_datepicker_time_fmt(),
 			startDate: frappe.datetime.now_time(true),
 			onSelect: () => {
 				// ignore micro seconds
@@ -108,10 +105,9 @@ frappe.ui.form.ControlTime = class ControlTime extends frappe.ui.form.ControlDat
 	}
 	validate(value) {
 		if (value && !frappe.datetime.validate(value)) {
-			let sysdefaults = frappe.sys_defaults;
-			let time_format =
-				sysdefaults && sysdefaults.time_format ? sysdefaults.time_format : "HH:mm:ss";
-			frappe.msgprint(__("Time {0} must be in format: {1}", [value, time_format]));
+			frappe.msgprint(
+				__("Time {0} must be in format: {1}", [value, frappe.datetime.get_user_time_fmt()])
+			);
 			return "";
 		}
 		return value;

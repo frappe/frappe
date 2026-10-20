@@ -131,7 +131,21 @@ $.extend(frappe.datetime, {
 	},
 
 	get_user_time_fmt: function () {
+		// the setting uses the CLDR "a" for AM/PM (as babel does), moment needs "A"
+		return frappe.datetime.get_time_format_setting().replace(/\ba\b/, "A");
+	},
+
+	get_time_format_setting: function () {
 		return (frappe.sys_defaults && frappe.sys_defaults.time_format) || "HH:mm:ss";
+	},
+
+	get_datepicker_time_fmt: function () {
+		// air-datepicker tokens: hh (hours), ii (minutes), ss (seconds), AA (AM/PM)
+		return frappe.datetime
+			.get_time_format_setting()
+			.toLowerCase()
+			.replace("mm", "ii")
+			.replace(/\ba\b/, "AA");
 	},
 
 	get_user_date_fmt: function () {
@@ -181,7 +195,10 @@ $.extend(frappe.datetime, {
 	},
 
 	get_datetime_as_string: function (d) {
-		let time_format = frappe?.boot?.sysdefaults?.time_format || frappe.defaultTimeFormat;
+		// this is the stored value, so it stays 24-hour whatever the display format is
+		let time_format = frappe.datetime.get_time_format_setting().includes("s")
+			? frappe.defaultTimeFormat
+			: "HH:mm";
 		let datetime_format = frappe.defaultDateFormat + " " + time_format;
 		return moment(d).format(datetime_format);
 	},
