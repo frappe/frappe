@@ -345,6 +345,30 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(options["shrink-to-fit"])
 		self.assertEqual(options["orientation"], "Portrait")
 
+	def test_network_print_raises_the_pdf_generation_error(self):
+		import sys
+		from unittest.mock import MagicMock, patch
+
+		from frappe.utils import print_format
+
+		printer = frappe.get_doc(
+			doctype="Network Printer Settings",
+			name="Office Printer",
+			server_ip="localhost",
+			port=631,
+			printer_name="Office Printer",
+		).insert()
+		cups = MagicMock(IPPError=type("IPPError", (Exception,), {}))
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with (
+			patch.dict(sys.modules, {"cups": cups}),
+			patch.object(frappe, "get_print", side_effect=ConnectionRefusedError),
+			self.assertRaises(ConnectionRefusedError),
+		):
+			print_format.print_by_server("User", "test@example.com", printer.name)
+
 	def test_print_styles_are_read_without_fetching_css_imports(self):
 		import threading
 		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
