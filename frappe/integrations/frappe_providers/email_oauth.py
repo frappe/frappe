@@ -28,7 +28,7 @@ Provider = Literal["microsoft"]
 # Mail settings per provider, keyed like Central's Email OAuth Provider records; Central sends the OAuth side (scopes)
 ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 	"microsoft": {
-		"label": "Microsoft",
+		"label": "Outlook",
 		"service": "Outlook.com",  # the only Microsoft option, also for work accounts
 		"servers": {"email_server": "outlook.office365.com", "smtp_server": "smtp.office365.com"},
 		# personal accounts (outlook.com, hotmail) share this tenant ID and use other servers
@@ -70,7 +70,7 @@ def initiate_mailbox_connect(
 			frappe.throw(_("{0} wasn't connected with one-click sign-in").format(email_account))
 		if not is_v2_site():
 			frappe.throw(
-				_("Sign in with {0} is only available on Frappe Cloud").format(
+				_("{0} sign-in is only available on Frappe Cloud").format(
 					ONE_CLICK_PROVIDERS[provider]["label"]
 				)
 			)
@@ -94,10 +94,11 @@ def initiate_mailbox_connect(
 	except frappe.ValidationError as e:
 		if str(e) != "provider_unavailable":  # Central's code for a provider it has turned off
 			raise
+		frappe.clear_last_message()
 		if not email_account:
 			return None
 		frappe.throw(
-			_("Sign in with {0} isn't available right now").format(ONE_CLICK_PROVIDERS[provider]["label"])
+			_("{0} sign-in isn't available right now").format(ONE_CLICK_PROVIDERS[provider]["label"])
 		)
 	frappe.cache.set_value(
 		f"pkce_verifier:{state}",
