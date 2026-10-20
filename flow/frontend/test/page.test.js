@@ -262,7 +262,7 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	assert.deepEqual(models, [["GPT", "GPT Fast"]]);
 });
 
-test("without a model the normal page shows the setup state and a disabled composer, and keeps to the screen a phone's keyboard leaves; the setup's next step is the primary one and Add opens a blank record", async (t) => {
+test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's next step is the primary one and Add opens a blank record", async (t) => {
 	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
 	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
 	const { scrollTo } = dom.window;
@@ -277,12 +277,10 @@ test("without a model the normal page shows the setup state and a disabled compo
 	await nextTick();
 	assert.ok(el.querySelector("[data-stub=SetupState]"));
 	assert.ok(!el.textContent.includes("What can I help you with?"));
-	assert.ok(el.querySelector("textarea").matches(":disabled"));
-	assert.ok(el.querySelector("button[title='Agent']").matches(":disabled"));
-	assert.equal(
-		el.querySelector("button[title='Skills']"),
-		null,
-		"no skills, nor a right to add one"
+	assert.equal(el.querySelector("textarea"), null);
+	assert.ok(
+		!el.textContent.includes("can send messages"),
+		"nor the read-only note in its place"
 	);
 
 	const resize = (height, scale = 1) => {

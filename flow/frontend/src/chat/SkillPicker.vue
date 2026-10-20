@@ -7,7 +7,6 @@
 			:class="open ? 'bg-surface-gray-2' : ''"
 			title="Skills"
 			:aria-expanded="open"
-			:disabled="disabled"
 			@click="open ? close() : show()"
 		>
 			<FeatherIcon name="book-open" class="h-3.5 w-3.5 flex-none" />
@@ -74,7 +73,6 @@ import { layout } from "@flow/ui-core/layout.js";
 
 // The skills a new chat's agent can load, over the composer; a pick starts the draft with it.
 // Shown without any too, for someone who may add one.
-defineProps({ disabled: { type: Boolean, default: false } });
 const emit = defineEmits(["pick"]); // "/skill:<name> ", for the composer to put in the draft
 const flow = inject("flow");
 const page = inject("flowPage");
