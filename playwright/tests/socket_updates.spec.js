@@ -40,6 +40,24 @@ test.describe("Realtime updates", () => {
 		await doctype_room_joined(page, api, "ToDo");
 	});
 
+	test("Restores rooms after reconnect", async ({ page, api }) => {
+		const doc = await api.insert_doc("ToDo", { description: "reconnect" });
+		await page.goto(`/desk/todo/${doc.name}`);
+		await realtime_connected(page);
+		await page.evaluate(() => frappe.realtime.doctype_subscribe("ToDo"));
+		await doc_room_joined(page, api, "ToDo", doc.name);
+
+		await page.evaluate(
+			() =>
+				new Promise((resolve) => {
+					frappe.realtime.socket.io.once("reconnect", resolve);
+					frappe.realtime.socket.io.engine.close();
+				})
+		);
+		await doctype_room_joined(page, api, "ToDo");
+		await doc_room_joined(page, api, "ToDo", doc.name);
+	});
+
 	test("Receives msgprint from server", async ({ page, api }) => {
 		const msg = "msgprint sent via realtime";
 		await api.call("frappe.tests.ui_test_helpers.publish_realtime", {
