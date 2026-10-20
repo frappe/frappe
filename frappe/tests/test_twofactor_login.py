@@ -71,6 +71,15 @@ class TestTwoFactorLogin(IntegrationTestCase):
 			response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
 			self.assert_logged_in(response)
 
+	def test_email_login_with_zero_token(self):
+		with self.change_settings("System Settings", {"two_factor_method": "Email"}, commit=True):
+			with patch("pyotp.TOTP.now", return_value="000000"):
+				tmp_id = self.start_login()
+			self.assertEqual(frappe.cache.get_value(tmp_id + "_token", expires=True), 0)
+			response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
+			self.assert_logged_in(response)
+			self.assertIsNone(frappe.cache.get_value(tmp_id + "_token", expires=True))
+
 	def test_incomplete_login_preserves_pending_logins(self):
 		tmp_id = self.start_login()
 		code = self.email_code(tmp_id)
