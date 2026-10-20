@@ -2577,6 +2577,20 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const doctype = this.doctype;
 		const items = [];
 
+		if (this.meta.enable_upload_first_workflow && this.can_create && !frappe.boot.read_only) {
+			items.push({
+				label: __("Create from File", null, "Button in list view menu"),
+				action: () => {
+					// The upload-first workflow ships as its own on-demand bundle
+					// (kept out of desk.bundle.js), so load it before opening.
+					frappe.require("upload_first.bundle.js", () => {
+						frappe.ui.form.upload_first(doctype);
+					});
+				},
+				standard: true,
+			});
+		}
+
 		if (frappe.model.can_import(doctype, null, this.meta)) {
 			items.push({
 				label: __("Import", null, "Button in list view menu"),
