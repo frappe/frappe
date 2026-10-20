@@ -94,7 +94,7 @@ dependencies = [
     # realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4,
     # wire-compatible with the browser's socket.io-client ^4.7.1.
     # Pin exact versions after a manual handshake check (polling + websocket upgrade).
-    "python-socketio~=5.16.2",
+    "python-socketio~=5.17.0",
     "python-engineio~=4.13.2",
     # ASGI server for the realtime process.
     "uvicorn~=0.52.1",
