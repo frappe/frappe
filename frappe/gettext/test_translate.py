@@ -5,6 +5,7 @@ from unittest.mock import patch
 from babel.messages.catalog import Catalog
 from babel.messages.pofile import read_po, write_po
 
+import frappe
 from frappe.gettext.translate import (
 	generate_pot,
 	get_is_gitignored_function_for_app,
@@ -20,19 +21,26 @@ from frappe.gettext.translate import (
 )
 from frappe.tests import IntegrationTestCase
 
+GITIGNORED_FILE = "frappe/public/dist/test_translate_test_gitignore.js"
+
 
 class TestTranslate(IntegrationTestCase):
-	def setUp(self):
-		pass
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 
-	def tearDown(self):
-		pass
+		gitignored_file = Path(frappe.get_app_source_path("frappe", GITIGNORED_FILE))
+		gitignored_file.parent.mkdir(parents=True, exist_ok=True)
+		gitignored_file.write_text('__("test_translate_test_gitignore")')
+
+		get_pot_path("frappe").unlink(missing_ok=True)
+		try:
+			generate_pot("frappe")
+		finally:
+			gitignored_file.unlink()
 
 	def test_generate_pot(self):
 		pot_path = get_pot_path("frappe")
-		pot_path.unlink(missing_ok=True)
-
-		generate_pot("frappe")
 
 		self.assertTrue(pot_path.exists())
 		self.assertIn("msgid", pot_path.read_text())
@@ -156,13 +164,9 @@ class TestTranslate(IntegrationTestCase):
 			self.assertFalse((Path(app_path) / "locale").exists())
 
 	def test_gitignore(self):
-		import os
-
-		import frappe
-
 		is_gitignored = get_is_gitignored_function_for_app("frappe")
 
-		file_name = "frappe/public/dist/test_translate_test_gitignore.js"
+		file_name = GITIGNORED_FILE
 		file_path = frappe.get_app_source_path("frappe", file_name)
 		self.assertTrue(is_gitignored("frappe/public/node_modules"))
 		self.assertTrue(is_gitignored("frappe/public/dist"))
@@ -172,19 +176,6 @@ class TestTranslate(IntegrationTestCase):
 		self.assertFalse(is_gitignored("frappe/public/dist2"))
 		self.assertFalse(is_gitignored("frappe/public/dist2/sub"))
 
-		# Make directory if not exist
-		os.makedirs(os.path.dirname(file_path), exist_ok=True)
-		with open(file_path, "w") as f:
-			f.write('__("test_translate_test_gitignore")')
-
-		pot_path = get_pot_path("frappe")
-		pot_path.unlink(missing_ok=True)
-
-		generate_pot("frappe")
-
-		self.assertTrue(pot_path.exists())
-		self.assertNotIn("test_translate_test_gitignore", pot_path.read_text())
-
-		os.remove(file_path)
+		self.assertNotIn("test_translate_test_gitignore", get_pot_path("frappe").read_text())
 
 		self.assertTrue(get_is_gitignored_function_for_app(None)("frappe/public/dist"))
