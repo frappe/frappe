@@ -173,7 +173,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					label: __("Reset to Standard"),
 					icon: "history",
 					theme: "red",
-					description: __("Remove the site's arrangement and every person's own."),
+					description: __("Removes site and personal changes."),
 					onclick: () => this.reset_to_standard(),
 				},
 			];
@@ -185,9 +185,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				label: __("Clear Customizations"),
 				icon: "eraser",
 				theme: "red",
-				description: __(
-					"Drop the site's arrangement of this sidebar and every person's own, so what you save here is what shows."
-				),
+				description: __("Removes site and personal changes."),
 				onclick: () => this.reset_to_standard(),
 			},
 		];
@@ -249,7 +247,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 
 		return {
 			add_label: __("Add link or section"),
-			reset_title: __("Drop this arrangement and go back to {0}.", [below]),
+			reset_title: __("Go back to {0}.", [below]),
 			reset_confirm: reset_confirm[this.layer],
 			reset_done: reset_done[this.layer],
 			list_empty: __("This module has nothing to arrange"),
@@ -685,9 +683,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				fieldname: "indent",
 				label: __("Indent"),
 				default: entry.indent,
-				description: __(
-					"Draw it as a row with its entries nested under it, rather than as a heading over them."
-				),
+				description: __("Nest its entries under it."),
 			},
 			{
 				fieldtype: "Check",
@@ -742,7 +738,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				default: entry.icon,
 				// An empty field means no override, not "no icon" (see `overrides()`). Say so,
 				// or clearing it looks broken.
-				description: __("Leave it empty to keep the one it inherits."),
+				description: __("Empty keeps the inherited one."),
 				...(shape ? { depends_on: "eval: doc.indent && !doc.show_arrow" } : {}),
 			},
 		];
@@ -778,7 +774,7 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 				...(shape ? this.section_shape_fields(entry) : []),
 				...this.icon_field(entry, shape),
 				...(section && !shape
-					? [hint(__("How this section draws is set by the layer that holds it."))]
+					? [hint(__("Its look is set by the layer that holds it."))]
 					: []),
 			],
 			on_change: (values, form) => this.apply_entry(entry, values, form),

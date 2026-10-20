@@ -86,7 +86,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	copy() {
 		return {
 			add_label: __("New module"),
-			reset_title: __("Bring every entry back onto the dock."),
+			reset_title: __("Brings every entry back."),
 			list_empty: __("This app has nothing to arrange"),
 			load_error: __("Could not load the dock. Please try again."),
 		};
@@ -490,9 +490,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 				label: __("Reset for everyone"),
 				icon: "history",
 				theme: "red",
-				description: __(
-					"Drops every person's own arrangement of this rail as well as the site's, so everybody is back on what the app ships."
-				),
+				description: __("Puts everyone back on the app's dock."),
 				onclick: () => this.reset_for_everyone(),
 			});
 		}
@@ -631,7 +629,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					fieldtype: "Data",
 					fieldname: "name",
 					label: __("Name"),
-					description: __("A module in this app, with a Home page to open on."),
+					description: __("Creates a module with a Home page."),
 				},
 			],
 			primary: (values) => {
