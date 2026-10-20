@@ -7,7 +7,6 @@
 			:class="open ? 'bg-surface-gray-2' : ''"
 			title="Agent"
 			:aria-expanded="open"
-			:disabled="disabled"
 			@click="open ? close() : show()"
 		>
 			<FeatherIcon name="bot" class="h-3.5 w-3.5 flex-none" />
@@ -66,7 +65,6 @@ import { layout } from "@flow/ui-core/layout.js";
 import { useAgent } from "./agent.js";
 
 // A new chat's agent, over the composer, picked from its own list.
-defineProps({ disabled: { type: Boolean, default: false } });
 const page = inject("flowPage");
 const { current, title } = useAgent();
 const open = ref(false);

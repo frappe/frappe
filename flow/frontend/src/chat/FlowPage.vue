@@ -32,18 +32,17 @@
 					</template>
 				</MessageList>
 				<Composer
-					v-if="!readOnly"
+					v-if="!readOnly && !needsSetup"
 					ref="composer"
 					:commands="COMMANDS"
 					:mentions="false"
 					:images-only="false"
 					:placeholder="placeholder"
 					:modes="MODES"
-					:disabled="needsSetup"
 				>
 					<template #start="{ insert }">
-						<AgentPicker :disabled="needsSetup" />
-						<SkillPicker :disabled="needsSetup" @pick="insert" />
+						<AgentPicker />
+						<SkillPicker @pick="insert" />
 					</template>
 					<template #palette="{ view, query, close, back }">
 						<AgentPalette
@@ -55,7 +54,7 @@
 					</template>
 				</Composer>
 				<p
-					v-else
+					v-else-if="readOnly"
 					class="absolute inset-x-0 bottom-0 px-5 pb-5 text-center text-xs text-ink-gray-5"
 				>
 					{{ readOnlyNote }}
@@ -195,7 +194,7 @@ const readOnlyNote = computed(() => {
 		? `Only ${owner} can send messages in this chat.`
 		: "Only the owner of this chat can send messages.";
 });
-// no model or no agent: the empty state says so, and the composer waits
+// no model or no agent: the empty state says so, and there is no composer yet
 const needsSetup = computed(
 	() => !page.state.boot.models?.length || !page.state.boot.agents?.length
 );

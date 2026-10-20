@@ -29,6 +29,7 @@ const { router } = await import("../src/router.js");
 const { loadComponent, transport } = await import("./helpers/components.js");
 const FlowPage = await loadComponent("chat/FlowPage.vue");
 const ShareChat = await loadComponent("chat/ShareChat.vue");
+const SetupState = await loadComponent("chat/SetupState.vue");
 
 const boot = {
 	csrf_token: "token",
@@ -241,7 +242,8 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	assert.equal(refreshes, 0);
 	page.changed("Flow Model");
 	page.changed("Flow Agent");
-	assert.equal(refreshes, 2);
+	page.changed("Flow Provider");
+	assert.equal(refreshes, 3);
 	assert.equal(skillReloads, 2);
 
 	page.createRecord("skills");
@@ -260,7 +262,7 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	assert.deepEqual(models, [["GPT", "GPT Fast"]]);
 });
 
-test("without a model the normal page shows the setup state and a disabled composer, and keeps to the screen a phone's keyboard leaves", async (t) => {
+test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's next step is the primary one and Add opens a blank record", async (t) => {
 	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
 	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
 	const { scrollTo } = dom.window;
@@ -275,12 +277,10 @@ test("without a model the normal page shows the setup state and a disabled compo
 	await nextTick();
 	assert.ok(el.querySelector("[data-stub=SetupState]"));
 	assert.ok(!el.textContent.includes("What can I help you with?"));
-	assert.ok(el.querySelector("textarea").matches(":disabled"));
-	assert.ok(el.querySelector("button[title='Agent']").matches(":disabled"));
-	assert.equal(
-		el.querySelector("button[title='Skills']"),
-		null,
-		"no skills, nor a right to add one"
+	assert.equal(el.querySelector("textarea"), null);
+	assert.ok(
+		!el.textContent.includes("can send messages"),
+		"nor the read-only note in its place"
 	);
 
 	const resize = (height, scale = 1) => {
@@ -290,6 +290,26 @@ test("without a model the normal page shows the setup state and a disabled compo
 	};
 	assert.equal(resize(508), "508px");
 	assert.equal(resize(422, 2), "844px");
+
+	const { createPage } = await import("../src/page.js");
+	const page = createPage({ ...boot, models: [], permissions: { "Flow Model": ["create"] } });
+	let opened = 0;
+	const setup = document.createElement("div");
+	const app = createApp(SetupState);
+	app.provide("flow", { setSettingsOpen: () => opened++ });
+	app.provide("flowPage", page);
+	app.mount(setup);
+	t.after(() => app.unmount());
+	const step = (label) =>
+		[...setup.querySelectorAll("button")].find((b) => b.textContent === label);
+	assert.equal(step("Add a provider").getAttribute("variant"), "solid");
+	step("Add a provider").click();
+	assert.equal(opened, 1);
+	assert.ok(page.takeNewRecord("providers"), "settings open on a blank provider, not the list");
+	page.onBoot({ ...page.state.boot, has_provider: true });
+	await nextTick();
+	assert.equal(step("Add a provider"), undefined, "a provider in place is a step done");
+	assert.equal(step("Add a model").getAttribute("variant"), "solid");
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {
