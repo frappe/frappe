@@ -16,7 +16,7 @@ from frappe.auth import (
 	validate_auth,
 	validate_ip_address,
 )
-from frappe.core.doctype.user.user import generate_keys
+from frappe.core.doctype.user.user import User, generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds, hash_sid
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -93,6 +93,11 @@ class TestAuth(IntegrationTestCase):
 			cookies = CookieManager()
 			cookies.set_cookie("sid", "test")
 			self.assertFalse(cookies.cookies["sid"]["secure"])
+
+	def test_unknown_account_checks_a_password_hash(self):
+		with patch("frappe.core.doctype.user.user._verify_password", return_value=(False, False)) as verify:
+			self.assertIsNone(User.find_by_credentials("unknown_auth@test.com", "wrong_pwd_012"))
+		verify.assert_called_once()
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_mobile(self):
