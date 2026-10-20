@@ -344,3 +344,12 @@ class TestPdf(IntegrationTestCase):
 
 			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
 			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
+
+	def test_b5_page_size_is_portrait(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = self.make_browser({"page-size": "B5"})
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
+		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 9.84, delta=0.05)
