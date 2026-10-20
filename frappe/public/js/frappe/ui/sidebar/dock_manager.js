@@ -219,9 +219,13 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return "ws-tile";
 	}
 
-	// A tile is named by its tooltip, as on the rail.
+	// A tile is named by its tooltip, as on the rail. It carries no control of its own: a tile is
+	// taken off from its panel (see `edit_entry`), which keeps the rail as it looks.
+	// The tile whose panel is open has no tooltip, since the panel beside it names it.
 	list_row(key) {
 		const $row = super.list_row(key).attr("aria-label", this.entries.get(key).label);
+		$row.find(".ws-row-controls").remove();
+		if (this.panel?.key === key) return $row;
 		this.tile_tooltips.push(
 			new frappe.ui.Tooltip($row[0], {
 				text: this.entries.get(key).label,
@@ -266,12 +270,22 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	}
 
 	// The label and icon a tile reads with. A stored row carries both, and the server blanks the
-	// ones that match what the layer below says, so an untouched tile keeps following it.
+	// ones that match what the layer below says, so an untouched tile keeps following it. Remove,
+	// beside the panel's close button, takes the tile off.
 	edit_entry(key) {
 		const entry = this.entries.get(key);
 		this.open_panel({
 			key,
 			title: entry.label,
+			actions: [
+				frappe.ui.button({
+					label: __("Remove"),
+					variant: "ghost",
+					size: "sm",
+					css_class: "ws-remove",
+					onclick: () => this.remove(key),
+				}),
+			],
 			fields: [
 				{
 					fieldtype: "Data",
@@ -439,10 +453,10 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return this.own_adds.has(key);
 	}
 
-	// One control, the cross, at every layer. On a tile a lower layer holds it stores the row
-	// hidden, which on the app's layer ships it off by default. The tile leaves the rail either
-	// way, and adding the same entry again is how it comes back (see `place`). A tile this layer
-	// added already carries a cross of its own, which removes it.
+	// One way to take a tile off, at every layer: Remove in its panel. On a tile a lower layer
+	// holds it stores the row hidden, which on the app's layer ships it off by default. A tile this
+	// layer added is dropped. The tile leaves the rail either way, and adding the same entry again
+	// is how it comes back (see `place`).
 	can_remove(key) {
 		return !this.is_own_add(key);
 	}

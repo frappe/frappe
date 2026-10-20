@@ -645,10 +645,17 @@ test.describe("Arrangement editor: an app's dock", () => {
 		await expect(page.locator("body")).not.toHaveClass(with_class("dock-open"));
 	});
 
-	test("takes a tile off the rail with its cross, and saves it hidden", async ({ page }) => {
+	test("takes a tile off the rail from its panel, and saves it hidden", async ({ page }) => {
 		await open_dock_editor(page);
-		await tiles(page).first().locator(".ws-remove").click({ force: true });
+		// A tile carries no control of its own; Remove sits beside its panel's close button.
+		await expect(tiles(page).first().locator(".ws-remove")).toHaveCount(0);
+		await tiles(page).first().click();
+		await page
+			.locator(".ws-panel .ws-panel-head")
+			.getByRole("button", { name: "Remove" })
+			.click();
 		await expect(tiles(page)).toHaveCount(modules.length - 1);
+		await expect(page.locator(".ws-panel")).toHaveCount(0);
 
 		await bar_button(page, "Save").click();
 		const rows = await saved_rows(page, SAVE);

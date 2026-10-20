@@ -231,19 +231,10 @@
 	}
 }
 
-// The panel beside the column, level with the row it belongs to. It is placed by script, so it
-// only says how it looks.
+// The panel beside the surface, level with the row it belongs to: an espresso popover, placed by
+// script, so this only lays out what is inside it.
 .ws-panel {
-	position: fixed;
-	z-index: 1030;
-	width: 288px;
 	max-height: calc(100vh - 16px);
-	overflow-y: auto;
-	padding: calc(var(--spacing) * 3);
-	border: 1px solid var(--outline-gray-2);
-	border-radius: var(--radius-xl);
-	background: var(--surface-base);
-	box-shadow: var(--shadow-xl);
 
 	.ws-panel-head {
 		display: flex;
@@ -256,9 +247,6 @@
 		flex: 1;
 		min-width: 0;
 		@include truncate();
-		font-size: var(--text-base);
-		font-weight: var(--font-weight-medium);
-		color: var(--ink-gray-8);
 	}
 
 	.ws-panel-foot {
@@ -309,6 +297,12 @@
 // The dock while it is arranged. The editor's rows are its tiles, drawn as the rail draws them,
 // with the cross on the corner.
 .dock.dock-editing {
+	// The tiles take only the room they need, so the Add tile sits right under the last one and
+	// the space below goes to the Add slot instead.
+	.dock-items {
+		flex: 0 0 auto;
+	}
+
 	.ws-tile {
 		min-height: 0;
 		cursor: grab;
@@ -319,31 +313,30 @@
 			box-shadow: none;
 		}
 
-		&.is-open .dock-item {
-			outline: 2px solid var(--outline-gray-4);
-			outline-offset: 2px;
+		// A faint dash, like the Add tile's, so the rail reads as being arranged without every
+		// tile turning into a box.
+		.dock-item {
+			border: 1px dashed var(--outline-gray-2);
+		}
+
+		&:hover .dock-item {
+			border-color: transparent;
+		}
+
+		// The tile whose panel is open: its dash turns solid, and nothing else changes.
+		&.is-open .dock-item,
+		&.is-open:hover .dock-item {
+			border: 1px solid var(--outline-gray-4);
+			background: none;
 		}
 
 		.ws-row-body {
 			flex: none;
 		}
+	}
 
-		.ws-row-controls {
-			position: absolute;
-			top: calc(var(--spacing) * -1);
-			right: calc(var(--spacing) * -1);
-			padding: 0;
-		}
-
-		.ws-remove {
-			width: calc(var(--spacing) * 4);
-			height: calc(var(--spacing) * 4);
-			min-width: 0;
-			padding: 0;
-			border-radius: var(--radius-full);
-			background: var(--surface-gray-7);
-			color: var(--ink-white);
-		}
+	.ws-row-ghost .dock-item {
+		border-style: solid;
 	}
 
 	.ws-empty {
@@ -356,7 +349,9 @@
 
 // The tile that opens the Add form, under the others.
 .dock-add-slot {
+	flex: 1 1 auto;
 	display: flex;
+	align-items: flex-start;
 	justify-content: center;
 	margin-top: var(--spacing);
 
@@ -368,6 +363,7 @@
 		padding: 0;
 		border: 1px dashed var(--outline-gray-3);
 		border-radius: var(--radius-4);
+		color: var(--ink-gray-5);
 
 		// Named by its tooltip, as the tiles are; the words stay for assistive technology.
 		span {

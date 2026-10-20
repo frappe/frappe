@@ -629,7 +629,8 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// called with the panel's values whenever one changes, for fields that apply as they are
 	// edited; `primary` adds a button that acts on them, for a form such as Add. `choice` names a
 	// Select field to draw as a row of pills over the others, for a form that starts from a kind.
-	open_panel({ key, title, fields, on_change, primary_label, primary, choice }) {
+	// `actions` are buttons for the header, beside the close button.
+	open_panel({ key, title, fields, on_change, primary_label, primary, choice, actions }) {
 		this.close_panel();
 		this.panel = new frappe.ui.ArrangementPanel({
 			editor: this,
@@ -640,6 +641,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			primary_label,
 			primary,
 			choice,
+			actions,
 		});
 		this.render_list();
 		return this.panel;
@@ -757,8 +759,23 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 // A panel of fields beside the surface, level with the row it belongs to. It follows the
 // row as the list scrolls and as the list is redrawn, and closes when the row is no longer shown.
+//
+// It is drawn as an espresso popover (`.es-popover`), but placed and closed here rather than by
+// `frappe.ui.Popover`. That one is tied to a trigger element it owns, and the row this belongs to
+// is redrawn on every change. It also closes on any click outside it, which would include the
+// pickers its own fields open.
 frappe.ui.ArrangementPanel = class ArrangementPanel {
-	constructor({ editor, key, title, fields, on_change, primary_label, primary, choice }) {
+	constructor({
+		editor,
+		key,
+		title,
+		fields,
+		on_change,
+		primary_label,
+		primary,
+		choice,
+		actions,
+	}) {
 		Object.assign(this, {
 			editor,
 			key,
@@ -768,19 +785,22 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 			primary_label,
 			primary,
 			choice,
+			actions,
 		});
 		this.make();
 	}
 
 	make() {
-		this.$wrapper = $(`<div class="ws-panel" role="dialog">
-			<div class="ws-panel-head"><span class="ws-panel-title"></span></div>
+		this.$wrapper = $(`<div class="es-popover ws-panel" role="dialog" tabindex="-1"
+			data-side="right" data-align="start">
+			<div class="ws-panel-head"><span class="es-popover__title ws-panel-title"></span></div>
 			<div class="ws-panel-body"></div>
 			<div class="ws-panel-foot"></div>
 		</div>`).appendTo(document.body);
 		this.$wrapper.attr("aria-label", this.title);
 		this.$wrapper.find(".ws-panel-title").text(this.title);
 		this.$wrapper.find(".ws-panel-head").append(
+			...(this.actions || []),
 			frappe.ui.button({
 				icon: "x",
 				variant: "ghost",
@@ -832,6 +852,7 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 		this.observer.observe(this.$wrapper[0]);
 
 		this.place();
+		this.$wrapper.attr("data-state", "open");
 		this.field_group.focus_on_first_input();
 	}
 
@@ -890,10 +911,12 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 		this.$wrapper.css({ top, left: column.right + 8 });
 	}
 
+	// The popover's exit animation plays first.
 	destroy() {
 		this.observer?.disconnect();
 		this.editor.$scroll?.off("scroll.ws-panel");
 		$(window).off("resize.ws-panel");
-		this.$wrapper.remove();
+		const $wrapper = this.$wrapper.attr("data-state", "closed");
+		setTimeout(() => $wrapper.remove(), 150);
 	}
 };
