@@ -54,7 +54,17 @@ class TestRouteHistory(IntegrationTestCase):
 			[r["route"] for r in routes[-MAX_ROUTES_PER_REQUEST:]],
 		)
 
-	def test_long_route_is_truncated(self):
-		records = self._queued_records([{"route": "x" * 10_000, "creation": "2026-01-01 00:00:00"}])
+	def test_route_longer_than_field_is_skipped(self):
+		routes = [
+			{"route": "x" * (MAX_ROUTE_LENGTH + 1), "creation": "2026-01-01 00:00:00"},
+			{"route": "x" * MAX_ROUTE_LENGTH, "creation": "2026-01-01 00:00:00"},
+		]
 
-		self.assertEqual(len(records[0]["route"]), MAX_ROUTE_LENGTH)
+		records = self._queued_records(routes)
+
+		self.assertEqual([r["route"] for r in records], ["x" * MAX_ROUTE_LENGTH])
+
+	def test_client_creation_is_not_queued(self):
+		records = self._queued_records([{"route": "List/ToDo/Report/Open", "creation": "x" * 10_000}])
+
+		self.assertNotIn("creation", records[0])

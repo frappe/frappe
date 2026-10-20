@@ -37,7 +37,7 @@ class RouteHistory(Document):
 
 
 MAX_ROUTES_PER_REQUEST = 100
-MAX_ROUTE_LENGTH = 512
+MAX_ROUTE_LENGTH = 140
 
 
 @frappe.whitelist()
@@ -45,10 +45,10 @@ def deferred_insert(routes: str | list[dict[str, Any]]):
 	routes = [
 		{
 			"user": frappe.session.user,
-			"route": cstr(route.get("route"))[:MAX_ROUTE_LENGTH] or None,
-			"creation": route.get("creation"),
+			"route": route.get("route"),
 		}
 		for route in frappe.parse_json(routes)[-MAX_ROUTES_PER_REQUEST:]
+		if len(cstr(route.get("route"))) <= MAX_ROUTE_LENGTH
 	]
 
 	_deferred_insert("Route History", routes)
