@@ -134,9 +134,8 @@ class TestPdf(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 
-		pdfgen.get_pdf(
-			f'<style>@import url("http://127.0.0.1:{server.server_port}/print.css");</style><p>row</p>',
-			{"block-external-requests": True},
+		pdfgen.read_options_from_html(
+			f'<style>@import url("http://127.0.0.1:{server.server_port}/print.css");</style><p>row</p>'
 		)
 		self.assertEqual(requested, [])
 
