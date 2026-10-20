@@ -414,6 +414,43 @@ class TestImporter(IntegrationTestCase):
 		self.assertEqual(len(import_logs), 1)
 		self.assertEqual(import_logs[0].import_action, ACTION_UPDATE)
 
+	def test_data_import_update_submits_drafts(self):
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		doctype = (
+			new_doctype(
+				is_submittable=1,
+				allow_import=1,
+				permissions=[
+					{"role": "System Manager", "read": 1, "write": 1, "create": 1, "submit": 1, "import": 1}
+				],
+			)
+			.insert()
+			.name
+		)
+		self.addCleanup(_delete_doctype_records, "DocType", [doctype])
+
+		with self.set_user("test@example.com"):
+			changed_doc = frappe.new_doc(doctype, some_fieldname="draft rate").insert()
+			unchanged_doc = frappe.new_doc(doctype, some_fieldname="confirmed rate").insert()
+
+			import_file = frappe.get_doc(
+				doctype="File",
+				content=f"ID,Some Field\n{changed_doc.name},confirmed rate\n{unchanged_doc.name},confirmed rate\n",
+				file_name="data_import_submit_after_update.csv",
+				is_private=1,
+			).insert()
+			_register_file_cleanup(self, import_file)
+
+			data_import = self.get_importer(doctype, import_file, update=True)
+			data_import.submit_after_import = 1
+			Importer(doctype, data_import=data_import).import_data()
+
+		submitted = frappe.get_all(
+			doctype, filters={"docstatus": 1, "some_fieldname": "confirmed rate"}, pluck="name"
+		)
+		self.assertCountEqual(submitted, [changed_doc.name, unchanged_doc.name])
+
 	def test_retry_after_timed_out_clears_failed_logs(self):
 		self.addCleanup(_delete_doctype_records, doctype_name, SAMPLE_IMPORT_DOC_NAMES)
 		for name in SAMPLE_IMPORT_DOC_NAMES:
