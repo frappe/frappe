@@ -7,7 +7,7 @@ import frappe
 from frappe.auth import get_login_attempt_tracker
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import make_request
-from frappe.twofactor import clear_default, get_otpsecret_for_, set_default
+from frappe.twofactor import clear_default, get_default, get_otpsecret_for_, set_default
 from frappe.utils import get_test_client
 
 
@@ -49,12 +49,9 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 	def test_otp_app_enrollment(self):
 		tmp_id = self.start_login()
-		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["verification"]["otp_secret"], self.secret)
-		self.assertNotIn("message", response.json)
 		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
 		self.assert_logged_in(response)
+		self.assertTrue(get_default(self.user + "_otplogin"))
 
 	def test_enrolled_otp_app_login(self):
 		set_default(self.user + "_otplogin", 1)
@@ -71,16 +68,14 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 	def test_incomplete_login_preserves_pending_logins(self):
 		tmp_id = self.start_login()
-		code = self.email_code(tmp_id)
 		response = self.post_login({})
 		self.assertEqual(response.status_code, 401)
-		response = self.post_login({"tmp_id": tmp_id, "otp": code})
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["verification"]["otp_secret"], self.secret)
+		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
+		self.assert_logged_in(response)
 
 	def test_otp_attempt_limit_survives_login_restarts(self):
 		tmp_id = self.start_login()
-		code = self.email_code(tmp_id)
+		code = pyotp.TOTP(self.secret).now()
 		for credentials in (
 			{"usr": self.user, "pwd": self.password},
 			{"usr": self.user, "tmp_id": tmp_id},
@@ -100,9 +95,6 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		tmp_id = self.start_login()
 		response = self.post_login({"tmp_id": tmp_id, "otp": "wrong-code"})
 		self.assertEqual(response.status_code, 401)
-		response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
-		self.assertEqual(response.status_code, 200)
-		self.assertEqual(response.json["verification"]["otp_secret"], self.secret)
 		tracker = get_login_attempt_tracker(self.user)
 		self.assertEqual(tracker.login_failed_count, 1)
 		response = self.post_login({"tmp_id": tmp_id, "otp": pyotp.TOTP(self.secret).now()})
@@ -155,7 +147,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		get_login_attempt_tracker(self.user, raise_locked_exception=False).add_success_attempt()
 		for tmp_id in self.tmp_ids:
 			frappe.cache.delete_value(
-				[tmp_id + suffix for suffix in ("_usr", "_pwd", "_otp_secret", "_token", "_email_verified")]
+				[tmp_id + suffix for suffix in ("_usr", "_pwd", "_otp_secret", "_token")]
 			)
 		for doctype, name in (("User", self.user), ("Role", self.role)):
 			if frappe.db.exists(doctype, name):
