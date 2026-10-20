@@ -133,7 +133,7 @@ class LoginManager:
 
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
-<<<<<<< HEAD
+		frappe.clear_cache(user=self.user)
 		if self.force_user_to_reset_password():
 			doc = frappe.get_doc("User", self.user)
 			frappe.local.response["redirect_to"] = doc._reset_password(
@@ -141,9 +141,6 @@ class LoginManager:
 			)
 			frappe.local.response["message"] = "Password Reset"
 			return False
-=======
-		frappe.clear_cache(user=self.user)
->>>>>>> edb300e (fix(2fa): site cache keys and failed attempt tracking in 2FA login (backport #44725) (#44783))
 
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)

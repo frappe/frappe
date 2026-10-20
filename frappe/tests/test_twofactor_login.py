@@ -5,13 +5,13 @@ import pyotp
 
 import frappe
 from frappe.auth import get_login_attempt_tracker
-from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import make_request
+from frappe.tests.utils import FrappeTestCase, change_settings
 from frappe.twofactor import clear_default, get_default, get_otpsecret_for_, set_default
 from frappe.utils import get_test_client
 
 
-class TestTwoFactorLogin(IntegrationTestCase):
+class TestTwoFactorLogin(FrappeTestCase):
 	"""HTTP requests use separate database connections, so fixtures and cleanup require commits."""
 
 	user = "twofactor-login@example.com"
@@ -20,10 +20,10 @@ class TestTwoFactorLogin(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		self.enterContext(patch("frappe.sendmail", return_value=True))
-		self.enterContext(self.freeze_time(datetime.datetime.now()))
-		self.enterContext(
-			self.change_settings(
+		self.enter_context(patch("frappe.sendmail", return_value=True))
+		self.enter_context(self.freeze_time(datetime.datetime.now()))
+		self.enter_context(
+			change_settings(
 				"System Settings",
 				{
 					"enable_two_factor_auth": 1,
@@ -63,7 +63,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		self.assert_logged_in(response)
 
 	def test_email_login(self):
-		with self.change_settings("System Settings", {"two_factor_method": "Email"}, commit=True):
+		with change_settings("System Settings", {"two_factor_method": "Email"}, commit=True):
 			tmp_id = self.start_login()
 			response = self.post_login({"tmp_id": tmp_id, "otp": self.email_code(tmp_id)})
 			self.assert_logged_in(response)
@@ -104,7 +104,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		self.assertFalse(tracker.login_failed_count)
 
 	def test_password_login_resets_attempt_limit_without_2fa(self):
-		with self.change_settings("System Settings", {"enable_two_factor_auth": 0}, commit=True):
+		with change_settings("System Settings", {"enable_two_factor_auth": 0}, commit=True):
 			response = self.post_login({"usr": self.user, "pwd": "wrong-password"})
 			self.assertEqual(response.status_code, 401)
 			tracker = get_login_attempt_tracker(self.user)
@@ -112,6 +112,11 @@ class TestTwoFactorLogin(IntegrationTestCase):
 			response = self.post_login({"usr": self.user, "pwd": self.password})
 			self.assert_logged_in(response)
 			self.assertFalse(tracker.login_failed_count)
+
+	def enter_context(self, context_manager):
+		# unittest.TestCase.enterContext needs Python 3.11
+		context_manager.__enter__()
+		self.addCleanup(context_manager.__exit__, None, None, None)
 
 	def start_login(self, method="Email"):
 		response = self.post_login({"usr": self.user, "pwd": self.password})
@@ -134,7 +139,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 		return response
 
 	def email_code(self, tmp_id):
-		token = frappe.cache.get_value(tmp_id + "_token", use_local_cache=False)
+		token = frappe.cache.get_value(tmp_id + "_token", expires=True)
 		return pyotp.HOTP(self.secret).at(token)
 
 	def assert_logged_in(self, response):

@@ -61,9 +61,7 @@ class TestTwoFactor(FrappeTestCase):
 		self.assertTrue(verification_obj)
 		self.assertTrue(tmp_id)
 		for k in ["_usr", "_pwd", "_otp_secret"]:
-			self.assertTrue(
-				frappe.cache.get_value(f"{tmp_id}{k}", use_local_cache=False), f"{k} not available"
-			)
+			self.assertTrue(frappe.cache.get_value(f"{tmp_id}{k}", expires=True), f"{k} not available")
 
 	def test_two_factor_is_enabled(self):
 		"""
