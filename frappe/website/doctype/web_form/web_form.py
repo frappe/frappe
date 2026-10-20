@@ -1376,7 +1376,7 @@ def get_link_options(
 
 
 @redis_cache(ttl=60 * 60)
-def get_published_web_forms() -> dict[str, str]:
+def get_published_web_forms() -> list[dict]:
 	return frappe.get_all(
 		"Web Form",
 		["name", "title", "route", "modified", "module", "doc_type", "key_required", "allow_edit"],
