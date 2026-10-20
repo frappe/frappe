@@ -1,16 +1,14 @@
 <template>
 	<SettingsPage title="Appearance" description="How Flow looks.">
 		<template #actions>
-			<!-- -my-1.5: the button doesn't grow the heading's row, so the heading sits as on other tabs -->
-			<Button label="Reset to defaults" class="-my-1.5" :disabled="isDefault" @click="reset" />
+			<Button label="Reset to defaults" :disabled="isDefault" @click="reset" />
 		</template>
 		<div class="divide-y divide-outline-gray-1">
 			<SettingsRow title="Theme" description="Follow the system, or pick one.">
 				<Select :model-value="colorScheme" :options="THEMES" class="w-36" @update:model-value="setColorScheme" />
 			</SettingsRow>
-			<SettingsRow title="Font size" description="The size of the chat's text.">
+			<SettingsRow title="Font size" description="The size of the chat's text." :saved="size">
 				<span class="flex items-center gap-2">
-					<SavedNote :value="size" />
 					<!-- one box: the steps sit inside its border and round with its corners -->
 					<span
 						class="flex h-7 w-20 rounded-4 border border-[--surface-gray-2] bg-surface-gray-2 transition-colors hover:border-outline-elevation-2 hover:bg-surface-gray-3 has-[input:focus]:border-outline-gray-4 has-[input:focus]:bg-surface-base has-[input:focus]:shadow-sm"
@@ -42,16 +40,13 @@
 					<span class="text-sm text-ink-gray-6">px</span>
 				</span>
 			</SettingsRow>
-			<SettingsRow title="Font weight" description="The weight of the chat's text.">
-				<span class="flex items-center gap-2">
-					<SavedNote :value="weight" />
-					<Select
-						:model-value="weight"
-						:options="CHAT_FONT_WEIGHT.options"
-						class="w-36"
-						@update:model-value="flow.setChatFontWeight"
-					/>
-				</span>
+			<SettingsRow title="Font weight" description="The weight of the chat's text." :saved="weight">
+				<Select
+					:model-value="weight"
+					:options="CHAT_FONT_WEIGHT.options"
+					class="w-36"
+					@update:model-value="flow.setChatFontWeight"
+				/>
 			</SettingsRow>
 		</div>
 	</SettingsPage>
@@ -65,7 +60,6 @@ import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT } from "../layout.js"
-import SavedNote from "./SavedNote.vue"
 import SettingsPage from "./SettingsPage.vue"
 import SettingsRow from "./SettingsRow.vue"
 

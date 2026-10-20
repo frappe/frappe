@@ -7,8 +7,8 @@ export const EFFORTS = ["default", "off", "minimal", "low", "medium", "high", "x
 // display names for the wire-level effort ids
 // the two approval modes as the composer and the general settings present them
 export const APPROVAL_MODES = [
-	{ id: "ask", label: "Ask for approval", desc: "Pauses before writes, edits and commands." },
-	{ id: "auto", label: "Auto-approve", desc: "Runs every tool without stopping to ask." },
+	{ id: "ask", label: "Ask for approval", desc: "Asks before edits and commands." },
+	{ id: "auto", label: "Auto-approve", desc: "Runs everything without asking." },
 ]
 
 export const EFFORT_LABELS = {

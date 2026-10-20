@@ -68,7 +68,8 @@
 			</WorkspacePanel>
 		</div>
 		<Dialogs />
-		<ToastProvider />
+		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do -->
+		<ToastProvider :position="layout.narrow ? 'top-center' : 'bottom-right'" />
 		<FlowSettings />
 		<TranscriptDialog />
 		<ShareChat v-if="canShare" ref="share" />
@@ -90,6 +91,7 @@ import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
+import { layout } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
 import { FrappeClient } from "../api/client.js";
@@ -121,12 +123,8 @@ const COMMANDS = [
 ];
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
-	{
-		id: "ask",
-		label: "Ask for approval",
-		desc: "Pauses before a tool creates, changes or runs anything.",
-	},
-	{ id: "auto", label: "Auto-approve", desc: "Runs every tool without stopping to ask." },
+	{ id: "ask", label: "Ask for approval", desc: "Asks before changing anything." },
+	{ id: "auto", label: "Auto-approve", desc: "Runs everything without asking." },
 ];
 
 const props = defineProps({ boot: { type: Object, required: true } });

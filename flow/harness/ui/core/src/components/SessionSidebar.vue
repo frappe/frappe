@@ -16,7 +16,7 @@
 			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 			dragging && 'flow-reordering',
 		]"
-		:style="{ '--sidebar-w': width + 'px' }"
+		:style="{ '--sidebar-w': layout.phone ? 'min(85vw, 360px)' : width + 'px' }"
 		:inert="!open"
 	>
 		<div class="flex h-12 flex-none items-center gap-2.5 pl-3.5 pr-2">
@@ -108,8 +108,10 @@
 						:data-key="group.cwd"
 						@click="toggleWorkspace(group.cwd)"
 						@pointerdown.capture="holdCard(group.cwd)"
-						@pointerdown="dragStart('folder', group.cwd, $event)"
-						@pointerleave="releaseCard(group.cwd)"
+						@pointerdown="pressStart(group.cwd, $event); dragStart('folder', group.cwd, $event)"
+						@pointerup="pressEnd"
+						@pointercancel="pressEnd"
+						@pointerleave="pressEnd(); releaseCard(group.cwd)"
 					>
 						<template #prefix>
 							<span
@@ -131,7 +133,8 @@
 									{{ group.name }}
 								</span>
 							</template>
-							<div class="flex max-w-80 flex-col gap-1.5 px-3 py-2.5">
+							<!-- no wider than the room beside the row, which a narrow window's drawer cuts short -->
+							<div class="flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
 								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
 								<p class="flex items-start gap-1.5 text-xs leading-4 text-ink-gray-6">
 									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
@@ -139,8 +142,21 @@
 								</p>
 							</div>
 						</HoverCard>
+						<!-- a phone's row shows no button: a long press opens its menu, from where the button sits -->
 						<template #suffix>
+							<Dropdown
+								v-if="layout.phone"
+								align="end"
+								:options="[{ label: 'New chat', icon: 'lucide-square-pen', onClick: () => startNewChat(group.cwd) }]"
+								:open="menuFor === group.cwd"
+								@update:open="(open) => (menuFor = open ? group.cwd : null)"
+							>
+								<template #trigger>
+									<span class="row-action absolute right-1 top-1/2 size-5 -translate-y-1/2" />
+								</template>
+							</Dropdown>
 							<button
+								v-else
 								class="row-action flow-hover-reveal absolute right-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
 								:title="`New chat in ${group.name}`"
 								@click="startNewChat(group.cwd)"
@@ -171,7 +187,7 @@
 									:data-key="s.session_id"
 									@click="pick(s)"
 									@pointerdown.capture="holdCard(s.session_id)"
-									@pointerdown="pressStart(s, $event); dragStart(`chat:${group.cwd ?? ''}`, s.session_id, $event)"
+									@pointerdown="pressStart(s.session_id, $event); dragStart(`chat:${group.cwd ?? ''}`, s.session_id, $event)"
 									@pointerup="pressEnd"
 									@pointercancel="pressEnd"
 									@pointerenter="crawlTitle"
@@ -195,7 +211,7 @@
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
 											</span>
 										</template>
-										<div class="flex max-w-80 flex-col gap-1.5 px-3 py-2.5">
+										<div class="flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
 											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
 											<p v-if="s.cwd" class="flex items-center gap-1.5 text-xs text-ink-gray-6">
 												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
@@ -273,7 +289,7 @@ import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
-import { sidebarIsDrawer } from "../layout.js"
+import { layout } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
@@ -548,16 +564,17 @@ function dragClass(key) {
 	return null
 }
 
-// touch has no hover to reveal a row's menu button: a long press opens its menu instead
+// touch has no hover to reveal a row's buttons: a long press opens its menu (a chat's id, a
+// workspace's folder) instead
 let pressTimer = null
 let pressed = false // the click that ends a long press or a drag must not open or fold a row
-function pressStart(session, event) {
+function pressStart(key, event) {
 	clearTimeout(pressTimer)
 	pressed = false
 	if (event.pointerType !== "touch") return
 	pressTimer = setTimeout(() => {
 		pressed = true
-		menuFor.value = session.session_id
+		menuFor.value = key
 	}, 500)
 }
 function pressEnd() {
@@ -572,13 +589,13 @@ function pick(session) {
 		return
 	}
 	flow.openSession(session.session_id)
-	if (sidebarIsDrawer()) emit("close")
+	if (layout.narrow) emit("close")
 }
 
 // with no folder, the new chat starts in the open chat's
 function startNewChat(cwd = null) {
 	flow.startNewChat({ cwd })
-	if (sidebarIsDrawer()) emit("close")
+	if (layout.narrow) emit("close")
 }
 
 // a chat in a folder picked in the daemon's folder dialog
@@ -618,6 +635,32 @@ function startResize(event) {
 const ready = ref(false)
 onMounted(() => requestAnimationFrame(() => (ready.value = true)))
 
+// a phone's drawer opens with a swipe in from the screen's left edge and closes with a swipe
+// back, as its other chat apps' do; a dialog or the settings page keeps its own touches
+let swipe = null
+function swipeStart(event) {
+	const { clientX: x, clientY: y } = event.touches[0]
+	const free = layout.phone && event.touches.length === 1 && !event.target.closest?.("[role=dialog]")
+	swipe = free && (props.open || x < 24) ? { x, y } : null
+}
+function swipeEnd(event) {
+	if (!swipe) return
+	const dx = event.changedTouches[0].clientX - swipe.x
+	const dy = event.changedTouches[0].clientY - swipe.y
+	swipe = null
+	if (Math.abs(dx) < 60 || Math.abs(dx) < 2 * Math.abs(dy)) return
+	if (dx > 0 && !props.open) flow.setSidebarOpen(true)
+	else if (dx < 0 && props.open) emit("close")
+}
+onMounted(() => {
+	window.addEventListener("touchstart", swipeStart, { passive: true })
+	window.addEventListener("touchend", swipeEnd, { passive: true })
+})
+onBeforeUnmount(() => {
+	window.removeEventListener("touchstart", swipeStart)
+	window.removeEventListener("touchend", swipeEnd)
+})
+
 const filtered = computed(() => {
 	const q = debouncedQuery.value.trim().toLowerCase()
 	return flow.state.sessions.filter((session) => !q || flow.sessionTitle(session).toLowerCase().includes(q))
@@ -645,11 +688,19 @@ const emptyMessage = computed(() => {
 	z-index: 40;
 }
 
-/* finger-sized rows in the phone drawer */
-@media (max-width: 767px) {
+/* a phone's drawer: rows and buttons a finger can take, titles a half step over the chat's text */
+@media (max-width: 767px) and (pointer: coarse) {
 	aside :deep([data-slot="sidebar-item"]),
 	.list-head {
+		height: 2.75rem;
+	}
+	.list-head button {
+		width: 2.25rem;
 		height: 2.25rem;
+	}
+	.row-title,
+	aside :deep([data-slot="sidebar-item"]) .text-xs {
+		font-size: 15.5px;
 	}
 }
 

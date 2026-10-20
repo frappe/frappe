@@ -88,7 +88,9 @@
 				<!-- the host's additions to the strip: its "+" menu of the views it serves -->
 				<slot name="actions" />
 			</div>
+			<!-- a narrow frame's panel already fills it -->
 			<button
+				v-if="!layout.narrow"
 				class="flow-icon-btn my-1 flex-none self-center"
 				:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
 				@click="flow.toggleWorkspaceMaximized()"
@@ -116,6 +118,7 @@
 		<div v-if="!viewActive" class="relative flex flex-1 flex-col items-center justify-center gap-3 px-6">
 			<span class="absolute right-1 top-1 flex">
 				<button
+					v-if="!layout.narrow"
 					class="flow-icon-btn"
 					:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
 					@click="flow.toggleWorkspaceMaximized()"
@@ -137,6 +140,7 @@ import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import SubagentView from "./SubagentView.vue"
+import { layout } from "../layout.js"
 
 const flow = inject("flow")
 const workspace = computed(() => flow.state.workspace)

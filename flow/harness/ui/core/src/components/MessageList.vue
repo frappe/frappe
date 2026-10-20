@@ -262,9 +262,10 @@ function onMouseDown(event) {
 // sat on the bottom is put back there
 const thread = ref(null)
 let resizeObserver = null
-// the empty state glides to its new place, not jumps, when a phone's keyboard or a growing
-// composer shrinks its box: centred, it moves by half what the box lost. Its children glide,
-// as they stay inside the list where the box would spill out of it; with reduced motion, they jump
+// the empty state glides to its new place, not jumps, when its box changes size (a growing
+// composer): centred, it moves by half what the box lost. Its children glide, as they stay inside
+// the list where the box would spill out of it. They jump with the composer where they would start
+// under it (a phone's keyboard took more than the room below them), and with reduced motion
 const emptyState = ref(null)
 const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")
 let emptyObserver = null
@@ -274,13 +275,16 @@ watch(emptyState, (el) => {
 	let height = null
 	emptyObserver = new ResizeObserver(([entry]) => {
 		const now = entry.contentRect.height
-		if (height !== null && now !== height && !reducedMotion?.matches)
-			for (const child of el.children)
-				child.animate?.([{ transform: `translateY(${(height - now) / 2}px)` }, { transform: "none" }], {
-					duration: 250,
-					easing: "ease-out",
-				})
+		const shift = height === null ? 0 : (height - now) / 2
 		height = now
+		const last = el.lastElementChild
+		const room = last ? now - (last.offsetTop - el.offsetTop + last.offsetHeight) : 0
+		if (!shift || shift > room || reducedMotion?.matches) return
+		for (const child of el.children)
+			child.animate?.([{ transform: `translateY(${shift}px)` }, { transform: "none" }], {
+				duration: 250,
+				easing: "ease-out",
+			})
 	})
 	emptyObserver.observe(el)
 })

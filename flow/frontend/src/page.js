@@ -23,7 +23,7 @@ export function createPage(
 		owner: {}, // session → the user who owns it, the only one who shares it
 		generalAccess: {}, // session → "Restricted", or "Everyone" when any Flow user may view
 		log: {}, // session → durable log rows, slimmed to what run mapping needs
-		settingsTab: "general", // the settings dialog opens on this tab
+		settingsTab: null, // the tab settings open on: null for the first, or a narrow page's list
 	});
 
 	function can(doctype, ptype) {

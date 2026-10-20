@@ -19,11 +19,9 @@ body {
 	background: var(--surface-gray-1);
 }
 /* a list hung from a button on the composer covers the box: in dark mode half a step lighter than
-   it, as the "/" list is over the chat. A phone hangs it above the box, like the rest */
-@media (min-width: 640px) {
-	[data-theme="dark"] .flow-composer-surface.flow-dropdown {
-		background: color-mix(in srgb, var(--surface-gray-1) 50%, var(--surface-gray-2));
-	}
+   it, as the "/" list is over the chat */
+[data-theme="dark"] .flow-composer-surface.flow-dropdown {
+	background: color-mix(in srgb, var(--surface-gray-1) 50%, var(--surface-gray-2));
 }
 /* the composer box's edge: in light mode half a step under outline-gray-2 */
 .flow-composer-edge {
@@ -226,9 +224,9 @@ body {
 	background: var(--surface-base);
 }
 
-/* frappe-ui sizes its settings shell as a full-bleed sheet on phones (w-screen, 100dvh)
-   while its dialog keeps a 1rem gutter and 2rem margins around it: fit the shell to the
-   dialog instead. */
+/* settings opened in a wide frame keep frappe-ui's dialog when the phone turns upright. On a
+   phone it sizes its settings shell as a full-bleed sheet (w-screen, 100dvh) while its dialog
+   keeps a 1rem gutter and 2rem margins around it: fit the shell to the dialog instead. */
 @media (max-width: 639px) {
 	.dialog-content > [data-orientation="vertical"] {
 		width: 100%;
@@ -373,6 +371,17 @@ body {
 	.flow-draft > textarea,
 	.flow-draft > div {
 		font-size: var(--flow-chat-text, 15px);
+	}
+}
+/* an iPhone's other fields too (searches, settings forms); only iOS knows -webkit-touch-callout,
+   so other phones keep the fields as drawn */
+@supports (-webkit-touch-callout: none) {
+	@media (max-width: 767px) {
+		input:not([type="checkbox"], [type="radio"], [type="range"]),
+		textarea:not(.flow-draft > *),
+		select {
+			font-size: 16px !important;
+		}
 	}
 }
 

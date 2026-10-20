@@ -2,21 +2,23 @@
      slash commands, model picker, thinking, providers. Overlay + panel +
      header; the composer's own text is the search. A `dropdown` hangs from
      a toolbar button instead, the model and approval mode buttons' own
-     lists; on a phone it spans the composer like the rest. -->
+     lists, moved along to stay on the page. -->
 <template>
 	<div class="fixed inset-0 z-10" @click="emit('close')" />
 	<section
 		ref="panel"
 		:aria-label="title"
-		class="flow-palette-panel absolute bottom-[calc(100%+4px)] z-20 flex w-full flex-col overflow-hidden rounded-8 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
-		:class="[
-			dropdown && align === 'right' ? 'right-0' : 'left-0',
-			dropdown && 'flow-dropdown sm:bottom-[calc(100%+8px)] sm:w-[var(--dropdown-width)]',
-		]"
+		class="flow-palette-panel absolute z-20 flex flex-col overflow-hidden rounded-8 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
+		:class="
+			dropdown
+				? ['flow-dropdown bottom-[calc(100%+8px)] w-[var(--dropdown-width)]', align === 'right' ? 'right-0' : 'left-0']
+				: 'bottom-[calc(100%+4px)] left-0 w-full'
+		"
 		:style="{
 			maxHeight: `${cap}px`,
 			height: full ? `${cap}px` : undefined,
-			'--dropdown-width': dropdown ? `${width}px` : undefined,
+			'--dropdown-width': dropdown ? `min(${width}px, 100vw - 16px)` : undefined,
+			translate: shift ? `${shift}px` : undefined,
 		}"
 		@mousedown="keepFocus"
 		@pointermove="onPointerMove"
@@ -58,7 +60,7 @@ const props = defineProps({
 	// the rows are still loading: the panel holds its full height, so it doesn't open short and jump
 	full: { type: Boolean, default: false },
 	// hung from a toolbar button, not spread over the composer: lined up with its `align` edge,
-	// `width` wide (a phone gives it the composer's width)
+	// `width` wide, or the page's width less 8px a side
 	dropdown: { type: Boolean, default: false },
 	align: { type: String, default: "right" },
 	width: { type: Number, default: 304 },
@@ -68,6 +70,8 @@ const panel = ref(null)
 // 352px tall at most, and no taller than the room above it, 8px short of the page's top: a
 // phone's keyboard can leave less
 const cap = ref(352)
+// a dropdown whose button sits near the page's side moves along, to stay 8px inside it
+const shift = ref(0)
 let activeItem = null
 let observer = null
 let sizer = null
@@ -75,7 +79,12 @@ let enterWaits = false
 let topWaits = false
 
 function fit() {
-	cap.value = Math.min(352, Math.floor(panel.value.getBoundingClientRect().bottom) - 8)
+	const rect = panel.value.getBoundingClientRect()
+	cap.value = Math.min(352, Math.floor(rect.bottom) - 8)
+	if (!props.dropdown) return
+	const left = rect.left - shift.value
+	const room = document.documentElement.clientWidth - 8 - (rect.right - shift.value)
+	shift.value = Math.round(Math.max(8 - left, Math.min(0, room)))
 }
 
 function items() {
@@ -110,9 +119,10 @@ function keepFocus(event) {
 }
 
 // Only a moving pointer takes the highlight: rows the keyboard scrolls under a resting
-// pointer get a pointerover, or in some browsers a move to the same spot.
+// pointer get a pointerover, or in some browsers a move to the same spot. A finger scrolls.
 let pointerAt = ""
 function onPointerMove(event) {
+	if (event.pointerType === "touch") return
 	const at = `${event.clientX},${event.clientY}`
 	if (at === pointerAt) return
 	pointerAt = at
@@ -202,9 +212,7 @@ onBeforeUnmount(() => {
 }
 /* a dark dropdown over the composer is half a step lighter than the box (flow.css): its highlight
    steps up with it */
-@media (min-width: 640px) {
-	[data-theme="dark"] .flow-palette-panel.flow-dropdown :deep([data-palette-item][data-palette-active="true"]) {
-		background: color-mix(in srgb, var(--surface-gray-2) 50%, var(--surface-gray-3));
-	}
+[data-theme="dark"] .flow-palette-panel.flow-dropdown :deep([data-palette-item][data-palette-active="true"]) {
+	background: color-mix(in srgb, var(--surface-gray-2) 50%, var(--surface-gray-3));
 }
 </style>

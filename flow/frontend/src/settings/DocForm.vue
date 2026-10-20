@@ -33,7 +33,14 @@
 			/>
 			<span class="min-w-0 flex-1"><ErrorMessage :message="error" /></span>
 			<Button v-if="canDelete" variant="ghost" theme="red" label="Delete" @click="remove" />
-			<Button v-if="!spec.single" variant="outline" label="Cancel" @click="emit('close')" />
+			<!-- a narrow frame's header leads back to the list instead -->
+			<Button
+				v-if="!spec.single"
+				variant="outline"
+				label="Cancel"
+				class="max-md:hidden"
+				@click="emit('close')"
+			/>
 			<Button
 				v-if="canWrite"
 				variant="solid"

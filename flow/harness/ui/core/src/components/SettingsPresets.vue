@@ -1,9 +1,9 @@
 <template>
 	<!-- form: scrolling body, pinned actions -->
 	<div v-if="draft" class="flex min-h-0 flex-1 flex-col">
-		<div class="min-h-0 flex-1 overflow-y-auto px-4 pt-8 sm:px-8">
+		<div class="min-h-0 flex-1 overflow-y-auto px-4 pt-3 sm:px-8 md:pt-8">
 			<div class="flex items-center gap-2">
-				<button class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
+				<button v-if="!headerBack" class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
 					<FeatherIcon name="arrow-left" class="h-4 w-4" />
 				</button>
 				<h2 class="text-base font-semibold text-ink-gray-9">{{ draft.default ? "Standard preset" : draft.id ? "Edit preset" : "New preset" }}</h2>
@@ -67,7 +67,7 @@
 	</div>
 
 	<!-- list -->
-	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-8 sm:px-8">
+	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-3 sm:px-8 md:pt-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
 				<h2 class="text-base font-semibold text-ink-gray-9">Agent presets</h2>
@@ -75,7 +75,7 @@
 					{{ inSession ? "This chat keeps the preset it started with. Start a new chat to switch." : "Saved setups for new chats. Pick the one to use." }}
 				</p>
 			</div>
-			<Button variant="solid" label="New preset" @click="draft = blank()" />
+			<Button v-if="!layout.narrow" variant="solid" label="New preset" @click="draft = blank()" />
 		</div>
 
 		<div class="mt-6 divide-y divide-outline-gray-1 rounded-6 border border-outline-gray-2">
@@ -104,6 +104,8 @@
 				</button>
 			</div>
 		</div>
+		<!-- a narrow frame has no room beside the heading: the button ends the page -->
+		<Button v-if="layout.narrow" class="mt-4" variant="solid" label="New preset" @click="draft = blank()" />
 	</div>
 </template>
 
@@ -116,6 +118,9 @@ import { Textarea } from "frappe-ui/src/components/Textarea"
 import { dialog } from "frappe-ui/src/utils/dialog"
 import FeatherIcon from "./FeatherIcon.vue"
 
+import { layout } from "../layout.js"
+import { useSettingsBack } from "../settingsBack.js"
+
 const flow = inject("flow")
 
 const PROMPT_MODES = [
@@ -126,6 +131,7 @@ const PROMPT_MODES = [
 // a preset is read once, when a chat is created, so switching is only offered on a blank chat
 const inSession = computed(() => !!flow.state.sessionId)
 const draft = ref(null)
+const headerBack = useSettingsBack(() => !!draft.value, back)
 let opened = null // the draft as opened, for the dirty check
 
 const extensionNames = computed(() => flow.state.tools.filter((t) => t.extension).map((t) => t.name))

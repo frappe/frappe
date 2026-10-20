@@ -1,7 +1,7 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, layout } from "./layout.js"
 import {
 	applyEvent,
 	approvalToAnswer,
@@ -135,7 +135,7 @@ export function createFlowStore(client, options = {}) {
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
 
 	// the docked sidebar follows the saved preference; a drawer starts closed and is never saved
-	const sidebarFromPrefs = () => !sidebarIsDrawer() && prefs.sidebarOpen !== false
+	const sidebarFromPrefs = () => !layout.narrow && prefs.sidebarOpen !== false
 
 	const state = reactive({
 		sessions: [],
@@ -171,7 +171,7 @@ export function createFlowStore(client, options = {}) {
 		titles: readJSON(keys.titles, {}),
 	})
 
-	onSidebarLayoutChange(() => (state.sidebarOpen = sidebarFromPrefs()))
+	watch(() => layout.narrow, () => (state.sidebarOpen = sidebarFromPrefs()))
 
 	let stream = null
 	let streamTask = null
@@ -438,9 +438,11 @@ export function createFlowStore(client, options = {}) {
 			.filter((tab) => tab && typeof tab.path === "string" && tab.path)
 		if (!stored.length && !saved?.open) return
 		const paths = stored.map((tab) => tab.path)
+		// a narrow frame's panel covers the chat, so a chat opens on itself, with its tabs kept
+		const open = !layout.narrow && (saved.open ?? true)
 		state.workspace = {
-			open: saved.open ?? true,
-			maximized: (saved.open ?? true) && !!saved.maximized,
+			open,
+			maximized: open && !!saved.maximized,
 			view: ["files", "diff"].includes(saved.view) ? saved.view : null,
 			tabs: stored.map(({ kind, path, diff }) =>
 				kind === "subagent"
@@ -1464,7 +1466,7 @@ export function createFlowStore(client, options = {}) {
 
 	function setSidebarOpen(open) {
 		state.sidebarOpen = open
-		if (sidebarIsDrawer()) return
+		if (layout.narrow) return
 		state.prefs.sidebarOpen = open
 		savePrefs()
 	}

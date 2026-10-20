@@ -36,8 +36,8 @@
 
 		<div v-if="!asking" class="flex items-center justify-end gap-2 px-3.5 py-2.5">
 			<button class="flow-btn-ghost" @click="asking = true">Ask for changes</button>
-			<button class="flow-btn-secondary" @click="flow.answerApproval(call.id, 'Deny')">Deny</button>
-			<button class="flow-btn-primary" @click="flow.answerApproval(call.id, 'Approve')">Approve</button>
+			<button class="flow-btn-secondary" @click="answer('Deny')">Deny</button>
+			<button class="flow-btn-primary" @click="answer('Approve')">Approve</button>
 		</div>
 		<div v-else class="px-3.5 py-2.5">
 			<!-- function ref: the field mounts only while asking, so mount-time focus
@@ -68,6 +68,8 @@
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
 
+import { layout } from "../layout.js"
+
 // One gated call, answered here. The composer shows the batch one call at a time,
 // and the call's place in it tells the user how many questions follow.
 const props = defineProps({
@@ -81,6 +83,14 @@ const flow = inject("flow")
 
 const asking = ref(false)
 const askText = ref("")
+
+// On a phone the card comes up under a finger that was going somewhere else, or takes the
+// place of the call just answered: a tap in its first moment answers nothing.
+const shownAt = Date.now()
+function answer(text) {
+	if (layout.phone && Date.now() - shownAt < 400) return
+	flow.answerApproval(props.call.id, text)
+}
 
 // a ref fires before its node is in the document, where focus() is a no-op; the tick
 // after, the field exists and the typing lands in it

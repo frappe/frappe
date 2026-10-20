@@ -11,16 +11,17 @@
 	/>
 	<SettingsPage v-else :title="title || spec.label" :description="description">
 		<slot name="tabs" />
+		<!-- a narrow frame's search fills the row beside the button; a filter takes a row of its own -->
 		<div class="mb-3 flex flex-wrap items-center gap-2 pt-1">
 			<FormControl
 				v-model="query"
 				type="text"
 				variant="outline"
 				placeholder="Search"
-				class="w-56"
+				class="w-56 max-md:min-w-0 max-md:flex-1"
 			/>
 			<slot name="filters" />
-			<span class="flex-1" />
+			<span class="flex-1 max-md:hidden" />
 			<Button
 				v-if="canCreate"
 				variant="solid"
