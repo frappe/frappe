@@ -1172,6 +1172,12 @@ class TestLazyDocument(IntegrationTestCase):
 		# things accessing __dict__ by default should be updated too
 		self.assertTrue(frappe.get_lazy_doc("User", "Guest").get("roles"))
 
+	def test_lazy_single_document(self):
+		_ = frappe.get_lazy_doc("Navbar Settings", "Navbar Settings")
+
+		with self.assertQueryCount(1):
+			frappe.get_lazy_doc("Navbar Settings", "Navbar Settings")
+
 	def test_lazy_doc_efficient_saves(self):
 		# Only touched tables and self should be updated.
 		per_update = 1
