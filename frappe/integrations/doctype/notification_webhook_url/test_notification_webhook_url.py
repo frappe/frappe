@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 from unittest.mock import Mock, PropertyMock, patch
+from urllib.parse import quote
 
 import requests
 
@@ -20,7 +21,7 @@ from frappe.tests.classes.context_managers import set_user
 
 TEST_SITE = "https://frappe.example.com"
 REFERENCE_NAME = "webhook@example.com"
-DOCUMENT_URL = f"{TEST_SITE}/desk/user/{REFERENCE_NAME}"
+DOCUMENT_URL = f"{TEST_SITE}/desk/user/{quote(REFERENCE_NAME, safe='')}"
 APP_LOGO = "/assets/frappe/images/test-logo.png"
 
 EXPECTED_PAYLOADS = {
