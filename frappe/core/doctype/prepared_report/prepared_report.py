@@ -168,6 +168,7 @@ def notify_report_status(instance: PreparedReport):
 			"document_type": "Report",
 			"document_name": instance.report_name,
 			"link": link,
+			"type": "Alert",
 		}
 	).insert(ignore_permissions=True)
 
