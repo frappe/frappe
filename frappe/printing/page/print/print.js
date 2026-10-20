@@ -58,20 +58,20 @@ frappe.ui.form.PrintView = class {
 		<div class="preview-beta-wrapper">
 			<iframe width="100%" height="0" frameBorder="0"></iframe>
 			<div class="print-preview-bar">
-				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="prev-page" aria-label="${__(
-					"Previous page"
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="prev-page" aria-label="${frappe.utils.escape_html(
+					__("Previous page")
 				)}">${frappe.utils.icon("chevron-up", "sm")}</button>
 				<span class="print-preview-bar-label page-label"></span>
-				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="next-page" aria-label="${__(
-					"Next page"
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="next-page" aria-label="${frappe.utils.escape_html(
+					__("Next page")
 				)}">${frappe.utils.icon("chevron-down", "sm")}</button>
 				<span class="print-preview-bar-divider"></span>
-				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-out" aria-label="${__(
-					"Zoom out"
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-out" aria-label="${frappe.utils.escape_html(
+					__("Zoom out")
 				)}">${frappe.utils.icon("minus", "sm")}</button>
 				<span class="print-preview-bar-label zoom-label"></span>
-				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-in" aria-label="${__(
-					"Zoom in"
+				<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-in" aria-label="${frappe.utils.escape_html(
+					__("Zoom in")
 				)}">${frappe.utils.icon("plus", "sm")}</button>
 				<button class="es-button" data-variant="ghost" data-size="sm" data-action="fit">${__(
 					"Fit"

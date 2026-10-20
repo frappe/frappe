@@ -1733,8 +1733,8 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 					d.$body.prepend(`
 						<div class="columns-search">
-							<input type="text" placeholder="${__(
-								"Search"
+							<input type="text" placeholder="${frappe.utils.escape_html(
+								__("Search")
 							)}" data-element="search" class="form-control input-xs">
 						</div>
 					`);

@@ -699,13 +699,13 @@ frappe.search.SearchDialog = class {
 			const safe_label = frappe.utils.escape_html(label || dt || "");
 			let pin_btn = "";
 			if (action === "unpin") {
-				pin_btn = `<button type="button" class="btn btn-xs btn-default global-search-pin-btn" data-pin-action="remove" data-doctype="${esc}" title="${__(
-					"Unpin"
-				)}" aria-label="${__("Unpin")}">${unpin_icon}</button>`;
+				pin_btn = `<button type="button" class="btn btn-xs btn-default global-search-pin-btn" data-pin-action="remove" data-doctype="${esc}" title="${frappe.utils.escape_html(
+					__("Unpin")
+				)}" aria-label="${frappe.utils.escape_html(__("Unpin"))}">${unpin_icon}</button>`;
 			} else if (action === "pin") {
-				pin_btn = `<button type="button" class="btn btn-xs btn-default global-search-pin-btn" data-pin-action="add" data-doctype="${esc}" title="${__(
-					"Pin"
-				)}" aria-label="${__("Pin")}">${pin_icon}</button>`;
+				pin_btn = `<button type="button" class="btn btn-xs btn-default global-search-pin-btn" data-pin-action="add" data-doctype="${esc}" title="${frappe.utils.escape_html(
+					__("Pin")
+				)}" aria-label="${frappe.utils.escape_html(__("Pin"))}">${pin_icon}</button>`;
 			}
 			return `<div class="global-search-more-row">
 				<button type="button" class="btn btn-xs btn-link global-search-dd-pick-doctype ellipsis" data-doctype="${esc}">${safe_label}</button>

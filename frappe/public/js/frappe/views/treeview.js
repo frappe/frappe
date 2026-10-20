@@ -361,7 +361,9 @@ frappe.views.TreeView = class TreeView {
 				${frappe.ui.skeleton.html({ width: width, height: "13px" })}
 			</div>`;
 		this.$tree_skeleton = $(`
-			<div class="tree-skeleton p-1" aria-busy="true" aria-label="${__("Loading")}">
+			<div class="tree-skeleton p-1" aria-busy="true" aria-label="${frappe.utils.escape_html(
+				__("Loading")
+			)}">
 				${row(8, "90px")}
 				${row(32, "220px")}
 				${row(32, "180px")}

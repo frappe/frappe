@@ -352,12 +352,12 @@ frappe.ui.form.TemplateManager = class TemplateManager {
 			const prevDisabled = this._manage_start <= 0 ? "disabled" : "";
 			const nextDisabled = !has_next_page ? "disabled" : "";
 			html += `<div class="dt-pagination">
-				<button class="btn btn-secondary btn-xs dt-page-prev" title="${__(
-					"Previous"
+				<button class="btn btn-secondary btn-xs dt-page-prev" title="${frappe.utils.escape_html(
+					__("Previous")
 				)}" ${prevDisabled}>${frappe.utils.icon("chevron-left", "xs")}</button>
 				<span class="text-muted text-small dt-page-info">${__("Page {0}", [current_page])}</span>
-				<button class="btn btn-secondary btn-xs dt-page-next" title="${__(
-					"Next"
+				<button class="btn btn-secondary btn-xs dt-page-next" title="${frappe.utils.escape_html(
+					__("Next")
 				)}" ${nextDisabled}>${frappe.utils.icon("chevron-right", "xs")}</button>
 			</div>`;
 		}

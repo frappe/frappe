@@ -958,7 +958,7 @@ class FilterArea {
 		let standard_html = `
 			<div class="dropdown-search mb-1">
 				<input type="text"
-					placeholder="${__("Search")}"
+					placeholder="${frappe.utils.escape_html(__("Search"))}"
 					data-element="search"
 					class="dropdown-search-input form-control input-xs"
 				>
@@ -1420,7 +1420,9 @@ class FilterArea {
 					${__("Filter")}
 					<span>
 				</button>
-				<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
+				<button class="btn btn-default btn-sm filter-x-button" title="${frappe.utils.escape_html(
+					__("Clear all filters")
+				)}">
 					<span class="filter-icon button-icon">
 						${frappe.utils.icon("x")}
 					</span>

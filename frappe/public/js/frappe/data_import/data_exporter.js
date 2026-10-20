@@ -411,7 +411,7 @@ frappe.data_import.DataExporter = class DataExporter {
 			<div class="filters-search">
 				<input
 					type="text"
-					placeholder="${__("Search")}"
+					placeholder="${frappe.utils.escape_html(__("Search"))}"
 					data-element="search"
 					class="form-control input-xs"
 				>

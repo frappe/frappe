@@ -44,7 +44,9 @@ frappe.ui.panel_header = function ({ title, closable = true, on_close } = {}) {
 	const $items = $header.find(".panel-items");
 
 	if (closable) {
-		$(`<span class="panel-close" role="button" tabindex="0" aria-label="${__("Close")}">
+		$(`<span class="panel-close" role="button" tabindex="0" aria-label="${frappe.utils.escape_html(
+			__("Close")
+		)}">
 				${frappe.utils.icon("x", "sm")}
 			</span>`)
 			.on("click", () => on_close?.())

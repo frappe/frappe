@@ -389,7 +389,9 @@ frappe.ui.GroupBy = class {
 							${__("Add Group")}
 						</span>
 					</button>
-					<button class="btn btn-default btn-sm group-by-x-button" title="${__("Clear Grouping")}">
+					<button class="btn btn-default btn-sm group-by-x-button" title="${frappe.utils.escape_html(
+						__("Clear Grouping")
+					)}">
 						<span class="button-icon">
 							${frappe.utils.icon("x")}
 						</span>

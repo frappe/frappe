@@ -52,8 +52,8 @@ frappe.data_import.ImportTreePreview = class ImportTreePreview {
 				<div class="import-tree-actions flex items-center justify-between gap-2 mb-2">
 					<label class="diw-tree-filter-input flex items-center gap-2 flex-1 min-w-0 max-w-lg border rounded px-2 bg-surface-base">
 						<span class="diw-tree-filter-icon inline-flex text-ink-gray-6">${this.icon_set.search}</span>
-						<input type="search" class="form-control input-sm" placeholder="${__(
-							"Filter nodes"
+						<input type="search" class="form-control input-sm" placeholder="${frappe.utils.escape_html(
+							__("Filter nodes")
 						)}" autocomplete="off" />
 					</label>
 					<div class="inline-flex items-center gap-1 shrink-0">

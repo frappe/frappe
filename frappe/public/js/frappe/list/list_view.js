@@ -1346,10 +1346,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const subject_field = this.columns[0].df;
 		let subject_html = `
 			<span class="level-item select-like">
-				<input class="list-header-checkbox list-check-all" type="checkbox" title="${__("Select All")}">
+				<input class="list-header-checkbox list-check-all" type="checkbox" title="${frappe.utils.escape_html(
+					__("Select All")
+				)}">
 			</span>
 			<span class="level-item" data-sort-by="${subject_field.fieldname}"
-				title="${__("Click to sort by {0}", [subject_field.label])}">
+				title="${frappe.utils.escape_html(__("Click to sort by {0}", [subject_field.label]))}">
 				${__(subject_field.label)}
 			</span>
 		`;
@@ -1394,7 +1396,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const right_html = `
 			<span class="list-count" style=""></span>
 			<span class="level-item list-liked-by-me hidden-xs">
-				<span title="${__("Liked by me")}">
+				<span title="${frappe.utils.escape_html(__("Liked by me"))}">
 					<svg class="icon icon-sm like-icon">
 						<use href="#icon-heart"></use>
 					</svg>
@@ -1415,7 +1417,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				<div class="level-left checkbox-actions">
 					<div class="level list-subject">
 						<span class="level-item select-like">
-							<input class="list-header-checkbox list-check-all" type="checkbox" title="${__("Select All")}">
+							<input class="list-header-checkbox list-check-all" type="checkbox" title="${frappe.utils.escape_html(
+								__("Select All")
+							)}">
 						</span>
 						<span class="level-item list-header-meta"></span>
 					</div>
@@ -1609,7 +1613,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				</span>`;
 			} else if (df.fieldtype === "Percent") {
 				return `<div style="width: 100%;"
-					title="${__(label)}: ${frappe.utils.escape_html(_value)}">
+					title="${frappe.utils.escape_html(__(label))}: ${frappe.utils.escape_html(_value)}">
 					${format()}
 				</div>`;
 			} else {
@@ -1620,7 +1624,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 
 			return `<span class="ellipsis"
-				title="${__(label)}: ${frappe.utils.escape_html(_value)}">
+				title="${frappe.utils.escape_html(__(label))}: ${frappe.utils.escape_html(_value)}">
 				${html}
 			</span>`;
 		};

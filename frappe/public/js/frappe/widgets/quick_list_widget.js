@@ -29,7 +29,9 @@ export default class QuickListWidget extends Widget {
 	setup_add_new_button() {
 		this.add_new_button = $(
 			`<div class="add-new btn btn-xs pull-right"
-			title="${__("Add New")} ${__(this.document_type)}
+			title="${frappe.utils.escape_html(__("Add New"))} ${frappe.utils.escape_html(
+				__(this.document_type)
+			)}
 			">
 				${frappe.utils.icon("plus", "sm")}
 			</div>`
@@ -50,7 +52,9 @@ export default class QuickListWidget extends Widget {
 
 	setup_refresh_list_button() {
 		this.refresh_list = $(
-			`<div class="refresh-list btn btn-xs pull-right" title="${__("Refresh List")}">
+			`<div class="refresh-list btn btn-xs pull-right" title="${frappe.utils.escape_html(
+				__("Refresh List")
+			)}">
 				${frappe.utils.icon("refresh-cw", "sm")}
 			</div>`
 		);
@@ -64,7 +68,9 @@ export default class QuickListWidget extends Widget {
 
 	setup_filter_list_button() {
 		this.filter_list = $(
-			`<div class="filter-list btn btn-xs pull-right" title="${__("Add/Update Filter")}">
+			`<div class="filter-list btn btn-xs pull-right" title="${frappe.utils.escape_html(
+				__("Add/Update Filter")
+			)}">
 				${frappe.utils.icon("funnel", "sm")}
 			</div>`
 		);

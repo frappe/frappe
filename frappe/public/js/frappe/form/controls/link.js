@@ -15,10 +15,14 @@ frappe.ui.form.ControlLink = class ControlLink extends frappe.ui.form.ControlDat
 		$(`<div class="link-field ui-front" style="position: relative;">
 			<input type="text" class="input-with-feedback form-control">
 			<span class="link-btn">
-				<a class="btn-clear" style="display: inline-flex;" title="${__("Clear Link")}">
+				<a class="btn-clear" style="display: inline-flex;" title="${frappe.utils.escape_html(
+					__("Clear Link")
+				)}">
 					${frappe.utils.icon("x", "xs")}
 				</a>
-				<a class="btn-open" style="display: inline-flex;" title="${__("Open Link")}">
+				<a class="btn-open" style="display: inline-flex;" title="${frappe.utils.escape_html(
+					__("Open Link")
+				)}">
 					${frappe.utils.icon("arrow-right", "xs")}
 				</a>
 			</span>

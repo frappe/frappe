@@ -99,17 +99,16 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 
 	get_meta_html(email) {
 		const attachment = email.has_attachment
-			? `<span title="${__("Has Attachments")}">${frappe.utils.icon(
-					"paperclip",
-					"sm"
-			  )}</span>`
+			? `<span title="${frappe.utils.escape_html(
+					__("Has Attachments")
+			  )}">${frappe.utils.icon("paperclip", "sm")}</span>`
 			: "";
 
 		let link = "";
 		if (email.reference_doctype && email.reference_doctype !== this.doctype) {
 			link = `<a class="text-muted grey"
 				href="${frappe.utils.get_form_link(email.reference_doctype, email.reference_name)}"
-				title="${__("Linked with {0}", [email.reference_doctype])}">
+				title="${frappe.utils.escape_html(__("Linked with {0}", [email.reference_doctype]))}">
 				${frappe.utils.icon("link", "sm")}
 			</a>`;
 		}
@@ -117,9 +116,15 @@ frappe.views.InboxView = class InboxView extends frappe.views.ListView {
 		const communication_date = comment_when(email.communication_date, true);
 		const status =
 			email.status == "Closed"
-				? `<span title="${__(email.status)}">${frappe.utils.icon("check", "sm")}</span>`
+				? `<span title="${frappe.utils.escape_html(__(email.status))}">${frappe.utils.icon(
+						"check",
+						"sm"
+				  )}</span>`
 				: email.status == "Replied"
-				? `<span title="${__(email.status)}">${frappe.utils.icon("reply", "sm")}</span>`
+				? `<span title="${frappe.utils.escape_html(__(email.status))}">${frappe.utils.icon(
+						"reply",
+						"sm"
+				  )}</span>`
 				: "";
 
 		return `

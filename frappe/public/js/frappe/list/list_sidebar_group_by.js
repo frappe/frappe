@@ -138,7 +138,7 @@ frappe.views.ListGroupBy = class ListGroupBy {
 		let standard_html = `
 			<div class="dropdown-search">
 				<input type="text"
-					placeholder="${__("Search")}"
+					placeholder="${frappe.utils.escape_html(__("Search"))}"
 					data-element="search"
 					class="dropdown-search-input form-control input-xs"
 				>

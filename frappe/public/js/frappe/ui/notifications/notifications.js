@@ -230,7 +230,7 @@ function get_null_state_html(icon, title, description) {
 
 function get_loading_state_html() {
 	return `<div class="flex items-center justify-center ${NULL_STATE_CLASS}">
-		<span class="es-spinner" aria-label="${__("Loading")}"></span>
+		<span class="es-spinner" aria-label="${frappe.utils.escape_html(__("Loading"))}"></span>
 	</div>`;
 }
 

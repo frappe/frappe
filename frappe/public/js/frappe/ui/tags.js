@@ -18,9 +18,9 @@ frappe.ui.Tags = class {
 
 		this.$inputWrapper = this.get_list_element(this.$input);
 		this.$placeholder =
-			$(`<button type="button" class="es-button add-tags-btn" data-variant="ghost" data-icon-button="true" title="${__(
-				"Add Tags"
-			)}" aria-label="${__("Add Tags")}">
+			$(`<button type="button" class="es-button add-tags-btn" data-variant="ghost" data-icon-button="true" title="${frappe.utils.escape_html(
+				__("Add Tags")
+			)}" aria-label="${frappe.utils.escape_html(__("Add Tags"))}">
 				${__(placeholder)}
 			</button>`);
 		this.$placeholder.appendTo(this.$ul.find(".form-sidebar-items"));

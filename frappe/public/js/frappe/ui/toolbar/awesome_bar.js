@@ -35,7 +35,7 @@ frappe.search.AwesomeBar = class AwesomeBar {
 				id="navbar-search"
 				type="text"
 				class="form-control bg-transparent shadow-none" aria-haspopup="true"
-				placeholder="${__("Search or type a command")}" autocomplete="off"
+				placeholder="${frappe.utils.escape_html(__("Search or type a command"))}" autocomplete="off"
 			/>
 			<div class="modal-divider"></div>
 		</div>`;

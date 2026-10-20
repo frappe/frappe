@@ -199,7 +199,7 @@ frappe.ui.Capture = class {
 						data-variant="outline"
 						data-icon-button="true"
 						data-idx="${idx}"
-						title="${__("Remove")}"
+						title="${frappe.utils.escape_html(__("Remove"))}"
 					>
 						${frappe.utils.icon("x", "sm")}
 					</button>

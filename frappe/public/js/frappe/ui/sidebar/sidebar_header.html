@@ -5,7 +5,7 @@
             {%= __(workspace_title) %}
     </div>
 </div>
-<button class="btn-reset drop-icon" aria-label="{%= __('Sidebar Menu') %}">
+<button class="btn-reset drop-icon" aria-label="{%= frappe.utils.escape_html(__('Sidebar Menu')) %}">
     {%= frappe.utils.icon("chevron-down", "sm", "", "", "", true) %}
 </button>
 </a>
