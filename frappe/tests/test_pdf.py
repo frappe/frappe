@@ -206,6 +206,8 @@ class TestPdf(IntegrationTestCase):
 		threading.Thread(target=server.serve_forever, daemon=True).start()
 		self.addCleanup(server.server_close)
 		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 
 		pdf = pdfgen.get_pdf(
 			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
