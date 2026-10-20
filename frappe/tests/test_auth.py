@@ -13,7 +13,7 @@ from frappe.auth import (
 	CookieManager,
 	LoginAttemptTracker,
 	LoginManager,
-	login_failed_message,
+	get_login_attempt_tracker,
 	validate_api_key_secret,
 	validate_auth,
 	validate_ip_address,
@@ -98,26 +98,39 @@ class TestAuth(IntegrationTestCase):
 
 	def test_locked_account_response_matches_unknown_account(self):
 		unknown = "unknown_auth@example.com"
-		keys = [self.test_user_email, unknown, *(f"10.8.0.{i}" for i in range(6))]
-		self.addCleanup(lambda: [LoginAttemptTracker(key).add_success_attempt() for key in keys])
+		ips = [f"10.8.0.{i}" for i in range(6)]
 
-		def attempt(usr):
+		def cleanup():
+			for key in [self.test_user_email, *ips]:
+				LoginAttemptTracker(key).add_success_attempt()
+			get_login_attempt_tracker(
+				unknown, raise_locked_exception=False, unknown_user=True
+			).add_success_attempt()
+
+		self.addCleanup(cleanup)
+
+		def attempt(usr, ip):
+			frappe.local.request_ip = ip
 			frappe.local.response = frappe._dict()
 			frappe.local.message_log = []
 			frappe.form_dict.update({"usr": usr, "pwd": "wrong_pwd_012"})
-			with self.assertRaises(frappe.AuthenticationError):
+			try:
 				LoginManager.__new__(LoginManager).authenticate()
-			return frappe.local.response.get("message"), list(frappe.local.message_log)
+			except (frappe.AuthenticationError, frappe.SecurityException) as e:
+				return (
+					type(e),
+					frappe.local.response.get("message"),
+					[m["message"] for m in frappe.local.message_log],
+				)
 
 		with self.change_settings("System Settings", allow_consecutive_login_attempts=2):
-			results = {}
-			for label, usr in (("known", self.test_user_email), ("unknown", unknown)):
-				for i in range(6):
-					frappe.local.request_ip = f"10.8.0.{i}"
-					results[label] = attempt(usr)
+			known = [attempt(self.test_user_email, ip) for ip in ips]
+			unknown_results = [attempt(unknown, ip) for ip in ips]
 
-		self.assertEqual(results["known"], results["unknown"])
-		self.assertEqual(results["known"], (login_failed_message(), []))
+		self.assertEqual(known, unknown_results)
+		self.assertEqual(known[0][:2], (frappe.AuthenticationError, "Invalid login credentials"))
+		self.assertEqual(known[-1][0], frappe.SecurityException)
+		self.assertIn("Too many failed login attempts", known[-1][2][0])
 
 	def test_unknown_account_checks_a_password_hash(self):
 		with patch("frappe.core.doctype.user.user._verify_password", return_value=(False, False)) as verify:
