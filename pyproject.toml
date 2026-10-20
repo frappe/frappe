@@ -71,7 +71,7 @@ dependencies = [
     "rq==2.6.1",
     "rsa~=4.9.1",
     "semantic-version~=2.10.0",
-    "sentry-sdk~=2.60.0",
+    "sentry-sdk~=2.72.0",
     "sqlglot~=30.16.0",
     "sqlparse~=0.6.0",
     "sql_metadata~=3.0.1",
