@@ -247,6 +247,28 @@ class TestAnAppWinsTheName(IntegrationTestCase):
 			self.assertEqual(frappe.db.get_value("Sidebar", renamed, "module"), renamed)
 			self.assertEqual(frappe.db.get_value("Sidebar", renamed, "title"), renamed)
 
+	def test_a_site_with_no_sidebar_table_yet_is_not_asked_for_a_sidebar(self):
+		"""`sync_module_defs` runs before the schema sync, so a site upgrading from before `Sidebar`
+		existed has no `tabSidebar` when this runs. Looking for the site's sidebar there raised
+		"Table doesn't exist" and failed the whole migrate.
+		"""
+		real_get_value = frappe.db.get_value
+
+		def get_value(doctype, *args, **kwargs):
+			self.assertNotEqual(doctype, "Sidebar", "there is no table to ask")
+			return real_get_value(doctype, *args, **kwargs)
+
+		with custom_module("Test Pre Sidebar Module") as module:
+			with (
+				patch("frappe.db.table_exists", side_effect=lambda doctype, *a, **kw: doctype != "Sidebar"),
+				patch("frappe.db.get_value", side_effect=get_value),
+			):
+				renamed = rename_conflicting_custom_module(module, "frappe")
+			self.addCleanup(frappe.delete_doc, "Module Def", renamed, force=True, ignore_missing=True)
+
+			self.assertEqual(renamed, f"{module} (Custom)")
+			self.assertFalse(frappe.db.exists("Module Def", module), "the name is free for the app")
+
 	def test_a_sidebar_called_something_else_is_left_where_it_is(self):
 		"""The collision is on the title, which is what a sidebar is named by, not on the module. A
 		sidebar the site holds under a name of its own is not in the app's way, and moving it would
