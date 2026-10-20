@@ -248,6 +248,8 @@ class Dashboard {
 	// the route segment. A link often reaches this page lowercased, and the
 	// crumb and the title would otherwise read `selling`.
 	show(doc) {
+		this.doc = doc;
+		this.permitted_items = 0;
 		this.dashboard_name = doc.name;
 		this.set_breadcrumbs(doc.name);
 
@@ -280,14 +282,33 @@ class Dashboard {
 		]);
 	}
 
+	// A reader who may see none of the dashboard's charts and cards would
+	// otherwise get a blank page.
 	refresh() {
-		frappe.run_serially([() => this.render_cards(), () => this.render_charts()]);
+		frappe.run_serially([() => this.render_cards(), () => this.render_charts()]).then(() => {
+			const has_items = this.doc.charts?.length || this.doc.cards?.length;
+			if (!this.destroyed && has_items && !this.permitted_items) {
+				this.show_not_permitted();
+			}
+		});
+	}
+
+	show_not_permitted() {
+		this.refresh_all_item.toggle(false);
+		this.container.append(
+			frappe.ui.empty_state({
+				icon: "lock",
+				title: __("You don't have access to anything on this dashboard"),
+				description: __("Ask your administrator for access to its reports or doctypes."),
+			})
+		);
 	}
 
 	render_charts() {
 		return this.get_permitted_items(
 			"frappe.desk.doctype.dashboard.dashboard.get_permitted_charts"
 		).then((charts) => {
+			this.permitted_items += charts.length;
 			if (!charts.length) {
 				return;
 			}
@@ -331,6 +352,7 @@ class Dashboard {
 		return this.get_permitted_items(
 			"frappe.desk.doctype.dashboard.dashboard.get_permitted_cards"
 		).then((cards) => {
+			this.permitted_items += cards.length;
 			// as in render_charts: the page can be gone by now
 			if (this.destroyed || !cards.length) {
 				return;
@@ -379,7 +401,7 @@ class Dashboard {
 			frappe.new_doc("Dashboard");
 		});
 
-		this.page.add_menu_item(__("Refresh All"), () => {
+		this.refresh_all_item = this.page.add_menu_item(__("Refresh All"), () => {
 			this.chart_group && this.chart_group.widgets_list.forEach((chart) => chart.refresh());
 			this.number_card_group &&
 				this.number_card_group.widgets_list.forEach((card) => card.render_card());
