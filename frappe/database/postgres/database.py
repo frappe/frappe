@@ -1111,9 +1111,14 @@ class _SequenceBinder:
 	def _expand(self, key, value):
 		if not isinstance(value, list | tuple):
 			return self._placeholder(key, _coerce(value))
-		return (
-			"(" + ", ".join(self._expand(key and f"{key}__{i}", item) for i, item in enumerate(value)) + ")"
-		)
+		items = ", ".join(self._expand(key and self._item_key(key, i), item) for i, item in enumerate(value))
+		return f"({items})"
+
+	def _item_key(self, key, index):
+		item_key = f"{key}__{index}"
+		while item_key in self.values:
+			item_key += "_"
+		return item_key
 
 	def _placeholder(self, key, value):
 		if self.named:
