@@ -841,6 +841,8 @@ class UnknownUserLoginAttemptTracker(LoginAttemptTracker):
 
 	def _set(self, name, value):
 		expires_in_sec = int(self.lock_interval.total_seconds())
+		if expires_in_sec < 1:
+			return
 		frappe.cache.set_value(f"{name}_unknown:{self.key}", value, expires_in_sec=expires_in_sec)
 
 	def _delete(self, name):
