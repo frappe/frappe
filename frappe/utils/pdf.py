@@ -99,7 +99,7 @@ def get_pdf(
 
 	options = dict(options or {})
 	password = options.pop("password", None)
-	if pdf_generator == "PlutoPrint" and plutoprint_can_render(html):
+	if pdf_generator == "PlutoPrint" and not options.get("page-ranges") and plutoprint_can_render(html):
 		pdf = PDFTransformer(PlutoBrowser(print_format, html, options)).transform_pdf(output=output)
 	else:
 		from frappe.utils.chromium import ChromiumManager
