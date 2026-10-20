@@ -28,8 +28,9 @@ export default defineConfig({
 	resolve: {
 		// frappe-ui's `exports` map hides its source; the core components import it by path
 		alias: [{ find: "frappe-ui/src", replacement: here("./node_modules/frappe-ui/src") }],
-		// @flow/ui-core is linked from harness/ui, which has its own node_modules: one Vue
-		dedupe: ["vue", "vue-router", "frappe-ui"],
+		// @flow/ui-core is linked from harness/ui, which has its own node_modules: one Vue, and one
+		// reka-ui under frappe-ui and the core's settings page
+		dedupe: ["vue", "vue-router", "frappe-ui", "reka-ui"],
 	},
 	// keep one @codemirror/state for the code editor
 	optimizeDeps: {

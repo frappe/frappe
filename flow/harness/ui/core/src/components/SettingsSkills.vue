@@ -2,12 +2,12 @@
 	<!-- editor: a column that gives the textarea the dialog's height -->
 	<div
 		v-if="editing"
-		class="flex min-h-0 flex-1 flex-col px-4 pb-6 pt-8 sm:px-8"
+		class="flex min-h-0 flex-1 flex-col px-4 pb-6 pt-3 sm:px-8 md:pt-8"
 		@keydown.meta.s.prevent="save"
 		@keydown.ctrl.s.prevent="save"
 	>
 		<div class="flex items-center gap-2">
-			<button class="flow-icon-btn -my-1 -ml-1.5" title="Back to skills" @click="back">
+			<button v-if="!headerBack" class="flow-icon-btn -my-1 -ml-1.5" title="Back to skills" @click="back">
 				<FeatherIcon name="arrow-left" class="h-4 w-4" />
 			</button>
 			<h2 class="text-base font-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
@@ -41,13 +41,13 @@
 	</div>
 
 	<!-- list -->
-	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-8 sm:px-8">
+	<div v-else class="min-h-0 flex-1 overflow-y-auto px-4 pb-10 pt-3 sm:px-8 md:pt-8">
 		<div class="flex items-start justify-between gap-4">
 			<div>
 				<h2 class="text-base font-semibold text-ink-gray-9">Skills</h2>
 				<p class="mt-1 text-xs leading-5 text-ink-gray-6">Reusable instructions the agent can load.</p>
 			</div>
-			<Button v-if="!disabled" variant="solid" label="New skill" :disabled="!roots.global" @click="startNew" />
+			<Button v-if="!disabled && !layout.narrow" variant="solid" label="New skill" :disabled="!roots.global" @click="startNew" />
 		</div>
 
 		<div v-if="disabled" class="mt-6 rounded-5 border border-outline-gray-2 bg-surface-gray-1 px-4 py-3 text-xs text-ink-gray-7">
@@ -88,6 +88,8 @@
 				<LoadingState v-else class="mt-3 text-xs text-ink-gray-5" />
 				<p v-if="scope.cut" class="mt-2 text-xs text-ink-gray-5">Not every skill is shown: this folder has too many entries.</p>
 			</section>
+			<!-- a narrow frame has no room beside the heading: the button ends the page -->
+			<Button v-if="layout.narrow" class="mt-8" variant="solid" label="New skill" :disabled="!roots.global" @click="startNew" />
 		</template>
 	</div>
 </template>
@@ -102,6 +104,9 @@ import { dialog } from "frappe-ui/src/utils/dialog"
 import FeatherIcon from "./FeatherIcon.vue"
 import LoadingState from "./LoadingState.vue"
 
+import { layout } from "../layout.js"
+import { useSettingsBack } from "../settingsBack.js"
+
 const flow = inject("flow")
 
 const SCOPE_LABELS = { global: "Global", project: "Project" }
@@ -113,6 +118,7 @@ const truncated = ref([]) // scopes whose folder had more entries than the daemo
 const loading = ref(false)
 const disabled = ref(false)
 const editing = ref(null) // { path, name, scope, content, saved, error, isNew }
+const headerBack = useSettingsBack(() => !!editing.value, back)
 const saving = ref(false)
 
 const folderName = (cwd) => cwd.replace(/[\\/]+$/, "").split(/[\\/]/).filter(Boolean).pop() ?? cwd

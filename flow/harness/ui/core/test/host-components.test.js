@@ -20,7 +20,7 @@ Object.defineProperty(dom.window.HTMLElement.prototype, "inert", {
 })
 globalThis.requestAnimationFrame = (callback) => setTimeout(callback, 0)
 const { createApp, h, nextTick, reactive } = await import("vue")
-const { dialog, loadComponent } = await import("./helpers/components.js")
+const { dialog, dialogStack, loadComponent } = await import("./helpers/components.js")
 const { applyEvent, initialConversation } = await import("../src/transcript.js")
 const { FlowAPIError } = await import("../src/client.js")
 const { layout } = await import("../src/layout.js")
@@ -1071,10 +1071,10 @@ test("a file removed, or left behind by a chat switch, while it is prepared is d
 	assert.ok(!el.textContent.includes("notes.pdf")) // a switch drops staged files, send or not
 })
 
-test("the settings shell renders a host's tabs and panels", (t) => {
+test("the settings shell renders a host's tabs and panels, as a page in a narrow frame", async (t) => {
 	const groups = [{ label: "Settings", tabs: [{ id: "alpha", label: "Alpha", icon: "x" }, { id: "beta", label: "Beta", icon: "y" }] }]
 	const flow = { state: reactive({ settingsOpen: true }), setSettingsOpen() {} }
-	const { el } = mount(t, {
+	const { el, unmount } = mount(t, {
 		render: () => h(SettingsDialog, { groups }, {
 			alpha: () => h("p", { "data-test": "alpha" }, "A"),
 			beta: () => h("p", { "data-test": "beta" }, "B"),
@@ -1082,25 +1082,111 @@ test("the settings shell renders a host's tabs and panels", (t) => {
 	}, {}, flow)
 	assert.deepEqual([...el.querySelectorAll("[data-stub=SettingsNavItem]")].map((b) => b.textContent.trim()), ["Alpha", "Beta"])
 	assert.deepEqual([...el.querySelectorAll("[data-stub=SettingsPanel]")].map((p) => `${p.dataset.value}:${p.textContent.trim()}`), ["alpha:A", "beta:B"])
+	unmount() // the page below has the browser's history to itself
+
+	// a narrow frame shows them as a page: a list whose rows open their panel, a way back, a close
+	layout.narrow = layout.phone = true
+	t.after(() => (layout.narrow = layout.phone = false))
+	const narrow = { state: reactive({ settingsOpen: false }), setSettingsOpen: (open) => (narrow.state.settingsOpen = open) }
+	const beta = reactive({ form: false, dirty: false }) // a sub-page in beta's panel, like a record's form
+	const { el: host } = mount(t, {
+		render: () => h(SettingsDialog, { groups }, {
+			alpha: () => h("p", { "data-test": "alpha" }, "A"),
+			beta: () => beta.form
+				? h(SettingsPage, {
+					title: "Edit beta",
+					back: "Back to beta",
+					onBack: () => (beta.dirty ? (dialogStack.value = [{ id: 1 }]) : (beta.form = false)),
+				})
+				: h("p", { "data-test": "beta" }, "B"),
+		}),
+	}, {}, narrow)
+	// the page slides in and out: a move waits for its frames
+	const slid = () => new Promise((resolve) => setTimeout(resolve, 20))
+	// a phone's back goes back a screen: each page and dialog is an entry in the browser's history, added after a tap
+	const entries = () => window.history.state?.flowSettings ?? 0
+	const phoneBack = () => (window.history.back(), slid())
+	const tap = () => document.body.click()
+	tap()
+	narrow.state.settingsOpen = true
+	await slid()
+	const page = () => host.querySelector("[role=dialog]")
+	const rows = () => [...page().querySelectorAll("nav button")].map((row) => row.textContent.trim())
+	assert.deepEqual([rows(), entries()], [["Alpha", "Beta"], 1])
+	page().querySelectorAll("nav button")[1].click()
+	await slid()
+	assert.deepEqual([rows(), page().querySelector("[data-test=beta]")?.textContent, entries()], [[], "B", 2])
+	// the sub-page's way back is the header's, to its section, and not a second button of its own
+	beta.form = true
+	await nextTick()
+	const head = () => page().querySelector("header button")
+	assert.deepEqual([head().textContent.trim(), page().querySelector("button[title='Back to beta']"), entries()], ["Beta", null, 3])
+	head().click()
+	await slid()
+	assert.deepEqual([beta.form, head().textContent.trim(), entries()], [false, "Settings", 2])
+	// a form with changes asks first, and the back closes the ask: an ask a tap opened is an entry of its own
+	tap()
+	beta.form = beta.dirty = true
+	await nextTick()
+	head().click()
+	await nextTick()
+	assert.deepEqual([beta.form, dialogStack.value.length, entries()], [true, 1, 4])
+	await phoneBack()
+	assert.deepEqual([beta.form, dialogStack.value.length, entries()], [true, 0, 3])
+	// one the back opens can't be (no tap since), so the form is short of its entry until the next tap
+	await phoneBack()
+	assert.deepEqual([beta.form, dialogStack.value.length, entries()], [true, 1, 2])
+	await phoneBack()
+	assert.deepEqual([beta.form, dialogStack.value.length, entries()], [true, 0, 1])
+	tap()
+	await nextTick()
+	assert.equal(entries(), 3)
+	beta.dirty = false
+	await phoneBack()
+	assert.deepEqual([beta.form, head().textContent.trim(), entries()], [false, "Settings", 2])
+	;[...page().querySelectorAll("button")].find((button) => button.textContent.trim() === "Settings").click()
+	await slid()
+	assert.deepEqual([rows(), page().querySelector("[data-test=beta]"), entries()], [["Alpha", "Beta"], null, 1])
+	await phoneBack()
+	assert.deepEqual([narrow.state.settingsOpen, entries()], [false, 0])
+	// settings opened before the frame was a phone's: its page is an entry once it is
+	layout.narrow = layout.phone = false
+	tap()
+	narrow.state.settingsOpen = true
+	await slid()
+	assert.equal(entries(), 0)
+	layout.narrow = layout.phone = true
+	await nextTick()
+	assert.equal(entries(), 1)
+	// the close leaves every page's entry
+	page().querySelectorAll("nav button")[1].click()
+	await slid()
+	page().querySelector("button[title=Close]").click()
+	await slid()
+	assert.deepEqual([narrow.state.settingsOpen, entries()], [false, 0])
 })
 
-test("a settings page takes a way back and actions beside its heading", (t) => {
+test("a settings page takes a way back and actions beside its heading, or after its body when narrow", (t) => {
 	let backs = 0
-	const { el } = mount(t, {
+	const page = () => mount(t, {
 		render: () => h(SettingsPage, { title: "Edit agent", back: "Back to agents", onBack: () => backs++ }, {
 			actions: () => h("button", { "data-test": "toggle" }, "Enabled"),
 			default: () => h("p", "fields"),
 			footer: () => h("button", { "data-test": "save" }, "Save"),
 		}),
-	}, {}, {})
+	}, {}, {}).el
+	const el = page()
 	assert.equal(el.querySelector("h2").textContent, "Edit agent")
-	assert.ok(el.querySelector("[data-test=toggle]"))
+	assert.equal(el.textContent, "Edit agentEnabledfieldsSave")
 	assert.ok(el.querySelector(".border-t [data-test=save]"), "the footer sits outside the scrolling body")
 	el.querySelector("button[title='Back to agents']").click()
 	assert.equal(backs, 1)
 	const bare = mount(t, SettingsPage, { title: "General" }, {})
 	assert.equal(bare.el.querySelector(".flow-icon-btn"), null)
 	assert.equal(bare.el.querySelector(".border-t"), null)
+	layout.narrow = true
+	t.after(() => (layout.narrow = false))
+	assert.equal(page().textContent, "Edit agentfieldsEnabledSave")
 })
 
 test("rewind is offered on a logged message of a chat that can rewind, and nowhere else", async (t) => {

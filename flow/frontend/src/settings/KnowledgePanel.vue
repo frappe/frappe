@@ -10,7 +10,7 @@
 		<template #tabs><TabButtons v-model="tab" :options="tabs" class="mb-4" /></template>
 		<template v-if="tab === 'sources'" #filters>
 			<!-- the select fills its parent; the wrapper gives it a width -->
-			<div class="w-56">
+			<div class="w-56 max-md:order-last max-md:w-full">
 				<FormControl
 					v-model="base"
 					v-model:query="baseQuery"

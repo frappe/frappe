@@ -15,8 +15,8 @@ function stubURL(name) {
 	return stubs.get(name)
 }
 const dialogs = moduleURL(`import { ref } from ${JSON.stringify(vue)}; export const dialogs = ref([]); export const dialog = {}`)
-// a test sets the dialog.* calls it expects
-export const { dialog } = await import(dialogs)
+// a test sets the dialog.* calls it expects, or opens one on the stack
+export const { dialog, dialogs: dialogStack } = await import(dialogs)
 // frappe-ui's Dropdown as its trigger, and its options, groups flattened, once it is clicked or held open
 const dropdown = moduleURL(`
 	import { h, ref } from ${JSON.stringify(vue)}
@@ -61,6 +61,28 @@ const hoverCard = moduleURL(`
 				onPointerenter: () => emit("update:open", true),
 				onPointerleave: () => emit("update:open", false),
 			}, [slots.trigger?.(), props.open ? h("div", { "data-card": "" }, slots.default?.()) : null])
+		},
+	}
+`)
+// reka's dialog pieces: the root shows its content while open, and its close asks it to close
+const reka = moduleURL(`
+	import { h, inject, provide } from ${JSON.stringify(vue)}
+	const close = Symbol("close")
+	export const DialogRoot = {
+		props: ["open"],
+		emits: ["update:open"],
+		setup(props, { slots, emit }) {
+			provide(close, () => emit("update:open", false))
+			return () => (props.open ? slots.default?.() : null)
+		},
+	}
+	export const DialogPortal = { setup: (props, { slots }) => () => slots.default?.() }
+	export const DialogContent = { setup: (props, { slots }) => () => h("div", { role: "dialog" }, slots.default?.()) }
+	export const DialogTitle = { props: ["as"], setup: (props, { slots }) => () => h(props.as ?? "h2", slots.default?.()) }
+	export const DialogClose = {
+		setup(props, { slots }) {
+			const done = inject(close)
+			return () => h("button", { onClick: done }, slots.default?.())
 		},
 	}
 `)
@@ -156,6 +178,8 @@ async function componentURL(url) {
 			resolved = dropdown
 		} else if (specifier === "frappe-ui/src/components/HoverCard/HoverCard.vue") {
 			resolved = hoverCard
+		} else if (specifier === "reka-ui") {
+			resolved = reka
 		} else if (specifier === "frappe-ui/src/components/Sidebar/SidebarItem.vue") {
 			resolved = sidebarItem
 		} else if (specifier.endsWith(".vue")) {
