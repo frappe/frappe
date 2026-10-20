@@ -224,6 +224,16 @@ body {
 	background: var(--surface-base);
 }
 
+/* settings opened in a wide frame keep frappe-ui's dialog when the phone turns upright. On a
+   phone it sizes its settings shell as a full-bleed sheet (w-screen, 100dvh) while its dialog
+   keeps a 1rem gutter and 2rem margins around it: fit the shell to the dialog instead. */
+@media (max-width: 639px) {
+	.dialog-content > [data-orientation="vertical"] {
+		width: 100%;
+		height: calc(100dvh - 6rem);
+	}
+}
+
 /* Focus rings need Tab (focusRings.js marks the root): focus a script moves after a key
    press, like a dialog's first tab or a closed menu's trigger, matches :focus-visible too.
    Text fields keep their own focus look. */

@@ -1,7 +1,7 @@
 <template>
 	<!-- a narrow frame (a phone, a Desk panel) shows settings as a page: the sections in a list, each
 	     opening as a page of its own with a way back -->
-	<DialogRoot v-if="layout.narrow" :open="flow.state.settingsOpen" @update:open="flow.setSettingsOpen($event)">
+	<DialogRoot v-if="narrow" :open="flow.state.settingsOpen" @update:open="flow.setSettingsOpen($event)">
 		<DialogPortal>
 			<DialogContent
 				:aria-describedby="undefined"
@@ -116,16 +116,21 @@ const active = computed({
 	set: (value) => (tab.value = value),
 })
 
+// the page or the dialog, as the frame was when settings opened: a phone turned or a window resized
+// mid-edit would swap the shell and unmount its editors, unsaved drafts and all
+const narrow = ref(layout.narrow)
+
 // the page's open section, null for the list. It opens on the list, or on the tab a caller asked
 // for (a new preset), and forgets its section on closing, so the next open starts at the list.
 const section = ref(null)
 const sectionLabel = computed(() => tabs.value.find((item) => item.id === section.value)?.label)
-const back = provideSettingsBack()
+const back = provideSettingsBack(narrow)
 const forward = ref(true)
 watch(
 	() => flow.state.settingsOpen,
 	(open) => {
-		if (!layout.narrow) return
+		if (open) narrow.value = layout.narrow
+		if (!narrow.value) return
 		if (open) section.value = tab.value ?? null
 		else tab.value = null
 	},
@@ -135,7 +140,7 @@ watch(
 // Each page and dialog is an entry in the browser's history, added only after a tap: Chrome's back
 // skips all of a page's entries once it adds one with no tap since its last back.
 const depth = computed(() =>
-	flow.state.settingsOpen ? (section.value ? (back.value ? 3 : 2) : 1) + dialogs.value.length : 0,
+	flow.state.settingsOpen ? (narrow.value && section.value ? (back.value ? 3 : 2) : 1) + dialogs.value.length : 0,
 )
 let entries = window.history.state?.flowSettings ?? 0 // a reload keeps them, to leave
 let tapped = false // since the last back

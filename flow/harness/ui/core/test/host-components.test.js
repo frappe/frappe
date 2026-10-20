@@ -1121,6 +1121,13 @@ test("the settings shell renders a host's tabs and panels, as a page in a narrow
 	await nextTick()
 	const head = () => page().querySelector("header button")
 	assert.deepEqual([head().textContent.trim(), page().querySelector("button[title='Back to beta']"), entries()], ["Beta", null, 3])
+	// a phone turned mid-edit keeps the page until settings closes: the form stays mounted, its way back the header's
+	const form = page().querySelector("h2")
+	layout.narrow = layout.phone = false
+	await nextTick()
+	assert.deepEqual([page()?.querySelector("h2") === form, page()?.querySelector("button[title='Back to beta']")], [true, null])
+	layout.narrow = layout.phone = true
+	await nextTick()
 	head().click()
 	await slid()
 	assert.deepEqual([beta.form, head().textContent.trim(), entries()], [false, "Settings", 2])
@@ -1149,7 +1156,17 @@ test("the settings shell renders a host's tabs and panels, as a page in a narrow
 	assert.deepEqual([rows(), page().querySelector("[data-test=beta]"), entries()], [["Alpha", "Beta"], null, 1])
 	await phoneBack()
 	assert.deepEqual([narrow.state.settingsOpen, entries()], [false, 0])
-	// settings opened before the frame was a phone's: its page is an entry once it is
+	// the close leaves every page's entry
+	tap()
+	narrow.state.settingsOpen = true
+	await slid()
+	page().querySelectorAll("nav button")[1].click()
+	await slid()
+	page().querySelector("button[title=Close]").click()
+	await slid()
+	assert.deepEqual([narrow.state.settingsOpen, entries()], [false, 0])
+	// settings opened before the frame was a phone's keeps its dialog until it closes: one entry, whatever
+	// section the page last showed, so one back closes it
 	layout.narrow = layout.phone = false
 	tap()
 	narrow.state.settingsOpen = true
@@ -1157,12 +1174,8 @@ test("the settings shell renders a host's tabs and panels, as a page in a narrow
 	assert.equal(entries(), 0)
 	layout.narrow = layout.phone = true
 	await nextTick()
-	assert.equal(entries(), 1)
-	// the close leaves every page's entry
-	page().querySelectorAll("nav button")[1].click()
-	await slid()
-	page().querySelector("button[title=Close]").click()
-	await slid()
+	assert.deepEqual([page(), !!host.querySelector("[data-stub=SettingsDialog]"), entries()], [null, true, 1])
+	await phoneBack()
 	assert.deepEqual([narrow.state.settingsOpen, entries()], [false, 0])
 })
 
