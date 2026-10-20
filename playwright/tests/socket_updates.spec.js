@@ -40,6 +40,16 @@ test.describe("Realtime updates", () => {
 		await doctype_room_joined(page, api, "ToDo");
 	});
 
+	test("List view leaves its doctype room only once", async ({ page, api }) => {
+		await doctype_room_joined(page, api, "ToDo");
+		await page.evaluate(() => {
+			frappe.realtime.doctype_subscribe("ToDo");
+			cur_list.disable_realtime_updates();
+			cur_list.disable_realtime_updates();
+		});
+		await doctype_room_joined(page, api, "ToDo");
+	});
+
 	test("Restores rooms after reconnect", async ({ page, api }) => {
 		const doc = await api.insert_doc("ToDo", { description: "reconnect" });
 		await page.goto(`/desk/todo/${doc.name}`);
