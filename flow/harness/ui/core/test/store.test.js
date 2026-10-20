@@ -917,8 +917,8 @@ test("saved state lives under the host's storage key and keeps only what differs
 		flow.setFolderOpen("/w/api", true)
 		flow.setFolderOpen("/w/app", false)
 		flow.setSidebarView({ sidebarOrder: "manual", chatOrder: ["s2", "s1"] })
-		// the chat text size starts at 14.5px, steps only within its bounds and keeps two decimals
-		assert.equal(flow.state.prefs.chatFontSize, 14.5)
+		// the chat text size starts at 15px, steps only within its bounds and keeps two decimals
+		assert.equal(flow.state.prefs.chatFontSize, 15)
 		flow.setChatFontSize(30)
 		assert.equal(flow.state.prefs.chatFontSize, 22)
 		flow.setChatFontSize(4)
