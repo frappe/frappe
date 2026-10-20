@@ -489,7 +489,10 @@ class TestDB(IntegrationTestCase):
 			"select E'a' '\\'; select 2 --'",
 			"select E''\v\n'\\' -- '; select 2",
 		):
-			with self.subTest(query=query), self.assertRaisesRegex(frappe.db.ProgrammingError, "Multiple SQL statements"):
+			with (
+				self.subTest(query=query),
+				self.assertRaisesRegex(frappe.db.ProgrammingError, "Multiple SQL statements"),
+			):
 				frappe.db.sql(query)
 
 		for query in (
