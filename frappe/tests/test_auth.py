@@ -97,6 +97,7 @@ class TestAuth(IntegrationTestCase):
 			self.assertFalse(cookies.cookies["sid"]["secure"])
 
 	def test_locked_account_response_matches_unknown_account(self):
+		self.addCleanup(frappe.form_dict.clear)
 		unknown = "unknown_auth@example.com"
 		ips = [f"10.8.0.{i}" for i in range(6)]
 
@@ -123,7 +124,7 @@ class TestAuth(IntegrationTestCase):
 					[m["message"] for m in frappe.local.message_log],
 				)
 
-		with self.change_settings("System Settings", allow_consecutive_login_attempts=2):
+		with self.change_settings("System Settings", commit=True, allow_consecutive_login_attempts=2):
 			known = [attempt(self.test_user_email, ip) for ip in ips]
 			unknown_results = [attempt(unknown, ip) for ip in ips]
 
@@ -131,6 +132,17 @@ class TestAuth(IntegrationTestCase):
 		self.assertEqual(known[0][:2], (frappe.AuthenticationError, "Invalid login credentials"))
 		self.assertEqual(known[-1][0], frappe.SecurityException)
 		self.assertIn("Too many failed login attempts", known[-1][2][0])
+
+	def test_unknown_account_login_without_lock_interval(self):
+		self.addCleanup(frappe.form_dict.clear)
+		settings = {"allow_consecutive_login_attempts": 2, "allow_login_after_fail": 0}
+		with self.change_settings("System Settings", commit=True, **settings):
+			frappe.local.request_ip = "10.8.1.1"
+			frappe.local.response = frappe._dict()
+			frappe.form_dict.update({"usr": "unknown_auth@example.com", "pwd": "wrong_pwd_012"})
+			with self.assertRaises(frappe.AuthenticationError):
+				LoginManager.__new__(LoginManager).authenticate()
+		self.assertEqual(frappe.local.response.get("message"), "Invalid login credentials")
 
 	def test_unknown_account_checks_a_password_hash(self):
 		with patch("frappe.core.doctype.user.user._verify_password", return_value=(False, False)) as verify:
