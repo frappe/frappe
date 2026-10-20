@@ -6,6 +6,8 @@ class RealTimeClient {
 	constructor() {
 		this.open_tasks = {};
 		this.open_docs = new Set();
+		// doctype -> number of views using its room
+		this.subscribed_doctypes = new Map();
 		this.disabled = false;
 	}
 
@@ -143,9 +145,16 @@ class RealTimeClient {
 		this.emit("task_unsubscribe", task_id);
 	}
 	doctype_subscribe(doctype) {
+		this.subscribed_doctypes.set(doctype, (this.subscribed_doctypes.get(doctype) || 0) + 1);
 		this.emit("doctype_subscribe", doctype);
 	}
 	doctype_unsubscribe(doctype) {
+		const count = (this.subscribed_doctypes.get(doctype) || 0) - 1;
+		if (count > 0) {
+			this.subscribed_doctypes.set(doctype, count);
+			return;
+		}
+		this.subscribed_doctypes.delete(doctype);
 		this.emit("doctype_unsubscribe", doctype);
 	}
 	doc_subscribe(doctype, docname) {
