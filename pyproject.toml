@@ -114,7 +114,7 @@ dev = [
     "pyperf==2.10.0",
     "pyngrok~=8.1.2",
     "watchdog~=6.0.0",
-    "responses==0.23.1",
+    "responses==0.26.3",
     # typechecking
     "basedmypy",
     "types-PyMySQL",
