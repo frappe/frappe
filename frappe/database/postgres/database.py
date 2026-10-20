@@ -114,6 +114,7 @@ ADAPTERS.register_loader("uuid", TextLoader)
 SERVER_BOUND_QUERY_TYPES = frozenset(("select", "insert", "update", "delete", "with"))
 # the protocol counts parameters in 16 bits
 MAX_BOUND_PARAMETERS = 65_535
+OPEN_TRANSACTION_STATUSES = frozenset((TransactionStatus.INTRANS, TransactionStatus.INERROR))
 PLACEHOLDER_PATTERN = re.compile(
 	r"%%|(?P<keyword>\b(?P<negated>not\s+)?in\s*)?%(?:\((?P<key>[^)]+)\))?s", flags=re.IGNORECASE
 )
@@ -358,6 +359,12 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			conn.execute("START TRANSACTION")
 
 		return conn
+
+	def close(self):
+		# PgBouncer only reuses a server connection that its client left outside a transaction
+		if self._conn and self._conn.info.transaction_status in OPEN_TRANSACTION_STATUSES:
+			self._conn.rollback()
+		super().close()
 
 	def set_execution_timeout(self, seconds: float):
 		# Postgres expects milliseconds as input
