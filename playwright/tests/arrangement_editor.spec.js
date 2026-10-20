@@ -73,9 +73,9 @@ async function as_plain_user(page) {
 	});
 }
 
-async function open_editor(page, { hidden = [], can_curate = false } = {}) {
+async function open_editor(page, { hidden = [], can_curate = false, note = "" } = {}) {
 	await page.evaluate(
-		([hidden, can_curate]) => {
+		([hidden, can_curate, note]) => {
 			class TestSurface extends frappe.ui.ArrangementEditor {
 				prepare() {
 					this.can_curate_site = can_curate;
@@ -108,6 +108,10 @@ async function open_editor(page, { hidden = [], can_curate = false } = {}) {
 				// It arranges nothing on the desk, so no navigation takes it away.
 				survives_shell() {
 					return true;
+				}
+
+				pane_note() {
+					return note;
 				}
 
 				async read() {
@@ -146,7 +150,7 @@ async function open_editor(page, { hidden = [], can_curate = false } = {}) {
 
 			window.__editor = new TestSurface();
 		},
-		[hidden, can_curate]
+		[hidden, can_curate, note]
 	);
 }
 
@@ -246,16 +250,32 @@ test.describe("Arrangement editor", () => {
 		await open_editor(page, { can_curate: true });
 
 		// Arranging for everyone is what the permission is for, so that is the layer it opens on.
-		// The header names it after the module, and its menu is the layers while editing.
+		// The phrase after the module's name opens the layers; the rest of the header opens nothing.
 		const phrase = page.locator(".sidebar-header .ws-layer-phrase");
 		await expect(phrase).toHaveText("for everyone");
-		await page.locator(".sidebar-header").click();
+		await page.locator(".sidebar-header .header-title").click({ force: true });
+		await expect(page.locator(".es-menu")).toHaveCount(0);
+		await page.locator(".sidebar-header .ws-layer-switch").click();
 		await page.locator('.es-menu [role="menuitem"]', { hasText: "Just for me" }).click();
 
 		// The other layer is a different arrangement, so it is read rather than filtered.
 		await expect(phrase).toHaveText("just for me");
 		await expect(page.locator(".ws-row")).toHaveCount(3);
 		await expect.poll(() => stubbed_calls(page)).toEqual(["read.site", "read.user"]);
+	});
+
+	test("tells what the layer note says on the layer switch, not in the column", async ({
+		page,
+	}) => {
+		await stub_xcall(page, { "read.user": ENTRIES });
+		await open_editor(page, { note: "Something sits on top of this layer." });
+
+		await expect(page.locator(".ws-row")).toHaveCount(3);
+		await expect(page.locator(".ws-note")).toHaveCount(0);
+		await page.locator(".sidebar-header .ws-layer-switch").hover();
+		await expect(page.locator(".es-tooltip")).toHaveText(
+			"Something sits on top of this layer."
+		);
 	});
 
 	test("offers no layer switch to somebody who may not curate for everyone", async ({

@@ -107,7 +107,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	unmount() {
 		this.destroy_tooltips();
 		this.add_tooltip?.destroy();
-		this.note_tooltip?.destroy();
 		const sidebar = frappe.app.sidebar;
 		sidebar.dock.end_editing(this);
 		sidebar.dock.hold_open(false);
@@ -123,21 +122,12 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 				<span class="ws-bar-name">${__("Dock")}</span>
 				<span class="ws-bar-layer"></span>
 			</span>
-			<span class="ws-note hidden"></span>
 			<div class="ws-foot"></div>
 		`);
-		this.$note = this.$frame.find(".ws-note");
 		this.$list = this.$tiles;
 		this.$scroll = this.$tiles;
 		this.$add_slot = dock.$add_slot;
 
-		if (this.offered_layers.length > 1) {
-			new frappe.ui.Dropdown({
-				trigger: this.$frame.find(".ws-bar-layer"),
-				side: "top",
-				options: () => this.layer_menu(),
-			});
-		}
 		this.render_layer_switch();
 		this.render_footer();
 		this.bind_keys();
@@ -171,6 +161,11 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 
 	layer_slot() {
 		return this.$frame?.find(".ws-bar-layer");
+	}
+
+	// The bar sits at the foot of the screen.
+	layer_menu_side() {
+		return "top";
 	}
 
 	// The sidebar is not being edited, so its header keeps its own menu.
@@ -246,16 +241,9 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		super.render_list();
 	}
 
-	// The bar has no room for the note's words, so they are an icon's tooltip.
 	render_body() {
 		this.add_tooltip?.destroy();
-		this.note_tooltip?.destroy();
 		super.render_body();
-		const note = this.$note.text().trim();
-		if (note) {
-			this.$note.html(frappe.utils.icon("info", "sm"));
-			this.note_tooltip = new frappe.ui.Tooltip(this.$note[0], { text: note, side: "top" });
-		}
 		if (this.$add) {
 			this.add_tooltip = new frappe.ui.Tooltip(this.$add[0], {
 				text: this.copy().add_label,
@@ -511,10 +499,9 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		const unnamed = this.unnamed_modules();
 		if (!unnamed.length) return "";
 
-		return `<span title="${frappe.utils.escape_html(unnamed.join(", "))}">${__(
-			"{0} of this app's modules are on no tier at all",
-			[unnamed.length]
-		)}</span>`;
+		return `${__("{0} of this app's modules are on no tier at all", [
+			unnamed.length,
+		])}: ${unnamed.join(", ")}`;
 	}
 
 	// An empty selection is not stored as an empty dock. It is saved as no rows at all, which is

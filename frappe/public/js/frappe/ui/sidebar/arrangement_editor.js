@@ -136,8 +136,8 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return [];
 	}
 
-	// A muted note under the header, for reporting rather than for acting on. Empty by default,
-	// because most surfaces have nothing to report.
+	// Plain text for the layer switch's tooltip, for reporting rather than for acting on. Empty by
+	// default, because most surfaces have nothing to report.
 	pane_note() {
 		return "";
 	}
@@ -202,10 +202,15 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return frappe.app.sidebar.sidebar_header?.layer_slot();
 	}
 
-	// What the sidebar header's menu offers while this is open, or null for its usual rows. The
-	// phrase sits where the header's chevron was, so the header opens the layers.
+	// What the sidebar header's menu offers while this is open, or null for its usual rows. Only the
+	// phrase takes the pointer while editing, so this is what the header gives the keyboard.
 	header_menu_items() {
 		return this.layer_menu();
+	}
+
+	// Which side of the phrase the layer menu opens on.
+	layer_menu_side() {
+		return "bottom";
 	}
 
 	// The element a panel opens beside.
@@ -253,14 +258,12 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 	render_frame() {
 		this.$frame.html(`
-			<div class="ws-note hidden"></div>
 			<div class="ws-scroll">
 				<div class="ws-list"></div>
 				<div class="ws-add-slot"></div>
 			</div>
 			<div class="ws-foot"></div>
 		`);
-		this.$note = this.$frame.find(".ws-note");
 		this.$list = this.$frame.find(".ws-list");
 		this.$scroll = this.$frame.find(".ws-scroll");
 		this.$add_slot = this.$frame.find(".ws-add-slot");
@@ -320,16 +323,43 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// surface's name. The chevron says there are others to switch to; without the right to write a
 	// second layer there is nothing to choose. What that right is belongs to the endpoints, which
 	// check it again.
+	//
+	// It is drawn once per session and only its words change after that, because its menu and
+	// tooltip are bound to the node.
 	render_layer_switch() {
 		const $slot = this.layer_slot();
 		if (!$slot) return;
-		const chevron =
-			this.offered_layers.length > 1 ? frappe.utils.icon("chevron-down", "sm") : "";
-		$slot.html(`<span class="ws-layer-switch">
-			<span class="ws-layer-phrase">${frappe.utils.escape_html(
-				this.layer_config.phrase()
-			)}</span>${chevron}
-		</span>`);
+		if (!this.$layer_switch || !$.contains($slot[0], this.$layer_switch[0])) {
+			const switchable = this.offered_layers.length > 1;
+			this.$layer_switch = $(`<span class="ws-layer-switch">
+				<span class="ws-layer-phrase"></span>
+				${switchable ? frappe.utils.icon("chevron-down", "sm") : ""}
+			</span>`);
+			// The phrase sits inside the sidebar header, which has a menu of its own.
+			this.$layer_switch.on("pointerdown click", (e) => e.stopPropagation());
+			$slot.empty().append(this.$layer_switch);
+			if (switchable) {
+				new frappe.ui.Dropdown({
+					trigger: this.$layer_switch,
+					side: this.layer_menu_side(),
+					options: () => this.layer_menu(),
+				});
+			}
+		}
+		this.$layer_switch.find(".ws-layer-phrase").text(this.layer_config.phrase());
+	}
+
+	// What the layer switch says on hover: `pane_note`, read again with each layer.
+	render_layer_note() {
+		const note = this.pane_note();
+		this.layer_tooltip?.destroy();
+		this.layer_tooltip = null;
+		if (!note || !this.$layer_switch) return;
+		this.layer_tooltip = new frappe.ui.Tooltip(this.$layer_switch[0], {
+			text: note,
+			side: this.layer_menu_side(),
+			text_align: "start",
+		});
 	}
 
 	layer_menu() {
@@ -389,7 +419,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.loaded = false;
 		this.close_panel();
 		this.$add_slot.empty();
-		this.$note.addClass("hidden");
 		this.render_loading();
 		this.update_dirty();
 
@@ -415,8 +444,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	}
 
 	render_body() {
-		const note = this.pane_note();
-		this.$note.html(note).toggleClass("hidden", !note);
+		this.render_layer_note();
 
 		const $slot = this.$add_slot.empty();
 		if (this.can_add()) {
@@ -683,6 +711,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		if (this.sortable) this.sortable.destroy();
 		this.sortable = null;
 		$(document).off("keydown.arrangement-editor");
+		this.layer_tooltip?.destroy();
 		this.layer_slot()?.empty();
 		this.unmount();
 		if (frappe.ui.ArrangementEditor.current === this)

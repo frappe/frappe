@@ -12,9 +12,22 @@
 	}
 
 	// The header keeps its place and size, and names the layer where its chevron was, so the
-	// title reads "Stock for everyone".
-	.sidebar-header .drop-icon {
-		display: none;
+	// title reads "Stock for everyone". Only that phrase opens anything while editing.
+	.sidebar-header {
+		pointer-events: none;
+
+		&:hover,
+		&.hover {
+			background: none;
+		}
+
+		.drop-icon {
+			display: none;
+		}
+
+		.ws-layer-switch {
+			pointer-events: auto;
+		}
 	}
 }
 
@@ -51,18 +64,6 @@
 	flex: 1;
 	flex-direction: column;
 	min-height: 0;
-
-	// A reading rather than an affordance: quieter than the rows, with no control of its own.
-	.ws-note {
-		margin: calc(var(--spacing) * 2) calc(var(--spacing) * 2) 0;
-		padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2.5);
-		border-radius: var(--radius);
-		background: var(--surface-gray-2);
-		color: var(--ink-gray-6);
-		font-size: var(--text-xs);
-		line-height: 1.4;
-		cursor: default;
-	}
 
 	// The rows' scroll box, with the same gutter as the sidebar's own.
 	.ws-scroll {
@@ -424,15 +425,6 @@
 		font-size: var(--text-base);
 		font-weight: var(--font-weight-medium);
 		color: var(--ink-gray-8);
-	}
-
-	.ws-note {
-		display: flex;
-		color: var(--ink-gray-5);
-
-		&.hidden {
-			display: none;
-		}
 	}
 
 	.ws-foot {
