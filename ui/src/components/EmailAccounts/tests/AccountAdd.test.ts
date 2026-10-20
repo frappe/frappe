@@ -15,6 +15,7 @@ let root: HTMLElement;
 afterEach(() => {
   app.unmount();
   root.remove();
+  vi.unstubAllGlobals();
 });
 
 const button = (name: string) =>
@@ -38,7 +39,6 @@ it("Back is disabled while a create is in flight, and `created` is emitted when 
   app = createApp(AccountAdd, {
     controller: {
       create: () => new Promise<void>((resolve) => (succeed = resolve)),
-      oneClickProviders: [],
     },
     onCreated: created,
   });
@@ -61,50 +61,83 @@ it("Back is disabled while a create is in flight, and `created` is emitted when 
   expect(root.querySelector("fieldset")!.disabled).toBe(false);
 });
 
-it("Back is locked during a one-click connect, and a failure refocuses its tile and shows its error until the next pick", async () => {
-  let fail!: (e: Error) => void;
+function mountOneClick(
+  connect: (service: string) => Promise<boolean> = vi.fn(),
+) {
+  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Microsoft" });
   root = document.createElement("div");
   document.body.append(root);
-  app = createApp(AccountAdd, {
-    controller: {
-      connect: () => new Promise<void>((_, reject) => (fail = reject)),
-      oneClickProviders: ["microsoft"],
-    },
-  });
+  app = createApp(AccountAdd, { controller: { connect } });
   app.mount(root);
-  const alert = () => root.querySelector('[role="alert"]');
+}
+
+const title = () => root.querySelector("h2")!.textContent;
+const alert = () => root.querySelector('[role="alert"]');
+
+it("signs in straight from a one-click tile and locks Back meanwhile, opening the form when Frappe Cloud can't sign in", async () => {
+  let answer!: (signedIn: boolean) => void;
+  const connect = vi.fn(
+    () => new Promise<boolean>((resolve) => (answer = resolve)),
+  );
+  mountOneClick(connect);
+
+  button("Outlook").click();
+  await nextTick();
+  expect(connect).toHaveBeenCalledWith("Outlook.com");
+  expect(button("Outlook").disabled).toBe(true);
+  expect(button("Gmail").disabled).toBe(true);
+  expect(button("Back:").disabled).toBe(true);
+  expect(button("Sign in with")).toBeUndefined();
+
+  answer(false);
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(title()).toContain("New Outlook account");
+  expect(root.querySelector("form")).not.toBeNull();
+  expect(button("Back:").disabled).toBe(false);
+});
+
+it("shows a failed sign-in's error, refocuses its tile, and clears it on the next pick", async () => {
+  let fail!: (e: Error) => void;
+  mountOneClick(() => new Promise<boolean>((_, reject) => (fail = reject)));
 
   button("Outlook").focus();
   button("Outlook").click();
   // happy-dom lacks the focus fixup rule that blurs the tile once `loading` disables it
   button("Outlook").blur();
-  await nextTick();
-  expect(button("Outlook").disabled).toBe(true);
-  expect(button("Back:").disabled).toBe(true);
   fail(new Error("Consent denied"));
   await new Promise((resolve) => setTimeout(resolve));
   expect(alert()?.textContent).toContain("Consent denied");
   expect(document.activeElement).toBe(button("Outlook"));
+  expect(root.querySelector("form")).toBeNull();
 
-  button("Outlook").click();
-  await nextTick();
-  expect(alert()).toBeNull();
-
-  fail(new Error("Consent denied"));
-  await new Promise((resolve) => setTimeout(resolve));
-  expect(alert()?.textContent).toContain("Consent denied");
   button("Gmail").click();
   await nextTick();
-  button("Back:").click();
-  await nextTick();
   expect(alert()).toBeNull();
+});
+
+it("opens the form directly for a service without one-click sign-in, and for every service off Frappe Cloud V2", async () => {
+  mountOneClick();
+  button("Gmail").click();
+  await nextTick();
+  expect(root.querySelector("form")).not.toBeNull();
+  app.unmount();
+  root.remove();
+
+  vi.unstubAllGlobals();
+  root = document.createElement("div");
+  document.body.append(root);
+  app = createApp(AccountAdd, { controller: {} });
+  app.mount(root);
+  button("Outlook").click();
+  await nextTick();
+  expect(root.querySelector("form")).not.toBeNull();
 });
 
 function mountCreate(create: () => Promise<void>, onCreated?: () => void) {
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(AccountAdd, {
-    controller: { create, oneClickProviders: [] },
+    controller: { create },
     onCreated,
   });
   app.mount(root);

@@ -5,8 +5,8 @@ outgoing account, add a mailbox (password, Frappe Mail, custom IMAP/SMTP, or one
 sign-in through Frappe Cloud), edit one, and reconnect a mailbox whose sign-in has expired.
 
 It reads and writes **Email Account** through Frappe's own methods (`frappe.client.*`,
-`email_oauth.initiate_mailbox_connect`,
-`connected_app.has_token`, `pull_emails`), so any app can host it. The host passes in only what
+`email_oauth.initiate_mailbox_connect`, `connected_app.has_token`, the Connected App's
+`initiate_web_application_flow`, `pull_emails`), so any app can host it. The host passes in only what
 is app-specific.
 
 ## Usage
@@ -31,8 +31,11 @@ const unsaved = ref(false);
 - **`providers`**: the Email Account `service` values to offer tiles for when adding an
   account, such as `["GMail", "Outlook.com", ""]`, where `""` is Custom email. All of them by
   default.
-- **`isV2Site`**: whether the site is on Frappe Cloud V2, which the host reads from its boot
-  (`is_v2_site()` in `frappe.integrations.frappe_providers.cloud_settings`). False by default.
+- **`is_v2_site`** and **`one_click_email_services`**: not props. The host puts both on `window`
+  from its boot (`is_v2_site()` in `frappe.integrations.frappe_providers.cloud_settings`), as
+  Helpdesk's `www/helpdesk/index.py` does; in Desk the panel reads both from `frappe.boot`.
+  `one_click_email_services` maps each Email Account `service` that can sign in in one click to
+  its provider's name, such as `{"Outlook.com": "Microsoft"}`. Off, and empty, when neither is set.
 - **`created(service)`**: a mailbox was added, with a password or API key, or by one-click
   sign-in, for host side effects such as onboarding steps and telemetry. A reconnect is not a
   new mailbox and does not emit it.
@@ -40,8 +43,10 @@ const unsaved = ref(false);
   save, after confirming Back, and when the panel unmounts. The panel's own Back asks before
   dropping changes; the host uses `dirty` to guard its own navigation, such as closing its
   settings dialog or switching to another settings screen. Unmounting the panel drops the draft.
-- **One-click sign-in** is offered only when `isV2Site` is true. Elsewhere the Outlook tile falls
-  back to the password form. Sign-in leaves the page and lands back on it with
+- **One-click sign-in**: picking a provider in `one_click_email_services` signs in through
+  Frappe Cloud (`initiate_mailbox_connect`); any other tile opens its form. When Frappe Cloud
+  can't sign the service in right now, the panel opens the form instead. Desk's own Add dialog
+  also offers "Set up manually"; the panel doesn't. Sign-in leaves the page and lands back on it with
   `?email_oauth=<result>&email_oauth_mailbox=<address>` appended. The panel reads both when it
   mounts and removes them from the URL. The host's only job is to open the panel when the page
   loads with `email_oauth` in its URL. `connected` and `reconnected` show a toast; any other
@@ -50,7 +55,7 @@ const unsaved = ref(false);
 
 ## Account states
 
-See `CONTEXT.md` (**Auth kind**, **Account status**, **Reconnect**).
+See `CONTEXT.md` (**Auth kind**, **Account status**, **Manual setup**, **Reconnect**).
 
 The panel fills its container's height, with a fixed header and a scrolling body, and adds no
 outer padding: the host pads it to line up with its own settings screens. Its body bleeds 12px

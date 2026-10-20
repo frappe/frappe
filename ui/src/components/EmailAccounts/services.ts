@@ -13,7 +13,6 @@ import type {
   EmailAccountDoc,
   EmailService,
   FieldError,
-  OneClickProvider,
 } from "./types";
 
 const FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:";
@@ -37,7 +36,6 @@ export const services: EmailService[] = [
     label: "Outlook",
     logo: LogoOutlook,
     kind: "password",
-    oneClick: "microsoft",
     get help() {
       return __("Needs two-factor authentication and an app password.");
     },
@@ -385,22 +383,48 @@ export function errorText(e: unknown): string {
   return message ?? "";
 }
 
-export function oneClick(
-  service: EmailService,
-  offered: OneClickProvider[],
-): OneClickProvider | undefined {
-  return service.oneClick && offered.includes(service.oneClick)
-    ? service.oneClick
-    : undefined;
+/**
+ * Whether the host's boot says the site is on Frappe Cloud V2, the only place a mailbox can
+ * sign in in one click. Read on use, as the host may set it after this module loads.
+ */
+export function isV2Site(): boolean {
+  const host = globalThis as {
+    is_v2_site?: boolean;
+    frappe?: { boot?: { is_v2_site?: boolean } };
+  };
+  return Boolean(host.is_v2_site ?? host.frappe?.boot?.is_v2_site);
+}
+
+/**
+ * The services a new mailbox can sign in to in one click, each with its provider's name, such as
+ * `{"Outlook.com": "Microsoft"}`, from the host's boot; empty off Frappe Cloud V2.
+ */
+export function oneClickServices(): Record<string, string> {
+  const host = globalThis as {
+    one_click_email_services?: Record<string, string>;
+    frappe?: { boot?: { one_click_email_services?: Record<string, string> } };
+  };
+  return (
+    host.one_click_email_services ??
+    host.frappe?.boot?.one_click_email_services ??
+    {}
+  );
 }
 
 export function reconnectable(
-  account: Pick<EmailAccount, "authKind" | "service">,
-  offered: OneClickProvider[],
+  account: Pick<EmailAccount, "authKind">,
 ): boolean {
   return (
-    (account.authKind === "oauth" || account.authKind === "oauth-custom") &&
-    Boolean(oneClick(serviceOf(account), offered))
+    account.authKind === "oauth-custom" ||
+    (isV2Site() && account.authKind === "oauth")
+  );
+}
+
+/** Whether `account` was set up by hand on a site that offers one-click sign-in. */
+export function manualSetup(account: Pick<EmailAccount, "authKind">): boolean {
+  return (
+    isV2Site() &&
+    (account.authKind === "password" || account.authKind === "oauth-custom")
   );
 }
 

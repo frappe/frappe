@@ -36,22 +36,17 @@
 				<span class="truncate text-base text-ink-gray-7">
 					{{ subtitle(account) }}
 				</span>
+				<Badge v-if="manualSetup(account)" theme="gray" :label="__('Manual setup')" />
 			</div>
 			<Banner
 				v-if="account.status === 'needs-reconnect'"
 				class="mt-4"
 				theme="amber"
-				:title="
-					reconnectable || account.authKind === 'oauth'
-						? __('This mailbox needs to be reconnected')
-						: __('This mailbox needs to be authorized again')
-				"
+				:title="__('This mailbox needs to be reconnected')"
 				:description="
 					reconnectable
 						? __('Sign in again to keep email flowing.')
-						: account.authKind === 'oauth'
-						? __('Reconnect it in Desk.')
-						: __('It uses its own OAuth app. Authorize it again in Desk.')
+						: __('Reconnect it in Desk.')
 				"
 			>
 				<template #actions>
@@ -91,7 +86,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, ScrollArea, toast } from "frappe-ui";
+import { Badge, Button, ScrollArea, toast } from "frappe-ui";
 import { computed, nextTick, ref, useId, watch } from "vue";
 import { translate as __ } from "../../utils/translate";
 import AccountFields from "./AccountFields.vue";
@@ -103,7 +98,8 @@ import {
 	deskUrl,
 	emptyForm,
 	errorText,
-	reconnectable as oneClickReconnect,
+	manualSetup,
+	reconnectable as canReconnect,
 	serviceOf,
 	subtitle,
 	validate,
@@ -114,9 +110,7 @@ const props = defineProps<{ controller: EmailAccountsController; account: EmailA
 const emit = defineEmits<{ back: [name: string]; dirty: [dirty: boolean] }>();
 
 const service = computed(() => serviceOf(props.account));
-const reconnectable = computed(() =>
-	oneClickReconnect(props.account, props.controller.oneClickProviders)
-);
+const reconnectable = computed(() => canReconnect(props.account));
 const formId = useId();
 
 const form = ref(emptyForm(props.account));
@@ -163,7 +157,7 @@ const connecting = ref(false);
 async function reconnect(button: HTMLElement) {
 	connecting.value = true;
 	try {
-		await props.controller.connect(service.value.oneClick!, props.account.name);
+		await props.controller.reconnect(props.account);
 	} catch (e) {
 		toast.error(errorText(e) || __("Couldn't connect. Please try again."));
 		connecting.value = false;

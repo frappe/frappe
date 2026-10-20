@@ -41,11 +41,6 @@ const props = defineProps<{
 	doctype: string;
 	/** Email Account `service` values to offer tiles for, `""` being Custom email; all by default. */
 	providers?: string[];
-	/**
-	 * Whether the site is on Frappe Cloud V2, from the host's boot; only there can a mailbox
-	 * sign in in one click.
-	 */
-	isV2Site?: boolean;
 }>();
 const emit = defineEmits<{
 	/** A mailbox was added, with a password or API key or by one-click sign-in. */
@@ -57,7 +52,7 @@ const emit = defineEmits<{
  */
 const dirty = defineModel<boolean>("dirty", { default: false });
 
-const controller = useEmailAccounts(props.doctype, props.isV2Site);
+const controller = useEmailAccounts(props.doctype);
 
 const landing = new URL(window.location.href);
 const oauthResult = ref(landing.searchParams.get("email_oauth"));

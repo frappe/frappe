@@ -126,17 +126,10 @@
 											/>
 											<span class="truncate">
 												{{
-													reconnectable(
-														account,
-														controller.oneClickProviders
-													)
+													reconnectable(account)
 														? __("Mailbox signed out. Reconnect it.")
-														: account.authKind === "oauth"
-														? __(
-																"Mailbox signed out. Reconnect it in Desk."
-														  )
 														: __(
-																"Mailbox signed out. Authorize it again in Desk."
+																"Mailbox signed out. Reconnect it in Desk."
 														  )
 												}}
 											</span>
@@ -146,6 +139,11 @@
 										</span>
 									</span>
 								</span>
+								<Badge
+									v-if="manualSetup(account)"
+									theme="gray"
+									:label="__('Manual setup')"
+								/>
 								<Badge v-bind="statusBadge(account)" />
 							</button>
 						</div>
@@ -224,6 +222,7 @@ import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
 import {
 	errorText,
+	manualSetup,
 	oauthMessage,
 	reconnectable,
 	serviceOf,

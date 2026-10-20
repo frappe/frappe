@@ -5,7 +5,6 @@ import {
   markSignInStarted,
   missingDefaults,
   newAccount,
-  services,
 } from "./services";
 import type {
   EmailAccount,
@@ -42,13 +41,28 @@ const FIELDS = [
 
 /**
  * Data behind `EmailAccounts`: reads and writes Email Account through Frappe's own
- * methods. `doctype` is what incoming mail is appended to; `isV2Site` turns on one-click sign-in.
+ * methods. `doctype` is what incoming mail is appended to.
  */
-export function useEmailAccounts(
-  doctype: string,
-  isV2Site = false,
-): EmailAccountsController {
+export function useEmailAccounts(doctype: string): EmailAccountsController {
   let seq = 0;
+
+  function here() {
+    const url = new URL(window.location.href);
+    url.searchParams.delete("email_oauth");
+    url.searchParams.delete("email_oauth_mailbox");
+    return url.pathname + url.search;
+  }
+
+  function initiate(args: Record<string, string>): Promise<string | null> {
+    return call(
+      "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
+      {
+        ...args,
+        redirect_to: here(),
+        target_doctype: doctype,
+      },
+    );
+  }
 
   async function load() {
     const mine = ++seq;
@@ -95,7 +109,6 @@ export function useEmailAccounts(
     accounts: [] as EmailAccount[],
     loading: true,
     error: null,
-    oneClickProviders: isV2Site ? services.flatMap((s) => s.oneClick ?? []) : [],
     load,
 
     async create(service, form) {
@@ -148,21 +161,31 @@ export function useEmailAccounts(
       await load();
     },
 
-    async connect(provider, emailAccount) {
-      const here = new URL(window.location.href);
-      here.searchParams.delete("email_oauth");
-      here.searchParams.delete("email_oauth_mailbox");
-      const url: string = await call(
-        "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
+    async connect(service) {
+      const url = await initiate({ service });
+      if (!url) return false;
+      markSignInStarted();
+      window.location.assign(url);
+      return true;
+    },
+
+    async reconnect(account) {
+      if (account.authKind === "oauth") {
+        const url = await initiate({ email_account: account.name });
+        window.location.assign(url!);
+        return;
+      }
+      // run_doc_method also returns the doc, so `call` hands back the whole response
+      const { message } = await call<{ message: string }>(
+        "frappe.handler.run_doc_method",
         {
-          provider,
-          redirect_to: here.pathname + here.search,
-          target_doctype: doctype,
-          email_account: emailAccount,
+          dt: "Connected App",
+          dn: account.connected_app,
+          method: "initiate_web_application_flow",
+          args: { success_uri: here(), user: account.connected_user },
         },
       );
-      if (!emailAccount) markSignInStarted();
-      window.location.assign(url);
+      window.location.assign(message);
     },
 
     async pull(name) {

@@ -60,7 +60,7 @@
 						v-for="s in offered"
 						:key="s.service"
 						variant="outline"
-						class="[height:theme(spacing.11)] [justify-content:start]"
+						class="[height:theme(spacing.11)] [justify-content:start] hover:border-outline-gray-4"
 						:label="s.label"
 						:loading="connecting === s"
 						:disabled="Boolean(connecting) && connecting !== s"
@@ -93,7 +93,7 @@ import { computed, nextTick, ref, shallowRef, useId, watch } from "vue";
 import { translate as __ } from "../../utils/translate";
 import AccountFields from "./AccountFields.vue";
 import BackHeader from "./BackHeader.vue";
-import { emptyForm, errorText, oneClick, services, validate } from "./services";
+import { emptyForm, errorText, oneClickServices, services, validate } from "./services";
 import type { EmailAccountsController, EmailService, FieldError } from "./types";
 
 const props = defineProps<{ controller: EmailAccountsController; providers?: string[] }>();
@@ -116,30 +116,31 @@ const saving = ref(false);
 
 async function choose(service: EmailService) {
 	connectError.value = null;
-	const provider = oneClick(service, props.controller.oneClickProviders);
-	if (!provider) {
-		selected.value = service;
-		await nextTick();
-		header.value?.focus();
-		return;
-	}
-	connecting.value = service;
-	try {
-		await props.controller.connect(provider);
-	} catch (e) {
-		connectError.value = e;
+	if (oneClickServices()[service.service]) {
+		connecting.value = service;
+		try {
+			if (await props.controller.connect(service.service)) return;
+		} catch (e) {
+			connectError.value = e;
+			connecting.value = null;
+			await nextTick();
+			if (document.activeElement === document.body)
+				tiles.value?.querySelectorAll("button")[offered.value.indexOf(service)]?.focus();
+			return;
+		}
 		connecting.value = null;
-		await nextTick();
-		if (document.activeElement === document.body)
-			tiles.value?.querySelectorAll("button")[offered.value.indexOf(service)]?.focus();
 	}
+	selected.value = service;
+	await nextTick();
+	header.value?.focus();
 }
 
 const header = ref<{ focus(): void }>();
 const title = computed(() => {
-	if (!selected.value) return __("New email account");
-	if (selected.value.kind === "custom") return __("New custom email account");
-	return __("New {0} account", [selected.value.label]);
+	const service = selected.value;
+	if (!service) return __("New email account");
+	if (service.kind === "custom") return __("New custom email account");
+	return __("New {0} account", [service.label]);
 });
 
 const tiles = ref<HTMLElement>();
