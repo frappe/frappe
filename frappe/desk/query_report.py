@@ -6,6 +6,7 @@ import json
 import os
 import re
 from datetime import timedelta
+from decimal import Decimal
 from html import unescape
 from typing import TYPE_CHECKING, Any
 
@@ -856,7 +857,7 @@ def add_total_row(
 					fieldtype = "Float"
 			if fieldtype in ["Currency", "Int", "Float", "Percent", "Duration"] and flt(cell):
 				if not (is_tree and row.get(parent_field)):
-					total_row[col_idx] = flt(total_row[col_idx]) + flt(cell)
+					total_row[col_idx] = Decimal(total_row[col_idx] or 0) + Decimal(str(flt(cell)))
 
 			if fieldtype == "Percent" and col_idx not in has_percent:
 				has_percent.append(col_idx)
@@ -868,6 +869,9 @@ def add_total_row(
 
 		if fieldtype == "Link" and options == "Currency":
 			total_row[col_idx] = result[0].get(fieldname) if is_row_dict else result[0][col_idx]
+
+		if isinstance(total_row[col_idx], Decimal):
+			total_row[col_idx] = float(total_row[col_idx])
 
 	for col_idx in has_percent:
 		total_row[col_idx] = flt(total_row[col_idx]) / len(result)

@@ -6,6 +6,7 @@
 import json
 import re
 from collections import deque
+from decimal import Decimal
 from functools import lru_cache
 from typing import Any
 
@@ -17,7 +18,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.desk.link_title import get_report_link_titles, send_link_titles
 from frappe.model import child_table_fields, default_fields, get_permitted_fields, optional_fields
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.model.qb_query import DatabaseQuery
 from frappe.model.utils import is_virtual_doctype
 from frappe.utils import add_user_info, cint, cstr, format_duration, get_link_to_form
@@ -724,9 +725,13 @@ def append_totals_row(data, fields=None):
 		for i in range(len(row)):
 			if isinstance(row[i], float | int):
 				if totals[i] == "" or functions[i] not in ("MIN", "MAX"):
-					totals[i] = (totals[i] or 0) + row[i]
+					totals[i] = (totals[i] or 0) + (
+						Decimal(str(row[i])) if isinstance(row[i], float) else row[i]
+					)
 				else:
 					totals[i] = (min if functions[i] == "MIN" else max)(totals[i], row[i])
+
+	totals = [float(total) if isinstance(total, Decimal) else total for total in totals]
 
 	if not isinstance(totals[0], int | float):
 		totals[0] = "Total"

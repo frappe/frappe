@@ -133,7 +133,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 						query = query.where(Project.is_private == 0)
 					return query
 	"""
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))

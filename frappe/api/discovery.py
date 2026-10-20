@@ -9,7 +9,7 @@ from typing import Any
 import frappe
 from frappe import _
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.permissions import SYSTEM_USER_ROLE
 
 CACHE_TTL = 60 * 60

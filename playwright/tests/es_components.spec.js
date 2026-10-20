@@ -382,6 +382,67 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Optional Sections", () => {
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Optional Sections");
+		});
+
+		const add_button = (root, title) =>
+			root
+				.locator(".es-optional-sections__buttons .es-button", {
+					hasText: containing(title),
+				})
+				.first();
+		const section = (root, title) =>
+			root.locator(".es-optional-sections__section", { hasText: containing(title) }).first();
+
+		test("adding a section shows it and hides its button; Remove brings the button back", async ({
+			page,
+		}) => {
+			const root = explorer_group(page, "Basic (add")
+				.locator(".es-optional-sections")
+				.first();
+
+			await expect(section(root, "Salary and bank")).toBeHidden();
+			await add_button(root, "Salary and bank").click();
+			await expect(section(root, "Salary and bank")).toHaveAttribute("data-state", "added");
+			await expect(section(root, "Salary and bank")).toContainText("Salary fields go here.");
+			await expect(add_button(root, "Salary and bank")).toBeHidden();
+
+			await section(root, "Salary and bank").getByRole("button", { name: "Remove" }).click();
+			await expect(section(root, "Salary and bank")).toBeHidden();
+			await expect(add_button(root, "Salary and bank")).toBeVisible();
+			await expect(add_button(root, "Salary and bank")).toBeFocused();
+		});
+
+		test("hides the add row once every section is added", async ({ page }) => {
+			const root = explorer_group(page, "A section added from the start")
+				.locator(".es-optional-sections")
+				.first();
+
+			await expect(section(root, "Notes")).toBeVisible();
+			await expect(add_button(root, "Notes")).toBeHidden();
+			await add_button(root, "Attachments").click();
+			await expect(root.locator(".es-optional-sections__more")).toBeHidden();
+		});
+
+		test("focuses the first input of an added section and lets on_remove reset it", async ({
+			page,
+		}) => {
+			const root = explorer_group(page, "Fields in a section")
+				.locator(".es-optional-sections")
+				.first();
+			const email = root.locator("input[data-fieldname='email']");
+
+			await add_button(root, "Contact").click();
+			await expect(email).toBeFocused();
+			await email.fill("jane@example.com");
+			await section(root, "Contact").getByRole("button", { name: "Remove" }).click();
+			await add_button(root, "Contact").click();
+			await expect(email).toHaveValue("");
+		});
+	});
+
 	test.describe("Tab Buttons", () => {
 		test.beforeEach(async ({ page }) => {
 			await show(page, "Tab Buttons");

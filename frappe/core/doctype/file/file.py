@@ -25,6 +25,7 @@ from frappe.model.document import Document
 from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_role_permissions
 from frappe.utils import (
 	cint,
+	get_link_to_form,
 	get_table_name,
 	get_url,
 )
@@ -56,7 +57,7 @@ class _ResolvedFileMeta(type(Document)):
 
 
 def _restore_resolved_file_class(doctype):
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 
 	return get_controller(doctype)
 
@@ -650,11 +651,16 @@ class File(Document):
 		if referencing_doc is ref_doc:
 			msg = _(
 				"This file cannot be deleted as it is set in field {0} of {1} {2}. Clear the field first."
-			).format(field_label, _(ref_doc.doctype), ref_doc.name)
+			).format(field_label, _(ref_doc.doctype), get_link_to_form(ref_doc.doctype, ref_doc.name))
 		else:
 			msg = _(
 				"This file cannot be deleted as it is set in field {0} in row {1} of {2} {3}. Clear the field first."
-			).format(field_label, referencing_doc.idx, _(ref_doc.doctype), ref_doc.name)
+			).format(
+				field_label,
+				referencing_doc.idx,
+				_(ref_doc.doctype),
+				get_link_to_form(ref_doc.doctype, ref_doc.name),
+			)
 
 		frappe.throw(msg, frappe.LinkExistsError)
 
