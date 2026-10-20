@@ -1,8 +1,16 @@
+import json
 from datetime import UTC, datetime, timedelta
 from unittest.mock import MagicMock, patch
 
+import sentry_sdk
+from sentry_sdk.transport import Transport
+from werkzeug.wrappers import Request
+
+import frappe
 from frappe.tests import UnitTestCase
-from frappe.utils.sentry import set_scope
+from frappe.utils.sentry import capture_exception, set_scope
+
+LOGIN_BODY = {"usr": "test@example.com", "pwd": "pw-1"}
 
 
 class TestSentryScope(UnitTestCase):
@@ -41,3 +49,46 @@ class TestSentryScope(UnitTestCase):
 		self.assertEqual("test-job-id", context.uuid)
 		self.assertEqual(wait, context.wait)
 		self.assertEqual(job._kwargs, context.kwargs)
+
+
+class TestSentryRequestBody(UnitTestCase):
+	def test_sanitize_body_masks_nested_and_json_string_values(self):
+		from frappe.utils.sentry import sanitize_body
+
+		body = {
+			"usr": "test@example.com",
+			"doc": json.dumps(
+				{"doctype": "Email Account", "password": "pw-1", "rows": [{"api_secret": "pw-2"}]}
+			),
+		}
+		cleaned = sanitize_body(body)
+
+		self.assertEqual(cleaned["usr"], "test@example.com")
+		self.assertNotIn("pw-1", json.dumps(cleaned))
+		self.assertNotIn("pw-2", json.dumps(cleaned))
+
+	def test_captured_event_has_no_request_secrets(self):
+		sent = []
+
+		class RecordingTransport(Transport):
+			def capture_envelope(self, envelope):
+				sent.extend(item.payload.json for item in envelope.items if item.payload.json)
+
+		client = sentry_sdk.Client(dsn="https://key@example.com/1", transport=RecordingTransport)
+		frappe.local.request = Request.from_values("/api/method/login", method="POST", json=LOGIN_BODY)
+		self.addCleanup(setattr, frappe.local, "request", None)
+
+		with (
+			patch("frappe.get_system_settings", return_value=1),
+			sentry_sdk.new_scope() as scope,
+		):
+			scope.set_client(client)
+			try:
+				raise RuntimeError("test error")
+			except RuntimeError:
+				capture_exception()
+			client.flush()
+
+		self.assertEqual(len(sent), 1)
+		self.assertNotIn("pw-1", json.dumps(sent))
+		self.assertIn("test@example.com", json.dumps(sent))

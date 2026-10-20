@@ -1,3 +1,4 @@
+import json
 import os
 import sys
 from datetime import UTC, datetime
@@ -13,6 +14,7 @@ from sentry_sdk.utils import capture_internal_exceptions, event_from_exception
 import frappe
 import frappe.monitor
 from frappe.database.database import Database, EmptyQueryValues
+from frappe.utils.logger import sanitized_dict
 
 
 class FrappeIntegration(Integration):
@@ -113,9 +115,9 @@ def capture_exception(message: str | None = None) -> None:
 				evt_processor = _make_wsgi_event_processor(frappe.request.environ, False)
 				scope.add_event_processor(evt_processor)
 				if frappe.request.is_json:
-					scope.set_context("JSON Body", frappe.request.json)
+					scope.set_context("JSON Body", sanitize_body(frappe.request.json))
 				elif frappe.request.form:
-					scope.set_context("Form Data", frappe.request.form)
+					scope.set_context("Form Data", sanitize_body(frappe.request.form.to_dict()))
 
 			client = sentry_sdk.get_client()
 			if client.is_active():
@@ -136,3 +138,19 @@ def capture_exception(message: str | None = None) -> None:
 
 	except Exception:
 		frappe.logger().error("Failed to capture exception", exc_info=True)
+
+
+def sanitize_body(data):
+	"""Mask values of secret-looking keys at any depth, including inside JSON strings (e.g. `doc`)."""
+	if isinstance(data, str):
+		if data.lstrip()[:1] in ("{", "["):
+			try:
+				return sanitize_body(json.loads(data))
+			except ValueError:
+				pass
+		return data
+	if isinstance(data, list):
+		return [sanitize_body(d) for d in data]
+	if isinstance(data, dict):
+		return sanitized_dict({k: sanitize_body(v) for k, v in data.items()})
+	return data
