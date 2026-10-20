@@ -10,6 +10,7 @@ import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
 from frappe.database.utils import get_order_by_fields
+from frappe.model import default_fields
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_docs
 from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
 from frappe.model.meta import is_single
@@ -797,7 +798,7 @@ def get_linked_docs(
 	doctype: str,
 	name: str,
 	linkinfo: dict | None = None,
-	filters: str | list | None = None,
+	filters: str | list | dict | None = None,
 	limit: int | None = None,
 	order_by: str | None = None,
 ) -> dict[str, list]:
@@ -810,9 +811,9 @@ def get_linked_docs(
 	filters = frappe.parse_json(filters) or []
 	if isinstance(filters, dict):
 		filters = [filters]
-	# a child-row sort field would list a document once per child row
-	if order_by and any("." in field for field in get_order_by_fields(order_by)):
-		frappe.throw(_("Linked documents can only be ordered by their own fields"))
+	# every linked doctype has the standard fields, and they can't split a document into child rows
+	if order_by and any(field not in default_fields for field in get_order_by_fields(order_by)):
+		frappe.throw(_("Linked documents can only be ordered by standard fields"))
 
 	results = {}
 
@@ -976,7 +977,7 @@ def count_linked_docs(doctype: str, filters: list, or_filters: list, ignore_perm
 def get(
 	doctype: str,
 	docname: str,
-	filters: str | list | None = None,
+	filters: str | list | dict | None = None,
 	limit: int | None = None,
 	order_by: str | None = None,
 ):
