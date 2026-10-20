@@ -71,7 +71,6 @@ class SystemSettings(Document):
 		hide_empty_read_only_fields: DF.Check
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
-		lifespan_qrcode_image: DF.Int
 		link_field_results_limit: DF.Int
 		log_api_requests: DF.Check
 		login_with_email_link: DF.Check
