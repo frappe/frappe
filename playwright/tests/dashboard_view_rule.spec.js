@@ -9,7 +9,7 @@ const cases = [
 		title: "without Insights, classic with the install prompt",
 		onload: { dashboards: "Insights", show_insights_dashboards_prompt: true },
 		view: "classic",
-		prompt: "Insights dashboards are available for this site",
+		prompt: "ERPNext and Frappe HR dashboards have new versions built with Insights.",
 		button: "Install Insights",
 	},
 	{
@@ -21,8 +21,8 @@ const cases = [
 			insights_dashboard_title: "Sales Overview",
 		},
 		view: "classic",
-		prompt: "This dashboard has an Insights version: Sales Overview",
-		button: "Open",
+		prompt: "ERPNext and Frappe HR dashboards have new versions built with Insights.",
+		button: "Switch to Insights dashboards",
 	},
 	{
 		title: "Insights claims it on an Insights site, the island",

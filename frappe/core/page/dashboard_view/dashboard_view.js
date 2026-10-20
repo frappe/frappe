@@ -73,7 +73,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 
 		show_legacy(doc);
 		if (doc.__onload?.show_insights_dashboards_prompt) {
-			show_insights_dashboards_prompt(claimed, doc.__onload.insights_dashboard_title);
+			show_insights_dashboards_prompt(claimed);
 		}
 	}
 
@@ -114,40 +114,36 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		);
 	}
 
-	// Either answer is the site's: Open switches every Insights dashboard on, the
-	// dismiss keeps classic.
-	function show_insights_dashboards_prompt(claimed, title) {
+	// Either answer is the site's: switching turns every Insights dashboard on, the
+	// dismiss keeps classic. The wording says so because the line sits on one dashboard.
+	function show_insights_dashboards_prompt(claimed) {
 		const submit = (action) =>
 			frappe.xcall(
 				"frappe.desk.doctype.dashboard.dashboard.submit_insights_dashboards_prompt",
 				{ action }
 			);
-		const text = !claimed
-			? __("Insights dashboards are available for this site")
-			: title
-			? __("This dashboard has an Insights version: {0}", [
-					`<b>${frappe.utils.escape_html(title)}</b>`,
-			  ])
-			: __("This dashboard has an Insights version");
 		const prompt = $(`<div class="dashboard-view-prompt">
-			<span class="dashboard-view-prompt__text">${text}</span>
+			<span class="dashboard-view-prompt__text">${__(
+				"ERPNext and Frappe HR dashboards have new versions built with Insights."
+			)}</span>
 			<span class="dashboard-view-prompt__actions"></span>
 		</div>`);
 		prompt.find(".dashboard-view-prompt__actions").append(
 			claimed
 				? frappe.ui.button({
-						label: __("Open"),
+						label: __("Switch to Insights dashboards"),
 						onclick: () =>
-							new Promise((resolve) =>
-								frappe.confirm(
+							new Promise((resolve) => {
+								const dialog = frappe.confirm(
 									__(
-										"Open the Insights version of every dashboard that has one, for everyone on this site? You can switch back in System Settings."
+										"The ERPNext and Frappe HR dashboards will open their Insights version for all users on this site. You can switch back anytime in System Settings → Dashboards."
 									),
 									() => resolve(submit("open_insights_dashboards").then(show)),
 									resolve,
-									__("Open Insights")
-								)
-							),
+									__("Switch for everyone")
+								);
+								dialog.set_title(__("Switch dashboards for everyone?"));
+							}),
 				  })
 				: frappe.ui.button({
 						label: __("Install Insights"),
@@ -157,7 +153,9 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 			frappe.ui.button({
 				icon: "x",
 				variant: "ghost",
-				tooltip: __("Dismiss"),
+				tooltip: claimed
+					? __("Keep classic dashboards. You can switch later in System Settings.")
+					: __("Don't show again"),
 				onclick: () => submit("keep_classic_dashboards").then(() => prompt.remove()),
 			})
 		);
