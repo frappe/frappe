@@ -48,12 +48,13 @@ def server_instructions() -> str:
 	lines = [
 		"This is a Frappe Framework site at {0}.".format(get_host_name()),
 		"You are connected as {0} ({1}).".format(get_fullname(), frappe.session.user),
+		"Tool arguments take the same values as the matching Frappe REST API v2 endpoints.",
+		"For example, filters, fields and order_by work as in GET /api/v2/document/<doctype>.",
 		"Installed apps:",
 	]
 	for app in frappe.get_installed_apps():
 		title = (frappe.get_hooks("app_title", app_name=app) or [app])[0]
-		description = (frappe.get_hooks("app_description", app_name=app) or [""])[0]
-		lines.append(f"- {title} ({app}): {description}" if description else f"- {title} ({app})")
+		lines.append(f"- {title} ({app})")
 
 	instructions = "\n".join(lines)
 	if site_instructions := (frappe.get_cached_doc("MCP Settings").agent_instructions or "").strip():
