@@ -1,58 +1,72 @@
 <template>
-	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel -->
-	<div class="flex h-full min-h-0 overflow-clip bg-surface-base text-base text-ink-gray-8">
+	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
+	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
+	<div class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8">
 		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
-		<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
-			<ChatHeader
-				:sidebar-open="sidebarOpen"
-				:workspace="false"
-				:actions="chatActions"
-				@open-sidebar="store.setSidebarOpen(true)"
-			/>
-			<MessageList>
-				<template #empty>
-					<SetupState v-if="needsSetup" />
-					<template v-else>
-						<BrandMark :size="52" />
-						<h2
-							class="max-w-xs text-6xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:max-w-none"
-						>
-							What can I help you with?
-						</h2>
+		<div
+			class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm"
+		>
+			<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
+				<ChatHeader
+					:sidebar-open="sidebarOpen"
+					:workspace="false"
+					:actions="chatActions"
+					:crumb="agentCrumb"
+					@open-sidebar="store.setSidebarOpen(true)"
+				/>
+				<MessageList>
+					<template #empty>
+						<SetupState v-if="needsSetup" />
+						<template v-else>
+							<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
+							<BrandMark
+								:size="52"
+								class="min-h-0 shrink max-sm:!h-10 max-sm:!w-10"
+							/>
+							<h2
+								class="text-balance text-4xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl"
+							>
+								What can I help you with?
+							</h2>
+						</template>
 					</template>
+				</MessageList>
+				<Composer
+					v-if="!readOnly"
+					ref="composer"
+					:commands="COMMANDS"
+					:mentions="false"
+					:images-only="false"
+					:placeholder="placeholder"
+					:modes="MODES"
+					:disabled="needsSetup"
+				>
+					<template #start="{ insert }">
+						<AgentPicker :disabled="needsSetup" />
+						<SkillPicker :disabled="needsSetup" @pick="insert" />
+					</template>
+					<template #palette="{ view, query, close, back }">
+						<AgentPalette
+							v-if="view === 'agents'"
+							:query="query"
+							@close="close"
+							@back="back"
+						/>
+					</template>
+				</Composer>
+				<p
+					v-else
+					class="absolute inset-x-0 bottom-0 px-5 pb-5 text-center text-xs text-ink-gray-5"
+				>
+					{{ readOnlyNote }}
+				</p>
+			</main>
+			<WorkspacePanel>
+				<template #empty>
+					<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
 				</template>
-			</MessageList>
-			<Composer
-				v-if="!readOnly"
-				ref="composer"
-				:commands="COMMANDS"
-				:mentions="false"
-				:images-only="false"
-				:placeholder="placeholder"
-				:modes="MODES"
-				:disabled="needsSetup"
-			>
-				<template #toolbar="{ openPalette }">
-					<AgentPicker @open="openPalette" />
-					<span aria-hidden="true" class="flex-none text-xs text-ink-gray-3">/</span>
-					<ModelButton @open="openPalette" />
-				</template>
-				<template #palette="{ view, close, back }">
-					<AgentPalette v-if="view === 'agents'" @close="close" @back="back" />
-				</template>
-			</Composer>
-			<p
-				v-else
-				class="absolute inset-x-0 bottom-0 px-5 pb-5 text-center text-xs text-ink-gray-5"
-			>
-				{{ readOnlyNote }}
-			</p>
-		</main>
-		<WorkspacePanel>
-			<template #empty>
-				<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
-			</template>
-		</WorkspacePanel>
+			</WorkspacePanel>
+		</div>
 		<Dialogs />
 		<ToastProvider />
 		<FlowSettings />
@@ -69,11 +83,12 @@ import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
 import MessageList from "@flow/ui-core/components/MessageList.vue";
-import ModelButton from "@flow/ui-core/components/ModelButton.vue";
 import SessionSidebar from "@flow/ui-core/components/SessionSidebar.vue";
 import TranscriptDialog from "@flow/ui-core/components/TranscriptDialog.vue";
 import WorkspacePanel from "@flow/ui-core/components/WorkspacePanel.vue";
 import { installShortcuts } from "@flow/ui-core/shortcuts.js";
+import { installFocusRings } from "@flow/ui-core/focusRings.js";
+import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
@@ -87,20 +102,22 @@ import AgentPicker from "./AgentPicker.vue";
 import FeedbackBar from "./FeedbackBar.vue";
 import SetupState from "./SetupState.vue";
 import ShareChat from "./ShareChat.vue";
+import SkillPicker from "./SkillPicker.vue";
+import { useAgent } from "./agent.js";
 import { presentTool } from "./toolMeta.js";
 
 // the composer commands Flow serves, its own agent picker first; the rest need the
 // daemon's file system or providers
 const COMMANDS = [
-	{ name: "agents", label: "Agent", icon: "bot", hint: "choose the agent", view: "agents" },
+	{ name: "agents", label: "Agent", icon: "bot", hint: "Choose the agent", view: "agents" },
 	"model",
 	"thinking",
-	"settings",
 	"transcript",
 	"new",
 	"rewind",
 	"compact",
 	"abort",
+	"settings",
 ];
 // the approval modes in Flow's terms: its tools act on documents, not files
 const MODES = [
@@ -119,6 +136,7 @@ const page = createPage(props.boot, {
 	refresh: () => store.refreshModels(),
 	sync: (sid) => client.syncSession(sid),
 	renamedModel: (from, to) => store.renamedModel(from, to),
+	reloadSkills: () => store.loadSkills({ force: true }),
 });
 const socket = connectSocket(props.boot);
 const client = new FrappeClient({
@@ -155,6 +173,9 @@ const placeholder = computed(() => {
 	const title = page.state.boot.agents.find((agent) => agent.name === name)?.title ?? "Flow";
 	return `Ask ${title}…`;
 });
+// the header names a chat's agent where the harness names its folder
+const { current: agent, title: agentTitle } = useAgent(store, page);
+const agentCrumb = computed(() => (agent.value ? { icon: "bot", label: agentTitle.value } : null));
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // only its owner shares a chat, once it has loaded and said who that is
@@ -217,8 +238,12 @@ watch(
 );
 
 let uninstallShortcuts = null;
+let uninstallFocusRings = null;
+let uninstallViewport = null;
 onMounted(async () => {
 	uninstallShortcuts = installShortcuts(store);
+	uninstallFocusRings = installFocusRings();
+	uninstallViewport = installViewport();
 	store.refreshModels();
 	await store.refreshSessions();
 	// the route watcher, a click or a first message may have moved on while the list loaded
@@ -233,6 +258,8 @@ onMounted(async () => {
 });
 onBeforeUnmount(() => {
 	uninstallShortcuts?.();
+	uninstallFocusRings?.();
+	uninstallViewport?.();
 	store.detach();
 	socket.disconnect();
 });

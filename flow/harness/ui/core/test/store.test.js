@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import test from "node:test"
+import { ref } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
 import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
@@ -628,6 +629,9 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 		async gitChanges() {
 			throw new Error("boom")
 		},
+		async gitBranch() {
+			throw new Error("boom")
+		},
 	}
 	const flow = createFlowStore(client)
 	flow.setCwd("/project")
@@ -643,8 +647,9 @@ test("files save and diff against the browsed cwd, before a session or in one", 
 	assert.equal(diff.content, "new\n")
 	assert.equal(flow.state.workspace.open, true)
 
-	// the diff bar polls changes, so a failure stays silent instead of toasting
+	// the diff bar polls changes, so a failure stays silent instead of toasting, as a new chat's branch does
 	assert.equal(await flow.gitChanges(), null)
+	assert.equal(await flow.gitBranch(), null)
 	assert.equal(flow.state.toast, null)
 
 	// a file outside the repository falls back to the session's diff
@@ -711,7 +716,7 @@ test("the active preset and custom instructions shape new sessions", async () =>
 	assert.equal(configs[1].auto_approve, false)
 	assert.equal("model" in configs[1], false)
 	assert.equal("effort" in configs[1], false)
-	assert.equal(flow.state.sessionPresets.s2, id) // remembered per chat, for the settings tab
+	assert.equal(configs[1].preset, id) // the chat keeps it, for the settings tab
 
 	flow.savePreset({ ...flow.activePreset(), promptMode: "replace" })
 	await flow.newSession()
@@ -720,12 +725,11 @@ test("the active preset and custom instructions shape new sessions", async () =>
 
 	flow.deletePreset(id)
 	assert.equal(flow.state.prefs.activePreset, null)
-	assert.equal("s2" in flow.state.sessionPresets, false) // the chat's record goes with the preset
 	await flow.newSession()
 	assert.equal("tools" in configs[3], false)
 	assert.equal("extension_tools" in configs[3], false)
 	assert.equal(configs[3].system_suffix, "Be brief.")
-	assert.equal("s4" in flow.state.sessionPresets, false)
+	assert.equal("preset" in configs[3], false)
 
 	// a preset saves where randomUUID is missing, as on plain http to a LAN address
 	const randomUUID = Object.getOwnPropertyDescriptor(crypto, "randomUUID")
@@ -774,7 +778,7 @@ test("the Default preset adds bundled and extension tools on top of the core too
 	await flow.newSession()
 	assert.deepEqual(configs[1].tools, ["bash", "read", "grep"])
 	assert.deepEqual(configs[1].extension_tools, [])
-	assert.equal("s2" in flow.state.sessionPresets, false) // not a saved preset
+	assert.equal("preset" in configs[1], false) // not a saved preset
 
 	// a core tool the daemon adds later is on without a re-save
 	flow.state.tools.push({ name: "agent", extension: null, bundled: false })
@@ -899,7 +903,7 @@ test("a first message needs a project folder, unless the host has no filesystem"
 	hostless.detach()
 })
 
-test("saved state lives under the host's storage key, and an old saved theme moves to frappe-ui's", () => {
+test("saved state lives under the host's storage key and keeps only what differs from the defaults, an old saved theme moves to frappe-ui's, and a daemon that keeps settings has the last change from either side", async (t) => {
 	const backing = new Map()
 	const previousStorage = globalThis.localStorage
 	globalThis.localStorage = {
@@ -913,10 +917,22 @@ test("saved state lives under the host's storage key, and an old saved theme mov
 		flow.setFolderOpen("/w/api", true)
 		flow.setFolderOpen("/w/app", false)
 		flow.setSidebarView({ sidebarOrder: "manual", chatOrder: ["s2", "s1"] })
+		// the chat text size starts at 15px, steps only within its bounds and keeps two decimals
+		assert.equal(flow.state.prefs.chatFontSize, 15)
+		flow.setChatFontSize(30)
+		assert.equal(flow.state.prefs.chatFontSize, 22)
+		flow.setChatFontSize(4)
+		assert.equal(flow.state.prefs.chatFontSize, 12)
+		flow.setChatFontSize(15.01 + 1) // 16.009999999999998
+		flow.setChatFontWeight(500)
 		const saved = JSON.parse(backing.get("flow.ui:site:user.prefs"))
+		assert.equal(saved.chatFontSize, 16.01)
+		assert.equal(saved.chatFontWeight, 500)
 		assert.equal(saved.sidebarOpen, false)
 		assert.deepEqual(saved.openFolders, ["/w/api"])
-		assert.deepEqual([saved.sidebarGroup, saved.sidebarOrder, saved.chatOrder], ["workspace", "manual", ["s2", "s1"]])
+		assert.deepEqual([saved.sidebarOrder, saved.chatOrder], ["manual", ["s2", "s1"]])
+		// a setting at its default isn't kept, so it follows a new default
+		assert.equal("sidebarGroup" in saved || "mode" in saved, false)
 		assert.equal(backing.has("flow.ui.prefs"), false)
 
 		// the theme used to live in the default key's prefs
@@ -926,6 +942,75 @@ test("saved state lives under the host's storage key, and an old saved theme mov
 		assert.equal("theme" in defaults.state.prefs, false)
 		assert.equal(JSON.parse(backing.get("flow.ui.prefs")).theme, undefined)
 		assert.equal(defaults.state.prefs.mode, "auto")
+
+		// on first use the daemon gets this browser's settings, but not its window's layout
+		t.mock.timers.enable({ apis: ["setTimeout"] })
+		const settled = () => new Promise((resolve) => setImmediate(resolve))
+		const daemon = { settings: null, saves: [], away: false }
+		const client = {
+			async settings() {
+				return { settings: daemon.settings }
+			},
+			async updateSettings(changed) {
+				if (daemon.away) throw new Error("connection refused")
+				daemon.saves.push(Object.keys(changed))
+				daemon.settings = { ...daemon.settings, ...changed }
+			},
+		}
+		const scheme = (value) => {
+			const colorScheme = ref(value)
+			return { colorScheme, setColorScheme: (next) => (colorScheme.value = next) }
+		}
+		const first = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
+		await settled()
+		assert.deepEqual(
+			[daemon.settings.chatFontSize, daemon.settings.chatOrder, daemon.settings.theme, daemon.settings.presets],
+			[16.01, ["s2", "s1"], "dark", []],
+		)
+		assert.equal("openFolders" in daemon.settings || "sidebarOpen" in daemon.settings, false)
+		// a change follows a moment later, alone
+		first.setChatFontSize(18)
+		first.setSidebarWidth(300)
+		t.mock.timers.tick(500)
+		await settled()
+		assert.deepEqual(daemon.saves.at(-1), ["chatFontSize"])
+
+		// another browser shows the daemon's settings, and keeps its own presets beside the daemon's
+		first.savePreset({ name: "Reviewer", tools: ["read"] })
+		t.mock.timers.tick(500)
+		await settled()
+		backing.set("flow.ui:other.presets", JSON.stringify([{ id: "mine", name: "Mine", tools: [] }]))
+		const otherScheme = scheme("system")
+		const other = createFlowStore(client, { storageKey: "flow.ui:other", colorScheme: otherScheme })
+		await settled()
+		assert.deepEqual([other.state.prefs.chatFontSize, other.state.prefs.sidebarOrder, otherScheme.colorScheme.value], [18, "manual", "dark"])
+		assert.deepEqual(daemon.settings.presets.map((preset) => preset.name), ["Reviewer", "Mine"])
+		assert.deepEqual(daemon.saves.at(-1), ["presets"])
+
+		// a change the daemon missed goes to it at the next load, over the copy it has
+		daemon.away = true
+		other.setChatFontWeight(300)
+		t.mock.timers.tick(500)
+		await settled()
+		daemon.away = false
+		first.setChatFontSize(20)
+		t.mock.timers.tick(500)
+		await settled()
+		const reloaded = createFlowStore(client, { storageKey: "flow.ui:other", colorScheme: otherScheme })
+		await settled()
+		assert.deepEqual([reloaded.state.prefs.chatFontWeight, reloaded.state.prefs.chatFontSize], [300, 20])
+		assert.equal(daemon.settings.chatFontWeight, 300)
+
+		// a setting put back to its default goes as null, so every browser follows the default again
+		reloaded.setChatFontWeight(400)
+		t.mock.timers.tick(500)
+		await settled()
+		assert.equal(daemon.settings.chatFontWeight, null)
+		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:other.prefs")), false)
+		const firstAgain = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
+		await settled()
+		assert.equal(firstAgain.state.prefs.chatFontWeight, 400)
+		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:site:user.prefs")), false)
 	} finally {
 		globalThis.localStorage = previousStorage
 	}

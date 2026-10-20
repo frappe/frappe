@@ -90,12 +90,16 @@ test("a slash offers skills, mid-message only skills, and puts the one picked wh
 			loadSkills() { loads++ },
 		}
 		const { vm, el } = mount(t, Composer, { commands: ["new"], mentions: false }, flow)
+		// a new chat's load before any "/", so its first list opens whole
+		assert.equal(loads, enabled ? 1 : 0)
 		const box = el.querySelector("textarea")
 		vm.prefill("/")
 		await nextTick()
-		assert.ok(el.textContent.includes("start a fresh conversation"))
-		assert.equal(el.textContent.includes("/skill:review"), enabled)
-		assert.equal(loads, enabled ? 1 : 0)
+		assert.ok(el.textContent.includes("Start a fresh conversation"))
+		// a skill row reads its name and description, not its /skill: form
+		assert.equal(el.textContent.includes("Review files"), enabled)
+		assert.ok(!el.textContent.includes("/skill:review"))
+		assert.equal(loads, enabled ? 2 : 0)
 		vm.prefill("/skill:review investigate")
 		await nextTick()
 		assert.equal(box.classList.contains("text-transparent"), enabled)
@@ -103,8 +107,8 @@ test("a slash offers skills, mid-message only skills, and puts the one picked wh
 
 		vm.prefill("fix this /")
 		await nextTick()
-		assert.ok(el.textContent.includes("/skill:review"))
-		assert.ok(!el.textContent.includes("start a fresh conversation"))
+		assert.ok(el.textContent.includes("Review files"))
+		assert.ok(!el.textContent.includes("Start a fresh conversation"))
 		// a slash no skill matches, like a path, opens nothing
 		vm.prefill("see /usr")
 		await nextTick()
@@ -113,10 +117,13 @@ test("a slash offers skills, mid-message only skills, and puts the one picked wh
 
 		vm.prefill("fix /re that")
 		await nextTick()
+		const loaded = loads
 		box.setSelectionRange(7, 7)
 		box.dispatchEvent(new window.Event("click"))
 		await nextTick()
-		rowButton(el, "/skill:review").click()
+		// a slash the caret reaches loads them too, as a typed "/" does once the caret passes it
+		assert.equal(loads, loaded + 1)
+		rowButton(el, "Review files").click()
 		await nextTick()
 		assert.equal(box.value, "fix /skill:review that")
 		assert.equal(el.querySelector(".text-ink-blue-6").textContent, "/skill:review")
@@ -290,6 +297,7 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 			prefs: { mode: "ask" }, sessionId: null, session: null, models: [], codeRefs: [], quotes: [], queued: [],
 			skills: [], conversation: {}, draft: null,
 		}),
+		setMode: (mode) => (flow.state.prefs.mode = mode),
 	}
 	const bare = mount(t, Composer, { commands: [], mentions: false }, flow)
 	assert.ok(bare.el.querySelector("button[title^='Choose Model']"))
@@ -306,44 +314,124 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 				h("button", { "data-test": "agent", onClick: () => openPalette("thinking") }, "Agent"),
 				h(ModelButton, { onOpen: openPalette }),
 			],
-			palette: ({ view, close }) => (view === "agents" ? h("div", { "data-test": "host-palette", onClick: close }, view) : null),
+			palette: ({ view, query, close }) =>
+				view === "agents" ? h("div", { "data-test": "host-palette", onClick: close }, `${view}:${query}`) : null,
 		}),
 	}, {}, flow)
 	const agent = el.querySelector("[data-test=agent]")
 	const model = el.querySelector("button[title^='Choose Model']")
-	assert.ok(agent.compareDocumentPosition(model) & Node.DOCUMENT_POSITION_FOLLOWING)
+	// the approval mode by the attach button, the pickers by Send
+	const order = ["button[title='Attach images']", "button[title='Approval mode']", "[data-test=agent]", "button[title^='Choose Model']", "button[title=Send]"]
+	const placed = order.map((selector) => el.querySelector(selector))
+	placed.slice(1).forEach((node, i) => assert.ok(placed[i].compareDocumentPosition(node) & Node.DOCUMENT_POSITION_FOLLOWING, order[i + 1]))
 	assert.equal(el.querySelector("[data-stub=ThinkingPalette]"), null)
 	agent.click()
 	await nextTick()
 	assert.ok(el.querySelector("[data-stub=ThinkingPalette]"))
+	// a picker opened over an empty composer searches with it, and its "/" goes when it closes
+	const box = el.querySelector("textarea")
+	assert.equal(box.value, "/")
+	el.querySelector("[data-stub=ThinkingPalette]").dispatchEvent(new window.Event("close"))
+	await nextTick()
+	assert.equal(box.value, "")
 
+	// the model button's lists are its own, hung from it, one line a row: the composer's stay shut
 	model.click()
 	await nextTick()
-	const entries = [...el.querySelectorAll("[role=menuitem]")].map((entry) => entry.textContent.trim())
-	assert.deepEqual(entries, ["ModelChoose Model", "ThinkingDefault"])
-	el.querySelector("[role=menuitem]").click()
+	const picker = model.parentElement
+	const entries = [...picker.querySelectorAll("[data-palette-item]")].map((row) => [...row.querySelectorAll("span")].map((span) => span.textContent))
+	assert.deepEqual(entries, [["Model", "Choose Model"], ["Thinking", "Default"]])
+	picker.querySelector("[data-palette-item]").click()
 	await nextTick()
-	assert.equal(el.querySelector("[role=menuitem]"), null)
-	assert.ok(el.querySelector("[data-stub=ModelPalette]"))
+	assert.equal(picker.querySelector("[data-palette-item]"), null)
+	assert.ok(picker.querySelector("[data-stub=ModelPalette]"))
+	assert.equal(box.value, "")
+	picker.querySelector("[data-stub=ModelPalette]").dispatchEvent(new window.Event("close"))
+	await nextTick()
+	assert.equal(picker.querySelector("[data-stub=ModelPalette]"), null)
+	assert.equal(el.querySelector("[data-stub=ModelPalette]"), null)
 
 	// the host's own command opens its palette slot
 	vm.$refs.composer.prefill("/")
 	await nextTick()
-	assert.deepEqual([...el.querySelectorAll("[data-palette-item] code")].map((c) => c.textContent), ["/agents", "/model"])
+	// the host's command first, each row its label and what it does
+	const rows = [...el.querySelectorAll("[data-palette-item]")]
+	assert.deepEqual(rows.map((row) => [...row.querySelectorAll("span")].map((span) => span.textContent)), [
+		["Agent", "choose the agent"],
+		["Model", "Choose the model"],
+	])
 	el.querySelector("[data-palette-item]").click()
 	await nextTick()
-	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents")
+	// the page searches with the composer's text after its "/"
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:")
+	vm.$refs.composer.prefill("/sa")
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:sa")
+	// Backspace on the bare "/" goes back to the commands, keeping the "/"
+	vm.$refs.composer.prefill("/")
+	await nextTick()
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Backspace", bubbles: true, cancelable: true }))
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]"), null)
+	assert.equal(box.value, "/")
+	assert.equal(el.querySelectorAll("[data-palette-item]").length, 2)
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
 	el.querySelector("[data-test=host-palette]").click()
 	await nextTick()
 	assert.equal(el.querySelector("[data-test=host-palette]"), null)
+	assert.equal(box.value, "")
+	// a "/command" at the head of a draft opens its page unfiltered, and the draft outlives it
+	vm.$refs.composer.prefill("/ag\nplease fix the login bug")
+	await nextTick()
+	box.setSelectionRange(3, 3)
+	box.dispatchEvent(new window.Event("select"))
+	await nextTick()
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:")
+	el.querySelector("[data-test=host-palette]").click()
+	await nextTick()
+	assert.equal(box.value, "\nplease fix the login bug")
+	// one after spaces alone is all the box holds: its page searches from a bare "/"
+	vm.$refs.composer.prefill("  /ag")
+	await nextTick()
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.equal(el.querySelector("[data-test=host-palette]").textContent, "agents:")
+	assert.equal(box.value, "/")
+	el.querySelector("[data-test=host-palette]").click()
+	await nextTick()
+	// back from a toolbar picker over a "/" whose list Escape put away brings the commands back
+	vm.$refs.composer.prefill("/")
+	await nextTick()
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+	await nextTick()
+	assert.equal(el.querySelectorAll("[data-palette-item]").length, 0)
+	agent.click()
+	await nextTick()
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Backspace", bubbles: true, cancelable: true }))
+	await nextTick()
+	assert.equal(el.querySelectorAll("[data-palette-item]").length, 2)
+	box.dispatchEvent(new window.KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }))
+	vm.$refs.composer.prefill("")
+	await nextTick()
 
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Sales…")
 	const mode = el.querySelector("button[title='Approval mode']")
 	assert.equal(mode.textContent.trim(), "Ask first")
 	mode.click()
 	await nextTick()
-	const menu = el.querySelector("[role=menu]").textContent
-	for (const text of ["Ask first", "Pauses before documents change.", "Just do it", "Never asks."]) assert.ok(menu.includes(text), text)
+	// a row a mode, what it does under its name, the one in force ticked
+	const modeRows = [...mode.parentElement.querySelectorAll("[data-palette-item]")]
+	assert.deepEqual(modeRows.map((row) => [[...row.querySelectorAll(":scope > span > span")].map((span) => span.textContent), row.getAttribute("aria-current")]), [
+		[["Ask first", "Pauses before documents change."], "true"],
+		[["Just do it", "Never asks."], null],
+	])
+	modeRows[1].click()
+	await nextTick()
+	assert.equal(mode.parentElement.querySelector("[data-palette-item]"), null)
+	assert.equal(mode.textContent.trim(), "Just do it")
 
 	// disabled, it is shown but inert, the host's pickers included
 	host.disabled = true
@@ -407,22 +495,24 @@ test("the composer asks a pending batch one call at a time above the box, names 
 	assert.ok(!child.el.textContent.includes("Run this command?"))
 })
 
-test("the queue steers or takes back a waiting message", async (t) => {
+test("the queue steers or takes back a waiting message, and the time a reply has run shows beside Stop", async (t) => {
 	const calls = []
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
 			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [],
 			queued: [{ key: "q1", label: "Also check this" }],
-			skills: [], conversation: { running: true }, draft: null,
+			skills: [], conversation: { running: true, runStartedAt: Date.now() / 1000 - 75 }, draft: null,
 		}),
 		sendQueued: (item) => calls.push(["send", item.key]),
 		removeQueued: (item) => calls.push(["remove", item.key]),
 	}
 	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
 	const button = (text) => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === text)
+	const timer = () => el.querySelector("[title='How long this reply has run']")
 	assert.match(el.textContent, /Queued\s*Also check this/)
 	assert.ok(button("Steer").querySelector("[data-stub=FeatherIcon][name=corner-down-left]"))
+	assert.match(timer().textContent.trim(), /^1m 1[56]s$/)
 
 	const box = el.querySelector("fieldset textarea")
 	button("Steer").click()
@@ -447,6 +537,7 @@ test("the queue steers or takes back a waiting message", async (t) => {
 	await nextTick()
 	assert.equal(button("Steer"), undefined)
 	assert.ok(button("Send"))
+	assert.equal(timer(), null)
 })
 
 test("the thread shows the empty state, a loading line while a chat opens, and a sent message before the server echoes it", async (t) => {
@@ -631,19 +722,84 @@ test("a bubble shows the message as written: its quotes, code references and ski
 	assert.deepEqual([...sending.querySelectorAll(".text-ink-blue-6")].map((span) => span.textContent), ["/skill:review"])
 })
 
-test("a sent message leaves the box at once, which takes the next one; a failed send comes back ahead of it", async (t) => {
+test("a new chat shows its folder, branch and preset over the box until its first message goes out; a sent message leaves the box at once, which takes the next one; a failed send comes back ahead of it", async (t) => {
 	let finishSend
 	let sent
+	let picks = 0
+	let creates = 0
 	const flow = composerFlow({
 		send(message, attachments) {
 			sent = { message, attachments }
 			return new Promise((resolve) => (finishSend = resolve))
 		},
+		gitBranch: async () => ({ branch: "work", worktree: true }),
+		pickFolder: async () => void picks++,
+		activePreset: () => flow.state.presets.find((p) => p.id === flow.state.prefs.activePreset) ?? null,
+		setActivePreset: (id) => (flow.state.prefs.activePreset = id),
+		createPreset: () => creates++,
 	})
-	flow.state.conversation = { running: false }
+	Object.assign(flow.state, {
+		sessionId: null,
+		prefs: { mode: "ask", cwd: "/w/expenses", activePreset: null },
+		presets: [{ id: "r1", name: "Reviewer", tools: [] }],
+		conversation: { running: false, sending: [] },
+	})
 	const { el, vm } = mount(t, Composer, { commands: [], mentions: false, imagesOnly: false }, flow)
 	const box = el.querySelector("textarea")
 	const sendButton = () => el.querySelector("button[title='Send']")
+	const folder = () => el.querySelector("button[title='Change working directory']")
+	await new Promise((resolve) => setImmediate(resolve))
+	assert.equal(folder().textContent.trim(), "expenses")
+	// the branch, marked as a linked worktree's
+	const branch = [...el.querySelector("[title='Branch']").children].map((child) => child.textContent.trim())
+	assert.deepEqual(branch.filter(Boolean), ["work", "worktree"])
+	folder().click()
+	assert.equal(picks, 1)
+
+	// the preset: Standard, or one picked from its own list, found by its search; the list leads to a new one
+	const preset = () => el.querySelector("button[title='Agent preset']")
+	const rows = () => [...preset().parentElement.querySelectorAll("[data-palette-item]")].map((row) => [row.textContent.trim(), row.getAttribute("aria-current")])
+	const row = (name) => [...preset().parentElement.querySelectorAll("[data-palette-item]")].find((r) => r.textContent.trim() === name)
+	const search = async (text) => {
+		const field = preset().parentElement.querySelector("input")
+		field.value = text
+		field.dispatchEvent(new window.Event("input"))
+		await nextTick()
+	}
+	assert.equal(preset().textContent.trim(), "Standard")
+	preset().click()
+	await nextTick()
+	await nextTick()
+	assert.equal(document.activeElement.placeholder, "Search presets…")
+	assert.deepEqual(rows(), [["Standard", "true"], ["Reviewer", null], ["Create a preset", null]])
+	await search("rev")
+	assert.deepEqual(rows(), [["Reviewer", null], ["Create a preset", null]])
+	await search("rev x")
+	assert.deepEqual(rows(), [["Create a preset", null]])
+	assert.match(preset().parentElement.textContent, /No matching presets/)
+	await search("")
+	row("Reviewer").click()
+	await nextTick()
+	assert.equal(flow.state.prefs.activePreset, "r1")
+	assert.equal(preset().textContent.trim(), "Reviewer")
+	assert.deepEqual(rows(), [])
+	preset().click()
+	await nextTick()
+	assert.equal(preset().parentElement.querySelector("input").value, "")
+	assert.deepEqual(rows(), [["Standard", null], ["Reviewer", "true"], ["Create a preset", null]])
+	row("Create a preset").click()
+	await nextTick()
+	assert.equal(creates, 1)
+	assert.deepEqual(rows(), [])
+
+	// gone once the first message is out, and from the chat it starts
+	flow.state.conversation.sending = [{ key: "sending:1" }]
+	await nextTick()
+	assert.equal(folder(), null)
+	flow.state.sessionId = "s1"
+	flow.state.conversation.sending = []
+	await nextTick()
+	assert.equal(folder(), null)
 	vm.prefill("Review this")
 	const input = el.querySelector("input[type=file]")
 	Object.defineProperty(input, "files", {
@@ -931,7 +1087,7 @@ test("rewind is offered on a logged message of a chat that can rewind, and nowhe
 		const composer = mount(t, Composer, { mentions: false }, store)
 		composer.vm.prefill("/rewind")
 		await nextTick()
-		assert.equal(composer.el.textContent.includes("branch from before your last message"), supported)
+		assert.equal(composer.el.textContent.includes("Branch from before your last message"), supported)
 	}
 
 	const store = createFlowStore({ rewind() {} }, { requireCwd: false, skillsEnabled: false })
@@ -1112,7 +1268,7 @@ test("a view on the bottom stays there when a panel or the window resizes the li
 	assert.equal(list.scrollTop, 2245 - 816)
 })
 
-test("a saved preset stays open as saved: a new one becomes an edit of itself, the Default one locks the core tools", async (t) => {
+test("a saved preset stays open as saved: a new one becomes an edit of itself, the Standard one locks the core tools, a chat marks the one it was made with, and the composer's \"Create a preset\" opens a blank one", async (t) => {
 	const { createFlowStore } = await import("../src/store.js")
 	const SettingsPresets = await loadComponent("SettingsPresets")
 	globalThis.localStorage = { getItem: () => null, setItem() {} }
@@ -1150,11 +1306,11 @@ test("a saved preset stays open as saved: a new one becomes an edit of itself, t
 	assert.match(el.textContent, /Core tools and the built-in prompt/) // no list yet: nothing to count
 	await store.refreshTools()
 	await nextTick()
-	assert.match(el.textContent, /2 of 3 tools/) // the Default row: core and extensions on, bundled off
+	assert.match(el.textContent, /2 of 3 tools/) // the Standard row: core and extensions on, bundled off
 
-	el.querySelector("button[title='Edit preset']").click() // the Default row comes first
+	el.querySelector("button[title='Edit preset']").click() // the Standard row comes first
 	await nextTick()
-	assert.equal(el.querySelector("h2").textContent, "Default preset")
+	assert.equal(el.querySelector("h2").textContent, "Standard preset")
 	assert.equal(el.querySelector("input[type=text]"), null, "no name to edit")
 	assert.equal(el.querySelector("textarea"), null, "no prompt to edit")
 	const boxes = [...el.querySelectorAll("input[type=checkbox]")]
@@ -1167,11 +1323,25 @@ test("a saved preset stays open as saved: a new one becomes an edit of itself, t
 	button("Save").click()
 	await nextTick()
 	assert.deepEqual(store.state.prefs.defaultPreset, { tools: ["grep"], extensionTools: ["hello"] })
-	assert.equal(el.querySelector("h2").textContent, "Default preset") // the form stays open
+	assert.equal(el.querySelector("h2").textContent, "Standard preset") // the form stays open
 	assert.ok(button("Save").disabled)
 	el.querySelector("button[title='Back to presets']").click()
 	await nextTick()
 	assert.match(el.textContent, /3 of 3 tools/)
+
+	// inside a chat, the list marks the preset the chat records
+	const marked = () => [...el.querySelectorAll(".bg-surface-gray-1 .font-medium")].map((name) => name.textContent)
+	assert.deepEqual(marked(), ["Standard"])
+	store.state.sessionId = "s1"
+	store.state.session = { config: { preset: store.state.presets[0].id } }
+	await nextTick()
+	assert.deepEqual(marked(), ["Reviewer"])
+
+	// settings opens on this tab, on a blank preset; the next opening is the list again
+	store.createPreset()
+	assert.deepEqual([store.state.settingsOpen, store.state.settingsTab], [true, "presets"])
+	assert.equal(mount(t, SettingsPresets, {}, store).el.querySelector("h2").textContent, "New preset")
+	assert.equal(mount(t, SettingsPresets, {}, store).el.querySelector("h2").textContent, "Agent presets")
 })
 
 function subagentConversation() {
@@ -1479,6 +1649,11 @@ test("the files bar opens for a chat restored to its Files view, and only anothe
 	await settle()
 	const barOpen = () => el.querySelector("[title='Hide files']") !== null
 	const workspace = (fields) => ({ open: false, maximized: false, tabs: [], active: null, view: null, ...fields })
+	// the bar's search takes the caret two timeouts on, after a menu's own
+	const searchFocused = async () => {
+		await new Promise((resolve) => setTimeout(() => setTimeout(resolve)))
+		return document.activeElement === el.querySelector("input[placeholder='Search files']")
+	}
 	assert.equal(barOpen(), false)
 
 	// a chat switch, as the store does it: a fresh workspace, then the next chat's restored one
@@ -1488,12 +1663,14 @@ test("the files bar opens for a chat restored to its Files view, and only anothe
 	store.state.workspace = workspace({ open: true, view: "files" })
 	await nextTick()
 	assert.equal(barOpen(), true)
+	assert.equal(await searchFocused(), false) // a restored view leaves the caret where it was
 
 	// a new chat's first send opens the chat on the workspace it was browsing
 	store.startNewChat()
 	await nextTick()
 	store.showFilesView()
 	await nextTick()
+	assert.equal(await searchFocused(), true) // opened by hand, its search has the caret
 	await store.openFile("/proj/c.txt") // picked from the bar, which stays open
 	await settle()
 	assert.equal(barOpen(), true)
@@ -1563,11 +1740,15 @@ const press = (el, key) => el.dispatchEvent(new window.KeyboardEvent("keydown", 
 
 test("a folder in the file search results folds and unfolds, and stays folded until the search is cleared", async (t) => {
 	t.mock.timers.enable({ apis: ["setTimeout"] })
-	const results = { o: ["src/a/one.js", "src/two.js", "top.js"], on: ["src/a/one.js", "src/one.md"] }
+	const results = {
+		o: ["src/a/one.js", "src/two.js", "top.js"],
+		on: ["src/a/one.js", "src/one.md"],
+		a: ["src/a/", "src/a/a.js"],
+	}
 	const flow = {
 		state: reactive({ workspace: { tabs: [], active: null }, prefs: {} }),
 		explorerCwd: () => "/w",
-		listFiles: async () => ({ path: "/w", entries: [] }),
+		listFiles: async (path) => ({ path: path || "/w", entries: path ? [{ name: "a.js", type: "file" }, { name: "one.js", type: "file" }] : [] }),
 		searchFiles: async (query) => ({ path: "/w", matches: results[query], truncated: false }),
 	}
 	const { el } = mount(t, FilesBar, { open: true, mode: "files" }, flow)
@@ -1606,6 +1787,14 @@ test("a folder in the file search results folds and unfolds, and stays folded un
 	await typeQuery(el, "")
 	await search("o")
 	assert.deepEqual(rows(), ["src", "a", "one.js", "two.js", "top.js"])
+
+	// a folder found by its name starts shut, then opens onto all it holds
+	await search("a")
+	assert.deepEqual(rows(), ["src", "a"])
+	assert.equal(row("src/a").getAttribute("aria-expanded"), "false")
+	await toggle("src/a")
+	await settle()
+	assert.deepEqual(rows(), ["src", "a", "a.js", "one.js"])
 })
 
 test("a folder in the file tree opens with Space, says it's open, and stays open through a search", async (t) => {
@@ -1757,6 +1946,29 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	trigger.dispatchEvent(new window.PointerEvent("pointerleave"))
 	await nextTick()
 	assert.equal(card(), null)
+	// a press on the row puts its card away, even one still in its hover dwell, until the pointer leaves
+	const chatRow = trigger.closest("[data-stub=SidebarItem]")
+	trigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	chatRow.dispatchEvent(new window.PointerEvent("pointerdown", { bubbles: true }))
+	await nextTick()
+	assert.equal(card(), null)
+	trigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	assert.equal(card(), null)
+	chatRow.dispatchEvent(new window.PointerEvent("pointerleave"))
+	trigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	assert.ok(card())
+	trigger.dispatchEvent(new window.PointerEvent("pointerleave"))
+	await nextTick()
+	// and a workspace's, its name and folder
+	const folderTrigger = rows().find((row) => row.textContent.trim() === "app").querySelector("[data-stub=HoverCard]")
+	folderTrigger.dispatchEvent(new window.PointerEvent("pointerenter"))
+	await nextTick()
+	assert.deepEqual([...card().firstElementChild.children].map((line) => line.textContent.trim()), ["app", "/w/app"])
+	folderTrigger.dispatchEvent(new window.PointerEvent("pointerleave"))
+	await nextTick()
 	await click("Show 1 more")
 	assert.deepEqual(labels().slice(7, 10), ["App 5", "App 6", "Show less"])
 	await click("api")
@@ -1798,7 +2010,10 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await pickView("In one list")
 	assert.deepEqual(labels().slice(1, 4), ["App 0", "Api work", "App 1"])
 	const row = (label) => rows().find((item) => item.textContent.trim() === label)
-	const pointer = (type, target, init = {}) =>
+	const pointer = (type, target, init = {}) => {
+		// Vue skips the row's drag listener for a press in the millisecond the row was made, once its
+		// card-hold listener has seen it; a person's press always comes later
+		if (type === "pointerdown") for (const at = Date.now(); Date.now() === at; );
 		target.dispatchEvent(
 			new window.PointerEvent(type, {
 				pointerType: "mouse",
@@ -1808,6 +2023,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 				...init,
 			}),
 		)
+	}
 	t.after(() => delete document.elementFromPoint)
 	const drag = async (from, to) => {
 		document.elementFromPoint = () => row(to).querySelector("button") // jsdom has no layout: the pointer is over `to`, above its middle
@@ -1894,7 +2110,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	assert.deepEqual(flow.state.prefs.chatOrder, order)
 })
 
-test("the model list says it is loading, not that no provider is connected", async (t) => {
+test("the model list says it is loading, not that no provider is connected, then names each provider's models under it", async (t) => {
 	const flow = { state: reactive({ models: [], modelsLoading: true, conversation: {}, prefs: {} }) }
 	const { el } = mount(t, ModelPalette, {}, flow)
 	assert.ok(el.textContent.includes("Loading"))
@@ -1903,9 +2119,40 @@ test("the model list says it is loading, not that no provider is connected", asy
 	await nextTick()
 	assert.ok(!el.textContent.includes("Loading"))
 	assert.ok(el.textContent.includes("No models yet"))
+
+	// a provider's own name, else the id spelled out; the current one ticked
+	flow.state.models = [
+		{ name: "codex/gpt-6-sol", provider: "codex" },
+		{ name: "openrouter/anthropic/claude-opus-4.5", provider: "openrouter", display_name: "Anthropic: Claude Opus 4.5" },
+		{ name: "openrouter/deepseek/deepseek-v4-flash", provider: "openrouter", display_name: "DeepSeek: DeepSeek V4 Flash" },
+	]
+	flow.state.prefs.lastModel = "openrouter/deepseek/deepseek-v4-flash"
+	await nextTick()
+	const lines = (root) => [...root.querySelectorAll(".flow-palette-list > *")].map((node) => node.textContent.trim())
+	assert.deepEqual(lines(el), ["codex", "GPT-6 Sol", "openrouter", "Anthropic: Claude Opus 4.5", "DeepSeek: DeepSeek V4 Flash"])
+	assert.equal(el.querySelector("[aria-current=true]").textContent.trim(), "DeepSeek: DeepSeek V4 Flash")
+
+	// hung from the model button it searches with a field of its own, by each word of a name or id
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const dropdown = mount(t, ModelPalette, { dropdown: true }, flow)
+	const field = dropdown.el.querySelector("input")
+	assert.equal(document.activeElement, field)
+	for (const [typed, shown] of [
+		["opus 4.5", ["openrouter", "Anthropic: Claude Opus 4.5"]],
+		["gpt-6", ["codex", "GPT-6 Sol"]],
+		["zzz", ["No matching models"]],
+		["acme/x-1", ['Use "acme/x-1"']],
+	]) {
+		field.value = typed
+		field.dispatchEvent(new window.Event("input"))
+		await nextTick() // the search's watcher sets its timer
+		t.mock.timers.tick(150)
+		await nextTick()
+		assert.deepEqual(lines(dropdown.el), shown, typed)
+	}
 })
 
-test("the file picker says it is loading until its first listing arrives", async (t) => {
+test("the file picker says it is loading until its first listing arrives, and opens a folder its search finds", async (t) => {
 	let answer
 	const flow = {
 		explorerCwd: () => "/w",
@@ -1917,6 +2164,36 @@ test("the file picker says it is loading until its first listing arrives", async
 	await settle()
 	assert.ok(!el.textContent.includes("Loading"))
 	assert.ok(el.textContent.includes("No files here"))
+
+	// the composer drops the "@"'s query when the list opens a folder
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const draft = reactive({ query: "chat" })
+	const listed = []
+	const finder = {
+		explorerCwd: () => "/w",
+		searchFiles: async () => ({ path: "/w", matches: ["src/chat/", "src/chat/chat.js"], truncated: false }),
+		listFiles: async (path) => {
+			listed.push(path)
+			return { path: `/w/${path}`, entries: [{ name: "send.js", type: "file" }] }
+		},
+	}
+	const host = { render: () => h(FileMentionPalette, { query: draft.query, onBrowse: () => (draft.query = "") }) }
+	const picker = mount(t, host, {}, finder)
+	await settle()
+	const rows = () =>
+		[...picker.el.querySelectorAll("[data-palette-item]")].map((row) => [
+			row.querySelector("[data-stub=FeatherIcon]").getAttribute("name"),
+			row.textContent.trim(),
+		])
+	assert.deepEqual(rows(), [["folder", "src/chat"], ["file-text", "src/chat/chat.js"]])
+	picker.el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.equal(draft.query, "")
+	t.mock.timers.tick(150)
+	await settle()
+	assert.deepEqual(listed, ["src/chat"])
+	assert.deepEqual(rows(), [["corner-left-up", ".."], ["file-text", "send.js"]])
+	assert.ok(picker.el.textContent.includes("src/chat")) // its title
 })
 
 test("the files panel says it is loading until its tree, change list or search results arrive", async (t) => {
@@ -2042,7 +2319,7 @@ test("the skills settings say they are loading until the folders are read, and a
 	assert.deepEqual(writes, ["/g/fresh/SKILL.md"])
 })
 
-test("the header says nothing while a chat loads, and its menu renames or deletes the open chat, under the host's own items", async (t) => {
+test("the header says nothing in a new chat until its first message goes out, nor while a chat loads, and its menu renames or deletes the open chat, under the host's own items", async (t) => {
 	const asked = []
 	dialog.prompt = dialog.confirm = (options) => asked.push(options)
 	t.after(() => {
@@ -2058,14 +2335,30 @@ test("the header says nothing while a chat loads, and its menu renames or delete
 		deleteSession: (sid) => done.push(["delete", sid]),
 	}
 	const { el } = mount(t, ChatHeader, {}, flow)
-	assert.ok(el.textContent.includes("New chat"))
+	const line = () => !el.querySelector("header").classList.contains("border-transparent")
+	assert.ok(!el.textContent.includes("New chat"))
+	assert.equal(line(), false)
 	assert.equal(el.querySelector("button[title='Chat options']"), null, "a new chat has nothing to act on")
+	// its first message names it and draws the line
+	flow.state.conversation.sending = [{ key: "sending:1", entry: { type: "user_message", content: [{ type: "text", text: "count the todos" }], ts: 10 } }]
+	await nextTick()
+	assert.ok(el.textContent.includes("count the todos"))
+	assert.equal(line(), true)
+	// its folder before the title, or the host's own crumb in its place
+	flow.state.prefs.cwd = "/w/expenses"
+	await nextTick()
+	assert.equal(el.querySelector("header div[title]").title, "/w/expenses / count the todos")
+	const named = mount(t, ChatHeader, { crumb: { icon: "bot", label: "Reviewer" } }, flow).el
+	assert.equal(named.querySelector("header div[title]").title, "Reviewer / count the todos")
+	assert.ok(!named.textContent.includes("expenses"))
+	flow.state.conversation.sending = []
 
 	// a chat opened from its link: no title to seed until it arrives
 	flow.state.sessionId = "s1"
 	flow.state.loading = true
 	await nextTick()
 	assert.ok(!el.textContent.includes("New chat"))
+	assert.equal(line(), true)
 	flow.state.session = { title: "Quarterly report" }
 	flow.state.loading = false
 	await nextTick()
@@ -2095,18 +2388,22 @@ test("the header says nothing while a chat loads, and its menu renames or delete
 	assert.equal(menu(), null)
 })
 
-test("the model button shows the chat's own model and thinking level, never the last one picked while a chat loads", async (t) => {
+test("the model button names the chat's own model and thinking level, never the last one picked while a chat loads", async (t) => {
 	const conversation = reactive(initialConversation())
 	const flow = {
-		state: reactive({ loading: true, sessionId: "s1", conversation, prefs: { lastModel: "openai/gpt-old", lastEffort: "high" } }),
+		state: reactive({ loading: true, sessionId: "s1", conversation, models: [], prefs: { lastModel: "openai/gpt-old", lastEffort: "high" } }),
 	}
 	const { el } = mount(t, ModelButton, {}, flow)
-	assert.ok(!el.textContent.includes("gpt-old"))
+	assert.ok(!el.textContent.includes("Old"))
 	assert.ok(!el.textContent.includes("Choose Model"))
 	conversation.model = "openai/gpt-6" // the chat's own, from the list or the loaded session
 	flow.state.loading = false
 	await nextTick()
-	assert.ok(el.textContent.includes("gpt-6"))
+	// its id spelled out, until the list gives its provider's own name
+	assert.equal(el.querySelector("button").textContent.trim(), "GPT-6")
+	flow.state.models = [{ name: "openai/gpt-6", provider: "openai", display_name: "OpenAI: GPT-6" }]
+	await nextTick()
+	assert.equal(el.querySelector("button").textContent.trim(), "OpenAI: GPT-6")
 	// an open chat runs at its own thinking level (none: the provider's default); a new chat at the last one picked
 	assert.ok(!el.textContent.includes("High"))
 	flow.state.sessionId = null
@@ -2210,15 +2507,18 @@ test("a spreadsheet range pastes as its text, a screenshot as a picture", async 
 	assert.equal(paste({ "text/plain": "https://e.x/a.png", "text/html": '<meta charset="utf-8"><img src="https://e.x/a.png">' }), true)
 })
 
-test("an Enter pressed while a palette's rows lag its search picks from the rows that answer it", async (t) => {
+test("a palette's Enter picks from the rows that answer its search, whose top row takes the highlight, the keyboard's row keeps it under a resting pointer, and a click on the list leaves the focus in the composer", async (t) => {
 	const PalettePanel = await loadComponent("PalettePanel")
 	globalThis.MutationObserver = dom.window.MutationObserver
 	t.after(() => delete globalThis.MutationObserver)
 	const picked = []
-	const list = reactive({ busy: false, rows: ["openai/gpt-5"] })
+	const list = reactive({ query: "", busy: false, rows: ["openai/gpt-5"] })
 	const row = (name) => h("button", { key: name, "data-palette-item": "", onClick: () => picked.push(name) }, name)
-	const Host = { render: () => h(PalettePanel, { title: "Models", busy: list.busy }, () => list.rows.map(row)) }
-	mount(t, Host, {}, {})
+	const Host = {
+		// a provider's page puts a form field in the panel
+		render: () => h(PalettePanel, { title: "Models", query: list.query, busy: list.busy }, () => [...list.rows.map(row), h("input")]),
+	}
+	const { el } = mount(t, Host, {}, {})
 	await settle()
 
 	keydown(document.body, { key: "Enter", isComposing: true }) // an IME's, picking its candidate
@@ -2230,6 +2530,40 @@ test("an Enter pressed while a palette's rows lag its search picks from the rows
 	list.busy = false
 	await settle()
 	assert.deepEqual(picked, ["anthropic/claude-opus"])
+
+	// the keyboard walks past the list's edge, scrolling another row under the resting pointer
+	list.rows = ["a", "b", "c"]
+	await settle()
+	const pointer = (type, name, clientX) =>
+		[...el.querySelectorAll("[data-palette-item]")]
+			.find((item) => item.textContent === name)
+			.dispatchEvent(new window.PointerEvent(type, { bubbles: true, clientX, clientY: 10 }))
+	const active = () => el.querySelector("[data-palette-active]").textContent
+	pointer("pointermove", "a", 5)
+	keydown(document.body, { key: "ArrowDown" })
+	pointer("pointerover", "c", 5)
+	pointer("pointermove", "c", 5)
+	assert.equal(active(), "b")
+	pointer("pointermove", "c", 6)
+	assert.equal(active(), "c")
+
+	// a new search hands the highlight to its top row, though the old row still answers it
+	list.query = "b"
+	list.busy = true
+	await nextTick()
+	list.rows = ["b", "c"]
+	list.busy = false
+	await settle()
+	assert.equal(active(), "b")
+
+	// a press on a row keeps the composer focused; a form field still takes the focus
+	const press = (target) => {
+		const event = new window.MouseEvent("mousedown", { bubbles: true, cancelable: true })
+		target.dispatchEvent(event)
+		return event.defaultPrevented
+	}
+	assert.equal(press(el.querySelector("[data-palette-item]")), true)
+	assert.equal(press(el.querySelector("input")), false)
 })
 
 test("a message that overflows once the thread narrows gets its Show more", async (t) => {

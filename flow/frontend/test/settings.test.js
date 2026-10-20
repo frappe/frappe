@@ -23,6 +23,7 @@ const { SPECS, newDoc } = await import("../src/settings/specs.js");
 
 const changes = [];
 const renames = [];
+const newRecords = new Set(); // the tabs asked to open on a blank record, each taken once
 function mount(t, component, props) {
 	const el = document.createElement("div");
 	document.body.append(el);
@@ -31,6 +32,7 @@ function mount(t, component, props) {
 		can: () => true,
 		changed: (doctype) => changes.push(doctype),
 		renamed: (...args) => renames.push(args),
+		takeNewRecord: (key) => newRecords.delete(key),
 		state: { boot: {} },
 	});
 	app.mount(el);
@@ -113,7 +115,7 @@ test("an older settings search cannot overwrite a newer result", async (t) => {
 	assert.ok(el.querySelector("li").textContent.includes("Matching"));
 });
 
-test("saving keeps the form open; deleting goes back to the list, without the record before it reloads", async (t) => {
+test("saving keeps the form open; deleting goes back to the list, without the record before it reloads; asked for from outside settings, the page opens on a blank record once", async (t) => {
 	transport.answers["frappe.client.get_list"] = () => [
 		{ name: "tool-1", title: "Tool 1" },
 		{ name: "tool-2", title: "Tool 2" },
@@ -136,6 +138,12 @@ test("saving keeps the form open; deleting goes back to the list, without the re
 		[...el.querySelectorAll("li")].map((li) => li.textContent.trim()),
 		["Tool 1"]
 	);
+
+	newRecords.add("tools");
+	const asked = mount(t, DocPanel, { spec: { ...spec, key: "tools" } });
+	assert.equal(asked.querySelector("[data-stub=DocForm]").getAttribute("title"), "New tool");
+	const again = mount(t, DocPanel, { spec: { ...spec, key: "tools" } });
+	assert.equal(again.querySelector("[data-stub=DocForm]"), null);
 });
 
 test("link and multilink search the server, keeping their options while it loads and the selection always", async (t) => {

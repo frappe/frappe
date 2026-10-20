@@ -47,6 +47,8 @@ filesystem must change, so it can reuse the components instead of copying them:
 - `listedModel` — `true` when a session-list row's `model` is the chat's current one,
   so a chat being opened shows it before it loads; defaults to `false` (the daemon's
   list can lag a model change).
+- `colorScheme` — frappe-ui's `useColorScheme()`, for a host whose daemon keeps the
+  settings (`client.settings`): the theme is then saved and restored with them.
 
 The store exposes `capabilities.rewind` when its client implements `rewind`.
 Both the message action and composer command follow that capability. A session

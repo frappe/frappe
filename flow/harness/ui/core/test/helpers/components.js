@@ -66,6 +66,12 @@ const hoverCard = moduleURL(`
 `)
 // monaco can't run under jsdom: the editor's lazy import gets the test's fake instead
 const monaco = moduleURL("export const monaco = globalThis.monaco")
+// frappe-ui's color scheme as a plain ref: Node won't strip the types of its TypeScript in node_modules
+const colorScheme = moduleURL(`
+	import { ref } from ${JSON.stringify(vue)}
+	const colorScheme = ref("system")
+	export const useColorScheme = () => ({ colorScheme, setColorScheme: (scheme) => (colorScheme.value = scheme) })
+`)
 // the web app's one import of the core package, minus the .vue files Node can't load
 const uiCore = moduleURL(`
 	export { DaemonClient } from ${JSON.stringify(new URL("../../src/client.js", import.meta.url).href)}
@@ -128,10 +134,10 @@ const widgets = moduleURL(`
 	export const Select = { ...text("select"), props: ["modelValue", "options"] }
 `)
 const components = new Set([
-	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue", "PopMenu.vue",
+	"Composer.vue", "ToolStep.vue", "ToolGroup.vue", "ApprovalCard.vue", "MessageList.vue", "ModelButton.vue",
 	"SettingsDialog.vue", "SettingsPage.vue", "UserBubble.vue", "TurnFold.vue", "ThinkingBlock.vue", "ThoughtStep.vue",
 	"SubagentView.vue", "TranscriptDialog.vue", "WorkspacePanel.vue", "FilesBar.vue", "FileTree.vue", "LoadingState.vue", "AddToChat.vue",
-	"EditorView.vue", "ChatMenu.vue",
+	"EditorView.vue", "ChatMenu.vue", "PresetButton.vue",
 ])
 const compiled = new Map()
 
@@ -157,6 +163,8 @@ async function componentURL(url) {
 			resolved = components.has(name) ? await componentURL(new URL(specifier, url)) : stubURL(name.slice(0, -4))
 		} else if (specifier === "frappe-ui/src/utils/dialog") {
 			resolved = dialogs
+		} else if (specifier === "frappe-ui/src/composables/useColorScheme") {
+			resolved = colorScheme
 		} else if (specifier === "frappe-ui/src/components/SettingsDialog") {
 			resolved = settingsPieces
 		} else if (specifier.startsWith("frappe-ui/src/components/")) {

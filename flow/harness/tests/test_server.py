@@ -228,10 +228,12 @@ def test_search_workspace_files(tmp_path):
 	# hidden and dependency trees are pruned; matching is case-insensitive
 	assert body["matches"] == ["app.py", "src/deep/app_helpers.py"]
 	assert body["truncated"] is False
-	# the path is searched, not just the name: a directory finds what it holds, and
-	# each slash-separated term matches in order, so a partial path skips levels
+	# folders are found too, by their own name, not what they hold; earlier
+	# slash-separated terms match in order along the path, so a partial path skips levels
 	by_dir = c.get("/fs/files/search", params={"cwd": str(work), "query": "src/"}).json()
-	assert by_dir["matches"] == ["src/readme.md", "src/deep/app_helpers.py"]
+	assert by_dir["matches"] == ["src/"]
+	deep = c.get("/fs/files/search", params={"cwd": str(work), "query": "src dee"}).json()
+	assert deep["matches"] == ["src/deep/"]
 	partial = c.get("/fs/files/search", params={"cwd": str(work), "query": "src/app"}).json()
 	assert partial["matches"] == ["src/deep/app_helpers.py"]
 
@@ -271,6 +273,7 @@ def test_allowed_roots_fence_every_path(tmp_path, monkeypatch):
 		("/fs/files", {"cwd": str(repo)}),
 		("/fs/files/search", {"cwd": str(repo), "query": "x"}),
 		("/fs/git/changes", {"cwd": str(repo)}),
+		("/fs/git/branch", {"cwd": str(repo)}),
 		("/fs/git/file/diff", {"cwd": str(allowed), "path": "../outside.txt"}),
 		(f"/sessions/{sid}/file/diff", {"path": "../../outside.txt"}),
 	):
@@ -381,6 +384,7 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 	(repo / "new.txt").write_text("a\nb\nc")  # no trailing newline: still 3 lines
 	(repo / "gone.py").unlink()
 	_git(repo, "rm", "-q", "--cached", "f.txt")  # status lists f.txt as `D ` and `??`
+	_git(repo, "checkout", "-q", "-b", "work")
 
 	body = c.get("/fs/git/changes", params={"cwd": str(repo)}).json()
 	root = body["root"]
@@ -400,6 +404,17 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 	assert (untracked["original"], untracked["modified"]) == ("", "a\nb\nc")
 	assert (deleted["original"], deleted["modified"]) == ("x\n", "")
 
+	# the branch checked out; a linked worktree says so, on its own branch, the main checkout does not
+	def head(cwd):
+		return c.get("/fs/git/branch", params={"cwd": str(cwd)}).json()
+
+	assert head(repo) == {"branch": "work", "worktree": False}
+	_git(repo, "worktree", "add", "-q", "-b", "side", str(tmp_path / "side"))
+	assert head(tmp_path / "side") == {"branch": "side", "worktree": True}
+	# a detached HEAD has no branch
+	_git(repo, "checkout", "-q", "--detach")
+	assert head(repo)["branch"] is None
+
 	plain = tmp_path / "plain"
 	plain.mkdir()
 	(plain / "f.txt").write_text("x\n")
@@ -407,6 +422,7 @@ def test_git_changes_and_file_diff_serve_uncommitted_files(tmp_path):
 		"root": None,
 		"files": [],
 	}
+	assert head(plain) == {"branch": None, "worktree": False}
 	assert c.get("/fs/git/file/diff", params={"cwd": str(plain), "path": "f.txt"}).status_code == 400
 
 
@@ -924,7 +940,7 @@ def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypat
 
 	async def fake_http_models(url, auth, client, *, provider_id=None):
 		assert provider_id == "openai"
-		return ["gpt-4o"]
+		return [("gpt-4o", None)]
 
 	monkeypatch.setattr(discovery, "_http_models", fake_http_models)
 	c = _client(tmp_path)
@@ -932,16 +948,18 @@ def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypat
 
 	monkeypatch.setenv("OPENAI_API_KEY", "k")
 	assert c.get("/models").json() == {
-		"models": [{"name": "openai/gpt-4o", "provider": "openai", "supports_images": True}],
+		"models": [
+			{"name": "openai/gpt-4o", "provider": "openai", "supports_images": True, "display_name": None}
+		],
 		"errors": [],
 	}
 
 
-def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
+def test_list_sessions_includes_cold_on_disk_sessions_which_keep_their_preset(tmp_path):
 	c = _client(tmp_path)
 	used = c.post(
 		"/sessions",
-		json={"model": "mock", "cwd": str(tmp_path / "a")},
+		json={"model": "mock", "cwd": str(tmp_path / "a"), "preset": "review"},
 	).json()["session_id"]
 	fresh = c.post(
 		"/sessions",
@@ -963,3 +981,4 @@ def test_list_sessions_includes_cold_on_disk_sessions(tmp_path):
 		}
 		# `fresh` has no durable entries — nothing to resume, so the listing omits it
 		assert fresh not in rows
+		assert client.get(f"/sessions/{used}").json()["config"]["preset"] == "review"

@@ -78,6 +78,13 @@ export class DaemonClient {
 	tools() {
 		return this.request("GET", "/tools")
 	}
+	// the web UI's settings, kept by the daemon; a save merges the keys it sends
+	settings() {
+		return this.request("GET", "/settings")
+	}
+	updateSettings(settings) {
+		return this.request("PATCH", "/settings", { body: { settings } })
+	}
 	// skill files under the global root and, with a cwd, the project's
 	skillFiles(cwd = null) {
 		return this.request("GET", "/skills", { params: cwd ? { cwd } : {} })
@@ -113,6 +120,9 @@ export class DaemonClient {
 	// content for the diff viewer — cwd-keyed like the other explorer calls
 	gitChanges(cwd) {
 		return this.request("GET", "/fs/git/changes", { params: { cwd } })
+	}
+	gitBranch(cwd) {
+		return this.request("GET", "/fs/git/branch", { params: { cwd } })
 	}
 	gitFileDiff(cwd, path) {
 		return this.request("GET", "/fs/git/file/diff", { params: { cwd, path } })

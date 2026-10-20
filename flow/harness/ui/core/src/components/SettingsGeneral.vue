@@ -1,11 +1,8 @@
 <template>
-	<SettingsPage title="General" description="Defaults for new chats, and how Flow looks.">
+	<SettingsPage title="General" description="Defaults for new chats.">
 		<div class="divide-y divide-outline-gray-1">
 			<SettingsRow title="Approval mode" description="Applies to new chats and the current one.">
 				<Select :model-value="flow.state.prefs.mode" :options="MODES" @update:model-value="flow.setMode($event)" />
-			</SettingsRow>
-			<SettingsRow title="Theme" description="Follow the system, or pick one.">
-				<Select :model-value="colorScheme" :options="THEMES" class="w-36" @update:model-value="setColorScheme" />
 			</SettingsRow>
 			<div class="py-4">
 				<div class="text-sm font-medium text-ink-gray-9">Custom instructions</div>
@@ -29,20 +26,13 @@ import { computed, inject, ref, watch } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Select } from "frappe-ui/src/components/Select"
 import { Textarea } from "frappe-ui/src/components/Textarea"
-import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
 
 import { APPROVAL_MODES } from "../transcript.js"
 import SettingsPage from "./SettingsPage.vue"
 import SettingsRow from "./SettingsRow.vue"
 
-const THEMES = [
-	{ label: "System", value: "system" },
-	{ label: "Light", value: "light" },
-	{ label: "Dark", value: "dark" },
-]
 const flow = inject("flow")
 const MODES = APPROVAL_MODES.map((mode) => ({ label: mode.label, value: mode.id }))
-const { colorScheme, setColorScheme } = useColorScheme()
 
 // instructions are a draft until saved; reopening discards unsaved edits
 const draft = ref(flow.state.prefs.customInstructions)

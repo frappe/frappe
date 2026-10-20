@@ -14,7 +14,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from flow_harness.path_policy import canonical_path
 from flow_harness.server.policy import ServerPolicy, gate
 from flow_harness.server.utils.fspick import PickerUnavailable, pick_folder
-from flow_harness.server.utils.git import git_changes, git_head_text, git_output
+from flow_harness.server.utils.git import git_branch, git_changes, git_head_text, git_output
 from flow_harness.server.utils.workspace import (
 	MAX_FILE_VIEW_BYTES,
 	list_directory,
@@ -98,6 +98,14 @@ def create_fs_router(
 		if not os.path.isdir(root):
 			raise HTTPException(status_code=404, detail="directory not found")
 		return await asyncio.to_thread(git_changes, root, store.allowed_roots)
+
+	@router.get("/fs/git/branch")
+	async def fs_git_branch(request: Request, cwd: str):
+		"""The branch checked out in the folder, and whether it is a linked worktree."""
+		root = _resolve_allowed_path(resolve_store(request), cwd, ".")
+		if not os.path.isdir(root):
+			raise HTTPException(status_code=404, detail="directory not found")
+		return await asyncio.to_thread(git_branch, root)
 
 	@router.get("/fs/git/file/diff")
 	async def git_file_diff(request: Request, cwd: str, path: str):

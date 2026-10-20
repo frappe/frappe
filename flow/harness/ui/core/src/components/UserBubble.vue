@@ -169,7 +169,7 @@ function confirmRewind() {
 		title: "Rewind to this message?",
 		size: "lg",
 		message:
-			"Everything after this point is removed from the conversation, and the message returns to the composer so you can edit and resend it.",
+			"Everything from this point is removed from the conversation. Changes made by tools are not reverted.",
 		actions: [
 			{ label: "Cancel", variant: "outline" },
 			{

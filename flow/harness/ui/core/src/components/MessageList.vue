@@ -12,12 +12,14 @@
 		     area above it, not the full page -->
 		<div
 			v-if="empty"
+			ref="emptyState"
 			class="flex h-full flex-col items-center justify-center gap-5 text-center"
 			:style="{ paddingBottom: composerHeight + 'px' }"
 		>
 			<slot name="empty">
-				<BrandMark :size="52" />
-				<h2 class="max-w-xs text-6xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:max-w-none">What would you like to build?</h2>
+				<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
+				<BrandMark :size="52" class="min-h-0 shrink max-sm:!h-10 max-sm:!w-10" />
+				<h2 class="text-balance text-4xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
 			</slot>
 		</div>
 		<LoadingState
@@ -260,6 +262,29 @@ function onMouseDown(event) {
 // sat on the bottom is put back there
 const thread = ref(null)
 let resizeObserver = null
+// the empty state glides to its new place, not jumps, when a phone's keyboard or a growing
+// composer shrinks its box: centred, it moves by half what the box lost. Its children glide,
+// as they stay inside the list where the box would spill out of it; with reduced motion, they jump
+const emptyState = ref(null)
+const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")
+let emptyObserver = null
+watch(emptyState, (el) => {
+	emptyObserver?.disconnect()
+	if (!el || typeof ResizeObserver === "undefined") return
+	let height = null
+	emptyObserver = new ResizeObserver(([entry]) => {
+		const now = entry.contentRect.height
+		if (height !== null && now !== height && !reducedMotion?.matches)
+			for (const child of el.children)
+				child.animate?.([{ transform: `translateY(${(height - now) / 2}px)` }, { transform: "none" }], {
+					duration: 250,
+					easing: "ease-out",
+				})
+		height = now
+	})
+	emptyObserver.observe(el)
+})
+onBeforeUnmount(() => emptyObserver?.disconnect())
 onMounted(() => {
 	if (typeof ResizeObserver === "undefined") return
 	resizeObserver = new ResizeObserver((entries) => {

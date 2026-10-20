@@ -2,13 +2,15 @@
 	<PalettePanel
 		:title="selected?.name || 'Providers'"
 		back
+		:query="query"
 		:busy="!selected && query !== debouncedQuery"
+		:full="loading && !rows.length"
 		@close="emit('close')"
 		@back="selected ? deselect() : emit('back')"
 	>
 		<template v-if="!selected" #actions>
 			<button
-				class="flex h-7 w-7 items-center justify-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-2"
+				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 				title="Refresh providers"
 				@click="reload"
 			>
@@ -16,23 +18,16 @@
 			</button>
 		</template>
 
-		<template v-if="!selected" #search>
-			<PaletteSearch v-model="query" placeholder="Search providers" autofocus />
-		</template>
-
 		<!-- provider list -->
-		<div v-if="!selected" class="min-h-0 flex-1 overflow-y-auto p-1.5">
+		<div v-if="!selected" class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<button
 				v-for="p in filtered"
 				:key="p.id"
 				data-palette-item
-				class="flex w-full items-center gap-3 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flow-palette-row"
 				@click="select(p)"
 			>
-				<span class="flex h-8 w-8 flex-none items-center justify-center">
-					<ProviderIcon :provider-id="p.id" :icon="p.icon" :size="21" />
-				</span>
-				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-9">{{ p.name }}</span>
+				<span class="min-w-0 flex-1 truncate">{{ p.name }}</span>
 				<span
 					v-if="p.configured"
 					class="flex items-center gap-1 text-2xs font-medium text-ink-green-7"
@@ -40,36 +35,30 @@
 					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-7" />
 					Connected
 				</span>
-				<FeatherIcon v-else name="chevron-right" class="h-4 w-4 text-ink-gray-4" />
+				<FeatherIcon v-else name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
 			</button>
 			<LoadingState v-if="loading && !rows.length" class="justify-center px-3 py-7 text-xs text-ink-gray-5" />
-			<!-- pinned at the bottom: local runtimes and private gateways -->
-			<button
-				data-palette-item
-				class="mt-1 flex w-full items-center gap-3 rounded-5 border-t border-outline-gray-1 px-2.5 py-2 pt-3 text-left hover:bg-surface-gray-2"
-				@click="select(CUSTOM_OPTION)"
-			>
-				<span
-					class="flex h-8 w-8 flex-none items-center justify-center rounded-5 border border-outline-gray-2 text-ink-gray-6"
-				>
-					<FeatherIcon name="plus" class="h-3.5 w-3.5" />
-				</span>
-				<span class="min-w-0 flex-1">
-					<span class="block truncate text-xs font-medium leading-4 text-ink-gray-9">
-						Add custom endpoint
-					</span>
-					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">
-						Ollama, LM Studio, or any OpenAI-compatible URL
-					</span>
-				</span>
-				<FeatherIcon name="chevron-right" class="h-4 w-4 text-ink-gray-4" />
-			</button>
 			<div
 				v-if="!filtered.length && debouncedQuery && !loading"
-				class="px-3 py-7 text-center text-xs text-ink-gray-5"
+				class="flow-palette-empty"
 			>
 				No providers found
 			</div>
+			<!-- the last row: local runtimes and private gateways; it waits for the list, so the
+			     first provider, not it, takes the highlight -->
+			<button
+				v-if="rows.length || !loading"
+				data-palette-item
+				class="flow-palette-row"
+				@click="select(CUSTOM_OPTION)"
+			>
+				<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
+				<span class="flex-none">Add custom endpoint</span>
+				<span class="flow-palette-hint min-w-0 flex-1 truncate">
+					Ollama, LM Studio, or any OpenAI-compatible URL
+				</span>
+				<FeatherIcon name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
+			</button>
 		</div>
 
 		<!-- provider detail -->
@@ -246,23 +235,22 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, ref } from "vue"
+import { computed, inject, onBeforeUnmount, ref, toRef } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
-import PaletteSearch from "./PaletteSearch.vue"
 import ProviderIcon from "./ProviderIcon.vue"
 
+const props = defineProps({ query: { type: String, default: "" } }) // the composer's text after its "/"
 const emit = defineEmits(["close", "back"])
 const flow = inject("flow")
 
 const rows = ref([])
 const loading = ref(false)
 const selected = ref(null)
-const query = ref("")
-const debouncedQuery = useDebouncedValue(query, 150)
+const debouncedQuery = useDebouncedValue(toRef(props, "query"), 150)
 const apiKey = ref("")
 const saving = ref(false)
 const oauthStatus = ref("idle")

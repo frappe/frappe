@@ -2,8 +2,9 @@
 
 Distinct from `flow_harness.config` (daemon defaults from the environment): these are
 conveniences the client persists across sessions, e.g. the last model the user
-picked in the TUI. Reads are tolerant — a missing or corrupt file means "no
-preferences" — so a bad write can never block startup.
+picked in the TUI, or the web UI's settings (`server/routes/settings`). Reads are
+tolerant — a missing or corrupt file means "no preferences" — so a bad write can
+never block startup.
 """
 
 from __future__ import annotations

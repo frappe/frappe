@@ -1,108 +1,126 @@
 <template>
-	<PalettePanel title="Models" back :busy="query !== debounced" @close="emit('close')" @back="emit('back')">
-		<template #actions>
+	<PalettePanel
+		title="Models"
+		:back="!dropdown"
+		:dropdown="dropdown"
+		:query="search"
+		:busy="search !== debounced"
+		@close="emit('close')"
+		@back="emit('back')"
+	>
+		<template v-if="!dropdown" #actions>
 			<button
-				class="flex h-7 w-7 items-center justify-center rounded-5 text-ink-gray-5 hover:bg-surface-gray-2"
+				class="grid h-6 w-6 place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
-				<FeatherIcon
-					name="refresh-cw"
-					class="h-3.5 w-3.5"
-					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
-				/>
+				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="flow.state.modelsLoading ? 'animate-spin' : ''" />
 			</button>
 		</template>
 
-		<template #search>
-			<PaletteSearch v-model="query" placeholder="Search models" autofocus />
-		</template>
-
-		<div class="min-h-0 flex-1 overflow-y-auto p-1.5">
+		<!-- hung from the model button, the list searches with a field of its own -->
+		<div v-if="dropdown" class="flex flex-none items-center gap-1 pl-1 pr-2.5 pt-1">
+			<input
+				ref="field"
+				v-model="typed"
+				placeholder="Search models…"
+				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+			/>
 			<button
-				v-for="m in options"
-				:key="m.name"
-				data-palette-item
-				:aria-current="m.name === currentModel ? 'true' : undefined"
-				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
-				@click="choose(m.name)"
+				class="grid h-6 w-6 flex-none place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+				title="Refresh models"
+				@click="flow.refreshModels()"
 			>
-				<span
-					class="flex h-7 w-7 flex-none items-center justify-center"
-					:class="m.custom ? 'rounded-5 border border-dashed border-outline-gray-3' : ''"
+				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="flow.state.modelsLoading ? 'animate-spin' : ''" />
+			</button>
+		</div>
+
+		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
+			<template v-for="(group, i) in groups" :key="group.provider">
+				<!-- a heading takes a row's height; the first sits in the list's top padding -->
+				<div class="flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
+					{{ group.provider }}
+				</div>
+				<button
+					v-for="m in group.models"
+					:key="m.name"
+					data-palette-item
+					:aria-current="m.name === currentModel ? 'true' : undefined"
+					class="flow-palette-row"
+					:title="m.name"
+					@click="choose(m.name)"
 				>
-					<ProviderIcon :provider-id="m.provider" :size="22" />
-				</span>
-				<span class="min-w-0 flex-1">
-					<span class="block truncate text-xs font-medium leading-4 text-ink-gray-9">
-						{{ m.custom ? `Use "${m.name}"` : shortName(m.name) }}
-					</span>
-					<span class="mt-1 block truncate text-2xs leading-4 text-ink-gray-5">{{ m.provider }}</span>
-				</span>
-				<FeatherIcon
-					v-if="m.name === currentModel"
-					name="check"
-					class="h-4 w-4 flex-none text-ink-gray-7"
-				/>
+					<span class="min-w-0 truncate">{{ m.title }}</span>
+					<FeatherIcon v-if="m.name === currentModel" name="check" class="ml-auto h-4 w-4 flex-none" />
+				</button>
+			</template>
+			<!-- a typed provider/model not in the list is usable as-is: discovery is a suggestion, not a gate -->
+			<button v-if="custom" data-palette-item class="flow-palette-row" @click="choose(custom)">
+				<span class="min-w-0 truncate">Use "{{ custom }}"</span>
 			</button>
 			<LoadingState
-				v-if="!options.length && flow.state.modelsLoading"
+				v-if="!groups.length && !custom && flow.state.modelsLoading"
 				class="justify-center px-3 py-8 text-xs text-ink-gray-5"
 			/>
-			<div v-else-if="!options.length" class="flex flex-col items-center gap-2 px-3 py-8 text-center">
-				<span class="text-xs text-ink-gray-5">
-					{{ providers ? "No models yet — connect a provider to get started." : "No models available." }}
-				</span>
-				<button
-					v-if="providers"
-					class="flex h-7 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-2.5 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1"
-					@click="emit('providers')"
-				>
-					<FeatherIcon name="key" class="h-3.5 w-3.5" />
-					Open providers
-				</button>
+			<div v-else-if="!groups.length && !custom && flow.state.models.length" class="flow-palette-empty">
+				No matching models
 			</div>
+			<!-- none at all: a line saying so, and the way to connect a provider as a row -->
+			<template v-else-if="!groups.length && !custom">
+				<div class="flow-palette-empty">{{ providers ? "No models yet" : "No models available" }}</div>
+				<button v-if="providers" data-palette-item class="flow-palette-row" @click="emit('providers')">
+					<FeatherIcon name="key" class="h-4 w-4 flex-none" />
+					Connect a provider
+				</button>
+			</template>
 		</div>
 	</PalettePanel>
 </template>
 
 <script setup>
-import { computed, inject, ref } from "vue"
+import { computed, inject, onMounted, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import { modelTitle } from "../transcript.js"
 import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
-import PaletteSearch from "./PaletteSearch.vue"
-import ProviderIcon from "./ProviderIcon.vue"
 
-// hosts that manage providers elsewhere hide the setup link
-defineProps({ providers: { type: Boolean, default: true } })
+const props = defineProps({
+	// hosts that manage providers elsewhere hide the setup link
+	providers: { type: Boolean, default: true },
+	query: { type: String, default: "" }, // the composer's text after its "/"
+	// hung from the model button with its own search, not over the composer
+	dropdown: { type: Boolean, default: false },
+})
 const emit = defineEmits(["close", "back", "providers"])
 const flow = inject("flow")
 
-const query = ref("")
-const debounced = useDebouncedValue(query, 150)
+const typed = ref("")
+const field = ref(null)
+const search = computed(() => (props.dropdown ? typed.value : props.query))
+const debounced = useDebouncedValue(search, 150)
+onMounted(() => field.value?.focus())
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 
-const options = computed(() => {
-	const q = debounced.value.trim().toLowerCase()
-	const rows = flow.state.models
-		.filter((m) => !q || m.name.toLowerCase().includes(q))
-		.map((m) => ({ name: m.name, provider: m.provider }))
-	// a typed provider/model not in the list is usable as-is — discovery is a
-	// suggestion, not a gate
-	const typed = debounced.value.trim()
-	if (typed.includes("/") && !rows.some((m) => m.name === typed)) {
-		rows.push({ name: typed, provider: typed.split("/", 1)[0], custom: true })
+// each provider's models under its name, matched by every word of the search in their name or id
+const groups = computed(() => {
+	const words = debounced.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
+	const groups = new Map()
+	for (const m of flow.state.models) {
+		const title = m.display_name || modelTitle(m.name)
+		const text = `${title} ${m.name}`.toLowerCase()
+		if (!words.every((word) => text.includes(word))) continue
+		if (!groups.has(m.provider)) groups.set(m.provider, [])
+		groups.get(m.provider).push({ name: m.name, title })
 	}
-	return rows
+	return [...groups].map(([provider, models]) => ({ provider, models }))
 })
-
-function shortName(name) {
-	return name.split("/").slice(1).join("/") || name
-}
+const custom = computed(() => {
+	const name = debounced.value.trim()
+	return name.includes("/") && !flow.state.models.some((m) => m.name === name) ? name : null
+})
 
 function choose(name) {
 	flow.selectModel(name)

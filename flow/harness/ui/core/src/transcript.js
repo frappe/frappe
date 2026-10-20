@@ -22,6 +22,34 @@ export const EFFORT_LABELS = {
 	max: "Max",
 }
 
+// words a model id spells its own way
+const MODEL_WORDS = new Map(
+	Object.entries({ gpt: "GPT", chatgpt: "ChatGPT", deepseek: "DeepSeek", glm: "GLM", oss: "OSS", minimax: "MiniMax", ai: "AI" }),
+)
+
+// A model's name for people: its provider's own where the list has one ("Anthropic: Claude Opus 4.5"),
+// else its id spelled out ("codex/gpt-6-sol" → "GPT-6 Sol")
+export function modelTitle(name, models = []) {
+	const listed = models.find((model) => model.name === name)?.display_name
+	if (listed) return listed
+	const [id = "", variant] = (String(name ?? "").split("/").filter(Boolean).pop() ?? "").split(":")
+	const words = []
+	for (const part of id.split(/[-_\s]+/).filter(Boolean)) {
+		const last = words.length - 1
+		if (words[last] === "GPT" && /^\d/.test(part)) words[last] += `-${part}` // GPT-4o
+		else if (/^\d$/.test(part) && /^\d$/.test(words[last])) words[last] += `.${part}` // claude-3-5 → 3.5
+		else
+			words.push(
+				MODEL_WORDS.get(part.toLowerCase()) ??
+					(/^o\d/.test(part) ? part // OpenAI's o3
+					: /^[a-z]\d|^\d+(\.\d+)?b$/.test(part) ? part.toUpperCase() // V4.1, K2, 70B
+					: part[0].toUpperCase() + part.slice(1)),
+			)
+	}
+	const title = words.join(" ") || String(name ?? "")
+	return variant ? `${title} (${variant})` : title
+}
+
 export function initialConversation() {
 	return {
 		entries: [],
@@ -40,6 +68,7 @@ export function initialConversation() {
 		// deltas. The terminal assistant_message atomically replaces this preview.
 		partial: [],
 		running: false,
+		runStartedAt: null, // the running run's run_started time, in the server's seconds
 		compacting: false, // or why: "manual", "threshold" or "overflow"
 		pendingApproval: null, // { seq, calls: [PendingCall], answers: {id: string}, subagentId? }
 		// the sub-agents this conversation started, by id: each a conversation of its own
@@ -112,6 +141,7 @@ function foldEvent(s, e) {
 	switch (e.type) {
 		case "run_started":
 			s.running = true
+			s.runStartedAt = Number.isFinite(e.ts) ? e.ts : null
 			s.lastError = null
 			s.liveLabel = "Working"
 			s.partial = []
@@ -152,6 +182,7 @@ function foldEvent(s, e) {
 			break
 		case "run_ended":
 			s.running = false
+			s.runStartedAt = null
 			s.liveLabel = null
 			s.partial = []
 			s.compacting = false // a compaction never outlives its run, even one whose end went unseen
@@ -444,6 +475,16 @@ export function formatDuration(durationMs) {
 	const seconds = roundedSeconds % 60
 	if (seconds === 0) return `${minutes}m`
 	return `${minutes}m ${seconds}s`
+}
+
+// when the running reply began, in the server's seconds: its run's start, or its turn's
+// first message when the page loaded after the run began; null while nothing runs
+export function runningSince(conversation) {
+	if (!conversation.running) return null
+	if (conversation.runStartedAt != null) return conversation.runStartedAt
+	const steered = new Set(conversation.steeredSeqs ?? [])
+	const first = conversation.entries?.findLast((entry) => entry.type === "user_message" && !steered.has(entry.seq))
+	return Number.isFinite(first?.ts) ? first.ts : null
 }
 
 function deriveTurns(entries, steeredSeqs = []) {

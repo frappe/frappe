@@ -79,6 +79,7 @@ class ModelInfo:
 	name: str  # flow model name, e.g. "anthropic/claude-sonnet-4"
 	provider: str  # provider id
 	supports_images: bool | None = None
+	display_name: str | None = None  # the provider's own name, e.g. "Anthropic: Claude Sonnet 4"
 
 
 def list_models(store: CredentialStore) -> list[ModelInfo]:

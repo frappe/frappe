@@ -1,35 +1,36 @@
 <template>
-	<PalettePanel :title="title" :autofocus="false" :busy="loading || query !== debouncedQuery" @close="emit('close')">
-		<div class="overflow-y-auto p-1.5">
+	<PalettePanel
+		:title="title"
+		:query="query"
+		:busy="loading || query !== debouncedQuery"
+		:full="rows === null"
+		@close="emit('close')"
+	>
+		<div class="flow-palette-list overflow-y-auto p-1">
+			<div class="-mt-1 flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5">
+				<span class="truncate">{{ title }}</span>
+			</div>
 			<button
 				v-if="!searchActive && dir"
 				data-palette-item
-				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flow-palette-row"
 				@click="goUp"
 			>
-				<span
-					class="flex h-7 w-7 flex-none items-center justify-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
-				>
-					<FeatherIcon name="corner-left-up" class="h-3.5 w-3.5" />
-				</span>
-				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-5">..</span>
+				<FeatherIcon name="corner-left-up" class="h-4 w-4 flex-none" />
+				<span class="flow-palette-hint min-w-0 flex-1 truncate">..</span>
 			</button>
 			<button
 				v-for="row in rows"
 				:key="row.path"
 				data-palette-item
-				class="flex w-full items-center gap-2.5 rounded-5 px-2.5 py-2 text-left hover:bg-surface-gray-2"
+				class="flow-palette-row"
 				@click="choose(row)"
 			>
-				<span
-					class="flex h-7 w-7 flex-none items-center justify-center rounded-5 border border-outline-gray-1 bg-surface-gray-1 text-ink-gray-6"
-				>
-					<FeatherIcon :name="row.dir ? 'folder' : 'file-text'" class="h-3.5 w-3.5" />
-				</span>
-				<span class="min-w-0 flex-1 truncate text-xs font-medium leading-4 text-ink-gray-9">{{ row.label }}</span>
+				<FeatherIcon :name="row.dir ? 'folder' : 'file-text'" class="h-4 w-4 flex-none" />
+				<span class="min-w-0 flex-1 truncate">{{ row.label }}</span>
 			</button>
 			<LoadingState v-if="rows === null" class="justify-center px-3 py-8 text-xs text-ink-gray-5" />
-			<div v-else-if="!rows.length" class="px-3 py-8 text-center text-xs text-ink-gray-5">
+			<div v-else-if="!rows.length" class="flow-palette-empty">
 				{{ searchActive ? "No matching files" : "No files here" }}
 			</div>
 			<div v-if="truncated" class="px-3 pb-1 pt-2 text-center text-2xs text-ink-gray-5">
@@ -48,7 +49,8 @@ import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
 
 const props = defineProps({ query: { type: String, default: "" } })
-const emit = defineEmits(["pick", "close"])
+// "browse": a folder the search found is open in the list, so the query has to go
+const emit = defineEmits(["pick", "browse", "close"])
 const flow = inject("flow")
 
 const dir = ref("") // cwd-relative directory being browsed while not searching
@@ -65,8 +67,9 @@ function goUp() {
 }
 
 function choose(row) {
-	if (row.dir) dir.value = row.path
-	else emit("pick", row.path)
+	if (!row.dir) return emit("pick", row.path)
+	dir.value = row.path
+	if (searchActive.value) emit("browse")
 }
 
 // Browse the cwd a level at a time, and switch to the explorer's recursive
@@ -82,7 +85,10 @@ async function load() {
 	// stale response: the query, the browsed directory, or the cwd moved on
 	if (debouncedQuery.value.trim() !== query || dir.value !== at || flow.explorerCwd() !== cwd) return
 	rows.value = query
-		? (data?.matches ?? []).map((path) => ({ path, label: path, dir: false }))
+		? (data?.matches ?? []).map((match) => {
+				const path = match.replace(/\/$/, "") // a folder's ends in a slash
+				return { path, label: path, dir: path !== match }
+			})
 		: (data?.entries ?? []).map((entry) => ({
 				path: at ? `${at}/${entry.name}` : entry.name,
 				label: entry.name,

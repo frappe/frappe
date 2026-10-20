@@ -12,8 +12,10 @@ import {
 	formatDuration,
 	initialConversation,
 	invokedSkills,
+	modelTitle,
 	normalizeSkillCommand,
 	quoteBlock,
+	runningSince,
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
@@ -100,10 +102,21 @@ test("a skill message renders as the command the user typed, where they typed it
 	assert.equal(userText(quoted), "/skill:review fix\n\n> see /skill:review")
 })
 
-test("unknown tool names are humanized for future custom tools", () => {
+test("unknown tool names are humanized for future custom tools, and model ids with no name of their own too", () => {
 	assert.equal(stepLabel("send_email_now"), "Send email now")
 	assert.equal(stepLabel("create-calendar-event"), "Create calendar event")
 	assert.equal(stepLabel("fetchAccountDetails"), "Fetch account details")
+	for (const [id, title] of [
+		["codex/gpt-6.1-sol", "GPT-6.1 Sol"],
+		["openai/gpt-4o-mini", "GPT-4o Mini"],
+		["openai/o3-mini", "o3 Mini"],
+		["openrouter/deepseek/deepseek-v4.1-flash", "DeepSeek V4.1 Flash"],
+		["anthropic/claude-3-5-sonnet-20241022", "Claude 3.5 Sonnet 20241022"],
+		["groq/llama-3.3-70b-versatile", "Llama 3.3 70B Versatile"],
+		["openrouter/anthropic/claude-fable-5:batch", "Claude Fable 5 (batch)"],
+	])
+		assert.equal(modelTitle(id), title)
+	assert.equal(modelTitle("a/b", [{ name: "a/b", display_name: "A: B" }]), "A: B")
 })
 
 test("tool row argument text compacts paths for display", () => {
@@ -457,7 +470,7 @@ test("a settled turn stays folded while the next runs, with messages on their wa
 	assert.deepEqual(items.slice(0, -1), buildItems({ ...conversation, steering: [] }))
 })
 
-test("a turn folds only once its run ends, approval pauses and steered messages included", () => {
+test("a turn folds only once its run ends, approval pauses and steered messages included, and a running reply counts from its run's start", () => {
 	const conversation = initialConversation()
 	for (const event of [
 		{ type: "run_started", seq: 1, ts: 100 },
@@ -479,6 +492,7 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 		applyEvent(conversation, event)
 	// paused, nothing folds; the gated call waits in the approval card
 	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text"])
+	assert.equal(runningSince(conversation), null)
 
 	// a message steered into the resumed run joins its turn
 	for (const event of [
@@ -496,6 +510,9 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 	])
 		applyEvent(conversation, event)
 	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text", "group", "user", "group"])
+	assert.equal(runningSince(conversation), 110)
+	// a page loaded after the run began counts from the turn's first message, not a steered one
+	assert.equal(runningSince({ ...conversation, runStartedAt: null }), 100)
 
 	applyEvent(conversation, {
 		type: "assistant_message",
@@ -505,6 +522,7 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 		stop_reason: "stop",
 	})
 	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 130.5, reason: "done" })
+	assert.equal(runningSince(conversation), null)
 
 	const collapsed = buildItems(conversation)
 	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])

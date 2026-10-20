@@ -8,11 +8,11 @@
 		/>
 	</Transition>
 	<aside
-		class="fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col border-r border-outline-gray-1 bg-surface-sidebar md:relative"
+		class="flow-sidebar-surface fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col md:relative"
 		:class="[
 			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
 			// no transform while open: a transformed aside would become the containing
-			// block for PopMenu's fixed backdrop, clipping it to the sidebar
+			// block for a menu's fixed backdrop, clipping it to the sidebar
 			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 			dragging && 'flow-reordering',
 		]"
@@ -28,17 +28,20 @@
 			</button>
 		</div>
 
-		<div class="mt-1.5 flex flex-none flex-col gap-0.5 px-2">
-			<SidebarItem icon="lucide-square-pen" @click="startNewChat()">
+		<!-- 7px over, 9px under: New chat sits midway between the brand mark and the list's header;
+		     it and the header (or search) are as tall as a workspace row -->
+		<div class="mt-[7px] flex flex-none flex-col gap-0.5 px-2">
+			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
 				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
 			</SidebarItem>
 		</div>
 
 		<!-- outside the scroller, so search stays in reach down a long list -->
-		<div v-if="flow.state.sessions.length || searchOpen" class="mt-4 flex h-7 flex-none items-center gap-0.5 px-2">
+		<div v-if="flow.state.sessions.length || searchOpen" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
+			<!-- 4px short of the header and at its top, so the field stands clear of the first row -->
 			<label
 				v-if="searchOpen"
-				class="flex h-full min-w-0 flex-1 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base pl-2 transition-colors focus-within:border-outline-gray-3"
+				class="flex h-[calc(100%-4px)] min-w-0 flex-1 items-center gap-1.5 self-start rounded-4 bg-surface-base pl-2.5 pr-0.5"
 			>
 				<span class="lucide-search size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 				<input
@@ -91,7 +94,7 @@
 			</template>
 		</div>
 
-		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-1">
+		<div class="flex min-h-0 flex-1 flex-col overflow-y-auto px-2 pb-2 pt-0.5">
 			<!-- one wrapper for the rows: as children of the scroller they would shrink to fit -->
 			<div class="flex flex-col gap-0.5">
 				<template v-for="group in groups" :key="group.cwd ?? ''">
@@ -100,12 +103,13 @@
 						v-if="group.cwd"
 						class="group relative h-8 select-none"
 						:class="dragClass(group.cwd)"
-						:title="group.cwd"
 						:aria-expanded="group.open"
 						:data-reorder="canReorder ? 'folder' : null"
 						:data-key="group.cwd"
 						@click="toggleWorkspace(group.cwd)"
+						@pointerdown.capture="holdCard(group.cwd)"
 						@pointerdown="dragStart('folder', group.cwd, $event)"
+						@pointerleave="releaseCard(group.cwd)"
 					>
 						<template #prefix>
 							<span
@@ -114,9 +118,27 @@
 								aria-hidden="true"
 							/>
 						</template>
-						<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug text-ink-gray-8">
-							{{ group.name }}
-						</span>
+						<HoverCard
+							side="right"
+							:offset="12"
+							:hover-delay="500"
+							:leave-delay="0"
+							:open="cardFor === group.cwd"
+							@update:open="(open) => showCard(group.cwd, open)"
+						>
+							<template #trigger>
+								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug text-ink-gray-8">
+									{{ group.name }}
+								</span>
+							</template>
+							<div class="flex max-w-80 flex-col gap-1.5 px-3 py-2.5">
+								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
+								<p class="flex items-start gap-1.5 text-xs leading-4 text-ink-gray-6">
+									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
+									<span class="break-all">{{ group.cwd }}</span>
+								</p>
+							</div>
+						</HoverCard>
 						<template #suffix>
 							<button
 								class="row-action flow-hover-reveal absolute right-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
@@ -133,23 +155,27 @@
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
-						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold">
-							<div class="grid min-h-0 grid-cols-1 gap-0.5">
+						<div v-if="group.open && dragging?.scope !== 'folder'" class="flow-fold" :class="group.cwd && '-mt-px'">
+							<!-- chats sit 30px apart, the first 31px under its workspace's name; 34px
+							     apart in one list, which has no names to space against. A phone's
+							     taller rows keep the 2px gaps -->
+							<div class="grid min-h-0 grid-cols-1" :class="grouped ? 'gap-0.5' : 'gap-0.5 md:gap-1.5'">
 								<SidebarItem
 									v-for="s in group.chats"
 									:key="s.session_id"
 									:label="flow.sessionTitle(s)"
-									class="group relative h-8 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-7"
-									:class="[menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
+									class="group relative h-7 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
+									:class="[!grouped && 'quiet', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
 									:active="s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
 									@click="pick(s)"
+									@pointerdown.capture="holdCard(s.session_id)"
 									@pointerdown="pressStart(s, $event); dragStart(`chat:${group.cwd ?? ''}`, s.session_id, $event)"
 									@pointerup="pressEnd"
 									@pointercancel="pressEnd"
 									@pointerenter="crawlTitle"
-									@pointerleave="pressEnd(); restTitle($event)"
+									@pointerleave="pressEnd(); restTitle($event); releaseCard(s.session_id)"
 								>
 									<!-- an empty icon lane lines a workspace's chats up under its name; loose chats line up with the label -->
 									<template v-if="group.cwd" #prefix><span class="size-4" /></template>
@@ -159,7 +185,7 @@
 										:hover-delay="500"
 										:leave-delay="0"
 										:open="cardFor === s.session_id"
-										@update:open="(open) => showCard(s, open)"
+										@update:open="(open) => showCard(s.session_id, open)"
 									>
 										<template #trigger>
 											<span
@@ -185,12 +211,8 @@
 											@update:open="(open) => setMenu(s, open)"
 										>
 											<button
-												class="row-action absolute right-1 top-1/2 z-10 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:text-ink-gray-7 focus-visible:opacity-100"
-												:class="
-													menuFor === s.session_id
-														? 'text-ink-gray-7 opacity-100'
-														: 'opacity-0 group-hover:opacity-100 group-has-[:focus-visible]:opacity-100'
-												"
+												class="row-action chat-options absolute right-1 top-1/2 z-10 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:text-ink-gray-7"
+												:class="menuFor === s.session_id ? 'text-ink-gray-7 opacity-100' : 'opacity-0 group-hover:opacity-100'"
 												title="Session options"
 												@pointerdown.stop
 											>
@@ -227,8 +249,9 @@
 			</button>
 		</div>
 
+		<!-- in the 4px gap beside the raised chat panel, so its bar fills that gap -->
 		<div
-			class="absolute inset-y-0 right-0 z-10 hidden w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3] md:block"
+			class="absolute inset-y-0 -right-1 z-10 hidden w-1 cursor-col-resize hover:bg-[--outline-gray-2] active:bg-[--outline-gray-3] md:block"
 			title="Drag to resize · double-click to reset"
 			@pointerdown="startResize"
 			@dblclick="resetWidth"
@@ -292,11 +315,21 @@ watch(sentinel, (el, old) => {
 onBeforeUnmount(() => observer?.disconnect())
 const menuFor = ref(null)
 
-// a chat's card shows after a hover dwell, never beside its open menu or during a drag
+// a row's card (a chat's id, a workspace's folder) shows after a hover dwell, never beside
+// an open menu or during a drag; a press anywhere on its row (a click, its buttons, a drag)
+// puts it away until the pointer leaves the row
 const cardFor = ref(null)
-function showCard(session, open) {
-	if (open && !menuFor.value && !dragging.value) cardFor.value = session.session_id
-	else if (cardFor.value === session.session_id) cardFor.value = null
+let cardHeld = null
+function showCard(key, open) {
+	if (open && !menuFor.value && !dragging.value && cardHeld !== key) cardFor.value = key
+	else if (cardFor.value === key) cardFor.value = null
+}
+function holdCard(key) {
+	cardHeld = key
+	cardFor.value = null
+}
+function releaseCard(key) {
+	if (cardHeld === key) cardHeld = null
 }
 function setMenu(session, open) {
 	menuFor.value = open ? session.session_id : null
@@ -614,9 +647,16 @@ const emptyMessage = computed(() => {
 
 /* finger-sized rows in the phone drawer */
 @media (max-width: 767px) {
-	aside :deep([data-slot="sidebar-item"]) {
+	aside :deep([data-slot="sidebar-item"]),
+	.list-head {
 		height: 2.25rem;
 	}
+}
+
+/* in one list, chats rest half a step quieter, so the long column reads calmer; the one
+   under the pointer and the open one keep full ink */
+.quiet[data-state="inactive"]:not(:hover, .menu-open) {
+	color: color-mix(in srgb, var(--ink-gray-7) 50%, var(--ink-gray-8));
 }
 
 /* chat and workspace names a half step over text-xs, keeping its weight and spacing; a
@@ -630,10 +670,14 @@ const emptyMessage = computed(() => {
 /* a row's button covers the end of its title, so a long title fades out before it; touch
    screens show a workspace's button without a hover */
 .group:hover .row-title,
-.group:has(:focus-visible) .row-title,
+[data-flow-tabbing] .group:has(:focus-visible) .row-title,
 .group.menu-open .row-title {
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 	mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+}
+/* Tab onto a chat shows its options button, as a hover does (focusRings.js marks the root) */
+[data-flow-tabbing] .group:has(:focus-visible) .chat-options {
+	opacity: 1;
 }
 @media (hover: none) {
 	.folder-name {
@@ -691,13 +735,22 @@ const emptyMessage = computed(() => {
 	right: 0.5rem;
 	height: 2px;
 	border-radius: 1px;
-	background: var(--ink-gray-5);
+	background: var(--ink-gray-3);
 }
 .drop-before::before {
 	top: -2px;
 }
 .drop-after::after {
 	bottom: -2px;
+}
+/* one list's 6px gaps, wider than a phone: the line keeps to their middle */
+@media (min-width: 768px) {
+	.quiet.drop-before::before {
+		top: -4px;
+	}
+	.quiet.drop-after::after {
+		bottom: -4px;
+	}
 }
 .flow-reordering :deep(*) {
 	cursor: grabbing !important;

@@ -43,6 +43,8 @@ class ServerPolicy:
 		providers_api: /models and /providers*; 403 when off.
 		skills_api: Skill discovery routes; 403 when off.
 		tools_api: `/tools`, the list of tools a session may enable; 403 when off.
+		settings_api: `/settings`, the web UI's preferences in `~/.flow/settings.json`;
+			403 when off.
 	"""
 
 	profile: str = "local"
@@ -57,6 +59,7 @@ class ServerPolicy:
 	providers_api: bool = True
 	skills_api: bool = True
 	tools_api: bool = True
+	settings_api: bool = True
 
 
 # Only the session verbs the remote client actually uses stay on; everything that
@@ -76,6 +79,7 @@ DEPLOYED = ServerPolicy(
 	providers_api=False,
 	skills_api=False,
 	tools_api=False,
+	settings_api=False,
 )
 
 
@@ -109,6 +113,7 @@ _BOOL_FIELDS = frozenset(
 		"providers_api",
 		"skills_api",
 		"tools_api",
+		"settings_api",
 	}
 )
 

@@ -6,7 +6,7 @@
 				<button class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
 					<FeatherIcon name="arrow-left" class="h-4 w-4" />
 				</button>
-				<h2 class="text-base font-semibold text-ink-gray-9">{{ draft.default ? "Default preset" : draft.id ? "Edit preset" : "New preset" }}</h2>
+				<h2 class="text-base font-semibold text-ink-gray-9">{{ draft.default ? "Standard preset" : draft.id ? "Edit preset" : "New preset" }}</h2>
 			</div>
 
 			<div class="mt-6 flex flex-col gap-5 pb-6">
@@ -143,10 +143,10 @@ const dirty = computed(() => !!draft.value && JSON.stringify(draft.value) !== op
 
 const listRows = computed(() => {
 	// inside a chat, mark the preset that chat was created with, not the pick for new chats
-	const wanted = inSession.value ? flow.state.sessionPresets[flow.state.sessionId] : flow.state.prefs.activePreset
+	const wanted = inSession.value ? flow.state.session?.config?.preset : flow.state.prefs.activePreset
 	const active = flow.state.presets.some((p) => p.id === wanted) ? wanted : null
 	return [
-		{ id: null, name: "Default", summary: defaultSummary(), active: !active },
+		{ id: null, name: "Standard", summary: defaultSummary(), active: !active },
 		...flow.state.presets.map((p) => ({ id: p.id, name: p.name, summary: summary(p), active: p.id === active, preset: p })),
 	]
 })
@@ -200,6 +200,9 @@ function openDraft(value) {
 	opened = JSON.stringify(value)
 	return value
 }
+
+// opened by the composer's "Create a preset": on a blank one
+if (flow.takeNewPreset()) draft.value = blank()
 
 function toggleTool(key, name, on) {
 	const names = draft.value[key].filter((t) => t !== name)

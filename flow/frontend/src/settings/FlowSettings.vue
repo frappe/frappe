@@ -27,7 +27,7 @@ const DESCRIPTIONS = {
 	memories: "What agents have remembered.",
 };
 const ICONS = {
-	general: "user",
+	general: "settings",
 	agents: "bot",
 	skills: "book-open",
 	tools: "tool",

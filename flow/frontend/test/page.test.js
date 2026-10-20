@@ -115,50 +115,100 @@ function shareDialog(t, client, { state, page = { boot } } = {}) {
 	return { el, vm };
 }
 
-test("the agent is picked in a palette, before the model, and a new chat starts with it", async (t) => {
-	const el = mountPage(t);
+test("a new chat's agent is picked over the box from its own list, beside its skills, the model alone by the send button; the chat starts with it and its header names it", async (t) => {
+	const skillsAnswer = transport.answers["flow.api.skills"];
+	transport.answers["flow.api.skills"] = ({ agent }) => ({
+		skills: agent === "reviewer" ? [{ name: "review", description: "Reviews a change" }] : [],
+	});
+	t.after(() => (transport.answers["flow.api.skills"] = skillsAnswer));
+	const el = mountPage(t, { boot: { ...boot, permissions: { "Flow Skill": ["create"] } } });
 	await until(() => called("flow.api.list_sessions"));
 	await nextTick();
 	assert.ok(!called("flow.api.boot"), "the page's own boot serves the first load");
 
 	assert.ok(el.textContent.includes("What can I help you with?"));
 	assert.equal(el.querySelector("textarea").placeholder, "Ask Flow…");
-	const agent = el.querySelector("button[title='Agent']");
-	const model = el.querySelector("button[title^='Choose Model']");
-	assert.equal(agent.textContent.trim(), "Flow");
-	assert.ok(agent.compareDocumentPosition(model) & Node.DOCUMENT_POSITION_FOLLOWING);
-	assert.equal(
-		agent.querySelector("[data-stub=FeatherIcon]"),
-		null,
-		"no chevron: it opens a panel"
-	);
+	const agent = () => el.querySelector("button[title='Agent']");
+	const box = el.querySelector("fieldset");
+	assert.equal(agent().textContent.trim(), "Flow");
+	assert.ok(!box.contains(agent()));
+	assert.ok(box.querySelector("button[title^='Choose Model']"));
+	// the chip names no count; for an agent without skills, its list says so and offers to add
+	// one, with nothing to search yet
+	const skills = () => el.querySelector("button[title='Skills']");
+	const skillRows = () => [...skills().parentElement.querySelectorAll("[data-palette-item]")];
+	const skillNames = () =>
+		skillRows().map((row) => (row.querySelector("span") ?? row).textContent.trim());
+	assert.equal(skills().textContent.trim(), "Skills");
+	skills().click();
+	await nextTick();
+	assert.match(skills().nextElementSibling.textContent, /No skills/);
+	assert.deepEqual(skillNames(), ["Add a skill"]);
+	assert.equal(skills().parentElement.querySelector("input"), null);
+	skillRows()[0].click();
+	await nextTick();
+	assert.equal(skillRows().length, 0);
 
-	// the /agents command and the button open the same palette above the composer
+	// found by its search; no row to add one
+	const list = () => [...agent().parentElement.querySelectorAll("[data-palette-item]")];
+	const rows = () =>
+		list().map((row) => [row.textContent.trim(), row.getAttribute("aria-current")]);
+	agent().click();
+	await nextTick();
+	await nextTick();
+	assert.equal(document.activeElement.placeholder, "Search agents…");
+	assert.deepEqual(rows(), [
+		["Flow", "true"],
+		["Reviewer", null],
+	]);
+	const field = agent().parentElement.querySelector("input");
+	field.value = "rev";
+	field.dispatchEvent(new Event("input"));
+	await nextTick();
+	assert.deepEqual(rows(), [["Reviewer", null]]);
+	list()[0].click();
+	await nextTick();
+	assert.deepEqual(rows(), []);
+	assert.equal(agent().textContent.trim(), "Reviewer");
+	// the skills a new chat may start follow the agent; one picked from their list starts the draft
+	await until(() =>
+		transport.calls.some(([name, a]) => name === "flow.api.skills" && a.agent === "reviewer")
+	);
+	await new Promise((resolve) => setTimeout(resolve));
+	assert.equal(skills().textContent.trim(), "Skills");
+	skills().click();
+	await nextTick();
+	await nextTick();
+	assert.equal(document.activeElement.placeholder, "Search skills…");
+	assert.deepEqual(
+		[...skillRows()[0].querySelectorAll("span")].map((span) => span.textContent.trim()),
+		["review", "Reviews a change"]
+	);
+	const skillField = skills().parentElement.querySelector("input");
+	skillField.value = "change";
+	skillField.dispatchEvent(new Event("input"));
+	await nextTick();
+	assert.deepEqual(skillNames(), ["review", "Add a skill"], "found by its description too");
+	skillRows()[0].click();
+	await nextTick();
+	assert.equal(skillRows().length, 0);
+	assert.equal(el.querySelector("textarea").value, "/skill:review ");
+
+	// the /agents command opens the composer's own list of them
 	const textarea = el.querySelector("textarea");
 	textarea.value = "/agents";
 	textarea.dispatchEvent(new Event("input"));
 	await nextTick();
-	const rows = () => [...el.querySelectorAll("[data-palette-item]")];
-	assert.ok(rows()[0].textContent.includes("Agent"));
-	rows()[0].click();
+	const items = () => [...el.querySelectorAll("[data-palette-item]")];
+	assert.ok(items()[0].textContent.includes("Agent"));
+	items()[0].click();
 	await nextTick();
 	assert.deepEqual(
-		rows().map((row) => row.textContent.trim()),
+		items().map((row) => row.textContent.trim()),
 		["Flow", "Reviewer"]
 	);
-	assert.equal(rows()[0].getAttribute("aria-current"), "true");
-	rows()[1].click();
-	await nextTick();
-	assert.equal(rows().length, 0);
-	assert.equal(agent.textContent.trim(), "Reviewer");
-	// the skills a new chat may start follow the agent
-	await until(() =>
-		transport.calls.some(([name, a]) => name === "flow.api.skills" && a.agent === "reviewer")
-	);
-	agent.click();
-	await nextTick();
-	assert.equal(rows()[1].getAttribute("aria-current"), "true");
-	rows()[1].click();
+	assert.equal(items()[1].getAttribute("aria-current"), "true");
+	items()[1].click();
 	await nextTick();
 
 	textarea.value = "hi";
@@ -169,23 +219,32 @@ test("the agent is picked in a palette, before the model, and a new chat starts 
 	assert.equal(args("flow.api.create_session").agent, "reviewer");
 	assert.deepEqual(args("flow.api.run"), { session: "S1", message: "hi", attachments: [] });
 	await nextTick();
-	assert.ok(agent.disabled, "the agent is fixed once the conversation starts");
-	assert.equal(agent.textContent.trim(), "Reviewer");
+	assert.equal(agent(), null, "the agent is fixed once the conversation starts");
+	assert.match(el.querySelector("header div[title]").title, /^Reviewer \/ /);
 });
 
-test("boot is refetched only for the records it lists, and a renamed agent or model stays the one a new chat starts with", async () => {
+test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async () => {
 	const { createPage } = await import("../src/page.js");
 	let refreshes = 0;
+	let skillReloads = 0;
 	const models = [];
 	const page = createPage(boot, {
 		refresh: () => refreshes++,
 		renamedModel: (...args) => models.push(args),
+		reloadSkills: () => skillReloads++,
 	});
 	page.changed("Flow Skill");
 	assert.equal(refreshes, 0);
 	page.changed("Flow Model");
 	page.changed("Flow Agent");
 	assert.equal(refreshes, 2);
+	assert.equal(skillReloads, 2);
+
+	page.createRecord("skills");
+	assert.equal(page.state.settingsTab, "skills");
+	assert.equal(page.takeNewRecord("agents"), false);
+	assert.equal(page.takeNewRecord("skills"), true);
+	assert.equal(page.takeNewRecord("skills"), false);
 
 	page.renamed("Flow Agent", "someone-else", "Other");
 	page.renamed("Flow Skill", "flow", "Other");
@@ -197,7 +256,16 @@ test("boot is refetched only for the records it lists, and a renamed agent or mo
 	assert.deepEqual(models, [["GPT", "GPT Fast"]]);
 });
 
-test("without a model the normal page shows the setup state and a disabled composer", async (t) => {
+test("without a model the normal page shows the setup state and a disabled composer, and keeps to the screen a phone's keyboard leaves", async (t) => {
+	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
+	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
+	const { scrollTo } = dom.window;
+	globalThis.visualViewport = viewport;
+	dom.window.scrollTo = () => {};
+	t.after(() => {
+		delete globalThis.visualViewport;
+		dom.window.scrollTo = scrollTo;
+	});
 	const el = mountPage(t, { boot: { ...boot, models: [] } });
 	await until(() => called("flow.api.list_sessions"));
 	await nextTick();
@@ -205,6 +273,19 @@ test("without a model the normal page shows the setup state and a disabled compo
 	assert.ok(!el.textContent.includes("What can I help you with?"));
 	assert.ok(el.querySelector("textarea").matches(":disabled"));
 	assert.ok(el.querySelector("button[title='Agent']").matches(":disabled"));
+	assert.equal(
+		el.querySelector("button[title='Skills']"),
+		null,
+		"no skills, nor a right to add one"
+	);
+
+	const resize = (height, scale = 1) => {
+		Object.assign(viewport, { height, scale });
+		viewport.dispatchEvent(new dom.window.Event("resize"));
+		return document.documentElement.style.height;
+	};
+	assert.equal(resize(508), "508px");
+	assert.equal(resize(422, 2), "844px");
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {
@@ -517,14 +598,15 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 		transport.answers["flow.api.session"] = session;
 	});
 	const el = mountPage(t);
-	const agent = () => el.querySelector("button[title^='The agent is fixed']");
+	// the header names the agent before the chat's title
+	const agent = () => el.querySelector("header div[title]")?.title.match(/^(.+?) \/ /)?.[1];
 	await until(() => el.textContent.includes("Listed chat"));
 	[...el.querySelectorAll("[data-stub=SidebarItem]")]
 		.find((row) => row.textContent.includes("Listed chat"))
 		.click();
 	await until(() => pending.length === 1);
 	await nextTick();
-	assert.equal(agent().textContent.trim(), "Reviewer");
+	assert.equal(agent(), "Reviewer");
 	assert.ok(el.querySelector("button[title^='Sonnet']"));
 	pending[0]();
 
@@ -532,10 +614,10 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 	await router.replace("/s/slow");
 	await until(() => pending.length === 2);
 	await nextTick();
-	assert.equal(agent().textContent.trim(), "");
+	assert.equal(agent(), undefined);
 	assert.ok(!el.textContent.includes("Choose Model"));
 	pending[1]();
-	await until(() => agent().textContent.trim() === "Reviewer");
+	await until(() => agent() === "Reviewer");
 	assert.ok(el.textContent.includes("Sonnet"));
 });
 

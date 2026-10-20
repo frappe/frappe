@@ -133,8 +133,9 @@ async def _models_for_provider(
 			name=(name := _qualify(prefix, model)),
 			provider=provider_id,
 			supports_images=model_supports_images(name),
+			display_name=display_name,
 		)
-		for model in raw
+		for model, display_name in raw
 		if model
 	]
 
@@ -152,7 +153,7 @@ async def _http_models(
 	client: httpx.AsyncClient,
 	*,
 	provider_id: str | None = None,
-) -> list[str]:
+) -> list[tuple[str, str | None]]:
 	headers = dict(auth.headers)
 	if provider_id == "anthropic":
 		headers.update({"x-api-key": auth.api_key or "", "anthropic-version": "2023-06-01"})
@@ -162,12 +163,12 @@ async def _http_models(
 		headers["Authorization"] = f"Bearer {auth.api_key}"
 	response = await client.get(url, headers=headers)
 	response.raise_for_status()
-	return _model_ids(response.json(), provider_id)
+	return _model_rows(response.json(), provider_id)
 
 
 async def _codex_models(
 	auth: ResolvedModelAuth, api_base: str | None, client: httpx.AsyncClient
-) -> list[str]:
+) -> list[tuple[str, str | None]]:
 	from flow_harness.model.providers.codex import codex_client_version
 
 	headers = {**auth.headers, "Authorization": f"Bearer {auth.api_key}"}
@@ -177,22 +178,32 @@ async def _codex_models(
 		params={"client_version": codex_client_version()},
 	)
 	response.raise_for_status()
-	return _model_ids(response.json(), "codex")
+	return _model_rows(response.json(), "codex")
 
 
-def _model_ids(data: object, provider_id: str | None = None) -> list[str]:
+def _model_rows(data: object, provider_id: str | None = None) -> list[tuple[str, str | None]]:
+	"""(model id, display name) for each listed model; a name with no space in it is an id, not
+	a title (the id again, or another, as Mistral's dated one for a "-latest" alias), so none."""
 	rows = []
 	if isinstance(data, dict):
 		rows = data.get("models", data.get("data", []))
 	if not isinstance(rows, list):
 		return []
-	return [
-		_clean_id(str(row.get("slug") or row.get("id") or row.get("name")), provider_id)
-		for row in rows
-		if isinstance(row, dict)
-		and (row.get("slug") or row.get("id") or row.get("name"))
-		and _is_selectable(row, provider_id)
-	]
+	models = []
+	for row in rows:
+		if not isinstance(row, dict) or not _is_selectable(row, provider_id):
+			continue
+		raw = row.get("slug") or row.get("id") or row.get("name")
+		if not raw:
+			continue
+		model = _clean_id(str(raw), provider_id)
+		names = (row.get("display_name"), row.get("displayName"), row.get("name"))
+		display_name = next(
+			(name.strip() for name in names if isinstance(name, str) and " " in name.strip()),
+			None,
+		)
+		models.append((model, display_name))
+	return models
 
 
 def _is_selectable(row: dict, provider_id: str | None) -> bool:

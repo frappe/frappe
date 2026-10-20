@@ -89,9 +89,10 @@ def list_directory(full_path: str) -> list[dict]:
 
 
 def search_tree(root: str, needle: str) -> tuple[list[str], bool]:
-	"""Files whose cwd-relative path contains each slash- or space-separated term of
-	the needle, in order — "src/agent" finds src/flow_harness/agent/loop.py, so a partial
-	path skips levels. Hidden and dependency directories are pruned."""
+	"""Files and folders (ending in "/") whose own name holds the needle's last slash- or
+	space-separated term, after any earlier ones in order along the path — "src/agent"
+	finds src/flow_harness/agent/, so a partial path skips levels. Hidden and dependency
+	directories are pruned."""
 	terms = [term for term in re.split(r"[\s/]+", needle) if term]
 	matches: list[str] = []
 	scanned = 0
@@ -104,11 +105,14 @@ def search_tree(root: str, needle: str) -> tuple[list[str], bool]:
 			(d for d in dirnames if not d.startswith(".") and d not in SEARCH_SKIP_DIRS),
 			key=str.lower,
 		)
-		for name in sorted(filenames, key=str.lower):
-			scanned += 1
+		# a folder is listed before what it holds, and counted when it is walked
+		folders = [(name, "/") for name in dirnames]
+		files = [(name, "") for name in sorted(filenames, key=str.lower)]
+		for name, slash in folders + files:
+			scanned += not slash
 			rel = os.path.relpath(os.path.join(dirpath, name), root)
-			if _path_matches(rel.lower(), terms):
-				matches.append(rel)
+			if _path_matches(rel.lower(), terms, len(rel) - len(name)):
+				matches.append(rel + slash)
 				if len(matches) >= MAX_SEARCH_RESULTS:
 					return matches, True
 			if scanned >= MAX_SEARCH_SCAN:
@@ -116,10 +120,12 @@ def search_tree(root: str, needle: str) -> tuple[list[str], bool]:
 	return matches, False
 
 
-def _path_matches(path: str, terms: list[str]) -> bool:
+def _path_matches(path: str, terms: list[str], name_start: int) -> bool:
 	position = 0
-	for term in terms:
-		position = path.find(term, position)
+	for i, term in enumerate(terms):
+		# the last term lands in the entry's own name
+		start = max(position, name_start) if i == len(terms) - 1 else position
+		position = path.find(term, start)
 		if position == -1:
 			return False
 		position += len(term)

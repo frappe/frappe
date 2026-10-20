@@ -97,7 +97,8 @@ const props = defineProps({
 });
 const page = inject("flowPage");
 
-const mode = ref("list");
+// a blank record when one was asked for from outside settings ("Add a skill"), else the list
+const mode = ref(page.takeNewRecord(props.spec.key) ? "form" : "list");
 const editing = ref(null);
 const query = ref("");
 const debouncedQuery = useDebouncedValue(query, 300);

@@ -1,7 +1,7 @@
 import { reactive, watch } from "vue"
 
 import { FlowAPIError } from "./client.js"
-import { onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
+import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT, onSidebarLayoutChange, sidebarIsDrawer } from "./layout.js"
 import {
 	applyEvent,
 	approvalToAnswer,
@@ -45,6 +45,29 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 	}
 }
 
+const isPreset = (preset) => preset && typeof preset.id === "string" && Array.isArray(preset.tools)
+const same = (left, right) => JSON.stringify(left) === JSON.stringify(right)
+const copy = (value) => JSON.parse(JSON.stringify(value))
+
+// The prefs a daemon that keeps settings (client.settings) saves with the presets and the
+// theme, so they outlive the browser's storage and follow the user to another browser. The
+// rest (panel sizes, open folders, the folder for new chats) belong to this browser.
+const SYNCED_PREFS = [
+	"mode",
+	"customInstructions",
+	"activePreset",
+	"defaultPreset",
+	"lastModel",
+	"lastEffort",
+	"sidebarGroup",
+	"sidebarOrder",
+	"chatOrder",
+	"folderOrder",
+	"chatFontSize",
+	"chatFontWeight",
+]
+const COLOR_SCHEMES = ["system", "light", "dark"]
+
 // One store per connected daemon. `client` implements the DaemonClient surface;
 // Flow's Frappe shell passes a proxy-backed client instead.
 //
@@ -64,6 +87,8 @@ function readJSON(key, fallback, storage = globalThis.localStorage) {
 //                  the turn's key, response text and timestamp as props
 //   listedModel    true when a session-list row's `model` is the chat's current one, so a
 //                  chat being opened shows it before it loads (the daemon's can lag)
+//   colorScheme    frappe-ui's useColorScheme(), for a host whose daemon keeps the theme
+//                  with the other settings
 export function createFlowStore(client, options = {}) {
 	const capabilities = { rewind: typeof client.rewind === "function" }
 	options = {
@@ -78,13 +103,14 @@ export function createFlowStore(client, options = {}) {
 	const keys = {
 		prefs: `${options.storageKey}.prefs`,
 		titles: `${options.storageKey}.titles`,
-		sessionPresets: `${options.storageKey}.sessionPresets`,
 		workspace: `${options.storageKey}.workspace`,
 		presets: `${options.storageKey}.presets`,
 		queue: `${options.storageKey}.queue`,
+		synced: `${options.storageKey}.synced`,
 	}
-	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here
-	const prefs = {
+	// theme lives in frappe-ui's useColorScheme (localStorage "theme"), not here; a host whose
+	// daemon keeps settings passes it in (options.colorScheme) to save and restore it with them
+	const defaults = {
 		mode: "ask", // "ask" | "auto" — applied at session create
 		customInstructions: "", // sent as system_suffix at session create
 		activePreset: null, // id of the agent preset applied to new chats
@@ -101,8 +127,11 @@ export function createFlowStore(client, options = {}) {
 		folderOrder: [], // workspace folders in their manual order
 		workspaceWidth: 460,
 		explorerWidth: 220,
-		...readJSON(keys.prefs, {}),
+		chatFontSize: CHAT_FONT_SIZE.default,
+		chatFontWeight: CHAT_FONT_WEIGHT.default,
 	}
+	// only what differs from these is saved, so a setting left alone follows a new default
+	const prefs = { ...copy(defaults), ...readJSON(keys.prefs, {}) }
 	if (typeof prefs.customInstructions !== "string") prefs.customInstructions = ""
 
 	// the docked sidebar follows the saved preference; a drawer starts closed and is never saved
@@ -134,14 +163,12 @@ export function createFlowStore(client, options = {}) {
 		workspace: { open: false, maximized: false, tabs: [], active: null, view: null },
 		sidebarOpen: sidebarFromPrefs(),
 		settingsOpen: false,
+		settingsTab: null, // the settings dialog's tab, for a host that binds it; null is its first
 		transcriptOpen: false,
 		prefs,
 		// agent presets: { id, name, tools, extensionTools, promptMode, prompt }
-		presets: [].concat(readJSON(keys.presets, [])).filter(
-			(p) => p && typeof p.id === "string" && Array.isArray(p.tools),
-		),
+		presets: [].concat(readJSON(keys.presets, [])).filter(isPreset),
 		titles: readJSON(keys.titles, {}),
-		sessionPresets: readJSON(keys.sessionPresets, {}), // session id -> the preset it was created with
 	})
 
 	onSidebarLayoutChange(() => (state.sidebarOpen = sidebarFromPrefs()))
@@ -175,8 +202,83 @@ export function createFlowStore(client, options = {}) {
 	let loadedSkillsFor = null // key of the list in state.skills
 	let toolsLoading = null // the /tools fetch in flight; a first send waits for it
 
+	// The daemon's settings: the page starts from this browser's copy, then takes the daemon's,
+	// except for a setting changed here since the two last agreed, which goes to the daemon
+	// instead. A change is saved here at once and there a moment later.
+	let agreed = readJSON(keys.synced, null) // what the daemon was last known to hold
+	let settingsLoaded = false
+	let settingsTimer = null
+	let settingsSaving = Promise.resolve()
+
 	function savePrefs() {
-		localStorage.setItem(keys.prefs, JSON.stringify(state.prefs))
+		localStorage.setItem(keys.prefs, JSON.stringify(changedPrefs()))
+		queueSettings()
+	}
+
+	function changedPrefs() {
+		return Object.fromEntries(Object.entries(state.prefs).filter(([key, value]) => !same(value, defaults[key])))
+	}
+
+	// a setting at its default goes as null, so every browser keeps following the default
+	function currentSettings() {
+		const current = Object.fromEntries(
+			SYNCED_PREFS.map((key) => [key, same(state.prefs[key], defaults[key]) ? null : state.prefs[key]]),
+		)
+		current.presets = state.presets
+		if (options.colorScheme) current.theme = options.colorScheme.colorScheme.value
+		return current
+	}
+
+	async function loadSettings() {
+		let saved
+		try {
+			saved = (await client.settings()).settings ?? {}
+		} catch {
+			return // an older daemon, or one whose policy keeps settings off: this browser's copy stands
+		}
+		const current = currentSettings()
+		for (const [key, value] of Object.entries(saved)) {
+			if (!(key in current) || (agreed && !same(current[key], agreed[key]))) continue
+			if (key === "theme") {
+				if (COLOR_SCHEMES.includes(value)) options.colorScheme.setColorScheme(value)
+			} else if (key === "presets") {
+				// a browser's first sync keeps its own presets beside the daemon's
+				const theirs = [].concat(copy(value)).filter(isPreset)
+				const mine = agreed ? [] : state.presets.filter((preset) => !theirs.some((their) => their.id === preset.id))
+				state.presets = [...theirs, ...mine]
+			} else state.prefs[key] = copy(value ?? defaults[key])
+		}
+		if (typeof state.prefs.customInstructions !== "string") state.prefs.customInstructions = ""
+		agreed = saved
+		settingsLoaded = true
+		localStorage.setItem(keys.prefs, JSON.stringify(changedPrefs()))
+		localStorage.setItem(keys.presets, JSON.stringify(state.presets))
+		localStorage.setItem(keys.synced, JSON.stringify(agreed))
+		saveSettings()
+	}
+
+	// a moment after a change; before the first load, the load sends it
+	function queueSettings() {
+		if (!settingsLoaded) return
+		clearTimeout(settingsTimer)
+		settingsTimer = setTimeout(saveSettings, 500)
+	}
+
+	// one save at a time, of what the daemon lacks; a failed one is sent again with the next
+	// change, or by the next load
+	function saveSettings() {
+		settingsSaving = settingsSaving.then(async () => {
+			const changed = Object.entries(currentSettings()).filter(([key, value]) => !same(value, agreed[key]))
+			if (!changed.length) return
+			const sent = copy(Object.fromEntries(changed))
+			try {
+				await client.updateSettings(sent)
+			} catch {
+				return
+			}
+			agreed = { ...agreed, ...sent }
+			localStorage.setItem(keys.synced, JSON.stringify(agreed))
+		})
 	}
 
 	// the theme used to live in prefs; frappe-ui's useColorScheme keeps it under "theme"
@@ -559,6 +661,7 @@ export function createFlowStore(client, options = {}) {
 		}
 		if (picked?.tools) config.tools = picked.tools
 		if (picked?.extensionTools) config.extension_tools = picked.extensionTools
+		if (preset) config.preset = preset.id // the chat keeps it, for the settings tab
 		const prompt = preset?.prompt?.trim() ?? ""
 		if (prompt && preset.promptMode === "replace") config.system_preamble = prompt
 		const suffix = [preset?.promptMode === "append" ? prompt : "", state.prefs.customInstructions.trim()]
@@ -571,10 +674,6 @@ export function createFlowStore(client, options = {}) {
 		if (useModel) config.model = useModel
 		const data = await guard(() => client.createSession(config), { rethrow: false })
 		if (!data) return null
-		if (preset) {
-			state.sessionPresets[data.session_id] = preset.id
-			localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
-		}
 		const effort = state.prefs.lastEffort
 		if (effort) {
 			await guard(() =>
@@ -1217,11 +1316,23 @@ export function createFlowStore(client, options = {}) {
 		}
 	}
 
+	// a new chat's branch line, which a failure leaves out as quietly
+	async function gitBranch() {
+		const cwd = explorerCwd()
+		if (!cwd || typeof client.gitBranch !== "function") return null
+		try {
+			return await client.gitBranch(cwd)
+		} catch {
+			return null
+		}
+	}
+
 	// the "+ → Files" view: panel open with no active tab, explorer as the focus
 	function showFilesView() {
 		state.workspace.open = true
 		state.workspace.view = "files"
 		state.workspace.active = null
+		state.workspace.focusSearch = true // once, for the files bar; never saved
 		persistWorkspace()
 	}
 
@@ -1380,8 +1491,33 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
-	function setSettingsOpen(open) {
+	// to the hundredth: stepping 15.01 by 1 would otherwise land on 16.009999999999998
+	function setChatFontSize(px) {
+		const size = Math.min(CHAT_FONT_SIZE.max, Math.max(CHAT_FONT_SIZE.min, px))
+		state.prefs.chatFontSize = Math.round(size * 100) / 100
+		savePrefs()
+	}
+
+	function setChatFontWeight(weight) {
+		state.prefs.chatFontWeight = weight
+		savePrefs()
+	}
+
+	function setSettingsOpen(open, tab = null) {
+		if (tab) state.settingsTab = tab
 		state.settingsOpen = open
+	}
+
+	// "Create a preset": settings, on a blank one; the presets tab takes the ask once, as it opens
+	let newPresetAsked = false
+	function createPreset() {
+		newPresetAsked = true
+		setSettingsOpen(true, "presets")
+	}
+	function takeNewPreset() {
+		const asked = newPresetAsked
+		newPresetAsked = false
+		return asked
 	}
 
 	function setTranscriptOpen(open) {
@@ -1390,6 +1526,7 @@ export function createFlowStore(client, options = {}) {
 
 	function savePresets() {
 		localStorage.setItem(keys.presets, JSON.stringify(state.presets))
+		queueSettings()
 	}
 
 	function activePreset() {
@@ -1412,10 +1549,6 @@ export function createFlowStore(client, options = {}) {
 		state.presets = state.presets.filter((p) => p.id !== id)
 		savePresets()
 		if (state.prefs.activePreset === id) setActivePreset(null)
-		for (const [sid, presetId] of Object.entries(state.sessionPresets)) {
-			if (presetId === id) delete state.sessionPresets[sid]
-		}
-		localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
 	}
 
 	function setActivePreset(id) {
@@ -1461,10 +1594,6 @@ export function createFlowStore(client, options = {}) {
 			delete workspaceBySession[sid]
 			localStorage.setItem(keys.workspace, JSON.stringify(workspaceBySession))
 		}
-		if (state.sessionPresets[sid]) {
-			delete state.sessionPresets[sid]
-			localStorage.setItem(keys.sessionPresets, JSON.stringify(state.sessionPresets))
-		}
 		if (state.sessionId === sid) startNewChat()
 		heldBySession.delete(sid)
 		notify("Chat deleted")
@@ -1496,6 +1625,11 @@ export function createFlowStore(client, options = {}) {
 
 	function detach() {
 		closeStream()
+	}
+
+	if (typeof client.settings === "function") {
+		if (options.colorScheme) watch(options.colorScheme.colorScheme, queueSettings)
+		void loadSettings()
 	}
 
 	return {
@@ -1543,6 +1677,7 @@ export function createFlowStore(client, options = {}) {
 		listFiles,
 		searchFiles,
 		gitChanges,
+		gitBranch,
 		selectFile,
 		openSubagent,
 		showFilesView,
@@ -1560,12 +1695,16 @@ export function createFlowStore(client, options = {}) {
 		setFolderOpen,
 		setSidebarView,
 		setCustomInstructions,
+		setChatFontSize,
+		setChatFontWeight,
 		setSettingsOpen,
 		setTranscriptOpen,
 		activePreset,
 		savePreset,
 		deletePreset,
 		setActivePreset,
+		createPreset,
+		takeNewPreset,
 		defaultPreset,
 		saveDefaultPreset,
 		renameSession,

@@ -53,6 +53,7 @@ def test_resolve_policy_profiles():
 	assert not deployed.providers_api
 	assert not deployed.skills_api
 	assert not deployed.tools_api
+	assert not deployed.settings_api
 	with pytest.raises(ValueError, match="unknown profile"):
 		resolve_policy("production")
 	# configured callback hosts fill the deployed profile only

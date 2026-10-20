@@ -1,10 +1,8 @@
 import { computed, inject } from "vue";
 
 // The agent in force: a session keeps the one it was created with; otherwise the one a
-// new chat starts with.
-export function useAgent() {
-	const flow = inject("flow");
-	const page = inject("flowPage");
+// new chat starts with. The page, which provides the stores, passes them.
+export function useAgent(flow = inject("flow"), page = inject("flowPage")) {
 	const locked = computed(() => !!flow.state.sessionId);
 	const current = computed(() =>
 		locked.value

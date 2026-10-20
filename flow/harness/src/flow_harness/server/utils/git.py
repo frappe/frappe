@@ -51,6 +51,20 @@ def git_changes(cwd: str, allowed_roots: tuple[str, ...]) -> dict:
 	return {"root": root, "files": files}
 
 
+def git_branch(cwd: str) -> dict:
+	"""The branch checked out, None on a detached HEAD or outside a repository, and whether
+	the folder is a linked worktree."""
+	top = git_output(cwd, "rev-parse", "--show-toplevel")
+	if top is None:
+		return {"branch": None, "worktree": False}
+	root = top.decode("utf-8", "replace").strip()
+	head = git_output(root, "symbolic-ref", "--short", "-q", "HEAD")
+	# a linked worktree has a git dir of its own beside the repository's shared one
+	dirs = git_output(root, "rev-parse", "--git-dir", "--git-common-dir") or b""
+	paths = {os.path.realpath(os.path.join(root, d)) for d in dirs.decode("utf-8", "replace").splitlines()}
+	return {"branch": head.decode("utf-8", "replace").strip() if head else None, "worktree": len(paths) == 2}
+
+
 def git_head_text(root: str, rel: str) -> str:
 	"""The file's HEAD content; empty when git has no blob for it (untracked, new repo)."""
 	blob = git_output(root, "show", f"HEAD:{rel}")
