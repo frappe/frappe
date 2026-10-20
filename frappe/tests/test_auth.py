@@ -1,6 +1,7 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import threading
 import time
 from unittest.mock import Mock, patch
 
@@ -13,6 +14,7 @@ from frappe.auth import (
 	CookieManager,
 	LoginAttemptTracker,
 	LoginManager,
+	UnknownUserLoginAttemptTracker,
 	get_login_attempt_tracker,
 	validate_api_key_secret,
 	validate_auth,
@@ -602,6 +604,43 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())
+
+	def test_concurrent_failures_are_all_counted(self):
+		self.assert_concurrent_failures_are_counted(LoginAttemptTracker)
+
+	def test_concurrent_failures_of_unknown_names_are_all_counted(self):
+		self.assert_concurrent_failures_are_counted(UnknownUserLoginAttemptTracker)
+
+	def assert_concurrent_failures_are_counted(self, tracker_class):
+		site, sites_path = frappe.local.site, frappe.local.sites_path
+
+		def new_tracker():
+			return tracker_class("concurrent-tester", max_consecutive_login_attempts=10, lock_interval=60)
+
+		tracker = new_tracker()
+		tracker.add_success_attempt()
+		self.addCleanup(tracker.add_success_attempt)
+
+		attempts = 20
+		barrier = threading.Barrier(attempts)
+
+		def fail_login():
+			frappe.init(site, sites_path=sites_path)
+			frappe.connect()
+			barrier.wait()
+			try:
+				new_tracker().add_failure_attempt()
+			finally:
+				frappe.destroy()
+
+		threads = [threading.Thread(target=fail_login) for _ in range(attempts)]
+		for thread in threads:
+			thread.start()
+		for thread in threads:
+			thread.join()
+
+		self.assertEqual(tracker.login_failed_count, attempts)
+		self.assertFalse(tracker.is_user_allowed())
 
 
 class TestSessionIdHashing(FrappeAPITestCase):
