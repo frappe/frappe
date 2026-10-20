@@ -63,7 +63,7 @@ The server resolves credentials and prompt context itself; do not send API keys,
 | `POST /providers/{id}/oauth/complete` | Completes OAuth with `{"callback_url": "..."}`. |
 | `POST /fs/pick` | Opens a native folder picker when the daemon host supports one. |
 | `GET /fs/files?cwd=&path=` | Lists a directory under the absolute `cwd`; every `/fs` path is fenced by the allowed roots. |
-| `GET /fs/files/search?cwd=&query=` | Finds paths under `cwd` containing `query`, case-insensitively; `truncated` says the scan hit its cap. |
+| `GET /fs/files/search?cwd=&query=` | Finds files and folders (ending in `/`) under `cwd` whose name holds `query`'s last word, case-insensitively, with any earlier words in order along the path; `truncated` says the scan hit its cap. |
 | `GET /fs/file?cwd=&path=` | Reads one text file. |
 | `PUT /fs/file` | Writes `{"cwd", "path", "content"}`; content over the file-view cap is a 413. |
 | `GET /fs/git/changes?cwd=` | The repository's uncommitted files with added and removed line counts. |

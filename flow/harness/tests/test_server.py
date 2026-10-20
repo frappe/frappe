@@ -228,10 +228,12 @@ def test_search_workspace_files(tmp_path):
 	# hidden and dependency trees are pruned; matching is case-insensitive
 	assert body["matches"] == ["app.py", "src/deep/app_helpers.py"]
 	assert body["truncated"] is False
-	# the path is searched, not just the name: a directory finds what it holds, and
-	# each slash-separated term matches in order, so a partial path skips levels
+	# folders are found too, by their own name, not what they hold; earlier
+	# slash-separated terms match in order along the path, so a partial path skips levels
 	by_dir = c.get("/fs/files/search", params={"cwd": str(work), "query": "src/"}).json()
-	assert by_dir["matches"] == ["src/readme.md", "src/deep/app_helpers.py"]
+	assert by_dir["matches"] == ["src/"]
+	deep = c.get("/fs/files/search", params={"cwd": str(work), "query": "src dee"}).json()
+	assert deep["matches"] == ["src/deep/"]
 	partial = c.get("/fs/files/search", params={"cwd": str(work), "query": "src/app"}).json()
 	assert partial["matches"] == ["src/deep/app_helpers.py"]
 
