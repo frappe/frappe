@@ -190,18 +190,20 @@ async function loadInto(target, entry) {
 		entry.handle?.unmount();
 		entry.handle = null;
 
+		const props = entry.props;
 		const handle = await module.mount(target, {
 			// `host` is the context key the mount contract reads. See
 			// `IslandHost` in context.js. The key is the same whichever host
 			// fills it.
 			host: entry.host,
-			props: entry.props,
+			props,
 			styles: assets.css ? [assets.css] : [],
 		});
 
 		if (entry.cancelled) return handle.unmount();
 		entry.handle = handle;
 		entry.url = assets.js;
+		if (entry.props !== props) handle.update(entry.props);
 	} finally {
 		entry.loading = false;
 	}
