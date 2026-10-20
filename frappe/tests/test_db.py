@@ -1192,6 +1192,21 @@ class TestDB(IntegrationTestCase):
 		self.assertEqual(other.sql("show search_path"), frappe.db.sql("show search_path"))
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_close_leaves_no_transaction_open(self):
+		from psycopg.pq import TransactionStatus
+
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		other = connect_again()
+		other.sql("select 1")
+		conn = other._conn
+		statuses = []
+		close = conn.close
+		with patch.object(conn, "close", lambda: statuses.append(conn.info.transaction_status) or close()):
+			other.close()
+		self.assertEqual(statuses, [TransactionStatus.IDLE])
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_transactions_after_commit_use_the_session_isolation(self):
 		from frappe.automation_engine.tests.test_drainer import connect_again
 
