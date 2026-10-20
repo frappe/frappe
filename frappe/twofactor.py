@@ -74,8 +74,8 @@ def get_cached_user_pass():
 	user = pwd = None
 	tmp_id = frappe.form_dict.get("tmp_id")
 	if tmp_id:
-		user = frappe.safe_decode(frappe.cache.get(tmp_id + "_usr"))
-		pwd = frappe.safe_decode(frappe.cache.get(tmp_id + "_pwd"))
+		user = frappe.cache.get_value(tmp_id + "_usr", expires=True)
+		pwd = frappe.cache.get_value(tmp_id + "_pwd", expires=True)
 	return (user, pwd)
 
 
@@ -101,13 +101,11 @@ def cache_2fa_data(user, token, otp_secret, tmp_id):
 	# set increased expiry time for SMS and Email
 	if verification_method in ["SMS", "Email"]:
 		expiry_time = frappe.flags.token_expiry or 300
-		frappe.cache.set(tmp_id + "_token", token)
-		frappe.cache.expire(tmp_id + "_token", expiry_time)
+		frappe.cache.set_value(tmp_id + "_token", token, expires_in_sec=expiry_time)
 	else:
 		expiry_time = frappe.flags.otp_expiry or 180
 	for k, v in {"_usr": user, "_pwd": pwd, "_otp_secret": otp_secret}.items():
-		frappe.cache.set(f"{tmp_id}{k}", v)
-		frappe.cache.expire(f"{tmp_id}{k}", expiry_time)
+		frappe.cache.set_value(f"{tmp_id}{k}", v, expires_in_sec=expiry_time)
 
 
 def two_factor_is_enabled_for_(user):
@@ -156,17 +154,17 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		return True
 	if not tmp_id:
 		tmp_id = frappe.form_dict.get("tmp_id")
-	hotp_token = frappe.cache.get(tmp_id + "_token")
-	otp_secret = frappe.cache.get(tmp_id + "_otp_secret")
+	hotp_token = frappe.cache.get_value(tmp_id + "_token", expires=True)
+	otp_secret = frappe.cache.get_value(tmp_id + "_otp_secret", expires=True)
 	if not otp_secret:
 		raise ExpiredLoginException(_("Login session expired, refresh page to retry"))
 
 	tracker = get_login_attempt_tracker(login_manager.user)
 
 	hotp = pyotp.HOTP(otp_secret)
-	if hotp_token:
+	if hotp_token is not None:
 		if hotp.verify(otp, int(hotp_token)):
-			frappe.cache.delete(tmp_id + "_token")
+			frappe.cache.delete_value(tmp_id + "_token")
 			tracker.add_success_attempt()
 			return True
 		else:
