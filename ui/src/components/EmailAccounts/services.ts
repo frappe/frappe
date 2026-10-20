@@ -396,8 +396,8 @@ export function isV2Site(): boolean {
 }
 
 /**
- * The services a new mailbox can sign in to in one click, each with its provider's name, such as
- * `{"Outlook.com": "Microsoft"}`, from the host's boot; empty off Frappe Cloud V2.
+ * The services a new mailbox can sign in to in one click, each with its sign-in's name, such as
+ * `{"Outlook.com": "Outlook"}`, from the host's boot; empty off Frappe Cloud V2.
  */
 export function oneClickServices(): Record<string, string> {
   const host = globalThis as {

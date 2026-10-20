@@ -64,7 +64,7 @@ it("Back is disabled while a create is in flight, and `created` is emitted when 
 function mountOneClick(
   connect: (service: string) => Promise<boolean> = vi.fn(),
 ) {
-  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Microsoft" });
+  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Outlook" });
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(AccountAdd, { controller: { connect } });
@@ -74,7 +74,7 @@ function mountOneClick(
 const title = () => root.querySelector("h2")!.textContent;
 const alert = () => root.querySelector('[role="alert"]');
 
-it("signs in straight from a one-click tile and locks Back meanwhile, opening the form when Frappe Cloud can't sign in", async () => {
+it("signs in straight from a one-click tile and locks Back meanwhile, opening the form with a note when Frappe Cloud can't sign in", async () => {
   let answer!: (signedIn: boolean) => void;
   const connect = vi.fn(
     () => new Promise<boolean>((resolve) => (answer = resolve)),
@@ -93,7 +93,16 @@ it("signs in straight from a one-click tile and locks Back meanwhile, opening th
   await new Promise((resolve) => setTimeout(resolve));
   expect(title()).toContain("New Outlook account");
   expect(root.querySelector("form")).not.toBeNull();
+  expect(root.querySelector('[role="status"]')?.textContent).toContain(
+    "Outlook sign-in isn't available right now",
+  );
   expect(button("Back:").disabled).toBe(false);
+
+  button("Back:").click();
+  await nextTick();
+  button("Gmail").click();
+  await nextTick();
+  expect(root.querySelector('[role="status"]')).toBeNull();
 });
 
 it("shows a failed sign-in's error, refocuses its tile, and clears it on the next pick", async () => {

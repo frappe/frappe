@@ -35,7 +35,7 @@ const unsaved = ref(false);
   from its boot (`is_v2_site()` in `frappe.integrations.frappe_providers.cloud_settings`), as
   Helpdesk's `www/helpdesk/index.py` does; in Desk the panel reads both from `frappe.boot`.
   `one_click_email_services` maps each Email Account `service` that can sign in in one click to
-  its provider's name, such as `{"Outlook.com": "Microsoft"}`. Off, and empty, when neither is set.
+  its sign-in's name, such as `{"Outlook.com": "Outlook"}`. Off, and empty, when neither is set.
 - **`created(service)`**: a mailbox was added, with a password or API key, or by one-click
   sign-in, for host side effects such as onboarding steps and telemetry. A reconnect is not a
   new mailbox and does not emit it.
@@ -45,7 +45,7 @@ const unsaved = ref(false);
   settings dialog or switching to another settings screen. Unmounting the panel drops the draft.
 - **One-click sign-in**: picking a provider in `one_click_email_services` signs in through
   Frappe Cloud (`initiate_mailbox_connect`); any other tile opens its form. When Frappe Cloud
-  can't sign the service in right now, the panel opens the form instead. Desk's own Add dialog
+  can't sign the service in right now, the panel opens the form with a note saying so. Desk's own Add dialog
   also offers "Set up manually"; the panel doesn't. Sign-in leaves the page and lands back on it with
   `?email_oauth=<result>&email_oauth_mailbox=<address>` appended. The panel reads both when it
   mounts and removes them from the URL. The host's only job is to open the panel when the page

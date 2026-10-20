@@ -166,7 +166,7 @@ it("signs in on Frappe Cloud V2 when the provider has one-click sign-in", async 
     assign,
   });
   vi.stubGlobal("is_v2_site", true);
-  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Microsoft" });
+  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Outlook" });
   await openTiles();
   button("Outlook").click();
   await settle();

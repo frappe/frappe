@@ -1,7 +1,7 @@
 <template>
 	<div class="p-6">
 		<div class="mb-4 flex flex-wrap items-center gap-4">
-			<Switch v-model="cloud" label="Frappe Cloud (one-click Microsoft)" />
+			<Switch v-model="cloud" label="Frappe Cloud (one-click Outlook)" />
 			<Switch v-model="empty" label="No accounts" />
 			<Select
 				:model-value="null"
@@ -38,7 +38,7 @@ watch(
 	cloud,
 	(value) => {
 		host.is_v2_site = value;
-		host.one_click_email_services = value ? { "Outlook.com": "Microsoft" } : {};
+		host.one_click_email_services = value ? { "Outlook.com": "Outlook" } : {};
 	},
 	{ immediate: true }
 );

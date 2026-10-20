@@ -91,10 +91,10 @@ it("reports a failed reconnect in a toast and refocuses Reconnect", async () => 
   button.blur();
   await nextTick();
   expect((root.querySelector("h2 button") as HTMLButtonElement).disabled).toBe(true);
-  fail(new Error("Sign in with Microsoft isn't available right now"));
+  fail(new Error("Outlook sign-in isn't available right now"));
   await new Promise((resolve) => setTimeout(resolve));
   expect(toast.error).toHaveBeenCalledWith(
-    "Sign in with Microsoft isn't available right now",
+    "Outlook sign-in isn't available right now",
   );
   expect(document.activeElement).toBe(button);
 });
