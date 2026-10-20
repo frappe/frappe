@@ -49,8 +49,10 @@ class TestRouteHistory(IntegrationTestCase):
 
 		records = self._queued_records(routes)
 
-		self.assertEqual(len(records), MAX_ROUTES_PER_REQUEST)
-		self.assertEqual(records[-1]["route"], f"Form/ToDo/{total - 1}")
+		self.assertEqual(
+			[r["route"] for r in records],
+			[r["route"] for r in routes[-MAX_ROUTES_PER_REQUEST:]],
+		)
 
 	def test_long_route_is_truncated(self):
 		records = self._queued_records([{"route": "x" * 10_000, "creation": "2026-01-01 00:00:00"}])
