@@ -318,14 +318,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 		super().connect()
 
 	def get_connection(self):
-		# quoted, so postgres doesn't lowercase it; libpq splits options on unescaped spaces
-		search_path = f'"{self.db_schema}"'.replace("\\", "\\\\").replace(" ", "\\ ")
 		conn_settings = {
 			"dbname": self.cur_db_name,
 			"user": self.user,
 			# libpg defaults to default socket if not specified
 			"host": self.host or self.socket,
-			"options": f"-c search_path={search_path} -c default_transaction_isolation=repeatable\\ read",
 		}
 		# libpq's GSSAPI (krb5) path is not fork-safe; with the default gssencmode=prefer RQ work
 		# horses segfault on fork ("work-horse terminated unexpectedly"). The option exists from
@@ -350,6 +347,13 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 			cursor_factory=PostgresCursor,
 			prepare_threshold=2,
 		)
+		# set after connecting, not as startup options, which PgBouncer rejects or drops
+		conn.execute(
+			sql.SQL(
+				"SET search_path TO {}; SET SESSION CHARACTERISTICS AS TRANSACTION ISOLATION LEVEL REPEATABLE READ"
+			).format(sql.Identifier(self.db_schema))
+		)
+		# on its own: sent together, the settings would join the transaction and its rollback
 		if not self.autocommit:
 			conn.execute("START TRANSACTION")
 
