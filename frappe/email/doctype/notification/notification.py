@@ -757,9 +757,11 @@ def get_context(context):
 				"print_format": self.print_format,
 				"print_letterhead": print_settings.with_letterhead,
 				"lang": doc.get("language")
-				or frappe.db.get_value("Print Format", self.print_format, "default_print_language")
-				if self.print_format
-				else "en",
+				or (
+					frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+					if self.print_format
+					else "en"
+				),
 			}
 
 	def get_template(self, md_as_html=False):
