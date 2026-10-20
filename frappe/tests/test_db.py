@@ -2834,7 +2834,7 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 			self.assertTrue(re.search(r"database [\"']dbiq[\"']", str(cm.exception)))
 
 		# with wrong host
-		with set_env_variable("FRAPPE_DB_HOST", "iqx.local"):
+		with set_env_variable("FRAPPE_DB_HOST", "iqx.invalid"):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 
