@@ -189,6 +189,32 @@ class TestPdf(IntegrationTestCase):
 			self.assertIn("TOP", text)
 			self.assertIn(f"Page {number} of {len(pages)}", text)
 
+	def test_header_is_measured_after_its_image_loads(self):
+		import threading
+		import time
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		class SlowImageHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				time.sleep(0.5)
+				self.send_response(200)
+				self.send_header("Content-Type", "image/svg+xml")
+				self.end_headers()
+				self.wfile.write(b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="900"/>')
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), SlowImageHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdf = pdfgen.get_pdf(
+			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+			+ "<p>row</p>" * 10
+		)
+		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
+
 	def test_bulk_pdf_with_password_keeps_every_document(self):
 		import json
 
