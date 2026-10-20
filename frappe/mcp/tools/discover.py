@@ -24,7 +24,7 @@ class SearchDoctypesArguments(ToolArguments):
 	module: str | None = Field(default=None, min_length=1)
 
 
-class DoctypeArguments(ToolArguments):
+class GetDoctypeSchemaArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
 
 
@@ -32,9 +32,13 @@ class SearchMethodsArguments(ToolArguments):
 	query: str = Field(min_length=1)
 
 
-class MethodSchemaArguments(ToolArguments):
+class GetMethodSchemaArguments(ToolArguments):
 	method: str = Field(min_length=1)
 	doctype: str | None = Field(default=None, min_length=1)
+
+
+class ListDocumentMethodsArguments(ToolArguments):
+	doctype: str = Field(min_length=1)
 
 
 def search_doctypes(query: str | None = None, module: str | None = None) -> list[dict]:
@@ -115,7 +119,7 @@ SEARCH_DOCTYPES = Tool(
 GET_DOCTYPE_SCHEMA = Tool(
 	name="get_doctype_schema",
 	description="Get fields and permissions of a DocType.",
-	arguments=DoctypeArguments,
+	arguments=GetDoctypeSchemaArguments,
 	handler=doctype_schema,
 	annotations={"readOnlyHint": True},
 )
@@ -133,7 +137,7 @@ GET_METHOD_SCHEMA = Tool(
 	description=(
 		"Get arguments and docstring of a whitelisted method by dotted path, or by method name with doctype."
 	),
-	arguments=MethodSchemaArguments,
+	arguments=GetMethodSchemaArguments,
 	handler=method_schema,
 	annotations={"readOnlyHint": True},
 )
@@ -141,7 +145,7 @@ GET_METHOD_SCHEMA = Tool(
 LIST_DOCUMENT_METHODS = Tool(
 	name="list_document_methods",
 	description="List whitelisted document methods of a DocType.",
-	arguments=DoctypeArguments,
+	arguments=ListDocumentMethodsArguments,
 	handler=document_methods,
 	annotations={"readOnlyHint": True},
 )

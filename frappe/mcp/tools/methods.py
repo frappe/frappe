@@ -16,10 +16,11 @@ class CallMethodArguments(ToolArguments):
 	args: dict[str, Any] = Field(default_factory=dict)
 
 
-class CallDocumentMethodArguments(CallMethodArguments):
+class CallDocumentMethodArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
 	name: DocumentName
 	method: str = Field(min_length=1)
+	args: dict[str, Any] = Field(default_factory=dict)
 
 
 def call_method(method: str, args: dict[str, Any]) -> dict:
