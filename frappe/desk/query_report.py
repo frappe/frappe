@@ -406,13 +406,14 @@ def get_user_facing_error(traceback: str | None) -> str:
 		)
 
 		# Skip stack frames and find the first non-indented line after the header.
-		exception_line = next(
-			(line for line in lines[start + 1 :] if line and not line[0].isspace()),
-			message,
+		exception_at = next(
+			(i for i in range(start + 1, len(lines)) if lines[i] and not lines[i][0].isspace()),
+			len(lines) - 1,
 		)
 
-		# Remove the exception class, keeping only its message.
-		message = exception_line.partition(": ")[2]
+		# Remove the exception class, and the query and caret postgres adds below the message.
+		message_lines = [lines[exception_at].partition(": ")[2], *lines[exception_at + 1 :]]
+		message = " ".join(line for line in message_lines if not re.match(r"LINE \d+: |\s*\^\s*$", line))
 
 	message = re.sub(r"<[^>]*>", " ", message)
 	return unescape(" ".join(message.split()))
