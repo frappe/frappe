@@ -162,7 +162,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 	tracker = get_login_attempt_tracker(login_manager.user)
 
 	hotp = pyotp.HOTP(otp_secret)
-	if hotp_token:
+	if hotp_token is not None:
 		if hotp.verify(otp, int(hotp_token)):
 			frappe.cache.delete_value(tmp_id + "_token")
 			tracker.add_success_attempt()
