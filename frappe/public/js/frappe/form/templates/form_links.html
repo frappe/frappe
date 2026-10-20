@@ -16,7 +16,7 @@
 							<span class="count hidden"></span>
 						</div>
 						<span class="open-notification hidden"
-							title="{{ __("Open {0}", [__(doctype)])}}">
+							title="{{ frappe.utils.escape_html(__("Open {0}", [__(doctype)])) }}">
 						</span>
 						{% if !internal_links[doctype] %}
 							<button class="btn btn-new btn-secondary btn-xs icon-btn hidden"

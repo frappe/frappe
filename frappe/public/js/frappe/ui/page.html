@@ -2,11 +2,11 @@
 	<div class="container">
 		<div class="row flex-nowrap align-center page-head-content justify-between">
 			<div class="page-title">
-				<button class="es-button page-back-button" data-variant="ghost" data-size="md" data-icon-button="true" aria-label="{{ __("Back") }}">
+				<button class="es-button page-back-button" data-variant="ghost" data-size="md" data-icon-button="true" aria-label="{{ frappe.utils.escape_html(__("Back")) }}">
 					{{ frappe.utils.icon("chevron-left", "md") }}
 				</button>
 				<div class="flex title-area ellipsis">
-					<nav class="es-breadcrumbs navbar-breadcrumbs {{frappe.is_mobile() ? "mobile-no-divider" : ""}}" aria-label="{{ __("Breadcrumb") }}"><ol></ol></nav>
+					<nav class="es-breadcrumbs navbar-breadcrumbs {{frappe.is_mobile() ? "mobile-no-divider" : ""}}" aria-label="{{ frappe.utils.escape_html(__("Breadcrumb")) }}"><ol></ol></nav>
 					<button class="btn btn-default more-button hide">
 						<svg class="icon icon-sm">
 							<use href="#icon-ellipsis">
