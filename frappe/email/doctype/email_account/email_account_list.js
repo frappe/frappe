@@ -36,48 +36,105 @@ frappe.listview_settings["Email Account"] = {
 	},
 };
 
-// providers the Frappe Cloud broker signs in with
-const EMAIL_OAUTH_PROVIDERS = ["Microsoft"];
-
 function add_email_account_dialog() {
-	// Microsoft sign-in replaces the password-based Outlook.com service
+	const tiles = {
+		GMail: ["Gmail", "gmail.png"],
+		"Outlook.com": ["Outlook", "outlook.png"],
+		"Frappe Mail": ["Frappe Mail", "frappe-mail.svg"],
+		"Yahoo Mail": ["Yahoo", "yahoo.png"],
+		"Yandex.Mail": ["Yandex", "yandex.png"],
+		Sendgrid: ["SendGrid", "sendgrid.png"],
+		SparkPost: ["SparkPost", "sparkpost.webp"],
+	};
+	const order = Object.keys(tiles);
+	const rank = (service) => (order.includes(service) ? order.indexOf(service) : order.length);
 	const services = frappe.meta
 		.get_docfield("Email Account", "service")
 		.options.split("\n")
-		.filter((s) => s && s !== "Outlook.com");
+		.filter(Boolean)
+		.sort((a, b) => rank(a) - rank(b));
+	const one_click = frappe.boot.one_click_email_services || {};
+
+	const open_form = (service) => {
+		d.hide();
+		frappe.new_doc("Email Account", service === "Other" ? {} : { service });
+	};
+	const sign_in = (service) =>
+		frappe
+			.call({
+				method: "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
+				args: { service },
+				freeze: true,
+			})
+			.then((r) => {
+				if (r.message) {
+					window.location.href = r.message;
+					return;
+				}
+				frappe.show_alert(
+					__("Sign in with {0} isn't available right now, so set it up manually.", [
+						one_click[service],
+					])
+				);
+				open_form(service);
+			});
+	const set_actions = (service) => {
+		if (!one_click[service]) {
+			d.get_secondary_btn().addClass("hide");
+			d.set_primary_action(__("Continue"), () => open_form(service));
+			return;
+		}
+		const primary_btn = d.set_primary_action(__("Continue"), () => sign_in(service));
+		frappe.ui.button.dress(primary_btn, {
+			label: __("Continue"),
+			variant: "solid",
+			icon_right: "arrow-up-right",
+		});
+		d.set_secondary_action_label(__("Set up manually"));
+		d.set_secondary_action(() => open_form(service));
+	};
+	const tile = (service, label, logo) => {
+		const $tile = $(
+			frappe.ui.button.html({
+				label,
+				variant: "outline",
+				icon: logo ? undefined : "mail",
+				attrs: { "aria-pressed": "false" },
+			})
+		);
+		if (logo) {
+			$tile
+				.find(".es-button__label")
+				.before(
+					$("<img alt=''>").attr("src", `/assets/frappe/images/email-providers/${logo}`)
+				);
+		}
+		return $tile.on("click", () => {
+			$tile.siblings().attr("aria-pressed", "false");
+			$tile.attr("aria-pressed", "true");
+			set_actions(service);
+			d.enable_primary_action();
+		});
+	};
 
 	const d = new frappe.ui.Dialog({
 		title: __("Add Email Account"),
-		fields: [
-			{
-				fieldname: "provider",
-				fieldtype: "Select",
-				label: __("Email provider"),
-				options: [
-					...EMAIL_OAUTH_PROVIDERS,
-					...services,
-					{ label: __("Other (IMAP/SMTP)"), value: "Other" },
-				],
-				default: EMAIL_OAUTH_PROVIDERS[0],
-				reqd: 1,
-			},
-		],
-		primary_action_label: __("Proceed"),
-		primary_action: ({ provider }) => {
-			if (EMAIL_OAUTH_PROVIDERS.includes(provider)) {
-				frappe
-					.call({
-						method: "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
-						args: { provider: provider.toLowerCase() },
-						freeze: true,
-					})
-					.then((r) => (window.location.href = r.message));
-				return;
-			}
-			d.hide();
-			frappe.new_doc("Email Account", provider === "Other" ? {} : { service: provider });
-		},
+		fields: [{ fieldtype: "HTML", fieldname: "providers" }],
 	});
+	const label_id = frappe.utils.get_random(8);
+	d.fields_dict.providers.$wrapper.append(
+		$("<div class='control-label'>")
+			.attr("id", label_id)
+			.text(__("Choose your email provider")),
+		$("<div class='email-provider-tiles' role='group'>")
+			.attr("aria-labelledby", label_id)
+			.append(
+				services.map((service) => tile(service, ...(tiles[service] || [service]))),
+				tile("Other", __("Custom email"))
+			)
+	);
+	d.set_primary_action(__("Continue"));
+	d.disable_primary_action();
 	d.show();
 }
 
