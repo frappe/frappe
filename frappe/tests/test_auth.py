@@ -12,6 +12,8 @@ import frappe
 from frappe.auth import (
 	CookieManager,
 	LoginAttemptTracker,
+	LoginManager,
+	login_failed_message,
 	validate_api_key_secret,
 	validate_auth,
 	validate_ip_address,
@@ -94,9 +96,32 @@ class TestAuth(IntegrationTestCase):
 			cookies.set_cookie("sid", "test")
 			self.assertFalse(cookies.cookies["sid"]["secure"])
 
+	def test_locked_account_response_matches_unknown_account(self):
+		unknown = "unknown_auth@example.com"
+		keys = [self.test_user_email, unknown, *(f"10.8.0.{i}" for i in range(6))]
+		self.addCleanup(lambda: [LoginAttemptTracker(key).add_success_attempt() for key in keys])
+
+		def attempt(usr):
+			frappe.local.response = frappe._dict()
+			frappe.local.message_log = []
+			frappe.form_dict.update({"usr": usr, "pwd": "wrong_pwd_012"})
+			with self.assertRaises(frappe.AuthenticationError):
+				LoginManager.__new__(LoginManager).authenticate()
+			return frappe.local.response.get("message"), list(frappe.local.message_log)
+
+		with self.change_settings("System Settings", allow_consecutive_login_attempts=2):
+			results = {}
+			for label, usr in (("known", self.test_user_email), ("unknown", unknown)):
+				for i in range(6):
+					frappe.local.request_ip = f"10.8.0.{i}"
+					results[label] = attempt(usr)
+
+		self.assertEqual(results["known"], results["unknown"])
+		self.assertEqual(results["known"], (login_failed_message(), []))
+
 	def test_unknown_account_checks_a_password_hash(self):
 		with patch("frappe.core.doctype.user.user._verify_password", return_value=(False, False)) as verify:
-			self.assertIsNone(User.find_by_credentials("unknown_auth@test.com", "wrong_pwd_012"))
+			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
 		verify.assert_called_once()
 
 	@requires_test_service(TestService.WEB_SERVER)

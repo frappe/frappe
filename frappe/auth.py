@@ -30,9 +30,6 @@ from frappe.website.utils import get_home_page
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
-LOGIN_FAILED_MESSAGE = (
-	"Invalid login credentials, or too many failed attempts. Please try again in a few minutes."
-)
 MAX_PASSWORD_SIZE = 512
 API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
 
@@ -287,18 +284,19 @@ class LoginManager:
 		ip_tracker = get_login_attempt_tracker(frappe.local.request_ip)
 		if not user:
 			ip_tracker and ip_tracker.add_failure_attempt()
-			self.fail(LOGIN_FAILED_MESSAGE, user=_raw_user_name)
+			self.fail(login_failed_message(), user=_raw_user_name)
 
 		try:
 			user_tracker = get_login_attempt_tracker(user.name)
 		except frappe.SecurityException:
 			# answer like any other failed login so locked accounts are not distinguishable
-			self.fail(LOGIN_FAILED_MESSAGE, user=user.name)
+			frappe.clear_last_message()
+			self.fail(login_failed_message(), user=user.name)
 
 		if not user.is_authenticated:
 			user_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
-			self.fail(LOGIN_FAILED_MESSAGE, user=user.name)
+			self.fail(login_failed_message(), user=user.name)
 		elif not (user.name == "Administrator" or user.enabled):
 			user_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
@@ -517,6 +515,10 @@ def validate_ip_address(user):
 		_("Access not allowed from this IP Address") + f": {frappe.local.request_ip}",
 		frappe.AuthenticationError,
 	)
+
+
+def login_failed_message() -> str:
+	return _("Invalid login credentials, or too many failed attempts. Please try again in a few minutes.")
 
 
 def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
