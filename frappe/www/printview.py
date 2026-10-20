@@ -832,7 +832,7 @@ def get_page_rule_properties(css: str):
 	import cssutils
 
 	cssutils.log.setLog(frappe.logger("cssutils"))
-	rules = list(cssutils.parseString(css))
+	rules = list(cssutils.CSSParser(fetcher=lambda url: (None, "")).parseString(css))
 	while rules:
 		rule = rules.pop(0)
 		if isinstance(rule, cssutils.css.CSSPageRule) and not rule.selectorText:
