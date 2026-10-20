@@ -157,6 +157,12 @@ runs:
       end_time=$(date +%s)
       echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
 
+  - name: Cache island toolchain
+    uses: actions/cache@v4
+    with:
+      path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
+      key: island-toolchain-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('frappe-src/island-toolchain/yarn.lock') }}
+
   - name: Cache Chromium
     uses: actions/cache@v4
     with:
