@@ -35,8 +35,8 @@ async def test_nothing_configured_discovers_nothing(tmp_path, bare_env):
 
 
 async def test_each_provider_is_queried_its_own_way(tmp_path, bare_env, monkeypatch):
-	"""Each provider's endpoint, auth headers and id cleanup; a provider whose query fails
-	falls back to its static catalog entries and reports the failure."""
+	"""Each provider's endpoint, auth headers, id cleanup and display names; a provider whose
+	query fails falls back to its static catalog entries and reports the failure."""
 	monkeypatch.setenv("OPENCODE_API_KEY", "sk-go")
 	monkeypatch.setenv("OPENAI_API_KEY", "sk-oai")
 	monkeypatch.setenv("FLOW_CODEX_CLIENT_VERSION", "9.9.9")
@@ -66,10 +66,15 @@ async def test_each_provider_is_queried_its_own_way(tmp_path, bare_env, monkeypa
 			return httpx.Response(500, text="boom")
 		if "anthropic" in url.host:
 			assert headers["x-api-key"] == "sk-ant"
-			return httpx.Response(200, json={"data": [{"id": "claude-sonnet-4"}]})
+			return httpx.Response(
+				200, json={"data": [{"id": "claude-sonnet-4", "display_name": "Claude Sonnet 4"}]}
+			)
 		if "googleapis" in url.host:
 			assert headers["x-goog-api-key"] == "sk-gem"
-			return httpx.Response(200, json={"models": [{"name": "models/gemini-2.0-flash"}]})
+			return httpx.Response(
+				200,
+				json={"models": [{"name": "models/gemini-2.0-flash", "displayName": "Gemini 2.0 Flash"}]},
+			)
 		if url.path.endswith("/codex/models"):
 			assert url.params["client_version"] == "9.9.9"
 			assert headers["Authorization"] == "Bearer tok"
@@ -78,7 +83,8 @@ async def test_each_provider_is_queried_its_own_way(tmp_path, bare_env, monkeypa
 				200,
 				json={
 					"models": [
-						{"slug": "gpt-5-codex"},
+						# a name that only repeats the id is no name
+						{"slug": "gpt-5-codex", "display_name": "gpt-5-codex"},
 						{"slug": "gpt-5-internal", "visibility": "hidden"},
 						{"slug": "gpt-5-web", "supported_in_api": False},
 					]
@@ -86,14 +92,18 @@ async def test_each_provider_is_queried_its_own_way(tmp_path, bare_env, monkeypa
 			)
 		assert str(url) == "https://opencode.ai/zen/go/v1/models"
 		assert headers["Authorization"] == "Bearer sk-go"
-		return httpx.Response(200, json={"data": [{"id": "kimi-k3"}, {"id": "grok-4.5"}]})
+		return httpx.Response(
+			200,
+			# nor is one that is only another id, as Mistral's dated one for a "-latest" alias
+			json={"data": [{"id": "kimi-k3", "name": "kimi-k3-0905"}, {"id": "grok-4.5"}]},
+		)
 
 	catalog = await available_models(store, client=_client(handler))
 
 	assert catalog.models == [
-		ModelInfo(name="anthropic/claude-sonnet-4", provider="anthropic"),
+		ModelInfo(name="anthropic/claude-sonnet-4", provider="anthropic", display_name="Claude Sonnet 4"),
 		ModelInfo(name="codex/gpt-5-codex", provider="codex", supports_images=True),
-		ModelInfo(name="gemini/gemini-2.0-flash", provider="gemini"),
+		ModelInfo(name="gemini/gemini-2.0-flash", provider="gemini", display_name="Gemini 2.0 Flash"),
 		ModelInfo(name="openai/gpt-4o", provider="openai", supports_images=True),
 		ModelInfo(name="opencode-go/grok-4.5", provider="opencode-go", supports_images=True),
 		ModelInfo(name="opencode-go/kimi-k3", provider="opencode-go", supports_images=True),

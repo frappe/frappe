@@ -924,7 +924,7 @@ def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypat
 
 	async def fake_http_models(url, auth, client, *, provider_id=None):
 		assert provider_id == "openai"
-		return ["gpt-4o"]
+		return [("gpt-4o", None)]
 
 	monkeypatch.setattr(discovery, "_http_models", fake_http_models)
 	c = _client(tmp_path)
@@ -932,7 +932,9 @@ def test_models_endpoint_discovers_configured_providers_only(tmp_path, monkeypat
 
 	monkeypatch.setenv("OPENAI_API_KEY", "k")
 	assert c.get("/models").json() == {
-		"models": [{"name": "openai/gpt-4o", "provider": "openai", "supports_images": True}],
+		"models": [
+			{"name": "openai/gpt-4o", "provider": "openai", "supports_images": True, "display_name": None}
+		],
 		"errors": [],
 	}
 

@@ -52,7 +52,7 @@ The server resolves credentials and prompt context itself; do not send API keys,
 | --- | --- |
 | `GET /healthz` | Returns `{"ok": true}`. |
 | `POST /tenants/reload` | Re-reads the tenants file after its writer edited or removed a site, and returns the site count; a file it cannot read is a 400. Takes any site's token. |
-| `GET /models` | Lists models available to configured providers and non-fatal discovery errors. |
+| `GET /models` | Lists models available to configured providers, each with the provider's `display_name` where its listing gives one, and non-fatal discovery errors. |
 | `GET /providers` | Lists built-in and custom providers plus their setup state. |
 | `POST /providers/custom` | Saves an OpenAI-compatible endpoint: `name`, `base_url`, `models`, optional `api_key`. |
 | `PUT /providers/custom/{id}` | Rewrites a stored endpoint with the same fields; a blank `api_key` keeps the saved one. |
