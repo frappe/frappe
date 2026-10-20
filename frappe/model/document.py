@@ -1508,6 +1508,8 @@ class Document(_DocumentBase):
 
 				if field.fieldtype in table_fields:
 					fail = not self.is_child_table_same(field.fieldname)
+				elif field.fieldtype == "Datetime" and value and original_value:
+					fail = get_datetime(value) != get_datetime(original_value)
 				elif field.fieldtype in ("Date", "Datetime", "Time"):
 					fail = str(value) != str(original_value)
 				else:
@@ -1703,7 +1705,9 @@ class Document(_DocumentBase):
 			self.check_docstatus_transition(0)
 			return
 
-		if cstr(previous.modified) != cstr(self._original_modified):
+		previous_modified = get_datetime(previous.modified) if previous.modified else None
+		original_modified = get_datetime(self._original_modified) if self._original_modified else None
+		if previous_modified != original_modified:
 			frappe.msgprint(
 				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
