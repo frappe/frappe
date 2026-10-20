@@ -67,6 +67,7 @@ The server resolves credentials and prompt context itself; do not send API keys,
 | `GET /fs/file?cwd=&path=` | Reads one text file. |
 | `PUT /fs/file` | Writes `{"cwd", "path", "content"}`; content over the file-view cap is a 413. |
 | `GET /fs/git/changes?cwd=` | The repository's uncommitted files with added and removed line counts. |
+| `GET /fs/git/branch?cwd=` | The branch checked out (`null` on a detached HEAD or outside a repository) and `worktree`: whether the folder is a linked worktree. |
 | `GET /fs/git/file/diff?cwd=&path=` | HEAD and working-tree text of one uncommitted file. |
 | `GET /tools` | Lists the built-in, bundled, and extension tools a session may enable under the daemon's policy; a bundled row has `"bundled": true`, and an extension row names its extension. A built-in stays listed beside an extension tool of the same name. |
 | `GET /skills?cwd=` | Lists every `SKILL.md` under the global skill root and, with `cwd`, the project's, with parse errors per file; `truncated` names the scopes whose folder exceeded the scan cap. |
