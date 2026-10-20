@@ -95,6 +95,25 @@ class TestCustomModuleIsSiteOwned(IntegrationTestCase):
 			self.assertIsNotNone(sidebar, "an unplaced module must still resolve to a sidebar")
 			self.assertIsNone(sidebar.app)
 
+	def test_an_app_the_site_does_not_have_places_nothing(self):
+		"""Outside a request or a job, `module_app` maps every module on the bench, including the
+		ones of apps this site never installed. Placing a custom module that shares a name with
+		one of them in that app made the dock write fail with "is not an app on this site".
+		"""
+		with custom_module("Test Bench Only Module") as module:
+			with module_declared_by(module, "test_bench_only_app"):
+				self.assertIsNone(get_module_placement(module))
+
+	def test_a_clash_with_an_app_the_site_does_not_have_keeps_the_modules_own_placement(self):
+		with custom_module("Test Bench Only Placed Module", app="frappe") as module:
+			with module_declared_by(module, "test_bench_only_app"):
+				self.assertEqual(get_module_placement(module), "frappe")
+
+	def test_an_installed_app_that_declares_the_module_still_places_it(self):
+		with custom_module("Test Installed Declared Module") as module:
+			with module_declared_by(module, "frappe"):
+				self.assertEqual(get_module_placement(module), "frappe")
+
 	def test_a_placed_custom_module_is_listed_in_the_dock_of_the_app_it_names(self):
 		"""Creating it is the whole of the work: the module appears in the desk with no sidebar
 		to author, no migrate and no restart."""

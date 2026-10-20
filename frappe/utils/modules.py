@@ -18,8 +18,13 @@ def get_module_placement(module: str) -> str | None:
 	navigation question is what used to leave a freshly created custom module invisible --
 	the throw was swallowed and the module was skipped.
 	"""
-	# `cache=True`: the fallback is the custom-module path, and boot asks it once per module.
 	app = frappe.local.module_app.get(frappe.scrub(module))
+	# Outside a request or a job the module map covers every app on the bench, so it can name an
+	# app this site does not have. That app places nothing here, and the dock write that follows
+	# would throw "is not an app on this site".
+	if app not in frappe.get_installed_apps():
+		app = None
+	# `cache=True`: the fallback is the custom-module path, and boot asks it once per module.
 	return app or frappe.db.get_value("Module Def", module, "app_name", cache=True) or None
 
 
