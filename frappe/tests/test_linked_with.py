@@ -1102,12 +1102,14 @@ class TestLinkedWith(IntegrationTestCase):
 		self.assertEqual(bounded["Linked Entry"]["hidden_count"], 0)
 		self.assertEqual(unbounded["Linked Entry"]["hidden_count"], 0)
 
-	def test_get_rejects_ordering_by_another_tables_field(self):
-		with linked_entry_target() as (target, _user), self.assertRaises(frappe.ValidationError):
-			linked_with.get(target.doctype, target.name, order_by="`tabLinked Entry Row`.`target` asc")
+	def test_get_rejects_ordering_by_non_standard_fields(self):
+		with linked_entry_target() as (target, user), self.set_user(user):
+			for order_by in ("target asc", "`tabLinked Entry Row`.`target` asc"):
+				with self.subTest(order_by=order_by), self.assertRaises(frappe.ValidationError):
+					linked_with.get(target.doctype, target.name, order_by=order_by)
 
 	def test_get_skips_filters_a_linked_doctype_cannot_apply(self):
-		with linked_entry_target() as (target, _user):
+		with linked_entry_target() as (target, user), self.set_user(user):
 			live = make_linked_entry(target)
 			make_linked_entry(target).submit().cancel()
 			filters = [
