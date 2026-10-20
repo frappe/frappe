@@ -168,12 +168,6 @@
 			opacity: 1;
 		}
 	}
-
-	// The one control here that cannot be undone. On the app's layer it sits beside the eye, so
-	// hover tells the two apart before the click rather than after it.
-	.ws-remove:hover {
-		color: var(--ink-red-5);
-	}
 }
 
 // A heading has the gap above it the sidebar gives one, except at the top.
