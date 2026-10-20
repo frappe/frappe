@@ -134,7 +134,7 @@
 								</span>
 							</template>
 							<!-- no wider than the room beside the row, which a narrow window's drawer cuts short -->
-							<div class="flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
+							<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
 								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
 								<p class="flex items-start gap-1.5 text-xs leading-4 text-ink-gray-6">
 									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
@@ -211,7 +211,7 @@
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
 											</span>
 										</template>
-										<div class="flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
+										<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
 											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
 											<p v-if="s.cwd" class="flex items-center gap-1.5 text-xs text-ink-gray-6">
 												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
@@ -686,6 +686,12 @@ const emptyMessage = computed(() => {
    this the menu paints under the z-30 sidebar */
 :global(.dropdown-content) {
 	z-index: 40;
+}
+
+/* a card's top lines up with its row's title, which left the card's own title a padding
+   lower: lift the card by that padding, so the two titles sit on one line */
+:global([data-reka-popper-content-wrapper]:has(.row-card)) {
+	translate: 0 -0.625rem;
 }
 
 /* a phone's drawer: rows and buttons a finger can take, titles a half step over the chat's text */
