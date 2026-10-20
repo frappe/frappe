@@ -175,11 +175,30 @@
 	margin-top: calc(var(--spacing) * 4);
 }
 
-// Under an indented section, behind the rule the sidebar draws down a nested group.
-.ws-row-nested .ws-row-body {
-	margin-left: calc(var(--spacing) * 2 + 1px);
-	padding-left: var(--spacing);
-	border-left: 1px solid var(--outline-gray-1);
+// Under an indented section, right of the rule the sidebar draws down a nested group, so its
+// hover and open surfaces start after the rule as the sidebar's do.
+.ws-row-nested {
+	margin-left: calc(var(--spacing) * 3 + 1px);
+
+	&::before {
+		content: "";
+		position: absolute;
+		// Over the list's gap to the next row too, so the rule runs unbroken.
+		top: 0;
+		bottom: calc(var(--spacing) * -0.5);
+		left: calc(var(--spacing) * -1 - 1px);
+		border-left: 1px solid var(--outline-gray-1);
+	}
+}
+
+// The same box as the cross beside it.
+.ws-row > .ws-fold {
+	flex: none;
+	display: grid;
+	place-items: center;
+	width: calc(var(--spacing) * 6);
+	height: calc(var(--spacing) * 6);
+	margin-right: calc(var(--spacing) * 0.5);
 }
 
 .ws-row-folded,

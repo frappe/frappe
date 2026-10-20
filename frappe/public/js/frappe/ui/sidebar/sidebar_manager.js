@@ -586,6 +586,16 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		return carried;
 	}
 
+	// A section's chevron sits just before the row's controls, so the cross is at the end of every
+	// row.
+	list_row(key) {
+		const $row = super.list_row(key);
+		$row.find(".sidebar-item-control .ws-fold").insertBefore(
+			$row.children(".ws-row-controls")
+		);
+		return $row;
+	}
+
 	row_classes(key) {
 		const entry = this.entries.get(key);
 		const section = this.section_of(key);
