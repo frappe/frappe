@@ -1179,6 +1179,19 @@ class TestDB(IntegrationTestCase):
 		)
 
 	@run_only_if(db_type_is.POSTGRES)
+	def test_session_settings_are_set_after_connecting(self):
+		from frappe.automation_engine.tests.test_drainer import connect_again
+
+		other = connect_again()
+		self.addCleanup(other.close)
+		# PgBouncer rejects or drops startup options
+		self.assertNotIn("options", other._conn.info.get_parameters())
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "repeatable read")
+		other.rollback()
+		self.assertEqual(other.sql("show transaction_isolation")[0][0], "repeatable read")
+		self.assertEqual(other.sql("show search_path"), frappe.db.sql("show search_path"))
+
+	@run_only_if(db_type_is.POSTGRES)
 	def test_transactions_after_commit_use_the_session_isolation(self):
 		from frappe.automation_engine.tests.test_drainer import connect_again
 
