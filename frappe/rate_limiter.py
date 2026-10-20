@@ -154,10 +154,18 @@ def rate_limit(
 
 			cache_key = frappe.cache.make_key(f"rl:{frappe.form_dict.cmd}:{identity}")
 
+<<<<<<< HEAD
 			value = frappe.cache.get(cache_key) or 0
 			if not value:
 				frappe.cache.setex(cache_key, seconds, 0)
 
+=======
+			if not callable(seconds):
+				cache_key += f":{seconds}".encode()
+
+			# NX so concurrent first requests don't reset each other's count
+			frappe.cache.set(cache_key, 0, ex=seconds, nx=True)
+>>>>>>> 6a47617 (fix(rate-limiter): initialise the counter atomically)
 			value = frappe.cache.incrby(cache_key, 1)
 			if value > _limit:
 				frappe.throw(
