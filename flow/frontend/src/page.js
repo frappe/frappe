@@ -2,8 +2,8 @@ import { computed, reactive } from "vue";
 
 import { runsByUserMessage } from "./api/runs.js";
 
-// The records boot lists; the page keeps its copy until one of them is saved or deleted.
-const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent"]);
+// The records boot reports on; the page keeps its copy until one of them is saved or deleted.
+const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent", "Flow Provider"]);
 
 // What the page keeps beside the chat store: the boot data, the agent a new chat starts
 // with, the settings tab to open, and each session's Flow Runs and run log (for per-turn
