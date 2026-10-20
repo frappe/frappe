@@ -111,7 +111,7 @@ Documentation = "https://docs.frappe.io/framework"
 
 [project.optional-dependencies]
 dev = [
-    "pyperf==2.8.1",
+    "pyperf==2.10.0",
     "pyngrok~=8.1.2",
     "watchdog~=6.0.0",
     "responses==0.23.1",
