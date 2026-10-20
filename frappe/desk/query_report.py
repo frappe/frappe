@@ -397,9 +397,16 @@ def get_user_facing_error(traceback: str | None) -> str:
 
 	lines = traceback.strip().splitlines()
 	message = lines[-1]
-	# a traceback ends in "module.Exception: message", a single line is already the message
 	if len(lines) > 1:
-		message = message.partition(": ")[2]
+		# the last header, in case of chained exceptions
+		start = max((i for i, line in enumerate(lines) if line.startswith("Traceback ")), default=0)
+		exception_at = next(
+			(i for i in range(start + 1, len(lines)) if lines[i] and not lines[i][0].isspace()),
+			len(lines) - 1,
+		)
+		# drop the query and caret postgres adds under the message
+		message_lines = [lines[exception_at].partition(": ")[2], *lines[exception_at + 1 :]]
+		message = " ".join(line for line in message_lines if not re.match(r"LINE \d+: |\s*\^\s*$", line))
 
 	message = re.sub(r"<[^>]*>", " ", message)
 
