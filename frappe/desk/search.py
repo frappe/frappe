@@ -88,6 +88,13 @@ def search_widget(
 				frappe.clear_last_message()
 				ignore_user_permissions = False
 		else:
+<<<<<<< HEAD
+=======
+			frappe.logger().error(
+				"setting ignore_user_permissions=True requires reference_doctype and link_fieldname to be set. "
+				f"Got reference_doctype={_loggable(reference_doctype)}, link_fieldname={_loggable(link_fieldname)}. Ignoring flag."
+			)
+>>>>>>> 5152b5f (fix(search): keep search_link log message on one line)
 			ignore_user_permissions = False
 
 	start = cint(start)
@@ -270,6 +277,11 @@ def search_widget(
 			values = [r[:-1] for r in values]
 
 	return values
+
+
+def _loggable(value: str | None) -> str | None:
+	"""Quote a request value so it stays on one log line, and cap its length."""
+	return repr(value[:200]) if isinstance(value, str) else value
 
 
 def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, link_doctype: str) -> bool:
