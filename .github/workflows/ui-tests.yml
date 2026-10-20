@@ -36,7 +36,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
   test:
-    name: Integration
+    name: UI Test
     needs: checkrun
     if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
     runs-on: ubuntu-latest

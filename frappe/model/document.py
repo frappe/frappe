@@ -45,6 +45,7 @@ from frappe.model import (
 	display_fieldtypes,
 	float_like_fields,
 	get_permitted_fields,
+	numeric_fieldtypes,
 	optional_fields,
 	table_fields,
 )
@@ -1507,6 +1508,8 @@ class Document(_DocumentBase):
 
 				if field.fieldtype in table_fields:
 					fail = not self.is_child_table_same(field.fieldname)
+				elif field.fieldtype == "Datetime" and value and original_value:
+					fail = get_datetime(value) != get_datetime(original_value)
 				elif field.fieldtype in ("Date", "Datetime", "Time"):
 					fail = str(value) != str(original_value)
 				else:
@@ -1702,7 +1705,9 @@ class Document(_DocumentBase):
 			self.check_docstatus_transition(0)
 			return
 
-		if cstr(previous.modified) != cstr(self._original_modified):
+		previous_modified = get_datetime(previous.modified) if previous.modified else None
+		original_modified = get_datetime(self._original_modified) if self._original_modified else None
+		if previous_modified != original_modified:
 			frappe.msgprint(
 				_(f"Error: {self.name} ({self.doctype}) has been modified after you have opened it")
 				+ (f" ({previous.modified}, {self.modified}). ")
@@ -3470,7 +3475,7 @@ class Document(_DocumentBase):
 			frappe.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
 
 	def _fix_numeric_types(self):
-		for df in self.meta.get("fields"):
+		for df in self.meta.get("fields", {"fieldtype": ("in", numeric_fieldtypes)}):
 			if df.fieldtype == "Check":
 				self.set(df.fieldname, cint(self.get(df.fieldname)))
 

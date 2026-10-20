@@ -53,7 +53,15 @@ def setup_patched_blog_post():
 	reset("Test Blog Post")
 	add("Test Blog Post", "Website Manager", 1)
 	update("Test Blog Post", "Website Manager", 1, "write", 1)
-	yield
+	try:
+		yield
+	finally:
+		reset("Test Blog Post")
+		frappe.db.delete(
+			"Property Setter",
+			{"doc_type": "Test Blog Post", "field_name": "published", "property": "permlevel"},
+		)
+		clear_custom_fields("Test Blog Post")
 
 
 @contextmanager
