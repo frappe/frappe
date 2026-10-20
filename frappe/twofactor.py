@@ -163,7 +163,7 @@ def confirm_otp_token(login_manager, otp=None, tmp_id=None):
 		login_manager.user + "_otplogin"
 	)
 	hotp = pyotp.HOTP(otp_secret)
-	if hotp_token:
+	if hotp_token is not None:
 		if hotp.verify(otp, int(hotp_token)):
 			frappe.cache.delete_value(tmp_id + "_token")
 			if otp_setup_pending:
