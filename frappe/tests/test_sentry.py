@@ -11,11 +11,13 @@ from frappe.tests import UnitTestCase
 from frappe.utils.sentry import before_send, capture_exception, set_scope
 
 LOGIN_BODY = {"usr": "test@example.com", "pwd": "pw-1"}
-SECRET_DOC = json.dumps({"doctype": "Email Account", "password": "pw-4"})
+DOC_PASSWORD = "pw-4"
+QUERY_PASSWORD = "pw-3"
+SECRET_DOC = json.dumps({"doctype": "Email Account", "password": DOC_PASSWORD})
 # Built from a name so the secrets don't sit in frame locals of the failing code, which Sentry captures.
 REQUESTS = {
 	"login": lambda: Request.from_values("/api/method/login", method="POST", json=LOGIN_BODY),
-	"query": lambda: Request.from_values("/api/method/ping?pwd=pw-3&cmd=ping"),
+	"query": lambda: Request.from_values("/api/method/ping?pwd=" + QUERY_PASSWORD + "&cmd=ping"),
 }
 
 
@@ -100,12 +102,20 @@ class TestSentryRequestBody(UnitTestCase):
 		sent = self.capture_error_event("query", doc=SECRET_DOC)
 
 		payload = json.dumps(sent)
-		self.assertNotIn("pw-3", payload)
-		self.assertNotIn("pw-4", payload)
+		self.assertNotIn(QUERY_PASSWORD, payload)
+		self.assertNotIn(DOC_PASSWORD, payload)
 		self.assertIn("cmd=ping", payload)
 		self.assertIn("Email Account", payload)
 
-	def capture_error_event(self, request_name, doc=None):
+	def test_message_event_masks_frame_vars(self):
+		sent = self.capture_error_event("query", doc=SECRET_DOC, as_message=True)
+
+		self.assertEqual(len(sent), 1)
+		self.assertIn("threads", sent[0])
+		self.assertNotIn(DOC_PASSWORD, json.dumps(sent))
+		self.assertIn("Email Account", json.dumps(sent))
+
+	def capture_error_event(self, request_name, doc=None, as_message=False):
 		sent = []
 
 		class RecordingTransport(Transport):
@@ -113,7 +123,10 @@ class TestSentryRequestBody(UnitTestCase):
 				sent.extend(item.payload.json for item in envelope.items if item.payload.json)
 
 		client = sentry_sdk.Client(
-			dsn="https://key@example.com/1", transport=RecordingTransport, before_send=before_send
+			dsn="https://key@example.com/1",
+			transport=RecordingTransport,
+			before_send=before_send,
+			attach_stacktrace=True,
 		)
 		frappe.local.request = REQUESTS[request_name]()
 		self.addCleanup(setattr, frappe.local, "request", None)
@@ -123,10 +136,13 @@ class TestSentryRequestBody(UnitTestCase):
 			sentry_sdk.new_scope() as scope,
 		):
 			scope.set_client(client)
-			try:
-				raise_error(doc)
-			except RuntimeError:
-				capture_exception()
+			if as_message:
+				log_message(doc)
+			else:
+				try:
+					raise_error(doc)
+				except RuntimeError:
+					capture_exception()
 			client.flush()
 
 		return sent
@@ -134,3 +150,7 @@ class TestSentryRequestBody(UnitTestCase):
 
 def raise_error(doc):
 	raise RuntimeError("test error")
+
+
+def log_message(doc):
+	capture_exception("test message")

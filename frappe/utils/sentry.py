@@ -168,10 +168,12 @@ def sanitize_body(data, depth=0):
 def scrub_event(event):
 	"""Mask secrets that reach an event outside the request body context:
 	local variables of stack frames and the request query string."""
-	for exception in event.get("exception", {}).get("values", []):
-		for frame in exception.get("stacktrace", {}).get("frames", []):
-			if frame.get("vars"):
-				frame["vars"] = _scrub_var(frame["vars"])
+	# message events (no active exception) keep their frames under `threads`
+	for key in ("exception", "threads"):
+		for value in event.get(key, {}).get("values", []):
+			for frame in value.get("stacktrace", {}).get("frames", []):
+				if frame.get("vars"):
+					frame["vars"] = _scrub_var(frame["vars"])
 
 	request = event.get("request") or {}
 	if isinstance(request.get("query_string"), str):
