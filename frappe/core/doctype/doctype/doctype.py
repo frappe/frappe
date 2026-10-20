@@ -35,7 +35,6 @@ from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
-from frappe.query_builder.functions import Concat
 from frappe.utils import cint, cstr, flt, get_datetime, is_a_property, random_string
 from frappe.website.utils import clear_cache
 
@@ -1210,7 +1209,7 @@ def validate_series(dt, autoname=None, name=None):
 		used_in = (
 			frappe.qb.from_(doctype)
 			.select(doctype.name)
-			.where(doctype.autoname.like(Concat(prefix, ".%")))
+			.where(doctype.autoname.like(f"{prefix}.%"))
 			.where(doctype.name != name)
 		).run()
 		if used_in:
