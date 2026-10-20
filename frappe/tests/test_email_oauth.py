@@ -9,7 +9,6 @@ from oauthlib.oauth2 import InvalidGrantError
 import frappe
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.email.doctype.email_account.email_account import EmailAccount
-from frappe.exceptions import FrappeTypeError
 from frappe.integrations.doctype.connected_app.connected_app import (
 	ConnectedApp,
 	delete_token_cache,
@@ -44,7 +43,8 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 
 	def test_asks_central_through_pilot_and_keeps_verifier(self) -> None:
 		self.assertEqual(
-			email_oauth.initiate_mailbox_connect("microsoft", "/helpdesk", "HD Ticket"), LINK["authorize_url"]
+			email_oauth.initiate_mailbox_connect("Outlook.com", "/helpdesk", "HD Ticket"),
+			LINK["authorize_url"],
 		)
 
 		path, data = self.pilot.call_args.args
@@ -90,7 +90,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 			}
 		).insert(ignore_if_duplicate=True)
 		with self.set_user(user.name):
-			self.assertRaises(frappe.PermissionError, email_oauth.initiate_mailbox_connect, "microsoft")
+			self.assertRaises(frappe.PermissionError, email_oauth.initiate_mailbox_connect, "Outlook.com")
 		self.pilot.assert_not_called()
 
 	def test_reconnect_needs_write_on_that_mailbox(self) -> None:
@@ -110,25 +110,69 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 			self.assertRaises(
 				frappe.PermissionError,
 				email_oauth.initiate_mailbox_connect,
-				"microsoft",
 				email_account="_Test Email Account 1",
 			)
 		self.pilot.assert_not_called()
 
-		email_oauth.initiate_mailbox_connect("microsoft", email_account="_Test Email Account 1")
+		self.relay_mailbox()
+		email_oauth.initiate_mailbox_connect(email_account="_Test Email Account 1")
 		state = self.pilot.call_args.args[1]["state"]
 		self.assertEqual(
 			frappe.cache.get_value(f"pkce_verifier:{state}")["email_account"], "_Test Email Account 1"
 		)
 
-	def test_site_off_frappe_cloud_is_refused(self) -> None:
+	def relay_mailbox(self, token_uri: str = "frappe-cloud-relay:microsoft") -> str:
+		app = frappe.get_doc(
+			{"doctype": "Connected App", "provider_name": "Microsoft (relay)", "token_uri": token_uri}
+		).insert()
+		frappe.db.set_value("Email Account", "_Test Email Account 1", "connected_app", app.name)
+		return "_Test Email Account 1"
+
+	def test_adding_off_frappe_cloud_opens_the_form(self) -> None:
 		for key in V2:
 			with self.subTest(missing=key), patch.dict(frappe.conf, {key: None}):
-				self.assertRaises(frappe.ValidationError, email_oauth.initiate_mailbox_connect, "microsoft")
+				self.assertIsNone(email_oauth.initiate_mailbox_connect("Outlook.com"))
 		self.pilot.assert_not_called()
 
-	def test_unknown_provider_is_refused(self) -> None:
-		self.assertRaises(FrappeTypeError, email_oauth.initiate_mailbox_connect, "yahoo")
+	def test_reconnecting_off_frappe_cloud_is_refused(self) -> None:
+		account = self.relay_mailbox()
+		with patch.dict(frappe.conf, {"pilot_endpoint": None}):
+			self.assertRaises(
+				frappe.ValidationError, email_oauth.initiate_mailbox_connect, email_account=account
+			)
+		self.pilot.assert_not_called()
+
+	def test_service_without_one_click_opens_the_form(self) -> None:
+		for service in ("Yahoo Mail", "GMail", None):
+			with self.subTest(service):
+				self.assertIsNone(email_oauth.initiate_mailbox_connect(service))
+		self.pilot.assert_not_called()
+
+	def test_provider_unavailable_on_frappe_cloud_opens_the_form(self) -> None:
+		self.pilot.side_effect = frappe.ValidationError("provider_unavailable")
+		self.assertIsNone(email_oauth.initiate_mailbox_connect("Outlook.com"))
+		self.assertEqual(self.pilot.call_args.args[1]["provider"], "microsoft")
+
+	def test_reconnect_signs_in_with_the_mailboxs_provider(self) -> None:
+		account = self.relay_mailbox()
+		self.assertEqual(
+			email_oauth.initiate_mailbox_connect("GMail", email_account=account), LINK["authorize_url"]
+		)
+		self.assertEqual(self.pilot.call_args.args[1]["provider"], "microsoft")
+
+	def test_reconnect_with_provider_unavailable_is_refused(self) -> None:
+		account = self.relay_mailbox()
+		self.pilot.side_effect = frappe.ValidationError("provider_unavailable")
+		with self.assertRaisesRegex(frappe.ValidationError, "Sign in with Microsoft isn't available"):
+			email_oauth.initiate_mailbox_connect(email_account=account)
+
+	def test_reconnect_of_a_mailbox_not_signed_in_through_frappe_cloud_is_refused(self) -> None:
+		for token_uri in ("https://login.example.com/token", "frappe-cloud-relay:yahoo"):
+			with self.subTest(token_uri):
+				account = self.relay_mailbox(token_uri)
+				self.assertRaises(
+					frappe.ValidationError, email_oauth.initiate_mailbox_connect, email_account=account
+				)
 		self.pilot.assert_not_called()
 
 	def test_provider_type_lists_every_provider(self) -> None:
@@ -136,7 +180,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 
 	def test_central_refusal_keeps_no_note(self) -> None:
 		self.pilot.side_effect = frappe.ValidationError("Return URL must be the email callback")
-		self.assertRaises(frappe.ValidationError, email_oauth.initiate_mailbox_connect, "microsoft")
+		self.assertRaises(frappe.ValidationError, email_oauth.initiate_mailbox_connect, "Outlook.com")
 		state = self.pilot.call_args.args[1]["state"]
 		self.assertIsNone(frappe.cache.get_value(f"pkce_verifier:{state}"))
 
@@ -147,9 +191,13 @@ class TestBoot(IntegrationTestCase):
 
 		with self.set_user("test@example.com"):
 			with patch.dict(frappe.conf, V2):
-				self.assertTrue(get_bootinfo().is_v2_site)
+				boot = get_bootinfo()
+				self.assertTrue(boot.is_v2_site)
+				self.assertEqual(boot.one_click_email_services, {"Outlook.com": "Microsoft"})
 			with patch.dict(frappe.conf, {key: None for key in V2}):
-				self.assertFalse(get_bootinfo().is_v2_site)
+				boot = get_bootinfo()
+				self.assertFalse(boot.is_v2_site)
+				self.assertEqual(boot.one_click_email_services, {})
 
 
 def id_token(email: str, tid: str = PERSONAL) -> str:
@@ -342,25 +390,6 @@ class TestCallback(IntegrationTestCase):
 		self.assertNotEqual(
 			frappe.db.get_value("Email Account", account.name, "connected_app"), account.connected_app
 		)
-
-	def test_reconnect_switches_a_custom_app_mailbox_and_keeps_that_app(self) -> None:
-		email_oauth.callback(state=self.note(), code="c1")
-		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
-		custom_app = account.connected_app
-		frappe.db.set_value("Connected App", custom_app, "token_uri", "https://login.example.com/token")
-		self.addCleanup(frappe.delete_doc, "Connected App", custom_app, force=True)
-		self.addCleanup(frappe.db.delete, "Token Cache", {"connected_app": custom_app})
-
-		email_oauth.callback(state=self.note(email_account=account.name), code="c2")
-
-		account.reload()
-		self.assertNotEqual(account.connected_app, custom_app)
-		self.assertTrue(
-			frappe.db.get_value("Connected App", account.connected_app, "token_uri").startswith(
-				email_oauth.FRAPPE_CLOUD_RELAY
-			)
-		)
-		self.assertTrue(frappe.db.exists("Connected App", custom_app))
 
 	def test_reconnect_moves_a_pop_mailbox_to_imap(self) -> None:
 		email_oauth.callback(state=self.note(), code="c1")

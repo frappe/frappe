@@ -96,12 +96,11 @@ function relay_provider(connected_app) {
 function oauth_access(frm) {
 	frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
 		const connected_app = frappe.get_doc("Connected App", frm.doc.connected_app);
-		const provider = relay_provider(connected_app);
-		if (provider) {
+		if (relay_provider(connected_app)) {
 			return frappe
 				.call({
 					method: "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
-					args: { provider, email_account: frm.doc.name },
+					args: { email_account: frm.doc.name },
 					freeze: true,
 				})
 				.then((r) => (window.location.href = r.message));

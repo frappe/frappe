@@ -23,9 +23,9 @@ CALLBACK_PATH = "/api/method/frappe.integrations.frappe_providers.email_oauth.ca
 # through relay_refresh
 FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:"
 DEFAULT_LANDING = "/desk/email-account"
-# ONE_CLICK_PROVIDERS' keys; frappe checks whitelisted arguments against this type
+# ONE_CLICK_PROVIDERS' keys; a relay app's Token URI ends in one
 Provider = Literal["microsoft"]
-# Mail settings per provider, keyed like Central's PROVIDERS; Central sends the OAuth side (scopes)
+# Mail settings per provider, keyed like Central's Email OAuth Provider records; Central sends the OAuth side (scopes)
 ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 	"microsoft": {
 		"label": "Microsoft",
@@ -40,37 +40,65 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 }
 
 
+def get_one_click_services() -> dict[str, str]:
+	"""Email Account services this site can add in one click, each with its provider's label; sent
+	in the host app's boot. Frappe Cloud may still have a provider turned off, and
+	initiate_mailbox_connect then returns None."""
+	if not is_v2_site():
+		return {}
+	return {config["service"]: config["label"] for config in ONE_CLICK_PROVIDERS.values()}
+
+
 @frappe.whitelist(methods=["POST"])
 def initiate_mailbox_connect(
-	provider: Provider,
+	service: str | None = None,
 	redirect_to: str = DEFAULT_LANDING,
 	target_doctype: str | None = None,
 	email_account: str | None = None,
-) -> str:
-	"""Start a mailbox Connect; returns the provider's sign-in link.
+) -> str | None:
+	"""Start a mailbox Connect; returns the provider's sign-in link, or None when adding a mailbox
+	of `service` can't be done in one click here and needs the normal Email Account form.
 
-	With `email_account`, signing in reconnects that mailbox instead of adding one."""
+	With `email_account`, signing in reconnects that mailbox instead of adding one, with the
+	provider it was connected with; `service` is ignored."""
 	if email_account:
 		frappe.has_permission("Email Account", "write", doc=email_account, throw=True)
+		connected_app = frappe.db.get_value("Email Account", email_account, "connected_app")
+		token_uri = (connected_app and frappe.db.get_value("Connected App", connected_app, "token_uri")) or ""
+		provider = token_uri.startswith(FRAPPE_CLOUD_RELAY) and token_uri.removeprefix(FRAPPE_CLOUD_RELAY)
+		if provider not in ONE_CLICK_PROVIDERS:
+			frappe.throw(_("{0} wasn't connected with one-click sign-in").format(email_account))
+		if not is_v2_site():
+			frappe.throw(
+				_("Sign in with {0} is only available on Frappe Cloud").format(
+					ONE_CLICK_PROVIDERS[provider]["label"]
+				)
+			)
 	else:
 		frappe.has_permission("Email Account", "create", throw=True)
-	if not is_v2_site():
-		frappe.throw(
-			_("Sign in with {0} is only available on Frappe Cloud").format(
-				ONE_CLICK_PROVIDERS[provider]["label"]
-			)
-		)
+		provider = next((k for k, v in ONE_CLICK_PROVIDERS.items() if v["service"] == service), None)
+		if not provider or not is_v2_site():
+			return None
 
 	client = WebApplicationClient(None)
 	verifier = client.create_code_verifier(64)
 	state = secrets.token_urlsafe(16)
-	link = call_central_method(
-		"start",
-		provider=provider,
-		state=state,
-		code_challenge=client.create_code_challenge(verifier, "S256"),
-		return_url=get_host_name_from_request() + CALLBACK_PATH,
-	)
+	try:
+		link = call_central_method(
+			"start",
+			provider=provider,
+			state=state,
+			code_challenge=client.create_code_challenge(verifier, "S256"),
+			return_url=get_host_name_from_request() + CALLBACK_PATH,
+		)
+	except frappe.ValidationError as e:
+		if str(e) != "provider_unavailable":  # Central's code for a provider it has turned off
+			raise
+		if not email_account:
+			return None
+		frappe.throw(
+			_("Sign in with {0} isn't available right now").format(ONE_CLICK_PROVIDERS[provider]["label"])
+		)
 	frappe.cache.set_value(
 		f"pkce_verifier:{state}",
 		{
