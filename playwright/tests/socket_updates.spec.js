@@ -31,6 +31,15 @@ test.describe("Realtime updates", () => {
 		await expect(page.getByText(updated).first()).toBeVisible();
 	});
 
+	test("Keeps a doctype room while another view uses it", async ({ page, api }) => {
+		await doctype_room_joined(page, api, "ToDo");
+		await page.evaluate(() => {
+			frappe.realtime.doctype_subscribe("ToDo");
+			frappe.realtime.doctype_unsubscribe("ToDo");
+		});
+		await doctype_room_joined(page, api, "ToDo");
+	});
+
 	test("Receives msgprint from server", async ({ page, api }) => {
 		const msg = "msgprint sent via realtime";
 		await api.call("frappe.tests.ui_test_helpers.publish_realtime", {
