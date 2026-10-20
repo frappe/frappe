@@ -69,7 +69,7 @@ class TestTwoFactorLogin(IntegrationTestCase):
 			self.assert_logged_in(response)
 
 	def test_email_login_with_zero_token(self):
-		with change_settings("System Settings", {"two_factor_method": "Email"}, commit=True):
+		with self.change_settings("System Settings", {"two_factor_method": "Email"}, commit=True):
 			with patch("pyotp.TOTP.now", return_value="000000"):
 				tmp_id = self.start_login()
 			self.assertEqual(frappe.cache.get_value(tmp_id + "_token", expires=True), 0)
