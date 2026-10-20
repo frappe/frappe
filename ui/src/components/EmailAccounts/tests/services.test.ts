@@ -281,9 +281,9 @@ describe("oneClickServices", () => {
     expect(oneClickServices()).toEqual({});
 
     vi.stubGlobal("frappe", {
-      boot: { one_click_email_services: { "Outlook.com": "Microsoft" } },
+      boot: { one_click_email_services: { "Outlook.com": "Outlook" } },
     });
-    expect(oneClickServices()).toEqual({ "Outlook.com": "Microsoft" });
+    expect(oneClickServices()).toEqual({ "Outlook.com": "Outlook" });
 
     vi.stubGlobal("one_click_email_services", { GMail: "Google" });
     expect(oneClickServices()).toEqual({ GMail: "Google" });

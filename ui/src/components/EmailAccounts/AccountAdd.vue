@@ -25,6 +25,11 @@
 					novalidate
 					@submit.prevent="create"
 				>
+					<Banner
+						v-if="unavailable"
+						:title="__('{0} sign-in isn\'t available right now', [selected.label])"
+						:description="__('You can still set it up manually.')"
+					/>
 					<p v-if="selected.help" class="text-p-sm text-ink-gray-6">
 						{{ selected.help }}
 						<a
@@ -93,6 +98,7 @@ import { computed, nextTick, ref, shallowRef, useId, watch } from "vue";
 import { translate as __ } from "../../utils/translate";
 import AccountFields from "./AccountFields.vue";
 import BackHeader from "./BackHeader.vue";
+import Banner from "./Banner.vue";
 import { emptyForm, errorText, oneClickServices, services, validate } from "./services";
 import type { EmailAccountsController, EmailService, FieldError } from "./types";
 
@@ -105,6 +111,7 @@ const offered = computed(() =>
 const selected = shallowRef<EmailService | null>(null);
 const connecting = shallowRef<EmailService | null>(null);
 const connectError = ref<unknown>(null);
+const unavailable = ref(false);
 const headingId = useId();
 const formId = useId();
 const blank = JSON.stringify(emptyForm());
@@ -129,6 +136,7 @@ async function choose(service: EmailService) {
 			return;
 		}
 		connecting.value = null;
+		unavailable.value = true;
 	}
 	selected.value = service;
 	await nextTick();
@@ -148,6 +156,7 @@ async function back() {
 	if (!selected.value) return emit("back");
 	const i = offered.value.indexOf(selected.value);
 	selected.value = null;
+	unavailable.value = false;
 	form.value = emptyForm();
 	invalid.value = undefined;
 	await nextTick();

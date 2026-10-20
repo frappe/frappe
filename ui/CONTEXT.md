@@ -123,7 +123,7 @@ Connecting a mailbox by signing in to its provider through Frappe Cloud
 Frappe Cloud v2 sites, which the host tells the panel from its boot, along with the services that
 can sign in this way (`is_v2_site` and `one_click_email_services` on `window`, or both in
 `frappe.boot` in Desk). Picking one of those services signs in; any other opens the form. When
-Frappe Cloud can't sign the service in right now, the panel opens the form instead.
+Frappe Cloud can't sign the service in right now, the panel opens the form with a note saying so.
 _Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
 
 **Auth kind**:
