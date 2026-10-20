@@ -605,18 +605,25 @@ class Importer:
 			self._resolve_tree_parent_link(doc)
 			updated_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
+		submit_after_import = (
+			updated_doc.meta.is_submittable
+			and self.data_import.submit_after_import
+			and updated_doc.docstatus.is_draft()
+		)
+		updated_doc.flags.updater_reference = {
+			"doctype": self.data_import.doctype,
+			"docname": self.data_import.name,
+			"label": _("via Data Import"),
+		}
+
 		if get_diff(existing_doc, updated_doc):
 			# update doc if there are changes
-			updated_doc.flags.updater_reference = {
-				"doctype": self.data_import.doctype,
-				"docname": self.data_import.name,
-				"label": _("via Data Import"),
-			}
 			updated_doc.save()
-			return updated_doc
-
-		if raise_if_no_changes:
+		elif raise_if_no_changes and not submit_after_import:
 			frappe.throw(_("No changes to update"))
+
+		if submit_after_import:
+			updated_doc.submit()
 		return updated_doc
 
 	def get_eta(self, current, total, processing_time):
