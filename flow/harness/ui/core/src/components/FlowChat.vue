@@ -59,7 +59,7 @@
 		<Transition name="flow-toast">
 			<div
 				v-if="toast"
-				class="fixed bottom-5 right-5 z-[9999] flex max-w-[360px] items-start gap-2 rounded-6 border border-outline-gray-2 bg-surface-base px-3.5 py-2.5 shadow-md"
+				class="fixed bottom-5 right-5 z-[9999] flex max-w-[360px] items-start gap-2 rounded-6 border border-outline-gray-2 bg-surface-base px-3.5 py-2.5 shadow-md max-md:inset-x-3 max-md:bottom-auto max-md:top-3 max-md:max-w-none"
 			>
 				<FeatherIcon
 					:name="toast.kind === 'error' ? 'alert-circle' : 'info'"
@@ -176,5 +176,12 @@ onBeforeUnmount(() => props.store.detach())
 .flow-toast-leave-to {
 	opacity: 0;
 	transform: translateY(6px);
+}
+/* a narrow frame's toast sits at the top, clear of the composer, and drops in from above */
+@media (max-width: 767px) {
+	.flow-toast-enter-from,
+	.flow-toast-leave-to {
+		transform: translateY(-6px);
+	}
 }
 </style>

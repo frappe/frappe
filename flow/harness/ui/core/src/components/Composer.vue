@@ -1,5 +1,6 @@
 <template>
-	<div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-5 pb-3.5">
+	<div class="pointer-events-none absolute inset-x-0 bottom-0 z-10 px-5 pb-3.5 max-md:bg-surface-base">
+		<!-- the box floats over the thread; a narrow frame's strip around it hides the thread under it -->
 		<div ref="stack" class="pointer-events-auto relative mx-auto max-w-[800px]">
 			<ModelPalette
 				v-if="paletteView === 'models'"
@@ -102,11 +103,11 @@
 
 			<!-- a new chat's folder, branch and preset, or a host's own pickers, until its first message
 			     goes out; out of the flow, so a list opening over the box covers it. The icon lines up with
-			     the box's text. A phone leaves the branch out, and the row spans the box, for their lists -->
+			     the box's text. A phone leaves the branch out -->
 			<div
 				v-if="$slots.start ? starting : startCwd"
 				ref="startRow"
-				class="start-row absolute bottom-full left-0 right-0 mb-1.5 flex min-w-0 max-w-full items-center gap-3 px-[9px] text-xs text-ink-gray-7 sm:right-auto dark:text-ink-gray-8"
+				class="start-row absolute bottom-full left-0 mb-1.5 flex min-w-0 max-w-full items-center gap-3 px-[9px] text-xs text-ink-gray-7 dark:text-ink-gray-8"
 			>
 				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
 				<slot name="start" :insert="replaceSlash">
@@ -265,22 +266,26 @@
 						<FeatherIcon name="plus" class="h-4 w-4" />
 					</button>
 
-					<!-- approval mode; its list hangs from it, on a phone from the whole composer -->
-					<span class="flex-none sm:relative">
+					<!-- approval mode; its list hangs from it. A narrow frame shows the mode as its icon,
+					     which its list explains -->
+					<span class="relative flex-none">
 						<button
 							ref="modeButton"
-							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
-							:class="modeMenu ? 'bg-surface-gray-2' : ''"
-							title="Approval mode"
+							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+							:class="[modeMenu ? 'bg-surface-gray-2' : '', layout.narrow ? 'w-7 justify-center' : 'px-2']"
+							:title="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
 							:aria-expanded="modeMenu"
 							@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
 						>
-							{{ modeLabel }}
-							<FeatherIcon
-								name="chevron-down"
-								class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
-								:class="modeMenu ? 'rotate-180' : ''"
-							/>
+							<FeatherIcon v-if="layout.narrow" :name="MODE_ICONS[currentMode] ?? 'lock'" class="h-4 w-4" />
+							<template v-else>
+								{{ modeLabel }}
+								<FeatherIcon
+									name="chevron-down"
+									class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+									:class="modeMenu ? 'rotate-180' : ''"
+								/>
+							</template>
 						</button>
 						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
 						     enough for a description to keep to one line by the tick. The corners nest in the panel's -->
@@ -294,6 +299,7 @@
 									class="flow-palette-row h-auto rounded-[16px] py-1.5"
 									@click="chooseMode(m.id)"
 								>
+									<FeatherIcon v-if="layout.narrow" :name="MODE_ICONS[m.id] ?? 'lock'" class="h-4 w-4 flex-none" />
 									<span class="min-w-0 flex-1">
 										<span class="block truncate">{{ m.label }}</span>
 										<span class="flow-palette-hint block text-xs leading-snug">{{ m.desc }}</span>
@@ -354,6 +360,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
+import { layout } from "../layout.js"
 import {
 	APPROVAL_MODES,
 	approvalToAnswer,
@@ -831,6 +838,8 @@ const currentMode = computed(() => {
 	return flow.state.session?.config?.auto_approve ? "auto" : "ask"
 })
 const modeLabel = computed(() => props.modes.find((m) => m.id === currentMode.value)?.label ?? currentMode.value)
+// a narrow frame's mode button: tools locked behind a yes, or unlocked
+const MODE_ICONS = { ask: "lock", auto: "unlock" }
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 const currentImageSupport = computed(() => {
@@ -900,7 +909,8 @@ const composing = (e) => e.isComposing || e.keyCode === 229
 function onKey(e) {
 	if (composing(e)) return
 	const searching = subPage.value && subSearch.value
-	if (e.key === "Enter" && !e.shiftKey) {
+	// a phone's return key starts a new line, as in its other chat apps; the send button sends
+	if (e.key === "Enter" && !e.shiftKey && !layout.phone) {
 		e.preventDefault()
 		// a sub-page's search is never a message, even when no row answers it
 		if (!searching) submit()

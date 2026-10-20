@@ -26,10 +26,11 @@
 		<span class="min-w-2 flex-1" />
 
 		<span class="mr-1 flex flex-none items-center gap-3">
-			<!-- the readout opens the transcript: the same totals, step by step -->
+			<!-- the readout opens the transcript: the same totals, step by step. A narrow frame keeps
+			     the bar, or the bare count, for the title's room, at a finger's height -->
 			<button
 				v-if="contextTokens > 0 || spent > 0"
-				class="flex items-center gap-2 whitespace-nowrap rounded-4 px-1.5 py-1 text-xs font-normal tabular-nums text-ink-gray-5 hover:bg-surface-gray-2"
+				class="flex items-center gap-2 whitespace-nowrap rounded-4 px-1.5 py-1 text-xs font-normal tabular-nums text-ink-gray-5 hover:bg-surface-gray-2 max-md:h-7"
 				title="Tokens, step by step"
 				@click="flow.setTranscriptOpen(true)"
 			>
@@ -40,13 +41,13 @@
 							:style="{ width: Math.min(100, (contextTokens / contextWindow) * 100) + '%' }"
 						/>
 					</span>
-					<span>{{ formatTokens(contextTokens) }} / {{ formatTokens(contextWindow) }}</span>
+					<span class="max-md:hidden">{{ formatTokens(contextTokens) }} / {{ formatTokens(contextWindow) }}</span>
 				</span>
 				<span v-else-if="contextTokens > 0" title="Current context">
-					{{ formatTokens(contextTokens) }} in context
+					{{ formatTokens(contextTokens) }}<span class="max-md:hidden"> in context</span>
 				</span>
 				<!-- a model switch drops the context reading; the session's spend stands in -->
-				<span v-else title="Tokens used so far">{{ formatTokens(spent) }} used</span>
+				<span v-else title="Tokens used so far">{{ formatTokens(spent) }}<span class="max-md:hidden"> used</span></span>
 				<span v-if="cost > 0" class="hidden items-center gap-2 text-ink-gray-4 sm:flex">
 					<span aria-hidden="true" class="text-ink-gray-3">·</span>
 					<span>${{ cost.toFixed(cost < 1 ? 3 : 2) }}</span>

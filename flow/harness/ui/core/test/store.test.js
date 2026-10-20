@@ -3,6 +3,7 @@ import test from "node:test"
 import { ref } from "vue"
 
 import { FlowAPIError } from "../src/client.js"
+import { layout } from "../src/layout.js"
 import { createFlowStore, MAX_ATTACHMENTS } from "../src/store.js"
 import { applyEvent } from "../src/transcript.js"
 
@@ -557,7 +558,7 @@ test("a reopened chat restores its model's limit and the reply still streaming",
 	flow.detach()
 })
 
-test("workspace tabs persist per session, restore after a refresh and load as they come forward", async () => {
+test("workspace tabs persist per session, restore after a refresh (a narrow frame's panel closed) and load as they come forward", async () => {
 	const backing = new Map()
 	const previousStorage = globalThis.localStorage
 	globalThis.localStorage = {
@@ -588,6 +589,16 @@ test("workspace tabs persist per session, restore after a refresh and load as th
 		assert.equal(restored.state.workspace.open, true)
 		await settle()
 		assert.equal(restored.state.workspace.tabs[0].content, "text of /proj/a.py") // active tab hydrated
+
+		// a narrow frame's panel would cover the chat: it opens on the chat, the tabs kept
+		layout.narrow = true
+		try {
+			const phone = createFlowStore(client)
+			await phone.openSession("s1")
+			assert.deepEqual([phone.state.workspace.open, phone.state.workspace.tabs.length], [false, 2])
+		} finally {
+			layout.narrow = false
+		}
 
 		// closing it loads the restored tab that comes forward
 		restored.closeFile("/proj/a.py")

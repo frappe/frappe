@@ -10,12 +10,13 @@
 			/>
 		</div>
 		<h4 class="mb-2 text-xs text-ink-gray-5">Members</h4>
+		<!-- a phone's field waits for a tap, rather than raise the keyboard over the dialog -->
 		<FormControl
 			v-model:query="query"
 			type="combobox"
 			variant="outline"
 			placeholder="Add people…"
-			autofocus
+			:autofocus="!layout.phone"
 			:options="options"
 			:filterable="false"
 			:loading="searching"
@@ -75,6 +76,7 @@ import CopyButton from "@flow/ui-core/components/CopyButton.vue";
 import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
+import { layout } from "@flow/ui-core/layout.js";
 
 // The Share dialog, which the chat's owner opens from its menu: whoever is added may
 // view the chat, never write to it, since its tools run as the owner.

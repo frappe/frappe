@@ -1,6 +1,6 @@
 <template>
-	<span class="min-w-0 sm:relative">
-		<!-- its list hangs from it, but on a phone from the whole row, which spans the box -->
+	<span class="relative min-w-0">
+		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
 			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
@@ -40,7 +40,8 @@
 					<FeatherIcon v-if="row.id === current" name="check" class="ml-auto h-4 w-4 flex-none" />
 				</button>
 				<div v-if="!rows.length" class="flow-palette-empty">No matching presets</div>
-				<button data-palette-item class="flow-palette-row" @click="create">
+				<!-- a search that finds none: the way to a new one -->
+				<button v-if="!rows.length" data-palette-item class="flow-palette-row" @click="create">
 					<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
 					Create a preset
 				</button>
@@ -53,6 +54,7 @@
 import { computed, inject, nextTick, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
+import { layout } from "../layout.js"
 import PalettePanel from "./PalettePanel.vue"
 
 // A new chat's agent preset: Standard (core tools, the built-in prompt) or one saved in settings
@@ -72,10 +74,11 @@ const rows = computed(() => {
 	)
 })
 
+// a phone's list leaves its search for a tap, rather than raise the keyboard over it
 function show() {
 	search.value = ""
 	open.value = true
-	nextTick(() => field.value?.focus())
+	nextTick(() => layout.phone || field.value?.focus())
 }
 
 function close() {

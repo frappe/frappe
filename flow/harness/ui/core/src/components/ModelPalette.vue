@@ -82,6 +82,7 @@ import { computed, inject, onMounted, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
+import { layout } from "../layout.js"
 import { modelTitle } from "../transcript.js"
 import LoadingState from "./LoadingState.vue"
 import PalettePanel from "./PalettePanel.vue"
@@ -100,7 +101,8 @@ const typed = ref("")
 const field = ref(null)
 const search = computed(() => (props.dropdown ? typed.value : props.query))
 const debounced = useDebouncedValue(search, 150)
-onMounted(() => field.value?.focus())
+// a phone's list leaves its search for a tap, rather than raise the keyboard over it
+onMounted(() => layout.phone || field.value?.focus())
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 

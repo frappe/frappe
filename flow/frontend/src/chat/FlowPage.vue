@@ -68,7 +68,8 @@
 			</WorkspacePanel>
 		</div>
 		<Dialogs />
-		<ToastProvider />
+		<!-- a narrow frame's toasts drop from the top, off the composer, as the harness's do -->
+		<ToastProvider :position="layout.narrow ? 'top-center' : 'bottom-right'" />
 		<FlowSettings />
 		<TranscriptDialog />
 		<ShareChat v-if="canShare" ref="share" />
@@ -90,6 +91,7 @@ import { installShortcuts } from "@flow/ui-core/shortcuts.js";
 import { installFocusRings } from "@flow/ui-core/focusRings.js";
 import { installViewport } from "@flow/ui-core/viewport.js";
 import { provideComposerHeight } from "@flow/ui-core/composerHeight.js";
+import { layout } from "@flow/ui-core/layout.js";
 import { createFlowStore } from "@flow/ui-core/store.js";
 
 import { FrappeClient } from "../api/client.js";

@@ -1,6 +1,6 @@
 <template>
-	<span v-if="skills.length || canAdd" class="min-w-0 sm:relative">
-		<!-- its list hangs from it, but on a phone from the whole row, which spans the box -->
+	<span v-if="skills.length || canAdd" class="relative min-w-0">
+		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
 			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
@@ -51,7 +51,13 @@
 				<div v-if="!options.length" class="flow-palette-empty">
 					{{ skills.length ? "No matching skills" : "No skills" }}
 				</div>
-				<button v-if="canAdd" data-palette-item class="flow-palette-row" @click="create">
+				<!-- with none, or none found: the way to a new one -->
+				<button
+					v-if="canAdd && !options.length"
+					data-palette-item
+					class="flow-palette-row"
+					@click="create"
+				>
 					<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
 					Add a skill
 				</button>
@@ -64,6 +70,7 @@
 import { computed, inject, nextTick, onMounted, ref } from "vue";
 import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
+import { layout } from "@flow/ui-core/layout.js";
 
 // The skills a new chat's agent can load, over the composer; a pick starts the draft with it.
 // Shown without any too, for someone who may add one.
@@ -92,7 +99,8 @@ onMounted(() => void flow.loadSkills());
 function show() {
 	search.value = "";
 	open.value = true;
-	nextTick(() => field.value?.focus());
+	// a phone's list leaves its search for a tap, rather than raise the keyboard over it
+	nextTick(() => layout.phone || field.value?.focus());
 }
 
 function close() {

@@ -1,7 +1,7 @@
 <template>
-	<span class="min-w-0 max-w-[360px] sm:relative">
+	<span class="relative min-w-0 max-w-[360px]">
 		<!-- the row shrinks the wrapper; the button, sized to its text, must follow it. Its lists
-		     hang from it, but on a phone from the whole composer, which has the room -->
+		     hang from it -->
 		<button
 			ref="trigger"
 			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"

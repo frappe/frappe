@@ -23,6 +23,7 @@ const { createApp, h, nextTick, reactive } = await import("vue")
 const { dialog, loadComponent } = await import("./helpers/components.js")
 const { applyEvent, initialConversation } = await import("../src/transcript.js")
 const { FlowAPIError } = await import("../src/client.js")
+const { layout } = await import("../src/layout.js")
 const Composer = await loadComponent("Composer")
 const ApprovalCard = await loadComponent("ApprovalCard")
 const ToolGroup = await loadComponent("ToolGroup")
@@ -433,6 +434,20 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	assert.equal(mode.parentElement.querySelector("[data-palette-item]"), null)
 	assert.equal(mode.textContent.trim(), "Just do it")
 
+	// a narrow frame shows the mode as its icon, named in its title; its list puts each icon by its mode
+	layout.narrow = true
+	t.after(() => (layout.narrow = false))
+	await nextTick()
+	const icon = (node) => node.querySelector("[data-stub=FeatherIcon]")?.getAttribute("name")
+	assert.equal(mode.title, "Approval mode: Just do it")
+	assert.deepEqual([mode.textContent.trim(), icon(mode)], ["", "unlock"])
+	mode.click()
+	await nextTick()
+	assert.deepEqual([...mode.parentElement.querySelectorAll("[data-palette-item]")].map(icon), ["lock", "unlock"])
+	mode.click()
+	layout.narrow = false
+	await nextTick()
+
 	// disabled, it is shown but inert, the host's pickers included
 	host.disabled = true
 	await nextTick()
@@ -454,6 +469,11 @@ test("the composer asks a pending batch one call at a time above the box, names 
 		answerApproval: (id, answer) => (flow.state.conversation.pendingApproval.answers[id] = answer),
 	})
 	flow.state.conversation = { pendingApproval: pending }
+	// on a phone a card ignores a tap in its first moment: it came up under a finger going
+	// elsewhere, or in the place of the call just answered
+	t.mock.timers.enable({ apis: ["Date"] })
+	layout.phone = true
+	t.after(() => (layout.phone = false))
 	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
 	const approve = () => [...el.querySelectorAll("button")].find((button) => button.textContent === "Approve")
 	assert.ok(el.textContent.includes("Run this command?"))
@@ -463,9 +483,18 @@ test("the composer asks a pending batch one call at a time above the box, names 
 
 	approve().click()
 	await nextTick()
+	assert.deepEqual(pending.answers, {})
+	t.mock.timers.tick(400)
+	approve().click()
+	await nextTick()
 	assert.ok(!el.textContent.includes("Run this command?"))
 	assert.ok(el.textContent.includes("Write a.txt?"))
 	assert.ok(el.textContent.includes("2 of 2"))
+	approve().click()
+	await nextTick()
+	assert.deepEqual(pending.answers, { c1: "Approve" })
+	t.mock.timers.tick(400)
+	layout.phone = false
 
 	// answering the last call hands the keyboard to the box, not the page
 	approve().focus()
@@ -756,7 +785,8 @@ test("a new chat shows its folder, branch and preset over the box until its firs
 	folder().click()
 	assert.equal(picks, 1)
 
-	// the preset: Standard, or one picked from its own list, found by its search; the list leads to a new one
+	// the preset: Standard, or one picked from its own list, found by its search; a search that
+	// finds none leads to a new one
 	const preset = () => el.querySelector("button[title='Agent preset']")
 	const rows = () => [...preset().parentElement.querySelectorAll("[data-palette-item]")].map((row) => [row.textContent.trim(), row.getAttribute("aria-current")])
 	const row = (name) => [...preset().parentElement.querySelectorAll("[data-palette-item]")].find((r) => r.textContent.trim() === name)
@@ -771,9 +801,9 @@ test("a new chat shows its folder, branch and preset over the box until its firs
 	await nextTick()
 	await nextTick()
 	assert.equal(document.activeElement.placeholder, "Search presets…")
-	assert.deepEqual(rows(), [["Standard", "true"], ["Reviewer", null], ["Create a preset", null]])
+	assert.deepEqual(rows(), [["Standard", "true"], ["Reviewer", null]])
 	await search("rev")
-	assert.deepEqual(rows(), [["Reviewer", null], ["Create a preset", null]])
+	assert.deepEqual(rows(), [["Reviewer", null]])
 	await search("rev x")
 	assert.deepEqual(rows(), [["Create a preset", null]])
 	assert.match(preset().parentElement.textContent, /No matching presets/)
@@ -786,7 +816,8 @@ test("a new chat shows its folder, branch and preset over the box until its firs
 	preset().click()
 	await nextTick()
 	assert.equal(preset().parentElement.querySelector("input").value, "")
-	assert.deepEqual(rows(), [["Standard", null], ["Reviewer", "true"], ["Create a preset", null]])
+	assert.deepEqual(rows(), [["Standard", null], ["Reviewer", "true"]])
+	await search("zzz")
 	row("Create a preset").click()
 	await nextTick()
 	assert.equal(creates, 1)
@@ -1437,7 +1468,7 @@ test("a sub-agent's tab says it is loading with its session, starting until it r
 	assert.ok(view.querySelector("[data-stub='AssistantText']"))
 })
 
-test("the workspace panel is inert while closed, draws a sub-agent's tab itself, and takes the host's menu, view and empty state", async (t) => {
+test("the workspace panel is inert while closed, draws a sub-agent's tab itself, takes the host's menu, view and empty state, and fills a narrow frame", async (t) => {
 	const conversation = subagentConversation()
 	const workspace = reactive({
 		open: false, maximized: false, view: null, active: "c1",
@@ -1483,6 +1514,13 @@ test("the workspace panel is inert while closed, draws a sub-agent's tab itself,
 	assert.equal(el.querySelector("[role='tab']"), null)
 	assert.equal(el.querySelector("[data-host='add']"), null)
 	assert.ok(el.querySelector("[data-host='empty']"))
+
+	// a narrow frame's panel fills it already: no full screen, only the close
+	assert.ok(el.querySelector("button[title='Full screen']"))
+	layout.narrow = true
+	t.after(() => (layout.narrow = false))
+	await nextTick()
+	assert.deepEqual([el.querySelector("button[title='Full screen']"), !!el.querySelector("button[title='Close panel']")], [null, true])
 })
 
 const settle = () => new Promise((resolve) => setImmediate(resolve))
@@ -2099,6 +2137,29 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await drag("App 7", "App 5")
 	assert.deepEqual(appChats(), ["App 6", "App 0", "App 1", "App 2", "App 3", "App 4", "App 7", "App 5", "Show less"])
 
+	// a phone's workspace shows no new-chat button: a long press opens its menu, as a chat's does
+	layout.phone = layout.narrow = true
+	t.after(() => (layout.phone = layout.narrow = false))
+	await nextTick()
+	assert.equal(el.querySelector("button[title='New chat in app']"), null)
+	// a row's open menu joins its text: each row is held from before its press
+	const [workspace, chat] = [row("app"), row("App 6")]
+	const press = (target) => target.dispatchEvent(new window.PointerEvent("pointerdown", { pointerType: "touch", bubbles: true }))
+	const menu = (target) => [...target.querySelectorAll("[role=menuitem]")].map((item) => item.textContent)
+	press(workspace)
+	t.mock.timers.tick(500)
+	await nextTick()
+	assert.deepEqual(menu(workspace), ["New chat"])
+	workspace.querySelector("[role=menuitem]").click()
+	await nextTick()
+	assert.equal(opened.at(-1), "new chat in /w/app")
+	press(chat)
+	t.mock.timers.tick(500)
+	await nextTick()
+	assert.deepEqual(menu(chat), ["Rename", "Delete"])
+	layout.phone = layout.narrow = false
+	await nextTick()
+
 	// a drag in flight when the sidebar goes ends there, dropping nothing
 	const order = [...flow.state.prefs.chatOrder]
 	document.elementFromPoint = () => row("App 6").querySelector("button")
@@ -2444,6 +2505,13 @@ test("an IME's Enter and Escape stay with it, and Escape stops the run from the 
 	assert.equal(sends, 0)
 	assert.equal(aborts, 0)
 	assert.equal(box.value, "今日は")
+	// a phone's return key starts a new line; its send button sends
+	layout.phone = true
+	t.after(() => (layout.phone = false))
+	assert.equal(keydown(box, { key: "Enter" }), true)
+	await settle()
+	assert.equal(sends, 0)
+	layout.phone = false
 	keydown(box, { key: "Enter" })
 	await settle()
 	assert.equal(sends, 1)

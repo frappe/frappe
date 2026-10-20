@@ -1,6 +1,6 @@
 <template>
-	<span class="min-w-0 sm:relative">
-		<!-- its list hangs from it, but on a phone from the whole row, which spans the box -->
+	<span class="relative min-w-0">
+		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
 			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
@@ -61,6 +61,7 @@
 import { computed, inject, nextTick, ref } from "vue";
 import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
+import { layout } from "@flow/ui-core/layout.js";
 
 import { useAgent } from "./agent.js";
 
@@ -84,7 +85,8 @@ const options = computed(() => {
 function show() {
 	search.value = "";
 	open.value = true;
-	nextTick(() => field.value?.focus());
+	// a phone's list leaves its search for a tap, rather than raise the keyboard over it
+	nextTick(() => layout.phone || field.value?.focus());
 }
 
 function close() {

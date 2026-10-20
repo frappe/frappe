@@ -185,10 +185,14 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 		["review", "Reviews a change"]
 	);
 	const skillField = skills().parentElement.querySelector("input");
+	skillField.value = "nothing like it";
+	skillField.dispatchEvent(new Event("input"));
+	await nextTick();
+	assert.deepEqual(skillNames(), ["Add a skill"], "a search that finds none offers to add one");
 	skillField.value = "change";
 	skillField.dispatchEvent(new Event("input"));
 	await nextTick();
-	assert.deepEqual(skillNames(), ["review", "Add a skill"], "found by its description too");
+	assert.deepEqual(skillNames(), ["review"], "found by its description too, and no row to add");
 	skillRows()[0].click();
 	await nextTick();
 	assert.equal(skillRows().length, 0);
