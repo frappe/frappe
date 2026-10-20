@@ -95,7 +95,7 @@ When it is empty, the name is the site's host name in lowercase, with each run o
 For example, `erp.example.com` becomes `erp_example_com`.
 **Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
 Clients receive instructions during initialization or server discovery.
-They give the site URL, the authenticated user, and the installed apps with their descriptions.
+They give the site URL, the authenticated user, a note that tool arguments follow REST API v2, and the installed apps.
 Use **Agent Instructions** for site-specific guidance. Frappe appends it to these instructions.
 Instructions do not change permissions.
 
