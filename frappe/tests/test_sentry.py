@@ -8,9 +8,15 @@ from werkzeug.wrappers import Request
 
 import frappe
 from frappe.tests import UnitTestCase
-from frappe.utils.sentry import capture_exception, set_scope
+from frappe.utils.sentry import before_send, capture_exception, set_scope
 
 LOGIN_BODY = {"usr": "test@example.com", "pwd": "pw-1"}
+SECRET_DOC = json.dumps({"doctype": "Email Account", "password": "pw-4"})
+# Built from a name so the secrets don't sit in frame locals of the failing code, which Sentry captures.
+REQUESTS = {
+	"login": lambda: Request.from_values("/api/method/login", method="POST", json=LOGIN_BODY),
+	"query": lambda: Request.from_values("/api/method/ping?pwd=pw-3&cmd=ping"),
+}
 
 
 class TestSentryScope(UnitTestCase):
@@ -67,15 +73,49 @@ class TestSentryRequestBody(UnitTestCase):
 		self.assertNotIn("pw-1", json.dumps(cleaned))
 		self.assertNotIn("pw-2", json.dumps(cleaned))
 
+	def test_sanitize_body_handles_deep_nesting(self):
+		from frappe.utils.sentry import sanitize_body
+
+		depth = 500
+		deep = "[" * depth + "]" * depth
+		self.assertEqual(sanitize_body({"doc": deep, "usr": "test@example.com"})["usr"], "test@example.com")
+		self.assertIn("********", json.dumps(sanitize_body(deep)))
+
+	def test_secret_key_match_ignores_case(self):
+		from frappe.utils.logger import sanitized_dict
+
+		masked = sanitized_dict({"Password": "pw-1", "apiKey": "pw-2", "clientSecret": "pw-3", "usr": "u"})
+		self.assertEqual(
+			masked, {"Password": "********", "apiKey": "********", "clientSecret": "********", "usr": "u"}
+		)
+
 	def test_captured_event_has_no_request_secrets(self):
+		sent = self.capture_error_event("login")
+
+		self.assertEqual(len(sent), 1)
+		self.assertNotIn("pw-1", json.dumps(sent))
+		self.assertIn("test@example.com", json.dumps(sent))
+
+	def test_captured_event_masks_frame_vars_and_query_string(self):
+		sent = self.capture_error_event("query", doc=SECRET_DOC)
+
+		payload = json.dumps(sent)
+		self.assertNotIn("pw-3", payload)
+		self.assertNotIn("pw-4", payload)
+		self.assertIn("cmd=ping", payload)
+		self.assertIn("Email Account", payload)
+
+	def capture_error_event(self, request_name, doc=None):
 		sent = []
 
 		class RecordingTransport(Transport):
 			def capture_envelope(self, envelope):
 				sent.extend(item.payload.json for item in envelope.items if item.payload.json)
 
-		client = sentry_sdk.Client(dsn="https://key@example.com/1", transport=RecordingTransport)
-		frappe.local.request = Request.from_values("/api/method/login", method="POST", json=LOGIN_BODY)
+		client = sentry_sdk.Client(
+			dsn="https://key@example.com/1", transport=RecordingTransport, before_send=before_send
+		)
+		frappe.local.request = REQUESTS[request_name]()
 		self.addCleanup(setattr, frappe.local, "request", None)
 
 		with (
@@ -84,11 +124,13 @@ class TestSentryRequestBody(UnitTestCase):
 		):
 			scope.set_client(client)
 			try:
-				raise RuntimeError("test error")
+				raise_error(doc)
 			except RuntimeError:
 				capture_exception()
 			client.flush()
 
-		self.assertEqual(len(sent), 1)
-		self.assertNotIn("pw-1", json.dumps(sent))
-		self.assertIn("test@example.com", json.dumps(sent))
+		return sent
+
+
+def raise_error(doc):
+	raise RuntimeError("test error")
