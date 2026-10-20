@@ -71,6 +71,8 @@ def list_documents(
 		documents = v2.document_list(doctype)
 		# The REST handler's pagination metadata belongs to its temporary response.
 		has_next_page = bool(frappe.response.get("has_next_page"))
+	if not fields or fields == ["name"]:
+		return {"names": [document["name"] for document in documents], "has_next_page": has_next_page}
 	return {"documents": documents, "has_next_page": has_next_page}
 
 

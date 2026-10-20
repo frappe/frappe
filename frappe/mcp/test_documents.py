@@ -59,7 +59,7 @@ class TestGetDocuments(McpTestCase):
 
 	def test_list_and_count_hide_other_users_document(self):
 		result = self.result(doctype="ToDo", filters=self.filters)
-		self.assertEqual({row["name"] for row in result["documents"]}, set(self.names[:3]))
+		self.assertEqual(set(result["names"]), set(self.names[:3]))
 		self.assertEqual(
 			self.result(doctype="ToDo", filters=self.filters, tool="count_documents")["result"], 3
 		)
@@ -67,7 +67,7 @@ class TestGetDocuments(McpTestCase):
 	def test_default_page_and_fields(self):
 		result = self.result(doctype="ToDo", filters=self.filters)
 		self.assertFalse(result["has_next_page"])
-		self.assertEqual(set(result["documents"][0]), {"name"})
+		self.assertEqual(set(result["names"]), set(self.names[:3]))
 
 	def test_pagination_and_field_selection(self):
 		first = self.result(
@@ -82,12 +82,12 @@ class TestGetDocuments(McpTestCase):
 		)
 		self.assertTrue(first["has_next_page"])
 		last = self.result(doctype="ToDo", filters=self.filters, order_by="description asc", start=2, limit=2)
-		self.assertEqual([row["name"] for row in last["documents"]], [self.names[2]])
+		self.assertEqual(last["names"], [self.names[2]])
 		self.assertFalse(last["has_next_page"])
 
 	def test_operator_filters(self):
 		result = self.result(doctype="ToDo", filters=[["name", "in", self.names[:2]]])
-		self.assertEqual({row["name"] for row in result["documents"]}, set(self.names[:2]))
+		self.assertEqual(set(result["names"]), set(self.names[:2]))
 		self.assertEqual(
 			self.result(doctype="ToDo", filters=[["name", "in", self.names[:2]]], tool="count_documents")[
 				"result"
@@ -98,13 +98,13 @@ class TestGetDocuments(McpTestCase):
 	def test_empty_results_and_count(self):
 		filters = {"name": "MCP nonexistent document"}
 		result = self.result(doctype="ToDo", filters=filters)
-		self.assertEqual(result["documents"], [])
+		self.assertEqual(result["names"], [])
 		self.assertFalse(result["has_next_page"])
 		self.assertEqual(self.result(doctype="ToDo", filters=filters, tool="count_documents")["result"], 0)
 
 	def test_no_mcp_page_size_cap(self):
 		result = self.result(doctype="ToDo", filters=self.filters, limit=101)
-		self.assertEqual(len(result["documents"]), 3)
+		self.assertEqual(len(result["names"]), 3)
 
 	def test_missing_document_and_doctype(self):
 		for arguments in (
@@ -161,7 +161,7 @@ class TestGetDocuments(McpTestCase):
 
 		with patch.object(ToDo, "get_list", staticmethod(get_list), create=True):
 			result = self.result(doctype="ToDo", filters=self.filters)
-		self.assertEqual([row["name"] for row in result["documents"]], [self.names[1]])
+		self.assertEqual(result["names"], [self.names[1]])
 
 	def test_mcp_matches_rest_list_and_count(self):
 		arguments = {
@@ -189,8 +189,8 @@ class TestGetDocuments(McpTestCase):
 
 	def test_exact_page_and_past_last_page(self):
 		result = self.result(doctype="ToDo", filters=self.filters, limit=3)
-		self.assertEqual(len(result["documents"]), 3)
+		self.assertEqual(len(result["names"]), 3)
 		self.assertFalse(result["has_next_page"])
 		result = self.result(doctype="ToDo", filters=self.filters, start=3)
-		self.assertEqual(result["documents"], [])
+		self.assertEqual(result["names"], [])
 		self.assertFalse(result["has_next_page"])
