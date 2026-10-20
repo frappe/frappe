@@ -17,6 +17,7 @@ from frappe.model import (
 	display_fieldtypes,
 	float_like_fields,
 	get_permitted_fields,
+	numeric_fieldtypes,
 	table_fields,
 )
 from frappe.model.docstatus import DocStatus
@@ -922,7 +923,7 @@ class BaseDocument:
 			frappe.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
 
 	def _fix_numeric_types(self):
-		for df in self.meta.get("fields"):
+		for df in self.meta.get("fields", {"fieldtype": ("in", numeric_fieldtypes)}):
 			if df.fieldtype == "Check":
 				self.set(df.fieldname, cint(self.get(df.fieldname)))
 
