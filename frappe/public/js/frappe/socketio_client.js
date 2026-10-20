@@ -71,6 +71,9 @@ class RealTimeClient {
 			return;
 		}
 
+		// The server forgets a socket's rooms when it reconnects.
+		this.socket.io.on("reconnect", () => this.restore_subscriptions());
+
 		this.socket.on("connect_error", function (err) {
 			console.error("Error connecting to socket.io:", err.message);
 		});
@@ -156,6 +159,15 @@ class RealTimeClient {
 		}
 		this.subscribed_doctypes.delete(doctype);
 		this.emit("doctype_unsubscribe", doctype);
+	}
+	restore_subscriptions() {
+		for (const doctype of this.subscribed_doctypes.keys()) {
+			this.emit("doctype_subscribe", doctype);
+		}
+		for (const doc of this.open_docs) {
+			const separator = doc.indexOf(":");
+			this.emit("doc_subscribe", doc.slice(0, separator), doc.slice(separator + 1));
+		}
 	}
 	doc_subscribe(doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
