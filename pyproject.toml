@@ -40,7 +40,7 @@ dependencies = [
     "Faker~=40.43.0",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
     "html5lib~=1.1",
-    "ipython~=9.14.0",
+    "ipython~=9.17.1",
     "ldap3~=2.9.1",
     "markdown2~=2.5.4",
     "MarkupSafe~=3.0.3",
