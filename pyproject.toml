@@ -90,7 +90,7 @@ dependencies = [
     "google-auth~=2.62.0",
     "vobject~=0.9.9",
     "pycountry~=26.2.16",
-    "websockets~=15.0.1",
+    "websockets~=17.2",
     # realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4,
     # wire-compatible with the browser's socket.io-client ^4.7.1.
     # Pin exact versions after a manual handshake check (polling + websocket upgrade).
