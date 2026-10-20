@@ -14,11 +14,7 @@ import frappe
 from frappe import _
 from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.desk.form.load import get_attachments
-<<<<<<< HEAD
-from frappe.desk.query_report import generate_report_result
-=======
-from frappe.desk.query_report import generate_report_result, get_reference_report, get_user_facing_error
->>>>>>> a6da97a (fix: show prepared report errors in the report view (#43534))
+from frappe.desk.query_report import generate_report_result, get_user_facing_error
 from frappe.model.document import Document
 from frappe.monitor import add_data_to_monitor
 from frappe.utils import add_to_date, get_url_to_report_with_filters, now
@@ -133,21 +129,6 @@ def generate_report(prepared_report):
 
 		instance.status = "Completed"
 
-<<<<<<< HEAD
-		frappe.get_doc(
-			{
-				"doctype": "Notification Log",
-				"subject": f"{instance.report_name} report is ready.",
-				"for_user": frappe.session.user,
-				"type": "Alert",
-				"document_type": "Report",
-				"document_name": report.name,
-				"link": f"/desk/query-report/{report.name}?prepared_report_name={instance.name}",
-			}
-		).insert(ignore_permissions=True)
-
-=======
->>>>>>> a6da97a (fix: show prepared report errors in the report view (#43534))
 	except Exception:
 		# we need to ensure that error gets stored
 		_save_error(instance, error=frappe.get_traceback(with_context=True))
