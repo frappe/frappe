@@ -608,9 +608,14 @@ frappe.ui.Sidebar = class Sidebar {
 	}
 
 	empty() {
+<<<<<<< HEAD
 		if (this.wrapper.find(".sidebar-items")[0]) {
 			this.wrapper.find(".sidebar-items").html("");
 		}
+=======
+		this.$items_container.html("");
+		this.items = [];
+>>>>>>> bbc05c7 (fix(sidebar): open the active item's group after switching shells)
 	}
 	make_sidebar() {
 		this.empty();
