@@ -299,7 +299,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 		this.$save = frappe.ui.button({
 			label: __("Save"),
-			variant: "solid",
+			variant: "ghost",
 			disabled: !this.is_dirty(),
 			onclick: () => this.save(),
 		});
@@ -307,7 +307,11 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		$foot.append(
 			$more,
 			`<span class="ws-foot-spacer"></span>`,
-			frappe.ui.button({ label: __("Cancel"), onclick: () => this.cancel() }),
+			frappe.ui.button({
+				label: __("Cancel"),
+				variant: "ghost",
+				onclick: () => this.cancel(),
+			}),
 			this.$save
 		);
 	}
@@ -833,7 +837,7 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 			this.$wrapper.find(".ws-panel-foot").append(
 				frappe.ui.button({
 					label: this.primary_label,
-					variant: "solid",
+					variant: "ghost",
 					onclick: submit,
 				})
 			);
