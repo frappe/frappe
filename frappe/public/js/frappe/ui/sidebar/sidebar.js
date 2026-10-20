@@ -420,26 +420,7 @@ frappe.ui.Sidebar = class Sidebar {
 						// A module in no app has no dock to arrange, and a phone has no room
 						// beside the drawer to arrange one in.
 						condition: () => !!me.get_sidebar_app() && !frappe.is_mobile(),
-						onclick: function () {
-							// Not in the desk bundle, so it is loaded on click.
-							frappe
-								.require("arrangement_editor.bundle.js")
-								.then(() =>
-									frappe.ui.ArrangementEditor.start(frappe.ui.DockManager)
-								)
-								.catch((e) => {
-									console.error(
-										"Sidebar: failed to load arrangement_editor.bundle.js",
-										e
-									);
-									frappe.ui.toast({
-										message: __(
-											"Could not open the dock manager. Please refresh the page."
-										),
-										type: "error",
-									});
-								});
-						},
+						onclick: () => me.dock?.edit(),
 					},
 					{
 						name: "reload",
@@ -938,6 +919,16 @@ frappe.ui.Sidebar = class Sidebar {
 		return $(`<div class="sidebar-editor"></div>`).appendTo(
 			this.wrapper.find(".body-sidebar")
 		);
+	}
+
+	// An editor drawn somewhere other than this column, such as on the dock, is still told when
+	// the desk moves (see `select_shell`).
+	watch_editor(editor) {
+		this.editor = editor;
+	}
+
+	unwatch_editor(editor) {
+		if (this.editor === editor) this.editor = null;
 	}
 
 	end_editing(editor) {

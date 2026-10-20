@@ -30,6 +30,7 @@ const SIDEBAR_LAYERS = {
 		save: "frappe.desk.doctype.custom_sidebar.custom_sidebar.save_sidebar_customization",
 		reset: "frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_user_sidebar",
 		label: () => __("Just for me"),
+		phrase: () => __("just for me"),
 		saved: () => __("Sidebar updated"),
 	},
 	site: {
@@ -37,6 +38,7 @@ const SIDEBAR_LAYERS = {
 		save: "frappe.desk.doctype.custom_sidebar.custom_sidebar.save_site_sidebar",
 		reset: "frappe.desk.doctype.custom_sidebar.custom_sidebar.reset_site_sidebar",
 		label: () => __("For everyone"),
+		phrase: () => __("for everyone"),
 		condition: () => frappe.user.has_role("Workspace Manager"),
 		saved: () => __("Sidebar updated for everyone"),
 	},
@@ -46,7 +48,7 @@ const SIDEBAR_LAYERS = {
 	// mode -- the same condition `validate_app_content` puts on writing a `Sidebar` by any other
 	// route, and the reason there is no role check beside it.
 	//
-	// It carries no `label` here. The other two are named after a circle of people and this one
+	// It carries no `label` or `phrase` here. The other two are named after a circle of people and this one
 	// is named after the app, which is not known until `prepare` has found the module, so
 	// `layers` binds it.
 	app: {
@@ -77,7 +79,11 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		// goes rather than everywhere on this site.
 		const layers = {
 			...SIDEBAR_LAYERS,
-			app: { ...SIDEBAR_LAYERS.app, label: () => __("For {0}", [this.app_of_sidebar()]) },
+			app: {
+				...SIDEBAR_LAYERS.app,
+				label: () => __("For {0}", [this.app_of_sidebar()]),
+				phrase: () => __("for {0}", [this.app_of_sidebar()]),
+			},
 		};
 
 		// The Private shell holds the pages this user made, so the only circle of people it has
@@ -99,9 +105,13 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 
 	// The app this sidebar is exported into, which is what its layer is called after. Both a
 	// shipped sidebar and a computed one carry it, so there is nearly always an answer; a module
-	// no app places has none, and the layer is called after the app in the abstract.
+	// no app places has none, and the layer is called after the app in the abstract. Named by the
+	// app's title, "ERPNext" rather than "erpnext", where the desk knows it.
 	app_of_sidebar() {
-		return (frappe.boot.module_sidebars[this.shell] || {}).app || __("the app");
+		const app = (frappe.boot.module_sidebars[this.shell] || {}).app;
+		if (!app) return __("the app");
+		const data = (frappe.boot.app_data || []).find((a) => a.app_name === app);
+		return __(data?.app_title || app);
 	}
 
 	// Whether a layer above the one being edited is arranging this sidebar for the person

@@ -57,6 +57,7 @@ frappe.ui.Dock = class Dock {
 		this.render_utilities();
 		this.setup_reveal();
 		this.setup_shortcut();
+		this.setup_drag_to_edit();
 		this.apply_open_state();
 	}
 
@@ -65,31 +66,75 @@ frappe.ui.Dock = class Dock {
 		this.apply_pin();
 	}
 
-	// Held open while it is being arranged, so a floating dock stays beside the list changing it.
+	// Held open while it is being arranged. A floating dock stays floating, so it does not slide
+	// away from the edit in progress, and a pinned one stays a column.
 	hold_open(held) {
 		this.held = held;
-		this.apply_pin();
+		if (held) this.open();
+		else this.close();
 	}
 
-	// Draw these entries instead of the saved rail, until called with null. The dock editor keeps
-	// the rail in step with the arrangement on screen this way.
-	show_preview(entries) {
-		this.preview_entries = entries;
+	// Hand the tiles to an arrangement editor, which draws its own in their place until
+	// `end_editing`. Returns the node it draws in.
+	begin_editing(editor) {
+		this.editor = editor;
+		this.sortable?.option("disabled", true);
+		this.tooltips.forEach((tip) => tip.destroy());
+		this.tooltips = [];
+		this.$dock.addClass("dock-editing");
+		this.$add_slot = $(`<div class="dock-add-slot"></div>`).insertAfter(this.$items);
+		return this.$items;
+	}
+
+	end_editing(editor) {
+		if (this.editor !== editor) return;
+		this.editor = null;
+		this.$dock.removeClass("dock-editing");
+		this.$add_slot?.remove();
+		this.sortable?.option("disabled", false);
+		this.rendered = null;
 		this.refresh();
 	}
 
-	// Mark the tile for one entry key, or none.
-	highlight(key) {
-		this.$items.find(".dock-item").each((_, el) => {
-			el.classList.toggle("is-highlighted", !!key && el.dataset.key === key);
+	// Open the dock's editor. It is not in the desk bundle, so it is loaded first.
+	edit(opts) {
+		return frappe
+			.require("arrangement_editor.bundle.js")
+			.then(() => frappe.ui.ArrangementEditor.start(frappe.ui.DockManager, opts))
+			.catch((e) => {
+				console.error("Dock: failed to load arrangement_editor.bundle.js", e);
+				frappe.ui.toast({
+					message: __("Could not open the dock manager. Please refresh the page."),
+					type: "error",
+				});
+			});
+	}
+
+	// Dragging a tile is a way into arranging the dock: the drop opens the editor with the tiles
+	// in the order they were dropped, as its first unsaved change.
+	setup_drag_to_edit() {
+		this.sortable = new Sortable(this.$items[0], {
+			draggable: ".dock-item",
+			animation: 150,
+			onStart: () => {
+				this.dragged = true;
+				this.tooltips.forEach((tip) => tip.hide());
+			},
+			onEnd: (evt) => {
+				setTimeout(() => (this.dragged = false));
+				if (evt.oldIndex === evt.newIndex) return;
+				const order = $.map(this.$items.find(".dock-item"), (el) => el.dataset.key);
+				this.edit({ order });
+			},
 		});
+		if (frappe.is_mobile()) this.sortable.option("disabled", true);
 	}
 
 	// A touch screen cannot summon a floating dock, and a page without the sidebar has no other
 	// switcher, so the dock is pinned there whatever the preference.
 	should_pin() {
 		if (!this.enabled) return false;
-		if (this.pinned || this.held) return true;
+		if (this.pinned) return true;
 		return !!this.sidebar.current_page()?.hide_sidebar && !frappe.ui.Dock.pointer_can_reveal();
 	}
 
@@ -276,7 +321,7 @@ frappe.ui.Dock = class Dock {
 	}
 
 	close() {
-		if (!this.is_open || this.is_pinned) return;
+		if (!this.is_open || this.is_pinned || this.held) return;
 		const had_focus = this.holds_focus();
 		const opener = this.opener;
 		this.opener = null;
@@ -309,11 +354,10 @@ frappe.ui.Dock = class Dock {
 			return;
 		}
 		this.$dock.removeClass("hidden");
+		if (this.editor) return;
 
 		// One navigation calls this up to three times, so skip the rebuild when nothing drawn changed.
-		const entries = (
-			this.preview_entries || this.sidebar.collect_dock_entries(this.app)
-		).filter(Boolean);
+		const entries = this.sidebar.collect_dock_entries(this.app).filter(Boolean);
 		const signature = JSON.stringify([
 			this.app ? this.app.app_name : null,
 			this.sidebar.current_module,
@@ -410,6 +454,7 @@ frappe.ui.Dock = class Dock {
 		this.name_tile($item, label);
 
 		$item.on("click", () => {
+			if (this.dragged) return;
 			this.close();
 			this.sidebar.open_dock_entry(entry);
 		});

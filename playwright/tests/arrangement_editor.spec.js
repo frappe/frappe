@@ -87,12 +87,14 @@ async function open_editor(page, { hidden = [], can_curate = false } = {}) {
 							read: "read.user",
 							save: "save.user",
 							label: () => "Just for me",
+							phrase: () => "just for me",
 							saved: () => "Saved",
 						},
 						site: {
 							read: "read.site",
 							save: "save.site",
 							label: () => "For everyone",
+							phrase: () => "for everyone",
 							condition: () => this.can_curate_site,
 							saved: () => "Saved for everyone",
 						},
@@ -244,24 +246,27 @@ test.describe("Arrangement editor", () => {
 		await open_editor(page, { can_curate: true });
 
 		// Arranging for everyone is what the permission is for, so that is the layer it opens on.
-		const layer_switch = page.locator(".ws-layer-switch");
-		await expect(layer_switch).toContainText("For everyone");
-		await layer_switch.click();
+		// The header names it after the module, and its menu is the layers while editing.
+		const phrase = page.locator(".sidebar-header .ws-layer-phrase");
+		await expect(phrase).toHaveText("for everyone");
+		await page.locator(".sidebar-header").click();
 		await page.locator('.es-menu [role="menuitem"]', { hasText: "Just for me" }).click();
 
 		// The other layer is a different arrangement, so it is read rather than filtered.
-		await expect(layer_switch).toContainText("Just for me");
+		await expect(phrase).toHaveText("just for me");
 		await expect(page.locator(".ws-row")).toHaveCount(3);
 		await expect.poll(() => stubbed_calls(page)).toEqual(["read.site", "read.user"]);
 	});
 
-	test("names the one layer somebody who may not curate for everyone has", async ({ page }) => {
+	test("offers no layer switch to somebody who may not curate for everyone", async ({
+		page,
+	}) => {
 		await stub_xcall(page, { "read.user": ENTRIES });
 		await open_editor(page);
 
 		await expect(page.locator(".ws-row")).toHaveCount(3);
-		await expect(page.locator(".ws-layer-switch")).toHaveCount(0);
-		await expect(page.locator(".ws-layer-name")).toHaveText("Just for me");
+		await expect(page.locator(".sidebar-header .ws-layer-phrase")).toHaveText("just for me");
+		await expect(page.locator(".sidebar-header .ws-layer-switch svg")).toHaveCount(0);
 		expect(await stubbed_calls(page)).toEqual(["read.user"]);
 	});
 
@@ -352,6 +357,15 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 			)
 		);
 		await open_sidebar_editor(page, { [READ]: ITEMS, [SAVE]: { module_sidebars } });
+	});
+
+	test("keeps the first row where the sidebar draws its first link", async ({ page }) => {
+		await page.evaluate(() => window.__editor.close());
+		const live = await page.locator(".sidebar-items .item-anchor").first().boundingBox();
+		await open_sidebar_editor(page, { [READ]: ITEMS, [SAVE]: { module_sidebars } });
+
+		const editing = await page.locator(".ws-row").first().boundingBox();
+		expect(Math.abs(editing.y - live.y)).toBeLessThanOrEqual(1);
 	});
 
 	test("draws each entry the way the sidebar draws it", async ({ page }) => {
@@ -462,7 +476,7 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 	test("takes a row off your own sidebar with the cross, which leaves the list and saves it hidden", async ({
 		page,
 	}) => {
-		await expect(page.locator(".ws-layer-name")).toHaveText("Just for me");
+		await expect(page.locator(".sidebar-header .ws-layer-phrase")).toHaveText("just for me");
 		await expect(page.locator(".ws-row .ws-eye")).toHaveCount(0);
 		await row_control(page, 0, ".ws-remove").click({ force: true });
 		await expect(page.locator(".ws-row")).toHaveCount(2);
@@ -485,7 +499,7 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 		});
 		await open_sidebar_editor(page, { [SITE_READ]: ITEMS, [SITE_SAVE]: { module_sidebars } });
 
-		await expect(page.locator(".ws-layer-switch")).toContainText("For everyone");
+		await expect(page.locator(".sidebar-header .ws-layer-phrase")).toHaveText("for everyone");
 		await expect(row_control(page, 0, ".ws-eye")).toHaveCount(0);
 		await row_control(page, 0, ".ws-remove").click({ force: true });
 		await expect(page.locator(".ws-row")).toHaveCount(2);
@@ -573,6 +587,10 @@ test.describe("Arrangement editor: an app's dock", () => {
 
 	let modules;
 
+	const bar_button = (page, label) =>
+		page.locator(".ws-bar .ws-foot").getByRole("button", { name: label });
+	const tiles = (page) => page.locator("#desk-dock .ws-tile");
+
 	test.beforeEach(async ({ page, desk }) => {
 		await open_desk(page, desk);
 		await as_plain_user(page);
@@ -593,35 +611,88 @@ test.describe("Arrangement editor: an app's dock", () => {
 			};
 			frappe.app.sidebar.get_sidebar_app = () => app;
 			frappe.app.sidebar.dock_enabled = () => true;
-			window.__editor = new frappe.ui.DockManager();
+			// The rail draws the site's resolved arrangement for the app, so it is this one too.
+			delete frappe.boot.dock?.[app.app_name];
+			frappe.app.sidebar.refresh_dock();
 		}, modules);
 	});
 
-	test("lists the app's entries in the sidebar's column and holds the rail open beside it", async ({
-		page,
-	}) => {
-		await expect(page.locator(".sidebar-editor .ws-row")).toHaveCount(modules.length);
-		await expect(page.locator("body")).toHaveClass(with_class("dock-pinned"));
-		await expect(page.locator("#desk-dock .dock-items .dock-item")).toHaveCount(
-			modules.length
-		);
+	async function open_dock_editor(page) {
+		await page.evaluate(() => (window.__editor = new frappe.ui.DockManager()));
+		await expect(tiles(page)).toHaveCount(modules.length);
+	}
+
+	test("edits the rail's own tiles, leaving the sidebar as it is", async ({ page }) => {
+		await open_dock_editor(page);
+
+		await expect(page.locator(".sidebar-editor")).toHaveCount(0);
+		await expect(page.locator(".ws-bar .ws-bar-name")).toHaveText("Dock");
+		await expect(page.locator(".ws-bar .ws-layer-phrase")).toHaveText("just for me");
 	});
 
-	test("redraws the rail from the list as the eye takes an entry off", async ({ page }) => {
-		await row_control(page, 0, ".ws-eye").click({ force: true });
+	test("holds a floating rail open without pinning it", async ({ page }) => {
+		await page.evaluate(() => frappe.app.sidebar.dock.set_pinned(false));
+		await open_dock_editor(page);
 
-		await expect(page.locator(".ws-row")).toHaveCount(modules.length);
-		await expect(page.locator("#desk-dock .dock-items .dock-item")).toHaveCount(
-			modules.length - 1
-		);
+		await expect(page.locator("body")).toHaveClass(with_class("dock-open"));
+		await expect(page.locator("body")).not.toHaveClass(with_class("dock-pinned"));
+		// A click away from a floating rail would put it away; while it is edited it stays.
+		await page.locator(".page-head, .layout-main").first().click({ force: true });
+		await expect(page.locator("body")).toHaveClass(with_class("dock-open"));
+
+		await bar_button(page, "Cancel").click();
+		await expect(page.locator(".ws-bar")).toHaveCount(0);
+		await expect(page.locator("body")).not.toHaveClass(with_class("dock-open"));
+	});
+
+	test("takes a tile off the rail with its cross, and saves it hidden", async ({ page }) => {
+		await open_dock_editor(page);
+		await tiles(page).first().locator(".ws-remove").click({ force: true });
+		await expect(tiles(page)).toHaveCount(modules.length - 1);
+
+		await bar_button(page, "Save").click();
+		const rows = await saved_rows(page, SAVE);
+		expect(rows.find((row) => row.link_to === modules[0]).hidden).toBe(1);
+	});
+
+	test("opens a tile's label and icon beside the rail, and saves what was changed", async ({
+		page,
+	}) => {
+		await open_dock_editor(page);
+		await tiles(page).first().click();
+		await expect(page.locator(".ws-panel")).toBeVisible();
+
+		// The panel passes changes on once it has settled.
+		await page.waitForFunction(() => window.__editor.panel.ready);
+		await page.evaluate(() => window.__editor.panel.field_group.set_value("title", "Renamed"));
+		await expect(tiles(page).first()).toHaveAttribute("aria-label", "Renamed");
+
+		await bar_button(page, "Save").click();
+		const rows = await saved_rows(page, SAVE);
+		expect(rows.find((row) => row.link_to === modules[0]).title).toBe("Renamed");
+	});
+
+	test("opens the editor when a tile is dragged, with the drop as its first change", async ({
+		page,
+	}) => {
+		const items = page.locator("#desk-dock .dock-items .dock-item");
+		await expect(items).toHaveCount(modules.length);
+		await items.nth(1).dragTo(items.nth(0));
+
+		await expect(tiles(page)).toHaveCount(modules.length);
+		await expect(bar_button(page, "Save")).toBeEnabled();
+		await bar_button(page, "Save").click();
+		const rows = await saved_rows(page, SAVE);
+		expect(rows.map((row) => row.link_to)).toEqual([modules[1], modules[0]]);
 	});
 
 	test("stores no row for the app at all when Reset takes everything off", async ({ page }) => {
-		await page.locator(".ws-more").click();
+		await open_dock_editor(page);
+		await page.locator(".ws-bar .ws-more").click();
 		await page.locator('.es-menu [role="menuitem"]', { hasText: "Reset" }).first().click();
-		await expect(page.locator(".ws-row.is-hidden")).toHaveCount(modules.length);
+		await expect(tiles(page)).toHaveCount(0);
 
-		await foot_button(page, "Save").click();
+		await bar_button(page, "Save").click();
 		// An empty dock is not stored as an empty dock: no row is stored for this app at all, so
 		// the layer below shows through instead.
 		expect(await saved_rows(page, SAVE)).toEqual([]);

@@ -2,12 +2,46 @@
 // It is drawn in the sidebar's own column, so its rows are sidebar rows: the sidebar's styles draw
 // them, and this file adds only what editing needs on top.
 
-// The header stays as it is, and the editor takes the place of the bands under it. The edge that
-// would fold the column to its rail steps aside.
+// The editor takes the place of the bands under the header. The edge that would fold the column
+// to its rail steps aside.
 .body-sidebar-container.sidebar-editing {
 	.body-sidebar > :not(.sidebar-header):not(.sidebar-editor),
 	.sidebar-edge,
 	.sidebar-collapse-arrow {
+		display: none;
+	}
+
+	// The header keeps its place and size, and names the layer where its chevron was, so the
+	// title reads "Stock for everyone".
+	.sidebar-header .drop-icon {
+		display: none;
+	}
+}
+
+// The layer being edited, after a surface's name. Quieter than the name it finishes.
+.ws-layer-switch {
+	display: flex;
+	flex-shrink: 0;
+	align-items: center;
+	gap: calc(var(--spacing) * 0.5);
+	font-size: var(--text-base);
+	color: var(--ink-gray-5);
+	cursor: pointer;
+
+	.ws-layer-phrase {
+		@include truncate();
+	}
+
+	&:hover {
+		color: var(--ink-gray-7);
+	}
+}
+
+.header-layer {
+	display: flex;
+	min-width: 0;
+
+	&:empty {
 		display: none;
 	}
 }
@@ -17,28 +51,6 @@
 	flex: 1;
 	flex-direction: column;
 	min-height: 0;
-
-	// Under the header: the layer switch.
-	.ws-head {
-		border-top: 1px solid var(--outline-gray-1);
-		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 1.5);
-		border-bottom: 1px solid var(--outline-gray-1);
-	}
-
-	.ws-layer {
-		.ws-layer-switch {
-			width: 100%;
-			justify-content: space-between;
-			font-size: var(--text-base);
-			color: var(--ink-gray-8);
-		}
-
-		.ws-layer-name {
-			padding: var(--spacing) calc(var(--spacing) * 2);
-			font-size: var(--text-base);
-			color: var(--ink-gray-8);
-		}
-	}
 
 	// A reading rather than an affordance: quieter than the rows, with no control of its own.
 	.ws-note {
@@ -57,7 +69,7 @@
 		flex: 1;
 		min-height: 0;
 		overflow-y: auto;
-		padding: calc(var(--spacing) * 2) calc(var(--spacing) * 2) calc(var(--spacing) * 10);
+		padding: calc(var(--spacing) * 0.5) calc(var(--spacing) * 2) calc(var(--spacing) * 10);
 	}
 
 	.ws-list {
@@ -294,8 +306,128 @@
 	}
 }
 
-// The rail's tile for the row under the pointer in the dock editor.
-.dock-item.is-highlighted {
-	outline: 2px solid var(--outline-gray-4);
-	outline-offset: 2px;
+// The dock while it is arranged. The editor's rows are its tiles, drawn as the rail draws them,
+// with the cross on the corner.
+.dock.dock-editing {
+	.ws-tile {
+		min-height: 0;
+		cursor: grab;
+
+		&:hover,
+		&.is-open {
+			background: none;
+			box-shadow: none;
+		}
+
+		&.is-open .dock-item {
+			outline: 2px solid var(--outline-gray-4);
+			outline-offset: 2px;
+		}
+
+		.ws-row-body {
+			flex: none;
+		}
+
+		.ws-row-controls {
+			position: absolute;
+			top: calc(var(--spacing) * -1);
+			right: calc(var(--spacing) * -1);
+			padding: 0;
+		}
+
+		.ws-remove {
+			width: calc(var(--spacing) * 4);
+			height: calc(var(--spacing) * 4);
+			min-width: 0;
+			padding: 0;
+			border-radius: var(--radius-full);
+			background: var(--surface-gray-7);
+			color: var(--ink-white);
+		}
+	}
+
+	.ws-empty {
+		padding: calc(var(--spacing) * 2) 0;
+		font-size: var(--text-xs);
+		color: var(--ink-gray-5);
+		text-align: center;
+	}
+}
+
+// The tile that opens the Add form, under the others.
+.dock-add-slot {
+	display: flex;
+	justify-content: center;
+	margin-top: var(--spacing);
+
+	.ws-add-row {
+		justify-content: center;
+		width: var(--dock-tile);
+		height: var(--dock-tile);
+		margin: 0;
+		padding: 0;
+		border: 1px dashed var(--outline-gray-3);
+		border-radius: var(--radius-4);
+
+		// Named by its tooltip, as the tiles are; the words stay for assistive technology.
+		span {
+			position: absolute;
+			width: 1px;
+			height: 1px;
+			overflow: hidden;
+			clip-path: inset(50%);
+			white-space: nowrap;
+		}
+	}
+}
+
+// The dock editor's controls, in a bar in the screen's corner that its grip drags elsewhere.
+.ws-bar {
+	position: fixed;
+	left: calc(var(--spacing) * 2);
+	bottom: calc(var(--spacing) * 2);
+	z-index: 1040;
+	display: flex;
+	align-items: center;
+	gap: var(--spacing);
+	padding: var(--spacing);
+	border: 1px solid var(--outline-gray-2);
+	border-radius: var(--radius-xl);
+	background: var(--surface-base);
+	box-shadow: var(--shadow-xl);
+
+	.ws-bar-grip {
+		display: flex;
+		color: var(--ink-gray-4);
+		cursor: grab;
+		touch-action: none;
+	}
+
+	.ws-bar-title {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing);
+		padding-right: var(--spacing);
+	}
+
+	.ws-bar-name {
+		font-size: var(--text-base);
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
+	}
+
+	.ws-note {
+		display: flex;
+		color: var(--ink-gray-5);
+
+		&.hidden {
+			display: none;
+		}
+	}
+
+	.ws-foot {
+		display: flex;
+		align-items: center;
+		gap: var(--spacing);
+	}
 }

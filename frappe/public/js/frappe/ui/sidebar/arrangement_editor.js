@@ -7,12 +7,11 @@
 // layer is applied. That is all the layer switch changes: both layers hold the same rows, arranged
 // the same way, saved through endpoints that differ only in where they write.
 //
-// The editor is drawn inline, in the sidebar's own column. The column's header becomes the layer
-// switch and its footer holds Cancel and Save. The list holds every entry the surface offers, in
-// one order, and the eye on a row is all there is to being on the surface or hidden, so a hidden
-// entry keeps its place instead of moving to a pool at the end. Each row draws the way the surface
-// draws it, so the list is its own preview. Fields for one entry, and the form that adds one, open
-// in a panel beside the column, level with the row they belong to.
+// The editor is drawn on the surface itself, so the surface is its own preview. A sidebar is
+// edited in its own column: the header names the layer after the module, as in "Stock for
+// everyone", and the footer holds Cancel and Save. The list holds every entry the surface offers,
+// in one order. Fields for one entry, and the form that adds one, open in a panel beside the
+// surface, level with the row they belong to.
 //
 // An untouched layer starts from the layer below it, as that layer renders. A save writes the
 // whole slice, so seeding from anything else would silently un-hide what a lower layer hid. The
@@ -32,17 +31,18 @@ const ROW_CONTROLS = ".ws-row-controls, .ws-fold";
 frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// Open a surface's editor, unless one is already open. Two editors cannot share the column, so
 	// opening the other one leaves the first, asking about its unsaved changes as leaving does.
-	static start(Surface) {
+	static start(Surface, opts) {
 		if (frappe.is_mobile()) return;
 
 		const current = frappe.ui.ArrangementEditor.current;
-		if (!current) return new Surface();
+		if (!current) return new Surface(opts);
 		if (current instanceof Surface) return current;
 
-		current.leave(() => new Surface(), { on_stay: () => {} });
+		current.leave(() => new Surface(opts), { on_stay: () => {} });
 	}
 
-	constructor() {
+	constructor(opts = {}) {
+		this.opts = opts;
 		this.make();
 	}
 
@@ -50,9 +50,10 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// What a surface supplies. Everything below this block is the same for both surfaces.
 	// -------------------------------------------------------------------------------------------
 
-	// `{user: {read, save, saved(), label(), condition?}, site: {...}}`: where a layer is read
-	// from, where it is written back to, what to call it in the switch, and what to say once it
-	// lands. A layer whose `condition` returns false is not offered.
+	// `{user: {read, save, saved(), label(), phrase(), condition?}, site: {...}}`: where a layer is
+	// read from, where it is written back to, what to call it in the switch menu and after the
+	// surface's name ("for everyone"), and what to say once it lands. A layer whose `condition`
+	// returns false is not offered.
 	get layers() {
 		return {};
 	}
@@ -196,9 +197,25 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		frappe.app.sidebar.end_editing(this);
 	}
 
-	// Called after every redraw of the list, for a surface that shows the arrangement somewhere
-	// else as well. See the dock, which redraws the rail from it.
-	on_render() {}
+	// Where the layer's phrase goes: after the module's name in the sidebar header.
+	layer_slot() {
+		return frappe.app.sidebar.sidebar_header?.layer_slot();
+	}
+
+	// What the sidebar header's menu offers while this is open, or null for its usual rows. The
+	// phrase sits where the header's chevron was, so the header opens the layers.
+	header_menu_items() {
+		return this.layer_menu();
+	}
+
+	// The element a panel opens beside.
+	panel_edge() {
+		return this.$frame.closest(".body-sidebar")[0];
+	}
+
+	// Called once a layer has been read and before it is drawn, with the read arrangement already
+	// recorded as the saved one, so a change made here counts as unsaved.
+	on_load() {}
 
 	// -------------------------------------------------------------------------------------------
 	// The editor itself
@@ -236,9 +253,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 	render_frame() {
 		this.$frame.html(`
-			<div class="ws-head">
-				<div class="ws-layer"></div>
-			</div>
 			<div class="ws-note hidden"></div>
 			<div class="ws-scroll">
 				<div class="ws-list"></div>
@@ -246,12 +260,17 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			</div>
 			<div class="ws-foot"></div>
 		`);
+		this.$note = this.$frame.find(".ws-note");
 		this.$list = this.$frame.find(".ws-list");
 		this.$scroll = this.$frame.find(".ws-scroll");
+		this.$add_slot = this.$frame.find(".ws-add-slot");
 
 		this.render_layer_switch();
 		this.render_footer();
+		this.bind_keys();
+	}
 
+	bind_keys() {
 		// Esc closes the panel, and nothing else: leaving the editor is Cancel's job, and a key that
 		// threw away unsaved work by accident would cost more than one that did nothing.
 		$(document)
@@ -261,38 +280,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 					this.close_panel();
 				}
 			});
-	}
-
-	// Which arrangement is on screen. Without the right to write a second layer there is nothing to
-	// switch to, so the one layer is named rather than offered. What that right is belongs to the
-	// endpoints, which check it again.
-	render_layer_switch() {
-		const $slot = this.$frame.find(".ws-layer").empty();
-		const offered = this.offered_layers;
-		const label = this.layer_config.label();
-
-		if (offered.length < 2) {
-			$slot.append(`<div class="ws-layer-name">${frappe.utils.escape_html(label)}</div>`);
-			return;
-		}
-
-		const $trigger = frappe.ui.button({
-			label,
-			icon_right: "chevron-down",
-			variant: "ghost",
-			css_class: "ws-layer-switch",
-			attrs: { "aria-label": __("Arranging") },
-		});
-		$slot.append($trigger);
-		new frappe.ui.Dropdown({
-			trigger: $trigger,
-			options: () =>
-				this.offered_layers.map(([name, layer]) => ({
-					label: layer.label(),
-					selected: name === this.layer,
-					onclick: () => this.switch_layer(name),
-				})),
-		});
 	}
 
 	render_footer() {
@@ -313,7 +300,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.$save = frappe.ui.button({
 			label: __("Save"),
 			variant: "solid",
-			disabled: true,
+			disabled: !this.is_dirty(),
 			onclick: () => this.save(),
 		});
 
@@ -323,6 +310,35 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			frappe.ui.button({ label: __("Cancel"), onclick: () => this.cancel() }),
 			this.$save
 		);
+	}
+
+	// Which layer is on screen, which is also where Save writes, as words that finish the
+	// surface's name. The chevron says there are others to switch to; without the right to write a
+	// second layer there is nothing to choose. What that right is belongs to the endpoints, which
+	// check it again.
+	render_layer_switch() {
+		const $slot = this.layer_slot();
+		if (!$slot) return;
+		const chevron =
+			this.offered_layers.length > 1 ? frappe.utils.icon("chevron-down", "sm") : "";
+		$slot.html(`<span class="ws-layer-switch">
+			<span class="ws-layer-phrase">${frappe.utils.escape_html(
+				this.layer_config.phrase()
+			)}</span>${chevron}
+		</span>`);
+	}
+
+	layer_menu() {
+		return [
+			{
+				group: __("Editing for"),
+				options: this.offered_layers.map(([name, layer]) => ({
+					label: layer.label(),
+					selected: name === this.layer,
+					onclick: () => this.switch_layer(name),
+				})),
+			},
+		];
 	}
 
 	menu_items() {
@@ -368,9 +384,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	async load() {
 		this.loaded = false;
 		this.close_panel();
-		this.$frame.find(".ws-add-slot").empty();
-		this.$frame.find(".ws-note").addClass("hidden");
-		this.$list.html(`<div class="ws-empty">${__("Loading...")}</div>`);
+		this.$add_slot.empty();
+		this.$note.addClass("hidden");
+		this.render_loading();
 		this.update_dirty();
 
 		try {
@@ -386,14 +402,19 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 
 		this.loaded = true;
 		this.saved_args = this.args_signature();
+		this.on_load();
 		this.render_body();
+	}
+
+	render_loading() {
+		this.$list.html(`<div class="ws-empty">${__("Loading...")}</div>`);
 	}
 
 	render_body() {
 		const note = this.pane_note();
-		this.$frame.find(".ws-note").html(note).toggleClass("hidden", !note);
+		this.$note.html(note).toggleClass("hidden", !note);
 
-		const $slot = this.$frame.find(".ws-add-slot").empty();
+		const $slot = this.$add_slot.empty();
 		if (this.can_add()) {
 			this.$add = $(`<button type="button" class="ws-add-row" data-key="${ADD_ANCHOR}">
 				${frappe.utils.icon("plus", "sm")}
@@ -446,7 +467,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		listed.forEach((key) => this.$list.append(this.list_row(key)));
 
 		this.$add?.toggleClass("is-open", this.panel?.key === ADD_ANCHOR);
-		this.on_render();
 		this.update_dirty();
 		this.panel?.place();
 	}
@@ -657,6 +677,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		if (this.sortable) this.sortable.destroy();
 		this.sortable = null;
 		$(document).off("keydown.arrangement-editor");
+		this.layer_slot()?.empty();
 		this.unmount();
 		if (frappe.ui.ArrangementEditor.current === this)
 			frappe.ui.ArrangementEditor.current = null;
@@ -734,7 +755,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	}
 };
 
-// A panel of fields beside the sidebar column, level with the row it belongs to. It follows the
+// A panel of fields beside the surface, level with the row it belongs to. It follows the
 // row as the list scrolls and as the list is redrawn, and closes when the row is no longer shown.
 frappe.ui.ArrangementPanel = class ArrangementPanel {
 	constructor({ editor, key, title, fields, on_change, primary_label, primary, choice }) {
@@ -854,7 +875,7 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 		return fieldnames.length > 0;
 	}
 
-	// Beside the column, with its top level with the row, kept on screen.
+	// Beside the surface, with its top level with the row, kept on screen.
 	place() {
 		const $anchor = this.editor.anchor_node(this.key);
 		if (!$anchor?.length || !$anchor.is(":visible")) {
@@ -862,7 +883,7 @@ frappe.ui.ArrangementPanel = class ArrangementPanel {
 			return;
 		}
 
-		const column = this.editor.$frame.closest(".body-sidebar")[0].getBoundingClientRect();
+		const column = this.editor.panel_edge().getBoundingClientRect();
 		const row = $anchor[0].getBoundingClientRect();
 		const height = this.$wrapper.outerHeight();
 		const top = Math.max(8, Math.min(row.top - 12, window.innerHeight - height - 8));

@@ -47,7 +47,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// The rules between the three blocks are the sections' own: `frappe.ui.Dropdown` draws one
 	// between neighbouring groups and drops a group whose rows are all hidden, rule included, so
 	// nothing here has to count what is left before placing a divider.
+	//
+	// While the sidebar is being edited the header names the layer instead of its chevron, and its
+	// menu is that editor's.
 	menu_items() {
+		const editing = this.sidebar.editor?.header_menu_items();
+		if (editing) return editing;
+
 		return [
 			{ group: "", options: this.switcher_items() },
 			{
@@ -253,6 +259,14 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// and one menu with a trigger on each offered the same rows twice, one directly above the
 	// other. The rail covers the panel now rather than standing beside it, so only ever one of the
 	// two is in front of you.
+	// Where an editor names the layer it is editing, after the title.
+	layer_slot() {
+		let $slot = this.wrapper.find(".header-layer");
+		if (!$slot.length)
+			$slot = $(`<span class="header-layer"></span>`).insertBefore(this.$drop_icon);
+		return $slot;
+	}
+
 	setup_menu() {
 		if (this.menu) return;
 		this.menu = this.attach_menu(this.wrapper);
