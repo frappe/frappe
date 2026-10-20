@@ -1170,6 +1170,13 @@ class TestDB(IntegrationTestCase):
 			("(a, b) in ((%s, %s), (%s, %s)) and c = (%s, %s)", ["1", "2", "3", "4", "x", "y"]),
 			bind_values("(a, b) in %s and c = %s", (((1, 2), (3, 4)), ("x", "y"))),
 		)
+		self.assertEqual(
+			(
+				"(a, b) = (%(pair__0_)s, %(pair__1)s) and c = %(pair__0)s",
+				{"pair__0_": "x", "pair__1": "y", "pair__0": "z"},
+			),
+			bind_values("(a, b) = %(pair)s and c = %(pair__0)s", {"pair": ("x", "y"), "pair__0": "z"}),
+		)
 
 	@run_only_if(db_type_is.POSTGRES)
 	def test_transactions_after_commit_use_the_session_isolation(self):
