@@ -83,7 +83,7 @@ dependencies = [
     "tzdata~=2026.5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
-    "markdownify~=1.2.2",
+    "markdownify~=1.2.3",
     # integration dependencies
     "google-api-python-client~=2.197.0",
     "google-auth-oauthlib~=1.4.0",
