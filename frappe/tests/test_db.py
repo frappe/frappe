@@ -507,7 +507,7 @@ class TestDB(IntegrationTestCase):
 				frappe.db.sql(query)
 
 		with self.assertRaises(frappe.db.ProgrammingError):
-			frappe.db.sql("select 1 -- %s", ("\n; select 2",))
+			frappe.db.sql("select 1 -- %s", ("\n; select 2 --",))
 
 		self.assertEqual(frappe.db.sql("select %s", ("a; b",)), (("a; b",),))
 
