@@ -59,7 +59,7 @@ function add_email_account_dialog() {
 		d.hide();
 		frappe.new_doc("Email Account", service === "Other" ? {} : { service });
 	};
-	const sign_in = (service) =>
+	const sign_in = (service, label) =>
 		frappe
 			.call({
 				method: "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
@@ -71,20 +71,22 @@ function add_email_account_dialog() {
 					window.location.href = r.message;
 					return;
 				}
-				frappe.show_alert(
-					__("Sign in with {0} isn't available right now, so set it up manually.", [
-						one_click[service],
-					])
+				d.set_message(
+					__(
+						"{0} sign-in isn't available right now. You can still set it up manually.",
+						[label]
+					)
 				);
-				open_form(service);
+				d.get_secondary_btn().addClass("hide");
+				d.set_primary_action(__("Set up manually"), () => open_form(service));
 			});
-	const set_actions = (service) => {
+	const set_actions = (service, label) => {
 		if (!one_click[service]) {
 			d.get_secondary_btn().addClass("hide");
 			d.set_primary_action(__("Continue"), () => open_form(service));
 			return;
 		}
-		const primary_btn = d.set_primary_action(__("Continue"), () => sign_in(service));
+		const primary_btn = d.set_primary_action(__("Continue"), () => sign_in(service, label));
 		frappe.ui.button.dress(primary_btn, {
 			label: __("Continue"),
 			variant: "solid",
@@ -112,7 +114,7 @@ function add_email_account_dialog() {
 		return $tile.on("click", () => {
 			$tile.siblings().attr("aria-pressed", "false");
 			$tile.attr("aria-pressed", "true");
-			set_actions(service);
+			set_actions(service, label);
 			d.enable_primary_action();
 		});
 	};
