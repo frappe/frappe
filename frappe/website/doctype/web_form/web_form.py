@@ -197,10 +197,7 @@ class WebForm(WebsiteGenerator):
 
 	# export
 	def on_update(self):
-		"""
-		Writes the .txt for this page and if write_content is checked,
-		it will write out a .html file
-		"""
+		"""In developer mode, export a standard Web Form's JSON and create its .js and .py stubs."""
 		path = export_module_json(self, self.is_standard, self.module)
 
 		if path:
@@ -208,9 +205,10 @@ class WebForm(WebsiteGenerator):
 			if not os.path.exists(path + ".js"):
 				with open(path + ".js", "w") as f:
 					f.write(
-						"""frappe.ready(function() {
+						"""frappe.ready(function () {
 	// bind events here
-})"""
+});
+"""
 					)
 
 			# py
@@ -218,6 +216,7 @@ class WebForm(WebsiteGenerator):
 				with open(path + ".py", "w") as f:
 					f.write(
 						"""import frappe
+
 
 def get_context(context):
 	# do your magic here
