@@ -149,9 +149,11 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.pilot.assert_not_called()
 
 	def test_provider_unavailable_on_frappe_cloud_opens_the_form(self) -> None:
-		self.pilot.side_effect = frappe.ValidationError("provider_unavailable")
+		self.pilot.side_effect = lambda *args: frappe.throw("provider_unavailable")
+		frappe.clear_messages()
 		self.assertIsNone(email_oauth.initiate_mailbox_connect("Outlook.com"))
 		self.assertEqual(self.pilot.call_args.args[1]["provider"], "microsoft")
+		self.assertEqual(frappe.get_message_log(), [])
 
 	def test_reconnect_signs_in_with_the_mailboxs_provider(self) -> None:
 		account = self.relay_mailbox()
@@ -162,9 +164,14 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 
 	def test_reconnect_with_provider_unavailable_is_refused(self) -> None:
 		account = self.relay_mailbox()
-		self.pilot.side_effect = frappe.ValidationError("provider_unavailable")
-		with self.assertRaisesRegex(frappe.ValidationError, "Sign in with Microsoft isn't available"):
+		self.pilot.side_effect = lambda *args: frappe.throw("provider_unavailable")
+		frappe.clear_messages()
+		with self.assertRaisesRegex(frappe.ValidationError, "Outlook sign-in isn't available"):
 			email_oauth.initiate_mailbox_connect(email_account=account)
+		self.assertEqual(
+			[m["message"] for m in frappe.get_message_log()],
+			["Outlook sign-in isn't available right now"],
+		)
 
 	def test_reconnect_of_a_mailbox_not_signed_in_through_frappe_cloud_is_refused(self) -> None:
 		for token_uri in ("https://login.example.com/token", "frappe-cloud-relay:yahoo"):
@@ -193,7 +200,7 @@ class TestBoot(IntegrationTestCase):
 			with patch.dict(frappe.conf, V2):
 				boot = get_bootinfo()
 				self.assertTrue(boot.is_v2_site)
-				self.assertEqual(boot.one_click_email_services, {"Outlook.com": "Microsoft"})
+				self.assertEqual(boot.one_click_email_services, {"Outlook.com": "Outlook"})
 			with patch.dict(frappe.conf, {key: None for key in V2}):
 				boot = get_bootinfo()
 				self.assertFalse(boot.is_v2_site)
@@ -283,7 +290,7 @@ class TestCallback(IntegrationTestCase):
 		self.assertEqual(app.get_scopes(), SCOPES)
 		self.assertEqual(app.client_id, "cid")
 		self.assertEqual(app.authorization_uri, AUTHORIZE)
-		self.assertEqual(app.provider_name, "Microsoft (one@email-oauth.example.com)")
+		self.assertEqual(app.provider_name, "Outlook (one@email-oauth.example.com)")
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:microsoft")
 		self.assertIsNone(app.get_password("client_secret", raise_exception=False))
 		self.assertEqual(app.get_token_cache(USER).get_password("refresh_token"), "rt")
@@ -580,7 +587,7 @@ class TestRefresh(IntegrationTestCase):
 		app = frappe.get_doc(
 			{
 				"doctype": "Connected App",
-				"provider_name": "Microsoft (one@email-oauth.example.com)",
+				"provider_name": "Outlook (one@email-oauth.example.com)",
 				"client_id": "cid",
 				"client_secret": client_secret,
 				"token_uri": token_uri,

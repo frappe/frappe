@@ -4,7 +4,7 @@
 
 On a Frappe Cloud site (`is_v2_site()`), an admin adds a mailbox by signing in with its provider instead of typing an app password.
 
-The host app's boot lists the services that can sign in this way (`get_one_click_services()`, as `one_click_email_services`). For one of them, Desk's Add dialog offers "Continue", which signs in with the provider, or "Set up manually" (the normal Email Account form); the UI package signs in straight from the service's tile. Continuing calls `initiate_mailbox_connect(service)`, which returns the provider's sign-in link, or `None` when the site isn't on Frappe Cloud, no provider in `ONE_CLICK_PROVIDERS` has that service, or Frappe Cloud reports the provider unavailable; on `None` both open the form. Any other error, such as Pilot being unreachable, is shown as an error.
+The host app's boot lists the services that can sign in this way (`get_one_click_services()`, as `one_click_email_services`). For one of them, Desk's Add dialog offers "Continue", which signs in, or "Set up manually" (the normal Email Account form); the UI package signs in straight from the service's tile. Continuing calls `initiate_mailbox_connect(service)`, which returns the provider's sign-in link, or `None` when the site isn't on Frappe Cloud, no provider in `ONE_CLICK_PROVIDERS` has that service, or Frappe Cloud reports the provider unavailable; on `None` Desk says sign-in isn't available and offers only "Set up manually", and the UI package opens the form with a note saying so. Any other error, such as Pilot being unreachable, is shown as an error.
 
 Reconnecting a signed-out mailbox (`initiate_mailbox_connect(email_account=...)`) takes the provider from its Connected App's Token URI and never falls back to the form; it fails with a message instead. Frappe Cloud owns the OAuth app at each provider and keeps its secret. The site never sees it: it reaches Frappe Cloud through its own Pilot (`PilotClient`) and keeps only the PKCE verifier and, once connected, the mailbox's tokens.
 
@@ -46,7 +46,7 @@ A provider has three names, each with its own job:
 | Name | Rule | Microsoft | Yahoo | Used in |
 |---|---|---|---|---|
 | Key | Company name, lower case | `microsoft` | `yahoo` | `Provider`, `ONE_CLICK_PROVIDERS`, and the Token URI `frappe-cloud-relay:<key>`. Never change it: connected mailboxes store it. |
-| Label | Company name as written | Microsoft | Yahoo | The Connected App's name, and the "isn't available" and "only available on Frappe Cloud" messages |
+| Label | The mail product, as the admin's tile shows it | Outlook | Yahoo | The Connected App's name, the boot list, and the "isn't available" and "only available on Frappe Cloud" messages |
 | Service | Email Account's existing option, unchanged | `Outlook.com` | `Yahoo Mail` | What the admin picks, and Email Account's `service` field, stored on every account |
 
 The key names whom you sign in with; the service names the mail product. They differ for Microsoft: work (Microsoft 365) and personal mailboxes both use the "Outlook.com" service.
