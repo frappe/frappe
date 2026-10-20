@@ -1,12 +1,19 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and contributors
 # License: MIT. See LICENSE
 
+
+import hmac
 from contextlib import suppress
+from typing import TYPE_CHECKING
 
 import redis
 
 import frappe
 from frappe.utils.data import cstr
+
+if TYPE_CHECKING:
+	from frappe.realtime.registry import realtime as realtime
+	from frappe.realtime.socket import Socket as Socket
 
 
 def publish_progress(percent, title=None, doctype=None, docname=None, description=None, task_id=None):
@@ -115,9 +122,9 @@ def emit_via_redis(event, message, room):
 		)
 
 
-@frappe.whitelist(allow_guest=True)
-def has_permission(doctype: str, name: str) -> bool:
-	frappe.has_permission(doctype, doc=name, throw=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
+def has_permission(doctype: str, name: str, ptype: str = "read") -> bool:
+	frappe.has_permission(doctype, doc=name, ptype=ptype, throw=True)
 	return True
 
 
@@ -125,26 +132,27 @@ SOCKETIO_SECRET_KEY = "socketio_auth_secret"
 
 
 def get_socketio_secret():
-	"""Generate socket.io secret and store in redis"""
+	"""Read the shared realtime secret, and make it if it is not there yet.
+
+	nx: the first writer wins, thus two processes cannot store two secrets and refuse
+	each other's clients. The realtime server writes the key the same way."""
 
 	from frappe.utils.background_jobs import get_redis_connection_without_auth
 
 	r = get_redis_connection_without_auth()
 	secret = r.get(SOCKETIO_SECRET_KEY)
-	if secret:
-		return secret.decode()
-
-	secret = frappe.generate_hash(length=32)
-	r.set(SOCKETIO_SECRET_KEY, secret)
-	return secret
+	if secret is None:
+		r.set(SOCKETIO_SECRET_KEY, frappe.generate_hash(length=32), nx=True)
+		secret = r.get(SOCKETIO_SECRET_KEY)
+	return secret.decode()
 
 
-@frappe.whitelist(allow_guest=True)
+@frappe.whitelist(allow_guest=True)  # nosemgrep
 def get_user_info():
 	user_type = frappe.session.data.user_type
 	trusted_secret = get_socketio_secret()
 	provided_secret = frappe.get_request_header("X-Frappe-Socket-Secret")
-	if trusted_secret != provided_secret:
+	if not provided_secret or not hmac.compare_digest(trusted_secret.encode(), provided_secret.encode()):
 		return {}
 	# For requests with Bearer tokens, user_type is not set in the session data
 	if not user_type:
@@ -178,3 +186,64 @@ def get_task_progress_room(task_id):
 
 def get_website_room():
 	return "website"
+
+
+# Named publisher helpers — sugar over publish_realtime. No new wire behavior:
+# each maps to the same room publish_realtime already produces. publish_realtime
+# itself is unchanged.
+
+
+def publish_to_user(user: str, event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to a specific user's room (user:{user})."""
+	publish_realtime(event, message, user=user, after_commit=after_commit)
+
+
+def publish_to_doc(
+	doctype: str, docname: str, event: str, message: dict | None = None, *, after_commit: bool = False
+):
+	"""Publish to a document's room (doc:{doctype}/{docname})."""
+	publish_realtime(event, message, doctype=doctype, docname=docname, after_commit=after_commit)
+
+
+def publish_to_doctype(doctype: str, event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to a doctype's room (doctype:{doctype})."""
+	publish_realtime(event, message, room=get_doctype_room(doctype), after_commit=after_commit)
+
+
+def publish_task_progress(task_id: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish task progress to task_progress:{task_id}."""
+	publish_realtime(message=message, task_id=task_id, after_commit=after_commit)
+
+
+def publish_to_website(event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to the website room."""
+	publish_realtime(event, message, room=get_website_room(), after_commit=after_commit)
+
+
+def publish_to_all(event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to the site "all" room (System Users of THIS site).
+
+	NOTE: this is the site-scoped room, NOT the cross-site no-room broadcast that
+	build events use."""
+	publish_realtime(event, message, room=get_site_room(), after_commit=after_commit)
+
+
+def publish_to_room(room: str, event: str, message: dict | None = None, *, after_commit: bool = False):
+	"""Publish to an arbitrary room."""
+	publish_realtime(event, message, room=room, after_commit=after_commit)
+
+
+# Handler-authoring surface, exposed lazily so the publish helpers above stay
+# import-light. ``Socket`` pulls in the server stack (socketio, via auth); resolving
+# it only on access keeps ``from frappe.realtime import publish_realtime`` (web
+# process) from importing socketio.
+def __getattr__(name: str) -> object:
+	if name == "realtime":
+		from frappe.realtime.registry import realtime
+
+		return realtime
+	if name == "Socket":
+		from frappe.realtime.socket import Socket
+
+		return Socket
+	raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
