@@ -6,7 +6,7 @@
 				v-if="doc.is_system_generated"
 				class="rounded-6 border border-outline-gray-2 bg-surface-gray-1 px-3 py-2 text-xs text-ink-gray-7"
 			>
-				Defined in code. Only what code leaves open can change here.
+				Comes with an app, so greyed-out fields can't be changed.
 			</div>
 			<FieldControl
 				v-for="field in visibleFields"

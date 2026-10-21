@@ -88,6 +88,8 @@ class FlowAgent(Document):
 		store.rename_agent(old, new)
 
 	def validate(self):
+		from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+
 		self._validate_max_iterations()
 		self._validate_token_budget()
 		self._validate_skills()
@@ -101,8 +103,8 @@ class FlowAgent(Document):
 				"instructions",
 				"max_iterations",
 				"tools",
-				"knowledge_bases",
-				"skills",
+				# the site may add skills and knowledge to the assistant
+				*(() if self.name == ASSISTANT_AGENT_TITLE else ("knowledge_bases", "skills")),
 				"sub_agents",
 			),
 		)

@@ -6,6 +6,8 @@
 // `half` fields pair up side by side.
 const enabled = { name: "enabled", label: "Enabled", type: "check" };
 const system = (doc) => !!doc.is_system_generated;
+// the site may add skills and knowledge to the built-in assistant
+const systemButAssistant = (doc) => system(doc) && doc.name !== "Flow";
 const saved = (doc) => !!doc.name;
 // the harness's /providers list, then two ways to reach any other endpoint
 const PROVIDERS = [
@@ -197,7 +199,7 @@ export const SPECS = {
 				link: "Flow Skill",
 				child: "skill",
 				description: "Know-how the agent can use when a task calls for it.",
-				locked: system,
+				locked: systemButAssistant,
 			},
 			{
 				name: "knowledge_bases",
@@ -205,8 +207,9 @@ export const SPECS = {
 				type: "multilink",
 				link: "Flow Knowledge Base",
 				child: "knowledge_base",
-				description: "What the agent can search.",
-				locked: system,
+				description:
+					"What the agent can search. Anyone who can use the agent can read them, whatever their own access.",
+				locked: systemButAssistant,
 			},
 			{
 				name: "max_iterations",

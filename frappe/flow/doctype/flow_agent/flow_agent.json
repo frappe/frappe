@@ -140,7 +140,7 @@
    "fieldtype": "Table MultiSelect",
    "label": "Skills",
    "options": "Flow Agent Skill",
-   "read_only_depends_on": "eval:doc.is_system_generated"
+   "read_only_depends_on": "eval:doc.is_system_generated && doc.name != 'Flow'"
   },
   {
    "fieldname": "section_break_knowledge",
@@ -148,12 +148,12 @@
    "label": "Knowledge"
   },
   {
-   "description": "Knowledge bases this agent can search. Empty means all enabled knowledge bases.",
+   "description": "Knowledge bases this agent can search. Anyone who can use the agent can read them, whatever their own access.",
    "fieldname": "knowledge_bases",
    "fieldtype": "Table MultiSelect",
    "label": "Knowledge Bases",
    "options": "Flow Agent Knowledge Base",
-   "read_only_depends_on": "eval:doc.is_system_generated"
+   "read_only_depends_on": "eval:doc.is_system_generated && doc.name != 'Flow'"
   },
   {
    "fieldname": "section_break_access",
@@ -170,7 +170,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-21 13:00:00.000000",
+ "modified": "2026-10-21 23:45:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

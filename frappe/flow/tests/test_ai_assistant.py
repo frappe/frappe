@@ -84,9 +84,12 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.model.name)
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 		knowledge = frappe.get_doc(
-			{"doctype": "Flow Knowledge Base", "title": "Stale Assistant Knowledge"}
+			{"doctype": "Flow Knowledge Base", "title": "Assistant Knowledge"}
 		).insert()
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+		# the desk may add knowledge
+		doc.set("knowledge_bases", [{"knowledge_base": knowledge.name}])
+		doc.save()
 		doc.update(
 			{
 				"instructions": "stale instructions",
@@ -96,7 +99,6 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 			}
 		)
 		doc.set("tools", [{"tool": BUILTIN_TOOLS[0].name}])
-		doc.set("knowledge_bases", [{"knowledge_base": knowledge.name}])
 		doc.save(ignore_permissions=True)
 
 		sync_builtin_assistant(model=self.model.name)
@@ -105,7 +107,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertEqual(doc.instructions, ASSISTANT_INSTRUCTIONS)
 		self.assertEqual(doc.max_iterations, ASSISTANT_MAX_ITERATIONS)
 		self.assertEqual([row.tool for row in doc.tools], [tool.name for tool in BUILTIN_TOOLS])
-		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [])
+		self.assertEqual([row.knowledge_base for row in doc.knowledge_bases], [knowledge.name])
 		self.assertEqual((doc.model, doc.enabled), (other_model.name, 0))
 
 		# a user who took it over (cleared is_system_generated) keeps their changes
@@ -128,11 +130,22 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		self.assertEqual([row.skill for row in doc.skills], names)
 
+		# the desk may add a skill of its own
+		house = frappe.get_doc(
+			{
+				"doctype": "Flow Skill",
+				"title": "House Style",
+				"description": "Any reply.",
+				"instructions": "Be plain.",
+			}
+		).insert()
+		doc.append("skills", {"skill": house.name})
+		doc.save()
 		for folder in folders:
 			shutil.rmtree(folder)
 		sync_assistant_skills("myapp")
 		doc.reload()
-		self.assertEqual(doc.skills, [])
+		self.assertEqual([row.skill for row in doc.skills], [house.name])
 
 	def test_a_new_model_replaces_only_one_the_assistant_lost(self):
 		with patch("flow.assistant.assistant.sync_builtin_assistant") as sync:
