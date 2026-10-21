@@ -276,3 +276,15 @@ frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
 frappe.patches.v16_0.set_weasyprint_generator_for_beta_formats
 frappe.patches.v16_0.wrap_string_zones_in_beta_layouts
 frappe.patches.v16_0.set_print_format_for_doctype
+<<<<<<< HEAD
+=======
+frappe.patches.v16_0.unescape_currency_number_format
+frappe.patches.v17_0.switch_wkhtmltopdf_to_chrome
+frappe.patches.v17_0.backfill_file_blobs
+frappe.patches.v17_0.keep_existing_sites_on_classic_charts
+frappe.patches.v17_0.delete_otp_qr_code_images
+frappe.patches.v17_0.encrypt_indexing_refresh_token
+
+
+[post_fixture_sync]
+>>>>>>> 3b3cf75 (fix(website): store indexing refresh token as a Password field)
