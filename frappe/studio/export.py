@@ -71,11 +71,12 @@ def can_export(doc) -> bool:
 
 
 def validate_standard_app_change(doc):
-	"""Outside developer mode, only syncing from the app's files may change a standard app or its pages"""
+	"""Block standard apps, pages and component edits outside developer mode.
+	Allow changes only during migration, installation, and patches (which sync app's files)."""
 	if frappe.conf.developer_mode:
 		return
 	previous = doc.get_doc_before_save()
-	# turning off is_standard is a change to a standard app too
+	# clearing is_standard changes a standard doc too
 	if not (doc.is_standard or (previous and previous.is_standard)):
 		return
 	sync_flags = ("in_import", "in_migrate", "in_install", "in_uninstall", "in_patch")

@@ -7,7 +7,7 @@
 				{{ app?.app_title || "This app" }} is a standard app and can only be edited in developer mode
 			</p>
 			<div class="mt-6 flex items-center gap-2">
-				<Button variant="subtle" label="Back to Dashboard" @click="$router.push({ name: 'Home' })" />
+				<Button variant="outline" label="Back to Dashboard" @click="$router.push({ name: 'Home' })" />
 				<Button v-if="app?.route" variant="solid" label="View App" @click="viewApp" />
 			</div>
 		</div>
