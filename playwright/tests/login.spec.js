@@ -30,7 +30,7 @@ test.describe("Login", () => {
 
 		await page.getByRole("button", { name: "Continue", exact: true }).click();
 		await expect(page.locator(".login-error-banner:visible")).toContainText(
-			"Invalid credentials, try again."
+			"Invalid login credentials"
 		);
 		await expect(page).toHaveURL(/\/login$/);
 	});
