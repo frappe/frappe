@@ -28,9 +28,21 @@ def _print_format_doc_or_none(print_format: str | None, doctype: str | None = No
 		return None
 
 
+#: Engines the framework ships a renderer for, in the order the picker offers them.
+SHIPPED_PDF_GENERATORS = ("chrome", "PlutoPrint", "Typst")
+
+
 def get_pdf_generators() -> list[str]:
-	"""PDF engines a Print Format can pick, including ones apps add as options."""
-	return (frappe.get_meta("Print Format").get_field("pdf_generator").options or "").split("\n")
+	"""PDF engines a Print Format can pick: the framework's own, plus any an app adds
+	as options on the field.
+
+	The options live in the database, so a site that has updated the app but not yet
+	migrated still carries the previous list. Reading only that list would make a
+	shipped engine look unknown, and `PrintFormat.validate` replaces an unknown value
+	with Chromium, silently undoing the renderer the user picked.
+	"""
+	options = (frappe.get_meta("Print Format").get_field("pdf_generator").options or "").split("\n")
+	return [*SHIPPED_PDF_GENERATORS, *(g for g in options if g and g not in SHIPPED_PDF_GENERATORS)]
 
 
 HTML_PDF_GENERATORS = ("chrome", "PlutoPrint")
