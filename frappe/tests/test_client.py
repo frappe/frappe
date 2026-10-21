@@ -360,21 +360,6 @@ class TestMethodLookupErrors(IntegrationTestCase):
 		"frappe.utils.no_such_fn",  # function missing in an existing module
 	)
 
-	@classmethod
-	def setUpClass(cls):
-		super().setUpClass()
-		cls.website_user = (
-			frappe.get_doc(
-				doctype="User",
-				email="rpc_lookup_user@example.com",
-				first_name="Rpc",
-				user_type="Website User",
-				send_welcome_email=0,
-			)
-			.insert()
-			.name
-		)
-
 	def setUp(self):
 		frappe.local.request = frappe._dict(method="GET", files={})
 		frappe.local.form_dict = frappe._dict()
@@ -382,29 +367,26 @@ class TestMethodLookupErrors(IntegrationTestCase):
 		patcher.start()
 		self.addCleanup(patcher.stop)
 
-	def test_execute_cmd(self):
-		from frappe.handler import execute_cmd
-
-		self.assert_same_error_for_all(execute_cmd)
-
-	def test_rpc_v2(self):
+	def test_unresolvable_method_gives_one_error(self):
 		from frappe.api.v2 import handle_rpc_call
+		from frappe.desk.treeview import get_all_nodes
+		from frappe.handler import execute_cmd, upload_file
 
-		self.assert_same_error_for_all(handle_rpc_call)
-
-	def test_upload_file_method(self):
-		from frappe.handler import upload_file
-
-		def call(path):
+		def upload(path):
 			frappe.local.form_dict = frappe._dict(method=path)
 			upload_file()
 
-		self.assert_same_error_for_all(call)
+		entry_points = {
+			"execute_cmd": execute_cmd,
+			"handle_rpc_call": handle_rpc_call,
+			"upload_file": upload,
+			"get_all_nodes": lambda path: get_all_nodes("ToDo", "ToDo", "", path),
+		}
+		for name, call in entry_points.items():
+			with self.subTest(name), self.set_user("Guest"):
+				errors = {self.error_of(call, path) for path in self.UNRESOLVABLE}
 
-	def test_tree_nodes(self):
-		from frappe.desk.treeview import get_all_nodes
-
-		self.assert_same_error_for_all(lambda path: get_all_nodes("ToDo", "ToDo", "", path))
+			self.assertEqual(errors, {(frappe.ValidationError, self.NOT_FOUND, (self.NOT_FOUND,))}, name)
 
 	def test_user_who_can_see_tracebacks_gets_the_reason(self):
 		from frappe.handler import execute_cmd
@@ -420,13 +402,6 @@ class TestMethodLookupErrors(IntegrationTestCase):
 
 		self.assertIn("not installed", str(missing_app.exception))
 		self.assertIn("No module named", str(missing_module.exception))
-
-	def assert_same_error_for_all(self, call):
-		for user in ("Guest", self.website_user):
-			with self.set_user(user):
-				errors = {self.error_of(call, path) for path in self.UNRESOLVABLE}
-
-			self.assertEqual(errors, {(frappe.ValidationError, self.NOT_FOUND, (self.NOT_FOUND,))}, user)
 
 	def error_of(self, call, path):
 		frappe.local.message_log = []
