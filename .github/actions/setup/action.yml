@@ -1,0 +1,273 @@
+name: 'Setup Environment'
+description: 'Sets up the environment for Frappe development'
+inputs:
+  python-version:
+    description: 'Python version to use'
+    required: false
+    default: '3.14'
+  node-version:
+    description: 'Node.js version to use'
+    required: false
+    default: '24'
+  build-assets:
+    required: false
+    description: 'Whether to build assets'
+    default: true
+  enable-coverage:
+    required: false
+    default: false
+  disable-web:
+    required: false
+    default: false
+  disable-socketio:
+    required: false
+    default: false
+  disable-workers:
+    required: false
+    description: 'Whether to disable background workers'
+    default: false
+  enable-server-scripts:
+    required: false
+    description: 'Whether to enable Server Scripts for tests that call them through the web server'
+    default: true
+  db:
+    required: false
+    default: mariadb
+  db-root-password:
+    required: true
+
+runs:
+  using: "composite"
+  steps:
+  - shell: bash -e {0}
+    run: |
+      # Add 'test_site' to /etc/hosts & setup git config
+      echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+      git config --global init.defaultBranch main
+      git config --global advice.detachedHead false
+
+  - name: Clone
+    uses: actions/checkout@v6
+    with:
+      path: frappe-src
+
+  - name: Setup Python
+    uses: actions/setup-python@v6
+    with:
+      python-version: ${{ inputs.python-version }}
+
+  - shell: bash -e {0}
+    run: |
+      # Check for valid Python & Merge Conflicts
+      python -m compileall -q -f "${GITHUB_WORKSPACE}/frappe-src"
+      if grep -lr --exclude-dir=node_modules "^<<<<<<< " "${GITHUB_WORKSPACE}/frappe-src"
+          then echo "Found merge conflicts"
+          exit 1
+      fi
+
+  - uses: actions/setup-node@v6
+    with:
+      node-version: ${{ inputs.node-version }}
+      cache: yarn
+      cache-dependency-path: frappe-src/yarn.lock
+
+  - uses: astral-sh/setup-uv@v6
+    with:
+      enable-cache: true
+      cache-dependency-glob: |
+        **/pyproject.toml
+        **/requirements*.txt
+
+  - shell: bash -e {0}
+    run: |
+      # Add the PostgreSQL apt repository
+      # The apt cache action resolves package versions from the local package
+      # lists, so only the pgdg list needs a refresh; the runner image already
+      # has the Ubuntu lists.
+      sudo install -d /usr/share/postgresql-common/pgdg
+      sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+      echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+      sudo apt-get -qq update \
+        -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/pgdg.list \
+        -o Dir::Etc::sourceparts=- \
+        -o APT::Get::List-Cleanup=0
+
+  # the mariadb server runs as a service container; the client tools come
+  # from ubuntu's archives so CI does not depend on mariadb.com mirrors
+  - name: Install System Dependencies
+    uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+    with:
+      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
+
+  - shell: bash -e {0}
+    run: |
+      # Install bench tool
+      # The cache restores files without running ldconfig.
+      sudo ldconfig
+      echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
+      uv tool install frappe-bench
+
+  - shell: bash -e {0}
+    run: |
+      # Init Bench
+      start_time=$(date +%s)
+      bench init ${GITHUB_WORKSPACE} \
+        --ignore-exist \
+        --frappe-path "${GITHUB_WORKSPACE}/frappe-src" \
+        --skip-assets \
+        --no-backups \
+        --python "$(which python)"
+
+      # bench init sets origin to the local checkout path, fix it to point at GitHub
+      git -C apps/frappe remote set-url upstream "https://github.com/${{ github.repository }}"
+
+      # Trim Procfile for CI
+      sed -i '/^watch:/d' Procfile
+      sed -i '/^schedule:/d' Procfile
+      if [ "${{ inputs.disable-web }}" == "true" ]; then
+        sed -i '/^web:/d' Procfile
+      elif [ "${{ inputs.enable-coverage }}" == "true" ]; then
+        sed -i 's|^web: bench serve|web: bench serve --with-coverage|' Procfile
+      fi
+      if [ "${{ inputs.disable-socketio }}" == "true" ]; then
+        sed -i '/^socketio:/d' Procfile
+      fi
+      if [ "${{ inputs.disable-workers }}" == "true" ]; then
+        sed -i '/^worker[^:]*:/d' Procfile
+      fi
+
+      # Tests declare the services they need with requires_test_service(). Derive those flags from the same inputs that trim the Procfile, so a job cannot  start a service it tells the tests is absent (or the reverse).
+      if [ "${{ inputs.disable-web }}" == "true" ]; then
+        echo "FRAPPE_TEST_WEB_SERVER=0" >> "$GITHUB_ENV"
+      else
+        echo "FRAPPE_TEST_WEB_SERVER=1" >> "$GITHUB_ENV"
+      fi
+      if [ "${{ inputs.disable-workers }}" == "true" ]; then
+        echo "FRAPPE_TEST_BACKGROUND_WORKER=0" >> "$GITHUB_ENV"
+      else
+        echo "FRAPPE_TEST_BACKGROUND_WORKER=1" >> "$GITHUB_ENV"
+      fi
+
+      end_time=$(date +%s)
+      echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
+
+  - name: Cache island toolchain
+    uses: actions/cache@v4
+    with:
+      path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
+      key: island-toolchain-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('frappe-src/island-toolchain/yarn.lock') }}
+
+  - name: Cache Chromium
+    uses: actions/cache@v4
+    with:
+      path: ${{ github.workspace }}/chromium
+      key: chromium-${{ runner.os }}-${{ hashFiles('frappe-src/frappe/utils/chromium/download.py') }}
+
+  - shell: bash -e {0}
+    run: |
+      # Set up the Chromium build that renders PDFs
+      start_time=$(date +%s)
+      bench setup-chrome
+      end_time=$(date +%s)
+      echo -e "\033[33mSetup Chromium: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    run: |
+      # Install dev/test dependencies (python and node deps are independent,
+      # so install them concurrently)
+      start_time=$(date +%s)
+
+      bench setup requirements --dev &
+      dev_pid=$!
+
+      node_pid=""
+      if [ "${{ inputs.build-assets }}" == "true" ]; then
+        bench setup requirements --node &
+        node_pid=$!
+      fi
+
+      wait "$dev_pid"
+      if [ -n "$node_pid" ]; then
+        wait "$node_pid"
+      fi
+
+      end_time=$(date +%s)
+      echo -e "\033[33mInstall dev/test deps: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    env:
+      DB: ${{ inputs.db }}
+      BUILD_ASSETS: ${{ inputs.build-assets }}
+      ENABLE_SERVER_SCRIPTS: ${{ inputs.enable-server-scripts }}
+    run: |
+      # Create Site (asset build is CPU-bound and independent of the DB, so
+      # build it in the background while the site is being created)
+      start_time=$(date +%s)
+
+      build_pid=""
+      if [ "$BUILD_ASSETS" == "true" ]; then
+        CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &
+        build_pid=$!
+      fi
+
+      if [ "$DB" == "postgres" ]; then
+        DB_ROOT_USER="postgres"
+        DB_ROOT_PWD="travis"
+      else
+        DB_ROOT_USER="root"
+        DB_ROOT_PWD="${{ inputs.db-root-password }}"
+      fi
+
+      # Reduce durability for CI speed — the DB is ephemeral, so trading crash
+      # safety for fewer fsyncs is free. innodb_flush_log_at_trx_commit=0 flushes
+      # the redo log once per second instead of on every commit.
+      if [ "$DB" == "mariadb" ]; then
+        mariadb -h 127.0.0.1 -u "$DB_ROOT_USER" -p"$DB_ROOT_PWD" -e "
+          SET GLOBAL innodb_flush_log_at_trx_commit = 0;
+          SET GLOBAL sync_binlog = 0;"
+      fi
+
+      bench set-config -g root_login "$DB_ROOT_USER"
+      bench set-config -g root_password "$DB_ROOT_PWD"
+      bench set-config -g admin_password admin
+      if [ "$ENABLE_SERVER_SCRIPTS" == "true" ]; then
+        bench set-config -g server_script_enabled 1 --parse
+      fi
+
+      bench new-site test_site \
+        --db-type "$DB" \
+        --db-host 127.0.0.1 \
+        --db-name test_frappe \
+        --db-password test_frappe \
+        --verbose
+      bench --site test_site set-config allow_tests 1 --parse
+      bench --site test_site set-config host_name "http://test_site:8000"
+      bench --site test_site set-config auto_email_id "test@example.com"
+      bench --site test_site set-config mail_server localhost
+      bench --site test_site set-config mail_port 2525 --parse
+      bench --site test_site set-config mail_login "test@example.com"
+      bench --site test_site set-config mail_password test
+      bench --site test_site set-config disable_mail_smtp_authentication 1 --parse
+      bench --site test_site set-config throttle_user_limit 1000 --parse
+
+      if [ "$DB" == "mariadb" ]; then
+        bench --site test_site set-config monitor 1 --parse
+        bench --site test_site set-config use_mysqlclient 1 --parse
+      fi
+
+      if [ -n "$build_pid" ]; then
+        if ! wait "$build_pid"; then
+          echo "Asset build failed:"
+          cat ${GITHUB_WORKSPACE}/build_assets.log
+          exit 1
+        fi
+        cat ${GITHUB_WORKSPACE}/build_assets.log
+      fi
+
+      end_time=$(date +%s)
+      echo -e "\033[33mCreate Site + Build Assets: $((end_time - start_time)) seconds\033[0m"
+
+  - shell: bash -e {0}
+    run: |
+      # Start Bench
+      bench start &> ${GITHUB_WORKSPACE}/bench_start.log &
