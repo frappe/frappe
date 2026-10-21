@@ -318,13 +318,6 @@
 						<ModelButton :providers="has('providers')" @open="openPalette" />
 					</slot>
 
-					<span
-						v-if="running && !submitting && elapsed"
-						class="ml-1 flex-none text-xs tabular-nums text-ink-gray-5 dark:text-ink-gray-6"
-						title="How long this reply has run"
-					>
-						{{ elapsed }}
-					</span>
 					<button
 						v-if="running && !submitting"
 						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base shadow-sm hover:opacity-90"
@@ -366,9 +359,7 @@ import {
 	APPROVAL_MODES,
 	approvalToAnswer,
 	codeRefLabel,
-	formatDuration,
 	quoteBlock,
-	runningSince,
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
@@ -742,25 +733,6 @@ const skillParts = computed(() => {
 	return parts.some((part) => part.skill) ? parts : null
 })
 const running = computed(() => flow.state.conversation.running)
-// how long the reply has run, beside its Stop button: on the server's clock, so a reload keeps it
-const since = computed(() => runningSince(flow.state.conversation))
-const now = ref(Date.now())
-let ticker = null
-watch(
-	since,
-	(start) => {
-		clearInterval(ticker)
-		ticker = start == null ? null : setInterval(() => (now.value = Date.now()), 1000)
-		now.value = Date.now()
-	},
-	{ immediate: true },
-)
-onBeforeUnmount(() => clearInterval(ticker))
-const elapsed = computed(() => {
-	if (since.value == null) return ""
-	const seconds = Math.max(0, Math.floor(now.value / 1000 - since.value))
-	return seconds ? formatDuration(seconds * 1000) : "0s"
-})
 const compacting = computed(() => flow.state.conversation.compacting)
 const approval = computed(() => {
 	const conversation = flow.state.conversation
