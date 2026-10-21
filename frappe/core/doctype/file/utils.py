@@ -339,20 +339,12 @@ def attach_files_to_document(doc: "Document", event) -> None:
 
 		unattached_file = frappe.db.exists(
 			"File",
-<<<<<<< HEAD
 			{
 				"file_url": value,
 				"attached_to_name": None,
 				"attached_to_doctype": None,
 				"attached_to_field": None,
-=======
-			filters={
-				"attached_to_doctype": ["is", "not set"],
-				"attached_to_name": ["is", "not set"],
-				"attached_to_field": ["is", "not set"],
-				"file_url": ["in", remaining_values],
 				"owner": frappe.session.user,
->>>>>>> cb620dc (fix(file): Added owner check before attaching doctype info to File)
 			},
 		)
 
