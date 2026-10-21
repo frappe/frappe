@@ -731,7 +731,7 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
 		)
 	except Exception:
-		reject_api_key_auth("invalid API key")
+		raise frappe.AuthenticationError
 
 	if not docname:
 		reject_api_key_auth("invalid API key")
