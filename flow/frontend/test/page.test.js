@@ -657,6 +657,17 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	assert.equal(createPage(boot, { storageKey }).state.agent, "reviewer");
 	const onlyFlow = { ...boot, agents: boot.agents.slice(0, 1) };
 	assert.equal(createPage(onlyFlow, { storageKey }).state.agent, "flow");
+	// storage that refuses the write leaves the pick in place, unsaved
+	const { setItem } = dom.window.Storage.prototype;
+	dom.window.Storage.prototype.setItem = () => {
+		throw new Error("QuotaExceededError");
+	};
+	t.after(() => (dom.window.Storage.prototype.setItem = setItem));
+	const full = createPage(boot, { storageKey: "flow.page.full" });
+	full.state.agent = "reviewer";
+	await nextTick();
+	assert.equal(full.state.agent, "reviewer");
+	dom.window.Storage.prototype.setItem = setItem;
 });
 
 test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's next step is the primary one and Add opens a blank record", async (t) => {

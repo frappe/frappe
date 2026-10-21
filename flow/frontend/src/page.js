@@ -37,7 +37,7 @@ export function createPage(
 	if (agentKey)
 		watch(
 			() => state.agent,
-			(agent) => agent && localStorage.setItem(agentKey, agent)
+			(agent) => agent && writeItem(agentKey, agent)
 		);
 
 	function can(doctype, ptype) {
@@ -133,11 +133,19 @@ function defaultAgent(boot) {
 	return boot.default_agent ?? boot.agents?.[0]?.name ?? null;
 }
 
-// blocked site data refuses reads; the page then starts on the default agent
+// blocked or full site data refuses storage; the page then just doesn't remember the agent
 function readItem(key) {
 	try {
 		return localStorage.getItem(key);
 	} catch {
 		return null;
+	}
+}
+
+function writeItem(key, value) {
+	try {
+		localStorage.setItem(key, value);
+	} catch {
+		// not saved: the next load starts on the default agent
 	}
 }
