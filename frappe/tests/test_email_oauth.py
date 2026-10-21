@@ -149,7 +149,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.pilot.assert_not_called()
 
 	def test_provider_unavailable_on_frappe_cloud_opens_the_form(self) -> None:
-		self.pilot.side_effect = lambda *args: frappe.throw("provider_unavailable")
+		self.pilot.side_effect = lambda *args: frappe.throw("provider_unavailable")  # nosemgrep
 		frappe.clear_messages()
 		self.assertIsNone(email_oauth.initiate_mailbox_connect("Outlook.com"))
 		self.assertEqual(self.pilot.call_args.args[1]["provider"], "microsoft")
@@ -164,7 +164,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 
 	def test_reconnect_with_provider_unavailable_is_refused(self) -> None:
 		account = self.relay_mailbox()
-		self.pilot.side_effect = lambda *args: frappe.throw("provider_unavailable")
+		self.pilot.side_effect = lambda *args: frappe.throw("provider_unavailable")  # nosemgrep
 		frappe.clear_messages()
 		with self.assertRaisesRegex(frappe.ValidationError, "Outlook sign-in isn't available"):
 			email_oauth.initiate_mailbox_connect(email_account=account)
