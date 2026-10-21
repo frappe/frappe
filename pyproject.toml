@@ -28,17 +28,12 @@ dependencies = [
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
-<<<<<<< HEAD
     "WeasyPrint==68.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
-    "Werkzeug==3.1.6",
+    "Werkzeug==3.1.9",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
-=======
-    "Werkzeug==3.1.9",
-    "beautifulsoup4~=4.15.0",
->>>>>>> cc7ac54 (chore(deps): bump werkzeug to 3.1.9)
     "bleach-allowlist~=1.0.3",
     "chardet~=5.2.0",
     "croniter~=6.0.0",
