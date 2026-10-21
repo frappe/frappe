@@ -33,3 +33,15 @@ class TestWebsiteSettings(IntegrationTestCase):
 
 		ws.append("route_redirects", {"source": "/engineering/(*.)", "target": "/development/(*.)"})
 		self.assertRaises(frappe.ValidationError, ws.validate)
+
+	def test_indexing_refresh_token_is_stored_encrypted(self):
+		ws = frappe.get_doc("Website Settings")
+		ws.indexing_refresh_token = "test-refresh-token"
+		ws.save()
+
+		self.assertNotEqual(
+			frappe.db.get_single_value("Website Settings", "indexing_refresh_token"), "test-refresh-token"
+		)
+		self.assertEqual(
+			frappe.get_doc("Website Settings").get_password("indexing_refresh_token"), "test-refresh-token"
+		)

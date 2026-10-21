@@ -49,7 +49,7 @@ class WebsiteSettings(Document):
 		hide_login: DF.Check
 		home_page: DF.Data | None
 		indexing_authorization_code: DF.Data | None
-		indexing_refresh_token: DF.Data | None
+		indexing_refresh_token: DF.Password | None
 		max_signups_per_minute: DF.Int
 		navbar_template: DF.Link | None
 		navbar_template_values: DF.Code | None

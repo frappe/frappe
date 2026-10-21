@@ -284,7 +284,7 @@
   },
   {
    "fieldname": "indexing_refresh_token",
-   "fieldtype": "Data",
+   "fieldtype": "Password",
    "hidden": 1,
    "label": "Indexing refresh token",
    "read_only": 1
