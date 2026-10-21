@@ -66,6 +66,7 @@
   "enable_google_indexing",
   "authorize_api_indexing_access",
   "indexing_refresh_token",
+  "indexing_refresh_token_secret",
   "indexing_authorization_code",
   "column_break_17",
   "google_analytics_id",
@@ -281,6 +282,13 @@
   },
   {
    "fieldname": "indexing_refresh_token",
+   "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Indexing refresh token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "indexing_refresh_token_secret",
    "fieldtype": "Password",
    "hidden": 1,
    "label": "Indexing refresh token",
