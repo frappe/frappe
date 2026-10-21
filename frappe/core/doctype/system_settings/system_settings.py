@@ -71,7 +71,6 @@ class SystemSettings(Document):
 		hide_empty_read_only_fields: DF.Check
 		hide_footer_in_auto_email_reports: DF.Check
 		language: DF.Link
-		lifespan_qrcode_image: DF.Int
 		link_field_results_limit: DF.Int
 		log_api_requests: DF.Check
 		login_with_email_link: DF.Check
@@ -114,6 +113,7 @@ class SystemSettings(Document):
 		time_format: DF.Literal["HH:mm:ss", "HH:mm"]
 		time_zone: DF.Literal[None]
 		two_factor_method: DF.Literal["OTP App", "SMS", "Email"]
+		use_classic_charts: DF.Check
 		use_number_format_from_currency: DF.Check
 		welcome_email_template: DF.Link | None
 	# end: auto-generated types

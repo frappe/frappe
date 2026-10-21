@@ -57,7 +57,7 @@ class _ResolvedFileMeta(type(Document)):
 
 
 def _restore_resolved_file_class(doctype):
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 
 	return get_controller(doctype)
 

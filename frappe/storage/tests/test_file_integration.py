@@ -463,7 +463,7 @@ class TestFileStorageIntegration(IntegrationTestCase):
 		from frappe.core.doctype.file.file import _ResolvedFileMeta
 		from frappe.core.doctype.file.file_v1 import FileV1
 		from frappe.core.doctype.file.file_v2 import FileV2
-		from frappe.model.base_document import get_controller
+		from frappe.model.document import get_controller
 
 		class AppFile(BaseFile):
 			pass

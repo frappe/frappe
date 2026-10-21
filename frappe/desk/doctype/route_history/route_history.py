@@ -5,6 +5,7 @@ from typing import Any
 
 import frappe
 from frappe.deferred_insert import deferred_insert as _deferred_insert
+from frappe.utils import cstr
 from frappe.utils.logging import get_log_db, log_cutoff, log_table
 from frappe.utils.sqlite_document import SQLiteLogDocument
 
@@ -33,15 +34,19 @@ class RouteHistory(SQLiteLogDocument):
 		db.commit()
 
 
+MAX_ROUTES_PER_REQUEST = 100
+MAX_ROUTE_LENGTH = 140
+
+
 @frappe.whitelist()
 def deferred_insert(routes: str | list[dict[str, Any]]):
 	routes = [
 		{
 			"user": frappe.session.user,
 			"route": route.get("route"),
-			"creation": route.get("creation"),
 		}
-		for route in frappe.parse_json(routes)
+		for route in frappe.parse_json(routes)[-MAX_ROUTES_PER_REQUEST:]
+		if len(cstr(route.get("route"))) <= MAX_ROUTE_LENGTH
 	]
 
 	_deferred_insert("Route History", routes)

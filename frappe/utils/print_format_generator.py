@@ -63,6 +63,15 @@ def download_pdf(
 	frappe.local.response.type = "pdf"
 
 
+def render_html_pdf(print_format, html, options, pdf_generator):
+	from frappe.utils.pdf import get_chrome_pdf, get_plutoprint_pdf
+
+	render = get_plutoprint_pdf if pdf_generator == "PlutoPrint" else get_chrome_pdf
+	return render(
+		print_format=print_format, html=html, options=options, output=None, pdf_generator=pdf_generator
+	)
+
+
 def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
 	"""`pdf_generator` hook: claims builder formats whose renderer is Typst."""
 	if pdf_generator != "Typst":
@@ -520,17 +529,17 @@ class PrintFormatGenerator:
 
 	# ----- PDF (Chrome) --------------------------------------------------
 
-	def render_pdf(self, password=None):
+	def render_pdf(self, password=None, pdf_generator=None):
 		"""Return PDF bytes using the format's renderer.
 
 		Renderers other than the built-in Chromium are resolved through the
 		`pdf_generator` hook, so an app can register its own the same way the
 		Typst renderer is."""
-		from frappe.utils.pdf import get_chrome_pdf
+		from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
 
 		pf = self.print_format
-		generator_name = pf.get("pdf_generator") or "chrome"
-		if generator_name != "chrome":
+		generator_name = resolve_pdf_generator(pf, pdf_generator)
+		if generator_name not in HTML_PDF_GENERATORS:
 			previous = getattr(frappe.local, "print_format_generator", None)
 			frappe.local.print_format_generator = self
 			try:
@@ -573,22 +582,16 @@ class PrintFormatGenerator:
 		background = self.layout.get("background")
 		if background:
 			options.pop("password", None)
-		pdf = get_chrome_pdf(
-			print_format=pf.name,
-			html=html,
-			options=options,
-			output=None,
-			pdf_generator="chrome",
-		)
-		return self.underlay_background(pdf, background, password) if background else pdf
+		pdf = render_html_pdf(pf.name, html, options, generator_name)
+		return self.underlay_background(pdf, background, password, generator_name) if background else pdf
 
-	def underlay_background(self, pdf: bytes, background: dict, password: str | None = None) -> bytes:
+	def underlay_background(
+		self, pdf: bytes, background: dict, password: str | None = None, pdf_generator: str = "chrome"
+	) -> bytes:
 		"""Draw the page background under every page of ``pdf``, edge to edge."""
 		from io import BytesIO
 
 		from pypdf import PdfReader, PdfWriter
-
-		from frappe.utils.pdf import get_chrome_pdf
 
 		width, height = page_size_mm(self.print_settings)
 		html = (
@@ -598,13 +601,7 @@ class PrintFormatGenerator:
 		)
 		options = {"margin-top": "0mm", "margin-bottom": "0mm", "margin-left": "0mm", "margin-right": "0mm"}
 		options.update(self.page_options())
-		background_pdf = get_chrome_pdf(
-			print_format=self.print_format.name,
-			html=html,
-			options=options,
-			output=None,
-			pdf_generator="chrome",
-		)
+		background_pdf = render_html_pdf(self.print_format.name, html, options, pdf_generator)
 		background_page = PdfReader(BytesIO(background_pdf)).pages[0]
 		writer = PdfWriter(clone_from=BytesIO(pdf))
 		for page in writer.pages:

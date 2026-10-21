@@ -12,7 +12,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.dashboard_chart.dashboard_chart import get
 from frappe.tests import IntegrationTestCase
-from frappe.utils import formatdate, get_last_day, getdate, now_datetime
+from frappe.utils import formatdate, get_first_day, get_last_day, getdate, now_datetime
 from frappe.utils.dateutils import get_period, get_period_ending
 from frappe.utils.logging import connection_for
 
@@ -86,6 +86,7 @@ class TestDashboardChart(IntegrationTestCase):
 			month = get_last_day(cur_date)
 			month = formatdate(month.strftime("%Y-%m-%d"))
 			self.assertEqual(result.get("labels")[idx], get_period(month))
+			self.assertEqual(result["dates"][idx], str(get_first_day(cur_date)))
 			cur_date += relativedelta(months=1)
 
 	def _own_error_logs(self):

@@ -564,6 +564,7 @@ frappe.ui.Sidebar = class Sidebar {
 	// The items list, not a lookup inside the wrapper: the phone's navigation sheet borrows it.
 	empty() {
 		this.$items_container.html("");
+		this.items = [];
 	}
 	make_sidebar() {
 		this.empty();

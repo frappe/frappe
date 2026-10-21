@@ -24,8 +24,7 @@ from frappe.database.utils import (
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
-from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
-from frappe.model.document import Document
+from frappe.model.document import DOCTYPES_FOR_DOCTYPE, Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
 

@@ -8,7 +8,7 @@ cached per site by `get_controller`.
 """
 
 import frappe
-from frappe.model.base_document import _resolve_controller, import_controller
+from frappe.model.document import _resolve_controller, import_controller
 from frappe.tests import IntegrationTestCase
 
 

@@ -545,7 +545,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 	// heatmap
 	render_heatmap() {
-		this.heatmap = new frappe.Chart("#heatmap-" + frappe.model.scrub(this.frm.doctype), {
+		this.heatmap?.destroy();
+		this.heatmap = frappe.ui.chart(this.heatmap_area.body.find(".heatmap"), {
 			type: "heatmap",
 			start: new Date(moment().subtract(1, "year").toDate()),
 			count_label: "interactions",
@@ -640,10 +641,13 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		});
 		this.show();
 
-		this.chart = new frappe.Chart(".form-graph", args);
-		if (!this.chart) {
-			this.hide();
-		}
+		this.chart?.destroy();
+		// The body, so collapsing the section hides the chart. frappe-charts empties its target, so
+		// a classic chart keeps drawing over the whole section as before.
+		const target = frappe.ui.chart.is_classic(args)
+			? this.chart_area.wrapper
+			: this.chart_area.body;
+		this.chart = frappe.ui.chart(target, args);
 	}
 
 	show() {

@@ -128,36 +128,6 @@ function readPage(dir) {
 	return { name: doc.name, dir, entry };
 }
 
-/**
- * Resolve a page island's bare imports against the framework toolchain.
- *
- * A page island's source sits in an app's python tree. The walk up from it can
- * reach `apps/node_modules` or the app's own frontend, and what it finds there
- * is not what this build compiles with. It also differs from bench to bench.
- *
- * Unenforced, so vite resolves first and this sees only what that walk missed.
- * The five shared singletons never reach here: `frameworkUI()` dedupes them, so
- * they resolve from the vite root already.
- *
- * @param {string[]} dirs  the page folders, from `discoverPageIslands`
- */
-export function pageIslandResolver(dirs) {
-	const roots = dirs.map((dir) => dir + path.sep);
-	let toolchainImporter;
-
-	return {
-		name: "island-page-resolve",
-		configResolved(config) {
-			toolchainImporter = path.join(config.root, "index.html");
-		},
-		resolveId(source, importer) {
-			if (!importer || !roots.some((root) => importer.startsWith(root))) return null;
-			if (/^[./]/.test(source) || path.isAbsolute(source)) return null;
-			return this.resolve(source, toolchainImporter, { skipSelf: true });
-		},
-	};
-}
-
 function subdirectories(dir) {
 	if (!isDirectory(dir)) return [];
 	return fs

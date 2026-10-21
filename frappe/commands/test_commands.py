@@ -227,8 +227,6 @@ class BaseTestCommands(IntegrationTestCase):
 
 class TestCommands(BaseTestCommands):
 	def test_browse_sid(self):
-		self.setup_test_site()
-
 		with patch("click.launch") as launch:
 			with cli(frappe.commands.site.browse, ["--user", "Administrator", "--sid"]) as result:
 				self.assertEqual(result.exit_code, 0)
@@ -511,45 +509,7 @@ class TestCommands(BaseTestCommands):
 		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type != "sqlite"),
 		"DB Root password and Admin password not set in config",
 	)
-	def test_bench_drop_site_should_archive_site(self):
-		site = TEST_SITE
-
-		self.execute(
-			f"bench new-site {site} --force --verbose "
-			f"--admin-password {frappe.conf.admin_password} "
-			f"--db-root-username {frappe.conf.root_login} "
-			f"--db-root-password {frappe.conf.root_password} "
-			f"--db-type {frappe.conf.db_type} "
-		)
-		self.assertEqual(self.returncode, 0)
-
-		self.execute(
-			f"bench drop-site {site} --force "
-			f"--db-root-username {frappe.conf.root_login} "
-			f"--db-root-password {frappe.conf.root_password} "
-		)
-		self.assertEqual(self.returncode, 0)
-
-		bench_path = get_bench_path()
-		site_directory = os.path.join(bench_path, f"sites/{site}")
-		self.assertFalse(os.path.exists(site_directory))
-		archive_directory = os.path.join(bench_path, f"archived/sites/{site}")
-		self.assertTrue(os.path.exists(archive_directory))
-
-	@skipIf(
-		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type != "sqlite"),
-		"DB Root password and Admin password not set in config",
-	)
 	def test_force_install_app(self):
-		if not os.path.exists(os.path.join(get_bench_path(), f"sites/{TEST_SITE}")):
-			self.execute(
-				f"bench new-site {TEST_SITE} --verbose "
-				f"--admin-password {frappe.conf.admin_password} "
-				f"--db-root-username {frappe.conf.root_login} "
-				f"--db-root-password {frappe.conf.root_password} "
-				f"--db-type {frappe.conf.db_type} "
-			)
-
 		app_name = "frappe"
 
 		# set admin password in site_config as when frappe force installs, we don't have the conf
@@ -652,6 +612,10 @@ class TestCommands(BaseTestCommands):
 			kwargs,
 		)
 		self.assertEqual(self.returncode, 0)
+
+		bench_path = get_bench_path()
+		self.assertFalse(os.path.exists(os.path.join(bench_path, f"sites/{site}")))
+		self.assertTrue(os.path.exists(os.path.join(bench_path, f"archived/sites/{site}")))
 
 	@skipIf(
 		frappe.conf.db_type == "sqlite",

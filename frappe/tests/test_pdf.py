@@ -189,6 +189,32 @@ class TestPdf(IntegrationTestCase):
 			self.assertIn("TOP", text)
 			self.assertIn(f"Page {number} of {len(pages)}", text)
 
+	def test_header_is_measured_after_its_image_loads(self):
+		import threading
+		import time
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		class SlowImageHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				time.sleep(0.5)
+				self.send_response(200)
+				self.send_header("Content-Type", "image/svg+xml")
+				self.end_headers()
+				self.wfile.write(b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="900"/>')
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), SlowImageHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdf = pdfgen.get_pdf(
+			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+			+ "<p>row</p>" * 10
+		)
+		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
+
 	def test_bulk_pdf_with_password_keeps_every_document(self):
 		import json
 
@@ -319,6 +345,53 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(options["shrink-to-fit"])
 		self.assertEqual(options["orientation"], "Portrait")
 
+	def test_network_print_raises_the_pdf_generation_error(self):
+		import sys
+		from unittest.mock import MagicMock, patch
+
+		from frappe.utils import print_format
+
+		printer = frappe.get_doc(
+			doctype="Network Printer Settings",
+			name="Office Printer",
+			server_ip="localhost",
+			port=631,
+			printer_name="Office Printer",
+		).insert()
+		cups = MagicMock(IPPError=type("IPPError", (Exception,), {}))
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with (
+			patch.dict(sys.modules, {"cups": cups}),
+			patch.object(frappe, "get_print", side_effect=ConnectionRefusedError),
+			self.assertRaises(ConnectionRefusedError),
+		):
+			print_format.print_by_server("User", "test@example.com", printer.name)
+
+	def test_print_styles_are_read_without_fetching_css_imports(self):
+		import threading
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		requested = []
+
+		class StylesheetHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				requested.append(self.path)
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), StylesheetHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdfgen.get_pdf(
+			f'<style>@import url("http://127.0.0.1:{server.server_port}/print.css");</style><p>row</p>',
+			{"block-external-requests": True},
+		)
+		self.assertEqual(requested, [])
+
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")
 		pdf = pdfgen.get_pdf(self.html)
@@ -406,6 +479,15 @@ class TestChromePdfGeometry(IntegrationTestCase):
 
 			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
 			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
+
+	def test_b5_page_size_is_portrait(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = self.make_browser({"page-size": "B5"})
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
+		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 9.84, delta=0.05)
 
 	def test_print_format_page_margin_reaches_pdf(self):
 		print_format = frappe.get_doc(

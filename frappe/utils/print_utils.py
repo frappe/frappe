@@ -33,27 +33,33 @@ def get_pdf_generators() -> list[str]:
 	return (frappe.get_meta("Print Format").get_field("pdf_generator").options or "").split("\n")
 
 
+HTML_PDF_GENERATORS = ("chrome", "PlutoPrint")
+
+
 def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -> str:
 	"""Pick the PDF engine for a render.
 
-	The beta renderer emits flexbox layouts that only Chromium lays out correctly, so a
-	beta format pins itself to Chrome. Everything else honours an explicit choice, then
-	the format's own setting. Anything that is not a known engine renders with Chromium.
+	A beta format that picked Typst always renders with Typst. Otherwise an explicit
+	choice wins, then the format's own setting, then the PDF Generator in Print
+	Settings. PlutoPrint falls back to Chromium for a format it cannot render.
 
 	A beta format's Typst choice dispatches through the `pdf_generator` hook, so the
 	HTML pipeline's PDF consumers reach the Typst renderer too.
 	"""
 	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+	from frappe.utils.pdf_generator.pluto import plutoprint_blockers
 
-	if print_format and uses_beta_renderer(print_format):
-		if print_format.get("pdf_generator") == "Typst":
-			return "Typst"
-		return "chrome"
+	if print_format and uses_beta_renderer(print_format) and print_format.get("pdf_generator") == "Typst":
+		return "Typst"
 	known = get_pdf_generators()
-	for generator in (pdf_generator, print_format and print_format.get("pdf_generator")):
-		if generator in known:
-			return generator
-	return "chrome"
+	generator = next(
+		(g for g in (pdf_generator, print_format and print_format.get("pdf_generator")) if g and g in known),
+		None,
+	)
+	generator = generator or frappe.db.get_single_value("Print Settings", "pdf_generator") or "PlutoPrint"
+	if generator == "PlutoPrint" and plutoprint_blockers(print_format):
+		return "chrome"
+	return generator
 
 
 def _run_print_pdf_hooks(doctype, name, print_format):
@@ -74,7 +80,7 @@ def get_print(
 	password=None,
 	pdf_options=None,
 	letterhead=None,
-	pdf_generator: Literal["chrome", "Typst"] | None = None,
+	pdf_generator: Literal["chrome", "PlutoPrint", "Typst"] | None = None,
 	settings=None,
 ):
 	"""Get Print Format for given document.
@@ -84,7 +90,7 @@ def get_print(
 	:param style: Print Format style.
 	:param as_pdf: Return as PDF. Default False.
 	:param password: Password to encrypt the pdf with. Default None
-	:param pdf_generator: PDF generator to use. Default 'chrome'
+	:param pdf_generator: PDF generator to use. Default is the PDF Generator in Print Settings
 	"""
 
 	"""
@@ -123,7 +129,7 @@ def get_print(
 		standard_pdf_options = set(pdf_options) <= {"password"}
 		if (
 			as_pdf
-			and generator == "chrome"
+			and generator in HTML_PDF_GENERATORS
 			and ((pf_doc is None and standard_pdf_options) or (pf_doc and uses_beta_renderer(pf_doc)))
 		):
 			from frappe.core.doctype.access_log.access_log import make_access_log
@@ -143,6 +149,7 @@ def get_print(
 				pdf_options.get("password"),
 				style,
 				settings=settings,
+				pdf_generator=generator,
 			)
 			make_access_log(
 				doctype=doc_obj.doctype,
@@ -203,7 +210,7 @@ def get_print(
 
 
 def _render_builder_pdf(
-	print_format, doc, letterhead, no_letterhead, password=None, style=None, settings=None
+	print_format, doc, letterhead, no_letterhead, password=None, style=None, settings=None, pdf_generator=None
 ):
 	"""PDF of a builder format through its own renderer, which applies the format's margins."""
 	from frappe.utils.print_format_generator import PrintFormatGenerator
@@ -216,7 +223,7 @@ def _render_builder_pdf(
 		settings=frappe.parse_json(settings) if settings else None,
 		no_letterhead=no_letterhead,
 	)
-	return generator.render_pdf(password=password)
+	return generator.render_pdf(password=password, pdf_generator=pdf_generator)
 
 
 def attach_print(
