@@ -167,6 +167,8 @@ permission_query_conditions = {
 	"Client Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Server Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Desktop Icon": "frappe.app_state.get_app_permission_query_conditions",
+	"Studio AI Session": "frappe.studio.permissions.session_query_conditions",
+	"Studio AI Message": "frappe.studio.permissions.message_query_conditions",
 }
 
 has_permission = {
@@ -193,6 +195,8 @@ has_permission = {
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
+	"Studio AI Session": "frappe.studio.permissions.has_session_permission",
+	"Studio AI Message": "frappe.studio.permissions.has_message_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
