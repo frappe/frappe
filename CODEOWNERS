@@ -5,6 +5,6 @@
 
 *                 @frappe/frappe-review-team
 
-# Studio: the low-code app builder (python package and editor)
+# Studio: the visual vue app builder (python package and editor)
 frappe/studio/     @ruchamahabal
 studio/            @ruchamahabal

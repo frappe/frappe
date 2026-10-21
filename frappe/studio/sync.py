@@ -1,3 +1,4 @@
+import importlib.util
 import os
 
 import frappe
@@ -18,8 +19,9 @@ def after_migrate():
 
 
 def after_app_install(app_name):
-	"""Sync studio apps from the installed app."""
-	sync_studio_apps(app_name)
+	"""Sync studio apps from the installed app; one without a package has none to sync."""
+	if importlib.util.find_spec(app_name):
+		sync_studio_apps(app_name)
 
 
 def before_app_uninstall(app_name):
