@@ -306,6 +306,9 @@ def local_resource_fetcher(block_external_requests=False):
 				return plutoprint.ResourceData(content, content_type)
 			if block_external_requests and not url.startswith("data:"):
 				raise plutoprint.Error(f"Blocked {url}")
-			return plutoprint.default_resource_fetcher.fetch_url(url)
+			resource = plutoprint.default_resource_fetcher.fetch_url(url)
+			if resource.get_mime_type() == "text/html":
+				raise plutoprint.Error(f"Not a page resource: {url}")
+			return resource
 
 	return Fetcher()
