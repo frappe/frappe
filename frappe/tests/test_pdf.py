@@ -117,6 +117,52 @@ class TestPdf(IntegrationTestCase):
 
 		self.assertTrue(get_report_pdf.call_args.kwargs["smart_shrinking"])
 
+	def test_network_print_raises_the_pdf_generation_error(self):
+		import sys
+		from unittest.mock import MagicMock, patch
+
+		from frappe.utils import print_format
+
+		printer = frappe.get_doc(
+			doctype="Network Printer Settings",
+			name="Office Printer",
+			server_ip="localhost",
+			port=631,
+			printer_name="Office Printer",
+		).insert()
+		cups = MagicMock(IPPError=type("IPPError", (Exception,), {}))
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with (
+			patch.dict(sys.modules, {"cups": cups}),
+			patch.object(frappe, "get_print", side_effect=ConnectionRefusedError),
+			self.assertRaises(ConnectionRefusedError),
+		):
+			print_format.print_by_server("User", "test@example.com", printer.name)
+
+	def test_print_styles_are_read_without_fetching_css_imports(self):
+		import threading
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		requested = []
+
+		class StylesheetHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				requested.append(self.path)
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), StylesheetHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdfgen.read_options_from_html(
+			f'<style>@import url("http://127.0.0.1:{server.server_port}/print.css");</style><p>row</p>'
+		)
+		self.assertEqual(requested, [])
+
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")
 		pdf = pdfgen.get_pdf(self.html)

@@ -30,6 +30,18 @@ export class Desk {
 		await expect(this.page.locator(".layout-main-section:visible > *").first()).toBeAttached();
 	}
 
+	// On the dock in an app that has one, on the sidebar otherwise.
+	async open_search() {
+		// A floating dock sits off-screen and inert until it is revealed.
+		await this.page.evaluate(() => frappe.app.sidebar.dock?.open());
+		await this.page
+			.locator(
+				".dock .navbar-modal-search-mobile, .body-sidebar .navbar-modal-search-mobile"
+			)
+			.filter({ visible: true })
+			.click();
+	}
+
 	async new_form(doctype) {
 		const route = slug(doctype);
 		const body = this.page.locator("body");

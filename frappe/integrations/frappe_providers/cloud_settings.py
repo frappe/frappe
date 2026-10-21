@@ -5,8 +5,6 @@ HTTP using a site-scoped token both written into site_config on site creation.""
 import re
 from urllib.parse import parse_qs, quote, urlsplit
 
-import requests
-
 import frappe
 from frappe import _
 from frappe.utils import cint
@@ -70,6 +68,8 @@ class PilotClient:
 		return self.site_path(f"{path}/{suffix.lstrip('/')}" if suffix else path)
 
 	def _request(self, method: str, path: str, data: dict | None = None):
+		import requests
+
 		try:
 			response = requests.request(
 				method,

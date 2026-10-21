@@ -302,7 +302,7 @@ class TestTranslate(IntegrationTestCase):
 			(4, "attr with", "attr context"),
 			(5, "name with", "name context"),
 			(6, "broken on", "new line"),
-			(10, "broken on separate line", None),
+			(11, "broken on separate line", None),
 			(15, "Communication", None),
 			(16, "Created On", None),
 		]

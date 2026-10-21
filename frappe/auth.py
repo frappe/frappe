@@ -149,10 +149,9 @@ class LoginManager:
 		if frappe.get_system_settings("disable_user_pass_login"):
 			frappe.throw(_("Login with username and password is not allowed."), frappe.AuthenticationError)
 
-		# clear cache
-		frappe.clear_cache(user=frappe.form_dict.get("usr"))
 		user, pwd = get_cached_user_pass()
 		self.authenticate(user=user, pwd=pwd)
+		frappe.clear_cache(user=self.user)
 
 		if should_run_2fa(self.user):
 			authenticate_for_2factor(self.user)
@@ -273,22 +272,19 @@ class LoginManager:
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=_raw_user_name)
 
-		# Current login flow uses cached credentials for authentication while checking OTP.
-		# Incase of OTP check, tracker for auth needs to be disabled(If not, it can remove tracker history as it is going to succeed anyway)
-		# Tracker is activated for 2FA incase of OTP.
-		ignore_tracker = should_run_2fa(user.name) and ("otp" in frappe.form_dict)
-		user_tracker = None if ignore_tracker else get_login_attempt_tracker(user.name)
+		user_tracker = get_login_attempt_tracker(user.name)
 
 		if not user.is_authenticated:
-			user_tracker and user_tracker.add_failure_attempt()
+			user_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=user.name)
 		elif not (user.name == "Administrator" or user.enabled):
-			user_tracker and user_tracker.add_failure_attempt()
+			user_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("User disabled or missing", user=user.name)
 		else:
-			user_tracker and user_tracker.add_success_attempt()
+			if not should_run_2fa(user.name):
+				user_tracker.add_success_attempt()
 			ip_tracker and ip_tracker.add_success_attempt()
 		self.user = user.name
 
