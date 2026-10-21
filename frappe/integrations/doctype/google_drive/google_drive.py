@@ -9,6 +9,7 @@ from googleapiclient.errors import HttpError
 
 import frappe
 from frappe import _
+from frappe.database.utils import dangerously_reconnect_on_connection_abort
 from frappe.integrations.google_oauth import GoogleOAuth
 from frappe.integrations.offsite_backup_utils import (
 	get_latest_backup_file,
@@ -201,9 +202,14 @@ def upload_system_backup_to_google_drive():
 			send_email(False, "Google Drive", "Google Drive", "email", error_status=e)
 
 	set_progress(3, _("Uploading successful."))
-	frappe.db.set_single_value("Google Drive", "last_backup_on", frappe.utils.now_datetime())
+	set_last_backup_on()
 	send_email(True, "Google Drive", "Google Drive", "email")
 	return _("Google Drive Backup Successful.")
+
+
+@dangerously_reconnect_on_connection_abort
+def set_last_backup_on():
+	frappe.db.set_single_value("Google Drive", "last_backup_on", frappe.utils.now_datetime())
 
 
 def daily_backup():

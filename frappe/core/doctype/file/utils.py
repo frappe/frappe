@@ -344,6 +344,7 @@ def attach_files_to_document(doc: "Document", event) -> None:
 				"attached_to_name": None,
 				"attached_to_doctype": None,
 				"attached_to_field": None,
+				"owner": frappe.session.user,
 			},
 		)
 

@@ -272,7 +272,20 @@ class Newsletter(WebsiteGenerator):
 			filters={"unsubscribed": 0, "email_group": ("in", self.get_email_groups())},
 			pluck="email",
 		)
-		return list(set(emails))
+		unsubscribe = frappe.qb.DocType("Email Unsubscribe")
+		unsubscribed = set(
+			frappe.qb.from_(unsubscribe)
+			.select(unsubscribe.email)
+			.where(
+				(unsubscribe.global_unsubscribe == 1)
+				| (
+					(unsubscribe.reference_doctype == self.doctype)
+					& (unsubscribe.reference_name == self.name)
+				)
+			)
+			.run(pluck=True)
+		)
+		return list(set(emails) - unsubscribed)
 
 	def get_email_groups(self) -> list[str]:
 		# wondering why the 'or'? i can't figure out why both aren't equivalent - @gavin

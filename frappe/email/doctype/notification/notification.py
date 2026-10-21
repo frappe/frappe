@@ -251,7 +251,7 @@ def get_context(context):
 			if not (template and "{" in template):
 				return template
 			return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-				template, context
+				template, context, restrict_globals=True
 			)
 
 		# Title falls back to the email Subject so existing rules keep their headline.
@@ -300,7 +300,7 @@ def get_context(context):
 
 		subject = self.subject
 		if "{" in subject:
-			subject = frappe.render_template(self.subject, context)
+			subject = frappe.render_template(self.subject, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -308,7 +308,7 @@ def get_context(context):
 			return
 
 		sender = None
-		message = frappe.render_template(self.message, context)
+		message = frappe.render_template(self.message, context, restrict_globals=True)
 		if self.sender and self.sender_email:
 			sender = formataddr((self.sender, self.sender_email))
 
@@ -356,7 +356,7 @@ def get_context(context):
 	def send_a_slack_msg(self, doc, context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context),
+			message=frappe.render_template(self.message, context, restrict_globals=True),
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
 		)
@@ -364,7 +364,7 @@ def get_context(context):
 	def send_sms(self, doc, context):
 		send_via_sms_gateway(
 			receiver_list=self.get_receiver_list(doc, context),
-			msg=frappe.render_template(self.message, context),
+			msg=frappe.render_template(self.message, context, restrict_globals=True),
 		)
 
 	def get_list_of_recipients(self, doc, context):
@@ -640,7 +640,7 @@ def get_emails_from_template(template, context):
 	if not template:
 		return ()
 
-	emails = frappe.render_template(template, context) if "{" in template else template
+	emails = frappe.render_template(template, context, restrict_globals=True) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
 
 
