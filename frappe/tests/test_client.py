@@ -382,11 +382,14 @@ class TestMethodLookupErrors(IntegrationTestCase):
 			"upload_file": upload,
 			"get_all_nodes": lambda path: get_all_nodes("ToDo", "ToDo", "", path),
 		}
-		for name, call in entry_points.items():
-			with self.subTest(name), self.set_user("Guest"):
-				errors = {self.error_of(call, path) for path in self.UNRESOLVABLE}
+		with self.change_settings(
+			"System Settings", allow_guests_to_upload_files=1, allowed_doctypes_for_guest_uploads=""
+		):
+			for name, call in entry_points.items():
+				with self.subTest(name), self.set_user("Guest"):
+					errors = {self.error_of(call, path) for path in self.UNRESOLVABLE}
 
-			self.assertEqual(errors, {(frappe.ValidationError, self.NOT_FOUND, (self.NOT_FOUND,))}, name)
+				self.assertEqual(errors, {(frappe.ValidationError, self.NOT_FOUND, (self.NOT_FOUND,))}, name)
 
 	def test_user_who_can_see_tracebacks_gets_the_reason(self):
 		from frappe.handler import execute_cmd
