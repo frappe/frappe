@@ -453,6 +453,7 @@ def reset_otp_secret(user: str):
 				"OTP secret cannot be reset because neither password login nor LDAP login is available for this user."
 			),
 			title=_("LDAP/Password Login Disabled"),
+			exc=frappe.PasswordLoginDisabledError,
 		)
 
 	otp_issuer = settings.otp_issuer_name or "Frappe Framework"
