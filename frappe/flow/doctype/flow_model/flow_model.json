@@ -14,7 +14,9 @@
   "context_window",
   "api_key",
   "base_url",
-  "extra_params"
+  "extra_params",
+  "section_break_access",
+  "roles"
  ],
  "fields": [
   {
@@ -76,10 +78,22 @@
    "fieldname": "extra_params",
    "fieldtype": "JSON",
    "label": "Extra Params"
+  },
+  {
+   "fieldname": "section_break_access",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "description": "Who can use this model; empty means every Flow User. Others pick another model for agents that run on it, but a sub-agent on it works for anyone using its agent. Disabling a role also drops it here, which can leave the model open to every Flow User.",
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles",
+   "options": "Has Role"
   }
  ],
  "links": [],
- "modified": "2026-09-26 12:18:55.000000",
+ "modified": "2026-10-21 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Model",

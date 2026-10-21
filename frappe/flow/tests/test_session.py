@@ -86,7 +86,7 @@ class TestNewSession(ServerCase):
 		):
 			new_session(self.agent.name)
 
-	def test_new_session_defaults_to_the_assistant_under_the_same_read_check(self):
+	def test_new_session_defaults_to_the_assistant_under_the_same_read_checks(self):
 		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
@@ -97,8 +97,21 @@ class TestNewSession(ServerCase):
 		frappe.get_doc(
 			{"doctype": "User Permission", "user": OTHER, "allow": "Flow Agent", "for_value": self.agent.name}
 		).insert()
+		# the agent's model is for System Managers only: others are refused, by name, until they pick another
+		self.model.append("roles", {"role": "System Manager"})
+		self.model.save()
+		open_model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Session Open Model",
+				"model_id": "openai/gpt-4o",
+				"enabled": 1,
+			}
+		).insert()
 		frappe.set_user(OTHER)
-		new_session(self.agent.name)
+		with self.assertRaisesRegex(frappe.PermissionError, self.model.name):
+			new_session(self.agent.name)
+		self.assertEqual(new_session(self.agent.name, model=open_model.name).model, open_model.name)
 		with self.assertRaises(frappe.PermissionError):
 			new_session()
 

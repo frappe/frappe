@@ -5,10 +5,11 @@
 
 - Base access: Flow Users use Flow within their own records; System Managers administer its
   setup. An owner may share a session, to view only.
-- Doctype permissions: which agents and models. An agent with roles is only for users holding
-  one, and User Permissions narrow both per user; checked when a session starts and on every
-  turn. A sub-agent comes with the agent that has it, like its tools and knowledge bases. Flow
-  Users read the skills of the agents open to them.
+- Doctype permissions: which agents and models. An agent or model with roles is only for users
+  holding one, and User Permissions narrow both per user; checked when a session starts and on
+  every turn. A user who may not use an agent's model picks another. A sub-agent comes with the
+  agent that has it, model included, like its tools and knowledge bases. Flow Users read the
+  skills of the agents open to them.
 - Ownership: sessions, runs and personal memories are private to their owner, since a session's
   tools run as them. System Managers also see Trigger sessions, and an owner may open a session
   to view by every Flow user.
@@ -71,24 +72,21 @@ def memory_query_conditions(user: str | None = None) -> str:
 	return f"(`tabFlow Agent Memory`.`scope` != 'User' or `tabFlow Agent Memory`.`user` = {user})"
 
 
-def has_agent_permission(doc, user: str) -> bool:
-	"""An agent with roles is only for users holding one; System Managers see every agent."""
+def has_role_permission(doc, user: str) -> bool:
+	"""An agent or model with roles is only for users holding one; System Managers see all."""
 	roles = frappe.get_roles(user)
 	return "System Manager" in roles or not doc.roles or any(row.role in roles for row in doc.roles)
 
 
-def agent_query_conditions(user: str | None = None) -> str:
-	"""The list side of has_agent_permission."""
+def role_query_conditions(user: str | None = None, doctype: str | None = None) -> str:
+	"""The list side of has_role_permission."""
 	roles = frappe.get_roles(user or frappe.session.user)
 	if "System Manager" in roles:
 		return ""
-	agents_with_roles = "select `parent` from `tabHas Role` where `parenttype` = 'Flow Agent'"
+	with_roles = f"select `parent` from `tabHas Role` where `parenttype` = {frappe.db.escape(doctype)}"
 	user_roles = ", ".join(frappe.db.escape(role) for role in roles)
-	agent = "`tabFlow Agent`.`name`"
-	return (
-		f"({agent} not in ({agents_with_roles})"
-		f" or {agent} in ({agents_with_roles} and `role` in ({user_roles})))"
-	)
+	record = f"`tab{doctype}`.`name`"
+	return f"({record} not in ({with_roles}) or {record} in ({with_roles} and `role` in ({user_roles})))"
 
 
 def has_skill_permission(doc, user: str) -> bool:
