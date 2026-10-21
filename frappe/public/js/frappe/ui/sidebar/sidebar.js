@@ -1062,12 +1062,14 @@ frappe.ui.Sidebar = class Sidebar {
 		return this.navigable_app_modules(app)[0];
 	}
 
-	// A shell's home: the first navigable item in its sidebar.
+	// A shell's home: the first navigable item in its sidebar that stays in the desk. A URL item
+	// leaves the desk, so it is a link in the shell, not the shell's home.
 	module_landing_route(module) {
 		const sidebar = frappe.boot.module_sidebars[module];
 		if (!sidebar) return null;
 
 		for (const item of sidebar.items || []) {
+			if (item.link_type === "URL") continue;
 			const route = frappe.ui.sidebar_item.get_route(item, false, module);
 			if (route) return route;
 		}
