@@ -24,8 +24,8 @@ import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
 import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
 
 const __dirname = fileURLToPath(new URL(".", import.meta.url))
-// bench apps folder (scripts -> src -> frontend -> studio -> apps)
-const APPS_DIR = path.resolve(__dirname, "../../../../")
+// bench apps folder (scripts -> src -> frontend -> studio -> frappe -> apps)
+const APPS_DIR = path.resolve(__dirname, "../../../../../")
 
 // @framework/ui components are spread across the root barrel and per-widget subpath
 // exports, so their imports must be grouped by source module. Components with a
@@ -63,7 +63,7 @@ const FRAMEWORK_UI_BARREL_COMPONENTS = new Set([
 ])
 
 // create a temp directory for app renderers in studio app folder
-const TEMP_DIR = path.resolve(__dirname, "../../../.temp-app-renderers")
+const TEMP_DIR = path.resolve(__dirname, "../../../../.temp-app-renderers")
 if (!fs.existsSync(TEMP_DIR)) {
 	fs.mkdirSync(TEMP_DIR, { recursive: true })
 }
@@ -309,7 +309,7 @@ async function buildWithVite(
 	appFolder,
 	tailwindContent = [],
 ) {
-	outDir = outDir || path.resolve(__dirname, `../../../frappe/public/app_builds/${appName}`)
+	outDir = outDir || path.resolve(__dirname, `../../../../frappe/public/app_builds/${appName}`)
 	basePath = basePath || `/assets/frappe/app_builds/${appName}/`
 
 	console.log(`Building ${appName} with Vite`)

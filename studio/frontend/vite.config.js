@@ -12,7 +12,7 @@ import lucideStaticAlias from "./vite/lucideStaticAlias"
 import frameworkui from "@framework/ui/vite"
 
 const viteDevServerPort = getViteDevServerPort()
-const appsDir = path.resolve(__dirname, "../../")
+const appsDir = path.resolve(__dirname, "../../../")
 // Apps can be symlinked into apps/ from elsewhere (e.g. git worktrees under bench/.worktrees).
 // For those, allow only the checkout's studio/ folder
 const appSymlinkedSources = fs.readdirSync(appsDir).flatMap((entry) => {
@@ -102,7 +102,7 @@ export default defineConfig(({ command }) => {
 					renderer: path.resolve(__dirname, "renderer.html"),
 				},
 			},
-			outDir: "../frappe/public/studio",
+			outDir: "../../frappe/public/studio",
 			emptyOutDir: true,
 			// www/studio.html and the renderer template read the entry assets from here
 			manifest: true,

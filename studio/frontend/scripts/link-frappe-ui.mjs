@@ -13,7 +13,7 @@ import { fileURLToPath } from "node:url"
 import { execSync } from "node:child_process"
 
 const frontendDir = resolve(dirname(fileURLToPath(import.meta.url)), "..")
-const checkout = resolve(frontendDir, process.env.FRAPPE_UI_PATH || "../../frappe-ui")
+const checkout = resolve(frontendDir, process.env.FRAPPE_UI_PATH || "../../../frappe-ui")
 const linkPath = resolve(frontendDir, "node_modules/frappe-ui")
 const relTarget = relative(dirname(linkPath), checkout)
 

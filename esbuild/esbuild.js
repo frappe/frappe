@@ -685,10 +685,10 @@ async function run_build_command_for_apps(apps) {
 	log("Build commands finished.");
 }
 
-// The studio editor is a vite app inside this repo (studio/), built like an app
+// The studio editor is a vite app inside this repo (studio/frontend/), built like an app
 // frontend; its output is part of frappe's assets, so a failure fails the build.
 async function run_studio_build() {
-	const studio_path = path.resolve(__dirname, "..", "studio");
+	const studio_path = path.resolve(__dirname, "..", "studio", "frontend");
 	const unregister_signal_handlers = register_build_signal_handlers();
 	try {
 		await run_app_build("studio", studio_path);

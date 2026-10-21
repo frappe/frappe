@@ -74,7 +74,7 @@ jobs:
       - name: Verify yarn.lock
         run: |
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          git diff --exit-code yarn.lock studio/yarn.lock
+          git diff --exit-code yarn.lock studio/frontend/yarn.lock
 
       - name: Cache Playwright browsers
         uses: actions/cache@v6
@@ -158,7 +158,7 @@ jobs:
         uses: actions/cache@v6
         with:
           path: ~/.cache/Cypress
-          key: ${{ runner.os }}-cypress-${{ hashFiles('studio/yarn.lock') }}
+          key: ${{ runner.os }}-cypress-${{ hashFiles('studio/frontend/yarn.lock') }}
 
       - uses: ./.github/actions/setup
         name: Environment Setup
@@ -174,7 +174,7 @@ jobs:
       # the data-source specs call the test site through the dev server's proxy
       - name: Run Component Tests
         run: |
-          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
           yarn test:cypress
 
       - name: Upload Cypress screenshots
@@ -182,7 +182,7 @@ jobs:
         uses: actions/upload-artifact@v7
         with:
           name: cypress-screenshots
-          path: apps/${{ github.event.repository.name }}/studio/cypress/screenshots
+          path: apps/${{ github.event.repository.name }}/studio/frontend/cypress/screenshots
 
       - name: Show bench output
         if: ${{ always() }}

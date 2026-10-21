@@ -196,7 +196,7 @@ const studioModules: Record<string, string> = import.meta.glob("@/components/App
 
 // @framework/ui component sources (apps/frappe/ui). Used for slot parsing.
 const frameworkUIModules: Record<string, string> = import.meta.glob(
-	["../../../../frappe/ui/src/components/**/*.vue", "!**/*.story.vue"],
+	["../../../../../frappe/ui/src/components/**/*.vue", "!**/*.story.vue"],
 	{ query: "?raw", eager: true, import: "default" },
 )
 
@@ -250,7 +250,7 @@ function getComponentTemplate(componentName: string): string {
 	} else if (components.isFrameworkUIComponent(componentName)) {
 		const relativePath = frameworkUIComponentPaths[componentName]
 		if (relativePath) {
-			const modulePath = `../../../../frappe/ui/src/components/${relativePath}`
+			const modulePath = `../../../../../frappe/ui/src/components/${relativePath}`
 			if (frameworkUIModules[modulePath]) {
 				rawTemplate = frameworkUIModules[modulePath]
 			}

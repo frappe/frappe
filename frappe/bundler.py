@@ -192,7 +192,7 @@ def watch_studio_editor():
 	if not (frappe.local.conf.developer_mode or frappe._dev_server):
 		return None
 
-	studio_path = os.path.join(frappe.get_app_source_path("frappe"), "studio")
+	studio_path = frappe.get_app_source_path("frappe", "studio", "frontend")
 	if not os.path.exists(os.path.join(studio_path, "node_modules")):
 		click.secho("Studio editor dependencies are not installed; run `bench build` once.", fg="yellow")
 		return None

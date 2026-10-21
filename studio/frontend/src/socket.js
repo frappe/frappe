@@ -1,5 +1,5 @@
 import { io } from "socket.io-client"
-import { socketio_port } from "../../../../sites/common_site_config.json"
+import { socketio_port } from "../../../../../sites/common_site_config.json"
 
 let socket = null
 export function initSocket() {

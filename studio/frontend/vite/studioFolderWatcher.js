@@ -1,7 +1,7 @@
 import path from "path"
 import fs from "fs"
 import { isCSSRequest } from "vite"
-import { getStudioRoots } from "./studioApps.js"
+import { getStudioRoots, isStudioAppFolder } from "./studioApps.js"
 
 /**
  * Vite plugin for editing exported apps' `<app>/studio/` folders from Studio.
@@ -22,21 +22,23 @@ import { getStudioRoots } from "./studioApps.js"
  *    component still hot-update via Vue's HMR.
  */
 function studioFolderWatcher(appsDir) {
-	let watchedFoldersCache = null
+	let studioRootsCache = null
 
-	// Folders holding exported studio apps: `<app>/studio` for every app, except frappe where only
-	// the listed exported apps count (the rest of its studio/ folder is this editor).
-	function getWatchedFolders() {
-		if (watchedFoldersCache) return watchedFoldersCache
-		watchedFoldersCache = getStudioRoots(appsDir).flatMap(({ frappeApp, root, folders }) =>
-			(frappeApp === "frappe" ? folders : [root]).map(normalize),
-		)
-		return watchedFoldersCache
+	// `<app>/studio` for every app on the bench
+	function getStudioRoot(file) {
+		studioRootsCache ||= getStudioRoots(appsDir).map(({ root }) => normalize(root))
+		return studioRootsCache.find((root) => file.startsWith(root + "/"))
 	}
 
+	// Under an exported app's folder. Checked per file rather than against a cached list, so an app
+	// exported while the server runs is picked up; this editor's own files sit under frappe's
+	// studio/ root but in no app folder.
 	function isUnderStudioFolder(filePath) {
 		const file = normalize(filePath)
-		return getWatchedFolders().some((folder) => file.startsWith(folder + "/"))
+		const root = getStudioRoot(file)
+		if (!root) return false
+		const [studioApp] = file.slice(root.length + 1).split("/")
+		return isStudioAppFolder(path.join(root, studioApp))
 	}
 
 	return {
@@ -77,12 +79,12 @@ function studioFolderWatcher(appsDir) {
 		},
 
 		configureServer(server) {
-			const watchedFolders = getWatchedFolders()
-			if (!watchedFolders.length) return
+			const studioRoots = getStudioRoots(appsDir)
+			if (!studioRoots.length) return
 
 			const watcher = server.watcher
-			for (const folder of watchedFolders) {
-				watcher.add(folder)
+			for (const { root } of studioRoots) {
+				watcher.add(root)
 			}
 
 			function send(event, data) {
@@ -94,10 +96,7 @@ function studioFolderWatcher(appsDir) {
 			function studioRelativePath(filePath) {
 				const file = normalize(filePath)
 				if (!isUnderStudioFolder(file)) return null
-				const root = getStudioRoots(appsDir)
-					.map(({ root }) => normalize(root))
-					.find((r) => file.startsWith(r + "/"))
-				return root ? file.slice(root.length + 1) : null
+				return file.slice(getStudioRoot(file).length + 1)
 			}
 
 			// A studio file was added/removed/renamed: refresh the file explorer tree, and the

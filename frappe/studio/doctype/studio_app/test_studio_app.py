@@ -11,7 +11,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
-from frappe.studio.doctype.studio_app.studio_app import StudioApp, studio_apps_txt_path
+from frappe.studio.doctype.studio_app.studio_app import StudioApp
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_files_path
 
@@ -103,7 +103,13 @@ class TestStudioApp(FrappeTestCase):
 
 			app = frappe.get_doc("Studio App", "dashed_app")
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
-			self.assertEqual(frappe.get_file_items(studio_apps_txt_path()), ["dashed_app"])
+
+	def test_export_refuses_a_folder_that_is_not_a_studio_app(self):
+		with exports_in_tempdir():
+			app = make_studio_app(app_title="Frontend", app_name="frontend")
+			os.makedirs(app.get_folder_path(frappe_app="frappe"))
+
+			self.assertRaises(frappe.ValidationError, app.enable_app_export, "frappe")
 
 	def test_exported_apps_cannot_be_changed_outside_developer_mode(self):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
@@ -589,7 +595,7 @@ ROUTER_SCRIPT = """{
 
 @contextmanager
 def exports_in_tempdir():
-	"""Exports of every app, frappe's `studio_apps.txt` included, land in a temp dir."""
+	"""Exports of every app land in a temp dir."""
 	with (
 		tempfile.TemporaryDirectory() as tmpdir,
 		# scrubbed like the real one, so `routed-app` resolves to `routed_app` everywhere
@@ -599,8 +605,6 @@ def exports_in_tempdir():
 		),
 		patch.dict(frappe.conf, {"developer_mode": 1}),
 	):
-		os.makedirs(os.path.join(tmpdir, "frappe", "studio"))
-		open(os.path.join(tmpdir, "frappe", "studio", "studio_apps.txt"), "w").close()
 		yield
 
 

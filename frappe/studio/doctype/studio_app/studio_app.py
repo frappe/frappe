@@ -11,13 +11,12 @@ from frappe import _
 from frappe.studio.build import get_editor_assets
 from frappe.studio.export import (
 	can_export,
-	delete_file,
 	delete_folder,
 	validate_standard_app_change,
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import walk_blocks
+from frappe.studio.utils import get_app_file_path, walk_blocks
 from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
@@ -232,16 +231,11 @@ class StudioApp(WebsiteGenerator):
 
 		# carry every exported file (page scripts, router.ts, components) over to the new folder
 		move_folder(self.get_folder_path(old), self.get_folder_path())
+		# the app JSON is keyed by the scrubbed name (my-app and my_app share my_app.json)
+		old_file = os.path.join(self.get_folder_path(), f"{frappe.scrub(old)}.json")
+		if os.path.exists(old_file):
+			os.replace(old_file, get_app_file_path(self.get_folder_path()))
 		self.export_app()
-		self.remove_exported_name(old, kept_name=self.name)
-
-	def remove_exported_name(self, name: str, kept_name: str):
-		"""Drop the app JSON and studio_apps.txt entry for `name`. Both are keyed by the scrubbed
-		name, so they stay when `kept_name` scrubs the same (my-app and my_app share my_app.json)."""
-		if frappe.scrub(name) == frappe.scrub(kept_name):
-			return
-		delete_file(self.get_folder_path(), f"{frappe.scrub(name)}.json")
-		self.remove_from_studio_apps_txt(name)
 
 	def move_export_to(self, target_app: str):
 		"""Carry the export folder, files and all, into another Frappe app. Exported page scripts
@@ -250,7 +244,6 @@ class StudioApp(WebsiteGenerator):
 		new_path = self.get_folder_path(frappe_app=target_app)
 		if os.path.exists(new_path):
 			frappe.throw(_("Folder {0} already exists.").format(new_path))
-		self.remove_from_studio_apps_txt(self.name)
 		move_folder(old_path, new_path)
 
 	@frappe.whitelist()
@@ -395,10 +388,11 @@ class StudioApp(WebsiteGenerator):
 
 		app_path = self.create_app_folder()
 		self.export_studio_pages(app_path)
-		self.add_to_studio_apps_txt()
 
 	def create_app_folder(self) -> str:
 		app_path = self.get_folder_path()
+		if os.path.isdir(app_path) and not os.path.isfile(get_app_file_path(app_path)):
+			frappe.throw(_("Folder {0} exists and is not a Studio app.").format(app_path))
 		frappe.create_folder(app_path)
 		# the router config lives in router.ts, so keep it out of the JSON
 		write_document_file(self, folder=app_path, exclude_fields=["router_script"])
@@ -452,33 +446,6 @@ class StudioApp(WebsiteGenerator):
 		source = frappe.read_file(self.get_router_file_path())
 		self.router_script = re.sub(r"^\s*export\s+default\s+", "", source, count=1).strip()
 		return True
-
-	def remove_from_studio_apps_txt(self, name: str):
-		if self.frappe_app != "frappe":
-			return
-
-		path = studio_apps_txt_path()
-		apps = frappe.get_file_items(path)
-		if frappe.scrub(name) in apps:
-			apps.remove(frappe.scrub(name))
-			with open(path, "w") as f:
-				f.write("\n".join(apps))
-
-	def add_to_studio_apps_txt(self):
-		if self.frappe_app != "frappe":
-			return
-
-		apps = None
-		app_folder_name = frappe.scrub(self.name)
-		with open(studio_apps_txt_path()) as f:
-			content = f.read()
-			if app_folder_name not in content.splitlines():
-				apps = list(filter(None, content.splitlines()))
-				apps.append(app_folder_name)
-
-			if apps:
-				with open(studio_apps_txt_path(), "w") as f:
-					f.write("\n".join(apps))
 
 	def collect_files(self, script: str, script_dir: str, blocks) -> list[dict]:
 		"""The custom Vue components `blocks` use and everything the script and those files import."""
@@ -584,10 +551,6 @@ def validate_app_name(name: str):
 	"""The name is used in the editor's URL and the export folder, so it must be URL-friendly"""
 	if not name or name != cleanup_page_name(name):
 		frappe.throw(_("App Name must be lowercase, with hyphens instead of spaces or punctuation."))
-
-
-def studio_apps_txt_path() -> str:
-	return frappe.get_app_source_path("frappe", "studio", "studio_apps.txt")
 
 
 def move_folder(source: str, destination: str):

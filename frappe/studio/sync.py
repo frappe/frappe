@@ -5,6 +5,7 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 from frappe.studio.build import build_custom_apps
 from frappe.studio.doctype.studio_component.studio_component import mark_components_standard
+from frappe.studio.utils import get_app_file_path, get_exported_app_folders
 
 
 def after_migrate():
@@ -33,25 +34,11 @@ def sync_studio_apps(app_name: str | None = None):
 	apps = [app_name] if app_name else frappe.get_installed_apps()
 
 	for app in apps:
-		studio_folder_path = frappe.get_app_source_path(app, "studio")
-		if not os.path.exists(studio_folder_path):
-			continue
-
-		if app == "frappe":
-			app_list = frappe.get_file_items(
-				frappe.get_app_source_path("frappe", "studio", "studio_apps.txt")
-			)
-		else:
-			app_list = os.listdir(studio_folder_path)
-
-		for studio_app in app_list:
-			print(f"Syncing Studio App {studio_app} for {app}")
-			if os.path.isdir(os.path.join(studio_folder_path, studio_app)):
-				app_folder = os.path.join(studio_folder_path, studio_app)
-				import_file_by_path(get_app_file_path(app_folder))
-
-				sync_pages(app_folder)
-				sync_components(app_folder)
+		for app_folder in get_exported_app_folders(frappe.get_app_source_path(app, "studio")):
+			print(f"Syncing Studio App {os.path.basename(app_folder)} for {app}")
+			import_file_by_path(get_app_file_path(app_folder))
+			sync_pages(app_folder)
+			sync_components(app_folder)
 
 
 def remove_orphaned_apps_and_pages():
@@ -71,22 +58,11 @@ def remove_orphaned_apps_and_pages():
 
 
 def get_exported_docnames() -> tuple[set[str], set[str]]:
-	"""Docnames of every Studio App and Studio Page that has a file on disk, as (apps, pages).
-
-	Walks folders rather than studio_apps.txt: an app whose folder exists but isn't listed is
-	unsynced, not an orphan.
-	"""
+	"""Docnames of every Studio App and Studio Page that has a file on disk, as (apps, pages)."""
 	apps, pages = set(), set()
 	for app in frappe.get_installed_apps():
-		studio_folder_path = frappe.get_app_source_path(app, "studio")
-		if not os.path.isdir(studio_folder_path):
-			continue
-		for entry in os.listdir(studio_folder_path):
-			app_folder = os.path.join(studio_folder_path, entry)
-			app_path = get_app_file_path(app_folder)
-			if not os.path.isfile(app_path):
-				continue
-			apps.add(read_json_file(app_path).get("name"))
+		for app_folder in get_exported_app_folders(frappe.get_app_source_path(app, "studio")):
+			apps.add(read_json_file(get_app_file_path(app_folder)).get("name"))
 			# exported page `name` is the scrubbed title; the docname is `page_name`
 			pages.update(read_json_file(path).get("page_name") for path in get_page_file_paths(app_folder))
 	return apps, pages
@@ -111,11 +87,6 @@ def sync_components(app_folder):
 			import_file_by_path(component_path)
 			names.append(read_json_file(component_path).get("name"))
 	mark_components_standard(names)
-
-
-def get_app_file_path(app_folder) -> str:
-	# the folder keeps the app's name as-is, but its JSON is written scrubbed (`my-app/my_app.json`)
-	return os.path.join(app_folder, f"{frappe.scrub(os.path.basename(app_folder))}.json")
 
 
 def get_page_file_paths(app_folder) -> list[str]:

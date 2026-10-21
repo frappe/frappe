@@ -1,3 +1,4 @@
+import os
 import re
 from functools import wraps
 
@@ -52,3 +53,17 @@ def has_page_write_perm(message: str | None = None):
 		return wrapper
 
 	return decorator
+
+
+def get_app_file_path(app_folder: str) -> str:
+	"""The folder keeps the app's name as-is, but its JSON is written scrubbed (`my-app/my_app.json`)."""
+	return os.path.join(app_folder, f"{frappe.scrub(os.path.basename(app_folder))}.json")
+
+
+def get_exported_app_folders(studio_folder: str) -> list[str]:
+	"""Subfolders of `<app>/studio` that hold their app JSON. Anything else in there, like the
+	editor in frappe's `studio/frontend`, is not a studio app."""
+	if not os.path.isdir(studio_folder):
+		return []
+	folders = [os.path.join(studio_folder, entry) for entry in sorted(os.listdir(studio_folder))]
+	return [folder for folder in folders if os.path.isfile(get_app_file_path(folder))]

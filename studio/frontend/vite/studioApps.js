@@ -4,15 +4,16 @@ import path from "node:path"
 /**
  * Every `<frappe_app>/studio/` folder on the bench and the exported studio apps inside it.
  *
- * frappe keeps this editor in its `studio/` folder, so its exported apps are only the subfolders
- * `studio_apps.txt` lists; any other app's `studio/` folder holds nothing but exported apps.
+ * A subfolder is an exported app only when it holds its app JSON (`my-app/my_app.json`), the same
+ * rule the Python side uses; frappe's editor under `studio/frontend/` has none.
  */
 export function getStudioRoots(appsDir) {
 	return listFolder(appsDir).flatMap((frappeApp) => {
 		const root = path.join(appsDir, frappeApp, "studio")
 		if (!isDirectory(root)) return []
-		const names = frappeApp === "frappe" ? readStudioAppsTxt(root) : listFolder(root)
-		const folders = names.map((name) => path.join(root, name)).filter(isDirectory)
+		const folders = listFolder(root)
+			.map((name) => path.join(root, name))
+			.filter(isStudioAppFolder)
 		return [{ frappeApp, root, folders }]
 	})
 }
@@ -21,14 +22,13 @@ export function findStudioAppFolders(appsDir) {
 	return getStudioRoots(appsDir).flatMap((studioRoot) => studioRoot.folders)
 }
 
-function readStudioAppsTxt(root) {
-	const file = path.join(root, "studio_apps.txt")
-	if (!fs.existsSync(file)) return []
-	return fs
-		.readFileSync(file, "utf8")
-		.split("\n")
-		.map((line) => line.trim())
-		.filter(Boolean)
+export function isStudioAppFolder(folder) {
+	return isDirectory(folder) && fs.existsSync(path.join(folder, `${scrub(path.basename(folder))}.json`))
+}
+
+// frappe.scrub: spaces and hyphens become underscores, lowercase
+function scrub(name) {
+	return name.replace(/[ -]/g, "_").toLowerCase()
 }
 
 function listFolder(folder) {

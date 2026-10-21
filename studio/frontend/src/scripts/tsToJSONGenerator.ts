@@ -51,7 +51,7 @@ const configMap: Record<string, any> = {
 	// `<Component>Props` (and optionally `<Component>Slots`) in its folder's `types.ts`
 	// gets one `<Component>.json`.
 	frameworkui: {
-		srcFolders: ["../../frappe/ui/src/components"],
+		srcFolders: ["../../../frappe/ui/src/components"],
 		destFolder: "src/json_types/frameworkui",
 		tsconfigPath: "node_modules/frappe-ui/tsconfig.base.json",
 		skipFolders: ["stories", "tests"],

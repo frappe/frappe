@@ -12,7 +12,7 @@ import click
 
 import frappe
 from frappe.bundler import get_node_env
-from frappe.studio.utils import walk_blocks
+from frappe.studio.utils import get_exported_app_folders, walk_blocks
 from frappe.utils import get_files_path
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
@@ -147,7 +147,7 @@ class StudioAppBuilder:
 		for glob in self.tailwind_content:
 			command += f" --tailwind-content {shlex.quote(glob)}"
 
-		studio_app_path = frappe.get_app_source_path("frappe", "studio")
+		studio_app_path = frappe.get_app_source_path("frappe", "studio", "frontend")
 		result = subprocess.run(
 			command,
 			cwd=studio_app_path,
@@ -314,22 +314,8 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 	"""
 	failed_apps = []
 	for frappe_app in apps or frappe.get_all_apps():
-		studio_folder = get_studio_folder(frappe_app)
-		if not os.path.exists(studio_folder):
-			continue
-
-		if frappe_app == "frappe":
-			apps_list_file = frappe.get_app_source_path("frappe", "studio", "studio_apps.txt")
-			if os.path.exists(apps_list_file):
-				studio_apps = frappe.get_file_items(apps_list_file)
-			else:
-				continue
-		else:
-			studio_apps = [
-				d for d in os.listdir(studio_folder) if os.path.isdir(os.path.join(studio_folder, d))
-			]
-
-		for studio_app in studio_apps:
+		for app_folder in get_exported_app_folders(get_studio_folder(frappe_app)):
+			studio_app = os.path.basename(app_folder)
 			click.echo(f"\nBuilding Studio App: {studio_app} (from {frappe_app})")
 
 			try:

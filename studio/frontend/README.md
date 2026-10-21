@@ -69,7 +69,7 @@ You need this setup to work on Studio's frontend, and to build standard (exporte
 
 2. Open a new terminal session and run the following commands (in developer mode, `bench watch` starts the same dev server beside frappe's asset watcher, so this step is optional):
 	```bash
-	cd frappe-bench/apps/frappe/studio
+	cd frappe-bench/apps/frappe/studio/frontend
 	yarn install
 	yarn dev --host
 	```
@@ -84,7 +84,7 @@ It watches the `studio` folder of every installed app and imports changed app/pa
 
 **Note:** Exported apps can only be edited on a local setup with the dev server running. On a production site they only run, they can't be edited. We will be adding customization support for standard apps soon.
 
-**Note:** The editor's code lives in `frappe-bench/apps/frappe/studio`; the Python side (DocTypes, API, build, sync, AI) is the `frappe.studio` package in `frappe-bench/apps/frappe/frappe/studio`. Frappe's own exported Studio apps are subfolders of `studio/` listed in `studio/studio_apps.txt`.
+**Note:** The editor's code lives in `frappe-bench/apps/frappe/studio/frontend`; the Python side (DocTypes, API, build, sync, AI) is the `frappe.studio` package in `frappe-bench/apps/frappe/frappe/studio`. Like any other app, frappe keeps its exported Studio apps as subfolders of `studio/`; a subfolder counts as an app only when it holds `<folder>/<folder>.json`.
 
 ### Bench Commands
 

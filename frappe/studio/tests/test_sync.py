@@ -10,6 +10,7 @@ from frappe.studio.doctype.studio_page.test_studio_page import (
 	make_component,
 )
 from frappe.studio.sync import before_app_uninstall, remove_orphaned_apps_and_pages, sync_studio_apps
+from frappe.studio.utils import get_app_file_path
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
 
@@ -38,6 +39,17 @@ class TestSync(IntegrationTestCase):
 			self.assertEqual(frappe.db.get_value("Studio App", app.name, "app_title"), app.app_title)
 			synced = frappe.db.get_value("Studio Page", page.name, ["route", "is_standard"])
 			self.assertEqual(synced, ("/board", 1))
+
+	def test_does_not_sync_a_folder_without_its_app_json(self):
+		with exports_in_tempdir():
+			app = make_standard_app()
+			page = make_studio_page(app.name, page_title="Board")
+			os.remove(get_app_file_path(app.get_folder_path()))
+			delete_rows(app)
+
+			sync_studio_apps("frappe")
+
+			self.assertFalse(frappe.db.exists("Studio Page", page.name))
 
 	def test_sync_updates(self):
 		with exports_in_tempdir():

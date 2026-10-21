@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
-from frappe.studio.utils import has_page_write_perm
+from frappe.studio.utils import get_exported_app_folders, has_page_write_perm
 from frappe.utils import sbool
 
 
@@ -135,11 +135,8 @@ def get_custom_vue_components(frappe_app: str) -> list[dict]:
 			return True
 		return False
 
-	for studio_app in os.listdir(studio_folder):
-		studio_app_dir = os.path.join(studio_folder, studio_app)
-		if not os.path.isdir(studio_app_dir):
-			continue
-
+	for studio_app_dir in get_exported_app_folders(studio_folder):
+		studio_app = os.path.basename(studio_app_dir)
 		for dirpath, _dirnames, filenames in os.walk(studio_app_dir):
 			for filename in sorted(filenames):
 				if not filename.endswith(".vue"):

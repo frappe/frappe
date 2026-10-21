@@ -509,7 +509,7 @@
     "@floating-ui/utils" "^0.2.11"
     vue-demi ">=0.13.0"
 
-"@framework/ui@link:../ui":
+"@framework/ui@link:../../ui":
   version "0.0.0"
   uid ""
 
