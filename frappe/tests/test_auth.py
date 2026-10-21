@@ -9,7 +9,13 @@ from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth, validate_ip_address
+from frappe.auth import (
+	CookieManager,
+	LoginAttemptTracker,
+	validate_api_key_secret,
+	validate_auth,
+	validate_ip_address,
+)
 from frappe.core.doctype.user.user import generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds, hash_sid
@@ -483,6 +489,13 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 			self._fail_with(f"unknown-key-{i}", "x")
 
 		self.assertEqual(len(self._entries()), 2)
+
+	def test_failed_key_lookup_is_rejected_without_a_log_entry(self):
+		self._request_with(self.api_key, "x")
+		with self.assertRaises(frappe.AuthenticationError):
+			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+
+		self.assertEqual(self._entries(), [])
 
 
 class TestLoginAttemptTracker(IntegrationTestCase):
