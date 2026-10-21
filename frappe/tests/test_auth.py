@@ -354,7 +354,7 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		cls.user_email = "test_api_auth_failure@test.com"
+		cls.user_email = "test_api_auth_failure@example.com"
 		if not frappe.db.exists("User", cls.user_email):
 			frappe.get_doc(doctype="User", email=cls.user_email, first_name="API Auth Failure").insert(
 				ignore_permissions=True
