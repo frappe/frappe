@@ -17,6 +17,7 @@ from frappe.studio.ai.block_codec import BlockCodec
 from frappe.studio.ai.models import ModelRegistry
 from frappe.studio.ai.session import AISession
 from frappe.studio.utils import has_page_write_perm
+from frappe.utils.background_jobs import is_job_enqueued
 
 logger = frappe.logger("frappe.studio.ai.api")
 logger.setLevel(logging.INFO)
@@ -49,7 +50,9 @@ def run(
 	image_url = BlockCodec.validate_image_data(image_data) if image_data else None
 
 	session = AISession.get_or_create(page_id, resolved_model)
-	if AISession.is_session_running(session.name):
+	# one turn per session at a time; the job id makes the queue refuse a second one
+	job_id = f"studio-ai-{session.name}"
+	if AISession.is_session_running(session.name) or is_job_enqueued(job_id):
 		frappe.local.response.http_status_code = 429
 		return {"status": "busy", "message": _("Another AI request is still processing. Please wait.")}
 
@@ -64,6 +67,8 @@ def run(
 		run_agent_job,
 		queue="long",
 		timeout=600,
+		job_id=job_id,
+		deduplicate=True,
 		enqueue_after_commit=True,
 		prompt=prompt,
 		page_context_json=page_context,
