@@ -100,6 +100,7 @@ dependencies = [
     "python-engineio~=4.14.0",
     # ASGI server for the realtime process.
     "uvicorn~=0.54.0",
+    "a2wsgi~=1.10.10",
     # async HTTP client for the realtime connect/auth path.
     "httpx~=0.28.1",
 ]
