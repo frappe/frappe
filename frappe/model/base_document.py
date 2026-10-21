@@ -17,6 +17,7 @@ from frappe.model import (
 	display_fieldtypes,
 	float_like_fields,
 	get_permitted_fields,
+	numeric_fieldtypes,
 	table_fields,
 )
 from frappe.model.docstatus import DocStatus
@@ -37,7 +38,7 @@ from frappe.utils import (
 	strip_html,
 )
 from frappe.utils.defaults import get_not_null_defaults
-from frappe.utils.html_utils import unescape_html
+from frappe.utils.html_utils import has_html_tags, unescape_html
 
 if TYPE_CHECKING:
 	from frappe.model.document import Document
@@ -922,7 +923,7 @@ class BaseDocument:
 			frappe.db.set_value(self.doctype, self.name, "modified", self.modified, update_modified=False)
 
 	def _fix_numeric_types(self):
-		for df in self.meta.get("fields"):
+		for df in self.meta.get("fields", {"fieldtype": ("in", numeric_fieldtypes)}):
 			if df.fieldtype == "Check":
 				self.set(df.fieldname, cint(self.get(df.fieldname)))
 
@@ -1312,8 +1313,6 @@ class BaseDocument:
 
 		- Ignore if 'Ignore XSS Filter' is checked or fieldtype is 'Code'
 		"""
-		from bs4 import BeautifulSoup
-
 		if frappe.flags.in_install:
 			return
 
@@ -1327,7 +1326,7 @@ class BaseDocument:
 				# doesn't look like html so no need
 				continue
 
-			elif "<!-- markdown -->" in value and not bool(BeautifulSoup(value, "html.parser").find()):
+			elif "<!-- markdown -->" in value and not has_html_tags(value):
 				# should be handled separately via the markdown converter function
 				continue
 

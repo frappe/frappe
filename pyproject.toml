@@ -28,10 +28,10 @@ dependencies = [
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
-    "WeasyPrint==68.0",
+    "WeasyPrint==70.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
-    "Werkzeug==3.1.6",
+    "Werkzeug==3.1.9",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
     "bleach-allowlist~=1.0.3",
@@ -82,6 +82,7 @@ dependencies = [
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.2.1",
     "typing_extensions>=4.15.0,<5",
+    "tzdata~=2026.5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.2",
@@ -92,6 +93,16 @@ dependencies = [
     "vobject~=0.9.9",
     "pycountry~=24.6.1",
     "websockets~=15.0.1",
+    # realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4,
+    # wire-compatible with the browser's socket.io-client ^4.7.1.
+    # Pin exact versions after a manual handshake check (polling + websocket upgrade).
+    "python-socketio~=5.17.0",
+    "python-engineio~=4.14.0",
+    # ASGI server for the realtime process.
+    "uvicorn~=0.54.0",
+    "a2wsgi~=1.10.10",
+    # async HTTP client for the realtime connect/auth path.
+    "httpx~=0.28.1",
 ]
 
 [project.urls]

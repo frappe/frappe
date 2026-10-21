@@ -16,7 +16,7 @@ from frappe.desk.doctype.note.note import Note
 from frappe.model.document import LazyChildTable, LazyDocument
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests import IntegrationTestCase
-from frappe.utils import cint, now_datetime, set_request
+from frappe.utils import cint, get_datetime, now_datetime, set_request
 from frappe.website.serve import get_response
 
 
@@ -182,6 +182,28 @@ class TestDocument(IntegrationTestCase):
 		d2 = frappe.get_doc(d1.doctype, d1.name)
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
+
+	def test_save_after_insert_on_a_whole_second(self):
+		with self.freeze_time("2026-10-15 10:33:29"):
+			event = self.test_insert()
+
+		event.subject = "saved after a whole-second insert"
+		event.save()
+
+		saved = frappe.db.get_value("Event", event.name, ["subject", "creation"], as_dict=True)
+		self.assertEqual(saved.subject, "saved after a whole-second insert")
+		self.assertEqual(saved.creation, get_datetime("2026-10-15 10:33:29"))
+
+	def test_first_save_of_a_single(self):
+		doctype = new_doctype(
+			issingle=1, fields=[{"fieldname": "note", "fieldtype": "Data", "label": "Note"}]
+		).insert()
+
+		single = frappe.get_doc(doctype.name)
+		single.note = "first save"
+		single.save()
+
+		self.assertEqual(frappe.db.get_single_value(doctype.name, "note"), "first save")
 
 	def test_conflict_validation_single(self):
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
@@ -748,6 +770,12 @@ class TestLazyDocument(IntegrationTestCase):
 
 		# things accessing __dict__ by default should be updated too
 		self.assertTrue(frappe.get_lazy_doc("User", "Guest").get("roles"))
+
+	def test_lazy_single_document(self):
+		_ = frappe.get_lazy_doc("Navbar Settings", "Navbar Settings")
+
+		with self.assertQueryCount(1):
+			frappe.get_lazy_doc("Navbar Settings", "Navbar Settings")
 
 	def test_lazy_doc_efficient_saves(self):
 		# Only touched tables and self should be updated
