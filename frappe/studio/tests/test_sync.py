@@ -37,9 +37,8 @@ class TestSync(IntegrationTestCase):
 			sync_studio_apps("frappe")
 
 			self.assertEqual(frappe.db.get_value("Studio App", app.name, "app_title"), app.app_title)
-			synced = frappe.get_doc("Studio Page", page.name)
-			self.assertEqual(synced.route, "/board")
-			self.assertTrue(synced.is_standard)
+			synced = frappe.db.get_value("Studio Page", page.name, ["route", "is_standard"])
+			self.assertEqual(synced, ("/board", 1))
 
 	def test_sync_updates(self):
 		with exports_in_tempdir():
@@ -78,8 +77,10 @@ class TestSync(IntegrationTestCase):
 
 			sync_studio_apps("frappe")
 
-			synced = frappe.get_doc("Studio Component", component.name)
-			self.assertEqual((synced.component_name, synced.is_standard), ("Card", 1))
+			synced = frappe.db.get_value(
+				"Studio Component", component.name, ["component_name", "is_standard"]
+			)
+			self.assertEqual(synced, ("Card", 1))
 
 	def test_before_app_uninstall_deletes_its_apps(self):
 		with exports_in_tempdir():
