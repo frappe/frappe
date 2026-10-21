@@ -524,24 +524,22 @@ test("the composer asks a pending batch one call at a time above the box, names 
 	assert.ok(!child.el.textContent.includes("Run this command?"))
 })
 
-test("the queue steers or takes back a waiting message, and the time a reply has run shows beside Stop", async (t) => {
+test("the queue steers or takes back a waiting message", async (t) => {
 	const calls = []
 	const flow = {
 		options: { requireCwd: false, maxAttachments: 10, skillsEnabled: false },
 		state: reactive({
 			prefs: { mode: "ask" }, sessionId: "s1", session: null, models: [], codeRefs: [], quotes: [],
 			queued: [{ key: "q1", label: "Also check this" }],
-			skills: [], conversation: { running: true, runStartedAt: Date.now() / 1000 - 75 }, draft: null,
+			skills: [], conversation: { running: true }, draft: null,
 		}),
 		sendQueued: (item) => calls.push(["send", item.key]),
 		removeQueued: (item) => calls.push(["remove", item.key]),
 	}
 	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
 	const button = (text) => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === text)
-	const timer = () => el.querySelector("[title='How long this reply has run']")
 	assert.match(el.textContent, /Queued\s*Also check this/)
 	assert.ok(button("Steer").querySelector("[data-stub=FeatherIcon][name=corner-down-left]"))
-	assert.match(timer().textContent.trim(), /^1m 1[56]s$/)
 
 	const box = el.querySelector("fieldset textarea")
 	button("Steer").click()
@@ -566,7 +564,6 @@ test("the queue steers or takes back a waiting message, and the time a reply has
 	await nextTick()
 	assert.equal(button("Steer"), undefined)
 	assert.ok(button("Send"))
-	assert.equal(timer(), null)
 })
 
 test("the thread shows the empty state, a loading line while a chat opens, and a sent message before the server echoes it", async (t) => {

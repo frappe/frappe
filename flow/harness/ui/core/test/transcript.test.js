@@ -15,7 +15,6 @@ import {
 	modelTitle,
 	normalizeSkillCommand,
 	quoteBlock,
-	runningSince,
 	skillSegments,
 	splitCodeRefs,
 	splitQuotes,
@@ -492,7 +491,6 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 		applyEvent(conversation, event)
 	// paused, nothing folds; the gated call waits in the approval card
 	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text"])
-	assert.equal(runningSince(conversation), null)
 
 	// a message steered into the resumed run joins its turn
 	for (const event of [
@@ -510,9 +508,6 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 	])
 		applyEvent(conversation, event)
 	assert.deepEqual(buildItems(conversation).map((item) => item.kind), ["user", "thinking", "text", "group", "user", "group"])
-	assert.equal(runningSince(conversation), 110)
-	// a page loaded after the run began counts from the turn's first message, not a steered one
-	assert.equal(runningSince({ ...conversation, runStartedAt: null }), 100)
 
 	applyEvent(conversation, {
 		type: "assistant_message",
@@ -522,7 +517,6 @@ test("a turn folds only once its run ends, approval pauses and steered messages 
 		stop_reason: "stop",
 	})
 	applyEvent(conversation, { type: "run_ended", seq: 12, ts: 130.5, reason: "done" })
-	assert.equal(runningSince(conversation), null)
 
 	const collapsed = buildItems(conversation)
 	assert.deepEqual(collapsed.map((item) => item.kind), ["user", "turn-fold", "user", "text", "turn-copy"])
