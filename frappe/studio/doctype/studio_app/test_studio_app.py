@@ -106,13 +106,22 @@ class TestStudioApp(FrappeTestCase):
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
 			StudioApp.remove_from_studio_apps_txt.assert_not_called()
 
-	def test_exported_apps_cannot_be_renamed_outside_developer_mode(self):
+	def test_exported_apps_cannot_be_changed_outside_developer_mode(self):
 		app = make_studio_app(app_title="Deployed App", app_name="deployed-app")
 		app.db_set({"is_standard": 1, "frappe_app": "studio"})
 		with patch.dict(frappe.conf, {"developer_mode": 0}):
 			self.assertRaises(
 				frappe.ValidationError, frappe.rename_doc, "Studio App", app.name, "deployed-renamed"
 			)
+			app.app_title = "Edited App"
+			self.assertRaises(frappe.PermissionError, app.save)
+			app.reload().is_standard = 0
+			self.assertRaises(frappe.PermissionError, app.save)
+			self.assertRaises(frappe.PermissionError, frappe.delete_doc, "Studio App", app.name)
+
+			with patch.dict(frappe.flags, {"in_import": True}):
+				app.reload().app_title = "Synced App"
+				app.save()
 
 	def test_validate_app_name(self):
 		app = make_studio_app(app_title="Valid App", app_name="valid-app")
@@ -265,14 +274,10 @@ class TestStudioAppBuilder(FrappeTestCase):
 		unpublished_app = make_studio_app(app_title="Unpublished Custom", app_name="unpublished-custom")
 		make_studio_page(unpublished_app.name, page_title="Unp Page", published=0)
 
-		standard_app = make_studio_app(
-			app_title="Standard Excluded",
-			app_name="standard-excluded",
-			is_standard=1,
-			frappe_app="studio",
-		)
+		standard_app = make_studio_app(app_title="Standard Excluded", app_name="standard-excluded")
 		blocks = json.dumps([{"componentName": "Alert", "children": []}])
 		make_studio_page(standard_app.name, page_title="Std Page", blocks=blocks, published=1)
+		standard_app.db_set({"is_standard": 1, "frappe_app": "studio"})
 
 		result = get_published_custom_apps()
 		self.assertIn(app.name, result)

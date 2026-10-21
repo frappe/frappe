@@ -11,6 +11,7 @@
   "is_disabled",
   "block",
   "component_id",
+  "is_standard",
   "interface_tab",
   "inputs"
  ],
@@ -49,12 +50,21 @@
    "fieldname": "is_disabled",
    "fieldtype": "Check",
    "label": "Is Disabled"
+  },
+  {
+   "default": "0",
+   "description": "Exported to the app's files",
+   "fieldname": "is_standard",
+   "fieldtype": "Check",
+   "label": "Is Standard",
+   "no_copy": 1,
+   "read_only": 1
   }
  ],
  "grid_page_length": 50,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-27 12:50:27.879257",
+ "modified": "2026-10-19 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Studio",
  "name": "Studio Component",

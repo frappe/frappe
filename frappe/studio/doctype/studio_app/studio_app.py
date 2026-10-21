@@ -13,7 +13,13 @@ from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
 from frappe.website.website_generator import WebsiteGenerator
 
-from studio.export import can_export, delete_file, delete_folder, write_document_file
+from studio.export import (
+	can_export,
+	delete_file,
+	delete_folder,
+	validate_standard_app_change,
+	write_document_file,
+)
 from studio.realtime import publish_doc_change
 from studio.utils import walk_blocks
 
@@ -186,6 +192,9 @@ class StudioApp(WebsiteGenerator):
 				self.autoname()
 			self.route = self.name
 
+	def validate(self):
+		validate_standard_app_change(self)
+
 	def on_update(self):
 		self.export_app()
 		if not self.flags.in_insert and self.has_value_changed("is_standard") and not self.is_standard:
@@ -193,6 +202,7 @@ class StudioApp(WebsiteGenerator):
 		publish_doc_change("Studio App", self.name, self.name)
 
 	def on_trash(self):
+		validate_standard_app_change(self)
 		for page in self.pages:
 			frappe.delete_doc("Studio Page", page, force=True)
 
@@ -346,7 +356,6 @@ class StudioApp(WebsiteGenerator):
 				"frappe_app": target_app,
 			},
 		)
-
 		self.is_standard = 1
 		self.frappe_app = target_app
 		self.save()

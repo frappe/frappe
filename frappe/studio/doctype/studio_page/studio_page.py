@@ -15,11 +15,15 @@ from studio.export import (
 	delete_file,
 	delete_folder,
 	parse_json,
+	validate_standard_app_change,
 	write_code_file,
 	write_document_file,
 )
 from studio.realtime import publish_doc_change
-from studio.studio.doctype.studio_component.studio_component import get_components_for_blocks
+from studio.studio.doctype.studio_component.studio_component import (
+	get_components_for_blocks,
+	mark_components_standard,
+)
 from studio.studio.doctype.studio_page.copy_paste_handler import (
 	PAGE_RESOURCE_FIELDS,
 	PAGE_VARIABLE_FIELDS,
@@ -96,6 +100,7 @@ class StudioPage(Document):
 			self.route = f"/{self.route}"
 
 	def validate(self):
+		validate_standard_app_change(self)
 		# passed from the frontend for faster page saves when variables & resources are not changed
 		if not hasattr(self, "_skip_validate"):
 			self.validate_variables()
@@ -215,46 +220,6 @@ class StudioPage(Document):
 			os.rename(old_page_script, self.get_script_file_path())
 		delete_folder(old_folder)
 
-	def export_components(self):
-		if components := self.get_studio_components():
-			folder = self.get_component_folder_path()
-			frappe.create_folder(folder)
-			for component in components:
-				doc = frappe.get_doc("Studio Component", component)
-				write_document_file(doc, folder=folder)
-
-	def get_studio_components(self):
-		components = set()
-
-		def add_component(block):
-			if block.get("isStudioComponent"):
-				components.add(block.get("componentName"))
-
-			for child in block.get("children", []):
-				add_component(child)
-
-			if slots := block.get("componentSlots"):
-				for slot in slots.values():
-					content = slot.get("slotContent")
-					if not isinstance(content, list):
-						continue
-					for slot_child in content:
-						add_component(slot_child)
-
-		def get_root_block(blocks):
-			if isinstance(blocks, str):
-				blocks = frappe.parse_json(blocks)
-			return blocks[0]
-
-		if self.has_blocks():
-			root_block = get_root_block(self.blocks)
-			add_component(root_block)
-		if self.has_blocks(check_draft=True):
-			root_block = get_root_block(self.draft_blocks)
-			add_component(root_block)
-
-		return components
-
 	def has_blocks(self, check_draft: bool = False):
 		if check_draft:
 			if self.draft_blocks and self.draft_blocks != "[]":
@@ -264,9 +229,11 @@ class StudioPage(Document):
 		return False
 
 	def on_trash(self):
+		validate_standard_app_change(self)
 		self.delete_ai_sessions()
 		if can_export(self):
 			delete_folder(self.get_folder_path())
+			self.delete_unused_component_files(deleting=True)
 
 	def delete_ai_sessions(self):
 		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
@@ -428,15 +395,44 @@ class StudioPage(Document):
 			path.append(self.get_file_name())
 		return frappe.get_app_source_path(self.frappe_app, *path)
 
+	def export_components(self):
+		components = get_components_for_blocks(get_blocks(self))
+		if components:
+			frappe.create_folder(self.get_component_folder_path())
+			mark_components_standard([component.name for component in components])
+		for component in components:
+			doc = frappe.get_doc("Studio Component", component.name)
+			write_document_file(doc, folder=self.get_component_folder_path())
+		self.delete_unused_component_files()
+
+	def delete_unused_component_files(self, deleting: bool = False):
+		"""Remove the files of components that no page of the app uses any more"""
+		folder = self.get_component_folder_path()
+		if not os.path.isdir(folder):
+			return
+		filters = {"studio_app": self.studio_app}
+		if deleting:
+			filters["name"] = ["!=", self.name]
+		pages = frappe.get_all("Studio Page", filters=filters, fields=["blocks", "draft_blocks"])
+		blocks = [block for page in pages for block in get_blocks(page)]
+		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
+		for file in os.listdir(folder):
+			if file.removesuffix(".json") not in used:
+				delete_file(folder, file)
+
 	def get_component_folder_path(self) -> str:
-		path = ["studio", self.studio_app, "studio_components"]
-		return frappe.get_app_source_path(self.frappe_app, *path)
+		return frappe.get_app_source_path(self.frappe_app, "studio", self.studio_app, "studio_components")
 
 	def get_file_name(self):
 		return f"{self.get_export_docname()}.json"
 
 	def get_script_file_path(self) -> str:
 		return os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+
+
+def get_blocks(page) -> list[dict]:
+	"""The published and draft blocks of a page together"""
+	return [*(parse_json(page.blocks) or []), *(parse_json(page.draft_blocks) or [])]
 
 
 def get_app_page(app_name: str, page_name: str) -> "StudioPage":

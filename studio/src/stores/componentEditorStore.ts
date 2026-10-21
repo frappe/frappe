@@ -10,7 +10,6 @@ import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
 import type { StudioComponent, ComponentInput } from "@/types/Studio/StudioComponent"
 import useComponentStore from "@/stores/componentStore"
-import useStudioStore from "./studioStore"
 
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
@@ -125,13 +124,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 				`Are you sure you want to delete the component '${component.component_name}'?`,
 			)
 			if (confirmed) {
-				const store = useStudioStore()
-				studioComponents.runDocMethod
-					.submit({
-						method: "delete_component",
-						name: component.component_id,
-						studio_app: store.activeApp?.name,
-					})
+				studioComponents.delete
+					.submit(component.component_id)
 					.then(() => {
 						toast.success(`Component '${component.component_name}' deleted`)
 						studioComponents.reload()

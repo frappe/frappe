@@ -7,8 +7,9 @@ import frappe
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 
-from studio.export import delete_file, parse_json, remove_empty_values
+from studio.export import delete_file, parse_json, remove_empty_values, validate_standard_app_change
 from studio.realtime import publish_doc_change
+from studio.sync_json import get_studio_folders
 from studio.utils import walk_blocks
 
 
@@ -28,6 +29,7 @@ class StudioComponent(Document):
 		component_name: DF.Data | None
 		inputs: DF.Table[StudioComponentInput]
 		is_disabled: DF.Check
+		is_standard: DF.Check
 	# end: auto-generated types
 
 	def before_insert(self):
@@ -45,21 +47,29 @@ class StudioComponent(Document):
 		if isinstance(self.block, dict):
 			self.block = frappe.as_json(self.block, indent=None)
 
+	def validate(self):
+		validate_standard_app_change(self)
+
 	def on_update(self):
 		publish_doc_change("Studio Component", self.name)
 
-	@frappe.whitelist()
-	def delete_component(self, studio_app: str | None = None):
-		self.delete()
-		if not studio_app:
-			return
+	def on_trash(self):
+		validate_standard_app_change(self)
+		if frappe.conf.developer_mode:
+			self.delete_files()
 
-		app = frappe.db.get_value("Studio App", studio_app, ["frappe_app", "is_standard"], as_dict=True)
-		if app.is_standard:
-			app_path = frappe.get_app_source_path(app.frappe_app, "studio", studio_app, "studio_components")
-			component_path = os.path.join(app_path, f"{self.component_id}.json")
-			print("Deleting component file at:", component_path)
-			delete_file(component_path)
+	def delete_files(self):
+		"""Every standard page using a component exports it, so its file can be in several apps"""
+		for folder in get_studio_folders():
+			for app_folder in os.listdir(folder):
+				delete_file(folder, app_folder, "studio_components", f"{frappe.scrub(self.name)}.json")
+
+
+def mark_components_standard(names: list[str]):
+	"""A component with a file in an app is standard, whether or not the file says so"""
+	frappe.db.set_value(
+		"Studio Component", {"name": ["in", names], "is_standard": 0}, "is_standard", 1, update_modified=False
+	)
 
 
 def get_components_for_blocks(blocks) -> list[dict]:

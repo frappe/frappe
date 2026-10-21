@@ -9,6 +9,7 @@ frappe.ui.form.on("Studio Page", {
 
 		if (!frappe.boot.developer_mode) {
 			frm.set_df_property("is_standard", "read_only", 1);
+			if (frm.doc.is_standard) frm.disable_form();
 		}
 	},
 });
