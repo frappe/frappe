@@ -9,7 +9,7 @@ import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
-from frappe.database.utils import get_order_by_fields
+from frappe.database.utils import DefaultOrderBy, get_doctype_sort_info, get_order_by_fields
 from frappe.model import default_fields
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_docs
 from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
@@ -801,8 +801,9 @@ def get_linked_docs(
 	filters: str | list | dict | None = None,
 	limit: int | None = None,
 	order_by: str | None = None,
+	offset: int = 0,
 ) -> dict[str, list]:
-	"""`filters`, `limit` and `order_by` apply to the documents of each linked doctype.
+	"""`filters`, `limit`, `offset` and `order_by` apply to the documents of each linked doctype.
 
 	A filter applies only to linked doctypes that have its column (or whose child table has it);
 	one that names a doctype (`[doctype, field, operator, value]`) applies only to that doctype."""
@@ -906,9 +907,8 @@ def get_linked_docs(
 			if add_fields := link_context.get("add_fields"):
 				fields += add_fields
 
-			if order_by:
-				# Postgres orders a DISTINCT query only by selected fields
-				fields += get_order_by_fields(order_by)
+			# Postgres orders a DISTINCT query only by selected fields
+			fields += get_order_by_fields(order_by or get_doctype_sort_info(linked_doctype)[0])
 
 			fields = [sf.strip() for sf in fields if sf]
 
@@ -918,12 +918,13 @@ def get_linked_docs(
 				filters=[*link_filters, *get_doctype_filters(linked_doctype_meta, filters)],
 				or_filters=or_filters,
 				distinct=True,
-				order_by=order_by,
+				order_by=order_by or DefaultOrderBy,
 				limit=limit,
+				offset=offset,
 			)
 
 		permitted_count = len(ret or [])
-		if has_permission and (filters or limit):
+		if has_permission and (filters or offset or permitted_count == limit):
 			# hidden_count ignores filters and limit, so filters can't probe restricted docs
 			permitted_count = count_linked_docs(linked_doctype, link_filters, or_filters)
 		assert permitted_count <= total_count, "permitted linked docs cannot exceed total linked docs"
@@ -980,9 +981,13 @@ def get(
 	filters: str | list | dict | None = None,
 	limit: int | None = None,
 	order_by: str | None = None,
+	offset: int = 0,
+	linked_doctype: str | None = None,
 ):
 	frappe.has_permission(doctype, doc=docname, throw=True)
 	linked_doctypes = get_linked_doctypes(doctype=doctype)
+	if linked_doctype:
+		linked_doctypes = {dt: link for dt, link in linked_doctypes.items() if dt == linked_doctype}
 	return get_linked_docs(
 		doctype=doctype,
 		name=docname,
@@ -990,6 +995,7 @@ def get(
 		filters=filters,
 		limit=limit,
 		order_by=order_by,
+		offset=offset,
 	)
 
 
