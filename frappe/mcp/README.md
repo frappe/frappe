@@ -71,9 +71,9 @@ Examples show tool arguments, which the client sends through `tools/call`.
 | `list_documents` | List matching documents with pagination. | `{"doctype":"ToDo","filters":{"status":"Open"},"fields":["name","description"],"limit":20}` |
 | `get_document` | Read one document and its permitted child rows. | `{"doctype":"ToDo","name":"TODO-00001"}` |
 | `count_documents` | Count matching documents. | `{"doctype":"ToDo","filters":{"status":"Open"}}` |
-| `create_document` | Create one document. | `{"doctype":"ToDo","data":{"description":"Check MCP"}}` |
-| `update_document` | Update one document. | `{"doctype":"ToDo","name":"TODO-00001","data":{"status":"Closed"}}` |
-| `delete_document` | Delete one document. | `{"doctype":"ToDo","name":"TODO-00001"}` |
+| `create_documents` | Create 1–20 documents of one DocType. | `{"doctype":"ToDo","documents":[{"description":"Check MCP"}]}` |
+| `update_documents` | Update 1–20 documents of one DocType. | `{"doctype":"ToDo","documents":[{"name":"TODO-00001","data":{"status":"Closed"}}]}` |
+| `delete_documents` | Delete 1–20 documents of one DocType. | `{"doctype":"ToDo","names":["TODO-00001"]}` |
 | `call_method` | Call a whitelisted API function. | `{"method":"frappe.auth.get_logged_user"}` |
 | `call_document_method` | Call a whitelisted instance method on one document. | `{"doctype":"ToDo","name":"TODO-00001","method":"add_comment","args":{"text":"Checked"}}` |
 
