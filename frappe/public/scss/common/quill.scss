@@ -597,20 +597,84 @@
 	}
 }
 
-// bubble toolbar (comment box): the lucide icons follow currentColor, so
-// mirror the theme's stock #ccc → #fff states as plain color
+.ql-bubble .ql-tooltip {
+	padding: 4px;
+	border-radius: var(--radius-lg);
+	background-color: var(--surface-elevation-2);
+	box-shadow: 0 0 0 1px var(--outline-gray-1), var(--elevation-2xl, var(--shadow-lg));
+	color: var(--ink-gray-8);
+	z-index: 3;
+
+	.ql-tooltip-arrow {
+		display: none;
+	}
+
+	input[type="text"] {
+		width: 220px;
+		height: 28px;
+		padding: 0 8px;
+		background: transparent;
+		color: var(--ink-gray-8);
+		font-size: var(--text-base);
+	}
+
+	a.ql-close::before,
+	.ql-tooltip-editor a::before {
+		color: var(--ink-gray-5);
+	}
+}
+
 .ql-bubble .ql-toolbar {
-	button {
+	display: flex;
+	align-items: center;
+
+	.ql-formats {
+		display: inline-flex;
+		align-items: center;
+		gap: 2px;
+		margin: 0;
+
+		& + .ql-formats {
+			margin-inline-start: 4px;
+			padding-inline-start: 4px;
+			border-inline-start: 1px solid var(--outline-gray-2);
+		}
+	}
+
+	button,
+	.ql-picker-label {
 		display: inline-flex;
 		align-items: center;
 		justify-content: center;
-		color: #cccccc;
+		width: 28px;
+		height: 28px;
+		padding: 0;
+		border-radius: var(--radius-md);
+		color: var(--ink-gray-7);
 
 		&:hover,
-		&:focus-visible,
-		&.ql-active {
-			color: #ffffff;
+		&:focus-visible {
+			background-color: var(--surface-gray-3);
+			color: var(--ink-gray-9);
 		}
+
+		&.ql-active {
+			background-color: var(--surface-gray-3);
+			color: var(--ink-gray-9);
+		}
+	}
+
+	.ql-picker {
+		width: 28px;
+		height: 28px;
+		color: var(--ink-gray-7);
+	}
+
+	.ql-picker-options {
+		padding: 4px;
+		border-radius: var(--radius-md);
+		background-color: var(--surface-elevation-2);
+		box-shadow: 0 0 0 1px var(--outline-gray-1), var(--elevation-2xl, var(--shadow-lg));
 	}
 
 	.icon {

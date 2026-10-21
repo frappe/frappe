@@ -205,17 +205,11 @@ body.full-width {
 	.comment-input-container {
 		display: flex;
 
-		.avatar {
-			height: 32px;
-			width: 32px;
-			margin-top: 1px;
-		}
-
 		.frappe-control {
 			padding-right: 0;
 
 			.ql-editor {
-				background-color: var(--control-bg) !important;
+				background-color: var(--control-bg);
 				border: 1px solid var(--border-color);
 				min-height: 24px;
 				padding: 6px;
