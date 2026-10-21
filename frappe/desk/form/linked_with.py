@@ -9,7 +9,7 @@ import frappe
 import frappe.desk.form.load
 import frappe.desk.form.meta
 from frappe import _
-from frappe.database.utils import DefaultOrderBy, get_doctype_sort_info, get_order_by_fields
+from frappe.database.utils import get_doctype_sort_info, get_order_by_fields
 from frappe.model import default_fields
 from frappe.model.delete_doc import LinkedDocumentsOverflow, get_dynamic_linked_docs
 from frappe.model.delete_doc import get_linked_docs as get_statically_linked_docs
@@ -907,8 +907,11 @@ def get_linked_docs(
 			if add_fields := link_context.get("add_fields"):
 				fields += add_fields
 
+			sort_field, sort_order = get_doctype_sort_info(linked_doctype)
+			# name breaks ties, so pages don't repeat or skip documents
+			doctype_order_by = order_by or f"{sort_field} {sort_order}, name {sort_order}"
 			# Postgres orders a DISTINCT query only by selected fields
-			fields += get_order_by_fields(order_by or get_doctype_sort_info(linked_doctype)[0])
+			fields += get_order_by_fields(doctype_order_by)
 
 			fields = [sf.strip() for sf in fields if sf]
 
@@ -918,7 +921,7 @@ def get_linked_docs(
 				filters=[*link_filters, *get_doctype_filters(linked_doctype_meta, filters)],
 				or_filters=or_filters,
 				distinct=True,
-				order_by=order_by or DefaultOrderBy,
+				order_by=doctype_order_by,
 				limit=limit,
 				offset=offset,
 			)
