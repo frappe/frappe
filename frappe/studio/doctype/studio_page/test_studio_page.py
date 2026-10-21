@@ -423,6 +423,20 @@ class TestStudioPage(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.PermissionError, "does not belong"):
 			paste_page(app.name, {"blocks": []}, target_page=target.name)
 
+	def test_retitle_with_the_same_stem_keeps_the_export(self):
+		with exports_in_tempdir():
+			app = make_studio_app(
+				app_name="retitle-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
+			)
+			page = make_studio_page(app.name, page_title="My Page", script="console.log('kept')")
+			page.export_script_to_file()
+
+			page.page_title = "My page"
+			page.save()
+
+			self.assertTrue(os.path.exists(page.get_folder_path(with_filename=True)))
+			self.assertEqual(frappe.read_file(page.get_script_file_path()), "console.log('kept')")
+
 	def test_standard_page_script_is_copied_as_file(self):
 		with exports_in_tempdir():
 			app = make_studio_app(app_name="dup-" + frappe.generate_hash(length=10))

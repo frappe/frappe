@@ -213,6 +213,8 @@ class StudioPage(Document):
 		old_folder = frappe.get_app_source_path(
 			self.frappe_app, "studio", self.studio_app, "studio_page", old_stem
 		)
+		if old_folder == self.get_folder_path():
+			return
 		old_page_script = os.path.join(old_folder, f"{old_stem}.ts")
 		if os.path.exists(old_page_script):
 			os.rename(old_page_script, self.get_script_file_path())
