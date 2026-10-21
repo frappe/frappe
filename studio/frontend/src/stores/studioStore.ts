@@ -152,8 +152,8 @@ const useStudioStore = defineStore("store", () => {
 		return studioApps.setValue.submit(
 			{ name: activeApp.value?.name, [key]: value },
 			{
-				onSuccess() {
-					setApp(activeApp.value!.name)
+				onSuccess(app: StudioApp) {
+					activeApp.value = app
 				},
 			},
 		)

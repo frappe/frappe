@@ -27,15 +27,20 @@ Cypress.Commands.overwrite("request", (originalFn, options: any) => {
 // Unlike frappe's, this logs in on every call: component specs can't use cy.session, and
 // Cypress clears the session cookie between tests
 Cypress.Commands.add("login", (email?: string, password?: string) => {
+	// the app's own fetches go through the proxy too. Set up before the login: a request the
+	// previous test left behind is answered as Guest, and frappe sets the sid cookie on every
+	// response, which would log this test out again
+	cy.intercept("/api/**", (request) => {
+		Object.assign(request.headers, siteHeader())
+		request.on("response", (response) => {
+			delete response.headers["set-cookie"]
+		})
+	})
 	return cy.env(["adminPassword"]).then(({ adminPassword }) => {
 		cy.request({
 			url: "/api/method/login",
 			method: "POST",
 			body: { usr: email || "Administrator", pwd: password || adminPassword },
-		})
-		// the app's own fetches go through the proxy too
-		cy.intercept("/api/**", (request) => {
-			Object.assign(request.headers, siteHeader())
 		})
 	})
 })
