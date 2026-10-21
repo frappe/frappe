@@ -344,6 +344,10 @@ def _validate_studio_file_access(permission_type: str = "read") -> None:
 
 def _studio_app_root(frappe_app: str, studio_app: str) -> str:
 	"""Absolute, symlink-resolved path of the app's studio folder (the jail root)."""
+	if frappe.db.get_value("Studio App", studio_app, "frappe_app") != frappe_app:
+		frappe.throw(
+			_("Studio App {0} is not exported to {1}.").format(studio_app, frappe_app), frappe.PermissionError
+		)
 	return os.path.realpath(frappe.get_app_source_path(frappe_app, "studio", studio_app))
 
 
