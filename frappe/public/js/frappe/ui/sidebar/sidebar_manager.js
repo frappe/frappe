@@ -348,6 +348,8 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 					fieldname: "link_to",
 					label: __("Item", null, "Workspace Sidebar"),
 					options: "link_type",
+					// The panel is not a dialog, so the control cannot find `link_type` itself.
+					get_options: () => panel.field_group.get_value("link_type"),
 					depends_on: 'eval:doc.kind == "Link" && doc.link_type != "URL"',
 					// Only shared workspaces are offered. A private page is already in the
 					// list, put there by the page itself, and one belonging to somebody else is
