@@ -185,6 +185,9 @@ def remove(doctype: str, name: str | int, assign_to: str):
 
 
 def _remove(doctype: str, name: str | int, assign_to: str, ignore_permissions: bool | int = False):
+	if not ignore_permissions and assign_to != frappe.session.user:
+		frappe.get_doc(doctype, name).check_permission("write")
+
 	return set_status(doctype, name, "", assign_to, status="Cancelled", ignore_permissions=ignore_permissions)
 
 
