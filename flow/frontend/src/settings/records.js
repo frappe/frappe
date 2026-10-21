@@ -5,7 +5,8 @@ import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { call } from "../api/frappe.js";
 import { newDoc } from "./specs.js";
 
-// What a settings list of records and a record's form do, each in its own layout.
+// What a list of records and a record's form do, for settings and for the pages beside the
+// chats, each in its own layout.
 
 const PAGE_LENGTH = 200;
 
@@ -37,7 +38,11 @@ export function useRecordList(spec, { query, filters = () => ({}) }) {
 				fields: hasEnabled ? [...spec.listFields, "enabled"] : spec.listFields,
 				filters: filters(),
 				or_filters: query
-					? spec.listFields.map((field) => [field, "like", `%${query}%`])
+					? (spec.searchFields ?? spec.listFields).map((field) => [
+							field,
+							"like",
+							`%${query}%`,
+					  ])
 					: [],
 				order_by: `${spec.orderBy ?? `${spec.titleField} asc`}, name asc`,
 				limit_start: append ? rows.value.length : 0,
@@ -63,12 +68,13 @@ export function useRecordList(spec, { query, filters = () => ({}) }) {
 		load();
 	}
 
-	return { rows, loaded, loading, error, hasMore, hasEnabled, load, drop };
+	return { rows, loaded, loading, error, hasMore, hasEnabled, load, drop, debouncedQuery };
 }
 
 // One document of `props.spec`'s doctype: loaded by `props.name` (or the single), or a blank new
 // one. Multi-link fields are edited as name lists and written back as child rows. It reports
-// to `emit` as "saved" and "deleted"; Cmd+S / Ctrl+S saves, as in the Desk.
+// to `emit` as "saved" and "deleted"; Cmd+S / Ctrl+S saves, as in the Desk, where `form` (the
+// form element) sits: a page's record doesn't save under a dialog's.
 export function useRecord(props, emit) {
 	const page = inject("flowPage");
 	const doc = ref(null);
@@ -76,6 +82,7 @@ export function useRecord(props, emit) {
 	const error = ref("");
 	const saving = ref(false);
 	const running = ref(null);
+	const form = ref(null);
 
 	const isNew = computed(() => !props.spec.single && !doc.value?.name);
 	const canWrite = computed(() =>
@@ -84,7 +91,8 @@ export function useRecord(props, emit) {
 	const canDelete = computed(
 		() => !isNew.value && !props.spec.single && page.can(props.spec.doctype, "delete")
 	);
-	const dirty = computed(() => JSON.stringify(doc.value) !== original.value);
+	// a record not loaded, or that failed to load, has no edits
+	const dirty = computed(() => !!doc.value && JSON.stringify(doc.value) !== original.value);
 	const visibleFields = computed(() =>
 		props.spec.fields.filter((field) => !field.when || field.when(doc.value))
 	);
@@ -127,10 +135,12 @@ export function useRecord(props, emit) {
 	}
 	onMounted(load);
 
+	// pressed in the form's own dialog, or outside any for a form in none
 	function onKey(event) {
 		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
 			event.preventDefault();
-			if (canWrite.value) save();
+			const dialogOf = (el) => el?.closest?.("[role=dialog]") ?? null;
+			if (canWrite.value && dialogOf(event.target) === dialogOf(form.value)) save();
 		}
 	}
 	onMounted(() => window.addEventListener("keydown", onKey));
@@ -248,6 +258,7 @@ export function useRecord(props, emit) {
 
 	return {
 		doc,
+		form,
 		error,
 		saving,
 		running,

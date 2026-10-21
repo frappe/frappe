@@ -34,6 +34,8 @@
 			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
 				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
 			</SidebarItem>
+			<!-- the host's own rows, like links to its pages -->
+			<slot name="nav" />
 		</div>
 
 		<!-- outside the scroller, so search stays in reach down a long list -->
@@ -295,7 +297,8 @@ import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
 
 const props = defineProps({ open: { type: Boolean, default: true } })
-const emit = defineEmits(["close"])
+// pick: a chat or a new chat was picked, for a host showing a page in the chat's place
+const emit = defineEmits(["close", "pick"])
 const flow = inject("flow")
 
 const query = ref("")
@@ -589,12 +592,14 @@ function pick(session) {
 		return
 	}
 	flow.openSession(session.session_id)
+	emit("pick")
 	if (layout.narrow) emit("close")
 }
 
 // with no folder, the new chat starts in the open chat's
 function startNewChat(cwd = null) {
 	flow.startNewChat({ cwd })
+	emit("pick")
 	if (layout.narrow) emit("close")
 }
 

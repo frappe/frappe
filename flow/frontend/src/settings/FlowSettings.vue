@@ -17,21 +17,16 @@ import GeneralPanel from "./GeneralPanel.vue";
 import KnowledgePanel from "./KnowledgePanel.vue";
 import { SPECS } from "./specs.js";
 
+// Agents, skills and triggers have pages of their own, beside the chats.
 const DESCRIPTIONS = {
-	agents: "Who answers, and what each agent can do.",
-	skills: "Know-how agents can pick up for particular tasks.",
 	tools: "Actions agents can take.",
-	triggers: "Run an agent when a document changes or on a schedule.",
 	models: "The models agents can use.",
 	providers: "API keys for the model providers.",
 	memories: "What agents have remembered.",
 };
 const ICONS = {
 	general: "settings",
-	agents: "bot",
-	skills: "book-open",
 	tools: "tool",
-	triggers: "zap",
 	models: "box",
 	providers: "key",
 	knowledge: "database",
@@ -39,7 +34,7 @@ const ICONS = {
 };
 
 const page = inject("flowPage");
-const docKeys = ["agents", "skills", "tools", "triggers", "models", "providers", "memories"];
+const docKeys = ["tools", "models", "providers", "memories"];
 const docSpecs = computed(() =>
 	docKeys.map((key) => SPECS[key]).filter((spec) => page.can(spec.doctype, "read"))
 );
@@ -51,15 +46,15 @@ const groups = computed(() => {
 	const docTab = (key) => (allowed.has(key) ? tab(key, SPECS[key].label) : null);
 	return [
 		{ label: "Chat", tabs: [tab("general", "General")] },
-		{ label: "Agents", tabs: ["agents", "skills", "tools", "triggers"].map(docTab) },
-		{ label: "Models", tabs: ["models", "providers"].map(docTab) },
 		{
-			label: "Knowledge",
+			label: "Agents",
 			tabs: [
+				docTab("tools"),
 				page.can("Flow Knowledge Base", "read") ? tab("knowledge", "Knowledge") : null,
 				docTab("memories"),
 			],
 		},
+		{ label: "Models", tabs: ["models", "providers"].map(docTab) },
 	]
 		.map((group) => ({ ...group, tabs: group.tabs.filter(Boolean) }))
 		.filter((group) => group.tabs.length);

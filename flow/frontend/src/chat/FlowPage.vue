@@ -2,11 +2,35 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8">
-		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
+		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" @pick="leavePage">
+			<!-- a group under its own heading, spaced as the chats' heading is under it -->
+			<template #nav>
+				<h3
+					v-if="pages.length"
+					class="mt-[7px] flex h-8 items-center pl-2 text-xs font-medium text-ink-gray-5"
+				>
+					Build
+				</h3>
+				<SidebarItem
+					v-for="item in pages"
+					:key="item.key"
+					:icon="item.icon"
+					:route="`/${item.key}`"
+					:active="pageKind === item.key"
+					class="h-8 data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none"
+					@click="layout.narrow && store.setSidebarOpen(false)"
+				>
+					<span class="truncate text-xs font-medium text-ink-gray-8">{{
+						SPECS[item.key].label
+					}}</span>
+				</SidebarItem>
+			</template>
+		</SessionSidebar>
 		<div
 			class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm"
 		>
-			<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
+			<RecordPage v-if="pageKind" :kind="pageKind" />
+			<main v-else class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
 				<ChatHeader
 					:sidebar-open="sidebarOpen"
 					:workspace="false"
@@ -60,7 +84,7 @@
 					{{ readOnlyNote }}
 				</p>
 			</main>
-			<WorkspacePanel>
+			<WorkspacePanel v-if="!pageKind">
 				<template #empty>
 					<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
 				</template>
@@ -77,8 +101,9 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { NavigationFailureType, isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -97,7 +122,10 @@ import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
+import RecordPage from "../pages/RecordPage.vue";
+import { PAGES } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
+import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
 import AgentPicker from "./AgentPicker.vue";
 import FeedbackBar from "./FeedbackBar.vue";
@@ -218,6 +246,7 @@ const router = useRouter();
 watch(
 	() => store.state.sessionId,
 	(id) => {
+		if (route.params.kind) return; // a page is left by a link of its own
 		const target = id ? `/s/${id}` : "/";
 		if (route.path !== target) router.replace(target);
 	}
@@ -229,8 +258,52 @@ watch(
 		else if (!id && store.state.sessionId) store.startNewChat();
 	}
 );
+
+// the pages beside the chats, each for whoever may read its records
+const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
+const pageKind = computed(() =>
+	pages.value.some((item) => item.key === route.params.kind) ? route.params.kind : null
+);
+// a page the user may not read is the new chat
 watch(
-	() => store.state.session?.title,
+	() => route.params.kind && !pageKind.value,
+	(refused) => refused && router.replace("/"),
+	{ immediate: true }
+);
+// A page stands in a new chat's place: a chat open, or a first message on its way to one (it
+// still runs, in a chat of its own), closes behind it. The box goes with the chat, and what was
+// typed in it comes back with it.
+let draft = "";
+watch(pageKind, (kind, was) => {
+	if (!kind || was) return;
+	draft = composer.value?.text ?? "";
+	if (store.state.sessionId || store.state.conversation.sending.length) store.startNewChat();
+});
+watch(
+	pageKind,
+	(kind) => {
+		if (kind || !draft) return;
+		composer.value?.prefill(draft);
+		draft = "";
+	},
+	{ flush: "post" }
+);
+// a chat picked in the sidebar takes the page's place, a step on from it; kept on the page by
+// its unsaved edits, the chat closes again
+async function leavePage() {
+	if (!route.params.kind) return;
+	const failure = await router.push(store.state.sessionId ? `/s/${store.state.sessionId}` : "/");
+	if (isNavigationFailure(failure, NavigationFailureType.aborted)) store.startNewChat();
+}
+
+// the tab names the chat, or the page and its record as the page's bar does
+watch(
+	() => {
+		if (!pageKind.value) return store.state.session?.title;
+		const spec = SPECS[pageKind.value];
+		const { record } = route.params;
+		return !record ? spec.label : record === "new" ? `New ${spec.singular}` : record;
+	},
 	(title) => (document.title = title ? `${title} · Flow` : "Flow")
 );
 
@@ -243,8 +316,10 @@ onMounted(async () => {
 	uninstallViewport = installViewport();
 	store.refreshModels();
 	await store.refreshSessions();
-	// the route watcher, a click or a first message may have moved on while the list loaded
-	if (store.state.sessionId || store.state.conversation.sending.length) return;
+	// the route watcher, a click or a first message may have moved on while the list loaded,
+	// and a page keeps its place
+	if (store.state.sessionId || store.state.conversation.sending.length || route.params.kind)
+		return;
 	const wanted = route.params.session ?? store.state.prefs.lastSession;
 	if (
 		wanted &&

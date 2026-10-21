@@ -11,6 +11,10 @@ const moduleURL = (code) => `data:text/javascript;base64,${Buffer.from(code).toS
 
 const real = new Set([
 	"FlowPage.vue",
+	"RecordPage.vue",
+	"RecordList.vue",
+	"RecordForm.vue",
+	"PageHeader.vue",
 	"AgentPicker.vue",
 	"AgentPalette.vue",
 	"SkillPicker.vue",
@@ -90,7 +94,12 @@ const fakes = {
 			}
 		}
 		export const toast = { shown: [], success(message) { this.shown.push(message) }, error() {} }
-		export const dialog = { danger() {}, prompt() {} }
+		export const dialog = {
+			asked: [],
+			danger(options) { this.asked.push(options) },
+			prompt() {},
+			confirm(options) { this.asked.push(options) },
+		}
 		export function useColorScheme() {}
 	`),
 	// the core's menus: the trigger, and the options once it is clicked or held open
@@ -142,7 +151,7 @@ const fakes = {
 	`),
 };
 export const transport = await import(fakes["../api/frappe.js"]);
-export const { toast } = await import(fakes["frappe-ui"]);
+export const { toast, dialog } = await import(fakes["frappe-ui"]);
 
 const compiled = new Map();
 async function componentURL(url) {

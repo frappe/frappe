@@ -1,7 +1,7 @@
 <template>
 	<SettingsPage :title="title" :description="description" :back="back" @back="emit('close')">
 		<slot />
-		<form v-if="doc" class="mt-2 flex flex-col gap-4" @submit.prevent="save">
+		<form v-if="doc" ref="form" class="mt-2 flex flex-col gap-4" @submit.prevent="save">
 			<div
 				v-if="doc.is_system_generated"
 				class="rounded-6 border border-outline-gray-2 bg-surface-gray-1 px-3 py-2 text-xs text-ink-gray-7"
@@ -73,6 +73,7 @@ const props = defineProps({
 const emit = defineEmits(["saved", "deleted", "close"]);
 const {
 	doc,
+	form,
 	error,
 	saving,
 	running,

@@ -1123,7 +1123,8 @@ function prefill(value) {
 	nextTick(() => box.value?.focus())
 }
 
-defineExpose({ prefill, startRow })
+// text: the draft, for a host that takes the box away for a while to prefill it again
+defineExpose({ prefill, startRow, text })
 </script>
 
 <style scoped>
