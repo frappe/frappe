@@ -166,9 +166,12 @@ const MODES = [
 ];
 
 const props = defineProps({ boot: { type: Object, required: true } });
+// what the page and the store save, per user
+const storageKey = `flow.page.${props.boot.user?.name ?? "user"}`;
 
 // the store's model refresh is the boot call; the page asks for it when boot goes stale
 const page = createPage(props.boot, {
+	storageKey,
 	refresh: () => store.refreshModels(),
 	sync: (sid) => client.syncSession(sid),
 	renamedModel: (from, to) => store.renamedModel(from, to),
@@ -188,10 +191,11 @@ const client = new FrappeClient({
 });
 const store = createFlowStore(client, {
 	requireCwd: false,
-	storageKey: `flow.page.${props.boot.user?.name ?? "user"}`,
+	storageKey,
 	presentTool,
 	turnActions: FeedbackBar,
 	listedModel: true, // list_sessions names each chat's model in force
+	onlyListedModels: true, // boot lists the models this user may use
 });
 provide("flow", store);
 provide("flowPage", page);
@@ -200,6 +204,23 @@ useColorScheme();
 watch(
 	() => page.state.agent,
 	() => void store.loadSkills({ force: true })
+);
+// a new chat starts on its agent's model; one picked for it holds until the agent changes,
+// and over a reload while the user may still use it
+let onLoad = true;
+watch(
+	[
+		() => !store.state.sessionId,
+		() => page.state.agent,
+		() => page.state.boot.agents.find((agent) => agent.name === page.state.agent)?.model,
+	],
+	([draft, , model]) => {
+		const picked = store.state.prefs.lastModel;
+		const kept = onLoad && page.state.boot.models.some((m) => m.name === picked);
+		onLoad = false;
+		if (draft && model && !kept) store.selectModel(model);
+	},
+	{ immediate: true }
 );
 
 const sidebarOpen = computed(() => store.state.sidebarOpen);

@@ -1,4 +1,4 @@
-import { computed, reactive } from "vue";
+import { computed, reactive, watch } from "vue";
 
 import { runsByUserMessage } from "./api/runs.js";
 
@@ -9,15 +9,24 @@ const BOOT_DOCTYPES = new Set(["Flow Model", "Flow Agent", "Flow Provider"]);
 // with, the settings tab to open, and each session's Flow Runs and run log (for per-turn
 // feedback). `refresh` re-fetches boot when a record it lists changes; `sync` re-reads a
 // session's runs; `renamedModel` passes a model's new name on to the chat store;
-// `reloadSkills` re-reads the skills a chat may start.
+// `reloadSkills` re-reads the skills a chat may start. With a `storageKey`, the agent
+// outlasts a reload.
 export function createPage(
 	boot,
-	{ refresh = () => {}, sync = () => {}, renamedModel = () => {}, reloadSkills = () => {} } = {}
+	{
+		storageKey = null,
+		refresh = () => {},
+		sync = () => {},
+		renamedModel = () => {},
+		reloadSkills = () => {},
+	} = {}
 ) {
 	const runIndexes = new Map();
+	const agentKey = storageKey && `${storageKey}.agent`;
+	const saved = agentKey && readItem(agentKey);
 	const state = reactive({
 		boot,
-		agent: defaultAgent(boot),
+		agent: boot.agents?.some((agent) => agent.name === saved) ? saved : defaultAgent(boot),
 		runs: {}, // session → Flow Run rows as the server last reported them
 		readOnly: {}, // session → true when the user may view it but not write to it
 		owner: {}, // session → the user who owns it, the only one who shares it
@@ -25,6 +34,11 @@ export function createPage(
 		log: {}, // session → durable log rows, slimmed to what run mapping needs
 		settingsTab: null, // the tab settings open on: null for the first, or a narrow page's list
 	});
+	if (agentKey)
+		watch(
+			() => state.agent,
+			(agent) => agent && writeItem(agentKey, agent)
+		);
 
 	function can(doctype, ptype) {
 		return (state.boot.permissions?.[doctype] ?? []).includes(ptype);
@@ -117,4 +131,21 @@ export function createPage(
 
 function defaultAgent(boot) {
 	return boot.default_agent ?? boot.agents?.[0]?.name ?? null;
+}
+
+// blocked or full site data refuses storage; the page then just doesn't remember the agent
+function readItem(key) {
+	try {
+		return localStorage.getItem(key);
+	} catch {
+		return null;
+	}
+}
+
+function writeItem(key, value) {
+	try {
+		localStorage.setItem(key, value);
+	} catch {
+		// not saved: the next load starts on the default agent
+	}
 }

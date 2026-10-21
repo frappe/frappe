@@ -32,20 +32,22 @@ doc_events = {
 	"DocShare": {"on_trash": "flow.flow.doctype.flow_session.flow_session.on_share_removed"},
 }
 
-# a session's tools run as its owner, so its content is theirs alone. An agent's roles limit
-# who may use it directly, and its skills are read with it.
+# a session's tools run as its owner, so its content is theirs alone. An agent's or model's
+# roles limit who may use it directly, and an agent's skills are read with it.
 has_permission = {
 	"Flow Session": "flow.permissions.has_session_permission",
 	"Flow Run": "flow.permissions.has_session_permission",
 	"Flow Agent Memory": "flow.permissions.has_memory_permission",
-	"Flow Agent": "flow.permissions.has_agent_permission",
+	"Flow Agent": "flow.permissions.has_role_permission",
+	"Flow Model": "flow.permissions.has_role_permission",
 	"Flow Skill": "flow.permissions.has_skill_permission",
 }
 permission_query_conditions = {
 	"Flow Session": "flow.permissions.session_query_conditions",
 	"Flow Run": "flow.permissions.session_query_conditions",
 	"Flow Agent Memory": "flow.permissions.memory_query_conditions",
-	"Flow Agent": "flow.permissions.agent_query_conditions",
+	"Flow Agent": "flow.permissions.role_query_conditions",
+	"Flow Model": "flow.permissions.role_query_conditions",
 	"Flow Skill": "flow.permissions.skill_query_conditions",
 }
 

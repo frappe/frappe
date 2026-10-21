@@ -21,6 +21,7 @@ class FlowModel(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		api_key: DF.Password | None
@@ -30,6 +31,7 @@ class FlowModel(Document):
 		extra_params: DF.JSON | None
 		model_id: DF.Data
 		provider: DF.Link | None
+		roles: DF.TableMultiSelect[HasRole]
 		title: DF.Data
 	# end: auto-generated types
 

@@ -185,17 +185,26 @@ class TestFlowAccess(IntegrationTestCase):
 				with self.assertRaises(refusal):
 					doc.save()
 
-	def test_an_agents_roles_decide_who_uses_it_directly_and_reads_its_skills(self):
+	def test_roles_decide_who_uses_an_agent_or_model_directly_and_reads_its_skills(self):
 		tester = self._role("Flow Roles Tester")
 		member = _user("flow-roles-member@example.com", FLOW_USER_ROLE)
 		holder = _user("flow-roles-holder@example.com", FLOW_USER_ROLE, tester)
 		manager = _user("flow-roles-manager@example.com", "System Manager")
 		agent = frappe.get_doc("Flow Agent", _agent())
+		locked_model = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Flow Locked Model",
+				"model_id": "openai/gpt-4o",
+				"enabled": 1,
+				"roles": [{"role": tester}],
+			}
+		).insert()
 		locked = frappe.get_doc(
 			{
 				"doctype": "Flow Agent",
 				"title": "Flow Locked Agent",
-				"model": agent.model,
+				"model": locked_model.name,
 				"instructions": "x",
 				"enabled": 1,
 				"roles": [{"role": tester}],
@@ -219,14 +228,16 @@ class TestFlowAccess(IntegrationTestCase):
 		locked.append("skills", {"skill": hidden})
 		locked.save()
 
-		for user, agents, skills in (
-			(member, [agent.name], [shared, bound]),
-			(holder, [agent.name, locked.name], [shared, bound, hidden]),
-			(manager, [agent.name, locked.name], [shared, bound, hidden, off]),
+		models = [agent.model, locked_model.name]
+		for user, agents, open_models, skills in (
+			(member, [agent.name], [agent.model], [shared, bound]),
+			(holder, [agent.name, locked.name], models, [shared, bound, hidden]),
+			(manager, [agent.name, locked.name], models, [shared, bound, hidden, off]),
 		):
 			with self.subTest(user):
 				for doctype, names, readable in (
 					("Flow Agent", [agent.name, locked.name], agents),
+					("Flow Model", models, open_models),
 					("Flow Skill", [shared, bound, hidden, off], skills),
 				):
 					listed = frappe.get_list(
@@ -237,7 +248,7 @@ class TestFlowAccess(IntegrationTestCase):
 						self.assertEqual(
 							frappe.has_permission(doctype, "read", name, user=user), name in readable
 						)
-				# a locked agent still works as a sub-agent of one open to them
+				# a locked agent on a locked model still works as a sub-agent of one open to them
 				frappe.set_user(user)
 				with patch("flow.lib.model.resolve_provider_credentials", return_value={}):
 					configs = agent.subagent_configs("S1", {})

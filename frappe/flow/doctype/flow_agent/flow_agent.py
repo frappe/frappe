@@ -211,7 +211,7 @@ class FlowAgent(Document):
 
 	def subagent_configs(self, session: str | None, user_context: dict[str, Any]) -> list[dict[str, Any]]:
 		"""The enabled sub-agents as flow server `subagents` entries: each on its own model, prompt
-		and tools, calling back as itself."""
+		and tools, calling back as itself. Their models come with this agent, like their tools."""
 		from flow.lib.model import model_config
 
 		configs = []
@@ -230,7 +230,7 @@ class FlowAgent(Document):
 				{
 					"name": child.name,
 					"description": _one_line(child.description),
-					**model_config(child.model),
+					**model_config(child.model, check_permission=False),
 					**child.session_tool_config(session),
 					"max_turns": child.max_iterations or DEFAULT_MAX_ITERATIONS,
 					"user_context": {**user_context, "agent": child.name},

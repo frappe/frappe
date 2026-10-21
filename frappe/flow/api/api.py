@@ -40,14 +40,16 @@ SETTINGS_DOCTYPES = (
 
 @frappe.whitelist()
 def boot() -> dict[str, Any]:
-	"""What a client needs before its first call: agents and models to pick from, the
-	default agent, whether a provider is set up, the file types it may attach, who is signed
-	in and what they may manage."""
+	"""What a client needs before its first call: agents (with their models) and models to pick
+	from, the default agent, whether a provider is set up, the file types it may attach, who is
+	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
 	from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
 	from flow.knowledge.extract import FILE_EXTENSIONS
 
-	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title"], order_by="title")
+	agents = frappe.get_list(
+		"Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"], order_by="title"
+	)
 	models = frappe.get_list(
 		"Flow Model",
 		filters={"enabled": 1},

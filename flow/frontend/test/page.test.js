@@ -46,8 +46,8 @@ const boot = {
 		},
 	],
 	agents: [
-		{ name: "flow", title: "Flow" },
-		{ name: "reviewer", title: "Reviewer" },
+		{ name: "flow", title: "Flow", model: "Sonnet" },
+		{ name: "reviewer", title: "Reviewer", model: "Opus" },
 	],
 	default_agent: "flow",
 };
@@ -123,6 +123,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 		skills: agent === "reviewer" ? [{ name: "review", description: "Reviews a change" }] : [],
 	});
 	t.after(() => (transport.answers["flow.api.skills"] = skillsAnswer));
+	t.after(() => localStorage.removeItem("flow.page.tester@example.com.agent"));
 	await router.replace("/");
 	const el = mountPage(t, {
 		boot: { ...boot, permissions: { "Flow Skill": ["read", "create"] } },
@@ -137,7 +138,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	const box = el.querySelector("fieldset");
 	assert.equal(agent().textContent.trim(), "Flow");
 	assert.ok(!box.contains(agent()));
-	assert.ok(box.querySelector("button[title^='Choose Model']"));
+	assert.ok(box.querySelector("button[title^='Sonnet']"), "a new chat shows its agent's model");
 	// the chip names no count; for an agent without skills, its list says so and offers to add
 	// one, with nothing to search yet
 	const skills = () => el.querySelector("button[title='Skills']");
@@ -192,6 +193,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	assert.deepEqual(rows(), []);
 	assert.equal(agent().textContent.trim(), "Reviewer");
+	assert.ok(box.querySelector("button[title^='Opus']"), "and the model follows the agent");
 	// the skills a new chat may start follow the agent; one picked from their list starts the draft
 	await until(() =>
 		transport.calls.some(([name, a]) => name === "flow.api.skills" && a.agent === "reviewer")
@@ -220,6 +222,30 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.equal(skillRows().length, 0);
 	assert.equal(el.querySelector("textarea").value, "/skill:review ");
 
+	// a reload keeps the agent, and a model picked for it that the user may still use; another
+	// agent then starts on its own model, even one that shares the first's
+	const prefs = "flow.page.tester@example.com.prefs";
+	const saved = localStorage.getItem(prefs);
+	localStorage.setItem(prefs, JSON.stringify({ ...JSON.parse(saved), lastModel: "Sonnet" }));
+	const writer = { name: "writer", title: "Writer", model: "Opus" };
+	const reloaded = document.createElement("div");
+	const again = createApp(FlowPage, { boot: { ...boot, agents: [...boot.agents, writer] } });
+	again.use(router).mount(reloaded);
+	const agentAgain = () => reloaded.querySelector("button[title='Agent']");
+	await until(agentAgain);
+	assert.equal(agentAgain().textContent.trim(), "Reviewer");
+	assert.ok(reloaded.querySelector("fieldset button[title^='Sonnet']"));
+	agentAgain().click();
+	await nextTick();
+	await nextTick();
+	[...agentAgain().parentElement.querySelectorAll("[data-palette-item]")]
+		.find((row) => row.textContent.includes("Writer"))
+		.click();
+	await nextTick();
+	assert.ok(reloaded.querySelector("fieldset button[title^='Opus']"));
+	again.unmount();
+	localStorage.setItem(prefs, saved);
+
 	// the /agents command opens the composer's own list of them
 	const textarea = el.querySelector("textarea");
 	textarea.value = "/agents";
@@ -242,7 +268,9 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	el.querySelector("button[title='Send']").click();
 	await until(() => called("flow.api.run"));
-	assert.equal(args("flow.api.create_session").agent, "reviewer");
+	// a model outside the user's list is left to the server
+	const created = args("flow.api.create_session");
+	assert.deepEqual([created.agent, created.model], ["reviewer", null]);
 	assert.deepEqual(args("flow.api.run"), { session: "S1", message: "hi", attachments: [] });
 	await nextTick();
 	assert.equal(agent(), null, "the agent is fixed once the conversation starts");
@@ -588,7 +616,7 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 	assert.equal(dialog.asked.length, 5);
 });
 
-test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async () => {
+test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async (t) => {
 	const { createPage } = await import("../src/page.js");
 	let refreshes = 0;
 	let skillReloads = 0;
@@ -620,6 +648,26 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	assert.deepEqual(models, []);
 	page.renamed("Flow Model", "GPT", "GPT Fast");
 	assert.deepEqual(models, [["GPT", "GPT Fast"]]);
+
+	// with a storage key, the agent outlasts a reload while boot still lists it
+	const storageKey = "flow.page.saved";
+	t.after(() => localStorage.removeItem(`${storageKey}.agent`));
+	createPage(boot, { storageKey }).state.agent = "reviewer";
+	await nextTick();
+	assert.equal(createPage(boot, { storageKey }).state.agent, "reviewer");
+	const onlyFlow = { ...boot, agents: boot.agents.slice(0, 1) };
+	assert.equal(createPage(onlyFlow, { storageKey }).state.agent, "flow");
+	// storage that refuses the write leaves the pick in place, unsaved
+	const { setItem } = dom.window.Storage.prototype;
+	dom.window.Storage.prototype.setItem = () => {
+		throw new Error("QuotaExceededError");
+	};
+	t.after(() => (dom.window.Storage.prototype.setItem = setItem));
+	const full = createPage(boot, { storageKey: "flow.page.full" });
+	full.state.agent = "reviewer";
+	await nextTick();
+	assert.equal(full.state.agent, "reviewer");
+	dom.window.Storage.prototype.setItem = setItem;
 });
 
 test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's next step is the primary one and Add opens a blank record", async (t) => {

@@ -255,6 +255,7 @@
 				<div v-if="visionWarning" class="px-1 text-2xs text-ink-amber-6">
 					The selected model cannot view images. Switch to a vision-capable model before sending.
 				</div>
+				<div v-if="modelWarning" class="px-1 text-2xs text-ink-gray-5">{{ modelWarning }}</div>
 				<div class="flex min-w-0 items-center gap-1">
 					<!-- attach files -->
 					<button
@@ -852,6 +853,7 @@ const visionWarning = computed(
 		attachments.value.some((item) => item.kind === "image") &&
 		currentImageSupport.value === false,
 )
+const modelWarning = computed(() => flow.modelWarning?.())
 
 // slash palette: the "/word" being typed anywhere, or a sub-page navigated back
 // to the commands root. A space ("/cwd ") ends the word — the menu closes so

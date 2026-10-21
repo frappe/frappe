@@ -108,6 +108,15 @@ export const SPECS = {
 				description:
 					"Extra LiteLLM params sent with every call to this model. Anyone who can use Flow can read them, so keep keys out.",
 			},
+			{
+				name: "roles",
+				label: "Roles",
+				type: "multilink",
+				link: "Role",
+				child: "role",
+				description:
+					"Who can use this model; empty means every Flow user. Others pick another model for agents that run on it, but a sub-agent on it works for anyone using its agent. Disabling a role also drops it here, which can leave the model open to every Flow user.",
+			},
 		],
 		actions: [
 			{
