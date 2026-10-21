@@ -82,7 +82,7 @@
 					<!-- a compaction takes no steering: the queue waits for it to end -->
 					<button
 						v-if="!compacting"
-						class="flex flex-none items-center gap-1 rounded-4 px-1.5 py-0.5 text-2xs font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-2xs font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
 						:title="running ? 'Add it to the running turn' : 'Send it now'"
 						:disabled="disabled"
 						@click="steerQueued(item)"
