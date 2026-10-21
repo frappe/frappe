@@ -60,7 +60,7 @@
 				v-if="doc.is_system_generated && canWrite"
 				class="mb-5 rounded-5 bg-surface-gray-2 px-3 py-2 text-xs leading-5 text-ink-gray-7"
 			>
-				Defined in code. Only what code leaves open can change here.
+				Comes with an app, so greyed-out fields can't be changed.
 			</p>
 			<!-- each section under its heading; two short fields share a line on a wide frame -->
 			<section v-for="(group, i) in groups" :key="i">
