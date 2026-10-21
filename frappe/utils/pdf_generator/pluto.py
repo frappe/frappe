@@ -2,8 +2,10 @@ import base64
 import copy
 import importlib.util
 import mimetypes
+import os
 import re
 from io import BytesIO
+from pathlib import Path
 
 import frappe
 from frappe import _
@@ -33,6 +35,21 @@ MEASURE_STYLE = "html, body, .print-format { height: auto !important; min-height
 USER_SCRIPT = re.compile(r"<script(?![^>]*(data-frappe-print|/print\.bundle\.))", re.IGNORECASE)
 LETTER_HEAD_STYLE = re.compile(r"<style data-letter-head>(.*?)</style>", re.IGNORECASE | re.DOTALL)
 GRID = re.compile(r"display\W+(inline-)?grid\b", re.IGNORECASE)
+INTER_WOFF2 = re.compile(r"/assets/frappe/css/fonts/inter/Inter-(\w+)\.woff2")
+FONT_FACE = re.compile(r"@font-face\s*\{[^}]*\}", re.IGNORECASE)
+INTER_WOFF2_HINT = re.compile(
+	r"""(url\(["']?/assets/frappe/css/fonts/inter/[^)]*\))\s*format\(["']woff2["']\)"""
+)
+INTER_WEIGHTS = {
+	"Thin": 100,
+	"ExtraLight": 200,
+	"Light": 300,
+	"Medium": 500,
+	"SemiBold": 600,
+	"Bold": 700,
+	"ExtraBold": 800,
+	"Black": 900,
+}
 
 
 def resolve_container_queries(css: str, width: float) -> str:
@@ -240,6 +257,30 @@ class PlutoPage:
 		return stream.getvalue()
 
 
+def inter_ttf_path(url: str) -> Path | None:
+	from frappe.utils.typst_emitter import DEFAULT_FONT, _font_cache_path, ensure_typst_fonts
+
+	if not (match := INTER_WOFF2.search(url)) or match.group(1).endswith("Italic"):
+		return None
+	if not (path := _font_cache_path(DEFAULT_FONT)):
+		ensure_typst_fonts(None)
+		return None
+	weight = INTER_WEIGHTS.get(match.group(1), 400)
+	return next((Path(path, name) for name in os.listdir(path) if name.endswith(f"-{weight}.ttf")), None)
+
+
+def cached_inter_faces(css: str) -> str:
+	if not INTER_WOFF2.search(css):
+		return css
+	css = FONT_FACE.sub(
+		lambda face: (
+			face.group(0) if not INTER_WOFF2.search(face.group(0)) or inter_ttf_path(face.group(0)) else ""
+		),
+		css,
+	)
+	return INTER_WOFF2_HINT.sub(r"\1", css)
+
+
 def local_resource_fetcher(block_external_requests=False):
 	import plutoprint
 
@@ -257,6 +298,8 @@ def local_resource_fetcher(block_external_requests=False):
 
 		def fetch(self, url):
 			if url.startswith(get_host_url()):
+				if ttf := inter_ttf_path(url):
+					return plutoprint.ResourceData(ttf.read_bytes(), "font/ttf")
 				if not (resource := read_local_resource(url)):
 					raise plutoprint.Error(f"Cannot read {url}")
 				content, content_type = resource
@@ -265,10 +308,13 @@ def local_resource_fetcher(block_external_requests=False):
 					content_type or mimetypes.guess_type(url.split("?")[0])[0] or "application/octet-stream"
 				)
 				if content_type == "text/css":
-					content = BREAK_WORD.sub(r"\1normal", content.decode()).encode()
+					content = cached_inter_faces(BREAK_WORD.sub(r"\1normal", content.decode())).encode()
 				return plutoprint.ResourceData(content, content_type)
 			if block_external_requests and not url.startswith("data:"):
 				raise plutoprint.Error(f"Blocked {url}")
-			return plutoprint.default_resource_fetcher.fetch_url(url)
+			resource = plutoprint.default_resource_fetcher.fetch_url(url)
+			if resource.get_mime_type() == "text/html":
+				raise plutoprint.Error(f"Not a page resource: {url}")
+			return resource
 
 	return Fetcher()
