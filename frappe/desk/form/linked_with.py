@@ -908,8 +908,10 @@ def get_linked_docs(
 				fields += add_fields
 
 			sort_field, sort_order = get_doctype_sort_info(linked_doctype)
-			# name breaks ties, so pages don't repeat or skip documents
-			doctype_order_by = order_by or f"{sort_field} {sort_order}, name {sort_order}"
+			# other sort fields can be unreadable to the user or list several fields
+			if sort_field not in default_fields:
+				sort_field = "creation"
+			doctype_order_by = order_by or f"{sort_field} {sort_order}"
 			# Postgres orders a DISTINCT query only by selected fields
 			fields += get_order_by_fields(doctype_order_by)
 
@@ -921,7 +923,8 @@ def get_linked_docs(
 				filters=[*link_filters, *get_doctype_filters(linked_doctype_meta, filters)],
 				or_filters=or_filters,
 				distinct=True,
-				order_by=doctype_order_by,
+				# name breaks ties, so pages don't repeat or skip documents
+				order_by=f"{doctype_order_by}, name {sort_order}",
 				limit=limit,
 				offset=offset,
 			)
