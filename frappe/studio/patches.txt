@@ -1,0 +1,23 @@
+[pre_model_sync]
+# Patches added in this section will be executed before doctypes are migrated
+# Read docs to understand patches: https://frappeframework.com/docs/v14/user/en/database-migrations
+
+[post_model_sync]
+# Patches added in this section will be executed after doctypes are migrated
+studio.studio.doctype.studio_page.patches.replace_frappeUI_namespace_references
+studio.studio.doctype.studio_app.patches.rename_studio_app_based_on_app_title
+studio.studio.doctype.studio_page.patches.migrate_studio_resource_to_studio_page_resource_child_table
+studio.studio.doctype.studio_page.patches.move_text_block_style_props_to_classes
+studio.studio.doctype.studio_page.patches.set_auto_to_true_in_studio_page_resources
+studio.studio.doctype.studio_page.patches.update_old_global_utility_usage
+studio.studio.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1
+studio.studio.doctype.studio_page.patches.migrate_watchers_to_page_script
+studio.studio.doctype.studio_page.patches.migrate_espresso_color_tokens_v2
+studio.studio.doctype.studio_page.patches.migrate_text_size_tokens_v2
+studio.studio.doctype.studio_page.patches.migrate_event_actions_to_script
+studio.studio.doctype.studio_ai_session.patches.migrate_ai_session_messages_to_doctype
+studio.studio.doctype.studio_page.patches.migrate_slot_content_to_blocks
+studio.studio.doctype.studio_page.patches.fold_raw_styles_into_base_styles
+studio.studio.doctype.studio_page.patches.migrate_blocks_to_frappe_ui_v1
+studio.studio.doctype.studio_page.patches.migrate_charts_to_frappe_ui_charts
+studio.studio.doctype.studio_page.patches.migrate_get_icon_calls
