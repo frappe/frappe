@@ -192,6 +192,7 @@ const store = createFlowStore(client, {
 	presentTool,
 	turnActions: FeedbackBar,
 	listedModel: true, // list_sessions names each chat's model in force
+	onlyListedModels: true, // boot lists the models this user may use
 });
 provide("flow", store);
 provide("flowPage", page);

@@ -7,6 +7,7 @@ import {
 	approvalToAnswer,
 	conversationTitle,
 	initialConversation,
+	modelTitle,
 	normalizeSkillCommand,
 	skillCommand,
 	subagentTitle,
@@ -726,6 +727,15 @@ export function createFlowStore(client, options = {}) {
 			// the session or folder changed while this was in flight; load the new one
 			if (skillsKey() !== key) void loadSkills()
 		}
+	}
+
+	// what the composer says of its model when the host runs only the models it lists
+	// (options.onlyListedModels) and this one isn't among them
+	function modelWarning() {
+		const model = state.conversation.model ?? (state.loading ? null : state.prefs.lastModel)
+		if (!options.onlyListedModels || !model || !state.models.length) return null
+		if (state.models.some((item) => item.name === model)) return null
+		return `${modelTitle(model, state.models)} isn't available to you. Pick a different model.`
 	}
 
 	async function send(text, attachments = []) {
@@ -1651,6 +1661,7 @@ export function createFlowStore(client, options = {}) {
 		startNewChat,
 		newSession,
 		loadSkills,
+		modelWarning,
 		send,
 		sendQueued,
 		removeQueued,

@@ -899,7 +899,7 @@ test("a first message's new chat keeps its bubble, folder and file tabs while it
 	flow.detach()
 })
 
-test("a first message needs a project folder, unless the host has no filesystem", async () => {
+test("a first message needs a project folder, unless the host has no filesystem; a host that runs only the models it lists flags another", async () => {
 	const refused = []
 	const flow = createFlowStore(hostClient(refused))
 	assert.equal(await flow.send("hello"), false)
@@ -912,6 +912,15 @@ test("a first message needs a project folder, unless the host has no filesystem"
 	assert.equal("cwd" in calls[0][1], false)
 	assert.deepEqual(calls[1], ["run", "hello"])
 	hostless.detach()
+
+	// a host that runs only the models it lists warns of another before anything is sent
+	const strict = createFlowStore(hostClient([]), { requireCwd: false, onlyListedModels: true })
+	strict.state.models = [{ name: "GPT-4o mini" }]
+	strict.state.prefs.lastModel = "GPT-4o"
+	assert.match(strict.modelWarning(), /^GPT-4o isn't available/)
+	strict.state.prefs.lastModel = "GPT-4o mini"
+	assert.equal(strict.modelWarning(), null)
+	strict.detach()
 })
 
 test("saved state lives under the host's storage key and keeps only what differs from the defaults, an old saved theme moves to frappe-ui's, and a daemon that keeps settings has the last change from either side", async (t) => {
