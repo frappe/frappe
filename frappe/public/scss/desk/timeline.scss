@@ -1,218 +1,946 @@
-$threshold: 34;
+$timeline-avatar-size: 28px;
+$timeline-rail-size: 16px;
+$timeline-gutter: 20px;
+$timeline-comment-input-height: 32px;
 
-@mixin timeline-badge($badge-size) {
-	width: $badge-size;
-	height: $badge-size;
-	border-radius: 50%;
-	font-size: var(--text-xs);
-	position: absolute;
-	// doing this will prevent cssnano from converting 0px to 0
-	// clamp requires value unit to be valid
-	--zero-px: 0px;
-	top: unquote(
-		"clamp(var(--zero-px), 50% - #{$badge-size}/2, max(var(--zero-px), (#{$threshold}px - (50% - #{$badge-size}/2)) * #{$threshold}))"
-	);
-	left: calc(-1 * (#{$badge-size} / 2));
-	background-color: var(--timeline-badge-bg);
-	@extend .center-content;
-	--icon-stroke: var(--timeline-badge-color);
+@keyframes timeline-item-flash {
+	from {
+		background-color: var(--surface-amber-2, var(--surface-gray-3));
+	}
 }
 
 .new-timeline {
 	position: relative;
 	padding-top: var(--padding-lg);
+	padding-inline: 15px;
+	// scrolling here lands the sticky header exactly where it pins
+	scroll-margin-top: calc(var(--page-head-height) - var(--padding-lg));
 
-	&:before {
-		content: " ";
-		top: 90px; // TODO: get top and bottom programmatically
-		left: calc(var(--timeline-item-icon-size) / 2);
-		position: absolute;
-		border-left: 1px solid var(--dark-border-color);
-		bottom: calc(-1 * var(--timeline-item-bottom-margin) + 25px);
+	.timeline-item.activity-title {
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--margin-sm) $timeline-gutter;
+		min-height: $timeline-avatar-size;
+		margin: 0 0 16px 0;
+		padding: var(--padding-sm) 0;
+		background-color: var(--bg-color);
+		position: sticky;
+		top: var(--page-head-height);
+		z-index: 4;
+
+		h4 {
+			flex: none;
+			margin-bottom: 0;
+			margin-inline-end: auto;
+			font-size: 16px;
+			font-weight: 500;
+			color: var(--ink-gray-6);
+		}
 	}
 
-	.timeline-dot {
-		@include timeline-badge(16px);
-		left: calc(-1.25 * var(--timeline-item-left-margin) / 2);
-		background: var(--bg-color);
+	.timeline-actions {
+		margin: 0;
+
+		> .timeline-item {
+			margin: 0;
+			padding: 0;
+
+			> .timeline-content {
+				padding: 0;
+				margin: 0;
+			}
+		}
+	}
+
+	.action-buttons {
+		display: inline-flex;
+		gap: $timeline-gutter;
+		white-space: nowrap;
+		overflow: auto;
+
+		.action-btn {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+			height: $timeline-avatar-size;
+			padding: 0 var(--padding-sm);
+			border-radius: var(--radius);
+			font-size: var(--text-base);
+		}
+	}
+
+	// opened from the Add menu; kept in the DOM so frm.comment_box keeps working
+	.timeline-comment-box {
+		margin: 0 0 24px 0;
+
+		&:not(.timeline-comment-box-open) {
+			display: none;
+		}
+
+		.comment-input-header {
+			display: none;
+		}
+
+		.comment-input-container {
+			align-items: flex-start;
+			gap: $timeline-gutter;
+
+			// a size up from the rail icons to balance the input, still centred on
+			// the rail (the negative margins keep its box rail-wide), so the input
+			// lines up with the cards below
+			.es-avatar {
+				margin-inline: calc((#{$timeline-rail-size} - var(--es-av-size)) / 2);
+				margin-top: calc((#{$timeline-comment-input-height} - var(--es-av-size)) / 2);
+			}
+
+			.frappe-control {
+				position: relative;
+				padding-inline-start: 0;
+			}
+
+			.ql-editor {
+				min-height: $timeline-comment-input-height;
+				padding-block: 6px;
+				padding-inline: 12px 40px;
+				border: none;
+				border-radius: var(--radius-md);
+				background-color: var(--surface-gray-2);
+				font-size: var(--text-base);
+				line-height: 20px;
+			}
+
+			.ql-editor.ql-blank::before {
+				inset-inline: 12px 40px;
+				font-style: normal;
+				color: var(--ink-gray-4);
+			}
+		}
+
+		.timeline-comment-send {
+			position: absolute;
+			inset-inline-end: 2px;
+			bottom: calc((#{$timeline-comment-input-height} - var(--es-bt-h)) / 2);
+		}
+
+		.btn-comment {
+			display: none;
+		}
+	}
+
+	.timeline-filters {
+		display: flex;
+		margin-bottom: 24px;
+		overflow-x: auto;
+		scrollbar-width: none;
+	}
+
+	.timeline-items:not(.timeline-actions) {
+		position: relative;
 
 		&:before {
 			content: " ";
-			background: var(--timeline-badge-color);
-			border-radius: 50%;
-			height: 4px;
-			width: 4px;
-		}
-	}
-
-	.activity-title,
-	.timeline-actions {
-		margin-bottom: 0 !important;
-		display: flex;
-		align-items: center;
-
-		.show-all-activity,
-		.timeline-item {
-			margin-bottom: 0;
-		}
-
-		min-height: 60px;
-		margin-left: 0px !important;
-		background-color: var(--bg-color);
-		padding-left: 0px;
-
-		.timeline-content {
-			padding-left: var(--timeline-item-left-margin);
-		}
-
-		h4 {
-			flex: auto;
-			margin-bottom: 0;
-			font-size: 16px;
-			font-weight: 500;
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			inset-inline-start: calc(#{$timeline-rail-size} / 2 - 0.5px);
+			border-inline-start: 1px solid var(--outline-gray-2);
 		}
 	}
 
 	.timeline-item {
 		@include get_textstyle("base", "regular");
 		position: relative;
-		margin-left: var(--timeline-item-left-margin);
-		margin-bottom: var(--timeline-item-bottom-margin);
+		display: flex;
+		align-items: flex-start;
+		gap: $timeline-gutter;
+		padding: 4px 0;
+		margin-bottom: 12px;
+		color: var(--ink-gray-5);
 
-		b {
-			color: var(--text-color);
+		&.timeline-item-filtered,
+		&.timeline-item-deleted {
+			display: none;
+		}
+
+		b,
+		strong {
+			color: var(--ink-gray-7);
 			@include get_textstyle("base", "medium");
 		}
+	}
 
-		.action-buttons {
+	.timeline-avatar,
+	.timeline-badge,
+	.timeline-dot {
+		position: relative;
+		flex: none;
+		width: $timeline-rail-size;
+		height: $timeline-rail-size;
+	}
+
+	.timeline-avatar .avatar {
+		width: $timeline-rail-size;
+		height: $timeline-rail-size;
+	}
+
+	.timeline-badge {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		height: 28px;
+		margin-top: -6px;
+		background-color: var(--bg-color);
+		--icon-stroke: var(--ink-gray-5);
+
+		.icon {
+			width: 16px;
+			height: 16px;
+		}
+	}
+
+	.timeline-dot {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+
+		&:before {
+			content: " ";
+			width: 6px;
+			height: 6px;
+			border-radius: 50%;
+			background: var(--ink-gray-4);
+			box-shadow: 0 0 0 4px var(--bg-color);
+		}
+	}
+
+	.timeline-body {
+		display: flex;
+		flex: 1;
+		flex-direction: column;
+		gap: 6px;
+		min-width: 0;
+	}
+
+	.timeline-timestamp {
+		font-size: var(--text-sm);
+		line-height: 1.15;
+		color: var(--ink-gray-5);
+	}
+
+	.timeline-content a[href^="/desk/user/"],
+	.timeline-file a,
+	.document-email-link {
+		text-decoration: none;
+
+		&:hover {
+			text-decoration: none;
+		}
+	}
+
+	.timeline-content a[href^="/desk/user/"]:hover,
+	.document-email-link:hover {
+		color: var(--ink-gray-9);
+	}
+
+	.timeline-content {
+		position: relative;
+		line-height: 1.15;
+
+		> .ql-editor {
 			display: inline-flex;
+		}
+
+		a:not(.es-button) {
+			color: inherit;
+		}
+
+		a[href^="/desk/user/"] {
+			color: var(--ink-gray-7);
+			font-weight: 500;
+		}
+
+		a.timeline-version-link {
+			color: var(--ink-gray-6);
+			text-decoration: none;
+			transition: color 0.15s ease;
+
+			&:hover {
+				color: var(--ink-gray-9);
+			}
+
+			&:focus-visible {
+				outline: none;
+				border-radius: var(--radius-sm);
+				box-shadow: var(--focus-default);
+			}
+		}
+
+		.timeline-change-label a.timeline-version-link {
+			color: inherit;
+
+			&:hover {
+				color: var(--ink-gray-9);
+			}
+		}
+	}
+
+	$leading-trim: calc((1.15em - 1.5em) / 2);
+
+	.timeline-body > .timeline-content:not(.frappe-card):not(:has(> .timeline-message-box)),
+	.timeline-message-summary {
+		line-height: 1.5;
+		margin-block: $leading-trim;
+	}
+
+	.timeline-item > .timeline-content {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.timeline-content {
+		.timeline-change-new {
+			margin-block: -3px;
+		}
+
+		.timeline-changes-toggle {
+			margin-block: -4px;
+		}
+
+		.timeline-file {
+			margin-block: -5px;
+		}
+	}
+
+	.timeline-changes-grid .timeline-change-new {
+		margin-block: 0;
+	}
+
+	.timeline-change {
+		display: inline-flex;
+		flex-wrap: wrap;
+		align-items: baseline;
+		gap: 4px;
+		vertical-align: baseline;
+		--icon-stroke: var(--ink-gray-5);
+
+		> .icon {
+			align-self: center;
+		}
+	}
+	.timeline-change-old {
+		text-decoration: line-through;
+	}
+	.timeline-change-new {
+		padding: 3px 6px;
+		border-radius: 5px;
+		background-color: var(--surface-gray-2);
+		font-size: var(--text-sm);
+		line-height: 1.15;
+		color: var(--ink-gray-7);
+	}
+	.timeline-empty-value {
+		font-style: italic;
+	}
+	.timeline-change-old,
+	.timeline-change-new {
+		max-width: 240px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+	}
+
+	.timeline-changes {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+		gap: 10px;
+		width: fit-content;
+		max-width: 100%;
+		margin-top: 6px;
+		padding: 14px;
+		border: 1px solid var(--outline-gray-1);
+		border-radius: var(--radius-lg);
+		background-color: var(--surface-elevation-1, var(--bg-color));
+	}
+
+	.timeline-changes-grid {
+		display: grid;
+		grid-template-columns:
+			minmax(0, max-content) minmax(0, max-content) max-content
+			minmax(0, max-content);
+		align-items: center;
+		gap: 6px 8px;
+		max-width: 100%;
+
+		.timeline-change-row,
+		.timeline-change {
+			display: contents;
+		}
+
+		.timeline-change-label {
+			padding-inline-end: 32px;
+		}
+
+		.timeline-change-old {
+			justify-self: end;
+			text-align: end;
+			text-decoration: none;
+			font-style: italic;
+		}
+
+		.timeline-change-new {
+			justify-self: start;
+		}
+	}
+
+	.timeline-changes:not(.show-all) .timeline-change-more {
+		display: none;
+	}
+
+	.timeline-message-box .content.timeline-content-clamped {
+		max-height: 500px;
+		mask-image: linear-gradient(to bottom, black calc(100% - 64px), transparent);
+	}
+
+	.timeline-message-more {
+		margin-top: 4px;
+	}
+
+	.timeline-all-changes {
+		padding-block: 8px;
+	}
+
+	:is(.timeline-changes-toggle, .timeline-changes-more-toggle) {
+		.icon {
+			transition: transform 0.15s ease;
+		}
+
+		&[aria-expanded="true"] .icon {
+			transform: rotate(180deg);
+		}
+	}
+
+	.timeline-empty-state {
+		padding-block: 32px;
+	}
+
+	.timeline-group-range {
+		margin-top: 6px;
+	}
+
+	.timeline-others {
+		padding: 0;
+		border: none;
+		background: none;
+		font: inherit;
+		font-weight: 500;
+		color: var(--ink-gray-7);
+		text-decoration: underline dotted var(--ink-gray-4);
+		text-underline-offset: 3px;
+		cursor: pointer;
+
+		&:hover {
+			color: var(--ink-gray-9);
+		}
+
+		&:focus-visible {
+			outline: none;
+			border-radius: var(--radius-sm);
+			box-shadow: var(--focus-default);
+		}
+	}
+
+	.timeline-rows {
+		display: grid;
+		grid-template-columns: minmax(0, max-content) minmax(0, max-content);
+		gap: 10px 32px;
+	}
+
+	.timeline-row,
+	.timeline-row-fields {
+		display: grid;
+		grid-column: 1 / -1;
+		grid-template-columns: subgrid;
+	}
+
+	.timeline-row-title {
+		grid-column: 1 / -1;
+		margin-bottom: 4px;
+		font-size: var(--text-sm);
+		color: var(--ink-gray-5);
+	}
+
+	.timeline-row-fields {
+		row-gap: 4px;
+
+		.timeline-change-label {
+			color: var(--ink-gray-5);
+		}
+	}
+
+	.timeline-row-value {
+		max-width: 240px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		color: var(--ink-gray-7);
+	}
+
+	.timeline-file-list {
+		display: flex;
+		align-items: center;
+		gap: 6px;
+		margin-top: 8px;
+		overflow: hidden;
+
+		&.expanded {
+			flex-wrap: wrap;
+		}
+
+		.timeline-file {
+			flex: none;
+			max-width: 240px;
+			margin-block: 0;
+		}
+	}
+
+	.timeline-file-more {
+		flex: none;
+		padding: 3px 6px;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: 5px;
+		background-color: transparent;
+		font-family: inherit;
+		font-size: var(--text-sm);
+		line-height: 1.15;
+		color: var(--ink-gray-7);
+		cursor: pointer;
+
+		&:hover {
+			background-color: var(--surface-gray-2);
+		}
+
+		&:focus-visible {
+			outline: none;
+			box-shadow: var(--focus-default);
+		}
+	}
+
+	.timeline-file {
+		display: inline-flex;
+		align-items: center;
+		gap: 4px;
+		max-width: 100%;
+		padding: 3px 6px;
+		border: 1px solid var(--outline-gray-2);
+		border-radius: 5px;
+		font-size: var(--text-sm);
+		line-height: 1.15;
+		color: var(--ink-gray-7);
+		vertical-align: middle;
+		--icon-stroke: var(--ink-gray-6);
+
+		position: relative;
+
+		&:has(a:hover) {
+			background-color: var(--surface-gray-2);
+		}
+
+		a {
+			overflow: hidden;
+			text-overflow: ellipsis;
 			white-space: nowrap;
-			overflow: auto;
 
-			.action-btn {
-				margin-left: var(--margin-md);
-				display: flex;
-				align-items: center;
-				line-height: var(--text-xl);
-
-				.icon {
-					margin-right: var(--margin-xs);
-				}
+			&::after {
+				content: "";
+				position: absolute;
+				inset: 0;
 			}
+		}
+	}
 
-			.action-btn:first-of-type {
-				margin-left: 0;
+	.timeline-content.frappe-card {
+		padding: 10px 12px;
+		margin: 0;
+		color: var(--ink-gray-7);
+		background-color: transparent;
+		box-shadow: none;
+		border: 1px solid var(--outline-gray-1);
+		border-radius: var(--radius-lg);
+
+		.action-btn {
+			margin: 0;
+		}
+	}
+
+	// tight leading needs no trim on top, which keeps the line level with the
+	// rail icon; the bottom trim keeps the card where it was
+	.timeline-message-summary {
+		line-height: 1.15;
+		margin-block: 0 calc((1.15em - 1.5em) / 2);
+	}
+
+	.timeline-you,
+	.timeline-user-name {
+		color: var(--ink-gray-7);
+		font-weight: 500;
+	}
+
+	.timeline-message-card {
+		display: flex;
+		align-items: flex-start;
+		gap: var(--margin-sm);
+		// 10px from the summary's 1.15 box, which is trimmed by the leading above
+		margin-top: calc(10px + (1.5em - 1.15em) / 2);
+		padding: 10px 12px;
+		border: 1px solid var(--outline-gray-1);
+		border-radius: var(--radius-lg);
+
+		.timeline-message-body {
+			flex: 1;
+			min-width: 0;
+
+			> .content {
+				margin-top: 0;
 			}
 		}
 
-		.timeline-content {
-			position: relative;
-			padding: var(--padding-sm);
-			margin-left: var(--margin-md);
+		// the 28px buttons overflow into the padding instead of stretching a
+		// one-line card, so the space above and below the text stays even
+		.actions {
+			margin-block: -4px;
+			margin-inline-end: -6px;
 
-			body:not(.full-width) & {
-				max-width: var(--timeline-content-max-width);
-			}
-
-			> .ql-editor {
-				display: inline-flex;
-			}
-
-			&.frappe-card {
-				color: var(--text-neutral);
-				background-color: var(--bg-color);
-				box-shadow: none;
-				border: 1px solid var(--border-color);
-				margin: calc(var(--timeline-item-bottom-margin) + var(--padding-md)) 0;
-				margin-left: var(--margin-lg);
-
-				.action-btn {
-					margin: 0 var(--margin-sm);
-				}
-
-				.content {
-					padding-left: 42px;
-
-					.mention {
-						background-color: transparent;
-						border: none;
-						font-weight: var(--weight-semibold);
-						padding: 0;
-					}
-				}
+			.timeline-message-status {
+				order: -1;
 			}
 		}
 
-		.timeline-badge {
-			@include timeline-badge(var(--timeline-item-icon-size));
-			left: calc(-1 * var(--timeline-item-left-margin));
+		.content .ql-editor > p:last-child:has(> br:only-child):not(:first-child) {
+			display: none;
 		}
 
-		.timeline-load-more {
-			margin-left: calc(var(--timeline-item-left-margin) + var(--padding-sm));
-			text-align: center;
+		.mention {
+			display: inline;
+			padding: 0;
+			border: none;
+			background-color: transparent;
+			font: inherit;
+			color: var(--ink-amber-7);
 
-			body:not(.full-width) & {
-				width: var(--timeline-content-max-width);
-			}
-		}
-
-		.timeline-message-box {
-			.content {
-				overflow: auto;
-				max-height: 500px;
-
-				&::before {
-					content: "";
-					display: block;
-					height: 1px;
-					margin-top: -10px;
-					width: calc(100% - 64px);
-					position: absolute;
-					background-color: var(--border-color);
-				}
+			> span {
+				margin: 0;
 			}
 
-			.actions {
-				display: flex;
-
-				> *:not(.indicator-pill) {
-					color: var(--text-muted);
-				}
-			}
-
-			.action-btn {
-				padding: 0;
-				padding-bottom: 0;
-				margin-left: var(--margin-sm);
-				background-color: transparent;
-				--icon-stroke: var(--text-muted);
-			}
-
-			.action-btn,
-			.custom-actions {
-				@include get_textstyle("sm", "regular");
-			}
-
-			.action-btn:hover {
+			a[href] {
+				color: inherit;
 				text-decoration: none;
-				--icon-stroke: var(--text-color);
+
+				&:hover {
+					color: var(--ink-amber-8);
+				}
+			}
+		}
+	}
+
+	.timeline-load-more {
+		margin-inline-start: calc(#{$timeline-rail-size} + #{$timeline-gutter});
+	}
+
+	.timeline-message-box {
+		.timeline-message-header {
+			gap: var(--margin-sm);
+			align-items: flex-start;
+		}
+
+		.timeline-message-title {
+			flex: 1;
+			min-width: 0;
+			display: flex;
+			flex-wrap: wrap;
+			align-items: baseline;
+			gap: 2px 4px;
+			line-height: 1.5;
+
+			> .text-color:first-child {
+				font-weight: 500;
+				color: var(--ink-gray-7);
 			}
 		}
 
-		.comment-edit-box {
-			background-color: var(--control-bg);
-			border: 1px solid var(--border-color);
-			border-radius: var(--radius);
+		.timeline-message-meta {
+			flex-basis: 100%;
+			color: var(--ink-gray-6);
+
+			.timeline-message-meta-label {
+				color: var(--ink-gray-5);
+			}
+		}
+
+		.timeline-message-date {
+			padding: 0 var(--padding-sm);
+			font-size: var(--text-sm);
+			color: var(--ink-gray-5);
+			white-space: nowrap;
+		}
+
+		// a long message shows its start and opens on demand; it never scrolls on
+		// its own, so the wheel always moves the page (wide tables still scroll
+		// sideways)
+		.content {
+			overflow-x: auto;
+			overflow-y: hidden;
 			margin-top: var(--margin-sm);
-			--icon-stroke: var(--text-color);
+			line-height: 1.5;
+			color: var(--ink-gray-7);
+
+			.ql-editor {
+				line-height: inherit;
+			}
+
+			img {
+				max-width: 100%;
+				height: auto;
+			}
+
+			> :last-child,
+			.ql-editor > :last-child {
+				margin-bottom: 0;
+			}
+		}
+
+		.timeline-message-attachments {
+			display: flex;
+			flex-wrap: wrap;
+			gap: 6px;
+			margin-top: 12px;
+
+			.timeline-file {
+				margin-block: 0;
+			}
+		}
+
+		&[data-communication-type="Communication"] .content blockquote {
+			margin: var(--margin-sm) 0;
+			padding-inline-start: 12px;
+			border-inline-start: 2px solid var(--outline-gray-2);
+			color: var(--ink-gray-5);
+		}
+
+		&[data-communication-type="Communication"] .content {
+			margin-top: 14px;
+			padding-top: 14px;
+			border-top: 1px solid var(--outline-gray-1);
+		}
+
+		.actions {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+
+			> *:not(.indicator-pill):not(.es-badge):not(.es-button) {
+				color: var(--ink-gray-5);
+			}
+		}
+
+		.custom-actions {
+			display: flex;
+			align-items: center;
+			gap: 6px;
+		}
+
+		.action-btn:not(.es-button) {
+			display: inline-flex;
+			align-items: center;
+			height: $timeline-avatar-size;
+			padding: 0 6px;
+			border-radius: var(--radius);
+			background-color: transparent;
+			@include get_textstyle("sm", "regular");
+
+			&:hover {
+				text-decoration: none;
+				background-color: var(--surface-gray-2);
+			}
+		}
+
+		.custom-actions {
+			@include get_textstyle("sm", "regular");
+		}
+	}
+
+	.timeline-item-highlight .timeline-message-card {
+		animation: timeline-item-flash 1.6s ease-out;
+
+		@media (prefers-reduced-motion: reduce) {
+			animation: none;
+		}
+	}
+
+	.comment-edit-box {
+		--icon-stroke: var(--text-color);
+	}
+
+	.timeline-message-card.timeline-message-card-editing {
+		flex-direction: column;
+		align-items: stretch;
+		gap: var(--margin-sm);
+		padding: 12px;
+		border-color: transparent;
+		background-color: var(--surface-gray-2);
+
+		.ql-editor {
+			min-height: 40px;
+			padding: 0;
+			border: none;
+			background-color: transparent;
+			font-size: var(--text-base);
+			line-height: 1.5;
+			color: var(--ink-gray-8);
+		}
+
+		.actions {
+			align-self: flex-end;
+			margin: 0;
+		}
+
+		.custom-actions {
+			gap: var(--margin-sm);
 		}
 	}
 }
 
 @include media-breakpoint-down(sm) {
+	.new-timeline {
+		.timeline-filters .es-pill {
+			padding-inline: 5px;
+		}
+
+		.timeline-content .timeline-change-old,
+		.timeline-content .timeline-change-new {
+			max-width: 120px;
+		}
+
+		.timeline-message-box .timeline-message-date {
+			display: none;
+		}
+
+		.timeline-changes {
+			width: 100%;
+		}
+
+		.timeline-changes-grid {
+			grid-template-columns: minmax(0, max-content) max-content minmax(0, 1fr);
+			row-gap: 0;
+
+			.timeline-change-label {
+				grid-column: 1 / -1;
+				padding-inline-end: 0;
+				margin-bottom: 4px;
+			}
+
+			.timeline-change-old {
+				justify-self: start;
+			}
+
+			// the arrow too, or it centres on the value plus its margin
+			.timeline-change > * {
+				margin-bottom: 12px;
+			}
+
+			.timeline-change-row:last-child .timeline-change > * {
+				margin-bottom: 0;
+			}
+		}
+
+		.timeline-rows {
+			grid-template-columns: minmax(0, 1fr);
+			gap: 16px;
+		}
+
+		.timeline-row-title {
+			margin-bottom: 8px;
+		}
+
+		.timeline-row-fields {
+			grid-template-columns: minmax(0, 1fr);
+			row-gap: 0;
+
+			.timeline-change-label {
+				margin-bottom: 4px;
+			}
+		}
+
+		.timeline-row-value {
+			max-width: 100%;
+			margin-bottom: 12px;
+
+			&:last-child {
+				margin-bottom: 0;
+			}
+		}
+
+		.timeline-changes:not(.show-all) .timeline-change-row:nth-child(5) .timeline-change > * {
+			margin-bottom: 0;
+		}
+
+		.timeline-changes-toggle {
+			margin-inline-start: calc(var(--spacing) * -1.5);
+		}
+	}
+
 	.up {
 		position: relative;
 		bottom: 1px;
+	}
+}
+
+.es-toast .timeline-toast-danger-icon {
+	color: var(--ink-red-5);
+	--icon-stroke: var(--ink-red-5);
+}
+
+// sized to its rows (the popover default is a fixed width), one line each
+.timeline-others-card {
+	width: max-content;
+	min-width: 220px;
+	max-width: 360px;
+	padding: 4px;
+}
+
+.timeline-others-list {
+	display: flex;
+	flex-direction: column;
+}
+
+.timeline-others-row {
+	display: flex;
+	align-items: center;
+	gap: 10px;
+	padding: 6px 8px;
+
+	.avatar {
+		flex: none;
+		width: 20px;
+		height: 20px;
+	}
+
+	.timeline-others-name {
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		font-size: var(--text-base);
+		color: var(--ink-gray-8);
+	}
+
+	.timeline-others-meta {
+		flex: none;
+		margin-inline-start: auto;
+		padding-inline-start: 16px;
+		font-size: var(--text-sm);
+		color: var(--ink-gray-5);
+		white-space: nowrap;
 	}
 }
