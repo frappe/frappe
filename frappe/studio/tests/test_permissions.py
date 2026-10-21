@@ -29,6 +29,14 @@ class TestPermissions(IntegrationTestCase):
 			self.assertFalse(frappe.has_permission(doctype, "read", name, user=self.other))
 			self.assertFalse(frappe.has_permission(doctype, "write", name, user=self.other))
 
+	def test_deleting_an_app_takes_every_chat_on_its_pages(self):
+		app = frappe.db.get_value("Studio Page", self.session._doc.page, "studio_app")
+		with self.set_user(self.other):
+			frappe.delete_doc("Studio App", app)
+
+		self.assertFalse(frappe.db.exists("Studio AI Session", self.session.name))
+		self.assertFalse(frappe.db.exists("Studio AI Message", self.message))
+
 	def test_lists_show_only_your_own_chats(self):
 		for doctype, name in (("Studio AI Session", self.session.name), ("Studio AI Message", self.message)):
 			self.assertIn(name, frappe.get_list(doctype, pluck="name", user=self.owner))

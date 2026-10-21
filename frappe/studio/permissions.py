@@ -5,7 +5,10 @@ import frappe
 
 
 def has_session_permission(doc, ptype: str, user: str) -> bool:
-	return user in (doc.user, "Administrator")
+	if user in (doc.user, "Administrator"):
+		return True
+	# deleting a page takes every chat on it with it, whoever they belong to
+	return ptype == "delete" and frappe.has_permission("Studio Page", "delete", doc.page, user=user)
 
 
 def session_query_conditions(user: str | None = None) -> str:
@@ -18,7 +21,7 @@ def session_query_conditions(user: str | None = None) -> str:
 def has_message_permission(doc, ptype: str, user: str) -> bool:
 	if user == "Administrator":
 		return True
-	return frappe.db.get_value("Studio AI Session", doc.session, "user") == user
+	return frappe.has_permission("Studio AI Session", ptype, doc.session, user=user)
 
 
 def message_query_conditions(user: str | None = None) -> str:
