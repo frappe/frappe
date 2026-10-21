@@ -25,12 +25,7 @@ from unittest.mock import patch
 import psutil
 
 import frappe
-<<<<<<< HEAD
-from frappe.frappeclient import FrappeClient
 from frappe.model.base_document import get_controller
-=======
-from frappe.model.document import get_controller
->>>>>>> c0005e2 (test: remove flaky requests per second perf test)
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
