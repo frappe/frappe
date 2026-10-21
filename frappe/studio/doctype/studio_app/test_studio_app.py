@@ -443,7 +443,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		page_sources = {}
 
 		def read_content_file(command, **kwargs):
-			content_path = re.search(r" --tailwind-content (\S+)", command).group(1)
+			content_path = argument(command, "--tailwind-content")
 			with open(content_path) as f:
 				page_sources["text"] = f.read()
 			return run.return_value
@@ -472,11 +472,9 @@ class TestStudioAppBuilder(FrappeTestCase):
 			run.return_value.returncode = 0
 			builder.build()
 
-		app_folder = os.path.join(studio_folder, "folder_app")
-		self.assertIn(f" --app-folder {app_folder}", run.call_args.args[0])
-		self.assertIn(
-			f"--tailwind-content '{app_folder}/**/*.{{vue,js,ts,jsx,tsx,json}}'", run.call_args.args[0]
-		)
+		app_folder = os.path.join(studio_folder, "folder-app")
+		self.assertEqual(argument(run.call_args.args[0], "--app-folder"), app_folder)
+		self.assertIn(f"{app_folder}/**/*.{{vue,js,ts,jsx,tsx,json}}", run.call_args.args[0])
 
 	def test_builds_css_for_the_app_tailwind_config(self):
 		"""Classes in files the app's tailwind.config.js points at, or safelists, reach the built
@@ -502,6 +500,15 @@ class TestStudioAppBuilder(FrappeTestCase):
 		built = {marker for marker in ("111", "222", "333") if rf"tracking-\[0\.{marker}em\]" in css}
 		self.assertEqual(built, {"111", "333"})
 
+	def test_component_names_reach_the_build_as_plain_arguments(self):
+		builder = StudioAppBuilder("shell-app", is_standard=False)
+		builder.components = {"A$(id)", "Button"}
+		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
+			run.return_value.returncode = 0
+			builder._run_vite_build()
+		self.assertEqual(argument(run.call_args.args[0], "--components"), "A$(id),Button")
+		self.assertFalse(run.call_args.kwargs.get("shell"))
+
 	def test_passes_only_the_used_icons_to_the_build(self):
 		builder = StudioAppBuilder("icon-cli-app", is_standard=False)
 		builder.components = {"Button"}
@@ -510,7 +517,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder._run_vite_build()
-		self.assertIn(" --icons lucide-check,lucide-x", run.call_args.args[0])
+		self.assertEqual(argument(run.call_args.args[0], "--icons"), "lucide-check,lucide-x")
 
 		builder.icons = set()
 		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
@@ -533,17 +540,14 @@ class TestStudioAppBuilder(FrappeTestCase):
 			with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 				run.return_value.returncode = 0
 				builder._run_vite_build()
-			self.assertIn(f" --router-file {builder.router_file}", run.call_args.args[0])
+			self.assertEqual(argument(run.call_args.args[0], "--router-file"), builder.router_file)
 
 		# a bench path with spaces must reach vite as one argument
-		builder.router_file = "/Users/me/my bench/apps/studio/studio/routed_app/router.ts"
+		builder.router_file = "/Users/me/my bench/apps/frappe/studio/routed-app/router.ts"
 		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
 			run.return_value.returncode = 0
 			builder._run_vite_build()
-		self.assertIn(
-			" --router-file '/Users/me/my bench/apps/studio/studio/routed_app/router.ts'",
-			run.call_args.args[0],
-		)
+		self.assertEqual(argument(run.call_args.args[0], "--router-file"), builder.router_file)
 
 		with (
 			mock_studio_app_files("routed-app") as studio_folder,
@@ -724,6 +728,11 @@ def get_bundled_packages(out_dir: str) -> set[str]:
 		for source in sources:
 			packages.update(re.findall(r"node_modules/((?:@[^/]+/)?[^/]+)/", source))
 	return packages
+
+
+def argument(command: list[str], flag: str) -> str | None:
+	"""The value that follows `flag` in a build command."""
+	return command[command.index(flag) + 1] if flag in command else None
 
 
 @contextmanager

@@ -3,7 +3,6 @@
 import json
 import os
 import re
-import shlex
 import subprocess
 import tempfile
 import traceback
@@ -118,41 +117,43 @@ class StudioAppBuilder:
 
 		os.makedirs(self.out_dir, exist_ok=True)
 
-		components_str = ",".join(sorted(self.components))
-		command = (
-			f"yarn build-studio-app"
-			f" --app {self.app_name}"
-			f" --components {components_str}"
-			f" --out-dir {shlex.quote(self.out_dir)}"
-			f" --base {self.base}"
-		)
+		# an argument list, never a shell string: component names come from page JSON
+		command = [
+			"yarn",
+			"build-studio-app",
+			"--app",
+			self.app_name,
+			"--components",
+			",".join(sorted(self.components)),
+			"--out-dir",
+			self.out_dir,
+			"--base",
+			self.base,
+		]
 
 		if self.custom_vue_components:
-			custom_json = json.dumps(self.custom_vue_components)
-			command += f" --custom-components '{custom_json}'"
+			command += ["--custom-components", json.dumps(self.custom_vue_components)]
 
 		if self.page_scripts:
-			page_scripts_json = json.dumps(self.page_scripts)
-			command += f" --page-scripts '{page_scripts_json}'"
+			command += ["--page-scripts", json.dumps(self.page_scripts)]
 
 		if self.router_file:
-			command += f" --router-file {shlex.quote(self.router_file)}"
+			command += ["--router-file", self.router_file]
 
 		if self.icons:
-			command += f" --icons {','.join(sorted(self.icons))}"
+			command += ["--icons", ",".join(sorted(self.icons))]
 
 		if self.app_folder:
-			command += f" --app-folder {shlex.quote(self.app_folder)}"
+			command += ["--app-folder", self.app_folder]
 
 		for glob in self.tailwind_content:
-			command += f" --tailwind-content {shlex.quote(glob)}"
+			command += ["--tailwind-content", glob]
 
 		studio_app_path = frappe.get_app_source_path("frappe", "studio", "frontend")
 		result = subprocess.run(
 			command,
 			cwd=studio_app_path,
 			env={**os.environ, **get_node_env()},
-			shell=True,
 			capture_output=True,
 			text=True,
 		)
