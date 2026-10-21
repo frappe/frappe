@@ -376,9 +376,20 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 	}
 	await until(chatShown);
 	assert.equal(opened(), 2);
-	// a page over the open chat leaves it be: back from it, the chat hasn't reloaded
+	// a page over the open chat leaves it be: back from it, the chat hasn't reloaded. A list with
+	// nothing in it shows what its page is for, and no search or filters, even while it loads
+	const list = transport.answers["frappe.client.get_list"];
+	let listed;
+	transport.answers["frappe.client.get_list"] = () =>
+		new Promise((resolve) => (listed = resolve));
 	await router.push("/skills");
-	await until(() => !chatShown());
+	await until(() => !chatShown() && listed);
+	const searchBox = () => el.querySelector("main:not([inert]) [data-control=text]");
+	assert.equal(searchBox(), null);
+	transport.answers["frappe.client.get_list"] = list;
+	listed([]);
+	await until(() => el.textContent.includes("No skills yet"));
+	assert.equal(searchBox(), null);
 	router.back();
 	await until(chatShown);
 	assert.equal(opened(), 2);
