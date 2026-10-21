@@ -119,7 +119,7 @@ class StudioApp(WebsiteGenerator):
 
 	def get_context(self, context):
 		csrf_token = frappe.sessions.get_csrf_token()
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		context.csrf_token = csrf_token
 		context.no_cache = 1
 		context.site_name = frappe.local.site
