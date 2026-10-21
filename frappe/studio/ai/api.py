@@ -22,7 +22,7 @@ logger = frappe.logger("frappe.studio.ai.api")
 logger.setLevel(logging.INFO)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 @has_page_write_perm()
 def run(
 	prompt: str,
@@ -64,6 +64,7 @@ def run(
 		run_agent_job,
 		queue="long",
 		timeout=600,
+		enqueue_after_commit=True,
 		prompt=prompt,
 		page_context_json=page_context,
 		model=resolved_model,
