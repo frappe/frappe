@@ -55,6 +55,11 @@ URL_NOTATION_PATTERN = re.compile(
 DURATION_PATTERN = re.compile(r"^(?:(\d+d)?((^|\s)\d+h)?((^|\s)\d+m)?((^|\s)\d+s)?)$")
 HTML_TAG_PATTERN = re.compile("<[^>]+>")
 MARIADB_SPECIFIC_COMMENT = re.compile(r"#.*")
+# ifnull(field, fallback) with a plain, optionally table-qualified field and a constant fallback;
+# "" is the only double-quoted fallback, since Postgres reads double quotes as a column name
+IFNULL_COLUMN_PATTERN = re.compile(
+	r"""ifnull\(\s*(`tab[\w -]+`\.)?(`?)\w+\2\s*,\s*('[^'\\]*'|""|-?\d+(\.\d+)?)\s*\)"""
+)
 
 
 class Weekday(Enum):
@@ -2055,38 +2060,11 @@ def _sanitize_column(column_name: str, db_type: str) -> str:
 		# strip mariadb specific comments which are like python single line comments
 		column_name = MARIADB_SPECIFIC_COMMENT.sub("", column_name)
 
-	blacklisted_keywords = [
-		"select",
-		"create",
-		"insert",
-		"delete",
-		"drop",
-		"update",
-		"case",
-		"and",
-		"or",
-	]
-
 	def _raise_exception():
 		frappe.throw(_("Invalid field name {0}").format(column_name), frappe.DataError)
 
 	regex = re.compile("^.*[,'();\n`].*")
-	if "ifnull" in column_name:
-		if regex.match(column_name):
-			# to avoid and, or
-			if any(f" {keyword} " in column_name.split() for keyword in blacklisted_keywords):
-				_raise_exception()
-
-			# to avoid select, delete, drop, update and case
-			elif any(keyword in column_name.split() for keyword in blacklisted_keywords):
-				_raise_exception()
-
-			elif any(
-				re.search(rf"\b{keyword}\b", column_name, re.IGNORECASE) for keyword in blacklisted_keywords
-			):
-				_raise_exception()
-
-	elif regex.match(column_name):
+	if regex.match(column_name) and not IFNULL_COLUMN_PATTERN.fullmatch(column_name):
 		_raise_exception()
 
 	return column_name

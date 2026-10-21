@@ -846,6 +846,30 @@ class TestDBQuery(FrappeTestCase):
 		)
 		self.assertTrue("DefaultValue" in [d["name"] for d in out])
 
+	def test_ifnull_filter_field_sanitizer(self):
+		from frappe.desk.doctype.event.event import get_events
+
+		for fieldname in (
+			"ifnull(null,IF(1=1,SLEEP(0),0))",
+			"ifnull(name, sleep(0))",
+			"ifnull(`tabDocType`.`name`, ''), sleep(0)",
+		):
+			self.assertRaises(
+				frappe.DataError,
+				DatabaseQuery("DocType").execute,
+				fields=["name"],
+				filters=[["DocType", fieldname, "=", "0"]],
+			)
+			self.assertRaises(
+				frappe.DataError, get_events, "2020-01-01", "2030-12-31", filters=[[fieldname, "=", "0"]]
+			)
+
+		out = DatabaseQuery("DocType").execute(
+			fields=["name"],
+			filters=[["DocType", "ifnull(`tabDocType`.`module`, '')", "=", "Core"]],
+		)
+		self.assertTrue("DocType" in [d["name"] for d in out])
+
 	def test_order_by_group_by_sanitizer(self):
 		# order by with blacklisted function
 		with self.assertRaises(frappe.ValidationError):
