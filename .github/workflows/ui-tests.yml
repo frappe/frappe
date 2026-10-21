@@ -139,7 +139,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
-      NODE_ENV: "production"
+      # not NODE_ENV=production: yarn would skip the editor's devDependencies, cypress included
       PYTHONWARNINGS: "ignore"
       DB_ROOT_PASSWORD: db_root
     services:
