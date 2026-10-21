@@ -176,6 +176,7 @@
 							:model-value="defaultOf('incoming')"
 							:options="defaultOptions('enable_incoming')"
 							class="w-56 shrink-0"
+							align="end"
 							@update:model-value="(v) => setDefault('incoming', v)"
 						/>
 					</div>
@@ -200,6 +201,7 @@
 							:model-value="defaultOf('outgoing')"
 							:options="defaultOptions('enable_outgoing')"
 							class="w-56 shrink-0"
+							align="end"
 							@update:model-value="(v) => setDefault('outgoing', v)"
 						/>
 					</div>
