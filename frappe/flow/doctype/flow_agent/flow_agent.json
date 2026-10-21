@@ -161,7 +161,7 @@
    "label": "Access"
   },
   {
-   "description": "Who can use this agent directly; empty means every Flow User. As a sub-agent it works for anyone using an agent that has it.",
+   "description": "Who can use this agent directly; empty means every Flow User. As a sub-agent it works for anyone using an agent that has it. Disabling a role also drops it here, which can leave the agent open to every Flow User.",
    "fieldname": "roles",
    "fieldtype": "Table MultiSelect",
    "label": "Roles",
@@ -170,7 +170,7 @@
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-21 12:00:00.000000",
+ "modified": "2026-10-21 13:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Agent",

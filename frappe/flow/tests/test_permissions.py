@@ -186,7 +186,9 @@ class TestFlowAccess(IntegrationTestCase):
 					doc.save()
 
 	def test_an_agents_roles_decide_who_uses_it_directly_and_reads_its_skills(self):
+		tester = self._role("Flow Roles Tester")
 		member = _user("flow-roles-member@example.com", FLOW_USER_ROLE)
+		holder = _user("flow-roles-holder@example.com", FLOW_USER_ROLE, tester)
 		manager = _user("flow-roles-manager@example.com", "System Manager")
 		agent = frappe.get_doc("Flow Agent", _agent())
 		locked = frappe.get_doc(
@@ -196,7 +198,7 @@ class TestFlowAccess(IntegrationTestCase):
 				"model": agent.model,
 				"instructions": "x",
 				"enabled": 1,
-				"roles": [{"role": "System Manager"}],
+				"roles": [{"role": tester}],
 			}
 		).insert()
 		shared, bound, hidden, off = (
@@ -219,6 +221,7 @@ class TestFlowAccess(IntegrationTestCase):
 
 		for user, agents, skills in (
 			(member, [agent.name], [shared, bound]),
+			(holder, [agent.name, locked.name], [shared, bound, hidden]),
 			(manager, [agent.name, locked.name], [shared, bound, hidden, off]),
 		):
 			with self.subTest(user):

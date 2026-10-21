@@ -210,7 +210,7 @@ export const SPECS = {
 				link: "Role",
 				child: "role",
 				description:
-					"Who can use this agent directly; empty means every Flow user. As a sub-agent it works for anyone using an agent that has it.",
+					"Who can use this agent directly; empty means every Flow user. As a sub-agent it works for anyone using an agent that has it. Disabling a role also drops it here, which can leave the agent open to every Flow user.",
 			},
 		],
 	},
