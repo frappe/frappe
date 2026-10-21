@@ -14,3 +14,8 @@ class TestInstalledApplications(IntegrationTestCase):
 		update_installed_apps_order(["frappe"])
 		self.assertRaises(InvalidAppOrder, update_installed_apps_order, [])
 		self.assertRaises(InvalidAppOrder, update_installed_apps_order, ["frappe", "deepmind"])
+
+	def test_setup_wizard_stops_being_home_page_once_setup_is_complete(self):
+		frappe.db.set_default("desktop:home_page", "setup-wizard")
+		frappe.get_single("Installed Applications").update_versions()
+		self.assertEqual(frappe.db.get_default("desktop:home_page"), "workspace")

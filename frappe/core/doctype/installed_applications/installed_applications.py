@@ -71,7 +71,10 @@ class InstalledApplications(Document):
 			self.save(ignore_version=True)
 
 		frappe.clear_cache(doctype="System Settings")
-		frappe.db.set_single_value("System Settings", "setup_complete", frappe.is_setup_complete())
+		setup_complete = frappe.is_setup_complete()
+		frappe.db.set_single_value("System Settings", "setup_complete", setup_complete)
+		if setup_complete and frappe.db.get_default("desktop:home_page") == "setup-wizard":
+			frappe.db.set_default("desktop:home_page", "workspace")
 
 	def get_app_wise_setup_details(self):
 		"""Get app wise setup details from the Installed Application doctype"""
