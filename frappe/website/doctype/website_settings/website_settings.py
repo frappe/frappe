@@ -49,8 +49,13 @@ class WebsiteSettings(Document):
 		hide_login: DF.Check
 		home_page: DF.Data | None
 		indexing_authorization_code: DF.Data | None
+<<<<<<< HEAD
 		indexing_refresh_token: DF.Data | None
 		navbar_search: DF.Check
+=======
+		indexing_refresh_token: DF.Password | None
+		max_signups_per_minute: DF.Int
+>>>>>>> 3b3cf75 (fix(website): store indexing refresh token as a Password field)
 		navbar_template: DF.Link | None
 		navbar_template_values: DF.Code | None
 		robots_txt: DF.Code | None

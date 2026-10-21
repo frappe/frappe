@@ -30,10 +30,10 @@ def authorize_access(reauthorize: bool = False, code: str | None = None):
 		)
 
 	res = oauth_obj.authorize(oauth_code)
-	frappe.db.set_single_value(
-		"Website Settings",
-		{"indexing_authorization_code": oauth_code, "indexing_refresh_token": res.get("refresh_token")},
-	)
+	settings = frappe.get_doc("Website Settings")
+	settings.indexing_authorization_code = oauth_code
+	settings.indexing_refresh_token = res.get("refresh_token")
+	settings.save()
 
 
 def get_google_indexing_object():
