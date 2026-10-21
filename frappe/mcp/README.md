@@ -80,6 +80,7 @@ Examples show tool arguments, which the client sends through `tools/call`.
 Lists default to `start: 0`, `limit: 20`, and the `name` field. Use `has_next_page` to continue paging.
 Method calls accept an `args` object. Controller module functions use their full dotted path with `call_method`.
 Submit and cancel use `call_document_method` with `doctype`, `name`, and `method`.
+A method whitelisted for GET but not POST runs as an HTTP GET runs it: it needs read permission, and its writes roll back. Every other method runs as POST.
 
 ### Permissions
 
