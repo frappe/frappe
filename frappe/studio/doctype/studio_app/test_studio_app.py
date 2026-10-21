@@ -490,7 +490,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 			write_file(os.path.join(frappe_app, "shared", "Shared.vue"), '<p class="tracking-[0.111em]" />')
 			write_file(os.path.join(frappe_app, "desk", "Desk.vue"), '<p class="tracking-[0.222em]" />')
 			write_file(
-				os.path.join(studio_folder, "tailwind_app", "tailwind.config.js"),
+				os.path.join(studio_folder, "tailwind-app", "tailwind.config.js"),
 				'export default { content: ["../../shared/**/*.vue"], safelist: ["tracking-[0.333em]"] }',
 			)
 			builder = StudioAppBuilder("tailwind-app", is_standard=True, frappe_app="frappe")
@@ -527,7 +527,7 @@ class TestStudioAppBuilder(FrappeTestCase):
 		):
 			self.assertEqual(
 				get_router_file("frappe", "routed-app"),
-				os.path.join(studio_folder, "routed_app", "router.ts"),
+				os.path.join(studio_folder, "routed-app", "router.ts"),
 			)
 			builder.router_file = get_router_file("frappe", "routed-app")
 			with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
@@ -596,13 +596,14 @@ ROUTER_SCRIPT = """{
 @contextmanager
 def exports_in_tempdir():
 	"""Exports of every app land in a temp dir."""
+
+	def source_path(app, *path):
+		# the real one does not scrub either: `my-app` exports to studio/my-app/my_app.json
+		return os.path.join(tmpdir, app, *path)
+
 	with (
 		tempfile.TemporaryDirectory() as tmpdir,
-		# scrubbed like the real one, so `routed-app` resolves to `routed_app` everywhere
-		patch(
-			"frappe.get_app_source_path",
-			side_effect=lambda app, *path: os.path.join(tmpdir, app, *map(frappe.scrub, path)),
-		),
+		patch("frappe.get_app_source_path", side_effect=source_path),
 		patch.dict(frappe.conf, {"developer_mode": 1}),
 	):
 		yield
@@ -730,7 +731,7 @@ def mock_studio_app_files(app_name, pages=None, components=None, router=None):
 	tmpdir = tempfile.mkdtemp()
 	try:
 		studio_folder = os.path.join(tmpdir, "studio")
-		app_folder = os.path.join(studio_folder, frappe.scrub(app_name))
+		app_folder = os.path.join(studio_folder, app_name)
 		page_folder = os.path.join(app_folder, "studio_page")
 		os.makedirs(page_folder)
 

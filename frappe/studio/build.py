@@ -80,7 +80,7 @@ class StudioAppBuilder:
 		return page_sources
 
 	def get_app_folder(self) -> str:
-		return os.path.join(get_studio_folder(self.frappe_app), frappe.scrub(self.app_name))
+		return os.path.join(get_studio_folder(self.frappe_app), self.app_name)
 
 	def get_page_scripts_from_files(self):
 		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
@@ -369,7 +369,7 @@ def get_studio_folder(frappe_app: str) -> str | None:
 
 def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 	"""Path of the app's studio/<app>/router.ts, if it ships one."""
-	path = os.path.join(get_studio_folder(frappe_app), frappe.scrub(studio_app), "router.ts")
+	path = os.path.join(get_studio_folder(frappe_app), studio_app, "router.ts")
 	return path if os.path.exists(path) else None
 
 
