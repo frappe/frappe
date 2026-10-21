@@ -108,6 +108,9 @@
 					<option value="chrome" :disabled="has_typst_block">
 						{{ __("Chromium") }}
 					</option>
+					<option value="PlutoPrint" :disabled="has_typst_block">
+						{{ __("PlutoPrint (light)") }}
+					</option>
 					<option value="Typst" :disabled="typst_blockers.length > 0">
 						{{ __("Typst (fast)") }}
 					</option>
@@ -163,9 +166,7 @@ let { typst_blockers, has_typst_block } = store;
 
 let google_fonts = ref([]);
 
-let renderer = computed(() =>
-	print_format.value?.pdf_generator === "Typst" ? "Typst" : "chrome"
-);
+let renderer = computed(() => print_format.value?.pdf_generator || "PlutoPrint");
 let hint_icon = ref(null);
 let renderer_hint = computed(() => {
 	if (typst_blockers.value.length) {
@@ -175,7 +176,7 @@ let renderer_hint = computed(() => {
 	if (has_typst_block.value) {
 		return __("Chromium unavailable: this format uses a Typst block.");
 	}
-	return renderer.value === "Typst" ? __("Experimental") : "";
+	return ["Typst", "PlutoPrint"].includes(renderer.value) ? __("Experimental") : "";
 });
 let hint_tooltip = null;
 watch(
@@ -214,7 +215,7 @@ function set_background_image(image) {
 
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;
-	print_format.value.pdf_generator = value === "Typst" ? "Typst" : "chrome";
+	print_format.value.pdf_generator = value;
 }
 let font_options = computed(() => [
 	{ label: __("Default"), value: "" },
