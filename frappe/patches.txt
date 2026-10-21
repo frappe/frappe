@@ -293,3 +293,4 @@ frappe.patches.v17_0.delete_otp_qr_code_images
 
 
 [post_fixture_sync]
+frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides
