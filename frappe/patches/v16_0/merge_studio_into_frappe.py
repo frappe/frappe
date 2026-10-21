@@ -23,3 +23,5 @@ def execute():
 		frappe.db.set_value("Module Def", "Studio", "app_name", "frappe", update_modified=False)
 
 	remove_from_installed_apps("studio")
+	# hooks stay site-cached past the removal; the rest of this migrate must not see studio's
+	frappe.clear_cache()
