@@ -12,14 +12,17 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 /** The vite root of every framework island build. */
 export const TOOLCHAIN_ROOT = path.resolve(here, "../../../island-toolchain");
 
+const INSTALL_ATTEMPTS = 3;
+
 /**
  * Bring the toolchain's node_modules up to its lockfile.
  *
  * Its dependencies are pinned in its own package.json and lockfile. Nothing else
  * installs them, so every build asks yarn's integrity check, and installs only
  * when node_modules no longer matches the lockfile. They are all devDependencies,
- * which yarn skips under NODE_ENV=production unless told otherwise. Exits the
- * process when the install fails.
+ * which yarn skips under NODE_ENV=production unless told otherwise. One failed
+ * registry download fails a whole install, so it tries up to
+ * `INSTALL_ATTEMPTS` times, then exits the process.
  *
  * @param {string} [root]  the toolchain folder
  */
@@ -30,17 +33,19 @@ export function installToolchain(root = TOOLCHAIN_ROOT) {
 	});
 	if (check.status === 0) return;
 
-	console.log(`[island] installing the island toolchain at ${root}`);
-	const install = spawnSync("yarn", ["install", "--frozen-lockfile", ...flags], {
-		stdio: "inherit",
-	});
-	if (install.status !== 0) {
-		console.error(
-			`[island] could not install the island toolchain at ${root}.\n` +
-				`Run it once for this bench:\n\n    yarn install --production=false --cwd ${root}\n`
-		);
-		process.exit(1);
+	for (let attempt = 1; attempt <= INSTALL_ATTEMPTS; attempt++) {
+		console.log(`[island] installing the island toolchain at ${root} (attempt ${attempt})`);
+		const install = spawnSync("yarn", ["install", "--frozen-lockfile", ...flags], {
+			stdio: "inherit",
+		});
+		if (install.status === 0) return;
 	}
+
+	console.error(
+		`[island] could not install the island toolchain at ${root}.\n` +
+			`Run it once for this bench:\n\n    yarn install --production=false --cwd ${root}\n`
+	);
+	process.exit(1);
 }
 
 /**
