@@ -230,6 +230,7 @@ class StudioPage(Document):
 		self.delete_ai_sessions()
 		if can_export(self):
 			delete_folder(self.get_folder_path())
+			self.delete_unused_component_files(deleting=True)
 
 	def delete_ai_sessions(self):
 		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
@@ -392,14 +393,28 @@ class StudioPage(Document):
 		return frappe.get_app_source_path(self.frappe_app, *path)
 
 	def export_components(self):
-		blocks = [*(parse_json(self.blocks) or []), *(parse_json(self.draft_blocks) or [])]
-		components = get_components_for_blocks(blocks)
-		if not components:
-			return
-		frappe.create_folder(self.get_component_folder_path())
+		components = get_components_for_blocks(get_blocks(self))
+		if components:
+			frappe.create_folder(self.get_component_folder_path())
 		for component in components:
 			doc = frappe.get_doc("Studio Component", component.name)
 			write_document_file(doc, folder=self.get_component_folder_path())
+		self.delete_unused_component_files()
+
+	def delete_unused_component_files(self, deleting: bool = False):
+		"""Remove the files of components that no page of the app uses any more"""
+		folder = self.get_component_folder_path()
+		if not os.path.isdir(folder):
+			return
+		filters = {"studio_app": self.studio_app}
+		if deleting:
+			filters["name"] = ["!=", self.name]
+		pages = frappe.get_all("Studio Page", filters=filters, fields=["blocks", "draft_blocks"])
+		blocks = [block for page in pages for block in get_blocks(page)]
+		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
+		for file in os.listdir(folder):
+			if file.removesuffix(".json") not in used:
+				delete_file(folder, file)
 
 	def get_component_folder_path(self) -> str:
 		return frappe.get_app_source_path(self.frappe_app, "studio", self.studio_app, "studio_components")
@@ -409,6 +424,11 @@ class StudioPage(Document):
 
 	def get_script_file_path(self) -> str:
 		return os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+
+
+def get_blocks(page) -> list[dict]:
+	"""The published and draft blocks of a page together"""
+	return [*(parse_json(page.blocks) or []), *(parse_json(page.draft_blocks) or [])]
 
 
 def get_app_page(app_name: str, page_name: str) -> "StudioPage":

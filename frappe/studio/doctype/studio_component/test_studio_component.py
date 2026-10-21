@@ -42,8 +42,8 @@ class TestStudioComponent(IntegrationTestCase):
 			component = frappe.get_doc(doctype="Studio Component", component_name="Exported").insert()
 			blocks = [{"componentName": component.name, "isStudioComponent": True, "children": []}]
 			page = make_studio_page(app.name, blocks=frappe.as_json(blocks))
-			path = os.path.join(page.get_component_folder_path(), f"{component.name}.json")
-			self.assertTrue(frappe.parse_json(frappe.read_file(path)).is_standard)
+			path = os.path.join(page.get_component_folder_path(), f"{frappe.scrub(component.name)}.json")
+			self.assertTrue(os.path.exists(path))
 
 			component.delete()
 

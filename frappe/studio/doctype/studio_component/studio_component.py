@@ -39,8 +39,6 @@ class StudioComponent(Document):
 			)
 
 	def before_export(self, doc):
-		# a component in an app's files is standard
-		doc.is_standard = 1
 		doc.block = parse_json(doc.block)
 		if doc.block:
 			remove_empty_values(doc.block)
@@ -64,7 +62,7 @@ class StudioComponent(Document):
 		"""Every standard page using a component exports it, so its file can be in several apps"""
 		for folder in get_studio_folders():
 			for app_folder in os.listdir(folder):
-				delete_file(folder, app_folder, "studio_components", f"{self.name}.json")
+				delete_file(folder, app_folder, "studio_components", f"{frappe.scrub(self.name)}.json")
 
 
 def get_components_for_blocks(blocks) -> list[dict]:
