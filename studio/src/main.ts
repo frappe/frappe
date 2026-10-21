@@ -60,5 +60,4 @@ studio_router.isReady().then(async () => {
 		studio.provide("socket", socket)
 		studio.mount("#studio")
 	}
-
 })

@@ -5,13 +5,12 @@ import os
 from unittest.mock import patch
 
 import frappe
-from frappe.tests import IntegrationTestCase
-
-from studio.studio.doctype.studio_app.test_studio_app import (
+from frappe.studio.doctype.studio_app.test_studio_app import (
 	exports_in_tempdir,
 	make_studio_app,
 	make_studio_page,
 )
+from frappe.tests import IntegrationTestCase
 
 
 class TestStudioComponent(IntegrationTestCase):
@@ -37,7 +36,7 @@ class TestStudioComponent(IntegrationTestCase):
 	def test_deleting_a_component_removes_its_files(self):
 		with exports_in_tempdir():
 			app = make_studio_app(
-				app_name="exported-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+				app_name="exported-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			component = frappe.get_doc(doctype="Studio Component", component_name="Exported").insert()
 			blocks = [{"componentName": component.name, "isStudioComponent": True, "children": []}]

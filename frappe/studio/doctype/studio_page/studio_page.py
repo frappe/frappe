@@ -8,18 +8,6 @@ from frappe import _
 from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
-from frappe.utils import get_datetime
-
-from frappe.studio.export import (
-	can_export,
-	delete_file,
-	delete_folder,
-	parse_json,
-	validate_standard_app_change,
-	write_code_file,
-	write_document_file,
-)
-from frappe.studio.realtime import publish_doc_change
 from frappe.studio.doctype.studio_component.studio_component import (
 	get_components_for_blocks,
 	mark_components_standard,
@@ -30,7 +18,18 @@ from frappe.studio.doctype.studio_page.copy_paste_handler import (
 	parse_list,
 	pick,
 )
+from frappe.studio.export import (
+	can_export,
+	delete_file,
+	delete_folder,
+	parse_json,
+	validate_standard_app_change,
+	write_code_file,
+	write_document_file,
+)
+from frappe.studio.realtime import publish_doc_change
 from frappe.studio.utils import camel_case_to_kebab_case
+from frappe.utils import get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.
@@ -44,10 +43,9 @@ class StudioPage(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
-		from frappe.types import DF
-
 		from frappe.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
 		from frappe.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
+		from frappe.types import DF
 
 		allow_guest: DF.Check
 		blocks: DF.LongText | None

@@ -384,7 +384,7 @@ class TestStudioPage(IntegrationTestCase):
 	def test_unused_component_files_are_removed(self):
 		with exports_in_tempdir():
 			app = make_studio_app(
-				app_name="cleanup-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="studio"
+				app_name="cleanup-" + frappe.generate_hash(length=10), is_standard=1, frappe_app="frappe"
 			)
 			component = make_component("Card")
 			page = make_studio_page(app.name, blocks=frappe.as_json([component_ref(component)]))

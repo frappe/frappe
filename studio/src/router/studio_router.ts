@@ -36,14 +36,13 @@ const routes = [
 		path: "/:catchAll(.*)",
 		name: "NotFound",
 		component: () => import("@/pages/NotFound.vue"),
-	}
+	},
 ]
 
 let router = createRouter({
 	history: createWebHistory("/studio"),
 	routes,
 })
-
 
 router.beforeEach(async (to, _, next) => {
 	!session.initialized && (await session.initialize())

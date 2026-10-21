@@ -345,7 +345,7 @@ class StudioApp(WebsiteGenerator):
 			return result
 
 		except Exception as e:
-			frappe.log_error(f"Error reading manifest for app {self.name}: {str(e)}")
+			frappe.log_error(f"Error reading manifest for app {self.name}: {e!s}")
 			return None
 
 	@frappe.whitelist()
