@@ -423,6 +423,19 @@ class TestStudioPage(IntegrationTestCase):
 		with self.assertRaisesRegex(frappe.PermissionError, "does not belong"):
 			paste_page(app.name, {"blocks": []}, target_page=target.name)
 
+	def test_published_pages_keep_distinct_routes_on_every_save(self):
+		app = make_studio_app(app_name="routes-" + frappe.generate_hash(length=10))
+		make_studio_page(app.name, page_title="Home", route="/home", published=1)
+		page = make_studio_page(app.name, page_title="About", route="/about", published=1)
+
+		self.assertRaises(frappe.ValidationError, page.save_page_field, "route", "/home")
+		page.reload()
+		page.route = "/home"
+		self.assertRaises(frappe.ValidationError, page.save)
+
+		draft = make_studio_page(app.name, page_title="Home Draft", route="/home", published=0)
+		self.assertRaises(frappe.ValidationError, draft.publish)
+
 	def test_retitle_with_the_same_stem_keeps_the_export(self):
 		with exports_in_tempdir():
 			app = make_studio_app(

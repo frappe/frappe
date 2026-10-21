@@ -99,6 +99,11 @@ class StudioPage(Document):
 
 	def validate(self):
 		validate_standard_app_change(self)
+		# only published pages are served, so only they must not share a route or title
+		if self.published and any(
+			self.has_value_changed(field) for field in ("route", "page_title", "published")
+		):
+			self.validate_conflicts_with_other_pages()
 		# passed from the frontend for faster page saves when variables & resources are not changed
 		if not hasattr(self, "_skip_validate"):
 			self.validate_variables()
@@ -353,7 +358,6 @@ class StudioPage(Document):
 	def publish(self, known_modified: str | None = None, **kwargs):
 		self.reject_if_stale(known_modified)
 		frappe.form_dict.update(kwargs)
-		self.validate_conflicts_with_other_pages()
 		self.published = 1
 		if self.draft_blocks:
 			self.blocks = self.draft_blocks
