@@ -248,7 +248,6 @@ runs:
       bench --site test_site set-config mail_login "test@example.com"
       bench --site test_site set-config mail_password test
       bench --site test_site set-config disable_mail_smtp_authentication 1 --parse
-      bench --site test_site set-config throttle_user_limit 1000 --parse
 
       if [ "$DB" == "mariadb" ]; then
         bench --site test_site set-config monitor 1 --parse
