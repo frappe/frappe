@@ -131,10 +131,6 @@ class PrintFormat(Document):
 
 		known = get_pdf_generators()
 		if not self.pdf_generator:
-			# A format saved before the renderer had a default holds no engine, and the
-			# editor shows it as the default one, so record the engine the render would
-			# use. Writing chromium here instead would undo the renderer the user just
-			# picked in the editor, and the format would print with it too.
 			generator = resolve_pdf_generator(self)
 			if generator in known:
 				self.pdf_generator = generator
