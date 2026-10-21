@@ -287,9 +287,9 @@ class TestSessionEndpoints(ApiCase):
 		sync_builtin_assistant(self.model.name)
 		hidden = frappe.get_doc(_agent_doc(self.model.name, title="Hidden Agent", enabled=0)).insert()
 		data = api.boot()
-		names = [row.name for row in data["agents"]]
-		self.assertIn(self.agent.name, names)
-		self.assertNotIn(hidden.name, names)
+		agents = {row.name: row.model for row in data["agents"]}
+		self.assertEqual(agents.get(self.agent.name), self.model.name)
+		self.assertNotIn(hidden.name, agents)
 		self.assertEqual(data["default_agent"], ASSISTANT_AGENT_TITLE)
 		model = next(row for row in data["models"] if row.name == self.model.name)
 		self.assertEqual(model.model_id, "openai/gpt-4o-mini")

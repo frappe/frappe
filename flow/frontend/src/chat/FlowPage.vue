@@ -201,6 +201,14 @@ watch(
 	() => page.state.agent,
 	() => void store.loadSkills({ force: true })
 );
+// a new chat starts on its agent's model; one picked for it holds until the agent changes
+watch(
+	() =>
+		!store.state.sessionId &&
+		page.state.boot.agents.find((agent) => agent.name === page.state.agent)?.model,
+	(model) => model && store.selectModel(model),
+	{ immediate: true }
+);
 
 const sidebarOpen = computed(() => store.state.sidebarOpen);
 // the composer asks in the name of the agent that answers

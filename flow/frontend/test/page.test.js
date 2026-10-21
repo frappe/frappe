@@ -46,8 +46,8 @@ const boot = {
 		},
 	],
 	agents: [
-		{ name: "flow", title: "Flow" },
-		{ name: "reviewer", title: "Reviewer" },
+		{ name: "flow", title: "Flow", model: "Sonnet" },
+		{ name: "reviewer", title: "Reviewer", model: "Opus" },
 	],
 	default_agent: "flow",
 };
@@ -137,7 +137,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	const box = el.querySelector("fieldset");
 	assert.equal(agent().textContent.trim(), "Flow");
 	assert.ok(!box.contains(agent()));
-	assert.ok(box.querySelector("button[title^='Choose Model']"));
+	assert.ok(box.querySelector("button[title^='Sonnet']"), "a new chat shows its agent's model");
 	// the chip names no count; for an agent without skills, its list says so and offers to add
 	// one, with nothing to search yet
 	const skills = () => el.querySelector("button[title='Skills']");
@@ -192,6 +192,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	assert.deepEqual(rows(), []);
 	assert.equal(agent().textContent.trim(), "Reviewer");
+	assert.ok(box.querySelector("button[title^='Opus']"), "and the model follows the agent");
 	// the skills a new chat may start follow the agent; one picked from their list starts the draft
 	await until(() =>
 		transport.calls.some(([name, a]) => name === "flow.api.skills" && a.agent === "reviewer")
@@ -242,7 +243,9 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	el.querySelector("button[title='Send']").click();
 	await until(() => called("flow.api.run"));
-	assert.equal(args("flow.api.create_session").agent, "reviewer");
+	// a model outside the user's list is left to the server
+	const created = args("flow.api.create_session");
+	assert.deepEqual([created.agent, created.model], ["reviewer", null]);
 	assert.deepEqual(args("flow.api.run"), { session: "S1", message: "hi", attachments: [] });
 	await nextTick();
 	assert.equal(agent(), null, "the agent is fixed once the conversation starts");
