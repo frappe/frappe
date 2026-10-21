@@ -17,7 +17,7 @@ def run_list_app_files(ctx, args: dict) -> str:
 	ref = _app_ref(ctx)
 	if isinstance(ref, str):
 		return ref
-	from studio import api
+	from frappe.studio import api
 
 	try:
 		tree = api.list_studio_files(*ref)
@@ -36,7 +36,7 @@ def run_read_app_file(ctx, args: dict) -> str:
 	path = text_arg(args.get("file_path"))
 	if not path:
 		return "FAILED: file_path is required."
-	from studio import api
+	from frappe.studio import api
 
 	try:
 		result = api.read_studio_file(*ref, path)
@@ -55,7 +55,7 @@ def run_write_app_file(ctx, args: dict) -> str:
 		return "FAILED: file_path is required."
 	if not isinstance(content, str):
 		return "FAILED: content is required (the full file text)."
-	from studio import api
+	from frappe.studio import api
 
 	try:
 		api.write_studio_file(*ref, path, content)
@@ -74,7 +74,7 @@ def run_delete_app_file(ctx, args: dict) -> str:
 	path = text_arg(args.get("file_path"))
 	if not path:
 		return "FAILED: file_path is required."
-	from studio import api
+	from frappe.studio import api
 
 	try:
 		api.delete_studio_file(*ref, path)
