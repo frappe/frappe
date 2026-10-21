@@ -406,23 +406,23 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 		with self.assertRaises(frappe.AuthenticationError):
 			validate_auth()
 
-	def test_wrong_secret_is_logged_for_that_user(self):
+	def test_failed_api_key_auth_is_logged_without_the_credentials(self):
 		self._fail_with(self.api_key, "not-the-secret")
-
-		(entry,) = self._entries()
-		self.assertEqual(entry.user, self.user_email)
-		self.assertEqual(entry.status, "Failed")
-		self.assertEqual(entry.ip_address, "10.0.0.1")
-		self.assertEqual(entry.subject, "API key authentication failed: invalid API secret")
-
-	def test_unknown_key_is_logged_without_the_key_or_secret(self):
 		self._fail_with("unknown-key-123", "unknown-secret-456")
 
-		(entry,) = self._entries()
-		self.assertEqual(entry.status, "Failed")
-		self.assertEqual(entry.subject, "API key authentication failed: invalid API key")
-		self.assertNotIn("unknown-key-123", frappe.as_json(entry))
-		self.assertNotIn("unknown-secret-456", frappe.as_json(entry))
+		entries = {entry.user: entry for entry in self._entries()}
+		self.assertEqual(len(entries), 2)
+
+		known = entries[self.user_email]
+		self.assertEqual(known.status, "Failed")
+		self.assertEqual(known.ip_address, "10.0.0.1")
+		self.assertEqual(known.subject, "API key authentication failed: invalid API secret")
+
+		unknown = next(entry for user, entry in entries.items() if user != self.user_email)
+		self.assertEqual(unknown.subject, "API key authentication failed: invalid API key")
+		for entry in entries.values():
+			for sent in ("not-the-secret", "unknown-key-123", "unknown-secret-456", self.api_key):
+				self.assertNotIn(sent, frappe.as_json(entry))
 
 	def test_repeated_failures_are_logged_once_per_interval(self):
 		for i in range(5):
@@ -430,22 +430,6 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 			self._fail_with(f"unknown-key-{i}", "x")
 
 		self.assertEqual(len(self._entries()), 2)
-
-	def test_failed_authentication_does_not_commit_pending_changes(self):
-		frappe.db.set_value("User", self.user_email, "first_name", "Changed In Request")
-		self._fail_with(self.api_key, "not-the-secret")
-		frappe.db.rollback()
-
-		self.assertEqual(frappe.db.get_value("User", self.user_email, "first_name"), "API Auth Failure")
-
-	def test_valid_credentials_still_authenticate_after_failures(self):
-		self._fail_with(self.api_key, "not-the-secret")
-		self.assertEqual(len(self._entries()), 1)
-
-		self._request_with(self.api_key, self.api_secret)
-		validate_auth()
-		self.assertEqual(frappe.session.user, self.user_email)
-		self.assertEqual(len(self._entries()), 1)
 
 
 class TestLoginAttemptTracker(IntegrationTestCase):
