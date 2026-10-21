@@ -86,7 +86,7 @@ dependencies = [
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.3",
     # studio
-    "litellm==1.95.0",
+    "litellm==1.95.1",
     "json_repair~=0.59",
     # integration dependencies
     "google-api-python-client~=2.201.0",
