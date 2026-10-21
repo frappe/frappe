@@ -1173,6 +1173,16 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertEqual(list(linked_docs), ["Child DocType1"])
 
+	def test_get_lists_linked_docs_of_a_doctype_sorted_by_several_fields(self):
+		frappe.db.set_value("DocType", "Child DocType1", "sort_field", "idx desc, creation desc")
+		frappe.clear_cache(doctype="Child DocType1")
+		with self.set_user("test@example.com"):
+			parent = frappe.new_doc("Parent DocType").insert()
+			child = frappe.new_doc("Child DocType1", parent_doctype=parent.name).insert()
+			linked_docs = linked_with.get(parent.doctype, parent.name)
+
+		self.assertEqual([doc.name for doc in linked_docs["Child DocType1"]["docs"]], [child.name])
+
 	def test_get_rejects_ordering_by_non_standard_fields(self):
 		with linked_entry_target() as (target, user), self.set_user(user):
 			for order_by in ("target asc", "`tabLinked Entry Row`.`target` asc"):
