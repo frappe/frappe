@@ -182,12 +182,17 @@ class TestKanbanBoard(IntegrationTestCase):
 		self.assertEqual(updated, [])
 
 	def test_update_order_keeps_value_changed_outside_board(self):
-		frappe.db.set_value("ToDo", self.todos[0], "status", "Closed")
+		frappe.db.set_value("Kanban Board", self.board_name, "private", 0)
+		self.addCleanup(frappe.db.set_value, "Kanban Board", self.board_name, "private", 1)
+		user = create_user("kanban_order_user@example.com", "Desk User")
+		frappe.db.set_value("ToDo", self.todos[0], {"allocated_to": user.name, "status": "Closed"})
+		self.addCleanup(frappe.db.set_value, "ToDo", self.todos[0], "allocated_to", None)
 
-		board, updated = update_order(
-			self.board_name,
-			frappe.as_json({"Open": self.todos[:3], "Closed": self.todos[3:]}),
-		)
+		with self.set_user(user.name):
+			board, updated = update_order(
+				self.board_name,
+				frappe.as_json({"Open": self.todos[:3], "Closed": self.todos[3:]}),
+			)
 
 		self.assertEqual(frappe.db.get_value("ToDo", self.todos[0], "status"), "Closed")
 		saved_order, _ = get_kanban_column_order_and_index(board, "Open")
