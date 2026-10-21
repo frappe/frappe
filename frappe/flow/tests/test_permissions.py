@@ -12,7 +12,7 @@ from flow.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
 from flow.patches.grant_flow_role import execute as grant_flow_role
 from flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 
-ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run")
+ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run", "Flow Skill")
 
 
 def _user(email: str, *roles: str) -> str:
@@ -184,6 +184,62 @@ class TestFlowAccess(IntegrationTestCase):
 				doc.update(changes)
 				with self.assertRaises(refusal):
 					doc.save()
+
+	def test_an_agents_roles_decide_who_uses_it_directly_and_reads_its_skills(self):
+		member = _user("flow-roles-member@example.com", FLOW_USER_ROLE)
+		manager = _user("flow-roles-manager@example.com", "System Manager")
+		agent = frappe.get_doc("Flow Agent", _agent())
+		locked = frappe.get_doc(
+			{
+				"doctype": "Flow Agent",
+				"title": "Flow Locked Agent",
+				"model": agent.model,
+				"instructions": "x",
+				"enabled": 1,
+				"roles": [{"role": "System Manager"}],
+			}
+		).insert()
+		shared, bound, hidden, off = (
+			frappe.get_doc(
+				{"doctype": "Flow Skill", "title": title, "description": "x", "instructions": "x", **fields}
+			)
+			.insert()
+			.name
+			for title, fields in (
+				("Flow Roles Global", {"enabled": 1, "is_global": 1}),
+				("Flow Roles Bound", {"enabled": 1}),
+				("Flow Roles Hidden", {"enabled": 1}),
+				("Flow Roles Off", {"enabled": 0}),
+			)
+		)
+		agent.update({"skills": [{"skill": bound}, {"skill": off}], "sub_agents": [{"agent": locked.name}]})
+		agent.save()
+		locked.append("skills", {"skill": hidden})
+		locked.save()
+
+		for user, agents, skills in (
+			(member, [agent.name], [shared, bound]),
+			(manager, [agent.name, locked.name], [shared, bound, hidden, off]),
+		):
+			with self.subTest(user):
+				for doctype, names, readable in (
+					("Flow Agent", [agent.name, locked.name], agents),
+					("Flow Skill", [shared, bound, hidden, off], skills),
+				):
+					listed = frappe.get_list(
+						doctype, filters={"name": ["in", names]}, pluck="name", user=user
+					)
+					self.assertEqual(sorted(listed), sorted(readable))
+					for name in names:
+						self.assertEqual(
+							frappe.has_permission(doctype, "read", name, user=user), name in readable
+						)
+				# a locked agent still works as a sub-agent of one open to them
+				frappe.set_user(user)
+				with patch("flow.lib.model.resolve_provider_credentials", return_value={}):
+					configs = agent.subagent_configs("S1", {})
+				frappe.set_user("Administrator")
+				self.assertEqual([config["name"] for config in configs], [locked.name])
 
 	def test_the_patch_keeps_managers_and_trigger_accounts_on_flow(self):
 		manager = _user("flow-grant-manager@example.com", "System Manager")

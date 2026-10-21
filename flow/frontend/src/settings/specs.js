@@ -203,6 +203,15 @@ export const SPECS = {
 				description: "What the agent can search.",
 				locked: system,
 			},
+			{
+				name: "roles",
+				label: "Roles",
+				type: "multilink",
+				link: "Role",
+				child: "role",
+				description:
+					"Who can use this agent directly; empty means every Flow user. As a sub-agent it works for anyone using an agent that has it.",
+			},
 		],
 	},
 	skills: {
