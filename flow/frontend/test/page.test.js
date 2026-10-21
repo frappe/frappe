@@ -123,6 +123,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 		skills: agent === "reviewer" ? [{ name: "review", description: "Reviews a change" }] : [],
 	});
 	t.after(() => (transport.answers["flow.api.skills"] = skillsAnswer));
+	t.after(() => localStorage.removeItem("flow.page.tester@example.com.agent"));
 	await router.replace("/");
 	const el = mountPage(t, {
 		boot: { ...boot, permissions: { "Flow Skill": ["read", "create"] } },
@@ -220,6 +221,19 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	await nextTick();
 	assert.equal(skillRows().length, 0);
 	assert.equal(el.querySelector("textarea").value, "/skill:review ");
+
+	// a reload keeps the agent, and a model picked for it that the user may still use
+	const prefs = "flow.page.tester@example.com.prefs";
+	const saved = localStorage.getItem(prefs);
+	localStorage.setItem(prefs, JSON.stringify({ ...JSON.parse(saved), lastModel: "Sonnet" }));
+	const reloaded = document.createElement("div");
+	const again = createApp(FlowPage, { boot }).use(router);
+	again.mount(reloaded);
+	await until(() => reloaded.querySelector("button[title='Agent']"));
+	assert.equal(reloaded.querySelector("button[title='Agent']").textContent.trim(), "Reviewer");
+	assert.ok(reloaded.querySelector("fieldset button[title^='Sonnet']"));
+	again.unmount();
+	localStorage.setItem(prefs, saved);
 
 	// the /agents command opens the composer's own list of them
 	const textarea = el.querySelector("textarea");
@@ -591,7 +605,7 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 	assert.equal(dialog.asked.length, 5);
 });
 
-test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async () => {
+test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async (t) => {
 	const { createPage } = await import("../src/page.js");
 	let refreshes = 0;
 	let skillReloads = 0;
@@ -623,6 +637,15 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	assert.deepEqual(models, []);
 	page.renamed("Flow Model", "GPT", "GPT Fast");
 	assert.deepEqual(models, [["GPT", "GPT Fast"]]);
+
+	// with a storage key, the agent outlasts a reload while boot still lists it
+	const storageKey = "flow.page.saved";
+	t.after(() => localStorage.removeItem(`${storageKey}.agent`));
+	createPage(boot, { storageKey }).state.agent = "reviewer";
+	await nextTick();
+	assert.equal(createPage(boot, { storageKey }).state.agent, "reviewer");
+	const onlyFlow = { ...boot, agents: boot.agents.slice(0, 1) };
+	assert.equal(createPage(onlyFlow, { storageKey }).state.agent, "flow");
 });
 
 test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's next step is the primary one and Add opens a blank record", async (t) => {
