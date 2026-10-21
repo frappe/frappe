@@ -79,14 +79,13 @@
 </template>
 
 <script setup>
-import { computed, inject, onBeforeUnmount, ref, watch } from "vue";
+import { computed, inject, ref } from "vue";
 import { Badge, Button, ErrorMessage, FormControl } from "frappe-ui";
-import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 
 import DocForm from "./DocForm.vue";
-import { call } from "../api/frappe.js";
+import { useRecordList } from "./records.js";
 
 // One doctype's settings page: its list under the section heading, or one record's form
 // as a page of its own.
@@ -102,53 +101,11 @@ const page = inject("flowPage");
 const mode = ref(page.takeNewRecord(props.spec.key) ? "form" : "list");
 const editing = ref(null);
 const query = ref("");
-const debouncedQuery = useDebouncedValue(query, 300);
 const canCreate = computed(() => page.can(props.spec.doctype, "create"));
-const hasEnabled = props.spec.fields.some((field) => field.name === "enabled");
-
-const PAGE_LENGTH = 200;
-const rows = ref([]);
-const loaded = ref(false);
-const loading = ref(false);
-const error = ref("");
-const hasMore = ref(false);
-let request = 0;
-
-watch([debouncedQuery, () => props.filters], () => load(), { deep: true, immediate: true });
-onBeforeUnmount(() => request++);
-
-// a reload keeps the current rows on screen until its own arrive
-async function load(append = false) {
-	if (append && loading.value) return;
-	const own = ++request;
-	loading.value = true;
-	error.value = "";
-	const query = debouncedQuery.value.trim().replace(/[\\%_]/g, "\\$&");
-	try {
-		const data = await call("frappe.client.get_list", {
-			doctype: props.spec.doctype,
-			fields: hasEnabled ? [...props.spec.listFields, "enabled"] : props.spec.listFields,
-			filters: props.filters,
-			or_filters: query
-				? props.spec.listFields.map((field) => [field, "like", `%${query}%`])
-				: [],
-			order_by: `${props.spec.orderBy ?? `${props.spec.titleField} asc`}, name asc`,
-			limit_start: append ? rows.value.length : 0,
-			limit_page_length: PAGE_LENGTH + 1,
-		});
-		if (own !== request) return;
-		hasMore.value = data.length > PAGE_LENGTH;
-		if (!append) rows.value = [];
-		rows.value.push(...data.slice(0, PAGE_LENGTH));
-		loaded.value = true;
-	} catch (err) {
-		if (own !== request) return;
-		if (!append) rows.value = []; // so Retry starts over
-		error.value = err.message;
-	} finally {
-		if (own === request) loading.value = false;
-	}
-}
+const { rows, loaded, loading, error, hasMore, hasEnabled, load, drop } = useRecordList(
+	props.spec,
+	{ query, filters: () => props.filters }
+);
 
 function edit(name) {
 	editing.value = name;
@@ -163,8 +120,6 @@ function saved(doc) {
 
 function changed() {
 	mode.value = "list";
-	// the deleted record goes now, not when the reload lands
-	rows.value = rows.value.filter((row) => row.name !== editing.value);
-	load();
+	drop(editing.value);
 }
 </script>
