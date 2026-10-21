@@ -237,8 +237,9 @@ CREATE TABLE `tabDocType` (
 DROP TABLE IF EXISTS `tabSeries`;
 CREATE TABLE `tabSeries` (
   `name` varchar(100),
+  `doctype` varchar(140) NOT NULL DEFAULT '',
   `current` int NOT NULL DEFAULT 0,
-  PRIMARY KEY(`name`)
+  PRIMARY KEY(`name`,`doctype`)
 ) ENGINE=InnoDB ROW_FORMAT=DYNAMIC CHARACTER SET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 

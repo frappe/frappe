@@ -21,6 +21,7 @@
   "sb1",
   "naming_rule",
   "autoname",
+  "separate_series_counter",
   "column_break_nexu",
   "title_field",
   "allow_rename",
@@ -722,6 +723,13 @@
    "fieldname": "allow_bulk_edit",
    "fieldtype": "Check",
    "label": "Allow Bulk Edit"
+  },
+  {
+   "default": "0",
+   "description": "Keep a naming series counter for this DocType only, instead of sharing it with other DocTypes that use the same prefix.",
+   "fieldname": "separate_series_counter",
+   "fieldtype": "Check",
+   "label": "Separate Series Counter"
   }
  ],
  "grid_page_length": 50,
@@ -799,7 +807,7 @@
    "link_fieldname": "document_type"
   }
  ],
- "modified": "2026-09-29 19:26:17.998677",
+ "modified": "2026-10-07 23:34:20.849700",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "DocType",

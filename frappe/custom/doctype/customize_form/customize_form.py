@@ -24,6 +24,7 @@ from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import trim_table
+from frappe.model.naming import merge_separate_series_counters
 from frappe.utils import cint
 
 
@@ -83,6 +84,7 @@ class CustomizeForm(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		separate_series_counter: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -259,6 +261,7 @@ class CustomizeForm(Document):
 		if not hasattr(self, "hide_success") or not self.hide_success:
 			frappe.msgprint(_("{0} updated").format(_(self.doc_type)), alert=True)
 		frappe.clear_cache(doctype=self.doc_type)
+		merge_separate_series_counters(self.doc_type)
 		self.fetch_to_customize()
 
 		frappe.publish_realtime("doctype_update", {"doctype": self.doc_type}, after_commit=True)
@@ -712,6 +715,7 @@ def reset_customization(doctype):
 		frappe.delete_doc("Custom Field", field)
 
 	frappe.clear_cache(doctype=doctype)
+	merge_separate_series_counters(doctype)
 
 
 def is_standard_or_system_generated_field(df):
@@ -758,6 +762,7 @@ doctype_properties = {
 	"sender_field": "Data",
 	"naming_rule": "Data",
 	"autoname": "Data",
+	"separate_series_counter": "Check",
 	"show_title_field_in_link": "Check",
 	"is_calendar_and_gantt": "Check",
 	"default_view": "Select",

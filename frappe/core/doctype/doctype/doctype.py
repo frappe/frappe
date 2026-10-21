@@ -32,6 +32,7 @@ from frappe.model import (
 from frappe.model.docfield import supports_translation
 from frappe.model.document import RESERVED_KEYWORDS, Document, get_controller
 from frappe.model.meta import Meta
+from frappe.model.naming import merge_separate_series_counters
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
 from frappe.permissions import ALL_USER_ROLE, AUTOMATIC_ROLES, SYSTEM_USER_ROLE
@@ -172,6 +173,7 @@ class DocType(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		separate_series_counter: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -598,6 +600,7 @@ class DocType(Document):
 		delete_notification_count_for(doctype=self.name)
 
 		frappe.clear_cache(doctype=self.name)
+		merge_separate_series_counters(self.name)
 
 		# clear user cache so that on the next reload this doctype is included in boot
 		clear_user_cache(frappe.session.user)

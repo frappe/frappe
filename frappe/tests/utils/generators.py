@@ -299,7 +299,7 @@ def _try_create(record, reset=False, commit=False) -> tuple["Document", bool]:
 
 	def revert_naming(d):
 		if getattr(d, "naming_series", None):
-			revert_series_if_last(d.naming_series, d.name)
+			revert_series_if_last(d.naming_series, d.name, d)
 
 	if not reset:
 		frappe.db.savepoint("creating_test_record")

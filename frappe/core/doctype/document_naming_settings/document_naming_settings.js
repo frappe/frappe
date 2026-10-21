@@ -39,6 +39,7 @@ frappe.ui.form.on("Document Naming Settings", {
 					frm.set_value("user_must_always_select", 1);
 			},
 		});
+		if (frm.doc.prefix) frm.trigger("prefix");
 	},
 
 	prefix: function (frm) {

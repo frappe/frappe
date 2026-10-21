@@ -7,8 +7,9 @@ from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.document_naming_settings.document_naming_settings import (
 	DocumentNamingSettings,
 )
-from frappe.model.naming import NamingSeries, get_default_naming_series
+from frappe.model.naming import NamingSeries, get_default_naming_series, make_autoname
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_naming import use_separate_series_counter
 from frappe.utils import cint
 
 
@@ -151,6 +152,28 @@ class TestNamingSeries(IntegrationTestCase):
 			self.dns.update_series_start()
 
 			self.assertEqual(self.dns.get_current(), new_count, f"Incorrect update for {series}")
+
+	def test_update_series_counter_per_doctype(self):
+		prefix = f"ZZT{frappe.generate_hash(length=6)}-"
+		key = prefix + ".###"
+		use_separate_series_counter(self, "ToDo")
+
+		self.dns.prefix = prefix
+		self.dns.transaction_type = "ToDo"
+		self.dns.current_value = 10
+		self.dns.update_series_start()
+
+		self.assertEqual(self.dns.get_current(), 10)
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "011")
+		self.assertEqual(make_autoname(key, "Note"), prefix + "001")
+
+		self.dns.transaction_type = ""
+		self.dns.current_value = 20
+		self.dns.update_series_start()
+
+		self.assertEqual(self.dns.get_current(), 20)
+		self.assertEqual(make_autoname(key, "Note"), prefix + "021")
+		self.assertEqual(make_autoname(key, "ToDo"), prefix + "012")
 
 	def test_amended_naming(self):
 		self.dns.amend_naming_override = []
