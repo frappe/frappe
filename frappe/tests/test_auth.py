@@ -415,7 +415,6 @@ class TestAPIKeyAuthFailureLog(IntegrationTestCase):
 			)
 		cls.api_secret = generate_keys(cls.user_email)["api_secret"]
 		cls.api_key = frappe.db.get_value("User", cls.user_email, "api_key")
-		frappe.db.commit()
 
 	def setUp(self):
 		self._request = getattr(frappe.local, "request", None)
