@@ -236,10 +236,15 @@ const providerOptions = computed(() => {
 });
 
 // The current options stay while another query loads; selected values are always offered.
+// A read-only field searches only for its values' labels, so not where the search is refused:
+// it shows the names as they are.
 const linkQuery = ref("");
 const debouncedLinkQuery = useDebouncedValue(linkQuery, 300);
+const searched = computed(() =>
+	props.disabled && !page.can(props.field.link, "read") ? null : props.field.link
+);
 const links = ref([]);
-const linksLoading = ref(!!props.field.link); // until the first results arrive
+const linksLoading = ref(!!searched.value); // until the first results arrive
 const linksError = ref("");
 const options = computed(() => {
 	const value = props.doc[props.field.name];
@@ -259,12 +264,15 @@ const picked = computed(() =>
 	}))
 );
 watch(
-	[() => props.field.link, debouncedLinkQuery],
+	[searched, debouncedLinkQuery],
 	async ([doctype, query], _, onCleanup) => {
 		let stale = false;
 		onCleanup(() => (stale = true));
 		linksError.value = "";
-		if (!doctype) return;
+		if (!doctype) {
+			linksLoading.value = false;
+			return;
+		}
 		try {
 			const data = await searchLinks(doctype, query, props.doc.doctype);
 			if (!stale) links.value = data;
