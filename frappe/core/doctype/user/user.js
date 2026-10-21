@@ -181,18 +181,10 @@ frappe.ui.form.on("User", {
 						) {
 							frappe.msgprint({
 								title: __("Password Login Disabled"),
-								message: frappe.user.has_role("System Manager")
-									? __(
-											"Password login is disabled. Turn off {0} in System Settings to use password actions.",
-											[
-												frappe.utils.bold(
-													__("Disable Administrator Password Login")
-												),
-											]
-									  )
-									: __(
-											"Password login and related actions are disabled on this site."
-									  ),
+								message: __(
+									"Password login is disabled. Turn off {0} in System Settings to use password actions.",
+									[frappe.utils.bold(__("Disable Administrator Password Login"))]
+								),
 								indicator: "orange",
 							});
 						} else {
