@@ -138,6 +138,7 @@ const props = defineProps({
 });
 const flow = inject("flow");
 const page = inject("flowPage");
+const leavePage = inject("leavePage");
 const router = useRouter();
 // the list it was opened from, with its search and filters
 const listPath = `/${props.spec.key}`;
@@ -201,16 +202,16 @@ const menu = computed(() => [
 ]);
 
 // an agent the user may chat with starts a new chat from its page, in place of the one waiting
-// behind it
+// behind it, once the page lets go
 const canChat = computed(
 	() =>
 		props.spec.doctype === "Flow Agent" &&
 		page.state.boot.agents.some((agent) => agent.name === props.name)
 );
-function chat() {
+async function chat() {
+	if (!(await leavePage())) return;
 	flow.startNewChat();
 	page.state.agent = props.name;
-	router.push("/");
 }
 
 // back to the list it came from, its filters and all; else to the list, in a deleted record's

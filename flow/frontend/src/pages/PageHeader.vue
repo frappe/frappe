@@ -44,7 +44,6 @@
 
 <script setup>
 import { inject } from "vue";
-import { useRouter } from "vue-router";
 import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 
 // A page's bar, where a chat has its header: the way to the sidebar while it is hidden, where
@@ -56,11 +55,10 @@ defineProps({
 });
 const emit = defineEmits(["back"]); // the back button, on a record's page
 const flow = inject("flow");
-const router = useRouter();
+const leavePage = inject("leavePage");
 
-// a new chat, in place of the one waiting behind the page
-function newChat() {
-	flow.startNewChat();
-	router.push("/");
+// a new chat, in place of the one waiting behind the page, once the page lets go
+async function newChat() {
+	if (await leavePage()) flow.startNewChat();
 }
 </script>

@@ -5,8 +5,8 @@
 		<SessionSidebar
 			:open="sidebarOpen"
 			:chat-in-view="!pageKind"
+			:before-switch="leavePage"
 			@close="store.setSidebarOpen(false)"
-			@pick="leavePage"
 		>
 			<!-- a group under its own heading, spaced as the chats' heading is under it -->
 			<template #nav>
@@ -112,7 +112,7 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
-import { NavigationFailureType, isNavigationFailure, useRoute, useRouter } from "vue-router";
+import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
 import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
@@ -288,13 +288,14 @@ watch(pageKind, (kind, was) => {
 	if (was && !kind && route.name === "new" && store.state.sessionId)
 		router.replace(`/s/${store.state.sessionId}`);
 });
-// a chat picked in the sidebar takes the page's place, a step on from it; kept on the page by
-// its unsaved edits, the chat closes again
+// whatever changes the chat behind a page waits for this: back to that chat, through the page's
+// guard (unsaved edits ask). False keeps the page, and the chat as it was
 async function leavePage() {
-	if (!route.params.kind) return;
+	if (!pageKind.value) return true;
 	const failure = await router.push(store.state.sessionId ? `/s/${store.state.sessionId}` : "/");
-	if (isNavigationFailure(failure, NavigationFailureType.aborted)) store.startNewChat();
+	return !isNavigationFailure(failure);
 }
+provide("leavePage", leavePage);
 
 // the tab names the chat, or the page and its record as the page's bar does
 watch(

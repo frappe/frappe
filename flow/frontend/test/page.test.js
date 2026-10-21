@@ -399,9 +399,9 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 	await until(() => router.currentRoute.value.path === "/");
 });
 
-test("a record page creates a record at its new address, Cmd+S saving the form it is pressed over, asks before leaving unsaved edits, and a deleted record leaves for its list; one that never loads has nothing to lose, and the list's search keeps its bar while cleared and follows the address", async (t) => {
+test("a record page creates a record at its new address, Cmd+S saving the form it is pressed over, asks before leaving unsaved edits, kept, the chat behind it as it was, and a deleted record leaves for its list; one that never loads has nothing to lose, and the list's search keeps its bar while cleared and follows the address", async (t) => {
 	const { dialog } = await import("./helpers/components.js");
-	await router.replace("/agents");
+	await router.replace("/s/S1");
 	const saved = { ...transport.answers };
 	t.after(() => Object.assign(transport.answers, saved));
 	const record = (name) => ({
@@ -413,12 +413,16 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 	});
 	const admin = {
 		...boot,
+		agents: [...boot.agents, { name: "Helper", title: "Helper" }], // to chat with, once made
 		permissions: { "Flow Agent": ["read", "write", "create", "delete"] },
 	};
 	const reviewer = { name: "Reviewer", title: "Reviewer", model: "Sonnet", enabled: 0 };
 	Object.assign(transport.answers, {
 		"flow.api.boot": admin, // refetched once an agent is saved
-		"flow.api.list_sessions": [{ name: "S1", title: "Q3 plan" }],
+		"flow.api.list_sessions": [
+			{ name: "S1", title: "Q3 plan" },
+			{ name: "S2", title: "Hiring" },
+		],
 		// a search finds nothing
 		"frappe.client.get_list": ({ or_filters }) => (or_filters.length ? [] : [reviewer]),
 		"frappe.client.get": ({ name }) => {
@@ -429,7 +433,19 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 		"frappe.client.delete": {},
 		"frappe.desk.search.search_link": [],
 	});
+	transport.calls.length = 0;
 	const el = mountPage(t, { boot: admin });
+	// a file waits in the open chat's box, under the pages that follow
+	await until(() => called("flow.api.entries"));
+	const chat = el.querySelector("textarea").closest("main");
+	const filed = () => chat.querySelector("[title='notes.pdf']");
+	const input = chat.querySelector("input[type=file]");
+	Object.defineProperty(input, "files", {
+		value: [new dom.window.File(["notes"], "notes.pdf", { type: "application/pdf" })],
+	});
+	input.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+	await until(filed);
+	await router.push("/agents");
 	await until(() => el.querySelector("main a[role=row]"));
 	const badge = el.querySelector("main a[role=row] [data-stub=Badge]");
 	assert.equal(badge.getAttribute("label"), "Disabled");
@@ -469,7 +485,7 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 		menu.textContent.startsWith("Status")
 	);
 	assert.deepEqual(
-		[...el.querySelectorAll("main [data-stub=Dropdown]")].map((menu) =>
+		[...el.querySelectorAll("main:not([inert]) [data-stub=Dropdown]")].map((menu) =>
 			menu.textContent.trim()
 		),
 		["Status", "Model"]
@@ -519,24 +535,33 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 		"/flow/agents?enabled=0"
 	);
 
-	// an unsaved edit: leaving asks, Keep editing stays, Discard goes. A chat picked in the
-	// sidebar meanwhile isn't marked while the page shows, and closes again when it stays
+	// an unsaved edit: leaving asks, Keep editing stays, Discard goes. Kept, the chat behind the
+	// page is as it was, its file and all: a chat picked in the sidebar, Start chat and the bar's
+	// New chat each wait for the page to let go
 	type("Helper 2");
 	await nextTick();
 	dialog.asked.length = 0;
-	const chat = () =>
-		[...el.querySelectorAll("aside [data-stub=SidebarItem]")].find((row) =>
-			row.textContent.includes("Q3 plan")
-		);
-	chat().click();
-	await until(() => dialog.asked.length === 1);
-	assert.equal(chat().getAttribute("active"), "false");
-	dialog.asked[0].actions[0].onClick();
-	await new Promise((resolve) => setTimeout(resolve));
-	assert.equal(router.currentRoute.value.path, "/agents/Helper");
+	const keep = async (asked) => {
+		await until(() => dialog.asked.length === asked);
+		dialog.asked.at(-1).actions[0].onClick();
+		await new Promise((resolve) => setTimeout(resolve));
+		assert.equal(router.currentRoute.value.path, "/agents/Helper");
+		assert.ok(filed());
+	};
+	[...el.querySelectorAll("aside [data-stub=SidebarItem]")]
+		.find((row) => row.textContent.includes("Hiring"))
+		.click();
+	await keep(1);
+	button("Start chat").click();
+	await keep(2);
+	el.querySelector("aside button[title='Hide sidebar']").click();
+	await nextTick();
+	el.querySelector("main header button[title='New chat']").click();
+	await keep(3);
+	el.querySelector("main header button[title='Show sidebar']").click();
 	const go = router.push("/agents");
-	await until(() => dialog.asked.length === 2);
-	dialog.asked[1].actions[1].onClick();
+	await until(() => dialog.asked.length === 4);
+	dialog.asked[3].actions[1].onClick();
 	await go;
 	assert.equal(router.currentRoute.value.path, "/agents");
 
@@ -552,7 +577,7 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 	dialog.asked.at(-1).onConfirm({ close() {} });
 	await until(() => router.currentRoute.value.path === "/agents");
 	assert.deepEqual(args("frappe.client.delete"), { doctype: "Flow Agent", name: "Reviewer" });
-	assert.equal(dialog.asked.length, 3, "no discard question for a deleted record");
+	assert.equal(dialog.asked.length, 5, "no discard question for a deleted record");
 
 	// a record that never loads has no edits to lose: leaving it asks nothing
 	await router.push("/agents/Gone");
@@ -560,12 +585,7 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 	assert.doesNotMatch(el.querySelector("main header").textContent, /Unsaved changes/);
 	router.push("/agents");
 	await until(() => router.currentRoute.value.path === "/agents");
-	assert.equal(dialog.asked.length, 3);
-
-	// the chat picked and kept back closed again: back at a new chat's address, it stays there
-	await router.push("/");
-	await new Promise((resolve) => setTimeout(resolve, 20));
-	assert.equal(router.currentRoute.value.path, "/");
+	assert.equal(dialog.asked.length, 5);
 });
 
 test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async () => {

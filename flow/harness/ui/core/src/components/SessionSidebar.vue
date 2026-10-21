@@ -296,13 +296,14 @@ import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
 
-// chatInView: false while a host shows a page in the open chat's place, so no chat row is marked
+// chatInView: false while a host shows a page in the open chat's place, so no chat row is marked.
+// beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it
 const props = defineProps({
 	open: { type: Boolean, default: true },
 	chatInView: { type: Boolean, default: true },
+	beforeSwitch: { type: Function, default: null },
 })
-// pick: a chat or a new chat was picked, for a host showing a page in the chat's place
-const emit = defineEmits(["close", "pick"])
+const emit = defineEmits(["close"])
 const flow = inject("flow")
 
 const query = ref("")
@@ -589,22 +590,22 @@ function pressEnd() {
 }
 onBeforeUnmount(pressEnd)
 
-// a drawer closes once a chat is picked
-function pick(session) {
+// a drawer closes once a chat is picked, and the chat opens once the host lets it
+async function pick(session) {
 	if (pressed) {
 		pressed = false
 		return
 	}
-	flow.openSession(session.session_id)
-	emit("pick")
 	if (layout.narrow) emit("close")
+	if (props.beforeSwitch && !(await props.beforeSwitch())) return
+	flow.openSession(session.session_id)
 }
 
 // with no folder, the new chat starts in the open chat's
-function startNewChat(cwd = null) {
-	flow.startNewChat({ cwd })
-	emit("pick")
+async function startNewChat(cwd = null) {
 	if (layout.narrow) emit("close")
+	if (props.beforeSwitch && !(await props.beforeSwitch())) return
+	flow.startNewChat({ cwd })
 }
 
 // a chat in a folder picked in the daemon's folder dialog

@@ -2268,6 +2268,20 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	unmount()
 	pointer("pointerup", window)
 	assert.deepEqual(flow.state.prefs.chatOrder, order)
+
+	// a host showing a page in the chat's place has its say first: a chat changes once it lets go
+	const asks = []
+	const host = mount(t, SessionSidebar, { beforeSwitch: () => new Promise((resolve) => asks.push(resolve)) }, flow)
+	const hostRow = (label) => [...host.el.querySelectorAll("[data-stub=SidebarItem]")].find((item) => item.textContent.trim() === label)
+	opened.length = 0
+	hostRow("New chat").querySelector("button").click()
+	hostRow("Api work").querySelector("button").click()
+	await settle()
+	assert.deepEqual(opened, [])
+	asks[0](false)
+	asks[1](true)
+	await settle()
+	assert.deepEqual(opened, ["b"])
 })
 
 test("the model list says it is loading, not that no provider is connected, then names each provider's models under it", async (t) => {
