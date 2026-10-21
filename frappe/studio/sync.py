@@ -5,6 +5,7 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 
 from studio.build import build_custom_apps
+from studio.studio.doctype.studio_component.studio_component import mark_components_standard
 
 
 def after_migrate():
@@ -108,8 +109,7 @@ def sync_components(app_folder):
 			component_path = os.path.join(studio_component_folder, component)
 			import_file_by_path(component_path)
 			names.append(read_json_file(component_path).get("name"))
-	# a component with a file in an app is standard, whether or not the file says so
-	frappe.db.set_value("Studio Component", {"name": ["in", names], "is_standard": 0}, "is_standard", 1)
+	mark_components_standard(names)
 
 
 def get_app_file_path(app_folder) -> str:

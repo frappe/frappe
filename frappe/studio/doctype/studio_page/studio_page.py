@@ -20,7 +20,10 @@ from studio.export import (
 	write_document_file,
 )
 from studio.realtime import publish_doc_change
-from studio.studio.doctype.studio_component.studio_component import get_components_for_blocks
+from studio.studio.doctype.studio_component.studio_component import (
+	get_components_for_blocks,
+	mark_components_standard,
+)
 from studio.studio.doctype.studio_page.copy_paste_handler import (
 	PAGE_RESOURCE_FIELDS,
 	PAGE_VARIABLE_FIELDS,
@@ -396,6 +399,7 @@ class StudioPage(Document):
 		components = get_components_for_blocks(get_blocks(self))
 		if components:
 			frappe.create_folder(self.get_component_folder_path())
+			mark_components_standard([component.name for component in components])
 		for component in components:
 			doc = frappe.get_doc("Studio Component", component.name)
 			write_document_file(doc, folder=self.get_component_folder_path())

@@ -44,6 +44,8 @@ class TestStudioComponent(IntegrationTestCase):
 			page = make_studio_page(app.name, blocks=frappe.as_json(blocks))
 			path = os.path.join(page.get_component_folder_path(), f"{frappe.scrub(component.name)}.json")
 			self.assertTrue(os.path.exists(path))
+			self.assertTrue(frappe.parse_json(frappe.read_file(path)).is_standard)
+			self.assertTrue(frappe.db.get_value("Studio Component", component.name, "is_standard"))
 
 			component.delete()
 

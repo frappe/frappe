@@ -65,6 +65,13 @@ class StudioComponent(Document):
 				delete_file(folder, app_folder, "studio_components", f"{frappe.scrub(self.name)}.json")
 
 
+def mark_components_standard(names: list[str]):
+	"""A component with a file in an app is standard, whether or not the file says so"""
+	frappe.db.set_value(
+		"Studio Component", {"name": ["in", names], "is_standard": 0}, "is_standard", 1, update_modified=False
+	)
+
+
 def get_components_for_blocks(blocks) -> list[dict]:
 	"""Fetch component definitions referenced by a block tree, one depth at a time."""
 	components = []
