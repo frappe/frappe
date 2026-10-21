@@ -129,13 +129,16 @@ class PrintFormat(Document):
 	def validate(self):
 		from frappe.utils.print_utils import get_pdf_generators, resolve_pdf_generator
 
+		known = get_pdf_generators()
 		if not self.pdf_generator:
-			# A format created before the renderer had a default holds no engine, and
-			# the editor shows it as the default one. Record the engine the render
-			# would actually use, instead of chromium, which would contradict what the
-			# editor just showed the user.
-			self.pdf_generator = resolve_pdf_generator(self)
-		elif self.pdf_generator not in get_pdf_generators():
+			# A format saved before the renderer had a default holds no engine, and the
+			# editor shows it as the default one, so record the engine the render would
+			# use. Writing chromium here instead would undo the renderer the user just
+			# picked in the editor, and the format would print with it too.
+			generator = resolve_pdf_generator(self)
+			if generator in known:
+				self.pdf_generator = generator
+		elif self.pdf_generator not in known:
 			self.pdf_generator = "chrome"
 
 		if (
