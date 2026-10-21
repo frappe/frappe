@@ -16,9 +16,9 @@
 				<template v-slot="{ open }">
 					<div class="flex cursor-pointer items-center gap-2">
 						<StudioLogo class="h-7 w-7"></StudioLogo>
-						<router-link class="flex items-center gap-2" :to="{ name: 'Home' }">
-							<h1 class="text-md-semibold mt-[2px] leading-5 text-ink-gray-7">Studio</h1>
-							<Badge label="Beta" size="sm" theme="blue" />
+						<router-link class="flex items-center gap-1" :to="{ name: 'Home' }">
+							<h1 class="text-md-semibold leading-none text-ink-gray-8">Studio</h1>
+							<span class="rounded-3 border border-outline-gray-2 px-1 py-0.5 text-[9px] font-medium uppercase leading-none tracking-wide text-ink-gray-4">Beta</span>
 						</router-link>
 						<span
 							:class="open ? 'lucide-chevron-up' : 'lucide-chevron-down'"
