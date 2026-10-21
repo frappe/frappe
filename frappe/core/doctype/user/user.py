@@ -1533,7 +1533,7 @@ def handle_password_test_fail(feedback: dict):
 
 
 def throttle_user_creation():
-	if frappe.flags.in_import or frappe.in_test:
+	if frappe.flags.in_import:
 		return
 
 	if frappe.db.get_creation_count("User", 60) > frappe.local.conf.get("throttle_user_limit", 60):
