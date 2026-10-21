@@ -10,7 +10,6 @@ from typing import Any, ClassVar, Literal
 
 import xlrd
 import xlsxwriter
-from openpyxl import load_workbook
 from xlsxwriter.format import Format
 
 import frappe
@@ -652,6 +651,8 @@ def read_xlsx_file_from_attached_file(file_url=None, fcontent=None, filepath=Non
 		filename = filepath
 	else:
 		return
+
+	from openpyxl import load_workbook
 
 	rows = []
 	wb1 = load_workbook(filename=filename, data_only=True, read_only=read_only)

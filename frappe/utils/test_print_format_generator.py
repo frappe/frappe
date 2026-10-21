@@ -73,7 +73,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		"""before_save should set print_format_builder_beta=1 for new non-custom formats."""
 		pf = self._make_print_format()
 		self.assertEqual(pf.print_format_builder_beta, 1)
-		self.assertEqual(pf.pdf_generator, "chrome")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
 
 	def test_new_custom_format_does_not_set_builder_beta(self):
 		"""before_save must NOT enable builder beta for custom HTML formats."""
@@ -220,6 +220,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		def chrome_options(letterhead=True, **pf_kwargs):
 			pf_kwargs.setdefault("margin_top", 12)
+			pf_kwargs.setdefault("pdf_generator", "chrome")
 			pf = self._make_print_format(**pf_kwargs)
 			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead_doc.name if letterhead else None)
 			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
@@ -257,7 +258,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
-		pf = self._make_print_format()
+		pf = self._make_print_format(pdf_generator="chrome")
 		todo = self._make_todo()
 		generator = PrintFormatGenerator(pf, todo)
 
@@ -328,7 +329,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		default = self._make_print_format()
 		with patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name):
 			self.assertEqual(_print_format_doc_or_none(None, "ToDo").name, default.name)
-			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "chrome")
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "PlutoPrint")
 
 	def test_typst_default_format_prints_without_a_format_name(self):
 		"""get_print with no format name hands a Typst default format to the Typst hook."""
@@ -344,7 +345,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		):
 			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
 
-	def test_unknown_pdf_generator_renders_with_chrome(self):
+	def test_unknown_pdf_generator_uses_print_settings_default(self):
 		from unittest.mock import patch
 
 		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
@@ -369,23 +370,23 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			frappe.clear_document_cache("Print Format", jinja.name)
 			frappe.set_user("test@example.com")
 			todo = frappe.get_doc({"doctype": "ToDo", "description": "pdf engine fallback"}).insert()
-			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "chrome")
-			self.assertEqual(resolve_pdf_generator(None, value), "chrome")
-			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "PlutoPrint")
+			self.assertEqual(resolve_pdf_generator(None, value), "PlutoPrint")
+			with patch("frappe.utils.pdf.get_plutoprint_pdf", return_value=b"%PDF-") as plutoprint_pdf:
 				frappe.get_print("ToDo", todo.name, print_format=jinja.name, as_pdf=True, pdf_generator=value)
-			self.assertEqual(chrome_pdf.call_args.kwargs["pdf_generator"], "chrome")
+			self.assertEqual(plutoprint_pdf.call_args.kwargs["pdf_generator"], "PlutoPrint")
 
 		frappe.set_user("Administrator")
 		jinja.reload()
 		jinja.save()
 		self.assertEqual(jinja.pdf_generator, "chrome")
 
-	def test_standard_print_renders_with_chrome(self):
+	def test_standard_print_uses_print_settings_default(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		self.assertEqual(resolve_pdf_generator(None), "chrome")
-		self.assertEqual(resolve_pdf_generator(beta), "chrome")
+		self.assertEqual(resolve_pdf_generator(None), "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(beta), "PlutoPrint")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #

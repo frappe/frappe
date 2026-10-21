@@ -26,6 +26,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	logger = frappe.logger("storage")
 	cutoff = add_to_date(now_datetime(), hours=-MIN_AGE_HOURS)
 
+	frappe.db.savepoint("storage_gc_references")
 	try:
 		columns = blob_reference_columns()
 		_warn_unindexed_reference_columns(columns, logger)
@@ -33,6 +34,7 @@ def collect_garbage(batch_size: int = BATCH_SIZE) -> dict:
 	except Exception:
 		# An incomplete set of references must fail closed. Upload expiry is
 		# independent and remains useful even when blob collection cannot run.
+		frappe.db.rollback(save_point="storage_gc_references")
 		logger.error("storage gc: could not inspect all blob references; deleting no blobs", exc_info=True)
 		stats["upload_sessions_expired"] = expire_upload_sessions(logger)
 		return stats

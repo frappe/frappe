@@ -71,7 +71,7 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		pdf_generator: DF.Literal["chrome", "Typst"]
+		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
 		print_format_for: DF.Literal["DocType", "Report"]
@@ -117,9 +117,6 @@ class PrintFormat(Document):
 		):
 			self.print_format_builder_beta = 1
 
-		if self.print_format_builder_beta and not self.custom_format and self.pdf_generator != "Typst":
-			self.pdf_generator = "chrome"
-
 		self.published_on = self.modified
 		self.published_by = self.modified_by
 
@@ -130,9 +127,14 @@ class PrintFormat(Document):
 		return download_pdf(self.doc_type, docname, self.name, letterhead)
 
 	def validate(self):
-		from frappe.utils.print_utils import get_pdf_generators
+		from frappe.utils.print_utils import get_pdf_generators, resolve_pdf_generator
 
-		if self.pdf_generator not in get_pdf_generators():
+		known = get_pdf_generators()
+		if not self.pdf_generator:
+			generator = resolve_pdf_generator(self)
+			if generator in known:
+				self.pdf_generator = generator
+		elif self.pdf_generator not in known:
 			self.pdf_generator = "chrome"
 
 		if (
@@ -167,6 +169,21 @@ class PrintFormat(Document):
 		self.validate_colors()
 		self.validate_conditions()
 		self.validate_typst_renderer()
+		self.validate_plutoprint_renderer()
+
+	def validate_plutoprint_renderer(self):
+		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
+
+		if self.pdf_generator != "PlutoPrint" or not (blockers := plutoprint_blockers(self)):
+			return
+		if self.is_new():
+			self.pdf_generator = "chrome"
+			frappe.msgprint(_("PDF Generator set to Chromium: {0}").format(", ".join(blockers)), alert=True)
+			return
+		frappe.throw(
+			_("This format cannot use the PlutoPrint renderer: {0}").format(", ".join(blockers)),
+			title=_("PlutoPrint renderer unavailable"),
+		)
 
 	def validate_typst_renderer(self):
 		"""Refuse to save a Typst-flagged format that Typst cannot render — the

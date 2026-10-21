@@ -80,38 +80,32 @@ runs:
 
   - shell: bash -e {0}
     run: |
-      # Install System Dependencies (apt) in the background while installing the
-      # frappe-bench tool via uv — the two share no inputs.
-      start_time=$(date +%s)
+      # Add the PostgreSQL apt repository
+      # The apt cache action resolves package versions from the local package
+      # lists, so only the pgdg list needs a refresh; the runner image already
+      # has the Ubuntu lists.
+      sudo install -d /usr/share/postgresql-common/pgdg
+      sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+      echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
+      sudo apt-get -qq update \
+        -o Dir::Etc::sourcelist=/etc/apt/sources.list.d/pgdg.list \
+        -o Dir::Etc::sourceparts=- \
+        -o APT::Get::List-Cleanup=0
 
-      install_system_deps() {
-        # the mariadb server runs as a service container; the client tools come
-        # from ubuntu's archives so CI does not depend on mariadb.com mirrors
-        sudo sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" > /etc/apt/sources.list.d/pgdg.list'
-        wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | sudo apt-key add -
+  # the mariadb server runs as a service container; the client tools come
+  # from ubuntu's archives so CI does not depend on mariadb.com mirrors
+  - name: Install System Dependencies
+    uses: awalsh128/cache-apt-pkgs-action@v1.6.3
+    with:
+      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
 
-        sudo apt -qq update
-        sudo apt -qq remove mysql-server mysql-client
-        sudo apt -qq remove -y postgresql-client postgresql-client-16 postgresql-client-common
-        sudo apt -qq install libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
-        echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
-      }
-
-      install_system_deps &> ${GITHUB_WORKSPACE}/system_deps.log &
-      sys_pid=$!
-
-      # frappe-bench install via uv is independent of apt; do it while apt runs
+  - shell: bash -e {0}
+    run: |
+      # Install bench tool
+      # The cache restores files without running ldconfig.
+      sudo ldconfig
+      echo "/usr/lib/postgresql/18/bin" >> $GITHUB_PATH
       uv tool install frappe-bench
-
-      if ! wait "$sys_pid"; then
-        echo "System dependency install failed:"
-        cat ${GITHUB_WORKSPACE}/system_deps.log
-        exit 1
-      fi
-      cat ${GITHUB_WORKSPACE}/system_deps.log
-
-      end_time=$(date +%s)
-      echo -e "\033[33mInstall System Dependencies + bench tool: $((end_time - start_time)) seconds\033[0m"
 
   - shell: bash -e {0}
     run: |
@@ -156,6 +150,12 @@ runs:
 
       end_time=$(date +%s)
       echo -e "\033[33mInit Bench: $((end_time - start_time)) seconds\033[0m"
+
+  - name: Cache island toolchain
+    uses: actions/cache@v4
+    with:
+      path: ${{ github.workspace }}/apps/frappe/island-toolchain/node_modules
+      key: island-toolchain-${{ runner.os }}-node${{ inputs.node-version }}-${{ hashFiles('frappe-src/island-toolchain/yarn.lock') }}
 
   - name: Cache Chromium
     uses: actions/cache@v4
