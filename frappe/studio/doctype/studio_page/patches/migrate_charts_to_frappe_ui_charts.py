@@ -1,3 +1,5 @@
+import click
+
 import frappe
 from frappe.studio.utils import walk_blocks
 
@@ -26,7 +28,7 @@ def execute():
 				)
 
 	if skipped:
-		print(
+		click.echo(
 			"Charts with a dynamic `config` need a manual update to the frappe-ui/charts props:\n"
 			+ "\n".join(f"  {doc}: {component_id}" for doc, component_id in sorted(set(skipped)))
 		)

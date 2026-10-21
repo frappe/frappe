@@ -413,7 +413,7 @@ class AgentRunner:
 			AISession.try_append_message(
 				self.session_id, "assistant", user_msg, message_type="status", metadata={"status": "error"}
 			)
-			frappe.db.commit()  # commit before emit so the client's reload sees it
+			frappe.db.commit()  # nosemgrep: before emit, so the client's reload sees it
 			self.emit("error", message=user_msg)
 			return
 		finally:
@@ -439,7 +439,7 @@ class AgentRunner:
 			task_type="agent",
 			metadata={"status": "complete", "model": self.model, "operations": len(client_operations)},
 		)
-		frappe.db.commit()  # commit before emit so the client's reload sees the final turn
+		frappe.db.commit()  # nosemgrep: before emit, so the client's reload sees the final turn
 		self.emit("complete", message=summary_text or "Done")
 
 	def _classify(self, tool_operations: list[dict]) -> tuple[list, list, list, list]:
@@ -476,7 +476,7 @@ class AgentRunner:
 		AISession.try_append_message(
 			self.session_id, "assistant", msg, message_type="status", metadata={"status": "cancelled"}
 		)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		self.emit("complete", message=msg)
 
 	def handle_terminal(self, op: dict):

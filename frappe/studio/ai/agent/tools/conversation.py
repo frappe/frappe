@@ -22,7 +22,7 @@ def _ask_clarification(ctx, args: dict) -> None:
 		task_type="agent",
 		metadata={"status": "clarification", "options": options},
 	)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	ctx.emit("clarify", question=question, options=options)
 
 
@@ -63,7 +63,7 @@ def _propose_plan(ctx, args: dict) -> None:
 		task_type="agent",
 		metadata=metadata,
 	)
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	ctx.emit(
 		"clarify",
 		question=headline,

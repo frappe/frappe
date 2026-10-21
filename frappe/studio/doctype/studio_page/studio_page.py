@@ -320,7 +320,9 @@ class StudioPage(Document):
 		return self.modified
 
 	@frappe.whitelist()
-	def save_page_field(self, fieldname: str | dict, value=None, known_modified: str | None = None):
+	def save_page_field(
+		self, fieldname: str | dict, value: str | int | None = None, known_modified: str | None = None
+	):
 		"""Update editor-owned fields using the page's optimistic lock. Pass a dict as `fieldname` to
 		save several fields at once, so they save together or not at all."""
 		FIELDS = ["page_title", "tab_title", "route", "script", "allow_guest"]
@@ -448,7 +450,7 @@ def get_app_page(app_name: str, page_name: str) -> "StudioPage":
 	return page
 
 
-@frappe.whitelist(allow_guest=True, methods=["GET"])
+@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
 def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
 	"""Serve a page definition to the app renderer in a single call.
 

@@ -119,7 +119,7 @@ class TestStudioPage(IntegrationTestCase):
 			script="const icon = getIcon('check')",
 		)
 
-		with patch("builtins.print") as report:
+		with patch("click.echo") as report:
 			migrate_get_icon_calls.execute()
 
 		page.reload()
@@ -516,7 +516,7 @@ class TestGuestRendering(IntegrationTestCase):
 				get_page(self.app.name, page_name)
 			# one reply for every case, so a guest can't tell a private page from a missing one
 			self.assertEqual(
-				[m["message"] for m in map(frappe.parse_json, frappe.local.message_log)], ["Page not found"]
+				[frappe.parse_json(m)["message"] for m in frappe.local.message_log], ["Page not found"]
 			)
 
 	def test_page_of_another_app_is_not_found(self):

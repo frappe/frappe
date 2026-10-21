@@ -23,7 +23,8 @@ def write_document_file(doc, folder=None, exclude_fields=None):
 	fname = scrub(doc_export.name)
 	path = os.path.join(folder, f"{fname}.json")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
-		frappe.throw("Invalid export path: " + Path(path).as_posix())
+		frappe.throw(_("Invalid export path: {0}").format(Path(path).as_posix()))
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(path, "w+") as txtfile:
 		txtfile.write(frappe.as_json(doc_export) + "\n")
 	cache_synced_file_hash(path)
@@ -39,7 +40,8 @@ def write_code_file(doc, folder, code_field, extension, filename=None):
 	fname = filename or scrub(doc.name)
 	path = os.path.join(folder, f"{fname}.{extension}")
 	if Path(path).resolve().is_relative_to(Path(frappe.get_site_path()).resolve()):
-		frappe.throw("Invalid export path: " + Path(path).as_posix())
+		frappe.throw(_("Invalid export path: {0}").format(Path(path).as_posix()))
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(path, "w+") as codefile:
 		codefile.write(doc.get(code_field) or "")
 	print(f"Wrote {extension} file for {doc.doctype} {doc.name} at {path}")

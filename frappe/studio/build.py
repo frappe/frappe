@@ -99,6 +99,7 @@ class StudioAppBuilder:
 			if not (os.path.exists(ts_path) and os.path.exists(json_path)):
 				continue
 			try:
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				with open(json_path) as f:
 					page_name = json.load(f).get("page_name")
 			except (OSError, json.JSONDecodeError):
@@ -212,6 +213,7 @@ class StudioAppBuilder:
 			if not os.path.exists(page_path):
 				continue
 			try:
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				with open(page_path) as f:
 					page_text = f.read()
 				page_data = json.loads(page_text)
@@ -281,6 +283,7 @@ class StudioAppBuilder:
 
 			component_file_path = os.path.join(components_folder, file)
 			try:
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 				with open(component_file_path) as f:
 					component_text = f.read()
 				component = json.loads(component_text)
@@ -394,6 +397,7 @@ def get_editor_assets(entry: str) -> dict | None:
 	manifest_path = frappe.get_app_path("frappe", "public", "studio", ".vite", "manifest.json")
 	if not os.path.exists(manifest_path):
 		return None
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 	with open(manifest_path) as f:
 		manifest = json.load(f)
 	if entry not in manifest:

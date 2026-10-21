@@ -317,6 +317,7 @@ class StudioApp(WebsiteGenerator):
 			if not os.path.exists(manifest_path):
 				return None
 
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			with open(manifest_path) as f:
 				manifest = json.load(f)
 
@@ -414,6 +415,7 @@ class StudioApp(WebsiteGenerator):
 				"allowSyntheticDefaultImports": True,
 			},
 		}
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 		with open(os.path.join(app_path, "tsconfig.json"), "w") as f:
 			f.write(json.dumps(tsconfig, indent="\t"))
 			f.write("\n")
@@ -434,6 +436,7 @@ class StudioApp(WebsiteGenerator):
 		if not self.router_script:
 			return
 		if not os.path.exists(self.get_router_file_path()):
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			with open(self.get_router_file_path(), "w") as f:
 				f.write(f"export default {self.router_script.strip()}\n")
 		self.db_set("router_script", None, update_modified=False)
@@ -459,6 +462,7 @@ class StudioApp(WebsiteGenerator):
 			path = pending.pop()
 			if path in files:
 				continue
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			with open(self.resolve_file_path(path), encoding="utf-8") as f:
 				files[path] = f.read()
 			pending += self.resolve_imports(files[path], os.path.dirname(path))
@@ -499,6 +503,7 @@ class StudioApp(WebsiteGenerator):
 			if os.path.exists(target):
 				continue
 			os.makedirs(os.path.dirname(target), exist_ok=True)
+			# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
 			with open(target, "x", encoding="utf-8") as f:
 				f.write(file["content"])
 

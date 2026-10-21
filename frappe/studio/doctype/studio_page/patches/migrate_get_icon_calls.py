@@ -1,3 +1,5 @@
+import click
+
 """Replace complete icon bindings and report JavaScript references for manual migration."""
 
 import re
@@ -28,7 +30,7 @@ def execute():
 				frappe.db.set_value(doctype, doc.name, updates, update_modified=False)
 
 	if unresolved:
-		print(
+		click.echo(
 			"Review remaining getIcon references; replace calls to Studio's removed helper with lucide-* strings:\n"
 			+ "\n".join(f"  {name}: {call}" for name, call in sorted(set(unresolved)))
 		)

@@ -1,5 +1,7 @@
 import re
 
+import click
+
 import frappe
 from frappe.studio.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1 import migrate_dialog_props
 from frappe.studio.utils import walk_blocks
@@ -37,7 +39,7 @@ def execute():
 				)
 
 	if skipped:
-		print(
+		click.echo(
 			"Blocks with dynamic props that need a manual update (Sidebar header/sections, Dialog options):\n"
 			+ "\n".join(f"  {doc}: {component_id}" for doc, component_id in sorted(set(skipped)))
 		)

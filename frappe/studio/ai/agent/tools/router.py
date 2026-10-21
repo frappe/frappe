@@ -32,7 +32,7 @@ def run_set_router_script(ctx, args: dict) -> str:
 		return "FAILED: you do not have permission to edit this app."
 	app.router_script = source
 	app.save()
-	frappe.db.commit()
+	frappe.db.commit()  # nosemgrep
 	ctx.emit("reload", router=True)
 	return (
 		"Saved the router script. It applies when the app loads, so tell the user to reload the "

@@ -1,4 +1,5 @@
 import frappe
+from frappe.realtime import get_site_room
 
 
 def publish_doc_change(doctype: str, name: str, studio_app: str | None = None):
@@ -13,5 +14,6 @@ def publish_doc_change(doctype: str, name: str, studio_app: str | None = None):
 			"studio_app": studio_app,
 			"source": "disk" if frappe.flags.in_import else "save",
 		},
+		room=get_site_room(),
 		after_commit=True,
 	)
