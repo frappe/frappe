@@ -5,6 +5,7 @@ import mimetypes
 import os
 import re
 from io import BytesIO
+from pathlib import Path
 
 import frappe
 from frappe import _
@@ -269,8 +270,7 @@ def read_inter_ttf(url: str) -> bytes | None:
 	}
 	if not files:
 		return None
-	with open(os.path.join(path, files[min(files, key=lambda w: abs(w - weight))]), "rb") as f:
-		return f.read()
+	return Path(path, files[min(files, key=lambda w: abs(w - weight))]).read_bytes()
 
 
 def local_resource_fetcher(block_external_requests=False):
