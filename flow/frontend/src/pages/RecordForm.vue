@@ -53,7 +53,7 @@
 		<form
 			v-if="doc"
 			ref="form"
-			class="mx-auto w-full max-w-[800px] px-4 pb-16 pt-2 sm:px-6"
+			class="mx-auto w-full max-w-[800px] px-4 pb-16 pt-6 sm:px-6"
 			@submit.prevent="save"
 		>
 			<p
@@ -66,7 +66,7 @@
 			<section v-for="(group, i) in groups" :key="i">
 				<h2
 					v-if="group.title"
-					class="mb-4 mt-8 border-t border-outline-gray-1 pt-6 text-sm font-semibold text-ink-gray-9"
+					class="mb-5 mt-10 border-t border-outline-gray-1 pt-8 text-lg font-semibold text-ink-gray-9"
 				>
 					{{ group.title }}
 				</h2>

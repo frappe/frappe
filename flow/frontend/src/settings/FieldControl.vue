@@ -12,7 +12,9 @@
 	<!-- the switch centred on the label and its description, not on the label alone -->
 	<label v-else-if="field.type === 'check'" class="flex items-center justify-between gap-4">
 		<span class="flex flex-col gap-1">
-			<span data-slot="label">{{ field.label }}</span>
+			<span data-slot="label" class="text-sm leading-tighter text-ink-gray-6">{{
+				field.label
+			}}</span>
 			<span v-if="field.description" class="text-xs text-ink-gray-5">{{
 				field.description
 			}}</span>
