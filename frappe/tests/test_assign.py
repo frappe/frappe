@@ -100,6 +100,54 @@ class TestAssign(IntegrationTestCase):
 
 		self.assertFalse(get_assignments("ToDo", todo.name))
 
+	def test_removing_other_users_assignment_requires_write(self):
+		from frappe.permissions import add_permission, update_permission_property
+
+		for role in ("Assign Reader", "Assign Writer"):
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role}).insert()
+			add_permission("Note", role, 0)
+		update_permission_property("Note", "Assign Writer", 0, "write", 1)
+
+		users = {}
+		for key, role in (
+			("assignee", "Assign Reader"),
+			("reader", "Assign Reader"),
+			("writer", "Assign Writer"),
+		):
+			email = f"assign_{key}@example.com"
+			if not frappe.db.exists("User", email):
+				frappe.get_doc(
+					{
+						"doctype": "User",
+						"email": email,
+						"first_name": key,
+						"roles": [{"role": role}],
+					}
+				).insert()
+			users[key] = email
+
+		note = frappe.get_doc({"doctype": "Note", "title": "assign test", "public": 1}).insert()
+		assign(note, users["assignee"])
+
+		def remove_as(user):
+			frappe.set_user(user)
+			try:
+				return frappe.desk.form.assign_to.remove(note.doctype, note.name, users["assignee"])
+			finally:
+				frappe.set_user("Administrator")
+
+		with self.assertRaises(frappe.PermissionError):
+			remove_as(users["reader"])
+		self.assertTrue(get_assignments("Note", note.name))
+
+		remove_as(users["writer"])
+		self.assertFalse(get_assignments("Note", note.name))
+
+		assign(note, users["assignee"])
+		remove_as(users["assignee"])
+		self.assertFalse(get_assignments("Note", note.name))
+
 	def test_assign_filter_with_equals_operator(self):
 		from frappe.model.db_query import DatabaseQuery
 
