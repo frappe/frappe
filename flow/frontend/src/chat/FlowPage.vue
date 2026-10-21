@@ -2,11 +2,46 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8">
-		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" />
+		<SessionSidebar
+			:open="sidebarOpen"
+			:chat-in-view="!pageKind"
+			:before-switch="leavePage"
+			@close="store.setSidebarOpen(false)"
+		>
+			<!-- a group under its own heading, spaced as the chats' heading is under it -->
+			<template #nav>
+				<h3
+					v-if="pages.length"
+					class="mt-[7px] flex h-8 items-center pl-2 text-xs font-medium text-ink-gray-5"
+				>
+					Build
+				</h3>
+				<SidebarItem
+					v-for="item in pages"
+					:key="item.key"
+					:icon="item.icon"
+					:route="`/${item.key}`"
+					:active="pageKind === item.key"
+					class="h-8 data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none"
+					@click="layout.narrow && store.setSidebarOpen(false)"
+				>
+					<span class="truncate text-xs font-medium text-ink-gray-8">{{
+						SPECS[item.key].label
+					}}</span>
+				</SidebarItem>
+			</template>
+		</SessionSidebar>
 		<div
 			class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm"
 		>
-			<main class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
+			<RecordPage v-if="pageKind" :kind="pageKind" />
+			<!-- hidden under a page, not taken away: the chat waits as it was, its box's draft and
+			     files too, and inert, so nothing in it answers keys meanwhile -->
+			<main
+				v-show="!pageKind"
+				:inert="pageKind ? true : null"
+				class="relative flex min-w-0 flex-1 flex-col bg-surface-base"
+			>
 				<ChatHeader
 					:sidebar-open="sidebarOpen"
 					:workspace="false"
@@ -60,7 +95,7 @@
 					{{ readOnlyNote }}
 				</p>
 			</main>
-			<WorkspacePanel>
+			<WorkspacePanel v-if="!pageKind">
 				<template #empty>
 					<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
 				</template>
@@ -77,8 +112,9 @@
 
 <script setup>
 import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue";
-import { useRoute, useRouter } from "vue-router";
+import { isNavigationFailure, useRoute, useRouter } from "vue-router";
 import { Dialogs, ToastProvider, toast, useColorScheme } from "frappe-ui";
+import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 import ChatHeader from "@flow/ui-core/components/ChatHeader.vue";
 import Composer from "@flow/ui-core/components/Composer.vue";
@@ -97,7 +133,10 @@ import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
+import RecordPage from "../pages/RecordPage.vue";
+import { PAGES } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
+import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
 import AgentPicker from "./AgentPicker.vue";
 import FeedbackBar from "./FeedbackBar.vue";
@@ -215,9 +254,15 @@ watch(
 // the route names the open conversation, so links and reloads keep it
 const route = useRoute();
 const router = useRouter();
+// the pages beside the chats, each for whoever may read its records
+const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
+const pageKind = computed(() =>
+	pages.value.some((item) => item.key === route.params.kind) ? route.params.kind : null
+);
 watch(
 	() => store.state.sessionId,
 	(id) => {
+		if (route.params.kind) return; // a page is left by a link of its own
 		const target = id ? `/s/${id}` : "/";
 		if (route.path !== target) router.replace(target);
 	}
@@ -225,12 +270,41 @@ watch(
 watch(
 	() => route.params.session,
 	(id) => {
+		if (pageKind.value) return; // the chat waits behind a page as it was, its box and all
 		if (id && id !== store.state.sessionId) store.openSession(id);
 		else if (!id && store.state.sessionId) store.startNewChat();
 	}
 );
+
+// a page the user may not read is the new chat
 watch(
-	() => store.state.session?.title,
+	() => route.params.kind && !pageKind.value,
+	(refused) => refused && router.replace("/"),
+	{ immediate: true }
+);
+// back from a page at a new chat's address, a chat that opened behind it (a first message's)
+// takes its own
+watch(pageKind, (kind, was) => {
+	if (was && !kind && route.name === "new" && store.state.sessionId)
+		router.replace(`/s/${store.state.sessionId}`);
+});
+// whatever changes the chat behind a page waits for this: back to that chat, through the page's
+// guard (unsaved edits ask). False keeps the page, and the chat as it was
+async function leavePage() {
+	if (!pageKind.value) return true;
+	const failure = await router.push(store.state.sessionId ? `/s/${store.state.sessionId}` : "/");
+	return !isNavigationFailure(failure);
+}
+provide("leavePage", leavePage);
+
+// the tab names the chat, or the page and its record as the page's bar does
+watch(
+	() => {
+		if (!pageKind.value) return store.state.session?.title;
+		const spec = SPECS[pageKind.value];
+		const { record } = route.params;
+		return !record ? spec.label : record === "new" ? `New ${spec.singular}` : record;
+	},
 	(title) => (document.title = title ? `${title} · Flow` : "Flow")
 );
 
@@ -243,8 +317,10 @@ onMounted(async () => {
 	uninstallViewport = installViewport();
 	store.refreshModels();
 	await store.refreshSessions();
-	// the route watcher, a click or a first message may have moved on while the list loaded
-	if (store.state.sessionId || store.state.conversation.sending.length) return;
+	// the route watcher, a click or a first message may have moved on while the list loaded,
+	// and a page keeps its place
+	if (store.state.sessionId || store.state.conversation.sending.length || route.params.kind)
+		return;
 	const wanted = route.params.session ?? store.state.prefs.lastSession;
 	if (
 		wanted &&

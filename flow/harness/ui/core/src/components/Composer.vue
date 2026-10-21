@@ -954,6 +954,7 @@ function anyMenuOpen() {
 // e.repeat: a held key must not spam abort requests.
 function onWindowKey(e) {
 	if (e.key !== "Escape" || e.repeat || e.defaultPrevented || composing(e) || anyMenuOpen()) return
+	if (box.value?.closest("[inert]")) return // a box the host hides stops nothing
 	if (e.target?.closest?.('input, textarea, select, [contenteditable], [role="dialog"], [role="menu"]')) return
 	if (running.value) flow.abort()
 }

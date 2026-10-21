@@ -24,12 +24,12 @@ const { SPECS, newDoc } = await import("../src/settings/specs.js");
 const changes = [];
 const renames = [];
 const newRecords = new Set(); // the tabs asked to open on a blank record, each taken once
-function mount(t, component, props) {
+function mount(t, component, props, { can = () => true } = {}) {
 	const el = document.createElement("div");
 	document.body.append(el);
 	const app = createApp(component, props);
 	app.provide("flowPage", {
-		can: () => true,
+		can,
 		changed: (doctype) => changes.push(doctype),
 		renamed: (...args) => renames.push(args),
 		takeNewRecord: (key) => newRecords.delete(key),
@@ -183,16 +183,17 @@ test("link and multilink search the server, keeping their options while it loads
 	);
 });
 
-test("a read-only multilink still opens, showing only its picks and nothing to change", async (t) => {
+test("a read-only multilink still opens, showing only its picks and nothing to change, by name where its records can't be read", async (t) => {
 	transport.answers["frappe.desk.search.search_link"] = () => [
 		{ value: "tool-1", label: "Tool One" },
 		{ value: "tool-2", label: "Tool Two" },
 	];
-	const el = mount(t, FieldControl, {
+	const props = {
 		field: { name: "tools", type: "multilink", label: "Tools", link: "Flow Tool" },
 		doc: { doctype: "Flow Agent", tools: ["selected", "tool-1"] },
 		disabled: true,
-	});
+	};
+	const el = mount(t, FieldControl, props);
 	await until(() => el.textContent.includes("Tool One"));
 	const control = el.querySelector("[data-control=Tools]").__vueParentComponent;
 	assert.equal(control.attrs.disabled, undefined);
@@ -202,6 +203,18 @@ test("a read-only multilink still opens, showing only its picks and nothing to c
 	]);
 	// an empty footer in place of Clear All / Select All
 	assert.ok(control.slots.footer);
+
+	// a Flow User may not search tools: the names show, with no search to refuse and no spinner
+	transport.calls.length = 0;
+	const names = mount(t, FieldControl, props, { can: () => false });
+	await new Promise((resolve) => setTimeout(resolve, 350)); // past the search's debounce
+	const shown = names.querySelector("[data-control=Tools]").__vueParentComponent;
+	assert.deepEqual(transport.calls, []);
+	assert.equal(shown.props.loading, false);
+	assert.deepEqual(
+		shown.props.options.map((option) => option.label),
+		["selected", "tool-1"]
+	);
 });
 
 test("a provider is picked from the list, and a saved one outside it still shows", (t) => {

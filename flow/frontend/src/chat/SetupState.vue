@@ -26,7 +26,12 @@
 					@click="create('models')"
 				/>
 			</template>
-			<Button v-else variant="solid" label="Enable an agent" @click="open('agents')" />
+			<Button
+				v-else
+				variant="solid"
+				label="Enable an agent"
+				@click="router.push('/agents')"
+			/>
 		</div>
 		<div v-else class="text-xs text-ink-gray-5">Ask an administrator to finish the setup.</div>
 	</div>
@@ -34,12 +39,14 @@
 
 <script setup>
 import { computed, inject } from "vue";
+import { useRouter } from "vue-router";
 import { Button } from "frappe-ui";
 import BrandMark from "@flow/ui-core/components/BrandMark.vue";
 
 // The empty state until a model and an agent exist: what is missing, and who can add it.
 const flow = inject("flow");
 const page = inject("flowPage");
+const router = useRouter();
 const hasModels = computed(() => page.state.boot.models.length > 0);
 const hasProvider = computed(() => Boolean(page.state.boot.has_provider));
 const canManage = computed(() =>

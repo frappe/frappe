@@ -69,6 +69,7 @@ Object.assign(transport.answers, {
 	"flow.api.entries": { entries: [], latest_seq: 0, preview: [] },
 	"flow.api.run": { status: "running" },
 	"flow.api.skills": { skills: [] },
+	"frappe.client.get_list": [],
 });
 
 const called = (method) => transport.calls.some(([name]) => name === method);
@@ -122,7 +123,10 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 		skills: agent === "reviewer" ? [{ name: "review", description: "Reviews a change" }] : [],
 	});
 	t.after(() => (transport.answers["flow.api.skills"] = skillsAnswer));
-	const el = mountPage(t, { boot: { ...boot, permissions: { "Flow Skill": ["create"] } } });
+	await router.replace("/");
+	const el = mountPage(t, {
+		boot: { ...boot, permissions: { "Flow Skill": ["read", "create"] } },
+	});
 	await until(() => called("flow.api.list_sessions"));
 	await nextTick();
 	assert.ok(!called("flow.api.boot"), "the page's own boot serves the first load");
@@ -146,9 +150,26 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.match(skills().nextElementSibling.textContent, /No skills/);
 	assert.deepEqual(skillNames(), ["Add a skill"]);
 	assert.equal(skills().parentElement.querySelector("input"), null);
+	// adding one opens the skills page on a blank skill over the chat, which waits hidden and
+	// inert; Back finds it as it was, the same box with what was typed in it (and its files)
+	const typed = el.querySelector("textarea");
+	const chat = typed.closest("main");
+	typed.value = "a draft";
+	typed.dispatchEvent(new Event("input"));
 	skillRows()[0].click();
+	await until(() => router.currentRoute.value.fullPath === "/skills/new");
 	await nextTick();
-	assert.equal(skillRows().length, 0);
+	assert.equal(chat.style.display, "none");
+	assert.ok(chat.hasAttribute("inert"));
+	assert.equal(el.querySelector("main h1").textContent, "New skill");
+	router.back();
+	await until(() => chat.style.display !== "none");
+	assert.equal(el.querySelector("textarea"), typed);
+	assert.equal(typed.value, "a draft");
+	assert.ok(!chat.hasAttribute("inert"));
+	assert.equal(skills().getAttribute("aria-expanded"), "false");
+	typed.value = "";
+	typed.dispatchEvent(new Event("input"));
 
 	// found by its search; no row to add one
 	const list = () => [...agent().parentElement.querySelectorAll("[data-palette-item]")];
@@ -228,6 +249,345 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.match(el.querySelector("header div[title]").title, /^Reviewer \/ /);
 });
 
+test("agents, skills and triggers each have a page in the chat's place, grouped under New chat for whoever may read them; a Flow user reads an agent from its list and starts a chat with it, Back retraces the steps to the chat, and a chat picked in the sidebar takes the page's place", async (t) => {
+	await router.replace("/s/S1");
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	Object.assign(transport.answers, {
+		"frappe.client.get_list": ({ doctype }) =>
+			doctype === "Flow Agent"
+				? [
+						{
+							name: "reviewer",
+							title: "Reviewer",
+							description: "Reviews changes",
+							model: "Sonnet",
+							enabled: 1,
+						},
+				  ]
+				: [],
+		"frappe.client.get": { doctype: "Flow Agent", name: "reviewer", title: "Reviewer" },
+		"frappe.desk.search.search_link": [],
+		"flow.api.list_sessions": [{ name: "S1", title: "Q3 plan" }],
+	});
+	transport.calls.length = 0;
+	const el = mountPage(t, {
+		boot: { ...boot, permissions: { "Flow Agent": ["read"], "Flow Skill": ["read"] } },
+	});
+	await until(() => called("flow.api.entries"));
+	// the chat stays under a page, hidden; its row is marked only while it shows
+	const chatShown = () => el.querySelector("textarea").closest("main").style.display !== "none";
+	const chatRow = () =>
+		[...el.querySelectorAll("aside [data-stub=SidebarItem]")].find((row) =>
+			row.textContent.includes("Q3 plan")
+		);
+	await until(() => chatRow());
+	assert.equal(chatRow().getAttribute("active"), "true");
+	const links = () => [...el.querySelectorAll("aside [data-stub=SidebarItem][route]")];
+	assert.deepEqual(
+		links().map((row) => [row.getAttribute("route"), row.textContent.trim()]),
+		[
+			["/agents", "Agents"],
+			["/skills", "Skills"],
+		]
+	);
+	assert.equal(links()[0].previousElementSibling.textContent.trim(), "Build");
+	const opened = () => transport.calls.filter(([name]) => name === "flow.api.session").length;
+	assert.equal(opened(), 1);
+
+	// the list in the chat's place, its title in the bar, nothing to create for a Flow user
+	await router.push("/agents");
+	await until(() => el.querySelector("main a[role=row]"));
+	assert.ok(!chatShown());
+	assert.equal(chatRow().getAttribute("active"), "false");
+	assert.equal(links()[0].getAttribute("active"), "true");
+	assert.equal(links()[1].getAttribute("active"), "false");
+	assert.equal(el.querySelector("main h1").textContent, "Agents");
+	assert.ok(!el.textContent.includes("New agent"));
+	assert.equal(document.title, "Agents · Flow");
+	// a row links to its record, one cell a column: title, what it is for, its model, its status
+	const row = el.querySelector("main a[role=row]");
+	assert.equal(row.getAttribute("href"), "/flow/agents/reviewer");
+	assert.deepEqual(
+		[...row.querySelectorAll("[role=cell]")].map((cell) => cell.textContent.trim()),
+		["Reviewer", "Reviews changes", "Sonnet", ""]
+	);
+	assert.equal(row.querySelector("[data-stub=Badge]").getAttribute("label"), "Enabled");
+	row.click();
+	await until(() => called("frappe.client.get"));
+	await nextTick();
+	assert.equal(router.currentRoute.value.path, "/agents/reviewer");
+	assert.equal(document.title, "reviewer · Flow");
+	// read only: its values, not inputs, its name only in the bar; no Save or menu
+	const bar = () =>
+		[...el.querySelectorAll("main header button")].map((b) => b.textContent).filter(Boolean);
+	assert.deepEqual(bar(), ["Start chat"]);
+	assert.match(el.querySelector("main header").textContent, /View only/);
+	assert.equal(el.querySelector("main form input, main form textarea"), null);
+	assert.match(el.querySelector("main form").textContent, /^\s*Model\s*None\s*Description/);
+	// the bar leads back to the list: its link, and its back button, a step back
+	assert.equal(el.querySelector("main header nav a").getAttribute("href"), "/flow/agents");
+	el.querySelector("main header button[title='Back to agents']").click();
+	await until(() => router.currentRoute.value.path === "/agents");
+	assert.equal(router.options.history.state.forward, "/agents/reviewer");
+	await until(() => el.querySelector("main a[role=row]"));
+	el.querySelector("main a[role=row]").click();
+	await until(() => router.currentRoute.value.path === "/agents/reviewer" && bar().length);
+	// Start chat: a new chat with this agent, in place of the one behind the page
+	[...el.querySelectorAll("main header button")]
+		.find((b) => b.textContent === "Start chat")
+		.click();
+	await until(chatShown);
+	assert.equal(router.currentRoute.value.path, "/");
+	assert.equal(el.querySelector("button[title='Agent']").textContent.trim(), "Reviewer");
+
+	// Back retraces each step, to the chat the page replaced
+	for (const path of ["/agents/reviewer", "/agents", "/s/S1"]) {
+		router.back();
+		await until(() => router.currentRoute.value.path === path);
+	}
+	await until(chatShown);
+	assert.equal(opened(), 2);
+	// a page over the open chat leaves it be: back from it, the chat hasn't reloaded
+	await router.push("/skills");
+	await until(() => !chatShown());
+	router.back();
+	await until(chatShown);
+	assert.equal(opened(), 2);
+	assert.equal(chatRow().getAttribute("active"), "true");
+	// with the sidebar hidden, the bar's New chat is a new chat in place of the one behind it
+	await router.push("/skills");
+	el.querySelector("aside button[title='Hide sidebar']").click();
+	await nextTick();
+	el.querySelector("main header button[title='New chat']").click();
+	await until(chatShown);
+	assert.equal(router.currentRoute.value.path, "/");
+	assert.ok(el.querySelector("button[title='Agent']"));
+	el.querySelector("main header button[title='Show sidebar']").click();
+
+	// New chat in the sidebar leaves the page, a step on from it
+	await router.push("/skills");
+	await until(() => !chatShown());
+	[...el.querySelectorAll("aside [data-stub=SidebarItem]")]
+		.find((row) => row.textContent.trim() === "New chat")
+		.click();
+	await until(chatShown);
+	assert.equal(router.currentRoute.value.path, "/");
+	assert.equal(router.options.history.state.back, "/skills");
+
+	// a first message still on its way when a page opens: its chat opens behind the page, and
+	// back from the page it shows at its own address
+	let created;
+	transport.answers["flow.api.create_session"] = () =>
+		new Promise((resolve) => (created = resolve));
+	const box = el.querySelector("textarea");
+	box.value = "hi";
+	box.dispatchEvent(new Event("input"));
+	await nextTick();
+	el.querySelector("button[title='Send']").click();
+	await until(() => created);
+	await router.push("/skills");
+	created(session);
+	await until(() => called("flow.api.run"));
+	assert.equal(opened(), 3);
+	router.back();
+	await until(() => router.currentRoute.value.path === "/s/S1");
+	await until(chatShown);
+
+	// a page the user may not read is the new chat
+	await router.push("/triggers");
+	await until(() => router.currentRoute.value.path === "/");
+});
+
+test("a record page creates a record at its new address, Cmd+S saving the form it is pressed over, asks before leaving unsaved edits, kept, the chat behind it as it was, and a deleted record leaves for its list; one that never loads has nothing to lose, and the list's search keeps its bar while cleared and follows the address", async (t) => {
+	const { dialog } = await import("./helpers/components.js");
+	await router.replace("/s/S1");
+	const saved = { ...transport.answers };
+	t.after(() => Object.assign(transport.answers, saved));
+	const record = (name) => ({
+		doctype: "Flow Agent",
+		name,
+		title: name,
+		model: "Sonnet",
+		enabled: 1,
+	});
+	const admin = {
+		...boot,
+		agents: [...boot.agents, { name: "Helper", title: "Helper" }], // to chat with, once made
+		permissions: { "Flow Agent": ["read", "write", "create", "delete"] },
+	};
+	const reviewer = { name: "Reviewer", title: "Reviewer", model: "Sonnet", enabled: 0 };
+	Object.assign(transport.answers, {
+		"flow.api.boot": admin, // refetched once an agent is saved
+		"flow.api.list_sessions": [
+			{ name: "S1", title: "Q3 plan" },
+			{ name: "S2", title: "Hiring" },
+		],
+		// a search finds nothing
+		"frappe.client.get_list": ({ or_filters }) => (or_filters.length ? [] : [reviewer]),
+		"frappe.client.get": ({ name }) => {
+			if (name === "Gone") throw new Error("Flow Agent Gone not found");
+			return record(name);
+		},
+		"frappe.client.insert": ({ doc }) => record(doc.title),
+		"frappe.client.delete": {},
+		"frappe.desk.search.search_link": [],
+	});
+	transport.calls.length = 0;
+	const el = mountPage(t, { boot: admin });
+	// a file waits in the open chat's box, under the pages that follow
+	await until(() => called("flow.api.entries"));
+	const chat = el.querySelector("textarea").closest("main");
+	const filed = () => chat.querySelector("[title='notes.pdf']");
+	const input = chat.querySelector("input[type=file]");
+	Object.defineProperty(input, "files", {
+		value: [new dom.window.File(["notes"], "notes.pdf", { type: "application/pdf" })],
+	});
+	input.dispatchEvent(new dom.window.Event("change", { bubbles: true }));
+	await until(filed);
+	await router.push("/agents");
+	await until(() => el.querySelector("main a[role=row]"));
+	const badge = el.querySelector("main a[role=row] [data-stub=Badge]");
+	assert.equal(badge.getAttribute("label"), "Disabled");
+	const button = (label) =>
+		[...el.querySelectorAll("main header button")].find((b) => b.textContent === label);
+	const title = () => el.querySelector("main [data-control=Title] input");
+	const type = (value) => {
+		title().value = value;
+		title().dispatchEvent(new Event("input"));
+	};
+
+	// a search that found nothing, cleared, keeps the bar and the focus in its box, with no
+	// empty page while the list comes back
+	const search = () => el.querySelector("main [data-control=text] input");
+	const box = search();
+	box.focus();
+	box.value = "zzz";
+	box.dispatchEvent(new Event("input"));
+	await until(() => el.textContent.includes("No agents match."));
+	box.value = "";
+	box.dispatchEvent(new Event("input"));
+	await nextTick();
+	assert.ok(!el.textContent.includes("No agents yet"));
+	await until(() => el.querySelector("main a[role=row]"));
+	assert.equal(document.activeElement, box);
+	// the address leads too: a link to the list with no search, the sidebar's, empties the box
+	box.value = "rev";
+	box.dispatchEvent(new Event("input"));
+	await until(() => router.currentRoute.value.query.q === "rev");
+	await router.push("/agents");
+	await nextTick();
+	assert.equal(search().value, "");
+	await new Promise((resolve) => setTimeout(resolve, 350)); // past the search's debounce
+
+	// a filter narrows the list on the server and keeps to the address, each menu with All first
+	const status = [...el.querySelectorAll("main [data-stub=Dropdown]")].find((menu) =>
+		menu.textContent.startsWith("Status")
+	);
+	assert.deepEqual(
+		[...el.querySelectorAll("main:not([inert]) [data-stub=Dropdown]")].map((menu) =>
+			menu.textContent.trim()
+		),
+		["Status", "Model"]
+	);
+	status.firstElementChild.click();
+	await nextTick();
+	assert.deepEqual(
+		[...status.querySelectorAll("[role=menuitem]")].map((item) => item.textContent),
+		["All", "Enabled", "Disabled"]
+	);
+	[...status.querySelectorAll("[role=menuitem]")].at(-1).click();
+	await until(() =>
+		transport.calls.some(
+			([method, args]) => method === "frappe.client.get_list" && args.filters.enabled === "0"
+		)
+	);
+	assert.deepEqual(router.currentRoute.value.query, { enabled: "0" });
+	assert.match(status.textContent.trim(), /^Status: Disabled/);
+
+	// a new record, then its own address in the new one's place; its bar leads back to the
+	// filtered list
+	button("New agent").click();
+	await until(() => title());
+	assert.equal(router.currentRoute.value.path, "/agents/new");
+	assert.equal(el.querySelector("main h1").textContent, "New agent");
+	type("Helper");
+	await nextTick();
+	assert.ok(button("Create"));
+	// Cmd+S saves the form it is pressed over, not one under a dialog
+	const pressSave = (target) =>
+		target.dispatchEvent(
+			new dom.window.KeyboardEvent("keydown", { key: "s", metaKey: true, bubbles: true })
+		);
+	const over = document.body.appendChild(document.createElement("div"));
+	over.setAttribute("role", "dialog");
+	pressSave(over);
+	over.remove();
+	await nextTick();
+	assert.ok(!called("frappe.client.insert"));
+	pressSave(title());
+	await until(() => router.currentRoute.value.path === "/agents/Helper");
+	assert.equal(args("frappe.client.insert").doc.title, "Helper");
+	assert.equal(router.options.history.state.back, "/agents?enabled=0");
+	assert.equal(el.querySelector("main h1").textContent, "Helper");
+	assert.equal(
+		el.querySelector("main header nav a").getAttribute("href"),
+		"/flow/agents?enabled=0"
+	);
+
+	// an unsaved edit: leaving asks, Keep editing stays, Discard goes. Kept, the chat behind the
+	// page is as it was, its file and all: a chat picked in the sidebar, Start chat and the bar's
+	// New chat each wait for the page to let go
+	type("Helper 2");
+	await nextTick();
+	dialog.asked.length = 0;
+	const keep = async (asked) => {
+		await until(() => dialog.asked.length === asked);
+		dialog.asked.at(-1).actions[0].onClick();
+		await new Promise((resolve) => setTimeout(resolve));
+		assert.equal(router.currentRoute.value.path, "/agents/Helper");
+		assert.ok(filed());
+	};
+	[...el.querySelectorAll("aside [data-stub=SidebarItem]")]
+		.find((row) => row.textContent.includes("Hiring"))
+		.click();
+	await keep(1);
+	button("Start chat").click();
+	await keep(2);
+	el.querySelector("aside button[title='Hide sidebar']").click();
+	await nextTick();
+	el.querySelector("main header button[title='New chat']").click();
+	await keep(3);
+	el.querySelector("main header button[title='Show sidebar']").click();
+	const go = router.push("/agents");
+	await until(() => dialog.asked.length === 4);
+	dialog.asked[3].actions[1].onClick();
+	await go;
+	assert.equal(router.currentRoute.value.path, "/agents");
+
+	// deleting from the bar's menu leaves for the list, without asking about the edits
+	await until(() => el.querySelector("main a[role=row]"));
+	el.querySelector("main a[role=row]").click();
+	await until(() => router.currentRoute.value.path === "/agents/Reviewer" && title());
+	type("Reviewer 2");
+	await nextTick();
+	el.querySelector("main header button[title=More]").click();
+	await nextTick();
+	el.querySelector("main header [role=menuitem]").click();
+	dialog.asked.at(-1).onConfirm({ close() {} });
+	await until(() => router.currentRoute.value.path === "/agents");
+	assert.deepEqual(args("frappe.client.delete"), { doctype: "Flow Agent", name: "Reviewer" });
+	assert.equal(dialog.asked.length, 5, "no discard question for a deleted record");
+
+	// a record that never loads has no edits to lose: leaving it asks nothing
+	await router.push("/agents/Gone");
+	await until(() => el.textContent.includes("Gone not found"));
+	assert.doesNotMatch(el.querySelector("main header").textContent, /Unsaved changes/);
+	router.push("/agents");
+	await until(() => router.currentRoute.value.path === "/agents");
+	assert.equal(dialog.asked.length, 5);
+});
+
 test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async () => {
 	const { createPage } = await import("../src/page.js");
 	let refreshes = 0;
@@ -246,11 +606,11 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	assert.equal(refreshes, 3);
 	assert.equal(skillReloads, 2);
 
-	page.createRecord("skills");
-	assert.equal(page.state.settingsTab, "skills");
-	assert.equal(page.takeNewRecord("agents"), false);
-	assert.equal(page.takeNewRecord("skills"), true);
-	assert.equal(page.takeNewRecord("skills"), false);
+	page.createRecord("models");
+	assert.equal(page.state.settingsTab, "models");
+	assert.equal(page.takeNewRecord("providers"), false);
+	assert.equal(page.takeNewRecord("models"), true);
+	assert.equal(page.takeNewRecord("models"), false);
 
 	page.renamed("Flow Agent", "someone-else", "Other");
 	page.renamed("Flow Skill", "flow", "Other");
@@ -295,7 +655,7 @@ test("without a model the normal page shows the setup state and no composer, and
 	const page = createPage({ ...boot, models: [], permissions: { "Flow Model": ["create"] } });
 	let opened = 0;
 	const setup = document.createElement("div");
-	const app = createApp(SetupState);
+	const app = createApp(SetupState).use(router);
 	app.provide("flow", { setSettingsOpen: () => opened++ });
 	app.provide("flowPage", page);
 	app.mount(setup);

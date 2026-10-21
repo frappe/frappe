@@ -34,6 +34,8 @@
 			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
 				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
 			</SidebarItem>
+			<!-- the host's own rows, like links to its pages -->
+			<slot name="nav" />
 		</div>
 
 		<!-- outside the scroller, so search stays in reach down a long list -->
@@ -182,7 +184,7 @@
 									:label="flow.sessionTitle(s)"
 									class="group relative h-7 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
 									:class="[!grouped && 'quiet', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
-									:active="s.session_id === flow.state.sessionId"
+									:active="chatInView && s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
 									@click="pick(s)"
@@ -294,7 +296,13 @@ import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
 
-const props = defineProps({ open: { type: Boolean, default: true } })
+// chatInView: false while a host shows a page in the open chat's place, so no chat row is marked.
+// beforeSwitch: such a host's say before a pick changes the open chat, resolving false to keep it
+const props = defineProps({
+	open: { type: Boolean, default: true },
+	chatInView: { type: Boolean, default: true },
+	beforeSwitch: { type: Function, default: null },
+})
 const emit = defineEmits(["close"])
 const flow = inject("flow")
 
@@ -582,20 +590,22 @@ function pressEnd() {
 }
 onBeforeUnmount(pressEnd)
 
-// a drawer closes once a chat is picked
-function pick(session) {
+// a drawer closes once a chat is picked, and the chat opens once the host lets it
+async function pick(session) {
 	if (pressed) {
 		pressed = false
 		return
 	}
-	flow.openSession(session.session_id)
 	if (layout.narrow) emit("close")
+	if (props.beforeSwitch && !(await props.beforeSwitch())) return
+	flow.openSession(session.session_id)
 }
 
 // with no folder, the new chat starts in the open chat's
-function startNewChat(cwd = null) {
-	flow.startNewChat({ cwd })
+async function startNewChat(cwd = null) {
 	if (layout.narrow) emit("close")
+	if (props.beforeSwitch && !(await props.beforeSwitch())) return
+	flow.startNewChat({ cwd })
 }
 
 // a chat in a folder picked in the daemon's folder dialog

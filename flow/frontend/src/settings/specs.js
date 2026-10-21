@@ -1,6 +1,9 @@
-// What each settings screen edits. A field's `when` hides it, `locked` disables it; both
-// mirror the doctype's own depends_on rules. `child` maps a multi-link to its child table.
-// `rename` marks the field a record is named after: changing it renames the record.
+// What each settings screen and record page edits. A field's `when` hides it, `locked` disables
+// it; both mirror the doctype's own depends_on rules. `child` maps a multi-link to its child
+// table. `rename` marks the field a record is named after: changing it renames the record. A
+// settings row shows `subtitle` under its title; a search looks in `searchFields` (else
+// `listFields`). On a record's page, `section` heads a group of fields from that one on, and
+// `half` fields pair up side by side.
 const enabled = { name: "enabled", label: "Enabled", type: "check" };
 const system = (doc) => !!doc.is_system_generated;
 const saved = (doc) => !!doc.name;
@@ -121,8 +124,8 @@ export const SPECS = {
 		label: "Agents",
 		singular: "agent",
 		titleField: "title",
-		listFields: ["name", "title", "model"],
-		subtitle: (doc) => doc.model,
+		listFields: ["name", "title", "description", "model"],
+		searchFields: ["title", "description", "model"],
 		fields: [
 			{
 				name: "title",
@@ -131,8 +134,16 @@ export const SPECS = {
 				required: true,
 				rename: true,
 				locked: system,
+				half: true,
 			},
-			enabled,
+			{
+				name: "model",
+				label: "Model",
+				type: "link",
+				link: "Flow Model",
+				required: true,
+				half: true,
+			},
 			{
 				name: "description",
 				label: "Description",
@@ -141,22 +152,6 @@ export const SPECS = {
 				description:
 					"What this agent is for, read by an agent that has it as a sub-agent.",
 				locked: system,
-			},
-			{ name: "model", label: "Model", type: "link", link: "Flow Model", required: true },
-			{
-				name: "max_iterations",
-				label: "Max iterations",
-				type: "int",
-				description: "How many steps the agent may take before giving up.",
-				locked: system,
-			},
-			{
-				name: "token_budget",
-				label: "Token budget",
-				type: "int",
-				placeholder: "No limit",
-				description:
-					"Tokens a single run may spend, shared with its sub-agents. Cached reads are not counted.",
 			},
 			{
 				name: "instructions",
@@ -175,6 +170,7 @@ export const SPECS = {
 				link: "Flow Tool",
 				child: "tool",
 				locked: system,
+				section: "Capabilities",
 			},
 			{
 				name: "sub_agents",
@@ -204,6 +200,25 @@ export const SPECS = {
 				locked: system,
 			},
 			{
+				name: "max_iterations",
+				label: "Max iterations",
+				type: "int",
+				description: "How many steps the agent may take before giving up.",
+				locked: system,
+				section: "Limits",
+				half: true,
+			},
+			{
+				name: "token_budget",
+				label: "Token budget",
+				type: "int",
+				placeholder: "No limit",
+				description:
+					"Tokens a single run may spend, shared with its sub-agents. Cached reads are not counted.",
+				half: true,
+			},
+			{ ...enabled, section: "Access" },
+			{
 				name: "roles",
 				label: "Roles",
 				type: "multilink",
@@ -220,8 +235,8 @@ export const SPECS = {
 		label: "Skills",
 		singular: "skill",
 		titleField: "title",
-		listFields: ["name", "title", "description"],
-		subtitle: (doc) => doc.description,
+		listFields: ["name", "title", "description", "is_global"],
+		searchFields: ["title", "description"],
 		fields: [
 			{
 				name: "title",
@@ -230,20 +245,6 @@ export const SPECS = {
 				required: true,
 				rename: true,
 				locked: system,
-			},
-			enabled,
-			{
-				name: "is_global",
-				label: "Available to all agents",
-				type: "check",
-				description: "Every agent can use it, not only the ones it is added to.",
-			},
-			{
-				name: "user_invocable",
-				label: "User invocable",
-				type: "check",
-				description:
-					"Anyone chatting with the agent can start it by typing /skill: and its name.",
 			},
 			{
 				name: "description",
@@ -262,6 +263,20 @@ export const SPECS = {
 				required: true,
 				description: "The steps to follow.",
 				locked: system,
+			},
+			{ ...enabled, section: "Access" },
+			{
+				name: "is_global",
+				label: "Available to all agents",
+				type: "check",
+				description: "Every agent can use it, not only the ones it is added to.",
+			},
+			{
+				name: "user_invocable",
+				label: "User invocable",
+				type: "check",
+				description:
+					"Anyone chatting with the agent can start it by typing /skill: and its name.",
 			},
 		],
 	},
@@ -355,27 +370,38 @@ export const SPECS = {
 			"doc_event",
 			"cron_expression",
 		],
-		subtitle: (doc) =>
-			doc.event === "Scheduled"
-				? `${doc.agent} · ${doc.cron_expression}`
-				: `${doc.agent} · ${doc.target_doctype} ${doc.doc_event}`,
+		searchFields: ["title", "agent", "target_doctype"],
 		fields: [
-			{ name: "title", label: "Title", type: "text", required: true, rename: true },
-			enabled,
-			{ name: "agent", label: "Agent", type: "link", link: "Flow Agent", required: true },
+			{
+				name: "title",
+				label: "Title",
+				type: "text",
+				required: true,
+				rename: true,
+				half: true,
+			},
+			{
+				name: "agent",
+				label: "Agent",
+				type: "link",
+				link: "Flow Agent",
+				required: true,
+				half: true,
+			},
+			{
+				name: "prompt_template",
+				label: "Prompt template",
+				type: "code",
+				language: "jinja",
+				required: true,
+				description: "What to ask the agent. {{ doc.name }} inserts the record's name.",
+			},
 			{
 				name: "event",
 				label: "Event",
 				type: "select",
 				options: ["DocType Event", "Scheduled"],
-			},
-			{
-				name: "run_as",
-				label: "Run as",
-				type: "link",
-				link: "User",
-				description:
-					"The agent acts as this user. Empty means whoever created the trigger.",
+				section: "When",
 			},
 			{
 				name: "target_doctype",
@@ -383,6 +409,7 @@ export const SPECS = {
 				type: "link",
 				link: "DocType",
 				when: (doc) => doc.event === "DocType Event",
+				half: true,
 			},
 			{
 				name: "doc_event",
@@ -390,6 +417,7 @@ export const SPECS = {
 				type: "select",
 				options: ["after_insert", "on_update", "on_submit", "on_cancel", "on_trash"],
 				when: (doc) => doc.event === "DocType Event",
+				half: true,
 			},
 			{
 				name: "cron_expression",
@@ -412,13 +440,14 @@ export const SPECS = {
 				description:
 					'Only run when this is true, for example doc.status == "Open". A multi-line condition must set result to True or False.',
 			},
+			{ ...enabled, section: "Access" },
 			{
-				name: "prompt_template",
-				label: "Prompt template",
-				type: "code",
-				language: "jinja",
-				required: true,
-				description: "What to ask the agent. {{ doc.name }} inserts the record's name.",
+				name: "run_as",
+				label: "Run as",
+				type: "link",
+				link: "User",
+				description:
+					"The agent acts as this user. Empty means whoever created the trigger.",
 			},
 		],
 	},
