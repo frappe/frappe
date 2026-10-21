@@ -229,12 +229,12 @@
 											@update:open="(open) => setMenu(s, open)"
 										>
 											<button
-												class="row-action chat-options absolute right-1 top-1/2 z-10 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:text-ink-gray-7"
+												class="row-action chat-options absolute right-0.5 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8"
 												:class="menuFor === s.session_id ? 'text-ink-gray-7 opacity-100' : 'opacity-0 group-hover:opacity-100'"
 												title="Session options"
 												@pointerdown.stop
 											>
-												<span class="lucide-ellipsis size-3.5" aria-hidden="true" />
+												<span class="lucide-ellipsis size-4" aria-hidden="true" />
 											</button>
 										</ChatMenu>
 									</template>
