@@ -18,6 +18,7 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date, sha256_hash
+from frappe.utils.logging import get_log_db, log_table
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -397,6 +398,108 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 
 		validate_auth()
 		self.assertEqual(frappe.session.user, self.user_email)
+
+
+class TestAPIKeyAuthFailureLog(IntegrationTestCase):
+	"""Failed API key authentication is written to the Activity Log, a bounded number of times."""
+
+	SUBJECT = "API key authentication failed%"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.user_email = "test_api_auth_failure@test.com"
+		if not frappe.db.exists("User", cls.user_email):
+			frappe.get_doc(doctype="User", email=cls.user_email, first_name="API Auth Failure").insert(
+				ignore_permissions=True
+			)
+		cls.api_secret = generate_keys(cls.user_email)["api_secret"]
+		cls.api_key = frappe.db.get_value("User", cls.user_email, "api_key")
+		frappe.db.commit()
+
+	def setUp(self):
+		self._request = getattr(frappe.local, "request", None)
+		self._request_ip = getattr(frappe.local, "request_ip", None)
+		self._login_manager = getattr(frappe.local, "login_manager", None)
+		self.addCleanup(self._restore)
+		self._reset()
+
+	def _restore(self):
+		frappe.local.request = self._request
+		frappe.local.request_ip = self._request_ip
+		frappe.local.login_manager = self._login_manager
+		frappe.set_user("Administrator")
+		self._reset()
+
+	def _reset(self):
+		# Activity Log rows live in the log database, not in the site database
+		db = get_log_db()
+		qb, table = log_table("Activity Log")
+		db.sql(qb.from_(table).where(table.subject.like(self.SUBJECT)).delete())
+		db.commit()
+		frappe.cache.delete_value(
+			[f"api_auth_failure_logged:{self.user_email}", "api_auth_failure_logged:unknown"]
+		)
+
+	def _entries(self):
+		return frappe.get_all(
+			"Activity Log",
+			filters={"subject": ["like", self.SUBJECT]},
+			fields=["user", "status", "operation", "subject", "ip_address"],
+		)
+
+	def _request_with(self, api_key, api_secret, request_ip="10.0.0.1"):
+		env = EnvironBuilder(headers={"Authorization": f"token {api_key}:{api_secret}"}).get_environ()
+		frappe.local.request = Request(env)
+		frappe.local.request_ip = request_ip
+		frappe.local.login_manager = frappe._dict(user="Guest")
+		frappe.set_user("Guest")
+
+	def _fail_with(self, api_key, api_secret, **kwargs):
+		self._request_with(api_key, api_secret, **kwargs)
+		with self.assertRaises(frappe.AuthenticationError):
+			validate_auth()
+
+	def test_wrong_secret_is_logged_for_that_user(self):
+		self._fail_with(self.api_key, "not-the-secret")
+
+		(entry,) = self._entries()
+		self.assertEqual(entry.user, self.user_email)
+		self.assertEqual(entry.status, "Failed")
+		self.assertEqual(entry.ip_address, "10.0.0.1")
+		self.assertEqual(entry.subject, "API key authentication failed: invalid API secret")
+
+	def test_unknown_key_is_logged_without_the_key_or_secret(self):
+		self._fail_with("unknown-key-123", "unknown-secret-456")
+
+		(entry,) = self._entries()
+		self.assertEqual(entry.status, "Failed")
+		self.assertEqual(entry.subject, "API key authentication failed: invalid API key")
+		self.assertNotIn("unknown-key-123", frappe.as_json(entry))
+		self.assertNotIn("unknown-secret-456", frappe.as_json(entry))
+
+	def test_repeated_failures_are_logged_once_per_interval(self):
+		for i in range(5):
+			self._fail_with(self.api_key, "not-the-secret")
+			self._fail_with(f"unknown-key-{i}", "x")
+
+		self.assertEqual(len(self._entries()), 2)
+
+	def test_failed_authentication_does_not_commit_pending_changes(self):
+		frappe.db.set_value("User", self.user_email, "first_name", "Changed In Request")
+		self._fail_with(self.api_key, "not-the-secret")
+		frappe.db.rollback()
+
+		self.assertEqual(frappe.db.get_value("User", self.user_email, "first_name"), "API Auth Failure")
+
+	def test_valid_credentials_still_authenticate_after_failures(self):
+		self._fail_with(self.api_key, "not-the-secret")
+		self.assertEqual(len(self._entries()), 1)
+
+		self._request_with(self.api_key, self.api_secret)
+		validate_auth()
+		self.assertEqual(frappe.session.user, self.user_email)
+		self.assertEqual(len(self._entries()), 1)
 
 
 class TestLoginAttemptTracker(IntegrationTestCase):

@@ -3,6 +3,7 @@
 import base64
 import binascii
 import hmac
+from typing import NoReturn
 from urllib.parse import quote, unquote, urlencode, urlparse
 
 from werkzeug.wrappers import Response
@@ -30,6 +31,7 @@ SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
 MAX_PASSWORD_SIZE = 512
+API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
 
 
 class HTTPRequest:
@@ -765,7 +767,7 @@ def validate_auth_via_api_keys(authorization_header):
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
 	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
 	if not api_key or not api_secret:
-		raise frappe.AuthenticationError
+		reject_api_key_auth("missing API key or secret")
 
 	doctype = frappe_authorization_source or "User"
 	try:
@@ -773,10 +775,10 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			doctype=doctype, filters={"api_key": api_key, "enabled": True}, fieldname=["name"]
 		)
 	except Exception:
-		raise frappe.AuthenticationError
+		reject_api_key_auth("invalid API key")
 
 	if not docname:
-		raise frappe.AuthenticationError
+		reject_api_key_auth("invalid API key")
 	form_dict = frappe.local.form_dict
 	doc_secret = get_decrypted_password(doctype, docname, fieldname="api_secret", raise_exception=False)
 	if doc_secret and hmac.compare_digest(api_secret.encode(), doc_secret.encode()):
@@ -788,7 +790,24 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
 	else:
-		raise frappe.AuthenticationError
+		reject_api_key_auth("invalid API secret", user=docname if doctype == "User" else None)
+
+
+def reject_api_key_auth(reason: str, user: str | None = None) -> NoReturn:
+	"""Log a failed login and reject the request.
+
+	At most one entry is written per user (or for unknown keys) each interval, so failed
+	requests cannot grow the Activity Log without bound. Neither the key nor the secret that
+	was sent is recorded.
+	"""
+	throttle_key = f"api_auth_failure_logged:{user or 'unknown'}"
+	if not frappe.cache.get_value(throttle_key, expires=True):
+		frappe.cache.set_value(throttle_key, 1, expires_in_sec=API_AUTH_FAILURE_LOG_INTERVAL)
+		add_authentication_log(
+			f"API key authentication failed: {reason}", user or _("Unknown User"), status="Failed"
+		)
+
+	raise frappe.AuthenticationError
 
 
 def validate_auth_via_hooks():
