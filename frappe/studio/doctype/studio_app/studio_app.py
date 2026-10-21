@@ -205,8 +205,6 @@ class StudioApp(WebsiteGenerator):
 		validate_standard_app_change(self)
 		for page in self.pages:
 			frappe.delete_doc("Studio Page", page, force=True)
-		for component in frappe.get_all("Studio Component", {"studio_app": self.name}, pluck="name"):
-			frappe.delete_doc("Studio Component", component, force=True)
 
 		if can_export(self):
 			self.delete_app_folder()
@@ -358,8 +356,6 @@ class StudioApp(WebsiteGenerator):
 				"frappe_app": target_app,
 			},
 		)
-		frappe.db.set_value("Studio Component", {"studio_app": self.name}, "is_standard", 1)
-
 		self.is_standard = 1
 		self.frappe_app = target_app
 		self.save()
@@ -376,7 +372,6 @@ class StudioApp(WebsiteGenerator):
 		router_restored = self.restore_router_script_from_file()
 
 		frappe.db.set_value("Studio Page", {"studio_app": self.name}, "is_standard", 0)
-		frappe.db.set_value("Studio Component", {"studio_app": self.name}, "is_standard", 0)
 
 		self.is_standard = 0
 		self.save()
@@ -395,7 +390,6 @@ class StudioApp(WebsiteGenerator):
 
 		app_path = self.create_app_folder()
 		self.export_studio_pages(app_path)
-		self.export_studio_components()
 		self.add_to_studio_apps_txt()
 
 	def create_app_folder(self) -> str:
@@ -432,10 +426,6 @@ class StudioApp(WebsiteGenerator):
 		for page in self.pages:
 			page_doc = frappe.get_doc("Studio Page", page)
 			page_doc.export_page()
-
-	def export_studio_components(self):
-		for component in frappe.get_all("Studio Component", {"studio_app": self.name}, pluck="name"):
-			frappe.get_doc("Studio Component", component).export_component()
 
 	def get_router_file_path(self) -> str:
 		return os.path.join(self.get_folder_path(), "router.ts")

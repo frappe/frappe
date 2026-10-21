@@ -5,7 +5,6 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 
 from studio.build import build_custom_apps
-from studio.sync_json import own_component
 
 
 def after_migrate():
@@ -103,11 +102,10 @@ def sync_components(app_folder):
 	if not os.path.exists(studio_component_folder):
 		return
 
-	studio_app = read_json_file(get_app_file_path(app_folder)).get("name")
 	for component in os.listdir(studio_component_folder):
 		if component.endswith(".json"):
 			component_path = os.path.join(studio_component_folder, component)
-			import_file_by_path(component_path, pre_process=own_component(studio_app))
+			import_file_by_path(component_path)
 
 
 def get_app_file_path(app_folder) -> str:

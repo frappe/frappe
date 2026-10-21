@@ -114,6 +114,7 @@ class StudioPage(Document):
 			# script lives in the companion .ts (code mode), so keep it out of the JSON
 			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
 			self.relocate_on_retitle()
+			self.export_components()
 
 	def export_script_to_file(self):
 		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
@@ -389,6 +390,19 @@ class StudioPage(Document):
 		if with_filename:
 			path.append(self.get_file_name())
 		return frappe.get_app_source_path(self.frappe_app, *path)
+
+	def export_components(self):
+		blocks = [*(parse_json(self.blocks) or []), *(parse_json(self.draft_blocks) or [])]
+		components = get_components_for_blocks(blocks)
+		if not components:
+			return
+		frappe.create_folder(self.get_component_folder_path())
+		for component in components:
+			doc = frappe.get_doc("Studio Component", component.name)
+			write_document_file(doc, folder=self.get_component_folder_path())
+
+	def get_component_folder_path(self) -> str:
+		return frappe.get_app_source_path(self.frappe_app, "studio", self.studio_app, "studio_components")
 
 	def get_file_name(self):
 		return f"{self.get_export_docname()}.json"

@@ -10,7 +10,6 @@ import useCanvasStore from "@/stores/canvasStore"
 import { toast } from "frappe-ui"
 import type { StudioComponent, ComponentInput } from "@/types/Studio/StudioComponent"
 import useComponentStore from "@/stores/componentStore"
-import useStudioStore from "./studioStore"
 
 const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
@@ -19,7 +18,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const componentStore = useComponentStore()
 
 	async function createComponent(componentName: string, block?: Block | null) {
-		const component: any = { component_name: componentName, studio_app: useStudioStore().activeApp?.name }
+		const component: any = { component_name: componentName }
 		if (block) {
 			component.block = getBlockObjectCopy(block)
 			if (component.block?.parentSlotName) {

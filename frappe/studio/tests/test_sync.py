@@ -72,21 +72,14 @@ class TestSync(IntegrationTestCase):
 	def test_sync_exported_components(self):
 		with exports_in_tempdir():
 			app = make_standard_app()
-			component = make_component("Card", studio_app=app.name)
-			# a file from before components had an app
-			path = os.path.join(component.get_folder_path(), f"{component.name}.json")
-			data = frappe.parse_json(frappe.read_file(path))
-			del data["studio_app"], data["is_standard"]
-			with open(path, "w") as f:
-				f.write(frappe.as_json(data))
+			component = make_component("Card")
+			make_studio_page(app.name, blocks=frappe.as_json([component_ref(component)]))
 			frappe.db.delete("Studio Component", {"name": component.name})
 
 			sync_studio_apps("frappe")
 
 			synced = frappe.get_doc("Studio Component", component.name)
-			self.assertEqual(
-				(synced.component_name, synced.studio_app, synced.is_standard), ("Card", app.name, 1)
-			)
+			self.assertEqual((synced.component_name, synced.is_standard), ("Card", 1))
 
 	def test_before_app_uninstall_deletes_its_apps(self):
 		with exports_in_tempdir():

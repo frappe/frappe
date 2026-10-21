@@ -39,19 +39,13 @@ def sync_file(path: str) -> dict | None:
 	if not doctype or not os.path.exists(path) or is_in_sync(path):
 		return None
 
-	pre_process = own_component(get_studio_relative_parts(path)[0]) if doctype == "Studio Component" else None
 	# `force` because editing JSON on disk doesn't bump its `modified`
-	if not import_file_by_path(path, force=True, pre_process=pre_process):
+	if not import_file_by_path(path, force=True):
 		return None
 
 	# Mirrors frappe stamping `migration_hash` after its own imports.
 	cache_synced_file_hash(path)
 	return synced_doc_identity(path, doctype)
-
-
-def own_component(studio_app: str):
-	"""A component belongs to the app whose folder holds its file, so files from before ownership sync too."""
-	return lambda doc: doc.update({"studio_app": studio_app, "is_standard": 1})
 
 
 def synced_doc_identity(path: str, doctype: str) -> dict:
