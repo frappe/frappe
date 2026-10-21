@@ -76,9 +76,10 @@ def sync_assistant_skills(_app: str) -> None:
 
 
 def sync_builtin_assistant(model: str | None = None) -> None:
-	"""Ensure the system Assistant agent exists and is up-to-date, with every app's skills.
-	Called from after_migrate."""
+	"""Ensure the system Assistant agent exists and is up-to-date, with every app's skills plus
+	the skills and knowledge the site added. Called from after_migrate."""
 	from flow.flow.doctype.flow_skill.flow_skill import sync_skills
+	from flow.knowledge import Knowledge
 	from flow.lib.agent import Agent
 	from flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
@@ -89,16 +90,20 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 	if not model_name:
 		return
 
+	knowledge = []
 	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
 		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
 		if not doc.is_system_generated:
 			return
+		skills += [row.skill for row in doc.skills if row.skill not in skills]
+		knowledge = [Knowledge(row.knowledge_base) for row in doc.knowledge_bases]
 
 	Agent(
 		name=ASSISTANT_AGENT_TITLE,
 		model=model_name,
 		instructions=ASSISTANT_INSTRUCTIONS,
 		tools=BUILTIN_TOOLS,
+		knowledge=knowledge,
 		skills=skills,
 		max_iterations=ASSISTANT_MAX_ITERATIONS,
 	).sync()
