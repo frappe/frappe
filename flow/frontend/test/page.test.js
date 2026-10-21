@@ -222,16 +222,27 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.equal(skillRows().length, 0);
 	assert.equal(el.querySelector("textarea").value, "/skill:review ");
 
-	// a reload keeps the agent, and a model picked for it that the user may still use
+	// a reload keeps the agent, and a model picked for it that the user may still use; another
+	// agent then starts on its own model, even one that shares the first's
 	const prefs = "flow.page.tester@example.com.prefs";
 	const saved = localStorage.getItem(prefs);
 	localStorage.setItem(prefs, JSON.stringify({ ...JSON.parse(saved), lastModel: "Sonnet" }));
+	const writer = { name: "writer", title: "Writer", model: "Opus" };
 	const reloaded = document.createElement("div");
-	const again = createApp(FlowPage, { boot }).use(router);
-	again.mount(reloaded);
-	await until(() => reloaded.querySelector("button[title='Agent']"));
-	assert.equal(reloaded.querySelector("button[title='Agent']").textContent.trim(), "Reviewer");
+	const again = createApp(FlowPage, { boot: { ...boot, agents: [...boot.agents, writer] } });
+	again.use(router).mount(reloaded);
+	const agentAgain = () => reloaded.querySelector("button[title='Agent']");
+	await until(agentAgain);
+	assert.equal(agentAgain().textContent.trim(), "Reviewer");
 	assert.ok(reloaded.querySelector("fieldset button[title^='Sonnet']"));
+	agentAgain().click();
+	await nextTick();
+	await nextTick();
+	[...agentAgain().parentElement.querySelectorAll("[data-palette-item]")]
+		.find((row) => row.textContent.includes("Writer"))
+		.click();
+	await nextTick();
+	assert.ok(reloaded.querySelector("fieldset button[title^='Opus']"));
 	again.unmount();
 	localStorage.setItem(prefs, saved);
 

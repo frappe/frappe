@@ -207,14 +207,18 @@ watch(
 );
 // a new chat starts on its agent's model; one picked for it holds until the agent changes,
 // and over a reload while the user may still use it
+let onLoad = true;
 watch(
-	() =>
-		!store.state.sessionId &&
-		page.state.boot.agents.find((agent) => agent.name === page.state.agent)?.model,
-	(model, before) => {
+	[
+		() => !store.state.sessionId,
+		() => page.state.agent,
+		() => page.state.boot.agents.find((agent) => agent.name === page.state.agent)?.model,
+	],
+	([draft, , model]) => {
 		const picked = store.state.prefs.lastModel;
-		const kept = before === undefined && page.state.boot.models.some((m) => m.name === picked);
-		if (model && !kept) store.selectModel(model);
+		const kept = onLoad && page.state.boot.models.some((m) => m.name === picked);
+		onLoad = false;
+		if (draft && model && !kept) store.selectModel(model);
 	},
 	{ immediate: true }
 );
