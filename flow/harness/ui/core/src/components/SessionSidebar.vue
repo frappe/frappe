@@ -184,7 +184,7 @@
 									:label="flow.sessionTitle(s)"
 									class="group relative h-7 select-none data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none data-[state=inactive]:text-ink-gray-8"
 									:class="[!grouped && 'quiet', menuFor === s.session_id && 'menu-open bg-surface-gray-2', dragClass(s.session_id)]"
-									:active="s.session_id === flow.state.sessionId"
+									:active="chatInView && s.session_id === flow.state.sessionId"
 									:data-reorder="canReorder ? `chat:${group.cwd ?? ''}` : null"
 									:data-key="s.session_id"
 									@click="pick(s)"
@@ -296,7 +296,11 @@ import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
 
-const props = defineProps({ open: { type: Boolean, default: true } })
+// chatInView: false while a host shows a page in the open chat's place, so no chat row is marked
+const props = defineProps({
+	open: { type: Boolean, default: true },
+	chatInView: { type: Boolean, default: true },
+})
 // pick: a chat or a new chat was picked, for a host showing a page in the chat's place
 const emit = defineEmits(["close", "pick"])
 const flow = inject("flow")

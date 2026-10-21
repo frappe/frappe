@@ -4,7 +4,7 @@
 			<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
 				<FeatherIcon name="sidebar" class="h-3.5 w-3.5" />
 			</button>
-			<button class="flow-icon-btn max-md:hidden" title="New chat" @click="router.push('/')">
+			<button class="flow-icon-btn max-md:hidden" title="New chat" @click="newChat">
 				<FeatherIcon name="plus" class="h-3.5 w-3.5" />
 			</button>
 		</template>
@@ -57,4 +57,10 @@ defineProps({
 const emit = defineEmits(["back"]); // the back button, on a record's page
 const flow = inject("flow");
 const router = useRouter();
+
+// a new chat, in place of the one waiting behind the page
+function newChat() {
+	flow.startNewChat();
+	router.push("/");
+}
 </script>

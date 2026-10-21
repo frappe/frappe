@@ -2,7 +2,12 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8">
-		<SessionSidebar :open="sidebarOpen" @close="store.setSidebarOpen(false)" @pick="leavePage">
+		<SessionSidebar
+			:open="sidebarOpen"
+			:chat-in-view="!pageKind"
+			@close="store.setSidebarOpen(false)"
+			@pick="leavePage"
+		>
 			<!-- a group under its own heading, spaced as the chats' heading is under it -->
 			<template #nav>
 				<h3
@@ -30,7 +35,13 @@
 			class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm"
 		>
 			<RecordPage v-if="pageKind" :kind="pageKind" />
-			<main v-else class="relative flex min-w-0 flex-1 flex-col bg-surface-base">
+			<!-- hidden under a page, not taken away: the chat waits as it was, its box's draft and
+			     files too, and inert, so nothing in it answers keys meanwhile -->
+			<main
+				v-show="!pageKind"
+				:inert="pageKind ? true : null"
+				class="relative flex min-w-0 flex-1 flex-col bg-surface-base"
+			>
 				<ChatHeader
 					:sidebar-open="sidebarOpen"
 					:workspace="false"
@@ -243,6 +254,11 @@ watch(
 // the route names the open conversation, so links and reloads keep it
 const route = useRoute();
 const router = useRouter();
+// the pages beside the chats, each for whoever may read its records
+const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
+const pageKind = computed(() =>
+	pages.value.some((item) => item.key === route.params.kind) ? route.params.kind : null
+);
 watch(
 	() => store.state.sessionId,
 	(id) => {
@@ -254,40 +270,24 @@ watch(
 watch(
 	() => route.params.session,
 	(id) => {
+		if (pageKind.value) return; // the chat waits behind a page as it was, its box and all
 		if (id && id !== store.state.sessionId) store.openSession(id);
 		else if (!id && store.state.sessionId) store.startNewChat();
 	}
 );
 
-// the pages beside the chats, each for whoever may read its records
-const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
-const pageKind = computed(() =>
-	pages.value.some((item) => item.key === route.params.kind) ? route.params.kind : null
-);
 // a page the user may not read is the new chat
 watch(
 	() => route.params.kind && !pageKind.value,
 	(refused) => refused && router.replace("/"),
 	{ immediate: true }
 );
-// A page stands in a new chat's place: a chat open, or a first message on its way to one (it
-// still runs, in a chat of its own), closes behind it. The box goes with the chat, and what was
-// typed in it comes back with it.
-let draft = "";
+// back from a page at a new chat's address, a chat that opened behind it (a first message's)
+// takes its own
 watch(pageKind, (kind, was) => {
-	if (!kind || was) return;
-	draft = composer.value?.text ?? "";
-	if (store.state.sessionId || store.state.conversation.sending.length) store.startNewChat();
+	if (was && !kind && route.name === "new" && store.state.sessionId)
+		router.replace(`/s/${store.state.sessionId}`);
 });
-watch(
-	pageKind,
-	(kind) => {
-		if (kind || !draft) return;
-		composer.value?.prefill(draft);
-		draft = "";
-	},
-	{ flush: "post" }
-);
 // a chat picked in the sidebar takes the page's place, a step on from it; kept on the page by
 // its unsaved edits, the chat closes again
 async function leavePage() {

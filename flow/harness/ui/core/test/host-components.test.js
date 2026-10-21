@@ -2588,7 +2588,7 @@ function composerFlow(over = {}) {
 const keydown = (target, init) =>
 	target.dispatchEvent(new window.KeyboardEvent("keydown", { bubbles: true, cancelable: true, ...init }))
 
-test("an IME's Enter and Escape stay with it, and Escape stops the run from the page, but not from a field, a dialog or a menu", async (t) => {
+test("an IME's Enter and Escape stay with it, and Escape stops the run from the page, but not from a field, a dialog or a menu, or while its host hides it", async (t) => {
 	let sends = 0
 	let aborts = 0
 	const flow = composerFlow({ send: async () => !!++sends, abort: () => aborts++ })
@@ -2624,6 +2624,11 @@ test("an IME's Enter and Escape stay with it, and Escape stops the run from the 
 	for (const target of outside.querySelectorAll("input, button")) keydown(target, { key: "Escape" })
 	keydown(document.body, { key: "Escape", isComposing: true })
 	assert.equal(aborts, 0)
+	// hidden by its host (inert), as /flow does under a page, the box stops nothing
+	el.setAttribute("inert", "")
+	keydown(document.body, { key: "Escape" })
+	assert.equal(aborts, 0)
+	el.removeAttribute("inert")
 	keydown(document.body, { key: "Escape" })
 	assert.equal(aborts, 1)
 })
@@ -2674,7 +2679,7 @@ test("a spreadsheet range pastes as its text, a screenshot as a picture", async 
 	assert.equal(paste({ "text/plain": "https://e.x/a.png", "text/html": '<meta charset="utf-8"><img src="https://e.x/a.png">' }), true)
 })
 
-test("a palette's Enter picks from the rows that answer its search, whose top row takes the highlight, the keyboard's row keeps it under a resting pointer, and a click on the list leaves the focus in the composer", async (t) => {
+test("a palette's Enter picks from the rows that answer its search, whose top row takes the highlight, the keyboard's row keeps it under a resting pointer, and a click on the list leaves the focus in the composer; inside a view its host hides, it takes no keys", async (t) => {
 	const PalettePanel = await loadComponent("PalettePanel")
 	globalThis.MutationObserver = dom.window.MutationObserver
 	t.after(() => delete globalThis.MutationObserver)
@@ -2696,6 +2701,11 @@ test("a palette's Enter picks from the rows that answer its search, whose top ro
 	list.rows = ["anthropic/claude-opus"]
 	list.busy = false
 	await settle()
+	assert.deepEqual(picked, ["anthropic/claude-opus"])
+	// inside a view its host hides (inert), as /flow's chat under a page, Enter picks nothing
+	el.setAttribute("inert", "")
+	keydown(document.body, { key: "Enter" })
+	el.removeAttribute("inert")
 	assert.deepEqual(picked, ["anthropic/claude-opus"])
 
 	// the keyboard walks past the list's edge, scrolling another row under the resting pointer

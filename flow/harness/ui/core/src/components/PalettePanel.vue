@@ -133,6 +133,8 @@ function onPointerMove(event) {
 // Capture at window level so palettes work whether focus lives in their panel or in
 // the composer textarea, whose text is their search.
 function onKey(event) {
+	// put away with a view the host hides (inert), it answers no keys
+	if (panel.value?.closest("[inert]")) return
 	// an IME's Enter picks its candidate, not a row
 	if (event.isComposing || event.keyCode === 229) return
 	if (event.key === "Escape") {

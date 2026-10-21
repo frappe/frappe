@@ -136,6 +136,7 @@ const props = defineProps({
 	info: { type: Object, required: true }, // the page's entry in PAGES
 	name: { type: String, default: null }, // null for a new record
 });
+const flow = inject("flow");
 const page = inject("flowPage");
 const router = useRouter();
 // the list it was opened from, with its search and filters
@@ -199,13 +200,15 @@ const menu = computed(() => [
 	{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: remove },
 ]);
 
-// an agent the user may chat with starts a new chat from its page
+// an agent the user may chat with starts a new chat from its page, in place of the one waiting
+// behind it
 const canChat = computed(
 	() =>
 		props.spec.doctype === "Flow Agent" &&
 		page.state.boot.agents.some((agent) => agent.name === props.name)
 );
 function chat() {
+	flow.startNewChat();
 	page.state.agent = props.name;
 	router.push("/");
 }

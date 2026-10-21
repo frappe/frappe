@@ -150,21 +150,26 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.match(skills().nextElementSibling.textContent, /No skills/);
 	assert.deepEqual(skillNames(), ["Add a skill"]);
 	assert.equal(skills().parentElement.querySelector("input"), null);
-	// adding one opens the skills page on a blank skill, and Back returns to the chat, with what
-	// was typed in its box
+	// adding one opens the skills page on a blank skill over the chat, which waits hidden and
+	// inert; Back finds it as it was, the same box with what was typed in it (and its files)
 	const typed = el.querySelector("textarea");
+	const chat = typed.closest("main");
 	typed.value = "a draft";
 	typed.dispatchEvent(new Event("input"));
 	skillRows()[0].click();
 	await until(() => router.currentRoute.value.fullPath === "/skills/new");
 	await nextTick();
-	assert.equal(el.querySelector("textarea"), null);
+	assert.equal(chat.style.display, "none");
+	assert.ok(chat.hasAttribute("inert"));
 	assert.equal(el.querySelector("main h1").textContent, "New skill");
 	router.back();
-	await until(() => el.querySelector("textarea")?.value === "a draft");
+	await until(() => chat.style.display !== "none");
+	assert.equal(el.querySelector("textarea"), typed);
+	assert.equal(typed.value, "a draft");
+	assert.ok(!chat.hasAttribute("inert"));
 	assert.equal(skills().getAttribute("aria-expanded"), "false");
-	el.querySelector("textarea").value = "";
-	el.querySelector("textarea").dispatchEvent(new Event("input"));
+	typed.value = "";
+	typed.dispatchEvent(new Event("input"));
 
 	// found by its search; no row to add one
 	const list = () => [...agent().parentElement.querySelectorAll("[data-palette-item]")];
@@ -263,12 +268,21 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 				: [],
 		"frappe.client.get": { doctype: "Flow Agent", name: "reviewer", title: "Reviewer" },
 		"frappe.desk.search.search_link": [],
+		"flow.api.list_sessions": [{ name: "S1", title: "Q3 plan" }],
 	});
 	transport.calls.length = 0;
 	const el = mountPage(t, {
 		boot: { ...boot, permissions: { "Flow Agent": ["read"], "Flow Skill": ["read"] } },
 	});
 	await until(() => called("flow.api.entries"));
+	// the chat stays under a page, hidden; its row is marked only while it shows
+	const chatShown = () => el.querySelector("textarea").closest("main").style.display !== "none";
+	const chatRow = () =>
+		[...el.querySelectorAll("aside [data-stub=SidebarItem]")].find((row) =>
+			row.textContent.includes("Q3 plan")
+		);
+	await until(() => chatRow());
+	assert.equal(chatRow().getAttribute("active"), "true");
 	const links = () => [...el.querySelectorAll("aside [data-stub=SidebarItem][route]")];
 	assert.deepEqual(
 		links().map((row) => [row.getAttribute("route"), row.textContent.trim()]),
@@ -284,7 +298,8 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 	// the list in the chat's place, its title in the bar, nothing to create for a Flow user
 	await router.push("/agents");
 	await until(() => el.querySelector("main a[role=row]"));
-	assert.equal(el.querySelector("textarea"), null);
+	assert.ok(!chatShown());
+	assert.equal(chatRow().getAttribute("active"), "false");
 	assert.equal(links()[0].getAttribute("active"), "true");
 	assert.equal(links()[1].getAttribute("active"), "false");
 	assert.equal(el.querySelector("main h1").textContent, "Agents");
@@ -318,11 +333,11 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 	await until(() => el.querySelector("main a[role=row]"));
 	el.querySelector("main a[role=row]").click();
 	await until(() => router.currentRoute.value.path === "/agents/reviewer" && bar().length);
-	// Start chat: a new chat with this agent
+	// Start chat: a new chat with this agent, in place of the one behind the page
 	[...el.querySelectorAll("main header button")]
 		.find((b) => b.textContent === "Start chat")
 		.click();
-	await until(() => el.querySelector("textarea"));
+	await until(chatShown);
 	assert.equal(router.currentRoute.value.path, "/");
 	assert.equal(el.querySelector("button[title='Agent']").textContent.trim(), "Reviewer");
 
@@ -331,21 +346,37 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 		router.back();
 		await until(() => router.currentRoute.value.path === path);
 	}
-	await until(() => el.querySelector("textarea"));
+	await until(chatShown);
 	assert.equal(opened(), 2);
+	// a page over the open chat leaves it be: back from it, the chat hasn't reloaded
+	await router.push("/skills");
+	await until(() => !chatShown());
+	router.back();
+	await until(chatShown);
+	assert.equal(opened(), 2);
+	assert.equal(chatRow().getAttribute("active"), "true");
+	// with the sidebar hidden, the bar's New chat is a new chat in place of the one behind it
+	await router.push("/skills");
+	el.querySelector("aside button[title='Hide sidebar']").click();
+	await nextTick();
+	el.querySelector("main header button[title='New chat']").click();
+	await until(chatShown);
+	assert.equal(router.currentRoute.value.path, "/");
+	assert.ok(el.querySelector("button[title='Agent']"));
+	el.querySelector("main header button[title='Show sidebar']").click();
 
 	// New chat in the sidebar leaves the page, a step on from it
 	await router.push("/skills");
-	await until(() => !el.querySelector("textarea"));
+	await until(() => !chatShown());
 	[...el.querySelectorAll("aside [data-stub=SidebarItem]")]
 		.find((row) => row.textContent.trim() === "New chat")
 		.click();
-	await until(() => el.querySelector("textarea"));
+	await until(chatShown);
 	assert.equal(router.currentRoute.value.path, "/");
 	assert.equal(router.options.history.state.back, "/skills");
 
-	// a first message still on its way when a page opens runs in its own chat, which isn't
-	// opened behind the page: back from it is a new chat
+	// a first message still on its way when a page opens: its chat opens behind the page, and
+	// back from the page it shows at its own address
 	let created;
 	transport.answers["flow.api.create_session"] = () =>
 		new Promise((resolve) => (created = resolve));
@@ -358,10 +389,10 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 	await router.push("/skills");
 	created(session);
 	await until(() => called("flow.api.run"));
-	assert.equal(opened(), 2);
+	assert.equal(opened(), 3);
 	router.back();
-	await until(() => el.querySelector("textarea"));
-	assert.ok(el.textContent.includes("What can I help you with?"));
+	await until(() => router.currentRoute.value.path === "/s/S1");
+	await until(chatShown);
 
 	// a page the user may not read is the new chat
 	await router.push("/triggers");
@@ -489,7 +520,7 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 	);
 
 	// an unsaved edit: leaving asks, Keep editing stays, Discard goes. A chat picked in the
-	// sidebar opens as it asks, and closes again when the page stays
+	// sidebar meanwhile isn't marked while the page shows, and closes again when it stays
 	type("Helper 2");
 	await nextTick();
 	dialog.asked.length = 0;
@@ -499,9 +530,9 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 		);
 	chat().click();
 	await until(() => dialog.asked.length === 1);
-	assert.equal(chat().getAttribute("active"), "true");
+	assert.equal(chat().getAttribute("active"), "false");
 	dialog.asked[0].actions[0].onClick();
-	await until(() => chat().getAttribute("active") === "false");
+	await new Promise((resolve) => setTimeout(resolve));
 	assert.equal(router.currentRoute.value.path, "/agents/Helper");
 	const go = router.push("/agents");
 	await until(() => dialog.asked.length === 2);
@@ -530,6 +561,11 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 	router.push("/agents");
 	await until(() => router.currentRoute.value.path === "/agents");
 	assert.equal(dialog.asked.length, 3);
+
+	// the chat picked and kept back closed again: back at a new chat's address, it stays there
+	await router.push("/");
+	await new Promise((resolve) => setTimeout(resolve, 20));
+	assert.equal(router.currentRoute.value.path, "/");
 });
 
 test("boot is refetched only for the records it lists, skills when a skill or an agent changes, a renamed agent or model stays the one a new chat starts with, and settings open once on a blank record asked for", async () => {
