@@ -4,9 +4,11 @@ import base64
 import binascii
 import hashlib
 import hmac
+from contextlib import suppress
 from typing import NoReturn
 from urllib.parse import quote, unquote, urlencode, urlparse
 
+import redis
 from werkzeug.wrappers import Response
 
 import frappe
@@ -24,7 +26,7 @@ from frappe.twofactor import (
 	get_cached_user_pass,
 	should_run_2fa,
 )
-from frappe.utils import cint, date_diff, datetime, get_datetime, today
+from frappe.utils import cint, date_diff, datetime, today
 from frappe.utils.password import check_password, get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -544,6 +546,14 @@ def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True, unk
 	return tracker
 
 
+# One script so a counter can never exist without an expiry, which would lock a user out for good.
+COUNT_FAILURE_SCRIPT = """
+local count = redis.call('INCR', KEYS[1])
+if count == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+return count
+"""
+
+
 class LoginAttemptTracker:
 	"""Track login attemts of a user.
 
@@ -573,74 +583,33 @@ class LoginAttemptTracker:
 		self.max_failed_logins = max_consecutive_login_attempts
 
 	@property
-	def login_failed_count(self):
-		return frappe.cache.hget("login_failed_count", self.key)
-
-	@login_failed_count.setter
-	def login_failed_count(self, count):
-		frappe.cache.hset("login_failed_count", self.key, count)
-
-	@login_failed_count.deleter
-	def login_failed_count(self):
-		frappe.cache.hdel("login_failed_count", self.key)
+	def cache_key(self):
+		return frappe.cache.make_key(f"login_failed:{self.key}")
 
 	@property
-	def login_failed_time(self):
-		"""First failed login attempt time within lock interval.
-
-		For every user we track only First failed login attempt time within lock interval of time.
-		"""
-		return frappe.cache.hget("login_failed_time", self.key)
-
-	@login_failed_time.setter
-	def login_failed_time(self, timestamp):
-		frappe.cache.hset("login_failed_time", self.key, timestamp)
-
-	@login_failed_time.deleter
-	def login_failed_time(self):
-		frappe.cache.hdel("login_failed_time", self.key)
+	def login_failed_count(self) -> int:
+		"""Consecutive failures since the first one within the current lock interval."""
+		with suppress(redis.exceptions.ConnectionError):
+			return cint(frappe.cache.get(self.cache_key))  # nosemgrep: frappe-cache-breaks-multitenancy
+		return 0
 
 	def add_failure_attempt(self):
-		"""Log user failure attempts into the system.
-
-		Increase the failure count if new failure is with in current lock interval time period, if not reset the login failure count.
-		"""
-		login_failed_time = self.login_failed_time
-		login_failed_count = self.login_failed_count  # Consecutive login failure count
-		current_time = get_datetime()
-
-		if not (login_failed_time and login_failed_count):
-			login_failed_time, login_failed_count = current_time, 0
-
-		if login_failed_time + self.lock_interval > current_time:
-			login_failed_count += 1
-		else:
-			login_failed_time, login_failed_count = current_time, 1
-
-		self.login_failed_time = login_failed_time
-		self.login_failed_count = login_failed_count
+		"""Count a failure. The key expires `lock_interval` after the first failure, starting a new count."""
+		window = max(1, int(self.lock_interval.total_seconds()))
+		with suppress(redis.exceptions.ConnectionError):
+			frappe.cache.eval(COUNT_FAILURE_SCRIPT, 1, self.cache_key, window)
 
 	def add_success_attempt(self):
 		"""Reset login failures."""
-		del self.login_failed_count
-		del self.login_failed_time
+		with suppress(redis.exceptions.ConnectionError):
+			frappe.cache.delete(self.cache_key)
 
 	def is_user_allowed(self) -> bool:
 		"""Is user allowed to login
 
 		User is not allowed to login if login failures are greater than threshold within in lock interval from first login failure.
 		"""
-		login_failed_time = self.login_failed_time
-		login_failed_count = self.login_failed_count or 0
-		current_time = get_datetime()
-
-		if (
-			login_failed_time
-			and login_failed_time + self.lock_interval > current_time
-			and login_failed_count > self.max_failed_logins
-		):
-			return False
-		return True
+		return self.login_failed_count <= self.max_failed_logins
 
 
 def validate_auth():
@@ -829,45 +798,14 @@ def check_request_ip():
 class UnknownUserLoginAttemptTracker(LoginAttemptTracker):
 	"""Track failed logins for names that match no user.
 
-	Keys expire after the lock interval so arbitrary names cannot grow the cache without bound.
+	The name is hashed and the counter expires with the lock interval, so arbitrary names cannot
+	grow the cache without bound.
 	"""
 
 	def __init__(self, key: str, *args, **kwargs):
 		digest = hashlib.sha256(key.strip().lower().encode()).hexdigest()
 		super().__init__(digest, *args, **kwargs)
 
-	def _get(self, name):
-		return frappe.cache.get_value(f"{name}_unknown:{self.key}", use_local_cache=False)
-
-	def _set(self, name, value):
-		expires_in_sec = int(self.lock_interval.total_seconds())
-		if expires_in_sec < 1:
-			return
-		frappe.cache.set_value(f"{name}_unknown:{self.key}", value, expires_in_sec=expires_in_sec)
-
-	def _delete(self, name):
-		frappe.cache.delete_value(f"{name}_unknown:{self.key}")
-
 	@property
-	def login_failed_count(self):
-		return self._get("login_failed_count")
-
-	@login_failed_count.setter
-	def login_failed_count(self, count):
-		self._set("login_failed_count", count)
-
-	@login_failed_count.deleter
-	def login_failed_count(self):
-		self._delete("login_failed_count")
-
-	@property
-	def login_failed_time(self):
-		return self._get("login_failed_time")
-
-	@login_failed_time.setter
-	def login_failed_time(self, timestamp):
-		self._set("login_failed_time", timestamp)
-
-	@login_failed_time.deleter
-	def login_failed_time(self):
-		self._delete("login_failed_time")
+	def cache_key(self):
+		return frappe.cache.make_key(f"login_failed_unknown:{self.key}")

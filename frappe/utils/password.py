@@ -173,7 +173,9 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 
 
 def delete_login_failed_cache(user):
-	frappe.cache.hdel("login_failed_count", user)
+	from frappe.auth import LoginAttemptTracker
+
+	LoginAttemptTracker(user).add_success_attempt()
 
 
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):
