@@ -9,8 +9,16 @@ from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
 
 import frappe
-from frappe.auth import CookieManager, LoginAttemptTracker, validate_auth, validate_ip_address
-from frappe.core.doctype.user.user import generate_keys
+from frappe.auth import (
+	CookieManager,
+	LoginAttemptTracker,
+	LoginManager,
+	get_login_attempt_tracker,
+	validate_api_key_secret,
+	validate_auth,
+	validate_ip_address,
+)
+from frappe.core.doctype.user.user import User, generate_keys
 from frappe.frappeclient import AuthError, FrappeClient
 from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds, hash_sid
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -18,6 +26,8 @@ from frappe.tests.test_api import FrappeAPITestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date, sha256_hash
+from frappe.utils.logging import get_log_db, log_table
+from frappe.utils.password import check_password
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -86,6 +96,70 @@ class TestAuth(IntegrationTestCase):
 			cookies = CookieManager()
 			cookies.set_cookie("sid", "test")
 			self.assertFalse(cookies.cookies["sid"]["secure"])
+
+	def test_locked_account_response_matches_unknown_account(self):
+		self.addCleanup(frappe.form_dict.clear)
+		unknown = "unknown_auth@example.com"
+		ips = [f"10.8.0.{i}" for i in range(6)]
+
+		def cleanup():
+			for key in [self.test_user_email, *ips]:
+				LoginAttemptTracker(key).add_success_attempt()
+			get_login_attempt_tracker(
+				unknown, raise_locked_exception=False, unknown_user=True
+			).add_success_attempt()
+
+		self.addCleanup(cleanup)
+
+		def attempt(usr, ip):
+			frappe.local.request_ip = ip
+			frappe.local.response = frappe._dict()
+			frappe.local.message_log = []
+			frappe.form_dict.update({"usr": usr, "pwd": "wrong_pwd_012"})
+			try:
+				LoginManager.__new__(LoginManager).authenticate()
+			except (frappe.AuthenticationError, frappe.SecurityException) as e:
+				return (
+					type(e),
+					frappe.local.response.get("message"),
+					[m["message"] for m in frappe.local.message_log],
+				)
+
+		with self.change_settings("System Settings", commit=True, allow_consecutive_login_attempts=2):
+			known = [attempt(self.test_user_email, ip) for ip in ips]
+			unknown_results = [attempt(unknown, ip) for ip in ips]
+
+		self.assertEqual(known, unknown_results)
+		self.assertEqual(known[0][:2], (frappe.AuthenticationError, "Invalid login credentials"))
+		self.assertEqual(known[-1][0], frappe.SecurityException)
+		self.assertIn("Too many failed login attempts", known[-1][2][0])
+
+	def test_unknown_account_login_without_lock_interval(self):
+		self.addCleanup(frappe.form_dict.clear)
+		settings = {"allow_consecutive_login_attempts": 2, "allow_login_after_fail": 0}
+		with self.change_settings("System Settings", commit=True, **settings):
+			frappe.local.request_ip = "10.8.1.1"
+			frappe.local.response = frappe._dict()
+			frappe.form_dict.update({"usr": "unknown_auth@example.com", "pwd": "wrong_pwd_012"})
+			with self.assertRaises(frappe.AuthenticationError):
+				LoginManager.__new__(LoginManager).authenticate()
+		self.assertEqual(frappe.local.response.get("message"), "Invalid login credentials")
+
+	def test_unknown_account_checks_a_password_hash(self):
+		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
+			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
+		verify.assert_called_once()
+
+	def test_user_without_a_password_checks_a_password_hash(self):
+		email = "no_password_auth@example.com"
+		frappe.delete_doc("User", email, force=True)
+		frappe.get_doc(doctype="User", email=email, first_name="No Password", send_welcome_email=0).insert()
+		self.addCleanup(frappe.delete_doc, "User", email, force=True)
+
+		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
+			with self.assertRaises(frappe.AuthenticationError):
+				check_password(email, "wrong_pwd_012")
+		verify.assert_called_once()
 
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_allow_login_using_mobile(self):
@@ -397,6 +471,98 @@ class TestIPRestrictionForAPIAuth(IntegrationTestCase):
 
 		validate_auth()
 		self.assertEqual(frappe.session.user, self.user_email)
+
+
+class TestAPIKeyAuthFailureLog(IntegrationTestCase):
+	"""Failed API key authentication is written to the Activity Log, a bounded number of times."""
+
+	SUBJECT = "API key authentication failed%"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.user_email = "test_api_auth_failure@example.com"
+		if not frappe.db.exists("User", cls.user_email):
+			frappe.get_doc(doctype="User", email=cls.user_email, first_name="API Auth Failure").insert(
+				ignore_permissions=True
+			)
+		cls.api_secret = generate_keys(cls.user_email)["api_secret"]
+		cls.api_key = frappe.db.get_value("User", cls.user_email, "api_key")
+
+	def setUp(self):
+		self._request = getattr(frappe.local, "request", None)
+		self._request_ip = getattr(frappe.local, "request_ip", None)
+		self._login_manager = getattr(frappe.local, "login_manager", None)
+		self.addCleanup(self._restore)
+		self._reset()
+
+	def _restore(self):
+		frappe.local.request = self._request
+		frappe.local.request_ip = self._request_ip
+		frappe.local.login_manager = self._login_manager
+		frappe.set_user("Administrator")
+		self._reset()
+
+	def _reset(self):
+		# Activity Log rows live in the log database, not in the site database
+		db = get_log_db()
+		qb, table = log_table("Activity Log")
+		db.sql(qb.from_(table).where(table.subject.like(self.SUBJECT)).delete())
+		db.commit()
+		frappe.cache.delete_value(
+			[f"api_auth_failure_logged:{self.user_email}", "api_auth_failure_logged:unknown"]
+		)
+
+	def _entries(self):
+		return frappe.get_all(
+			"Activity Log",
+			filters={"subject": ["like", self.SUBJECT]},
+			fields=["user", "status", "operation", "subject", "ip_address"],
+		)
+
+	def _request_with(self, api_key, api_secret, request_ip="10.0.0.1"):
+		env = EnvironBuilder(headers={"Authorization": f"token {api_key}:{api_secret}"}).get_environ()
+		frappe.local.request = Request(env)
+		frappe.local.request_ip = request_ip
+		frappe.local.login_manager = frappe._dict(user="Guest")
+		frappe.set_user("Guest")
+
+	def _fail_with(self, api_key, api_secret, **kwargs):
+		self._request_with(api_key, api_secret, **kwargs)
+		with self.assertRaises(frappe.AuthenticationError):
+			validate_auth()
+
+	def test_failed_api_key_auth_is_logged_without_the_credentials(self):
+		self._fail_with(self.api_key, "not-the-secret")
+		self._fail_with("unknown-key-123", "unknown-secret-456")
+
+		entries = {entry.user: entry for entry in self._entries()}
+		self.assertEqual(len(entries), 2)
+
+		known = entries[self.user_email]
+		self.assertEqual(known.status, "Failed")
+		self.assertEqual(known.ip_address, "10.0.0.1")
+		self.assertEqual(known.subject, "API key authentication failed: invalid API secret")
+
+		unknown = next(entry for user, entry in entries.items() if user != self.user_email)
+		self.assertEqual(unknown.subject, "API key authentication failed: invalid API key")
+		for entry in entries.values():
+			for sent in ("not-the-secret", "unknown-key-123", "unknown-secret-456", self.api_key):
+				self.assertNotIn(sent, frappe.as_json(entry))
+
+	def test_repeated_failures_are_logged_once_per_interval(self):
+		for i in range(5):
+			self._fail_with(self.api_key, "not-the-secret")
+			self._fail_with(f"unknown-key-{i}", "x")
+
+		self.assertEqual(len(self._entries()), 2)
+
+	def test_failed_key_lookup_is_rejected_without_a_log_entry(self):
+		self._request_with(self.api_key, "x")
+		with self.assertRaises(frappe.AuthenticationError):
+			validate_api_key_secret(self.api_key, "x", frappe_authorization_source="ToDo")
+
+		self.assertEqual(self._entries(), [])
 
 
 class TestLoginAttemptTracker(IntegrationTestCase):

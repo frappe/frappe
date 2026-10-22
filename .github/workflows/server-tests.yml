@@ -65,7 +65,8 @@ jobs:
         index: [1, 2]
     services:
       postgres:
-        image: postgres:18.0
+        # An empty image skips the service, so mariadb jobs do not wait for postgres to start.
+        image: ${{ matrix.db == 'postgres' && 'postgres:18.0' || '' }}
         ports:
           - 5432:5432
         env:
