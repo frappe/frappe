@@ -34,8 +34,14 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 		# personal accounts (outlook.com, hotmail) share this tenant ID and use other servers
 		"personal_tenant": "9188040d-6c67-4c5b-b112-36a304b66dad",
 		"personal_servers": {"email_server": "imap-mail.outlook.com", "smtp_server": "smtp-mail.outlook.com"},
-		# codes in the error description that mean the tenant's admin must approve the app
-		"admin_approval_errors": ("AADSTS65001", "AADSTS90094"),
+		# result code for each text found in an error, by where the error comes from
+		"errors": {
+			"sign_in": {"admin_approval": ("AADSTS65001", "AADSTS90094")},
+			"save": {
+				"smtp_disabled": ("SmtpClientAuthentication",),
+				"imap_disabled": ("authenticated but not connected",),
+			},
+		},
 	},
 }
 
@@ -171,7 +177,7 @@ def callback(
 	# the provider can only send the browser back with a GET, which is rolled back unless it commits;
 	# the state note above ties this request to the user's own sign-in
 	frappe.db.commit()  # keeps the mailbox or the Error Log  # nosemgrep
-	land(note["redirect_to"], result, account_email if account_name else email)
+	land(note["redirect_to"], result, account_email if account_name else email, note["provider"])
 
 
 def connect_mailbox(
@@ -183,9 +189,8 @@ def connect_mailbox(
 ) -> tuple[str, str | None]:
 	"""Return the result code, and the address signed in to once the provider has given it."""
 	if error:
-		admin_approval_errors = ONE_CLICK_PROVIDERS[note["provider"]].get("admin_approval_errors", ())
-		if any(c in (error_description or "") for c in admin_approval_errors):
-			return "admin_approval", None
+		if result := matched_error(note["provider"], "sign_in", error_description):
+			return result, None
 		if error == "access_denied":
 			return "cancelled", None
 		if error == "not_team_member":  # from Central: this browser isn't logged in to the site's team
@@ -227,14 +232,19 @@ def connect_mailbox(
 		frappe.db.rollback()
 		delete_relay_app(connected_app)
 		frappe.log_error("Email OAuth connect failed")
-		message = str(e)
-		if "SmtpClientAuthentication" in message:
-			return ("smtp_disabled_personal" if personal else "smtp_disabled"), email
-		if "authenticated but not connected" in message:
-			return "imap_disabled", email
-		return "failed", email
+		result = matched_error(provider, "save", str(e)) or "failed"
+		if result == "smtp_disabled" and personal:
+			result = "smtp_disabled_personal"
+		return result, email
 
 	return ("reconnected" if account_name else "connected"), email
+
+
+def matched_error(provider: str, source: str, message: str | None) -> str | None:
+	"""Return the result code whose text, from the provider's errors for this source, is in the message."""
+	for result, texts in ONE_CLICK_PROVIDERS[provider].get("errors", {}).get(source, {}).items():
+		if any(t in (message or "") for t in texts):
+			return result
 
 
 def create_relay_app(note: dict, email: str, token: dict) -> str:
@@ -310,9 +320,13 @@ def delete_relay_app(connected_app: str | None) -> None:
 	frappe.delete_doc("Connected App", connected_app, ignore_permissions=True)
 
 
-def land(redirect_to: str, result: str, mailbox: str | None = None) -> None:
+def land(redirect_to: str, result: str, mailbox: str | None = None, provider: str | None = None) -> None:
 	url = urlparse(sanitize_redirect(redirect_to))
-	query = urlencode({"email_oauth": result} | ({"email_oauth_mailbox": mailbox} if mailbox else {}))
+	query = urlencode(
+		{"email_oauth": result}
+		| ({"email_oauth_mailbox": mailbox} if mailbox else {})
+		| ({"email_oauth_provider": provider} if provider else {})
+	)
 	redirect(url._replace(query=f"{url.query}&{query}" if url.query else query).geturl())
 
 

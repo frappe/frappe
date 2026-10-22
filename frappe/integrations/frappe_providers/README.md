@@ -62,6 +62,6 @@ The provider must return an `id_token` with an `email` or `preferred_username` c
      - `service`: the Email Account `service` option this provider signs in. One provider per service.
      - `servers`: `email_server` and `smtp_server`.
      - Optional `personal_tenant` and `personal_servers`, for providers whose personal accounts use other servers.
-     - Optional `admin_approval_errors`: codes in the provider's error description that mean an admin must approve the app.
+     - Optional `errors`: the result code for each text found in an error. `sign_in` holds those for the provider's error description, and `save` those for the error from saving the mailbox, for example `{"save": {"smtp_disabled": ("...",)}}`.
 2. **New result codes**, if `connect_mailbox` returns any: add their text to both `show_email_oauth_result` (`email_account_list.js`) and `oauthMessage` (`ui/src/components/EmailAccounts/services.ts`).
 3. **Tests**: `frappe/tests/test_email_oauth.py`, plus `ui/src/components/EmailAccounts/tests/` for any new result code.

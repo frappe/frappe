@@ -270,7 +270,7 @@ class TestCallback(IntegrationTestCase):
 
 		self.assertEqual(
 			self.landed(),
-			"http://hd.localhost:8000/helpdesk?email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com",
+			"http://hd.localhost:8000/helpdesk?email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft",
 		)
 		self.assertIsNone(frappe.cache.get_value(f"pkce_verifier:{state}"))
 		self.pilot.assert_called_once_with(
@@ -302,7 +302,7 @@ class TestCallback(IntegrationTestCase):
 		email_oauth.callback(state=self.note(redirect_to="/desk/email-account?view=list#top"), code="c")
 		self.assertEqual(
 			self.landed(),
-			"http://hd.localhost:8000/desk/email-account?view=list&email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com#top",
+			"http://hd.localhost:8000/desk/email-account?view=list&email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft#top",
 		)
 
 	def test_second_mailbox_is_added_beside_the_first(self) -> None:
@@ -325,7 +325,7 @@ class TestCallback(IntegrationTestCase):
 		email_oauth.callback(state=self.note(), code="c2")
 		self.assertEqual(
 			self.landed(),
-			"http://hd.localhost:8000/helpdesk?email_oauth=already_connected&email_oauth_mailbox=one%40email-oauth.example.com",
+			"http://hd.localhost:8000/helpdesk?email_oauth=already_connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft",
 		)
 		self.assertEqual(frappe.db.count("Connected App"), apps)
 
@@ -339,7 +339,7 @@ class TestCallback(IntegrationTestCase):
 
 		self.assertTrue(
 			self.landed().endswith(
-				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com"
+				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft"
 			)
 		)
 		account.reload()
@@ -362,7 +362,7 @@ class TestCallback(IntegrationTestCase):
 
 		self.assertTrue(
 			self.landed().endswith(
-				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com"
+				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft"
 			)
 		)
 		self.assertTrue(frappe.db.exists("Connected App", account.connected_app))
@@ -394,7 +394,7 @@ class TestCallback(IntegrationTestCase):
 
 		self.assertTrue(
 			self.landed().endswith(
-				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com"
+				"?email_oauth=reconnected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft"
 			)
 		)
 		self.assertNotEqual(
@@ -424,7 +424,7 @@ class TestCallback(IntegrationTestCase):
 
 		self.assertTrue(
 			self.landed().endswith(
-				"?email_oauth=wrong_mailbox&email_oauth_mailbox=one%40email-oauth.example.com"
+				"?email_oauth=wrong_mailbox&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft"
 			)
 		)
 		self.assertEqual(
@@ -444,7 +444,7 @@ class TestCallback(IntegrationTestCase):
 
 		self.assertEqual(
 			self.landed(),
-			"http://hd.localhost:8000/helpdesk?email_oauth=cancelled&email_oauth_mailbox=one%40email-oauth.example.com",
+			"http://hd.localhost:8000/helpdesk?email_oauth=cancelled&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft",
 		)
 
 	def test_reconnect_of_a_deleted_mailbox_fails_and_leaves_nothing(self) -> None:
@@ -453,7 +453,7 @@ class TestCallback(IntegrationTestCase):
 
 		email_oauth.callback(state=self.note(email_account="deleted@email-oauth.example.com"), code="c")
 
-		self.assertTrue(self.landed().endswith("?email_oauth=failed"))
+		self.assertTrue(self.landed().endswith("?email_oauth=failed&email_oauth_provider=microsoft"))
 		self.assertEqual(frappe.db.count("Connected App"), apps)
 		self.assertEqual(frappe.db.count("Token Cache"), caches)
 		self.assertFalse(frappe.db.exists("Email Account", {"email_id": "one@email-oauth.example.com"}))
@@ -472,7 +472,10 @@ class TestCallback(IntegrationTestCase):
 		):
 			with self.subTest(description), patch("frappe.log_error") as log:
 				email_oauth.callback(state=self.note(), error=error, error_description=description)
-				self.assertEqual(self.landed(), f"http://hd.localhost:8000/helpdesk?email_oauth={result}")
+				self.assertEqual(
+					self.landed(),
+					f"http://hd.localhost:8000/helpdesk?email_oauth={result}&email_oauth_provider=microsoft",
+				)
 				if result == "failed":
 					log.assert_called_once_with("Email OAuth sign-in failed", f"{error}: {description}")
 		self.pilot.assert_not_called()
@@ -490,20 +493,22 @@ class TestCallback(IntegrationTestCase):
 	def test_used_code_is_expired(self) -> None:
 		self.pilot.side_effect = frappe.ValidationError("invalid_grant")
 		email_oauth.callback(state=self.note(), code="old")
-		self.assertTrue(self.landed().endswith("/helpdesk?email_oauth=expired"))
+		self.assertTrue(
+			self.landed().endswith("/helpdesk?email_oauth=expired&email_oauth_provider=microsoft")
+		)
 
 	def test_pilot_unreachable_is_failed(self) -> None:
 		self.pilot.side_effect = frappe.ValidationError("Could not reach your server")
 		with patch("frappe.log_error") as log:
 			email_oauth.callback(state=self.note(), code="c")
-		self.assertTrue(self.landed().endswith("/helpdesk?email_oauth=failed"))
+		self.assertTrue(self.landed().endswith("/helpdesk?email_oauth=failed&email_oauth_provider=microsoft"))
 		log.assert_called_once_with("Email OAuth connect failed")
 
 	def test_off_host_redirect_lands_on_this_host(self) -> None:
 		email_oauth.callback(state=self.note(redirect_to="https://evil.example/steal"), code="c")
 		self.assertEqual(
 			self.landed(),
-			"http://hd.localhost:8000/desk?email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com",
+			"http://hd.localhost:8000/desk?email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft",
 		)
 
 	def test_failed_save_leaves_nothing_behind(self) -> None:
@@ -526,7 +531,7 @@ class TestCallback(IntegrationTestCase):
 				log.assert_called_once_with("Email OAuth connect failed")
 				self.assertTrue(
 					self.landed().endswith(
-						f"?email_oauth={result}&email_oauth_mailbox=one%40email-oauth.example.com"
+						f"?email_oauth={result}&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=microsoft"
 					)
 				)
 				self.assertEqual(frappe.db.count("Connected App"), apps)

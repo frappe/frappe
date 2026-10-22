@@ -9,9 +9,11 @@ frappe.listview_settings["Email Account"] = {
 		const code = frappe.route_options?.email_oauth;
 		if (code) {
 			const mailbox = frappe.route_options.email_oauth_mailbox;
+			const provider = frappe.route_options.email_oauth_provider;
 			delete frappe.route_options.email_oauth;
 			delete frappe.route_options.email_oauth_mailbox;
-			show_email_oauth_result(code, mailbox);
+			delete frappe.route_options.email_oauth_provider;
+			show_email_oauth_result(code, mailbox, provider);
 		}
 	},
 	add_fields: ["default_incoming", "default_outgoing", "enable_incoming", "enable_outgoing"],
@@ -140,7 +142,7 @@ function add_email_account_dialog() {
 	d.show();
 }
 
-function show_email_oauth_result(code, mailbox) {
+function show_email_oauth_result(code, mailbox, provider) {
 	if (code === "connected" || code === "reconnected") {
 		const named = mailbox?.length <= 254 && frappe.utils.validate_type(mailbox, "email");
 		const name = named && frappe.utils.escape_html(mailbox);
@@ -157,22 +159,34 @@ function show_email_oauth_result(code, mailbox) {
 		});
 		return;
 	}
-	const messages = {
+	const provider_error_messages = {
+		microsoft: {
+			admin_approval: __("Your Microsoft 365 admin must approve Frappe first."),
+			smtp_disabled:
+				__(
+					"SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it."
+				) +
+				` <a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission#enable-smtp-auth-for-specific-mailboxes" target="_blank">${__(
+					"How to turn it on"
+				)}</a>`,
+			smtp_disabled_personal: __(
+				"Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox."
+			),
+			imap_disabled: __(
+				"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."
+			),
+		},
+	};
+	const error_messages = {
 		cancelled: __("Sign-in was cancelled."),
-		admin_approval: __("Your Microsoft 365 admin must approve Frappe first."),
+		admin_approval: __("Your admin must approve Frappe first."),
 		expired: __("Sign-in took too long. Please try again."),
-		smtp_disabled:
-			__(
-				"SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it."
-			) +
-			` <a href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission#enable-smtp-auth-for-specific-mailboxes" target="_blank">${__(
-				"How to turn it on"
-			)}</a>`,
+		smtp_disabled: __("SMTP is turned off for this mailbox. Ask your admin to turn it on."),
 		smtp_disabled_personal: __(
-			"Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox."
+			"This mailbox can't send email from other apps. Please use a work mailbox."
 		),
 		imap_disabled: __(
-			"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."
+			"IMAP is turned off for this mailbox. Turn it on in your mail settings or ask your admin."
 		),
 		already_connected: __("This mailbox is already connected."),
 		wrong_mailbox: __(
@@ -184,7 +198,10 @@ function show_email_oauth_result(code, mailbox) {
 	};
 	frappe.msgprint({
 		title: __("Connect mailbox"),
-		message: messages[code] || __("Couldn't connect. Please try again."),
+		message:
+			provider_error_messages[provider]?.[code] ||
+			error_messages[code] ||
+			__("Couldn't connect. Please try again."),
 		indicator: "red",
 	});
 }
