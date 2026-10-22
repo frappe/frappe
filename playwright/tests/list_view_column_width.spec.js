@@ -218,6 +218,7 @@ test.describe("List View — Column Widths on a saved layout", () => {
 			columns: JSON.stringify([
 				{ fieldname: "status", label: "Status", width: 100 },
 				{ fieldname: "priority", label: "Priority", width: 120 },
+				{ fieldname: "date", label: "Due Date" },
 			]),
 		});
 
@@ -236,6 +237,16 @@ test.describe("List View — Column Widths on a saved layout", () => {
 			fieldname: "columns",
 		});
 		return JSON.parse(message.columns).find((col) => col.fieldname === fieldname).width;
+	}
+
+	async function open_edit_layout(page) {
+		await page.locator(".custom-btn-group.view-switcher button:visible").click();
+		await page.locator(".es-menu__item", { hasText: "List View" }).first().hover();
+		await page.locator(".es-menu__item", { hasText: "Manage Layouts" }).first().click();
+		await page
+			.locator(".layout-manage-row", { hasText: layout_name })
+			.locator(".layout-action-edit")
+			.click();
 	}
 
 	test("dragging on a global layout saves the width only for the user", async ({
@@ -280,6 +291,21 @@ test.describe("List View — Column Widths on a saved layout", () => {
 			.toBe(true);
 	});
 
+	test("Edit Layout does not save the user's width into a column without one", async ({
+		page,
+		api,
+	}) => {
+		await drag_resize_column(page, "date", 150);
+
+		await open_edit_layout(page);
+		await expect(
+			page.locator('.modal-dialog:visible .layout-column-width[data-fieldname="date"]')
+		).toHaveValue("200");
+		await page.getByRole("button", { name: "Update", exact: true }).click();
+
+		await expect.poll(() => get_layout_width(api, "date")).toBe(200);
+	});
+
 	test("Edit Layout starts from the layout's widths and keeps the user's other widths", async ({
 		page,
 		desk,
@@ -288,13 +314,7 @@ test.describe("List View — Column Widths on a saved layout", () => {
 		await drag_resize_column(page, "status", 40);
 		await drag_resize_column(page, "priority", 60);
 
-		await page.locator(".custom-btn-group.view-switcher button:visible").click();
-		await page.locator(".es-menu__item", { hasText: "List View" }).first().hover();
-		await page.locator(".es-menu__item", { hasText: "Manage Layouts" }).first().click();
-		await page
-			.locator(".layout-manage-row", { hasText: layout_name })
-			.locator(".layout-action-edit")
-			.click();
+		await open_edit_layout(page);
 
 		const layout_width_input = page.locator(
 			'.modal-dialog:visible .layout-column-width[data-fieldname="priority"]'

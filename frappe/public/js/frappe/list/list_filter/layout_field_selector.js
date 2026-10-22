@@ -36,7 +36,13 @@ export default class LayoutFieldSelector {
 		if (cint(field.width)) return cint(field.width);
 
 		const preserved = this.preserved_widths.find((col) => col.fieldname === field.fieldname);
-		if (preserved?.width) return cint(preserved.width);
+		if (preserved) {
+			return (
+				cint(preserved.width) ||
+				cint(frappe.meta.get_docfield(this.doctype, field.fieldname)?.width) ||
+				this.get_default_column_width(field.fieldname, idx)
+			);
+		}
 
 		const user_width = this.list_view.get_user_column_widths()[field.fieldname];
 		if (cint(user_width)) return cint(user_width);
