@@ -99,7 +99,7 @@ runs:
   - name: Install System Dependencies
     uses: awalsh128/cache-apt-pkgs-action@v1.6.3
     with:
-      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev
+      packages: libcups2-dev redis-server mariadb-client libmariadb-dev postgresql-client-18 libpq-dev libgl1 libglib2.0-0
 
   - shell: bash -e {0}
     run: |
