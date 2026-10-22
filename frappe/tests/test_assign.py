@@ -36,6 +36,16 @@ class TestAssign(IntegrationTestCase):
 		assignments = frappe.desk.form.assign_to.get(dict(doctype=doc.doctype, name=doc.name))
 		self.assertEqual(len(assignments), 0)
 
+	def test_add_checks_permission_without_assignees(self):
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "test"}).insert()
+
+		with self.set_user("test4@example.com"):
+			self.assertRaises(
+				frappe.PermissionError,
+				frappe.desk.form.assign_to.add,
+				{"doctype": todo.doctype, "name": todo.name, "assign_to": []},
+			)
+
 	def test_assign_single(self):
 		c = frappe.get_doc("Contact Us Settings")
 		self._test_basic_assign_on_document(c)
