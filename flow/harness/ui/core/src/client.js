@@ -85,6 +85,19 @@ export class DaemonClient {
 	updateSettings(settings) {
 		return this.request("PATCH", "/settings", { body: { settings } })
 	}
+	// the sidebar's workspaces, kept by the daemon: named folders it groups chats under
+	workspaces() {
+		return this.request("GET", "/workspaces")
+	}
+	addWorkspace(path) {
+		return this.request("POST", "/workspaces", { body: { path } })
+	}
+	renameWorkspace(path, name) {
+		return this.request("PATCH", "/workspaces", { body: { path, name } })
+	}
+	removeWorkspace(path) {
+		return this.request("DELETE", "/workspaces", { params: { path } })
+	}
 	// skill files under the global root and, with a cwd, the project's
 	skillFiles(cwd = null) {
 		return this.request("GET", "/skills", { params: cwd ? { cwd } : {} })

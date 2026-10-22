@@ -45,6 +45,7 @@ class ServerPolicy:
 		tools_api: `/tools`, the list of tools a session may enable; 403 when off.
 		settings_api: `/settings`, the web UI's preferences in `~/.flow/settings.json`;
 			403 when off.
+		workspaces_api: `/workspaces`, the web UI's named folders; 403 when off.
 	"""
 
 	profile: str = "local"
@@ -60,6 +61,7 @@ class ServerPolicy:
 	skills_api: bool = True
 	tools_api: bool = True
 	settings_api: bool = True
+	workspaces_api: bool = True
 
 
 # Only the session verbs the remote client actually uses stay on; everything that
@@ -80,6 +82,7 @@ DEPLOYED = ServerPolicy(
 	skills_api=False,
 	tools_api=False,
 	settings_api=False,
+	workspaces_api=False,
 )
 
 
@@ -114,6 +117,7 @@ _BOOL_FIELDS = frozenset(
 		"skills_api",
 		"tools_api",
 		"settings_api",
+		"workspaces_api",
 	}
 )
 

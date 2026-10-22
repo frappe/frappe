@@ -37,6 +37,7 @@ from flow_harness.session.skills import (
 	parse_skill_invocation,
 	sorted_skills,
 )
+from flow_harness.session.workspaces import WorkspaceRegistry
 from flow_harness.tools import Tool, select_tools
 from flow_harness.tools.builtins.subagent import describe_agents, subagent
 
@@ -74,7 +75,11 @@ class _SessionPaths:
 
 @dataclass(frozen=True)
 class SessionInfo:
-	"""One row of `SessionStore.list()` — enough for a session picker."""
+	"""One row of `SessionStore.list()` — enough for a session picker.
+
+	Attributes:
+		workspace: The folder of the workspace the chat is in, if any.
+	"""
 
 	session_id: str
 	state: str
@@ -82,6 +87,7 @@ class SessionInfo:
 	latest_seq: int
 	cwd: str
 	title: str | None = None
+	workspace: str | None = None
 
 
 class SessionStore:
@@ -108,6 +114,11 @@ class SessionStore:
 		self.event_sink = event_sink
 		configured_roots = allowed_roots if allowed_roots is not None else server_config.ALLOWED_ROOTS
 		self.allowed_roots = normalize_roots(configured_roots)
+		self.workspaces = WorkspaceRegistry(
+			os.path.join(data_dir, "workspaces.json"),
+			allowed_roots=self.allowed_roots,
+			folders=lambda: [info.cwd for info in self.list()],
+		)
 		self.ignore_hidden_files = ignore_hidden_files
 		# (ServerPolicy.tool_allowlist). None = uncapped.
 		self.tool_allowlist = frozenset(tool_allowlist) if tool_allowlist is not None else None
@@ -424,12 +435,13 @@ class SessionStore:
 		`get` for exact values."""
 		items: builtins.list[tuple[float, SessionInfo]] = []
 		seen: set[str] = set()
+		workspaces = self.workspaces.paths()
 		for paths in self._iter_session_paths():
 			sid = os.path.basename(paths.meta)[: -len(_META_SUFFIX)]
 			if sid in seen:
 				continue
 			seen.add(sid)
-			info = self._describe(sid, paths)
+			info = self._describe(sid, paths, workspaces)
 			if info is None or info.latest_seq == 0:
 				continue
 			try:
@@ -440,7 +452,7 @@ class SessionStore:
 		items.sort(key=lambda item: item[0], reverse=True)
 		return [info for _, info in items]
 
-	def _describe(self, sid: str, paths: _SessionPaths) -> SessionInfo | None:
+	def _describe(self, sid: str, paths: _SessionPaths, workspaces: set[str]) -> SessionInfo | None:
 		session = self._cache.peek(sid)
 		if session is not None:
 			return SessionInfo(
@@ -450,6 +462,7 @@ class SessionStore:
 				latest_seq=session.log.latest_seq,
 				cwd=session.config.cwd,
 				title=session.config.title or _read_first_user_message(session.log.path),
+				workspace=_workspace_of(session.config.cwd, workspaces),
 			)
 		try:
 			with open(paths.meta, encoding="utf-8") as f:
@@ -470,6 +483,7 @@ class SessionStore:
 			latest_seq=latest_seq,
 			cwd=config.cwd,
 			title=config.title or _read_first_user_message(paths.log),
+			workspace=_workspace_of(config.cwd, workspaces),
 		)
 
 	def save_meta(self, session: Session) -> None:
@@ -512,6 +526,7 @@ class SessionStore:
 			resolve_skill=partial(self.resolve_skill, config),
 			persist_skill_catalog=self.save_skill_catalog,
 			on_settled=self._session_settled,
+			on_first_message=self._first_message,
 			compose_tools=self._compose_tools,
 			run_end_marker=Path(paths.run_end_marker),
 		)
@@ -519,6 +534,10 @@ class SessionStore:
 	def _session_settled(self, session: Session) -> None:
 		"""A run, a title or the last stream ended: re-cost the session, then evict."""
 		self._cache.settled(session)
+
+	def _first_message(self, session: Session) -> None:
+		"""A chat joins its folder's workspace with its first message."""
+		self.workspaces.ensure(session.config.cwd)
 
 	def save_skill_catalog(self, session: Session) -> None:
 		"""Write the skill catalog after an invoked skill was added to it."""
@@ -608,6 +627,13 @@ def _project_directory_name(cwd: str) -> str:
 	slug = _PROJECT_SLUG_RE.sub("-", basename).strip(".-_")[:_PROJECT_SLUG_LIMIT] or "project"
 	digest = hashlib.sha256(os.fsencode(os.path.normcase(canonical))).hexdigest()[:_PROJECT_HASH_LENGTH]
 	return f"{slug}--{digest}"
+
+
+def _workspace_of(cwd: str, workspaces: set[str]) -> str | None:
+	if not workspaces:
+		return None
+	path = canonical_path(cwd)
+	return path if path in workspaces else None
 
 
 def _session_paths(directory: str, sid: str) -> _SessionPaths:

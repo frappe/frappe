@@ -118,7 +118,7 @@
 						@click="chooseFolder"
 					>
 						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none" />
-						<span class="truncate">{{ startCwd.split("/").filter(Boolean).pop() }}</span>
+						<span class="truncate">{{ flow.folderName(startCwd) }}</span>
 					</button>
 					<span v-if="git" class="hidden min-w-0 items-center gap-1.5 px-1.5 sm:flex" title="Branch">
 						<FeatherIcon name="git-branch" class="h-3.5 w-3.5 flex-none" />

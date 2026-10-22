@@ -209,6 +209,7 @@ class Session:
 		resolve_skill: Callable[[str], Skill | None] | None = None,
 		persist_skill_catalog: Callable[[Session], None] | None = None,
 		on_settled: Callable[[Session], None] | None = None,
+		on_first_message: Callable[[Session], None] | None = None,
 		compose_tools: Callable[[SessionConfig], dict[str, Tool]],
 		run_end_marker: Path,
 	):
@@ -229,6 +230,7 @@ class Session:
 		self._resolve_skill = resolve_skill
 		self._persist_skill_catalog = persist_skill_catalog
 		self._on_settled = on_settled
+		self._on_first_message = on_first_message
 		self._subagent_runner = SubagentRunner(
 			self._commit, _run_error, compose_tools, log, config.max_concurrent_subagents
 		)
@@ -326,6 +328,9 @@ class Session:
 				return RunHandle(status="steered", from_seq=self.log.latest_seq)
 			user_message, _ = self._user_message(message, attachment_ids or [])
 			should_title = self._should_title()
+			first = not any(isinstance(m, UserMessage) for m in self.transcript.messages)
+			if first and self._on_first_message is not None:
+				self._on_first_message(self)
 			self._budget = loop.TokenBudget(self.config.token_budget)
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)
 			handle = self._start_operation(loop.run(user_message, inputs))

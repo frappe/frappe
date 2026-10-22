@@ -143,6 +143,9 @@ export function createFlowStore(client, options = {}) {
 		sessionsMore: false, // the host has pages past the last row
 		sessionsLoading: false,
 		sessionQuery: "", // the title search the list was loaded under
+		// the daemon's workspaces, { path, name }: named folders the sidebar groups chats under, a
+		// list row's `workspace` being one's path; null when the daemon keeps none
+		folders: null,
 		sessionId: null,
 		session: null, // GET /sessions/{sid} payload
 		conversation: initialConversation(),
@@ -330,9 +333,12 @@ export function createFlowStore(client, options = {}) {
 		listQuery = query
 		const before = more ? state.sessions.at(-1)?.modified : undefined
 		state.sessionsLoading = true
+		const folders = more ? null : refreshFolders()
 		let data
 		try {
+			if (!state.folders) await folders // the daemon makes them as it first lists them
 			data = await guard(() => client.sessions({ query, before }))
+			await folders // a row lands with the workspace it names
 		} finally {
 			if (own === listRequest) state.sessionsLoading = false
 		}
@@ -340,6 +346,9 @@ export function createFlowStore(client, options = {}) {
 		state.sessionQuery = query
 		state.sessionsMore = !!data.more
 		state.sessions = more ? [...state.sessions, ...data.sessions] : data.sessions
+		// a new chat with no folder yet starts in the latest workspace
+		const latest = latestFolder()
+		if (!state.sessionId && !state.prefs.cwd && latest) setCwd(latest)
 		// the open session's row mirrors its loaded detail: the live stream keeps that
 		// newer than a list served before an event landed
 		const open = state.sessions.find((info) => info.session_id === state.session?.session_id)
@@ -360,6 +369,62 @@ export function createFlowStore(client, options = {}) {
 
 	function loadMoreSessions() {
 		if (state.sessionsMore && !state.sessionsLoading) return refreshSessions({ more: true })
+	}
+
+	// silent: an older daemon, or one whose policy keeps them off, leaves chats grouped by folder
+	let foldersRequest = 0
+	async function refreshFolders() {
+		if (typeof client.workspaces !== "function") return
+		const own = ++foldersRequest
+		let data
+		try {
+			data = await client.workspaces()
+		} catch {
+			return
+		}
+		if (own !== foldersRequest) return
+		state.folders = data.workspaces
+	}
+
+	const isFolder = (path) => !!path && !!state.folders?.some((folder) => folder.path === path)
+
+	// the workspace of the latest chat, else the one added last
+	function latestFolder() {
+		const latest = state.sessions.find((session) => isFolder(session.workspace))
+		return latest?.workspace ?? state.folders?.at(-1)?.path ?? null
+	}
+
+	// a folder's name in the sidebar: its workspace's, else its own
+	function folderName(path) {
+		const name = state.folders?.find((folder) => folder.path === path)?.name
+		return name ?? path.split(/[\\/]/).filter(Boolean).pop() ?? path
+	}
+
+	// an existing folder's workspace, added at once, with no chats yet; null where the daemon keeps none
+	async function addFolder(path) {
+		if (!state.folders) return null
+		const data = await guard(() => client.addWorkspace(path))
+		if (!data) return null
+		if (!isFolder(data.workspace.path)) state.folders = [...state.folders, data.workspace]
+		return data.workspace
+	}
+
+	async function renameFolder(path, name) {
+		const data = await guard(() => client.renameWorkspace(path, name))
+		if (!data) return
+		state.folders = state.folders.map((folder) => (folder.path === path ? data.workspace : folder))
+		notify("Workspace renamed")
+	}
+
+	// it leaves the sidebar, its folder and chats stay: the chats are in no workspace now, and a new
+	// chat about to start there moves to another
+	async function removeFolder(path) {
+		const ok = await guard(() => client.removeWorkspace(path))
+		if (ok === null) return
+		state.folders = state.folders.filter((folder) => folder.path !== path)
+		for (const session of state.sessions) if (session.workspace === path) session.workspace = null
+		if (!state.sessionId && state.prefs.cwd === path) setCwd(latestFolder())
+		notify("Workspace deleted")
 	}
 
 	// Typing filters the loaded rows, which is exact only while every session is loaded;
@@ -635,11 +700,10 @@ export function createFlowStore(client, options = {}) {
 		state.sessions = [row, ...state.sessions.filter((info) => info.session_id !== sid)]
 	}
 
-	// Reset to the blank "new chat" state, carrying the active project's cwd
-	// unless the caller supplies one. No server call — send() creates it lazily.
+	// Reset to the blank "new chat" state, in the caller's folder or newChatCwd's.
+	// No server call — send() creates it lazily.
 	function startNewChat({ cwd = null } = {}) {
-		const listedSession = state.sessions.find((session) => session.session_id === state.sessionId)
-		const nextCwd = cwd ?? state.session?.config?.cwd ?? listedSession?.cwd
+		const nextCwd = cwd ?? newChatCwd()
 		closeStream()
 		resetWorkspace()
 		swapQueue(null)
@@ -650,8 +714,18 @@ export function createFlowStore(client, options = {}) {
 		state.conversation = initialConversation()
 		loadedSkillsFor = null
 		state.prefs.lastSession = null
-		if (nextCwd) state.prefs.cwd = nextCwd
+		state.prefs.cwd = nextCwd
 		savePrefs()
+	}
+
+	// a new chat keeps its folder; else the open chat's, and where the daemon keeps workspaces
+	// only one of theirs: the open chat's, the last one used, else the latest
+	function newChatCwd() {
+		if (!state.sessionId && state.prefs.cwd) return state.prefs.cwd
+		const listed = state.sessions.find((session) => session.session_id === state.sessionId)
+		const open = state.session?.config?.cwd ?? listed?.cwd
+		if (!state.folders) return open ?? state.prefs.cwd
+		return [listed?.workspace, open, state.prefs.cwd].find(isFolder) ?? latestFolder()
 	}
 
 	async function newSession({ cwd = null, model = null, sending = [] } = {}) {
@@ -1722,6 +1796,10 @@ export function createFlowStore(client, options = {}) {
 		saveDefaultPreset,
 		renameSession,
 		deleteSession,
+		folderName,
+		addFolder,
+		renameFolder,
+		removeFolder,
 		pickFolder,
 		attachmentPreview,
 		sessionTitle,

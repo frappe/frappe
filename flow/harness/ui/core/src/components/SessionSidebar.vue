@@ -39,7 +39,7 @@
 		</div>
 
 		<!-- outside the scroller, so search stays in reach down a long list -->
-		<div v-if="flow.state.sessions.length || searchOpen" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
+		<div v-if="flow.state.sessions.length || flow.state.folders?.length || searchOpen" class="list-head mt-[9px] flex h-8 flex-none items-center gap-0.5 px-2">
 			<!-- 4px short of the header and at its top, so the field stands clear of the first row -->
 			<label
 				v-if="searchOpen"
@@ -104,7 +104,11 @@
 					<SidebarItem
 						v-if="group.cwd"
 						class="group relative h-8 select-none"
-						:class="dragClass(group.cwd)"
+						:class="[
+							dragClass(group.cwd),
+							menuFor === group.cwd && 'menu-open bg-surface-gray-2',
+							flow.state.folders && !layout.phone && 'workspace-menu',
+						]"
 						:aria-expanded="group.open"
 						:data-reorder="canReorder ? 'folder' : null"
 						:data-key="group.cwd"
@@ -144,21 +148,31 @@
 								</p>
 							</div>
 						</HoverCard>
-						<!-- a phone's row shows no button: a long press opens its menu, from where the button sits -->
+						<!-- its menu, then a new chat; a phone's row shows no buttons: a long press opens
+						     its menu, from where they sit -->
 						<template #suffix>
 							<Dropdown
-								v-if="layout.phone"
+								v-if="layout.phone || flow.state.folders"
 								align="end"
-								:options="[{ label: 'New chat', icon: 'lucide-square-pen', onClick: () => startNewChat(group.cwd) }]"
+								:options="workspaceOptions(group)"
 								:open="menuFor === group.cwd"
-								@update:open="(open) => (menuFor = open ? group.cwd : null)"
+								@update:open="(open) => setMenu(group.cwd, open)"
 							>
 								<template #trigger>
-									<span class="row-action absolute right-1 top-1/2 size-5 -translate-y-1/2" />
+									<span v-if="layout.phone" class="row-action absolute right-1 top-1/2 size-5 -translate-y-1/2" />
+									<button
+										v-else
+										class="row-action absolute right-7 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:text-ink-gray-7"
+										:class="menuFor === group.cwd ? 'text-ink-gray-7' : 'flow-hover-reveal'"
+										title="Workspace options"
+										@pointerdown.stop
+									>
+										<span class="lucide-ellipsis size-3.5" aria-hidden="true" />
+									</button>
 								</template>
 							</Dropdown>
 							<button
-								v-else
+								v-if="!layout.phone"
 								class="row-action flow-hover-reveal absolute right-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
 								:title="`New chat in ${group.name}`"
 								@click="startNewChat(group.cwd)"
@@ -169,7 +183,7 @@
 						</template>
 					</SidebarItem>
 					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-2xs font-medium text-ink-gray-5">
-						Sessions
+						Ungrouped
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
 					<Transition name="flow-fold">
@@ -217,7 +231,7 @@
 											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
 											<p v-if="s.cwd" class="flex items-center gap-1.5 text-xs text-ink-gray-6">
 												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
-												<span class="truncate">{{ workspaceName(s.cwd) }}</span>
+												<span class="truncate">{{ flow.folderName(s.workspace ?? s.cwd) }}</span>
 											</p>
 										</div>
 									</HoverCard>
@@ -226,7 +240,7 @@
 											:session-id="s.session_id"
 											:title="flow.sessionTitle(s)"
 											:open="menuFor === s.session_id"
-											@update:open="(open) => setMenu(s, open)"
+											@update:open="(open) => setMenu(s.session_id, open)"
 										>
 											<button
 												class="row-action chat-options absolute right-0.5 top-1/2 z-10 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 transition-[color,opacity] hover:bg-surface-gray-4 hover:text-ink-gray-8"
@@ -288,6 +302,7 @@ import { computed, h, inject, nextTick, onBeforeUnmount, onMounted, ref, watch }
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
 import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue"
+import { dialog } from "frappe-ui/src/utils/dialog"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
@@ -355,9 +370,54 @@ function holdCard(key) {
 function releaseCard(key) {
 	if (cardHeld === key) cardHeld = null
 }
-function setMenu(session, open) {
-	menuFor.value = open ? session.session_id : null
+function setMenu(key, open) {
+	menuFor.value = open ? key : null
 	cardFor.value = null
+}
+
+// a workspace's menu: Rename and Delete where the daemon keeps workspaces, after New chat on a
+// phone, whose rows show no buttons
+function workspaceOptions(group) {
+	const own = flow.state.folders
+		? [
+				{ label: "Rename", icon: "lucide-pen", onClick: () => promptRename(group) },
+				{ label: "Delete", icon: "lucide-trash-2", theme: "red", onClick: () => confirmDelete(group) },
+			]
+		: []
+	if (!layout.phone) return own
+	return [{ label: "New chat", icon: "lucide-square-pen", onClick: () => startNewChat(group.cwd) }, ...own]
+}
+
+// each dialog keeps the workspace it was opened for
+function promptRename({ cwd, name }) {
+	dialog.prompt({
+		title: "Rename workspace",
+		size: "lg",
+		fields: [{ name: "name", label: "Name", defaultValue: name, required: true }],
+		confirmLabel: "Rename",
+		onConfirm: ({ values }) => {
+			void flow.renameFolder(cwd, values.name.trim())
+		},
+	})
+}
+
+function confirmDelete({ cwd, name }) {
+	dialog.confirm({
+		title: "Delete workspace?",
+		size: "lg",
+		message: `“${name}” leaves the sidebar. Its folder and chats are kept, and the chats move to Ungrouped.`,
+		actions: [
+			{ label: "Cancel", variant: "outline" },
+			{
+				label: "Delete",
+				variant: "solid",
+				theme: "red",
+				onClick: () => {
+					void flow.removeFolder(cwd)
+				},
+			},
+		],
+	})
 }
 
 // a long chat title crawls left at reading speed while its row is hovered, until its end
@@ -383,14 +443,10 @@ function restTitle(event) {
 }
 onBeforeUnmount(() => clearTimeout(crawlTimer))
 
-function workspaceName(cwd) {
-	return cwd.replace(/[\\/]+$/, "").split(/[\\/]/).filter(Boolean).pop() ?? cwd
-}
-
 const CHATS_SHOWN = 5
 const searching = computed(() => !!debouncedQuery.value.trim())
 const showingAll = ref([]) // workspaces listing all their chats, by folder
-const hasWorkspaces = computed(() => flow.state.sessions.some((session) => session.cwd?.trim()))
+const hasWorkspaces = computed(() => !!flow.state.folders || flow.state.sessions.some((session) => session.cwd?.trim()))
 const grouped = computed(() => hasWorkspaces.value && flow.state.prefs.sidebarGroup !== "list")
 const manual = computed(() => flow.state.prefs.sidebarOrder === "manual")
 // rows drag only where the filters menu shows, so the order can be set back, and over the
@@ -432,14 +488,30 @@ function arrange(items, order = [], keyOf = (item) => item) {
 	return [...items].sort((a, b) => (place.get(keyOf(a)) ?? -1) - (place.get(keyOf(b)) ?? -1))
 }
 
-// every chat and workspace in its manual place, the ones not placed yet newest first on
-// top; `fresh` starts from the newest-first order instead
+// chats by workspace, each workspace by its latest chat, after the daemon's with no chats
+// yet, newest first, unless `empty` is off; chats in none are loose
+function byWorkspace(chats, empty = true) {
+	const kept = flow.state.folders && new Set(flow.state.folders.map((folder) => folder.path))
+	const workspaces = new Map()
+	const loose = []
+	for (const session of chats) {
+		const cwd = kept ? session.workspace : session.cwd?.trim()
+		if (!cwd || (kept && !kept.has(cwd))) loose.push(session)
+		else if (workspaces.has(cwd)) workspaces.get(cwd).chats.push(session)
+		else workspaces.set(cwd, { cwd, chats: [session] })
+	}
+	const unused = kept && empty ? [...kept].filter((cwd) => !workspaces.has(cwd)).reverse() : []
+	return { folders: [...unused.map((cwd) => ({ cwd, chats: [] })), ...workspaces.values()], loose }
+}
+
+// every chat and workspace in its manual place, the ones not placed yet on top as "Last
+// updated" lists them; `fresh` starts from that order instead
 function manualOrders(fresh = false) {
 	const { sessions, prefs } = flow.state
-	const folders = new Set(sessions.map((session) => session.cwd?.trim()).filter(Boolean))
+	const folders = byWorkspace(sessions).folders.map((folder) => folder.cwd)
 	return {
 		chatOrder: arrange(sessions.map((session) => session.session_id), fresh ? [] : prefs.chatOrder),
-		folderOrder: arrange([...folders], fresh ? [] : prefs.folderOrder),
+		folderOrder: arrange(folders, fresh ? [] : prefs.folderOrder),
 	}
 }
 
@@ -457,29 +529,21 @@ watch(
 	{ immediate: true },
 )
 
-// a workspace per folder, most recent or in manual order; chats with no folder come
-// last, ungrouped, and in one list nothing groups
+// a workspace per folder, most recent or in manual order, empty ones hidden while searching;
+// chats in none come last, ungrouped, and in one list nothing groups
 const groups = computed(() => {
 	const chats = manual.value ? arrange(filtered.value, flow.state.prefs.chatOrder, (s) => s.session_id) : filtered.value
 	if (!grouped.value) return [{ cwd: null, open: true, chats }]
-	const workspaces = new Map()
-	const loose = []
-	for (const session of chats) {
-		const cwd = session.cwd?.trim()
-		if (!cwd) loose.push(session)
-		else if (workspaces.has(cwd)) workspaces.get(cwd).chats.push(session)
-		else workspaces.set(cwd, { cwd, name: workspaceName(cwd), chats: [session] })
-	}
-	let folders = [...workspaces.values()]
-	if (manual.value) folders = arrange(folders, flow.state.prefs.folderOrder, (folder) => folder.cwd)
-	const groups = folders.map(({ cwd, name, chats }) => {
+	const { folders, loose } = byWorkspace(chats, !searching.value)
+	const ordered = manual.value ? arrange(folders, flow.state.prefs.folderOrder, (folder) => folder.cwd) : folders
+	const groups = ordered.map(({ cwd, chats }) => {
 		const all = searching.value || showingAll.value.includes(cwd)
 		const shown = all ? chats : chats.filter((s, i) => i < CHATS_SHOWN || s.session_id === flow.state.sessionId)
 		const hidden = chats.length - shown.length
 		const collapsible = !searching.value && all && chats.length > CHATS_SHOWN
 		return {
 			cwd,
-			name,
+			name: flow.folderName(cwd),
 			open: searching.value || flow.state.prefs.openFolders.includes(cwd),
 			chats: shown,
 			toggle: hidden ? `Show ${hidden} more` : collapsible ? "Show less" : null,
@@ -505,7 +569,14 @@ function toggleShowAll(cwd) {
 
 // the chat on screen opens its workspace, each time another one comes on screen
 watch(
-	[() => flow.state.sessionId, () => (flow.state.sessionId ? flow.state.session?.config?.cwd : flow.state.prefs.cwd) ?? null],
+	[
+		() => flow.state.sessionId,
+		() => {
+			const { sessionId, sessions, session, prefs } = flow.state
+			if (!sessionId) return prefs.cwd ?? null
+			return sessions.find((s) => s.session_id === sessionId)?.workspace ?? session?.config?.cwd ?? null
+		},
+	],
 	([, cwd]) => {
 		if (cwd && !flow.state.prefs.openFolders.includes(cwd)) flow.setFolderOpen(cwd, true)
 	},
@@ -608,10 +679,13 @@ async function startNewChat(cwd = null) {
 	flow.startNewChat({ cwd })
 }
 
-// a chat in a folder picked in the daemon's folder dialog
+// a folder picked in the daemon's folder dialog: its workspace at once, and a new chat in it
 async function newWorkspace() {
 	const cwd = await flow.pickFolder()
-	if (cwd) startNewChat(cwd)
+	if (!cwd) return
+	const workspace = await flow.addFolder(cwd)
+	if (flow.state.folders && !workspace) return // refused, as the toast says
+	startNewChat(workspace?.path ?? cwd)
 }
 
 const DEFAULT_WIDTH = 288
@@ -742,6 +816,13 @@ const emptyMessage = computed(() => {
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 	mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 }
+/* a workspace's row has two buttons, its menu's and a new chat's */
+.workspace-menu:hover .row-title,
+[data-flow-tabbing] .workspace-menu:has(:focus-visible) .row-title,
+.workspace-menu.menu-open .row-title {
+	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
+	mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
+}
 /* Tab onto a chat shows its options button, as a hover does (focusRings.js marks the root) */
 [data-flow-tabbing] .group:has(:focus-visible) .chat-options {
 	opacity: 1;
@@ -750,6 +831,10 @@ const emptyMessage = computed(() => {
 	.folder-name {
 		-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 		mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
+	}
+	.workspace-menu .folder-name {
+		-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
+		mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
 	}
 }
 
