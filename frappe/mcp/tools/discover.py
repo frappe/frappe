@@ -19,8 +19,11 @@ PERMISSION_TYPES = ("read", "write", "create", "delete", "submit", "cancel", "am
 SEARCH_LIMIT = 50
 
 
+SearchText = Annotated[str, Field(min_length=1)]
+
+
 class SearchDoctypesArguments(ToolArguments):
-	query: list[Annotated[str, Field(min_length=1)]] | None = Field(default=None, min_length=1)
+	query: SearchText | Annotated[list[SearchText], Field(min_length=1)] | None = None
 
 
 class GetDoctypeSchemaArguments(ToolArguments):
@@ -40,7 +43,9 @@ class ListDocumentMethodsArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
 
 
-def search_doctypes(query: list[str] | None = None) -> list[str]:
+def search_doctypes(query: str | list[str] | None = None) -> list[str]:
+	if isinstance(query, str):
+		query = [query]
 	return frappe.get_all(
 		"DocType",
 		filters={"istable": 0},
@@ -106,7 +111,7 @@ def without(data: dict, *keys: str) -> dict:
 SEARCH_DOCTYPES = Tool(
 	name="search_doctypes",
 	description=(
-		"Search DocType names that contain any of the query strings. "
+		"Search DocType names that contain the query string, or any of a list of them. "
 		"Returns up to 50 names, without child tables."
 	),
 	arguments=SearchDoctypesArguments,

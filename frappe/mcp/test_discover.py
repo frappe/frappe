@@ -62,7 +62,7 @@ class TestDiscover(McpTestCase):
 
 	def test_doctype_search_does_not_search_methods(self):
 		with patch("frappe.api.discovery.search") as methods:
-			result = self.result("search_doctypes", {"query": ["ToDo"]})
+			result = self.result("search_doctypes", {"query": "ToDo"})
 		self.assertIn("ToDo", result["result"])
 		methods.assert_not_called()
 
@@ -119,7 +119,7 @@ class TestDiscover(McpTestCase):
 		for tool, arguments in (
 			("search_doctypes", {"query": []}),
 			("search_doctypes", {"query": [""]}),
-			("search_doctypes", {"query": "ToDo"}),
+			("search_doctypes", {"query": ""}),
 			("search_doctypes", {"query": ["ToDo"], "module": "Desk"}),
 			("get_doctype_schema", {}),
 			("get_doctype_schema", {"doctype": 1}),
