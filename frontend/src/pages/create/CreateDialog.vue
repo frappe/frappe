@@ -20,14 +20,20 @@
 					:disabled="saving"
 					@click="editFullForm"
 				/>
-				<Button variant="solid" :label="__('Save')" :loading="saving" @click="save" />
+				<Button
+					variant="solid"
+					:label="__('Save')"
+					:loading="saving"
+					:disabled="layoutFailed"
+					@click="save"
+				/>
 			</div>
 		</template>
 	</Dialog>
 </template>
 
 <script setup lang="ts">
-import { computed, onBeforeUnmount, provide, ref, watch } from "vue";
+import { computed, provide, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Button, Dialog, ErrorMessage } from "frappe-ui";
 import { createDocument, runMethod } from "@framework/ui/api";
@@ -87,21 +93,20 @@ watch(defaults, (current) => {
 	conditionDoc.value = { ...current, ...values };
 });
 
-let unmounted = false;
-onBeforeUnmount(() => (unmounted = true));
-
 runMethod<Record<string, any>>(GET_NEW_DOC, { doctype }, { http: "GET" }).then(
 	({ data }) => (newDoc.value = data),
 	(exception) => (error.value = errorMessage(exception))
 );
 
+const layoutFailed = computed(() => Boolean(quickEntry.error.value));
+
 quickEntry.settled().then(() => {
-	if (unmounted) return;
-	if (!quickEntry.error.value && !quickEntry.dialog.value) {
+	if (props.request.settled()) return;
+	if (!layoutFailed.value && !quickEntry.dialog.value) {
 		props.request.dismiss();
 		return handOver(values);
 	}
-	if (quickEntry.error.value) error.value = errorMessage(quickEntry.error.value);
+	if (layoutFailed.value) error.value = errorMessage(quickEntry.error.value);
 	shown.value = true;
 });
 
@@ -110,7 +115,7 @@ watch(isOpen, (open) => {
 });
 
 async function save() {
-	if (saving.value) return;
+	if (saving.value || layoutFailed.value) return;
 	const missing = missingRequired(layout.value, doc.value);
 	if (missing.length) {
 		error.value = __("Please fill in {0}", [missing.join(", ")]);

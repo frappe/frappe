@@ -1,7 +1,7 @@
 // The mount sequence. Boot resolves first: the router's base and shape come out of it.
 
 import "@/index.css";
-import { createApp, h } from "vue";
+import { createApp, defineAsyncComponent, h } from "vue";
 import { FrappeUI } from "frappe-ui";
 import { provideSession } from "@framework/ui/composables/useSession";
 // the types module, not the subsystem barrel: the shell must not load the dialog to boot
@@ -18,7 +18,6 @@ import { installTranslate, loadTranslations } from "@/i18n";
 import { loadSprite, symbolGeometry } from "@/icons/sprite";
 import { setDrawnProps, setIconSource, watchClientScripts } from "@/recordPage";
 import { recordDrawnProps } from "@/pages/record/drawnProps";
-import CreateDialog from "@/pages/create/CreateDialog.vue";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
 import { registerCreateDialog } from "@/shell/create";
@@ -45,7 +44,7 @@ async function start() {
 	loadSprite();
 	setIconSource(symbolGeometry);
 	setDrawnProps(recordDrawnProps());
-	registerCreateDialog(CreateDialog);
+	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
 
 	// The address table is awaited: the route table cannot resolve a URL without it, and
 	// it is keyed on `boot.metadata_version`, so it cannot be fetched alongside boot.

@@ -1,49 +1,26 @@
-// Who may create a doctype's records, from the meta's DocPerm rows and the session.
+// Who may create a doctype's records: the desk's rules over the level 0 create right.
 import { describe, expect, it } from "vitest";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { canCreate } from "@/createRight";
 
-const USER = { user: "test@example.com", roles: ["Sales User", "Desk User"], readOnlyMode: false };
-const ADMIN = { user: "Administrator", roles: ["Administrator"], readOnlyMode: false };
+const USER = { user: "test@example.com", createsAtLevel0: true, readOnlyMode: false };
+const ADMIN = { user: "Administrator", createsAtLevel0: false, readOnlyMode: false };
 
 function meta(overrides: Partial<DoctypeMeta> = {}): DoctypeMeta {
-	return {
-		name: "Lead",
-		permissions: [{ role: "Sales User", permlevel: 0, read: 1, write: 1, create: 1 }],
-		...overrides,
-	};
+	return { name: "Lead", ...overrides };
 }
 
 describe("canCreate", () => {
-	it("allows a role with a level 0 create row", () => {
+	it("allows a person who holds the create right at level 0", () => {
 		expect(canCreate(meta(), USER)).toBe(true);
 	});
 
-	it("reads a row with no permlevel as level 0", () => {
-		expect(canCreate(meta({ permissions: [{ role: "Desk User", create: 1 }] }), USER)).toBe(true);
+	it("refuses a person without it", () => {
+		expect(canCreate(meta(), { ...USER, createsAtLevel0: false })).toBe(false);
 	});
 
-	it("refuses when the create row belongs to a role the person lacks", () => {
-		const rows = [{ role: "Sales Manager", permlevel: 0, create: 1 }];
-		expect(canCreate(meta({ permissions: rows }), USER)).toBe(false);
-	});
-
-	it("refuses a role that may read and write but not create", () => {
-		const rows = [{ role: "Sales User", permlevel: 0, read: 1, write: 1, create: 0 }];
-		expect(canCreate(meta({ permissions: rows }), USER)).toBe(false);
-	});
-
-	it("refuses a create row above level 0", () => {
-		const rows = [{ role: "Sales User", permlevel: 1, create: 1 }];
-		expect(canCreate(meta({ permissions: rows }), USER)).toBe(false);
-	});
-
-	it("refuses a meta with no permission rows", () => {
-		expect(canCreate(meta({ permissions: undefined }), USER)).toBe(false);
-	});
-
-	it("allows Administrator without any row", () => {
-		expect(canCreate(meta({ permissions: [] }), ADMIN)).toBe(true);
+	it("allows Administrator without the right", () => {
+		expect(canCreate(meta(), ADMIN)).toBe(true);
 	});
 
 	it("refuses everyone, Administrator too, in read-only mode", () => {

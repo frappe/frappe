@@ -222,6 +222,19 @@ describe("DoctypeList Create button", () => {
 		expect(router.currentRoute.value.path).toBe("/contact/CONT-0001");
 	});
 
+	it("opens one Create for a double click, and another once the first is answered", async () => {
+		const root = await mount();
+		await clickCreate(root);
+		await clickCreate(root);
+		expect(createRequests.value).toHaveLength(1);
+
+		createRequests.value[0].settle(null);
+		createRequests.value[0].dismiss();
+		await settle();
+		await clickCreate(root);
+		expect(createRequests.value).toHaveLength(1);
+	});
+
 	it("does nothing when the Create is dismissed", async () => {
 		const root = await mount();
 		await clickCreate(root);

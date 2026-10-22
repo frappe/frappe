@@ -286,7 +286,7 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `useListPage` | Everything a list page needs: meta, columns, filters, sort, rows, settings, delete |
+| `useListPage` | Everything a list page needs: meta, columns, filters, sort, rows, settings, delete, and the values a new record starts with |
 | `useListRows` | Rows and a total for one query, a page at a time |
 | List settings (`useListSettings`, `markListSettingsStale`) | Saved columns, sort and quick filters, per user or site. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Stored settings | Converts saved settings to live columns, sort and quick filters, and drops fields the user cannot read |

@@ -16,6 +16,8 @@ export interface CreateRequest {
 	values: Record<string, any>;
 	/** Resolves the caller with the saved record or `null`; only the first call counts. */
 	settle: (doc: CreatedDoc | null) => void;
+	/** True once the caller has its answer. */
+	settled: () => boolean;
 	/** Takes the request off the stack, after the dialog's leave transition. */
 	dismiss: () => void;
 }
@@ -54,6 +56,7 @@ export function openCreate(
 				settled = true;
 				resolve(doc);
 			},
+			settled: () => settled,
 			dismiss: () => (requests.value = requests.value.filter((one) => one.id !== id)),
 		};
 		requests.value = [...requests.value, request];

@@ -233,11 +233,10 @@ What `page` is _for_ is a small, closed vocabulary:
   row is gone. The row is an address, not a payload — `page.rows('products')`
   hands you the same handles in any handler at all.
 - **A handful of contracts**: every `page.dialog` verb resolves `null` when the reader
-  dismissed the dialog, so `if (!result) return` is always the idiom, and `page.create`
-  keeps the same contract: it resolves `null` when nothing was saved in the dialog, so
-  `if (!doc) return` is its idiom; a throw in
-  `beforeSave` blocks the save; a handler that throws is isolated, half-applied, and
-  does not take other scripts down with it.
+  dismissed the dialog, so `if (!result) return` is always the idiom; `page.create`
+  resolves `null` when nothing was saved in its dialog, so `if (!doc) return` is its
+  idiom; a throw in `beforeSave` blocks the save; a handler that throws is isolated,
+  half-applied, and does not take other scripts down with it.
 
 These are deliberately small, closed, and shaped like frappe rather than like the
 component library beneath them. They are what we would fight hardest to preserve.

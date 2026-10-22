@@ -46,6 +46,7 @@
 						variant="solid"
 						icon-left="lucide-plus"
 						:label="__('Create')"
+						:loading="creating"
 						@click="create"
 					/>
 				</div>
@@ -166,9 +167,14 @@ const {
 } = useListPage(props.doctype);
 
 const canCreate = useCreateRight(props.doctype);
+const creating = ref(false);
 
 async function create() {
-	const doc = await openCreate(props.doctype, { values: createValues.value });
+	if (creating.value) return;
+	creating.value = true;
+	const doc = await openCreate(props.doctype, { values: createValues.value }).finally(
+		() => (creating.value = false)
+	);
 	if (!doc) return;
 	reload();
 	toast.success(__("{0} {1} created", [__(props.doctype), doc.name]), {

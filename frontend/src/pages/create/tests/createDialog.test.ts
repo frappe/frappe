@@ -18,6 +18,7 @@ vi.mock("frappe-ui", () => ({
 				props.open
 					? h("div", { "data-dialog": "" }, [
 							h("h2", props.title),
+							h("button", { onClick: () => emit("update:open", false) }, "Close"),
 							h("div", slots.default?.()),
 							h("div", slots.actions?.()),
 						])
@@ -100,6 +101,8 @@ interface Server {
 	meta: Record<string, unknown>;
 	layouts: { layouts: unknown[]; fallback: unknown; dialog: boolean };
 	newDoc: () => Promise<Record<string, unknown>>;
+	newDocFails?: boolean;
+	layoutsFail?: boolean;
 	insert: (body: Record<string, unknown>) => Response;
 }
 
@@ -153,8 +156,14 @@ beforeEach(() => {
 	fetchMock.mockReset().mockImplementation(async (url, init) => {
 		const path = new URL(String(url), "http://x").pathname;
 		if (path.endsWith("/meta")) return json({ data: server.meta });
-		if (path === LAYOUTS) return json({ data: server.layouts });
-		if (path === NEW_DOC) return json({ data: await server.newDoc() });
+		if (path === LAYOUTS)
+			return server.layoutsFail
+				? json({ errors: [{ type: "ServerError", message: "Layouts are down" }] }, 500)
+				: json({ data: server.layouts });
+		if (path === NEW_DOC)
+			return server.newDocFails
+				? json({ errors: [{ type: "PermissionError", message: "No create right" }] }, 403)
+				: json({ data: await server.newDoc() });
 		if (init?.method === "POST" && path.startsWith("/api/v2/document/"))
 			return server.insert(JSON.parse(String(init.body)));
 		return json({ errors: [{ type: "NotFound", message: path }] }, 404);
@@ -398,5 +407,42 @@ describe("defaults", () => {
 
 		expect(input(root, "status").value).toBe("Closed");
 		expect(input(root, "source").value).toBe("Web");
+	});
+});
+
+describe("closing and failures", () => {
+	it("resolves null when the person closes the dialog, and sends nothing", async () => {
+		const { root, answer } = await open("Lead");
+		await click(root, "Close");
+
+		expect(answer).toEqual({ settled: true, doc: null });
+		expect(createRequests.value).toHaveLength(0);
+		expect(inserts()).toEqual([]);
+	});
+
+	it("shows the error and refuses to save when the layout read fails", async () => {
+		server.layoutsFail = true;
+		const { root, answer } = await open("Lead", { title: "Prefilled" });
+
+		expect(root.querySelector("[data-dialog]")).not.toBeNull();
+		expect(root.querySelector(".error")!.textContent).toContain("Layouts are down");
+		expect(button(root, "Save")!.disabled).toBe(true);
+		root.querySelector("[data-dialog] div")!.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "Enter", ctrlKey: true, bubbles: true })
+		);
+		await settle();
+		expect(inserts()).toEqual([]);
+		expect(answer.settled).toBe(false);
+	});
+
+	it("shows the server's message when the defaults read fails, and still saves", async () => {
+		server.newDocFails = true;
+		const { root, answer } = await open("Lead");
+
+		expect(root.querySelector(".error")!.textContent).toContain("No create right");
+		await type(root, "title", "Typed");
+		await click(root, "Save");
+		expect(inserts()).toHaveLength(1);
+		expect(answer.settled).toBe(true);
 	});
 });
