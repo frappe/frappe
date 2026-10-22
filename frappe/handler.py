@@ -19,7 +19,7 @@ from frappe.permissions import check_doctype_permission
 from frappe.utils import cint, get_files_path
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.deprecations import deprecated
-from frappe.utils.response import build_response
+from frappe.utils.response import build_response, is_traceback_allowed
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
@@ -71,12 +71,7 @@ def execute_cmd(cmd, from_async=False):
 	if server_script:
 		return run_server_script(server_script)
 
-	try:
-		method = get_attr(cmd)
-	except frappe.AppNotInstalledError:
-		raise
-	except Exception as e:
-		frappe.throw(_("Failed to get method for command {0} with {1}").format(cmd, str(e)))
+	method = resolve_method(cmd, get_attr)
 
 	if from_async:
 		method = method.queue
@@ -224,7 +219,7 @@ def upload_file():
 			frappe.throw(_("You can only upload JPG, PNG, GIF, PDF, TXT, CSV or Microsoft documents."))
 
 	if method:
-		method = frappe.get_attr(method)
+		method = resolve_method(method)
 		is_whitelisted(method)
 		is_valid_http_method(method)
 		return method()
@@ -282,6 +277,24 @@ def download_file(file_url: str):
 	frappe.local.response.filename = os.path.basename(file_url)
 	frappe.local.response.filecontent = file.get_content()
 	frappe.local.response.type = "download"
+
+
+def resolve_method(path, getter=None):
+	"""Get the method for a dotted path sent by a client.
+
+	Users who may see tracebacks get the reason it failed to resolve. Everyone else gets one message.
+	"""
+	try:
+		return (getter or frappe.get_attr)(path)
+	except Exception as e:
+		if is_traceback_allowed():
+			if isinstance(e, frappe.AppNotInstalledError):
+				raise
+			frappe.throw(_("Failed to get method for command {0} with {1}").format(path, str(e)))
+
+		if isinstance(e, frappe.AppNotInstalledError):
+			frappe.clear_last_message()
+		frappe.throw(_("Method not found"))
 
 
 def get_attr(cmd):
