@@ -56,7 +56,8 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 	def test_install_adds_builtin_tools_before_any_model(self):
 		self.assertIn(
-			"frappe.flow.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="flow")
+			"frappe.flow.assistant.sync_builtin_assistant",
+			frappe.get_hooks("after_install", app_name="frappe"),
 		)
 		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
 		frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
@@ -121,7 +122,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 	def test_the_assistant_follows_every_app_skill_past_the_desk_cap(self):
 		for hook in ("after_app_install", "after_app_uninstall"):
 			self.assertIn(
-				"frappe.flow.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="flow")
+				"frappe.flow.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="frappe")
 			)
 		skills = AppSkills(self)
 		names = [f"skill-{i:02d}" for i in range(MAX_SKILLS + 1)]

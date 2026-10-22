@@ -86,7 +86,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			self.assertEqual(template["data_dir"], str(lifecycle.site_data_dir()))
 			self.assertEqual(template["extensions"], [str(lifecycle.site_extensions_dir())])
 
-	def test_a_site_gets_its_secret_once_and_uninstall_drops_it_and_its_data(self):
+	def test_a_site_gets_its_secret_once(self):
 		with patch.object(lifecycle, "update_site_config") as config:
 			lifecycle.provision_site()
 			config.assert_not_called()  # the site already has one
@@ -95,18 +95,6 @@ class TestDaemonLifecycle(UnitTestCase):
 		key, secret = config.call_args.args
 		self.assertEqual(key, "flow_server_secret")
 		self.assertEqual(len(secret), 48)
-
-		self.partition.mkdir(parents=True)
-		with (
-			patch.object(lifecycle, "update_site_config") as config,
-			patch.object(lifecycle, "stop") as stop,
-			patch.object(lifecycle, "restart") as restart,
-		):
-			lifecycle.remove_site()
-		config.assert_called_once_with("flow_server_secret", "None")
-		self.assertFalse(self.partition.exists())
-		stop.assert_not_called()
-		restart.assert_not_called()
 
 	def test_flow_sites_are_the_ones_whose_config_holds_a_secret(self):
 		for site, config in (

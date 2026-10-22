@@ -6,8 +6,6 @@ from unittest.mock import patch
 import frappe
 from frappe.flow import api
 from frappe.flow.memory import store as memory_store
-from frappe.flow.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
-from frappe.flow.patches.grant_flow_role import execute as grant_flow_role
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.tests import IntegrationTestCase
 
@@ -254,85 +252,9 @@ class TestFlowAccess(IntegrationTestCase):
 				frappe.set_user("Administrator")
 				self.assertEqual([config["name"] for config in configs], [locked.name])
 
-	def test_the_patch_keeps_managers_and_trigger_accounts_on_flow(self):
-		manager = _user("flow-grant-manager@example.com", "System Manager")
-		plain = _user("flow-grant-plain@example.com")
-		retired = _user("flow-grant-retired@example.com", "System Manager")
-		frappe.db.set_value("User", retired, "enabled", 0)
-		manager_profile = self._profile("Flow Grant Managers", "System Manager")
-		profiled = _user("flow-grant-profiled@example.com")
-		self._assign_profile(profiled, manager_profile)
-
-		operator_role = self._role("Flow Grant Operator")
-		operator_profile = self._profile("Flow Grant Operators", operator_role)
-		operator = _user("flow-grant-operator@example.com")
-		peer = _user("flow-grant-peer@example.com")
-		self._assign_profile(operator, operator_profile)
-		self._assign_profile(peer, operator_profile)
-		self._trigger_before_the_rule(title="Flow Grant Active Trigger", run_as=operator)
-
-		website_user = _user("flow-grant-website@example.com")
-		unsafe_trigger = self._trigger_before_the_rule(title="Flow Grant Unsafe Trigger", run_as=website_user)
-		dormant_operator = _user("flow-grant-dormant@example.com", operator_role)
-		dormant_trigger = self._trigger_before_the_rule(
-			title="Flow Grant Dormant Trigger", run_as=dormant_operator, enabled=0
-		)
-
-		with patch("frappe.log_error"):
-			grant_flow_role()
-
-		for name in (manager, profiled, operator):
-			self.assertIn(FLOW_USER_ROLE, frappe.get_roles(name), name)
-		for name in (plain, retired, peer, website_user, dormant_operator):
-			self.assertNotIn(FLOW_USER_ROLE, frappe.get_roles(name), name)
-		self.assertNotIn(
-			FLOW_USER_ROLE, [row.role for row in frappe.get_doc("Role Profile", manager_profile).roles]
-		)
-		self.assertNotIn(
-			FLOW_USER_ROLE, [row.role for row in frappe.get_doc("Role Profile", operator_profile).roles]
-		)
-		for name in (profiled, operator):
-			profiles = {row.role_profile for row in frappe.get_doc("User", name).role_profiles}
-			self.assertIn(FLOW_USER_ROLE_PROFILE, profiles)
-		self.assertEqual(
-			[row.role for row in frappe.get_doc("Role Profile", FLOW_USER_ROLE_PROFILE).roles],
-			[FLOW_USER_ROLE],
-		)
-		self.assertEqual(frappe.db.get_value("Flow Trigger", unsafe_trigger, "enabled"), 0)
-		self.assertEqual(frappe.db.get_value("Flow Trigger", dormant_trigger, "enabled"), 0)
-		self.assertEqual(frappe.db.get_value("User", website_user, "user_type"), "Website User")
-
 	def _role(self, name: str) -> str:
 		if not frappe.db.exists("Role", name):
 			frappe.get_doc({"doctype": "Role", "role_name": name, "desk_access": 1}).insert(
 				ignore_permissions=True
 			)
 		return name
-
-	def _profile(self, name: str, *roles: str) -> str:
-		if not frappe.db.exists("Role Profile", name):
-			frappe.get_doc(
-				{"doctype": "Role Profile", "role_profile": name, "roles": [{"role": role} for role in roles]}
-			).insert(ignore_permissions=True)
-		return name
-
-	def _assign_profile(self, user: str, profile: str) -> None:
-		doc = frappe.get_doc("User", user)
-		doc.append("role_profiles", {"role_profile": profile})
-		doc.save(ignore_permissions=True)
-
-	def _trigger_before_the_rule(self, **fields) -> str:
-		"""A trigger saved before its account had to be able to read the agent."""
-		trigger = frappe.get_doc(
-			{
-				"doctype": "Flow Trigger",
-				"title": "Flow Grant Trigger",
-				"agent": _agent(),
-				"event": "Scheduled",
-				"cron_expression": "0 0 * * *",
-				"prompt_template": "hi",
-				**fields,
-			}
-		)
-		trigger.flags.ignore_validate = True
-		return trigger.insert(ignore_permissions=True).name

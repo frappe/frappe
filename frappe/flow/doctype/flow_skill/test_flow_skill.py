@@ -141,7 +141,7 @@ class AppSkills:
 		self,
 		name: str,
 		*,
-		app: str = "flow",
+		app: str = "frappe",
 		description: str = "Close overdue ToDos.",
 		body: str = "Close each one.",
 		text: str | None = None,
@@ -168,7 +168,7 @@ class TestAppSkills(IntegrationTestCase):
 		with self.subTest("a new skill is locked to its app"):
 			self.assertEqual(
 				(doc.app, doc.description, doc.instructions, doc.is_system_generated),
-				("flow", "Close overdue ToDos.", "Close each one.", 1),
+				("frappe", "Close overdue ToDos.", "Close each one.", 1),
 			)
 			self.assertEqual((doc.enabled, doc.is_global, doc.user_invocable), (1, 0, 0))
 		with self.subTest("an unchanged skill is not saved again"):
@@ -219,8 +219,11 @@ class TestAppSkills(IntegrationTestCase):
 		with self.subTest("two apps cannot ship the same skill"):
 			skills = AppSkills(self)
 			skills.write("open-todos", app="frappe")
-			skills.write("open-todos", app="flow")
-			with self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and flow"):
+			skills.write("open-todos", app="other_app")
+			with (
+				patch("frappe.get_installed_apps", return_value=["frappe", "other_app"]),
+				self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and other_app"),
+			):
 				sync_skills()
 			self.assertFalse(frappe.db.exists("Flow Skill", "open-todos"))
 
@@ -275,7 +278,7 @@ class TestAppSkills(IntegrationTestCase):
 		os.symlink(os.path.join(other, "notes.md"), os.path.join(folder, "link.md"))
 		sync_skills()
 		# rows can be written by hand: a Desk skill, a name that is no folder, an app not installed
-		for title, app in (("Expense Approval", None), ("..", "flow"), ("os-skill", "os")):
+		for title, app in (("Expense Approval", None), ("..", "frappe"), ("os-skill", "os")):
 			frappe.get_doc(_skill(title=title, app=app)).insert()
 
 		for name, path, error in (

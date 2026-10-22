@@ -13,7 +13,6 @@ from __future__ import annotations
 
 import json
 import os
-import shutil
 import signal
 import subprocess
 import sys
@@ -100,12 +99,6 @@ def provision_site() -> None:
 	"""Give this site its flow server secret."""
 	if not frappe.conf.flow_server_secret:
 		update_site_config("flow_server_secret", frappe.generate_hash(length=48))
-
-
-def remove_site() -> None:
-	"""before_uninstall: drop the site's secret and the flow server's data for it."""
-	update_site_config("flow_server_secret", "None")
-	shutil.rmtree(site_data_dir(), ignore_errors=True)
 
 
 def session_root() -> Path:

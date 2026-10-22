@@ -74,15 +74,14 @@ def status():
 
 
 def _run_on_every_flow_site(step: Callable[[str], None]) -> None:
-	"""Run `step` connected to every site that has Flow installed."""
+	"""Run `step` connected to every site on the bench."""
 	from frappe.utils import get_sites
 
 	for site in get_sites():
 		frappe.init(site)
 		try:
 			frappe.connect()
-			if "flow" in frappe.get_installed_apps():
-				step(site)
+			step(site)
 		finally:
 			frappe.destroy()
 
