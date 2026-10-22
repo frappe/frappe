@@ -59,6 +59,11 @@
     container-type: inline-size;
 }
 
+/* An HTML field has no bottom margin, unlike other fields, so leave the space a field would. */
+.frappe-control > .es-checklist {
+    margin-bottom: calc(var(--spacing) * 4);
+}
+
 /* Head and bar line up with the item labels; only the item boxes reach the card's content edge. */
 .es-checklist > .es-checklist__head,
 .es-checklist > .es-checklist__progress {
