@@ -442,15 +442,21 @@ class TestSameContent(IntegrationTestCase):
 		self.assertEqual(file_content_properly_decoded, test_content1)
 
 	def test_rename_and_toggle_is_private_together(self):
-		test_file = frappe.get_doc(
-			{"doctype": "File", "file_name": "rename_toggle.txt", "is_private": 0, "content": test_content1}
-		).insert()
+		with self.set_user("test@example.com"):
+			test_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "rename_toggle.txt",
+					"is_private": 0,
+					"content": test_content1,
+				}
+			).insert()
 
-		test_file.update({"file_name": "renamed_toggle.txt", "is_private": 1})
-		test_file.save()
+			test_file.update({"file_name": "renamed_toggle.txt", "is_private": 1})
+			test_file.save()
 
-		self.assertTrue(test_file.file_url.startswith("/private/files/"))
-		self.assertEqual(test_file.get_content(), test_content1)
+			self.assertTrue(test_file.file_url.startswith("/private/files/"))
+			self.assertEqual(test_file.get_content(), test_content1)
 
 	def test_toggle_is_private_renames_on_name_collision(self):
 		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
