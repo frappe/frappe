@@ -355,9 +355,9 @@ class TestMethodLookupErrors(IntegrationTestCase):
 
 	NOT_FOUND = "Method not found"
 	UNRESOLVABLE = (
-		"no_such_app.module.fn",  # app not installed
-		"frappe.no_such_module.fn",  # module missing in an installed app
-		"frappe.utils.no_such_fn",  # function missing in an existing module
+		"no_such_app.module.fn",
+		"frappe.no_such_module.fn",
+		"frappe.utils.no_such_fn",
 	)
 
 	def setUp(self):
@@ -371,6 +371,7 @@ class TestMethodLookupErrors(IntegrationTestCase):
 		from frappe.api.v2 import handle_rpc_call
 		from frappe.desk.treeview import get_all_nodes
 		from frappe.handler import execute_cmd, upload_file
+		from frappe.model.mapper import make_mapped_doc, map_docs
 
 		def upload(path):
 			frappe.local.form_dict = frappe._dict(method=path)
@@ -381,6 +382,8 @@ class TestMethodLookupErrors(IntegrationTestCase):
 			"handle_rpc_call": handle_rpc_call,
 			"upload_file": upload,
 			"get_all_nodes": lambda path: get_all_nodes("ToDo", "ToDo", "", path),
+			"make_mapped_doc": lambda path: make_mapped_doc(path, "x"),
+			"map_docs": lambda path: map_docs(path, "[]", "{}"),
 		}
 		with self.change_settings(
 			"System Settings", allow_guests_to_upload_files=1, allowed_doctypes_for_guest_uploads=""
