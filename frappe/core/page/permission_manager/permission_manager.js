@@ -309,8 +309,8 @@ frappe.PermissionEngine = class PermissionEngine {
 			.attr("data-ptype", fieldname)
 			.attr("data-role", d.role)
 			.attr("data-permlevel", d.permlevel)
-			.attr("data-if_owner", d.if_owner)
-			.attr("data-doctype", d.parent);
+			.attr("data-doctype", d.parent)
+			.data("perm", d);
 
 		checkbox.find("label").css("text-transform", "capitalize");
 		checkbox.find("label").css("align-items", "center");
@@ -450,7 +450,6 @@ frappe.PermissionEngine = class PermissionEngine {
 	}
 
 	add_check_events() {
-		let me = this;
 		this.body.on("click", ".show-user-permissions", () => {
 			frappe.route_options = { allow: this.get_doctype() || "" };
 			frappe.set_route("List", "User Permission");
@@ -459,13 +458,14 @@ frappe.PermissionEngine = class PermissionEngine {
 		this.body.on("click", "input[type='checkbox']", function () {
 			frappe.dom.freeze();
 			let chk = $(this);
+			let perm = chk.data("perm");
 			let args = {
 				role: chk.attr("data-role"),
 				permlevel: chk.attr("data-permlevel"),
 				doctype: chk.attr("data-doctype"),
 				ptype: chk.attr("data-ptype"),
 				value: chk.prop("checked") ? 1 : 0,
-				if_owner: chk.attr("data-if_owner"),
+				if_owner: perm.if_owner,
 			};
 			return frappe.call({
 				module: "frappe.core",
@@ -478,7 +478,7 @@ frappe.PermissionEngine = class PermissionEngine {
 						// exception: reverse
 						chk.prop("checked", !chk.prop("checked"));
 					} else {
-						me.get_perm(args.role)[args.ptype] = args.value;
+						perm[args.ptype] = args.value;
 
 						if (args.ptype == "if_owner") {
 							let report_checkbox = chk
@@ -562,12 +562,6 @@ frappe.PermissionEngine = class PermissionEngine {
 				this.reset_std_permissions(data);
 			});
 		});
-	}
-
-	get_perm(role) {
-		return $.map(this.perm_list, function (d) {
-			if (d.role == role) return d;
-		})[0];
 	}
 
 	get_link_fields(doctype) {
