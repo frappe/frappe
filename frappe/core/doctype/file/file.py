@@ -968,6 +968,7 @@ class File(Document):
 
 	@staticmethod
 	def zip_files(files):
+		added = set()
 		zip_file = io.BytesIO()
 		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
 		for _file in files:
@@ -975,10 +976,11 @@ class File(Document):
 				_file = frappe.get_doc("File", _file)
 			if not isinstance(_file, File):
 				continue
-			if _file.is_folder:
+			if _file.is_folder or _file.name in added:
 				continue
 			if not has_permission(_file, "read"):
 				continue
+			added.add(_file.name)
 			zf.writestr(_file.file_name, _file.get_content())
 		zf.close()
 		return zip_file.getvalue()
