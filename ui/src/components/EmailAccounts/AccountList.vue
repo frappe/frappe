@@ -32,10 +32,10 @@
 			@dismiss="dismissResult"
 		>
 			<template #description>
-				{{ oauthMessage(oauthResult) }}
+				{{ oauthMessage(oauthResult, oauthProvider) }}
 				<a
-					v-if="oauthResult === 'smtp_disabled'"
-					href="https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission#enable-smtp-auth-for-specific-mailboxes"
+					v-if="helpLink"
+					:href="helpLink"
 					target="_blank"
 					rel="noopener"
 					class="text-ink-gray-8 underline"
@@ -219,12 +219,13 @@ const logoIcons = new Map<string, FunctionalComponent>();
 
 <script setup lang="ts">
 import { Avatar, Badge, Button, ScrollArea, Select, Spinner, toast } from "frappe-ui";
-import { h, nextTick, onMounted, reactive, ref, useId } from "vue";
+import { computed, h, nextTick, onMounted, reactive, ref, useId } from "vue";
 import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
 import {
 	errorText,
 	manualSetup,
+	oauthHelpLink,
 	oauthMessage,
 	reconnectable,
 	serviceOf,
@@ -239,9 +240,14 @@ const props = defineProps<{
 	focus?: string;
 	/** The mailbox the sign-in result is about, when it is known. */
 	oauthMailbox?: string | null;
+	/** The provider the sign-in went to, when it is known. */
+	oauthProvider?: string | null;
 }>();
 const emit = defineEmits<{ add: []; open: [name: string] }>();
 const oauthResult = defineModel<string | null>("oauthResult");
+const helpLink = computed(
+	() => oauthResult.value && oauthHelpLink(oauthResult.value, props.oauthProvider)
+);
 const ids = { heading: useId(), incoming: useId(), outgoing: useId() };
 
 const newButton = ref<{ $el: HTMLElement }>();

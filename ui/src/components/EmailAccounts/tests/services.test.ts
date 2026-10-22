@@ -7,6 +7,8 @@ import {
   mailboxAddress,
   manualSetup,
   newAccount,
+  oauthHelpLink,
+  oauthMessage,
   oneClickServices,
   reconnectable,
   serviceOf,
@@ -328,5 +330,32 @@ describe("mailboxAddress", () => {
     expect(mailboxAddress("Click here sandeep@example.com")).toBeNull();
     expect(mailboxAddress(`${"a".repeat(243)}@example.com`)).toBeNull();
     expect(mailboxAddress(null)).toBeNull();
+  });
+});
+
+describe("oauthMessage", () => {
+  it("uses the provider's own words when it has them, else the general ones", () => {
+    expect(oauthMessage("admin_approval", "microsoft")).toBe(
+      "Your Microsoft 365 admin must approve Frappe first.",
+    );
+    expect(oauthMessage("admin_approval", "google")).toBe(
+      "Your admin must approve Frappe first.",
+    );
+    expect(oauthMessage("admin_approval")).toBe(
+      "Your admin must approve Frappe first.",
+    );
+    expect(oauthMessage("cancelled", "microsoft")).toBe("Sign-in was cancelled.");
+    expect(oauthMessage("<b>x</b>", "microsoft")).toBe(
+      "Couldn't connect. Please try again.",
+    );
+  });
+
+  it("links to a help page only for the provider that has one", () => {
+    expect(oauthHelpLink("smtp_disabled", "microsoft")).toContain(
+      "learn.microsoft.com",
+    );
+    expect(oauthHelpLink("smtp_disabled", "google")).toBeUndefined();
+    expect(oauthHelpLink("smtp_disabled")).toBeUndefined();
+    expect(oauthHelpLink("cancelled", "microsoft")).toBeUndefined();
   });
 });

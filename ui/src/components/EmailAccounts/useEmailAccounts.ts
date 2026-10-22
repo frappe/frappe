@@ -50,6 +50,7 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
     const url = new URL(window.location.href);
     url.searchParams.delete("email_oauth");
     url.searchParams.delete("email_oauth_mailbox");
+    url.searchParams.delete("email_oauth_provider");
     return url.pathname + url.search;
   }
 
