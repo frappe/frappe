@@ -12,7 +12,7 @@ from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
-from frappe.utils.print_utils import resolve_pdf_generator
+from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.docfield.docfield import DocField
@@ -252,7 +252,7 @@ def get_rendered_template(
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		if letter_head.custom_css:
 			letter_head.content += f"""
-			<style>
+			<style data-letter-head>
 				{letter_head.custom_css}
 			</style>
 			"""
@@ -728,7 +728,11 @@ def get_print_style(
 
 
 def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
-	if not print_format or not print_format.css or resolve_pdf_generator(print_format) != "chrome":
+	if (
+		not print_format
+		or not print_format.css
+		or resolve_pdf_generator(print_format) not in HTML_PDF_GENERATORS
+	):
 		return " ".join(["15mm"] * 4)
 
 	margins = get_page_rule_margins(print_format.css)
