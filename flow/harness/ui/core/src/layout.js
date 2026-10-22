@@ -1,4 +1,4 @@
-import { reactive } from "vue"
+import { reactive, ref, watch } from "vue"
 
 // Under Tailwind's md the frame is narrow: a phone, or a Desk panel's iframe. It shows one pane at
 // a time, so the sidebar slides over the chat and settings open as pages. A narrow frame worked by
@@ -15,6 +15,19 @@ function measure() {
 measure()
 wide?.addEventListener("change", measure)
 finger?.addEventListener("change", measure)
+
+// a side panel slides only as `open()` changes, not on load or as the frame crosses the narrow width
+export function useSlide(open) {
+	const sliding = ref(false)
+	let timer = null
+	watch([open, () => layout.narrow], ([, narrow], [, wasNarrow]) => {
+		if (narrow !== wasNarrow) return
+		sliding.value = true
+		clearTimeout(timer)
+		timer = setTimeout(() => (sliding.value = false), 250)
+	})
+	return sliding
+}
 
 // the chat's text size in px (Settings › Appearance); the thread's step rows sit 1px under it
 export const CHAT_FONT_SIZE = { min: 12, max: 22, default: 15 }

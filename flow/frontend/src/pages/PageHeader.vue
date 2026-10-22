@@ -1,13 +1,18 @@
 <template>
 	<header class="flex h-11 flex-none items-center gap-2 px-3">
-		<template v-if="!flow.state.sidebarOpen">
+		<!-- set apart from a list's icon, which would otherwise read as one more button -->
+		<div
+			v-if="!flow.state.sidebarOpen"
+			:class="{ 'md:mr-1.5': !list }"
+			class="flex items-center gap-2"
+		>
 			<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
 				<FeatherIcon name="sidebar" class="h-3.5 w-3.5" />
 			</button>
 			<button class="flow-icon-btn max-md:hidden" title="New chat" @click="newChat">
 				<FeatherIcon name="plus" class="h-3.5 w-3.5" />
 			</button>
-		</template>
+		</div>
 		<!-- a record leads with the way back to its list, a list with its page's icon -->
 		<button
 			v-if="list"
@@ -18,12 +23,12 @@
 			<FeatherIcon name="arrow-left" class="h-4 w-4" />
 		</button>
 		<!-- where the page sits: a record follows its list, which it links to. A narrow frame's bar
-		     keeps the record's name alone, for the room its actions leave -->
+		     keeps the name alone, for the room its actions leave -->
 		<nav class="flex min-w-0 items-center gap-2 text-sm" aria-label="Breadcrumb">
 			<span
 				v-if="!list"
 				:class="icon"
-				class="size-4 flex-none text-ink-gray-5"
+				class="size-4 flex-none text-ink-gray-5 max-md:hidden"
 				aria-hidden="true"
 			/>
 			<RouterLink

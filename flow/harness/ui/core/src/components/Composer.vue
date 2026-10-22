@@ -214,13 +214,14 @@
 					Could not prepare {{ item.name }}: {{ item.error }}
 					<button class="underline" :disabled="locked" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
-				<!-- 16px on phones: iPhone Safari zooms into smaller fields (the overlay mirrors the box).
+				<!-- 16px on phones (iPhone Safari zooms into smaller fields), 15px in a narrow mouse frame.
 				     It rises over an open list's click-catcher, so clicking back into it keeps the list. -->
 				<div class="flow-draft relative" :class="listOpen ? 'z-20' : ''">
 					<div
 						v-if="skillParts"
 						aria-hidden="true"
-						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent max-sm:text-[16px]"
+						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent"
+						:class="draftSize"
 					>
 						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
 							<span v-for="(part, i) in skillParts" :key="i" :class="part.skill ? 'text-ink-blue-6' : 'text-ink-gray-9'">{{ part.text }}</span>
@@ -233,8 +234,8 @@
 						:disabled="locked"
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
-						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 dark:placeholder:text-ink-gray-6 max-sm:text-[16px]"
-						:class="skillParts ? 'text-transparent' : 'text-ink-gray-9'"
+						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 dark:placeholder:text-ink-gray-6"
+						:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', draftSize]"
 						@keydown="onKey"
 						@paste="onPaste"
 						@scroll="textScrollTop = $event.currentTarget.scrollTop"
@@ -732,6 +733,7 @@ const skillParts = computed(() => {
 	const parts = skillSegments(text.value, (flow.state.skills ?? []).map((skill) => skill.name))
 	return parts.some((part) => part.skill) ? parts : null
 })
+const draftSize = computed(() => (layout.phone ? "max-sm:text-[16px]" : "max-sm:text-[15px]"))
 const running = computed(() => flow.state.conversation.running)
 const compacting = computed(() => flow.state.conversation.compacting)
 const approval = computed(() => {

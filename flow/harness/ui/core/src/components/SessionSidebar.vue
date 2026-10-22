@@ -1,7 +1,8 @@
 <template>
+	<!-- only once the script knows the frame is narrow: a wide frame turning narrow draws first -->
 	<Transition name="flow-backdrop">
 		<button
-			v-if="open"
+			v-if="open && layout.narrow"
 			class="fixed inset-0 z-20 bg-black/30 md:hidden"
 			aria-label="Close sidebar"
 			@click="emit('close')"
@@ -10,10 +11,13 @@
 	<aside
 		class="flow-sidebar-surface fixed inset-y-0 left-0 z-30 flex w-[var(--sidebar-w)] flex-none flex-col md:relative"
 		:class="[
-			ready ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
+			sliding ? 'transition-[transform,margin-left] duration-200 ease-in-out' : '',
 			// no transform while open: a transformed aside would become the containing
-			// block for a menu's fixed backdrop, clipping it to the sidebar
-			open ? '' : '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
+			// block for a menu's fixed backdrop, clipping it to the sidebar. Open in a wide
+			// frame that just turned narrow, it hides until the script closes it
+			open
+				? layout.narrow ? '' : 'max-md:-translate-x-full'
+				: '-translate-x-full md:ml-[calc(-1*var(--sidebar-w))] md:translate-x-0',
 			dragging && 'flow-reordering',
 		]"
 		:style="{ '--sidebar-w': layout.phone ? 'min(85vw, 360px)' : width + 'px' }"
@@ -191,7 +195,7 @@
 							<!-- chats sit 30px apart, the first 31px under its workspace's name; 34px
 							     apart in one list, which has no names to space against. A phone's
 							     taller rows keep the 2px gaps -->
-							<div class="grid min-h-0 grid-cols-1" :class="grouped ? 'gap-0.5' : 'gap-0.5 md:gap-1.5'">
+							<div class="grid min-h-0 grid-cols-1" :class="grouped || layout.phone ? 'gap-0.5' : 'gap-1.5'">
 								<SidebarItem
 									v-for="s in group.chats"
 									:key="s.session_id"
@@ -306,7 +310,7 @@ import { dialog } from "frappe-ui/src/utils/dialog"
 import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
-import { layout } from "../layout.js"
+import { layout, useSlide } from "../layout.js"
 import BrandMark from "./BrandMark.vue"
 import ChatMenu from "./ChatMenu.vue"
 import LoadingState from "./LoadingState.vue"
@@ -714,10 +718,7 @@ function startResize(event) {
 	handle.addEventListener("pointerup", up)
 }
 
-// enable the slide transition only after mount, so a closed saved state
-// doesn't animate on page load
-const ready = ref(false)
-onMounted(() => requestAnimationFrame(() => (ready.value = true)))
+const sliding = useSlide(() => props.open)
 
 // a phone's drawer opens with a swipe in from the screen's left edge and closes with a swipe
 // back, as its other chat apps' do; a dialog or the settings page keeps its own touches
@@ -895,8 +896,8 @@ const emptyMessage = computed(() => {
 .drop-after::after {
 	bottom: -2px;
 }
-/* one list's 6px gaps, wider than a phone: the line keeps to their middle */
-@media (min-width: 768px) {
+/* one list's 6px gaps, all but a phone's: the line keeps to their middle */
+@media not all and (max-width: 767px) and (pointer: coarse) {
 	.quiet.drop-before::before {
 		top: -4px;
 	}

@@ -265,7 +265,8 @@ let resizeObserver = null
 // the empty state glides to its new place, not jumps, when its box changes size (a growing
 // composer): centred, it moves by half what the box lost. Its children glide, as they stay inside
 // the list where the box would spill out of it. They jump with the composer where they would start
-// under it (a phone's keyboard took more than the room below them), and with reduced motion
+// under it (a phone's keyboard took more than the room below them), with reduced motion, and as
+// its width changes (a resized frame)
 const emptyState = ref(null)
 const reducedMotion = globalThis.matchMedia?.("(prefers-reduced-motion: reduce)")
 let emptyObserver = null
@@ -273,10 +274,12 @@ watch(emptyState, (el) => {
 	emptyObserver?.disconnect()
 	if (!el || typeof ResizeObserver === "undefined") return
 	let height = null
+	let width = null
 	emptyObserver = new ResizeObserver(([entry]) => {
 		const now = entry.contentRect.height
-		const shift = height === null ? 0 : (height - now) / 2
+		const shift = height === null || entry.contentRect.width !== width ? 0 : (height - now) / 2
 		height = now
+		width = entry.contentRect.width
 		const last = el.lastElementChild
 		const room = last ? now - (last.offsetTop - el.offsetTop + last.offsetHeight) : 0
 		if (!shift || shift > room || reducedMotion?.matches) return

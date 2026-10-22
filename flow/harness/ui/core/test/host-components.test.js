@@ -1565,7 +1565,7 @@ test("a sub-agent's tab says it is loading with its session, starting until it r
 	assert.ok(view.querySelector("[data-stub='AssistantText']"))
 })
 
-test("the workspace panel is inert while closed, draws a sub-agent's tab itself, takes the host's menu, view and empty state, and fills a narrow frame", async (t) => {
+test("the workspace panel is inert while closed, slides only as it opens or shuts, draws a sub-agent's tab itself, takes the host's menu, view and empty state, and fills a narrow frame", async (t) => {
 	const conversation = subagentConversation()
 	const workspace = reactive({
 		open: false, maximized: false, view: null, active: "c1",
@@ -1579,14 +1579,22 @@ test("the workspace panel is inert while closed, draws a sub-agent's tab itself,
 			empty: () => h("p", { "data-host": "empty" }, "Nothing open"),
 		}),
 	}
+	t.mock.timers.enable({ apis: ["setTimeout"] })
 	const { el } = mount(t, panel, {}, flow)
 	await nextTick()
 	// closed, its hidden buttons can't take focus
 	const aside = el.querySelector("aside")
 	assert.ok(aside.hasAttribute("inert"))
+	// it slides as it opens, and only then: a frame crossing the narrow width moves it at once
+	const sliding = () => aside.className.includes("transition-")
+	assert.ok(!sliding())
 	workspace.open = true
 	await nextTick()
 	assert.ok(!aside.hasAttribute("inert"))
+	assert.ok(sliding())
+	t.mock.timers.tick(250)
+	await nextTick()
+	assert.ok(!sliding())
 
 	assert.ok(el.querySelector("[role='tab']").textContent.includes("Sub-agent: beans"))
 	assert.ok(el.querySelector("[data-host='add']"))
@@ -1618,6 +1626,7 @@ test("the workspace panel is inert while closed, draws a sub-agent's tab itself,
 	t.after(() => (layout.narrow = false))
 	await nextTick()
 	assert.deepEqual([el.querySelector("button[title='Full screen']"), !!el.querySelector("button[title='Close panel']")], [null, true])
+	assert.ok(!sliding())
 })
 
 const settle = () => new Promise((resolve) => setImmediate(resolve))
@@ -2235,10 +2244,14 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	await drag("App 7", "App 5")
 	assert.deepEqual(appChats(), ["App 6", "App 0", "App 1", "App 2", "App 3", "App 4", "App 7", "App 5", "Show less"])
 
-	// a phone's workspace shows no new-chat button: a long press opens its menu, as a chat's does
+	// a phone's workspace shows no new-chat button: a long press opens its menu, as a chat's does.
+	// The open drawer's backdrop comes once the script knows the frame is narrow
+	const backdrop = () => el.querySelector("button[aria-label='Close sidebar']")
+	assert.equal(backdrop(), null)
 	layout.phone = layout.narrow = true
 	t.after(() => (layout.phone = layout.narrow = false))
 	await nextTick()
+	assert.ok(backdrop())
 	assert.equal(el.querySelector("button[title='New chat in app']"), null)
 	// a row's open menu joins its text: each row is held from before its press
 	const [workspace, chat] = [row("app"), row("App 6")]

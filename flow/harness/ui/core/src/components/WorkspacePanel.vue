@@ -13,7 +13,7 @@
 			workspace.maximized
 				? 'fixed inset-0 z-40'
 				: 'fixed inset-y-0 right-0 z-30 w-[var(--workspace-w)] max-w-full flex-none md:relative',
-			ready ? 'transition-[transform,margin-right] duration-200 ease-in-out' : '',
+			sliding ? 'transition-[transform,margin-right] duration-200 ease-in-out' : '',
 			// mirror of the left sidebar: no transform while open (a transformed
 			// aside would clip monaco's fixed overflow widgets and dialogs)
 			workspace.open || workspace.maximized
@@ -135,12 +135,12 @@
 </template>
 
 <script setup>
-import { computed, inject, onMounted, ref } from "vue"
+import { computed, inject, ref } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import SubagentView from "./SubagentView.vue"
-import { layout } from "../layout.js"
+import { layout, useSlide } from "../layout.js"
 
 const flow = inject("flow")
 const workspace = computed(() => flow.state.workspace)
@@ -158,8 +158,7 @@ const transientTab = computed(() =>
 )
 
 // the panel stays mounted while closed so it can slide like the left sidebar
-const ready = ref(false)
-onMounted(() => requestAnimationFrame(() => (ready.value = true)))
+const sliding = useSlide(() => workspace.value.open || workspace.value.maximized)
 
 function requestClose(tab) {
 	if (!tab.dirty) return flow.closeFile(tab.path)
