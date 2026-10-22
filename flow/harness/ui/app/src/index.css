@@ -1,0 +1,52 @@
+@import "@flow/ui-core/flow.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Light-theme tuning: frappe-ui's stock outlines (#ededed/#e2e2e2) all but
+   vanish on the white surface; darken each step so borders actually read. */
+:root {
+	--outline-gray-1: #e6e6e6;
+	--outline-gray-2: #d6d6d6;
+	--outline-gray-3: #bdbdbd;
+}
+
+/* Dark-theme tuning: frappe-ui's stock dark base is #0F0F0F; lift it to the
+   #171717 the frappe-ui site uses, shifting the neighboring surfaces and
+   outlines coherently. Overriding the themed variables is the supported
+   theming layer — components stay token-pure. */
+[data-theme="dark"] {
+	--surface-base: #171717;
+	--surface-sidebar: #141414;
+	--surface-gray-1: #1f1f1f;
+	--surface-gray-2: #292929;
+	--surface-gray-3: #383838;
+	--surface-gray-4: #424242;
+	--surface-elevation-1: #1f1f1f;
+	--surface-elevation-2: #292929;
+	--surface-elevation-3: #383838;
+	--outline-base: #242424;
+	--outline-elevation-2: #383838;
+	--outline-gray-1: #242424;
+	--outline-gray-2: #383838;
+	--outline-gray-3: #424242;
+}
+
+html,
+body,
+#app {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	font-family: Inter, system-ui, sans-serif;
+	background: var(--surface-base);
+	-webkit-font-smoothing: antialiased;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--surface-gray-4) transparent;
+}

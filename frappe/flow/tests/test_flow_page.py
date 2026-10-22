@@ -1,0 +1,57 @@
+# Copyright (c) 2026, Frappe Technologies and contributors
+# License: MIT. See LICENSE
+
+from unittest.mock import patch
+
+import frappe
+from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
+
+from flow.permissions import has_app_permission
+from flow.tests.test_ai_api import OTHER, _ensure_user
+from flow.www.flow import index
+
+
+class TestFlowPage(IntegrationTestCase):
+	def setUp(self):
+		# the page commits its CSRF token, which would keep the test's writes too
+		self.enterContext(patch.object(frappe.db, "commit"))
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def test_the_page_boots_a_user_and_sends_a_guest_to_login_and_back(self):
+		boot = index.get_context(frappe._dict()).boot
+		self.assertTrue(boot["csrf_token"])
+		self.assertEqual(boot["site_name"], frappe.local.site)
+		self.assertIn("socketio_port", boot)
+		self.assertEqual(boot["flow_boot"]["user"]["name"], "Administrator")
+		self.assertIn("agents", boot["flow_boot"])
+
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		set_request(path="/flow/s/4uaiaqp7g3")
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.Redirect):
+			index.get_context(frappe._dict())
+		# back to the chat asked for, not just the page
+		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=%2Fflow%2Fs%2F4uaiaqp7g3")
+
+	def test_the_dev_boot_needs_developer_mode(self):
+		with patch.dict(frappe.local.conf, {"developer_mode": 0}):
+			with self.assertRaises(frappe.PermissionError):
+				index.get_context_for_dev()
+		with patch.dict(frappe.local.conf, {"developer_mode": 1}):
+			self.assertIn("flow_boot", index.get_context_for_dev())
+
+	def test_the_apps_screen_lists_flow_for_flow_users_only(self):
+		self.assertTrue(has_app_permission())
+		frappe.set_user(_ensure_user(OTHER))
+		self.assertTrue(has_app_permission())
+		nobody = "page-nobody@example.com"
+		if not frappe.db.exists("User", nobody):
+			frappe.get_doc(
+				{"doctype": "User", "email": nobody, "first_name": "Nobody", "send_welcome_email": 0}
+			).insert(ignore_permissions=True)
+		frappe.set_user(nobody)
+		self.assertFalse(has_app_permission())
