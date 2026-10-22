@@ -1,5 +1,5 @@
 {
  "type": "commonjs",
  "private": true,
- "description": "Frappe's socketio process requires realtime/handlers.js as CommonJS; the repo root is type: module."
+ "description": "Frappe's realtime/handlers.js requires this handlers.js as CommonJS; flow/package.json is type: module."
 }

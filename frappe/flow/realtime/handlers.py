@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 
 # Relays flow server events (Redis channel `harness:<site>:<session>`) to subscribed
-# browsers from Frappe's Python realtime server. The Node server loads realtime/handlers.js.
+# browsers from Frappe's Python realtime server. The Node server loads flow/realtime/handlers.js.
 
 import asyncio
 import json

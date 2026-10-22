@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
-import path from "node:path";
 import vm from "node:vm";
 import test from "node:test";
 
@@ -18,15 +17,11 @@ function relay() {
 		readFileSync(new URL("../../realtime/handlers.js", import.meta.url), "utf8"),
 		{
 			module,
-			process,
 			console,
-			require: (name) =>
-				name === "path"
-					? path
-					: {
-							get_conf: () => ({}),
-							get_redis_subscriber: () => redis,
-					  },
+			require: () => ({
+				get_conf: () => ({}),
+				get_redis_subscriber: () => redis,
+			}),
 		}
 	);
 	const delivered = [];

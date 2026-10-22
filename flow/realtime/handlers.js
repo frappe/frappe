@@ -4,11 +4,7 @@
 // Relays flow server events (Redis channel `harness:<site>:<session>`) to subscribed
 // browsers from Frappe's socketio process, so no Python worker is held for a run.
 
-const path = require("path");
-
-// `apps/flow` may be a symlink out of the bench, so resolve frappe through the bench root
-const bench = process.env.FRAPPE_BENCH_ROOT || process.cwd();
-const node_utils = require(path.join(bench, "apps", "frappe", "node_utils"));
+const node_utils = require("../../node_utils");
 
 const EVENT = "flow:event";
 const RESYNC = "flow:resync";
