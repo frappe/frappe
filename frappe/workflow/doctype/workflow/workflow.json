@@ -16,6 +16,9 @@
   "override_status",
   "send_email_alert",
   "enable_action_confirmation",
+  "conditions_section",
+  "priority",
+  "conditions",
   "states_head",
   "states",
   "transition_rules",
@@ -44,7 +47,7 @@
   },
   {
    "default": "0",
-   "description": "If checked, all other workflows become inactive.",
+   "description": "Activating a workflow without conditions deactivates the other workflows of this document type that have no conditions.",
    "fieldname": "is_active",
    "fieldtype": "Check",
    "label": "Is Active"
@@ -69,6 +72,24 @@
    "fieldname": "enable_action_confirmation",
    "fieldtype": "Check",
    "label": "Enable Action Confirmation"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "conditions_section",
+   "fieldtype": "Section Break",
+   "label": "Conditions"
+  },
+  {
+   "description": "Workflows with a higher priority are matched first.",
+   "fieldname": "priority",
+   "fieldtype": "Int",
+   "label": "Priority"
+  },
+  {
+   "description": "Restrict this workflow to documents matching all of these conditions. Leave empty to apply it to every document of this type.",
+   "fieldname": "conditions",
+   "fieldtype": "Table",
+   "options": "Workflow Condition"
   },
   {
    "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.",
@@ -114,7 +135,7 @@
  "icon": "workflow",
  "idx": 1,
  "links": [],
- "modified": "2024-03-23 16:04:04.849665",
+ "modified": "2026-10-06 16:00:00.000000",
  "modified_by": "Administrator",
  "module": "Workflow",
  "name": "Workflow",

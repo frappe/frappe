@@ -1,23 +1,24 @@
 <template>
 	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height.
-	     With `scrolls` off, an ancestor scrolls it. -->
+	     With `scrolls` off, an ancestor scrolls it. Scrolling, it already anchors, so Chrome's
+	     anchoring on top would shift a row as emails above load. -->
 	<div
 		ref="rootEl"
 		class="activity-timeline flex flex-col-reverse"
-		:class="{ 'overflow-y-auto': scrolls }"
+		:class="{ 'overflow-y-auto [overflow-anchor:none]': scrolls }"
 	>
 		<!-- min-h-full keeps short feeds at the top; shrink-0 keeps the overflow -->
-		<div class="min-h-full shrink-0">
+		<div class="flex min-h-full shrink-0 flex-col">
 			<!-- skeleton only on first load; cached data stays visible during revalidation -->
 			<TimelineSkeleton v-if="loading && !activities.length" class="mt-2" />
-			<template v-else-if="!activities.length">
+			<div v-else-if="!activities.length" class="flex flex-1 flex-col justify-center">
 				<slot name="empty">
 					<div class="flex flex-col items-center justify-center gap-3 py-8">
 						<LucideActivity class="h-7 w-7 text-ink-gray-4" />
 						<span class="text-md font-medium text-ink-gray-8">No activity yet</span>
 					</div>
 				</slot>
-			</template>
+			</div>
 			<!-- a tab stop only when the timeline scrolls, for arrow-key scrolling -->
 			<div
 				v-else
@@ -36,7 +37,7 @@
 					v-for="(activity, i) in displayActivities"
 					:key="activity.renderKey ?? getKey(activity, i)"
 					:id="getKey(activity, i)"
-					class="activity"
+					class="activity scroll-mt-[20vh]"
 				>
 					<!-- minmax 0: lets the content column shrink so inner truncation can engage -->
 					<div class="grid w-full grid-cols-[30px_minmax(0,_1fr)] gap-2 px-6 md:px-0">

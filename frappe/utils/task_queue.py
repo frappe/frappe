@@ -88,7 +88,7 @@ def enqueue_task(
 			at_front=at_front,
 			now=now,
 			at_front_when_starved=at_front_when_starved,
-			retry=rq_retry,
+			rq_retry=rq_retry,
 			task_id=task_id,
 			target_method=method_name,
 			task_user=user,

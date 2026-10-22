@@ -6,7 +6,7 @@ import json
 import frappe
 from frappe.automation_engine import api
 from frappe.automation_engine.registry import clear_automation_cache
-from frappe.automation_engine.runner import TASK_METHOD, automation_task_name
+from frappe.automation_engine.runner import RUN
 from frappe.tests import IntegrationTestCase
 
 
@@ -102,15 +102,11 @@ class TestApi(IntegrationTestCase):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "history"}).insert()
 		frappe.get_doc(
 			{
-				"doctype": "Background Task",
-				"task_id": frappe.generate_hash(length=20),
-				"task_name": automation_task_name("AUTO-TEST"),
-				"user": frappe.session.user,
-				"method": TASK_METHOD,
-				"ref_doctype": "ToDo",
-				"ref_docname": todo.name,
-				"status": "Completed",
-				"result": json.dumps({"automation_title": "API Rule", "automation_status": "Success"}),
+				"doctype": RUN,
+				"automation_title": "API Rule",
+				"reference_doctype": "ToDo",
+				"reference_name": todo.name,
+				"status": "Success",
 			}
 		).insert(ignore_permissions=True)
 		runs = api.get_runs("ToDo", todo.name)

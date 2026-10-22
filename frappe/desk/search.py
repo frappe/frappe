@@ -12,6 +12,7 @@ import frappe
 from frappe import _, bold, is_whitelisted
 from frappe.app_state import get_disabled_modules
 from frappe.database.schema import SPECIAL_CHAR_PATTERN
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import get_order_by
 from frappe.permissions import has_permission
 from frappe.utils import cint, cstr, escape_html, sbool, unique
@@ -120,11 +121,12 @@ def search_widget(
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
-			validate_ignore_user_permissions(reference_doctype, link_fieldname, doctype)
+			ignore_user_permissions = validate_ignore_user_permissions(
+				reference_doctype, link_fieldname, doctype
+			)
 		else:
 			frappe.logger().error(
-				"setting ignore_user_permissions=True requires reference_doctype and link_fieldname to be set. "
-				f"Got reference_doctype={reference_doctype}, link_fieldname={link_fieldname}. Ignoring flag."
+				"setting ignore_user_permissions=True requires reference_doctype and link_fieldname to be set. Ignoring flag."
 			)
 			ignore_user_permissions = False
 
@@ -201,7 +203,8 @@ def search_widget(
 		if not for_link_validation:
 			if meta.translated_doctype:
 				values = filter_translated(values, txt, as_dict)
-				values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+				if txt:
+					values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 				values = values[start : start + page_length]
 
 		return values
@@ -314,7 +317,8 @@ def search_widget(
 		# Sorting the values array so that relevant results always come first
 		# This will first bring elements on top in which query is a prefix of element
 		# Then it will bring the rest of the elements and sort them in lexicographical order
-		values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
+		if txt:
+			values = sorted(values, key=lambda x: relevance_sorter(x, txt, as_dict))
 
 		if meta.translated_doctype:
 			values = values[start : start + page_length]
@@ -330,21 +334,19 @@ def search_widget(
 	return values
 
 
-def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype):
+def validate_ignore_user_permissions(form_doctype: str, link_fieldname: str, link_doctype: str) -> bool:
+	"""Return whether the search may ignore user permissions; throw if the field does not allow it."""
+
 	def _throw(message):
 		frappe.throw(message, title=_('Error validating "Ignore User Permissions"'))
 
+	def can_search(*fields):
+		# a read-only or hidden field has no search box, so only a crafted request names it
+		return not any(field.read_only or field.hidden for field in fields)
+
 	meta = frappe.get_meta(form_doctype)
-
-	# special early exit - link_fieldname is not being considered here
-	# to avoid cases like bulk edit which have link_fieldname as "value" from failing
-	if any(
-		(field.fieldtype == "Link" and field.options == link_doctype and field.ignore_user_permissions)
-		for field in meta.fields
-	):
-		return
-
 	matched_child_field = None
+	locked_child_field = False
 	for table_field in meta.get_table_fields():
 		if not frappe.db.exists("DocType", table_field.options):
 			continue
@@ -357,23 +359,45 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 			continue
 
 		if child_field.ignore_user_permissions:
-			return
+			if can_search(table_field, child_field):
+				return True
+			# keep looking, a parent field of the same name may still allow it
+			locked_child_field = True
+			continue
 
 		matched_child_field = child_field
 
 	link_field = meta.get_field(link_fieldname)
+	if link_field and link_field.fieldtype not in ("Link", "Dynamic Link", "Table MultiSelect"):
+		link_field = None  # e.g. a Float named "value", which bulk edit's field name collides with
 	field_doctype = form_doctype
+
+	if locked_child_field and not (link_field and link_field.ignore_user_permissions):
+		return False
 
 	if not link_field and matched_child_field:
 		link_field = matched_child_field
 		field_doctype = matched_child_field.parent
 
 	if not link_field:
+		# bulk edit names its value field "value" instead of the field being set
+		if any(
+			field.fieldtype == "Link"
+			and field.options == link_doctype
+			and field.ignore_user_permissions
+			and can_search(field)
+			for field in meta.fields
+		):
+			return True
+
 		_throw(
 			_("Field <code>{0}</code> not found in {1}").format(
 				escape_html(link_fieldname), bold(_(form_doctype))
 			)
 		)
+
+	if not can_search(link_field):
+		return False
 
 	ignore_user_permissions = link_field.ignore_user_permissions
 	found_doctype = None
@@ -402,10 +426,8 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 		)
 
 	if link_field.fieldtype == "Dynamic Link":
-		return  # skip doctype check for Dynamic Link fields
+		return True  # skip doctype check for Dynamic Link fields
 
-	# all cases of valid Link fields are already covered in the early exit above
-	# the following block only serves to show appropriate error message
 	if link_field.fieldtype == "Link":
 		found_doctype = link_field.options
 
@@ -418,6 +440,8 @@ def validate_ignore_user_permissions(form_doctype, link_fieldname, link_doctype)
 				bold(escape_html(link_doctype)),
 			)
 		)
+
+	return True
 
 
 def get_std_fields_list(meta, key):
@@ -450,6 +474,7 @@ def build_for_autosuggest(res: list[tuple], doctype: str) -> list[LinkSearchResu
 		for item in res:
 			item = list(item)
 			if len(item) == 1:
+				title_value = None
 				title_field = meta.title_field
 				docfield = meta.get_field(title_field)
 				if docfield and docfield.is_virtual:
@@ -619,8 +644,9 @@ def get_link_title(doctype: str, docname: str | int):
 	if meta.show_title_field_in_link:
 		try:
 			doc = frappe.get_lazy_doc(doctype, docname)
-			doc.check_permission()
-			return doc.get(meta.title_field)
+			is_title_permitted = meta.title_field in get_permitted_fields(doctype)
+			if is_title_permitted and has_permission(doctype, "select", doc, print_logs=False):
+				return doc.get(meta.title_field)
 		except frappe.DoesNotExistError:
 			frappe.clear_last_message()
 

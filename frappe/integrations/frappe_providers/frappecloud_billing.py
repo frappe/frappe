@@ -81,6 +81,8 @@ def post(method: str, json: dict | None = None):
 
 @frappe.whitelist()
 def current_site_info():
+	import requests
+
 	from frappe.utils import cint
 
 	frappe.only_for("System Manager")
@@ -95,7 +97,10 @@ def current_site_info():
 		return cached_data
 
 	res = {}
-	request = post("press.saas.api.site.info")
+	try:
+		request = post("press.saas.api.site.info")
+	except requests.RequestException:
+		return None
 	if request.status_code == 200:
 		res = request.json().get("message")
 		if not res or not isinstance(res, dict):

@@ -4,7 +4,7 @@
 			{%- if brand_html -%}
 				{{ brand_html }}
 			{%- elif banner_image -%}
-				<img src='{{ banner_image }}'>
+				<img src='{{ banner_image }}' alt="{{ (title_prefix or _('Home')) | e }}">
 			{%- else -%}
 				<span>{{ (frappe.get_hooks("brand_html") or [_("Home")])[0] }}</span>
 			{%- endif -%}
@@ -26,7 +26,7 @@
 			{% include "templates/includes/navbar/navbar_items.html" %}
 		</div>
 		<div class="form-group mb-0 hide" id="language-switcher">
-			<select class="form-control"></select>
+			<select class="form-control" aria-label="{{ _('Language') }}"></select>
 		</div>
 	</div>
 </nav>

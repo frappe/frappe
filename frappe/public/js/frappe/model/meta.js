@@ -214,7 +214,6 @@ $.extend(frappe.meta, {
 			owner: "Created By",
 			_user_tags: "Tags",
 			_liked_by: "Liked By",
-			_comments: "Comments",
 			_assign: "Assigned To",
 		};
 		if (standard[fn]) {
@@ -281,7 +280,7 @@ $.extend(frappe.meta, {
 			if (
 				!print_format_list.includes(d.name) &&
 				d.print_format_type !== "JS" &&
-				d.print_format_for === "DocType" &&
+				d.print_format_for !== "Report" &&
 				(cint(enable_raw_printing) || !d.raw_printing)
 			) {
 				print_format_list.push(d.name);

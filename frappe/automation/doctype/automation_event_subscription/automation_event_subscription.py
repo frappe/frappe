@@ -20,8 +20,8 @@ class AutomationEventSubscription(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
-		event_name: DF.Data
 		correlation_key: DF.Data
+		event_name: DF.Data
 		event_payload: DF.JSON | None
 		expires_at: DF.Datetime
 		resume_queue: DF.Link

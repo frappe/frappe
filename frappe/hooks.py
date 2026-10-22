@@ -9,7 +9,7 @@ app_description = "Full stack web framework with Python, Javascript, MariaDB, Re
 app_license = "MIT"
 app_logo_url = "/assets/frappe/images/frappe-framework-logo.svg"
 develop_version = "17.x.x-develop"
-app_home = "/app/build"
+app_home = "/desk/build"
 
 # --- desk v2 -----------------------------------------------------------------
 # The desk claims its prefix through the mechanism it is building; `desk` names the product.
@@ -59,6 +59,7 @@ app_include_css = [
 app_include_icons = [
 	"/assets/frappe/icons/lucide/icons.svg",
 	"/assets/frappe/icons/desktop_icons/alphabets.svg",
+	"/assets/frappe/icons/module-icons.svg",
 ]
 
 doctype_js = {
@@ -125,6 +126,7 @@ pdf_body_html = "frappe.utils.pdf.pdf_body_html"
 pdf_footer_html = "frappe.utils.pdf.pdf_footer_html"
 pdf_generator = [
 	"frappe.utils.pdf.get_chrome_pdf",
+	"frappe.utils.pdf.get_plutoprint_pdf",
 	"frappe.utils.print_format_generator.get_typst_pdf",
 ]
 # permissions
@@ -337,7 +339,6 @@ scheduler_events = {
 		"frappe.desk.form.document_follow.send_hourly_updates",
 		"frappe.website.doctype.personal_data_deletion_request.personal_data_deletion_request.process_data_deletion_request",
 		"frappe.core.doctype.prepared_report.prepared_report.expire_stalled_report",
-		"frappe.twofactor.delete_all_barcodes_for_users",
 		"frappe.oauth.delete_oauth2_data",
 		"frappe.website.doctype.web_page.web_page.check_publish_status",
 		"frappe.desk.utils.delete_old_exported_report_files",
@@ -346,6 +347,7 @@ scheduler_events = {
 		"frappe.desk.doctype.event.event.send_event_digest",
 		"frappe.email.doctype.notification.notification.trigger_daily_alerts",
 		"frappe.desk.form.document_follow.send_daily_updates",
+		"frappe.storage.gc.collect_garbage",
 	],
 	"daily_long": [],
 	"daily_maintenance": [
@@ -391,7 +393,6 @@ after_migrate = [
 	"frappe.search.sqlite_search.build_index_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
-	"frappe.automation_engine.scheduler.ensure_run_lookup_index",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -545,6 +546,12 @@ after_request = [
 	"frappe.monitor.stop",
 ]
 
+# Routes whose PUT body init_request must not buffer through make_form_dict or
+# cap at the generic upload size. The route reads request.stream itself and must
+# bound the body on its own. Paths match as written, so list every API mount a
+# route is reached on.
+streaming_request_paths = []
+
 # Background Job Hooks
 before_job = [
 	"frappe.recorder.record",
@@ -604,6 +611,7 @@ default_log_clearing_doctypes = {
 	"Scheduled Job Log": 7,
 	"Submission Queue": 7,
 	"Background Task": 7,
+	"Automation Run": 30,
 	"MapReduce Job": 30,
 	"Prepared Report": 14,
 	"Webhook Request Log": 30,
@@ -642,7 +650,7 @@ user_invitation = {
 expose_discovery_source = True
 
 # An island draws a desk Dashboard or Dashboard Chart whose `__onload.island` is
-# {"name": <a name in ui_islands>, "props": {...}}. Desk draws the document
+# {"name": <an island name>, "props": {...}}. Desk draws the document
 # itself while the key is absent. An app sets the key from its own onload
 # handler, so it decides how it recognizes its documents:
 #
@@ -652,9 +660,9 @@ expose_discovery_source = True
 # 	if doc.someapp_dashboard:
 # 		doc.set_onload("island", {"name": "someapp.dashboard", "props": {...}})
 
-# A `Page` of type "Frappe UI" is drawn by an island too, and registers itself:
-# no hook, and no entry in `ui_islands`. Framework builds those islands for
-# every app on the bench, in one build, after any app's assets are built.
+# A `Page` of type "Frappe UI" is drawn by an island too, and needs no line of
+# Python. Framework builds those islands for every app on the bench, in one
+# build, after any app's assets are built.
 after_app_build = "frappe.bundler.build_page_islands"
 
 

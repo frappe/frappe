@@ -4,6 +4,7 @@
 import json
 import typing
 from contextlib import contextmanager
+from types import SimpleNamespace
 from unittest.mock import patch
 
 import frappe
@@ -11,6 +12,7 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	ARRANGED_ITEM_FIELDS,
 	COMPUTED_BASE_CACHE_KEY,
 	MODULE_CONTENT_DOCTYPES,
+	PRIVATE_HEADER_ICON,
 	ROUTABLE_ENTITY_KINDS,
 	SYSTEM_WRITE_FLAGS,
 	UNROUTABLE_IN_A_TITLE,
@@ -27,12 +29,14 @@ from frappe.desk.doctype.sidebar.sidebar import (
 	item_key,
 	mark_as_standard,
 	reset_app_sidebar,
+	resolve_sidebar,
 	routable_entities,
 	routable_title,
 	save_app_sidebar,
 	shell_slug,
 	unmark_as_standard,
 )
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, ensure_module
 from frappe.tests import IntegrationTestCase
 
 MODULE = "Test Sidebar Module"
@@ -661,6 +665,25 @@ class TestSidebarIsNamedByItsTitle(IntegrationTestCase):
 
 		self.assertEqual(frappe.get_doc("Dock", layer.name).items[0].link_to, self.RENAMED)
 
+	def test_deleting_the_sidebar_drops_the_dock_rows_naming_it(self):
+		"""`Dock Item.link_to` is a Dynamic Link, which no delete checks, so without `on_trash` the
+		row would stay behind pointing at a sidebar that is gone."""
+		doc = make_sidebar(self.MODULE)
+		frappe.db.delete("Dock", {"app": "frappe", "user": "test@example.com"})
+		layer = frappe.get_doc(
+			{
+				"doctype": "Dock",
+				"app": "frappe",
+				"user": "test@example.com",
+				"items": [{"link_type": "Sidebar", "link_to": self.MODULE}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Dock", layer.name, force=True, ignore_permissions=True)
+
+		frappe.delete_doc("Sidebar", doc.name, force=True, ignore_permissions=True)
+
+		self.assertEqual(frappe.get_doc("Dock", layer.name).items, [])
+
 	def test_deleting_the_module_deletes_every_sidebar_it_owns(self):
 		"""Deleting by name reached exactly one, which was every one of them while a module
 		could only have one."""
@@ -799,6 +822,13 @@ class TestSidebarTitleIsRoutable(IntegrationTestCase):
 
 		self.assertEqual(make_sidebar(module, title=title).name, title)
 
+	def test_a_sidebar_may_take_its_own_module_name_in_other_case(self):
+		"""Module Def names compare without case in the database, so a title that differs from its
+		own module only in case still finds that module.
+		"""
+		title = self.MODULE.upper()
+		self.assertEqual(make_sidebar(self.MODULE, title=title).name, title)
+
 	def test_renaming_a_sidebar_to_its_own_slug_is_allowed(self):
 		"""Changing only the case or the spacing of a title leaves its segment where it was, and
 		it must not collide with itself.
@@ -851,16 +881,20 @@ def shell_payload(spec: dict) -> dict:
 	"""A `bootinfo.module_sidebars` payload from a compact spelling, for the ladder's tests.
 
 	Each shell is given as `{"module": ..., "workspaces": [...], "lists": [(kind, entity), ...]}`,
-	and everything the ladder does not read is left out. Building the payload by hand rather than
-	from documents is what lets one test say one thing: the ladder's order is the subject, and
-	real sidebars would drag permissions, customizations and computed bases into it.
+	where a Page entry may add the item's `route` as a third element. Everything the ladder does not
+	read is left out. Building the payload by hand rather than from documents is what lets one test
+	say one thing: the ladder's order is the subject, and real sidebars would drag permissions,
+	customizations and computed bases into it.
 	"""
 	return {
 		shell: {
 			"module": shell_spec.get("module", shell),
 			"workspaces": shell_spec.get("workspaces", []),
 			"computed": shell_spec.get("computed", 0),
-			"items": [{"link_type": kind, "link_to": entity} for kind, entity in shell_spec.get("lists", [])],
+			"items": [
+				{"link_type": kind, "link_to": entity, "route": route}
+				for kind, entity, route in ((*listed, None)[:3] for listed in shell_spec.get("lists", []))
+			],
 		}
 		for shell, shell_spec in spec.items()
 	}
@@ -922,6 +956,20 @@ class TestCanonicalShell(IntegrationTestCase):
 		)
 
 		self.assertEqual(ShellIndex(index).resolve("DocType", "Widget", "Widgets"), "Selling")
+
+	def test_a_row_in_the_private_shell_claims_nothing(self):
+		"""A user who keeps a shortcut to `Job Offer` in their own shell has not moved it there.
+		`Private` sorts ahead of `Recruitment`, so counted as a claim it would win.
+		"""
+		index = shell_payload(
+			{
+				"HR": {},
+				"Private": {"lists": [("DocType", "Job Offer")]},
+				"Recruitment": {"lists": [("DocType", "Job Offer")]},
+			}
+		)
+
+		self.assertEqual(ShellIndex(index).resolve("DocType", "Job Offer", "HR"), "Recruitment")
 
 	def test_the_module_answers_last_when_no_shell_lists_the_entity(self):
 		index = shell_payload({"Stock": {}, "Selling": {"lists": [("DocType", "Customer")]}})
@@ -988,6 +1036,98 @@ class TestCanonicalShell(IntegrationTestCase):
 		index = ShellIndex(shell_payload({"Stock": {"workspaces": ["Stock", "Warehousing"]}}))
 
 		self.assertEqual(dict(index.workspace_owners()), {"Stock": "Stock", "Warehousing": "Stock"})
+
+
+class TestCanonicalShellOfAPageRoute(IntegrationTestCase):
+	"""Several apps link one container page with a route of their own: Selling links
+	`insights-dashboard` at `selling`, Pulse at `pulse-health`. The page belongs to Insights, so
+	keyed by the page alone every such route opened in Insights.
+	"""
+
+	PAGE = "insights-dashboard"
+	SIDEBARS = shell_payload(
+		{
+			"Insights": {"lists": [("Page", PAGE)]},
+			"Selling": {"lists": [("Page", PAGE, "selling")]},
+			"Pulse": {"lists": [("Page", PAGE, "pulse-health")]},
+		}
+	)
+
+	def build(self, entity_module=None):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={self.PAGE: {"module": "Insights"}},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, entity_module or {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_page_route_opens_in_the_shell_that_lists_it(self):
+		pages = self.build()
+
+		self.assertEqual(pages[f"{self.PAGE}/selling"], "Selling")
+		self.assertEqual(pages[f"{self.PAGE}/pulse-health"], "Pulse")
+
+	def test_the_page_itself_still_opens_in_its_module(self):
+		self.assertEqual(self.build()[self.PAGE], "Insights")
+
+	def test_an_item_with_a_route_still_lists_its_page(self):
+		self.assertEqual(
+			ShellIndex(self.SIDEBARS).listed_in("Page", self.PAGE), ["Insights", "Selling", "Pulse"]
+		)
+
+	def test_a_page_route_can_be_claimed(self):
+		from frappe.boot import build_entity_module_map
+
+		sidebars = shell_payload({"Insights": {}, "Pulse": {}})
+		sidebars["Pulse"]["items"] = [
+			{"link_type": "Page", "link_to": self.PAGE, "route": "pulse-health", "is_default_module": 1}
+		]
+
+		self.assertEqual(build_entity_module_map(sidebars)[f"{self.PAGE}/pulse-health"], "Pulse")
+
+
+class TestCanonicalShellOfASystemOrSharedPage(IntegrationTestCase):
+	"""A system page opens in no shell and a shared page in any. Only the first changes the map:
+	a shared page still has to open somewhere when nothing states a shell.
+	"""
+
+	SIDEBARS = shell_payload({"Build": {"lists": [("Page", "desktop", "apps")]}, "Printing": {}})
+
+	def build(self):
+		perm_ctx = SimpleNamespace(
+			can_read=[],
+			allowed_reports={},
+			allowed_pages={
+				"desktop": {"module": "Build", "system_page": 1},
+				"print": {"module": "Printing", "shared_page": 1},
+			},
+			get_allowed_dashboards=lambda cache: [],
+		)
+		canonical, _home = build_canonical_shells(self.SIDEBARS, {}, perm_ctx)
+		return canonical["Page"]
+
+	def test_a_system_page_is_not_in_the_map(self):
+		self.assertNotIn("desktop", self.build())
+
+	def test_a_route_into_a_system_page_is_not_in_the_map_either(self):
+		self.assertNotIn("desktop/apps", self.build())
+
+	def test_a_shared_page_opens_in_its_module_when_nothing_states_a_shell(self):
+		self.assertEqual(self.build()["print"], "Printing")
+
+	def test_the_desk_is_told_which_pages_are_which(self):
+		from frappe.desk.desk_views import DeskViews
+
+		email = user_with_roles("test-sidebar-page-flags@example.com", ["Desk User"])
+		self.enterContext(self.set_user(email))
+		pages = DeskViews.get_allowed_pages()
+
+		self.assertEqual(pages["print"].get("shared_page"), 1)
+		self.assertNotIn("system_page", pages["print"])
+		self.assertEqual(pages["desktop"].get("system_page"), 1)
+		self.assertNotIn("shared_page", pages["desktop"])
 
 
 class TestCanonicalShellPayload(IntegrationTestCase):
@@ -2724,3 +2864,212 @@ class TestAppSidebarLayer(IntegrationTestCase):
 			):
 				with self.assertRaises(frappe.ValidationError):
 					call()
+
+
+class TestPageItemRoute(IntegrationTestCase):
+	"""`Sidebar Item.route` is the path inside the page an item opens."""
+
+	PAGE = "permission-manager"
+
+	def setUp(self):
+		if not frappe.db.exists("Module Def", MODULE):
+			with no_developer_mode():
+				frappe.get_doc(
+					{"doctype": "Module Def", "module_name": MODULE, "app_name": "frappe"}
+				).insert()
+
+	def tearDown(self):
+		for name in frappe.get_all("Sidebar", filters={"module": MODULE}, pluck="name"):
+			frappe.delete_doc("Sidebar", name, force=True, ignore_permissions=True)
+		with no_developer_mode():
+			frappe.delete_doc("Module Def", MODULE, force=True, ignore_missing=True)
+
+	def sidebar_with(self, *items, **item):
+		doc = frappe.new_doc("Sidebar")
+		doc.module = MODULE
+		for row in items or (item,):
+			doc.append("items", {"type": "Link", "label": "Dashboard", **row})
+		with developer_mode():
+			return doc.insert(ignore_permissions=True)
+
+	def test_the_boot_payload_carries_the_route(self):
+		"""The desk picks the sidebar for a route from this payload."""
+		self.sidebar_with(link_type="Page", link_to=self.PAGE, route="payroll")
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual(items[0]["route"], "payroll")
+
+	def test_a_route_is_stored_without_surrounding_whitespace(self):
+		"""A stray space would break the link and split one destination into two identities."""
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE, route=" payroll ")
+
+		self.assertEqual(frappe.get_doc("Sidebar", doc.name).items[0].route, "payroll")
+
+	def test_a_route_that_leaves_the_page_is_refused(self):
+		for route in ("/payroll", "../payroll", "payroll/../../todo", "https://example.com"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_a_query_or_a_fragment_is_not_a_route(self):
+		for route in ("payroll?dashboard=1", "payroll#top"):
+			with self.subTest(route=route), self.assertRaises(frappe.ValidationError):
+				self.sidebar_with(link_type="Page", link_to=self.PAGE, route=route)
+
+	def test_only_a_page_item_has_a_route_inside_it(self):
+		with self.assertRaises(frappe.ValidationError):
+			self.sidebar_with(link_type="DocType", link_to="User", route="payroll")
+
+	def test_a_page_item_needs_no_route(self):
+		doc = self.sidebar_with(link_type="Page", link_to=self.PAGE)
+
+		self.assertFalse(frappe.get_doc("Sidebar", doc.name).items[0].route)
+
+	def test_an_item_with_no_route_keeps_the_key_it_always_had(self):
+		"""`Custom Sidebar` rows on customer sites name items by this string."""
+		self.assertEqual(
+			item_key({"type": "Link", "link_type": "Page", "link_to": self.PAGE}),
+			"Link|Page|permission-manager||",
+		)
+
+	def test_both_routes_survive_the_filter_that_drops_duplicates(self):
+		self.sidebar_with(
+			{"link_type": "Page", "link_to": self.PAGE, "route": "accounts"},
+			{"link_type": "Page", "link_to": self.PAGE, "route": "payments"},
+		)
+
+		items = filter_sidebar_items(frappe.get_doc("Sidebar", MODULE).items, None, check_permission=False)
+
+		self.assertEqual([item["route"] for item in items], ["accounts", "payments"])
+
+
+class TestPrivateShell(IntegrationTestCase):
+	"""The `Private` shell is one user's own pages, and nothing else.
+
+	Every other shell is a module: the same items for everyone who can see it, arranged by the app,
+	then the site, then the user. This one is a person. Its contents are the pages the viewer made,
+	whatever module each was filed under, so two people standing on `/desk/private` see two
+	different sidebars and neither can arrange the other's.
+	"""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		ensure_module(PRIVATE_MODULE)
+		self.user = user_with_roles("test-private-shell@example.com", ["System Manager"])
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def make_page(self, title, module=PRIVATE_MODULE, for_user=None, public=0):
+		for_user = self.user if for_user is None and not public else for_user
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": f"{title}-{for_user}" if for_user else title,
+				"module": module,
+				"public": public,
+				"for_user": for_user or "",
+				"content": "[]",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		# Registered after the delete, so it runs before it: cleanups are undone last-first, and a
+		# test that switched user cannot delete a page it does not own.
+		self.addCleanup(frappe.set_user, "Administrator")
+		return doc
+
+	def shell(self, user=None):
+		"""The shell as that user sees it.
+
+		The session is switched, not just the argument: the pages a resolution adds come from
+		`get_workspaces`, which answers for whoever is logged in.
+		"""
+		user = user or self.user
+		frappe.set_user(user)
+		frappe.clear_cache(user=user)
+		return resolve_sidebar(PRIVATE_MODULE, user)
+
+	def links(self, user=None):
+		return [item["link_to"] for item in self.shell(user).items]
+
+	def test_it_holds_the_pages_this_user_made(self):
+		page = self.make_page("Test Private Shell Page")
+
+		self.assertEqual(self.links(), [page.name])
+
+	def test_a_page_filed_under_another_module_is_in_it_too(self):
+		"""A module says where else a page appears. It cannot say whether the page is in the shell
+		of the person who made it, which is the one place every private page is."""
+		elsewhere = self.make_page("Test Private Shell Elsewhere", module="Users")
+
+		self.assertIn(elsewhere.name, self.links())
+
+	def test_somebody_elses_page_is_not(self):
+		mine = self.make_page("Test Private Shell Mine")
+		theirs = self.make_page("Test Private Shell Theirs", for_user="Administrator")
+
+		self.assertEqual(self.links(), [mine.name])
+
+		# Containment, not equality: Administrator's own shell holds whatever else this bench has
+		# left them. What this asserts is which of the two pages each person sees.
+		theirs_links = self.links("Administrator")
+		self.assertIn(theirs.name, theirs_links)
+		self.assertNotIn(mine.name, theirs_links)
+
+	def test_a_shared_page_in_the_private_module_stays_out(self):
+		"""One saved before the rule below existed. It renders per viewer here, so a page everybody
+		can see has no audience in it."""
+		shared = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": "Test Private Shell Shared",
+				"label": "Test Private Shell Shared",
+				"module": PRIVATE_MODULE,
+				"public": 1,
+				"content": "[]",
+			}
+		)
+		shared.flags.ignore_validate = True
+		shared.insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Workspace", shared.name, force=True, ignore_missing=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		self.assertNotIn(shared.name, self.links())
+
+	def test_saving_a_shared_page_in_the_private_module_is_refused(self):
+		with self.assertRaises(frappe.ValidationError):
+			frappe.get_doc(
+				{
+					"doctype": "Workspace",
+					"title": "Test Private Shell Refused",
+					"label": "Test Private Shell Refused",
+					"module": PRIVATE_MODULE,
+					"public": 1,
+					"content": "[]",
+				}
+			).insert(ignore_permissions=True)
+
+	def test_it_is_marked_with_a_person(self):
+		"""Every other shell is marked with what its module holds. This one holds one person's
+		pages, so it says so."""
+		self.make_page("Test Private Shell Icon Page")
+
+		self.assertEqual(self.shell().header_icon, PRIVATE_HEADER_ICON)
+
+	def test_it_survives_with_nothing_in_it(self):
+		"""Every other shell disappears when nothing in it is navigable. This one is reached from
+		the user menu, so it has to be there before there is anything in it."""
+		resolved = self.shell()
+
+		self.assertIsNotNone(resolved)
+		self.assertEqual(resolved.items, [])
+
+	def test_a_blocked_module_does_not_hide_your_own_page(self):
+		"""Blocking a module hides a product's navigation. A page you made yourself is not that,
+		and it used to disappear from your own shell with no way to get it back."""
+		page = self.make_page("Test Private Shell Blocked", module="Users")
+		user = frappe.get_doc("User", self.user)
+		user.append("block_modules", {"module": "Users"})
+		user.save(ignore_permissions=True)
+		frappe.clear_cache(user=self.user)
+
+		self.assertIn(page.name, self.links())

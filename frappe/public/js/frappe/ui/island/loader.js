@@ -13,10 +13,10 @@
  * handle and `ready`. This file is desk's half. It resolves a name against
  * boot, assembles the desk context, and publishes the `frappe.ui` API.
  *
- * Resolution runs from the name to the `ui_islands` registry in boot, then to
- * assets.json, then to the module URL the host loop imports. An island is a
- * self-contained ES module, so this file is part of desk's normal esbuild
- * bundle, and the page needs nothing loaded ahead of the island.
+ * Resolution runs from the name to the registry in boot, then to assets.json,
+ * then to the module URL the host loop imports. An island is a self-contained
+ * ES module, so this file is part of desk's normal esbuild bundle, and the page
+ * needs nothing loaded ahead of the island.
  *
  * The caller passes the island's props. Desk adds `host` and `styles`. What the
  * island does with them is the app's own build. See
@@ -29,7 +29,7 @@ const ISLAND_JS_SUFFIX = ".island.js";
 const ISLAND_CSS_SUFFIX = ".island.css";
 
 /**
- * @param {string} name        Island name as declared in an app's `ui_islands` hook.
+ * @param {string} name        Island name, as the app's build registered it.
  * @param {HTMLElement|JQuery} el
  * @param {Object} [props]     Vue's props object: data and `on*` listeners.
  * @returns {{ update: (props: Object) => void, unmount: () => void, ready: Promise }}
@@ -43,22 +43,16 @@ function mount_island(name, el, props = {}) {
 }
 
 function resolve_island(name) {
-	const bundle = frappe.boot?.ui_islands?.[name];
-	if (!bundle) {
-		throw new Error(
-			`Island "${name}" is not declared. Add it to ui_islands in the app's hooks.py.`
-		);
-	}
-
 	const assets_json = frappe.boot?.assets_json || {};
-	const js = assets_json[bundle + ISLAND_JS_SUFFIX];
+	// assets.json is bench-wide. The registry is the part of it this site has.
+	const js = frappe.boot?.ui_islands?.includes(name) && assets_json[name + ISLAND_JS_SUFFIX];
 	if (!js) {
 		throw new Error(
-			`Island "${name}" points at bundle "${bundle}", but "${bundle}${ISLAND_JS_SUFFIX}" is not in assets.json. Build the app that ships it.`
+			__('Island "{0}" is not on this site. Build the app that ships it.', [name])
 		);
 	}
 
-	return { js, css: assets_json[bundle + ISLAND_CSS_SUFFIX] || null };
+	return { js, css: assets_json[name + ISLAND_CSS_SUFFIX] || null };
 }
 
 /**
@@ -82,9 +76,30 @@ function build_desk_context() {
 		// Desk's anchor delegation then never matches, and a plain link reloads
 		// the page.
 		navigate: (route) => frappe.set_route(route),
+
+		// A value as desk prints a field of its type, as text. `doc` is what a fieldtype's
+		// `options` read, such as the field a Currency names for its currency.
+		format: (value, df, doc) =>
+			frappe.utils.html2text(frappe.format(value, df, { inline: true }, doc)),
+		format_axis_number,
+		developer_mode: Boolean(boot.developer_mode),
+		first_day_of_the_week: frappe.sys_defaults?.first_day_of_the_week || null,
 	};
 
 	return context;
+}
+
+/** An axis tick, shortened. A Currency axis keeps its symbol: "₹ 40 K". */
+function format_axis_number(value, df, doc) {
+	const shortened = frappe.utils.format_chart_axis_number(value);
+	if (df?.fieldtype !== "Currency") return shortened;
+
+	// as the number card prints a shortened amount
+	const [digits, unit] = shortened.split(" ");
+	const number = parseFloat(digits);
+	const decimals = frappe.utils.get_number_of_decimals(number);
+	const currency = frappe.meta.get_field_currency(df, doc);
+	return format_currency(number, currency, decimals) + (unit ? " " + unit : "");
 }
 
 frappe.provide("frappe.ui");

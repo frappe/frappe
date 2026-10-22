@@ -31,15 +31,24 @@ class TestComment(IntegrationTestCase):
 		test_doc.reload()
 
 		# check if updated in _comments cache
-		comments = json.loads(test_doc.get("_comments"))
-		self.assertEqual(comments[0].get("name"), comment.name)
-		self.assertEqual(comments[0].get("comment"), comment.content)
+		self.assertEqual(json.loads(test_doc.get("_comments")), [{"name": comment.name}])
 
 		# Check comment count
 		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
 		self.assertEqual(counts[0]._comment_count, 1)
 
+		# an entry cached with the full preview is cut to its name on the next write
+		frappe.db.set_value(
+			"ToDo",
+			test_doc.name,
+			"_comments",
+			json.dumps([{"comment": "an old full length preview", "by": "a@example.com", "name": "old"}]),
+			update_modified=False,
+		)
 		comment = test_doc.add_comment("Comment", "test comment")
+
+		comments = json.loads(frappe.db.get_value("ToDo", test_doc.name, "_comments"))
+		self.assertEqual(comments, [{"name": "old"}, {"name": comment.name}])
 
 		counts = frappe.get_all("ToDo", {"name": test_doc.name}, ["*"], with_comment_count=True)
 		self.assertEqual(counts[0]._comment_count, 2)

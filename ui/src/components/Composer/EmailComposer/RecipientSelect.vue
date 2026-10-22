@@ -29,6 +29,7 @@
 				</span>
 				<button
 					class="grid size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-4"
+					aria-label="Remove recipient"
 					@click.stop="removeTag"
 				>
 					<LucideX class="size-3" />

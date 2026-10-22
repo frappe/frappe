@@ -20,149 +20,93 @@ def draws_the_chart(doc, method=None):
 
 
 class TestUiIslandsRegistry(IntegrationTestCase):
-	def test_registry_unwraps_the_hook_lists(self):
-		with self.patch_hooks({"ui_islands": {"insights.dashboard": ["insights_dashboard"]}}):
-			self.assertEqual(get_ui_islands(), {"insights.dashboard": "insights_dashboard"})
+	"""A build registers an island by writing its asset key."""
 
-	def test_registry_merges_islands_of_several_apps(self):
-		with self.patch_hooks(
+	def patch_assets_json(self, assets):
+		return patch("frappe.utils.island.get_assets_json", return_value=assets)
+
+	def test_the_name_is_the_key_without_the_suffix(self):
+		with self.patch_assets_json(
+			{"frappe.dashboard.island.js": "/assets/frappe/dist/island/dashboard.js"}
+		):
+			self.assertEqual(get_ui_islands(), ["frappe.dashboard"])
+
+	def test_a_key_of_any_other_form_is_not_an_island(self):
+		with self.patch_assets_json(
 			{
-				"ui_islands": {
-					"insights.dashboard": ["insights_dashboard"],
-					"helpdesk.ticket": ["helpdesk_ticket"],
-				}
+				"insights.dashboard.island.css": "/assets/insights/dist/island/dashboard.css",
+				"desk.bundle.js": "/assets/frappe/dist/js/desk.bundle.js",
+				"frappe/images/logo.svg": "/assets/frappe/images/logo.svg",
 			}
 		):
-			self.assertEqual(
-				get_ui_islands(),
-				{
-					"insights.dashboard": "insights_dashboard",
-					"helpdesk.ticket": "helpdesk_ticket",
-				},
-			)
+			self.assertEqual(get_ui_islands(), [])
 
-	def test_last_app_to_declare_a_name_wins(self):
-		with self.patch_hooks({"ui_islands": {"insights.dashboard": ["original", "override"]}}):
-			self.assertEqual(get_ui_islands(), {"insights.dashboard": "override"})
+	def test_an_island_of_an_app_this_site_lacks_is_left_out(self):
+		# assets.json is bench-wide, and a site holds a subset of the bench's apps.
+		with self.patch_assets_json(
+			{
+				"frappe.example.island.js": "/assets/frappe/dist/island/example.js",
+				"nosuchapp.example.island.js": "/assets/nosuchapp/dist/island/example.js",
+			}
+		):
+			self.assertEqual(get_ui_islands(), ["frappe.example"])
 
-	def test_registry_is_empty_without_the_hook(self):
-		with self.patch_hooks({"ui_islands": {}}):
-			self.assertEqual(get_ui_islands(), {})
+	def test_a_page_island_takes_its_app_from_its_name(self):
+		# Framework builds every page island, into framework's own dist, so the
+		# URL names framework whatever app the page belongs to.
+		with self.patch_assets_json(
+			{
+				"frappe.page.one.island.js": "/assets/frappe/dist/page-island/one.js",
+				"nosuchapp.page.two.island.js": "/assets/frappe/dist/page-island/two.js",
+			}
+		):
+			self.assertEqual(get_ui_islands(), ["frappe.page.one"])
 
-	def test_registry_reaches_the_browser_through_boot(self):
+	def test_the_registry_reaches_the_browser_through_boot(self):
 		# The desk loader resolves island names on the client, so boot must carry them.
 		with patch.object(frappe.local, "request", None, create=True):
 			self.assertIn("ui_islands", frappe.sessions.get())
 
 
-class TestPageIslands(IntegrationTestCase):
-	"""A `Page` of type "Frappe UI" registers its own island, with no hook."""
-
-	def make_page(self, **values):
-		"""A Page row, and nothing on disk.
-
-		`do_not_update_json` keeps `on_update` from exporting the document, which
-		is what writes the page folder. These cases are about the registry, and
-		the scaffold has its own tests in the Page's own suite.
-		"""
-		page = frappe.new_doc(
-			"Page",
-			**{"page_name": frappe.generate_hash(), "module": "Core", "standard": "Yes", **values},
-		)
-		page.flags.do_not_update_json = True
-		page.insert()
-
-		# A cleanup runs after the decorator's patch is undone, and deleting a
-		# Page is developer-mode only, so it carries its own.
-		def remove():
-			with patch.dict(frappe.conf, {"developer_mode": 1}):
-				frappe.delete_doc("Page", page.name, force=True)
-
-		self.addCleanup(remove)
-		return page
-
+class TestPageIslandName(IntegrationTestCase):
 	def test_the_name_carries_the_app_and_the_page(self):
 		self.assertEqual(page_island_name("insights", "sales-dashboard"), "insights.page.sales-dashboard")
-
-	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_a_frappe_ui_page_registers_itself(self):
-		page = self.make_page(type="Frappe UI")
-
-		with self.patch_hooks({"ui_islands": {}}):
-			self.assertEqual(get_ui_islands().get(f"frappe.page.{page.name}"), f"frappe.page.{page.name}")
-
-	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_a_page_of_no_type_registers_nothing(self):
-		page = self.make_page()
-
-		with self.patch_hooks({"ui_islands": {}}):
-			self.assertNotIn(f"frappe.page.{page.name}", get_ui_islands())
-
-	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_a_page_island_resolves_to_its_bundle(self):
-		page = self.make_page(type="Frappe UI")
-		name = f"frappe.page.{page.name}"
-
-		with self.patch_hooks({"ui_islands": {}}):
-			with patch(
-				"frappe.utils.island.get_assets_json",
-				return_value={f"{name}.island.js": "/assets/frappe/dist/page-island/x.js"},
-			):
-				self.assertEqual(
-					get_island_assets(name),
-					{"js": "/assets/frappe/dist/page-island/x.js", "css": None},
-				)
-
-	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_a_page_island_reaches_the_browser_through_boot(self):
-		page = self.make_page(type="Frappe UI")
-
-		with patch.object(frappe.local, "request", None, create=True):
-			self.assertIn(f"frappe.page.{page.name}", frappe.sessions.get()["ui_islands"])
-
-	@patch.dict(frappe.conf, {"developer_mode": 1})
-	def test_a_frappe_ui_page_has_to_be_standard(self):
-		# Its Vue source lives in the app's page folder, and a non-standard page
-		# has no folder to live in.
-		with self.assertRaises(frappe.ValidationError):
-			self.make_page(type="Frappe UI", standard="No")
 
 
 class TestIslandAssets(IntegrationTestCase):
 	def patch_assets_json(self, assets):
 		return patch("frappe.utils.island.get_assets_json", return_value=assets)
 
-	def test_declared_island_resolves_to_its_js_and_css(self):
-		with self.patch_hooks({"ui_islands": {"insights.dashboard": ["insights_dashboard"]}}):
-			with self.patch_assets_json(
+	def test_an_island_resolves_to_its_js_and_css(self):
+		with self.patch_assets_json(
+			{
+				"frappe.example.island.js": "/assets/frappe/dist/island/example.js",
+				"frappe.example.island.css": "/assets/frappe/dist/island/example.css",
+			}
+		):
+			self.assertEqual(
+				get_island_assets("frappe.example"),
 				{
-					"insights_dashboard.island.js": "/assets/insights/dist/js/insights_dashboard.island.js",
-					"insights_dashboard.island.css": "/assets/insights/dist/css/insights_dashboard.island.css",
-				}
-			):
-				self.assertEqual(
-					get_island_assets("insights.dashboard"),
-					{
-						"js": "/assets/insights/dist/js/insights_dashboard.island.js",
-						"css": "/assets/insights/dist/css/insights_dashboard.island.css",
-					},
-				)
+					"js": "/assets/frappe/dist/island/example.js",
+					"css": "/assets/frappe/dist/island/example.css",
+				},
+			)
 
-	def test_island_without_css_resolves_to_none(self):
-		with self.patch_hooks({"ui_islands": {"insights.dashboard": ["insights_dashboard"]}}):
-			with self.patch_assets_json({"insights_dashboard.island.js": "/assets/js.js"}):
-				self.assertIsNone(get_island_assets("insights.dashboard")["css"])
+	def test_an_island_without_css_resolves_to_none(self):
+		with self.patch_assets_json({"frappe.example.island.js": "/assets/frappe/dist/island/example.js"}):
+			self.assertIsNone(get_island_assets("frappe.example")["css"])
 
-	def test_undeclared_island_throws(self):
-		with self.patch_hooks({"ui_islands": {}}), self.patch_assets_json({}):
+	def test_an_unbuilt_island_throws(self):
+		with self.patch_assets_json({}):
 			with self.assertRaises(frappe.ValidationError):
-				get_island_assets("insights.dashboard")
+				get_island_assets("frappe.example")
 
-	def test_unbuilt_bundle_throws(self):
-		with self.patch_hooks({"ui_islands": {"insights.dashboard": ["insights_dashboard"]}}):
-			with self.patch_assets_json({}):
-				with self.assertRaises(frappe.ValidationError):
-					get_island_assets("insights.dashboard")
+	def test_an_island_of_an_app_this_site_lacks_throws(self):
+		with self.patch_assets_json(
+			{"nosuchapp.example.island.js": "/assets/nosuchapp/dist/island/example.js"}
+		):
+			with self.assertRaises(frappe.ValidationError):
+				get_island_assets("nosuchapp.example")
 
 
 class TestIslandOnLoad(IntegrationTestCase):

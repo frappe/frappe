@@ -18,7 +18,7 @@ Example:
 import json
 import os
 import typing
-from datetime import datetime
+from datetime import datetime, timedelta
 
 import frappe
 from frappe import N_, _
@@ -31,12 +31,11 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import (
+from frappe.model.document import (
 	DOCTYPE_TABLE_FIELDS,
 	TABLE_DOCTYPES_FOR_DOCTYPE,
-	BaseDocument,
+	Document,
 )
-from frappe.model.document import Document
 from frappe.model.utils import is_single_doctype
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
@@ -57,7 +56,6 @@ DEFAULT_FIELD_LABELS = {
 	"owner": N_("Created By"),
 	"_user_tags": N_("Tags"),
 	"_liked_by": N_("Liked By"),
-	"_comments": N_("Comments"),
 	"_assign": N_("Assigned To"),
 }
 
@@ -119,9 +117,9 @@ def load_doctype_from_file(doctype):
 	for d in txt.get("permissions", []):
 		d["doctype"] = "DocPerm"
 
-	txt["fields"] = [BaseDocument(d) for d in txt["fields"]]
+	txt["fields"] = [Document(d) for d in txt["fields"]]
 	if "permissions" in txt:
-		txt["permissions"] = [BaseDocument(d) for d in txt["permissions"]]
+		txt["permissions"] = [Document(d) for d in txt["permissions"]]
 
 	return txt
 
@@ -262,7 +260,8 @@ class Meta(Document):
 	def _valid_columns(self):
 		table_exists = frappe.db.table_exists(self.name)
 		if self.name in self.special_doctypes and table_exists:
-			valid_columns = get_table_columns(self.name)
+			# `_comments` is a cache column, never a readable field
+			valid_columns = [c for c in get_table_columns(self.name) if c != "_comments"]
 		else:
 			valid_columns = self.default_fields + [
 				df.fieldname
@@ -393,8 +392,8 @@ class Meta(Document):
 		if field := self.get_field(fieldname):
 			return field.translatable
 
-	def get_workflow(self):
-		return get_workflow_name(self.name)
+	def get_workflow(self, doc=None):
+		return get_workflow_name(self.name, doc)
 
 	def get_naming_series_options(self) -> list[str]:
 		"""Get list naming series options."""
@@ -515,8 +514,8 @@ class Meta(Document):
 			recent_change = frappe.db.sql(
 				f"SELECT `creation` FROM `tab{self.name}` ORDER BY `creation` DESC LIMIT 1"
 			)  # nosemgrep
-			if recent_change and get_datetime(recent_change[0][0]) > add_to_date(
-				None, days=-1 * LARGE_TABLE_RECENCY_THRESHOLD
+			if recent_change and get_datetime(recent_change[0][0]) > (
+				datetime.now() + timedelta(days=(-1 * LARGE_TABLE_RECENCY_THRESHOLD))
 			):
 				self.is_large_table = True
 
@@ -724,7 +723,7 @@ class Meta(Document):
 			permission_type = "select" if frappe.only_has_select_perm(self.name, user=user) else "read"
 
 		if permission_type == "select":
-			return self.get_search_fields()
+			return self.get_select_fieldnames(with_virtual_fields)
 
 		if not self.get_permissions(parenttype=parenttype):
 			return self.get_fieldnames_with_value()
@@ -746,6 +745,20 @@ class Meta(Document):
 			if df.permlevel in permlevel_access
 		)
 		return permitted_fieldnames
+
+	def get_select_fieldnames(self, with_virtual_fields=True):
+		"""Search fields, plus the link title when its field is permitted."""
+		fieldnames = self.get_search_fields()
+		title = (
+			self.get_field(self.title_field) if self.show_title_field_in_link and self.title_field else None
+		)
+		if not title:
+			return fieldnames
+		if title.permlevel or (title.is_virtual and not with_virtual_fields):
+			return [fieldname for fieldname in fieldnames if fieldname != title.fieldname]
+		if title.fieldname not in fieldnames:
+			fieldnames.append(title.fieldname)
+		return fieldnames
 
 	def get_permlevel_access(self, permission_type="read", parenttype=None, *, user=None):
 		has_access_to = set()
@@ -1038,20 +1051,26 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 
 def trim_table(doctype, dry_run=True):
 	key = f"table_columns::tab{doctype}"
-	frappe.cache.delete_value(key)
+	frappe.client_cache.delete_value(key)
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
+	# docfields never get generated columns, so the controller owns these
+	generated_columns = {
+		column.name
+		for column in frappe.db.get_table_columns_description(f"tab{doctype}")
+		if column.is_generated
+	}
 
 	def is_internal(field):
 		return field not in ignore_fields and not field.startswith("_")
 
-	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
+	columns_to_remove = [f for f in list(set(columns) - set(fields) - generated_columns) if is_internal(f)]
 	DROPPED_COLUMNS = columns_to_remove[:]
 
 	if columns_to_remove and not dry_run:
-		columns_to_remove = ", ".join(f"DROP `{c}`" for c in columns_to_remove)
-		frappe.db.sql_ddl(f"ALTER TABLE `tab{doctype}` {columns_to_remove}")
+		frappe.db.drop_columns(doctype, columns_to_remove)
+		frappe.client_cache.delete_value(key)
 
 	return DROPPED_COLUMNS
 
@@ -1092,7 +1111,7 @@ def _serialize(doc, no_nulls=False, *, is_child=False):
 				continue
 
 			if isinstance(value, ListOrTuple):
-				if value and isinstance(value[0], BaseDocument):
+				if value and isinstance(value[0], Document):
 					out[key] = [_serialize(d, no_nulls=no_nulls, is_child=True) for d in value]
 
 				continue

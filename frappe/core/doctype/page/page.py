@@ -27,10 +27,12 @@ class Page(Document):
 		from frappe.types import DF
 
 		icon: DF.Data | None
+		island: DF.Data | None
 		module: DF.Link
 		page_name: DF.Data
 		restrict_to_domain: DF.Link | None
 		roles: DF.Table[HasRole]
+		shared_page: DF.Check
 		standard: DF.Literal["Yes", "No"]
 		system_page: DF.Check
 		title: DF.Data | None
@@ -68,11 +70,31 @@ class Page(Document):
 		if frappe.session.user != "Administrator" and not self.flags.ignore_permissions:
 			frappe.throw(_("Only Administrator can edit"))
 
+		self.validate_shell()
 		self.validate_island()
+
+	def validate_shell(self):
+		if self.system_page and self.shared_page:
+			frappe.throw(
+				_(
+					"A page is either a System Page, which opens in no sidebar, or a Shared Page, which opens in any. It cannot be both."
+				)
+			)
 
 	def validate_island(self):
 		"""The two things a Frappe UI page needs before it can be built at all."""
 		if self.type != "Frappe UI":
+			return
+
+		if self.island:
+			from frappe.utils.island import get_ui_islands
+
+			# A page that names an app's island has no source folder of its own,
+			# so neither the Standard rule nor the page script below applies.
+			if self.island not in get_ui_islands():
+				frappe.throw(
+					_('Island "{0}" is not on this site. Build the app that ships it.').format(self.island)
+				)
 			return
 
 		if self.standard != "Yes":
@@ -119,7 +141,10 @@ class Page(Document):
 			return
 
 		if self.type == "Frappe UI":
-			self.write_island_boilerplate(path)
+			# A page that names an app's island is drawn by code the app already
+			# has. There is nothing to scaffold beside its json.
+			if not self.island:
+				self.write_island_boilerplate(path)
 		elif not os.path.exists(path + ".js"):
 			# js
 			with open(path + ".js", "w") as f:
@@ -157,17 +182,19 @@ class Page(Document):
 		for key in ("script", "style", "content"):
 			d[key] = self.get(key)
 
-		# Like the three above, this is loaded rather than stored, so it is here
-		# and not a field. `load_assets` derives it, and only for a Frappe UI
-		# page, so an export carries no key at all.
-		if self.get("island"):
-			d["island"] = self.island
+		# `load_assets` fills `_island`, derived when the field is empty, so a
+		# save never stores the derived name.
+		if self.get("_island"):
+			d["island"] = self._island
 
 		return d
 
 	def get_island_name(self) -> str | None:
 		"""The island that draws this page. `None` if its app is not installed."""
 		from frappe.utils.island import page_island_name
+
+		if self.island:
+			return self.island
 
 		app = frappe.local.module_app.get(frappe.scrub(self.module))
 		return page_island_name(app, self.name) if app else None
@@ -229,7 +256,7 @@ class Page(Document):
 		# Desk mounts by name, and only this side knows which app the page's
 		# module belongs to.
 		if self.type == "Frappe UI":
-			self.island = self.get_island_name()
+			self._island = self.get_island_name()
 			return
 
 		page_name = scrub(self.name)

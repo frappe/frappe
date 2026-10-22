@@ -148,6 +148,8 @@ class CurDate(Term):
 	the bare keyword too. Render it without parentheses so the same query builder works on both.
 	"""
 
+	is_aggregate = None  # a constant: lets an enclosing expression count as an aggregate
+
 	def __init__(self, alias=None):
 		super().__init__(alias=alias)
 

@@ -22,6 +22,7 @@ from frappe.desk.form.load import (
 from frappe.model.document import Document
 from frappe.query_builder import Order
 from frappe.query_builder.functions import Coalesce
+from frappe.utils.html_utils import unescape_html
 
 # The Comment types each activity type draws, so a page's limit counts only rows it can show.
 COMMENT_TYPES = {
@@ -431,7 +432,7 @@ def get_author_info(owner: str, user_info: dict) -> dict:
 
 
 def activity_text(html: str | None) -> str:
-	return frappe.utils.strip_html(html or "").strip()
+	return unescape_html(frappe.utils.strip_html(html or "")).strip()
 
 
 def assignee_from_assignment(text: str, comment_type: str) -> str | None:

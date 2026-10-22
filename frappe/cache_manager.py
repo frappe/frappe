@@ -36,7 +36,6 @@ global_cache_keys = (
 	"active_modules",
 	"assignment_rule",
 	"server_script_map",
-	"wkhtmltopdf_version",
 	"domain_restricted_doctypes",
 	"domain_restricted_pages",
 	# hash of per-module sidebar bases; `on_module_content_changed` busts single fields, this
@@ -78,8 +77,7 @@ user_cache_keys = (
 doctype_cache_keys = (
 	"last_modified",
 	"linked_doctypes",
-	"workflow",
-	"data_import_column_header_map",
+	"workflows",
 )
 
 wildcard_keys = (

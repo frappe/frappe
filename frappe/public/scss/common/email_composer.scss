@@ -1,0 +1,525 @@
+@mixin email-composer-plain-input {
+	width: 100%;
+	border: none;
+	background: transparent;
+	box-shadow: none;
+	padding-left: 0;
+	padding-right: 0;
+}
+
+.email-composer-modal {
+	pointer-events: none;
+
+	.modal-dialog {
+		pointer-events: auto;
+		position: fixed;
+		right: 20px;
+		bottom: 20px;
+		top: auto;
+		left: auto;
+		margin: 0;
+		width: 600px;
+		max-width: calc(100vw - 40px);
+		transform: none !important;
+
+		@include media-breakpoint-down(sm) {
+			right: 0;
+			bottom: 0;
+			width: 100%;
+			max-width: 100%;
+		}
+	}
+
+	// Fixed height, so rows shown while dragging a recipient don't shift the window.
+	.modal-content {
+		display: flex;
+		flex-direction: column;
+		height: 634px;
+		max-height: calc(100vh - 40px);
+		border-radius: var(--radius-xl);
+		border: 1px solid var(--border-color);
+		box-shadow: var(--elevation-xl);
+		background-color: var(--card-bg);
+		overflow: hidden;
+	}
+
+	.modal-body {
+		display: flex;
+		flex-direction: column;
+		flex: 1 1 auto;
+		overflow-y: auto;
+		overflow-x: hidden;
+		padding: 0;
+
+		> div {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			min-height: 0;
+		}
+	}
+
+	.modal-header {
+		align-items: center;
+		padding: 14px 16px;
+		border-bottom: none;
+
+		.modal-title {
+			@include get_textstyle("base", "medium");
+			line-height: 1.15;
+			color: var(--ink-gray-7);
+			margin: 0;
+		}
+
+		// Drop the shared -6px so the buttons end on the same edge as the content.
+		.modal-actions {
+			gap: 4px;
+			margin-right: 0;
+		}
+	}
+
+	&.modal-minimize {
+		.modal-dialog {
+			width: 357px;
+			bottom: 0;
+
+			@include media-breakpoint-down(sm) {
+				width: 100%;
+				max-width: 100%;
+			}
+		}
+
+		.modal-content {
+			height: auto;
+			border-bottom-left-radius: 0;
+			border-bottom-right-radius: 0;
+		}
+
+		.modal-body {
+			display: none;
+		}
+
+		.modal-header {
+			padding: 12px 16px 12px 16px;
+
+			.modal-title {
+				font-size: var(--text-base);
+				line-height: 1.5;
+			}
+		}
+	}
+
+	&.expanded:not(.modal-minimize)::before {
+		content: "";
+		position: fixed;
+		inset: 0;
+		background-color: var(--black-600);
+		pointer-events: auto;
+	}
+
+	&.expanded:not(.modal-minimize) .modal-dialog {
+		inset: 0;
+		margin: auto;
+		width: 1024px;
+		height: 700px;
+		max-width: calc(100vw - 40px);
+		max-height: calc(100vh - 40px);
+	}
+
+	&.expanded:not(.modal-minimize) .modal-content {
+		height: 100%;
+		max-height: none;
+	}
+
+	.modal-footer {
+		display: none !important;
+	}
+}
+
+.email-composer {
+	min-height: 100%;
+
+	.email-composer-row {
+		.frappe-control {
+			margin-bottom: 0;
+
+			.form-group {
+				display: flex;
+				align-items: center;
+				margin-bottom: 0;
+				gap: 8px;
+			}
+
+			.clearfix {
+				flex: 0 0 auto;
+				width: auto;
+
+				.control-label {
+					@include get_textstyle("base", "regular");
+					// Match the first line of pills, even when they wrap.
+					line-height: var(--btn-height);
+					min-width: 35px;
+					margin-bottom: 0;
+					color: var(--ink-gray-5);
+				}
+			}
+
+			.control-input-wrapper {
+				flex: 1;
+				width: auto;
+			}
+
+			.control-input,
+			.form-control,
+			.awesomplete {
+				@include email-composer-plain-input;
+			}
+		}
+	}
+
+	.email-composer-cc-row > .frappe-control,
+	.email-composer-bcc-row > .frappe-control {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.email-composer-to-row,
+	.email-composer-cc-row,
+	.email-composer-bcc-row {
+		.frappe-control .form-group {
+			align-items: flex-start;
+		}
+	}
+
+	.email-composer-to-input,
+	.email-composer-cc-row,
+	.email-composer-bcc-row {
+		.table-multiselect {
+			display: flex;
+			flex-wrap: wrap;
+			align-items: center;
+			gap: 0 6px;
+			padding: 0;
+			min-height: var(--btn-height);
+			border: none;
+			background: transparent;
+			box-shadow: none;
+			position: relative;
+		}
+
+		.table-multiselect .awesomplete {
+			flex: 1 1 80px;
+			min-width: 80px;
+			display: block;
+			position: static;
+		}
+
+		.table-multiselect .awesomplete > ul,
+		.table-multiselect .awesomplete > [role="listbox"] {
+			top: 100%;
+			left: 0;
+			width: 100%;
+			min-width: 0;
+		}
+
+		.table-multiselect input {
+			width: 100%;
+			min-width: 0;
+			margin-bottom: 0;
+			padding: 0;
+			border: none;
+			background: transparent;
+			box-shadow: none;
+			@include get_textstyle("base", "regular");
+		}
+
+		// Beats the multiselect's own pill style, which loads later.
+		.table-multiselect .email-composer-recipient-tag {
+			display: inline-flex;
+			flex-shrink: 0;
+			width: fit-content;
+			background: var(--surface-gray-2);
+			height: 24px;
+			// With no row gap, every wrapped line is as tall as a single one.
+			margin-block: 2px;
+			max-width: 100%;
+			border: none;
+			padding-inline: 6px;
+			border-radius: var(--radius-2);
+			color: var(--ink-gray-7);
+			cursor: grab;
+			@include get_textstyle("sm", "regular");
+			line-height: 1.15;
+
+			.email-composer-tag-avatar {
+				flex-shrink: 0;
+			}
+
+			.pill-label {
+				min-width: 0;
+			}
+
+			.es-badge__affix {
+				cursor: pointer;
+
+				&:hover,
+				&:focus-visible {
+					color: var(--ink-gray-9);
+				}
+			}
+		}
+
+		.table-multiselect.is-collapsed {
+			cursor: text;
+
+			.awesomplete {
+				display: none;
+			}
+		}
+
+		.email-composer-more-count {
+			height: 24px;
+			padding-inline: 6px;
+			color: var(--ink-gray-7);
+			cursor: pointer;
+			@include get_textstyle("sm", "regular");
+		}
+	}
+
+	.email-composer-toggle {
+		@include get_textstyle("sm", "regular");
+		--bt-fg: var(--ink-gray-7);
+
+		&[aria-pressed="true"] {
+			--bt-fg: var(--ink-gray-4);
+		}
+	}
+
+	.email-composer-subject {
+		.frappe-control,
+		.form-group {
+			margin-bottom: 0;
+		}
+
+		.clearfix {
+			display: none;
+		}
+
+		.control-input-wrapper {
+			width: auto;
+			max-width: none;
+		}
+
+		.control-input,
+		.form-control {
+			@include email-composer-plain-input;
+			@include get_textstyle("lg", "semibold");
+			line-height: 1.5;
+			color: var(--ink-gray-7);
+
+			&::placeholder {
+				color: var(--ink-gray-4);
+			}
+		}
+	}
+
+	.email-composer-use-template {
+		flex: 0 0 auto;
+		@include get_textstyle("base", "regular");
+		--bt-fg: var(--ink-gray-6);
+	}
+
+	.email-composer-message-area {
+		.frappe-control {
+			display: flex;
+			flex-direction: column;
+			flex: 1;
+			min-height: 0;
+			margin-bottom: 0;
+
+			.clearfix {
+				display: none;
+			}
+		}
+
+		.frappe-control[data-fieldname="content"] {
+			.form-group,
+			.control-input-wrapper,
+			.control-input,
+			.ql-container {
+				display: flex;
+				flex-direction: column;
+				flex: 1;
+				min-height: 0;
+			}
+
+			.ql-container {
+				border: none;
+			}
+
+			.ql-editor {
+				@include get_textstyle("base", "regular");
+				line-height: 1.5;
+				color: var(--ink-gray-7);
+				flex: 1;
+				min-height: 0;
+				height: auto;
+				resize: none;
+				padding: 0;
+
+				&.ql-blank::before {
+					left: 0;
+					right: 0;
+				}
+			}
+		}
+
+		.ql-toolbar.ql-snow {
+			display: none;
+		}
+	}
+
+	.email-composer-toolbar-slot {
+		.ql-toolbar.ql-snow {
+			display: flex;
+			padding: 0;
+			background-color: transparent;
+			border: none;
+			border-radius: 0;
+		}
+
+		.ql-picker.ql-expanded .ql-picker-options {
+			top: auto;
+			bottom: 100%;
+		}
+
+		.ql-toolbar.ql-snow .email-composer-toolbar-overflow {
+			display: none;
+		}
+
+		.ql-toolbar.ql-snow.show-overflow .email-composer-toolbar-overflow {
+			display: inline-flex;
+		}
+	}
+
+	.email-composer-attachments {
+		padding: var(--padding-sm) 16px;
+
+		.email-composer-attach-pill .es-badge {
+			.pill-label {
+				min-width: 0;
+			}
+
+			.es-badge__affix {
+				cursor: pointer;
+			}
+		}
+
+		&:has(.attach-list:empty) {
+			padding: 0;
+		}
+	}
+
+	.email-composer-footer {
+		position: sticky;
+		bottom: 0;
+		z-index: 3;
+		background: var(--card-bg);
+	}
+
+	.email-composer-html-toggle .frappe-control {
+		margin-bottom: 0;
+		padding: var(--padding-sm) 16px;
+		background-color: var(--surface-gray-1);
+	}
+
+	// The formatting toolbar only works in the rich text editor.
+	&:has(.frappe-control[data-fieldname="content"].hide-control) {
+		[data-action="format"],
+		.email-composer-toolbar-slot {
+			display: none;
+		}
+	}
+
+	.email-composer-discard {
+		color: var(--ink-gray-7);
+	}
+
+	.email-composer-send-group {
+		.email-composer-send-btn {
+			border-top-right-radius: 0;
+			border-bottom-right-radius: 0;
+		}
+
+		.email-composer-send-toggle {
+			border-top-left-radius: 0;
+			border-bottom-left-radius: 0;
+			box-shadow: -0.5px 0 var(--card-bg);
+		}
+	}
+
+	.email-composer-icon-row .es-button.active {
+		background-color: var(--surface-gray-3);
+	}
+
+	.email-composer-more-menu {
+		border-radius: var(--radius-lg);
+		padding: 4px;
+	}
+
+	.email-composer-menu-toggle {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		cursor: pointer;
+		user-select: none;
+		color: var(--ink-gray-7);
+
+		> span:not(.switch-visual) {
+			flex: 1;
+		}
+
+		&.active {
+			background-color: transparent;
+			color: var(--ink-gray-7);
+
+			.switch-visual {
+				background-color: var(--ink-gray-8);
+
+				.switch-thumb {
+					transform: translateX(10px);
+				}
+			}
+		}
+	}
+}
+
+body.modal-open:has(.email-composer-modal.show):not(:has(.modal.show:not(.email-composer-modal))) {
+	overflow: auto !important;
+	padding-right: 0 !important;
+}
+
+.email-composer-file-picker {
+	.email-composer-file-row {
+		font-weight: inherit;
+
+		&:hover {
+			background-color: var(--surface-gray-2);
+		}
+	}
+
+	.email-composer-file-row__thumb {
+		border-radius: var(--radius-3);
+		background-size: cover;
+		background-position: center;
+
+		&.is-image {
+			background-color: var(--surface-gray-2);
+		}
+
+		&.is-pdf {
+			background-color: var(--surface-red-6);
+			color: var(--ink-base);
+		}
+	}
+}

@@ -1,3 +1,6 @@
+// @deprecated Styles for the classic Kanban engine (views/kanban/), superseded
+// by kanban_v2.scss. Used for boards with "Use Kanban v2" off.
+
 :root {
 	--kanban-column-bg: var(--gray-100);
 	--kanban-card-bg: var(--card-bg);

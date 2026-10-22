@@ -15,7 +15,8 @@ export function timeAgo(date?: string): string {
 
 /** Plain text from an HTML fragment (used by the realtime normalizer). */
 export function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, "").trim();
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  return (doc.body.textContent ?? "").trim();
 }
 
 /** Clip for display; `title` holds the full value only when clipped (tooltip on truncation). */

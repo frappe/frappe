@@ -75,7 +75,7 @@ def get_email_template(template_name: str, doc: str | dict[str, Any], sender: st
 
 	email_template = frappe.get_doc("Email Template", template_name)
 	email_template.check_permission("read")
-	return email_template.get_formatted_email(doc, sender=sender)
+	return {**email_template.get_formatted_email(doc, sender=sender), "use_html": email_template.use_html}
 
 
 @frappe.whitelist()
@@ -86,9 +86,12 @@ def get_email_templates(
 	searchfield: str,
 	start: int,
 	page_len: int,
-	filters: dict,
+	filters: dict | str | None = None,
 ):
 	"""Search for Email Templates scoped to a DocType or with no DocType assigned."""
+	if isinstance(filters, str):
+		filters = json.loads(filters)
+
 	reference_doctype = (filters or {}).get("reference_doctype", "")
 
 	return frappe.get_all(

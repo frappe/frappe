@@ -9,6 +9,7 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 	get_layers_for,
 	get_site_sidebar_layer,
 	get_user_sidebar_layer,
+	remove_workspace_rows,
 	reset_site_sidebar,
 	reset_to_standard,
 	reset_user_sidebar,
@@ -18,11 +19,13 @@ from frappe.desk.doctype.custom_sidebar.custom_sidebar import (
 from frappe.desk.doctype.sidebar.sidebar import item_key, resolve_sidebar, unlinked_key
 from frappe.desk.doctype.sidebar.test_sidebar import (
 	delete_page,
+	developer_mode,
 	make_page,
 	make_report,
 	no_developer_mode,
 	sidebarless_module,
 )
+from frappe.desk.doctype.workspace.workspace import PRIVATE_MODULE, add_to_sidebar, ensure_module
 from frappe.tests import IntegrationTestCase
 
 # Any module the dock can take you to will do, since these tests are about the layers rather than
@@ -31,6 +34,7 @@ from frappe.tests import IntegrationTestCase
 MODULE = "Users"
 USER = "test-sidebar-custom@example.com"
 MANAGER = "test-sidebar-manager@example.com"
+OTHER = "test-sidebar-other@example.com"
 
 
 def make_user(email: str, roles: list[str]):
@@ -542,14 +546,16 @@ class TestUserRowsAreTheUsers(CustomizationTestCase):
 		self.assertTrue(frappe.db.exists("Custom Sidebar", {"user": ""}))
 
 
-class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
-	"""A private workspace's link is derived on read, so no layer ever stores one.
+class TestOnlyTheOwnersLayerHoldsAPrivatePage(CustomizationTestCase):
+	"""A row naming a private page belongs in its owner's own layer, and nowhere else.
 
-	The derivation is appended to the arrangement the client is shown, so the client sends it back
-	on the next save. Stored, the site layer would fill up with one row per private page of whoever
-	last curated it, which is the pollution D3 removes, and the owner's own layer would hold a second
-	copy of a link already derived from the workspace.
+	There it is what makes the page's place a stored fact, so the owner can arrange it and hide it
+	from a module's sidebar. In the site's layer it would fill the document the whole site shares
+	with one row per private page of whoever last curated it, and an admin tidying up would find
+	other people's pages in it.
 
+	A page with no row of its own still reaches its owner, derived on read from the workspace, so
+	a row dropped here loses nothing.
 	"""
 
 	def make_workspace(self, title, public, for_user=""):
@@ -588,16 +594,40 @@ class TestNoLayerHoldsAPrivatePage(CustomizationTestCase):
 
 		self.assertEqual(self.stored_links(), [public.name])
 
-	def test_the_owners_own_layer_drops_it_too(self):
-		"""Their own page, but still not their own row: it is derived from the workspace, and a stored
-		copy would outlive the page it names.
-		"""
+	def test_the_owners_own_layer_keeps_their_own_page(self):
+		"""Their own page in their own layer is the one place such a row belongs."""
 		private = self.make_workspace("Test Own Layer Private Page", public=0, for_user=USER)
 
 		self.as_user()
 		save_sidebar_customization(MODULE, json.dumps([self.row_for(private)]))
 
+		self.assertEqual(self.stored_links(USER), [private.name])
+
+	def test_a_users_layer_drops_somebody_elses_page(self):
+		"""A row about a page its reader cannot open says nothing, whichever user's layer it is in."""
+		private = self.make_workspace("Test Other Owner Private Page", public=0, for_user="Administrator")
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([self.row_for(private)]))
+
 		self.assertEqual(self.stored_links(USER), [])
+
+	def test_a_page_with_no_owner_may_be_stored_anywhere(self):
+		"""`public = 0` with no `for_user` is a page `get_workspaces` shows to everybody, so it is
+		shared in all but the column and a layer may hold it.
+
+		It is the case the filter used to answer by accident: `!=` is wrapped in `ifnull(col, '')`,
+		so the site layer, whose `user` is the empty string, kept an unowned page and dropped every
+		owned one, which is the rule upside down on one side.
+		"""
+		unowned = self.make_workspace("Test Unowned Private Page", public=0)
+
+		save_site_sidebar(MODULE, json.dumps([self.row_for(unowned)]))
+		self.assertEqual(self.stored_links(), [unowned.name])
+
+		self.as_user()
+		save_sidebar_customization(MODULE, json.dumps([self.row_for(unowned)]))
+		self.assertEqual(self.stored_links(USER), [unowned.name])
 
 	def test_a_page_that_turns_private_takes_its_stored_row_out_on_the_next_save(self):
 		"""What retires the rows a site stored before the derivation existed: every write runs the
@@ -1135,3 +1165,297 @@ class TestAnAddedItemIsStillPermissionChecked(CustomizationTestCase):
 
 		frappe.set_user(MANAGER)
 		self.assertIn("https://example.com", [item["url"] for item in self.items()])
+
+
+class TestPageRouteIsPartOfTheIdentity(CustomizationTestCase):
+	"""Two items linking one page and naming different routes are two items to a layer."""
+
+	MODULE = "Test Page Route Module"
+
+	def routed_module(self):
+		"""A module whose sidebar is two routes into one page."""
+		module = sidebarless_module(self.MODULE)
+		module.__enter__()
+		self.addCleanup(module.__exit__, None, None, None)
+		self.addCleanup(self.wipe, self.MODULE)
+		page = make_page(self.MODULE, "test-route-page")
+		self.addCleanup(delete_page, page.name)
+
+		doc = frappe.new_doc("Sidebar")
+		doc.module = self.MODULE
+		for route in ("accounts", "payments"):
+			doc.append(
+				"items",
+				{
+					"type": "Link",
+					"link_type": "Page",
+					"link_to": page.name,
+					"label": route.title(),
+					"route": route,
+				},
+			)
+		with developer_mode():
+			doc.insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "Sidebar", doc.name, force=True, ignore_permissions=True)
+
+	def routes(self):
+		return [item.get("route") for item in self.items(self.MODULE)]
+
+	def test_an_arrangement_keeps_both(self):
+		"""A saved arrangement names each item by its key, so a shared key would fold the two
+		into one row and lose the other on the next resolution."""
+		self.routed_module()
+
+		self.as_user()
+		items = self.items(self.MODULE)
+		self.assertEqual(len({item["key"] for item in items}), 2, "sanity: two identities")
+
+		save_sidebar_customization(self.MODULE, json.dumps(list(reversed(items))))
+
+		self.assertEqual(self.routes(), ["payments", "accounts"])
+
+	def test_hiding_one_route_leaves_the_other(self):
+		self.routed_module()
+
+		self.as_user()
+		payments = next(i for i in self.items(self.MODULE) if i["route"] == "payments")
+		save_sidebar_customization(self.MODULE, json.dumps([{**payments, "hidden": 1}]))
+
+		self.assertEqual(self.routes(), ["accounts"])
+
+
+class TestAPrivatePageWritesItsRows(CustomizationTestCase):
+	"""Making a private page says, in stored rows, which sidebars list it.
+
+	It used to say nothing: the page was appended to its owner's sidebars derived on read, so
+	nothing stored held it and the owner could neither arrange it nor hide it from the module it
+	was filed under. Two rows now do: one in their `Private` layer, which is the page's home, and
+	one in the layer of the module it is a guest in.
+	"""
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		ensure_module(PRIVATE_MODULE)
+		self.addCleanup(self.wipe, PRIVATE_MODULE)
+
+	def make_page(self, title, module=MODULE, for_user=USER, public=0, ignore_permissions=True):
+		doc = frappe.get_doc(
+			{
+				"doctype": "Workspace",
+				"title": title,
+				"label": f"{title}-{for_user}" if for_user else title,
+				"module": module,
+				"public": public,
+				"for_user": for_user or "",
+				"content": "[]",
+			}
+		).insert(ignore_permissions=ignore_permissions)
+		self.addCleanup(frappe.delete_doc, "Workspace", doc.name, force=True, ignore_missing=True)
+		return doc
+
+	def rows(self, module, user):
+		layer = get_customization(module, user)
+		return [(row.link_to, row.label) for row in layer.sidebar_items] if layer else []
+
+	def test_a_new_page_lands_in_the_private_layer_and_its_modules(self):
+		page = self.make_page("Test Rows New Page")
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)])
+		self.assertEqual(self.rows(MODULE, USER), [(page.name, page.title)])
+
+	def test_a_page_of_the_private_module_gets_one_row(self):
+		"""It is only at home. There is no second sidebar for it to be a guest in."""
+		page = self.make_page("Test Rows Private Module Page", module=PRIVATE_MODULE)
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)])
+
+	def test_nothing_is_written_to_the_site_layer(self):
+		self.make_page("Test Rows Site Layer Page")
+
+		self.assertEqual(self.rows(MODULE, None), [])
+		self.assertEqual(self.rows(PRIVATE_MODULE, None), [])
+
+	def test_a_shared_page_still_goes_to_the_site_layer(self):
+		"""The other half of the rule. A shared page's row is written by the path that created it,
+		rather than on insert, because that path knows whether it wanted one at all: the page a new
+		module opens on is listed by the module's own sidebar already.
+		"""
+		page = self.make_page("Test Rows Shared Page", for_user="", public=1)
+		self.assertEqual(self.rows(MODULE, None), [], "nothing on insert")
+
+		add_to_sidebar(page)
+
+		self.assertEqual(self.rows(MODULE, USER), [])
+		self.assertIn(page.name, [link for link, _label in self.rows(MODULE, None)])
+
+	def test_moving_it_to_another_module_moves_its_row(self):
+		page = self.make_page("Test Rows Moving Page")
+		page.module = "Contacts"
+		page.save(ignore_permissions=True)
+		self.addCleanup(self.wipe, "Contacts")
+
+		self.assertEqual(self.rows(MODULE, USER), [])
+		self.assertEqual(self.rows("Contacts", USER), [(page.name, page.title)])
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, page.title)], "still at home")
+
+	def test_a_page_turning_private_leaves_no_row_behind(self):
+		"""It was shared a moment ago, so the site's layer holds a row for it and so does everyone
+		who had arranged the module that listed it. None of them may keep a row naming a page they
+		can no longer open, so the removal covers every layer and not only the new owner's.
+		"""
+		page = self.make_page("Test Rows Turning Private", for_user="", public=1)
+		add_to_sidebar(page)
+		self.held_by(page, 2)
+		self.assertTrue(self.rows(MODULE, None), "sanity: the site layer holds it while shared")
+
+		page.public = 0
+		page.for_user = USER
+		page.label = f"{page.title}-{USER}"
+		page.save(ignore_permissions=True)
+
+		everywhere = frappe.get_all(
+			"Sidebar Item",
+			filters={"parenttype": "Custom Sidebar", "link_to": page.name},
+			fields=["parent"],
+		)
+		holders = {
+			row.parent: frappe.db.get_value("Custom Sidebar", row.parent, "user") for row in everywhere
+		}
+		self.assertEqual(sorted(set(holders.values())), [USER], "only the new owner's layers name it now")
+
+	def test_renaming_it_renames_its_rows(self):
+		page = self.make_page("Test Rows Renaming Page")
+		page.title = "Test Rows Renamed Page"
+		page.save(ignore_permissions=True)
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [(page.name, "Test Rows Renamed Page")])
+
+	def held_by(self, page, holders: int):
+		"""Put a row naming `page` in `holders` different users' layers."""
+		for i in range(holders):
+			email = f"test-sidebar-holder-{i}@example.com"
+			make_user(email, ["Desk User"])
+			self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
+			layer = frappe.new_doc("Custom Sidebar")
+			layer.module = MODULE
+			layer.user = email
+			layer.append(
+				"sidebar_items",
+				{
+					"added": 1,
+					"type": "Link",
+					"link_type": "Workspace",
+					"link_to": page.name,
+					"label": page.title,
+				},
+			)
+			layer.insert(ignore_permissions=True)
+
+	def test_deleting_a_page_costs_the_same_however_many_layers_hold_it(self):
+		"""A shared page is referenced by everyone who has arranged the module that lists it, so a
+		document read and a document write per layer made deleting one cost a round trip per user of
+		the site. The statements are set-based now, so the cost is the same for one layer and eight.
+
+		The number itself is not the claim, which is why the same bound is asserted twice rather
+		than written down once: what must hold is that it does not grow.
+		"""
+		one = self.make_page("Test Rows Held Once", for_user="", public=1)
+		self.held_by(one, 1)
+		with self.assertQueryCount(6):
+			remove_workspace_rows(one.name)
+
+		many = self.make_page("Test Rows Held Widely", for_user="", public=1)
+		self.held_by(many, 8)
+		with self.assertQueryCount(6):
+			remove_workspace_rows(many.name)
+
+		self.assertEqual(
+			frappe.get_all(
+				"Sidebar Item",
+				filters={"parenttype": "Custom Sidebar", "link_to": ["in", [one.name, many.name]]},
+				pluck="name",
+			),
+			[],
+		)
+
+	def test_it_can_be_deleted_on_a_developer_site(self):
+		"""A page nobody exported has no folder to remove, and asking for one is not free: the path
+		of a module the site owns cannot be resolved unless that module names a package. Deleting a
+		private page used to fail with "Package must be set for custom Module Private".
+		"""
+		page = self.make_page("Test Rows Developer Delete Page", module=PRIVATE_MODULE)
+
+		with developer_mode():
+			frappe.delete_doc("Workspace", page.name, force=True)
+
+		self.assertFalse(frappe.db.exists("Workspace", page.name))
+
+	def test_nobody_can_make_a_page_for_somebody_else(self):
+		"""A private page belongs to one person, and making one writes rows into that person's own
+		layer. Left unchecked, anyone holding `Desk User` could insert a Workspace naming somebody
+		else in `for_user` through the generic API and put a row in their sidebar.
+
+		The endpoints said so already (`new_page`, `update_page`); the model says it now, because a
+		document API call reaches neither.
+		"""
+		make_user(OTHER, ["Desk User"])
+		self.addCleanup(frappe.delete_doc, "User", OTHER, force=True, ignore_missing=True)
+
+		self.as_user()
+		with self.assertRaises(frappe.PermissionError):
+			# Through the permission system, as the document API goes: `ignore_permissions` is
+			# what a trusted caller passes, and the point here is an untrusted one.
+			self.make_page("Test Rows Somebody Elses Page", for_user=OTHER, ignore_permissions=False)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(self.rows(PRIVATE_MODULE, OTHER), [])
+
+	def test_a_workspace_manager_may_make_one_for_somebody_else(self):
+		"""Which is what the manager dialog does, and what the endpoints have always allowed."""
+		make_user(OTHER, ["Desk User"])
+		self.addCleanup(frappe.delete_doc, "User", OTHER, force=True, ignore_missing=True)
+		make_user(MANAGER, ["System Manager", "Workspace Manager"])
+		self.addCleanup(frappe.delete_doc, "User", MANAGER, force=True, ignore_missing=True)
+
+		frappe.set_user(MANAGER)
+		page = self.make_page("Test Rows Managed Page", for_user=OTHER, ignore_permissions=False)
+
+		frappe.set_user("Administrator")
+		self.assertEqual(self.rows(PRIVATE_MODULE, OTHER), [(page.name, page.title)])
+
+	def test_deleting_it_takes_its_rows_out(self):
+		page = self.make_page("Test Rows Deleting Page")
+		frappe.delete_doc("Workspace", page.name, force=True)
+
+		self.assertEqual(self.rows(PRIVATE_MODULE, USER), [])
+		self.assertEqual(self.rows(MODULE, USER), [])
+
+		# And the layers the page's own creation made, which now say nothing at all.
+		self.assertIsNone(get_customization(PRIVATE_MODULE, USER))
+		self.assertIsNone(get_customization(MODULE, USER))
+
+	def test_hiding_it_in_a_modules_sidebar_sticks(self):
+		"""The page is a guest there, so it may be sent away. Before the layers said which keys they
+		hid, the derived append read the gap as a page nothing named and put it straight back.
+		"""
+		page = self.make_page("Test Rows Hiding Page")
+
+		self.as_user()
+		rows = get_user_sidebar_layer(MODULE)
+		save_sidebar_customization(
+			MODULE,
+			json.dumps([{**row, "hidden": 1 if row["link_to"] == page.name else 0} for row in rows]),
+		)
+
+		self.assertNotIn(page.name, [item.get("link_to") for item in self.items(MODULE)])
+
+	def test_it_cannot_be_hidden_from_its_own_shell(self):
+		"""The Private shell is where every page its owner made appears, so a row left out comes
+		back derived from the page itself."""
+		page = self.make_page("Test Rows Pinned Page", module=PRIVATE_MODULE)
+
+		self.as_user()
+		save_sidebar_customization(PRIVATE_MODULE, json.dumps([]))
+
+		self.assertIn(page.name, [item.get("link_to") for item in self.items(PRIVATE_MODULE)])

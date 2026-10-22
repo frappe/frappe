@@ -3,7 +3,7 @@
  "creation": "2026-08-03 19:24:16.653679",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "cable",
+ "header_icon": "integrations-puzzle-duotone",
  "idx": 0,
  "items": [
   {
@@ -198,7 +198,7 @@
   }
  ],
  "merged_from": "[\"Integrations\"]",
- "modified": "2026-08-12 16:08:08.700378",
+ "modified": "2026-10-01 03:09:00.000000",
  "modified_by": "Administrator",
  "module": "Integrations",
  "name": "Integrations",

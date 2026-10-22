@@ -191,8 +191,11 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 	def get_db_path(self):
 		return Path(frappe.get_site_path()) / "db" / f"{self.cur_db_name}.db"
 
-	def set_execution_timeout(self, seconds: int):
-		self.sql(f"PRAGMA busy_timeout = {int(seconds) * 1000}")
+	def set_execution_timeout(self, seconds: float):
+		self.sql(f"PRAGMA busy_timeout = {round(seconds * 1000)}")
+
+	def get_execution_timeout(self) -> float:
+		return self.sql("PRAGMA busy_timeout")[0][0] / 1000
 
 	def set_session_time_zone(self, timezone: str):
 		self._session_time_zone = ZoneInfo(timezone)
@@ -732,6 +735,22 @@ class SQLiteDatabase(SQLiteExceptionUtil, Database):
 		table = get_table_name(doctype)
 		self.sql_ddl(f"DELETE FROM `{table}`")
 		self.sql_ddl(f"DELETE FROM sqlite_sequence WHERE name='{table}'")
+
+	def drop_columns(self, doctype: str, columns: list[str]):
+		"""Drop columns one per statement, as SQLite requires, in a single savepoint.
+
+		SQLite refuses to drop an indexed column, so indexes on these columns are dropped first.
+		"""
+		table = get_table_name(doctype)
+		queries = [
+			f"DROP INDEX `{index['name']}`"
+			for index in get_table_indexes(table)
+			# an index backing a UNIQUE or PRIMARY KEY constraint can't be dropped on its own
+			if index["origin"] == "c" and set(columns).intersection(index["columns"])
+		]
+		queries.extend(f"ALTER TABLE `{table}` DROP COLUMN `{column}`" for column in columns)
+		SQLiteTable.run_schema_queries(queries)
+		self.commit()
 
 	def check_implicit_commit(self, query: str, query_type: str):
 		# Unlike MariaDB, SQLite DDL participates in the current transaction. Either the complete replacement and all indexes/triggers succeed, or the original table remains untouched.

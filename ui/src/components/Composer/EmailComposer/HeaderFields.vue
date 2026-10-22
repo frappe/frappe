@@ -1,11 +1,12 @@
 <template>
-	<div class="px-2.5">
+	<div class="pl-2.5 pr-1">
 		<Row v-if="showFrom" label="From" :items-center="true">
 			<Select
 				v-model="from"
 				:options="senderOptions"
 				variant="ghost"
 				class="from-select -ml-1 min-w-0"
+				aria-label="From"
 			/>
 		</Row>
 
@@ -13,6 +14,7 @@
 			<input
 				v-model="subject"
 				type="text"
+				aria-label="Subject"
 				class="flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-8 focus:ring-0"
 			/>
 		</Row>
@@ -63,7 +65,7 @@
 				@move="(recipient) => moveRecipient('bcc', recipient)"
 			/>
 		</Row>
-		<div class="border-b bg-surface-gray-1 mt-2"></div>
+		<div class="mr-1.5 mt-2 border-b bg-surface-gray-1"></div>
 	</div>
 </template>
 

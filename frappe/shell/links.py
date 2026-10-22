@@ -10,7 +10,9 @@ from .registry import declared_prefix, is_modular
 
 def canonical_path(doctype: str, name: str | None = None) -> str:
 	"""`/apps/erpnext/accounts/sales-invoice/SI-001` — path only, unquoted."""
-	from frappe.utils import quoted
+	from urllib.parse import quote
+
+	from frappe.utils import cstr, quoted
 
 	app = get_doctype_owners().get(doctype, "frappe")
 	prefix = declared_prefix(app)
@@ -28,6 +30,7 @@ def canonical_path(doctype: str, name: str | None = None) -> str:
 		segments.append(module)
 	segments.append(quoted(slug))
 	if name:
-		segments.append(quoted(name))
+		# `quoted` keeps `#`, `?` and `/`, which would end or split the segment of a name holding them
+		segments.append(quote(cstr(name), safe="~@$&()*!+=:;,.'"))
 
 	return "/" + "/".join(segments)

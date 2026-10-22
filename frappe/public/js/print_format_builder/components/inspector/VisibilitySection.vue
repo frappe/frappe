@@ -2,7 +2,7 @@
 	<div class="pfb-visibility-body">
 		<InspectorRow :label="__('Condition')" stacked>
 			<input
-				class="pfb-insp-input"
+				class="form-control form-control-sm pfb-insp-input"
 				type="text"
 				:placeholder="__('e.g. doc.status == \'Paid\'')"
 				:value="modelValue"

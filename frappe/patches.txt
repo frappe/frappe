@@ -1,4 +1,5 @@
 [pre_model_sync]
+frappe.patches.v16_0.rename_slack_webhook_url
 frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
@@ -199,6 +200,7 @@ frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
 
 [post_model_sync]
+frappe.patches.v16_0.migrate_slack_notifications
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.core.doctype.role.patches.v13_set_default_desk_properties
 frappe.patches.v14_0.update_workspace2 # 06.06.2023
@@ -243,7 +245,6 @@ frappe.patches.v16_0.switch_default_sort_order
 frappe.integrations.doctype.oauth_client.patches.set_default_allowed_role_in_oauth_client
 frappe.patches.v16_0.add_app_launcher_in_navbar_settings
 frappe.patches.v16_0.move_role_desk_settings_to_user
-frappe.printing.doctype.print_format.patches.sets_wkhtmltopdf_as_default_for_pdf_generator_field
 frappe.patches.v14_0.fix_user_settings_collation
 execute:frappe.call("frappe.core.doctype.system_settings.system_settings.sync_system_settings")
 frappe.patches.v15_0.migrate_to_utm
@@ -267,6 +268,10 @@ execute:frappe.db.create_sequence_table()  # backfill SQLite sequence emulation 
 frappe.desk.doctype.workspace.patches.set_standard_flag
 frappe.patches.v16_0.backfill_workspace_module
 frappe.patches.v16_0.convert_sidebars
+frappe.patches.v16_0.convert_custom_sidebars
+frappe.patches.v16_0.move_custom_sidebar_workspaces
+frappe.patches.v16_0.convert_personal_sidebars
+frappe.patches.v16_0.remove_modules_made_from_generated_sidebars
 frappe.patches.v16_0.notify_apps_to_convert_sidebar_fixtures
 frappe.patches.v16_0.clear_if_owner_above_permlevel_zero
 frappe.patches.v16_0.migrate_classic_print_formats
@@ -281,6 +286,14 @@ frappe.patches.v16_0.backfill_social_login_key_trust_flags
 frappe.patches.v16_0.seed_naming_rule_series
 frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
 frappe.patches.v16_0.hash_session_ids
+frappe.patches.v16_0.set_print_format_for_doctype
+frappe.patches.v16_0.unescape_currency_number_format
+frappe.patches.v17_0.switch_wkhtmltopdf_to_chrome
+frappe.patches.v17_0.backfill_file_blobs
+frappe.patches.v17_0.keep_existing_sites_on_classic_charts
+frappe.patches.v17_0.delete_otp_qr_code_images
+frappe.patches.v17_0.encrypt_indexing_refresh_token
 
 
 [post_fixture_sync]
+frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides

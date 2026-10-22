@@ -181,7 +181,8 @@ class IntegrationTestCase(UnitTestCase):
 			yield
 			self.assertLessEqual(rows_read, count, msg="Queries read more rows than expected")
 		finally:
-			frappe.db.sql = orig_sql
+			# assigning the original back would keep `sql` on the instance and hide patches on the class
+			vars(frappe.db).pop("sql", None)
 
 
 def _commit_watcher():

@@ -7,7 +7,7 @@
 	<div class="list_filter row">
 		<div class="fieldname-select-area col-sm-4 ui-front form-group"></div>
 		<div class="col-sm-3 form-group">
-			<select class="condition form-control input-xs">
+			<select class="condition form-control input-xs" aria-label="{{ __("Condition") }}">
 				{% for condition in conditions %}
 				<option value="{{condition[0]}}">{{ condition[1] }}</option>
 				{% endfor %}

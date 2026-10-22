@@ -12,7 +12,13 @@ def execute():
 	that was already on the `Desktop Icon` grid is moved back to it: an upgrade should not change
 	their desktop underneath them, and they can switch from Desktop Settings.
 
+	A site that has not finished the setup wizard has no desktop of its own yet, such as a standby
+	site waiting for a signup, so it stays on `Apps` like a fresh install.
+
 	"""
+	if not frappe.is_setup_complete():
+		return
+
 	if not frappe.db.get_all("Desktop Icon", limit=1):
 		return
 

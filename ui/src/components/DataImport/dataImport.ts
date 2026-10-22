@@ -1,48 +1,137 @@
-import { reactive } from "vue";
-import { toast } from "frappe-ui";
-import { apiUrl, downloadFile, getMeta, runDocumentMethod } from "../../api";
-import type { DataImportStatus } from "./types";
+import { apiUrl, getMeta } from "../../api";
+import { t } from "./translate";
+import type {
+  DataImportDoc,
+  DataImportPreview,
+  DataImportStatus,
+  DataImportWarning,
+  DocField,
+  DocType,
+} from "./types";
 
-type DoctypeDoc = { name: string; fields: any[] } & Record<string, unknown>;
+export const METHODS = "frappe.core.doctype.data_import.data_import";
 
-/** The doctype's meta and every child table's, as one flat list the steps read by `name`. */
-export const fetchDoctypeBundle = async (doctype: string): Promise<DoctypeDoc[]> => {
-  const { data, children } = await getMeta<DoctypeDoc>(doctype, { include: "children" });
-  return [data, ...((children as DoctypeDoc[] | undefined) ?? [])];
-};
+/** The v2 route of a Data Import module method, for the downloads that post a form to it. */
+export const methodUrl = (method: string) => apiUrl(`/method/${METHODS}.${method}`);
 
-/** The bundle as a reloadable holder; the steps read `fields.data.docs`. */
-export const useDoctypeBundle = () => {
-  const bundle = reactive({
-    data: null as { docs: DoctypeDoc[] } | null,
-    loading: false,
-    reload: async ({ doctype }: { doctype: string }) => {
-      bundle.loading = true;
-      try {
-        bundle.data = { docs: await fetchDoctypeBundle(doctype) };
-      } finally {
-        bundle.loading = false;
-      }
-    },
-  });
-  return bundle;
-};
+/** The doctype's meta and every child table's, as one flat list read by `name`. */
+export async function fetchDoctypeBundle(doctype: string): Promise<DocType[]> {
+  const { data, children } = await getMeta<DocType>(doctype, { include: "children" });
+  return [data, ...((children as DocType[] | undefined) ?? [])];
+}
 
-export const getBadgeColor = (status: DataImportStatus) => {
-  const colorMap = {
-    Pending: "amber",
-    Success: "green",
-    "Partial Success": "amber",
-    Error: "red",
-    "Timed Out": "amber",
-  } as const;
-  return colorMap[status as DataImportStatus] || "gray";
-};
+/** Desk's is_import_complete: the records are in, so the import can't be edited. */
+export const isImportComplete = (status: DataImportStatus) =>
+  status === "Success" || status === "Partial Success";
 
-export const fieldsToIgnore = [
+const RETRYABLE_STATUSES: DataImportStatus[] = [
+  "Error",
+  "Partial Success",
+  "Timed Out",
+];
+
+export const canRetryImport = (status: DataImportStatus) =>
+  RETRYABLE_STATUSES.includes(status);
+
+export const isImportFinished = (status: DataImportStatus) =>
+  status === "Success" || canRetryImport(status);
+
+/** The warnings saved by a blocked import and the latest preview's, without repeats. */
+export function importWarnings(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined
+): DataImportWarning[] {
+  const saved = parseJson<DataImportWarning[]>(doc.template_warnings, []);
+  return dedupeWarnings(saved.concat(preview?.warnings ?? []));
+}
+
+/** Rows the file check warned about, saved or from the latest preview, in order. */
+export function errorRowNumbers(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined
+): number[] {
+  const rows = new Set<number>();
+  for (const warning of importWarnings(doc, preview)) {
+    if (warning.row) rows.add(Number(warning.row));
+  }
+  return [...rows].sort((a, b) => a - b);
+}
+
+/** A row's cells, from the first rows shown or from the warned rows past them. */
+export function previewRowCells(
+  preview: DataImportPreview | null | undefined,
+  row: number
+): unknown[] | undefined {
+  const { data = [], warning_rows = [] } = preview ?? {};
+  return [...data, ...warning_rows].find((cells) => Number(cells[0]) === row);
+}
+
+/** Adds the rows to `skipped_rows`, keeping their cells for the skipped rows export. */
+export function skipRows(
+  doc: DataImportDoc,
+  preview: DataImportPreview | null | undefined,
+  rows: number[]
+) {
+  const skipped = new Set(
+    doc.skipped_rows.map((row) => Number(row.row_number))
+  );
+  for (const row of rows) {
+    if (skipped.has(row)) continue;
+    const cells = previewRowCells(preview, row);
+    doc.skipped_rows.push({
+      row_number: row,
+      row_data: JSON.stringify(cells ? cells.slice(1) : []),
+    });
+  }
+}
+
+/** Like Desk's cint, but keeps `fallback` for anything that isn't a number. */
+export const cint = (value: unknown, fallback = 0) =>
+  Number.isFinite(Number(value)) ? Math.trunc(Number(value)) : fallback;
+
+/** The server stores JSON in text fields, which can be empty or malformed. */
+export function parseJson<T>(value: string | null | undefined, fallback: T): T {
+  if (!value) return fallback;
+  try {
+    return JSON.parse(value) ?? fallback;
+  } catch {
+    return fallback;
+  }
+}
+
+export function escapeHtml(text: string) {
+  return text
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+/** Desk's open_url_post: a hidden form POST, so the browser downloads the file the server sends back. */
+export function postDownload(url: string, params: Record<string, unknown>) {
+  const form = document.createElement("form");
+  form.action = url;
+  form.method = "POST";
+  form.style.display = "none";
+  const values = { ...params };
+  const token = (globalThis as { csrf_token?: string }).csrf_token;
+  if (token && token !== "{{ csrf_token }}") values.csrf_token = token;
+  for (const [name, value] of Object.entries(values)) {
+    const field = document.createElement("textarea");
+    field.name = name;
+    field.value = typeof value === "string" ? value : JSON.stringify(value);
+    form.appendChild(field);
+  }
+  document.body.appendChild(form);
+  form.submit();
+  form.remove();
+}
+
+const NO_VALUE_FIELDTYPES = [
   "Section Break",
   "Column Break",
   "Tab Break",
+  "Attachment Gallery",
   "HTML",
   "Table",
   "Table MultiSelect",
@@ -51,83 +140,75 @@ export const fieldsToIgnore = [
   "Fold",
   "Heading",
 ];
+const TABLE_FIELDTYPES = ["Table", "Table MultiSelect"];
 
-export const getChildTableName = (
-  doctype: string,
-  parentDocType: string,
-  docs: any[],
-) => {
-  let childTableName = "";
-  let doctypeFields = docs.filter((doc: any) => {
-    return doc.name == parentDocType;
-  })[0].fields;
+export type PickerField = Partial<DocField> & { fieldname: string };
 
-  doctypeFields.forEach((field: any) => {
-    if (field.options == doctype) {
-      childTableName = field.fieldname;
-    }
-  });
-  return childTableName;
-};
+/** Desk's get_table_fields: the doctype's child tables, without virtual ones. */
+export const tableFields = (meta: DocType | null | undefined) =>
+  (meta?.fields ?? []).filter(
+    (df) => TABLE_FIELDTYPES.includes(df.fieldtype) && !df.is_virtual
+  );
 
-export const getPreviewData = (
-  importName: string,
-  file: string | undefined,
-  sheet: string | undefined,
-) => {
-  return runDocumentMethod(
-    "Data Import",
-    importName,
-    "get_preview_from_template",
-    { import_file: file, google_sheets_url: sheet },
-    { http: "GET", nullable: true },
-  )
-    .then(({ data }) => data)
-    .catch((error: any) => {
-      toast.error(error?.message || String(error));
-      console.error("Error fetching preview data:", error);
-    });
-};
+/** Desk's get_columns_for_picker for one doctype: an ID, then every field that holds a value. */
+export const pickerColumns = (
+  meta: DocType | null | undefined
+): PickerField[] => [
+  { label: t("ID"), fieldname: "name", fieldtype: "Data", reqd: 1 },
+  ...(meta?.fields ?? []).filter(
+    (df) =>
+      !NO_VALUE_FIELDTYPES.includes(df.fieldtype) &&
+      !["lft", "rgt"].includes(df.fieldname) &&
+      !df.is_virtual
+  ),
+];
 
-
-const TEMPLATE_METHOD = "frappe.core.doctype.data_import.data_import.download_template";
-
-export interface TemplateRequest {
-  doctype: string;
-  /** Fieldnames per doctype, the parent's own and each child table's. */
-  exportFields: Record<string, string[]>;
-  /** `blank_template`, `5_records` or `all`; the server reads the row limit from it. */
-  exportRecords: string;
-  fileType?: string;
+/** One warning per column and no exact repeats, rows first, then columns, then the rest. */
+function dedupeWarnings(list: DataImportWarning[]) {
+  return [
+    ...dedupeRowWarnings(list.filter((w) => w.row)),
+    ...longestPerColumn(list.filter((w) => !w.row && w.col)),
+    ...dedupeOtherWarnings(list.filter((w) => !w.row && !w.col)),
+  ];
 }
 
-/** Fetch the import template for a doctype and save it to the reader's downloads. */
-export const downloadTemplate = async (request: TemplateRequest) => {
-  const fileType = request.fileType || "CSV";
-  const url = apiUrl(`/method/${TEMPLATE_METHOD}`, {
-    doctype: request.doctype,
-    export_fields: request.exportFields,
-    export_records: request.exportRecords,
-    file_type: fileType,
+function dedupeRowWarnings(list: DataImportWarning[]) {
+  const seen = new Set<string>();
+  return list.filter((warning) => {
+    const key = `${warning.row}|${warning.field?.fieldname}|${warning.message}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
-  try {
-    const blob = await downloadFile(url);
-    saveBlob(blob, `${request.doctype}.${fileType === "CSV" ? "csv" : "xlsx"}`);
-  } catch (error: any) {
-    toast.error(error?.message || "Could not download the template");
-    console.error("Error downloading the import template:", error);
-  }
-};
+}
 
-// Safari and Firefox start the download after this tick, so revoking the URL here would
-// hand them a dead blob and the file would silently never save.
-const saveBlob = (blob: Blob, fileName: string) => {
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = fileName;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  setTimeout(() => URL.revokeObjectURL(url), 0);
-};
+/** The longer message usually lists the rows. */
+function longestPerColumn(list: DataImportWarning[]) {
+  const byColumn = new Map<number, DataImportWarning>();
+  for (const warning of list) {
+    const col = warning.col;
+    if (col === undefined) continue;
+    const previous = byColumn.get(col);
+    if (
+      !previous ||
+      (warning.message || "").length > (previous.message || "").length
+    )
+      byColumn.set(col, warning);
+  }
+  // Desk keeps columns in a plain object, so they come out in column order.
+  return [...byColumn.entries()]
+    .sort(([a], [b]) => a - b)
+    .map(([, warning]) => warning);
+}
+
+function dedupeOtherWarnings(list: DataImportWarning[]) {
+  const byKey = new Map<string, DataImportWarning>();
+  for (const warning of list) {
+    const key = `${warning.code || ""}|${warning.title || ""}|${
+      warning.message || ""
+    }`;
+    const existing = byKey.get(key);
+    if (!existing || (warning.type && !existing.type)) byKey.set(key, warning);
+  }
+  return [...byKey.values()];
+}

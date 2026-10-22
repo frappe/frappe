@@ -23,7 +23,7 @@ class TestListFilter(UnitTestCase):
 
 	def tearDown(self):
 		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_filter_%"]})
-		frappe.db.delete("List Filter", {"filter_name": ["like", "_cypress_layout_%"]})
+		frappe.db.delete("List Filter", {"filter_name": ["like", "_test_layout_%"]})
 		for email in (LIST_FILTER_OWNER, LIST_FILTER_OTHER):
 			if frappe.db.exists("User", email):
 				frappe.delete_doc("User", email, force=True, ignore_permissions=True)
@@ -165,6 +165,34 @@ class TestListFilter(UnitTestCase):
 		self.assertEqual(json.loads(updated["filters"]), [])
 		self.assertEqual(updated["route_signature"], "")
 
+	def test_sanitize_filters_keeps_child_table_fields(self):
+		owner = self._ensure_desk_user(LIST_FILTER_OWNER)
+		frappe.set_user(owner)
+		doc = frappe.get_doc(
+			{
+				"doctype": "List Filter",
+				"filter_name": "_test_filter_child_table",
+				"reference_doctype": "Contact",
+				"for_user": owner,
+				"filters": json.dumps(
+					[
+						["Dynamic Link", "link_name", "=", "owner@example.com"],
+						["Contact Email", "email_id", "=", "owner@example.com"],
+						["Contact Email", "invalid_field_xyz", "=", "x"],
+						["ToDo", "description", "=", "x"],
+					]
+				),
+			}
+		).insert()
+
+		self.assertEqual(
+			json.loads(doc.filters),
+			[
+				["Dynamic Link", "link_name", "=", "owner@example.com"],
+				["Contact Email", "email_id", "=", "owner@example.com"],
+			],
+		)
+
 	def test_sanitize_columns_drops_invalid_field(self):
 		doc = self._create_filter()
 		updated = update_list_filter(
@@ -179,14 +207,14 @@ class TestListFilter(UnitTestCase):
 		self.assertIsNone(updated["sort_field"])
 		self.assertIsNone(updated["sort_order"])
 
-	def test_cypress_test_filter_helpers(self):
+	def test_ui_test_filter_helpers(self):
 		from frappe.tests.ui_test_helpers import (
 			clear_list_layout_test_layouts,
 			create_list_layout_test_layout,
 		)
 
 		filter_name = create_list_layout_test_layout(
-			filter_name="_cypress_layout_api_test",
+			filter_name="_test_layout_api_test",
 			filters="[]",
 		)
 		self.assertTrue(frappe.db.exists("List Filter", filter_name))
