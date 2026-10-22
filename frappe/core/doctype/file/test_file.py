@@ -976,7 +976,7 @@ class TestChunkedUpload(IntegrationTestCase):
 		self.addCleanup(lambda: os.path.exists(self.temp_path) and os.remove(self.temp_path))
 		frappe.set_user("test@example.com")
 
-	def upload_first_chunk(self, size, total_file_size):
+	def upload_chunk(self, index, size, total_file_size):
 		from io import BytesIO
 
 		from werkzeug.test import EnvironBuilder
@@ -987,22 +987,23 @@ class TestChunkedUpload(IntegrationTestCase):
 		data = {"file": (BytesIO(b"a" * size), "chunked_upload.txt")}
 		frappe.local.request = Request(EnvironBuilder(method="POST", data=data).get_environ())
 		frappe.form_dict.update(
-			chunk_index=0, total_chunk_count=2, chunk_byte_offset=0, total_file_size=total_file_size
+			chunk_index=index, total_chunk_count=1000, chunk_byte_offset=0, total_file_size=total_file_size
 		)
 		return upload_file()
 
 	def test_chunk_within_max_file_size_is_kept(self):
-		self.upload_first_chunk(size=10, total_file_size=20)
+		self.upload_chunk(0, size=10, total_file_size=20)
 		self.assertTrue(os.path.exists(self.temp_path))
 
-	def test_chunk_beyond_max_file_size_is_rejected(self):
+	def test_chunks_beyond_max_file_size_are_rejected(self):
 		with self.assertRaises(MaxFileSizeReachedError):
-			self.upload_first_chunk(size=2 * 1024 * 1024, total_file_size=20)
+			for index in range(200):
+				self.upload_chunk(index, size=8000, total_file_size=20)
 		self.assertFalse(os.path.exists(self.temp_path))
 
 	def test_declared_size_beyond_max_file_size_is_rejected(self):
 		with self.assertRaises(MaxFileSizeReachedError):
-			self.upload_first_chunk(size=10, total_file_size=2 * 1024 * 1024)
+			self.upload_chunk(0, size=10, total_file_size=2 * 1024 * 1024)
 		self.assertFalse(os.path.exists(self.temp_path))
 
 
