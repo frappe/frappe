@@ -709,7 +709,7 @@ export default class GridRow {
 		const fields =
 			this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
-				: this.docfields;
+				: this.grid.docfields;
 
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
@@ -788,6 +788,9 @@ export default class GridRow {
 		const row_df = this.docfields?.find((df) => df.fieldname === fieldname);
 
 		if (!column_df || !row_df || column_df === row_df) return column_df;
+		if (!this.doc) {
+			return { ...row_df, sticky: column_df.sticky, in_list_view: column_df.in_list_view };
+		}
 
 		row_df.sticky = column_df.sticky;
 		row_df.in_list_view = column_df.in_list_view;
@@ -1534,7 +1537,7 @@ export default class GridRow {
 		let fields =
 			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
-				: this.docfields;
+				: this.grid.docfields;
 
 		let df = this.get_column_docfield(fields, fieldname);
 
