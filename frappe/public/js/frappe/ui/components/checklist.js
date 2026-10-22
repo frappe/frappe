@@ -21,7 +21,7 @@ frappe.provide("frappe.ui");
  * @property {ChecklistAction[]} [actions] Buttons in the open row.
  * @property {boolean} [skippable] Offers Skip, and Undo skip once skipped, in the open row.
  * @property {boolean} [optional] Shows an Optional badge and leaves the item out of progress, unless every item is optional.
- * @property {string} [locked] Why the item can't be done yet. Shown on the lock icon's tooltip and in the open row; the actions are disabled, Skip stays available.
+ * @property {string} [locked] Why the item can't be done yet. Shown on the lock icon's tooltip; the actions are disabled, Skip stays available.
  *
  * @typedef {Object} ChecklistOpts
  * @property {string} title Translated text in the card's head.
@@ -239,7 +239,6 @@ frappe.ui.Checklist = class Checklist {
 				<div class="es-checklist__body">
 					<div class="es-checklist__content">
 						<div class="es-checklist__description"></div>
-						<div class="es-checklist__note"></div>
 						<div class="es-checklist__actions"></div>
 					</div>
 				</div>
@@ -270,7 +269,6 @@ frappe.ui.Checklist = class Checklist {
 		row.querySelector(".es-checklist__due").replaceChildren(this.make_due(item));
 
 		row.querySelector(".es-checklist__description").textContent = item.description || "";
-		row.querySelector(".es-checklist__note").textContent = reason || "";
 		row.querySelector(".es-checklist__actions").replaceChildren(
 			...this.make_actions(item, Boolean(reason))
 		);
@@ -490,12 +488,7 @@ frappe.ui.Checklist = class Checklist {
 	}
 
 	has_body(item) {
-		return Boolean(
-			item.description ||
-				item.actions?.length ||
-				(item.skippable && !item.done) ||
-				(!this.is_finished(item) && item.locked)
-		);
+		return Boolean(item.description || item.actions?.length || (item.skippable && !item.done));
 	}
 
 	is_overdue(item) {

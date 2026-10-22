@@ -30,7 +30,6 @@
  *             <div class="es-checklist__body">
  *               <div class="es-checklist__content">
  *                 <div class="es-checklist__description">...</div>
- *                 <div class="es-checklist__note">(why the row is locked)</div>
  *                 <div class="es-checklist__actions">(buttons, then Skip or Undo skip)</div>
  *               </div>
  *             </div>
@@ -361,18 +360,12 @@
     padding-inline-start: calc(16px + var(--spacing) * 3);
 }
 
-.es-checklist__description,
-.es-checklist__note {
+.es-checklist__description {
     font-size: var(--text-p-sm);
     color: var(--ink-gray-6);
 }
 
-.es-checklist__note {
-    color: var(--ink-gray-5);
-}
-
 .es-checklist__description:empty,
-.es-checklist__note:empty,
 .es-checklist__actions:empty {
     display: none;
 }
