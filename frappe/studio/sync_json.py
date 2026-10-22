@@ -75,7 +75,7 @@ def get_doctype_from_path(path: str) -> str | None:
 		return None
 
 	studio_app, *rest = parts
-	if rest == [f"{studio_app}.json"]:
+	if rest == [f"{frappe.scrub(studio_app)}.json"]:
 		return "Studio App"
 	# a page's folder and file share the stem; anything else is not a page export
 	if len(rest) == 3 and rest[0] == PAGE_FOLDER and rest[1] == rest[2].removesuffix(".json"):
