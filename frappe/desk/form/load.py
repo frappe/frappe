@@ -60,6 +60,13 @@ def getdoc(doctype: str, name: str | int):
 	frappe.response.docs.append(doc)
 
 
+@frappe.whitelist(methods=["GET"])
+def get_new_doc(doctype: str) -> dict:
+	"""A new `doctype` document with defaults filled by the insert's own rules; nothing is saved."""
+	frappe.has_permission(doctype, "create", throw=True)
+	return frappe.new_doc(doctype, as_dict=True)
+
+
 @frappe.whitelist()
 def getdoctype(doctype: str, with_parent: int | bool = False):
 	"""load doctype"""
