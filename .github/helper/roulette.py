@@ -256,7 +256,9 @@ def select_specs(files_list):
 		return None
 
 	changed_specs = [f for f in files_list if SPEC_FILE.match(f)]
-	code_files = [f for f in files_list if f not in changed_specs and not is_docs(f)]
+	code_files = [
+		f for f in files_list if f not in changed_specs and not is_docs(f) and not is_server_side_code(f)
+	]
 
 	if other_files := [
 		f
@@ -425,8 +427,11 @@ def _selftest():
 				"playwright/tests/workspace.spec.js",
 			], "a changed spec must run itself"
 			assert select_specs(["frappe/public/js/new.js"]) is None, "an unmapped file must run all specs"
-			assert select_specs(["frappe/public/js/ws.js", "frappe/a.py"]) is None, (
-				"server changes must run all specs"
+			assert select_specs(["frappe/public/js/ws.js", "frappe/a.py"]) == [
+				"playwright/tests/workspace.spec.js"
+			], "Python must not widen the selection, as Python alone skips UI tests"
+			assert select_specs(["frappe/public/js/ws.js", "frappe/core/doctype/note/note.json"]) is None, (
+				"schema changes must run all specs"
 			)
 			assert select_specs(["playwright/support/index.js"]) is None, "test support must run all specs"
 			assert select_specs(["frappe/public/scss/desk.scss"]) is None, "styles must run all specs"
