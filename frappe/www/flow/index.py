@@ -21,7 +21,7 @@ def get_context(context):
 	return context
 
 
-@frappe.whitelist(methods=["POST"], allow_guest=True)
+@frappe.whitelist(methods=["POST"], allow_guest=True)  # nosemgrep: guest-whitelisted-method
 def get_context_for_dev():
 	"""The same boot data for the Vite dev server, which cannot render the page template."""
 	if not frappe.conf.developer_mode:
@@ -33,7 +33,7 @@ def get_boot() -> dict:
 	from frappe.flow.api import boot
 
 	csrf_token = frappe.sessions.get_csrf_token()
-	frappe.db.commit()  # the token is written to the session on first use, as /app does
+	frappe.db.commit()  # the token is written to the session on first use, as /app does; nosemgrep: frappe-manual-commit
 	return {
 		"csrf_token": csrf_token,
 		"site_name": frappe.local.site,

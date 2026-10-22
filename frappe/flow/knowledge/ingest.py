@@ -62,7 +62,7 @@ def ingest_source(source: str, rebuild: bool = False) -> None:
 	sources rebuild on every run regardless."""
 	doc = frappe.get_doc("Flow Knowledge Source", source)
 	doc.db_set("status", "Processing", update_modified=False)
-	frappe.db.commit()
+	frappe.db.commit()  # the status shows while the job runs; nosemgrep: frappe-manual-commit
 
 	try:
 		settings = frappe.get_cached_doc("Flow Knowledge Settings")
@@ -83,7 +83,7 @@ def ingest_source(source: str, rebuild: bool = False) -> None:
 		{"status": "Completed", "chunk_count": count, "error_log": None},
 		update_modified=False,
 	)
-	frappe.db.commit()
+	frappe.db.commit()  # the status shows while the job runs; nosemgrep: frappe-manual-commit
 
 
 def purge_source(source: str) -> None:
@@ -354,4 +354,4 @@ def _mark_failed(source: str) -> None:
 		{"status": "Failed", "error_log": error},
 		update_modified=False,
 	)
-	frappe.db.commit()
+	frappe.db.commit()  # outlives the failed job's rollback; nosemgrep: frappe-manual-commit

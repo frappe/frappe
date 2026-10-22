@@ -378,7 +378,9 @@ def extension_tools(folders: list[Path]) -> list[dict]:
 	if not folders:
 		return []
 	proc = subprocess.run(
-		[str(_flow_bin()), "extension-tools", *map(str, folders)], capture_output=True, text=True
+		[str(_flow_bin()), "extension-tools", *(str(folder) for folder in folders)],
+		capture_output=True,
+		text=True,
 	)
 	if proc.stderr.strip():
 		click.secho(proc.stderr.strip(), fg="yellow")

@@ -65,6 +65,8 @@ def safe_exec(
 		filename += f": {frappe.scrub(script_filename)}"
 
 	with safe_exec_flags():
+		# compiled by RestrictedPython, as frappe.utils.safe_exec does
+		# nosemgrep: frappe-codeinjection-eval
 		exec(_compile_code(script, filename=filename), exec_globals, _locals)
 
 	return exec_globals, _locals

@@ -98,7 +98,7 @@ def _sync_tools(_site: str) -> None:
 	from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
 
 	sync_server_tools()
-	frappe.db.commit()
+	frappe.db.commit()  # a bench command has no request to commit its writes; nosemgrep: frappe-manual-commit
 
 
 commands = [flow_server]

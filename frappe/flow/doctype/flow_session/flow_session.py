@@ -449,7 +449,7 @@ def _delete_attachment_files(sessions: list[str]) -> None:
 	so File.on_trash runs to remove the on-disk content, and best-effort so one failure
 	never aborts the purge."""
 	files = frappe.get_all("Flow Session Attachment", filters={"parent": ["in", sessions]}, pluck="file")
-	for file in set(filter(None, files)):
+	for file in {name for name in files if name}:
 		attached = frappe.db.get_value(
 			"File", file, ["attached_to_doctype", "attached_to_name"], as_dict=True
 		)

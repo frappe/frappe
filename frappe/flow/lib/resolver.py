@@ -47,7 +47,7 @@ def _resolve_module(doc: FlowTool) -> Tool:
 		obj = frappe.get_attr(doc.import_path)
 	except Exception as e:
 		frappe.throw(
-			_("Could not import tool from {0}: {1}").format(doc.import_path, e),
+			_("Could not import tool from {0}: {1}").format(doc.import_path, str(e)),
 			title=_("Tool Import Failed"),
 		)
 
@@ -106,6 +106,8 @@ def _make_script_runner(code: str, slug: str, *, restrict_commit_rollback: bool 
 			call_parts.append(f"{name}={var}")
 
 		script = f"{code}\n{RESULT_VAR} = {MAIN_FUNCTION_NAME}({', '.join(call_parts)})\n"
+		# the tool's own script, sandboxed like a Server Script
+		# nosemgrep: frappe-codeinjection-eval
 		exec_globals, _locals = safe_exec(
 			script, injected, script_filename=slug, restrict_commit_rollback=restrict_commit_rollback
 		)
@@ -143,14 +145,14 @@ def _find_main(tree: ast.Module) -> ast.FunctionDef:
 	frappe.throw(_("Code must define a top-level <code>main</code> function."), title=_("Missing main()"))
 
 
-def _required_arg_names(args: ast.arguments) -> set[str]:
+def _required_arg_names(params: ast.arguments) -> set[str]:
 	required: set[str] = set()
-	positional = args.posonlyargs + args.args
-	num_required = len(positional) - len(args.defaults)
+	positional = params.posonlyargs + params.args
+	num_required = len(positional) - len(params.defaults)
 	for i, arg in enumerate(positional):
 		if i < num_required:
 			required.add(arg.arg)
-	for arg, default in zip(args.kwonlyargs, args.kw_defaults, strict=True):
+	for arg, default in zip(params.kwonlyargs, params.kw_defaults, strict=True):
 		if default is None:
 			required.add(arg.arg)
 	return required

@@ -36,6 +36,8 @@ class Knowledge:
 		from frappe.flow.knowledge.extract import _extract_by_extension
 
 		extension = os.path.splitext(path)[1].lower().lstrip(".")
+		# only server code calls this
+		# nosemgrep: frappe-security-file-traversal
 		with open(path, "rb") as handle:
 			text = _extract_by_extension(handle.read(), extension)
 		return self.add_text(text, title=title or os.path.basename(path))

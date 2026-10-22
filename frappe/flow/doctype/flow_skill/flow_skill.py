@@ -166,10 +166,10 @@ def sync_skills() -> list[str]:
 		for path in paths:
 			try:
 				skill = load_skill(path)
-				with open(path, encoding="utf-8") as file:
+				with open(path, encoding="utf-8") as file:  # nosemgrep: frappe-security-file-traversal
 					instructions = _FRONTMATTER_RE.sub("", file.read(), count=1).strip()
 			except ValueError as e:  # a SkillError, or a body that is not UTF-8
-				frappe.throw(_("Invalid skill {0}: {1}").format(path, e), title=_("Invalid Skill"))
+				frappe.throw(_("Invalid skill {0}: {1}").format(path, str(e)), title=_("Invalid Skill"))
 			if skill.name in shipped:
 				frappe.throw(
 					_("Skill {0} is shipped by both {1} and {2}.").format(

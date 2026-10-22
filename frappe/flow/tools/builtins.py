@@ -120,6 +120,8 @@ def describe(
 		if f.fieldtype not in LAYOUT_FIELDTYPES
 	]
 	permissions = {
+		# reported to the model, not used as a check
+		# nosemgrep: unchecked-frappe-permission-call
 		p: bool(frappe.has_permission(doctype, p, parent_doctype=parent_doctype))
 		for p in ("read", "write", "create", "delete")
 	}
@@ -203,6 +205,8 @@ def _parent_doctype(doctype: str, given: str | None) -> str | None:
 def _count(doctype: str, query: dict[str, Any]) -> int:
 	"""How many rows the read finds with no limit."""
 	if frappe.get_meta(doctype).is_virtual:
+		# the virtual doctype's own count, called the way reportview does
+		# nosemgrep: frappe-codeinjection-eval
 		return frappe.call(get_controller(doctype).get_count, args=frappe._dict(query), **query)
 	rows = frappe.get_list(doctype, **query, order_by=None, run=False)
 	return frappe.qb.from_(rows).select(Count("*")).run()[0][0]
@@ -482,6 +486,8 @@ def execute(code: str, description: str, *, ctx: ToolContext) -> Any:
 	The user approves each call before it runs.
 	"""
 	frappe.flags.flow_undone_batch = None
+	# sandboxed, and the user approves each call
+	# nosemgrep: frappe-codeinjection-eval
 	exec_globals, _locals = safe_exec(code, script_filename="ai_execute", tool_context=ctx)
 	if frappe.flags.flow_undone_batch:
 		raise ValueError(

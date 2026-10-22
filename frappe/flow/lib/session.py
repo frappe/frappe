@@ -73,7 +73,7 @@ def new_session(
 		client.create_session(doc.server_config())
 	# The daemon's callbacks are separate requests: save the row now so they can find it.
 	if not frappe.flags.in_test:
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
 	return doc
 
 

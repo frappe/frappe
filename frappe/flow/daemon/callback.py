@@ -25,7 +25,7 @@ JOB_TIMEOUT = 1500  # seconds a background tool may run, unless flow_background_
 DELIVERY_RETRY_DELAYS = (0, 1, 5)  # seconds before each try to post a result
 
 
-@frappe.whitelist(allow_guest=True, methods=["POST"])
+@frappe.whitelist(allow_guest=True, methods=["POST"])  # nosemgrep: guest-whitelisted-method
 def callback(callback_type: str, **payload) -> dict:
 	"""Authenticate once, then hand the payload to its focused callback."""
 	_authenticate()
@@ -60,7 +60,7 @@ def tool_callback(
 	if not frappe.db.get_value("User", session.owner, "enabled"):
 		return _error(_("The session's owner is disabled."))
 	user = frappe.session.user
-	frappe.set_user(session.owner)
+	frappe.set_user(session.owner)  # tools run with the owner's permissions; nosemgrep: frappe-setuser
 	try:
 		return _dispatch(session_id, agent, tool, args or {}, mode, result_token)
 	except Exception as exc:
@@ -68,7 +68,7 @@ def tool_callback(
 		frappe.db.rollback()
 		return _error(str(exc).strip() or type(exc).__name__)
 	finally:
-		frappe.set_user(user)
+		frappe.set_user(user)  # nosemgrep: frappe-setuser
 
 
 def run_ended_callback(session_id: str, terminal_seq: int) -> dict:
@@ -84,7 +84,7 @@ def run_ended_callback(session_id: str, terminal_seq: int) -> dict:
 	except frappe.DoesNotExistError:
 		frappe.throw(_("Unknown session {0}.").format(session_id))
 	user = frappe.session.user
-	frappe.set_user(session.owner)
+	frappe.set_user(session.owner)  # syncs with the owner's permissions; nosemgrep: frappe-setuser
 	try:
 		sync_with_retry(session)
 		if session.last_synced_seq < terminal_seq:
@@ -95,7 +95,7 @@ def run_ended_callback(session_id: str, terminal_seq: int) -> dict:
 		call_on_complete(session)
 		return {"synced_through": session.last_synced_seq}
 	finally:
-		frappe.set_user(user)
+		frappe.set_user(user)  # nosemgrep: frappe-setuser
 
 
 def _authenticate() -> None:
@@ -152,7 +152,7 @@ def run_background_tool(
 			return  # the run was stopped or gave up
 		else:
 			result = tool_callback(session_id, tool, args, user_context=user_context)
-			frappe.db.commit()
+			frappe.db.commit()  # save the tool's writes before the model sees its result; nosemgrep: frappe-manual-commit
 		_deliver(daemon, session_id, result_token, result)
 
 

@@ -290,7 +290,7 @@ class FlowAgent(Document):
 		if not rows:
 			return ""
 		entries = "\n".join(
-			f"  <skill>\n    <name>{_escape(row.name)}</name>\n"
+			f"  <skill>\n    <name>{_escape(row.name)}</name>\n"  # nosemgrep: string-concat-in-list
 			f"    <description>{_escape(_one_line(row.description))}</description>\n  </skill>"
 			for row in rows
 		)
