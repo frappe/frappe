@@ -8,3 +8,4 @@
 # Studio: the visual vue app builder (python package and editor)
 frappe/studio/     @ruchamahabal
 studio/            @ruchamahabal
+skills/studio-app-building/ @ruchamahabal

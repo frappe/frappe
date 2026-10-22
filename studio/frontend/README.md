@@ -98,7 +98,7 @@ bench --site <site-name> watch-studio # long running watcher to sync app/page/co
 Install the Studio app building skill in your coding agent (Claude Code, Codex, Cursor and similar tools):
 
 ```sh
-npx skills add https://github.com/frappe/studio/tree/develop/skills/studio-app-building
+npx skills add https://github.com/frappe/frappe/tree/develop/skills/studio-app-building
 ```
 
 The skill teaches the agent how to build and edit Studio apps: block trees, data bindings, page scripts, routing and design.
