@@ -4548,3 +4548,8 @@ def get_last_doc(
 def get_single(doctype):
 	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
 	return get_doc(doctype, doctype)
+
+
+# backward compatibility: `BaseDocument` was merged into `Document`
+# defined here so it can be imported from both the `document` and `base_document` modules
+BaseDocument = Document
