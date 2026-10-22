@@ -112,7 +112,6 @@ def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, c
 
 
 def check_layout_access(dt: str, type: str) -> None:
-	"""A create layout is for a person who can create the doctype, even without read."""
 	if type in CREATE_LAYOUT_TYPES and frappe.has_permission(dt, "create"):
 		return
 	frappe.has_permission(dt, "read", throw=True)
@@ -160,7 +159,6 @@ def mandatory_condition(field) -> str | None:
 
 
 def get_quick_entry_layout(dt: str) -> list:
-	"""The Quick Entry set in doctype order; a conditionally mandatory field shows while it is mandatory."""
 	sections = []
 	for field in get_quick_entry_fields(frappe.get_meta(dt)):
 		condition = mandatory_condition(field)

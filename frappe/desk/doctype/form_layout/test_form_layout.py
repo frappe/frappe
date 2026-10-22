@@ -386,7 +386,6 @@ class TestCreateLayouts(IntegrationTestCase):
 		)
 
 	def test_dialog_flag(self):
-		# QUICK_ENTRY_DT's table is mandatory only under a condition, so it does not block the dialog.
 		self.assertTrue(self.quick_entry(QUICK_ENTRY_DT)["dialog"])
 		self.assertTrue(self.quick_entry(PROMPT_DT)["dialog"])
 		self.assertFalse(self.quick_entry(NO_MANDATORY_DT)["dialog"])
