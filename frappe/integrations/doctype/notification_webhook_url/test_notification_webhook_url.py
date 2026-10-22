@@ -3,6 +3,7 @@
 
 from copy import deepcopy
 from unittest.mock import Mock, PropertyMock, patch
+from urllib.parse import quote
 
 import requests
 
@@ -20,8 +21,7 @@ from frappe.tests.classes.context_managers import set_user
 
 TEST_SITE = "https://frappe.example.com"
 REFERENCE_NAME = "webhook@example.com"
-# desk v2's canonical form link: the owning app's prefix, with `@` left readable
-DOCUMENT_URL = f"{TEST_SITE}/apps/desk/user/{REFERENCE_NAME}"
+DOCUMENT_URL = f"{TEST_SITE}/desk/user/{quote(REFERENCE_NAME, safe='')}"
 APP_LOGO = "/assets/frappe/images/test-logo.png"
 
 EXPECTED_PAYLOADS = {
@@ -68,6 +68,7 @@ class TestNotificationWebhookURL(IntegrationTestCase):
 		super().setUp()
 		frappe.db.savepoint("notification_webhook_test")
 		self.addCleanup(frappe.db.rollback, save_point="notification_webhook_test")
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=0))
 		self.enterContext(patch.object(frappe.local, "lang", "en"))
 		self.enterContext(patch("frappe.utils.data.get_url", self._get_url))
 		self.enterContext(
