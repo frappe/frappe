@@ -6,7 +6,7 @@ import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
-from frappe.flow.realtime import handlers
+from frappe.realtime import flow_handlers
 from frappe.tests import UnitTestCase
 
 
@@ -69,12 +69,12 @@ class TestRealtimeRelay(UnitTestCase):
 	def test_relays_session_events_only_to_a_socket_that_may_read_them(self):
 		async def run():
 			pubsub = FakePubSub()
-			relay = handlers.Relay()
+			relay = flow_handlers.Relay()
 			self.assertFalse(await relay.subscribe(FakeSocket(allowed=False), "session-1"))
 			self.assertEqual(relay.subscriptions, {})
 
 			socket = FakeSocket(allowed=True)
-			with patch.object(handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
+			with patch.object(flow_handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
 				self.assertTrue(await relay.subscribe(socket, "session-1"))
 
 			channel = "harness:s1:session-1"
@@ -88,7 +88,7 @@ class TestRealtimeRelay(UnitTestCase):
 	def test_a_failed_subscribe_forgets_its_channels_so_a_retry_listens_again(self):
 		async def run():
 			pubsub = FakePubSub()
-			relay = handlers.Relay()
+			relay = flow_handlers.Relay()
 			socket = FakeSocket(allowed=True)
 			subscribe = pubsub.subscribe
 
@@ -97,7 +97,7 @@ class TestRealtimeRelay(UnitTestCase):
 				await relay.release(socket, "session-1")
 				raise ConnectionError("redis is down")
 
-			with patch.object(handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
+			with patch.object(flow_handlers, "redis_client", lambda: SimpleNamespace(pubsub=lambda: pubsub)):
 				pubsub.fail_next = True
 				with self.assertRaises(ConnectionError):
 					await relay.subscribe(socket, "session-1")

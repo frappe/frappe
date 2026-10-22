@@ -14,7 +14,7 @@ function relay() {
 	redis.unsubscribe = async () => {};
 	const module = { exports: {} };
 	vm.runInNewContext(
-		readFileSync(new URL("../../realtime/handlers.js", import.meta.url), "utf8"),
+		readFileSync(new URL("../../../realtime/flow_handlers.js", import.meta.url), "utf8"),
 		{
 			module,
 			console,

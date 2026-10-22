@@ -1,5 +1,0 @@
-{
- "type": "commonjs",
- "private": true,
- "description": "Frappe's realtime/handlers.js requires this handlers.js as CommonJS; flow/package.json is type: module."
-}

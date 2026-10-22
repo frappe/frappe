@@ -4,7 +4,7 @@
 // Relays flow server events (Redis channel `harness:<site>:<session>`) to subscribed
 // browsers from Frappe's socketio process, so no Python worker is held for a run.
 
-const node_utils = require("../../node_utils");
+const node_utils = require("../node_utils");
 
 const EVENT = "flow:event";
 const RESYNC = "flow:resync";

@@ -1,4 +1,4 @@
-const flow_handlers = require("../flow/realtime/handlers");
+const flow_handlers = require("./flow_handlers");
 
 const WEBSITE_ROOM = "website";
 const SITE_ROOM = "all";

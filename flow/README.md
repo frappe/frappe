@@ -133,7 +133,7 @@ To run it under Supervisor, set `"flow_server_manager": "supervisor"` in `common
 
 ## Code layout
 
-Flow's server code is in [`frappe/flow`](../frappe/flow). This folder holds the `/flow` page ([`frontend/`](frontend/)), its realtime relay ([`realtime/`](realtime/)) and the flow agent harness ([`harness/`](harness/)), published on PyPI as [`frappe-flow`](https://pypi.org/project/frappe-flow/). For development, install the checkout into the bench:
+Flow's server code is in [`frappe/flow`](../frappe/flow), and its realtime relay in [`realtime/flow_handlers.js`](../realtime/flow_handlers.js) and [`frappe/realtime/flow_handlers.py`](../frappe/realtime/flow_handlers.py). This folder holds the `/flow` page ([`frontend/`](frontend/)) and the flow agent harness ([`harness/`](harness/)), published on PyPI as [`frappe-flow`](https://pypi.org/project/frappe-flow/). For development, install the checkout into the bench:
 
 ```bash
 bench pip install -e apps/frappe/flow/harness
