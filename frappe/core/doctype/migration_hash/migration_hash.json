@@ -1,0 +1,53 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "autoname": "prompt",
+ "creation": "2026-10-09 08:43:24.095985",
+ "doctype": "DocType",
+ "editable_grid": 1,
+ "engine": "InnoDB",
+ "field_order": [
+  "file_path",
+  "migration_hash"
+ ],
+ "fields": [
+  {
+   "fieldname": "migration_hash",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Migration Hash",
+   "reqd": 1
+  },
+  {
+   "fieldname": "file_path",
+   "fieldtype": "Small Text",
+   "in_list_view": 1,
+   "label": "File Path",
+   "reqd": 1
+  }
+ ],
+ "grid_page_length": 50,
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-10-09 08:43:33.605552",
+ "modified_by": "Administrator",
+ "module": "Core",
+ "name": "Migration Hash",
+ "naming_rule": "Set by user",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "email": 1,
+   "export": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

@@ -7,10 +7,12 @@ from pathlib import Path
 import frappe
 from frappe import scrub
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.migration_hash.migration_hash import get_migration_hash, get_relative_file_path
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.model.meta import trim_table
 from frappe.modules import export_customizations, export_module_json, get_module_path
+from frappe.modules.import_file import get_file_path
 from frappe.modules.utils import export_doc, sync_customizations
 from frappe.tests import IntegrationTestCase
 from frappe.utils import now_datetime
@@ -163,8 +165,9 @@ class TestUtils(IntegrationTestCase):
 			self.addCleanup(delete_file, path=file_path)
 
 	def test_reload_doc(self):
-		frappe.db.set_value("DocType", "Note", "migration_hash", "", update_modified=False)
-		self.assertFalse(frappe.db.get_value("DocType", "Note", "migration_hash"))
+		note_path = get_file_path("Desk", "DocType", "Note")
+		frappe.db.delete("Migration Hash", {"file_path": get_relative_file_path(note_path)})
+		self.assertFalse(get_migration_hash(note_path))
 		frappe.db.set_value(
 			"DocField",
 			{"parent": "Note", "fieldname": "title"},
@@ -181,7 +184,7 @@ class TestUtils(IntegrationTestCase):
 			frappe.db.get_value("DocField", {"parent": "Note", "fieldname": "title"}, "fieldtype"),
 			"Data",
 		)
-		self.assertTrue(frappe.db.get_value("DocType", "Note", "migration_hash"))
+		self.assertTrue(get_migration_hash(note_path))
 
 	@unittest.skipUnless(
 		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"

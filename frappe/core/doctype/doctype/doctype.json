@@ -99,7 +99,6 @@
   "is_published_field",
   "advanced",
   "engine",
-  "migration_hash",
   "row_format",
   "connections_tab"
  ],
@@ -566,11 +565,6 @@
    "label": "Naming Rule",
    "length": 40,
    "options": "\nSet by user\nAutoincrement\nBy fieldname\nBy \"Naming Series\" field\nExpression\nExpression (old style)\nRandom\nUUID\nBy script"
-  },
-  {
-   "fieldname": "migration_hash",
-   "fieldtype": "Data",
-   "hidden": 1
   },
   {
    "fieldname": "states",

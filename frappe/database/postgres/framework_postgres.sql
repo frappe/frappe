@@ -230,7 +230,6 @@ CREATE TABLE "tabDocType" (
   "subject_field" varchar(255) DEFAULT NULL,
   "sender_field" varchar(255) DEFAULT NULL,
   "show_title_field_in_link" smallint NOT NULL DEFAULT 0,
-  "migration_hash" varchar(255) DEFAULT NULL,
   "translated_doctype" smallint NOT NULL DEFAULT 0,
   PRIMARY KEY ("name")
 ) ;
