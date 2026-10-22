@@ -1304,7 +1304,7 @@ class TestFileOptimization(FrappeTestCase):
 
 	def test_optimize_file_writes_to_own_file_url(self):
 		"""optimize_file must write to the record's file_url, not a path built from file_name."""
-		with make_test_image_file(private=True) as first_file:
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as first_file:
 			original_content = first_file.get_content()
 
 			with open(frappe.get_app_path("frappe", "tests/data/exif_sample_image.jpg"), "rb") as f:
@@ -1329,7 +1329,7 @@ class TestFileOptimization(FrappeTestCase):
 
 	def test_optimize_file_does_not_rewrite_shared_file(self):
 		"""optimize_file on one of two records sharing a file_url must leave the other one's file intact."""
-		with make_test_image_file(private=True) as source:
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as source:
 			original_content = source.get_content()
 			doctype, docname = make_test_doc()
 			copy = source.create_attachment_copy(doctype, docname)
