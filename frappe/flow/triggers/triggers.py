@@ -25,6 +25,8 @@ def dispatch(doc: Document, method: str | None = None) -> None:
 		return
 
 	triggers = _doctype_triggers(doc.doctype, method)
+	# a deleted document can't be loaded once the job runs, so it travels with the job
+	deleted_doc = doc.as_dict() if triggers and method == "on_trash" else None
 
 	for trigger in triggers:
 		if trigger.condition and not _passes_condition(trigger, doc):
@@ -35,6 +37,7 @@ def dispatch(doc: Document, method: str | None = None) -> None:
 			trigger=trigger.name,
 			target_doctype=doc.doctype,
 			target_name=doc.name,
+			deleted_doc=deleted_doc,
 		)
 
 
@@ -65,8 +68,10 @@ def fire(
 	trigger: str,
 	target_doctype: str | None = None,
 	target_name: str | None = None,
+	deleted_doc: dict | None = None,
 ) -> str | None:
-	"""Worker: render the prompt and run the agent. Returns the Flow Run name, or None if skipped."""
+	"""Worker: render the prompt and run the agent. Returns the Flow Run name, or None if skipped.
+	`deleted_doc` is the target's last state when its deletion fired the trigger."""
 	t = frappe.get_doc("Flow Trigger", trigger)
 	if not t.enabled:
 		return None
@@ -76,13 +81,16 @@ def fire(
 	frappe.set_user(t.run_as or t.owner)  # nosemgrep: frappe-setuser
 	try:
 		doc = None
-		if target_doctype and target_name:
+		if deleted_doc:
+			doc = frappe.get_doc(deleted_doc)
+			target_doctype = target_name = None  # the run has nothing left to link to
+		elif target_doctype and target_name:
 			try:
 				doc = frappe.get_doc(target_doctype, target_name)
 			except frappe.DoesNotExistError:
 				return None
-			if t.condition and not _eval_condition(t.condition, doc):
-				return None
+		if doc and t.condition and not _eval_condition(t.condition, doc):
+			return None
 
 		# System Managers write the template, and Frappe renders it in a sandbox
 		# nosemgrep: frappe-ssti

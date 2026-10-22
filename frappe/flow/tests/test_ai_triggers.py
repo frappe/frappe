@@ -96,6 +96,7 @@ class TestDispatch(IntegrationTestCase):
 			trigger=self.trigger.name,
 			target_doctype="ToDo",
 			target_name="todo-x",
+			deleted_doc=None,
 		)
 		with self.assertQueryCount(0), patch("frappe.enqueue") as enqueue:
 			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")  # from the cache
@@ -266,6 +267,29 @@ class TestFire(IntegrationTestCase):
 
 		self.assertEqual((run.status, run.trigger), ("Running", scheduled.name))
 		self.assertIsNone(run.reference_doctype)
+		self.assertIsNone(run.reference_name)
+
+		# a deletion trigger gets the record's last state, since the job runs after it is gone
+		deletion = frappe.get_doc(
+			_trigger(
+				self.agent.name,
+				title="Deletion Trigger Test",
+				doc_event="on_trash",
+				prompt_template="Deleted {{ doc.name }}: {{ doc.description }}",
+			)
+		).insert()
+		gone = frappe.get_doc({"doctype": "ToDo", "description": "delete me"}).insert()
+		with patch("frappe.enqueue") as enqueue:
+			gone.delete()
+		(job,) = [
+			call.kwargs for call in enqueue.call_args_list if call.args == ("frappe.flow.triggers.fire",)
+		]
+		job.pop("enqueue_after_commit")
+
+		run = frappe.get_doc("Flow Run", fire(**job))
+
+		self.assertEqual((run.status, run.trigger), ("Running", deletion.name))
+		self.assertIn(f"Deleted {gone.name}: delete me", run.input)
 		self.assertIsNone(run.reference_name)
 
 	def test_fire_runs_as_run_as_else_the_owner_not_the_triggering_user(self):
