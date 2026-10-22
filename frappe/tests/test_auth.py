@@ -6,6 +6,7 @@ import time
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import Mock, patch
 
+import redis
 import requests
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
@@ -614,6 +615,21 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		for _ in range(5):
 			tracker.add_failure_attempt()
 			self.assertGreater(frappe.cache.ttl(tracker.cache_key), 0)
+
+	def test_tracker_ignores_an_unreachable_cache(self):
+		tracker = LoginAttemptTracker("offline-tester", max_consecutive_login_attempts=1, lock_interval=60)
+		down = redis.exceptions.ConnectionError
+
+		with (
+			patch.object(frappe.cache, "get", side_effect=down),
+			patch.object(frappe.cache, "eval", side_effect=down),
+			patch.object(frappe.cache, "delete", side_effect=down),
+		):
+			tracker.add_failure_attempt()
+			tracker.add_failure_attempt()
+			self.assertEqual(tracker.login_failed_count, 0)
+			self.assertTrue(tracker.is_user_allowed())
+			tracker.add_success_attempt()
 
 	def test_concurrent_failures_are_all_counted(self):
 		self.assert_concurrent_failures_are_counted(LoginAttemptTracker)

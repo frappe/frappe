@@ -4,9 +4,11 @@ import base64
 import binascii
 import hashlib
 import hmac
+from contextlib import suppress
 from typing import NoReturn
 from urllib.parse import quote, unquote, urlencode, urlparse
 
+import redis
 from werkzeug.wrappers import Response
 
 import frappe
@@ -24,7 +26,7 @@ from frappe.twofactor import (
 	get_cached_user_pass,
 	should_run_2fa,
 )
-from frappe.utils import cint, date_diff, datetime, get_datetime, today
+from frappe.utils import cint, date_diff, datetime, today
 from frappe.utils.password import check_password, get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -587,16 +589,20 @@ class LoginAttemptTracker:
 	@property
 	def login_failed_count(self) -> int:
 		"""Consecutive failures since the first one within the current lock interval."""
-		return cint(frappe.cache.get(self.cache_key))
+		with suppress(redis.exceptions.ConnectionError):
+			return cint(frappe.cache.get(self.cache_key))  # nosemgrep: frappe-cache-breaks-multitenancy
+		return 0
 
 	def add_failure_attempt(self):
 		"""Count a failure. The key expires `lock_interval` after the first failure, starting a new count."""
 		window = max(1, int(self.lock_interval.total_seconds()))
-		frappe.cache.eval(COUNT_FAILURE_SCRIPT, 1, self.cache_key, window)
+		with suppress(redis.exceptions.ConnectionError):
+			frappe.cache.eval(COUNT_FAILURE_SCRIPT, 1, self.cache_key, window)
 
 	def add_success_attempt(self):
 		"""Reset login failures."""
-		frappe.cache.delete(self.cache_key)
+		with suppress(redis.exceptions.ConnectionError):
+			frappe.cache.delete(self.cache_key)
 
 	def is_user_allowed(self) -> bool:
 		"""Is user allowed to login
