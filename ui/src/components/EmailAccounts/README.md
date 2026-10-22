@@ -47,10 +47,11 @@ const unsaved = ref(false);
   Frappe Cloud (`initiate_mailbox_connect`); any other tile opens its form. When Frappe Cloud
   can't sign the service in right now, the panel opens the form with a note saying so. Desk's own Add dialog
   also offers "Set up manually"; the panel doesn't. Sign-in leaves the page and lands back on it with
-  `?email_oauth=<result>&email_oauth_mailbox=<address>` appended. The panel reads both when it
+  `?email_oauth=<result>&email_oauth_mailbox=<address>&email_oauth_provider=<provider>` appended. The panel reads them when it
   mounts and removes them from the URL. The host's only job is to open the panel when the page
   loads with `email_oauth` in its URL. `connected` and `reconnected` show a toast; any other
-  code shows a fixed message in the list, naming the mailbox only when it is an email address.
+  code shows a fixed message in the list, naming the mailbox only when it is an email address. A provider can have
+  its own wording for a code, and a help link; any other provider gets the general wording.
 - The panel saves and reloads by itself. When loading fails, the list shows the error with Retry.
 
 ## Account states

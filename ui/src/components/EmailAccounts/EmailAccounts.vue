@@ -18,6 +18,7 @@
 		v-else
 		v-model:oauth-result="oauthResult"
 		:oauth-mailbox="mailbox"
+		:oauth-provider="provider"
 		:controller="controller"
 		:focus="returnFocus"
 		@add="view = 'add'"
@@ -57,10 +58,12 @@ const controller = useEmailAccounts(props.doctype);
 const landing = new URL(window.location.href);
 const oauthResult = ref(landing.searchParams.get("email_oauth"));
 const mailbox = mailboxAddress(landing.searchParams.get("email_oauth_mailbox"));
+const provider = landing.searchParams.get("email_oauth_provider");
 const signInStarted = Boolean(oauthResult.value) && takeSignInStarted();
 if (oauthResult.value) {
 	landing.searchParams.delete("email_oauth");
 	landing.searchParams.delete("email_oauth_mailbox");
+	landing.searchParams.delete("email_oauth_provider");
 	window.history.replaceState(window.history.state, "", landing);
 }
 

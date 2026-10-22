@@ -341,20 +341,37 @@ export function statusBadge(
   return { label: __("Incoming & outgoing"), theme: "blue" };
 }
 
-/** Text for a sign-in result; the code comes from the URL, so it is never shown as is. */
-export function oauthMessage(result: string): string {
+/**
+ * Text for a sign-in result, in the words of the provider that signed in when it has its own;
+ * both come from the URL, so neither is ever shown as is.
+ */
+export function oauthMessage(result: string, provider?: string | null): string {
+  const providerMessages: Record<string, Record<string, string>> = {
+    microsoft: {
+      admin_approval: __("Your Microsoft 365 admin must approve Frappe first."),
+      smtp_disabled: __(
+        "SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it.",
+      ),
+      smtp_disabled_personal: __(
+        "Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox.",
+      ),
+      imap_disabled: __(
+        "IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin.",
+      ),
+    },
+  };
   const messages: Record<string, string> = {
     cancelled: __("Sign-in was cancelled."),
-    admin_approval: __("Your Microsoft 365 admin must approve Frappe first."),
+    admin_approval: __("Your admin must approve Frappe first."),
     expired: __("Sign-in took too long. Please try again."),
     smtp_disabled: __(
-      "SMTP AUTH is turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it.",
+      "SMTP is turned off for this mailbox. Ask your admin to turn it on.",
     ),
     smtp_disabled_personal: __(
-      "Microsoft doesn't let this Outlook.com mailbox send email from other apps. Please use a Microsoft 365 work mailbox.",
+      "This mailbox can't send email from other apps. Please use a work mailbox.",
     ),
     imap_disabled: __(
-      "IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin.",
+      "IMAP is turned off for this mailbox. Turn it on in your mail settings or ask your admin.",
     ),
     already_connected: __("This mailbox is already connected."),
     wrong_mailbox: __(
@@ -364,7 +381,25 @@ export function oauthMessage(result: string): string {
       "Only members of this site's Frappe Cloud team can connect a mailbox. Log in to Frappe Cloud in this browser, then try again.",
     ),
   };
-  return messages[result] ?? __("Couldn't connect. Please try again.");
+  return (
+    providerMessages[provider ?? ""]?.[result] ??
+    messages[result] ??
+    __("Couldn't connect. Please try again.")
+  );
+}
+
+/** The provider's help page for fixing a sign-in result, when it has one. */
+export function oauthHelpLink(
+  result: string,
+  provider?: string | null,
+): string | undefined {
+  const links: Record<string, Record<string, string>> = {
+    microsoft: {
+      smtp_disabled:
+        "https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission#enable-smtp-auth-for-specific-mailboxes",
+    },
+  };
+  return links[provider ?? ""]?.[result];
 }
 
 /** `address` if it looks like an email address, else null; it comes from the URL. */
