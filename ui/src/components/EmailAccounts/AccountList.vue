@@ -150,7 +150,7 @@
 					</li>
 				</ul>
 
-				<h3 class="mt-6 text-base-semibold text-ink-gray-9">
+				<h3 class="mt-8 text-base-semibold text-ink-gray-9">
 					{{ __("Default settings") }}
 				</h3>
 				<!-- SettingsRow can't take the smaller text-p-sm description these settings use -->
