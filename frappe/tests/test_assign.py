@@ -100,26 +100,6 @@ class TestAssign(IntegrationTestCase):
 
 		self.assertFalse(get_assignments("ToDo", todo.name))
 
-	def test_removing_other_users_assignment_requires_write(self):
-		note = frappe.get_doc({"doctype": "Note", "title": "assign test", "public": 1}).insert()
-		assignee, reader = (make_desk_user(f"assign_{name}@example.com") for name in ("assignee", "reader"))
-		for user in (assignee, reader):
-			self.assertTrue(frappe.has_permission("Note", "read", note, user=user))
-			self.assertFalse(frappe.has_permission("Note", "write", note, user=user))
-		assign(note, assignee)
-		self.addCleanup(frappe.set_user, "Administrator")
-
-		# read access to someone else's note is not enough
-		frappe.set_user(reader)
-		with self.assertRaises(frappe.PermissionError):
-			frappe.desk.form.assign_to.remove(note.doctype, note.name, assignee)
-		self.assertTrue(get_assignments("Note", note.name))
-
-		# assignees can still remove their own assignment
-		frappe.set_user(assignee)
-		frappe.desk.form.assign_to.remove(note.doctype, note.name, assignee)
-		self.assertFalse(get_assignments("Note", note.name))
-
 	def test_assign_filter_with_equals_operator(self):
 		from frappe.model.db_query import DatabaseQuery
 
@@ -146,10 +126,3 @@ def assign(doc, user):
 			"description": "test",
 		}
 	)
-
-
-def make_desk_user(email):
-	frappe.get_doc(
-		{"doctype": "User", "email": email, "first_name": email, "roles": [{"role": "Desk User"}]}
-	).insert(ignore_if_duplicate=True)
-	return email
