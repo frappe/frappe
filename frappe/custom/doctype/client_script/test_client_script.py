@@ -18,6 +18,7 @@ from frappe.exceptions import TemplateCompileError
 from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.utils.logging import connection_for
 
 GOOD_TEMPLATE = 'export default {\n  name: "Greeting",\n  template: `<p>{{ __("Hello") }}</p>`,\n}\n'
 # `Nope` is in no `components:` list, so the names check fails at line 3.
@@ -280,13 +281,17 @@ def compile_calls(run):
 
 
 def logged(name):
-	return frappe.db.exists("Error Log", {"reference_doctype": "Client Script", "reference_name": name})
+	return connection_for("Error Log").exists(
+		"Error Log", {"reference_doctype": "Client Script", "reference_name": name}
+	)
 
 
 class TestTemplateCompile(IntegrationTestCase):
 	def setUp(self):
 		frappe.cache.delete_keys(client_script.COMPILED_COPY)
 		client_script.compiler_keys.clear()
+		# the log database is outside the rollback, so an earlier run's row would satisfy `logged`
+		connection_for("Error Log").delete("Error Log", {"reference_doctype": "Client Script"})
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
