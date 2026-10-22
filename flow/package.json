@@ -2,7 +2,7 @@
 	"name": "flow",
 	"private": true,
 	"type": "module",
-	"description": "The /flow page: Frappe's shell around @flow/ui-core, built by Vite into flow/public/frontend",
+	"description": "The /flow page: Frappe's shell around @flow/ui-core, built by Vite into frappe/public/flow",
 	"scripts": {
 		"dev": "vite",
 		"build": "vite build",

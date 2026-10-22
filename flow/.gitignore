@@ -11,7 +11,5 @@ __pycache__
 .vscode/
 .venv/
 dist/
-flow/public/frontend/
-flow/www/flow/index.html
 frontend/auto-imports.d.ts
 frontend/components.d.ts

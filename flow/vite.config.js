@@ -17,10 +17,10 @@ export default defineConfig({
 			lucideIcons: true,
 			jinjaBootData: true,
 			buildConfig: {
-				outDir: here("./flow/public/frontend"),
+				outDir: here("../frappe/public/flow"),
 				emptyOutDir: true,
-				indexHtmlPath: here("./flow/www/flow/index.html"),
-				baseUrl: "/assets/flow/frontend/",
+				indexHtmlPath: here("../frappe/www/flow/index.html"),
+				baseUrl: "/assets/frappe/flow/",
 			},
 		}),
 		vue(),
