@@ -70,10 +70,7 @@
 									class="min-w-0 max-w-36"
 								>
 									<template #prefix>
-										<component
-											:is="attachmentIcon(attachment)"
-											class="size-3.5 shrink-0"
-										/>
+										<LucidePaperclip class="size-3.5 shrink-0" />
 									</template>
 									<template #suffix>
 										<span
@@ -176,14 +173,6 @@
 import { computed, nextTick, ref, useTemplateRef, watch } from "vue";
 import { useScroll } from "@vueuse/core";
 import { Button, Spinner, toast } from "frappe-ui";
-import LucideFile from "~icons/lucide/file";
-import LucideFileArchive from "~icons/lucide/file-archive";
-import LucideFileAudio from "~icons/lucide/file-audio";
-import LucideFileCode from "~icons/lucide/file-code";
-import LucideFileImage from "~icons/lucide/file-image";
-import LucideFileSpreadsheet from "~icons/lucide/file-spreadsheet";
-import LucideFileText from "~icons/lucide/file-text";
-import LucideFileVideo from "~icons/lucide/file-video";
 import LucidePaperclip from "~icons/lucide/paperclip";
 import {
 	Editor,
@@ -274,6 +263,8 @@ const extensions = [
 	RichTextKit.configure({
 		heading: { levels: [2, 3, 4, 5, 6] },
 		mention: { items: () => mentionItems.value },
+		// Server sanitizing drops iframes, so a pasted URL would turn into an embed that is lost on send.
+		iframe: false,
 	}),
 	...(props.extensions ?? []),
 ];
@@ -364,22 +355,6 @@ function addAttachment(file: UploadedFile) {
 		return;
 	}
 	attachments.value.push(file);
-}
-
-// Chip icon by MIME type.
-function attachmentIcon(file: UploadedFile) {
-	const type = file.file_type ?? "";
-	if (type.startsWith("image/")) return LucideFileImage;
-	if (type.startsWith("video/")) return LucideFileVideo;
-	if (type.startsWith("audio/")) return LucideFileAudio;
-	if (type.includes("csv") || type.includes("sheet") || type.includes("excel"))
-		return LucideFileSpreadsheet;
-	if (type.includes("zip") || type.includes("tar") || type.includes("compressed"))
-		return LucideFileArchive;
-	if (type.includes("json") || type.includes("xml") || type.includes("html"))
-		return LucideFileCode;
-	if (type.includes("pdf") || type.startsWith("text/")) return LucideFileText;
-	return LucideFile;
 }
 
 function setUploading(value: boolean) {
