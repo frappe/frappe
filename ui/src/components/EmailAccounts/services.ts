@@ -1,11 +1,4 @@
 import { translate as __ } from "../../utils/translate";
-import LogoFrappeMail from "./logos/frappe-mail.svg";
-import LogoGmail from "./logos/gmail.png";
-import LogoOutlook from "./logos/outlook.png";
-import LogoSendgrid from "./logos/sendgrid.png";
-import LogoSparkpost from "./logos/sparkpost.webp";
-import LogoYahoo from "./logos/yahoo.png";
-import LogoYandex from "./logos/yandex.png";
 import type {
   AccountForm,
   AuthKind,
@@ -15,6 +8,8 @@ import type {
   FieldError,
 } from "./types";
 
+// served by frappe, so Desk's Add Email Account dialog uses the same files
+const LOGOS = "/assets/frappe/images/email-providers/";
 const FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:";
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -24,7 +19,7 @@ export const services: EmailService[] = [
   {
     service: "GMail",
     label: "Gmail",
-    logo: LogoGmail,
+    logo: LOGOS + "gmail.png",
     kind: "password",
     get help() {
       return __("Needs two-factor authentication and an app password.");
@@ -34,7 +29,7 @@ export const services: EmailService[] = [
   {
     service: "Outlook.com",
     label: "Outlook",
-    logo: LogoOutlook,
+    logo: LOGOS + "outlook.png",
     kind: "password",
     get help() {
       return __("Needs two-factor authentication and an app password.");
@@ -45,7 +40,7 @@ export const services: EmailService[] = [
   {
     service: "Frappe Mail",
     label: "Frappe Mail",
-    logo: LogoFrappeMail,
+    logo: LOGOS + "frappe-mail.svg",
     kind: "frappe-mail",
     get help() {
       return __("Needs the API key and secret of your Frappe Mail account.");
@@ -55,7 +50,7 @@ export const services: EmailService[] = [
   {
     service: "Yahoo Mail",
     label: "Yahoo",
-    logo: LogoYahoo,
+    logo: LOGOS + "yahoo.png",
     kind: "password",
     get help() {
       return __("Needs two-factor authentication and an app password.");
@@ -65,7 +60,7 @@ export const services: EmailService[] = [
   {
     service: "Yandex.Mail",
     label: "Yandex",
-    logo: LogoYandex,
+    logo: LOGOS + "yandex.png",
     kind: "password",
     get help() {
       return __("Needs two-factor authentication and an app password.");
@@ -75,14 +70,14 @@ export const services: EmailService[] = [
   {
     service: "Sendgrid",
     label: "SendGrid",
-    logo: LogoSendgrid,
+    logo: LOGOS + "sendgrid.png",
     kind: "password",
     outgoingOnly: true,
   },
   {
     service: "SparkPost",
     label: "SparkPost",
-    logo: LogoSparkpost,
+    logo: LOGOS + "sparkpost.webp",
     kind: "password",
     outgoingOnly: true,
   },
