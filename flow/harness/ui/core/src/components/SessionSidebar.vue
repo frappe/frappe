@@ -162,23 +162,23 @@
 									<span v-if="layout.phone" class="row-action absolute right-1 top-1/2 size-5 -translate-y-1/2" />
 									<button
 										v-else
-										class="row-action absolute right-7 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:text-ink-gray-7"
+										class="row-action absolute right-8 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
 										:class="menuFor === group.cwd ? 'text-ink-gray-7' : 'flow-hover-reveal'"
 										title="Workspace options"
 										@pointerdown.stop
 									>
-										<span class="lucide-ellipsis size-3.5" aria-hidden="true" />
+										<span class="lucide-ellipsis size-4" aria-hidden="true" />
 									</button>
 								</template>
 							</Dropdown>
 							<button
 								v-if="!layout.phone"
-								class="row-action flow-hover-reveal absolute right-1 top-1/2 grid size-5 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7"
+								class="row-action flow-hover-reveal absolute right-0.5 top-1/2 grid size-6 -translate-y-1/2 place-items-center rounded-4 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
 								:title="`New chat in ${group.name}`"
 								@click="startNewChat(group.cwd)"
 								@pointerdown.stop
 							>
-								<span class="lucide-square-pen size-3.5" aria-hidden="true" />
+								<span class="lucide-square-pen size-4" aria-hidden="true" />
 							</button>
 						</template>
 					</SidebarItem>
@@ -820,8 +820,8 @@ const emptyMessage = computed(() => {
 .workspace-menu:hover .row-title,
 [data-flow-tabbing] .workspace-menu:has(:focus-visible) .row-title,
 .workspace-menu.menu-open .row-title {
-	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
-	mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
+	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 5rem), transparent calc(100% - 3.5rem));
+	mask-image: linear-gradient(to right, #000 calc(100% - 5rem), transparent calc(100% - 3.5rem));
 }
 /* Tab onto a chat shows its options button, as a hover does (focusRings.js marks the root) */
 [data-flow-tabbing] .group:has(:focus-visible) .chat-options {
@@ -833,8 +833,8 @@ const emptyMessage = computed(() => {
 		mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent calc(100% - 1.5rem));
 	}
 	.workspace-menu .folder-name {
-		-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
-		mask-image: linear-gradient(to right, #000 calc(100% - 4.5rem), transparent calc(100% - 3rem));
+		-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 5rem), transparent calc(100% - 3.5rem));
+		mask-image: linear-gradient(to right, #000 calc(100% - 5rem), transparent calc(100% - 3.5rem));
 	}
 }
 
