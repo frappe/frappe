@@ -257,6 +257,25 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		super.setup_page_head();
 		this.set_primary_action();
 		this.set_actions_menu_items();
+		this.set_upload_first_action();
+	}
+
+	set_upload_first_action() {
+		if (!this.meta.enable_upload_first_workflow || !this.can_create || frappe.boot.read_only) {
+			return;
+		}
+
+		this.page.set_secondary_action(
+			__("Upload", null, "Button in list view"),
+			() => {
+				// The upload-first workflow ships as its own on-demand bundle
+				// (kept out of desk.bundle.js), so load it before opening.
+				frappe.require("upload_first.bundle.js", () => {
+					frappe.ui.form.upload_first(this.doctype);
+				});
+			},
+			"upload"
+		);
 	}
 
 	open_import_dialog() {
@@ -2629,20 +2648,6 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	get_menu_items() {
 		const doctype = this.doctype;
 		const items = [];
-
-		if (this.meta.enable_upload_first_workflow && this.can_create && !frappe.boot.read_only) {
-			items.push({
-				label: __("Create from File", null, "Button in list view menu"),
-				action: () => {
-					// The upload-first workflow ships as its own on-demand bundle
-					// (kept out of desk.bundle.js), so load it before opening.
-					frappe.require("upload_first.bundle.js", () => {
-						frappe.ui.form.upload_first(doctype);
-					});
-				},
-				standard: true,
-			});
-		}
 
 		if (frappe.model.can_import(doctype, null, this.meta)) {
 			items.push({
