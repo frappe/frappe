@@ -18,6 +18,7 @@ Usage:
 This script is intended to be run as part of a CI pipeline, with the necessary environment variables set.
 """
 
+import glob
 import json
 import os
 import re
@@ -27,6 +28,7 @@ import sys
 import time
 import urllib.request
 from functools import cache
+from pathlib import Path
 from urllib.error import HTTPError
 
 import impact_map
@@ -217,8 +219,7 @@ def select_tests(files_list):
 		return None
 
 	try:
-		with open(IMPACT_MAP_FILE) as f:
-			loaded_map = json.load(f)
+		loaded_map = json.loads(Path(IMPACT_MAP_FILE).read_text())
 	except (OSError, ValueError) as exc:
 		if not all(impact_map.is_test_module(f) for f in code_files):
 			print(f"Running full suite, no usable impact map ({exc})")
@@ -232,7 +233,12 @@ def select_tests(files_list):
 		if unmapped := impact_map.unmapped(loaded_map, code_files):
 			print(f"Running full suite, no tests attributed to: {unmapped}")
 			return None
-		selected = sorted(set(impact_map.select(loaded_map, code_files)) | patch_tests(patch_files))
+		try:
+			readers = doctype_readers([f for f in relevant_files if doctype_controller(f)])
+		except (OSError, ValueError, KeyError) as exc:
+			print(f"Running full suite, cannot read changed doctypes ({exc})")
+			return None
+		selected = sorted(set(impact_map.select(loaded_map, code_files)) | patch_tests(patch_files) | readers)
 		total = len(impact_map.all_tests(loaded_map))
 		print(f"Running {len(selected)}/{total} test modules for {relevant_files + patch_files}:")
 
@@ -244,8 +250,7 @@ def select_tests(files_list):
 def select_specs(files_list):
 	"""Playwright specs a pull request needs, according to the UI impact map. None runs them all."""
 	try:
-		with open(UI_IMPACT_MAP_FILE) as f:
-			loaded_map = json.load(f)
+		loaded_map = json.loads(Path(UI_IMPACT_MAP_FILE).read_text())
 	except (OSError, ValueError) as exc:
 		print(f"Running all specs, no usable UI impact map ({exc})")
 		return None
@@ -278,6 +283,19 @@ def shards(selected, full, per_shard):
 	"""Shard indexes for the test matrix: fewer machines when only a few files run."""
 	count = full if selected is None else max(1, min(full, -(-len(selected) // per_shard)))
 	return list(range(1, count + 1))
+
+
+def doctype_readers(schema_files, root="."):
+	"""Tests that name a changed doctype: they can read its meta without running its controller."""
+	if not schema_files:
+		return set()
+	names = [json.loads(Path(root, f).read_text())["name"] for f in schema_files]
+	pattern = re.compile("|".join(rf"[\"']{re.escape(name)}[\"']" for name in names))
+	return {
+		os.path.relpath(path, root)
+		for path in glob.iglob(os.path.join(root, impact_map.TEST_GLOB), recursive=True)
+		if pattern.search(Path(path).read_text())
+	}
 
 
 def doctype_controller(file):
@@ -349,8 +367,7 @@ def _selftest():
 				"frappe/patches/v16_0/x.py": "from frappe.patches.v16_0.base import x\n",
 				"frappe/tests/test_x.py": 'PATCH = "frappe.patches.v16_0.x"\n',
 			}.items():
-				with open(path, "w") as f:
-					f.write(src)
+				Path(path).write_text(src)
 			assert select_tests(["frappe/patches.txt", "frappe/patches/v16_0/base.py", "frappe/a.py"]) == [
 				"frappe/tests/test_a.py",
 				"frappe/tests/test_patches.py",
@@ -362,9 +379,13 @@ def _selftest():
 			assert select_tests(["frappe/www/a.html", "frappe/a.py"]) is None, (
 				"Jinja templates must force the full suite"
 			)
+			os.makedirs("frappe/core/doctype/note")
+			Path("frappe/core/doctype/note/note.json").write_text('{"name": "Note"}')
+			Path("frappe/tests/test_timeline.py").write_text('meta = frappe.get_meta("Note")\n')
 			assert select_tests(["frappe/core/doctype/note/note.json"]) == [
-				"frappe/core/doctype/note/test_note.py"
-			], "a doctype schema change must run the tests of its controller"
+				"frappe/core/doctype/note/test_note.py",
+				"frappe/tests/test_timeline.py",
+			], "a doctype schema change must run its controller's tests and the tests naming it"
 			assert select_tests(["frappe/core/doctype/todo/todo.json"]) is None, (
 				"a doctype whose controller has no tests must force the full suite"
 			)
@@ -383,8 +404,8 @@ def _selftest():
 				"dependency bumps must run the full suite"
 			)
 
-			with open(UI_IMPACT_MAP_FILE, "w") as f:
-				json.dump(
+			Path(UI_IMPACT_MAP_FILE).write_text(
+				json.dumps(
 					{
 						"generated_at": datetime.now(UTC).isoformat(),
 						"map": {
@@ -394,8 +415,8 @@ def _selftest():
 							],
 						},
 					},
-					f,
 				)
+			)
 			assert select_specs(["frappe/public/js/pfb/Field.vue", "README.md"]) == [
 				"playwright/tests/print_format_builder.spec.js"
 			], "a mapped frontend change must run only its specs"
