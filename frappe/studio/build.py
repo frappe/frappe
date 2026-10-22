@@ -112,8 +112,8 @@ class StudioAppBuilder:
 
 	def _run_vite_build(self) -> None:
 		"""Execute the yarn build-studio-app command with the given parameters."""
-		if not self.components:
-			click.echo(f"No components found for {self.app_name}, skipping build")
+		if not (self.components or self.custom_vue_components or self.page_scripts or self.router_file):
+			click.echo(f"Nothing to build for {self.app_name}, skipping build")
 			return
 
 		os.makedirs(self.out_dir, exist_ok=True)

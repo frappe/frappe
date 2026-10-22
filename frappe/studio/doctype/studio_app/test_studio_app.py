@@ -509,6 +509,20 @@ class TestStudioAppBuilder(FrappeTestCase):
 		self.assertEqual(argument(run.call_args.args[0], "--components"), "A$(id),Button")
 		self.assertFalse(run.call_args.kwargs.get("shell"))
 
+	def test_builds_an_app_whose_pages_use_only_custom_components(self):
+		builder = StudioAppBuilder("custom-only-app", is_standard=True, frappe_app="frappe")
+		builder.custom_vue_components = {"Chart": "/bench/apps/frappe/studio/custom-only-app/Chart.vue"}
+		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
+			run.return_value.returncode = 0
+			builder._run_vite_build()
+		self.assertEqual(argument(run.call_args.args[0], "--components"), "")
+		self.assertIn("Chart", argument(run.call_args.args[0], "--custom-components"))
+
+		builder.custom_vue_components = {}
+		with patch("frappe.studio.build.subprocess.run") as run, patch("frappe.studio.build.os.makedirs"):
+			builder._run_vite_build()
+		run.assert_not_called()
+
 	def test_passes_only_the_used_icons_to_the_build(self):
 		builder = StudioAppBuilder("icon-cli-app", is_standard=False)
 		builder.components = {"Button"}
