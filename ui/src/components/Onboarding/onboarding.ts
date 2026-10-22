@@ -144,7 +144,7 @@ export function useOnboarding(appName: string): UseOnboarding | undefined {
 
   function updateUserOnboardingStatus(steps: StoredStep[]) {
     runMethod(
-      "frappe.onboarding.update_user_onboarding_status",
+      "frappe.onboarding.update_onboarding_status",
       { steps: JSON.stringify(steps), app: appName },
       { nullable: true }
     );

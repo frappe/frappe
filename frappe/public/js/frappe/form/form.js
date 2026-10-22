@@ -2548,12 +2548,14 @@ frappe.ui.form.Form = class FrappeForm {
 			) {
 				return;
 			}
+			// Desk v2 publishes these too; desk v1 keeps `tags` as a string and no `favourites`.
+			if (["tags", "favourites"].includes(key)) return;
 			let doc_list = frappe.model.docinfo[doctype][docname][key] || [];
 			let docindex = doc_list.findIndex((old_doc) => {
 				return old_doc.name === doc.name;
 			});
 
-			if (action === "add") {
+			if (action === "add" && docindex === -1) {
 				frappe.model.docinfo[doctype][docname][key].push(doc);
 			}
 			if (docindex > -1) {

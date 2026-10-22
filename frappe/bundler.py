@@ -128,6 +128,10 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	from frappe.shell.manifest import cost_report
 	from frappe.shell.manifest import write as write_manifest
 
+	# A build has no site, so it cannot read the System Settings switch.
+	if not frappe.utils.cint(frappe.conf.get("desk_v2")):
+		return
+
 	frontend_path = os.path.join(frappe_app_path, "frontend")
 	# Guard on the committed half: `package.json` is generated and gitignored, so a fresh clone
 	# would silently build nothing.

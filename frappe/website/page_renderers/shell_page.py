@@ -9,7 +9,9 @@ import frappe
 from frappe.shell import SHELL_ROOT
 from frappe.shell.permissions import guard_prefix
 from frappe.shell.registry import resolve_prefix, split_shell_path
+from frappe.utils.data import is_desk_v2_enabled
 from frappe.website.page_renderers.base_renderer import BaseRenderer
+from frappe.website.page_renderers.redirect_page import RedirectPage
 
 #: Vite's output, under the Python package: `/assets/frappe/` is a symlink to `frappe/public/`.
 SHELL_DOCUMENT = "public/frontend/index.html"
@@ -51,9 +53,14 @@ class ShellPage(BaseRenderer):
 
 	def can_render(self):
 		"""True for `/apps` and for every path under a claimed prefix; an unclaimed one is a website 404."""
-		return self.is_index or bool(self.app)
+		return self.is_index or (bool(self.app) and is_desk_v2_enabled())
 
 	def render(self):
+		if not is_desk_v2_enabled():
+			# 302, not 301: a browser would keep a permanent redirect after desk v2 is turned on.
+			frappe.flags.redirect_location = "/desk"
+			return RedirectPage(self.path, 302).render()
+
 		# Never cached: `can_cache()` ignores the session user, so a cached shell would hand one
 		# user's document to the next. Invisible in development, where `can_cache()` is False.
 		frappe.local.no_cache = 1

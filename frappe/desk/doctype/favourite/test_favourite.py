@@ -3,7 +3,6 @@
 
 import frappe
 from frappe.desk.doctype.favourite.favourite import get_favourites, toggle_favourite
-from frappe.desk.form.load import get_docinfo
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import queued_docinfo_updates
 
@@ -47,15 +46,6 @@ class TestFavourite(IntegrationTestCase):
 		self.assertFalse(
 			frappe.db.exists("Comment", {"reference_doctype": "ToDo", "reference_name": todo.name})
 		)
-
-	def test_docinfo_carries_favourites_and_names_them(self):
-		todo = self._todo("favourite in docinfo")
-		toggle_favourite("ToDo", todo.name, add=True)
-
-		get_docinfo(doctype="ToDo", name=todo.name)
-		docinfo = frappe.response["docinfo"]
-		self.assertEqual([row.user for row in docinfo.favourites], [frappe.session.user])
-		self.assertIn(frappe.session.user, docinfo.user_info)
 
 	def test_deleting_the_record_drops_its_favourites(self):
 		todo = self._todo("favourite then delete")

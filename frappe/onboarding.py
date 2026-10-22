@@ -10,7 +10,7 @@ def get_onboarding_status():
 
 
 @frappe.whitelist()
-def update_user_onboarding_status(steps: str | list | dict, app: str):
+def update_onboarding_status(steps: str | list | dict, app: str):
 	steps = frappe.parse_json(steps)
 
 	# get the current onboarding status
@@ -23,3 +23,9 @@ def update_user_onboarding_status(steps: str | list | dict, app: str):
 	frappe.db.set_value(
 		"User", frappe.session.user, "onboarding_status", json.dumps(onboarding_status), update_modified=False
 	)
+
+
+@frappe.whitelist()
+def update_user_onboarding_status(steps: str | list | dict, appName: str):
+	"""Kept for apps built against the old name and its `appName` argument."""
+	update_onboarding_status(steps, appName)

@@ -1885,9 +1885,14 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertGreaterEqual(len(info["users"]), 1)
 
 	def test_get_url_to_form(self):
-		# The canonical address: the owning app's prefix under the shell. Desk v1 still lives at `/desk/…`.
-		self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
-		self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
+			self.assertTrue(get_url_to_form("User", "Test User").endswith("/desk/user/Test%20User"))
+
+		# The canonical address: the owning app's prefix under the shell.
+		with self.change_settings("System Settings", enable_desk_v2=1):
+			self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
+			self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})

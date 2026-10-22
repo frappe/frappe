@@ -276,12 +276,9 @@ class DesktopPage {
 				order: 40,
 			},
 			// A full-document link: desk v2 is a separate document, not a v1 route.
-			{
-				icon: "arrow-left-right",
-				label: "Desk v2",
-				url: "/apps",
-				order: 45,
-			},
+			...(cint(frappe.boot.sysdefaults.enable_desk_v2)
+				? [{ icon: "arrow-left-right", label: "Desk v2", url: "/apps", order: 45 }]
+				: []),
 		];
 		// sort() is stable, so items sharing an `order` keep the order they were added in.
 		menu_items = [...menu_items, ...this.desktop_menu_items].sort(

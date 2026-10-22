@@ -520,6 +520,13 @@ def create_test_user(username: str | None = None):
 
 
 @whitelist_for_tests()
+def set_desk_v2(enabled: int = 1):
+	settings = frappe.get_single("System Settings")
+	settings.enable_desk_v2 = frappe.utils.cint(enabled)
+	settings.save()
+
+
+@whitelist_for_tests()
 def setup_tree_doctype():
 	frappe.delete_doc_if_exists("DocType", "Custom Tree", force=True)
 

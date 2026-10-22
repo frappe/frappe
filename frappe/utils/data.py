@@ -2143,21 +2143,23 @@ def get_absolute_url(doctype: str, name: str) -> str:
 	return f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 
+def is_desk_v2_enabled() -> bool:
+	"""True where System Settings turns desk v2 on for this site."""
+	return bool(cint(frappe.get_system_settings("enable_desk_v2")))
+
+
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
-	"""Return the absolute URL for the record view of the given document in the desk.
+	"""Return the record's absolute URL: `/desk/sales-invoice/X`, or `/apps/erpnext/accounts/sales-invoice/X` with desk v2 on."""
+	if is_desk_v2_enabled():
+		from frappe.shell.links import canonical_path
 
-	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/apps/erpnext/accounts/sales-invoice/INV-00001'
+		uri = canonical_path(doctype, name)
+	elif not name:
+		uri = f"/desk/{quoted(slug(doctype))}"
+	else:
+		uri = f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
-	This is the **canonical** address: the owning app's prefix, and that app's route
-	shape (#42210, #42211). Every caller here is a link generated outside a session —
-	a notification, a follow email, a mention — so there is no prefix to inherit and
-	one has to be chosen. Callers hold only `(doctype, name)`, which is why the choice
-	can live entirely in here.
-	"""
-	from frappe.shell.links import canonical_path
-
-	return get_url(uri=canonical_path(doctype, name))
+	return get_url(uri=uri)
 
 
 def get_url_to_list(doctype: str) -> str:
