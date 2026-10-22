@@ -101,9 +101,10 @@ class TestFlowSkillGlobalLimit(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_only_enabled_global_skills_are_capped(self):
+		bound = frappe.db.count("Flow Skill", {"is_global": 0})  # apps ship skills too
 		for i in range(MAX_GLOBAL_SKILLS + 5):
 			frappe.get_doc(_skill(title=f"Bound {i:03d}")).insert()
-		self.assertEqual(frappe.db.count("Flow Skill", {"is_global": 0}), MAX_GLOBAL_SKILLS + 5)
+		self.assertEqual(frappe.db.count("Flow Skill", {"is_global": 0}), bound + MAX_GLOBAL_SKILLS + 5)
 
 		with self.subTest("one global skill too many is refused"):
 			for i in range(MAX_GLOBAL_SKILLS):
