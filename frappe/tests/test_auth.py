@@ -28,7 +28,13 @@ from frappe.sessions import Session, get_expired_sessions, get_expiry_in_seconds
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.test_api import FrappeAPITestCase
 from frappe.utils import get_datetime, get_site_url, now
+<<<<<<< HEAD
 from frappe.utils.data import add_to_date
+=======
+from frappe.utils.data import add_to_date, sha256_hash
+from frappe.utils.logging import get_log_db, log_table
+from frappe.utils.password import check_password
+>>>>>>> 4d4a99f (fix(login): hash a placeholder when a user has no saved password)
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -149,8 +155,19 @@ class TestAuth(IntegrationTestCase):
 		self.assertEqual(frappe.local.response.get("message"), "Invalid login credentials")
 
 	def test_unknown_account_checks_a_password_hash(self):
-		with patch("frappe.core.doctype.user.user._verify_password", return_value=(False, False)) as verify:
+		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
 			self.assertIsNone(User.find_by_credentials("unknown_auth@example.com", "wrong_pwd_012"))
+		verify.assert_called_once()
+
+	def test_user_without_a_password_checks_a_password_hash(self):
+		email = "no_password_auth@example.com"
+		frappe.delete_doc("User", email, force=True)
+		frappe.get_doc(doctype="User", email=email, first_name="No Password", send_welcome_email=0).insert()
+		self.addCleanup(frappe.delete_doc, "User", email, force=True)
+
+		with patch("frappe.utils.password.verify_password", return_value=(False, False)) as verify:
+			with self.assertRaises(frappe.AuthenticationError):
+				check_password(email, "wrong_pwd_012")
 		verify.assert_called_once()
 
 	@requires_test_service(TestService.WEB_SERVER)
