@@ -611,6 +611,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (this.wrapper.find(".sidebar-items")[0]) {
 			this.wrapper.find(".sidebar-items").html("");
 		}
+		this.items = [];
 	}
 	make_sidebar() {
 		this.empty();

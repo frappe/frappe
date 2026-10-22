@@ -9,8 +9,6 @@ from collections import deque
 from functools import lru_cache
 from typing import Any
 
-from sql_metadata import Parser
-
 import frappe
 import frappe.permissions
 from frappe import _
@@ -272,6 +270,8 @@ def is_standard(fieldname):
 
 @lru_cache(maxsize=1024)
 def extract_fieldnames(field):
+	from sql_metadata import Parser
+
 	from frappe.database.schema import SPECIAL_CHAR_PATTERN
 
 	if not SPECIAL_CHAR_PATTERN.findall(field):

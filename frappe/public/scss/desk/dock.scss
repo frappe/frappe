@@ -123,7 +123,12 @@
 		}
 	}
 
-	.dock-logo + .dock-utilities:empty + .dock-items {
+	&:not(.dock-owns-utilities) .dock-utilities {
+		display: none;
+	}
+
+	.dock-logo + .dock-utilities:empty + .dock-items,
+	&:not(.dock-owns-utilities) .dock-logo + .dock-utilities + .dock-items {
 		margin-top: calc(var(--spacing) * -1);
 		padding-top: calc(var(--spacing) * 3);
 	}
@@ -297,7 +302,7 @@ body.dock-pinned .dock {
 	.dock-items {
 		width: calc(100% + var(--spacing) * 5.5);
 		margin-inline: calc(var(--spacing) * -2.75);
-		padding-bottom: var(--spacing);
+		padding-block: var(--spacing);
 		min-height: 0;
 		overflow-y: auto;
 		scrollbar-width: none;
@@ -357,17 +362,11 @@ body.dock-pinned .dock .dock-user-button {
 	}
 }
 
-// A floating dock opens only from a pointer at the window's edge (Dock.pointer_can_reveal), so on
-// a touch screen the sidebar keeps its own rows.
+// Only a pinned dock takes them over. A floating one is off screen until the pointer reaches the
+// window's edge, so the sidebar keeps its own rows.
 @include media-breakpoint-up(md) {
 	body.dock-active.dock-pinned {
 		@include dock-owns-search-and-notifications;
-	}
-
-	@media (any-hover: hover) {
-		body.dock-active {
-			@include dock-owns-search-and-notifications;
-		}
 	}
 }
 
