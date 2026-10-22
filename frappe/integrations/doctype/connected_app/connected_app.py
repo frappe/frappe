@@ -265,6 +265,11 @@ def delete_token_cache(name: str, modified: datetime) -> None:
 
 @frappe.whitelist()
 def has_token(connected_app: str, connected_user: str | None = None):
+	connected_user = connected_user or frappe.session.user
+	if connected_user != frappe.session.user and not frappe.get_list(
+		"Email Account", filters={"connected_app": connected_app, "connected_user": connected_user}, limit=1
+	):
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 	app = frappe.get_doc("Connected App", connected_app)
-	token_cache = app.get_token_cache(connected_user or frappe.session.user)
+	token_cache = app.get_token_cache(connected_user)
 	return bool(token_cache and token_cache.get_password("access_token", False))
