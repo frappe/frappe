@@ -190,7 +190,6 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
   }
 
   function remove(id: string): void {
-    // an error about the queue may no longer hold once it changes
     errors.value = [];
     cancel(id);
     const index = items.findIndex((item) => item.id === id);
