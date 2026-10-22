@@ -1,6 +1,7 @@
 // Board data provider. Custom providers implement the same methods:
 // loadBoard, loadColumnPage, moveCard, moveCards, moveColumnOrder, onRemoteUpdate.
 const KANBAN_METHOD = "frappe.desk.doctype.kanban_board.kanban_board";
+const USER_INFO_BATCH_SIZE = 100;
 
 export class FrappeDataProvider {
 	constructor(config) {
@@ -49,10 +50,17 @@ export class FrappeDataProvider {
 		}
 		if (!missing.size) return;
 
-		const info =
-			(await frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", {
-				users: [...missing],
-			})) || {};
+		const ids = [...missing];
+		const batches = [];
+		for (let i = 0; i < ids.length; i += USER_INFO_BATCH_SIZE) {
+			batches.push(ids.slice(i, i + USER_INFO_BATCH_SIZE));
+		}
+		const responses = await Promise.all(
+			batches.map((users) =>
+				frappe.xcall("frappe.desk.form.load.get_user_info_for_viewers", { users })
+			)
+		);
+		const info = Object.assign({}, ...responses);
 		// cache unknown ids as themselves so they are not fetched again
 		missing.forEach((user) => {
 			if (!info[user]) info[user] = { fullname: user, name: user, email: user };
