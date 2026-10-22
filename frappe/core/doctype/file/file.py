@@ -922,11 +922,14 @@ class File(Document):
 
 	@staticmethod
 	def zip_files(files):
-		added = set()
+		requested, added = set(), set()
 		zip_file = io.BytesIO()
 		zf = zipfile.ZipFile(zip_file, "w", zipfile.ZIP_DEFLATED)
 		for _file in files:
 			if isinstance(_file, str):
+				if _file in requested:
+					continue
+				requested.add(_file)
 				_file = frappe.get_doc("File", _file)
 			if not isinstance(_file, File):
 				continue
