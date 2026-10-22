@@ -22,15 +22,30 @@ class TestLoad(IntegrationTestCase):
 		info = get_user_info_for_viewers(["Administrator"])
 		self.assertIn("Administrator", info)
 
-	def test_get_user_info_for_viewers_only_resolves_system_users_for_system_users(self):
-		website_user = frappe.get_doc(
-			doctype="User", email="viewer_portal@example.com", first_name="Portal", user_type="Website User"
-		).insert(ignore_permissions=True)
+	def test_get_user_info_for_viewers_resolves_only_desk_users_for_desk_users(self):
+		from frappe.core.doctype.user_type.test_user_type import create_role
+
+		create_role()
+		custom_type = frappe.get_doc(
+			doctype="User Type", name="Viewer Test Type", role="_Test User Type"
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User Type", custom_type.name, force=True)
+
+		def make_user(email, user_type):
+			return frappe.get_doc(
+				doctype="User", email=email, first_name="Viewer", user_type=user_type, send_welcome_email=0
+			).insert(ignore_permissions=True)
+
+		website_user = make_user("viewer_portal@example.com", "Website User")
+		custom_user = make_user("viewer_custom@example.com", custom_type.name)
 		self.addCleanup(frappe.set_user, "Administrator")
 
 		frappe.set_user("test@example.com")
-		info = get_user_info_for_viewers(["test@example.com", website_user.name])
-		self.assertEqual(list(info), ["test@example.com"])
+		info = get_user_info_for_viewers(["test@example.com", website_user.name, custom_user.name])
+		self.assertEqual(set(info), {"test@example.com", custom_user.name})
+
+		frappe.set_user(custom_user.name)
+		self.assertIn("test@example.com", get_user_info_for_viewers(["test@example.com"]))
 
 		frappe.set_user(website_user.name)
 		self.assertRaises(frappe.PermissionError, get_user_info_for_viewers, ["test@example.com"])
