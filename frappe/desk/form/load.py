@@ -519,9 +519,6 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 	return link_titles
 
 
-MAX_VIEWER_USERS = 100
-
-
 def update_user_info(docinfo, doc=None):
 	users = set()
 
@@ -557,11 +554,8 @@ def get_user_info_for_viewers(users: str | list):
 		frappe.throw(_("Not permitted"), frappe.PermissionError)
 >>>>>>> 03767e3 (fix: limit viewer user info to system users)
 
-	users = frappe.parse_json(users)[:MAX_VIEWER_USERS]
-	desk_users = frappe.get_all(
-		"User", {"name": ("in", users), "user_type": ("!=", "Website User")}, pluck="name"
-	)
-
 	user_info = {}
-	frappe.utils.add_user_info(desk_users, user_info)
+	for user in frappe.parse_json(users):
+		frappe.utils.add_user_info(user, user_info)
+
 	return user_info
