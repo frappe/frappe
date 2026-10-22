@@ -1798,15 +1798,16 @@ class TestTheAppsEntrySet(IntegrationTestCase):
 class TestTheFrameworksDock(IntegrationTestCase):
 	"""The framework shipping its own dock as an exported document.
 
-	Thirteen rows, not eleven. The hook deliberately left `Geo` and `System` unnamed so they would
+	Fourteen rows, not twelve. The hook deliberately left `Geo` and `System` unnamed so they would
 	follow in `modules.txt` order. A record has no trailing tier, so naming them is required, and the
-	rail renders the same thirteen buttons in the same order either way.
+	rail renders the same fourteen buttons in the same order either way.
 
 	"""
 
-	THIRTEEN: typing.ClassVar[list[str]] = [
+	FOURTEEN: typing.ClassVar[list[str]] = [
 		"Build",
 		"Studio",
+		"Flow",
 		"Users",
 		"Email",
 		"Website",
@@ -1826,9 +1827,9 @@ class TestTheFrameworksDock(IntegrationTestCase):
 
 		self.assertTrue(dock.standard)
 		self.assertEqual(dock.app, "frappe")
-		self.assertEqual([row.link_to for row in dock.items], self.THIRTEEN)
+		self.assertEqual([row.link_to for row in dock.items], self.FOURTEEN)
 		self.assertTrue(all(row.link_type == "Sidebar" for row in dock.items))
-		# All thirteen are authored: nothing derives an icon or a title, because a prefill would
+		# All fourteen are authored: nothing derives an icon or a title, because a prefill would
 		# make divergence look like inheritance.
 		self.assertTrue(all(row.icon and row.title for row in dock.items))
 
@@ -1844,18 +1845,18 @@ class TestTheFrameworksDock(IntegrationTestCase):
 
 		self.assertEqual(
 			names(get_app_dock("frappe")),
-			self.THIRTEEN,
+			self.FOURTEEN,
 		)
 
 	def test_the_walked_case_renders_the_same_dock(self):
-		"""Sixteen modules in, thirteen named, three code-only never nameable at all."""
+		"""Seventeen modules in, fourteen named, three code-only never nameable at all."""
 		from frappe.utils.modules import get_code_only_modules
 
 		frappe.set_user("Administrator")
 		clear_arrangements()
 
 		resolved = names(resolve_dock()["frappe"])
-		self.assertEqual([name for name in resolved if name in self.THIRTEEN], self.THIRTEEN)
+		self.assertEqual([name for name in resolved if name in self.FOURTEEN], self.FOURTEEN)
 
 		# the three the record cannot name, because they ship no navigation of their own
 		self.assertEqual(sorted(get_code_only_modules()), ["Core", "Custom", "Desk"])
