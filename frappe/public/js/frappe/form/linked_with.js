@@ -26,6 +26,7 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 		});
 
 		this.dialog.on_page_show = () => {
+			this.docname = this.frm.docname;
 			this.get_linked_docs()
 				.then((r) => {
 					for (const entry of Object.values(r)) {
@@ -48,7 +49,7 @@ frappe.ui.form.LinkedWith = class LinkedWith {
 	get_linked_docs(args) {
 		return frappe.xcall("frappe.desk.form.linked_with.get", {
 			doctype: this.frm.doctype,
-			docname: this.frm.docname,
+			docname: this.docname,
 			limit: this.page_length + 1,
 			...args,
 		});
