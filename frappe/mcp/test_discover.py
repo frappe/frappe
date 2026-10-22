@@ -7,7 +7,7 @@ from unittest.mock import patch
 import frappe
 from frappe.api import discovery
 from frappe.mcp.test_utils import McpTestCase
-from frappe.mcp.tools.discover import LAYOUT_FIELDTYPES, PERMISSION_TYPES
+from frappe.mcp.tools.discover import LAYOUT_FIELDTYPES, PERMISSION_TYPES, SEARCH_LIMIT
 
 
 class TestDiscover(McpTestCase):
@@ -121,6 +121,8 @@ class TestDiscover(McpTestCase):
 			("search_doctypes", {"query": [""]}),
 			("search_doctypes", {"query": ""}),
 			("search_doctypes", {"query": ["ToDo"], "module": "Desk"}),
+			("search_doctypes", {"limit": 0}),
+			("search_doctypes", {"limit": "5"}),
 			("get_doctype_schema", {}),
 			("get_doctype_schema", {"doctype": 1}),
 			("get_doctype_schema", {"doctype": ""}),
@@ -186,9 +188,12 @@ class TestDiscover(McpTestCase):
 
 	def test_search_is_bounded_and_sorted(self):
 		names = self.result("search_doctypes", {"query": ["%"]})["result"]
-		self.assertLessEqual(len(names), 50)
+		self.assertEqual(len(names), SEARCH_LIMIT)
 		# Database collation can sort mixed-case names differently from Python.
 		expected = frappe.get_all(
 			"DocType", filters={"name": ["in", names]}, pluck="name", order_by="name asc"
 		)
 		self.assertEqual(names, expected)
+
+	def test_search_limit(self):
+		self.assertEqual(len(self.result("search_doctypes", {"limit": 5})["result"]), 5)

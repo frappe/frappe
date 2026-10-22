@@ -24,6 +24,7 @@ SearchText = Annotated[str, Field(min_length=1)]
 
 class SearchDoctypesArguments(ToolArguments):
 	query: SearchText | Annotated[list[SearchText], Field(min_length=1)] | None = None
+	limit: int = Field(default=SEARCH_LIMIT, ge=1)
 
 
 class GetDoctypeSchemaArguments(ToolArguments):
@@ -43,7 +44,7 @@ class ListDocumentMethodsArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
 
 
-def search_doctypes(query: str | list[str] | None = None) -> list[str]:
+def search_doctypes(query: str | list[str] | None = None, limit: int = SEARCH_LIMIT) -> list[str]:
 	if isinstance(query, str):
 		query = [query]
 	return frappe.get_all(
@@ -52,7 +53,7 @@ def search_doctypes(query: str | list[str] | None = None) -> list[str]:
 		or_filters=[("name", "like", f"%{text}%") for text in query or ()],
 		pluck="name",
 		order_by="name",
-		limit=SEARCH_LIMIT,
+		limit=limit,
 	)
 
 
@@ -112,7 +113,7 @@ SEARCH_DOCTYPES = Tool(
 	name="search_doctypes",
 	description=(
 		"Search DocType names that contain the query string, or any of a list of them. "
-		"Returns up to 50 names, without child tables."
+		"Returns up to limit names (default 50), without child tables."
 	),
 	arguments=SearchDoctypesArguments,
 	handler=search_doctypes,
