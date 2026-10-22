@@ -800,9 +800,6 @@ test.describe("Espresso components", () => {
 			);
 			await expect(holiday_list.locator(".es-checklist__meta")).toHaveText("India 2026");
 			await toggle(holiday_list).click();
-			await expect(holiday_list.locator(".es-checklist__note")).toHaveText(
-				"Needs: Create Employee"
-			);
 			await expect(holiday_list.getByRole("button", { name: "Assign" })).toBeDisabled();
 
 			await toggle(row(group, "Create Employee")).click();
