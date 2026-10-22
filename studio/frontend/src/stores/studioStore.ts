@@ -153,7 +153,7 @@ const useStudioStore = defineStore("store", () => {
 			{ name: activeApp.value?.name, [key]: value },
 			{
 				onSuccess(app: StudioApp) {
-					activeApp.value = app
+					if (app.name === activeApp.value?.name) activeApp.value = app
 				},
 			},
 		)
