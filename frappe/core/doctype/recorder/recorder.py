@@ -54,7 +54,7 @@ class Recorder(Document):
 	def get_list(args):
 		start = cint(args.get("start")) or 0
 		page_length = cint(args.get("page_length")) or 20
-		requests = Recorder.get_filtered_requests(args)[start : start + page_length]
+		requests = Recorder.get_filtered_requests(args)
 
 		if order_by_statment := args.get("order_by"):
 			if "." in order_by_statment:
@@ -67,9 +67,14 @@ class Recorder(Document):
 				sort_order = "desc"
 
 			sort_key = sort_key.replace("`", "")
-			return sorted(requests, key=lambda r: r.get(sort_key) or 0, reverse=bool(sort_order == "desc"))
+			requests.sort(
+				key=lambda r: (r.get(sort_key) is not None, r.get(sort_key), r.name),
+				reverse=sort_order == "desc",
+			)
+		else:
+			requests.sort(key=lambda r: (r.duration, r.name), reverse=True)
 
-		return sorted(requests, key=lambda r: r.duration, reverse=1)
+		return requests[start : start + page_length]
 
 	@staticmethod
 	def get_count(args):

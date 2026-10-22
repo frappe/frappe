@@ -82,15 +82,29 @@ def is_ci(file):
 
 
 def is_frontend_code(file):
+	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
+		return True
 	return file.lower().endswith((".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html"))
 
 
 def is_docs(file):
-	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE")
+	"""Check if the file is documentation, image or the translation template (no runtime effect)."""
+	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE|/locale/main\.pot$")
 	return bool(regex.search(file))
 
 
+def _selftest():
+	assert is_docs("frappe/locale/main.pot"), "translation template alone must skip tests"
+	assert not is_docs("frappe/locale/de.po"), "translations change output, must run tests"
+
+	print("roulette selftest OK")
+
+
 if __name__ == "__main__":
+	if sys.argv[1:] == ["selftest"]:
+		_selftest()
+		sys.exit(0)
+
 	files_list = sys.argv[1:]
 	build_type = os.environ.get("TYPE")
 	pr_number = os.environ.get("PR_NUMBER")
