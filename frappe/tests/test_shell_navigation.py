@@ -15,6 +15,7 @@ from frappe.shell.navigation import resolve_navigation
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 from frappe.utils import set_request
+from frappe.utils.logging import connection_for
 
 APP = "frappe"
 
@@ -444,7 +445,7 @@ class TestBootBudget(NavigationTestCase):
 			get_boot("/apps/desk")
 
 		self.assertEqual(len(self._logged()), 1)
-		self.assertEqual(frappe.db.count("Error Log", {"method": TITLE}), 0)
+		self.assertEqual(connection_for("Error Log").count("Error Log", {"method": TITLE}), 0)
 
 	def test_the_daily_claim_is_atomic(self):
 		"""`SET NX`, so two workers weighing one payload write one row between them."""
