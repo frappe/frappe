@@ -21,6 +21,7 @@ class TestListViewSettings(IntegrationTestCase):
 				{"fieldname": "status", "label": "Status", "width": 236.487},
 				{"fieldname": "priority", "label": "Priority", "width": 180},
 				{"fieldname": "status_field", "label": "Status", "width": 90},
+				{"fieldname": "name", "label": "ID", "width": 120},
 			],
 		)
 
@@ -29,8 +30,9 @@ class TestListViewSettings(IntegrationTestCase):
 		meta = frappe.get_meta("ToDo")
 		self.assertEqual(meta.get_field("status").width, "236")
 		self.assertEqual(meta.get_field("priority").width, "120")
+		self.assertFalse(frappe.db.exists("Property Setter", {"doc_type": "ToDo", "field_name": "name"}))
 		fields = json.loads(frappe.db.get_value("List View Settings", "ToDo", "fields"))
-		self.assertEqual([field.get("width") for field in fields], [None, None, None])
+		self.assertEqual([field.get("width") for field in fields], [None, None, None, None])
 
 	def test_patch_skips_settings_of_a_deleted_doctype(self):
 		self.save_list_view_settings("_Deleted DocType", [{"fieldname": "title", "width": 200}])
