@@ -62,14 +62,15 @@ class TestDiscover(McpTestCase):
 
 	def test_doctype_search_does_not_search_methods(self):
 		with patch("frappe.api.discovery.search") as methods:
-			result = self.result("search_doctypes", {"query": "ToDo"})
-		self.assertIn("ToDo", [row["name"] for row in result["result"]])
+			result = self.result("search_doctypes", {"query": ["ToDo"]})
+		self.assertIn("ToDo", result["result"])
 		methods.assert_not_called()
 
-	def test_search_filters_module(self):
-		result = self.result("search_doctypes", {"module": "Desk"})
-		self.assertTrue(result["result"])
-		self.assertTrue(all(row["module"] == "Desk" for row in result["result"]))
+	def test_search_matches_any_query(self):
+		result = self.result("search_doctypes", {"query": ["ToDo", "Note"]})["result"]
+		self.assertIn("ToDo", result)
+		self.assertIn("Note", result)
+		self.assertTrue(all("todo" in name.lower() or "note" in name.lower() for name in result))
 
 	def test_schema_fields_and_permissions(self):
 		result = self.result("get_doctype_schema", {"doctype": "ToDo"})
@@ -117,7 +118,9 @@ class TestDiscover(McpTestCase):
 	def test_invalid_arguments_and_unknown_doctype(self):
 		for tool, arguments in (
 			("search_doctypes", {"query": []}),
-			("search_doctypes", {"query": "ToDo", "doctype": "ToDo"}),
+			("search_doctypes", {"query": [""]}),
+			("search_doctypes", {"query": "ToDo"}),
+			("search_doctypes", {"query": ["ToDo"], "module": "Desk"}),
 			("get_doctype_schema", {}),
 			("get_doctype_schema", {"doctype": 1}),
 			("get_doctype_schema", {"doctype": ""}),
@@ -155,8 +158,8 @@ class TestDiscover(McpTestCase):
 			),
 		):
 			self.assertTrue(self.discover("search_methods", {"query": "ToDo"}).json["result"]["isError"])
-			result = self.result("search_doctypes", {"query": "ToDo"})
-		self.assertIn("ToDo", [row["name"] for row in result["result"]])
+			result = self.result("search_doctypes", {"query": ["ToDo"]})
+		self.assertIn("ToDo", result["result"])
 
 	def test_manager_cannot_discover_nonwhitelisted_methods(self):
 		with self.manager(), self.method_cache():
@@ -182,8 +185,7 @@ class TestDiscover(McpTestCase):
 		self.assertNotIn("source", result)
 
 	def test_search_is_bounded_and_sorted(self):
-		result = self.result("search_doctypes", {"query": "%"})
-		names = [row["name"] for row in result["result"]]
+		names = self.result("search_doctypes", {"query": ["%"]})["result"]
 		self.assertLessEqual(len(names), 50)
 		# Database collation can sort mixed-case names differently from Python.
 		expected = frappe.get_all(

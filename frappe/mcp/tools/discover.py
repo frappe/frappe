@@ -2,7 +2,7 @@
 # License: MIT. See LICENSE
 """Discover site metadata through Frappe's existing API discovery handlers."""
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Annotated
 
 from pydantic import Field
 
@@ -20,8 +20,7 @@ SEARCH_LIMIT = 50
 
 
 class SearchDoctypesArguments(ToolArguments):
-	query: str | None = Field(default=None, min_length=1)
-	module: str | None = Field(default=None, min_length=1)
+	query: list[Annotated[str, Field(min_length=1)]] | None = Field(default=None, min_length=1)
 
 
 class GetDoctypeSchemaArguments(ToolArguments):
@@ -41,16 +40,12 @@ class ListDocumentMethodsArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
 
 
-def search_doctypes(query: str | None = None, module: str | None = None) -> list[dict]:
-	filters = {"istable": 0}
-	if query is not None:
-		filters["name"] = ("like", f"%{query}%")
-	if module is not None:
-		filters["module"] = module
+def search_doctypes(query: list[str] | None = None) -> list[str]:
 	return frappe.get_all(
 		"DocType",
-		filters=filters,
-		fields=["name", "module", "issingle", "is_submittable"],
+		filters={"istable": 0},
+		or_filters=[("name", "like", f"%{text}%") for text in query or ()],
+		pluck="name",
 		order_by="name",
 		limit=SEARCH_LIMIT,
 	)
@@ -110,7 +105,10 @@ def without(data: dict, *keys: str) -> dict:
 
 SEARCH_DOCTYPES = Tool(
 	name="search_doctypes",
-	description="Search DocTypes by name or module. Returns up to 50, without child tables.",
+	description=(
+		"Search DocType names that contain any of the query strings. "
+		"Returns up to 50 names, without child tables."
+	),
 	arguments=SearchDoctypesArguments,
 	handler=search_doctypes,
 	annotations={"readOnlyHint": True},
