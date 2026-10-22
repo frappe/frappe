@@ -2,7 +2,13 @@ import os
 from unittest.mock import patch
 
 import frappe
-from frappe.studio.api import get_custom_vue_components, read_studio_file
+from frappe.studio.api import (
+	create_studio_file,
+	get_custom_vue_components,
+	read_studio_file,
+	write_studio_file,
+)
+from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app
 from frappe.studio.doctype.studio_page.test_studio_page import exports_in_tempdir
 from frappe.tests import IntegrationTestCase
 
@@ -26,3 +32,14 @@ class TestApi(IntegrationTestCase):
 				"../../..",
 				"sites/common_site_config.json",
 			)
+
+	def test_the_build_config_cannot_be_written_from_the_editor(self):
+		with exports_in_tempdir(), patch.dict(frappe.conf, {"developer_mode": 1}):
+			app = make_studio_app(
+				app_name="cfg-" + frappe.generate_hash(length=8), is_standard=1, frappe_app="frappe"
+			)
+			for call in (
+				lambda: write_studio_file("frappe", app.name, "tailwind.config.js", "module.exports = {}"),
+				lambda: create_studio_file("frappe", app.name, "tailwind.config.js"),
+			):
+				self.assertRaises(frappe.ValidationError, call)
