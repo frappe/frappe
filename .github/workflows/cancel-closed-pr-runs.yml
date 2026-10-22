@@ -1,0 +1,22 @@
+name: Cancel Closed PR Runs
+
+on:
+  pull_request_target:
+    types: [closed]
+
+permissions:
+  actions: write
+
+jobs:
+  cancel:
+    name: Cancel runs of the closed pull request
+    runs-on: ubuntu-latest
+    steps:
+      - name: Cancel unfinished runs on the head commit
+        run: |
+          gh run list --repo "$GITHUB_REPOSITORY" --commit "$HEAD_SHA" --limit 50 \
+            --json databaseId,status --jq '.[] | select(.status != "completed") | .databaseId' \
+            | xargs -r -n1 gh run cancel --repo "$GITHUB_REPOSITORY"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
