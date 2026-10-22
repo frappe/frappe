@@ -1,8 +1,9 @@
-// Upload-first review: the notice on the list view, and the dialog that lists the
-// queued files beside a preview of the selected one.
+// Upload-first review. Layout and color live on the utility classes in the
+// markup; only what they cannot express is here.
 
 // The notice reads as one row: the count on the left, its buttons on the right,
-// instead of the alert's default footer below the message.
+// instead of the alert's default footer below the message. The footer element
+// belongs to frappe.ui.alert, so it cannot carry utility classes.
 .attachment-queue-notice {
 	align-items: center;
 	margin-bottom: var(--margin-md);
@@ -15,17 +16,11 @@
 }
 
 .attachment-queue-review {
-	display: grid;
-	grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
-	gap: var(--margin-md);
 	height: 60vh;
-	min-height: 320px;
 }
 
 .attachment-queue-review-list {
-	overflow-y: auto;
-
-	// the pane scrolls as a whole, so the table does not scroll on its own
+	// the pane scrolls as a whole, so the table inside it does not scroll on its own
 	.embedded-list-table-wrap {
 		max-height: none;
 		overflow: visible;
@@ -37,35 +32,7 @@
 	}
 }
 
-.attachment-queue-review-preview {
-	display: flex;
-	flex-direction: column;
-	overflow: hidden;
-	border: 1px solid var(--border-color);
-	border-radius: var(--radius-5);
-	background-color: var(--fg-color);
-}
-
-.attachment-queue-review-preview-header {
-	flex-shrink: 0;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: var(--margin-sm);
-	height: 40px;
-	padding: 0 var(--padding-xs) 0 var(--padding-sm);
-	background-color: var(--subtle-fg);
-	border-bottom: 1px solid var(--border-color);
-}
-
 .attachment-queue-review-preview-body {
-	flex: 1;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	min-height: 0;
-	overflow: auto;
-
 	iframe {
 		width: 100%;
 		height: 100%;

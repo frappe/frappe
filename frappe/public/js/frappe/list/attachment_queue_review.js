@@ -26,18 +26,18 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 	dialog.show();
 
 	const $panes = $(`
-		<div class="attachment-queue-review">
-			<div class="attachment-queue-review-list"></div>
-			<div class="attachment-queue-review-preview">
-				<div class="attachment-queue-review-preview-header hide">
-					<div class="ellipsis attachment-queue-review-preview-title"></div>
+		<div class="attachment-queue-review flex gap-4 min-h-80">
+			<div class="attachment-queue-review-list flex-1 min-w-0 overflow-y-auto"></div>
+			<div class="flex-1 min-w-0 flex flex-col overflow-hidden rounded-md border border-outline-gray-1 bg-surface-base">
+				<div class="attachment-queue-review-preview-header hidden shrink-0 flex items-center justify-between gap-2 border-b border-outline-gray-1 bg-surface-gray-2 ps-3 pe-1 py-1.5">
+					<div class="truncate attachment-queue-review-preview-title"></div>
 					<a class="es-button" data-variant="ghost" data-icon-button="true"
 						target="_blank" rel="noopener noreferrer"
 						title="${__("Open file in new tab")}"
 						aria-label="${__("Open file in new tab")}"
 					>${frappe.utils.icon("arrow-up-right", "sm", "", "", "", true)}</a>
 				</div>
-				<div class="attachment-queue-review-preview-body"></div>
+				<div class="attachment-queue-review-preview-body flex-1 min-h-0 flex items-center justify-center overflow-auto"></div>
 			</div>
 		</div>
 	`).appendTo(dialog.fields_dict.pending.$wrapper);
@@ -58,7 +58,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 		const file_url = safe_href(entry.source_file, "attachment_queue");
 
 		$preview_header
-			.removeClass("hide")
+			.removeClass("hidden")
 			.find(".attachment-queue-review-preview-title")
 			.text(file_name)
 			.attr("title", file_name);
