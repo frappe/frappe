@@ -93,17 +93,18 @@ function relay_provider(connected_app) {
 	);
 }
 
-function oauth_access(frm) {
+function oauth_access(frm, $btn) {
 	frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
 		const connected_app = frappe.get_doc("Connected App", frm.doc.connected_app);
 		if (relay_provider(connected_app)) {
+			$btn?.attr("aria-busy", "true");
 			return frappe
-				.call({
-					method: "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
-					args: { email_account: frm.doc.name },
-					freeze: true,
-				})
-				.then((r) => (window.location.href = r.message));
+				.xcall(
+					"frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
+					{ email_account: frm.doc.name }
+				)
+				.then((url) => (window.location.href = url))
+				.catch(() => $btn?.removeAttr("aria-busy"));
 		}
 		return frappe.call({
 			doc: connected_app,
@@ -305,7 +306,9 @@ frappe.ui.form.on("Email Account", {
 							'OAuth has been enabled but not authorised. Please use "Authorise API Access" button to do the same.'
 						);
 						if (relay) {
-							frm.add_custom_button(__("Reconnect"), () => oauth_access(frm));
+							const $reconnect = frm.add_custom_button(__("Reconnect"), () =>
+								oauth_access(frm, $reconnect)
+							);
 							msg = __(
 								"This mailbox was signed out. Reconnect it to sign in again."
 							);

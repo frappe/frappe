@@ -61,17 +61,17 @@ function add_email_account_dialog() {
 		d.hide();
 		frappe.new_doc("Email Account", service === "Other" ? {} : { service });
 	};
-	const sign_in = (service, label) =>
-		frappe
-			.call({
-				method: "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
-				args: { service },
-				freeze: true,
+	const sign_in = (service, label) => {
+		const $others = d.get_secondary_btn().add(d.$wrapper.find(".email-provider-tiles button"));
+		$others.prop("disabled", true);
+		return frappe
+			.xcall("frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect", {
+				service,
 			})
-			.then((r) => {
-				if (r.message) {
-					window.location.href = r.message;
-					return;
+			.then((url) => {
+				if (url) {
+					window.location.href = url;
+					return new Promise(() => {}); // Continue stays busy until the sign-in page opens
 				}
 				d.set_message(
 					__(
@@ -81,7 +81,9 @@ function add_email_account_dialog() {
 				);
 				d.get_secondary_btn().addClass("hide");
 				d.set_primary_action(__("Set up manually"), () => open_form(service));
-			});
+			})
+			.finally(() => $others.prop("disabled", false));
+	};
 	const set_actions = (service, label) => {
 		if (!one_click[service]) {
 			d.get_secondary_btn().addClass("hide");
