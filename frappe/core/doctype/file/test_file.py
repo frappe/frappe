@@ -8,7 +8,11 @@ import tempfile
 import zipfile
 from contextlib import contextmanager
 from typing import TYPE_CHECKING
+<<<<<<< HEAD
 from unittest.mock import patch
+=======
+from unittest.mock import MagicMock, call, patch
+>>>>>>> 80e68c6 (perf(file): skip a repeated file name before loading it when zipping)
 
 import frappe
 from frappe import _
@@ -809,13 +813,15 @@ class TestFile(IntegrationTestCase):
 			file = frappe.get_doc(
 				doctype="File", file_name="zip_0.txt", content=b"x" * 600, is_private=1
 			).insert()
-			content = File.zip_files([file.name] * 3)
+			with patch("frappe.get_doc", wraps=frappe.get_doc) as get_doc:
+				content = File.zip_files([file.name] * 3)
 		finally:
 			frappe.set_user("Administrator")
 			file.delete()
 
 		with zipfile.ZipFile(io.BytesIO(content)) as zf:
 			self.assertEqual(zf.namelist(), ["zip_0.txt"])
+		self.assertEqual(get_doc.call_args_list.count(call("File", file.name)), 1)
 
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
