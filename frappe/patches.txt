@@ -311,6 +311,7 @@ frappe.studio.doctype.studio_page.patches.fold_raw_styles_into_base_styles
 frappe.studio.doctype.studio_page.patches.migrate_blocks_to_frappe_ui_v1
 frappe.studio.doctype.studio_page.patches.migrate_charts_to_frappe_ui_charts
 frappe.studio.doctype.studio_page.patches.migrate_get_icon_calls
+frappe.patches.v17_0.move_list_view_widths_to_property_setters
 
 
 [post_fixture_sync]

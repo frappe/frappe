@@ -299,7 +299,9 @@ export default class LayoutDialog {
 		};
 
 		const save_promise = this.layout
-			? this.list_view.list_filter.update_layout_from_dialog(this.layout, payload)
+			? this.list_view.list_filter
+					.update_layout_from_dialog(this.layout, payload)
+					.then(() => this.drop_user_widths_of_changed_columns(columns))
 			: this.list_view.list_filter.create_layout_from_dialog(payload);
 
 		return save_promise.then(() => {
@@ -311,5 +313,18 @@ export default class LayoutDialog {
 			this.dialog.hide();
 			this.on_save?.();
 		});
+	}
+
+	drop_user_widths_of_changed_columns(columns) {
+		const stored_widths = Object.fromEntries(
+			this.preserved_layout_columns.map((col) => [col.fieldname, cint(col.width)])
+		);
+		const user_widths = { ...this.list_view.get_user_column_widths(this.layout.name) };
+		for (const col of columns) {
+			if (cint(col.width) !== stored_widths[col.fieldname]) {
+				delete user_widths[col.fieldname];
+			}
+		}
+		return this.list_view.save_user_column_widths(user_widths, this.layout.name);
 	}
 }

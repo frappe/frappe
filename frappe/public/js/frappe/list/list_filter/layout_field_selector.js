@@ -38,6 +38,9 @@ export default class LayoutFieldSelector {
 		const preserved = this.preserved_widths.find((col) => col.fieldname === field.fieldname);
 		if (preserved?.width) return cint(preserved.width);
 
+		const user_width = this.list_view.get_user_column_widths()[field.fieldname];
+		if (cint(user_width)) return cint(user_width);
+
 		const list_col = (this.list_view.columns || []).find(
 			(col) =>
 				col.df?.fieldname === field.fieldname ||

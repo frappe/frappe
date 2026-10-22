@@ -46,6 +46,7 @@ export default class ListSettings {
 
 		me.dialog.set_primary_action(__("Save"), (values) => {
 			me.update_fields();
+			const user_widths = me.get_user_widths();
 			// update_fields() populates me.fields synchronously but set_value() is async,
 			// so bypass the dialog model and use me.fields directly.
 			values.fields = JSON.stringify(me.fields);
@@ -61,14 +62,23 @@ export default class ListSettings {
 			) {
 				const layout = me.listview.list_filter.get_active_layout();
 				if (layout && me.listview.list_filter.can_edit_layout(layout)) {
+					const layout_widths = Object.fromEntries(
+						me.listview.list_filter
+							.get_layout_columns(layout)
+							.map((col) => [col.fieldname, col.width])
+					);
+					const columns = me.fields.map((f) => ({
+						...f,
+						width: layout_widths[f.fieldname],
+					}));
 					me.listview.list_filter
-						.update_layout_columns(layout, me.fields, { debounce: false })
+						.update_layout_columns(layout, columns)
+						.then(() => me.listview.save_user_column_widths(user_widths))
 						.then(async () => {
 							// setup_columns is async (may load linked doctype meta for
 							// link-title columns); wait before rendering the header.
-							await me.listview.setup_columns(me.fields);
-							me.listview.render_header(true);
-							me.listview.apply_column_widths?.();
+							await me.listview.setup_columns(columns);
+							me.listview.refresh_column_widths();
 							me.dialog.hide();
 						});
 					return;
@@ -83,8 +93,10 @@ export default class ListSettings {
 					removed_listview_fields: me.removed_fields || [],
 				},
 				callback: function (r) {
-					me.listview.refresh_columns(r.message.meta, r.message.listview_settings);
-					me.dialog.hide();
+					me.listview.save_user_column_widths(user_widths).then(() => {
+						me.listview.refresh_columns(r.message.meta, r.message.listview_settings);
+						me.dialog.hide();
+					});
 				},
 			});
 		});
@@ -135,10 +147,6 @@ export default class ListSettings {
 		let fields = ``;
 
 		me.listview.columns = me.listview.columns.filter((col) => col.type !== "Tag");
-		const columnByFieldname = {};
-		me.listview.columns.forEach((col) => {
-			if (col.df?.fieldname) columnByFieldname[col.df.fieldname] = col;
-		});
 
 		for (let idx in me.fields) {
 			if (idx == parseInt(this.max_number_of_fields)) {
@@ -171,11 +179,7 @@ export default class ListSettings {
 								class="form-control text-right"
 								data-fieldname="${me.fields[idx].fieldname}"
 								style="background-color: var(--modal-bg); height: 22px;"
-								value="${
-									cint(me.fields[idx].width) ||
-									cint(columnByFieldname[me.fields[idx].fieldname]?.df?.width) ||
-									""
-								}"
+								value="${cint(me.fields[idx].width) || ""}"
 							>
 						</div>
 
@@ -207,7 +211,7 @@ export default class ListSettings {
 						${__("Width (px)")}
 						<span
 							class="ml-1"
-							title="${__("You can also drag column borders directly in the list view to resize")}"
+							title="${__("Changes the width only for you. Leave empty to use the default width.")}"
 							style="cursor: help;"
 						>${frappe.utils.icon("info", "xs")}</span>
 					</div>
@@ -325,6 +329,8 @@ export default class ListSettings {
 		});
 		d.set_primary_action(__("Save"), (dialog_values) => {
 			let values = dialog_values.fields;
+			me.update_fields();
+			const widths = Object.fromEntries(me.fields.map((f) => [f.fieldname, f.width]));
 
 			me.set_removed_fields(
 				me.get_removed_listview_fields(
@@ -352,6 +358,9 @@ export default class ListSettings {
 					}
 				}
 			}
+			me.fields.forEach((f) => {
+				f.width = widths[f.fieldname] || me.get_default_width(f) || undefined;
+			});
 
 			me.refresh();
 			me.dialog.set_value("fields", JSON.stringify(me.fields));
@@ -387,6 +396,35 @@ export default class ListSettings {
 		}
 
 		me.fields.uniqBy((f) => f.fieldname);
+
+		const user_widths = me.listview.get_user_column_widths();
+		me.fields.forEach((f) => {
+			f.width = cint(user_widths[f.fieldname]) || me.get_default_width(f) || undefined;
+		});
+	}
+
+	/** The width a column has for users who have not set their own. */
+	get_default_width(field) {
+		const column = this.listview.columns.find((col) => col.df?.fieldname === field.fieldname);
+		return cint(
+			column?.df?.width || frappe.meta.get_docfield(this.doctype, field.fieldname)?.width
+		);
+	}
+
+	/**
+	 * Takes the widths off `this.fields` and returns the user's own.
+	 * A width equal to the default is not saved, so a later change to the default still shows.
+	 */
+	get_user_widths() {
+		const user_widths = {};
+
+		for (const field of this.fields) {
+			if (field.width && field.width !== this.get_default_width(field)) {
+				user_widths[field.fieldname] = field.width;
+			}
+			delete field.width;
+		}
+		return user_widths;
 	}
 
 	set_list_view_fields(meta) {
