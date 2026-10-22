@@ -181,7 +181,7 @@ freezegun = "~=1.5.5"
 [deploy.dependencies.apt]
 packages = ["libgl1", "libglib2.0-0"]
 
-[tool.pilot.processes.flow-server]
+[tool.pilot.processes.flow_server]
 frappe_command = ["flow-server", "serve"]
 env = { FLOW_SERVER_MANAGER = "supervisor" }
 
