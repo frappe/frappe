@@ -1,0 +1,314 @@
+# Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and contributors
+# License: MIT. See LICENSE
+
+from uuid import uuid4
+
+import frappe
+from frappe.tests import IntegrationTestCase
+from frappe.utils import cstr
+from frappe.utils.file_manager import save_file
+
+TEST_USER = "test@example.com"
+# holds no standard role, so only the target DocType can grant them anything
+PLAIN_USER = "test1@example.com"
+TARGET_DOCTYPE = "ToDo"
+DISABLED_DOCTYPE = "Note"
+
+
+def minimal_pdf(marker: str) -> bytes:
+	"""Build a one page PDF, since File parses every PDF it stores."""
+	content = f"BT /F1 24 Tf 72 700 Td ({marker}) Tj ET".encode()
+	objects = [
+		b"<</Type/Catalog/Pages 2 0 R>>",
+		b"<</Type/Pages/Kids[3 0 R]/Count 1>>",
+		b"<</Type/Page/Parent 2 0 R/MediaBox[0 0 612 792]/Resources<</Font<</F1 5 0 R>>>>/Contents 4 0 R>>",
+		b"<</Length %d>>stream\n%s\nendstream" % (len(content), content),
+		b"<</Type/Font/Subtype/Type1/BaseFont/Helvetica>>",
+	]
+
+	pdf = bytearray(b"%PDF-1.4\n")
+	offsets = []
+	for number, body in enumerate(objects, start=1):
+		offsets.append(len(pdf))
+		pdf += b"%d 0 obj" % number + body + b"endobj\n"
+
+	startxref = len(pdf)
+	pdf += b"xref\n0 %d\n0000000000 65535 f \n" % (len(objects) + 1)
+	for offset in offsets:
+		pdf += b"%010d 00000 n \n" % offset
+	pdf += b"trailer<</Size %d/Root 1 0 R>>\nstartxref\n%d\n%%%%EOF\n" % (
+		len(objects) + 1,
+		startxref,
+	)
+	return bytes(pdf)
+
+
+class TestAttachmentQueue(IntegrationTestCase):
+	def setUp(self):
+		self.enable_upload_first(TARGET_DOCTYPE)
+
+	def enable_upload_first(self, doctype: str):
+		original = frappe.db.get_value("DocType", doctype, "enable_upload_first_workflow")
+		frappe.db.set_value("DocType", doctype, "enable_upload_first_workflow", 1)
+		frappe.clear_cache(doctype=doctype)
+		self.addCleanup(self.restore_upload_first, doctype, original)
+
+	def restore_upload_first(self, doctype: str, original):
+		# A schema change inside a test commits, so putting this back has to commit too.
+		# Rolling back first keeps that commit from carrying the test's own rows with it.
+		frappe.db.rollback()
+		frappe.db.set_value("DocType", doctype, "enable_upload_first_workflow", original)
+		frappe.db.commit()  # nosemgrep
+		frappe.clear_cache(doctype=doctype)
+
+	def make_committed_queue(self, marker: str, file_name: str, document_type: str = TARGET_DOCTYPE):
+		"""A row created alongside a schema change, so it needs removing explicitly."""
+		file_doc = self.make_file(marker, file_name)
+		queue_doc = self.make_queue(file_doc.file_url, document_type=document_type)
+		self.addCleanup(self.forget_committed, queue_doc.name, file_doc.file_url)
+		return queue_doc
+
+	def make_unreadable_target(self):
+		"""An upload-first DocType whose only role is one nobody holds."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		role = frappe.get_doc(
+			{"doctype": "Role", "role_name": f"Attachment Queue Test {uuid4().hex[:8]}"}
+		).insert(ignore_permissions=True)
+
+		target = new_doctype(
+			enable_upload_first_workflow=1,
+			permissions=[{"role": role.name, "read": 1}],
+		).insert(ignore_permissions=True)
+
+		self.addCleanup(self.forget_target, target.name, role.name)
+		return target.name
+
+	def forget_target(self, doctype_name: str, role_name: str):
+		"""Creating the DocType changed the schema, so both outlive the rollback."""
+		frappe.db.rollback()
+
+		for doctype, name in (("DocType", doctype_name), ("Role", role_name)):
+			if frappe.db.exists(doctype, name):
+				frappe.delete_doc(doctype, name, force=True, ignore_permissions=True)
+
+		frappe.db.commit()  # nosemgrep
+
+	def make_file(self, marker: str, file_name: str):
+		# Unique bytes and name per run, so the content-hash de-duplication in File can never
+		# hand back a record from an earlier run.
+		unique = uuid4().hex[:8]
+		content = minimal_pdf(f"{marker} {unique}")
+		return save_file(f"{unique}-{file_name}", content, None, None, is_private=1)
+
+	def make_queue(self, file_url: str, document_type: str = TARGET_DOCTYPE):
+		return frappe.get_doc(
+			{
+				"doctype": "Attachment Queue",
+				"source_file": file_url,
+				"document_type": document_type,
+			}
+		).insert()
+
+	def forget_committed(self, queue_name: str, *file_urls: str):
+		"""Remove a row a schema change made permanent."""
+		frappe.db.rollback()
+
+		if frappe.db.exists("Attachment Queue", queue_name):
+			frappe.delete_doc("Attachment Queue", queue_name, force=True, ignore_permissions=True)
+
+		for file_url in file_urls:
+			for name in frappe.get_all("File", filters={"file_url": file_url}, pluck="name"):
+				frappe.delete_doc("File", name, force=True, ignore_permissions=True)
+
+		frappe.db.commit()  # nosemgrep
+
+	def make_target_document(self):
+		target = frappe.get_doc({"doctype": TARGET_DOCTYPE, "description": f"AQ {uuid4().hex[:8]}"})
+		return target.insert(ignore_permissions=True)
+
+	def attachments_of(self, target_doc) -> list[str]:
+		return frappe.get_all(
+			"File",
+			filters={"attached_to_doctype": target_doc.doctype, "attached_to_name": target_doc.name},
+			pluck="file_url",
+		)
+
+	def test_linking_files_the_source_file_against_the_document(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("LINKED", "linked.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			target = self.make_target_document()
+
+			linked = queue_doc.link_to_document(target.name)
+			queue_doc.reload()
+
+			self.assertEqual(linked, target.name)
+			self.assertEqual(queue_doc.created_document, target.name)
+			self.assertIn(file_doc.file_url, self.attachments_of(target))
+			# The entry keeps its own copy, so its preview and cleanup still work.
+			self.assertIn(file_doc.file_url, self.attachments_of(queue_doc))
+
+	def test_linking_rejects_a_document_that_does_not_exist(self):
+		with self.set_user(TEST_USER):
+			queue_doc = self.make_queue(self.make_file("MISSING", "missing.pdf").file_url)
+
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"does not exist",
+				queue_doc.link_to_document,
+				f"no-such-{uuid4().hex[:8]}",
+			)
+			queue_doc.reload()
+			self.assertFalse(queue_doc.created_document)
+
+	def test_linking_needs_write_permission_on_the_target_doctype(self):
+		unreadable_target = self.make_unreadable_target()
+		queue_doc = self.make_committed_queue("DENIED", "denied.pdf", unreadable_target)
+		target = frappe.get_doc({"doctype": unreadable_target}).insert(ignore_permissions=True)
+
+		with self.set_user(TEST_USER):
+			self.assertRaises(
+				frappe.PermissionError,
+				queue_doc.link_to_document,
+				target.name,
+			)
+
+		queue_doc.reload()
+		self.assertFalse(queue_doc.created_document)
+
+	def test_linking_twice_to_the_same_document_is_a_no_op(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("RETRIED", "retried.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			target = self.make_target_document()
+
+			queue_doc.link_to_document(target.name)
+			again = queue_doc.link_to_document(target.name)
+
+			self.assertEqual(again, target.name)
+			# Retrying must not give the document a second copy of the same file.
+			self.assertEqual(self.attachments_of(target), [file_doc.file_url])
+
+	def test_a_linked_entry_cannot_produce_a_second_document(self):
+		with self.set_user(TEST_USER):
+			queue_doc = self.make_queue(self.make_file("CLAIMED", "claimed.pdf").file_url)
+			first = self.make_target_document()
+			second = self.make_target_document()
+
+			queue_doc.link_to_document(first.name)
+
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"has already produced",
+				queue_doc.link_to_document,
+				second.name,
+			)
+			queue_doc.reload()
+			self.assertEqual(queue_doc.created_document, first.name)
+			self.assertFalse(self.attachments_of(second))
+
+	def test_a_failed_link_leaves_the_entry_unclaimed(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("ORPHANED", "orphaned.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			target = self.make_target_document()
+
+			# The file is gone, so attaching it cannot succeed.
+			frappe.delete_doc("File", file_doc.name, force=True, ignore_permissions=True)
+
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"no longer available",
+				queue_doc.link_to_document,
+				target.name,
+			)
+			queue_doc.reload()
+			self.assertFalse(queue_doc.created_document)
+			self.assertFalse(self.attachments_of(target))
+
+	def test_a_row_is_readable_only_when_its_target_doctype_is(self):
+		unreadable_target = self.make_unreadable_target()
+		readable = self.make_committed_queue("READABLE", "readable.pdf")
+		hidden = self.make_committed_queue("HIDDEN", "hidden.pdf", unreadable_target)
+
+		with self.set_user(TEST_USER):
+			self.assertTrue(frappe.has_permission("Attachment Queue", doc=readable))
+			self.assertFalse(frappe.has_permission("Attachment Queue", doc=hidden))
+
+	def test_list_queries_hide_rows_whose_target_doctype_is_unreadable(self):
+		unreadable_target = self.make_unreadable_target()
+		readable = self.make_committed_queue("LISTED", "listed.pdf")
+		hidden = self.make_committed_queue("UNLISTED", "unlisted.pdf", unreadable_target)
+
+		with self.set_user(TEST_USER):
+			# get_list applies the permission query condition; get_all would skip it.
+			names = frappe.get_list("Attachment Queue", pluck="name")
+
+		self.assertIn(readable.name, names)
+		self.assertNotIn(hidden.name, names)
+
+	def test_a_doctype_without_the_workflow_enabled_is_rejected(self):
+		# The target is checked before the file is, so this needs no uploaded file.
+		with self.set_user(TEST_USER):
+			queue_doc = frappe.get_doc(
+				{
+					"doctype": "Attachment Queue",
+					"source_file": "/private/files/never-queued.pdf",
+					"document_type": DISABLED_DOCTYPE,
+				}
+			)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"does not allow document creation",
+				queue_doc.insert,
+			)
+
+	def make_writable_target(self, user: str, **kwargs):
+		"""An upload-first DocType the given user can write to, through a role only they hold."""
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		role = frappe.get_doc(
+			{"doctype": "Role", "role_name": f"Attachment Queue Test {uuid4().hex[:8]}"}
+		).insert(ignore_permissions=True)
+
+		target = new_doctype(
+			enable_upload_first_workflow=1,
+			permissions=[{"role": role.name, "read": 1, "write": 1, "create": 1}],
+			**kwargs,
+		).insert(ignore_permissions=True)
+
+		self.addCleanup(self.forget_target, target.name, role.name)
+		frappe.get_doc("User", user).add_roles(role.name)
+		return target.name
+
+	def test_write_permission_on_the_target_is_enough_to_queue_and_link(self):
+		target_doctype = self.make_writable_target(PLAIN_USER)
+
+		with self.set_user(PLAIN_USER):
+			queue_doc = self.make_committed_queue("PLAIN", "plain.pdf", target_doctype)
+			target = frappe.get_doc({"doctype": target_doctype}).insert()
+
+			self.assertEqual(queue_doc.link_to_document(target.name), target.name)
+			queue_doc.reload()
+			self.assertEqual(queue_doc.created_document, target.name)
+			self.assertIn(queue_doc.source_file, self.attachments_of(target))
+
+	def test_linking_accepts_an_integer_document_name(self):
+		target_doctype = self.make_writable_target(
+			PLAIN_USER, naming_rule="Autoincrement", autoname="autoincrement"
+		)
+
+		with self.set_user(PLAIN_USER):
+			queue_doc = self.make_committed_queue("NUMBERED", "numbered.pdf", target_doctype)
+			target = frappe.get_doc({"doctype": target_doctype}).insert()
+			self.assertIsInstance(target.name, int)
+
+			linked = queue_doc.link_to_document(target.name)
+
+			self.assertEqual(linked, cstr(target.name))
+			queue_doc.reload()
+			self.assertEqual(queue_doc.created_document, cstr(target.name))
+			self.assertIn(queue_doc.source_file, self.attachments_of(target))
+			# Retrying with the same integer name must read as the same claim, not a second one.
+			self.assertEqual(queue_doc.link_to_document(target.name), cstr(target.name))

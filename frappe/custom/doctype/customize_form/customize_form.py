@@ -54,6 +54,7 @@ class CustomizeForm(Document):
 		doc_type: DF.Link | None
 		editable_grid: DF.Check
 		email_append_to: DF.Check
+		enable_upload_first_workflow: DF.Check
 		fields: DF.Table[CustomizeFormField]
 		force_re_route_to_default_view: DF.Check
 		grid_page_length: DF.Int
@@ -745,6 +746,7 @@ doctype_properties = {
 	"max_attachments": "Int",
 	"make_attachments_public": "Check",
 	"protect_attached_files": "Check",
+	"enable_upload_first_workflow": "Check",
 	"track_changes": "Check",
 	"track_views": "Check",
 	"allow_auto_repeat": "Check",
