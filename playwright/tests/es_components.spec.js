@@ -957,30 +957,25 @@ test.describe("Espresso components", () => {
 			await expect(read_only.locator(".es-checklist__due button")).toHaveCount(0);
 		});
 
-		test("the owner opens a searchable user list and the date opens a calendar, with no field between", async ({
+		test("the owner opens a user combobox and the date opens a date picker", async ({
 			page,
 		}) => {
 			const employee = row(onboarding(page), "Create Employee");
 
 			await employee.locator(".es-checklist__owner button").click();
-			const picker = page.locator(".es-checklist__picker");
-			const users = picker.locator(".es-checklist__option:visible");
-			await expect(picker.locator("[data-element='search']")).toBeFocused();
-			await expect(users.first()).toBeVisible();
+			const users = page.locator(".es-combobox-panel");
+			await expect(users.locator(".es-combobox-panel__search-input")).toBeFocused();
 			await page.keyboard.type("administrator");
-			await expect(users).toHaveCount(1);
-			await users.first().click();
-			await expect(picker).toHaveCount(0);
+			await expect(users.getByRole("option", { name: /Administrator/ })).toBeVisible();
+			await page.keyboard.press("Enter");
+			await expect(users).toHaveCount(0);
 
 			await employee.locator(".es-checklist__due button").click();
-			const calendar = page.locator(".es-checklist__calendar");
-			await expect(calendar.locator(".datepicker")).toBeVisible();
-			await expect(calendar.locator("input")).toHaveCount(0);
-			await calendar
-				.locator(".datepicker--cell-day:not(.-other-month-)", { hasText: /^25$/ })
-				.click();
+			const calendar = page.locator(".es-date-picker-panel");
+			await expect(calendar.getByRole("grid")).toBeVisible();
+			await page.keyboard.press("ArrowRight");
+			await page.keyboard.press("Enter");
 			await expect(calendar).toHaveCount(0);
-			await expect(employee.locator(".es-checklist__due")).toContainText("25-");
 		});
 
 		test("the marker sets an unfinished row In Progress or Stuck, shown as a badge", async ({

@@ -355,87 +355,41 @@ frappe.ui.Checklist = class Checklist {
 		return trigger;
 	}
 
-	// The list view's searchable dropdown: the users Assign To offers, filtered by
-	// frappe.utils.setup_search as the user types.
+	// The users Assign To offers, searched on the server as the user types.
 	attach_user_picker(trigger, item) {
-		const assign = (user) => {
-			popover.close();
-			this.save_field(item, "assignee", user, this.opts.on_assign);
-		};
-		const popover = new frappe.ui.Popover({
+		const assign = (user) => this.save_field(item, "assignee", user, this.opts.on_assign);
+		new frappe.ui.Combobox({
 			trigger,
 			align: "end",
-			css_class: "es-checklist__picker",
-			content: () => {
-				const picker = document.createElement("div");
-				picker.innerHTML = `
-					<input type="text" data-element="search" class="form-control es-checklist__search">
-					<div class="es-checklist__options"></div>`;
-				picker.querySelector("input").placeholder = __("Search");
-				return picker;
-			},
-			on_open: () =>
-				this.get_users().then((users) => {
-					const $picker = $(popover.panel);
-					$picker
-						.find(".es-checklist__options")
-						.empty()
-						.append(this.make_user_options(users, item, assign));
-					frappe.utils.setup_search(
-						$picker,
-						".es-checklist__option:not([data-unassign])",
-						".es-checklist__option-label",
-						"data-name"
-					);
-				}),
-		});
-	}
-
-	get_users() {
-		this.users ??= frappe.db.get_link_options("User", "", {
-			user_type: "System User",
-			enabled: 1,
-		});
-		return this.users;
-	}
-
-	make_user_options(users, item, assign) {
-		const rows = users.map(({ value, description }) => {
-			const name = description || value;
-			const row = this.make_option(name, description ? value : "", () => assign(value));
-			row.querySelector(".es-checklist__option-label").setAttribute("data-name", value);
-			row.prepend(
+			value: item.assignee || null,
+			search_placeholder: __("Search users"),
+			empty_text: __("No users found"),
+			item_prefix: (option) =>
 				frappe.ui.avatar({
-					label: name,
-					image: frappe.user_info(value).image,
+					label: option.label,
+					image: frappe.user_info(option.value).image,
 					size: "sm",
 					theme: "auto",
-				})[0]
-			);
-			row.toggleAttribute("data-selected", value === item.assignee);
-			return row;
+				})[0],
+			options: (txt) =>
+				frappe.db
+					.get_link_options("User", txt, { user_type: "System User", enabled: 1 })
+					.then((users) => [
+						...users.map(({ value, description }) => ({
+							value,
+							label: description || value,
+							description: description ? value : "",
+						})),
+						{
+							type: "custom",
+							label: __("Unassign"),
+							icon: "user-x",
+							condition: () => Boolean(item.assignee),
+							onclick: () => assign(null),
+						},
+					]),
+			on_change: (user) => user && assign(user),
 		});
-		if (item.assignee) {
-			const unassign = this.make_option(__("Unassign"), "", () => assign(null));
-			unassign.prepend($(frappe.utils.icon("user-x", "sm", "", "", "", true))[0]);
-			unassign.setAttribute("data-unassign", "");
-			rows.push(unassign);
-		}
-		return rows;
-	}
-
-	make_option(label, description, onclick) {
-		const row = document.createElement("button");
-		row.type = "button";
-		row.className = "es-checklist__option";
-		row.innerHTML = `<span class="es-checklist__option-text">
-			<span class="es-checklist__option-label"></span>
-			<span class="es-checklist__option-description"></span>
-		</span>`;
-		row.querySelector(".es-checklist__option-label").textContent = label;
-		row.querySelector(".es-checklist__option-description").textContent = description;
-		row.addEventListener("click", onclick);
-		return row;
 	}
 
 	make_due(item) {
@@ -473,39 +427,16 @@ frappe.ui.Checklist = class Checklist {
 		return control;
 	}
 
-	// The calendar alone in a popover: picking a day saves it, Clear removes it.
 	attach_date_picker(trigger, item) {
-		const popover = new frappe.ui.Popover({
+		new frappe.ui.DatePicker({
 			trigger,
 			align: "end",
-			css_class: "es-checklist__calendar",
-			content: () => {
-				const calendar = document.createElement("div");
-				const today = frappe.datetime.str_to_obj(frappe.datetime.get_today());
-				const lang = frappe.boot.user?.language;
-				const due = item.due_date && frappe.datetime.str_to_obj(item.due_date);
-				let ready = false;
-				const picker = $(calendar)
-					.datepicker({
-						language: $.fn.datepicker.language[lang] ? lang : "en",
-						firstDay: frappe.datetime.get_first_day_of_the_week_index(),
-						todayButton: today,
-						clearButton: Boolean(due),
-						startDate: due || today,
-						onSelect: (_, date) => {
-							if (!ready) return;
-							const value = date ? frappe.datetime.obj_to_str(date) : null;
-							popover.close();
-							this.save_field(item, "due_date", value, this.opts.on_due_date_change);
-						},
-					})
-					.data("datepicker");
-				if (due) picker.selectDate(due);
-				ready = true;
-				$(calendar).find('[data-action="today"]').text(__("Today"));
-				$(calendar).find('[data-action="clear"]').text(__("Clear"));
-				return calendar;
-			},
+			value: item.due_date || "",
+			actions: item.due_date
+				? [{ label: __("Clear"), onclick: (picker) => picker.clear() }]
+				: [],
+			on_change: (date) =>
+				this.save_field(item, "due_date", date || null, this.opts.on_due_date_change),
 		});
 	}
 
