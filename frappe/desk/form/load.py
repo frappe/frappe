@@ -17,7 +17,7 @@ from frappe.desk.form.document_follow import is_document_followed
 from frappe.desk.link_title import send_link_titles
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
-from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
+from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission, is_system_user
 from frappe.utils.data import cstr
 
 
@@ -570,6 +570,9 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 	return link_titles
 
 
+MAX_VIEWER_USERS = 100
+
+
 def update_user_info(docinfo, doc=None):
 	users = set()
 
@@ -595,8 +598,12 @@ def update_user_info(docinfo, doc=None):
 
 @frappe.whitelist()
 def get_user_info_for_viewers(users: str | list):
-	user_info = {}
-	for user in frappe.parse_json(users):
-		frappe.utils.add_user_info(user, user_info)
+	if not is_system_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
 
+	users = frappe.parse_json(users)[:MAX_VIEWER_USERS]
+	system_users = frappe.get_all("User", {"name": ("in", users), "user_type": "System User"}, pluck="name")
+
+	user_info = {}
+	frappe.utils.add_user_info(system_users, user_info)
 	return user_info
