@@ -372,7 +372,12 @@ def handle_exception(e):
 		# usually.
 		frappe.session.user = "Guest"
 
-	if respond_as_json:
+	if getattr(frappe.local, "mcp_request", None):
+		from frappe.mcp.transport import error_response
+
+		response = error_response(e)
+
+	elif respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)

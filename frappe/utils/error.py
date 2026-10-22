@@ -18,13 +18,6 @@ from frappe.monitor import add_data_to_monitor
 if TYPE_CHECKING:
 	from frappe.core.doctype.error_log.error_log import ErrorLog
 
-EXCLUDE_EXCEPTIONS = (
-	frappe.AuthenticationError,
-	frappe.CSRFTokenError,  # CSRF covers OAuth too
-	frappe.SecurityException,
-	frappe.InReadOnlyMode,
-)
-
 LDAP_BASE_EXCEPTION = "LDAPException"
 
 
@@ -169,7 +162,7 @@ def get_error_metadata() -> str:
 
 
 def log_error_snapshot(exception: Exception):
-	if isinstance(exception, EXCLUDE_EXCEPTIONS) or _is_ldap_exception(exception):
+	if getattr(exception, "skip_error_log", False) or _is_ldap_exception(exception):
 		return
 
 	logger = frappe.logger(with_more_info=True)
