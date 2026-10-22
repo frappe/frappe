@@ -219,7 +219,10 @@ class File(Document):
 
 		# must run before handle_is_private_changed, which legitimately rewrites file_url
 		file_url_changed = False
-		if not self.is_new() and (self.has_value_changed("file_url") or self.has_value_changed("file_name")):
+		# file_name only locates the file when there is no file_url
+		if not self.is_new() and (
+			self.has_value_changed("file_url") or (not self.file_url and self.has_value_changed("file_name"))
+		):
 			self.set_real_file_url()
 			file_url_changed = self.has_value_changed("file_url")
 			if file_url_changed:
