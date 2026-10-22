@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/FileUploaderProps",
+  "definitions": {
+    "FileUploaderProps": {
+      "type": "object",
+      "properties": {
+        "fileTypes": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            }
+          ]
+        },
+        "private": {
+          "type": "boolean"
+        },
+        "folder": {
+          "type": "string"
+        },
+        "doctype": {
+          "type": "string"
+        },
+        "docname": {
+          "type": "string"
+        },
+        "fieldname": {
+          "type": "string"
+        },
+        "uploadEndpoint": {
+          "type": "string"
+        },
+        "optimize": {
+          "type": "boolean"
+        },
+        "validateFile": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

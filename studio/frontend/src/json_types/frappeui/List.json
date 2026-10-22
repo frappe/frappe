@@ -1,0 +1,86 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ListProps": {
+      "type": "object",
+      "properties": {
+        "columns": {
+          "anyOf": [
+            {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            {
+              "type": "object",
+              "properties": {
+                "base": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "sm": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "md": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "lg": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                },
+                "xl": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              },
+              "required": [
+                "base"
+              ],
+              "additionalProperties": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    }
+                  },
+                  {
+                    "not": {}
+                  }
+                ]
+              }
+            }
+          ]
+        },
+        "divider": {
+          "type": "string",
+          "enum": [
+            "inset",
+            "full",
+            "none"
+          ]
+        },
+        "selectable": {
+          "type": "boolean"
+        },
+        "rowHeight": {
+          "type": "number"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

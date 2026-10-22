@@ -6,6 +6,10 @@
 *.swp
 *.egg-info
 dist/
+# studio editor build, exported studio app builds and the build's temp renderers
+frappe/public/studio
+frappe/public/app_builds
+.temp-app-renderers
 # build/
 frappe/docs/current
 frappe/public/dist

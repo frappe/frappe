@@ -140,7 +140,12 @@ async function execute() {
 	for (const result of results) {
 		await write_assets_json(result.metafile);
 	}
-	RUN_BUILD_COMMAND && run_build_command_for_apps(APPS);
+	if (RUN_BUILD_COMMAND) {
+		run_build_command_for_apps(APPS);
+		if (APPS.includes("frappe")) {
+			run_studio_build();
+		}
+	}
 	if (!WATCH_MODE) {
 		process.exit(0);
 	}
@@ -553,6 +558,30 @@ function run_build_command_for_apps(apps) {
 	}
 
 	process.chdir(cwd);
+}
+
+// The studio editor is a vite app inside this repo (studio/frontend/), built like an app
+// frontend; its output is part of frappe's assets, so a failure fails the build.
+function run_studio_build() {
+	let { execSync } = require("child_process");
+	let studio_path = path.resolve(__dirname, "..", "studio", "frontend");
+	let node_modules = path.resolve(studio_path, "node_modules");
+
+	if (!fs.existsSync(node_modules)) {
+		log(
+			`\nInstalling dependencies for ${chalk.bold(
+				"studio"
+			)} (because node_modules not found)`
+		);
+		execSync("yarn install --frozen-lockfile", {
+			cwd: studio_path,
+			encoding: "utf8",
+			stdio: "inherit",
+		});
+	}
+
+	log("\nRunning build command for", chalk.bold("studio"));
+	execSync("yarn build", { cwd: studio_path, encoding: "utf8", stdio: "inherit" });
 }
 
 async function notify_redis({ error, success, changed_files }) {

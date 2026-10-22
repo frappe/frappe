@@ -1,0 +1,432 @@
+# Copyright (c) 2026, Frappe Technologies Pvt Ltd and contributors
+# For license information, please see license.txt
+import json
+import os
+import re
+import subprocess
+import tempfile
+import traceback
+
+import click
+
+import frappe
+from frappe.bundler import get_node_env
+from frappe.studio.utils import get_exported_app_folders, walk_blocks
+from frappe.utils import get_files_path
+
+ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
+EDITOR_ASSETS_BASE = "/assets/frappe/studio/"
+LUCIDE_ICON_REGEX = re.compile(r"\blucide-[a-z0-9]+(?:-[a-z0-9]+)*")
+
+
+class StudioAppBuildError(RuntimeError):
+	"""Build failure carrying the full build output on `output`."""
+
+	def __init__(self, message: str, output: str):
+		super().__init__(message)
+		self.output = output
+
+
+class StudioAppBuilder:
+	def __init__(self, studio_app: str, is_standard: bool, frappe_app: str | None = None):
+		self.app_name = studio_app
+		self.is_standard = is_standard
+		self.frappe_app = frappe_app
+		self.components = set()
+		self.studio_component_blocks = {}
+		self.custom_vue_components: dict[str, str] = {}  # {ComponentName: absolute_path}
+		self.page_scripts: list[dict] = []  # [{page_name, file_path}]
+		self.router_file: str | None = None
+		self.app_folder: str | None = None
+		self.icons: set[str] = set()
+		self.tailwind_content: list[str] = []
+		self.page_sources: list[str] = []
+
+		if self.is_standard:
+			"""Build a standard (exported) studio app.
+			Output goes to: apps/{frappe_app}/{frappe_app}/public/app_builds/{app_name}/
+			Served at: /assets/{frappe_app}/app_builds/{app_name}/
+			"""
+			self.out_dir = frappe.get_app_path(self.frappe_app, "public", "app_builds", self.app_name)
+			self.base = f"/assets/{self.frappe_app}/app_builds/{self.app_name}/"
+		else:
+			"""Build a custom (DB) studio app for the current site.
+			Output goes to: sites/{sitename}/public/files/app_builds/{app_name}/
+			Served at: /files/app_builds/{app_name}/
+			"""
+			self.out_dir = os.path.abspath(get_files_path("app_builds", self.app_name))
+			self.base = f"/files/app_builds/{self.app_name}/"
+
+	def build(self):
+		if self.is_standard:
+			self.get_app_components_from_files()
+			self.get_page_scripts_from_files()
+			self.router_file = get_router_file(self.frappe_app, self.app_name)
+			self.app_folder = self.get_app_folder()
+			self.tailwind_content = get_tailwind_content(self.app_folder)
+			self._run_vite_build()
+		else:
+			self.get_app_components()
+			with self._write_page_sources() as page_sources:
+				self.tailwind_content = [page_sources.name]
+				self._run_vite_build()
+
+	def _write_page_sources(self):
+		"""DB pages aren't on disk, so write them to a file for Tailwind to scan."""
+		page_sources = tempfile.NamedTemporaryFile("w", suffix=".txt")
+		page_sources.write("\n".join(self.page_sources))
+		page_sources.flush()
+		return page_sources
+
+	def get_app_folder(self) -> str:
+		return os.path.join(get_studio_folder(self.frappe_app), self.app_name)
+
+	def get_page_scripts_from_files(self):
+		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
+		`setup()` module per page (code mode)."""
+		page_folder = os.path.join(self.get_app_folder(), "studio_page")
+		if not page_folder or not os.path.isdir(page_folder):
+			return
+
+		scripts = []
+		# each page is a folder holding <stem>.json + <stem>.ts
+		for entry in sorted(os.listdir(page_folder)):
+			page_dir = os.path.join(page_folder, entry)
+			if not os.path.isdir(page_dir):
+				continue
+			ts_path = os.path.join(page_dir, f"{entry}.ts")
+			json_path = os.path.join(page_dir, f"{entry}.json")
+			if not (os.path.exists(ts_path) and os.path.exists(json_path)):
+				continue
+			try:
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				with open(json_path) as f:
+					page_name = json.load(f).get("page_name")
+			except (OSError, json.JSONDecodeError):
+				continue
+			if page_name:
+				scripts.append({"page_name": page_name, "file_path": ts_path})
+
+		self.page_scripts = scripts
+		return scripts
+
+	def _run_vite_build(self) -> None:
+		"""Execute the yarn build-studio-app command with the given parameters."""
+		if not (self.components or self.custom_vue_components or self.page_scripts or self.router_file):
+			click.echo(f"Nothing to build for {self.app_name}, skipping build")
+			return
+
+		os.makedirs(self.out_dir, exist_ok=True)
+
+		# an argument list, never a shell string: component names come from page JSON
+		command = [
+			"yarn",
+			"build-studio-app",
+			"--app",
+			self.app_name,
+			"--components",
+			",".join(sorted(self.components)),
+			"--out-dir",
+			self.out_dir,
+			"--base",
+			self.base,
+		]
+
+		if self.custom_vue_components:
+			command += ["--custom-components", json.dumps(self.custom_vue_components)]
+
+		if self.page_scripts:
+			command += ["--page-scripts", json.dumps(self.page_scripts)]
+
+		if self.router_file:
+			command += ["--router-file", self.router_file]
+
+		if self.icons:
+			command += ["--icons", ",".join(sorted(self.icons))]
+
+		if self.app_folder:
+			command += ["--app-folder", self.app_folder]
+
+		for glob in self.tailwind_content:
+			command += ["--tailwind-content", glob]
+
+		studio_app_path = frappe.get_app_source_path("frappe", "studio", "frontend")
+		result = subprocess.run(
+			command,
+			cwd=studio_app_path,
+			env={**os.environ, **get_node_env()},
+			capture_output=True,
+			text=True,
+		)
+		if result.stdout:
+			click.echo(result.stdout)
+		if result.stderr:
+			click.echo(result.stderr, err=True)
+		if result.returncode:
+			output = ANSI_ESCAPE_REGEX.sub("", f"{result.stdout or ''}\n{result.stderr or ''}")
+			raise StudioAppBuildError(
+				f"build failed for app '{self.app_name}' (exit status {result.returncode})", output
+			)
+
+	def get_app_components(self) -> set[str]:
+		pages = frappe.get_all(
+			"Studio Page",
+			filters={"studio_app": self.app_name, "published": 1, "blocks": ("is", "set")},
+			fields=["blocks", "script"],
+		)
+		if not pages:
+			return set()
+
+		for page in pages:
+			self._add_icons(page.script)
+			self._add_page_source(page.script)
+			self._add_page_source(page.blocks)
+			blocks = page.blocks
+			if not blocks:
+				continue
+			self._add_icons(blocks if isinstance(blocks, str) else None)
+			if isinstance(blocks, str):
+				self._add_h_function_components(blocks)
+				blocks = frappe.parse_json(blocks)
+			if not blocks:
+				continue
+			root_block = blocks[0]
+			self._add_block_components(root_block)
+
+	def get_app_components_from_files(self):
+		"""Extract component names from exported JSON files on disk instead of DB records,
+		used during `bench build` when there's no DB access.
+		"""
+		app_folder = self.get_app_folder()
+		page_folder = os.path.join(app_folder, "studio_page")
+		if not os.path.exists(page_folder):
+			return self.components
+
+		self._load_studio_components_from_files(app_folder)
+
+		# each page is a folder holding <stem>.json + <stem>.ts
+		for entry in os.listdir(page_folder):
+			page_dir = os.path.join(page_folder, entry)
+			if not os.path.isdir(page_dir):
+				continue
+			page_path = os.path.join(page_dir, f"{entry}.json")
+			if not os.path.exists(page_path):
+				continue
+			try:
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				with open(page_path) as f:
+					page_text = f.read()
+				page_data = json.loads(page_text)
+				self._add_icons(page_text)
+				self._add_h_function_components(page_text)
+			except (json.JSONDecodeError, OSError) as e:
+				click.secho(f"Warning: Could not read {page_path}: {e}", fg="yellow")
+				continue
+
+			blocks = page_data.get("blocks")
+			if not blocks:
+				continue
+
+			if isinstance(blocks, str):
+				blocks = json.loads(blocks)
+
+			if isinstance(blocks, list) and blocks:
+				self._add_block_components(blocks[0])
+
+	def _add_icons(self, text: str | None) -> None:
+		self.icons.update(LUCIDE_ICON_REGEX.findall(text or ""))
+
+	def _add_h_function_components(self, text: str) -> None:
+		"""Extract component names from h(ComponentName...) function calls"""
+		pattern = r"\bh\(\s*([A-Z][a-zA-Z0-9_]*)"
+
+		matches = re.findall(pattern, text)
+		for match in matches:
+			self.components.add(match)
+
+	def _add_block_components(self, blocks) -> None:
+		for block in walk_blocks(blocks):
+			if block.get("isStudioComponent"):
+				self._add_studio_components(block)
+			elif block.get("isCustomVueComponent"):
+				self._add_custom_vue_component(block.get("componentName"))
+			elif is_vue_component(block.get("componentName")):
+				self.components.add(block.get("componentName"))
+
+	def _add_studio_components(self, block: dict):
+		if self.is_standard:
+			comp_name = block.get("componentName")
+			if comp_name and comp_name in self.studio_component_blocks:
+				self._add_block_components(self.studio_component_blocks[comp_name])
+		else:
+			component_block = frappe.db.get_value("Studio Component", block.get("componentName"), "block")
+			self._add_icons(component_block if isinstance(component_block, str) else None)
+			self._add_page_source(component_block)
+			if isinstance(component_block, str):
+				component_block = frappe.parse_json(component_block)
+			self._add_block_components(component_block)
+
+	def _add_page_source(self, source) -> None:
+		if source:
+			self.page_sources.append(source if isinstance(source, str) else json.dumps(source))
+
+	def _load_studio_components_from_files(self, app_folder: str):
+		"""Load all studio component definitions from disk for recursive component resolution."""
+		self.studio_component_blocks = {}
+		components_folder = os.path.join(app_folder, "studio_components")
+
+		if not os.path.exists(components_folder):
+			return self.studio_component_blocks
+		for file in os.listdir(components_folder):
+			if not file.endswith(".json"):
+				continue
+
+			component_file_path = os.path.join(components_folder, file)
+			try:
+				# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+				with open(component_file_path) as f:
+					component_text = f.read()
+				component = json.loads(component_text)
+				self._add_icons(component_text)
+
+				component_name = component.get("name")
+				block = component.get("block")
+
+				if component_name and block:
+					if isinstance(block, str):
+						block = json.loads(block)
+					self.studio_component_blocks[component_name] = block
+			except (json.JSONDecodeError, OSError):
+				continue
+
+	def _add_custom_vue_component(self, componentName: str):
+		if not componentName or not self.frappe_app:
+			return
+
+		app_dir = self.get_app_folder()
+		for dirpath, _dirnames, filenames in os.walk(app_dir):
+			if f"{componentName}.vue" in filenames:
+				self.custom_vue_components[componentName] = os.path.join(dirpath, f"{componentName}.vue")
+				break
+
+
+def build_standard_apps(apps: list[str] | None = None) -> None:
+	"""Scan passed apps on the bench for studio/ folders and build each exported app.
+
+	This function works without DB access — it reads component data from
+	exported JSON files on disk.
+	"""
+	failed_apps = []
+	for frappe_app in apps or frappe.get_all_apps():
+		for app_folder in get_exported_app_folders(get_studio_folder(frappe_app)):
+			studio_app = os.path.basename(app_folder)
+			click.echo(f"\nBuilding Studio App: {studio_app} (from {frappe_app})")
+
+			try:
+				StudioAppBuilder(studio_app, is_standard=True, frappe_app=frappe_app).build()
+				click.echo(click.style("✔", fg="green") + f" Built {studio_app}")
+			except Exception:
+				traceback.print_exc()
+				click.echo(click.style("✖", fg="red") + f" Build failed for {studio_app}")
+				failed_apps.append(studio_app)
+
+	if failed_apps:
+		raise RuntimeError(f"Studio app builds failed: {', '.join(failed_apps)}")
+
+
+def build_custom_apps() -> None:
+	"""Build all published custom (DB) studio apps for the current site.
+	Requires site context (DB access).
+	"""
+	custom_apps = get_published_custom_apps()
+
+	for app_name in custom_apps:
+		click.echo(f"\nBuilding Custom Studio App: {app_name}")
+		try:
+			StudioAppBuilder(app_name, is_standard=False).build()
+		except Exception as e:
+			click.secho(f"Failed to build {app_name}: {e}", fg="red")
+
+
+def get_published_custom_apps() -> list[str]:
+	StudioApp = frappe.qb.DocType("Studio App")
+	StudioPage = frappe.qb.DocType("Studio Page")
+	custom_apps = (
+		(
+			frappe.qb.from_(StudioApp)
+			.inner_join(StudioPage)
+			.on(StudioPage.studio_app == StudioApp.name)
+			.select(StudioApp.name)
+			.where(StudioApp.is_standard == 0)
+			.where(StudioPage.published == 1)
+		)
+		.distinct()
+		.run(pluck=True)
+	)
+
+	return custom_apps
+
+
+def get_studio_folder(frappe_app: str) -> str | None:
+	return frappe.get_app_source_path(frappe_app, "studio")
+
+
+def get_router_file(frappe_app: str, studio_app: str) -> str | None:
+	"""Path of the app's studio/<app>/router.ts, if it ships one."""
+	path = os.path.join(get_studio_folder(frappe_app), studio_app, "router.ts")
+	return path if os.path.exists(path) else None
+
+
+def get_tailwind_content(folder: str) -> list[str]:
+	"""Tailwind content globs for every source file in `folder`."""
+	return [
+		os.path.join(folder, "**", "*.{vue,js,ts,jsx,tsx,json}"),
+		"!" + os.path.join(folder, "**", "node_modules", "**"),
+	]
+
+
+def is_vue_component(component_name: str | None) -> bool:
+	"""Vue components are PascalCase; lowercase names are native elements (div, span, …)
+	or layout blocks (container) that need no import."""
+	return bool(component_name) and component_name[0].isupper()
+
+
+def get_editor_assets(entry: str) -> dict | None:
+	"""Script, module preloads and stylesheets vite's manifest lists for the editor entry
+	`index.html` or `renderer.html`, or None until `bench build` has built the editor."""
+	manifest_path = frappe.get_app_path("frappe", "public", "studio", ".vite", "manifest.json")
+	if not os.path.exists(manifest_path):
+		return None
+	# nosemgrep: frappe-semgrep-rules.rules.security.frappe-security-file-traversal
+	with open(manifest_path) as f:
+		manifest = json.load(f)
+	if entry not in manifest:
+		return None
+
+	preloads, stylesheets, seen = [], [], set()
+
+	def collect(key):
+		if key in seen:
+			return
+		seen.add(key)
+		chunk = manifest[key]
+		for imported in chunk.get("imports", []):
+			collect(imported)
+		if key != entry:
+			preloads.append(EDITOR_ASSETS_BASE + chunk["file"])
+		stylesheets.extend(EDITOR_ASSETS_BASE + css for css in chunk.get("css", []))
+
+	collect(entry)
+	return {
+		"script": EDITOR_ASSETS_BASE + manifest[entry]["file"],
+		"preloads": preloads,
+		"stylesheets": list(dict.fromkeys(stylesheets)),
+	}
+
+
+def after_app_build(built_apps: list[str]) -> None:
+	"""Hook called after any app is built. Builds studio apps for the built apps."""
+	if not built_apps:
+		return
+	click.secho("\nBuilding Studio Apps...", fg="cyan")
+	build_standard_apps(built_apps)
