@@ -64,7 +64,9 @@ test.describe("Form Timeline", () => {
 			/\/version\//
 		);
 
-		const box = page.locator(entry, { hasText: "changed 2 fields" }).locator(".timeline-changes");
+		const box = page
+			.locator(entry, { hasText: "changed 2 fields" })
+			.locator(".timeline-changes");
 		await expect(box).toBeVisible();
 		await expect(box).toContainText("Priority");
 		await expect(box.locator(".timeline-changes-more-toggle")).toHaveCount(0);
@@ -86,7 +88,9 @@ test.describe("Form Timeline", () => {
 		});
 		await open_form(page, "todo", todo.name);
 
-		const box = page.locator(entry, { hasText: "changed 6 fields" }).locator(".timeline-changes");
+		const box = page
+			.locator(entry, { hasText: "changed 6 fields" })
+			.locator(".timeline-changes");
 		await expect(box.locator(".timeline-change-row:visible")).toHaveCount(5);
 		const toggle = box.locator(".timeline-changes-more-toggle");
 		await expect(toggle).toHaveText("Show all changes");
@@ -198,7 +202,9 @@ test.describe("Form Timeline", () => {
 		await open_form(page, "todo", todo.name);
 
 		await open_comment_menu(page, first.name, "Edit");
-		await expect(page.locator(`${comment(first.name)} .timeline-message-card-editing`)).toBeVisible();
+		await expect(
+			page.locator(`${comment(first.name)} .timeline-message-card-editing`)
+		).toBeVisible();
 
 		await open_comment_menu(page, second.name, "Edit");
 		await expect(page.locator(".timeline-message-card-editing")).toHaveCount(1);
