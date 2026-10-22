@@ -97,6 +97,9 @@ class TestDispatch(IntegrationTestCase):
 			target_doctype="ToDo",
 			target_name="todo-x",
 		)
+		with self.assertQueryCount(0), patch("frappe.enqueue") as enqueue:
+			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")  # from the cache
+		enqueue.assert_called_once()
 
 		for doctype, method in (
 			("ToDo", "before_save"),  # not a doc event
@@ -110,6 +113,16 @@ class TestDispatch(IntegrationTestCase):
 
 		self.trigger.enabled = 0
 		self.trigger.save()
+		with patch("frappe.enqueue") as enqueue:
+			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
+		enqueue.assert_not_called()
+
+		frappe.get_doc(_trigger(self.agent.name, title="Second Triggers Test Trigger")).insert()
+		with patch("frappe.enqueue") as enqueue:
+			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
+		enqueue.assert_called_once()
+
+		frappe.db.rollback()  # neither trigger was committed
 		with patch("frappe.enqueue") as enqueue:
 			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
 		enqueue.assert_not_called()

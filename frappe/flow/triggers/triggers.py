@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 	from frappe.model.document import Document
 
 DOC_EVENTS = frozenset({"after_insert", "on_update", "on_submit", "on_cancel", "on_trash"})
+CACHE_PREFIX = "flow_doctype_triggers::"
 
 
 def dispatch(doc: Document, method: str | None = None) -> None:
@@ -99,16 +100,29 @@ def fire(
 		frappe.set_user(original_user)  # nosemgrep: frappe-setuser
 
 
+def clear_trigger_cache() -> None:
+	"""Drop the cached triggers now and again when the transaction ends."""
+
+	def forget():
+		frappe.client_cache.delete_keys(CACHE_PREFIX)
+
+	forget()
+	frappe.db.after_commit.add(forget)
+	frappe.db.after_rollback.add(forget)
+
+
 def _doctype_triggers(target_doctype: str, doc_event: str) -> list:
+	triggers = frappe.client_cache.get_value(
+		f"{CACHE_PREFIX}{target_doctype}", generator=lambda: _enabled_doctype_triggers(target_doctype)
+	)
+	return [t for t in triggers if t.doc_event == doc_event]
+
+
+def _enabled_doctype_triggers(target_doctype: str) -> list:
 	return frappe.get_all(
 		"Flow Trigger",
-		filters={
-			"event": "DocType Event",
-			"target_doctype": target_doctype,
-			"doc_event": doc_event,
-			"enabled": 1,
-		},
-		fields=["name", "condition", "run_as", "owner"],
+		filters={"event": "DocType Event", "target_doctype": target_doctype, "enabled": 1},
+		fields=["name", "doc_event", "condition", "run_as", "owner"],
 	)
 
 

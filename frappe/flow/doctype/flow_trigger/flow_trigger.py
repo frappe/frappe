@@ -5,6 +5,7 @@ from __future__ import annotations
 
 import frappe
 from frappe import _
+from frappe.flow.triggers.triggers import clear_trigger_cache
 from frappe.model.document import Document
 
 DOC_EVENTS = frozenset({"after_insert", "on_update", "on_submit", "on_cancel", "on_trash"})
@@ -38,6 +39,12 @@ class FlowTrigger(Document):
 		self._validate_condition()
 		self._validate_template()
 		self._validate_run_as()
+
+	def on_change(self):
+		clear_trigger_cache()
+
+	def on_trash(self):
+		clear_trigger_cache()
 
 	def _validate_run_as(self):
 		if self.run_as and (
