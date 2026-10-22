@@ -3,7 +3,6 @@
 
 from copy import deepcopy
 from unittest.mock import Mock, PropertyMock, patch
-from urllib.parse import quote
 
 import requests
 

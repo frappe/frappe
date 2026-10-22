@@ -288,6 +288,8 @@ class TestTemplateCompile(IntegrationTestCase):
 	def setUp(self):
 		frappe.cache.delete_keys(client_script.COMPILED_COPY)
 		client_script.compiler_keys.clear()
+		# the log database is outside the rollback, so an earlier run's row would satisfy `logged`
+		get_log_db().delete("Error Log", {"reference_doctype": "Client Script"})
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
