@@ -22,7 +22,7 @@ class TestLoad(IntegrationTestCase):
 		info = get_user_info_for_viewers(["Administrator"])
 		self.assertIn("Administrator", info)
 
-	def test_get_user_info_for_viewers_resolves_only_desk_users_for_desk_users(self):
+	def test_get_user_info_for_viewers_denies_website_users(self):
 		from frappe.core.doctype.user_type.test_user_type import create_role
 
 		create_role()
@@ -40,12 +40,10 @@ class TestLoad(IntegrationTestCase):
 		custom_user = make_user("viewer_custom@example.com", custom_type.name)
 		self.addCleanup(frappe.set_user, "Administrator")
 
-		frappe.set_user("test@example.com")
-		info = get_user_info_for_viewers(["test@example.com", website_user.name, custom_user.name])
-		self.assertEqual(set(info), {"test@example.com", custom_user.name})
-
-		frappe.set_user(custom_user.name)
-		self.assertIn("test@example.com", get_user_info_for_viewers(["test@example.com"]))
+		for desk_user in ("test@example.com", custom_user.name):
+			frappe.set_user(desk_user)
+			info = get_user_info_for_viewers([website_user.name])
+			self.assertEqual(info[website_user.name].fullname, "Viewer")
 
 		frappe.set_user(website_user.name)
 		self.assertRaises(frappe.PermissionError, get_user_info_for_viewers, ["test@example.com"])
