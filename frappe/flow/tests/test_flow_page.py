@@ -4,8 +4,6 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.flow.permissions import has_app_permission
-from frappe.flow.tests.test_ai_api import OTHER, _ensure_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.www.flow import index
@@ -42,15 +40,3 @@ class TestFlowPage(IntegrationTestCase):
 				index.get_context_for_dev()
 		with patch.dict(frappe.local.conf, {"developer_mode": 1}):
 			self.assertIn("flow_boot", index.get_context_for_dev())
-
-	def test_the_apps_screen_lists_flow_for_flow_users_only(self):
-		self.assertTrue(has_app_permission())
-		frappe.set_user(_ensure_user(OTHER))
-		self.assertTrue(has_app_permission())
-		nobody = "page-nobody@example.com"
-		if not frappe.db.exists("User", nobody):
-			frappe.get_doc(
-				{"doctype": "User", "email": nobody, "first_name": "Nobody", "send_welcome_email": 0}
-			).insert(ignore_permissions=True)
-		frappe.set_user(nobody)
-		self.assertFalse(has_app_permission())

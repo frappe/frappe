@@ -33,11 +33,6 @@ def ensure_flow_role() -> None:
 	)
 
 
-def has_app_permission() -> bool:
-	"""Whether the apps screen lists Flow: anyone who may read sessions."""
-	return frappe.has_permission("Flow Session", "read")
-
-
 def has_session_permission(doc, ptype: str, user: str) -> bool:
 	"""Allows the owner, anyone reading a chat open to everyone, and System Managers on Trigger chats."""
 	if user in (doc.owner, "Administrator"):
