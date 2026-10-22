@@ -911,3 +911,16 @@ input.list-header-checkbox {
 		max-width: 105px;
 	}
 }
+
+// The review notice reads as one row: the count on the left, its buttons on the
+// right, instead of the alert's default footer below the message.
+.attachment-queue-notice {
+	align-items: center;
+	margin-bottom: var(--margin-md);
+
+	.es-alert__footer {
+		grid-column: 3;
+		grid-row: 1;
+		align-items: center;
+	}
+}
