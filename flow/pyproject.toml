@@ -9,7 +9,7 @@ readme = "README.md"
 license = "MIT"
 dynamic = ["version"]
 dependencies = [
-    "frappe-flow==0.1.17",
+    "frappe-flow==0.1.18",
     "lancedb<1,>=0.33",
     "litellm==1.103.2",
     "onnxruntime<2,>=1.27",
