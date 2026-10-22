@@ -62,12 +62,11 @@ Examples show tool arguments, which the client sends through `tools/call`.
 
 | Tool | Purpose | Example arguments |
 | --- | --- | --- |
-| `search_doctypes` | Find DocTypes by name or module. | `{"query":"ToDo"}` |
+| `search_doctypes` | Find DocType names that contain the query string, or any of a list of them. | `{"query":["ToDo","Note"]}` |
 | `get_doctype_schema` | Inspect fields and permissions. | `{"doctype":"ToDo"}` |
 | `search_methods` | Find whitelisted methods. | `{"query":"get_count"}` |
-| `get_method_schema` | Inspect an API function's arguments. | `{"method":"frappe.client.get_count"}` |
+| `get_method_schema` | Inspect an API function's or document method's arguments. | `{"method":"frappe.client.get_count"}` |
 | `list_document_methods` | List whitelisted instance methods. | `{"doctype":"ToDo"}` |
-| `get_document_method_schema` | Inspect an instance method's arguments. | `{"doctype":"ToDo","method":"add_comment"}` |
 | `list_documents` | List matching documents with pagination. | `{"doctype":"ToDo","filters":{"status":"Open"},"fields":["name","description"],"limit":20}` |
 | `get_document` | Read one document and its permitted child rows. | `{"doctype":"ToDo","name":"TODO-00001"}` |
 | `count_documents` | Count matching documents. | `{"doctype":"ToDo","filters":{"status":"Open"}}` |
@@ -78,8 +77,10 @@ Examples show tool arguments, which the client sends through `tools/call`.
 | `call_document_method` | Call a whitelisted instance method on one document. | `{"doctype":"ToDo","name":"TODO-00001","method":"add_comment","args":{"text":"Checked"}}` |
 
 Lists default to `start: 0`, `limit: 20`, and the `name` field. Use `has_next_page` to continue paging.
+For document method schemas, pass `{"doctype":"ToDo","method":"add_comment"}` to `get_method_schema`.
 Method calls accept an `args` object. Controller module functions use their full dotted path with `call_method`.
 Submit and cancel use `call_document_method` with `doctype`, `name`, and `method`.
+A method whitelisted for GET but not POST runs as an HTTP GET runs it: it needs read permission, and its writes roll back. Every other method runs as POST.
 
 ### Permissions
 
@@ -89,12 +90,12 @@ Whitelisted RPC methods remain responsible for their own permission checks.
 
 ## Configuration and troubleshooting
 
-Open **MCP Settings** as a System Manager to set the server name for this site.
+Open **System Settings > AI Agents** as a System Manager to set the server name for this site.
 When it is empty, the name is the site's host name in lowercase, with each run of other characters changed to `_`.
 For example, `erp.example.com` becomes `erp_example_com`.
 **Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
 Clients receive instructions during initialization or server discovery.
-They give the site URL, the authenticated user, and the installed apps with their descriptions.
+They give the site URL, the authenticated user, a note that tool arguments follow REST API v2, and the installed apps.
 Use **Agent Instructions** for site-specific guidance. Frappe appends it to these instructions.
 Instructions do not change permissions.
 

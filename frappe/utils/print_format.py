@@ -253,7 +253,7 @@ def _download_multi_pdf(
 			pf_doc = _print_format_doc_or_none(format, print_doctype)
 			if not (
 				(pf_doc is None or uses_beta_renderer(pf_doc))
-				and resolve_pdf_generator(pf_doc) in ("chrome", "Typst")
+				and resolve_pdf_generator(pf_doc) in ("chrome", "PlutoPrint", "Typst")
 			):
 				return frappe.get_print(
 					print_doctype,
@@ -466,9 +466,9 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
 			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
-		rendered["header"] = header
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
+		rendered["header"] = header
 
 	if letter_head.footer:
 		footer = render_template(letter_head.footer, {"doc": context_doc})
@@ -569,14 +569,6 @@ def print_by_server(
 			file_path = f.name
 			output.write(f)
 		conn.printFile(print_settings.printer_name, file_path, name, {})
-	except OSError as e:
-		if (
-			"ContentNotFoundError" in e.message
-			or "ContentOperationNotPermittedError" in e.message
-			or "UnknownContentError" in e.message
-			or "RemoteHostClosedError" in e.message
-		):
-			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
 	finally:

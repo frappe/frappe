@@ -133,8 +133,7 @@ class Browser:
 			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
 		)
 		self.body_page.set_device_metrics(width=int(printable), height=1000)
-		result = self.body_page.evaluate("document.documentElement.scrollWidth")
-		content_width = (result or {}).get("result", {}).get("value") or 0
+		content_width = self.body_page.get_content_width()
 		if content_width > printable:
 			options["scale"] = max(0.1, printable / content_width)
 

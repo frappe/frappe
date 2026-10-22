@@ -126,8 +126,7 @@ def search_widget(
 			)
 		else:
 			frappe.logger().error(
-				"setting ignore_user_permissions=True requires reference_doctype and link_fieldname to be set. "
-				f"Got reference_doctype={reference_doctype}, link_fieldname={link_fieldname}. Ignoring flag."
+				"setting ignore_user_permissions=True requires reference_doctype and link_fieldname to be set. Ignoring flag."
 			)
 			ignore_user_permissions = False
 

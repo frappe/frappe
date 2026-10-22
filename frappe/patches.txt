@@ -1,4 +1,5 @@
 [pre_model_sync]
+frappe.patches.v16_0.rename_slack_webhook_url
 frappe.patches.v16_0.enable_setup_complete #01-07-2025 re-run-patch
 frappe.patches.v15_0.remove_implicit_primary_key
 frappe.patches.v12_0.remove_deprecated_fields_from_doctype #3
@@ -197,8 +198,10 @@ frappe.patches.v14_0.modify_value_column_size_for_singles
 frappe.integrations.doctype.oauth_bearer_token.patches.clear_old_tokens
 frappe.patches.v16_0.hash_oauth_bearer_tokens
 execute:frappe.db.truncate("Desktop Icon")
+frappe.patches.v16_0.merge_studio_into_frappe
 
 [post_model_sync]
+frappe.patches.v16_0.migrate_slack_notifications
 execute:frappe.get_doc('Role', 'Guest').save() # remove desk access
 frappe.core.doctype.role.patches.v13_set_default_desk_properties
 frappe.patches.v14_0.update_workspace2 # 06.06.2023
@@ -290,6 +293,26 @@ frappe.patches.v17_0.switch_wkhtmltopdf_to_chrome
 frappe.patches.v17_0.backfill_file_blobs
 frappe.patches.v17_0.keep_existing_sites_on_classic_charts
 frappe.patches.v17_0.delete_otp_qr_code_images
+frappe.patches.v17_0.encrypt_indexing_refresh_token
+frappe.studio.doctype.studio_page.patches.replace_frappeUI_namespace_references
+frappe.studio.doctype.studio_app.patches.rename_studio_app_based_on_app_title
+frappe.studio.doctype.studio_page.patches.migrate_studio_resource_to_studio_page_resource_child_table
+frappe.studio.doctype.studio_page.patches.move_text_block_style_props_to_classes
+frappe.studio.doctype.studio_page.patches.set_auto_to_true_in_studio_page_resources
+frappe.studio.doctype.studio_page.patches.update_old_global_utility_usage
+frappe.studio.doctype.studio_page.patches.migrate_dialog_to_frappe_ui_v1
+frappe.studio.doctype.studio_page.patches.migrate_watchers_to_page_script
+frappe.studio.doctype.studio_page.patches.migrate_espresso_color_tokens_v2
+frappe.studio.doctype.studio_page.patches.migrate_text_size_tokens_v2
+frappe.studio.doctype.studio_page.patches.migrate_event_actions_to_script
+frappe.studio.doctype.studio_ai_session.patches.migrate_ai_session_messages_to_doctype
+frappe.studio.doctype.studio_page.patches.migrate_slot_content_to_blocks
+frappe.studio.doctype.studio_page.patches.fold_raw_styles_into_base_styles
+frappe.studio.doctype.studio_page.patches.migrate_blocks_to_frappe_ui_v1
+frappe.studio.doctype.studio_page.patches.migrate_charts_to_frappe_ui_charts
+frappe.studio.doctype.studio_page.patches.migrate_get_icon_calls
+execute:frappe.db.set_single_value("System Settings", "enable_mcp", 1)
 
 
 [post_fixture_sync]
+frappe.patches.v17_0.add_core_pdf_generators_to_option_overrides

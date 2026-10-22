@@ -733,6 +733,15 @@ class TestNotification(IntegrationTestCase):
 			# Clean up
 			todo.delete(ignore_permissions=True)
 
+	def test_attach_print_uses_document_language(self):
+		user = frappe.get_doc("User", "test@example.com")
+		user.language = "de"
+
+		with self.change_settings("Print Settings", allow_print_for_draft=1):
+			attachment = frappe.new_doc("Notification").get_print(user)
+
+		self.assertEqual(attachment["lang"], "de")
+
 	@classmethod
 	def tearDownClass(cls):
 		frappe.delete_doc_if_exists("Notification", "ToDo Status Update")

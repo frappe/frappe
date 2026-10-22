@@ -1,0 +1,12 @@
+{
+	"semi": false,
+	"tabWidth": 2,
+	"useTabs": true,
+	"bracketSpacing": true,
+	"htmlWhitespaceSensitivity": "ignore",
+	"singleAttributePerLine": false,
+	"printWidth": 110,
+	"arrowParens": "always",
+	"trailingComma": "all",
+	"tailwindConfig": "./tailwind.config.js"
+}

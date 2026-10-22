@@ -2,9 +2,13 @@
 # MIT License. See LICENSE
 import base64
 import binascii
+import hashlib
 import hmac
+from contextlib import suppress
+from typing import NoReturn
 from urllib.parse import quote, unquote, urlencode, urlparse
 
+import redis
 from werkzeug.wrappers import Response
 
 import frappe
@@ -22,7 +26,7 @@ from frappe.twofactor import (
 	get_cached_user_pass,
 	should_run_2fa,
 )
-from frappe.utils import cint, date_diff, datetime, get_datetime, today
+from frappe.utils import cint, date_diff, datetime, today
 from frappe.utils.password import check_password, get_decrypted_password
 from frappe.website.utils import get_home_page
 
@@ -30,6 +34,7 @@ SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
 assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
 MAX_PASSWORD_SIZE = 512
+API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
 
 
 class HTTPRequest:
@@ -281,6 +286,9 @@ class LoginManager:
 
 		ip_tracker = get_login_attempt_tracker(frappe.local.request_ip)
 		if not user:
+			# track unknown names like real users so both reach the same lock at the same attempt
+			unknown_tracker = get_login_attempt_tracker(_raw_user_name, unknown_user=True)
+			unknown_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=_raw_user_name)
 
@@ -510,11 +518,12 @@ def validate_ip_address(user):
 	)
 
 
-def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
+def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True, unknown_user: bool = False):
 	"""Get login attempt tracker instance.
 
 	:param user_name: Name of the loggedin user
 	:param raise_locked_exception: If set, raises an exception incase of user not allowed to login
+	:param unknown_user: Key is a login name that matches no user, track it with expiring cache keys
 	"""
 	sys_settings = frappe.get_doc("System Settings")
 	track_login_attempts = sys_settings.allow_consecutive_login_attempts > 0
@@ -524,16 +533,25 @@ def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
 		tracker_kwargs["lock_interval"] = sys_settings.allow_login_after_fail
 		tracker_kwargs["max_consecutive_login_attempts"] = sys_settings.allow_consecutive_login_attempts
 
-	tracker = LoginAttemptTracker(key, **tracker_kwargs)
+	tracker_class = UnknownUserLoginAttemptTracker if unknown_user else LoginAttemptTracker
+	tracker = tracker_class(key, **tracker_kwargs)
 
 	if raise_locked_exception and track_login_attempts and not tracker.is_user_allowed():
 		frappe.throw(
-			_("Your account has been locked and will resume after {0} seconds").format(
+			_("Too many failed login attempts. Please try again after {0} seconds").format(
 				sys_settings.allow_login_after_fail
 			),
 			frappe.SecurityException,
 		)
 	return tracker
+
+
+# One script so a counter can never exist without an expiry, which would lock a user out for good.
+COUNT_FAILURE_SCRIPT = """
+local count = redis.call('INCR', KEYS[1])
+if count == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+return count
+"""
 
 
 class LoginAttemptTracker:
@@ -565,74 +583,33 @@ class LoginAttemptTracker:
 		self.max_failed_logins = max_consecutive_login_attempts
 
 	@property
-	def login_failed_count(self):
-		return frappe.cache.hget("login_failed_count", self.key)
-
-	@login_failed_count.setter
-	def login_failed_count(self, count):
-		frappe.cache.hset("login_failed_count", self.key, count)
-
-	@login_failed_count.deleter
-	def login_failed_count(self):
-		frappe.cache.hdel("login_failed_count", self.key)
+	def cache_key(self):
+		return frappe.cache.make_key(f"login_failed:{self.key}")
 
 	@property
-	def login_failed_time(self):
-		"""First failed login attempt time within lock interval.
-
-		For every user we track only First failed login attempt time within lock interval of time.
-		"""
-		return frappe.cache.hget("login_failed_time", self.key)
-
-	@login_failed_time.setter
-	def login_failed_time(self, timestamp):
-		frappe.cache.hset("login_failed_time", self.key, timestamp)
-
-	@login_failed_time.deleter
-	def login_failed_time(self):
-		frappe.cache.hdel("login_failed_time", self.key)
+	def login_failed_count(self) -> int:
+		"""Consecutive failures since the first one within the current lock interval."""
+		with suppress(redis.exceptions.ConnectionError):
+			return cint(frappe.cache.get(self.cache_key))  # nosemgrep: frappe-cache-breaks-multitenancy
+		return 0
 
 	def add_failure_attempt(self):
-		"""Log user failure attempts into the system.
-
-		Increase the failure count if new failure is with in current lock interval time period, if not reset the login failure count.
-		"""
-		login_failed_time = self.login_failed_time
-		login_failed_count = self.login_failed_count  # Consecutive login failure count
-		current_time = get_datetime()
-
-		if not (login_failed_time and login_failed_count):
-			login_failed_time, login_failed_count = current_time, 0
-
-		if login_failed_time + self.lock_interval > current_time:
-			login_failed_count += 1
-		else:
-			login_failed_time, login_failed_count = current_time, 1
-
-		self.login_failed_time = login_failed_time
-		self.login_failed_count = login_failed_count
+		"""Count a failure. The key expires `lock_interval` after the first failure, starting a new count."""
+		window = max(1, int(self.lock_interval.total_seconds()))
+		with suppress(redis.exceptions.ConnectionError):
+			frappe.cache.eval(COUNT_FAILURE_SCRIPT, 1, self.cache_key, window)
 
 	def add_success_attempt(self):
 		"""Reset login failures."""
-		del self.login_failed_count
-		del self.login_failed_time
+		with suppress(redis.exceptions.ConnectionError):
+			frappe.cache.delete(self.cache_key)
 
 	def is_user_allowed(self) -> bool:
 		"""Is user allowed to login
 
 		User is not allowed to login if login failures are greater than threshold within in lock interval from first login failure.
 		"""
-		login_failed_time = self.login_failed_time
-		login_failed_count = self.login_failed_count or 0
-		current_time = get_datetime()
-
-		if (
-			login_failed_time
-			and login_failed_time + self.lock_interval > current_time
-			and login_failed_count > self.max_failed_logins
-		):
-			return False
-		return True
+		return self.login_failed_count <= self.max_failed_logins
 
 
 def validate_auth():
@@ -765,7 +742,7 @@ def validate_auth_via_api_keys(authorization_header):
 def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=None):
 	"""frappe_authorization_source to provide api key and secret for a doctype apart from User"""
 	if not api_key or not api_secret:
-		raise frappe.AuthenticationError
+		reject_api_key_auth("missing API key or secret")
 
 	doctype = frappe_authorization_source or "User"
 	try:
@@ -776,7 +753,7 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 		raise frappe.AuthenticationError
 
 	if not docname:
-		raise frappe.AuthenticationError
+		reject_api_key_auth("invalid API key")
 	form_dict = frappe.local.form_dict
 	doc_secret = get_decrypted_password(doctype, docname, fieldname="api_secret", raise_exception=False)
 	if doc_secret and hmac.compare_digest(api_secret.encode(), doc_secret.encode()):
@@ -788,7 +765,24 @@ def validate_api_key_secret(api_key, api_secret, frappe_authorization_source=Non
 			frappe.set_user(user)
 		frappe.local.form_dict = form_dict
 	else:
-		raise frappe.AuthenticationError
+		reject_api_key_auth("invalid API secret", user=docname if doctype == "User" else None)
+
+
+def reject_api_key_auth(reason: str, user: str | None = None) -> NoReturn:
+	"""Log a failed login and reject the request.
+
+	At most one entry is written per user (or for unknown keys) each interval, so failed
+	requests cannot grow the Activity Log without bound. Neither the key nor the secret that
+	was sent is recorded.
+	"""
+	throttle_key = f"api_auth_failure_logged:{user or 'unknown'}"
+	if not frappe.cache.get_value(throttle_key, expires=True):
+		frappe.cache.set_value(throttle_key, 1, expires_in_sec=API_AUTH_FAILURE_LOG_INTERVAL)
+		add_authentication_log(
+			f"API key authentication failed: {reason}", user or _("Unknown User"), status="Failed"
+		)
+
+	raise frappe.AuthenticationError
 
 
 def validate_auth_via_hooks():
@@ -799,3 +793,19 @@ def validate_auth_via_hooks():
 def check_request_ip():
 	if frappe.local.request_ip is None:
 		frappe.local.request_ip = "127.0.0.1"
+
+
+class UnknownUserLoginAttemptTracker(LoginAttemptTracker):
+	"""Track failed logins for names that match no user.
+
+	The name is hashed and the counter expires with the lock interval, so arbitrary names cannot
+	grow the cache without bound.
+	"""
+
+	def __init__(self, key: str, *args, **kwargs):
+		digest = hashlib.sha256(key.strip().lower().encode()).hexdigest()
+		super().__init__(digest, *args, **kwargs)
+
+	@property
+	def cache_key(self):
+		return frappe.cache.make_key(f"login_failed_unknown:{self.key}")

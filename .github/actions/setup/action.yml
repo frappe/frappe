@@ -69,7 +69,9 @@ runs:
     with:
       node-version: ${{ inputs.node-version }}
       cache: yarn
-      cache-dependency-path: frappe-src/yarn.lock
+      cache-dependency-path: |
+        frappe-src/yarn.lock
+        frappe-src/studio/frontend/yarn.lock
 
   - uses: astral-sh/setup-uv@v6
     with:

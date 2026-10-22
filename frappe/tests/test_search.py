@@ -360,6 +360,28 @@ class TestSearch(IntegrationTestCase):
 		result = search(txt="(txt)")
 		self.assertEqual(result, [])
 
+	def test_search_link_ignore_user_permissions_without_field_logs_one_line(self):
+		import io
+		import logging
+
+		logger = frappe.logger()
+		stream = io.StringIO()
+		handler = logging.StreamHandler(stream)
+		handler.setFormatter(logger.handlers[0].formatter)
+		logger.addHandler(handler)
+		self.addCleanup(logger.removeHandler, handler)
+
+		injected = "Other\n2026-07-28 12:00:00,000 INFO frappe forged entry"
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.local.form_dict = frappe._dict(reference_doctype=injected, ignore_user_permissions=1)
+		search_link("User", "a", reference_doctype=injected, ignore_user_permissions=True)
+
+		lines = stream.getvalue().splitlines()
+		self.assertFalse([line for line in lines if line.startswith("2026-07-28")])
+		self.assertTrue(any("Ignoring flag." in line for line in lines))
+		self.assertTrue(any(line.startswith("Form Dict:") and "Other\\n2026-07-28" in line for line in lines))
+
 	def test_search_link_with_ignore_user_permissions(self):
 		"""Test that ignore_user_permissions works correctly in search_link
 		when the link field has ignore_user_permissions enabled"""

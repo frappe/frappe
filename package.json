@@ -57,7 +57,7 @@
     "jquery": "3.7.1",
     "js-sha256": "^0.9.0",
     "jsbarcode": "^3.11.0",
-    "launch-editor": "^2.14.1",
+    "launch-editor": "^2.14.2",
     "less": "^4.2.0",
     "localforage": "^1.10.0",
     "md5": "^2.3.0",
