@@ -282,7 +282,7 @@ a.es-button:focus {
 
 .es-button.btn-danger {
     --bt-bg: var(--surface-red-5);
-    --bt-fg: var(--ink-white);
+    --bt-fg: var(--ink-base);
     --bt-hover-bg: var(--surface-red-6);
     --bt-active-bg: var(--surface-red-7);
 }
