@@ -12,9 +12,12 @@ import frappe.sessions
 import frappe.utils
 from frappe import _, is_whitelisted, ping
 <<<<<<< HEAD
+<<<<<<< HEAD
 from frappe.core.doctype.file.utils import find_file_by_url
 =======
 from frappe.core.api.file import get_max_file_size
+=======
+>>>>>>> 68901db (refactor: reuse check_declared_size for chunked upload limit)
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import find_file_by_url, get_safe_file_name
 >>>>>>> 21e3a29 (fix: enforce max file size on chunked uploads)
@@ -242,10 +245,10 @@ def upload_file():
 			current_chunk = 0
 			total_chunks = 1
 
-		max_file_size = get_max_file_size()
+		from frappe.storage.upload import check_declared_size
+
 		total_file_size = int(frappe.form_dict.total_file_size or 0)
-		if total_file_size > max_file_size:
-			throw_max_file_size_error(max_file_size)
+		check_declared_size(total_file_size)
 
 		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
 		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
@@ -253,9 +256,11 @@ def upload_file():
 			f.write(file.stream.read())
 
 		uploaded_size = temp_path.stat().st_size
-		if uploaded_size > max_file_size:
+		try:
+			check_declared_size(uploaded_size)
+		except MaxFileSizeReachedError:
 			temp_path.unlink()
-			throw_max_file_size_error(max_file_size)
+			raise
 
 		if not uploaded_size >= total_file_size or current_chunk != total_chunks - 1:
 			return
@@ -300,13 +305,6 @@ def upload_file():
 				"content": content,
 			}
 		).save(ignore_permissions=ignore_permissions)
-
-
-def throw_max_file_size_error(max_file_size: int):
-	frappe.throw(
-		_("File size exceeded the maximum allowed size of {0} MB").format(max_file_size / 1048576),
-		exc=MaxFileSizeReachedError,
-	)
 
 
 def check_write_permission(doctype: str | None = None, name: str | None = None):
