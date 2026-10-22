@@ -2,6 +2,7 @@
 # MIT License. See LICENSE
 import base64
 import binascii
+import hashlib
 import hmac
 from typing import NoReturn
 from urllib.parse import quote, unquote, urlencode, urlparse
@@ -283,6 +284,9 @@ class LoginManager:
 
 		ip_tracker = get_login_attempt_tracker(frappe.local.request_ip)
 		if not user:
+			# track unknown names like real users so both reach the same lock at the same attempt
+			unknown_tracker = get_login_attempt_tracker(_raw_user_name, unknown_user=True)
+			unknown_tracker.add_failure_attempt()
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=_raw_user_name)
 
@@ -512,11 +516,12 @@ def validate_ip_address(user):
 	)
 
 
-def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
+def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True, unknown_user: bool = False):
 	"""Get login attempt tracker instance.
 
 	:param user_name: Name of the loggedin user
 	:param raise_locked_exception: If set, raises an exception incase of user not allowed to login
+	:param unknown_user: Key is a login name that matches no user, track it with expiring cache keys
 	"""
 	sys_settings = frappe.get_doc("System Settings")
 	track_login_attempts = sys_settings.allow_consecutive_login_attempts > 0
@@ -526,11 +531,12 @@ def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True):
 		tracker_kwargs["lock_interval"] = sys_settings.allow_login_after_fail
 		tracker_kwargs["max_consecutive_login_attempts"] = sys_settings.allow_consecutive_login_attempts
 
-	tracker = LoginAttemptTracker(key, **tracker_kwargs)
+	tracker_class = UnknownUserLoginAttemptTracker if unknown_user else LoginAttemptTracker
+	tracker = tracker_class(key, **tracker_kwargs)
 
 	if raise_locked_exception and track_login_attempts and not tracker.is_user_allowed():
 		frappe.throw(
-			_("Your account has been locked and will resume after {0} seconds").format(
+			_("Too many failed login attempts. Please try again after {0} seconds").format(
 				sys_settings.allow_login_after_fail
 			),
 			frappe.SecurityException,
@@ -818,3 +824,50 @@ def validate_auth_via_hooks():
 def check_request_ip():
 	if frappe.local.request_ip is None:
 		frappe.local.request_ip = "127.0.0.1"
+
+
+class UnknownUserLoginAttemptTracker(LoginAttemptTracker):
+	"""Track failed logins for names that match no user.
+
+	Keys expire after the lock interval so arbitrary names cannot grow the cache without bound.
+	"""
+
+	def __init__(self, key: str, *args, **kwargs):
+		digest = hashlib.sha256(key.strip().lower().encode()).hexdigest()
+		super().__init__(digest, *args, **kwargs)
+
+	def _get(self, name):
+		return frappe.cache.get_value(f"{name}_unknown:{self.key}", use_local_cache=False)
+
+	def _set(self, name, value):
+		expires_in_sec = int(self.lock_interval.total_seconds())
+		if expires_in_sec < 1:
+			return
+		frappe.cache.set_value(f"{name}_unknown:{self.key}", value, expires_in_sec=expires_in_sec)
+
+	def _delete(self, name):
+		frappe.cache.delete_value(f"{name}_unknown:{self.key}")
+
+	@property
+	def login_failed_count(self):
+		return self._get("login_failed_count")
+
+	@login_failed_count.setter
+	def login_failed_count(self, count):
+		self._set("login_failed_count", count)
+
+	@login_failed_count.deleter
+	def login_failed_count(self):
+		self._delete("login_failed_count")
+
+	@property
+	def login_failed_time(self):
+		return self._get("login_failed_time")
+
+	@login_failed_time.setter
+	def login_failed_time(self, timestamp):
+		self._set("login_failed_time", timestamp)
+
+	@login_failed_time.deleter
+	def login_failed_time(self):
+		self._delete("login_failed_time")
