@@ -276,7 +276,7 @@ class DesktopPage {
 				order: 40,
 			},
 			// A full-document link: desk v2 is a separate document, not a v1 route.
-			...(cint(frappe.boot.desk_v2)
+			...(cint(frappe.boot.sysdefaults.enable_desk_v2)
 				? [{ icon: "arrow-left-right", label: "Desk v2", url: "/apps", order: 45 }]
 				: []),
 		];

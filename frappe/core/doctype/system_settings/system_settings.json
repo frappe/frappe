@@ -93,6 +93,7 @@
   "allowed_doctypes_for_guest_uploads",
   "app_tab",
   "default_app",
+  "enable_desk_v2",
   "updates_tab",
   "system_updates_section",
   "disable_system_update_notification",
@@ -851,12 +852,19 @@
    "fieldname": "use_classic_charts",
    "fieldtype": "Check",
    "label": "Use Classic Charts"
+  },
+  {
+   "default": "0",
+   "description": "Serve desk v2 at /apps and link documents there. The bench must also set desk_v2 to build it.",
+   "fieldname": "enable_desk_v2",
+   "fieldtype": "Check",
+   "label": "Enable Desk v2"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-19 22:36:28.316692",
+ "modified": "2026-10-22 13:23:33.999730",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

@@ -109,10 +109,8 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, acti
 
 
 def switch_desk_v2(test, on: bool):
-	"""Set the site's `desk_v2` switch for one test; a real site sets it in config."""
-	switch = patch.dict(frappe.conf, {"desk_v2": int(on)})
-	switch.start()
-	test.addCleanup(switch.stop)
+	"""Set the site's System Settings switch for one test."""
+	test.enterContext(test.change_settings("System Settings", enable_desk_v2=int(on)))
 
 
 def strip_html_comments(html: bytes) -> bytes:
@@ -1047,8 +1045,8 @@ class TestModularAddresses(IntegrationTestCase):
 		with hooks_declaring("app_modular", {"frappe": True}):
 			self.assertTrue(frappe_entry()["modular"])
 
-	@patch.dict(frappe.conf, {"desk_v2": 1})
 	def test_the_canonical_address_is_the_owners_prefix(self):
+		switch_desk_v2(self, on=True)
 		"""A link built outside a session picks the owner's prefix and never redirects."""
 		from frappe.utils import get_url_to_form
 
@@ -1441,7 +1439,7 @@ class TestShellAssetSwap(IntegrationTestCase):
 
 
 class TestDeskV2Switch(IntegrationTestCase):
-	"""With `desk_v2` off, a site behaves as it did before desk v2: `/apps` goes to `/desk`."""
+	"""With desk v2 off, a site behaves as it did before desk v2: `/apps` goes to `/desk`."""
 
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -1460,8 +1458,9 @@ class TestDeskV2Switch(IntegrationTestCase):
 	def test_no_prefix_is_served(self):
 		self.assertNotIsInstance(PathResolver("apps/desk").resolve()[1], ShellPage)
 
-	def test_the_build_skips_the_shell(self):
+	def test_the_build_skips_the_shell_unless_the_bench_sets_desk_v2(self):
 		with (
+			patch.dict(frappe.conf, {"desk_v2": 0}),
 			patch("frappe.shell.manifest.write") as write_manifest,
 			patch("frappe.commands.popen") as popen,
 		):

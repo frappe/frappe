@@ -2144,8 +2144,8 @@ def get_absolute_url(doctype: str, name: str) -> str:
 
 
 def is_desk_v2_enabled() -> bool:
-	"""True where `desk_v2` is set in site or common config; `bench build` reads only the common one."""
-	return bool(cint(frappe.conf.get("desk_v2")))
+	"""True where System Settings turns desk v2 on for this site."""
+	return bool(cint(frappe.get_system_settings("enable_desk_v2")))
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:

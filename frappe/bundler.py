@@ -127,9 +127,9 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	"""Assemble the manifest and run the framework's one vite build; `--app X` is accepted and ignored."""
 	from frappe.shell.manifest import cost_report
 	from frappe.shell.manifest import write as write_manifest
-	from frappe.utils.data import is_desk_v2_enabled
 
-	if not is_desk_v2_enabled():
+	# A build has no site, so it cannot read the System Settings switch.
+	if not frappe.utils.cint(frappe.conf.get("desk_v2")):
 		return
 
 	frontend_path = os.path.join(frappe_app_path, "frontend")
