@@ -16,6 +16,75 @@ class TestLoad(IntegrationTestCase):
 		info = get_user_info_for_viewers(["Administrator"])
 		self.assertIn("Administrator", info)
 
+<<<<<<< HEAD
+=======
+	def test_get_user_info_for_viewers_only_resolves_system_users_for_system_users(self):
+		website_user = frappe.get_doc(
+			doctype="User", email="viewer_portal@example.com", first_name="Portal", user_type="Website User"
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		frappe.set_user("test@example.com")
+		info = get_user_info_for_viewers(["test@example.com", website_user.name])
+		self.assertEqual(list(info), ["test@example.com"])
+
+		frappe.set_user(website_user.name)
+		self.assertRaises(frappe.PermissionError, get_user_info_for_viewers, ["test@example.com"])
+
+	def test_add_comments_hides_attachment_activity_for_restricted_fields(self):
+		doctype = new_doctype(
+			fields=[
+				{"label": "Open Attach", "fieldname": "open_attach", "fieldtype": "Attach", "permlevel": 0},
+				{
+					"label": "Restricted Attach",
+					"fieldname": "restricted_attach",
+					"fieldtype": "Attach",
+					"permlevel": 1,
+				},
+			],
+			permissions=[
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1, "permlevel": 0},
+				{"role": "System Manager", "read": 1, "write": 1, "permlevel": 1},
+				{"role": "All", "read": 1, "write": 1, "create": 1, "permlevel": 0},
+			],
+		).insert(ignore_if_duplicate=True)
+
+		doc = frappe.get_doc(doctype=doctype.name).insert(ignore_permissions=True)
+
+		def attach(fieldname):
+			return frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": f"{fieldname}.txt",
+					"content": fieldname,
+					"attached_to_doctype": doctype.name,
+					"attached_to_name": doc.name,
+					"attached_to_field": fieldname,
+				}
+			).insert(ignore_permissions=True)
+
+		open_file = attach("open_attach")
+		restricted_file = attach("restricted_attach")
+
+		def attachment_log_names():
+			out = frappe._dict()
+			add_comments(frappe.get_doc(doctype.name, doc.name), out)
+			return {c.content for c in out.attachment_logs}
+
+		frappe.set_user("test4@example.com")
+		try:
+			restricted_logs = attachment_log_names()
+		finally:
+			frappe.set_user("Administrator")
+
+		self.assertTrue(any(open_file.file_name in c for c in restricted_logs))
+		self.assertFalse(any(restricted_file.file_name in c for c in restricted_logs))
+
+		full_logs = attachment_log_names()
+		self.assertTrue(any(open_file.file_name in c for c in full_logs))
+		self.assertTrue(any(restricted_file.file_name in c for c in full_logs))
+
+>>>>>>> 03767e3 (fix: limit viewer user info to system users)
 	def test_get_filtered_attachments(self):
 		todo = frappe.get_doc({"doctype": "ToDo", "description": "Attachment filter test"}).insert()
 		other_todo = frappe.get_doc(
