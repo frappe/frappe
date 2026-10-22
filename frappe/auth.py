@@ -544,6 +544,14 @@ def get_login_attempt_tracker(key: str, raise_locked_exception: bool = True, unk
 	return tracker
 
 
+# One script so a counter can never exist without an expiry, which would lock a user out for good.
+COUNT_FAILURE_SCRIPT = """
+local count = redis.call('INCR', KEYS[1])
+if count == 1 then redis.call('EXPIRE', KEYS[1], ARGV[1]) end
+return count
+"""
+
+
 class LoginAttemptTracker:
 	"""Track login attemts of a user.
 
@@ -583,10 +591,8 @@ class LoginAttemptTracker:
 
 	def add_failure_attempt(self):
 		"""Count a failure. The key expires `lock_interval` after the first failure, starting a new count."""
-		key = self.cache_key
 		window = max(1, int(self.lock_interval.total_seconds()))
-		frappe.cache.set(key, 0, ex=window, nx=True)  # nosemgrep: frappe-cache-breaks-multitenancy
-		frappe.cache.incrby(key, 1)
+		frappe.cache.eval(COUNT_FAILURE_SCRIPT, 1, self.cache_key, window)
 
 	def add_success_attempt(self):
 		"""Reset login failures."""

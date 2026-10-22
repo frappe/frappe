@@ -3,6 +3,7 @@
 import datetime
 import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import Mock, patch
 
 import requests
@@ -605,6 +606,15 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())
 
+	def test_failure_counter_always_expires(self):
+		tracker = LoginAttemptTracker("expiring-tester", max_consecutive_login_attempts=3, lock_interval=60)
+		tracker.add_success_attempt()
+		self.addCleanup(tracker.add_success_attempt)
+
+		for _ in range(5):
+			tracker.add_failure_attempt()
+			self.assertGreater(frappe.cache.ttl(tracker.cache_key), 0)
+
 	def test_concurrent_failures_are_all_counted(self):
 		self.assert_concurrent_failures_are_counted(LoginAttemptTracker)
 
@@ -622,22 +632,19 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		self.addCleanup(tracker.add_success_attempt)
 
 		attempts = 20
-		barrier = threading.Barrier(attempts)
+		barrier = threading.Barrier(attempts, timeout=10)
 
-		def fail_login():
-			frappe.init(site, sites_path=sites_path)
-			frappe.connect()
-			barrier.wait()
+		def fail_login(_):
 			try:
+				frappe.init(site, sites_path=sites_path)
+				frappe.connect()
+				barrier.wait()
 				new_tracker().add_failure_attempt()
 			finally:
 				frappe.destroy()
 
-		threads = [threading.Thread(target=fail_login) for _ in range(attempts)]
-		for thread in threads:
-			thread.start()
-		for thread in threads:
-			thread.join()
+		with ThreadPoolExecutor(max_workers=attempts) as pool:
+			list(pool.map(fail_login, range(attempts)))
 
 		self.assertEqual(tracker.login_failed_count, attempts)
 		self.assertFalse(tracker.is_user_allowed())
