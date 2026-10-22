@@ -98,8 +98,10 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 
 	setup_charts_area() {
 		this.$charts_wrapper = $(`<div class="charts-wrapper hidden">
-			<div class="text-right"><button class="btn btn-default btn-xs btn-chart-configure"
-				style="margin-right: 15px; margin-top: 15px">Configure</button></div>
+			<div class="charts-head">
+				<div class="charts-title">${__("{0} Chart", [__(this.doctype)])}</div>
+				${frappe.ui.button.html({ label: __("Configure"), css_class: "btn-chart-configure" })}
+			</div>
 			<div class="charts-inner-wrapper"></div>
 		</div>`);
 		this.$result.append(this.$charts_wrapper);
@@ -173,7 +175,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			add_totals_row: this.report_doc.json.add_totals_row,
 			page_length: this.report_doc.json.page_length,
 			column_widths: this.report_doc.json.column_widths,
-			group_by: this.report_doc.json.group_by,
+			group_by:
+				this.report_doc.json.group_by &&
+				this.group_by_control.normalize_settings(this.report_doc.json.group_by),
 			chart_args: this.report_doc.json.chart_args,
 		};
 
@@ -415,9 +419,9 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	setup_link_side_panel() {
 		this.$datatable_wrapper
 			.off("click.side-panel")
-			.on("click.side-panel", "a[data-doctype][data-name]", (e) =>
-				frappe.ui.handle_link_cell_click(e, this.datatable)
-			);
+			.on("click.side-panel", "a[data-doctype][data-name]", (e) => {
+				frappe.ui.handle_link_cell_click(e, this.datatable);
+			});
 	}
 
 	setup_inline_filter_observer() {
@@ -551,6 +555,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					fieldtype: "Select",
 					fieldname: "x_axis",
 					options: x_fields,
+					reqd: 1,
 					default: defaults.x_axis,
 				},
 				{
@@ -558,6 +563,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 					fieldtype: "MultiSelect",
 					fieldname: "y_axes",
 					options: y_fields,
+					reqd: 1,
 					description: __("Showing only Numeric fields from Report"),
 					default: defaults.y_axes ? defaults.y_axes.join(", ") : null,
 					include_default: true,
@@ -624,15 +630,17 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.last_chart_type = args.chart_type;
 
 		const get_df = (field) => this.columns_map[field].docfield;
+		const { fieldtype, options } = get_df(args.y_axes[0]);
 
 		this.$charts_wrapper.removeClass("hidden");
 
-		this.chart = new frappe.Chart(this.$charts_wrapper.find(".charts-inner-wrapper")[0], {
-			title: __("{0} Chart", [this.doctype]),
+		this.chart?.destroy();
+		const config = frappe.ui.chart.with_classic_palette({
 			data: data,
 			type: args.chart_type,
+			fieldtype,
+			options,
 			truncateLegends: 1,
-			colors: ["#70E078", "light-blue", "orange", "red"],
 			axisOptions: {
 				shortenYAxisNumbers: 1,
 				numberFormatter: frappe.utils.format_chart_axis_number,
@@ -646,6 +654,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 				},
 			},
 		});
+		this.chart = frappe.ui.chart(this.$charts_wrapper.find(".charts-inner-wrapper"), config);
 	}
 
 	refresh_charts() {
@@ -659,15 +668,21 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		this.$charts_wrapper.removeClass("hidden");
 		const { x_axis, y_axes, chart_type } = this.chart_args;
 		this.build_chart_args(x_axis, y_axes, chart_type);
-		this.chart.update(this.chart_args);
+		const { labels, datasets } = this.chart_args;
+		this.chart.update({ labels, datasets });
 	}
 
 	chart_axes_valid(chart_args) {
 		const { x_axis, y_axes } = chart_args;
-		return this.columns_map[x_axis] && y_axes.every((y_axis) => this.columns_map[y_axis]);
+		return (
+			this.columns_map[x_axis] &&
+			y_axes.length &&
+			y_axes.every((y_axis) => this.columns_map[y_axis])
+		);
 	}
 
 	reset_chart_state() {
+		this.chart?.destroy();
 		this.chart = null;
 		this.chart_args = null;
 		this.$charts_wrapper.addClass("hidden");
@@ -1182,10 +1197,11 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 	build_column(c) {
 		let [fieldname, doctype] = c;
 		let docfield = frappe.meta.docfield_map[doctype || this.doctype][fieldname];
+		const is_aggregate_column = /^_aggregate_column(_[0-9]+)?$/.test(fieldname);
 
 		// group by column
-		if (fieldname === "_aggregate_column") {
-			docfield = this.group_by_control.get_group_by_docfield();
+		if (is_aggregate_column) {
+			docfield = this.group_by_control.get_group_by_docfield(fieldname);
 		}
 
 		// child table index column
@@ -1241,7 +1257,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let id = fieldname;
 
 		// child table column
-		if (doctype !== this.doctype && fieldname !== "_aggregate_column") {
+		if (doctype !== this.doctype && !is_aggregate_column) {
 			id = `${doctype}:${fieldname}`;
 		}
 
@@ -1274,6 +1290,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			editable,
 			align,
 			compareValue: compareFn,
+			sortValue: frappe.report_utils.get_link_sort_value(docfield),
 			format: (value, row, column, data) => {
 				let doc = null;
 				if (Array.isArray(row)) {
@@ -1590,6 +1607,16 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 			}, 0);
 
 			row_totals[col.id] = totals;
+
+			// the total of group minimums / maximums is their minimum / maximum, not their sum
+			const aggregate_function = this.group_by_control.get_aggregate_function(col.id);
+			if (["min", "max"].includes(aggregate_function) && totals !== undefined) {
+				// groups without values (e.g. no child rows) have a null minimum / maximum
+				const values = data.map((d) => d[col.id]).filter((value) => value != null);
+				row_totals[col.id] = values.length
+					? Math[aggregate_function](...values.map((value) => flt(value)))
+					: undefined;
+			}
 		});
 
 		return row_totals;
@@ -1628,17 +1655,28 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 						rows_in_order.push(total_data);
 					}
 
-					frappe.ui.get_print_settings(false, (print_settings) => {
-						var title = this.report_name || __(this.doctype);
-						frappe.render_grid({
-							title: title,
-							subtitle: this.get_filters_html_for_print(),
-							print_settings: print_settings,
-							columns: this.columns,
-							data: rows_in_order,
-							can_use_smaller_font: 1,
-						});
-					});
+					frappe.ui.get_print_settings(
+						false,
+						(print_settings) => {
+							var title = this.report_name || __(this.doctype);
+							frappe.render_grid({
+								title: title,
+								subtitle: print_settings.include_filters
+									? this.get_filters_html_for_print()
+									: null,
+								print_settings: print_settings,
+								columns: this.columns,
+								data: rows_in_order,
+								can_use_smaller_font: 1,
+							});
+						},
+						null,
+						null,
+						false,
+						null,
+						null,
+						true
+					);
 				},
 			},
 			{
@@ -1912,10 +1950,7 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		let search_params = super.get_search_params();
 		let config = this.group_by_control.get_settings();
 		if (config) {
-			search_params.append(
-				"_group_by",
-				JSON.stringify([config.group_by, config.aggregate_on, config.aggregate_function])
-			);
+			search_params.append("_group_by", JSON.stringify(config));
 		}
 		return search_params;
 	}
@@ -1924,11 +1959,14 @@ frappe.views.ReportView = class ReportView extends frappe.views.ListView {
 		if (frappe.route_options?._group_by) {
 			try {
 				let config = JSON.parse(frappe.route_options._group_by);
-				this.group_by_control.apply_settings({
-					group_by: config[0],
-					aggregate_on: config[1],
-					aggregate_function: config[2],
-				});
+				if (Array.isArray(config)) {
+					config = {
+						group_by: config[0],
+						aggregate_on: config[1],
+						aggregate_function: config[2],
+					};
+				}
+				this.group_by_control.apply_settings(config);
 				delete frappe.route_options["_group_by"];
 			} catch (e) {
 				console.warn("Failed to parse group by from URL", e);

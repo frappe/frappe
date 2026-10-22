@@ -1,3 +1,5 @@
+from urllib.parse import quote
+
 import frappe
 from frappe.utils.caching import site_cache
 
@@ -24,7 +26,7 @@ class MetaTags:
 			self.tags["title"] = self.context.get("name")
 
 		if self.tags.get("image"):
-			self.tags["image"] = frappe.utils.get_url(self.tags["image"])
+			self.tags["image"] = frappe.utils.get_url(quote(self.tags["image"], safe=":/?#[]@!$&'()*+,;=%~"))
 
 		self.tags["language"] = frappe.local.lang or "en"
 

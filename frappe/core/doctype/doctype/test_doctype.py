@@ -25,9 +25,12 @@ from frappe.core.doctype.doctype.doctype import (
 )
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
+from frappe.database.schema import DBTable
 from frappe.desk.form.load import getdoc
 from frappe.model.delete_doc import delete_controllers
+from frappe.model.meta import Meta
 from frappe.model.sync import remove_orphan_doctypes
+from frappe.modules.import_file import import_doc
 from frappe.shell.address_clash import AddressClashError
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
@@ -53,6 +56,21 @@ class TestDocType(IntegrationTestCase):
 
 			doc = new_doctype(name).insert()
 			doc.delete()
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_validate_name_fits_postgres_identifier(self):
+		self.assertRaises(frappe.NameError, new_doctype("Test " + "x" * 56).insert)
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_import_rejects_name_longer_than_postgres_identifier(self):
+		doctype = new_doctype("Test " + "x" * 56).as_dict()
+		with patch.dict(frappe.local.flags):
+			self.assertRaises(frappe.NameError, import_doc, doctype)
+
+	@skipIf(frappe.conf and frappe.conf.db_type != "postgres", "Only for Postgres")
+	def test_table_name_check_skips_virtual_doctypes(self):
+		doctype = new_doctype("Test " + "x" * 56, is_virtual=1)
+		DBTable(doctype.name, Meta(doctype)).validate()
 
 	@skipIf(
 		frappe.conf and frappe.conf.db_type == "sqlite",
@@ -388,6 +406,23 @@ class TestDocType(IntegrationTestCase):
 		field_1.search_index = 1
 
 		self.assertRaises(CannotIndexedError, doc.insert)
+
+	def test_no_value_field_resets_column_properties(self):
+		doc = new_doctype("Test No Value Field Reset")
+		field_1 = doc.append("fields", {})
+		field_1.fieldname = "some_fieldname_1"
+		field_1.fieldtype = "HTML"
+		field_1.unique = 1
+		field_1.search_index = 1
+		field_1.not_nullable = 1
+
+		doc.insert()  # would raise NonUniqueError before the reset
+
+		self.assertFalse(field_1.unique)
+		self.assertFalse(field_1.search_index)
+		self.assertFalse(field_1.not_nullable)
+
+		doc.delete()
 
 	def test_cancel_link_doctype(self):
 		import json

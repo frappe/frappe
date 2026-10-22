@@ -323,6 +323,10 @@
     [
       "frappe/shell/navigation.py",
       "frappe/shell/navigation_filter.py"
+    ],
+    [
+      "ui/src/components/DataImport",
+      "ui/src/components/DataImport/steps"
     ]
   ],
   "knownUnlisted": {
@@ -840,12 +844,23 @@
       "FieldConditionValue"
     ],
     "ui/src/components/DataImport/types.ts": [
-      "DataImportProps",
-      "DataImportSocket",
       "DataImportStatus",
-      "DataImports",
       "DocField",
-      "DocType"
+      "DocType",
+      "DataImportActivity",
+      "DataImportDoc",
+      "DataImportLog",
+      "DataImportLogFilter",
+      "DataImportPreview",
+      "DataImportProgress",
+      "DataImportSkippedRow",
+      "DataImportStatusSummary",
+      "DataImportType",
+      "DataImportValueMapping",
+      "ImportProviderSchema",
+      "DataImportTreeNode",
+      "DataImportColumn",
+      "DataImportWarning"
     ],
     "ui/src/components/Fields/DateField.vue": [
       "DateField"
@@ -1138,6 +1153,70 @@
     ],
     "ui/src/utils/sharedState.ts": [
       "memoizedState"
+    ],
+    "ui/src/components/ActivityTimeline/utils.ts": [
+      "dateFormat"
+    ],
+    "ui/src/components/DataImport/dataImport.ts": [
+      "cint",
+      "isImportComplete",
+      "parseJson",
+      "pickerColumns",
+      "tableFields",
+      "PickerField",
+      "isImportFinished",
+      "methodUrl",
+      "postDownload",
+      "escapeHtml",
+      "importWarnings",
+      "previewRowCells",
+      "skipRows"
+    ],
+    "ui/src/components/DataImport/DataImportWizard.vue": [
+      "DataImportWizard"
+    ],
+    "ui/src/components/DataImport/importProgress.ts": [
+      "etaMessage",
+      "hasProgressCounts",
+      "notStartedMessage",
+      "progressPercent"
+    ],
+    "ui/src/components/DataImport/steps/ConfigStep.vue": [
+      "ConfigStep"
+    ],
+    "ui/src/components/DataImport/steps/FixIssuesStep.vue": [
+      "FixIssuesStep"
+    ],
+    "ui/src/components/DataImport/steps/ImportStep.vue": [
+      "ImportStep"
+    ],
+    "ui/src/components/DataImport/steps/PreviewStep.vue": [
+      "PreviewStep"
+    ],
+    "ui/src/components/DataImport/translate.ts": [
+      "t"
+    ],
+    "ui/src/components/DataImport/useDataImport.ts": [
+      "useDataImport",
+      "StopImportResponse",
+      "UseDataImport",
+      "emptyProgress"
+    ],
+    "ui/src/components/FileUpload/useUploader.ts": [
+      "isAllowedType"
+    ],
+    "ui/src/components/GroupBy/types.ts": [
+      "GroupBySettings"
+    ],
+    "ui/src/experimental/List/headerSort.ts": [
+      "directionFor",
+      "nextSort"
+    ],
+    "ui/src/experimental/List/useColumnResize.ts": [
+      "useColumnResize"
+    ],
+    "ui/src/utils/translate.ts": [
+      "translate"
     ]
   },
   "flowEntries": [

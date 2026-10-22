@@ -148,11 +148,11 @@ export function useNotifications(
 
   function reload() {
     void list.reload();
+    void refreshUnreadCount();
   }
 
   function applyFilters() {
     reload();
-    void refreshUnreadCount();
   }
 
   /** set arbitrary server-side filters; the app scope (if any) is always preserved */
@@ -183,15 +183,11 @@ export function useNotifications(
     );
   }
 
-  const onRealtime = () => {
-    reload();
-    void refreshUnreadCount();
-  };
   onMounted(() => {
-    options.socket?.on("notification", onRealtime);
+    options.socket?.on("notification", reload);
   });
   onBeforeUnmount(() => {
-    options.socket?.off?.("notification", onRealtime);
+    options.socket?.off?.("notification", reload);
   });
 
   // Returned as a `reactive` object so the panel can spread it with `v-bind="controller"`:

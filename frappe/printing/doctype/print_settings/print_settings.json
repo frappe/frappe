@@ -54,6 +54,14 @@
    "label": "Repeat Header and Footer"
   },
   {
+   "default": "PlutoPrint",
+   "description": "PlutoPrint is light and fast. Formats that use JavaScript or CSS grid print with chrome.",
+   "fieldname": "pdf_generator",
+   "fieldtype": "Select",
+   "label": "PDF Generator",
+   "options": "chrome\nPlutoPrint"
+  },
+  {
    "fieldname": "column_break_4",
    "fieldtype": "Column Break"
   },
@@ -176,14 +184,6 @@
    "label": "PDF Page Width (in mm)"
   },
   {
-   "default": "wkhtmltopdf",
-   "description": "wkhtmltopdf cannot render multi-column layouts and is no longer maintained. Use chrome unless you depend on a wkhtmltopdf-specific print format.",
-   "fieldname": "pdf_generator",
-   "fieldtype": "Select",
-   "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome"
-  },
-  {
    "default": "100",
    "description": "Maximum number of documents that can be combined into a single bulk PDF export.",
    "fieldname": "max_bulk_print_docs",
@@ -204,7 +204,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-18 18:08:56.317806",
+ "modified": "2026-10-18 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",

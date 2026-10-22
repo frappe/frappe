@@ -57,15 +57,16 @@ export function createLiveUpdates(
     } else if (action === "delete") {
       feed.data.value = current.filter((a) => a.key !== activity.key);
     } else {
+      // an edit keeps its author, and the payload's may not resolve to an avatar
       feed.data.value = current.map((a) =>
-        a.key === activity.key ? activity : a
+        a.key === activity.key ? { ...activity, author: a.author } : a
       );
     }
   };
 
   const onDocUpdate = (payload: unknown) => {
-    const { doctype: dt, name } = payload as { doctype: string; name: string };
-    if (dt !== doctype || name !== docname) return;
+    const updated = payload as { doctype: string; name: string };
+    if (updated.doctype !== doctype || updated.name !== docname) return;
     refresh();
   };
 

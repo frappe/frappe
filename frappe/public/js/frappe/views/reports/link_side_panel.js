@@ -27,6 +27,7 @@ frappe.ui.handle_link_cell_click = function (e, datatable) {
 	// report view keeps a docfield on the column, query reports set fieldtype on it directly
 	const fieldtype = column?.docfield?.fieldtype ?? column?.fieldtype;
 	if (!["Link", "Dynamic Link"].includes(fieldtype)) return false;
+	if (column?.docfield?.fieldname === "name") return false;
 
 	e.preventDefault();
 	// stopPropagation keeps router.js's delegated <a> handler on <body> from routing away.

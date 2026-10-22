@@ -1,6 +1,6 @@
 {
  "actions": [],
- "creation": "2026-08-10 00:00:00.000000",
+ "creation": "2026-08-10 00:00:00",
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
@@ -56,7 +56,7 @@
    "fieldname": "run",
    "fieldtype": "Link",
    "label": "Run",
-   "options": "Background Task",
+   "options": "Automation Run",
    "reqd": 1
   },
   {
@@ -80,7 +80,7 @@
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-08-10 00:00:00.000000",
+ "modified": "2026-09-29 14:17:49.936189",
  "modified_by": "Administrator",
  "module": "Automation",
  "name": "Automation Event Subscription",
@@ -92,6 +92,7 @@
    "role": "System Manager"
   }
  ],
+ "row_format": "Dynamic",
  "sort_field": "creation",
  "sort_order": "DESC",
  "states": []

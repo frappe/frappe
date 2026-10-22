@@ -6,6 +6,7 @@ import json
 import frappe
 from frappe import _
 from frappe.custom.doctype.property_setter.property_setter import delete_property_setter
+from frappe.database import savepoint
 from frappe.model import core_doctypes_list
 from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
@@ -364,14 +365,11 @@ def create_custom_fields(custom_fields: dict, ignore_validate=False, update=True
 				for df in fields:
 					field = existing_custom_fields.get((doctype, df["fieldname"]))
 					if not field:
-						try:
+						with savepoint(catch=frappe.exceptions.DuplicateEntryError):
 							df = df.copy()
 							df["owner"] = "Administrator"
 							custom_field = create_custom_field(doctype, df, ignore_validate=ignore_validate)
 							process_field_update(custom_field)
-
-						except frappe.exceptions.DuplicateEntryError:
-							pass
 
 					elif update:
 						custom_field = frappe.get_doc({"doctype": "Custom Field", **field})

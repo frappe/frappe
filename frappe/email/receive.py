@@ -22,6 +22,7 @@ import frappe
 from frappe import _, safe_decode, safe_encode
 from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import get_random_filename
+from frappe.database import savepoint
 from frappe.email.oauth import Oauth
 from frappe.utils import (
 	add_days,
@@ -954,12 +955,12 @@ class InboundMail(Email):
 
 		parent.flags.ignore_mandatory = True
 
-		try:
+		with savepoint(catch=frappe.DuplicateEntryError):
 			parent.insert(ignore_permissions=True)
 			return parent.name
-		except frappe.DuplicateEntryError:
-			# try and find matching parent
-			return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
+
+		# try and find matching parent
+		return frappe.db.get_value(doctype, {email_fields.sender_field: self.from_email})
 
 	@staticmethod
 	def get_doc(doctype, docname, ignore_error=False):

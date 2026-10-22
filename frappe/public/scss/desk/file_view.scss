@@ -13,6 +13,7 @@
 
 	.list-paging-area {
 		padding: var(--padding-md) var(--padding-sm);
+		padding-bottom: calc(var(--padding-md) + env(safe-area-inset-bottom, 0px));
 	}
 
 	.file-grid-view {

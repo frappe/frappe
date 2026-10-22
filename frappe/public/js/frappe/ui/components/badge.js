@@ -72,9 +72,9 @@ function badge_html(opts = {}) {
 				true
 		  )}</span>`
 		: "";
-	return `<span class="${classes}"${attr_str}>${icon}${escape(
-		opts.label || ""
-	)}${icon_right}</span>`;
+	// in its own span so it can truncate; bare text in the flex badge clips at both ends
+	const label = opts.label ? `<span class="es-badge__label">${escape(opts.label)}</span>` : "";
+	return `<span class="${classes}"${attr_str}>${icon}${label}${icon_right}</span>`;
 }
 
 /**

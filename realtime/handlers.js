@@ -31,8 +31,11 @@ function frappe_handlers(socket) {
 	});
 
 	socket.on("doctype_subscribe", function (doctype) {
+		const room = doctype_room(doctype);
+		if (socket.rooms.has(room)) return;
+
 		socket.has_permission(doctype).then(() => {
-			socket.join(doctype_room(doctype));
+			socket.join(room);
 		});
 	});
 
@@ -56,8 +59,11 @@ function frappe_handlers(socket) {
 	});
 
 	socket.on("doc_subscribe", function (doctype, docname) {
+		const room = doc_room(doctype, docname);
+		if (socket.rooms.has(room)) return;
+
 		socket.has_permission(doctype, docname).then(() => {
-			socket.join(doc_room(doctype, docname));
+			socket.join(room);
 		});
 	});
 
@@ -67,8 +73,13 @@ function frappe_handlers(socket) {
 	});
 
 	socket.on("doc_open", function (doctype, docname) {
+		const room = open_doc_room(doctype, docname);
+		if (socket.rooms.has(room)) {
+			notify_subscribed_doc_users({ socket, doctype, docname });
+			return;
+		}
+
 		socket.has_permission(doctype, docname).then(() => {
-			let room = open_doc_room(doctype, docname);
 			socket.join(room);
 			if (!socket.subscribed_documents) socket.subscribed_documents = [];
 			socket.subscribed_documents.push([doctype, docname]);
@@ -88,9 +99,9 @@ function frappe_handlers(socket) {
 		socket.leave(room);
 
 		if (socket.subscribed_documents) {
-			socket.subscribed_documents = socket.subscribed_documents.filter(([dt, dn]) => {
-				!(dt == doctype && dn == docname);
-			});
+			socket.subscribed_documents = socket.subscribed_documents.filter(
+				([dt, dn]) => !(dt == doctype && dn == docname)
+			);
 		}
 
 		notify_subscribed_doc_users({

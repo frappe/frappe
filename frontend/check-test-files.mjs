@@ -58,7 +58,9 @@ function testFilesOnDisk(root) {
     "{frontend,ui}/**/*.{test,spec}.{js,jsx,ts,tsx,mjs,cjs,mts,cts}",
     {
       cwd: root,
-      exclude: (path) => path.includes("node_modules"),
+      // ui/vite/island holds develop's `node --test` scripts, which vitest does not run
+      exclude: (path) =>
+        path.includes("node_modules") || path.endsWith("ui/vite/island"),
     }
   )
     .map((file) => join(root, file))

@@ -3,7 +3,7 @@
  "creation": "2026-08-12 12:00:00",
  "docstatus": 0,
  "doctype": "Sidebar",
- "header_icon": "hammer",
+ "header_icon": "code-app-duotone",
  "idx": 0,
  "items": [
   {
@@ -616,7 +616,7 @@
    "type": "Link"
   }
  ],
- "modified": "2026-09-19 20:27:26.165601",
+ "modified": "2026-09-30 21:16:00.000000",
  "modified_by": "Administrator",
  "module": "Build",
  "name": "Build",

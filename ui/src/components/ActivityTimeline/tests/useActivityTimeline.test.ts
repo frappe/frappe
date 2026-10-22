@@ -186,6 +186,16 @@ describe("useActivityTimeline paging", () => {
     expect(api.getDocumentPart).toHaveBeenCalledTimes(1);
   });
 
+  it("offers no older page before the first page answers", async () => {
+    const name = freshDoc();
+    let answer!: (page: Page) => void;
+    serve({ newest: new Promise<Page>((resolve) => (answer = resolve)) });
+    const timeline = useActivityTimeline("ToDo", name);
+    expect(timeline.paginate.hasNextPage).toBe(false);
+    answer({ activities: [c(5)], next: "c1" });
+    await vi.waitFor(() => expect(timeline.paginate.hasNextPage).toBe(true));
+  });
+
   it("reload re-reads the newest page and keeps the older rows and the cursor", async () => {
     const name = freshDoc();
     serve({

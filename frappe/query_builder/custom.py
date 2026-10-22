@@ -69,7 +69,7 @@ class STRING_AGG(DistinctOptionFunction):
 	def separator(self, separator: str = ","):
 		"""Mirror GROUP_CONCAT.separator() so GroupConcat(...).separator(...) chaining works on
 		postgres too. STRING_AGG takes the separator as its second argument."""
-		self.args[1] = self.wrap_constant(separator)
+		self.args = [self.args[0], self.wrap_constant(separator)]
 
 
 class SQLITE_GROUP_CONCAT(STRING_AGG):

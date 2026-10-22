@@ -9,21 +9,19 @@
 // runs once instead of once per app. See
 // ../../island/decisions/0013-framework-builds-page-islands.md.
 //
-// The vite root is `toolchain/`, which exists only to hold the build's own
-// dependencies. A page island therefore compiles against framework's frappe-ui
-// and nothing of the app's. An island that needs the app's own code has
-// outgrown this build and belongs in the app's frontend, as a normal island.
+// The vite root is `island-toolchain/` beside `ui/`, which exists only to hold
+// the build's own dependencies. A page island therefore compiles against
+// framework's frappe-ui and nothing of the app's. An island that needs the
+// app's own code has outgrown this build and belongs in the app's frontend, as
+// a normal island.
 
 import fs from "node:fs";
-import path from "node:path";
-import { fileURLToPath } from "node:url";
 
 import { benchPaths, findBenchRoot, loadFrappeBuildUtils, writeIslandAssets } from "./assets.js";
 import { buildIslands } from "./index.js";
-import { PAGE_ISLAND_SUBDIR, discoverPageIslands, pageIslandResolver } from "./pages.js";
+import { PAGE_ISLAND_SUBDIR, discoverPageIslands } from "./pages.js";
+import { TOOLCHAIN_ROOT as root, installToolchain, toolchainResolver } from "./toolchain.js";
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-const root = path.join(here, "toolchain");
 const benchRoot = findBenchRoot(root);
 
 const utils = loadFrappeBuildUtils(benchRoot);
@@ -45,16 +43,7 @@ if (!Object.keys(entries).length) {
 	process.exit(0);
 }
 
-// `loadTools` would report this too, but it names an app frontend and its
-// devDependencies, which is the wrong fix here. The toolchain's dependencies are
-// pinned in its own package.json and installed once per bench.
-if (!fs.existsSync(path.join(root, "node_modules"))) {
-	console.error(
-		`[island] the page-island toolchain is not installed at ${root}.\n` +
-			`Run it once for this bench:\n\n    yarn install --cwd ${root}\n`
-	);
-	process.exit(1);
-}
+installToolchain();
 
 await buildIslands({
 	// The output belongs to framework, which runs the build, and not to any one
@@ -63,7 +52,7 @@ await buildIslands({
 	root,
 	subdir: PAGE_ISLAND_SUBDIR,
 	entries,
-	plugins: [pageIslandResolver(dirs)],
+	plugins: [toolchainResolver(dirs)],
 	production: process.argv.includes("--production"),
 	watch: process.argv.includes("--watch"),
 });

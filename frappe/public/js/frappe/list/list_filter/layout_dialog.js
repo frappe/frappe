@@ -12,6 +12,8 @@ export default class LayoutDialog {
 		this.source_layout = duplicate_from || layout;
 		this.on_save = on_save;
 		this.can_add_global = frappe.user.has_role(["System Manager", "Administrator"]);
+		// an existing layout can't be made standard, so only offered on create
+		this.can_add_standard = this.can_add_global && frappe.boot.developer_mode && !this.layout;
 
 		frappe.model.with_doctype(this.doctype, () => this.make_dialog());
 	}
@@ -28,13 +30,34 @@ export default class LayoutDialog {
 			},
 		];
 
-		if (this.can_add_global) {
+		// a standard layout is always global
+		if (this.can_add_global && !this.layout?.is_standard) {
 			fields.push({
 				fieldname: "is_global",
 				fieldtype: "Check",
 				label: __("Available to all users"),
 				default: this.get_initial_is_global(),
+				depends_on: "eval:!doc.is_standard",
 			});
+		}
+
+		if (this.can_add_standard) {
+			fields.push(
+				{
+					fieldname: "is_standard",
+					fieldtype: "Check",
+					label: __("Standard"),
+					description: __("Exported to the module and shipped with its app"),
+				},
+				{
+					fieldname: "module",
+					fieldtype: "Link",
+					label: __("Module"),
+					options: "Module Def",
+					depends_on: "eval:doc.is_standard",
+					mandatory_depends_on: "eval:doc.is_standard",
+				}
+			);
 		}
 
 		const sorting = this.get_initial_sorting();
@@ -221,9 +244,12 @@ export default class LayoutDialog {
 	}
 
 	get_form_values() {
+		const is_standard = this.can_add_standard && Boolean(this.dialog.get_value("is_standard"));
 		return {
 			filter_name: this.dialog.get_value("filter_name")?.trim(),
 			is_global: this.can_add_global ? this.dialog.get_value("is_global") : false,
+			is_standard,
+			module: is_standard ? this.dialog.get_value("module") : "",
 		};
 	}
 
@@ -235,9 +261,14 @@ export default class LayoutDialog {
 	}
 
 	save_layout() {
-		const { filter_name, is_global } = this.get_form_values();
+		const { filter_name, is_global, is_standard, module } = this.get_form_values();
 		if (!filter_name) {
 			frappe.msgprint(__("Layout name is required"));
+			return;
+		}
+
+		if (is_standard && !module) {
+			frappe.msgprint(__("Module is required for a standard layout"));
 			return;
 		}
 
@@ -257,6 +288,8 @@ export default class LayoutDialog {
 		const payload = {
 			filter_name,
 			is_global,
+			is_standard,
+			module,
 			filters,
 			columns,
 			sort_field: sorting.sort_field,

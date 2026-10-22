@@ -12,6 +12,7 @@ from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
 from frappe.permissions import get_doctypes_with_read
+from frappe.query_builder.functions import Date, UnixTimestamp
 from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
 from frappe.utils.data import format_date
@@ -220,6 +221,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 			else get_period(r[0], timegrain)
 			for r in result
 		],
+		# each period's first day, so a chart can place it on a time axis
+		"dates": [str(get_period_beginning(r[0], timegrain)) for r in result],
 		"datasets": [{"name": _(chart.name), "values": [r[1] for r in result]}],
 	}
 
@@ -230,29 +233,22 @@ def get_heatmap_chart_config(chart, filters, heatmap_year):
 	doctype = chart.document_type
 	datefield = chart.based_on
 	year = cint(heatmap_year) if heatmap_year else getdate(nowdate()).year
-	year_start_date = datetime.date(year, 1, 1).strftime("%Y-%m-%d")
-	next_year_start_date = datetime.date(year + 1, 1, 1).strftime("%Y-%m-%d")
 
-	filters.append([doctype, datefield, ">", f"{year_start_date}"])
-	filters.append([doctype, datefield, "<", f"{next_year_start_date}"])
+	filters.append([doctype, datefield, ">=", f"{year}-01-01"])
+	filters.append([doctype, datefield, "<", f"{year + 1}-01-01"])
 
-	if frappe.db.db_type == "mariadb":
-		timestamp_field = f"unix_timestamp({datefield})"
-	else:
-		timestamp_field = f"extract(epoch from timestamp {datefield})"
-
+	day_timestamp = UnixTimestamp(Date(frappe.qb.DocType(doctype)[datefield]))
+	# by position: a GROUP BY alias loses to a column of the same name
 	data = dict(
-		frappe.get_all(
+		frappe.get_list(
 			doctype,
-			fields=[
-				timestamp_field,
-				{aggregate_function: value_field},
-			],
+			fields=[day_timestamp, {aggregate_function: value_field}],
 			filters=filters,
-			group_by=f"date({datefield})",
+			group_by="1",
 			as_list=1,
-			order_by=f"{datefield} asc",
+			order_by="1 asc",
 			ignore_ifnull=True,
+			parent_doctype=chart.parent_document_type,
 		)
 	)
 
@@ -294,8 +290,11 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 				item.name = _(item.get("name", "Not Specified"))
 
 	if data:
+		empty_label = (
+			_("No {0}").format(_(group_by_field_field.label)) if group_by_field_field else _("Not Set")
+		)
 		return {
-			"labels": [item.name for item in data],
+			"labels": [item.name or empty_label for item in data],
 			"datasets": [{"name": _(chart.name), "values": [item["count"] for item in data]}],
 		}
 	return None
@@ -361,6 +360,7 @@ class DashboardChart(Document):
 		custom_options: DF.Code | None
 		document_type: DF.Link | None
 		dynamic_filters_json: DF.Code | None
+		empty_state_message: DF.SmallText | None
 		filters_json: DF.Code
 		from_date: DF.Date | None
 		group_by_based_on: DF.Literal[None]

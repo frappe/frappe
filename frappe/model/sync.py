@@ -199,10 +199,12 @@ def get_doc_files(files, start_path, doctypes=None):
 	if not general_walk:
 		return files
 
-	# DocType Layouts: doctype/{document_type}/doctype_layout/{name}.json
-	for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", "doctype_layout", "*.json")):
-		if doc_path not in files:
-			files.append(doc_path)
+	# DocType Layouts, List Filters and Kanban Boards:
+	# doctype/{document_type}/{doctype_layout,list_filter,kanban_board}/{name}.json
+	for folder in ("doctype_layout", "list_filter", "kanban_board"):
+		for doc_path in glob.glob(os.path.join(start_path, "doctype", "*", folder, "*.json")):
+			if doc_path not in files:
+				files.append(doc_path)
 
 	# DocType Settings Maps: doctype_settings_map/{name}.json
 	for doc_path in glob.glob(os.path.join(start_path, "doctype_settings_map", "*.json")):
@@ -254,6 +256,8 @@ ORPHANABLE_ENTITIES = [
 	"Dock",
 	"Rail",
 	"Navigation Item Type",
+	"List Filter",
+	"Kanban Board",
 ]
 # Retiring with the icon-grid batch, together with the fixture import it mirrors; see
 # `frappe/desk/RETIRING.md`.
@@ -282,6 +286,9 @@ def remove_orphan_entities(entity_types=None):
 		# Desk v2's rail: the app layer is file-backed; the site's and each person's are never candidates.
 		"Rail": {"standard": 1},
 		# `Navigation Item Type` has no filter: every kind is app content, so every row is file-backed.
+		# a user's own or a site-wide layout is never backed by a file
+		"List Filter": {"is_standard": 1},
+		"Kanban Board": {"is_standard": "Yes"},
 	}
 	if entity_types:
 		entities = entity_types if isinstance(entity_types, list) else [entity_types]

@@ -204,3 +204,42 @@
 	flex-shrink: 0;
 	transition: border-color 0.15s ease, border-width 0.15s ease;
 }
+
+// The dock previews on the Appearance tab. Pinned draws a rail of tiles as its own column left of
+// the sidebar; floating draws the same tiles as a tray hovering over the sidebar's left edge.
+.dock-preview-rail {
+	width: 9%;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 4px;
+	padding-top: 6px;
+	background: var(--surface-gray-2);
+	border-right: 1px solid var(--outline-gray-2);
+}
+
+.dock-preview-floating {
+	position: relative;
+}
+
+.dock-preview-tray {
+	position: absolute;
+	top: 50%;
+	left: 4px;
+	transform: translateY(-50%);
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	padding: 4px 3px;
+	border-radius: 5px;
+	background: var(--surface-base);
+	box-shadow: var(--shadow-md);
+}
+
+.dock-preview-tile {
+	width: 7px;
+	height: 7px;
+	border-radius: 2px;
+	background: var(--surface-gray-4);
+}

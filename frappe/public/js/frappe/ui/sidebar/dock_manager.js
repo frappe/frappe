@@ -109,8 +109,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// here keeps a manually opened manager on the load error instead of a failed call.
 		if (!this.app) throw new Error("Manage Dock: no app in context");
 
-		this.load_entries();
-
 		const args = { app: this.app.app_name };
 		const [layer, base] = await Promise.all([
 			frappe.xcall(this.layer_config.read, args),
@@ -118,6 +116,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		]);
 
 		this.layer_rows = layer;
+		this.load_entries();
 		// What the app itself ships, unfiltered by anyone's reach: the pool the manager offers and
 		// what `unnamed_modules` counts against.
 		this.base_rows = base || [];
@@ -144,9 +143,11 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// not offered. Keyed by its destination, which is what a layer row names.
 	load_entries() {
 		this.entries = new Map();
-		((this.app && this.app.dock) || []).forEach((row) => {
+		const added = (this.layer_rows || []).filter((row) => row.added);
+		[...((this.app && this.app.dock) || []), ...added].forEach((row) => {
 			const entry = frappe.app.sidebar.dock_entry(row);
-			if (entry) this.entries.set(this.key(entry), entry);
+			if (entry && !this.entries.has(this.key(entry)))
+				this.entries.set(this.key(entry), entry);
 		});
 	}
 
@@ -163,14 +164,16 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 				.filter((row) => row.link_type === "Sidebar")
 				.map((row) => row.link_to)
 		);
-		return frappe.app.sidebar.app_modules(this.app).filter((shell) => !named.has(shell));
+		return frappe.app.sidebar
+			.navigable_app_modules(this.app)
+			.filter((shell) => !named.has(shell));
 	}
 
 	// What identifies an entry here, on the server and on the rail: the whole destination. The
 	// kind is half of it, because a `Sidebar` and a `Workspace` with the same name are two
 	// entries.
 	key(row) {
-		return frappe.app.sidebar.dock_key(row);
+		return frappe.app.sidebar.dock_entry_key(row);
 	}
 
 	// This layer's picks, in their order. The layer belongs to this app, so every row in it is
@@ -347,6 +350,8 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	apply(rail) {
 		frappe.boot.dock = { ...(frappe.boot.dock || {}), [this.app.app_name]: rail };
 		frappe.app.sidebar.refresh_dock();
+		// The header draws the module's icon from this rail too.
+		frappe.app.sidebar.refresh_header();
 	}
 
 	// Add, kind first: what it opens, then the target, then how it reads.
@@ -388,7 +393,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					// The app's navigable modules, which is what `get_app_modules` returns, rather
 					// than a link query, which would show only the few modules that have a
 					// `Sidebar` document.
-					options: sidebar.app_modules(this.app).map((shell) => ({
+					options: sidebar.navigable_app_modules(this.app).map((shell) => ({
 						value: shell,
 						label: frappe.boot.module_sidebars[shell]?.label || shell,
 					})),

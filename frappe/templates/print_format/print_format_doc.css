@@ -5,6 +5,8 @@
 .print-format-doc {
 	-webkit-print-color-adjust: exact;
 	print-color-adjust: exact;
+	font-weight: 400;
+	letter-spacing: normal;
 }
 .print-format-doc .label {
 	border: none;
@@ -30,6 +32,7 @@
 
 /* Keep field label and value on the same page */
 .print-format-doc .field {
+	color: var(--gray-900);
 	break-inside: avoid;
 	page-break-inside: avoid;
 }
@@ -49,7 +52,7 @@
 }
 
 .print-format-doc .field .value {
-	color: var(--gray-900);
+	color: inherit;
 }
 
 /* Left-right (section-level): label shrinks to content width, value takes the rest */
@@ -170,8 +173,21 @@
 	border-spacing: 0;
 	margin: 0;
 	width: 100%;
-	table-layout: fixed;
-	word-break: break-word;
+	overflow-wrap: break-word;
+}
+
+.print-format-doc {
+	container-type: inline-size;
+}
+
+@container (min-width: 160mm) {
+	.print-format-doc .child-table td:is([data-fieldtype="Currency"], [data-fieldtype="Float"], [data-fieldtype="Int"], [data-fieldtype="Percent"]) {
+		white-space: nowrap;
+	}
+}
+
+.print-format-doc .child-table td:is([data-fieldtype="Text"], [data-fieldtype="Small Text"], [data-fieldtype="Long Text"], [data-fieldtype="Text Editor"], [data-fieldtype="HTML Editor"], [data-fieldtype="Code"]) {
+	overflow-wrap: anywhere;
 }
 
 @media print {
@@ -231,7 +247,7 @@
 .print-format-doc .child-table .table td {
 	padding: 0.5em 0.6667em;
 	border: none !important;
-	background-color: var(--white) !important;
+	background-color: var(--pfb-cell-bg, var(--white)) !important;
 	vertical-align: top;
 }
 
@@ -287,7 +303,7 @@
         so there is no empty band under square tables. */
 .print-format-doc .child-table .table .table-foot {
 	padding: 0;
-	height: var(--pfb-radius, 0);
+	height: var(--pfb-foot-height, var(--pfb-radius, 0));
 	border: none !important;
 }
 
@@ -407,7 +423,7 @@
 }
 
 .print-format-doc .child-table .cell-line {
-	word-break: break-word;
+	overflow-wrap: break-word;
 }
 
 .print-format-doc .child-table .cell-line--primary,
@@ -534,6 +550,10 @@ body.print-format-doc .letter-head,
 	border-radius: var(--border-radius-md, 8px);
 	overflow: hidden;
 	padding: 0;
+	/* a grid section that breaks across pages closes its outline on both
+	   fragments instead of leaving the box open at the break */
+	-webkit-box-decoration-break: clone;
+	box-decoration-break: clone;
 }
 .print-format-doc .section--grid .section-label {
 	padding: var(--pfb-cell-pad, 8px);

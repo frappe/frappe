@@ -351,3 +351,13 @@ class TestDesktopOnUpgrade(IntegrationTestCase):
 		with desktop_icons(1):
 			run_patches([PIN_DESKTOP])
 			self.assertEqual(get_desktop_page(), DESKTOP_ICONS)
+
+	def test_a_site_before_the_setup_wizard_lands_on_apps(self):
+		"""A standby site holds icon rows but nobody has used it yet, so there is no desktop to keep
+		and the new user starts on the new navigation without being invited to it.
+		"""
+		frappe.db.set_single_value("Desktop Settings", "desktop_page", APPS)
+
+		with desktop_icons(1), patch("frappe.is_setup_complete", return_value=False):
+			run_patches([PIN_DESKTOP])
+			self.assertEqual(get_desktop_page(), APPS)

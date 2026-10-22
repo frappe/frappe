@@ -572,6 +572,7 @@ class EmailAccount(Document):
 			"smtp_server": {"conf_names": ("mail_server",)},
 			"smtp_port": {"conf_names": ("mail_port",)},
 			"use_tls": {"conf_names": ("use_tls", "mail_login")},
+			"use_ssl_for_outgoing": {"conf_names": ("use_ssl",)},
 			"login_id": {"conf_names": ("mail_login",)},
 			"email_id": {
 				"conf_names": ("auto_email_id", "mail_login"),
@@ -613,11 +614,11 @@ class EmailAccount(Document):
 			"server": self.smtp_server,
 			"port": cint(self.smtp_port),
 			"login": getattr(self, "login_id", None) or self.email_id,
-			"password": self._password,
+			"password": None if self.no_smtp_authentication else self._password,
 			"use_ssl": cint(self.use_ssl_for_outgoing),
 			"use_tls": cint(self.use_tls),
-			"use_oauth": self.auth_method == "OAuth",
-			"access_token": self.get_access_token(),
+			"use_oauth": self.auth_method == "OAuth" and not self.no_smtp_authentication,
+			"access_token": None if self.no_smtp_authentication else self.get_access_token(),
 		}
 
 		if self.flags.validate_smtp_connection:

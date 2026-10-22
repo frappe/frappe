@@ -43,7 +43,6 @@ const STANDARD_FIELDS: ReadonlyArray<
   },
   { fieldname: "_user_tags", fieldtype: "Data", label: "Tags" },
   { fieldname: "_liked_by", fieldtype: "Data", label: "Like" },
-  { fieldname: "_comments", fieldtype: "Text", label: "Comments" },
   { fieldname: "_assign", fieldtype: "Text", label: "Assigned To" },
   { fieldname: "creation", fieldtype: "Datetime", label: "Created On" },
   { fieldname: "modified", fieldtype: "Datetime", label: "Last Updated On" },

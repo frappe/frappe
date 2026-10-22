@@ -3,14 +3,14 @@ import os
 import tempfile
 import uuid
 from io import BytesIO
-from typing import Literal
-from urllib.parse import urlparse
 
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.desk.query_report import get_permitted_report_print_format
 from frappe.model.document import Document
 from frappe.translate import print_language
+from frappe.utils import cint
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -110,6 +110,7 @@ def download_multi_pdf_async(
 	for slot in range(get_max_concurrent_bulk_exports()):
 		job = frappe.enqueue(
 			_download_multi_pdf,
+			language=frappe.local.lang,
 			doctype=doctype,
 			name=name,
 			task_id=task_id,
@@ -137,6 +138,41 @@ def download_multi_pdf_async(
 	return {"task_id": task_id}
 
 
+def page_settings(pdf_options) -> dict:
+	"""The bulk print dialog's page choice, in the Print Settings terms the generator reads."""
+	pdf_options = pdf_options or {}
+	settings = {}
+	for option, setting in (
+		("page-size", "pdf_page_size"),
+		("page-height", "pdf_page_height"),
+		("page-width", "pdf_page_width"),
+	):
+		if pdf_options.get(option):
+			settings[setting] = pdf_options[option]
+	if "pdf_page_height" in settings and "pdf_page_size" not in settings:
+		settings["pdf_page_size"] = "Custom"
+	return settings
+
+
+def classic_page_options(pdf_options) -> dict:
+	"""The same page choice for the HTML pipeline, which takes dimensions with a unit."""
+	pdf_options = dict(pdf_options or {})
+	for option in ("page-height", "page-width"):
+		if isinstance(pdf_options.get(option), int | float):
+			pdf_options[option] = f"{pdf_options[option]}mm"
+			pdf_options["page-size"] = "Custom"
+	return pdf_options
+
+
+def publish_failure(task_id: str, error: Exception):
+	"""The list view waits on task_complete alone, so a failure has to arrive there."""
+	frappe.publish_realtime(
+		f"task_complete:{task_id}",
+		message={"error": str(error) or _("You are not permitted to print one of the selected documents")},
+		user=frappe.session.user,
+	)
+
+
 def _download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -145,6 +181,7 @@ def _download_multi_pdf(
 	letterhead: str | None = None,
 	options: str | None = None,
 	task_id: str | None = None,
+	language: str | None = None,
 ):
 	"""Return a PDF compiled by concatenating multiple documents.
 
@@ -182,6 +219,8 @@ def _download_multi_pdf(
 
 	from pypdf import PdfWriter
 
+	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
+
 	pdf_writer = PdfWriter()
 
 	options = frappe.parse_json(options)
@@ -192,42 +231,56 @@ def _download_multi_pdf(
 		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
 			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
+	def document_language(print_doctype, print_name):
+		"""The print page's precedence: the document's own language, then the
+		format's default, then the language the print was requested in."""
+		doc_language = None
+		if frappe.get_meta(print_doctype).has_field("language"):
+			doc_language = frappe.db.get_value(print_doctype, print_name, "language")
+		return doc_language or format_language or language
+
 	def print_into_writer(print_doctype, print_name):
 		"""Route one document into the shared writer — builder formats through the
 		generator (which dispatches Typst), everything else through get_print."""
-		from frappe.printing.doctype.print_format.classic_converter import (
-			get_default_print_format,
-			uses_beta_renderer,
-		)
-		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
-		from frappe.www.printview import set_link_titles, validate_print
-
-		pf_doc = _print_format_doc_or_none(format)
-		if not ((pf_doc is None or uses_beta_renderer(pf_doc)) and resolve_pdf_generator(pf_doc) == "chrome"):
-			return frappe.get_print(
-				print_doctype,
-				print_name,
-				format,
-				as_pdf=True,
-				output=pdf_writer,
-				no_letterhead=no_letterhead,
-				letterhead=letterhead,
-				pdf_options=options,
+		with print_language(document_language(print_doctype, print_name)):
+			from frappe.printing.doctype.print_format.classic_converter import (
+				get_default_print_format,
+				uses_beta_renderer,
 			)
+			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+			from frappe.www.printview import set_link_titles, validate_print
 
-		from pypdf import PdfReader
+			pf_doc = _print_format_doc_or_none(format, print_doctype)
+			if not (
+				(pf_doc is None or uses_beta_renderer(pf_doc))
+				and resolve_pdf_generator(pf_doc) in ("chrome", "PlutoPrint", "Typst")
+			):
+				return frappe.get_print(
+					print_doctype,
+					print_name,
+					format,
+					as_pdf=True,
+					output=pdf_writer,
+					no_letterhead=no_letterhead,
+					letterhead=letterhead,
+					pdf_options=classic_page_options(options),
+				)
 
-		from frappe.utils.print_format_generator import PrintFormatGenerator
+			from pypdf import PdfReader
 
-		doc = frappe.get_doc(print_doctype, print_name)
-		validate_print(doc)
-		set_link_titles(doc)
-		pf = pf_doc or get_default_print_format(print_doctype)
-		generator = PrintFormatGenerator(pf, doc, letterhead, no_letterhead=no_letterhead)
-		pdf = generator.render_pdf(password=(options or {}).get("password"))
-		for page in PdfReader(BytesIO(pdf)).pages:
-			pdf_writer.add_page(page)
-		return pdf_writer
+			from frappe.utils.print_format_generator import PrintFormatGenerator
+
+			doc = frappe.get_doc(print_doctype, print_name)
+			validate_print(doc)
+			set_link_titles(doc)
+			pf = pf_doc or get_default_print_format(print_doctype)
+			generator = PrintFormatGenerator(
+				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
+			)
+			pdf = generator.render_pdf()
+			for page in PdfReader(BytesIO(pdf)).pages:
+				pdf_writer.add_page(page)
+			return pdf_writer
 
 	if not isinstance(doctype, dict):
 		result = frappe.parse_json(name)
@@ -238,6 +291,10 @@ def _download_multi_pdf(
 		for idx, ss in enumerate(result):
 			try:
 				pdf_writer = print_into_writer(doctype, ss)
+			except frappe.PermissionError as e:
+				if task_id:
+					publish_failure(task_id, e)
+				raise
 			except Exception:
 				frappe.log_error(
 					title="Error in Multi PDF download",
@@ -245,7 +302,9 @@ def _download_multi_pdf(
 					reference_name=ss,
 				)
 				if task_id:
-					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
+					frappe.publish_realtime(
+						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
+					)
 
 			# Publish progress
 			if task_id:
@@ -271,9 +330,13 @@ def _download_multi_pdf(
 			for doc_name in doctype[doctype_name]:
 				try:
 					pdf_writer = print_into_writer(doctype_name, doc_name)
+				except frappe.PermissionError as e:
+					if task_id:
+						publish_failure(task_id, e)
+					raise
 				except Exception:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed")
+						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
@@ -296,6 +359,8 @@ def _download_multi_pdf(
 			frappe.local.response.filename = f"{name}.pdf"
 
 	with BytesIO() as merged_pdf:
+		if password := (options or {}).get("password"):
+			pdf_writer.encrypt(password)
 		pdf_writer.write(merged_pdf)
 		if task_id:
 			_file = frappe.get_doc(
@@ -330,7 +395,9 @@ def download_pdf(
 	no_letterhead: bool | int = 0,
 	language: str | None = None,
 	letterhead: str | None = None,
-	pdf_generator: Literal["wkhtmltopdf", "chrome"] | None = None,
+	pdf_generator: str | None = None,
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
@@ -345,6 +412,8 @@ def download_pdf(
 			letterhead=letterhead,
 			no_letterhead=no_letterhead,
 			pdf_generator=pdf_generator,
+			style=style,
+			settings=settings,
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -358,47 +427,9 @@ def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html,
-		{
-			"orientation": orientation,
-			"proxy": "http://0.0.0.0:0",
-			"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
-			"load-error-handling": "ignore",
-		},
-		smart_shrinking=True,
+		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
 	)
 	frappe.local.response.type = "pdf"
-
-
-def _pdf_bypass_proxy_hosts() -> list[str]:
-	"""Hosts wkhtmltopdf is allowed to fetch from while rendering a report PDF.
-
-	The report HTML is built client-side and posted back, so its asset URLs are
-	absolute against whichever domain the user is browsing. wkhtmltopdf is pinned
-	to a dead proxy and only bypasses it for these hosts, so a site reached via a
-	secondary domain would otherwise fail every asset fetch with UnknownNetworkError.
-
-	Always allows the canonical host. Additional hosts (e.g. a site's alternate
-	domains) can be allowed via the `domains` site config key. The bypass list is
-	limited to these, so genuinely external resources stay blocked.
-	"""
-	hosts = {_hostname(frappe.utils.get_url(allow_header_override=False))}
-	hosts.update(_hostname(domain) for domain in (frappe.conf.domains or []))
-	hosts.discard(None)
-	return sorted(hosts)
-
-
-def _hostname(value: str) -> str | None:
-	"""Bare hostname for a `--bypass-proxy-for` entry.
-
-	wkhtmltopdf wants a bare host, but config values may arrive as a full URL,
-	with a scheme, or with a port (e.g. "https://a.com", "a.com:443"). urlparse
-	only finds the host in the netloc, so give bare values one before parsing —
-	otherwise an un-normalized entry silently fails the bypass for that domain.
-	"""
-	if "://" not in value:
-		value = "//" + value
-	return urlparse(value).hostname
 
 
 @frappe.whitelist()
@@ -417,31 +448,83 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 	letter_head = frappe._dict(
 		frappe.db.get_value(
 			"Letter Head",
-			letterhead or {"is_default": 1},
+			letterhead or {"letter_head_for": "Report", "is_default": 1},
 			["content", "footer", "header_script", "footer_script", "custom_css"],
 			as_dict=True,
 		)
 		or {}
 	)
 
+	from bs4 import BeautifulSoup
+
 	context_doc = frappe._dict(doc or {})
 	rendered = {}
 
+	# Jinja branches can leave a tag open; unbalanced, the PDF parser folds the report body into the header.
 	if letter_head.content:
 		header = render_template(letter_head.content, {"doc": context_doc})
+		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
 			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
-		rendered["header"] = header
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
+		rendered["header"] = header
 
 	if letter_head.footer:
 		footer = render_template(letter_head.footer, {"doc": context_doc})
+		footer = str(BeautifulSoup(footer, "html.parser"))
 		if letter_head.footer_script:
 			footer += f"\n<script>\n{letter_head.footer_script}\n</script>\n"
 		rendered["footer"] = footer
 
 	return rendered
+
+
+@frappe.whitelist()
+@frappe.read_only()
+def render_report_jinja(
+	print_format: str,
+	data: str | list | None = None,
+	columns: str | list | None = None,
+	filters: str | dict | None = None,
+	letterhead: str | None = None,
+	no_letterhead: bool | int = 0,
+) -> dict:
+	"""Render a Report print format authored in Jinja, using client-supplied data."""
+	pf = get_permitted_report_print_format(print_format)
+
+	if pf.print_format_type != "Jinja":
+		frappe.throw(_("Print Format {0} is not a Jinja format").format(print_format))
+	if not pf.html:
+		frappe.throw(_("Print Format {0} has no HTML body").format(print_format))
+
+	filters = frappe.parse_json(filters or {})
+	rows = frappe.parse_json(data or [])
+	cols = frappe.parse_json(columns or [])
+
+	rows = [frappe._dict(row) if isinstance(row, dict) else row for row in rows]
+
+	context = {
+		"report": frappe._dict(name=pf.report, report_name=pf.report),
+		"filters": filters,
+		"columns": cols,
+		"data": rows,
+		"no_letterhead": cint(no_letterhead),
+		"print_settings": frappe.get_single("Print Settings").as_dict(),
+	}
+
+	html = render_template(  # nosemgrep
+		pf.html, context, safe_render=True
+	)
+	body = f"<style>{pf.css or ''}</style>{html}"
+
+	letter_head = (
+		None
+		if cint(no_letterhead)
+		else (render_letterhead_for_print(letterhead=letterhead, doc=filters) or None)
+	)
+
+	return {"body": body, "letter_head": letter_head}
 
 
 @frappe.whitelist()
@@ -453,6 +536,8 @@ def print_by_server(
 	doc: Document | None = None,
 	no_letterhead: bool | int = 0,
 	file_path: str | None = None,  # backward compatibility
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -470,20 +555,20 @@ def print_by_server(
 
 		output = PdfWriter()
 		output = frappe.get_print(
-			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
+			doctype,
+			name,
+			print_format,
+			style=style,
+			doc=doc,
+			no_letterhead=no_letterhead,
+			as_pdf=True,
+			output=output,
+			settings=settings,
 		)
 		with tempfile.NamedTemporaryFile(prefix="frappe-pdf-", suffix=".pdf", delete=False) as f:
 			file_path = f.name
 			output.write(f)
 		conn.printFile(print_settings.printer_name, file_path, name, {})
-	except OSError as e:
-		if (
-			"ContentNotFoundError" in e.message
-			or "ContentOperationNotPermittedError" in e.message
-			or "UnknownContentError" in e.message
-			or "RemoteHostClosedError" in e.message
-		):
-			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
 	finally:

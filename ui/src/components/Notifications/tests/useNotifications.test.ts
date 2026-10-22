@@ -93,3 +93,15 @@ describe("markAsRead", () => {
     expect(controller.unreadCount).toBe(0);
   });
 });
+
+describe("reload", () => {
+  it("refreshes the unread count", async () => {
+    const controller = mount();
+    await vi.waitFor(() => expect(controller.notifications.length).toBe(2));
+    const before = api.countDocuments.mock.calls.length;
+
+    controller.reload();
+
+    expect(api.countDocuments.mock.calls.length).toBe(before + 1);
+  });
+});

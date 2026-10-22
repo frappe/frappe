@@ -14,7 +14,7 @@
 		</div>
 		<div class="flex justify-between items-center text-base text-ink-gray-5 mx-2">
 			<div>All articles</div>
-			<Button variant="ghost" @click="openDocs">
+			<Button variant="ghost" aria-label="Open docs" @click="openDocs">
 				<LucideArrowUpRight class="size-4 text-ink-gray-5" />
 			</Button>
 		</div>

@@ -7,7 +7,7 @@ import datetime
 import json
 import re
 from collections import Counter
-from collections.abc import Mapping, Sequence
+from collections.abc import Sequence
 from functools import cached_property, lru_cache
 
 import sqlparse
@@ -15,7 +15,6 @@ from sqlparse import tokens
 from sqlparse.sql import Function, Parenthesis, Statement
 
 import frappe
-import frappe.defaults
 import frappe.permissions
 import frappe.share
 from frappe import _
@@ -32,7 +31,6 @@ from frappe.database.utils import (
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
-from frappe.model.utils.mask import mask_field_value
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
 from frappe.query_builder.utils import Column
 from frappe.types import Filters, FilterSignature, FilterTuple
@@ -220,7 +218,7 @@ class DatabaseQuery:
 			self.user_settings = json.loads(user_settings)
 
 		if is_virtual_doctype(self.doctype):
-			from frappe.model.base_document import get_controller
+			from frappe.model.document import get_controller
 
 			controller = get_controller(self.doctype)
 			if not hasattr(controller, "get_list"):
@@ -237,6 +235,7 @@ class DatabaseQuery:
 			} | self.__dict__
 			return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
+		self.with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
 		self.columns = self.get_table_columns()
 
 		# no table & ignore_ddl, return
@@ -245,7 +244,7 @@ class DatabaseQuery:
 
 		result = self.build_and_run()
 
-		if sbool(with_comment_count) and not as_list and self.doctype:
+		if self.with_comment_count:
 			self.add_comment_count(result)
 
 		if save_user_settings:
@@ -368,6 +367,14 @@ from {tables}
 		self.set_optional_columns()
 		self.build_conditions()
 		self.apply_fieldlevel_read_permissions()
+		# read now: table prefixes and postgres casts below rewrite the fields
+		self.has_own_name = self.selects_own_name()
+		if self.with_comment_count and self.distinct and not self.has_own_name:
+			# a distinct row without the document's name can stand for several documents
+			self.with_comment_count = False
+		# selected after the permission check: never user-requestable, popped in add_comment_count
+		if self.with_comment_count and not self.group_by and "_comments" in self.columns:
+			self.fields.append(f"`tab{self.doctype}`.`_comments`")
 
 		args = frappe._dict()
 
@@ -1319,13 +1326,15 @@ from {tables}
 
 		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
 		param_wrapper = NamedParameterWrapper()
-		sql = criterion.get_sql(with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper)
+		sql = criterion.get_sql(
+			with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper, subquery=True
+		)
 		for key, value in param_wrapper.get_parameters().items():
 			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
 		return sql
 
 	def set_order_by(self, args):
-		if self.order_by and self.order_by != "KEEP_DEFAULT_ORDERING":
+		if self.order_by and self.order_by != DefaultOrderBy:
 			args.order_by = self.order_by
 		else:
 			args.order_by = ""
@@ -1428,13 +1437,21 @@ from {tables}
 
 	def add_comment_count(self, result):
 		for r in result:
-			if not r.name:
+			comments = r.pop("_comments", None)
+			# the own name under any alias, like `name as id`, makes every row one document
+			if not (self.has_own_name or r.name):
 				continue
 
-			r._comment_count = 0
-			if "_comments" in r and r._comments:
-				# perf: Avoid parsing _comments, they can be huge and this is just a "UX feature"
-				r._comment_count = r._comments.count('"comment"')
+			# perf: Avoid parsing _comments, this is just a "UX feature"
+			r._comment_count = comments.count('"name"') if comments else 0
+
+	def selects_own_name(self) -> bool:
+		"""Distinct rows stay one per document only when they carry the document's own name."""
+		table = f"`tab{self.doctype}`"
+		own = {"*", "name", "`name`", f"{table}.*", f"{table}.`name`", f"{table}.name"}
+		return any(
+			re.split(r"\s+as\s+", f, maxsplit=1, flags=re.IGNORECASE)[0].strip() in own for f in self.fields
+		)
 
 	def update_user_settings(self):
 		# update user settings if new search

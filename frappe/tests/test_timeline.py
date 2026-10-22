@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.desk.form.activity import (
+	activity_text,
 	get_activity_timeline,
 	parse_visible_types,
 	read_senders,
@@ -13,6 +14,14 @@ from frappe.desk.form.activity import (
 from frappe.desk.form.activity_page import MAX_PAGE_SIZE, ActivityPage
 from frappe.tests.utils import FrappeTestCase
 from frappe.utils import get_formatted_email
+
+
+class TestActivityText(FrappeTestCase):
+	def test_html_entities_are_decoded(self):
+		self.assertEqual(
+			activity_text("added tag Released &amp; removed tag Pending Release"),
+			"added tag Released & removed tag Pending Release",
+		)
 
 
 class TestParseVisibleTypes(FrappeTestCase):

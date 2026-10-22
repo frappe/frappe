@@ -183,44 +183,40 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 
 	register_primary_action() {
 		var me = this;
-		this.set_primary_action(__("Save"), function () {
+		this.set_primary_action(__("Save"), function (values) {
 			if (me.dialog.working) {
 				return;
 			}
-			var data = me.dialog.get_values();
-
-			if (data) {
-				me.dialog.working = true;
-				if (me.skip_insert) {
-					// Skip insert mode - just update the doc and trigger callbacks
-					me.update_doc();
+			me.dialog.working = true;
+			if (me.skip_insert) {
+				// Skip insert mode - just update the doc and trigger callbacks
+				me.update_doc(values);
+				me.dialog.animation_speed = "slow";
+				me.dialog.hide();
+				me.handle_after_callbacks();
+			} else {
+				// Normal insert mode
+				me.insert(values).then(() => {
+					let messagetxt = __("{1} saved", [__(me.doctype), me.doc.name.bold()]);
 					me.dialog.animation_speed = "slow";
 					me.dialog.hide();
-					me.handle_after_callbacks();
-				} else {
-					// Normal insert mode
-					me.insert().then(() => {
-						let messagetxt = __("{1} saved", [__(me.doctype), me.doc.name.bold()]);
-						me.dialog.animation_speed = "slow";
-						me.dialog.hide();
-						if (frappe.route_hooks.after_save) {
-							let route_callback = frappe.route_hooks.after_save;
-							delete frappe.route_hooks.after_save;
+					if (frappe.route_hooks.after_save) {
+						let route_callback = frappe.route_hooks.after_save;
+						delete frappe.route_hooks.after_save;
 
-							route_callback(me);
-						}
+						route_callback(me);
+					}
 
-						setTimeout(function () {
-							frappe.show_alert(
-								{
-									message: messagetxt,
-									indicator: "green",
-								},
-								3
-							);
-						}, 500);
-					});
-				}
+					setTimeout(function () {
+						frappe.show_alert(
+							{
+								message: messagetxt,
+								indicator: "green",
+							},
+							3
+						);
+					}, 500);
+				});
 			}
 		});
 	}
@@ -234,10 +230,10 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		}
 	}
 
-	insert() {
+	insert(values) {
 		let me = this;
 		return new Promise((resolve) => {
-			me.update_doc();
+			me.update_doc(values);
 			frappe.call({
 				method: "frappe.client.save",
 				args: {
@@ -327,9 +323,8 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm extends frappe.ui.Dialog {
 		}
 	}
 
-	update_doc() {
+	update_doc(data = this.get_values(true)) {
 		var me = this;
-		var data = this.get_values(true);
 		$.each(data, function (key, value) {
 			if (!is_null(value)) {
 				me.dialog.doc[key] = value;

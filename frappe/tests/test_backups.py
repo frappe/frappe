@@ -1,10 +1,28 @@
 import gzip
+import os
 import sqlite3
+import time
 import unittest
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import patch
 
-from frappe.utils.backups import backup_sqlite_database
+from frappe.tests import IntegrationTestCase
+from frappe.utils.backups import backup_sqlite_database, fetch_latest_backups
+
+
+class TestLatestBackup(IntegrationTestCase):
+	def test_same_second_backups_resolve_to_the_newer_file(self):
+		with TemporaryDirectory() as directory:
+			full = Path(directory) / "20990101_000000-site-database.sql.gz"
+			partial = Path(directory) / "20990101_000000-site-partial-database.sql.gz"
+			full.touch()
+			partial.touch()
+			os.utime(full, (time.time() - 1, time.time() - 1))
+
+			# list the older file first so glob order alone would pick it
+			with patch("frappe.utils.backups.glob", return_value=[str(full), str(partial)]):
+				self.assertEqual(fetch_latest_backups(partial=True)["database"], str(partial))
 
 
 class TestSQLiteBackup(unittest.TestCase):
