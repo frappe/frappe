@@ -39,7 +39,7 @@ export interface FormLayoutRow {
 export interface FormLayoutsResponse {
 	/** Every row for the `(dt, type)`, `creation asc`, layouts parsed; `New Record` with none gets the `Details` rows. */
 	layouts: FormLayoutRow[];
-	/** The meta-derived layout, rendered when no row applies. */
+	/** Rendered when no row applies: the meta layout, or the mandatory-only set for `Quick Entry`. */
 	fallback: LayoutTree;
 	/** `Quick Entry` only: whether Create opens a dialog rather than the full-page new record. */
 	dialog?: boolean;

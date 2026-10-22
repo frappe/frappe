@@ -19,6 +19,8 @@ from frappe.tests.classes.context_managers import set_user
 MANAGER = "test_form_layout_manager@example.com"
 CREATOR = "test_form_layout_creator@example.com"
 CREATE_ONLY_ROLE = "Test Form Layout Create Only"
+READER = "test_form_layout_reader@example.com"
+READ_ONLY_ROLE = "Test Form Layout Read Only"
 
 QUICK_ENTRY_DT = "Test Create Quick Entry"
 NO_MANDATORY_DT = "Test Create No Mandatory"
@@ -47,23 +49,33 @@ def a_manager() -> str:
 
 def a_creator() -> str:
 	"""A user whose only role on the create doctypes grants create, not read."""
-	if not frappe.db.exists("Role", CREATE_ONLY_ROLE):
-		frappe.get_doc(doctype="Role", role_name=CREATE_ONLY_ROLE, desk_access=1).insert()
-	if not frappe.db.exists("User", CREATOR):
+	return a_user_with_role(CREATOR, CREATE_ONLY_ROLE)
+
+
+def a_reader() -> str:
+	"""A user whose only role on the create doctypes grants read, not create."""
+	return a_user_with_role(READER, READ_ONLY_ROLE)
+
+
+def a_user_with_role(email: str, role: str) -> str:
+	if not frappe.db.exists("Role", role):
+		frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert()
+	if not frappe.db.exists("User", email):
 		frappe.get_doc(
 			doctype="User",
-			email=CREATOR,
-			first_name="Layout Creator",
+			email=email,
+			first_name=role,
 			user_type="System User",
-			roles=[{"role": CREATE_ONLY_ROLE}],
+			roles=[{"role": role}],
 		).insert(ignore_permissions=True)
-	return CREATOR
+	return email
 
 
 def make_create_doctype(name: str, fields: list[dict], **kwargs):
 	permissions = [
 		{"role": "System Manager", "read": 1, "write": 1, "create": 1},
 		{"role": CREATE_ONLY_ROLE, "read": 0, "create": 1},
+		{"role": READ_ONLY_ROLE, "read": 1, "write": 0, "create": 0, "delete": 0},
 	]
 	new_doctype(name, fields=fields, permissions=permissions, **kwargs).insert(ignore_if_duplicate=True)
 
@@ -270,6 +282,7 @@ class TestCreateLayouts(IntegrationTestCase):
 	def setUpClass(cls):
 		super().setUpClass()
 		a_creator()
+		a_reader()
 		make_create_doctype(
 			QUICK_ENTRY_DT,
 			[
@@ -294,6 +307,13 @@ class TestCreateLayouts(IntegrationTestCase):
 					"allow_in_quick_entry": 1,
 				},
 				data("after_break", reqd=1),
+				{
+					"label": "Roles",
+					"fieldname": "roles",
+					"fieldtype": "Table",
+					"options": "Has Role",
+					"mandatory_depends_on": "eval:doc.status=='Closed'",
+				},
 			],
 			quick_entry=1,
 		)
@@ -324,6 +344,10 @@ class TestCreateLayouts(IntegrationTestCase):
 		frappe.db.rollback()
 		for dt in (QUICK_ENTRY_DT, NO_MANDATORY_DT, MANDATORY_TABLE_DT, FLAG_OFF_DT, PROMPT_DT):
 			frappe.delete_doc_if_exists("DocType", dt)
+		for user in (CREATOR, READER):
+			frappe.delete_doc_if_exists("User", user)
+		for role in (CREATE_ONLY_ROLE, READ_ONLY_ROLE):
+			frappe.delete_doc_if_exists("Role", role)
 		frappe.db.commit()
 		super().tearDownClass()
 
@@ -341,12 +365,15 @@ class TestCreateLayouts(IntegrationTestCase):
 				(None, ["title", "status"]),
 				("eval:doc.status=='Closed'", ["city"]),
 				(None, ["extra", "after_break"]),
+				("eval:doc.status=='Closed'", ["roles"]),
 			],
 		)
 
 	def test_quick_entry_sections_have_unique_names(self):
 		sections = self.quick_entry(QUICK_ENTRY_DT)["fallback"][0]["sections"]
-		self.assertEqual([section["name"] for section in sections], ["section_1", "section_2", "section_3"])
+		self.assertEqual(
+			[section["name"] for section in sections], ["section_1", "section_2", "section_3", "section_4"]
+		)
 
 	def test_quick_entry_default_does_not_read_the_flag(self):
 		self.assertEqual(quick_entry_fields(self.quick_entry(FLAG_OFF_DT)["fallback"]), [(None, ["title"])])
@@ -359,6 +386,7 @@ class TestCreateLayouts(IntegrationTestCase):
 		)
 
 	def test_dialog_flag(self):
+		# QUICK_ENTRY_DT's table is mandatory only under a condition, so it does not block the dialog.
 		self.assertTrue(self.quick_entry(QUICK_ENTRY_DT)["dialog"])
 		self.assertTrue(self.quick_entry(PROMPT_DT)["dialog"])
 		self.assertFalse(self.quick_entry(NO_MANDATORY_DT)["dialog"])
@@ -405,6 +433,11 @@ class TestCreateLayouts(IntegrationTestCase):
 			for type in ("Details", "Side Panel"):
 				self.assertRaises(frappe.PermissionError, get_form_layouts, QUICK_ENTRY_DT, type)
 
+	def test_create_layouts_accept_the_read_right_without_create(self):
+		with set_user(a_reader()):
+			self.assertTrue(get_form_layouts(QUICK_ENTRY_DT, "Quick Entry")["dialog"])
+			self.assertTrue(get_form_layouts(QUICK_ENTRY_DT, "New Record")["fallback"])
+
 	def test_create_layouts_refuse_without_read_or_create(self):
 		with set_user(a_creator()):
 			for type in ("Quick Entry", "New Record"):
@@ -421,3 +454,5 @@ class TestCreateLayouts(IntegrationTestCase):
 	def test_new_doc_needs_the_create_right(self):
 		with set_user(a_creator()):
 			self.assertRaises(frappe.PermissionError, get_new_doc, "Role")
+		with set_user(a_reader()):
+			self.assertRaises(frappe.PermissionError, get_new_doc, QUICK_ENTRY_DT)
