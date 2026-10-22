@@ -99,6 +99,17 @@ describe("useUploader", () => {
     expect(uploader.errors.value[0]).toMatch(/already in the list/);
   });
 
+  it("clears errors when an item is removed", () => {
+    const uploader = useUploader({
+      transport: fakeTransport(),
+      multiple: true,
+    });
+    uploader.add([makeFile("a.txt", 100)]);
+    uploader.add([makeFile("a.txt", 100)]);
+    uploader.remove(uploader.items[0].id);
+    expect(uploader.errors.value).toEqual([]);
+  });
+
   it("reorders queue items", () => {
     const uploader = useUploader({
       transport: fakeTransport(),
