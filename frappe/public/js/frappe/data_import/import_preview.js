@@ -685,6 +685,11 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		this._mapping_dropdown_scroll_handler = reposition_open_dropdowns;
 	}
 
+	/** Latest date-format picks (saved or not); col.date_format is from the last preview fetch. */
+	get_date_format_map() {
+		return JSON.parse(this.frm?.doc?.template_options || "{}").column_to_date_format_map || {};
+	}
+
 	/** Mount calendar format pills on Date / Time / Datetime column headers. */
 	mount_date_format_controls() {
 		this._fmt_dropdowns?.forEach((dropdown) => dropdown.destroy?.());
@@ -695,13 +700,15 @@ frappe.data_import.ImportPreview = class ImportPreview {
 		const can_change_format =
 			this.events.set_column_date_format && this.frm?.doc?.status !== "Success";
 
+		const date_formats = this.get_date_format_map();
 		this.$table_preview.find(".diw-col-map-fmt-mount").each((_, mount) => {
 			const i = cint(mount.getAttribute("data-col-index"));
 			const col = this.preview_data.columns[i];
 			if (!col?.df) return;
 
-			const fmt_label = col.date_format
-				? date_format_label(col.date_format)
+			const current_format = date_formats[i - 1] || col.date_format;
+			const fmt_label = current_format
+				? date_format_label(current_format)
 				: __("Select format");
 			const $btn = frappe.ui.button({
 				icon: "calendar",
@@ -721,12 +728,13 @@ frappe.data_import.ImportPreview = class ImportPreview {
 				side: "bottom",
 				align: "end",
 				options: () => {
-					const current = col.date_format || "";
+					// Read fresh: a pick updates template_options without remounting.
+					const current = this.get_date_format_map()[i - 1] || col.date_format || "";
 					const formats = get_date_format_options(col.df.fieldtype);
-					if (current && !formats.some((o) => o.value === current)) {
+					if (col.date_format && !formats.some((o) => o.value === col.date_format)) {
 						formats.unshift({
-							value: current,
-							label: date_format_label(current),
+							value: col.date_format,
+							label: date_format_label(col.date_format),
 							detected: true,
 						});
 					}
@@ -736,7 +744,12 @@ frappe.data_import.ImportPreview = class ImportPreview {
 							options: formats.map((o) => ({
 								label: o.detected ? __("{0} (detected)", [o.label]) : o.label,
 								selected: o.value === current,
-								onclick: () => this.events.set_column_date_format(i - 1, o.value),
+								onclick: () => {
+									$btn.find(".es-button__label").text(
+										date_format_label(o.value)
+									);
+									this.events.set_column_date_format(i - 1, o.value);
+								},
 							})),
 						},
 					];

@@ -20,8 +20,6 @@ import os
 import typing
 from datetime import datetime, timedelta
 
-import click
-
 import frappe
 from frappe import _, _lt
 from frappe.model import (
@@ -32,12 +30,11 @@ from frappe.model import (
 	optional_fields,
 	table_fields,
 )
-from frappe.model.base_document import (
+from frappe.model.document import (
 	DOCTYPE_TABLE_FIELDS,
 	TABLE_DOCTYPES_FOR_DOCTYPE,
-	BaseDocument,
+	Document,
 )
-from frappe.model.document import Document
 from frappe.model.utils import is_single_doctype
 from frappe.model.workflow import get_workflow_name
 from frappe.modules import load_doctype_module
@@ -119,9 +116,9 @@ def load_doctype_from_file(doctype):
 	for d in txt.get("permissions", []):
 		d["doctype"] = "DocPerm"
 
-	txt["fields"] = [BaseDocument(d) for d in txt["fields"]]
+	txt["fields"] = [Document(d) for d in txt["fields"]]
 	if "permissions" in txt:
-		txt["permissions"] = [BaseDocument(d) for d in txt["permissions"]]
+		txt["permissions"] = [Document(d) for d in txt["permissions"]]
 
 	return txt
 
@@ -975,6 +972,8 @@ def trim_tables(doctype=None, dry_run=False, quiet=False):
 	as maintenance since removing a field in a DocType doesn't automatically
 	delete the db field.
 	"""
+	import click
+
 	UPDATED_TABLES = {}
 	filters = {"issingle": 0, "is_virtual": 0}
 	if doctype:
@@ -1004,11 +1003,17 @@ def trim_table(doctype, dry_run=True):
 	ignore_fields = default_fields + optional_fields + child_table_fields
 	columns = frappe.db.get_table_columns(doctype)
 	fields = frappe.get_meta(doctype, cached=False).get_fieldnames_with_value()
+	# docfields never get generated columns, so the controller owns these
+	generated_columns = {
+		column.name
+		for column in frappe.db.get_table_columns_description(f"tab{doctype}")
+		if column.is_generated
+	}
 
 	def is_internal(field):
 		return field not in ignore_fields and not field.startswith("_")
 
-	columns_to_remove = [f for f in list(set(columns) - set(fields)) if is_internal(f)]
+	columns_to_remove = [f for f in list(set(columns) - set(fields) - generated_columns) if is_internal(f)]
 	DROPPED_COLUMNS = columns_to_remove[:]
 
 	if columns_to_remove and not dry_run:
@@ -1054,7 +1059,7 @@ def _serialize(doc, no_nulls=False, *, is_child=False):
 				continue
 
 			if isinstance(value, ListOrTuple):
-				if value and isinstance(value[0], BaseDocument):
+				if value and isinstance(value[0], Document):
 					out[key] = [_serialize(d, no_nulls=no_nulls, is_child=True) for d in value]
 
 				continue

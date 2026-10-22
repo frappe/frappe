@@ -21,7 +21,6 @@ from urllib.parse import parse_qsl, quote, urlencode, urljoin, urlparse, urlunpa
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 import orjson
-from click import secho
 from dateutil import parser
 from dateutil.parser import ParserError
 from dateutil.relativedelta import relativedelta
@@ -60,6 +59,7 @@ if typing.TYPE_CHECKING:
 	from collections.abc import Mapping
 
 	from PIL.ImageFile import ImageFile as PILImageFile
+	from werkzeug.wrappers import Request
 
 	T = TypeVar("T")
 
@@ -1021,6 +1021,8 @@ def has_common(l1: typing.Hashable, l2: typing.Hashable) -> bool:
 
 def cast_fieldtype(fieldtype, value, show_warning=True):
 	if show_warning:
+		from click import secho
+
 		message = (
 			"Function `frappe.utils.data.cast_fieldtype` has been deprecated in favour"
 			" of `frappe.utils.data.cast`. Use the newer util for safer type casting."
@@ -1887,7 +1889,7 @@ def comma_or(some_list: list | tuple, add_quotes=True) -> str:
 
 	try:
 		locale = Locale.parse(frappe.local.lang, sep="-")
-		pattern = locale.list_patterns["or"]["end"]
+		pattern = locale.list_patterns["or"]["2" if len(some_list) == 2 else "end"]
 	except Exception:
 		pattern = frappe._("{0} or {1}")
 
@@ -1905,7 +1907,7 @@ def comma_and(some_list: list | tuple, add_quotes=True) -> str:
 
 	try:
 		locale = Locale.parse(frappe.local.lang, sep="-")
-		pattern = locale.list_patterns["standard"]["end"]
+		pattern = locale.list_patterns["standard"]["2" if len(some_list) == 2 else "end"]
 	except Exception:
 		pattern = frappe._("{0} and {1}")
 
@@ -2022,11 +2024,19 @@ def get_url(
 	return urljoin(host_name, uri) if uri else host_name
 
 
+def get_request_host(request: "Request") -> str:
+	return request.host or request.headers.get("Host", "")
+
+
 def get_host_name_from_request() -> str:
 	"""Return the hostname (`request.host`) from the request headers."""
-	if hasattr(frappe.local, "request") and frappe.local.request and frappe.local.request.host:
+	if (
+		hasattr(frappe.local, "request")
+		and frappe.local.request
+		and (host := get_request_host(frappe.local.request))
+	):
 		protocol = "https://" if "https" == frappe.get_request_header("X-Forwarded-Proto", "") else "http://"
-		return protocol + frappe.local.request.host
+		return protocol + host
 
 
 def url_contains_port(url: str) -> bool:
@@ -2122,7 +2132,7 @@ def get_absolute_url(doctype: str, name: str) -> str:
 
 	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/desk/sales-invoice/INV-00001'
 	"""
-	return f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
+	return f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
@@ -2134,7 +2144,7 @@ def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	if not name:
 		uri = f"/desk/{quoted(slug(doctype))}"
 	else:
-		uri = f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
+		uri = f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 	return get_url(uri=uri)
 
@@ -2159,9 +2169,9 @@ def get_url_to_report(name, report_type: str | None = None, doctype: str | None 
 	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/desk/sales-invoice/view/report/Revenue'
 	"""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quoted(name)}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quote(cstr(name), safe='')}")
 	else:
-		return get_url(uri=f"/desk/query-report/{quoted(name)}")
+		return get_url(uri=f"/desk/query-report/{quote(cstr(name), safe='')}")
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
@@ -2169,7 +2179,7 @@ def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None
 	if report_type == "Report Builder":
 		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report?{filters}")
 
-	return get_url(uri=f"/desk/query-report/{quoted(name)}?{filters}")
+	return get_url(uri=f"/desk/query-report/{quote(cstr(name), safe='')}?{filters}")
 
 
 def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:

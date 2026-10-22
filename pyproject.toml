@@ -9,29 +9,29 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
-    "Babel~=2.16.0",
+    "Babel~=2.18.0",
     "Click~=8.4.1",
     "filelock~=3.20.1",
     "filetype~=1.2.0",
     "GitPython~=3.1.45",
     "Jinja2~=3.1.6",
     "Pillow~=12.3.0",
-    "PyJWT~=2.13.0",
+    "PyJWT~=2.15.0",
     "duckdb~=1.4.3",
     "pyarrow~=25.0.0",
     # We depend on internal attributes,
     # do NOT add loose requirements on PyMySQL versions.
     "PyMySQL==1.1.2",
-    "pypdf==6.15.0",
+    "pypdf==6.19.0",
     "PyPika @ git+https://github.com/frappe/pypika@7ef6e40215d46cd531e8c4e58650b84c11abbd04",
     "mysqlclient==2.2.7",
     "PyQRCode~=1.2.1",
     "PyYAML~=6.0.3",
     "RestrictedPython~=8.5",
-    "WeasyPrint==68.0",
+    "WeasyPrint==70.0",
     "typst~=0.15.0",
     "pydyf==0.12.1",
-    "Werkzeug==3.1.6",
+    "Werkzeug==3.1.9",
     "Whoosh~=2.7.4",
     "beautifulsoup4~=4.13.5",
     "bleach-allowlist~=1.0.3",
@@ -49,7 +49,7 @@ dependencies = [
     "MarkupSafe~=3.0.3",
     "nh3~=0.3.2",
     "num2words~=0.5.14",
-    "oauthlib~=3.3.1",
+    "oauthlib~=4.0.0",
     "openpyxl~=3.1.5",
     "xlsxwriter~=3.2.9",
     "orjson~=3.11.5",
@@ -82,6 +82,7 @@ dependencies = [
     "terminaltables~=3.1.10",
     "traceback-with-variables~=2.2.1",
     "typing_extensions>=4.15.0,<5",
+    "tzdata~=2026.5",
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.2",
@@ -92,6 +93,16 @@ dependencies = [
     "vobject~=0.9.9",
     "pycountry~=24.6.1",
     "websockets~=15.0.1",
+    # realtime (Python Socket.IO server) — speaks Socket.IO v5 / Engine.IO v4,
+    # wire-compatible with the browser's socket.io-client ^4.7.1.
+    # Pin exact versions after a manual handshake check (polling + websocket upgrade).
+    "python-socketio~=5.17.0",
+    "python-engineio~=4.14.0",
+    # ASGI server for the realtime process.
+    "uvicorn~=0.54.0",
+    "a2wsgi~=1.10.10",
+    # async HTTP client for the realtime connect/auth path.
+    "httpx~=0.28.1",
 ]
 
 [project.urls]

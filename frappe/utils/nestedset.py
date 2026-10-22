@@ -48,6 +48,7 @@ def update_nsm(doc):
 	if hasattr(doc, "nsm_oldparent_field"):
 		old_parent_field = doc.nsm_oldparent_field
 
+	restore_nsm_fields(doc, old_parent_field)
 	parent, old_parent = doc.get(parent_field) or None, doc.get(old_parent_field) or None
 
 	# has parent changed (?) or parent is None (root)
@@ -62,6 +63,18 @@ def update_nsm(doc):
 	frappe.clear_document_cache(doc.doctype)
 
 	doc.reload()
+
+
+def restore_nsm_fields(doc, old_parent_field):
+	"""Replace lft, rgt and old parent sent by the client with the saved values."""
+	if doc.flags.in_insert:
+		saved = frappe._dict(lft=0, rgt=0)
+	elif not (saved := doc.get_doc_before_save()):
+		return  # not a save, e.g. on_trash
+
+	doc.lft, doc.rgt = saved.lft, saved.rgt
+	doc.set(old_parent_field, saved.get(old_parent_field))
+	frappe.db.set_value(doc.doctype, doc.name, {"lft": doc.lft, "rgt": doc.rgt}, update_modified=False)
 
 
 def update_add_node(doc, parent, parent_field):

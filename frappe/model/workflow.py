@@ -10,10 +10,10 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.model.docstatus import DocStatus
+from frappe.model.document import Document
 from frappe.utils import cint
 
 if TYPE_CHECKING:
-	from frappe.model.document import Document
 	from frappe.workflow.doctype.workflow.workflow import Workflow
 
 
@@ -203,21 +203,25 @@ def apply_workflow(doc: Document | str | dict, action: str):
 		for async_task in async_tasks:
 			frappe.enqueue(async_task, doc=doc, enqueue_after_commit=True)
 
+	from frappe.core.doctype.submission_queue.submission_queue import queue_submission
+	from frappe.utils.scheduler import is_scheduler_inactive
+
 	new_docstatus = DocStatus(next_state.doc_status or 0)
 	if doc.docstatus.is_draft() and new_docstatus.is_draft():
 		doc.save()
 	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
-		from frappe.core.doctype.submission_queue.submission_queue import queue_submission
-		from frappe.utils.scheduler import is_scheduler_inactive
-
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Submit")
-			return
+			return doc
 
 		doc.submit()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
 		doc.save()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
+		if doc.meta.queue_in_background and not is_scheduler_inactive():
+			queue_submission(doc, "Cancel")
+			return doc
+
 		doc.cancel()
 	else:
 		frappe.throw(_("Illegal Document Status for {0}").format(next_state.state))

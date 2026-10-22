@@ -8,7 +8,7 @@ from frappe.core.utils import find
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.query_builder.utils import db_type_is
 from frappe.tests import IntegrationTestCase
-from frappe.tests.test_query_builder import run_only_if
+from frappe.tests.test_query_builder import run_only_if, unimplemented_for
 from frappe.utils import cstr
 
 
@@ -265,6 +265,16 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
+	@run_only_if(db_type_is.MARIADB)
+	def test_trim_table_keeps_generated_column(self):
+		doctype = new_doctype().insert()
+		column = f"key_{frappe.generate_hash(length=6)}"
+		frappe.db.sql_ddl(
+			f"ALTER TABLE `tab{doctype.name}` ADD COLUMN `{column}` VARCHAR(140)"
+			" GENERATED ALWAYS AS (UPPER(`some_fieldname`)) STORED"
+		)
+		self.assertNotIn(column, frappe.model.meta.trim_table(doctype.name))
+
 	def test_varchar_length(self):
 		from frappe.database.schema import add_column
 
@@ -275,6 +285,21 @@ class TestDBUpdate(IntegrationTestCase):
 			f"SELECT CHARACTER_MAXIMUM_LENGTH FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'tab{test_doc.name}' AND COLUMN_NAME = '{col_name}' ",
 		)[0][0]
 		self.assertEqual(length, 64)
+
+	@run_only_if(db_type_is.MARIADB)
+	def test_generated_column_keeps_unique_index(self):
+		"""A generated column is never a deleted field, so sync must keep its unique index"""
+		doctype = new_doctype().insert()
+		table = f"tab{doctype.name}"
+		column = f"key_{frappe.generate_hash(length=6)}"
+		frappe.db.sql_ddl(
+			f"ALTER TABLE `{table}` ADD COLUMN `{column}` VARCHAR(140)"
+			" GENERATED ALWAYS AS (UPPER(`some_fieldname`)) STORED"
+		)
+		frappe.db.sql_ddl(f"CREATE UNIQUE INDEX `unique_{column}` ON `{table}` (`{column}`)")
+
+		frappe.db.updatedb(doctype.name)
+		self.assertTrue(frappe.db.has_index(table, f"unique_{column}"))
 
 
 class TestDBUpdateSanityChecks(IntegrationTestCase):

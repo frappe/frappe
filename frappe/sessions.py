@@ -164,6 +164,9 @@ def get():
 		bootinfo["metadata_version"] = reset_metadata_version()
 
 	bootinfo.notes = get_unseen_notes()
+	bootinfo.notification_unread_count = frappe.db.count(
+		"Notification Log", {"read": 0, "for_user": frappe.session.user}
+	)
 	bootinfo.assets_json = get_assets_json()
 	bootinfo.read_only = bool(frappe.flags.read_only)
 

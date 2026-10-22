@@ -4,7 +4,6 @@ import re
 from functools import wraps
 
 import frappe
-from frappe.bundler import html_to_js_template
 from frappe.utils import cstr
 from frappe.utils.caching import site_cache
 
@@ -79,6 +78,8 @@ def render_include(content):
 				with open(resolved_path, encoding="utf-8") as f:
 					include = f.read()
 					if path.endswith(".html"):
+						from frappe.bundler import html_to_js_template
+
 						include = html_to_js_template(path, include)
 
 					content = re.sub(
@@ -150,7 +151,7 @@ def is_virtual_doctype(doctype: str):
 
 @site_cache()
 def is_single_doctype(doctype: str) -> bool:
-	from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
+	from frappe.model.document import DOCTYPES_FOR_DOCTYPE
 
 	if doctype in DOCTYPES_FOR_DOCTYPE:
 		return False

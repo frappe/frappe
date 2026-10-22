@@ -36,12 +36,55 @@
 			/>
 		</InspectorSection>
 
+		<InspectorSection :label="__('Page')">
+			<InspectorRow :label="__('Paper size')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					:value="layout.page?.size || ''"
+					@change="set_page('size', $event.target.value)"
+				>
+					<option v-for="p in paper_sizes" :key="p.value" :value="p.value">
+						{{ p.label }}
+					</option>
+				</select>
+			</InspectorRow>
+			<InspectorRow :label="__('Orientation')">
+				<select
+					class="form-control form-control-sm pfb-insp-select"
+					:value="layout.page?.orientation || 'Portrait'"
+					@change="set_page('orientation', $event.target.value)"
+				>
+					<option value="Portrait">{{ __("Portrait") }}</option>
+					<option value="Landscape">{{ __("Landscape") }}</option>
+				</select>
+			</InspectorRow>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Spacing (mm)')">
 			<SpacingRow
 				:label="__('Margins')"
 				:model-value="page_margins"
 				@update:model-value="set_margins"
 			/>
+		</InspectorSection>
+
+		<InspectorSection :label="__('Page background')">
+			<ImageUploadControl
+				:model-value="layout.background?.image || ''"
+				@update:model-value="set_background_image"
+			/>
+			<SliderRow
+				v-if="layout.background?.image"
+				:label="__('Opacity')"
+				:min="0"
+				:max="100"
+				:model-value="layout.background.opacity ?? 100"
+				@update:model-value="(v) => (layout.background.opacity = v)"
+			>
+				<span class="pfb-insp-hint text-muted"
+					>{{ layout.background.opacity ?? 100 }}%</span
+				>
+			</SliderRow>
 		</InspectorSection>
 
 		<InspectorSection :label="__('Document')">
@@ -119,9 +162,11 @@ import SpacingRow from "./inspector/SpacingRow.vue";
 import InspectorSection from "./inspector/InspectorSection.vue";
 import ColorInput from "./inspector/ColorInput.vue";
 import DeskControl from "./DeskControl.vue";
+import ImageUploadControl from "./inspector/ImageUploadControl.vue";
+import SliderRow from "./inspector/SliderRow.vue";
 
 let store = inject("$store");
-let { print_format, letterhead } = store;
+let { print_format, letterhead, layout } = store;
 let { typst_blockers, legacy_blockers, has_typst_block } = store;
 
 let google_fonts = ref([]);
@@ -166,6 +211,27 @@ watch(
 	{ flush: "post" }
 );
 onUnmounted(() => hint_tooltip?.destroy());
+
+const paper_sizes = [
+	{ label: __("Default"), value: "" },
+	...["A4", "A5", "A3", "Letter", "Legal", "Tabloid"].map((s) => ({ label: s, value: s })),
+];
+
+function set_page(key, value) {
+	const page = { ...layout.value.page, [key]: value };
+	if (!page.size) delete page.size;
+	if (page.orientation !== "Landscape") delete page.orientation;
+	if (Object.keys(page).length) layout.value.page = page;
+	else delete layout.value.page;
+}
+
+function set_background_image(image) {
+	if (!image) {
+		delete layout.value.background;
+		return;
+	}
+	layout.value.background = { opacity: 100, ...layout.value.background, image };
+}
 
 function set_renderer(value) {
 	if (value !== "Typst" && has_typst_block.value) return;

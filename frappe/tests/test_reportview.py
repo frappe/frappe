@@ -4,6 +4,7 @@
 import json
 
 import frappe
+from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import _reorder_by_visible_names, export_query, extract_fieldnames, get
 from frappe.tests import IntegrationTestCase
 
@@ -57,6 +58,20 @@ class TestReportview(IntegrationTestCase):
 		unchanged = _reorder_by_visible_names(ret_no_name, fields_without_name, "DocType", ["x"])
 		self.assertEqual(unchanged, ret_no_name)
 
+	def test_reorder_by_visible_names_keeps_duplicate_name_child_rows(self):
+		fields = ["`tabDocType`.`name`", "`tabDocField`.`fieldname`"]
+		ret = [
+			("DocType", "module"),
+			("DocType", "istable"),
+			("DocField", "label"),
+		]
+		visible_names = ["DocType", "DocType", "DocField"]
+		reordered = _reorder_by_visible_names(ret, fields, "DocType", visible_names)
+		self.assertEqual(
+			reordered,
+			[("DocType", "module"), ("DocType", "istable"), ("DocField", "label")],
+		)
+
 	def test_export_query_preserves_visible_names_order(self):
 		from csv import DictReader
 		from io import StringIO
@@ -76,6 +91,41 @@ class TestReportview(IntegrationTestCase):
 			rows = list(DictReader(buf))
 		names_in_export = [row["ID"] for row in rows if row.get("ID") in desired_order]
 		self.assertEqual(names_in_export, desired_order)
+
+	def test_export_query_keeps_distinct_child_rows(self):
+		from csv import reader
+		from io import StringIO
+
+		members = ["test_rv_a@example.com", "test_rv_b@example.com", "test_rv_c@example.com"]
+		for email in members:
+			create_user(email)
+		exporter = create_user("test_rv_export@example.com")
+
+		group = frappe.get_doc(
+			{
+				"doctype": "User Group",
+				"name": "Report Export Child Rows",
+				"user_group_members": [{"user": email} for email in members],
+			}
+		).insert()
+		self.addCleanup(group.delete)
+
+		with self.set_user(exporter.name):
+			frappe.local.form_dict = frappe._dict(
+				doctype="User Group",
+				file_format_type="CSV",
+				fields=["`tabUser Group`.`name`", "`tabUser Group Member`.`user`"],
+				filters={"name": group.name},
+				# client sends the parent name once per visible child row
+				visible_names=json.dumps([group.name] * len(members)),
+			)
+			export_query()
+
+		with StringIO(frappe.response["filecontent"].decode("utf-8")) as buf:
+			rows = list(reader(buf))[1:]
+
+		exported_members = [cell for row in rows for cell in row if cell in set(members)]
+		self.assertEqual(sorted(exported_members), sorted(members))
 
 	def test_extract_fieldname(self):
 		self.assertEqual(

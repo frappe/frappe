@@ -276,3 +276,4 @@ frappe.patches.v16_0.backfill_print_settings_bulk_export_limits
 frappe.patches.v16_0.set_weasyprint_generator_for_beta_formats
 frappe.patches.v16_0.wrap_string_zones_in_beta_layouts
 frappe.patches.v16_0.set_print_format_for_doctype
+execute:frappe.db.set_single_value("System Settings", "enable_mcp", 1)

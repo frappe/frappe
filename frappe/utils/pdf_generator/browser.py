@@ -3,7 +3,7 @@ from typing import ClassVar
 from bs4 import BeautifulSoup
 
 import frappe
-from frappe.utils.data import cint, flt
+from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
@@ -61,10 +61,11 @@ class Browser:
 							page.close()
 						except Exception:
 							frappe.log_error(f"Failed to close {attr} in Chrome")
-				try:
-					self.close()
-				except Exception:
-					frappe.log_error("Failed to disconnect CDP session")
+				if getattr(self, "session", None):
+					try:
+						self.close()
+					except Exception:
+						frappe.log_error("Failed to disconnect CDP session")
 			generator.remove_browser(self.browserID)
 		if self.debug_mode:
 			generator.detach_debug_browser()
@@ -225,6 +226,17 @@ class Browser:
 		)
 		options |= {style.name: style.value for style in print_format_css if style.name in attrs}
 		self.options.update(options)
+		self._set_page_size_from_page_rule()
+
+	def _set_page_size_from_page_rule(self):
+		from frappe.www.printview import get_page_rule_size
+
+		if any(self.options.get(key) for key in ("page-size", "page-width", "page-height")):
+			return
+		css = "".join(cstr(tag.string) for tag in self.soup.find_all("style"))
+		for key, value in get_page_rule_size(css).items():
+			if not self.options.get(key):
+				self.options[key] = value
 
 	def _get_print_format_page_margins(self):
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
@@ -495,6 +507,11 @@ class PageSize:
 		"ANSI B (ledger & tabloid)": (279, 432),
 		"ANSI E": (864, 1118),
 		"ANSI D": (559, 864),
+		"C5E": (163, 229),
+		"Comm10E": (105, 241),
+		"DLE": (110, 220),
+		"Executive": (191, 254),
+		"Folio": (210, 330),
 	}
 
 	@classmethod

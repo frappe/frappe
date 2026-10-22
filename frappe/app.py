@@ -7,10 +7,9 @@ import os
 
 import orjson
 from werkzeug.exceptions import HTTPException, NotFound
-from werkzeug.middleware.profiler import ProfilerMiddleware
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.middleware.shared_data import SharedDataMiddleware
-from werkzeug.wrappers import Request, Response
+from werkzeug.wrappers import Request, Response  # nosemgrep: frappe-monkey-patching-not-allowed
 from werkzeug.wsgi import ClosingIterator
 
 import frappe
@@ -25,7 +24,7 @@ from frappe.auth import SAFE_HTTP_METHODS, UNSAFE_HTTP_METHODS, HTTPRequest, che
 from frappe.integrations.oauth2 import get_resource_url, handle_wellknown, is_oauth_metadata_enabled
 from frappe.middlewares import StaticDataMiddleware
 from frappe.permissions import handle_does_not_exist_error
-from frappe.utils import CallbackManager, cint, get_site_name
+from frappe.utils import CallbackManager, cint, get_request_host, get_site_name
 from frappe.utils.data import escape_html
 from frappe.utils.error import log_error, log_error_snapshot
 from frappe.website.page_renderers.error_page import ErrorPage
@@ -36,41 +35,17 @@ _sites_path = os.environ.get("SITES_PATH", ".")
 
 
 # If gc.freeze is done then importing modules before forking allows us to share the memory
-import gettext
+from frappe._optimizations import preload_database_drivers, preload_modules
 
-import babel
-import babel.messages
-import nh3
-import num2words
-import pydantic
-
-import frappe.boot
-import frappe.client
-import frappe.core.doctype.file.file
-import frappe.core.doctype.user.user
-import frappe.database.mariadb.mysqlclient  # Load database related utils
-import frappe.database.query
-import frappe.desk.desktop  # workspace
-import frappe.desk.form.save
-import frappe.model.db_query
-import frappe.query_builder
-import frappe.utils.background_jobs  # Enqueue is very common
-import frappe.utils.data  # common utils
-import frappe.utils.jinja  # web page rendering
-import frappe.utils.jinja_globals
-import frappe.utils.redis_wrapper  # Exact redis_wrapper
-import frappe.utils.safe_exec
-import frappe.utils.typing_validations  # any whitelisted method uses this
-import frappe.website.path_resolver  # all the page types and resolver
-import frappe.website.router  # Website router
-import frappe.website.website_generator  # web page doctypes
+preload_modules()
+preload_database_drivers()
 
 # end: module pre-loading
 
 # better werkzeug default
 # this is necessary because frappe desk sends most requests as form data
 # and some of them can exceed werkzeug's default limit of 500kb
-Request.max_form_memory_size = None
+Request.max_form_memory_size = None  # nosemgrep: frappe-monkey-patching-not-allowed
 
 
 # Callbacks that run after every response, before any deferred during the request
@@ -212,7 +187,7 @@ def run_after_request_hooks(request, response):
 
 
 def init_request(request):
-	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(request.host)
+	site = _site or request.headers.get("X-Frappe-Site-Name") or get_site_name(get_request_host(request))
 	try:
 		frappe.init(site, sites_path=_sites_path, force=True, is_request=True)
 	finally:
@@ -267,7 +242,7 @@ def log_request(request, response):
 	if hasattr(frappe.local, "conf") and frappe.local.conf.enable_frappe_logger:
 		frappe.logger("frappe.web", allow_site=frappe.local.site).info(
 			{
-				"site": get_site_name(request.host),
+				"site": frappe.local.site,
 				"remote_addr": getattr(request, "remote_addr", "NOTFOUND"),
 				"pid": os.getpid(),
 				"user": getattr(frappe.local.session, "user", "NOTFOUND"),
@@ -397,7 +372,12 @@ def handle_exception(e):
 		# usually.
 		frappe.session.user = "Guest"
 
-	if respond_as_json:
+	if getattr(frappe.local, "mcp_request", None):
+		from frappe.mcp.transport import error_response
+
+		response = error_response(e)
+
+	elif respond_as_json:
 		# handle ajax responses first
 		# if the request is ajax, send back the trace or error message
 		response = frappe.utils.response.report_error(http_status_code)
@@ -536,6 +516,8 @@ def serve(
 	from werkzeug.serving import run_simple
 
 	if profile or os.environ.get("USE_PROFILER"):
+		from werkzeug.middleware.profiler import ProfilerMiddleware
+
 		application = ProfilerMiddleware(application, sort_by=("cumtime", "calls"), restrictions=(200,))
 
 	if not os.environ.get("NO_STATICS"):

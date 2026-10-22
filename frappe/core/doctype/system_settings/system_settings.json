@@ -125,7 +125,14 @@
   "column_break_nebx",
   "allow_clearing_link_fields",
   "api_logging_section",
-  "log_api_requests"
+  "log_api_requests",
+  "ai_agents_tab",
+  "mcp_section",
+  "enable_mcp",
+  "server_name",
+  "agent_instructions",
+  "frappectl_section",
+  "frappectl_help"
  ],
  "fields": [
   {
@@ -852,12 +859,49 @@
    "fieldtype": "Int",
    "label": "Max Zip Extract Size (MB)",
    "non_negative": 1
+  },
+  {
+   "fieldname": "ai_agents_tab",
+   "fieldtype": "Tab Break",
+   "label": "AI Agents"
+  },
+  {
+   "fieldname": "mcp_section",
+   "fieldtype": "Section Break",
+   "label": "MCP Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_mcp",
+   "fieldtype": "Check",
+   "label": "Enable MCP"
+  },
+  {
+   "description": "Name shown to AI clients. Defaults to the site's host name.",
+   "fieldname": "server_name",
+   "fieldtype": "Data",
+   "label": "Server Name"
+  },
+  {
+   "description": "Tell AI agents what this site is for and how your team uses it. Agents receive this text when they connect.",
+   "fieldname": "agent_instructions",
+   "fieldtype": "Long Text",
+   "label": "Agent Instructions"
+  },
+  {
+   "fieldname": "frappectl_section",
+   "fieldtype": "Section Break",
+   "label": "frappectl"
+  },
+  {
+   "fieldname": "frappectl_help",
+   "fieldtype": "HTML"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-10-22 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

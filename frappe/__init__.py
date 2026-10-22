@@ -1496,6 +1496,8 @@ def logger(
 
 
 def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=False):
+	from urllib.parse import quote
+
 	from frappe.desk.utils import slug
 	from frappe.utils.data import quoted
 
@@ -1512,7 +1514,7 @@ def get_desk_link(doctype, name, show_title_with_name=False, open_in_new_tab=Fal
 	return html.format(
 		doctype=quoted(slug(doctype)),
 		name=name,
-		encoded_name=quoted(name),
+		encoded_name=quote(cstr(name), safe=""),
 		doctype_local=_(doctype),
 		title_local=_(title),
 		target=target_attr,

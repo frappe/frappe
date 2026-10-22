@@ -3,8 +3,6 @@
 
 from datetime import time, timedelta
 
-import pyarrow as pa
-
 import frappe
 from frappe import qb
 from frappe.database import get_duckdb
@@ -108,6 +106,8 @@ def start_data_sync(docname: str):
 
 
 def sync_using_pyarrow(conn, dt, duck_tb):
+	import pyarrow as pa
+
 	conn.execute(f'delete from "{duck_tb.table_name}";').fetchall()
 
 	_dt = qb.DocType(dt)

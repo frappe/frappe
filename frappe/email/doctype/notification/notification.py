@@ -120,7 +120,7 @@ class Notification(Document):
 				context.update({"alert": self, "comments": get_comments_for_context(doc)})
 				if self.is_standard:
 					self.load_standard_properties(context)
-				msg = frappe.render_template(self.message, context)
+				msg = frappe.render_template(self.message, context, restrict_globals=True)
 			if self.channel == "SMS":
 				return frappe.utils.strip_html_tags(msg)
 			return msg
@@ -141,7 +141,7 @@ class Notification(Document):
 			if not self.subject:
 				return _("No subject")
 			if "{" in self.subject:
-				return frappe.render_template(self.subject, context)
+				return frappe.render_template(self.subject, context, restrict_globals=True)
 			return self.subject
 		except Exception as e:
 			return _("Failed to render subject: {}").format(str(e))
@@ -475,7 +475,7 @@ def get_context(context):
 			if not (template and "{" in template):
 				return template
 			return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
-				template, context
+				template, context, restrict_globals=True
 			)
 
 		if template_content is None:
@@ -524,8 +524,8 @@ def get_context(context):
 		else:
 			subject = self.subject
 			if "{" in subject:
-				subject = frappe.render_template(self.subject, context)
-			message = frappe.render_template(self.message, context)
+				subject = frappe.render_template(self.subject, context, restrict_globals=True)
+			message = frappe.render_template(self.message, context, restrict_globals=True)
 
 		attachments = self.get_attachment(doc)
 		recipients, cc, bcc = self.get_list_of_recipients(doc, context)
@@ -583,7 +583,7 @@ def get_context(context):
 	def send_a_slack_msg(self, doc, context):
 		send_slack_message(
 			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context),
+			message=frappe.render_template(self.message, context, restrict_globals=True),
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
 		)
@@ -591,7 +591,9 @@ def get_context(context):
 	def send_sms(self, doc, context):
 		send_via_sms_gateway(
 			receiver_list=self.get_receiver_list(doc, context, "mobile_no", self.get_mobile_no),
-			msg=frappe.utils.strip_html_tags(frappe.render_template(self.message, context)),
+			msg=frappe.utils.strip_html_tags(
+				frappe.render_template(self.message, context, restrict_globals=True)
+			),
 		)
 
 	@staticmethod
@@ -742,9 +744,11 @@ def get_context(context):
 				"print_format": self.print_format,
 				"print_letterhead": print_settings.with_letterhead,
 				"lang": doc.get("language")
-				or frappe.db.get_value("Print Format", self.print_format, "default_print_language")
-				if self.print_format
-				else "en",
+				or (
+					frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+					if self.print_format
+					else "en"
+				),
 			}
 
 	def get_template(self, md_as_html=False):
@@ -951,7 +955,7 @@ def get_emails_from_template(template, context):
 	if not template:
 		return ()
 
-	emails = frappe.render_template(template, context) if "{" in template else template
+	emails = frappe.render_template(template, context, restrict_globals=True) if "{" in template else template
 	return filter(None, emails.replace(",", "\n").split("\n"))
 
 
