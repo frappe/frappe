@@ -200,10 +200,6 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			bar_corner_radius: 4,
 			hover_on_date: true,
 			infinite_padding: false,
-			scroll_to: this.tasks
-				.map((task) => task.start)
-				.filter(Boolean)
-				.sort()[0],
 			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
 			readonly: !me.can_write,
