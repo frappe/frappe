@@ -51,6 +51,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.assertEqual(path, pilot_path("start"))
 		self.assertEqual(data["provider"], "microsoft")
 		self.assertEqual(data["return_url"], "http://hd.localhost:8000" + email_oauth.CALLBACK_PATH)
+		self.assertNotIn("login_hint", data)
 
 		note = frappe.cache.get_value(f"pkce_verifier:{data['state']}")
 		self.assertEqual(
@@ -160,7 +161,9 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.assertEqual(
 			email_oauth.initiate_mailbox_connect("GMail", email_account=account), LINK["authorize_url"]
 		)
-		self.assertEqual(self.pilot.call_args.args[1]["provider"], "microsoft")
+		data = self.pilot.call_args.args[1]
+		self.assertEqual(data["provider"], "microsoft")
+		self.assertEqual(data["login_hint"], frappe.db.get_value("Email Account", account, "email_id"))
 
 	def test_reconnect_with_provider_unavailable_is_refused(self) -> None:
 		account = self.relay_mailbox()
