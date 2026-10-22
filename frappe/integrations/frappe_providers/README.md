@@ -10,30 +10,7 @@ Reconnecting a signed-out mailbox (`initiate_mailbox_connect(email_account=...)`
 
 ### Connecting a mailbox
 
-```mermaid
-sequenceDiagram
-    actor Admin
-    participant Site as Site (Desk / UI package)
-    participant FC as Frappe Cloud (via Pilot)
-    participant Provider as Mail provider
-
-    Admin->>Site: Add Email Account → Outlook → Continue
-    Site->>Site: initiate_mailbox_connect(service) picks the provider
-    Site->>FC: start(provider, state, code_challenge, return_url)
-    FC-->>Site: authorize_url, client_id, scopes
-    Note over Site: caches pkce_verifier:{state} with the verifier, for 10 minutes
-    Site-->>Admin: redirect to authorize_url
-    Admin->>Provider: sign in and consent
-    Provider->>FC: code + state
-    FC-->>Admin: redirect to the site's callback with the code
-    Admin->>Site: callback(state, code)
-    Site->>FC: relay_token(authorization_code, code, code_verifier)
-    FC->>Provider: token request with the app's secret
-    Provider-->>FC: access, refresh and id tokens
-    FC-->>Site: tokens
-    Note over Site: connect_mailbox creates a Connected App + Token Cache,<br/>then saves the Email Account (logs in over IMAP and SMTP)
-    Site-->>Admin: redirect to /desk/email-account?email_oauth=<result>
-```
+![One-click sign-in, from Add Email Account to the landing page](email_oauth_flow.png)
 
 The Connected App's Token URI is `frappe-cloud-relay:<provider>`. When its access token expires, `ConnectedApp.get_active_token` sees that prefix and refreshes through `relay_refresh`, which is `relay_token` with `grant_type=refresh_token`.
 
