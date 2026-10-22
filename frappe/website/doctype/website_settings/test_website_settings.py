@@ -51,12 +51,12 @@ class TestWebsiteSettings(IntegrationTestCase):
 	def test_patch_moves_indexing_refresh_token_to_password_field(self):
 		from frappe.patches.v17_0.encrypt_indexing_refresh_token import execute
 
-		frappe.db.set_single_value("Website Settings", "indexing_refresh_token", "test-refresh-token")
+		frappe.db.set_single_value("Website Settings", "indexing_refresh_token", "old-refresh-token")
 		execute()
 		execute()
 
 		self.assertFalse(frappe.db.get_single_value("Website Settings", "indexing_refresh_token"))
 		self.assertEqual(
 			frappe.get_doc("Website Settings").get_password("indexing_refresh_token_secret"),
-			"test-refresh-token",
+			"old-refresh-token",
 		)
