@@ -42,10 +42,9 @@ from frappe.utils.password import (
 	check_password,
 	get_password_reset_limit,
 	is_password_reused,
-	passlibctx,
+	verify_against_placeholder,
 )
 from frappe.utils.password import update_password as _update_password
-from frappe.utils.password import verify_password as _verify_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
 from frappe.www.login import sanitize_redirect
@@ -974,8 +973,7 @@ class User(Document):
 		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
 			if validate_password:
-				# keep the response time the same as for an existing user
-				_verify_password(password, _placeholder_password_hash())
+				verify_against_placeholder(password)
 			return
 
 		user = users[0]
@@ -1012,11 +1010,6 @@ class User(Document):
 
 	def validate_ip_addr(self):
 		self.restrict_ip = ",".join(self.get_restricted_ip_list())
-
-
-@lru_cache(maxsize=1)
-def _placeholder_password_hash() -> str:
-	return passlibctx.hash(frappe.generate_hash())
 
 
 @frappe.whitelist()
