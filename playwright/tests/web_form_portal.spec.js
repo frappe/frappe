@@ -148,11 +148,11 @@ test.describe("Web Form Pages", () => {
 		await page.goto(`/${PAGES_ROUTE}/new`);
 		// a page with no Page Break label is named by its position
 		await expect(label).toHaveText("Page 1");
-		await expect(hint).toHaveText("Step 1 of 3");
+		await expect(hint).toHaveText("1 of 3");
 
 		await page.locator(".btn-next").click();
 		await expect(label).toHaveText("More");
-		await expect(hint).toHaveText("Step 2 of 3");
+		await expect(hint).toHaveText("2 of 3");
 
 		await page.locator(".btn-next").click();
 		await expect(label).toHaveText("Page 3");
@@ -189,9 +189,7 @@ test.describe("Web Form Pages", () => {
 			page.locator('.web-form .frappe-control[data-fieldname="title"]')
 		).toBeVisible();
 		await expect(label).toHaveText("About You");
-		await expect(page.locator(".web-form-stepper .es-progress__hint")).toHaveText(
-			"Step 1 of 2"
-		);
+		await expect(page.locator(".web-form-stepper .es-progress__hint")).toHaveText("1 of 2");
 		// the section keeps its own heading under the page name
 		await expect(page.locator(".web-form .section-head:visible")).toHaveText(["Basics"]);
 

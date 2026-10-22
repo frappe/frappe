@@ -315,6 +315,7 @@ export default class WebForm extends frappe.ui.FieldGroup {
 				current: this.current_section,
 				label: __("Form pages"),
 				compact: true,
+				hint: (done, count) => __("{0} of {1}", [done, count]),
 			});
 			$(".web-form-stepper").append(this.stepper.$el);
 			return;
