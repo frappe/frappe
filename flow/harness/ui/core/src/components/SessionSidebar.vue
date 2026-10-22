@@ -801,10 +801,11 @@ const emptyMessage = computed(() => {
 	color: color-mix(in srgb, var(--ink-gray-7) 50%, var(--ink-gray-8));
 }
 
-/* chat and workspace names a half step over text-xs, keeping its weight and spacing; a
+/* chat and workspace names a half step over text-xs in size and weight, keeping its spacing; a
    long one fades out at the row's end */
 .row-title {
 	font-size: 13.5px;
+	font-weight: 460;
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
 	mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
 }

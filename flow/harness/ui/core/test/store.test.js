@@ -1084,14 +1084,14 @@ test("saved state lives under the host's storage key and keeps only what differs
 		assert.equal(daemon.settings.chatFontWeight, 300)
 
 		// a setting put back to its default goes as null, so every browser follows the default again
-		reloaded.setChatFontWeight(400)
+		reloaded.setChatFontWeight(450)
 		t.mock.timers.tick(500)
 		await settled()
 		assert.equal(daemon.settings.chatFontWeight, null)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:other.prefs")), false)
 		const firstAgain = createFlowStore(client, { storageKey: "flow.ui:site:user", colorScheme: scheme("dark") })
 		await settled()
-		assert.equal(firstAgain.state.prefs.chatFontWeight, 400)
+		assert.equal(firstAgain.state.prefs.chatFontWeight, 450)
 		assert.equal("chatFontWeight" in JSON.parse(backing.get("flow.ui:site:user.prefs")), false)
 	} finally {
 		globalThis.localStorage = previousStorage

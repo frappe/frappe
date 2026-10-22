@@ -349,12 +349,12 @@ body {
 }
 
 /* Conversation typography. --flow-chat-text and --flow-chat-weight are the chat text
-   settings, set on the chat's root; a host that doesn't set them gets 15px and 400. */
+   settings, set on the chat's root; a host that doesn't set them gets 15px and 450. */
 .flow-prose {
 	/* font-family: Inter; */
 	font-size: var(--flow-chat-text, 15px);
 	line-height: 1.6;
-	font-weight: var(--flow-chat-weight, 400);
+	font-weight: var(--flow-chat-weight, 450);
 	letter-spacing: normal;
 }
 /* the thread's step rows (tools, thinking, folds) sit one step under the chat text */
@@ -365,7 +365,7 @@ body {
    phones keep the 16px that stops iPhone Safari zooming into the box */
 .flow-draft > textarea,
 .flow-draft > div {
-	font-weight: var(--flow-chat-weight, 400);
+	font-weight: var(--flow-chat-weight, 450);
 }
 @media (min-width: 640px) {
 	.flow-draft > textarea,
