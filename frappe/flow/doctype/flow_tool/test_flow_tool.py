@@ -7,11 +7,10 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.daemon import lifecycle
+from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
+from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-
-from flow.daemon import lifecycle
-from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
-from flow.tools.builtins import sync_builtin_tools
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -26,7 +25,7 @@ def _module(**overrides: Any) -> dict:
 		"slug": "get_weather",
 		"type": "Imported",
 		"description": "Returns weather for a city.",
-		"import_path": "flow.tools.builtins.get_weather",
+		"import_path": "frappe.flow.tools.builtins.get_weather",
 	}
 	doc.update(overrides)
 	return doc
@@ -101,7 +100,7 @@ class TestFlowToolSystemGenerated(IntegrationTestCase):
 				change()
 		for field, value, error in (
 			("is_system_generated", 0, "Cannot remove the system-generated flag"),
-			("import_path", "flow.tools.builtins.execute", "Cannot change Import Path"),
+			("import_path", "frappe.flow.tools.builtins.execute", "Cannot change Import Path"),
 			("description", "Updated description.", "Cannot change Description"),
 		):
 			tool.reload()

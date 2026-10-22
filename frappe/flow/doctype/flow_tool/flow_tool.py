@@ -8,9 +8,8 @@ import re
 
 import frappe
 from frappe import _
+from frappe.flow.utils.system_generated import block_delete, block_rename, validate_immutable
 from frappe.model.document import Document
-
-from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
 SLUG_PATTERN = re.compile(r"^[a-z][a-z0-9_]*$")
 IMPORT_PATH_PATTERN = re.compile(r"^[a-zA-Z_][a-zA-Z0-9_]*(\.[a-zA-Z_][a-zA-Z0-9_]*)+$")
@@ -51,14 +50,14 @@ class FlowTool(Document):
 
 	def on_update(self):
 		"""`enabled` and `code` are the two edits the flow server would have to be told about."""
-		from flow.lib.session import warn_existing_sessions
+		from frappe.flow.lib.session import warn_existing_sessions
 
 		if self.has_value_changed("enabled") or self.has_value_changed("code"):
 			agents = frappe.get_all("Flow Agent Tool", filters={"tool": self.name}, pluck="parent")
 			warn_existing_sessions(agents)
 
 	def on_trash(self):
-		from flow.tools.builtins import BUILTIN_TOOLS
+		from frappe.flow.tools.builtins import BUILTIN_TOOLS
 
 		block_delete(self, always=self.name in {tool.name for tool in BUILTIN_TOOLS})
 
@@ -67,7 +66,7 @@ class FlowTool(Document):
 
 	def to_tool(self):
 		"""Resolve this row into a runtime Tool the Agent can call."""
-		from flow.lib.resolver import resolve_tool
+		from frappe.flow.lib.resolver import resolve_tool
 
 		return resolve_tool(self)
 
@@ -93,7 +92,7 @@ class FlowTool(Document):
 			if not IMPORT_PATH_PATTERN.match(self.import_path):
 				frappe.throw(
 					_(
-						"Import Path must be a dotted Python path (e.g. <code>flow.tools.builtins.search</code>)."
+						"Import Path must be a dotted Python path (e.g. <code>frappe.flow.tools.builtins.search</code>)."
 					),
 					title=_("Invalid Import Path"),
 				)
@@ -164,7 +163,7 @@ class FlowTool(Document):
 def sync_server_tools() -> None:
 	"""Mirror this site's extension tools as Server rows: add new ones, refresh
 	descriptions, and delete rows whose tool is gone along with the agent rows naming them."""
-	from flow.daemon import lifecycle
+	from frappe.flow.daemon import lifecycle
 
 	folder = lifecycle.site_extensions_dir()
 	rows = lifecycle.extension_tools([folder]) if folder.is_dir() else []

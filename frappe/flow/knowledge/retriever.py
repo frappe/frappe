@@ -39,8 +39,8 @@ def retrieve_attachments(query: str, *, session: str, limit: int = DEFAULT_LIMIT
 	if not query or not session:
 		return []
 
-	from flow.knowledge import attachment_store
-	from flow.knowledge.embedder import embed_texts
+	from frappe.flow.knowledge import attachment_store
+	from frappe.flow.knowledge.embedder import embed_texts
 
 	search_type = frappe.get_cached_value("Flow Knowledge Settings", "Flow Knowledge Settings", "search_type")
 	text = query if search_type != "Vector" else None
@@ -67,8 +67,8 @@ def retrieve(query: str, *, kbs: list[str], limit: int = DEFAULT_LIMIT) -> list[
 	if not kbs:
 		return []
 
-	from flow.knowledge import store
-	from flow.knowledge.embedder import embed_texts
+	from frappe.flow.knowledge import store
+	from frappe.flow.knowledge.embedder import embed_texts
 
 	search_type = frappe.get_cached_value("Flow Knowledge Settings", "Flow Knowledge Settings", "search_type")
 	text = query if search_type != "Vector" else None

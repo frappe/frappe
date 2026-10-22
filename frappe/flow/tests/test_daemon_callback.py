@@ -6,20 +6,25 @@ import time
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.api import api
+from frappe.flow.daemon.callback import (
+	JOB_TIMEOUT,
+	START_WITHIN,
+	callback,
+	confirm_title,
+	run_background_tool,
+)
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.lib.tool import ToolContext, tool
+from frappe.flow.memory import store as memory_store
+from frappe.flow.tests.test_fake_daemon import FakeDaemon, turn
+from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 
-from flow.api import api
-from flow.daemon.callback import JOB_TIMEOUT, START_WITHIN, callback, confirm_title, run_background_tool
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.lib.tool import ToolContext, tool
-from flow.memory import store as memory_store
-from flow.tests.test_fake_daemon import FakeDaemon, turn
-from flow.tools.builtins import sync_builtin_tools
-
 SECRET = "callback-secret"
 OWNER = "callback-owner@example.com"
-MODULE = "flow.tests.test_daemon_callback"
+MODULE = "frappe.flow.tests.test_daemon_callback"
 BOOM = "def main(reason: str) -> str:\n\traise ValueError(reason)\n"
 WHOAMI = "def main() -> str:\n\treturn frappe.session.user\n"
 
@@ -136,7 +141,7 @@ class TestToolCallback(IntegrationTestCase):
 		if agent:
 			context["agent"] = agent
 		payload = {
-			"cmd": "flow.daemon.callback.callback",  # frappe's API layer adds this to the arguments
+			"cmd": "frappe.flow.daemon.callback.callback",  # frappe's API layer adds this to the arguments
 			"callback_type": "tool",
 			"session_id": session or self.session.name,
 			"tool": name,
@@ -243,7 +248,7 @@ class TestToolCallback(IntegrationTestCase):
 		)
 
 		hit = {"attachment": "F1", "content": "refunds within thirty days", "score": 0.9}
-		with patch("flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
+		with patch("frappe.flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
 			result = self.call("search_attachments", {"query": "refund"})
 		self.assertEqual(retrieve.call_args.kwargs["session"], self.session.name)
 		self.assertEqual(
@@ -306,7 +311,7 @@ class TestToolCallback(IntegrationTestCase):
 					reply = self.call("whoami_later", result_token="t1")
 				self.assertTrue(reply.pop("pending"))
 				self.assertGreater(reply["timeout"], START_WITHIN + timeout)
-				self.assertEqual(enqueue.call_args.args, ("flow.daemon.callback.run_background_tool",))
+				self.assertEqual(enqueue.call_args.args, ("frappe.flow.daemon.callback.run_background_tool",))
 				job = enqueue.call_args.kwargs
 				self.assertEqual((job.pop("queue"), job.pop("timeout")), ("long", timeout))
 
@@ -336,7 +341,7 @@ class TestToolCallback(IntegrationTestCase):
 		stopped, late = FakeDaemon(), FakeDaemon()
 		stopped.waiting = False
 		args = (self.session.name, "whoami_later", {}, {}, "t1")
-		with patch("flow.daemon.callback.tool_callback") as tool_callback, patch("frappe.db.commit"):
+		with patch("frappe.flow.daemon.callback.tool_callback") as tool_callback, patch("frappe.db.commit"):
 			with patch.object(DaemonClient, "for_site", return_value=stopped):
 				run_background_tool(*args, start_by=time.time() + 60)
 			with patch.object(DaemonClient, "for_site", return_value=late):

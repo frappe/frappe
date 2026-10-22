@@ -7,11 +7,9 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.rq_worker.rq_worker import RQWorker
 from frappe.desk.doctype.todo.todo import ToDo
-from frappe.tests import IntegrationTestCase
-
-from flow import ToolContext
-from flow.patches.rename_read_tools import execute as rename_read_tools
-from flow.tools.builtins import (
+from frappe.flow import ToolContext
+from frappe.flow.patches.rename_read_tools import execute as rename_read_tools
+from frappe.flow.tools.builtins import (
 	BUILTIN_TOOLS,
 	create,
 	delete,
@@ -24,6 +22,7 @@ from flow.tools.builtins import (
 	sync_builtin_tools,
 	update,
 )
+from frappe.tests import IntegrationTestCase
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
@@ -510,7 +509,7 @@ class TestRenameReadTools(IntegrationTestCase):
 				"slug": "read_file",
 				"title": "Read File",
 				"type": "Imported",
-				"import_path": "flow.tools.builtins.read_file",
+				"import_path": "frappe.flow.tools.builtins.read_file",
 				"is_system_generated": 1,
 			}
 		).db_insert()

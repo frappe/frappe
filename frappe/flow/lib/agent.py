@@ -14,10 +14,10 @@ from frappe import _
 if TYPE_CHECKING:
 	from collections.abc import Iterator
 
-	from flow.flow.doctype.flow_run.flow_run import FlowRun
-	from flow.flow.doctype.flow_session.flow_session import FlowSession
-	from flow.knowledge import Knowledge
-	from flow.lib.tool import Tool
+	from frappe.flow.doctype.flow_run.flow_run import FlowRun
+	from frappe.flow.doctype.flow_session.flow_session import FlowSession
+	from frappe.flow.knowledge import Knowledge
+	from frappe.flow.lib.tool import Tool
 
 DEFAULT_MAX_ITERATIONS = 100
 
@@ -121,7 +121,7 @@ class Agent:
 
 	def new_session(self, *, title: str | None = None) -> FlowSession:
 		"""Start a conversation with this agent on the flow server."""
-		from flow.lib.session import new_session
+		from frappe.flow.lib.session import new_session
 
 		return new_session(self.name, title=title, auto_approve=self.auto_approve)
 

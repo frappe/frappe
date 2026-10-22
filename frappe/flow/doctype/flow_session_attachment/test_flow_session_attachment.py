@@ -4,11 +4,10 @@
 import io
 from unittest.mock import patch
 
-import frappe
-from frappe.tests import IntegrationTestCase
 from PIL import Image
 
-from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
+import frappe
+from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
 	MAX_ATTACHMENTS,
 	TRUNCATED,
 	build_turn,
@@ -16,8 +15,9 @@ from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
 	stage_attachment,
 	staged_attachment,
 )
+from frappe.tests import IntegrationTestCase
 
-MODULE = "flow.flow.doctype.flow_session_attachment.flow_session_attachment"
+MODULE = "frappe.flow.doctype.flow_session_attachment.flow_session_attachment"
 VISION = "flow_harness.model.catalog.model_supports_images"
 LARGE_NOTE = "[Attached file: {0} (large; relevant excerpts follow)]"
 
@@ -172,14 +172,18 @@ class TestBuildTurn(IntegrationTestCase):
 		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", self.model.name)
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
 		self.enterContext(
-			patch("flow.knowledge.embedder.embed_texts", side_effect=lambda t: [[1.0, 0, 0, 0]] * len(t))
+			patch(
+				"frappe.flow.knowledge.embedder.embed_texts", side_effect=lambda t: [[1.0, 0, 0, 0]] * len(t)
+			)
 		)
-		self.enterContext(patch("flow.knowledge.attachment_store.ensure_table"))
-		self.index_delete = self.enterContext(patch("flow.knowledge.attachment_store.delete"))
+		self.enterContext(patch("frappe.flow.knowledge.attachment_store.ensure_table"))
+		self.index_delete = self.enterContext(patch("frappe.flow.knowledge.attachment_store.delete"))
 		self.enterContext(
-			patch("flow.knowledge.retriever.retrieve_attachments", return_value=[{"content": "EXCERPT"}])
+			patch(
+				"frappe.flow.knowledge.retriever.retrieve_attachments", return_value=[{"content": "EXCERPT"}]
+			)
 		)
-		return self.enterContext(patch("flow.knowledge.attachment_store.add"))
+		return self.enterContext(patch("frappe.flow.knowledge.attachment_store.add"))
 
 	def test_text_is_inlined_once_with_the_servers_file_marker(self):
 		file_doc = _file(file_name="q&a.txt", content="the body")
@@ -248,7 +252,7 @@ class TestBuildTurn(IntegrationTestCase):
 
 		# a later turn without files searches nothing
 		self.session.save(ignore_permissions=True)
-		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
+		with patch("frappe.flow.knowledge.retriever.retrieve_attachments") as retrieve:
 			turn = build_turn(self.session, "and now?", [])
 		retrieve.assert_not_called()
 		self.assertEqual((turn.message, turn.images, turn.attachment_rows), ("and now?", [], []))
@@ -257,8 +261,8 @@ class TestBuildTurn(IntegrationTestCase):
 		self.shrink_window(10)
 		self.enable_embeddings()
 		for target, error in (
-			("flow.knowledge.embedder.embed_texts", "Could not index"),
-			("flow.knowledge.retriever.retrieve_attachments", "Could not search"),
+			("frappe.flow.knowledge.embedder.embed_texts", "Could not index"),
+			("frappe.flow.knowledge.retriever.retrieve_attachments", "Could not search"),
 		):
 			with (
 				self.subTest(error),

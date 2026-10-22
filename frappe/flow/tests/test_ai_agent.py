@@ -4,15 +4,14 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.flow import Agent, ToolContext, tool
+from frappe.flow.daemon.callback import tool_callback
+from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.knowledge import Knowledge
+from frappe.flow.lib.agent import sync_agents, sync_tools
+from frappe.flow.tests.test_fake_daemon import FakeDaemon
+from frappe.flow.tools.builtins import read_records, sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-
-from flow import Agent, ToolContext, tool
-from flow.daemon.callback import tool_callback
-from flow.daemon.client import DaemonClient
-from flow.knowledge import Knowledge
-from flow.lib.agent import sync_agents, sync_tools
-from flow.tests.test_fake_daemon import FakeDaemon
-from flow.tools.builtins import read_records, sync_builtin_tools
 
 MODEL = "Code Agent Model"
 
@@ -58,7 +57,7 @@ class TestAgent(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(

@@ -4,9 +4,8 @@
 from typing import Any
 
 import frappe
+from frappe.flow.lib.model import model_config
 from frappe.tests import IntegrationTestCase
-
-from flow.lib.model import model_config
 
 
 def _provider(**overrides: Any) -> dict:

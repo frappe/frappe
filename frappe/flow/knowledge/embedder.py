@@ -48,7 +48,7 @@ def _embedding_config() -> dict[str, Any]:
 
 
 def _model_config(model: str) -> dict[str, Any]:
-	from flow.lib.model import resolve_provider_credentials
+	from frappe.flow.lib.model import resolve_provider_credentials
 
 	doc = frappe.get_doc("Flow Model", model)
 	if not doc.enabled:

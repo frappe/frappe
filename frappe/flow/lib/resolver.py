@@ -8,12 +8,11 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
+from frappe.flow.lib.tool import Tool, ToolContext, build_schema
 from frappe.utils.safe_exec import safe_exec
 
-from flow.lib.tool import Tool, ToolContext, build_schema
-
 if TYPE_CHECKING:
-	from flow.flow.doctype.flow_tool.flow_tool import FlowTool
+	from frappe.flow.doctype.flow_tool.flow_tool import FlowTool
 
 MAIN_FUNCTION_NAME = "main"
 RESULT_VAR = "ai_tool_result"

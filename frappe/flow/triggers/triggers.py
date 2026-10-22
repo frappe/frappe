@@ -29,7 +29,7 @@ def dispatch(doc: Document, method: str | None = None) -> None:
 		if trigger.condition and not _passes_condition(trigger, doc):
 			continue
 		frappe.enqueue(
-			"flow.triggers.fire",
+			"frappe.flow.triggers.fire",
 			enqueue_after_commit=True,
 			trigger=trigger.name,
 			target_doctype=doc.doctype,
@@ -57,7 +57,7 @@ def dispatch_scheduled() -> None:
 			continue
 		if nxt <= now:
 			frappe.db.set_value("Flow Trigger", t.name, "last_fired_at", now, update_modified=False)
-			frappe.enqueue("flow.triggers.fire", trigger=t.name)
+			frappe.enqueue("frappe.flow.triggers.fire", trigger=t.name)
 
 
 def fire(
@@ -123,9 +123,8 @@ def _passes_condition(trigger, doc: Document) -> bool:
 
 
 def _eval_condition(condition: str, doc: Document) -> bool:
+	from frappe.flow.utils.conditions import evaluate_condition
 	from frappe.utils.safe_exec import get_safe_globals
-
-	from flow.utils.conditions import evaluate_condition
 
 	context = {"doc": doc, "utils": get_safe_globals().get("frappe").get("utils")}
 	try:

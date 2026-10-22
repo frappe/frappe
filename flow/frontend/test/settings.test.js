@@ -236,7 +236,7 @@ test("a provider is picked from the list, and a saved one outside it still shows
 test("a provider's models show without its prefix, a late answer for another is dropped, and a typed id stays when none come", async (t) => {
 	const field = SPECS.models.fields.find((f) => f.name === "model_id");
 	const pending = {};
-	transport.answers["flow.flow.doctype.flow_model.flow_model.get_provider_models"] = ({
+	transport.answers["frappe.flow.doctype.flow_model.flow_model.get_provider_models"] = ({
 		provider,
 	}) => new Promise((resolve) => (pending[provider] = resolve));
 	const doc = reactive({ doctype: "Flow Model", provider: "openrouter", model_id: "" });

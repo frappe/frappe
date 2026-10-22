@@ -12,13 +12,13 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any
 
-import frappe
 import pyarrow as pa
 
-from flow.knowledge.store import _connect, _ensure_fts_index, _quote
+import frappe
+from frappe.flow.knowledge.store import _connect, _ensure_fts_index, _quote
 
 if TYPE_CHECKING:
-	from flow.flow.doctype.flow_agent_memory.flow_agent_memory import FlowAgentMemory
+	from frappe.flow.doctype.flow_agent_memory.flow_agent_memory import FlowAgentMemory
 
 TABLE_NAME = "memories"
 # A turn gets at most TOP_K memories scoring at least MIN_SCORE: cosine similarity, plus
@@ -66,7 +66,7 @@ def search(query: str, *, agent: str, user: str) -> list[str]:
 	if "vector" not in table.schema.names:
 		return [row["id"] for row in keyword]
 
-	from flow.knowledge.embedder import embed_texts
+	from frappe.flow.knowledge.embedder import embed_texts
 
 	(vector,) = embed_texts([query])
 	keyword_ids = {row["id"] for row in keyword}
@@ -147,7 +147,7 @@ def _rows(table, docs: list[Any]) -> list[dict[str, Any]]:
 		for doc in docs
 	]
 	if "vector" in table.schema.names:
-		from flow.knowledge.embedder import embed_texts
+		from frappe.flow.knowledge.embedder import embed_texts
 
 		for row, vector in zip(rows, embed_texts([row["content"] for row in rows]), strict=True):
 			row["vector"] = vector

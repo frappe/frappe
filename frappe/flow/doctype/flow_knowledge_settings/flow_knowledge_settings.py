@@ -61,7 +61,7 @@ class FlowKnowledgeSettings(Document):
 		if model_unchanged and self.embedding_dimension:
 			return
 
-		from flow.knowledge.embedder import probe_dimension
+		from frappe.flow.knowledge.embedder import probe_dimension
 
 		self.embedding_dimension = probe_dimension(self.embedding_model)
 

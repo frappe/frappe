@@ -10,13 +10,14 @@ import logging
 import re
 from dataclasses import dataclass, field
 
-import frappe
 import redis.asyncio
-from frappe.realtime import Socket, realtime
-from frappe.realtime.config import get_config
 from redis.exceptions import RedisError
 
-logger = logging.getLogger("flow.realtime")
+import frappe
+from frappe.realtime import Socket, realtime
+from frappe.realtime.config import get_config
+
+logger = logging.getLogger("frappe.flow.realtime")
 
 EVENT = "flow:event"
 RESYNC = "flow:resync"

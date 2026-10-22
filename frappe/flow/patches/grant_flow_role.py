@@ -1,6 +1,5 @@
 import frappe
-
-from flow.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 
 FLOW_USER_ROLE_PROFILE = "Frappe Flow User"
 

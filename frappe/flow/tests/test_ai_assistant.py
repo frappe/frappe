@@ -5,19 +5,18 @@ import shutil
 from unittest.mock import patch
 
 import frappe
-from frappe.tests import IntegrationTestCase
-from frappe.utils import get_weekday, today
-
-from flow.assistant import (
+from frappe.flow.assistant import (
 	ASSISTANT_AGENT_TITLE,
 	ASSISTANT_INSTRUCTIONS,
 	sync_assistant_skills,
 	sync_builtin_assistant,
 )
-from flow.assistant.assistant import ASSISTANT_MAX_ITERATIONS
-from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
-from flow.flow.doctype.flow_skill.test_flow_skill import AppSkills
-from flow.tools.builtins import BUILTIN_TOOLS
+from frappe.flow.assistant.assistant import ASSISTANT_MAX_ITERATIONS
+from frappe.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
+from frappe.flow.doctype.flow_skill.test_flow_skill import AppSkills
+from frappe.flow.tools.builtins import BUILTIN_TOOLS
+from frappe.tests import IntegrationTestCase
+from frappe.utils import get_weekday, today
 
 
 class TestSyncBuiltinAssistant(IntegrationTestCase):
@@ -57,7 +56,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 	def test_install_adds_builtin_tools_before_any_model(self):
 		self.assertIn(
-			"flow.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="flow")
+			"frappe.flow.assistant.sync_builtin_assistant", frappe.get_hooks("after_install", app_name="flow")
 		)
 		frappe.db.set_value("Flow Agent", ASSISTANT_AGENT_TITLE, "is_system_generated", 0)
 		frappe.delete_doc("Flow Agent", ASSISTANT_AGENT_TITLE, ignore_permissions=True)
@@ -121,7 +120,9 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 
 	def test_the_assistant_follows_every_app_skill_past_the_desk_cap(self):
 		for hook in ("after_app_install", "after_app_uninstall"):
-			self.assertIn("flow.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="flow"))
+			self.assertIn(
+				"frappe.flow.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="flow")
+			)
 		skills = AppSkills(self)
 		names = [f"skill-{i:02d}" for i in range(MAX_SKILLS + 1)]
 		folders = [skills.write(name) for name in names]
@@ -148,7 +149,7 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		self.assertEqual([row.skill for row in doc.skills], [house.name])
 
 	def test_a_new_model_replaces_only_one_the_assistant_lost(self):
-		with patch("flow.assistant.assistant.sync_builtin_assistant") as sync:
+		with patch("frappe.flow.assistant.assistant.sync_builtin_assistant") as sync:
 			self.insert_model("Second Model")
 		sync.assert_not_called()
 

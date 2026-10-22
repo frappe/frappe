@@ -6,9 +6,8 @@ import json
 from types import SimpleNamespace
 from unittest.mock import patch
 
+from frappe.flow.realtime import handlers
 from frappe.tests import UnitTestCase
-
-from flow.realtime import handlers
 
 
 class FakePubSub:

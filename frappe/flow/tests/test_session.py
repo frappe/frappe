@@ -5,15 +5,14 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from frappe.flow.lib.session import load_session, new_session
+from frappe.flow.permissions import FLOW_USER_ROLE
+from frappe.flow.tests.test_fake_daemon import FakeDaemon
+from frappe.flow.tests.test_live_server import LiveServerCase
+from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
-from flow.lib.session import load_session, new_session
-from flow.permissions import FLOW_USER_ROLE
-from flow.tests.test_fake_daemon import FakeDaemon
-from flow.tests.test_live_server import LiveServerCase
-from flow.tools.builtins import sync_builtin_tools
 
 OTHER = "session-other@example.com"
 
@@ -37,7 +36,7 @@ class ServerCase(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(
@@ -87,7 +86,7 @@ class TestNewSession(ServerCase):
 			new_session(self.agent.name)
 
 	def test_new_session_defaults_to_the_assistant_under_the_same_read_checks(self):
-		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+		from frappe.flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		session = new_session()
@@ -262,7 +261,7 @@ class TestLiveSession(LiveServerCase):
 		session.set_title("Renamed")
 		self.assertEqual(self.client.get_session(session.name)["title"], "Renamed")
 		self.assertEqual((session.abort(), session.cancel_pending()), ("idle", "idle"))
-		with patch("flow.knowledge.attachment_store.delete"):
+		with patch("frappe.flow.knowledge.attachment_store.delete"):
 			session.delete()
 		with self.assertRaises(DaemonError) as caught:
 			self.client.get_session(session.name)
@@ -307,5 +306,5 @@ class TestLiveSession(LiveServerCase):
 			[(b["type"], b.get("kind")) for b in message["content"]],
 			[("text", None), ("attachment", "image")],
 		)
-		with patch("flow.knowledge.attachment_store.delete"):
+		with patch("frappe.flow.knowledge.attachment_store.delete"):
 			session.delete()

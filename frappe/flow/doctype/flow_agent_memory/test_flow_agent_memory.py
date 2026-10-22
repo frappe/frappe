@@ -5,11 +5,10 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.memory import store
+from frappe.flow.memory.memory import memory_block, save_memory
+from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-
-from flow.memory import store
-from flow.memory.memory import memory_block, save_memory
-from flow.tools.builtins import sync_builtin_tools
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -135,7 +134,7 @@ class TestSaveMemory(MemoryCase):
 		self.assertEqual((doc.scope, doc.user, doc.content), ("Agent", None, "Widget A maps to WGT-002."))
 
 	def test_a_write_it_may_not_make_is_refused(self):
-		with patch("flow.memory.memory.MAX_ACTIVE_MEMORIES", 1):
+		with patch("frappe.flow.memory.memory.MAX_ACTIVE_MEMORIES", 1):
 			mine = save_memory(self.agent.name, content="Mine.", scope="agent")["memory_id"]
 			with self.subTest("an add past the limit"), self.assertRaises(frappe.ValidationError):
 				save_memory(self.agent.name, content="Second.", scope="agent")
@@ -154,7 +153,7 @@ class TestSaveMemory(MemoryCase):
 
 		with (
 			self.subTest("the index is down"),
-			patch("flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")),
+			patch("frappe.flow.memory.store.ensure_table", side_effect=RuntimeError("lance down")),
 			self.assertRaises(RuntimeError),
 		):
 			save_memory(self.agent.name, content=ACME, scope="agent")
@@ -179,7 +178,7 @@ class TestKeywordRetrieval(MemoryCase):
 		self.assertEqual(self.block("Where do we bill Acme?", agent=other.name), "")  # no memory tool
 
 		with (
-			patch("flow.memory.store.search", side_effect=RuntimeError("index broken")),
+			patch("frappe.flow.memory.store.search", side_effect=RuntimeError("index broken")),
 			patch("frappe.log_error") as log_error,
 		):
 			self.assertEqual(self.block("Where do we bill Acme?"), "")
@@ -212,7 +211,9 @@ class TestHybridRetrieval(MemoryCase):
 	def setUp(self):
 		super().setUp()
 		_settings(embedding_model=self.model.name, embedding_dimension=DIM)
-		self.embed = self.enterContext(patch("flow.knowledge.embedder.embed_texts", side_effect=_embed))
+		self.embed = self.enterContext(
+			patch("frappe.flow.knowledge.embedder.embed_texts", side_effect=_embed)
+		)
 
 	def test_similar_memories_come_best_first_above_the_score_floor(self):
 		save_memory(self.agent.name, content=FISCAL, scope="agent")
@@ -228,7 +229,7 @@ class TestHybridRetrieval(MemoryCase):
 
 		block = self.block("Bill Acme for the widgets.")
 		self.assertLess(block.index(acme["memory_id"]), block.index(widget["memory_id"]))
-		with patch("flow.memory.store.TOP_K", 1):
+		with patch("frappe.flow.memory.store.TOP_K", 1):
 			block = self.block("Bill Acme for the widgets.")
 		self.assertIn(acme["memory_id"], block)
 		self.assertNotIn(widget["memory_id"], block)

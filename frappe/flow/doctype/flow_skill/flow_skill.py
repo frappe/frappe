@@ -9,9 +9,8 @@ from pathlib import Path
 
 import frappe
 from frappe import _
+from frappe.flow.utils.system_generated import block_delete, block_rename, validate_immutable
 from frappe.model.document import Document
-
-from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
 MAX_DESCRIPTION_LENGTH = 1024
 

@@ -3,7 +3,7 @@
 
 """A scripted flow server: every turn finishes at once as rows the log recorder reads back."""
 
-from flow.daemon.client import DaemonError
+from frappe.flow.daemon.client import DaemonError
 
 TITLE = "Daemon title"
 PENDING = {

@@ -6,17 +6,16 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.flow import ToolContext
+from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
+from frappe.flow.doctype.flow_skill.flow_skill import sync_skills
+from frappe.flow.doctype.flow_skill.test_flow_skill import AppSkills
+from frappe.flow.tests.test_fake_daemon import FakeDaemon
+from frappe.flow.tools.builtins import bind_load_skill, sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 from frappe.utils import today
-
-from flow import ToolContext
-from flow.assistant.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
-from flow.flow.doctype.flow_skill.flow_skill import sync_skills
-from flow.flow.doctype.flow_skill.test_flow_skill import AppSkills
-from flow.tests.test_fake_daemon import FakeDaemon
-from flow.tools.builtins import bind_load_skill, sync_builtin_tools
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 
@@ -102,7 +101,7 @@ class TestFlowAgentKnowledgeSearch(IntegrationTestCase):
 	def test_search_is_fixed_to_the_agents_knowledge_bases(self):
 		tool = self._search_tool([self.kb.name])
 		self.assertEqual(set(tool.parameters["properties"]), {"query"})
-		with patch("flow.knowledge.retriever.retrieve", return_value=[]) as retrieve:
+		with patch("frappe.flow.knowledge.retriever.retrieve", return_value=[]) as retrieve:
 			tool(query="hello", ctx=CTX)
 			with self.assertRaises(Exception):
 				tool(query="hello", kbs=["Some Other KB"], ctx=CTX)
@@ -135,7 +134,7 @@ class TestFlowAgentRun(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model_doc = frappe.get_doc(_model()).insert()
@@ -327,7 +326,7 @@ class TestFlowAgentSubAgents(IntegrationTestCase):
 
 	def setUp(self):
 		sync_builtin_tools()
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.model_doc = frappe.get_doc(_model()).insert()
 		self.child = frappe.get_doc(
 			_agent(
@@ -384,7 +383,7 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		return next(t for t in self.agent.client_tools(session) if t.name == "search_attachments")
 
 	def test_search_is_scoped_to_the_session_and_names_the_file(self):
-		with patch("flow.knowledge.retriever.retrieve_attachments") as retrieve:
+		with patch("frappe.flow.knowledge.retriever.retrieve_attachments") as retrieve:
 			self.assertEqual(self._search_tool()(query="refund", ctx=CTX), [])
 		retrieve.assert_not_called()
 
@@ -400,7 +399,7 @@ class TestFlowAgentAttachmentSearch(IntegrationTestCase):
 		tool = self._search_tool(session.name)
 		self.assertEqual(set(tool.parameters["properties"]), {"query"})
 		hit = {"attachment": file_doc.name, "content": "EXCERPT", "score": 0.5}
-		with patch("flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
+		with patch("frappe.flow.knowledge.retriever.retrieve_attachments", return_value=[hit]) as retrieve:
 			hits = tool(query="refund", ctx=CTX)
 		retrieve.assert_called_once_with("refund", session=session.name)
 		self.assertEqual(hits, [{"file": "old.txt", "content": "EXCERPT", "score": 0.5}])

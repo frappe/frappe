@@ -6,13 +6,12 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.permissions import FLOW_USER_ROLE
+from frappe.flow.tests.test_fake_daemon import FakeDaemon
+from frappe.flow.tools.builtins import sync_builtin_tools
+from frappe.flow.triggers import dispatch, dispatch_scheduled, fire
 from frappe.tests import IntegrationTestCase
-
-from flow.daemon.client import DaemonClient
-from flow.permissions import FLOW_USER_ROLE
-from flow.tests.test_fake_daemon import FakeDaemon
-from flow.tools.builtins import sync_builtin_tools
-from flow.triggers import dispatch, dispatch_scheduled, fire
 
 
 def _model(**overrides: Any) -> dict:
@@ -92,7 +91,7 @@ class TestDispatch(IntegrationTestCase):
 		with patch("frappe.enqueue") as enqueue:
 			dispatch(_Bag(doctype="ToDo", name="todo-x"), "after_insert")
 		enqueue.assert_called_once_with(
-			"flow.triggers.fire",
+			"frappe.flow.triggers.fire",
 			enqueue_after_commit=True,
 			trigger=self.trigger.name,
 			target_doctype="ToDo",
@@ -186,7 +185,7 @@ class TestDispatchScheduled(IntegrationTestCase):
 				with patch("frappe.enqueue") as enqueue:
 					dispatch_scheduled()
 				if fires:
-					enqueue.assert_called_once_with("flow.triggers.fire", trigger=self.trigger.name)
+					enqueue.assert_called_once_with("frappe.flow.triggers.fire", trigger=self.trigger.name)
 					last_fired_at = frappe.db.get_value("Flow Trigger", self.trigger.name, "last_fired_at")
 					self.assertGreater(last_fired_at, past)
 				else:
@@ -204,7 +203,7 @@ class TestFire(IntegrationTestCase):
 
 	def setUp(self):
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		self.model = frappe.get_doc(_model()).insert()

@@ -4,10 +4,9 @@
 from typing import Any
 
 import frappe
+from frappe.flow.permissions import FLOW_USER_ROLE
+from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-
-from flow.permissions import FLOW_USER_ROLE
-from flow.tools.builtins import sync_builtin_tools
 
 
 def _model(**overrides: Any) -> dict:

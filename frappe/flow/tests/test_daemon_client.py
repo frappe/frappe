@@ -8,13 +8,13 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
-import frappe
 import httpx
-from frappe.tests import IntegrationTestCase, UnitTestCase
 
-from flow.daemon import lifecycle
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.tools.builtins import sync_builtin_tools
+import frappe
+from frappe.flow.daemon import lifecycle
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.tools.builtins import sync_builtin_tools
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 TOKEN = "site-token-abc"
 
@@ -233,7 +233,7 @@ class TestLiveDaemon(IntegrationTestCase):
 		session = frappe.get_doc(
 			{"doctype": "Flow Session", "agent": self.agent.name, "title": "Live test"}
 		).insert()
-		with patch("flow.lib.model.resolve_provider_credentials", return_value={}):
+		with patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}):
 			config = session.server_config()
 		return {**config, "session_id": session_id, "model": "mock"}
 

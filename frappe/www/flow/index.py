@@ -30,7 +30,7 @@ def get_context_for_dev():
 
 
 def get_boot() -> dict:
-	from flow.api import boot
+	from frappe.flow.api import boot
 
 	csrf_token = frappe.sessions.get_csrf_token()
 	frappe.db.commit()  # the token is written to the session on first use, as /app does

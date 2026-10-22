@@ -1,7 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
-from flow.knowledge.extract import FILE_EXTENSIONS
+from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
 
 def boot_session(bootinfo):

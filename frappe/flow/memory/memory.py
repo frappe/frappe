@@ -14,8 +14,7 @@ from typing import Any
 
 import frappe
 from frappe import _
-
-from flow.memory import store
+from frappe.flow.memory import store
 
 MEMORY_TOOL_SLUG = "update_memory"
 # Per (agent, scope, user); past it, adds are refused.

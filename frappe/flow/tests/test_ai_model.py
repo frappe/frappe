@@ -2,9 +2,8 @@
 # License: MIT. See LICENSE
 
 import frappe
+from frappe.flow.lib.model import model_config
 from frappe.tests import IntegrationTestCase
-
-from flow.lib.model import model_config
 
 
 class TestModelConfig(IntegrationTestCase):

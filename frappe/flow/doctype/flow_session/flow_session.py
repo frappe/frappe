@@ -7,14 +7,13 @@ import json
 from contextlib import suppress
 from typing import TYPE_CHECKING, Any
 
-import frappe
 import redis
-from frappe import _
-from frappe.model.document import Document
 
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.daemon.lifecycle import _redis_url
-from flow.lib.session import (
+import frappe
+from frappe import _
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.daemon.lifecycle import _redis_url
+from frappe.flow.lib.session import (
 	ABANDONED,
 	GONE,
 	READ_ONLY,
@@ -25,9 +24,10 @@ from flow.lib.session import (
 	flow_server,
 	sync_with_retry,
 )
+from frappe.model.document import Document
 
 if TYPE_CHECKING:
-	from flow.flow.doctype.flow_run.flow_run import FlowRun
+	from frappe.flow.doctype.flow_run.flow_run import FlowRun
 
 COMPACT_INPUT = "/compact"  # a compaction's run has no message of its own
 
@@ -39,10 +39,9 @@ class FlowSession(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import FlowSessionAttachment
+		from frappe.flow.doctype.flow_session_message.flow_session_message import FlowSessionMessage
 		from frappe.types import DF
-
-		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import FlowSessionAttachment
-		from flow.flow.doctype.flow_session_message.flow_session_message import FlowSessionMessage
 
 		agent: DF.Link
 		attachments: DF.Table[FlowSessionAttachment]
@@ -132,9 +131,9 @@ class FlowSession(Document):
 
 	def server_config(self) -> dict[str, Any]:
 		"""This session's flow server config. Tools go as schemas; the server calls back to run them."""
-		from flow.daemon import lifecycle
-		from flow.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
-		from flow.lib.model import model_config
+		from frappe.flow.daemon import lifecycle
+		from frappe.flow.doctype.flow_agent.flow_agent import DEFAULT_MAX_ITERATIONS
+		from frappe.flow.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		if not agent.enabled:
@@ -182,12 +181,12 @@ class FlowSession(Document):
 		`attachments` are File names whose content travels with this turn; with them, `input`
 		may be empty. Once the run ends, Flow calls the function at the dotted path
 		`on_complete` with it."""
-		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import (
+		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import (
 			build_turn,
 			cleanup_indexed_files,
 		)
-		from flow.flow.doctype.flow_skill.flow_skill import expand_skill_command
-		from flow.memory.memory import memory_block
+		from frappe.flow.doctype.flow_skill.flow_skill import expand_skill_command
+		from frappe.flow.memory.memory import memory_block
 
 		if not (input or "").strip() and not attachments:
 			frappe.throw(_("Message is required."), title=_("Invalid Message"))
@@ -291,7 +290,7 @@ class FlowSession(Document):
 
 	def _assert_can_run(self) -> None:
 		"""Enforce current agent and model access before the daemon uses its stored config."""
-		from flow.lib.model import model_config
+		from frappe.flow.lib.model import model_config
 
 		agent = frappe.get_doc("Flow Agent", self.agent)
 		frappe.has_permission("Flow Agent", "read", agent.name, throw=True)
@@ -300,7 +299,7 @@ class FlowSession(Document):
 		model_config(self.model or agent.model)
 
 	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
-		from flow.lib.model import model_config
+		from frappe.flow.lib.model import model_config
 
 		config = model_config(model)
 		with flow_server() as client:
@@ -467,7 +466,7 @@ def _delete_attachment_files(sessions: list[str]) -> None:
 def _purge_attachment_chunks(session: str | list[str]) -> None:
 	"""Best-effort removal of a session's (or batch's) retrieval chunks. The chunk index is
 	disposable, so a failure here must never block deleting the session."""
-	from flow.knowledge import attachment_store
+	from frappe.flow.knowledge import attachment_store
 
 	try:
 		attachment_store.delete(session=session)

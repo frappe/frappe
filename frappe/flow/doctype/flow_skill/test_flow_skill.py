@@ -8,14 +8,13 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
-from frappe.tests import IntegrationTestCase
-
-from flow.flow.doctype.flow_skill.flow_skill import (
+from frappe.flow.doctype.flow_skill.flow_skill import (
 	MAX_GLOBAL_SKILLS,
 	skill_command,
 	skill_file,
 	sync_skills,
 )
+from frappe.tests import IntegrationTestCase
 
 EXTRA_TEST_RECORD_DEPENDENCIES = []
 IGNORE_TEST_RECORD_DEPENDENCIES = []
@@ -294,7 +293,7 @@ class TestAppSkills(IntegrationTestCase):
 				skill_file(name, path)
 		with (
 			self.subTest("larger than the cap"),
-			patch("flow.flow.doctype.flow_skill.flow_skill.MAX_SKILL_FILE_BYTES", 4),
+			patch("frappe.flow.doctype.flow_skill.flow_skill.MAX_SKILL_FILE_BYTES", 4),
 			self.assertRaisesRegex(frappe.ValidationError, "larger than"),
 		):
 			skill_file("close-todos", "SKILL.md")

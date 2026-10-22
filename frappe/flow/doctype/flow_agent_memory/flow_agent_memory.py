@@ -43,11 +43,11 @@ class FlowAgentMemory(Document):
 			self.user = None
 
 	def on_update(self):
-		from flow.memory import store
+		from frappe.flow.memory import store
 
 		store.sync(self)
 
 	def on_trash(self):
-		from flow.memory import store
+		from frappe.flow.memory import store
 
 		store.remove(self.name)

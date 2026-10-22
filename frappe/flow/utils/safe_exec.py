@@ -16,8 +16,10 @@ import mimetypes
 from functools import partial
 from typing import TYPE_CHECKING, Any
 
-import frappe
 import RestrictedPython.Guards
+from RestrictedPython import safe_globals
+
+import frappe
 from frappe import _
 from frappe.core.doctype.file.utils import find_file_by_url
 from frappe.core.utils import html2text
@@ -41,10 +43,9 @@ from frappe.utils.safe_exec import (
 	safer_get_meta,
 	safer_log_error,
 )
-from RestrictedPython import safe_globals
 
 if TYPE_CHECKING:
-	from flow.lib.tool import ToolContext
+	from frappe.flow.lib.tool import ToolContext
 
 
 def safe_exec(
@@ -188,7 +189,7 @@ _SKIP_BUILTINS = frozenset(
 def _flow_builtins(tool_context: ToolContext | None = None) -> dict[str, Any]:
 	"""The permission-checked builtins, callable as plain functions inside the sandbox.
 	`execute` and the bound tools are left out."""
-	from flow.tools.builtins import BUILTIN_TOOLS
+	from frappe.flow.tools.builtins import BUILTIN_TOOLS
 
 	return {t.name: partial(t.func, ctx=tool_context) for t in BUILTIN_TOOLS if t.name not in _SKIP_BUILTINS}
 

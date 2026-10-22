@@ -46,7 +46,7 @@ function load_provider_models(frm) {
 		return;
 	}
 	frappe.call({
-		method: "flow.flow.doctype.flow_model.flow_model.get_provider_models",
+		method: "frappe.flow.doctype.flow_model.flow_model.get_provider_models",
 		args: { provider: frm.doc.provider },
 		callback: ({ message }) => field.set_data(message || []),
 	});

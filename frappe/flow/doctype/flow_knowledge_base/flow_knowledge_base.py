@@ -3,9 +3,8 @@
 
 import frappe
 from frappe import _
+from frappe.flow.utils.system_generated import block_delete, block_rename, validate_immutable
 from frappe.model.document import Document
-
-from flow.utils.system_generated import block_delete, block_rename, validate_immutable
 
 
 class FlowKnowledgeBase(Document):
@@ -25,7 +24,7 @@ class FlowKnowledgeBase(Document):
 
 	def validate(self):
 		if self.is_new():
-			from flow.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
+			from frappe.flow.doctype.flow_knowledge_settings.flow_knowledge_settings import (
 				require_embedding_model,
 			)
 
@@ -45,6 +44,6 @@ class FlowKnowledgeBase(Document):
 			)
 
 	def after_rename(self, old: str, new: str, merge: bool = False) -> None:
-		from flow.knowledge import store
+		from frappe.flow.knowledge import store
 
 		store.rename_kb(old, new)

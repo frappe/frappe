@@ -11,12 +11,11 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
+from frappe.flow.lib.session import new_session, sync_with_retry
 from frappe.utils import cint, escape_html, get_fullname, get_url
 
-from flow.lib.session import new_session, sync_with_retry
-
 if TYPE_CHECKING:
-	from flow.flow.doctype.flow_session.flow_session import FlowSession
+	from frappe.flow.doctype.flow_session.flow_session import FlowSession
 
 FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
@@ -44,8 +43,8 @@ def boot() -> dict[str, Any]:
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
 	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
-	from flow.assistant.assistant import ASSISTANT_AGENT_TITLE
-	from flow.knowledge.extract import FILE_EXTENSIONS
+	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
 	agents = frappe.get_list(
 		"Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"], order_by="title"
@@ -284,7 +283,7 @@ def unshare_session(session: str, user: str) -> list[dict[str, Any]]:
 @frappe.whitelist(methods=["POST"])
 def set_general_access(session: str, access: str) -> str:
 	"""Open this chat to view by every Flow user, or keep it to the people added."""
-	from flow.flow.doctype.flow_session.flow_session import recheck_live_access
+	from frappe.flow.doctype.flow_session.flow_session import recheck_live_access
 
 	doc = _load_session(session, "share")
 	if access not in frappe.get_meta("Flow Session").get_options("general_access").split("\n"):
@@ -320,7 +319,7 @@ def submit_feedback(run_name: str, rating: str, comment: str | None = None) -> d
 	"""Record thumbs feedback on a finished run, or clear it with rating "None". A
 	thumbs-down comment is stored as shared agent memory when the agent has memory
 	enabled (a no-op otherwise); clearing the rating drops that memory again."""
-	from flow.memory.memory import forget_feedback_memory, save_feedback_memory
+	from frappe.flow.memory.memory import forget_feedback_memory, save_feedback_memory
 
 	if not isinstance(run_name, str) or not run_name.strip():
 		frappe.throw(_("Run is required."), title=_("Invalid Run"))
@@ -367,7 +366,7 @@ def attach_file(file: str, model: str | None = None) -> dict[str, Any]:
 		frappe.throw(_("File is required."), title=_("Invalid Attachment"))
 
 	frappe.has_permission("Flow Session", "create", throw=True)
-	from flow.flow.doctype.flow_session_attachment.flow_session_attachment import stage_attachment
+	from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import stage_attachment
 
 	return stage_attachment(file.strip(), model)
 

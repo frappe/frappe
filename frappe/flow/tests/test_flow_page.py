@@ -4,12 +4,11 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.permissions import has_app_permission
+from frappe.flow.tests.test_ai_api import OTHER, _ensure_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
-
-from flow.permissions import has_app_permission
-from flow.tests.test_ai_api import OTHER, _ensure_user
-from flow.www.flow import index
+from frappe.www.flow import index
 
 
 class TestFlowPage(IntegrationTestCase):

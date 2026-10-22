@@ -4,13 +4,12 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.flow import api
+from frappe.flow.memory import store as memory_store
+from frappe.flow.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
+from frappe.flow.patches.grant_flow_role import execute as grant_flow_role
+from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 from frappe.tests import IntegrationTestCase
-
-from flow import api
-from flow.memory import store as memory_store
-from flow.patches.grant_flow_role import FLOW_USER_ROLE_PROFILE
-from flow.patches.grant_flow_role import execute as grant_flow_role
-from flow.permissions import FLOW_USER_ROLE, ensure_flow_role
 
 ROLE_DOCTYPES = ("Flow Agent", "Flow Model", "Flow Session", "Flow Run", "Flow Skill")
 
@@ -250,7 +249,7 @@ class TestFlowAccess(IntegrationTestCase):
 						)
 				# a locked agent on a locked model still works as a sub-agent of one open to them
 				frappe.set_user(user)
-				with patch("flow.lib.model.resolve_provider_credentials", return_value={}):
+				with patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}):
 					configs = agent.subagent_configs("S1", {})
 				frappe.set_user("Administrator")
 				self.assertEqual([config["name"] for config in configs], [locked.name])

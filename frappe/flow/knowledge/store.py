@@ -17,9 +17,10 @@ import shutil
 import tempfile
 from typing import Any
 
-import frappe
 import lancedb
 import pyarrow as pa
+
+import frappe
 from frappe import _
 
 TABLE_NAME = "chunks"

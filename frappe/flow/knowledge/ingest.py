@@ -26,7 +26,7 @@ BATCH = 500
 
 def enqueue_ingestion(source: str, rebuild: bool = False) -> None:
 	frappe.enqueue(
-		"flow.knowledge.ingest.ingest_source",
+		"frappe.flow.knowledge.ingest.ingest_source",
 		queue="long",
 		enqueue_after_commit=True,
 		source=source,
@@ -47,7 +47,7 @@ def sync_due_sources() -> None:
 
 def enqueue_reconciliation(source: str) -> None:
 	frappe.enqueue(
-		"flow.knowledge.ingest.reconcile_source",
+		"frappe.flow.knowledge.ingest.reconcile_source",
 		queue="long",
 		enqueue_after_commit=True,
 		source=source,
@@ -88,7 +88,7 @@ def ingest_source(source: str, rebuild: bool = False) -> None:
 
 def purge_source(source: str) -> None:
 	"""Remove a source's chunks from both stores. Safe to call repeatedly."""
-	from flow.knowledge import store
+	from frappe.flow.knowledge import store
 
 	store.delete(source=source)
 	frappe.db.delete(CHUNK_DOCTYPE, {"source": source})
@@ -99,10 +99,10 @@ def purge_source(source: str) -> None:
 
 def _rebuild_single(doc, settings) -> None:
 	"""Re-extract, chunk, embed, and replace all chunks for a single-doc source."""
-	from flow.knowledge import store
-	from flow.knowledge.chunker import chunk_text
-	from flow.knowledge.embedder import embed_texts
-	from flow.knowledge.extract import extract
+	from frappe.flow.knowledge import store
+	from frappe.flow.knowledge.chunker import chunk_text
+	from frappe.flow.knowledge.embedder import embed_texts
+	from frappe.flow.knowledge.extract import extract
 
 	size, overlap = _chunk_params(doc, settings)
 	pieces = []
@@ -146,7 +146,7 @@ def _rebuild_single(doc, settings) -> None:
 def _sync_doctype(doc, settings) -> None:
 	"""Watermark sweep: upsert changed rows (hash-gated), then remove rows that
 	were deleted or fell out of the filter since the last sweep."""
-	from flow.knowledge.extract import _parse_filters, resolve_content_fields
+	from frappe.flow.knowledge.extract import _parse_filters, resolve_content_fields
 
 	ref = doc.reference_doctype
 	meta = frappe.get_meta(ref)
@@ -182,7 +182,7 @@ def _sync_doctype(doc, settings) -> None:
 
 
 def _upsert_page(doc, settings, meta, fields, page, matched_refs, *, track_exits) -> None:
-	from flow.knowledge.extract import _row_to_text
+	from frappe.flow.knowledge.extract import _row_to_text
 
 	to_embed = []  # (reference_name, content_hash, [pieces])
 	stale = []  # reference_names whose chunks must go (content changed or now empty)
@@ -212,8 +212,8 @@ def _upsert_page(doc, settings, meta, fields, page, matched_refs, *, track_exits
 
 
 def _embed_and_insert(doc, settings, to_embed) -> None:
-	from flow.knowledge import store
-	from flow.knowledge.embedder import embed_texts
+	from frappe.flow.knowledge import store
+	from frappe.flow.knowledge.embedder import embed_texts
 
 	all_pieces = []
 	for _, _, pieces in to_embed:
@@ -282,7 +282,7 @@ def _existing_chunk_state(source, reference_name) -> dict:
 
 
 def _purge_refs(source, reference_names) -> None:
-	from flow.knowledge import store
+	from frappe.flow.knowledge import store
 
 	for start in range(0, len(reference_names), BATCH):
 		criterion = {"source": source, "reference_name": ["in", reference_names[start : start + BATCH]]}
@@ -329,7 +329,7 @@ def _existing_names(doctype: str, names: set[str]) -> set[str]:
 
 
 def _chunk(text, doc, settings) -> list[str]:
-	from flow.knowledge.chunker import chunk_text
+	from frappe.flow.knowledge.chunker import chunk_text
 
 	size, overlap = _chunk_params(doc, settings)
 	return chunk_text(text, chunk_size=size, overlap=overlap)

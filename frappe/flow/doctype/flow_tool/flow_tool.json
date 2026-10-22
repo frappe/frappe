@@ -110,7 +110,7 @@
   },
   {
    "depends_on": "eval:doc.type === 'Imported'",
-   "description": "Dotted Python path to the <code>Tool</code> object, e.g. <code>flow.tools.builtins.search_doctypes</code>.",
+   "description": "Dotted Python path to the <code>Tool</code> object, e.g. <code>frappe.flow.tools.builtins.search_doctypes</code>.",
    "fieldname": "import_path",
    "fieldtype": "Data",
    "label": "Import Path",

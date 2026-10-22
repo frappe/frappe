@@ -4,10 +4,10 @@
 from enum import Enum
 from typing import Annotated, Literal
 
-from frappe.tests import UnitTestCase
 from pydantic import BaseModel, Field, ValidationError
 
-from flow.lib.tool import Tool, ToolContext, build_schema, tool
+from frappe.flow.lib.tool import Tool, ToolContext, build_schema, tool
+from frappe.tests import UnitTestCase
 
 CTX = ToolContext(session_id="test", agent="Test Agent", user="Administrator")
 

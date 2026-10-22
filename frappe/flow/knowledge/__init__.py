@@ -1,3 +1,3 @@
-from flow.knowledge.knowledge import Knowledge
+from frappe.flow.knowledge.knowledge import Knowledge
 
 __all__ = ["Knowledge"]

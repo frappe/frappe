@@ -4,9 +4,8 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.utils.conditions import evaluate_condition, validate_condition
 from frappe.tests import IntegrationTestCase
-
-from flow.utils.conditions import evaluate_condition, validate_condition
 
 
 class TestConditions(IntegrationTestCase):

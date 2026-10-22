@@ -16,7 +16,7 @@ from typing import Any
 
 import pyarrow as pa
 
-from flow.knowledge.store import _connect, _ensure_fts_index, _quote, _vector_dim
+from frappe.flow.knowledge.store import _connect, _ensure_fts_index, _quote, _vector_dim
 
 TABLE_NAME = "chat_attachment_chunks"
 MAX_SEARCH_LIMIT = 50

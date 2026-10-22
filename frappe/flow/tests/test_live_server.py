@@ -11,12 +11,11 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.daemon import lifecycle
+from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.doctype.flow_session.flow_session import FlowSession
+from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
-
-from flow.daemon import lifecycle
-from flow.daemon.client import DaemonClient
-from flow.flow.doctype.flow_session.flow_session import FlowSession
-from flow.tools.builtins import sync_builtin_tools
 
 TOKEN = "site-token-live"
 
@@ -75,7 +74,7 @@ class LiveServerCase(IntegrationTestCase):
 				FlowSession, "server_config", lambda doc, **kw: {**original(doc, **kw), "model": "mock"}
 			)
 		)
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 
 	def tearDown(self):
 		frappe.db.rollback()

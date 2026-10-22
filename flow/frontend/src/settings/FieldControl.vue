@@ -299,7 +299,7 @@ watch(
 		known.value = [];
 		modelsLoading.value = !!provider;
 		if (!provider) return;
-		const models = await call("flow.flow.doctype.flow_model.flow_model.get_provider_models", {
+		const models = await call("frappe.flow.doctype.flow_model.flow_model.get_provider_models", {
 			provider,
 		}).catch(() => []);
 		if (stale) return;

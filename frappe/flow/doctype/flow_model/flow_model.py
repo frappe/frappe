@@ -5,8 +5,9 @@ import re
 from typing import Any
 from urllib.parse import urlparse
 
-import frappe
 import requests
+
+import frappe
 from frappe import _
 from frappe.model.document import Document
 from frappe.model.naming import validate_name
@@ -47,7 +48,7 @@ class FlowModel(Document):
 	def after_insert(self):
 		if not self.enabled:
 			return
-		from flow.assistant import ensure_builtin_assistant
+		from frappe.flow.assistant import ensure_builtin_assistant
 
 		ensure_builtin_assistant(model=self.name)
 
@@ -134,7 +135,7 @@ class FlowModel(Document):
 				title=_("Missing Dependency"),
 			)
 
-		from flow.lib.model import resolve_provider_credentials
+		from frappe.flow.lib.model import resolve_provider_credentials
 
 		provider_creds = resolve_provider_credentials(self.model_id)
 		api_key = self.get_password("api_key", raise_exception=False) or provider_creds.get("api_key") or None

@@ -11,7 +11,7 @@ export async function loadBoot() {
 			...window.flow_boot,
 		};
 	}
-	const boot = await call("flow.www.flow.index.get_context_for_dev");
+	const boot = await call("frappe.www.flow.index.get_context_for_dev");
 	window.csrf_token = boot.csrf_token;
 	return {
 		csrf_token: boot.csrf_token,

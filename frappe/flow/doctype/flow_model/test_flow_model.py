@@ -4,12 +4,12 @@
 from typing import Any
 from unittest.mock import Mock, patch
 
-import frappe
 import litellm
 import requests
-from frappe.tests import IntegrationTestCase
 
-from flow.flow.doctype.flow_model.flow_model import _detect_context_window, get_provider_models
+import frappe
+from frappe.flow.doctype.flow_model.flow_model import _detect_context_window, get_provider_models
+from frappe.tests import IntegrationTestCase
 
 
 def _model(**overrides: Any) -> dict:

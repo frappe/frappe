@@ -76,7 +76,7 @@ class FlowTrigger(Document):
 			frappe.throw(_("Invalid cron expression: {0}").format(e), title=_("Invalid Cron"))
 
 	def _validate_condition(self):
-		from flow.utils.conditions import validate_condition
+		from frappe.flow.utils.conditions import validate_condition
 
 		validate_condition(self.condition)
 

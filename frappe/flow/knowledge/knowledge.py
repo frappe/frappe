@@ -33,7 +33,7 @@ class Knowledge:
 	def add_local_file(self, path: str, *, title: str | None = None) -> str:
 		import os
 
-		from flow.knowledge.extract import _extract_by_extension
+		from frappe.flow.knowledge.extract import _extract_by_extension
 
 		extension = os.path.splitext(path)[1].lower().lstrip(".")
 		with open(path, "rb") as handle:
@@ -62,7 +62,7 @@ class Knowledge:
 		)
 
 	def _ingest(self, **fields: object) -> str:
-		from flow.knowledge.ingest import ingest_source
+		from frappe.flow.knowledge.ingest import ingest_source
 
 		source = frappe.get_doc({"doctype": SOURCE_DOCTYPE, "knowledge_base": self.name, **fields})
 		source.flags.skip_auto_ingest = True

@@ -4,9 +4,8 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.flow.utils.safe_exec import get_flow_safe_globals, safe_exec
 from frappe.tests import IntegrationTestCase
-
-from flow.utils.safe_exec import get_flow_safe_globals, safe_exec
 
 SENDMAIL = 'frappe.sendmail(recipients=["someone@example.com"], attachments=attachments)'
 

@@ -10,10 +10,10 @@ from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
 import click
-import frappe
-from frappe.tests import UnitTestCase
 
-from flow.daemon import lifecycle
+import frappe
+from frappe.flow.daemon import lifecycle
+from frappe.tests import UnitTestCase
 
 
 class TestDaemonLifecycle(UnitTestCase):
@@ -48,7 +48,7 @@ class TestDaemonLifecycle(UnitTestCase):
 
 	def test_the_template_finds_each_site_and_calls_back_to_the_bench(self):
 		site = self.sites / "{site}"
-		method = "/api/method/flow.daemon.callback.callback"
+		method = "/api/method/frappe.flow.daemon.callback.callback"
 		with (
 			patch.object(frappe, "get_common_site_config", return_value=frappe._dict(webserver_port=8001)),
 			patch.dict(frappe.local.conf, {"flow_server_url": "https://site.example.com"}),

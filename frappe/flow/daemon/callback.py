@@ -12,13 +12,12 @@ from typing import TYPE_CHECKING, Any
 
 import frappe
 from frappe import _
-
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.lib.session import call_on_complete, sync_with_retry
-from flow.lib.tool import ToolContext
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.lib.session import call_on_complete, sync_with_retry
+from frappe.flow.lib.tool import ToolContext
 
 if TYPE_CHECKING:
-	from flow.lib.tool import Tool
+	from frappe.flow.lib.tool import Tool
 
 ERROR_LIMIT = 500
 START_WITHIN = 600  # seconds a queued call may wait to start
@@ -128,7 +127,7 @@ def _dispatch(
 def _enqueue(session_id: str, agent: str, tool: str, args: dict, result_token: str) -> dict:
 	timeout = frappe.conf.flow_background_tool_timeout or JOB_TIMEOUT
 	frappe.enqueue(
-		"flow.daemon.callback.run_background_tool",
+		"frappe.flow.daemon.callback.run_background_tool",
 		queue="long",
 		timeout=timeout,
 		session_id=session_id,

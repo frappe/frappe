@@ -2,9 +2,9 @@ import { presentEvent } from "./events.js";
 import { SessionStream } from "./stream.js";
 
 const IMAGE_FILE = /\.(png|jpe?g|gif|webp|bmp)$/i;
-const SESSION_PAGE = 100; // flow.api.LIST_LIMIT: a shorter page would never read as more
+const SESSION_PAGE = 100; // frappe.flow.api.LIST_LIMIT: a shorter page would never read as more
 
-// The store's client surface over flow.api. Sessions are Flow Session docs, models are
+// The store's client surface over frappe.flow.api. Sessions are Flow Session docs, models are
 // Flow Model docs (the daemon's provider ids are mapped back to them), attachments are
 // private Files staged through attach_file. `transport` is the page's Frappe transport
 // (frappe.js); `hooks` let the page choose the agent a new chat starts with and mirror
@@ -40,7 +40,7 @@ export class FrappeClient {
 	// --- catalog ---------------------------------------------------------------
 
 	async models() {
-		const boot = this.boot ?? (await this.transport.call("flow.api.boot"));
+		const boot = this.boot ?? (await this.transport.call("frappe.flow.api.boot"));
 		this.boot = null;
 		this.setModels(boot.models);
 		this.hooks.onBoot?.(boot);
@@ -68,7 +68,7 @@ export class FrappeClient {
 		const args = { limit: SESSION_PAGE };
 		if (query) args.query = query;
 		if (before) args.before = before;
-		const rows = await this.transport.call("flow.api.list_sessions", args);
+		const rows = await this.transport.call("frappe.flow.api.list_sessions", args);
 		return {
 			sessions: rows.map((row) => ({
 				session_id: row.name,
@@ -82,7 +82,7 @@ export class FrappeClient {
 	}
 
 	async session(sid) {
-		const data = await this.transport.call("flow.api.session", { session: sid });
+		const data = await this.transport.call("frappe.flow.api.session", { session: sid });
 		this.hooks.onSession?.(data);
 		return this.sessionInfo(data);
 	}
@@ -109,7 +109,7 @@ export class FrappeClient {
 	}
 
 	async createSession(config = {}) {
-		const data = await this.transport.call("flow.api.create_session", {
+		const data = await this.transport.call("frappe.flow.api.create_session", {
 			agent: this.hooks.agent?.() ?? null,
 			// a model the site no longer offers is left out, so the agent's is used
 			model: this.modelRows.some((m) => m.name === config.model) ? config.model : null,
@@ -123,7 +123,7 @@ export class FrappeClient {
 	}
 
 	async entries(sid, since = 0, path = "active") {
-		const data = await this.transport.call("flow.api.entries", { session: sid, since, path });
+		const data = await this.transport.call("frappe.flow.api.entries", { session: sid, since, path });
 		const entries = (data.entries ?? []).map((row) => this.present(row, sid));
 		this.hooks.onRows?.(sid, entries, { replace: path === "active" });
 		return {
@@ -151,7 +151,7 @@ export class FrappeClient {
 
 	// a run just ended and its own syncs may race this one: retry once, then stay quiet
 	async syncSession(sid) {
-		const sync = () => this.transport.call("flow.api.sync_session", { session: sid });
+		const sync = () => this.transport.call("frappe.flow.api.sync_session", { session: sid });
 		const data = await sync()
 			.catch(sync)
 			.catch(() => null);
@@ -160,11 +160,11 @@ export class FrappeClient {
 	}
 
 	async run(sid, message, attachments = []) {
-		return this.transport.call("flow.api.run", { session: sid, message, attachments });
+		return this.transport.call("frappe.flow.api.run", { session: sid, message, attachments });
 	}
 
 	resume(sid, seq, answers) {
-		return this.transport.call("flow.api.resume", {
+		return this.transport.call("frappe.flow.api.resume", {
 			session: sid,
 			answers,
 			approval_seq: seq,
@@ -172,23 +172,23 @@ export class FrappeClient {
 	}
 
 	abort(sid) {
-		return this.transport.call("flow.api.abort", { session: sid });
+		return this.transport.call("frappe.flow.api.abort", { session: sid });
 	}
 
 	cancelPending(sid) {
-		return this.transport.call("flow.api.cancel_pending", { session: sid });
+		return this.transport.call("frappe.flow.api.cancel_pending", { session: sid });
 	}
 
 	rewind(sid, targetSeq) {
-		return this.transport.call("flow.api.rewind", { session: sid, target_seq: targetSeq });
+		return this.transport.call("frappe.flow.api.rewind", { session: sid, target_seq: targetSeq });
 	}
 
 	compact(sid) {
-		return this.transport.call("flow.api.compact", { session: sid });
+		return this.transport.call("frappe.flow.api.compact", { session: sid });
 	}
 
 	async setModel(sid, { model, reasoning_effort = null }) {
-		const data = await this.transport.call("flow.api.set_model", {
+		const data = await this.transport.call("frappe.flow.api.set_model", {
 			session: sid,
 			model,
 			reasoning_effort,
@@ -203,14 +203,14 @@ export class FrappeClient {
 	async patchConfig(sid, patch) {
 		const config = { ...(this.configs.get(sid) ?? {}) };
 		if ("title" in patch) {
-			const data = await this.transport.call("flow.api.set_title", {
+			const data = await this.transport.call("frappe.flow.api.set_title", {
 				session: sid,
 				title: patch.title,
 			});
 			config.title = data.title;
 		}
 		if ("auto_approve" in patch) {
-			const data = await this.transport.call("flow.api.set_auto_approve", {
+			const data = await this.transport.call("frappe.flow.api.set_auto_approve", {
 				session: sid,
 				auto_approve: patch.auto_approve ? 1 : 0,
 			});
@@ -221,32 +221,32 @@ export class FrappeClient {
 	}
 
 	deleteSession(sid) {
-		return this.transport.call("flow.api.delete_session", { session: sid });
+		return this.transport.call("frappe.flow.api.delete_session", { session: sid });
 	}
 
 	// --- sharing ---------------------------------------------------------------
 
 	// each answers with who may view the chat now: { name, full_name, user_image }
 	shares(sid) {
-		return this.transport.call("flow.api.list_shares", { session: sid });
+		return this.transport.call("frappe.flow.api.list_shares", { session: sid });
 	}
 
 	share(sid, user) {
-		return this.transport.call("flow.api.share_session", { session: sid, user });
+		return this.transport.call("frappe.flow.api.share_session", { session: sid, user });
 	}
 
 	unshare(sid, user) {
-		return this.transport.call("flow.api.unshare_session", { session: sid, user });
+		return this.transport.call("frappe.flow.api.unshare_session", { session: sid, user });
 	}
 
 	// Flow users to share with, by name or email, in the same shape
 	findUsers(query) {
-		return this.transport.call("flow.api.find_users", { query });
+		return this.transport.call("frappe.flow.api.find_users", { query });
 	}
 
 	// "Restricted" or "Everyone" (any Flow user may view); answers with it
 	setGeneralAccess(sid, access) {
-		return this.transport.call("flow.api.set_general_access", { session: sid, access });
+		return this.transport.call("frappe.flow.api.set_general_access", { session: sid, access });
 	}
 
 	// --- attachments -----------------------------------------------------------
@@ -254,7 +254,7 @@ export class FrappeClient {
 	async prepareAttachment(file, model) {
 		const uploaded = await this.transport.uploadFile(file);
 		try {
-			const staged = await this.transport.call("flow.api.attach_file", {
+			const staged = await this.transport.call("frappe.flow.api.attach_file", {
 				file: uploaded.name,
 				model,
 			});
@@ -271,7 +271,7 @@ export class FrappeClient {
 	}
 
 	discardAttachments(ids) {
-		return this.transport.call("flow.api.cleanup_attachments", { attachments: ids });
+		return this.transport.call("frappe.flow.api.cleanup_attachments", { attachments: ids });
 	}
 
 	async uploadAttachments(_sid, files) {
@@ -286,7 +286,7 @@ export class FrappeClient {
 	}
 
 	cleanupAttachments(sid, ids) {
-		return this.transport.call("flow.api.cleanup_attachments", {
+		return this.transport.call("frappe.flow.api.cleanup_attachments", {
 			session: sid,
 			attachments: ids,
 		});
@@ -296,16 +296,16 @@ export class FrappeClient {
 
 	// the store asks a live session, or previews the agent a new chat would start with
 	skills(sid) {
-		return this.transport.call("flow.api.skills", { session: sid });
+		return this.transport.call("frappe.flow.api.skills", { session: sid });
 	}
 
 	previewSkills() {
-		return this.transport.call("flow.api.skills", { agent: this.hooks.agent?.() ?? null });
+		return this.transport.call("frappe.flow.api.skills", { agent: this.hooks.agent?.() ?? null });
 	}
 
 	// --- feedback --------------------------------------------------------------
 
 	submitFeedback(run, rating, comment = "") {
-		return this.transport.call("flow.api.submit_feedback", { run_name: run, rating, comment });
+		return this.transport.call("frappe.flow.api.submit_feedback", { run_name: run, rating, comment });
 	}
 }

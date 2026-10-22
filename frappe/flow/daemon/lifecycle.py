@@ -23,13 +23,13 @@ from pathlib import Path
 from urllib.parse import urlsplit
 
 import click
+
 import frappe
+from frappe.flow.daemon.client import DaemonClient, DaemonError
+from frappe.flow.doctype.flow_tool.flow_tool import sync_server_tools
 from frappe.installer import update_site_config
 from frappe.utils import get_bench_path
 from frappe.utils.synchronization import filelock
-
-from flow.daemon.client import DaemonClient, DaemonError
-from flow.flow.doctype.flow_tool.flow_tool import sync_server_tools
 
 START_TIMEOUT = 30
 EXTENSIONS_DIR = "extensions"
@@ -144,7 +144,7 @@ def app_sources() -> list[tuple[str, Path]]:
 
 def callback_url() -> str:
 	"""The bench's web server on loopback, or flow_server_url from common_site_config.json."""
-	return f"{_callback_base()}/api/method/flow.daemon.callback.callback"
+	return f"{_callback_base()}/api/method/frappe.flow.daemon.callback.callback"
 
 
 def _callback_base() -> str:

@@ -78,10 +78,10 @@ def sync_assistant_skills(_app: str) -> None:
 def sync_builtin_assistant(model: str | None = None) -> None:
 	"""Ensure the system Assistant agent exists and is up-to-date, with every app's skills plus
 	the skills and knowledge the site added. Called from after_migrate."""
-	from flow.flow.doctype.flow_skill.flow_skill import sync_skills
-	from flow.knowledge import Knowledge
-	from flow.lib.agent import Agent
-	from flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
+	from frappe.flow.doctype.flow_skill.flow_skill import sync_skills
+	from frappe.flow.knowledge import Knowledge
+	from frappe.flow.lib.agent import Agent
+	from frappe.flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
 	sync_builtin_tools()
 	skills = sync_skills()

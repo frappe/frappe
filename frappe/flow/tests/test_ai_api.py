@@ -6,20 +6,19 @@ from typing import Any
 from unittest.mock import patch
 
 import frappe
+from frappe.flow import api
+from frappe.flow.api import attach_file, cleanup_attachments, submit_feedback
+from frappe.flow.daemon.client import DaemonClient
+from frappe.flow.doctype.flow_session.flow_session import FlowSession
+from frappe.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
+from frappe.flow.lib.session import new_session
+from frappe.flow.memory import store as memory_store
+from frappe.flow.permissions import FLOW_USER_ROLE
+from frappe.flow.tests.test_fake_daemon import PENDING, FakeDaemon, child_pause, pause
+from frappe.flow.tests.test_live_server import LiveServerCase
+from frappe.flow.tools.builtins import sync_builtin_tools
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_url
-
-from flow import api
-from flow.api import attach_file, cleanup_attachments, submit_feedback
-from flow.daemon.client import DaemonClient
-from flow.flow.doctype.flow_session.flow_session import FlowSession
-from flow.flow.doctype.flow_session_attachment.test_flow_session_attachment import png_bytes
-from flow.lib.session import new_session
-from flow.memory import store as memory_store
-from flow.permissions import FLOW_USER_ROLE
-from flow.tests.test_fake_daemon import PENDING, FakeDaemon, child_pause, pause
-from flow.tests.test_live_server import LiveServerCase
-from flow.tools.builtins import sync_builtin_tools
 
 OTHER = "api-other-user@example.com"
 MANAGER = "api-manager@example.com"
@@ -59,7 +58,7 @@ class TestAttachFile(IntegrationTestCase):
 		).insert()
 
 	def test_attach_file_stages_the_upload_for_the_next_turn(self):
-		from flow.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
+		from frappe.flow.doctype.flow_session_attachment.flow_session_attachment import staged_attachment
 
 		file_doc = self._file()
 		chip = attach_file(f"  {file_doc.name}  ")
@@ -72,7 +71,7 @@ class TestAttachFile(IntegrationTestCase):
 		# an image is not OCRed when no model rules it out
 		image = self._file(file_name="pic.png", content=png_bytes())
 		with patch(
-			"flow.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file"
+			"frappe.flow.doctype.flow_session_attachment.flow_session_attachment.extract_file"
 		) as extract:
 			self.assertEqual(attach_file(image.name)["file_name"], "pic.png")
 		extract.assert_not_called()
@@ -250,7 +249,7 @@ class ApiCase(IntegrationTestCase):
 	def setUp(self):
 		sync_builtin_tools()
 		self.enterContext(patch.dict(frappe.local.conf, {"flow_server_secret": "site-token"}))
-		self.enterContext(patch("flow.lib.model.resolve_provider_credentials", return_value={}))
+		self.enterContext(patch("frappe.flow.lib.model.resolve_provider_credentials", return_value={}))
 		self.daemon = FakeDaemon()
 		self.enterContext(patch.object(DaemonClient, "for_site", return_value=self.daemon))
 		# a failed send writes an Error Log, which a rollback keeps
@@ -279,10 +278,10 @@ class ApiCase(IntegrationTestCase):
 class TestSessionEndpoints(ApiCase):
 	def test_every_endpoint_is_whitelisted(self):
 		for name in api.__all__:
-			frappe.is_whitelisted(frappe.get_attr(f"flow.api.{name}"))
+			frappe.is_whitelisted(frappe.get_attr(f"frappe.flow.api.{name}"))
 
 	def test_boot_lists_what_a_client_needs_and_the_users_rights(self):
-		from flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+		from frappe.flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		hidden = frappe.get_doc(_agent_doc(self.model.name, title="Hidden Agent", enabled=0)).insert()
@@ -518,7 +517,7 @@ class TestSessionEndpoints(ApiCase):
 		frappe.set_user(owner)
 		frappe.db.after_commit.reset()  # leave only the removals' work queued
 		with (
-			patch("flow.flow.doctype.flow_session.flow_session._redis_url", return_value="redis://relay"),
+			patch("frappe.flow.doctype.flow_session.flow_session._redis_url", return_value="redis://relay"),
 			patch("redis.Redis.from_url") as connect,
 		):
 			self.assertEqual(api.unshare_session(name, viewer), [])
@@ -872,7 +871,7 @@ class TestSessionEndpoints(ApiCase):
 
 	def test_delete_session_needs_the_flow_servers_consent(self):
 		name, lost = self.create(), self.create()
-		with patch("flow.knowledge.attachment_store.delete"):
+		with patch("frappe.flow.knowledge.attachment_store.delete"):
 			self.daemon.running = True
 			with self.assertRaisesRegex(frappe.ValidationError, "409"):
 				api.delete_session(name)
@@ -893,17 +892,17 @@ class TestSessionEndpoints(ApiCase):
 class TestLiveEndpoints(LiveServerCase):
 	def test_a_rewind_takes_the_chat_back_to_before_a_message_and_the_next_turn_branches_there(self):
 		name = api.create_session(self.agent.name)["name"]
-		started = frappe.call("flow.api.run", session=name, message="one")
+		started = frappe.call("frappe.flow.api.run", session=name, message="one")
 		# the run answers with its placeholder at once
 		self.assertEqual(started["status"], "started")
 		self.assertEqual(frappe.db.get_value("Flow Run", started["run"], "status"), "Running")
 		self.wait_idle(name)
-		frappe.call("flow.api.run", session=name, message="two")
+		frappe.call("frappe.flow.api.run", session=name, message="two")
 		self.wait_idle(name)
 		two = next(row for row in api.entries(name)["entries"] if row.get("content") == "two")
 		# the page's target: the entry before the message's run_started
 		self.assertEqual(api.rewind(name, two["parent_seq"] - 1), {"status": "rewound"})
-		frappe.call("flow.api.run", session=name, message="three")
+		frappe.call("frappe.flow.api.run", session=name, message="three")
 		self.wait_idle(name)
 		data = api.sync_session(name)
 
@@ -928,11 +927,11 @@ class TestLiveEndpoints(LiveServerCase):
 
 	def test_a_manual_compaction_summarizes_the_chat_and_the_next_turn_goes_on(self):
 		name = api.create_session(self.agent.name)["name"]
-		frappe.call("flow.api.run", session=name, message="one")
+		frappe.call("frappe.flow.api.run", session=name, message="one")
 		self.wait_idle(name)
 		compacting = api.compact(name)["run"]
 		self.wait_idle(name)
-		frappe.call("flow.api.run", session=name, message="two")
+		frappe.call("frappe.flow.api.run", session=name, message="two")
 		self.wait_idle(name)
 		data = api.sync_session(name)
 

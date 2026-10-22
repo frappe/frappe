@@ -45,7 +45,7 @@ const session = {
 test("a new chat is created with the page's agent and an offered model, and reported back", async () => {
 	const reported = [];
 	const transport = fakeTransport({
-		"flow.api.create_session": { ...session, auto_approve: true },
+		"frappe.flow.api.create_session": { ...session, auto_approve: true },
 	});
 	const client = new FrappeClient({
 		boot,
@@ -54,7 +54,7 @@ test("a new chat is created with the page's agent and an offered model, and repo
 	});
 	const created = await client.createSession({ model: "Sonnet", auto_approve: true });
 	assert.deepEqual(transport.calls[0], [
-		"flow.api.create_session",
+		"frappe.flow.api.create_session",
 		{ agent: "Support", model: "Sonnet", auto_approve: 1 },
 	]);
 	assert.equal(created.session_id, "S1");
@@ -68,13 +68,13 @@ test("a new chat is created with the page's agent and an offered model, and repo
 
 test("session details carry the model's context window, a view-only flag and a config the store can patch", async () => {
 	const transport = fakeTransport({
-		"flow.api.session": ({ session: name }) => ({
+		"frappe.flow.api.session": ({ session: name }) => ({
 			...session,
 			name,
 			read_only: name === "S2",
 		}),
-		"flow.api.set_title": { title: "Renamed" },
-		"flow.api.set_auto_approve": { auto_approve: true },
+		"frappe.flow.api.set_title": { title: "Renamed" },
+		"frappe.flow.api.set_auto_approve": { auto_approve: true },
 	});
 	const client = new FrappeClient({ boot, transport });
 	const info = await client.session("S1");
@@ -93,7 +93,7 @@ test("session details carry the model's context window, a view-only flag and a c
 		cwd: null,
 	});
 	assert.deepEqual(transport.calls.at(-1), [
-		"flow.api.set_auto_approve",
+		"frappe.flow.api.set_auto_approve",
 		{ session: "S1", auto_approve: 1 },
 	]);
 });
@@ -101,7 +101,7 @@ test("session details carry the model's context window, a view-only flag and a c
 test("the log is presented and mirrored to the page, replaced by a snapshot and appended by a catch-up", async () => {
 	const mirrored = [];
 	const transport = fakeTransport({
-		"flow.api.entries": ({ since, path }) => ({
+		"frappe.flow.api.entries": ({ since, path }) => ({
 			entries: [
 				{ type: "run_started", seq: since + 1, run_id: "r" },
 				{ type: "model_changed", seq: since + 2, model: "anthropic/claude-sonnet-4-6" },
@@ -124,14 +124,14 @@ test("the log is presented and mirrored to the page, replaced by a snapshot and 
 		["S1", 2, false],
 	]);
 	assert.deepEqual(transport.calls[1], [
-		"flow.api.entries",
+		"frappe.flow.api.entries",
 		{ session: "S1", since: 2, path: "all" },
 	]);
 });
 
 test("attachments are staged as private Files for the picked model, discarded if staging fails, and cleaned up by File name", async () => {
 	const transport = fakeTransport({
-		"flow.api.attach_file": ({ file }) => {
+		"frappe.flow.api.attach_file": ({ file }) => {
 			if (file === "FILE-broken.pdf") throw new Error("Cannot extract");
 			return { file, file_name: file.replace("FILE-", ""), file_size: 1 };
 		},
@@ -153,26 +153,26 @@ test("attachments are staged as private Files for the picked model, discarded if
 	assert.equal(presented.content[1].id, "FILE-notes.txt");
 	await client.cleanupAttachments("S1", ["FILE-shot.png"]);
 	assert.deepEqual(transport.calls.at(-1), [
-		"flow.api.cleanup_attachments",
+		"frappe.flow.api.cleanup_attachments",
 		{ session: "S1", attachments: ["FILE-shot.png"] },
 	]);
 	// staging tells the server which model the picker holds
 	await client.prepareAttachment({ name: "shot.png" }, "GPT");
 	assert.deepEqual(transport.calls.at(-1), [
-		"flow.api.attach_file",
+		"frappe.flow.api.attach_file",
 		{ file: "FILE-shot.png", model: "GPT" },
 	]);
 	// a failure discards the upload without creating a session
 	await assert.rejects(client.prepareAttachment({ name: "broken.pdf" }), /Cannot extract/);
 	assert.deepEqual(transport.calls.at(-1), [
-		"flow.api.cleanup_attachments",
+		"frappe.flow.api.cleanup_attachments",
 		{ attachments: ["FILE-broken.pdf"] },
 	]);
 });
 
 test("the model list comes from the page's boot first, then refreshes from the server", async () => {
 	const transport = fakeTransport({
-		"flow.api.boot": {
+		"frappe.flow.api.boot": {
 			models: [
 				{
 					name: "GPT",
@@ -183,7 +183,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 				},
 			],
 		},
-		"flow.api.set_model": ({ model }) => ({
+		"frappe.flow.api.set_model": ({ model }) => ({
 			model,
 			reasoning_effort: "high",
 		}),
@@ -207,7 +207,7 @@ test("the model list comes from the page's boot first, then refreshes from the s
 	const switched = await client.setModel("S1", { model: "GPT", reasoning_effort: "high" });
 	assert.deepEqual(switched, { model: "GPT", context_window: null });
 	assert.deepEqual(transport.calls.at(-1), [
-		"flow.api.set_model",
+		"frappe.flow.api.set_model",
 		{ session: "S1", model: "GPT", reasoning_effort: "high" },
 	]);
 });
@@ -218,15 +218,15 @@ test("shared provider IDs preserve the session's model when its thinking level c
 	globalThis.localStorage = { getItem: () => null, setItem() {} };
 	const models = [boot.models[0], { ...boot.models[0], name: "Other account" }];
 	const transport = fakeTransport({
-		"flow.api.session": session,
-		"flow.api.entries": ({ path }) => ({
+		"frappe.flow.api.session": session,
+		"frappe.flow.api.entries": ({ path }) => ({
 			entries:
 				path === "active"
 					? [{ type: "model_changed", seq: 1, model: models[0].model_id }]
 					: [],
 			latest_seq: 1,
 		}),
-		"flow.api.set_model": ({ model }) => ({ model }),
+		"frappe.flow.api.set_model": ({ model }) => ({ model }),
 	});
 	const client = new FrappeClient({ socket: fakeSocket(), boot: { models }, transport });
 	const store = createFlowStore(client, { requireCwd: false, skillsEnabled: false });
@@ -235,7 +235,7 @@ test("shared provider IDs preserve the session's model when its thinking level c
 	assert.equal(store.state.conversation.model, "Sonnet");
 	await store.selectEffort("high");
 	assert.equal(
-		transport.calls.find(([method]) => method === "flow.api.set_model")[1].model,
+		transport.calls.find(([method]) => method === "frappe.flow.api.set_model")[1].model,
 		"Sonnet"
 	);
 	await client.setModel("S1", { model: "Other account" });
@@ -251,10 +251,10 @@ test("a steered image's bubble goes when its daemon attachment arrives", async (
 	globalThis.localStorage = { getItem: () => null, setItem() {} };
 	const socket = fakeSocket();
 	const transport = fakeTransport({
-		"flow.api.session": session,
-		"flow.api.entries": { entries: [], latest_seq: 0 },
-		"flow.api.attach_file": ({ file }) => ({ file, file_name: "shot.png" }),
-		"flow.api.run": { status: "steered" },
+		"frappe.flow.api.session": session,
+		"frappe.flow.api.entries": { entries: [], latest_seq: 0 },
+		"frappe.flow.api.attach_file": ({ file }) => ({ file, file_name: "shot.png" }),
+		"frappe.flow.api.run": { status: "steered" },
 	});
 	const client = new FrappeClient({ socket, boot, transport });
 	const store = createFlowStore(client, { requireCwd: false, skillsEnabled: false });
@@ -275,27 +275,27 @@ test("a steered image's bubble goes when its daemon attachment arrives", async (
 	assert.equal(store.state.conversation.steering.length, 0);
 });
 
-test("each call reaches its flow.api endpoint and answers with the server's reply", async () => {
+test("each call reaches its frappe.flow.api endpoint and answers with the server's reply", async () => {
 	const ann = "ann@example.com";
 	const cases = [
 		// skills come from the session's agent, or the page's agent before a chat starts
-		[(c) => c.skills("S1"), "flow.api.skills", { session: "S1" }],
-		[(c) => c.previewSkills({}), "flow.api.skills", { agent: "Support" }],
+		[(c) => c.skills("S1"), "frappe.flow.api.skills", { session: "S1" }],
+		[(c) => c.previewSkills({}), "frappe.flow.api.skills", { agent: "Support" }],
 		// a resume names the batch it answers, so a sub-agent's can be told apart
 		[
 			(c) => c.resume("S1", 8, { c9: "Approve" }),
-			"flow.api.resume",
+			"frappe.flow.api.resume",
 			{ session: "S1", answers: { c9: "Approve" }, approval_seq: 8 },
 		],
-		[(c) => c.rewind("S1", 4), "flow.api.rewind", { session: "S1", target_seq: 4 }],
-		[(c) => c.compact("S1"), "flow.api.compact", { session: "S1" }],
-		[(c) => c.findUsers("an"), "flow.api.find_users", { query: "an" }],
-		[(c) => c.shares("S1"), "flow.api.list_shares", { session: "S1" }],
-		[(c) => c.share("S1", ann), "flow.api.share_session", { session: "S1", user: ann }],
-		[(c) => c.unshare("S1", ann), "flow.api.unshare_session", { session: "S1", user: ann }],
+		[(c) => c.rewind("S1", 4), "frappe.flow.api.rewind", { session: "S1", target_seq: 4 }],
+		[(c) => c.compact("S1"), "frappe.flow.api.compact", { session: "S1" }],
+		[(c) => c.findUsers("an"), "frappe.flow.api.find_users", { query: "an" }],
+		[(c) => c.shares("S1"), "frappe.flow.api.list_shares", { session: "S1" }],
+		[(c) => c.share("S1", ann), "frappe.flow.api.share_session", { session: "S1", user: ann }],
+		[(c) => c.unshare("S1", ann), "frappe.flow.api.unshare_session", { session: "S1", user: ann }],
 		[
 			(c) => c.setGeneralAccess("S1", "Everyone"),
-			"flow.api.set_general_access",
+			"frappe.flow.api.set_general_access",
 			{ session: "S1", access: "Everyone" },
 		],
 	];
@@ -315,8 +315,8 @@ test("a sync that fails after a run ends is retried once, then dropped quietly",
 	const reported = [];
 	let failures = 1;
 	const transport = fakeTransport({
-		"flow.api.entries": { entries: [{ type: "run_ended", seq: 1, reason: "done" }] },
-		"flow.api.sync_session": () => {
+		"frappe.flow.api.entries": { entries: [{ type: "run_ended", seq: 1, reason: "done" }] },
+		"frappe.flow.api.sync_session": () => {
 			if (failures-- > 0) throw new Error("Internal Server Error");
 			return session;
 		},
@@ -335,7 +335,7 @@ test("a sync that fails after a run ends is retried once, then dropped quietly",
 	failures = 2;
 	assert.equal(await client.syncSession("S1"), null);
 	assert.equal(
-		transport.calls.filter(([method]) => method === "flow.api.sync_session").length,
+		transport.calls.filter(([method]) => method === "frappe.flow.api.sync_session").length,
 		4
 	);
 });
