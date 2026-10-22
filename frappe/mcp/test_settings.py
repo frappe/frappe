@@ -9,10 +9,10 @@ from frappe.mcp import protocol
 from frappe.mcp.test_utils import McpTestCase
 
 
-class TestMCPSettings(McpTestCase):
+class TestSettings(McpTestCase):
 	@contextmanager
 	def settings(self, **values):
-		doc = frappe.get_doc("MCP Settings")
+		doc = frappe.get_doc("System Settings")
 		original = {field: doc.get(field) for field in ("enable_mcp", "server_name", "agent_instructions")}
 		try:
 			doc.update(values)
@@ -21,7 +21,7 @@ class TestMCPSettings(McpTestCase):
 			yield
 		finally:
 			frappe.set_user("Administrator")
-			doc = frappe.get_doc("MCP Settings")
+			doc = frappe.get_doc("System Settings")
 			doc.update(original)
 			doc.save()
 			frappe.db.commit()  # nosemgrep
@@ -92,7 +92,7 @@ class TestMCPSettings(McpTestCase):
 			self.assertRaises(NotFound, handle)
 
 	def test_normal_user_cannot_change_settings(self):
-		doc = frappe.get_doc("MCP Settings")
+		doc = frappe.get_doc("System Settings")
 		with self.set_user(self.user):
 			doc.server_name = "Unauthorized name"
 			with self.assertRaises(frappe.PermissionError):

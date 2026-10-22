@@ -90,7 +90,7 @@ Whitelisted RPC methods remain responsible for their own permission checks.
 
 ## Configuration and troubleshooting
 
-Open **MCP Settings** as a System Manager to set the server name for this site.
+Open **System Settings > AI Agents** as a System Manager to set the server name for this site.
 When it is empty, the name is the site's host name in lowercase, with each run of other characters changed to `_`.
 For example, `erp.example.com` becomes `erp_example_com`.
 **Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
