@@ -488,8 +488,13 @@ frappe.views.CommunicationComposer = class {
 		});
 	}
 
+	/** The DocType the composer's templates are scoped to: the form's, or the document's when there is no form. */
+	get_template_doctype() {
+		return this.frm?.doctype || this.doc?.doctype;
+	}
+
 	make_template_dropdown() {
-		return frappe.ui.dropdown({
+		const $dropdown = frappe.ui.dropdown({
 			button: {
 				label: __("Use template"),
 				variant: "ghost",
@@ -505,10 +510,18 @@ frappe.views.CommunicationComposer = class {
 					}))
 				),
 		});
+
+		// nothing to pick from, so no button
+		$dropdown.addClass("hidden");
+		this.get_email_template_names()
+			.then((names) => $dropdown.toggleClass("hidden", !names.length))
+			.catch(() => $dropdown.removeClass("hidden"));
+		return $dropdown;
 	}
 
 	get_email_template_names() {
-		if (!this.frm?.doctype) {
+		const doctype = this.get_template_doctype();
+		if (!doctype) {
 			return frappe.db
 				.get_list("Email Template", { fields: ["name"], order_by: "name", limit: 0 })
 				.then((rows) => (rows || []).map((row) => row.name));
@@ -521,7 +534,7 @@ frappe.views.CommunicationComposer = class {
 				searchfield: "name",
 				start: 0,
 				page_len: 0,
-				filters: { reference_doctype: this.frm.doctype },
+				filters: { reference_doctype: doctype },
 			})
 			.then((rows) => (rows || []).map(([name]) => name));
 	}
@@ -562,10 +575,11 @@ frappe.views.CommunicationComposer = class {
 				options: "Email Template",
 				fieldname: "email_template",
 				get_query: function () {
-					if (me.frm?.doctype) {
+					const doctype = me.get_template_doctype();
+					if (doctype) {
 						return {
 							query: "frappe.email.doctype.email_template.email_template.get_email_templates",
-							filters: { reference_doctype: me.frm.doctype },
+							filters: { reference_doctype: doctype },
 						};
 					}
 				},
