@@ -161,6 +161,12 @@ def is_frontend_code(file):
 	"""Check if the file is frontend code. `.html` in the `frappe` package outside `public` is Jinja rendered on the server."""
 	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
 		return True
+	if (
+		file.startswith("frontend/")
+		and file.endswith(".json")
+		and not os.path.basename(file).startswith("package")
+	):
+		return True
 	if file.endswith(".html") and file.startswith("frappe/") and not file.startswith("frappe/public/"):
 		return False
 	return file.lower().endswith(
@@ -179,13 +185,6 @@ def select_tests(files_list):
 
 	Returns None for "run the full suite" and prints why; [] when nothing server-side changed.
 	"""
-	try:
-		with open(IMPACT_MAP_FILE) as f:
-			loaded_map = json.load(f)
-	except (OSError, ValueError) as exc:
-		print(f"Running full suite, no usable impact map ({exc})")
-		return None
-
 	patch_files = [f for f in files_list if is_patch(f)]
 	files_list = [f for f in files_list if f not in patch_files]
 
@@ -198,27 +197,53 @@ def select_tests(files_list):
 	# Coverage cannot see dependency bumps and the like, so those force the full suite.
 	ignorable_files = [f for f in files_list if is_docs(f) or is_frontend_code(f)]
 	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
+	# A doctype's schema is exercised wherever its controller runs.
+	code_files = [doctype_controller(f) or f for f in relevant_files]
 	# A test module's content can only break its own tests and those of modules importing it.
-	core_files = [f for f in relevant_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
+	core_files = [f for f in code_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
 
 	if other_files:
 		print(f"Running full suite, changes coverage cannot see: {other_files}")
-	elif schema_files := [f for f in relevant_files if not f.endswith(".py")]:
+		return None
+	if not code_files and not patch_files:
+		return []
+	if schema_files := [f for f in code_files if not f.endswith(".py")]:
 		print(f"Running full suite, schema/translation changes: {schema_files}")
-	elif core_files:
+		return None
+	if core_files:
 		print(f"Running full suite, core changes: {core_files}")
-	elif impact_map.is_stale(loaded_map):
-		print(f"Running full suite, map from {loaded_map['generated_at']} is stale")
-	elif unmapped := impact_map.unmapped(loaded_map, relevant_files):
-		print(f"Running full suite, no tests attributed to: {unmapped}")
+		return None
+
+	try:
+		with open(IMPACT_MAP_FILE) as f:
+			loaded_map = json.load(f)
+	except (OSError, ValueError) as exc:
+		if not all(impact_map.is_test_module(f) for f in code_files):
+			print(f"Running full suite, no usable impact map ({exc})")
+			return None
+		selected = sorted(impact_map.importers(set(code_files)) | patch_tests(patch_files))
+		print(f"Running {len(selected)} test modules for {relevant_files + patch_files} (no impact map):")
 	else:
-		selected = sorted(set(impact_map.select(loaded_map, relevant_files)) | patch_tests(patch_files))
+		if impact_map.is_stale(loaded_map):
+			print(f"Running full suite, map from {loaded_map['generated_at']} is stale")
+			return None
+		if unmapped := impact_map.unmapped(loaded_map, code_files):
+			print(f"Running full suite, no tests attributed to: {unmapped}")
+			return None
+		selected = sorted(set(impact_map.select(loaded_map, code_files)) | patch_tests(patch_files))
 		total = len(impact_map.all_tests(loaded_map))
 		print(f"Running {len(selected)}/{total} test modules for {relevant_files + patch_files}:")
-		for test_file in selected:
-			print(f"  {test_file}")
-		return selected
 
+	for test_file in selected:
+		print(f"  {test_file}")
+	return selected
+
+
+def doctype_controller(file):
+	"""`frappe/<module>/doctype/<name>/<name>.json` -> its controller `<name>.py`, else None."""
+	parts = file.split("/")
+	if len(parts) >= 4 and parts[-3] == "doctype" and parts[-1] == f"{parts[-2]}.json":
+		return file[:-5] + ".py"
 	return None
 
 
@@ -259,7 +284,10 @@ def _selftest():
 
 	impact = {
 		"generated_at": datetime.now(UTC).isoformat(),
-		"map": {"frappe/a.py": ["frappe/tests/test_a.py"]},
+		"map": {
+			"frappe/a.py": ["frappe/tests/test_a.py"],
+			"frappe/core/doctype/note/note.py": ["frappe/core/doctype/note/test_note.py"],
+		},
 	}
 	cwd = os.getcwd()
 	with tempfile.TemporaryDirectory() as tree:
@@ -292,6 +320,26 @@ def _selftest():
 			) == ["frappe/tests/test_a.py"], "images and client-side templates must not force the full suite"
 			assert select_tests(["frappe/www/a.html", "frappe/a.py"]) is None, (
 				"Jinja templates must force the full suite"
+			)
+			assert select_tests(["frappe/core/doctype/note/note.json"]) == [
+				"frappe/core/doctype/note/test_note.py"
+			], "a doctype schema change must run the tests of its controller"
+			assert select_tests(["frappe/core/doctype/todo/todo.json"]) is None, (
+				"a doctype whose controller has no tests must force the full suite"
+			)
+			assert select_tests(["frappe/core/workspace/a/a.json"]) is None, "other JSON is still schema"
+
+			os.remove(IMPACT_MAP_FILE)
+			assert (
+				select_tests(["frontend/speed-budgets.json", "frontend/src/a.vue", "frontend/README.md"])
+				== []
+			), "no server-side change must skip tests without a map"
+			assert select_tests(["frappe/tests/test_x.py"]) == ["frappe/tests/test_x.py"], (
+				"test-only changes must not need a map"
+			)
+			assert select_tests(["frappe/a.py"]) is None, "code changes without a map must run the full suite"
+			assert select_tests(["frontend/package.base.json"]) is None, (
+				"dependency bumps must run the full suite"
 			)
 		finally:
 			os.chdir(cwd)
