@@ -1,7 +1,6 @@
 <template>
-	<!-- column-reverse scroller: opens pinned to the newest row natively; needs a bounded height.
-	     With `scrolls` off, an ancestor scrolls it. Scrolling, it already anchors, so Chrome's
-	     anchoring on top would shift a row as emails above load. -->
+	<!-- column-reverse scroller: pinned to the newest row; needs a bounded height. Scrolling, it
+	     already anchors, so Chrome's anchoring is off; with `scrolls` off an ancestor scrolls it. -->
 	<div
 		ref="rootEl"
 		class="activity-timeline flex flex-col-reverse"

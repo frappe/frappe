@@ -283,9 +283,9 @@ def remove_orphan_entities(entity_types=None):
 		# the same rule one table down: the app's own dock is the file-backed layer, and the
 		# site's arrangement and every person's own are never candidates
 		"Dock": {"standard": 1},
-		# `Navigation Item Type` has no filter: every kind is app content, so every row is file-backed.
 		# Desk v2's rail: the app layer is file-backed; the site's and each person's are never candidates.
 		"Rail": {"standard": 1},
+		# `Navigation Item Type` has no filter: every kind is app content, so every row is file-backed.
 		# a user's own or a site-wide layout is never backed by a file
 		"List Filter": {"is_standard": 1},
 		"Kanban Board": {"is_standard": "Yes"},

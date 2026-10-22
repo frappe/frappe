@@ -9,7 +9,7 @@ from .registry import declared_prefix, is_modular
 
 
 def canonical_path(doctype: str, name: str | None = None) -> str:
-	"""`/apps/erpnext/accounts/sales-invoice/SI-001` — path only, unquoted."""
+	"""`/apps/erpnext/accounts/sales-invoice/SI-001` — path only, no host."""
 	from urllib.parse import quote
 
 	from frappe.utils import cstr, quoted

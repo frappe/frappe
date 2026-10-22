@@ -3,10 +3,12 @@ import { createApp, h, nextTick, ref } from "vue";
 import type { App, Ref } from "vue";
 import type { RealtimeSocket } from "../../../socket";
 import type { DataImportDoc } from "../types";
+import { ApiError } from "../../../api/envelope";
 
 interface Call {
   method: string;
   args: Record<string, any>;
+  http: string;
 }
 
 const PREFIX = "frappe.core.doctype.data_import.data_import.";
@@ -15,9 +17,9 @@ const calls: Call[] = [];
 let responders: Record<string, (args: Record<string, any>) => unknown> = {};
 
 // Each wrapper call is logged under one name: the function, or the server method it runs.
-function answer(method: string, args: Record<string, any>) {
+function answer(method: string, args: Record<string, any>, http = "POST") {
   const short = method.replace(PREFIX, "");
-  calls.push({ method: short, args });
+  calls.push({ method: short, args, http });
   const respond = responders[short];
   return Promise.resolve()
     .then(() => (respond ? respond(args) : null))
@@ -37,14 +39,18 @@ vi.mock("../../../api", () => ({
       data,
       children: [],
     })),
-  runMethod: (method: string, args: Record<string, any>) =>
-    answer(method, args),
+  runMethod: (
+    method: string,
+    args: Record<string, any>,
+    options: { http?: string } = {}
+  ) => answer(method, args, options.http),
   runDocumentMethod: (
     _doctype: string,
     name: string,
     method: string,
-    args: Record<string, any> = {}
-  ) => answer(method, { name, ...args }),
+    args: Record<string, any> = {},
+    options: { http?: string } = {}
+  ) => answer(method, { name, ...args }, options.http),
 }));
 
 import { useDataImport, type UseDataImport } from "../useDataImport";
@@ -145,7 +151,20 @@ beforeEach(() => {
   };
 });
 
+// A read sent as POST needs write permission on v2, so a read-only user would lose it.
+const READS = [
+  "get_preview_from_template",
+  "get_import_status",
+  "get_import_logs",
+  "get_import_fields",
+];
+const WRITES = ["start_import", "stop_data_import"];
+
 afterEach(() => {
+  for (const call of calls) {
+    if (READS.includes(call.method)) expect(call.http, call.method).toBe("GET");
+    if (WRITES.includes(call.method)) expect(call.http, call.method).toBe("POST");
+  }
   app?.unmount();
   host?.remove();
   app = undefined;
@@ -457,7 +476,7 @@ describe("useDataImport: an existing import", () => {
 
   it("exposes a failed preview's message and does not fetch it again on reload", async () => {
     responders.get_preview_from_template = () => {
-      throw Object.assign(new Error("x"), { messages: ["Bad file"] });
+      throw new ApiError({ type: "ValidationError", message: "Bad file" }, 417);
     };
     const di = mount(ref("DI-1"));
     await settle();
@@ -810,9 +829,13 @@ describe("useDataImport: start and stop", () => {
 
   it("keeps the server's error when the run can't start and clears it on the next start", async () => {
     responders.start_import = () => {
-      throw Object.assign(new Error("x"), {
-        messages: ["Scheduler is inactive. Cannot import data."],
-      });
+      throw new ApiError(
+        {
+          type: "ValidationError",
+          message: "Scheduler is inactive. Cannot import data.",
+        },
+        417
+      );
     };
     const di = mount(ref("DI-1"));
     await settle();

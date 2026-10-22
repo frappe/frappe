@@ -283,8 +283,8 @@ class Sidebar(Document, DeskViews):
 		if not self.is_addressed:
 			self.validate_title_is_routable()
 			self.validate_title_has_its_own_url()
+			self.validate_item_routes()
 		self.validate_standard()
-		self.validate_item_routes()
 		self.clear_stored_keys()
 		self.validate_navigation_item_keys()
 

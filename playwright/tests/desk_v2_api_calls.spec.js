@@ -12,6 +12,11 @@ const MAX_WAITS = 20;
 const budgets = JSON.parse(fs.readFileSync(path.join(__dirname, "../..", BUDGETS), "utf8"));
 
 test.describe("Desk v2 API calls", () => {
+	test.skip(
+		({ browserName }) => browserName !== "chromium",
+		"The cache switch is Chromium's CDP",
+	);
+
 	let request;
 	let todo;
 

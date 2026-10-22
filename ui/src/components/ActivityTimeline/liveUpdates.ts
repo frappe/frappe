@@ -65,8 +65,8 @@ export function createLiveUpdates(
   };
 
   const onDocUpdate = (payload: unknown) => {
-    const { doctype: dt, name } = payload as { doctype: string; name: string };
-    if (dt !== doctype || name !== docname) return;
+    const updated = payload as { doctype: string; name: string };
+    if (updated.doctype !== doctype || updated.name !== docname) return;
     refresh();
   };
 
