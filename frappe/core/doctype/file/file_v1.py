@@ -56,7 +56,6 @@ class FileV1(File):
 		if self.is_remote_file:
 			# a remote file has no local blob to hash
 			self.content_hash = None
-			self.validate_remote_file()
 		else:
 			self.save_file(content=self.get_content())
 			self.flags.new_file = True
