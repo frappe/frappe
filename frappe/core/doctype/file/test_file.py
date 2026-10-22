@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import io
 import os
 import shutil
 import tempfile
@@ -799,6 +800,22 @@ class TestFile(IntegrationTestCase):
 			)
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_zip_files_adds_a_repeated_file_once(self):
+		from frappe.core.doctype.file.file import File
+
+		frappe.set_user("test@example.com")
+		try:
+			file = frappe.get_doc(
+				doctype="File", file_name="zip_0.txt", content=b"x" * 600, is_private=1
+			).insert()
+			content = File.zip_files([file.name] * 3)
+		finally:
+			frappe.set_user("Administrator")
+			file.delete()
+
+		with zipfile.ZipFile(io.BytesIO(content)) as zf:
+			self.assertEqual(zf.namelist(), ["zip_0.txt"])
 
 	def test_file_unzip_rolls_back_children_on_mid_extraction_failure(self):
 		fixture_dir = tempfile.mkdtemp()
