@@ -1,7 +1,7 @@
 // The `Form Layout` doctype's wire shapes: `get_form_layouts` returns rows as
 // authored — fieldnames stay strings; the meta join happens client-side.
 
-export type FormLayoutType = "Details" | "Side Panel" | "Quick Entry";
+export type FormLayoutType = "Details" | "Side Panel" | "Quick Entry" | "New Record";
 
 export interface LayoutTreeColumn {
 	name?: string;
@@ -37,8 +37,10 @@ export interface FormLayoutRow {
 }
 
 export interface FormLayoutsResponse {
-	/** Every row for the `(dt, type)`, `creation asc`, layouts parsed. */
+	/** Every row for the `(dt, type)`, `creation asc`, layouts parsed; `New Record` with none gets the `Details` rows. */
 	layouts: FormLayoutRow[];
 	/** The meta-derived layout, rendered when no row applies. */
 	fallback: LayoutTree;
+	/** `Quick Entry` only: whether Create opens a dialog rather than the full-page new record. */
+	dialog?: boolean;
 }

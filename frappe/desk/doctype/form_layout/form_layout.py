@@ -9,7 +9,8 @@ import frappe
 from frappe import _
 from frappe.model.document import Document
 
-FORM_LAYOUT_TYPES = ("Details", "Side Panel", "Quick Entry")
+FORM_LAYOUT_TYPES = ("Details", "Side Panel", "Quick Entry", "New Record")
+CREATE_LAYOUT_TYPES = ("Quick Entry", "New Record")
 LAYOUT_BREAKS = ("Section Break", "Column Break", "Tab Break")
 
 
@@ -85,18 +86,17 @@ class FormLayout(Document):
 @frappe.whitelist()
 def get_form_layouts(dt: str, type: str):
 	validate_target(dt, type)
-	frappe.has_permission(dt, "read", throw=True)
+	check_layout_access(dt, type)
 
-	rows = frappe.get_all(
-		"Form Layout",
-		filters={"dt": dt, "type": type},
-		fields=["name", "condition", "layout"],
-		order_by="creation asc",
-	)
+	rows = get_layout_rows(dt, type)
+	if not rows and type == "New Record":
+		rows = get_layout_rows(dt, "Details")
 	layouts = [
 		{"name": row.name, "condition": row.condition, "layout": parse_layout(row.layout)} for row in rows
 	]
-	return {"layouts": layouts, "fallback": get_meta_layout(dt)}
+	if type != "Quick Entry":
+		return {"layouts": layouts, "fallback": get_meta_layout(dt)}
+	return {"layouts": layouts, "fallback": get_quick_entry_layout(dt), "dialog": opens_in_dialog(dt, rows)}
 
 
 @frappe.whitelist()
@@ -109,6 +109,76 @@ def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, c
 	doc.update({"dt": dt, "type": type, "layout": layout, "condition": condition})
 	doc.save()
 	return doc.name
+
+
+def check_layout_access(dt: str, type: str) -> None:
+	"""A create layout is for a person who can create the doctype, even without read."""
+	if type in CREATE_LAYOUT_TYPES and frappe.has_permission(dt, "create"):
+		return
+	frappe.has_permission(dt, "read", throw=True)
+
+
+def get_layout_rows(dt: str, type: str) -> list:
+	return frappe.get_all(
+		"Form Layout",
+		filters={"dt": dt, "type": type},
+		fields=["name", "condition", "layout"],
+		order_by="creation asc",
+	)
+
+
+def opens_in_dialog(dt: str, rows: list) -> bool:
+	"""Whether Create opens a dialog; a person who gets `False` gets the full-page new record."""
+	if rows:
+		return True
+	meta = frappe.get_meta(dt)
+	if not meta.quick_entry:
+		return False
+	fields = get_quick_entry_fields(meta)
+	if any(field.fieldtype == "Table" for field in fields):
+		return False
+	named_by_prompt = (meta.autoname or "").lower() == "prompt"
+	return named_by_prompt or any(not mandatory_condition(field) for field in fields)
+
+
+def get_quick_entry_fields(meta) -> list:
+	return [
+		field
+		for field in meta.fields
+		if (field.reqd or field.allow_in_quick_entry or field.mandatory_depends_on)
+		and not field.read_only
+		and not field.is_virtual
+		and field.fieldtype not in LAYOUT_BREAKS
+	]
+
+
+def mandatory_condition(field) -> str | None:
+	"""The condition a field is in the Quick Entry set under, or `None` when it is always there."""
+	if field.reqd or field.allow_in_quick_entry:
+		return None
+	return field.mandatory_depends_on
+
+
+def get_quick_entry_layout(dt: str) -> list:
+	"""The Quick Entry set in doctype order; a conditionally mandatory field shows while it is mandatory."""
+	sections = []
+	for field in get_quick_entry_fields(frappe.get_meta(dt)):
+		condition = mandatory_condition(field)
+		if condition or not sections or sections[-1].get("dependsOn"):
+			sections.append(new_quick_entry_section(condition))
+		sections[-1]["columns"][0]["fields"].append(field.fieldname)
+	if not sections:
+		return []
+	tabs = wrap_tabless(sections)
+	name_layout_containers(tabs)
+	return tabs
+
+
+def new_quick_entry_section(condition: str | None) -> dict:
+	section = {"hideBorder": True, "columns": [{"fields": []}]}
+	if condition:
+		section["dependsOn"] = condition
+	return section
 
 
 def publish_doctype_update(dt: str) -> None:
