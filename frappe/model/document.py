@@ -3161,3 +3161,8 @@ def unlock_document(doctype: str | None = None, name: str | None = None, args=No
 		name = str(args["name"])
 	frappe.get_doc(doctype, name).unlock()
 	frappe.msgprint(frappe._("Document Unlocked"), alert=True)
+
+
+# backward compatibility: `BaseDocument` was merged into `Document`
+# defined here so it can be imported from both the `document` and `base_document` modules
+BaseDocument = Document

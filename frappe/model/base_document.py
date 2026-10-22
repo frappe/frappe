@@ -3,5 +3,3 @@
 """Kept for backward compatibility. Everything here now lives in `frappe.model.document`."""
 
 from frappe.model.document import *
-
-BaseDocument = Document
