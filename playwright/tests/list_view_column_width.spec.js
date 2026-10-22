@@ -291,19 +291,26 @@ test.describe("List View — Column Widths on a saved layout", () => {
 			.toBe(true);
 	});
 
-	test("Edit Layout does not save the user's width into a column without one", async ({
-		page,
-		api,
-	}) => {
+	test("Edit Layout leaves a column without a width as it is", async ({ page, api }) => {
 		await drag_resize_column(page, "date", 150);
+		const dragged_date_width = await get_column_width(page, "date");
 
 		await open_edit_layout(page);
 		await expect(
 			page.locator('.modal-dialog:visible .layout-column-width[data-fieldname="date"]')
-		).toHaveValue("200");
+		).toHaveValue("");
 		await page.getByRole("button", { name: "Update", exact: true }).click();
+		await expect(
+			page.locator(".modal-dialog:visible", { hasText: "Edit layout" })
+		).toHaveCount(0);
 
-		await expect.poll(() => get_layout_width(api, "date")).toBe(200);
+		expect(await get_layout_width(api, "date")).toBeUndefined();
+		const layout_key = await page.evaluate(() => cur_list.get_layout_name());
+		const { message } = await api.call("frappe.model.utils.user_settings.get", {
+			doctype: DOCTYPE,
+		});
+		const user_date_width = JSON.parse(message).List.column_widths[layout_key]?.date;
+		expect(within(dragged_date_width)(user_date_width)).toBe(true);
 	});
 
 	test("Edit Layout starts from the layout's widths and keeps the user's other widths", async ({
