@@ -25,9 +25,8 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
-from frappe.model.document import Document
+from frappe.model.document import RESERVED_KEYWORDS, Document, get_controller
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
@@ -183,6 +182,25 @@ class DocType(Document):
 		translated_doctype: DF.Check
 		website_search_field: DF.Data | None
 	# end: auto-generated types
+
+	def before_insert(self):
+		if not self.istable and not self.permissions:
+			self.append(
+				"permissions",
+				{
+					"role": "System Manager",
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"export": 1,
+					"share": 1,
+					"print": 1,
+					"email": 1,
+					"submit": 1 if self.is_submittable else 0,
+				},
+			)
 
 	def validate(self):
 		"""Validate DocType before saving.

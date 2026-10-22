@@ -8,6 +8,7 @@ from frappe.desk.notifications import notify_mentions
 from frappe.exceptions import ImplicitCommitError
 from frappe.model.document import Document
 from frappe.model.utils import is_virtual_doctype
+from frappe.permissions import get_doctypes_with_read, has_controller_permissions
 from frappe.website.utils import clear_cache
 
 
@@ -115,46 +116,117 @@ def on_doctype_update():
 	frappe.db.add_index("Comment", ["reference_doctype", "reference_name"])
 
 
+MAX_COMMENT_CHAIN_DEPTH = 10
+# a comment's reference can be another Comment, so read access comes from the real
+# document at the end of the chain: Comment -> Comment -> ToDo checks read on the ToDo.
+# a chain that never reaches a document is refused
+
+
+def has_permission(doc, ptype="read", user=None, debug=False):
+	"""A comment is readable as far as the document it was written on is."""
+	if ptype != "read":
+		return True
+
+	reference_doctype, reference_name = doc.reference_doctype, doc.reference_name
+	seen = {doc.name}
+
+	for _ in range(MAX_COMMENT_CHAIN_DEPTH):
+		if not (reference_doctype and reference_name):
+			return True
+
+		if reference_doctype != "Comment":
+			return frappe.has_permission(
+				reference_doctype, ptype="read", doc=reference_name, user=user, debug=debug
+			)
+
+		if reference_name in seen:
+			break
+		seen.add(reference_name)
+
+		reference = frappe.db.get_value("Comment", reference_name, ["reference_doctype", "reference_name"])
+		if reference is None:
+			break
+		reference_doctype, reference_name = reference
+
+	return False
+
+
+def get_permission_query_conditions(user: str | None = None) -> str:
+	"""Drop comments on doctypes the user cannot read at all.
+
+	Per-document access is `has_permission`'s job; it is not one condition on `tabComment`.
+	"""
+	user = user or frappe.session.user
+	if user == "Administrator":
+		return ""
+
+	unreferenced = "`tabComment`.`reference_doctype` IS NULL OR `tabComment`.`reference_doctype` = ''"
+
+	readable_doctypes = ", ".join(repr(dt) for dt in get_doctypes_with_read(user))
+	if not readable_doctypes:
+		return f"({unreferenced})"
+
+	return f"({unreferenced} OR `tabComment`.`reference_doctype` IN ({readable_doctypes}))"
+
+
+def get_document_comments(
+	reference_doctype: str,
+	reference_name: str | int,
+	fields: list[str],
+	comment_types: list[str] | None = None,
+	extra_filters: list | None = None,
+	user: str | None = None,
+	**kwargs,
+) -> list[frappe._dict]:
+	"""Read a document's comment rows, honouring the Comment `has_permission` hooks.
+
+	The caller must have checked read on the document. Pass `user` to compose for someone
+	other than the session user, as the follow digests do. Hooks decide per comment type and
+	are handed the reference and the type only, so one reading any other field sees nothing.
+	"""
+	filters = [
+		["reference_doctype", "=", reference_doctype],
+		["reference_name", "=", reference_name],
+		*(extra_filters or []),
+	]
+
+	if comment_types is None:
+		comment_types = frappe.get_all("Comment", filters=filters, pluck="comment_type", distinct=True)
+
+	def permitted(comment_type: str) -> bool:
+		probe = frappe._dict(
+			doctype="Comment",
+			name=None,
+			reference_doctype=reference_doctype,
+			reference_name=reference_name,
+			comment_type=comment_type,
+		)
+		return has_controller_permissions(probe, "read", user=user)
+
+	if not (allowed := [comment_type for comment_type in comment_types if permitted(comment_type)]):
+		return []
+
+	filters.append(["comment_type", "in", allowed])
+	return frappe.get_all("Comment", fields=fields, filters=filters, **kwargs)
+
+
 def update_comment_in_doc(doc):
-	"""Updates `_comments` (JSON) property in parent Document.
-	Creates a column `_comments` if property does not exist.
+	"""Record `doc` in the parent's `_comments`, a JSON list of `{"name": ...}` that only
+	feeds the list view comment count.
 
 	Only user created Communication or Comment of type Comment are saved.
-
-	`_comments` format
-
-	        {
-	                "comment": [String],
-	                "by": [user],
-	                "name": [Comment Document name]
-	        }"""
+	"""
 
 	# only comments get updates, not likes, assignments etc.
 	if doc.doctype == "Comment" and doc.comment_type != "Comment":
 		return
 
-	def get_truncated(content):
-		return (content[:97] + "...") if len(content) > 100 else content
-
 	if doc.reference_doctype and doc.reference_name and doc.content:
 		_comments = get_comments_from_parent(doc)
+		if any(c.get("name") == doc.name for c in _comments):
+			return
 
-		updated = False
-		for c in _comments:
-			if c.get("name") == doc.name:
-				c["comment"] = get_truncated(doc.content)
-				updated = True
-
-		if not updated:
-			_comments.append(
-				{
-					"comment": get_truncated(doc.content),
-					# "comment_email" for Comment and "sender" for Communication
-					"by": getattr(doc, "comment_email", None) or getattr(doc, "sender", None) or doc.owner,
-					"name": doc.name,
-				}
-			)
-
+		_comments.append({"name": doc.name})
 		update_comments_in_parent(doc.reference_doctype, doc.reference_name, _comments)
 
 
@@ -194,11 +266,12 @@ def update_comments_in_parent(reference_doctype, reference_name, _comments):
 	):
 		return
 
+	# entries written before this carried the comment text; drop everything but the name
+	_comments = [{"name": c["name"]} for c in _comments[-100:] if c.get("name")]
+
 	try:
-		# use sql, so that we do not mess with the timestamp
-		frappe.db.sql(
-			f"""update `tab{reference_doctype}` set `_comments`=%s where name=%s""",  # nosec
-			(json.dumps(_comments[-100:]), reference_name),
+		frappe.db.set_value(
+			reference_doctype, reference_name, "_comments", json.dumps(_comments), update_modified=False
 		)
 
 	except Exception as e:

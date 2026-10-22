@@ -40,6 +40,22 @@ test.describe("Grid Configuration", () => {
 		await expect(page.locator('[title="Align Right"]').first()).toBeVisible();
 	});
 
+	test("Select All rechecks columns unchecked in the column selector", async ({ page }) => {
+		await page.getByRole("tab", { name: "Navbar", exact: true }).click();
+		const table = page.locator('.frappe-control[data-fieldname="top_bar_items"]');
+		await table.locator(".icon-sm").click();
+		const modal = page.locator('.frappe-control[data-fieldname="fields_html"]');
+		await modal.locator(".add-new-fields").click();
+
+		const dialog = page.locator(".modal.show", { hasText: "Select Fields" });
+		const checkbox = dialog.locator('.unit-checkbox input[type="checkbox"]:checked').first();
+		const fieldname = await checkbox.getAttribute("data-unit");
+		await checkbox.uncheck();
+		await dialog.getByRole("button", { name: "Select All", exact: true }).click();
+
+		await expect(dialog.locator(`[type="checkbox"][data-unit="${fieldname}"]`)).toBeChecked();
+	});
+
 	test("Populates footer parent label options on page load", async ({ page, desk }) => {
 		await page.getByRole("tab", { name: "Footer", exact: true }).click();
 		saved_footer_items = await page.evaluate(() => {

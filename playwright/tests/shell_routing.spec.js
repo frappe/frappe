@@ -23,6 +23,10 @@ function current_shell(page) {
 	return page.evaluate(() => window.frappe?.router?.current_shell);
 }
 
+async function on_route(page, route) {
+	await expect.poll(() => page.evaluate(() => window.frappe?.get_route?.())).toEqual(route);
+}
+
 test.describe("Desk URL shell segment", () => {
 	test("reads a shell off a route only when what follows names something", async ({
 		page,
@@ -121,6 +125,34 @@ test.describe("Desk URL shell segment", () => {
 			await expect.poll(() => current_module(page)).toBe("Build");
 		} finally {
 			await api.call("frappe.client.delete", { doctype: "Workspace", name });
+		}
+	});
+
+	test("keeps a private page made in a module in that module's shell", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const name = `Test Module Private Page-${TEST_USER}`;
+		await api.remove_doc("Workspace", name, true);
+
+		try {
+			await page.goto("/desk/build");
+			await desk.ready();
+			await expect_shell(page, "Build");
+
+			await page.locator('.page-icon-group button[aria-haspopup="menu"]').click();
+			await page.getByRole("menuitem", { name: "New", exact: true }).click();
+			await desk.fill_field("title", "Test Module Private Page");
+			await desk.click_modal_primary_button("Create");
+
+			await expect
+				.poll(() => pathname(page))
+				.toBe("/desk/build/private/test-module-private-page");
+			await expect.poll(() => current_module(page)).toBe("Build");
+			await expect_shell(page, "Build");
+		} finally {
+			await api.remove_doc("Workspace", name, true);
 		}
 	});
 
@@ -252,6 +284,29 @@ test.describe("Desk URL shell segment", () => {
 		expect(await shell_from_url("Not A Real Shell")).toBe(null);
 	});
 
+	test("takes a shell the user cannot see off the URL, and writes in one they can", async ({
+		page,
+		desk,
+		admin,
+	}) => {
+		const { block_modules } = (await admin.get_doc("User", TEST_USER)).data;
+		await admin.update_doc("User", TEST_USER, {
+			block_modules: [...block_modules, { module: "Website" }],
+		});
+		try {
+			await open_desk(page, desk);
+			const hidden = await page.evaluate(() => !("website" in frappe.router.shell_routes));
+			expect(hidden, "the Website shell is hidden from the test user").toBe(true);
+
+			await page.goto("/desk/website/todo");
+			await on_route(page, ["List", "ToDo", "List"]);
+			await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+			await expect_shell(page, "Build");
+		} finally {
+			await admin.update_doc("User", TEST_USER, { block_modules });
+		}
+	});
+
 	test("shows the shell the URL names", async ({ page }) => {
 		await page.goto("/desk/build/todo");
 		await expect_shell(page, "Build");
@@ -311,6 +366,39 @@ test.describe("Desk URL shell segment", () => {
 
 		await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
 		await expect_shell(page, "Build");
+	});
+
+	test("goes back past a new document once it is saved", async ({ page, desk, api }) => {
+		await page.goto("/desk/build/todo");
+		await on_route(page, ["List", "ToDo", "List"]);
+		await page.evaluate(() =>
+			frappe.model.with_doctype("ToDo", () => {
+				const doc = frappe.model.get_new_doc("ToDo");
+				frappe.set_route("Form", "ToDo", doc.name);
+			})
+		);
+		await expect.poll(() => pathname(page)).toMatch(/^\/desk\/build\/todo\/new-todo-/);
+		await expect(page.locator("body")).toHaveAttribute("data-ajax-state", "complete");
+
+		await page.evaluate(() => cur_frm.set_value("description", "go back past me"));
+		await desk.save();
+		const saved = await page.evaluate(() => cur_frm.doc.name);
+
+		try {
+			await expect.poll(() => pathname(page)).toBe(`/desk/build/todo/${saved}`);
+
+			await page.evaluate(() => frappe.set_route("List", "User"));
+			await on_route(page, ["List", "User", "List"]);
+
+			await page.goBack();
+			await on_route(page, ["Form", "ToDo", saved]);
+
+			await page.goBack();
+			await on_route(page, ["List", "ToDo", "List"]);
+			await expect.poll(() => pathname(page)).toBe("/desk/build/todo");
+		} finally {
+			await api.remove_doc("ToDo", saved, true);
+		}
 	});
 
 	test("opens a report through a shell", async ({ page }) => {
@@ -545,5 +633,22 @@ test.describe("Desk URL shell segment", () => {
 		expect(result.open_after_pointer_move, "survives a pointer move").toBe(true);
 		expect(result.open_after_escape).toBe(false);
 		expect(result.focus_handed_back, "focus handed back").toBe(true);
+	});
+
+	test("keeps a collapsed sidebar collapsed when a dock tile is clicked", async ({
+		page,
+		desk,
+	}) => {
+		await open_desk(page, desk);
+		await page.evaluate(() => frappe.app.sidebar.close());
+		const from = pathname(page);
+
+		await page.locator(".dock-items .dock-item:not(.active)").first().click();
+
+		await expect.poll(() => pathname(page)).not.toBe(from);
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
+		await page.reload();
+		await desk.ready();
+		await expect(page.locator("body")).toHaveClass(/(^|\s)sidebar-collapsed(\s|$)/);
 	});
 });

@@ -10,7 +10,7 @@ import frappe.utils.scheduler
 from frappe.desk.form import assign_to
 from frappe.tests import IntegrationTestCase
 
-from .notification import trigger_notifications
+from .notification import get_comments_for_context, trigger_notifications
 
 EXTRA_TEST_RECORD_DEPENDENCIES = ["User", "Notification"]
 
@@ -138,6 +138,29 @@ class TestNotification(IntegrationTestCase):
 		)
 
 		self.assertEqual(frappe.db.get_value("Communication", communication.name, "subject"), "__testing__")
+
+	def test_comments_in_context(self):
+		todo = frappe.get_doc(doctype="ToDo", description="comments context").insert()
+		self.assertIsNone(get_comments_for_context(todo))
+
+		comment = todo.add_comment("Comment", "hello")
+		email = frappe.get_doc(
+			doctype="Communication",
+			content="reply",
+			sender="a@example.com",
+			reference_doctype="ToDo",
+			reference_name=todo.name,
+		).insert()
+		self.assertEqual(
+			get_comments_for_context(todo),
+			[
+				{"comment": "hello", "by": comment.comment_email, "name": comment.name},
+				{"comment": "reply", "by": "a@example.com", "name": email.name},
+			],
+		)
+
+		todo.add_comment("Comment", "x" * 150)
+		self.assertEqual(get_comments_for_context(todo)[-1]["comment"], "x" * 97 + "...")
 
 	def test_condition(self):
 		"""Check notification is triggered based on a condition."""
@@ -691,6 +714,15 @@ class TestNotification(IntegrationTestCase):
 
 			# Clean up
 			todo.delete(ignore_permissions=True)
+
+	def test_attach_print_uses_document_language(self):
+		user = frappe.get_doc("User", "test@example.com")
+		user.language = "de"
+
+		with self.change_settings("Print Settings", allow_print_for_draft=1):
+			attachment = frappe.new_doc("Notification").get_print(user)
+
+		self.assertEqual(attachment["lang"], "de")
 
 	@classmethod
 	def tearDownClass(cls):

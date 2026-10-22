@@ -1,23 +1,14 @@
 // Copyright (c) 2017, Frappe Technologies and contributors
 // For license information, please see license.txt
 
-const CLASSIC_BUILDER_NOTICE = __(
-	"The classic builder will be removed in version 17. Convert this format to the new builder to keep editing it."
-);
+const CLASSIC_BUILDER_NOTICE = __("The classic builder will be removed in version 17.");
 const is_classic_format = (doc) => doc.print_format_builder && !doc.print_format_builder_beta;
 const effective_pdf_generator = (frm) => {
 	const picked = !frm.get_field("pdf_generator").df.hidden && frm.doc.pdf_generator;
 	return picked || frm.doc.__onload?.pdf_generator;
 };
 
-const DEPRECATED_RENDERERS = {
-	WeasyPrint: __(
-		"WeasyPrint is deprecated and will be removed in version 17. Switch this format to Chrome."
-	),
-	wkhtmltopdf: __(
-		"wkhtmltopdf is deprecated and will be removed in version 17. Switch this format to Chrome."
-	),
-};
+const DEPRECATED_RENDERERS = ["WeasyPrint", "wkhtmltopdf"];
 
 frappe.ui.form.on("Print Format", "onload", function (frm) {
 	frm.add_fetch("doc_type", "module", "module");
@@ -132,11 +123,21 @@ frappe.ui.form.on("Print Format", {
 	},
 	show_renderer_notice: function (frm) {
 		frm.dashboard.clear_headline();
-		const notices = [
-			is_classic_format(frm.doc) && CLASSIC_BUILDER_NOTICE,
-			DEPRECATED_RENDERERS[effective_pdf_generator(frm)],
-		].filter(Boolean);
-		if (notices.length) frm.dashboard.set_headline(notices.join(" "), "orange");
+		const generator = effective_pdf_generator(frm);
+		const deprecated = DEPRECATED_RENDERERS.includes(generator);
+		if (is_classic_format(frm.doc)) {
+			frm.dashboard.set_headline(CLASSIC_BUILDER_NOTICE, "orange");
+		} else if (deprecated && frm.get_field("pdf_generator").df.hidden) {
+			frm.dashboard.set_headline(
+				__("{0} will be removed in version 17. Switch to Chrome.", [generator]),
+				"orange"
+			);
+		}
+		frm.set_df_property(
+			"pdf_generator",
+			"description",
+			deprecated ? __("Deprecated, removed in version 17. Switch to Chrome.") : ""
+		);
 	},
 	pdf_generator: function (frm) {
 		frm.trigger("show_renderer_notice");

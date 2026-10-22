@@ -116,6 +116,58 @@ class TestUser(IntegrationTestCase):
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
 
+	def insert_user_as_manager(self, first_name, username=None):
+		if frappe.session.user == "Administrator":
+			manager = frappe.get_doc(
+				doctype="User",
+				email=f"{frappe.generate_hash()}@example.com",
+				first_name="Manager",
+				roles=[{"role": "System Manager"}],
+			).insert()
+			frappe.set_user(manager.name)
+
+		return frappe.get_doc(
+			doctype="User",
+			email=f"{frappe.generate_hash()}@example.com",
+			first_name=first_name,
+			username=username,
+		).insert()
+
+	def test_username_from_a_taken_first_name(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		first = self.insert_user_as_manager(first_name)
+		self.insert_user_as_manager("Decoy", username=f"{base}-\u00b2")
+		second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(first.username, base)
+		self.assertEqual(second.username, f"{base}-1")
+
+	def test_username_from_a_first_name_taken_with_accents(self):
+		suffix = frappe.generate_hash(length=8)
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}")
+		self.insert_user_as_manager("Accented", username=f"jos\u00e9{suffix}-1")
+		user = self.insert_user_as_manager(f"Jose{suffix}")
+
+		self.assertTrue(user.username)
+
+	def test_username_taken_while_the_user_is_saved(self):
+		first_name = f"Tester {frappe.generate_hash(length=8)}"
+		base = frappe.scrub(first_name)
+		self.insert_user_as_manager(first_name)
+		other = self.insert_user_as_manager("Other")
+		validate_username = User.validate_username
+
+		def taken_meanwhile(user):
+			validate_username(user)
+			frappe.db.set_value("User", other.name, "username", user.username)
+
+		with patch.object(User, "validate_username", taken_meanwhile):
+			second = self.insert_user_as_manager(first_name)
+
+		self.assertEqual(second.username, f"{base}-2")
+		self.assertFalse([m for m in frappe.message_log if "unique" in str(m)])
+
 	def test_delete(self):
 		frappe.get_doc("User", "test@example.com").add_roles("_Test Role 2")
 		self.assertRaises(frappe.LinkExistsError, delete_doc, "Role", "_Test Role 2")
@@ -615,6 +667,52 @@ class TestUser(IntegrationTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+	@contextmanager
+	def outgoing_email_account(self):
+		exists = frappe.db.exists
+
+		def exists_with_outgoing_account(doctype, *args, **kwargs):
+			if doctype == "Email Account":
+				return "Test Outgoing Account"
+			return exists(doctype, *args, **kwargs)
+
+		with patch.object(frappe.db, "exists", side_effect=exists_with_outgoing_account):
+			yield
+
+	def test_second_save_of_new_user_does_not_send_password_changed_alert(self):
+		"""Social login inserts the user through add_roles and saves it again in the same request."""
+		frappe.set_user("Guest")
+		user: User = frappe.new_doc(
+			"User",
+			email="oauth-signup@example.com",
+			first_name="OAuth",
+			user_type="Website User",
+			new_password=frappe.generate_hash(),
+		)
+		user.flags.ignore_permissions = True
+		user.flags.no_welcome_mail = True
+		try:
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.add_roles("_Test Role")
+				user.save()
+
+			sendmail.assert_not_called()
+		finally:
+			frappe.set_user("Administrator")
+			user.delete(force=True, ignore_permissions=True)
+
+	def test_password_change_by_user_still_sends_password_changed_alert(self):
+		with test_user(roles=["_Test Role"]) as created:
+			frappe.set_user(created.name)
+			user: User = frappe.get_doc("User", created.name)
+			user.new_password = "Eastern_43A1W_changed"
+			with self.outgoing_email_account(), patch.object(frappe, "sendmail") as sendmail:
+				user.save()
+
+			sendmail.assert_called_once()
+			self.assertEqual(sendmail.call_args.kwargs["recipients"], [created.email])
+			frappe.set_user("Administrator")
 
 
 class TestImpersonation(FrappeAPITestCase):

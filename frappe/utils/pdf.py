@@ -6,17 +6,15 @@ import io
 import mimetypes
 import os
 import subprocess
+from typing import TYPE_CHECKING
 from urllib.parse import parse_qs, urlparse
 
-import cssutils
 import pdfkit
 import pdfkit.api
 from pdfkit.pdfkit import PDFKit as OriginalPDFKit
 
 pdfkit.source.unicode = str  # NOTE: upstream bug; PYTHONOPTIMIZE=1 optimized this away
-from bs4 import BeautifulSoup
 from packaging.version import Version
-from pypdf import PdfReader, PdfWriter, errors
 
 import frappe
 from frappe import _
@@ -26,7 +24,10 @@ from frappe.utils.caching import redis_cache
 from frappe.utils.data import get_url
 from frappe.utils.jinja_globals import bundled_asset, is_rtl
 
-cssutils.log.setLog(frappe.logger("cssutils"))
+if TYPE_CHECKING:
+	import cssutils
+	from bs4 import BeautifulSoup
+	from pypdf import PdfWriter
 
 PDF_CONTENT_ERRORS = [
 	"ContentNotFoundError",
@@ -121,6 +122,8 @@ def get_pdf(html, options=None, output: PdfWriter | None = None, smart_shrinking
 	try:
 		# Set filename property to false, so no file is actually created
 		filedata = pdfkit.from_string(html, options=options or {}, verbose=True)
+
+		from pypdf import PdfReader, PdfWriter
 
 		# create in-memory binary streams from filedata and create a PdfReader object
 		reader = PdfReader(io.BytesIO(filedata))
@@ -270,6 +273,8 @@ def get_cookie_options():
 
 def read_options_from_html(html):
 	options = {}
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, "html5lib")
 
 	options.update(prepare_header_footer(soup))
@@ -293,7 +298,7 @@ def read_options_from_html(html):
 	return str(soup), options
 
 
-def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
+def get_print_format_styles(soup: "BeautifulSoup") -> list["cssutils.css.Property"]:
 	"""
 	Get styles purely on class 'print-format'.
 	Valid:
@@ -307,6 +312,10 @@ def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
 	Returns:
 	[cssutils.css.Property(name='margin-top', value='50mm', priority=''), ...]
 	"""
+	import cssutils
+
+	cssutils.log.setLog(frappe.logger("cssutils"))
+
 	stylesheet = ""
 	style_tags = soup.find_all("style")
 
@@ -315,7 +324,7 @@ def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
 		stylesheet += cstr(style_tag.string)
 
 	# Use css parser to tokenize the classes and their styles
-	parsed_sheet = cssutils.parseString(stylesheet)
+	parsed_sheet = cssutils.CSSParser(fetcher=lambda url: (None, "")).parseString(stylesheet)
 
 	# Get all styles that are only for .print-format
 	valid_styles = []
@@ -332,6 +341,8 @@ def get_print_format_styles(soup: BeautifulSoup) -> list[cssutils.css.Property]:
 
 
 def inline_private_images(html) -> str:
+	from bs4 import BeautifulSoup
+
 	soup = BeautifulSoup(html, "html.parser")
 	for img in soup.find_all("img"):
 		if b64 := _get_base64_image(img["src"]):
@@ -359,7 +370,7 @@ def _get_base64_image(src):
 		frappe.logger("pdf").error("Failed to convert inline images to base64", exc_info=True)
 
 
-def prepare_header_footer(soup: BeautifulSoup):
+def prepare_header_footer(soup: "BeautifulSoup"):
 	options = {}
 
 	head = soup.find("head").contents
@@ -458,6 +469,8 @@ def pdf_contains_js(file_content: bytes):
 		bool: True if the PDF contains JavaScript, False otherwise and also if the file is encrypted.
 	"""
 	from io import BytesIO
+
+	from pypdf import PdfReader, errors
 
 	reader = PdfReader(BytesIO(file_content))
 

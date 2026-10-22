@@ -214,7 +214,6 @@ $.extend(frappe.meta, {
 			owner: __("Created By"),
 			_user_tags: __("Tags"),
 			_liked_by: __("Liked By"),
-			_comments: __("Comments"),
 			_assign: __("Assigned To"),
 		};
 		if (standard[fn]) {

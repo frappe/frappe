@@ -8,7 +8,7 @@ from pathlib import Path
 from typing import Any
 
 import frappe
-from frappe.model.base_document import BaseDocument
+from frappe.model.document import Document
 from frappe.utils import cint
 
 logger = logging.Logger(__file__)
@@ -63,10 +63,10 @@ class UnitTestCase(unittest.TestCase, BaseTestCase):
 		self.assertTrue(set(smaller).issubset(set(larger)), msg=msg)
 
 	# --- Frappe Framework specific assertions
-	def assertDocumentEqual(self, expected: dict | BaseDocument, actual: BaseDocument) -> None:
+	def assertDocumentEqual(self, expected: dict | Document, actual: Document) -> None:
 		"""Compare a (partial) expected document with actual Document."""
 
-		if isinstance(expected, BaseDocument):
+		if isinstance(expected, Document):
 			expected = expected.as_dict()
 
 		for field, value in expected.items():
@@ -78,7 +78,7 @@ class UnitTestCase(unittest.TestCase, BaseTestCase):
 			else:
 				self._compare_field(value, actual.get(field), actual, field)
 
-	def _compare_field(self, expected: Any, actual: Any, doc: BaseDocument, field: str) -> None:
+	def _compare_field(self, expected: Any, actual: Any, doc: Document, field: str) -> None:
 		msg = f"{field} should be same."
 
 		if isinstance(expected, float):

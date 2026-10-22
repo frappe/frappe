@@ -241,6 +241,21 @@ class TestWebsite(IntegrationTestCase):
 		delattr(frappe.hooks, "website_redirects")
 		frappe.client_cache.delete_value("app_hooks")
 
+	def test_redirect_with_query_string_after_bare_path(self):
+		self.addCleanup(frappe.cache.hdel, "website_redirects", "courses/course")
+		redirects = [
+			dict(source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True)
+		]
+
+		with self.patch_hooks({"website_redirects": redirects}):
+			set_request(method="GET", path="/courses/course")
+			get_response()
+			set_request(method="GET", path="/courses/course?course=data")
+			response = get_response()
+
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get("Location"), "/courses/data")
+
 	def test_custom_page_renderer(self):
 		from frappe import get_hooks
 

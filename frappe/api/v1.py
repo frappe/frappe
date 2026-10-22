@@ -51,6 +51,7 @@ def update_doc(doctype: str, name: str):
 	data = get_request_form_data()
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
+	doc.check_permission("write")
 	if "flags" in data:
 		del data["flags"]
 

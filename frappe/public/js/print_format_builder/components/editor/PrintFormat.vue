@@ -6,10 +6,12 @@
 		:class="{
 			'print-format-doc': !!store.preview_doc.value,
 			'show-label-colon': !!print_format.show_label_colon,
+			'pfb-has-background': !!background,
 		}"
 	>
 		<component :is="'style'" v-if="color_css">{{ color_css }}</component>
 		<component :is="'style'" v-if="user_css">{{ user_css }}</component>
+		<div v-if="background" class="pfb-page-background" :style="background_style"></div>
 		<div v-if="!page_number_hidden" class="pfb-page-num" :style="page_number_style">
 			{{ __("1 of N") }}
 		</div>
@@ -98,15 +100,28 @@ let header_selected = computed(() => store.selected_sections.value.includes(layo
 
 let page_mm = ref([210, 297]);
 
+let background = computed(() => layout.value.background?.image && layout.value.background);
+let background_style = computed(() => {
+	const [page_w, page_h] = page_mm.value;
+	return {
+		backgroundImage: `url("${background.value.image.replaceAll('"', "%22")}")`,
+		backgroundSize: `${page_w}mm ${page_h}mm`,
+		opacity: (background.value.opacity ?? 100) / 100,
+	};
+});
+
 let page_size_seq = 0;
 function load_page_size() {
 	const seq = ++page_size_seq;
 	frappe
-		.call("frappe.utils.print_format_generator.get_page_size_mm")
+		.call("frappe.utils.print_format_generator.get_page_size_mm", {
+			page: layout.value.page || null,
+		})
 		.then((r) => seq === page_size_seq && r.message && (page_mm.value = r.message));
 }
 onMounted(load_page_size);
 watch(inject("print_settings_rev", ref(0)), load_page_size);
+watch(() => JSON.stringify(layout.value.page || null), load_page_size);
 
 const CUSTOM_CSS_ID = "pfb-letterhead-custom-css";
 watch(
@@ -188,6 +203,7 @@ let rootStyles = computed(() => {
 		padding: `${margin_top}mm ${margin_right}mm ${margin_bottom}mm ${margin_left}mm`,
 		width: `${page_w}mm`,
 		minHeight: `${page_h}mm`,
+		"--pfb-cell-bg": background.value ? "transparent" : undefined,
 	};
 });
 
@@ -291,6 +307,19 @@ let page_number_style = computed(() => {
 	white-space: nowrap;
 }
 
+.pfb-has-background :deep(.print-format-section) {
+	background-color: transparent;
+}
+
+.pfb-page-background {
+	position: absolute;
+	inset: 0;
+	z-index: -1;
+	pointer-events: none;
+	background-position: center top;
+	background-repeat: no-repeat;
+}
+
 .print-format-main {
 	--fg-color: var(--surface-base);
 	--subtle-accent: var(--surface-gray-1);
@@ -301,6 +330,7 @@ let page_number_style = computed(() => {
 	--border-color: var(--outline-gray-1);
 	color: var(--text-muted);
 	position: relative;
+	isolation: isolate;
 	margin-right: auto;
 	margin-left: auto;
 	background-color: white;

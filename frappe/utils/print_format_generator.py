@@ -2,7 +2,9 @@
 # MIT License. See LICENSE
 
 import copy
+import re
 from typing import ClassVar
+from urllib.parse import quote
 
 import frappe
 from frappe import _
@@ -100,7 +102,13 @@ def generator_from_print_context(print_format) -> "PrintFormatGenerator | None":
 	doc = ctx.get("doc")
 	if not isinstance(doc, Document):
 		doc = frappe.get_doc(ctx.doctype, ctx.name)
-	return PrintFormatGenerator(pf, doc, ctx.get("letterhead"), no_letterhead=ctx.get("no_letterhead"))
+	return PrintFormatGenerator(
+		pf,
+		doc,
+		ctx.get("letterhead"),
+		settings=frappe.parse_json(ctx.get("settings")) if ctx.get("settings") else None,
+		no_letterhead=ctx.get("no_letterhead"),
+	)
 
 
 def get_typst_pdf(print_format, html, options, output, pdf_generator=None):
@@ -336,10 +344,30 @@ def page_size_mm(print_settings) -> tuple[float, float]:
 	return tuple(known) if known else (210, 297)
 
 
+BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\r\n]+")
+
+
+def layout_page_settings(layout: dict | list | None) -> dict:
+	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
+	page = layout.get("page") if isinstance(layout, dict) else None
+	if not isinstance(page, dict):
+		return {}
+	settings = {}
+	sizes = frappe.get_meta("Print Settings").get_field("pdf_page_size").options.split("\n")
+	if page.get("size") in sizes and page.get("size") != "Custom":
+		settings["pdf_page_size"] = page["size"]
+	if page.get("orientation") in ("Portrait", "Landscape"):
+		settings["page_orientation"] = page["orientation"]
+	return settings
+
+
 @frappe.whitelist()
-def get_page_size_mm():
+def get_page_size_mm(page: dict | str | None = None) -> tuple[float, float]:
 	"""Paper size the builder canvas should draw, in mm."""
-	return page_size_mm(frappe.get_cached_doc("Print Settings"))
+	settings = frappe.get_cached_doc("Print Settings").as_dict()
+	settings.update(layout_page_settings({"page": frappe.parse_json(page) if page else None}))
+	width, height = page_size_mm(settings)
+	return (height, width) if settings.get("page_orientation") == "Landscape" else (width, height)
 
 
 MAX_CONDITIONS = 200
@@ -433,12 +461,28 @@ class PrintFormatGenerator:
 			return None
 		return frappe.get_doc("Letter Head", name)
 
+	def format_page_settings(self) -> dict:
+		try:
+			layout = frappe.parse_json(self.print_format.format_data)
+		except ValueError:
+			return {}
+		return layout_page_settings(layout)
+
+	def apply_page_orientation(self):
+		settings = self.print_settings
+		if settings.get("page_orientation") == "Landscape":
+			width, height = page_size_mm(settings)
+			settings.pdf_page_size = "Custom"
+			settings.pdf_page_width, settings.pdf_page_height = height, width
+
 	def build_context(self):
 		self.print_settings = frappe.get_doc("Print Settings")
+		self.print_settings.update(self.format_page_settings())
 		if self.settings_override:
 			from frappe.www.printview import get_allowed_print_settings_override
 
 			self.print_settings.update(get_allowed_print_settings_override(self.doc, self.settings_override))
+		self.apply_page_orientation()
 
 		from frappe.www.printview import run_before_print
 
@@ -568,13 +612,51 @@ class PrintFormatGenerator:
 		if password:
 			options["password"] = password
 		options.update(self.page_options())
-		return get_chrome_pdf(
+		background = self.layout.get("background")
+		if background:
+			options.pop("password", None)
+		pdf = get_chrome_pdf(
 			print_format=pf.name,
 			html=html,
 			options=options,
 			output=None,
 			pdf_generator="chrome",
 		)
+		return self.underlay_background(pdf, background, password) if background else pdf
+
+	def underlay_background(self, pdf: bytes, background: dict, password: str | None = None) -> bytes:
+		"""Draw the page background under every page of ``pdf``, edge to edge."""
+		from io import BytesIO
+
+		from pypdf import PdfReader, PdfWriter
+
+		from frappe.utils.pdf import get_chrome_pdf
+
+		width, height = page_size_mm(self.print_settings)
+		html = (
+			"<!DOCTYPE html><html><head><style>@page{margin:0}html,body{margin:0}"
+			".print-format{margin-top:0mm;margin-bottom:0mm;margin-left:0mm;margin-right:0mm}</style></head><body>"
+			f'<div style="width:{width}mm;height:{height}mm;opacity:{background["opacity"] / 100};'
+			f"background:url('{background['url']}') center/100% 100% no-repeat\"></div></body></html>"
+		)
+		options = {"margin-top": "0mm", "margin-bottom": "0mm", "margin-left": "0mm", "margin-right": "0mm"}
+		options.update(self.page_options())
+		background_pdf = get_chrome_pdf(
+			print_format=self.print_format.name,
+			html=html,
+			options=options,
+			output=None,
+			pdf_generator="chrome",
+		)
+		background_page = PdfReader(BytesIO(background_pdf)).pages[0]
+		writer = PdfWriter(clone_from=BytesIO(pdf))
+		for page in writer.pages:
+			page.merge_page(background_page, over=False)
+		if password:
+			writer.encrypt(password)
+		out = BytesIO()
+		writer.write(out)
+		return out.getvalue()
 
 	def page_options(self) -> dict:
 		from frappe.utils.print_utils import convert_uom
@@ -876,7 +958,22 @@ class PrintFormatGenerator:
 		)
 		for zone in ("header", "footer"):
 			layout[zone] = clean_zone(layout.get(zone))
+		layout["background"] = self.clean_background(layout.get("background"))
 		return layout
+
+	@staticmethod
+	def clean_background(background):
+		if not isinstance(background, dict):
+			return None
+		image = background.get("image")
+		if not isinstance(image, str) or not BACKGROUND_IMAGE_URL.fullmatch(image):
+			return None
+		opacity = background.get("opacity")
+		return {
+			"image": image,
+			"url": quote(image, safe=":/?&=%#"),
+			"opacity": 100 if opacity in (None, "") else max(0, min(100, cint(opacity))),
+		}
 
 	@staticmethod
 	def has_field_access(doc, meta, fieldname, source_fieldname=None) -> bool:

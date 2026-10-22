@@ -7,8 +7,6 @@ from io import BytesIO
 from typing import Literal
 from urllib.parse import urlparse
 
-from pypdf import PdfWriter
-
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -213,6 +211,8 @@ def _download_multi_pdf(
 	"""
 	filename = ""
 
+	from pypdf import PdfWriter
+
 	pdf_writer = PdfWriter()
 
 	if isinstance(options, str):
@@ -380,6 +380,8 @@ def download_pdf(
 	language: str | None = None,
 	letterhead: str | None = None,
 	pdf_generator: Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"] | None = None,
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	if pdf_generator is None:
 		pdf_generator = "wkhtmltopdf"
@@ -397,6 +399,8 @@ def download_pdf(
 			letterhead=letterhead,
 			no_letterhead=no_letterhead,
 			pdf_generator=pdf_generator,
+			style=style,
+			settings=settings,
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -435,7 +439,10 @@ def _pdf_bypass_proxy_hosts() -> list[str]:
 	limited to these, so genuinely external resources stay blocked.
 	"""
 	hosts = {_hostname(frappe.utils.get_url(allow_header_override=False))}
-	hosts.update(_hostname(domain) for domain in (frappe.conf.domains or []))
+	hosts.update(
+		_hostname(domain["domain"] if isinstance(domain, dict) else domain)
+		for domain in (frappe.conf.domains or [])
+	)
 	hosts.discard(None)
 	return sorted(hosts)
 
@@ -508,6 +515,8 @@ def print_by_server(
 	doc: Document | None = None,
 	no_letterhead: bool | int = 0,
 	file_path: str | None = None,  # backward compatibility
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -520,22 +529,25 @@ def print_by_server(
 		cups.setServer(print_settings.server_ip)
 		cups.setPort(print_settings.port)
 		conn = cups.Connection()
+
+		from pypdf import PdfWriter
+
 		output = PdfWriter()
 		output = frappe.get_print(
-			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
+			doctype,
+			name,
+			print_format,
+			style=style,
+			doc=doc,
+			no_letterhead=no_letterhead,
+			as_pdf=True,
+			output=output,
+			settings=settings,
 		)
 		with tempfile.NamedTemporaryFile(prefix="frappe-pdf-", suffix=".pdf", delete=False) as f:
 			file_path = f.name
 			output.write(f)
 		conn.printFile(print_settings.printer_name, file_path, name, {})
-	except OSError as e:
-		if (
-			"ContentNotFoundError" in e.message
-			or "ContentOperationNotPermittedError" in e.message
-			or "UnknownContentError" in e.message
-			or "RemoteHostClosedError" in e.message
-		):
-			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
 	finally:

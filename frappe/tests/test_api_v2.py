@@ -5,9 +5,12 @@ from unittest.mock import patch
 import requests
 
 import frappe
+from frappe.api import discovery
+from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
-from frappe.tests.test_api import FrappeAPITestCase, suppress_stdout
+from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
 from frappe.tests.utils import toggle_test_mode, whitelist_for_tests
+from frappe.utils import get_test_client
 
 authorization_token = None
 
@@ -162,6 +165,64 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertFalse(response.json["errors"][0].get("exception"))
 
 
+class TestApiV2UpdatePermissions(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.user = "api.permissions@example.com"
+		self.created_user = not frappe.db.exists("User", self.user)
+		if self.created_user:
+			frappe.get_doc(
+				doctype="User", email=self.user, first_name="API Permissions", send_welcome_email=0
+			).insert()
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		self.names = []
+		for allocated_to in (self.user, None):
+			doc = frappe.get_doc(
+				doctype="ToDo", description="API v2 permission fixture", allocated_to=allocated_to
+			).insert()
+			self.names.append(doc.name)
+		# Requests use a separate connection and must see these fixtures.
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			for name in self.names:
+				frappe.delete_doc_if_exists("ToDo", name)
+			if self.created_user:
+				frappe.delete_doc("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def update_document(self, name, data):
+		return make_request(
+			get_test_client(use_cookies=False).put,
+			args=(self.resource("ToDo", name),),
+			kwargs={"json": data, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def test_update_cannot_grant_access_using_payload(self):
+		name = self.names[1]
+		for field in ("allocated_to", "assigned_by", "owner"):
+			with self.subTest(field=field):
+				before = frappe.db.get_value("ToDo", name, field)
+				response = self.update_document(name, {field: self.user})
+				self.assertEqual(response.status_code, 403)
+				self.assertEqual(frappe.db.get_value("ToDo", name, field), before)
+
+	def test_permitted_update_still_succeeds(self):
+		name = self.names[0]
+		response = self.update_document(name, {"description": "Permitted API update"})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
+
+
 class TestMethodAPIV2(FrappeAPITestCase):
 	version = "v2"
 
@@ -295,6 +356,271 @@ class TestDocTypeAPIV2(FrappeAPITestCase):
 	def test_count_v2(self):
 		response = self.get(self.doctype_path("ToDo", "count"))
 		self.assertIsInstance(response.json["data"], int)
+
+
+class TestDiscoveryAPIV2(FrappeAPITestCase):
+	version = "v2"
+	DESK_USER = "api-discovery-desk-user@example.com"
+	WEBSITE_USER = "api-discovery-website-user@example.com"
+
+	@classmethod
+	def tearDownClass(cls):
+		for user in (cls.DESK_USER, cls.WEBSITE_USER):
+			frappe.delete_doc_if_exists("User", user, force=True)
+		frappe.db.commit()
+		super().tearDownClass()
+
+	def setUp(self) -> None:
+		self.post(self.method("login"), {"sid": self.sid})
+		discovery.clear_cache()
+		discovery.build_cache()
+		return super().setUp()
+
+	def discovery_path(self, *parts):
+		return self.get_path("discovery", *parts)
+
+	def user_sid(self, email: str, *roles: str) -> str:
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		if not frappe.db.exists("User", email):
+			user = frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": email,
+					"first_name": "API Discovery User",
+					"send_welcome_email": 0,
+				}
+			)
+			user.append_roles(*roles)
+			user.insert(ignore_permissions=True)
+			# HTTP requests use another connection and must see this user.
+			frappe.db.commit()  # nosemgrep: frappe-semgrep-rules.rules.frappe-manual-commit
+
+		set_request(path="/")
+		frappe.local.cookie_manager = CookieManager()
+		frappe.local.login_manager = LoginManager()
+		frappe.local.login_manager.login_as(email)
+		return frappe.session.sid
+
+	def discovery_paths(self):
+		return (
+			self.discovery_path(),
+			self.discovery_path("search"),
+			self.discovery_path("method"),
+			self.discovery_path("method", "frappe.tests.test_api.test"),
+			self.discovery_path("doctype", "User"),
+			self.discovery_path("doctype", "User", "method", "add_comment"),
+		)
+
+	def test_search_v2(self):
+		response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "test_api test"},
+		)
+		self.assertEqual(response.status_code, 200)
+		results = response.json["data"]["results"]
+		self.assertTrue(
+			any(
+				item.get("path") == "frappe.tests.test_api.test" and item["kind"] == "rpc" for item in results
+			)
+		)
+		self.assertTrue(all("docstring" not in item for item in results))
+
+		docstring_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "parameter metadata"},
+		)
+		self.assertEqual(docstring_response.status_code, 200)
+		self.assertTrue(
+			any(
+				item.get("path") == "frappe.tests.test_api.test"
+				for item in docstring_response.json["data"]["results"]
+			)
+		)
+
+		controller_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "User populate_role_profile_roles"},
+		)
+		self.assertEqual(controller_response.status_code, 200)
+		self.assertTrue(
+			all(item["kind"] == "doctype" for item in controller_response.json["data"]["results"])
+		)
+		self.assertIn(
+			{
+				"type": "method",
+				"doctype": "User",
+				"method": "populate_role_profile_roles",
+			},
+			[
+				{key: item[key] for key in ("type", "doctype", "method")}
+				for item in controller_response.json["data"]["results"]
+				if item.get("doctype")
+			],
+		)
+		user_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "User"},
+		)
+		self.assertTrue(
+			any(
+				item.get("doctype") == "User" and item.get("method") == "populate_role_profile_roles"
+				for item in user_response.json["data"]["results"]
+			)
+		)
+		inherited_response = self.get(
+			self.discovery_path("search"),
+			{"sid": self.sid, "q": "User add_comment"},
+		)
+		self.assertFalse(
+			any(
+				item.get("doctype") == "User" and item.get("method") == "add_comment"
+				for item in inherited_response.json["data"]["results"]
+			)
+		)
+
+	def test_doctype_methods_v2(self):
+		response = self.get(self.discovery_path("doctype", "User"), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200)
+		methods = {item["method"]: item for item in response.json["data"]["methods"]}
+
+		self.assertEqual(methods["populate_role_profile_roles"]["kind"], "doctype")
+		self.assertNotIn("submit", methods)
+
+		submittable_response = self.get(self.discovery_path("doctype", "DuckDB Sync"), {"sid": self.sid})
+		self.assertEqual(submittable_response.status_code, 200)
+		self.assertTrue(
+			any(item["method"] == "submit" for item in submittable_response.json["data"]["methods"])
+		)
+
+	def test_doctype_method_document_v2(self):
+		response = self.get(
+			self.discovery_path("doctype", "User", "method", "add_comment"),
+			{"sid": self.sid},
+		)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(data["type"], "method")
+		self.assertEqual(data["kind"], "doctype")
+		self.assertEqual(data["doctype"], "User")
+		self.assertEqual(data["method"], "add_comment")
+		self.assertEqual(data["defined_in"], "frappe.model.document.Document")
+		self.assertEqual(data["endpoint"], "/api/v2/document/User/{name}/method/add_comment")
+		self.assertEqual(data["http_methods"], ["GET", "POST"])
+		self.assertEqual(data["permission"], {"GET": "read", "POST": "write"})
+		self.assertTrue(any(param["name"] == "comment_type" for param in data["params"]))
+		self.assertIn("source", data)
+		self.assertIn("def add_comment(", data["source"])
+
+	def test_doctype_method_not_found_v2(self):
+		paths = (
+			self.discovery_path("doctype", "Missing DocType"),
+			self.discovery_path("doctype", "User", "method", "validate"),
+		)
+		for path in paths:
+			with self.subTest(path=path), suppress_stdout():
+				response = self.get(path, {"sid": self.sid})
+			self.assertEqual(response.status_code, 404)
+
+	def test_methods_v2(self):
+		root_response = self.get(self.discovery_path(), {"sid": self.sid})
+		self.assertEqual(root_response.status_code, 200)
+		self.assertGreater(root_response.json["data"]["resources"]["doctype_methods"], 0)
+		self.assertEqual(
+			root_response.json["data"]["links"]["doctype_method"],
+			"/api/v2/discovery/doctype/{doctype}/method/{method}",
+		)
+
+		index_response = self.get(self.discovery_path("method"), {"sid": self.sid})
+		self.assertEqual(index_response.status_code, 200)
+		method = next(
+			item
+			for item in index_response.json["data"]["methods"]
+			if item.get("path") == "frappe.tests.test_api.test"
+		)
+		self.assertEqual(method["kind"], "rpc")
+		self.assertEqual(method["description"], "Exercise RPC success and failure responses.")
+		doctype_method = next(
+			item
+			for item in index_response.json["data"]["methods"]
+			if item.get("doctype") == "User" and item.get("method") == "populate_role_profile_roles"
+		)
+		self.assertEqual(doctype_method["kind"], "doctype")
+		self.assertFalse(
+			any(
+				item.get("doctype") == "User" and item.get("method") == "add_comment"
+				for item in index_response.json["data"]["methods"]
+			)
+		)
+
+		method_response = self.get(
+			self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
+		)
+		self.assertEqual(method_response.status_code, 200)
+		data = method_response.json["data"]
+		self.assertEqual(data["kind"], "rpc")
+		self.assertEqual(data["path"], "frappe.tests.test_api.test")
+		self.assertEqual(
+			data["docstring"],
+			"Exercise RPC success and failure responses.\n\n"
+			"Used by API discovery tests to verify parameter metadata.",
+		)
+		self.assertTrue(any(param["name"] == "message" for param in data["params"]))
+		self.assertTrue(all("kind" not in param for param in data["params"]))
+		self.assertTrue(
+			any(
+				param["name"] == "optional_message" and param["type"] == "str | None"
+				for param in data["params"]
+			)
+		)
+		# frappe opts into source exposure via the `expose_discovery_source` hook
+		self.assertIn("source", data)
+		self.assertIn("def test(", data["source"])
+
+	def test_method_source_hidden_without_hook_v2(self):
+		real_get_hooks = frappe.get_hooks
+
+		def get_hooks(hook=None, *args, **kwargs):
+			if hook == "expose_discovery_source":
+				return []
+			return real_get_hooks(hook, *args, **kwargs)
+
+		with patch.object(frappe, "get_hooks", side_effect=get_hooks):
+			response = self.get(
+				self.discovery_path("method", "frappe.tests.test_api.test"), {"sid": self.sid}
+			)
+			doctype_response = self.get(
+				self.discovery_path("doctype", "User", "method", "add_comment"),
+				{"sid": self.sid},
+			)
+		self.assertEqual(response.status_code, 200)
+		self.assertNotIn("source", response.json["data"])
+		self.assertEqual(doctype_response.status_code, 200)
+		self.assertNotIn("source", doctype_response.json["data"])
+
+	def test_cold_cache_returns_retryable_response_v2(self):
+		discovery.clear_cache()
+		with suppress_stdout(), patch("frappe.utils.error.log_error") as log_error:
+			response = self.get(self.discovery_path(), {"sid": self.sid})
+		self.assertEqual(response.status_code, 503)
+		self.assertNotIn("Retry-After", response.headers)
+		log_error.assert_not_called()
+
+	def test_discovery_allows_desk_user_v2(self):
+		sid = self.user_sid(self.DESK_USER, "Website Manager")
+		for path in self.discovery_paths():
+			with self.subTest(path=path):
+				response = self.get(path, {"sid": sid})
+				self.assertEqual(response.status_code, 200)
+
+	def test_discovery_rejects_website_user_v2(self):
+		sid = self.user_sid(self.WEBSITE_USER)
+		for path in self.discovery_paths():
+			with self.subTest(path=path):
+				with suppress_stdout():
+					response = self.get(path, {"sid": sid})
+				self.assertEqual(response.status_code, 403)
 
 
 class TestReadOnlyMode(FrappeAPITestCase):
