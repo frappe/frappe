@@ -52,7 +52,7 @@ test.describe("Desk v2 API calls", () => {
 		await page.locator('[data-fieldname="description"]').click();
 		await page.keyboard.type(" again");
 		const calls = await count_calls(page, () =>
-			page.getByRole("button", { name: "Save", exact: true }).click()
+			page.getByRole("button", { name: "Save", exact: true }).click(),
 		);
 		expect_baseline("save", calls);
 
@@ -112,7 +112,7 @@ async function wait_for_quiet(page, calls, pending) {
 		if (!pending.size && calls.length === seen) return;
 		if (waits === MAX_WAITS) {
 			throw new Error(
-				`API calls did not stop after ${MAX_WAITS} waits:\n${calls.join("\n")}`
+				`API calls did not stop after ${MAX_WAITS} waits:\n${calls.join("\n")}`,
 			);
 		}
 		seen = calls.length;
