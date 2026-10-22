@@ -122,7 +122,6 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 						label: __("File"),
 						fieldname: "source_file",
 						render: (row) => frappe.utils.escape_html(get_file_name(row.source_file)),
-						on_click: select,
 					},
 					{
 						label: __("Uploaded By"),
@@ -134,6 +133,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 						render: (row) => comment_when(row.creation),
 					},
 				],
+				on_row_click: select,
 				after_render: () => mark_selected_row(),
 			});
 			list.refresh();
