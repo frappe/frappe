@@ -213,4 +213,46 @@ test.describe("List View — Saved Layouts", () => {
 		await expect.poll(() => fetch_fields(page)).not.toContain("role");
 		expect(await fetch_fields(page)).toContain("priority");
 	});
+
+	test("shows each layout's own column widths when switching layouts", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const columns = (width) =>
+			JSON.stringify([
+				{ fieldname: "description", label: "Description", width },
+				{ fieldname: "status", label: "Status" },
+				{ fieldname: "priority", label: "Priority" },
+			]);
+		await create_test_layout(api, {
+			layout_name: "_test_layout_narrow",
+			filters: "[]",
+			columns: columns(80),
+		});
+		await create_test_layout(api, {
+			layout_name: "_test_layout_wide",
+			filters: "[]",
+			columns: columns(380),
+		});
+
+		await page.goto(LIST_URL);
+		await desk.ready();
+		await desk.clear_filters();
+
+		const description = page
+			.locator('.list-row-head .list-row-col[data-fieldname="description"]')
+			.first();
+		const width = async () => {
+			const box = await description.boundingBox();
+			return box && Math.round(box.width);
+		};
+
+		await select_layout(page, "_test_layout_narrow");
+		await expect.poll(width).toBe(80);
+		await select_layout(page, "_test_layout_wide");
+		await expect.poll(width).toBe(380);
+		await select_layout(page, "_test_layout_narrow");
+		await expect.poll(width).toBe(80);
+	});
 });
