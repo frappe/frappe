@@ -372,7 +372,7 @@ export function createFlowStore(client, options = {}) {
 	}
 
 	// silent: an older daemon, or one whose policy keeps them off, leaves chats grouped by folder
-	let foldersRequest = 0
+	let foldersRequest = 0 // a change drops the lists still on their way: they may predate it
 	async function refreshFolders() {
 		if (typeof client.workspaces !== "function") return
 		const own = ++foldersRequest
@@ -405,6 +405,7 @@ export function createFlowStore(client, options = {}) {
 		if (!state.folders) return null
 		const data = await guard(() => client.addWorkspace(path))
 		if (!data) return null
+		foldersRequest++
 		if (!isFolder(data.workspace.path)) state.folders = [...state.folders, data.workspace]
 		return data.workspace
 	}
@@ -412,6 +413,7 @@ export function createFlowStore(client, options = {}) {
 	async function renameFolder(path, name) {
 		const data = await guard(() => client.renameWorkspace(path, name))
 		if (!data) return
+		foldersRequest++
 		state.folders = state.folders.map((folder) => (folder.path === path ? data.workspace : folder))
 		notify("Workspace renamed")
 	}
@@ -421,6 +423,7 @@ export function createFlowStore(client, options = {}) {
 	async function removeFolder(path) {
 		const ok = await guard(() => client.removeWorkspace(path))
 		if (ok === null) return
+		foldersRequest++
 		state.folders = state.folders.filter((folder) => folder.path !== path)
 		for (const session of state.sessions) if (session.workspace === path) session.workspace = null
 		if (!state.sessionId && state.prefs.cwd === path) setCwd(latestFolder())

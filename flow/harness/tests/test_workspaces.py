@@ -54,12 +54,15 @@ def test_workspaces_start_from_the_chats_or_a_default_and_keep_folders_and_chats
 	}
 	assert _workspace_of(c, sid) == path
 
-	# removed, it leaves its folder and chats, which are then in none, even as they go on; a new
-	# chat there brings it back, with them
+	# removed, it leaves its folder and chats, which are then in none, even as they go on or start
+	# over from a rewind; a new chat there brings it back, with them
 	assert c.delete("/workspaces", params={"path": path}).json() == {"status": "removed"}
 	assert app.is_dir()
 	assert _workspace_of(c, sid) is None
 	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "again"})
+	assert _workspace_of(c, sid) is None
+	assert c.post(f"/sessions/{sid}/rewind", json={"target_seq": 0}).json() == {"status": "rewound"}
+	c.post(f"/sessions/{sid}/run", params={"wait": "true"}, json={"message": "anew"})
 	assert _workspace_of(c, sid) is None
 	_chat(c, app)
 	assert _workspace_of(c, sid) == path

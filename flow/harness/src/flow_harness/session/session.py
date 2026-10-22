@@ -328,8 +328,12 @@ class Session:
 				return RunHandle(status="steered", from_seq=self.log.latest_seq)
 			user_message, _ = self._user_message(message, attachment_ids or [])
 			should_title = self._should_title()
-			first = not any(isinstance(m, UserMessage) for m in self.transcript.messages)
-			if first and self._on_first_message is not None:
+			# a rewind to the start empties the transcript, not the log
+			if (
+				self._on_first_message is not None
+				and not any(isinstance(m, UserMessage) for m in self.transcript.messages)
+				and not any(row["type"] == "user_message" for row in self.log.read_since(0))
+			):
 				self._on_first_message(self)
 			self._budget = loop.TokenBudget(self.config.token_budget)
 			inputs = self._loop_inputs(model, before_tool_call, after_tool_call)

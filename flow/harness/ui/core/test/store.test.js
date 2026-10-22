@@ -964,6 +964,16 @@ test("a first message needs a project folder, unless the host has no filesystem;
 	kept.startNewChat()
 	assert.equal(kept.state.prefs.cwd, "/w/shop")
 
+	// a list still on its way when a workspace is renamed doesn't undo the rename
+	let land
+	client.workspaces = () => new Promise((resolve) => (land = () => resolve({ workspaces: folders })))
+	client.renameWorkspace = async (path, name) => ({ workspace: { path, name } })
+	const listing = kept.refreshSessions()
+	await kept.renameFolder("/w/shop", "Store")
+	land()
+	await listing
+	assert.equal(kept.folderName("/w/shop"), "Store")
+
 	// a deleted workspace's chats are in none, and a new chat about to start there moves on, until
 	// none is left to move to
 	await kept.removeFolder("/w/shop")

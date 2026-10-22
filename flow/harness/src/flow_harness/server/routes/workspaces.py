@@ -34,9 +34,9 @@ def create_workspaces_router(
 	policy = policy or ServerPolicy()
 	router = APIRouter(dependencies=gate(policy.workspaces_api))
 
+	# all in a thread: the first listing reads every chat, holding the lock the rest wait on
 	@router.get("/workspaces")
 	async def list_workspaces(request: Request):
-		# the first listing reads every chat
 		return {"workspaces": await asyncio.to_thread(resolve_store(request).workspaces.list)}
 
 	@router.post("/workspaces")
@@ -52,7 +52,7 @@ def create_workspaces_router(
 		name = req.name.strip()
 		if not name:
 			raise HTTPException(status_code=400, detail="name cannot be empty")
-		workspace = resolve_store(request).workspaces.rename(req.path, name)
+		workspace = await asyncio.to_thread(resolve_store(request).workspaces.rename, req.path, name)
 		if workspace is None:
 			raise HTTPException(status_code=404, detail="workspace not found")
 		return {"workspace": workspace}
@@ -60,7 +60,7 @@ def create_workspaces_router(
 	@router.delete("/workspaces")
 	async def remove_workspace(request: Request, path: str):
 		"""Off the list only: the folder and its chats stay."""
-		if not resolve_store(request).workspaces.remove(path):
+		if not await asyncio.to_thread(resolve_store(request).workspaces.remove, path):
 			raise HTTPException(status_code=404, detail="workspace not found")
 		return {"status": "removed"}
 
