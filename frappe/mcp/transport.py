@@ -12,7 +12,6 @@ import orjson
 from werkzeug.wrappers import Request, Response
 
 import frappe
-from frappe import _
 from frappe.mcp import protocol, server
 from frappe.mcp.protocol import McpError
 from frappe.permissions import SYSTEM_USER_ROLE
@@ -31,16 +30,16 @@ def handle_request(request: Request) -> Response:
 	"""Errors propagate to `frappe.app`, which rolls back and responds with `error_response`."""
 	context = frappe.local.mcp_request = RequestContext()
 	if request.method != "POST":
-		raise McpError(protocol.INVALID_REQUEST, _("Only POST is supported"), status=405)
+		raise McpError(protocol.INVALID_REQUEST, "Only POST is supported", status=405)
 	check_origin(request)
 	if frappe.session.user == "Guest":
-		raise McpError(protocol.INVALID_REQUEST, _("Authentication required"), status=401)
+		raise McpError(protocol.INVALID_REQUEST, "Authentication required", status=401)
 	if SYSTEM_USER_ROLE not in frappe.get_roles():
-		raise McpError(protocol.INVALID_REQUEST, _("MCP is only available to desk users"), status=403)
+		raise McpError(protocol.INVALID_REQUEST, "MCP is only available to desk users", status=403)
 	if not request.is_json:
-		raise McpError(protocol.INVALID_REQUEST, _("Content-Type must be application/json"), status=415)
+		raise McpError(protocol.INVALID_REQUEST, "Content-Type must be application/json", status=415)
 	if not request.accept_mimetypes["application/json"]:
-		raise McpError(protocol.INVALID_REQUEST, _("Accept must allow application/json"), status=406)
+		raise McpError(protocol.INVALID_REQUEST, "Accept must allow application/json", status=406)
 
 	payload = parse_body(request)
 	context.id = payload.get("id")
@@ -70,7 +69,7 @@ def error_response(error: Exception) -> Response:
 			return json_response(protocol.result_envelope(context.id, result, context.version))
 
 		status = getattr(error, "http_status_code", 500)
-		message = str(error) if status < 500 and str(error) else _("Internal error")
+		message = str(error) if status < 500 and str(error) else "Internal error"
 		error = McpError(protocol.INTERNAL_ERROR, message, status=status)
 
 	response = json_response(
@@ -85,7 +84,7 @@ def parse_body(request: Request) -> dict[str, Any]:
 	try:
 		payload = orjson.loads(request.get_data())
 	except (ValueError, UnicodeDecodeError):
-		raise McpError(protocol.PARSE_ERROR, _("Body is not valid JSON")) from None
+		raise McpError(protocol.PARSE_ERROR, "Body is not valid JSON") from None
 
 	if (
 		not isinstance(payload, dict)
@@ -95,9 +94,9 @@ def parse_body(request: Request) -> dict[str, Any]:
 		or "result" in payload
 		or "error" in payload
 	):
-		raise McpError(protocol.INVALID_REQUEST, _("Body must be one JSON-RPC request or notification"))
+		raise McpError(protocol.INVALID_REQUEST, "Body must be one JSON-RPC request or notification")
 	if "id" in payload and type(payload["id"]) not in (str, int):
-		raise McpError(protocol.INVALID_REQUEST, _("Request id must be a string or integer"))
+		raise McpError(protocol.INVALID_REQUEST, "Request id must be a string or integer")
 	return payload
 
 
@@ -106,12 +105,12 @@ def request_version(request: Request, params: dict) -> str:
 	meta = params.get("_meta", {})
 	if not version:
 		if isinstance(meta, dict) and meta.get(protocol.META_VERSION) == protocol.LATEST_VERSION:
-			raise McpError(protocol.HEADER_MISMATCH, _("MCP-Protocol-Version header is required"))
+			raise McpError(protocol.HEADER_MISMATCH, "MCP-Protocol-Version header is required")
 		return protocol.LEGACY_VERSION
 	if version not in protocol.SUPPORTED_VERSIONS:
 		raise McpError(
 			protocol.UNSUPPORTED_VERSION,
-			_("Unsupported MCP protocol version"),
+			"Unsupported MCP protocol version",
 			data={"supported": list(protocol.SUPPORTED_VERSIONS), "requested": version},
 		)
 	return version
@@ -122,20 +121,20 @@ def check_headers(request: Request, payload: dict, params: dict) -> None:
 	if not isinstance(meta, dict) or request.headers["MCP-Protocol-Version"] != meta.get(
 		protocol.META_VERSION
 	):
-		raise McpError(protocol.HEADER_MISMATCH, _("Protocol version header must match request metadata"))
+		raise McpError(protocol.HEADER_MISMATCH, "Protocol version header must match request metadata")
 	if request.headers.get("Mcp-Method") != payload["method"]:
-		raise McpError(protocol.HEADER_MISMATCH, _("Mcp-Method header must match method"))
+		raise McpError(protocol.HEADER_MISMATCH, "Mcp-Method header must match method")
 	if payload["method"] == "tools/call":
 		if decode_name(request.headers.get("Mcp-Name")) != params.get("name") or "name" not in params:
-			raise McpError(protocol.HEADER_MISMATCH, _("Mcp-Name header must match the tool name"))
+			raise McpError(protocol.HEADER_MISMATCH, "Mcp-Name header must match the tool name")
 
 
 def check_metadata(params: dict) -> None:
 	meta = params["_meta"]
 	if not isinstance(meta.get(protocol.META_CAPABILITIES), dict):
-		raise McpError(protocol.INVALID_PARAMS, _("Client capabilities must be provided as an object"))
+		raise McpError(protocol.INVALID_PARAMS, "Client capabilities must be provided as an object")
 	if protocol.META_CLIENT in meta and not server.valid_identity(meta[protocol.META_CLIENT]):
-		raise McpError(protocol.INVALID_PARAMS, _("Client identity requires a name and version"))
+		raise McpError(protocol.INVALID_PARAMS, "Client identity requires a name and version")
 
 
 def check_origin(request: Request) -> None:
@@ -145,19 +144,19 @@ def check_origin(request: Request) -> None:
 	allowed = getattr(frappe.local, "allow_cors", None) or frappe.conf.get("allow_cors", [])
 	if allowed == "*" or origin in (allowed if isinstance(allowed, list) else [allowed]):
 		return
-	raise McpError(protocol.INVALID_REQUEST, _("Request origin is not allowed"), status=403)
+	raise McpError(protocol.INVALID_REQUEST, "Request origin is not allowed", status=403)
 
 
 def decode_name(value: str | None) -> str | None:
 	if value is None:
 		return None
 	if not value.isascii() or any(ord(char) < 32 or ord(char) == 127 for char in value):
-		raise McpError(protocol.HEADER_MISMATCH, _("Mcp-Name header contains invalid characters"))
+		raise McpError(protocol.HEADER_MISMATCH, "Mcp-Name header contains invalid characters")
 	if value.startswith("=?base64?") and value.endswith("?="):
 		try:
 			return base64.b64decode(value[9:-2], validate=True).decode("utf-8")
 		except (binascii.Error, UnicodeDecodeError):
-			raise McpError(protocol.HEADER_MISMATCH, _("Mcp-Name header is not valid base64")) from None
+			raise McpError(protocol.HEADER_MISMATCH, "Mcp-Name header is not valid base64") from None
 	return value
 
 
