@@ -12,10 +12,12 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.flow.lib.session import new_session, sync_with_retry
+from frappe.query_builder.functions import Locate, Lower
 from frappe.utils import cint, escape_html, get_fullname, get_url
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_session.flow_session import FlowSession
+	from frappe.query_builder import Criterion, Field
 
 FEEDBACK_COMMENT_LIMIT = 500
 TITLE_LIMIT = 140
@@ -111,11 +113,11 @@ def list_sessions(
 	"""The user's own conversations, newest first; `query` narrows them by title, `before`
 	(the `modified` of the last row shown) continues past it."""
 	frappe.has_permission("Flow Session", "read", throw=True)
-	filters: dict[str, Any] = {"owner": frappe.session.user, "source": ("!=", "Trigger")}
+	filters: list[Any] = [{"owner": frappe.session.user, "source": ("!=", "Trigger")}]
 	if query and query.strip():
-		filters["title"] = ("like", f"%{_escape_like(query.strip())}%")
+		filters.append(_contains(frappe.qb.DocType("Flow Session").title, query.strip()))
 	if before:
-		filters["modified"] = ("<", before)
+		filters.append({"modified": ("<", before)})
 	rows = frappe.get_all(
 		"Flow Session",
 		filters=filters,
@@ -441,11 +443,12 @@ def _flow_users(text: str = "", user: str | None = None) -> list[dict[str, Any]]
 	filters = [["enabled", "=", 1], ["user_type", "=", "System User"], ["Has Role", "role", "in", roles]]
 	if user:
 		filters.append(["name", "=", user])
-	like = f"%{_escape_like(text)}%"
+	if text:
+		person = frappe.qb.DocType("User")
+		filters.append(_contains(person.name, text) | _contains(person.full_name, text))
 	return frappe.get_all(
 		"User",
 		filters=filters,
-		or_filters=[["name", "like", like], ["full_name", "like", like]] if text else None,
 		fields=["name", "full_name", "user_image"],
 		distinct=True,
 		order_by="full_name asc",
@@ -480,8 +483,9 @@ def _parse_user(user: Any) -> str:
 	return user.strip()
 
 
-def _escape_like(text: str) -> str:
-	return text.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+def _contains(field: Field, text: str) -> Criterion:
+	"""Whether `field` holds `text`, ignoring case; unlike LIKE, % and _ match only themselves."""
+	return Locate(Lower(text), Lower(field)) > 0
 
 
 def _parse_attachments(attachments: Any) -> list[str]:
