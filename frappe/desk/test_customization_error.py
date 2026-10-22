@@ -4,7 +4,7 @@
 import frappe
 from frappe.desk.customization_error import report_customization_error
 from frappe.tests import IntegrationTestCase
-from frappe.utils.logging import get_log_db
+from frappe.utils.logging import connection_for
 
 PAYLOAD = {
 	"source": "client-script:broken-todo",
@@ -28,7 +28,7 @@ class TestCustomizationError(IntegrationTestCase):
 	# Error Log lives in the log database, outside the test's transaction.
 	def forget_reports(self):
 		frappe.cache.delete_keys("customization_error:*")
-		get_log_db().delete("Error Log", {"method": ("like", "%client-script:%")})
+		connection_for("Error Log").delete("Error Log", {"method": ("like", "%client-script:%")})
 
 	def test_reader_writes_one_row_with_stack(self):
 		with self.set_user("test@example.com"):
@@ -52,7 +52,9 @@ class TestCustomizationError(IntegrationTestCase):
 		self.assertTrue(first)
 		self.assertIsNone(repeat)
 		self.assertTrue(other)
-		self.assertEqual(get_log_db().count("Error Log", {"method": ("like", "%broken-todo%")}), 2)
+		self.assertEqual(
+			connection_for("Error Log").count("Error Log", {"method": ("like", "%broken-todo%")}), 2
+		)
 
 	def test_one_user_cannot_suppress_another_users_report(self):
 		with self.set_user("test1@example.com"):
@@ -61,7 +63,9 @@ class TestCustomizationError(IntegrationTestCase):
 			name = report_customization_error(**PAYLOAD)
 
 		self.assertTrue(name)
-		self.assertEqual(get_log_db().count("Error Log", {"method": ("like", "%broken-todo%")}), 2)
+		self.assertEqual(
+			connection_for("Error Log").count("Error Log", {"method": ("like", "%broken-todo%")}), 2
+		)
 
 	def test_unknown_doctype_leaves_the_link_empty(self):
 		name = report_customization_error(**{**PAYLOAD, "doctype": "No Such DocType"})
