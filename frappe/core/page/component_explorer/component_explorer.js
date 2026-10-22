@@ -676,6 +676,238 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		Combobox: {
+			helper: "frappe.ui.combobox",
+			groups: [
+				{
+					title: __("Typed into (the default)"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  placeholder: "Pick a status",\n  options: [\n    { value: "open", label: "Open", icon: "circle" },\n    { value: "in_progress", label: "In Progress", icon: "circle-dot-dashed" },\n    { value: "done", label: "Done", icon: "circle-check", description: "Finished and checked" },\n  ],\n  on_change: (value) => save_status(value),\n})',
+							placeholder: "Pick a status",
+							options: [
+								{ value: "open", label: "Open", icon: "circle" },
+								{
+									value: "in_progress",
+									label: "In Progress",
+									icon: "circle-dot-dashed",
+								},
+								{ value: "stuck", label: "Stuck", icon: "circle-alert" },
+								{
+									value: "done",
+									label: "Done",
+									icon: "circle-check",
+									description: "Finished and checked",
+								},
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("A button trigger with avatars and an action row"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  trigger: "button",\n  placeholder: "Assign",\n  item_prefix: (option) => frappe.ui.avatar({ label: option.label, size: "sm" })[0],\n  options: [\n    { value: "jane@example.com", label: "Jane Doe", description: "jane@example.com" },\n    { type: "custom", label: "Invite new member", icon: "user-plus", onclick: ({ query }) => invite(query) },\n  ],\n})',
+							trigger: "button",
+							placeholder: "Assign",
+							item_prefix: (option) =>
+								frappe.ui.avatar({
+									label: option.label,
+									size: "sm",
+									theme: "auto",
+								})[0],
+							options: [
+								{
+									value: "jane@example.com",
+									label: "Jane Doe",
+									description: "jane@example.com",
+								},
+								{
+									value: "sam@example.com",
+									label: "Sam Smith",
+									description: "sam@example.com",
+								},
+								{
+									value: "kim@example.com",
+									label: "Kim Lee",
+									description: "kim@example.com",
+								},
+								{
+									type: "custom",
+									label: "Invite new member",
+									icon: "user-plus",
+									onclick: ({ query }) =>
+										frappe.ui.toast({
+											message: __("Invite {0}", [query || "..."]),
+										}),
+								},
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("A server search (options is a function)"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  trigger: "button",\n  placeholder: "Search users",\n  options: (txt) => frappe.db.get_link_options("User", txt, { user_type: "System User", enabled: 1 })\n    .then((users) => users.map((u) => ({ value: u.value, label: u.description || u.value, description: u.value }))),\n})',
+							trigger: "button",
+							placeholder: "Search users",
+							options: (txt) =>
+								frappe.db
+									.get_link_options("User", txt, {
+										user_type: "System User",
+										enabled: 1,
+									})
+									.then((users) =>
+										users.map((user) => ({
+											value: user.value,
+											label: user.description || user.value,
+											description: user.description ? user.value : "",
+										}))
+									),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Groups and a disabled option"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  options: [\n    { group: "Fruit", options: ["Apple", "Banana", { value: "Cherry", disabled: true }] },\n    { group: "Vegetables", options: ["Carrot", "Potato"] },\n  ],\n})',
+							options: [
+								{
+									group: "Fruit",
+									options: [
+										"Apple",
+										"Banana",
+										{ value: "Cherry", disabled: true },
+									],
+								},
+								{ group: "Vegetables", options: ["Carrot", "Potato", "Spinach"] },
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Sizes and variants"),
+					items: ["xs", "sm", "md", "lg"].map((size, i) => ({
+						__code: `frappe.ui.combobox({ size: "${size}", variant: "${
+							["subtle", "outline", "ghost", "subtle"][i]
+						}", options })`,
+						size,
+						variant: ["subtle", "outline", "ghost", "subtle"][i],
+						placeholder: size,
+						options: ["Low", "Medium", "High"],
+					})),
+				},
+			],
+		},
+		DatePicker: {
+			helper: "frappe.ui.date_picker",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							__code: 'frappe.ui.date_picker({ value: "2026-10-22", on_change: (date) => save(date) })',
+							value: frappe.datetime.get_today(),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Limits and blocked days (no weekends, next 60 days)"),
+					items: [
+						{
+							__code: "frappe.ui.date_picker({\n  min: frappe.datetime.get_today(),\n  max: frappe.datetime.add_days(frappe.datetime.get_today(), 60),\n  is_date_unavailable: (date) => [0, 6].includes(moment(date).day()),\n})",
+							min: frappe.datetime.get_today(),
+							max: frappe.datetime.add_days(frappe.datetime.get_today(), 60),
+							is_date_unavailable: (date) => [0, 6].includes(moment(date).day()),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Shortcuts beside the calendar"),
+					items: [
+						{
+							__code: 'frappe.ui.date_picker({\n  actions: [\n    { label: "Tomorrow", onclick: (picker) => picker.set_date(frappe.datetime.add_days(frappe.datetime.get_today(), 1)) },\n    { label: "Clear", onclick: (picker) => picker.clear() },\n  ],\n})',
+							actions: [
+								{
+									label: __("Tomorrow"),
+									onclick: (picker) =>
+										picker.set_date(
+											frappe.datetime.add_days(
+												frappe.datetime.get_today(),
+												1
+											)
+										),
+								},
+								{
+									label: __("Next week"),
+									onclick: (picker) =>
+										picker.set_date(
+											frappe.datetime.add_days(
+												frappe.datetime.get_today(),
+												7
+											)
+										),
+								},
+								{ label: __("Clear"), onclick: (picker) => picker.clear() },
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("A trigger of your own"),
+					items: [
+						{
+							__code: 'const button = frappe.ui.button({ label: "Add due date", icon: "calendar" });\nfrappe.ui.date_picker({ trigger: button, on_change: (date) => button.find(".es-button__label").text(date) })',
+							__make: () => {
+								const $button = frappe.ui.button({
+									label: __("Add due date"),
+									icon: "calendar",
+								});
+								new frappe.ui.DatePicker({
+									trigger: $button,
+									on_change: (date) =>
+										$button
+											.find(".es-button__label")
+											.text(
+												date
+													? frappe.datetime.str_to_user(date)
+													: __("Add due date")
+											),
+								});
+								return $button;
+							},
+						},
+					],
+				},
+				{
+					title: __("Sizes and variants"),
+					items: ["xs", "sm", "md", "lg"].map((size, i) => ({
+						__code: `frappe.ui.date_picker({ size: "${size}", variant: "${
+							["subtle", "outline", "ghost", "subtle"][i]
+						}" })`,
+						size,
+						variant: ["subtle", "outline", "ghost", "subtle"][i],
+					})),
+				},
+			],
+		},
 		BottomSheet: {
 			helper: "frappe.ui.bottom_sheet",
 			groups: [
@@ -2503,7 +2735,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					);
 					return;
 				}
-				$preview.append(make(opts));
+				$preview.append(opts.__make ? opts.__make() : make(opts));
 			});
 			$groups.append($group);
 		});

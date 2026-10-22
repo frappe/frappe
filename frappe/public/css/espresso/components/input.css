@@ -1,0 +1,217 @@
+/* Espresso Input - frappe-ui's TextInput look for a plain <input>, shared by
+ * Combobox and DatePicker and free for any custom control.
+ *
+ *   <div class="es-input-wrap" data-size="sm">
+ *     <span class="es-input__prefix">(icon)</span>        (optional)
+ *     <input class="es-input" data-size="sm" data-variant="subtle">
+ *     <span class="es-input__suffix">(chevron)</span>     (optional)
+ *   </div>
+ *
+ * The wrapper is only needed for a prefix or suffix; a bare .es-input works
+ * alone. data-has-prefix / data-has-suffix on the input make room for them.
+ *
+ * Input attributes:
+ *   data-size="xs|sm|md|lg"                24 / 28 / 32 / 40px tall, sm by default
+ *   data-variant="subtle|outline|ghost"    subtle by default
+ *   disabled                               grayed out, not focusable */
+
+.es-input {
+    box-sizing: border-box;
+    width: 100%;
+    height: 28px;
+    margin: 0;
+    padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
+    font: inherit;
+    font-size: var(--text-base);
+    line-height: 1.15;
+    color: var(--ink-gray-8);
+    background: var(--surface-gray-2);
+    border: 1px solid var(--surface-gray-2);
+    border-radius: var(--radius-4);
+    outline: none;
+    box-shadow: none;
+    transition:
+        background-color 150ms ease-out,
+        border-color 150ms ease-out,
+        box-shadow 150ms ease-out;
+}
+
+.es-input::placeholder {
+    color: var(--ink-gray-4);
+}
+
+.es-input:hover {
+    background: var(--surface-gray-3);
+    border-color: var(--outline-elevation-2);
+}
+
+.es-input:focus {
+    background: var(--surface-base);
+    border-color: var(--outline-gray-4);
+    box-shadow: var(--elevation-sm);
+}
+
+.es-input:focus-visible {
+    outline: var(--focus-outline-default);
+    outline-offset: 0;
+}
+
+/* ---- sizes ---- */
+.es-input[data-size="xs"] {
+    height: 24px;
+    padding: var(--spacing) calc(var(--spacing) * 1.5);
+    font-size: var(--text-xs);
+    border-radius: var(--radius-3);
+}
+
+.es-input[data-size="md"] {
+    height: 32px;
+    padding-inline: calc(var(--spacing) * 2.5);
+}
+
+.es-input[data-size="lg"] {
+    height: 40px;
+    padding-inline: calc(var(--spacing) * 3);
+    font-size: var(--text-lg);
+    border-radius: var(--radius-5);
+}
+
+/* ---- variants ---- */
+.es-input[data-variant="outline"] {
+    background: var(--surface-base);
+    border-color: var(--outline-gray-2);
+}
+
+.es-input[data-variant="outline"]:hover {
+    border-color: var(--outline-gray-3);
+    box-shadow: var(--elevation-sm);
+}
+
+.es-input[data-variant="outline"]:focus {
+    border-color: var(--outline-gray-4);
+}
+
+.es-input[data-variant="ghost"] {
+    background: transparent;
+    border-color: transparent;
+}
+
+.es-input[data-variant="ghost"]:hover,
+.es-input[data-variant="ghost"]:focus {
+    background: transparent;
+    border-color: transparent;
+    box-shadow: none;
+}
+
+.es-input:disabled {
+    color: var(--ink-gray-5);
+    background: var(--surface-gray-1);
+    border-color: transparent;
+    box-shadow: none;
+    cursor: not-allowed;
+}
+
+.es-input:disabled::placeholder {
+    color: var(--ink-gray-3);
+}
+
+.es-input[data-variant="outline"]:disabled {
+    border-color: var(--outline-gray-2);
+}
+
+.es-input[data-variant="ghost"]:disabled {
+    background: transparent;
+}
+
+/* ---- prefix and suffix ---- */
+.es-input-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.es-input__prefix,
+.es-input__suffix {
+    position: absolute;
+    inset-block: 0;
+    display: flex;
+    align-items: center;
+    color: var(--ink-gray-6);
+    pointer-events: none;
+}
+
+.es-input__prefix {
+    inset-inline-start: 0;
+    padding-inline-start: calc(var(--spacing) * 2);
+}
+
+.es-input__suffix {
+    inset-inline-end: 0;
+    padding-inline-end: calc(var(--spacing) * 2);
+}
+
+.es-input__prefix > *,
+.es-input__suffix > * {
+    pointer-events: auto;
+}
+
+.es-input__prefix .icon,
+.es-input__suffix .icon {
+    margin: 0;
+}
+
+.es-input[data-has-prefix] {
+    padding-inline-start: calc(var(--spacing) * 8);
+}
+
+.es-input[data-has-suffix] {
+    padding-inline-end: calc(var(--spacing) * 8);
+}
+
+.es-input-wrap[data-size="xs"] .es-input__prefix {
+    padding-inline-start: calc(var(--spacing) * 1.5);
+}
+
+.es-input-wrap[data-size="xs"] .es-input__suffix {
+    padding-inline-end: calc(var(--spacing) * 1.5);
+}
+
+.es-input-wrap[data-size="md"] .es-input__prefix {
+    padding-inline-start: calc(var(--spacing) * 2.5);
+}
+
+.es-input-wrap[data-size="md"] .es-input__suffix {
+    padding-inline-end: calc(var(--spacing) * 2.5);
+}
+
+.es-input-wrap[data-size="lg"] .es-input__prefix {
+    padding-inline-start: calc(var(--spacing) * 3);
+}
+
+.es-input-wrap[data-size="lg"] .es-input__suffix {
+    padding-inline-end: calc(var(--spacing) * 3);
+}
+
+.es-input[data-size="xs"][data-has-prefix] {
+    padding-inline-start: calc(var(--spacing) * 7);
+}
+
+.es-input[data-size="xs"][data-has-suffix] {
+    padding-inline-end: calc(var(--spacing) * 7);
+}
+
+.es-input[data-size="md"][data-has-prefix] {
+    padding-inline-start: calc(var(--spacing) * 9);
+}
+
+.es-input[data-size="md"][data-has-suffix] {
+    padding-inline-end: calc(var(--spacing) * 9);
+}
+
+.es-input[data-size="lg"][data-has-prefix] {
+    padding-inline-start: calc(var(--spacing) * 10);
+}
+
+.es-input[data-size="lg"][data-has-suffix] {
+    padding-inline-end: calc(var(--spacing) * 10);
+}

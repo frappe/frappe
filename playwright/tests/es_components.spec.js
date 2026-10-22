@@ -667,6 +667,176 @@ test.describe("Espresso components", () => {
 		});
 	});
 
+	test.describe("Combobox", () => {
+		const field = (page, title) => explorer_group(page, title).locator(".es-combobox").first();
+		const panel = (page) => page.locator(".es-combobox-panel");
+		const highlighted = (page) =>
+			panel(page).locator(".es-combobox-panel__option[data-highlighted]");
+
+		test.beforeEach(async ({ page }) => {
+			await show(page, "Combobox");
+		});
+
+		test("typing filters the list and Enter picks the highlighted row", async ({ page }) => {
+			const input = field(page, "Typed into").locator("input");
+			await input.click();
+			await expect(panel(page).getByRole("option")).toHaveCount(4);
+
+			await page.keyboard.type("st");
+			await expect(panel(page).getByRole("option")).toHaveText(["Stuck"]);
+			await page.keyboard.press("Enter");
+			await expect(panel(page)).toHaveCount(0);
+			await expect(input).toHaveValue("Stuck");
+		});
+
+		test("reopening shows every row with the choice checked, and the arrows don't wrap", async ({
+			page,
+		}) => {
+			const input = field(page, "Typed into").locator("input");
+			await input.click();
+			await page.keyboard.type("done");
+			await page.keyboard.press("Enter");
+
+			await input.click();
+			await expect(panel(page).getByRole("option")).toHaveCount(4);
+			await expect(highlighted(page)).toHaveAttribute("data-state", "checked");
+			await page.keyboard.press("ArrowDown");
+			await expect(highlighted(page)).toContainText("Done");
+			await page.keyboard.press("Home");
+			await expect(highlighted(page)).toContainText("Open");
+		});
+
+		test("leaving the field drops the typed text and keeps the choice", async ({ page }) => {
+			const input = field(page, "Typed into").locator("input");
+			await input.click();
+			await page.keyboard.type("open");
+			await page.keyboard.press("Enter");
+
+			await input.click();
+			await page.keyboard.type("zz");
+			await expect(panel(page).locator(".es-combobox-panel__empty")).toHaveText(
+				"No results"
+			);
+			await page.keyboard.press("Tab");
+			await expect(panel(page)).toHaveCount(0);
+			await expect(input).toHaveValue("Open");
+		});
+
+		test("a button trigger moves the search into the panel and hides unmatched action rows", async ({
+			page,
+		}) => {
+			const trigger = field(page, "A button trigger");
+			await trigger.click();
+			await expect(panel(page).locator(".es-combobox-panel__search-input")).toBeFocused();
+			await expect(panel(page).locator("[data-custom]")).toHaveCount(1);
+
+			await page.keyboard.type("sa");
+			await expect(panel(page).getByRole("option")).toHaveText([/Sam Smith/]);
+			await page.keyboard.press("Enter");
+			await expect(trigger).toContainText("Sam Smith");
+			await expect(trigger).toBeFocused();
+		});
+
+		test("the arrows skip disabled options", async ({ page }) => {
+			await field(page, "Groups and a disabled option").locator("input").click();
+			await expect(panel(page).locator(".es-combobox-panel__group-label")).toHaveText([
+				"Fruit",
+				"Vegetables",
+			]);
+			await page.keyboard.press("ArrowDown");
+			await page.keyboard.press("ArrowDown");
+			await expect(highlighted(page)).toContainText("Carrot");
+		});
+
+		test("a function source searches as the user types", async ({ page }) => {
+			await field(page, "A server search").click();
+			await page.keyboard.type("administrator");
+			await expect(panel(page).getByRole("option", { name: /Administrator/ })).toBeVisible();
+		});
+	});
+
+	test.describe("DatePicker", () => {
+		const input = (page, title) =>
+			explorer_group(page, title).locator(".es-date-picker input").first();
+		const panel = (page) => page.locator(".es-date-picker-panel");
+
+		test.beforeEach(async ({ page }) => {
+			await show(page, "DatePicker");
+		});
+
+		test("opens a six-week month with today selected", async ({ page }) => {
+			await input(page, "Basic").click();
+			await expect(panel(page).getByRole("gridcell")).toHaveCount(42);
+			await expect(panel(page).locator("[data-selected]")).toHaveCount(1);
+			await expect(input(page, "Basic")).toBeFocused();
+		});
+
+		test("the arrows move through the grid and Enter picks the date", async ({ page }) => {
+			const field = input(page, "Basic");
+			await field.click();
+			await page.keyboard.press("ArrowDown");
+			await expect(page.locator(".es-date-picker-calendar__day:focus")).toHaveAttribute(
+				"data-selected",
+				""
+			);
+			await page.keyboard.press("ArrowRight");
+			await page.keyboard.press("Enter");
+			await expect(panel(page)).toHaveCount(0);
+			await expect(field).toBeFocused();
+			await expect(field).not.toHaveValue("");
+		});
+
+		test("text that isn't a date goes back to the last value", async ({ page }) => {
+			const field = input(page, "Basic");
+			const before = await field.inputValue();
+			await field.fill("not a date");
+			await field.press("Enter");
+			await expect(field).toHaveValue(before);
+		});
+
+		test("the title switches to months and years", async ({ page }) => {
+			await input(page, "Basic").click();
+			await panel(page).locator(".es-date-picker-calendar__title").click();
+			await expect(panel(page).getByRole("listbox")).toHaveCount(2);
+			await panel(page).getByRole("option", { name: "Jan", exact: true }).click();
+			await expect(panel(page).getByRole("grid")).toBeVisible();
+			await expect(panel(page).locator(".es-date-picker-calendar__title")).toContainText(
+				/Jan/
+			);
+		});
+
+		test("dates past the limits and blocked days can't be picked", async ({ page }) => {
+			await input(page, "Limits and blocked days").click();
+			const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+			const cell = panel(page).locator(`[data-value="${yesterday}"]`);
+			if (await cell.count()) await expect(cell).toBeDisabled();
+			await expect(
+				panel(page).locator(".es-date-picker-calendar__day:disabled").first()
+			).toBeVisible();
+		});
+
+		test("a shortcut sets the date and closes the calendar", async ({ page }) => {
+			const field = input(page, "Shortcuts beside the calendar");
+			await field.click();
+			await panel(page).getByRole("button", { name: "Tomorrow" }).click();
+			await expect(panel(page)).toHaveCount(0);
+			await expect(field).not.toHaveValue("");
+		});
+
+		test("a trigger of your own opens the grid and gets focus back on Escape", async ({
+			page,
+		}) => {
+			const trigger = explorer_group(page, "A trigger of your own").getByRole("button", {
+				name: "Add due date",
+			});
+			await trigger.click();
+			await expect(page.locator(".es-date-picker-calendar__day:focus")).toHaveCount(1);
+			await page.keyboard.press("Escape");
+			await expect(panel(page)).toHaveCount(0);
+			await expect(trigger).toBeFocused();
+		});
+	});
+
 	test.describe("Checklist", () => {
 		const onboarding = (page) => explorer_group(page, "employee onboarding");
 		const row = (group, label) =>
