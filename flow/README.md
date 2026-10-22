@@ -1,12 +1,9 @@
 <div align="center">
-    <a href="https://github.com/frappe/flow">
-        <img src="./frontend/public/flow.png" alt="Flow Logo" height="80px" width="80px"/>
-    </a>
+    <img src="./frontend/public/flow.png" alt="Flow Logo" height="80px" width="80px"/>
     <h2>Flow</h2>
     <p>AI agents for Frappe.</p>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![CI](https://github.com/frappe/flow/actions/workflows/ci.yml/badge.svg)](https://github.com/frappe/flow/actions/workflows/ci.yml)
 
 </div>
 
@@ -38,7 +35,7 @@ Flow also ships as a Python framework for building agents in code.
 
 ```python
 import frappe
-from flow import ToolContext, tool
+from frappe.flow import ToolContext, tool
 
 @tool(display_template="Listing open ToDos for {{ allocated_to }}")  # shown while it runs
 def get_open_todos(allocated_to: str, *, ctx: ToolContext) -> list[dict]:
@@ -63,7 +60,7 @@ def yearly_report(year: int, *, ctx: ToolContext) -> dict:
 ### Run an agent
 
 ```python
-from flow import Agent
+from frappe.flow import Agent
 
 agent = Agent(
 	name="Todo Assistant",
@@ -124,32 +121,24 @@ session.chat("Close the ones due before last Friday.")
 
 ---
 
-## Installation
+## Setup
 
-Install into an existing [bench](https://github.com/frappe/bench):
-
-```bash
-cd $PATH_TO_YOUR_BENCH
-bench get-app flow
-bench --site site-name install-app flow
-```
-
-Then add a `Flow Provider` with your API key and a `Flow Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open `/flow` to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
+Flow ships with Frappe. Add a `Flow Provider` with your API key and a `Flow Model` with a model ID such as `anthropic/claude-sonnet-4-6`, and open `/flow` to start. For local providers like Ollama or LM Studio, set `Base URL` on the provider or model.
 
 ### Flow agent harness
 
-Conversations run on the flow agent harness, a daemon from the [`frappe-flow`](https://pypi.org/project/frappe-flow/) package that is shared by every site on the bench. Installing the app starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its log is at `<bench>/logs/flow-server.log`.
+Conversations run on the flow agent harness, a daemon from the [`frappe-flow`](https://pypi.org/project/frappe-flow/) package that is shared by every site on the bench. Creating a site starts it; `bench flow-server setup|start|stop|restart|status` manage it by hand. Its log is at `<bench>/logs/flow-server.log`.
 
-To run it under Supervisor, set `"flow_server_manager": "supervisor"` in `common_site_config.json` and add `bench flow-server serve` as a Supervisor program with `autorestart=true` that logs to `logs/flow-server.log`. Restart that program after updating Flow or its extensions.
+To run it under Supervisor, set `"flow_server_manager": "supervisor"` in `common_site_config.json` and add `bench flow-server serve` as a Supervisor program with `autorestart=true` that logs to `logs/flow-server.log`. Restart that program after updating Frappe or Flow's extensions.
 
-## Repository layout
+## Code layout
 
-The Frappe app is the root of this repository. [`harness/`](harness/) is the flow agent harness, published on PyPI as [`frappe-flow`](https://pypi.org/project/frappe-flow/). For development, install the checkout into the bench:
+Flow's server code is in [`frappe/flow`](../frappe/flow). This folder holds the `/flow` page ([`frontend/`](frontend/)), its realtime relay ([`realtime/`](realtime/)) and the flow agent harness ([`harness/`](harness/)), published on PyPI as [`frappe-flow`](https://pypi.org/project/frappe-flow/). For development, install the checkout into the bench:
 
 ```bash
-bench pip install -e apps/flow/harness
+bench pip install -e apps/frappe/flow/harness
 ```
 
 ## License
 
-[MIT](license.txt)
+[MIT](../LICENSE)
