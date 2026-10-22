@@ -265,7 +265,7 @@ class TestDBUpdate(IntegrationTestCase):
 
 		self.assertEqual(frappe.db.get_column_type(referring_doctype.name, link), "uuid")
 
-	@unimplemented_for(db_type_is.SQLITE)
+	@run_only_if(db_type_is.MARIADB)
 	def test_trim_table_keeps_generated_column(self):
 		doctype = new_doctype().insert()
 		column = f"key_{frappe.generate_hash(length=6)}"
@@ -286,7 +286,7 @@ class TestDBUpdate(IntegrationTestCase):
 		)[0][0]
 		self.assertEqual(length, 64)
 
-	@unimplemented_for(db_type_is.SQLITE)
+	@run_only_if(db_type_is.MARIADB)
 	def test_generated_column_keeps_unique_index(self):
 		"""A generated column is never a deleted field, so sync must keep its unique index"""
 		doctype = new_doctype().insert()
