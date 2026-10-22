@@ -10,6 +10,14 @@ from frappe.utils.logging import get_log_db
 
 
 class TestBootData(IntegrationTestCase):
+	def test_the_desk_v2_switch_reaches_boot(self):
+		from frappe.boot import load_conf_settings
+
+		bootinfo = frappe._dict()
+		with patch.dict(frappe.conf, {"desk_v2": 1}):
+			load_conf_settings(bootinfo)
+		self.assertEqual(bootinfo.desk_v2, 1)
+
 	def test_get_unseen_notes(self):
 		frappe.db.delete("Note")
 		frappe.db.delete("Note Seen By")

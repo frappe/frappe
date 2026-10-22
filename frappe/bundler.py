@@ -127,6 +127,10 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	"""Assemble the manifest and run the framework's one vite build; `--app X` is accepted and ignored."""
 	from frappe.shell.manifest import cost_report
 	from frappe.shell.manifest import write as write_manifest
+	from frappe.utils.data import is_desk_v2_enabled
+
+	if not is_desk_v2_enabled():
+		return
 
 	frontend_path = os.path.join(frappe_app_path, "frontend")
 	# Guard on the committed half: `package.json` is generated and gitignored, so a fresh clone

@@ -11,7 +11,7 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-from frappe.bundler import swap_shell_assets
+from frappe.bundler import build_shell, swap_shell_assets
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.shell import SHELL_ROOT
 from frappe.shell.address_clash import page_files
@@ -108,6 +108,13 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, acti
 		yield app, prefix
 
 
+def switch_desk_v2(test, on: bool):
+	"""Set the site's `desk_v2` switch for one test; a real site sets it in config."""
+	switch = patch.dict(frappe.conf, {"desk_v2": int(on)})
+	switch.start()
+	test.addCleanup(switch.stop)
+
+
 def strip_html_comments(html: bytes) -> bytes:
 	"""Comments are commentary, not content: the document's own comment names the absent payloads."""
 	return re.sub(rb"<!--.*?-->", b"", html, flags=re.DOTALL)
@@ -156,6 +163,7 @@ class TestShellPrefixes(IntegrationTestCase):
 class TestShellRouting(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
+		switch_desk_v2(self, on=True)
 
 	def tearDown(self):
 		self._clear_request()
@@ -237,6 +245,7 @@ class TestShellIsNeverCached(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		frappe.flags.force_website_cache = True
+		switch_desk_v2(self, on=True)
 
 	#: The framework's own prefix, claimed on every bench there is.
 	CACHE_KEY = "website_page::apps/desk"
@@ -1038,6 +1047,7 @@ class TestModularAddresses(IntegrationTestCase):
 		with hooks_declaring("app_modular", {"frappe": True}):
 			self.assertTrue(frappe_entry()["modular"])
 
+	@patch.dict(frappe.conf, {"desk_v2": 1})
 	def test_the_canonical_address_is_the_owners_prefix(self):
 		"""A link built outside a session picks the owner's prefix and never redirects."""
 		from frappe.utils import get_url_to_form
@@ -1428,3 +1438,33 @@ class TestShellAssetSwap(IntegrationTestCase):
 			self.assertRaises(PermissionError),
 		):
 			swap_shell_assets(staging, published)
+
+
+class TestDeskV2Switch(IntegrationTestCase):
+	"""With `desk_v2` off, a site behaves as it did before desk v2: `/apps` goes to `/desk`."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		switch_desk_v2(self, on=False)
+
+	def tearDown(self):
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
+	def test_the_index_redirects_to_desk(self):
+		set_request(method="GET", path="/apps")
+		response = get_response()
+		self.assertEqual(response.status_code, 302)
+		self.assertEqual(response.headers["Location"], "/desk")
+
+	def test_no_prefix_is_served(self):
+		self.assertNotIsInstance(PathResolver("apps/desk").resolve()[1], ShellPage)
+
+	def test_the_build_skips_the_shell(self):
+		with (
+			patch("frappe.shell.manifest.write") as write_manifest,
+			patch("frappe.commands.popen") as popen,
+		):
+			build_shell(frappe.get_app_source_path("frappe"))
+		write_manifest.assert_not_called()
+		popen.assert_not_called()

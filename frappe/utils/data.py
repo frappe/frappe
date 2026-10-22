@@ -2143,13 +2143,19 @@ def get_absolute_url(doctype: str, name: str) -> str:
 	return f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 
+def is_desk_v2_enabled() -> bool:
+	"""True where `desk_v2` is set in site or common config; `bench build` reads only the common one."""
+	return bool(cint(frappe.conf.get("desk_v2")))
+
+
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	"""Return the absolute URL for the record view of the given document in the desk.
 
 	e.g. when doctype="Sales Invoice" and your site URL is "https://frappe.io",
-	         returns 'https://frappe.io/apps/erpnext/accounts/sales-invoice/INV-00001'
+	         returns 'https://frappe.io/desk/sales-invoice/INV-00001', or with desk v2 enabled
+	         'https://frappe.io/apps/erpnext/accounts/sales-invoice/INV-00001'
 
-	This is the **canonical** address: the owning app's prefix, and that app's route
+	The desk v2 one is the **canonical** address: the owning app's prefix, and that app's route
 	shape (#42210, #42211). Every caller here is a link generated outside a session —
 	a notification, a follow email, a mention — so there is no prefix to inherit and
 	one has to be chosen. Callers hold only `(doctype, name)`, which is why the choice
@@ -2157,7 +2163,14 @@ def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	"""
 	from frappe.shell.links import canonical_path
 
-	return get_url(uri=canonical_path(doctype, name))
+	if is_desk_v2_enabled():
+		uri = canonical_path(doctype, name)
+	elif not name:
+		uri = f"/desk/{quoted(slug(doctype))}"
+	else:
+		uri = f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
+
+	return get_url(uri=uri)
 
 
 def get_url_to_list(doctype: str) -> str:
