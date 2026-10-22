@@ -68,7 +68,7 @@ class RQJob(Document):
 		if not for_current_site(job):
 			raise frappe.PermissionError
 
-		super(Document, self).__init__(serialize_job(job))
+		self.init_from_dict(serialize_job(job))
 		self._job_obj = job
 
 	@property
