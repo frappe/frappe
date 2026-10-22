@@ -15,7 +15,11 @@ app_email = "developers@frappe.io"
 
 before_install = "frappe.utils.install.before_install"
 after_install = "frappe.utils.install.after_install"
-after_app_install = "frappe.utils.install.create_desktop_icons_for_app"
+after_app_install = [
+	"frappe.utils.install.create_desktop_icons_for_app",
+	"frappe.studio.sync.after_app_install",
+]
+before_app_uninstall = "frappe.studio.sync.before_app_uninstall"
 after_app_uninstall = "frappe.utils.install.delete_desktop_icons_for_app"
 
 page_js = {"setup-wizard": "public/js/frappe/setup_wizard.js"}
@@ -59,7 +63,12 @@ website_route_rules = [
 	{"from_route": "/kb/<category>", "to_route": "Help Article"},
 	{"from_route": "/profile", "to_route": "me"},
 	{"from_route": "/desk/<path:app_path>", "to_route": "desk"},
+	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
 ]
+
+# Studio: a published Studio App is served at its route by the renderer below
+website_generators = ["Studio App"]
+page_renderer = ["frappe.studio.doctype.studio_app.studio_app.StudioAppRenderer"]
 
 website_redirects = [
 	{"source": r"/app/(.*)", "target": r"/desk/\1", "forward_query_parameters": True},
@@ -158,6 +167,8 @@ permission_query_conditions = {
 	"Client Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Server Script": "frappe.app_state.get_module_permission_query_conditions",
 	"Desktop Icon": "frappe.app_state.get_app_permission_query_conditions",
+	"Studio AI Session": "frappe.studio.permissions.session_query_conditions",
+	"Studio AI Message": "frappe.studio.permissions.message_query_conditions",
 }
 
 has_permission = {
@@ -184,6 +195,8 @@ has_permission = {
 	"Document Follow": "frappe.email.doctype.document_follow.document_follow.has_permission",
 	"Custom Sidebar": "frappe.desk.doctype.custom_sidebar.custom_sidebar.has_permission",
 	"Dock": "frappe.desk.doctype.dock.dock.has_permission",
+	"Studio AI Session": "frappe.studio.permissions.has_session_permission",
+	"Studio AI Message": "frappe.studio.permissions.has_message_permission",
 }
 
 has_website_permission = {"Address": "frappe.contacts.doctype.address.address.has_website_permission"}
@@ -355,6 +368,7 @@ after_migrate = [
 	"frappe.search.sqlite_search.build_index_in_background",
 	"frappe.desk.doctype.notification_type.notification_type.install_notification_types",
 	"frappe.automation.doctype.automation_trigger_queue.automation_trigger_queue.ensure_dedup_indexes",
+	"frappe.studio.sync.after_migrate",
 ]
 
 otp_methods = ["OTP App", "Email", "SMS"]
@@ -623,7 +637,11 @@ expose_discovery_source = True
 # A `Page` of type "Frappe UI" is drawn by an island too, and needs no line of
 # Python. Framework builds those islands for every app on the bench, in one
 # build, after any app's assets are built.
-after_app_build = "frappe.bundler.build_page_islands"
+after_app_build = [
+	"frappe.bundler.build_page_islands",
+	# exported studio apps of the built apps; the editor itself is built by esbuild
+	"frappe.studio.build.after_app_build",
+]
 
 
 add_to_apps_screen = [
