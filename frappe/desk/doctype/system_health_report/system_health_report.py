@@ -138,7 +138,7 @@ class SystemHealthReport(Document):
 		raise NotImplementedError
 
 	def load_from_db(self):
-		super(Document, self).__init__({})
+		self.init_from_dict({})
 		frappe.only_for("System Manager")
 
 		# Each method loads a section of health report

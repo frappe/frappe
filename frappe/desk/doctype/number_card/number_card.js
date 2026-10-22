@@ -291,18 +291,15 @@ frappe.ui.form.on("Number Card", {
 			let dialog = new frappe.ui.Dialog({
 				title: __("Set Filters"),
 				fields: fields.filter((f) => !is_dynamic_filter(f)),
-				primary_action: function () {
-					let values = this.get_values();
-					if (values) {
-						this.hide();
-						if (is_document_type) {
-							let filters = frm.filter_group.get_filters();
-							frm.set_value("filters_json", JSON.stringify(filters));
-						} else {
-							frm.set_value("filters_json", JSON.stringify(values));
-						}
-						frm.trigger("render_filters_table");
+				primary_action: function (values) {
+					this.hide();
+					if (is_document_type) {
+						let filters = frm.filter_group.get_filters();
+						frm.set_value("filters_json", JSON.stringify(filters));
+					} else {
+						frm.set_value("filters_json", JSON.stringify(values));
 					}
+					frm.trigger("render_filters_table");
 				},
 				primary_action_label: __("Set"),
 			});

@@ -158,26 +158,22 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 
 	register_primary_action() {
 		var me = this;
-		this.dialog.set_primary_action(__("Save"), function () {
+		this.dialog.set_primary_action(__("Save"), function (values) {
 			if (me.dialog.working) {
 				return;
 			}
-			var data = me.dialog.get_values();
-
-			if (data) {
-				me.dialog.working = true;
-				me.dialog.set_message(__("Saving..."));
-				me.insert().then(() => {
-					me.dialog.clear_message();
-				});
-			}
+			me.dialog.working = true;
+			me.dialog.set_message(__("Saving..."));
+			me.insert(values).then(() => {
+				me.dialog.clear_message();
+			});
 		});
 	}
 
-	insert() {
+	insert(values) {
 		let me = this;
 		return new Promise((resolve) => {
-			me.update_doc();
+			me.update_doc(values);
 			frappe.call({
 				method: "frappe.client.save",
 				args: {
@@ -262,9 +258,8 @@ frappe.ui.form.QuickEntryForm = class QuickEntryForm {
 		}
 	}
 
-	update_doc() {
+	update_doc(data = this.dialog.get_values(true)) {
 		var me = this;
-		var data = this.dialog.get_values(true);
 		$.each(data, function (key, value) {
 			if (!is_null(value)) {
 				me.dialog.doc[key] = value;

@@ -1,6 +1,6 @@
 const cookie = require("cookie");
 const request = require("superagent");
-const { get_url } = require("../utils");
+const { get_url, get_hostname } = require("../utils");
 
 const { get_conf } = require("../../node_utils");
 const conf = get_conf();
@@ -35,11 +35,14 @@ function authenticate_with_frappe(socket, next) {
 		return;
 	}
 
-	let auth_req = request.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"));
+	// Carry the tenant so loopback requests route to the right site.
+	let auth_req = request
+		.get(get_url(socket, "/api/method/frappe.realtime.get_user_info"))
+		.set("X-Frappe-Site-Name", get_site_name(socket));
 	if (authorization_header) {
 		auth_req = auth_req.set("Authorization", authorization_header);
 	} else if (cookies.sid) {
-		auth_req = auth_req.query({ sid: cookies.sid });
+		auth_req = auth_req.set("Cookie", `sid=${cookies.sid}`);
 	}
 
 	auth_req
@@ -72,14 +75,6 @@ function get_site_name(socket) {
 		socket.site_name = get_hostname(socket.request.headers.host);
 	}
 	return socket.site_name;
-}
-
-function get_hostname(url) {
-	if (!url) return undefined;
-	if (url.indexOf("://") > -1) {
-		url = url.split("/")[2];
-	}
-	return url.match(/:/g) ? url.slice(0, url.indexOf(":")) : url;
 }
 
 module.exports = authenticate_with_frappe;

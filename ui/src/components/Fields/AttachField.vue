@@ -43,14 +43,14 @@
 						<img
 							:src="modelValue"
 							alt=""
-							class="size-4 shrink-0 rounded object-cover"
+							class="size-4 shrink-0 rounded-4 object-cover"
 						/>
 					</template>
 					<template #body-main>
 						<img
 							:src="modelValue"
 							alt=""
-							class="max-h-64 max-w-72 rounded-md object-contain p-1"
+							class="max-h-64 max-w-72 rounded-5 object-contain p-1"
 						/>
 					</template>
 				</Popover>
@@ -73,7 +73,7 @@
 					<button
 						type="button"
 						aria-label="Replace"
-						class="grid size-4 shrink-0 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+						class="grid size-4 shrink-0 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 						@click.stop="openDialog"
 						@pointerdown.stop
 					>
@@ -83,7 +83,7 @@
 						type="button"
 						aria-label="Clear"
 						data-slot="clear"
-						class="grid size-4 shrink-0 place-items-center rounded-sm text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+						class="grid size-4 shrink-0 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
 						@click.stop="clear"
 						@pointerdown.stop
 					>

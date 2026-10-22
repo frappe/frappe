@@ -1,4 +1,5 @@
-import type { UploadedFile as EditorUploadedFile } from "frappe-ui/editor";
+import type { Extension } from "@tiptap/core";
+import type { UploadedMedia } from "frappe-ui/editor";
 
 export interface Recipient {
   email: string;
@@ -6,16 +7,8 @@ export interface Recipient {
   image?: string;
 }
 
-export interface Recipients {
-  to: Recipient[];
-  cc: Recipient[];
-  bcc: Recipient[];
-}
-
 /** Host-supplied recipient lookup, called as the user types (and once with ""). */
 export type RecipientSearch = (query: string) => Promise<Recipient[]>;
-
-export type HeaderField = "from" | "to" | "subject" | "cc" | "bcc";
 
 /** A file as returned by FileUploader's `success` event. */
 export interface UploadedFile {
@@ -33,7 +26,7 @@ export interface MentionOption {
 }
 
 /** Inline-image upload handler passed to the editor; returns the editor's file shape. */
-export type UploadFunction = (file: File) => Promise<EditorUploadedFile>;
+export type UploadFunction = (file: File) => Promise<UploadedMedia>;
 
 // --- Editing core (ComposerEditor.vue, private) -----------------------------
 
@@ -46,6 +39,14 @@ interface BaseComposerProps {
   placeholder?: string;
   submitLabel?: string;
   uploadFunction?: UploadFunction;
+  /** Extra tiptap extensions, appended after the built-in RichTextKit. Read once at mount. */
+  extensions?: Extension[];
+  /** Maximum number of attachments. Defaults to 10. */
+  maxAttachments?: number;
+  /** Attachment types, as extensions (".pdf") or MIME globs ("image/*"), like FileUpload's `allowed_file_types`. Empty allows any. */
+  allowedFileTypes?: string[];
+  /** Host is performing the send: the submit button shows a spinner and ignores clicks. */
+  submitting?: boolean;
 }
 
 export interface ComposerEditorProps extends BaseComposerProps {
@@ -61,6 +62,12 @@ export interface ComposerActionsSlotProps {
   setUploading: (value: boolean) => void;
 }
 
+/** What the `attachments` slot receives to render its own chips. */
+export interface ComposerAttachmentsSlotProps {
+  attachments: UploadedFile[];
+  remove: (file: UploadedFile) => void;
+}
+
 interface BaseComposerEmits<Payload> {
   /** Fires with the built payload; the host performs the send, then `reset()`. */
   submit: [payload: Payload];
@@ -73,14 +80,20 @@ interface BaseComposerEmits<Payload> {
 export interface EmailPayload extends CoreSubmitPayload {
   from: string;
   subject: string;
-  recipients: Recipients;
+  to: Recipient[];
+  cc: Recipient[];
+  bcc: Recipient[];
 }
 
-/** v-models: body (default), from, recipients, subject, quoted. */
+/** v-models: body (default), from, to, cc, bcc, subject, quoted. */
 export interface EmailComposerProps extends BaseComposerProps {
-  /** Built-in header rows to render. Defaults to ["to", "cc", "bcc"]. */
-  headerFields?: HeaderField[];
-  /** Sender identities for the From row (shown when `headerFields` includes "from"). */
+  /** Header rows. To/Cc/Bcc default on; From/Subject default off. */
+  showTo?: boolean;
+  showCc?: boolean;
+  showBcc?: boolean;
+  showFrom?: boolean;
+  showSubject?: boolean;
+  /** Sender identities for the From row (shown with `showFrom`). */
   senders?: Recipient[];
   /** Recipient lookup; omit for a plain creatable-email field. */
   searchRecipients?: RecipientSearch;
@@ -93,6 +106,10 @@ export interface EmailComposerSlots {
   header?: () => any;
   /** Extra footer actions, beside the built-in attach button. */
   actions?: (props: ComposerActionsSlotProps) => any;
+  /** Replaces the built-in attachment chips. */
+  attachments?: (props: ComposerAttachmentsSlotProps) => any;
+  /** Pinned between the body (and attachments) and the utilities row, for notices such as staged actions. */
+  footer?: () => any;
 }
 
 // --- CommentComposer ---------------------------------------------------------
@@ -106,4 +123,8 @@ export type CommentComposerEmits = BaseComposerEmits<CommentPayload>;
 export interface CommentComposerSlots {
   /** Extra footer actions, beside the built-in attach button. */
   actions?: (props: ComposerActionsSlotProps) => any;
+  /** Replaces the built-in attachment chips. */
+  attachments?: (props: ComposerAttachmentsSlotProps) => any;
+  /** Pinned between the body (and attachments) and the utilities row, for notices such as staged actions. */
+  footer?: () => any;
 }

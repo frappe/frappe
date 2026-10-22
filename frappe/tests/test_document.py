@@ -8,9 +8,11 @@ import frappe
 from frappe.app import make_form_dict
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.doctype.note.note import Note
+from frappe.model.base_document import BaseDocument
+from frappe.model.document import Document
 from frappe.model.naming import make_autoname, parse_naming_series, revert_series_if_last
 from frappe.tests.utils import FrappeTestCase, timeout
-from frappe.utils import cint, now_datetime, set_request
+from frappe.utils import cint, get_datetime, now_datetime, set_request
 from frappe.website.serve import get_response
 
 from . import update_system_settings
@@ -137,6 +139,28 @@ class TestDocument(FrappeTestCase):
 		d2 = frappe.get_doc(d1.doctype, d1.name)
 		d1.save()
 		self.assertRaises(frappe.TimestampMismatchError, d2.save)
+
+	def test_save_after_insert_on_a_whole_second(self):
+		with self.freeze_time("2026-10-15 10:33:29"):
+			event = self.test_insert()
+
+		event.subject = "saved after a whole-second insert"
+		event.save()
+
+		saved = frappe.db.get_value("Event", event.name, ["subject", "creation"], as_dict=True)
+		self.assertEqual(saved.subject, "saved after a whole-second insert")
+		self.assertEqual(saved.creation, get_datetime("2026-10-15 10:33:29"))
+
+	def test_first_save_of_a_single(self):
+		doctype = new_doctype(
+			issingle=1, fields=[{"fieldname": "note", "fieldtype": "Data", "label": "Note"}]
+		).insert()
+
+		single = frappe.get_doc(doctype.name)
+		single.note = "first save"
+		single.save()
+
+		self.assertEqual(frappe.db.get_single_value(doctype.name, "note"), "first save")
 
 	def test_conflict_validation_single(self):
 		d1 = frappe.get_doc("Website Settings", "Website Settings")
@@ -532,6 +556,35 @@ class TestDocument(FrappeTestCase):
 		c.db_set(key, val)
 		changed_val = frappe.db.get_single_value(c.doctype, key)
 		self.assertEqual(val, changed_val)
+
+	def test_base_document_alias(self):
+		self.assertIs(BaseDocument, Document)
+
+	def test_docstatus(self):
+		doc = Document({"docstatus": 0, "doctype": "ToDo"})
+		self.assertTrue(doc.docstatus.is_draft())
+		self.assertEqual(doc.docstatus, 0)
+
+		doc.docstatus = 1
+		self.assertTrue(doc.docstatus.is_submitted())
+		self.assertEqual(doc.docstatus, 1)
+
+		doc.docstatus = 2
+		self.assertTrue(doc.docstatus.is_cancelled())
+		self.assertEqual(doc.docstatus, 2)
+
+	def test_super_document_init_sets_values(self):
+		class LegacyVirtualToDo(Document):
+			def load_from_db(self):
+				super(Document, self).__init__(
+					{"doctype": "ToDo", "name": self.name, "description": "legacy"}
+				)
+
+		with self.assertWarns(DeprecationWarning):
+			doc = LegacyVirtualToDo("ToDo", "legacy-todo")
+
+		self.assertEqual(doc.name, "legacy-todo")
+		self.assertEqual(doc.description, "legacy")
 
 
 class TestDocumentWebView(FrappeTestCase):

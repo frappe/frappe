@@ -2,6 +2,7 @@
 # See license.txt
 
 import re
+from unittest.mock import patch
 
 import frappe
 import frappe.recorder
@@ -70,6 +71,12 @@ class TestRecorder(FrappeTestCase):
 
 		requests = frappe.get_list("Recorder", order_by="path desc")
 		self.assertEqual(requests[0].path, "/api/method/ping")
+
+	def test_recorder_list_sorts_before_paging(self):
+		requests = [{"uuid": frappe.generate_hash(), "duration": duration} for duration in (5, 10, 15)]
+		with patch("frappe.core.doctype.recorder.recorder.get_recorder_data", return_value=requests):
+			slowest = frappe.get_list("Recorder", order_by="duration desc", page_length=1)
+		self.assertEqual(slowest[0].duration, 15)
 
 	def test_recorder_serialization(self):
 		frappe.get_all("User")  # trigger one query

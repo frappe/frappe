@@ -11,6 +11,7 @@ from frappe.custom.doctype.property_setter.property_setter import make_property_
 from frappe.database.utils import DefaultOrderBy
 from frappe.desk.reportview import get_filters_cond
 from frappe.handler import execute_cmd
+from frappe.model import get_permitted_fields
 from frappe.model.db_query import DatabaseQuery, get_between_date_filter
 from frappe.permissions import add_user_permission, clear_user_permissions_for_doctype
 from frappe.query_builder import Column
@@ -397,6 +398,82 @@ class TestDBQuery(FrappeTestCase):
 		end = "2022-01-02 12:23:43"
 		cond = get_between_date_filter([start, end], datetime_df)
 		self.assertQueryEqual(cond, f"'{start}.000000' AND '{end}.000000'")
+
+	def test_comments_blob_not_readable(self):
+		with setup_test_user(set_user=True):
+			row = frappe.get_list("Blog Post", fields=["name", "_comments"], with_comment_count=1, limit=1)[0]
+			self.assertNotIn("_comments", row)
+			self.assertIn("_comment_count", row)
+			# legacy engine, row without name
+			row = DatabaseQuery("Blog Post").execute(
+				fields=["title"], with_comment_count=1, limit_page_length=1
+			)[0]
+			self.assertNotIn("_comments", row)
+			row = frappe.get_list(
+				"Blog Post", fields=["name", "ifnull(nullif(name, name), _comments) as leaked"], limit=1
+			)[0]
+			self.assertNotIn("leaked", row)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Blog Post", filters={"_comments": ("like", "%a%")})
+			# core doctypes permit every table column, so the cache column must not be one
+			self.assertNotIn("_comments", get_permitted_fields("Module Def"))
+			self.assertNotIn(
+				"_comments", frappe.get_list("Module Def", fields=["name", "_comments"], limit=1)[0]
+			)
+			with self.assertRaises(frappe.PermissionError):
+				frappe.get_list("Module Def", filters={"_comments": ("like", "%a%")})
+
+	def test_comment_count_keeps_distinct(self):
+		with setup_test_user(set_user=True):
+			commented = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			plain = frappe.get_doc(doctype="ToDo", description="distinct comment count").insert()
+			commented.add_comment("Comment", "only on one")
+			args = dict(
+				filters={"name": ("in", [commented.name, plain.name])}, distinct=True, with_comment_count=1
+			)
+			rows = frappe.get_list("ToDo", fields=["description"], **args)
+			self.assertEqual(len(rows), 1)
+			self.assertNotIn("_comment_count", rows[0])
+			rows = frappe.get_list("ToDo", fields=["name"], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			rows = frappe.get_list("ToDo", fields=["name as name"], **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# the name under another alias, in either case, still maps rows to documents
+			rows = frappe.get_list("ToDo", fields=["name AS id"], **args)
+			self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# postgres casts a qualified name, which must not hide its alias
+			rows = frappe.get_list("ToDo", fields=["`tabToDo`.`name` as id"], **args)
+			self.assertEqual({r.id: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			# an alias is not the document's name, so it must not split rows or get a count
+			rows = frappe.get_list("ToDo", fields=["description as name"], **args)
+			self.assertEqual(len(rows), 1)
+			self.assertNotIn("_comment_count", rows[0])
+			# `*` carries the name, also when permissions leave it unexpanded
+			rows = frappe.get_list("ToDo", fields=["*"], ignore_permissions=True, **args)
+			self.assertEqual({r.name: r._comment_count for r in rows}, {commented.name: 1, plain.name: 0})
+			self.assertNotIn("_comments", rows[0])
+			# child tables have no comment cache
+			rows = frappe.get_all("DocField", fields=["name"], distinct=True, with_comment_count=1, limit=1)
+			self.assertEqual(rows[0]._comment_count, 0)
+
+	def test_comment_count_skips_self_link_name(self):
+		with setup_test_user(set_user=True):
+			folder = frappe.get_doc(
+				doctype="File", file_name=frappe.generate_hash(length=8), is_folder=1
+			).insert()
+			for i in range(2):
+				frappe.get_doc(
+					doctype="File", file_name=f"comment count {i}.txt", content="x", folder=folder.name
+				).insert().add_comment("Comment", f"comment {i}")
+			rows = frappe.get_list(
+				"File",
+				fields=["folder.name"],
+				filters={"folder": folder.name},
+				distinct=True,
+				with_comment_count=1,
+			)
+			# the linked folder's name is not the row's own name, so files must not split the row
+			self.assertEqual([tuple(row.values()) for row in rows], [(folder.name,)])
 
 	def test_ignore_permissions_for_get_filters_cond(self):
 		frappe.set_user("test2@example.com")
@@ -1384,6 +1461,11 @@ def _dn_hook_subquery(user, doctype=None, **kwargs):
 	return f"`tab{doctype}`.`name` in (select name from `tab{doctype}` where 1=0)"
 
 
+def _dn_hook_or(user, doctype=None, **kwargs):
+	"""Returns a condition with a top-level `or` — must not escape the JOIN's `and`."""
+	return f"`tab{doctype}`.`name` = '__no_match__' or `tab{doctype}`.`secret` = 'up_a'"
+
+
 class TestDotNotationPermission(FrappeTestCase):
 	"""dot-notation link field queries must respect row-level restrictions on the linked DocType."""
 
@@ -1551,6 +1633,24 @@ class TestDotNotationPermission(FrappeTestCase):
 			frappe.set_user(self.USER)
 			# hook returns "name = '__no_match__'" → JOIN matches nothing → null
 			self.assertIsNone(self._get(self.p_up_a.name, "up_link.secret"))
+
+	def test_permission_hook_with_or_is_parenthesised(self):
+		"""A hook returning `a or b` must be grouped, otherwise the JOIN ON becomes
+		`(name = link and a) or b` and matches rows unrelated to the link field."""
+		hook_path = "frappe.tests.test_db_query._dn_hook_or"
+		orig = frappe.get_hooks
+
+		def patched(*args, **kw):
+			key = args[0] if args else kw.get("hook")
+			if key == "permission_query_conditions":
+				return {self.CHILD_UP: [hook_path]}
+			return orig(*args, **kw)
+
+		with patch.object(frappe, "get_hooks", side_effect=patched):
+			frappe.set_user(self.USER)
+			# linked doc "up_b" fails the hook; it must not borrow "up_a" via the `or` branch
+			self.assertIsNone(self._get(self.p_up_b.name, "up_link.secret"))
+			self.assertEqual(self._get(self.p_up_a.name, "up_link.secret"), "up_a")
 
 	def test_real_user_permission_query_condition_hook_is_aliased(self):
 		frappe.set_user(self.USER)

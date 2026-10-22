@@ -51,7 +51,7 @@ class PermissionInspector(Document):
 
 	# None of these apply, overriden for sanity.
 	def load_from_db(self):
-		super(Document, self).__init__({"modified": None, "permission_type": "read"})
+		self.init_from_dict({"modified": None, "permission_type": "read"})
 
 	def db_insert(self, *args, **kwargs): ...
 

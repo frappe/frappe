@@ -12,7 +12,7 @@
 			<Switch v-model="showResultToasts" label="Result toasts" />
 		</div>
 
-		<div class="rounded-lg border border-outline-gray-2 p-4">
+		<div class="rounded-6 border border-outline-gray-2 p-4">
 			<InviteUser
 				v-bind="controller"
 				:show-result-toasts="showResultToasts"
@@ -28,7 +28,7 @@
 		     owned by the panel. Use a field slot only when you need to replace the
 		     rendered field wholesale. -->
 		<h4 class="mb-2 mt-8 text-lg-semibold text-ink-gray-9">emailProps / rolesProps</h4>
-		<div class="rounded-lg border border-outline-gray-2 p-4">
+		<div class="rounded-6 border border-outline-gray-2 p-4">
 			<InviteUser
 				v-bind="controller"
 				:show-result-toasts="showResultToasts"
