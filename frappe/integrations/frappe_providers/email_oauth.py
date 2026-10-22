@@ -63,7 +63,9 @@ def initiate_mailbox_connect(
 	provider it was connected with; `service` is ignored."""
 	if email_account:
 		frappe.has_permission("Email Account", "write", doc=email_account, throw=True)
-		connected_app = frappe.db.get_value("Email Account", email_account, "connected_app")
+		connected_app, login_hint = frappe.db.get_value(
+			"Email Account", email_account, ["connected_app", "email_id"]
+		)
 		token_uri = (connected_app and frappe.db.get_value("Connected App", connected_app, "token_uri")) or ""
 		provider = token_uri.startswith(FRAPPE_CLOUD_RELAY) and token_uri.removeprefix(FRAPPE_CLOUD_RELAY)
 		if provider not in ONE_CLICK_PROVIDERS:
@@ -75,6 +77,7 @@ def initiate_mailbox_connect(
 				)
 			)
 	else:
+		login_hint = None
 		frappe.has_permission("Email Account", "create", throw=True)
 		provider = next((k for k, v in ONE_CLICK_PROVIDERS.items() if v["service"] == service), None)
 		if not provider or not is_v2_site():
@@ -90,6 +93,7 @@ def initiate_mailbox_connect(
 			state=state,
 			code_challenge=client.create_code_challenge(verifier, "S256"),
 			return_url=get_host_name_from_request() + CALLBACK_PATH,
+			**({"login_hint": login_hint} if login_hint else {}),
 		)
 	except frappe.ValidationError as e:
 		if str(e) != "provider_unavailable":  # Central's code for a provider it has turned off
