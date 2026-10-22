@@ -44,3 +44,21 @@ jobs:
           python-version: '3.14'
       - name: Run pre-commit
         run: uvx pre-commit run --all-files --show-diff-on-failure
+
+  deps-vulnerable-check:
+    name: 'Vulnerable Dependency Check'
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.14'
+
+      - name: Install and run pip-audit
+        run: |
+          pip install pip-audit uv
+          pip-audit --desc on .
+          uv export --directory harness --frozen --all-extras --no-emit-project --quiet -o "$RUNNER_TEMP/harness.txt"
+          pip-audit --desc on --disable-pip -r "$RUNNER_TEMP/harness.txt"
