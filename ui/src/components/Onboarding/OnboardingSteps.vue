@@ -2,16 +2,16 @@
 	<div class="flex flex-col justify-center items-center gap-1 mt-4 mb-7">
 		<component :is="logo" class="size-10 shrink-0 rounded-4 mb-4" />
 		<div class="text-base font-medium">
-			{{ "Welcome to " + title }}
+			{{ __("Welcome to {0}", [title]) }}
 		</div>
 		<div class="text-p-base font-normal">
-			{{ `${stepsCompleted}/${totalSteps} steps completed` }}
+			{{ __("{0}/{1} steps completed", [stepsCompleted, totalSteps]) }}
 		</div>
 	</div>
 	<div class="flex flex-col gap-2.5 overflow-hidden">
 		<div class="flex justify-between items-center py-0.5">
 			<Badge
-				:label="`${completedPercentage}% completed`"
+				:label="__('{0}% completed', [completedPercentage])"
 				:theme="completedPercentage == 100 ? 'green' : 'amber'"
 				size="lg"
 			/>
@@ -19,13 +19,13 @@
 				<Button
 					v-if="completedPercentage != 0"
 					variant="ghost"
-					:label="'Reset all'"
+					:label="__('Reset all')"
 					@click="() => resetAll(afterResetAll)"
 				/>
 				<Button
 					v-if="completedPercentage != 100"
 					variant="ghost"
-					:label="'Skip all'"
+					:label="__('Skip all')"
 					@click="() => skipAll(afterSkipAll)"
 				/>
 			</div>
@@ -47,8 +47,8 @@
 							step.completed
 								? 'text-ink-gray-5'
 								: isDependent(step)
-								? 'text-ink-gray-4'
-								: 'text-ink-gray-8',
+									? 'text-ink-gray-4'
+									: 'text-ink-gray-8',
 						]"
 					>
 						<component :is="step.icon" class="h-4" />
@@ -59,13 +59,13 @@
 				</component>
 				<Button
 					v-if="!step.completed && !isDependent(step)"
-					:label="'Skip'"
+					:label="__('Skip')"
 					class="!h-4 text-xs !text-ink-gray-6 hidden group-hover:flex"
 					@click="() => skip(step.name, afterSkip)"
 				/>
 				<Button
 					v-else-if="!isDependent(step)"
-					:label="'Reset'"
+					:label="__('Reset')"
 					class="!h-4 text-xs !text-ink-gray-6 hidden group-hover:flex"
 					@click.stop="() => reset(step.name, afterReset)"
 				/>
@@ -74,6 +74,7 @@
 	</div>
 </template>
 <script setup lang="ts">
+import { translate as __ } from "../../utils/translate";
 import { Badge, Button, Tooltip } from "frappe-ui";
 import { useOnboarding } from "./onboarding";
 import type { OnboardingStep, OnboardingStepsProps } from "./types";
@@ -97,7 +98,7 @@ function dependsOnTooltip(step: OnboardingStep) {
 	if (step.dependsOn && !step.completed) {
 		const dependsOnStep = steps?.find((s) => s.name === step.dependsOn);
 		if (dependsOnStep && !dependsOnStep.completed) {
-			return `You need to complete "${dependsOnStep.title}" first.`;
+			return __('You need to complete "{0}" first.', [dependsOnStep.title]);
 		}
 	}
 	return "";

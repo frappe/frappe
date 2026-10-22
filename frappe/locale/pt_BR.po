@@ -35303,3 +35303,90 @@ msgstr "{} não encontrado no PATH! Isto é necessário para fazer um backup."
 msgid "← Back to upload files"
 msgstr "← Voltar para carregar arquivos"
 
+#: ui/src/components/Onboarding/GettingStartedBanner.vue:10
+#: ui/src/components/Onboarding/GettingStartedBanner.vue:52
+#: ui/src/components/Onboarding/HelpModal.vue:82
+#: ui/src/components/Onboarding/HelpModal.vue:114
+msgid "Getting started"
+msgstr "Primeiros passos"
+
+#: ui/src/components/Onboarding/GettingStartedBanner.vue:22
+msgid "You are all set"
+msgstr "Tudo pronto"
+
+#: ui/src/components/Onboarding/GettingStartedBanner.vue:36
+msgid "All steps are completed successfully"
+msgstr "Todas as etapas foram concluídas com sucesso"
+
+#: ui/src/components/Onboarding/GettingStartedBanner.vue:41
+msgid "Start now"
+msgstr "Começar agora"
+
+#: ui/src/components/Onboarding/OnboardingSteps.vue:22
+msgid "Reset all"
+msgstr "Redefinir tudo"
+
+#: ui/src/components/Onboarding/OnboardingSteps.vue:28
+msgid "Skip all"
+msgstr "Pular tudo"
+
+#: ui/src/components/Onboarding/OnboardingSteps.vue:8
+msgid "{0}/{1} steps completed"
+msgstr "{0}/{1} etapas concluídas"
+
+#: ui/src/components/Onboarding/OnboardingSteps.vue:8
+#: ui/src/components/Onboarding/GettingStartedBanner.vue:13
+msgid "{0}/{1} steps"
+msgstr "{0}/{1} etapas"
+
+#: ui/src/components/Onboarding/OnboardingSteps.vue:14
+msgid "{0}% completed"
+msgstr "{0}% concluído"
+
+#: ui/src/components/Onboarding/OnboardingSteps.vue:101
+msgid "You need to complete \"{0}\" first."
+msgstr "Você precisa concluir \"{0}\" primeiro."
+
+#: ui/src/components/Onboarding/HelpModal.vue:105
+msgid "Help centre"
+msgstr "Central de ajuda"
+
+#: ui/src/components/Onboarding/HelpModal.vue:84
+msgid "Help center"
+msgstr "Central de ajuda"
+
+#: ui/src/components/Onboarding/HelpModal.vue:92
+msgid "Reset onboarding steps"
+msgstr "Redefinir etapas iniciais"
+
+#: ui/src/components/Onboarding/HelpCenter.vue:6
+msgid "Search articles..."
+msgstr "Pesquisar artigos..."
+
+#: ui/src/components/Onboarding/HelpCenter.vue:16
+msgid "All articles"
+msgstr "Todos os artigos"
+
+#: ui/src/components/Onboarding/HelpCenter.vue:17
+msgid "Open docs"
+msgstr "Abrir documentação"
+
+#: ui/src/components/Onboarding/HelpModal.vue:17
+msgid "More options"
+msgstr "Mais opções"
+
+#: ui/src/components/Onboarding/HelpModal.vue:23
+#: ui/src/components/Onboarding/HelpModal.vue:25
+#: ui/src/components/Onboarding/HelpModal.vue:60
+msgid "Maximize"
+msgstr "Maximizar"
+
+#: ui/src/components/Onboarding/HelpModal.vue:23
+#: ui/src/components/Onboarding/HelpModal.vue:25
+#: ui/src/components/Onboarding/HelpModal.vue:60
+msgid "Minimize"
+msgstr "Minimizar"
+
+#: ui/src/components/Onboarding/IntermediateStepModal.vue:17
+msgid "Your browser does not support the video tag."
+msgstr "Seu navegador não oferece suporte à reprodução de vídeo."

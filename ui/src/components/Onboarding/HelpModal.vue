@@ -11,16 +11,20 @@
 			</div>
 			<div class="flex gap-1">
 				<Dropdown v-if="options.length" :options="options">
-					<Button variant="ghost" icon="lucide-ellipsis" aria-label="More options" />
+					<Button
+						variant="ghost"
+						icon="lucide-ellipsis"
+						:aria-label="__('More options')"
+					/>
 				</Dropdown>
 				<Button
 					@click="minimize = !minimize"
 					variant="ghost"
-					:aria-label="minimize ? 'Maximize' : 'Minimize'"
+					:aria-label="minimize ? __('Maximize') : __('Minimize')"
 				>
 					<component :is="minimize ? MaximizeIcon : MinimizeIcon" class="h-3.5" />
 				</Button>
-				<Button variant="ghost" aria-label="Close" @click="show = false">
+				<Button variant="ghost" :aria-label="__('Close')" @click="show = false">
 					<LucideX class="size-3.5" />
 				</Button>
 			</div>
@@ -50,6 +54,7 @@
 	</div>
 </template>
 <script setup lang="ts">
+import { translate as __ } from "../../utils/translate";
 import { Button, Dropdown } from "frappe-ui";
 import LucideX from "~icons/lucide/x";
 import { HelpIcon, MaximizeIcon, MinimizeIcon, StepsIcon } from "frappe-ui/icons";
@@ -74,9 +79,9 @@ const articles = defineModel<HelpArticle[]>("articles");
 
 const headingTitle = computed(() => {
 	if (!isOnboardingStepsCompleted.value && !showHelpCenter.value) {
-		return "Getting started";
+		return __("Getting started");
 	} else if (showHelpCenter.value) {
-		return "Help center";
+		return __("Help center");
 	}
 });
 
@@ -84,7 +89,7 @@ const options = computed(() => {
 	let items = [
 		{
 			icon: StepsIcon,
-			label: "Reset onboarding steps",
+			label: __("Reset onboarding steps"),
 			onClick: resetOnboardingSteps,
 			condition: () => showHelpCenter.value && isOnboardingStepsCompleted.value,
 		},
@@ -97,7 +102,7 @@ const footerItems = computed(() => {
 	let items = [
 		{
 			icon: HelpIcon,
-			label: "Help centre",
+			label: __("Help centre"),
 			onClick: () => {
 				syncStatus();
 				showHelpCenter.value = true;
@@ -106,7 +111,7 @@ const footerItems = computed(() => {
 		},
 		{
 			icon: StepsIcon,
-			label: "Getting started",
+			label: __("Getting started"),
 			onClick: () => (showHelpCenter.value = false),
 			condition: showHelpCenter.value && !isOnboardingStepsCompleted.value,
 		},
@@ -126,6 +131,6 @@ watch(
 	(completed) => {
 		if (completed) showHelpCenter.value = true;
 	},
-	{ immediate: true }
+	{ immediate: true },
 );
 </script>

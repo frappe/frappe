@@ -14,7 +14,7 @@
 					muted
 				>
 					<source :src="currentStep.videoURL" type="video/mp4" />
-					Your browser does not support the video tag.
+					{{ __("Your browser does not support the video tag.") }}
 				</video>
 			</div>
 		</slot>
@@ -26,6 +26,7 @@
 	</Dialog>
 </template>
 <script setup lang="ts">
+import { translate as __ } from "../../utils/translate";
 import { Dialog } from "frappe-ui";
 import { computed } from "vue";
 import type { IntermediateStepModalProps } from "./types";
