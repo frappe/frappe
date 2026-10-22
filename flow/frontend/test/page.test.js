@@ -25,7 +25,7 @@ dom.window.matchMedia = (query) => ({
 	addEventListener() {},
 });
 const { createApp, nextTick, reactive } = await import("vue");
-const { router } = await import("../src/router.js");
+const { framedHistory, router } = await import("../src/router.js");
 const { loadComponent, transport } = await import("./helpers/components.js");
 const FlowPage = await loadComponent("chat/FlowPage.vue");
 const ShareChat = await loadComponent("chat/ShareChat.vue");
@@ -277,7 +277,7 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	assert.match(el.querySelector("header div[title]").title, /^Reviewer \/ /);
 });
 
-test("agents, skills and triggers each have a page in the chat's place, grouped under New chat for whoever may read them; a Flow user reads an agent from its list and starts a chat with it, Back retraces the steps to the chat, and a chat picked in the sidebar takes the page's place", async (t) => {
+test("agents, skills and triggers each have a page in the chat's place, grouped under New chat for whoever may read them; a Flow user reads an agent from its list and starts a chat with it, Back retraces the steps to the chat (in a frame, the frame's own), and a chat picked in the sidebar takes the page's place", async (t) => {
 	await router.replace("/s/S1");
 	const saved = { ...transport.answers };
 	t.after(() => Object.assign(transport.answers, saved));
@@ -436,9 +436,22 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 	// a page the user may not read is the new chat
 	await router.push("/triggers");
 	await until(() => router.currentRoute.value.path === "/");
+
+	// in a frame (the launcher's panel) the browser's history is the page's around it: the steps
+	// stay the frame's, its address alone following, and a record still knows the list it came from
+	const framed = framedHistory("/flow");
+	const [address, steps] = [location.href, history.length];
+	framed.push("/agents?enabled=0");
+	framed.push("/agents/Helper");
+	assert.equal(location.pathname, "/flow/agents/Helper");
+	assert.equal(framed.state.back, "/agents?enabled=0");
+	framed.go(-1);
+	assert.equal(location.pathname + location.search, "/flow/agents?enabled=0");
+	assert.equal(history.length, steps);
+	history.replaceState(history.state, "", address);
 });
 
-test("a record page creates a record at its new address, Cmd+S saving the form it is pressed over, asks before leaving unsaved edits, kept, the chat behind it as it was, and a deleted record leaves for its list; one that never loads has nothing to lose, and the list's search keeps its bar while cleared and follows the address", async (t) => {
+test("a record page creates a record at its new address, Cmd+S saving the form it is pressed over (in a frame, left to the page around it), asks before leaving unsaved edits, kept, the chat behind it as it was, and a deleted record leaves for its list; one that never loads has nothing to lose, and the list's search keeps its bar while cleared and follows the address", async (t) => {
 	const { dialog } = await import("./helpers/components.js");
 	await router.replace("/s/S1");
 	const saved = { ...transport.answers };
@@ -558,6 +571,12 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 		target.dispatchEvent(
 			new dom.window.KeyboardEvent("keydown", { key: "s", metaKey: true, bubbles: true })
 		);
+	// in a frame (the launcher's panel) it is left to the page around it
+	globalThis.window = Object.create(dom.window, { top: { value: null } });
+	pressSave(title());
+	globalThis.window = dom.window;
+	await nextTick();
+	assert.ok(!called("frappe.client.insert"));
 	const over = document.body.appendChild(document.createElement("div"));
 	over.setAttribute("role", "dialog");
 	pressSave(over);
@@ -1064,7 +1083,7 @@ test("a loading chat shows the agent and model of its sidebar row, and names non
 	assert.ok(el.textContent.includes("Sonnet"));
 });
 
-test("a first message sent while the chat list loads keeps the page on its new chat", async (t) => {
+test("a first message sent while the chat list loads keeps the page on its new chat, as does an address asking for one", async (t) => {
 	await router.replace("/");
 	transport.calls.length = 0;
 	const saved = { ...transport.answers };
@@ -1101,4 +1120,17 @@ test("a first message sent while the chat list loads keeps the page on its new c
 	assert.ok(
 		!transport.calls.some(([name, a]) => name === "frappe.flow.api.session" && a.session === "OLD")
 	);
+
+	// a reload at an address asking for a new chat stays on it, though the last chat is listed
+	await router.replace("/?new=1");
+	await nextTick();
+	localStorage.setItem(prefs, JSON.stringify({ lastSession: "OLD" }));
+	transport.calls.length = 0;
+	const reloaded = createApp(FlowPage, { boot }).use(router);
+	reloaded.mount(document.createElement("div"));
+	t.after(() => reloaded.unmount());
+	await until(() => called("frappe.flow.api.list_sessions"));
+	await new Promise((resolve) => setTimeout(resolve, 30));
+	assert.equal(router.currentRoute.value.path, "/");
+	assert.ok(!called("frappe.flow.api.session"));
 });

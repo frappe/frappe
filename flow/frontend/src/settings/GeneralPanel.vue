@@ -15,15 +15,20 @@
 					@update:model-value="setColorScheme"
 				/>
 			</SettingsRow>
+			<SettingsRow title="Flow icon" description="Opens Flow beside your work in Desk and other apps.">
+				<Switch :model-value="!page.state.boot.launcher_hidden" @update:model-value="showLauncher" />
+			</SettingsRow>
 		</div>
 	</SettingsPage>
 </template>
 
 <script setup>
 import { computed, inject } from "vue";
-import { Avatar, Select, useColorScheme } from "frappe-ui";
+import { Avatar, Select, Switch, toast, useColorScheme } from "frappe-ui";
 import SettingsPage from "@flow/ui-core/components/SettingsPage.vue";
 import SettingsRow from "@flow/ui-core/components/SettingsRow.vue";
+
+import { call } from "../api/frappe.js";
 
 const THEMES = [
 	{ label: "System", value: "system" },
@@ -33,4 +38,16 @@ const THEMES = [
 const page = inject("flowPage");
 const user = computed(() => page.state.boot.user ?? { name: "", full_name: "" });
 const { colorScheme, setColorScheme } = useColorScheme();
+
+// app pages follow on their next load; the launcher around this page, at once
+async function showLauncher(shown) {
+	page.state.boot.launcher_hidden = !shown;
+	try {
+		await call("frappe.flow.launcher.set_hidden", { hidden: !shown });
+		window.dispatchEvent(new CustomEvent("flow-launcher", { detail: { hidden: !shown } }));
+	} catch (error) {
+		page.state.boot.launcher_hidden = shown;
+		toast.error(error.message);
+	}
+}
 </script>

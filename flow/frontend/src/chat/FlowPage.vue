@@ -333,7 +333,8 @@ let uninstallShortcuts = null;
 let uninstallFocusRings = null;
 let uninstallViewport = null;
 onMounted(async () => {
-	uninstallShortcuts = installShortcuts(store);
+	// in the launcher's panel, the app around the page keeps the keyboard's shortcuts
+	if (window.top === window) uninstallShortcuts = installShortcuts(store);
 	uninstallFocusRings = installFocusRings();
 	uninstallViewport = installViewport();
 	store.refreshModels();
@@ -342,7 +343,9 @@ onMounted(async () => {
 	// and a page keeps its place
 	if (store.state.sessionId || store.state.conversation.sending.length || route.params.kind)
 		return;
-	const wanted = route.params.session ?? store.state.prefs.lastSession;
+	// an address asking for a new chat (?new=1, as the launcher's panel does after a close) gets one
+	const wanted =
+		route.params.session ?? (route.query.new ? null : store.state.prefs.lastSession);
 	if (
 		wanted &&
 		(route.params.session ||

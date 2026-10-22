@@ -137,6 +137,8 @@ export function useRecord(props, emit) {
 
 	// pressed in the form's own dialog, or outside any for a form in none
 	function onKey(event) {
+		// in the launcher's panel, Cmd+S is the page's around it
+		if (window.top !== window) return;
 		if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
 			event.preventDefault();
 			const dialogOf = (el) => el?.closest?.("[role=dialog]") ?? null;

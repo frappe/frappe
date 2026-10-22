@@ -560,6 +560,7 @@ before_request = [
 
 after_request = [
 	"frappe.monitor.stop",
+	"frappe.flow.launcher.add_to_page",
 ]
 
 # Routes whose PUT body init_request must not buffer through make_form_dict or

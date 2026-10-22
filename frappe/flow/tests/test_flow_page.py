@@ -3,7 +3,13 @@
 
 from unittest.mock import patch
 
+from werkzeug.wrappers import Response
+
 import frappe
+from frappe.flow.api import boot
+from frappe.flow.launcher import HIDDEN_KEY, add_to_page, set_hidden
+from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
+from frappe.flow.tests.test_permissions import _user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.www.flow import index
@@ -33,6 +39,39 @@ class TestFlowPage(IntegrationTestCase):
 			index.get_context(frappe._dict())
 		# back to the chat asked for, not just the page
 		self.assertEqual(frappe.local.flags.redirect_location, "/login?redirect-to=%2Fflow%2Fs%2F4uaiaqp7g3")
+
+	def test_the_launcher_joins_app_pages_of_flow_users(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		ensure_flow_role()
+		member = _user("flow-launcher-member@example.com", FLOW_USER_ROLE)
+		outsider = _user("flow-launcher-none@example.com")
+
+		def page(path):
+			set_request(path=path)
+			response = Response("<html><body><p>page</p></body></html>", mimetype="text/html")
+			add_to_page(response, frappe.local.request)
+			return response.get_data(as_text=True)
+
+		frappe.set_user(member)
+		self.assertRegex(
+			page("/desk/user"),
+			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer></script></body>',
+		)
+		# not on the website, nor on /flow itself
+		self.assertNotIn("flow_launcher", page("/about"))
+		self.assertNotIn("flow_launcher", page("/flow"))
+		# nor for a user who hid it, until /flow's settings show it again
+		self.addCleanup(frappe.defaults.clear_user_default, HIDDEN_KEY, member)  # the cached defaults
+		set_hidden(True)
+		self.assertNotIn("flow_launcher", page("/desk/user"))
+		self.assertTrue(boot()["launcher_hidden"])
+		set_hidden(False)
+		self.assertIn("flow_launcher", page("/desk/user"))
+		self.assertFalse(boot()["launcher_hidden"])
+		# nor for anyone who may not use Flow
+		for user in (outsider, "Guest"):
+			frappe.set_user(user)
+			self.assertNotIn("flow_launcher", page("/desk/user"))
 
 	def test_the_dev_boot_needs_developer_mode(self):
 		with patch.dict(frappe.local.conf, {"developer_mode": 0}):

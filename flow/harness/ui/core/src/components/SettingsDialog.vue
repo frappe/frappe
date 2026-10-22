@@ -138,14 +138,15 @@ watch(
 
 // a phone's back goes back a screen, as the header's back does, and from the list closes settings.
 // Each page and dialog is an entry in the browser's history, added only after a tap: Chrome's back
-// skips all of a page's entries once it adds one with no tap since its last back.
+// skips all of a page's entries once it adds one with no tap since its last back. A frame's back is
+// the page's around it, so a frame adds none.
 const depth = computed(() =>
 	flow.state.settingsOpen ? (narrow.value && section.value ? (back.value ? 3 : 2) : 1) + dialogs.value.length : 0,
 )
 let entries = window.history.state?.flowSettings ?? 0 // a reload keeps them, to leave
 let tapped = false // since the last back
 function syncHistory() {
-	while (layout.phone && tapped && entries < depth.value)
+	while (layout.phone && tapped && entries < depth.value && window.top === window)
 		window.history.pushState({ ...window.history.state, flowSettings: ++entries }, "")
 	if (entries > depth.value) window.history.go(depth.value - entries), (entries = depth.value)
 }
