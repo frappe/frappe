@@ -12,7 +12,7 @@ $timeline-comment-input-height: 32px;
 .new-timeline {
 	position: relative;
 	padding-top: var(--padding-lg);
-	padding-inline: 15px;
+	padding-inline: calc(var(--spacing) * 3.75);
 	// scrolling here lands the sticky header exactly where it pins
 	scroll-margin-top: calc(var(--page-head-height) - var(--padding-lg));
 
@@ -22,7 +22,7 @@ $timeline-comment-input-height: 32px;
 		align-items: center;
 		gap: var(--margin-sm) $timeline-gutter;
 		min-height: $timeline-avatar-size;
-		margin: 0 0 16px 0;
+		margin: 0 0 calc(var(--spacing) * 4) 0;
 		padding: var(--padding-sm) 0;
 		background-color: var(--bg-color);
 		position: sticky;
@@ -33,8 +33,8 @@ $timeline-comment-input-height: 32px;
 			flex: none;
 			margin-bottom: 0;
 			margin-inline-end: auto;
-			font-size: 16px;
-			font-weight: 500;
+			font-size: var(--text-lg);
+			font-weight: var(--weight-medium);
 			color: var(--ink-gray-6);
 		}
 	}
@@ -62,7 +62,7 @@ $timeline-comment-input-height: 32px;
 		.action-btn {
 			display: flex;
 			align-items: center;
-			gap: 6px;
+			gap: calc(var(--spacing) * 1.5);
 			height: $timeline-avatar-size;
 			padding: 0 var(--padding-sm);
 			border-radius: var(--radius);
@@ -72,7 +72,7 @@ $timeline-comment-input-height: 32px;
 
 	// opened from the Add menu; kept in the DOM so frm.comment_box keeps working
 	.timeline-comment-box {
-		margin: 0 0 24px 0;
+		margin: 0 0 calc(var(--spacing) * 6) 0;
 
 		&:not(.timeline-comment-box-open) {
 			display: none;
@@ -101,8 +101,8 @@ $timeline-comment-input-height: 32px;
 
 			.ql-editor {
 				min-height: $timeline-comment-input-height;
-				padding-block: 6px;
-				padding-inline: 12px 40px;
+				padding-block: calc(var(--spacing) * 1.5);
+				padding-inline: calc(var(--spacing) * 3) calc(var(--spacing) * 10);
 				border: none;
 				border-radius: var(--radius-md);
 				background-color: var(--surface-gray-2);
@@ -111,7 +111,7 @@ $timeline-comment-input-height: 32px;
 			}
 
 			.ql-editor.ql-blank::before {
-				inset-inline: 12px 40px;
+				inset-inline: calc(var(--spacing) * 3) calc(var(--spacing) * 10);
 				font-style: normal;
 				color: var(--ink-gray-4);
 			}
@@ -119,7 +119,7 @@ $timeline-comment-input-height: 32px;
 
 		.timeline-comment-send {
 			position: absolute;
-			inset-inline-end: 2px;
+			inset-inline-end: calc(var(--spacing) * 0.5);
 			bottom: calc((#{$timeline-comment-input-height} - var(--es-bt-h)) / 2);
 		}
 
@@ -130,7 +130,7 @@ $timeline-comment-input-height: 32px;
 
 	.timeline-filters {
 		display: flex;
-		margin-bottom: 24px;
+		margin-bottom: calc(var(--spacing) * 6);
 		overflow-x: auto;
 		scrollbar-width: none;
 	}
@@ -154,8 +154,8 @@ $timeline-comment-input-height: 32px;
 		display: flex;
 		align-items: flex-start;
 		gap: $timeline-gutter;
-		padding: 4px 0;
-		margin-bottom: 12px;
+		padding: calc(var(--spacing) * 1) 0;
+		margin-bottom: calc(var(--spacing) * 3);
 		color: var(--ink-gray-5);
 
 		&.timeline-item-filtered,
@@ -189,7 +189,7 @@ $timeline-comment-input-height: 32px;
 		align-items: center;
 		justify-content: center;
 		height: 28px;
-		margin-top: -6px;
+		margin-top: calc(var(--spacing) * -1.5);
 		background-color: var(--bg-color);
 		--icon-stroke: var(--ink-gray-5);
 
@@ -218,7 +218,7 @@ $timeline-comment-input-height: 32px;
 		display: flex;
 		flex: 1;
 		flex-direction: column;
-		gap: 6px;
+		gap: calc(var(--spacing) * 1.5);
 		min-width: 0;
 	}
 
@@ -257,7 +257,7 @@ $timeline-comment-input-height: 32px;
 
 		a[href^="/desk/user/"] {
 			color: var(--ink-gray-7);
-			font-weight: 500;
+			font-weight: var(--weight-medium);
 		}
 
 		a.timeline-version-link {
@@ -300,15 +300,15 @@ $timeline-comment-input-height: 32px;
 
 	.timeline-content {
 		.timeline-change-new {
-			margin-block: -3px;
+			margin-block: calc(var(--spacing) * -0.75);
 		}
 
 		.timeline-changes-toggle {
-			margin-block: -4px;
+			margin-block: calc(var(--spacing) * -1);
 		}
 
 		.timeline-file {
-			margin-block: -5px;
+			margin-block: calc(var(--spacing) * -1.25);
 		}
 	}
 
@@ -320,7 +320,7 @@ $timeline-comment-input-height: 32px;
 		display: inline-flex;
 		flex-wrap: wrap;
 		align-items: baseline;
-		gap: 4px;
+		gap: calc(var(--spacing) * 1);
 		vertical-align: baseline;
 		--icon-stroke: var(--ink-gray-5);
 
@@ -332,7 +332,7 @@ $timeline-comment-input-height: 32px;
 		text-decoration: line-through;
 	}
 	.timeline-change-new {
-		padding: 3px 6px;
+		padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
 		border-radius: 5px;
 		background-color: var(--surface-gray-2);
 		font-size: var(--text-sm);
@@ -354,11 +354,11 @@ $timeline-comment-input-height: 32px;
 		display: flex;
 		flex-direction: column;
 		align-items: flex-start;
-		gap: 10px;
+		gap: calc(var(--spacing) * 2.5);
 		width: fit-content;
 		max-width: 100%;
-		margin-top: 6px;
-		padding: 14px;
+		margin-top: calc(var(--spacing) * 1.5);
+		padding: calc(var(--spacing) * 3.5);
 		border: 1px solid var(--outline-gray-1);
 		border-radius: var(--radius-lg);
 		background-color: var(--surface-elevation-1, var(--bg-color));
@@ -370,7 +370,7 @@ $timeline-comment-input-height: 32px;
 			minmax(0, max-content) minmax(0, max-content) max-content
 			minmax(0, max-content);
 		align-items: center;
-		gap: 6px 8px;
+		gap: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
 		max-width: 100%;
 
 		.timeline-change-row,
@@ -379,7 +379,7 @@ $timeline-comment-input-height: 32px;
 		}
 
 		.timeline-change-label {
-			padding-inline-end: 32px;
+			padding-inline-end: calc(var(--spacing) * 8);
 		}
 
 		.timeline-change-old {
@@ -404,11 +404,11 @@ $timeline-comment-input-height: 32px;
 	}
 
 	.timeline-message-more {
-		margin-top: 4px;
+		margin-top: calc(var(--spacing) * 1);
 	}
 
 	.timeline-all-changes {
-		padding-block: 8px;
+		padding-block: calc(var(--spacing) * 2);
 	}
 
 	:is(.timeline-changes-toggle, .timeline-changes-more-toggle) {
@@ -422,11 +422,11 @@ $timeline-comment-input-height: 32px;
 	}
 
 	.timeline-empty-state {
-		padding-block: 32px;
+		padding-block: calc(var(--spacing) * 8);
 	}
 
 	.timeline-group-range {
-		margin-top: 6px;
+		margin-top: calc(var(--spacing) * 1.5);
 	}
 
 	.timeline-others {
@@ -434,7 +434,7 @@ $timeline-comment-input-height: 32px;
 		border: none;
 		background: none;
 		font: inherit;
-		font-weight: 500;
+		font-weight: var(--weight-medium);
 		color: var(--ink-gray-7);
 		text-decoration: underline dotted var(--ink-gray-4);
 		text-underline-offset: 3px;
@@ -454,7 +454,7 @@ $timeline-comment-input-height: 32px;
 	.timeline-rows {
 		display: grid;
 		grid-template-columns: minmax(0, max-content) minmax(0, max-content);
-		gap: 10px 32px;
+		gap: calc(var(--spacing) * 2.5) calc(var(--spacing) * 8);
 	}
 
 	.timeline-row,
@@ -466,13 +466,13 @@ $timeline-comment-input-height: 32px;
 
 	.timeline-row-title {
 		grid-column: 1 / -1;
-		margin-bottom: 4px;
+		margin-bottom: calc(var(--spacing) * 1);
 		font-size: var(--text-sm);
 		color: var(--ink-gray-5);
 	}
 
 	.timeline-row-fields {
-		row-gap: 4px;
+		row-gap: calc(var(--spacing) * 1);
 
 		.timeline-change-label {
 			color: var(--ink-gray-5);
@@ -490,8 +490,8 @@ $timeline-comment-input-height: 32px;
 	.timeline-file-list {
 		display: flex;
 		align-items: center;
-		gap: 6px;
-		margin-top: 8px;
+		gap: calc(var(--spacing) * 1.5);
+		margin-top: calc(var(--spacing) * 2);
 		overflow: hidden;
 
 		&.expanded {
@@ -507,7 +507,7 @@ $timeline-comment-input-height: 32px;
 
 	.timeline-file-more {
 		flex: none;
-		padding: 3px 6px;
+		padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
 		border: 1px solid var(--outline-gray-2);
 		border-radius: 5px;
 		background-color: transparent;
@@ -530,9 +530,9 @@ $timeline-comment-input-height: 32px;
 	.timeline-file {
 		display: inline-flex;
 		align-items: center;
-		gap: 4px;
+		gap: calc(var(--spacing) * 1);
 		max-width: 100%;
-		padding: 3px 6px;
+		padding: calc(var(--spacing) * 0.75) calc(var(--spacing) * 1.5);
 		border: 1px solid var(--outline-gray-2);
 		border-radius: 5px;
 		font-size: var(--text-sm);
@@ -561,7 +561,7 @@ $timeline-comment-input-height: 32px;
 	}
 
 	.timeline-content.frappe-card {
-		padding: 10px 12px;
+		padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
 		margin: 0;
 		color: var(--ink-gray-7);
 		background-color: transparent;
@@ -584,7 +584,7 @@ $timeline-comment-input-height: 32px;
 	.timeline-you,
 	.timeline-user-name {
 		color: var(--ink-gray-7);
-		font-weight: 500;
+		font-weight: var(--weight-medium);
 	}
 
 	.timeline-message-card {
@@ -592,8 +592,8 @@ $timeline-comment-input-height: 32px;
 		align-items: flex-start;
 		gap: var(--margin-sm);
 		// 10px from the summary's 1.15 box, which is trimmed by the leading above
-		margin-top: calc(10px + (1.5em - 1.15em) / 2);
-		padding: 10px 12px;
+		margin-top: calc(calc(var(--spacing) * 2.5) + (1.5em - 1.15em) / 2);
+		padding: calc(var(--spacing) * 2.5) calc(var(--spacing) * 3);
 		border: 1px solid var(--outline-gray-1);
 		border-radius: var(--radius-lg);
 
@@ -609,8 +609,8 @@ $timeline-comment-input-height: 32px;
 		// the 28px buttons overflow into the padding instead of stretching a
 		// one-line card, so the space above and below the text stays even
 		.actions {
-			margin-block: -4px;
-			margin-inline-end: -6px;
+			margin-block: calc(var(--spacing) * -1);
+			margin-inline-end: calc(var(--spacing) * -1.5);
 
 			.timeline-message-status {
 				order: -1;
@@ -660,11 +660,11 @@ $timeline-comment-input-height: 32px;
 			display: flex;
 			flex-wrap: wrap;
 			align-items: baseline;
-			gap: 2px 4px;
+			gap: calc(var(--spacing) * 0.5) calc(var(--spacing) * 1);
 			line-height: 1.5;
 
 			> .text-color:first-child {
-				font-weight: 500;
+				font-weight: var(--weight-medium);
 				color: var(--ink-gray-7);
 			}
 		}
@@ -713,8 +713,8 @@ $timeline-comment-input-height: 32px;
 		.timeline-message-attachments {
 			display: flex;
 			flex-wrap: wrap;
-			gap: 6px;
-			margin-top: 12px;
+			gap: calc(var(--spacing) * 1.5);
+			margin-top: calc(var(--spacing) * 3);
 
 			.timeline-file {
 				margin-block: 0;
@@ -723,21 +723,21 @@ $timeline-comment-input-height: 32px;
 
 		&[data-communication-type="Communication"] .content blockquote {
 			margin: var(--margin-sm) 0;
-			padding-inline-start: 12px;
+			padding-inline-start: calc(var(--spacing) * 3);
 			border-inline-start: 2px solid var(--outline-gray-2);
 			color: var(--ink-gray-5);
 		}
 
 		&[data-communication-type="Communication"] .content {
-			margin-top: 14px;
-			padding-top: 14px;
+			margin-top: calc(var(--spacing) * 3.5);
+			padding-top: calc(var(--spacing) * 3.5);
 			border-top: 1px solid var(--outline-gray-1);
 		}
 
 		.actions {
 			display: flex;
 			align-items: center;
-			gap: 6px;
+			gap: calc(var(--spacing) * 1.5);
 
 			> *:not(.indicator-pill):not(.es-badge):not(.es-button) {
 				color: var(--ink-gray-5);
@@ -747,14 +747,14 @@ $timeline-comment-input-height: 32px;
 		.custom-actions {
 			display: flex;
 			align-items: center;
-			gap: 6px;
+			gap: calc(var(--spacing) * 1.5);
 		}
 
 		.action-btn:not(.es-button) {
 			display: inline-flex;
 			align-items: center;
 			height: $timeline-avatar-size;
-			padding: 0 6px;
+			padding: 0 calc(var(--spacing) * 1.5);
 			border-radius: var(--radius);
 			background-color: transparent;
 			@include get_textstyle("sm", "regular");
@@ -786,7 +786,7 @@ $timeline-comment-input-height: 32px;
 		flex-direction: column;
 		align-items: stretch;
 		gap: var(--margin-sm);
-		padding: 12px;
+		padding: calc(var(--spacing) * 3);
 		border-color: transparent;
 		background-color: var(--surface-gray-2);
 
@@ -814,7 +814,7 @@ $timeline-comment-input-height: 32px;
 @include media-breakpoint-down(sm) {
 	.new-timeline {
 		.timeline-filters .es-pill {
-			padding-inline: 5px;
+			padding-inline: calc(var(--spacing) * 1.25);
 		}
 
 		.timeline-content .timeline-change-old,
@@ -837,7 +837,7 @@ $timeline-comment-input-height: 32px;
 			.timeline-change-label {
 				grid-column: 1 / -1;
 				padding-inline-end: 0;
-				margin-bottom: 4px;
+				margin-bottom: calc(var(--spacing) * 1);
 			}
 
 			.timeline-change-old {
@@ -846,7 +846,7 @@ $timeline-comment-input-height: 32px;
 
 			// the arrow too, or it centres on the value plus its margin
 			.timeline-change > * {
-				margin-bottom: 12px;
+				margin-bottom: calc(var(--spacing) * 3);
 			}
 
 			.timeline-change-row:last-child .timeline-change > * {
@@ -856,11 +856,11 @@ $timeline-comment-input-height: 32px;
 
 		.timeline-rows {
 			grid-template-columns: minmax(0, 1fr);
-			gap: 16px;
+			gap: calc(var(--spacing) * 4);
 		}
 
 		.timeline-row-title {
-			margin-bottom: 8px;
+			margin-bottom: calc(var(--spacing) * 2);
 		}
 
 		.timeline-row-fields {
@@ -868,13 +868,13 @@ $timeline-comment-input-height: 32px;
 			row-gap: 0;
 
 			.timeline-change-label {
-				margin-bottom: 4px;
+				margin-bottom: calc(var(--spacing) * 1);
 			}
 		}
 
 		.timeline-row-value {
 			max-width: 100%;
-			margin-bottom: 12px;
+			margin-bottom: calc(var(--spacing) * 3);
 
 			&:last-child {
 				margin-bottom: 0;
@@ -906,7 +906,7 @@ $timeline-comment-input-height: 32px;
 	width: max-content;
 	min-width: 220px;
 	max-width: 360px;
-	padding: 4px;
+	padding: calc(var(--spacing) * 1);
 }
 
 .timeline-others-list {
@@ -917,8 +917,8 @@ $timeline-comment-input-height: 32px;
 .timeline-others-row {
 	display: flex;
 	align-items: center;
-	gap: 10px;
-	padding: 6px 8px;
+	gap: calc(var(--spacing) * 2.5);
+	padding: calc(var(--spacing) * 1.5) calc(var(--spacing) * 2);
 
 	.avatar {
 		flex: none;
@@ -938,7 +938,7 @@ $timeline-comment-input-height: 32px;
 	.timeline-others-meta {
 		flex: none;
 		margin-inline-start: auto;
-		padding-inline-start: 16px;
+		padding-inline-start: calc(var(--spacing) * 4);
 		font-size: var(--text-sm);
 		color: var(--ink-gray-5);
 		white-space: nowrap;
