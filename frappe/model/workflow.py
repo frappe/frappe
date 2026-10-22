@@ -135,7 +135,7 @@ def apply_workflow(doc: "Document | str | dict", action: str):
 	elif doc.docstatus.is_draft() and new_docstatus.is_submitted():
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Submit")
-			return
+			return doc
 
 		doc.submit()
 	elif doc.docstatus.is_submitted() and new_docstatus.is_submitted():
@@ -143,7 +143,7 @@ def apply_workflow(doc: "Document | str | dict", action: str):
 	elif doc.docstatus.is_submitted() and new_docstatus.is_cancelled():
 		if doc.meta.queue_in_background and not is_scheduler_inactive():
 			queue_submission(doc, "Cancel")
-			return
+			return doc
 
 		doc.cancel()
 	else:
