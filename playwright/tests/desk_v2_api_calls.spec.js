@@ -29,6 +29,7 @@ test.describe("Desk v2 API calls", () => {
 			data: { usr: TEST_USER, pwd: ADMIN_PASSWORD },
 		});
 		expect(res.status(), `login as ${TEST_USER}: ${await res.text()}`).toBe(200);
+		await new Api(request).call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
 		const r = await new Api(request).call("frappe.tests.ui_test_helpers.create_todo", {
 			description: "Count the desk v2 API calls",
 		});
@@ -37,6 +38,10 @@ test.describe("Desk v2 API calls", () => {
 
 	test.afterAll(async () => {
 		if (todo) await new Api(request).remove_doc("ToDo", todo, true);
+		if (request)
+			await new Api(request).call("frappe.tests.ui_test_helpers.set_desk_v2", {
+				enabled: 0,
+			});
 		await request?.dispose();
 	});
 

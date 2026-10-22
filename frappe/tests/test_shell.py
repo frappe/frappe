@@ -1046,8 +1046,8 @@ class TestModularAddresses(IntegrationTestCase):
 			self.assertTrue(frappe_entry()["modular"])
 
 	def test_the_canonical_address_is_the_owners_prefix(self):
-		switch_desk_v2(self, on=True)
 		"""A link built outside a session picks the owner's prefix and never redirects."""
+		switch_desk_v2(self, on=True)
 		from frappe.utils import get_url_to_form
 
 		self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
@@ -1444,8 +1444,17 @@ class TestDeskV2Switch(IntegrationTestCase):
 	def setUp(self):
 		frappe.set_user("Administrator")
 		switch_desk_v2(self, on=False)
+		user = frappe.get_doc(
+			doctype="User",
+			email="desk-v2-switch@example.com",
+			first_name="Switch",
+			user_type="System User",
+		).insert(ignore_if_duplicate=True, ignore_permissions=True)
+		frappe.set_user(user.name)
+		self.addCleanup(frappe.set_user, "Administrator")
 
 	def tearDown(self):
+		frappe.flags.redirect_location = None
 		if hasattr(frappe.local, "request"):
 			delattr(frappe.local, "request")
 

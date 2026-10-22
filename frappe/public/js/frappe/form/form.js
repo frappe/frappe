@@ -2548,9 +2548,9 @@ frappe.ui.form.Form = class FrappeForm {
 			) {
 				return;
 			}
-			let doc_list = frappe.model.docinfo[doctype][docname][key];
-			// Desk v2 also sends `tags`, which desk v1 keeps as a string.
-			if (!Array.isArray(doc_list)) return;
+			// Desk v2 publishes these too; desk v1 keeps `tags` as a string and no `favourites`.
+			if (["tags", "favourites"].includes(key)) return;
+			let doc_list = frappe.model.docinfo[doctype][docname][key] || [];
 			let docindex = doc_list.findIndex((old_doc) => {
 				return old_doc.name === doc.name;
 			});

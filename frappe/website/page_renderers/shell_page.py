@@ -53,9 +53,7 @@ class ShellPage(BaseRenderer):
 
 	def can_render(self):
 		"""True for `/apps` and for every path under a claimed prefix; an unclaimed one is a website 404."""
-		if not is_desk_v2_enabled():
-			return self.is_index
-		return self.is_index or bool(self.app)
+		return self.is_index or (bool(self.app) and is_desk_v2_enabled())
 
 	def render(self):
 		if not is_desk_v2_enabled():

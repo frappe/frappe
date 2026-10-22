@@ -520,9 +520,9 @@ def create_test_user(username: str | None = None):
 
 
 @whitelist_for_tests()
-def enable_desk_v2():
+def set_desk_v2(enabled: int = 1):
 	settings = frappe.get_single("System Settings")
-	settings.enable_desk_v2 = 1
+	settings.enable_desk_v2 = frappe.utils.cint(enabled)
 	settings.save()
 
 

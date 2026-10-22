@@ -855,7 +855,7 @@
   },
   {
    "default": "0",
-   "description": "Serve desk v2 at /apps and link documents there. The bench must also set desk_v2 to build it.",
+   "description": "Serve Desk v2 at /apps. The bench needs desk_v2 in common_site_config.",
    "fieldname": "enable_desk_v2",
    "fieldtype": "Check",
    "label": "Enable Desk v2"
@@ -864,7 +864,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-22 13:23:33.999730",
+ "modified": "2026-10-22 13:34:01.911327",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
