@@ -33,6 +33,8 @@ import impact_map
 
 # Restored from the nightly run by the workflow; absent means "run everything".
 IMPACT_MAP_FILE = "impact-map.json"
+UI_IMPACT_MAP_FILE = "ui-impact-map.json"
+SPEC_FILE = re.compile(r"^playwright/tests/[\w-]+\.spec\.js$")
 
 # A change to the framework's spine or to test infrastructure can affect any test, so the map's
 # answer is not worth trusting. Test modules under these paths are exempt -- see below.
@@ -239,6 +241,45 @@ def select_tests(files_list):
 	return selected
 
 
+def select_specs(files_list):
+	"""Playwright specs a pull request needs, according to the UI impact map. None runs them all."""
+	try:
+		with open(UI_IMPACT_MAP_FILE) as f:
+			loaded_map = json.load(f)
+	except (OSError, ValueError) as exc:
+		print(f"Running all specs, no usable UI impact map ({exc})")
+		return None
+
+	changed_specs = [f for f in files_list if SPEC_FILE.match(f)]
+	code_files = [f for f in files_list if f not in changed_specs and not is_docs(f)]
+
+	if other_files := [
+		f
+		for f in code_files
+		if not (f.startswith("frappe/public/js/") and f.endswith((".js", ".ts", ".vue", ".html")))
+	]:
+		print(f"Running all specs, changes the UI map cannot see: {other_files}")
+	elif impact_map.is_stale(loaded_map):
+		print(f"Running all specs, UI map from {loaded_map['generated_at']} is stale")
+	elif unmapped := impact_map.unmapped(loaded_map, code_files):
+		print(f"Running all specs, no specs attributed to: {unmapped}")
+	else:
+		selected = sorted(set(changed_specs).union(*(loaded_map["map"][f] for f in code_files)))
+		total = len(impact_map.all_tests(loaded_map))
+		print(f"Running {len(selected)}/{total} specs for {changed_specs + code_files}:")
+		for spec in selected:
+			print(f"  {spec}")
+		return selected
+
+	return None
+
+
+def shards(selected, full, per_shard):
+	"""Shard indexes for the test matrix: fewer machines when only a few files run."""
+	count = full if selected is None else max(1, min(full, -(-len(selected) // per_shard)))
+	return list(range(1, count + 1))
+
+
 def doctype_controller(file):
 	"""`frappe/<module>/doctype/<name>/<name>.json` -> its controller `<name>.py`, else None."""
 	parts = file.split("/")
@@ -341,8 +382,40 @@ def _selftest():
 			assert select_tests(["frontend/package.base.json"]) is None, (
 				"dependency bumps must run the full suite"
 			)
+
+			with open(UI_IMPACT_MAP_FILE, "w") as f:
+				json.dump(
+					{
+						"generated_at": datetime.now(UTC).isoformat(),
+						"map": {
+							"frappe/public/js/ws.js": ["playwright/tests/workspace.spec.js"],
+							"frappe/public/js/pfb/Field.vue": [
+								"playwright/tests/print_format_builder.spec.js"
+							],
+						},
+					},
+					f,
+				)
+			assert select_specs(["frappe/public/js/pfb/Field.vue", "README.md"]) == [
+				"playwright/tests/print_format_builder.spec.js"
+			], "a mapped frontend change must run only its specs"
+			assert select_specs(["frappe/public/js/ws.js", "playwright/tests/grid.spec.js"]) == [
+				"playwright/tests/grid.spec.js",
+				"playwright/tests/workspace.spec.js",
+			], "a changed spec must run itself"
+			assert select_specs(["frappe/public/js/new.js"]) is None, "an unmapped file must run all specs"
+			assert select_specs(["frappe/public/js/ws.js", "frappe/a.py"]) is None, (
+				"server changes must run all specs"
+			)
+			assert select_specs(["playwright/support/index.js"]) is None, "test support must run all specs"
+			assert select_specs(["frappe/public/scss/desk.scss"]) is None, "styles must run all specs"
 		finally:
 			os.chdir(cwd)
+
+	assert shards(None, full=4, per_shard=15) == [1, 2, 3, 4]
+	assert shards(["a"], full=4, per_shard=15) == [1], "a few files must run on one machine"
+	assert shards(["a"] * 16, full=4, per_shard=15) == [1, 2]
+	assert shards(["a"] * 500, full=2, per_shard=40) == [1, 2]
 
 	print("roulette selftest OK")
 
@@ -411,8 +484,18 @@ if __name__ == "__main__":
 			print("No server-side changes; Stopping Python build process.")
 			sys.exit(0)
 
+	selected_specs = None
+	if build_type == "ui" and not ci_files_changed and not has_run_ui_tests_label(pr_number, repo):
+		selected_specs = select_specs(files_list)
+
 	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
 	# Empty means the full suite. Written without a shell: these are PR-controlled file names.
 	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
 		f.write(f"tests={' '.join(selected_tests or [])}\n")
+		f.write(f"specs={' '.join(selected_specs or [])}\n")
+		if build_type == "server":
+			matrix = shards(None if run_postgres else selected_tests, full=2, per_shard=40)
+		else:
+			matrix = shards(selected_specs, full=4, per_shard=15)
+		f.write(f"shards={json.dumps(matrix)}\nshard_total={len(matrix)}\n")
 	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')

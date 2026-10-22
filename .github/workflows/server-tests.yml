@@ -25,6 +25,8 @@ jobs:
       build: ${{ steps.check-build.outputs.build }}
       run_postgres: ${{ steps.check-build.outputs.run_postgres }}
       tests: ${{ steps.check-build.outputs.tests }}
+      shards: ${{ steps.check-build.outputs.shards }}
+      shard_total: ${{ steps.check-build.outputs.shard_total }}
     steps:
       - name: Clone
         uses: actions/checkout@v7
@@ -64,7 +66,7 @@ jobs:
       matrix:
         # Always run against postgres too -- it is a supported backend (see roulette.py).
         db: ${{ fromJson(needs.checkrun.outputs.run_postgres == 'true' && '["mariadb", "postgres"]' || '["mariadb"]') }}
-        index: [1, 2]
+        index: ${{ fromJson(needs.checkrun.outputs.shards || '[1, 2]') }}
     services:
       postgres:
         # An empty image skips the service, so mariadb jobs do not wait for postgres to start.
@@ -111,7 +113,7 @@ jobs:
           # consumed by bench run-parallel-tests
           CAPTURE_COVERAGE: true
           BUILD_NUMBER: ${{ matrix.index }}
-          TOTAL_BUILDS: 2
+          TOTAL_BUILDS: ${{ needs.checkrun.outputs.shard_total || 2 }}
           FRAPPE_SENTRY_DSN: ${{ secrets.SENTRY_DSN || '' }}
           IMPACT_MAP_OUTFILE: ${{ github.event_name == 'schedule' && format('impact-map-{0}-{1}.json', matrix.db, matrix.index) || '' }}
           # The impact map is built on mariadb only, so postgres always runs the full suite.
