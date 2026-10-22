@@ -722,7 +722,7 @@ class _DocumentBase:
 
 		deprecation_warning(
 			"2026-10-19",
-			"v19",
+			"v17",
 			"`super(Document, self).__init__(d)` is deprecated, use `self.init_from_dict(d)` instead.",
 		)
 		self.init_from_dict(d)
