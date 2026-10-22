@@ -45,7 +45,7 @@ CORE_PATHS = (
 	"frappe/tests/",
 )
 
-PATCH_TESTS = ["frappe/tests/test_patches.py"]
+PATCH_TESTS = {"frappe/tests/test_patches.py"}
 
 
 @cache
@@ -215,9 +215,7 @@ def select_tests(files_list):
 	elif unmapped := impact_map.unmapped(loaded_map, relevant_files):
 		print(f"Running full suite, no tests attributed to: {unmapped}")
 	else:
-		selected = sorted(
-			set(impact_map.select(loaded_map, relevant_files)) | set(PATCH_TESTS if patch_files else ())
-		)
+		selected = sorted(set(impact_map.select(loaded_map, relevant_files)) | patch_tests(patch_files))
 		total = len(impact_map.all_tests(loaded_map))
 		print(f"Running {len(selected)}/{total} test modules for {relevant_files + patch_files}:")
 		for test_file in selected:
@@ -236,8 +234,18 @@ def is_docs(file):
 	return bool(regex.search(file))
 
 
+def patch_tests(patch_files):
+	"""`test_patches.py` plus every test that names a changed patch, or a patch importing one."""
+	if not patch_files:
+		return set()
+	patches = impact_map.importers(
+		{f for f in patch_files if f.endswith(".py")}, pattern="frappe/patches/**/*.py"
+	)
+	return (impact_map.importers(patches) - patches) | PATCH_TESTS
+
+
 def is_patch(file):
-	"""Patches run in the Migration job; `test_patches.py` checks they are registered."""
+	"""Patches run in the Migration job, their tests are found by `patch_tests`."""
 	return file == "frappe/patches.txt" or file.startswith("frappe/patches/")
 
 
@@ -264,10 +272,20 @@ def _selftest():
 			assert select_tests(["frappe/locale/de.po", "frappe/a.py"]) is None, (
 				".po must force the full suite"
 			)
-			assert select_tests(["frappe/patches.txt", "frappe/patches/v16_0/x.py", "frappe/a.py"]) == [
+			os.makedirs("frappe/patches/v16_0")
+			os.makedirs("frappe/tests")
+			for path, src in {
+				"frappe/patches/v16_0/base.py": "x = 1\n",
+				"frappe/patches/v16_0/x.py": "from frappe.patches.v16_0.base import x\n",
+				"frappe/tests/test_x.py": 'PATCH = "frappe.patches.v16_0.x"\n',
+			}.items():
+				with open(path, "w") as f:
+					f.write(src)
+			assert select_tests(["frappe/patches.txt", "frappe/patches/v16_0/base.py", "frappe/a.py"]) == [
 				"frappe/tests/test_a.py",
 				"frappe/tests/test_patches.py",
-			], "patches must run test_patches.py, not the full suite"
+				"frappe/tests/test_x.py",
+			], "patches must run the tests naming them or a patch importing them, not the full suite"
 			assert select_tests(
 				["frappe/public/images/a.webp", "frappe/public/js/a.html", "frappe/a.py"]
 			) == ["frappe/tests/test_a.py"], "images and client-side templates must not force the full suite"
