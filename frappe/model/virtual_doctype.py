@@ -3,7 +3,7 @@ from typing import Protocol, runtime_checkable
 
 import frappe
 from frappe import _
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 
 
 @runtime_checkable
