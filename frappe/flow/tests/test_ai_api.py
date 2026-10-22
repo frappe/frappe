@@ -817,10 +817,19 @@ class TestSessionEndpoints(ApiCase):
 		self.assertIsNone(self.daemon.calls[-1][3]["reasoning_effort"])
 		with self.assertRaisesRegex(frappe.ValidationError, "Reasoning effort must be one of"):
 			api.set_model(name, other.name, reasoning_effort="extreme")
+
+		# a model saved on the record, as from Desk, reaches the server too; other saves don't
+		session = frappe.get_doc("Flow Session", name)
+		session.model = self.model.name
+		session.save()
+		self.assertEqual(self.daemon.calls[-1][:3], ("set_model", name, "openai/gpt-4o-mini"))
+		session.title = "Renamed in Desk"
+		session.save()
+
 		other.db_set("enabled", 0)
 		with self.assertRaisesRegex(frappe.ValidationError, "disabled"):
 			api.set_model(name, other.name)
-		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 2)
+		self.assertEqual(len([c for c in self.daemon.calls if c[0] == "set_model"]), 3)
 
 	def test_title_and_auto_approve_persist_on_both_sides(self):
 		name = self.create()

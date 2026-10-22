@@ -59,6 +59,11 @@ class FlowSession(Document):
 		if self.source == "Trigger":
 			self.auto_approve = 1
 
+	def on_update(self):
+		# a model saved on the record, as from Desk, must reach the flow server too
+		if not self.flags.in_insert and self.has_value_changed("model"):
+			self._send_model(self.model or frappe.db.get_value("Flow Agent", self.agent, "model"))
+
 	def on_trash(self):
 		try:
 			_delete_server_session(self.name)
@@ -299,6 +304,10 @@ class FlowSession(Document):
 		model_config(self.model or agent.model)
 
 	def set_model(self, model: str, reasoning_effort: str | None = None) -> None:
+		self._send_model(model, reasoning_effort)
+		self.db_set("model", model)
+
+	def _send_model(self, model: str, reasoning_effort: str | None = None) -> None:
 		from frappe.flow.lib.model import model_config
 
 		config = model_config(model)
@@ -311,7 +320,6 @@ class FlowSession(Document):
 				model_params=config.get("model_params"),
 				reasoning_effort=reasoning_effort,
 			)
-		self.db_set("model", model)
 
 	def set_title(self, title: str) -> None:
 		with flow_server() as client:
