@@ -1448,9 +1448,10 @@ class TestDeskV2Switch(IntegrationTestCase):
 			doctype="User",
 			email="desk-v2-switch@example.com",
 			first_name="Switch",
-			user_type="System User",
+			roles=[{"role": "Desk User"}],
 		).insert(ignore_if_duplicate=True, ignore_permissions=True)
-		frappe.set_user(user.name)
+		self.user = user.name
+		frappe.set_user(self.user)
 		self.addCleanup(frappe.set_user, "Administrator")
 
 	def tearDown(self):
@@ -1466,6 +1467,18 @@ class TestDeskV2Switch(IntegrationTestCase):
 
 	def test_no_prefix_is_served(self):
 		self.assertNotIsInstance(PathResolver("apps/desk").resolve()[1], ShellPage)
+
+	def test_a_404_cached_while_off_is_gone_once_desk_v2_is_on(self):
+		frappe.flags.force_website_cache = True
+		self.addCleanup(setattr, frappe.flags, "force_website_cache", False)
+		set_request(method="GET", path="/apps/desk")
+		self.assertEqual(get_response().status_code, 404)
+
+		frappe.set_user("Administrator")
+		switch_desk_v2(self, on=True)
+		frappe.set_user(self.user)
+		set_request(method="GET", path="/apps/desk")
+		self.assertEqual(get_response().status_code, 200)
 
 	def test_the_build_skips_the_shell_unless_the_bench_sets_desk_v2(self):
 		with (
