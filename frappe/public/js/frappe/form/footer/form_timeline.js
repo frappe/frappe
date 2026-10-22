@@ -18,6 +18,22 @@ function get_scroll_parent(el) {
 }
 
 const MESSAGE_CLAMP_HEIGHT = 500;
+
+// shared by every form, so a timeline holds no global listener of its own
+const timelines_with_pending_deletes = new Set();
+let pending_delete_listeners = false;
+function track_pending_deletes(timeline) {
+	timelines_with_pending_deletes.add(timeline);
+	if (pending_delete_listeners) return;
+	pending_delete_listeners = true;
+	const flush = (method) => {
+		timelines_with_pending_deletes.forEach((t) => t[method]());
+		timelines_with_pending_deletes.clear();
+	};
+	frappe.router.on("change", () => flush("flush_comment_deletes"));
+	window.addEventListener("pagehide", () => flush("send_pending_deletes"));
+}
+
 class FormTimeline extends BaseTimeline {
 	make() {
 		super.make();
@@ -30,8 +46,6 @@ class FormTimeline extends BaseTimeline {
 		this.setup_field_changes_toggle();
 		this.setup_value_tooltips();
 		this.setup_file_lists();
-		frappe.router.on("change", () => this.flush_comment_deletes());
-		window.addEventListener("pagehide", () => this.send_pending_deletes());
 	}
 
 	refresh() {
@@ -1409,7 +1423,7 @@ class FormTimeline extends BaseTimeline {
 					quill?.setSelection(quill.getLength(), 0);
 				});
 			}
-			if (!edit_button.edit_mode && this.refresh_pending) {
+			if (!edit_button.edit_mode && this.refresh_pending && !this.active_comment_edit) {
 				this.refresh();
 			}
 		};
@@ -1419,8 +1433,9 @@ class FormTimeline extends BaseTimeline {
 	start_comment_edit(editor) {
 		const current = this.active_comment_edit;
 		const open = () => {
-			if (current !== editor) current?.close();
+			// set first, so closing the other editor doesn't run a pending refresh
 			this.active_comment_edit = editor;
+			if (current !== editor) current?.close();
 			editor.open();
 		};
 		if (!current || current === editor || !current.has_changes()) {
@@ -1499,6 +1514,7 @@ class FormTimeline extends BaseTimeline {
 		toast.$el.on("mouseleave focusout", start_timer);
 		start_timer();
 		this.pending_deletes[comment_name] = pending;
+		track_pending_deletes(this);
 		this.find_timeline_item("Comment", comment_name)?.classList.add("timeline-item-deleted");
 		this.update_filter_empty_state();
 	}

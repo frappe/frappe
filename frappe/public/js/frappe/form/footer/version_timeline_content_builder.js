@@ -98,9 +98,9 @@ function get_version_timeline_content(version_doc, frm) {
 		const tables = get_rows_by_table(data[key], frm);
 		if (!tables.length) return;
 		const messages = tables.map((table, i) =>
-			get_rows_message(key, table, version_doc, i === 0)
+			get_rows_message(key, table, version_doc, frm, i === 0)
 		);
-		const { toggle, body } = get_rows_details(tables, version_doc);
+		const { toggle, body } = get_rows_details(tables, version_doc, frm);
 		out.push({ summary: frappe.utils.comma_and(messages), toggle, details: body });
 	});
 
@@ -163,7 +163,7 @@ function get_changed_row_fields(data, frm) {
 			const df = frappe.meta.get_docfield(grid_doctype, p[0], frm.docname);
 			if (!is_visible_on_timeline(df, frm)) return;
 			const current_row = (frm.doc[row[0]] || []).find((d) => d.name === row[2]);
-			const row_title = current_row && get_row_title(grid_doctype, current_row);
+			const row_title = current_row && get_row_title(grid_doctype, current_row, frm);
 			const field_label = frappe.meta.get_translated_label(grid_doctype, p[0]);
 			changes.push({
 				label: row_title
@@ -267,25 +267,32 @@ function get_rows_by_table(rows, frm) {
 	return tables;
 }
 
-function get_row_title_field(doctype) {
-	const fields = (frappe.get_meta(doctype)?.fields || []).filter(
-		(df) => df.in_list_view && !frappe.model.no_value_type.includes(df.fieldtype)
+function get_row_list_fields(doctype, frm) {
+	return (frappe.get_meta(doctype)?.fields || []).filter(
+		(df) =>
+			df.in_list_view &&
+			!frappe.model.no_value_type.includes(df.fieldtype) &&
+			is_visible_on_timeline(df, frm)
 	);
+}
+
+function get_row_title_field(doctype, frm) {
+	const fields = get_row_list_fields(doctype, frm);
 	return fields.find(
 		(df) => !["Check", "Currency", "Float", "Int", "Percent"].includes(df.fieldtype)
 	);
 }
 
-function get_row_title(doctype, row) {
-	const df = get_row_title_field(doctype);
+function get_row_title(doctype, row, frm) {
+	const df = get_row_title_field(doctype, frm);
 	const value = df && row[df.fieldname];
 	if (value == null || value === "") return "";
 	return get_display_value(value, df, row);
 }
 
-function get_rows_message(key, table, version_doc, first) {
+function get_rows_message(key, table, version_doc, frm, first) {
 	const count = table.rows.length;
-	const row_title = get_row_title(table.doctype, table.rows[0]);
+	const row_title = get_row_title(table.doctype, table.rows[0], frm);
 	const owner = first && version_doc.owner;
 	const title = row_title && get_version_link(version_doc, frappe.utils.escape_html(row_title));
 	const user_link = owner && get_user_link(owner);
@@ -335,16 +342,13 @@ function get_rows_message(key, table, version_doc, first) {
 	return owner ? get_user_message(owner, self, other) : rest;
 }
 
-function get_rows_details(tables, version_doc) {
+function get_rows_details(tables, version_doc, frm) {
 	const several = tables.length > 1 || tables[0].rows.length > 1;
 	const blocks = tables
 		.flatMap((table) => {
-			const title_df = get_row_title_field(table.doctype);
-			const fields = (frappe.get_meta(table.doctype)?.fields || []).filter(
-				(df) =>
-					df.in_list_view &&
-					!frappe.model.no_value_type.includes(df.fieldtype) &&
-					!(title_df && df.fieldname === title_df.fieldname && !several)
+			const title_df = get_row_title_field(table.doctype, frm);
+			const fields = get_row_list_fields(table.doctype, frm).filter(
+				(df) => !(title_df && df.fieldname === title_df.fieldname && !several)
 			);
 			return table.rows.map((row) => {
 				const values = fields
@@ -363,7 +367,7 @@ function get_rows_details(tables, version_doc) {
 				if (!values) return "";
 				const title = several
 					? `<div class="timeline-row-title">${
-							frappe.utils.escape_html(get_row_title(table.doctype, row)) ||
+							frappe.utils.escape_html(get_row_title(table.doctype, row, frm)) ||
 							__("{0}, row #{1}", [table.label, row.idx])
 					  }</div>`
 					: "";

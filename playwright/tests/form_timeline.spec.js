@@ -219,6 +219,24 @@ test.describe("Form Timeline", () => {
 		await expect(page.locator(".timeline-message-card-editing")).toHaveCount(0);
 	});
 
+	test("switches editors while a live update waits", async ({ page, api }) => {
+		const todo = await new_todo(api);
+		const first = await add_comment(api, todo, "First comment");
+		const second = await add_comment(api, todo, "Second comment");
+		await open_form(page, "todo", todo.name);
+
+		await open_comment_menu(page, first.name, "Edit");
+		// a live update while editing waits until the editor closes
+		await add_comment(api, todo, "Arrived while editing");
+		await page.evaluate(() => cur_frm.timeline.refresh());
+
+		await open_comment_menu(page, second.name, "Edit");
+		const editing = page.locator(`${comment(second.name)} .timeline-message-card-editing`);
+		await expect(editing).toBeVisible();
+		await editing.getByRole("button", { name: "Cancel" }).click();
+		await expect(page.locator(entry, { hasText: "Arrived while editing" })).toBeVisible();
+	});
+
 	test("deletes a comment with undo", async ({ page, api }) => {
 		const todo = await new_todo(api);
 		const doc = await add_comment(api, todo, "A comment to delete");

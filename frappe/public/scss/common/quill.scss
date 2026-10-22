@@ -612,7 +612,7 @@
 	input[type="text"] {
 		width: 220px;
 		height: 28px;
-		padding: 0 8px;
+		padding: 0 calc(var(--spacing) * 2);
 		background: transparent;
 		color: var(--ink-gray-8);
 		font-size: var(--text-base);
@@ -635,8 +635,8 @@
 		margin: 0;
 
 		& + .ql-formats {
-			margin-inline-start: 4px;
-			padding-inline-start: 4px;
+			margin-inline-start: calc(var(--spacing) * 1);
+			padding-inline-start: calc(var(--spacing) * 1);
 			border-inline-start: 1px solid var(--outline-gray-2);
 		}
 	}
