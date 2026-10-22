@@ -105,9 +105,12 @@ const title = computed(
 	() =>
 		flow.state.session?.title ?? conversationTitle(flow.state.conversation) ?? (flow.state.loading ? "" : "New chat"),
 )
-const cwdName = computed(() => (cwd.value ?? "").split("/").filter(Boolean).pop() ?? "")
-// before the title: the host's crumb, or the folder, whose full path shows on hover
-const lead = computed(() => props.crumb ?? (cwd.value ? { icon: "folder", label: cwdName.value, path: cwd.value } : null))
+// the open chat's folder as the sidebar keeps it, which names it even when reached through a link
+const keptFolder = computed(() => flow.state.sessions.find((s) => s.session_id === flow.state.sessionId)?.workspace)
+// before the title: the host's crumb, or the folder by its workspace's name, whose full path shows on hover
+const lead = computed(
+	() => props.crumb ?? (cwd.value ? { icon: "folder", label: flow.folderName(keptFolder.value ?? cwd.value), path: cwd.value } : null),
+)
 
 const headerTitle = computed(() => (lead.value ? `${lead.value.path ?? lead.value.label} / ${title.value}` : title.value))
 

@@ -899,7 +899,7 @@ test("a first message's new chat keeps its bubble, folder and file tabs while it
 	flow.detach()
 })
 
-test("a first message needs a project folder, unless the host has no filesystem; a host that runs only the models it lists flags another", async () => {
+test("a first message needs a project folder, unless the host has no filesystem; a host that runs only the models it lists flags another; a daemon's workspaces give a new chat one", async () => {
 	const refused = []
 	const flow = createFlowStore(hostClient(refused))
 	assert.equal(await flow.send("hello"), false)
@@ -921,6 +921,68 @@ test("a first message needs a project folder, unless the host has no filesystem;
 	strict.state.prefs.lastModel = "GPT-4o mini"
 	assert.equal(strict.modelWarning(), null)
 	strict.detach()
+
+	// the first list waits for the workspaces, which the daemon makes as it first lists them; a
+	// blank chat then starts in the latest
+	const asked = []
+	const client = hostClient([])
+	let folders = [
+		{ path: "/w/shop", name: "Shop" },
+		{ path: "/docs/default-workspace", name: "default-workspace" },
+	]
+	client.workspaces = async () => {
+		await null
+		asked.push("workspaces")
+		return { workspaces: folders }
+	}
+	client.sessions = async () => {
+		asked.push("sessions")
+		return {
+			sessions: [
+				{ session_id: "b", cwd: "/w/gone", workspace: null },
+				{ session_id: "a", cwd: "/w/shop", workspace: "/w/shop" },
+			],
+		}
+	}
+	client.removeWorkspace = async (path) => {
+		folders = folders.filter((folder) => folder.path !== path)
+		return { status: "removed" }
+	}
+	const kept = createFlowStore(client)
+	await kept.refreshSessions()
+	assert.deepEqual(asked, ["workspaces", "sessions"])
+	assert.equal(kept.state.prefs.cwd, "/w/shop")
+	assert.deepEqual([kept.folderName("/w/shop"), kept.folderName("/w/gone")], ["Shop", "gone"])
+
+	// a folder picked stands, through another new chat too; with none, a new chat leaves a chat in
+	// no workspace for the latest one
+	kept.startNewChat({ cwd: "/w/gone" })
+	kept.startNewChat()
+	assert.equal(kept.state.prefs.cwd, "/w/gone")
+	kept.state.sessionId = "b"
+	kept.state.session = { config: { cwd: "/w/gone" } }
+	kept.startNewChat()
+	assert.equal(kept.state.prefs.cwd, "/w/shop")
+
+	// a list still on its way when a workspace is renamed doesn't undo the rename
+	let land
+	client.workspaces = () => new Promise((resolve) => (land = () => resolve({ workspaces: folders })))
+	client.renameWorkspace = async (path, name) => ({ workspace: { path, name } })
+	const listing = kept.refreshSessions()
+	await kept.renameFolder("/w/shop", "Store")
+	land()
+	await listing
+	assert.equal(kept.folderName("/w/shop"), "Store")
+
+	// a deleted workspace's chats are in none, and a new chat about to start there moves on, until
+	// none is left to move to
+	await kept.removeFolder("/w/shop")
+	assert.equal(kept.state.sessions.find((session) => session.session_id === "a").workspace, null)
+	assert.equal(kept.state.prefs.cwd, "/docs/default-workspace")
+	await kept.removeFolder("/docs/default-workspace")
+	assert.equal(kept.state.prefs.cwd, null)
+	assert.equal(await kept.send("hello"), false)
+	kept.detach()
 })
 
 test("saved state lives under the host's storage key and keeps only what differs from the defaults, an old saved theme moves to frappe-ui's, and a daemon that keeps settings has the last change from either side", async (t) => {

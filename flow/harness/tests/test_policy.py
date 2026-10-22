@@ -54,6 +54,7 @@ def test_resolve_policy_profiles():
 	assert not deployed.skills_api
 	assert not deployed.tools_api
 	assert not deployed.settings_api
+	assert not deployed.workspaces_api
 	with pytest.raises(ValueError, match="unknown profile"):
 		resolve_policy("production")
 	# configured callback hosts fill the deployed profile only
@@ -155,6 +156,7 @@ def test_deployed_gates_route_groups_that_local_keeps_on(tmp_path):
 	assert c.post("/skills", json={"cwd": str(tmp_path)}).status_code == 403
 	assert c.get("/sessions/any/skills").status_code == 403
 	assert c.get("/sessions/any/file/diff", params={"path": "x"}).status_code == 403
+	assert c.get("/workspaces").status_code == 403
 
 	c = _client(tmp_path / "local")
 	r = c.put("/fs/file", json=target)
@@ -163,6 +165,7 @@ def test_deployed_gates_route_groups_that_local_keeps_on(tmp_path):
 	assert c.get("/fs/files", params={"cwd": str(tmp_path)}).status_code == 200
 	assert c.post("/extensions/reload").status_code == 200
 	assert c.post("/skills", json={"cwd": str(tmp_path)}).status_code == 200
+	assert c.get("/workspaces").status_code == 200
 	r = c.post("/sessions", json={"cwd": str(tmp_path), "tools": ["bash"]})
 	assert r.status_code == 200
 	assert r.json()["config"]["tools"] == ["bash"]

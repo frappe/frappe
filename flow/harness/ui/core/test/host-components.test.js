@@ -760,6 +760,7 @@ test("a new chat shows its folder, branch and preset over the box until its firs
 		},
 		gitBranch: async () => ({ branch: "work", worktree: true }),
 		pickFolder: async () => void picks++,
+		folderName: (path) => ({ "/w/expenses": "Expenses app" })[path],
 		activePreset: () => flow.state.presets.find((p) => p.id === flow.state.prefs.activePreset) ?? null,
 		setActivePreset: (id) => (flow.state.prefs.activePreset = id),
 		createPreset: () => creates++,
@@ -775,7 +776,7 @@ test("a new chat shows its folder, branch and preset over the box until its firs
 	const sendButton = () => el.querySelector("button[title='Send']")
 	const folder = () => el.querySelector("button[title='Change working directory']")
 	await new Promise((resolve) => setImmediate(resolve))
-	assert.equal(folder().textContent.trim(), "expenses")
+	assert.equal(folder().textContent.trim(), "Expenses app") // its workspace's name
 	// the branch, marked as a linked worktree's
 	const branch = [...el.querySelector("[title='Branch']").children].map((child) => child.textContent.trim())
 	assert.deepEqual(branch.filter(Boolean), ["work", "worktree"])
@@ -2014,6 +2015,7 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 			opened.push(sid)
 		},
 		sessionTitle: (session) => session.title,
+		folderName: (path) => path.split("/").pop(),
 		// past a full page, a search goes to the host
 		searchSessions() {
 			flow.state.sessionsLoading = true
@@ -2281,6 +2283,100 @@ test("the chat list groups chats by their folder, and says it is loading, not th
 	assert.deepEqual(opened, ["b"])
 })
 
+test("a daemon's workspaces list by their own names, a new or empty one on top, chats in none last; a new one opens with a chat, and a workspace's menu renames or deletes it", async (t) => {
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const asked = []
+	dialog.prompt = dialog.confirm = (options) => asked.push(options)
+	t.after(() => {
+		delete dialog.prompt
+		delete dialog.confirm
+	})
+	const done = []
+	const flow = {
+		options: {},
+		state: reactive({
+			sessions: [
+				// started through a link to the workspace's folder
+				{ session_id: "a", title: "Fix the cart", cwd: "/w/shop-link", workspace: "/w/shop" },
+				{ session_id: "b", title: "Old notes", cwd: "/w/gone", workspace: null },
+			],
+			sessionsLoading: false,
+			sessionsMore: false,
+			sessionId: null,
+			folders: [
+				{ path: "/w/shop", name: "Shop" },
+				{ path: "/w/empty", name: "empty" },
+			],
+			prefs: { openFolders: ["/w/shop"] },
+		}),
+		sessionTitle: (session) => session.title,
+		folderName: (path) => flow.state.folders.find((folder) => folder.path === path)?.name ?? path.split("/").pop(),
+		searchSessions() {},
+		setFolderOpen() {},
+		setSidebarView(view) {
+			Object.assign(flow.state.prefs, view)
+		},
+		startNewChat: ({ cwd }) => done.push(["new chat", cwd]),
+		pickFolder: async () => "/w/new",
+		async addFolder(path) {
+			flow.state.folders = [...flow.state.folders, { path, name: "new" }]
+			return flow.state.folders.at(-1)
+		},
+		renameFolder: (path, name) => done.push(["rename", path, name]),
+		removeFolder: (path) => done.push(["delete", path]),
+	}
+	const { el } = mount(t, SessionSidebar, {}, flow)
+	const rows = () => [...el.querySelectorAll("[data-stub=SidebarItem]")]
+	const labels = () => rows().map((row) => row.textContent.trim())
+	const row = (label) => rows().find((item) => item.textContent.trim() === label)
+	const button = (title) => el.querySelector(`button[title='${title}']`)
+	assert.deepEqual(labels(), ["New chat", "empty", "Shop", "Fix the cart", "Old notes", "Settings"])
+	assert.ok(el.textContent.includes("Ungrouped"))
+	assert.ok(row("Shop").querySelector("button[title='Workspace options']"))
+
+	// a folder picked for a new one becomes a workspace at once, on top, with a chat in it
+	button("New workspace").click()
+	await settle()
+	assert.deepEqual(done, [["new chat", "/w/new"]])
+	assert.deepEqual(labels().slice(1, 3), ["new", "empty"])
+
+	// a manual order starts from the order on screen
+	const shown = labels()
+	button("Group and sort").click()
+	await nextTick()
+	;[...el.querySelectorAll("[role=menuitem]")].find((item) => item.textContent === "Manual").click()
+	await nextTick()
+	assert.equal(flow.state.prefs.sidebarOrder, "manual")
+	assert.deepEqual(labels(), shown)
+
+	// a search shows only the workspaces with a match
+	button("Search chats").click()
+	await nextTick()
+	await typeSearch(t, el, "cart")
+	assert.deepEqual(labels(), ["New chat", "Shop", "Fix the cart", "Settings"])
+	button("Close search").click()
+	t.mock.timers.tick(200)
+	await settle()
+
+	// each dialog keeps the workspace it was opened for
+	layout.phone = layout.narrow = true
+	t.after(() => (layout.phone = layout.narrow = false))
+	await nextTick()
+	const shop = row("Shop") // held: its open menu joins its text
+	shop.dispatchEvent(new window.PointerEvent("pointerdown", { pointerType: "touch", bubbles: true }))
+	t.mock.timers.tick(500)
+	await nextTick()
+	const items = [...shop.querySelectorAll("[role=menuitem]")]
+	assert.deepEqual(items.map((item) => item.textContent), ["New chat", "Rename", "Delete"])
+	items[1].click()
+	items[2].click()
+	assert.equal(asked[0].fields[0].defaultValue, "Shop")
+	assert.ok(asked[1].message.includes("Shop") && asked[1].message.includes("Ungrouped"))
+	asked[0].onConfirm({ values: { name: " Store " } })
+	asked[1].actions.at(-1).onClick()
+	assert.deepEqual(done.slice(1), [["rename", "/w/shop", "Store"], ["delete", "/w/shop"]])
+})
+
 test("the model list says it is loading, not that no provider is connected, then names each provider's models under it", async (t) => {
 	const flow = { state: reactive({ models: [], modelsLoading: true, conversation: {}, prefs: {} }) }
 	const { el } = mount(t, ModelPalette, {}, flow)
@@ -2500,13 +2596,15 @@ test("the header says nothing in a new chat until its first message goes out, no
 	const done = []
 	const flow = {
 		state: reactive({
-			loading: false, sessionId: null, session: null, conversation: initialConversation(), prefs: {}, workspace: {},
+			loading: false, sessionId: null, session: null, sessions: [], conversation: initialConversation(), prefs: {}, workspace: {},
 		}),
 		renameSession: (sid, title) => done.push(["rename", sid, title]),
 		deleteSession: (sid) => done.push(["delete", sid]),
+		folderName: (path) => ({ "/w/expenses": "Expenses app" })[path],
 	}
 	const { el } = mount(t, ChatHeader, {}, flow)
 	const line = () => !el.querySelector("header").classList.contains("border-transparent")
+	assert.ok(el.querySelector("button[title='Open panel']"))
 	assert.ok(!el.textContent.includes("New chat"))
 	assert.equal(line(), false)
 	assert.equal(el.querySelector("button[title='Chat options']"), null, "a new chat has nothing to act on")
@@ -2519,6 +2617,7 @@ test("the header says nothing in a new chat until its first message goes out, no
 	flow.state.prefs.cwd = "/w/expenses"
 	await nextTick()
 	assert.equal(el.querySelector("header div[title]").title, "/w/expenses / count the todos")
+	assert.ok(el.textContent.includes("Expenses app")) // by its workspace's name
 	const named = mount(t, ChatHeader, { crumb: { icon: "bot", label: "Reviewer" } }, flow).el
 	assert.equal(named.querySelector("header div[title]").title, "Reviewer / count the todos")
 	assert.ok(!named.textContent.includes("expenses"))
@@ -2534,6 +2633,11 @@ test("the header says nothing in a new chat until its first message goes out, no
 	flow.state.loading = false
 	await nextTick()
 	assert.ok(el.textContent.includes("Quarterly report"))
+	// one started through a link to its workspace's folder goes by the workspace's name
+	flow.state.session.config = { cwd: "/w/expenses-link" }
+	flow.state.sessions = [{ session_id: "s1", workspace: "/w/expenses" }]
+	await nextTick()
+	assert.ok(el.textContent.includes("Expenses app"))
 
 	const host = mount(t, ChatHeader, { actions: [{ label: "Share" }] }, flow)
 	const menu = () => host.el.querySelector("button[title='Chat options']")
@@ -2592,6 +2696,7 @@ function composerFlow(over = {}) {
 		clearCodeRefs() {},
 		clearQuotes() {},
 		notify() {},
+		folderName: (path) => path.split("/").pop(),
 		...over,
 	}
 }
