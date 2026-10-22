@@ -45,6 +45,8 @@ CORE_PATHS = (
 	"frappe/tests/",
 )
 
+PATCH_TESTS = ["frappe/tests/test_patches.py"]
+
 
 @cache
 def fetch_pr_data(pr_number, repo, endpoint=""):
@@ -160,7 +162,7 @@ def is_frontend_code(file):
 	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
 		return True
 	return file.lower().endswith(
-		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg")
+		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".mjs", ".ts", ".vue", ".html", ".svg")
 	)
 
 
@@ -182,6 +184,9 @@ def select_tests(files_list):
 		print(f"Running full suite, no usable impact map ({exc})")
 		return None
 
+	patch_files = [f for f in files_list if is_patch(f)]
+	files_list = [f for f in files_list if f not in patch_files]
+
 	# JSON outside the `frappe` package -- `ui/package.json` and the like -- is not schema.
 	relevant_files = [
 		f
@@ -189,9 +194,11 @@ def select_tests(files_list):
 		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
 	]
 	# Coverage cannot see dependency bumps and the like, so those force the full suite. Frontend code
-	# is safe to ignore, except `.html`: that is mostly Jinja rendered on the server.
+	# is safe to ignore, except `.html` outside `frappe/public`: that is mostly Jinja rendered on the server.
 	ignorable_files = [
-		f for f in files_list if is_docs(f) or (is_frontend_code(f) and not f.endswith(".html"))
+		f
+		for f in files_list
+		if is_docs(f) or (is_frontend_code(f) and (not f.endswith(".html") or f.startswith("frappe/public/")))
 	]
 	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
 	# A test module's content can only break its own tests and those of modules importing it.
@@ -208,9 +215,11 @@ def select_tests(files_list):
 	elif unmapped := impact_map.unmapped(loaded_map, relevant_files):
 		print(f"Running full suite, no tests attributed to: {unmapped}")
 	else:
-		selected = impact_map.select(loaded_map, relevant_files)
+		selected = sorted(
+			set(impact_map.select(loaded_map, relevant_files)) | set(PATCH_TESTS if patch_files else ())
+		)
 		total = len(impact_map.all_tests(loaded_map))
-		print(f"Running {len(selected)}/{total} test modules for {relevant_files}:")
+		print(f"Running {len(selected)}/{total} test modules for {relevant_files + patch_files}:")
 		for test_file in selected:
 			print(f"  {test_file}")
 		return selected
@@ -219,9 +228,17 @@ def select_tests(files_list):
 
 
 def is_docs(file):
-	"""Check if the file is documentation, image or the translation template (no runtime effect)."""
-	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE|/locale/main\.pot$")
+	"""Check if the file is documentation, an image or font, repo tooling config or the translation template (no runtime effect)."""
+	regex = re.compile(
+		r"\.(md|png|jpg|jpeg|gif|webp|ico|csv|svg|woff2?|ttf|otf|eot)$|^.github|LICENSE|/locale/main\.pot$"
+		r"|^(\.gitignore|\.eslintignore|\.releaserc|\.pre-commit-config\.yaml|CODEOWNERS)$"
+	)
 	return bool(regex.search(file))
+
+
+def is_patch(file):
+	"""Patches run in the Migration job; `test_patches.py` checks they are registered."""
+	return file == "frappe/patches.txt" or file.startswith("frappe/patches/")
 
 
 def _selftest():
@@ -246,6 +263,16 @@ def _selftest():
 			)
 			assert select_tests(["frappe/locale/de.po", "frappe/a.py"]) is None, (
 				".po must force the full suite"
+			)
+			assert select_tests(["frappe/patches.txt", "frappe/patches/v16_0/x.py", "frappe/a.py"]) == [
+				"frappe/tests/test_a.py",
+				"frappe/tests/test_patches.py",
+			], "patches must run test_patches.py, not the full suite"
+			assert select_tests(
+				["frappe/public/images/a.webp", "frappe/public/js/a.html", "frappe/a.py"]
+			) == ["frappe/tests/test_a.py"], "images and client-side templates must not force the full suite"
+			assert select_tests(["frappe/www/a.html", "frappe/a.py"]) is None, (
+				"Jinja templates must force the full suite"
 			)
 		finally:
 			os.chdir(cwd)
