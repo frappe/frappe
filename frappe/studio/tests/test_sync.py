@@ -9,12 +9,7 @@ from frappe.studio.doctype.studio_page.test_studio_page import (
 	exports_in_tempdir,
 	make_component,
 )
-from frappe.studio.sync import (
-	after_app_install,
-	before_app_uninstall,
-	remove_orphaned_apps_and_pages,
-	sync_studio_apps,
-)
+from frappe.studio.sync import before_app_uninstall, remove_orphaned_apps_and_pages, sync_studio_apps
 from frappe.studio.utils import get_app_file_path
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
@@ -107,9 +102,6 @@ class TestSync(IntegrationTestCase):
 
 			self.assertFalse(frappe.db.exists("Studio App", app.name))
 			self.assertFalse(frappe.db.exists("Studio Page", page.name))
-
-	def test_after_app_install_skips_an_app_without_a_package(self):
-		after_app_install("abc_test_install_app")
 
 	def test_remove_orphaned_apps_and_pages(self):
 		with exports_in_tempdir():

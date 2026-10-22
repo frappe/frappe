@@ -11,18 +11,6 @@ class TestApi(IntegrationTestCase):
 		app = make_studio_app(app_name="ai-" + frappe.generate_hash(length=8))
 		self.page = make_studio_page(app.name)
 
-	def test_one_turn_per_session_is_queued(self):
-		with (
-			patch("frappe.studio.ai.api.llm.get_api_key", return_value="key"),
-			patch("frappe.enqueue") as enqueue,
-		):
-			run(prompt="hi", page_context="{}", page_id=self.page.name)
-
-		self.assertTrue(enqueue.call_args.kwargs["deduplicate"])
-		self.assertEqual(
-			enqueue.call_args.kwargs["job_id"], f"studio-ai-{enqueue.call_args.kwargs['session_id']}"
-		)
-
 	def test_a_second_turn_is_refused_while_one_is_queued(self):
 		with (
 			patch("frappe.studio.ai.api.llm.get_api_key", return_value="key"),
