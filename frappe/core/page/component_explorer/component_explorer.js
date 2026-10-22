@@ -978,6 +978,105 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		DatePicker: {
+			helper: "frappe.ui.date_picker",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							__code: 'frappe.ui.date_picker({ value: "2026-10-22", on_change: (date) => save(date) })',
+							value: frappe.datetime.get_today(),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Limits and blocked days (no weekends, next 60 days)"),
+					items: [
+						{
+							__code: "frappe.ui.date_picker({\n  min: frappe.datetime.get_today(),\n  max: frappe.datetime.add_days(frappe.datetime.get_today(), 60),\n  is_date_unavailable: (date) => [0, 6].includes(moment(date).day()),\n})",
+							min: frappe.datetime.get_today(),
+							max: frappe.datetime.add_days(frappe.datetime.get_today(), 60),
+							is_date_unavailable: (date) => [0, 6].includes(moment(date).day()),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Shortcuts beside the calendar"),
+					items: [
+						{
+							__code: 'frappe.ui.date_picker({\n  actions: [\n    { label: "Tomorrow", onclick: (picker) => picker.set_date(frappe.datetime.add_days(frappe.datetime.get_today(), 1)) },\n    { label: "Clear", onclick: (picker) => picker.clear() },\n  ],\n})',
+							actions: [
+								{
+									label: __("Tomorrow"),
+									onclick: (picker) =>
+										picker.set_date(
+											frappe.datetime.add_days(
+												frappe.datetime.get_today(),
+												1
+											)
+										),
+								},
+								{
+									label: __("Next week"),
+									onclick: (picker) =>
+										picker.set_date(
+											frappe.datetime.add_days(
+												frappe.datetime.get_today(),
+												7
+											)
+										),
+								},
+								{ label: __("Clear"), onclick: (picker) => picker.clear() },
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("A trigger of your own"),
+					items: [
+						{
+							__code: 'const button = frappe.ui.button({ label: "Add due date", icon: "calendar" });\nfrappe.ui.date_picker({ trigger: button, on_change: (date) => button.find(".es-button__label").text(date) })',
+							__make: () => {
+								const $button = frappe.ui.button({
+									label: __("Add due date"),
+									icon: "calendar",
+								});
+								new frappe.ui.DatePicker({
+									trigger: $button,
+									on_change: (date) =>
+										$button
+											.find(".es-button__label")
+											.text(
+												date
+													? frappe.datetime.str_to_user(date)
+													: __("Add due date")
+											),
+								});
+								return $button;
+							},
+						},
+					],
+				},
+				{
+					title: __("Sizes and variants"),
+					items: ["xs", "sm", "md", "lg"].map((size, i) => ({
+						__code: `frappe.ui.date_picker({ size: "${size}", variant: "${
+							["subtle", "outline", "ghost", "subtle"][i]
+						}" })`,
+						size,
+						variant: ["subtle", "outline", "ghost", "subtle"][i],
+					})),
+				},
+			],
+		},
 		BottomSheet: {
 			helper: "frappe.ui.bottom_sheet",
 			groups: [
@@ -2805,7 +2904,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					);
 					return;
 				}
-				$preview.append(make(opts));
+				$preview.append(opts.__make ? opts.__make() : make(opts));
 			});
 			$groups.append($group);
 		});

@@ -23,6 +23,7 @@ import "./frappe/ui/components/tooltip.js";
 import "./frappe/ui/components/popover.js";
 import "./frappe/ui/components/combobox.js";
 import "./frappe/ui/components/multi_combobox.js";
+import "./frappe/ui/components/date_picker.js";
 import "./frappe/ui/components/hover_card.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
