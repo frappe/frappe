@@ -233,7 +233,9 @@ What `page` is _for_ is a small, closed vocabulary:
   row is gone. The row is an address, not a payload — `page.rows('products')`
   hands you the same handles in any handler at all.
 - **A handful of contracts**: every `page.dialog` verb resolves `null` when the reader
-  dismissed the dialog, so `if (!result) return` is always the idiom; a throw in
+  dismissed the dialog, so `if (!result) return` is always the idiom, and `page.create`
+  keeps the same contract: it resolves `null` when nothing was saved in the dialog, so
+  `if (!doc) return` is its idiom; a throw in
   `beforeSave` blocks the save; a handler that throws is isolated, half-applied, and
   does not take other scripts down with it.
 

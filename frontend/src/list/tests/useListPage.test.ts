@@ -369,6 +369,22 @@ describe("the URL", () => {
 	});
 });
 
+describe("createValues", () => {
+	it("starts a new record with the list's equals filters from the URL", async () => {
+		await mount(`/lead?status=Open&amount=${encodeURIComponent(JSON.stringify([">", "100"]))}`);
+		expect(page.filters.value).toHaveLength(2);
+		expect(page.createValues.value).toEqual({ status: "Open" });
+	});
+
+	it("follows the filters as the person changes them", async () => {
+		await mount("/lead");
+		expect(page.createValues.value).toEqual({});
+		page.filters.value = [{ fieldname: "title", operator: "equals", value: "Big deal" } as never];
+		await settle();
+		expect(page.createValues.value).toEqual({ title: "Big deal" });
+	});
+});
+
 describe("the rows", () => {
 	it("keeps the selection across a load-more and a reload, and drops the rows that left", async () => {
 		await mount("/lead");

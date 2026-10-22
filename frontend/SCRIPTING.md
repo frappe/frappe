@@ -132,6 +132,32 @@ handler that must show progress while it runs uses `page.toast.success` or
 permissions. After that the page paints what it has, without any handler still running,
 the console names what it waits for, and the rest lands when it arrives.
 
+`page.create(doctype, { values })` opens Create for any doctype and inserts the record
+itself. It resolves with the saved document, or `null` when nothing was saved in the dialog:
+the reader dismissed it or picked "Edit full form", the route changed, or the page has gone.
+`values` is its one option, the values the new record starts with, over the server's
+defaults. The title is always "New {doctype}", and the layout is the doctype's Quick Entry
+Form Layout row whose condition holds. The server decides whether a dialog opens: it does
+for a doctype with a Quick Entry Form Layout row, or with Quick Entry set, mandatory fields
+and no mandatory table. Otherwise the full-page new record opens with
+`values` in its query string, and the promise resolves `null`. With no Form Layout row the
+dialog shows the mandatory fields and those marked for Quick Entry. A doctype named by
+prompt gets a name field at the top. Ctrl/Cmd+Enter saves.
+`page.dialog.form({ doctype })` is the other tool: it always shows a dialog and only returns
+the values, and it never inserts.
+
+```js
+page.header.add({
+  name: 'new_contact',
+  label: 'New contact',
+  run: async (page) => {
+    const doc = await page.create('Contact', { values: { company: page.doc.company } })
+    if (!doc) return
+    page.doc.contact_person = doc.name
+  },
+})
+```
+
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads

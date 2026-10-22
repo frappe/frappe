@@ -581,6 +581,11 @@ export interface RecordPageApi {
   refresh(): Promise<void>;
   toast: PageToast;
   dialog: PageDialog;
+  /** Opens Create for a doctype; the saved record, or `null` when nothing was saved in the dialog. */
+  create(
+    doctype: string,
+    options?: { values?: Record<string, any> },
+  ): Promise<Record<string, any> | null>;
   call(method: string, params?: Record<string, any>): Promise<any>;
   /** Server data for `onRefresh`: the value kept for `key`, fetched once per visit; undefined until a fetch lands. */
   cached<T>(key: string, fetch: () => Promise<T> | T): T | undefined;

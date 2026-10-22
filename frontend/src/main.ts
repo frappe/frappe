@@ -18,8 +18,10 @@ import { installTranslate, loadTranslations } from "@/i18n";
 import { loadSprite, symbolGeometry } from "@/icons/sprite";
 import { setDrawnProps, setIconSource, watchClientScripts } from "@/recordPage";
 import { recordDrawnProps } from "@/pages/record/drawnProps";
+import CreateDialog from "@/pages/create/CreateDialog.vue";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
+import { registerCreateDialog } from "@/shell/create";
 import { createSocket } from "@/shell/socket";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
 import Unauthorized from "@/shell/Unauthorized.vue";
@@ -43,6 +45,7 @@ async function start() {
 	loadSprite();
 	setIconSource(symbolGeometry);
 	setDrawnProps(recordDrawnProps());
+	registerCreateDialog(CreateDialog);
 
 	// The address table is awaited: the route table cannot resolve a URL without it, and
 	// it is keyed on `boot.metadata_version`, so it cannot be fetched alongside boot.

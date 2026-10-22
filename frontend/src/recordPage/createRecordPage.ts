@@ -175,6 +175,11 @@ export interface RecordPageHost {
   activeWriter?: ComposerHost["activeWriter"];
   windowState?: ComposerHost["windowState"];
   setWindow?: ComposerHost["setWindow"];
+  /** The shell's Create; `page.create` resolves `null` without it. */
+  openCreate?: (
+    doctype: string,
+    options: { values?: Record<string, any> },
+  ) => Promise<Record<string, any> | null>;
   /** True when the host puts back the reader's view on this visit; `onOpen`'s view acts then do nothing. */
   restoresView?: () => boolean;
 }
@@ -388,6 +393,10 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       error: (message) => toast.error(message),
     },
     dialog: dialogs.api,
+    create: (doctype, options) =>
+      gate.hasLeft() || !host.openCreate
+        ? Promise.resolve(null)
+        : host.openCreate(doctype, { values: options?.values }),
     call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
     cached: <T>(key: string, fetch: () => Promise<T> | T) =>
       cachedReads.read(runningSource(), key, fetch) as T | undefined,

@@ -630,6 +630,7 @@
       "registerShell",
       "routeFor",
       "routeForModule",
+      "routeForNew",
       "urlFor"
     ],
     "frontend/src/shell/BootError.vue": [
