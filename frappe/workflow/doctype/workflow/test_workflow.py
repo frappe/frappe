@@ -205,6 +205,26 @@ class TestWorkflow(FrappeTestCase):
 		self.workflow.states[1].doc_status = 0
 		self.workflow.save()
 
+	def test_queued_workflow_action_returns_doc(self):
+		dt = create_new_submittable_doctype()
+		workflow = create_submittable_workflow(dt.name)
+		workflow._update_state_docstatus = True
+		workflow.states[1].doc_status = 1
+		workflow.save()
+		doc = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
+
+		with (
+			patch.object(doc.meta, "queue_in_background", 1),
+			patch("frappe.utils.scheduler.is_scheduler_inactive", return_value=False),
+		):
+			queued_doc = apply_workflow(doc, "Approve")
+
+		self.assertEqual(queued_doc.name, doc.name)
+		self.assertEqual(queued_doc.workflow_state, "Approved")
+		self.assertTrue(
+			frappe.db.exists("Submission Queue", {"ref_doctype": dt.name, "ref_docname": doc.name})
+		)
+
 	def test_syntax_error_in_transition_rule(self):
 		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
 
@@ -272,3 +292,58 @@ def create_todo_workflow():
 
 def create_new_todo():
 	return frappe.get_doc(dict(doctype="ToDo", description="workflow " + random_string(10))).insert()
+
+
+def create_new_submittable_doctype():
+	if frappe.db.exists("DocType", "Test Submittable Doc"):
+		return frappe.get_doc("DocType", "Test Submittable Doc")
+
+	return frappe.get_doc(
+		{
+			"doctype": "DocType",
+			"module": "Core",
+			"name": "Test Submittable Doc",
+			"custom": 1,
+			"is_submittable": 1,
+			"fields": [
+				{"label": "Field", "fieldname": "test_field", "fieldtype": "Data"},
+				{
+					"label": "Workflow State",
+					"fieldname": "workflow_state",
+					"fieldtype": "Link",
+					"options": "Workflow State",
+				},
+			],
+			"permissions": [{"role": "System Manager", "read": 1, "write": 1, "submit": 1, "cancel": 1}],
+		}
+	).insert(ignore_if_duplicate=True)
+
+
+def create_submittable_workflow(doctype):
+	if frappe.db.exists("Workflow", "Submittable Workflow"):
+		return frappe.get_doc("Workflow", "Submittable Workflow")
+
+	workflow = frappe.get_doc(
+		{
+			"doctype": "Workflow",
+			"workflow_name": "Submittable Workflow",
+			"document_type": doctype,
+			"workflow_state_field": "workflow_state",
+			"is_active": 1,
+			"states": [
+				{"state": "Pending", "allow_edit": "All"},
+				{"state": "Approved", "allow_edit": "System Manager", "doc_status": 0},
+			],
+			"transitions": [
+				{
+					"state": "Pending",
+					"action": "Approve",
+					"next_state": "Approved",
+					"allowed": "System Manager",
+					"allow_self_approval": 1,
+				}
+			],
+		}
+	).insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+	return workflow
