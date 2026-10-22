@@ -18,6 +18,7 @@ from frappe.exceptions import TemplateCompileError
 from frappe.modules.import_file import import_doc
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
+from frappe.utils.logging import get_log_db
 
 GOOD_TEMPLATE = 'export default {\n  name: "Greeting",\n  template: `<p>{{ __("Hello") }}</p>`,\n}\n'
 # `Nope` is in no `components:` list, so the names check fails at line 3.
@@ -280,7 +281,7 @@ def compile_calls(run):
 
 
 def logged(name):
-	return frappe.db.exists("Error Log", {"reference_doctype": "Client Script", "reference_name": name})
+	return get_log_db().exists("Error Log", {"reference_doctype": "Client Script", "reference_name": name})
 
 
 class TestTemplateCompile(IntegrationTestCase):

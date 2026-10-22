@@ -25,6 +25,7 @@ from frappe.tests.test_shell_navigation import (
 	make_sidebar,
 	shipping,
 )
+from frappe.utils.logging import get_log_db
 
 READABLE = "ToDo"
 UNREADABLE = "Role"
@@ -131,7 +132,7 @@ class FilterTestCase(NavigationTestCase):
 			self.addCleanup(frappe.clear_cache, user=user)
 
 	def errors(self, title: str) -> int:
-		return frappe.db.count("Error Log", {"method": title})
+		return get_log_db().count("Error Log", {"method": title})
 
 
 class TestReadableDocType(FilterTestCase):
