@@ -158,9 +158,11 @@ def is_ci(file):
 
 
 def is_frontend_code(file):
-	"""Check if the file is frontend code."""
+	"""Check if the file is frontend code. `.html` in the `frappe` package outside `public` is Jinja rendered on the server."""
 	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
 		return True
+	if file.endswith(".html") and file.startswith("frappe/") and not file.startswith("frappe/public/"):
+		return False
 	return file.lower().endswith(
 		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".mjs", ".ts", ".vue", ".html", ".svg")
 	)
@@ -193,13 +195,8 @@ def select_tests(files_list):
 		for f in files_list
 		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
 	]
-	# Coverage cannot see dependency bumps and the like, so those force the full suite. Frontend code
-	# is safe to ignore, except `.html` outside `frappe/public`: that is mostly Jinja rendered on the server.
-	ignorable_files = [
-		f
-		for f in files_list
-		if is_docs(f) or (is_frontend_code(f) and (not f.endswith(".html") or f.startswith("frappe/public/")))
-	]
+	# Coverage cannot see dependency bumps and the like, so those force the full suite.
+	ignorable_files = [f for f in files_list if is_docs(f) or is_frontend_code(f)]
 	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
 	# A test module's content can only break its own tests and those of modules importing it.
 	core_files = [f for f in relevant_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
@@ -255,6 +252,10 @@ def _selftest():
 
 	assert is_docs("frappe/locale/main.pot"), "translation template alone must skip tests"
 	assert not is_docs("frappe/locale/de.po"), "translations change output, must run tests"
+	assert not is_frontend_code("frappe/templates/print_format/print_format.html"), (
+		"Jinja must run server tests"
+	)
+	assert is_frontend_code("studio/frontend/index.html"), "app pages outside the frappe package are frontend"
 
 	impact = {
 		"generated_at": datetime.now(UTC).isoformat(),
