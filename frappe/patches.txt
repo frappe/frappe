@@ -292,6 +292,7 @@ frappe.patches.v17_0.switch_wkhtmltopdf_to_chrome
 frappe.patches.v17_0.backfill_file_blobs
 frappe.patches.v17_0.keep_existing_sites_on_classic_charts
 frappe.patches.v17_0.delete_otp_qr_code_images
+frappe.patches.v17_0.encrypt_indexing_refresh_token
 
 
 [post_fixture_sync]
