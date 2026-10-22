@@ -66,6 +66,7 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-regular);
     line-height: 1;
+    vertical-align: middle;
     outline: none;
     transition: background-color 120ms, border-color 120ms, color 120ms;
 
