@@ -198,8 +198,8 @@ def upload_file():
 		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
 			f.seek(offset)
 			f.write(file.stream.read())
-			uploaded_size = f.tell()
 
+		uploaded_size = temp_path.stat().st_size
 		if uploaded_size > max_file_size:
 			temp_path.unlink()
 			throw_max_file_size_error(max_file_size)
