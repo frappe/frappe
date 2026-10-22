@@ -281,6 +281,7 @@
    "label": "Enable Google indexing"
   },
   {
+   "description": "This is now deprecated, please use the `indexing_refresh_token_secret` field instead.",
    "fieldname": "indexing_refresh_token",
    "fieldtype": "Data",
    "hidden": 1,
@@ -485,7 +486,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-24 21:24:48.001117",
+ "modified": "2026-10-22 08:58:40.925592",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",
