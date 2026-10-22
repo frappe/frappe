@@ -12,6 +12,7 @@ import frappe
 import frappe.sessions
 import frappe.utils
 from frappe import _, is_whitelisted, ping
+from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import find_file_by_url, get_safe_file_name
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
@@ -184,13 +185,25 @@ def upload_file():
 			current_chunk = 0
 			total_chunks = 1
 
+		from frappe.storage.upload import check_declared_size
+
+		total_file_size = int(frappe.form_dict.total_file_size or 0)
+		check_declared_size(total_file_size)
+
 		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
 		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
-			total_file_size = frappe.form_dict.total_file_size or 0
 			f.seek(offset)
 			f.write(file.stream.read())
-			if not f.tell() >= int(total_file_size) or current_chunk != total_chunks - 1:
-				return
+
+		uploaded_size = temp_path.stat().st_size
+		try:
+			check_declared_size(uploaded_size)
+		except MaxFileSizeReachedError:
+			temp_path.unlink()
+			raise
+
+		if not uploaded_size >= total_file_size or current_chunk != total_chunks - 1:
+			return
 
 		content = temp_path.read_bytes()
 		temp_path.unlink()
