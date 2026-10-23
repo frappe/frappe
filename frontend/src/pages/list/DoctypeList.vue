@@ -168,13 +168,13 @@ const {
 } = useListPage(props.doctype);
 
 const canCreate = useCreateRight(props.doctype);
-const creating = ref(false);
+let creating = false;
 
 async function create() {
-	if (creating.value) return;
-	creating.value = true;
+	if (creating) return;
+	creating = true;
 	const doc = await openCreate(props.doctype, { values: createValues.value }).finally(
-		() => (creating.value = false)
+		() => (creating = false)
 	);
 	if (!doc) return;
 	reload();
