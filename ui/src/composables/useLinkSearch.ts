@@ -15,7 +15,8 @@ export interface UseLinkSearch {
   data: ComputedRef<LinkSearchOption[] | null>;
   loading: ComputedRef<boolean>;
   error: ComputedRef<unknown>;
-  search: (txt?: string) => Promise<void>;
+  /** `fresh` skips the browser's cached answer, as after a record is created. */
+  search: (txt?: string, options?: { fresh?: boolean }) => Promise<void>;
 }
 
 export function useLinkSearch(
@@ -28,17 +29,17 @@ export function useLinkSearch(
   const error = ref<unknown>(null);
   let generation = 0;
 
-  async function search(txt = ""): Promise<void> {
+  async function search(txt = "", { fresh = false } = {}): Promise<void> {
     const target = toValue(doctype);
     if (!target) return;
     const mine = ++generation;
     loading.value = true;
     try {
-      const { data: found } = await searchDocuments(target, {
-        txt,
-        filters: toValue(filters),
-        limit,
-      });
+      const { data: found } = await searchDocuments(
+        target,
+        { txt, filters: toValue(filters), limit },
+        fresh ? { cache: "reload" } : {}
+      );
       if (mine !== generation) return;
       data.value = found.map(toLinkOption);
       error.value = null;

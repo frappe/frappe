@@ -189,7 +189,8 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
 | Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `documentKey`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `feedListError`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. It keeps 50 complete records while their replies add up to 32 MB or less, and it never drops the record read last, the open one. `feedListError` drops a list the server refused with a 403 or 404. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 200. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
-| Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one |
+| Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | *Changed.* Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one. An empty doctype reads nothing |
+| Naming (`NEW_NAME`, `isNamedByPrompt`, `typedTextField`) | *New.* How a doctype names a new record: the insert key for a typed name, the prompt rule, and the field that typed text fills |
 | Fresh-value hold (`holdFresh`, `landFresh`) | A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
 | Scroll landing (`landScroll`, `onScrollSettled`) | *New.* Puts a kept scroll offset back once the content is tall enough, and reports a scroll once it has stopped for 150 ms. The list and the record page keep their offsets with it |
@@ -213,7 +214,7 @@ component group, with its main names.
 | Child rows (`useChildRowModel`, `newRowValues`, `NO_VALUE`) | *Changed.* The rows of a child table field, a new row's default values, and the fieldtypes that hold no value |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
-| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do |
+| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`, `CreateRecordKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do. `CreateRecordKey` hands Link and Dynamic Link fields the host's Create and create right; with none, they offer no Create |
 | `TemplateNamesKey` | The component names a `template:` string can use with no `components:` entry. The Code field completes them. With no value, it completes Vue's built-in components only |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
 | `Link`, `Grid`, `Phone`, `TableMultiSelect` | Field controls with their own pickers and tables |
@@ -225,7 +226,7 @@ component group, with its main names.
 | `ColumnSettings` | Pick, order and size list columns |
 | `experimental/List` (`List`, `ListFooter`, `ListBulkBar`) | A virtual-scroll list with selection and a bulk bar |
 | `ListView` and `usePagedList` | An app's own paged list: rows a page at a time |
-| `useLinkSearch` | The server's matches for a link picker; the last answer wins |
+| `useLinkSearch` | *Changed.* The server's matches for a link picker; the last answer wins. A fresh search skips the browser's cached answer |
 | `Notifications` | The notification panel and its data |
 | `InviteUser` | Invite users. The app passes the address to land on |
 | `DataImport`, `Onboarding`, `SignupBanner`, `TrialBanner`, telemetry | App-level parts that know about a Frappe backend or Frappe Cloud |
@@ -242,7 +243,7 @@ component group, with its main names.
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
 | Create right (`useCreateRight`) | Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again |
-| New record values (`NEW_NAME`, `fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | *New.* What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
+| New record values (`fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | *New.* What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
@@ -270,7 +271,7 @@ component group, with its main names.
 | Composer drafts | Unsent comments and emails, per record and writer |
 | Composer registration | A record page registers its record, its dock and its writers, so the composer can outlive the page |
 | `ComposerWindow` | The composer card, docked or floating |
-| Create (`openCreate`, `CreateRequest`, `createRequests`, `registerCreateDialog`, `closeCreates`) | The one way to open Create for a doctype. The shell keeps the open requests above any page and closes them on a route change. The page layer registers the dialog that draws them |
+| Create (`openCreate`, `CreateRequest`, `createRequests`, `registerCreateDialog`, `closeCreates`) | *Changed.* The one way to open Create for a doctype. The shell keeps the open requests above any page and closes them on a route change. The page layer registers the dialog that draws them. `main.ts` hands it to every Link field through `CreateRecordKey`, and a field's Create opens above the dialog it sits in |
 | Socket (`createSocket`, `repairRooms`) | Opens the realtime socket and hands it to `ui/` |
 | Item lookup (`rendererFor`, `renderingOf`, `labelOf`, `iconOf`, `itemContext`) | Draws an item through its kind's renderer |
 | Current item (`navigationDestinations`, `currentFrom`) | Which rail item and sidebar the current address belongs to |

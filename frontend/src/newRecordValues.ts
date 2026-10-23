@@ -6,10 +6,9 @@ import { NO_VALUE } from "@framework/ui/components/FormLayout/newRowValues";
 import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { isNamedByPrompt, NEW_NAME } from "@framework/ui/utils/naming";
 import type { LocationQuery } from "vue-router";
 import { __ } from "@/i18n";
-
-export const NEW_NAME = "__newname";
 
 const GET_NEW_DOC = "frappe.desk.form.load.get_new_doc";
 
@@ -42,10 +41,6 @@ export function withNameField(
 	const section = { ...named[0].sections[0], name: NEW_NAME };
 	const [first, ...rest] = layout;
 	return [{ ...first, sections: [section, ...first.sections] }, ...rest];
-}
-
-function isNamedByPrompt(meta: DoctypeMeta | null): meta is DoctypeMeta {
-	return meta?.autoname?.toLowerCase() === "prompt";
 }
 
 /** The query's values for the doctype's own fields and its prompt name, typed; a table's is JSON. */

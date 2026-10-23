@@ -15,7 +15,7 @@ export interface LinkProps extends InputLabelingProps {
 export interface LinkSlots {
   /** Content rendered in the input's suffix region. Scoped. */
   suffix?: (props: Record<string, unknown>) => any;
-  /** Custom render for the "Create New" option; receives the typed query. */
+  /** Custom render for the "Create New" option, always the last row; receives the typed query. */
   "item-create"?: (props: { query: string }) => any;
 }
 
@@ -26,7 +26,9 @@ export type LinkEmits = {
 };
 
 export interface LinkExposed {
-  reload: () => void;
+  /** Searches again with no text; `fresh` skips the browser's cached answer. */
+  reload: (options?: { fresh?: boolean }) => void;
+  focus: () => void;
 }
 
 export type LinkOption = {

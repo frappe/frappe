@@ -31,11 +31,11 @@ describe("useLinkSearch", () => {
     const search = useLinkSearch("ToDo", { status: "Open" }, 5);
     expect(search.data.value).toBeNull();
     await search.search("o");
-    expect(api.searchDocuments).toHaveBeenCalledWith("ToDo", {
-      txt: "o",
-      filters: { status: "Open" },
-      limit: 5,
-    });
+    expect(api.searchDocuments).toHaveBeenCalledWith(
+      "ToDo",
+      { txt: "o", filters: { status: "Open" }, limit: 5 },
+      {}
+    );
     expect(search.data.value).toEqual([
       { value: "T-1", label: "One", description: "first" },
       { value: "T-2", label: "T-2", description: undefined },
@@ -51,6 +51,17 @@ describe("useLinkSearch", () => {
     await search.search("");
     expect(search.data.value).toEqual([
       { value: "62e34b24e4", label: "tabPartner", description: "frappe.io" },
+    ]);
+  });
+
+  it("skips the browser's cached answer when asked for a fresh one", async () => {
+    api.searchDocuments.mockResolvedValue({ data: [] });
+    const search = useLinkSearch("ToDo");
+    await search.search("a", { fresh: true });
+    await search.search("a");
+    expect(api.searchDocuments.mock.calls.map((call) => call[2])).toEqual([
+      { cache: "reload" },
+      {},
     ]);
   });
 
@@ -77,7 +88,11 @@ describe("useLinkSearch", () => {
     expect(api.searchDocuments).not.toHaveBeenCalled();
     doctype.value = "Contact";
     await search.search("x");
-    expect(api.searchDocuments).toHaveBeenCalledWith("Contact", expect.objectContaining({ txt: "x" }));
+    expect(api.searchDocuments).toHaveBeenCalledWith(
+      "Contact",
+      expect.objectContaining({ txt: "x" }),
+      {}
+    );
   });
 
   it("keeps the failure and the last good answer", async () => {
