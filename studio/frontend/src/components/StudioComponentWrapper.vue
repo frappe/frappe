@@ -25,10 +25,10 @@ const componentContext = computed(() => {
 			if (!(input.input_name in context) && input.default !== undefined) {
 				context[input.input_name] = input.default
 			}
+		})
 
-			Object.entries(context).forEach(([inputName, value]) => {
-				context[inputName] = pageScope.evaluateDynamicValues(value, props.evaluationContext)
-			})
+		Object.entries(context).forEach(([inputName, value]) => {
+			context[inputName] = pageScope.evaluateDynamicValues(value, props.evaluationContext)
 		})
 	}
 	return { inputs: context }
