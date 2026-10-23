@@ -1978,7 +1978,7 @@ def get_url(
 	full_address: bool = False,
 	allow_header_override: bool = True,
 	*,
-	force_include_port: bool = False,
+	for_dev_server: bool = False,
 ) -> str:
 	"""Get app url from request."""
 	host_name = frappe.local.conf.host_name or frappe.local.conf.hostname
@@ -2022,13 +2022,13 @@ def get_url(
 		uri = frappe.get_request_header("REQUEST_URI", "")
 
 	port = frappe.conf.http_port
-	if force_include_port or (not port and frappe.conf.developer_mode):
+	if for_dev_server or (not port and frappe.conf.developer_mode):
 		port = frappe.conf.webserver_port
 
 	if (
 		# XXX: This config is used as proxy for "is production mode enabled?"
 		(
-			force_include_port
+			for_dev_server
 			or (not frappe.conf.restart_supervisor_on_update and not frappe.conf.restart_systemd_on_update)
 		)
 		and host_name

@@ -1388,7 +1388,7 @@ def browse(
 		click.echo(sid)
 		return
 
-	url = frappe.utils.get_url(login_path, allow_header_override=False, force_include_port=dev)
+	url = frappe.utils.get_url(login_path, allow_header_override=False, for_dev_server=dev)
 
 	click.echo(f"URL: {url}")
 
