@@ -242,6 +242,7 @@ component group, with its main names.
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
 | Create right (`useCreateRight`) | Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again |
+| New record values (`NEW_NAME`, `fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | *New.* What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
@@ -337,7 +338,7 @@ component group, with its main names.
 | `List`, `DoctypeList` | The standard list page, built on `useListPage` |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
-| New record page (`NewRecord`, `UnsavedRecord`) | *New.* The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
+| New record page (`NewRecord`, `UnsavedRecord`, `NotSavedBadge`, `openingKey`) | *New.* The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
 | `TileGridSkeleton` | The loading skeleton for Home and Module |
 | App pages | Pages an app contributes or uses as a replacement. They may import only the [import list](#9-customization) |
 
@@ -346,6 +347,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | Record page host (`Record.vue`) | Fills `RecordPageHost`: loads, saves, and wires layouts, feeds, tabs and the composer. `UnsavedRecord` is the second host, for a record before its first save |
+| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | *New.* The form's classes, the header row's projection, the "Discard unsaved changes?" question, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload, and the commit channel |
 | Visit (`Visit`) | One object per visit to a record. Ending it aborts its reads, and a reply that belongs to an old visit is dropped |
 | Return-visit parts | *New.* Which record parts a return visit needs before it paints from memory |
 | Record source | The load, the parts re-read, the save, and a cached read |

@@ -1,5 +1,5 @@
-// The pure parts of Create: the prompt-name field, the defaults, the insert body, the values
-// Edit full form carries and the ones the full page reads back from its query.
+// The values a new record starts with and sends: the prompt-name field, the defaults, the
+// query the full page reads, the values Edit full form carries, and the insert body.
 import { describe, expect, it } from "vitest";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
@@ -12,7 +12,7 @@ import {
 	queryValues,
 	typedValues,
 	withNameField,
-} from "../createForm";
+} from "@/newRecordValues";
 
 const LAYOUT = layoutFromFields([
 	{ fieldname: "title", fieldtype: "Data", label: "Title" },
@@ -158,6 +158,12 @@ describe("queryValues", () => {
 		};
 
 		expect(queryValues(query, meta)).toEqual({ customer: "Acme", is_return: 1, qty: 3, grand_total: 12.5, items: rows });
+	});
+
+	it("drops a number that is empty or not a number, and a field that holds no value", () => {
+		const withBreak = { ...meta, fields: [...meta.fields, { fieldname: "details", fieldtype: "Section Break" }] } as DoctypeMeta;
+
+		expect(queryValues({ qty: "", grand_total: "abc", details: "x" }, withBreak)).toEqual({});
 	});
 
 	it("drops a table whose value is not a JSON list, and takes the first of a repeated key", () => {

@@ -101,6 +101,7 @@ const server = {
   layoutTypes: [] as string[],
   newDocReads: 0,
   insertFails: false,
+  defaultsHeld: null as Promise<void> | null,
 };
 
 async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> {
@@ -114,6 +115,7 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
   }
   if (path === `/api/v2/method/${GET_NEW_DOC}`) {
     server.newDocReads++;
+    await server.defaultsHeld;
     return [{ data: { doctype: "Note", name: "new-note-1", __islocal: 1, status: "Open" } }, 200];
   }
   if (init?.method === "POST" && path === "/api/v2/document/Note") {
@@ -164,6 +166,7 @@ beforeEach(() => {
   server.layoutTypes = [];
   server.newDocReads = 0;
   server.insertFails = false;
+  server.defaultsHeld = null;
   shown.confirms = [];
   shown.errors = [];
   shown.events = [];
@@ -337,6 +340,21 @@ describe("saving the new record", () => {
     expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
   });
 
+  it("inserts once when the move to the saved record is refused, and a second save only moves", async () => {
+    const { root, router } = await mount("/note/new?title=Hello");
+    let refuse = true;
+    router.beforeEach((to) => !(refuse && to.name === "record"));
+
+    await save(root);
+    expect(router.currentRoute.value.fullPath).toBe("/note/new?title=Hello");
+
+    refuse = false;
+    await save(root);
+
+    expect(server.inserts).toHaveLength(1);
+    expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
+  });
+
   it("keeps the page, the values and the server message as text when the insert fails", async () => {
     server.insertFails = true;
     const { root, router } = await mount("/note/new");
@@ -348,6 +366,20 @@ describe("saving the new record", () => {
     expect(input(root, "title")!.value).toBe("Taken");
     expect(shown.errors).toEqual(["Title is taken"]);
     expect(header(root)).toContain("Not Saved");
+  });
+});
+
+describe("an opening that ends early", () => {
+  it("runs no script for a page left before its defaults arrived", async () => {
+    let release!: () => void;
+    server.defaultsHeld = new Promise((resolve) => (release = resolve));
+    const { router } = await mount("/note/new");
+
+    await router.push("/note");
+    release();
+    await settle();
+
+    expect(shown.events).toEqual([]);
   });
 });
 

@@ -1026,6 +1026,7 @@ class TestModularAddresses(IntegrationTestCase):
 		self.assertEqual(canonical_path("User", "Test User"), "/apps/desk/user/Test%20User")
 		# `#`, `?` and `/` would end or split the segment, so they quote too.
 		self.assertEqual(canonical_path("ToDo", "A#1?b/c"), "/apps/desk/todo/A%231%3Fb%2Fc")
+		self.assertEqual(canonical_path("ToDo", "new"), "/apps/desk/todo/new/record")
 
 		with hooks_declaring("app_modular", {"frappe": True}):
 			# Three segments, and the middle one is `User`'s own module, `Core`.

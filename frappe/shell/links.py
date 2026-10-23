@@ -32,5 +32,8 @@ def canonical_path(doctype: str, name: str | None = None) -> str:
 	if name:
 		# `quoted` keeps `#`, `?` and `/`, which would end or split the segment of a name holding them
 		segments.append(quote(cstr(name), safe="~@$&()*!+=:;,.'"))
+		# `/<doctype>/new` opens a new record, so a record named "new" has only its standard address.
+		if cstr(name) == "new":
+			segments.append("record")
 
 	return "/" + "/".join(segments)

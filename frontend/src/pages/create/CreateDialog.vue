@@ -54,8 +54,14 @@ import { errorMessage } from "@/recordPage/errorMessage";
 import { formData, initialDoc, missingRequired } from "@/recordPage/formDialogLayout";
 import { routeForNew } from "@/router/routeFor";
 import type { CreateRequest } from "@/shell/create";
-import { fieldDefaults, fillEmpty, insertBody, typedValues, withNameField } from "./createForm";
-import { fetchNewDocument } from "./newDocument";
+import {
+	fetchNewDocument,
+	fieldDefaults,
+	fillEmpty,
+	insertBody,
+	typedValues,
+	withNameField,
+} from "@/newRecordValues";
 
 // The dialog's fields commit to nothing, or they would fire a record page's handlers.
 provide(CommitKey, NO_COMMIT);

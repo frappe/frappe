@@ -62,7 +62,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, onUnmounted, provide, ref, shallowRef } from "vue";
+import { computed, inject, onUnmounted, ref, shallowRef } from "vue";
 import {
 	onBeforeRouteLeave,
 	onBeforeRouteUpdate,
@@ -72,7 +72,6 @@ import {
 import { toast } from "frappe-ui";
 import { createDocument, isApiError } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
-import { CommitKey } from "@framework/ui/components/Fields/types";
 import {
 	createRecordPage,
 	errorMessage,
@@ -91,8 +90,13 @@ import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
-import { fieldDefaults, insertBody, queryValues, withNameField } from "../create/createForm";
-import { fetchNewDocument } from "../create/newDocument";
+import {
+	fetchNewDocument,
+	fieldDefaults,
+	insertBody,
+	queryValues,
+	withNameField,
+} from "@/newRecordValues";
 import BodyColumns from "./body/BodyColumns.vue";
 import PageDialogs from "./dialogs/PageDialogs.vue";
 import FrameBands from "./FrameBands.vue";
@@ -102,8 +106,12 @@ import FormSkeleton from "./skeletons/FormSkeleton.vue";
 import HeaderSkeleton from "./skeletons/HeaderSkeleton.vue";
 import { discardChanges } from "./discardChanges";
 import { FORM_CLASSES } from "./formClasses";
+import { openingKey } from "./openingKey";
+import { Visit } from "./visit";
 import { fetchMeta } from "./metaSource";
+import { provideRecordCommits } from "./recordCommits";
 import { projectRecordHeader } from "./recordHeaderProjection";
+import { runSave, useSaveKeys } from "./recordSave";
 import { shownInDialog, stripTags } from "./saveResponse";
 
 const props = defineProps<{ doctype: string; query: LocationQuery }>();
@@ -130,6 +138,7 @@ const formTab = ref("");
 const activeFormTab = ref("");
 const formSections = ref<Record<string, boolean>>({});
 let insertedName: string | null = null;
+let visit = new Visit();
 
 const title = computed(() => __("New {0}", [__(props.doctype)]));
 const dirty = computed(() => opened.value !== null && JSON.stringify(doc.value) !== opened.value);
@@ -165,16 +174,14 @@ const form = computed(() => {
 	return page ? joinForm(detailsForm.value, page.form.resolve(), page.page) : detailsForm.value;
 });
 
-provide(CommitKey, {
-	pending: (fieldname, value, row) => controller.value?.commits.pending(fieldname, value, row),
-	commit: (fieldname, value, row) => controller.value?.commits.commit(fieldname, value, row),
-	rowChanged: (row, change) => controller.value?.commits.rowChanged(row, change),
-});
+provideRecordCommits(() => controller.value);
 
 void open();
 
-/** Meta, defaults, layout and scripts side by side, then the first paint. */
+/** Meta, defaults, layout and scripts side by side, then the first paint; a newer opening cuts it short at any wait. */
 async function open() {
+	visit = visit.next();
+	const opening = visit;
 	controller.value?.leave();
 	controller.value = null;
 	opened.value = null;
@@ -185,24 +192,29 @@ async function open() {
 	newDocument.catch(() => {});
 	try {
 		meta.value = await fetchMeta(props.doctype);
+		if (!opening.current()) return;
 		if (!canCreate.value) {
 			error.value = __("You do not have permission to create {0}.", [__(props.doctype)]);
 			return;
 		}
+		const newDoc = await newDocument;
+		if (!opening.current()) return;
 		const values = {
-			...fieldDefaults(await newDocument, meta.value),
+			...fieldDefaults(newDoc, meta.value),
 			...queryValues(props.query, meta.value),
 		};
 		openingValues.value = values;
 		doc.value = JSON.parse(JSON.stringify(values));
 	} catch (exception) {
-		error.value = errorMessage(exception);
+		if (opening.current()) error.value = errorMessage(exception);
 		return;
 	}
 
 	const created = buildController();
 	await layout.settled();
+	if (!opening.current()) return;
 	await created.refresh();
+	if (!opening.current()) return;
 	opened.value = JSON.stringify(doc.value);
 	actionsVersion.value++;
 }
@@ -255,8 +267,9 @@ function headerBuiltins(): HeaderItem[] {
 	];
 }
 
-/** Sends a prompt name as `__newname`, never `name`; the page then shows the saved record. */
+/** Sends a prompt name as `__newname`, never `name`; a save after the insert only opens the saved record. */
 async function insert() {
+	if (insertedName) return;
 	try {
 		const { data } = await createDocument(props.doctype, insertBody({}, doc.value));
 		insertedName = data.name;
@@ -269,14 +282,6 @@ async function insert() {
 
 async function openSaved() {
 	if (insertedName) await router.replace(routeFor(props.doctype, insertedName));
-}
-
-async function runSave() {
-	try {
-		await controller.value?.page.save();
-	} catch (exception) {
-		if (!shownInDialog(exception)) toast.error(errorMessage(exception));
-	}
 }
 
 async function runAction(action: HeaderItem) {
@@ -294,25 +299,17 @@ async function confirmLeave() {
 }
 
 onBeforeRouteLeave(confirmLeave);
-onBeforeRouteUpdate(confirmLeave);
+onBeforeRouteUpdate((to, from) => openingKey(to) === openingKey(from) || confirmLeave());
 
-function onBeforeUnload(event: BeforeUnloadEvent) {
-	if (dirty.value && !insertedName) event.preventDefault();
-}
-
-function onKeydown(event: KeyboardEvent) {
-	if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
-	event.preventDefault();
-	if (controller.value && !event.repeat) runSave();
-}
-
-onMounted(() => {
-	window.addEventListener("keydown", onKeydown);
-	window.addEventListener("beforeunload", onBeforeUnload);
+useSaveKeys({
+	save: () => {
+		if (controller.value) runSave(controller.value.page);
+	},
+	unsaved: () => dirty.value && !insertedName,
 });
+
 onUnmounted(() => {
+	visit.end();
 	controller.value?.leave();
-	window.removeEventListener("keydown", onKeydown);
-	window.removeEventListener("beforeunload", onBeforeUnload);
 });
 </script>

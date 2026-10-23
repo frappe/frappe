@@ -56,9 +56,10 @@ export function routeFor(
 	const params = doctypeParams(doctype);
 
 	if (!name && addresses.isSingle(doctype)) name = doctype;
+	// `/<doctype>/new` opens a new record, so a record named "new" has only its standard address.
 	if (name)
 		return {
-			name: standardOr(doctype, "record", options),
+			name: name === "new" ? "standard-record" : standardOr(doctype, "record", options),
 			params: { ...params, name },
 			query: options.query,
 		};
@@ -99,12 +100,11 @@ function standardOr(doctype: string, key: "record" | "list", options: RouteOptio
 	return options.standard && replacementFor(doctype, key) ? `standard-${key}` : key;
 }
 
-/** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. A single opens its one record. */
+/** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. */
 export function routeForNew(
 	doctype: string,
 	values: Record<string, unknown> = {}
 ): RouteLocationRaw {
-	if (current().addresses.isSingle(doctype)) return routeFor(doctype);
 	const query: Record<string, string> = {};
 	for (const [fieldname, value] of Object.entries(values)) {
 		if (value == null || value === "") continue;

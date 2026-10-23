@@ -1,5 +1,6 @@
-// The pure parts of Create: the prompt-name field, the defaults it seeds, the insert body,
-// the values "Edit full form" carries and the ones the full page reads back from its query.
+// The values a new record starts with and sends: the server defaults, the prompt-name field, the
+// query the full page reads, the values "Edit full form" carries, and the insert body.
+import { runMethod } from "@framework/ui/api";
 import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
@@ -9,9 +10,22 @@ import { __ } from "@/i18n";
 
 export const NEW_NAME = "__newname";
 
+const GET_NEW_DOC = "frappe.desk.form.load.get_new_doc";
+
 type Values = Record<string, any>;
 
 const TABLES = new Set(["Table", "Table MultiSelect"]);
+const NO_VALUE = new Set([
+	"Section Break",
+	"Column Break",
+	"Tab Break",
+	"Heading",
+	"HTML",
+	"Fold",
+	"Button",
+	"Image",
+	"Attachment Gallery",
+]);
 const INTEGERS = new Set(["Int", "Long Int", "Check"]);
 const DECIMALS = new Set(["Float", "Currency", "Percent", "Rating", "Duration"]);
 
@@ -58,9 +72,10 @@ export function queryValues(query: LocationQuery, meta: DoctypeMeta): Values {
 	return values;
 }
 
+/** Undefined for a value the field cannot hold, so the server default stays. */
 function typed(text: string, fieldtype: string): unknown {
-	if (INTEGERS.has(fieldtype)) return Math.trunc(Number(text)) || 0;
-	if (DECIMALS.has(fieldtype)) return Number(text) || 0;
+	if (NO_VALUE.has(fieldtype)) return undefined;
+	if (INTEGERS.has(fieldtype) || DECIMALS.has(fieldtype)) return number(text, fieldtype);
 	if (!TABLES.has(fieldtype)) return text;
 	try {
 		const rows = JSON.parse(text);
@@ -68,6 +83,18 @@ function typed(text: string, fieldtype: string): unknown {
 	} catch {
 		return undefined;
 	}
+}
+
+function number(text: string, fieldtype: string): number | undefined {
+	const value = Number(text);
+	if (text.trim() === "" || !Number.isFinite(value)) return undefined;
+	return INTEGERS.has(fieldtype) ? Math.trunc(value) : value;
+}
+
+/** The server's new document for this user and today. */
+export async function fetchNewDocument(doctype: string): Promise<Values> {
+	const { data } = await runMethod<Values>(GET_NEW_DOC, { doctype }, { http: "GET" });
+	return data;
 }
 
 /** The server's new document, cut to the doctype's own fields. */

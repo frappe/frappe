@@ -115,17 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	computed,
-	inject,
-	nextTick,
-	onMounted,
-	onUnmounted,
-	provide,
-	ref,
-	shallowRef,
-	watch,
-} from "vue";
+import { computed, inject, nextTick, onUnmounted, provide, ref, shallowRef, watch } from "vue";
 import {
 	onBeforeRouteLeave,
 	onBeforeRouteUpdate,
@@ -145,7 +135,7 @@ import {
 } from "@framework/ui/api";
 import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/components/FormLayout";
-import { CodeErrorsKey, CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
+import { CodeErrorsKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
@@ -182,6 +172,8 @@ import { FILES_TAB, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { FORM_CLASSES } from "./record/formClasses";
 import { projectRecordHeader } from "./record/recordHeaderProjection";
 import { discardChanges } from "./record/discardChanges";
+import { runSave, useSaveKeys } from "./record/recordSave";
+import { provideRecordCommits } from "./record/recordCommits";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
@@ -372,12 +364,7 @@ useLiveClientScripts({
 provide(LinkTitlesKey, linkTitles);
 provide(CodeErrorsKey, codeErrors);
 
-// One channel for the form and the panel, forwarded so it follows the controller across loads.
-provide(CommitKey, {
-	pending: (fieldname, value, row) => controller.value?.commits.pending(fieldname, value, row),
-	commit: (fieldname, value, row) => controller.value?.commits.commit(fieldname, value, row),
-	rowChanged: (row, change) => controller.value?.commits.rowChanged(row, change),
-});
+provideRecordCommits(() => controller.value);
 
 // The row's built-ins, re-read on every resolve so the title crumb tracks the draft.
 function headerBuiltins(): HeaderItem[] {
@@ -872,15 +859,6 @@ async function resolveConflict() {
 	if (reload) await load();
 }
 
-// Not through `runAction`: a failed save must keep the draft on screen, not reload over it.
-async function runSave() {
-	try {
-		await controller.value?.page.save();
-	} catch (e) {
-		if (!shownInDialog(e)) toast.error(errorMessage(e));
-	}
-}
-
 // A failing action would otherwise leave the draft mutated with no error, so it reloads;
 // a save the reader vetoed or must resolve keeps the draft, as the built-in Save does.
 async function runAction(action: QuickAction | HeaderItem) {
@@ -949,32 +927,22 @@ onBeforeRouteUpdate((to, from) => {
 	return confirmLeave();
 });
 
-function onBeforeUnload(event: BeforeUnloadEvent) {
-	if (!dirty.value) return;
-	event.preventDefault();
-}
-
-// A key press is a deliberate gesture, so a clean doc answers with the button's own tooltip text.
-function onKeydown(event: KeyboardEvent) {
-	if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
-	event.preventDefault();
-	if (!controller.value || event.repeat) return;
-	if (!dirty.value) toast.info("No changes to save");
-	runSave();
-}
-
-onMounted(() => {
-	window.addEventListener("keydown", onKeydown);
-	window.addEventListener("beforeunload", onBeforeUnload);
+useSaveKeys({
+	// A key press is a deliberate gesture, so a clean doc answers with the button's own tooltip text.
+	save: () => {
+		if (!controller.value) return;
+		if (!dirty.value) toast.info("No changes to save");
+		runSave(controller.value.page);
+	},
+	unsaved: () => dirty.value,
 });
+
 onUnmounted(() => {
 	currentVisit.end();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();
 	releaseFresh();
-	window.removeEventListener("keydown", onKeydown);
-	window.removeEventListener("beforeunload", onBeforeUnload);
 });
 
 watch(

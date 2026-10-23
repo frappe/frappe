@@ -5,7 +5,7 @@ import type { RouteLocationRaw } from "vue-router";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { createShellRouter } from "@/router";
-import { registerShell, routeForNew } from "@/router/routeFor";
+import { registerShell, routeFor, routeForNew } from "@/router/routeFor";
 
 vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
@@ -50,20 +50,21 @@ describe("routeForNew", () => {
 		expect(router.resolve(routeForNew("Sales Invoice")).fullPath).toBe("/sales-invoice/new");
 	});
 
-	it("opens a single's one record, whatever values were given", () => {
+	it("sends a single to its one record through the router", async () => {
 		const router = shell(false);
 
-		const route = routeForNew("Selling Settings", { customer_group: "All" });
+		await router.push(routeForNew("Selling Settings", { customer_group: "All" }));
 
-		expect(router.resolve(route).fullPath).toBe("/selling-settings/Selling%20Settings");
+		expect(router.currentRoute.value.fullPath).toBe("/selling-settings/Selling%20Settings?customer_group=All");
 	});
 
-	it("leaves a saved record named new at its standard address", () => {
+	it("leaves a saved record named new at its standard address, and routeFor links there", () => {
 		const router = shell(false);
 
 		expect(router.resolve("/sales-invoice/new").name).toBe("new-record");
 		expect(router.resolve("/sales-invoice/new/record").name).toBe("standard-record");
 		expect(router.resolve("/sales-invoice/new/record").params.name).toBe("new");
+		expect(router.resolve(routeFor("Sales Invoice", "new")).fullPath).toBe("/sales-invoice/new/record");
 	});
 
 	it("sends an old flat new-record link under a modular prefix to the new-record route", async () => {
