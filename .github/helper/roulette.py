@@ -63,6 +63,11 @@ def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
 	return has_label(pr_number, "Run UI Tests", repo)
 
 
+def is_hotfix_pr(pr_number, repo="frappe/frappe"):
+	"""Check if the PR targets a hotfix branch, whose tests run on the weekly release PR instead."""
+	return fetch_pr_data(pr_number, repo)["base"]["ref"].endswith("-hotfix")
+
+
 def has_label(pr_number, label, repo="frappe/frappe"):
 	return any(
 		[
@@ -127,8 +132,12 @@ if __name__ == "__main__":
 	updated_py_file_count = len(list(filter(is_py, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
 
-	run_label = has_run_server_tests_label if build_type == "server" else has_run_ui_tests_label
-	if fetch_pr_data(pr_number, repo)["base"]["ref"].endswith("-hotfix") and not run_label(pr_number, repo):
+	if build_type == "server":
+		tests_requested = has_run_server_tests_label(pr_number, repo)
+	else:
+		tests_requested = has_run_ui_tests_label(pr_number, repo)
+
+	if is_hotfix_pr(pr_number, repo) and not tests_requested:
 		print("Hotfix branch: the full suites run on the release pull request, stopping build process.")
 		sys.exit(0)
 
