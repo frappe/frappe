@@ -13,10 +13,6 @@ on:
     types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
 
-env:
-  # A pull request with this label can merge while develop is failing.
-  FIX_LABEL: "fixes-develop"
-
 permissions:
   contents: read
   actions: write
@@ -52,9 +48,11 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
-      - name: Restart the suites when the full CI label is added
-        if: ${{ github.event.action == 'labeled' && github.event.label.name == 'run-full-ci' }}
+      - name: Restart the suites when a full CI label is added
+        if: ${{ github.event.action == 'labeled' }}
         run: |
+          labels=$(python -c "import sys; sys.path.insert(0, '.github/helper'); import roulette; print(roulette.FULL_CI_LABEL, roulette.FIX_DEVELOP_LABEL)")
+          case " $labels " in *" $LABEL "*) ;; *) exit 0 ;; esac
           for workflow in server-tests.yml ui-tests.yml; do
             run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
             [ -n "$run_id" ] || continue
@@ -64,6 +62,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABEL: ${{ github.event.label.name }}
       - run: python .github/helper/develop_status.py ${{ github.event.pull_request.number && format('pr {0}', github.event.pull_request.number) || 'refresh' }}
         env:
           GH_TOKEN: ${{ github.token }}

@@ -13,8 +13,9 @@ import subprocess
 import sys
 from datetime import UTC, datetime
 
+from roulette import FIX_DEVELOP_LABEL as FIX_LABEL
+
 REPO = os.environ["GITHUB_REPOSITORY"]
-FIX_LABEL = os.environ["FIX_LABEL"]
 CONTEXT = "Develop status"
 SUITES = {"server-tests.yml": "Server Success", "ui-tests.yml": "UI Success"}
 
