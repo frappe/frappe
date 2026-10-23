@@ -5,6 +5,63 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 		single_column: true,
 	});
 
+	function get_onboarding_checklist_items() {
+		const today = frappe.datetime.get_today();
+		const finish = (item, list) => list.update_item(item.id, { done: true });
+		const assign = (id, label, value) => ({
+			id,
+			label,
+			value,
+			due_date: frappe.datetime.add_days(today, 7),
+			locked: "Needs: Create Employee",
+			skippable: true,
+			actions: [{ label: __("Assign"), onclick: finish }],
+		});
+		const assignments = [
+			assign("holiday_list", "Assign Holiday List", "India 2026"),
+			assign("leave_policy", "Assign Leave Policy", "Standard"),
+			assign("salary_structure", "Assign Salary Structure", "Grade B"),
+			assign("shift_type", "Assign Shift Type"),
+		];
+		return [
+			{
+				id: "create_user",
+				label: "Create User",
+				done: true,
+				value: "jane@example.com",
+				assignee: frappe.session.user,
+				due_date: frappe.datetime.add_days(today, -3),
+				actions: [{ label: __("Open"), variant: "subtle" }],
+			},
+			{
+				id: "letter",
+				label: "Appointment Letter",
+				status: "in_progress",
+				description: "Create the letter, then email it to the new hire.",
+				assignee: frappe.session.user,
+				due_date: frappe.datetime.add_days(today, -1),
+				actions: [{ label: __("Send"), onclick: finish }],
+			},
+			{
+				id: "create_employee",
+				label: "Create Employee",
+				due_date: frappe.datetime.add_days(today, 2),
+				actions: [
+					{
+						label: __("Create"),
+						onclick: (item, list) => {
+							assignments.forEach((row) =>
+								list.update_item(row.id, { locked: null })
+							);
+							finish(item, list);
+						},
+					},
+				],
+			},
+			...assignments,
+		];
+	}
+
 	// sample people for the Avatar Group examples
 	const PEOPLE = [
 		{ label: "John Doe", image: "https://avatars.githubusercontent.com/u/499550?s=60&v=4" },
@@ -616,6 +673,238 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							content: "Hangs off the top edge, right ends lined up.",
 						},
 					],
+				},
+			],
+		},
+		Combobox: {
+			helper: "frappe.ui.combobox",
+			groups: [
+				{
+					title: __("Typed into (the default)"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  placeholder: "Pick a status",\n  options: [\n    { value: "open", label: "Open", icon: "circle" },\n    { value: "in_progress", label: "In Progress", icon: "circle-dot-dashed" },\n    { value: "done", label: "Done", icon: "circle-check", description: "Finished and checked" },\n  ],\n  on_change: (value) => save_status(value),\n})',
+							placeholder: "Pick a status",
+							options: [
+								{ value: "open", label: "Open", icon: "circle" },
+								{
+									value: "in_progress",
+									label: "In Progress",
+									icon: "circle-dot-dashed",
+								},
+								{ value: "stuck", label: "Stuck", icon: "circle-alert" },
+								{
+									value: "done",
+									label: "Done",
+									icon: "circle-check",
+									description: "Finished and checked",
+								},
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("A button trigger with avatars and an action row"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  trigger: "button",\n  placeholder: "Assign",\n  item_prefix: (option) => frappe.ui.avatar({ label: option.label, size: "sm" })[0],\n  options: [\n    { value: "jane@example.com", label: "Jane Doe", description: "jane@example.com" },\n    { type: "custom", label: "Invite new member", icon: "user-plus", onclick: ({ query }) => invite(query) },\n  ],\n})',
+							trigger: "button",
+							placeholder: "Assign",
+							item_prefix: (option) =>
+								frappe.ui.avatar({
+									label: option.label,
+									size: "sm",
+									theme: "auto",
+								})[0],
+							options: [
+								{
+									value: "jane@example.com",
+									label: "Jane Doe",
+									description: "jane@example.com",
+								},
+								{
+									value: "sam@example.com",
+									label: "Sam Smith",
+									description: "sam@example.com",
+								},
+								{
+									value: "kim@example.com",
+									label: "Kim Lee",
+									description: "kim@example.com",
+								},
+								{
+									type: "custom",
+									label: "Invite new member",
+									icon: "user-plus",
+									onclick: ({ query }) =>
+										frappe.ui.toast({
+											message: __("Invite {0}", [query || "..."]),
+										}),
+								},
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("A server search (options is a function)"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  trigger: "button",\n  placeholder: "Search users",\n  options: (txt) => frappe.db.get_link_options("User", txt, { user_type: "System User", enabled: 1 })\n    .then((users) => users.map((u) => ({ value: u.value, label: u.description || u.value, description: u.value }))),\n})',
+							trigger: "button",
+							placeholder: "Search users",
+							options: (txt) =>
+								frappe.db
+									.get_link_options("User", txt, {
+										user_type: "System User",
+										enabled: 1,
+									})
+									.then((users) =>
+										users.map((user) => ({
+											value: user.value,
+											label: user.description || user.value,
+											description: user.description ? user.value : "",
+										}))
+									),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Groups and a disabled option"),
+					items: [
+						{
+							__code: 'frappe.ui.combobox({\n  options: [\n    { group: "Fruit", options: ["Apple", "Banana", { value: "Cherry", disabled: true }] },\n    { group: "Vegetables", options: ["Carrot", "Potato"] },\n  ],\n})',
+							options: [
+								{
+									group: "Fruit",
+									options: [
+										"Apple",
+										"Banana",
+										{ value: "Cherry", disabled: true },
+									],
+								},
+								{ group: "Vegetables", options: ["Carrot", "Potato", "Spinach"] },
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Sizes and variants"),
+					items: ["xs", "sm", "md", "lg"].map((size, i) => ({
+						__code: `frappe.ui.combobox({ size: "${size}", variant: "${
+							["subtle", "outline", "ghost", "subtle"][i]
+						}", options })`,
+						size,
+						variant: ["subtle", "outline", "ghost", "subtle"][i],
+						placeholder: size,
+						options: ["Low", "Medium", "High"],
+					})),
+				},
+			],
+		},
+		DatePicker: {
+			helper: "frappe.ui.date_picker",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							__code: 'frappe.ui.date_picker({ value: "2026-10-22", on_change: (date) => save(date) })',
+							value: frappe.datetime.get_today(),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Limits and blocked days (no weekends, next 60 days)"),
+					items: [
+						{
+							__code: "frappe.ui.date_picker({\n  min: frappe.datetime.get_today(),\n  max: frappe.datetime.add_days(frappe.datetime.get_today(), 60),\n  is_date_unavailable: (date) => [0, 6].includes(moment(date).day()),\n})",
+							min: frappe.datetime.get_today(),
+							max: frappe.datetime.add_days(frappe.datetime.get_today(), 60),
+							is_date_unavailable: (date) => [0, 6].includes(moment(date).day()),
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("Shortcuts beside the calendar"),
+					items: [
+						{
+							__code: 'frappe.ui.date_picker({\n  actions: [\n    { label: "Tomorrow", onclick: (picker) => picker.set_date(frappe.datetime.add_days(frappe.datetime.get_today(), 1)) },\n    { label: "Clear", onclick: (picker) => picker.clear() },\n  ],\n})',
+							actions: [
+								{
+									label: __("Tomorrow"),
+									onclick: (picker) =>
+										picker.set_date(
+											frappe.datetime.add_days(
+												frappe.datetime.get_today(),
+												1
+											)
+										),
+								},
+								{
+									label: __("Next week"),
+									onclick: (picker) =>
+										picker.set_date(
+											frappe.datetime.add_days(
+												frappe.datetime.get_today(),
+												7
+											)
+										),
+								},
+								{ label: __("Clear"), onclick: (picker) => picker.clear() },
+							],
+							on_change: (value) =>
+								frappe.ui.toast({ message: value || __("Cleared") }),
+						},
+					],
+				},
+				{
+					title: __("A trigger of your own"),
+					items: [
+						{
+							__code: 'const button = frappe.ui.button({ label: "Add due date", icon: "calendar" });\nfrappe.ui.date_picker({ trigger: button, on_change: (date) => button.find(".es-button__label").text(date) })',
+							__make: () => {
+								const $button = frappe.ui.button({
+									label: __("Add due date"),
+									icon: "calendar",
+								});
+								new frappe.ui.DatePicker({
+									trigger: $button,
+									on_change: (date) =>
+										$button
+											.find(".es-button__label")
+											.text(
+												date
+													? frappe.datetime.str_to_user(date)
+													: __("Add due date")
+											),
+								});
+								return $button;
+							},
+						},
+					],
+				},
+				{
+					title: __("Sizes and variants"),
+					items: ["xs", "sm", "md", "lg"].map((size, i) => ({
+						__code: `frappe.ui.date_picker({ size: "${size}", variant: "${
+							["subtle", "outline", "ghost", "subtle"][i]
+						}" })`,
+						size,
+						variant: ["subtle", "outline", "ghost", "subtle"][i],
+					})),
 				},
 			],
 		},
@@ -1450,6 +1739,90 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 									.data("es-stepper")
 									?.prev_step();
 							},
+						},
+					],
+				},
+			],
+		},
+		Checklist: {
+			helper: "frappe.ui.checklist",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (open a row, then click its action to finish it)"),
+					items: [
+						{
+							__code: 'frappe.ui.checklist({\n  title: "Set up",\n  items: [\n    { id: "company", label: "Create company", done: true },\n    { id: "users", label: "Invite users", skippable: true, actions: [\n      { label: "Invite", onclick: (item, list) => list.update_item(item.id, { done: true }) },\n    ] },\n  ],\n})',
+							title: "Set up",
+							items: [
+								{ id: "company", label: "Create company", done: true },
+								{
+									id: "users",
+									label: "Invite users",
+									description:
+										"Send an invite to everyone who needs desk access.",
+									skippable: true,
+									actions: [
+										{
+											label: "Invite",
+											onclick: (item, list) =>
+												list.update_item(item.id, { done: true }),
+										},
+									],
+								},
+								{
+									id: "theme",
+									label: "Pick a theme",
+									optional: true,
+									actions: [
+										{
+											label: "Pick",
+											onclick: (item, list) =>
+												list.update_item(item.id, { done: true }),
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Owners, due dates and locked rows (employee onboarding)"),
+					items: [
+						{
+							__code: 'frappe.ui.checklist({\n  title: "Onboarding",\n  items: [\n    { id: "letter", label: "Appointment Letter", assignee: "hr@example.com", due_date: "2026-10-06", actions: [...] },\n    { id: "leave_policy", label: "Assign Leave Policy", value: "Standard", locked: "Needs: Create Employee", skippable: true, actions: [...] },\n  ],\n  on_assign: (item, user) => save_assignee(item.id, user),\n  on_due_date_change: (item, date) => save_due_date(item.id, date),\n  on_status_change: (item, status) => save_status(item.id, status),\n})',
+							on_assign: () => null,
+							on_due_date_change: () => null,
+							on_status_change: () => null,
+							title: "Onboarding",
+							items: get_onboarding_checklist_items(),
+						},
+					],
+				},
+				{
+					title: __("Adding and removing items"),
+					items: [
+						{
+							__code: 'frappe.ui.checklist({\n  title: "Onboarding",\n  items,\n  add_label: "Add activity",\n  on_add: (label, list) => list.set_items([...items, { id: label, label, removable: true }]),\n  on_remove: (item) => delete_activity(item.id),\n})',
+							title: "Onboarding",
+							add_label: "Add activity",
+							items: [{ id: "welcome", label: "Welcome lunch", removable: true }],
+							on_add: (label, list) =>
+								list.set_items([
+									...list.items.values(),
+									{ id: frappe.utils.get_random(6), label, removable: true },
+								]),
+							on_remove: () => null,
+						},
+					],
+				},
+				{
+					title: __("Read-only owners (no on_assign)"),
+					items: [
+						{
+							__code: "frappe.ui.checklist({ title, items })  // without on_assign and on_due_date_change, owners and dates are shown but not editable",
+							title: "Onboarding",
+							items: get_onboarding_checklist_items(),
 						},
 					],
 				},
@@ -2379,7 +2752,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					);
 					return;
 				}
-				$preview.append(make(opts));
+				$preview.append(opts.__make ? opts.__make() : make(opts));
 			});
 			$groups.append($group);
 		});
