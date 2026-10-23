@@ -501,6 +501,10 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			[{"key": "1_TOKEN", "value": "s3cr3t"}],
 			[{"key": "_TOKEN", "value": "s3cr3t"}],
 			[{"key": "class", "value": "s3cr3t"}],
+			[{"key": "format", "value": "s3cr3t"}],
+			[{"key": "f_code", "value": "s3cr3t"}],
+			[{"key": "co_code", "value": "s3cr3t"}],
+			[{"key": "TOKEN__roles__", "value": "s3cr3t"}],
 			[{"key": "TOKEN\n", "value": "s3cr3t"}],
 			[{"key": "TOKEN", "value": "a"}, {"key": "TOKEN", "value": "b"}],
 		]

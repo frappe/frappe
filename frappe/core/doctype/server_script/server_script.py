@@ -7,6 +7,8 @@ from functools import partial
 from itertools import chain
 from typing import TYPE_CHECKING
 
+from RestrictedPython.transformer import INSPECT_ATTRIBUTES
+
 import frappe
 from frappe import _
 from frappe.model.document import Document
@@ -14,6 +16,7 @@ from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import http_cache
 from frappe.utils.password import get_decrypted_password
 from frappe.utils.safe_exec import (
+	UNSAFE_ATTRIBUTES,
 	FrappeTransformer,
 	get_keys_for_autocomplete,
 	get_safe_globals,
@@ -128,6 +131,15 @@ class ServerScript(Document):
 					_(
 						"Row #{0}: Key {1} must start with a letter and contain only letters, digits and underscores"
 					).format(variable.idx, frappe.bold(variable.key)),
+					title=_("Invalid Key"),
+				)
+			if (
+				variable.key in UNSAFE_ATTRIBUTES
+				or variable.key in INSPECT_ATTRIBUTES
+				or variable.key.endswith("__roles__")
+			):
+				frappe.throw(
+					_("Row #{0}: Key {1} is a reserved name").format(variable.idx, frappe.bold(variable.key)),
 					title=_("Invalid Key"),
 				)
 			if variable.key in keys:
