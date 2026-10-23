@@ -83,13 +83,9 @@ class TestSettings(McpTestCase):
 		with self.settings(enable_mcp=1):
 			self.assertEqual(self.ping().status_code, 200)
 
-	def test_site_config_still_forces_endpoint_off(self):
-		from werkzeug.exceptions import NotFound
-
-		from frappe.mcp import handle
-
+	def test_enable_setting_controls_endpoint_even_with_legacy_site_config(self):
 		with self.settings(enable_mcp=1), patch.dict(frappe.conf, {"disable_mcp_server": True}):
-			self.assertRaises(NotFound, handle)
+			self.assertEqual(self.ping().status_code, 200)
 
 	def test_normal_user_cannot_change_settings(self):
 		doc = frappe.get_doc("System Settings")
