@@ -95,8 +95,9 @@ def start(force=False):
 		if not force and last:
 			if last["status"] != "completed" or last["head_sha"] == head:
 				continue
-			files = [f["filename"] for f in gh(f"repos/{REPO}/compare/{last['head_sha']}...{head}")["files"]]
-			if not needs_suite(workflow, None if len(files) >= 300 else files):
+			changes = gh(f"repos/{REPO}/compare/{last['head_sha']}...{head}")["files"]
+			files = [path for f in changes for path in (f["filename"], f.get("previous_filename")) if path]
+			if not needs_suite(workflow, None if len(changes) >= 300 else files):
 				print(f"{workflow}: no changes it can see since {last['head_sha'][:7]}")
 				continue
 		subprocess.run(["gh", "workflow", "run", workflow, "--repo", REPO, "--ref", "develop"], check=True)
