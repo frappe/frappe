@@ -223,6 +223,49 @@ describe("DoctypeList Create button", () => {
 		expect(router.currentRoute.value.path).toBe("/contact/CONT-0001");
 	});
 
+	it("names the saved record by its title in the toast, and opens it by name", async () => {
+		meta = { ...meta, title_field: "first_name" };
+		const root = await mount();
+		await clickCreate(root);
+
+		createRequests.value[0].settle({ name: "CONT-0001", first_name: "Ada <Lovelace>" });
+		await settle();
+
+		const [message, options] = toast.success.mock.calls[0];
+		expect(message).toBe("Contact Ada &lt;Lovelace&gt; created");
+		options.action.onClick();
+		await settle();
+		expect(router.currentRoute.value.path).toBe("/contact/CONT-0001");
+	});
+
+	it("shows an HTML title as shortened plain text", async () => {
+		meta = {
+			...meta,
+			title_field: "description",
+			fields: [{ fieldname: "description", fieldtype: "Text Editor", label: "Description" }],
+		};
+		const root = await mount();
+		await clickCreate(root);
+
+		const words = "Call the supplier about the late delivery of the second order";
+		createRequests.value[0].settle({ name: "ruoeqvnufb", description: `<p>${words}</p><p>today</p>` });
+		await settle();
+
+		const [message] = toast.success.mock.calls[0];
+		expect(message).toBe("Contact Call the supplier about the late delivery of the second ord… created");
+	});
+
+	it("names the saved record by its name when its title is empty", async () => {
+		meta = { ...meta, title_field: "first_name" };
+		const root = await mount();
+		await clickCreate(root);
+
+		createRequests.value[0].settle({ name: "CONT-0001", first_name: "" });
+		await settle();
+
+		expect(toast.success.mock.calls[0][0]).toBe("Contact CONT-0001 created");
+	});
+
 	it("opens one Create for a double click, and another once the first is answered", async () => {
 		const root = await mount();
 		await clickCreate(root);
