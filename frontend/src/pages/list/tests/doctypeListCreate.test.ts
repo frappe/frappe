@@ -16,10 +16,10 @@ function stub(name: string) {
 
 vi.mock("frappe-ui", async (original) => ({ ...(await original<typeof import("frappe-ui")>()), toast }));
 vi.mock("@/shell/PageFrame.vue", async () => {
-	const { defineComponent } = await import("vue");
+	const { defineComponent, h } = await import("vue");
 	return {
 		default: defineComponent({
-			setup: (_, { slots }) => () => [slots.header?.(), slots.default?.()],
+			setup: (_, { slots }) => () => [h("header", slots.header?.()), slots.default?.()],
 		}),
 		pageGutter: "",
 	};
@@ -165,9 +165,10 @@ async function clickCreate(root: HTMLElement) {
 }
 
 describe("DoctypeList Create button", () => {
-	it("shows for a person whose role may create the doctype", async () => {
+	it("shows for a person whose role may create the doctype, in the header row", async () => {
 		const root = await mount();
 		expect(createButton(root)).toBeTruthy();
+		expect(root.querySelector("header")!.contains(createButton(root)!)).toBe(true);
 	});
 
 	it("is hidden when no role of the person's may create", async () => {

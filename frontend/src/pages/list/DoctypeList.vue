@@ -1,11 +1,21 @@
 <!--
-  One doctype's list in the frame: the crumbs, the quick filter and the controls in one row
-  under them, then the table with its bulk bar and footer. The composable holds the state; this lays it out.
+  One doctype's list in the frame: the crumbs and Create, the quick filter and the controls in one
+  row under them, then the table with its bulk bar and footer. The composable holds the state; this lays it out.
 -->
 <template>
 	<PageFrame :scroll="false">
 		<template #header>
-			<Breadcrumbs class="-ml-0.5" :items="crumbs" />
+			<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
+				<Breadcrumbs class="-ml-0.5" :items="crumbs" />
+				<Button
+					v-if="canCreate"
+					variant="solid"
+					icon-left="lucide-plus"
+					:label="__('Create')"
+					:loading="creating"
+					@click="create"
+				/>
+			</div>
 		</template>
 
 		<p v-if="metaError" :class="pageGutter" class="py-5 text-sm text-ink-red-4">
@@ -41,14 +51,6 @@
 							<Button icon="lucide-ellipsis" label="More" />
 						</div>
 					</Dropdown>
-					<Button
-						v-if="canCreate"
-						variant="solid"
-						icon-left="lucide-plus"
-						:label="__('Create')"
-						:loading="creating"
-						@click="create"
-					/>
 				</div>
 			</div>
 
