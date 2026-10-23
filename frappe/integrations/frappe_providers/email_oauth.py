@@ -14,6 +14,7 @@ from oauthlib.oauth2 import WebApplicationClient
 import frappe
 from frappe import _
 from frappe.integrations.frappe_providers.cloud_settings import PilotClient, is_v2_site
+from frappe.utils.caching import redis_cache
 from frappe.utils.data import get_host_name_from_request
 from frappe.www.login import sanitize_redirect
 
@@ -46,13 +47,30 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 }
 
 
+@frappe.whitelist()
 def get_one_click_services() -> dict[str, str]:
-	"""Email Account services this site can add in one click, each with its provider's label; sent
-	in the host app's boot. Frappe Cloud may still have a provider turned off, and
-	initiate_mailbox_connect then returns None."""
-	if not is_v2_site():
+	"""Email Account services this site can add in one click now, each with its provider's label:
+	the providers Frappe Cloud has turned on that this site knows. Empty when Frappe Cloud can't be
+	reached, so adding a mailbox falls back to the normal form."""
+	if not is_v2_site() or not frappe.has_permission("Email Account", "create"):
 		return {}
-	return {config["service"]: config["label"] for config in ONE_CLICK_PROVIDERS.values()}
+	try:
+		active = get_active_providers()
+	except frappe.ValidationError:
+		frappe.clear_last_message()
+		frappe.log_error("Couldn't get the one-click email providers from Frappe Cloud")
+		return {}
+	return {
+		config["service"]: config["label"]
+		for provider, config in ONE_CLICK_PROVIDERS.items()
+		if provider in active
+	}
+
+
+@redis_cache(ttl=10 * 60)
+def get_active_providers() -> list[str]:
+	"""The providers Frappe Cloud has turned on; Central is asked at most every 10 minutes."""
+	return call_central_method("get_active_providers")
 
 
 @frappe.whitelist(methods=["POST"])
