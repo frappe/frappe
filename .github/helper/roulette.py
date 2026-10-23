@@ -210,6 +210,11 @@ if __name__ == "__main__":
 	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
 
+	run_label = has_run_server_tests_label if build_type == "server" else has_run_ui_tests_label
+	if fetch_pr_data(pr_number, repo)["base"]["ref"].endswith("-hotfix") and not run_label(pr_number, repo):
+		print("Hotfix branch: the full suites run on the release pull request, stopping build process.")
+		sys.exit(0)
+
 	# Check for Skip CI label and other conditions
 	if has_skip_ci_label(pr_number, repo):
 		if build_type == "ui" and has_run_ui_tests_label(pr_number, repo):
