@@ -180,3 +180,23 @@ class TestPdf(IntegrationTestCase):
 
 		# If image was actually retrieved then size will be  in few kbs, else bytes.
 		self.assertGreaterEqual(len(pdf), 10_000)
+
+	def test_print_format_margin_without_a_length_is_ignored(self):
+		from types import SimpleNamespace
+
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.pdf_generator.browser import Browser
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = Browser.__new__(Browser)
+		browser.is_print_designer = False
+		browser.print_format = None
+		browser.options = {"page-size": "A4"}
+		browser.soup = BeautifulSoup("<style>.print-format { margin-left: auto; }</style>", "html5lib")
+		browser.body_page = SimpleNamespace(options={})
+		browser.header_page = browser.footer_page = None
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["marginLeft"], 15 / 25.4, delta=0.01)
