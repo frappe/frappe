@@ -65,7 +65,10 @@ class TestSafeExec(IntegrationTestCase):
 		self.assertRaises(SyntaxError, safe_exec, "().__class__.__call__")
 
 	def test_env_outside_server_script(self):
-		with self.assertRaisesRegex(frappe.ValidationError, "only available in Server Scripts"):
+		with (
+			self.set_user("test@example.com"),
+			self.assertRaisesRegex(frappe.ValidationError, "only available in Server Scripts"),
+		):
 			safe_exec("x = frappe.env.API_TOKEN")
 
 	def test_utils(self):

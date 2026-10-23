@@ -442,13 +442,14 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			script=f'frappe.flags = frappe.get_doc("Server Script", "{script.name}").variables[0].get_password("value")',
 		).insert()
 
-		self.assertRaises(frappe.PermissionError, other_script.execute_method)
-		self.assertRaises(
-			frappe.PermissionError,
-			safe_exec,
-			f'frappe.get_doc("Server Script Variable", "{script.variables[0].name}").get_password("value")',
-		)
-		self.assertEqual(script.execute_method(), "s3cr3t")
+		with self.set_user("test@example.com"):
+			self.assertRaises(frappe.PermissionError, other_script.execute_method)
+			self.assertRaises(
+				frappe.PermissionError,
+				safe_exec,
+				f'frappe.get_doc("Server Script Variable", "{script.variables[0].name}").get_password("value")',
+			)
+			self.assertEqual(script.execute_method(), "s3cr3t")
 
 	def test_env_variables_with_prompt_name(self):
 		script = frappe.get_doc(
@@ -463,7 +464,8 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		).insert()
 
 		self.assertEqual(script.name, "test_env_variables_with_prompt_name")
-		self.assertEqual(script.execute_method(), "s3cr3t")
+		with self.set_user("test@example.com"):
+			self.assertEqual(script.execute_method(), "s3cr3t")
 
 	def test_env_variables_with_name_set(self):
 		script = frappe.get_doc(
@@ -482,7 +484,8 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 
 		self.assertEqual(script.name, "test_env_variables_with_name_set")
 		self.assertEqual(script.variables[1].name, "test_env_variables_with_name_set_row")
-		self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3tp4ss")
+		with self.set_user("test@example.com"):
+			self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3tp4ss")
 
 	def test_missing_env_variable(self):
 		script = frappe.get_doc(
@@ -507,7 +510,8 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		).insert()
 		frappe.db.delete("__Auth", {"doctype": "Server Script Variable", "name": script.variables[0].name})
 
-		self.assertRaisesRegex(frappe.ValidationError, "API_TOKEN", script.execute_method)
+		with self.set_user("test@example.com"):
+			self.assertRaisesRegex(frappe.ValidationError, "API_TOKEN", script.execute_method)
 
 	def test_env_variable_that_cannot_be_decrypted(self):
 		script = frappe.get_doc(
