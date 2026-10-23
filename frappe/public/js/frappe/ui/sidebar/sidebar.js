@@ -12,6 +12,18 @@ frappe.get_module_icon = function (module) {
 	return row?.icon || frappe.boot.module_sidebars?.[module]?.header_icon || null;
 };
 
+// Open a surface in the arrangement editor. The editor is not in the desk bundle, so it is loaded
+// first. `manager` names the surface's class, which the editor's bundle defines.
+frappe.ui.open_arrangement_editor = function (manager, opts, error_message) {
+	return frappe
+		.require("arrangement_editor.bundle.js")
+		.then(() => frappe.ui.ArrangementEditor.start(frappe.ui[manager], opts))
+		.catch((e) => {
+			console.error("Failed to load arrangement_editor.bundle.js", e);
+			frappe.ui.toast({ message: error_message, type: "error" });
+		});
+};
+
 // Route prefixes that name an entity of another kind. `dashboard-view` is itself a Page, so it is
 // checked before page_info.
 const ENTITY_VIEW_ROUTES = {

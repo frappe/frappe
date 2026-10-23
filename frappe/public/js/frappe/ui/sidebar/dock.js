@@ -96,18 +96,12 @@ frappe.ui.Dock = class Dock {
 		this.refresh();
 	}
 
-	// Open the dock's editor. It is not in the desk bundle, so it is loaded first.
 	edit(opts) {
-		return frappe
-			.require("arrangement_editor.bundle.js")
-			.then(() => frappe.ui.ArrangementEditor.start(frappe.ui.DockManager, opts))
-			.catch((e) => {
-				console.error("Dock: failed to load arrangement_editor.bundle.js", e);
-				frappe.ui.toast({
-					message: __("Could not open the dock manager. Please refresh the page."),
-					type: "error",
-				});
-			});
+		return frappe.ui.open_arrangement_editor(
+			"DockManager",
+			opts,
+			__("Could not open the dock manager. Please refresh the page.")
+		);
 	}
 
 	// Dragging a tile is a way into arranging the dock: the drop opens the editor with the tiles
