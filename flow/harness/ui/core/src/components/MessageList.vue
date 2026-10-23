@@ -111,6 +111,16 @@
 				</div>
 			</template>
 
+			<!-- the latest reply's suggested next messages, until the user says something -->
+			<SuggestedReplies
+				v-if="replies"
+				:key="replies.key"
+				:replies="replies.replies"
+				:multi-select="replies.multiSelect"
+				class="-mt-2"
+				@send="(text) => flow.send(text)"
+			/>
+
 			<!-- Before the first streamed block (or during retry/compaction), no
 			     transcript item owns the live status, so render one fallback line.
 			     py-2.5 keeps it on the same rhythm as the rows that replace it; after
@@ -152,13 +162,14 @@
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
 import FeatherIcon from "./FeatherIcon.vue"
 
-import { buildItems, formatTime, panelIds, userAttachments, userText } from "../transcript.js"
+import { buildItems, formatTime, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
 import AddToChat from "./AddToChat.vue"
 import AssistantText from "./AssistantText.vue"
 import BrandMark from "./BrandMark.vue"
 import CopyButton from "./CopyButton.vue"
 import LoadingState from "./LoadingState.vue"
 import PromptRail from "./PromptRail.vue"
+import SuggestedReplies from "./SuggestedReplies.vue"
 import ThinkingBlock from "./ThinkingBlock.vue"
 import ToolGroup from "./ToolGroup.vue"
 import TurnFiles from "./TurnFiles.vue"
@@ -168,9 +179,13 @@ import UserBubble from "./UserBubble.vue"
 const props = defineProps({
 	// the thread to draw: a sub-agent's, else the session's
 	conversation: { type: Object, default: null },
+	// false where the user can't send, such as a read-only chat
+	suggestions: { type: Boolean, default: true },
 })
 const flow = inject("flow")
 const conversation = computed(() => props.conversation ?? flow.state.conversation)
+// the session's own: a sub-agent's thread offers none
+const replies = computed(() => (props.suggestions && !props.conversation ? suggestedReplies(conversation.value) : null))
 const expandedTurnKeys = ref(new Set())
 // rows (tool calls, thoughts) the user has open, by id
 const openPanels = reactive(new Set())

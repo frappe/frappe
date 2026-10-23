@@ -180,6 +180,7 @@ _SKIP_BUILTINS = frozenset(
 		"grep",
 		"read",
 		"subagent",
+		"suggest_replies",
 		"search_knowledge",
 		"search_attachments",
 		"update_memory",

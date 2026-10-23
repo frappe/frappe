@@ -574,18 +574,32 @@ test("a /compact after a turn leaves it folded, adds no time to it, and sits bel
 	])
 })
 
-test("the copy row closes a turn with its last text that said something", () => {
+test("a turn's last text and all after it stay out of its fold, the copy row closing them", () => {
 	const closing = (content) => [
 		{ type: "assistant_message", seq: 5, ts: 14, content, stop_reason: "stop" },
 		{ type: "run_ended", seq: 6, ts: 14, reason: "done" },
 	]
 	for (const [ending, kinds] of [
-		// an empty closing message leaves the answer before it standing
-		[closing([]), ["user", "text", "turn-fold", "turn-copy"]],
-		[closing([{ type: "text", text: "\n" }]), ["user", "text", "turn-fold", "turn-copy"]],
-		[closing([{ type: "thinking", thinking: "Done." }]), ["user", "text", "turn-fold", "turn-copy"]],
+		// an empty closing message leaves the answer and the call after it standing
+		[closing([]), ["user", "text", "group", "turn-copy"]],
+		[closing([{ type: "text", text: "\n" }]), ["user", "text", "group", "turn-copy"]],
+		[closing([{ type: "thinking", thinking: "Done." }]), ["user", "text", "group", "turn-copy"]],
+		// as does one that only suggests the user's replies, which show under the thread, never as a row
+		[
+			closing([{ type: "tool_call", id: "s1", name: "suggest_replies", arguments: { replies: ["Send it", "Not yet"] } }]),
+			["user", "text", "group", "turn-copy"],
+		],
+		// and calls in a message of their own after it
+		[
+			[
+				{ type: "assistant_message", seq: 5, ts: 14, content: [{ type: "tool_call", id: "call-2", name: "update_memory", arguments: {} }] },
+				{ type: "tool_result", seq: 6, ts: 14, tool_call_id: "call-2", content: "saved" },
+				...closing([]).map((event) => ({ ...event, seq: event.seq + 2 })),
+			],
+			["user", "text", "group", "turn-copy"],
+		],
 		// a run cut off at its turn limit: the copy row goes below the work and the notice
-		[[{ type: "run_ended", seq: 5, ts: 14, reason: "max_turns" }], ["user", "text", "turn-fold", "notice", "turn-copy"]],
+		[[{ type: "run_ended", seq: 5, ts: 14, reason: "max_turns" }], ["user", "text", "group", "notice", "turn-copy"]],
 	]) {
 		const conversation = initialConversation()
 		for (const event of [

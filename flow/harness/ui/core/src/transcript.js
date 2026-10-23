@@ -135,6 +135,22 @@ export function waitingApprovals(conversation) {
 	return asked.sort((a, b) => a.seq - b.seq)
 }
 
+// the tool a reply ends on to offer the user's next messages: chips, never a row
+const SUGGEST_REPLIES = "suggest_replies"
+
+// The next messages the latest reply offers, from its suggest_replies result, until the user
+// says something: { key, replies, multiSelect }, else null
+export function suggestedReplies(conversation) {
+	if (conversation.running || conversation.pendingApproval || conversation.sending?.length) return null
+	const entries = conversation.entries ?? []
+	for (let i = entries.length - 1; i >= 0 && entries[i].type !== "user_message"; i--) {
+		const { type, name, is_error, details, tool_call_id } = entries[i]
+		if (type === "tool_result" && name === SUGGEST_REPLIES && !is_error && details?.replies)
+			return { key: tool_call_id, replies: details.replies, multiSelect: !!details.multi_select }
+	}
+	return null
+}
+
 function foldEvent(s, e) {
 	if (typeof e.seq === "number") s.latestSeq = Math.max(s.latestSeq, e.seq)
 	switch (e.type) {
@@ -487,7 +503,7 @@ function deriveTurns(entries, steeredSeqs = []) {
 				hasUser: true,
 				startedAt: Number.isFinite(entry.ts) ? entry.ts : null,
 				endedAt: Number.isFinite(entry.ts) ? entry.ts : null,
-				terminalAssistant: null,
+				stopped: false,
 				interrupted: false,
 			}
 			turns.set(current.key, current)
@@ -500,7 +516,7 @@ function deriveTurns(entries, steeredSeqs = []) {
 				hasUser: false,
 				startedAt: Number.isFinite(entry.ts) ? entry.ts : null,
 				endedAt: Number.isFinite(entry.ts) ? entry.ts : null,
-				terminalAssistant: null,
+				stopped: false,
 				interrupted: false,
 			}
 			turns.set(current.key, current)
@@ -512,22 +528,12 @@ function deriveTurns(entries, steeredSeqs = []) {
 		if (Number.isFinite(entry.ts) && entry.type !== "compaction") {
 			current.endedAt = current.endedAt == null ? entry.ts : Math.max(current.endedAt, entry.ts)
 		}
-		// a closing message with no text and no tool call says nothing: the answer before it stands
-		if (entry.type === "assistant_message" && saysSomething(entry)) current.terminalAssistant = entry
 		if (entry.type === "run_ended" && entry.reason === "aborted") current.interrupted = true
-		// a user-terminated turn (abort/deny) has no terminal response: its last
-		// text folds with the work instead of standing as the answer
-		if (entry.type === "run_ended" && ["aborted", "denied"].includes(entry.reason))
-			current.terminalAssistant = null
+		// a user-terminated turn (abort/deny) has no response: its last text folds with the work
+		if (entry.type === "run_ended" && ["aborted", "denied"].includes(entry.reason)) current.stopped = true
 	}
 
 	return { turns, turnByEntry, latestTurnKey: [...turns.keys()].at(-1) ?? null }
-}
-
-function saysSomething(entry) {
-	return (entry.content ?? []).some(
-		(block) => (block.type === "text" && block.text?.trim()) || block.type === "tool_call",
-	)
 }
 
 // Files touched by a turn's settled edit/write calls, keyed by turn, aggregated
@@ -646,6 +652,7 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 				}
 			} else if (block.type === "tool_call") {
 				if (provisional && block.arguments == null) continue
+				if (block.name === SUGGEST_REPLIES) continue // shown as chips, not a row
 				if (pendingIds.has(block.id) || stepsById.has(block.id)) continue
 				const group = currentGroup(block.id)
 				for (const thought of bufferedThoughts) group.steps.push({ thought: thought.block, id: thought.key })
@@ -709,22 +716,29 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 			? latestTurnKey
 			: null
 
-	// Only the terminal assistant message is the response. Earlier assistant
-	// text is commentary and belongs inside the completed-work fold.
+	// A turn's response is its last text and everything after it; earlier text is commentary
+	// and folds with the work. A turn the user stopped or denied has none, the running one none yet.
+	const responseStart = new Map()
+	for (const [index, item] of filtered.entries()) {
+		const turn = turns.get(item.turnKey)
+		if (item.kind === "text" && !item.provisional && item.turnKey !== unsettledTurnKey && turn && !turn.stopped)
+			responseStart.set(item.turnKey, index)
+	}
+	for (const [turnKey, index] of responseStart) {
+		let start = index // texts in a row are one
+		while (filtered[start - 1]?.kind === "text" && filtered[start - 1].turnKey === turnKey) start--
+		responseStart.set(turnKey, start)
+	}
+	const inResponse = new Set(
+		filtered.filter((item, index) => index >= (responseStart.get(item.turnKey) ?? Infinity)).map((item) => item.key),
+	)
 	const terminalTextByTurn = new Map()
 	for (const item of filtered) {
-		const turn = turns.get(item.turnKey)
-		if (
-			item.kind === "text" &&
-			!item.provisional &&
-			item.turnKey !== unsettledTurnKey &&
-			turn?.terminalAssistant === item.entry
-		) {
-			const terminal = terminalTextByTurn.get(item.turnKey) ?? { items: [], text: [] }
-			terminal.items.push(item)
-			terminal.text.push(item.block.text)
-			terminalTextByTurn.set(item.turnKey, terminal)
-		}
+		if (item.kind !== "text" || !inResponse.has(item.key)) continue
+		const terminal = terminalTextByTurn.get(item.turnKey) ?? { items: [], text: [] }
+		terminal.items.push(item)
+		terminal.text.push(item.block.text)
+		terminalTextByTurn.set(item.turnKey, terminal)
 	}
 	// the files card and the copy/time row close the turn, below all it shows but a later compaction
 	const lastKeyByTurn = new Map(
@@ -760,8 +774,9 @@ export function buildItems(conversation, expandedTurnKeys = new Set(), openPanel
 		const turn = turns.get(item.turnKey)
 		if (!turn?.hasUser || item.turnKey === unsettledTurnKey) continue
 		const foldable =
-			["group", "thinking", "compaction"].includes(item.kind) ||
-			(item.kind === "text" && !item.provisional && item.entry !== turn.terminalAssistant)
+			item.kind === "compaction" ||
+			(!inResponse.has(item.key) &&
+				(["group", "thinking"].includes(item.kind) || (item.kind === "text" && !item.provisional)))
 		if (!foldable) continue
 		const foldableItems = foldableByTurn.get(item.turnKey) ?? []
 		foldableItems.push(item)

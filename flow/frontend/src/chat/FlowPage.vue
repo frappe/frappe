@@ -49,7 +49,7 @@
 					:crumb="agentCrumb"
 					@open-sidebar="store.setSidebarOpen(true)"
 				/>
-				<MessageList>
+				<MessageList :suggestions="!readOnly">
 					<template #empty>
 						<SetupState v-if="needsSetup" />
 						<template v-else>

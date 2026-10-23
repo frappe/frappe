@@ -524,6 +524,58 @@ test("the composer asks a pending batch one call at a time above the box, names 
 	assert.ok(!child.el.textContent.includes("Run this command?"))
 })
 
+test("a reply's suggested replies wait under it: a tap sends one, or ticks several to send together", async (t) => {
+	const sent = []
+	const conversation = reactive(initialConversation())
+	const flow = {
+		options: {},
+		state: reactive({ sessionId: "s1", loading: false, conversation }),
+		send: async (text) => !!sent.push(text),
+	}
+	let seq = 0
+	const reply = (id, args) => {
+		for (const event of [
+			{ type: "run_started" },
+			{ type: "user_message", content: "go" },
+			{ type: "assistant_message", content: [{ type: "text", text: "Which?" }, { type: "tool_call", id, name: "suggest_replies", arguments: args }] },
+			{ type: "tool_result", tool_call_id: id, name: "suggest_replies", content: "[shown]", details: { multi_select: false, ...args } },
+			{ type: "run_ended", reason: "done" },
+		])
+			applyEvent(conversation, { ...event, seq: ++seq })
+	}
+	reply("s1", { replies: ["Yes", "No"] })
+	const { el } = mount(t, MessageList, {}, flow)
+	await nextTick()
+	const button = (label, root = el) => [...root.querySelectorAll("button")].find((b) => b.textContent.trim() === label)
+	button("Yes").click()
+	assert.deepEqual(sent, ["Yes"])
+
+	// a pick-several set sends the ticked answers together, in its order
+	reply("s2", { replies: ["CRM", "Helpdesk", "HR"], multi_select: true })
+	await nextTick()
+	assert.equal(button("Yes"), undefined)
+	assert.ok(button("Send").classList.contains("invisible")) // until something is ticked
+	for (const label of ["HR", "CRM", "Helpdesk", "Helpdesk"]) button(label).click()
+	await nextTick()
+	assert.deepEqual(["CRM", "Helpdesk", "HR"].map((label) => button(label).getAttribute("aria-pressed")), ["true", "false", "true"])
+	button("Send").click()
+	assert.equal(sent.at(-1), "CRM, HR")
+
+	// none while a run goes, where the user can't send, nor once they say something
+	conversation.running = true
+	await nextTick()
+	assert.equal(button("CRM"), undefined)
+	conversation.running = false
+	await nextTick()
+	assert.ok(button("CRM"))
+	const readOnly = mount(t, MessageList, { suggestions: false }, flow)
+	await nextTick()
+	assert.equal(button("CRM", readOnly.el), undefined)
+	applyEvent(conversation, { type: "user_message", seq: ++seq, content: "CRM, HR" })
+	await nextTick()
+	assert.equal(button("CRM"), undefined)
+})
+
 test("the queue steers or takes back a waiting message", async (t) => {
 	const calls = []
 	const flow = {
