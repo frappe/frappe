@@ -1,7 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # For license information, please see license.txt
 
-# import frappe
+import frappe
+from frappe import _
 from frappe.model.document import Document
 
 
@@ -22,3 +23,10 @@ class ServerScriptVariable(Document):
 	# end: auto-generated types
 
 	_DOCTYPE_NAME = "Server Script Variable"
+
+	def get_password(self, fieldname="password", raise_exception=True):
+		frappe.throw(
+			_("Environment variables can only be read by their own Server Script"),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)

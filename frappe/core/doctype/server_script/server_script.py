@@ -12,7 +12,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import http_cache
-from frappe.utils.password import delete_all_passwords_for
+from frappe.utils.password import delete_all_passwords_for, get_decrypted_password
 from frappe.utils.safe_exec import (
 	FrappeTransformer,
 	get_keys_for_autocomplete,
@@ -346,4 +346,4 @@ class ServerScriptEnv:
 				title=_("Missing Environment Variable"),
 			)
 
-		return variable.get_password("value")
+		return get_decrypted_password(variable.doctype, variable.name, "value")
