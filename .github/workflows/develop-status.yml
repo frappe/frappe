@@ -1,9 +1,8 @@
 name: Develop Status
 
-# Every setting for the develop status check lives in this file.
 on:
   schedule:
-    # How often the full server and UI suites run on develop (skipped when develop has no new commits).
+    # How often the full server and UI suites run on develop, when develop has new commits.
     - cron: "23 */2 * * *"
   workflow_run:
     workflows: ["Server", "UI"]
@@ -11,19 +10,12 @@ on:
     branches: [develop]
   pull_request_target:
     branches: [develop]
-    types: [opened, synchronize, reopened, labeled, unlabeled, edited]
+    types: [opened, synchronize, reopened, labeled, unlabeled]
   workflow_dispatch:
 
 env:
-  # The required check posted on every develop pull request.
-  STATUS_CONTEXT: "Develop status"
   # A pull request with this label can merge while develop is failing.
   FIX_LABEL: "fixes-develop"
-  # The jobs whose result decides whether develop is passing.
-  SERVER_GATE_JOB: "Server Success"
-  UI_GATE_JOB: "UI Success"
-  # How many times a failed develop run is retried before develop counts as failing.
-  RETRIES: 1
 
 permissions:
   contents: read
@@ -41,51 +33,28 @@ jobs:
         run: |
           head=$(gh api "repos/$GITHUB_REPOSITORY/commits/develop" --jq .sha)
           for workflow in server-tests.yml ui-tests.yml; do
-            last=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?branch=develop&per_page=30" \
+            last=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?branch=develop" \
               --jq '[.workflow_runs[] | select(.event == "schedule" or .event == "workflow_dispatch")][0].head_sha')
-            if [ "$last" = "$head" ]; then
-              echo "$workflow already ran on $head"
-            else
-              gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref develop
-            fi
+            [ "$last" = "$head" ] || gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref develop
           done
         env:
           GH_TOKEN: ${{ github.token }}
 
   update:
     name: Update Pull Requests
-    if: >-
-      ${{ github.event_name != 'workflow_run'
-      || contains(fromJson('["schedule", "workflow_dispatch"]'), github.event.workflow_run.event) }}
+    if: ${{ github.event_name != 'workflow_run' || contains(fromJson('["schedule", "workflow_dispatch"]'), github.event.workflow_run.event) }}
     runs-on: ubuntu-latest
     concurrency:
       group: develop-status-${{ github.event.pull_request.number || 'all' }}
       cancel-in-progress: true
     steps:
-      - name: Retry a failed develop run
-        id: retry
-        if: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'failure' }}
-        run: |
-          if [ "$ATTEMPT" -le "$RETRIES" ]; then
-            gh run rerun "$RUN_ID" --failed --repo "$GITHUB_REPOSITORY"
-            echo "retried=true" >> "$GITHUB_OUTPUT"
-          fi
-        env:
-          GH_TOKEN: ${{ github.token }}
-          RUN_ID: ${{ github.event.workflow_run.id }}
-          ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
-
       - uses: actions/checkout@v7
-        if: ${{ steps.retry.outputs.retried != 'true' }}
         with:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
-
       - name: Restart the suites when the full CI label is added
-        if: ${{ github.event.action == 'labeled' }}
+        if: ${{ github.event.action == 'labeled' && github.event.label.name == 'run-full-ci' }}
         run: |
-          label=$(python -c "import sys; sys.path.insert(0, '.github/helper'); import roulette; print(roulette.FULL_CI_LABEL)")
-          [ "$LABEL" = "$label" ] || exit 0
           for workflow in server-tests.yml ui-tests.yml; do
             run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
             [ -n "$run_id" ] || continue
@@ -94,17 +63,7 @@ jobs:
           done
         env:
           GH_TOKEN: ${{ github.token }}
-          LABEL: ${{ github.event.label.name }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-
-      - name: Post develop status
-        if: ${{ steps.retry.outputs.retried != 'true' }}
-        run: |
-          if [ -n "$PR_NUMBER" ]; then
-            python .github/helper/develop_status.py pr "$PR_NUMBER"
-          else
-            python .github/helper/develop_status.py refresh
-          fi
+      - run: python .github/helper/develop_status.py ${{ github.event.pull_request.number && format('pr {0}', github.event.pull_request.number) || 'refresh' }}
         env:
           GH_TOKEN: ${{ github.token }}
-          PR_NUMBER: ${{ github.event.pull_request.number }}
