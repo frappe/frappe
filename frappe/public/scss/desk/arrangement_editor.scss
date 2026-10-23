@@ -104,7 +104,7 @@
 	position: relative;
 	display: flex;
 	align-items: center;
-	min-height: 28px;
+	min-height: calc(var(--spacing) * 7);
 	border-radius: var(--radius);
 	cursor: pointer;
 
@@ -218,7 +218,7 @@
 	align-items: center;
 	gap: calc(var(--spacing) * 2);
 	width: 100%;
-	height: 28px;
+	height: calc(var(--spacing) * 7);
 	margin-top: calc(var(--spacing) * 0.5);
 	padding: 0 0 0 calc(var(--spacing) * 2);
 	border: none;
@@ -243,7 +243,7 @@
 // script, so this only lays out what is inside it.
 .ws-panel,
 .ws-panel-closing {
-	max-height: calc(100vh - 16px);
+	max-height: calc(100vh - var(--spacing) * 4);
 
 	.ws-panel-head {
 		display: flex;
@@ -376,12 +376,7 @@
 
 		// Named by its tooltip, as the tiles are; the words stay for assistive technology.
 		span {
-			position: absolute;
-			width: 1px;
-			height: 1px;
-			overflow: hidden;
-			clip-path: inset(50%);
-			white-space: nowrap;
+			@extend .sr-only;
 		}
 	}
 }
@@ -391,7 +386,7 @@
 	position: fixed;
 	left: calc(var(--spacing) * 2);
 	bottom: calc(var(--spacing) * 2);
-	z-index: 1040;
+	z-index: $zindex-fixed + 1;
 	display: flex;
 	align-items: center;
 	gap: var(--spacing);
