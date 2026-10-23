@@ -61,7 +61,7 @@ const value = computed<string | null>({
 const linkCreate = useLinkCreate({
 	doctype,
 	filters: () => props.field.filters,
-	disabled: () => Boolean(props.field.readOnly) || !doctype.value,
+	disabled: () => Boolean(props.field.readOnly),
 	open,
 	link,
 	select: (name) => (value.value = name),

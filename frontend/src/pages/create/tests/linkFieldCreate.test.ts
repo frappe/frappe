@@ -66,6 +66,7 @@ import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
 import DynamicLinkField from "@framework/ui/components/Fields/DynamicLinkField.vue";
 import LinkField from "@framework/ui/components/Fields/LinkField.vue";
+import Filter from "@framework/ui/components/Filter/Filter.vue";
 import QuickFilterInputs from "@framework/ui/components/QuickFilter/QuickFilterInputs.vue";
 import { CreateRecordKey, DocKey } from "@framework/ui/components/Fields/types";
 import type { FieldMeta } from "@framework/ui/components/Fields/types";
@@ -346,6 +347,24 @@ describe("when the option shows", () => {
 		expect(metaReads()).toBe(0);
 	});
 
+	it("is not offered in the filter popover's value input", async () => {
+		const territory = { fieldname: "territory", fieldtype: "Link", label: "Territory", options: "Territory" };
+		mount(() => h(Filter, { doctype: "Customer", modelValue: [{ fieldname: "territory", operator: "equals", value: "", field: territory }] }));
+		await settle();
+		[...document.querySelectorAll("button")].find((button) => button.textContent?.trim().startsWith("Filter"))!.click();
+		await settle();
+
+		const input = document.querySelector<HTMLInputElement>("input[placeholder='Select a Value']")!;
+		input.value = "North";
+		input.dispatchEvent(new Event("input", { bubbles: true }));
+		await new Promise((resolve) => setTimeout(resolve, 350));
+		await settle();
+
+		expect(searches().some(({ url }) => url.pathname.includes("Territory") && url.searchParams.get("txt") === "North")).toBe(true);
+		expect(rows().some((row) => row.startsWith("Create"))).toBe(false);
+		expect(requests((path) => path.includes("Territory/meta"))).toEqual([]);
+	});
+
 	it("is not offered in read-only mode", async () => {
 		linkField({}, { readOnlyMode: true });
 
@@ -357,7 +376,7 @@ describe("when the option shows", () => {
 
 describe("what the new record starts with", () => {
 	it.each([
-		["a field: naming rule fills that field", { autoname: "field:customer_name" }, { customer_name: "Acme" }],
+		["a field: naming rule, in any letter case, fills that field", { autoname: "Field:customer_name" }, { customer_name: "Acme" }],
 		["a prompt name, in any letter case, fills the name field", { autoname: "PROMPT" }, { __newname: "Acme" }],
 		["otherwise the title field", { title_field: "customer_name" }, { customer_name: "Acme" }],
 	])("%s", async (_case, overrides, values) => {
