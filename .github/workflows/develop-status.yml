@@ -81,6 +81,22 @@ jobs:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
 
+      - name: Restart the suites when the full CI label is added
+        if: ${{ github.event.action == 'labeled' }}
+        run: |
+          label=$(python -c "import sys; sys.path.insert(0, '.github/helper'); import roulette; print(roulette.FULL_CI_LABEL)")
+          [ "$LABEL" = "$label" ] || exit 0
+          for workflow in server-tests.yml ui-tests.yml; do
+            run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
+            [ -n "$run_id" ] || continue
+            gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null && gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" > /dev/null || true
+            gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
+          LABEL: ${{ github.event.label.name }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+
       - name: Post develop status
         if: ${{ steps.retry.outputs.retried != 'true' }}
         run: |

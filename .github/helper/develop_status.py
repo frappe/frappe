@@ -17,6 +17,7 @@ import re
 import subprocess
 import sys
 import time
+from datetime import UTC, datetime, timedelta
 
 REPO = os.environ["GITHUB_REPOSITORY"]
 CONTEXT = os.environ.get("STATUS_CONTEXT", "Develop status")
@@ -26,6 +27,7 @@ SUITES = {
 	"ui-tests.yml": os.environ.get("UI_GATE_JOB", "UI Success"),
 }
 DEVELOP_EVENTS = ("schedule", "workflow_dispatch")
+RETRIES = int(os.environ.get("RETRIES", "1"))
 TRUSTED = ("OWNER", "MEMBER", "COLLABORATOR")
 
 
@@ -45,9 +47,7 @@ def suite_history(workflow):
 	for run in runs:
 		if run["event"] not in DEVELOP_EVENTS:
 			continue
-		if run["status"] != "completed":
-			if run["run_attempt"] > 1:
-				history.append({"sha": run["head_sha"], "passed": False, "url": run["html_url"]})
+		if run["status"] != "completed" or retry_pending(run):
 			continue
 		jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs?per_page=100")["jobs"]
 		gate = next((job for job in jobs if job["name"] == SUITES[workflow]), None)
@@ -59,6 +59,16 @@ def suite_history(workflow):
 		if history[-1]["passed"]:
 			break
 	return history
+
+
+def retry_pending(run):
+	"""A failed run that the workflow is about to retry does not count yet."""
+	updated = datetime.fromisoformat(run["updated_at"].replace("Z", "+00:00"))
+	return (
+		run["conclusion"] == "failure"
+		and run["run_attempt"] <= RETRIES
+		and datetime.now(UTC) - updated < timedelta(minutes=30)
+	)
 
 
 def culprits(green_sha, red_sha):
@@ -141,8 +151,9 @@ if __name__ == "__main__":
 	if command == "pr":
 		post(gh(f"repos/{REPO}/pulls/{args[0]}"), develop)
 	elif command == "refresh":
-		for pr in gh_pages(f"repos/{REPO}/pulls?base=develop&state=open&per_page=100"):
-			if post(pr, develop):
+		for listed in gh_pages(f"repos/{REPO}/pulls?base=develop&state=open&per_page=100"):
+			pr = gh(f"repos/{REPO}/pulls/{listed['number']}")
+			if pr["state"] == "open" and post(pr, develop):
 				time.sleep(1)
 	else:
 		sys.exit(f"unknown command: {command}")
