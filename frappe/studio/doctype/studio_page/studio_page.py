@@ -99,6 +99,7 @@ class StudioPage(Document):
 
 	def validate(self):
 		validate_standard_app_change(self)
+		self.validate_page_title()
 		# only published pages are served, so only they must not share a route or title
 		if self.published and any(
 			self.has_value_changed(field) for field in ("route", "page_title", "published")
@@ -108,6 +109,12 @@ class StudioPage(Document):
 		if not hasattr(self, "_skip_validate"):
 			self.validate_variables()
 			self.process_resources()
+
+	def validate_page_title(self):
+		# the scrubbed title names the page's export folder, so it must stay a single path segment
+		stem = self.get_export_docname()
+		if not stem or "/" in stem or "\\" in stem or stem in (".", ".."):
+			frappe.throw(_("Page Title cannot be empty or contain slashes."))
 
 	def on_update(self):
 		self.export_page()
