@@ -1375,6 +1375,7 @@ def browse(
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = frappe.session.sid
+			# frappe.local.response.home_page is set in LoginManager.login_as()
 			login_path = f"{frappe.local.response.home_page}?sid={sid}"
 		else:
 			click.echo(
