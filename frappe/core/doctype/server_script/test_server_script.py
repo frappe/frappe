@@ -470,6 +470,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			[{"key": "1_TOKEN", "value": "s3cr3t"}],
 			[{"key": "_TOKEN", "value": "s3cr3t"}],
 			[{"key": "class", "value": "s3cr3t"}],
+			[{"key": "TOKEN\n", "value": "s3cr3t"}],
 			[{"key": "TOKEN", "value": "a"}, {"key": "TOKEN", "value": "b"}],
 		]
 		for variables in invalid_variables:

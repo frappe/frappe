@@ -24,7 +24,7 @@ from frappe.utils.safe_exec import (
 if TYPE_CHECKING:
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 
-VARIABLE_KEY_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+VARIABLE_KEY_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
 
 class ServerScript(Document):
@@ -125,7 +125,7 @@ class ServerScript(Document):
 	def validate_variables(self):
 		keys = set()
 		for variable in self.variables:
-			if not VARIABLE_KEY_PATTERN.match(variable.key) or keyword.iskeyword(variable.key):
+			if not VARIABLE_KEY_PATTERN.fullmatch(variable.key or "") or keyword.iskeyword(variable.key):
 				frappe.throw(
 					_(
 						"Row #{0}: Key {1} must start with a letter and contain only letters, digits and underscores"
