@@ -30,8 +30,8 @@ jobs:
           head=$(gh api "repos/$GITHUB_REPOSITORY/commits/develop" --jq .sha)
           for workflow in server-tests.yml ui-tests.yml; do
             last=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?branch=develop" \
-              --jq '[.workflow_runs[] | select(.event == "schedule" or .event == "workflow_dispatch")][0].head_sha')
-            if [ "$EVENT" = "workflow_dispatch" ] || [ "$last" != "$head" ]; then
+              --jq '[.workflow_runs[] | select(.event == "schedule" or .event == "workflow_dispatch")][0] // {status: "completed"} | "\(.head_sha) \(.status)"')
+            if [ "$EVENT" = "workflow_dispatch" ] || { [ "${last% *}" != "$head" ] && [ "${last#* }" = "completed" ]; }; then
               gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref develop
             fi
           done

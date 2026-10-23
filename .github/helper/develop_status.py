@@ -11,6 +11,7 @@ import json
 import os
 import subprocess
 import sys
+import time
 from datetime import UTC, datetime
 from functools import cache
 
@@ -72,6 +73,7 @@ def post(pr, develop, started=None):
 		fields += ["-f", f"target_url={url}"]
 	gh("-X", "POST", f"repos/{REPO}/statuses/{sha}", *fields)
 	print(f"#{pr['number']}: {state}")
+	time.sleep(1)
 
 
 if __name__ == "__main__":
