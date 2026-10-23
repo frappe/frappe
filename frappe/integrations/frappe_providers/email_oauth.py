@@ -25,7 +25,7 @@ CALLBACK_PATH = "/api/method/frappe.integrations.frappe_providers.email_oauth.ca
 FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:"
 DEFAULT_LANDING = "/desk/email-account"
 # ONE_CLICK_PROVIDERS' keys; a relay app's Token URI ends in one
-Provider = Literal["microsoft", "yandex"]
+Provider = Literal["microsoft", "google", "yandex"]
 # Mail settings per provider, keyed like Central's Email OAuth Provider records; Central sends the OAuth side (scopes)
 ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 	"microsoft": {
@@ -43,6 +43,11 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 				"imap_disabled": ("authenticated but not connected",),
 			},
 		},
+	},
+	"google": {
+		"label": "Gmail",
+		"service": "GMail",
+		"servers": {"email_server": "imap.gmail.com", "smtp_server": "smtp.gmail.com"},
 	},
 	"yandex": {
 		"label": "Yandex",
