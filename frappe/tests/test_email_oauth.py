@@ -317,7 +317,7 @@ class TestCallback(IntegrationTestCase):
 			)
 		)
 		userinfo.assert_called_once_with(
-			"https://login.yandex.ru/info?format=json", headers={"Authorization": "OAuth at"}
+			"https://login.yandex.ru/info?format=json", headers={"Authorization": "OAuth at"}, timeout=(5, 10)
 		)
 		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
 		self.assertEqual(account.email_server, "imap.yandex.com")

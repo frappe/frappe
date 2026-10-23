@@ -224,7 +224,9 @@ def connect_mailbox(
 	config = ONE_CLICK_PROVIDERS[provider]
 	if "userinfo_url" in config:
 		user = make_get_request(
-			config["userinfo_url"], headers={"Authorization": f"OAuth {token['access_token']}"}
+			config["userinfo_url"],
+			headers={"Authorization": f"OAuth {token['access_token']}"},
+			timeout=(5, 10),
 		)
 		claims = {"email": user["default_email"]}
 	else:
