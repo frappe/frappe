@@ -572,11 +572,19 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	// returns the desk's pages and sidebars, swapped in at once so the new tile resolves on the
 	// rail and its Home page routes.
 	//
-	// A row a layer adds stores an icon of its own, and Add asks only for a name, so the tile takes
-	// the icon the new module's sidebar resolved to.
+	// A row a layer adds stores an icon of its own. The icon picked in Add goes to the new module's
+	// page too, so its sidebar header matches; without one, the tile takes the icon the module's
+	// sidebar resolved to.
 	async create_new_modules() {
 		for (const module of this.new_modules) {
-			const payload = await frappe.xcall(ADD_MODULE, { app: this.app.app_name, module });
+			const key = this.all_keys().find((k) => this.entries.get(k).link_to === module);
+			const entry = this.entries.get(key);
+			const icon = entry?.icon;
+			const payload = await frappe.xcall(ADD_MODULE, {
+				app: this.app.app_name,
+				module,
+				...(icon ? { icon } : {}),
+			});
 			this.new_modules.delete(module);
 			frappe.boot.workspaces = payload.workspace_pages;
 			frappe.app.setup_workspaces();
@@ -584,8 +592,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			frappe.boot.entity_module = payload.entity_module;
 			frappe.app.sidebar.all_sidebar_items = frappe.boot.module_sidebars;
 
-			const key = this.all_keys().find((k) => this.entries.get(k).link_to === module);
-			const entry = this.entries.get(key);
 			if (entry && !entry.icon) entry.icon = payload.module_sidebars[module]?.header_icon;
 		}
 	}
@@ -600,7 +606,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		frappe.app.sidebar.refresh_header();
 	}
 
-	// Add asks for a name and nothing else, and puts a new module of that name on the rail. On Save
+	// Add asks for a name and an icon, and puts a new module of that name on the rail. On Save
 	// it becomes a module the site owns, placed in this app, opening on a Home page of its own.
 	//
 	// A name this app's dock already offers is that tile, not a new module, so it is put back on
@@ -610,14 +616,14 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		if (!this.loaded) return;
 
 		const panel = this.open_add_panel({
-			title: __("New module"),
+			title: __("New item"),
 			fields: [
 				{
 					fieldtype: "Data",
 					fieldname: "name",
 					label: __("Name"),
-					description: __("Creates a module with a Home page."),
 				},
+				{ fieldtype: "Icon", fieldname: "icon", label: __("Icon") },
 			],
 			primary: (values) => {
 				const name = (values.name || "").trim();
@@ -638,7 +644,13 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 
 				this.close_panel();
 				this.new_modules.add(name);
-				this.place({ link_type: "Sidebar", link_to: name, module: name, label: name });
+				this.place({
+					link_type: "Sidebar",
+					link_to: name,
+					module: name,
+					label: name,
+					icon: values.icon || null,
+				});
 			},
 		});
 	}

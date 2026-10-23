@@ -713,12 +713,16 @@ test.describe("Arrangement editor: an app's dock", () => {
 		expect(rows.map((row) => row.link_to)).toEqual([modules[1], modules[0]]);
 	});
 
-	async function add_module_named(page, name) {
+	async function add_module_named(page, name, icon) {
 		await page.locator("#desk-dock .ws-add-row").click();
 		await expect(page.locator(".ws-panel")).toBeVisible();
 		await page.evaluate(
-			(name) => window.__editor.panel.field_group.set_value("name", name),
-			name
+			async ([name, icon]) => {
+				const form = window.__editor.panel.field_group;
+				await form.set_value("name", name);
+				if (icon) await form.set_value("icon", icon);
+			},
+			[name, icon]
 		);
 		await page
 			.locator(".ws-panel .ws-panel-foot")
@@ -769,6 +773,40 @@ test.describe("Arrangement editor: an app's dock", () => {
 			app: "frappe",
 			module: "Field Trips",
 		});
+	});
+
+	test("gives a new module the icon picked in Add, on its tile and its page", async ({
+		page,
+	}) => {
+		const ADD_MODULE = "frappe.desk.doctype.dock.dock.add_module";
+		await stub_xcall(page, {
+			[READ]: modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
+			[BASE]: [],
+			[SAVE]: await page.evaluate(() => frappe.boot.dock),
+			[ADD_MODULE]: await page.evaluate(() => ({
+				workspace_pages: frappe.boot.workspaces,
+				module_sidebars: {
+					...frappe.boot.module_sidebars,
+					"Field Trips": { name: "Field Trips", app: "frappe", header_icon: "tent" },
+				},
+				entity_module: frappe.boot.entity_module,
+			})),
+		});
+		await page.evaluate(
+			() => (frappe.model.can_create = (doctype) => doctype === "Module Def")
+		);
+		await open_dock_editor(page);
+
+		await add_module_named(page, "Field Trips", "tent");
+		await bar_button(page, "Save").click();
+
+		expect(await saved_args(page, ADD_MODULE)).toEqual({
+			app: "frappe",
+			module: "Field Trips",
+			icon: "tent",
+		});
+		const rows = await saved_rows(page, SAVE);
+		expect(rows.find((row) => row.link_to === "Field Trips")).toMatchObject({ icon: "tent" });
 	});
 
 	test("puts a tile taken off back when Add names it, rather than making another", async ({

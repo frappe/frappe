@@ -1210,19 +1210,22 @@ def save_site_dock(app: str, items: list | str):
 
 
 @frappe.whitelist(methods=["POST"])
-def add_module(app: str, module: str) -> dict:
+def add_module(app: str, module: str, icon: str | None = None) -> dict:
 	"""Create a module the site owns, placed in `app`'s dock, and return the desk state it changes.
 
 	It is what Add on the dock does: a new module needs only a name. It opens on a page of its own,
 	which `ModuleDef.after_insert` creates, and its sidebar is computed from what it holds, so it is
-	on the desk the moment it exists. The caller needs the right to create a Module Def.
+	on the desk the moment it exists. The caller needs the right to create a Module Def. `icon` goes
+	on that page, which is where the module's sidebar reads its header icon from.
 
 	What it returns is a new workspace's payload, since that is what changed: the page has to be
 	in the desk's list of pages before a link to it routes there.
 	"""
 	from frappe.desk.doctype.workspace.workspace import workspace_payload
 
-	frappe.get_doc({"doctype": "Module Def", "module_name": module, "custom": 1, "app_name": app}).insert()
+	doc = frappe.get_doc({"doctype": "Module Def", "module_name": module, "custom": 1, "app_name": app})
+	doc.flags.page_icon = icon
+	doc.insert()
 	return workspace_payload()
 
 
