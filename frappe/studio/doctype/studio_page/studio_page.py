@@ -28,7 +28,7 @@ from frappe.studio.export import (
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import camel_case_to_kebab_case
+from frappe.studio.utils import camel_case_to_kebab_case, validate_file_name
 from frappe.utils import get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -112,9 +112,11 @@ class StudioPage(Document):
 
 	def validate_page_title(self):
 		# the scrubbed title names the page's export folder, so it must stay a single path segment
-		stem = self.get_export_docname()
-		if not stem or "/" in stem or "\\" in stem or stem in (".", ".."):
-			frappe.throw(_("Page Title cannot be empty or contain slashes."))
+		validate_file_name(
+			self.get_export_docname(),
+			_("Page Title cannot be empty or contain slashes."),
+			title=_("Invalid Page Title"),
+		)
 
 	def on_update(self):
 		self.export_page()

@@ -59,7 +59,7 @@ class TestStudioPage(IntegrationTestCase):
 		app = make_studio_app(app_name="title-" + frappe.generate_hash(length=8))
 		self.assertRaises(frappe.ValidationError, make_studio_page, app.name, page_title="../../outside")
 
-		page = make_studio_page(app.name, page_title="Safe Title", route="/safe-title")
+		page = make_studio_page(app.name, page_title="What's next?", route="/whats-next")
 		page.page_title = "nested/title"
 		self.assertRaises(frappe.ValidationError, page.save)
 

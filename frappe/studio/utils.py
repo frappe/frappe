@@ -63,7 +63,17 @@ def get_app_file_path(app_folder: str) -> str:
 def validate_installed_app(app_name: str) -> None:
 	"""`frappe.get_app_source_path` resolves any importable module, so only accept real apps."""
 	if app_name not in frappe.get_installed_apps():
-		frappe.throw(frappe._("App {0} is not installed on this site.").format(app_name))
+		frappe.throw(
+			frappe._("App {0} is not installed on this site.").format(app_name),
+			title=frappe._("Invalid App"),
+		)
+
+
+def validate_file_name(value: str, message: str, title: str | None = None) -> None:
+	"""Refuse a name that cannot stay one folder or file name in an export path. Only path
+	structure is checked, so ordinary title punctuation remains allowed."""
+	if not value or value in (".", "..") or "/" in value or "\\" in value:
+		frappe.throw(message, title=title)
 
 
 def get_exported_app_folders(studio_folder: str) -> list[str]:
