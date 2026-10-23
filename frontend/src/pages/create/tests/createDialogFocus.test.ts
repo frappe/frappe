@@ -163,3 +163,24 @@ it("does not save on Ctrl+Enter outside the dialog", async () => {
 
 	expect(inserts()).toEqual([]);
 });
+
+it("ignores the repeats of a held Ctrl+Enter", async () => {
+	await open();
+	await typeIntoFocused("Big deal");
+
+	await pressSave(focused(), { ctrlKey: true, repeat: true });
+
+	expect(inserts()).toEqual([]);
+});
+
+it("saves only the top dialog when two Create dialogs are stacked", async () => {
+	const below = await open();
+	const above = await open();
+	await typeIntoFocused("Top deal");
+
+	await pressSave(focused(), { ctrlKey: true });
+
+	expect(inserts()).toEqual([expect.objectContaining({ title: "Top deal" })]);
+	expect(above.settled).toBe(true);
+	expect(below.settled).toBe(false);
+});

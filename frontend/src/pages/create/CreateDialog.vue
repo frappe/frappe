@@ -130,17 +130,19 @@ watch(isOpen, (open) => {
 	if (!open) props.request.settle(null);
 });
 
-// The dialog's content is teleported, so the shortcut is caught on the document.
 const body = useTemplateRef<HTMLElement>("body");
-useEventListener(document, "keydown", (event: KeyboardEvent) => {
-	if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
-	if (!body.value?.closest('[role="dialog"]')?.contains(event.target as Node)) return;
-	event.preventDefault();
-	void save();
-});
+useEventListener(
+	() => body.value?.closest<HTMLElement>('[role="dialog"]'),
+	"keydown",
+	(event: KeyboardEvent) => {
+		if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
+		event.preventDefault();
+		if (!event.repeat) void save();
+	}
+);
 
 async function save() {
-	if (saving.value || layoutFailed.value) return;
+	if (saving.value || layoutFailed.value || props.request.settled()) return;
 	const missing = missingRequired(layout.value, doc.value);
 	if (missing.length) {
 		error.value = __("Please fill in {0}", [missing.join(", ")]);
