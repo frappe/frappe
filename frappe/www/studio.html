@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<link rel="icon" href="/assets/frappe/studio/favicon.png" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Frappe Studio</title>
+		{% if assets %}
+			<script type="module" crossorigin src="{{ assets.script }}"></script>
+			{% for preload in assets.preloads %}
+				<link rel="modulepreload" crossorigin href="{{ preload }}" />
+			{% endfor %}
+			{% for stylesheet in assets.stylesheets %}
+				<link rel="stylesheet" crossorigin href="{{ stylesheet }}" />
+			{% endfor %}
+		{% endif %}
+	</head>
+	<body>
+		<!-- For the main app builder -->
+		<div id="studio"></div>
+		<div id="modals"></div>
+		<div id="popovers"></div>
+
+		<script>
+			window.csrf_token = "{{ csrf_token }}"
+			window.site_url = "{{ site_url }}"
+			window.site_name = "{{ site_name }}"
+			window.is_developer_mode = "{{ is_developer_mode }}"
+		</script>
+		{% if not assets %}
+			<p style="font-family: sans-serif; padding: 2rem">
+				{{ _("Studio is not built yet. Run {0} and reload.").format("<code>bench build --app frappe</code>") }}
+			</p>
+		{% endif %}
+	</body>
+</html>

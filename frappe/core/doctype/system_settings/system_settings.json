@@ -57,7 +57,6 @@
   "bypass_restrict_ip_check_if_2fa_enabled",
   "column_break_bzfr",
   "two_factor_method",
-  "lifespan_qrcode_image",
   "otp_issuer_name",
   "otp_sms_template",
   "password_tab",
@@ -101,6 +100,7 @@
   "column_break_ewhs",
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
+  "use_classic_charts",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -125,7 +125,14 @@
   "column_break_nebx",
   "allow_clearing_link_fields",
   "api_logging_section",
-  "log_api_requests"
+  "log_api_requests",
+  "ai_agents_tab",
+  "mcp_section",
+  "enable_mcp",
+  "server_name",
+  "agent_instructions",
+  "frappectl_section",
+  "frappectl_help"
  ],
  "fields": [
   {
@@ -370,13 +377,6 @@
    "fieldtype": "Select",
    "label": "Two Factor Authentication method",
    "options": "OTP App\nSMS\nEmail"
-  },
-  {
-   "depends_on": "eval:doc.enable_two_factor_auth && doc.two_factor_method == \"OTP App\"",
-   "description": "Time in seconds to retain QR code image on server. Min:<strong>240</strong>",
-   "fieldname": "lifespan_qrcode_image",
-   "fieldtype": "Int",
-   "label": "Expiry time of QR Code Image Page"
   },
   {
    "default": "Frappe Framework",
@@ -851,12 +851,56 @@
    "fieldtype": "Int",
    "label": "Max Zip Extract Size (MB)",
    "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "Draw charts the way earlier versions did. Sites updated from an earlier version start with this on.",
+   "fieldname": "use_classic_charts",
+   "fieldtype": "Check",
+   "label": "Use Classic Charts"
+  },
+  {
+   "fieldname": "ai_agents_tab",
+   "fieldtype": "Tab Break",
+   "label": "AI Agents"
+  },
+  {
+   "fieldname": "mcp_section",
+   "fieldtype": "Section Break",
+   "label": "MCP Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_mcp",
+   "fieldtype": "Check",
+   "label": "Enable MCP"
+  },
+  {
+   "description": "Name shown to AI clients. Defaults to the site's host name.",
+   "fieldname": "server_name",
+   "fieldtype": "Data",
+   "label": "Server Name"
+  },
+  {
+   "description": "Tell AI agents what this site is for and how your team uses it. Agents receive this text when they connect.",
+   "fieldname": "agent_instructions",
+   "fieldtype": "Long Text",
+   "label": "Agent Instructions"
+  },
+  {
+   "fieldname": "frappectl_section",
+   "fieldtype": "Section Break",
+   "label": "frappectl"
+  },
+  {
+   "fieldname": "frappectl_help",
+   "fieldtype": "HTML"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-08-06 17:22:18.039321",
+ "modified": "2026-10-22 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

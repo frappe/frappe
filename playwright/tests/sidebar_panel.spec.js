@@ -105,16 +105,31 @@ test.describe("Sidebar Panel", () => {
 		await expect(panel).toHaveClass(HIDDEN);
 	});
 
-	test("carries both triggers on the sidebar, docked app or not", async () => {
+	test("moves search and the bell onto the dock in a docked app", async () => {
 		const { page } = shared;
-		await expect(
-			page.locator(".standard-items-band .sidebar-background-tasks")
-		).not.toHaveCount(0);
-		await expect(page.locator(".standard-items-band .sidebar-notification")).not.toHaveCount(
-			0
-		);
+		const band = page.locator(".standard-items-band");
+		await expect(page.locator("body")).toHaveClass(/(^|\s)dock-active(\s|$)/);
+		await expect(page.locator(".dock-utilities .navbar-modal-search-mobile")).toBeVisible();
+		await expect(page.locator(".dock-utilities .sidebar-notification")).toBeVisible();
+		await expect(band.locator(".navbar-modal-search-mobile")).toBeHidden();
+		await expect(band.locator(".sidebar-notification")).toBeHidden();
+		await expect(band.locator(".sidebar-background-tasks")).not.toHaveCount(0);
 		await expect(page.locator(".dock .sidebar-background-tasks")).toHaveCount(0);
-		await expect(page.locator(".dock .sidebar-notification")).toHaveCount(0);
+	});
+
+	test("shows unread notifications as a dot on the dock bell", async () => {
+		const { page } = shared;
+		const dot = page.locator(".dock-utilities .notification-count");
+		const set_unread = (count) =>
+			page.evaluate(
+				(count) =>
+					frappe.app.sidebar.notifications.tabs.notifications.update_count_badge(count),
+				count
+			);
+		await set_unread(2);
+		await expect(dot).toBeVisible();
+		await set_unread(0);
+		await expect(dot).toBeHidden();
 	});
 
 	test("opens the background tasks panel from the sidebar", async () => {
@@ -127,9 +142,9 @@ test.describe("Sidebar Panel", () => {
 		await expect(page.locator(".sidebar-panel-background-tasks")).not.toHaveClass(HIDDEN);
 	});
 
-	test("opens from the sidebar bell", async () => {
+	test("opens from the dock bell", async () => {
 		const { page } = shared;
-		await page.locator(".standard-items-band .sidebar-notification").click();
+		await page.locator(".dock-utilities .sidebar-notification").click();
 		await expect(page.locator(".sidebar-panel-notifications")).not.toHaveClass(HIDDEN);
 	});
 });

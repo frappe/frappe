@@ -128,3 +128,25 @@ test.describe("Where an app's icon leads", () => {
 		expect(route).toBe("/crm");
 	});
 });
+
+test.describe("The header's Apps menu on a touch screen", () => {
+	test.use({ hasTouch: true, isMobile: true, viewport: { width: 1180, height: 820 } });
+
+	test("opens an app outside the desk on its own route", async ({ page, desk }) => {
+		await open_desk(page, desk);
+		await page.evaluate(() =>
+			frappe.boot.app_data.push({
+				app_name: "outside-app",
+				app_title: "Outside App",
+				app_route: "/me",
+				on_apps_screen: 1,
+			})
+		);
+
+		await page.locator(".sidebar-header").click();
+		await page.getByRole("menuitem", { name: "Apps", exact: true }).click();
+		await page.getByRole("menuitem", { name: "Outside App", exact: true }).click();
+
+		await expect(page).toHaveURL((url) => url.pathname === "/me");
+	});
+});

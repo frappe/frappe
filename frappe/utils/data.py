@@ -1714,13 +1714,9 @@ def get_image_thumbnail_uri(url: str, max_dim: int = 400, quality: int = 80) -> 
 
 	try:
 		if url.startswith("/"):
-			path = None
-			for prefix in ("public", "private"):
-				candidate = frappe.get_site_path(prefix, url.lstrip("/"))
-				if os.path.exists(candidate):
-					path = candidate
-					break
-			if not path:
+			base = os.path.abspath(frappe.get_site_path("public"))
+			path = os.path.abspath(os.path.join(base, url.lstrip("/")))
+			if os.path.commonpath((base, path)) != base or not os.path.isfile(path):
 				return url
 			with open(path, "rb") as f:
 				content = f.read()
@@ -1901,7 +1897,7 @@ def comma_or(some_list: list | tuple, add_quotes=True) -> str:
 
 	try:
 		locale = Locale.parse(frappe.local.lang, sep="-")
-		pattern = locale.list_patterns["or"]["end"]
+		pattern = locale.list_patterns["or"]["2" if len(some_list) == 2 else "end"]
 	except Exception:
 		pattern = frappe._("{0} or {1}")
 
@@ -1919,7 +1915,7 @@ def comma_and(some_list: list | tuple, add_quotes=True) -> str:
 
 	try:
 		locale = Locale.parse(frappe.local.lang, sep="-")
-		pattern = locale.list_patterns["standard"]["end"]
+		pattern = locale.list_patterns["standard"]["2" if len(some_list) == 2 else "end"]
 	except Exception:
 		pattern = frappe._("{0} and {1}")
 
@@ -2148,7 +2144,7 @@ def get_absolute_url(doctype: str, name: str) -> str:
 
 	e.g. when doctype="Sales Invoice" and name="INV-00001", returns '/desk/sales-invoice/INV-00001'
 	"""
-	return f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
+	return f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 
 def get_url_to_form(doctype: str, name: str | None = None) -> str:
@@ -2160,7 +2156,7 @@ def get_url_to_form(doctype: str, name: str | None = None) -> str:
 	if not name:
 		uri = f"/desk/{quoted(slug(doctype))}"
 	else:
-		uri = f"/desk/{quoted(slug(doctype))}/{quoted(name)}"
+		uri = f"/desk/{quoted(slug(doctype))}/{quote(cstr(name), safe='')}"
 
 	return get_url(uri=uri)
 
@@ -2185,9 +2181,9 @@ def get_url_to_report(name, report_type: str | None = None, doctype: str | None 
 	get_url_to_report("Revenue", "Report Builder", "Sales Invoice") -> 'https://frappe.io/desk/sales-invoice/view/report/Revenue'
 	"""
 	if report_type == "Report Builder":
-		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quoted(name)}")
+		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report/{quote(cstr(name), safe='')}")
 	else:
-		return get_url(uri=f"/desk/query-report/{quoted(name)}")
+		return get_url(uri=f"/desk/query-report/{quote(cstr(name), safe='')}")
 
 
 def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None):
@@ -2195,7 +2191,7 @@ def get_url_to_report_with_filters(name, filters, report_type=None, doctype=None
 	if report_type == "Report Builder":
 		return get_url(uri=f"/desk/{quoted(slug(doctype))}/view/report?{filters}")
 
-	return get_url(uri=f"/desk/query-report/{quoted(name)}?{filters}")
+	return get_url(uri=f"/desk/query-report/{quote(cstr(name), safe='')}?{filters}")
 
 
 def get_filtered_list_url(doctype: str, docnames: list[str] | None = None) -> str:

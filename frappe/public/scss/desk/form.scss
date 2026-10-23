@@ -653,3 +653,14 @@ body.full-width {
 	background: var(--bg-color);
 	color: var(--ink-gray-9);
 }
+
+.web-form-request-list.embedded-list {
+	.embedded-list-table-wrap {
+		margin-bottom: 0;
+	}
+
+	// the Web Form column takes the spare width, the rest fit their content
+	.embedded-list-table td:nth-child(3) {
+		width: 100%;
+	}
+}

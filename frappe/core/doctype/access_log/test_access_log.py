@@ -10,7 +10,7 @@ import requests
 
 # imports - module imports
 import frappe
-from frappe.core.doctype.access_log.access_log import make_access_log
+from frappe.core.doctype.access_log.access_log import AccessLog, make_access_log
 from frappe.core.doctype.data_import.data_import import export_csv
 from frappe.core.doctype.user.user import generate_keys
 from frappe.deferred_insert import save_to_db as flush_deferred_inserts
@@ -19,36 +19,36 @@ from frappe.deferred_insert import save_to_db as flush_deferred_inserts
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import cstr, get_site_url
+from frappe.utils.logging import ensure_log_table, get_log_db, is_log_doctype
 
 
 class TestAccessLog(IntegrationTestCase):
 	@staticmethod
 	def _start_fresh_database_write():
 		frappe.db.rollback()
-		if frappe.db.db_type == "sqlite":
-			# Make the first operation a write so SQLite can wait for its single
-			# writer slot before later validation reads create a stale snapshot.
-			frappe.db.sql("DELETE FROM `tabAccess Log` WHERE 1 = 0")
 
 	@classmethod
 	def _flush_deferred_access_logs(cls):
 		cls._start_fresh_database_write()
 		flush_deferred_inserts(doctype="Access Log")
-		# Publish records drained from Redis before polling from a fresh snapshot.
-		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def _wait_for_access_log(cls, filters, timeout=5):
+		"""Poll the log database until the Access Log for `filters` shows up.
+
+		Access Log rows live in the site's SQLite log database, so the lookup goes to that
+		connection -- `frappe.db.exists` would ask the primary database, which holds no table
+		for a virtual DocType. The log connection commits every write as it happens, so a row
+		written by another process is visible without a transaction boundary here.
+		"""
+		ensure_log_table("Access Log")
 		deadline = time.monotonic() + timeout
 		while True:
 			# The web request's after-response callback can enqueue the log just
 			# after the client receives the response. Drain Redis on every retry so
 			# tests without a worker cannot miss that late item.
 			cls._flush_deferred_access_logs()
-			# Start each lookup in a fresh transaction so commits from a worker (if
-			# one is running) become visible too.
-			frappe.db.rollback()
-			if access_log_name := frappe.db.exists("Access Log", filters):
+			if access_log_name := get_log_db().exists("Access Log", filters):
 				return access_log_name
 			if time.monotonic() >= deadline:
 				return None
@@ -149,6 +149,115 @@ class TestAccessLog(IntegrationTestCase):
 		self.file_name = frappe.utils.random_string(10) + ".txt"
 		self.test_content = frappe.utils.random_string(1024)
 
+	def test_logs_are_stored_in_the_log_database(self):
+		ensure_log_table("Access Log")
+		log_db = get_log_db()
+		self.assertTrue(is_log_doctype("Access Log"))
+		self.assertTrue(frappe.get_meta("Access Log").is_virtual)
+
+		before = log_db.count("Access Log")
+		make_access_log(doctype=self.test_doctype, document=self.test_document)
+		self._flush_deferred_access_logs()
+
+		self.assertEqual(log_db.count("Access Log"), before + 1)
+
+		name = frappe.get_last_doc("Access Log").name
+		self.addCleanup(self._delete_log, name)
+		self.assertEqual(log_db.get_value("Access Log", name, "export_from"), self.test_doctype)
+
+		# `db_insert` has to stamp these itself: `make_access_log` calls it directly rather than
+		# going through `insert`, and a NULL `creation` would hide the row from retention.
+		row = log_db.get_value("Access Log", name, ["creation", "owner"], as_dict=True)
+		self.assertTrue(row.creation)
+		self.assertEqual(row.owner, frappe.session.user)
+
+	def test_list_and_count_read_the_log_database(self):
+		ensure_log_table("Access Log")
+		make_access_log(doctype=self.test_doctype, document=self.test_document)
+		self._flush_deferred_access_logs()
+
+		name = frappe.get_last_doc("Access Log").name
+		self.addCleanup(self._delete_log, name)
+
+		listed = frappe.get_all("Access Log", filters={"name": name}, fields=["name", "export_from"])
+		self.assertEqual(len(listed), 1)
+		self.assertEqual(listed[0].export_from, self.test_doctype)
+		self.assertEqual(
+			frappe.get_all("Access Log", filters={"name": name}, pluck="export_from"), [self.test_doctype]
+		)
+
+		# The User form's "Logs" dashboard badge counts through this path.
+		from frappe.desk.notifications import get_doc_count
+
+		self.assertGreaterEqual(get_doc_count("Access Log", {"user": frappe.session.user}), 1)
+
+	def test_track_seen_is_recorded_in_the_log_database(self):
+		"""`track_seen` is declared on this DocType, so opening the form must record the reader.
+
+		`Document.add_seen` writes `_seen` through `frappe.db.set_value`, which would target the
+		primary database -- where this DocType has no table at all.
+		"""
+		ensure_log_table("Access Log")
+		log_db = get_log_db()
+		make_access_log(doctype=self.test_doctype, document=self.test_document)
+		self._flush_deferred_access_logs()
+
+		name = frappe.get_last_doc("Access Log").name
+		self.addCleanup(self._delete_log, name)
+
+		doc = frappe.get_doc("Access Log", name)
+		doc.add_seen("Administrator")
+		self.assertEqual(frappe.parse_json(log_db.get_value("Access Log", name, "_seen")), ["Administrator"])
+
+		# a second reader is appended, and the same reader is not recorded twice
+		doc = frappe.get_doc("Access Log", name)
+		doc.add_seen("Guest")
+		doc.add_seen("Guest")
+		self.assertEqual(
+			frappe.parse_json(log_db.get_value("Access Log", name, "_seen")), ["Administrator", "Guest"]
+		)
+
+	def test_clear_old_logs(self):
+		ensure_log_table("Access Log")
+		log_db = get_log_db()
+		make_access_log(doctype=self.test_doctype, document=self.test_document)
+		self._flush_deferred_access_logs()
+
+		name = frappe.get_last_doc("Access Log").name
+		self.addCleanup(self._delete_log, name)
+		log_db.sql(
+			"UPDATE `tabAccess Log` SET creation = %(creation)s WHERE name = %(name)s",
+			{"creation": "2020-01-01 00:00:00.000000", "name": name},
+		)
+		log_db.commit()
+
+		AccessLog.clear_old_logs(days=30)
+
+		self.assertFalse(log_db.exists("Access Log", name))
+
+	def test_hash_collision_is_retried(self):
+		"""Access Log is named by hash, so a collision has to get a fresh name, not an error."""
+		ensure_log_table("Access Log")
+		log_db = get_log_db()
+
+		first = frappe.get_doc({"doctype": "Access Log", "user": frappe.session.user})
+		first.db_insert()
+		self.addCleanup(self._delete_log, first.name)
+
+		clash = frappe.get_doc({"doctype": "Access Log", "user": frappe.session.user})
+		clash.name = first.name
+		clash.db_insert()
+		self.addCleanup(self._delete_log, clash.name)
+
+		self.assertNotEqual(clash.name, first.name)
+		self.assertTrue(log_db.exists("Access Log", clash.name))
+
+	@staticmethod
+	def _delete_log(name):
+		log_db = get_log_db()
+		log_db.delete("Access Log", {"name": name})
+		log_db.commit()
+
 	def test_make_full_access_log(self):
 		self.maxDiff = None
 
@@ -216,7 +325,9 @@ class TestAccessLog(IntegrationTestCase):
 				self._flush_deferred_access_logs()
 			finally:
 				self._start_fresh_database_write()
-				frappe.db.delete("Access Log", access_log_filters)
+				log_db = get_log_db()
+				log_db.delete("Access Log", access_log_filters)
+				log_db.commit()
 				new_private_file.delete()
 				# This fixture was published for the web process, so persist its cleanup too.
 				frappe.db.commit()  # nosemgrep

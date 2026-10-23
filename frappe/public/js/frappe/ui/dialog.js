@@ -396,10 +396,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		let action_button = frappe.ui.button({
 			label,
 			css_class: css_class || "",
+			onclick: action,
 		});
 		this.custom_actions.append(action_button);
-
-		action && action_button.click(action);
 	}
 
 	add_custom_button() {}

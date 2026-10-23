@@ -1,8 +1,16 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
-from frappe.desk.form.activity import parse_visible_types, readable_permlevels
+from frappe.desk.form.activity import activity_text, parse_visible_types, readable_permlevels
 from frappe.tests.utils import FrappeTestCase
+
+
+class TestActivityText(FrappeTestCase):
+	def test_html_entities_are_decoded(self):
+		self.assertEqual(
+			activity_text("added tag Released &amp; removed tag Pending Release"),
+			"added tag Released & removed tag Pending Release",
+		)
 
 
 class TestParseVisibleTypes(FrappeTestCase):
