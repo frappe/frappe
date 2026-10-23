@@ -87,7 +87,7 @@ jobs:
       - name: Verify yarn.lock
         run: |
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          git diff --exit-code yarn.lock studio/frontend/yarn.lock
+          git diff --exit-code yarn.lock studio/frontend/yarn.lock flow/yarn.lock
 
       - name: Cache Playwright browsers
         uses: actions/cache@v6
@@ -213,6 +213,28 @@ jobs:
         run: |
           cat bench_start.log || true
 
+  flow:
+    name: Flow Page Tests
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: flow/yarn.lock
+
+      # node --test alone: the page's tests need no site
+      - name: Run Page Tests
+        run: |
+          cd flow
+          yarn install --frozen-lockfile
+          yarn test
+
   impact-map:
     name: UI Impact Map
     needs: test
@@ -235,7 +257,7 @@ jobs:
   # TIP: Require this single check in branch protection, e.g. UI / Success
   success:
     name: UI Success
-    needs: [test, studio]
+    needs: [test, studio, flow]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -245,6 +267,7 @@ jobs:
           stati = [
             '${{ needs.test.result }}',
             '${{ needs.studio.result }}',
+            '${{ needs.flow.result }}',
           ]
 
           nopass = ["failure", "cancelled"]

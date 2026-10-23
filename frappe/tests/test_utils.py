@@ -1888,6 +1888,24 @@ class TestMiscUtils(IntegrationTestCase):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
 		self.assertTrue(get_url_to_form("User", "Test User").endswith("/desk/user/Test%20User"))
 
+	@patch.dict(
+		frappe.conf,
+		{
+			"host_name": None,
+			"hostname": None,
+			"http_port": None,
+			"webserver_port": 8000,
+			"developer_mode": 0,
+			"restart_supervisor_on_update": 1,
+		},
+	)
+	def test_get_url_dev(self):
+		self.assertNotIn(":8000", get_url("/desk", allow_header_override=False))
+		self.assertEqual(
+			get_url("/desk", allow_header_override=False, for_dev_server=True),
+			f"http://{frappe.local.site}:8000/desk",
+		)
+
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})
 		self.assertEqual(safe_json_loads("{ /}"), "{ /}")

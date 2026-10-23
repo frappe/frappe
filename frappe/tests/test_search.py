@@ -104,6 +104,198 @@ class TestSearch(IntegrationTestCase):
 
 		frappe.delete_doc("User", email)
 
+	def test_search_link_start_paginates(self):
+		# a plain doctype; translated ones are paged differently (see below)
+		doctype = new_doctype(autoname="field:some_fieldname").insert()
+		self.addCleanup(doctype.delete)
+		for i in range(12):
+			frappe.get_doc({"doctype": doctype.name, "some_fieldname": f"Row {i:02d}"}).insert()
+
+		first = search_link(doctype=doctype.name, txt="", page_length=5)
+		second = search_link(doctype=doctype.name, txt="", page_length=5, start=5)
+		self.assertEqual(len(first), 5)
+		self.assertEqual(len(second), 5)
+		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
+
+		# only membership: with search text each page would be relevance-sorted on its own
+		both = search_link(doctype=doctype.name, txt="", page_length=10)
+		self.assertEqual({r["value"] for r in both}, {r["value"] for r in first + second})
+
+		self.assertEqual(search_link(doctype=doctype.name, txt="", page_length=5, start=50), [])
+
+		# keep_order: pages in database order, still disjoint and complete
+		kept = [
+			search_link(doctype=doctype.name, txt="", page_length=5, start=s, keep_order=True)
+			for s in (0, 5, 10)
+		]
+		self.assertEqual([len(page) for page in kept], [5, 5, 2])
+		# 12 distinct names across pages of 5 + 5 + 2: disjoint, and nothing missed
+		self.assertEqual(
+			{r["value"] for page in kept for r in page},
+			{f"Row {i:02d}" for i in range(12)},
+		)
+
+	def test_search_link_pages_translated_doctypes(self):
+		# DocType is a translated doctype, paged in Python after an unlimited query
+		first = search_link("DocType", "", page_length=10)
+		second = search_link("DocType", "", page_length=10, start=10)
+		self.assertEqual(len(first), 10)
+		self.assertEqual(len(second), 10)
+		self.assertFalse({r["value"] for r in first} & {r["value"] for r in second})
+		# later pages ask to keep order; the whole list is paged in one order, so they still match
+		self.assertEqual(search_link("DocType", "", page_length=10, start=10, keep_order=True), second)
+		self.assertEqual(search_link("DocType", "", page_length=20)[10:], second)
+
+	def test_search_link_include_image(self):
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", None)
+
+		rows = search_link(doctype="User", txt="Administrator", include_image=True)
+		admin = next(r for r in rows if r["value"] == "Administrator")
+		self.assertEqual(admin["image"], "/files/admin.png")
+		self.assertNotIn("admin.png", admin["description"])
+
+		rows = search_link(doctype="User", txt="Administrator")
+		admin = next(r for r in rows if r["value"] == "Administrator")
+		self.assertNotIn("image", admin)
+
+		# Role has no image_field
+		rows = search_link(doctype="Role", txt="System Manager", include_image=True)
+		self.assertTrue(rows)
+		self.assertNotIn("image", rows[0])
+
+	def test_search_link_images_only_from_records_the_user_can_read(self):
+		from frappe.desk.search import add_images
+
+		frappe.db.set_value("User", "Administrator", "user_image", "/files/admin.png")
+		self.addCleanup(frappe.db.set_value, "User", "Administrator", "user_image", None)
+
+		test_user = "test_search_image_user@example.com"
+		if not frappe.db.exists("User", test_user):
+			frappe.get_doc(
+				{
+					"doctype": "User",
+					"email": test_user,
+					"first_name": "Test Search Image User",
+					"user_type": "System User",
+				}
+			).insert(ignore_permissions=True).add_roles("System Manager")
+			self.addCleanup(lambda: frappe.delete_doc("User", test_user, force=True))
+		add_user_permission("User", test_user, test_user)
+		self.addCleanup(lambda: frappe.db.delete("User Permission", {"user": test_user}))
+
+		# a Link field that ignores User Permissions can list Administrator, but not its image
+		rows = [{"value": "Administrator"}, {"value": test_user}]
+		with self.set_user(test_user):
+			add_images(rows, "User")
+		self.assertNotIn("image", rows[0])
+
+	def test_image_field_behind_a_permlevel_is_not_returned(self):
+		from frappe.desk.search import get_image_field
+
+		# the user reads the record but not the image's permlevel
+		doctype, user = self.make_image_doctype(read=1, image_permlevel=1)
+		with self.set_user(user):
+			self.assertIsNone(get_image_field(doctype))
+		self.assertEqual(get_image_field(doctype), "image")
+
+	def test_image_field_needs_read_access(self):
+		from frappe.desk.search import get_image_field
+
+		# select-only access covers the search fields, not the image
+		doctype, user = self.make_image_doctype(read=0)
+		with self.set_user(user):
+			self.assertIsNone(get_image_field(doctype))
+		self.assertEqual(get_image_field(doctype), "image")
+
+	def test_boot_link_settings_skip_disabled_apps(self):
+		from frappe.boot import get_link_settings
+
+		original = frappe.db.get_value("DocType", "Role", "link_display_mode")
+		self.addCleanup(frappe.db.set_value, "DocType", "Role", "link_display_mode", original)
+		frappe.db.set_value("DocType", "Role", "link_display_mode", "Search")
+		ps = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "Role",
+				"property": "link_display_mode",
+				"property_type": "Select",
+				"value": "Select",
+			}
+		).insert()
+		self.addCleanup(ps.delete)
+		frappe.db.set_value("Property Setter", ps.name, "is_app_disabled", 1)
+
+		# a disabled app's setting is skipped while disabled apps are hidden, as Meta does
+		with patch("frappe.app_state.is_disabled_app_filtering_active", return_value=True):
+			self.assertNotIn("Role", get_link_settings())
+		with patch("frappe.app_state.is_disabled_app_filtering_active", return_value=False):
+			self.assertEqual(get_link_settings()["Role"], {"display_mode": "Select"})
+
+	def test_boot_link_settings(self):
+		from frappe.boot import get_link_settings
+
+		# start from the default whatever the site has set
+		original = frappe.db.get_value("DocType", "Role", "link_display_mode")
+		self.addCleanup(frappe.db.set_value, "DocType", "Role", "link_display_mode", original)
+		frappe.db.set_value("DocType", "Role", "link_display_mode", "Search")
+		self.assertNotIn("Role", get_link_settings())
+
+		frappe.db.set_value("DocType", "Role", "link_display_mode", "Select")
+		self.assertEqual(get_link_settings()["Role"], {"display_mode": "Select"})
+
+		# Customize Form (a Property Setter) wins over the DocType's own value
+		ps = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "Role",
+				"property": "link_display_mode",
+				"property_type": "Select",
+				"value": "Search",
+			}
+		).insert()
+		self.addCleanup(ps.delete)
+		self.assertNotIn("Role", get_link_settings())
+
+		# Role has no image_field, so its flag is dropped
+		original_image = frappe.db.get_value("DocType", "User", "show_image_in_link")
+		self.addCleanup(frappe.db.set_value, "DocType", "User", "show_image_in_link", original_image)
+		frappe.db.set_value("DocType", "User", "show_image_in_link", 1)
+		self.assertEqual(get_link_settings()["User"], {"image_field": "user_image"})
+		frappe.db.set_value("DocType", "Role", "show_image_in_link", 1)
+		self.addCleanup(frappe.db.set_value, "DocType", "Role", "show_image_in_link", 0)
+		self.assertNotIn("Role", get_link_settings())
+
+		# a Property Setter turning images off wins over the DocType flag
+		ps_image = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "User",
+				"property": "show_image_in_link",
+				"property_type": "Check",
+				"value": "0",
+			}
+		).insert()
+		self.addCleanup(ps_image.delete)
+		self.assertNotIn("User", get_link_settings())
+
+		# a Property Setter left behind by a deleted DocType is ignored
+		orphan = frappe.get_doc(
+			{
+				"doctype": "Property Setter",
+				"doctype_or_field": "DocType",
+				"doc_type": "Gone DocType For Link Settings",
+				"property": "link_display_mode",
+				"property_type": "Select",
+				"value": "Select",
+			}
+		).insert(ignore_links=True)
+		self.addCleanup(orphan.delete)
+		self.assertNotIn("Gone DocType For Link Settings", get_link_settings())
+
 	def test_link_field_order(self):
 		# Making a request to the search_link with the tree doctype
 		results = search_link(
@@ -911,6 +1103,34 @@ class TestSearch(IntegrationTestCase):
 		return get_report_link_titles(
 			[{"fieldname": "link", "fieldtype": "Link", "options": doctype}], [{"link": name}]
 		)
+
+	def make_image_doctype(self, *, read: int, image_permlevel: int = 0) -> tuple[str, str]:
+		with self.set_user("Administrator"):
+			role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+			permissions = [{"role": role, "select": 1, "read": read}, {"role": "System Manager", "read": 1}]
+			if image_permlevel:
+				# someone must be able to read the image's permlevel
+				permissions.append({"role": "System Manager", "read": 1, "permlevel": image_permlevel})
+			doctype = new_doctype(
+				fields=[
+					{
+						"fieldname": "image",
+						"fieldtype": "Attach Image",
+						"label": "Image",
+						"permlevel": image_permlevel,
+					}
+				],
+				image_field="image",
+				permissions=permissions,
+			).insert()
+			user = frappe.get_doc(
+				doctype="User",
+				email=f"image-{frappe.generate_hash(length=8)}@example.com",
+				first_name="Image Reader",
+				send_welcome_email=0,
+				roles=[{"role": role}],
+			).insert()
+			return doctype.name, user.name
 
 	def make_select_only_titled_doc(self, *, search_fields=None, **title_properties):
 		with self.set_user("Administrator"):

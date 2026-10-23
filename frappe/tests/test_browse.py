@@ -1,5 +1,6 @@
 """Explicit browse targets can be real sites or symlinked sites."""
 
+import os
 import unittest
 from pathlib import Path
 from types import SimpleNamespace
@@ -21,9 +22,11 @@ class BrowseSiteTest(unittest.TestCase):
 				patch("frappe.init") as init,
 				patch("frappe.connect"),
 				patch("frappe.utils.get_sites", return_value=[]),
-				patch("frappe.utils.get_site_url", return_value="http://rehearsal.localhost:8006"),
-				patch("click.launch") as launch,
+				patch("frappe.utils.get_url", return_value="http://rehearsal.localhost:8006"),
+				patch("webbrowser.open") as launch,
+				patch.dict(os.environ),
 			):
+				os.environ.pop("SSH_CONNECTION", None)
 				result = runner.invoke(
 					browse, obj=SimpleNamespace(sites=["rehearsal.localhost"], profile=False)
 				)

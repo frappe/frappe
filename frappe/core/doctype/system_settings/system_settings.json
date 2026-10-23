@@ -124,6 +124,7 @@
   "link_field_results_limit",
   "column_break_nebx",
   "allow_clearing_link_fields",
+  "enable_combobox_link_field",
   "api_logging_section",
   "log_api_requests",
   "ai_agents_tab",
@@ -804,6 +805,13 @@
    "fieldname": "allow_clearing_link_fields",
    "fieldtype": "Check",
    "label": "Allow Clearing Link Fields"
+  },
+  {
+   "default": "0",
+   "description": "Use the new Combobox for Link, Autocomplete and MultiSelect fields.",
+   "fieldname": "enable_combobox_link_field",
+   "fieldtype": "Check",
+   "label": "Enable Combobox Fields (Beta)"
   },
   {
    "depends_on": "eval:doc.allow_guests_to_upload_files == 1",

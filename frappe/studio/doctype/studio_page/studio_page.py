@@ -28,7 +28,7 @@ from frappe.studio.export import (
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import camel_case_to_kebab_case
+from frappe.studio.utils import camel_case_to_kebab_case, validate_file_name
 from frappe.utils import get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -99,6 +99,7 @@ class StudioPage(Document):
 
 	def validate(self):
 		validate_standard_app_change(self)
+		self.validate_page_title()
 		# only published pages are served, so only they must not share a route or title
 		if self.published and any(
 			self.has_value_changed(field) for field in ("route", "page_title", "published")
@@ -108,6 +109,14 @@ class StudioPage(Document):
 		if not hasattr(self, "_skip_validate"):
 			self.validate_variables()
 			self.process_resources()
+
+	def validate_page_title(self):
+		# the scrubbed title names the page's export folder, so it must stay a single path segment
+		validate_file_name(
+			self.get_export_docname(),
+			_("Page Title cannot be empty or contain slashes."),
+			title=_("Invalid Page Title"),
+		)
 
 	def on_update(self):
 		self.export_page()
