@@ -5,7 +5,7 @@ frappe.provide("frappe.ui");
 /**
  * @typedef {Object} ChecklistAction
  * Button options for frappe.ui.button. `onclick` gets the item and the checklist.
- * The first action is solid with an arrow, the rest are subtle; icons of their own are dropped,
+ * The first action is solid, the rest are subtle; icons of their own are dropped,
  * so every row's buttons look alike.
  *
  * @typedef {Object} ChecklistItem
@@ -477,7 +477,6 @@ frappe.ui.Checklist = class Checklist {
 				return frappe.ui.button({
 					...action,
 					variant,
-					icon_right: variant === "solid" ? "arrow-right" : undefined,
 					disabled: locked || action.disabled,
 					onclick: () => action.onclick?.(item, this),
 				})[0];
