@@ -1,0 +1,12 @@
+#page-report-print .layout-main-section-wrapper {
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.report-print-preview iframe {
+	transition: opacity 150ms ease;
+}
+
+.report-print-preview.is-rendering iframe {
+	opacity: 0.5;
+}

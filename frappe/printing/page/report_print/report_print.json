@@ -1,0 +1,21 @@
+{
+ "content": null,
+ "creation": "2026-10-23 11:52:48.436907",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-10-23 11:52:48.436907",
+ "modified_by": "Administrator",
+ "module": "Printing",
+ "name": "report-print",
+ "owner": "Administrator",
+ "page_name": "report-print",
+ "roles": [],
+ "script": null,
+ "shared_page": 1,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Report Print",
+ "type": ""
+}
