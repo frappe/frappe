@@ -45,6 +45,7 @@ jobs:
           python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
           TYPE: "server"
+          SKIP_ON_PRS: "true"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

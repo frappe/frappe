@@ -500,7 +500,7 @@ if __name__ == "__main__":
 	else:
 		tests_requested = has_run_ui_tests_label(pr_number, repo)
 
-	if skips_test_suites(pr_number, repo) and not tests_requested:
+	if os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested:
 		print(
 			"Develop and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
 		)
