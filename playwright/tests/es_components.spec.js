@@ -935,6 +935,17 @@ test.describe("Espresso components", () => {
 			).toHaveCount(0);
 		});
 
+		test("leaving the add input with text in it adds the item", async ({ page }) => {
+			const group = explorer_group(page, "adding and removing");
+			const input = group.getByRole("textbox", { name: "Add activity" });
+
+			await input.fill("Order a chair");
+			await input.blur();
+			await expect(row(group, "Order a chair")).toBeVisible();
+			await expect(input).toHaveValue("");
+			await expect(input).not.toBeFocused();
+		});
+
 		test("Escape clears the add input without adding an item", async ({ page }) => {
 			const group = explorer_group(page, "adding and removing");
 			const input = group.getByRole("textbox", { name: "Add activity" });

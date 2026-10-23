@@ -32,7 +32,7 @@ frappe.provide("frappe.ui");
  * @property {(item:ChecklistItem, user:string|null)=>void|Promise} [on_assign] Makes the assignee editable; runs before the item changes, reject to keep the old one.
  * @property {(item:ChecklistItem, date:string|null)=>void|Promise} [on_due_date_change] Makes the due date editable, the same way.
  * @property {(item:ChecklistItem, status:string|null)=>void|Promise} [on_status_change] Makes an unfinished item's marker a menu to set it In Progress or Stuck, or clear that; finishing stays with the caller.
- * @property {(label:string, checklist:Checklist)=>void|Promise} [on_add] Shows an input below the items; Enter passes the typed label, and the caller adds the item through set_items. Reject to keep the text. Set it to null and call set_items to hide the input.
+ * @property {(label:string, checklist:Checklist)=>void|Promise} [on_add] Shows an input below the items; Enter, or leaving the input, passes the typed label, and the caller adds the item through set_items. Reject to keep the text. Set it to null and call set_items to hide the input.
  * @property {string} [add_label] Placeholder of that input. Defaults to "Add item".
  * @property {(item:ChecklistItem, checklist:Checklist)=>void|Promise} [on_remove] Runs before a removable item is removed; reject to keep it.
  * @property {string} [css_class] Extra classes on the root.
@@ -500,21 +500,26 @@ frappe.ui.Checklist = class Checklist {
 		const input = this.add_row.querySelector("input");
 		input.placeholder = this.opts.add_label || __("Add item");
 		input.setAttribute("aria-label", input.placeholder);
-		input.addEventListener("keydown", (e) => {
-			if (e.key === "Escape") {
-				input.value = "";
-				input.blur();
-			}
-			if (e.key !== "Enter" || input.readOnly || !input.value.trim()) return;
-			e.preventDefault();
+		const add = (refocus) => {
+			if (input.readOnly || !input.value.trim()) return;
 			input.readOnly = true;
 			Promise.resolve(this.opts.on_add?.(input.value.trim(), this))
 				.then(() => (input.value = ""))
 				.finally(() => {
 					input.readOnly = false;
-					input.focus();
+					if (refocus) input.focus();
 				});
+		};
+		input.addEventListener("keydown", (e) => {
+			if (e.key === "Escape") {
+				input.value = "";
+				input.blur();
+			}
+			if (e.key !== "Enter") return;
+			e.preventDefault();
+			add(true);
 		});
+		input.addEventListener("blur", () => add(false));
 		return [this.add_row];
 	}
 
