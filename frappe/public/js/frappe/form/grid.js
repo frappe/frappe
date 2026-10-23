@@ -282,8 +282,18 @@ export default class Grid {
 	}
 
 	delete_all_rows() {
+<<<<<<< HEAD
 		frappe.confirm(__("Are you sure you want to delete all rows?"), () => {
 			this.frm.doc[this.df.fieldname] = [];
+=======
+		const num_rows = this.data.length;
+		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [num_rows]), () => {
+			if (this.frm) {
+				this.frm.doc[this.df.fieldname] = [];
+			} else {
+				this.df.data = [];
+			}
+>>>>>>> 7d73c88 (fix(grid): delete all rows of a table in a dialog)
 			$(this.parent).find(".rows").empty();
 			this.grid_rows = [];
 			this.refresh();
