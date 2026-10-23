@@ -135,14 +135,13 @@ watch(isOpen, async (open) => {
 	props.request.settle(saved);
 });
 
-const SAVE_KEYS = ["enter", "s"];
 const body = useTemplateRef<HTMLElement>("body");
 useEventListener(
 	() => body.value?.closest<HTMLElement>('[role="dialog"]'),
 	"keydown",
 	(event: KeyboardEvent) => {
-		if (!(event.ctrlKey || event.metaKey) || !SAVE_KEYS.includes(event.key.toLowerCase()))
-			return;
+		const key = event.key.toLowerCase();
+		if (!(event.ctrlKey || event.metaKey) || (key !== "enter" && key !== "s")) return;
 		event.preventDefault();
 		if (!event.repeat) void save();
 	}

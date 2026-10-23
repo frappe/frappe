@@ -197,9 +197,10 @@ it("ignores the repeats of a held Ctrl+S", async () => {
 	await open();
 	await typeIntoFocused("Big deal");
 
-	await pressSave(focused(), { key: "s", ctrlKey: true, repeat: true });
+	const event = await pressSave(focused(), { key: "s", ctrlKey: true, repeat: true });
 
 	expect(inserts()).toEqual([]);
+	expect(event.defaultPrevented).toBe(true);
 });
 
 it("does not save on Ctrl+Enter outside the dialog", async () => {

@@ -149,6 +149,22 @@ it("saves nothing on Ctrl+S in a page.dialog.form, and blocks the browser's save
 	expect(event.defaultPrevented).toBe(true);
 });
 
+it("saves nothing on Ctrl+S in a Select's open dropdown inside a page.dialog.form", async () => {
+	const dialog = mountRecordPage();
+	void dialog.form({ title: "Pick a kind", fields: [{ fieldname: "kind", fieldtype: "Select", label: "Kind", options: "A\nB" }] });
+	await settle();
+	const trigger = document.querySelector<HTMLElement>("[role='dialog'] [data-slot='trigger']")!;
+	trigger.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+	await settle();
+	expect(focused().closest("[role='listbox']")).not.toBeNull();
+	expect(focused().closest("[role='dialog']")).toBeNull();
+
+	const event = await pressCtrlS(focused());
+
+	expect(pageSave).not.toHaveBeenCalled();
+	expect(event.defaultPrevented).toBe(true);
+});
+
 it("saves the record page on Ctrl+S with no dialog open", async () => {
 	mountRecordPage();
 	await settle();

@@ -842,7 +842,8 @@ delivered when the replay or hold commits. The panel's own expand of a long row 
 ### Saving: `page.save()`
 
 `page.save()` is the one path; the Save button, `Ctrl+S` / `Cmd+S` and a script all call
-it. `Ctrl+S` does not save the page while focus is in a dialog. The order is fixed:
+it. `Ctrl+S` does not save the page while focus is in a dialog, a popover or a dropdown. The
+order is fixed:
 
 1. The edit still pending in a focused control is flushed, so its field handler runs.
 2. `beforeSave` fires. A throw is a veto: nothing is sent, and the message shows.
