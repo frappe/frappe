@@ -98,12 +98,9 @@ function flatAddress(to: any, addresses: Addresses) {
 	// `/:module/:doctype` matched, so the second segment is a docname. Three segments is
 	// already a complete record address and is not re-read.
 	if (!to.params.name) {
-		return {
-			name: "record",
-			params: { ...params, name: String(to.params.doctype) },
-			query: to.query,
-			replace: true,
-		};
+		const name = String(to.params.doctype);
+		if (name === "new") return { name: "new-record", params, query: to.query, replace: true };
+		return { name: "record", params: { ...params, name }, query: to.query, replace: true };
 	}
 
 	return null;

@@ -136,6 +136,8 @@ export interface RecordPageHost {
   /** The record read's `permissions` part; the engine curates it. */
   perms: () => Record<string, any>;
   isDirty: () => boolean;
+  /** True until the record's first save; `page.save()` then inserts, also with no changes. */
+  isNew?: () => boolean;
   /** The name of the tab the reader is on, as the host's strip resolves it. */
   activeTab: () => string;
   /** Moves the reader to a tab of the record's strip; the engine has already resolved the name. */
@@ -152,6 +154,8 @@ export interface RecordPageHost {
   focusField?: (fieldname: string, cursor: boolean) => void;
   /** Writes the draft; the engine flushes and fires `beforeSave` before it, `afterSave` after. */
   save: () => Promise<void>;
+  /** Runs once `afterSave` settles; a new record's host opens the saved record here. */
+  onSaved?: () => Promise<void>;
   reload: () => Promise<void>;
   router: Router;
   /** The host's per-field overlay hook; `page.fields.get` reads it to match what renders. */
@@ -373,6 +377,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     get isDirty() {
       return host.isDirty();
     },
+    get isNew() {
+      return host.isNew?.() ?? false;
+    },
     quickActions,
     frame,
     body,
@@ -409,10 +416,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
   const saving = shallowRef<Promise<void> | null>(null);
 
-  /** The one save path: a clean doc resolves at once, a `beforeSave` throw sends nothing, and it paints once. */
+  /** The one save path: a clean saved doc resolves at once, a `beforeSave` throw sends nothing, and it paints once. */
   function save() {
-    if (gate.hasLeft() || !host.isDirty()) return Promise.resolve();
-    saving.value ??= hold(runSave).finally(() => (saving.value = null));
+    if (gate.hasLeft() || (!page.isNew && !host.isDirty())) return Promise.resolve();
+    saving.value ??= hold(runSave)
+      .then(() => (gate.hasLeft() ? undefined : host.onSaved?.()))
+      .finally(() => (saving.value = null));
     return saving.value;
   }
 

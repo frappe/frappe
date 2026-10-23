@@ -52,23 +52,8 @@ export function routeFor(
 	name?: string | null,
 	options: RouteOptions = {}
 ): RouteLocationRaw {
-	const { boot, addresses } = current();
-	const address = addresses.addressOf(doctype);
-
-	if (!address) {
-		// A guessed slug would reach not-found one hop later, with the reason lost.
-		throw new Error(`routeFor: no address for doctype '${doctype}'`);
-	}
-
-	const [slug, module] = address;
-	const params: Record<string, string> = { doctype: slug };
-	if (isModular(boot)) {
-		if (!module)
-			throw new Error(
-				`routeFor: '${doctype}' has no module under a modular prefix`
-			);
-		params.module = module;
-	}
+	const { addresses } = current();
+	const params = doctypeParams(doctype);
 
 	if (!name && addresses.isSingle(doctype)) name = doctype;
 	if (name)
@@ -87,22 +72,45 @@ export function routeFor(
 	return { name: standardOr(doctype, "list", options), params, query: options.query };
 }
 
+/** The doctype's slug and, under a modular prefix, its module. */
+function doctypeParams(doctype: string): Record<string, string> {
+	const { boot, addresses } = current();
+	const address = addresses.addressOf(doctype);
+
+	if (!address) {
+		// A guessed slug would reach not-found one hop later, with the reason lost.
+		throw new Error(`routeFor: no address for doctype '${doctype}'`);
+	}
+
+	const [slug, module] = address;
+	const params: Record<string, string> = { doctype: slug };
+	if (isModular(boot)) {
+		if (!module)
+			throw new Error(
+				`routeFor: '${doctype}' has no module under a modular prefix`
+			);
+		params.module = module;
+	}
+	return params;
+}
+
 /** The standard page's route name when it was asked for and an app replaced the page. */
 function standardOr(doctype: string, key: "record" | "list", options: RouteOptions) {
 	return options.standard && replacementFor(doctype, key) ? `standard-${key}` : key;
 }
 
-/** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. */
+/** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. A single opens its one record. */
 export function routeForNew(
 	doctype: string,
 	values: Record<string, unknown> = {}
 ): RouteLocationRaw {
+	if (current().addresses.isSingle(doctype)) return routeFor(doctype);
 	const query: Record<string, string> = {};
 	for (const [fieldname, value] of Object.entries(values)) {
 		if (value == null || value === "") continue;
 		query[fieldname] = typeof value === "object" ? JSON.stringify(value) : String(value);
 	}
-	return routeFor(doctype, "new", { query });
+	return { name: "new-record", params: doctypeParams(doctype), query };
 }
 
 /** The route for a module's landing page. Modular prefixes only. */

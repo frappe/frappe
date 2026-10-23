@@ -63,7 +63,7 @@
 									v-model:sections="formSections"
 									:layout="form"
 									:tab="formTab"
-									:class="formClasses"
+									:class="FORM_CLASSES"
 									@update:tab="chooseFormTab"
 									@update:activeTab="activeFormTab = $event"
 								/>
@@ -160,7 +160,6 @@ import {
 	joinForm,
 	loadRecordScripts,
 	projectFrame,
-	projectHeader,
 	SAVE_VETO,
 	useFormLayout,
 	type HeaderItem,
@@ -179,7 +178,10 @@ import RecordTabs from "./record/tabs/RecordTabs.vue";
 import RecordComposer from "./record/composer/RecordComposer.vue";
 import { composerBuiltins, composerHost } from "./record/composer/composerHost";
 import { useComposerRecord } from "./record/composer/writerContext";
-import { FILES_TAB, TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
+import { FILES_TAB, recordTabBuiltins } from "./record/tabs/recordTabs";
+import { FORM_CLASSES } from "./record/formClasses";
+import { projectRecordHeader } from "./record/recordHeaderProjection";
+import { discardChanges } from "./record/discardChanges";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
@@ -263,21 +265,6 @@ const openedQuery = shallowRef<LocationQuery>(route.query);
 let keeper: ((view: RecordView) => void) | null = null;
 let keeping = false;
 
-// The form fills the column with no border of its own, and its strip stays put while the sections scroll.
-// The strip and the sections share the header row's gutter, so the fields line up with the crumbs.
-const formClasses = [
-	"!rounded-none !border-0",
-	"[&_[role='tablist']]:sticky [&_[role='tablist']]:top-0 [&_[role='tablist']]:z-10 [&_[role='tablist']]:bg-surface-base",
-	TAB_STRIP_CLASSES,
-	"[&_.sections]:mx-auto [&_.sections]:my-0 [&_.sections]:w-full [&_.sections]:max-w-3xl [&_.sections]:px-[--page-gutter] [&_.sections]:py-6",
-	"[&_.section-header]:!px-0 [&_.section-body]:!px-0",
-];
-
-// The right zone keeps this many top-level controls; the rest demote into `⋯`.
-const HEADER_BUDGET = 3;
-// Save keeps its slot whatever a script adds; it is the only pinned control.
-const PINNED_CONTROLS = ["save"];
-
 let currentVisit = new Visit();
 // A return visit's hold on fresh meta and layouts, let go with its background reads.
 let releaseFresh = () => {};
@@ -300,8 +287,7 @@ const follow = computed(() =>
 
 const header = computed(() => {
 	actionsVersion.value;
-	const resolved = controller.value?.header.resolve() ?? [];
-	return projectHeader(resolved, HEADER_BUDGET, PINNED_CONTROLS);
+	return projectRecordHeader(controller.value?.header.resolve() ?? []);
 });
 
 const frame = computed(() => {
@@ -948,13 +934,7 @@ function expand(field: FieldNode) {
 
 async function confirmLeave() {
 	if (!dirty.value || !controller.value) return true;
-	const discard = await controller.value.page.dialog.confirm({
-		title: "Discard unsaved changes?",
-		message: "This record has changes that are not saved.",
-		confirmLabel: "Discard",
-		cancelLabel: "Keep editing",
-	});
-	return !!discard;
+	return discardChanges(controller.value.page);
 }
 
 // A push still holds the entry being left, so its history entry takes the view as it is now.

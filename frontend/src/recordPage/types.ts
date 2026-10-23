@@ -557,6 +557,8 @@ export interface RecordPageApi {
   /** What this user may do with a field, by permlevel; an unknown one is `none`. */
   fieldAccess(fieldname: string): FieldAccess;
   isDirty: boolean;
+  /** True until the first save; the record has no name and `page.save()` inserts it. */
+  isNew: boolean;
   quickActions: SurfaceVerbs<QuickAction>;
   /** The column itself: the built-in `header` and `body`, and a script's bands around them. */
   frame: SurfaceVerbs<FrameItem>;

@@ -198,6 +198,7 @@ async function open(doctype: string, values?: Record<string, unknown>) {
 		history: createMemoryHistory(),
 		routes: [
 			{ path: "/:doctype", name: "list", component: { render: () => null } },
+			{ path: "/:doctype/new", name: "new-record", component: { render: () => null } },
 			{ path: "/:doctype/:name", name: "record", component: { render: () => null } },
 		],
 	});
