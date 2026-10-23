@@ -158,16 +158,10 @@
 		}
 	}
 
-	// An entry the eye has taken off: still here, still where it was left, plainly not on the
-	// surface. Its eye stays showing, since it is the way back.
-	&.is-hidden {
-		.ws-row-body {
-			opacity: 0.45;
-		}
-
-		.ws-eye {
-			opacity: 1;
-		}
+	// An entry taken off on a surface that keeps it listed: still where it was left, plainly not
+	// on the surface.
+	&.is-hidden .ws-row-body {
+		opacity: 0.45;
 	}
 }
 

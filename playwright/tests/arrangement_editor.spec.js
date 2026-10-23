@@ -139,6 +139,15 @@ async function open_editor(page, { hidden = [], can_curate = false, note = "" } 
 					this.render_list();
 				}
 
+				can_remove() {
+					return true;
+				}
+
+				remove(key) {
+					this.hide(key);
+					this.render_list();
+				}
+
 				copy() {
 					return {
 						add_label: "Add",
@@ -203,7 +212,7 @@ test.describe("Arrangement editor", () => {
 		await expect(rows.nth(1).locator(".ws-row-label")).toHaveText("Beta");
 	});
 
-	test("takes an entry off with the eye, and only offers Save once something changed", async ({
+	test("takes an entry off with the cross, and only offers Save once something changed", async ({
 		page,
 	}) => {
 		await stub_xcall(page, { "read.user": ENTRIES });
@@ -211,12 +220,15 @@ test.describe("Arrangement editor", () => {
 
 		const save = foot_button(page, "Save");
 		await expect(save).toBeDisabled();
-		await row_control(page, 1, ".ws-eye").click({ force: true });
+		await row_control(page, 1, ".ws-remove").click({ force: true });
 		await expect(page.locator(".ws-row").nth(1)).toHaveClass(with_class("is-hidden"));
 		await expect(save).toBeEnabled();
 
 		// And back on, into the place it never left, which is no change at all.
-		await row_control(page, 1, ".ws-eye").click({ force: true });
+		await page.evaluate(() => {
+			window.__editor.hidden.delete("beta");
+			window.__editor.render_list();
+		});
 		await expect(page.locator(".ws-row").nth(1)).not.toHaveClass(with_class("is-hidden"));
 		await expect(save).toBeDisabled();
 	});
@@ -225,7 +237,7 @@ test.describe("Arrangement editor", () => {
 		await stub_xcall(page, { "read.user": ENTRIES, "save.user": {} });
 		await open_editor(page);
 
-		await row_control(page, 0, ".ws-eye").click({ force: true });
+		await row_control(page, 0, ".ws-remove").click({ force: true });
 		await foot_button(page, "Save").click();
 
 		// An entry left out would keep whatever the layer below said about it, so every entry
@@ -310,7 +322,7 @@ test.describe("Arrangement editor", () => {
 		await stub_xcall(page, { "read.user": ENTRIES });
 		await open_editor(page);
 
-		await row_control(page, 0, ".ws-eye").click({ force: true });
+		await row_control(page, 0, ".ws-remove").click({ force: true });
 		await foot_button(page, "Cancel").click();
 		const confirm = page.locator(".modal:visible", { hasText: "Discard your changes?" });
 		await expect(confirm).toBeVisible();
@@ -447,9 +459,7 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 	test("removes an entry this layer added rather than hiding it", async ({ page }) => {
 		await add_through_panel(page, { kind: "Section", label: "Mine" });
 
-		// Nothing below holds it, so there is no hiding it: it carries a cross, not an eye.
 		const last = page.locator(".ws-row").last();
-		await expect(last.locator(".ws-eye")).toHaveCount(0);
 		await last.locator(".ws-remove").click({ force: true });
 		await expect(page.locator(".ws-row")).toHaveCount(3);
 	});
@@ -497,7 +507,6 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 		page,
 	}) => {
 		await expect(page.locator(".sidebar-header .ws-layer-phrase")).toHaveText("just for me");
-		await expect(page.locator(".ws-row .ws-eye")).toHaveCount(0);
 		await row_control(page, 0, ".ws-remove").click({ force: true });
 		await expect(page.locator(".ws-row")).toHaveCount(2);
 
@@ -520,7 +529,6 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 		await open_sidebar_editor(page, { [SITE_READ]: ITEMS, [SITE_SAVE]: { module_sidebars } });
 
 		await expect(page.locator(".sidebar-header .ws-layer-phrase")).toHaveText("for everyone");
-		await expect(row_control(page, 0, ".ws-eye")).toHaveCount(0);
 		await row_control(page, 0, ".ws-remove").click({ force: true });
 		await expect(page.locator(".ws-row")).toHaveCount(2);
 
@@ -539,8 +547,6 @@ test.describe("Arrangement editor: a module's sidebar", () => {
 			frappe.boot.developer_mode = 1;
 		});
 		await open_sidebar_editor(page, { [APP_READ]: ITEMS, [APP_SAVE]: { module_sidebars } });
-
-		await expect(page.locator(".ws-row .ws-eye")).toHaveCount(0);
 
 		// The app's layer holds the section itself, so its panel says how it draws.
 		await page.locator(".ws-row").nth(1).click();

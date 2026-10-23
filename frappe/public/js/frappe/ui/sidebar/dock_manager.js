@@ -451,10 +451,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		return !this.is_own_add(key);
 	}
 
-	can_hide() {
-		return false;
-	}
-
 	is_listed(key) {
 		return !this.hidden.has(key);
 	}

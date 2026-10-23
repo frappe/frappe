@@ -142,29 +142,16 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return "";
 	}
 
-	// What the eye says it will do. A surface where hiding means different things at different
-	// layers states that here. See the dock, where an author hiding a row ships it off by default
-	// and a site hiding one makes a customization.
-	hide_tooltip(key, hidden) {
-		return hidden ? __("Show") : __("Hide");
-	}
-
 	// Whether this layer added the entry itself, rather than overriding one a lower layer holds.
-	// An entry this layer added is removed with a cross rather than an eye: there is nothing below
-	// it to hide it from, so changing your mind about your own row means deleting it.
+	// An entry this layer added is deleted by its cross: there is nothing below it to hide it
+	// from, so changing your mind about your own row means deleting it.
 	is_own_add() {
 		return false;
 	}
 
-	// Whether an entry a lower layer holds may be deleted here, beside its eye or instead of it.
+	// Whether an entry a lower layer holds carries the cross here.
 	can_remove() {
 		return false;
-	}
-
-	// Whether an entry a lower layer holds carries the eye. A surface whose layer takes entries
-	// off with the cross instead says no here.
-	can_hide() {
-		return true;
 	}
 
 	// Whether an entry is shown in the list at all. A surface where taking an entry off removes it
@@ -173,7 +160,7 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		return true;
 	}
 
-	// Whether an entry is arranged here but never taken off, so it carries no eye and no cross.
+	// Whether an entry is arranged here but never taken off, so it carries no cross.
 	is_pinned() {
 		return false;
 	}
@@ -514,10 +501,8 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		const $controls = $(`<span class="ws-row-controls"></span>`);
 		if (this.is_own_add(key)) {
 			$controls.append(this.remove_button(key));
-		} else if (!this.is_pinned(key)) {
-			if (this.can_hide(key)) $controls.append(this.visibility_button(key));
-			// After the eye, so the destructive control is not the first one under the cursor.
-			if (this.can_remove(key)) $controls.append(this.remove_button(key));
+		} else if (!this.is_pinned(key) && this.can_remove(key)) {
+			$controls.append(this.remove_button(key));
 		}
 		$row.append($controls);
 
@@ -527,20 +512,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			else this.edit_entry(key);
 		});
 		return $row;
-	}
-
-	// The eye, which is all of hide and show for an entry a lower layer holds: one list, one
-	// control, and a row that keeps its place either way.
-	visibility_button(key) {
-		const hidden = this.hidden.has(key);
-		return frappe.ui.button({
-			icon: hidden ? "eye-off" : "eye",
-			variant: "ghost",
-			size: "xs",
-			title: this.hide_tooltip(key, hidden),
-			css_class: "ws-eye",
-			onclick: () => this.toggle(key),
-		});
 	}
 
 	// The cross, for a row this layer added. Hiding it would store a layer holding an entry it
@@ -562,12 +533,6 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 		this.entries.delete(key);
 		this.order = this.order.filter((k) => k !== key);
 		this.hidden.delete(key);
-		this.render_list();
-	}
-
-	toggle(key) {
-		if (this.hidden.has(key)) this.hidden.delete(key);
-		else this.hide(key);
 		this.render_list();
 	}
 

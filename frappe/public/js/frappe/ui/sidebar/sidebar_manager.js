@@ -474,10 +474,6 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 		return !this.is_own_add(key);
 	}
 
-	can_hide() {
-		return false;
-	}
-
 	// A hidden row draws nowhere and has no control left to bring it back, so it is not listed. It
 	// is still saved as it was.
 	is_listed(key) {
