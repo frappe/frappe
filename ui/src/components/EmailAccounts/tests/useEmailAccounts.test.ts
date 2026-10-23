@@ -72,6 +72,9 @@ function backend({ tokens = { "relay-app": false, "own-app": true } } = {}) {
   });
 }
 
+const sales = (c: { accounts: EmailAccount[] }) =>
+  c.accounts.find((a) => a.name === "Sales")!;
+
 const calls = (method: string) =>
   call.mock.calls.filter(([m]) => m === method).map(([, a]) => a);
 
@@ -85,10 +88,11 @@ describe("useEmailAccounts", () => {
     const c = useEmailAccounts("HD Ticket");
     await c.load();
 
+    // Sales neither receives nor sends, so it goes last
     expect(c.accounts.map((a) => [a.name, a.authKind, a.status])).toEqual([
       ["Support", "oauth", "needs-reconnect"],
-      ["Sales", "password", "active"],
       ["Legacy", "oauth-custom", "active"],
+      ["Sales", "password", "active"],
     ]);
     expect(calls("frappe.client.get_list")[0]).toMatchObject({
       order_by: "creation desc",
@@ -141,8 +145,8 @@ describe("useEmailAccounts", () => {
     ]);
     expect(c.accounts.map((a) => a.name)).toEqual([
       "Support",
-      "Sales",
       "Legacy",
+      "Sales",
     ]);
   });
 
@@ -157,7 +161,7 @@ describe("useEmailAccounts", () => {
     });
 
     await expect(
-      c.update(c.accounts[1], { enable_outgoing: 1 }, "Sales Team"),
+      c.update(sales(c), { enable_outgoing: 1 }, "Sales Team"),
     ).rejects.toBe(rejected);
     expect(calls("frappe.client.rename_doc")).toEqual([]);
   });
@@ -174,7 +178,7 @@ describe("useEmailAccounts", () => {
     const loads = calls("frappe.client.get_list").length;
 
     await expect(
-      c.update(c.accounts[1], { enable_outgoing: 1 }, "Sales Team"),
+      c.update(sales(c), { enable_outgoing: 1 }, "Sales Team"),
     ).rejects.toBe(rejected);
     expect(calls("frappe.client.get_list")).toHaveLength(loads + 1);
   });
@@ -182,7 +186,7 @@ describe("useEmailAccounts", () => {
   it("saves the changes on the current name, then renames", async () => {
     const c = useEmailAccounts("ToDo");
     await c.load();
-    await c.update(c.accounts[1], { enable_incoming: 1 }, "Sales Team");
+    await c.update(sales(c), { enable_incoming: 1 }, "Sales Team");
 
     expect(
       call.mock.calls

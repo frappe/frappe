@@ -63,73 +63,77 @@
 			</p>
 			<Button class="mt-2" :label="__('New email account')" @click="emit('add')" />
 		</div>
-		<ScrollArea v-else class="-mx-3 min-h-0 flex-1" viewport-class="px-3">
-			<Banner
-				v-if="controller.error"
-				ref="loadError"
-				class="mt-6"
-				theme="red"
-				:title="__('Couldn\'t load email accounts')"
-				:description="errorText(controller.error)"
-			>
-				<template #actions>
-					<Button
-						variant="outline"
-						:label="__('Retry')"
-						:loading="controller.loading"
-						@click="retry"
+		<Banner
+			v-else-if="controller.error"
+			ref="loadError"
+			class="mt-6 shrink-0"
+			theme="red"
+			:title="__('Couldn\'t load email accounts')"
+			:description="errorText(controller.error)"
+		>
+			<template #actions>
+				<Button
+					variant="outline"
+					:label="__('Retry')"
+					:loading="controller.loading"
+					@click="retry"
+				/>
+			</template>
+		</Banner>
+		<template v-else>
+			<div class="mt-6 grid shrink-0 grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4">
+				<div class="flex min-w-0 flex-col gap-1.5">
+					<label :for="ids.incoming" class="text-sm text-ink-gray-7">
+						{{ __("Default incoming") }}
+					</label>
+					<Select
+						:id="ids.incoming"
+						:model-value="defaultOf('incoming')"
+						:options="defaultOptions('enable_incoming')"
+						align="end"
+						@update:model-value="(v) => setDefault('incoming', v)"
 					/>
-				</template>
-			</Banner>
-			<template v-else>
-				<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4">
-					<div class="flex min-w-0 flex-col gap-1.5">
-						<label :for="ids.incoming" class="text-sm text-ink-gray-7">
-							{{ __("Default incoming") }}
-						</label>
-						<Select
-							:id="ids.incoming"
-							:model-value="defaultOf('incoming')"
-							:options="defaultOptions('enable_incoming')"
-							align="end"
-							@update:model-value="(v) => setDefault('incoming', v)"
-						/>
-					</div>
-					<div class="flex min-w-0 flex-col gap-1.5">
-						<label :for="ids.outgoing" class="text-sm text-ink-gray-7">
-							{{ __("Default outgoing") }}
-						</label>
-						<Select
-							:id="ids.outgoing"
-							:model-value="defaultOf('outgoing')"
-							:options="defaultOptions('enable_outgoing')"
-							align="end"
-							@update:model-value="(v) => setDefault('outgoing', v)"
-						/>
-					</div>
 				</div>
+				<div class="flex min-w-0 flex-col gap-1.5">
+					<label :for="ids.outgoing" class="text-sm text-ink-gray-7">
+						{{ __("Default outgoing") }}
+					</label>
+					<Select
+						:id="ids.outgoing"
+						:model-value="defaultOf('outgoing')"
+						:options="defaultOptions('enable_outgoing')"
+						align="end"
+						@update:model-value="(v) => setDefault('outgoing', v)"
+					/>
+				</div>
+			</div>
 
-				<div class="mt-8 flex items-center gap-2">
-					<h3 :id="ids.mailboxes" class="text-base-semibold text-ink-gray-8">
-						{{ __("Mailboxes") }}
-					</h3>
-					<Badge theme="gray" :label="String(controller.accounts.length)" />
-				</div>
+			<div class="mt-8 flex shrink-0 items-center gap-2">
+				<h3 :id="ids.mailboxes" class="text-base-semibold text-ink-gray-8">
+					{{ __("Mailboxes") }}
+				</h3>
+				<Badge theme="gray" :label="String(controller.accounts.length)" />
+			</div>
+			<!-- only the mailboxes scroll; the defaults stay in view -->
+			<ScrollArea class="-mx-3 mt-3 min-h-0 flex-1" viewport-class="px-3">
 				<ul
 					ref="rows"
 					:aria-labelledby="ids.mailboxes"
-					class="mt-3 grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4 pb-4"
+					class="grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4 pb-4"
 				>
 					<li
-						v-for="(account, i) in controller.accounts"
+						v-for="(account, i) in controller.accounts.slice(0, shown)"
 						:key="account.name"
-						class="flex min-w-0 flex-col overflow-hidden rounded-6 border border-outline-gray-2"
+						class="flex min-w-0 flex-col overflow-hidden rounded-6 border border-outline-gray-2 transition-opacity"
+						:class="{ 'opacity-60': saving.has(account.name) }"
+						:aria-busy="saving.has(account.name)"
 					>
 						<!-- frappe-ui has no clickable card; ItemListRow is for listboxes -->
 						<button
 							type="button"
 							data-open
-							class="flex min-w-0 items-center gap-3 rounded-t-6 p-3 text-start -outline-offset-2 hover:bg-surface-gray-1"
+							class="flex min-w-0 flex-1 items-center gap-3 rounded-t-6 p-3 text-start -outline-offset-2 enabled:hover:bg-surface-gray-1"
+							:disabled="saving.has(account.name)"
 							@click="emit('open', account.name)"
 						>
 							<Avatar size="lg">
@@ -145,24 +149,16 @@
 									aria-hidden="true"
 								/>
 							</Avatar>
-							<span class="flex min-w-0 flex-1 flex-col gap-1">
+							<span class="flex min-w-0 flex-1 flex-col gap-1 pe-3">
 								<span
 									:id="`${ids.mailboxes}-${i}`"
-									class="line-clamp-2 text-base-medium text-ink-gray-8 [overflow-wrap:anywhere]"
+									class="truncate text-base-medium text-ink-gray-8"
+									:title="account.email_account_name"
 								>
-									<!-- a long address breaks before its domain, not mid-word -->
-									<template
-										v-for="(part, j) in account.email_account_name.split('@')"
-										:key="j"
-										><wbr v-if="j" />{{ j ? "@" : "" }}{{ part }}</template
-									>
+									{{ account.email_account_name }}
 								</span>
-								<span class="truncate text-sm text-ink-gray-5">
-									{{
-										manualSetup(account)
-											? `${subtitle(account)} · ${__("Manual setup")}`
-											: subtitle(account)
-									}}
+								<span class="truncate text-sm text-ink-gray-5" :title="account.email_id">
+									{{ account.email_id }}
 								</span>
 							</span>
 							<Badge
@@ -184,19 +180,14 @@
 							class="flex min-h-11 flex-wrap items-center gap-x-5 gap-y-2 border-t border-outline-gray-2 px-3 py-2"
 						>
 							<template v-if="account.status === 'needs-reconnect'">
-								<span
-									class="flex min-w-0 flex-1 items-start gap-1.5 text-p-sm text-ink-amber-8"
-								>
-									<span
-										class="lucide-triangle-alert size-4 shrink-0"
-										aria-hidden="true"
-									/>
-									{{ __("Mailbox signed out, mail has stopped") }}
+								<span class="flex min-w-0 flex-1 items-center gap-1.5 text-sm text-ink-amber-8">
+									<span class="lucide-triangle-alert size-4 shrink-0" aria-hidden="true" />
+									<span class="truncate">{{ __("Mail has stopped") }}</span>
 								</span>
 								<Button
 									v-if="reconnectable(account)"
 									class="shrink-0"
-									variant="solid"
+									variant="outline"
 									:label="__('Reconnect')"
 									:loading="reconnecting === account.name"
 									:disabled="Boolean(reconnecting)"
@@ -217,11 +208,8 @@
 								<Switch
 									control-position="start"
 									:label="__('Receive')"
-									:model-value="Boolean(account.enable_incoming)"
-									:disabled="
-										serviceOf(account).outgoingOnly ||
-										saving.has(account.name + 'enable_incoming')
-									"
+									:model-value="saving.get(account.name)?.enable_incoming ?? Boolean(account.enable_incoming)"
+									:disabled="serviceOf(account).outgoingOnly || saving.has(account.name)"
 									@update:model-value="
 										(on) => toggle(account, 'enable_incoming', on)
 									"
@@ -229,18 +217,28 @@
 								<Switch
 									control-position="start"
 									:label="__('Send')"
-									:model-value="Boolean(account.enable_outgoing)"
-									:disabled="saving.has(account.name + 'enable_outgoing')"
+									:model-value="saving.get(account.name)?.enable_outgoing ?? Boolean(account.enable_outgoing)"
+									:disabled="saving.has(account.name)"
 									@update:model-value="
 										(on) => toggle(account, 'enable_outgoing', on)
 									"
+								/>
+								<Spinner
+									v-if="saving.has(account.name)"
+									class="ms-auto size-4 text-ink-gray-6"
 								/>
 							</template>
 						</div>
 					</li>
 				</ul>
-			</template>
-		</ScrollArea>
+				<Button
+					v-if="controller.accounts.length > shown"
+					class="mb-4 w-full"
+					:label="__('Show more')"
+					@click="showMore"
+				/>
+			</ScrollArea>
+		</template>
 	</div>
 </template>
 
@@ -258,12 +256,10 @@ import Banner from "./Banner.vue";
 import {
 	deskUrl,
 	errorText,
-	manualSetup,
 	oauthHelpLink,
 	oauthMessage,
 	reconnectable,
 	serviceOf,
-	subtitle,
 } from "./services";
 import type { EmailAccount, EmailAccountsController } from "./types";
 
@@ -286,11 +282,21 @@ const ids = { heading: useId(), incoming: useId(), outgoing: useId(), mailboxes:
 const newButton = ref<{ $el: HTMLElement }>();
 const loadError = ref<{ $el: HTMLElement }>();
 const rows = ref<HTMLElement>();
+const PAGE = 10;
+const focusIndex = props.controller.accounts.findIndex((a) => a.name === props.focus);
+// cards render a page at a time; the one to focus is always among them
+const shown = ref(Math.ceil((focusIndex + 1) / PAGE) * PAGE || PAGE);
 onMounted(() => {
 	if (props.focus === undefined) return;
-	const i = props.controller.accounts.findIndex((a) => a.name === props.focus);
-	(rows.value?.querySelectorAll<HTMLElement>("[data-open]")[i] ?? newOrRetry())?.focus();
+	(rows.value?.querySelectorAll<HTMLElement>("[data-open]")[focusIndex] ?? newOrRetry())?.focus();
 });
+
+async function showMore() {
+	const first = shown.value;
+	shown.value += PAGE;
+	await nextTick();
+	rows.value?.querySelectorAll<HTMLElement>("[data-open]")[first]?.focus();
+}
 
 function newOrRetry() {
 	return newButton.value?.$el ?? loadError.value?.$el.querySelector("button");
@@ -333,21 +339,22 @@ function logoIcon(account: EmailAccount) {
 	return icon;
 }
 
-const saving = reactive(new Set<string>());
+// accounts with a toggle saving, and the value each switch shows until it saves
+const saving = reactive(new Map<string, Partial<Record<string, boolean>>>());
 async function toggle(
 	account: EmailAccount,
 	field: "enable_incoming" | "enable_outgoing",
 	on: boolean
 ) {
-	const key = account.name + field;
-	saving.add(key);
+	// the whole card waits, so its other toggle can't race this save
+	saving.set(account.name, { [field]: on });
 	try {
 		// turning a direction off also clears the account's default for it, on save
 		await props.controller.update(account, { [field]: on ? 1 : 0 });
 	} catch (e) {
 		toast.error(errorText(e) || __("Couldn't update the email account"));
 	} finally {
-		saving.delete(key);
+		saving.delete(account.name);
 	}
 }
 

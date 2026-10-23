@@ -76,28 +76,23 @@ it("offers reconnect for an own OAuth app anywhere, and for a Frappe Cloud sign-
   expect(actions()).toEqual(["reconnect", "reconnect"]);
 });
 
-it("turns a direction on from its card's toggle", async () => {
-  const update = vi.fn().mockResolvedValue(undefined);
+it("turns a direction on from its card's toggle, holding the whole card until it saves", async () => {
+  let saved!: () => void;
+  const update = vi.fn(() => new Promise<void>((resolve) => (saved = resolve)));
   remount({ update });
-  (root.querySelectorAll('li [role="switch"]')[0] as HTMLButtonElement).click();
+  const card = () => root.querySelector("li")!;
+  const locked = () =>
+    [...card().querySelectorAll<HTMLButtonElement>('[role="switch"], [data-open]')].map((b) => b.disabled);
+  (card().querySelector('[role="switch"]') as HTMLButtonElement).click();
   await new Promise((resolve) => setTimeout(resolve));
   expect(update).toHaveBeenCalledWith(expect.objectContaining({ name: "Sales" }), { enable_incoming: 1 });
-});
+  expect([card().getAttribute("aria-busy"), ...locked()]).toEqual(["true", true, true, true]);
+  // the switch shows what was picked while it saves
+  expect(card().querySelector('[role="switch"]')!.getAttribute("aria-checked")).toBe("true");
 
-it("badges a manually set up account on Frappe Cloud V2, not a one-click one", () => {
-  const manual = () =>
-    [...root.querySelectorAll("li")].map((li) => li.textContent?.includes("Manual setup"));
-  const accounts = [
-    account("Sales", 0),
-    { ...account("Support", 0), auth_method: "OAuth", authKind: "oauth" },
-  ];
-
-  remount({ accounts });
-  expect(manual()).toEqual([false, false]);
-
-  vi.stubGlobal("is_v2_site", true);
-  remount({ accounts });
-  expect(manual()).toEqual([true, false]);
+  saved();
+  await new Promise((resolve) => setTimeout(resolve));
+  expect([card().getAttribute("aria-busy"), ...locked()]).toEqual(["false", false, false, false]);
 });
 
 const button = (name: string) =>
@@ -164,4 +159,24 @@ it("retries a failed load, refocusing Retry while it still fails and New once it
   await new Promise((resolve) => setTimeout(resolve));
   expect(root.textContent).not.toContain("Couldn't load email accounts");
   expect(document.activeElement).toBe(button("New"));
+});
+
+it("shows ten cards at a time, opening on the page with the card to focus", async () => {
+  const accounts = Array.from({ length: 23 }, (_, i) => account(`Box${i}`, 0));
+  const cards = () => root.querySelectorAll("[data-open]").length;
+  const more = () => [...root.querySelectorAll("button")].find((b) => b.textContent?.includes("Show more"));
+
+  remount({ accounts });
+  expect(cards()).toBe(10);
+  more()!.click();
+  await new Promise((r) => setTimeout(r));
+  expect(cards()).toBe(20);
+  expect(document.activeElement?.textContent).toContain("Box10");
+  more()!.click();
+  await new Promise((r) => setTimeout(r));
+  expect([cards(), more()]).toEqual([23, undefined]);
+
+  remount({ accounts }, { focus: "Box14" });
+  expect(cards()).toBe(20);
+  expect(document.activeElement?.textContent).toContain("Box14");
 });

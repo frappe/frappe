@@ -104,7 +104,9 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
         }),
       );
       if (mine !== seq) return;
-      controller.accounts = accounts;
+      // newest first, with accounts that neither receive nor send at the end
+      const off = (a: EmailAccount) => Number(!a.enable_incoming && !a.enable_outgoing);
+      controller.accounts = accounts.sort((a, b) => off(a) - off(b));
       controller.error = null;
     } catch (e) {
       if (mine === seq) controller.error = e;
