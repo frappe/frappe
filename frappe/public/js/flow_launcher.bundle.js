@@ -310,12 +310,11 @@ class FlowLauncher {
 			w = this.dock_width();
 			[x, y, h] = [side === "left" ? 0 : innerWidth - w, 0, innerHeight];
 		}
-		Object.assign(this.panel.style, {
-			left: `${x}px`,
-			top: `${y}px`,
-			width: `${w}px`,
-			height: `${h}px`,
-		});
+		// as variables, so the phone layout's rules can override them
+		const rect = { left: x, top: y, width: w, height: h };
+		for (const [name, px] of Object.entries(rect)) {
+			this.panel.style.setProperty(`--${name}`, `${px}px`);
+		}
 		this.panel.dataset.mode = full ? "full" : side || "float";
 		this.update_buttons();
 	}
@@ -600,15 +599,18 @@ function load_state() {
 }
 
 const STYLE = `
+/* var(--*) are the page's design tokens; the fallbacks serve apps that lack them */
 :host { all: initial; }
-@media print { :host { display: none !important; } }
-[hidden] { display: none !important; }
+@media print { :host { display: none; } }
+/* :host outranks the display the elements set below */
+:host [hidden] { display: none; }
 .icon, .panel, .preview, .note { position: fixed; z-index: ${LAYER}; box-sizing: border-box; }
+.panel { left: var(--left); top: var(--top); width: var(--width); height: var(--height); }
 .panel[inert] { visibility: hidden; }
 .mark { fill: currentColor; }
 /* Flow's logo: its mark on gray */
 .icon, .title .mark { background: #7c8089; color: #fff; }
-button:focus-visible { outline: 2px solid #8a8a8a; outline-offset: 2px; }
+button:focus-visible { outline: var(--focus-outline-default, 2px solid #c9c9c9e5); outline-offset: 2px; }
 .icon {
 	display: grid;
 	place-items: center;
@@ -616,8 +618,8 @@ button:focus-visible { outline: 2px solid #8a8a8a; outline-offset: 2px; }
 	height: ${ICON_SIZE}px;
 	padding: 0;
 	border: 0;
-	border-radius: 50%;
-	box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15), 0 8px 24px rgba(0, 0, 0, 0.15);
+	border-radius: var(--radius-full, 9999px);
+	box-shadow: var(--elevation-lg, 0 18px 22px -6px rgba(0, 0, 0, 0.1));
 	cursor: pointer;
 	touch-action: none;
 	user-select: none;
@@ -625,19 +627,16 @@ button:focus-visible { outline: 2px solid #8a8a8a; outline-offset: 2px; }
 }
 .icon .mark { width: 24px; height: 24px; }
 .window, .menu {
-	background: #fff;
-	color: #171717;
-	border: 1px solid rgba(0, 0, 0, 0.1);
-	border-radius: 12px;
-	/* frappe-ui's md elevation; the border stands in for its hairline */
-	box-shadow: 0 0 6px 2px rgba(0, 0, 0, 0.04), 0 6px 12px -2px rgba(0, 0, 0, 0.08);
-	font: 500 13px/1 InterVariable, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	background: var(--surface-base, #fff);
+	color: var(--ink-gray-9, #0f0f0f);
+	border: 1px solid var(--outline-elevation-2, rgba(128, 128, 128, 0.25));
+	border-radius: var(--radius-6, 12px);
+	box-shadow: var(--elevation-md, 0 0 6px 2px rgba(0, 0, 0, 0.04), 0 6px 12px -2px rgba(0, 0, 0, 0.08));
+	font: var(--font-weight-medium, 500) var(--text-sm, 13px)/1 InterVariable, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 :host([data-theme="dark"]) :is(.window, .menu) {
-	background: #171717;
-	color: #f8f8f8;
-	border-color: rgba(255, 255, 255, 0.12);
-	box-shadow: 0 0 16px 2px rgba(0, 0, 0, 0.2), 0 6px 12px -2px rgba(0, 0, 0, 0.6);
+	background: var(--surface-base, #171717);
+	color: var(--ink-gray-9, #f8f8f8);
 }
 /* the window clips the chat to its corners; the edges stick out of it to be easy to grab */
 .window {
@@ -649,49 +648,54 @@ button:focus-visible { outline: 2px solid #8a8a8a; outline-offset: 2px; }
 	overflow: hidden;
 }
 /* a popover (closed, the browser hides it), placed by the icon */
-.menu { inset: auto; margin: 0; padding: 4px; border-radius: 10px; font-weight: 420; }
+.menu {
+	inset: auto;
+	margin: 0;
+	padding: var(--spacing, 4px);
+	border-radius: var(--radius-5, 10px);
+	font-weight: var(--font-weight-regular, 420);
+}
 .menu button {
 	display: block;
 	height: 28px;
-	padding: 0 8px;
+	padding: 0 calc(var(--spacing, 4px) * 2);
 	border: 0;
-	border-radius: 6px;
+	border-radius: var(--radius-3, 6px);
 	background: none;
 	color: inherit;
 	font: inherit;
 	white-space: nowrap;
 	cursor: pointer;
 }
-.menu button:hover { background: rgba(0, 0, 0, 0.06); }
-:host([data-theme="dark"]) .menu button:hover { background: rgba(255, 255, 255, 0.08); }
+.menu button:hover { background: var(--surface-alpha-gray-2, rgba(128, 128, 128, 0.12)); }
 /* frappe-ui's toast, where it shows hers, in the page's colors (Desk shows its own) */
 .note {
-	right: 24px;
-	bottom: 24px;
+	right: calc(var(--spacing, 4px) * 6);
+	bottom: calc(var(--spacing, 4px) * 6);
 	display: flex;
 	align-items: center;
 	width: 360px;
 	max-width: calc(100vw - ${2 * GAP}px);
-	padding: 10px 16px;
+	padding: calc(var(--spacing, 4px) * 2.5) calc(var(--spacing, 4px) * 4);
 	border-radius: var(--radius-5, 10px);
 	background: var(--surface-gray-9, #333);
 	color: var(--ink-base, #fff);
 	box-shadow: var(--elevation-xl, 0 24px 30px -8px rgba(0, 0, 0, 0.1));
-	font: 420 14px/1.5 InterVariable, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+	font: var(--font-weight-regular, 420) var(--text-base, 14px)/1.5 InterVariable, Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 	letter-spacing: 0.02em;
 }
-.note strong { display: block; font-weight: 500; }
+.note strong { display: block; font-weight: var(--font-weight-medium, 500); }
 .note a { color: inherit; text-decoration: none; }
 .note a:hover { text-decoration: underline; }
 .note button { flex: none; border: 0; background: none; color: inherit; font: inherit; cursor: pointer; }
 .note button:hover { background: var(--surface-gray-8, #444); }
 .note .undo {
 	height: 28px;
-	margin: 0 8px 0 auto;
-	padding: 0 8px;
+	margin: 0 calc(var(--spacing, 4px) * 2) 0 auto;
+	padding: 0 calc(var(--spacing, 4px) * 2);
 	border-radius: var(--radius-4, 8px);
 	color: var(--ink-blue-link, #0289f7);
-	font-weight: 500;
+	font-weight: var(--font-weight-medium, 500);
 }
 .note .dismiss { display: grid; place-items: center; width: 20px; height: 20px; padding: 0; border-radius: var(--radius-1, 4px); }
 .panel:not([data-mode="float"]) .window { border-width: 0; border-radius: 0; }
@@ -702,25 +706,24 @@ button:focus-visible { outline: 2px solid #8a8a8a; outline-offset: 2px; }
 	display: flex;
 	flex: none;
 	align-items: center;
-	gap: 2px;
+	gap: calc(var(--spacing, 4px) * 0.5);
 	height: 36px;
-	padding: 0 6px 0 12px;
-	border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+	padding: 0 calc(var(--spacing, 4px) * 1.5) 0 calc(var(--spacing, 4px) * 3);
+	border-bottom: 1px solid var(--outline-elevation-1, rgba(128, 128, 128, 0.2));
 	cursor: grab;
 	touch-action: none;
 	user-select: none;
 	-webkit-user-select: none;
 }
-:host([data-theme="dark"]) .bar { border-color: rgba(255, 255, 255, 0.1); }
 /* filling the window, the bar runs into the chat's own header */
 .panel[data-mode="full"] .bar { border-bottom-width: 0; }
-.title { display: flex; align-items: center; gap: 6px; margin-right: auto; }
+.title { display: flex; align-items: center; gap: calc(var(--spacing, 4px) * 1.5); margin-right: auto; }
 .title .mark {
 	box-sizing: border-box;
 	width: 18px;
 	height: 18px;
 	padding: 2.5px;
-	border-radius: 4.5px;
+	border-radius: var(--radius-1, 4px);
 }
 .bar button {
 	display: grid;
@@ -729,14 +732,13 @@ button:focus-visible { outline: 2px solid #8a8a8a; outline-offset: 2px; }
 	height: 28px;
 	padding: 0;
 	border: 0;
-	border-radius: 6px;
+	border-radius: var(--radius-3, 6px);
 	background: none;
 	color: inherit;
 	opacity: 0.65;
 	cursor: pointer;
 }
-.bar button:hover { opacity: 1; background: rgba(0, 0, 0, 0.06); }
-:host([data-theme="dark"]) .bar button:hover { background: rgba(255, 255, 255, 0.08); }
+.bar button:hover { opacity: 1; background: var(--surface-gray-3, rgba(128, 128, 128, 0.14)); }
 .bar button svg, .note svg {
 	width: 16px;
 	height: 16px;
@@ -771,14 +773,15 @@ iframe { display: block; flex: 1; width: 100%; min-height: 0; border: 0; }
 .preview {
 	top: 0;
 	bottom: 0;
-	background: rgba(128, 128, 128, 0.16);
-	box-shadow: inset 0 0 0 2px rgba(128, 128, 128, 0.4);
+	background: var(--surface-alpha-gray-3, rgba(128, 128, 128, 0.16));
+	box-shadow: inset 0 0 0 2px var(--outline-alpha-gray-3, rgba(128, 128, 128, 0.4));
 	pointer-events: none;
 }
 @media (max-width: ${PHONE_WIDTH - 1}px) {
-	.panel { inset: 0 !important; width: auto !important; height: auto !important; }
-	.window { border-width: 0 !important; border-radius: 0 !important; }
-	.edge, .dock, .full { display: none !important; }
+	.panel { inset: 0; width: auto; height: auto; }
+	/* as specific as the docked and floating rules above */
+	.panel[data-mode] .window { border-width: 0; border-radius: 0; }
+	.panel[data-mode] .edge[data-edge], .bar .dock, .bar .full { display: none; }
 	.bar { cursor: default; border-bottom-width: 0; }
 }
 `;
