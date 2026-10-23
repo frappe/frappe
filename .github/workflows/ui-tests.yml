@@ -122,3 +122,25 @@ jobs:
         if: ${{ always() }}
         run: |
           cat bench_start.log || true
+
+  flow:
+    name: Flow Page Tests
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: flow/yarn.lock
+
+      # node --test alone: the page's tests need no site
+      - name: Run Page Tests
+        run: |
+          cd flow
+          yarn install --frozen-lockfile
+          yarn test

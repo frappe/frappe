@@ -1,0 +1,109 @@
+Screen {
+	layout: vertical;
+}
+
+#conversation {
+	height: 1fr;
+	padding: 0 1;
+	scrollbar-size-vertical: 0;
+}
+
+EntryView {
+	height: auto;
+	padding: 1;
+}
+
+EntryView Static {
+	height: auto;
+}
+
+/* the user entry carries the tint; assistant and tool entries stay on the screen
+   background, so the transcript reads as a reply flowing under each prompt */
+EntryView.entry--user_message {
+	background: $surface;
+}
+
+/* the entry padding carries the gap; the negative margin drops the one the last
+   markdown block adds, so an assistant reply spaces like every other entry */
+EntryView Markdown {
+	padding: 0;
+	margin-bottom: -1;
+}
+
+PartialAssistantView {
+	padding: 1;
+}
+
+#error-banner {
+	display: none;
+	padding: 0 1;
+	background: $error 20%;
+	color: $text;
+}
+
+#error-banner.visible {
+	display: block;
+}
+
+#working {
+	height: 3;
+	padding: 1;
+	color: $text-muted;
+}
+
+#working Spinner {
+	width: 2;
+	height: 1;
+	color: $primary;
+}
+
+#working Static {
+	width: auto;
+	height: 1;
+}
+
+FilterPicker, EffortPicker {
+	align: center middle;
+	background: $background 60%;
+}
+
+CommandPalette SearchIcon {
+	display: none;
+}
+
+.picker {
+	width: 70;
+	max-width: 90%;
+	height: auto;
+	max-height: 70%;
+	padding: 1;
+	border: round $primary;
+	background: $surface;
+}
+
+.picker OptionList {
+	height: auto;
+	max-height: 16;
+	border: none;
+	background: transparent;
+}
+
+#composer {
+	height: auto;
+	max-height: 8;
+	min-height: 3;
+	border: round $border;
+}
+
+#status {
+	dock: bottom;
+	height: 1;
+	padding: 0 1;
+	background: $panel;
+	color: $text-muted;
+}
+
+/* a sub-agent's rows sit one step in from the session's */
+EntryView.entry--subagent {
+	margin-left: 2;
+}

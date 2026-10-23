@@ -1,0 +1,59 @@
+@import "@flow/ui-core/flow.css";
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* The same theme tuning as the harness web app, so the shared components look alike. */
+:root {
+	--outline-gray-1: #e6e6e6;
+	--outline-gray-2: #d6d6d6;
+	--outline-gray-3: #bdbdbd;
+}
+
+[data-theme="dark"] {
+	--surface-base: #171717;
+	--surface-sidebar: #141414;
+	--surface-gray-1: #1f1f1f;
+	--surface-gray-2: #292929;
+	--surface-gray-3: #383838;
+	--surface-gray-4: #424242;
+	--surface-elevation-1: #1f1f1f;
+	--surface-elevation-2: #292929;
+	--surface-elevation-3: #383838;
+	--outline-base: #242424;
+	--outline-elevation-2: #383838;
+	--outline-gray-1: #242424;
+	--outline-gray-2: #383838;
+	--outline-gray-3: #424242;
+}
+
+html,
+body,
+#app {
+	height: 100%;
+	margin: 0;
+}
+
+body {
+	font-family: InterVariable, Inter, system-ui, sans-serif;
+	background: var(--surface-base);
+	-webkit-font-smoothing: antialiased;
+}
+
+/* frappe-ui's base asks Inter's variable face for its display cut ("opsz" 24) on these
+   elements; the harness web app loads a static Inter without that axis, so pin the text
+   cut to render the shared components alike (the display cut is ~5% narrower) */
+html,
+body,
+button,
+p,
+span,
+div {
+	font-variation-settings: "opsz" 14;
+}
+
+* {
+	scrollbar-width: thin;
+	scrollbar-color: var(--surface-gray-4) transparent;
+}

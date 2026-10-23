@@ -427,4 +427,15 @@
 		<rect x="11.5" y="6.5" width="7" height="4" rx="1" style="fill: var(--duotone-light, var(--ink-gray-3))" />
 		<path d="m13 13 5 1.9-2.1.8-.8 2.1Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
 	</symbol>
+	<symbol id="icon-flow-soft" viewBox="0 0 24 24" class="soft-icon">
+		<path d="M3.5 8.5v5.75a5.75 5.75 0 0 0 5.75 5.75h5.5a5.75 5.75 0 0 0 5.75-5.75v-4.5A5.75 5.75 0 0 0 14.75 4H3.5" class="soft-body"/>
+		<circle cx="8.75" cy="11.25" r="1.75" class="soft-accent"/>
+		<circle cx="14.75" cy="11.25" r="1.75" class="soft-accent"/>
+	</symbol>
+	<symbol viewBox="0 0 24 24" id="icon-flow-duotone" stroke="none">
+		<path d="M3.2 5.35H14.4A4 4 0 0 1 18.4 9.35V13.35A4 4 0 0 1 14.4 17.35H9.6A4 4 0 0 1 5.6 13.35V8.45H3.2Z" style="fill: var(--duotone-light, var(--ink-gray-3))" />
+		<path d="M3.2 2.95H14.4A6.4 6.4 0 0 1 20.8 9.35V13.35A6.4 6.4 0 0 1 14.4 19.75H9.6A6.4 6.4 0 0 1 3.2 13.35V8.45H5.6V13.35A4 4 0 0 0 9.6 17.35H14.4A4 4 0 0 0 18.4 13.35V9.35A4 4 0 0 0 14.4 5.35H3.2Z" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+		<circle cx="9.1" cy="10.8" r="1.65" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+		<circle cx="14.5" cy="10.8" r="1.65" style="fill: var(--duotone-dark, light-dark(var(--ink-gray-5), var(--ink-gray-6)))" />
+	</symbol>
 </svg>

@@ -1,0 +1,97 @@
+[project]
+name = "frappe-flow"
+version = "0.1.20"
+description = "An open-source agent harness."
+readme = "README.md"
+license = "MIT"
+authors = [
+    { name = "Shrihari Mahabal", email = "shriharimahabal08@gmail.com" },
+]
+keywords = ["ai", "agents", "cli", "coding-agent"]
+requires-python = ">=3.14"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn>=0.34",
+    "httpx>=0.28",
+    "pydantic>=2.9",
+    "litellm==1.103.2",
+    "redis>=5.0",
+    "textual>=8.2.8",
+    "pillow>=11.0",
+    "python-multipart>=0.0.20",
+    "pyyaml>=6.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "ruff>=0.9",
+    "textual-dev>=1.8.0",
+    "ty>=0.0.65",
+]
+
+[project.scripts]
+flow = "flow_harness.cli.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.hooks.custom]
+path = "hatch_build.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/flow_harness", "src/flow_tui"]
+artifacts = ["src/flow_harness/server/webui/**"]
+
+# Flow's own docs and examples ship inside the package, so a session can point the
+# model at them on any install; flow_harness.session.prompt resolves them.
+[tool.hatch.build.targets.wheel.force-include]
+"docs" = "flow_harness/data/docs"
+"examples" = "flow_harness/data/examples"
+
+[tool.hatch.build.targets.sdist]
+include = ["src", "ui", "docs", "examples", "hatch_build.py", "README.md", "LICENSE", "pyproject.toml"]
+exclude = ["ui/node_modules", "ui/**/dist"]
+artifacts = ["src/flow_harness/server/webui/**"]
+
+[tool.ty.src]
+exclude = ["tests"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py313"
+src = ["src"]
+
+[tool.ruff.lint]
+select = [
+	"F",
+	"E",
+	"W",
+	"I",
+	"UP",
+	"B",
+	"RUF",
+]
+ignore = [
+	"B017", # assertRaises(Exception) - should be more specific
+	"B018", # useless expression, not assigned to anything
+	"B023", # function doesn't bind loop variable - will have last iteration's value
+	"B904", # raise inside except without from
+	"E101", # indentation contains mixed spaces and tabs
+	"E501", # line too long
+	"E741", # ambiguous variable name
+	"W191", # indentation contains tabs
+	"UP037", # quoted annotations
+	"UP040", # Use type aliases instead of type annotations
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "tab"
+docstring-code-format = true

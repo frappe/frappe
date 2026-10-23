@@ -76,7 +76,7 @@ jobs:
       - name: Verify yarn.lock
         run: |
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          git diff --exit-code yarn.lock studio/frontend/yarn.lock
+          git diff --exit-code yarn.lock studio/frontend/yarn.lock flow/yarn.lock
 
       - name: Cache Playwright browsers
         uses: actions/cache@v4

@@ -10,6 +10,9 @@ dist/
 frappe/public/studio
 frappe/public/app_builds
 .temp-app-renderers
+# flow page build
+frappe/public/flow
+frappe/www/flow/index.html
 # build/
 frappe/docs/current
 frappe/public/dist

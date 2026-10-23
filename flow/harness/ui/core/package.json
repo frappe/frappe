@@ -1,0 +1,28 @@
+{
+	"name": "@flow/ui-core",
+	"version": "0.0.0",
+	"description": "Shared Flow chat components, daemon client, and transcript store (Vue 3 + frappe-ui tokens). Consumed from source; the importing app compiles the .vue files and Tailwind classes.",
+	"type": "module",
+	"scripts": {
+		"test": "node --test test/*.test.js"
+	},
+	"exports": {
+		".": "./src/index.js",
+		"./*": "./src/*"
+	},
+	"dependencies": {
+		"@lobehub/icons-static-svg": "^1.94.0",
+		"dompurify": "^3.2.3",
+		"feather-icons": "^4.29.2",
+		"highlight.js": "^11.11.1",
+		"marked": "^15.0.4",
+		"monaco-editor": "^0.52.2"
+	},
+	"peerDependencies": {
+		"frappe-ui": "1.0.0",
+		"vue": "^3.5.0"
+	},
+	"devDependencies": {
+		"jsdom": "^30.0.1"
+	}
+}
