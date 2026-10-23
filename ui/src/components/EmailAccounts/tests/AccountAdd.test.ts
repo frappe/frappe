@@ -4,7 +4,9 @@ import { createApp, nextTick } from "vue";
 import type { App } from "vue";
 import AccountAdd from "../AccountAdd.vue";
 
-const oneClick = vi.hoisted(() => ({ services: {} as Record<string, string> }));
+const oneClick = vi.hoisted(() => ({
+  services: {} as Record<string, string> | Promise<Record<string, string>>,
+}));
 vi.mock("frappe-ui", async (importOriginal) => {
   const ui = await importOriginal<typeof import("frappe-ui")>();
   // only the one-click services resource fetches here
@@ -46,6 +48,7 @@ it("Back is disabled while a create is in flight, and `created` is emitted when 
     onCreated: created,
   });
   app.mount(root);
+  await new Promise((resolve) => setTimeout(resolve));
 
   button("Gmail").click();
   await nextTick();
@@ -149,6 +152,25 @@ it("opens the form directly for a service without one-click sign-in, and for eve
   expect(root.querySelector("form")).not.toBeNull();
 });
 
+it("waits for the one-click list when a tile is picked before it arrives", async () => {
+  let arrive!: (services: Record<string, string>) => void;
+  oneClick.services = new Promise((resolve) => (arrive = resolve));
+  const connect = vi.fn(() => new Promise<boolean>(() => {}));
+  root = document.createElement("div");
+  document.body.append(root);
+  app = createApp(AccountAdd, { controller: { connect } });
+  app.mount(root);
+
+  button("Outlook").click();
+  await nextTick();
+  expect(root.querySelector("form")).toBeNull();
+
+  arrive({ "Outlook.com": "Outlook" });
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(connect).toHaveBeenCalledWith("Outlook.com");
+  expect(root.querySelector("form")).toBeNull();
+});
+
 function mountCreate(create: () => Promise<void>, onCreated?: () => void) {
   root = document.createElement("div");
   document.body.append(root);
@@ -160,6 +182,7 @@ function mountCreate(create: () => Promise<void>, onCreated?: () => void) {
 }
 
 async function submitGmail() {
+  await new Promise((resolve) => setTimeout(resolve));
   button("Gmail").click();
   await nextTick();
   fill("Account name", "Support");

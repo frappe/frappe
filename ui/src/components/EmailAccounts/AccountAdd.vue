@@ -129,6 +129,7 @@ const saving = ref(false);
 
 async function choose(service: EmailService) {
 	connectError.value = null;
+	if (oneClick.loading) await oneClick.promise?.catch(() => {});
 	if (oneClick.data?.[service.service]) {
 		connecting.value = service;
 		try {
