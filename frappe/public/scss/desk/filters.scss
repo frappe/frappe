@@ -1,35 +1,66 @@
-.filter-icon.active {
-	--icon-stroke: var(--primary);
+// the Filter button, wherever a view puts it: a list's page form, a board's page head
+.filter-selector {
+	// applied-filter count inside the Filter button
+	.filter-label {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		min-width: calc(var(--spacing) * 5);
+		height: calc(var(--spacing) * 5);
+		padding-inline: var(--spacing);
+		border-radius: var(--radius-2);
+		background-color: var(--surface-base);
+		box-shadow: var(--elevation-sm);
+		font-size: var(--text-xs);
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
+	}
+
+	// the × button shares the filter button's edge; a page head spaces its buttons apart
+	.filter-x-button {
+		margin-left: 0;
+		border-inline-start: 1px solid var(--outline-gray-2);
+	}
 }
 
 .filter-popover {
-	min-width: 500px;
-	min-height: 50px;
-	@include get_textstyle("base", "regular");
-	z-index: 1019;
-	border: 1px solid var(--border-color);
+	// sized by its rows, not a fixed width
+	width: max-content;
+	min-width: min(calc(var(--spacing) * 100), calc(100vw - var(--spacing) * 4));
+	max-width: calc(100vw - var(--spacing) * 4);
+	// a classic Link field's awesomplete list hangs out of the panel
+	overflow: visible;
+
+	// unless the panel is taller than the screen: then it is capped, and must scroll
+	&[style*="max-height"] {
+		overflow: auto;
+	}
 }
 
 .filter-area {
+	// one grid for every row so the columns line up
+	.filter-edit-area {
+		display: grid;
+		grid-template-columns: auto calc(var(--spacing) * 35) auto calc(var(--spacing) * 42.5) auto;
+		column-gap: calc(var(--spacing) * 2);
+		row-gap: calc(var(--spacing) * 2);
+		align-items: center;
+	}
+
+	.empty-filters {
+		grid-column: 1 / -1;
+		padding: var(--padding-xs) var(--padding-sm);
+	}
+
 	.filter-box {
-		padding: var(--padding-xs) var(--padding-md) var(--padding-xs) 0;
+		display: grid;
+		grid-template-columns: subgrid;
+		grid-column: 1 / -1;
+		align-items: center;
 
-		.form-group {
-			margin-bottom: 0;
-		}
-
-		.remove-filter {
-			cursor: pointer;
-			line-height: 2;
-
-			&:focus {
-				outline: none;
-			}
-
-			&:focus-visible .icon {
-				box-shadow: var(--focus-default);
-				border-radius: 4px;
-			}
+		.filter-prefix {
+			padding-inline-start: var(--padding-xs);
+			text-align: end;
 		}
 
 		.filter-field {
@@ -37,86 +68,367 @@
 				position: relative;
 				margin-bottom: 0;
 			}
+
+			.form-control {
+				height: var(--input-height);
+			}
+		}
+
+		.condition {
+			font-weight: var(--font-weight-regular);
+
+			.es-button__label {
+				flex: 1;
+				min-width: 0;
+				overflow: hidden;
+				text-overflow: ellipsis;
+				text-align: start;
+			}
 		}
 
 		.awesomplete {
 			& > ul,
 			& > [role="listbox"] {
 				min-width: 100%;
-				width: auto;
+				width: max-content;
+				max-width: calc(var(--spacing) * 75);
+			}
+		}
+	}
 
-				& > li,
-				& > [role="option"] {
-					max-width: 300px;
-				}
+	.filter-action-buttons {
+		margin-top: calc(var(--spacing) * 3);
+	}
+}
+
+// stacked: prefix and remove on one line, the three controls below
+@mixin stacked-filter-rows {
+	.filter-edit-area {
+		grid-template-columns: 1fr auto;
+	}
+
+	.filter-box {
+		grid-template-columns: 1fr auto;
+		row-gap: calc(var(--spacing) * 1.5);
+
+		.filter-prefix {
+			min-width: 0;
+			padding: 0;
+			text-align: start;
+		}
+
+		.filter-remove {
+			grid-column: 2;
+			grid-row: 1;
+		}
+
+		.fieldname-select-area,
+		.filter-condition,
+		.filter-field-area {
+			grid-column: 1 / -1;
+		}
+
+		&.is-empty {
+			.filter-condition,
+			.filter-field-area {
+				display: none;
 			}
 		}
 	}
 
 	.empty-filters {
-		padding: 3px;
-	}
-
-	.filter-action-buttons {
-		display: flex;
-		justify-content: space-between;
-		margin-bottom: 0.5rem;
-
-		.add-filter {
-			cursor: pointer;
-		}
-
-		.btn {
-			box-shadow: none;
-
-			&:focus-visible {
-				box-shadow: var(--focus-default) !important;
-			}
-		}
-	}
-
-	.divider {
-		margin: 15px 0;
-		background-color: var(--border-color);
+		padding-inline: 0;
 	}
 }
 
-// for sm and above
-@include media-breakpoint-up(sm) {
-	.filter-box .row > div[class*="col-sm-"] {
-		padding-right: 0px;
-	}
-	.filter-field {
-		.frappe-control {
-			position: relative;
-		}
-	}
-	.modal .remove-filter {
-		display: block !important;
-	}
-}
-
-@include media-breakpoint-down(sm) {
-	.filter-popover {
-		min-width: 100%;
-		margin-left: -5px;
-	}
-
+@include media-breakpoint-down(xs) {
 	.filter-area {
-		.filter-box {
-			.form-group {
-				margin-bottom: 5px;
-			}
+		@include stacked-filter-rows;
+	}
+}
 
-			.remove-filter {
-				@include get_textstyle("sm", "regular");
-				color: var(--primary);
-			}
+// the phone sheet's edit step: a row's controls stacked at touch size
+.es-bottom-sheet .filter-area {
+	@include stacked-filter-rows;
 
-			.filter-index {
-				font-size: var(--text-xs);
-				text-transform: uppercase;
-			}
+	// a label sits closer to its own box than to the box above
+	.filter-edit-area,
+	.filter-box {
+		row-gap: calc(var(--spacing) * 4);
+	}
+
+	.filter-box {
+		.es-combobox,
+		.filter-field .form-control {
+			height: calc(var(--spacing) * 10);
+		}
+
+		.condition {
+			--es-bt-h: calc(var(--spacing) * 10);
+			// less its border, so its text lines up with the other two
+			padding-inline: calc(var(--spacing) * 2 - 1px);
+		}
+
+		// stacked, the three chevrons line up with the condition button's
+		.es-combobox {
+			padding-inline-end: calc(var(--spacing) * 2);
+		}
+
+		.es-combobox__chevron,
+		.condition > .icon,
+		.select-icon .icon {
+			color: var(--ink-gray-5);
+		}
+
+		// the Select icon is placed for a 28px box; centre it in the taller one
+		.select-icon {
+			top: 0;
+			bottom: 0;
+			right: calc(var(--spacing) * 2);
+			display: flex;
+			align-items: center;
+		}
+
+		// so is its placeholder
+		.placeholder {
+			top: 0;
+			bottom: 0;
+			left: calc(var(--spacing) * 2);
+			padding: 0;
+			display: flex;
+			align-items: center;
+		}
+	}
+}
+
+.es-bottom-sheet {
+	// a filled button, so it lines up with the rows; the header's inset is for ghost icons
+	.filter-sheet-clear {
+		margin-inline-end: calc(var(--spacing) * 2);
+	}
+
+	// nothing to clear while every row is still empty
+	&:not(:has(.filter-area .filter-box:not(.is-empty))) .filter-sheet-clear {
+		display: none;
+	}
+}
+
+// the phone sheet lists each filter as one line; the rows' own controls stay out of
+// sight until one is edited
+.es-bottom-sheet .filter-sheet > .filter-area {
+	display: none;
+}
+
+// one item: it highlights whole and reaches 8px past the gutter, so its text sits under the title
+.filter-sheet-row {
+	position: relative;
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	min-height: calc(var(--spacing) * 14);
+	margin-inline: calc(var(--spacing) * -2);
+	padding-inline: calc(var(--spacing) * 2) calc(var(--spacing) * 0.5);
+	border-radius: var(--radius-md);
+
+	& + &::before {
+		content: "";
+		position: absolute;
+		top: 0;
+		inset-inline: calc(var(--spacing) * 2);
+		border-top: 1px solid var(--outline-gray-1);
+	}
+
+	&:has(> .filter-sheet-row__edit:active) {
+		background: var(--surface-gray-2);
+	}
+
+	@media (hover: hover) {
+		&:has(> .filter-sheet-row__edit:hover) {
+			background: var(--surface-gray-2);
+		}
+	}
+
+	&__edit {
+		flex: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--spacing) * 0.5);
+		padding: calc(var(--spacing) * 2.5) 0;
+		border: 0;
+		background: transparent;
+		text-align: start;
+		color: var(--ink-gray-8);
+		-webkit-tap-highlight-color: transparent;
+	}
+
+	&__field {
+		font-weight: var(--font-weight-medium);
+	}
+
+	&__rule {
+		overflow: hidden;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		font-size: var(--text-sm);
+	}
+
+	&__condition,
+	&__value--empty {
+		color: var(--ink-gray-6);
+	}
+}
+
+.filter-sheet-empty {
+	margin: 0;
+	padding-block: calc(var(--spacing) * 6);
+	text-align: center;
+	color: var(--ink-gray-6);
+}
+
+// the edit step: each control under its label; Remove is in the footer. A new filter
+// shows all three, the condition and value waiting for a field
+.es-bottom-sheet .filter-area.filter-sheet-edit .filter-box.is-empty {
+	.filter-condition,
+	.filter-field-area {
+		display: block;
+	}
+}
+
+.filter-sheet-edit {
+	.filter-prefix,
+	.filter-remove {
+		display: none;
+	}
+
+	.fieldname-select-area,
+	.filter-condition,
+	.filter-field-area {
+		&::before {
+			content: attr(data-label);
+			display: block;
+			margin-bottom: calc(var(--spacing) * 1.5);
+			font-size: var(--text-sm);
+			color: var(--ink-gray-6);
+		}
+	}
+}
+
+// the calendar step: full width with touch-size days; the sheet is its surface
+.es-bottom-sheet .filter-calendar .datepicker {
+	width: 100%;
+	border: 0;
+	box-shadow: none;
+
+	// the month row and the days sit on the same line as the sheet's other boxes
+	.datepicker--nav,
+	.datepicker--content {
+		padding-inline: 0;
+	}
+
+	.datepicker--nav-title {
+		font-weight: var(--font-weight-medium);
+		color: var(--ink-gray-8);
+
+		i {
+			color: var(--ink-gray-5);
+		}
+	}
+
+	.datepicker--day-name {
+		font-size: var(--text-xs);
+		color: var(--ink-gray-6);
+	}
+
+	.datepicker--cell {
+		height: calc(var(--spacing) * 10);
+		border-radius: var(--radius-md);
+
+		&.-other-month- {
+			color: var(--ink-gray-4);
+		}
+
+		// a range reads as one band between its two ends
+		&.-in-range- {
+			border-radius: 0;
+		}
+
+		&.-range-from- {
+			border-radius: var(--radius-md) 0 0 var(--radius-md);
+		}
+
+		&.-range-to- {
+			border-radius: 0 var(--radius-md) var(--radius-md) 0;
+		}
+	}
+
+	// Today and Now look like something to tap
+	.datepicker--buttons {
+		justify-content: center;
+		padding-block: calc(var(--spacing) * 2);
+	}
+
+	.datepicker--button {
+		flex: none;
+		height: calc(var(--spacing) * 7);
+		padding-inline: calc(var(--spacing) * 2);
+		border-radius: var(--radius);
+		background: var(--surface-gray-2);
+	}
+
+	// the time over full-width sliders, with thumbs a finger can drag
+	.datepicker--time {
+		flex-direction: column;
+		gap: calc(var(--spacing) * 2);
+		padding: calc(var(--spacing) * 3) 0;
+	}
+
+	.datepicker--time-current {
+		flex: none;
+		margin: 0;
+
+		span {
+			font-size: var(--text-4xl);
+		}
+	}
+
+	.datepicker--time-sliders {
+		flex: none;
+		width: 100%;
+		max-width: none;
+		margin: 0;
+	}
+
+	.datepicker--time-row {
+		height: calc(var(--spacing) * 10);
+		gap: calc(var(--spacing) * 3);
+		// the track is drawn on the slider, clear of the label
+		background-image: none;
+
+		&::before {
+			content: attr(data-label);
+			flex: none;
+			width: calc(var(--spacing) * 16);
+			font-size: var(--text-sm);
+			color: var(--ink-gray-6);
+		}
+
+		input[type="range"] {
+			background: linear-gradient(var(--outline-gray-2), var(--outline-gray-2)) left 50% /
+				100% 2px no-repeat;
+		}
+
+		input[type="range"]::-webkit-slider-thumb {
+			width: calc(var(--spacing) * 6);
+			height: calc(var(--spacing) * 6);
+			margin-top: calc(var(--spacing) * -3);
+			border-radius: var(--radius-full);
+		}
+
+		input[type="range"]::-moz-range-thumb {
+			width: calc(var(--spacing) * 6);
+			height: calc(var(--spacing) * 6);
+			border-radius: var(--radius-full);
 		}
 	}
 }
