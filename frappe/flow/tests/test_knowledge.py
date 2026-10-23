@@ -504,12 +504,12 @@ class TestIngest(IntegrationTestCase):
 				{"doctype": "Flow Knowledge Source", "knowledge_base": self.kb.name, **values}
 			).insert()
 
-	def _ingest(self, source_name):
+	def _ingest(self, source_name, embedding=None):
 		def fake(input, **kwargs):
 			return _embedding_response([[0.1, 0.2, 0.3, 0.4]] * len(input))
 
 		with (
-			patch("litellm.embedding", side_effect=fake),
+			patch("litellm.embedding", side_effect=embedding or fake),
 			patch.object(frappe.db, "commit"),
 			patch.object(frappe.db, "rollback"),
 		):
@@ -560,6 +560,12 @@ class TestIngest(IntegrationTestCase):
 		self.assertEqual(len(again), len(chunks))
 		self.assertEqual(self._lance_count(), len(again))
 		self.assertEqual(len({c["name"] for c in again}), len(again))
+
+		# a resync that cannot embed keeps the chunks it had, still searchable
+		with self.assertRaises(frappe.ValidationError):
+			self._ingest(source.name, embedding=RuntimeError("provider down"))
+		self.assertEqual(self._chunks(source.name), again)
+		self.assertEqual(self._lance_count(), len(again))
 
 		source.delete()
 		self.assertEqual(frappe.db.count("Flow Knowledge Chunk", {"source": source.name}), 0)

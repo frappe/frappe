@@ -109,11 +109,11 @@ def _rebuild_single(doc, settings) -> None:
 	for extracted in extract(doc):
 		pieces.extend(chunk_text(extracted.text, chunk_size=size, overlap=overlap))
 
+	vectors = embed_texts(pieces)  # before the purge: a failed call keeps the old chunks searchable
 	purge_source(doc.name)
 	if not pieces:
 		return
 
-	vectors = embed_texts(pieces)
 	store.ensure_table_for_dimension(cint(settings.embedding_dimension))
 
 	rows = []
