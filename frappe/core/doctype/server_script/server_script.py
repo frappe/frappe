@@ -23,6 +23,7 @@ from frappe.utils.safe_exec import (
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
+	from frappe.core.doctype.server_script_variable.server_script_variable import ServerScriptVariable
 
 VARIABLE_KEY_PATTERN = re.compile(r"[A-Za-z][A-Za-z0-9_]*")
 
@@ -148,10 +149,6 @@ class ServerScript(Document):
 				delete_all_passwords_for(variable.doctype, variable.name)
 
 	@property
-	def env(self) -> "ServerScriptEnv":
-		return ServerScriptEnv(self.variables)
-
-	@property
 	def scheduled_jobs(self) -> list[dict[str, str]]:
 		return frappe.get_all(
 			"Scheduled Job Type",
@@ -237,13 +234,7 @@ class ServerScript(Document):
 		Args:
 		        doc (Document): Executes script with for a certain document's events
 		"""
-		safe_exec(
-			self.script,
-			_locals={"doc": doc},
-			restrict_commit_rollback=True,
-			script_filename=self.name,
-			env=self.env,
-		)
+		self.run_script(_locals={"doc": doc}, restrict_commit_rollback=True)
 
 	def execute_scheduled_method(self):
 		"""Specific to Scheduled Jobs via Server Scripts
@@ -254,7 +245,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script, script_filename=self.name, env=self.env)
+		self.run_script()
 
 	def get_permission_query_conditions(self, user: str, active_child_tables=None) -> list[str]:
 		"""Specific to Permission Query Server Scripts.
@@ -271,7 +262,7 @@ class ServerScript(Document):
 			"conditions": "",
 			"active_child_tables": active_child_tables or [],
 		}
-		safe_exec(self.script, None, locals, script_filename=self.name, env=self.env)
+		self.run_script(_locals=locals)
 		if locals["conditions"]:
 			return locals["conditions"]
 
@@ -282,11 +273,16 @@ class ServerScript(Document):
 		if self.script_type != "Workflow Task":
 			raise frappe.DoesNotExistError
 
-		safe_exec(
+		self.run_script(_locals={"doc": doc})
+
+	def run_script(self, _locals: dict | None = None, restrict_commit_rollback: bool = False):
+		# nosemgrep: frappe-codeinjection-eval
+		return safe_exec(
 			self.script,
-			_locals={"doc": doc},
+			_locals=_locals,
+			restrict_commit_rollback=restrict_commit_rollback,
 			script_filename=self.name,
-			env=self.env,
+			env=ServerScriptEnv(self.variables),
 		)
 
 
@@ -323,7 +319,7 @@ def execute_api_server_script(script: ServerScript, *args, **kwargs):
 		raise frappe.PermissionError
 
 	# output can be stored in flags
-	_globals, _locals = safe_exec(script.script, script_filename=script.name, env=script.env)
+	_globals, _locals = script.run_script()
 
 	return _globals.frappe.flags
 
@@ -337,7 +333,7 @@ def enabled() -> bool | None:
 class ServerScriptEnv:
 	"""`frappe.env` of a Server Script. Values are decrypted on attribute access."""
 
-	def __init__(self, variables: list):
+	def __init__(self, variables: list["ServerScriptVariable"]):
 		self._variables = {variable.key: variable for variable in variables}
 
 	def __getattr__(self, key: str) -> str:
