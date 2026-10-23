@@ -44,7 +44,10 @@
 			<h1 class="min-w-0 truncate font-medium text-ink-gray-9">{{ title }}</h1>
 		</nav>
 		<span class="min-w-2 flex-1" />
-		<div class="flex flex-none items-center gap-2"><slot name="actions" /></div>
+		<!-- its buttons at the title's size, a step under frappe-ui's -->
+		<div class="flex flex-none items-center gap-2 [&_button]:text-sm">
+			<slot name="actions" />
+		</div>
 	</header>
 </template>
 

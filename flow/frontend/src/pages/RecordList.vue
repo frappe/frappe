@@ -20,7 +20,7 @@
 		</template>
 	</PageHeader>
 	<!-- the search and a menu per filter, once the list has loaded with something in it -->
-	<div v-if="loaded && !empty" class="flex flex-wrap items-center gap-2 px-5 pb-3 pt-1">
+	<div v-if="loaded && !empty" class="flex flex-wrap items-center gap-2 px-5 py-3">
 		<FormControl
 			v-model="query"
 			type="text"
