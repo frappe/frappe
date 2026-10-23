@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import requests
+from cryptography.fernet import Fernet
 
 import frappe
 from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType, sync_jobs
@@ -9,7 +10,7 @@ from frappe.frappeclient import FrappeClient, FrappeException
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
 from frappe.utils import get_site_url
-from frappe.utils.password import get_decrypted_password
+from frappe.utils.password import Auth, encrypt, get_decrypted_password
 from frappe.utils.safe_exec import get_safe_globals, safe_exec
 
 scripts = [
@@ -507,6 +508,24 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		frappe.db.delete("__Auth", {"doctype": "Server Script Variable", "name": script.variables[0].name})
 
 		self.assertRaisesRegex(frappe.ValidationError, "API_TOKEN", script.execute_method)
+
+	def test_env_variable_that_cannot_be_decrypted(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variable_that_cannot_be_decrypted",
+			script_type="API",
+			api_method="test_env_variable_that_cannot_be_decrypted",
+			script="frappe.flags = frappe.env.API_TOKEN",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		).insert()
+		(
+			frappe.qb.update(Auth)
+			.set(Auth.password, encrypt("s3cr3t", encryption_key=Fernet.generate_key().decode()))
+			.where((Auth.doctype == "Server Script Variable") & (Auth.name == script.variables[0].name))
+		).run()
+
+		with self.set_user("test@example.com"):
+			self.assertRaisesRegex(frappe.ValidationError, "Encryption key is invalid", script.execute_method)
 
 	def test_env_variable_key_validation(self):
 		invalid_variables = [

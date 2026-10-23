@@ -347,13 +347,18 @@ class ServerScriptEnv:
 				title=_("Missing Environment Variable"),
 			)
 
-		value = get_decrypted_password(variable.doctype, variable.name, "value", raise_exception=False)
-		if not value:
-			frappe.throw(
-				_("Environment variable {0} has no saved value. Set it again in this Server Script").format(
-					frappe.bold(key)
-				),
-				title=_("Missing Environment Variable"),
-			)
+		if value := get_decrypted_password(variable.doctype, variable.name, "value", raise_exception=False):
+			return value
 
-		return value
+		if frappe.db.exists(
+			"__Auth",
+			{"doctype": variable.doctype, "name": variable.name, "fieldname": "value", "encrypted": 1},
+		):
+			return get_decrypted_password(variable.doctype, variable.name, "value")
+
+		frappe.throw(
+			_("Environment variable {0} has no saved value. Set it again in this Server Script").format(
+				frappe.bold(key)
+			),
+			title=_("Missing Environment Variable"),
+		)
