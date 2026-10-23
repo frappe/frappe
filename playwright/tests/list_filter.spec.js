@@ -73,6 +73,28 @@ test.describe("List filter", () => {
 			expect(await field_value()).toBe("ToDo.status");
 		});
 
+		test("keeps a row's field when its picker is cleared with Backspace", async ({
+			page,
+			desk,
+		}) => {
+			await desk.go_to_list("ToDo");
+			await desk.clear_filters();
+			await page.evaluate(() => cur_list.filter_area.add([["ToDo", "role", "=", "Guest"]]));
+			await expect.poll(() => applied(page)).toEqual([["role", "=", "Guest"]]);
+			await desk.open_list_filter();
+
+			const field = page.locator(".filter-popover .fieldname-select-area .es-combobox");
+			await field.focus();
+			// Backspace empties it and opens the list; closed without a pick, the field stays
+			await page.keyboard.press("Backspace");
+			const picker = page.locator(".es-combobox__panel[data-state='open']");
+			await expect(picker).toHaveCount(1);
+			await page.keyboard.press("Escape");
+			await expect(picker).toHaveCount(0);
+			await expect(field).toContainText("Role");
+			expect(await applied(page)).toEqual([["role", "=", "Guest"]]);
+		});
+
 		test("finds a child table's fields by the table's name", async ({ page, desk }) => {
 			await desk.go_to_list("User");
 			await desk.clear_filters();

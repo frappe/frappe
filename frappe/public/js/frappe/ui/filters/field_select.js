@@ -30,7 +30,8 @@ frappe.ui.FieldSelect = class FieldSelect {
 
 	on_pick(value) {
 		const item = this.options.find((o) => o.value === value);
-		if (!item) return;
+		// Backspace clears the picker, but a row keeps its field until another is picked
+		if (!item) return this.set_value(this.selected_doctype, this.selected_fieldname);
 		this.selected_doctype = item.doctype;
 		this.selected_fieldname = item.fieldname;
 		// outside its group a child table's field needs its table: "Cost Center (Items)"
