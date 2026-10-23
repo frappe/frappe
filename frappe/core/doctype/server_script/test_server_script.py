@@ -470,14 +470,18 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 			name="test_env_variables_with_name_set",
 			script_type="API",
 			api_method="test_env_variables_with_name_set",
-			script="frappe.flags = frappe.env.API_TOKEN",
-			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+			script="frappe.flags = frappe.env.API_TOKEN + frappe.env.API_SECRET",
+			variables=[
+				{"key": "API_TOKEN", "value": "s3cr3t"},
+				{"name": "test_env_variables_with_name_set_row", "key": "API_SECRET", "value": "p4ss"},
+			],
 		)
 		script.flags.name_set = True
 		script.insert()
 
 		self.assertEqual(script.name, "test_env_variables_with_name_set")
-		self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3t")
+		self.assertEqual(script.variables[1].name, "test_env_variables_with_name_set_row")
+		self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3tp4ss")
 
 	def test_missing_env_variable(self):
 		script = frappe.get_doc(
