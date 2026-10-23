@@ -504,6 +504,17 @@ class TestChromePdfGeometry(IntegrationTestCase):
 		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
 		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 9.84, delta=0.05)
 
+	def test_print_format_margin_without_a_length_is_ignored(self):
+		from bs4 import BeautifulSoup
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = self.make_browser({"page-size": "A4"})
+		browser.soup = BeautifulSoup("<style>.print-format { margin-left: auto; }</style>", "html5lib")
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["marginLeft"], 15 / 25.4, delta=0.01)
+
 	def test_print_format_page_margin_reaches_pdf(self):
 		print_format = frappe.get_doc(
 			{
