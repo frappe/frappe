@@ -737,10 +737,17 @@ class TestNotification(IntegrationTestCase):
 		user = frappe.get_doc("User", "test@example.com")
 		user.language = "de"
 
-		with self.change_settings("Print Settings", allow_print_for_draft=1):
-			attachment = frappe.new_doc("Notification").get_print(user)
+		attachment = frappe.new_doc("Notification").get_print(user)
 
 		self.assertEqual(attachment["lang"], "de")
+
+	def test_attach_print_of_non_submittable_document(self):
+		user = frappe.get_doc("User", "test@example.com")
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			attachment = frappe.new_doc("Notification").get_print(user)
+
+		self.assertEqual(attachment["name"], "test@example.com")
 
 	@classmethod
 	def tearDownClass(cls):
