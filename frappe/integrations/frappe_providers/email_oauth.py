@@ -14,6 +14,7 @@ from oauthlib.oauth2 import WebApplicationClient
 import frappe
 from frappe import _
 from frappe.integrations.frappe_providers.cloud_settings import PilotClient, is_v2_site
+from frappe.integrations.utils import make_get_request
 from frappe.utils.data import get_host_name_from_request
 from frappe.www.login import sanitize_redirect
 
@@ -24,7 +25,7 @@ CALLBACK_PATH = "/api/method/frappe.integrations.frappe_providers.email_oauth.ca
 FRAPPE_CLOUD_RELAY = "frappe-cloud-relay:"
 DEFAULT_LANDING = "/desk/email-account"
 # ONE_CLICK_PROVIDERS' keys; a relay app's Token URI ends in one
-Provider = Literal["microsoft"]
+Provider = Literal["microsoft", "yandex"]
 # Mail settings per provider, keyed like Central's Email OAuth Provider records; Central sends the OAuth side (scopes)
 ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 	"microsoft": {
@@ -42,6 +43,13 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 				"imap_disabled": ("authenticated but not connected",),
 			},
 		},
+	},
+	"yandex": {
+		"label": "Yandex",
+		"service": "Yandex.Mail",
+		"servers": {"email_server": "imap.yandex.com", "smtp_server": "smtp.yandex.com"},
+		# not OpenID Connect, so no id_token; the address comes from here
+		"userinfo_url": "https://login.yandex.ru/info?format=json",
 	},
 }
 
@@ -212,10 +220,16 @@ def connect_mailbox(
 			raise
 		return "expired", None
 
-	# straight from the token endpoint over TLS, so no signature check (OIDC Core 3.1.3.7)
-	claims = jwt.decode(token["id_token"], options={"verify_signature": False})
-	email = claims.get("email") or claims["preferred_username"]
 	config = ONE_CLICK_PROVIDERS[provider]
+	if "userinfo_url" in config:
+		user = make_get_request(
+			config["userinfo_url"], headers={"Authorization": f"OAuth {token['access_token']}"}
+		)
+		claims = {"email": user["default_email"]}
+	else:
+		# straight from the token endpoint over TLS, so no signature check (OIDC Core 3.1.3.7)
+		claims = jwt.decode(token["id_token"], options={"verify_signature": False})
+	email = claims.get("email") or claims["preferred_username"]
 	personal = "personal_tenant" in config and claims.get("tid") == config["personal_tenant"]
 	if account_name := note.get("email_account"):
 		if not account_email:

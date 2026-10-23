@@ -203,7 +203,9 @@ class TestBoot(IntegrationTestCase):
 			with patch.dict(frappe.conf, V2):
 				boot = get_bootinfo()
 				self.assertTrue(boot.is_v2_site)
-				self.assertEqual(boot.one_click_email_services, {"Outlook.com": "Outlook"})
+				self.assertEqual(
+					boot.one_click_email_services, {"Outlook.com": "Outlook", "Yandex.Mail": "Yandex"}
+				)
 			with patch.dict(frappe.conf, {key: None for key in V2}):
 				boot = get_bootinfo()
 				self.assertFalse(boot.is_v2_site)
@@ -297,6 +299,33 @@ class TestCallback(IntegrationTestCase):
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:microsoft")
 		self.assertIsNone(app.get_password("client_secret", raise_exception=False))
 		self.assertEqual(app.get_token_cache(USER).get_password("refresh_token"), "rt")
+
+	def test_connects_yandex_mailbox(self) -> None:
+		yandex_token = token("ignored@email-oauth.example.com")
+		del yandex_token["id_token"]
+		self.pilot.return_value = yandex_token
+		userinfo = self.enterContext(
+			patch.object(
+				email_oauth, "make_get_request", return_value={"default_email": "one@email-oauth.example.com"}
+			)
+		)
+		email_oauth.callback(state=self.note(provider="yandex"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=yandex"
+			)
+		)
+		userinfo.assert_called_once_with(
+			"https://login.yandex.ru/info?format=json", headers={"Authorization": "OAuth at"}
+		)
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		self.assertEqual(account.email_server, "imap.yandex.com")
+		self.assertEqual(account.smtp_server, "smtp.yandex.com")
+		self.assertEqual(account.service, "Yandex.Mail")
+		app = frappe.get_doc("Connected App", account.connected_app)
+		self.assertEqual(app.provider_name, "Yandex (one@email-oauth.example.com)")
+		self.assertEqual(app.token_uri, "frappe-cloud-relay:yandex")
 
 	def test_lands_with_the_result_before_the_fragment(self) -> None:
 		email_oauth.callback(state=self.note(redirect_to="/desk/email-account?view=list#top"), code="c")
