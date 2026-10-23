@@ -22,6 +22,7 @@ frappe.provide("frappe.ui");
  * @property {boolean} [skippable] Offers Skip, and Undo skip once skipped, in the open row.
  * @property {boolean} [optional] Shows an Optional badge and leaves the item out of progress, unless every item is optional.
  * @property {string} [locked] Why the item can't be done yet. Shown on the lock icon's tooltip; the actions are disabled, Skip stays available.
+ * @property {boolean} [removable] Offers Remove in the open row; needs on_remove.
  *
  * @typedef {Object} ChecklistOpts
  * @property {string} title Translated text in the card's head.
@@ -31,6 +32,9 @@ frappe.provide("frappe.ui");
  * @property {(item:ChecklistItem, user:string|null)=>void|Promise} [on_assign] Makes the assignee editable; runs before the item changes, reject to keep the old one.
  * @property {(item:ChecklistItem, date:string|null)=>void|Promise} [on_due_date_change] Makes the due date editable, the same way.
  * @property {(item:ChecklistItem, status:string|null)=>void|Promise} [on_status_change] Makes an unfinished item's marker a menu to set it In Progress or Stuck, or clear that; finishing stays with the caller.
+ * @property {(label:string, checklist:Checklist)=>void|Promise} [on_add] Shows an input below the items; Enter passes the typed label, and the caller adds the item through set_items. Reject to keep the text. Set it to null and call set_items to hide the input.
+ * @property {string} [add_label] Placeholder of that input. Defaults to "Add item".
+ * @property {(item:ChecklistItem, checklist:Checklist)=>void|Promise} [on_remove] Runs before a removable item is removed; reject to keep it.
  * @property {string} [css_class] Extra classes on the root.
  */
 
@@ -106,7 +110,7 @@ frappe.ui.Checklist = class Checklist {
 		this.rows = new Map(
 			items.map((item) => [item.id, this.rows.get(item.id) || this.make_row(item.id)])
 		);
-		this.list.replaceChildren(...this.rows.values());
+		this.list.replaceChildren(...this.rows.values(), ...this.make_add());
 		this.make_progress();
 		this.update_head();
 		items.forEach((item) => this.update_row(item));
@@ -130,6 +134,16 @@ frappe.ui.Checklist = class Checklist {
 
 	get_item(item_id) {
 		return this.items.get(item_id);
+	}
+
+	remove_item(item_id) {
+		this.rows.get(item_id)?.remove();
+		this.rows.delete(item_id);
+		this.items.delete(item_id);
+		if (this.open_id === item_id) this.open_id = null;
+		this.make_progress();
+		this.update_head();
+		this.sync_open();
 	}
 
 	/** Open one row and close the others; null closes them all. */
@@ -448,10 +462,14 @@ frappe.ui.Checklist = class Checklist {
 
 	// A skipped row offers only Undo skip, so skipping can't stand in for unlocking it.
 	make_actions(item, locked) {
+		const remove =
+			item.removable && this.opts.on_remove
+				? [this.make_button(__("Remove"), () => this.remove(item))]
+				: [];
 		if (item.skipped && !item.done) {
 			return item.skippable
-				? [this.make_button(__("Undo skip"), () => this.unskip(item))]
-				: [];
+				? [this.make_button(__("Undo skip"), () => this.unskip(item)), ...remove]
+				: remove;
 		}
 		const buttons = (item.actions || []).map(
 			({ icon, icon_left, icon_right, ...action }, index) => {
@@ -468,7 +486,43 @@ frappe.ui.Checklist = class Checklist {
 		if (item.skippable && !item.done) {
 			buttons.push(this.make_button(__("Skip"), () => this.skip(item)));
 		}
-		return buttons;
+		return [...buttons, ...remove];
+	}
+
+	make_add() {
+		if (!this.opts.on_add) return [];
+		if (this.add_row) return [this.add_row];
+
+		this.add_row = document.createElement("label");
+		this.add_row.className = "es-checklist__add";
+		this.add_row.innerHTML = `
+			<span class="es-checklist__marker">${frappe.utils.icon("plus", "sm", "", "", "", true)}</span>
+			<input type="text" class="es-checklist__add-input">`;
+		const input = this.add_row.querySelector("input");
+		input.placeholder = this.opts.add_label || __("Add item");
+		input.setAttribute("aria-label", input.placeholder);
+		input.addEventListener("keydown", (e) => {
+			if (e.key === "Escape") {
+				input.value = "";
+				input.blur();
+			}
+			if (e.key !== "Enter" || input.readOnly || !input.value.trim()) return;
+			e.preventDefault();
+			input.readOnly = true;
+			Promise.resolve(this.opts.on_add?.(input.value.trim(), this))
+				.then(() => (input.value = ""))
+				.finally(() => {
+					input.readOnly = false;
+					input.focus();
+				});
+		});
+		return [this.add_row];
+	}
+
+	remove(item) {
+		return Promise.resolve(this.opts.on_remove?.(item, this)).then(() =>
+			this.remove_item(item.id)
+		);
 	}
 
 	make_button(label, onclick) {
@@ -488,7 +542,12 @@ frappe.ui.Checklist = class Checklist {
 	}
 
 	has_body(item) {
-		return Boolean(item.description || item.actions?.length || (item.skippable && !item.done));
+		return Boolean(
+			item.description ||
+				item.actions?.length ||
+				(item.skippable && !item.done) ||
+				(item.removable && this.opts.on_remove)
+		);
 	}
 
 	is_overdue(item) {
