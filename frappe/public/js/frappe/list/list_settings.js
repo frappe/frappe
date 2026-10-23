@@ -207,7 +207,11 @@ export default class ListSettings {
 						${__("Width (px)")}
 						<span
 							class="ml-1"
-							title="${__("You can also drag column borders directly in the list view to resize")}"
+							title="${frappe.utils.escape_html(
+								__(
+									"You can also drag column borders directly in the list view to resize"
+								)
+							)}"
 							style="cursor: help;"
 						>${frappe.utils.icon("info", "xs")}</span>
 					</div>

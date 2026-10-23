@@ -164,8 +164,8 @@ frappe.ui.form.Control = class BaseControl {
 		// Already attached button
 		if (this.$wrapper.find(".clearfix .btn-translation").length) return;
 
-		const translation_btn = `<a class="btn-translation no-decoration text-muted" title="${__(
-			"Open Translation"
+		const translation_btn = `<a class="btn-translation no-decoration text-muted" title="${frappe.utils.escape_html(
+			__("Open Translation")
 		)}">
 				${frappe.utils.icon("globe", "sm")}
 			</a>`;

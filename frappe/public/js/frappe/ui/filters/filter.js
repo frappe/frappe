@@ -509,10 +509,10 @@ frappe.ui.Filter = class {
 	get_filter_tag_element() {
 		return $(`<div class="filter-tag btn-group">
 			<button class="btn btn-default btn-xs toggle-filter"
-				title="${__("Edit Filter")}">
+				title="${frappe.utils.escape_html(__("Edit Filter"))}">
 			</button>
 			<button class="btn btn-default btn-xs remove-filter"
-				title="${__("Remove Filter")}">
+				title="${frappe.utils.escape_html(__("Remove Filter"))}">
 				${frappe.utils.icon("x")}
 			</button>
 		</div>`);

@@ -917,7 +917,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 						<span class="filter-icon button-icon">${frappe.utils.icon("funnel")}</span>
 						<span class="button-label hidden-xs">${__("Filter")}</span>
 					</button>
-					<button class="btn btn-default btn-sm filter-x-button" title="${__("Clear all filters")}">
+					<button class="btn btn-default btn-sm filter-x-button" title="${frappe.utils.escape_html(
+						__("Clear all filters")
+					)}">
 						<span class="filter-icon button-icon">${frappe.utils.icon("x")}</span>
 					</button>
 				</div>

@@ -187,7 +187,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 			.map(([name, layer]) => `<option value="${name}">${layer.label()}</option>`)
 			.join("");
 		this.$layer = $(`
-			<select class="ws-layer-switch form-control input-xs" title="${__("Arranging")}">
+			<select class="ws-layer-switch form-control input-xs" title="${frappe.utils.escape_html(
+				__("Arranging")
+			)}">
 				${options}
 			</select>
 		`);
@@ -395,10 +397,9 @@ frappe.ui.ArrangementEditor = class ArrangementEditor {
 	// does not show, which means nothing: the entry exists only because this layer names it.
 	remove_button(key) {
 		let $btn = $(
-			`<button class="ws-item-remove" title="${__("Remove")}">${frappe.utils.icon(
-				"x",
-				"sm"
-			)}</button>`
+			`<button class="ws-item-remove" title="${frappe.utils.escape_html(
+				__("Remove")
+			)}">${frappe.utils.icon("x", "sm")}</button>`
 		);
 		$btn.on("click", () => this.remove(key));
 		return $btn;

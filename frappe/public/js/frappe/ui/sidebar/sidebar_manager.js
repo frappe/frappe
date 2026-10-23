@@ -558,10 +558,9 @@ frappe.ui.SidebarManager = class SidebarManager extends frappe.ui.ArrangementEdi
 
 	decorate_item($el, key) {
 		let $edit = $(
-			`<button class="ws-item-edit" title="${__("Rename")}">${frappe.utils.icon(
-				"pencil",
-				"sm"
-			)}</button>`
+			`<button class="ws-item-edit" title="${frappe.utils.escape_html(
+				__("Rename")
+			)}">${frappe.utils.icon("pencil", "sm")}</button>`
 		);
 		$edit.on("click", () => this.edit_entry(key));
 		$el.append($edit);

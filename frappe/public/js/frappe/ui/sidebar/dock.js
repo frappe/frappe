@@ -19,9 +19,10 @@ frappe.ui.Dock = class Dock {
 	}
 
 	make() {
-		this.$dock = $(`<div class="dock hidden" id="desk-dock" role="navigation" aria-label="${__(
-			"Apps"
-		)}">
+		this.$dock =
+			$(`<div class="dock hidden" id="desk-dock" role="navigation" aria-label="${frappe.utils.escape_html(
+				__("Apps")
+			)}">
 			<div class="dock-logo">
 				<a class="shell-header" href="/desk">
 					<div class="header-logo"></div>
@@ -33,7 +34,9 @@ frappe.ui.Dock = class Dock {
 			<div class="dock-utilities"></div>
 			<div class="dock-items"></div>
 			<div class="dock-user">
-				<button class="dock-item dock-user-button" aria-label="${__("User Menu")}">
+				<button class="dock-item dock-user-button" aria-label="${frappe.utils.escape_html(
+					__("User Menu")
+				)}">
 					${frappe.avatar(frappe.session.user, "avatar-medium")}
 				</button>
 			</div>

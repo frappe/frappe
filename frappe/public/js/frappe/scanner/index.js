@@ -175,7 +175,9 @@ frappe.ui.Scanner = class Scanner {
 		}
 		let torch_on = false;
 		const $torch = $(`
-			<button type="button" class="scanner-torch" title="${__("Toggle Flash")}">
+			<button type="button" class="scanner-torch" title="${frappe.utils.escape_html(
+				__("Toggle Flash")
+			)}">
 				<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor">
 					<path d="M7 2v11h3v9l7-12h-4l4-8H7z"/>
 				</svg>

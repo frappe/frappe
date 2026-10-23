@@ -71,8 +71,8 @@ frappe.ui.EmbeddedList = class EmbeddedList {
 			  })
 			: "";
 		const search = this.show_search
-			? `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${__(
-					"Search"
+			? `<input type="text" class="form-control form-control-sm embedded-list-search" data-action="search" placeholder="${frappe.utils.escape_html(
+					__("Search")
 			  )}">`
 			: "";
 

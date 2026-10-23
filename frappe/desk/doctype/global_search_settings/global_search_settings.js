@@ -62,7 +62,7 @@ function show_configure_search_fields_dialog(doctype, frm) {
 				<div class="filters-search mb-3">
 					<input
 						type="text"
-						placeholder="${__("Search")}"
+						placeholder="${frappe.utils.escape_html(__("Search"))}"
 						data-element="search"
 						class="form-control input-xs"
 					>

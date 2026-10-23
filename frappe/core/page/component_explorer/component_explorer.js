@@ -576,8 +576,8 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 											<p class="es-popover__description">${__("Narrow down the list.")}</p>
 										</div>
 										<div class="flex flex-col gap-2">
-											<input type="text" class="form-control" placeholder="${__("Status")}">
-											<input type="text" class="form-control" placeholder="${__("Owner")}">
+											<input type="text" class="form-control" placeholder="${frappe.utils.escape_html(__("Status"))}">
+											<input type="text" class="form-control" placeholder="${frappe.utils.escape_html(__("Owner"))}">
 										</div>
 									</div>
 								`);

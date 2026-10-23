@@ -19,15 +19,21 @@ frappe.ui.misc.about = function () {
 				</div>
 				<div class="about-social-btns flex gap-1">
 					<a href="https://frappe.io/" target="_blank" class="es-button" data-variant="ghost"
-						data-icon-button="true" title="${__("Website")}" aria-label="${__("Website")}">
+						data-icon-button="true" title="${frappe.utils.escape_html(
+							__("Website")
+						)}" aria-label="${frappe.utils.escape_html(__("Website"))}">
 						${frappe.utils.icon("globe", "sm", "", "", "", true)}
 					</a>
 					<a href="https://github.com/frappe" target="_blank" class="es-button" data-variant="ghost"
-						data-icon-button="true" title="${__("Source Code")}" aria-label="${__("Source Code")}">
+						data-icon-button="true" title="${frappe.utils.escape_html(
+							__("Source Code")
+						)}" aria-label="${frappe.utils.escape_html(__("Source Code"))}">
 						${frappe.utils.icon("github", "sm", "", "", "", true)}
 					</a>
 					<a href="https://discuss.frappe.io" target="_blank" class="es-button" data-variant="ghost"
-						data-icon-button="true" title="${__("Forum")}" aria-label="${__("Forum")}">
+						data-icon-button="true" title="${frappe.utils.escape_html(
+							__("Forum")
+						)}" aria-label="${frappe.utils.escape_html(__("Forum"))}">
 						${frappe.utils.icon("message-circle", "sm", "", "", "", true)}
 					</a>
 				</div>
@@ -66,7 +72,9 @@ frappe.ui.misc.about = function () {
 					"Installed Apps"
 				)}</div>
 				<button class="es-button hidden" data-variant="ghost" data-icon-button="true"
-					id="copy-apps-info" title="${__("Copy Apps Version")}" aria-label="${__("Copy Apps Version")}">
+					id="copy-apps-info" title="${frappe.utils.escape_html(
+						__("Copy Apps Version")
+					)}" aria-label="${frappe.utils.escape_html(__("Copy Apps Version"))}">
 					${frappe.utils.icon("clipboard", "sm", "", "", "", true)}
 				</button>
 			</div>

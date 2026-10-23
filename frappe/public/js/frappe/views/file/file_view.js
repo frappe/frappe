@@ -290,8 +290,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 						  });
 				const name = escape(d.name);
 				const copy_url_btn = `
-					<div class="copy-file-url hidden-xs" title="${__(
-						"Copy File URL"
+					<div class="copy-file-url hidden-xs" title="${frappe.utils.escape_html(
+						__("Copy File URL")
 					)}" data-file-url="${absolute_file_url}">
 						<svg class="icon icon-sm" aria-hidden="true">
 							<use class="" href="#icon-copy"></use>
@@ -354,8 +354,8 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 		const breadcrumbs_html = this.get_breadcrumbs_html();
 
 		let header_selector_html = !frappe.views.FileView.grid_view
-			? `<input class="level-item list-check-all hidden-xs" type="checkbox" title="${__(
-					"Select All"
+			? `<input class="level-item list-check-all hidden-xs" type="checkbox" title="${frappe.utils.escape_html(
+					__("Select All")
 			  )}">`
 			: "";
 

@@ -16,7 +16,7 @@
 		<div class="group-by-section-label">{{ __("Aggregate") }}</div>
 		{% for (var i = 0; i < aggregates.length; i++) { %}
 		<div class="group-by-row" data-idx="{{ i }}">
-			<select class="aggregate-function form-control input-xs" aria-label="{{ __("Aggregate Function") }}">
+			<select class="aggregate-function form-control input-xs" aria-label="{{ frappe.utils.escape_html(__("Aggregate Function")) }}">
 				{% for (var condition of aggregate_function_conditions) { %}
 				<option value="{{condition.name}}" {{ aggregates[i].aggregate_function == condition.name ? "selected" : "" }}>
 					{{ condition.label }}

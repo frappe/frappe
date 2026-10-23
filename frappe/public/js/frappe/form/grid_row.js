@@ -572,13 +572,15 @@ export default class GridRow {
 							<div class='col-5' style='padding-top: 5px;'>
 								${__(docfield.label, null, docfield.parent)}
 							</div>
-							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${__("Width in pixels")}'>
+							<div class='col-3' style='padding-top: 2px; margin-top:-2px;' title='${frappe.utils.escape_html(
+								__("Width in pixels")
+							)}'>
 								<input class='form-control column-width my-1 input-xs text-right'
 								style='height: 24px; max-width: 80px; background: var(--bg-color);'
 									value='${cint(d.width) || this.grid.get_column_width(docfield)}'
 									data-fieldname='${docfield.fieldname}'>
 							</div>
-							<div class='col-2 sticky-col-container' title='${__("Sticky")}' >
+							<div class='col-2 sticky-col-container' title='${frappe.utils.escape_html(__("Sticky"))}' >
 								<input type='checkbox' class='form-control sticky-column'
 									${d.sticky ? "checked" : ""}
 									data-fieldname='${d.fieldname}' style='background-color: var(--modal-bg); display: inline'>

@@ -22,7 +22,7 @@
 		</div>
 	</div>
 	<div class="kanban-card new-card-area">
-		<textarea name="title" aria-label="{{ __("Add {0}", [__(doctype)]) }}"></textarea>
+		<textarea name="title" aria-label="{{ frappe.utils.escape_html(__("Add {0}", [__(doctype)])) }}"></textarea>
 	</div>
 	<div class="kanban-cards">
 	</div>

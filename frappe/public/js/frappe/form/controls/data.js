@@ -81,7 +81,9 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	setup_url_field() {
 		this.$wrapper.find(".control-input").append(
 			`<span class="link-btn">
-				<a class="btn-open no-decoration" title="${__("Open Link")}" target="_blank">
+				<a class="btn-open no-decoration" title="${frappe.utils.escape_html(
+					__("Open Link")
+				)}" target="_blank">
 					${frappe.utils.icon("link", "sm")}
 				</a>
 			</span>`
@@ -146,7 +148,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 	setup_barcode_field() {
 		this.$wrapper.find(".control-input").append(
 			`<span class="link-btn">
-				<a class="btn-open no-decoration" title="${__("Scan")}">
+				<a class="btn-open no-decoration" title="${frappe.utils.escape_html(__("Scan"))}">
 					${frappe.utils.icon("scan-barcode", "sm")}
 				</a>
 			</span>`

@@ -222,8 +222,8 @@ frappe.ui.form.Attachments = class Attachments {
 						<a class="es-button attachment-preview-open-link"
 							data-variant="ghost" data-icon-button="true"
 							href="${escaped_file_url}" target="_blank" rel="noopener noreferrer"
-							title="${__("Open file in new tab")}"
-							aria-label="${__("Open file in new tab")}"
+							title="${frappe.utils.escape_html(__("Open file in new tab"))}"
+							aria-label="${frappe.utils.escape_html(__("Open file in new tab"))}"
 						>
 							${frappe.utils.icon("arrow-up-right", "sm", "", "", "", true)}
 						</a>

@@ -470,8 +470,8 @@ frappe.views.CommunicationComposer = class {
 		visible.forEach((marker) => $toolbar.append(group(marker)));
 
 		const $more = $(
-			`<button type="button" class="email-composer-toolbar-more" title="${__(
-				"More options"
+			`<button type="button" class="email-composer-toolbar-more" title="${frappe.utils.escape_html(
+				__("More options")
 			)}">${frappe.utils.icon("ellipsis", "sm")}</button>`
 		);
 		$toolbar.append($more);

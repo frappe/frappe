@@ -17,7 +17,7 @@
 					<a
 						class="align-center btn-reset flex nav-link sidebar-user-button"
 						style="width: 100%; min-height: 40px;"
-						aria-label="{{ __("User Menu") }}"
+						aria-label="{{ frappe.utils.escape_html(__("User Menu")) }}"
 					>
 						<div> {{ avatar }} </div>
 						<!-- The two lines take their size and their grey from the tokens that the

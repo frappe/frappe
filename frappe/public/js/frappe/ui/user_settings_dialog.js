@@ -326,8 +326,8 @@ function _profile_tab(user_data) {
 
 			panel.body.html(`
 				<div class="flex flex-wrap items-center gap-3 pt-4 pb-5">
-					<div class="profile-avatar-upload relative flex shrink-0 rounded-full overflow-hidden cursor-pointer" title="${__(
-						"Upload Photo"
+					<div class="profile-avatar-upload relative flex shrink-0 rounded-full overflow-hidden cursor-pointer" title="${frappe.utils.escape_html(
+						__("Upload Photo")
 					)}">
 						${frappe.ui.avatar.html({
 							image: frappe.user_info(user).image,

@@ -114,7 +114,9 @@ export default class GridPagination {
 
 	get_pagination_html() {
 		let page_text_html = `<div class="page-text">
-				<input class="current-page-number page-number" type="text" value="${__(this.page_index)}"/>
+				<input class="current-page-number page-number" type="text" value="${frappe.utils.escape_html(
+					__(this.page_index)
+				)}"/>
 				<span>${__("of")}</span>
 				<span class="total-page-number page-number"> ${__(this.total_pages)} </span>
 			</div>`;

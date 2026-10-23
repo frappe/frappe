@@ -198,7 +198,9 @@ export default class Block {
 
 		let $button = $(`
 			<div class="dropdown-btn">
-				<button class="btn btn-secondary btn-xs setting-btn" title="${__("Setting")}">
+				<button class="btn btn-secondary btn-xs setting-btn" title="${frappe.utils.escape_html(
+					__("Setting")
+				)}">
 					${frappe.utils.icon("ellipsis", "xs")}
 				</button>
 				<div class="dropdown-list hidden"></div>
@@ -207,7 +209,7 @@ export default class Block {
 
 		let dropdown_item = function (label, title, icon, action) {
 			let html = $(`
-				<div class="dropdown-item" title="${__(title)}">
+				<div class="dropdown-item" title="${frappe.utils.escape_html(__(title))}">
 					<span class="dropdown-item-icon">${icon}</span>
 					<span class="dropdown-item-label">${__(label)}</span>
 				</div>

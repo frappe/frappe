@@ -39,7 +39,7 @@
 						</span>
 					{% if (doc.published) { %}
 						<span> · </span>
-						<span class="text-extra-muted" title="{{ __('Visible to website/portal users.') }}">
+						<span class="text-extra-muted" title="{{ frappe.utils.escape_html(__('Visible to website/portal users.')) }}">
 							{{ __("Published") }}
 						</span>
 					{% } %}
@@ -72,7 +72,7 @@
 			{% } %}
 
 			{% if (doc._url && !frappe.is_mobile()) { %}
-			<a class="action-btn" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
+			<a class="action-btn" href="{{ doc._url }}" title="{{ frappe.utils.escape_html(__("Open Communication")) }}">
 				<svg class="icon">
 					<use href="#icon-link"></use>
 				</svg>
@@ -93,7 +93,7 @@
 							{{ __('Copy Link') }}
 						</a>
 						{% if (frappe.is_mobile()) { %}
-						<a class="dropdown-item" href="{{ doc._url }}" title="{{ __("Open Communication") }}">
+						<a class="dropdown-item" href="{{ doc._url }}" title="{{ frappe.utils.escape_html(__("Open Communication")) }}">
 							{{  __("Open Communication") }}
 						</a>
 						{% } %}
