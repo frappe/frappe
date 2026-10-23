@@ -2,14 +2,18 @@ import { test, expect } from "../support";
 
 const CONNECT =
 	"**/api/method/frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect";
+const SERVICES =
+	"**/api/method/frappe.integrations.frappe_providers.email_oauth.get_one_click_services";
 
 async function open_add_dialog(page, desk) {
+	await page.route(SERVICES, (route) =>
+		route.fulfill({ json: { message: { "Outlook.com": "Outlook" } } })
+	);
 	await desk.go_to_list("ToDo");
 	await desk.ready();
 	// boot is read when the Email Account list is first made, so set it before routing there
 	await page.evaluate(() => {
 		frappe.boot.is_v2_site = 1;
-		frappe.boot.one_click_email_services = { "Outlook.com": "Outlook" };
 		frappe.set_route("List", "Email Account");
 	});
 	await expect(page.locator("body")).toHaveAttribute("data-route", "List/Email Account/List");

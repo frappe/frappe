@@ -55,7 +55,8 @@ function add_email_account_dialog() {
 		.options.split("\n")
 		.filter(Boolean)
 		.sort((a, b) => rank(a) - rank(b));
-	const one_click = frappe.boot.one_click_email_services || {};
+	let one_click = {};
+	let picked;
 
 	const open_form = (service) => {
 		d.hide();
@@ -118,6 +119,7 @@ function add_email_account_dialog() {
 		return $tile.on("click", () => {
 			$tile.siblings().attr("aria-pressed", "false");
 			$tile.attr("aria-pressed", "true");
+			picked = [service, label];
 			set_actions(service, label);
 			d.enable_primary_action();
 		});
@@ -142,6 +144,12 @@ function add_email_account_dialog() {
 	d.set_primary_action(__("Continue"));
 	d.disable_primary_action();
 	d.show();
+	frappe
+		.xcall("frappe.integrations.frappe_providers.email_oauth.get_one_click_services")
+		.then((services) => {
+			one_click = services;
+			if (picked) set_actions(...picked);
+		});
 }
 
 function show_email_oauth_result(code, mailbox, provider) {
