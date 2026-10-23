@@ -27,6 +27,11 @@ class ContactImportProvider(ImportProvider):
 		}
 
 
+class ContactExportProvider(ContactImportProvider):
+	def get_export_rows(self, names, tables):
+		return {name: {"contacts": [{"email_id": f"{i}@example.com"} for i in range(2)]} for name in names}
+
+
 class TestExporter(IntegrationTestCase):
 	def setUp(self):
 		create_doctype_if_not_exists(doctype_name)
@@ -175,17 +180,24 @@ class TestExporter(IntegrationTestCase):
 		update(doctype_name, "All", 0, "export", 1)
 		frappe.get_doc(doctype=doctype_name, title=test_doc).insert()
 
-		hooks = {"data_import_providers": {doctype_name: [f"{__name__}.ContactImportProvider"]}}
-		with self.patch_hooks(hooks), self.set_user("test@example.com"):
-			export = Exporter(
-				doctype_name,
-				export_fields={doctype_name: ["title"], "contacts": ["email_id"]},
-				export_data=True,
-				export_filters={"name": test_doc},
-			).get_csv_array()
-			columns = build_fields_dict_for_column_matching(doctype_name)
+		def export_with(provider):
+			hooks = {"data_import_providers": {doctype_name: [f"{__name__}.{provider}"]}}
+			with self.patch_hooks(hooks), self.set_user("test@example.com"):
+				export = Exporter(
+					doctype_name,
+					export_fields={doctype_name: ["title"], "contacts": ["email_id"]},
+					export_data=True,
+					export_filters={"name": test_doc},
+				).get_csv_array()
+				columns = build_fields_dict_for_column_matching(doctype_name)
+			self.assertEqual(export[0], ["Title", "Email (Contact)"])
+			self.assertIn("Email (Contact)", columns)
+			return export[1:]
 
-		self.assertEqual(export[0], ["Title", "Email (Contact)"])
-		self.assertIn("Email (Contact)", columns)
-		# Contact rows are separate records, so the column stays blank
-		self.assertEqual(export[1], [test_doc, ""])
+		# a provider that doesn't supply export rows leaves the column blank
+		self.assertEqual(export_with("ContactImportProvider"), [[test_doc, ""]])
+		# one that does fills a row per contact, the first beside the record
+		self.assertEqual(
+			export_with("ContactExportProvider"),
+			[[test_doc, "0@example.com"], ["", "1@example.com"]],
+		)

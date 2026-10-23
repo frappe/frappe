@@ -4,12 +4,95 @@ import urllib
 
 import frappe
 from frappe.core.doctype.file.utils import find_file_by_url
+from frappe.storage.blob import served_type
+from frappe.storage.driver import get_driver
+from frappe.storage.serve import find_readable_blob
 from frappe.utils.pdf import get_host_url
 
 """
 CDP commands documentation can be found here.
 https://chromedevtools.github.io/devtools-protocol/
 """
+
+
+def read_blob_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str] | None:
+	"""Return the base64 body and Content-Type of a ``files/`` or
+	``private/files/`` path whose bytes live in a blob the session user can
+	read, else None."""
+	if not clean_path.startswith(("files/", "private/files/")):
+		return None
+	if not (found := find_readable_blob("/" + clean_path, fid)):
+		return None
+	blob, filename = found
+	try:
+		with get_driver(blob.driver).read(blob.key, is_private=bool(blob.is_private)) as stream:
+			content = base64.b64encode(stream.read()).decode()
+	except FileNotFoundError:
+		return None
+	except Exception:
+		# any driver error (an S3 timeout) must fail only this request: raising
+		# here would stop the CDP message reader and with it the whole PDF
+		frappe.log_error(title="PDF Generator could not read a stored file")
+		return None
+	return content, served_type(filename, blob.mime_type)[0]
+
+
+def read_local_resource(url: str) -> tuple[str, str | None] | None:
+	"""Return the base64 body and Content-Type of a site URL the session user may
+	read from disk or blob storage, else None."""
+	import os
+
+	parsed = urllib.parse.urlparse(url)
+	clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
+	query_params = urllib.parse.parse_qs(parsed.query)
+
+	bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
+	asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
+	site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
+	site_private_files_root = os.path.realpath(frappe.utils.get_site_path("private/files"))
+
+	if clean_path.startswith("assets/"):
+		final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
+		is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
+	elif clean_path.startswith("private/files/"):
+		# Covers private files, but we need to check if the user has permission to read the file.
+		# Based on frappe.utils.response.download_private_file
+
+		can_read = False
+		if frappe.session.user == "Administrator":
+			can_read = True
+		elif frappe.session.user != "Guest":
+			# Determine whether the user has permission to read the file based on the fid in the query parameters.
+			# If missing, then all "File" documents with the same path will be checked for a match, which is less efficient.
+			# Normalize file_url to start with a leading slash for comparison.
+			fid: str | None = query_params.get("fid", [None])[0]
+			if find_file_by_url("/" + clean_path, name=fid):
+				can_read = True
+
+		# Resolve the final system path and check if it's within the site_private_files_root.
+		file_path = clean_path.removeprefix("private/files/")
+		final_system_path = os.path.realpath(os.path.join(site_private_files_root, file_path))
+		is_safe = can_read and (
+			os.path.commonpath([final_system_path, site_private_files_root]) == site_private_files_root
+		)
+	else:
+		# Covers files/, builder_assets/, etc... under public root.
+		final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
+		is_safe = os.path.commonpath([final_system_path, site_public_root]) == site_public_root
+
+	if is_safe and os.path.isfile(final_system_path):
+		if content := frappe.read_file(final_system_path, as_base64=True):
+			# write logic to handle all file types as required
+			return content, "image/svg+xml" if clean_path.endswith(".svg") else None
+	elif stored := read_blob_for_url(clean_path, query_params.get("fid", [None])[0]):
+		# not on disk: a blob on another driver, or a v1 file relocated into a blob
+		return stored
+	elif clean_path:
+		frappe.log_error(
+			title="Attempted Unauthorized File Access in PDF Generator",
+			message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
+		)
+	return None
 
 
 class Page:
@@ -34,6 +117,7 @@ class Page:
 		self.get_frame_id_on_demand()
 		self.set_media_emulation("print")
 		self.set_cookies()
+		self.block_external_requests = False
 
 	# TODO: make send to return future and don't wait for it by default.
 	def send(self, method, params=None, return_future=False):
@@ -73,6 +157,7 @@ class Page:
 				"value": frappe.session.sid,
 				"domain": domain,
 				"sameSite": "Strict",
+				"httpOnly": True,
 			}
 			_result, error = self.send("Network.enable")
 			if error:
@@ -117,14 +202,7 @@ class Page:
 
 	def intercept_request_for_local_resources(self, url_pattern="*"):
 		"""Starts intercepting network requests for the given target_id and URL pattern."""
-		import os
-
 		data = {}
-
-		bench_sites = os.path.abspath(os.path.join(frappe.utils.get_bench_path(), "sites"))
-		asset_path = os.path.abspath(os.path.join(bench_sites, "assets"))
-		site_public_root = os.path.realpath(frappe.utils.get_site_path("public"))
-		site_private_files_root = os.path.realpath(frappe.utils.get_site_path("private/files"))
 
 		def on_request_paused_event(future, response):
 			"""Callback for when a request is paused (intercepted)."""
@@ -134,71 +212,35 @@ class Page:
 				url = params["request"]["url"]
 
 				if isinstance(url, str) and url.startswith(get_host_url()):
-					parsed = urllib.parse.urlparse(url)
-					clean_path = urllib.parse.unquote(parsed.path).lstrip("/")
-					query_params = urllib.parse.parse_qs(parsed.query)
-
-					if clean_path.startswith("assets/"):
-						final_system_path = os.path.abspath(os.path.join(bench_sites, clean_path))
-						is_safe = os.path.commonpath([final_system_path, asset_path]) == asset_path
-					elif clean_path.startswith("private/files/"):
-						# Covers private files, but we need to check if the user has permission to read the file.
-						# Based on frappe.utils.response.download_private_file
-
-						can_read = False
-						if frappe.session.user == "Administrator":
-							can_read = True
-						elif frappe.session.user != "Guest":
-							# Determine whether the user has permission to read the file based on the fid in the query parameters.
-							# If missing, then all "File" documents with the same path will be checked for a match, which is less efficient.
-							# Normalize file_url to start with a leading slash for comparison.
-							fid: str | None = query_params.get("fid", [None])[0]
-							if find_file_by_url("/" + clean_path, name=fid):
-								can_read = True
-
-						# Resolve the final system path and check if it's within the site_private_files_root.
-						file_path = clean_path.removeprefix("private/files/")
-						final_system_path = os.path.realpath(os.path.join(site_private_files_root, file_path))
-						is_safe = can_read and (
-							os.path.commonpath([final_system_path, site_private_files_root])
-							== site_private_files_root
+					if resource := read_local_resource(url):
+						content, content_type = resource
+						self.session.send(
+							"Fetch.fulfillRequest",
+							{
+								"requestId": data["request_id"],
+								"responseCode": 200,
+								"responseHeaders": [{"name": "Content-Type", "value": content_type}]
+								if content_type
+								else [],
+								"body": content,
+							},
+							return_future=True,
 						)
-					else:
-						# Covers files/, builder_assets/, etc... under public root.
-						final_system_path = os.path.realpath(os.path.join(site_public_root, clean_path))
-						is_safe = (
-							os.path.commonpath([final_system_path, site_public_root]) == site_public_root
-						)
-
-					if is_safe and os.path.isfile(final_system_path):
-						content = frappe.read_file(final_system_path, as_base64=True)
-						response_headers = []
-						# write logic to handle all file types as required
-						if clean_path.endswith(".svg"):
-							response_headers.append({"name": "Content-Type", "value": "image/svg+xml"})
-						if content:
-							self.session.send(
-								"Fetch.fulfillRequest",
-								{
-									"requestId": data["request_id"],
-									"responseCode": 200,  # actually hande the response code from the request
-									"responseHeaders": response_headers,
-									"body": content,
-								},
-								return_future=True,
-							)
-							return
-					elif clean_path:
+						return
+					elif urllib.parse.urlparse(url).path.lstrip("/"):
 						self.session.send(
 							"Fetch.failRequest",
 							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
 							return_future=True,
 						)
-						frappe.log_error(
-							title="Attempted Unauthorized File Access in PDF Generator",
-							message=f"Blocked access to: {clean_path} \nResolved Path to: {final_system_path}",
-						)
 						return
+				elif self.block_external_requests:
+					self.session.send(
+						"Fetch.failRequest",
+						{"requestId": data["request_id"], "errorReason": "BlockedByClient"},
+						return_future=True,
+					)
+					return
 				self.session.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},
@@ -393,6 +435,10 @@ class Page:
 		if error:
 			raise RuntimeError(f"Error setting device metrics: {error}")
 
+	def get_content_width(self):
+		result = self.evaluate("document.documentElement.scrollWidth")
+		return (result or {}).get("result", {}).get("value") or 0
+
 	def capture_screenshot(self, image_format="jpeg", quality=30):
 		"""Screenshot the current viewport; returns raw image bytes."""
 		params = {"format": image_format, "captureBeyondViewport": False}
@@ -434,21 +480,25 @@ class Page:
 
 		from pypdf import PdfReader
 
-		pdf_data = b""
+		chunks = []
 		offset = 0
 		while True:
-			chunk_result, error = self.send("IO.read", {"handle": stream_id, "offset": offset, "size": 4096})
+			chunk_result, error = self.send(
+				"IO.read", {"handle": stream_id, "offset": offset, "size": 1024 * 1024}
+			)
 			if error:
 				raise RuntimeError(f"Error reading PDF chunk: {error}")
 			chunk_data = chunk_result["data"]
 			# we don't use base64Encode option but added check anyway as it is one of the valid options.
 			if chunk_result.get("base64Encoded", False):
 				chunk_data = base64.b64decode(chunk_data)
-			pdf_data += chunk_data
+			chunks.append(chunk_data)
 			offset += len(chunk_data)
 			if chunk_result.get("eof", False):
 				break
 
+		pdf_data = b"".join(chunks)
+		chunks.clear()
 		_result, error = self.send("IO.close", {"handle": stream_id})
 		if error:
 			raise RuntimeError(f"Error closing PDF stream: {error}")

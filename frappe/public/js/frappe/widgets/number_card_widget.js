@@ -185,6 +185,11 @@ export default class NumberCardWidget extends Widget {
 	}
 
 	set_loading_state() {
+		if (!this.is_classic) {
+			this.draw_number({ value: null, loading: true });
+			return;
+		}
+
 		$(this.body).html(`<div class="number-card-loading text-muted">
 			${__("Loading...")}
 		</div>`);
@@ -279,7 +284,38 @@ export default class NumberCardWidget extends Widget {
 		return common_doc;
 	}
 
+	get is_classic() {
+		return frappe.ui.chart.is_classic({ type: "number" });
+	}
+
+	draw_number(config) {
+		// the card's data can arrive after the dashboard removed it
+		if (this.destroyed) return;
+		const card = { type: "number", title: "", card: false, ...config };
+		if (this.number_chart) {
+			this.number_chart.update(card);
+		} else {
+			this.number_chart = frappe.ui.chart(this.body, card);
+		}
+	}
+
+	// The number as the classic card prints it, with the whole field and the doc it reads.
+	get_number_config() {
+		return { value: String(this.formatted_number), color: this.card_doc.color || undefined };
+	}
+
+	destroy() {
+		this.destroyed = true;
+		this.number_chart?.destroy();
+		delete this.number_chart;
+	}
+
 	render_number() {
+		if (!this.is_classic) {
+			this.draw_number(this.get_number_config());
+			return;
+		}
+
 		const style_attr = this.card_doc.color ? `style="color: ${this.card_doc.color};"` : "";
 
 		$(this.body).html(`<div class="widget-content">
@@ -295,7 +331,18 @@ export default class NumberCardWidget extends Widget {
 		let caret_html = "";
 		let color_class = "";
 
-		return this.get_percentage_stats().then(() => {
+		return this.get_percentage_stats().then((difference) => {
+			if (!this.is_classic) {
+				if (typeof difference !== "number") return;
+				this.draw_number({
+					...this.get_number_config(),
+					delta: difference,
+					deltaSuffix: "%",
+					deltaCaption: this.get_stats_caption(),
+				});
+				return;
+			}
+
 			if (this.percentage_stat == 0 || this.percentage_stat == undefined) {
 				color_class = "grey-stat";
 			} else if (this.percentage_stat > 0) {
@@ -310,13 +357,7 @@ export default class NumberCardWidget extends Widget {
 				color_class = "red-stat";
 			}
 
-			const stats_qualifier_map = {
-				Daily: __("since yesterday"),
-				Weekly: __("since last week"),
-				Monthly: __("since last month"),
-				Yearly: __("since last year"),
-			};
-			const stats_qualifier = stats_qualifier_map[this.card_doc.stats_time_interval];
+			const stats_qualifier = this.get_stats_caption();
 
 			let stat = (() => {
 				if (this.percentage_stat == undefined) return NaN;
@@ -336,6 +377,15 @@ export default class NumberCardWidget extends Widget {
 		});
 	}
 
+	get_stats_caption() {
+		return {
+			Daily: __("since yesterday"),
+			Weekly: __("since last week"),
+			Monthly: __("since last month"),
+			Yearly: __("since last year"),
+		}[this.card_doc.stats_time_interval];
+	}
+
 	get_percentage_stats() {
 		return frappe
 			.xcall("frappe.desk.doctype.number_card.number_card.get_percentage_difference", {
@@ -347,6 +397,7 @@ export default class NumberCardWidget extends Widget {
 				if (res !== undefined) {
 					this.percentage_stat = frappe.utils.shorten_number(res);
 				}
+				return res;
 			});
 	}
 

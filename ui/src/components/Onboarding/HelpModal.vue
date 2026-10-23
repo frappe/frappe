@@ -58,7 +58,7 @@ import HelpCenter from "./HelpCenter.vue";
 import { useOnboarding } from "./onboarding";
 import { showHelpCenter } from "./helpCenter";
 import { minimize } from "./help";
-import { onMounted, computed } from "vue";
+import { computed, watch } from "vue";
 import type { HelpArticle, HelpModalProps } from "./types";
 
 const props = withDefaults(defineProps<HelpModalProps>(), {
@@ -121,9 +121,11 @@ function resetOnboardingSteps() {
 	showHelpCenter.value = false;
 }
 
-onMounted(() => {
-	if (isOnboardingStepsCompleted.value) {
-		showHelpCenter.value = true;
-	}
-});
+watch(
+	isOnboardingStepsCompleted,
+	(completed) => {
+		if (completed) showHelpCenter.value = true;
+	},
+	{ immediate: true }
+);
 </script>

@@ -1,0 +1,76 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AttachmentsListProps": {
+      "type": "object",
+      "properties": {
+        "modelValue": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "file_url": {
+                "type": "string"
+              },
+              "file_name": {
+                "type": "string"
+              },
+              "is_private": {
+                "type": "boolean"
+              }
+            },
+            "required": [
+              "file_url",
+              "file_name",
+              "is_private"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "imageOnly": {
+          "type": "boolean"
+        },
+        "crop": {
+          "type": "boolean"
+        },
+        "restrictions": {
+          "type": "object",
+          "properties": {
+            "max_file_size": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "max_number_of_files": {
+              "type": [
+                "number",
+                "null"
+              ]
+            },
+            "allowed_file_types": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "crop_image_aspect_ratio": {
+              "type": [
+                "number",
+                "null"
+              ]
+            }
+          },
+          "additionalProperties": false
+        },
+        "transport": {
+          "type": "object"
+        }
+      },
+      "required": [
+        "modelValue"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

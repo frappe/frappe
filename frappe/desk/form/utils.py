@@ -3,6 +3,7 @@
 
 import json
 from typing import TYPE_CHECKING
+from urllib.parse import urlencode
 
 import frappe
 import frappe.desk.form.load
@@ -163,4 +164,7 @@ def _sort_field_fallback(doctype: str, fieldname: str):
 
 
 def get_pdf_link(doctype, docname, print_format="Standard", no_letterhead=0):
-	return f"/api/method/frappe.utils.print_format.download_pdf?doctype={doctype}&name={docname}&format={print_format}&no_letterhead={no_letterhead}"
+	query = urlencode(
+		{"doctype": doctype, "name": docname, "format": print_format, "no_letterhead": no_letterhead}
+	)
+	return f"/api/method/frappe.utils.print_format.download_pdf?{query}"

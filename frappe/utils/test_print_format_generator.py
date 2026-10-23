@@ -73,7 +73,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		"""before_save should set print_format_builder_beta=1 for new non-custom formats."""
 		pf = self._make_print_format()
 		self.assertEqual(pf.print_format_builder_beta, 1)
-		self.assertEqual(pf.pdf_generator, "chrome")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
 
 	def test_new_custom_format_does_not_set_builder_beta(self):
 		"""before_save must NOT enable builder beta for custom HTML formats."""
@@ -220,6 +220,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		def chrome_options(letterhead=True, **pf_kwargs):
 			pf_kwargs.setdefault("margin_top", 12)
+			pf_kwargs.setdefault("pdf_generator", "chrome")
 			pf = self._make_print_format(**pf_kwargs)
 			generator = PrintFormatGenerator(pf, todo, letterhead=letterhead_doc.name if letterhead else None)
 			with patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-") as chrome_pdf:
@@ -257,7 +258,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 
 		from frappe.utils.print_format_generator import PrintFormatGenerator
 
-		pf = self._make_print_format()
+		pf = self._make_print_format(pdf_generator="chrome")
 		todo = self._make_todo()
 		generator = PrintFormatGenerator(pf, todo)
 
@@ -328,7 +329,7 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		default = self._make_print_format()
 		with patch.object(frappe.get_meta("ToDo"), "default_print_format", default.name):
 			self.assertEqual(_print_format_doc_or_none(None, "ToDo").name, default.name)
-			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "chrome")
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none("", "ToDo")), "PlutoPrint")
 
 	def test_typst_default_format_prints_without_a_format_name(self):
 		"""get_print with no format name hands a Typst default format to the Typst hook."""
@@ -344,21 +345,48 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		):
 			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
 
-	def test_standard_print_follows_print_settings_pdf_generator(self):
-		"""Standard (no print format) must honour Print Settings, while a beta format
-		stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
+	def test_unknown_pdf_generator_uses_print_settings_default(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+
+		jinja = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test PFG Jinja {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"custom_format": 1,
+				"print_format_type": "Jinja",
+				"standard": "No",
+				"html": "<p>{{ doc.description }}</p>",
+			}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "Print Format", jinja.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		for value in ("wkhtmltopdf", "no-such-engine"):
+			frappe.set_user("Administrator")
+			jinja.db_set("pdf_generator", value)
+			frappe.clear_document_cache("Print Format", jinja.name)
+			frappe.set_user("test@example.com")
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "pdf engine fallback"}).insert()
+			self.assertEqual(resolve_pdf_generator(_print_format_doc_or_none(jinja.name)), "PlutoPrint")
+			self.assertEqual(resolve_pdf_generator(None, value), "PlutoPrint")
+			with patch("frappe.utils.pdf.get_plutoprint_pdf", return_value=b"%PDF-") as plutoprint_pdf:
+				frappe.get_print("ToDo", todo.name, print_format=jinja.name, as_pdf=True, pdf_generator=value)
+			self.assertEqual(plutoprint_pdf.call_args.kwargs["pdf_generator"], "PlutoPrint")
+
+		frappe.set_user("Administrator")
+		jinja.reload()
+		jinja.save()
+		self.assertEqual(jinja.pdf_generator, "chrome")
+
+	def test_standard_print_uses_print_settings_default(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		original = frappe.db.get_single_value("Print Settings", "pdf_generator")
-		self.addCleanup(frappe.db.set_single_value, "Print Settings", "pdf_generator", original)
-
-		for setting in ("wkhtmltopdf", "chrome"):
-			frappe.db.set_single_value("Print Settings", "pdf_generator", setting)
-			self.assertEqual(resolve_pdf_generator(None), setting)
-			self.assertEqual(resolve_pdf_generator(beta), "chrome")
-
-		frappe.db.set_single_value("Print Settings", "pdf_generator", "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None), "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(beta), "PlutoPrint")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 
 	# ------------------------------------------------------------------ #
@@ -1577,4 +1605,65 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 				todo, {"repeat_header_footer": 1, "allow_print_for_draft": 1}
 			),
 			{"repeat_header_footer": 1},
+		)
+
+	def test_standard_pdf_keeps_request_settings_and_password(self):
+		import io
+
+		from pypdf import PdfReader
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "settings handoff"}).insert()
+
+		self.addCleanup(lambda: frappe.form_dict.pop("settings", None))
+		frappe.form_dict.settings = json.dumps({"page_orientation": "Landscape"})
+		page = PdfReader(io.BytesIO(frappe.get_print("ToDo", todo.name, as_pdf=True))).pages[0]
+		self.assertGreater(float(page.mediabox.width), float(page.mediabox.height))
+
+		pdf = frappe.get_print("ToDo", todo.name, as_pdf=True, pdf_options={"password": "secret"})
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).is_encrypted)
+
+	def test_standard_attachment_matches_the_pdf_button(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_utils import attach_print
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "attachment"}).insert()
+
+		with patch("frappe.utils.print_utils._render_builder_pdf", return_value=b"%PDF-") as render:
+			attach_print("ToDo", todo.name, style="Modern", settings={"pdf_page_size": "A5"})
+
+		self.assertEqual(render.call_args.kwargs["style"], "Modern")
+		self.assertEqual(render.call_args.kwargs["settings"], {"pdf_page_size": "A5"})
+
+	def test_print_settings_override_rejects_invalid_values(self):
+		from frappe.www.printview import get_allowed_print_settings_override
+
+		todo = self._make_todo()
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{
+					"pdf_page_size": "A5",
+					"page_orientation": "Landscape",
+					"print_font": "Open Sans",
+					"pdf_page_width": "210",
+				},
+			),
+			{
+				"pdf_page_size": "A5",
+				"page_orientation": "Landscape",
+				"print_font": "Open Sans",
+				"pdf_page_width": 210.0,
+			},
+		)
+		self.assertEqual(
+			get_allowed_print_settings_override(
+				todo,
+				{"pdf_page_size": "A5; x", "page_orientation": "Sideways", "print_font": "Inter;}"},
+			),
+			{},
 		)

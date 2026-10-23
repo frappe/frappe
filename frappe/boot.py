@@ -26,11 +26,16 @@ from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.cloud_settings import (
 	get_boot_context as get_cloud_settings_boot_context,
 )
+from frappe.integrations.frappe_providers.cloud_settings import (
+	is_v2_site,
+)
+from frappe.integrations.frappe_providers.email_oauth import get_one_click_services
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.utils import add_user_info, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
+from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -129,11 +134,14 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	bootinfo.web_form_request_forms = get_request_forms_by_doctype()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.is_fc_site = is_fc_site()
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
+	bootinfo.is_v2_site = is_v2_site()
+	bootinfo.one_click_email_services = get_one_click_services()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)

@@ -7,3 +7,16 @@
 		font-size: var(--text-2xs);
 	}
 }
+
+// A frappe-ui chart has no width of its own: it fills its container and gives the container none back,
+// so a grid column or flex row never grows to the width the chart last drew at.
+.frappe-ui-chart {
+	flex-grow: 1;
+	min-width: 0;
+	contain: inline-size;
+
+	> .frappe-island {
+		flex-grow: 1;
+		min-width: 0;
+	}
+}

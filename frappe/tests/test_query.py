@@ -66,7 +66,9 @@ def create_tree_docs():
 
 
 class TestQuery(IntegrationTestCase):
-	def setUp(self):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
 		setup_for_tests()
 
 	def ensure_system_manager(self, user_doc, should_have: bool):

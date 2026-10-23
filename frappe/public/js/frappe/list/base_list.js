@@ -59,7 +59,7 @@ frappe.views.BaseList = class BaseList {
 		this.fields = [];
 		this.filters = [];
 		this.sort_by = this.meta.sort_field || "creation";
-		this.sort_order = this.meta.sort_order || "desc";
+		this.sort_order = (this.meta.sort_order || "desc").toLowerCase();
 
 		// Setup buttons
 		this.primary_action = null;
@@ -132,18 +132,22 @@ frappe.views.BaseList = class BaseList {
 		}
 
 		if (!this.fields) this.fields = [];
+		if (!this.is_queryable_field(fieldname, doctype)) {
+			return;
+		}
+
+		this.fields.push([fieldname, doctype]);
+	}
+
+	is_queryable_field(fieldname, doctype) {
 		const is_valid_field =
 			frappe.model.std_fields_list.includes(fieldname) ||
 			frappe.meta.has_field(doctype, fieldname) ||
 			fieldname === "_seen";
 
-		let is_virtual = this.meta.fields.find((df) => df.fieldname == fieldname)?.is_virtual;
+		const is_virtual = frappe.meta.get_docfield(doctype, fieldname)?.is_virtual;
 
-		if (!is_valid_field || is_virtual) {
-			return;
-		}
-
-		this.fields.push([fieldname, doctype]);
+		return is_valid_field && !is_virtual;
 	}
 
 	set_stats() {
@@ -542,9 +546,11 @@ frappe.views.BaseList = class BaseList {
 			return Promise.resolve();
 		}
 		this.freeze(true);
-		// fetch data from server
+		// a newer refresh (a filter change during a scroll load) owns start and page_length
+		// now, so an older response must not be rendered over it
+		const refresh_id = (this.refresh_id = (this.refresh_id || 0) + 1);
 		return frappe.call(args).then((r) => {
-			// render
+			if (refresh_id !== this.refresh_id) return;
 			this.prepare_data(r);
 			this.toggle_result_area();
 			this.before_render();

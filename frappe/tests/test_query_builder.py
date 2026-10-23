@@ -9,7 +9,7 @@ from pypika.terms import ValueWrapper
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.database.operator_map import func_in
-from frappe.query_builder import Case, Interval
+from frappe.query_builder import Case, Interval, get_query_builder
 from frappe.query_builder.builder import Function
 from frappe.query_builder.custom import ConstantColumn
 from frappe.query_builder.functions import (
@@ -332,6 +332,19 @@ class TestCustomFunctionsPostgres(IntegrationTestCase):
 			"NOT ILIKE",
 			frappe.qb.from_(user).select(user.name).where(user.name.not_like("%admin%")).get_sql(),
 		)
+
+	def test_sqlite_query_keeps_sqlite_operators(self):
+		qb = get_query_builder("sqlite")
+		user = qb.DocType("User")
+		sql = (
+			qb.from_(user)
+			.select(user.name)
+			.where(user.name.like("%a%") & user.name.not_like("%b%") & user.name.regex("c"))
+			.get_sql()
+		)
+		self.assertIn('"name" LIKE', sql)
+		self.assertIn('"name" NOT LIKE', sql)
+		self.assertIn('"name" REGEXP', sql)
 
 	def test_match(self):
 		# 'english' regconfig is pinned so a GIN index over to_tsvector('english', col) can back it
