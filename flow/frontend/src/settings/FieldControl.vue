@@ -143,12 +143,11 @@
 		@update:model-value="(value) => (doc[field.name] = value ?? '')"
 	/>
 
-	<!-- the text at the inputs' size: frappe-ui keeps a text box at 13px -->
 	<FormControl
 		v-else-if="field.type === 'textarea'"
 		type="textarea"
 		variant="outline"
-		class="[&_textarea]:text-[15px]"
+		class="[&_textarea]:text-base [&_textarea]:leading-normal"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"

@@ -1,7 +1,6 @@
 <template>
 	<PageHeader :icon="info.icon" :title="spec.label">
 		<template v-if="canCreate" #actions>
-			<!-- a phone's bar keeps room for the title: a plain plus, as tall as the title -->
 			<button
 				v-if="layout.narrow"
 				class="flow-icon-btn"
