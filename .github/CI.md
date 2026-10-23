@@ -34,10 +34,10 @@ You can add a label any time. Adding `fixes-develop` or `run-full-ci` restarts y
 
 CI runs only the tests your change can affect.
 
-- Change only JS, Vue or CSS: server tests are skipped, and only the UI specs that use those files run.
+- Change only JS or Vue: server tests are skipped, and only the UI specs that use those files run. CSS changes run all UI specs.
 - Change only Python: UI tests are skipped, and only the server tests that use those files run.
 - Change both: both run, each picking its related tests.
-- Change only docs or images: no tests run.
+- Change only docs or images: no tests run, even with a label.
 
 The tests are picked from a map that the nightly run builds. Changes to core framework files (`frappe/model`, `frappe/database`, `hooks.py`), dependency files, CI files, or a file the map doesn't know yet run the full suite.
 
