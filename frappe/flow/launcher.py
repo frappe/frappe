@@ -4,6 +4,8 @@
 """Adds Flow's launcher to the pages of Desk and the apps-screen apps, which share no script."""
 
 import frappe
+from frappe import _
+from frappe.utils import escape_html
 from frappe.utils.jinja_globals import bundled_asset
 
 HIDDEN_KEY = "hide_flow_launcher"  # a user default, set while the user hides the icon
@@ -23,7 +25,9 @@ def add_to_page(response, request):
 
 	head, body_end, tail = response.get_data(as_text=True).rpartition("</body>")
 	if body_end:
-		script = f'<script src="{bundled_asset("flow_launcher.bundle.js")}" defer></script>'
+		src = bundled_asset("flow_launcher.bundle.js")
+		labels = escape_html(frappe.as_json(get_labels(), indent=None))
+		script = f'<script src="{src}" data-labels="{labels}" defer></script>'
 		response.set_data(head + script + body_end + tail)
 
 
@@ -45,3 +49,22 @@ def get_app_roots() -> set[str]:
 def is_hidden() -> bool:
 	"""Whether the user hid the icon."""
 	return bool(frappe.defaults.get_user_default(HIDDEN_KEY))
+
+
+def get_labels() -> dict[str, str]:
+	"""The launcher's words in the user's language, which the apps' pages can't translate."""
+	return {
+		"open": _("Open Flow"),
+		"hide": _("Hide Flow icon"),
+		"hidden": _("Flow icon hidden"),
+		"turn_on": _("Turn it back on in {0}"),
+		"settings": _("Settings"),
+		"undo": _("Undo"),
+		"close": _("Close"),
+		"minimize": _("Minimize"),
+		"float": _("Float"),
+		"left": _("Dock to the left"),
+		"right": _("Dock to the right"),
+		"full": _("Full screen"),
+		"exit_full": _("Exit full screen"),
+	}

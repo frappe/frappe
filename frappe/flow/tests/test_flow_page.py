@@ -1,6 +1,9 @@
 # Copyright (c) 2026, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import html
+import json
+import re
 from unittest.mock import patch
 
 from werkzeug.wrappers import Response
@@ -45,6 +48,9 @@ class TestFlowPage(IntegrationTestCase):
 		ensure_flow_role()
 		member = _user("flow-launcher-member@example.com", FLOW_USER_ROLE)
 		outsider = _user("flow-launcher-none@example.com")
+		translation = {"doctype": "Translation", "language": "de", "source_text": "Hide Flow icon"}
+		frappe.get_doc({**translation, "translated_text": "Flow-Symbol ausblenden"}).insert()
+		self.addCleanup(frappe.translate.clear_cache)  # translations cached before the rollback
 
 		def page(path):
 			set_request(path=path)
@@ -55,8 +61,13 @@ class TestFlowPage(IntegrationTestCase):
 		frappe.set_user(member)
 		self.assertRegex(
 			page("/desk/user"),
-			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" defer></script></body>',
+			r'<p>page</p><script src="[^"]+flow_launcher\.bundle[^"]*" data-labels="[^"]+" defer></script></body>',
 		)
+		# its words in the user's language, which the apps' pages can't translate
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		frappe.local.lang = "de"
+		labels = re.search(r'data-labels="([^"]+)"', page("/desk/user"))[1]
+		self.assertEqual(json.loads(html.unescape(labels))["hide"], "Flow-Symbol ausblenden")
 		# not on the website, nor on /flow itself
 		self.assertNotIn("flow_launcher", page("/about"))
 		self.assertNotIn("flow_launcher", page("/flow"))

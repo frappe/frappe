@@ -22,6 +22,15 @@ const TEXT_KEYS = new Set([
 	...["arrowleft", "arrowright", "arrowup", "arrowdown"],
 ]);
 
+// the launcher's words, in the user's language (sent by frappe/flow/launcher.py)
+const LABELS = JSON.parse(document.currentScript.dataset.labels);
+const escape = (text) => text.replace(/[&<>"]/g, (char) => `&#${char.charCodeAt(0)};`);
+// "Turn it back on in Flow › Settings", with a link to /flow
+const TURN_ON = escape(LABELS.turn_on).replace(
+	"{0}",
+	`<a href="/flow">Flow › ${escape(LABELS.settings)}</a>`
+);
+
 const svg = (paths, cls = "") =>
 	`<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${paths}</svg>`;
 const FLOW_MARK = svg(
@@ -53,14 +62,16 @@ class FlowLauncher {
 		this.host = document.createElement("flow-launcher");
 		const root = this.host.attachShadow({ mode: "open" });
 		root.innerHTML = `<style>${STYLE}</style>
-			<button class="icon" type="button" title="Flow" aria-label="Open Flow">${FLOW_MARK}</button>
+			<button class="icon" type="button" title="Flow"
+				aria-label="${escape(LABELS.open)}">${FLOW_MARK}</button>
 			<div class="menu" role="menu" popover>
-				<button type="button" role="menuitem">Hide Flow icon</button>
+				<button type="button" role="menuitem">${escape(LABELS.hide)}</button>
 			</div>
 			<div class="note" role="status" hidden>
-				<span><strong>Flow icon hidden</strong>Turn it back on in <a href="/flow">Flow › Settings</a></span>
-				<button class="undo" type="button">Undo</button>
-				<button class="dismiss" type="button" aria-label="Close">${svg(ICONS.close)}</button>
+				<span><strong>${escape(LABELS.hidden)}</strong>${TURN_ON}</span>
+				<button class="undo" type="button">${escape(LABELS.undo)}</button>
+				<button class="dismiss" type="button"
+					aria-label="${escape(LABELS.close)}">${svg(ICONS.close)}</button>
 			</div>
 			<div class="preview" hidden></div>
 			<div class="panel" role="dialog" aria-label="Flow" inert>
@@ -84,8 +95,8 @@ class FlowLauncher {
 		this.bar = root.querySelector(".bar");
 		this.dock_button = root.querySelector(".dock");
 		this.full_button = root.querySelector(".full");
-		set_button(root.querySelector(".minimize"), "minimize", "Minimize");
-		set_button(root.querySelector(".close"), "close", "Close");
+		set_button(root.querySelector(".minimize"), "minimize", LABELS.minimize);
+		set_button(root.querySelector(".close"), "close", LABELS.close);
 		document.body.append(this.host);
 		on_theme_change(document.documentElement, () => this.sync_theme());
 	}
@@ -202,15 +213,13 @@ class FlowLauncher {
 			return;
 		}
 		this.toast = window.frappe.ui.toast({
-			message: "Flow icon hidden",
-			description: "Turn it back on in Flow › Settings",
-			action: { label: "Undo", onclick: () => this.show_icon() },
+			message: LABELS.hidden,
+			description: LABELS.turn_on.replace("{0}", `Flow › ${LABELS.settings}`),
+			action: { label: LABELS.undo, onclick: () => this.show_icon() },
 			duration: NOTE_TIME,
 		});
 		// Desk escapes the description; the link goes in after
-		this.toast.$el
-			.find(".es-toast__description")
-			.html('Turn it back on in <a href="/flow">Flow › Settings</a>');
+		this.toast.$el.find(".es-toast__description").html(TURN_ON);
 	}
 
 	show_icon() {
@@ -470,12 +479,12 @@ class FlowLauncher {
 
 	update_buttons() {
 		const dock = this.state.side ? "float" : this.nearer_side();
-		set_button(this.dock_button, dock, dock === "float" ? "Float" : `Dock to the ${dock}`);
+		set_button(this.dock_button, dock, LABELS[dock]);
 		const full = this.state.full;
 		set_button(
 			this.full_button,
 			full ? "shrink" : "expand",
-			full ? "Exit full screen" : "Full screen"
+			full ? LABELS.exit_full : LABELS.full
 		);
 	}
 
