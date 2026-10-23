@@ -1,112 +1,143 @@
-# Built-in MCP server
+# Built-in MCP Server
 
-Frappe exposes 14 tools at `/api/v2/mcp` for agents to inspect schemas, read and change documents, and call existing methods.
-The endpoint is enabled by default and uses the authenticated site user's permissions.
-It supports Streamable HTTP with JSON responses and protocol versions `2025-11-25` and `2026-07-28`.
+Frappe includes a built-in Model Context Protocol (MCP) server. MCP clients can use its tools to find DocTypes and methods, read and change documents, and call whitelisted methods on a Frappe site.
 
-## Connect to a site
+The server uses Streamable HTTP at `/api/v2/mcp`. For a site at `https://erp.example.com`, the endpoint is:
 
-1. As a System Manager, open the agent's **User** document.
-2. Select **API Access → Generate Keys**.
-3. Copy the API key and secret.
-
-Set these variables before launching your client:
-
-```bash
-export FRAPPE_MCP_URL='https://your-site.example.com/api/v2/mcp'
-export FRAPPE_MCP_AUTH='token YOUR_API_KEY:YOUR_API_SECRET'
+```text
+https://erp.example.com/api/v2/mcp
 ```
 
-For OAuth, set `FRAPPE_MCP_AUTH` to `Bearer YOUR_ACCESS_TOKEN`.
-Configure each site with its own URL and credentials.
-Regenerating keys replaces the secret. Keep credentials out of version control.
+MCP tools provide a client interface to Frappe. They are not REST API endpoints. Document tools use Frappe’s REST API v2 handlers and permission checks.
 
-## Client setup
+## Enable MCP
 
-Launch the client from the terminal where you set `FRAPPE_MCP_AUTH`.
+MCP is enabled by default on new sites. To check or change the setting:
 
-### MCP Inspector
+1. Sign in to the Desk as a System Manager.
+2. Open **System Settings**.
+3. Select the **AI Agents** tab.
+4. Select **Enable MCP** to enable the endpoint, or clear it to disable the endpoint.
+5. Save the settings.
 
-With Node.js installed, list the tools:
+## Set up OAuth
+
+Configure OAuth on the Frappe site before connecting a client. See [How to set up OAuth 2](https://docs.frappe.io/framework/user/en/guides/integration/how_to_set_up_oauth).
+
+If a client uses dynamic client registration, enable **Enable Dynamic Client Registration** in **OAuth Settings**. During connection, the client opens a browser for Frappe sign-in and authorization, then returns to the client.
+
+## Connect an MCP client
+
+Use your site’s MCP endpoint:
+
+```text
+https://erp.example.com/api/v2/mcp
+```
+
+### Claude
+
+In Claude Desktop:
+
+1. Open **Settings > Connectors**.
+2. Select **Add custom connector**.
+3. Enter a name, such as `Frappe`, and the endpoint URL.
+4. Select **Add**, then connect and authorize the server.
+
+For Team and Enterprise plans, open **Organization connectors** before adding the connector.
+
+In Claude Code:
 
 ```bash
-npx @modelcontextprotocol/inspector --cli "$FRAPPE_MCP_URL" \
-  --transport http --method tools/list \
-  --header "Authorization: $FRAPPE_MCP_AUTH"
+claude mcp add --transport http frappe \
+  https://erp.example.com/api/v2/mcp
+claude mcp login frappe
 ```
+
+See Anthropic’s guides for [remote MCP connectors](https://support.anthropic.com/en/articles/11175166-about-custom-integrations-using-remote-mcp) and [Claude Code MCP](https://code.claude.com/docs/en/mcp).
 
 ### Codex
 
-Add this entry to `~/.codex/config.toml`:
+In the Codex desktop app:
 
-```toml
-[mcp_servers.frappe]
-url = "https://your-site.example.com/api/v2/mcp"
-env_http_headers = { Authorization = "FRAPPE_MCP_AUTH" }
-```
+1. Open **Settings > Plugins**.
+2. Select **Add MCP server**.
+3. Enter a name, choose **Streamable HTTP**, and enter the endpoint URL.
+4. Save the server, then select **Authenticate**.
 
-### Claude Code
+In Codex CLI:
 
 ```bash
-claude mcp add-json --scope user frappe \
-  '{"type":"http","url":"https://your-site.example.com/api/v2/mcp","headers":{"Authorization":"${FRAPPE_MCP_AUTH}"}}'
+codex mcp add frappe \
+  --url https://erp.example.com/api/v2/mcp
+codex mcp login frappe
 ```
 
-Run `/mcp` in Claude Code to inspect the connection.
+Run `codex mcp list` to check the connection. The Codex desktop app and CLI share their MCP configuration. See the [Codex MCP guide](https://developers.openai.com/codex/mcp/).
 
-Client references: [Inspector](https://github.com/modelcontextprotocol/inspector/blob/main/clients/cli/README.md), [Codex](https://developers.openai.com/codex/mcp/), [Claude Code](https://code.claude.com/docs/en/mcp).
+### Use an API token
 
-## Tools
+Use an API token if OAuth is not available for your client. As a System Manager, open the Frappe user’s **User** document, open **API Access**, and select **Generate Keys**.
 
-Examples show tool arguments, which the client sends through `tools/call`.
+Configure the client to send this header:
 
-| Tool | Purpose | Example arguments |
-| --- | --- | --- |
-| `search_doctypes` | Find DocType names that contain the query string, or any of a list of them. | `{"query":["ToDo","Note"]}` |
-| `get_doctype_schema` | Inspect fields and permissions. | `{"doctype":"ToDo"}` |
-| `search_methods` | Find whitelisted methods. | `{"query":"get_count"}` |
-| `get_method_schema` | Inspect an API function's or document method's arguments. | `{"method":"frappe.client.get_count"}` |
-| `list_document_methods` | List whitelisted instance methods. | `{"doctype":"ToDo"}` |
-| `list_documents` | List matching documents with pagination. | `{"doctype":"ToDo","filters":{"status":"Open"},"fields":["name","description"],"limit":20}` |
-| `get_document` | Read one document and its permitted child rows. | `{"doctype":"ToDo","name":"TODO-00001"}` |
-| `count_documents` | Count matching documents. | `{"doctype":"ToDo","filters":{"status":"Open"}}` |
-| `create_document` | Create one document. | `{"doctype":"ToDo","data":{"description":"Check MCP"}}` |
-| `update_document` | Update one document. | `{"doctype":"ToDo","name":"TODO-00001","data":{"status":"Closed"}}` |
-| `delete_document` | Delete one document. | `{"doctype":"ToDo","name":"TODO-00001"}` |
-| `call_method` | Call a whitelisted API function. | `{"method":"frappe.auth.get_logged_user"}` |
-| `call_document_method` | Call a whitelisted instance method on one document. | `{"doctype":"ToDo","name":"TODO-00001","method":"add_comment","args":{"text":"Checked"}}` |
+```text
+Authorization: token API_KEY:API_SECRET
+```
 
-Lists default to `start: 0`, `limit: 20`, and the `name` field. Use `has_next_page` to continue paging.
-For document method schemas, pass `{"doctype":"ToDo","method":"add_comment"}` to `get_method_schema`.
-Method calls accept an `args` object. Controller module functions use their full dotted path with `call_method`.
-Submit and cancel use `call_document_method` with `doctype`, `name`, and `method`.
-A method whitelisted for GET but not POST runs as an HTTP GET runs it: it needs read permission, and its writes roll back. Every other method runs as POST.
+The server applies the permissions of the user that owns the keys. Store the API secret in a password manager or the client’s secret store. See [Token Based Authentication](https://docs.frappe.io/framework/user/en/guides/integration/rest_api/token_based_authentication).
 
-### Permissions
+## Available tools
 
-Desk users can inspect DocType schemas and discover methods, including those they cannot read or call.
-Document reads and writes still require Frappe permissions.
-Whitelisted RPC methods remain responsible for their own permission checks.
+The Frappe MCP server exposes 13 tools. The MCP client retrieves each tool’s description and input schema when it connects.
 
-## Configuration and troubleshooting
+| Tool | Purpose |
+| --- | --- |
+| `search_doctypes` | Find DocTypes by name. |
+| `get_doctype_schema` | Get a DocType’s fields and the current user’s permissions. |
+| `search_methods` | Find whitelisted methods and document methods. |
+| `get_method_schema` | Get a method’s arguments and documentation. |
+| `list_document_methods` | List whitelisted methods for a DocType. |
+| `list_documents` | List documents that match filters. |
+| `get_document` | Read a document and its permitted child rows. |
+| `count_documents` | Count documents that match filters. |
+| `create_document` | Create a document. |
+| `update_document` | Update a document. |
+| `delete_document` | Delete a document. |
+| `call_method` | Call a whitelisted method by its dotted path or an API Server Script. |
+| `call_document_method` | Call a whitelisted method on a document, such as `submit` or `cancel`. |
 
-Open **System Settings > AI Agents** as a System Manager to set the server name for this site.
-When it is empty, the name is the site's host name in lowercase, with each run of other characters changed to `_`.
-For example, `erp.example.com` becomes `erp_example_com`.
-**Enable MCP** is checked by default. Uncheck it to disable the endpoint for this site.
-Clients receive instructions during initialization or server discovery.
-They give the site URL, the authenticated user, a note that tool arguments follow REST API v2, and the installed apps.
-Use **Agent Instructions** for site-specific guidance. Frappe appends it to these instructions.
-Instructions do not change permissions.
+`list_documents` returns up to 20 documents by default. Check `has_next_page` in the result to see if another page is available. Increase `start` to request the next page.
 
-The existing `disable_mcp_server` site config also forces the endpoint off, regardless of the checkbox.
+Document filters, fields, and ordering follow REST API v2 behavior. See [REST API](https://docs.frappe.io/framework/user/en/api/rest) and [Manipulating DocTypes](https://docs.frappe.io/framework/user/en/guides/integration/rest_api/manipulating_documents).
 
-Restart backend processes after installing Python changes. An asset build is not needed for this endpoint.
+## Permissions and method behavior
+
+The server requires an authenticated Desk user. DocType and method discovery return metadata. They do not grant access to documents or methods.
+
+Document tools use Frappe’s permission checks. Users need read permission to list or read documents, create permission to create documents, write permission to update documents, and delete permission to delete documents. Frappe also checks field-level permissions and document-specific rules.
+
+Method tools can call only whitelisted methods. Frappe applies each method’s existing HTTP method and permission checks. A method whitelisted for GET but not POST runs as GET. This requires read permission, and Frappe rolls back database writes made by that method. Other methods run as POST.
+
+See [Users and Permissions](https://docs.frappe.io/framework/user/en/basics/users-and-permissions) for details.
+
+## Configure site instructions
+
+Open **System Settings > AI Agents** to configure the MCP server:
+
+- **Server Name** sets the name the server advertises to clients. It does not set the name you choose when adding the server in a client. If empty, Frappe derives the name from the site host. For example, `erp.example.com` becomes `erp_example_com`.
+- **Agent Instructions** adds site-specific guidance to the instructions Frappe sends to MCP clients. Use it to explain the site’s purpose, workflows, or terms your team uses.
+
+  For example: `This site tracks customer support requests in the Issue DocType. Before creating a request, check for an open Issue from the same customer about the same problem.`
+
+  These instructions guide the client. They do not grant permissions or access to data.
+
+## Troubleshooting
 
 | Response | Check |
 | --- | --- |
-| `405` | Send MCP requests through POST. Opening the URL in a browser sends GET. |
-| `404` | Check the site URL, installed code, and `disable_mcp_server`. |
-| `401` | Check the credentials and Authorization header. |
-| `403` | Check that the user is a System User, then check permissions and the site's Origin policy. |
-| `406` / `415` | Allow `application/json` in Accept and send `Content-Type: application/json`. |
+| `401` | Check the credentials and `Authorization` header. |
+| `403` | Check that the user has Desk access and that the request origin is allowed by the site’s CORS settings. |
+| `404` | Check the endpoint URL and the **Enable MCP** setting. |
+| `405` | Send requests through POST. Opening the endpoint URL in a browser sends GET. |
+| `406` | Make sure the client accepts `application/json`. |
+| `415` | Make sure the client sends `Content-Type: application/json`. |
