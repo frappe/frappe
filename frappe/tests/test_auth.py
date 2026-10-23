@@ -249,6 +249,7 @@ class TestAuth(IntegrationTestCase):
 	def test_disable_admin_pass_login(self):
 		from frappe.auth import LoginManager
 		from frappe.utils import set_request
+		from frappe.utils.logging import get_log_db
 
 		before = frappe.get_system_settings("disable_admin_pass_login")
 		self.set_system_settings("disable_admin_pass_login", 1)
@@ -262,13 +263,13 @@ class TestAuth(IntegrationTestCase):
 		frappe.local.cookie_manager = CookieManager()
 		self.addCleanup(frappe.form_dict.clear)
 
-		logs_before = frappe.db.count("Activity Log", {"user": "Administrator"})
+		logs_before = get_log_db().count("Activity Log", {"user": "Administrator"})
 		with self.assertRaises(frappe.PasswordLoginDisabledError):
 			LoginManager()
 		# same answer for a wrong password, so nothing leaks about the real one
 		self.assertEqual(frappe.local.response.message, "Password login is disabled for Administrator")
 		# the attempt still lands in the audit log
-		self.assertEqual(frappe.db.count("Activity Log", {"user": "Administrator"}), logs_before + 1)
+		self.assertEqual(get_log_db().count("Activity Log", {"user": "Administrator"}), logs_before + 1)
 
 	def test_forced_password_reset_does_not_leak_reset_key(self):
 		from frappe.auth import LoginManager

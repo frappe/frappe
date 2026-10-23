@@ -1450,6 +1450,7 @@ def browse_site(
 	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
 )
 @click.option("--user-for-audit", required=False, help="The user to mention in audit trail")
+@click.option("--dev", is_flag=True, help="Force the port in the URL, for a development server")
 @pass_context
 def login_as_admin(
 	context: CliCtxObj,
@@ -1457,9 +1458,10 @@ def login_as_admin(
 	print_sid: bool = False,
 	session_end: str | None = None,
 	user_for_audit: str | None = None,
+	dev: bool = False,
 ):
 	"""Opens the site on web browser as Administrator"""
-	browse_site(context, site, "Administrator", print_sid, session_end, user_for_audit)
+	browse_site(context, site, "Administrator", print_sid, session_end, user_for_audit, dev)
 
 
 @click.command("start-recording")
