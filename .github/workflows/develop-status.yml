@@ -10,7 +10,7 @@ on:
     branches: [develop]
   pull_request_target:
     branches: [develop]
-    types: [opened, synchronize, reopened, labeled, unlabeled]
+    types: [opened, synchronize, reopened, labeled, unlabeled, closed]
   workflow_dispatch:
 
 permissions:
@@ -22,19 +22,25 @@ permissions:
 jobs:
   run-suites:
     name: Run Full Suites
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
+    if: >-
+      ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      || (github.event.action == 'closed' && github.event.pull_request.merged
+      && contains(github.event.pull_request.labels.*.name, 'fixes-develop')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
-      - run: python .github/helper/develop_status.py start ${{ github.event_name == 'workflow_dispatch' && 'all' || '' }}
+      - run: python .github/helper/develop_status.py start ${{ github.event_name != 'schedule' && 'all' || '' }}
         env:
           GH_TOKEN: ${{ github.token }}
 
   update:
     name: Update Pull Requests
-    if: ${{ github.event_name != 'workflow_run' || contains(fromJson('["schedule", "workflow_dispatch"]'), github.event.workflow_run.event) }}
+    if: >-
+      ${{ github.event.action != 'closed'
+      && (github.event_name != 'workflow_run' || contains(fromJson('["schedule", "workflow_dispatch"]'), github.event.workflow_run.event)) }}
     runs-on: ubuntu-latest
     concurrency:
       group: develop-status-${{ github.event.pull_request.number || 'all' }}
