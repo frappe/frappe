@@ -495,6 +495,19 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		with self.set_user("test@example.com"):
 			self.assertRaisesRegex(frappe.ValidationError, "API_TOKEN", script.execute_method)
 
+	def test_env_variable_without_saved_value(self):
+		script = frappe.get_doc(
+			doctype="Server Script",
+			name="test_env_variable_without_saved_value",
+			script_type="API",
+			api_method="test_env_variable_without_saved_value",
+			script="frappe.flags = frappe.env.API_TOKEN",
+			variables=[{"key": "API_TOKEN", "value": "s3cr3t"}],
+		).insert()
+		frappe.db.delete("__Auth", {"doctype": "Server Script Variable", "name": script.variables[0].name})
+
+		self.assertRaisesRegex(frappe.ValidationError, "API_TOKEN", script.execute_method)
+
 	def test_env_variable_key_validation(self):
 		invalid_variables = [
 			[{"key": "API TOKEN", "value": "s3cr3t"}],
