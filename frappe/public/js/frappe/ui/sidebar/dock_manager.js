@@ -629,9 +629,10 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 				const name = (values.name || "").trim();
 				if (panel.flag_missing(name ? [] : ["name"])) return;
 
-				const existing = this.all_keys().find(
-					(key) => this.entries.get(key).link_to === name
-				);
+				const existing = this.all_keys().find((key) => {
+					const entry = this.entries.get(key);
+					return entry.link_type === "Sidebar" && entry.link_to === name;
+				});
 				if (existing) {
 					this.close_panel();
 					this.hidden.delete(existing);
