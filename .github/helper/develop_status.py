@@ -34,11 +34,13 @@ def gate_conclusion(run, gate_job):
 	return next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
 
 
-def tests_passed(run, workflow):
-	"""Did the suite's test jobs run and pass? The gate job alone also passes when they are skipped."""
-	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
-	tests = [job for job in jobs if job["name"].startswith(TEST_JOBS[workflow])]
-	return bool(tests) and all(job["conclusion"] == "success" for job in tests)
+def suite_passed(run, workflow):
+	"""Did the suite pass with its test jobs actually run? The gate job alone also passes when they are skipped."""
+	jobs = {
+		job["name"]: job["conclusion"] for job in gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
+	}
+	tests = [conclusion for name, conclusion in jobs.items() if name.startswith(TEST_JOBS[workflow])]
+	return jobs.get(SUITES[workflow]) == "success" and bool(tests) and all(c == "success" for c in tests)
 
 
 def fixed_after(workflow, failed_run):
@@ -48,7 +50,7 @@ def fixed_after(workflow, failed_run):
 		sha = gh(f"repos/{REPO}/pulls/{item['number']}")["head"]["sha"]
 		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?head_sha={sha}&event=pull_request")
 		run = next(iter(runs["workflow_runs"]), None)
-		if run and run["created_at"] > failed_run["created_at"] and tests_passed(run, workflow):
+		if run and run["created_at"] > failed_run["created_at"] and suite_passed(run, workflow):
 			return True
 	return False
 
