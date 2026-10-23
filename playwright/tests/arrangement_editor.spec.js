@@ -795,6 +795,48 @@ test.describe("Arrangement editor: an app's dock", () => {
 		await expect(page.locator("#desk-dock .ws-add-row")).toHaveCount(0);
 	});
 
+	const ADDED = {
+		link_type: "URL",
+		url: "https://example.com",
+		icon: "star",
+		title: "Example",
+		added: 1,
+		hidden: 0,
+	};
+
+	async function open_with_an_added_tile(page) {
+		await stub_xcall(page, {
+			[READ]: [
+				...modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
+				ADDED,
+			],
+			[BASE]: [],
+			[SAVE]: await page.evaluate(() => frappe.boot.dock),
+		});
+		await page.evaluate(() => (window.__editor = new frappe.ui.DockManager()));
+	}
+
+	test("lists a tile this layer added, beside the app's own", async ({ page }) => {
+		await open_with_an_added_tile(page);
+		await expect(tiles(page)).toHaveCount(modules.length + 1);
+		await expect(page.locator('#desk-dock .ws-tile[aria-label="Example"]')).toHaveCount(1);
+	});
+
+	test("saves a tile this layer added back as an add", async ({ page }) => {
+		await open_with_an_added_tile(page);
+		await expect(tiles(page)).toHaveCount(modules.length + 1);
+		await tiles(page).first().click();
+		await page
+			.locator(".ws-panel .ws-panel-head")
+			.getByRole("button", { name: "Remove" })
+			.click();
+
+		await bar_button(page, "Save").click();
+		expect(await saved_rows(page, SAVE)).toContainEqual(
+			expect.objectContaining({ url: "https://example.com", added: 1, hidden: 0 })
+		);
+	});
+
 	test("stores no row for the app at all when Reset takes everything off", async ({ page }) => {
 		await open_dock_editor(page);
 		await page.locator(".ws-bar .ws-more").click();
