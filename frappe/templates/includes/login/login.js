@@ -264,7 +264,11 @@ login.show_error_banner = function (message) {
 	$("section:visible .login-error-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
 
+/**
+ * @param {string|object} message - text to show, or a response object to read server messages from
+ */
 login.show_success_banner = function (message) {
+	if (typeof message === "object") message = get_server_message(message);
 	$("section:visible .login-error-banner").addClass("hidden");
 	$("section:visible .login-success-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
@@ -294,26 +298,13 @@ login.set_invalid = function (message) {
 }
 
 login.login_handlers = (function () {
-	const get_server_message = function (data) {
-		return $.map(JSON.parse(data._server_messages || '[]'), function (v) {
-			try {
-				v = JSON.parse(v);
-			} catch (e) {
-				return;
-			}
-			if (v.raise_exception) {
-				return v.message;
-			}
-		}).join('<br>');
-	}
-
 	var get_error_handler = function (default_message) {
 		return function (xhr, data) {
 			if (xhr.responseJSON) {
 				data = xhr.responseJSON;
 			}
 
-			var message = get_server_message(data) || default_message;
+			var message = get_server_message(data, true) || default_message;
 			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
@@ -351,7 +342,7 @@ login.login_handlers = (function () {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
 				login.set_status({{ _("Sent") | tojson }}, 'green');
-				login.show_success_banner({{ _("If this email is registered with us, we have sent password reset instructions to it. Please check your inbox.") | tojson }});
+				login.show_success_banner(data);
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.hide_loading();
@@ -473,6 +464,14 @@ var continue_email = function (setup, prompt) {
 		email_div.append(direction);
 		$('#otp_div').prepend(email_div);
 	}
+}
+
+function get_server_message(data, is_error = false) {
+	return JSON.parse(data?._server_messages || "[]")
+		.map((m) => JSON.parse(m))
+		.filter((m) => !!m.raise_exception === is_error)
+		.map((m) => m.message)
+		.join("<br>");
 }
 
 login.route();
