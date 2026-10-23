@@ -328,8 +328,13 @@ class TestSessionEndpoints(ApiCase):
 		)
 		plain = api.create_session(self.agent.name)
 		self.assertFalse(plain["auto_approve"])
-		self.assertEqual(plain["model"], self.model.name)  # the agent's model, with no override
-		self.assertIsNone(frappe.db.get_value("Flow Session", plain["name"], "model"))
+		# no pick: the chat keeps the agent's model it started on, as the flow server does
+		self.assertEqual(frappe.db.get_value("Flow Session", plain["name"], "model"), self.model.name)
+		self.agent.db_set("model", frappe.get_doc(_model_doc(title="Next Agent Model")).insert().name)
+		self.assertEqual(api.session(plain["name"])["model"], self.model.name)
+		self.model.db_set("enabled", 0)  # the chat's own model is the one checked
+		with self.assertRaisesRegex(frappe.ValidationError, "is disabled"):
+			api.run(plain["name"], "hi")
 
 	def test_cleanup_deletes_only_the_callers_unclaimed_uploads(self):
 		name = self.create()

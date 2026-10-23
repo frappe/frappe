@@ -53,6 +53,10 @@ class FlowSession(Document):
 		title: DF.Data | None
 	# end: auto-generated types
 
+	def before_insert(self):
+		# the flow server keeps the model a chat starts on, so the chat names it, not the agent
+		self.model = self.model or frappe.db.get_value("Flow Agent", self.agent, "model")
+
 	def validate(self):
 		self._validate_agent_unchanged()
 		self._validate_model_enabled()
