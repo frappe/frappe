@@ -5,6 +5,7 @@ import frappe
 from frappe.studio.api import (
 	create_studio_file,
 	get_custom_vue_components,
+	get_studio_page_scripts,
 	read_studio_file,
 	write_studio_file,
 )
@@ -23,6 +24,10 @@ class TestApi(IntegrationTestCase):
 
 			self.assertEqual(get_custom_vue_components("frappe"), [])
 
+	def test_discovery_endpoints_accept_only_installed_apps(self):
+		self.assertRaises(frappe.ValidationError, get_custom_vue_components, "os")
+		self.assertRaises(frappe.ValidationError, get_studio_page_scripts, "os")
+
 	def test_file_requests_stay_inside_an_exported_app(self):
 		with exports_in_tempdir(), patch.dict(frappe.conf, {"developer_mode": 1}):
 			self.assertRaises(
@@ -38,8 +43,9 @@ class TestApi(IntegrationTestCase):
 			app = make_studio_app(
 				app_name="cfg-" + frappe.generate_hash(length=8), is_standard=1, frappe_app="frappe"
 			)
-			for call in (
-				lambda: write_studio_file("frappe", app.name, "tailwind.config.js", "module.exports = {}"),
-				lambda: create_studio_file("frappe", app.name, "tailwind.config.js"),
-			):
-				self.assertRaises(frappe.ValidationError, call)
+			for file_path in ("tailwind.config.js", "Tailwind.Config.js"):
+				for call in (
+					lambda: write_studio_file("frappe", app.name, file_path, "module.exports = {}"),
+					lambda: create_studio_file("frappe", app.name, file_path),
+				):
+					self.assertRaises(frappe.ValidationError, call)

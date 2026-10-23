@@ -12,11 +12,12 @@ from frappe.studio.build import get_editor_assets
 from frappe.studio.export import (
 	can_export,
 	delete_folder,
+	validate_frappe_app,
 	validate_standard_app_change,
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import get_app_file_path, walk_blocks
+from frappe.studio.utils import get_app_file_path, validate_installed_app, walk_blocks
 from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
@@ -200,6 +201,7 @@ class StudioApp(WebsiteGenerator):
 
 	def validate(self):
 		validate_standard_app_change(self)
+		validate_frappe_app(self)
 
 	def on_update(self):
 		self.export_app()
@@ -346,6 +348,7 @@ class StudioApp(WebsiteGenerator):
 
 	@frappe.whitelist()
 	def enable_app_export(self, target_app: str):
+		validate_installed_app(target_app)
 		if self.is_standard and self.frappe_app and self.frappe_app != target_app:
 			self.move_export_to(target_app)
 
