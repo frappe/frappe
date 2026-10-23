@@ -915,5 +915,34 @@ test.describe("Espresso components", () => {
 			await expect(card.locator(".es-progress")).toBeVisible();
 			await expect(card.locator(".es-checklist__items")).not.toBeInViewport();
 		});
+
+		test("typing a label and pressing Enter adds an item, and Remove deletes it", async ({
+			page,
+		}) => {
+			const group = explorer_group(page, "adding and removing");
+			const input = group.getByRole("textbox", { name: "Add activity" });
+
+			await input.fill("Order a desk");
+			await input.press("Enter");
+			await expect(row(group, "Order a desk")).toBeVisible();
+			await expect(input).toHaveValue("");
+			await expect(input).toBeFocused();
+
+			await toggle(row(group, "Order a desk")).click();
+			await row(group, "Order a desk").getByRole("button", { name: "Remove" }).click();
+			await expect(
+				group.locator(".es-checklist__item", { hasText: "Order a desk" })
+			).toHaveCount(0);
+		});
+
+		test("Escape clears the add input without adding an item", async ({ page }) => {
+			const group = explorer_group(page, "adding and removing");
+			const input = group.getByRole("textbox", { name: "Add activity" });
+
+			await input.fill("Not this one");
+			await input.press("Escape");
+			await expect(input).toHaveValue("");
+			await expect(group.locator(".es-checklist__item")).toHaveCount(1);
+		});
 	});
 });

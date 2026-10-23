@@ -35,6 +35,10 @@
  *             </div>
  *           </div>
  *         </div>
+ *         <label class="es-checklist__add">   (with on_add)
+ *           <span class="es-checklist__marker">(plus)</span>
+ *           <input class="es-checklist__add-input" placeholder="Add item">
+ *         </label>
  *       </div>
  *     </div>
  *   </section>
@@ -194,6 +198,42 @@
 
 .es-checklist__item[data-empty] .es-checklist__toggle {
     cursor: default;
+}
+
+.es-checklist__add {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    grid-template-areas: "marker text";
+    align-items: center;
+    column-gap: calc(var(--spacing) * 3);
+    min-height: 28px;
+    margin: 0;
+    padding: calc(var(--spacing) * 2);
+    border-radius: var(--radius-md);
+    cursor: text;
+}
+
+.es-checklist__add:hover {
+    background-color: var(--surface-gray-2);
+}
+
+.es-checklist__add:focus-within {
+    background-color: var(--surface-base);
+}
+
+.es-checklist__add-input {
+    grid-area: text;
+    min-width: 0;
+    padding: 0;
+    border: 0;
+    outline: 0;
+    background: transparent;
+    font-size: var(--text-base);
+    color: var(--ink-gray-8);
+}
+
+.es-checklist__add-input::placeholder {
+    color: var(--ink-gray-5);
 }
 
 /* Fixed columns, so the badges, owners and dates line up down the list. */
