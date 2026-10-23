@@ -1,4 +1,5 @@
-// Where focus lands when the Create dialog opens, and Ctrl/Cmd+Enter from any focus inside it.
+// Where focus lands when the Create dialog opens and after it saves, and Ctrl/Cmd+Enter from any
+// focus inside it.
 // The real Dialog and FormLayout draw the form; the server answers through a faked fetch.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createApp, nextTick, type App } from "vue";
@@ -80,7 +81,7 @@ async function settle() {
 	}
 }
 
-async function open() {
+async function open(onSettled = () => {}) {
 	const router = createRouter({
 		history: createMemoryHistory(),
 		routes: [
@@ -96,7 +97,10 @@ async function open() {
 	});
 	await router.push(routeFor("Lead"));
 	const answer = { settled: false };
-	void openCreate("Lead").then(() => (answer.settled = true));
+	void openCreate("Lead").then(() => {
+		answer.settled = true;
+		onSettled();
+	});
 	const app = createApp(CreateDialog, { request: createRequests.value.at(-1)! });
 	app.use(router);
 	app.mount(document.body.appendChild(document.createElement("div")));
@@ -141,6 +145,17 @@ it("inserts on Ctrl+Enter pressed where the focus opens", async () => {
 
 	expect(inserts()).toEqual([expect.objectContaining({ title: "Big deal" })]);
 	expect(answer.settled).toBe(true);
+});
+
+it("leaves focus where the caller puts it after a Ctrl+Enter save", async () => {
+	const field = document.body.appendChild(document.createElement("input"));
+	await open(() => field.focus());
+	await typeIntoFocused("Big deal");
+
+	await pressSave(focused(), { ctrlKey: true });
+
+	expect(inserts()).toHaveLength(1);
+	expect(focused()).toBe(field);
 });
 
 it("inserts on Cmd+Enter with focus on the dialog's own buttons", async () => {

@@ -41,7 +41,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref, useTemplateRef, watch } from "vue";
+import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useEventListener } from "@vueuse/core";
 import { Button, Dialog, ErrorMessage } from "frappe-ui";
@@ -89,6 +89,7 @@ const error = ref("");
 const newDoc = ref<Record<string, any> | null>(null);
 const doc = ref<Record<string, any>>({ ...values });
 const typed = ref(false);
+let saved: Record<string, any> | null = null;
 
 const layout = computed<FormLayoutSchema>(() =>
 	withNameField(quickEntry.layout.value, meta.value)
@@ -126,8 +127,12 @@ quickEntry.settled().then(() => {
 	shown.value = true;
 });
 
-watch(isOpen, (open) => {
-	if (!open) props.request.settle(null);
+// Settles once the close renders: until then the dialog traps focus, and pulls back any
+// focus the caller moves on the result.
+watch(isOpen, async (open) => {
+	if (open) return;
+	await nextTick();
+	props.request.settle(saved);
 });
 
 const body = useTemplateRef<HTMLElement>("body");
@@ -155,7 +160,7 @@ async function save() {
 			doctype,
 			insertBody(values, formData(layout.value, doc.value))
 		);
-		props.request.settle(data);
+		saved = data;
 		isOpen.value = false;
 	} catch (exception) {
 		error.value = errorMessage(exception);
