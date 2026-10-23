@@ -65,6 +65,19 @@ class NamespaceDict(frappe._dict):
 		return ret
 
 
+class UnavailableEnv:
+	"""`frappe.env` outside a Server Script. Raises on attribute access."""
+
+	def __getattr__(self, key: str):
+		if key.startswith("_"):
+			raise AttributeError(key)
+
+		frappe.throw(
+			_("Environment variables are only available in Server Scripts"),
+			title=_("Environment Variables Unavailable"),
+		)
+
+
 class FrappeTransformer(RestrictingNodeTransformer):
 	def check_name(self, node, name, *args, **kwargs):
 		if name == "_dict":
@@ -118,8 +131,7 @@ def safe_exec(
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
 
-	if env is not None:
-		exec_globals.frappe.env = env
+	exec_globals.frappe.env = UnavailableEnv() if env is None else env
 
 	filename = SERVER_SCRIPT_FILE_PREFIX
 	if script_filename:
