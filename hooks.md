@@ -105,6 +105,12 @@ A **companion app** — one that extends a host app rather than standing on its 
 installation order, as a default the site and the person may then reorder. Mounting keeps the
 companion off the apps screen; declaring your own rail costs nothing.
 
+#### Studio
+
+1. `studio_app_boot` - dict of Studio app name to a method. The method returns a dict that a published
+   Studio app starts with: it is served as `window.boot` before the first navigation, so page scripts
+   and bindings read `boot.<key>`. Example: `studio_app_boot = {"helpdesk": "helpdesk.studio.boot.get_boot"}`.
+
 #### Notifications
 
 1. `notification_config` - method to get notification configuration

@@ -1,0 +1,98 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$ref": "#/definitions/TabButtonsProps",
+  "definitions": {
+    "TabButtonsProps": {
+      "type": "object",
+      "properties": {
+        "options": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "value": {
+                "type": [
+                  "string",
+                  "number"
+                ]
+              },
+              "label": {
+                "type": "string"
+              },
+              "icon": {
+                "type": [
+                  "string"
+                ]
+              },
+              "iconLeft": {
+                "type": [
+                  "string"
+                ]
+              },
+              "disabled": {
+                "type": "boolean"
+              },
+              "route": {
+                "anyOf": [
+                  {
+                    "type": "string"
+                  },
+                  {
+                    "type": "object"
+                  }
+                ]
+              },
+              "href": {
+                "type": "string"
+              },
+              "onClick": {
+                "type": "object"
+              }
+            },
+            "required": [
+              "value",
+              "label"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "modelValue": {
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "variant": {
+          "type": "string",
+          "enum": [
+            "underline",
+            "subtle",
+            "ghost",
+            "browser-tab"
+          ]
+        },
+        "size": {
+          "type": "string",
+          "enum": [
+            "sm",
+            "md"
+          ]
+        },
+        "vertical": {
+          "type": "boolean"
+        },
+        "edge": {
+          "type": "string",
+          "enum": [
+            "start",
+            "end"
+          ]
+        },
+        "fluid": {
+          "type": "boolean"
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}

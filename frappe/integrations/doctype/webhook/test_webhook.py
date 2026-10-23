@@ -161,6 +161,7 @@ class TestWebhook(IntegrationTestCase):
 		frappe.db.rollback()
 		frappe.db.delete("Webhook")
 		frappe.db.commit()
+		frappe.client_cache.delete_value("webhooks")
 
 	@timeout(5, "Test webhooks should never wait, check mocked responses.")
 	def setUp(self):

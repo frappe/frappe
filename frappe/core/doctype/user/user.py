@@ -38,7 +38,12 @@ from frappe.utils import (
 from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
+from frappe.utils.password import (
+	check_password,
+	get_password_reset_limit,
+	is_password_reused,
+	verify_against_placeholder,
+)
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
@@ -967,6 +972,8 @@ class User(Document):
 
 		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
+			if validate_password:
+				verify_against_placeholder(password)
 			return
 
 		user = users[0]
@@ -1533,7 +1540,7 @@ def handle_password_test_fail(feedback: dict):
 
 
 def throttle_user_creation():
-	if frappe.flags.in_import:
+	if frappe.flags.in_import or frappe.in_test:
 		return
 
 	if frappe.db.get_creation_count("User", 60) > frappe.local.conf.get("throttle_user_limit", 60):

@@ -576,13 +576,13 @@ frappe.ui.Combobox = class Combobox {
 		if (this.is_open) this.load();
 	}
 
-	/** The option the text names (case-insensitive): by value, else by a label only one row has. */
+	/** The enabled option the text names (case-insensitive): by value, else by a label only one row has. */
 	static match_in(options, text) {
 		if (!text) return null;
 		const wanted = text.toLowerCase();
 		const flat = (options || [])
 			.flatMap((o) => (is_group(o) ? o.options : [o]))
-			.filter(Boolean);
+			.filter((o) => o && !o.disabled);
 		const by_value = flat.find((o) => String(o.value).toLowerCase() === wanted);
 		if (by_value) return by_value;
 		const by_label = flat.filter((o) => String(o.label).toLowerCase() === wanted);
