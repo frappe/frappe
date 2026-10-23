@@ -1,5 +1,5 @@
 """The agent loop: ask the model, run the tools it asks for, repeat — until it stops
-calling tools, a cap trips, or a gated tool pauses the run.
+calling tools or calls only tools that end the run, a cap trips, or a gated tool pauses the run.
 
 `run` and `resume` only yield events and raise errors. The session saves them as they
 arrive, so the transcript the loop reads for the next model call is always current.
@@ -311,7 +311,27 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			yield RunEnded(reason="aborted")
 			return
 
-		if not assistant.tool_calls:
+		ends_run = not assistant.tool_calls
+		if assistant.tool_calls and assistant.stop_reason == "length":
+			# truncated arguments can still parse, so no call in this turn is safe to run
+			for call in assistant.tool_calls:
+				yield _result(call, _TRUNCATED, is_error=True)
+		elif assistant.tool_calls:
+			gated: list[PendingCall] = []
+			failed = False
+			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
+				failed = failed or (isinstance(event, ToolResult) and event.is_error)
+				yield event
+			if gated:  # free tools already ran; now wait for the human
+				_raise_if_aborted(abort)
+				yield ApprovalRequired(calls=gated)
+				yield RunEnded(reason="paused")
+				return
+			ends_run = not failed and all(
+				call.name in tools and tools[call.name].ends_run for call in assistant.tool_calls
+			)
+
+		if ends_run:
 			steered = False
 			for message in _drain(inputs.next_steering):
 				steered = True
@@ -320,20 +340,6 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				continue
 			yield RunEnded(reason="length" if assistant.stop_reason == "length" else "done")
 			return
-
-		if assistant.stop_reason == "length":
-			# truncated arguments can still parse, so no call in this turn is safe to run
-			for call in assistant.tool_calls:
-				yield _result(call, _TRUNCATED, is_error=True)
-		else:
-			gated: list[PendingCall] = []
-			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
-				yield event
-			if gated:  # free tools already ran; now wait for the human
-				_raise_if_aborted(abort)
-				yield ApprovalRequired(calls=gated)
-				yield RunEnded(reason="paused")
-				return
 
 		if budget.exhausted:
 			yield RunEnded(reason="budget")

@@ -1,4 +1,4 @@
-"""Bundled tools: off by default, selectable by name, and the grep tool itself."""
+"""Bundled tools: off by default, selectable by name, and the tools themselves."""
 
 import importlib
 
@@ -7,6 +7,7 @@ import pytest
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.store import SessionStore
 from flow_harness.tools.bundled.grep import grep
+from flow_harness.tools.bundled.suggest_replies import suggest_replies
 from flow_harness.tools.tool import ToolContext
 
 
@@ -27,12 +28,21 @@ def engine(request, monkeypatch):
 def test_bundled_tools_are_off_unless_named(tmp_path):
 	store = SessionStore(str(tmp_path / "data"))
 	default = store.create(SessionConfig(cwd=str(tmp_path)))
-	assert "grep" not in default.server_tools
+	assert not {"grep", "suggest_replies"} & set(default.server_tools)
 	assert "- grep: " not in default.config.system_prompt
 
-	named = store.create(SessionConfig(cwd=str(tmp_path), tools=["read", "grep"]))
-	assert list(named.server_tools) == ["read", "grep"]
+	named = store.create(SessionConfig(cwd=str(tmp_path), tools=["read", "grep", "suggest_replies"]))
+	assert list(named.server_tools) == ["read", "grep", "suggest_replies"]
 	assert "- grep: " in named.config.system_prompt
+
+
+async def test_suggest_replies_hands_the_client_its_checked_replies(tmp_path):
+	shown = await suggest_replies(replies=[" Yes ", "No"], multi_select=True, ctx=_ctx(tmp_path))
+	assert not shown.is_error
+	assert shown.details == {"replies": ["Yes", "No"], "multi_select": True}
+	for replies in (["Only"], ["a", "b", "c", "d", "e"], ["Yes", " "], ["Yes", "Yes "]):
+		refused = await suggest_replies(replies=replies, ctx=_ctx(tmp_path))
+		assert refused.is_error and refused.details == {}, replies
 
 
 async def test_grep_search_skips_and_filters(tmp_path, engine):

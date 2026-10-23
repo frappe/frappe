@@ -20,6 +20,8 @@ async def rename(path: str, to: str, *, ctx: ToolContext) -> ToolResult:
 
 `concurrent=True` lets a tool run alongside the other concurrent tools the model calls in the same turn; every other tool runs on its own.
 
+`ends_run=True` ends the run after a turn that calls only such tools, none failing: no model turn follows.
+
 `display_template` controls the tool activity text shown by clients. It accepts simple Jinja-style argument placeholders such as `{{ path }}`. Flow waits until every referenced argument is complete, then streams the rendered text as segments so clients can style template text and argument values differently. Templates that reference arguments not present in the function signature are rejected. Display templates are UI metadata and are not sent to the model provider.
 
 `ToolContext` provides `cwd`, allowed read/write roots, an abort event, and a timeout. `ToolResult.content` goes to the model; `details` is for clients and logs only. Return `ToolResult(is_error=True, content="...")` for an expected failure.
@@ -65,6 +67,7 @@ Shipped with the harness but off by default: the default `tools` list is `bash`,
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |
 | `grep` | `pattern`, `path?`, `include?` | No | Searches with ripgrep when available, otherwise `grep`. `include` limits the search to matching file names (`*.py`, `*.{js,vue}`), with at most one `{a,b}` group. Skips `node_modules` and binary files. Keeps the head of the output. |
+| `suggest_replies` | `replies`, `multi_select?` | No | Offers the user two to four next messages after a reply, in `details`. The web UI shows them as buttons under the reply: a tap sends one, or, with `multi_select`, ticks several to send together. A turn that only calls it ends the run. |
 
 ## Extensions
 

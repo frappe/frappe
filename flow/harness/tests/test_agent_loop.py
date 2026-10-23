@@ -52,7 +52,11 @@ def _read_call(cid="c1", path="a.txt"):
 	return AssistantMessage(content=[ToolCall(id=cid, name="read", arguments={"path": path})])
 
 
-async def test_a_run_takes_turns_until_the_model_stops_calling_tools(tmp_path):
+def _offer(cid, *replies):
+	return ToolCall(id=cid, name="suggest_replies", arguments={"replies": list(replies)})
+
+
+async def test_a_run_takes_turns_until_the_model_stops_or_calls_only_run_ending_tools(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="hello there")])
@@ -66,6 +70,16 @@ async def test_a_run_takes_turns_until_the_model_stops_calling_tools(tmp_path):
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 	assert session.transcript.messages[0].type == "user_message"
 	assert session.transcript.messages[0].content == "hi"
+
+	# offering replies ends the run, unless the turn also called another tool or the offer failed
+	session, events = _session(tmp_path, tools=["read", "suggest_replies"])
+	read, offer = _read_call().tool_calls[0], _offer("c2", "Yes", "No")
+	turns = [[read, offer], [_offer("c3", "Yes")], [_offer("c4", "Yes", "No")], "never asked"]
+	mock = MockModel(replies=[AssistantMessage(content=content) for content in turns])
+	await _run(session, "hi", model=mock)
+	assert [r["is_error"] for r in _of(events, "tool_result")] == [False, False, True, False]
+	assert len(_of(events, "assistant_message")) == 3
+	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
 
 async def test_the_model_request_carries_the_session_settings(tmp_path, monkeypatch):
