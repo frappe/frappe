@@ -1,6 +1,8 @@
 # Copyright (c) 2019, Frappe Technologies and contributors
 # License: MIT. See LICENSE
 
+import keyword
+import re
 from functools import partial
 from itertools import chain
 from typing import TYPE_CHECKING
@@ -10,6 +12,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import http_cache
+from frappe.utils.password import delete_all_passwords_for
 from frappe.utils.safe_exec import (
 	FrappeTransformer,
 	get_keys_for_autocomplete,
@@ -21,6 +24,8 @@ from frappe.utils.safe_exec import (
 if TYPE_CHECKING:
 	from frappe.core.doctype.scheduled_job_type.scheduled_job_type import ScheduledJobType
 
+VARIABLE_KEY_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9_]*$")
+
 
 class ServerScript(Document):
 	_DOCTYPE_NAME = "Server Script"
@@ -31,6 +36,7 @@ class ServerScript(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.server_script_variable.server_script_variable import ServerScriptVariable
 		from frappe.types import DF
 
 		allow_guest: DF.Check
@@ -86,14 +92,17 @@ class ServerScript(Document):
 		script_type: DF.Literal[
 			"DocType Event", "Scheduler Event", "Permission Query", "API", "Workflow Task"
 		]
+		variables: DF.Table[ServerScriptVariable]
 	# end: auto-generated types
 
 	def validate(self):
 		frappe.only_for("Script Manager", True)
+		self.validate_variables()
 		self.check_if_compilable_in_restricted_context()
 
 	def on_update(self):
 		self.sync_scheduled_job_type()
+		self.delete_removed_variable_values()
 
 	def clear_cache(self):
 		frappe.client_cache.delete_value("server_script_map")
@@ -101,6 +110,8 @@ class ServerScript(Document):
 
 	def on_trash(self):
 		frappe.client_cache.delete_value("server_script_map")
+		for variable in self.variables:
+			delete_all_passwords_for(variable.doctype, variable.name)
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
 				scheduled_job_type: ScheduledJobType = frappe.get_doc("Scheduled Job Type", job.name)
@@ -110,6 +121,35 @@ class ServerScript(Document):
 
 	def get_code_fields(self):
 		return {"script": "py"}
+
+	def validate_variables(self):
+		keys = set()
+		for variable in self.variables:
+			if not VARIABLE_KEY_PATTERN.match(variable.key) or keyword.iskeyword(variable.key):
+				frappe.throw(
+					_(
+						"Row #{0}: Key {1} must start with a letter and contain only letters, digits and underscores"
+					).format(variable.idx, frappe.bold(variable.key)),
+					title=_("Invalid Key"),
+				)
+			if variable.key in keys:
+				frappe.throw(
+					_("Row #{0}: Key {1} is already set").format(variable.idx, frappe.bold(variable.key)),
+					title=_("Duplicate Key"),
+				)
+			keys.add(variable.key)
+
+	def delete_removed_variable_values(self):
+		if not (doc_before_save := self.get_doc_before_save()):
+			return
+		current_rows = {variable.name for variable in self.variables}
+		for variable in doc_before_save.variables:
+			if variable.name not in current_rows:
+				delete_all_passwords_for(variable.doctype, variable.name)
+
+	@property
+	def env(self) -> "ServerScriptEnv":
+		return ServerScriptEnv(self.variables)
 
 	@property
 	def scheduled_jobs(self) -> list[dict[str, str]]:
@@ -202,6 +242,7 @@ class ServerScript(Document):
 			_locals={"doc": doc},
 			restrict_commit_rollback=True,
 			script_filename=self.name,
+			env=self.env,
 		)
 
 	def execute_scheduled_method(self):
@@ -213,7 +254,7 @@ class ServerScript(Document):
 		if self.script_type != "Scheduler Event":
 			raise frappe.DoesNotExistError
 
-		safe_exec(self.script, script_filename=self.name)
+		safe_exec(self.script, script_filename=self.name, env=self.env)
 
 	def get_permission_query_conditions(self, user: str, active_child_tables=None) -> list[str]:
 		"""Specific to Permission Query Server Scripts.
@@ -230,7 +271,7 @@ class ServerScript(Document):
 			"conditions": "",
 			"active_child_tables": active_child_tables or [],
 		}
-		safe_exec(self.script, None, locals, script_filename=self.name)
+		safe_exec(self.script, None, locals, script_filename=self.name, env=self.env)
 		if locals["conditions"]:
 			return locals["conditions"]
 
@@ -245,6 +286,7 @@ class ServerScript(Document):
 			self.script,
 			_locals={"doc": doc},
 			script_filename=self.name,
+			env=self.env,
 		)
 
 
@@ -281,7 +323,7 @@ def execute_api_server_script(script: ServerScript, *args, **kwargs):
 		raise frappe.PermissionError
 
 	# output can be stored in flags
-	_globals, _locals = safe_exec(script.script, script_filename=script.name)
+	_globals, _locals = safe_exec(script.script, script_filename=script.name, env=script.env)
 
 	return _globals.frappe.flags
 
@@ -290,3 +332,22 @@ def execute_api_server_script(script: ServerScript, *args, **kwargs):
 def enabled() -> bool | None:
 	if frappe.has_permission("Server Script"):
 		return is_safe_exec_enabled()
+
+
+class ServerScriptEnv:
+	"""`frappe.env` of a Server Script. Values are decrypted on attribute access."""
+
+	def __init__(self, variables: list):
+		self._variables = {variable.key: variable for variable in variables}
+
+	def __getattr__(self, key: str) -> str:
+		if key.startswith("_"):
+			raise AttributeError(key)
+
+		if not (variable := self._variables.get(key)):
+			frappe.throw(
+				_("Environment variable {0} is not set in this Server Script").format(frappe.bold(key)),
+				title=_("Missing Environment Variable"),
+			)
+
+		return variable.get_password("value")

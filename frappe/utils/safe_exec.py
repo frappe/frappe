@@ -99,6 +99,7 @@ def safe_exec(
 	*,
 	restrict_commit_rollback: bool = False,
 	script_filename: str | None = None,
+	env: object | None = None,
 ):
 	if not is_safe_exec_enabled():
 		msg = _("Server Scripts are disabled. Please enable server scripts from bench configuration.")
@@ -116,6 +117,9 @@ def safe_exec(
 		exec_globals.frappe.db.pop("commit", None)
 		exec_globals.frappe.db.pop("rollback", None)
 		exec_globals.frappe.db.pop("add_index", None)
+
+	if env is not None:
+		exec_globals.frappe.env = env
 
 	filename = SERVER_SCRIPT_FILE_PREFIX
 	if script_filename:
