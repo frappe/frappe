@@ -114,7 +114,7 @@
 
 .es-stepper__label {
     min-width: 0;
-    overflow: hidden;
+    overflow-x: clip;
     text-overflow: ellipsis;
     white-space: nowrap;
     font-size: var(--text-base);
