@@ -121,8 +121,11 @@ def pr_state(pr, develop):
 	return "failure", description, url
 
 
-def post(pr, develop):
-	"""Set the status on the pull request's head; returns whether anything was written."""
+def post(pr, develop, started=None):
+	"""Set the status on the pull request's head; returns whether anything was written.
+
+	With `started`, a status written after that moment is newer than this run's view and is kept.
+	"""
 	state, description, url = pr_state(pr, develop)
 	sha = pr["head"]["sha"]
 	description = description[:140]
@@ -130,6 +133,8 @@ def post(pr, develop):
 		(s for s in gh(f"repos/{REPO}/commits/{sha}/status")["statuses"] if s["context"] == CONTEXT), None
 	)
 	if current and current["state"] == state and current["description"] == description:
+		return False
+	if current and started and current["updated_at"] >= started:
 		return False
 
 	command = ["gh", "api", "-X", "POST", f"repos/{REPO}/statuses/{sha}"]
@@ -151,9 +156,10 @@ if __name__ == "__main__":
 	if command == "pr":
 		post(gh(f"repos/{REPO}/pulls/{args[0]}"), develop)
 	elif command == "refresh":
+		started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
 		for listed in gh_pages(f"repos/{REPO}/pulls?base=develop&state=open&per_page=100"):
 			pr = gh(f"repos/{REPO}/pulls/{listed['number']}")
-			if pr["state"] == "open" and post(pr, develop):
+			if pr["state"] == "open" and post(pr, develop, started):
 				time.sleep(1)
 	else:
 		sys.exit(f"unknown command: {command}")
