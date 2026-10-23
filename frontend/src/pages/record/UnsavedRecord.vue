@@ -268,7 +268,7 @@ function headerBuiltins(): HeaderItem[] {
 		},
 		{ name: "record", label: title.value, zone: "left", display: "crumb" },
 		{ name: "notSaved", label: __("Not Saved"), zone: "left", component: NotSavedBadge },
-		{ name: "save", label: "Save", display: "button", run: save },
+		{ name: "save", label: __("Save"), display: "button", run: save },
 	];
 }
 
