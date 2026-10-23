@@ -160,6 +160,14 @@ describe("queryValues", () => {
 		expect(queryValues(query, meta)).toEqual({ customer: "Acme", is_return: 1, qty: 3, grand_total: 12.5, items: rows });
 	});
 
+	it("reads a checkbox that Edit full form carried as true or false", () => {
+		const query = (routeValues: Record<string, unknown>) =>
+			Object.fromEntries(Object.entries(routeValues).map(([key, value]) => [key, String(value)]));
+
+		expect(queryValues(query({ is_return: true }), meta)).toEqual({ is_return: 1 });
+		expect(queryValues(query({ is_return: false }), meta)).toEqual({ is_return: 0 });
+	});
+
 	it("drops a number that is empty or not a number, and a field that holds no value", () => {
 		const withBreak = { ...meta, fields: [...meta.fields, { fieldname: "details", fieldtype: "Section Break" }] } as DoctypeMeta;
 

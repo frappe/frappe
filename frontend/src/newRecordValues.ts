@@ -66,6 +66,7 @@ export function queryValues(query: LocationQuery, meta: DoctypeMeta): Values {
 /** Undefined for a value the field cannot hold, so the server default stays. */
 function typed(text: string, fieldtype: string): unknown {
 	if (NO_VALUE.has(fieldtype)) return undefined;
+	if (fieldtype === "Check" && (text === "true" || text === "false")) return text === "true" ? 1 : 0;
 	if (INTEGERS.has(fieldtype) || DECIMALS.has(fieldtype)) return number(text, fieldtype);
 	if (!TABLES.has(fieldtype)) return text;
 	try {

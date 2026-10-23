@@ -102,6 +102,8 @@ const server = {
   newDocReads: 0,
   insertFails: false,
   defaultsHeld: null as Promise<void> | null,
+  insertHeld: null as Promise<void> | null,
+  updates: [] as Record<string, any>[],
 };
 
 async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> {
@@ -121,9 +123,15 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
   if (init?.method === "POST" && path === "/api/v2/document/Note") {
     const body = JSON.parse(String(init.body));
     server.inserts.push(body);
+    await server.insertHeld;
     if (server.insertFails)
       return [{ errors: [{ type: "ValidationError", message: "<b>Title</b> is taken" }] }, 417];
-    return [{ data: { ...body, doctype: "Note", name: body.__newname ?? "NOTE-1" } }, 200];
+    return [{ data: { ...body, doctype: "Note", name: body.__newname ?? "NOTE-1", modified: "2026-10-23 10:00:00" } }, 200];
+  }
+  if (init?.method === "PATCH" && path === "/api/v2/document/Note/NOTE-1") {
+    const body = JSON.parse(String(init.body));
+    server.updates.push(body);
+    return [{ data: { ...body, modified: "2026-10-23 10:05:00" } }, 200];
   }
   if (path.endsWith("/activity")) return [{ data: { activities: [], next: null } }, 200];
   if (path.startsWith("/api/v2/document/Note/"))
@@ -167,6 +175,8 @@ beforeEach(() => {
   server.newDocReads = 0;
   server.insertFails = false;
   server.defaultsHeld = null;
+  server.insertHeld = null;
+  server.updates = [];
   shown.confirms = [];
   shown.errors = [];
   shown.events = [];
@@ -355,6 +365,31 @@ describe("saving the new record", () => {
     expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
     expect(shown.events.filter((event) => event.startsWith("afterSave"))).toHaveLength(1);
     expect(shown.events.filter((event) => event.startsWith("beforeSave"))).toHaveLength(1);
+  });
+
+  it("keeps what the person typed while the insert ran, asks before leaving it, and saves it in place", async () => {
+    let release!: () => void;
+    server.insertHeld = new Promise((resolve) => (release = resolve));
+    const { root, router } = await mount("/note/new?title=Hello");
+
+    saveButton(root).click();
+    await settle();
+    await type(root, "status", "Typed while saving");
+    release();
+    await settle();
+
+    expect(input(root, "status")!.value).toBe("Typed while saving");
+    expect(shown.confirms.map((one) => one.title)).toEqual(["Discard unsaved changes?"]);
+    await shown.confirms[0].onCancel();
+    await settle();
+    expect(router.currentRoute.value.fullPath).toBe("/note/new?title=Hello");
+
+    await save(root);
+
+    expect(server.inserts).toHaveLength(1);
+    expect(server.updates).toHaveLength(1);
+    expect(server.updates[0]).toMatchObject({ name: "NOTE-1", status: "Typed while saving", modified: "2026-10-23 10:00:00" });
+    expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
   });
 
   it("keeps the page, the values and the server message as text when the insert fails", async () => {

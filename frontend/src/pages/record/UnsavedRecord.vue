@@ -111,6 +111,8 @@ import { openingKey } from "./openingKey";
 import { Visit } from "./visit";
 import { fetchMeta } from "./metaSource";
 import { provideRecordCommits } from "./recordCommits";
+import { saveRecord } from "./recordSource";
+import { same } from "./refetchMerge";
 import { projectRecordHeader } from "./recordHeaderProjection";
 import { runSave, useSaveKeys } from "./recordSave";
 import { shownInDialog, stripTags } from "./saveResponse";
@@ -235,7 +237,7 @@ function buildController() {
 		formLayout: () => detailsForm.value,
 		activeFormTab: () => activeFormTab.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
-		save: insert,
+		save: write,
 		onSaved: openSaved,
 		reload: open,
 		router,
@@ -268,17 +270,28 @@ function headerBuiltins(): HeaderItem[] {
 	];
 }
 
-/** Sends a prompt name as `__newname`, never `name`; the inserted record counts as clean. */
-async function insert() {
+/** Inserts the record, sending a prompt name as `__newname`, then saves the inserted one in place. */
+async function write() {
+	const sent = JSON.parse(JSON.stringify(doc.value));
 	try {
-		const { data } = await createDocument(props.doctype, insertBody({}, doc.value));
-		insertedName = data.name;
-		saved.value = { ...data };
-		doc.value = JSON.parse(JSON.stringify(data));
-		opened.value = JSON.stringify(doc.value);
+		const document = insertedName
+			? await saveRecord(props.doctype, sent)
+			: (await createDocument(props.doctype, insertBody({}, sent))).data;
+		insertedName = document.name;
+		saved.value = { ...document };
+		opened.value = JSON.stringify(document);
+		doc.value = withEditsSince(document, sent);
 	} catch (exception) {
 		throw isApiError(exception) ? new Error(stripTags(exception.message)) : exception;
 	}
+}
+
+/** The server's reply, with what the person typed while the request ran. */
+function withEditsSince(document: Record<string, any>, sent: Record<string, any>) {
+	const draft: Record<string, any> = JSON.parse(JSON.stringify(document));
+	for (const [fieldname, value] of Object.entries(doc.value))
+		if (!same(value, sent[fieldname])) draft[fieldname] = value;
+	return draft;
 }
 
 async function openSaved() {
@@ -294,9 +307,9 @@ async function runAction(action: HeaderItem) {
 	}
 }
 
-/** After the insert, Save only opens the saved record again. */
+/** After the insert, Save with no changes only opens the saved record again. */
 function save(page: RecordPageApi) {
-	return insertedName ? openSaved() : runSave(page);
+	return insertedName && !dirty.value ? openSaved() : runSave(page);
 }
 
 async function confirmLeave() {
