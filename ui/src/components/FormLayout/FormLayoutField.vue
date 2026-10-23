@@ -1,5 +1,10 @@
 <template>
-	<div class="field" :data-fieldname="field.fieldname" :data-fieldtype="field.fieldtype">
+	<div
+		class="field"
+		:data-fieldname="field.fieldname"
+		:data-fieldtype="field.fieldtype"
+		:autofocus="autofocusField === field.fieldname || undefined"
+	>
 		<!-- `ui.props` binds FIRST so it cannot clobber `field` or `modelValue`:
 		     it is presentation, not a way to re-point the control at another
 		     field. Listeners are unaffected by the order — Vue merges duplicate
@@ -19,7 +24,7 @@
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
-import { CommitKey, DocKey, NO_COMMIT, ResolveFieldKey, UpdateKey } from "./types";
+import { AutofocusKey, CommitKey, DocKey, NO_COMMIT, ResolveFieldKey, UpdateKey } from "./types";
 import { holdsChildRows } from "../Fields/rowIdentity";
 import type { FieldNode } from "./types";
 
@@ -29,6 +34,7 @@ const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
+const autofocusField = inject(AutofocusKey, null);
 
 // A child table commits through its rows, never under its own fieldname, which
 // ticket 45 retired as a handler key.

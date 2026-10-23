@@ -39,7 +39,16 @@ import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { applyTabOverride, resolveLayout } from "./resolveLayout";
 import { identifyTabs, tabStripLabel } from "./tabIdentity";
-import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
+import { NO_VALUE } from "./newRowValues";
+import {
+	AutofocusKey,
+	CommitKey,
+	DocKey,
+	HasTabsKey,
+	ParentDocKey,
+	ResolveFieldKey,
+	UpdateKey,
+} from "./types";
 import { warnMissingCommit } from "./warnMissingCommit";
 import type { FormLayoutProps, Section } from "./types";
 
@@ -134,6 +143,20 @@ function openSection(key: string, open: boolean) {
 	sections.value = { ...sections.value, [key]: open };
 }
 
+const autofocusField = computed(() =>
+	props.autofocus && active.value ? firstEditableField(active.value.sections) : ""
+);
+
+function firstEditableField(sections: Section[]) {
+	const fields = sections.flatMap((section) =>
+		section.columns.flatMap((column) => column.fields)
+	);
+	const field = fields.find(
+		(field) => !field.hidden && !field.readOnly && !NO_VALUE.has(field.fieldtype)
+	);
+	return field?.fieldname ?? "";
+}
+
 const hasTabs = computed(
 	() =>
 		visibleTabs.value.length > 1 ||
@@ -161,6 +184,7 @@ provide(DocKey, doc);
 provide(UpdateKey, update);
 provide(ResolveFieldKey, resolve);
 provide(HasTabsKey, hasTabs);
+provide(AutofocusKey, autofocusField);
 </script>
 
 <style scoped>

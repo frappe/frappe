@@ -20,7 +20,7 @@ vi.mock("frappe-ui", () => ({
 			);
 			return () =>
 				props.open
-					? h("div", { "data-dialog": "" }, [
+					? h("div", { "data-dialog": "", role: "dialog" }, [
 							h("h2", props.title),
 							props.showCloseButton
 								? h("button", { onClick: () => emit("update:open", false) }, "Close")
