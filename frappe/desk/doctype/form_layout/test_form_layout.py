@@ -27,6 +27,10 @@ NO_MANDATORY_DT = "Test Create No Mandatory"
 MANDATORY_TABLE_DT = "Test Create Mandatory Table"
 FLAG_OFF_DT = "Test Create Flag Off"
 PROMPT_DT = "Test Create Prompt"
+HIDDEN_DT = "Test Create Hidden"
+HIDDEN_PROMPT_DT = "Test Create Hidden Prompt"
+HIDDEN_TABLE_DT = "Test Create Hidden Table"
+HIDDEN_DOCTYPES = (HIDDEN_DT, HIDDEN_PROMPT_DT, HIDDEN_TABLE_DT)
 
 
 def make_layout(**kwargs):
@@ -87,6 +91,14 @@ def data(fieldname: str, **kwargs) -> dict:
 		"fieldtype": "Data",
 		**kwargs,
 	}
+
+
+def hide_field(dt: str, fieldname: str):
+	"""Hide a mandatory field with no default, which DocType and Customize Form validation refuse."""
+	frappe.make_property_setter(
+		{"doctype": dt, "fieldname": fieldname, "property": "hidden", "value": 1, "property_type": "Check"},
+		validate_fields_for_doctype=False,
+	)
 
 
 def quick_entry_fields(tabs: list) -> list:
@@ -338,12 +350,38 @@ class TestCreateLayouts(IntegrationTestCase):
 		)
 		make_create_doctype(FLAG_OFF_DT, [data("title", reqd=1)], quick_entry=0)
 		make_create_doctype(PROMPT_DT, [data("title")], quick_entry=1, autoname="Prompt")
+		make_create_doctype(HIDDEN_DT, [data("code", reqd=1)], quick_entry=1)
+		make_create_doctype(HIDDEN_PROMPT_DT, [data("code", reqd=1)], quick_entry=1, autoname="Prompt")
+		make_create_doctype(
+			HIDDEN_TABLE_DT,
+			[
+				data("title", reqd=1),
+				{
+					"label": "Roles",
+					"fieldname": "roles",
+					"fieldtype": "Table",
+					"options": "Has Role",
+					"reqd": 1,
+				},
+			],
+			quick_entry=1,
+		)
+		for dt, fieldname in zip(HIDDEN_DOCTYPES, ("code", "code", "roles"), strict=True):
+			hide_field(dt, fieldname)
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
-		for dt in (QUICK_ENTRY_DT, NO_MANDATORY_DT, MANDATORY_TABLE_DT, FLAG_OFF_DT, PROMPT_DT):
+		for dt in (
+			QUICK_ENTRY_DT,
+			NO_MANDATORY_DT,
+			MANDATORY_TABLE_DT,
+			FLAG_OFF_DT,
+			PROMPT_DT,
+			*HIDDEN_DOCTYPES,
+		):
 			frappe.delete_doc_if_exists("DocType", dt)
+		frappe.db.delete("Property Setter", {"doc_type": ("in", HIDDEN_DOCTYPES)})
 		for user in (CREATOR, READER):
 			frappe.delete_doc_if_exists("User", user)
 		for role in (CREATE_ONLY_ROLE, READ_ONLY_ROLE):
@@ -391,6 +429,12 @@ class TestCreateLayouts(IntegrationTestCase):
 		self.assertFalse(self.quick_entry(NO_MANDATORY_DT)["dialog"])
 		self.assertFalse(self.quick_entry(MANDATORY_TABLE_DT)["dialog"])
 		self.assertFalse(self.quick_entry(FLAG_OFF_DT)["dialog"])
+
+	def test_a_hidden_field_does_not_open_the_dialog(self):
+		self.assertFalse(self.quick_entry(HIDDEN_DT)["dialog"])
+		self.assertTrue(self.quick_entry(HIDDEN_PROMPT_DT)["dialog"])
+		self.assertFalse(self.quick_entry(HIDDEN_TABLE_DT)["dialog"])
+		self.assertEqual(quick_entry_fields(self.quick_entry(HIDDEN_DT)["fallback"]), [(None, ["code"])])
 
 	def test_a_quick_entry_row_opens_the_dialog(self):
 		for dt in (NO_MANDATORY_DT, MANDATORY_TABLE_DT, FLAG_OFF_DT):

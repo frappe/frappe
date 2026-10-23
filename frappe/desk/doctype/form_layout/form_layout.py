@@ -137,7 +137,7 @@ def opens_in_dialog(dt: str, rows: list) -> bool:
 	if any(field.fieldtype == "Table" and not mandatory_condition(field) for field in fields):
 		return False
 	named_by_prompt = (meta.autoname or "").lower() == "prompt"
-	return named_by_prompt or any(not mandatory_condition(field) for field in fields)
+	return named_by_prompt or any(not field.hidden and not mandatory_condition(field) for field in fields)
 
 
 def get_quick_entry_fields(meta) -> list:
