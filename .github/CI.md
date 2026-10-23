@@ -27,20 +27,12 @@ To re-test develop at any other time: open the **Actions** tab of the repo, clic
 | `fixes-develop`                     | Your pull request fixes a failing develop. Its Develop status stays green so it can merge, and it runs in full whichever suite is failing on develop (server, UI or both). |
 | `run-full-ci`                       | Runs the full server and UI suites on your pull request. Use it for risky changes.                                                                                         |
 | `Run Server Tests` / `Run UI Tests` | Runs the full server or UI suite on your pull request.                                                                                                                     |
-| `Skip CI`                           | Skips the tests.                                                                                                                                                           |
 
 You can add a label any time. Adding `fixes-develop` or `run-full-ci` restarts your tests within a minute, no push needed. `Run Server Tests` and `Run UI Tests` take effect on your next push or re-run.
 
-## Which tests run on your pull request
+## Tests on your pull request
 
-CI runs only the tests your change can affect.
-
-- Change only JS or Vue: server tests are skipped, and only the UI specs that use those files run. CSS changes run all UI specs.
-- Change only Python: UI tests are skipped, and only the server tests that use those files run.
-- Change both: both run, each picking its related tests.
-- Change only docs or images: no tests run, even with a label.
-
-The tests are picked from a map that the nightly run builds. Changes to core framework files (`frappe/model`, `frappe/database`, `hooks.py`), dependency files, CI files, or a file the map doesn't know yet run the full suite.
+Pull requests into develop run only the linters. The server and UI test suites don't run on them, because develop runs them every hour. To run them on your pull request, add one of the labels above.
 
 ## Settings
 
