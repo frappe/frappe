@@ -366,8 +366,6 @@ class TestCreateLayouts(IntegrationTestCase):
 			],
 			quick_entry=1,
 		)
-		for dt, fieldname in zip(HIDDEN_DOCTYPES, ("code", "code", "roles"), strict=True):
-			hide_field(dt, fieldname)
 
 	@classmethod
 	def tearDownClass(cls):
@@ -381,7 +379,6 @@ class TestCreateLayouts(IntegrationTestCase):
 			*HIDDEN_DOCTYPES,
 		):
 			frappe.delete_doc_if_exists("DocType", dt)
-		frappe.db.delete("Property Setter", {"doc_type": ("in", HIDDEN_DOCTYPES)})
 		for user in (CREATOR, READER):
 			frappe.delete_doc_if_exists("User", user)
 		for role in (CREATE_ONLY_ROLE, READ_ONLY_ROLE):
@@ -431,6 +428,8 @@ class TestCreateLayouts(IntegrationTestCase):
 		self.assertFalse(self.quick_entry(FLAG_OFF_DT)["dialog"])
 
 	def test_a_hidden_field_does_not_open_the_dialog(self):
+		for dt, fieldname in zip(HIDDEN_DOCTYPES, ("code", "code", "roles"), strict=True):
+			hide_field(dt, fieldname)
 		self.assertFalse(self.quick_entry(HIDDEN_DT)["dialog"])
 		self.assertTrue(self.quick_entry(HIDDEN_PROMPT_DT)["dialog"])
 		self.assertFalse(self.quick_entry(HIDDEN_TABLE_DT)["dialog"])
