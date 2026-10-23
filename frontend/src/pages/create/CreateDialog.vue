@@ -22,7 +22,7 @@
 		<template #actions>
 			<div class="flex items-center justify-between gap-2">
 				<Button
-					variant="ghost"
+					variant="subtle"
 					:label="__('Edit full form')"
 					:disabled="saving"
 					@click="editFullForm"
