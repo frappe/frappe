@@ -127,8 +127,10 @@ class TestServerScript(IntegrationTestCase):
 
 	@classmethod
 	def tearDownClass(cls):
+		frappe.db.delete("__Auth", {"doctype": "Server Script Variable"})
 		frappe.db.commit()
 		frappe.db.truncate("Server Script")
+		frappe.db.truncate("Server Script Variable")
 		frappe.client_cache.delete_value("server_script_map")
 
 	def setUp(self):
