@@ -367,28 +367,35 @@ describe("saving the new record", () => {
     expect(shown.events.filter((event) => event.startsWith("beforeSave"))).toHaveLength(1);
   });
 
-  it("keeps what the person typed while the insert ran, asks before leaving it, and saves it in place", async () => {
+  it("locks the form while the insert runs, and takes the server's reply as the draft", async () => {
     let release!: () => void;
     server.insertHeld = new Promise((resolve) => (release = resolve));
     const { root, router } = await mount("/note/new?title=Hello");
 
     saveButton(root).click();
     await settle();
-    await type(root, "status", "Typed while saving");
+    expect(root.querySelector("[data-record-form]")!.hasAttribute("inert")).toBe(true);
     release();
     await settle();
 
-    expect(input(root, "status")!.value).toBe("Typed while saving");
-    expect(shown.confirms.map((one) => one.title)).toEqual(["Discard unsaved changes?"]);
-    await shown.confirms[0].onCancel();
-    await settle();
-    expect(router.currentRoute.value.fullPath).toBe("/note/new?title=Hello");
+    expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
+    expect(server.inserts).toHaveLength(1);
+  });
 
+  it("saves in place when the person edits after a refused move to the saved record", async () => {
+    const { root, router } = await mount("/note/new?title=Hello");
+    let refuse = true;
+    router.beforeEach((to) => !(refuse && to.name === "record"));
+    await save(root);
+    expect(root.querySelector("[data-record-form]")!.hasAttribute("inert")).toBe(false);
+
+    await type(root, "status", "Edited after the insert");
+    refuse = false;
     await save(root);
 
     expect(server.inserts).toHaveLength(1);
     expect(server.updates).toHaveLength(1);
-    expect(server.updates[0]).toMatchObject({ name: "NOTE-1", status: "Typed while saving", modified: "2026-10-23 10:00:00" });
+    expect(server.updates[0]).toMatchObject({ name: "NOTE-1", status: "Edited after the insert", modified: "2026-10-23 10:00:00" });
     expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
   });
 

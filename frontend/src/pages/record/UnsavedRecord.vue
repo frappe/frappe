@@ -37,16 +37,19 @@
 				:user="boot.session.user.name"
 			>
 				<template #form>
-					<FormLayout
-						v-if="form.length"
-						v-model:doc="doc"
-						v-model:sections="formSections"
-						:layout="form"
-						:tab="formTab"
-						:class="FORM_CLASSES"
-						@update:tab="formTab = $event"
-						@update:activeTab="activeFormTab = $event"
-					/>
+					<!-- Locked while a save runs, so the reply never lands over an edit. -->
+					<div data-record-form :inert="painted.isSaving.value">
+						<FormLayout
+							v-if="form.length"
+							v-model:doc="doc"
+							v-model:sections="formSections"
+							:layout="form"
+							:tab="formTab"
+							:class="FORM_CLASSES"
+							@update:tab="formTab = $event"
+							@update:activeTab="activeFormTab = $event"
+						/>
+					</div>
 				</template>
 			</BodyColumns>
 
@@ -112,7 +115,6 @@ import { Visit } from "./visit";
 import { fetchMeta } from "./metaSource";
 import { provideRecordCommits } from "./recordCommits";
 import { saveRecord } from "./recordSource";
-import { same } from "./refetchMerge";
 import { projectRecordHeader } from "./recordHeaderProjection";
 import { runSave, useSaveKeys } from "./recordSave";
 import { shownInDialog, stripTags } from "./saveResponse";
@@ -280,18 +282,10 @@ async function write() {
 		insertedName = document.name;
 		saved.value = { ...document };
 		opened.value = JSON.stringify(document);
-		doc.value = withEditsSince(document, sent);
+		doc.value = JSON.parse(JSON.stringify(document));
 	} catch (exception) {
 		throw isApiError(exception) ? new Error(stripTags(exception.message)) : exception;
 	}
-}
-
-/** The server's reply, with what the person typed while the request ran. */
-function withEditsSince(document: Record<string, any>, sent: Record<string, any>) {
-	const draft: Record<string, any> = JSON.parse(JSON.stringify(document));
-	for (const [fieldname, value] of Object.entries(doc.value))
-		if (!same(value, sent[fieldname])) draft[fieldname] = value;
-	return draft;
 }
 
 async function openSaved() {
