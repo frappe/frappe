@@ -228,6 +228,7 @@ describe("DoctypeList Create button", () => {
 		await clickCreate(root);
 		await clickCreate(root);
 		expect(createRequests.value).toHaveLength(1);
+		expect(createButton(root)!.querySelector('[aria-label="Loading"]')).toBeNull();
 
 		createRequests.value[0].settle(null);
 		createRequests.value[0].dismiss();

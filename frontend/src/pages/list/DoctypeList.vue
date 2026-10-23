@@ -12,7 +12,6 @@
 					variant="solid"
 					icon-left="lucide-plus"
 					:label="__('Create')"
-					:loading="creating"
 					@click="create"
 				/>
 			</div>
