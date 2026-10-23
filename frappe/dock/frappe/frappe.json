@@ -16,6 +16,14 @@
   {
    "added": 0,
    "hidden": 0,
+   "icon": "studio-soft",
+   "link_to": "Studio",
+   "link_type": "Sidebar",
+   "title": "Studio"
+  },
+  {
+   "added": 0,
+   "hidden": 0,
    "icon": "users-soft",
    "link_to": "Users",
    "link_type": "Sidebar",
@@ -102,7 +110,7 @@
    "title": "System"
   }
  ],
- "modified": "2026-10-08 18:41:15.000000",
+ "modified": "2026-10-21 12:00:00.000000",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

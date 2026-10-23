@@ -4,6 +4,8 @@ Frappe is a web framework: Python backend, JavaScript desk UI, MariaDB or Postgr
 
 Maintainers review every pull request against [code_review.md](code_review.md). Follow this file while you work, and check your diff against that one before you open the pull request.
 
+The Studio editor under `studio/frontend/` is a separate Vue app with its own conventions; read [studio/frontend/AGENTS.md](studio/frontend/AGENTS.md) before changing it or the `frappe/studio` package.
+
 ## Before you write code
 
 1. Confirm the problem still exists on latest `develop`. Run `git log -p` on the lines involved, and `git log -S '<expression>'` to find the commit that caused it. The code may be fixed already, dead (behind a condition that is always false), replaced by a newer code path, or different from the version in the report. If the bug no longer happens, stop and say so. Do not change code to match the report.

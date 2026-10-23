@@ -26,6 +26,9 @@ class TestWorkflow(IntegrationTestCase):
 		super().setUpClass()
 		make_test_records("User")
 		cls.enterClassContext(cls.enable_safe_exec())
+		create_workflow_state_field("ToDo")
+		create_workflow_state_field("Domain")
+		create_new_submittable_doctype()
 
 	def setUp(self):
 		self.patcher = patch("frappe.attach_print", return_value={})
@@ -111,7 +114,8 @@ class TestWorkflow(IntegrationTestCase):
 
 		todo = create_new_todo()
 		# docnames as a native list (frappe.parse_json passthrough); < 20 docs runs inline
-		bulk_workflow_approval([todo.name], "ToDo", "Approve")
+		with patch.object(frappe.db, "commit"):
+			bulk_workflow_approval([todo.name], "ToDo", "Approve")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Approved")
 
 	def test_if_workflow_actions_were_processed_using_role(self):

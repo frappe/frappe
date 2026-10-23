@@ -9,7 +9,6 @@ from unittest.mock import Mock, patch
 from pydantic import Field
 
 import frappe
-from frappe import _
 from frappe.mcp import protocol, tools
 from frappe.mcp.test_utils import McpTestCase
 from frappe.tests import UnitTestCase
@@ -48,9 +47,9 @@ class TestToolExecution(McpTestCase):
 			("search_doctypes", {"method": "frappe.ping"}),
 			("get_doctype_schema", {"doctype": "ToDo", "query": "ToDo"}),
 			("search_methods", {"query": "ping", "doctype": "ToDo"}),
-			("get_method_schema", {"method": "frappe.ping", "doctype": "ToDo"}),
+			("get_method_schema", {"method": "frappe.ping", "args": {}}),
 			("list_document_methods", {"doctype": "ToDo", "name": "missing"}),
-			("get_document_method_schema", {"doctype": "ToDo", "method": "add_comment", "args": {}}),
+			("get_method_schema", {"doctype": "ToDo", "method": "add_comment", "args": {}}),
 			("list_documents", {"doctype": "ToDo", "name": "missing"}),
 			("get_document", {"doctype": "ToDo", "name": "missing", "filters": {}}),
 			("count_documents", {"doctype": "ToDo", "limit": 20}),
@@ -118,7 +117,7 @@ class TestToolExecution(McpTestCase):
 	def test_failure_rolls_back_document_write(self):
 		def handler(**kwargs):
 			frappe.get_doc(doctype="ToDo", description="MCP failed tool fixture").insert()
-			frappe.throw(_("<b>Tool failed</b>"))
+			frappe.throw("<b>Tool failed</b>")
 
 		response = self.call({"doctype": "ToDo"}, handler)
 		self.assertTrue(response.json["result"]["isError"])

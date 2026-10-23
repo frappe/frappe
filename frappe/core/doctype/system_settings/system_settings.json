@@ -57,7 +57,6 @@
   "bypass_restrict_ip_check_if_2fa_enabled",
   "column_break_bzfr",
   "two_factor_method",
-  "lifespan_qrcode_image",
   "otp_issuer_name",
   "otp_sms_template",
   "password_tab",
@@ -127,7 +126,14 @@
   "allow_clearing_link_fields",
   "enable_combobox_link_field",
   "api_logging_section",
-  "log_api_requests"
+  "log_api_requests",
+  "ai_agents_tab",
+  "mcp_section",
+  "enable_mcp",
+  "server_name",
+  "agent_instructions",
+  "frappectl_section",
+  "frappectl_help"
  ],
  "fields": [
   {
@@ -372,13 +378,6 @@
    "fieldtype": "Select",
    "label": "Two Factor Authentication method",
    "options": "OTP App\nSMS\nEmail"
-  },
-  {
-   "depends_on": "eval:doc.enable_two_factor_auth && doc.two_factor_method == \"OTP App\"",
-   "description": "Time in seconds to retain QR code image on server. Min:<strong>240</strong>",
-   "fieldname": "lifespan_qrcode_image",
-   "fieldtype": "Int",
-   "label": "Expiry time of QR Code Image Page"
   },
   {
    "default": "Frappe Framework",
@@ -867,12 +866,49 @@
    "fieldname": "use_classic_charts",
    "fieldtype": "Check",
    "label": "Use Classic Charts"
+  },
+  {
+   "fieldname": "ai_agents_tab",
+   "fieldtype": "Tab Break",
+   "label": "AI Agents"
+  },
+  {
+   "fieldname": "mcp_section",
+   "fieldtype": "Section Break",
+   "label": "MCP Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_mcp",
+   "fieldtype": "Check",
+   "label": "Enable MCP"
+  },
+  {
+   "description": "Name shown to AI clients. Defaults to the site's host name.",
+   "fieldname": "server_name",
+   "fieldtype": "Data",
+   "label": "Server Name"
+  },
+  {
+   "description": "Tell AI agents what this site is for and how your team uses it. Agents receive this text when they connect.",
+   "fieldname": "agent_instructions",
+   "fieldtype": "Long Text",
+   "label": "Agent Instructions"
+  },
+  {
+   "fieldname": "frappectl_section",
+   "fieldtype": "Section Break",
+   "label": "frappectl"
+  },
+  {
+   "fieldname": "frappectl_help",
+   "fieldtype": "HTML"
   }
  ],
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-19 20:21:28.000000",
+ "modified": "2026-10-22 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

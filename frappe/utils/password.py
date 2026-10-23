@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 
 import unicodedata
+from functools import lru_cache
 
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
@@ -122,6 +123,16 @@ def is_password_reused(user, pwd, doctype="User", fieldname="password"):
 	return bool(result and verify_password(pwd, result[0].password)[0])
 
 
+@lru_cache(maxsize=1)
+def _placeholder_hash() -> str:
+	return passlibctx.hash(frappe.generate_hash())
+
+
+def verify_against_placeholder(pwd):
+	"""Spend the time of a real verification, so a missing password cannot be told from a wrong one."""
+	verify_password(pwd, _placeholder_hash())
+
+
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
@@ -138,7 +149,11 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 		.run(as_dict=True)
 	)
 
-	matched, needs_rehash = verify_password(pwd, result[0].password) if result else (False, False)
+	if result:
+		matched, needs_rehash = verify_password(pwd, result[0].password)
+	else:
+		verify_against_placeholder(pwd)
+		matched = needs_rehash = False
 	if not matched:
 		raise frappe.AuthenticationError(_("Incorrect User or Password"))
 
@@ -158,7 +173,9 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 
 
 def delete_login_failed_cache(user):
-	frappe.cache.hdel("login_failed_count", user)
+	from frappe.auth import LoginAttemptTracker
+
+	LoginAttemptTracker(user).add_success_attempt()
 
 
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):

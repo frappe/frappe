@@ -1,6 +1,7 @@
 import { test as base, expect } from "@playwright/test";
 import { Api } from "./api";
 import { ADMIN_PASSWORD, TEST_USER, site_url } from "./config";
+import { start_coverage, stop_coverage } from "./coverage";
 import { Desk } from "./desk";
 
 async function login(request, email, password) {
@@ -21,6 +22,12 @@ export const test = base.extend({
 		const state = await request.storageState();
 		await request.dispose();
 		await use(state);
+	},
+
+	page: async ({ page }, use, testInfo) => {
+		await start_coverage(page);
+		await use(page);
+		await stop_coverage(page, testInfo.file);
 	},
 
 	api: async ({ page }, use) => {
@@ -56,14 +63,17 @@ export function use_shared_page({ user = TEST_USER, teardown } = {}) {
 			storageState: undefined,
 		});
 		shared.page = await shared.context.newPage();
+		await start_coverage(shared.page);
 		shared.api = new Api(shared.page.request, shared.page);
 		shared.desk = new Desk(shared.page, shared.api);
 		await shared.desk.login(user);
 	});
 
-	test.afterAll(async () => {
+	// eslint-disable-next-line no-empty-pattern
+	test.afterAll(async ({}, testInfo) => {
 		try {
 			await teardown?.(shared);
+			await stop_coverage(shared.page, testInfo.file);
 		} finally {
 			await shared.context?.close();
 		}

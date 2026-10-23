@@ -22,6 +22,32 @@ class TestLoad(IntegrationTestCase):
 		info = get_user_info_for_viewers(["Administrator"])
 		self.assertIn("Administrator", info)
 
+	def test_get_user_info_for_viewers_denies_website_users(self):
+		from frappe.core.doctype.user_type.test_user_type import create_role
+
+		create_role()
+		custom_type = frappe.get_doc(
+			doctype="User Type", name="Viewer Test Type", role="_Test User Type"
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User Type", custom_type.name, force=True)
+
+		def make_user(email, user_type):
+			return frappe.get_doc(
+				doctype="User", email=email, first_name="Viewer", user_type=user_type, send_welcome_email=0
+			).insert(ignore_permissions=True)
+
+		website_user = make_user("viewer_portal@example.com", "Website User")
+		custom_user = make_user("viewer_custom@example.com", custom_type.name)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		for desk_user in ("test@example.com", custom_user.name):
+			frappe.set_user(desk_user)
+			info = get_user_info_for_viewers([website_user.name])
+			self.assertEqual(info[website_user.name].fullname, "Viewer")
+
+		frappe.set_user(website_user.name)
+		self.assertRaises(frappe.PermissionError, get_user_info_for_viewers, ["test@example.com"])
+
 	def test_add_comments_hides_attachment_activity_for_restricted_fields(self):
 		doctype = new_doctype(
 			fields=[
