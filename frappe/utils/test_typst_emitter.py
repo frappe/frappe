@@ -619,6 +619,17 @@ class TestTypstTranslation(IntegrationTestCase):
 		self.assertNotIn("\\u", literal)
 		self.assertEqual(json.loads(literal), value)
 
+	def test_dot_is_escaped_only_where_typst_reads_it_as_markup(self):
+		from frappe.utils.typst_emitter import typst_escape
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		self.assertEqual(
+			typst_escape("1. Payment is due within 30 days"), "1\\. Payment is due within 30 days"
+		)
+		self.assertEqual(typst_escape("Call ahead..."), "Call ahead..\\.")
+		self.assertEqual(typst_escape("12.5"), "12.5")
+
 	def test_hostile_colors_are_dropped(self):
 		from frappe.utils.typst_emitter import safe_color
 
@@ -701,6 +712,101 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertIn("typst render test", source)
 		self.assertNotIn("High", source, "visible_if=False field must not be emitted")
 		self.assertEqual(assets, {})
+
+	def test_zero_page_margin_is_kept(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf = self.make(
+			layout_with({"fieldtype": "Data", "fieldname": "description", "label": "Description"}),
+			margin_top=0,
+			margin_bottom=0,
+			margin_left=0,
+			margin_right=0,
+		)
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
+		self.assertIn("margin: (top: 0.0mm, bottom: 0.0mm, left: 0.0mm, right: 0.0mm)", source)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_image_format_comes_from_its_content(self):
+		from io import BytesIO
+
+		from PIL import Image
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		jpeg = BytesIO()
+		Image.new("RGB", (40, 20), "navy").save(jpeg, "JPEG")
+		logo = frappe.get_doc(
+			{"doctype": "File", "file_name": "northwind-traders-logo.png", "content": jpeg.getvalue()}
+		).insert()
+		self.addCleanup(logo.delete)
+		pf = self.make(layout_with({"fieldtype": "Image", "custom": 1, "image_url": logo.file_url}))
+		pf.pdf_generator = "Typst"
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_language_typst_cannot_name_still_prints(self):
+		from io import BytesIO
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self.make(layout_with({"fieldtype": "Data", "fieldname": "description", "label": "Description"}))
+		pf.pdf_generator = "Typst"
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		frappe.local.lang = "hinglish"
+		pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertIn("typst render test", PdfReader(BytesIO(pdf)).pages[0].extract_text())
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_row_page_break_starts_a_new_page(self):
+		from io import BytesIO
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self.make(
+			layout_with(
+				{
+					"fieldtype": "Table",
+					"fieldname": "email_ids",
+					"label": "Email Addresses",
+					"table_columns": [{"fieldname": "email_id", "label": "Email", "fieldtype": "Data"}],
+				}
+			),
+			doc_type="Contact",
+		)
+		pf.pdf_generator = "Typst"
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": "Daniel",
+				"last_name": "Okafor",
+				"email_ids": [
+					{"email_id": "daniel.okafor@example.com"},
+					{"email_id": "accounts@example.com", "page_break": 1},
+				],
+			}
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pages = PdfReader(BytesIO(PrintFormatGenerator(pf, contact).render_pdf())).pages
+		self.assertEqual(len(pages), 2)
+		self.assertIn("accounts@example.com", pages[1].extract_text())
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_render_pdf_produces_a_pdf(self):
