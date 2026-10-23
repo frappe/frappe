@@ -50,6 +50,7 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 		"servers": {"email_server": "imap.yandex.com", "smtp_server": "smtp.yandex.com"},
 		# not OpenID Connect, so no id_token; the address comes from here
 		"userinfo_url": "https://login.yandex.ru/info?format=json",
+		"errors": {"save": {"imap_disabled": ("IMAP is disabled",)}},
 	},
 }
 

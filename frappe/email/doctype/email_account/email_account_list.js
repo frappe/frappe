@@ -178,6 +178,15 @@ function show_email_oauth_result(code, mailbox, provider) {
 				"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."
 			),
 		},
+		yandex: {
+			imap_disabled:
+				__(
+					'IMAP is turned off for this mailbox. In Yandex Mail settings, under Email clients, turn on IMAP and "App passwords and OAuth tokens".'
+				) +
+				` <a href="https://mail.yandex.com/#setup/client" target="_blank">${__(
+					"Open Yandex Mail settings"
+				)}</a>`,
+		},
 	};
 	const error_messages = {
 		cancelled: __("Sign-in was cancelled."),

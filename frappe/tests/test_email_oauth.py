@@ -327,6 +327,26 @@ class TestCallback(IntegrationTestCase):
 		self.assertEqual(app.provider_name, "Yandex (one@email-oauth.example.com)")
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:yandex")
 
+	def test_yandex_mailbox_with_imap_off_asks_to_turn_it_on(self) -> None:
+		yandex_token = token("ignored@email-oauth.example.com")
+		del yandex_token["id_token"]
+		self.pilot.return_value = yandex_token
+		imap_off = "[AUTHENTICATIONFAILED] AUTHENTICATE invalid credentials or IMAP is disabled"
+		with (
+			patch.object(
+				email_oauth, "make_get_request", return_value={"default_email": "one@email-oauth.example.com"}
+			),
+			patch.object(EmailAccount, "validate", side_effect=frappe.ValidationError(imap_off)),
+			patch("frappe.log_error"),
+		):
+			email_oauth.callback(state=self.note(provider="yandex"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=imap_disabled&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=yandex"
+			)
+		)
+
 	def test_lands_with_the_result_before_the_fragment(self) -> None:
 		email_oauth.callback(state=self.note(redirect_to="/desk/email-account?view=list#top"), code="c")
 		self.assertEqual(
