@@ -314,6 +314,7 @@ class TestCommands(BaseTestCommands):
 			).insert(ignore_permissions=True)
 			frappe.db.commit()
 		self.addCleanup(self.delete_browse_user, email)
+		self.addCleanup(frappe.set_user, frappe.session.user)
 		return email
 
 	def delete_browse_user(self, email):
