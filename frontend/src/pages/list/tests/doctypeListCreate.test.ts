@@ -267,6 +267,17 @@ describe("DoctypeList Create button", () => {
 		expect(toast.success.mock.calls[0][0]).toBe("Contact Fix H2O pipe, &lt;today&gt; created");
 	});
 
+	it("keeps the text before a block apart from it in an HTML title", async () => {
+		meta = withHtmlTitle(meta);
+		const root = await mount();
+		await clickCreate(root);
+
+		createRequests.value[0].settle({ name: "ruoeqvnufb", description: "Call<div>the supplier</div>" });
+		await settle();
+
+		expect(toast.success.mock.calls[0][0]).toBe("Contact Call the supplier created");
+	});
+
 	it("names the saved record by its name when its HTML title has no text", async () => {
 		meta = withHtmlTitle(meta);
 		const root = await mount();

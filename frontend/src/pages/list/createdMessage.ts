@@ -23,10 +23,13 @@ function recordLabel(meta: DoctypeMeta | null, doc: Record<string, unknown>): st
 	return shorten(text.replace(/\s+/g, " ").trim()) || String(doc.name);
 }
 
-// A space after each block, so that paragraphs do not run together.
+// A space around each block, so that text on either side does not run into it.
 function htmlText(html: string): string {
 	const body = new DOMParser().parseFromString(html, "text/html").body;
-	for (const block of body.querySelectorAll(BLOCKS)) block.after(" ");
+	for (const block of body.querySelectorAll(BLOCKS)) {
+		block.before(" ");
+		block.after(" ");
+	}
 	return body.textContent ?? "";
 }
 
