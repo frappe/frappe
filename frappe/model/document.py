@@ -1222,19 +1222,14 @@ class Document(_DocumentBase):
 		):
 			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
 
-			tbl = frappe.qb.DocType(df.options)
-			qry = (
-				frappe.qb.from_(tbl)
-				.where(tbl.parent == str(self.name))
-				.where(tbl.parenttype == self.doctype)
-				.where(tbl.parentfield == fieldname)
-				.delete()
-			)
+			from frappe.utils.password import delete_child_row_passwords
 
+			removed_rows = {"parent": str(self.name), "parenttype": self.doctype, "parentfield": fieldname}
 			if existing_row_names:
-				qry = qry.where(tbl.name.notin(existing_row_names))
+				removed_rows["name"] = ("not in", existing_row_names)
 
-			qry.run()
+			delete_child_row_passwords(df.options, removed_rows)
+			frappe.db.delete(df.options, removed_rows)
 
 		# update / insert
 		for d in all_rows:
