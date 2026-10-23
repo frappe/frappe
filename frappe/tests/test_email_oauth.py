@@ -201,21 +201,54 @@ class TestBoot(IntegrationTestCase):
 
 		with self.set_user("test@example.com"):
 			with patch.dict(frappe.conf, V2):
-				boot = get_bootinfo()
-				self.assertTrue(boot.is_v2_site)
-				self.assertEqual(
-					boot.one_click_email_services,
-					{
-						"Outlook.com": "Outlook",
-						"GMail": "Gmail",
-						"Yahoo Mail": "Yahoo",
-						"Yandex.Mail": "Yandex",
-					},
-				)
+				self.assertTrue(get_bootinfo().is_v2_site)
 			with patch.dict(frappe.conf, {key: None for key in V2}):
-				boot = get_bootinfo()
-				self.assertFalse(boot.is_v2_site)
-				self.assertEqual(boot.one_click_email_services, {})
+				self.assertFalse(get_bootinfo().is_v2_site)
+
+
+class TestOneClickServices(IntegrationTestCase):
+	def setUp(self) -> None:
+		self.enterContext(self.set_user(create_user(USER).name))
+		self.enterContext(patch.dict(frappe.conf, V2))
+		self.pilot: MagicMock = self.enterContext(
+			patch.object(email_oauth.PilotClient, "post", return_value=["microsoft", "zoho"])
+		)
+		email_oauth.get_active_providers.clear_cache()
+		self.addCleanup(email_oauth.get_active_providers.clear_cache)
+
+	def test_lists_the_services_frappe_cloud_has_turned_on_and_this_site_knows(self) -> None:
+		self.assertEqual(email_oauth.get_one_click_services(), {"Outlook.com": "Outlook"})
+		self.assertEqual(self.pilot.call_args.args[0], pilot_path("get_active_providers"))
+
+	def test_lists_every_provider_this_site_knows(self) -> None:
+		self.pilot.return_value = ["google", "microsoft", "yahoo", "yandex"]
+		self.assertEqual(
+			email_oauth.get_one_click_services(),
+			{"Outlook.com": "Outlook", "GMail": "Gmail", "Yahoo Mail": "Yahoo", "Yandex.Mail": "Yandex"},
+		)
+
+	def test_leaves_out_a_provider_frappe_cloud_has_turned_off(self) -> None:
+		self.pilot.return_value = []
+		self.assertEqual(email_oauth.get_one_click_services(), {})
+
+	def test_asks_frappe_cloud_once_for_ten_minutes(self) -> None:
+		email_oauth.get_one_click_services()
+		email_oauth.get_one_click_services()
+		self.pilot.assert_called_once()
+
+	def test_lists_nothing_when_frappe_cloud_cannot_be_reached_and_asks_again_next_time(self) -> None:
+		self.pilot.side_effect = frappe.ValidationError("Could not reach your server")
+		self.assertEqual(email_oauth.get_one_click_services(), {})
+
+		self.pilot.side_effect = None
+		self.assertEqual(email_oauth.get_one_click_services(), {"Outlook.com": "Outlook"})
+
+	def test_lists_nothing_off_frappe_cloud_or_without_create_permission(self) -> None:
+		with patch.dict(frappe.conf, {key: None for key in V2}):
+			self.assertEqual(email_oauth.get_one_click_services(), {})
+		with self.set_user(create_user("email-oauth-reader@example.com", "Website Manager").name):
+			self.assertEqual(email_oauth.get_one_click_services(), {})
+		self.pilot.assert_not_called()
 
 
 def id_token(email: str, tid: str = PERSONAL) -> str:
