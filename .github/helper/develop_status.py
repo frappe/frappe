@@ -22,10 +22,37 @@ from roulette import is_ci, is_docs, is_frontend_code, is_server_side_code
 REPO = os.environ["GITHUB_REPOSITORY"]
 CONTEXT = "Develop status"
 SUITES = {"server-tests.yml": "Server Success", "ui-tests.yml": "UI Success"}
+TEST_JOBS = {"server-tests.yml": "Integration", "ui-tests.yml": "UI Test"}
 
 
 def gh(*args):
 	return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
+
+
+def gate_conclusion(run, gate_job):
+	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
+	return next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
+
+
+def suite_passed(run, workflow):
+	"""Did the suite pass with its test jobs actually run? The gate job alone also passes when they are skipped."""
+	jobs = {
+		job["name"]: job["conclusion"] for job in gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
+	}
+	tests = [conclusion for name, conclusion in jobs.items() if name.startswith(TEST_JOBS[workflow])]
+	return jobs.get(SUITES[workflow]) == "success" and bool(tests) and all(c == "success" for c in tests)
+
+
+def fixed_after(workflow, failed_run):
+	"""Was a fixes-develop pull request merged into develop after this failure, with this suite passing in full on it?"""
+	query = f"repo:{REPO} is:pr is:merged base:develop label:{FIX_LABEL} merged:>={failed_run['created_at']}"
+	for item in gh("-X", "GET", "search/issues", "-f", f"q={query}")["items"]:
+		sha = gh(f"repos/{REPO}/pulls/{item['number']}")["head"]["sha"]
+		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?head_sha={sha}&event=pull_request")
+		run = next(iter(runs["workflow_runs"]), None)
+		if run and run["created_at"] > failed_run["created_at"] and suite_passed(run, workflow):
+			return True
+	return False
 
 
 @cache
@@ -37,9 +64,8 @@ def failing_suites():
 		for run in runs["workflow_runs"]:
 			if run["event"] not in ("schedule", "workflow_dispatch"):
 				continue
-			jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
-			conclusion = next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
-			if conclusion == "failure":
+			conclusion = gate_conclusion(run, gate_job)
+			if conclusion == "failure" and not fixed_after(workflow, run):
 				failing[workflow] = run["html_url"]
 			if conclusion in ("success", "failure"):
 				break

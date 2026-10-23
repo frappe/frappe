@@ -146,6 +146,12 @@ def develop_failing(workflow):
 	return workflow in failing_suites()
 
 
+def skips_test_suites(pr_number, repo="frappe/frappe"):
+	"""Check if the PR targets develop or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
+	return base == "develop" or base.endswith("-hotfix")
+
+
 def has_label(pr_number, label, repo="frappe/frappe"):
 	"""
 	Check if the pull request has a specific label.
@@ -488,6 +494,17 @@ if __name__ == "__main__":
 	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
 	run_postgres = has_label(pr_number, "postgres", repo)
+
+	if build_type == "server":
+		tests_requested = has_run_server_tests_label(pr_number, repo)
+	else:
+		tests_requested = has_run_ui_tests_label(pr_number, repo)
+
+	if skips_test_suites(pr_number, repo) and not tests_requested:
+		print(
+			"Develop and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
+		)
+		sys.exit(0)
 
 	# Check for Skip CI label and other conditions
 	if has_skip_ci_label(pr_number, repo):
