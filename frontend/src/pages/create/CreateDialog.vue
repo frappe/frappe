@@ -5,11 +5,18 @@
 		v-if="shown"
 		v-model:open="isOpen"
 		:title="__('New {0}', [__(doctype)])"
+		:dismissible="!saving"
+		:show-close-button="!saving"
 		size="xl"
 		@after-leave="request.dismiss()"
 	>
 		<div @keydown.enter.ctrl.prevent="save" @keydown.enter.meta.prevent="save">
-			<FormLayout v-if="layout.length" v-model:doc="doc" :layout="layout" />
+			<FormLayout
+				v-if="layout.length"
+				v-model:doc="doc"
+				:layout="layout"
+				@update:doc="typed = true"
+			/>
 			<ErrorMessage v-if="error" class="mt-2" :message="error" />
 		</div>
 		<template #actions>
@@ -74,6 +81,7 @@ const saving = ref(false);
 const error = ref("");
 const newDoc = ref<Record<string, any> | null>(null);
 const doc = ref<Record<string, any>>({ ...values });
+const typed = ref(false);
 
 const layout = computed<FormLayoutSchema>(() =>
 	withNameField(quickEntry.layout.value, meta.value)
@@ -90,7 +98,8 @@ watch(
 
 watch(defaults, (current) => {
 	doc.value = fillEmpty(doc.value, current);
-	conditionDoc.value = { ...current, ...values };
+	// After the person types, the row stays: a layout switch mid-edit moves the fields.
+	if (!typed.value) conditionDoc.value = { ...current, ...values };
 });
 
 runMethod<Record<string, any>>(GET_NEW_DOC, { doctype }, { http: "GET" }).then(

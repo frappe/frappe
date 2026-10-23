@@ -112,6 +112,14 @@ describe("typedValues", () => {
 		expect(typedValues({}, { status: "Closed" }, { status: "Open" })).toEqual({ status: "Closed" });
 	});
 
+	it("carries the form's value, not the caller's, for a field the form shows", () => {
+		const values = { customer_type: "Individual", company: "Acme" };
+		const defaults = { customer_type: "Company" };
+
+		expect(typedValues(values, { customer_type: "Company" }, defaults)).toEqual({ company: "Acme" });
+		expect(typedValues(values, { customer_type: "" }, defaults)).toEqual({ company: "Acme" });
+	});
+
 	it("drops name from what it carries", () => {
 		expect(typedValues({ name: "LEAD-9" }, { name: "LEAD-10", title: "x" }, {})).toEqual({ title: "x" });
 	});

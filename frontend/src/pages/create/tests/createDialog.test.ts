@@ -7,7 +7,11 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 // A passthrough Dialog that ends its leave at once, so the test reads the form, not reka-ui.
 vi.mock("frappe-ui", () => ({
 	Dialog: defineComponent({
-		props: { open: { type: Boolean, default: true }, title: String },
+		props: {
+			open: { type: Boolean, default: true },
+			title: String,
+			showCloseButton: { type: Boolean, default: true },
+		},
 		emits: ["update:open", "after-leave"],
 		setup(props, { slots, emit }) {
 			watch(
@@ -18,7 +22,9 @@ vi.mock("frappe-ui", () => ({
 				props.open
 					? h("div", { "data-dialog": "" }, [
 							h("h2", props.title),
-							h("button", { onClick: () => emit("update:open", false) }, "Close"),
+							props.showCloseButton
+								? h("button", { onClick: () => emit("update:open", false) }, "Close")
+								: null,
 							h("div", slots.default?.()),
 							h("div", slots.actions?.()),
 						])
@@ -72,7 +78,7 @@ vi.mock("@framework/ui/components/FormLayout", () => ({
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetFormLayouts } from "@/recordPage";
-import { registerShell } from "@/router/routeFor";
+import { registerShell, routeFor } from "@/router/routeFor";
 import { closeCreates, createRequests, openCreate, registerCreateDialog, type CreatedDoc } from "@/shell/create";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
@@ -103,7 +109,7 @@ interface Server {
 	newDoc: () => Promise<Record<string, unknown>>;
 	newDocFails?: boolean;
 	layoutsFail?: boolean;
-	insert: (body: Record<string, unknown>) => Response;
+	insert: (body: Record<string, unknown>) => Response | Promise<Response>;
 }
 
 const fetchMock = vi.fn<typeof fetch>();
@@ -196,7 +202,7 @@ async function open(doctype: string, values?: Record<string, unknown>) {
 		],
 	});
 	registerShell({ boot, addresses, router });
-	await router.push(`/${addresses.addressOf(doctype)![0]}`);
+	await router.push(routeFor(doctype));
 	const answer = { settled: false, doc: undefined as CreatedDoc | null | undefined };
 	void openCreate(doctype, { values }).then((doc) => Object.assign(answer, { settled: true, doc }));
 	const request = createRequests.value.at(-1)!;
@@ -444,5 +450,66 @@ describe("closing and failures", () => {
 		await click(root, "Save");
 		expect(inserts()).toHaveLength(1);
 		expect(answer.settled).toBe(true);
+	});
+});
+
+describe("while the insert runs", () => {
+	it("cannot be closed, and answers with the saved record", async () => {
+		let answerInsert!: () => void;
+		server.insert = (body) =>
+			new Promise((resolve) => {
+				answerInsert = () => resolve(json({ data: { ...body, name: "LEAD-0002", doctype: "Lead" } }));
+			});
+		const { root, answer } = await open("Lead");
+		await type(root, "title", "Slow");
+		await click(root, "Save");
+
+		expect(button(root, "Close")).toBeUndefined();
+		answerInsert();
+		await settle();
+		expect(answer.settled).toBe(true);
+		expect(answer.doc).toMatchObject({ name: "LEAD-0002" });
+	});
+});
+
+describe("the row and late defaults", () => {
+	const ROW = {
+		name: 1,
+		condition: "eval:doc.status === 'Open'",
+		layout: [{ sections: [{ columns: [{ fields: ["title", "company"] }] }] }],
+	};
+
+	function lateDefaults() {
+		let answerDefaults!: () => void;
+		server.layouts = { ...server.layouts, layouts: [ROW] };
+		server.newDoc = () =>
+			new Promise((resolve) => {
+				answerDefaults = () => resolve({ doctype: "Lead", status: "Open" });
+			});
+		return () => answerDefaults();
+	}
+
+	function shownFields(root: HTMLElement) {
+		return [...root.querySelectorAll("input")].map((field) => field.name);
+	}
+
+	it("switches to the row the defaults match while the person has typed nothing", async () => {
+		const answerDefaults = lateDefaults();
+		const { root } = await open("Lead");
+		expect(shownFields(root)).toEqual(["title", "status", "source"]);
+
+		answerDefaults();
+		await settle();
+		expect(shownFields(root)).toEqual(["title", "company"]);
+	});
+
+	it("keeps the row once the person has typed", async () => {
+		const answerDefaults = lateDefaults();
+		const { root } = await open("Lead");
+		await type(root, "title", "Typing");
+
+		answerDefaults();
+		await settle();
+		expect(shownFields(root)).toEqual(["title", "status", "source"]);
 	});
 });

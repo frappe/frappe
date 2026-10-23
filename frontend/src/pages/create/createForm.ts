@@ -54,11 +54,13 @@ export function insertBody(values: Values, data: Values): Values {
 	return body;
 }
 
-/** The caller's values and what the person typed, without what only repeats a default. */
+/** The caller's values for fields the form lacks, and form values that differ from a default. */
 export function typedValues(values: Values, data: Values, defaults: Values): Values {
 	const typed: Values = { ...values };
-	for (const [fieldname, value] of Object.entries(data))
+	for (const [fieldname, value] of Object.entries(data)) {
+		delete typed[fieldname];
 		if (!isEmpty(value) && value !== defaults[fieldname]) typed[fieldname] = value;
+	}
 	delete typed.name;
 	return typed;
 }
