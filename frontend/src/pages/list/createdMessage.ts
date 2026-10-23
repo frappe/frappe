@@ -3,6 +3,7 @@ import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { __ } from "@/i18n";
 
 const HTML_FIELDTYPES = ["Text Editor", "HTML Editor"];
+const BLOCKS = "p, div, li, br, h1, h2, h3, h4, h5, h6, blockquote, pre, tr";
 const TITLE_LIMIT = 60;
 
 /** The toast's message, as the limited HTML a frappe-ui toast renders. */
@@ -22,15 +23,17 @@ function recordLabel(meta: DoctypeMeta | null, doc: Record<string, unknown>): st
 	return shorten(text.replace(/\s+/g, " ").trim()) || String(doc.name);
 }
 
-// Tags become spaces first, so that paragraphs do not run together.
+// A space after each block, so that paragraphs do not run together.
 function htmlText(html: string): string {
-	const spaced = html.replace(/<[^>]*>/g, " ");
-	return new DOMParser().parseFromString(spaced, "text/html").body.textContent ?? "";
+	const body = new DOMParser().parseFromString(html, "text/html").body;
+	for (const block of body.querySelectorAll(BLOCKS)) block.after(" ");
+	return body.textContent ?? "";
 }
 
 function shorten(text: string): string {
-	if (text.length <= TITLE_LIMIT) return text;
-	return text.slice(0, TITLE_LIMIT - 1).trimEnd() + "…";
+	const characters = Array.from(text);
+	if (characters.length <= TITLE_LIMIT) return text;
+	return characters.slice(0, TITLE_LIMIT - 1).join("").trimEnd() + "…";
 }
 
 function escapeHtml(text: string): string {

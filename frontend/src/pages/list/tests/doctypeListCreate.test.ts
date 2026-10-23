@@ -155,6 +155,11 @@ async function mount() {
 	return root;
 }
 
+function withHtmlTitle(base: Record<string, unknown>) {
+	const description = { fieldname: "description", fieldtype: "Text Editor", label: "Description" };
+	return { ...base, title_field: "description", fields: [description] };
+}
+
 function createButton(root: HTMLElement) {
 	return [...root.querySelectorAll("button")].find((button) => button.textContent?.trim() === "Create");
 }
@@ -228,22 +233,18 @@ describe("DoctypeList Create button", () => {
 		const root = await mount();
 		await clickCreate(root);
 
-		createRequests.value[0].settle({ name: "CONT-0001", first_name: "Ada <Lovelace>" });
+		createRequests.value[0].settle({ name: "CONT-0001", first_name: "Smith & Sons" });
 		await settle();
 
 		const [message, options] = toast.success.mock.calls[0];
-		expect(message).toBe("Contact Ada &lt;Lovelace&gt; created");
+		expect(message).toBe("Contact Smith &amp; Sons created");
 		options.action.onClick();
 		await settle();
 		expect(router.currentRoute.value.path).toBe("/contact/CONT-0001");
 	});
 
 	it("shows an HTML title as shortened plain text", async () => {
-		meta = {
-			...meta,
-			title_field: "description",
-			fields: [{ fieldname: "description", fieldtype: "Text Editor", label: "Description" }],
-		};
+		meta = withHtmlTitle(meta);
 		const root = await mount();
 		await clickCreate(root);
 
@@ -253,6 +254,28 @@ describe("DoctypeList Create button", () => {
 
 		const [message] = toast.success.mock.calls[0];
 		expect(message).toBe("Contact Call the supplier about the late delivery of the second ord… created");
+	});
+
+	it("keeps inline formatting inside words and decodes entities in an HTML title", async () => {
+		meta = withHtmlTitle(meta);
+		const root = await mount();
+		await clickCreate(root);
+
+		createRequests.value[0].settle({ name: "ruoeqvnufb", description: "<p>Fix H<sub>2</sub>O <strong>pipe</strong>, &lt;today&gt;</p>" });
+		await settle();
+
+		expect(toast.success.mock.calls[0][0]).toBe("Contact Fix H2O pipe, &lt;today&gt; created");
+	});
+
+	it("names the saved record by its name when its HTML title has no text", async () => {
+		meta = withHtmlTitle(meta);
+		const root = await mount();
+		await clickCreate(root);
+
+		createRequests.value[0].settle({ name: "ruoeqvnufb", description: "<p><br></p>" });
+		await settle();
+
+		expect(toast.success.mock.calls[0][0]).toBe("Contact ruoeqvnufb created");
 	});
 
 	it("names the saved record by its name when its title is empty", async () => {
