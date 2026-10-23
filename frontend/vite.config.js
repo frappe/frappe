@@ -71,4 +71,10 @@ export default defineConfig(({ command }) => ({
 			],
 		},
 	},
+	optimizeDeps: {
+		// Dev only. The pre-bundle leaves out `.vue` files, so a pre-bundled ui loads its `.ts`
+		// twice: bundled for the shell, raw for its own `.vue` files. Each copy makes its own
+		// injection keys, so a key the shell provides is never found by a field.
+		exclude: ["@framework/ui"],
+	},
 }));

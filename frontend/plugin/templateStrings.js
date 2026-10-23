@@ -12,7 +12,8 @@ export default function templateStrings() {
 		...compile,
 		// Before vite strips types, so an error's line is the author's line in a `.ts` file.
 		enforce: "pre",
-		// In dev, `@framework/ui` is pre-bundled, and vite plugins do not run inside the pre-bundle.
+		// For a linked package in the dev pre-bundle, where vite plugins do not run. `vite.config.js`
+		// keeps `@framework/ui` out of it.
 		config: () => ({ optimizeDeps: { rolldownOptions: { plugins: [compile] } } }),
 	};
 }
