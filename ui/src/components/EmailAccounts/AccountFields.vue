@@ -37,6 +37,7 @@
 				<Password
 					v-model="form.api_secret"
 					:label="__('API secret')"
+					autocomplete="new-password"
 					:description="editing ? __('Leave blank to keep the saved one.') : undefined"
 					:error="errorOn('api_secret')"
 					:required="!editing"
@@ -46,6 +47,7 @@
 				v-else
 				v-model="form.password"
 				:label="__('Password')"
+				autocomplete="new-password"
 				:description="editing ? __('Leave blank to keep the saved one.') : undefined"
 				:error="errorOn('password')"
 				:required="!editing"
