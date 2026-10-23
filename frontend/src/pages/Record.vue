@@ -63,7 +63,7 @@
 									v-model:sections="formSections"
 									:layout="form"
 									:tab="formTab"
-									:class="formClasses"
+									:class="FORM_CLASSES"
 									@update:tab="chooseFormTab"
 									@update:activeTab="activeFormTab = $event"
 								/>
@@ -115,17 +115,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-	computed,
-	inject,
-	nextTick,
-	onMounted,
-	onUnmounted,
-	provide,
-	ref,
-	shallowRef,
-	watch,
-} from "vue";
+import { computed, inject, nextTick, onUnmounted, provide, ref, shallowRef, watch } from "vue";
 import {
 	onBeforeRouteLeave,
 	onBeforeRouteUpdate,
@@ -145,7 +135,7 @@ import {
 } from "@framework/ui/api";
 import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/components/FormLayout";
-import { CodeErrorsKey, CommitKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
+import { CodeErrorsKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
@@ -160,7 +150,6 @@ import {
 	joinForm,
 	loadRecordScripts,
 	projectFrame,
-	projectHeader,
 	SAVE_VETO,
 	useFormLayout,
 	type HeaderItem,
@@ -179,7 +168,12 @@ import RecordTabs from "./record/tabs/RecordTabs.vue";
 import RecordComposer from "./record/composer/RecordComposer.vue";
 import { composerBuiltins, composerHost } from "./record/composer/composerHost";
 import { useComposerRecord } from "./record/composer/writerContext";
-import { FILES_TAB, TAB_STRIP_CLASSES, recordTabBuiltins } from "./record/tabs/recordTabs";
+import { FILES_TAB, recordTabBuiltins } from "./record/tabs/recordTabs";
+import { FORM_CLASSES } from "./record/formClasses";
+import { projectRecordHeader } from "./record/recordHeaderProjection";
+import { discardChanges } from "./record/discardChanges";
+import { runSave, useSaveKeys } from "./record/recordSave";
+import { provideRecordCommits } from "./record/recordCommits";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
@@ -263,21 +257,6 @@ const openedQuery = shallowRef<LocationQuery>(route.query);
 let keeper: ((view: RecordView) => void) | null = null;
 let keeping = false;
 
-// The form fills the column with no border of its own, and its strip stays put while the sections scroll.
-// The strip and the sections share the header row's gutter, so the fields line up with the crumbs.
-const formClasses = [
-	"!rounded-none !border-0",
-	"[&_[role='tablist']]:sticky [&_[role='tablist']]:top-0 [&_[role='tablist']]:z-10 [&_[role='tablist']]:bg-surface-base",
-	TAB_STRIP_CLASSES,
-	"[&_.sections]:mx-auto [&_.sections]:my-0 [&_.sections]:w-full [&_.sections]:max-w-3xl [&_.sections]:px-[--page-gutter] [&_.sections]:py-6",
-	"[&_.section-header]:!px-0 [&_.section-body]:!px-0",
-];
-
-// The right zone keeps this many top-level controls; the rest demote into `⋯`.
-const HEADER_BUDGET = 3;
-// Save keeps its slot whatever a script adds; it is the only pinned control.
-const PINNED_CONTROLS = ["save"];
-
 let currentVisit = new Visit();
 // A return visit's hold on fresh meta and layouts, let go with its background reads.
 let releaseFresh = () => {};
@@ -300,8 +279,7 @@ const follow = computed(() =>
 
 const header = computed(() => {
 	actionsVersion.value;
-	const resolved = controller.value?.header.resolve() ?? [];
-	return projectHeader(resolved, HEADER_BUDGET, PINNED_CONTROLS);
+	return projectRecordHeader(controller.value?.header.resolve() ?? []);
 });
 
 const frame = computed(() => {
@@ -386,12 +364,7 @@ useLiveClientScripts({
 provide(LinkTitlesKey, linkTitles);
 provide(CodeErrorsKey, codeErrors);
 
-// One channel for the form and the panel, forwarded so it follows the controller across loads.
-provide(CommitKey, {
-	pending: (fieldname, value, row) => controller.value?.commits.pending(fieldname, value, row),
-	commit: (fieldname, value, row) => controller.value?.commits.commit(fieldname, value, row),
-	rowChanged: (row, change) => controller.value?.commits.rowChanged(row, change),
-});
+provideRecordCommits(() => controller.value);
 
 // The row's built-ins, re-read on every resolve so the title crumb tracks the draft.
 function headerBuiltins(): HeaderItem[] {
@@ -886,15 +859,6 @@ async function resolveConflict() {
 	if (reload) await load();
 }
 
-// Not through `runAction`: a failed save must keep the draft on screen, not reload over it.
-async function runSave() {
-	try {
-		await controller.value?.page.save();
-	} catch (e) {
-		if (!shownInDialog(e)) toast.error(errorMessage(e));
-	}
-}
-
 // A failing action would otherwise leave the draft mutated with no error, so it reloads;
 // a save the reader vetoed or must resolve keeps the draft, as the built-in Save does.
 async function runAction(action: QuickAction | HeaderItem) {
@@ -948,13 +912,7 @@ function expand(field: FieldNode) {
 
 async function confirmLeave() {
 	if (!dirty.value || !controller.value) return true;
-	const discard = await controller.value.page.dialog.confirm({
-		title: "Discard unsaved changes?",
-		message: "This record has changes that are not saved.",
-		confirmLabel: "Discard",
-		cancelLabel: "Keep editing",
-	});
-	return !!discard;
+	return discardChanges(controller.value.page);
 }
 
 // A push still holds the entry being left, so its history entry takes the view as it is now.
@@ -969,32 +927,22 @@ onBeforeRouteUpdate((to, from) => {
 	return confirmLeave();
 });
 
-function onBeforeUnload(event: BeforeUnloadEvent) {
-	if (!dirty.value) return;
-	event.preventDefault();
-}
-
-// A key press is a deliberate gesture, so a clean doc answers with the button's own tooltip text.
-function onKeydown(event: KeyboardEvent) {
-	if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
-	event.preventDefault();
-	if (!controller.value || event.repeat) return;
-	if (!dirty.value) toast.info("No changes to save");
-	runSave();
-}
-
-onMounted(() => {
-	window.addEventListener("keydown", onKeydown);
-	window.addEventListener("beforeunload", onBeforeUnload);
+useSaveKeys({
+	// A key press is deliberate, so a clean doc answers with the button's tooltip text.
+	save: () => {
+		if (!controller.value) return;
+		if (!dirty.value) toast.info("No changes to save");
+		runSave(controller.value.page);
+	},
+	unsaved: () => dirty.value,
 });
+
 onUnmounted(() => {
 	currentVisit.end();
 	controller.value?.leave();
 	live.dispose();
 	feeds.endKeptRead();
 	releaseFresh();
-	window.removeEventListener("keydown", onKeydown);
-	window.removeEventListener("beforeunload", onBeforeUnload);
 });
 
 watch(

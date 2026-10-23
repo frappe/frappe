@@ -5,7 +5,7 @@ import { standardPages } from "./standardPages";
 
 const Home = () => import("@/pages/Home.vue");
 const Module = () => import("@/pages/Module.vue");
-const { list: List, record: Record } = standardPages;
+const { list: List, record: Record, newRecord: NewRecord } = standardPages;
 
 export function generatedRoutes(modular: boolean) {
 	// Two tables, one set of names, so `routeFor` never branches on shape. The shape is
@@ -25,6 +25,9 @@ function flatRoutes() {
 
 		// /apps/crm/crm-deal/view/list/open-deals, a saved view of the list kind.
 		{ path: "/:doctype/view/list/:viewName", name: "saved-view", component: List },
+
+		// /apps/crm/crm-deal/new?status=Open, the standard page whatever an app declared.
+		{ path: "/:doctype/new", name: "new-record", component: NewRecord },
 
 		// /apps/crm/crm-deal/CRM-DEAL-01?view=open-deals&layout=Compact; neither is a path segment.
 		{ path: "/:doctype/:name", name: "record", component: MainPage },
@@ -54,6 +57,7 @@ function modularRoutes() {
 			name: "saved-view",
 			component: List,
 		},
+		{ path: "/:module/:doctype/new", name: "new-record", component: NewRecord },
 		{ path: "/:module/:doctype/:name", name: "record", component: MainPage },
 		{
 			path: "/:module/:doctype/:name/record",

@@ -210,7 +210,7 @@ component group, with its main names.
 | --- | --- |
 | `FormLayout` (`@framework/ui/FormLayout`: `FormLayout`, `FormLayoutSchema`, `Tab`, `Section`, `Column`, `FieldNode`) | *Changed.* Draws a form from a tabs, sections, columns and fields tree. Works out field access itself. A host may hold the chosen tab and the open sections |
 | Layout building (`buildLayoutFromMeta`, `compose`, `Decorator`, `fieldsToLayout`, `resolveLayout`, `evaluateDependsOn`) | Turns meta fields into a layout tree, and applies depends-on, hidden and overrides for one document |
-| Child rows (`useChildRowModel`, `newRowValues`) | The rows of a child table field, and a new row's default values |
+| Child rows (`useChildRowModel`, `newRowValues`, `NO_VALUE`) | *Changed.* The rows of a child table field, a new row's default values, and the fieldtypes that hold no value |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
 | Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do |
@@ -242,6 +242,7 @@ component group, with its main names.
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
 | Create right (`useCreateRight`) | Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again |
+| New record values (`NEW_NAME`, `fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | *New.* What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
@@ -276,7 +277,7 @@ component group, with its main names.
 | Section memory | Which sidebar sections a user opened or closed |
 | Sidebar memory | Which sidebar this tab last showed for an address |
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
-| Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations |
+| Router (`createShellRouter`, `contributedRoutes`) | *Changed.* The route table from boot, addresses and page registrations. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
 | Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows |
 | Failed page | Which page's code failed to load |
 
@@ -301,7 +302,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
-| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, Create, and whether it restored the reader's view. The engine draws nothing |
+| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, Create, and whether it restored the reader's view. A new record's host adds `isNew` and `onSaved`, which runs after `afterSave`. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
@@ -337,6 +338,7 @@ component group, with its main names.
 | `List`, `DoctypeList` | The standard list page, built on `useListPage` |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
+| New record page (`NewRecord`, `UnsavedRecord`, `NotSavedBadge`, `openingKey`) | *New.* The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
 | `TileGridSkeleton` | The loading skeleton for Home and Module |
 | App pages | Pages an app contributes or uses as a replacement. They may import only the [import list](#9-customization) |
 
@@ -344,7 +346,8 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| Record page host (`Record.vue`) | Fills `RecordPageHost`: loads, saves, and wires layouts, feeds, tabs and the composer |
+| Record page host (`Record.vue`) | Fills `RecordPageHost`: loads, saves, and wires layouts, feeds, tabs and the composer. `UnsavedRecord` is the second host, for a record before its first save |
+| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | *New.* The form's classes, the header row's projection, the "Discard unsaved changes?" question, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload, and the commit channel |
 | Visit (`Visit`) | One object per visit to a record. Ending it aborts its reads, and a reply that belongs to an old visit is dropped |
 | Return-visit parts | *New.* Which record parts a return visit needs before it paints from memory |
 | Record source | The load, the parts re-read, the save, and a cached read |
@@ -384,7 +387,7 @@ the reference for each `page` member.
 | Field change handler | A fieldname key runs when that field's value changes |
 | Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |
-| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.doctype`, `page.docname`) | `page.isDirty` says whether the draft differs from the saved copy |
+| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.isNew`, `page.doctype`, `page.docname`) | *Changed.* `page.isDirty` says whether the draft differs from the saved copy. `page.isNew` is true until the first save, and `page.save()` then inserts, also with no changes |
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
 | Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, navigate, show a toast |

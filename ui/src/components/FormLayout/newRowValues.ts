@@ -6,7 +6,7 @@ import type { FieldNode, FormLayoutSchema } from "./types";
  * collection types, which DO hold a value in the document even though they have
  * no column of their own — a nested table's empty is `[]`.
  */
-const NO_VALUE = new Set([
+export const NO_VALUE = new Set([
   "Section Break",
   "Column Break",
   "Tab Break",

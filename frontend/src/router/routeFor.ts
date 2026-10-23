@@ -52,6 +52,29 @@ export function routeFor(
 	name?: string | null,
 	options: RouteOptions = {}
 ): RouteLocationRaw {
+	const { addresses } = current();
+	const params = doctypeParams(doctype);
+
+	if (!name && addresses.isSingle(doctype)) name = doctype;
+	// `/<doctype>/new` opens a new record, so a record named "new" has only its standard address.
+	if (name)
+		return {
+			name: name === "new" ? "standard-record" : standardOr(doctype, "record", options),
+			params: { ...params, name },
+			query: options.query,
+		};
+	if (options.view) {
+		return {
+			name: "saved-view",
+			params: { ...params, viewName: options.view },
+			query: options.query,
+		};
+	}
+	return { name: standardOr(doctype, "list", options), params, query: options.query };
+}
+
+/** The doctype's slug and, under a modular prefix, its module. */
+function doctypeParams(doctype: string): Record<string, string> {
 	const { boot, addresses } = current();
 	const address = addresses.addressOf(doctype);
 
@@ -69,22 +92,7 @@ export function routeFor(
 			);
 		params.module = module;
 	}
-
-	if (!name && addresses.isSingle(doctype)) name = doctype;
-	if (name)
-		return {
-			name: standardOr(doctype, "record", options),
-			params: { ...params, name },
-			query: options.query,
-		};
-	if (options.view) {
-		return {
-			name: "saved-view",
-			params: { ...params, viewName: options.view },
-			query: options.query,
-		};
-	}
-	return { name: standardOr(doctype, "list", options), params, query: options.query };
+	return params;
 }
 
 /** The standard page's route name when it was asked for and an app replaced the page. */
@@ -102,7 +110,7 @@ export function routeForNew(
 		if (value == null || value === "") continue;
 		query[fieldname] = typeof value === "object" ? JSON.stringify(value) : String(value);
 	}
-	return routeFor(doctype, "new", { query });
+	return { name: "new-record", params: doctypeParams(doctype), query };
 }
 
 /** The route for a module's landing page. Modular prefixes only. */

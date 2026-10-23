@@ -1,10 +1,18 @@
-// The Create dialog's pure parts: the prompt-name field, the defaults, the insert body and
-// the values Edit full form carries.
+// The values a new record starts with and sends: the prompt-name field, the defaults, the
+// query the full page reads, the values Edit full form carries, and the insert body.
 import { describe, expect, it } from "vitest";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { layoutFromFields } from "@/recordPage/formDialogLayout";
-import { fieldDefaults, fillEmpty, insertBody, NEW_NAME, typedValues, withNameField } from "../createForm";
+import {
+	fieldDefaults,
+	fillEmpty,
+	insertBody,
+	NEW_NAME,
+	queryValues,
+	typedValues,
+	withNameField,
+} from "@/newRecordValues";
 
 const LAYOUT = layoutFromFields([
 	{ fieldname: "title", fieldtype: "Data", label: "Title" },
@@ -122,5 +130,57 @@ describe("typedValues", () => {
 
 	it("drops name from what it carries", () => {
 		expect(typedValues({ name: "LEAD-9" }, { name: "LEAD-10", title: "x" }, {})).toEqual({ title: "x" });
+	});
+});
+
+describe("queryValues", () => {
+	const meta = {
+		name: "Sales Invoice",
+		autoname: "naming_series:",
+		fields: [
+			{ fieldname: "customer", fieldtype: "Link" },
+			{ fieldname: "is_return", fieldtype: "Check" },
+			{ fieldname: "qty", fieldtype: "Int" },
+			{ fieldname: "grand_total", fieldtype: "Currency" },
+			{ fieldname: "items", fieldtype: "Table" },
+		],
+	} as unknown as DoctypeMeta;
+
+	it("keeps the doctype's own fields, typed, and a table's rows from JSON", () => {
+		const rows = [{ item_code: "PEN", qty: 2 }];
+		const query = {
+			customer: "Acme",
+			is_return: "1",
+			qty: "3",
+			grand_total: "12.5",
+			items: JSON.stringify(rows),
+			owner: "intruder",
+		};
+
+		expect(queryValues(query, meta)).toEqual({ customer: "Acme", is_return: 1, qty: 3, grand_total: 12.5, items: rows });
+	});
+
+	it("reads a checkbox that Edit full form carried as true or false", () => {
+		const query = (routeValues: Record<string, unknown>) =>
+			Object.fromEntries(Object.entries(routeValues).map(([key, value]) => [key, String(value)]));
+
+		expect(queryValues(query({ is_return: true }), meta)).toEqual({ is_return: 1 });
+		expect(queryValues(query({ is_return: false }), meta)).toEqual({ is_return: 0 });
+	});
+
+	it("drops a number that is empty or not a number, and a field that holds no value", () => {
+		const withBreak = { ...meta, fields: [...meta.fields, { fieldname: "details", fieldtype: "Section Break" }] } as DoctypeMeta;
+
+		expect(queryValues({ qty: "", grand_total: "abc", details: "x" }, withBreak)).toEqual({});
+	});
+
+	it("drops a table whose value is not a JSON list, and takes the first of a repeated key", () => {
+		expect(queryValues({ items: "not json", customer: ["Acme", "Other"] }, meta)).toEqual({ customer: "Acme" });
+		expect(queryValues({ items: '{"item_code":"PEN"}' }, meta)).toEqual({});
+	});
+
+	it("keeps a prompt name only for a doctype named by prompt", () => {
+		expect(queryValues({ [NEW_NAME]: "SI-X" }, meta)).toEqual({});
+		expect(queryValues({ [NEW_NAME]: "SI-X" }, { ...meta, autoname: "Prompt" })).toEqual({ [NEW_NAME]: "SI-X" });
 	});
 });

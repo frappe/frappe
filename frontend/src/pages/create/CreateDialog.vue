@@ -43,7 +43,7 @@
 import { computed, provide, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Button, Dialog, ErrorMessage } from "frappe-ui";
-import { createDocument, runMethod } from "@framework/ui/api";
+import { createDocument } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
@@ -54,9 +54,14 @@ import { errorMessage } from "@/recordPage/errorMessage";
 import { formData, initialDoc, missingRequired } from "@/recordPage/formDialogLayout";
 import { routeForNew } from "@/router/routeFor";
 import type { CreateRequest } from "@/shell/create";
-import { fieldDefaults, fillEmpty, insertBody, typedValues, withNameField } from "./createForm";
-
-const GET_NEW_DOC = "frappe.desk.form.load.get_new_doc";
+import {
+	fetchNewDocument,
+	fieldDefaults,
+	fillEmpty,
+	insertBody,
+	typedValues,
+	withNameField,
+} from "@/newRecordValues";
 
 // The dialog's fields commit to nothing, or they would fire a record page's handlers.
 provide(CommitKey, NO_COMMIT);
@@ -102,8 +107,8 @@ watch(defaults, (current) => {
 	if (!typed.value) conditionDoc.value = { ...current, ...values };
 });
 
-runMethod<Record<string, any>>(GET_NEW_DOC, { doctype }, { http: "GET" }).then(
-	({ data }) => (newDoc.value = data),
+fetchNewDocument(doctype).then(
+	(data) => (newDoc.value = data),
 	(exception) => (error.value = errorMessage(exception))
 );
 

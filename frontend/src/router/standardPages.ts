@@ -3,4 +3,5 @@
 export const standardPages = {
 	list: () => import("@/pages/List.vue"),
 	record: () => import("@/pages/Record.vue"),
+	newRecord: () => import("@/pages/NewRecord.vue"),
 };
