@@ -13,7 +13,8 @@ import frappe
 from frappe.studio.build import StudioAppBuilder, get_published_custom_apps, get_router_file
 from frappe.studio.doctype.studio_app.studio_app import StudioApp
 from frappe.tests.utils import FrappeTestCase
-from frappe.utils import get_files_path
+from frappe.utils import get_files_path, set_request
+from frappe.website.serve import get_response
 
 
 class TestStudioApp(FrappeTestCase):
@@ -149,6 +150,16 @@ class TestStudioApp(FrappeTestCase):
 		):
 			self.assertEqual(app.get_boot(), {})
 		log_error.assert_called_once_with(title=f"studio_app_boot failed for {app.name}")
+
+	def test_serves_only_apps_with_published_pages(self):
+		served_app = make_studio_app(app_title="Served App", app_name="served-app")
+		make_studio_page(served_app.name, published=1, allow_guest=1)
+		draft_app = make_studio_app(app_title="Draft App", app_name="draft-app")
+		make_studio_page(draft_app.name, published=0)
+
+		with self.set_user("Guest"):
+			self.assertEqual(get_app_response(served_app.route).status_code, 200)
+			self.assertEqual(get_app_response(draft_app.route).status_code, 404)
 
 
 class TestStudioAppBuilder(FrappeTestCase):
@@ -633,6 +644,12 @@ def get_renderer_context(app):
 	with patch.object(frappe.db, "commit"):
 		app.get_context(context)
 	return context
+
+
+def get_app_response(route):
+	set_request(method="GET", path=route)
+	with patch.object(frappe.db, "commit"):
+		return get_response()
 
 
 def make_exported_app_with_files(app_name):
