@@ -8,7 +8,6 @@ import {
   newAccount,
   oauthHelpLink,
   oauthMessage,
-  oneClickServices,
   reconnectable,
   serviceOf,
   services,
@@ -272,22 +271,6 @@ describe("reconnectable", () => {
   it("reads the V2 flag from Desk's boot when the host page has no global for it", () => {
     vi.stubGlobal("frappe", { boot: { is_v2_site: true } });
     expect(reconnectable({ authKind: "oauth" })).toBe(true);
-  });
-});
-
-describe("oneClickServices", () => {
-  afterEach(() => vi.unstubAllGlobals());
-
-  it("reads the host's global first, then Desk's boot, else none", () => {
-    expect(oneClickServices()).toEqual({});
-
-    vi.stubGlobal("frappe", {
-      boot: { one_click_email_services: { "Outlook.com": "Outlook" } },
-    });
-    expect(oneClickServices()).toEqual({ "Outlook.com": "Outlook" });
-
-    vi.stubGlobal("one_click_email_services", { GMail: "Google" });
-    expect(oneClickServices()).toEqual({ GMail: "Google" });
   });
 });
 

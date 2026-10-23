@@ -4,10 +4,13 @@ import { createApp, nextTick } from "vue";
 import type { App } from "vue";
 import AccountAdd from "../AccountAdd.vue";
 
-vi.mock("frappe-ui", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("frappe-ui")>()),
-  toast: { success: vi.fn(), error: vi.fn() },
-}));
+const oneClick = vi.hoisted(() => ({ services: {} as Record<string, string> }));
+vi.mock("frappe-ui", async (importOriginal) => {
+  const ui = await importOriginal<typeof import("frappe-ui")>();
+  // only the one-click services resource fetches here
+  ui.setConfig("resourceFetcher", async () => oneClick.services);
+  return { ...ui, toast: { success: vi.fn(), error: vi.fn() } };
+});
 
 let app: App;
 let root: HTMLElement;
@@ -15,7 +18,7 @@ let root: HTMLElement;
 afterEach(() => {
   app.unmount();
   root.remove();
-  vi.unstubAllGlobals();
+  oneClick.services = {};
 });
 
 const button = (name: string) =>
@@ -61,14 +64,15 @@ it("Back is disabled while a create is in flight, and `created` is emitted when 
   expect(root.querySelector("fieldset")!.disabled).toBe(false);
 });
 
-function mountOneClick(
+async function mountOneClick(
   connect: (service: string) => Promise<boolean> = vi.fn(),
 ) {
-  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Outlook" });
+  oneClick.services = { "Outlook.com": "Outlook" };
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(AccountAdd, { controller: { connect } });
   app.mount(root);
+  await new Promise((resolve) => setTimeout(resolve));
 }
 
 const title = () => root.querySelector("h2")!.textContent;
@@ -79,7 +83,7 @@ it("signs in straight from a one-click tile and locks Back meanwhile, opening th
   const connect = vi.fn(
     () => new Promise<boolean>((resolve) => (answer = resolve)),
   );
-  mountOneClick(connect);
+  await mountOneClick(connect);
 
   button("Outlook").click();
   await nextTick();
@@ -107,7 +111,9 @@ it("signs in straight from a one-click tile and locks Back meanwhile, opening th
 
 it("shows a failed sign-in's error, refocuses its tile, and clears it on the next pick", async () => {
   let fail!: (e: Error) => void;
-  mountOneClick(() => new Promise<boolean>((_, reject) => (fail = reject)));
+  await mountOneClick(
+    () => new Promise<boolean>((_, reject) => (fail = reject)),
+  );
 
   button("Outlook").focus();
   button("Outlook").click();
@@ -125,18 +131,19 @@ it("shows a failed sign-in's error, refocuses its tile, and clears it on the nex
 });
 
 it("opens the form directly for a service without one-click sign-in, and for every service off Frappe Cloud V2", async () => {
-  mountOneClick();
+  await mountOneClick();
   button("Gmail").click();
   await nextTick();
   expect(root.querySelector("form")).not.toBeNull();
   app.unmount();
   root.remove();
 
-  vi.unstubAllGlobals();
+  oneClick.services = {};
   root = document.createElement("div");
   document.body.append(root);
   app = createApp(AccountAdd, { controller: {} });
   app.mount(root);
+  await new Promise((resolve) => setTimeout(resolve));
   button("Outlook").click();
   await nextTick();
   expect(root.querySelector("form")).not.toBeNull();

@@ -30,21 +30,16 @@ import type { EmailAccountDoc } from "../types";
 const cloud = ref(true);
 const empty = ref(false);
 const landings = ref(0);
-const host = window as {
-	is_v2_site?: boolean;
-	one_click_email_services?: Record<string, string>;
-};
+const host = window as { is_v2_site?: boolean };
 watch(
 	cloud,
 	(value) => {
 		host.is_v2_site = value;
-		host.one_click_email_services = value ? { "Outlook.com": "Outlook" } : {};
 	},
 	{ immediate: true }
 );
 onBeforeUnmount(() => {
 	delete host.is_v2_site;
-	delete host.one_click_email_services;
 });
 const results = [
 	"connected",
@@ -139,6 +134,7 @@ const answers: Record<string, (args: Args) => unknown> = {
 			if (a.name === name || value)
 				Object.assign(a, { [fieldname]: a.name === name ? value : 0 });
 	},
+	get_one_click_services: () => (cloud.value ? { "Outlook.com": "Outlook" } : {}),
 	initiate_mailbox_connect: (args) => {
 		log("connect", args);
 		return args.email_account || args.service === "Outlook.com" ? "#" : null;

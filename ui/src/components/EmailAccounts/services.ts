@@ -404,22 +404,6 @@ export function isV2Site(): boolean {
   return Boolean(host.is_v2_site ?? host.frappe?.boot?.is_v2_site);
 }
 
-/**
- * The services a new mailbox can sign in to in one click, each with its sign-in's name, such as
- * `{"Outlook.com": "Outlook"}`, from the host's boot; empty off Frappe Cloud V2.
- */
-export function oneClickServices(): Record<string, string> {
-  const host = globalThis as {
-    one_click_email_services?: Record<string, string>;
-    frappe?: { boot?: { one_click_email_services?: Record<string, string> } };
-  };
-  return (
-    host.one_click_email_services ??
-    host.frappe?.boot?.one_click_email_services ??
-    {}
-  );
-}
-
 export function reconnectable(
   account: Pick<EmailAccount, "authKind">,
 ): boolean {

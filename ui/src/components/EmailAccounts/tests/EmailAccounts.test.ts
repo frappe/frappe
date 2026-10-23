@@ -23,6 +23,9 @@ vi.mock("frappe-ui", async (importOriginal) => {
 
 const CONNECT =
   "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect";
+const ONE_CLICK =
+  "frappe.integrations.frappe_providers.email_oauth.get_one_click_services";
+let oneClick: Record<string, string> = {};
 
 let app: App;
 let root: HTMLElement;
@@ -44,6 +47,7 @@ beforeEach(() => {
     if (method === "frappe.client.set_value")
       return { name: args.name, ...args.fieldname };
     if (method === CONNECT) return "https://login.example.com/authorize";
+    if (method === ONE_CLICK) return oneClick;
     return null;
   });
   vi.mocked(toast.success).mockClear();
@@ -53,6 +57,7 @@ afterEach(() => {
   app?.unmount();
   root.remove();
   vi.unstubAllGlobals();
+  oneClick = {};
 });
 
 const settle = () => new Promise((resolve) => setTimeout(resolve));
@@ -175,8 +180,9 @@ it("signs in on Frappe Cloud V2 when the provider has one-click sign-in", async 
     assign,
   });
   vi.stubGlobal("is_v2_site", true);
-  vi.stubGlobal("one_click_email_services", { "Outlook.com": "Outlook" });
+  oneClick = { "Outlook.com": "Outlook" };
   await openTiles();
+  await settle();
   button("Outlook").click();
   await settle();
   expect(call.mock.calls.filter(([m]) => m === CONNECT)).toEqual([
