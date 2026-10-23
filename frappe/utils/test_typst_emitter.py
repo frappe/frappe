@@ -754,6 +754,29 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_signature_prints_as_an_image(self):
+		import base64
+		from io import BytesIO
+
+		from PIL import Image
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		png = BytesIO()
+		Image.new("RGB", (120, 40), "white").save(png, "PNG")
+		pf = self.make(
+			layout_with({"fieldname": "description", "fieldtype": "Signature", "label": "Signature"})
+		)
+		pf.pdf_generator = "Typst"
+		todo = self.make_todo()
+		todo.description = "data:image/png;base64," + base64.b64encode(png.getvalue()).decode()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_language_typst_cannot_name_still_prints(self):
 		from io import BytesIO
 
