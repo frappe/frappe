@@ -14,12 +14,13 @@ export async function runSave(page: RecordPageApi | undefined) {
 	}
 }
 
-/** Ctrl/Cmd+S calls `save` once per press; a reload or a tab close asks while `unsaved` is true. */
+/** Ctrl/Cmd+S calls `save` once per press, never from a dialog or a dropdown; a reload or a tab close asks while `unsaved` is true. */
 export function useSaveKeys(options: { save: () => void; unsaved: () => boolean }) {
 	function onKeydown(event: KeyboardEvent) {
 		if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
 		event.preventDefault();
-		if (!event.repeat) options.save();
+		if (event.repeat || fromOverlay(event.target)) return;
+		options.save();
 	}
 
 	function onBeforeUnload(event: BeforeUnloadEvent) {
@@ -34,4 +35,9 @@ export function useSaveKeys(options: { save: () => void; unsaved: () => boolean 
 		window.removeEventListener("keydown", onKeydown);
 		window.removeEventListener("beforeunload", onBeforeUnload);
 	});
+}
+
+/** A dropdown that frappe-ui portals to `<body>` from inside a dialog is not inside that dialog. */
+function fromOverlay(target: EventTarget | null) {
+	return target instanceof Element && !!target.closest('[role="dialog"],[role="listbox"],[role="menu"]');
 }

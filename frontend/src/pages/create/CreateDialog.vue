@@ -140,7 +140,8 @@ useEventListener(
 	() => body.value?.closest<HTMLElement>('[role="dialog"]'),
 	"keydown",
 	(event: KeyboardEvent) => {
-		if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
+		const key = event.key.toLowerCase();
+		if (!(event.ctrlKey || event.metaKey) || (key !== "enter" && key !== "s")) return;
 		event.preventDefault();
 		if (!event.repeat) void save();
 	}

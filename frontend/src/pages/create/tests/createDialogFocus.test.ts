@@ -1,4 +1,4 @@
-// Where focus lands as the Create dialog opens and closes, and Ctrl/Cmd+Enter from inside it.
+// Where focus lands as the Create dialog opens and closes, and Ctrl/Cmd+Enter or S from inside it.
 // The real Dialog and FormLayout draw the form; the server answers through a faked fetch.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createApp, nextTick, type App } from "vue";
@@ -119,8 +119,10 @@ async function typeIntoFocused(value: string) {
 }
 
 async function pressSave(target: Element, keys: KeyboardEventInit) {
-	target.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true, ...keys }));
+	const event = new KeyboardEvent("keydown", { key: "Enter", bubbles: true, cancelable: true, ...keys });
+	target.dispatchEvent(event);
 	await settle();
+	return event;
 }
 
 function dialogButton(label: string) {
@@ -178,6 +180,27 @@ it("inserts on Cmd+Enter with focus on the dialog's own buttons", async () => {
 
 	expect(inserts()).toHaveLength(1);
 	expect(answer.settled).toBe(true);
+});
+
+it("inserts on Cmd+S and blocks the browser's save", async () => {
+	const answer = await open();
+	await typeIntoFocused("Big deal");
+
+	const event = await pressSave(focused(), { key: "s", metaKey: true });
+
+	expect(inserts()).toEqual([expect.objectContaining({ title: "Big deal" })]);
+	expect(answer.settled).toBe(true);
+	expect(event.defaultPrevented).toBe(true);
+});
+
+it("ignores the repeats of a held Ctrl+S", async () => {
+	await open();
+	await typeIntoFocused("Big deal");
+
+	const event = await pressSave(focused(), { key: "s", ctrlKey: true, repeat: true });
+
+	expect(inserts()).toEqual([]);
+	expect(event.defaultPrevented).toBe(true);
 });
 
 it("does not save on Ctrl+Enter outside the dialog", async () => {

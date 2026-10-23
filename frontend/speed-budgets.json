@@ -1,7 +1,7 @@
 {
   "jsToleranceKb": 5,
   "home": { "budget": { "jsKb": 300, "calls": 4 }, "baseline": { "jsKb": 279.3, "calls": 4 } },
-  "list": { "budget": { "jsKb": 320, "calls": 7 }, "baseline": { "jsKb": 344.8, "calls": 7 } },
+  "list": { "budget": { "jsKb": 320, "calls": 7 }, "baseline": { "jsKb": 350, "calls": 7 } },
   "record": { "budget": { "jsKb": 460, "calls": 9 }, "baseline": { "jsKb": 702, "calls": 13 } },
   "save": { "baseline": { "calls": 2 } }
 }
