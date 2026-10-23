@@ -18,6 +18,7 @@ from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validat
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
+from frappe.www.printview import validate_print_for_docstatus
 
 FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
 FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
@@ -725,31 +726,20 @@ def get_context(context):
 		"""check print settings and return dict with print info"""
 
 		print_settings = frappe.get_doc("Print Settings", "Print Settings")
-		if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or (
-			doc.docstatus == 2 and not print_settings.allow_print_for_cancelled
-		):
-			# ignoring attachment as draft and cancelled documents are not allowed to print
-			status = "Draft" if doc.docstatus == 0 else "Cancelled"
-			frappe.throw(
-				_(
-					"""Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"""
-				).format(status),
-				title=_("Error in Notification"),
-			)
-		else:
-			return {
-				"print_format_attachment": 1,
-				"doctype": doc.doctype,
-				"name": doc.name,
-				"print_format": self.print_format,
-				"print_letterhead": print_settings.with_letterhead,
-				"lang": doc.get("language")
-				or (
-					frappe.db.get_value("Print Format", self.print_format, "default_print_language")
-					if self.print_format
-					else "en"
-				),
-			}
+		validate_print_for_docstatus(doc, print_settings.as_dict())
+		return {
+			"print_format_attachment": 1,
+			"doctype": doc.doctype,
+			"name": doc.name,
+			"print_format": self.print_format,
+			"print_letterhead": print_settings.with_letterhead,
+			"lang": doc.get("language")
+			or (
+				frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+				if self.print_format
+				else "en"
+			),
+		}
 
 	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)
