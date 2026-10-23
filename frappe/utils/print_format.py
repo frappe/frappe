@@ -218,21 +218,7 @@ def _download_multi_pdf(
 	if isinstance(options, str):
 		options = json.loads(options)
 
-<<<<<<< HEAD
-	if (options or {}).get("password") and format:
-		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
-			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
-
 	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
-=======
-	def document_language(print_doctype, print_name):
-		"""The print page's precedence: the document's own language, then the
-		format's default, then the language the print was requested in."""
-		doc_language = None
-		if frappe.get_meta(print_doctype).has_field("language"):
-			doc_language = frappe.db.get_value(print_doctype, print_name, "language")
-		return doc_language or format_language or language
->>>>>>> 7ddf247 (fix(print): bulk pdf with a password fails for typst print formats)
 
 	def print_into_writer(print_doctype, print_name):
 		with print_language(format_language):
