@@ -82,6 +82,7 @@ import {
 	projectFrame,
 	useFormLayout,
 	type HeaderItem,
+	type RecordPageApi,
 	type RecordPageController,
 } from "@/recordPage";
 import { useCreateRight } from "@/createRight";
@@ -126,9 +127,9 @@ const canCreate = useCreateRight(props.doctype);
 const doc = ref<Record<string, any>>({});
 const saved = ref<Record<string, any>>({});
 const meta = ref<any>(null);
-// The draft once the first paint ran `onOpen`: only what the person changes after it asks before leaving.
+// The draft after `onOpen`, then the inserted record: leaving asks only about changes since.
 const opened = ref<string | null>(null);
-// The values the row is picked against, set once; the layout does not change while the person types.
+// The values the layout row is picked against, set once, so typing never switches the row.
 const openingValues = ref<Record<string, any>>({});
 const error = ref("");
 const controller = shallowRef<RecordPageController | null>(null);
@@ -178,7 +179,7 @@ provideRecordCommits(() => controller.value);
 
 void open();
 
-/** Meta, defaults, layout and scripts side by side, then the first paint; a newer opening cuts it short at any wait. */
+/** Meta, defaults, layout and scripts at once, then the first paint; stops when the visit ends. */
 async function open() {
 	visit = visit.next();
 	const opening = visit;
@@ -263,18 +264,18 @@ function headerBuiltins(): HeaderItem[] {
 		},
 		{ name: "record", label: title.value, zone: "left", display: "crumb" },
 		{ name: "notSaved", label: __("Not Saved"), zone: "left", component: NotSavedBadge },
-		{ name: "save", label: "Save", display: "button", run: runSave },
+		{ name: "save", label: "Save", display: "button", run: save },
 	];
 }
 
-/** Sends a prompt name as `__newname`, never `name`; a save after the insert only opens the saved record. */
+/** Sends a prompt name as `__newname`, never `name`; the inserted record counts as clean. */
 async function insert() {
-	if (insertedName) return;
 	try {
 		const { data } = await createDocument(props.doctype, insertBody({}, doc.value));
 		insertedName = data.name;
 		saved.value = { ...data };
 		doc.value = JSON.parse(JSON.stringify(data));
+		opened.value = JSON.stringify(doc.value);
 	} catch (exception) {
 		throw isApiError(exception) ? new Error(stripTags(exception.message)) : exception;
 	}
@@ -293,8 +294,13 @@ async function runAction(action: HeaderItem) {
 	}
 }
 
+/** After the insert, Save only opens the saved record again. */
+function save(page: RecordPageApi) {
+	return insertedName ? openSaved() : runSave(page);
+}
+
 async function confirmLeave() {
-	if (insertedName || !dirty.value || !controller.value) return true;
+	if (!dirty.value || !controller.value) return true;
 	return discardChanges(controller.value.page);
 }
 
@@ -303,9 +309,9 @@ onBeforeRouteUpdate((to, from) => openingKey(to) === openingKey(from) || confirm
 
 useSaveKeys({
 	save: () => {
-		if (controller.value) runSave(controller.value.page);
+		if (controller.value) save(controller.value.page);
 	},
-	unsaved: () => dirty.value && !insertedName,
+	unsaved: () => dirty.value,
 });
 
 onUnmounted(() => {

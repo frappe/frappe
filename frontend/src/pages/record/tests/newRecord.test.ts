@@ -353,6 +353,8 @@ describe("saving the new record", () => {
 
     expect(server.inserts).toHaveLength(1);
     expect(router.currentRoute.value.fullPath).toBe("/note/NOTE-1");
+    expect(shown.events.filter((event) => event.startsWith("afterSave"))).toHaveLength(1);
+    expect(shown.events.filter((event) => event.startsWith("beforeSave"))).toHaveLength(1);
   });
 
   it("keeps the page, the values and the server message as text when the insert fails", async () => {
@@ -439,6 +441,19 @@ describe("leaving with typed values", () => {
     expect(router.currentRoute.value.fullPath).toBe("/note/new?title=Second");
     expect(input(root, "title")!.value).toBe("Second");
     expect(server.newDocReads).toBe(2);
+  });
+
+  it("keeps the draft and asks nothing on a change of the hash alone", async () => {
+    const { root, router } = await mount("/note/new?title=First");
+    await type(root, "title", "Typed");
+
+    await router.push("/note/new?title=First#notes");
+    await settle();
+
+    expect(shown.confirms).toEqual([]);
+    expect(router.currentRoute.value.hash).toBe("#notes");
+    expect(input(root, "title")!.value).toBe("Typed");
+    expect(server.newDocReads).toBe(1);
   });
 
   it("asks the browser before a reload or a tab close", async () => {

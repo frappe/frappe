@@ -928,7 +928,7 @@ onBeforeRouteUpdate((to, from) => {
 });
 
 useSaveKeys({
-	// A key press is a deliberate gesture, so a clean doc answers with the button's own tooltip text.
+	// A key press is deliberate, so a clean doc answers with the button's tooltip text.
 	save: () => {
 		if (!controller.value) return;
 		if (!dirty.value) toast.info("No changes to save");

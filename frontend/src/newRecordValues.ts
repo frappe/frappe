@@ -2,6 +2,7 @@
 // query the full page reads, the values "Edit full form" carries, and the insert body.
 import { runMethod } from "@framework/ui/api";
 import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
+import { NO_VALUE } from "@framework/ui/components/FormLayout/newRowValues";
 import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
@@ -15,17 +16,7 @@ const GET_NEW_DOC = "frappe.desk.form.load.get_new_doc";
 type Values = Record<string, any>;
 
 const TABLES = new Set(["Table", "Table MultiSelect"]);
-const NO_VALUE = new Set([
-	"Section Break",
-	"Column Break",
-	"Tab Break",
-	"Heading",
-	"HTML",
-	"Fold",
-	"Button",
-	"Image",
-	"Attachment Gallery",
-]);
+
 const INTEGERS = new Set(["Int", "Long Int", "Check"]);
 const DECIMALS = new Set(["Float", "Currency", "Percent", "Rating", "Duration"]);
 

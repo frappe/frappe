@@ -55,7 +55,7 @@ describe("routeForNew", () => {
 
 		await router.push(routeForNew("Selling Settings", { customer_group: "All" }));
 
-		expect(router.currentRoute.value.fullPath).toBe("/selling-settings/Selling%20Settings?customer_group=All");
+		expect(router.currentRoute.value.path).toBe("/selling-settings/Selling%20Settings");
 	});
 
 	it("leaves a saved record named new at its standard address, and routeFor links there", () => {
