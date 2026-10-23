@@ -5,6 +5,7 @@ import frappe
 from frappe.studio.api import (
 	create_studio_file,
 	get_custom_vue_components,
+	get_studio_page_scripts,
 	read_studio_file,
 	write_studio_file,
 )
@@ -22,6 +23,10 @@ class TestApi(IntegrationTestCase):
 				f.write("<template><div /></template>")
 
 			self.assertEqual(get_custom_vue_components("frappe"), [])
+
+	def test_discovery_endpoints_accept_only_installed_apps(self):
+		self.assertRaises(frappe.ValidationError, get_custom_vue_components, "os")
+		self.assertRaises(frappe.ValidationError, get_studio_page_scripts, "os")
 
 	def test_file_requests_stay_inside_an_exported_app(self):
 		with exports_in_tempdir(), patch.dict(frappe.conf, {"developer_mode": 1}):

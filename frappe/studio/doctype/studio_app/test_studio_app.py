@@ -83,7 +83,9 @@ class TestStudioApp(FrappeTestCase):
 			app, page = make_exported_app_with_files("moving-app")
 			old_folder = app.get_folder_path()
 
-			app.enable_app_export("other_app")
+			installed = [*frappe.get_installed_apps(), "other_app"]
+			with patch("frappe.get_installed_apps", return_value=installed):
+				app.enable_app_export("other_app")
 
 			page.reload()
 			self.assertFalse(os.path.exists(old_folder))

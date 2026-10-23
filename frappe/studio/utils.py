@@ -60,6 +60,12 @@ def get_app_file_path(app_folder: str) -> str:
 	return os.path.join(app_folder, f"{frappe.scrub(os.path.basename(app_folder))}.json")
 
 
+def validate_installed_app(app_name: str) -> None:
+	"""`frappe.get_app_source_path` resolves any importable module, so only accept real apps."""
+	if app_name not in frappe.get_installed_apps():
+		frappe.throw(frappe._("App {0} is not installed on this site.").format(app_name))
+
+
 def get_exported_app_folders(studio_folder: str) -> list[str]:
 	"""Subfolders of `<app>/studio` that hold their app JSON. Anything else in there, like the
 	editor in frappe's `studio/frontend`, is not a studio app."""

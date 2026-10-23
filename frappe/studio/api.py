@@ -8,7 +8,7 @@ import frappe
 from frappe import _
 from frappe.model import child_table_fields, display_fieldtypes, no_value_fields, std_fields, table_fields
 from frappe.studio.constants import STANDARD_COMPONENT_NAMES
-from frappe.studio.utils import get_exported_app_folders, has_page_write_perm
+from frappe.studio.utils import get_exported_app_folders, has_page_write_perm, validate_installed_app
 from frappe.utils import sbool
 
 
@@ -108,6 +108,7 @@ def check_app_permission() -> bool:
 @frappe.whitelist()
 def get_custom_vue_components(frappe_app: str) -> list[dict]:
 	"""Discover custom Vue SFC components"""
+	validate_installed_app(frappe_app)
 	components = []
 	seen_names = set()
 
@@ -168,6 +169,7 @@ def get_studio_page_scripts(frappe_app: str) -> list[dict]:
 	Keyed by the page's docname (`page_name`, read from the sibling JSON) so the runtime can load
 	a page's compiled setup() module by its docname.
 	"""
+	validate_installed_app(frappe_app)
 	scripts = []
 
 	studio_folder = frappe.get_app_source_path(frappe_app, "studio")
