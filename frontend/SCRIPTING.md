@@ -180,6 +180,26 @@ and the form are each a list that accepts the same item shape, `name`, `componen
 `props`, and speaks the seven verbs and `clear`. A script author learns one item and one position
 spelling; the sections below only refer to it.
 
+## A new record
+
+`/<doctype>/new` opens a new record on the standard page, also for a doctype whose record
+page an app replaces. Its query string sets the first values over the server's defaults:
+`/todo/new?priority=High`. `page.isNew` is true until the first save. Scripts run as on a
+saved record: `onOpen`, the field handlers and the tab events fire. Before the first save the
+record has no name, so the page shows the header and the form only. It has no panel,
+Activity, comment box, quick actions, favourite, follow or header menu, and `onPost` cannot
+fire. `page.save()` inserts the record, also with no changes. `beforeSave` runs before the
+insert, and `afterSave` after it, with `page.isNew` false and `page.doc.name` set. The page
+then opens the saved record, so `onOpen` runs again with `page.isNew` false.
+
+```js
+export default {
+  onOpen(page) {
+    if (page.isNew) page.doc.priority = 'High'
+  },
+}
+```
+
 ## Writing a component
 
 Every list takes a Vue component. Write its markup as a `template:` string. The module

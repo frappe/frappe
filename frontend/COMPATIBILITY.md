@@ -235,7 +235,8 @@ What `page` is _for_ is a small, closed vocabulary:
 - **A handful of contracts**: every `page.dialog` verb resolves `null` when the reader
   dismissed the dialog, so `if (!result) return` is always the idiom; `page.create`
   resolves `null` when nothing was saved in its dialog, so `if (!doc) return` is its
-  idiom; a throw in `beforeSave` blocks the save; a handler that throws is isolated,
+  idiom; `page.isNew` is true until the first save, and `page.save()` then inserts;
+  a throw in `beforeSave` blocks the save; a handler that throws is isolated,
   half-applied, and does not take other scripts down with it.
 
 These are deliberately small, closed, and shaped like frappe rather than like the
