@@ -12,6 +12,8 @@ export interface RequestOptions extends Pick<ReadOptions, "nullable"> {
   query?: Query;
   body?: unknown;
   signal?: AbortSignal;
+  /** The browser's HTTP cache mode; `"reload"` skips a cached reply. */
+  cache?: RequestCache;
   /** The cache ticket the caller took at send time and settles; absent, the call takes its own. */
   ticket?: number;
 }
@@ -66,7 +68,7 @@ export function feedSafely(feed: () => void): void {
 async function send<T>(
   method: HttpMethod,
   path: string,
-  { query, body, signal, nullable }: RequestOptions,
+  { query, body, signal, cache, nullable }: RequestOptions,
   ticket: number
 ): Promise<Envelope<T>> {
   let response: Response;
@@ -76,6 +78,7 @@ async function send<T>(
       headers: requestHeaders({ json: body !== undefined }),
       body: body === undefined ? undefined : JSON.stringify(body),
       signal,
+      cache,
     });
   } catch (error) {
     if ((error as { name?: string })?.name === "AbortError") throw error;

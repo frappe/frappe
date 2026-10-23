@@ -57,6 +57,23 @@ describe("useDoctypeMeta", () => {
     expect(getMeta).toHaveBeenCalledTimes(2);
   });
 
+  it("reads nothing for an empty doctype, then loads the meta once it is named", async () => {
+    const doctype = ref("");
+    const { meta, loading } = useDoctypeMeta(doctype);
+    await settled();
+
+    expect(getMeta).not.toHaveBeenCalled();
+    expect(meta.value).toBeNull();
+    expect(loading.value).toBe(false);
+
+    doctype.value = "Note";
+    expect(meta.value).toBeNull();
+    await settled();
+
+    expect(meta.value?.name).toBe("Note");
+    expect(getMeta).toHaveBeenCalledTimes(1);
+  });
+
   it("goes back to a meta it already holds rather than refetching it", async () => {
     const doctype = ref("Note");
     const { meta } = useDoctypeMeta(doctype);

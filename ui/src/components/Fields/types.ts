@@ -1,4 +1,4 @@
-import type { InjectionKey, Ref } from "vue";
+import type { ComputedRef, InjectionKey, MaybeRefOrGetter, Ref } from "vue";
 // Type-only (erased at build) — `FieldMeta`'s Table fields carry FormLayout's
 // richer node/schema, while `FieldNode extends FieldMeta`. The cycle is purely
 // at the type level, so it disappears in the compiled output.
@@ -104,6 +104,19 @@ export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
 /** Titles a `Link` value shows before its options load, keyed `Doctype::name`. */
 export const LinkTitlesKey: InjectionKey<Ref<Record<string, string>>> =
   Symbol("FormLayoutLinkTitles");
+
+/** The host's Create, which a Link or Dynamic Link field offers; absent or null, it offers none. */
+export interface CreateRecord {
+  /** Resolves with the saved record, or `null` when nothing was saved here. */
+  open: (
+    doctype: string,
+    options: { values: Record<string, unknown> }
+  ) => Promise<Record<string, any> | null>;
+  /** Whether the person may create the doctype's records; false while its meta loads. */
+  useRight: (doctype: MaybeRefOrGetter<string>) => ComputedRef<boolean>;
+}
+
+export const CreateRecordKey: InjectionKey<CreateRecord | null> = Symbol("CreateRecord");
 
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =

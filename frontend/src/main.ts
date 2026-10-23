@@ -6,12 +6,13 @@ import { FrappeUI } from "frappe-ui";
 import { provideSession } from "@framework/ui/composables/useSession";
 // the types module, not the subsystem barrel: the shell must not load the dialog to boot
 import { UploadLimitsKey } from "@framework/ui/components/FileUpload/types";
-import { TemplateNamesKey } from "@framework/ui/components/Fields/types";
+import { CreateRecordKey, TemplateNamesKey } from "@framework/ui/components/Fields/types";
 // The one file of the template compiler the shell may load: the names, not the compiler.
 import templateNames from "../templateCompiler/names.json";
 
 import { fetchBoot, BootUnauthorized, type Boot } from "@/boot";
 import { fetchAddresses, type Addresses } from "@/addresses";
+import { useCreateRight } from "@/createRight";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { installTranslate, loadTranslations } from "@/i18n";
@@ -20,7 +21,7 @@ import { setDrawnProps, setIconSource, watchClientScripts } from "@/recordPage";
 import { recordDrawnProps } from "@/pages/record/drawnProps";
 import { registerContributions } from "@/contributions/registry";
 import AppShell from "@/shell/AppShell.vue";
-import { registerCreateDialog } from "@/shell/create";
+import { openCreate, registerCreateDialog } from "@/shell/create";
 import { createSocket } from "@/shell/socket";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
 import Unauthorized from "@/shell/Unauthorized.vue";
@@ -81,6 +82,7 @@ async function start() {
 		file_chunk_size: boot.file_chunk_size,
 	});
 	app.provide(TemplateNamesKey, templateNames.components);
+	app.provide(CreateRecordKey, { open: openCreate, useRight: useCreateRight });
 	app.provide("addresses", addresses);
 	app.mount("#app");
 }

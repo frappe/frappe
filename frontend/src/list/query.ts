@@ -10,6 +10,7 @@ import {
 } from "@framework/ui/Filter";
 import { parseOrderBy, serializeOrderBy, type Sort } from "@framework/ui/SortBy";
 import type { RawMetaField } from "@framework/ui/FormLayout";
+import { equalityValues } from "@framework/ui/utils/equalityValues";
 import type { LocationQuery } from "vue-router";
 
 export const SORT_KEY = "_sort";
@@ -82,27 +83,8 @@ export function createValues(
 	filters: FilterCondition[],
 	fields: RawMetaField[]
 ): Record<string, unknown> {
-	const own = new Map(
-		fields
-			.filter((field) => !TABLE_TYPES.has(field.fieldtype))
-			.map((field) => [field.fieldname, field])
-	);
-	const values: Record<string, unknown> = {};
-	for (const [fieldname, operator, value] of serializeFilters(completeFilters(filters))) {
-		const field = own.get(fieldname);
-		if (operator !== "=" || !field) continue;
-		values[fieldname] = typeof value === "boolean" ? fromBoolean(field, value) : value;
-	}
-	return values;
+	return equalityValues(serializeFilters(completeFilters(filters)), fields);
 }
-
-// The wire reads a "Yes" or "No" as a boolean whatever the field type.
-function fromBoolean(field: RawMetaField, value: boolean): number | string {
-	if (field.fieldtype === "Check") return Number(value);
-	return value ? "Yes" : "No";
-}
-
-const TABLE_TYPES = new Set(["Table", "Table MultiSelect"]);
 
 function stableQuery(query: LocationQuery): string {
 	return JSON.stringify(

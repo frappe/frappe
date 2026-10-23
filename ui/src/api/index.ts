@@ -166,12 +166,13 @@ export function countDocuments(
   return request<number | null>("GET", `/doctype/${segment(doctype)}/count`, { query, signal });
 }
 
+/** The server answers with `max-age=60`; `cache: "reload"` skips the browser's cached reply. */
 export function searchDocuments(
   doctype: string,
   query: SearchQuery,
-  { signal }: CallOptions = {}
+  { signal, cache }: CallOptions & { cache?: RequestCache } = {}
 ): Promise<Envelope<SearchResult[]>> {
-  return request<SearchResult[]>("GET", `/doctype/${segment(doctype)}/search`, { query, signal });
+  return request<SearchResult[]>("GET", `/doctype/${segment(doctype)}/search`, { query, signal, cache });
 }
 
 export function createDocument<T extends DocumentRecord = DocumentRecord>(

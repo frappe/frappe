@@ -16,6 +16,7 @@ export interface DocPermRow {
 export interface DoctypeMeta {
   name: string;
   title_field?: string;
+  show_title_field_in_link?: 0 | 1;
   autoname?: string;
   issingle?: 0 | 1;
   istable?: 0 | 1;
@@ -55,15 +56,15 @@ interface DoctypeMetaEntry {
 /** Memoised per doctype: fetched once, and again after the DocType changes; shared by every caller. */
 const entries = memoizedState((doctype: string) => doctype, buildEntry);
 
-/** Fetch a doctype's meta with its child tables; building the layout is `buildLayoutFromMeta`'s job. */
+/** Fetch a doctype's meta with its child tables; an empty doctype reads nothing and holds no meta. */
 export function useDoctypeMeta(
   doctype: MaybeRefOrGetter<string>
 ): UseDoctypeMeta {
   // Built at call time and held until the doctype moves, so a later stale mark cannot swap it.
-  let held = { doctype: toValue(doctype), entry: entries.get(toValue(doctype)) };
+  let held = { doctype: toValue(doctype), entry: entryFor(toValue(doctype)) };
   const entry = computed(() => {
     const name = toValue(doctype);
-    if (name !== held.doctype) held = { doctype: name, entry: entries.get(name) };
+    if (name !== held.doctype) held = { doctype: name, entry: entryFor(name) };
     return held.entry;
   });
 
@@ -94,6 +95,20 @@ export function markDoctypeMetaStale(doctype: string): void {
 /** Drops every memoised meta, so one test's fetch cannot reach the next. */
 export function resetDoctypeMeta(): void {
   entries.reset();
+}
+
+const NO_DOCTYPE: DoctypeMetaEntry = {
+  metas: ref({}),
+  error: ref(null),
+  refreshError: ref(null),
+  loading: computed(() => false),
+  refreshing: computed(() => false),
+  reload: () => {},
+  refreshed: Promise.resolve(),
+};
+
+function entryFor(doctype: string): DoctypeMetaEntry {
+  return doctype ? entries.get(doctype) : NO_DOCTYPE;
 }
 
 function buildEntry(doctype: string, stale?: DoctypeMetaEntry): DoctypeMetaEntry {

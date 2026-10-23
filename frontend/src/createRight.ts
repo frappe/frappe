@@ -1,13 +1,13 @@
 // Whether the person may create a doctype's records, from the meta and session the page already
 // holds. It can miss a disabled module; the insert checks again.
-import { computed, inject, type ComputedRef } from "vue";
+import { computed, inject, type ComputedRef, type MaybeRefOrGetter } from "vue";
 import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { useSession } from "@framework/ui/composables/useSession";
 import type { Boot } from "@/boot";
 
 /** False until the meta and the session load. */
-export function useCreateRight(doctype: string): ComputedRef<boolean> {
+export function useCreateRight(doctype: MaybeRefOrGetter<string>): ComputedRef<boolean> {
 	const { meta } = useDoctypeMeta(doctype);
 	const { allowedPermlevels } = useDocPermissions(doctype);
 	const { session } = useSession();

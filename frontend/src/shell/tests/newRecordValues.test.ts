@@ -3,12 +3,12 @@
 import { describe, expect, it } from "vitest";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { NEW_NAME } from "@framework/ui/utils/naming";
 import { layoutFromFields } from "@/recordPage/formDialogLayout";
 import {
 	fieldDefaults,
 	fillEmpty,
 	insertBody,
-	NEW_NAME,
 	queryValues,
 	typedValues,
 	withNameField,

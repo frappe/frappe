@@ -113,7 +113,8 @@ const createNewOption: ComboboxCustomOption = {
 	key: "create",
 	label: "Create New",
 	slot: "create",
-	condition: ({ query }: { query: string }) => Boolean(query.trim()),
+	// Declared, so the row stays last whatever is typed: without it the label is filtered.
+	condition: () => true,
 	onClick: ({ query }: { query: string }) => emit("create", query),
 };
 
@@ -133,7 +134,7 @@ const showClear = computed(() => !props.disabled && !!model.value);
 const showRedirect = computed(() => props.redirectable && !!model.value);
 const showEdit = computed(() => props.editable && !!model.value);
 
-const loadOptions = (txt: string = "") => void options.search(txt);
+const loadOptions = (txt: string = "", fresh = false) => void options.search(txt, { fresh });
 
 const handleInputChange = debounce((value: string) => {
 	loadOptions(value || "");
@@ -150,5 +151,9 @@ watch([() => props.doctype, () => props.filters], () => loadOptions(""), {
 	deep: true,
 });
 
-defineExpose<LinkExposed>({ reload: () => loadOptions("") });
+defineExpose<LinkExposed>({
+	reload: () => loadOptions(""),
+	search: (text, { fresh = false } = {}) => loadOptions(text, fresh),
+	focus: () => comboboxRef.value?.focus(),
+});
 </script>
