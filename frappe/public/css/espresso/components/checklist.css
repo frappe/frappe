@@ -206,7 +206,6 @@
     grid-template-areas: "marker text";
     align-items: center;
     column-gap: calc(var(--spacing) * 3);
-    min-height: 28px;
     margin: 0;
     padding: calc(var(--spacing) * 2);
     border-radius: var(--radius-md);
@@ -221,9 +220,11 @@
     background-color: var(--surface-base);
 }
 
+/* The row's own height, so the add row lines up with a one-line item. */
 .es-checklist__add-input {
     grid-area: text;
     min-width: 0;
+    height: 28px;
     padding: 0;
     border: 0;
     outline: 0;
