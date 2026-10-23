@@ -12,6 +12,7 @@ from frappe.studio.build import get_editor_assets
 from frappe.studio.export import (
 	can_export,
 	delete_folder,
+	validate_frappe_app,
 	validate_standard_app_change,
 	write_document_file,
 )
@@ -200,6 +201,7 @@ class StudioApp(WebsiteGenerator):
 
 	def validate(self):
 		validate_standard_app_change(self)
+		validate_frappe_app(self)
 
 	def on_update(self):
 		self.export_app()
