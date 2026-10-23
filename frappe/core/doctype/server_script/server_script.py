@@ -12,7 +12,7 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.rate_limiter import rate_limit
 from frappe.utils.caching import http_cache
-from frappe.utils.password import delete_all_passwords_for, get_decrypted_password
+from frappe.utils.password import get_decrypted_password
 from frappe.utils.safe_exec import (
 	FrappeTransformer,
 	get_keys_for_autocomplete,
@@ -103,7 +103,6 @@ class ServerScript(Document):
 
 	def on_update(self):
 		self.sync_scheduled_job_type()
-		self.delete_removed_variable_values()
 
 	def clear_cache(self):
 		frappe.client_cache.delete_value("server_script_map")
@@ -111,8 +110,6 @@ class ServerScript(Document):
 
 	def on_trash(self):
 		frappe.client_cache.delete_value("server_script_map")
-		for variable in self.variables:
-			delete_all_passwords_for(variable.doctype, variable.name)
 		if self.script_type == "Scheduler Event":
 			for job in self.scheduled_jobs:
 				scheduled_job_type: ScheduledJobType = frappe.get_doc("Scheduled Job Type", job.name)
@@ -139,14 +136,6 @@ class ServerScript(Document):
 					title=_("Duplicate Key"),
 				)
 			keys.add(variable.key)
-
-	def delete_removed_variable_values(self):
-		if not (doc_before_save := self.get_doc_before_save()):
-			return
-		current_rows = {variable.name for variable in self.variables}
-		for variable in doc_before_save.variables:
-			if variable.name not in current_rows:
-				delete_all_passwords_for(variable.doctype, variable.name)
 
 	@property
 	def scheduled_jobs(self) -> list[dict[str, str]]:
