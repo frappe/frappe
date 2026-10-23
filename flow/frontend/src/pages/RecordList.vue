@@ -1,7 +1,17 @@
 <template>
 	<PageHeader :icon="info.icon" :title="spec.label">
 		<template v-if="canCreate" #actions>
+			<!-- a phone's bar keeps room for the title: a plain plus, as tall as the title -->
+			<button
+				v-if="layout.narrow"
+				class="flow-icon-btn"
+				:title="`New ${spec.singular}`"
+				@click="create"
+			>
+				<FeatherIcon name="plus" class="h-4 w-4" />
+			</button>
 			<Button
+				v-else
 				variant="solid"
 				icon-left="plus"
 				:label="`New ${spec.singular}`"
@@ -131,6 +141,7 @@ import { computed, h, inject, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Badge, Button, ErrorMessage, FormControl } from "frappe-ui";
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue";
+import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

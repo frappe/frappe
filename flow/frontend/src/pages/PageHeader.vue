@@ -1,9 +1,10 @@
 <template>
 	<header class="flex h-11 flex-none items-center gap-2 px-3">
-		<!-- set apart from a list's icon, which would otherwise read as one more button -->
+		<!-- set apart from a list's icon, which would otherwise read as one more button; on a phone
+		     a record's back button sits as far from it as from the title -->
 		<div
 			v-if="!flow.state.sidebarOpen"
-			:class="{ 'md:mr-1.5': !list }"
+			:class="list ? 'max-md:-mr-2' : 'md:mr-1.5'"
 			class="flex items-center gap-2"
 		>
 			<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
