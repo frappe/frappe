@@ -36,6 +36,7 @@ export default function frameworkUIAlias(appsDir) {
 
 	return [
 		...named,
+		{ find: /^@framework\/ui\/island$/, replacement: path.resolve(appsDir, "frappe", "ui", "island", "index.js") },
 		// catch-all `@framework/ui/*` -> `src/*` (e.g. self-imports like
 		// `@framework/ui/components/Link`)
 		{ find: /^@framework\/ui\/(.*)$/, replacement: path.join(src, "$1") },

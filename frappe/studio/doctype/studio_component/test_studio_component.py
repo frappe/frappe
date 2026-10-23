@@ -5,12 +5,15 @@ import os
 from unittest.mock import patch
 
 import frappe
+from frappe.studio.build import StudioComponentIslandBuilder
 from frappe.studio.doctype.studio_app.test_studio_app import (
 	exports_in_tempdir,
 	make_studio_app,
 	make_studio_page,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.tests.test_island import keep_site_islands
+from frappe.utils.island import get_island_assets, get_ui_islands
 
 
 class TestStudioComponent(IntegrationTestCase):
@@ -79,3 +82,64 @@ class TestStudioComponent(IntegrationTestCase):
 				"children": [{"componentName": "span"}],
 			},
 		)
+
+
+class TestPublishStudioComponent(IntegrationTestCase):
+	"""Publish builds a component into an island a Vue Component field can show."""
+
+	def setUp(self):
+		keep_site_islands(self)
+		self.component = frappe.get_doc(
+			doctype="Studio Component",
+			component_name="Summary " + frappe.generate_hash(length=10),
+			block={"componentName": "div", "children": []},
+			inputs=[{"input_name": "status", "type": "String"}],
+		).insert()
+
+	def publish(self):
+		"""Publish with Vite stubbed out: it writes the island.json a real build writes."""
+
+		def build(builder, island_args):
+			self.builder = builder
+			os.makedirs(builder.out_dir, exist_ok=True)
+			with open(os.path.join(builder.out_dir, "island.json"), "w") as island:
+				island.write(frappe.as_json({"js": builder.base + "a.island.js", "css": None}))
+
+		with patch.object(StudioComponentIslandBuilder, "_run_vite_build", build):
+			return self.component.publish()
+
+	def test_a_published_component_is_an_island_of_the_site(self):
+		result = self.publish()
+
+		self.assertIsNone(result["build_error"])
+		self.assertIn(result["island"], get_ui_islands())
+		self.assertEqual(
+			get_island_assets(result["island"])["js"], f"/files/islands/{self.component.name}/a.island.js"
+		)
+		self.assertTrue(os.path.isabs(self.builder.out_dir))
+
+	def test_the_island_carries_only_what_the_renderer_reads(self):
+		self.publish()
+
+		self.assertEqual(
+			set(self.builder.component_docs[self.component.name]),
+			{"name", "component_id", "component_name", "block", "inputs"},
+		)
+
+	def test_deleting_a_published_component_removes_its_island(self):
+		island = self.publish()["island"]
+
+		self.component.delete()
+
+		self.assertNotIn(island, get_ui_islands())
+
+	def test_only_a_system_manager_can_publish(self):
+		user = frappe.get_doc(
+			doctype="User", email="studio-publisher@example.com", first_name="Studio Publisher"
+		)
+		if not frappe.db.exists("User", user.email):
+			user.insert(ignore_permissions=True)
+		frappe.get_doc("User", user.email).add_roles("Studio User")
+
+		with self.set_user(user.email):
+			self.assertRaises(frappe.PermissionError, self.publish)

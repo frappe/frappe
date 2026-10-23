@@ -1,10 +1,20 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import os
+import shutil
 from unittest.mock import patch
 
 import frappe
 from frappe.tests import IntegrationTestCase
-from frappe.utils.island import get_island_assets, get_ui_islands, page_island_name
+from frappe.utils.island import (
+	SITE_ISLANDS_CACHE_KEY,
+	get_island_assets,
+	get_site_islands_path,
+	get_ui_islands,
+	page_island_name,
+	remove_site_island,
+	set_site_island_assets,
+)
 
 # The handlers the cases below declare. A `doc_events` handler is a dotted path,
 # so these reach `run_method` the way an app's own does.
@@ -21,6 +31,11 @@ def draws_the_chart(doc, method=None):
 
 class TestUiIslandsRegistry(IntegrationTestCase):
 	"""A build registers an island by writing its asset key."""
+
+	def setUp(self):
+		site_islands = patch("frappe.utils.island.get_site_island_assets", return_value={})
+		site_islands.start()
+		self.addCleanup(site_islands.stop)
 
 	def patch_assets_json(self, assets):
 		return patch("frappe.utils.island.get_assets_json", return_value=assets)
@@ -68,12 +83,81 @@ class TestUiIslandsRegistry(IntegrationTestCase):
 			self.assertIn("ui_islands", frappe.sessions.get())
 
 
+def keep_site_islands(test_case):
+	"""Put the site's own islands back as they were once the test ends."""
+	manifest = get_site_islands_path("islands.json")
+	folder_existed = os.path.exists(get_site_islands_path())
+	saved_manifest = frappe.read_file(manifest)
+
+	def restore():
+		if not folder_existed:
+			shutil.rmtree(get_site_islands_path(), ignore_errors=True)
+		elif saved_manifest is None:
+			os.path.exists(manifest) and os.remove(manifest)
+		else:
+			with open(manifest, "w") as file:
+				file.write(saved_manifest)
+		frappe.client_cache.delete_value(SITE_ISLANDS_CACHE_KEY)
+
+	test_case.addCleanup(restore)
+
+
+class TestSiteIslands(IntegrationTestCase):
+	"""A site builds its own islands, such as published Studio Components, into its files."""
+
+	def setUp(self):
+		keep_site_islands(self)
+
+	def test_a_site_island_joins_the_registry_and_resolves(self):
+		set_site_island_assets(
+			"site.studio.summary", "/files/islands/summary/a.js", "/files/islands/summary/a.css"
+		)
+
+		self.assertIn("site.studio.summary", get_ui_islands())
+		self.assertEqual(
+			get_island_assets("site.studio.summary"),
+			{"js": "/files/islands/summary/a.js", "css": "/files/islands/summary/a.css"},
+		)
+
+	def test_publishing_again_replaces_the_assets(self):
+		set_site_island_assets(
+			"site.studio.summary", "/files/islands/summary/a.js", "/files/islands/summary/a.css"
+		)
+		set_site_island_assets("site.studio.summary", "/files/islands/summary/b.js", None)
+
+		self.assertEqual(
+			get_island_assets("site.studio.summary"), {"js": "/files/islands/summary/b.js", "css": None}
+		)
+
+	def test_a_removed_site_island_leaves_the_registry_and_its_folder(self):
+		set_site_island_assets("site.studio.summary", "/files/islands/summary/a.js", None)
+		frappe.create_folder(get_site_islands_path("summary"))
+
+		remove_site_island("site.studio.summary", "summary")
+
+		self.assertNotIn("site.studio.summary", get_ui_islands())
+		self.assertFalse(os.path.exists(get_site_islands_path("summary")))
+
+	def test_the_site_island_assets_reach_the_browser_through_boot(self):
+		set_site_island_assets("site.studio.summary", "/files/islands/summary/a.js", None)
+
+		with patch.object(frappe.local, "request", None, create=True):
+			boot = frappe.sessions.get()
+		self.assertIn("site.studio.summary", boot.ui_islands)
+		self.assertEqual(boot.assets_json["site.studio.summary.island.js"], "/files/islands/summary/a.js")
+
+
 class TestPageIslandName(IntegrationTestCase):
 	def test_the_name_carries_the_app_and_the_page(self):
 		self.assertEqual(page_island_name("insights", "sales-dashboard"), "insights.page.sales-dashboard")
 
 
 class TestIslandAssets(IntegrationTestCase):
+	def setUp(self):
+		site_islands = patch("frappe.utils.island.get_site_island_assets", return_value={})
+		site_islands.start()
+		self.addCleanup(site_islands.stop)
+
 	def patch_assets_json(self, assets):
 		return patch("frappe.utils.island.get_assets_json", return_value=assets)
 

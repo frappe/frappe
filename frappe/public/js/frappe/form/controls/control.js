@@ -43,6 +43,7 @@ import "./rating";
 import "./duration";
 import "./icon";
 import "./phone";
+import "./vue_component";
 import "./json";
 
 frappe.ui.form.make_control = function (opts) {

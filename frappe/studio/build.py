@@ -11,8 +11,14 @@ import click
 
 import frappe
 from frappe.bundler import get_node_env
+from frappe.studio.doctype.studio_component.studio_component import get_island_name
 from frappe.studio.utils import get_exported_app_folders, walk_blocks
 from frappe.utils import get_files_path
+from frappe.utils.island import (
+	SITE_ISLANDS_FOLDER,
+	get_site_islands_path,
+	set_site_island_assets,
+)
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 EDITOR_ASSETS_BASE = "/assets/frappe/studio/"
@@ -110,9 +116,11 @@ class StudioAppBuilder:
 		self.page_scripts = scripts
 		return scripts
 
-	def _run_vite_build(self) -> None:
+	def _run_vite_build(self, island_args: list[str] | None = None) -> None:
 		"""Execute the yarn build-studio-app command with the given parameters."""
-		if not (self.components or self.custom_vue_components or self.page_scripts or self.router_file):
+		if not island_args and not (
+			self.components or self.custom_vue_components or self.page_scripts or self.router_file
+		):
 			click.echo(f"Nothing to build for {self.app_name}, skipping build")
 			return
 
@@ -149,6 +157,8 @@ class StudioAppBuilder:
 
 		for glob in self.tailwind_content:
 			command += ["--tailwind-content", glob]
+
+		command += island_args or []
 
 		studio_app_path = frappe.get_app_source_path("frappe", "studio", "frontend")
 		result = subprocess.run(
@@ -332,6 +342,58 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 
 	if failed_apps:
 		raise RuntimeError(f"Studio app builds failed: {', '.join(failed_apps)}")
+
+
+class StudioComponentIslandBuilder(StudioAppBuilder):
+	"""Build one Studio Component into an island of this site."""
+
+	def __init__(self, component_id: str):
+		super().__init__(studio_app=component_id, is_standard=False)
+		self.island_name = get_island_name(component_id)
+		self.out_dir = os.path.abspath(get_site_islands_path(component_id))
+		self.base = f"/files/{SITE_ISLANDS_FOLDER}/{component_id}/"
+		self.component_docs: dict[str, dict] = {}
+
+	def build(self):
+		self._add_studio_component(self.app_name)
+		with (
+			self._write_page_sources() as page_sources,
+			tempfile.NamedTemporaryFile("w", suffix=".json") as component_docs,
+		):
+			json.dump(list(self.component_docs.values()), component_docs)
+			component_docs.flush()
+			self.tailwind_content = [page_sources.name]
+			self._run_vite_build(
+				["--island-name", self.island_name, "--island-components-file", component_docs.name]
+			)
+
+		island = frappe.parse_json(
+			frappe.read_file(os.path.join(self.out_dir, "island.json"), raise_not_found=True)
+		)
+		set_site_island_assets(self.island_name, island.js, island.css)
+
+	def _add_studio_components(self, block: dict):
+		self._add_studio_component(block.get("componentName"))
+
+	def _add_studio_component(self, component_id: str):
+		"""Bundle the component's doc, and every component nested in it, for the island to render."""
+		if component_id in self.component_docs:
+			return
+
+		component = frappe.get_doc("Studio Component", component_id)
+		self.component_docs[component_id] = {
+			"name": component.name,
+			"component_id": component.component_id,
+			"component_name": component.component_name,
+			"block": component.block,
+			"inputs": [
+				{"input_name": input.input_name, "type": input.type, "default": input.default}
+				for input in component.inputs
+			],
+		}
+		self._add_icons(component.block)
+		self._add_page_source(component.block)
+		self._add_block_components(frappe.parse_json(component.block))
 
 
 def build_custom_apps() -> None:
