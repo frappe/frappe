@@ -114,7 +114,6 @@ class StudioApp(WebsiteGenerator):
 	website = frappe._dict(
 		template="templates/generators/app_renderer.html",
 		page_title_field="app_title",
-		condition_field="published",
 	)
 
 	def get_context(self, context):
@@ -177,6 +176,9 @@ class StudioApp(WebsiteGenerator):
 	@property
 	def is_published(self):
 		return frappe.db.exists("Studio Page", dict(studio_app=self.name, published=1))
+
+	def is_website_published(self):
+		return bool(self.is_published)
 
 	@property
 	def pages(self):
