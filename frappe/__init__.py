@@ -1488,6 +1488,7 @@ def override_whitelisted_method(original_method: str) -> str:
 	return overrides[-1] if overrides else original_method
 
 
+import frappe._audit_hook
 import frappe._optimizations
 from frappe.utils.messages import (
 	clear_last_message,
@@ -1503,3 +1504,4 @@ delete_doc_if_exists = delete_doc
 
 frappe._optimizations.optimize_all()
 frappe._optimizations.register_fault_handler()
+frappe._audit_hook.setup_audit_hook()
