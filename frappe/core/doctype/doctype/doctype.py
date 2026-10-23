@@ -141,6 +141,7 @@ class DocType(Document):
 		is_virtual: DF.Check
 		issingle: DF.Check
 		istable: DF.Check
+		link_display_mode: DF.Literal["Search", "Select"]
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -172,6 +173,7 @@ class DocType(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_image_in_link: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
