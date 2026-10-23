@@ -56,7 +56,7 @@ const unsaved = ref(false);
 
 ## Account states
 
-See `CONTEXT.md` (**Auth kind**, **Account status**, **Manual setup**, **Reconnect**).
+See `CONTEXT.md` (**Auth kind**, **Account status**, **Reconnect**).
 
 The panel fills its container's height, with a fixed header and a scrolling body, and adds no
 outer padding: the host pads it to line up with its own settings screens. Its body bleeds 12px

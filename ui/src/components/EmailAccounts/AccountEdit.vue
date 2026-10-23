@@ -6,6 +6,15 @@
 			:disabled="saving || connecting"
 			@back="emit('back', account.name)"
 		>
+			<template #icon>
+				<img
+					v-if="service.logo"
+					:src="service.logo"
+					alt=""
+					class="size-5 object-contain"
+				/>
+				<span v-else class="lucide-mail size-5 text-ink-gray-6" aria-hidden="true" />
+			</template>
 			<template #actions>
 				<Button
 					v-if="account.enable_incoming && account.status !== 'needs-reconnect'"
@@ -25,22 +34,9 @@
 			</template>
 		</BackHeader>
 		<ScrollArea class="-mx-3 min-h-0 flex-1" viewport-class="px-3">
-			<div class="mt-6 flex items-center gap-3">
-				<img
-					v-if="service.logo"
-					:src="service.logo"
-					alt=""
-					class="size-6 object-contain"
-				/>
-				<span v-else class="lucide-mail size-6 text-ink-gray-6" aria-hidden="true" />
-				<span class="truncate text-base text-ink-gray-7">
-					{{ subtitle(account) }}
-				</span>
-				<Badge v-if="manualSetup(account)" theme="gray" :label="__('Manual setup')" />
-			</div>
 			<Banner
 				v-if="account.status === 'needs-reconnect'"
-				class="mt-4"
+				class="mt-6"
 				theme="amber"
 				:title="__('This mailbox needs to be reconnected')"
 				:description="
@@ -86,7 +82,7 @@
 </template>
 
 <script setup lang="ts">
-import { Badge, Button, ScrollArea, toast } from "frappe-ui";
+import { Button, ScrollArea, toast } from "frappe-ui";
 import { computed, nextTick, ref, useId, watch } from "vue";
 import { translate as __ } from "../../utils/translate";
 import AccountFields from "./AccountFields.vue";
@@ -98,10 +94,8 @@ import {
 	deskUrl,
 	emptyForm,
 	errorText,
-	manualSetup,
 	reconnectable as canReconnect,
 	serviceOf,
-	subtitle,
 	validate,
 } from "./services";
 import type { EmailAccount, EmailAccountsController, FieldError } from "./types";

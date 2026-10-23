@@ -197,23 +197,6 @@ it("reconnects a mailbox with its own OAuth app, on or off Frappe Cloud V2", () 
   );
 });
 
-it("badges a manually set up account on Frappe Cloud V2, not a one-click one", () => {
-  const badged = () => root.textContent!.includes("Manual setup");
-  mount();
-  expect(badged()).toBe(false);
-  app.unmount();
-  root.remove();
-
-  mount({ authKind: "oauth-custom", token_uri: "https://login.microsoftonline.com/token" });
-  expect(badged()).toBe(true);
-  app.unmount();
-  root.remove();
-
-  vi.stubGlobal("is_v2_site", false);
-  mount({ authKind: "oauth-custom", token_uri: "https://login.microsoftonline.com/token" });
-  expect(badged()).toBe(false);
-});
-
 it("has nothing to save after retyping a saved port", async () => {
   const { button } = mount({
     service: "",

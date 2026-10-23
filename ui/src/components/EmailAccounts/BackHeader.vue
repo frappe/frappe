@@ -11,10 +11,13 @@
 					@click="goBack"
 				>
 					<template #prefix>
-						<span
-							class="lucide-chevron-left size-4.5 rtl:rotate-180"
-							aria-hidden="true"
-						/>
+						<span class="flex shrink-0 items-center gap-2">
+							<span
+								class="lucide-chevron-left size-4.5 rtl:rotate-180"
+								aria-hidden="true"
+							/>
+							<slot name="icon" />
+						</span>
 					</template>
 					<span class="sr-only">{{ __("Back:") }}</span>
 					{{ title }}

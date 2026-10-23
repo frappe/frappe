@@ -99,15 +99,6 @@ export function serviceOf(
   );
 }
 
-/** The address under an account's name, or its service when the name is the address. */
-export function subtitle(
-  account: Pick<EmailAccountDoc, "email_id" | "email_account_name" | "service">,
-): string {
-  return account.email_id === account.email_account_name
-    ? serviceOf(account).label
-    : account.email_id;
-}
-
 // Desk keeps the same table in email_account.js (frappe.email_defaults)
 const SERVERS: Record<string, Partial<EmailAccountDoc>> = {
   GMail: {
@@ -435,14 +426,6 @@ export function reconnectable(
   return (
     account.authKind === "oauth-custom" ||
     (isV2Site() && account.authKind === "oauth")
-  );
-}
-
-/** Whether `account` was set up by hand on a site that offers one-click sign-in. */
-export function manualSetup(account: Pick<EmailAccount, "authKind">): boolean {
-  return (
-    isV2Site() &&
-    (account.authKind === "password" || account.authKind === "oauth-custom")
   );
 }
 

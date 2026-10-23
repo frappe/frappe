@@ -5,7 +5,6 @@ import {
   emptyForm,
   errorText,
   mailboxAddress,
-  manualSetup,
   newAccount,
   oauthHelpLink,
   oauthMessage,
@@ -289,21 +288,6 @@ describe("oneClickServices", () => {
 
     vi.stubGlobal("one_click_email_services", { GMail: "Google" });
     expect(oneClickServices()).toEqual({ GMail: "Google" });
-  });
-});
-
-describe("manualSetup", () => {
-  afterEach(() => vi.unstubAllGlobals());
-
-  it("marks a password or own OAuth app account only on a Frappe Cloud V2 site", () => {
-    expect(manualSetup({ authKind: "password" })).toBe(false);
-    expect(manualSetup({ authKind: "oauth-custom" })).toBe(false);
-
-    vi.stubGlobal("is_v2_site", true);
-    expect(manualSetup({ authKind: "password" })).toBe(true);
-    expect(manualSetup({ authKind: "oauth-custom" })).toBe(true);
-    expect(manualSetup({ authKind: "oauth" })).toBe(false);
-    expect(manualSetup({ authKind: "frappe-mail" })).toBe(false);
   });
 });
 

@@ -138,11 +138,6 @@ has a badge and a Reconnect footer instead of the toggles. Anything else is **Ac
 its card's **Receive** and **Send** toggles say which way it works, with a **Disabled** badge
 when both are off.
 
-**Manual setup**:
-A **Password** or **OAuth: custom app** account on a Frappe Cloud v2 site, noted under its card's
-address and badged on its edit screen to tell it from one-click sign-in. Not shown elsewhere, where every
-account is set up by hand.
-
 **Reconnect**:
 Signing an existing OAuth account in again, from its edit screen or its Desk form, which moves
 it to a fresh token without creating a new account. An **OAuth** account runs one-click
