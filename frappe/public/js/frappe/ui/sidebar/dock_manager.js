@@ -545,10 +545,6 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 	}
 
 	save_args() {
-		// The layer belongs to this app, so what is on screen is all of it. Carrying other apps'
-		// rows through was needed by the old flat list; now a save touches one document and that
-		// document holds one app's rows.
-		//
 		// Nothing selected means Reset: it stores no row, so the layer below shows through instead
 		// of the app being hidden entry by entry.
 		const mine = this.selection.length
