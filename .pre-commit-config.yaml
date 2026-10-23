@@ -49,7 +49,8 @@ repos:
                 frappe/templates/includes/.*|
                 frappe/public/js/lib/.*|
                 frappe/website/doctype/website_theme/website_theme_template.scss|
-                studio/.*
+                studio/.*|
+                flow/.*
             )$
 
 
@@ -68,7 +69,8 @@ repos:
                 frappe/www/website_script.js|
                 frappe/templates/includes/.*|
                 frappe/public/js/lib/.*|
-                studio/.*
+                studio/.*|
+                flow/.*
             )$
 
   - repo: local

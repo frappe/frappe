@@ -85,8 +85,15 @@ dependencies = [
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.3",
     # studio
-    "litellm==1.95.1",
+    "litellm==1.103.2",
     "json_repair~=0.59",
+    # flow
+    "frappe-flow==0.1.20",
+    "lancedb~=0.33",
+    "onnxruntime~=1.27",
+    "pdfplumber~=0.11",
+    "python-docx~=1.1",
+    "rapidocr~=3.0",
     # integration dependencies
     "google-api-python-client~=2.201.0",
     "google-auth-oauthlib~=1.5.0",
@@ -169,6 +176,14 @@ hypothesis = "~=6.155.2"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
 
+# flow: for OpenCV, which rapidocr installs
+[deploy.dependencies.apt]
+packages = ["libgl1", "libglib2.0-0"]
+
+[tool.pilot.processes.flow_server]
+frappe_command = ["flow-server", "serve"]
+env = { FLOW_SERVER_MANAGER = "supervisor" }
+
 [tool.ruff]
 line-length = 110
 target-version = "py313"
@@ -228,7 +243,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06
+exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false, frappe-flow = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06, frappe-flow after 2026-10-30
 
 [tool.mypy]
 strict = false
