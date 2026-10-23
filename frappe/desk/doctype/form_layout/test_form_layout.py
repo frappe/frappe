@@ -93,7 +93,7 @@ def data(fieldname: str, **kwargs) -> dict:
 	}
 
 
-def hide_field(dt: str, fieldname: str):
+def hide_field(dt: str, fieldname: str) -> None:
 	"""Hide a mandatory field with no default, which DocType and Customize Form validation refuse."""
 	frappe.make_property_setter(
 		{"doctype": dt, "fieldname": fieldname, "property": "hidden", "value": 1, "property_type": "Check"},
