@@ -1,5 +1,4 @@
-// Where focus lands when the Create dialog opens and after it saves, and Ctrl/Cmd+Enter from any
-// focus inside it.
+// Where focus lands as the Create dialog opens and closes, and Ctrl/Cmd+Enter from inside it.
 // The real Dialog and FormLayout draw the form; the server answers through a faked fetch.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { createApp, nextTick, type App } from "vue";
@@ -155,6 +154,17 @@ it("leaves focus where the caller puts it after a Ctrl+Enter save", async () => 
 	await pressSave(focused(), { ctrlKey: true });
 
 	expect(inserts()).toHaveLength(1);
+	expect(focused()).toBe(field);
+});
+
+it("leaves focus where the caller puts it after an Escape", async () => {
+	const field = document.body.appendChild(document.createElement("input"));
+	await open(() => field.focus());
+
+	focused().dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true }));
+	await settle();
+
+	expect(inserts()).toEqual([]);
 	expect(focused()).toBe(field);
 });
 
