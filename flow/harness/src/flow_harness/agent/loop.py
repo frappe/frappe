@@ -204,7 +204,8 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 async def resume(
 	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs
 ) -> AsyncIterator[AnyEvent]:
-	"""Continue a paused run by settling its approval batch, then take turns.
+	"""Continue a paused run by settling its approval batch, then take turns unless that
+	turn ends the run.
 
 	The session validates ``answers`` against the pending batch before calling this.
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
@@ -213,7 +214,7 @@ async def resume(
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	tools = inputs.server_tools or {}
 	ctx = _tool_context(inputs)
-	denied = False
+	denied = redirected = False
 	for pending in approval.calls:
 		_raise_if_aborted(inputs.abort)
 		call = ToolCall(id=pending.id, name=pending.name, arguments=pending.args)
@@ -231,12 +232,21 @@ async def resume(
 			denied = True
 		else:
 			result = _result(call, _redirect(answer))
+			redirected = True
 		_raise_if_aborted(inputs.abort)
 		yield result
 
 	if denied:  # a rejected action stops the run rather than continuing
 		yield RunEnded(reason="denied")
 		return
+	if not redirected and _turn_ends_run(inputs.messages, tools):
+		steered = False
+		for message in _drain(inputs.next_steering):
+			steered = True
+			yield message
+		if not steered:
+			yield RunEnded(reason="done")
+			return
 	async for event in _loop(inputs):
 		yield event
 
@@ -318,18 +328,14 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				yield _result(call, _TRUNCATED, is_error=True)
 		elif assistant.tool_calls:
 			gated: list[PendingCall] = []
-			failed = False
 			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
-				failed = failed or (isinstance(event, ToolResult) and event.is_error)
 				yield event
 			if gated:  # free tools already ran; now wait for the human
 				_raise_if_aborted(abort)
 				yield ApprovalRequired(calls=gated)
 				yield RunEnded(reason="paused")
 				return
-			ends_run = not failed and all(
-				call.name in tools and tools[call.name].ends_run for call in assistant.tool_calls
-			)
+			ends_run = _turn_ends_run(inputs.messages, tools)
 
 		if ends_run:
 			steered = False
@@ -759,6 +765,16 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		# the runner needs this run's inputs; a tool only names the call, task, agent and child
 		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
 	)
+
+
+def _turn_ends_run(messages: list[TranscriptMessage], tools: dict[str, Tool]) -> bool:
+	"""Whether the newest turn called only tools that end the run, none of them failing."""
+	for message in reversed(messages):
+		if isinstance(message, ToolResult) and message.is_error:
+			return False
+		if isinstance(message, AssistantMessage):
+			return all(call.name in tools and tools[call.name].ends_run for call in message.tool_calls)
+	return False
 
 
 def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:

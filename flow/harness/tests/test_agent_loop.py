@@ -296,6 +296,19 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	assert mock._turn == 2  # the model got a turn to adjust
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
 
+	# an approved run-ending tool still ends the run; a redirect still gets the model's turn
+	for answer, model_turns in [("Approve", 1), ("shorter ones", 2)]:
+		session, events = _session(tmp_path, tools=["suggest_replies"], confirm_tools=["suggest_replies"])
+		replies = [
+			AssistantMessage(content=[_offer("c1", "Yes", "No")]),
+			AssistantMessage(content="adjusted"),
+		]
+		mock = MockModel(replies=replies)
+		await _run(session, "ask me", model=mock)
+		await _resume(session, {"c1": answer}, model=mock)
+		assert mock._turn == model_turns, answer
+		assert [e["reason"] for e in _of(events, "run_ended")] == ["paused", "done"]
+
 
 async def test_a_paused_session_refuses_runs_and_inexact_answers_until_cancelled(tmp_path):
 	# confirm_tools adds gates on top of each tool's default: naming one tool keeps bash gated
