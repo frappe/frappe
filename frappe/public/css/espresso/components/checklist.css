@@ -58,7 +58,7 @@
     width: 100%;
     padding: calc(var(--spacing) * 4) calc(var(--spacing) * 3);
     border-radius: var(--radius-lg);
-    background-color: var(--surface-gray-1);
+    background-color: var(--surface-gray-2);
     container-type: inline-size;
 }
 
@@ -83,7 +83,7 @@
 }
 
 .es-checklist .es-button[data-variant="ghost"]:hover {
-    background: var(--surface-gray-3);
+    background: var(--surface-gray-4);
 }
 
 .es-checklist__item[data-open] .es-button[data-variant="ghost"]:hover {
@@ -188,7 +188,7 @@
 }
 
 .es-checklist__item:not([data-open], [data-empty]):hover {
-    background-color: var(--surface-gray-2);
+    background-color: var(--surface-gray-3);
 }
 
 .es-checklist__item[data-open] {
@@ -214,7 +214,7 @@
 }
 
 .es-checklist__add:hover {
-    background-color: var(--surface-gray-2);
+    background-color: var(--surface-gray-3);
 }
 
 .es-checklist__add:focus-within {
