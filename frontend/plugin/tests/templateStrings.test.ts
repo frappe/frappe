@@ -165,37 +165,3 @@ describe("template errors", () => {
     }
   });
 });
-
-describe("the dev server's dependency pre-bundle", () => {
-  it("compiles a file of a package linked in from the bench", async () => {
-    const root = writeScratch("index.js", 'export { default } from "linked-ui";\n');
-    const ui = path.join(root, "ui");
-    fs.mkdirSync(path.join(ui, "src"), { recursive: true });
-    fs.writeFileSync(
-      path.join(ui, "package.json"),
-      JSON.stringify({ name: "linked-ui", type: "module", main: "src/Field.ts" })
-    );
-    fs.writeFileSync(path.join(ui, "src/Field.ts"), COMPONENT);
-    fs.mkdirSync(path.join(root, "node_modules"));
-    fs.symlinkSync(ui, path.join(root, "node_modules/linked-ui"));
-
-    const server = await createServer({
-      root,
-      configFile: false,
-      logLevel: "silent",
-      cacheDir: path.join(root, ".vite"),
-      plugins: [templateStrings()],
-      resolve: { preserveSymlinks: true },
-      optimizeDeps: { include: ["linked-ui"], noDiscovery: true },
-      server: { middlewareMode: true, ws: false },
-    });
-    try {
-      const entry = await server.transformRequest("/index.js");
-      expect(entry!.code).toMatch(/from "[^"]*\/deps\/linked-ui\.js/);
-      const bundled = fs.readFileSync(path.join(root, ".vite/deps/linked-ui.js"), "utf8");
-      expect(bundled).toContain("render(");
-    } finally {
-      await server.close();
-    }
-  });
-});

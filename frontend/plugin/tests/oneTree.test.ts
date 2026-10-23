@@ -1,8 +1,16 @@
 // @vitest-environment node
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import {
+  mkdirSync,
+  mkdtempSync,
+  realpathSync,
+  rmSync,
+  symlinkSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
+import vue from "@vitejs/plugin-vue";
 import { build, createServer, type ViteDevServer } from "vite";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import oneTree, {
@@ -170,5 +178,59 @@ describe("a package an app declares", () => {
     expect(found["shell vue"]).toMatch(/vue\.runtime\.esm-bundler\.js/);
     expect(found["app vue"]).toBe(found["shell vue"]);
     expect(found["app dompurify"]).toBeUndefined();
+  });
+});
+
+describe("the linked ui in the dev server", () => {
+  // The bench's layout: ui outside the root, linked into node_modules.
+  const root = realpathSync(mkdtempSync(join(tmpdir(), "one-tree-ui-")));
+  const ui = join(root, "ui");
+  let server: ViteDevServer;
+
+  const importOf = async (url: string, name: string) => {
+    const { code } = (await server.transformRequest(url))!;
+    return code.match(new RegExp(`from "([^"]*${name}[^"]*)"`))?.[1];
+  };
+
+  beforeAll(async () => {
+    mkdirSync(join(ui, "src"), { recursive: true });
+    writeFileSync(
+      join(ui, "package.json"),
+      JSON.stringify({
+        name: "@framework/ui",
+        type: "module",
+        exports: { "./*": { import: "./src/*" } },
+      }),
+    );
+    writeFileSync(join(ui, "src/types.ts"), 'export const Key = Symbol("Key");\n');
+    writeFileSync(
+      join(ui, "src/Field.vue"),
+      '<script>\nimport { Key } from "./types";\nexport default { inject: { key: Key } };\n</script>\n',
+    );
+    mkdirSync(join(root, "node_modules/@framework"), { recursive: true });
+    symlinkSync(ui, join(root, "node_modules/@framework/ui"));
+    writeFileSync(join(root, "main.js"), 'export { Key } from "@framework/ui/types";\n');
+
+    server = await createServer({
+      configFile: false,
+      root,
+      cacheDir: join(root, ".vite"),
+      logLevel: "silent",
+      plugins: [oneTree([]), vue()],
+      resolve: { preserveSymlinks: true },
+      server: { middlewareMode: true, hmr: false, watch: null },
+    });
+  });
+
+  afterAll(async () => {
+    await server?.close();
+    rmSync(root, { recursive: true });
+  });
+
+  it("gives the shell the module a raw .vue file imports, so they share a key", async () => {
+    const shell = await importOf("/main.js", "types");
+    const field = await importOf("/node_modules/@framework/ui/src/Field.vue", "types");
+    expect(field).toMatch(/\/node_modules\/@framework\/ui\/src\/types\.ts/);
+    expect(shell).toBe(field);
   });
 });

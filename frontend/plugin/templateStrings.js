@@ -7,13 +7,11 @@ import { compileScript, TEMPLATE_KEY } from "../templateCompiler/compileScript.m
 const APP_FILE = /^[^?]*\.[jt]s$/;
 
 export default function templateStrings() {
-	const compile = { name: "frappe-template-strings", transform };
 	return {
-		...compile,
+		name: "frappe-template-strings",
 		// Before vite strips types, so an error's line is the author's line in a `.ts` file.
 		enforce: "pre",
-		// In dev, `@framework/ui` is pre-bundled, and vite plugins do not run inside the pre-bundle.
-		config: () => ({ optimizeDeps: { rolldownOptions: { plugins: [compile] } } }),
+		transform,
 	};
 }
 
