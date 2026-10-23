@@ -1292,10 +1292,7 @@ class Document(_DocumentBase):
 		# If autoname has set as Prompt (name)
 		if self.get("__newname") and autoname.lower() == "prompt":
 			self.name = validate_name(self.doctype, self.get("__newname"))
-			self.flags.name_set = True
-			return
-
-		if set_name:
+		elif set_name:
 			self.name = validate_name(self.doctype, set_name)
 		else:
 			set_new_name(self)
