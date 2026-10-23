@@ -56,6 +56,7 @@ function add_email_account_dialog() {
 		.filter(Boolean)
 		.sort((a, b) => rank(a) - rank(b));
 	let one_click = {};
+	let loaded = false;
 	let picked;
 
 	const open_form = (service) => {
@@ -121,7 +122,7 @@ function add_email_account_dialog() {
 			$tile.attr("aria-pressed", "true");
 			picked = [service, label];
 			set_actions(service, label);
-			d.enable_primary_action();
+			if (loaded) d.enable_primary_action();
 		});
 	};
 
@@ -146,9 +147,12 @@ function add_email_account_dialog() {
 	d.show();
 	frappe
 		.xcall("frappe.integrations.frappe_providers.email_oauth.get_one_click_services")
-		.then((services) => {
-			one_click = services;
-			if (picked) set_actions(...picked);
+		.then((services) => (one_click = services))
+		.finally(() => {
+			loaded = true;
+			if (!picked) return;
+			set_actions(...picked);
+			d.enable_primary_action();
 		});
 }
 
