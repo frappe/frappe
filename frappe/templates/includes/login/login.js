@@ -297,9 +297,12 @@ login.login_handlers = (function () {
 	const get_server_message = function (data) {
 		return $.map(JSON.parse(data._server_messages || '[]'), function (v) {
 			try {
-				return JSON.parse(v).message;
+				v = JSON.parse(v);
 			} catch (e) {
-				return v;
+				return;
+			}
+			if (v.raise_exception) {
+				return v.message;
 			}
 		}).join('<br>');
 	}
@@ -310,7 +313,7 @@ login.login_handlers = (function () {
 				data = xhr.responseJSON;
 			}
 
-			var message = get_server_message(data) || data.message || default_message;
+			var message = get_server_message(data) || default_message;
 			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
@@ -348,7 +351,7 @@ login.login_handlers = (function () {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
 				login.set_status({{ _("Sent") | tojson }}, 'green');
-				login.show_success_banner(get_server_message(data));
+				login.show_success_banner({{ _("If this email is registered with us, we have sent password reset instructions to it. Please check your inbox.") | tojson }});
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.hide_loading();
