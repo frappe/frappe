@@ -52,7 +52,7 @@
 				</form>
 			</template>
 			<template v-else>
-				<h3 :id="headingId" class="mb-3 mt-6 text-base-medium text-ink-gray-8">
+				<h3 :id="headingId" class="mb-3 mt-6 text-base-semibold text-ink-gray-8">
 					{{ __("Choose your email provider") }}
 				</h3>
 				<div

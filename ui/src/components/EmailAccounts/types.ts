@@ -1,6 +1,6 @@
 export type AuthKind = "password" | "frappe-mail" | "oauth" | "oauth-custom";
 
-/** An account's state, shown in the list's status badge. */
+/** An account's state, shown on its card in the list. */
 export type AccountStatus = "active" | "needs-reconnect";
 
 export interface EmailAccountDoc {

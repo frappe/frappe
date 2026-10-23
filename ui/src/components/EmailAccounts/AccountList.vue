@@ -82,130 +82,163 @@
 				</template>
 			</Banner>
 			<template v-else>
-				<p class="mt-6 text-sm text-ink-gray-5">
-					{{ __("Email account name") }}
-				</p>
-				<ul
-					ref="rows"
-					:aria-labelledby="ids.heading"
-					class="mt-2 divide-y divide-outline-gray-2 border-t border-outline-gray-2"
-				>
-					<li v-for="account in controller.accounts" :key="account.name">
-						<div class="-mx-3 flex rounded-4 hover:bg-surface-gray-1">
-							<!-- frappe-ui has no clickable list row; ItemListRow is for listboxes -->
-							<button
-								type="button"
-								class="flex min-w-0 flex-1 items-center gap-3 rounded-4 px-3 text-start -outline-offset-2"
-								@click="emit('open', account.name)"
-							>
-								<span class="flex h-14 min-w-0 flex-1 items-center gap-3">
-									<Avatar size="xl">
-										<img
-											v-if="serviceOf(account).logo"
-											:src="serviceOf(account).logo"
-											alt=""
-											class="size-full object-contain"
-										/>
-										<span
-											v-else
-											class="lucide-mail block size-full text-ink-gray-6"
-											aria-hidden="true"
-										/>
-									</Avatar>
-									<span class="flex min-w-0 flex-col">
-										<span class="truncate text-base-medium text-ink-gray-7">
-											{{ account.email_account_name }}
-										</span>
-										<span
-											v-if="account.status === 'needs-reconnect'"
-											class="mt-1 flex items-center gap-1 text-sm text-ink-amber-8"
-										>
-											<span
-												class="lucide-triangle-alert size-3.5 shrink-0"
-												aria-hidden="true"
-											/>
-											<span class="truncate">
-												{{
-													reconnectable(account)
-														? __("Mailbox signed out. Reconnect it.")
-														: __(
-																"Mailbox signed out. Reconnect it in Desk."
-														  )
-												}}
-											</span>
-										</span>
-										<span v-else class="mt-1 truncate text-sm text-ink-gray-5">
-											{{ subtitle(account) }}
-										</span>
-									</span>
-								</span>
-								<Badge
-									v-if="manualSetup(account)"
-									theme="gray"
-									:label="__('Manual setup')"
-								/>
-								<Badge v-bind="statusBadge(account)" />
-							</button>
-						</div>
-					</li>
-				</ul>
-
-				<h3 class="mt-8 text-base-semibold text-ink-gray-9">
-					{{ __("Default settings") }}
-				</h3>
-				<!-- SettingsRow can't take the smaller text-p-sm description these settings use -->
-				<div class="flex flex-col divide-y divide-outline-gray-2">
-					<div class="flex items-center gap-8 py-3.5">
-						<div class="min-w-0 flex-1">
-							<label
-								:for="ids.incoming"
-								class="block text-base-medium leading-tighter text-ink-gray-8"
-							>
-								{{ __("Default incoming") }}
-							</label>
-							<p class="mt-1 text-p-sm text-ink-gray-6">
-								{{
-									__(
-										"If enabled, all replies to your company (eg: replies@yourcompany.com) will come to this account. Note: Only one account can be default incoming."
-									)
-								}}
-							</p>
-						</div>
+				<div class="mt-6 grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4">
+					<div class="flex min-w-0 flex-col gap-1.5">
+						<label :for="ids.incoming" class="text-sm text-ink-gray-7">
+							{{ __("Default incoming") }}
+						</label>
 						<Select
 							:id="ids.incoming"
 							:model-value="defaultOf('incoming')"
 							:options="defaultOptions('enable_incoming')"
-							class="w-56 shrink-0"
 							align="end"
 							@update:model-value="(v) => setDefault('incoming', v)"
 						/>
 					</div>
-					<div class="flex items-center gap-8 py-3.5">
-						<div class="min-w-0 flex-1">
-							<label
-								:for="ids.outgoing"
-								class="block text-base-medium leading-tighter text-ink-gray-8"
-							>
-								{{ __("Default outgoing") }}
-							</label>
-							<p class="mt-1 text-p-sm text-ink-gray-6">
-								{{
-									__(
-										"If enabled, all outgoing emails will be sent from this account. Note: Only one account can be default outgoing."
-									)
-								}}
-							</p>
-						</div>
+					<div class="flex min-w-0 flex-col gap-1.5">
+						<label :for="ids.outgoing" class="text-sm text-ink-gray-7">
+							{{ __("Default outgoing") }}
+						</label>
 						<Select
 							:id="ids.outgoing"
 							:model-value="defaultOf('outgoing')"
 							:options="defaultOptions('enable_outgoing')"
-							class="w-56 shrink-0"
 							align="end"
 							@update:model-value="(v) => setDefault('outgoing', v)"
 						/>
 					</div>
 				</div>
+
+				<div class="mt-8 flex items-center gap-2">
+					<h3 :id="ids.mailboxes" class="text-base-semibold text-ink-gray-8">
+						{{ __("Mailboxes") }}
+					</h3>
+					<Badge theme="gray" :label="String(controller.accounts.length)" />
+				</div>
+				<ul
+					ref="rows"
+					:aria-labelledby="ids.mailboxes"
+					class="mt-3 grid grid-cols-[repeat(auto-fill,minmax(16rem,1fr))] gap-4 pb-4"
+				>
+					<li
+						v-for="(account, i) in controller.accounts"
+						:key="account.name"
+						class="flex min-w-0 flex-col overflow-hidden rounded-6 border border-outline-gray-2"
+					>
+						<!-- frappe-ui has no clickable card; ItemListRow is for listboxes -->
+						<button
+							type="button"
+							data-open
+							class="flex min-w-0 items-center gap-3 rounded-t-6 p-3 text-start -outline-offset-2 hover:bg-surface-gray-1"
+							@click="emit('open', account.name)"
+						>
+							<Avatar size="lg">
+								<img
+									v-if="serviceOf(account).logo"
+									:src="serviceOf(account).logo"
+									alt=""
+									class="size-full object-contain"
+								/>
+								<span
+									v-else
+									class="lucide-mail block size-full text-ink-gray-6"
+									aria-hidden="true"
+								/>
+							</Avatar>
+							<span class="flex min-w-0 flex-1 flex-col gap-1">
+								<span
+									:id="`${ids.mailboxes}-${i}`"
+									class="line-clamp-2 text-base-medium text-ink-gray-8 [overflow-wrap:anywhere]"
+								>
+									<!-- a long address breaks before its domain, not mid-word -->
+									<template
+										v-for="(part, j) in account.email_account_name.split('@')"
+										:key="j"
+										><wbr v-if="j" />{{ j ? "@" : "" }}{{ part }}</template
+									>
+								</span>
+								<span class="truncate text-sm text-ink-gray-5">
+									{{
+										manualSetup(account)
+											? `${subtitle(account)} · ${__("Manual setup")}`
+											: subtitle(account)
+									}}
+								</span>
+							</span>
+							<Badge
+								v-if="account.status === 'needs-reconnect'"
+								class="shrink-0 self-start"
+								theme="amber"
+								:label="__('Needs reconnect')"
+							/>
+							<Badge
+								v-else-if="!account.enable_incoming && !account.enable_outgoing"
+								class="shrink-0 self-start"
+								theme="gray"
+								:label="__('Disabled')"
+							/>
+						</button>
+						<div
+							role="group"
+							:aria-labelledby="`${ids.mailboxes}-${i}`"
+							class="flex min-h-11 flex-wrap items-center gap-x-5 gap-y-2 border-t border-outline-gray-2 px-3 py-2"
+						>
+							<template v-if="account.status === 'needs-reconnect'">
+								<span
+									class="flex min-w-0 flex-1 items-start gap-1.5 text-p-sm text-ink-amber-8"
+								>
+									<span
+										class="lucide-triangle-alert size-4 shrink-0"
+										aria-hidden="true"
+									/>
+									{{ __("Mailbox signed out, mail has stopped") }}
+								</span>
+								<Button
+									v-if="reconnectable(account)"
+									class="shrink-0"
+									variant="solid"
+									:label="__('Reconnect')"
+									:loading="reconnecting === account.name"
+									:disabled="Boolean(reconnecting)"
+									@click="reconnect(account, $event)"
+								/>
+								<Button
+									v-else
+									class="shrink-0"
+									variant="outline"
+									icon-right="lucide-arrow-up-right"
+									:href="deskUrl(account.name)"
+								>
+									{{ __("Open in Desk") }}
+									<span class="sr-only">{{ __("(opens in new tab)") }}</span>
+								</Button>
+							</template>
+							<template v-else>
+								<Switch
+									control-position="start"
+									:label="__('Receive')"
+									:model-value="Boolean(account.enable_incoming)"
+									:disabled="
+										serviceOf(account).outgoingOnly ||
+										saving.has(account.name + 'enable_incoming')
+									"
+									@update:model-value="
+										(on) => toggle(account, 'enable_incoming', on)
+									"
+								/>
+								<Switch
+									control-position="start"
+									:label="__('Send')"
+									:model-value="Boolean(account.enable_outgoing)"
+									:disabled="saving.has(account.name + 'enable_outgoing')"
+									@update:model-value="
+										(on) => toggle(account, 'enable_outgoing', on)
+									"
+								/>
+							</template>
+						</div>
+					</li>
+				</ul>
 			</template>
 		</ScrollArea>
 	</div>
@@ -218,18 +251,18 @@ const logoIcons = new Map<string, FunctionalComponent>();
 </script>
 
 <script setup lang="ts">
-import { Avatar, Badge, Button, ScrollArea, Select, Spinner, toast } from "frappe-ui";
+import { Avatar, Badge, Button, ScrollArea, Select, Spinner, Switch, toast } from "frappe-ui";
 import { computed, h, nextTick, onMounted, reactive, ref, useId } from "vue";
 import { translate as __ } from "../../utils/translate";
 import Banner from "./Banner.vue";
 import {
+	deskUrl,
 	errorText,
 	manualSetup,
 	oauthHelpLink,
 	oauthMessage,
 	reconnectable,
 	serviceOf,
-	statusBadge,
 	subtitle,
 } from "./services";
 import type { EmailAccount, EmailAccountsController } from "./types";
@@ -248,7 +281,7 @@ const oauthResult = defineModel<string | null>("oauthResult");
 const helpLink = computed(
 	() => oauthResult.value && oauthHelpLink(oauthResult.value, props.oauthProvider)
 );
-const ids = { heading: useId(), incoming: useId(), outgoing: useId() };
+const ids = { heading: useId(), incoming: useId(), outgoing: useId(), mailboxes: useId() };
 
 const newButton = ref<{ $el: HTMLElement }>();
 const loadError = ref<{ $el: HTMLElement }>();
@@ -256,7 +289,7 @@ const rows = ref<HTMLElement>();
 onMounted(() => {
 	if (props.focus === undefined) return;
 	const i = props.controller.accounts.findIndex((a) => a.name === props.focus);
-	(rows.value?.querySelectorAll("li button")[i] ?? newOrRetry())?.focus();
+	(rows.value?.querySelectorAll<HTMLElement>("[data-open]")[i] ?? newOrRetry())?.focus();
 });
 
 function newOrRetry() {
@@ -298,6 +331,38 @@ function logoIcon(account: EmailAccount) {
 		logoIcons.set(logo, icon);
 	}
 	return icon;
+}
+
+const saving = reactive(new Set<string>());
+async function toggle(
+	account: EmailAccount,
+	field: "enable_incoming" | "enable_outgoing",
+	on: boolean
+) {
+	const key = account.name + field;
+	saving.add(key);
+	try {
+		// turning a direction off also clears the account's default for it, on save
+		await props.controller.update(account, { [field]: on ? 1 : 0 });
+	} catch (e) {
+		toast.error(errorText(e) || __("Couldn't update the email account"));
+	} finally {
+		saving.delete(key);
+	}
+}
+
+const reconnecting = ref<string>();
+async function reconnect(account: EmailAccount, event: MouseEvent) {
+	const button = event.currentTarget as HTMLElement;
+	reconnecting.value = account.name;
+	try {
+		await props.controller.reconnect(account);
+	} catch (e) {
+		toast.error(errorText(e) || __("Couldn't connect. Please try again."));
+		reconnecting.value = undefined;
+		await nextTick();
+		if (document.activeElement === document.body) button.focus();
+	}
 }
 
 const pending = reactive<{ incoming?: string; outgoing?: string }>({});

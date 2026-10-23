@@ -324,18 +324,6 @@ export function authKind(account: EmailAccountDoc): AuthKind {
     : "oauth-custom";
 }
 
-export function statusBadge(
-  account: Pick<EmailAccount, "status" | "enable_incoming" | "enable_outgoing">,
-): { label: string; theme: "amber" | "gray" | "blue" } {
-  if (account.status === "needs-reconnect")
-    return { label: __("Needs reconnect"), theme: "amber" };
-  if (!account.enable_incoming && !account.enable_outgoing)
-    return { label: __("Disabled"), theme: "gray" };
-  if (!account.enable_outgoing) return { label: __("Incoming only"), theme: "blue" };
-  if (!account.enable_incoming) return { label: __("Outgoing only"), theme: "blue" };
-  return { label: __("Incoming & outgoing"), theme: "blue" };
-}
-
 /**
  * Text for a sign-in result, in the words of the provider that signed in when it has its own;
  * both come from the URL, so neither is ever shown as is.

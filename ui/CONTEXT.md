@@ -132,14 +132,15 @@ sign-in, whose Connected App's token URI starts with `frappe-cloud-relay:`), or
 **OAuth: custom app** (a Connected App the site set up itself).
 
 **Account status**:
-An account's state, shown in the list's status badge. **Needs reconnect**: an OAuth account
-with no token left (Frappe drops the token when the provider rejects its refresh).
-Anything else is **Active**, and its badge says which way it works: **Incoming & outgoing**,
-**Incoming only**, **Outgoing only**, or **Disabled** when neither.
+An account's state, shown on its card in the list. **Needs reconnect**: an OAuth account
+with no token left (Frappe drops the token when the provider rejects its refresh); its card
+has a badge and a Reconnect footer instead of the toggles. Anything else is **Active**, and
+its card's **Receive** and **Send** toggles say which way it works, with a **Disabled** badge
+when both are off.
 
 **Manual setup**:
-A **Password** or **OAuth: custom app** account on a Frappe Cloud v2 site, badged in the list
-and on its edit screen to tell it from one-click sign-in. Not shown elsewhere, where every
+A **Password** or **OAuth: custom app** account on a Frappe Cloud v2 site, noted under its card's
+address and badged on its edit screen to tell it from one-click sign-in. Not shown elsewhere, where every
 account is set up by hand.
 
 **Reconnect**:

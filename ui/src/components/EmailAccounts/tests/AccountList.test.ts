@@ -62,22 +62,26 @@ it("offers reconnect for an own OAuth app anywhere, and for a Frappe Cloud sign-
     authKind,
     status: "needs-reconnect",
   });
-  const notices = () =>
-    [...root.querySelectorAll(".text-ink-amber-8 .truncate")].map((n) => n.textContent?.trim());
+  const actions = () =>
+    [...root.querySelectorAll("li")].map((li) =>
+      li.textContent?.includes("Open in Desk") ? "desk" : li.textContent?.includes("Reconnect") ? "reconnect" : null,
+    );
   const accounts = [signedOut("Support", "oauth"), signedOut("Legacy", "oauth-custom")];
 
   remount({ accounts });
-  expect(notices()).toEqual([
-    "Mailbox signed out. Reconnect it in Desk.",
-    "Mailbox signed out. Reconnect it.",
-  ]);
+  expect(actions()).toEqual(["desk", "reconnect"]);
 
   vi.stubGlobal("is_v2_site", true);
   remount({ accounts });
-  expect(notices()).toEqual([
-    "Mailbox signed out. Reconnect it.",
-    "Mailbox signed out. Reconnect it.",
-  ]);
+  expect(actions()).toEqual(["reconnect", "reconnect"]);
+});
+
+it("turns a direction on from its card's toggle", async () => {
+  const update = vi.fn().mockResolvedValue(undefined);
+  remount({ update });
+  (root.querySelectorAll('li [role="switch"]')[0] as HTMLButtonElement).click();
+  await new Promise((resolve) => setTimeout(resolve));
+  expect(update).toHaveBeenCalledWith(expect.objectContaining({ name: "Sales" }), { enable_incoming: 1 });
 });
 
 it("badges a manually set up account on Frappe Cloud V2, not a one-click one", () => {
