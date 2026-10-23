@@ -1172,6 +1172,26 @@ class TestSchedulerUtils(BaseTestCommands):
 			self.assertEqual(result.exit_code, 0)
 
 
+def _run_console_session(site, cells, args):
+	from IPython.terminal.embed import InteractiveShellEmbed
+
+	entered = []
+
+	def interact(shell):
+		frappe.set_user("Guest")
+		for cell in cells:
+			shell.run_cell(cell).raise_error()
+		entered.append(True)
+
+	with patch.object(InteractiveShellEmbed, "interact", interact):
+		result = CliRunner().invoke(frappe.commands.utils.console, args=args, obj=frappe._dict(sites=[site]))
+	if result.exception:
+		print(result.output)
+		raise result.exception
+	assert result.exit_code == 0, result.output
+	assert entered, "The console did not enter its interactive shell"
+
+
 class TestCommandUtils(IntegrationTestCase):
 	def test_bench_helper(self):
 		from frappe.utils.bench_helper import get_app_groups
@@ -1179,6 +1199,65 @@ class TestCommandUtils(IntegrationTestCase):
 		app_groups = get_app_groups()
 		self.assertIn("frappe", app_groups)
 		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+	def run_console(self, cells, autoreload=False):
+		# Isolate IPython's singleton and the console's atexit cleanup from the test runner.
+		result = subprocess.run(
+			[
+				sys.executable,
+				"-c",
+				"import json, sys, frappe; frappe.init(sys.argv[1]); "
+				"from frappe.commands.test_commands import _run_console_session; "
+				"_run_console_session(sys.argv[1], json.loads(sys.argv[2]), json.loads(sys.argv[3]))",
+				frappe.local.site,
+				json.dumps(cells),
+				json.dumps(["--autoreload"] if autoreload else []),
+			],
+			capture_output=True,
+			text=True,
+			timeout=30,
+		)
+		self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+	def test_console_frappe_and_database(self):
+		self.run_console(
+			[
+				"assert frappe.__name__ == 'frappe'",
+				f"assert frappe.local.site == {frappe.local.site!r}",
+				"assert frappe.session.user == 'Guest'",
+				"assert frappe.db.get_value('User', 'Guest', 'name') == 'Guest'",
+				"def query_guest(): return frappe.db.get_value('User', 'Guest', 'name')",
+				"assert query_guest() == 'Guest'",
+			]
+		)
+
+	def test_console_does_not_expose_command_locals(self):
+		self.run_console(
+			[
+				"assert not {'context', 'site', 'autoreload', 'register', 'terminal', "
+				"'all_apps', 'failed_to_import', 'app', 'InteractiveShellEmbed', 'ultratb'} "
+				"& (set(locals()) | set(globals()))",
+			]
+		)
+
+	def test_console_functions_share_namespace(self):
+		for autoreload in (False, True):
+			with self.subTest(autoreload=autoreload):
+				self.run_console(
+					[
+						"value = 10",
+						"def first(): return value",
+						"def second(): return first()",
+						"assert second() == 10",
+						"value = 20",
+						"assert second() == 20",
+						"from collections import Counter",
+						"def count_values(): return Counter(first() for _ in range(3))",
+						"assert count_values() == {20: 3}",
+						"assert [first() for _ in range(3)] == [20, 20, 20]",
+					],
+					autoreload=autoreload,
+				)
 
 
 class TestTrimDatabase(IntegrationTestCase):
