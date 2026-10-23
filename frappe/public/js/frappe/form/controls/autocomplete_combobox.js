@@ -205,8 +205,9 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 		// keep the clear waiting until the check is done
 		cb.hold_clear();
 		this.pending_text = query;
-		// a later close starts its own check
+		// a later close starts its own check; a later search owns the list
 		const lookup = (this.lookup = {});
+		const seq = (this.query_seq = (this.query_seq || 0) + 1);
 		const settle = (match) => {
 			// outdated: don't let a waiting save run
 			if (this.lookup !== lookup) return false;
@@ -226,7 +227,7 @@ frappe.ui.form.ControlAutocompleteCombobox = class ControlAutocompleteCombobox e
 			.then((data) => {
 				if (current() !== value_at_close) return settle(null);
 				// validate() reads this list
-				this._data = data;
+				if (seq === this.query_seq) this._data = data;
 				return settle(frappe.ui.Combobox.match_in(this.to_options(data), query));
 			})
 			.catch(() => settle(null));

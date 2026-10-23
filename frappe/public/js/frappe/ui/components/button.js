@@ -52,7 +52,8 @@ function button_html(opts = {}) {
 	const icon_left_name = opts.icon_left || opts.icon;
 	const icon_only = Boolean((icon_left_name || opts.icon_right) && !opts.label);
 
-	const href = safe_href(opts.href, "button");
+	// a disabled link can't be blocked, so it stays a disabled button
+	const href = opts.disabled ? null : safe_href(opts.href, "button");
 	// a link keeps the button's look but none of a button's attributes
 	const attrs = href ? [`href="${escape(href)}"`] : [`type="${escape(opts.type || "button")}"`];
 	// omit attributes that equal the CSS defaults (subtle / sm / gray)
