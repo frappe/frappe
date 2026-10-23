@@ -20,7 +20,6 @@
 // the list, the eye and the shape of a saved row, is the same whichever layer is on screen.
 const RESET_FOR_EVERYONE = "frappe.desk.doctype.dock.dock.reset_dock_for_everyone";
 const MARK_AS_STANDARD = "frappe.desk.doctype.dock.dock.mark_as_standard";
-const ADD_MODULE = "frappe.desk.doctype.dock.dock.add_module";
 
 const DOCK_LAYERS = {
 	user: {
@@ -547,52 +546,21 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 			? this.arranged_rows((key, hidden) => this.stored_row(key, hidden))
 			: [];
 
-		return { app: this.app.app_name, items: JSON.stringify(mine) };
-	}
-
-	async save() {
-		if (!this.loaded || this.saving) return false;
-		this.saving = true;
-		try {
-			await this.create_new_modules();
-		} finally {
-			this.saving = false;
-		}
-		return super.save();
-	}
-
-	// The modules Add put on the rail, created before any write that names them. Each creation
-	// returns the desk's pages and sidebars, swapped in at once so the new tile resolves on the
-	// rail and its Home page routes.
-	//
-	// A row a layer adds stores an icon of its own. The icon picked in Add goes to the new module's
-	// page too, so its sidebar header matches; without one, the tile takes the icon the module's
-	// sidebar resolved to.
-	async create_new_modules() {
-		for (const module of this.new_modules) {
-			const key = this.all_keys().find((k) => this.entries.get(k).link_to === module);
-			const entry = this.entries.get(key);
-			const icon = entry?.icon;
-			const payload = await frappe.xcall(ADD_MODULE, {
-				app: this.app.app_name,
-				module,
-				...(icon ? { icon } : {}),
-			});
-			this.new_modules.delete(module);
-			frappe.boot.workspaces = payload.workspace_pages;
-			frappe.app.setup_workspaces();
-			frappe.boot.module_sidebars = payload.module_sidebars;
-			frappe.boot.entity_module = payload.entity_module;
-			frappe.app.sidebar.all_sidebar_items = frappe.boot.module_sidebars;
-
-			if (entry && !entry.icon) entry.icon = payload.module_sidebars[module]?.header_icon;
-		}
+		// The modules Add put on the rail are created by the same request, so a save that fails
+		// leaves none behind.
+		const modules = [...this.new_modules];
+		return {
+			app: this.app.app_name,
+			items: JSON.stringify(mine),
+			...(modules.length ? { modules: JSON.stringify(modules) } : {}),
+		};
 	}
 
 	// Both saves return this app's resolved rail, its own dock with the site's arrangement and
 	// this user's on top, so the rail can be redrawn in place whichever layer was written. Only
 	// this app's key is replaced, because only this app's document was saved.
-	apply(rail) {
+	apply(result) {
+		const rail = this.take_new_modules(result);
 		frappe.boot.dock = { ...(frappe.boot.dock || {}), [this.app.app_name]: rail };
 		frappe.app.sidebar.refresh_dock();
 		// The header draws the module's icon from this rail too.
@@ -673,6 +641,20 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		this.render_list();
 	}
 
+	// A save that created modules returns the desk's pages and sidebars with the rail, swapped in
+	// so the new tile resolves on the rail and its Home page routes.
+	take_new_modules(result) {
+		if (!result?.rail) return result;
+
+		this.new_modules.clear();
+		frappe.boot.workspaces = result.workspace_pages;
+		frappe.app.setup_workspaces();
+		frappe.boot.module_sidebars = result.module_sidebars;
+		frappe.boot.entity_module = result.entity_module;
+		frappe.app.sidebar.all_sidebar_items = frappe.boot.module_sidebars;
+		return result.rail;
+	}
+
 	// Author's promotion: write this app's dock into the app as a file so git carries it.
 	//
 	// This is the dock's promotion, not the sidebar's. `Sidebar.mark_as_standard` builds a stored
@@ -685,8 +667,7 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		// Save first. Promotion reads what is stored, so exporting with unsaved drags on screen
 		// would silently ship the arrangement the author had before they started, which is the
 		// worst way to be wrong about a file that goes into git.
-		await this.create_new_modules();
-		await frappe.xcall(this.layer_config.save, this.save_args());
+		this.take_new_modules(await frappe.xcall(this.layer_config.save, this.save_args()));
 		await frappe.xcall(MARK_AS_STANDARD, { app: this.app.app_name });
 		// The app now ships a dock, so the third value in the switch has something to write to.
 		this.layer = "app";

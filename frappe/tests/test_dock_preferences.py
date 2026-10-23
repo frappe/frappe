@@ -14,7 +14,6 @@ from frappe.boot import get_app_modules, get_module_sidebars
 from frappe.desk.doctype.dock.dock import (
 	DOCK_ITEM_FIELDS,
 	Dock,
-	add_module,
 	destination,
 	dock_key,
 	docked_apps,
@@ -2247,15 +2246,25 @@ class TestAddModule(IntegrationTestCase):
 
 	def tearDown(self):
 		frappe.set_user("Administrator")
+		frappe.db.delete("Dock", {"user": ["in", [self.MANAGER, self.DESK_USER]]})
 		for name in frappe.get_all("Workspace", {"module": self.MODULE}, pluck="name"):
 			frappe.delete_doc("Workspace", name, force=True)
 		frappe.delete_doc("Module Def", self.MODULE, force=True, ignore_missing=True)
 		for email in (self.MANAGER, self.DESK_USER):
 			frappe.delete_doc("User", email, force=True, ignore_missing=True)
 
+	def save(self, icon=None, save=save_user_dock):
+		row = {"link_type": "Sidebar", "link_to": self.MODULE, "title": self.MODULE, "added": 1}
+		if icon:
+			row["icon"] = icon
+		return save("frappe", json.dumps([row]), json.dumps([self.MODULE]))
+
+	def saved_row(self):
+		return next(row for row in get_user_dock("frappe", self.MANAGER) if row["link_to"] == self.MODULE)
+
 	def test_creates_a_custom_module_in_the_app_with_a_page_to_open_on(self):
 		frappe.set_user(self.MANAGER)
-		payload = add_module("frappe", self.MODULE)
+		payload = self.save()
 		frappe.set_user("Administrator")
 
 		module = frappe.get_doc("Module Def", self.MODULE)
@@ -2265,11 +2274,34 @@ class TestAddModule(IntegrationTestCase):
 		# it without a reload.
 		self.assertEqual(payload["module_sidebars"][self.MODULE]["app"], "frappe")
 		self.assertIn(self.MODULE, [page["name"] for page in payload["workspace_pages"]["pages"]])
+		self.assertIn(self.MODULE, [entry.get("link_to") for entry in payload["rail"]])
+
+	def test_puts_the_icon_picked_on_the_tile_and_the_page(self):
+		frappe.set_user(self.MANAGER)
+		self.save(icon="tent")
+		frappe.set_user("Administrator")
+
+		self.assertEqual(self.saved_row()["icon"], "tent")
+		self.assertEqual(frappe.db.get_value("Workspace", {"module": self.MODULE}, "icon"), "tent")
+
+	def test_gives_a_tile_with_no_icon_the_one_its_sidebar_falls_back_to(self):
+		frappe.set_user(self.MANAGER)
+		self.save()
+		frappe.set_user("Administrator")
+
+		self.assertEqual(self.saved_row()["icon"], DEFAULT_HEADER_ICON)
 
 	def test_needs_the_right_to_create_a_module(self):
 		frappe.set_user(self.DESK_USER)
 		with self.assertRaises(frappe.PermissionError):
-			add_module("frappe", self.MODULE)
+			self.save()
+		frappe.set_user("Administrator")
+		self.assertFalse(frappe.db.exists("Module Def", self.MODULE))
+
+	def test_a_save_that_is_refused_creates_no_module(self):
+		frappe.set_user(self.DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			self.save(save=save_site_dock)
 		frappe.set_user("Administrator")
 		self.assertFalse(frappe.db.exists("Module Def", self.MODULE))
 

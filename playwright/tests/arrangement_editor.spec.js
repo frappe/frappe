@@ -736,15 +736,13 @@ test.describe("Arrangement editor: an app's dock", () => {
 			.click();
 	}
 
-	test("adds a module by name, created on Save before the layer that names it", async ({
-		page,
-	}) => {
-		const ADD_MODULE = "frappe.desk.doctype.dock.dock.add_module";
+	// A save that creates modules answers with the desk state they change, the rail inside it.
+	async function stub_save_with_modules(page) {
 		await stub_xcall(page, {
 			[READ]: modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
 			[BASE]: [],
-			[SAVE]: await page.evaluate(() => frappe.boot.dock),
-			[ADD_MODULE]: await page.evaluate(() => ({
+			[SAVE]: await page.evaluate(() => ({
+				rail: frappe.boot.dock,
 				workspace_pages: frappe.boot.workspaces,
 				module_sidebars: {
 					...frappe.boot.module_sidebars,
@@ -756,61 +754,40 @@ test.describe("Arrangement editor: an app's dock", () => {
 		await page.evaluate(
 			() => (frappe.model.can_create = (doctype) => doctype === "Module Def")
 		);
+	}
+
+	test("adds a module by name, created by the Save that names it", async ({ page }) => {
+		await stub_save_with_modules(page);
 		await open_dock_editor(page);
 
 		await add_module_named(page, "Field Trips");
 		await expect(tiles(page)).toHaveCount(modules.length + 1);
 		// Nothing is created until Save, so Cancel would leave nothing behind.
-		expect(await stubbed_calls(page)).not.toContain(ADD_MODULE);
+		expect((await stubbed_calls(page)).filter((m) => m !== READ && m !== BASE)).toEqual([]);
 
 		await bar_button(page, "Save").click();
 		const rows = await saved_rows(page, SAVE);
-		// A row a layer adds stores an icon of its own, so it takes the new module's.
 		expect(rows.find((row) => row.link_to === "Field Trips")).toMatchObject({
 			added: 1,
-			icon: "folder",
 			title: "Field Trips",
 		});
+		// One request creates the module and stores the row, so a failed save leaves neither.
 		expect((await stubbed_calls(page)).filter((m) => m !== READ && m !== BASE)).toEqual([
-			ADD_MODULE,
 			SAVE,
 		]);
-		expect(await saved_args(page, ADD_MODULE)).toEqual({
-			app: "frappe",
-			module: "Field Trips",
-		});
+		expect(JSON.parse((await saved_args(page, SAVE)).modules)).toEqual(["Field Trips"]);
+		await expect
+			.poll(() => page.evaluate(() => frappe.boot.module_sidebars["Field Trips"]?.app))
+			.toBe("frappe");
 	});
 
-	test("gives a new module the icon picked in Add, on its tile and its page", async ({
-		page,
-	}) => {
-		const ADD_MODULE = "frappe.desk.doctype.dock.dock.add_module";
-		await stub_xcall(page, {
-			[READ]: modules.map((name) => ({ link_type: "Sidebar", link_to: name, hidden: 0 })),
-			[BASE]: [],
-			[SAVE]: await page.evaluate(() => frappe.boot.dock),
-			[ADD_MODULE]: await page.evaluate(() => ({
-				workspace_pages: frappe.boot.workspaces,
-				module_sidebars: {
-					...frappe.boot.module_sidebars,
-					"Field Trips": { name: "Field Trips", app: "frappe", header_icon: "tent" },
-				},
-				entity_module: frappe.boot.entity_module,
-			})),
-		});
-		await page.evaluate(
-			() => (frappe.model.can_create = (doctype) => doctype === "Module Def")
-		);
+	test("sends the icon picked in Add with the new module's row", async ({ page }) => {
+		await stub_save_with_modules(page);
 		await open_dock_editor(page);
 
 		await add_module_named(page, "Field Trips", "tent");
 		await bar_button(page, "Save").click();
 
-		expect(await saved_args(page, ADD_MODULE)).toEqual({
-			app: "frappe",
-			module: "Field Trips",
-			icon: "tent",
-		});
 		const rows = await saved_rows(page, SAVE);
 		expect(rows.find((row) => row.link_to === "Field Trips")).toMatchObject({ icon: "tent" });
 	});
