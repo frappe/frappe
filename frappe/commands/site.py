@@ -1350,6 +1350,7 @@ def browse(
 ):
 	"""Opens the site on web browser"""
 	import webbrowser
+	from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
 
 	from frappe.auth import CookieManager, LoginManager
 
@@ -1376,7 +1377,9 @@ def browse(
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = frappe.session.sid
 			# frappe.local.response.home_page is set in LoginManager.login_as()
-			login_path = f"{frappe.local.response.home_page}?sid={sid}"
+			home_page = urlparse(frappe.local.response.home_page)
+			query = urlencode(dict(parse_qsl(home_page.query)) | {"sid": sid})
+			login_path = urlunparse(home_page._replace(query=query))
 		else:
 			click.echo(
 				"Only browsing as Administrator is supported outside development environments.", err=True

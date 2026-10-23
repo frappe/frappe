@@ -264,6 +264,18 @@ class TestCommands(BaseTestCommands):
 				self.assertEqual(result.exit_code, 0)
 				self.assertIn("/me?sid=", result.output)
 
+	def test_browse_keeps_query_and_fragment_of_home_page(self):
+		user = self.make_browse_website_user()
+		frappe.db.set_single_value("Portal Settings", "default_portal_home", "me?view=list#tab")
+		frappe.db.commit()
+		self.addCleanup(frappe.db.set_single_value, "Portal Settings", "default_portal_home", None)
+		self.addCleanup(frappe.db.commit)
+		frappe.cache.hdel("home_page", user)
+		with patch.dict(frappe.conf, {"developer_mode": 1}), patch("webbrowser.open"):
+			with cli(frappe.commands.site.browse, [frappe.local.site, "--user", user]) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertRegex(result.output, r"/me\?view=list&sid=[^&#\s]+#tab")
+
 	def test_browse_refuses_non_admin_without_developer_mode(self):
 		user = self.make_browse_website_user()
 		with patch.dict(frappe.conf, {"developer_mode": 0}), patch("webbrowser.open") as launch:
@@ -318,6 +330,7 @@ class TestCommands(BaseTestCommands):
 		return email
 
 	def delete_browse_user(self, email):
+		frappe.cache.hdel("home_page", email)
 		frappe.sessions.clear_sessions(email, force=True)
 		frappe.delete_doc("User", email, ignore_permissions=True, force=True)
 		frappe.db.commit()
