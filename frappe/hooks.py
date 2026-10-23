@@ -66,8 +66,7 @@ website_route_rules = [
 	{"from_route": "/studio/<path:app_path>", "to_route": "studio"},
 ]
 
-# Studio: a published Studio App is served at its route by the renderer below
-website_generators = ["Studio App"]
+# Studio: a Studio App with a published page is served at its route by this renderer
 page_renderer = ["frappe.studio.doctype.studio_app.studio_app.StudioAppRenderer"]
 
 website_redirects = [
