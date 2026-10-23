@@ -21,7 +21,7 @@
 					>
 						<FormLayoutSection
 							:section="section"
-							:open="sections[sectionKey(tab, section, index)]"
+							:open="sectionOpen(tab, section, index)"
 							@update:open="openSection(sectionKey(tab, section, index), $event)"
 						/>
 					</template>
@@ -39,7 +39,16 @@ import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { applyTabOverride, resolveLayout } from "./resolveLayout";
 import { identifyTabs, tabStripLabel } from "./tabIdentity";
-import { CommitKey, DocKey, HasTabsKey, ParentDocKey, ResolveFieldKey, UpdateKey } from "./types";
+import { NO_VALUE } from "./newRowValues";
+import {
+	AutofocusKey,
+	CommitKey,
+	DocKey,
+	HasTabsKey,
+	ParentDocKey,
+	ResolveFieldKey,
+	UpdateKey,
+} from "./types";
 import { warnMissingCommit } from "./warnMissingCommit";
 import type { FormLayoutProps, Section } from "./types";
 
@@ -134,6 +143,24 @@ function openSection(key: string, open: boolean) {
 	sections.value = { ...sections.value, [key]: open };
 }
 
+function sectionOpen(tab: { identity: string }, section: Section, index: number) {
+	return sections.value[sectionKey(tab, section, index)] ?? section.opened ?? true;
+}
+
+const autofocusField = computed(() =>
+	props.autofocus && active.value ? firstEditableField(active.value) : ""
+);
+
+function firstEditableField(tab: { identity: string; sections: Section[] }) {
+	const fields = tab.sections
+		.filter((section, index) => sectionOpen(tab, section, index))
+		.flatMap((section) => section.columns.flatMap((column) => column.fields));
+	const field = fields.find(
+		(field) => !field.hidden && !field.readOnly && !NO_VALUE.has(field.fieldtype)
+	);
+	return field?.fieldname ?? "";
+}
+
 const hasTabs = computed(
 	() =>
 		visibleTabs.value.length > 1 ||
@@ -161,6 +188,7 @@ provide(DocKey, doc);
 provide(UpdateKey, update);
 provide(ResolveFieldKey, resolve);
 provide(HasTabsKey, hasTabs);
+provide(AutofocusKey, autofocusField);
 </script>
 
 <style scoped>

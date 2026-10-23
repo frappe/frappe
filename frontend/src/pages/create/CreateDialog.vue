@@ -10,11 +10,12 @@
 		size="xl"
 		@after-leave="request.dismiss()"
 	>
-		<div @keydown.enter.ctrl.prevent="save" @keydown.enter.meta.prevent="save">
+		<div ref="body">
 			<FormLayout
 				v-if="layout.length"
 				v-model:doc="doc"
 				:layout="layout"
+				autofocus
 				@update:doc="typed = true"
 			/>
 			<ErrorMessage v-if="error" class="mt-2" :message="error" />
@@ -40,8 +41,9 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref, watch } from "vue";
+import { computed, provide, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
+import { useEventListener } from "@vueuse/core";
 import { Button, Dialog, ErrorMessage } from "frappe-ui";
 import { createDocument } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
@@ -128,8 +130,19 @@ watch(isOpen, (open) => {
 	if (!open) props.request.settle(null);
 });
 
+const body = useTemplateRef<HTMLElement>("body");
+useEventListener(
+	() => body.value?.closest<HTMLElement>('[role="dialog"]'),
+	"keydown",
+	(event: KeyboardEvent) => {
+		if (event.key !== "Enter" || !(event.ctrlKey || event.metaKey)) return;
+		event.preventDefault();
+		if (!event.repeat) void save();
+	}
+);
+
 async function save() {
-	if (saving.value || layoutFailed.value) return;
+	if (saving.value || layoutFailed.value || props.request.settled()) return;
 	const missing = missingRequired(layout.value, doc.value);
 	if (missing.length) {
 		error.value = __("Please fill in {0}", [missing.join(", ")]);
