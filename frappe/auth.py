@@ -21,13 +21,24 @@ from frappe.twofactor import (
 	get_cached_user_pass,
 	should_run_2fa,
 )
+<<<<<<< HEAD
 from frappe.utils import cint, date_diff, datetime, get_datetime, today
 from frappe.utils.password import check_password, get_decrypted_password
+=======
+from frappe.utils import cint, date_diff, datetime, today
+from frappe.utils.password import check_password, get_decrypted_password, validate_password_size
+>>>>>>> c59fc16 (refactor: centralise the password length check (#44376))
 from frappe.website.utils import get_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
+<<<<<<< HEAD
 MAX_PASSWORD_SIZE = 512
+=======
+assert SAFE_HTTP_METHODS.isdisjoint(UNSAFE_HTTP_METHODS), "a HTTP method cannot be both safe and unsafe"
+
+API_AUTH_FAILURE_LOG_INTERVAL = 5 * 60  # seconds
+>>>>>>> c59fc16 (refactor: centralise the password length check (#44376))
 
 
 class HTTPRequest:
@@ -266,8 +277,7 @@ class LoginManager:
 		if not (user and pwd):
 			self.fail(_("Incomplete login details"), user=user)
 
-		if len(pwd) > MAX_PASSWORD_SIZE:
-			self.fail(_("Password size exceeded the maximum allowed size"), user=user)
+		validate_password_size(pwd)
 
 		_raw_user_name = user
 		user = User.find_by_credentials(user, pwd)

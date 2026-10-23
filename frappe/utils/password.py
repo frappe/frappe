@@ -11,6 +11,7 @@ from frappe.query_builder import Table
 from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
+MAX_PASSWORD_SIZE = 512
 
 passlibctx = CryptContext(
 	schemes=[
@@ -20,6 +21,31 @@ passlibctx = CryptContext(
 )
 
 
+<<<<<<< HEAD
+=======
+def normalize_password(pwd):
+	"""Same text typed as NFC or NFD must hash the same (RFC 8265)."""
+	return unicodedata.normalize("NFC", pwd)
+
+
+def validate_password_size(pwd, label=None):
+	if len(pwd) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(label or _("Password")))
+
+
+def verify_password(pwd, hashed):
+	normalized = normalize_password(pwd)
+	if passlibctx.verify(normalized, hashed):
+		return True, passlibctx.needs_update(hashed)
+
+	# hash saved before normalization, check raw input as before, rehash on match
+	if normalized != pwd and passlibctx.verify(pwd, hashed):
+		return True, True
+
+	return False, False
+
+
+>>>>>>> c59fc16 (refactor: centralise the password length check (#44376))
 def get_decrypted_password(doctype, name, fieldname="password", raise_exception=True):
 	result = (
 		frappe.qb.from_(Auth)
@@ -100,6 +126,8 @@ def has_password(user: str) -> bool:
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
+	validate_password_size(pwd)
+
 	result = (
 		frappe.qb.from_(Auth)
 		.select(Auth.name, Auth.password)
@@ -144,7 +172,13 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
+<<<<<<< HEAD
 	hashPwd = passlibctx.hash(pwd)
+=======
+
+	validate_password_size(pwd)
+	hashPwd = passlibctx.hash(normalize_password(pwd))
+>>>>>>> c59fc16 (refactor: centralise the password length check (#44376))
 
 	query = frappe.qb.into(Auth).columns(
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted

@@ -3,8 +3,21 @@
 from cryptography.fernet import Fernet
 
 import frappe
+from frappe.auth import LoginManager
 from frappe.tests import IntegrationTestCase
+<<<<<<< HEAD
 from frappe.utils.password import check_password, decrypt, encrypt, passlibctx, update_password
+=======
+from frappe.utils.password import (
+	MAX_PASSWORD_SIZE,
+	Auth,
+	check_password,
+	decrypt,
+	encrypt,
+	passlibctx,
+	update_password,
+)
+>>>>>>> c59fc16 (refactor: centralise the password length check (#44376))
 
 
 class TestPassword(IntegrationTestCase):
@@ -74,6 +87,48 @@ class TestPassword(IntegrationTestCase):
 		# shouldn't work with old password
 		self.assertRaises(frappe.AuthenticationError, check_password, user, new_password)
 
+<<<<<<< HEAD
+=======
+	def test_unicode_password_normalized(self, user="test@example.com"):
+		nfc = "Caf\u00e9_43A1W"
+		nfd = unicodedata.normalize("NFD", nfc)
+
+		update_password(user, nfd)
+		self.assertTrue(check_password(user, nfc))
+		self.assertTrue(check_password(user, nfd))
+
+		# old hash of raw NFD text logs in as before, then gets rehashed normalized
+		set_raw_hash(user, nfd)
+		self.assertTrue(check_password(user, nfd))
+
+		stored = get_password_list(dict(doctype="User", name=user))[0].password
+		self.assertTrue(passlibctx.verify(nfc, stored))
+		self.assertFalse(passlibctx.verify(nfd, stored))
+
+		self.assertRaises(frappe.AuthenticationError, check_password, user, "Cafe_43A1W")
+		update_password(user, "Eastern_43A1W")
+
+	def test_oversized_password(self):
+		user = "test@example.com"
+		too_long = "a" * (MAX_PASSWORD_SIZE + 1)
+		self.assertRaises(frappe.ValidationError, update_password, user, too_long)
+		# check paths: same error, not an AuthenticationError the login manager would swallow
+		self.assertRaises(frappe.ValidationError, check_password, user, too_long)
+		self.assertRaises(frappe.ValidationError, check_password, user, "a" * 5000)
+
+		from frappe.core.doctype.user.user import update_password as update_password_api
+
+		with self.assertRaisesRegex(frappe.ValidationError, "^New Password size"):
+			update_password_api(new_password=too_long, old_password="Eastern_43A1W")
+		with self.assertRaisesRegex(frappe.ValidationError, "^Old Password size"):
+			update_password_api(new_password="Eastern_43A1W", old_password=too_long)
+
+		# login: same error whether or not the account exists, so no enumeration
+		login_manager = object.__new__(LoginManager)  # skip __init__, it needs a request
+		for usr in (user, "no-such-user@example.com"):
+			self.assertRaises(frappe.ValidationError, login_manager.authenticate, usr, too_long)
+
+>>>>>>> c59fc16 (refactor: centralise the password length check (#44376))
 	def test_password_on_rename_user(self):
 		password = "test-rename-password"
 
