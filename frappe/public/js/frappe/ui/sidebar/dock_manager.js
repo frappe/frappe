@@ -499,9 +499,10 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 		const unnamed = this.unnamed_modules();
 		if (!unnamed.length) return "";
 
-		return `${__("{0} of this app's modules are on no tier at all", [
+		return __("{0} of this app's modules are on no tier at all: {1}", [
 			unnamed.length,
-		])}: ${unnamed.join(", ")}`;
+			unnamed.join(", "),
+		]);
 	}
 
 	// An empty selection is not stored as an empty dock. It is saved as no rows at all, which is
@@ -640,7 +641,12 @@ frappe.ui.DockManager = class DockManager extends frappe.ui.ArrangementEditor {
 					return;
 				}
 				if (frappe.boot.module_sidebars?.[name] || this.new_modules.has(name)) {
-					frappe.throw(__("There is already a module called {0}.", [name]));
+					frappe.throw({
+						message: __("There is already a module called {0}.", [
+							frappe.utils.escape_html(name),
+						]),
+						title: __("Module Exists"),
+					});
 				}
 
 				this.close_panel();
