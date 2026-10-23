@@ -8,11 +8,18 @@ import { markSignInStarted } from "../services";
 const { call } = vi.hoisted(() => ({
   call: vi.fn(),
 }));
-vi.mock("frappe-ui", async (importOriginal) => ({
-  ...(await importOriginal<typeof import("frappe-ui")>()),
-  toast: { success: vi.fn(), error: vi.fn() },
-  call: (...args: unknown[]) => call(...args),
-}));
+vi.mock("frappe-ui", async (importOriginal) => {
+  const ui = await importOriginal<typeof import("frappe-ui")>();
+  // the list resource fetches through this, so one fake backend answers it and `call`
+  ui.setConfig("resourceFetcher", ({ url, params }: { url: string; params: object }) =>
+    call(url, params),
+  );
+  return {
+    ...ui,
+    toast: { success: vi.fn(), error: vi.fn() },
+    call: (...args: unknown[]) => call(...args),
+  };
+});
 
 const CONNECT =
   "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect";
@@ -21,7 +28,7 @@ let app: App;
 let root: HTMLElement;
 
 beforeEach(() => {
-  call.mockReset().mockImplementation(async (method: string) => {
+  call.mockReset().mockImplementation(async (method: string, args) => {
     if (method === "frappe.client.get_list")
       return [
         {
@@ -34,6 +41,8 @@ beforeEach(() => {
           enable_outgoing: 1,
         },
       ];
+    if (method === "frappe.client.set_value")
+      return { name: args.name, ...args.fieldname };
     if (method === CONNECT) return "https://login.example.com/authorize";
     return null;
   });
@@ -106,7 +115,7 @@ it("compares later edits with what a half-failed save stored", async () => {
   call.mockImplementation(async (method: string, args) => {
     if (method === "frappe.client.get_list") return [{ ...saved }];
     if (method === "frappe.client.set_value")
-      Object.assign(saved, args.fieldname);
+      return Object.assign(saved, args.fieldname);
     if (method === "frappe.client.rename_doc")
       throw new Error("Sales desk exists");
     return null;
@@ -230,7 +239,7 @@ it("reports a new one-click mailbox only once its account loads", async () => {
 const defaultsSet = () =>
   call.mock.calls
     .filter(([method]) => method === "frappe.client.set_value")
-    .map(([, args]) => [args.name, args.fieldname, args.value]);
+    .map(([, args]) => [args.name, args.fieldname]);
 
 it("makes a new one-click mailbox the default when no account is", async () => {
   markSignInStarted();
@@ -239,8 +248,8 @@ it("makes a new one-click mailbox the default when no account is", async () => {
   );
   await settle();
   expect(defaultsSet()).toEqual([
-    ["Sales", "default_incoming", 1],
-    ["Sales", "default_outgoing", 1],
+    ["Sales", { default_incoming: 1 }],
+    ["Sales", { default_outgoing: 1 }],
   ]);
 });
 

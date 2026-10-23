@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { call } from "frappe-ui";
+import { call, createListResource } from "frappe-ui";
 import {
   authKind,
   markSignInStarted,
@@ -40,10 +40,21 @@ const FIELDS = [
 ];
 
 /**
- * Data behind `EmailAccounts`: reads and writes Email Account through Frappe's own
- * methods. `doctype` is what incoming mail is appended to.
+ * Data behind `EmailAccounts`: reads and writes Email Account through a list resource.
+ * `doctype` is what incoming mail is appended to.
  */
 export function useEmailAccounts(doctype: string): EmailAccountsController {
+  // the panel shows failures itself, so none reach the host's fallback error handler
+  const list = createListResource({
+    doctype: "Email Account",
+    fields: FIELDS,
+    orderBy: "creation desc",
+    onError() {},
+    insert: { onError() {} },
+    setValue: { onError() {} },
+  });
+  // `pageLength: 0` falls back to 20 when passed in; set here, it lists every account
+  list.update({ pageLength: 0 });
   let seq = 0;
 
   function here() {
@@ -69,12 +80,8 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
     const mine = ++seq;
     controller.loading = true;
     try {
-      const docs = await call<EmailAccountDoc[]>("frappe.client.get_list", {
-        doctype: "Email Account",
-        fields: FIELDS,
-        order_by: "creation desc",
-        limit_page_length: 0,
-      });
+      await list.reload();
+      const docs: EmailAccountDoc[] = list.data ?? [];
       const accounts = await Promise.all(
         docs.map(async (doc): Promise<EmailAccount> => {
           const hasToken =
@@ -114,16 +121,14 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
 
     async create(service, form) {
       const doc = newAccount(service, form, doctype);
-      await call("frappe.client.insert", {
-        doc: {
-          ...doc,
-          ...Object.fromEntries(
-            missingDefaults(controller.accounts, doc).map((kind) => [
-              `default_${kind}`,
-              1,
-            ]),
-          ),
-        },
+      await list.insert.submit({
+        ...doc,
+        ...Object.fromEntries(
+          missingDefaults(controller.accounts, doc).map((kind) => [
+            `default_${kind}`,
+            1,
+          ]),
+        ),
       });
       await load();
     },
@@ -131,11 +136,7 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
     async update(account, changes, newName) {
       try {
         if (Object.keys(changes).length) {
-          await call("frappe.client.set_value", {
-            doctype: "Email Account",
-            name: account.name,
-            fieldname: changes,
-          });
+          await list.setValue.submit({ name: account.name, ...changes });
         }
         if (newName && newName !== account.name) {
           await call("frappe.client.rename_doc", {
@@ -153,11 +154,9 @@ export function useEmailAccounts(doctype: string): EmailAccountsController {
       const field = `default_${kind}` as const;
       const current = controller.accounts.find((a) => a[field])?.name ?? null;
       // making one account default un-defaults the others when it saves
-      await call("frappe.client.set_value", {
-        doctype: "Email Account",
+      await list.setValue.submit({
         name: name ?? current,
-        fieldname: field,
-        value: name ? 1 : 0,
+        [field]: name ? 1 : 0,
       });
       await load();
     },

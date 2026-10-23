@@ -2,9 +2,14 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { EmailAccount } from "../types";
 
 const call = vi.fn();
-vi.mock("frappe-ui", () => ({
-  call: (...args: unknown[]) => call(...args),
-}));
+vi.mock("frappe-ui", async (importOriginal) => {
+  const ui = await importOriginal<typeof import("frappe-ui")>();
+  // the list resource fetches through this, so one fake backend answers it and `call`
+  ui.setConfig("resourceFetcher", ({ url, params }: { url: string; params: object }) =>
+    call(url, params),
+  );
+  return { ...ui, call: (...args: unknown[]) => call(...args) };
+});
 
 const { useEmailAccounts } = await import("../useEmailAccounts");
 const { emptyForm, services, takeSignInStarted } = await import("../services");
@@ -56,6 +61,8 @@ function backend({ tokens = { "relay-app": false, "own-app": true } } = {}) {
       return ACCOUNTS;
     if (method.endsWith("has_token"))
       return tokens[args.connected_app as keyof typeof tokens];
+    if (method === "frappe.client.set_value")
+      return { name: args.name, ...args.fieldname };
     if (method === "frappe.client.rename_doc") return args.new_name;
     if (method === "frappe.client.insert")
       return { name: args.doc.email_account_name };
@@ -239,14 +246,12 @@ describe("useEmailAccounts", () => {
       {
         doctype: "Email Account",
         name: "Support",
-        fieldname: "default_outgoing",
-        value: 1,
+        fieldname: { default_outgoing: 1 },
       },
       {
         doctype: "Email Account",
         name: "Support",
-        fieldname: "default_incoming",
-        value: 0,
+        fieldname: { default_incoming: 0 },
       },
     ]);
   });
