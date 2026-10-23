@@ -35,6 +35,7 @@ import impact_map
 
 # Restored from the nightly run by the workflow; absent means "run everything".
 IMPACT_MAP_FILE = "impact-map.json"
+FULL_CI_LABEL = "run-full-ci"
 UI_IMPACT_MAP_FILE = "ui-impact-map.json"
 SPEC_FILE = re.compile(r"^playwright/tests/[\w-]+\.spec\.js$")
 
@@ -124,13 +125,13 @@ def has_skip_ci_label(pr_number, repo="frappe/frappe"):
 
 
 def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run Server Tests' label."""
-	return has_label(pr_number, "Run Server Tests", repo)
+	"""Check if the PR has the 'Run Server Tests' or full CI label."""
+	return has_label(pr_number, "Run Server Tests", repo) or has_label(pr_number, FULL_CI_LABEL, repo)
 
 
 def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run UI Tests' label."""
-	return has_label(pr_number, "Run UI Tests", repo)
+	"""Check if the PR has the 'Run UI Tests' or full CI label."""
+	return has_label(pr_number, "Run UI Tests", repo) or has_label(pr_number, FULL_CI_LABEL, repo)
 
 
 def has_label(pr_number, label, repo="frappe/frappe"):
