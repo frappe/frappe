@@ -144,7 +144,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.pilot.assert_not_called()
 
 	def test_service_without_one_click_opens_the_form(self) -> None:
-		for service in ("Yahoo Mail", "GMail", None):
+		for service in ("Yahoo Mail", "Sendgrid", None):
 			with self.subTest(service):
 				self.assertIsNone(email_oauth.initiate_mailbox_connect(service))
 		self.pilot.assert_not_called()
@@ -204,7 +204,8 @@ class TestBoot(IntegrationTestCase):
 				boot = get_bootinfo()
 				self.assertTrue(boot.is_v2_site)
 				self.assertEqual(
-					boot.one_click_email_services, {"Outlook.com": "Outlook", "Yandex.Mail": "Yandex"}
+					boot.one_click_email_services,
+					{"Outlook.com": "Outlook", "GMail": "Gmail", "Yandex.Mail": "Yandex"},
 				)
 			with patch.dict(frappe.conf, {key: None for key in V2}):
 				boot = get_bootinfo()
@@ -299,6 +300,23 @@ class TestCallback(IntegrationTestCase):
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:microsoft")
 		self.assertIsNone(app.get_password("client_secret", raise_exception=False))
 		self.assertEqual(app.get_token_cache(USER).get_password("refresh_token"), "rt")
+
+	def test_connects_gmail_mailbox(self) -> None:
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None)
+		email_oauth.callback(state=self.note(provider="google"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=google"
+			)
+		)
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		self.assertEqual(account.email_server, "imap.gmail.com")
+		self.assertEqual(account.smtp_server, "smtp.gmail.com")
+		self.assertEqual(account.service, "GMail")
+		app = frappe.get_doc("Connected App", account.connected_app)
+		self.assertEqual(app.provider_name, "Gmail (one@email-oauth.example.com)")
+		self.assertEqual(app.token_uri, "frappe-cloud-relay:google")
 
 	def test_connects_yandex_mailbox(self) -> None:
 		yandex_token = token("ignored@email-oauth.example.com")
