@@ -14,12 +14,13 @@ export async function runSave(page: RecordPageApi | undefined) {
 	}
 }
 
-/** Ctrl/Cmd+S calls `save` once per press; a reload or a tab close asks while `unsaved` is true. */
+/** Ctrl/Cmd+S calls `save` once per press, never from inside a dialog; a reload or a tab close asks while `unsaved` is true. */
 export function useSaveKeys(options: { save: () => void; unsaved: () => boolean }) {
 	function onKeydown(event: KeyboardEvent) {
 		if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
 		event.preventDefault();
-		if (!event.repeat) options.save();
+		const inDialog = event.target instanceof Element && event.target.closest('[role="dialog"]');
+		if (!event.repeat && !inDialog) options.save();
 	}
 
 	function onBeforeUnload(event: BeforeUnloadEvent) {

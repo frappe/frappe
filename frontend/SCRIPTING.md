@@ -142,7 +142,8 @@ for a doctype with a Quick Entry Form Layout row, or with Quick Entry set, manda
 and no mandatory table. Otherwise the full-page new record opens with
 `values` in its query string, and the promise resolves `null`. With no Form Layout row the
 dialog shows the mandatory fields and those marked for Quick Entry. A doctype named by
-prompt gets a name field at the top. Ctrl/Cmd+Enter saves.
+prompt gets a name field at the top. Ctrl/Cmd+Enter and Ctrl/Cmd+S save it, and never the page
+under it.
 A Link or Dynamic Link field opens the same Create from the last row of its dropdown when the
 reader may create the linked doctype. The typed text and the field's equality `link_filters`
 fill the new record. After a save the field takes the new name and runs its change handler,
@@ -841,7 +842,7 @@ delivered when the replay or hold commits. The panel's own expand of a long row 
 ### Saving: `page.save()`
 
 `page.save()` is the one path; the Save button, `Ctrl+S` / `Cmd+S` and a script all call
-it. The order is fixed:
+it. `Ctrl+S` does not save the page while focus is in a dialog. The order is fixed:
 
 1. The edit still pending in a focused control is flushed, so its field handler runs.
 2. `beforeSave` fires. A throw is a veto: nothing is sent, and the message shows.
