@@ -324,7 +324,7 @@ def _download_multi_pdf(
 
 	else:
 		total_docs = sum([len(doctype[dt]) for dt in doctype])
-		count = 1
+		count = 0
 		for doctype_name in doctype:
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
@@ -336,10 +336,11 @@ def _download_multi_pdf(
 					raise
 				except Exception:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
+						frappe.publish_realtime(
+							task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
+						)
 					frappe.log_error(
 						title="Error in Multi PDF download",
-						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
