@@ -12,6 +12,7 @@ import os
 import subprocess
 import sys
 from datetime import UTC, datetime
+from functools import cache
 
 from roulette import FIX_DEVELOP_LABEL as FIX_LABEL
 
@@ -24,9 +25,10 @@ def gh(*args):
 	return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
 
 
-def develop_state():
-	"""(passing, url) from the latest finished full run of each suite on develop."""
-	url = ""
+@cache
+def failing_suites():
+	"""{workflow: failed run url} for each suite whose latest finished full run on develop failed."""
+	failing = {}
 	for workflow, gate_job in SUITES.items():
 		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch=develop&status=completed")
 		for run in runs["workflow_runs"]:
@@ -35,11 +37,16 @@ def develop_state():
 			jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
 			conclusion = next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
 			if conclusion == "failure":
-				return False, run["html_url"]
-			if conclusion == "success":
-				url = url or run["html_url"]
+				failing[workflow] = run["html_url"]
+			if conclusion in ("success", "failure"):
 				break
-	return True, url
+	return failing
+
+
+def develop_state():
+	"""(passing, url of a failed run)."""
+	failing = failing_suites()
+	return not failing, next(iter(failing.values()), "")
 
 
 def post(pr, develop, started=None):
