@@ -1284,18 +1284,16 @@ class Document(_DocumentBase):
 	def set_new_name(self, force=False, set_name=None, set_child_names=True):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 
-		if self.flags.name_set and not force:
-			return
+		if not self.flags.name_set or force:
+			autoname = self.meta.autoname or ""
 
-		autoname = self.meta.autoname or ""
-
-		# If autoname has set as Prompt (name)
-		if self.get("__newname") and autoname.lower() == "prompt":
-			self.name = validate_name(self.doctype, self.get("__newname"))
-		elif set_name:
-			self.name = validate_name(self.doctype, set_name)
-		else:
-			set_new_name(self)
+			# If autoname has set as Prompt (name)
+			if self.get("__newname") and autoname.lower() == "prompt":
+				self.name = validate_name(self.doctype, self.get("__newname"))
+			elif set_name:
+				self.name = validate_name(self.doctype, set_name)
+			else:
+				set_new_name(self)
 
 		if set_child_names:
 			# set name for children
