@@ -26,7 +26,9 @@ class ServerScriptVariable(Document):
 
 	def get_password(self, fieldname="password", raise_exception=True):
 		frappe.throw(
-			_("Environment variables can only be read by their own Server Script"),
+			_("Read environment variables as {0} in their Server Script").format(
+				"<code>frappe.env.KEY</code>"
+			),
 			frappe.PermissionError,
 			title=_("Not Permitted"),
 		)

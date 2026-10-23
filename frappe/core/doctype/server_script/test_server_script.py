@@ -424,7 +424,7 @@ frappe.qb.from_(todo).select(todo.name).where(todo.name == "{todo.name}").run()
 		with self.set_user("test@example.com"):
 			self.assertEqual(frappe.get_doc("Server Script", script.name).execute_method(), "s3cr3t")
 
-	def test_env_variables_are_not_readable_by_other_scripts(self):
+	def test_env_variable_get_password_is_refused(self):
 		script = frappe.get_doc(
 			doctype="Server Script",
 			name="test_env_variables_owner",
