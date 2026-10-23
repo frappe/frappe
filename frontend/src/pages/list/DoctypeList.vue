@@ -102,6 +102,7 @@ import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/ex
 import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
+import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { computed, inject, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { Addresses } from "@/addresses";
@@ -112,6 +113,7 @@ import { openCreate } from "@/shell/create";
 import { useListPage } from "@/list/useListPage";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
+import { createdMessage } from "./createdMessage";
 import DeleteDialog from "./DeleteDialog.vue";
 
 const props = defineProps<{ doctype: string }>();
@@ -167,6 +169,7 @@ const {
 	deleteSelection,
 } = useListPage(props.doctype);
 
+const { meta } = useDoctypeMeta(props.doctype);
 const canCreate = useCreateRight(props.doctype);
 let creating = false;
 
@@ -178,7 +181,7 @@ async function create() {
 	);
 	if (!doc) return;
 	reload();
-	toast.success(__("{0} {1} created", [__(props.doctype), doc.name]), {
+	toast.success(createdMessage(props.doctype, meta.value, doc), {
 		action: {
 			label: __("Open"),
 			onClick: () => router.push(routeFor(props.doctype, doc.name)),
