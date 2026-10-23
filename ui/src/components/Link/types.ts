@@ -26,8 +26,9 @@ export type LinkEmits = {
 };
 
 export interface LinkExposed {
-  /** Searches again with no text; `fresh` skips the browser's cached answer. */
-  reload: (options?: { fresh?: boolean }) => void;
+  reload: () => void;
+  /** `fresh` skips the browser's cached answer and replaces it. */
+  search: (text: string, options?: { fresh?: boolean }) => void;
   focus: () => void;
 }
 

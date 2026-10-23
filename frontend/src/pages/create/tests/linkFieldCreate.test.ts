@@ -66,6 +66,7 @@ import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
 import DynamicLinkField from "@framework/ui/components/Fields/DynamicLinkField.vue";
 import LinkField from "@framework/ui/components/Fields/LinkField.vue";
+import QuickFilterInputs from "@framework/ui/components/QuickFilter/QuickFilterInputs.vue";
 import { CreateRecordKey, DocKey } from "@framework/ui/components/Fields/types";
 import type { FieldMeta } from "@framework/ui/components/Fields/types";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
@@ -108,6 +109,7 @@ function customerMeta(overrides: Meta = {}): Meta {
 			{ fieldname: "customer_name", fieldtype: "Data", label: "Customer Name" },
 			{ fieldname: "status", fieldtype: "Select", label: "Status", options: "Active\nBlocked" },
 			{ fieldname: "territory", fieldtype: "Link", label: "Territory", options: "Territory" },
+			{ fieldname: "is_frozen", fieldtype: "Check", label: "Is Frozen" },
 			{ fieldname: "contacts", fieldtype: "Table", label: "Contacts", options: "Customer Contact" },
 		],
 		permissions: CREATE,
@@ -282,6 +284,7 @@ function dialog(title: string) {
 
 async function press(scope: HTMLElement, label: string) {
 	const button = [...scope.querySelectorAll("button")].find((element) => element.textContent?.trim() === label)!;
+	button.focus();
 	button.click();
 	await settle();
 }
@@ -329,6 +332,20 @@ describe("when the option shows", () => {
 		expect(rows().some((row) => row.startsWith("Create"))).toBe(false);
 	});
 
+	it("is not offered in a list filter's value input", async () => {
+		vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
+		mount(() =>
+			h("div", { "data-field": "customer" }, [
+				h(QuickFilterInputs, { fields: [{ fieldname: "customer", fieldtype: "Link", label: "Customer", options: "Customer" }] }),
+			])
+		);
+
+		await search("customer", "Acme");
+
+		expect(rows().some((row) => row.startsWith("Create"))).toBe(false);
+		expect(metaReads()).toBe(0);
+	});
+
 	it("is not offered in read-only mode", async () => {
 		linkField({}, { readOnlyMode: true });
 
@@ -371,6 +388,7 @@ describe("what the new record starts with", () => {
 				status: "Active",
 				territory: ["=", "North"],
 				customer_name: "Filtered",
+				is_frozen: true,
 				contacts: "C-1",
 				unknown: "x",
 				disabled: ["!=", 1],
@@ -380,7 +398,12 @@ describe("what the new record starts with", () => {
 		await search("customer", "Acme");
 		await chooseCreate();
 
-		expect(createRequests.value[0].values).toEqual({ status: "Active", territory: "North", customer_name: "Acme" });
+		expect(createRequests.value[0].values).toEqual({
+			status: "Active",
+			territory: "North",
+			is_frozen: 1,
+			customer_name: "Acme",
+		});
 	});
 });
 
@@ -395,12 +418,12 @@ describe("after the Create call", () => {
 		expect(dialogs()).toEqual(["New Customer"]);
 		await press(dialog("New Customer"), "Save");
 
-		expect(inserts()).toEqual([{ doctype: "Customer", body: { customer_name: "Acme", status: null, territory: null } }]);
+		expect(inserts()).toEqual([{ doctype: "Customer", body: { customer_name: "Acme", status: null, territory: null, is_frozen: null } }]);
 		expect(value.value).toBe("CUST-0001");
 		expect(changes).toEqual(["CUST-0001"]);
 		expect(within("customer").querySelector("input")!.value).toBe("Acme");
-		expect(searches().at(-1)!.init?.cache).toBe("reload");
-		expect(searches().filter(({ init }) => init?.cache === "reload")).toHaveLength(1);
+		const fresh = searches().filter(({ init }) => init?.cache === "reload");
+		expect(fresh.map(({ url }) => url.searchParams.get("txt"))).toEqual(["Acme"]);
 		expect(document.activeElement).toBe(within("customer").querySelector("input"));
 	});
 
@@ -501,7 +524,7 @@ describe("stacking", () => {
 		expect(dialogs()).toEqual(["New Customer"]);
 		await type(customer, "customer_name", "Acme");
 		await press(customer, "Save");
-		expect(inserts()[1]).toEqual({ doctype: "Customer", body: { customer_name: "Acme", status: null, territory: "North" } });
+		expect(inserts()[1]).toEqual({ doctype: "Customer", body: { customer_name: "Acme", status: null, territory: "North", is_frozen: null } });
 	});
 
 	it("closes only the top dialog on Close, and every dialog on a route change", async () => {

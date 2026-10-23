@@ -178,8 +178,8 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Concept | What it is |
 | --- | --- |
 | Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`, `CodeError`) | *Changed.* Every `/api/v2` reply is `{ data }`; every failure is one error class. A compile error carries `codeErrors`: the field, line, column and message of each error in a Code field's text |
-| Request transport (`request`, `apiUrl`, `requestHeaders`) | The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself |
-| Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry |
+| Request transport (`request`, `apiUrl`, `requestHeaders`) | *Changed.* The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself. A caller may set the browser's cache mode |
+| Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | *Changed.* Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry. `searchDocuments` can skip the browser's cached answer |
 | Method calls (`runMethod`, `runDocumentMethod`) | Call a whitelisted method, or a method on one document |
 | `getMeta` | Fetch a doctype's meta |
 | Record parts (`getDocumentPart`, `addPart`, `removePart`, `updatePart`) | Read or change one named part of a record |
@@ -191,6 +191,7 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | *Changed.* Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one. An empty doctype reads nothing |
 | Naming (`NEW_NAME`, `isNamedByPrompt`, `typedTextField`) | *New.* How a doctype names a new record: the insert key for a typed name, the prompt rule, and the field that typed text fills |
+| Filter prefill (`equalityValues`) | *New.* The values a new record starts with from the equality filters it was created under. The list's Create and a Link field's Create both use it |
 | Fresh-value hold (`holdFresh`, `landFresh`) | A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
 | Scroll landing (`landScroll`, `onScrollSettled`) | *New.* Puts a kept scroll offset back once the content is tall enough, and reports a scroll once it has stopped for 150 ms. The list and the record page keep their offsets with it |
@@ -214,10 +215,10 @@ component group, with its main names.
 | Child rows (`useChildRowModel`, `newRowValues`, `NO_VALUE`) | *Changed.* The rows of a child table field, a new row's default values, and the fieldtypes that hold no value |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
-| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`, `CreateRecordKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do. `CreateRecordKey` hands Link and Dynamic Link fields the host's Create and create right; with none, they offer no Create |
+| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`, `CreateRecordKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do. `CreateRecordKey` hands Link and Dynamic Link fields the host's Create and create right; with none or null, they offer no Create, as in a filter's value input |
 | `TemplateNamesKey` | The component names a `template:` string can use with no `components:` entry. The Code field completes them. With no value, it completes Vue's built-in components only |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
-| `Link`, `Grid`, `Phone`, `TableMultiSelect` | Field controls with their own pickers and tables |
+| `Link`, `Grid`, `Phone`, `TableMultiSelect` | *Changed.* Field controls with their own pickers and tables. A creatable `Link` keeps its Create row last, whatever is typed |
 | `ActivityTimeline` (`@framework/ui/ActivityTimeline`: `ActivityTimeline`, `useActivityTimeline`, `reloadActivityTimeline`, `addPendingActivity`, `compareActivities`) | A record's activity feed, its row types, and one listener per record room for feed rows and docinfo |
 | `Composer` (`@framework/ui/Composer`: `CommentComposer`, `EmailComposer`) | Comment and email editors, and the payload each sends |
 | `FileUpload` (`@framework/ui/FileUpload`: `FileUploadDialog`, `AttachmentsList`, `UploadTray`, `useUploader`, `defaultTransport`, `registerUploadSource`, `UploadLimitsKey`) | Upload dialog, attachment list and tray, with a swappable transport and limits that have a default |
@@ -242,7 +243,7 @@ component group, with its main names.
 | Route builders (`routeFor`, `routeForModule`, `routeForNew`, `urlFor`, `isModular`) | Build a link to a list, a record, a new record with its prefill values, or a module. Honour page replacements |
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
-| Create right (`useCreateRight`) | Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again |
+| Create right (`useCreateRight`) | *Changed.* Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again. The doctype may change, and an empty one is never creatable |
 | New record values (`fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | *New.* What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |

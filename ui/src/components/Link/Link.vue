@@ -152,7 +152,8 @@ watch([() => props.doctype, () => props.filters], () => loadOptions(""), {
 });
 
 defineExpose<LinkExposed>({
-	reload: ({ fresh = false } = {}) => loadOptions("", fresh),
+	reload: () => loadOptions(""),
+	search: (text, { fresh = false } = {}) => loadOptions(text, fresh),
 	focus: () => comboboxRef.value?.focus(),
 });
 </script>

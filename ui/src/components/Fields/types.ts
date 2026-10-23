@@ -105,7 +105,7 @@ export const ParentDocKey: InjectionKey<Ref<Record<string, any>> | null> =
 export const LinkTitlesKey: InjectionKey<Ref<Record<string, string>>> =
   Symbol("FormLayoutLinkTitles");
 
-/** The host's Create, which a Link or Dynamic Link field offers; absent, the field offers none. */
+/** The host's Create, which a Link or Dynamic Link field offers; absent or null, it offers none. */
 export interface CreateRecord {
   /** Resolves with the saved record, or `null` when nothing was saved here. */
   open: (
@@ -116,7 +116,7 @@ export interface CreateRecord {
   useRight: (doctype: MaybeRefOrGetter<string>) => ComputedRef<boolean>;
 }
 
-export const CreateRecordKey: InjectionKey<CreateRecord> = Symbol("CreateRecord");
+export const CreateRecordKey: InjectionKey<CreateRecord | null> = Symbol("CreateRecord");
 
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =

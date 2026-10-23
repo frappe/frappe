@@ -122,7 +122,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, useId } from "vue";
+import { computed, provide, useId } from "vue";
 import { Button, Combobox, Select, TextInput } from "frappe-ui";
 // Composed, not re-exported: none of `Filter`'s names reach this component's
 // exports. See ADR-0008.
@@ -130,6 +130,7 @@ import { carryOver, defaultValueFor } from "../Filter/operators";
 import type { Filter } from "../Filter/types";
 import { valueControl } from "../Filter/valueControl";
 import { VALUE_CONTROLS } from "../Filter/valueControlComponents";
+import { CreateRecordKey } from "../Fields/types";
 import { conditionOperators } from "./adapters";
 import { useConditionBuilderContext } from "./internal/context";
 import type {
@@ -150,6 +151,9 @@ const props = defineProps<{
 const emit = defineEmits<{ update: [value: FieldConditionValue] }>();
 
 const context = useConditionBuilderContext();
+
+// A filter's value input picks a record; it never creates one.
+provide(CreateRecordKey, null);
 const labels = context.labels;
 
 const fieldWordId = useId();
