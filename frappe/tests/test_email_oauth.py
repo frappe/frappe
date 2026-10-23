@@ -144,7 +144,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		self.pilot.assert_not_called()
 
 	def test_service_without_one_click_opens_the_form(self) -> None:
-		for service in ("Yahoo Mail", "Sendgrid", None):
+		for service in ("Sendgrid", "SparkPost", None):
 			with self.subTest(service):
 				self.assertIsNone(email_oauth.initiate_mailbox_connect(service))
 		self.pilot.assert_not_called()
@@ -177,7 +177,7 @@ class TestInitiateMailboxConnect(IntegrationTestCase):
 		)
 
 	def test_reconnect_of_a_mailbox_not_signed_in_through_frappe_cloud_is_refused(self) -> None:
-		for token_uri in ("https://login.example.com/token", "frappe-cloud-relay:yahoo"):
+		for token_uri in ("https://login.example.com/token", "frappe-cloud-relay:zoho"):
 			with self.subTest(token_uri):
 				account = self.relay_mailbox(token_uri)
 				self.assertRaises(
@@ -205,7 +205,12 @@ class TestBoot(IntegrationTestCase):
 				self.assertTrue(boot.is_v2_site)
 				self.assertEqual(
 					boot.one_click_email_services,
-					{"Outlook.com": "Outlook", "GMail": "Gmail", "Yandex.Mail": "Yandex"},
+					{
+						"Outlook.com": "Outlook",
+						"GMail": "Gmail",
+						"Yahoo Mail": "Yahoo",
+						"Yandex.Mail": "Yandex",
+					},
 				)
 			with patch.dict(frappe.conf, {key: None for key in V2}):
 				boot = get_bootinfo()
@@ -317,6 +322,23 @@ class TestCallback(IntegrationTestCase):
 		app = frappe.get_doc("Connected App", account.connected_app)
 		self.assertEqual(app.provider_name, "Gmail (one@email-oauth.example.com)")
 		self.assertEqual(app.token_uri, "frappe-cloud-relay:google")
+
+	def test_connects_yahoo_mailbox(self) -> None:
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None)
+		email_oauth.callback(state=self.note(provider="yahoo"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=connected&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=yahoo"
+			)
+		)
+		account = frappe.get_doc("Email Account", {"email_id": "one@email-oauth.example.com"})
+		self.assertEqual(account.email_server, "imap.mail.yahoo.com")
+		self.assertEqual(account.smtp_server, "smtp.mail.yahoo.com")
+		self.assertEqual(account.service, "Yahoo Mail")
+		app = frappe.get_doc("Connected App", account.connected_app)
+		self.assertEqual(app.provider_name, "Yahoo (one@email-oauth.example.com)")
+		self.assertEqual(app.token_uri, "frappe-cloud-relay:yahoo")
 
 	def test_connects_yandex_mailbox(self) -> None:
 		yandex_token = token("ignored@email-oauth.example.com")
