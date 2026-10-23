@@ -35,6 +35,11 @@ jobs:
       - run: python .github/helper/develop_status.py start ${{ github.event_name != 'schedule' && 'all' || '' }}
         env:
           GH_TOKEN: ${{ github.token }}
+      - name: Turn pull requests green once the fix lands
+        if: ${{ github.event.action == 'closed' }}
+        run: python .github/helper/develop_status.py refresh
+        env:
+          GH_TOKEN: ${{ github.token }}
 
   update:
     name: Update Pull Requests

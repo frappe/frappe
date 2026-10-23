@@ -28,6 +28,27 @@ def gh(*args):
 	return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
 
 
+def gate_conclusion(run, gate_job):
+	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
+	return next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
+
+
+def fixed_after(workflow, gate_job, failed_run):
+	"""Was a fixes-develop pull request merged after this failure, with this suite passing in full on it?"""
+	query = f"repo:{REPO} is:pr is:merged label:{FIX_LABEL} merged:>={failed_run['created_at']}"
+	for item in gh("-X", "GET", "search/issues", "-f", f"q={query}")["items"]:
+		sha = gh(f"repos/{REPO}/pulls/{item['number']}")["head"]["sha"]
+		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?head_sha={sha}&event=pull_request")
+		run = next(iter(runs["workflow_runs"]), None)
+		if (
+			run
+			and run["created_at"] > failed_run["created_at"]
+			and gate_conclusion(run, gate_job) == "success"
+		):
+			return True
+	return False
+
+
 @cache
 def failing_suites():
 	"""{workflow: failed run url} for each suite whose latest finished full run on develop failed."""
@@ -37,9 +58,8 @@ def failing_suites():
 		for run in runs["workflow_runs"]:
 			if run["event"] not in ("schedule", "workflow_dispatch"):
 				continue
-			jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
-			conclusion = next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
-			if conclusion == "failure":
+			conclusion = gate_conclusion(run, gate_job)
+			if conclusion == "failure" and not fixed_after(workflow, gate_job, run):
 				failing[workflow] = run["html_url"]
 			if conclusion in ("success", "failure"):
 				break
