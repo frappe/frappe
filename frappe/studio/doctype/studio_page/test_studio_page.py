@@ -55,6 +55,14 @@ def make_page_with_data(app_name: str):
 
 
 class TestStudioPage(IntegrationTestCase):
+	def test_page_title_must_scrub_to_a_single_folder_name(self):
+		app = make_studio_app(app_name="title-" + frappe.generate_hash(length=8))
+		self.assertRaises(frappe.ValidationError, make_studio_page, app.name, page_title="../../outside")
+
+		page = make_studio_page(app.name, page_title="What's next?", route="/whats-next")
+		page.page_title = "nested/title"
+		self.assertRaises(frappe.ValidationError, page.save)
+
 	def test_remove_empty_values(self):
 		test_dict = {
 			"keep_this": "value",

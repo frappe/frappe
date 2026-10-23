@@ -83,7 +83,9 @@ class TestStudioApp(FrappeTestCase):
 			app, page = make_exported_app_with_files("moving-app")
 			old_folder = app.get_folder_path()
 
-			app.enable_app_export("other_app")
+			installed = [*frappe.get_installed_apps(), "other_app"]
+			with patch("frappe.get_installed_apps", return_value=installed):
+				app.enable_app_export("other_app")
 
 			page.reload()
 			self.assertFalse(os.path.exists(old_folder))
@@ -104,6 +106,16 @@ class TestStudioApp(FrappeTestCase):
 
 			app = frappe.get_doc("Studio App", "dashed_app")
 			self.assertTrue(os.path.exists(os.path.join(app.get_folder_path(), "dashed_app.json")))
+
+	def test_the_frappe_app_must_be_installed(self):
+		with exports_in_tempdir():
+			self.assertRaises(
+				frappe.ValidationError,
+				make_studio_app,
+				app_name="pkg-" + frappe.generate_hash(length=8),
+				is_standard=1,
+				frappe_app="os",
+			)
 
 	def test_export_refuses_a_folder_that_is_not_a_studio_app(self):
 		with exports_in_tempdir():
