@@ -401,7 +401,16 @@ class AutoRepeat(Document):
 		try:
 			attachments = [
 				frappe.attach_print(
-					new_doc.doctype, new_doc.name, file_name=new_doc.name, print_format=print_format
+					new_doc.doctype,
+					new_doc.name,
+					file_name=new_doc.name,
+					print_format=print_format,
+					lang=new_doc.get("language")
+					or (
+						frappe.get_cached_value("Print Format", self.print_format, "default_print_language")
+						if self.print_format
+						else None
+					),
 				)
 			]
 
