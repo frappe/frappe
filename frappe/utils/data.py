@@ -1584,7 +1584,7 @@ def money_in_words(
 		in_million = False
 
 	def fraction_in_words() -> str:
-		return in_words(float(f"0.{fraction}") * fraction_units, in_million).title()
+		return in_words(Decimal(f"0.{fraction}") * fraction_units, in_million).title()
 
 	# 0.00
 	if main == "0" and fraction in ["0", "00", "000"]:

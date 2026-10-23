@@ -446,6 +446,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "MRO Zero only."),
 				("Fail", ""),
 			],
+			"USD": [
+				(0.29, "Twenty Nine Cent only."),
+				(0.57, "Fifty Seven Cent only."),
+				(0.58, "Fifty Eight Cent only."),
+				(1.57, "USD One and Fifty Seven Cent only."),
+			],
 		}
 
 		for currency, cases in test_cases.items():
