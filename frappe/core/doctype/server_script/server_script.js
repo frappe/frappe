@@ -149,8 +149,8 @@ customer.save()
 <hr>
 
 <h4>Environment Variables</h4>
-<p>Store credentials like API keys in the <i>Environment Variables</i> table instead of the script. Values are stored encrypted and never shown in the form, exports or the API.</p>
-<p>Anyone who can write server-side scripts (Server Scripts, System Console, Script Reports, Web Page scripts) can still read them, so only give Script Manager and similar roles to trusted users.</p>
+<p>Store credentials like API keys in the <i>Environment Variables</i> table instead of the script. Values are stored encrypted and never shown in the form, exports or the REST API.</p>
+<p>Any code that runs server-side scripts can still read them, so only give script-writing roles such as Script Manager to trusted users.</p>
 <p>Read a variable as <code>frappe.env.KEY</code>. Keys must start with a letter and contain only letters, digits and underscores.</p>
 <pre><code class="language-python">
 response = frappe.make_get_request(
