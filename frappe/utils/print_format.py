@@ -218,10 +218,6 @@ def _download_multi_pdf(
 	if isinstance(options, str):
 		options = json.loads(options)
 
-	if (options or {}).get("password") and format:
-		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
-			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
-
 	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
 
 	def print_into_writer(print_doctype, print_name):

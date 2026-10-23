@@ -336,6 +336,28 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			generator.render_pdf()
 		self.assertNotIn("password", chrome_pdf.call_args.kwargs["options"])
 
+	def test_bulk_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		_download_multi_pdf(
+			"ToDo", json.dumps([todo.name]), format=print_format.name, options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertEqual(len(reader.pages), 1)
+
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
 		to that permlevel must not get them in the print output."""
