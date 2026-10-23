@@ -225,12 +225,6 @@ def _download_multi_pdf(
 
 	options = frappe.parse_json(options)
 
-	if (options or {}).get("password") and format:
-		# Typst can't encrypt — failing here once beats silently dropping
-		# every document inside the loop below
-		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
-			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
-
 	def document_language(print_doctype, print_name):
 		"""The print page's precedence: the document's own language, then the
 		format's default, then the language the print was requested in."""
