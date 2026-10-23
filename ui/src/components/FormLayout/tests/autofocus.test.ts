@@ -35,13 +35,29 @@ const LAYOUT: FormLayoutSchema = [
   },
 ] as FormLayoutSchema;
 
-function marked(props: Record<string, unknown>) {
+/** A closed section first, then an open one. */
+const CLOSED_FIRST: FormLayoutSchema = [
+  {
+    name: "details",
+    sections: [
+      {
+        name: "more",
+        label: "More",
+        opened: false,
+        columns: [{ fields: [{ fieldname: "notes", fieldtype: "Data", label: "Notes" }] }],
+      },
+      { columns: [{ fields: [{ fieldname: "title", fieldtype: "Data", label: "Title" }] }] },
+    ],
+  },
+] as FormLayoutSchema;
+
+function marked(props: Record<string, unknown>, layout = LAYOUT) {
   host = document.createElement("div");
   document.body.appendChild(host);
   const doc = ref<Record<string, any>>({});
   app = createApp({
     render: () =>
-      h(FormLayout, { layout: LAYOUT, doc: doc.value, "onUpdate:doc": () => {}, ...props }),
+      h(FormLayout, { layout, doc: doc.value, "onUpdate:doc": () => {}, ...props }),
   });
   app.provide(CommitKey, NO_COMMIT);
   app.mount(host);
@@ -51,6 +67,14 @@ function marked(props: Record<string, unknown>) {
 describe("autofocus", () => {
   it("marks only the first visible, writable field that holds a value", () => {
     expect(marked({ autofocus: true })).toEqual(["title"]);
+  });
+
+  it("skips a closed section, unless the reader opened it", () => {
+    expect(marked({ autofocus: true }, CLOSED_FIRST)).toEqual(["title"]);
+    app?.unmount();
+    host?.remove();
+    const opened = { [JSON.stringify(["details", "more"])]: true };
+    expect(marked({ autofocus: true, sections: opened }, CLOSED_FIRST)).toEqual(["notes"]);
   });
 
   it("marks nothing without the prop", () => {

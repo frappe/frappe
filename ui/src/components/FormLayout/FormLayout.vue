@@ -21,7 +21,7 @@
 					>
 						<FormLayoutSection
 							:section="section"
-							:open="sections[sectionKey(tab, section, index)]"
+							:open="sectionOpen(tab, section, index)"
 							@update:open="openSection(sectionKey(tab, section, index), $event)"
 						/>
 					</template>
@@ -143,14 +143,18 @@ function openSection(key: string, open: boolean) {
 	sections.value = { ...sections.value, [key]: open };
 }
 
+function sectionOpen(tab: { identity: string }, section: Section, index: number) {
+	return sections.value[sectionKey(tab, section, index)] ?? section.opened ?? true;
+}
+
 const autofocusField = computed(() =>
-	props.autofocus && active.value ? firstEditableField(active.value.sections) : ""
+	props.autofocus && active.value ? firstEditableField(active.value) : ""
 );
 
-function firstEditableField(sections: Section[]) {
-	const fields = sections.flatMap((section) =>
-		section.columns.flatMap((column) => column.fields)
-	);
+function firstEditableField(tab: { identity: string; sections: Section[] }) {
+	const fields = tab.sections
+		.filter((section, index) => sectionOpen(tab, section, index))
+		.flatMap((section) => section.columns.flatMap((column) => column.fields));
 	const field = fields.find(
 		(field) => !field.hidden && !field.readOnly && !NO_VALUE.has(field.fieldtype)
 	);
