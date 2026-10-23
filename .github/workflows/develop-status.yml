@@ -1,8 +1,9 @@
 name: Develop Status
 
-# The full server and UI suites run on develop every night (the schedule in server-tests.yml and ui-tests.yml).
-# "Run workflow" on this workflow runs them on develop right away.
 on:
+  schedule:
+    # How often the full server and UI suites run on develop, when develop has new commits.
+    - cron: "23 * * * *"
   workflow_run:
     workflows: ["Server", "UI"]
     types: [completed]
@@ -21,13 +22,21 @@ permissions:
 jobs:
   run-suites:
     name: Run Full Suites
-    if: ${{ github.event_name == 'workflow_dispatch' }}
+    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          gh workflow run server-tests.yml --repo "$GITHUB_REPOSITORY" --ref develop
-          gh workflow run ui-tests.yml --repo "$GITHUB_REPOSITORY" --ref develop
+      - name: Start the suites on develop
+        run: |
+          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/develop" --jq .sha)
+          for workflow in server-tests.yml ui-tests.yml; do
+            last=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?branch=develop" \
+              --jq '[.workflow_runs[] | select(.event == "schedule" or .event == "workflow_dispatch")][0].head_sha')
+            if [ "$EVENT" = "workflow_dispatch" ] || [ "$last" != "$head" ]; then
+              gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref develop
+            fi
+          done
         env:
+          EVENT: ${{ github.event_name }}
           GH_TOKEN: ${{ github.token }}
 
   update:
