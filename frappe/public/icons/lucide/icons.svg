@@ -7682,6 +7682,24 @@
       <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v1.5" />
       <path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6" />
     </symbol>
+    <symbol viewBox="0 0 24 24" id="icon-priority-high">
+      <rect fill="currentColor" stroke="none" x="3" y="14" width="4" height="7" rx="1.5" />
+      <rect fill="currentColor" stroke="none" x="10" y="9" width="4" height="12" rx="1.5" />
+      <rect fill="currentColor" stroke="none" x="17" y="4" width="4" height="17" rx="1.5" />
+    </symbol>
+    <symbol viewBox="0 0 24 24" id="icon-priority-low">
+      <rect fill="currentColor" stroke="none" x="3" y="14" width="4" height="7" rx="1.5" />
+      <rect fill="currentColor" stroke="none" opacity="0.3" x="10" y="9" width="4" height="12" rx="1.5" />
+      <rect fill="currentColor" stroke="none" opacity="0.3" x="17" y="4" width="4" height="17" rx="1.5" />
+    </symbol>
+    <symbol viewBox="0 0 24 24" id="icon-priority-medium">
+      <rect fill="currentColor" stroke="none" x="3" y="14" width="4" height="7" rx="1.5" />
+      <rect fill="currentColor" stroke="none" x="10" y="9" width="4" height="12" rx="1.5" />
+      <rect fill="currentColor" stroke="none" opacity="0.3" x="17" y="4" width="4" height="17" rx="1.5" />
+    </symbol>
+    <symbol viewBox="0 0 24 24" id="icon-priority-urgent">
+      <path fill="currentColor" stroke="none" fill-rule="evenodd" d="M7 2h10a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5H7a5 5 0 0 1-5-5V7a5 5 0 0 1 5-5Zm5 4a1.25 1.25 0 0 0-1.25 1.25v6a1.25 1.25 0 0 0 2.5 0v-6A1.25 1.25 0 0 0 12 6Zm0 10.25a1.5 1.5 0 1 0 0 3a1.5 1.5 0 1 0 0-3Z" />
+    </symbol>
     <symbol viewBox="0 0 24 24" id="icon-projector">
       <path d="M5 7 3 5" />
       <path d="M9 6V3" />

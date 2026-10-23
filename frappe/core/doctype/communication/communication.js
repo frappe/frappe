@@ -156,38 +156,35 @@ frappe.ui.form.on("Communication", {
 		});
 		d.set_value("reference_doctype", frm.doc.reference_doctype);
 		d.set_value("reference_name", frm.doc.reference_name);
-		d.set_primary_action(__("Relink"), function () {
-			var values = d.get_values();
-			if (values) {
-				let message = values["reference_name"]
-					? __("Are you sure you want to relink this communication to {0}?", [
-							values["reference_name"],
-					  ])
-					: __("Are you sure you want to relink this communication?");
-				frappe.confirm(
-					message,
-					function () {
-						d.hide();
-						frappe.call({
-							method: "frappe.email.relink",
-							args: {
-								name: frm.doc.name,
-								reference_doctype: values["reference_doctype"],
-								reference_name: values["reference_name"],
-							},
-							callback: function () {
-								frm.refresh();
-							},
-						});
-					},
-					function () {
-						frappe.show_alert({
-							message: __("Document not Relinked"),
-							indicator: "info",
-						});
-					}
-				);
-			}
+		d.set_primary_action(__("Relink"), function (values) {
+			let message = values["reference_name"]
+				? __("Are you sure you want to relink this communication to {0}?", [
+						values["reference_name"],
+				  ])
+				: __("Are you sure you want to relink this communication?");
+			frappe.confirm(
+				message,
+				function () {
+					d.hide();
+					frappe.call({
+						method: "frappe.email.relink",
+						args: {
+							name: frm.doc.name,
+							reference_doctype: values["reference_doctype"],
+							reference_name: values["reference_name"],
+						},
+						callback: function () {
+							frm.refresh();
+						},
+					});
+				},
+				function () {
+					frappe.show_alert({
+						message: __("Document not Relinked"),
+						indicator: "info",
+					});
+				}
+			);
 		});
 		d.show();
 	},

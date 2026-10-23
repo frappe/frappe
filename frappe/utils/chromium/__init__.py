@@ -15,7 +15,6 @@ from frappe.utils.chromium.download import (
 	download_chromium,
 	find_or_download_chromium_executable,
 	get_chromium_download_url,
-	get_linux_distribution_info,
 	make_chromium_executable,
 	setup_chromium,
 )
@@ -31,7 +30,6 @@ __all__ = [
 	"download_chromium",
 	"find_or_download_chromium_executable",
 	"get_chromium_download_url",
-	"get_linux_distribution_info",
 	"make_chromium_executable",
 	"setup_chromium",
 ]

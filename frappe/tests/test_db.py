@@ -468,10 +468,62 @@ class TestDB(IntegrationTestCase):
 			frappe.delete_doc(test_doctype, doc)
 		clear_custom_fields(test_doctype)
 
-	@unimplemented_for(db_type_is.POSTGRES)
 	def test_multi_statements(self):
 		with self.assertRaises(frappe.db.ProgrammingError):
 			frappe.db.sql("select 1; select 1")
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_multi_statements_postgres_lexing(self):
+		for query in (
+			"select 1 /* ; */; select 2",
+			"select 1 -- ;\n; select 2",
+			"select 1 /* /* */ */; select 2",
+			"select 'a\\'; select 2",
+			"select E'\\''; select 2",
+			'select 1 as a$b$; select 2 as "$b$"',
+			'select 1 as é$b$; select 2 as "$b$"',
+			'select 1 as a\u00a0$b$; select 2 as "$b$"',
+			"select 1 -- \r; select 2",
+			"select E'a'\n'\\''; select 2 --'",
+			"select E'a' -- c\n\n'\\''; select 2 --'",
+			"select E'a' '\\'; select 2 --'",
+			"select E''\v\n'\\' -- '; select 2",
+		):
+			with (
+				self.subTest(query=query),
+				self.assertRaisesRegex(frappe.db.ProgrammingError, "Multiple SQL statements"),
+			):
+				frappe.db.sql(query)
+
+		for query in (
+			"select 1;",
+			"select 1; -- trailing",
+			"select 'a''; select 2'",
+			"select E'\\'; select 2'",
+			'select 1 as "a;b"',
+			"select $$;$$",
+			"select $t$ $$; $t$",
+			"select 1 /* /* */ ; */",
+			"select E'a'\n'\\'; select 2'",
+		):
+			with self.subTest(query=query):
+				frappe.db.sql(query)
+
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select 1 -- %s", ("\n; select 2 --",))
+
+		self.assertEqual(frappe.db.sql("select %s", ("a; b",)), (("a; b",),))
+
+	@run_only_if(db_type_is.POSTGRES)
+	def test_multi_statements_postgres_nonstandard_strings(self):
+		frappe.db.sql("SET LOCAL standard_conforming_strings = off")
+		self.addCleanup(frappe.db.sql, "RESET standard_conforming_strings")
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select '\\'' ; select 2 --'")
+		with self.assertRaises(frappe.db.ProgrammingError):
+			frappe.db.sql("select B'1\\' ; select 2 -- '")
+
+		frappe.db.sql("select 'a\\'; select 2'")
 
 	def test_savepoints(self):
 		frappe.db.rollback()
@@ -2622,47 +2674,28 @@ class TestPostgresSchemaQueryIndependence(ExtIntegrationTestCase):
 		):
 			self.cleanup()
 
-		frappe.db.sql(
-			f"""
-			CREATE SCHEMA alt_schema;
-
-			CREATE TABLE "public"."tab{self.test_table_name}" (
-					col_a VARCHAR,
-					col_b VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tab{self.test_table_name}" (
-					col_c VARCHAR PRIMARY KEY,
-					col_d VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tab{self.test_table_name}_2" (
-					col_c VARCHAR,
-					col_d VARCHAR
-			);
-
-			CREATE TABLE "alt_schema"."tabUser" (
-					col_c VARCHAR,
-					col_d VARCHAR
-			);
-
-			insert into "public"."tab{self.test_table_name}" (col_a, col_b) values ('a', 'b');
-			"""
-		)
+		for query in (
+			"CREATE SCHEMA alt_schema",
+			f'CREATE TABLE "public"."tab{self.test_table_name}" (col_a VARCHAR, col_b VARCHAR)',
+			f'CREATE TABLE "alt_schema"."tab{self.test_table_name}" (col_c VARCHAR PRIMARY KEY, col_d VARCHAR)',
+			f'CREATE TABLE "alt_schema"."tab{self.test_table_name}_2" (col_c VARCHAR, col_d VARCHAR)',
+			'CREATE TABLE "alt_schema"."tabUser" (col_c VARCHAR, col_d VARCHAR)',
+			f"""insert into "public"."tab{self.test_table_name}" (col_a, col_b) values ('a', 'b')""",
+		):
+			frappe.db.sql(query)
 
 	def tearDown(self) -> None:
 		self.cleanup()
 
 	def cleanup(self) -> None:
-		frappe.db.sql(
-			f"""
-				DROP TABLE "public"."tab{self.test_table_name}";
-				DROP TABLE "alt_schema"."tab{self.test_table_name}";
-				DROP TABLE "alt_schema"."tab{self.test_table_name}_2";
-				DROP TABLE "alt_schema"."tabUser";
-				DROP SCHEMA "alt_schema" CASCADE;
-				"""
-		)
+		for query in (
+			f'DROP TABLE "public"."tab{self.test_table_name}"',
+			f'DROP TABLE "alt_schema"."tab{self.test_table_name}"',
+			f'DROP TABLE "alt_schema"."tab{self.test_table_name}_2"',
+			'DROP TABLE "alt_schema"."tabUser"',
+			'DROP SCHEMA "alt_schema" CASCADE',
+		):
+			frappe.db.sql(query)
 
 	def test_get_tables(self) -> None:
 		tables = frappe.db.get_tables(cached=False)
@@ -2834,7 +2867,7 @@ class TestDbConnectWithEnvCredentials(IntegrationTestCase):
 			self.assertTrue(re.search(r"database [\"']dbiq[\"']", str(cm.exception)))
 
 		# with wrong host
-		with set_env_variable("FRAPPE_DB_HOST", "iqx.local"):
+		with set_env_variable("FRAPPE_DB_HOST", "iqx.invalid"):
 			frappe.init(self.current_site, force=True)
 			frappe.connect()
 

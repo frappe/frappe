@@ -14,7 +14,7 @@ from pypika.queries import (  # nosemgrep: frappe-monkey-patching-not-allowed
 from pypika.terms import PseudoColumn
 
 import frappe
-from frappe.query_builder.terms import NamedParameterWrapper
+from frappe.query_builder.terms import NamedParameterWrapper, PostgresAwareCriterion
 
 # Frappe's public query-builder helpers are installed on Base below. This is the
 # existing framework extension mechanism rather than an app overriding Frappe.
@@ -171,17 +171,24 @@ def get_masked_joined_fields(doctype: str, fields: list[Any]) -> list[Any]:
 	return masked_fields
 
 
-def execute_query(query, *args, **kwargs):
+def execute_query(query, *args, _db=None, **kwargs):
+	"""Run a Query Builder object and apply the post-processing `run` has always done.
+
+	`_db` names the connection. It defaults to the site's primary one, which is what
+	`QueryBuilder.run` assumes; `Database` passes itself so a replica or the log database
+	gets the same field masking, child-query expansion and dialect handling.
+	"""
+	db = _db or frappe.local.db
 	dt = query.__dict__.get("_doctype")
 	parent_dt = query.__dict__.get("_parent_doctype")
 	fields = query.__dict__.get("_fields_list", [])
 	child_queries = query._child_queries
 	name_field_injected = query.__dict__.get("_name_field_injected", False)
 	query, params = prepare_query(query)
-	if frappe.local.db.db_type == "sqlite":
+	if db.db_type == "sqlite":
 		# The SQLite query builder already emitted the target dialect.
 		kwargs["_skip_sqlite_transpilation"] = True
-	result = frappe.local.db.sql(query, params, *args, **kwargs)  # nosemgrep
+	result = db.sql(query, params, *args, **kwargs)  # nosemgrep
 
 	if child_queries and isinstance(child_queries, list) and result:
 		execute_child_queries(child_queries, result)
@@ -313,19 +320,14 @@ def patch_like_operators():
 	# pypika has no hook for dialect-specific operator rendering, so patch Term.like/not_like the same
 	# way the query-builder patches above (QueryBuilder.run, Base.max, ...) and app.py's
 	# Request.max_form_memory_size do. The rule anchors on the import, so suppress it there too.
+	from pypika.enums import Matching
 	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
-	_like, _not_like = Term.like, Term.not_like
-
 	def like(self, expr: str):
-		if frappe.db and frappe.db.db_type == "postgres":
-			return self.ilike(expr)
-		return _like(self, expr)
+		return PostgresAwareCriterion(Matching.like, Matching.ilike, self, self.wrap_constant(expr))
 
 	def not_like(self, expr: str):
-		if frappe.db and frappe.db.db_type == "postgres":
-			return self.not_ilike(expr)
-		return _not_like(self, expr)
+		return PostgresAwareCriterion(Matching.not_like, Matching.not_ilike, self, self.wrap_constant(expr))
 
 	Term.like = like  # nosemgrep: frappe-monkey-patching-not-allowed
 	Term.not_like = not_like  # nosemgrep: frappe-monkey-patching-not-allowed
@@ -342,16 +344,15 @@ def patch_regex_operator():
 	# pypika has no hook for dialect-specific operator rendering, so patch Term.regex the same way
 	# patch_like_operators above does. The rule anchors on the import, so suppress it there too.
 	from pypika.enums import Comparator, Matching
-	from pypika.terms import BasicCriterion, Term  # nosemgrep: frappe-monkey-patching-not-allowed
+	from pypika.terms import Term  # nosemgrep: frappe-monkey-patching-not-allowed
 
 	class PostgresMatching(Comparator):
 		regex = " ~* "
 
 	def regex(self, pattern: str):
-		comparator = (
-			PostgresMatching.regex if frappe.db and frappe.db.db_type == "postgres" else Matching.regexp
+		return PostgresAwareCriterion(
+			Matching.regexp, PostgresMatching.regex, self, self.wrap_constant(pattern)
 		)
-		return BasicCriterion(comparator, self, self.wrap_constant(pattern))
 
 	Term.regex = regex  # nosemgrep: frappe-monkey-patching-not-allowed
 

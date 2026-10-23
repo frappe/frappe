@@ -58,7 +58,6 @@
   "bypass_restrict_ip_check_if_2fa_enabled",
   "column_break_bzfr",
   "two_factor_method",
-  "lifespan_qrcode_image",
   "otp_issuer_name",
   "otp_sms_template",
   "password_tab",
@@ -102,6 +101,7 @@
   "column_break_ewhs",
   "hide_empty_read_only_fields",
   "disable_product_suggestion",
+  "use_classic_charts",
   "backups_tab",
   "sec_backup_limit",
   "backup_limit",
@@ -125,8 +125,16 @@
   "link_field_results_limit",
   "column_break_nebx",
   "allow_clearing_link_fields",
+  "enable_combobox_link_field",
   "api_logging_section",
-  "log_api_requests"
+  "log_api_requests",
+  "ai_agents_tab",
+  "mcp_section",
+  "enable_mcp",
+  "server_name",
+  "agent_instructions",
+  "frappectl_section",
+  "frappectl_help"
  ],
  "fields": [
   {
@@ -371,13 +379,6 @@
    "fieldtype": "Select",
    "label": "Two Factor Authentication method",
    "options": "OTP App\nSMS\nEmail"
-  },
-  {
-   "depends_on": "eval:doc.enable_two_factor_auth && doc.two_factor_method == \"OTP App\"",
-   "description": "Time in seconds to retain QR code image on server. Min:<strong>240</strong>",
-   "fieldname": "lifespan_qrcode_image",
-   "fieldtype": "Int",
-   "label": "Expiry time of QR Code Image Page"
   },
   {
    "default": "Frappe Framework",
@@ -815,6 +816,13 @@
    "label": "Allow Clearing Link Fields"
   },
   {
+   "default": "0",
+   "description": "Use the new Combobox for Link, Autocomplete and MultiSelect fields.",
+   "fieldname": "enable_combobox_link_field",
+   "fieldtype": "Check",
+   "label": "Enable Combobox Fields (Beta)"
+  },
+  {
    "depends_on": "eval:doc.allow_guests_to_upload_files == 1",
    "description": "Provide a list of allowed Doctypes for file uploads. Each line should contain one allowed Doctype. If unset, uploads to all doctypes are allowed. Example: <br>User<br>Item<br>Quotation",
    "fieldname": "allowed_doctypes_for_guest_uploads",
@@ -860,6 +868,50 @@
    "fieldtype": "Int",
    "label": "Max Zip Extract Size (MB)",
    "non_negative": 1
+  },
+  {
+   "default": "0",
+   "description": "Draw charts the way earlier versions did. Sites updated from an earlier version start with this on.",
+   "fieldname": "use_classic_charts",
+   "fieldtype": "Check",
+   "label": "Use Classic Charts"
+  },
+  {
+   "fieldname": "ai_agents_tab",
+   "fieldtype": "Tab Break",
+   "label": "AI Agents"
+  },
+  {
+   "fieldname": "mcp_section",
+   "fieldtype": "Section Break",
+   "label": "MCP Settings"
+  },
+  {
+   "default": "1",
+   "fieldname": "enable_mcp",
+   "fieldtype": "Check",
+   "label": "Enable MCP"
+  },
+  {
+   "description": "Name shown to AI clients. Defaults to the site's host name.",
+   "fieldname": "server_name",
+   "fieldtype": "Data",
+   "label": "Server Name"
+  },
+  {
+   "description": "Tell AI agents what this site is for and how your team uses it. Agents receive this text when they connect.",
+   "fieldname": "agent_instructions",
+   "fieldtype": "Long Text",
+   "label": "Agent Instructions"
+  },
+  {
+   "fieldname": "frappectl_section",
+   "fieldtype": "Section Break",
+   "label": "frappectl"
+  },
+  {
+   "fieldname": "frappectl_help",
+   "fieldtype": "HTML"
   }
  ],
  "icon": "fa fa-cog",

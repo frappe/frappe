@@ -28,6 +28,7 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 
 	// the quick entry example's fields, read back by its Save action
 	let explorer_todo_fields;
+	let explorer_contact_fields;
 	// the search box and the button of the BottomSheet multi-select example
 	const explorer_assign = {};
 	// rows of the BottomSheet search example: the caller decides what matches
@@ -55,7 +56,309 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	// Examples are grouped (all variants together, all sizes together...).
 	// Each item's opts object is both the displayed code and the real input
 	// for the live preview — what you see is exactly what runs.
+	// a footer row two Combobox demos share
+	const CREATE_CUSTOMER_ROW = {
+		type: "custom",
+		label: __("Create a new Customer"),
+		icon: "plus",
+		onclick: ({ query }) =>
+			frappe.ui.toast({ message: __('Create "{0}"', [query || __("new")]) }),
+	};
+
 	const COMPONENTS = {
+		Combobox: {
+			helper: "frappe.ui.combobox",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							placeholder: __("Select status"),
+							options: ["Open", "Working", "Pending Review", "Closed"],
+							on_change: (value) =>
+								frappe.ui.toast({ message: __("Picked {0}", [value]) }),
+						},
+						{
+							placeholder: __("Select status"),
+							value: "Working",
+							options: ["Open", "Working", "Closed"],
+						},
+						{
+							placeholder: __("Disabled"),
+							value: "Open",
+							disabled: true,
+							options: ["Open", "Closed"],
+						},
+					],
+				},
+				{
+					title: __("Rich rows: avatar, description, badge, disabled"),
+					items: [
+						{
+							placeholder: __("Select customer"),
+							search_placeholder: __("Search customers..."),
+							options: [
+								{
+									label: "Acme Industries",
+									value: "CUST-0001",
+									description: "CUST-0001, Mumbai",
+									image: "/assets/frappe/images/frappe-framework-logo.svg",
+									badge: { label: "Commercial", theme: "green" },
+								},
+								{
+									label: "Ace Hardware Ltd",
+									value: "CUST-0042",
+									description: "CUST-0042, Pune",
+									avatar: true,
+									badge: { label: "Individual", theme: "blue" },
+								},
+								{
+									label: "Pacific Traders",
+									value: "CUST-0107",
+									description: "CUST-0107, Chennai",
+									avatar: true,
+								},
+								{
+									label: "Acme Exports",
+									value: "CUST-0009",
+									description: "CUST-0009",
+									avatar: true,
+									disabled: true,
+								},
+							],
+							on_change: (value, option) =>
+								frappe.ui.toast({ message: `${option.label} (${value})` }),
+						},
+						{
+							placeholder: __("Select priority"),
+							options: [
+								{ label: "Urgent", value: "Urgent", icon: "flame" },
+								{ label: "High", value: "High", icon: "arrow-up" },
+								{ label: "Medium", value: "Medium", icon: "minus" },
+								{ label: "Low", value: "Low", icon: "arrow-down" },
+							],
+						},
+					],
+				},
+				{
+					title: __("Groups"),
+					items: [
+						{
+							placeholder: __("Select account"),
+							search_placeholder: __("Search 412 accounts..."),
+							options: [
+								{
+									group: "Receivable",
+									options: [
+										{
+											label: "Debtors - FT",
+											value: "Debtors - FT",
+											description: "Accounts Receivable",
+										},
+										{
+											label: "Debtors USD - FT",
+											value: "Debtors USD - FT",
+											description: "Accounts Receivable",
+										},
+									],
+								},
+								{
+									group: "Expenses",
+									options: [
+										{
+											label: "Bad Debts - FT",
+											value: "Bad Debts - FT",
+											description: "Indirect Expenses",
+										},
+									],
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Custom rows (footer) and empty state"),
+					items: [
+						{
+							placeholder: __("Select customer"),
+							options: ["Acme Industries", "Ace Hardware Ltd"],
+							footer: [
+								CREATE_CUSTOMER_ROW,
+								{
+									type: "custom",
+									label: __("Browse all Customers"),
+									icon: "search",
+									condition: ({ query }) => !query,
+									onclick: () => frappe.ui.toast({ message: __("Browse all") }),
+								},
+							],
+						},
+					],
+				},
+				{
+					title: __("Applied filters — every operator, many at once, long values"),
+					items: [
+						{
+							placeholder: __("One filter"),
+							filters: ["Customer Group: Commercial"],
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+						{
+							placeholder: __("Every operator"),
+							filters: [
+								"Customer Group: Commercial",
+								"Status ≠ Disabled",
+								"Territory in India, Nepal, Bhutan, Sri Lanka, Bangladesh…",
+								'Name contains "acme"',
+								"Creation between 01-01-2026 and 31-03-2026",
+								"Tax ID is set",
+								"Enabled",
+								"Account Group descendant of Current Assets - FT",
+							],
+							footer: [CREATE_CUSTOMER_ROW],
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+						{
+							placeholder: __("Long values"),
+							filters: [
+								"Company: Frappe Technologies Private Limited (Mumbai Head Office and Regional Branches)",
+								"Cost Center: Main - Frappe Technologies Private Limited - Mumbai - FT",
+							],
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+						{
+							placeholder: __("Plain text form"),
+							filters:
+								"Customer Group equals Commercial and Territory is one of India, Nepal, Bhutan and Status is not Disabled",
+							options: ["Acme Industries", "Pacific Traders"],
+						},
+					],
+				},
+				{
+					title: __("No search row (short lists)"),
+					items: [
+						{
+							placeholder: __("Select company"),
+							hide_search: true,
+							value: "Frappe Technologies",
+							options: ["Frappe Technologies", "Frappe Cloud LLC", "Frappe UK Ltd"],
+						},
+					],
+				},
+				{
+					title: __("Load more on scroll (page_size)"),
+					items: [
+						{
+							placeholder: __("Select item"),
+							search_placeholder: __("Search 143 items..."),
+							filterable: false,
+							page_size: 20,
+							options: (query, { start }) =>
+								new Promise((resolve) =>
+									setTimeout(() => {
+										const all = Array.from({ length: 143 }, (_, i) => ({
+											label: `Item ${String(i + 1).padStart(3, "0")}`,
+											value: `ITEM-${String(i + 1).padStart(3, "0")}`,
+											description: i % 3 ? "Accessories" : "Electronics",
+										}));
+										const hits = all.filter((o) =>
+											o.label.toLowerCase().includes(query.toLowerCase())
+										);
+										resolve(hits.slice(start, start + 20));
+									}, 400)
+								),
+						},
+					],
+				},
+				{
+					title: __("Async options (server search)"),
+					items: [
+						{
+							placeholder: __("Select user"),
+							search_placeholder: __("Search users..."),
+							filterable: false,
+							options: (query) =>
+								new Promise((resolve) =>
+									setTimeout(() => {
+										const all = [
+											"Jane Doe",
+											"John Smith",
+											"Priya Shah",
+											"Ravi Kumar",
+										];
+										resolve(
+											all
+												.filter((n) =>
+													n.toLowerCase().includes(query.toLowerCase())
+												)
+												.map((n) => ({
+													label: n,
+													value: n,
+													avatar: true,
+												}))
+										);
+									}, 600)
+								),
+						},
+					],
+				},
+			],
+		},
+		"Multi Combobox": {
+			helper: "frappe.ui.multi_combobox",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic"),
+					items: [
+						{
+							placeholder: __("Select roles"),
+							options: [
+								"Accounts Manager",
+								"Accounts User",
+								"Sales User",
+								"Stock User",
+								"System Manager",
+							],
+							on_change: (values) =>
+								frappe.ui.toast({ message: __("{0} selected", [values.length]) }),
+						},
+						{
+							placeholder: __("Select roles"),
+							value: ["Sales User", "System Manager"],
+							options: [
+								"Accounts User",
+								"Sales User",
+								"Stock User",
+								"System Manager",
+							],
+						},
+						{
+							placeholder: __("Disabled"),
+							value: ["Sales User"],
+							disabled: true,
+							options: ["Sales User"],
+						},
+					],
+				},
+				{
+					title: __("One line: extra values show as +N"),
+					items: [
+						{
+							one_line: true,
+							value: ["Accounts User", "Sales User", "Stock User", "System Manager"],
+							options: [
+								"Accounts User",
+								"Sales User",
+								"Stock User",
+								"System Manager",
+							],
+						},
+					],
+				},
+			],
+		},
 		Dropdown: {
 			helper: "frappe.ui.dropdown",
 			groups: [
@@ -990,6 +1293,79 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 				},
 			],
 		},
+		"Optional Sections": {
+			helper: "frappe.ui.optional_sections",
+			stacked: true,
+			groups: [
+				{
+					title: __("Basic (add a section, Remove puts its button back)"),
+					items: [
+						{
+							label: "Add more now",
+							sections: [
+								{ title: "Contact", content: "Contact fields go here." },
+								{ title: "Salary and bank", content: "Salary fields go here." },
+								{
+									title: "Emergency contact",
+									content: "Emergency contact fields go here.",
+								},
+							],
+							on_add: (i, section) =>
+								frappe.ui.toast({ message: `${section.title} added` }),
+						},
+					],
+				},
+				{
+					title: __("A section added from the start"),
+					items: [
+						{
+							label: "Add more now",
+							sections: [
+								{ title: "Notes", content: "Shown until removed.", added: true },
+								{ title: "Attachments", content: "Attachment fields go here." },
+							],
+						},
+					],
+				},
+				{
+					title: __("Fields in a section, cleared on Remove"),
+					items: [
+						{
+							__code: 'let fields;\nfrappe.ui.optional_sections({\n  label: "Add more now",\n  sections: [{\n    title: "Contact",\n    content: () => {\n      const body = document.createElement("div");\n      fields = new frappe.ui.FieldGroup({ body, fields: contact_fields });\n      fields.make();\n      return body;\n    },\n  }],\n  on_remove: () => fields.set_values({ email: "", mobile: "" }),\n})',
+							label: "Add more now",
+							sections: [
+								{
+									title: "Contact",
+									content: () => {
+										const body = document.createElement("div");
+										explorer_contact_fields = new frappe.ui.FieldGroup({
+											body,
+											fields: [
+												{
+													fieldtype: "Data",
+													fieldname: "email",
+													label: "Email",
+												},
+												{ fieldtype: "Column Break", fieldname: "column" },
+												{
+													fieldtype: "Data",
+													fieldname: "mobile",
+													label: "Mobile",
+												},
+											],
+										});
+										explorer_contact_fields.make();
+										return body;
+									},
+								},
+							],
+							on_remove: () =>
+								explorer_contact_fields.set_values({ email: "", mobile: "" }),
+						},
+					],
+				},
+			],
+		},
 		Tabs: {
 			helper: "frappe.ui.tabs",
 			stacked: true,
@@ -1301,6 +1677,45 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					],
 				},
 				{
+					title: __("Vertical (each step with its content)"),
+					items: [
+						{
+							orientation: "vertical",
+							current: 1,
+							steps: [
+								{
+									label: __("Chart of Accounts"),
+									content: () =>
+										$(`<p class="text-p-sm text-ink-gray-6 m-0"></p>`).text(
+											__("Kept the chart made during setup.")
+										),
+								},
+								{
+									label: __("Opening balances"),
+									content: () =>
+										$(`<div class="flex flex-col gap-2 items-start"></div>`)
+											.append(
+												$(
+													`<p class="text-p-sm text-ink-gray-6 m-0"></p>`
+												).text(
+													__(
+														"Bring the closing balances from your old books."
+													)
+												)
+											)
+											.append(
+												frappe.ui.button({
+													label: __("Open"),
+													variant: "solid",
+												})
+											),
+								},
+								{ label: __("Go Live") },
+							],
+						},
+					],
+				},
+				{
 					title: __("Compact (narrow layouts)"),
 					items: [
 						{
@@ -1456,99 +1871,6 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 							onclick: () => frappe.ui.toast({ message: "Paid" }),
 						},
 					],
-				},
-			],
-		},
-		"Bar List": {
-			helper: "frappe.ui.bar_list",
-			stacked: true,
-			groups: [
-				{
-					title: __("Basic"),
-					items: [
-						{
-							items: [
-								{ label: "Not due", value: 42000 },
-								{ label: "1–30 days", value: 18000 },
-								{ label: "31–60 days", value: 9500 },
-								{ label: "60+ days", value: 3000 },
-							],
-						},
-					],
-				},
-				{
-					title: __("Formatted, coloured, values on hover"),
-					items: [
-						{
-							items: [
-								{ label: "Laptops", value: 120 },
-								{ label: "Monitors", value: 84 },
-								{ label: "Keyboards", value: 51 },
-							],
-							format: (value) => value + " units",
-							color: "var(--green-600)",
-							name: __("In stock"),
-							tooltip_format: (value) => __("{0} units in the warehouse", [value]),
-							values_on_hover: true,
-						},
-					],
-				},
-				{
-					title: __("Wide labels + clickable rows"),
-					items: [
-						{
-							items: [
-								{ label: "Kaveri Industrial Supplies", value: 540000 },
-								{ label: "Northwind Traders", value: 320000 },
-							],
-							label_width: 180,
-							onclick: (item) => frappe.ui.toast({ message: item.label }),
-						},
-					],
-				},
-				{
-					title: __("Empty"),
-					items: [{ items: [] }],
-				},
-			],
-		},
-		Donut: {
-			helper: "frappe.ui.donut",
-			groups: [
-				{
-					title: __("Centre value + legend"),
-					items: [
-						{
-							segments: [
-								{ label: "Paid", value: 70 },
-								{ label: "Unpaid", value: 20 },
-								{ label: "Overdue", value: 10 },
-							],
-							center: { value: "70%", label: "paid" },
-						},
-					],
-				},
-				{
-					title: __("Custom colours + format"),
-					items: [
-						{
-							segments: [
-								{ label: "Used", value: 55000, color: "var(--blue-600)" },
-								{
-									label: "Available",
-									value: 45000,
-									color: "var(--blue-400)",
-								},
-							],
-							center: { value: "55%", label: "used" },
-							format: (value) => format_currency(value),
-							size: 180,
-						},
-					],
-				},
-				{
-					title: __("Empty"),
-					items: [{ segments: [], size: 180 }],
 				},
 			],
 		},
@@ -2308,12 +2630,16 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 	let selected_component;
 	async function render_component(name) {
 		selected_component = name;
-		if (["Stat Card", "Bar List", "Donut"].includes(name)) {
+		if (name === "Stat Card") {
 			await frappe.require(["desk_charts.bundle.js", "desk_charts.bundle.css"]);
 			if (selected_component !== name) return;
 		}
 		if (name === "BottomSheet") {
 			await frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]);
+			if (selected_component !== name) return;
+		}
+		if (name === "Optional Sections") {
+			await frappe.require(["optional_sections.bundle.js", "optional_sections.bundle.css"]);
 			if (selected_component !== name) return;
 		}
 		const component = COMPONENTS[name];

@@ -28,6 +28,7 @@ class PrintSettings(Document):
 		font_size: DF.Float
 		max_bulk_print_docs: DF.Int
 		max_concurrent_bulk_exports: DF.Int
+		pdf_generator: DF.Literal["chrome", "PlutoPrint"]
 		pdf_page_height: DF.Float
 		pdf_page_size: DF.Literal[
 			"A0",

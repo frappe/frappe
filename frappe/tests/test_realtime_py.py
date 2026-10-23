@@ -17,6 +17,7 @@ import asyncio
 import json
 import os
 import sys
+import tempfile
 import threading
 import types
 import unittest
@@ -95,7 +96,11 @@ class FakeSio:
 		self.rooms: dict[str, set[str]] = {}
 		self.sessions: dict[str, Session] = {}
 		self.emits: list[dict] = []
+		self.handlers: dict[str, Callable] = {}
 		self.manager = self
+
+	def on(self, event: str, handler: Callable, namespace: str | None = None) -> None:
+		self.handlers[event] = handler
 
 	def is_connected(self, sid: str, namespace: str | None = None) -> bool:
 		return sid in self.sessions or sid in self.rooms
@@ -806,6 +811,23 @@ class TestDispatch(unittest.IsolatedAsyncioTestCase):
 		await dispatch_mod._run_handlers(self.sio, "evt", "/s1", "sid1", ("x", "y"))
 		self.assertEqual(seen, [("x", "y")])
 
+	async def test_handler_result_answers_the_acknowledgement(self):
+		async def subscribe(socket: Socket) -> dict:
+			return {"subscribed": True}
+
+		self.reg.on("evt")(subscribe)
+		self.reg.on("evt")(lambda s: None)  # a later handler with nothing to say keeps the answer
+		self._session()
+		dispatch_mod.wire(self.sio, make_config())
+		# python-socketio sends what the bound event handler returns as the acknowledgement.
+		self.assertEqual(await self.sio.handlers["evt"]("/s1", "sid1"), {"subscribed": True})
+
+	async def test_sync_handler_result_answers_the_acknowledgement(self):
+		self.reg.on("evt")(lambda s: "pong")
+		self._session()
+		dispatch_mod.wire(self.sio, make_config())
+		self.assertEqual(await self.sio.handlers["evt"]("/s1", "sid1"), "pong")
+
 
 class TestFrappeContext(unittest.IsolatedAsyncioTestCase):
 	def test_init_rebinds_a_fresh_local(self):
@@ -856,6 +878,29 @@ class TestConfig(unittest.TestCase):
 			config = get_config(sites_path="sites")
 
 		self.assertEqual(config.sites_path, os.path.abspath("sites"))
+
+	def test_sites_path_inside_sites(self):
+		# serve() changes into sites/, and a handler reads the config again from there.
+		import frappe
+
+		with (
+			tempfile.TemporaryDirectory() as bench_path,
+			patch.object(frappe, "local", types.SimpleNamespace()),
+			patch.object(frappe, "get_common_site_config", return_value={}),
+		):
+			sites = os.path.join(bench_path, "sites")
+			os.mkdir(sites)
+			cwd = os.getcwd()
+			try:
+				os.chdir(bench_path)
+				from_bench = get_config().sites_path
+				os.chdir(sites)
+				from_sites = get_config().sites_path
+			finally:
+				os.chdir(cwd)
+
+		self.assertEqual(os.path.realpath(from_bench), os.path.realpath(sites))
+		self.assertEqual(os.path.realpath(from_sites), os.path.realpath(sites))
 
 	def test_worker_threads_override(self):
 		self.assertEqual(self._config(socketio_worker_threads="8").worker_threads, 8)

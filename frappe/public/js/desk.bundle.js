@@ -21,6 +21,8 @@ import "./frappe/ui/components/dropdown.js";
 import "./frappe/ui/components/context_menu.js";
 import "./frappe/ui/components/tooltip.js";
 import "./frappe/ui/components/popover.js";
+import "./frappe/ui/components/combobox.js";
+import "./frappe/ui/components/multi_combobox.js";
 import "./frappe/ui/components/hover_card.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
@@ -29,6 +31,7 @@ import "./frappe/ui/components/stepper.js";
 import "./frappe/ui/components/empty_state.js";
 import "./frappe/ui/components/panel_header.js";
 import "./frappe/ui/sidebar/sidebar_panel.js";
+import "./frappe/ui/mobile_nav_loader.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";

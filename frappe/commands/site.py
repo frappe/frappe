@@ -1286,6 +1286,7 @@ def set_user_password(site, user, password, logout_all_sessions=False, yes=False
 			password = getpass.getpass(f"{user}'s password for {site}: ")
 
 		update_password(user=user, pwd=password, logout_all_sessions=logout_all_sessions)
+		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
 		frappe.db.commit()
 
 		if enable_admin_password_login:
@@ -1362,6 +1363,7 @@ def publish_realtime(context: CliCtxObj, event, message, room, user, doctype, do
 	help="Session end (in ISO8601 format and timezone-aware - 2025-01-24T12:26:29.200853+00:00)",
 )
 @click.option("--user-for-audit", required=False, help="The user to mention in audit trail")
+@click.option("--dev", is_flag=True, help="Force the port in the URL, for a development server")
 @pass_context
 def browse(
 	context: CliCtxObj,
@@ -1370,9 +1372,10 @@ def browse(
 	print_sid: bool = False,
 	session_end: str | None = None,
 	user_for_audit: str | None = None,
+	dev: bool = False,
 ):
 	"""Opens the site on web browser"""
-	browse_site(context, site, user, print_sid, session_end, user_for_audit)
+	browse_site(context, site, user, print_sid, session_end, user_for_audit, dev)
 
 
 def browse_site(
@@ -1382,15 +1385,16 @@ def browse_site(
 	print_sid: bool = False,
 	session_end: str | None = None,
 	user_for_audit: str | None = None,
+	dev: bool = False,
 ):
+	import webbrowser
+	from urllib.parse import parse_qsl, urlencode, urlparse, urlunparse
+
 	from frappe.auth import CookieManager, LoginManager
 
-	site = get_site(context, raise_err=False) or site
+	site = site or get_site(context)
 
-	if not site:
-		raise SiteNotSpecifiedError
-
-	if site not in frappe.utils.get_sites():
+	if site not in frappe.utils.get_sites() and not os.path.isfile(os.path.join(site, "site_config.json")):
 		click.echo(f"\nSite named {click.style(site, bold=True)} doesn't exist\n", err=True)
 		sys.exit(1)
 
@@ -1410,9 +1414,15 @@ def browse_site(
 			frappe.local.login_manager = LoginManager()
 			frappe.local.login_manager.login_as(user, session_end, user_for_audit)
 			sid = frappe.session.sid
-			login_path = f"/app?sid={sid}"
+			# frappe.local.response.home_page is set in LoginManager.login_as()
+			home_page = urlparse(frappe.local.response.home_page)
+			query = urlencode(dict(parse_qsl(home_page.query)) | {"sid": sid})
+			login_path = urlunparse(home_page._replace(query=query))
 		else:
-			click.echo("Please enable developer mode to login as a user")
+			click.echo(
+				"Only browsing as Administrator is supported outside development environments.", err=True
+			)
+			sys.exit(1)
 
 	if print_sid:
 		if not sid:
@@ -1421,12 +1431,12 @@ def browse_site(
 		click.echo(sid)
 		return
 
-	url = f"{frappe.utils.get_site_url(site)}{login_path}"
+	url = frappe.utils.get_url(login_path, allow_header_override=False, for_dev_server=dev)
 
-	if user == "Administrator":
-		click.echo(f"Login URL: {url}")
+	click.echo(f"URL: {url}")
 
-	click.launch(url)
+	if not os.environ.get("SSH_CONNECTION"):
+		webbrowser.open(url)
 
 
 @click.command("login-as-admin")
@@ -1540,6 +1550,7 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 	"""
 	from frappe.core.doctype.log_settings.log_settings import clear_log_table as clear_logs
 	from frappe.utils.backups import scheduled_backup
+	from frappe.utils.logging import is_log_doctype
 
 	if not context.sites:
 		raise SiteNotSpecifiedError
@@ -1551,17 +1562,25 @@ def clear_log_table(context: CliCtxObj, doctype, days, no_backup):
 		if doctype not in frappe.get_hooks("default_log_clearing_doctypes", {}):
 			raise frappe.ValidationError(f"Unsupported logging DocType: {doctype}")
 
+		stored_in_log_db = is_log_doctype(doctype)
+
 		if not no_backup:
-			scheduled_backup(
-				ignore_conf=False,
-				include_doctypes=doctype,
-				ignore_files=True,
-				force=True,
-			)
-			click.echo(f"Backed up {doctype}")
+			if stored_in_log_db:
+				# `scheduled_backup` dumps tables out of the site's primary database, and a
+				# log DocType has none there -- asking for one aborts the whole command.
+				click.echo(f"Skipping backup: {doctype} is stored in the site's log database")
+			else:
+				scheduled_backup(
+					ignore_conf=False,
+					include_doctypes=doctype,
+					ignore_files=True,
+					force=True,
+				)
+				click.echo(f"Backed up {doctype}")
 
 		try:
-			click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
+			if not stored_in_log_db:
+				click.echo(f"Copying {doctype} records from last {days} days to temporary table.")
 			clear_logs(doctype, days=days)
 		except Exception as e:
 			click.echo(f"Log cleanup for {doctype} failed:\n{e}")
