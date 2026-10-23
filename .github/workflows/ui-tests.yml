@@ -14,6 +14,7 @@ concurrency:
 permissions:
   # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
+  actions: read
 
 jobs:
   checkrun:
@@ -22,9 +23,21 @@ jobs:
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
+      specs: ${{ steps.check-build.outputs.specs }}
+      shards: ${{ steps.check-build.outputs.shards }}
+      shard_total: ${{ steps.check-build.outputs.shard_total }}
     steps:
       - name: Clone
         uses: actions/checkout@v7
+      - name: Download UI test impact map
+        run: |
+          for run_id in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow ui-tests.yml --event schedule --branch "$BRANCH" --limit 3 --json databaseId --jq '.[].databaseId'); do
+            gh run download "$run_id" --repo "$GITHUB_REPOSITORY" --name ui-impact-map && break
+          done
+          true
+        env:
+          GH_TOKEN: ${{ github.token }}
+          BRANCH: ${{ github.base_ref || github.ref_name }}
       - name: Check if build should be run
         id: check-build
         run: |
@@ -51,7 +64,7 @@ jobs:
       fail-fast: false
       matrix:
         db: ["mariadb"]
-        index: [1, 2, 3, 4]
+        index: ${{ fromJson(needs.checkrun.outputs.shards || '[1, 2, 3, 4]') }}
     services:
       mariadb:
         image: mariadb:11.8
@@ -107,7 +120,18 @@ jobs:
             run-ui-tests ${{ github.event.repository.name }} \
               --headless \
               --parallel-site test_site_2 \
-              --shard=${{ matrix.index }}/4
+              --shard=${{ matrix.index }}/${{ needs.checkrun.outputs.shard_total || 4 }} \
+              $SELECTED_SPECS
+        env:
+          SELECTED_SPECS: ${{ needs.checkrun.outputs.specs }}
+          UI_IMPACT_MAP_DIR: ${{ github.event_name == 'schedule' && format('{0}/ui-impact-map', github.workspace) || '' }}
+
+      - name: Upload UI test impact map
+        if: ${{ github.event_name == 'schedule' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-impact-map-${{ matrix.index }}
+          path: ui-impact-map/*.json
 
       - name: Upload Playwright Report
         if: always() && steps.ui-tests.outcome == 'failure'
@@ -188,6 +212,25 @@ jobs:
         if: ${{ always() }}
         run: |
           cat bench_start.log || true
+
+  impact-map:
+    name: UI Impact Map
+    needs: test
+    if: ${{ github.event_name == 'schedule' }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8.0.2
+        with:
+          pattern: ui-impact-map-*
+      - name: Merge UI test impact maps
+        run: python .github/helper/impact_map.py merge ui-impact-map.json ui-impact-map-*/*.json
+      - name: Publish UI test impact map
+        uses: actions/upload-artifact@v7
+        with:
+          name: ui-impact-map
+          path: ui-impact-map.json
+          retention-days: 14
 
   # TIP: Require this single check in branch protection, e.g. UI / Success
   success:
