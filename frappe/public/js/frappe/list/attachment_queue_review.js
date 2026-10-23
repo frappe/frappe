@@ -1,4 +1,5 @@
 import { safe_href } from "../ui/components/utils.js";
+import { queued_file_name } from "../utils/queued_file.js";
 
 frappe.provide("frappe.ui.attachment_queue");
 
@@ -18,7 +19,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 		title: __("Documents for Review"),
 		size: "extra-large",
 		fields: [{ fieldtype: "HTML", fieldname: "pending" }],
-		primary_action_label: __("Ready to Review"),
+		primary_action_label: __("Process"),
 		primary_action: () => frappe.ui.attachment_queue.start_review(selected, dialog),
 	});
 	// there is nothing to review until a file is picked
@@ -53,7 +54,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 	);
 
 	const show_preview = (entry) => {
-		const file_name = get_file_name(entry.source_file);
+		const file_name = queued_file_name(entry.source_file);
 		// source_file is an Attach field, so it can hold any URL its uploader typed
 		const file_url = safe_href(entry.source_file, "attachment_queue");
 
@@ -77,7 +78,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 		// the queue only takes PDFs and images, so anything not an image is a PDF
 		const $file = frappe.utils.is_image_file(file_url)
 			? $("<img loading='lazy'>").attr({ src: file_url, alt: file_name })
-			: $("<iframe>").attr({ src: file_url, title: file_name });
+			: $("<iframe>").attr({ src: `${file_url}#toolbar=0&navpanes=0`, title: file_name });
 		$preview_body.empty().append($file);
 	};
 
@@ -111,7 +112,9 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 				empty_message: __("No files are waiting for review."),
 				get_page: ({ start, page_length }) =>
 					frappe.db.get_list(QUEUE_DOCTYPE, {
-						fields: ["name", "source_file", "owner", "creation"],
+						// document_type travels with the row: the review opens a new
+						// document of it
+						fields: ["name", "document_type", "source_file", "owner", "creation"],
 						filters: { document_type, created_document: ["is", "not set"] },
 						order_by: "creation desc",
 						start,
@@ -121,7 +124,8 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 					{
 						label: __("File"),
 						fieldname: "source_file",
-						render: (row) => frappe.utils.escape_html(get_file_name(row.source_file)),
+						render: (row) =>
+							frappe.utils.escape_html(queued_file_name(row.source_file)),
 					},
 					{
 						label: __("Uploaded By"),
@@ -150,18 +154,15 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 };
 
 /**
- * Open the picked entry for review. The split-screen review workflow replaces this.
+ * Open the picked entry for review, beside a new document of its DocType.
  * @param {Object} entry the selected Attachment Queue row
  * @param {frappe.ui.Dialog} dialog the dialog it was picked in
  */
 frappe.ui.attachment_queue.start_review = function (entry, dialog) {
 	dialog.hide();
-	frappe.show_alert({
-		message: __("Review of {0} is not available yet.", [get_file_name(entry.source_file)]),
-		indicator: "orange",
+	// The split screen ships as its own on-demand bundle (kept out of this one),
+	// so load it before opening.
+	frappe.require("upload_first_review.bundle.js", () => {
+		frappe.ui.form.upload_first_review(entry);
 	});
 };
-
-function get_file_name(file_url) {
-	return decodeURIComponent(file_url.split("?", 1)[0].split("/").pop());
-}
