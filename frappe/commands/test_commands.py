@@ -266,9 +266,10 @@ class TestCommands(BaseTestCommands):
 
 	def test_browse_keeps_query_and_fragment_of_home_page(self):
 		user = self.make_browse_website_user()
+		original = frappe.db.get_single_value("Portal Settings", "default_portal_home")
 		frappe.db.set_single_value("Portal Settings", "default_portal_home", "me?view=list#tab")
 		frappe.db.commit()
-		self.addCleanup(frappe.db.set_single_value, "Portal Settings", "default_portal_home", None)
+		self.addCleanup(frappe.db.set_single_value, "Portal Settings", "default_portal_home", original)
 		self.addCleanup(frappe.db.commit)
 		frappe.cache.hdel("home_page", user)
 		with patch.dict(frappe.conf, {"developer_mode": 1}), patch("webbrowser.open"):
