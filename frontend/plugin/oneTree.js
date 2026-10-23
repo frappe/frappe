@@ -28,6 +28,8 @@ export default function oneTree(manifest) {
 
 	return {
 		name: "frappe-one-tree",
+		// Dev only: pre-bundled, ui's `.ts` would load twice, once for its raw `.vue` files.
+		config: () => ({ optimizeDeps: { exclude: ["@framework/ui"] } }),
 		async resolveId(source, importer) {
 			if (!importer) return;
 			if (source.startsWith("../")) return outOfLinkedPackage(source, importer);

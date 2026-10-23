@@ -159,11 +159,11 @@ returns **200, never 404** — a 404 loses the asset preloads.
   was rejected for the same class of reason — it silently picks a winner. Singleton
   identity is established earlier, by `enforce_singletons`, which is what
   `preserveSymlinks: true` then preserves.
-- **`@framework/ui` is kept out of the dev pre-bundle** (`optimizeDeps.exclude`). The
-  pre-bundle leaves out `.vue` files, so a pre-bundled ui ran each `.ts` module twice: once
-  bundled for the shell and once raw for ui's own `.vue` files. Each copy had its own
-  injection keys, so a Link field never found the `CreateRecordKey` that `main.ts`
-  provides. The build has no pre-bundle and is not affected.
+- **`@framework/ui` is kept out of the dev pre-bundle** (`optimizeDeps.exclude` in
+  `plugin/oneTree.js`). The pre-bundle leaves out `.vue` files, so a pre-bundled ui ran each
+  `.ts` module twice: once bundled for the shell and once raw for ui's own `.vue` files. Each
+  copy had its own injection keys, so a Link field never found the `CreateRecordKey` that
+  `main.ts` provides. The build has no pre-bundle and is not affected.
 
 So **`ui/package.json`'s `exports` map is load-bearing for every import from here.** Deep
 imports like `@framework/ui/components/Fields/rowIdentity` match no named key; they fall

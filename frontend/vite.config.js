@@ -71,8 +71,4 @@ export default defineConfig(({ command }) => ({
 			],
 		},
 	},
-	optimizeDeps: {
-		// Dev only: pre-bundled, ui's `.ts` would load twice, once for its raw `.vue` files.
-		exclude: ["@framework/ui"],
-	},
 }));
