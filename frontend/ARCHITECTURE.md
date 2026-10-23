@@ -238,9 +238,10 @@ component group, with its main names.
 | [Boot](./CONTEXT.md#boot) (`Boot`, `fetchBoot`, `BootUnauthorized`) | Nothing draws before it |
 | Navigation shapes (`NavigationItem`, `Navigation`) | One rail or sidebar row, and the rail plus every sidebar |
 | Address table (`fetchAddresses`) | Each doctype's slug and module, keyed by `metadata_version` |
-| Route builders (`routeFor`, `routeForModule`, `urlFor`, `isModular`) | Build a link to a list, a record or a module. Honour page replacements |
+| Route builders (`routeFor`, `routeForModule`, `routeForNew`, `urlFor`, `isModular`) | Build a link to a list, a record, a new record with its prefill values, or a module. Honour page replacements |
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
+| Create right (`useCreateRight`) | Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
@@ -268,6 +269,7 @@ component group, with its main names.
 | Composer drafts | Unsent comments and emails, per record and writer |
 | Composer registration | A record page registers its record, its dock and its writers, so the composer can outlive the page |
 | `ComposerWindow` | The composer card, docked or floating |
+| Create (`openCreate`, `CreateRequest`, `createRequests`, `registerCreateDialog`, `closeCreates`) | The one way to open Create for a doctype. The shell keeps the open requests above any page and closes them on a route change. The page layer registers the dialog that draws them |
 | Socket (`createSocket`, `repairRooms`) | Opens the realtime socket and hands it to `ui/` |
 | Item lookup (`rendererFor`, `renderingOf`, `labelOf`, `iconOf`, `itemContext`) | Draws an item through its kind's renderer |
 | Current item (`navigationDestinations`, `currentFrom`) | Which rail item and sidebar the current address belongs to |
@@ -284,7 +286,7 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `useListPage` | Everything a list page needs: meta, columns, filters, sort, rows, settings, delete |
+| `useListPage` | Everything a list page needs: meta, columns, filters, sort, rows, settings, delete, and the values a new record starts with |
 | `useListRows` | Rows and a total for one query, a page at a time |
 | List settings (`useListSettings`, `markListSettingsStale`) | Saved columns, sort and quick filters, per user or site. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Stored settings | Converts saved settings to live columns, sort and quick filters, and drops fields the user cannot read |
@@ -299,7 +301,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
-| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, and whether it restored the reader's view. The engine draws nothing |
+| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, Create, and whether it restored the reader's view. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
@@ -334,6 +336,7 @@ component group, with its main names.
 | `MainPage` | Shows the registered page for a list or record address |
 | `List`, `DoctypeList` | The standard list page, built on `useListPage` |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
+| `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
 | `TileGridSkeleton` | The loading skeleton for Home and Module |
 | App pages | Pages an app contributes or uses as a replacement. They may import only the [import list](#9-customization) |
 

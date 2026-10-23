@@ -152,12 +152,14 @@ describe("allowedPermlevels", () => {
     state.permissions = [
       { role: "Accounts Manager", permlevel: 2, read: 1, write: 1 },
       { role: "Sales User", permlevel: 1, read: 1 },
-      { role: "Sales User", permlevel: 0, read: 1, write: 1 },
+      { role: "Sales User", permlevel: 0, read: 1, write: 1, create: 1 },
+      { role: "Sales Manager", permlevel: 0, create: 1 },
     ];
     const { allowedPermlevels } = await access();
 
     expect(allowedPermlevels("read")).toEqual([0, 1, 2]);
     expect(allowedPermlevels("write")).toEqual([0, 2]);
+    expect(allowedPermlevels("create")).toEqual([0]);
   });
 
   it("is empty while the meta is still loading", () => {

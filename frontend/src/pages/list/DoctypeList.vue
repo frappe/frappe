@@ -41,6 +41,14 @@
 							<Button icon="lucide-ellipsis" label="More" />
 						</div>
 					</Dropdown>
+					<Button
+						v-if="canCreate"
+						variant="solid"
+						icon-left="lucide-plus"
+						:label="__('Create')"
+						:loading="creating"
+						@click="create"
+					/>
 				</div>
 			</div>
 
@@ -87,16 +95,19 @@
 </template>
 
 <script setup lang="ts">
-import { Breadcrumbs, Button, Dropdown, Skeleton } from "frappe-ui";
+import { Breadcrumbs, Button, Dropdown, Skeleton, toast } from "frappe-ui";
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
 import { computed, inject, ref } from "vue";
-import { useRoute } from "vue-router";
+import { useRoute, useRouter } from "vue-router";
 import type { Addresses } from "@/addresses";
-import { routeForModule } from "@/router/routeFor";
+import { useCreateRight } from "@/createRight";
+import { __ } from "@/i18n";
+import { routeFor, routeForModule } from "@/router/routeFor";
+import { openCreate } from "@/shell/create";
 import { useListPage } from "@/list/useListPage";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
@@ -106,6 +117,7 @@ const props = defineProps<{ doctype: string }>();
 
 const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
+const router = useRouter();
 
 // Under a modular prefix the address holds the module, so the crumbs walk down to the list.
 const crumbs = computed(() => {
@@ -149,8 +161,29 @@ const {
 	resizeColumn,
 	resetColumnWidth,
 	rowLink,
+	createValues,
+	reload,
 	deleteSelection,
 } = useListPage(props.doctype);
+
+const canCreate = useCreateRight(props.doctype);
+const creating = ref(false);
+
+async function create() {
+	if (creating.value) return;
+	creating.value = true;
+	const doc = await openCreate(props.doctype, { values: createValues.value }).finally(
+		() => (creating.value = false)
+	);
+	if (!doc) return;
+	reload();
+	toast.success(__("{0} {1} created", [__(props.doctype), doc.name]), {
+		action: {
+			label: __("Open"),
+			onClick: () => router.push(routeFor(props.doctype, doc.name)),
+		},
+	});
+}
 
 const table = ref<{ viewportElement: HTMLElement | null } | null>(null);
 const confirmingDelete = ref(false);

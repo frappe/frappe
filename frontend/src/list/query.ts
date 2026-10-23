@@ -77,6 +77,33 @@ export function completeFilters(filters: FilterCondition[]): FilterCondition[] {
 	});
 }
 
+/** A new record's values: the equality filters on the doctype's own fields, a Check as 1 or 0. */
+export function createValues(
+	filters: FilterCondition[],
+	fields: RawMetaField[]
+): Record<string, unknown> {
+	const own = new Map(
+		fields
+			.filter((field) => !TABLE_TYPES.has(field.fieldtype))
+			.map((field) => [field.fieldname, field])
+	);
+	const values: Record<string, unknown> = {};
+	for (const [fieldname, operator, value] of serializeFilters(completeFilters(filters))) {
+		const field = own.get(fieldname);
+		if (operator !== "=" || !field) continue;
+		values[fieldname] = typeof value === "boolean" ? fromBoolean(field, value) : value;
+	}
+	return values;
+}
+
+// The wire reads a "Yes" or "No" as a boolean whatever the field type.
+function fromBoolean(field: RawMetaField, value: boolean): number | string {
+	if (field.fieldtype === "Check") return Number(value);
+	return value ? "Yes" : "No";
+}
+
+const TABLE_TYPES = new Set(["Table", "Table MultiSelect"]);
+
 function stableQuery(query: LocationQuery): string {
 	return JSON.stringify(
 		Object.keys(query)

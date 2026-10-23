@@ -16,6 +16,10 @@ export interface DocPermRow {
 export interface DoctypeMeta {
   name: string;
   title_field?: string;
+  autoname?: string;
+  issingle?: 0 | 1;
+  istable?: 0 | 1;
+  in_create?: 0 | 1;
   fields?: RawMetaField[];
   permissions?: DocPermRow[];
 }

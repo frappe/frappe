@@ -38,6 +38,8 @@ export interface UseFormLayout {
 	/** True while nothing is there to show; stale rows or meta show while fresh ones are read. */
 	loading: ComputedRef<boolean>;
 	error: ComputedRef<unknown>;
+	/** `Quick Entry` only: the server's answer to whether Create opens a dialog. */
+	dialog: ComputedRef<boolean>;
 	/** Re-fetch the layout rows (the meta reloads through `useDoctypeMeta`). */
 	reload: () => void;
 	/** Resolves once the fresh rows and meta have both landed or failed, so a first replay sees the layout. */
@@ -102,6 +104,7 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		layout,
 		loading: busy,
 		error: computed(() => error.value ?? entry.value.error),
+		dialog: computed(() => Boolean((entry.value.data as FormLayoutsResponse | null)?.dialog)),
 		reload: () => entry.value.reload(),
 		settled: () => whenSettled(stale),
 		refreshed: () => Promise.all([refreshed(), entry.value.refreshed]).then(() => {}),

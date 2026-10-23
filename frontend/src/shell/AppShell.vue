@@ -48,6 +48,13 @@
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
 
+		<component
+			:is="createDialog()"
+			v-for="request in createRequests"
+			:key="request.id"
+			:request="request"
+		/>
+
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
 		<Dialogs />
@@ -72,6 +79,7 @@ import { recallSidebar, rememberSidebar } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
 import { failedPage } from "@/router/failedPage";
 import ComposerWindow from "./ComposerWindow.vue";
+import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import PageLoadError from "./PageLoadError.vue";
 import RailColumn from "./RailColumn.vue";
@@ -82,6 +90,8 @@ const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 const router = useRouter();
 const route = useRoute();
+
+watch(() => route.fullPath, closeCreates);
 
 const navigation = ref<Navigation>(boot.navigation ?? { rail: [], sidebars: {} });
 

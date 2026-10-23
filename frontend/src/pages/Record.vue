@@ -227,6 +227,7 @@ import {
 	shownInDialog,
 	stripTags,
 } from "./record/saveResponse";
+import { openCreate } from "@/shell/create";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
@@ -786,6 +787,7 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		save: write,
 		reload: load,
 		router,
+		openCreate,
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 	});

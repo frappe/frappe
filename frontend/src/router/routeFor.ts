@@ -92,6 +92,19 @@ function standardOr(doctype: string, key: "record" | "list", options: RouteOptio
 	return options.standard && replacementFor(doctype, key) ? `standard-${key}` : key;
 }
 
+/** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. */
+export function routeForNew(
+	doctype: string,
+	values: Record<string, unknown> = {}
+): RouteLocationRaw {
+	const query: Record<string, string> = {};
+	for (const [fieldname, value] of Object.entries(values)) {
+		if (value == null || value === "") continue;
+		query[fieldname] = typeof value === "object" ? JSON.stringify(value) : String(value);
+	}
+	return routeFor(doctype, "new", { query });
+}
+
 /** The route for a module's landing page. Modular prefixes only. */
 export function routeForModule(moduleSlug: string): RouteLocationRaw {
 	return { name: "module", params: { module: moduleSlug } };

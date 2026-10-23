@@ -1,6 +1,6 @@
 // The list page's controls row: the Sort control is a skeleton of its size until the page has
 // read meta, the stored settings and the URL, and the controls that do not depend on them show at once.
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
@@ -65,9 +65,15 @@ import DoctypeList from "../DoctypeList.vue";
 
 const apps: App[] = [];
 
+// The Create button reads meta and the session; no server answers here.
+beforeEach(() => {
+	vi.stubGlobal("fetch", async () => new Response(JSON.stringify({ errors: [{ type: "NotFound" }] }), { status: 404 }));
+});
+
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 	document.body.innerHTML = "";
+	vi.unstubAllGlobals();
 });
 
 async function mount() {

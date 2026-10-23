@@ -21,7 +21,14 @@ import { listHandlersFor } from "@/contributions/registry";
 import { routeFor } from "@/router/routeFor";
 import { defaultColumns, defaultSort, fetchFields, sameSort, type ListMeta } from "./defaults";
 import { readListMemory, recallRows, rememberRows, writeListMemory } from "./pageState";
-import { addressFromQuery, completeFilters, ownedKeys, queryFromAddress, sameQuery } from "./query";
+import {
+	addressFromQuery,
+	completeFilters,
+	createValues,
+	ownedKeys,
+	queryFromAddress,
+	sameQuery,
+} from "./query";
 import {
 	columnsFrom,
 	quickFilterFieldsFrom,
@@ -67,6 +74,8 @@ export interface ListPage extends ListRows {
 	saveForSite: (settings: ListSettings) => Promise<void>;
 	resetForSite: (key: ListSettingsKey) => Promise<void>;
 	rowLink: (row: ListRow) => RouteLocationRaw;
+	/** What a new record from this list starts with. */
+	createValues: ComputedRef<Record<string, unknown>>;
 	/** Deletes the selection one row at a time; the page confirms first. */
 	deleteSelection: () => Promise<DeleteOutcome>;
 }
@@ -316,6 +325,7 @@ export function useListPage(doctype: string): ListPage {
 			readSort();
 		},
 		rowLink: (row) => routeFor(doctype, row.name),
+		createValues: computed(() => createValues(filters.value, fields.value)),
 		deleteSelection,
 	};
 }
