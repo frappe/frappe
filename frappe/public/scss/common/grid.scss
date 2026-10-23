@@ -7,6 +7,7 @@
 // so it has to be the containing block the offsets are resolved against
 .grid-field {
 	position: relative;
+	scroll-margin-top: var(--page-head-height);
 }
 
 .form-grid {
@@ -761,6 +762,90 @@
 
 	.last-page {
 		margin-left: 5px;
+	}
+}
+
+.grid-selection-bar {
+	display: none;
+	position: sticky;
+	bottom: calc(var(--spacing) * 4);
+	z-index: 3;
+	align-items: center;
+	gap: calc(var(--spacing) * 2);
+	width: min(100%, calc(var(--spacing) * 144));
+	margin: calc(var(--spacing) * 2) auto calc(var(--spacing) * 4);
+	padding: calc(var(--spacing) * 1.5);
+	padding-left: calc(var(--spacing) * 3);
+	background: var(--surface-elevation-2);
+	border: 1px solid var(--outline-elevation-2);
+	border-radius: var(--radius-lg);
+	font-size: var(--text-base);
+	color: var(--ink-gray-8);
+	white-space: nowrap;
+	grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+}
+
+.grid-selection-summary,
+.grid-selection-actions {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+	min-width: 0;
+}
+
+.grid-selection-summary {
+	grid-column: 1;
+	gap: calc(var(--spacing) * 2);
+}
+
+.grid-selection-actions {
+	grid-column: 3;
+	justify-content: flex-end;
+}
+
+.grid-selection-label {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+@include media-breakpoint-down(sm) {
+	.grid-selection-bar {
+		gap: calc(var(--spacing) * 1);
+		grid-template-columns: minmax(0, 1fr) auto auto;
+	}
+
+	.grid-selection-check,
+	.grid-selection-divider,
+	.grid-selection-select-all {
+		display: none;
+	}
+}
+
+.grid-selection-pager {
+	display: flex;
+	align-items: center;
+	gap: calc(var(--spacing) * 1);
+}
+
+.grid-selection-page {
+	font-variant-numeric: tabular-nums;
+}
+
+.grid-has-selection {
+	> .grid-selection-scope > .grid-selection-bar {
+		display: grid;
+	}
+
+	> .grid-selection-scope > .grid-footer {
+		.grid-pagination,
+		.grid-bulk-actions {
+			display: none;
+		}
+
+		&:not(:has(.btn-custom:not(.hidden))) {
+			display: none;
+		}
 	}
 }
 

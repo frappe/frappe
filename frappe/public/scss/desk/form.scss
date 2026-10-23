@@ -528,6 +528,14 @@ body.full-width {
 			transform: translateY(0);
 			pointer-events: auto;
 		}
+
+		@include media-breakpoint-down(sm) {
+			.main-section:has(.grid-has-selection) &.show {
+				opacity: 0;
+				visibility: hidden;
+				pointer-events: none;
+			}
+		}
 	}
 }
 
