@@ -106,7 +106,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (frappe.model.can_print(this.report_doc?.ref_doctype)) {
 			this.print_button = this.page.add_action_icon(
 				"printer",
-				() => this.print_report(),
+				() => this.open_print_view(),
 				"",
 				__("Print")
 			);
@@ -976,15 +976,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				this.hide_loading_screen();
 				this.update_url_with_filters();
 				this.report_settings.after_refresh?.(this);
-				this.open_pending_print_view();
 			});
-	}
-
-	open_pending_print_view() {
-		const pending = frappe.flags.pending_report_print;
-		if (pending?.report_name !== this.report_name) return;
-		delete frappe.flags.pending_report_print;
-		if (this.data?.length) this.open_print_view(pending.route_options);
 	}
 
 	render_summary(data) {
@@ -1694,19 +1686,37 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return this.datatable.datamanager.rowViewOrder.filter((idx) => visible.has(idx));
 	}
 
-	print_report() {
-		this.get_validated_visible_indexes();
-		this.open_print_view();
+	async print_report(print_settings) {
+		const format = await this.resolve_print_format(print_settings);
+
+		this.make_access_log("Print", "HTML");
+
+		const opts = await this.build_print_opts(print_settings, format);
+		if (!opts) return;
+
+		frappe.render_grid(opts);
+	}
+
+	async pdf_report(print_settings) {
+		this.make_access_log("Print", "PDF");
+		frappe.show_alert({ message: __("Generating PDF..."), indicator: "blue" }, 5);
+
+		const out = await this.get_print_html(print_settings);
+		if (!out) return;
+
+		print_settings.report_name = this.get_pdf_filename();
+		frappe.render_pdf(out.html, print_settings);
 	}
 
 	open_print_view(route_options) {
+		this.get_validated_visible_indexes();
 		frappe.set_route("report-print", this.report_name, route_options || {});
 	}
 
 	async get_print_html(print_settings) {
 		const format = await this.resolve_print_format(print_settings);
 		const opts = await this.build_print_opts(print_settings, format);
-		if (!opts) return null;
+		if (!opts) return;
 
 		const html = frappe.render_template("print_template", {
 			...opts,
@@ -2091,7 +2101,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			{
 				label: __("Print"),
-				action: () => this.print_report(),
+				action: () => this.open_print_view(),
 				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true,
 			},

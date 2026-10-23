@@ -13,10 +13,9 @@ const is_post_to = (method) => (req) =>
 	req.method() === "POST" && req.url().includes(`/api/method/${method}`);
 
 const open_print_view = (page, print_format) =>
-	page.goto(
-		`/desk/report-print/${encodeURIComponent(REPORT)}?print_format=${encodeURIComponent(
-			print_format
-		)}`
+	page.evaluate(
+		(print_format) => frappe.query_report.open_print_view({ print_format }),
+		print_format
 	);
 
 const preview = (page) => page.frameLocator(`${PRINT_PAGE} .preview-beta-wrapper iframe`);
@@ -58,7 +57,10 @@ test.describe("Report Print Formats", () => {
 		}
 	});
 
-	test("opens the print view from the report menu", async ({ page, desk }) => {
+	test.beforeEach(async ({ page }) => {
+		await page.route(`**/api/method/${pdf_method}`, (route) =>
+			route.fulfill({ status: 200, body: "" })
+		);
 		await page.goto(`/desk/query-report/${encodeURIComponent(REPORT)}`);
 		await page.waitForFunction(
 			(report) =>
@@ -66,6 +68,9 @@ test.describe("Report Print Formats", () => {
 			REPORT,
 			{ timeout: 60000 }
 		);
+	});
+
+	test("opens the print view from the report menu", async ({ page, desk }) => {
 		await page.locator("#page-query-report .page-actions .menu-btn-group > button").click();
 		await desk.click_menu_item("Print");
 
@@ -90,15 +95,12 @@ test.describe("Report Print Formats", () => {
 		expect(jinja_calls).toHaveLength(0);
 	});
 
-	test("sends the previewed format to the pdf service", async ({ page }) => {
-		await page.route(`**/api/method/${pdf_method}`, (route) =>
-			route.fulfill({ status: 200, body: "" })
-		);
+	test("sends the jinja body to the pdf service", async ({ page }) => {
 		await open_print_view(page, JINJA_FORMAT);
 		await expect(preview(page).locator("h1")).toHaveText("report body");
 
 		const pdf = page.waitForRequest(is_post_to(pdf_method));
-		await page.locator(`${PRINT_PAGE} [data-original-title="Download PDF"]`).click();
+		await page.locator(`${PRINT_PAGE} button[data-label="PDF"]`).click();
 
 		expect((await pdf).postData()).toContain("report body");
 	});

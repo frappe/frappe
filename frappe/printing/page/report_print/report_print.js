@@ -1,5 +1,3 @@
-const PRINT_VIEW_OPTIONS = ["print_format", "letter_head", "orientation"];
-
 const PREVIEW_STYLE = `<style>
 	@media screen {
 		:root {
@@ -15,7 +13,9 @@ const PREVIEW_STYLE = `<style>
 			padding: calc(var(--spacing) * 8);
 		}
 		.print-format {
-			width: 8.3in;
+			width: 8.27in;
+			max-width: none;
+			min-height: 11.69in;
 			border-radius: var(--radius-sm);
 			box-shadow: var(--shadow-md);
 		}
@@ -41,64 +41,25 @@ frappe.pages["report-print"].on_page_load = function (wrapper) {
 frappe.views.ReportPrintView = class ReportPrintView {
 	constructor(wrapper) {
 		this.page = wrapper.page;
-		this.zoom = 1;
-		this.zoom_set_by_user = false;
-		this.current_page = 1;
 		this.render_count = 0;
-		this.px_per_inch = 1 / frappe.dom.pixel_to_inches(1);
 		this.make();
 	}
 
 	show(report_name) {
-		const options = frappe.route_options || {};
+		const print_format = frappe.route_options?.print_format;
 		frappe.route_options = null;
 
-		const filters = Object.fromEntries(
-			Object.entries(options).filter(([key]) => !PRINT_VIEW_OPTIONS.includes(key))
-		);
-		const view_options = Object.fromEntries(
-			Object.entries(options).filter(([key]) => PRINT_VIEW_OPTIONS.includes(key))
-		);
-
-		const report = frappe.query_report;
-		const reload = report?.report_name !== report_name || !this.filters_match(report, filters);
-		if (reload) {
-			frappe.flags.pending_report_print = { report_name, route_options: view_options };
-		}
-		if (reload || !report.data?.length) {
-			this.html = null;
+		this.report = frappe.query_report;
+		if (
+			this.report?.report_name !== report_name ||
+			!this.report.data?.length ||
+			!frappe.model.can_print(this.report.report_doc?.ref_doctype)
+		) {
 			frappe.route_flags.replace_route = true;
-			frappe.set_route("query-report", report_name, filters);
+			frappe.set_route("query-report", report_name);
 			return;
 		}
 
-		this.report = report;
-		this.set_breadcrumbs(report_name);
-		this.setup_controls(view_options).then(() => this.refresh());
-	}
-
-	filters_match(report, filters) {
-		const current = report.get_filter_values();
-		const text = (value) =>
-			Array.isArray(value) ? JSON.stringify(value) : String(value ?? "");
-		return Object.entries(filters).every(([key, value]) => text(current[key]) === text(value));
-	}
-
-	update_url() {
-		if (frappe.get_route()[0] !== "report-print") return;
-		const url = new URL(this.report.get_url_with_filters());
-		const view_options = {
-			print_format: this.print_settings.print_format,
-			letter_head: this.print_settings.letter_head_name,
-			orientation: this.orientation_set_by_user && this.print_settings.orientation,
-		};
-		for (const [key, value] of Object.entries(view_options)) {
-			if (value) url.searchParams.set(key, value);
-		}
-		window.history.replaceState(null, null, url);
-	}
-
-	set_breadcrumbs(report_name) {
 		this.page.set_title(__(report_name));
 		this.page.set_breadcrumbs([
 			{
@@ -107,54 +68,38 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			},
 			{ label: __("Print") },
 		]);
+		this.setup_controls(print_format).then(() => this.refresh());
 	}
 
 	make() {
 		this.page.main.html(`
 			<div class="preview-beta-wrapper report-print-preview">
 				<iframe width="100%" height="0" frameBorder="0"></iframe>
-				<div class="print-preview-bar">
-					<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="prev-page" aria-label="${__(
-						"Previous page"
-					)}">${frappe.utils.icon("chevron-up", "sm")}</button>
-					<span class="print-preview-bar-label page-label"></span>
-					<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="next-page" aria-label="${__(
-						"Next page"
-					)}">${frappe.utils.icon("chevron-down", "sm")}</button>
-					<span class="print-preview-bar-divider"></span>
-					<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-out" aria-label="${__(
-						"Zoom out"
-					)}">${frappe.utils.icon("minus", "sm")}</button>
-					<span class="print-preview-bar-label zoom-label"></span>
-					<button class="es-button" data-variant="ghost" data-size="sm" data-icon-button="true" data-action="zoom-in" aria-label="${__(
-						"Zoom in"
-					)}">${frappe.utils.icon("plus", "sm")}</button>
-					<button class="es-button" data-variant="ghost" data-size="sm" data-action="fit">${__(
-						"Fit"
-					)}</button>
-				</div>
 			</div>
 		`);
 		this.$preview = this.page.main.find(".preview-beta-wrapper");
 		this.$iframe = this.$preview.find("iframe");
-		this.preview_bar = this.$preview.find(".print-preview-bar");
-		this.preview_bar.on("click", "[data-action]", (e) => {
-			const action = e.currentTarget.dataset.action;
-			if (action === "next-page") return this.go_to_page(this.current_page + 1);
-			if (action === "prev-page") return this.go_to_page(this.current_page - 1);
-
-			this.zoom_set_by_user = true;
-			if (action === "zoom-in") this.set_zoom(this.zoom + 0.1);
-			else if (action === "zoom-out") this.set_zoom(this.zoom - 0.1);
-			else if (action === "fit") this.fit_zoom();
+		this.preview_bar = new frappe.ui.PrintPreviewBar({
+			parent: this.$preview,
+			get_metrics: (doc) => this.get_page_metrics(doc),
 		});
 
 		this.page.set_primary_action(__("Print"), () => this.print(), "printer");
-		this.page.add_action_icon("sheet", () => this.back_to_report(), "", __("Back to Report"));
-		this.page.add_action_icon("download", () => this.download_pdf(), "", __("Download PDF"));
+		this.page.add_button(__("Full Page"), () => this.open_full_page(), { icon: "fullscreen" });
+		this.page.add_button(__("PDF"), () => this.download_pdf(), { icon: "file" });
+		this.page.add_button(__("Refresh"), () => this.refresh(), { icon: "refresh-cw" });
+		this.page.add_button(
+			__("Report"),
+			() => frappe.set_route("query-report", this.report.report_name),
+			{ icon: "sheet" }
+		);
+		this.page.add_menu_item(__("Print Settings"), () =>
+			frappe.set_route("Form", "Print Settings")
+		);
 
 		frappe.ui.keys.add_shortcut({
 			shortcut: "ctrl+p",
+			ignore_inputs: true,
 			action: () => this.print(),
 			page: this.page,
 			description: __("Print report"),
@@ -164,27 +109,26 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		this.sidebar = this.page.sidebar.addClass("print-preview-sidebar");
 	}
 
-	async setup_controls(view_options) {
+	async setup_controls(print_format) {
 		this.sidebar.empty();
-		const formats = await this.get_print_formats();
+		const formats = await frappe.db.get_list("Print Format", {
+			filters: { print_format_for: "Report", report: this.report.report_name, disabled: 0 },
+			order_by: "name asc",
+			limit: 100,
+		});
+		const names = formats.map((format) => format.name);
 
-		this.add_heading(__("Format"));
+		this.sidebar.append(`<div class="print-sidebar-heading">${__("Format")}</div>`);
 		this.format_field = this.add_control({
 			fieldtype: "Select",
 			fieldname: "print_format",
 			label: __("Print Format"),
-			options: [{ label: __("Standard"), value: "" }, ...formats],
-			default: this.pick(
-				view_options.print_format,
-				formats,
-				this.report.report_doc.default_print_format
-			),
-			change: () => {
-				if (!this.orientation_set_by_user) {
-					this.orientation_field.set_input(this.default_orientation);
-				}
-				this.refresh();
-			},
+			options: [{ label: __("Standard"), value: "" }, ...names],
+			default:
+				[print_format, this.report.report_doc.default_print_format].find((name) =>
+					names.includes(name)
+				) || "",
+			change: () => this.refresh(),
 		});
 		this.letter_head_field = this.add_control({
 			fieldtype: "Link",
@@ -192,17 +136,15 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			label: __("Letter Head"),
 			options: "Letter Head",
 			placeholder: __("None"),
-			default: view_options.letter_head ?? this.default_letter_head(),
+			default: this.default_letter_head(),
 			get_query: () => ({ filters: { letter_head_for: "Report", disabled: 0 } }),
 			change: () => this.refresh(),
 		});
 
-		const $page_settings = $(`<div class="print-page-settings"></div>`).appendTo(this.sidebar);
-		this.add_heading(__("Page"), $page_settings);
-		this.orientation_set_by_user = !!view_options.orientation;
-		this.default_orientation =
-			view_options.orientation ||
-			(this.report.columns.length > 10 ? "Landscape" : "Portrait");
+		const $page = $(`<div class="print-page-settings">
+			<div class="print-sidebar-heading">${__("Page")}</div>
+		</div>`).appendTo(this.sidebar);
+		this.orientation_set_by_user = false;
 		this.orientation_field = this.add_control(
 			{
 				fieldtype: "Select",
@@ -212,13 +154,12 @@ frappe.views.ReportPrintView = class ReportPrintView {
 					{ label: __("Portrait"), value: "Portrait" },
 					{ label: __("Landscape"), value: "Landscape" },
 				],
-				default: this.default_orientation,
 				change: () => {
 					this.orientation_set_by_user = true;
 					this.refresh();
 				},
 			},
-			$page_settings
+			$page
 		);
 		this.include_filters_field = this.add_control(
 			{
@@ -228,11 +169,21 @@ frappe.views.ReportPrintView = class ReportPrintView {
 				default: 1,
 				change: () => this.refresh(),
 			},
-			$page_settings
+			$page
+		);
+		this.pick_columns_field = this.add_control(
+			{
+				fieldtype: "Check",
+				fieldname: "pick_columns",
+				label: __("Pick columns"),
+				change: () => this.refresh(),
+			},
+			$page
 		);
 
-		this.$columns = $(`<div class="print-page-settings"></div>`).appendTo(this.sidebar);
-		this.add_heading(__("Columns"), this.$columns);
+		this.$columns = $(`<div class="print-page-settings report-print-columns"></div>`).appendTo(
+			this.sidebar
+		);
 		this.columns_field = this.add_control(
 			{
 				fieldtype: "MultiCheck",
@@ -249,45 +200,17 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			},
 			this.$columns
 		);
-	}
-
-	add_heading(label, parent) {
-		return $(`<div class="print-sidebar-heading">${label}</div>`).appendTo(
-			parent || this.sidebar
-		);
+		this.columns_field.$checkbox_area.css("padding", "");
 	}
 
 	add_control(df, parent) {
-		if (df.fieldtype === "Select") {
-			df.input_class = "btn btn-default btn-sm text-left";
-		}
 		const field = frappe.ui.form.make_control({
 			df,
 			parent: parent || this.sidebar,
 			render_input: 1,
 		});
-		if (df.default != null) {
-			field.set_input(df.default);
-		}
+		if (df.default != null) field.set_input(df.default);
 		return field;
-	}
-
-	pick(requested, formats, fallback) {
-		if (formats.includes(requested)) return requested;
-		return formats.includes(fallback) ? fallback : "";
-	}
-
-	async get_print_formats() {
-		const formats = await frappe.db.get_list("Print Format", {
-			filters: {
-				print_format_for: "Report",
-				report: this.report.report_name,
-				disabled: 0,
-			},
-			order_by: "name asc",
-			limit: 100,
-		});
-		return (formats || []).map((format) => format.name);
 	}
 
 	default_letter_head() {
@@ -301,138 +224,110 @@ frappe.views.ReportPrintView = class ReportPrintView {
 	}
 
 	get_print_settings() {
-		const print_settings = { ...locals[":Print Settings"]?.["Print Settings"] };
-		const letter_head_name = this.letter_head_field.get_value();
+		const letter_head = this.letter_head_field.get_value();
 		const print_format = this.format_field.get_value() || null;
 		const columns = this.columns_field.get_checked_options();
-		const all_columns = this.report.get_visible_columns().length;
+		const pick_columns = !print_format && this.pick_columns_field.get_value();
 
-		return Object.assign(print_settings, {
+		return {
+			...locals[":Print Settings"]?.["Print Settings"],
 			print_format,
-			orientation: this.orientation_field.get_value(),
-			with_letter_head: letter_head_name ? 1 : 0,
-			letter_head_name: letter_head_name || null,
-			letter_head: letter_head_name ? frappe.boot.letter_heads?.[letter_head_name] : null,
+			orientation: this.orientation_set_by_user
+				? this.orientation_field.get_value()
+				: this.report.columns.length > 10
+				? "Landscape"
+				: "Portrait",
+			with_letter_head: letter_head ? 1 : 0,
+			letter_head_name: letter_head || null,
+			letter_head: letter_head ? frappe.boot.letter_heads?.[letter_head] : null,
 			include_filters: this.include_filters_field.get_value(),
-			columns: !print_format && columns.length < all_columns ? columns : null,
-		});
+			columns:
+				pick_columns && columns.length < this.report.get_visible_columns().length
+					? columns
+					: null,
+		};
 	}
 
 	async refresh() {
 		const count = ++this.render_count;
 		const print_settings = this.get_print_settings();
+		this.html = null;
 		this.$preview.addClass("is-rendering");
 		const out = await this.report.get_print_html(print_settings);
 		if (count !== this.render_count) return;
-		if (!out) {
-			this.$preview.removeClass("is-rendering");
-			return;
-		}
+		if (!out) return this.$preview.removeClass("is-rendering");
 
+		const { paper, orientation } = this.get_page_size(out.html);
+		if (orientation && !this.orientation_set_by_user) {
+			print_settings.orientation = frappe.utils.to_title_case(orientation);
+		}
+		this.orientation_field.set_input(print_settings.orientation);
+		const size = `${paper} ${print_settings.orientation.toLowerCase()}`;
 		this.print_settings = print_settings;
-		this.html = out.html;
-		this.toggle_settings(out.format);
-		this.update_url();
+		this.html = out.html.replace("</body>", `<style>@page { size: ${size}; }</style></body>`);
+		this.include_filters_field.toggle(out.format.type !== "jinja");
+		this.pick_columns_field.toggle(!print_settings.print_format);
+		this.$columns.toggle(
+			!print_settings.print_format && !!this.pick_columns_field.get_value()
+		);
 		this.$iframe.off("load").on("load", () => this.on_preview_load());
 		this.$iframe.prop("srcdoc", this.html.replace("</head>", `${PREVIEW_STYLE}</head>`));
-		this.$iframe.css("height", "calc(100vh - var(--page-head-height))");
 	}
 
-	toggle_settings(format) {
-		const is_jinja = format.type === "jinja";
-		this.include_filters_field.toggle(!is_jinja);
-		this.$columns.toggle(!this.format_field.get_value());
+	get_page_size(html) {
+		const size = html.match(/@page\s*\{[^}]*\bsize\s*:\s*([^;}]+)/i)?.[1] || "";
+		const tokens = size.trim().toLowerCase().split(/\s+/);
+		const orientation = tokens.find((token) => ["portrait", "landscape"].includes(token));
+		const paper = tokens.find(
+			(token) => /^[a-z]/.test(token) && token !== orientation && token !== "auto"
+		);
+		return { paper: paper || "", orientation };
 	}
 
 	on_preview_load() {
-		this.preview_frame = this.$iframe.get(0);
-		const doc = this.preview_frame.contentDocument;
+		const frame = this.$iframe.get(0);
+		const doc = frame.contentDocument;
 		if (!doc?.body) return;
+		const landscape = this.print_settings.orientation === "Landscape";
+		doc.querySelector(".print-format")?.classList.toggle("landscape", landscape);
 		this.$preview.removeClass("is-rendering");
-		this.sync_orientation();
-		if (this.zoom_set_by_user) this.apply_zoom();
-		else this.fit_zoom(1);
-		doc.addEventListener("scroll", () => this.update_page_label());
+		this.preview_bar.attach(frame, { fit: true });
 		doc.addEventListener("keydown", (e) => {
 			if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "p") {
 				e.preventDefault();
 				this.print();
 			}
 		});
-		this.update_page_label();
 	}
 
-	page_metrics() {
-		const doc = this.preview_frame?.contentDocument;
-		const sheet = doc?.querySelector(".print-format");
+	get_page_metrics(doc) {
+		const sheet = doc.querySelector(".print-format");
 		if (!sheet) return null;
-		const landscape = parseFloat(getComputedStyle(sheet).maxWidth) > 9 * this.px_per_inch;
-		const page_height = (landscape ? 8.27 : 11.69) * this.px_per_inch;
-		const pages = Math.max(1, Math.ceil((sheet.offsetHeight - 1) / page_height));
-		return { doc, sheet, landscape, page_height, pages };
-	}
-
-	sync_orientation() {
-		const m = this.page_metrics();
-		if (!m || this.orientation_set_by_user) return;
-		const orientation = m.landscape ? "Landscape" : "Portrait";
-		this.print_settings.orientation = orientation;
-		this.orientation_field.set_input(orientation);
-	}
-
-	update_page_label() {
-		const m = this.page_metrics();
-		if (!m) return;
-		const el = m.doc.scrollingElement;
-		const at_end = el.scrollTop > 0 && el.scrollTop + el.clientHeight >= el.scrollHeight - 2;
-		const middle = (el.scrollTop + el.clientHeight / 2) / this.zoom - m.sheet.offsetTop;
-		this.current_page = at_end
-			? m.pages
-			: Math.min(m.pages, Math.max(1, Math.floor(middle / m.page_height) + 1));
-		this.preview_bar
-			.find(".page-label")
-			.text(__("Page {0} of {1}", [this.current_page, m.pages]));
-		this.preview_bar.find("[data-action=prev-page]").prop("disabled", this.current_page <= 1);
-		this.preview_bar
-			.find("[data-action=next-page]")
-			.prop("disabled", this.current_page >= m.pages);
-	}
-
-	go_to_page(page) {
-		const m = this.page_metrics();
-		if (!m) return;
-		page = Math.min(m.pages, Math.max(1, page));
-		m.doc.scrollingElement.scrollTo({
-			top: (m.sheet.offsetTop + (page - 1) * m.page_height) * this.zoom,
-			behavior: "smooth",
-		});
-	}
-
-	set_zoom(zoom) {
-		this.zoom = Math.min(2, Math.max(0.5, Math.round(zoom * 10) / 10));
-		this.apply_zoom();
-	}
-
-	apply_zoom() {
-		const doc = this.preview_frame?.contentDocument;
-		if (doc?.documentElement) doc.documentElement.style.zoom = this.zoom;
-		this.preview_bar.find(".zoom-label").text(`${Math.round(this.zoom * 100)}%`);
-		this.update_page_label();
-	}
-
-	fit_zoom(max_zoom = 2) {
-		const m = this.page_metrics();
-		if (!m) return;
-		const fit = (this.preview_frame.clientWidth - 96) / m.sheet.offsetWidth;
-		this.set_zoom(Math.min(max_zoom, Math.floor(fit * 10) / 10));
+		return {
+			top: sheet.offsetTop,
+			width: sheet.offsetWidth,
+			starts: frappe.ui.PrintPreviewBar.measure_pages({
+				page: sheet,
+				page_height: parseFloat(getComputedStyle(sheet).minHeight),
+				breaks: ".page-break:not(:last-child)",
+			}),
+		};
 	}
 
 	print() {
-		if (!this.html) return;
+		if (!this.html || this.$preview.hasClass("is-rendering")) return;
 		this.report.make_access_log("Print", "HTML");
-		const win = this.preview_frame?.contentWindow;
-		win?.focus();
-		win?.print();
+		const win = this.$iframe.get(0).contentWindow;
+		win.focus();
+		win.print();
+	}
+
+	open_full_page() {
+		if (!this.html) return;
+		const win = window.open();
+		if (!win) return frappe.msgprint(__("Please enable pop-ups in your browser"));
+		win.document.write(this.html);
+		win.document.close();
 	}
 
 	download_pdf() {
@@ -442,9 +337,5 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			...this.print_settings,
 			report_name: this.report.get_pdf_filename(),
 		});
-	}
-
-	back_to_report() {
-		frappe.set_route("query-report", this.report.report_name);
 	}
 };

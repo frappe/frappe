@@ -4,9 +4,18 @@
 }
 
 .report-print-preview iframe {
+	height: calc(100vh - var(--page-head-height));
 	transition: opacity 150ms ease;
 }
 
 .report-print-preview.is-rendering iframe {
 	opacity: 0.5;
+}
+
+.report-print-columns .bulk-select-options {
+	margin-bottom: calc(var(--spacing) * 2);
+}
+
+.report-print-columns .checkbox {
+	margin-bottom: calc(var(--spacing) * 1);
 }
