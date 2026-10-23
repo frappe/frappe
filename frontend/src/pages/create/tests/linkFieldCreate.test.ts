@@ -509,6 +509,23 @@ describe("a Dynamic Link field", () => {
 		expect(doc.value.reference_name).toBe("Acme");
 	});
 
+	it("drops the saved record's title once its sibling names another doctype", async () => {
+		metas.Customer = customerMeta({ title_field: "customer_name", show_title_field_in_link: 1 });
+		saved.Customer = { name: "CUST-0001" };
+		const doc = dynamicLinkField();
+		await search("reference_name", "Acme");
+		await chooseCreate();
+		await press(dialog("New Customer"), "Save");
+		const input = () => within("reference_name").querySelector("input")!.value;
+		expect(input()).toBe("Acme");
+
+		doc.value = { ...doc.value, reference_doctype: "Territory" };
+		await settle();
+
+		expect(doc.value.reference_name).toBe("CUST-0001");
+		expect(input()).not.toBe("Acme");
+	});
+
 	it("does not take the name when its sibling moved to another doctype during the save", async () => {
 		saved.Customer = { name: "CUST-0001" };
 		const doc = dynamicLinkField();

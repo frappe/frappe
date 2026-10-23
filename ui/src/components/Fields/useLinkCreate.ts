@@ -33,7 +33,7 @@ export function useLinkCreate(options: {
   const linked = () => (host && options.open.value ? toValue(options.doctype) : "");
   const { meta } = useDoctypeMeta(linked);
   const right = host?.useRight(linked);
-  const created = shallowRef<{ name: string; title?: string } | null>(null);
+  const created = shallowRef<{ doctype: string; name: string; title?: string } | null>(null);
 
   const creatable = computed(() => Boolean(right?.value) && !toValue(options.disabled));
 
@@ -52,14 +52,16 @@ export function useLinkCreate(options: {
     const doc = await host.open(doctype, { values });
     options.link.value?.focus();
     if (!doc || toValue(options.doctype) !== doctype) return;
-    created.value = { name: doc.name, title: titleOf(linkedMeta, doc) };
+    created.value = { doctype, name: doc.name, title: titleOf(linkedMeta, doc) };
     options.select(doc.name);
     // The browser keeps the typed text's answer from before the save; this replaces it.
     options.link.value?.search(query.trim(), { fresh: true });
   }
 
   function title(value: string | null): string | undefined {
-    return value && created.value?.name === value ? created.value.title : undefined;
+    const saved = created.value;
+    if (!value || saved?.name !== value || saved.doctype !== toValue(options.doctype)) return undefined;
+    return saved.title;
   }
 
   return { creatable, label, create, title };
