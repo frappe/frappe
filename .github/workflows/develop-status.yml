@@ -25,18 +25,11 @@ jobs:
     if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
     runs-on: ubuntu-latest
     steps:
-      - name: Start the suites on develop
-        run: |
-          head=$(gh api "repos/$GITHUB_REPOSITORY/commits/develop" --jq .sha)
-          for workflow in server-tests.yml ui-tests.yml; do
-            last=$(gh api "repos/$GITHUB_REPOSITORY/actions/workflows/$workflow/runs?branch=develop" \
-              --jq '[.workflow_runs[] | select(.event == "schedule" or .event == "workflow_dispatch")][0] // {status: "completed"} | "\(.head_sha) \(.status)"')
-            if [ "$EVENT" = "workflow_dispatch" ] || { [ "${last% *}" != "$head" ] && [ "${last#* }" = "completed" ]; }; then
-              gh workflow run "$workflow" --repo "$GITHUB_REPOSITORY" --ref develop
-            fi
-          done
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/helper
+      - run: python .github/helper/develop_status.py start ${{ github.event_name == 'workflow_dispatch' && 'all' || '' }}
         env:
-          EVENT: ${{ github.event_name }}
           GH_TOKEN: ${{ github.token }}
 
   update:

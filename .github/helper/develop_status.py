@@ -5,6 +5,7 @@ full server or UI run on develop failed, unless the pull request has the fix lab
 Usage:
     python develop_status.py refresh       # every open develop pull request
     python develop_status.py pr <number>   # one pull request
+    python develop_status.py start [all]   # start the suites the new develop commits need
 """
 
 import json
@@ -16,6 +17,7 @@ from datetime import UTC, datetime
 from functools import cache
 
 from roulette import FIX_DEVELOP_LABEL as FIX_LABEL
+from roulette import is_ci, is_docs, is_frontend_code, is_server_side_code
 
 REPO = os.environ["GITHUB_REPOSITORY"]
 CONTEXT = "Develop status"
@@ -76,7 +78,36 @@ def post(pr, develop, started=None):
 	time.sleep(1)
 
 
+def needs_suite(workflow, files):
+	"""Can these changed files affect this suite? Same rules as the pull request plan in roulette.py."""
+	if files is None or any(is_ci(f) for f in files):
+		return True
+	if workflow == "server-tests.yml":
+		return any(not (is_docs(f) or is_frontend_code(f)) for f in files)
+	return any(not (is_docs(f) or is_server_side_code(f)) for f in files)
+
+
+def start(force=False):
+	head = gh(f"repos/{REPO}/commits/develop")["sha"]
+	for workflow in SUITES:
+		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch=develop")["workflow_runs"]
+		last = next((run for run in runs if run["event"] in ("schedule", "workflow_dispatch")), None)
+		if not force and last:
+			if last["status"] != "completed" or last["head_sha"] == head:
+				continue
+			files = [f["filename"] for f in gh(f"repos/{REPO}/compare/{last['head_sha']}...{head}")["files"]]
+			if not needs_suite(workflow, None if len(files) >= 300 else files):
+				print(f"{workflow}: no changes it can see since {last['head_sha'][:7]}")
+				continue
+		subprocess.run(["gh", "workflow", "run", workflow, "--repo", REPO, "--ref", "develop"], check=True)
+		print(f"{workflow}: started on {head[:7]}")
+
+
 if __name__ == "__main__":
+	if sys.argv[1] == "start":
+		start(force=sys.argv[2:] == ["all"])
+		sys.exit()
+
 	develop = develop_state()
 	print(f"develop: {develop}")
 	if sys.argv[1] == "pr":
