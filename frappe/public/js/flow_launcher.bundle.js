@@ -184,9 +184,22 @@ class FlowLauncher {
 		else this.open();
 	}
 
-	// opens toward the middle of the window
 	show_menu(event) {
 		event.preventDefault();
+		if (!event.buttons) return this.open_menu();
+		// still pressed (Linux): opened now, the release would light-dismiss it
+		const released = new AbortController();
+		const open = () => {
+			released.abort();
+			setTimeout(() => this.open_menu());
+		};
+		for (const type of ["pointerup", "pointercancel"]) {
+			window.addEventListener(type, open, { capture: true, signal: released.signal });
+		}
+	}
+
+	// opens toward the middle of the window
+	open_menu() {
 		this.menu.showPopover();
 		const { right = true, bottom = true } = this.state.icon || {};
 		const icon = this.icon.getBoundingClientRect();
