@@ -532,6 +532,10 @@ export class MenuTree {
 			// exit point + the panel's near corners
 			row.el.addEventListener("pointerleave", (e) => {
 				this.start_grace(entry, row, e);
+				// radix: the highlight leaves with the pointer; the panel keeps focus for keys
+				if (!this.grace && document.activeElement === row.el) {
+					entry.panel.focus({ preventScroll: true });
+				}
 			});
 		}
 	}
