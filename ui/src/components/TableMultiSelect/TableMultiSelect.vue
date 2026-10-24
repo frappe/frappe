@@ -67,7 +67,7 @@
 						<span class="lucide-plus size-4" />
 					</template>
 					<slot name="create" :query="query">
-						{{ query.trim() ? `Create "${query}"` : "Create" }}
+						{{ query.trim() ? __('Create "{0}"', [query.trim()]) : __("Create") }}
 					</slot>
 				</Button>
 				<Button
@@ -90,6 +90,7 @@
 import { computed, ref, useTemplateRef, watch } from "vue";
 import { MultiSelect, Button, debounce } from "frappe-ui";
 import { useLinkSearch } from "../../composables/useLinkSearch";
+import { translate as __ } from "../../utils/translate";
 import type {
 	TableMultiSelectEmits,
 	TableMultiSelectExposed,

@@ -23,9 +23,8 @@
 </template>
 
 <script setup lang="ts">
-// Frappe `Table MultiSelect`: a child table whose single Link field names the
-// target doctype; stored value is an array of child rows, bridged to the
-// control's `string[]` via `useChildRowModel`. Creates through `useLinkCreate`, like `LinkField`.
+// Frappe `Table MultiSelect`: child rows whose Link field names the target doctype, bridged to
+// the control's `string[]` by `useChildRowModel`. Creates through `useLinkCreate`, like `LinkField`.
 import { computed, ref } from "vue";
 import { TableMultiSelect } from "../TableMultiSelect";
 import type { TableMultiSelectExposed } from "../TableMultiSelect";
