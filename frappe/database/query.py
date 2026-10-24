@@ -1077,6 +1077,17 @@ class Engine:
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
 
+		if (
+			not meta.has_field(fieldname)
+			and fieldname not in meta.get_valid_columns()
+			and fieldname not in frappe.db.OPTIONAL_COLUMNS
+		):
+			frappe.throw(
+				_("Field not found: {0}").format(frappe.bold(f"{doctype}.{fieldname}")),
+				frappe.ValidationError,
+				title=_("Invalid Field"),
+			)
+
 		# Don't allow querying child table fields if user has only "select" permission
 		permission_type = self.get_permission_type(doctype, parent_doctype)
 		if parent_doctype and permission_type == "select":

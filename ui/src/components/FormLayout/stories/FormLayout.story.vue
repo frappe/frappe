@@ -4,6 +4,7 @@
 			<template #tab-panel="{ tab }">
 				<StaticSchema v-if="tab.key === 'static'" />
 				<FileUpload v-else-if="tab.key === 'fileupload'" />
+				<FieldErrors v-else-if="tab.key === 'errors'" />
 			</template>
 		</Tabs>
 	</div>
@@ -14,6 +15,7 @@ import { ref } from "vue";
 import { Tabs } from "frappe-ui";
 import StaticSchema from "./StaticSchema.story.vue";
 import FileUpload from "../../FileUpload/stories/FileUpload.story.vue";
+import FieldErrors from "./FieldErrors.story.vue";
 
 // The `useDoctypeLayout` / `useScriptedLayout` / meta-script panels are gone
 // with the composables themselves — nothing shipped consumed them, and the
@@ -22,6 +24,7 @@ import FileUpload from "../../FileUpload/stories/FileUpload.story.vue";
 const tabs = [
 	{ key: "static", label: "Hand-written schema" },
 	{ key: "fileupload", label: "File upload" },
+	{ key: "errors", label: "Field errors" },
 ];
 const activeTab = ref(0);
 </script>
