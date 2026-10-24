@@ -742,7 +742,7 @@ class TestTypstRender(IntegrationTestCase):
 		jpeg = BytesIO()
 		Image.new("RGB", (40, 20), "navy").save(jpeg, "JPEG")
 		logo = frappe.get_doc(
-			{"doctype": "File", "file_name": "northwind-traders-logo.png", "content": jpeg.getvalue()}
+			{"doctype": "File", "file_name": "jpeg.png", "content": jpeg.getvalue()}
 		).insert()
 		self.addCleanup(logo.delete)
 		pf = self.make(layout_with({"fieldtype": "Image", "custom": 1, "image_url": logo.file_url}))
@@ -766,7 +766,7 @@ class TestTypstRender(IntegrationTestCase):
 		frames = [Image.new("RGB", (40, 20), color) for color in ("navy", "teal")]
 		frames[0].save(banner, "PNG", save_all=True, append_images=frames[1:])
 		logo = frappe.get_doc(
-			{"doctype": "File", "file_name": "northwind-traders-banner.png", "content": banner.getvalue()}
+			{"doctype": "File", "file_name": "animated.png", "content": banner.getvalue()}
 		).insert()
 		self.addCleanup(logo.delete)
 		pf = self.make(layout_with({"fieldtype": "Image", "custom": 1, "image_url": logo.file_url}))
@@ -841,11 +841,11 @@ class TestTypstRender(IntegrationTestCase):
 		contact = frappe.get_doc(
 			{
 				"doctype": "Contact",
-				"first_name": "Daniel",
-				"last_name": "Okafor",
+				"first_name": "_Test",
+				"last_name": "Contact",
 				"email_ids": [
-					{"email_id": "daniel.okafor@example.com"},
-					{"email_id": "accounts@example.com", "page_break": 1},
+					{"email_id": "test1@example.com"},
+					{"email_id": "test2@example.com", "page_break": 1},
 				],
 			}
 		)
@@ -853,7 +853,7 @@ class TestTypstRender(IntegrationTestCase):
 		frappe.set_user("test@example.com")
 		pages = PdfReader(BytesIO(PrintFormatGenerator(pf, contact).render_pdf())).pages
 		self.assertEqual(len(pages), 2)
-		self.assertIn("accounts@example.com", pages[1].extract_text())
+		self.assertIn("test2@example.com", pages[1].extract_text())
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_render_pdf_produces_a_pdf(self):
