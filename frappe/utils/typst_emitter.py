@@ -707,8 +707,7 @@ class TypstEmitter:
 			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
-		# Chrome still starts a new page at a table row's page break when the section is kept together
-		if section.get("keep_together") and "#colbreak()" not in body:
+		if section.get("keep_together"):
 			args = ", ".join(block_args)
 			out = (
 				"#layout(size => {\n"
@@ -907,7 +906,7 @@ class TypstEmitter:
 			height = frappe.utils.flt(df.get("height")) or 13
 			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
-			return self._table(df)
+			return self._table(df, keep_together=section.get("keep_together"))
 		if fieldtype == "Barcode":
 			return self._barcode(df)
 		if fieldtype == "Image":
@@ -1169,7 +1168,7 @@ class TypstEmitter:
 
 	# ── tables ──────────────────────────────────────────────────
 
-	def _table(self, df) -> str:
+	def _table(self, df, keep_together=False) -> str:
 		columns = df.get("table_columns") or []
 		if not columns:
 			return ""
@@ -1188,7 +1187,8 @@ class TypstEmitter:
 		]
 		pages = [[]]
 		for i, row in enumerate(rows):
-			if i and row.get("page_break"):
+			# a kept together section can't break in Typst, so a split there would only repeat the header
+			if i and row.get("page_break") and not keep_together:
 				pages.append([])
 			pages[-1] += [self._table_cell(row, col) for col in columns]
 
