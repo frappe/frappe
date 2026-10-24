@@ -88,6 +88,12 @@ def search_widget(
 				frappe.clear_last_message()
 				ignore_user_permissions = False
 		else:
+<<<<<<< HEAD
+=======
+			frappe.logger().error(
+				"setting ignore_user_permissions=True requires reference_doctype and link_fieldname to be set. Ignoring flag."
+			)
+>>>>>>> 5152b5f (fix(search): keep search_link log message on one line)
 			ignore_user_permissions = False
 
 	start = cint(start)
