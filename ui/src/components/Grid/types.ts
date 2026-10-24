@@ -8,6 +8,8 @@ export interface GridColumn {
   fieldname: string;
   label?: string;
   reqd?: boolean;
+  /** Rendered as the cell's `data-fieldtype`, a handle for tests and CSS. */
+  fieldtype?: string;
   /**
    * Horizontal alignment for this column's cells *and* its header label, so the
    * two always agree. Defaults to left. Consumers set `"right"` for numeric
@@ -17,7 +19,8 @@ export interface GridColumn {
   align?: "left" | "right" | "center";
   /**
    * Initial track width in px, e.g. set from layout/meta. Omit for a flexible
-   * column that shares leftover space (`1fr`). Drag-resizing the column's right
+   * column that shares leftover space (`1fr`) down to 128px, past which the grid
+   * scrolls sideways. Drag-resizing the column's right
    * edge overrides this at runtime.
    */
   width?: number;

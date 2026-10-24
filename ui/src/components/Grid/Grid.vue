@@ -102,6 +102,8 @@
 							<div
 								class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-base"
 								:class="{ 'cursor-pointer': disabled }"
+								:data-name="row.name || row[ROW_ID]"
+								:data-idx="rowIndex + 1"
 								:style="{
 									gridTemplateColumns: templateColumns,
 									minWidth: gridMinWidth,
@@ -133,6 +135,8 @@
 									v-for="(col, i) in columns"
 									:key="col.fieldname"
 									class="grid-cell flex min-w-0 items-stretch"
+									:data-fieldname="col.fieldname"
+									:data-fieldtype="col.fieldtype"
 									:class="[
 										alignClass(col.align),
 										{
@@ -230,7 +234,7 @@ import {
 } from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
-import { identify, rowKey } from "../Fields/rowIdentity";
+import { ROW_ID, identify, rowKey } from "../Fields/rowIdentity";
 import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
@@ -268,6 +272,8 @@ defineSlots<GridSlots<T>>();
 // from the column's `width`, overridden by a drag. Re-seeding on a columns change
 // keeps existing drags (the drag wins over `width`) and adds/drops by index.
 const MIN_COL_WIDTH = 48;
+// Below this a flexible column stops shrinking and the grid scrolls sideways.
+const FLEX_COL_MIN = 128;
 const colWidths = ref<(number | null)[]>([]);
 watch(
 	() => props.columns,
@@ -281,21 +287,22 @@ watch(
 );
 
 // Header and rows are one css grid spanning every column, so there's no flex seam.
-// A field track is `minmax(0, 1fr)` while flexible and a fixed `${w}px` once resized
-// — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
+// A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
+// once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
 const FIXED_COL = "2.5rem"; // checkbox / `#` / edit — matches `w-10`
 const templateColumns = computed(() => {
-	const fields = colWidths.value.map((w) => (w == null ? "minmax(0, 1fr)" : `${w}px`));
+	const fields = colWidths.value.map((w) =>
+		w == null ? `minmax(${FLEX_COL_MIN}px, 1fr)` : `${w}px`
+	);
 	const lead = props.disabled ? [FIXED_COL] : [FIXED_COL, FIXED_COL]; // (checkbox) + `#`
 	return [...lead, ...fields, FIXED_COL].join(" "); // + edit
 });
 
-// Floor the grid box at the sum of fixed tracks + resized field widths, so the
-// row/header backgrounds span the full content instead of stopping at the viewport
-// when resized columns overflow. When columns fit, the `1fr` fields still fill it.
+// Floor the grid box at the sum of every track's minimum, so the row/header
+// backgrounds span the full content when the columns overflow.
 const gridMinWidth = computed(() => {
 	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + edit
-	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? 0), 0);
+	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? FLEX_COL_MIN), 0);
 	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
 });
 
@@ -513,10 +520,13 @@ function onRowClick(row: Record<string, any>, index: number) {
 	text-align: center;
 }
 
-/* Single-row textarea inside the grid (the dialog form keeps the full height). */
+/* Single-row textarea inside the grid (the dialog form keeps the full height).
+ * No vertical padding: a textarea scrolls into its padding, so the next line would peek. */
 .grid-cell :deep(textarea) {
 	height: 34px;
 	min-height: 34px;
+	padding-block: 0;
+	line-height: 34px;
 	resize: none;
 }
 
