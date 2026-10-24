@@ -228,6 +228,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 				$(el).removeClass("hidden");
 			}
 		});
+		this.transactions_area
+			.find(".document-link[data-doctype]")
+			.each((i, link) => this.set_document_list_url($(link)));
 		this.observe_link_render();
 	}
 
@@ -331,7 +334,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.render_report_links();
 
 		// bind links
-		transactions_area_body.find(".badge-link").on("click", function () {
+		transactions_area_body.find(".badge-link").on("click", function (e) {
+			if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+			e.preventDefault();
 			me.open_document_list($(this).closest(".document-link"));
 		});
 
@@ -378,24 +383,52 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		let doctype = $link.attr("data-doctype"),
 			names = $link.attr("data-names") || [];
 
+		const filters = this.get_document_list_filters($link);
+		if (!filters) {
+			return false;
+		}
+
+		frappe.route_options = filters;
+		if (!names.length && show_open && frappe.ui.notifications) {
+			frappe.ui.notifications.show_open_count_list(doctype);
+			return;
+		}
+
+		frappe.set_route("List", doctype, "List");
+	}
+
+	get_document_list_filters($link) {
+		let doctype = $link.attr("data-doctype"),
+			names = $link.attr("data-names") || [];
+
 		const fieldname = this.get_document_link_fieldname($link);
 
 		if (names.length) {
-			frappe.route_options = { name: ["in", names] };
+			return { name: ["in", names] };
 		} else if (
 			this.internal_links_found &&
 			this.internal_links_found.find((d) => d.doctype === doctype)
 		) {
-			return false;
+			return null;
 		} else if (fieldname) {
-			frappe.route_options = this.get_document_filter(doctype, fieldname);
-			if (show_open && frappe.ui.notifications) {
-				frappe.ui.notifications.show_open_count_list(doctype);
-				return;
-			}
+			return this.get_document_filter(doctype, fieldname);
+		}
+		return {};
+	}
+
+	set_document_list_url($link) {
+		const filters = this.get_document_list_filters($link);
+		const $anchor = $link.find(".badge-link");
+		if (!filters) {
+			$anchor.removeAttr("href");
+			return;
 		}
 
-		frappe.set_route("List", doctype, "List");
+		const doctype = $link.attr("data-doctype");
+		$anchor.attr(
+			"href",
+			`/desk/${frappe.router.slug(doctype)}${frappe.utils.make_query_string(filters)}`
+		);
 	}
 
 	get_document_link_fieldname($link) {
@@ -499,6 +532,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 
 		this.set_badge_count_common(open_count, count, $link);
 		$link.attr("data-names", names ? names.join(",") : "");
+		$link.each((i, link) => this.set_document_list_url($(link)));
 	}
 
 	set_badge_count_for_internal_link(doctype, open_count, count, names) {
@@ -513,6 +547,7 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		} else {
 			$link.find("a").attr("disabled", true);
 		}
+		$link.each((i, link) => this.set_document_list_url($(link)));
 	}
 
 	set_badge_count_common(open_count, count, $link) {
