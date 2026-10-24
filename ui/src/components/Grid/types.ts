@@ -41,10 +41,12 @@ export interface GridProps {
   label?: string;
   /** Helper text rendered below the grid. Hidden while an error is shown. */
   description?: string;
-  /** Validation error below the grid: a string, or an `Error` with `messages[]`. */
-  error?: string | GridError;
+  /** Validation error below the grid: one message, several, or an `Error` with `messages[]`. */
+  error?: string | string[] | GridError;
   /** Renders a `*` next to the label. */
   required?: boolean;
+  /** A cell's error, drawn as a red ring with the message in a tooltip. */
+  cellError?: (row: Record<string, any>, column: GridColumn) => string | string[] | undefined;
   /** Seeds a newly added row. The grid sees only the columns, so whoever knows
    *  the whole child form supplies its docfield defaults. */
   newRow?: () => Record<string, any>;
