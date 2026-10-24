@@ -301,23 +301,19 @@ def migrate(app: str | None = None, locale: str | None = None):
 	apps = [app] if app else frappe.get_all_apps(True)
 
 	for app in apps:
-		if locale:
-			csv_to_po(app, locale)
-		else:
-			app_path = Path(frappe.get_app_path(app))
-			for filename in (app_path / "translations").iterdir():
-				if filename.suffix != ".csv":
-					continue
-				csv_to_po(app, filename.stem)
+		app_path = Path(frappe.get_app_path(app))
+		for filename in sorted((app_path / "translations").glob("*.csv")):
+			if locale and filename.stem.replace("-", "_").lower() != locale.replace("-", "_").lower():
+				continue
+			csv_to_po(app, filename)
 
 
-def csv_to_po(app: str, locale: str):
-	csv_file = Path(frappe.get_app_path(app)) / "translations" / f"{locale.replace('_', '-')}.csv"
-	locale = locale.replace("-", "_")
-	if not csv_file.exists():
-		return
+def csv_to_po(app: str, csv_file: Path):
+	language, _, region = csv_file.stem.replace("-", "_").partition("_")
+	locale = f"{language}_{region.upper()}" if region else language
 
-	catalog: Catalog = get_catalog(app)
+	catalog: Catalog = get_catalog(app, locale)
+	catalog.update(get_catalog(app), no_fuzzy_matching=True)
 	msgid_context_map = defaultdict(list)
 	for message in catalog:
 		msgid_context_map[message.id].append(message.context)
@@ -327,17 +323,19 @@ def csv_to_po(app: str, locale: str):
 			if len(row) < 2:
 				continue
 
-			msgid = escape_percent(row[0])
-			msgstr = escape_percent(row[1])
+			msgid = row[0]
+			msgstr = row[1]
 			msgctxt = row[2] if len(row) >= 3 else None
 
 			if not msgctxt:
 				# if old context is not defined, add msgstr to all contexts
 				for context in msgid_context_map.get(msgid, []):
 					if message := catalog.get(msgid, context):
-						message.string = msgstr
+						if not message.string:
+							message.string = msgstr
 			elif message := catalog.get(msgid, msgctxt):
-				message.string = msgstr
+				if not message.string:
+					message.string = msgstr
 
 	po_path = write_catalog(app, catalog, locale)
 	print(f"PO file created at {po_path}")
@@ -375,6 +373,7 @@ def get_translations_from_mo(lang, app):
 			else:
 				translations[m.id] = m.string
 	return translations
+<<<<<<< HEAD
 
 
 def escape_percent(s: str):
@@ -424,3 +423,5 @@ def update_csv_from_po(app: str, locale: str | None = None):
 					continue
 
 				writer.writerow([message.id, message.string, message.context or ""])
+=======
+>>>>>>> 192a41e (fix: preserve CSV translations during PO migration)
