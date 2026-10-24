@@ -25,11 +25,12 @@
 <script setup lang="ts">
 // Frappe `Table MultiSelect`: child rows whose Link field names the target doctype, bridged to
 // the control's `string[]` by `useChildRowModel`. Creates through `useLinkCreate`, like `LinkField`.
-import { computed, ref, shallowRef } from "vue";
+import { computed, inject, ref, shallowRef } from "vue";
 import { TableMultiSelect } from "../TableMultiSelect";
 import type { TableMultiSelectExposed } from "../TableMultiSelect";
 import { useChildRowModel } from "../FormLayout/useChildRowModel";
 import { newRowValues } from "../FormLayout/newRowValues";
+import { LinkTitlesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { useLinkCreate } from "./useLinkCreate";
 
@@ -55,7 +56,18 @@ const value = useChildRowModel(
 const control = ref<TableMultiSelectExposed | null>(null);
 const open = ref(false);
 // `useLinkCreate` keeps only the last saved title; each created chip needs its own.
-const titles = shallowRef<Record<string, string>>({});
+const created = shallowRef<Record<string, string>>({});
+const recordTitles = inject(LinkTitlesKey, null);
+
+const titles = computed(() => {
+	const known: Record<string, string> = {};
+	for (const name of value.value) {
+		const title =
+			created.value[name] ?? recordTitles?.value[`${targetDoctype.value}::${name}`];
+		if (title) known[name] = title;
+	}
+	return known;
+});
 
 const linkCreate = useLinkCreate({
 	doctype: targetDoctype,
@@ -65,7 +77,7 @@ const linkCreate = useLinkCreate({
 	link: control,
 	select: (name) => {
 		const title = linkCreate.title(name);
-		if (title) titles.value = { ...titles.value, [name]: title };
+		if (title) created.value = { ...created.value, [name]: title };
 		if (!value.value.includes(name)) value.value = [...value.value, name];
 	},
 });
