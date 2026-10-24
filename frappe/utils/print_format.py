@@ -3,6 +3,7 @@ import os
 import tempfile
 import uuid
 from io import BytesIO
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe import _
@@ -18,7 +19,7 @@ from frappe.desk.query_report import (
 )
 from frappe.model.document import Document
 from frappe.translate import print_language
-from frappe.utils import cint
+from frappe.utils import cint, get_datetime, get_system_timezone
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -618,10 +619,22 @@ def download_report_pdf(
 		content, letter_head = rendered["body"], rendered["letter_head"]
 		printed_columns = report_columns
 	else:
+		system_time_zone = ZoneInfo(get_system_timezone())
+		user_time_zone = ZoneInfo(
+			frappe.get_cached_value("User", frappe.session.user, "time_zone") or get_system_timezone()
+		)
 
 		def format_value(value, column, row):
 			# reports put labels and placeholders in typed columns, e.g. "Opening" in a date column
 			try:
+				if column.fieldtype == "Datetime":
+					# the desk shows datetimes in the user's time zone
+					value = (
+						get_datetime(value)
+						.replace(tzinfo=system_time_zone)
+						.astimezone(user_time_zone)
+						.replace(tzinfo=None)
+					)
 				return frappe.format(value, column, row)
 			except (frappe.ValidationError, ValueError, TypeError):
 				return value
