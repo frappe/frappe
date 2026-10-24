@@ -2,9 +2,10 @@
 # License: MIT. See LICENSE
 
 import json
+import re
 import typing
 from typing import Any
-from urllib.parse import quote, quote_plus
+from urllib.parse import quote
 
 import frappe
 import frappe.defaults
@@ -13,10 +14,12 @@ import frappe.utils
 from frappe import _, _dict
 from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
+from frappe.desk.link_title import send_link_titles
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
-from frappe.permissions import check_doctype_permission, get_doc_permissions
+from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
 from frappe.utils.data import cstr
+from frappe.utils.user import is_website_user
 
 
 @frappe.whitelist()
@@ -37,12 +40,7 @@ def getdoc(doctype: str, name: str | int):
 		frappe.clear_last_message()
 		return []
 
-	if not doc.has_permission("read"):
-		check_doctype_permission(doctype)
-		frappe.flags.error_message = _("Insufficient Permission for {0}").format(
-			frappe.bold(_(doctype) + " " + name)
-		)
-		raise frappe.PermissionError(("read", doctype, name))
+	doc.check_permission("read")
 
 	# Replace cache if stale one exists
 	# PERF: This should be eventually removed completely when we are sure about caching correctness
@@ -64,7 +62,7 @@ def getdoc(doctype: str, name: str | int):
 
 
 @frappe.whitelist()
-def getdoctype(doctype: str, with_parent: int | bool = False, cached_timestamp: str | None = None):
+def getdoctype(doctype: str, with_parent: int | bool = False):
 	"""load doctype"""
 
 	docs = []
@@ -80,17 +78,15 @@ def getdoctype(doctype: str, with_parent: int | bool = False, cached_timestamp: 
 
 	frappe.response["user_settings"] = get_user_settings(parent_dt or doctype)
 
-	if cached_timestamp and docs[0].modified == cached_timestamp:
-		return "use_cache"
-
 	frappe.response.docs.extend(docs)
 
 
 def get_meta_bundle(doctype):
-	bundle = [frappe.desk.form.meta.get_meta(doctype)]
+	form_meta = frappe.desk.form.meta.get_meta(doctype)
+	bundle = [form_meta.as_dict(no_nulls=True)]
 	bundle.extend(
-		frappe.desk.form.meta.get_meta(df.options)
-		for df in bundle[0].fields
+		frappe.desk.form.meta.get_meta(df.options).as_dict(no_nulls=True, parenttype=doctype)
+		for df in form_meta.fields
 		if df.fieldtype in frappe.model.table_fields
 	)
 	return bundle
@@ -98,16 +94,14 @@ def get_meta_bundle(doctype):
 
 @frappe.whitelist()
 def get_docinfo(
-	doc: "Document | dict | str | None" = None,
+	doc: Document | dict | str | None = None,
 	doctype: str | None = None,
 	name: str | int | None = None,
 ):
 	from frappe.share import _get_users as get_docshares
 
 	if not doc:
-		doc = frappe.get_doc(doctype, name)
-		if not doc.has_permission("read"):
-			raise frappe.PermissionError
+		doc = frappe.get_lazy_doc(doctype, name, check_permission=True)
 
 	all_communications = _get_communications(doc.doctype, doc.name, limit=21)
 	automated_messages = [
@@ -116,6 +110,9 @@ def get_docinfo(
 	communications_except_auto_messages = [
 		msg for msg in all_communications if msg["communication_type"] != "Automated Message"
 	]
+	assert len(automated_messages) + len(communications_except_auto_messages) == len(all_communications), (
+		"every communication must be classified into exactly one message group"
+	)
 
 	docinfo = frappe._dict(user_info={})
 
@@ -133,7 +130,6 @@ def get_docinfo(
 			"permissions": get_doc_permissions(doc),
 			"shared": get_docshares(doc),
 			"views": get_view_logs(doc),
-			"energy_point_logs": get_point_logs(doc.doctype, doc.name),
 			"additional_timeline_content": get_additional_timeline_content(doc.doctype, doc.name),
 			"milestones": get_milestones(doc.doctype, doc.name, limit=0),
 			"is_document_followed": is_document_followed(doc.doctype, doc.name, frappe.session.user),
@@ -145,6 +141,9 @@ def get_docinfo(
 	update_user_info(docinfo, doc)
 
 	frappe.response["docinfo"] = docinfo
+
+
+ATTACHMENT_FIELDNAME_RE = re.compile(r"data-fieldname=['\"]([^'\"]*)['\"]")
 
 
 def add_comments(doc, docinfo):
@@ -163,6 +162,8 @@ def add_comments(doc, docinfo):
 		fields=["name", "creation", "content", "owner", "comment_type", "published"],
 	)
 
+	restricted_fieldnames = None
+
 	for c in comments:
 		match c.comment_type:
 			case "Comment":
@@ -173,6 +174,11 @@ def add_comments(doc, docinfo):
 			case "Assignment Completed" | "Assigned":
 				docinfo.assignment_logs.append(c)
 			case "Attachment" | "Attachment Removed":
+				if restricted_fieldnames is None:
+					restricted_fieldnames = get_permlevel_restricted_fieldnames(doc.doctype)
+				m = ATTACHMENT_FIELDNAME_RE.search(c.content or "")
+				if m and m.group(1) in restricted_fieldnames:
+					continue
 				docinfo.attachment_logs.append(c)
 			case "Info" | "Edit" | "Label":
 				docinfo.info_logs.append(c)
@@ -198,7 +204,7 @@ def get_milestones(doctype, name, start=0, limit=20):
 
 
 def get_attachments(dt, dn):
-	return frappe.get_all(
+	files = frappe.get_all(
 		"File",
 		fields=[
 			"name",
@@ -212,6 +218,40 @@ def get_attachments(dt, dn):
 		],
 		filters={"attached_to_name": str(dn), "attached_to_doctype": dt},
 	)
+	restricted = get_permlevel_restricted_fieldnames(dt)
+	if not restricted:
+		return files
+	return [f for f in files if f.attached_to_field not in restricted]
+
+
+def get_permlevel_restricted_fieldnames(dt) -> set:
+	"""Fieldnames (top-level and child table) whose permlevel the current user can't read."""
+	from frappe.desk.form.activity import readable_permlevels
+
+	if frappe.session.user == "Administrator":
+		return set()
+
+	meta = frappe.get_meta(dt)
+	all_fields = meta.fields.copy()
+	for table_field in meta.get_table_fields(include_computed=True):
+		all_fields += frappe.get_meta(table_field.options).fields or []
+
+	if all(df.permlevel == 0 for df in all_fields):
+		return set()
+
+	def restricted_fieldnames(field_meta, permitted):
+		if permitted is None:
+			return set()
+		return {df.fieldname for df in field_meta.fields or [] if df.permlevel not in permitted}
+
+	# a fieldname restricted in any table it appears in fails closed (dropped everywhere), since
+	# attached_to_field alone can't identify which table a given file's field actually came from
+	restricted = restricted_fieldnames(meta, readable_permlevels(meta))
+	for table_field in meta.get_table_fields(include_computed=True):
+		child_meta = frappe.get_meta(table_field.options)
+		restricted |= restricted_fieldnames(child_meta, readable_permlevels(child_meta, parenttype=dt))
+
+	return restricted
 
 
 @frappe.whitelist()
@@ -252,22 +292,24 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
-	return frappe.get_all(
+
+	from frappe.model.utils.mask import mask_version_data
+
+	versions = frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
 	)
+	return mask_version_data(versions, doc.doctype)
 
 
 @frappe.whitelist()
 def get_communications(doctype: str, name: str | int, start: str | int = 0, limit: str | int = 20):
 	from frappe.utils import cint
 
-	doc = frappe.get_doc(doctype, name)
-	if not doc.has_permission("read"):
-		raise frappe.PermissionError
+	frappe.get_lazy_doc(doctype, name).check_permission()
 
 	return _get_communications(doctype, name, cint(start), cint(limit))
 
@@ -303,14 +345,6 @@ def get_comments(doctype: str, name: str, comment_type: str | list[str] = "Comme
 	return comments
 
 
-def get_point_logs(doctype, docname):
-	return frappe.get_all(
-		"Energy Point Log",
-		filters={"reference_doctype": doctype, "reference_name": docname, "type": ["!=", "Review"]},
-		fields=["*"],
-	)
-
-
 def _get_communications(doctype, name, start=0, limit=20):
 	communications = get_communication_data(doctype, name, start, limit)
 	for c in communications:
@@ -329,15 +363,15 @@ def _get_communications(doctype, name, start=0, limit=20):
 def get_communication_data(
 	doctype, name, start=0, limit=20, after=None, fields=None, group_by=None, as_dict=True
 ):
-	"""Returns list of communications for a given document"""
+	"""Return list of communications for a given document."""
 	if not fields:
 		fields = """
 			C.name, C.communication_type, C.communication_medium,
-			C.comment_type, C.communication_date, C.content,
+			C.communication_date, C.content,
 			C.sender, C.sender_full_name, C.cc, C.bcc,
 			C.creation AS creation, C.subject, C.delivery_status,
 			C._liked_by, C.reference_doctype, C.reference_name,
-			C.read_by_recipient, C.rating, C.recipients
+			C.read_by_recipient, C.recipients
 		"""
 
 	conditions = ""
@@ -356,7 +390,7 @@ def get_communication_data(
 	part1 = f"""
 		SELECT {fields}
 		FROM `tabCommunication` as C
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND (C.reference_doctype = %(doctype)s AND C.reference_name = %(name)s)
 		{conditions}
 		ORDER BY C.communication_date DESC
@@ -368,15 +402,25 @@ def get_communication_data(
 		SELECT {fields}
 		FROM `tabCommunication` as C
 		INNER JOIN `tabCommunication Link` ON C.name=`tabCommunication Link`.parent
-		WHERE C.communication_type IN ('Communication', 'Feedback', 'Automated Message')
+		WHERE C.communication_type IN ('Communication', 'Automated Message')
 		AND `tabCommunication Link`.link_doctype = %(doctype)s AND `tabCommunication Link`.link_name = %(name)s
 		{conditions}
 		ORDER BY `tabCommunication Link`.communication_date DESC
 		LIMIT %(cte_limit)s
 	"""
 
-	return frappe.db.sql(
-		f"""
+	sqlite_query = f"""
+		SELECT * FROM (
+			SELECT * FROM ({part1})
+			UNION ALL
+			SELECT * FROM ({part2})
+		) AS combined
+		{group_by or ""}
+		ORDER BY communication_date DESC
+		LIMIT %(limit)s
+		OFFSET %(start)s"""
+
+	query = f"""
 		WITH part1 AS ({part1}), part2 AS ({part2})
 		SELECT *
 		FROM (
@@ -388,7 +432,13 @@ def get_communication_data(
 		ORDER BY communication_date DESC
 		LIMIT %(limit)s
 		OFFSET %(start)s
-	""",
+		"""
+
+	return frappe.db.multisql(
+		{
+			"sqlite": sqlite_query,
+			"*": query,
+		},
 		dict(
 			doctype=doctype,
 			name=str(name),
@@ -435,6 +485,11 @@ def get_view_logs(doc: "Document") -> list[dict]:
 
 
 def get_tags(doctype: str, name: str) -> str:
+	from frappe.desk.doctype.tag_link.tag_link import has_tags
+
+	if not has_tags(doctype):
+		return ""
+
 	tags = frappe.get_all(
 		"Tag Link",
 		filters={"document_type": doctype, "document_name": str(name)},
@@ -446,18 +501,14 @@ def get_tags(doctype: str, name: str) -> str:
 
 
 def get_document_email(doctype, name):
+	from frappe.email.doctype.email_account.email_account import get_automatic_email_link
+
 	email = get_automatic_email_link()
 	if not email:
 		return None
 
 	email = email.split("@")
-	return f"{email[0]}+{quote(doctype)}={quote(cstr(name))}@{email[1]}"
-
-
-def get_automatic_email_link():
-	return frappe.db.get_value(
-		"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
-	)
+	return f"{email[0]}+{quote(doctype, safe='')}={quote(cstr(name), safe='')}@{email[1]}"
 
 
 def get_additional_timeline_content(doctype, docname):
@@ -488,9 +539,7 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
 
 	for field in link_fields:
-		link_docname = getattr(doc, field.fieldname, None)
-
-		if not link_docname:
+		if not (doc_fieldvalue := getattr(doc, field.fieldname, None)):
 			continue
 
 		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
@@ -499,8 +548,8 @@ def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
 		if not meta or not meta.title_field or not meta.show_title_field_in_link:
 			continue
 
-		link_title = frappe.db.get_value(doctype, link_docname, meta.title_field, cache=True, order_by=None)
-		link_titles.update({doctype + "::" + link_docname: link_title})
+		link_title = frappe.db.get_value(doctype, doc_fieldvalue, meta.title_field, cache=True, order_by=None)
+		link_titles.update({doctype + "::" + doc_fieldvalue: link_title or doc_fieldvalue})
 
 	return link_titles
 
@@ -510,7 +559,7 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 
 	if not table_fields:
 		meta = frappe.get_meta(doc.doctype)
-		table_fields = meta.get_table_fields()
+		table_fields = meta.get_table_fields(include_computed=True)
 
 	for field in table_fields:
 		if not doc.get(field.fieldname):
@@ -520,14 +569,6 @@ def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
 			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(value))
 
 	return link_titles
-
-
-def send_link_titles(link_titles):
-	"""Append link titles dict in `frappe.local.response`."""
-	if "_link_titles" not in frappe.local.response:
-		frappe.local.response["_link_titles"] = {}
-
-	frappe.local.response["_link_titles"].update(link_titles)
 
 
 def update_user_info(docinfo, doc=None):
@@ -554,7 +595,10 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
-def get_user_info_for_viewers(users: str | list[str]):
+def get_user_info_for_viewers(users: str | list):
+	if is_website_user():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	user_info = {}
 	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)
