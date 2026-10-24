@@ -15,12 +15,12 @@
 		<!-- the crumb (the folder, or the host's own) and the cost yield to the title on phones; a new
 		     chat shows no crumb, title or line under them until its first message goes out -->
 		<div v-if="started" class="flex min-w-0 items-center gap-2" :title="headerTitle">
-			<span v-if="lead" class="hidden min-w-0 flex-none items-center gap-1.5 text-sm [font-size:14.5px] text-ink-gray-5 sm:flex">
+			<span v-if="lead" class="hidden min-w-0 flex-none items-center gap-1.5 text-title text-ink-gray-5 sm:flex">
 				<FeatherIcon :name="lead.icon" class="h-3.5 w-3.5 flex-none" />
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
-			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-sm [font-size:14.5px] text-ink-gray-3 sm:inline">/</span>
-			<span class="min-w-0 truncate text-sm [font-size:14.5px] font-medium text-ink-gray-9">{{ title }}</span>
+			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-title text-ink-gray-3 sm:inline">/</span>
+			<span class="min-w-0 truncate text-title font-medium text-ink-gray-9">{{ title }}</span>
 		</div>
 
 		<span class="min-w-2 flex-1" />

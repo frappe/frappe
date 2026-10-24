@@ -26,7 +26,7 @@
 		     keeps the name alone, for the room its actions leave -->
 		<nav
 			:class="{ 'ml-2': !list && flow.state.sidebarOpen }"
-			class="flex min-w-0 items-center gap-2 text-sm [font-size:14.5px]"
+			class="flex min-w-0 items-center gap-2 text-title"
 			aria-label="Breadcrumb"
 		>
 			<span
