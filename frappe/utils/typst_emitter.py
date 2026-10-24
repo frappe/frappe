@@ -906,7 +906,8 @@ class TypstEmitter:
 			height = frappe.utils.flt(df.get("height")) or 13
 			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
-			return self._table(df, keep_together=section.get("keep_together"))
+			in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
+			return self._table(df, keep_together=section.get("keep_together") or in_zone)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
 		if fieldtype == "Image":
@@ -1186,7 +1187,7 @@ class TypstEmitter:
 		]
 		pages = [[]]
 		for i, row in enumerate(rows):
-			# a kept together section can't break in Typst, so a split there would only repeat the header
+			# Typst can't break a kept together section or the page header and footer, so a split there would only repeat the header
 			if i and row.get("page_break") and not keep_together:
 				pages.append([])
 			pages[-1] += [self._table_cell(row, col) for col in columns]
