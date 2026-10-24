@@ -499,10 +499,10 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep(input:not([type="checkbox"])),
 .grid-cell :deep(textarea),
 .grid-cell :deep(select),
-.grid-cell
-	:deep(button:not([data-slot="clear"]):not([data-slot="redirect"]):not([data-slot="edit"])),
+.grid-cell :deep(button:not([data-slot="clear"]):not([data-slot="edit"])),
 .grid-cell :deep(.combobox),
-.grid-cell :deep([data-slot="trigger"]) {
+.grid-cell :deep([data-slot="trigger"]),
+.grid-cell :deep([data-slot="link-value"]) {
 	border: none;
 	border-radius: 0;
 	background-color: var(--surface-base);
@@ -645,17 +645,16 @@ function onRowClick(row: Record<string, any>, index: number) {
 }
 
 /* Read-only grid: a cell's content is inert, so a click reaches the row and the cell keeps
- * its hover. A readonly Link's redirect/edit buttons come back, shown on row hover. */
+ * its hover. A read-only Link's record link and edit button come back. */
 .grid-disabled :deep(.grid-cell > *) {
 	pointer-events: none;
 }
 
-.grid-disabled .grid-cell :deep([data-slot="redirect"]),
+.grid-disabled .grid-cell :deep([data-slot="link-value"] a),
 .grid-disabled .grid-cell :deep([data-slot="edit"]) {
 	pointer-events: auto;
 }
 
-.grid-disabled .grid-row:hover :deep([data-slot="redirect"]),
 .grid-disabled .grid-row:hover :deep([data-slot="edit"]) {
 	display: grid;
 }

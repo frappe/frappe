@@ -78,8 +78,9 @@ dependencies, and their own files. They never use `frappe/shell/`, `frontend/`, 
 data, or record page words.
 
 - **The desk passes in what only the desk has**: the session, the CSRF token, the socket,
-  upload limits, the invite address, and Create through `CreateRecordKey`. `ui/` works,
-  with a sensible default, when an app passes none of them.
+  upload limits, the invite address, Create through `CreateRecordKey`, and record pages
+  through `RecordLinkKey`. `ui/` works, with a sensible default, when an app passes none
+  of them.
 - **Judge `ui/` by what it exports**, not by what the desk imports. "No app uses it
   today" is never a reason to cut or change something in `ui/`.
 - **The concept lists use the root index and the named subpaths** in `ui/package.json`.
@@ -214,12 +215,12 @@ component group, with its main names.
 | `FormLayout` (`@framework/ui/FormLayout`: `FormLayout`, `FormLayoutSchema`, `Tab`, `Section`, `Column`, `FieldNode`) | *Changed.* Draws a form from a tabs, sections, columns and fields tree. Works out field access itself. A host may hold the chosen tab and the open sections |
 | Layout building (`buildLayoutFromMeta`, `compose`, `Decorator`, `fieldsToLayout`, `resolveLayout`, `evaluateDependsOn`, `DROPPED_FIELDTYPES`) | Turns meta fields into a layout tree, and applies depends-on, hidden and overrides for one document. `DROPPED_FIELDTYPES` are the fieldtypes the form never draws |
 | Child rows (`useChildRowModel`, `newRowValues`, `NO_VALUE`) | The rows of a child table field, a new row's default values, and the fieldtypes that hold no value |
-| Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `parseLongInt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount. `parseLongInt` keeps a Long Int past 2^53 as a digit string |
+| Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `formatRating`, `flt`, `parseLongInt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | *Changed.* Formats numbers, currency and dates for display. `formatRating` shows a Rating as stars out of its star count (`3 / 5`), in a group-by cell and a panel row. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount. `parseLongInt` keeps a Long Int past 2^53 as a digit string |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
-| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`, `FieldErrorsKey`, `fieldErrorKey`, `CreateRecordKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do. `FieldErrorsKey` hands a host's field errors, keyed by `fieldErrorKey`, to every field and grid cell, and a null value draws none. `CreateRecordKey` hands Link, Dynamic Link and Table MultiSelect fields the host's Create and create right; with none or null, they offer no Create, as in a filter's value input |
+| Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`, `FieldErrorsKey`, `fieldErrorKey`, `CreateRecordKey`, `RecordLinkKey`, `RecordLink`, `useRecordLink`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do. `FieldErrorsKey` hands a host's field errors, keyed by `fieldErrorKey`, to every field and grid cell, and a null value draws none. `CreateRecordKey` hands Link, Dynamic Link and Table MultiSelect fields the host's Create and create right; with none or null, they offer no Create, as in a filter's value input. `RecordLinkKey` hands Link and Dynamic Link fields the address of the record a value names and a way to open it, which `useRecordLink` reads; with none or null, as in a filter or a dialog, they open nothing |
 | `TemplateNamesKey` | The component names a `template:` string can use with no `components:` entry. The Code field completes them. With no value, it completes Vue's built-in components only |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
-| `Link`, `Grid`, `Phone`, `TableMultiSelect` (`TableMultiSelectExposed`, `TableMultiSelectSlots`) | Field controls with their own pickers and tables. A creatable `Link` keeps its Create row last, whatever is typed. A creatable `TableMultiSelect` shows Create in its footer; its `focus` and `search` let `useLinkCreate` drive it as it drives `Link` |
+| `Link`, `RecordAnchor`, `Grid`, `Phone`, `TableMultiSelect` (`TableMultiSelectExposed`, `TableMultiSelectSlots`) | Field controls with their own pickers and tables. A creatable `Link` keeps its Create row last, whatever is typed. A `Link` with an `href` shows an arrow to the record; `RecordAnchor` is that link, where a plain click asks the host to open the record and a modified click is the browser's. A creatable `TableMultiSelect` shows Create in its footer; its `focus` and `search` let `useLinkCreate` drive it as it drives `Link` |
 | `ActivityTimeline` (`@framework/ui/ActivityTimeline`: `ActivityTimeline`, `useActivityTimeline`, `reloadActivityTimeline`, `addPendingActivity`, `compareActivities`) | A record's activity feed, its row types, and one listener per record room for feed rows and docinfo |
 | `Composer` (`@framework/ui/Composer`: `CommentComposer`, `EmailComposer`) | Comment and email editors, and the payload each sends |
 | `FileUpload` (`@framework/ui/FileUpload`: `FileUploadDialog`, `AttachmentsList`, `UploadTray`, `useUploader`, `defaultTransport`, `registerUploadSource`, `UploadLimitsKey`) | Upload dialog, attachment list and tray, with a swappable transport and limits that have a default |
@@ -281,6 +282,7 @@ component group, with its main names.
 | Sidebar memory | Which sidebar this tab last showed for an address |
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
 | Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
+| Record link (`recordLink`) | *New.* What `main.ts` hands Link and Dynamic Link fields through `RecordLinkKey`: a record's `urlFor` address, or none for a doctype with no address, and a router push to it |
 | Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows |
 | Failed page | Which page's code failed to load |
 
@@ -423,7 +425,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Concept | What it is |
 | --- | --- |
 | Start sequence (`start`) | Boot, then translations and icons without waiting, and the Create dialog's registration, then addresses, contributions, standard pages, router, socket, and mount |
-| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, the invite address, Create for Link, Dynamic Link and Table MultiSelect fields through `CreateRecordKey`, the component names a template can use with no `components:` entry, and `__` and `__n` as globals in every component template |
+| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, the invite address, Create for Link, Dynamic Link and Table MultiSelect fields through `CreateRecordKey`, record pages for Link and Dynamic Link fields through `RecordLinkKey`, the component names a template can use with no `components:` entry, and `__` and `__n` as globals in every component template |
 
 **The build**
 

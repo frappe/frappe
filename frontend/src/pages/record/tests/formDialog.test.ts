@@ -1,7 +1,7 @@
 // The `form` host's own behaviours: the throw that holds the dialog open, custom
 // actions, and the dismissal paths that answer the opener.
 import { describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick } from "vue";
+import { createApp, defineComponent, h, inject, nextTick } from "vue";
 
 // The chrome is frappe-ui's; a passthrough here reads the form's behaviour, not reka-ui's transitions.
 vi.mock("frappe-ui", () => ({
@@ -44,19 +44,26 @@ vi.mock("@framework/ui/api", () => ({
   getMeta: vi.fn(async () => ({ data: null })),
 }));
 
-vi.mock("@framework/ui/components/FormLayout", () => ({
-  // The real FormLayout is exercised in Chrome; here it only has to own the doc.
-  FormLayout: defineComponent({
-    props: {
-      layout: { type: Array, required: true },
-      doc: { type: Object, required: true },
-    },
-    emits: ["update:doc"],
-    setup: () => () => h("form"),
-  }),
-}));
+vi.mock("@framework/ui/components/FormLayout", async () => {
+  const { RecordLinkKey } = await import("@framework/ui/components/Fields/types");
+  return {
+    // The real FormLayout is exercised in Chrome; here it owns the doc and shows the record link its fields get.
+    FormLayout: defineComponent({
+      props: {
+        layout: { type: Array, required: true },
+        doc: { type: Object, required: true },
+      },
+      emits: ["update:doc"],
+      setup() {
+        const link = inject(RecordLinkKey, undefined);
+        return () => h("form", { "data-record-link": link === null ? "none" : "host" });
+      },
+    }),
+  };
+});
 
 import { getMeta, runMethod } from "@framework/ui/api";
+import { RecordLinkKey } from "@framework/ui/components/Fields/types";
 import PageFormDialog from "../dialogs/PageFormDialog.vue";
 import type { PageDialogEntry } from "@/recordPage/dialog";
 import type { PageDialogFormOptions } from "@/recordPage/types";
@@ -94,7 +101,9 @@ const FIELDS = [{ fieldname: "note", fieldtype: "Data", label: "Note" }];
 function render(entry: PageDialogEntry) {
   const root = document.createElement("div");
   document.body.appendChild(root);
-  createApp(PageFormDialog, { entry }).mount(root);
+  createApp(PageFormDialog, { entry })
+    .provide(RecordLinkKey, { href: () => "/record", open: () => {} })
+    .mount(root);
   return root;
 }
 
@@ -117,6 +126,13 @@ async function click(root: HTMLElement, label: string) {
 }
 
 describe("the form host", () => {
+  it("gives its fields no record link: a dialog has no guard for its values", async () => {
+    const root = render(makeEntry({ fields: FIELDS }));
+    await settle();
+
+    expect(root.querySelector("form")?.getAttribute("data-record-link")).toBe("none");
+  });
+
   it("holds the dialog open with the error inline when onSubmit throws", async () => {
     const error = vi.spyOn(console, "error").mockImplementation(() => {});
     const entry = makeEntry({

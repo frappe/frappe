@@ -27,6 +27,8 @@ export interface PanelContext {
 	reloadDocinfo: () => Promise<void>;
 	/** Marks the record on show; the check it hands back is false once the page has moved on. */
 	whileOnRecord: () => () => boolean;
+	/** Whether the Details form draws the field, so a summary row has somewhere to open it. */
+	onDetails: (fieldname: string) => boolean;
 }
 
 export const PanelContextKey: InjectionKey<PanelContext> = Symbol("record-panel");

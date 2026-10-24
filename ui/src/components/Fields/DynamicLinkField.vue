@@ -1,19 +1,32 @@
 <template>
+	<LinkValue
+		v-if="field.readOnly"
+		:text="title ?? value"
+		:href="record.href.value"
+		:label="field.label"
+		:description="field.description"
+		:required="field.reqd"
+		:error="error"
+		@open="record.open"
+	/>
 	<Link
+		v-else
 		ref="link"
 		v-model="value"
 		v-model:open="open"
 		:doctype="doctype"
 		:filters="field.filters"
-		:title="linkCreate.title(value)"
+		:title="title"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:error="error"
-		:disabled="field.readOnly || !doctype"
+		:disabled="!doctype"
+		:href="record.href.value"
 		:creatable="linkCreate.creatable.value"
 		@create="linkCreate.create"
+		@redirect="record.open"
 	>
 		<template #item-create="{ query }">
 			<span class="truncate">{{ linkCreate.label(query) }}</span>
@@ -27,16 +40,19 @@
 import { computed, inject, ref } from "vue";
 import { Link } from "../Link";
 import type { LinkExposed } from "../Link";
-import { DocKey, ParentDocKey } from "./types";
+import { DocKey, LinkTitlesKey, ParentDocKey } from "./types";
 import { pickSiblingValue } from "../FormLayout/pickSiblingValue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { useLinkCreate } from "./useLinkCreate";
+import { useRecordLink } from "./useRecordLink";
+import LinkValue from "./LinkValue.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
 
 const doc = inject(DocKey, null);
 const parentDoc = inject(ParentDocKey, null);
+const titles = inject(LinkTitlesKey, null);
 const link = ref<LinkExposed | null>(null);
 const open = ref(false);
 
@@ -67,4 +83,12 @@ const linkCreate = useLinkCreate({
 	link,
 	select: (name) => (value.value = name),
 });
+
+const record = useRecordLink(doctype, value);
+
+const title = computed(
+	() =>
+		(value.value ? titles?.value[`${doctype.value}::${value.value}`] : undefined) ??
+		linkCreate.title(value.value)
+);
 </script>

@@ -87,6 +87,16 @@ describe("a control", () => {
     });
   }
 
+  for (const fieldtype of ["Link", "Dynamic Link"]) {
+    it(`draws the error on a read-only ${fieldtype} in place of its description`, () => {
+      const field = { fieldname: "customer", fieldtype, label: "Customer", description: "Who pays", readOnly: true };
+      const el = mount(getFieldComponent(fieldtype), { field, modelValue: "C-1", error: MESSAGE });
+      expect(el.querySelector('[data-slot="link-value"]')).not.toBeNull();
+      expect(el.textContent).toContain(MESSAGE);
+      expect(el.textContent).not.toContain("Who pays");
+    });
+  }
+
   it("links a code editor to its error rather than its hidden description", async () => {
     const field = { fieldname: "script", fieldtype: "Code", label: "Script", description: "Runs on save" };
     const el = mount(getFieldComponent("Code"), { field, modelValue: "", error: MESSAGE });

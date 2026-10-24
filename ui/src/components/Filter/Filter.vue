@@ -158,7 +158,7 @@ import type { Filter, FilterField, FilterOperator, FilterProps, FilterValue } fr
 // the component (see valueControl.ts for why the two are separate files).
 import { valueControl } from "./valueControl";
 import { VALUE_CONTROLS } from "./valueControlComponents";
-import { CreateRecordKey } from "../Fields/types";
+import { CreateRecordKey, RecordLinkKey } from "../Fields/types";
 
 const props = defineProps<FilterProps>();
 
@@ -166,8 +166,9 @@ const props = defineProps<FilterProps>();
 // reads and re-emits this array, never a data resource.
 const model = defineModel<Filter[]>({ default: () => [] });
 
-// A filter's value input picks a record; it never creates one.
+// A filter's value input picks a record; it never creates or opens one.
 provide(CreateRecordKey, null);
+provide(RecordLinkKey, null);
 
 // The popover only mounts once a condition exists (`v-else`); a ref lets us open it
 // right after the empty-state picker seeds the first one, so the user lands on the

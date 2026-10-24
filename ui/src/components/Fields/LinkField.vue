@@ -1,5 +1,16 @@
 <template>
+	<LinkValue
+		v-if="field.readOnly"
+		:text="title ?? value"
+		:href="record.href.value"
+		:label="field.label"
+		:description="field.description"
+		:required="field.reqd"
+		:error="error"
+		@open="record.open"
+	/>
 	<Link
+		v-else
 		ref="link"
 		v-model="value"
 		v-model:open="open"
@@ -11,9 +22,10 @@
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:error="error"
-		:disabled="field.readOnly"
+		:href="record.href.value"
 		:creatable="linkCreate.creatable.value"
 		@create="linkCreate.create"
+		@redirect="record.open"
 	>
 		<!-- Forward any slots (e.g. a #prefix affordance) on to the Link control. -->
 		<template v-for="(_, name) in $slots" #[name]="slotProps" :key="name">
@@ -32,6 +44,8 @@ import type { LinkExposed } from "../Link";
 import { LinkTitlesKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { useLinkCreate } from "./useLinkCreate";
+import { useRecordLink } from "./useRecordLink";
+import LinkValue from "./LinkValue.vue";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
@@ -57,6 +71,11 @@ const linkCreate = useLinkCreate({
 	link,
 	select: (name) => (value.value = name),
 });
+
+const record = useRecordLink(
+	() => props.field.options ?? "",
+	() => value.value
+);
 
 const title = computed(
 	() =>

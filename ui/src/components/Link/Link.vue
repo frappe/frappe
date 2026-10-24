@@ -45,17 +45,18 @@
 			>
 				<span class="lucide-square-pen size-3.5" />
 			</button>
-			<button
+			<RecordAnchor
 				v-if="showRedirect"
-				type="button"
-				aria-label="Open linked record"
+				:href="href!"
+				:aria-label="openLabel"
+				:title="openLabel"
 				data-slot="redirect"
 				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
-				@click.stop="emit('redirect', model!)"
+				@open="emit('redirect', model!)"
 				@pointerdown.stop
 			>
 				<span class="lucide-arrow-up-right size-3.5" />
-			</button>
+			</RecordAnchor>
 		</template>
 
 		<template v-if="slots['item-create']" #item-create="slotProps">
@@ -79,12 +80,14 @@ import { computed, ref, useSlots, watch } from "vue";
 import { Combobox, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
 import { useLinkSearch } from "../../composables/useLinkSearch";
+import { translate as __ } from "../../utils/translate";
+import RecordAnchor from "./RecordAnchor.vue";
 import type { LinkExposed, LinkProps, LinkEmits } from "./types";
 
 const props = withDefaults(defineProps<LinkProps>(), {
 	filters: () => ({}),
 	creatable: false,
-	redirectable: false,
+	href: null,
 	editable: false,
 	disabled: false,
 });
@@ -131,7 +134,11 @@ const linkOptions = computed<ComboboxOption[]>(() => {
 });
 
 const showClear = computed(() => !props.disabled && !!model.value);
-const showRedirect = computed(() => props.redirectable && !!model.value);
+const showRedirect = computed(() => !!props.href && !!model.value);
+const openLabel = computed(() => {
+	const option: any = linkOptions.value.find((option: any) => option.value === model.value);
+	return __("Open {0}", [option?.label ?? model.value]);
+});
 const showEdit = computed(() => props.editable && !!model.value);
 
 const loadOptions = (txt: string = "", fresh = false) => void options.search(txt, { fresh });
