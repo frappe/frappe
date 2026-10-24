@@ -55,6 +55,38 @@ async function open_claimed_dashboard(page, desk, api, props) {
 	return dashboard;
 }
 
+async function open_claimed_card(page, desk, api, props) {
+	const card = "TODO-ISLAND-CARD";
+	const dashboard = "TODO-ISLAND-CARD-DASHBOARD";
+	await page.goto("/desk");
+	await desk.ready();
+	await api.insert_doc(
+		"Number Card",
+		{
+			name: card,
+			label: card,
+			is_standard: 0,
+			type: "Document Type",
+			document_type: "ToDo",
+			function: "Count",
+			filters_json: "[]",
+		},
+		true
+	);
+	await api.insert_doc(
+		"Dashboard",
+		{ name: dashboard, dashboard_name: dashboard, is_standard: 0, cards: [{ card }] },
+		true
+	);
+	await register_fixture(page);
+	await claim(page, "Number Card", { name: ISLAND, props });
+	await page.evaluate((name) => frappe.set_route("dashboard-view", name), dashboard);
+
+	const widget = page.locator(".number-widget-box", { hasText: card });
+	await expect(widget.locator(".number-card-island .fixture-dashboard")).toBeAttached();
+	return widget;
+}
+
 test.describe("Dashboard view", () => {
 	test("should load", async ({ page, desk, api }) => {
 		const chart = "TODO-YEARLY-TRENDS";
@@ -194,35 +226,19 @@ test.describe("Dashboard view island", () => {
 	});
 
 	test("a number card an app claims draws its island", async ({ page, desk, api }) => {
-		const card = "TODO-ISLAND-CARD";
-		const dashboard = "TODO-ISLAND-CARD-DASHBOARD";
-		await page.goto("/desk");
-		await desk.ready();
-		await api.insert_doc(
-			"Number Card",
-			{
-				name: card,
-				label: card,
-				is_standard: 0,
-				type: "Document Type",
-				document_type: "ToDo",
-				function: "Count",
-				filters_json: "[]",
-			},
-			true
-		);
-		await api.insert_doc(
-			"Dashboard",
-			{ name: dashboard, dashboard_name: dashboard, is_standard: 0, cards: [{ card }] },
-			true
-		);
-		await register_fixture(page);
-		await claim(page, "Number Card", { name: ISLAND, props: {} });
+		const widget = await open_claimed_card(page, desk, api, {});
 
-		await page.evaluate((name) => frappe.set_route("dashboard-view", name), dashboard);
-
-		const widget = page.locator(".number-widget-box", { hasText: card });
-		await expect(widget.locator(".number-card-island .fixture-dashboard")).toBeAttached();
 		await expect(widget).toHaveClass(/number-widget-island/);
+	});
+
+	test("a number card island's action runs from the card menu", async ({ page, desk, api }) => {
+		const widget = await open_claimed_card(page, desk, api, {
+			actions: [{ label: "Open ToDos", href: "/desk/todo" }],
+		});
+
+		await widget.locator(".card-actions [data-toggle='dropdown']").click();
+		const popup = page.waitForEvent("popup");
+		await widget.locator(".card-actions a", { hasText: "Open ToDos" }).click();
+		await expect(await popup).toHaveURL(/\/desk\/todo$/);
 	});
 });
