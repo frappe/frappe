@@ -231,6 +231,9 @@ frappe.ui.form.Dashboard = class FormDashboard {
 		this.transactions_area
 			.find(".document-link[data-doctype]")
 			.each((i, link) => this.set_document_list_url($(link)));
+		this.transactions_area
+			.find(".report-link-badge")
+			.each((i, link) => this.set_report_url($(link)));
 		this.observe_link_render();
 	}
 
@@ -361,6 +364,8 @@ frappe.ui.form.Dashboard = class FormDashboard {
 			$(frappe.render_template("report_links", this.data)).appendTo(parent);
 			// bind reports
 			parent.find(".report-link").on("click", (e) => {
+				if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+				e.preventDefault();
 				this.open_report($(e.target).parent());
 			});
 		}
@@ -369,13 +374,25 @@ frappe.ui.form.Dashboard = class FormDashboard {
 	open_report($link) {
 		let report = $link.attr("data-report");
 
-		let fieldname = this.data.non_standard_fieldnames
+		frappe.provide("frappe.route_options");
+		frappe.route_options[this.get_report_link_fieldname(report)] = this.frm.doc.name;
+		frappe.set_route("query-report", report);
+	}
+
+	get_report_link_fieldname(report) {
+		return this.data.non_standard_fieldnames
 			? this.data.non_standard_fieldnames[report] || this.data.fieldname
 			: this.data.fieldname;
+	}
 
-		frappe.provide("frappe.route_options");
-		frappe.route_options[fieldname] = this.frm.doc.name;
-		frappe.set_route("query-report", report);
+	set_report_url($link) {
+		const report = $link.attr("data-report");
+		const query = frappe.utils.make_query_string({
+			[this.get_report_link_fieldname(report)]: this.frm.doc.name,
+		});
+		$link
+			.find(".report-link")
+			.attr("href", `/desk/query-report/${encodeURIComponent(report)}${query}`);
 	}
 
 	open_document_list($link, show_open) {
