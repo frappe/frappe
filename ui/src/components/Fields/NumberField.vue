@@ -92,7 +92,6 @@ function parse(s: string): number | string {
 	// Empty input commits `0` (no null state); `flt('')` already returns 0.
 	const defaults = getFormatDefaults();
 	if (props.field.fieldtype === "Long Int") return parseLongInt(s, defaults.number_format);
-	// Drop the fraction as the server's `cint` does, so `7.6` commits `7`.
 	if (props.field.fieldtype === "Int") {
 		return Math.trunc(flt(s, { numberFormat: defaults.number_format }));
 	}

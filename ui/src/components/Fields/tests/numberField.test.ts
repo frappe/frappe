@@ -3,7 +3,7 @@ import { createApp, h, nextTick } from "vue";
 import type { App } from "vue";
 import NumberField from "../NumberField.vue";
 
-/** An Int or Long Int commits a whole number, as the server stores it. A Long Int past 2^53 keeps every digit while it is a string: typed, or held as one in the doc. */
+/** A Long Int past 2^53 keeps every digit while it is a string: typed, or held as one in the doc. */
 
 const BEYOND_SAFE = "9007199254740993";
 
