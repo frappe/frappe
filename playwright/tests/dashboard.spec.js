@@ -191,4 +191,37 @@ test.describe("Dashboard view island", () => {
 		await expect(menu).toContainText(label);
 		await expect(menu.locator("b")).toHaveCount(0);
 	});
+
+	test("a number card an app claims draws its island", async ({ page, desk, api }) => {
+		const card = "TODO-ISLAND-CARD";
+		const dashboard = "TODO-ISLAND-CARD-DASHBOARD";
+		await page.goto("/desk");
+		await desk.ready();
+		await api.insert_doc(
+			"Number Card",
+			{
+				name: card,
+				label: card,
+				is_standard: 0,
+				type: "Document Type",
+				document_type: "ToDo",
+				function: "Count",
+				filters_json: "[]",
+			},
+			true
+		);
+		await api.insert_doc(
+			"Dashboard",
+			{ name: dashboard, dashboard_name: dashboard, is_standard: 0, cards: [{ card }] },
+			true
+		);
+		await register_fixture(page);
+		await claim(page, "Number Card", { name: ISLAND, props: {} });
+
+		await page.evaluate((name) => frappe.set_route("dashboard-view", name), dashboard);
+
+		const widget = page.locator(".number-widget-box", { hasText: card });
+		await expect(widget.locator(".number-card-island .fixture-dashboard")).toBeAttached();
+		await expect(widget).toHaveClass(/number-widget-island/);
+	});
 });
