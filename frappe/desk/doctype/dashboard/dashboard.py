@@ -109,7 +109,7 @@ class Dashboard(Document):
 
 
 def should_show_insights_dashboards_prompt() -> bool:
-	"""The page shows the prompt only where it draws classic: on a Classic site, or without Insights."""
+	"""Whether this user is still asked. The page draws the prompt only above the classic view."""
 	if cint(frappe.defaults.get_global_default(SKIP_INSIGHTS_DASHBOARDS_PROMPT)):
 		return False
 
