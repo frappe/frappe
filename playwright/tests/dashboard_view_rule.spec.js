@@ -18,7 +18,6 @@ const cases = [
 			island: ISLAND,
 			dashboards: "Classic",
 			show_insights_dashboards_prompt: true,
-			insights_dashboard_title: "Sales Overview",
 		},
 		view: "classic",
 		prompt: "ERPNext and Frappe HR dashboards have new versions built with Insights.",

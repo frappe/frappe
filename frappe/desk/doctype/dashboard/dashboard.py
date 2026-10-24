@@ -52,7 +52,6 @@ class Dashboard(Document):
 			return
 		if should_show_insights_dashboards_prompt():
 			self.set_onload("show_insights_dashboards_prompt", True)
-			self.set_onload("insights_dashboard_title", self.get_insights_dashboard_title())
 
 	def has_insights_version(self) -> bool:
 		"""Whether the app that ships this dashboard also ships an Insights board for it.
@@ -65,14 +64,6 @@ class Dashboard(Document):
 			return False
 		path = frappe.get_module_path(self.module, f"{self.module}_dashboard", self.name, f"{self.name}.json")
 		return os.path.isfile(path) and bool(frappe.get_file_json(path).get("insights_dashboard"))
-
-	def get_insights_dashboard_title(self) -> str | None:
-		"""The title of the Insights board that claims this dashboard, which often differs from its name."""
-		field = self.meta.get_field("insights_dashboard")
-		if not field or not self.get("insights_dashboard"):
-			return None
-		title_field = frappe.get_meta(field.options).get_title_field()
-		return frappe.db.get_value(field.options, self.insights_dashboard, title_field)
 
 	def clear_cache(self):
 		from frappe.desk.doctype.sidebar.sidebar import clear_computed_base_for

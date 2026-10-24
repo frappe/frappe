@@ -168,19 +168,6 @@ class TestInsightsDashboardsPrompt(IntegrationTestCase):
 			doc.run_method("onload")
 			self.assertNotIn("show_insights_dashboards_prompt", doc.get_onload())
 
-	def test_the_prompt_names_the_insights_board(self):
-		doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})
-		doc.insights_dashboard = "Administrator"
-		with (
-			patch.object(type(doc), "has_insights_version", return_value=True),
-			patch.object(doc.meta, "get_field", return_value=frappe._dict(options="User")),
-		):
-			doc.run_method("onload")
-		self.assertEqual(
-			doc.get_onload().get("insights_dashboard_title"),
-			frappe.db.get_value("User", "Administrator", "full_name"),
-		)
-
 	def test_a_dashboard_insights_installs_no_board_for_carries_no_prompt(self):
 		doc = frappe.get_doc({"doctype": "Dashboard", "name": "Test Prompt"})
 		with (
