@@ -76,8 +76,17 @@ describe("newRowValues", () => {
         field({ fieldname: "qty", fieldtype: "Float", default: "1" }),
         field({ fieldname: "free", fieldtype: "Check", default: "1" }),
         field({ fieldname: "rate", fieldtype: "Currency", default: "2.5" }),
+        field({ fieldname: "big", fieldtype: "Long Int", default: "5" }),
       ])
-    ).toEqual({ qty: 1, free: 1, rate: 2.5 });
+    ).toEqual({ qty: 1, free: 1, rate: 2.5, big: 5 });
+  });
+
+  it("keeps every digit of a Long Int default past 2^53", () => {
+    expect(
+      newRowValues([
+        field({ fieldname: "big", fieldtype: "Long Int", default: "9007199254740993" }),
+      ])
+    ).toEqual({ big: "9007199254740993" });
   });
 
   it("lands a Select on its first option when it declares no default", () => {

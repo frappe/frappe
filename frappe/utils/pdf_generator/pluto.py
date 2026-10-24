@@ -299,17 +299,18 @@ def local_resource_fetcher(block_external_requests=False):
 		def fetch(self, url):
 			if url.startswith(get_host_url()):
 				if ttf := inter_ttf_path(url):
-					return plutoprint.ResourceData(ttf.read_bytes(), "font/ttf")
+					return plutoprint.default_resource_fetcher.fetch_url(ttf.resolve().as_uri())
 				if not (resource := read_local_resource(url)):
 					raise plutoprint.Error(f"Cannot read {url}")
 				content, content_type = resource
-				content = base64.b64decode(content)
 				content_type = (
 					content_type or mimetypes.guess_type(url.split("?")[0])[0] or "application/octet-stream"
 				)
 				if content_type == "text/css":
-					content = cached_inter_faces(BREAK_WORD.sub(r"\1normal", content.decode())).encode()
-				return plutoprint.ResourceData(content, content_type)
+					content = base64.b64decode(content).decode()
+					content = cached_inter_faces(BREAK_WORD.sub(r"\1normal", content)).encode()
+					content = base64.b64encode(content).decode()
+				return plutoprint.default_resource_fetcher.fetch_url(f"data:{content_type};base64,{content}")
 			if block_external_requests and not url.startswith("data:"):
 				raise plutoprint.Error(f"Blocked {url}")
 			resource = plutoprint.default_resource_fetcher.fetch_url(url)

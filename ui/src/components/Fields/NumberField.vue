@@ -20,7 +20,7 @@ import { computed, inject, nextTick, ref } from "vue";
 import { TextInput } from "frappe-ui";
 import { DocKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
-import { flt, formatField } from "../FormLayout/formatNumber";
+import { flt, formatField, parseLongInt } from "../FormLayout/formatNumber";
 import { resolveFieldCurrency } from "../FormLayout/resolveCurrency";
 import { getFormatDefaults } from "../FormLayout/formatDefaults";
 
@@ -65,7 +65,7 @@ function resolveCurrency(): string | undefined {
 /** Decimal places: per-field `precision` wins, else the matching site default, else `undefined` (util derives it). */
 function resolvePrecision(fieldtype: string | undefined): number | undefined {
 	// Int has no precision — it renders as a plain integer (see formatField).
-	if (fieldtype === "Int") return undefined;
+	if (fieldtype === "Int" || fieldtype === "Long Int") return undefined;
 	if (props.field.precision != null) return props.field.precision;
 	const d = getFormatDefaults();
 	const sys = fieldtype === "Currency" ? d.currency_precision : d.float_precision;
@@ -88,9 +88,10 @@ function formatted(value: any): string {
 	});
 }
 
-function parse(s: string): number {
+function parse(s: string): number | string {
 	// Empty input commits `0` (no null state); `flt('')` already returns 0.
 	const defaults = getFormatDefaults();
+	if (props.field.fieldtype === "Long Int") return parseLongInt(s, defaults.number_format);
 	return flt(s, {
 		numberFormat: defaults.number_format,
 		roundingMethod: defaults.rounding_method,
