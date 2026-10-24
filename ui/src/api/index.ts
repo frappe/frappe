@@ -24,6 +24,7 @@ export {
   type CodeError,
   type Envelope,
   type ErrorEntry,
+  type FieldError,
 } from "./envelope";
 export { apiUrl, request, requestHeaders, type HttpMethod, type Query } from "./request";
 export {

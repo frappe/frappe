@@ -39,6 +39,18 @@ describe("readEnvelope", () => {
     );
   });
 
+  it("carries the entry's field_errors as fieldErrors", () => {
+    const fieldErrors = [
+      { fieldname: "title", message: "Title is required" },
+      { fieldname: "item", parentfield: "items", idx: 2, message: "Item is required" },
+    ];
+    const body = { errors: [{ type: "MandatoryError", field_errors: fieldErrors }] };
+    expect(() => readEnvelope(body, 417)).toThrow(expect.objectContaining({ fieldErrors }));
+    expect(() => readEnvelope({ errors: [{ type: "ValidationError" }] }, 417)).toThrow(
+      expect.objectContaining({ fieldErrors: undefined })
+    );
+  });
+
   it("names the error by its type when the server sent no message", () => {
     expect(() => readEnvelope({ errors: [{ type: "PermissionError" }] }, 403)).toThrow(
       "PermissionError"

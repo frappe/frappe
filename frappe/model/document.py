@@ -3840,7 +3840,7 @@ class Document(_DocumentBase):
 			)
 
 	@contextmanager
-	def _naming_field(self, fieldname: str):
+	def _naming_field(self, fieldname: str) -> Generator[None]:
 		"""Give a `ValidationError` raised inside one `field_errors` entry for `fieldname`."""
 		try:
 			yield
@@ -4136,7 +4136,7 @@ class Document(_DocumentBase):
 				extract_images_from_doc(self, df.fieldname)
 
 
-def _throw_link_errors(message: str, links: list[tuple], exc: type[frappe.ValidationError]):
+def _throw_link_errors(message: str, links: list[tuple], exc: type[frappe.ValidationError]) -> None:
 	"""Throw one error for every bad link, each `(doc, fieldname, docname, msg)`, naming every field."""
 	error = exc()
 	error.field_errors = [
