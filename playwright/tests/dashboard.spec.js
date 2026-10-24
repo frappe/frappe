@@ -135,4 +135,18 @@ test.describe("Dashboard view island", () => {
 			dashboard
 		);
 	});
+
+	test("an island's action labels print as text in the page menu", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const label = "<b>Export</b>";
+		await open_claimed_dashboard(page, desk, api, { actions: [{ label, href: "/" }] });
+
+		await page.locator("#page-dashboard-view .menu-btn-group > button").click();
+		const menu = page.locator("#page-dashboard-view .menu-btn-group .dropdown-menu");
+		await expect(menu).toContainText(label);
+		await expect(menu.locator("b")).toHaveCount(0);
+	});
 });

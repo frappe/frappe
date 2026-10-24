@@ -158,7 +158,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		page.clear_menu();
 		(actions || []).forEach((action) => {
 			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;
-			page.add_menu_item(action.label, click);
+			page.add_menu_item(frappe.utils.escape_html(action.label), click);
 		});
 	}
 
