@@ -170,7 +170,7 @@ function onRowRemove({ rows: removed }: { rows: Record<string, any>[] }) {
 
 // Per-fieldtype alignment, applied to header + cells so they agree. Numeric
 // right-aligns (desk); checkbox/rating center.
-const NUMBER_FIELDTYPES = new Set(["Int", "Float", "Currency", "Percent"]);
+const NUMBER_FIELDTYPES = new Set(["Int", "Long Int", "Float", "Currency", "Percent"]);
 const CENTERED_FIELDTYPES = new Set(["Check", "Rating"]);
 
 // Fieldtypes whose editor can't live in a 34px single-row cell — multi-line code

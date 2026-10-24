@@ -9,6 +9,8 @@ const fields: RawMetaField[] = [
 	{ fieldname: "status", fieldtype: "Select", options: "Open\nClosed" },
 	{ fieldname: "secret", fieldtype: "Data", permlevel: 1 },
 	{ fieldname: "a_break", fieldtype: "Section Break" },
+	{ fieldname: "a_fold", fieldtype: "Fold" },
+	{ fieldname: "gallery", fieldtype: "Attachment Gallery" },
 	{ fieldname: "notes", fieldtype: "Table", options: "Note Row" },
 	{ fieldname: "email_id", fieldtype: "Data", label: "Email Address", read_only: 1 },
 ];
@@ -35,6 +37,13 @@ describe("joinLayout", () => {
 
 	it("drops unknown fieldnames and layout breaks", () => {
 		const [tab] = joinLayout(treeWith(["gone", "a_break", "first_name"]), fields);
+		expect(tab.sections[0].columns[0].fields.map((f) => f.fieldname)).toEqual([
+			"first_name",
+		]);
+	});
+
+	it("drops Fold and Attachment Gallery, which have no control", () => {
+		const [tab] = joinLayout(treeWith(["a_fold", "gallery", "first_name"]), fields);
 		expect(tab.sections[0].columns[0].fields.map((f) => f.fieldname)).toEqual([
 			"first_name",
 		]);

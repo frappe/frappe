@@ -10,7 +10,10 @@ import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
 import { runningSource, withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import { createHeldActs, type HeldAct } from "./heldActs";
-import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
+import {
+  DROPPED_FIELDTYPES,
+  type Decorator,
+} from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import type {
   FormLayoutSchema,
   RawMetaField,
@@ -18,7 +21,7 @@ import type {
 import { holdsChildRows } from "@framework/ui/components/Fields/rowIdentity";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
 import { ActivitySurface, FilesSurface } from "./feed";
-import { FieldsSurface, LAYOUT_BREAKS } from "./fields";
+import { FieldsSurface } from "./fields";
 import { FormSurface } from "./form";
 import { FormTabsSurface } from "./formTabs";
 import { FrameSurface } from "./frame";
@@ -898,10 +901,10 @@ function handlerVocabulary(
     if (field.fieldtype !== "Table") continue;
     const child = field.options && childFields?.(field.options);
     if (!child) unresolved.push(field.fieldname);
-    // A layout break has no value and so no commit; `page.fields` excludes them too.
+    // A dropped fieldtype has no value and so no commit; `page.fields` excludes them too.
     else
       for (const one of child)
-        if (!LAYOUT_BREAKS.has(one.fieldtype))
+        if (!DROPPED_FIELDTYPES.has(one.fieldtype))
           known.add(`${field.fieldname}.${one.fieldname}`);
   }
   return {

@@ -1,8 +1,11 @@
 // The fields surface: a script overrides properties of fields authored elsewhere.
 // Ops are recorded, not applied; `resolve()` folds them into one patch per field.
 import { markRaw, shallowReactive } from "vue";
-import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
+import {
+  DROPPED_FIELDTYPES,
+  mapField,
+  type Decorator,
+} from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import { resolveFieldConditionals } from "@framework/ui/components/FormLayout/resolveLayout";
 import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
@@ -17,13 +20,6 @@ const SNAPSHOT_IS_READ_ONLY: ReadOnlyAdvice = {
   path: "page.fields.get()",
   instead: "page.fields.update(fieldname, { … }), which is the writable half",
 };
-
-/** What `joinLayout` drops before any patch could apply. */
-export const LAYOUT_BREAKS = new Set([
-  "Tab Break",
-  "Section Break",
-  "Column Break",
-]);
 
 type Slot = "meta" | "override" | "ui";
 
@@ -170,12 +166,12 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
     return Object.fromEntries(patches);
   }
 
-  /** Layout breaks are excluded: `joinLayout` drops them before any patch could apply. */
+  /** `DROPPED_FIELDTYPES` are excluded: `joinLayout` drops them before any patch could apply. */
   private raw(fieldname: string): RawMetaField | undefined {
     const field = this.host
       .fields()
       ?.find((one) => one.fieldname === fieldname);
-    return field && !LAYOUT_BREAKS.has(field.fieldtype) ? field : undefined;
+    return field && !DROPPED_FIELDTYPES.has(field.fieldtype) ? field : undefined;
   }
 
   /**
