@@ -29,7 +29,7 @@ from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_files_path, set_request
+from frappe.utils import get_files_path, get_url, set_request
 
 if TYPE_CHECKING:
 	from frappe.core.doctype.file.file import File
@@ -442,6 +442,23 @@ class TestSameContent(IntegrationTestCase):
 		file_content_properly_decoded = saved_file.get_content(encodings=["utf-8-sig", "utf-8"])
 		self.assertEqual(file_content_properly_decoded, test_content1)
 
+	def test_rename_and_toggle_is_private_together(self):
+		with self.set_user("test@example.com"):
+			test_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "rename_toggle.txt",
+					"is_private": 0,
+					"content": test_content1,
+				}
+			).insert()
+
+			test_file.update({"file_name": "renamed_toggle.txt", "is_private": 1})
+			test_file.save()
+
+			self.assertTrue(test_file.file_url.startswith("/private/files/"))
+			self.assertEqual(test_file.get_content(), test_content1)
+
 	def test_toggle_is_private_renames_on_name_collision(self):
 		file_name = f"toggle_collision_{frappe.generate_hash(length=6)}.txt"
 		private_file = frappe.get_doc(
@@ -744,6 +761,45 @@ class TestFile(IntegrationTestCase):
 		file1.reload()
 		file1.file_url = "/private/files/parent_dir2.txt"
 		self.assertRaises(OSError, file1.save)
+
+	def test_file_url_spellings_of_another_file(self):
+		other_file = frappe.get_doc(
+			{"doctype": "File", "file_name": "spellings.txt", "is_private": 1, "content": test_content1}
+		).insert()
+
+		with self.set_user("test@example.com"):
+			for file_url in (
+				"/private/files/./spellings.txt",
+				"/private/files//spellings.txt",
+				get_url() + other_file.file_url,
+			):
+				new_file = frappe.get_doc({"doctype": "File", "is_private": 1, "file_url": file_url})
+				self.assertRaises((ValidationError, frappe.PermissionError), new_file.insert)
+
+			new_file = frappe.get_doc({"doctype": "File", "is_private": 1, "file_name": "spellings.txt"})
+			self.assertRaises(frappe.PermissionError, new_file.insert)
+
+			own_file = frappe.get_doc(
+				{
+					"doctype": "File",
+					"file_name": "own_spellings.txt",
+					"is_private": 1,
+					"content": test_content2,
+				}
+			).insert()
+			for update in (
+				{"file_url": "/private/files/./spellings.txt"},
+				{"file_url": "", "file_name": "spellings.txt"},
+			):
+				own_file.reload()
+				own_file.update(update)
+				self.assertRaises((ValidationError, frappe.PermissionError), own_file.save)
+
+			# a new upload with the same file name gets a name of its own
+			upload = frappe.get_doc(
+				{"doctype": "File", "file_name": "spellings.txt", "is_private": 1, "content": test_content2}
+			).insert()
+			self.assertNotEqual(upload.file_url, other_file.file_url)
 
 	def test_file_url_validation(self):
 		test_file: File = frappe.new_doc("File")

@@ -30,7 +30,6 @@ class FileV2(File):
 			return
 
 		if self.is_remote_file:
-			self.validate_remote_file()
 			return
 
 		self.save_file(content=self.get_content())
