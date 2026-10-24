@@ -5,7 +5,7 @@
 import { takeTicket } from "../cache";
 import { ApiError, readEnvelope, type Envelope } from "./envelope";
 import { fed, fedAfter, feedPartReply } from "./feed";
-import { apiUrl, requestHeaders } from "./request";
+import { apiUrl, parseBody, requestHeaders } from "./request";
 import type { Users } from "./index";
 
 /** The server's own default; a desk that knows the site's `file_chunk_size` passes that. */
@@ -117,7 +117,7 @@ async function failure(response: Response, url: string): Promise<ApiError> {
   const text = await response.text().catch(() => "");
   const source = `GET ${url}`;
   try {
-    readEnvelope(text ? JSON.parse(text) : null, response.status, { source });
+    readEnvelope(parseBody(text), response.status, { source });
   } catch (error) {
     if (error instanceof ApiError) return error;
   }
@@ -233,11 +233,6 @@ function readChunkResponse<T>(xhr: XMLHttpRequest, path: string, last: boolean):
   if (xhr.status === 413) {
     throw new ApiError({ type: "FileTooLarge", message: "File size exceeds the maximum allowed limit." }, 413);
   }
-  let body: unknown = null;
-  try {
-    body = xhr.responseText ? JSON.parse(xhr.responseText) : null;
-  } catch {
-    body = null;
-  }
+  const body = parseBody(xhr.responseText);
   return readEnvelope<T>(body, xhr.status || 0, { source: `POST ${path}`, nullable: !last });
 }
