@@ -856,6 +856,44 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertIn("test2@example.com", pages[1].extract_text())
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_row_page_break_wins_over_keep_together(self):
+		from io import BytesIO
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		pf = self.make(
+			layout_with(
+				{
+					"fieldtype": "Table",
+					"fieldname": "email_ids",
+					"label": "Email Addresses",
+					"table_columns": [{"fieldname": "email_id", "label": "Email", "fieldtype": "Data"}],
+				},
+				section={"keep_together": 1},
+			),
+			doc_type="Contact",
+		)
+		pf.pdf_generator = "Typst"
+		contact = frappe.get_doc(
+			{
+				"doctype": "Contact",
+				"first_name": "_Test",
+				"last_name": "Contact",
+				"email_ids": [
+					{"email_id": "test1@example.com"},
+					{"email_id": "test2@example.com", "page_break": 1},
+				],
+			}
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pages = PdfReader(BytesIO(PrintFormatGenerator(pf, contact).render_pdf())).pages
+		self.assertEqual(len(pages), 2)
+		self.assertIn("test2@example.com", pages[1].extract_text())
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_render_pdf_produces_a_pdf(self):
 		pf = self.make(layout_with({"fieldtype": "Data", "fieldname": "description", "label": "D"}))
 		pf.pdf_generator = "Typst"
