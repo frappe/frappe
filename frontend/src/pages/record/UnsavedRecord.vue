@@ -156,6 +156,15 @@ const layout = useFormLayout({
 	overrides: () => controller.value?.fields.resolve() ?? {},
 	tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
 });
+// Types what "Edit full form" carried from the dialog's inline fields, shown here or not.
+const quickEntry = Object.keys(props.query).length
+	? useFormLayout({
+			doctype: props.doctype,
+			type: "Quick Entry",
+			doc: openingValues,
+			fallback: "none",
+	  })
+	: null;
 
 const header = computed(() => {
 	actionsVersion.value;
@@ -216,9 +225,10 @@ async function open() {
 	}
 
 	const created = buildController();
-	await layout.settled();
+	await Promise.all([layout.settled(), quickEntry?.settled()]);
 	if (!opening.current()) return;
-	doc.value = { ...doc.value, ...queryValues(props.query, meta.value, detailsForm.value) };
+	const carried = [...(quickEntry?.layout.value ?? []), ...detailsForm.value];
+	doc.value = { ...doc.value, ...queryValues(props.query, meta.value, carried) };
 	await created.refresh();
 	if (!opening.current()) return;
 	opened.value = JSON.stringify(doc.value);

@@ -274,6 +274,37 @@ class TestFormLayout(IntegrationTestCase):
 		fields = result["layouts"][0]["layout"][0]["sections"][0]["columns"][0]["fields"]
 		self.assertEqual(fields, ["title"])
 
+	def test_a_save_announces_its_doctype(self):
+		with set_user(a_manager()), patch("frappe.publish_realtime") as publish:
+			make_layout().insert()
+		self.assertEqual(published_doctypes(publish), ["Note"])
+
+	def test_a_delete_announces_its_doctype(self):
+		with set_user(a_manager()):
+			layout = make_layout().insert()
+			with patch("frappe.publish_realtime") as publish:
+				layout.delete()
+		self.assertEqual(published_doctypes(publish), ["Note"])
+
+	def test_moving_a_layout_announces_both_doctypes(self):
+		with set_user(a_manager()):
+			layout = make_layout().insert()
+			layout.dt = "ToDo"
+			with patch("frappe.publish_realtime") as publish:
+				layout.save()
+		self.assertEqual(sorted(published_doctypes(publish)), ["Note", "ToDo"])
+
+
+class TestInlineFields(IntegrationTestCase):
+	def setUp(self):
+		super().setUp()
+		frappe.set_user(a_manager())
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		super().tearDown()
+
 	def test_an_inline_field_may_replace_a_read_only_field(self):
 		email = {"fieldname": "email_id", "label": "Email", "fieldtype": "Data", "options": "Email"}
 		inline_layout(["first_name", email]).insert()
@@ -321,26 +352,6 @@ class TestFormLayout(IntegrationTestCase):
 		tree = [{"name": "nickname", "columns": [{"fields": [nickname]}]}]
 		layout = make_layout(dt="Contact", type="Quick Entry", layout=json.dumps(tree))
 		self.assertRaisesRegex(frappe.ValidationError, "has the name of a field", layout.insert)
-
-	def test_a_save_announces_its_doctype(self):
-		with set_user(a_manager()), patch("frappe.publish_realtime") as publish:
-			make_layout().insert()
-		self.assertEqual(published_doctypes(publish), ["Note"])
-
-	def test_a_delete_announces_its_doctype(self):
-		with set_user(a_manager()):
-			layout = make_layout().insert()
-			with patch("frappe.publish_realtime") as publish:
-				layout.delete()
-		self.assertEqual(published_doctypes(publish), ["Note"])
-
-	def test_moving_a_layout_announces_both_doctypes(self):
-		with set_user(a_manager()):
-			layout = make_layout().insert()
-			layout.dt = "ToDo"
-			with patch("frappe.publish_realtime") as publish:
-				layout.save()
-		self.assertEqual(sorted(published_doctypes(publish)), ["Note", "ToDo"])
 
 
 class TestCreateLayouts(IntegrationTestCase):
