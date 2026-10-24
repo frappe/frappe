@@ -3,7 +3,7 @@
 		<!-- set apart from a list's icon, which would otherwise read as one more button -->
 		<div
 			v-if="!flow.state.sidebarOpen"
-			:class="list ? 'max-md:-mr-2' : 'md:mr-1.5'"
+			:class="list ? 'max-md:hidden' : 'md:mr-1.5'"
 			class="flex items-center gap-2"
 		>
 			<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
@@ -24,7 +24,11 @@
 		</button>
 		<!-- where the page sits: a record follows its list, which it links to. A narrow frame's bar
 		     keeps the name alone, for the room its actions leave -->
-		<nav class="flex min-w-0 items-center gap-2 text-sm" aria-label="Breadcrumb">
+		<nav
+			:class="{ 'ml-2': !list && flow.state.sidebarOpen }"
+			class="flex min-w-0 items-center gap-2 text-title"
+			aria-label="Breadcrumb"
+		>
 			<span
 				v-if="!list"
 				:class="icon"
