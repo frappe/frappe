@@ -87,6 +87,17 @@ describe("a control", () => {
     });
   }
 
+  it("links a code editor to its error rather than its hidden description", async () => {
+    const field = { fieldname: "script", fieldtype: "Code", label: "Script", description: "Runs on save" };
+    const el = mount(getFieldComponent("Code"), { field, modelValue: "", error: MESSAGE });
+    await vi.waitFor(() => expect(el.querySelector(".cm-content")).not.toBeNull());
+    const content = el.querySelector(".cm-content")!;
+    const alert = el.querySelector('[role="alert"]')!;
+    expect(el.textContent).not.toContain("Runs on save");
+    expect(content.getAttribute("aria-describedby")).toBe(alert.id);
+    expect(content.getAttribute("aria-invalid")).toBe("true");
+  });
+
   it("stacks several messages", () => {
     const field = { fieldname: "qty", fieldtype: "Data", label: "Qty" };
     const el = mount(getFieldComponent("Data"), {

@@ -546,19 +546,6 @@ function onRowClick(row: Record<string, any>, index: number) {
 	resize: none;
 }
 
-/* Drawn over the cell, since the control's own background would hide an inset ring. */
-.grid-cell[data-invalid] {
-	position: relative;
-}
-
-.grid-cell[data-invalid]::after {
-	content: "";
-	position: absolute;
-	inset: 0;
-	box-shadow: inset 0 0 0 1px var(--outline-red-5);
-	pointer-events: none;
-}
-
 /* Kill the rubber-band when panning the grid. X axis only, else it would also
  * swallow vertical wheel scrolling and lock the page. Set directly so the JIT keeps it. */
 .grid-scroller {
@@ -632,6 +619,17 @@ function onRowClick(row: Record<string, any>, index: number) {
 	z-index: 2;
 	pointer-events: none;
 	box-shadow: inset 0 0 0 1px var(--outline-gray-3);
+}
+
+/* An error keeps its red ring while the cell is focused. */
+.grid-cell[data-invalid]::after,
+.grid-cell[data-invalid]:focus-within::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	box-shadow: inset 0 0 0 1px var(--outline-red-5);
 }
 
 /* Suppress only the primary control's own ring so it doesn't double up with the
