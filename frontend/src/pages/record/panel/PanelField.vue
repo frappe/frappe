@@ -64,6 +64,7 @@ import {
 	resolveFieldCurrency,
 	useDocValueReader,
 } from "@framework/ui/components/FormLayout/resolveCurrency";
+import { PanelContextKey } from "./context";
 import { displayValue, isSummaryField } from "./displayValue";
 
 const props = defineProps<{ field: FieldNode }>();
@@ -73,6 +74,7 @@ const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
+const context = inject(PanelContextKey, null);
 const linkTitles = inject(LinkTitlesKey, null);
 const getDocValue = useDocValueReader();
 
@@ -97,7 +99,12 @@ function cancel() {
 	editing.value = false;
 }
 
-const summary = computed(() => isSummaryField(props.field.fieldtype));
+// A field that Details does not draw has nowhere to open, so its row edits in place.
+const summary = computed(
+	() =>
+		isSummaryField(props.field.fieldtype) &&
+		(context?.onDetails(props.field.fieldname) ?? true)
+);
 const interactive = computed(() => summary.value || !props.field.readOnly);
 const resolved = computed(() => resolveField(props.field.fieldtype));
 
