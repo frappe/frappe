@@ -278,3 +278,21 @@ jobs:
           if all(r in dopass for r in stati):
             exit(0)
           exit(1)
+
+  develop-status:
+    name: Update Develop Status
+    needs: success
+    if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/develop' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: read
+      statuses: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          sparse-checkout: .github/helper
+      - run: python .github/helper/develop_status.py refresh
+        env:
+          GH_TOKEN: ${{ github.token }}

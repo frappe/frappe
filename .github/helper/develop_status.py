@@ -60,7 +60,7 @@ def failing_suites():
 	"""{workflow: failed run url} for each suite whose latest finished full run on develop failed."""
 	failing = {}
 	for workflow, gate_job in SUITES.items():
-		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch=develop&status=completed")
+		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch=develop")
 		for run in runs["workflow_runs"]:
 			if run["event"] not in ("schedule", "workflow_dispatch"):
 				continue
