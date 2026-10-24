@@ -6,7 +6,7 @@ const ISLAND = "frappe.playwright_dashboard_fixture";
 const FIXTURE_MODULE = `
 	export function mount(el, { props }) {
 		el.append(Object.assign(document.createElement("div"), { className: "fixture-dashboard" }));
-		if (props.title) props.onTitle(props.title);
+		if ("title" in props) props.onTitle(props.title);
 		if (props.actions) props.onActions(props.actions);
 		return { update() {}, unmount() { el.replaceChildren(); } };
 	}
@@ -172,7 +172,7 @@ test.describe("Dashboard view island", () => {
 		desk,
 		api,
 	}) => {
-		const dashboard = await open_claimed_dashboard(page, desk, api, {});
+		const dashboard = await open_claimed_dashboard(page, desk, api, { title: "" });
 
 		await expect(page.locator(".navbar-breadcrumbs:visible li:last-child")).toHaveText(
 			dashboard
