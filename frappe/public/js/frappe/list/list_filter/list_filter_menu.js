@@ -167,9 +167,7 @@ export const ListFilterMenu = {
 		);
 	},
 
-	/** Pick active layout by matching URL filter signature; else Default Layout.
-	 *  `has_route_filters` is passed only on list open; without it the current filters are matched.
-	 *  `shown_name` is what a cached list showed; while it is the saved layout, its filters stay. */
+	/** Pick active layout by matching URL filter signature; else Default Layout. */
 	restore_layout_from_route_signature({ refresh = true, has_route_filters, shown_name } = {}) {
 		const finish = () => {
 			this._initial_layout_restored = true;
