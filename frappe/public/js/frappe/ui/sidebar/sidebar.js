@@ -976,13 +976,16 @@ frappe.ui.Sidebar = class Sidebar {
 		if (module && !sidebar) return null;
 		if (!row.link_type) return null;
 
+		// The row's own label and icon win, then what it opens, then its shell. Translated here,
+		// since every rail reads its labels from this; a URL is shown as stored.
+		const title = row.title || page?.title || sidebar?.label || row.link_to;
+
 		return {
 			link_type: row.link_type || null,
 			link_to: row.link_to || null,
 			url: row.url || null,
 			module,
-			// The row's own label and icon win, then what it opens, then its shell.
-			label: row.title || page?.title || sidebar?.label || row.link_to || row.url,
+			label: title ? __(title) : row.url,
 			icon: row.icon || page?.icon || frappe.get_module_icon(module),
 			page,
 		};
