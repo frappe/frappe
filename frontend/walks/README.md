@@ -116,3 +116,32 @@ every return step passes on every network, and 1 otherwise.
 | `PWD_FRAPPE` | `admin`                                         | Login password                           |
 | `DOCTYPE`    | the first rail or sidebar doctype that has rows | The doctype whose list and record to use |
 | `NETWORK`    | both                                            | `normal` or `slow`                       |
+
+## Field-coverage seed
+
+`seed_field_coverage.py` makes a sample DocType with one field of every fieldtype, so each
+field control can be checked on the record page, in the side panel, in a grid cell and in
+the row dialog. It creates these rows in the `Custom` module:
+
+- `Field Coverage`: every fieldtype on five tabs. Data appears once for each of its
+  options. Each value field has a read-only twin on the `Read only` tab, and two fields
+  are hidden.
+- `Field Coverage Row`: a child table with every field it allows, all in the grid.
+- `Field Coverage Row Text`, `… Numbers`, `… Choices` and `… Media`: child tables with the
+  same fields and about ten of them in the grid each, so that a cell is wide enough to
+  check.
+- `Field Coverage Tag`: the child table of the Table MultiSelect field.
+- A Side Panel Form Layout with every value field.
+- `COV C39 field coverage commits`: a Client Script that logs one console line, `[C39] …`,
+  for each commit.
+- One record with a value in every field.
+
+Each run deletes what an earlier run made, then makes it again.
+
+```sh
+cd sites && ../env/bin/python ../apps/frappe/frontend/walks/seed_field_coverage.py <site>
+cd sites && ../env/bin/python ../apps/frappe/frontend/walks/seed_field_coverage.py <site> --delete
+```
+
+The first command prints the record's name. Open it at `/apps/desk/field-coverage/<name>`.
+The site needs at least two `CRM Deal` records, which the Link fields point at.
