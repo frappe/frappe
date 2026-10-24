@@ -76,6 +76,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show() {
 		this.parent.disable_scroll_to_top = true;
+		this._shown_layout_name =
+			this.list_filter?._initial_layout_restored && this.list_filter.active_layout_name;
 		return super.show().then(() => this.notify_pending_attachments());
 	}
 
@@ -988,12 +990,14 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_refresh() {
 		let route_promise = Promise.resolve();
+		let has_route_filters = false;
 
 		if (frappe.route_options && this.filter_area) {
 			this.filters = this.parse_filters_from_route_options();
 			frappe.route_options = null;
 
 			if (this.filters.length > 0) {
+				has_route_filters = true;
 				route_promise = this.filter_area
 					.clear(false)
 					.then(() => this.filter_area.set(this.filters));
@@ -1005,6 +1009,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if (this.list_filter && !this.list_filter._initial_layout_restored) {
 					return this.list_filter.restore_layout_from_route_signature({
 						refresh: false,
+						has_route_filters,
+						shown_name: this._shown_layout_name,
 					});
 				}
 			})
