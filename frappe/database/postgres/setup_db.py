@@ -58,7 +58,10 @@ def _drop_database(root_conn, db_name: str, postgres_version: int) -> None:
 
 	# Only the owner can drop a database; a managed root may have handed ownership to the site role.
 	with _temporary_role_access(root_conn, owner[0], "USAGE", postgres_version):
-		root_conn.execute_query(sql.SQL("DROP DATABASE IF EXISTS {}").format(sql.Identifier(db_name)))
+		# FORCE ends the connections PgBouncer keeps open to it
+		root_conn.execute_query(
+			sql.SQL("DROP DATABASE IF EXISTS {} WITH (FORCE)").format(sql.Identifier(db_name))
+		)
 
 
 def _set_database_owner(root_conn, db_name: str, db_user: str, postgres_version: int) -> None:
@@ -187,9 +190,5 @@ def get_root_connection():
 
 def drop_user_and_database(db_name, db_user):
 	root_conn = get_root_connection()
-	root_conn.sql(
-		"SELECT pg_terminate_backend (pg_stat_activity.pid) FROM pg_stat_activity WHERE pg_stat_activity.datname = %s",
-		(db_name,),
-	)
 	_drop_database(root_conn, db_name, _get_server_version(root_conn))
 	root_conn.execute_query(sql.SQL("DROP USER IF EXISTS {}").format(sql.Identifier(db_user)))
