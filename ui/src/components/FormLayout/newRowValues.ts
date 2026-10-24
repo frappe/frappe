@@ -20,7 +20,7 @@ const NO_VALUE = new Set([
 
 const COLLECTIONS = new Set(["Table", "Table MultiSelect"]);
 
-const INTEGERS = new Set(["Int", "Check"]);
+const INTEGERS = new Set(["Int", "Long Int", "Check"]);
 const DECIMALS = new Set(["Float", "Currency", "Percent"]);
 /**
  * Fieldtypes whose empty is a number rather than a string — every numeric column
