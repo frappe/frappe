@@ -362,9 +362,11 @@ class PostgresDatabase(PostgresExceptionUtil, Database):
 
 	def close(self):
 		# PgBouncer only reuses a server connection that its client left outside a transaction
-		if self._conn and self._conn.info.transaction_status in OPEN_TRANSACTION_STATUSES:
-			self._conn.rollback()
-		super().close()
+		try:
+			if self._conn and self._conn.info.transaction_status in OPEN_TRANSACTION_STATUSES:
+				self._conn.rollback()
+		finally:
+			super().close()
 
 	def set_execution_timeout(self, seconds: float):
 		# Postgres expects milliseconds as input
