@@ -754,6 +754,30 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
+	def test_animated_png_prints(self):
+		from io import BytesIO
+
+		from PIL import Image
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
+		banner = BytesIO()
+		frames = [Image.new("RGB", (40, 20), color) for color in ("navy", "teal")]
+		frames[0].save(banner, "PNG", save_all=True, append_images=frames[1:])
+		logo = frappe.get_doc(
+			{"doctype": "File", "file_name": "northwind-traders-banner.png", "content": banner.getvalue()}
+		).insert()
+		self.addCleanup(logo.delete)
+		pf = self.make(layout_with({"fieldtype": "Image", "custom": 1, "image_url": logo.file_url}))
+		pf.pdf_generator = "Typst"
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = PrintFormatGenerator(pf, todo).render_pdf()
+		self.assertEqual(len(PdfReader(BytesIO(pdf)).pages[0].images), 1)
+
+	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_signature_prints_as_an_image(self):
 		import base64
 		from io import BytesIO
