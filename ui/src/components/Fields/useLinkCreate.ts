@@ -1,5 +1,5 @@
-// "Create" in a Link or Dynamic Link field's dropdown, through the host's Create. The linked
-// doctype's meta and create right are read while the dropdown is open.
+// "Create" in a Link, Dynamic Link or Table MultiSelect field's dropdown, through the host's
+// Create. The linked doctype's meta and create right are read while the dropdown is open.
 import { computed, inject, shallowRef, toValue } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
@@ -25,7 +25,7 @@ export function useLinkCreate(options: {
   filters: MaybeRefOrGetter<Record<string, unknown> | undefined>;
   disabled: MaybeRefOrGetter<boolean>;
   open: Ref<boolean>;
-  link: Ref<LinkExposed | null>;
+  link: Ref<Pick<LinkExposed, "focus" | "search"> | null>;
   /** Takes the saved record's name, as a pick does. */
   select: (name: string) => void;
 }): UseLinkCreate {

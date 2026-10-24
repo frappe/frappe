@@ -1,5 +1,5 @@
-// "Create" in a Link field's dropdown: when it shows, what the new record starts with, what the
-// field takes after a save, and Create dialogs stacked above other dialogs. Fetch is faked.
+// "Create" in a Link or Table MultiSelect field's dropdown: when it shows, what the new record starts
+// with, what the field takes after a save, and Create dialogs stacked above other dialogs. Fetch is faked.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, watch, type App, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
@@ -66,6 +66,7 @@ import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
 import DynamicLinkField from "@framework/ui/components/Fields/DynamicLinkField.vue";
 import LinkField from "@framework/ui/components/Fields/LinkField.vue";
+import TableMultiSelectField from "@framework/ui/components/Fields/TableMultiSelectField.vue";
 import Filter from "@framework/ui/components/Filter/Filter.vue";
 import QuickFilterInputs from "@framework/ui/components/QuickFilter/QuickFilterInputs.vue";
 import { CreateRecordKey, DocKey } from "@framework/ui/components/Fields/types";
@@ -604,5 +605,154 @@ describe("stacking", () => {
 		expect(dialogs()).toEqual(["Pick a customer"]);
 		await press(dialog("Pick a customer"), "Submit");
 		expect(answer).toEqual({ customer: "CUST-0001" });
+	});
+});
+
+describe("a Table MultiSelect field", () => {
+	const childFields = [{ fieldname: "customer", fieldtype: "Link", label: "Customer", options: "Customer" }] as FieldMeta[];
+
+	/** A Table MultiSelect of Customer rows on a page, with its rows in a ref and every change it fires. */
+	function tableMultiSelectField(rows: Record<string, any>[] = [], field: Partial<FieldMeta> = {}, options: Parameters<typeof mount>[1] = {}) {
+		const value = ref(rows);
+		const changes: unknown[] = [];
+		const meta: FieldMeta = { fieldname: "customers", fieldtype: "Table MultiSelect", label: "Customers", options: "Customer Item", childFields, ...field };
+		mount(
+			() =>
+				h("div", { "data-field": "customers" }, [
+					h(TableMultiSelectField, {
+						field: meta,
+						modelValue: value.value,
+						"onUpdate:modelValue": (next: Record<string, any>[]) => (value.value = next),
+						onChange: (next: unknown) => changes.push(next),
+					}),
+				]),
+			options
+		);
+		const picked = () => value.value.map((row) => row.customer);
+		return { value, picked, changes };
+	}
+
+	const trigger = () => within("customers").querySelector<HTMLButtonElement>("button")!;
+	const footer = () => document.querySelector<HTMLElement>("[data-slot=footer]");
+	const footerButtons = () => [...(footer()?.querySelectorAll("button") ?? [])].map((button) => button.textContent!.trim());
+	const chips = () => [...trigger().querySelectorAll("span.h-7")].map((chip) => chip.textContent!.trim());
+
+	/** Opens the dropdown and types the text into its search, as a person does. */
+	async function pick(text = "") {
+		trigger().click();
+		await settle();
+		if (!text) return;
+		const input = document.querySelector<HTMLInputElement>("[data-slot=search] input")!;
+		input.value = text;
+		input.dispatchEvent(new Event("input", { bubbles: true }));
+		await new Promise((resolve) => setTimeout(resolve, 350));
+		await settle();
+	}
+
+	async function chooseFooterCreate() {
+		const button = [...footer()!.querySelectorAll<HTMLButtonElement>("button")].find((element) => element.textContent!.trim().startsWith("Create"))!;
+		button.click();
+		await settle();
+	}
+
+	it("offers Create in the footer with no typed text, once the linked meta loads on the first open", async () => {
+		tableMultiSelectField();
+		await settle();
+		expect(metaReads()).toBe(0);
+
+		await pick();
+
+		expect(requests((path) => path.includes("Customer/meta"))).toHaveLength(1);
+		expect(footerButtons()).toEqual(["Create new Customer"]);
+	});
+
+	it("labels Create with the typed text when it names the record", async () => {
+		metas.Customer = customerMeta({ autoname: "field:customer_name" });
+		tableMultiSelectField();
+
+		await pick("Acme");
+
+		expect(footerButtons()).toEqual(['Create "Acme"']);
+	});
+
+	it.each<[string, Partial<FieldMeta>, Parameters<typeof mount>[1], Meta]>([
+		["the host gives no Create", {}, { create: false }, {}],
+		["the field is read-only", { readOnly: true }, {}, {}],
+		["the person holds no create right", {}, {}, { permissions: [{ role: "Sales User", permlevel: 0, read: 1 }] }],
+	])("is not offered when %s", async (_case, field, options, overrides) => {
+		metas.Customer = customerMeta(overrides);
+		tableMultiSelectField([], field, options);
+
+		await pick();
+
+		expect(footerButtons().some((label) => label.startsWith("Create"))).toBe(false);
+	});
+
+	it("prefills the typed text and the field's equality filters, and closes the dropdown", async () => {
+		metas.Customer = customerMeta({ title_field: "customer_name" });
+		tableMultiSelectField([], { filters: { territory: "North", disabled: ["!=", 1] } });
+
+		await pick("Acme");
+		await chooseFooterCreate();
+
+		expect(createRequests.value.map((request) => request.values)).toEqual([{ territory: "North", customer_name: "Acme" }]);
+		expect(footer()).toBeNull();
+	});
+
+	it("adds the saved name as a row, fires the change, shows its title and searches past the browser cache", async () => {
+		metas.Customer = customerMeta({ title_field: "customer_name", show_title_field_in_link: 1 });
+		saved.Customer = { name: "CUST-0002" };
+		const { picked, changes } = tableMultiSelectField([{ customer: "CUST-0001" }]);
+
+		await pick("Acme");
+		await chooseFooterCreate();
+		await press(dialog("New Customer"), "Save");
+
+		expect(picked()).toEqual(["CUST-0001", "CUST-0002"]);
+		expect(changes).toHaveLength(1);
+		expect(chips()).toEqual(["CUST-0001", "Acme"]);
+		const fresh = searches().filter(({ init }) => init?.cache === "reload");
+		expect(fresh.map(({ url }) => url.searchParams.get("txt"))).toEqual(["Acme"]);
+		expect(document.activeElement).toBe(trigger());
+		await pick();
+		expect(document.querySelector<HTMLInputElement>("[data-slot=search] input")!.value).toBe("");
+	});
+
+	it("adds no second row when the saved name is already selected", async () => {
+		saved.Customer = { name: "CUST-0001" };
+		const { picked, changes } = tableMultiSelectField([{ customer: "CUST-0001" }]);
+
+		await pick();
+		await chooseFooterCreate();
+		await press(dialog("New Customer"), "Save");
+
+		expect(picked()).toEqual(["CUST-0001"]);
+		expect(changes).toEqual([]);
+	});
+
+	it("leaves the rows as they were when the dialog is dismissed, with focus back on the trigger", async () => {
+		const { value, changes } = tableMultiSelectField([{ customer: "CUST-0001" }]);
+		const before = value.value;
+
+		await pick("Acme");
+		await chooseFooterCreate();
+		await press(dialog("New Customer"), "Close");
+
+		expect(dialogs()).toEqual([]);
+		expect(value.value).toBe(before);
+		expect(changes).toEqual([]);
+		expect(inserts()).toEqual([]);
+		expect(document.activeElement).toBe(trigger());
+	});
+
+	it("clears every row from the footer's Clear All", async () => {
+		const { picked } = tableMultiSelectField([{ customer: "CUST-0001" }]);
+
+		await pick();
+		const clear = [...footer()!.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent!.trim() === "Clear All")!;
+		clear.click();
+		await settle();
+
+		expect(picked()).toEqual([]);
 	});
 });
