@@ -331,7 +331,7 @@ test("agents, skills and triggers each have a page in the chat's place, grouped 
 	assert.equal(links()[0].getAttribute("active"), "true");
 	assert.equal(links()[1].getAttribute("active"), "false");
 	assert.equal(el.querySelector("main h1").textContent, "Agents");
-	assert.ok(!el.textContent.includes("New agent"));
+	assert.ok(!el.textContent.includes("New Agent"));
 	assert.equal(document.title, "Agents · Flow");
 	// a row links to its record, one cell a column: title, what it is for, its model, its status
 	const row = el.querySelector("main a[role=row]");
@@ -559,7 +559,7 @@ test("a record page creates a record at its new address, Cmd+S saving the form i
 
 	// a new record, then its own address in the new one's place; its bar leads back to the
 	// filtered list
-	button("New agent").click();
+	button("New Agent").click();
 	await until(() => title());
 	assert.equal(router.currentRoute.value.path, "/agents/new");
 	assert.equal(el.querySelector("main h1").textContent, "New agent");
