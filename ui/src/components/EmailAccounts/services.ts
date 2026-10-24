@@ -333,6 +333,19 @@ export function oauthMessage(result: string, provider?: string | null): string {
         "IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin.",
       ),
     },
+    google: {
+      admin_approval: __(
+        "Your Google Workspace admin has blocked Frappe. Ask them to allow it under Security > API controls in the Google Admin console.",
+      ),
+      imap_disabled: __(
+        "IMAP is turned off for this mailbox. Turn it on in Gmail settings under Forwarding and POP/IMAP, or ask your Google Workspace admin.",
+      ),
+    },
+    yandex: {
+      imap_disabled: __(
+        'IMAP is turned off for this mailbox. In Yandex Mail settings, under Email clients, turn on IMAP and "App passwords and OAuth tokens".',
+      ),
+    },
   };
   const messages: Record<string, string> = {
     cancelled: __("Sign-in was cancelled."),
@@ -346,6 +359,9 @@ export function oauthMessage(result: string, provider?: string | null): string {
     ),
     imap_disabled: __(
       "IMAP is turned off for this mailbox. Turn it on in your mail settings or ask your admin.",
+    ),
+    missing_permission: __(
+      "Frappe wasn't allowed to read and send your email. Sign in again and allow access to your mail.",
     ),
     already_connected: __("This mailbox is already connected."),
     wrong_mailbox: __(
@@ -372,6 +388,8 @@ export function oauthHelpLink(
       smtp_disabled:
         "https://learn.microsoft.com/en-us/exchange/clients-and-mobile-in-exchange-online/authenticated-client-smtp-submission#enable-smtp-auth-for-specific-mailboxes",
     },
+    google: { imap_disabled: "https://mail.google.com/mail/u/0/#settings/fwdandpop" },
+    yandex: { imap_disabled: "https://mail.yandex.com/#setup/client" },
   };
   return links[provider ?? ""]?.[result];
 }

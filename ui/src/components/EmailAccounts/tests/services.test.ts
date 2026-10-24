@@ -305,8 +305,17 @@ describe("oauthMessage", () => {
     expect(oauthMessage("admin_approval", "microsoft")).toBe(
       "Your Microsoft 365 admin must approve Frappe first.",
     );
-    expect(oauthMessage("admin_approval", "google")).toBe(
+    expect(oauthMessage("admin_approval", "google")).toContain(
+      "Google Workspace admin has blocked Frappe",
+    );
+    expect(oauthMessage("imap_disabled", "yandex")).toContain(
+      "Yandex Mail settings",
+    );
+    expect(oauthMessage("admin_approval", "yahoo")).toBe(
       "Your admin must approve Frappe first.",
+    );
+    expect(oauthMessage("missing_permission", "google")).toContain(
+      "allow access to your mail",
     );
     expect(oauthMessage("admin_approval")).toBe(
       "Your admin must approve Frappe first.",
@@ -322,6 +331,8 @@ describe("oauthMessage", () => {
       "learn.microsoft.com",
     );
     expect(oauthHelpLink("smtp_disabled", "google")).toBeUndefined();
+    expect(oauthHelpLink("imap_disabled", "google")).toContain("mail.google.com");
+    expect(oauthHelpLink("imap_disabled", "yandex")).toContain("mail.yandex.com");
     expect(oauthHelpLink("smtp_disabled")).toBeUndefined();
     expect(oauthHelpLink("cancelled", "microsoft")).toBeUndefined();
   });
