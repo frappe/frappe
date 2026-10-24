@@ -253,7 +253,15 @@ class TestAuth(IntegrationTestCase):
 		self.set_system_settings("force_user_to_reset_password", 1)
 		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
 
-		frappe.db.set_value("User", self.test_user_email, "last_password_reset_date", add_days(today(), -2))
+		frappe.db.set_value(
+			"User",
+			self.test_user_email,
+			{
+				"last_password_reset_date": add_days(today(), -2),
+				"reset_password_key": "",
+				"last_reset_password_key_generated_on": None,
+			},
+		)
 		frappe.db.commit()
 
 		set_request(method="POST", path="/api/method/login")
@@ -271,6 +279,82 @@ class TestAuth(IntegrationTestCase):
 		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
 		self.assertNotIn("redirect_to", frappe.local.response)
 		self.assertGreater(frappe.db.count("Email Queue"), emails_before)
+
+	def test_forced_password_reset_reuses_valid_reset_key(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import add_days, add_to_date, now_datetime, set_request, today
+
+		self.set_system_settings("force_user_to_reset_password", 1)
+		self.addCleanup(self.set_system_settings, "force_user_to_reset_password", 0)
+		reset_link_expiry = frappe.get_system_settings("reset_password_link_expiry_duration")
+		self.set_system_settings("reset_password_link_expiry_duration", 60)
+		self.addCleanup(self.set_system_settings, "reset_password_link_expiry_duration", reset_link_expiry)
+
+		frappe.db.set_value(
+			"User",
+			self.test_user_email,
+			{
+				"last_password_reset_date": add_days(today(), -2),
+				"reset_password_key": "",
+				"last_reset_password_key_generated_on": None,
+			},
+		)
+		frappe.db.commit()
+
+		set_request(method="POST", path="/api/method/login")
+		frappe.form_dict.usr = self.test_user_email
+		frappe.form_dict.pwd = self.test_user_password
+		frappe.local.request_ip = "127.0.0.68"
+		self.addCleanup(frappe.form_dict.clear)
+
+		with patch("frappe.core.doctype.user.user.User.password_reset_mail") as password_reset_mail:
+			frappe.local.response = frappe._dict()
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			reset_password_key = frappe.db.get_value("User", self.test_user_email, "reset_password_key")
+
+			frappe.local.response = frappe._dict()
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			self.assertEqual(password_reset_mail.call_count, 1)
+			self.assertEqual(
+				frappe.db.get_value("User", self.test_user_email, "reset_password_key"),
+				reset_password_key,
+			)
+
+			frappe.db.set_value(
+				"User",
+				self.test_user_email,
+				"last_reset_password_key_generated_on",
+				add_to_date(now_datetime(), seconds=-61),
+			)
+			frappe.local.response = frappe._dict()
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+
+		self.assertEqual(password_reset_mail.call_count, 2)
+		self.assertNotEqual(
+			frappe.db.get_value("User", self.test_user_email, "reset_password_key"), reset_password_key
+		)
+
+	def test_reset_key_without_timestamp_is_valid_when_expiry_is_not_set(self):
+		from frappe.core.doctype.user.user import _get_user_for_update_password
+		from frappe.utils.data import sha256_hash
+
+		reset_link_expiry = frappe.get_system_settings("reset_password_link_expiry_duration")
+		self.set_system_settings("reset_password_link_expiry_duration", 0)
+		self.addCleanup(self.set_system_settings, "reset_password_link_expiry_duration", reset_link_expiry)
+
+		key = frappe.generate_hash()
+		frappe.db.set_value(
+			"User",
+			self.test_user_email,
+			{"reset_password_key": sha256_hash(key), "last_reset_password_key_generated_on": None},
+		)
+
+		result = _get_user_for_update_password(key, None)
+		self.assertEqual(result.user, self.test_user_email)
+		self.assertFalse(result.message)
 
 	def test_forced_password_reset_waits_for_2fa(self):
 		from frappe.auth import LoginManager
