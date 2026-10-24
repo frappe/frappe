@@ -68,6 +68,7 @@
   "enable_google_indexing",
   "authorize_api_indexing_access",
   "indexing_refresh_token",
+  "indexing_refresh_token_secret",
   "indexing_authorization_code",
   "column_break_17",
   "google_analytics_id",
@@ -283,8 +284,16 @@
    "label": "Enable Google indexing"
   },
   {
+   "description": "This is now deprecated, please use the `indexing_refresh_token_secret` field instead.",
    "fieldname": "indexing_refresh_token",
    "fieldtype": "Data",
+   "hidden": 1,
+   "label": "Indexing refresh token",
+   "read_only": 1
+  },
+  {
+   "fieldname": "indexing_refresh_token_secret",
+   "fieldtype": "Password",
    "hidden": 1,
    "label": "Indexing refresh token",
    "read_only": 1
@@ -487,7 +496,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-09-24 21:24:48.001117",
+ "modified": "2026-10-22 08:58:40.925592",
  "modified_by": "Administrator",
  "module": "Website",
  "name": "Website Settings",

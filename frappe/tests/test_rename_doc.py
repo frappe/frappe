@@ -10,7 +10,7 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.exceptions import DoesNotExistError
-from frappe.model.base_document import get_controller
+from frappe.model.document import get_controller
 from frappe.model.rename_doc import bulk_rename, update_document_title
 from frappe.modules.utils import get_doc_path
 from frappe.tests import IntegrationTestCase
@@ -225,6 +225,19 @@ class TestRenameDoc(IntegrationTestCase):
 		old_name = to_rename_record.name
 		new_name = "ToDo"
 		self.assertEqual(new_name, frappe.rename_doc("Renamed Doc", old_name, new_name, force=True))
+
+	def test_rename_doctype_checks_route_conflict(self):
+		doctype = new_doctype().insert()
+		same_route = doctype.name.replace(" ", "-")
+		for name in (doctype.name, same_route):
+			self.addCleanup(frappe.db.sql_ddl, f"drop table if exists `tab{name}`")
+			self.addCleanup(frappe.delete_doc_if_exists, "DocType", name)
+
+		with self.set_user("test@example.com"):
+			self.assertRaises(
+				frappe.NameError, frappe.rename_doc, "DocType", doctype.name, "Permission Manager"
+			)
+			self.assertEqual(same_route, frappe.rename_doc("DocType", doctype.name, same_route))
 
 	def test_update_document_title_api(self):
 		test_doctype = "Module Def"

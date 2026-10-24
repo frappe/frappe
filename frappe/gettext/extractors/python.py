@@ -46,7 +46,7 @@ def _context(call):
 
 
 def _translation_calls(source):
-	"""Map line numbers to the `_()` / `_lt()` calls starting on them, in source order."""
+	"""Map line numbers to the `_()` / `_lt()` calls whose message is on them, in source order."""
 	by_line = {}
 	try:
 		nodes = ast.walk(ast.parse(source))
@@ -55,7 +55,8 @@ def _translation_calls(source):
 
 	for node in nodes:
 		if isinstance(node, ast.Call) and _func_name(node) in ("_", "_lt"):
-			by_line.setdefault(node.lineno, []).append(node)
+			message_line = node.args[0].lineno if node.args else node.lineno
+			by_line.setdefault(message_line, []).append(node)
 
 	for calls in by_line.values():
 		calls.sort(key=lambda call: call.col_offset)

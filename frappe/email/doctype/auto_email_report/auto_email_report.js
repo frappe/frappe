@@ -176,13 +176,10 @@ frappe.ui.form.on("Auto Email Report", {
 			table.on("click", function () {
 				dialog = new frappe.ui.Dialog({
 					fields: dialog_filter_fields,
-					primary_action: function () {
-						var values = this.get_values();
-						if (values) {
-							this.hide();
-							frm.set_value("filters", JSON.stringify(values));
-							frm.trigger("show_filters");
-						}
+					primary_action: function (values) {
+						this.hide();
+						frm.set_value("filters", JSON.stringify(values));
+						frm.trigger("show_filters");
 					},
 				});
 				dialog.show();

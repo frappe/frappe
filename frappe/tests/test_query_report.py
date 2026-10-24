@@ -11,6 +11,7 @@ from frappe.desk.query_report import (
 	build_xlsx_data,
 	export_query,
 	format_fields,
+	get_script,
 	run,
 )
 from frappe.tests import IntegrationTestCase
@@ -60,6 +61,17 @@ class TestQueryReport(IntegrationTestCase):
 			"unsupported operand type(s) for /: 'int' and 'str'",
 			get_user_facing_error(
 				thrown.format("TypeError: unsupported operand type(s) for /: 'int' and 'str'")
+			),
+		)
+		# postgres adds the query and a caret below the message
+		self.assertEqual(
+			'relation "tabNoSuchTable" does not exist',
+			get_user_facing_error(
+				thrown.format(
+					'psycopg2.errors.UndefinedTable: relation "tabNoSuchTable" does not exist\n'
+					'LINE 1: select * from "tabNoSuchTable"\n'
+					"                      ^"
+				)
 			),
 		)
 		# nothing to say when the exception carried no message
@@ -288,6 +300,28 @@ class TestQueryReport(IntegrationTestCase):
 		custom_report.delete()
 		with self.set_user(owner.name), self.assertRaises(frappe.PermissionError):
 			run(report.name, filters)
+
+	def test_get_script_quotes_report_name(self):
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		user = create_user("test_report_script_reader@example.com", "Website Manager")
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Today's ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Query Report",
+				"query": "select name from tabToDo",
+				"is_standard": "No",
+				"roles": [{"role": "Website Manager"}],
+			}
+		).insert(ignore_permissions=True)
+
+		with self.set_user(user.name):
+			script = get_script(report.name)["script"]
+
+		self.assertEqual(script, f'frappe.query_reports["{report.name}"]={{}}')
 
 	def test_xlsx_data_with_multiple_datatypes(self):
 		"""Test exporting report using rows with multiple datatypes (list, dict)"""
@@ -616,6 +650,25 @@ data = columns, result
 			{"todo": todo.name, "owner": user.name, "full_name": "Rhea Menon"},
 			result[0],
 		)
+
+	def test_custom_column_with_clashing_fieldname(self):
+		"""Custom column whose fieldname clashes with a report column keeps both values"""
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		user = create_user("test_custom_column_clash@example.com")
+		with self.set_user(user.name):
+			todo = frappe.get_doc({"doctype": "ToDo", "description": "Send the signed lease"}).insert()
+			custom_columns = [
+				{
+					"fieldname": "status-todo",
+					"doctype": "ToDo",
+					"link_field": {"fieldname": "todo", "names": []},
+				}
+			]
+
+			result = add_custom_column_data(custom_columns, [{"todo": todo.name, "status": "Overdue"}])
+
+		self.assertDictEqual({"todo": todo.name, "status": "Overdue", "status-todo": "Open"}, result[0])
 
 	def test_xlsx_styles_structure(self):
 		"""build_xlsx_data with build_styles=True returns a well-formed styles dict"""

@@ -29,8 +29,17 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
+      - name: Get Frappe Release Bot token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.FRAPPE_BOT_CLIENT_ID }}
+          private-key: ${{ secrets.FRAPPE_BOT_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
       - name: Download translations and open PR
-        uses: crowdin/github-action@9c23991700c0ec5256fd41089b9d9d7d540e424e # v3.3.0
+        uses: crowdin/github-action@72955432d4aa4f6dd64cf17eeb88dd34d6ba064c # v3.4.0
         with:
           config: crowdin.yml
           upload_sources: false
@@ -46,6 +55,6 @@ jobs:
           pull_request_labels: "translation, skip-release-notes"
           pull_request_reviewers: barredterra
         env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           CROWDIN_PROJECT_ID: ${{ secrets.CROWDIN_PROJECT_ID }}
           CROWDIN_PERSONAL_TOKEN: ${{ secrets.CROWDIN_PERSONAL_TOKEN }}

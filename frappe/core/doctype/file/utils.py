@@ -124,12 +124,16 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 
 	from frappe.utils.data import validate_egress_url
 	from frappe.utils.image import Image
+	from frappe.utils.safe_exec import SAFE_REQUEST_TIMEOUT, get_safe_request_session
 
 	file_url = frappe.utils.get_url(file_url)
 	site_url = frappe.utils.get_url().rstrip("/")
 
+	def is_site_url(url: str) -> bool:
+		return url == site_url or url.startswith(site_url + "/")
+
 	def validate_external_url(url: str) -> None:
-		if url == site_url or url.startswith(site_url + "/"):
+		if is_site_url(url):
 			return
 		try:
 			validate_egress_url(url)
@@ -143,7 +147,12 @@ def get_web_image(file_url: str) -> tuple["ImageFile", str, str]:
 	# Redirects are followed manually so each hop's destination gets the same
 	# validation as the original URL.
 	for _attempt in range(MAX_WEB_IMAGE_REDIRECTS + 1):
-		r = requests.get(file_url, stream=True, allow_redirects=False)
+		if is_site_url(file_url):
+			r = requests.get(file_url, stream=True, allow_redirects=False)
+		else:
+			# Guarded session validates the connection itself, not just the URL.
+			session = get_safe_request_session()
+			r = session.get(file_url, stream=True, allow_redirects=False, timeout=SAFE_REQUEST_TIMEOUT)
 		if not r.is_redirect:
 			break
 		file_url = urljoin(file_url, r.headers["Location"])

@@ -1,0 +1,508 @@
+# Copyright (c) 2024, Frappe Technologies Pvt Ltd and contributors
+# For license information, please see license.txt
+import os
+import re
+
+import frappe
+from frappe import _
+from frappe.exceptions import TimestampMismatchError
+from frappe.model.document import Document
+from frappe.model.naming import append_number_if_name_exists
+from frappe.studio.doctype.studio_component.studio_component import (
+	get_components_for_blocks,
+	mark_components_standard,
+)
+from frappe.studio.doctype.studio_page.copy_paste_handler import (
+	PAGE_RESOURCE_FIELDS,
+	PAGE_VARIABLE_FIELDS,
+	parse_list,
+	pick,
+)
+from frappe.studio.export import (
+	can_export,
+	delete_file,
+	delete_folder,
+	parse_json,
+	validate_standard_app_change,
+	write_code_file,
+	write_document_file,
+)
+from frappe.studio.realtime import publish_doc_change
+from frappe.studio.utils import camel_case_to_kebab_case, validate_file_name
+from frappe.utils import get_datetime
+
+# A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
+# name must be a bare JS identifier.
+VARIABLE_NAME_REGEX = re.compile(r"^[A-Za-z_$][A-Za-z0-9_$]*$")
+
+
+class StudioPage(Document):
+	# begin: auto-generated types
+	# This code is auto-generated. Do not modify anything in this block.
+
+	from typing import TYPE_CHECKING
+
+	if TYPE_CHECKING:
+		from frappe.studio.doctype.studio_page_resource.studio_page_resource import StudioPageResource
+		from frappe.studio.doctype.studio_page_variable.studio_page_variable import StudioPageVariable
+		from frappe.types import DF
+
+		allow_guest: DF.Check
+		blocks: DF.LongText | None
+		draft_blocks: DF.LongText | None
+		frappe_app: DF.Literal[None]
+		is_standard: DF.Check
+		page_name: DF.Data | None
+		page_title: DF.Data | None
+		published: DF.Check
+		resources: DF.Table[StudioPageResource]
+		route: DF.Data | None
+		script: DF.Code | None
+		studio_app: DF.Link | None
+		tab_title: DF.Data | None
+		variables: DF.Table[StudioPageVariable]
+	# end: auto-generated types
+
+	def autoname(self):
+		if not self.name:
+			self.name = f"page-{frappe.generate_hash(length=8)}"
+
+	def before_insert(self):
+		if not self.blocks:
+			self.blocks = "[]"
+		if not self.page_title:
+			self.page_title = "My Page"
+			self.page_title = append_number_if_name_exists(
+				"Studio Page",
+				self.page_title,
+				fieldname="page_title",
+				filters={
+					"studio_app": self.studio_app,
+				},
+			)
+		if not self.route:
+			self.route = f"{camel_case_to_kebab_case(self.page_title, True)}-{frappe.generate_hash(length=4)}"
+
+	def after_insert(self):
+		app_home = frappe.db.get_value("Studio App", self.studio_app, "app_home")
+		if not app_home:
+			frappe.db.set_value("Studio App", self.studio_app, "app_home", self.name)
+
+	def before_validate(self):
+		if isinstance(self.blocks, list):
+			self.blocks = frappe.as_json(self.blocks, indent=None)
+		if isinstance(self.draft_blocks, list):
+			self.draft_blocks = frappe.as_json(self.draft_blocks, indent=None)
+		# vue router needs a leading slash
+		if not self.route.startswith("/"):
+			self.route = f"/{self.route}"
+
+	def validate(self):
+		validate_standard_app_change(self)
+		self.validate_page_title()
+		# only published pages are served, so only they must not share a route or title
+		if self.published and any(
+			self.has_value_changed(field) for field in ("route", "page_title", "published")
+		):
+			self.validate_conflicts_with_other_pages()
+		# passed from the frontend for faster page saves when variables & resources are not changed
+		if not hasattr(self, "_skip_validate"):
+			self.validate_variables()
+			self.process_resources()
+
+	def validate_page_title(self):
+		# the scrubbed title names the page's export folder, so it must stay a single path segment
+		validate_file_name(
+			self.get_export_docname(),
+			_("Page Title cannot be empty or contain slashes."),
+			title=_("Invalid Page Title"),
+		)
+
+	def on_update(self):
+		self.export_page()
+		publish_doc_change("Studio Page", self.name, self.studio_app)
+
+	def export_page(self):
+		if can_export(self):
+			# each page lives in its own folder: studio/<app>/studio_page/<scrubbed_title>/
+			frappe.create_folder(self.get_folder_path())
+			# script lives in the companion .ts (code mode), so keep it out of the JSON
+			write_document_file(self, folder=self.get_folder_path(), exclude_fields=["script"])
+			self.relocate_on_retitle()
+			self.export_components()
+
+	def export_script_to_file(self):
+		"""Move the page script into its companion <page>.ts and clear the DB `script` field. Called on enabling exports"""
+		if not self.script:
+			return
+		if os.path.exists(self.get_script_file_path()):
+			self.db_set("script", None, update_modified=False)
+		else:
+			self.write_script_file()
+
+	def write_script_file(self):
+		"""Write the page script to its companion <page>.ts and clear the DB field."""
+		if self.script:
+			frappe.create_folder(self.get_folder_path())
+			write_code_file(
+				self,
+				self.get_folder_path(),
+				code_field="script",
+				extension="ts",
+				filename=self.get_export_docname(),
+			)
+		else:
+			delete_file(self.get_script_file_path())
+		self.db_set("script", None, update_modified=False)
+
+	def restore_script_from_file(self):
+		"""Load the exported <page>.ts back into the `script` field, so the code survives in DB-only
+		mode (called before the export folder is deleted on un-export)."""
+		if self.has_script_file():
+			self.db_set("script", frappe.read_file(self.get_script_file_path()), update_modified=False)
+
+	@frappe.whitelist()
+	def get_copy(self, blocks: list | str | None = None) -> dict:
+		"""Page settings, data sources, variables, script and the components `blocks` use, for copy-paste."""
+		self.check_permission("read")
+		blocks = parse_list(blocks if blocks is not None else self.draft_blocks or self.blocks, "blocks")
+		script = self.get_script_source()
+		return {
+			**self.get_dependencies(blocks, script),
+			"page_title": self.page_title,
+			"tab_title": self.tab_title,
+			"allow_guest": self.allow_guest,
+			"resources": [pick(row, PAGE_RESOURCE_FIELDS) for row in self.resources],
+			"variables": [pick(row, PAGE_VARIABLE_FIELDS) for row in self.variables],
+			"script": script,
+		}
+
+	@frappe.whitelist()
+	def get_dependencies(self, blocks: list | str, script: str = "") -> dict:
+		"""What `blocks` (and `script`) need from outside themselves, for copy-paste: Studio components,
+		app files, and this page's data sources and variables they reference."""
+		self.check_permission("read")
+		blocks = parse_list(blocks, "blocks")
+		text = frappe.as_json(blocks)
+
+		def used(name):
+			return bool(name) and re.search(rf"\b{re.escape(name)}\b", text)
+
+		return {
+			"components": get_components_for_blocks(blocks),
+			"files": self.get_app_files(script, blocks),
+			"resources": [pick(r, PAGE_RESOURCE_FIELDS) for r in self.resources if used(r.resource_name)],
+			"variables": [pick(v, PAGE_VARIABLE_FIELDS) for v in self.variables if used(v.variable_name)],
+		}
+
+	def get_app_files(self, script: str, blocks) -> list[dict]:
+		if not (self.is_standard and self.frappe_app):
+			return []
+		app = self.get_app()
+		script_dir = os.path.relpath(self.get_folder_path(), app.get_folder_path())
+		return app.collect_files(script, script_dir, blocks)
+
+	def get_app(self):
+		return frappe.get_cached_doc("Studio App", self.studio_app)
+
+	def get_script_source(self) -> str:
+		if self.has_script_file():
+			return frappe.read_file(self.get_script_file_path())
+		return self.script or ""
+
+	def has_script_file(self) -> bool:
+		return bool(self.is_standard and self.frappe_app and os.path.exists(self.get_script_file_path()))
+
+	def relocate_on_retitle(self):
+		"""The page folder and its files are named after the page title, so a retitle relocates them.
+		The JSON is regenerated under the new name; carry the companion <page>.ts over too, then
+		remove the old folder."""
+		if not self.has_value_changed("page_title"):
+			return
+		doc_before_save = self.get_doc_before_save()
+		if not doc_before_save:
+			return
+
+		old_stem = frappe.scrub(doc_before_save.page_title)
+		old_folder = frappe.get_app_source_path(
+			self.frappe_app, "studio", self.studio_app, "studio_page", old_stem
+		)
+		if old_folder == self.get_folder_path():
+			return
+		old_page_script = os.path.join(old_folder, f"{old_stem}.ts")
+		if os.path.exists(old_page_script):
+			os.rename(old_page_script, self.get_script_file_path())
+		delete_folder(old_folder)
+
+	def has_blocks(self, check_draft: bool = False):
+		if check_draft:
+			if self.draft_blocks and self.draft_blocks != "[]":
+				return True
+		elif self.blocks and self.blocks != "[]":
+			return True
+		return False
+
+	def on_trash(self):
+		validate_standard_app_change(self)
+		self.delete_ai_sessions()
+		if can_export(self):
+			delete_folder(self.get_folder_path())
+			self.delete_unused_component_files(deleting=True)
+
+	def delete_ai_sessions(self):
+		for session in frappe.get_all("Studio AI Session", filters={"page": self.name}, pluck="name"):
+			frappe.delete_doc("Studio AI Session", session, ignore_missing=True)
+
+	def validate_variables(self):
+		# check for duplicate variable names and show the duplicate variable name
+		variable_names = [variable.variable_name for variable in self.variables]
+		duplicate_variable_names = set(x for x in variable_names if variable_names.count(x) > 1)
+		if duplicate_variable_names:
+			frappe.throw(_("Duplicate variable name: {0}").format(", ".join(duplicate_variable_names)))
+
+		for variable in self.variables:
+			if not VARIABLE_NAME_REGEX.match(variable.variable_name or ""):
+				frappe.throw(
+					_(
+						"Invalid variable name '{0}' — use letters, digits and underscores, starting with a letter."
+					).format(variable.variable_name)
+				)
+
+	def process_resources(self):
+		for resource in self.resources:
+			self.validate_resources(resource)
+			self.set_resource_json_fields(resource)
+
+	def validate_resources(self, resource):
+		if resource.resource_type == "API Resource" and not resource.url:
+			frappe.throw(_("Please set API URL for Data Source {0}").format(resource.name))
+
+		else:
+			if resource.resource_type in ["Document", "Document List"] and not resource.document_type:
+				frappe.throw(_("Please set Document Type for Data Source {0}").format(resource.name))
+
+			if resource.resource_type == "Document List" and not resource.fields:
+				frappe.throw(_("Please set fields to fetch for Data Source {0}").format(resource.name))
+
+			if resource.resource_type == "Document":
+				if resource.fetch_document_using_filters:
+					if not resource.filters:
+						frappe.throw(
+							_("Please set filters to fetch the Data Source {0}").format(resource.name)
+						)
+					resource.document_name = ""
+				else:
+					if not resource.document_name:
+						frappe.throw(
+							_("Please set the document name to fetch the Data Source {0}").format(
+								resource.name
+							)
+						)
+					resource.filters = []
+
+	def set_resource_json_fields(self, resource):
+		if isinstance(resource.fields, list):
+			resource.fields = frappe.as_json(resource.fields, indent=None)
+
+		if isinstance(resource.filters, list):
+			resource.filters = frappe.as_json(resource.filters, indent=None)
+
+		if isinstance(resource.whitelisted_methods, list):
+			resource.whitelisted_methods = frappe.as_json(resource.whitelisted_methods, indent=None)
+
+		if isinstance(resource.params, list):
+			resource.params = frappe.as_json(resource.params, indent=None)
+
+	def before_export(self, doc):
+		doc.name = self.get_export_docname()
+		doc.blocks = parse_json(doc.blocks)
+		doc.draft_blocks = parse_json(doc.draft_blocks)
+
+	def before_import(self):
+		self.name = self.page_name
+
+	def get_export_docname(self):
+		return frappe.scrub(self.page_title)
+
+	@frappe.whitelist()
+	def save_draft(self, draft_blocks: str, known_modified: str | None = None):
+		"""Persist the editor's working blocks under the optimistic lock (see reject_if_stale)."""
+		self.reject_if_stale(known_modified)
+		self.draft_blocks = draft_blocks
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
+
+	@frappe.whitelist()
+	def save_page_field(
+		self, fieldname: str | dict, value: str | int | None = None, known_modified: str | None = None
+	):
+		"""Update editor-owned fields using the page's optimistic lock. Pass a dict as `fieldname` to
+		save several fields at once, so they save together or not at all."""
+		FIELDS = ["page_title", "tab_title", "route", "script", "allow_guest"]
+		values = fieldname if isinstance(fieldname, dict) else {fieldname: value}
+		for field in values:
+			if field not in FIELDS:
+				frappe.throw(_("Field {0} is not editable outside the Studio editor").format(field))
+		self.reject_if_stale(known_modified)
+		self.update(values)
+		self._skip_validate = True
+		self.save()
+		return self.modified
+
+	def reject_if_stale(self, known_modified: str | None):
+		"""Refuse an editor write if the page changed in the DB (a disk sync by the watcher, an AI
+		edit) after the editor loaded it — otherwise the write would silently overwrite that newer
+		version. The editor turns the raised conflict into a "refresh to load the latest" prompt."""
+		if known_modified and get_datetime(known_modified) != get_datetime(self.modified):
+			frappe.throw(
+				_(
+					"This page was changed outside the editor. Refresh to load the latest version before editing."
+				),
+				exc=TimestampMismatchError,
+				title=_("Page changed"),
+			)
+
+	@frappe.whitelist()
+	def publish(self, known_modified: str | None = None, **kwargs):
+		self.reject_if_stale(known_modified)
+		frappe.form_dict.update(kwargs)
+		self.published = 1
+		if self.draft_blocks:
+			self.blocks = self.draft_blocks
+			self.draft_blocks = None
+		self.save()
+
+	@frappe.whitelist()
+	def unpublish(self):
+		self.published = 0
+		self.save()
+
+	@frappe.whitelist()
+	def revert(self, known_modified: str | None = None):
+		self.reject_if_stale(known_modified)
+		self.draft_blocks = None
+		self._skip_validate = True  # blocks only change
+		self.save()
+		return self.modified
+
+	def validate_conflicts_with_other_pages(self):
+		other_pages = frappe.get_all(
+			"Studio Page",
+			filters={"studio_app": self.studio_app, "name": ["!=", self.name], "published": 1},
+			or_filters=[
+				["route", "=", self.route],
+				["page_title", "=", self.page_title],
+			],
+			fields=["route", "page_title"],
+		)
+		if other_pages:
+			frappe.throw(
+				_("Page(s) with duplicate Route or Page Title already exist in this app: {0}").format(
+					", ".join([f"{page.page_title} - {page.route}" for page in other_pages]),
+				)
+			)
+
+	def get_folder_path(self, with_filename: bool = False) -> str:
+		# each page exports to its own folder: studio/<app>/studio_page/<scrubbed_title>/
+		path = ["studio", self.studio_app, "studio_page", self.get_export_docname()]
+		if with_filename:
+			path.append(self.get_file_name())
+		return frappe.get_app_source_path(self.frappe_app, *path)
+
+	def export_components(self):
+		components = get_components_for_blocks(get_blocks(self))
+		if components:
+			frappe.create_folder(self.get_component_folder_path())
+			mark_components_standard([component.name for component in components])
+		for component in components:
+			doc = frappe.get_doc("Studio Component", component.name)
+			write_document_file(doc, folder=self.get_component_folder_path())
+		self.delete_unused_component_files()
+
+	def delete_unused_component_files(self, deleting: bool = False):
+		"""Remove the files of components that no page of the app uses any more"""
+		folder = self.get_component_folder_path()
+		if not os.path.isdir(folder):
+			return
+		filters = {"studio_app": self.studio_app}
+		if deleting:
+			filters["name"] = ["!=", self.name]
+		pages = frappe.get_all("Studio Page", filters=filters, fields=["blocks", "draft_blocks"])
+		blocks = [block for page in pages for block in get_blocks(page)]
+		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
+		for file in os.listdir(folder):
+			if file.removesuffix(".json") not in used:
+				delete_file(folder, file)
+
+	def get_component_folder_path(self) -> str:
+		return frappe.get_app_source_path(self.frappe_app, "studio", self.studio_app, "studio_components")
+
+	def get_file_name(self):
+		return f"{self.get_export_docname()}.json"
+
+	def get_script_file_path(self) -> str:
+		return os.path.join(self.get_folder_path(), f"{self.get_export_docname()}.ts")
+
+
+def get_blocks(page) -> list[dict]:
+	"""The published and draft blocks of a page together"""
+	return [*(parse_json(page.blocks) or []), *(parse_json(page.draft_blocks) or [])]
+
+
+def get_app_page(app_name: str, page_name: str) -> "StudioPage":
+	"""The cached page, or the same 404 whether it is missing or belongs to another app."""
+	try:
+		page = frappe.get_cached_doc("Studio Page", page_name) if page_name else None
+	except frappe.DoesNotExistError:
+		# get_doc queues "Studio Page <name> not found" for the client; keep the reply to "Page not found"
+		frappe.clear_last_message()
+		page = None
+	if not page or page.studio_app != app_name:
+		frappe.throw(_("Page not found"), frappe.DoesNotExistError)
+	return page
+
+
+@frappe.whitelist(allow_guest=True, methods=["GET"])  # nosemgrep: guest-whitelisted-method
+def get_page(app_name: str, page_name: str, preview: bool = False) -> dict:
+	"""Serve a page definition to the app renderer in a single call.
+
+	Published pages need no role — a published definition is markup; the data it
+	fetches stays permission-checked by the endpoints its resources call. Guests
+	only get pages that are published AND allow_guest; everything else 404s
+	identically so private routes can't be enumerated. Drafts and unpublished
+	pages are only served in preview, which requires read access on Studio Page.
+
+	The served blocks' component definitions ship in the same payload, so what a
+	caller can see of components is exactly what the pages they can fetch use."""
+	page = get_app_page(app_name, page_name)
+	is_guest = frappe.session.user == "Guest"
+	if preview:
+		if not frappe.has_permission("Studio Page", ptype="read", doc=page):
+			frappe.throw(_("You do not have permission to preview this page"), frappe.PermissionError)
+		blocks = page.draft_blocks or page.blocks
+	else:
+		# unpublished routes 404 like nonexistent ones, so the endpoint doesn't confirm they exist
+		if not page.published or (is_guest and not page.allow_guest):
+			frappe.throw(_("Page not found"), frappe.DoesNotExistError)
+		blocks = page.blocks
+
+	return {
+		"name": page.name,
+		"page_title": page.page_title,
+		"tab_title": page.tab_title,
+		"route": page.route,
+		"studio_app": page.studio_app,
+		"is_standard": page.is_standard,
+		"script": page.script,
+		"blocks": blocks,
+		"components": get_components_for_blocks(blocks),
+		"resources": [
+			{"resource_id": row.name, **{field: row.get(field) for field in PAGE_RESOURCE_FIELDS}}
+			for row in page.resources
+		],
+		"variables": [
+			{"name": row.name, **{field: row.get(field) for field in PAGE_VARIABLE_FIELDS}}
+			for row in page.variables
+		],
+	}

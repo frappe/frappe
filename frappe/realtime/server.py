@@ -81,6 +81,7 @@ def load_handlers(sites_path: str | None = None) -> None:
 	None leaves the sites path to discover_app_handlers. Callers that know it, such
 	as RealtimeServer, give the absolute path from the config: a relative one is read
 	against the cwd, which serve() moves into sites/ and an embedder does not."""
+	import frappe.realtime.flow_handlers
 	import frappe.realtime.handlers
 	from frappe.realtime.registry import discover_app_handlers
 

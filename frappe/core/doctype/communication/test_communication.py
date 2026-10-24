@@ -513,6 +513,30 @@ class TestCommunication(IntegrationTestCase):
 			frappe.set_user("Administrator")
 			lh.delete()
 
+	def test_make_without_reference_requires_create_permission(self):
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "comm_make_perm@example.com",
+				"first_name": "Comm Make",
+				"user_type": "Website User",
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(user.delete)
+
+		frappe.set_user(user.name)
+		self.addCleanup(frappe.set_user, "Administrator")
+		for args in ({}, {"doctype": "User"}, {"name": "Administrator"}):
+			with self.assertRaises(frappe.PermissionError):
+				make(
+					recipients="recipient@example.com",
+					content="test",
+					subject="test",
+					sender="spoofed@example.com",
+					send_email=1,
+					**args,
+				)
+
 	def test_mark_as_spam(self):
 		frappe.get_doc(
 			{

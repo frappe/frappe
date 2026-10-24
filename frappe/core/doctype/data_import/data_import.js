@@ -16,6 +16,48 @@ function format_import_log_tab_count(total) {
 	return String(n);
 }
 
+/** Consecutive sheet rows as [start, end] pairs, e.g. [2, 3, 4, 7] -> [[2, 4], [7, 7]]. */
+function get_row_ranges(rows) {
+	const ranges = [];
+	for (const row of [...new Set(rows)].sort((a, b) => a - b)) {
+		const last = ranges.at(-1);
+		if (last && row === last[1] + 1) {
+			last[1] = row;
+		} else {
+			ranges.push([row, row]);
+		}
+	}
+	return ranges;
+}
+
+function format_row_range([start, end]) {
+	return start === end ? String(start) : `${start}–${end}`;
+}
+
+function nowrap_html(text) {
+	return `<span class="whitespace-nowrap">${text}</span>`;
+}
+
+/** Row cell label: up to 3 ranges in full, else the first 2 and a "+N more" button that expands it. */
+function get_row_number_html(row_indexes) {
+	const ranges = get_row_ranges(row_indexes);
+	if (!ranges.length) return __("-");
+	const as_html = (list) => list.map((r) => nowrap_html(format_row_range(r))).join(", ");
+	if (ranges.length <= 3) return `<span>${as_html(ranges)}</span>`;
+	const hidden_rows = ranges
+		.slice(2)
+		.reduce((count, [start, end]) => count + end - start + 1, 0);
+	const show_all = frappe.ui.button.html({
+		label: __("+{0} more", [hidden_rows]),
+		variant: "ghost",
+		size: "xs",
+		attrs: { "data-action": "show_all_rows" },
+	});
+	return `<span data-row-list="${frappe.utils.escape_html(as_html(ranges))}">${as_html(
+		ranges.slice(0, 2)
+	)} ${show_all}</span>`;
+}
+
 const WIZARD_STEP_COUNT = 4;
 
 /** Import step fields reparented by the wizard (Config / Preview / Fix Issues have dedicated mounts). */
@@ -990,6 +1032,8 @@ frappe.ui.form.on("Data Import", {
 	refresh(frm) {
 		// Must run before anything reads/derives preview state below.
 		frm.events.reset_stale_document_state(frm);
+		// Date-format buttons show unsaved picks; redraw so a discard or reload resets them.
+		frm.import_preview?.mount_date_format_controls?.();
 		frm.page.hide_icon_group();
 		frm.trigger("update_indicators");
 		// The worker db_sets status, so keep a client-started run alive until reload.
@@ -1024,7 +1068,7 @@ frappe.ui.form.on("Data Import", {
 
 		if (frm.doc.status != "Pending") frm.trigger("show_import_status");
 
-		// Footer Cancel / Report Error / Retry are refreshed via refresh_wizard_ui.
+		// Footer Cancel / Retry are refreshed via refresh_wizard_ui.
 		frm.events.refresh_wizard_ui?.(frm);
 
 		frm.trigger("render_custom_ui");
@@ -1494,26 +1538,6 @@ frappe.ui.form.on("Data Import", {
 					});
 			}
 		);
-	},
-
-	report_error_now(frm) {
-		frappe.db
-			.get_list("Error Log", {
-				filters: { method: frm.doc.name },
-				fields: ["method", "error"],
-				order_by: "creation desc",
-				limit: 1,
-			})
-			.then((result) => {
-				if (result.length > 0) {
-					const fake_xhr = {
-						responseText: JSON.stringify({ exc: result[0].error }),
-					};
-					frappe.request.report_error(fake_xhr, {});
-				} else {
-					frappe.show_alert(__("No error log found for this import."));
-				}
-			});
 	},
 
 	start_import(frm) {
@@ -2653,7 +2677,7 @@ frappe.ui.form.on("Data Import", {
 				.map((log) => {
 					let html = "";
 					let row_indexes = parse_row_indexes(log);
-					const row_number_label = row_indexes.length ? row_indexes.join(", ") : __("-");
+					const row_number_label = get_row_number_html(row_indexes);
 					if (log.success) {
 						const doc_link = `<span class="underline">${frappe.utils.get_form_link(
 							frm.doc.reference_doctype,
@@ -2743,7 +2767,7 @@ frappe.ui.form.on("Data Import", {
 					});
 
 					return `<tr>
-							<td class="diw-import-log-cell-row whitespace-nowrap text-sm align-top border-b py-2 px-4"><div class="diw-import-log-line flex items-center">${row_number_label}</div></td>
+							<td class="diw-import-log-cell-row text-sm align-top border-b py-2 px-4"><div class="diw-import-log-line flex items-center">${row_number_label}</div></td>
 							<td class="text-sm align-top border-b py-2 px-4"><div class="diw-import-log-line flex items-center">${status_badge}</div></td>
 							<td class="text-sm align-top border-b py-2 px-4 break-words">
 								${html}
@@ -2912,6 +2936,10 @@ frappe.ui.form.on("Data Import", {
 				go_to_list: () => frappe.set_route("List", frm.doc.reference_doctype),
 				download_skipped_rows: () => frm.trigger("download_skipped_rows"),
 				export_errored_rows: () => frm.trigger("export_errored_rows"),
+				show_all_rows: (_e, $target) => {
+					const $label = $target.closest("[data-row-list]");
+					$label.html($label.attr("data-row-list"));
+				},
 			});
 
 			if (show_export) {

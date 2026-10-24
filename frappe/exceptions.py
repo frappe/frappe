@@ -174,7 +174,7 @@ class EmptyTableError(ValidationError):
 
 
 class LinkExistsError(ValidationError):
-	pass
+	linked_with = None
 
 
 class InvalidEmailAddressError(ValidationError):

@@ -233,12 +233,6 @@ def _download_multi_pdf(
 
 	options = frappe.parse_json(options)
 
-	if (options or {}).get("password") and format:
-		# Typst can't encrypt — failing here once beats silently dropping
-		# every document inside the loop below
-		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
-			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
-
 	def document_language(print_doctype, print_name):
 		"""The print page's precedence: the document's own language, then the
 		format's default, then the language the print was requested in."""
@@ -261,7 +255,7 @@ def _download_multi_pdf(
 			pf_doc = _print_format_doc_or_none(format, print_doctype)
 			if not (
 				(pf_doc is None or uses_beta_renderer(pf_doc))
-				and resolve_pdf_generator(pf_doc) in ("chrome", "Typst")
+				and resolve_pdf_generator(pf_doc) in ("chrome", "PlutoPrint", "Typst")
 			):
 				return frappe.get_print(
 					print_doctype,
@@ -332,7 +326,7 @@ def _download_multi_pdf(
 
 	else:
 		total_docs = sum([len(doctype[dt]) for dt in doctype])
-		count = 1
+		count = 0
 		for doctype_name in doctype:
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
@@ -344,10 +338,11 @@ def _download_multi_pdf(
 					raise
 				except Exception:
 					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
+						frappe.publish_realtime(
+							task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
+						)
 					frappe.log_error(
 						title="Error in Multi PDF download",
-						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
@@ -404,6 +399,8 @@ def download_pdf(
 	language: str | None = None,
 	letterhead: str | None = None,
 	pdf_generator: str | None = None,
+	style: str | None = None,
+	settings: str | None = None,
 ):
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
@@ -418,6 +415,8 @@ def download_pdf(
 			letterhead=letterhead,
 			no_letterhead=no_letterhead,
 			pdf_generator=pdf_generator,
+			style=style,
+			settings=settings,
 		)
 
 	frappe.local.response.filename = "{name}.pdf".format(name=name.replace(" ", "-").replace("/", "-"))
@@ -470,9 +469,9 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
 			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
-		rendered["header"] = header
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
+		rendered["header"] = header
 
 	if letter_head.footer:
 		footer = render_template(letter_head.footer, {"doc": context_doc})
@@ -690,6 +689,9 @@ def print_by_server(
 	doc: Document | None = None,
 	no_letterhead: bool | int = 0,
 	file_path: str | None = None,  # backward compatibility
+	style: str | None = None,
+	settings: str | None = None,
+	letterhead: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -707,20 +709,21 @@ def print_by_server(
 
 		output = PdfWriter()
 		output = frappe.get_print(
-			doctype, name, print_format, doc=doc, no_letterhead=no_letterhead, as_pdf=True, output=output
+			doctype,
+			name,
+			print_format,
+			style=style,
+			doc=doc,
+			no_letterhead=no_letterhead,
+			letterhead=letterhead,
+			as_pdf=True,
+			output=output,
+			settings=settings,
 		)
 		with tempfile.NamedTemporaryFile(prefix="frappe-pdf-", suffix=".pdf", delete=False) as f:
 			file_path = f.name
 			output.write(f)
 		conn.printFile(print_settings.printer_name, file_path, name, {})
-	except OSError as e:
-		if (
-			"ContentNotFoundError" in e.message
-			or "ContentOperationNotPermittedError" in e.message
-			or "UnknownContentError" in e.message
-			or "RemoteHostClosedError" in e.message
-		):
-			frappe.throw(_("PDF generation failed"))
 	except cups.IPPError:
 		frappe.throw(_("Printing failed"))
 	finally:

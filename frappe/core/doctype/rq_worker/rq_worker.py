@@ -44,7 +44,7 @@ class RQWorker(Document):
 			raise frappe.DoesNotExistError
 		d = serialize_worker(workers[0])
 
-		super(Document, self).__init__(d)
+		self.init_from_dict(d)
 
 	@staticmethod
 	def get_list(start=0, page_length=0):
