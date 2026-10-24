@@ -707,7 +707,8 @@ class TypstEmitter:
 			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
-		if section.get("keep_together"):
+		# Chrome still starts a new page at a table row's page break when the section is kept together
+		if section.get("keep_together") and "#colbreak()" not in body:
 			args = ", ".join(block_args)
 			out = (
 				"#layout(size => {\n"
