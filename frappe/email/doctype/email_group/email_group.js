@@ -7,29 +7,63 @@ frappe.ui.form.on("Email Group", {
 			frm.add_custom_button(
 				__("Import Subscribers"),
 				function () {
-					frappe.prompt(
-						{
-							fieldtype: "Select",
-							options: frm.doc.__onload.import_types,
-							label: __("Import Email From"),
-							fieldname: "doctype",
-							reqd: 1,
-						},
-						function (data) {
+					let d = new frappe.ui.Dialog({
+						title: __("Import Subscribers"),
+						fields: [
+							{
+								fieldtype: "Select",
+								options: frm.doc.__onload.import_types,
+								label: __("Import Email From"),
+								fieldname: "doctype",
+								reqd: 1,
+								onchange: () => {
+									const doctype = d.get_value("doctype");
+									const $wrapper = d.fields_dict.filter_area.$wrapper;
+
+									d.filter_group = null;
+									$wrapper.empty();
+
+									d.set_df_property("filter_area", "hidden", !doctype);
+
+									if (!doctype) return;
+
+									frappe.model.with_doctype(doctype, () => {
+										if (d.get_value("doctype") !== doctype) return;
+
+										$wrapper.empty();
+
+										d.filter_group = new frappe.ui.FilterGroup({
+											parent: $wrapper,
+											doctype: doctype,
+											on_change: () => {},
+										});
+									});
+								},
+							},
+							{
+								fieldtype: "HTML",
+								fieldname: "filter_area",
+								hidden: 1,
+							},
+						],
+						primary_action_label: __("Import"),
+						primary_action: (data) => {
+							let filters = d.filter_group ? d.filter_group.get_filters() : [];
 							frappe.call({
 								method: "frappe.email.doctype.email_group.email_group.import_from",
 								args: {
 									name: frm.doc.name,
 									doctype: data.doctype,
+									filters: filters,
 								},
 								callback: function (r) {
 									frm.set_value("total_subscribers", r.message);
+									d.hide();
 								},
 							});
 						},
-						__("Import Subscribers"),
-						__("Import")
-					);
+					});
+					d.show();
 				},
 				__("Action")
 			);

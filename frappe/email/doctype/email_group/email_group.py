@@ -36,7 +36,7 @@ class EmailGroup(Document):
 			if d.parent not in singles
 		]
 
-	def import_from(self, doctype):
+	def import_from(self, doctype, filters=None):
 		"""Extract Email Addresses from given doctype and add them to the current list"""
 		meta = frappe.get_meta(doctype)
 		email_field = next(
@@ -56,7 +56,14 @@ class EmailGroup(Document):
 		unsubscribed_field = "unsubscribed" if meta.get_field("unsubscribed") else None
 		added = 0
 
-		for user in frappe.get_all(doctype, [email_field, unsubscribed_field or "name"]):
+		query_filters = frappe.parse_json(filters)
+
+		for user in frappe.get_list(
+			doctype,
+			fields=[email_field, unsubscribed_field or "name"],
+			filters=query_filters,
+			limit_page_length=0,
+		):
 			with contextlib.suppress(frappe.UniqueValidationError, frappe.InvalidEmailAddressError):
 				email = parse_addr(user.get(email_field))[1] if user.get(email_field) else None
 				if email:
@@ -108,10 +115,10 @@ class EmailGroup(Document):
 
 
 @frappe.whitelist()
-def import_from(name: str | int, doctype: str):
+def import_from(name: str | int, doctype: str, filters: str | dict | list | None = None):
 	nlist = frappe.get_doc("Email Group", name)
 	if nlist.has_permission("write"):
-		return nlist.import_from(doctype)
+		return nlist.import_from(doctype, filters=filters)
 
 
 @frappe.whitelist()
