@@ -1,0 +1,1171 @@
+import { defineAsyncComponent } from "vue"
+import {
+	FRAPPE_UI_COMPONENTS,
+	FRAPPE_UI_MOLECULES,
+	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
+	FRAPPE_UI_CHARTS,
+	FRAMEWORK_UI_COMPONENTS,
+} from "@/utils/constants"
+import { COMPONENT_FAMILIES } from "@/data/componentFamilies"
+
+import type { FrappeUIComponents, FrappeUIComponent } from "@/types"
+
+import LucideCircleAlert from "~icons/lucide/circle-alert"
+import LucideUser from "~icons/lucide/user"
+import LucideChevronsRight from "~icons/lucide/chevrons-right"
+import LucideBadgeCheck from "~icons/lucide/badge-check"
+import LucideRectangleHorizontal from "~icons/lucide/rectangle-horizontal"
+import LucideCircleCheck from "~icons/lucide/circle-check"
+import LucideCalendar from "~icons/lucide/calendar"
+import LucideClock from "~icons/lucide/clock"
+import LucideCalendarCheck from "~icons/lucide/calendar-check"
+import LucideCalendarClock from "~icons/lucide/calendar-clock"
+import LucideCalendarSearch from "~icons/lucide/calendar-search"
+import LucideAppWindowMac from "~icons/lucide/app-window-mac"
+import LucideMinus from "~icons/lucide/minus"
+import LucideChevronDown from "~icons/lucide/chevron-down"
+import LucideCircleX from "~icons/lucide/circle-x"
+import LucideFileUp from "~icons/lucide/file-up"
+import LucideBookType from "~icons/lucide/book-type"
+import LucideTag from "~icons/lucide/tag"
+import LucideSmile from "~icons/lucide/smile"
+import LucideListCheck from "~icons/lucide/list-check"
+import LucideEllipsis from "~icons/lucide/ellipsis"
+import LucideStar from "~icons/lucide/star"
+import LucideKeyRound from "~icons/lucide/key-round"
+import LucideMousePointer2 from "~icons/lucide/mouse-pointer-2"
+import LucideToggleLeft from "~icons/lucide/toggle-left"
+import LucideArrowRightLeft from "~icons/lucide/arrow-right-left"
+import LucideLetterText from "~icons/lucide/letter-text"
+import LucideALargeSmall from "~icons/lucide/a-large-small"
+import LucideEdit from "~icons/lucide/edit"
+import LucideMessageSquare from "~icons/lucide/message-square"
+import LucideMessageSquareMore from "~icons/lucide/message-square-more"
+import LucideListTree from "~icons/lucide/list-tree"
+import LucideCode from "~icons/lucide/code"
+import LucideRepeat from "~icons/lucide/repeat"
+import LucideFrame from "~icons/lucide/frame"
+import LucideImage from "~icons/lucide/image"
+import LucideList from "~icons/lucide/list"
+import LucideLink from "~icons/lucide/link"
+import LucideType from "~icons/lucide/type"
+import LucideChartLine from "~icons/lucide/chart-line"
+import LucideChartPie from "~icons/lucide/chart-pie"
+import LucideChartColumn from "~icons/lucide/chart-column"
+import LucideChartArea from "~icons/lucide/chart-area"
+import LucideChartScatter from "~icons/lucide/chart-scatter"
+import LucideFunnel from "~icons/lucide/funnel"
+import LucideGrid3x3 from "~icons/lucide/grid-3-x-3"
+import LucideWorkflow from "~icons/lucide/workflow"
+import LucideHash from "~icons/lucide/hash"
+import LucideListFilter from "~icons/lucide/list-filter"
+import LucideSquareMousePointer from "~icons/lucide/square-mouse-pointer"
+import LucideTimer from "~icons/lucide/timer"
+import LucideLoaderCircle from "~icons/lucide/loader-circle"
+import LucideSlidersHorizontal from "~icons/lucide/sliders-horizontal"
+// @framework/ui component icons
+import LucideLayoutTemplate from "~icons/lucide/layout-template"
+import LucideLayoutGrid from "~icons/lucide/layout-grid"
+import LucidePhone from "~icons/lucide/phone"
+import LucideTableProperties from "~icons/lucide/table-properties"
+import LucideBell from "~icons/lucide/bell"
+import LucideBellDot from "~icons/lucide/bell-dot"
+import LucideHistory from "~icons/lucide/history"
+import LucideMail from "~icons/lucide/mail"
+import LucideMessageCircle from "~icons/lucide/message-circle"
+import LucideMailPlus from "~icons/lucide/mail-plus"
+import LucideMessageSquarePlus from "~icons/lucide/message-square-plus"
+import LucideArrowUpDown from "~icons/lucide/arrow-up-down"
+import LucideFilter from "~icons/lucide/filter"
+import LucideColumns3 from "~icons/lucide/columns-3"
+import LucideRows3 from "~icons/lucide/rows-3"
+import LucideUpload from "~icons/lucide/upload"
+import LucidePaperclip from "~icons/lucide/paperclip"
+import LucideInbox from "~icons/lucide/inbox"
+
+export const COMPONENTS: FrappeUIComponents = {
+	TextBlock: {
+		name: "TextBlock",
+		title: "Text Block",
+		icon: LucideType,
+		initialState: {
+			text: "Text Block",
+			tag: "p",
+		},
+		hideProps: ["fontSize"],
+	},
+	Alert: {
+		name: "Alert",
+		title: "Alert",
+		icon: LucideCircleAlert,
+		initialState: {
+			title: "This user is inactive",
+			description: "Please enable the user to allow login access.",
+			theme: "amber",
+		},
+	},
+	Avatar: {
+		name: "Avatar",
+		title: "Avatar",
+		icon: LucideUser,
+		initialState: {
+			shape: "circle",
+			size: "md",
+			image: "https://avatars.githubusercontent.com/u/499550?s=60&v=4",
+			label: "EY",
+		},
+	},
+	Badge: {
+		name: "Badge",
+		title: "Badge",
+		icon: LucideBadgeCheck,
+		initialState: {
+			variant: "subtle",
+			theme: "green",
+			size: "sm",
+			label: "Active",
+		},
+	},
+	Breadcrumbs: {
+		name: "Breadcrumbs",
+		title: "Breadcrumbs",
+		icon: LucideChevronsRight,
+		initialState: {
+			items: [
+				{
+					label: "Home",
+					route: { name: "Home" },
+				},
+				{
+					label: "List",
+					route: "/components/breadcrumbs",
+				},
+			],
+		},
+	},
+	Button: {
+		name: "Button",
+		title: "Button",
+		icon: LucideRectangleHorizontal,
+		initialState: {
+			label: "Submit",
+			variant: "solid",
+		},
+	},
+	Checkbox: {
+		name: "Checkbox",
+		title: "Checkbox",
+		icon: LucideCircleCheck,
+		initialState: {
+			label: "Enable feature",
+			padded: true,
+			modelValue: true,
+		},
+	},
+	ContextMenu: {
+		name: "ContextMenu",
+		title: "Context Menu",
+		icon: LucideSquareMousePointer,
+		initialState: {
+			options: [
+				{ label: "Open", icon: "lucide-folder-open", onClick: () => {} },
+				{ label: "Rename", icon: "lucide-pencil", onClick: () => {} },
+				{ label: "Delete", icon: "lucide-trash", onClick: () => {} },
+			],
+		},
+	},
+	Combobox: {
+		name: "Combobox",
+		title: "Combobox",
+		icon: LucideListCheck,
+		initialState: {
+			placeholder: "Select Fruit",
+			options: [
+				{
+					group: "Fruits",
+					options: [
+						{
+							label: "Apple",
+							value: "apple",
+							icon: "🍎",
+						},
+						{
+							label: "Banana",
+							value: "banana",
+							icon: "🍌",
+						},
+						{
+							label: "Orange",
+							value: "orange",
+							icon: "🍊",
+						},
+						{
+							label: "Grape",
+							value: "grape",
+							icon: "🍇",
+						},
+					],
+				},
+				{
+					group: "Vegetables",
+					options: [
+						{
+							label: "Carrot",
+							value: "carrot",
+							icon: "🥕",
+						},
+						{
+							label: "Broccoli",
+							value: "broccoli",
+							icon: "🥦",
+						},
+						{
+							label: "Tomato",
+							value: "tomato",
+							icon: "🍅",
+						},
+						{
+							label: "Lettuce",
+							value: "lettuce",
+							icon: "🥬",
+						},
+					],
+				},
+			],
+		},
+	},
+	Calendar: {
+		name: "Calendar",
+		title: "Calendar",
+		icon: LucideCalendar,
+		initialState: {
+			config: {
+				defaultMode: "Month",
+				isEditMode: true,
+				eventIcons: {},
+				allowCustomClickEvents: true,
+				redundantCellHeight: 100,
+				enableShortcuts: true,
+			},
+			events: [
+				{
+					title: "English by Ryan Mathew",
+					participant: "Ryan Mathew",
+					id: "EDU-CSH-2024-00091",
+					venue: "CNF-ROOM-2024-00001",
+					fromDate: "2024-07-08 16:30:00",
+					toDate: "2024-07-08 17:30:00",
+					color: "green",
+				},
+				{
+					title: "English by Ryan Mathew",
+					participant: "Ryan Mathew",
+					id: "EDU-CSH-2024-00092",
+					venue: "CNF-ROOM-2024-00002",
+					fromDate: "2024-07-08 13:30:00",
+					toDate: "2024-07-08 17:30:00",
+					color: "green",
+				},
+				{
+					title: "English by Sheldon",
+					participant: "Sheldon",
+					id: "EDU-CSH-2024-00093",
+					venue: "CNF-ROOM-2024-00001",
+					fromDate: "2024-07-09 10:30:00",
+					toDate: "2024-07-09 11:30:00",
+					color: "green",
+				},
+				{
+					title: "English by Ryan Mathew",
+					participant: "Ryan Mathew",
+					id: "EDU-CSH-2024-00094",
+					venue: "CNF-ROOM-2024-00001",
+					fromDate: "2024-07-17 16:30:00",
+					toDate: "2024-07-17 17:30:00",
+					color: "green",
+				},
+				{
+					title: "Google Meet with John ",
+					participant: "John",
+					id: "#htrht41",
+					venue: "Google Meet",
+					fromDate: "2024-07-21 00:00:00",
+					toDate: "2024-07-21 23:59:59",
+					color: "amber",
+					isFullDay: true,
+				},
+				{
+					title: "Zoom Meet with Sheldon",
+					participant: "Sheldon",
+					id: "#htrht42",
+					venue: "Google Meet",
+					fromDate: "2024-07-21 00:00:00",
+					toDate: "2024-07-21 23:59:59",
+					color: "amber",
+					isFullDay: true,
+				},
+			],
+		},
+	},
+	DatePicker: {
+		name: "DatePicker",
+		title: "Date",
+		icon: LucideCalendarCheck,
+		initialState: {
+			placeholder: "Select Date",
+		},
+	},
+	TimePicker: {
+		name: "TimePicker",
+		title: "Time",
+		icon: LucideClock,
+		initialState: {
+			placeholder: "Select Time",
+		},
+	},
+	DateTimePicker: {
+		name: "DateTimePicker",
+		title: "Date Time",
+		icon: LucideCalendarClock,
+		initialState: {
+			placeholder: "Select Date Time",
+		},
+	},
+	DateRangePicker: {
+		name: "DateRangePicker",
+		title: "Date Range",
+		icon: LucideCalendarSearch,
+		initialState: {
+			placeholder: "Select Date Range",
+		},
+	},
+	Dialog: {
+		name: "Dialog",
+		title: "Dialog",
+		icon: LucideAppWindowMac,
+		initialState: {
+			modelValue: false,
+			title: "Confirm",
+			message: "Are you sure you want to confirm this action?",
+			size: "xl",
+			actions: [
+				{
+					label: "Confirm",
+					variant: "solid",
+					onClick: () => {},
+				},
+			],
+		},
+		editInFragmentMode: true,
+		proxyComponent: defineAsyncComponent(() => import("@/components/ProxyComponents/ProxyDialog.vue")),
+	},
+	Divider: {
+		name: "Divider",
+		title: "Divider",
+		icon: LucideMinus,
+	},
+	Dropdown: {
+		name: "Dropdown",
+		title: "Dropdown",
+		icon: LucideChevronDown,
+		initialState: {
+			options: [
+				{
+					label: "Edit Title",
+					onClick: () => {},
+					icon: "lucide-edit-2",
+				},
+				{
+					label: "Manage Members",
+					onClick: () => {},
+					icon: "lucide-users",
+				},
+				{
+					label: "Delete this project",
+					onClick: () => {},
+					icon: "lucide-trash",
+				},
+			],
+			button: { label: "Actions" },
+		},
+	},
+	Duration: {
+		name: "Duration",
+		title: "Duration",
+		icon: LucideTimer,
+		initialState: {
+			modelValue: 5445,
+			format: "short",
+		},
+	},
+	ErrorMessage: {
+		name: "ErrorMessage",
+		title: "Error Message",
+		icon: LucideCircleX,
+		initialState: {
+			message: "Transaction failed due to insufficient balance",
+		},
+	},
+	FileUploader: {
+		name: "FileUploader",
+		title: "File Uploader",
+		icon: LucideFileUp,
+		initialState: {
+			label: "Upload File",
+			fileTypes: "['image/*']",
+		},
+	},
+	FormControl: {
+		name: "FormControl",
+		title: "Form Control",
+		icon: LucideBookType,
+		initialState: {
+			type: "text",
+			label: "Name",
+			placeholder: "John Doe",
+			autocomplete: "off",
+		},
+		additionalProps: {
+			modelValue: { required: false },
+			placeholder: { required: false, type: String },
+			options: {
+				required: false,
+				type: Array,
+				default: () => ["John Doe", "Jane Doe"],
+				condition: (state: Record<string, any>) => state.type === "select" || state.type === "combobox",
+			},
+			disabled: { type: Boolean },
+		},
+	},
+	Icon: {
+		name: "Icon",
+		title: "Icon",
+		icon: LucideSmile,
+		initialState: {
+			icon: "lucide-smile",
+			class: "size-5",
+		},
+	},
+	FormLabel: {
+		name: "FormLabel",
+		title: "Form Label",
+		icon: LucideTag,
+		initialState: {
+			label: "Form Label",
+		},
+	},
+	ListView: {
+		name: "ListView",
+		title: "List View",
+		icon: LucideList,
+		initialState: {
+			columns: [
+				{
+					label: "Name",
+					key: "name",
+					width: 3,
+				},
+				{
+					label: "Email",
+					key: "email",
+					width: "200px",
+				},
+				{
+					label: "Role",
+					key: "role",
+				},
+				{
+					label: "Status",
+					key: "status",
+				},
+			],
+			rows: [
+				{
+					id: 1,
+					name: "John Doe",
+					email: "john@doe.com",
+					status: "Active",
+					role: "Developer",
+				},
+				{
+					id: 2,
+					name: "Jane Doe",
+					email: "jane@doe.com",
+					status: "Inactive",
+					role: "HR",
+				},
+			],
+			rowKey: "id",
+		},
+	},
+	MultiSelect: {
+		name: "MultiSelect",
+		title: "Multi Select",
+		icon: LucideListCheck,
+		initialState: {
+			placeholder: "Select Fruits",
+			options: [
+				{
+					label: "Apple",
+					value: "apple",
+				},
+				{
+					label: "Banana",
+					value: "banana",
+				},
+				{
+					label: "Orange",
+					value: "orange",
+				},
+				{
+					label: "Grape",
+					value: "grape",
+				},
+			],
+		},
+	},
+	Password: {
+		name: "Password",
+		title: "Password",
+		icon: LucideKeyRound,
+		initialState: {
+			label: "Password",
+			placeholder: "Enter your password",
+		},
+	},
+	Popover: {
+		name: "Popover",
+		title: "Popover",
+		icon: LucideMessageSquareMore,
+		initialState: {
+			side: "bottom",
+			align: "center",
+		},
+		initialSlots: ["trigger", "default"],
+		emits: ["update:open", "open", "close"],
+	},
+	Progress: {
+		name: "Progress",
+		title: "Progress",
+		icon: LucideEllipsis,
+		initialState: {
+			value: 50,
+			size: "sm",
+			label: "Progress",
+		},
+	},
+	Rating: {
+		name: "Rating",
+		title: "Rating",
+		icon: LucideStar,
+		initialState: {
+			label: "Rating",
+		},
+	},
+	Select: {
+		name: "Select",
+		title: "Select",
+		icon: LucideMousePointer2,
+		initialState: {
+			placeholder: "Person",
+			options: [
+				{
+					label: "John Doe",
+					value: "john-doe",
+				},
+				{
+					label: "Jane Doe",
+					value: "jane-doe",
+				},
+				{
+					label: "John Smith",
+					value: "john-smith",
+				},
+				{
+					label: "Jane Smith",
+					value: "jane-smith",
+					disabled: true,
+				},
+				{
+					label: "John Wayne",
+					value: "john-wayne",
+				},
+				{
+					label: "Jane Wayne",
+					value: "jane-wayne",
+				},
+			],
+		},
+	},
+	Slider: {
+		name: "Slider",
+		title: "Slider",
+		icon: LucideSlidersHorizontal,
+		initialState: {
+			modelValue: [40],
+			min: 0,
+			max: 100,
+			step: 1,
+		},
+	},
+	Spinner: {
+		name: "Spinner",
+		title: "Spinner",
+		icon: LucideLoaderCircle,
+		initialState: {
+			size: "md",
+			theme: "gray",
+		},
+	},
+	Switch: {
+		name: "Switch",
+		title: "Switch",
+		icon: LucideToggleLeft,
+		initialState: {
+			label: "Enable Notifications",
+			description: "Get notified when someone mentions you in a comment",
+			modelValue: true,
+		},
+	},
+	Tabs: {
+		name: "Tabs",
+		title: "Tabs",
+		icon: LucideArrowRightLeft,
+		initialState: {
+			tabs: [
+				{ label: "Github", value: "github" },
+				{ label: "Twitter", value: "twitter" },
+				{ label: "Linkedin", value: "linkedin" },
+			],
+		},
+		expandArrayProps: true,
+	},
+	TabButtons: {
+		name: "TabButtons",
+		title: "Tab Buttons",
+		icon: LucideArrowRightLeft,
+		initialState: {
+			options: [
+				{
+					label: "My Tasks",
+					value: "mytasks",
+				},
+				{
+					label: "Team Tasks",
+					value: "teamtasks",
+				},
+			],
+		},
+	},
+	Textarea: {
+		name: "Textarea",
+		title: "Textarea",
+		icon: LucideLetterText,
+		initialState: {
+			placeholder: "Enter your message",
+		},
+	},
+	TextInput: {
+		name: "TextInput",
+		title: "Text Input",
+		icon: LucideALargeSmall,
+		initialState: {
+			placeholder: "Enter your name",
+		},
+	},
+	TextEditor: {
+		name: "TextEditor",
+		title: "Text Editor",
+		icon: LucideEdit,
+		initialState: {
+			modelValue: "Type something...",
+			editorClass: "prose-sm max-w-none min-h-[4rem] border rounded-b-6 border-t-0 p-2",
+			editable: true,
+			fixedMenu: true,
+			bubbleMenu: true,
+		},
+		overrideProps: {
+			bubbleMenu: {
+				type: "boolean",
+				inputType: "checkbox",
+			},
+			fixedMenu: {
+				type: "boolean",
+				inputType: "checkbox",
+			},
+			floatingMenu: {
+				type: "boolean",
+				inputType: "checkbox",
+			},
+			starterkitOptions: {
+				type: "object",
+				inputType: "code",
+			},
+		},
+	},
+	Tooltip: {
+		name: "Tooltip",
+		title: "Tooltip",
+		icon: LucideMessageSquare,
+		initialState: {
+			text: "This is a tooltip",
+		},
+	},
+	Tree: {
+		name: "Tree",
+		title: "Tree",
+		icon: LucideListTree,
+		initialState: {
+			nodeKey: "name",
+			nodes: [
+				{
+					name: "guest",
+					label: "Guest",
+					children: [
+						{
+							name: "downloads",
+							label: "Downloads",
+							children: [
+								{
+									name: "download.zip",
+									label: "download.zip",
+									children: [
+										{
+											name: "image.png",
+											label: "image.png",
+											children: [],
+										},
+									],
+								},
+							],
+						},
+						{
+							name: "documents",
+							label: "Documents",
+							children: [
+								{
+									name: "somefile.txt",
+									label: "somefile.txt",
+									children: [],
+								},
+								{
+									name: "somefile.pdf",
+									label: "somefile.pdf",
+									children: [],
+								},
+							],
+						},
+					],
+				},
+			],
+		},
+	},
+	// Studio Components
+	Repeater: {
+		name: "Repeater",
+		title: "Repeater",
+		icon: LucideRepeat,
+	},
+	HTML: {
+		name: "HTML",
+		title: "HTML",
+		icon: LucideCode,
+		initialState: {
+			html: "<p>Your HTML content here</p>",
+		},
+		overrideProps: {
+			html: {
+				type: "string",
+				inputType: "html",
+			},
+		},
+	},
+	// block template based components
+	Header: {
+		name: "Header",
+		title: "Header",
+		icon: LucideFrame,
+		blockTemplate: "header",
+	},
+	ImageView: {
+		name: "ImageView",
+		title: "Image View",
+		icon: LucideImage,
+		initialState: {
+			image: "https://blocks.astratic.com/img/general-img-square.png",
+			size: "xs",
+		},
+	},
+	// charts
+	// frappe-ui/charts: fill their parent, so the templates give the block a height
+	BarChart: {
+		name: "BarChart",
+		title: "Bar Chart",
+		icon: LucideChartColumn,
+		blockTemplate: "bar-chart",
+	},
+	LineChart: {
+		name: "LineChart",
+		title: "Line Chart",
+		icon: LucideChartLine,
+		blockTemplate: "line-chart",
+	},
+	AreaChart: {
+		name: "AreaChart",
+		title: "Area Chart",
+		icon: LucideChartArea,
+		blockTemplate: "area-chart",
+	},
+	DonutChart: {
+		name: "DonutChart",
+		title: "Donut Chart",
+		icon: LucideChartPie,
+		blockTemplate: "donut-chart",
+	},
+	FunnelChart: {
+		name: "FunnelChart",
+		title: "Funnel Chart",
+		icon: LucideFunnel,
+		blockTemplate: "funnel-chart",
+	},
+	HeatmapChart: {
+		name: "HeatmapChart",
+		title: "Heatmap Chart",
+		icon: LucideGrid3x3,
+		blockTemplate: "heatmap-chart",
+	},
+	ScatterChart: {
+		name: "ScatterChart",
+		title: "Scatter Chart",
+		icon: LucideChartScatter,
+		blockTemplate: "scatter-chart",
+	},
+	SankeyChart: {
+		name: "SankeyChart",
+		title: "Sankey Chart",
+		icon: LucideWorkflow,
+		blockTemplate: "sankey-chart",
+	},
+	NumberCard: {
+		name: "NumberCard",
+		title: "Number Card",
+		icon: LucideHash,
+		initialState: {
+			title: "Total Sales",
+			value: 123456,
+			prefix: "$",
+			delta: 10,
+			deltaSuffix: "%",
+			deltaCaption: "vs last month",
+		},
+	},
+	// @framework/ui components
+	Link: {
+		name: "Link",
+		title: "Link",
+		icon: LucideLink,
+		initialState: {
+			doctype: "User",
+			filters: {
+				enabled: 1,
+			},
+		},
+	},
+	Filter: {
+		name: "Filter",
+		title: "Filter",
+		icon: LucideListFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	FormLayout: {
+		name: "FormLayout",
+		title: "Form Layout",
+		icon: LucideLayoutTemplate,
+		initialState: {
+			layout: [
+				{
+					label: "Details",
+					sections: [
+						{
+							columns: [
+								{
+									fields: [
+										{ fieldname: "first_name", fieldtype: "Data", label: "First Name" },
+										{ fieldname: "email", fieldtype: "Data", label: "Email" },
+									],
+								},
+							],
+						},
+					],
+				},
+			],
+			doc: {},
+		},
+	},
+	Grid: {
+		name: "Grid",
+		title: "Grid",
+		icon: LucideLayoutGrid,
+		initialState: {
+			label: "Items",
+			columns: [
+				{ fieldname: "item", label: "Item" },
+				{ fieldname: "qty", label: "Qty", align: "right" },
+			],
+			modelValue: [
+				{ item: "Apple", qty: 2 },
+				{ item: "Orange", qty: 5 },
+			],
+		},
+	},
+	Phone: {
+		name: "Phone",
+		title: "Phone",
+		icon: LucidePhone,
+		initialState: {
+			label: "Phone",
+			placeholder: "Enter phone number",
+		},
+	},
+	TableMultiSelect: {
+		name: "TableMultiSelect",
+		title: "Table Multi Select",
+		icon: LucideTableProperties,
+		initialState: {
+			doctype: "User",
+			label: "Users",
+			placeholder: "Select users",
+		},
+	},
+	SortBy: {
+		name: "SortBy",
+		title: "Sort By",
+		icon: LucideArrowUpDown,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	QuickFilter: {
+		name: "QuickFilter",
+		title: "Quick Filter",
+		icon: LucideFilter,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ColumnSettings: {
+		name: "ColumnSettings",
+		title: "Column Settings",
+		icon: LucideColumns3,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	ListViewShell: {
+		name: "ListViewShell",
+		title: "List View Shell",
+		icon: LucideRows3,
+		initialState: {
+			doctype: "User",
+		},
+	},
+	NotificationPanel: {
+		name: "NotificationPanel",
+		title: "Notification Panel",
+		icon: LucideBell,
+		initialState: {
+			title: "Notifications",
+			hasNextPage: false,
+			unreadCount: 1,
+			notifications: [
+				{
+					name: "1",
+					title: "Welcome to Studio",
+					description: "Your app is ready to build.",
+					read: 0,
+				},
+			],
+		},
+	},
+	NotificationItem: {
+		name: "NotificationItem",
+		title: "Notification Item",
+		icon: LucideBellDot,
+		initialState: {
+			notification: {
+				name: "1",
+				title: "Welcome to Studio",
+				description: "Your app is ready to build.",
+				read: 0,
+			},
+		},
+	},
+	ActivityTimeline: {
+		name: "ActivityTimeline",
+		title: "Activity Timeline",
+		icon: LucideHistory,
+		initialState: {
+			activities: [
+				{
+					type: "comment",
+					key: "comment:1",
+					timestamp: "2024-07-08 10:30:00",
+					author: { fullname: "Jane Doe" },
+					data: { name: "1", content: "Looks good to me!" },
+				},
+				{
+					type: "log",
+					key: "log:1",
+					timestamp: "2024-07-08 09:00:00",
+					author: { fullname: "John Doe" },
+					data: { name: "2", subtype: "created", text: "created this document" },
+				},
+			],
+		},
+	},
+	EmailItem: {
+		name: "EmailItem",
+		title: "Email Item",
+		icon: LucideMail,
+		initialState: {
+			email: {
+				type: "email",
+				key: "email:1",
+				timestamp: "2024-07-08 11:00:00",
+				author: { fullname: "Jane Doe", email: "jane@doe.com" },
+				data: {
+					name: "1",
+					subject: "Project update",
+					sender: "jane@doe.com",
+					to: "john@doe.com",
+					content: "<p>Here is the latest update.</p>",
+				},
+			},
+		},
+	},
+	CommentItem: {
+		name: "CommentItem",
+		title: "Comment Item",
+		icon: LucideMessageCircle,
+		initialState: {
+			comment: {
+				type: "comment",
+				key: "comment:1",
+				timestamp: "2024-07-08 10:30:00",
+				author: { fullname: "Jane Doe" },
+				data: { name: "1", content: "Looks good to me!" },
+			},
+		},
+	},
+	EmailComposer: {
+		name: "EmailComposer",
+		title: "Email Composer",
+		icon: LucideMailPlus,
+		initialState: {
+			placeholder: "Write your email...",
+			submitLabel: "Send",
+			headerFields: ["to", "cc", "bcc"],
+		},
+	},
+	CommentComposer: {
+		name: "CommentComposer",
+		title: "Comment Composer",
+		icon: LucideMessageSquarePlus,
+		initialState: {
+			placeholder: "This message is only visible to your team.",
+			submitLabel: "Comment",
+		},
+	},
+	FileUploadDialog: {
+		name: "FileUploadDialog",
+		title: "File Upload Dialog",
+		icon: LucideUpload,
+		initialState: {
+			open: false,
+		},
+	},
+	AttachmentsList: {
+		name: "AttachmentsList",
+		title: "Attachments List",
+		icon: LucidePaperclip,
+		initialState: {
+			modelValue: [],
+		},
+	},
+	UploadTray: {
+		name: "UploadTray",
+		title: "Upload Tray",
+		icon: LucideInbox,
+		initialState: {
+			side: "right",
+		},
+	},
+	...COMPONENT_FAMILIES,
+}
+
+const proxyComponentMap = new Map<string, any>()
+Object.values(COMPONENTS).forEach((component: FrappeUIComponent) => {
+	if (component.proxyComponent) {
+		proxyComponentMap.set(component.name, component.proxyComponent)
+	}
+})
+
+function isFrappeUIComponent(name: string) {
+	return (
+		FRAPPE_UI_COMPONENTS.includes(name) ||
+		FRAPPE_UI_MOLECULES.includes(name) ||
+		FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name) ||
+		FRAPPE_UI_CHARTS.includes(name)
+	)
+}
+
+// frappe-ui/experimental carries no stability promise: these are on their way out
+// and the panel marks them as deprecated.
+function isDeprecatedComponent(name: string) {
+	return FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(name)
+}
+
+function isFrameworkUIComponent(name: string) {
+	return FRAMEWORK_UI_COMPONENTS.includes(name)
+}
+
+function getComponentGroups(list: FrappeUIComponent[]) {
+	const inFrappe = (c: FrappeUIComponent) => isFrappeUIComponent(c.name)
+	const inFramework = (c: FrappeUIComponent) => isFrameworkUIComponent(c.name)
+
+	const groups = [
+		{ label: "Core", components: list.filter((c) => !inFrappe(c) && !inFramework(c)) },
+		{ label: "Frappe UI", components: list.filter(inFrappe) },
+		{ label: "Framework UI", components: list.filter(inFramework) },
+	]
+	return groups.filter((group) => group.components.length)
+}
+
+// A family's parts are the components whose `group` names this primary. The primary tile
+// drops the whole tree (via blockTemplate); each part is droppable on its own.
+function getParts(primaryName: string) {
+	return Object.values(COMPONENTS).filter((c) => c.group === primaryName)
+}
+
+function getProxyComponent(name: string) {
+	return proxyComponentMap.get(name)
+}
+
+function get(name: string): FrappeUIComponent | undefined {
+	return COMPONENTS[name] || undefined
+}
+
+export default {
+	...COMPONENTS,
+	list: Object.values(COMPONENTS),
+	names: Object.keys(COMPONENTS),
+	getProxyComponent,
+	isFrappeUIComponent,
+	isDeprecatedComponent,
+	isFrameworkUIComponent,
+	getComponentGroups,
+	getParts,
+	get,
+}

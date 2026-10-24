@@ -446,6 +446,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "MRO Zero only."),
 				("Fail", ""),
 			],
+			"USD": [
+				(0.29, "Twenty Nine Cent only."),
+				(0.57, "Fifty Seven Cent only."),
+				(0.58, "Fifty Eight Cent only."),
+				(1.57, "USD One and Fifty Seven Cent only."),
+			],
 		}
 
 		for currency, cases in test_cases.items():
@@ -1893,6 +1899,24 @@ class TestMiscUtils(IntegrationTestCase):
 		with self.change_settings("System Settings", enable_desk_v2=1):
 			self.assertTrue(get_url_to_form("System Settings").endswith("/apps/desk/system-settings"))
 			self.assertTrue(get_url_to_form("User", "Test User").endswith("/apps/desk/user/Test%20User"))
+
+	@patch.dict(
+		frappe.conf,
+		{
+			"host_name": None,
+			"hostname": None,
+			"http_port": None,
+			"webserver_port": 8000,
+			"developer_mode": 0,
+			"restart_supervisor_on_update": 1,
+		},
+	)
+	def test_get_url_dev(self):
+		self.assertNotIn(":8000", get_url("/desk", allow_header_override=False))
+		self.assertEqual(
+			get_url("/desk", allow_header_override=False, for_dev_server=True),
+			f"http://{frappe.local.site}:8000/desk",
+		)
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})

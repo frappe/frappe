@@ -4,6 +4,8 @@ Frappe is a web framework: Python backend, JavaScript desk UI, MariaDB or Postgr
 
 Maintainers review every pull request against [code_review.md](code_review.md). Follow this file while you work, and check your diff against that one before you open the pull request.
 
+The Studio editor under `studio/frontend/` is a separate Vue app with its own conventions; read [studio/frontend/AGENTS.md](studio/frontend/AGENTS.md) before changing it or the `frappe/studio` package.
+
 ## Before you write code
 
 1. Confirm the problem still exists on latest `develop`. Run `git log -p` on the lines involved, and `git log -S '<expression>'` to find the commit that caused it. The code may be fixed already, dead (behind a condition that is always false), replaced by a newer code path, or different from the version in the report. If the bug no longer happens, stop and say so. Do not change code to match the report.
@@ -25,7 +27,7 @@ Maintainers review every pull request against [code_review.md](code_review.md). 
 - No comments that narrate the code, the bug or your change ("Fix for #123", "now we also check ..."). The reasoning goes in the pull request description. Keep a short comment only for a non-obvious workaround. Some files already have long comments; do not copy that style.
 - Business logic and validation on the server. Change DocType JSON through the UI, never by hand. Every user-facing string goes through `_()` or `__()`. Validation errors use `frappe.throw(msg, title=_(...))`.
 - Desk UI: `frappe.utils.icon()`, `es-button`, `es-badge`, `var(--*)` tokens instead of literal values, gray accents, no inline styles, no `!important`.
-- Tests: bug fixes and new behaviour come with a test that fails without the change. Run it as a normal user, not Administrator, with `example.com` data. Do not mock the function that decides the result. Presentation-only changes ship with a before and after screenshot instead; text or markup a caller depends on is behaviour and still needs a test.
+- Tests: new features come with a test that fails without the change. A bug fix gets one only when the fix is not obvious from the diff or the same bug has come back before; small, obvious fixes and CI or tooling changes ship without one. Run tests as a normal user, not Administrator, with `example.com` data. Do not mock the function that decides the result. Presentation-only changes ship with a before and after screenshot instead; text or markup a caller depends on is behaviour and still needs a test.
 
 ## Before you open the pull request
 

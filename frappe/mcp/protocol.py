@@ -6,7 +6,6 @@ import re
 from typing import Any
 
 import frappe
-from frappe import _
 from frappe.utils import get_fullname, get_host_name
 
 LATEST_VERSION = "2026-07-28"
@@ -37,7 +36,7 @@ class McpError(Exception):
 
 
 def server_info() -> dict[str, str]:
-	name = (frappe.get_cached_doc("MCP Settings").server_name or "").strip()
+	name = (frappe.get_system_settings("server_name") or "").strip()
 	return {"name": name or default_server_name(), "version": frappe.__version__}
 
 
@@ -47,17 +46,18 @@ def default_server_name() -> str:
 
 def server_instructions() -> str:
 	lines = [
-		_("This is a Frappe Framework site at {0}.").format(get_host_name()),
-		_("You are connected as {0} ({1}).").format(get_fullname(), frappe.session.user),
-		_("Installed apps:"),
+		"This is a Frappe Framework site at {0}.".format(get_host_name()),
+		"You are connected as {0} ({1}).".format(get_fullname(), frappe.session.user),
+		"Tool arguments take the same values as the matching Frappe REST API v2 endpoints.",
+		"For example, filters, fields and order_by work as in GET /api/v2/document/<doctype>.",
+		"Installed apps:",
 	]
 	for app in frappe.get_installed_apps():
 		title = (frappe.get_hooks("app_title", app_name=app) or [app])[0]
-		description = (frappe.get_hooks("app_description", app_name=app) or [""])[0]
-		lines.append(f"- {title} ({app}): {description}" if description else f"- {title} ({app})")
+		lines.append(f"- {title} ({app})")
 
 	instructions = "\n".join(lines)
-	if site_instructions := (frappe.get_cached_doc("MCP Settings").agent_instructions or "").strip():
+	if site_instructions := (frappe.get_system_settings("agent_instructions") or "").strip():
 		instructions += "\n\n" + site_instructions
 	return instructions
 

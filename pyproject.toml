@@ -15,7 +15,7 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.2.0",
     "Jinja2~=3.1.6",
-    "Pillow~=12.3.0",
+    "Pillow~=13.0.0",
     "plutoprint~=0.22.0; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
     "PyJWT~=2.15.1",
     "duckdb~=1.4.3",
@@ -36,7 +36,6 @@ dependencies = [
     "croniter~=6.2.4",
     "cryptography~=50.0.2",
     "cssutils~=2.15.0",
-    "distro~=1.9.0",
     "email-reply-parser~=0.5.12",
     "Faker~=40.43.0",
     "gunicorn @ git+https://github.com/frappe/gunicorn@f189de0ec3143581d8826f707343fa36c3fb0184",
@@ -85,6 +84,16 @@ dependencies = [
     "xlrd~=2.0.2",
     "zxcvbn~=4.5.0",
     "markdownify~=1.2.3",
+    # studio
+    "litellm==1.103.2",
+    "json_repair~=0.59",
+    # flow
+    "frappe-flow==0.1.20",
+    "lancedb~=0.33",
+    "onnxruntime~=1.27",
+    "pdfplumber~=0.11",
+    "python-docx~=1.1",
+    "rapidocr~=3.0",
     # integration dependencies
     "google-api-python-client~=2.201.0",
     "google-auth-oauthlib~=1.5.0",
@@ -167,6 +176,14 @@ hypothesis = "~=6.155.2"
 responses = "==0.23.1"
 freezegun = "~=1.5.5"
 
+# flow: for OpenCV, which rapidocr installs
+[deploy.dependencies.apt]
+packages = ["libgl1", "libglib2.0-0"]
+
+[tool.pilot.processes.flow_server]
+frappe_command = ["flow-server", "serve"]
+env = { FLOW_SERVER_MANAGER = "supervisor" }
+
 [tool.ruff]
 line-length = 110
 target-version = "py313"
@@ -226,7 +243,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06
+exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false, frappe-flow = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06, frappe-flow after 2026-10-30
 
 [tool.mypy]
 strict = false

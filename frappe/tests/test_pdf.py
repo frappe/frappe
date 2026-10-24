@@ -189,6 +189,29 @@ class TestPdf(IntegrationTestCase):
 			self.assertIn("TOP", text)
 			self.assertIn(f"Page {number} of {len(pages)}", text)
 
+	def test_links_are_clickable_where_they_print_with_header_and_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html"><a href="https://example.com/brochure">Brochure</a></div>'
+			'<a href="https://example.com/manual">Manual</a>'
+			'<div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		page = PdfReader(io.BytesIO(pdf)).pages[0]
+		baselines = {}
+
+		def record_baseline(text, cm, tm, *_):
+			baselines[text.strip()] = tm[4] * cm[1] + tm[5] * cm[3] + cm[5]
+
+		page.extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(page["/Annots"]), 2)
+		for annotation in page["/Annots"]:
+			annotation = annotation.get_object()
+			text = annotation["/A"]["/URI"].rsplit("/", 1)[1].title()
+			_, bottom, _, top = annotation["/Rect"]
+			self.assertGreaterEqual(baselines[text], bottom, text)
+			self.assertLessEqual(baselines[text], top, text)
+
 	def test_header_is_measured_after_its_image_loads(self):
 		import threading
 		import time
@@ -234,6 +257,21 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt("qwe"))
 		self.assertGreaterEqual(len(reader.pages), 2)
+
+	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+		task_id = frappe.generate_hash()
+
+		_download_multi_pdf({"ToDo": [todo.name, deleted.name]}, "ToDo", task_id=task_id)
+
+		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
+		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
 
 	def test_large_pdf_is_optimized_before_encryption(self):
 		import os
@@ -488,6 +526,17 @@ class TestChromePdfGeometry(IntegrationTestCase):
 
 		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
 		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 9.84, delta=0.05)
+
+	def test_print_format_margin_without_a_length_is_ignored(self):
+		from bs4 import BeautifulSoup
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = self.make_browser({"page-size": "A4"})
+		browser.soup = BeautifulSoup("<style>.print-format { margin-left: auto; }</style>", "html5lib")
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["marginLeft"], 15 / 25.4, delta=0.01)
 
 	def test_print_format_page_margin_reaches_pdf(self):
 		print_format = frappe.get_doc(
