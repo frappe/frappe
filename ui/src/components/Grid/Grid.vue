@@ -131,35 +131,47 @@
 								>
 									{{ rowIndex + 1 }}
 								</div>
-								<div
-									v-for="(col, i) in columns"
-									:key="col.fieldname"
-									class="grid-cell flex min-w-0 items-stretch"
-									:data-fieldname="col.fieldname"
-									:data-fieldtype="col.fieldtype"
-									:class="[
-										alignClass(col.align),
-										{
-											'border-r border-outline-gray-2':
-												i < columns.length - 1,
-										},
-										{ 'pointer-events-none': disabled },
-									]"
-								>
-									<slot
-										name="cell"
-										:row="row"
-										:column="col"
-										:index="rowIndex"
-										:value="row[col.fieldname]"
-										:update="(v: any) => updateCell(rowIndex, col, v)"
-										:commit="(v: any) => commitCell(rowIndex, col, v)"
+								<Tooltip v-for="(col, i) in columns" :key="col.fieldname">
+									<div
+										class="grid-cell flex min-w-0 items-stretch"
+										:data-fieldname="col.fieldname"
+										:data-fieldtype="col.fieldtype"
+										:data-invalid="
+											cellErrorLines(row, col).length ? '' : undefined
+										"
+										:class="[
+											alignClass(col.align),
+											{
+												'border-r border-outline-gray-2':
+													i < columns.length - 1,
+											},
+										]"
 									>
-										<span class="truncate px-2 py-1 text-sm text-ink-gray-7">
-											{{ row[col.fieldname] }}
-										</span>
-									</slot>
-								</div>
+										<slot
+											name="cell"
+											:row="row"
+											:column="col"
+											:index="rowIndex"
+											:value="row[col.fieldname]"
+											:update="(v: any) => updateCell(rowIndex, col, v)"
+											:commit="(v: any) => commitCell(rowIndex, col, v)"
+										>
+											<span
+												class="truncate px-2 py-1 text-sm text-ink-gray-7"
+											>
+												{{ row[col.fieldname] }}
+											</span>
+										</slot>
+									</div>
+									<template v-if="cellErrorLines(row, col).length" #content>
+										<div
+											v-for="(line, n) in cellErrorLines(row, col)"
+											:key="n"
+										>
+											{{ line }}
+										</div>
+									</template>
+								</Tooltip>
 								<div
 									class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
 									:style="{ right: '0' }"
@@ -225,7 +237,7 @@
 
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Button, Checkbox } from "frappe-ui";
+import { Button, Checkbox, Tooltip } from "frappe-ui";
 import {
 	InputLabel,
 	InputDescription,
@@ -467,7 +479,11 @@ function reorder(next: Record<string, any>[]) {
 	emit("change", next);
 }
 
-// In a read-only grid a row click opens the dialog (cells are `pointer-events-none`,
+function cellErrorLines(row: Record<string, any>, column: T): string[] {
+	return [props.cellError?.(row, column) ?? []].flat().filter(Boolean);
+}
+
+// In a read-only grid a row click opens the dialog (a cell's content is inert,
 // so the click reaches the row). Editable grids keep inline editing — only the edit
 // button opens the dialog there.
 function onRowClick(row: Record<string, any>, index: number) {
@@ -529,6 +545,19 @@ function onRowClick(row: Record<string, any>, index: number) {
 	padding-block: 0;
 	line-height: 34px;
 	resize: none;
+}
+
+/* Drawn over the cell, since the control's own background would hide an inset ring. */
+.grid-cell[data-invalid] {
+	position: relative;
+}
+
+.grid-cell[data-invalid]::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	box-shadow: inset 0 0 0 1px var(--outline-red-5);
+	pointer-events: none;
 }
 
 /* Kill the rubber-band when panning the grid. X axis only, else it would also
@@ -618,9 +647,12 @@ function onRowClick(row: Record<string, any>, index: number) {
 	outline: none !important;
 }
 
-/* Read-only grid: cells are `pointer-events-none`, which also smothers a readonly
- * Link's redirect/edit buttons. Restore pointer events on just those two and reveal
- * them on ROW hover (the pointer falls through to the row). They `@click.stop`. */
+/* Read-only grid: a cell's content is inert, so a click reaches the row and the cell keeps
+ * its hover. A readonly Link's redirect/edit buttons come back, shown on row hover. */
+.grid-disabled :deep(.grid-cell > *) {
+	pointer-events: none;
+}
+
 .grid-disabled .grid-cell :deep([data-slot="redirect"]),
 .grid-disabled .grid-cell :deep([data-slot="edit"]) {
 	pointer-events: auto;
