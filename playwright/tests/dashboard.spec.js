@@ -97,6 +97,48 @@ test.describe("Dashboard view", () => {
 		await expect(page.getByText(chart, { exact: true })).toBeVisible();
 	});
 
+	test("a dashboard the reader can see nothing on says so", async ({ page, desk, api }) => {
+		const dashboard = "TODO-TEST-DASHBOARD";
+		await page.goto("/desk");
+		await desk.ready();
+		await api.insert_doc(
+			"Dashboard Chart",
+			{
+				is_standard: 0,
+				chart_name: "TODO-YEARLY-TRENDS",
+				chart_type: "Count",
+				document_type: "ToDo",
+				based_on: "creation",
+				timespan: "Last Year",
+				time_interval: "Yearly",
+				timeseries: 1,
+				type: "Line",
+				filters_json: "[]",
+			},
+			true
+		);
+		await api.insert_doc(
+			"Dashboard",
+			{
+				name: dashboard,
+				dashboard_name: dashboard,
+				is_standard: 0,
+				charts: [{ chart: "TODO-YEARLY-TRENDS" }],
+			},
+			true
+		);
+		await page.route(
+			"**/api/method/frappe.desk.doctype.dashboard.dashboard.get_permitted_*",
+			(route) => route.fulfill({ json: { message: [] } })
+		);
+
+		await page.evaluate((name) => frappe.set_route("dashboard-view", name), dashboard);
+
+		await expect(
+			page.getByText("You don't have access to anything on this dashboard")
+		).toBeVisible();
+	});
+
 	test("a dashboard the reader cannot open clears the one drawn before", async ({
 		page,
 		desk,
