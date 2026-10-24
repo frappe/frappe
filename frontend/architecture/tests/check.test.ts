@@ -132,7 +132,7 @@ const doc = `
 | --- | --- |
 | \`vue\` | The shared package |
 
-## The five flows
+## The flows
 
 ### Save: edit a field and save
 

@@ -1,4 +1,4 @@
-// The one way to open Create for a doctype. The page layer registers the dialog, which picks
+// The one way to open Create for a doctype. `main.ts` registers the dialog, which picks
 // itself or the full-page new record; the shell keeps the open requests above any page.
 import { markRaw, readonly, shallowRef, type Component } from "vue";
 

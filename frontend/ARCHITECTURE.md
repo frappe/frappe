@@ -1,6 +1,6 @@
 # Desk v2 architecture
 
-This file is the map of desk v2: the layers, the concepts each layer keeps, and the five
+This file is the map of desk v2: the layers, the concepts each layer keeps, and the
 main flows. It covers `frontend/`, `ui/`, `frappe/shell/`, and the framework code and
 DocTypes the desk calls. A new reader can learn the whole desk from it in about an hour.
 
@@ -23,7 +23,7 @@ What lives elsewhere, and is not repeated here:
 
 - **A new concept needs a ruling.** A name that is not on its layer's list is either a
   cut or a new decision. The decision is made in a ticket, and the same PR that adds the
-  code adds the name here.
+  code adds the name here. A build PR does not mark the rows it builds *New* or *Changed*.
 - **A removed concept leaves in the PR that removes it.** So does a row in the gap list.
 - **A new layer, or a new "may use" edge between layers, needs a ruling.**
 - **Line count is never a measure here.** Simple means few concepts, one way to do each
@@ -78,8 +78,8 @@ dependencies, and their own files. They never use `frappe/shell/`, `frontend/`, 
 data, or record page words.
 
 - **The desk passes in what only the desk has**: the session, the CSRF token, the socket,
-  upload limits, and the invite address. `ui/` works, with a sensible default, when an
-  app passes none of them.
+  upload limits, the invite address, and Create through `CreateRecordKey`. `ui/` works,
+  with a sensible default, when an app passes none of them.
 - **Judge `ui/` by what it exports**, not by what the desk imports. "No app uses it
   today" is never a reason to cut or change something in `ui/`.
 - **The concept lists use the root index and the named subpaths** in `ui/package.json`.
@@ -117,7 +117,7 @@ cut or a `ui/` change reshapes them.
 | [`Navigation Item`](./CONTEXT.md#navigation-item) | A row's fields: key, parent, type, target, label, icon, anchors |
 | [`Navigation Item Type`](./CONTEXT.md#navigation-item-type) | Holds the rule for who can see a row of that type |
 | `Doctype View` | Saved list settings (columns, sort, quick filters), per person or per site |
-| `Form Layout` | A stored layout for a doctype's Details, Side Panel or Quick Entry, with an optional condition |
+| `Form Layout` | A stored layout for a doctype's Details, Side Panel, Quick Entry or New Record, with an optional condition. A Quick Entry or New Record row can also hold inline fields: DocField-shaped dicts beside the fieldnames, sent to the insert under their own names |
 | [`Client Script`](./CONTEXT.md#client-script) with `view = Record` | The table that holds the record page's stored scripts |
 | Client Script class check | On save, warns about CSS classes the build does not define. Reads the build's `classes.json` |
 | Client Script template compile | On save, compiles a script that holds `template:` and blocks the save on an error. On fetch, sends the compiled copy from the Redis cache. On a cache miss, it compiles with one `node` call per doctype. The record keeps the source only |
@@ -126,7 +126,8 @@ cut or a `ui/` change reshapes them.
 | Record address | The one address of a record under `/apps/<prefix>/`. `get_url_to_form`, emails and the desk all use it. *New: moves here from `frappe/shell/`* |
 | Realtime events | `doc_update`, `docinfo_update`, `doctype_update`, `list_update`, `client_script_changed` |
 | Doctype View routes | Get, save and reset a list's saved settings |
-| `get_form_layouts` | A doctype's stored Form Layouts of one type |
+| `get_form_layouts` | A doctype's stored Form Layouts of one type. With no row, Quick Entry falls back to the Quick Entry fields (the mandatory ones, those marked for Quick Entry, and those with a mandatory condition), and New Record falls back to the Details rows. A Quick Entry read also returns the `dialog` flag: whether Create opens a dialog or the full page. The two create types accept the create right or read |
+| `get_new_doc` | A new document of a doctype with its defaults, for a person with the create right. Nothing is saved |
 | `get_client_scripts` | A doctype's enabled stored scripts for one view, in run order, and whether the user may write scripts |
 | `report_customization_error` | One rate-limited Error Log row when a script fails on the record page |
 | `get_outgoing_senders` | The addresses the user may send email from |
@@ -178,8 +179,8 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Concept | What it is |
 | --- | --- |
 | Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`, `CodeError`) | *Changed.* Every `/api/v2` reply is `{ data }`; every failure is one error class. A compile error carries `codeErrors`: the field, line, column and message of each error in a Code field's text |
-| Request transport (`request`, `apiUrl`, `requestHeaders`) | *Changed.* The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself. A caller may set the browser's cache mode |
-| Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | *Changed.* Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry. `searchDocuments` can skip the browser's cached answer |
+| Request transport (`request`, `apiUrl`, `requestHeaders`) | The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself. A caller may set the browser's cache mode |
+| Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry. `searchDocuments` can skip the browser's cached answer |
 | Method calls (`runMethod`, `runDocumentMethod`) | Call a whitelisted method, or a method on one document |
 | `getMeta` | Fetch a doctype's meta |
 | Record parts (`getDocumentPart`, `addPart`, `removePart`, `updatePart`) | Read or change one named part of a record |
@@ -189,9 +190,9 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 | Session calls (`getSession`, `logout`, `getTranslations`) | The signed-in user, sign-out, and translations |
 | Data cache (`readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `documentKey`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `feedListError`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. It keeps 50 complete records while their replies add up to 32 MB or less, and it never drops the record read last, the open one. `feedListError` drops a list the server refused with a 403 or 404. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 200. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
-| Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | *Changed.* Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one. An empty doctype reads nothing |
-| Naming (`NEW_NAME`, `isNamedByPrompt`, `typedTextField`) | *New.* How a doctype names a new record: the insert key for a typed name, the prompt rule, and the field that typed text fills |
-| Filter prefill (`equalityValues`) | *New.* The values a new record starts with from the equality filters it was created under. The list's Create and a Link field's Create both use it |
+| Doctype meta store (`useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one. An empty doctype reads nothing |
+| Naming (`NEW_NAME`, `isNamedByPrompt`, `typedTextField`) | How a doctype names a new record: the insert key for a typed name, the prompt rule, and the field that typed text fills |
+| Filter prefill (`equalityValues`) | The values a new record starts with from the equality filters it was created under. The list's Create and a Link field's Create both use it |
 | Fresh-value hold (`holdFresh`, `landFresh`) | A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
 | Scroll landing (`landScroll`, `onScrollSettled`) | *New.* Puts a kept scroll offset back once the content is tall enough, and reports a scroll once it has stopped for 150 ms. The list and the record page keep their offsets with it |
@@ -212,13 +213,13 @@ component group, with its main names.
 | --- | --- |
 | `FormLayout` (`@framework/ui/FormLayout`: `FormLayout`, `FormLayoutSchema`, `Tab`, `Section`, `Column`, `FieldNode`) | *Changed.* Draws a form from a tabs, sections, columns and fields tree. Works out field access itself. A host may hold the chosen tab and the open sections |
 | Layout building (`buildLayoutFromMeta`, `compose`, `Decorator`, `fieldsToLayout`, `resolveLayout`, `evaluateDependsOn`) | Turns meta fields into a layout tree, and applies depends-on, hidden and overrides for one document |
-| Child rows (`useChildRowModel`, `newRowValues`, `NO_VALUE`) | *Changed.* The rows of a child table field, a new row's default values, and the fieldtypes that hold no value |
+| Child rows (`useChildRowModel`, `newRowValues`, `NO_VALUE`) | The rows of a child table field, a new row's default values, and the fieldtypes that hold no value |
 | Value formatting (`formatField`, `formatNumber`, `formatCurrency`, `flt`, `getFormatDefaults`, `setFormatDefaults`, `useDocValueReader`) | Formats numbers, currency and dates for display. `useDocValueReader` reads a Currency field's linked currency from the data cache, once per mount |
 | Field types (`registerFieldType`, `getFieldComponent`; `useFieldTypes` from `FormLayout`) | Maps a fieldtype to the component that draws it |
 | Form keys (`DocKey`, `ParentDocKey`, `UpdateKey`, `LinkTitlesKey`, `CodeErrorsKey`, `CreateRecordKey`) | *Changed.* How a field reads the document, writes a value, and shows link titles. `CodeErrorsKey` hands a host's compile errors to its top-level Code fields, which show them as lint marks. A null value cuts them off, as the record page's dialogs do. `CreateRecordKey` hands Link, Dynamic Link and Table MultiSelect fields the host's Create and create right; with none or null, they offer no Create, as in a filter's value input |
 | `TemplateNamesKey` | The component names a `template:` string can use with no `components:` entry. The Code field completes them. With no value, it completes Vue's built-in components only |
 | Change reports | *Changed.* What replaces `CommitKey` once the commit channel moves to `frontend/`. How a form tells its host that a value or a child row changed. Optional: a form works without a host |
-| `Link`, `Grid`, `Phone`, `TableMultiSelect` (`TableMultiSelectExposed`, `TableMultiSelectSlots`) | *Changed.* Field controls with their own pickers and tables. A creatable `Link` keeps its Create row last, whatever is typed. A creatable `TableMultiSelect` shows Create in its footer; its `focus` and `search` let `useLinkCreate` drive it as it drives `Link` |
+| `Link`, `Grid`, `Phone`, `TableMultiSelect` (`TableMultiSelectExposed`, `TableMultiSelectSlots`) | Field controls with their own pickers and tables. A creatable `Link` keeps its Create row last, whatever is typed. A creatable `TableMultiSelect` shows Create in its footer; its `focus` and `search` let `useLinkCreate` drive it as it drives `Link` |
 | `ActivityTimeline` (`@framework/ui/ActivityTimeline`: `ActivityTimeline`, `useActivityTimeline`, `reloadActivityTimeline`, `addPendingActivity`, `compareActivities`) | A record's activity feed, its row types, and one listener per record room for feed rows and docinfo |
 | `Composer` (`@framework/ui/Composer`: `CommentComposer`, `EmailComposer`) | Comment and email editors, and the payload each sends |
 | `FileUpload` (`@framework/ui/FileUpload`: `FileUploadDialog`, `AttachmentsList`, `UploadTray`, `useUploader`, `defaultTransport`, `registerUploadSource`, `UploadLimitsKey`) | Upload dialog, attachment list and tray, with a swappable transport and limits that have a default |
@@ -227,7 +228,7 @@ component group, with its main names.
 | `ColumnSettings` | Pick, order and size list columns |
 | `experimental/List` (`List`, `ListFooter`, `ListBulkBar`) | A virtual-scroll list with selection and a bulk bar |
 | `ListView` and `usePagedList` | An app's own paged list: rows a page at a time |
-| `useLinkSearch` | *Changed.* The server's matches for a link picker; the last answer wins. A fresh search skips the browser's cached answer |
+| `useLinkSearch` | The server's matches for a link picker; the last answer wins. A fresh search skips the browser's cached answer |
 | `Notifications` | The notification panel and its data |
 | `InviteUser` | Invite users. The app passes the address to land on |
 | `DataImport`, `Onboarding`, `SignupBanner`, `TrialBanner`, telemetry | App-level parts that know about a Frappe backend or Frappe Cloud |
@@ -243,8 +244,8 @@ component group, with its main names.
 | Route builders (`routeFor`, `routeForModule`, `routeForNew`, `urlFor`, `isModular`) | Build a link to a list, a record, a new record with its prefill values, or a module. Honour page replacements |
 | Shell slot (`registerShell`) | Holds boot, addresses and the router, so `routeFor` works without arguments |
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
-| Create right (`useCreateRight`) | *Changed.* Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again. The doctype may change, and an empty one is never creatable |
-| New record values (`fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | *New.* What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
+| Create right (`useCreateRight`) | Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again. The doctype may change, and an empty one is never creatable |
+| New record values (`fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
 | Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
@@ -272,14 +273,14 @@ component group, with its main names.
 | Composer drafts | Unsent comments and emails, per record and writer |
 | Composer registration | A record page registers its record, its dock and its writers, so the composer can outlive the page |
 | `ComposerWindow` | The composer card, docked or floating |
-| Create (`openCreate`, `CreateRequest`, `createRequests`, `registerCreateDialog`, `closeCreates`) | *Changed.* The one way to open Create for a doctype. The shell keeps the open requests above any page and closes them on a route change. The page layer registers the dialog that draws them. `main.ts` hands it to every Link field through `CreateRecordKey`, and a field's Create opens above the dialog it sits in |
+| Create (`openCreate`, `CreateRequest`, `createRequests`, `registerCreateDialog`, `closeCreates`) | The one way to open Create for a doctype. The shell keeps the open requests above any page and closes them on a route change. `main.ts` registers the page layer's dialog that draws them, and hands `openCreate` and the create right to Link, Dynamic Link and Table MultiSelect fields through `CreateRecordKey`. A field's Create opens above the dialog it sits in |
 | Socket (`createSocket`, `repairRooms`) | Opens the realtime socket and hands it to `ui/` |
 | Item lookup (`rendererFor`, `renderingOf`, `labelOf`, `iconOf`, `itemContext`) | Draws an item through its kind's renderer |
 | Current item (`navigationDestinations`, `currentFrom`) | Which rail item and sidebar the current address belongs to |
 | Section memory | Which sidebar sections a user opened or closed |
 | Sidebar memory | Which sidebar this tab last showed for an address |
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
-| Router (`createShellRouter`, `contributedRoutes`) | *Changed.* The route table from boot, addresses and page registrations. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
+| Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
 | Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows |
 | Failed page | Which page's code failed to load |
 
@@ -340,7 +341,7 @@ component group, with its main names.
 | `List`, `DoctypeList` | The standard list page, built on `useListPage` |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
-| New record page (`NewRecord`, `UnsavedRecord`, `NotSavedBadge`, `openingKey`) | *New.* The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
+| New record page (`NewRecord`, `UnsavedRecord`, `NotSavedBadge`, `openingKey`) | The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
 | `TileGridSkeleton` | The loading skeleton for Home and Module |
 | App pages | Pages an app contributes or uses as a replacement. They may import only the [import list](#9-customization) |
 
@@ -349,7 +350,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | Record page host (`Record.vue`) | Fills `RecordPageHost`: loads, saves, and wires layouts, feeds, tabs and the composer. `UnsavedRecord` is the second host, for a record before its first save |
-| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | *New.* The form's classes, the header row's projection, the "Discard unsaved changes?" question, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload, and the commit channel |
+| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | The form's classes, the header row's projection, the "Discard unsaved changes?" question, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload, and the commit channel |
 | Visit (`Visit`) | One object per visit to a record. Ending it aborts its reads, and a reply that belongs to an old visit is dropped |
 | Return-visit parts | *New.* Which record parts a return visit needs before it paints from memory |
 | Record source | The load, the parts re-read, the save, and a cached read |
@@ -389,10 +390,10 @@ the reference for each `page` member.
 | Field change handler | A fieldname key runs when that field's value changes |
 | Child [table handlers block](./CONTEXT.md#table-handlers-block) | Handlers under a table fieldname: field keys, `onAdd`, `onRemove` |
 | `SAVE_VETO` | Throwing in `beforeSave` cancels the save and keeps the draft |
-| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.isNew`, `page.doctype`, `page.docname`) | *Changed.* `page.isDirty` says whether the draft differs from the saved copy. `page.isNew` is true until the first save, and `page.save()` then inserts, also with no changes |
+| [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.isNew`, `page.doctype`, `page.docname`) | `page.isDirty` says whether the draft differs from the saved copy. `page.isNew` is true until the first save, and `page.save()` then inserts, also with no changes |
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
-| Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, navigate, show a toast |
+| Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.create()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, open Create for any doctype, navigate, show a toast. `page.create()` gives the saved record, or `null` |
 | `page.cached()` | *New.* Server data for `onRefresh`: the kept value at once, fetched once per visit |
 | [Surface](./CONTEXT.md#surface) verbs (`add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`, `Position`) | The same verbs on every list surface |
 | [Built-in](./CONTEXT.md#built-in) item names | The names a script hides or moves: frame, body, tabs, panel sections, actions, writers |
@@ -421,8 +422,8 @@ A script reaches the rest of the desk only through the `page` object it is hande
 
 | Concept | What it is |
 | --- | --- |
-| Start sequence (`start`) | Boot, then translations and icons without waiting, then addresses, contributions, standard pages, router, socket, and mount |
-| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, the invite address, the component names a template can use with no `components:` entry, and `__` and `__n` as globals in every component template |
+| Start sequence (`start`) | Boot, then translations and icons without waiting, and the Create dialog's registration, then addresses, contributions, standard pages, router, socket, and mount |
+| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, the invite address, Create for Link, Dynamic Link and Table MultiSelect fields through `CreateRecordKey`, the component names a template can use with no `components:` entry, and `__` and `__n` as globals in every component template |
 
 **The build**
 
@@ -478,14 +479,14 @@ Every way an app, a site admin or a user changes the desk, with the layer that h
 | Cross-app rail rows (app:key) | App | 2 | Navigation rows shipped by another app | Adds rows to another app's rail |  |  |
 | Base rail and sidebars | App | 1 | Rail and Sidebar records shipped with the app | The app's navigation |  |  |
 | Site rail and sidebar copy | Site | 1 | Rail and Sidebar site layer, or the customize dialog | Navigation for every user on the site |  |  |
-| Form Layout | Site | 1 | A Form Layout row | Details, Side Panel or Quick Entry layout | Stored script | A field can be hidden three ways: the layout, a script, or the DocType |
+| Form Layout | Site | 1 | A Form Layout row | Details, Side Panel, Quick Entry or New Record layout, and inline fields in the two create layouts | Stored script | A field can be hidden three ways: the layout, a script, or the DocType |
 | Doctype View (site) | Site | 1 | The list's column and sort panels, saved for the site | Default columns, sort and quick filters |  |  |
 | DocType and Customize Form | Site | 1 | DocType or Property Setter rows | Fields, labels, hidden, read-only |  |  |
 | Doctype View (user) | User | 1 | The list's column and sort panels | The user's own columns, sort and quick filters |  |  |
 | Arrangement (user) | User | 2 | The customize sidebar dialog | The user's order of rail and sidebar items |  |  |
 | Per-user rail and sidebar | User | 1 | Rail and Sidebar user layer | Rows the user hides or adds |  |  |
 
-## The five flows
+## The flows
 
 Each flow is written as it will be after the accepted cuts. Each step names its layer, its
 permission check, and its cache with the cache key. A check marked **browser** only
@@ -503,7 +504,7 @@ numbers. Every flow is also counted in files per flow and in timing guards.
 | 2 | An inline script sets the light or dark theme before the first paint | `index.html` | None | `localStorage` `theme` |
 | 3 | `main.ts` asks for boot and waits. A refusal shows the "no permission" page state | `main.ts`, 5, 3 | None in the browser | None |
 | 4 | The server builds boot: core keys, session, `metadata_version`, prefix map, and the rail and sidebars filtered for the user | 2, 1 | App permission; each navigation row filtered by readable doctypes, modules and pages | Session in Redis by session id; `metadata_version` and prefix map in the site cache; navigation not cached |
-| 5 | Translations and the icon sprite start, not awaited | 5 | None | HTTP cache, 1 year, by language and translation version. The sprite is a static file |
+| 5 | Translations and the icon sprite start, not awaited. `main.ts` registers the Create dialog | 5, 6 | None | HTTP cache, 1 year, by language and translation version. The sprite is a static file |
 | 6 | The address table loads, awaited | 5, 3, 2 | The user may enter at least one app | One server cache key, checked against `metadata_version`. HTTP cache, 1 year, by `metadata_version` |
 | 7 | `main.ts` registers the standard pages. Contributions register item kinds, app pages, replacements and handlers. The record page registers its icon and prop hooks | 5, 7, 8 | None | Browser memory, by item kind, by address kind and doctype, by doctype |
 | 8 | The router is built from boot, addresses and page registrations | 6 | None. The router checks only that an address names a known doctype | Browser memory |
@@ -551,6 +552,26 @@ visit, skeleton frames, time until usable, re-reads, paints.
 
 A record shown from memory after its access was removed is accepted. The same user saw
 that copy in the same tab, and the page shows "no permission" once the server replies.
+
+### Create: the Create button to the saved record
+
+| # | Step | Layer | Permission check | Cache and key |
+| --- | --- | --- | --- | --- |
+| 1 | The list and a Link field show Create when the person may create the doctype's records. `page.create()` opens Create with no check in the browser | 8, 7, 5, 4 | **Browser**: the create right, from the meta, the session roles and read-only mode | Meta by doctype, as in "Open a list" |
+| 2 | `openCreate` puts a request on the shell's stack. The Create dialog that `main.ts` registered draws it | 6, 8 | None | Open requests in browser memory. A route change closes them |
+| 3 | The dialog reads the Quick Entry layout and the new document's defaults (`get_new_doc`) in parallel | 8, 7, 5, 3, 1 | Layout: create or read on the doctype. Defaults: create on the doctype | Layouts by doctype and type, marked stale on `doctype_update`. Defaults not cached |
+| 4 | With no Quick Entry row, the server sends the Quick Entry fields. The `dialog` flag is off only with no row and a doctype that gets no dialog: no `quick_entry` flag, no field to show, or a mandatory table. Then the dialog never shows: the request resolves `null`, and the router opens `/<doctype>/new` with the values in the query | 1, 8, 6 | As step 3 | As step 3 |
+| 5a | Dialog: the form shows the layout, a name field for a doctype named by prompt, the defaults and the caller's values. Save, Ctrl/Cmd+Enter or Ctrl/Cmd+S inserts | 8, 7, 5, 4 | **Browser**: required fields | None |
+| 5b | Full page: the new record page reads the meta, the New Record layout, the stored scripts and the defaults. It reads the Quick Entry layout too when the address carries values. Its first save inserts | 8, 7, 5, 3 | As step 3. **Browser**: the create right, else the "no permission" page state | Layouts by doctype and type. Scripts as in the last flow |
+| 6 | The insert sends a typed name as `__newname`, never `name` | 5, 3, 1 | Create permission, the naming rule, field permission levels | None |
+| 7 | Dialog: the request resolves with the saved record after the close renders. The list re-reads its rows and shows a toast that links to the record. A Link field takes the name, and the title when the doctype shows titles in links. Full page: `onSaved` replaces the address with the saved record's | 8, 7, 6, 4, 3 | Read permission on the re-read | Data cache, by doctype and query |
+
+The layer file counts this flow's files from the new record page. The dialog loads on
+demand, so the count leaves it out.
+
+**Budget:** on a cold load of `/<doctype>/new`, time until usable, request count, JS size.
+For the dialog, the requests on its first open. The numbers are an open question:
+[Guardrails: a page-JS and API-call baseline for the new record page](https://github.com/frappe/frappe/issues/45059).
 
 ### Save: edit a field and save, to the saved state shown
 
@@ -638,7 +659,7 @@ fields. CI does not.
 
 1. Concepts added and removed, by name from the concept tables.
 2. Pairs of mechanisms that do the same job, added or removed.
-3. The change in files per flow: boot, open a list, open a record, save, load a script.
+3. The change in files per flow, for each flow in `flowEntries` in the layer file.
 4. The change in API calls and JS bytes for each page the PR touches.
 5. The permission check for each new way in to the server or the data.
 6. The cache key and the clear rule for each new cache.

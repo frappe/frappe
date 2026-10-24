@@ -39,7 +39,7 @@ exist to prevent. This doc adds only the `DP*` principles specific to the desk l
   **surface**, a **Client Script** mean. PHILOSOPHY is the *rules* that use the vocabulary.
   Not yet written.
 - **`ARCHITECTURE.md`** is the *map*: the layers, the closed list of concepts each layer
-  keeps, and the five main flows. PHILOSOPHY gives the reasons; ARCHITECTURE says where
+  keeps, and the main flows. PHILOSOPHY gives the reasons; ARCHITECTURE says where
   each thing sits.
 - **`SCRIPTING.md`** is the *reference* — what `page` offers a Client Script, region by
   region, with the script each region's design was judged by as its worked example.

@@ -67,8 +67,8 @@ function drawFlow() {
 		["<code>ARCHITECTURE.md</code>"]
 	)}</p>
 		<h3>${__("Source")}</h3><p>${sourceLink(
-		`${DATA.architecture}#the-five-flows`,
-		__("{0}, the five flows", ["ARCHITECTURE.md"])
+		`${DATA.architecture}#the-flows`,
+		__("{0}, the flows", ["ARCHITECTURE.md"])
 	)}</p>`;
 }
 
