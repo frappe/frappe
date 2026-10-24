@@ -49,6 +49,14 @@ ONE_CLICK_PROVIDERS: dict[Provider, dict] = {
 		"label": "Gmail",
 		"service": "GMail",
 		"servers": {"email_server": "imap.gmail.com", "smtp_server": "smtp.gmail.com"},
+		# the user can untick mail access on Google's consent screen; the token's scope says what was granted
+		"required_scopes": ("https://mail.google.com/",),
+		"errors": {
+			"sign_in": {"admin_approval": ("admin_policy_enforced",)},
+			"save": {
+				"imap_disabled": ("IMAP access is disabled for your domain", "not enabled for IMAP use")
+			},
+		},
 	},
 	"yahoo": {
 		"label": "Yahoo",
@@ -226,7 +234,7 @@ def connect_mailbox(
 ) -> tuple[str, str | None]:
 	"""Return the result code, and the address signed in to once the provider has given it."""
 	if error:
-		if result := matched_error(note["provider"], "sign_in", error_description):
+		if result := matched_error(note["provider"], "sign_in", f"{error}: {error_description}"):
 			return result, None
 		if error == "access_denied":
 			return "cancelled", None
@@ -262,6 +270,8 @@ def connect_mailbox(
 		claims = jwt.decode(token["id_token"], options={"verify_signature": False})
 	email = claims.get("email") or claims["preferred_username"]
 	personal = "personal_tenant" in config and claims.get("tid") == config["personal_tenant"]
+	if "scope" in token and not set(config.get("required_scopes", ())) <= set(token["scope"].split()):
+		return "missing_permission", email
 	if account_name := note.get("email_account"):
 		if not account_email:
 			return "failed", email

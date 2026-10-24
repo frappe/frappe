@@ -190,6 +190,18 @@ function show_email_oauth_result(code, mailbox, provider) {
 				"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."
 			),
 		},
+		google: {
+			admin_approval: __(
+				"Your Google Workspace admin has blocked Frappe. Ask them to allow it under Security > API controls in the Google Admin console."
+			),
+			imap_disabled:
+				__(
+					"IMAP is turned off for this mailbox. Turn it on in Gmail settings under Forwarding and POP/IMAP, or ask your Google Workspace admin."
+				) +
+				` <a href="https://mail.google.com/mail/u/0/#settings/fwdandpop" target="_blank">${__(
+					"Open Gmail settings"
+				)}</a>`,
+		},
 		yandex: {
 			imap_disabled:
 				__(
@@ -210,6 +222,9 @@ function show_email_oauth_result(code, mailbox, provider) {
 		),
 		imap_disabled: __(
 			"IMAP is turned off for this mailbox. Turn it on in your mail settings or ask your admin."
+		),
+		missing_permission: __(
+			"Frappe wasn't allowed to read and send your email. Sign in again and allow access to your mail."
 		),
 		already_connected: __("This mailbox is already connected."),
 		wrong_mailbox: __(
