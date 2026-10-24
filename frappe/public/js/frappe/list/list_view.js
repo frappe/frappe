@@ -1123,13 +1123,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		this.prune_checked_docnames();
-		this.capture_column_widths_from_dom();
+		const refresh_header = this._refresh_header_on_render || this._pending_initial_header;
+		if (!refresh_header) {
+			this.capture_column_widths_from_dom();
+		}
 
 		// clear rows
 		this.$result.find(".list-row-container").remove();
 		this.$result.find(".list-virtual-spacer").remove();
 		this.parent.page.main.parent().addClass("list-view");
-		const refresh_header = this._refresh_header_on_render || this._pending_initial_header;
 		this.render_header(refresh_header);
 		if (refresh_header) {
 			this._header_rendered_in_list = true;
