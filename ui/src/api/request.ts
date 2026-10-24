@@ -113,11 +113,22 @@ function encodeQueryValue(value: unknown): string {
   return typeof value === "object" ? JSON.stringify(value) : String(value);
 }
 
-function parseBody(text: string): unknown {
+/** A reply's JSON, or `null` when it is empty or not JSON. */
+export function parseBody(text: string): unknown {
   if (!text) return null;
   try {
-    return JSON.parse(text);
+    return LONG_DIGIT_RUN.test(text) ? JSON.parse(text, keepLongInteger) : JSON.parse(text);
   } catch {
     return null;
   }
+}
+
+const LONG_DIGIT_RUN = /\d{16}/;
+
+// An integer past `MAX_SAFE_INTEGER` would round, so it stays a digit string, as `parseLongInt`
+// commits a Long Int. With no `context` (Chrome < 114, Firefox < 135, Safari < 18.4) it rounds.
+function keepLongInteger(_key: string, value: unknown, context?: { source?: string }): unknown {
+  if (typeof value !== "number" || Number.isSafeInteger(value)) return value;
+  const source = context?.source;
+  return source && /^-?\d+$/.test(source) ? source : value;
 }

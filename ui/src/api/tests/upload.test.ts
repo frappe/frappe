@@ -35,7 +35,7 @@ class FakeXHR {
     const { status, body } = FakeXHR.respond(index);
     this.readyState = 4;
     this.status = status;
-    this.responseText = JSON.stringify(body);
+    this.responseText = typeof body === "string" ? body : JSON.stringify(body);
     this.onreadystatechange?.();
   }
 }
@@ -81,6 +81,12 @@ describe("uploadFile", () => {
     expect(FakeXHR.sent.map((s) => s.form.get("chunk_byte_offset"))).toEqual(["0", "4", "8"]);
     expect(FakeXHR.sent[0].form.get("total_chunk_count")).toBe("3");
     expect(FakeXHR.sent[0].form.get("total_file_size")).toBe("10");
+  });
+
+  it("keeps an integer past 2^53 in the answer as its digit string", async () => {
+    FakeXHR.respond = () => ({ status: 200, body: '{"data":{"name":"file-1","file_size":9007199254740993}}' });
+    const { data } = await uploadFile(new File(["x"], "x.txt"));
+    expect(data.file_size).toBe("9007199254740993");
   });
 
   it("refuses a last part that answers with no data, naming the route", async () => {

@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { apiUrl, request, requestHeaders } from "../request";
+import { apiUrl, parseBody, request, requestHeaders } from "../request";
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -132,5 +132,43 @@ describe("request", () => {
     const controller = new AbortController();
     await request("GET", "/method/ping", { signal: controller.signal });
     expect(fetchMock.mock.calls[0][1]?.signal).toBe(controller.signal);
+  });
+});
+
+describe("parseBody", () => {
+  afterEach(() => vi.restoreAllMocks());
+
+  it("keeps an integer past 2^53 as its digit string", () => {
+    expect(parseBody('{"data":{"big":9007199254740993,"low":-9007199254740993}}')).toEqual({
+      data: { big: "9007199254740993", low: "-9007199254740993" },
+    });
+  });
+
+  it("leaves a safe integer, a float and a long string as they are", () => {
+    expect(parseBody('{"n":9007199254740991,"f":12345678901234567.5,"e":1e20,"s":"12345678901234567"}')).toEqual({
+      n: 9007199254740991,
+      f: 12345678901234567.5,
+      e: 1e20,
+      s: "12345678901234567",
+    });
+  });
+
+  it("parses a reply with no run of 16 digits without the reviver", () => {
+    const parse = vi.spyOn(JSON, "parse");
+    expect(parseBody('{"data":{"n":123456789012345}}')).toEqual({ data: { n: 123456789012345 } });
+    expect(parse).toHaveBeenCalledWith('{"data":{"n":123456789012345}}');
+  });
+
+  it("rounds as before on a browser that gives the reviver no context", () => {
+    const parse = JSON.parse;
+    vi.spyOn(JSON, "parse").mockImplementation((text, reviver) =>
+      parse(text, reviver && ((key, value) => reviver(key, value)))
+    );
+    expect(parseBody('{"big":9007199254740993}')).toEqual({ big: 9007199254740992 });
+  });
+
+  it("answers null for an empty or non-JSON reply", () => {
+    expect(parseBody("")).toBeNull();
+    expect(parseBody("<html>12345678901234567</html>")).toBeNull();
   });
 });
