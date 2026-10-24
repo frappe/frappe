@@ -31,7 +31,7 @@ test.describe("Flow launcher", () => {
 		await api.call(SET_HIDDEN, { hidden: false });
 	});
 
-	test("opens Flow in a panel that Ctrl+I minimizes and × closes", async ({ page, desk }) => {
+	test("opens Flow in a panel that Ctrl+I minimizes and × closes", async ({ page }) => {
 		await icon(page).click();
 		await expect(panel(page)).not.toHaveAttribute("inert");
 		await expect(icon(page)).toBeHidden();
@@ -52,17 +52,14 @@ test.describe("Flow launcher", () => {
 		await expect(launcher(page).locator("iframe")).toHaveAttribute("src", "/flow?new=1");
 		expect(await (await chat(page)).evaluate(() => window.marked)).toBeUndefined();
 
-		// full screen takes the first Back, the page the next one
-		await page.goto("/desk/note");
-		await desk.ready();
-		const note = page.url();
+		// Back from full screen goes back and shows the page
+		await page.evaluate(() => frappe.set_route("List", "Note"));
+		await expect(page).toHaveURL(/note/);
 		await panel(page).getByRole("button", { name: "Full screen" }).click();
 		await expect(panel(page)).toHaveAttribute("data-mode", "full");
 		await page.goBack();
-		await expect(panel(page)).not.toHaveAttribute("data-mode", "full");
-		expect(page.url()).toBe(note);
-		await page.goBack();
 		await expect(page).toHaveURL(/todo/);
+		await expect(panel(page)).not.toHaveAttribute("data-mode", "full");
 	});
 
 	test("keeps the icon hidden on every page until Undo", async ({ page, desk }) => {

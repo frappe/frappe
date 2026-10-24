@@ -52,7 +52,6 @@ class FlowLauncher {
 	constructor() {
 		this.state = load_state();
 		this.turned_off = false; // hidden by the user on this page
-		this.covering = false; // full screen and open, with a history entry of its own
 		this.make();
 		this.bind();
 		this.place();
@@ -147,7 +146,7 @@ class FlowLauncher {
 		this.panel.querySelector(".close").addEventListener("click", () => this.close());
 		window.addEventListener("resize", () => this.place());
 		window.addEventListener("pagehide", () => this.save());
-		window.addEventListener("popstate", () => this.leave_full_on_back());
+		window.addEventListener("popstate", () => this.leave_full());
 	}
 
 	open({ focus = true } = {}) {
@@ -172,7 +171,6 @@ class FlowLauncher {
 		this.panel.inert = true;
 		this.icon.hidden = this.turned_off;
 		if (focused) this.icon.focus();
-		this.sync_history();
 		this.save();
 	}
 
@@ -341,22 +339,11 @@ class FlowLauncher {
 		}
 		this.panel.dataset.mode = full ? "full" : side || "float";
 		this.update_buttons();
-		this.sync_history();
 	}
 
-	// full screen covers the page, so the first Back leaves it rather than the page under it
-	sync_history() {
-		const covering = this.state.open && this.state.full;
-		if (covering === this.covering) return;
-		this.covering = covering;
-		const marked = history.state?.flow_full === true;
-		if (covering && !marked) history.pushState({ ...history.state, flow_full: true }, "");
-		else if (!covering && marked) history.back();
-	}
-
-	leave_full_on_back() {
-		if (!this.covering || history.state?.flow_full) return;
-		this.covering = false;
+	// Back moves the page under full screen, so step aside to show it
+	leave_full() {
+		if (!this.state.open || !this.state.full) return;
 		this.state.full = false;
 		this.place();
 		this.save();
