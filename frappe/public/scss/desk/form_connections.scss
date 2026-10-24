@@ -1,0 +1,56 @@
+.form-connections {
+	.form-connections-list {
+		display: flex;
+		flex-direction: column;
+		gap: calc(var(--spacing) * 0.5);
+		// rows bleed into the padding so icons line up with the heading's
+		margin: var(--spacing) calc(var(--spacing) * -1.5) 0;
+	}
+
+	.form-connections-item {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--margin-sm);
+		width: 100%;
+		height: calc(var(--spacing) * 7);
+		padding: 0 calc(var(--spacing) * 1.5);
+		border: none;
+		border-radius: var(--radius);
+		background: transparent;
+		color: var(--ink-gray-7);
+		text-align: start;
+		cursor: pointer;
+		--icon-stroke: var(--ink-gray-6);
+
+		&:hover {
+			background-color: var(--surface-gray-2);
+		}
+
+		&:focus-visible {
+			outline: none;
+			box-shadow: var(--focus-default);
+		}
+
+		.form-sidebar-label {
+			min-width: 0;
+		}
+	}
+
+	.form-connections-count {
+		flex: none;
+		font-size: var(--text-xs);
+		color: var(--ink-gray-5);
+	}
+}
+
+.connections-panel {
+	.connections-empty {
+		flex: 1;
+	}
+
+	// room for the search box's focus ring, which the scrolling body would clip
+	.connections-records {
+		padding-top: calc(var(--spacing) * 0.75);
+	}
+}

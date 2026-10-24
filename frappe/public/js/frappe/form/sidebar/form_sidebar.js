@@ -3,6 +3,7 @@ import "./attachments";
 import "./share";
 import "./user_image";
 import "./form_sidebar_users";
+import "./form_sidebar_connections";
 import { get_user_link, get_user_message } from "../footer/version_timeline_content_builder";
 
 frappe.ui.form.Sidebar = class {
@@ -33,6 +34,7 @@ frappe.ui.form.Sidebar = class {
 		this.make_shared();
 
 		this.make_tags();
+		this.make_connections();
 
 		this.setup_keyboard_shortcuts();
 		this.show_auto_repeat_status();
@@ -212,6 +214,13 @@ frappe.ui.form.Sidebar = class {
 			on_change: function (user_tags) {
 				this.frm.tags && this.frm.tags.refresh(user_tags);
 			},
+		});
+	}
+
+	make_connections() {
+		this.connections = new frappe.ui.form.SidebarConnections({
+			frm: this.frm,
+			wrapper: this.sidebar.find(".form-connections"),
 		});
 	}
 
