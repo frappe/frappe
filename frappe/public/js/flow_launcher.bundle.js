@@ -146,6 +146,7 @@ class FlowLauncher {
 		this.panel.querySelector(".close").addEventListener("click", () => this.close());
 		window.addEventListener("resize", () => this.place());
 		window.addEventListener("pagehide", () => this.save());
+		window.addEventListener("popstate", () => this.leave_full());
 	}
 
 	open({ focus = true } = {}) {
@@ -338,6 +339,14 @@ class FlowLauncher {
 		}
 		this.panel.dataset.mode = full ? "full" : side || "float";
 		this.update_buttons();
+	}
+
+	// Back moves the page under full screen, so step aside to show it
+	leave_full() {
+		if (!this.state.open || !this.state.full) return;
+		this.state.full = false;
+		this.place();
+		this.save();
 	}
 
 	drag_icon(event) {
