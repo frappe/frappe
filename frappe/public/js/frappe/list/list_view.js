@@ -482,7 +482,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.list_view_settings = list_view_settings;
 
 		await this.setup_columns();
-		this.refresh();
+		this.refresh_column_widths();
 	}
 
 	refresh(refresh_header = false) {
@@ -733,26 +733,17 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 		if (!fields || !fields.length) return this.columns;
 
-		// title field is fixed — but still honour any saved width from settings
+		// title field is fixed
 		const subjectCol = this.columns[0];
-		const subjectSettings = fields.find((f) => f.fieldname === subjectCol.df?.fieldname);
-		if (subjectSettings?.width) {
-			subjectCol.df.width = subjectSettings.width;
-		}
 		fields_order.push(subjectCol);
 		this.columns.splice(0, 1);
 
 		for (const field of fields) {
 			for (const column of this.columns) {
 				if (column.type == "Status" && field.fieldname == "status_field") {
-					if (field.width) {
-						column.df = column.df || { fieldname: "status_field" };
-						column.df.width = field.width;
-					}
 					fields_order.push(column);
 					break;
 				} else if (column.type == "Field" && field.fieldname === column.df.fieldname) {
-					if (field.width) column.df.width = field.width;
 					fields_order.push(column);
 					break;
 				}
@@ -1008,55 +999,37 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	save_column_width(fieldname, width) {
-		if (
-			this.list_filter?.active_layout_name &&
-			this.list_filter.active_layout_name !== "default_layout"
-		) {
-			const layout = this.list_filter.get_active_layout();
-			if (!layout || !this.list_filter.can_edit_layout(layout)) return;
-			const columns = this.list_filter.get_current_columns_state();
-			const column = columns.find((row) => row.fieldname === fieldname);
-			if (column) column.width = width;
-			this.list_filter.update_layout_columns(layout, columns);
-			return;
-		}
+		this.save_user_column_widths({ ...this.get_user_column_widths(), [fieldname]: width });
+	}
 
-		let fields;
+	/** The user's own widths are kept per layout, and under "default_layout" for the default list. */
+	get_user_column_widths(layout_name = this.get_layout_name()) {
+		const column_widths = frappe.get_user_settings(this.doctype, this.view_name).column_widths;
+		return column_widths?.[layout_name] || {};
+	}
 
-		if (this.list_view_settings?.fields) {
-			fields = JSON.parse(this.list_view_settings.fields);
-		} else {
-			// No saved field order yet — build it from current columns
-			fields = this.columns
-				.filter((col) => col.type !== "Tag")
-				.map((col) => {
-					if (col.type === "Status") {
-						return { fieldname: "status_field", label: __("Status") };
-					}
-					return { fieldname: col.df?.fieldname, label: col.df?.label || "" };
-				})
-				.filter((f) => f.fieldname);
-		}
-
-		const field = fields.find((f) => f.fieldname === fieldname);
-		if (field) {
-			field.width = width;
-		}
-
-		frappe.call({
-			method: "frappe.desk.doctype.list_view_settings.list_view_settings.save_listview_settings",
-			args: {
-				doctype: this.doctype,
-				listview_settings: {
-					...(this.list_view_settings || {}),
-					fields: JSON.stringify(fields),
-				},
-				removed_listview_fields: [],
-			},
-			callback: (r) => {
-				this.list_view_settings = r.message.listview_settings;
-			},
+	save_user_column_widths(widths, layout_name = this.get_layout_name()) {
+		const column_widths = frappe.get_user_settings(this.doctype, this.view_name).column_widths;
+		return this.save_view_user_settings({
+			column_widths: { ...column_widths, [layout_name]: widths },
 		});
+	}
+
+	get_layout_name() {
+		return this.list_filter?.get_active_layout()?.name || "default_layout";
+	}
+
+	async reset_column_widths() {
+		await this.save_user_column_widths({});
+		this.refresh_column_widths();
+	}
+
+	refresh_column_widths() {
+		this.column_max_widths = {};
+		// render_list keeps the widths it reads off the header, so drop the old header first
+		this.$result.find(".list-row-head").remove();
+		this.last_args = null;
+		return this.refresh();
 	}
 
 	before_render() {
@@ -1672,7 +1645,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		if (this.list_view_settings?.disable_scrolling) return;
 		const MIN_WIDTH = 50;
 		const MAX_WIDTH = 400;
-		Object.entries(this.column_max_widths).forEach(([fieldname, width]) => {
+		const widths = { ...this.column_max_widths, ...this.get_user_column_widths() };
+		Object.entries(widths).forEach(([fieldname, width]) => {
 			const clamped = Math.min(MAX_WIDTH, Math.max(MIN_WIDTH, width));
 			this.$result.find(`.level-left .list-row-col[data-fieldname="${fieldname}"]`).css({
 				width: clamped,
@@ -2712,6 +2686,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			action: () => {
 				this.make_group_by_fields_modal();
 			},
+			standard: true,
+		});
+
+		items.push({
+			label: __("Reset Column Widths", null, "Button in list view menu"),
+			action: () => this.reset_column_widths(),
+			condition: () => this.view_name === "List" && !frappe.is_mobile(),
 			standard: true,
 		});
 

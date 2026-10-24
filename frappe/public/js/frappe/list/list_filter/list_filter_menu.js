@@ -358,33 +358,6 @@ export const ListFilterMenu = {
 			.then(finish, finish);
 	},
 
-	/** Build current visible columns state for layout persistence. */
-	get_current_columns_state() {
-		const columns = this.list_view.columns || [];
-		return columns
-			.filter((col) => col.type !== "Tag")
-			.map((col) => {
-				if (col.type === "Status") {
-					return {
-						fieldname: "status_field",
-						label: __("Status"),
-						width:
-							this.list_view.column_max_widths?.status_field ||
-							col.df?.width ||
-							null,
-					};
-				}
-				const fieldname = col.df?.fieldname;
-				if (!fieldname) return null;
-				return {
-					fieldname,
-					label: col.df?.label || fieldname,
-					width: this.list_view.column_max_widths?.[fieldname] || col.df?.width || null,
-				};
-			})
-			.filter(Boolean);
-	},
-
 	open_manage_layouts_dialog() {
 		new ManageLayoutsDialog({ list_filter: this });
 	},
