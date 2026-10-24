@@ -3,7 +3,7 @@
 		<!-- set apart from a list's icon, which would otherwise read as one more button -->
 		<div
 			v-if="!flow.state.sidebarOpen"
-			:class="list ? 'max-md:-mr-2' : 'md:mr-1.5'"
+			:class="list ? 'max-md:hidden' : 'md:mr-1.5'"
 			class="flex items-center gap-2"
 		>
 			<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
