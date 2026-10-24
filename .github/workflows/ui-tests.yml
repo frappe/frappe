@@ -284,6 +284,9 @@ jobs:
     needs: success
     if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/develop' }}
     runs-on: ubuntu-latest
+    concurrency:
+      group: develop-status-all
+      cancel-in-progress: false
     permissions:
       contents: read
       actions: read
