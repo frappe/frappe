@@ -106,3 +106,48 @@ and refetches."
 — "If I set a **Quick Filter** for Status, does the Status **Filter** update too?"
 — "Yes — a Quick Filter is a projection over Filters; they describe the same
 condition and stay in sync once the shared composable lands."
+
+# Email Accounts (shared @framework/ui)
+
+The settings panel for a site's mailboxes (`EmailAccounts/`), shared so any app can host it.
+
+## Language
+
+**Email Account**:
+A mailbox the site sends from or receives into, as Frappe's Email Account doctype stores it.
+_Avoid_: email config, email setup.
+
+**One-click sign-in**:
+Connecting a mailbox by signing in to its provider through Frappe Cloud
+(`email_oauth.initiate_mailbox_connect`), with no password or OAuth app to set up. Only on
+Frappe Cloud v2 sites, which the host tells the panel from its boot (`is_v2_site` on `window`, or
+in `frappe.boot` in Desk). The panel asks the site which services can sign in this way
+(`email_oauth.get_one_click_services`, cached for 10 minutes). Picking one of those services signs
+in; any other opens the form. When
+Frappe Cloud can't sign the service in right now, the panel opens the form with a note saying so.
+_Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
+
+**Auth kind**:
+How an account authenticates: **Password**, **Frappe Mail** (API key), **OAuth** (one-click
+sign-in, whose Connected App's token URI starts with `frappe-cloud-relay:`), or
+**OAuth: custom app** (a Connected App the site set up itself).
+
+**Account status**:
+An account's state, shown on its card in the list. **Needs reconnect**: an OAuth account
+with no token left (Frappe drops the token when the provider rejects its refresh); its card
+has a badge and a Reconnect footer instead of the toggles. Anything else is **Active**, and
+its card's **Receive** and **Send** toggles say which way it works, with a **Disabled** badge
+when both are off.
+
+**Reconnect**:
+Signing an existing OAuth account in again, from its edit screen or its Desk form, which moves
+it to a fresh token without creating a new account. An **OAuth** account runs one-click
+sign-in again, only on Frappe Cloud v2 sites; elsewhere it is reconnected in Desk. An
+**OAuth: custom app** account runs its own Connected App's flow
+(`initiate_web_application_flow`) as its connected user, on any site; signing in for another
+user needs write access to the Connected App.
+_Avoid_: re-authorize (Desk's name for a custom app's flow).
+
+**Default incoming / Default outgoing**:
+The one account replies come into and the one account mail is sent from, picked once for
+the whole list rather than on each account.
