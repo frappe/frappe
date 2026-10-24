@@ -18,9 +18,19 @@ from frappe.core.api.file import (
 	move_file,
 	unzip_file,
 )
+<<<<<<< HEAD
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed
 from frappe.core.doctype.file.utils import get_corrupted_image_msg, get_extension
 from frappe.desk.form.utils import add_comment
+=======
+from frappe.core.doctype.file.exceptions import FileTypeNotAllowed, MaxFileSizeReachedError
+from frappe.core.doctype.file.utils import (
+	get_corrupted_image_msg,
+	get_extension,
+	get_web_image,
+)
+from frappe.desk.form.utils import add_comment, remove_attach
+>>>>>>> 21e3a29 (fix: enforce max file size on chunked uploads)
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
 from frappe.utils import get_files_path, set_request
@@ -969,6 +979,46 @@ class TestFile(IntegrationTestCase):
 
 			if hasattr(frappe.local, "request"):
 				del frappe.local.request
+
+
+class TestChunkedUpload(IntegrationTestCase):
+	def setUp(self):
+		self.enterContext(self.change_settings("System Settings", {"max_file_size": 1}))
+		self.temp_path = get_files_path(".temp-chunked_upload.txt", is_private=1)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.form_dict.clear)
+		self.addCleanup(lambda: os.path.exists(self.temp_path) and os.remove(self.temp_path))
+		frappe.set_user("test@example.com")
+
+	def upload_chunk(self, index, size, total_file_size):
+		from io import BytesIO
+
+		from werkzeug.test import EnvironBuilder
+		from werkzeug.wrappers import Request
+
+		from frappe.handler import upload_file
+
+		data = {"file": (BytesIO(b"a" * size), "chunked_upload.txt")}
+		frappe.local.request = Request(EnvironBuilder(method="POST", data=data).get_environ())
+		frappe.form_dict.update(
+			chunk_index=index, total_chunk_count=1000, chunk_byte_offset=0, total_file_size=total_file_size
+		)
+		return upload_file()
+
+	def test_chunk_within_max_file_size_is_kept(self):
+		self.upload_chunk(0, size=10, total_file_size=20)
+		self.assertTrue(os.path.exists(self.temp_path))
+
+	def test_chunks_beyond_max_file_size_are_rejected(self):
+		with self.assertRaises(MaxFileSizeReachedError):
+			for index in range(200):
+				self.upload_chunk(index, size=8000, total_file_size=20)
+		self.assertFalse(os.path.exists(self.temp_path))
+
+	def test_declared_size_beyond_max_file_size_is_rejected(self):
+		with self.assertRaises(MaxFileSizeReachedError):
+			self.upload_chunk(0, size=10, total_file_size=2 * 1024 * 1024)
+		self.assertFalse(os.path.exists(self.temp_path))
 
 
 @contextmanager
