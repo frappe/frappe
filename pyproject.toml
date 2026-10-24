@@ -9,6 +9,7 @@ readme = "README.md"
 dynamic = ["version"]
 dependencies = [
     # core dependencies
+    "certifi>=2026.10.19",
     "Babel~=2.18.0",
     "Click~=8.5.0",
     "filelock~=4.1.1",
