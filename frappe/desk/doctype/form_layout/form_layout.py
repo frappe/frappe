@@ -18,6 +18,7 @@ class FormLayout(Document):
 	def validate(self):
 		self.validate_single_default()
 		self.name_layout()
+		self.validate_inline_fields()
 		self.validate_names_are_not_fields()
 
 	def on_update(self):
@@ -33,11 +34,26 @@ class FormLayout(Document):
 		"""Refuse a tab or section named like a data field; a script addresses both by one name."""
 		if not self.layout:
 			return
-		fieldnames = data_fieldnames(self.dt)
-		for tab in parse_layout(self.layout):
+		tabs = parse_layout(self.layout)
+		fieldnames = data_fieldnames(self.dt) | {field["fieldname"] for field in inline_fields(tabs)}
+		for tab in tabs:
 			refuse_field_name(_("Tab"), tab["name"], fieldnames, self.dt)
 			for section in tab["sections"]:
 				refuse_field_name(_("Section"), section["name"], fieldnames, self.dt)
+
+	def validate_inline_fields(self):
+		"""Refuse an inline field outside a create layout, without a name or type, or over a writable field."""
+		if not self.layout:
+			return
+		fields = inline_fields(parse_layout(self.layout))
+		if fields and self.type not in CREATE_LAYOUT_TYPES:
+			frappe.throw(
+				_("Only a Quick Entry or New Record layout can define a field of its own."),
+				title=_("Invalid Layout"),
+			)
+		meta = frappe.get_meta(self.dt)
+		for field in fields:
+			validate_inline_field(field, meta)
 
 	def name_layout(self):
 		"""Name every container at write time, so a label edit cannot rename what a script addresses."""
@@ -256,6 +272,35 @@ def assign_names(nodes: list, kind: str):
 def data_fieldnames(dt: str) -> set[str]:
 	"""Every fieldname a script may hand to `page.fields`; a layout break is a section's own name."""
 	return {field.fieldname for field in frappe.get_meta(dt).fields if field.fieldtype not in LAYOUT_BREAKS}
+
+
+def inline_fields(tabs: list) -> list[dict]:
+	"""The fields a layout defines itself: DocField-shaped dicts beside the fieldnames."""
+	return [
+		field
+		for tab in tabs
+		for section in tab["sections"]
+		for column in section["columns"]
+		for field in column["fields"]
+		if isinstance(field, dict)
+	]
+
+
+def validate_inline_field(field: dict, meta) -> None:
+	fieldname, fieldtype = field.get("fieldname"), field.get("fieldtype")
+	if not (fieldname and fieldtype and isinstance(fieldname, str) and isinstance(fieldtype, str)):
+		frappe.throw(
+			_("A field defined in the layout needs a fieldname and a fieldtype."),
+			title=_("Invalid Layout"),
+		)
+	docfield = meta.get_field(fieldname)
+	if docfield and not docfield.read_only:
+		frappe.throw(
+			_("{0} is already a field of {1}. Add it to the layout by its fieldname.").format(
+				frappe.bold(fieldname), meta.name
+			),
+			title=_("Invalid Layout"),
+		)
 
 
 def refuse_field_name(kind: str, name: str, fieldnames: set[str], dt: str):

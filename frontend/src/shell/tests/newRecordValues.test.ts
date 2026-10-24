@@ -8,6 +8,7 @@ import { layoutFromFields } from "@/recordPage/formDialogLayout";
 import {
 	fieldDefaults,
 	fillEmpty,
+	inlineQueryValues,
 	insertBody,
 	queryValues,
 	typedValues,
@@ -182,5 +183,23 @@ describe("queryValues", () => {
 	it("keeps a prompt name only for a doctype named by prompt", () => {
 		expect(queryValues({ [NEW_NAME]: "SI-X" }, meta)).toEqual({});
 		expect(queryValues({ [NEW_NAME]: "SI-X" }, { ...meta, autoname: "Prompt" })).toEqual({ [NEW_NAME]: "SI-X" });
+	});
+});
+
+describe("inlineQueryValues", () => {
+	const meta = {
+		name: "Customer",
+		fields: [{ fieldname: "customer_name", fieldtype: "Data" }],
+	} as unknown as DoctypeMeta;
+	const layout = layoutFromFields([
+		{ fieldname: "customer_name", fieldtype: "Data" },
+		{ fieldname: "address_line1", fieldtype: "Data" },
+		{ fieldname: "credit_days", fieldtype: "Int" },
+	]);
+
+	it("keeps the layout's inline fields, typed, and leaves the doctype's own to queryValues", () => {
+		const query = { customer_name: "Acme", address_line1: "1 Main St", credit_days: "30", owner: "intruder" };
+
+		expect(inlineQueryValues(query, layout, meta)).toEqual({ address_line1: "1 Main St", credit_days: 30 });
 	});
 });

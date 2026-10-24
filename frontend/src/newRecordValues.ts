@@ -2,7 +2,7 @@
 // query the full page reads, the values "Edit full form" carries, and the insert body.
 import { runMethod } from "@framework/ui/api";
 import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import { NO_VALUE } from "@framework/ui/components/FormLayout/newRowValues";
+import { layoutFields, NO_VALUE } from "@framework/ui/components/FormLayout/newRowValues";
 import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
@@ -45,17 +45,40 @@ export function withNameField(
 
 /** The query's values for the doctype's own fields and its prompt name, typed; a table's is JSON. */
 export function queryValues(query: LocationQuery, meta: DoctypeMeta): Values {
-	const fields = new Map<string, string>(meta.fields.map((field) => [field.fieldname, field.fieldtype]));
+	const values = typedQuery(query, meta.fields);
+	const name = queryText(query[NEW_NAME]);
+	if (name != null && isNamedByPrompt(meta)) values[NEW_NAME] = name;
+	return values;
+}
+
+/** The query's values for the layout's inline fields, which the meta does not type. */
+export function inlineQueryValues(
+	query: LocationQuery,
+	layout: FormLayoutSchema,
+	meta: DoctypeMeta
+): Values {
+	const own = new Set(meta.fields.map((field) => field.fieldname));
+	return typedQuery(
+		query,
+		layoutFields(layout).filter((field) => !own.has(field.fieldname))
+	);
+}
+
+function typedQuery(
+	query: LocationQuery,
+	fields: { fieldname: string; fieldtype: string }[]
+): Values {
 	const values: Values = {};
-	for (const [key, given] of Object.entries(query)) {
-		const text = Array.isArray(given) ? given[0] : given;
-		if (text == null) continue;
-		const fieldtype = fields.get(key);
-		const value = fieldtype ? typed(text, fieldtype) : undefined;
-		if (value !== undefined) values[key] = value;
-		else if (key === NEW_NAME && isNamedByPrompt(meta)) values[key] = text;
+	for (const { fieldname, fieldtype } of fields) {
+		const text = queryText(query[fieldname]);
+		const value = text == null ? undefined : typed(text, fieldtype);
+		if (value !== undefined) values[fieldname] = value;
 	}
 	return values;
+}
+
+function queryText(given: LocationQuery[string] | undefined): string | null | undefined {
+	return Array.isArray(given) ? given[0] : given;
 }
 
 /** Undefined for a value the field cannot hold, so the server default stays. */
