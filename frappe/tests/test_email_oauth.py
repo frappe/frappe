@@ -420,6 +420,49 @@ class TestCallback(IntegrationTestCase):
 			)
 		)
 
+	def test_gmail_without_mail_access_creates_nothing(self) -> None:
+		apps = frappe.db.count("Connected App")
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None) | {"scope": "openid email"}
+		email_oauth.callback(state=self.note(provider="google"), code="c")
+
+		self.assertTrue(
+			self.landed().endswith(
+				"email_oauth=missing_permission&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=google"
+			)
+		)
+		self.assertEqual(frappe.db.count("Connected App"), apps)
+		self.assertFalse(frappe.db.exists("Email Account", {"email_id": "one@email-oauth.example.com"}))
+
+	def test_gmail_errors_become_fixed_codes(self) -> None:
+		for error, description, result in (
+			("access_denied", None, "cancelled"),
+			("admin_policy_enforced", None, "admin_approval"),
+		):
+			with self.subTest(error):
+				email_oauth.callback(
+					state=self.note(provider="google"), error=error, error_description=description
+				)
+				self.assertTrue(self.landed().endswith(f"?email_oauth={result}&email_oauth_provider=google"))
+
+		self.pilot.return_value = token("one@email-oauth.example.com", tid=None) | {
+			"scope": "openid https://mail.google.com/"
+		}
+		for message in (
+			"[ALERT] IMAP access is disabled for your domain. Please contact your domain administrator",
+			"[ALERT] Your account is not enabled for IMAP use. Please visit your Gmail settings page",
+		):
+			with (
+				self.subTest(message),
+				patch.object(EmailAccount, "validate", side_effect=frappe.ValidationError(message)),
+				patch("frappe.log_error"),
+			):
+				email_oauth.callback(state=self.note(provider="google"), code="c")
+				self.assertTrue(
+					self.landed().endswith(
+						"email_oauth=imap_disabled&email_oauth_mailbox=one%40email-oauth.example.com&email_oauth_provider=google"
+					)
+				)
+
 	def test_lands_with_the_result_before_the_fragment(self) -> None:
 		email_oauth.callback(state=self.note(redirect_to="/desk/email-account?view=list#top"), code="c")
 		self.assertEqual(
