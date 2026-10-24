@@ -2431,6 +2431,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	disable_realtime_updates() {
+		// The handler stays bound, so later updates land here again.
+		if (!this.realtime_events_setup) return;
 		frappe.realtime.doctype_unsubscribe(this.doctype);
 		this.realtime_events_setup = false;
 	}
