@@ -1234,7 +1234,7 @@
       "entry": "frontend/src/pages/Record.vue"
     },
     {
-      "flow": "Open a new record",
+      "flow": "Create",
       "entry": "frontend/src/pages/NewRecord.vue"
     },
     {

@@ -1,6 +1,6 @@
 # Desk v2 architecture
 
-This file is the map of desk v2: the layers, the concepts each layer keeps, and the five
+This file is the map of desk v2: the layers, the concepts each layer keeps, and the
 main flows. It covers `frontend/`, `ui/`, `frappe/shell/`, and the framework code and
 DocTypes the desk calls. A new reader can learn the whole desk from it in about an hour.
 
@@ -126,7 +126,7 @@ cut or a `ui/` change reshapes them.
 | Record address | The one address of a record under `/apps/<prefix>/`. `get_url_to_form`, emails and the desk all use it. *New: moves here from `frappe/shell/`* |
 | Realtime events | `doc_update`, `docinfo_update`, `doctype_update`, `list_update`, `client_script_changed` |
 | Doctype View routes | Get, save and reset a list's saved settings |
-| `get_form_layouts` | A doctype's stored Form Layouts of one type. With no row, Quick Entry falls back to the mandatory-only set and New Record to the Details rows. For Quick Entry it also returns the `dialog` flag: whether Create opens a dialog or the full page. The two create types accept the create right or read |
+| `get_form_layouts` | A doctype's stored Form Layouts of one type. With no row, Quick Entry falls back to the Quick Entry fields (the mandatory ones, those marked for Quick Entry, and those with a mandatory condition), and New Record falls back to the Details rows. A Quick Entry read also returns the `dialog` flag: whether Create opens a dialog or the full page. The two create types accept the create right or read |
 | `get_new_doc` | A new document of a doctype with its defaults, for a person with the create right. Nothing is saved |
 | `get_client_scripts` | A doctype's enabled stored scripts for one view, in run order, and whether the user may write scripts |
 | `report_customization_error` | One rate-limited Error Log row when a script fails on the record page |
@@ -273,7 +273,7 @@ component group, with its main names.
 | Composer drafts | Unsent comments and emails, per record and writer |
 | Composer registration | A record page registers its record, its dock and its writers, so the composer can outlive the page |
 | `ComposerWindow` | The composer card, docked or floating |
-| Create (`openCreate`, `CreateRequest`, `createRequests`, `registerCreateDialog`, `closeCreates`) | The one way to open Create for a doctype. The shell keeps the open requests above any page and closes them on a route change. `main.ts` registers the page layer's dialog that draws them. `main.ts` hands it to every Link field through `CreateRecordKey`, and a field's Create opens above the dialog it sits in |
+| Create (`openCreate`, `CreateRequest`, `createRequests`, `registerCreateDialog`, `closeCreates`) | The one way to open Create for a doctype. The shell keeps the open requests above any page and closes them on a route change. `main.ts` registers the page layer's dialog that draws them, and hands `openCreate` and the create right to Link, Dynamic Link and Table MultiSelect fields through `CreateRecordKey`. A field's Create opens above the dialog it sits in |
 | Socket (`createSocket`, `repairRooms`) | Opens the realtime socket and hands it to `ui/` |
 | Item lookup (`rendererFor`, `renderingOf`, `labelOf`, `iconOf`, `itemContext`) | Draws an item through its kind's renderer |
 | Current item (`navigationDestinations`, `currentFrom`) | Which rail item and sidebar the current address belongs to |
@@ -423,7 +423,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Concept | What it is |
 | --- | --- |
 | Start sequence (`start`) | Boot, then translations and icons without waiting, and the Create dialog's registration, then addresses, contributions, standard pages, router, socket, and mount |
-| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, the invite address, Create for Link fields through `CreateRecordKey`, the component names a template can use with no `components:` entry, and `__` and `__n` as globals in every component template |
+| What the desk hands `ui/` | The session, the CSRF token, the socket, upload limits, the invite address, Create for Link, Dynamic Link and Table MultiSelect fields through `CreateRecordKey`, the component names a template can use with no `components:` entry, and `__` and `__n` as globals in every component template |
 
 **The build**
 
@@ -504,9 +504,9 @@ numbers. Every flow is also counted in files per flow and in timing guards.
 | 2 | An inline script sets the light or dark theme before the first paint | `index.html` | None | `localStorage` `theme` |
 | 3 | `main.ts` asks for boot and waits. A refusal shows the "no permission" page state | `main.ts`, 5, 3 | None in the browser | None |
 | 4 | The server builds boot: core keys, session, `metadata_version`, prefix map, and the rail and sidebars filtered for the user | 2, 1 | App permission; each navigation row filtered by readable doctypes, modules and pages | Session in Redis by session id; `metadata_version` and prefix map in the site cache; navigation not cached |
-| 5 | Translations and the icon sprite start, not awaited | 5 | None | HTTP cache, 1 year, by language and translation version. The sprite is a static file |
+| 5 | Translations and the icon sprite start, not awaited. `main.ts` registers the Create dialog | 5, 6 | None | HTTP cache, 1 year, by language and translation version. The sprite is a static file |
 | 6 | The address table loads, awaited | 5, 3, 2 | The user may enter at least one app | One server cache key, checked against `metadata_version`. HTTP cache, 1 year, by `metadata_version` |
-| 7 | `main.ts` registers the standard pages and the Create dialog. Contributions register item kinds, app pages, replacements and handlers. The record page registers its icon and prop hooks | 5, 7, 8 | None | Browser memory, by item kind, by address kind and doctype, by doctype |
+| 7 | `main.ts` registers the standard pages. Contributions register item kinds, app pages, replacements and handlers. The record page registers its icon and prop hooks | 5, 7, 8 | None | Browser memory, by item kind, by address kind and doctype, by doctype |
 | 8 | The router is built from boot, addresses and page registrations | 6 | None. The router checks only that an address names a known doctype | Browser memory |
 | 9 | The socket opens and is handed to `ui/`. The desk hands `ui/` its session. Each cache of site data listens for `doctype_update` itself | 6, 3 | Realtime server: the user room; the site room for System Users only; each document room by read permission | Session store in browser memory |
 | 10 | The shell draws the rail and sidebar, before any page code arrives. Each row is drawn by its kind's renderer | 6, 5 | **Browser**: none; the rows were filtered in step 4 | Per-user browser memory: open sections, collapsed sidebar. Sidebar memory per tab, by address and user |
@@ -557,14 +557,17 @@ that copy in the same tab, and the page shows "no permission" once the server re
 
 | # | Step | Layer | Permission check | Cache and key |
 | --- | --- | --- | --- | --- |
-| 1 | The list shows Create when the person may create the doctype's records. `page.create()` and a Link field's Create open it the same way | 8, 5 | **Browser**: the create right, from the meta, the session roles and read-only mode | Meta by doctype, as in "Open a list" |
+| 1 | The list and a Link field show Create when the person may create the doctype's records. `page.create()` opens Create with no check in the browser | 8, 7, 5, 4 | **Browser**: the create right, from the meta, the session roles and read-only mode | Meta by doctype, as in "Open a list" |
 | 2 | `openCreate` puts a request on the shell's stack. The Create dialog that `main.ts` registered draws it | 6, 8 | None | Open requests in browser memory. A route change closes them |
-| 3 | The dialog reads the Quick Entry layout and the new document's defaults (`get_new_doc`) in parallel | 8, 7, 3, 1 | Layout: create or read on the doctype. Defaults: create on the doctype | Layouts by doctype and type, marked stale on `doctype_update`. Defaults not cached |
-| 4 | With no Quick Entry row, the server sends the mandatory-only set and the `dialog` flag. When the flag is off, the dialog closes and opens `/<doctype>/new` with its values in the query | 1, 8 | As step 3 | As step 3 |
-| 5a | Dialog: the form shows the layout, a name field for a doctype named by prompt, the defaults and the caller's values. Save, Ctrl/Cmd+Enter or Ctrl/Cmd+S inserts | 8, 4 | **Browser**: required fields | None |
-| 5b | Full page: the new record page reads the meta, the New Record layout, the stored scripts and the defaults. It reads the Quick Entry layout too when the address carries values. Its first save inserts | 8, 7, 3 | As step 3. **Browser**: the create right, else the "no permission" page state | Layouts by doctype and type. Scripts as in the last flow |
-| 6 | The insert sends a typed name as `__newname`, never `name` | 3, 1 | Create permission, the naming rule, field permission levels | None |
-| 7 | Dialog: the request resolves with the saved record after the close renders. The list re-reads its rows and shows a toast that links to the record. A Link field takes the name and title. Full page: `onSaved` replaces the address with the saved record's | 8, 7, 6, 3 | Read permission on the re-read | Data cache, by doctype and query |
+| 3 | The dialog reads the Quick Entry layout and the new document's defaults (`get_new_doc`) in parallel | 8, 7, 5, 3, 1 | Layout: create or read on the doctype. Defaults: create on the doctype | Layouts by doctype and type, marked stale on `doctype_update`. Defaults not cached |
+| 4 | With no Quick Entry row, the server sends the Quick Entry fields. The `dialog` flag is off only with no row and a doctype that gets no dialog: no `quick_entry` flag, no field to show, or a mandatory table. Then the dialog never shows: the request resolves `null`, and the router opens `/<doctype>/new` with the values in the query | 1, 8, 6 | As step 3 | As step 3 |
+| 5a | Dialog: the form shows the layout, a name field for a doctype named by prompt, the defaults and the caller's values. Save, Ctrl/Cmd+Enter or Ctrl/Cmd+S inserts | 8, 7, 5, 4 | **Browser**: required fields | None |
+| 5b | Full page: the new record page reads the meta, the New Record layout, the stored scripts and the defaults. It reads the Quick Entry layout too when the address carries values. Its first save inserts | 8, 7, 5, 3 | As step 3. **Browser**: the create right, else the "no permission" page state | Layouts by doctype and type. Scripts as in the last flow |
+| 6 | The insert sends a typed name as `__newname`, never `name` | 5, 3, 1 | Create permission, the naming rule, field permission levels | None |
+| 7 | Dialog: the request resolves with the saved record after the close renders. The list re-reads its rows and shows a toast that links to the record. A Link field takes the name, and the title when the doctype shows titles in links. Full page: `onSaved` replaces the address with the saved record's | 8, 7, 6, 4, 3 | Read permission on the re-read | Data cache, by doctype and query |
+
+The layer file counts this flow's files from the new record page. The dialog loads on
+demand, so the count leaves it out.
 
 **Budget:** on a cold load of `/<doctype>/new`, time until usable, request count, JS size.
 For the dialog, the requests on its first open. The numbers are an open question:
