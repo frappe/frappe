@@ -24,7 +24,11 @@
 		</button>
 		<!-- where the page sits: a record follows its list, which it links to. A narrow frame's bar
 		     keeps the name alone, for the room its actions leave -->
-		<nav class="flex min-w-0 items-center gap-2 text-sm" aria-label="Breadcrumb">
+		<nav
+			:class="{ 'ml-2': !list && flow.state.sidebarOpen }"
+			class="flex min-w-0 items-center gap-2 text-sm [font-size:14.5px]"
+			aria-label="Breadcrumb"
+		>
 			<span
 				v-if="!list"
 				:class="icon"
