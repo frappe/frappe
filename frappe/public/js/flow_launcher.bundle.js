@@ -77,7 +77,6 @@ class FlowLauncher {
 			<div class="panel" role="dialog" aria-label="Flow" inert>
 				<div class="window">
 					<div class="bar">
-						<span class="title">${FLOW_MARK}Flow</span>
 						<button class="dock" type="button"></button>
 						<button class="full" type="button"></button>
 						<button class="minimize" type="button"></button>
@@ -631,7 +630,7 @@ const STYLE = `
 .panel[inert] { visibility: hidden; }
 .mark { fill: currentColor; }
 /* Flow's logo: its mark on gray */
-.icon, .title .mark { background: #7c8089; color: #fff; }
+.icon { background: #7c8089; color: #fff; }
 button:focus-visible { outline: var(--focus-outline-default, 2px solid #c9c9c9e5); outline-offset: 2px; }
 .icon {
 	display: grid;
@@ -728,9 +727,10 @@ button:focus-visible { outline: var(--focus-outline-default, 2px solid #c9c9c9e5
 	display: flex;
 	flex: none;
 	align-items: center;
+	justify-content: flex-end;
 	gap: calc(var(--spacing, 4px) * 0.5);
 	height: 36px;
-	padding: 0 calc(var(--spacing, 4px) * 1.5) 0 calc(var(--spacing, 4px) * 3);
+	padding: 0 calc(var(--spacing, 4px) * 1.5);
 	border-bottom: 1px solid var(--outline-elevation-1, rgba(128, 128, 128, 0.2));
 	cursor: grab;
 	touch-action: none;
@@ -739,14 +739,6 @@ button:focus-visible { outline: var(--focus-outline-default, 2px solid #c9c9c9e5
 }
 /* filling the window, the bar runs into the chat's own header */
 .panel[data-mode="full"] .bar { border-bottom-width: 0; }
-.title { display: flex; align-items: center; gap: calc(var(--spacing, 4px) * 1.5); margin-right: auto; }
-.title .mark {
-	box-sizing: border-box;
-	width: 18px;
-	height: 18px;
-	padding: 2.5px;
-	border-radius: var(--radius-1, 4px);
-}
 .bar button {
 	display: grid;
 	place-items: center;

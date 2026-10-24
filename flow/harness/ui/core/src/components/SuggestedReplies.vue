@@ -1,7 +1,7 @@
 <template>
 	<!-- a tap sends a reply; a question taking several answers ticks them, then sends them together -->
 	<div class="flex flex-col items-start gap-2.5">
-		<div class="flex flex-wrap items-center gap-1.5" role="group" :aria-label="multiSelect ? 'Pick answers' : 'Suggested replies'">
+		<div class="flex max-w-full flex-wrap items-center gap-1.5" role="group" :aria-label="multiSelect ? 'Pick answers' : 'Suggested replies'">
 			<button
 				v-for="reply in replies"
 				:key="reply"

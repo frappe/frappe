@@ -1,7 +1,16 @@
 <template>
 	<PageHeader :icon="info.icon" :title="spec.label">
 		<template v-if="canCreate" #actions>
+			<button
+				v-if="layout.narrow"
+				class="flow-icon-btn"
+				:title="`New ${spec.singular}`"
+				@click="create"
+			>
+				<FeatherIcon name="plus" class="h-4 w-4" />
+			</button>
 			<Button
+				v-else
 				variant="solid"
 				icon-left="plus"
 				:label="`New ${spec.singular}`"
@@ -10,7 +19,7 @@
 		</template>
 	</PageHeader>
 	<!-- the search and a menu per filter, once the list has loaded with something in it -->
-	<div v-if="loaded && !empty" class="flex flex-wrap items-center gap-2 px-5 pb-3 pt-1">
+	<div v-if="loaded && !empty" class="flex flex-wrap items-center gap-2 px-5 py-3">
 		<FormControl
 			v-model="query"
 			type="text"
@@ -131,6 +140,7 @@ import { computed, h, inject, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Badge, Button, ErrorMessage, FormControl } from "frappe-ui";
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue";
+import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
