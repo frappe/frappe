@@ -718,6 +718,21 @@ describe("a Table MultiSelect field", () => {
 		expect(document.querySelector<HTMLInputElement>("[data-slot=search] input")!.value).toBe("");
 	});
 
+	it("keeps the title of each record it created, not only the last", async () => {
+		metas.Customer = customerMeta({ title_field: "customer_name", show_title_field_in_link: 1 });
+		const { picked } = tableMultiSelectField();
+
+		for (const [name, title] of [["CUST-0001", "Acme"], ["CUST-0002", "Beta"]]) {
+			saved.Customer = { name };
+			await pick(title);
+			await chooseFooterCreate();
+			await press(dialog("New Customer"), "Save");
+		}
+
+		expect(picked()).toEqual(["CUST-0001", "CUST-0002"]);
+		expect(chips()).toEqual(["Acme", "Beta"]);
+	});
+
 	it("adds no second row when the saved name is already selected", async () => {
 		saved.Customer = { name: "CUST-0001" };
 		const { picked, changes } = tableMultiSelectField([{ customer: "CUST-0001" }]);

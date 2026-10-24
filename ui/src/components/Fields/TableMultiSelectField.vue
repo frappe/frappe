@@ -25,7 +25,7 @@
 <script setup lang="ts">
 // Frappe `Table MultiSelect`: child rows whose Link field names the target doctype, bridged to
 // the control's `string[]` by `useChildRowModel`. Creates through `useLinkCreate`, like `LinkField`.
-import { computed, ref } from "vue";
+import { computed, ref, shallowRef } from "vue";
 import { TableMultiSelect } from "../TableMultiSelect";
 import type { TableMultiSelectExposed } from "../TableMultiSelect";
 import { useChildRowModel } from "../FormLayout/useChildRowModel";
@@ -54,6 +54,8 @@ const value = useChildRowModel(
 
 const control = ref<TableMultiSelectExposed | null>(null);
 const open = ref(false);
+// `useLinkCreate` keeps only the last saved title; each created chip needs its own.
+const titles = shallowRef<Record<string, string>>({});
 
 const linkCreate = useLinkCreate({
 	doctype: targetDoctype,
@@ -62,15 +64,9 @@ const linkCreate = useLinkCreate({
 	open,
 	link: control,
 	select: (name) => {
+		const title = linkCreate.title(name);
+		if (title) titles.value = { ...titles.value, [name]: title };
 		if (!value.value.includes(name)) value.value = [...value.value, name];
 	},
-});
-
-const titles = computed(() => {
-	const titled = value.value.flatMap((name) => {
-		const title = linkCreate.title(name);
-		return title ? [[name, title] as const] : [];
-	});
-	return Object.fromEntries(titled);
 });
 </script>
