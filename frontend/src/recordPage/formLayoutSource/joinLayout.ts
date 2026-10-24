@@ -1,5 +1,8 @@
-import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
+import {
+	DROPPED_FIELDTYPES,
+	mapField,
+	type Decorator,
+} from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import type {
 	Column,
 	FieldNode,
@@ -29,9 +32,7 @@ export interface JoinLayoutOptions {
 	tabOverrides?: Record<string, TabOverride>;
 }
 
-const LAYOUT_BREAKS = new Set(["Tab Break", "Section Break", "Column Break"]);
-
-/** Joins a tree of fieldnames against the meta into a `FormLayoutSchema`; unknown fields and layout breaks drop. */
+/** Joins a tree of fieldnames against the meta into a `FormLayoutSchema`; unknown fields and `DROPPED_FIELDTYPES` drop. */
 export function joinLayout(
 	tree: LayoutTree,
 	fields: RawMetaField[],
@@ -83,7 +84,7 @@ function joinField(
 	options: JoinLayoutOptions
 ): FieldNode[] {
 	const raw = typeof entry === "string" ? byName.get(entry) : inlineField(entry, byName);
-	if (!raw || LAYOUT_BREAKS.has(raw.fieldtype)) return [];
+	if (!raw || DROPPED_FIELDTYPES.has(raw.fieldtype)) return [];
 	const node = mapField(
 		withAccess(raw, options.fieldAccess),
 		options.childMetas ?? {},
