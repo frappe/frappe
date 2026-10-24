@@ -30,6 +30,7 @@
 				>
 					<!-- `--code-max-height` on the part drives both the clip and the `overflow` signal. -->
 					<CodeEditorContent
+						class="code-content"
 						:class="{
 							'code-collapsed': !expanded,
 							'code-fade': showExpand && !expanded,
@@ -316,6 +317,11 @@ function onCommit(v: string) {
 </script>
 
 <style scoped>
+/* `lh` resolves on CodeMirror's content element, whose border-box height includes the padding. */
+.code-content {
+	--code-min-height: calc(5lh + 2 * var(--code-padding-y, 6px));
+}
+
 /* The cap a collapsed editor is held to. `--code-max-height` is the part's own hook, so
    the height drives both the clip and the `overflow` signal the Expand pill listens to. */
 .code-collapsed {
