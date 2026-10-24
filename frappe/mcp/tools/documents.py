@@ -11,31 +11,39 @@ from frappe.api import v2
 from frappe.mcp.tools import DocumentName, Tool, ToolArguments, form_dict
 
 
-class DoctypeArguments(ToolArguments):
+class GetDocumentArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
-
-
-class DocumentArguments(DoctypeArguments):
 	name: DocumentName
 
 
-class CountDocumentsArguments(DoctypeArguments):
+class CountDocumentsArguments(ToolArguments):
+	doctype: str = Field(min_length=1)
 	filters: dict[str, Any] | list[Any] | None = None
 
 
-class ListDocumentsArguments(CountDocumentsArguments):
+class ListDocumentsArguments(ToolArguments):
+	doctype: str = Field(min_length=1)
+	filters: dict[str, Any] | list[Any] | None = None
 	fields: list[str] | None = None
 	order_by: str | None = None
 	start: int = Field(default=0, ge=0)
 	limit: int = Field(default=20, ge=1)
 
 
-class CreateDocumentArguments(DoctypeArguments):
+class CreateDocumentArguments(ToolArguments):
+	doctype: str = Field(min_length=1)
 	data: dict[str, Any]
 
 
-class UpdateDocumentArguments(DocumentArguments):
+class UpdateDocumentArguments(ToolArguments):
+	doctype: str = Field(min_length=1)
+	name: DocumentName
 	data: dict[str, Any]
+
+
+class DeleteDocumentArguments(ToolArguments):
+	doctype: str = Field(min_length=1)
+	name: DocumentName
 
 
 def get_document(doctype: str, name: str) -> dict:
@@ -88,7 +96,7 @@ LIST_DOCUMENTS = Tool(
 GET_DOCUMENT = Tool(
 	name="get_document",
 	description="Get one document with its child tables.",
-	arguments=DocumentArguments,
+	arguments=GetDocumentArguments,
 	handler=get_document,
 	annotations={"readOnlyHint": True},
 )
@@ -116,7 +124,7 @@ UPDATE_DOCUMENT = Tool(
 
 DELETE_DOCUMENT = Tool(
 	name="delete_document",
-	arguments=DocumentArguments,
+	arguments=DeleteDocumentArguments,
 	handler=delete_document,
 	annotations={"destructiveHint": True},
 )

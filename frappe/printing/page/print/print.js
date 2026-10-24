@@ -233,13 +233,14 @@ frappe.ui.form.PrintView = class {
 			fieldname: "page_orientation",
 			label: __("Orientation"),
 			options: [
+				{ label: __("Default"), value: "" },
 				{ label: __("Portrait"), value: "Portrait" },
 				{ label: __("Landscape"), value: "Landscape" },
 			],
 			change() {
-				set("page_orientation", this.get_value() === "Landscape" ? "Landscape" : "");
+				set("page_orientation", this.get_value());
 			},
-		}).set_input("Portrait");
+		});
 	}
 
 	make_default_format() {
@@ -535,7 +536,6 @@ frappe.ui.form.PrintView = class {
 	refresh_print_format() {
 		this.toggle_style_picker();
 		this.set_default_print_language();
-		this.toggle_raw_printing();
 		this.update_letterhead_for_print_format().then(() => this.preview());
 	}
 
@@ -831,6 +831,7 @@ frappe.ui.form.PrintView = class {
 
 	preview() {
 		this.toggle_style_picker();
+		this.toggle_raw_printing();
 		let print_format = this.get_print_format();
 		if (!print_format.raw_printing) {
 			this.print_wrapper.find(".print-preview-wrapper").hide();
@@ -1099,10 +1100,11 @@ frappe.ui.form.PrintView = class {
 					name: me.frm.doc.name,
 					printer_setting: localStorage.getItem("network_printer"),
 					print_format: me.selected_format(),
-					no_letterhead: me.with_letterhead(),
+					no_letterhead: me.with_letterhead() ? 0 : 1,
 					letterhead: me.get_letterhead(),
 					style: me.get_print_style() || undefined,
 					settings: JSON.stringify(me.get_print_settings_param()),
+					_lang: me.lang_code,
 				},
 				callback: function () {},
 			});

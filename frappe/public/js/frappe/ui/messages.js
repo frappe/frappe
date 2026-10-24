@@ -213,6 +213,13 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 		frappe.msg_dialog.indicator = frappe.msg_dialog.header.find(".indicator");
 	}
 
+	let msg_exists = false;
+	if (data.clear) {
+		frappe.msg_dialog.msg_area.empty();
+	} else {
+		msg_exists = frappe.msg_dialog.msg_area.html();
+	}
+
 	// setup and bind an action to the primary button
 	if (data.primary_action) {
 		if (
@@ -253,7 +260,7 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 			data.primary_action.action
 		);
 	} else {
-		if (frappe.msg_dialog.has_primary_action) {
+		if (frappe.msg_dialog.has_primary_action && !msg_exists) {
 			frappe.msg_dialog.get_primary_btn().addClass("hide");
 			frappe.msg_dialog.has_primary_action = false;
 		}
@@ -272,13 +279,6 @@ frappe.msgprint = function (msg, title, is_minimizable, re_route) {
 
 	if (data.message.search(/<br>|<p>|<li>/) == -1) {
 		msg = frappe.utils.replace_newlines(data.message);
-	}
-
-	var msg_exists = false;
-	if (data.clear) {
-		frappe.msg_dialog.msg_area.empty();
-	} else {
-		msg_exists = frappe.msg_dialog.msg_area.html();
 	}
 
 	if (data.title || !msg_exists) {

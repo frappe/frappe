@@ -3,8 +3,7 @@ from typing import Protocol, runtime_checkable
 
 import frappe
 from frappe import _
-from frappe.model.base_document import get_controller
-from frappe.model.document import Document
+from frappe.model.document import Document, get_controller
 
 
 @runtime_checkable
@@ -87,10 +86,6 @@ def validate_controller(doctype: str) -> None:
 	# itself declares nothing. Comparing with `controller.mro()[1]` saw only one level up, so
 	# any such controller looked unimplemented and had to restate every method just to silence
 	# the warning.
-	#
-	# `getattr` resolves each name through `Document`'s own MRO, so `load_from_db` and `delete`
-	# come from `Document` while `db_insert` and `db_update` come from `BaseDocument`; either
-	# way it is the default the controller must replace.
 	expected_instance_methods = ["db_insert", "db_update", "load_from_db", "delete"]
 	for m in expected_instance_methods:
 		method = getattr(controller, m, None)

@@ -605,18 +605,25 @@ class Importer:
 			self._resolve_tree_parent_link(doc)
 			updated_doc.set(self._tree_parent_field, doc.get(self._tree_parent_field))
 
+		submit_after_import = (
+			updated_doc.meta.is_submittable
+			and self.data_import.submit_after_import
+			and updated_doc.docstatus.is_draft()
+		)
+		updated_doc.flags.updater_reference = {
+			"doctype": self.data_import.doctype,
+			"docname": self.data_import.name,
+			"label": _("via Data Import"),
+		}
+
 		if get_diff(existing_doc, updated_doc):
 			# update doc if there are changes
-			updated_doc.flags.updater_reference = {
-				"doctype": self.data_import.doctype,
-				"docname": self.data_import.name,
-				"label": _("via Data Import"),
-			}
 			updated_doc.save()
-			return updated_doc
-
-		if raise_if_no_changes:
+		elif raise_if_no_changes and not submit_after_import:
 			frappe.throw(_("No changes to update"))
+
+		if submit_after_import:
+			updated_doc.submit()
 		return updated_doc
 
 	def get_eta(self, current, total, processing_time):
@@ -2262,24 +2269,12 @@ def build_fields_dict_for_column_matching(parent_doctype):
 
 
 def get_df_for_column_header(doctype, header):
-	from frappe.core.doctype.data_import.import_provider import get_import_provider
-
-	if get_import_provider(doctype):
-		# A provider's fields can depend on the user (e.g. their permissions) and on other
-		# DocTypes, so they can't be shared or cleared with this DocType's cache.
-		return _get_provider_fields_dict(doctype, frappe.session.user).get(header)
-
-	def build_fields_dict_for_doctype():
-		return build_fields_dict_for_column_matching(doctype)
-
-	df_by_labels_and_fieldname = frappe.cache.hget(
-		"data_import_column_header_map", doctype, generator=build_fields_dict_for_doctype
-	)
-	return df_by_labels_and_fieldname.get(header)
+	return _get_fields_dict(doctype, frappe.session.user).get(header)
 
 
 @request_cache
-def _get_provider_fields_dict(doctype, user):
+def _get_fields_dict(doctype, user):
+	# A provider's fields can depend on the user (e.g. their permissions)
 	return build_fields_dict_for_column_matching(doctype)
 
 

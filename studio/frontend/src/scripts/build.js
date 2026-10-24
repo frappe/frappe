@@ -1,0 +1,404 @@
+import {
+	FRAPPE_UI_COMPONENTS,
+	FRAPPE_UI_MOLECULES,
+	FRAPPE_UI_EXPERIMENTAL_COMPONENTS,
+	FRAPPE_UI_CHARTS,
+	STUDIO_COMPONENTS,
+	FRAMEWORK_UI_COMPONENTS,
+} from "../utils/constants.js"
+import { writeFileSync } from "fs"
+import fs from "fs"
+import { build } from "vite"
+import tailwindcss from "tailwindcss"
+import loadTailwindConfig from "tailwindcss/loadConfig.js"
+import autoprefixer from "autoprefixer"
+import vue from "@vitejs/plugin-vue"
+import path from "node:path"
+import { fileURLToPath } from "node:url"
+import { parseArgs } from "node:util"
+import frappeui from "frappe-ui/vite"
+import frameworkui from "@framework/ui/vite"
+import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
+import studioRootAlias from "../../vite/studioRootAlias.js"
+import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
+import { mergeStudioAppConfigs } from "../../tailwind/studioAppConfigs.js"
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url))
+// bench apps folder (scripts -> src -> frontend -> studio -> frappe -> apps)
+const APPS_DIR = path.resolve(__dirname, "../../../../../")
+
+// @framework/ui components are spread across the root barrel and per-widget subpath
+// exports, so their imports must be grouped by source module. Components with a
+// dedicated subpath export (grouped/heavier widgets) go here.
+const FRAMEWORK_UI_IMPORT_SOURCES = {
+	Filter: "@framework/ui/Filter",
+	SortBy: "@framework/ui/SortBy",
+	QuickFilter: "@framework/ui/QuickFilter",
+	ColumnSettings: "@framework/ui/ColumnSettings",
+	ListViewShell: "@framework/ui/ListView",
+	FileUploadDialog: "@framework/ui/FileUpload",
+	AttachmentsList: "@framework/ui/FileUpload",
+	UploadTray: "@framework/ui/FileUpload",
+}
+
+// Components imported as named exports from the root "@framework/ui" barrel. Kept as
+// an explicit allowlist (verified against apps/frappe/ui/src/index.ts and its
+// Notifications/ActivityTimeline sub-barrels) rather than a silent fallback, so a new
+// component can't emit an unresolvable barrel import — getFrameworkUIImports throws if
+// a component is in neither map. Every FRAMEWORK_UI_COMPONENTS entry must be in exactly
+// one of these two.
+const FRAMEWORK_UI_BARREL_COMPONENTS = new Set([
+	"FormLayout",
+	"Link",
+	"Grid",
+	"Phone",
+	"TableMultiSelect",
+	"NotificationPanel",
+	"NotificationItem",
+	"ActivityTimeline",
+	"EmailItem",
+	"CommentItem",
+	"EmailComposer",
+	"CommentComposer",
+])
+
+// create a temp directory for app renderers in studio app folder
+const TEMP_DIR = path.resolve(__dirname, "../../../../.temp-app-renderers")
+if (!fs.existsSync(TEMP_DIR)) {
+	fs.mkdirSync(TEMP_DIR, { recursive: true })
+}
+
+const { values: argv } = parseArgs({
+	options: {
+		app: { type: "string" },
+		components: { type: "string" },
+		"out-dir": { type: "string" },
+		base: { type: "string" },
+		"custom-components": { type: "string" },
+		"page-scripts": { type: "string" },
+		"router-file": { type: "string" },
+		icons: { type: "string" },
+		"app-folder": { type: "string" },
+		"tailwind-content": { type: "string", multiple: true },
+	},
+	strict: false,
+})
+
+if (!argv.app) {
+	console.error("--app is required")
+	process.exit(1)
+}
+
+await generateAppBuild(
+	argv.app,
+	argv.components,
+	argv["out-dir"],
+	argv.base,
+	argv["custom-components"],
+	argv["page-scripts"],
+	argv.icons,
+	argv["router-file"],
+	argv["app-folder"],
+	argv["tailwind-content"],
+)
+
+export async function generateAppBuild(
+	appName,
+	components,
+	outDir,
+	base,
+	customComponentsJson,
+	pageScriptsJson,
+	icons,
+	routerFile,
+	appFolder,
+	tailwindContent = [],
+) {
+	if (!appName) return
+
+	const componentList = components ? components.split(",") : []
+	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
+	// pageScripts: [{ page_name, file_path }]
+	const pageScripts = pageScriptsJson ? JSON.parse(pageScriptsJson) : []
+	const componentSources = findComponentSources(componentList, customComponents)
+	const rendererContent = getRendererContent(componentSources, pageScripts, routerFile)
+	const tempRendererPath = writeRendererFile(appName, rendererContent)
+	const iconList = icons ? icons.split(",") : []
+	await buildWithVite(appName, tempRendererPath, outDir, base, iconList, appFolder, tailwindContent)
+	deleteRendererFile(tempRendererPath)
+}
+
+function findComponentSources(appComponents, customComponents = {}) {
+	const frappeUIComponents = []
+	const frappeUIMolecules = []
+	const frappeUIExperimentalComponents = []
+	const frappeUICharts = []
+	const frameworkUIComponents = []
+	const studioComponents = []
+	const missingComponents = []
+
+	appComponents.forEach((component) => {
+		if (FRAPPE_UI_COMPONENTS.includes(component)) {
+			frappeUIComponents.push(component)
+		} else if (FRAPPE_UI_MOLECULES.includes(component)) {
+			frappeUIMolecules.push(component)
+		} else if (FRAPPE_UI_EXPERIMENTAL_COMPONENTS.includes(component)) {
+			frappeUIExperimentalComponents.push(component)
+		} else if (FRAPPE_UI_CHARTS.includes(component)) {
+			frappeUICharts.push(component)
+		} else if (FRAMEWORK_UI_COMPONENTS.includes(component)) {
+			frameworkUIComponents.push(component)
+		} else if (STUDIO_COMPONENTS.includes(component)) {
+			studioComponents.push(component)
+		} else {
+			missingComponents.push(component)
+		}
+	})
+
+	if (missingComponents.length) {
+		throw new Error(
+			`Components used by this app are missing from the build lists: ` + `${missingComponents.join(", ")}`,
+		)
+	}
+	return {
+		frappeUIComponents,
+		frappeUIMolecules,
+		frappeUIExperimentalComponents,
+		frappeUICharts,
+		frameworkUIComponents,
+		studioComponents,
+		customComponents,
+	}
+}
+
+function getRendererContent(componentSources, pageScripts = [], routerFile = null) {
+	const {
+		frappeUIComponents,
+		frappeUIMolecules,
+		frappeUIExperimentalComponents,
+		frappeUICharts,
+		frameworkUIComponents,
+		studioComponents,
+		customComponents,
+	} = componentSources
+	const frappeUIImports =
+		frappeUIComponents.length > 0 ? `import { ${frappeUIComponents.join(",\n ")} } from "frappe-ui";` : ""
+	// Molecules ship from a dedicated subpath
+	const frappeUIMoleculeImports =
+		frappeUIMolecules.length > 0 ? `import { ${frappeUIMolecules.join(",\n ")} } from "frappe-ui/list";` : ""
+	const frappeUIExperimentalImports =
+		frappeUIExperimentalComponents.length > 0
+			? `import { ${frappeUIExperimentalComponents.join(",\n ")} } from "frappe-ui/experimental";`
+			: ""
+	const frameworkUIImports = getFrameworkUIImports(frameworkUIComponents)
+	const studioImports = studioComponents
+		.map((comp) => `import ${comp} from "@/components/AppLayout/${comp}.vue"`)
+		.join("\n")
+	const customComponentNames = Object.keys(customComponents)
+	const customImports = customComponentNames
+		.map((name) => `import ${name} from "${customComponents[name]}"`)
+		.join("\n")
+
+	const componentRegistrations = [
+		...frappeUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeUIMolecules.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeUIExperimentalComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...frappeUICharts.map(
+			(comp) =>
+				`app.component("${comp}", defineAsyncComponent(() => import("frappe-ui/charts").then((charts) => charts.${comp})))`,
+		),
+		...frameworkUIComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...studioComponents.map((comp) => `app.component("${comp}", ${comp})`),
+		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
+	].join("\n")
+
+	// Per-page setup() modules keyed by page docname (code mode). The import() literals make
+	// Rollup chunk each page script (and the modules it imports); codeStore loads them on
+	// navigation.
+	const pageScriptImport = pageScripts.length
+		? `import { setPageScriptImporters } from "@/data/studioPageScripts"`
+		: ""
+	const pageScriptSetup = pageScripts.length
+		? `setPageScriptImporters({
+${pageScripts
+	.map((p) => `	${JSON.stringify(p.page_name)}: () => import(${JSON.stringify(p.file_path)}),`)
+	.join("\n")}
+})`
+		: ""
+
+	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
+	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
+	const routerConfig = routerFile ? "routerConfig" : ""
+
+	const rendererContent = `import "@/index.css"
+import { createApp, defineAsyncComponent } from "vue"
+import { createPinia } from "pinia"
+import "@/setupFrappeUIResource"
+import { createAppRouter } from "@/router/app_router"
+import ErrorPage from "@/pages/ErrorPage.vue"
+import AppRenderer from "@/AppRenderer.vue"
+import { resourcesPlugin } from "frappe-ui"
+import { initSocket } from "@/socket"
+${routerImport}
+
+${frappeUIImports}
+${frappeUIMoleculeImports}
+${frappeUIExperimentalImports}
+${frameworkUIImports}
+${studioImports}
+${customImports}
+${pageScriptImport}
+
+const app = createApp(AppRenderer)
+const pinia = createPinia()
+
+app.use(pinia)
+app.use(resourcesPlugin)
+app.provide("socket", initSocket())
+
+${componentRegistrations}
+window.__APP_COMPONENTS__ = app._context.components
+
+${pageScriptSetup}
+
+createAppRouter(${routerConfig})
+	.then((router) => app.use(router).mount("#app"))
+	.catch((error) => {
+		console.error(error)
+		createApp(ErrorPage, { error }).mount("#app")
+	})`
+	return rendererContent
+}
+
+// Build one `import { … } from "<source>"` line per @framework/ui source module,
+// since these components come from the root barrel plus several subpath exports.
+function getFrameworkUIImports(frameworkUIComponents) {
+	const bySource = {}
+	for (const comp of frameworkUIComponents) {
+		const source =
+			FRAMEWORK_UI_IMPORT_SOURCES[comp] || (FRAMEWORK_UI_BARREL_COMPONENTS.has(comp) ? "@framework/ui" : null)
+		if (!source) {
+			throw new Error(
+				`@framework/ui component "${comp}" has no import source. Add it to ` +
+					`FRAMEWORK_UI_IMPORT_SOURCES (dedicated subpath) or FRAMEWORK_UI_BARREL_COMPONENTS ` +
+					`(and ensure apps/frappe/ui/src/index.ts re-exports it).`,
+			)
+		}
+		bySource[source] ||= []
+		bySource[source].push(comp)
+	}
+	return Object.entries(bySource)
+		.map(([source, comps]) => `import { ${comps.join(", ")} } from "${source}";`)
+		.join("\n")
+}
+
+function writeRendererFile(appName, content) {
+	const rendererPath = path.resolve(TEMP_DIR, `renderer-${appName}.js`)
+
+	writeFileSync(rendererPath, content)
+	console.log(`Renderer file created at: ${rendererPath}`)
+	return rendererPath
+}
+
+async function buildWithVite(
+	appName,
+	entryFilePath,
+	outDir,
+	basePath,
+	icons = [],
+	appFolder,
+	tailwindContent = [],
+) {
+	outDir = outDir || path.resolve(__dirname, `../../../../frappe/public/app_builds/${appName}`)
+	basePath = basePath || `/assets/frappe/app_builds/${appName}/`
+
+	console.log(`Building ${appName} with Vite`)
+	await build({
+		root: path.resolve(__dirname, "../"),
+		base: basePath,
+		plugins: [
+			vue(),
+			frappeui({
+				frappeProxy: true,
+				lucideIcons: true,
+				buildConfig: false,
+				jinjaBootData: false,
+			}),
+			studioRootAlias(),
+			sharedDependencyResolver(path.resolve(__dirname, "../../")),
+			// resolves @framework/ui's own deps from studio's node_modules
+			frameworkui(),
+		],
+		resolve: {
+			alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
+			// keep vue/pinia/etc as single instances so studio modules (composables/stores)
+			// share the app's runtime — Pinia breaks with duplicate copies
+			dedupe: [
+				"vue",
+				"vue-router",
+				"pinia",
+				"frappe-ui",
+				"@codemirror/state",
+				"@codemirror/view",
+				"@codemirror/language",
+				"@lezer/common",
+				"@lezer/highlight",
+				"@lezer/lr",
+			],
+		},
+		css: {
+			postcss: {
+				plugins: [tailwindcss(getAppTailwindConfig(appFolder, icons, tailwindContent)), autoprefixer()],
+			},
+		},
+		build: {
+			manifest: true,
+			rolldownOptions: {
+				input: {
+					studioRenderer: path.resolve(__dirname, entryFilePath),
+				},
+			},
+			outDir: outDir,
+			emptyOutDir: true,
+			target: "es2015",
+			sourcemap: true,
+			chunkSizeWarningLimit: 1000,
+		},
+		optimizeDeps: {
+			include: ["showdown", "engine.io-client"],
+		},
+	})
+
+	console.log(`Vite build completed for ${appName}`)
+}
+
+function getAppTailwindConfig(appFolder, appIconClasses, appTailwindContent) {
+	const editorConfig = loadTailwindConfig(path.resolve(__dirname, "../../tailwind.config.js"))
+	// The editor scans every studio app; an app build scans only its own pages
+	const baseConfig = {
+		...editorConfig,
+		content: [
+			...editorConfig.content.filter((entry) => !entry.includes("/*/studio/")),
+			...appTailwindContent,
+		],
+	}
+	const config = mergeStudioAppConfigs(baseConfig, appFolder ? [appFolder] : [])
+
+	// The editor needs every icon for its picker. App builds replace that rule
+	// with the app's icon classes to avoid shipping CSS for the entire icon set.
+	const sharedSafelist = config.safelist.filter((entry) => entry.pattern?.source !== "^lucide-")
+
+	return {
+		...config,
+		safelist: [...sharedSafelist, ...appIconClasses],
+	}
+}
+
+function deleteRendererFile(rendererPath) {
+	try {
+		fs.unlinkSync(rendererPath)
+		console.log(`Deleted temporary renderer file: ${rendererPath}`)
+	} catch (error) {
+		console.warn(`Could not delete temporary renderer file: ${rendererPath} - ${error.message}`)
+	}
+}

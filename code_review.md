@@ -101,7 +101,7 @@ Check these first. Ask for the missing piece before reading the code.
 
 ### Tests
 
-- New behaviour and bug fixes ship with a test that fails without the fix, where a test can prove the fix. A test that only checks nothing raised, or asserts on generated SQL, proves nothing.
+- New features ship with a test that fails without the change. Ask for a test on a bug fix only when the fix is non-trivial or the bug has come back before; do not ask on a small, obvious fix or a CI or tooling change. A test that only checks nothing raised, or asserts on generated SQL, proves nothing.
 - Presentation-only changes — spacing, colour, an icon, a label — take a before and after screenshot, not a test: pinning pixels, class names or wording breaks on the next design change and proves nothing.
 - Text and markup a caller or a user depends on is behaviour, not presentation. A response message, a permission error, the semantics of rendered HTML: still test it.
 - Test through public interfaces as a real user, not Administrator. Permission tests use `get_list`, not `get_all`. Fixtures use `example.com`.

@@ -190,6 +190,7 @@ export function useUploader(options: UseUploaderOptions = {}): Uploader {
   }
 
   function remove(id: string): void {
+    errors.value = [];
     cancel(id);
     const index = items.findIndex((item) => item.id === id);
     if (index !== -1) items.splice(index, 1);

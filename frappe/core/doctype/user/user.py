@@ -12,7 +12,6 @@ import frappe.permissions
 import frappe.share
 from frappe import STANDARD_USERS, _, msgprint, throw
 from frappe.apps import get_default_path
-from frappe.auth import MAX_PASSWORD_SIZE
 from frappe.core.doctype.user_type.user_type import user_linked_with_permission_on_doctype
 from frappe.database import savepoint
 from frappe.desk.doctype.notification_settings.notification_settings import (
@@ -35,10 +34,15 @@ from frappe.utils import (
 	now_datetime,
 	today,
 )
-from frappe.utils.background_jobs import get_queue, get_running_jobs_in_queue
+from frappe.utils.background_jobs import get_queue, get_queue_args, get_running_jobs_in_queue
 from frappe.utils.data import sha256_hash
 from frappe.utils.html_utils import sanitize_html
-from frappe.utils.password import check_password, get_password_reset_limit, is_password_reused
+from frappe.utils.password import (
+	check_password,
+	get_password_reset_limit,
+	is_password_reused,
+	verify_against_placeholder,
+)
 from frappe.utils.password import update_password as _update_password
 from frappe.utils.user import get_system_managers
 from frappe.website.utils import get_home_page, is_signup_disabled
@@ -405,6 +409,14 @@ class User(Document):
 		"""Set New Password for user"""
 		if new_password and not self.flags.in_insert:
 			_update_password(user=self.name, pwd=new_password, logout_all_sessions=self.logout_all_sessions)
+			self.last_password_reset_date = today()
+			frappe.db.set_value(
+				"User",
+				self.name,
+				"last_password_reset_date",
+				self.last_password_reset_date,
+				update_modified=False,
+			)
 
 			if frappe.session.user != self.name:
 				from frappe.desk.doctype.notification_log.notification_log import (
@@ -733,7 +745,7 @@ class User(Document):
 		pending_names = {
 			job.kwargs["kwargs"].get(key)
 			for job in queue.jobs + get_running_jobs_in_queue(queue)
-			if job.kwargs.get("site") == frappe.local.site
+			if get_queue_args(job).get("site") == frappe.local.site
 			and job.kwargs.get("method") == "frappe.core.doctype.user.user.rewrite_owner_fields"
 			for key in ("old_name", "new_name")
 		}
@@ -959,6 +971,8 @@ class User(Document):
 
 		users = frappe.get_all("User", fields=["name", "enabled"], or_filters=or_filters, limit=1)
 		if not users:
+			if validate_password:
+				verify_against_placeholder(password)
 			return
 
 		user = users[0]
@@ -988,7 +1002,8 @@ class User(Document):
 			indicator="orange",
 			primary_action={
 				"label": _("Add Roles"),
-				"client_action": "frappe.scroll_to_user_roles_field",
+				"client_action": "frappe.set_route",
+				"args": f"{self.get_url()}?scroll_to=roles_html",
 			},
 		)
 
@@ -1062,12 +1077,11 @@ def update_password(
 	    key (str, optional): Password reset key. Defaults to None.
 	    old_password (str, optional): Old password. Defaults to None.
 	"""
+	from frappe.utils.password import validate_password_size
 
-	if old_password and len(old_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("Old password size exceeded the maximum allowed size."))
-
-	if len(new_password) > MAX_PASSWORD_SIZE:
-		frappe.throw(_("New password size exceeded the maximum allowed size."))
+	if old_password:
+		validate_password_size(old_password, _("Old Password"))
+	validate_password_size(new_password, _("New Password"))
 
 	result = test_password_strength(new_password)
 	feedback = result.get("feedback", None)
@@ -1524,7 +1538,7 @@ def handle_password_test_fail(feedback: dict):
 
 
 def throttle_user_creation():
-	if frappe.flags.in_import:
+	if frappe.flags.in_import or frappe.in_test:
 		return
 
 	if frappe.db.get_creation_count("User", 60) > frappe.local.conf.get("throttle_user_limit", 60):

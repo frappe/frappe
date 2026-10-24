@@ -17,6 +17,7 @@ import asyncio
 import json
 import os
 import sys
+import tempfile
 import threading
 import types
 import unittest
@@ -877,6 +878,29 @@ class TestConfig(unittest.TestCase):
 			config = get_config(sites_path="sites")
 
 		self.assertEqual(config.sites_path, os.path.abspath("sites"))
+
+	def test_sites_path_inside_sites(self):
+		# serve() changes into sites/, and a handler reads the config again from there.
+		import frappe
+
+		with (
+			tempfile.TemporaryDirectory() as bench_path,
+			patch.object(frappe, "local", types.SimpleNamespace()),
+			patch.object(frappe, "get_common_site_config", return_value={}),
+		):
+			sites = os.path.join(bench_path, "sites")
+			os.mkdir(sites)
+			cwd = os.getcwd()
+			try:
+				os.chdir(bench_path)
+				from_bench = get_config().sites_path
+				os.chdir(sites)
+				from_sites = get_config().sites_path
+			finally:
+				os.chdir(cwd)
+
+		self.assertEqual(os.path.realpath(from_bench), os.path.realpath(sites))
+		self.assertEqual(os.path.realpath(from_sites), os.path.realpath(sites))
 
 	def test_worker_threads_override(self):
 		self.assertEqual(self._config(socketio_worker_threads="8").worker_threads, 8)

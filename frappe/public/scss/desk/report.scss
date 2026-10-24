@@ -87,6 +87,23 @@
 	margin-bottom: 10px;
 }
 
+.report-view .charts-wrapper {
+	margin-bottom: var(--margin-md);
+
+	.charts-head {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--margin-sm);
+		padding: var(--padding-sm) 0;
+	}
+
+	.charts-title {
+		@include get_textstyle("base", "medium");
+		color: var(--text-color);
+	}
+}
+
 .report-wrapper {
 	overflow: auto;
 	padding-left: 15px;

@@ -1,3 +1,4 @@
+import re
 from typing import ClassVar
 
 from bs4 import BeautifulSoup
@@ -62,10 +63,11 @@ class Browser:
 							page.close()
 						except Exception:
 							frappe.log_error(f"Failed to close {attr} in Chrome")
-				try:
-					self.close()
-				except Exception:
-					frappe.log_error("Failed to disconnect CDP session")
+				if getattr(self, "session", None):
+					try:
+						self.close()
+					except Exception:
+						frappe.log_error("Failed to disconnect CDP session")
 			generator.remove_browser(self.browserID)
 		if self.debug_mode:
 			generator.detach_debug_browser()
@@ -132,8 +134,7 @@ class Browser:
 			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
 		)
 		self.body_page.set_device_metrics(width=int(printable), height=1000)
-		result = self.body_page.evaluate("document.documentElement.scrollWidth")
-		content_width = (result or {}).get("result", {}).get("value") or 0
+		content_width = self.body_page.get_content_width()
 		if content_width > printable:
 			options["scale"] = max(0.1, printable / content_width)
 
@@ -180,16 +181,12 @@ class Browser:
 		head = soup.find("head").contents
 		styles = soup.find_all("style")
 
-		# Wait for networkIdle so get_element_height() measures the wrapper *after*
-		# any letterhead <img> has loaded — otherwise paperHeight is set too small.
-		header_footer_wait = ["load", "DOMContentLoaded", "networkIdle"]
 		if self.header_page:
 			self.header_page.wait_for_navigate()
 			self.header_page.set_content(
 				self.with_layout_classes(
 					self.get_rendered_header_footer(self.header_content, "header", head, styles, css=[])
-				),
-				wait_for=header_footer_wait,
+				)
 			)
 
 		if self.footer_page:
@@ -197,8 +194,7 @@ class Browser:
 			self.footer_page.set_content(
 				self.with_layout_classes(
 					self.get_rendered_header_footer(self.footer_content, "footer", head, styles, css=[])
-				),
-				wait_for=header_footer_wait,
+				)
 			)
 		if self.header_page:
 			self.header_page.wait_for_set_content()
@@ -254,6 +250,7 @@ class Browser:
 
 	def _parse_pdf_options_from_html(self):
 		from frappe.utils.pdf import get_print_format_styles
+		from frappe.www.printview import PAGE_LENGTH, PAGE_MARGIN_SIDES
 
 		soup: BeautifulSoup = self.soup
 		options = self._get_print_format_page_margins()
@@ -269,8 +266,24 @@ class Browser:
 			"page-width",
 			"page-height",
 		)
-		options |= {style.name: style.value for style in print_format_css if style.name in attrs}
+		options |= {
+			style.name: style.value
+			for style in print_format_css
+			if style.name in attrs
+			and (style.name not in PAGE_MARGIN_SIDES or re.fullmatch(f"0|{PAGE_LENGTH}", style.value.strip()))
+		}
 		self.options.update(options)
+		self._set_page_size_from_page_rule()
+
+	def _set_page_size_from_page_rule(self):
+		from frappe.www.printview import get_page_rule_size
+
+		if any(self.options.get(key) for key in ("page-size", "page-width", "page-height")):
+			return
+		css = "".join(cstr(tag.string) for tag in self.soup.find_all("style"))
+		for key, value in get_page_rule_size(css).items():
+			if not self.options.get(key):
+				self.options[key] = value
 
 	def _get_print_format_page_margins(self):
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
@@ -562,30 +575,30 @@ class PageSize:
 		"A6": (105, 148),
 		"A9": (37, 52),
 		"A8": (52, 74),
-		"B10": (44, 31),
-		"B1+": (1020, 720),
-		"B4": (353, 250),
-		"B5": (250, 176),
-		"B6": (176, 125),
-		"B7": (125, 88),
-		"B0": (1414, 1000),
-		"B1": (1000, 707),
-		"B2": (707, 500),
-		"B3": (500, 353),
-		"B2+": (720, 520),
-		"B8": (88, 62),
-		"B9": (62, 44),
-		"C10": (40, 28),
-		"C9": (57, 40),
-		"C8": (81, 57),
-		"C3": (458, 324),
-		"C2": (648, 458),
-		"C1": (917, 648),
-		"C0": (1297, 917),
-		"C7": (114, 81),
-		"C6": (162, 114),
-		"C5": (229, 162),
-		"C4": (324, 229),
+		"B10": (31, 44),
+		"B1+": (720, 1020),
+		"B4": (250, 353),
+		"B5": (176, 250),
+		"B6": (125, 176),
+		"B7": (88, 125),
+		"B0": (1000, 1414),
+		"B1": (707, 1000),
+		"B2": (500, 707),
+		"B3": (353, 500),
+		"B2+": (520, 720),
+		"B8": (62, 88),
+		"B9": (44, 62),
+		"C10": (28, 40),
+		"C9": (40, 57),
+		"C8": (57, 81),
+		"C3": (324, 458),
+		"C2": (458, 648),
+		"C1": (648, 917),
+		"C0": (917, 1297),
+		"C7": (81, 114),
+		"C6": (114, 162),
+		"C5": (162, 229),
+		"C4": (229, 324),
 		"Legal": (216, 356),
 		"Junior Legal": (127, 203),
 		"Letter": (216, 279),

@@ -104,7 +104,7 @@ export default class ShortcutWidget extends Widget {
 			if (this.format) {
 				return __(this.format).replace(/{}/g, count);
 			}
-			return count;
+			return String(count);
 		};
 
 		this.action_area.empty();

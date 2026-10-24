@@ -77,7 +77,8 @@ frappe.ui.form.ControlDate = class ControlDate extends frappe.ui.form.ControlDat
 					this.$input.trigger("change");
 				}
 			},
-			onShow: () => {
+			onShow: (_, animation_completed) => {
+				if (animation_completed) return;
 				this.datepicker.$datepicker
 					.find(".datepicker--button:visible")
 					.text(this.today_text);
