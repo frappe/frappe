@@ -39,6 +39,9 @@ class TestFlowProviderValidation(IntegrationTestCase):
 		with self.subTest("named by its lowercase name"):
 			doc = frappe.get_doc(_provider(provider="OpenRouter")).insert()
 			self.assertEqual((doc.name, doc.provider), ("openrouter", "openrouter"))
+		with self.subTest("a gateway the daemon routes itself"):
+			doc = frappe.get_doc(_provider(provider="OrcaRouter", api_key="sk-orca-test")).insert()
+			self.assertEqual((doc.name, doc.provider), ("orcarouter", "orcarouter"))
 
 
 class TestProviderCredentialResolution(IntegrationTestCase):
@@ -65,3 +68,13 @@ class TestProviderCredentialResolution(IntegrationTestCase):
 				doc = frappe.get_doc(_model(**model)).insert()
 				self.assertEqual(model_config(doc.name)[key], expected)
 			frappe.db.rollback()
+
+	def test_a_gateway_model_id_resolves_the_provider_named_by_its_first_segment(self):
+		# litellm has no adapter for orcarouter; the daemon routes it by the id's prefix
+		frappe.get_doc(
+			_provider(provider="orcarouter", api_key="sk-orca-test", base_url="https://api.orcarouter.ai/v1")
+		).insert()
+		doc = frappe.get_doc(_model(title="OrcaRouter Model", model_id="orcarouter/openai/gpt-5.5")).insert()
+		config = model_config(doc.name)
+		self.assertEqual(config["api_key"], "sk-orca-test")
+		self.assertEqual(config["api_base"], "https://api.orcarouter.ai/v1")

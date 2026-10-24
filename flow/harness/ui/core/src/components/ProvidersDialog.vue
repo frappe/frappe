@@ -131,105 +131,138 @@
 				</div>
 			</form>
 
-			<div v-else-if="selected.configured" class="mt-5">
-				<div
-					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
-				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
-					Ready to use
-				</div>
-				<button
-					v-if="selected.credential_type"
-					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 px-3 text-xs font-medium text-ink-red-6 hover:bg-surface-red-1"
-					:disabled="saving"
-					@click="disconnect"
-				>
-					<FeatherIcon name="log-out" class="h-3.5 w-3.5" />
-					Disconnect
-				</button>
-			</div>
-
-			<form v-else-if="selected.auth_methods.includes('api_key')" class="mt-5" @submit.prevent="saveKey">
-				<label class="mb-1.5 block text-xs font-medium text-ink-gray-7">API key</label>
-				<input
-					v-model="apiKey"
-					type="password"
-					autocomplete="off"
-					class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
-					placeholder="Paste your API key"
-				/>
-				<button
-					type="submit"
-					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
-					:disabled="!apiKey.trim() || saving"
-				>
-					<FeatherIcon name="key" class="h-3.5 w-3.5" />
-					Save API key
-				</button>
-			</form>
-
-			<div v-else class="mt-5">
-				<button
-					v-if="!['pending', 'waiting_manual', 'exchanging', 'connected'].includes(oauthStatus)"
-					class="flex h-9 items-center gap-2 rounded-5 bg-surface-gray-10 px-3.5 text-xs font-medium text-ink-base hover:opacity-90 disabled:opacity-50"
-					:disabled="saving"
-					@click="beginOAuth"
-				>
-					<FeatherIcon name="external-link" class="h-3.5 w-3.5" />
-					Sign in
-				</button>
-				<div
-					v-else-if="oauthStatus !== 'connected'"
-					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
-				>
-					<span class="flow-shimmer font-medium">
-						{{ oauthStatus === "exchanging" ? "Finishing sign-in…" : "Waiting for sign-in…" }}
-					</span>
-				</div>
-				<!-- popup blockers eat the window.open after the awaited /start —
-				     the link is the reliable, user-gesture path -->
-				<a
-					v-if="authorizeUrl && ['pending', 'waiting_manual'].includes(oauthStatus)"
-					:href="authorizeUrl"
-					target="_blank"
-					rel="noopener noreferrer"
-					class="mt-2 flex w-fit items-center gap-1.5 text-xs text-ink-gray-6 underline hover:text-ink-gray-9"
-				>
-					<FeatherIcon name="external-link" class="h-3 w-3" />
-					Open the sign-in page
-				</a>
-				<div
-					v-if="oauthStatus === 'connected'"
-					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
-				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
-					Connected
-				</div>
-				<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-6">
-					{{ oauthError }}
-				</div>
-				<button
-					v-if="['pending', 'waiting_manual'].includes(oauthStatus) && !showManual"
-					class="mt-3 block text-xs text-ink-gray-5 hover:text-ink-gray-8"
-					@click="showManual = true"
-				>
-					Enter callback URL
-				</button>
-				<form v-if="showManual" class="mt-3" @submit.prevent="completeOAuth">
-					<input
-						v-model="callbackUrl"
-						class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
-						placeholder="http://localhost:1455/auth/callback?..."
-					/>
-					<button
-						type="submit"
-						class="mt-2 flex h-8 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-3 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
-						:disabled="!callbackUrl.trim() || saving"
+			<template v-else>
+				<div v-if="selected.needs_reauth" class="mt-5">
+					<div
+						class="flex items-start gap-2 rounded-5 border border-outline-amber-2 bg-surface-amber-1 px-3 py-2.5 text-xs leading-relaxed text-ink-amber-7"
 					>
-						Complete sign-in
+						<FeatherIcon name="alert-circle" class="mt-0.5 h-4 w-4 flex-none" />
+						<span>{{ selected.name }} rejected the saved sign-in. Connect it again below.</span>
+					</div>
+					<button
+						class="mt-3 flex h-8 items-center gap-1.5 rounded-5 px-3 text-xs font-medium text-ink-red-6 hover:bg-surface-red-1"
+						:disabled="saving"
+						@click="disconnect"
+					>
+						<FeatherIcon name="log-out" class="h-3.5 w-3.5" />
+						Disconnect
 					</button>
-				</form>
-			</div>
+				</div>
+
+				<div v-else-if="selected.configured" class="mt-5">
+					<div
+						class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+					>
+						<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
+						Ready to use
+					</div>
+					<button
+						v-if="selected.credential_type"
+						class="mt-3 flex h-8 items-center gap-1.5 rounded-5 px-3 text-xs font-medium text-ink-red-6 hover:bg-surface-red-1"
+						:disabled="saving"
+						@click="disconnect"
+					>
+						<FeatherIcon name="log-out" class="h-3.5 w-3.5" />
+						Disconnect
+					</button>
+				</div>
+
+				<div
+					class="mt-5 flex flex-col gap-5"
+					:class="hasApiKey && hasOAuth ? 'sm:flex-row sm:items-start' : ''"
+				>
+					<form v-if="hasApiKey" class="min-w-0 flex-1" data-auth-method="api-key" @submit.prevent="saveKey">
+						<label class="mb-1.5 block text-xs font-medium text-ink-gray-7">API key</label>
+						<input
+							v-model="apiKey"
+							type="password"
+							autocomplete="off"
+							class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+							:placeholder="apiKeyPlaceholder"
+						/>
+						<button
+							type="submit"
+							class="mt-3 flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
+							:disabled="!apiKey.trim() || saving"
+						>
+							<FeatherIcon name="key" class="h-3.5 w-3.5" />
+							Save API key
+						</button>
+					</form>
+
+					<div
+						v-if="hasApiKey && hasOAuth"
+						class="flex items-center gap-2 self-stretch text-2xs text-ink-gray-5 sm:flex-col"
+					>
+						<span class="h-px flex-1 bg-outline-gray-2 sm:h-auto sm:min-h-4 sm:w-px" />
+						or
+						<span class="h-px flex-1 bg-outline-gray-2 sm:h-auto sm:min-h-4 sm:w-px" />
+					</div>
+
+					<div v-if="hasOAuth" class="min-w-0 flex-1" data-auth-method="oauth">
+						<button
+							v-if="!['pending', 'waiting_manual', 'exchanging', 'connected'].includes(oauthStatus)"
+							class="flex h-9 items-center gap-2 rounded-5 bg-surface-gray-10 px-3.5 text-xs font-medium text-ink-base hover:opacity-90 disabled:opacity-50"
+							:disabled="saving"
+							@click="beginOAuth"
+						>
+							<FeatherIcon name="external-link" class="h-3.5 w-3.5" />
+							{{ `Sign in with ${selected.name}` }}
+						</button>
+						<div
+							v-else-if="oauthStatus !== 'connected'"
+							class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+						>
+							<span class="flow-shimmer font-medium">
+								{{ oauthStatus === "exchanging" ? "Finishing sign-in…" : "Waiting for sign-in…" }}
+							</span>
+						</div>
+						<!-- popup blockers eat the window.open after the awaited /start —
+						     the link is the reliable, user-gesture path -->
+						<a
+							v-if="authorizeUrl && ['pending', 'waiting_manual'].includes(oauthStatus)"
+							:href="authorizeUrl"
+							target="_blank"
+							rel="noopener noreferrer"
+							class="mt-2 flex w-fit items-center gap-1.5 text-xs text-ink-gray-6 underline hover:text-ink-gray-9"
+						>
+							<FeatherIcon name="external-link" class="h-3 w-3" />
+							Open the sign-in page
+						</a>
+						<div
+							v-if="oauthStatus === 'connected'"
+							class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
+						>
+							<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
+							Connected
+						</div>
+						<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-6">
+							{{ oauthError }}
+						</div>
+						<button
+							v-if="['pending', 'waiting_manual'].includes(oauthStatus) && !showManual"
+							class="mt-3 block text-xs text-ink-gray-5 hover:text-ink-gray-8"
+							@click="showManual = true"
+						>
+							Enter callback URL
+						</button>
+						<form v-if="showManual" class="mt-3" @submit.prevent="completeOAuth">
+							<input
+								v-model="callbackUrl"
+								class="h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+								:placeholder="callbackPlaceholder"
+							/>
+							<button
+								type="submit"
+								class="mt-2 flex h-8 items-center gap-1.5 rounded-5 border border-outline-gray-2 px-3 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-1 disabled:opacity-50"
+								:disabled="!callbackUrl.trim() || saving"
+							>
+								Complete sign-in
+							</button>
+						</form>
+					</div>
+				</div>
+			</template>
 		</div>
 	</PalettePanel>
 </template>
@@ -262,6 +295,18 @@ let pollTimer = null
 
 const FIELD =
 	"h-9 w-full rounded-5 border border-outline-gray-2 bg-surface-base px-3 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:border-outline-gray-4 focus:ring-0"
+
+// a provider may offer both ways in; each is an independent choice, not a fallback
+const hasApiKey = computed(() => !!selected.value?.auth_methods?.includes("api_key"))
+const hasOAuth = computed(() => !!selected.value?.auth_methods?.includes("oauth"))
+const apiKeyPlaceholder = computed(() =>
+	selected.value?.id === "orcarouter" ? "sk-orca-…" : "Paste your API key",
+)
+const callbackPlaceholder = computed(() =>
+	selected.value?.id === "orcarouter"
+		? "http://127.0.0.1:1456/cb?code=…&state=…"
+		: "http://localhost:1455/auth/callback?...",
+)
 
 // the synthetic row that opens the custom-endpoint form
 const CUSTOM_OPTION = {

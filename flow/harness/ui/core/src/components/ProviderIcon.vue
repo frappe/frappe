@@ -38,6 +38,7 @@ import opencode from "@lobehub/icons-static-svg/icons/opencode.svg"
 import openrouter from "@lobehub/icons-static-svg/icons/openrouter-color.svg"
 import xai from "@lobehub/icons-static-svg/icons/xai.svg"
 import FeatherIcon from "./FeatherIcon.vue"
+import orcarouter from "./icons/orcarouter.png"
 
 const props = defineProps({
 	providerId: { type: String, required: true },
@@ -52,6 +53,7 @@ const icons = {
 	anthropic,
 	gemini,
 	openrouter,
+	orcarouter,
 	xai,
 	groq,
 	deepseek,

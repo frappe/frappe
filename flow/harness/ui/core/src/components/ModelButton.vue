@@ -32,7 +32,7 @@
 				</button>
 			</div>
 		</PalettePanel>
-		<ModelPalette v-else-if="pane === 'models'" dropdown :providers="providers" @close="close" @providers="openProviders" />
+		<ModelPalette v-else-if="pane === 'models'" dropdown :providers="providers" :required-modalities="requiredModalities" @close="close" @providers="openProviders" />
 		<ThinkingPalette v-else-if="pane === 'thinking'" dropdown @close="close" />
 	</span>
 </template>
@@ -47,8 +47,12 @@ import PalettePanel from "./PalettePanel.vue"
 import ThinkingPalette from "./ThinkingPalette.vue"
 
 // The composer's model button, with its own model and thinking lists; `open` asks the
-// composer for its providers page, where an empty model list sends the user.
-defineProps({ providers: { type: Boolean, default: false } })
+// composer for its providers page, where an empty model list sends the user. A pending
+// attachment narrows this list the same way it narrows the composer's own picker.
+defineProps({
+	providers: { type: Boolean, default: false },
+	requiredModalities: { type: Array, default: () => [] },
+})
 const emit = defineEmits(["open"])
 const flow = inject("flow")
 const pane = ref(null) // null | "root" | "models" | "thinking"

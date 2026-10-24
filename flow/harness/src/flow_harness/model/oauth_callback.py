@@ -38,11 +38,12 @@ def first(query: dict[str, list[str]], name: str) -> str | None:
 
 def callback_server(
 	on_callback: Callable[[CallbackResult, BaseServer], str | Rejected | None],
+	redirect_uri: str | None = None,
 ) -> ThreadingHTTPServer:
 	"""A loopback server on the provider's redirect URI. `on_callback` receives the
 	parsed callback and the server, and returns the error to render on the result
 	page (None for success) or REJECTED to 404 without consuming the login."""
-	redirect = urlparse(REDIRECT_URI)
+	redirect = urlparse(redirect_uri or REDIRECT_URI)
 
 	class CallbackHandler(BaseHTTPRequestHandler):
 		def do_GET(self) -> None:  # BaseHTTPRequestHandler API

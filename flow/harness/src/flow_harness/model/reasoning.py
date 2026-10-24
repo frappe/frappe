@@ -40,6 +40,10 @@ def reasoning_params(model: str, effort: ReasoningEffort | None) -> dict[str, An
 		return _anthropic_params(model, effort)
 	if effort == "off":
 		return None
+	if provider == "orcarouter":
+		from flow_harness.model.providers.orcarouter import reasoning_params as orcarouter_params
+
+		return orcarouter_params(model, effort)
 	if provider == "codex":
 		effort = "xhigh" if effort == "max" else effort
 		return {"reasoning": {"effort": effort, "summary": "auto"}}

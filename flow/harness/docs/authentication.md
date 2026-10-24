@@ -13,7 +13,12 @@ flow logout openai
 
 API-key providers prompt for a key. `codex` uses OAuth; `flow login codex --manual` prints the authorization URL and accepts a pasted callback URL for headless environments.
 
-The built-in providers are OpenAI, Anthropic, Gemini, OpenRouter, xAI, Groq, DeepSeek, Mistral, Cerebras, Codex, and OpenCode Go. The provider list is the source of truth for the current set:
+`orcarouter` offers both: `flow login orcarouter --method api-key` stores an existing
+`sk-orca-…` key, and `flow login orcarouter --method oauth` (the default when you answer
+its prompt) signs in through the browser and stores the key it issues. Either one is a
+normal OrcaRouter API key; inference and model discovery do not know which was used.
+
+The built-in providers are OpenAI, Anthropic, Gemini, OpenRouter, OrcaRouter, xAI, Groq, DeepSeek, Mistral, Cerebras, Codex, and OpenCode Go. The provider list is the source of truth for the current set:
 
 ```bash
 flow providers
@@ -31,6 +36,11 @@ For a standard model, Flow chooses credentials in this order:
 Custom endpoints are stored credentials containing their base URL, declared model ids, and optional key. An explicit `credential_id` pins a run to that endpoint; otherwise Flow uses an endpoint that declares the selected model.
 
 OAuth credentials are refreshed shortly before expiry. If a provider rejects an access token, Flow refreshes once and retries the request. A stored credential error is reported; Flow does not silently switch to another account.
+
+OrcaRouter is the exception: its sign-in returns a durable key with no expiry and no
+refresh grant, so it is reused until it is revoked. A rejected one is marked for
+re-authentication — Flow does not invent a refresh for it — and `flow login orcarouter`
+replaces it.
 
 ## Storage and daemon access
 

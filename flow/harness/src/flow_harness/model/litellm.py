@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import asyncio
 import json
-from collections.abc import AsyncIterator, Callable, Mapping
+from collections.abc import AsyncIterator, Awaitable, Callable, Mapping
 from dataclasses import dataclass, field
 from typing import Any, cast
 
@@ -51,11 +51,13 @@ class LiteLLMModel(Model):
 		provider: str | None = None,
 		model: str | None = None,
 		supports_images: bool | None = None,
+		refresh_auth: Callable[[], Awaitable[None]] | None = None,
 	):
 		self.name = name
 		self.api = api
 		self.provider = provider or (name.split("/", 1)[0] if "/" in name else "litellm")
 		self.model = model or name
+		self._refresh_auth = refresh_auth
 		self._api_key = api_key
 		self._api_base = api_base
 		self._headers = headers or {}
@@ -96,6 +98,7 @@ class LiteLLMModel(Model):
 			async for event in run_with_retries(
 				start_attempt,
 				cancellation=request.cancellation,
+				refresh_auth=self._refresh_auth,
 				provider=self.provider,
 			):
 				yield event

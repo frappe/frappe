@@ -30,6 +30,7 @@ MODEL_ENDPOINTS = {
 	"anthropic": "https://api.anthropic.com/v1/models",
 	"gemini": "https://generativelanguage.googleapis.com/v1beta/models",
 	"openrouter": "https://openrouter.ai/api/v1/models",
+	"orcarouter": "https://api.orcarouter.ai/v1/models",
 	"xai": "https://api.x.ai/v1/models",
 	"groq": "https://api.groq.com/openai/v1/models",
 	"deepseek": "https://api.deepseek.com/models",
@@ -55,6 +56,11 @@ def context_window_for(model: str) -> int | None:
 			from flow_harness.model.providers.codex import static_context_window
 
 			return static_context_window(rest)
+		if prefix == "orcarouter":
+			from flow_harness.model.providers.orcarouter import metadata_for
+
+			meta = metadata_for(model)
+			return meta.context_window if meta is not None else None
 		from flow_harness.model.litellm import litellm_limits
 
 		return litellm_limits(model)[0]
@@ -88,7 +94,7 @@ async def available_models(
 	for provider_id, result in zip(provider_ids, results, strict=True):
 		if isinstance(result, BaseException):
 			errors.append(f"{provider_id}: {result}")
-			result = fallback.get(provider_id, [])
+			result = fallback.get(provider_id) or _outage_fallback(provider_id)
 		for info in result:
 			models.setdefault(info.name, info)
 	# custom endpoints declare their models up front — no discovery call to make
@@ -101,6 +107,24 @@ async def available_models(
 		for name in credential.models:
 			models.setdefault(name, ModelInfo(name=name, provider=info.provider_id))
 	return ModelCatalog(models=[models[name] for name in sorted(models)], errors=errors)
+
+
+def _outage_fallback(provider_id: str) -> list[ModelInfo]:
+	"""A small verified catalog for a provider with no static entries, used only when
+	live discovery fails. Live results stay authoritative when the query succeeds."""
+	if provider_id != "orcarouter":
+		return []
+	from flow_harness.model.providers import orcarouter
+
+	return [
+		ModelInfo(
+			name=orcarouter.flow_model_name(remote),
+			provider=provider_id,
+			supports_images=meta.supports_images,
+			display_name=label,
+		)
+		for remote, label, meta in orcarouter.seed_models()
+	]
 
 
 def _by_provider(models: list[ModelInfo]) -> dict[str, list[ModelInfo]]:
@@ -121,6 +145,8 @@ async def _models_for_provider(
 	base = auth.base_url
 	if provider_id == "codex":
 		raw = await _codex_models(auth, base, client)
+	elif provider_id == "orcarouter":
+		raw = await _orcarouter_models(auth, base, client)
 	elif provider_id == "opencode-go":
 		from flow_harness.model.providers.opencode import BASE_URL
 
@@ -164,6 +190,42 @@ async def _http_models(
 	response = await client.get(url, headers=headers)
 	response.raise_for_status()
 	return _model_rows(response.json(), provider_id)
+
+
+async def _orcarouter_models(
+	auth: ResolvedModelAuth, api_base: str | None, client: httpx.AsyncClient
+) -> list[tuple[str, str | None]]:
+	"""The gateway's own catalog, asked for chat models only. Rows that advertise no
+	chat wire format, or only a dedicated image/video/rerank/embedding one, are dropped
+	before the picker ever sees them."""
+	from flow_harness.model.providers import orcarouter
+
+	base = (api_base or orcarouter.api_base_url()).rstrip("/")
+	response = await client.get(
+		f"{base}/models",
+		headers={"Authorization": f"Bearer {auth.api_key}"},
+		params={"capability": "chat"},
+	)
+	response.raise_for_status()
+	payload = response.json()
+	rows = payload.get("data") if isinstance(payload, dict) else None
+	if not isinstance(rows, list):
+		return []
+	usable = [
+		row
+		for row in rows
+		if isinstance(row, dict)
+		and isinstance(row.get("id"), str)
+		and row["id"]
+		and orcarouter.entry_supports_chat(row)
+	]
+	orcarouter.remember_catalog(usable)
+	return [(row["id"], _display_name(row)) for row in usable]
+
+
+def _display_name(row: dict) -> str | None:
+	value = row.get("name")
+	return value.strip() if isinstance(value, str) and " " in value.strip() else None
 
 
 async def _codex_models(

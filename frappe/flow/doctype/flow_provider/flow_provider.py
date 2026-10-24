@@ -47,10 +47,10 @@ class FlowProvider(Document):
 		except ImportError:
 			return
 		known = {p.value for p in litellm.provider_list}
-		if self.provider not in known:
+		if self.provider not in known and self.provider not in _daemon_providers():
 			frappe.throw(
 				_(
-					"Unknown provider {0}. It must be a LiteLLM provider name (e.g. openai, anthropic, openrouter, gemini)."
+					"Unknown provider {0}. It must be a LiteLLM provider name (e.g. openai, anthropic, openrouter, gemini) or one the Flow daemon routes itself (e.g. orcarouter, codex)."
 				).format(frappe.bold(self.provider)),
 				title=_("Invalid Provider"),
 			)
@@ -61,3 +61,14 @@ class FlowProvider(Document):
 		parsed = urlparse(self.base_url)
 		if parsed.scheme not in ("http", "https") or not parsed.netloc:
 			frappe.throw(_("Base URL must be an absolute http(s) URL."), title=_("Invalid Base URL"))
+
+
+def _daemon_providers() -> set[str]:
+	"""Providers the Flow daemon routes from its own registry: litellm has no adapter for
+	them, and a model id's first segment picks the adapter."""
+	try:
+		from flow_harness.model.catalog import PROVIDERS
+	except ImportError:
+		return set()
+
+	return {spec.id for spec in PROVIDERS}

@@ -25,7 +25,7 @@ import secrets
 import time
 import weakref
 from collections.abc import Awaitable, Callable
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 
 import httpx
 
@@ -46,6 +46,10 @@ class AuthError(Exception):
 
 class NotAuthenticated(AuthError):
 	"""No stored credential for the provider — the user must log in first."""
+
+
+class NeedsReauth(AuthError):
+	"""The provider rejected a durable credential; only a fresh sign-in replaces it."""
 
 
 # --- PKCE + JWT helpers ---------------------------------------------------
@@ -93,6 +97,8 @@ class RuntimeAuth:
 
 class AuthProvider(abc.ABC):
 	name: str
+	# Where this provider's loopback redirect lands; None keeps the shared default.
+	redirect_uri: str | None = None
 
 	@abc.abstractmethod
 	def authorize_url(self, *, challenge: str, state: str) -> str:
@@ -139,6 +145,37 @@ def get_auth_provider(name: str) -> AuthProvider:
 		raise AuthError(f"Unknown auth provider {name!r}") from None
 
 
+def mark_needs_reauth(store: CredentialStore, name: str, rejected_access: str) -> bool:
+	"""Mark the credential the provider actually rejected, and only that one.
+
+	The stored credential is compared by value, so a late 401 from a request made
+	with an older key cannot mark the key a newer sign-in just stored."""
+	credential = store.get_oauth(name)
+	if credential is None or credential.access != rejected_access:
+		return False
+	store.set_oauth(name, replace(credential, needs_reauth=True))
+	return True
+
+
+def _usable(credential: OAuthCredential, name: str) -> None:
+	if credential.needs_reauth:
+		raise NeedsReauth(f"The stored {name!r} credential was rejected. Sign in again to replace it.")
+
+
+def _durable_runtime(
+	provider: AuthProvider,
+	store: CredentialStore,
+	name: str,
+	credential: OAuthCredential,
+	refresh_access_token: str | None,
+) -> RuntimeAuth:
+	"""A durable key has no expiry and no refresh grant: reuse it, or stop at a 401."""
+	_usable(credential, name)
+	if refresh_access_token is not None and mark_needs_reauth(store, name, refresh_access_token):
+		raise NeedsReauth(f"The stored {name!r} credential was rejected. Sign in again to replace it.")
+	return provider.runtime_auth(credential)
+
+
 async def resolve_oauth(
 	store: CredentialStore,
 	name: str,
@@ -151,12 +188,17 @@ async def resolve_oauth(
 
 	``refresh_access_token`` is the token rejected by the provider. If another
 	concurrent request already replaced it, that newer credential is reused instead
-	of consuming the refresh token twice.
+	of consuming the refresh token twice. Durable credentials (``expires == 0`` and
+	no refresh token, as OrcaRouter issues) never refresh: a rejected one becomes
+	``needsReauth`` and is replaced only by a new sign-in.
 	"""
 	provider = get_auth_provider(name)
 	credential = store.get_oauth(name)
 	if credential is None:
 		raise NotAuthenticated(f"Not logged in to {name!r}; run login first.")
+	if credential.is_durable:
+		return _durable_runtime(provider, store, name, credential, refresh_access_token)
+	_usable(credential, name)
 	now = now_ms if now_ms is not None else _now_ms()
 	if refresh_access_token is not None and credential.access != refresh_access_token:
 		return provider.runtime_auth(credential)
@@ -169,6 +211,9 @@ async def resolve_oauth(
 		credential = store.get_oauth(name)
 		if credential is None:
 			raise NotAuthenticated(f"Not logged in to {name!r}; run login first.")
+		if credential.is_durable:
+			return _durable_runtime(provider, store, name, credential, refresh_access_token)
+		_usable(credential, name)
 		now = now_ms if now_ms is not None else _now_ms()
 		if refresh_access_token is not None and credential.access != refresh_access_token:
 			return provider.runtime_auth(credential)

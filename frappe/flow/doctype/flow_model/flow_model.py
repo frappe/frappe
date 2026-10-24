@@ -118,6 +118,8 @@ class FlowModel(Document):
 			import litellm
 		except ImportError:
 			return
+		if _daemon_provider(self.model_id):
+			return
 		try:
 			litellm.get_llm_provider(self.model_id)
 		except Exception as e:
@@ -160,12 +162,23 @@ class FlowModel(Document):
 		return {"ok": True, "message": _("Connection OK")}
 
 
+def _daemon_provider(model_id: str) -> bool:
+	"""The daemon routes a gateway model by the id's first segment; litellm cannot."""
+	from flow_harness.model.catalog import get_provider
+
+	prefix = (model_id or "").partition("/")[0]
+	return bool(prefix) and get_provider(prefix) is not None
+
+
 def _detect_context_window(model_id: str) -> int:
 	"""Max input tokens for `model_id` per litellm, else for the id behind its prefix
 	(a gateway's custom_openai/openai/gpt-x), or 0 if neither is mapped."""
 	import litellm
 
-	for candidate in (model_id, model_id.partition("/")[2]):
+	behind = model_id.split("/", 1)[1] if "/" in model_id else ""
+	for candidate in (model_id, behind):
+		if not candidate:
+			continue
 		try:
 			window = litellm.get_model_info(candidate).get("max_input_tokens")
 		except Exception:
@@ -208,10 +221,19 @@ def _live_models(provider: str) -> list[str]:
 	elif provider == "gemini":
 		headers = {"x-goog-api-key": api_key}
 		params = {"pageSize": 1000}
+	elif provider == "orcarouter":
+		# the gateway's chat surface only, as its picker does
+		params = {"capability": "chat"}
+		headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
 	else:
 		headers = {"Authorization": f"Bearer {api_key}"} if api_key else {}
 	response = requests.get(url, headers=headers, params=params, timeout=10)
 	response.raise_for_status()
 	data = response.json()
-	ids = (row.get("id") or row.get("name") for row in data.get("data", data.get("models")))
+	rows = data.get("data", data.get("models"))
+	if provider == "orcarouter":
+		from flow_harness.model.providers.orcarouter import entry_supports_chat
+
+		rows = [row for row in rows if entry_supports_chat(row)]
+	ids = (row.get("id") or row.get("name") for row in rows)
 	return [str(model_id).removeprefix("models/") for model_id in ids if model_id]

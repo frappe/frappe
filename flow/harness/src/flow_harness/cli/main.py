@@ -94,6 +94,11 @@ def main() -> None:
 		action="store_true",
 		help="print the OAuth URL and accept a pasted callback URL",
 	)
+	p_login.add_argument(
+		"--method",
+		choices=("api-key", "oauth"),
+		help="how to authenticate when the provider offers both",
+	)
 
 	sub.add_parser("providers", help="show provider authentication status")
 
@@ -453,7 +458,12 @@ def _resolve_auth_token() -> str | None:
 def _login(args) -> None:
 	from flow_harness.cli.login import login
 
-	login(CredentialStore(config.CREDENTIALS_PATH), args.provider, manual=args.manual)
+	login(
+		CredentialStore(config.CREDENTIALS_PATH),
+		args.provider,
+		manual=args.manual,
+		method=args.method,
+	)
 
 
 def _providers() -> None:

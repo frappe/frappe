@@ -33,6 +33,13 @@ PROVIDERS = (
 		("GEMINI_API_KEY", "GOOGLE_API_KEY"),
 	),
 	ProviderSpec("openrouter", "OpenRouter", ("openrouter",), ("OPENROUTER_API_KEY",)),
+	ProviderSpec(
+		"orcarouter",
+		"OrcaRouter",
+		("orcarouter",),
+		("ORCAROUTER_API_KEY",),
+		auth_methods=("api_key", "oauth"),
+	),
 	ProviderSpec("xai", "xAI", ("xai",), ("XAI_API_KEY",)),
 	ProviderSpec("groq", "Groq", ("groq",), ("GROQ_API_KEY",)),
 	ProviderSpec("deepseek", "DeepSeek", ("deepseek",), ("DEEPSEEK_API_KEY",)),
@@ -107,6 +114,10 @@ def model_supports_images(name: str) -> bool | None:
 		from flow_harness.model.providers.codex import codex_supports_images
 
 		return codex_supports_images(remote)
+	if prefix == "orcarouter":
+		from flow_harness.model.providers.orcarouter import supports_images
+
+		return supports_images(name)
 	if prefix == "opencode-go":
 		from flow_harness.model.providers.opencode import opencode_go_supports_images
 

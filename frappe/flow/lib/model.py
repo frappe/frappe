@@ -34,13 +34,20 @@ def model_config(model: str, *, check_permission: bool = True) -> dict[str, Any]
 
 
 def resolve_provider_credentials(model_id: str) -> dict[str, Any]:
-	"""Look up central Flow Provider credentials for a model's provider."""
-	try:
-		import litellm
+	"""Look up central Flow Provider credentials for a model's provider.
 
-		provider = litellm.get_llm_provider(model_id)[1]
-	except Exception:
-		return {}
+	The first segment wins when a provider by that name exists: Flow Model composes
+	ids as ``provider/model``, and a gateway the daemon routes itself (OrcaRouter,
+	Codex) has no litellm adapter to ask."""
+	prefix = model_id.partition("/")[0]
+	provider = prefix if prefix and frappe.db.exists("Flow Provider", prefix) else None
+	if not provider:
+		try:
+			import litellm
+
+			provider = litellm.get_llm_provider(model_id)[1]
+		except Exception:
+			return {}
 
 	if not provider or not frappe.db.exists("Flow Provider", provider):
 		return {}

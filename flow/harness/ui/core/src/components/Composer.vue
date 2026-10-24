@@ -6,6 +6,7 @@
 				v-if="paletteView === 'models'"
 				:providers="has('providers')"
 				:query="subQuery"
+				:required-modalities="requiredModalities"
 				@close="closePalettes"
 				@back="openCommands"
 				@providers="paletteView = 'providers'"
@@ -253,8 +254,8 @@
 					class="hidden"
 					@change="onFilesPicked"
 				/>
-				<div v-if="visionWarning" class="px-1 text-2xs text-ink-amber-6">
-					The selected model cannot view images. Switch to a vision-capable model before sending.
+				<div v-if="modelUnusable" class="px-1 text-2xs text-ink-amber-6">
+					The selected model cannot read images. Pick an image-capable model before sending.
 				</div>
 				<div v-if="modelWarning" class="px-1 text-2xs text-ink-gray-5">{{ modelWarning }}</div>
 				<div class="flex min-w-0 items-center gap-1">
@@ -316,7 +317,7 @@
 
 					<!-- the pickers, by the send button; a host adds its own around the model button -->
 					<slot name="toolbar" :open-palette="openPalette">
-						<ModelButton :providers="has('providers')" @open="openPalette" />
+						<ModelButton :providers="has('providers')" :required-modalities="requiredModalities" @open="openPalette" />
 					</slot>
 
 					<button
@@ -802,6 +803,7 @@ watch(
 const canSend = computed(
 	() =>
 		!submitting.value &&
+		!modelUnusable.value &&
 		!needsCwd.value &&
 		(text.value.trim().length > 0 || attachments.value.length > 0 || codeRefs.value.length > 0 || quotes.value.length > 0),
 )
@@ -821,13 +823,24 @@ const currentImageSupport = computed(() => {
 	if (flow.state.sessionId && flow.state.session) return flow.state.session.supports_images
 	return flow.state.models.find((item) => item.name === currentModel.value)?.supports_images
 })
-const visionWarning = computed(
-	() =>
-		props.imagesOnly &&
-		attachments.value.some((item) => item.kind === "image") &&
-		currentImageSupport.value === false,
-)
 const modelWarning = computed(() => flow.modelWarning?.())
+
+// what the pending message needs from the model; the picker offers only models
+// the catalog explicitly advertises for it
+const requiredModalities = computed(() =>
+	attachments.value.some((item) => item.kind === "image") ? ["image"] : [],
+)
+// an image with a model that cannot read it invalidates the choice: the send is
+// held and the picker reopens, rather than carrying the attachment to a model
+// that would drop it. An unset capability fails closed, as it does in the picker.
+const modelUnusable = computed(
+	() => requiredModalities.value.length > 0 && currentImageSupport.value !== true,
+)
+watch(modelUnusable, (unusable) => {
+	if (!unusable) return
+	flow.notify("Choose an image-capable model to send this image.", "error")
+	if (has("providers")) paletteView.value = "models"
+})
 
 // slash palette: the "/word" being typed anywhere, or a sub-page navigated back
 // to the commands root. A space ("/cwd ") ends the word — the menu closes so
@@ -977,6 +990,7 @@ function replaceSlash(value) {
 
 async function submit() {
 	if (submitting.value) return
+	if (modelUnusable.value) return // the composer banner points at the fix
 	const draftText = text.value
 	const value = draftText.trim()
 	if (!value && !attachments.value.length && !codeRefs.value.length && !quotes.value.length) return

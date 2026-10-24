@@ -46,6 +46,7 @@ def provider_catalog(store: CredentialStore) -> list[dict]:
 			if credential_type == "api_key"
 			else env_source
 		)
+		oauth = store.get_oauth(provider.id) if credential_type == "oauth" else None
 		rows.append(
 			{
 				"id": provider.id,
@@ -55,6 +56,7 @@ def provider_catalog(store: CredentialStore) -> list[dict]:
 				"configured": bool(source),
 				"credential_type": credential_type,
 				"source": source,
+				"needs_reauth": bool(oauth and oauth.needs_reauth),
 				"custom": False,
 			}
 		)
@@ -300,7 +302,7 @@ def _callback_server(flow: OAuthFlow) -> ThreadingHTTPServer:
 		threading.Thread(target=server.shutdown, daemon=True).start()
 		return result[2]
 
-	server = callback_server(accept)
+	server = callback_server(accept, get_auth_provider(flow.provider_id).redirect_uri)
 	server.daemon_threads = True
 	return server
 

@@ -41,6 +41,7 @@ class TestFlowModelValidation(IntegrationTestCase):
 			(
 				("openrouter/~anthropic/claude-sonnet-latest", None),
 				("openai/gpt-4o-mini", "http://localhost:11434"),
+				("orcarouter/openai/gpt-5.5", "https://api.orcarouter.ai/v1"),
 			)
 		):
 			doc = frappe.get_doc(_model(title=f"Valid {i}", model_id=model_id, base_url=base_url)).insert()
@@ -110,6 +111,7 @@ class TestContextWindow(IntegrationTestCase):
 			("vendor/unknown", 0),
 			("vendor/x", 0),
 			("custom_openai/openai/gpt-x", 400000),
+			("orcarouter/openai/gpt-x", 400000),
 		):
 			with (
 				self.subTest(model_id=model_id),
@@ -171,6 +173,26 @@ class TestProviderModels(IntegrationTestCase):
 			with self.subTest(provider), patch("requests.get", return_value=_response(body)) as get:
 				self.assertEqual(get_provider_models(provider), models)  # every model on one page
 				self.assertEqual(get.call_args.kwargs["params"], params)
+
+		frappe.get_doc({"doctype": "Flow Provider", "provider": "orcarouter", "api_key": "sk-orca"}).insert()
+		body = {
+			"data": [
+				{
+					"id": "openai/gpt-5.5",
+					"supported_endpoint_types": ["openai"],
+					"architecture": {"input_modalities": ["text"]},
+				},
+				{"id": "acme/painter", "supported_endpoint_types": ["image-generation"]},
+				{"id": "acme/mystery"},
+			]
+		}
+		with (
+			self.subTest("a gateway's chat models only"),
+			patch("requests.get", return_value=_response(body)) as get,
+		):
+			self.assertEqual(get_provider_models("orcarouter"), ["orcarouter/openai/gpt-5.5"])
+			self.assertEqual(get.call_args.args[0], "https://api.orcarouter.ai/v1/models")
+			self.assertEqual(get.call_args.kwargs["params"], {"capability": "chat"})
 
 		with (
 			self.subTest("LiteLLM's catalog when the provider does not answer"),

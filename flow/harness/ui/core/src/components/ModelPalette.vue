@@ -54,16 +54,20 @@
 					<FeatherIcon v-if="m.name === currentModel" name="check" class="ml-auto h-4 w-4 flex-none" />
 				</button>
 			</template>
-			<!-- a typed provider/model not in the list is usable as-is: discovery is a suggestion, not a gate -->
-			<button v-if="custom" data-palette-item class="flow-palette-row" @click="choose(custom)">
+			<!-- a typed provider/model not in the list is usable as-is: discovery is a suggestion, not a gate.
+			     while an attachment narrows the list, the escape hatch would only bypass that filter -->
+			<button v-if="custom && !required.length" data-palette-item class="flow-palette-row" @click="choose(custom)">
 				<span class="min-w-0 truncate">Use "{{ custom }}"</span>
 			</button>
 			<LoadingState
 				v-if="!groups.length && !custom && flow.state.modelsLoading"
 				class="justify-center px-3 py-8 text-xs text-ink-gray-5"
 			/>
-			<div v-else-if="!groups.length && !custom && flow.state.models.length" class="flow-palette-empty">
-				No matching models
+			<div
+				v-else-if="!groups.length && (!custom || required.length) && flow.state.models.length"
+				class="flow-palette-empty"
+			>
+				{{ required.length ? "No image-capable models connected" : "No matching models" }}
 			</div>
 			<!-- none at all: a line saying so, and the way to connect a provider as a row -->
 			<template v-else-if="!groups.length && !custom">
@@ -93,6 +97,9 @@ const props = defineProps({
 	query: { type: String, default: "" }, // the composer's text after its "/"
 	// hung from the model button with its own search, not over the composer
 	dropdown: { type: Boolean, default: false },
+	// modalities the pending message needs ("image"); models the catalog does not
+	// explicitly advertise for them are not offered
+	requiredModalities: { type: Array, default: () => [] },
 })
 const emit = defineEmits(["close", "back", "providers"])
 const flow = inject("flow")
@@ -106,11 +113,18 @@ onMounted(() => layout.phone || field.value?.focus())
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 
+// the file pipeline only carries images, and an unset capability is not a claim
+const required = computed(() => (props.requiredModalities ?? []).filter(Boolean))
+function accepts(model) {
+	return required.value.every((modality) => modality === "image" && model.supports_images === true)
+}
+
 // each provider's models under its name, matched by every word of the search in their name or id
 const groups = computed(() => {
 	const words = debounced.value.trim().toLowerCase().split(/\s+/).filter(Boolean)
 	const groups = new Map()
 	for (const m of flow.state.models) {
+		if (!accepts(m)) continue
 		const title = m.display_name || modelTitle(m.name)
 		const text = `${title} ${m.name}`.toLowerCase()
 		if (!words.every((word) => text.includes(word))) continue

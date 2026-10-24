@@ -42,9 +42,15 @@ class ApiKeyCredential:
 class OAuthCredential:
 	access: str
 	refresh: str
-	expires: int  # epoch milliseconds
+	expires: int  # epoch milliseconds; 0 marks a durable key with no expiry
 	account_id: str | None = None
+	needs_reauth: bool = False
 	type: Literal["oauth"] = "oauth"
+
+	@property
+	def is_durable(self) -> bool:
+		"""A key grant, not a token pair: nothing to refresh, reusable until revoked."""
+		return self.expires == 0 and not self.refresh
 
 	def to_dict(self) -> dict:
 		data = {
@@ -55,6 +61,8 @@ class OAuthCredential:
 		}
 		if self.account_id:
 			data["account_id"] = self.account_id
+		if self.needs_reauth:
+			data["needs_reauth"] = True
 		return data
 
 
@@ -219,16 +227,20 @@ def _credential_from_dict(data: dict) -> Credential:
 		return ApiKeyCredential(key=_required_string(data, "key"))
 	if kind == "oauth":
 		expires = data.get("expires")
-		if not isinstance(expires, int) or isinstance(expires, bool) or expires <= 0:
-			raise CredentialStoreError("OAuth credential expiry must be a positive integer")
+		if not isinstance(expires, int) or isinstance(expires, bool) or expires < 0:
+			raise CredentialStoreError("OAuth credential expiry must be a non-negative integer")
 		account_id = data.get("account_id")
 		if account_id is not None and (not isinstance(account_id, str) or not account_id):
 			raise CredentialStoreError("OAuth account_id must be a non-empty string")
+		refresh = data.get("refresh")
+		if not isinstance(refresh, str):
+			raise CredentialStoreError("OAuth credential field 'refresh' must be a string")
 		return OAuthCredential(
 			access=_required_string(data, "access"),
-			refresh=_required_string(data, "refresh"),
+			refresh=refresh.strip(),
 			expires=expires,
 			account_id=account_id,
+			needs_reauth=data.get("needs_reauth") is True,
 		)
 	if kind == "custom":
 		models = data.get("models")

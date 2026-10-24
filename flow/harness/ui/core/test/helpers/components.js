@@ -5,12 +5,21 @@ import { compileScript, parse } from "vue/compiler-sfc"
 const vue = import.meta.resolve("vue")
 const moduleURL = (code) => `data:text/javascript;base64,${Buffer.from(code).toString("base64")}`
 const stubs = new Map()
-// a stub carries its name so a test can see which widget the tree mounted
+// a stub carries its name so a test can see which widget the tree mounted, and the
+// modalities a parent asked it to honour
 function stubURL(name) {
 	if (!stubs.has(name))
 		stubs.set(name, moduleURL(`
 			import { h } from ${JSON.stringify(vue)}
-			export default { render() { return h('div', { 'data-stub': ${JSON.stringify(name)} }, this.$slots.default?.()) } }
+			export default {
+				props: ["requiredModalities"],
+				render() {
+					return h("div", {
+						"data-stub": ${JSON.stringify(name)},
+						...(Array.isArray(this.requiredModalities) && this.requiredModalities.length ? { "data-required-modalities": JSON.stringify(this.requiredModalities) } : {}),
+					}, this.$slots.default?.())
+				},
+			}
 		`))
 	return stubs.get(name)
 }

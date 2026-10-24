@@ -10,7 +10,13 @@ from urllib.parse import parse_qs, urlparse
 
 import httpx
 
-from flow_harness.model.auth import AuthError, generate_pkce, get_auth_provider, new_state
+from flow_harness.model.auth import (
+	AuthError,
+	AuthProvider,
+	generate_pkce,
+	get_auth_provider,
+	new_state,
+)
 from flow_harness.model.catalog import PROVIDERS, ProviderSpec, configured_env, get_provider
 from flow_harness.model.credentials import CredentialStore
 from flow_harness.model.oauth_callback import CallbackResult, Rejected, callback_server, first, parse_callback
@@ -23,9 +29,10 @@ def login(
 	provider_id: str | None,
 	*,
 	manual: bool = False,
+	method: str | None = None,
 ) -> None:
 	provider = _select_provider(provider_id)
-	if "oauth" in provider.auth_methods:
+	if _choose_method(provider, method) == "oauth":
 		credential = _oauth_login(provider, manual=manual)
 		store.set_oauth(provider.id, credential)
 		print(f"Logged in to {provider.display_name}.")
@@ -36,6 +43,24 @@ def login(
 		raise AuthError("API key cannot be empty")
 	store.set_api_key(provider.id, key)
 	print(f"Saved API key for {provider.display_name}.")
+
+
+def _choose_method(provider: ProviderSpec, method: str | None) -> str:
+	"""Which way in the user wants. A provider that supports both is asked, not guessed."""
+	available = provider.auth_methods
+	if method is not None:
+		chosen = {"api-key": "api_key", "api_key": "api_key", "oauth": "oauth"}.get(method)
+		if chosen not in available:
+			raise AuthError(
+				f"{provider.display_name} does not support {method!r}. Available: {', '.join(available)}"
+			)
+		return chosen
+	if "oauth" in available and "api_key" in available:
+		print(f"{provider.display_name} can be set up two ways:")
+		print("  1. Paste an API key")
+		print(f"  2. Sign in with {provider.display_name} in your browser")
+		return "oauth" if input("Choose [1]: ").strip() == "2" else "api_key"
+	return "oauth" if "oauth" in available else "api_key"
 
 
 def logout(store: CredentialStore, provider_id: str) -> None:
@@ -95,7 +120,7 @@ def _oauth_login(provider: ProviderSpec, *, manual: bool):
 		value = input("Paste the full callback URL: ")
 		code, returned_state = _parse_callback(value)
 	else:
-		code, returned_state = _browser_callback(url)
+		code, returned_state = _browser_callback(url, auth_provider)
 
 	if returned_state != state:
 		raise AuthError("OAuth state mismatch; login was not accepted")
@@ -107,7 +132,7 @@ def _oauth_login(provider: ProviderSpec, *, manual: bool):
 		raise AuthError("OAuth token exchange failed") from e
 
 
-def _browser_callback(url: str) -> tuple[str | None, str | None]:
+def _browser_callback(url: str, auth_provider: AuthProvider) -> tuple[str | None, str | None]:
 	expected_state = first(parse_qs(urlparse(url).query), "state")
 	result: dict[str, str | None] = {"code": None, "state": None, "error": None}
 
@@ -119,10 +144,10 @@ def _browser_callback(url: str) -> tuple[str | None, str | None]:
 		return error
 
 	try:
-		server = callback_server(accept)
+		server = callback_server(accept, auth_provider.redirect_uri)
 	except OSError as e:
 		raise AuthError(
-			"Could not start the loopback OAuth callback. Retry with `flow login codex --manual`."
+			f"Could not start the loopback OAuth callback. Retry with `flow login {auth_provider.name} --manual`."
 		) from e
 
 	server.timeout = 1

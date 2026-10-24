@@ -15,6 +15,7 @@ const PROVIDERS = [
 	{ label: "Anthropic", value: "anthropic" },
 	{ label: "Google Gemini", value: "gemini" },
 	{ label: "OpenRouter", value: "openrouter" },
+	{ label: "OrcaRouter", value: "orcarouter" },
 	{ label: "xAI", value: "xai" },
 	{ label: "Groq", value: "groq" },
 	{ label: "DeepSeek", value: "deepseek" },

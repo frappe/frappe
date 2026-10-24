@@ -2587,7 +2587,7 @@ test("the providers list says it is loading, and a sign-in check still in flight
 	const button = (label) => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === label)
 	button("Alpha").click()
 	await nextTick()
-	button("Sign in").click()
+	button("Sign in with Alpha").click()
 	await settle()
 	assert.ok(el.textContent.includes("Waiting for sign-in"))
 	t.mock.timers.tick(1500) // the poll asks about Alpha
@@ -2598,7 +2598,7 @@ test("the providers list says it is loading, and a sign-in check still in flight
 	await nextTick()
 	answer({ status: "pending" })
 	await settle()
-	assert.ok(button("Sign in"))
+	assert.ok(button("Sign in with Beta"))
 	assert.ok(!el.textContent.includes("Waiting for sign-in"))
 })
 
@@ -2749,6 +2749,29 @@ test("the model button names the chat's own model and thinking level, never the 
 	flow.state.sessionId = null
 	await nextTick()
 	assert.ok(el.textContent.includes("High"))
+})
+
+test("the model button's own model list takes the modalities the pending message needs", async (t) => {
+	const flow = {
+		state: reactive({ loading: false, sessionId: null, conversation: {}, models: [], prefs: {} }),
+	}
+	const plain = mount(t, ModelButton, {}, flow)
+	plain.el.querySelector("button").click()
+	await nextTick()
+	plain.el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	const wide = plain.el.querySelector("[data-stub=ModelPalette]")
+	assert.ok(wide)
+	assert.equal(wide.getAttribute("data-required-modalities"), null)
+
+	const narrowed = mount(t, ModelButton, { requiredModalities: ["image"] }, flow)
+	narrowed.el.querySelector("button").click()
+	await nextTick()
+	narrowed.el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	const list = narrowed.el.querySelector("[data-stub=ModelPalette]")
+	assert.ok(list)
+	assert.equal(list.getAttribute("data-required-modalities"), '["image"]')
 })
 
 function composerFlow(over = {}) {
@@ -3003,4 +3026,175 @@ test("the web app shows its connect form when the daemon refuses the token, and 
 	await settle()
 	assert.ok(el.querySelector("[data-stub='FlowChat']"))
 	assert.equal(JSON.parse(saved["flow.ui.connection"]).token, "s3cret")
+})
+
+test("with an image pending, the model list offers only models whose catalog entry declares image input, and the type-a-name row would bypass that filter", async (t) => {
+	const picked = []
+	const flow = {
+		state: reactive({
+			models: [
+				{ name: "orcarouter/openai/gpt-5.5", provider: "orcarouter", display_name: "GPT-5.5", supports_images: false },
+				{ name: "orcarouter/acme/vision", provider: "orcarouter", display_name: "Acme Vision", supports_images: true },
+				// an unset capability is not a claim, either way
+				{ name: "openai/gpt-4o", provider: "openai" },
+			],
+			modelsLoading: false,
+			conversation: {},
+			prefs: {},
+		}),
+		selectModel: (name) => picked.push(name),
+	}
+	const lines = (root) => [...root.querySelectorAll(".flow-palette-list > *")].map((node) => node.textContent.trim())
+
+	const plain = mount(t, ModelPalette, {}, flow)
+	assert.deepEqual(lines(plain.el), ["orcarouter", "GPT-5.5", "Acme Vision", "openai", "GPT-4o"])
+	plain.el.querySelectorAll("[data-palette-item]")[0].click()
+
+	const narrowed = mount(t, ModelPalette, { requiredModalities: ["image"] }, flow)
+	assert.deepEqual(lines(narrowed.el), ["orcarouter", "Acme Vision"])
+	narrowed.el.querySelector("[data-palette-item]").click()
+	assert.deepEqual(picked, ["orcarouter/openai/gpt-5.5", "orcarouter/acme/vision"])
+
+	// nothing left to offer says so, and the free-text row does not stand in for the filter
+	flow.state.models = flow.state.models.filter((m) => m.supports_images !== true)
+	await nextTick()
+	t.mock.timers.enable({ apis: ["setTimeout"] })
+	const typed = mount(t, ModelPalette, { dropdown: true, requiredModalities: ["image"] }, flow)
+	const field = typed.el.querySelector("input")
+	field.value = "acme/x-1"
+	field.dispatchEvent(new window.Event("input"))
+	await nextTick()
+	t.mock.timers.tick(150)
+	await nextTick()
+	assert.deepEqual(lines(typed.el), ["No image-capable models connected"])
+	assert.equal(typed.el.querySelector("[data-palette-item]"), null)
+})
+
+test("an image with a model the catalog does not advertise for it holds the send, says why, and frees it once an image-capable model is picked", async (t) => {
+	const createObjectURL = URL.createObjectURL
+	URL.createObjectURL = () => "blob:shot"
+	t.after(() => (URL.createObjectURL = createObjectURL))
+	const notes = []
+	const sent = []
+	const flow = composerFlow({
+		send: async (message, attachments) => {
+			sent.push({ message, attachments })
+			return true
+		},
+		notify: (message) => notes.push(message),
+	})
+	Object.assign(flow.state, {
+		models: [
+			{ name: "orcarouter/openai/gpt-5.5", provider: "orcarouter", supports_images: false },
+			{ name: "orcarouter/acme/vision", provider: "orcarouter", supports_images: true },
+		],
+		prefs: { mode: "ask", lastModel: "orcarouter/openai/gpt-5.5" },
+		conversation: { running: false, sending: [] },
+	})
+	const { el, vm } = mount(t, Composer, { commands: [], mentions: false }, flow)
+	vm.prefill("what is in this picture?")
+	await nextTick()
+	const send = () => el.querySelector("button[title='Send']")
+
+	const paste = new window.Event("paste", { bubbles: true, cancelable: true })
+	paste.clipboardData = {
+		items: [{ kind: "file", type: "image/png", getAsFile: () => new window.File(["png"], "shot.png", { type: "image/png" }) }],
+		getData: () => "",
+	}
+	el.querySelector("textarea").dispatchEvent(paste)
+	await settle()
+	assert.equal(send().disabled, true)
+	assert.ok(el.textContent.includes("cannot read images"))
+	assert.ok(notes.some((note) => note.includes("image-capable model")))
+	keydown(el.querySelector("textarea"), { key: "Enter" })
+	await settle()
+	assert.deepEqual(sent, [])
+
+	flow.state.prefs.lastModel = "orcarouter/acme/vision"
+	await nextTick()
+	assert.equal(send().disabled, false)
+	assert.ok(!el.textContent.includes("cannot read images"))
+	keydown(el.querySelector("textarea"), { key: "Enter" })
+	await settle()
+	assert.equal(sent.length, 1)
+	assert.equal(sent[0].attachments.length, 1)
+})
+
+test("a provider offering both ways in shows the key field and the sign-in side by side, and a rejected sign-in asks for a new one rather than a form it cannot use", async (t) => {
+	const flow = {
+		client: {
+			providers: async () => ({
+				providers: [
+					{
+						id: "orcarouter",
+						name: "OrcaRouter",
+						auth_methods: ["api_key", "oauth"],
+						configured: false,
+						source: null,
+					},
+					{
+						id: "orcarouter",
+						name: "OrcaRouter",
+						auth_methods: ["api_key", "oauth"],
+						configured: true,
+						credential_type: "oauth",
+						source: "OAuth",
+						needs_reauth: true,
+					},
+				],
+			}),
+		},
+		notify() {},
+	}
+	const { el } = mount(t, ProvidersDialog, {}, flow)
+	await settle()
+	const rows = () => [...el.querySelectorAll(".flow-palette-list > [data-palette-item]")]
+	rows()[0].click()
+	await nextTick()
+
+	const keyForm = el.querySelector("[data-auth-method='api-key']")
+	const signIn = el.querySelector("[data-auth-method='oauth']")
+	assert.ok(keyForm, "the API-key form is offered")
+	assert.ok(signIn, "and so is the browser sign-in")
+	assert.equal(keyForm.querySelector("input").getAttribute("placeholder"), "sk-orca-…")
+	assert.equal(signIn.querySelector("button").textContent.trim(), "Sign in with OrcaRouter")
+
+	// a rejected key keeps its own warning and the way to replace it
+	el.querySelector("[data-stub='PalettePanel']").dispatchEvent(new window.Event("back"))
+	await nextTick()
+	rows()[1].click()
+	await nextTick()
+	assert.ok(el.textContent.includes("rejected the saved sign-in"))
+	assert.ok([...el.querySelectorAll("button")].some((b) => b.textContent.trim() === "Disconnect"))
+})
+
+test("a provider already connected by key still offers the browser sign-in beside it", async (t) => {
+	const flow = {
+		client: {
+			providers: async () => ({
+				providers: [
+					{
+						id: "orcarouter",
+						name: "OrcaRouter",
+						auth_methods: ["api_key", "oauth"],
+						configured: true,
+						credential_type: "api_key",
+						source: "Stored API key",
+					},
+				],
+			}),
+		},
+		notify() {},
+	}
+	const { el } = mount(t, ProvidersDialog, {}, flow)
+	await settle()
+	el.querySelector(".flow-palette-list > [data-palette-item]").click()
+	await nextTick()
+
+	assert.ok(el.textContent.includes("Ready to use"))
+	const keyForm = el.querySelector("[data-auth-method='api-key']")
+	const signIn = el.querySelector("[data-auth-method='oauth']")
+	assert.ok(keyForm, "the key can be replaced")
+	assert.ok(signIn, "and the sign-in is still offered, not hidden behind a disconnect")
+	assert.equal(signIn.querySelector("button").textContent.trim(), "Sign in with OrcaRouter")
 })

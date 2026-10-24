@@ -19,6 +19,7 @@ from flow_harness.model.litellm import LiteLLMModel
 from flow_harness.model.mock import MockModel
 from flow_harness.model.providers.codex import CodexAuthProvider, CodexModel
 from flow_harness.model.providers.opencode import opencode_go_model
+from flow_harness.model.providers.orcarouter import OrcaRouterAuthProvider, orcarouter_model
 from flow_harness.model.retry import run_with_retries
 
 BuildModel = Callable[..., Model]
@@ -52,7 +53,9 @@ def get_model(
 register_provider("mock", lambda name, **kwargs: MockModel())
 register_provider("codex", CodexModel)
 register_provider("opencode-go", opencode_go_model)
+register_provider("orcarouter", orcarouter_model)
 register_auth_provider(CodexAuthProvider())
+register_auth_provider(OrcaRouterAuthProvider())
 
 __all__ = [
 	"BuildModel",
