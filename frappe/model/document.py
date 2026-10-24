@@ -70,6 +70,7 @@ from frappe.utils import (
 	now,
 	sanitize_html,
 	strip_html,
+	strip_html_tags,
 )
 from frappe.utils.data import get_absolute_url, get_datetime, get_timedelta, getdate
 from frappe.utils.defaults import get_not_null_defaults
@@ -1803,24 +1804,30 @@ class Document(_DocumentBase):
 		if self.flags.ignore_mandatory:
 			return
 
-		missing = self._get_missing_mandatory_fields()
-		for d in self.get_all_children():
-			missing.extend(d._get_missing_mandatory_fields())
+		missing = []
+		for doc in (self, *self.get_all_children()):
+			missing.extend((doc, *each) for each in doc._get_missing_mandatory_fields())
 
 		if not missing:
 			return
 
-		for idx, msg in missing:  # noqa: B007
+		for _doc, _fieldname, msg in missing:
 			msgprint(msg)
 
 		if frappe.flags.print_messages:
 			print(self.as_json().encode("utf-8"))
 
-		raise frappe.MandatoryError(
+		error = frappe.MandatoryError(
 			"[{doctype}, {name}]: {fields}".format(
-				fields=", ".join(each[0] for each in missing), doctype=self.doctype, name=self.name
+				fields=", ".join(each[1] for each in missing), doctype=self.doctype, name=self.name
 			)
 		)
+		error.field_errors = [
+			doc._field_error(fieldname, _("{0} is required").format(doc.meta.get_translated_label(fieldname)))
+			for doc, fieldname, _msg in missing
+			if doc.meta.has_field(fieldname)
+		]
+		raise error
 
 	def _prefetch_link_values(self):
 		"""Pre-fetch all link values including fetch_from fields for bulk validation.
@@ -1956,20 +1963,21 @@ class Document(_DocumentBase):
 		self._prefetch_link_values()
 		link_cache = getattr(self, "_link_value_cache", None)
 
-		invalid_links, cancelled_links = self.get_invalid_links(link_value_cache=link_cache)
-
-		for d in self.get_all_children():
-			result = d.get_invalid_links(is_submittable=self.meta.is_submittable, link_value_cache=link_cache)
-			invalid_links.extend(result[0])
-			cancelled_links.extend(result[1])
+		invalid_links, cancelled_links = [], []
+		for doc in (self, *self.get_all_children()):
+			invalid, cancelled = doc.get_invalid_links(
+				is_submittable=self.meta.is_submittable, link_value_cache=link_cache
+			)
+			invalid_links.extend((doc, *each) for each in invalid)
+			cancelled_links.extend((doc, *each) for each in cancelled)
 
 		if invalid_links:
-			msg = ", ".join(each[2] for each in invalid_links)
-			frappe.throw(_("Could not find {0}").format(msg), frappe.LinkValidationError)
+			_throw_link_errors(_("Could not find {0}"), invalid_links, frappe.LinkValidationError)
 
 		if cancelled_links:
-			msg = ", ".join(each[2] for each in cancelled_links)
-			frappe.throw(_("Cannot link cancelled document: {0}").format(msg), frappe.CancelledLinkError)
+			_throw_link_errors(
+				_("Cannot link cancelled document: {0}"), cancelled_links, frappe.CancelledLinkError
+			)
 
 	def get_all_children(self, parenttype=None, *, include_computed=False) -> list["Document"]:
 		"""
@@ -3703,11 +3711,12 @@ class Document(_DocumentBase):
 				label = self.meta.get_translated_label(df.fieldname)
 				comma_options = '", "'.join(_(each) for each in options)
 
-				frappe.throw(
-					_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(
-						prefix, label, value, comma_options
+				with self._naming_field(df.fieldname):
+					frappe.throw(
+						_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(
+							prefix, label, value, comma_options
+						)
 					)
-				)
 
 	def _validate_data_fields(self):
 		from frappe.utils import (
@@ -3722,7 +3731,8 @@ class Document(_DocumentBase):
 
 		for phone_field in self.meta.get_phone_fields():
 			phone = self.get(phone_field.fieldname)
-			validate_phone_number_with_country_code(phone, phone_field.fieldname)
+			with self._naming_field(phone_field.fieldname):
+				validate_phone_number_with_country_code(phone, phone_field.fieldname)
 
 		# data_field options defined in frappe.model.data_field_options
 		for data_field in self.meta.get_data_fields():
@@ -3736,24 +3746,25 @@ class Document(_DocumentBase):
 			if old_fieldtype and old_fieldtype != "Data":
 				continue
 
-			if data_field_options == "Email":
-				if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
-					continue
+			with self._naming_field(data_field.fieldname):
+				if data_field_options == "Email":
+					if (self.owner in frappe.STANDARD_USERS) and (data in frappe.STANDARD_USERS):
+						continue
 
-				for email_address in split_emails(data):
-					validate_email_address(email_address, throw=True)
+					for email_address in split_emails(data):
+						validate_email_address(email_address, throw=True)
 
-			if data_field_options == "Name":
-				validate_name(data, throw=True)
+				if data_field_options == "Name":
+					validate_name(data, throw=True)
 
-			if data_field_options == "Phone":
-				validate_phone_number(data, throw=True)
+				if data_field_options == "Phone":
+					validate_phone_number(data, throw=True)
 
-			if data_field_options == "URL":
-				validate_url(data, throw=True)
+				if data_field_options == "URL":
+					validate_url(data, throw=True)
 
-			if data_field_options == "IBAN":
-				validate_iban(data, throw=True)
+				if data_field_options == "IBAN":
+					validate_iban(data, throw=True)
 
 	def _validate_length(self):
 		if frappe.flags.in_install:
@@ -3819,13 +3830,34 @@ class Document(_DocumentBase):
 		else:
 			reference = f"{_(self.doctype)} {self.name}"
 
-		frappe.throw(
-			_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
-				reference, frappe.bold(_(df.label, context=df.parent)), max_length, value
-			),
-			frappe.CharacterLengthExceededError,
-			title=_("Value too big"),
-		)
+		with self._naming_field(df.fieldname):
+			frappe.throw(
+				_("{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}").format(
+					reference, frappe.bold(_(df.label, context=df.parent)), max_length, value
+				),
+				frappe.CharacterLengthExceededError,
+				title=_("Value too big"),
+			)
+
+	@contextmanager
+	def _naming_field(self, fieldname: str) -> Generator[None]:
+		"""Give a `ValidationError` raised inside one `field_errors` entry for `fieldname`."""
+		try:
+			yield
+		except frappe.ValidationError as error:
+			error.field_errors = [self._field_error(fieldname, str(error))]
+			raise
+
+	def _field_error(self, fieldname: str, message: str) -> dict:
+		"""One `field_errors` entry of the v2 error response; `row` and `idx` address a child row."""
+		entry = {"fieldname": fieldname}
+		if self.get("parentfield"):
+			entry["parentfield"] = self.parentfield
+			if self.name:
+				entry["row"] = self.name
+			entry["idx"] = self.idx
+		entry["message"] = strip_html_tags(message).strip()
+		return entry
 
 	def _validate_update_after_submit(self):
 		# get the full doc with children
@@ -4102,6 +4134,15 @@ class Document(_DocumentBase):
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
+
+
+def _throw_link_errors(message: str, links: list[tuple], exc: type[frappe.ValidationError]) -> None:
+	"""Throw one error for every bad link, each `(doc, fieldname, docname, msg)`, naming every field."""
+	error = exc()
+	error.field_errors = [
+		doc._field_error(fieldname, message.format(msg)) for doc, fieldname, _name, msg in links
+	]
+	frappe.throw(message.format(", ".join(msg for *_, msg in links)), error)
 
 
 def _filter(data, filters, limit=None):

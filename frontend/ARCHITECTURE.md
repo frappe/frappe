@@ -179,7 +179,7 @@ shared data cache (`ui/src/cache/index.ts`) exports to the rest of `ui/`.
 
 | Concept | What it is |
 | --- | --- |
-| Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`, `CodeError`) | *Changed.* Every `/api/v2` reply is `{ data }`; every failure is one error class. A compile error carries `codeErrors`: the field, line, column and message of each error in a Code field's text |
+| Response envelope (`Envelope`, `ApiError`, `isApiError`, `readEnvelope`, `TIMESTAMP_MISMATCH`, `CodeError`, `FieldError`) | *Changed.* Every `/api/v2` reply is `{ data }`; every failure is one error class. A compile error carries `codeErrors`: the field, line, column and message of each error in a Code field's text. A refused save carries `fieldErrors`: each field it names, with its row in a child table |
 | Request transport (`request`, `apiUrl`, `requestHeaders`) | The one fetch wrapper for `/api/v2`. Takes the CSRF token as a documented input or finds it itself. A caller may set the browser's cache mode |
 | Document calls (`getDocument`, `getDocumentFields`, `listDocuments`, `countDocuments`, `searchDocuments`, `createDocument`, `updateDocument`, `deleteDocument`, `copyDocument`) | Read and write one record or a list. `getDocumentFields` reads some fields of one record and makes no list entry. `searchDocuments` can skip the browser's cached answer |
 | Method calls (`runMethod`, `runDocumentMethod`) | Call a whitelisted method, or a method on one document |

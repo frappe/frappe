@@ -6,6 +6,7 @@ export interface ErrorEntry {
   exception?: string;
   indicator?: string;
   code_errors?: CodeError[];
+  field_errors?: FieldError[];
 }
 
 /** A compile error in a Code field's text; line and column count from 1. */
@@ -13,6 +14,15 @@ export interface CodeError {
   field: string;
   line: number;
   column: number;
+  message: string;
+}
+
+/** A field a save refused; `row` (when the row has a name) and `idx` address a child row. */
+export interface FieldError {
+  fieldname: string;
+  parentfield?: string;
+  row?: string;
+  idx?: number;
   message: string;
 }
 
@@ -28,6 +38,7 @@ export class ApiError extends Error {
   readonly exception?: string;
   readonly indicator?: string;
   readonly codeErrors?: CodeError[];
+  readonly fieldErrors?: FieldError[];
   readonly status: number;
 
   constructor(entry: ErrorEntry, status: number) {
@@ -38,6 +49,7 @@ export class ApiError extends Error {
     this.exception = entry.exception;
     this.indicator = entry.indicator;
     this.codeErrors = entry.code_errors;
+    this.fieldErrors = entry.field_errors;
     this.status = status;
   }
 

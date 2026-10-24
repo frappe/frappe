@@ -7,12 +7,14 @@ from random import choice
 from unittest.mock import patch
 
 import requests
+from werkzeug.test import TestResponse
 
 import frappe
 import frappe.defaults
 import frappe.share
 from frappe.api import discovery
 from frappe.api.v2 import run_doc_method
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.core.doctype.user_invitation.user_invitation import UserInvitation
 from frappe.installer import update_site_config
@@ -2540,3 +2542,145 @@ class TestDocumentMethodRoutesV2(FrappeAPITestCase):
 	def test_data_import_start_is_a_post(self):
 		response = self.get(self.doc_method(self.data_import, "start_import"), {"sid": self.sid})
 		self.assertEqual(response.status_code, 403, response.json)
+
+
+class TestFieldErrorsEntryV2(FrappeAPITestCase):
+	version = "v2"
+	ROLE = "Field Errors Tester"
+	USER = "field.errors@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		frappe.get_doc(doctype="Role", role_name=cls.ROLE, desk_access=1).insert(ignore_if_duplicate=True)
+		user = frappe.get_doc(
+			doctype="User", email=cls.USER, first_name="Field Errors", send_welcome_email=0
+		).insert(ignore_if_duplicate=True)
+		user.add_roles(cls.ROLE)
+		keys = generate_keys(cls.USER)
+		cls.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+
+		permissions = [{"role": cls.ROLE, "read": 1, "write": 1, "create": 1}]
+		child = new_doctype(
+			istable=1,
+			fields=[
+				{"fieldname": "item", "label": "Item", "fieldtype": "Data", "reqd": 1},
+				{"fieldname": "user", "label": "User", "fieldtype": "Link", "options": "User"},
+			],
+		).insert()
+		cls.parent = new_doctype(
+			permissions=permissions,
+			fields=[
+				{"fieldname": "title", "label": "Title", "fieldtype": "Data", "reqd": 1},
+				{"fieldname": "status", "label": "Status", "fieldtype": "Select", "options": "Open\nClosed"},
+				{"fieldname": "email", "label": "Email", "fieldtype": "Data", "options": "Email"},
+				{"fieldname": "code", "label": "Code", "fieldtype": "Data", "length": 5},
+				{"fieldname": "phone", "label": "Phone", "fieldtype": "Phone"},
+				{"fieldname": "user", "label": "User", "fieldtype": "Link", "options": "User"},
+				{"fieldname": "items", "label": "Items", "fieldtype": "Table", "options": child.name},
+			],
+		).insert()
+		cls.child = child
+		cls.record = frappe.get_doc(
+			{"doctype": cls.parent.name, "title": "Saved", "items": [{"item": "First"}]}
+		).insert()
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc("DocType", cls.parent.name, force=True)
+		frappe.delete_doc("DocType", cls.child.name, force=True)
+		frappe.delete_doc("User", cls.USER, force=True)
+		frappe.delete_doc("Role", cls.ROLE, force=True)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def test_a_save_names_every_empty_mandatory_field(self):
+		row = self.record.items[0]
+		data = {"title": "", "items": [{"name": row.name, "item": ""}]}
+		response = self.send("put", self.resource(self.parent.name, self.record.name), data)
+
+		[entry] = self.errors(response, "MandatoryError")
+		self.assertEqual(
+			entry["field_errors"],
+			[
+				{"fieldname": "title", "message": "Title is required"},
+				{
+					"fieldname": "item",
+					"parentfield": "items",
+					"row": row.name,
+					"idx": 1,
+					"message": "Item is required",
+				},
+			],
+		)
+
+	def test_a_new_row_is_named_by_its_position(self):
+		data = {"title": "New row", "items": [{"item": "First"}, {"item": ""}]}
+		response = self.send("post", self.resource(self.parent.name), data)
+
+		[entry] = self.errors(response, "MandatoryError")
+		[field_error] = entry["field_errors"]
+		self.assertEqual((field_error["parentfield"], field_error["idx"]), ("items", 2))
+		self.assertEqual(field_error["message"], "Item is required")
+
+	def test_an_insert_names_every_invalid_link(self):
+		data = {
+			"title": "Links",
+			"user": "nobody@example.com",
+			"items": [{"item": "First", "user": "missing@example.com"}],
+		}
+		response = self.send("post", self.resource(self.parent.name), data)
+
+		[entry] = self.errors(response, "LinkValidationError")
+		self.assertEqual(
+			entry["field_errors"],
+			[
+				{"fieldname": "user", "message": "Could not find User: nobody@example.com"},
+				{
+					"fieldname": "user",
+					"parentfield": "items",
+					"idx": 1,
+					"message": "Could not find Row #1: User: missing@example.com",
+				},
+			],
+		)
+
+	def test_a_field_validator_names_its_field(self):
+		cases = {
+			"status": ("Pending", "ValidationError"),
+			"email": ("not-an-email", "InvalidEmailAddressError"),
+			"code": ("toolong", "CharacterLengthExceededError"),
+			"phone": ("12ab", "InvalidPhoneNumberError"),
+		}
+		for fieldname, (value, error_type) in cases.items():
+			with self.subTest(fieldname=fieldname):
+				data = {"title": "Validators", fieldname: value}
+				response = self.send("post", self.resource(self.parent.name), data)
+
+				[entry] = self.errors(response, error_type)
+				[field_error] = entry["field_errors"]
+				self.assertEqual(field_error["fieldname"], fieldname)
+				self.assertIn(value, field_error["message"])
+				self.assertNotIn("<", field_error["message"])
+
+	def test_v1_has_no_field_errors(self):
+		self.version = ""
+		response = self.send("post", self.resource(self.parent.name), {"title": ""})
+
+		self.assertEqual(response.status_code, 417)
+		self.assertEqual(response.json["exc_type"], "MandatoryError")
+		self.assertNotIn("field_errors", response.json)
+
+	def send(self, method: str, path: str, data: dict) -> TestResponse:
+		return make_request(
+			getattr(get_test_client(use_cookies=False), method),
+			args=(path,),
+			kwargs={"json": data, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+
+	def errors(self, response: TestResponse, error_type: str) -> list[dict]:
+		self.assertEqual(response.status_code, 417, response.json)
+		self.assertEqual(response.json["errors"][0]["type"], error_type)
+		return response.json["errors"]
