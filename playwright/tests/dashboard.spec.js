@@ -42,4 +42,29 @@ test.describe("Dashboard view", () => {
 
 		await expect(page.getByText(chart, { exact: true })).toBeVisible();
 	});
+
+	test("a dashboard the reader cannot open clears the one drawn before", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const dashboard = "TODO-CLEAR-DASHBOARD";
+
+		await page.goto("/desk");
+		await desk.ready();
+		await api.insert_doc(
+			"Dashboard",
+			{ name: dashboard, dashboard_name: dashboard, is_standard: 0 },
+			true
+		);
+		await page.goto(`/desk/dashboard-view/${dashboard}`);
+		await expect(page.locator(".dashboard-graph")).toBeAttached();
+
+		await page.route("**/api/method/frappe.desk.form.load.getdoc?*", (route) =>
+			route.fulfill({ status: 403, json: { exc_type: "PermissionError" } })
+		);
+		await page.evaluate(() => frappe.set_route("dashboard-view", "Not Permitted Dashboard"));
+
+		await expect(page.locator(".dashboard-graph")).toHaveCount(0);
+	});
 });

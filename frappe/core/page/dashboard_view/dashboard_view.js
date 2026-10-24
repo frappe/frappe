@@ -44,13 +44,16 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		if (!name) return frappe.set_route("List", "Dashboard");
 
 		const route = frappe.get_route_str();
-		const doc = await frappe.model.with_doc("Dashboard", name);
+		// An unknown name resolves empty. A rejection, such as no read permission,
+		// is a request desk already reported.
+		const doc = await frappe.model.with_doc("Dashboard", name).catch(() => false);
 		// The route can move, inside this page or off it, while the fetch is
 		// pending. Two fetches can also land out of order, and the older one would
 		// draw a document the reader left.
 		if (frappe.get_route_str() !== route) return;
 
 		clear();
+		if (doc === false) return;
 		if (!doc) return show_missing(name);
 		// `as_dict` drops an empty `__onload`, so no key at all is the common case.
 		if (doc.__onload?.island) return show_island(doc);
