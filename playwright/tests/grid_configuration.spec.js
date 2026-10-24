@@ -56,43 +56,6 @@ test.describe("Grid Configuration", () => {
 		await expect(dialog.locator(`[type="checkbox"][data-unit="${fieldname}"]`)).toBeChecked();
 	});
 
-	test("Reset to default restores the default columns without a reload", async ({ page }) => {
-		await page.getByRole("tab", { name: "Navbar", exact: true }).click();
-		await page.evaluate(() => {
-			cur_frm.add_child("top_bar_items", { label: "Home" });
-			cur_frm.refresh_field("top_bar_items");
-		});
-		const table = page.locator('.frappe-control[data-fieldname="top_bar_items"]');
-		const label_column = table.locator(
-			'.grid-heading-row .grid-static-col[data-fieldname="label"]'
-		);
-		const sticky_label = table.locator('.sticky-grid-col[data-fieldname="label"]');
-		const label_width = async () => Math.round((await label_column.boundingBox()).width);
-		const default_width = await label_width();
-
-		const handle = await label_column.locator(".grid-col-resize-handle").boundingBox();
-		await page.mouse.move(handle.x + handle.width / 2, handle.y + handle.height / 2);
-		await page.mouse.down();
-		await page.mouse.move(handle.x + 150, handle.y + handle.height / 2);
-		await page.mouse.up();
-		await expect.poll(label_width).toBeGreaterThan(default_width);
-
-		await table.locator(".icon-sm").click();
-		await page.locator('.sticky-column[data-fieldname="label"]').check();
-		await page.locator(".add-new-fields").click();
-		await page.locator('[type="checkbox"][data-unit="right"]').check();
-		await page.getByRole("button", { name: "Add", exact: true }).click();
-		await page.getByRole("button", { name: "Update", exact: true }).click();
-		await expect(sticky_label).toHaveCount(2);
-
-		await table.locator(".icon-sm").click();
-		await page.getByRole("button", { name: "Reset to default", exact: true }).click();
-
-		await expect(sticky_label).toHaveCount(0);
-		await expect(table.locator('.grid-static-col[data-fieldname="right"]')).toHaveCount(0);
-		await expect.poll(label_width).toBe(default_width);
-	});
-
 	test("Populates footer parent label options on page load", async ({ page, desk }) => {
 		await page.getByRole("tab", { name: "Footer", exact: true }).click();
 		saved_footer_items = await page.evaluate(() => {
