@@ -28,7 +28,7 @@
 
 		<div
 			v-else
-			class="flex min-w-0 items-center gap-1.5 rounded px-1.5 py-1"
+			class="group flex min-w-0 items-center gap-1.5 rounded px-1.5 py-1"
 			:class="interactive ? 'cursor-pointer hover:bg-surface-gray-2' : ''"
 			:data-fieldname="field.fieldname"
 			@click="open"
@@ -43,6 +43,14 @@
 				v-if="summary"
 				class="lucide-arrow-up-right ml-auto size-3.5 shrink-0 text-ink-gray-5"
 				aria-hidden="true"
+			/>
+			<RecordAnchor
+				v-else-if="record.href.value"
+				:href="record.href.value"
+				:aria-label="openLabel"
+				:title="openLabel"
+				class="lucide-arrow-up-right ml-auto size-3.5 shrink-0 text-ink-gray-5 opacity-0 hover:text-ink-gray-7 focus-visible:opacity-100 group-hover:opacity-100"
+				@open="record.open"
 			/>
 		</div>
 	</div>
@@ -59,11 +67,14 @@ import {
 	UpdateKey,
 } from "@framework/ui/components/FormLayout/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
+import { RecordAnchor } from "@framework/ui/components/Link";
+import { useRecordLink } from "@framework/ui/components/Fields/useRecordLink";
 import { getFormatDefaults } from "@framework/ui/components/FormLayout/formatDefaults";
 import {
 	resolveFieldCurrency,
 	useDocValueReader,
 } from "@framework/ui/components/FormLayout/resolveCurrency";
+import { __ } from "@/i18n";
 import { PanelContextKey } from "./context";
 import { displayValue, isSummaryField } from "./displayValue";
 
@@ -75,7 +86,7 @@ const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
 const context = inject(PanelContextKey, null);
-const linkTitles = inject(LinkTitlesKey, null);
+const titles = inject(LinkTitlesKey, null);
 const getDocValue = useDocValueReader();
 
 function edit(fieldname: string, value: any) {
@@ -130,9 +141,22 @@ const display = computed(() => {
 		numberFormat: defaults.number_format,
 		roundingMethod: defaults.rounding_method,
 		doc: doc.value,
-		linkTitles: linkTitles?.value,
+		linkTitles: titles?.value,
 	});
 });
+
+const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
+const openLabel = computed(() => {
+	const title = titles?.value[`${linkedDoctype()}::${doc.value[props.field.fieldname]}`];
+	return __("Open {0}", [title ?? display.value]);
+});
+
+function linkedDoctype(): string {
+	const { fieldtype, options } = props.field;
+	if (fieldtype === "Link") return options ?? "";
+	if (fieldtype === "Dynamic Link" && options) return doc.value[options] ?? "";
+	return "";
+}
 
 function open() {
 	if (summary.value) return emit("expand", props.field);

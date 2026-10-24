@@ -6,7 +6,11 @@ import { FrappeUI } from "frappe-ui";
 import { provideSession } from "@framework/ui/composables/useSession";
 // the types module, not the subsystem barrel: the shell must not load the dialog to boot
 import { UploadLimitsKey } from "@framework/ui/components/FileUpload/types";
-import { CreateRecordKey, TemplateNamesKey } from "@framework/ui/components/Fields/types";
+import {
+	CreateRecordKey,
+	RecordLinkKey,
+	TemplateNamesKey,
+} from "@framework/ui/components/Fields/types";
 // The one file of the template compiler the shell may load: the names, not the compiler.
 import templateNames from "../templateCompiler/names.json";
 
@@ -15,6 +19,7 @@ import { fetchAddresses, type Addresses } from "@/addresses";
 import { useCreateRight } from "@/createRight";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
+import { recordLink } from "@/router/recordLink";
 import { installTranslate, loadTranslations } from "@/i18n";
 import { loadSprite, symbolGeometry } from "@/icons/sprite";
 import { setDrawnProps, setIconSource, watchClientScripts } from "@/recordPage";
@@ -83,6 +88,7 @@ async function start() {
 	});
 	app.provide(TemplateNamesKey, templateNames.components);
 	app.provide(CreateRecordKey, { open: openCreate, useRight: useCreateRight });
+	app.provide(RecordLinkKey, recordLink(router));
 	app.provide("addresses", addresses);
 	app.mount("#app");
 }

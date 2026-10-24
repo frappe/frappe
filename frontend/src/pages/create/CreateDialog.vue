@@ -48,6 +48,7 @@ import { Button, Dialog, ErrorMessage } from "frappe-ui";
 import { createDocument } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";
+import { RecordLinkKey } from "@framework/ui/components/Fields/types";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { __ } from "@/i18n";
@@ -67,6 +68,8 @@ import {
 
 // The dialog's fields commit to nothing, or they would fire a record page's handlers.
 provide(CommitKey, NO_COMMIT);
+// A dialog has no guard for its unsaved values, so its Link fields open nothing.
+provide(RecordLinkKey, null);
 
 const props = defineProps<{ request: CreateRequest }>();
 const { doctype, values } = props.request;
