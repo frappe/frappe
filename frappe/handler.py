@@ -11,7 +11,16 @@ import frappe
 import frappe.sessions
 import frappe.utils
 from frappe import _, is_whitelisted, ping
+<<<<<<< HEAD
+<<<<<<< HEAD
 from frappe.core.doctype.file.utils import find_file_by_url
+=======
+from frappe.core.api.file import get_max_file_size
+=======
+>>>>>>> 68901db (refactor: reuse check_declared_size for chunked upload limit)
+from frappe.core.doctype.file.exceptions import MaxFileSizeReachedError
+from frappe.core.doctype.file.utils import find_file_by_url, get_safe_file_name
+>>>>>>> 21e3a29 (fix: enforce max file size on chunked uploads)
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.monitor import add_data_to_monitor
 from frappe.permissions import check_doctype_permission
@@ -225,6 +234,40 @@ def upload_file():
 		content = file.stream.read()
 		filename = file.filename
 
+<<<<<<< HEAD
+=======
+		if frappe.form_dict.get("chunk_index") is not None:
+			current_chunk = int(frappe.form_dict.chunk_index)
+			total_chunks = int(frappe.form_dict.total_chunk_count)
+			offset = int(frappe.form_dict.chunk_byte_offset)
+		else:
+			offset = 0
+			current_chunk = 0
+			total_chunks = 1
+
+		from frappe.storage.upload import check_declared_size
+
+		total_file_size = int(frappe.form_dict.total_file_size or 0)
+		check_declared_size(total_file_size)
+
+		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
+		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
+			f.seek(offset)
+			f.write(file.stream.read())
+
+		uploaded_size = temp_path.stat().st_size
+		try:
+			check_declared_size(uploaded_size)
+		except MaxFileSizeReachedError:
+			temp_path.unlink()
+			raise
+
+		if not uploaded_size >= total_file_size or current_chunk != total_chunks - 1:
+			return
+
+		content = temp_path.read_bytes()
+		temp_path.unlink()
+>>>>>>> 21e3a29 (fix: enforce max file size on chunked uploads)
 		content_type = guess_type(filename)[0]
 		if optimize and content_type and content_type.startswith("image/"):
 			args = {"content": content, "content_type": content_type}
