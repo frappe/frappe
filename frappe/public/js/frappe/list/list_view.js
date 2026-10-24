@@ -1002,15 +1002,16 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.save_user_column_widths({ ...this.get_user_column_widths(), [fieldname]: width });
 	}
 
-	/** The user's own widths are kept per layout, and under "default_layout" for the default list. */
+	/** The user's own widths are kept per layout, and under "default_layout" for the default list.
+	 * They are stored in the List view's settings, whichever view (Report, Image...) reads or saves them. */
 	get_user_column_widths(layout_name = this.get_layout_name()) {
-		const column_widths = frappe.get_user_settings(this.doctype, this.view_name).column_widths;
+		const column_widths = frappe.get_user_settings(this.doctype, "List").column_widths;
 		return column_widths?.[layout_name] || {};
 	}
 
 	save_user_column_widths(widths, layout_name = this.get_layout_name()) {
-		const column_widths = frappe.get_user_settings(this.doctype, this.view_name).column_widths;
-		return this.save_view_user_settings({
+		const column_widths = frappe.get_user_settings(this.doctype, "List").column_widths;
+		return frappe.model.user_settings.save(this.doctype, "List", {
 			column_widths: { ...column_widths, [layout_name]: widths },
 		});
 	}
