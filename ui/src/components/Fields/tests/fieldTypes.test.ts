@@ -40,7 +40,7 @@ describe("fieldTypes registry", () => {
   });
 
   it("resolves all number fieldtypes to NumberField", () => {
-    for (const t of ["Int", "Float", "Currency", "Percent"]) {
+    for (const t of ["Int", "Long Int", "Float", "Currency", "Percent"]) {
       expect(getFieldComponent(t)).toBe(NumberField);
     }
   });

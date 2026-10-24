@@ -4,10 +4,6 @@ on:
   schedule:
     # How often the full server and UI suites run on develop, when develop has new commits.
     - cron: "23 * * * *"
-  workflow_run:
-    workflows: ["Server", "UI"]
-    types: [completed]
-    branches: [develop]
   pull_request_target:
     branches: [develop]
     types: [opened, synchronize, reopened, labeled, unlabeled, closed]
@@ -43,9 +39,7 @@ jobs:
 
   update:
     name: Update Pull Requests
-    if: >-
-      ${{ github.event.action != 'closed'
-      && (github.event_name != 'workflow_run' || contains(fromJson('["schedule", "workflow_dispatch"]'), github.event.workflow_run.event)) }}
+    if: ${{ github.event.action != 'closed' }}
     runs-on: ubuntu-latest
     concurrency:
       group: develop-status-${{ github.event.pull_request.number || 'all' }}
