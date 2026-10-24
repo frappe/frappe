@@ -44,6 +44,7 @@ const props = defineProps<{
 	run: (action: QuickAction) => void;
 	reloadDocinfo: () => Promise<void>;
 	whileOnRecord: () => () => boolean;
+	onDetails: (fieldname: string) => boolean;
 }>();
 
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -60,5 +61,6 @@ provide(PanelContextKey, {
 	run: props.run,
 	reloadDocinfo: props.reloadDocinfo,
 	whileOnRecord: props.whileOnRecord,
+	onDetails: props.onDetails,
 });
 </script>

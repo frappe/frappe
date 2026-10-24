@@ -95,6 +95,7 @@
 						:run="runAction"
 						:reloadDocinfo="reloadDocinfo"
 						:whileOnRecord="visitCheck"
+						:onDetails="(fieldname: string) => !!detailsTabOf(fieldname)"
 						@expand="expand"
 					/>
 				</template>
@@ -877,14 +878,18 @@ async function focusOnDetails(fieldname: string, cursor: boolean) {
 	if (await tabsHost.showDetails(fieldname)) await landOn(fieldname, cursor);
 }
 
-async function landOn(fieldname: string, cursor: boolean) {
-	const tab = identifyTabs(form.value).find((one) =>
+function detailsTabOf(fieldname: string) {
+	return identifyTabs(form.value).find((one) =>
 		one.sections.some((section) =>
 			section.columns.some((column) =>
 				column.fields.some((field) => field.fieldname === fieldname)
 			)
 		)
 	);
+}
+
+async function landOn(fieldname: string, cursor: boolean) {
+	const tab = detailsTabOf(fieldname);
 	if (tab) formTab.value = tab.identity;
 	// The strip mounts a tab's panel a frame after the model moves, so the cell is polled for.
 	for (let frame = 0; frame < 10; frame++) {
