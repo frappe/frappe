@@ -58,6 +58,9 @@ def _add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int =
 	if not args:
 		args = frappe.local.form_dict
 
+	if not ignore_permissions:
+		frappe.get_doc(args["doctype"], args["name"]).check_permission()
+
 	users_with_duplicate_todo = []
 	shared_with_users = []
 
@@ -68,8 +71,6 @@ def _add(args: dict[str, Any] | None = None, *, ignore_permissions: bool | int =
 			"status": "Open",
 			"allocated_to": assign_to,
 		}
-		if not ignore_permissions:
-			frappe.get_doc(args["doctype"], args["name"]).check_permission()
 
 		if frappe.get_all("ToDo", filters=filters):
 			users_with_duplicate_todo.append(assign_to)
