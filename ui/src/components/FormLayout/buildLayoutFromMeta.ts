@@ -16,7 +16,7 @@ import { holdsChildRows } from "../Fields/rowIdentity";
  * Pure (no Vue/backend). Static visibility only — carries `depends_on` verbatim
  * for Phase 4 rather than evaluating it. Statically-`hidden` data fields are kept
  * in the schema (filtered out at render time) so an override can target them;
- * layout-break fields are still dropped.
+ * `DROPPED_FIELDTYPES` are still dropped.
  */
 
 const TAB_BREAK = "Tab Break";
@@ -24,8 +24,14 @@ const SECTION_BREAK = "Section Break";
 const COLUMN_BREAK = "Column Break";
 const TABLE = "Table";
 
-/** Layout-break fieldtypes never render as a value/grid column. */
-const LAYOUT_BREAKS = new Set([TAB_BREAK, SECTION_BREAK, COLUMN_BREAK]);
+/** Fieldtypes the form drops: the layout breaks, and two with no control. */
+export const DROPPED_FIELDTYPES = new Set([
+  TAB_BREAK,
+  SECTION_BREAK,
+  COLUMN_BREAK,
+  "Fold",
+  "Attachment Gallery",
+]);
 
 /**
  * App hook to attach per-field presentation/behavior during the build. Called
@@ -126,7 +132,7 @@ function resolveChildFields(
   if (!childFields) return undefined;
 
   const dataFields = childFields.filter(
-    (f) => !LAYOUT_BREAKS.has(f.fieldtype) && !f.hidden
+    (f) => !DROPPED_FIELDTYPES.has(f.fieldtype) && !f.hidden
   );
   const inListView = dataFields.filter((f) => f.in_list_view);
   const columns = inListView.length ? inListView : dataFields;
@@ -230,7 +236,7 @@ export function buildLayoutFromMeta(
       ensureTab().sections.push(newSection(field));
     } else if (field.fieldtype === COLUMN_BREAK) {
       ensureSection().columns.push(newColumn(field));
-    } else {
+    } else if (!DROPPED_FIELDTYPES.has(field.fieldtype)) {
       // Keep statically-hidden data fields in the schema (`mapField` marks them
       // `hidden`, and `FormLayoutColumn` filters them out at render time) rather
       // than dropping them here — so a field-property override (`FieldNode`'s
