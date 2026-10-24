@@ -34,6 +34,7 @@ frappe.ui.form.on("Web Form", {
 		}
 		on_controlled_access_change(frm);
 
+		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
 		frm.trigger("add_get_fields_button");
 		frm.trigger("add_publish_button");
@@ -63,6 +64,22 @@ frappe.ui.form.on("Web Form", {
 		}
 	},
 
+	toggle_new_doctype_fields(frm) {
+		// "Field Name" stays freely editable (existing fields shown as
+		// suggestions) while a DocType is still being designed: during
+		// initial creation, and afterwards only for the DocType this very
+		// Web Form created, so new fields can keep being added from here.
+		// Any other DocType (even one that's Custom) keeps the original
+		// pick-from-existing-fields behaviour.
+		let editable = designs_own_doctype(frm);
+		frm.fields_dict.web_form_fields.grid.update_docfield_property(
+			"fieldname",
+			"fieldtype",
+			editable ? "Autocomplete" : "Select"
+		);
+		frm.refresh_field("web_form_fields");
+	},
+
 	validate: function (frm) {
 		// must run before the checks below, which read web_form_fields
 		flush_form_builder(frm);
@@ -83,6 +100,14 @@ frappe.ui.form.on("Web Form", {
 
 	add_get_fields_button(frm) {
 		frm.add_custom_button(__("Get Fields"), () => {
+			if (!frm.doc.doc_type) {
+				frappe.show_alert({
+					message: __("Select an existing DocType to fetch its fields"),
+					indicator: "orange",
+				});
+				return;
+			}
+
 			// flush first, or fields only on the canvas show unticked and get added twice
 			flush_form_builder(frm);
 
@@ -155,6 +180,7 @@ frappe.ui.form.on("Web Form", {
 	},
 
 	doc_type: function (frm) {
+		frm.trigger("toggle_new_doctype_fields");
 		frm.trigger("set_fields");
 		// so the add-field picker offers the new doctype's fields
 		render_form_builder(frm);
@@ -401,7 +427,21 @@ frappe.ui.form.on("Web Form Field", {
 			frm.refresh_field("web_form_fields");
 		}
 	},
+	label: function (frm, doctype, name) {
+		// Auto-suggest a fieldname while designing a DocType's fields (new,
+		// or the DocType this Web Form itself created, being extended),
+		// same as how "Field Name" is derived from "Label" on the DocType form.
+		if (!designs_own_doctype(frm)) return;
+
+		let doc = frappe.get_doc(doctype, name);
+		if (doc.label && !doc.fieldname) {
+			doc.fieldname = frappe.model.scrub(doc.label);
+			frm.refresh_field("web_form_fields");
+		}
+	},
 	fieldname: function (frm, doctype, name) {
+		if (!frm.doc.doc_type) return;
+
 		let doc = frappe.get_doc(doctype, name);
 		let df = frappe.meta.get_docfield(frm.doc.doc_type, doc.fieldname);
 		if (!df) return;
@@ -842,17 +882,20 @@ function is_builder_read_only(frm) {
 	return (frm.doc.is_standard && !frappe.boot.developer_mode) || !frm.has_perm("write");
 }
 
+// such a form adds fields of its own, every other one picks from its doctype
+function designs_own_doctype(frm) {
+	return Boolean(!frm.doc.doc_type || frm.doc.created_new_doctype);
+}
+
 function render_form_builder(frm) {
 	const builder = frappe.web_form_builder;
 	const mounted_here = !!get_form_builder(frm);
-
-	// a mounted builder falls through, so clearing doc_type blanks its field picker
-	if (!frm.doc.doc_type && !mounted_here) return;
 
 	if (mounted_here) {
 		builder.docname = frm.doc.name;
 		builder.doctype = frm.doc.doc_type;
 		builder.force_read_only = is_builder_read_only(frm);
+		builder.creates_fields = designs_own_doctype(frm);
 		builder.update_store();
 		builder.setup_page_actions();
 		builder.store.fetch();
@@ -875,6 +918,7 @@ function render_form_builder(frm) {
 		builder.doctype = frm.doc.doc_type;
 		builder.is_web_form = true;
 		builder.force_read_only = is_builder_read_only(frm);
+		builder.creates_fields = designs_own_doctype(frm);
 		builder.init(true);
 		builder.store.fetch();
 		return;
@@ -898,6 +942,7 @@ function render_form_builder(frm) {
 				is_source_field: is_web_form_field,
 				validate_page_limit,
 				force_read_only: is_builder_read_only(frm),
+				creates_fields: designs_own_doctype(frm),
 			});
 			frappe.web_form_builder.docname = frm.doc.name;
 		})

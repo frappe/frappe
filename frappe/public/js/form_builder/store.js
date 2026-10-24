@@ -35,6 +35,8 @@ export const useStore = defineStore("form-builder-store", () => {
 	let is_source_field = ref(null);
 	// set by the web form host, which owns the page limit and its message
 	let validate_page_limit = ref(null);
+	// set by the web form host, when the form designs its own doctype
+	let creates_fields = ref(false);
 	let preview = ref(false);
 	let drag = ref(false);
 	let get_animation = "cubic-bezier(0.34, 1.56, 0.64, 1)";
@@ -816,6 +818,7 @@ export const useStore = defineStore("form-builder-store", () => {
 		get_source_field_values,
 		is_source_field,
 		validate_page_limit,
+		creates_fields,
 		preview,
 		drag,
 		get_animation,
