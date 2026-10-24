@@ -2,7 +2,10 @@
 <template>
 	<div class="space-y-1.5">
 		<FormLabel v-if="label" :label="label" :required="required" />
-		<div class="flex h-7 min-w-0 items-center text-base" data-slot="link-value">
+		<div
+			class="flex h-7 min-w-0 items-center rounded-4 border border-transparent bg-surface-gray-1 px-2 text-base"
+			data-slot="link-value"
+		>
 			<RecordAnchor
 				v-if="href && text"
 				:href="href"
@@ -12,9 +15,7 @@
 			>
 				{{ text }}
 			</RecordAnchor>
-			<span v-else class="truncate" :class="text ? 'text-ink-gray-8' : 'text-ink-gray-4'">
-				{{ text || "—" }}
-			</span>
+			<span v-else class="truncate text-ink-gray-5">{{ text }}</span>
 		</div>
 		<p v-if="description" class="text-p-sm text-ink-gray-6">{{ description }}</p>
 	</div>

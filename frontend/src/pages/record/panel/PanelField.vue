@@ -49,7 +49,7 @@
 				:href="record.href.value"
 				:aria-label="openLabel"
 				:title="openLabel"
-				class="lucide-arrow-up-right ml-auto hidden size-3.5 shrink-0 text-ink-gray-5 hover:text-ink-gray-7 group-hover:block"
+				class="lucide-arrow-up-right ml-auto size-3.5 shrink-0 text-ink-gray-5 opacity-0 hover:text-ink-gray-7 focus-visible:opacity-100 group-hover:opacity-100"
 				@open="record.open"
 			/>
 		</div>

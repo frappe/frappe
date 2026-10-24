@@ -478,7 +478,8 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep(select),
 .grid-cell :deep(button:not([data-slot="clear"]):not([data-slot="edit"])),
 .grid-cell :deep(.combobox),
-.grid-cell :deep([data-slot="trigger"]) {
+.grid-cell :deep([data-slot="trigger"]),
+.grid-cell :deep([data-slot="link-value"]) {
 	border: none;
 	border-radius: 0;
 	background-color: var(--surface-base);
@@ -604,11 +605,6 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep([data-slot="trigger"][data-state="open"]) {
 	box-shadow: none !important;
 	outline: none !important;
-}
-
-/* A read-only Link has no input box, so it takes the inputs' inset itself. */
-.grid-cell :deep([data-slot="link-value"]) {
-	padding-inline: 0.5rem;
 }
 
 /* Read-only grid: cells are `pointer-events-none`, which also smothers a read-only
