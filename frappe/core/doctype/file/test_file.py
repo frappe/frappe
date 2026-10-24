@@ -1387,6 +1387,46 @@ class TestFileOptimization(IntegrationTestCase):
 			self.assertEqual(first_file.get_content(), original_content)
 			self.assertEqual(frappe.get_doc("File", second_file.name).file_url, second_file.file_url)
 
+	def test_optimize_file_writes_to_own_file_url(self):
+		"""optimize_file must write to the record's file_url, not a path built from file_name."""
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as first_file:
+			original_content = first_file.get_content()
+
+			with open(frappe.get_app_path("frappe", "tests/data/exif_sample_image.jpg"), "rb") as f:
+				second_file = frappe.get_doc(
+					{
+						"doctype": "File",
+						"file_name": "second_file.jpg",
+						"content": f.read(),
+						"is_private": 1,
+					}
+				).insert()
+			self.addCleanup(second_file.delete)
+
+			second_file = frappe.get_doc("File", second_file.name)
+			second_url, second_content = second_file.file_url, second_file.get_content()
+			second_file.file_name = first_file.file_name
+			second_file.optimize_file()
+
+			self.assertEqual(first_file.get_content(), original_content)
+			self.assertEqual(second_file.file_url, second_url)
+			self.assertNotEqual(second_file.get_content(), second_content)
+
+	def test_optimize_file_does_not_rewrite_shared_file(self):
+		"""optimize_file on one of two records sharing a file_url must leave the other one's file intact."""
+		with self.set_user("test@example.com"), make_test_image_file(private=True) as source:
+			original_content = source.get_content()
+			doctype, docname = make_test_doc()
+			copy = source.create_attachment_copy(doctype, docname)
+			self.addCleanup(copy.delete)
+
+			copy = frappe.get_doc("File", copy.name)
+			copy.optimize_file()
+
+			self.assertNotEqual(copy.file_url, source.file_url)
+			self.assertEqual(frappe.get_doc("File", source.name).get_content(), original_content)
+			self.assertNotEqual(copy.get_content(), original_content)
+
 	def test_validate_file_url_matches_record_allows_own_url(self):
 		with make_test_image_file() as test_file:
 			test_file.validate_file_url_matches_record()
