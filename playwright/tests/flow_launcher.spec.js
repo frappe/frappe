@@ -51,6 +51,15 @@ test.describe("Flow launcher", () => {
 		await icon(page).click();
 		await expect(launcher(page).locator("iframe")).toHaveAttribute("src", "/flow?new=1");
 		expect(await (await chat(page)).evaluate(() => window.marked)).toBeUndefined();
+
+		// Back from full screen goes back and shows the page
+		await page.evaluate(() => frappe.set_route("List", "Note"));
+		await expect(page).toHaveURL(/note/);
+		await panel(page).getByRole("button", { name: "Full screen" }).click();
+		await expect(panel(page)).toHaveAttribute("data-mode", "full");
+		await page.goBack();
+		await expect(page).toHaveURL(/todo/);
+		await expect(panel(page)).not.toHaveAttribute("data-mode", "full");
 	});
 
 	test("keeps the icon hidden on every page until Undo", async ({ page, desk }) => {
