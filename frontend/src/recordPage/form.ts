@@ -1,7 +1,7 @@
 // The Details form surface: the layout's sections as built-ins, a script's parts
 // between or beside them, and the form's tab strip as `tabs`.
 import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
-import { LAYOUT_BREAKS } from "./fields";
+import { DROPPED_FIELDTYPES } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import type { FormTabsSurface } from "./formTabs";
 import { Surface } from "./surface";
 import { FORM_ITEM_KEYS } from "./types";
@@ -52,7 +52,7 @@ export class FormSurface extends Surface<FormItem> {
   // One name, one owner: `fields` speaks for a field wherever the form draws it.
   private isNotField(name: string, verb: string) {
     const field = this.host.fields()?.find((one) => one.fieldname === name);
-    if (!field || LAYOUT_BREAKS.has(field.fieldtype)) return true;
+    if (!field || DROPPED_FIELDTYPES.has(field.fieldtype)) return true;
     warnOnce(`page.form.${verb}("${name}") — a field, not a section; ${OWNER[verb] ?? ""}.`);
     return false;
   }

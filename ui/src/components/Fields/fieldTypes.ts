@@ -71,7 +71,7 @@ registerFieldType("Time", TimeField);
 
 // One numeric control formats per fieldtype with lib defaults; apps register
 // their own for site-accurate settings (see formatNumber.ts).
-for (const t of ["Int", "Float", "Currency", "Percent"]) {
+for (const t of ["Int", "Long Int", "Float", "Currency", "Percent"]) {
   registerFieldType(t, NumberField);
 }
 
