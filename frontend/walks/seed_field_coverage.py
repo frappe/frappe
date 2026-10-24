@@ -1,24 +1,4 @@
-"""Seed the field-coverage DocType: one field of every fieldtype, for walking the field controls.
-
-Creates three custom DocTypes in the `Custom` module, a Side Panel Form Layout, and one record:
-
-- `Field Coverage`: every fieldtype on a few tabs, a read-only twin of each value field, and
-  two hidden fields.
-- `Field Coverage Row`: the child table, every value fieldtype it allows, all in the grid.
-- `Field Coverage Row Text`, `… Numbers`, `… Choices`, `… Media`: the same fields, with about
-  ten in the grid each, so a grid cell is wide enough to judge.
-- `Field Coverage Tag`: the Table MultiSelect child, one Link.
-- `COV C39 field coverage commits`: a Client Script that logs each field's commit as
-  `[C39] <fieldname> <value>`, each row field's as `[C39] <table>.<fieldname> <value>`, and
-  each Table MultiSelect change as `[C39] tags.onAdd <values>` or `tags.onRemove`.
-
-Each run deletes what an earlier run made and makes it again, so the record starts from the
-same values. Run it from the bench's `sites` folder with the bench's Python:
-
-    cd sites && ../env/bin/python ../apps/frappe/frontend/walks/seed_field_coverage.py desk.localhost
-
-It prints the record's name. `--delete` removes everything and makes nothing.
-"""
+"""Seed a DocType with one field of every fieldtype for walking the field controls; see README.md."""
 
 import base64
 import struct
@@ -101,7 +81,7 @@ DATA_OPTIONS = ["Email", "URL", "Phone", "Name", "IBAN", "Barcode"]
 
 
 def png(rgb: tuple[int, int, int], size: int = 16) -> bytes:
-	"""A solid square, so the image fields have a real file without a binary in the repo."""
+	"""A solid PNG square."""
 
 	def chunk(kind: bytes, data: bytes) -> bytes:
 		body = kind + data
@@ -329,7 +309,7 @@ def make_record() -> str:
 
 
 def make_panel_layout() -> None:
-	"""A Side Panel row with every value field, so the panel shows each control."""
+	"""A Side Panel row with every value field."""
 	names = [d["fieldname"] for d in value_fields()]
 	half = len(names) // 2
 	layout = [
@@ -351,7 +331,7 @@ def make_panel_layout() -> None:
 
 
 def make_commit_script() -> None:
-	"""The battery row a walk reads: one console line per commit, so a missing or doubled one shows."""
+	"""The `COV C39` Client Script: one console line per commit."""
 	log = "console.log('[C39] {key}', JSON.stringify({value}))"
 	# A Table MultiSelect's vocabulary is its rows' add and remove, as a table's is.
 	top = [d["fieldname"] for d in value_fields() if d["fieldtype"] not in ("Image", "Table MultiSelect")]
@@ -366,7 +346,7 @@ def make_commit_script() -> None:
 	for table in ["rows"] + [table for table, _, _ in ROW_GROUPS]:
 		lines.append(f"\t{table}: {{")
 		lines += [
-			f"\t\t{name}(page, row) {{ {log.format(key=f'{table}.{name}', value=f'row?.doc?.{name} ?? row')} }},"
+			f"\t\t{name}(page, row) {{ {log.format(key=f'{table}.{name}', value=f'row.{name}')} }},"
 			for name in rows
 		]
 		lines.append("\t},")
@@ -389,9 +369,10 @@ def delete_all() -> None:
 	if frappe.db.exists("DocType", PARENT):
 		for name in frappe.get_all(PARENT, pluck="name"):
 			frappe.delete_doc(PARENT, name, force=1)
-	frappe.db.delete("Form Layout", {"dt": PARENT})
-	frappe.db.delete("Client Script", {"name": COMMIT_SCRIPT})
-	frappe.db.delete("File", {"file_name": ("in", ["field-coverage.txt", "field-coverage.png"])})
+	for name in frappe.get_all("Form Layout", {"dt": PARENT}, pluck="name"):
+		frappe.delete_doc("Form Layout", name, force=1)
+	if frappe.db.exists("Client Script", COMMIT_SCRIPT):
+		frappe.delete_doc("Client Script", COMMIT_SCRIPT, force=1)
 	for doctype in (PARENT, ROW, *[child for _, child, _ in ROW_GROUPS], TAG):
 		if frappe.db.exists("DocType", doctype):
 			frappe.delete_doc("DocType", doctype, force=1)
