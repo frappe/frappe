@@ -1,5 +1,59 @@
 import { test, expect } from "../support";
 
+const ISLAND = "frappe.playwright_dashboard_fixture";
+
+// Reports the title and actions its props name, as a page island does.
+const FIXTURE_MODULE = `
+	export function mount(el, { props }) {
+		el.append(Object.assign(document.createElement("div"), { className: "fixture-dashboard" }));
+		if (props.title) props.onTitle(props.title);
+		if (props.actions) props.onActions(props.actions);
+		return { update() {}, unmount() { el.replaceChildren(); } };
+	}
+`;
+
+async function register_fixture(page) {
+	await page.evaluate(
+		([island, module]) => {
+			const url = URL.createObjectURL(new Blob([module], { type: "text/javascript" }));
+			frappe.boot.assets_json[`${island}.island.js`] = url;
+			frappe.boot.ui_islands = [...(frappe.boot.ui_islands || []), island];
+		},
+		[ISLAND, FIXTURE_MODULE]
+	);
+}
+
+// The server's `__onload` is faked, so the page draws an island on a site without the app that claims.
+async function claim(page, doctype, island) {
+	await page.route(
+		(url) =>
+			url.pathname.endsWith("/frappe.desk.form.load.getdoc") &&
+			url.searchParams.get("doctype") === doctype,
+		async (route) => {
+			const response = await route.fetch();
+			const json = await response.json();
+			json.docs[0].__onload = { island };
+			await route.fulfill({ response, json });
+		}
+	);
+}
+
+async function open_claimed_dashboard(page, desk, api, props) {
+	const dashboard = "TODO-ISLAND-DASHBOARD";
+	await page.goto("/desk");
+	await desk.ready();
+	await api.insert_doc(
+		"Dashboard",
+		{ name: dashboard, dashboard_name: dashboard, is_standard: 0 },
+		true
+	);
+	await register_fixture(page);
+	await claim(page, "Dashboard", { name: ISLAND, props });
+	await page.evaluate((name) => frappe.set_route("dashboard-view", name), dashboard);
+	await expect(page.locator(".dashboard-view-island .fixture-dashboard")).toBeAttached();
+	return dashboard;
+}
+
 test.describe("Dashboard view", () => {
 	test("should load", async ({ page, desk, api }) => {
 		const chart = "TODO-YEARLY-TRENDS";
@@ -66,5 +120,19 @@ test.describe("Dashboard view", () => {
 		await page.evaluate(() => frappe.set_route("dashboard-view", "Not Permitted Dashboard"));
 
 		await expect(page.locator(".dashboard-graph")).toHaveCount(0);
+	});
+});
+
+test.describe("Dashboard view island", () => {
+	test("an island that reports no title keeps the dashboard's name in the breadcrumb", async ({
+		page,
+		desk,
+		api,
+	}) => {
+		const dashboard = await open_claimed_dashboard(page, desk, api, {});
+
+		await expect(page.locator(".navbar-breadcrumbs:visible li:last-child")).toHaveText(
+			dashboard
+		);
 	});
 });

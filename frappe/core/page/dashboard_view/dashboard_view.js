@@ -135,7 +135,7 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 	 * segment only reaches the document. `Dashboard.show` below does the same.
 	 */
 	function set_island_title(docname, title) {
-		const label = title || __("Dashboard");
+		const label = title || docname;
 		page.set_breadcrumbs([
 			{ label: __("Dashboard"), href: "/desk/dashboard" },
 			{ label: label },
