@@ -58,11 +58,12 @@
 			     it. Uses frappe-ui's InputDescription so the markup/spacing match
 			     every other field's help text. -->
 			<InputDescription
-				v-if="field.description"
+				v-if="field.description && !hasError"
 				:id="descriptionId"
 				:description="field.description"
 				class="mt-1"
 			/>
+			<ErrorMessage :id="errorId" :message="error" class="mt-1" />
 			<!-- Narrow `stacked` layout: a live preview always sits below the editor
 			     (the wide `split` layout shows it as a side column instead). It's
 			     wrapped in a disclosure so it can be collapsed to reclaim vertical
@@ -136,7 +137,7 @@ import {
 	useId,
 	watch,
 } from "vue";
-import { Button } from "frappe-ui";
+import { Button, ErrorMessage } from "frappe-ui";
 import { CodeEditor, CodeEditorContent, CodeKit, loadLanguage } from "frappe-ui/code-editor";
 import type { CodeEditorExposed } from "frappe-ui/code-editor";
 import { InputDescription, InputLabel } from "frappe-ui/experimental";
@@ -263,12 +264,20 @@ async function showCodeErrors(errors: typeof codeErrors.value) {
 // The view exists only once the editor has mounted.
 onMounted(() => watch(codeErrors, showCodeErrors, { immediate: true }));
 
+const hasError = computed(() => Boolean(props.error?.length));
+
+const describedBy = computed(() => {
+	if (hasError.value) return errorId;
+	return props.field.description ? descriptionId : "";
+});
+
 // The label and description are linked to CodeMirror's content element, as the old
 // labelled editor did through the same facet.
 const contentAttributes = computed(() =>
 	EditorView.contentAttributes.of({
 		"aria-labelledby": props.field.label ? labelId : "",
-		"aria-describedby": props.field.description ? descriptionId : "",
+		"aria-describedby": describedBy.value,
+		"aria-invalid": hasError.value ? "true" : "false",
 		"aria-required": props.field.reqd ? "true" : "false",
 	})
 );
@@ -291,6 +300,7 @@ const previewOpen = ref(true);
 // together, so the preview label can share one id.
 const labelId = useId();
 const descriptionId = useId();
+const errorId = useId();
 const previewLabelId = useId();
 
 // Responsive layout: when `view` is `"auto"`, a previewable field shows the

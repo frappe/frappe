@@ -6,6 +6,7 @@
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
+		:error="error"
 		@open="record.open"
 	/>
 	<Link
@@ -20,6 +21,7 @@
 		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
+		:error="error"
 		:disabled="!doctype"
 		:href="record.href.value"
 		:creatable="linkCreate.creatable.value"

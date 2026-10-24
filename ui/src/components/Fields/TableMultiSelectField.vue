@@ -13,6 +13,7 @@
 		"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
+		:error="error"
 		:disabled="field.readOnly || !targetDoctype"
 		:titles="titles"
 		:creatable="linkCreate.creatable.value"

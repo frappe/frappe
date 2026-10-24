@@ -17,14 +17,18 @@
 			</RecordAnchor>
 			<span v-else class="truncate text-ink-gray-5">{{ text }}</span>
 		</div>
-		<p v-if="description" class="text-p-sm text-ink-gray-6">{{ description }}</p>
+		<p v-if="description && !error?.length" class="text-p-sm text-ink-gray-6">
+			{{ description }}
+		</p>
+		<ErrorMessage :message="error" />
 	</div>
 </template>
 
 <script setup lang="ts">
-import { FormLabel } from "frappe-ui";
+import { ErrorMessage, FormLabel } from "frappe-ui";
 import { RecordAnchor } from "../Link";
 import { translate as __ } from "../../utils/translate";
+import type { FieldError } from "./types";
 
 defineProps<{
 	text: string | null;
@@ -32,6 +36,7 @@ defineProps<{
 	label?: string;
 	description?: string;
 	required?: boolean;
+	error?: FieldError;
 }>();
 const emit = defineEmits<{ open: [] }>();
 </script>

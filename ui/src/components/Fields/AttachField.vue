@@ -14,6 +14,7 @@
 			:description="field.description"
 			:placeholder="field.readOnly ? '—' : field.placeholder || placeholder"
 			:required="field.reqd"
+			:error="error"
 			readonly
 			class="group"
 			:class="canOpen ? '[&_input]:cursor-pointer' : null"
