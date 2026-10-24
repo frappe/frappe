@@ -1,4 +1,4 @@
-// Reads a layer's concepts, the five flows and the ways to change the desk from ARCHITECTURE.md.
+// Reads a layer's concepts, the flows and the ways to change the desk from ARCHITECTURE.md.
 
 export function conceptsOf(markdown, layer) {
   const lines = markdown.split("\n");
@@ -31,7 +31,7 @@ export function conceptsOf(markdown, layer) {
 
 export function flowsOf(markdown) {
   const lines = markdown.split("\n");
-  const start = lines.indexOf("## The five flows");
+  const start = lines.indexOf("## The flows");
   if (start < 0) return [];
   const end = lines.findIndex((l, i) => i > start && l.startsWith("## "));
   const flows = [];
