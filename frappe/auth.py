@@ -27,7 +27,12 @@ from frappe.twofactor import (
 	should_run_2fa,
 )
 from frappe.utils import cint, date_diff, datetime, today
-from frappe.utils.password import check_password, get_decrypted_password, validate_password_size
+from frappe.utils.password import (
+	check_password,
+	get_decrypted_password,
+	is_admin_password_login_disabled,
+	validate_password_size,
+)
 from frappe.website.utils import get_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
@@ -296,6 +301,14 @@ class LoginManager:
 			ip_tracker and ip_tracker.add_failure_attempt()
 			self.fail("Invalid login credentials", user=_raw_user_name)
 
+		if is_admin_password_login_disabled(user.name):
+			ip_tracker and ip_tracker.add_failure_attempt()
+			self.fail(
+				"Password login is disabled for Administrator",
+				user=user.name,
+				exc=frappe.PasswordLoginDisabledError,
+			)
+
 		user_tracker = get_login_attempt_tracker(user.name)
 
 		if not user.is_authenticated:
@@ -340,13 +353,13 @@ class LoginManager:
 		except frappe.AuthenticationError:
 			self.fail("Incorrect password", user=user)
 
-	def fail(self, message, user=None):
+	def fail(self, message, user=None, exc=frappe.AuthenticationError):
 		if not user:
 			user = _("Unknown User")
 		frappe.local.response["message"] = message
 		add_authentication_log(message, user, status="Failed")
 		frappe.db.commit()
-		raise frappe.AuthenticationError
+		raise exc
 
 	def run_trigger(self, event="on_login"):
 		for method in frappe.get_hooks().get(event, []):

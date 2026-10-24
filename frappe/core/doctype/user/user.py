@@ -40,7 +40,9 @@ from frappe.utils.html_utils import sanitize_html
 from frappe.utils.password import (
 	check_password,
 	get_password_reset_limit,
+	is_password_login_disabled,
 	is_password_reused,
+	throw_password_login_disabled,
 	verify_against_placeholder,
 )
 from frappe.utils.password import update_password as _update_password
@@ -575,15 +577,18 @@ class User(Document):
 		from frappe.email.email_body import get_brand_name
 		from frappe.utils import get_url
 
-		link = self._reset_password()
+		# password login off, nothing to set, mail points at the login page instead
+		# empty rather than None so a custom template's {{ link }} renders nothing
+		link = "" if frappe.get_system_settings("disable_user_pass_login") else self._reset_password()
+		app_name = get_brand_name() or "Frappe"
 		subject = None
 		method = frappe.get_hooks("welcome_email")
 		if method:
 			subject = frappe.get_attr(method[-1])()
 		if not subject:
 			site_name = frappe.db.get_default("site_name") or frappe.get_conf().get("site_name")
-			if site_name:
-				subject = _("Welcome to {0}").format(site_name)
+			if site_name or not link:
+				subject = _("Welcome to {0}").format(site_name or app_name)
 			else:
 				subject = _("Complete Registration")
 
@@ -595,7 +600,7 @@ class User(Document):
 			dict(
 				link=link,
 				site_url=get_url(),
-				app_name=get_brand_name() or "Frappe",
+				app_name=app_name,
 			),
 			custom_template=welcome_email_template,
 			wrapper=None if welcome_email_template else "templates/emails/auth_email.html",
@@ -1307,20 +1312,16 @@ def sign_up(email: str, full_name: str, redirect_to: str) -> tuple[int, str]:
 		)
 		return
 
-	from frappe.utils import random_string
-
 	user = frappe.get_doc(
 		{
 			"doctype": "User",
 			"email": email,
 			"first_name": escape_html(full_name),
 			"enabled": 1,
-			"new_password": random_string(10),
 			"user_type": "Website User",
 		}
 	)
 	user.flags.ignore_permissions = True
-	user.flags.ignore_password_policy = True
 	user.insert()
 
 	# set default signup role as per Portal Settings
@@ -1343,6 +1344,9 @@ def reset_password(user: str) -> None:
 	# Always return the same generic response regardless of whether the user
 	# exists, is disabled, or is restricted. This prevents username enumeration
 	# via different messages or HTTP status codes (CWE-204).
+
+	if is_password_login_disabled(user):
+		throw_password_login_disabled()
 
 	try:
 		user_doc: User = frappe.get_doc("User", user)

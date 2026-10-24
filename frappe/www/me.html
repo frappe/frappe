@@ -41,6 +41,7 @@
 			</span>
 		</div>
 
+		{% if not password_login_disabled %}
 		<div class="portal-section">
 			<span class="my-account-item-link">
 				<a href="/update-password">
@@ -49,6 +50,7 @@
 				</a>
 			</span>
 		</div>
+		{% endif %}
 		<div class="portal-section">
 			<span class="my-account-item-link">
 				<a href="/third_party_apps">

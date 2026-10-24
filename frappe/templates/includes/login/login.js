@@ -305,6 +305,9 @@ login.login_handlers = (function () {
 			}
 
 			var message = get_server_message(data, true) || default_message;
+			if (data.exc_type === "PasswordLoginDisabledError") {
+				message = {{ _("Passwords are disabled for Administrator") | tojson }};
+			}
 			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
