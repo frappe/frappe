@@ -62,6 +62,11 @@ class HTTPRequest:
 		return self._domain
 
 	def set_request_ip(self):
+		# bench start serves requests directly, so use the address of the connection itself
+		if frappe._dev_server and frappe.request and frappe.request.remote_addr:
+			frappe.local.request_ip = frappe.request.remote_addr
+			return
+
 		if frappe.get_request_header("X-Forwarded-For"):
 			frappe.local.request_ip = (frappe.get_request_header("X-Forwarded-For").split(",", 1)[0]).strip()
 
