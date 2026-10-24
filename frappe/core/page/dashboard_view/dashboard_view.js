@@ -59,13 +59,16 @@ frappe.pages["dashboard-view"].on_page_load = function (wrapper) {
 		// `__onload` answers which view to draw, and a System Settings save can
 		// change that answer while the cached document still holds the old one.
 		frappe.model.clear_doc("Dashboard", name);
-		const doc = await frappe.model.with_doc("Dashboard", name);
+		// An unknown name resolves empty. A rejection, such as no read permission,
+		// is a request desk already reported.
+		const doc = await frappe.model.with_doc("Dashboard", name).catch(() => false);
 		// The route can move, inside this page or off it, while the fetch is
 		// pending. Two fetches can also land out of order, and the older one would
 		// draw a document the reader left.
 		if (frappe.get_route_str() !== route) return;
 
 		clear();
+		if (doc === false) return;
 		if (!doc) return show_missing(name);
 		// `as_dict` drops an empty `__onload`, so no key at all is the common case.
 		const claimed = Boolean(doc.__onload?.island);
