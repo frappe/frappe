@@ -328,6 +328,40 @@ class TestAuth(IntegrationTestCase):
 
 		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
 
+	def test_login_lands_on_default_app(self):
+		from frappe.auth import LoginManager
+		from frappe.utils import set_request
+
+		def home_page_after_login():
+			frappe.cache.hdel("home_page", self.test_user_email)
+			set_request(method="POST", path="/api/method/login")
+			frappe.form_dict.usr = self.test_user_email
+			frappe.form_dict.pwd = self.test_user_password
+			frappe.local.response = frappe._dict()
+			frappe.local.request_ip = "127.0.0.68"
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			return frappe.local.response.home_page
+
+		self.addCleanup(frappe.form_dict.clear)
+		self.addCleanup(self.set_system_settings, "default_app", "")
+		self.addCleanup(frappe.db.set_value, "Role", "System Manager", "home_page", None)
+		self.addCleanup(frappe.db.set_value, "User", self.test_user_email, "default_workspace", None)
+
+		# only frappe is installed in CI, so no app on the apps screen has a route
+		with patch("frappe.auth.get_default_path", return_value="/desk/test-app"):
+			self.assertEqual(home_page_after_login(), "desk")
+
+			self.set_system_settings("default_app", "test_app")
+			self.assertEqual(home_page_after_login(), "/desk/test-app")
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", "Build")
+			self.assertEqual(home_page_after_login(), "/desk/build")
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
+			frappe.db.set_value("Role", "System Manager", "home_page", "todo")
+			self.assertEqual(home_page_after_login(), "todo")
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
