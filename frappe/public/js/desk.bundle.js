@@ -58,6 +58,7 @@ import "./frappe/microtemplate.js";
 import "./frappe/ui/site_banners.js";
 import "./frappe/ui/page.html";
 import "./frappe/ui/page.js";
+import "./frappe/ui/print_preview_bar.js";
 import "./frappe/ui/slides.js";
 import "./frappe/ui/find.js";
 import "./frappe/ui/iconbar.js";

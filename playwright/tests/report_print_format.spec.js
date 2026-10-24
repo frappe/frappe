@@ -4,47 +4,21 @@ const REPORT = "Test Print Format Report";
 const JINJA_FORMAT = "Test Print Format Jinja";
 const JS_FORMAT = "Test Print Format JS";
 
+const PRINT_PAGE = "#page-report-print";
+
 const jinja_method = "frappe.utils.print_format.render_report_jinja";
 const pdf_method = "frappe.utils.print_format.report_to_pdf";
 
 const is_post_to = (method) => (req) =>
 	req.method() === "POST" && req.url().includes(`/api/method/${method}`);
 
-const print_settings = (print_format) => ({
-	orientation: "Landscape",
-	with_letter_head: 0,
-	print_format,
-});
-
-const stub_print_window = (page) =>
-	page.evaluate(() => {
-		window.__popups = 0;
-		window.open = () => {
-			window.__popups++;
-			return {
-				document: {
-					write() {},
-					close() {},
-					getElementById: () => null,
-					querySelector: () => null,
-				},
-			};
-		};
-	});
-
-const popups = (page) => page.evaluate(() => window.__popups);
-
-const print = (page, print_format) =>
+const open_print_view = (page, print_format) =>
 	page.evaluate(
-		(settings) => frappe.query_report.print_report(settings),
-		print_settings(print_format)
+		(print_format) => frappe.query_report.open_print_view({ print_format }),
+		print_format
 	);
 
-const download_pdf = (page, print_format) =>
-	page.evaluate(
-		(settings) => frappe.query_report.pdf_report(settings),
-		print_settings(print_format)
-	);
+const preview = (page) => page.frameLocator(`${PRINT_PAGE} .preview-beta-wrapper iframe`);
 
 test.describe("Report Print Formats", () => {
 	test.beforeAll(async ({ admin }) => {
@@ -90,39 +64,44 @@ test.describe("Report Print Formats", () => {
 		await page.goto(`/desk/query-report/${encodeURIComponent(REPORT)}`);
 		await page.waitForFunction(
 			(report) =>
-				frappe.query_report?.report_name === report &&
-				Array.isArray(frappe.query_report.filters) &&
-				Array.isArray(frappe.query_report.columns) &&
-				frappe.query_report.columns.length > 0,
+				frappe.query_report?.report_name === report && frappe.query_report.data?.length,
 			REPORT,
 			{ timeout: 60000 }
 		);
-		await stub_print_window(page);
+	});
+
+	test("opens the print view from the report menu", async ({ page, desk }) => {
+		await page.locator("#page-query-report .page-actions .menu-btn-group > button").click();
+		await desk.click_menu_item("Print");
+
+		await expect(page).toHaveURL(/\/report-print\//);
+		await expect(preview(page).locator(".print-format table")).toBeVisible();
 	});
 
 	test("renders a jinja format on the server", async ({ page }) => {
 		const jinja = page.waitForRequest(is_post_to(jinja_method));
-		await print(page, JINJA_FORMAT);
+		await open_print_view(page, JINJA_FORMAT);
 
 		expect((await jinja).postDataJSON().print_format).toBe(JINJA_FORMAT);
-		await expect.poll(() => popups(page)).toBe(1);
+		await expect(preview(page).locator("h1")).toHaveText("report body");
 	});
 
 	test("renders a js format in the browser", async ({ page }) => {
 		const jinja_calls = [];
 		page.on("request", (req) => is_post_to(jinja_method)(req) && jinja_calls.push(req));
-		await print(page, JS_FORMAT);
+		await open_print_view(page, JS_FORMAT);
 
-		await expect.poll(() => popups(page)).toBe(1);
+		await expect(preview(page).locator("h1")).toHaveText("report body");
 		expect(jinja_calls).toHaveLength(0);
 	});
 
 	test("sends the jinja body to the pdf service", async ({ page }) => {
-		const jinja = page.waitForRequest(is_post_to(jinja_method));
-		const pdf = page.waitForRequest(is_post_to(pdf_method));
-		await download_pdf(page, JINJA_FORMAT);
+		await open_print_view(page, JINJA_FORMAT);
+		await expect(preview(page).locator("h1")).toHaveText("report body");
 
-		await jinja;
-		await pdf;
+		const pdf = page.waitForRequest(is_post_to(pdf_method));
+		await page.locator(`${PRINT_PAGE} button[data-label="PDF"]`).click();
+
+		expect((await pdf).postData()).toContain("report body");
 	});
 });
