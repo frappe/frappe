@@ -3,7 +3,7 @@ import { createApp, h, nextTick } from "vue";
 import type { App } from "vue";
 import NumberField from "../NumberField.vue";
 
-/** A Long Int past 2^53 keeps every digit while it is a string: typed, or held as one in the doc. */
+/** An Int or Long Int commits a whole number, as the server stores it. A Long Int past 2^53 keeps every digit while it is a string: typed, or held as one in the doc. */
 
 const BEYOND_SAFE = "9007199254740993";
 
@@ -17,7 +17,7 @@ afterEach(() => {
   host = undefined;
 });
 
-function render(modelValue: unknown) {
+function render(modelValue: unknown, fieldtype = "Long Int") {
   const live: unknown[] = [];
   const committed: unknown[] = [];
   host = document.createElement("div");
@@ -25,7 +25,7 @@ function render(modelValue: unknown) {
   app = createApp({
     render: () =>
       h(NumberField, {
-        field: { fieldname: "big", fieldtype: "Long Int" },
+        field: { fieldname: "big", fieldtype },
         modelValue,
         "onUpdate:modelValue": (value: unknown) => live.push(value),
         onChange: (value: unknown) => committed.push(value),
@@ -61,5 +61,27 @@ describe("NumberField for Long Int", () => {
     type(input, "1,234");
     await nextTick();
     expect(committed).toEqual([1234]);
+  });
+});
+
+describe("NumberField for whole numbers", () => {
+  it.each([
+    ["Int", "7.6", 7],
+    ["Int", "-7.6", -7],
+    ["Int", "1,234.9", 1234],
+    ["Long Int", "7.6", 7],
+  ])("%s commits %s as %s", async (fieldtype, typed, expected) => {
+    const { input, live, committed } = render(0, fieldtype);
+    type(input, typed);
+    await nextTick();
+    expect(live.at(-1)).toBe(expected);
+    expect(committed).toEqual([expected]);
+  });
+
+  it("keeps the fraction of a Float", async () => {
+    const { input, committed } = render(0, "Float");
+    type(input, "7.6");
+    await nextTick();
+    expect(committed).toEqual([7.6]);
   });
 });
