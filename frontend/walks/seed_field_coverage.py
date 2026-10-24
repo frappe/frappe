@@ -32,14 +32,65 @@ ROW = "Field Coverage Row"
 
 # The narrow tables: (table fieldname, child DocType, the fields in its grid).
 ROW_GROUPS = [
-	("rows_text", "Field Coverage Row Text",
-		["data", "data_email", "data_url", "data_phone", "phone", "password", "read_only_value", "small_text", "text_editor"]),
-	("rows_numbers", "Field Coverage Row Numbers",
-		["int_value", "long_int", "float_value", "currency", "currency_value", "percent", "check", "rating", "duration"]),
-	("rows_choices", "Field Coverage Row Choices",
-		["select_value", "autocomplete", "link", "link_doctype", "dynamic_link", "date_value", "datetime_value", "time_value"]),
-	("rows_media", "Field Coverage Row Media",
-		["attach", "attach_image", "signature", "barcode", "color", "icon", "code", "json_value", "row_button"]),
+	(
+		"rows_text",
+		"Field Coverage Row Text",
+		[
+			"data",
+			"data_email",
+			"data_url",
+			"data_phone",
+			"phone",
+			"password",
+			"read_only_value",
+			"small_text",
+			"text_editor",
+		],
+	),
+	(
+		"rows_numbers",
+		"Field Coverage Row Numbers",
+		[
+			"int_value",
+			"long_int",
+			"float_value",
+			"currency",
+			"currency_value",
+			"percent",
+			"check",
+			"rating",
+			"duration",
+		],
+	),
+	(
+		"rows_choices",
+		"Field Coverage Row Choices",
+		[
+			"select_value",
+			"autocomplete",
+			"link",
+			"link_doctype",
+			"dynamic_link",
+			"date_value",
+			"datetime_value",
+			"time_value",
+		],
+	),
+	(
+		"rows_media",
+		"Field Coverage Row Media",
+		[
+			"attach",
+			"attach_image",
+			"signature",
+			"barcode",
+			"color",
+			"icon",
+			"code",
+			"json_value",
+			"row_button",
+		],
+	),
 ]
 TAG = "Field Coverage Tag"
 MODULE = "Custom"
@@ -157,7 +208,10 @@ def parent_fields() -> list[dict]:
 		field("Data", "after_fold", "Data after the fold"),
 		break_("Tab Break", "table_tab", "Table"),
 		field("Table", "rows", "Table, every column", options=ROW),
-		*[field("Table", table, f"Table, {child.split()[-1].lower()}", options=child) for table, child, _ in ROW_GROUPS],
+		*[
+			field("Table", table, f"Table, {child.split()[-1].lower()}", options=child)
+			for table, child, _ in ROW_GROUPS
+		],
 		break_("Tab Break", "read_only_tab", "Read only"),
 		*[{**d, "read_only": 1} for d in value_fields(prefix="ro_") if d["fieldtype"] != "Table MultiSelect"],
 	]
@@ -184,7 +238,9 @@ def make_doctype(name: str, fields: list[dict], **props) -> None:
 		doc.append("permissions", {"role": "System Manager", "read": 1, "write": 1, "create": 1, "delete": 1})
 	doc.insert()
 	if long_ints:
-		frappe.db.set_value("DocField", {"parent": name, "fieldname": ("in", long_ints)}, "fieldtype", "Long Int")
+		frappe.db.set_value(
+			"DocField", {"parent": name, "fieldname": ("in", long_ints)}, "fieldtype", "Long Int"
+		)
 		frappe.clear_cache(doctype=name)
 		frappe.db.updatedb(name)
 
@@ -281,7 +337,11 @@ def make_panel_layout() -> None:
 			"sections": [
 				{"name": "fields_a", "label": "Fields A", "columns": [{"fields": names[:half]}]},
 				{"name": "fields_b", "label": "Fields B", "columns": [{"fields": names[half:]}]},
-				{"name": "read_only", "label": "Read only", "columns": [{"fields": ["ro_" + n for n in names[:6]]}]},
+				{
+					"name": "read_only",
+					"label": "Read only",
+					"columns": [{"fields": ["ro_" + n for n in names[:6]]}],
+				},
 			]
 		}
 	]
@@ -298,7 +358,10 @@ def make_commit_script() -> None:
 	rows = [d["fieldname"] for d in row_fields() if d["fieldtype"] != "Button"]
 	lines = [f"\t{name}(page) {{ {log.format(key=name, value=f'page.doc.{name}')} }}," for name in top]
 	lines.append("\ttags: {")
-	lines += [f"\t\t{event}(page) {{ {log.format(key='tags.' + event, value='page.doc.tags.map((t) => t.deal)')} }}," for event in ("onAdd", "onRemove")]
+	lines += [
+		f"\t\t{event}(page) {{ {log.format(key='tags.' + event, value='page.doc.tags.map((t) => t.deal)')} }},"
+		for event in ("onAdd", "onRemove")
+	]
 	lines.append("\t},")
 	for table in ["rows"] + [table for table, _, _ in ROW_GROUPS]:
 		lines.append(f"\t{table}: {{")
@@ -352,14 +415,16 @@ def main() -> None:
 		sys.exit("Usage: seed_field_coverage.py <site> [--delete]")
 	frappe.init(site=site, sites_path=".")
 	frappe.connect()
-	frappe.set_user("Administrator")
+	# A dev-only script run by hand on a local site: it acts as Administrator to create DocTypes.
+	frappe.set_user("Administrator")  # nosemgrep
 	try:
 		if "--delete" in sys.argv:
 			delete_all()
 			print(f"Deleted {PARENT}")
 		else:
 			print(f"{PARENT} {seed()}")
-		frappe.db.commit()
+		# A standalone script, not a request: nothing else commits its transaction.
+		frappe.db.commit()  # nosemgrep
 	finally:
 		frappe.destroy()
 
