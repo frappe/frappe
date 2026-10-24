@@ -57,7 +57,7 @@ const fakeTransport: UploadTransport = (file, _args, ctx) =>
 //   - Currency: a *fully custom* field — shows the registry override still wins.
 registerFieldType("Link", DemoLinkField, { global: false });
 registerFieldType("Currency", DemoCurrencyField, { global: false });
-// Table MultiSelect: override the lib's select-only field with one that turns on
+// Table MultiSelect: override the lib's field with one that turns on
 // `creatable` + wires `@create` — the app-owned create pattern (like DemoLinkField).
 registerFieldType("Table MultiSelect", DemoTableMultiSelectField, {
 	global: false,

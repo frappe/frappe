@@ -1,6 +1,8 @@
 <template>
 	<TableMultiSelect
+		ref="control"
 		v-model="value"
+		v-model:open="open"
 		:doctype="targetDoctype"
 		:filters="field.filters"
 		:label="field.label"
@@ -12,18 +14,24 @@
 		:placeholder="field.placeholder"
 		:required="field.reqd"
 		:disabled="field.readOnly || !targetDoctype"
-	/>
+		:titles="titles"
+		:creatable="linkCreate.creatable.value"
+		@create="linkCreate.create"
+	>
+		<template #create="{ query }">{{ linkCreate.label(query) }}</template>
+	</TableMultiSelect>
 </template>
 
 <script setup lang="ts">
-// Frappe `Table MultiSelect`: a child table whose single Link field names the
-// target doctype; stored value is an array of child rows, bridged to the
-// control's `string[]` via `useChildRowModel`. Select-only, like `LinkField`.
-import { computed } from "vue";
+// Frappe `Table MultiSelect`: child rows whose Link field names the target doctype, bridged to
+// the control's `string[]` by `useChildRowModel`. Creates through `useLinkCreate`, like `LinkField`.
+import { computed, ref, shallowRef } from "vue";
 import { TableMultiSelect } from "../TableMultiSelect";
+import type { TableMultiSelectExposed } from "../TableMultiSelect";
 import { useChildRowModel } from "../FormLayout/useChildRowModel";
 import { newRowValues } from "../FormLayout/newRowValues";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
+import { useLinkCreate } from "./useLinkCreate";
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
@@ -43,4 +51,22 @@ const value = useChildRowModel(
 	// those. Known limit, not a hole: it is the same subset the picker itself shows.
 	() => newRowValues(props.field.childFields ?? [])
 );
+
+const control = ref<TableMultiSelectExposed | null>(null);
+const open = ref(false);
+// `useLinkCreate` keeps only the last saved title; each created chip needs its own.
+const titles = shallowRef<Record<string, string>>({});
+
+const linkCreate = useLinkCreate({
+	doctype: targetDoctype,
+	filters: () => props.field.filters,
+	disabled: () => Boolean(props.field.readOnly),
+	open,
+	link: control,
+	select: (name) => {
+		const title = linkCreate.title(name);
+		if (title) titles.value = { ...titles.value, [name]: title };
+		if (!value.value.includes(name)) value.value = [...value.value, name];
+	},
+});
 </script>

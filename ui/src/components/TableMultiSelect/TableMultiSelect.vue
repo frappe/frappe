@@ -8,12 +8,15 @@
 		:required="required"
 		:disabled="disabled"
 		:loading="search.loading.value && !search.data.value"
+		:open="open"
+		:query="query"
 		@update:open="onOpen"
 		@update:query="onQuery"
 	>
 		<!-- Selected links as white chips, replacing the default "N selected" summary. -->
 		<template #trigger="{ open, selectedOptions, toggleOpen }">
 			<button
+				ref="trigger"
 				type="button"
 				:disabled="disabled"
 				:data-state="open ? 'open' : 'closed'"
@@ -53,29 +56,26 @@
 			</button>
 		</template>
 
-		<!-- Footer: "Create '{query}'" (via `@create`) and Clear All; hidden when empty. -->
-		<template #footer="{ clearAll, selectedOptions, query }">
+		<!-- Footer: Create (via `@create`) and Clear All; hidden when empty. -->
+		<template #footer="{ clear, close, selectedOptions, query }">
 			<div
-				v-if="(creatable && !!query.trim()) || selectedOptions.length"
+				v-if="creatable || selectedOptions.length"
 				class="flex items-center justify-between gap-2 border-t border-outline-gray-1 px-2 py-1.5"
 			>
-				<Button
-					v-if="creatable && !!query.trim()"
-					variant="ghost"
-					size="sm"
-					@click="emit('create', query)"
-				>
+				<Button v-if="creatable" variant="ghost" size="sm" @click="create(query, close)">
 					<template #prefix>
 						<span class="lucide-plus size-4" />
 					</template>
-					Create "{{ query }}"
+					<slot name="create" :query="query">
+						{{ query.trim() ? __('Create "{0}"', [query.trim()]) : __("Create") }}
+					</slot>
 				</Button>
 				<Button
 					v-if="selectedOptions.length"
 					variant="ghost"
 					size="sm"
 					class="ml-auto"
-					@click="clearAll"
+					@click="clear"
 				>
 					Clear All
 				</Button>
@@ -87,13 +87,16 @@
 <script setup lang="ts">
 // Link-backed multiselect: `Link` for an array of link names. Owns the
 // link search, the white-chip trigger, and the `creatable` footer.
-import { computed, watch } from "vue";
+import { computed, ref, useTemplateRef, watch } from "vue";
 import { MultiSelect, Button, debounce } from "frappe-ui";
 import { useLinkSearch } from "../../composables/useLinkSearch";
+import { translate as __ } from "../../utils/translate";
 import type {
 	TableMultiSelectEmits,
+	TableMultiSelectExposed,
 	TableMultiSelectOption,
 	TableMultiSelectProps,
+	TableMultiSelectSlots,
 } from "./types";
 
 const props = withDefaults(defineProps<TableMultiSelectProps>(), {
@@ -104,22 +107,40 @@ const props = withDefaults(defineProps<TableMultiSelectProps>(), {
 
 const emit = defineEmits<TableMultiSelectEmits>();
 
+defineSlots<TableMultiSelectSlots>();
+
 const model = defineModel<string[]>({ default: () => [] });
+const open = defineModel<boolean>("open", { default: false });
+const trigger = useTemplateRef<HTMLButtonElement>("trigger");
+// Held here because listening to `update:query` makes MultiSelect leave the query to us.
+const query = ref("");
 
 const search = useLinkSearch(
 	() => props.doctype,
 	() => props.filters
 );
 
-function loadOptions(txt = "") {
-	void search.search(txt);
+function loadOptions(txt = "", fresh = false) {
+	void search.search(txt, { fresh });
 }
 
 function onOpen(isOpen: boolean) {
+	open.value = isOpen;
 	if (isOpen) loadOptions("");
 }
 
-const onQuery = debounce((txt: string) => loadOptions(txt || ""), 300);
+function create(typed: string, close: () => void) {
+	emit("create", typed);
+	query.value = "";
+	close();
+}
+
+const searchFor = debounce((txt: string) => loadOptions(txt || ""), 300);
+
+function onQuery(txt: string) {
+	query.value = txt;
+	searchFor(txt);
+}
 
 function removeTag(v: string) {
 	model.value = model.value.filter((selected) => selected !== v);
@@ -135,12 +156,17 @@ const options = computed<TableMultiSelectOption[]>(() => {
 	const present = new Set(found.map((o) => o.value));
 	const selectedOnly = model.value
 		.filter((v) => !present.has(v))
-		.map((v) => ({ label: v, value: v }));
+		.map((v) => ({ label: props.titles?.[v] ?? v, value: v }));
 	return [...selectedOnly, ...found];
 });
 
 watch([() => props.doctype, () => props.filters], () => loadOptions(""), {
 	immediate: true,
 	deep: true,
+});
+
+defineExpose<TableMultiSelectExposed>({
+	search: (text, { fresh = false } = {}) => loadOptions(text, fresh),
+	focus: () => trigger.value?.focus(),
 });
 </script>

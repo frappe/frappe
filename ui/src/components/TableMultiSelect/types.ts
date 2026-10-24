@@ -1,3 +1,5 @@
+import type { LinkExposed } from "../Link/types";
+
 interface InputLabelingProps {
   label?: string;
   description?: string;
@@ -11,19 +13,23 @@ export interface TableMultiSelectProps extends InputLabelingProps {
   filters?: Record<string, unknown>;
   placeholder?: string;
   disabled?: boolean;
-  /**
-   * Show a "Create '{query}'" action in the footer when the user has typed a
-   * query. The control does **not** create anything itself — it emits `create`
-   * and the host wires the behaviour (open quick-entry, insert, …), exactly like
-   * `Link`'s `creatable` + `@create`.
-   */
+  /** Show a Create action in the footer; it emits `create` and closes, and the host creates. */
   creatable?: boolean;
+  /** What selected values display as until the search returns them. */
+  titles?: Record<string, string>;
 }
 
 export type TableMultiSelectEmits = {
   /** Fired when the footer "Create" action is clicked, with the typed query. */
   create: [query: string];
 };
+
+export interface TableMultiSelectSlots {
+  /** The footer Create action's label; receives the typed query. */
+  create?: (props: { query: string }) => any;
+}
+
+export type TableMultiSelectExposed = Pick<LinkExposed, "search" | "focus">;
 
 export type TableMultiSelectOption = {
   label: string;
