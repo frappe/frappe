@@ -82,7 +82,7 @@ class TestDashboardView(IntegrationTestCase):
 	def onload(self, doc) -> dict:
 		with patch(
 			"frappe.get_module_path",
-			lambda module, *joins: os.path.join(self.module_path, *map(frappe.scrub, joins)),
+			lambda module, *joins: os.path.join(self.module_path, *(frappe.scrub(j) for j in joins)),
 		):
 			doc.run_method("onload")
 		return doc.get_onload()
