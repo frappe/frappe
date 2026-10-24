@@ -354,16 +354,8 @@ class EmailAccount(Document):
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
 		for field in ("default_incoming", "default_outgoing"):
-			if not self.get(field):
-				continue
-
-			for email_account in frappe.get_all("Email Account", filters={field: 1}):
-				if email_account.name == self.name:
-					continue
-
-				email_account = frappe.get_doc("Email Account", email_account.name)
-				email_account.set(field, 0)
-				email_account.save()
+			if self.get(field):
+				frappe.db.set_value("Email Account", {field: 1, "name": ("!=", self.name)}, field, 0)
 
 	@frappe.whitelist()
 	def get_domain_values(self, domain: str):
