@@ -856,7 +856,7 @@ class TestTypstRender(IntegrationTestCase):
 		self.assertIn("test2@example.com", pages[1].extract_text())
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
-	def test_row_page_break_wins_over_keep_together(self):
+	def test_keep_together_section_keeps_its_table_whole(self):
 		from io import BytesIO
 
 		from pypdf import PdfReader
@@ -869,7 +869,7 @@ class TestTypstRender(IntegrationTestCase):
 					"fieldtype": "Table",
 					"fieldname": "email_ids",
 					"label": "Email Addresses",
-					"table_columns": [{"fieldname": "email_id", "label": "Email", "fieldtype": "Data"}],
+					"table_columns": [{"fieldname": "email_id", "label": "Email ID", "fieldtype": "Data"}],
 				},
 				section={"keep_together": 1},
 			),
@@ -890,8 +890,8 @@ class TestTypstRender(IntegrationTestCase):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
 		pages = PdfReader(BytesIO(PrintFormatGenerator(pf, contact).render_pdf())).pages
-		self.assertEqual(len(pages), 2)
-		self.assertIn("test2@example.com", pages[1].extract_text())
+		self.assertEqual(len(pages), 1)
+		self.assertEqual(pages[0].extract_text().count("Email ID"), 1)
 
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_render_pdf_produces_a_pdf(self):
