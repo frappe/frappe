@@ -221,7 +221,7 @@ class Sidebar(Document, DeskViews):
 
 		Titling a sidebar after its own module is the default and is allowed.
 		"""
-		if self.title == self.module:
+		if (self.title or "").casefold() == (self.module or "").casefold():
 			return
 
 		if frappe.db.exists("Module Def", self.title, cache=True):

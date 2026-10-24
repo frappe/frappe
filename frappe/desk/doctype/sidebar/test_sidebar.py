@@ -780,6 +780,19 @@ class TestSidebarTitleIsRoutable(IntegrationTestCase):
 		self.addCleanup(self.drop_module, module)
 
 		self.assertEqual(make_sidebar(module, title=title).name, title)
+		
+	def test_a_sidebar_may_differ_from_its_module_only_by_case(self):
+		module = "Test Sidebar Case Module"
+		title = module.upper()
+		with no_developer_mode():
+			frappe.get_doc(
+				 {
+                "doctype": "Module Def",
+                "module_name": module,
+                "app_name": "frappe",
+            } ).insert()
+		self.addCleanup(self.drop_module, module)
+		self.assertEqual(make_sidebar(module, title=title).name, title)
 
 	def test_renaming_a_sidebar_to_its_own_slug_is_allowed(self):
 		"""Changing only the case or the spacing of a title leaves its segment where it was, and
