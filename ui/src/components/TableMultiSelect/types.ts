@@ -1,8 +1,10 @@
+import type { InputLabelingProps as AtomLabelingProps } from "frappe-ui";
 import type { LinkExposed } from "../Link/types";
 
 interface InputLabelingProps {
   label?: string;
   description?: string;
+  error?: AtomLabelingProps["error"];
   required?: boolean;
 }
 

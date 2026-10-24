@@ -6,6 +6,7 @@
 		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
+		:error="error"
 		:disabled="field.readOnly"
 		@update:modelValue="(value: any) => emit('update:modelValue', value)"
 		@change="(e: Event) => emit('change', (e.target as HTMLInputElement).value)"
