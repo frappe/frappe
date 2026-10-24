@@ -1643,14 +1643,12 @@ export default class GridRow {
 	}
 
 	get_visible_columns(blacklist = []) {
-		return this.docfields.filter(
-			(df) =>
-				!df.hidden &&
-				df.in_list_view &&
-				this.grid.frm.get_perm(df.permlevel, "read") &&
-				!frappe.model.layout_fields.includes(df.fieldtype) &&
-				!blacklist.includes(df.fieldname)
-		);
+		return this.grid.visible_columns
+			.map(
+				([column]) =>
+					this.docfields.find((df) => df.fieldname === column.fieldname) || column
+			)
+			.filter((df) => !df.hidden && !blacklist.includes(df.fieldname));
 	}
 	set_field_property(fieldname, property, value) {
 		const set_property = (field) => {
