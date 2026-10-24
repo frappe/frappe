@@ -49,6 +49,23 @@
 							v-on="cellListeners(f, row)"
 						/>
 					</div>
+					<div
+						v-else-if="isTextarea(f)"
+						class="grid-one-line w-full text-p-sm"
+						:class="f.readOnly ? 'text-ink-gray-5' : 'text-ink-gray-8'"
+						:data-preview="oneLine(value)"
+					>
+						<component
+							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:field="f"
+							:modelValue="value"
+							:row="row"
+							@update:modelValue="(v: any) => editCell(update, f, row, v)"
+							@change="commit"
+							v-bind="f.ui?.props"
+							v-on="cellListeners(f, row)"
+						/>
+					</div>
 					<component
 						:is="f.ui?.component ?? resolveField(f.fieldtype)"
 						v-else
@@ -83,6 +100,7 @@
 import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../Grid";
+import TextareaField from "./TextareaField.vue";
 import type { GridColumn } from "../Grid";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
@@ -257,6 +275,11 @@ function isSummaryField(field: FieldNode): boolean {
 	return SUMMARY_FIELDTYPES.has(field.fieldtype);
 }
 
+// A textarea cannot cut its text with an ellipsis, so an idle cell shows its value on one line.
+function isTextarea(field: FieldNode): boolean {
+	return !field.ui?.component && resolveField(field.fieldtype) === TextareaField;
+}
+
 // Compact read-only text for a summary cell: a count for collections, resolved
 // presence for an Image, the label for a Heading, stripped text for HTML, and a
 // one-line collapse of the raw string for the code editors. Editing happens in
@@ -285,12 +308,14 @@ function cellSummary(field: FieldNode, value: any, row: Record<string, any>): st
 				.trim();
 			return text || "HTML";
 		}
-		default: {
+		default:
 			// Code / JSON / Markdown Editor / HTML Editor — collapse to a single line.
-			const s = value == null ? "" : String(value).replace(/\s+/g, " ").trim();
-			return s || "—";
-		}
+			return oneLine(value) || "—";
 	}
+}
+
+function oneLine(value: any): string {
+	return value == null ? "" : String(value).replace(/\s+/g, " ").trim();
 }
 
 const rows = computed<Record<string, any>[]>({
@@ -425,3 +450,38 @@ function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
 // no `update:modelValue`/`change` for the whole table; `change` still fires from
 // the Grid on cell commit, add, remove and reorder, so it keeps its meaning.
 </script>
+
+<style scoped>
+/* The preview sits over the textarea, whose own text hides until it takes focus. */
+.grid-one-line {
+	position: relative;
+}
+
+.grid-one-line::after {
+	content: attr(data-preview);
+	content: attr(data-preview) / "";
+	position: absolute;
+	inset: 0;
+	padding: 0 0.5rem;
+	line-height: 34px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	pointer-events: none;
+}
+
+.grid-one-line:focus-within::after {
+	content: none;
+}
+
+.grid-one-line:not(:focus-within) :deep(textarea) {
+	color: transparent;
+}
+
+/* Forced colours repaint the hidden text, so the preview steps aside. */
+@media (forced-colors: active) {
+	.grid-one-line::after {
+		content: none;
+	}
+}
+</style>
