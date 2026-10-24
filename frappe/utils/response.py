@@ -62,6 +62,9 @@ def report_error(status_code):
 			# Each entry is `{ field, line, column, message }`.
 			if isinstance(exc_value, frappe.ValidationError) and getattr(exc_value, "code_errors", None):
 				error_log["code_errors"] = exc_value.code_errors
+			# Each entry is `{ fieldname, parentfield?, row?, idx?, message }`.
+			if isinstance(exc_value, frappe.ValidationError) and getattr(exc_value, "field_errors", None):
+				error_log["field_errors"] = exc_value.field_errors
 			frappe.local.response.errors = [error_log]
 
 	response = build_response("json")
