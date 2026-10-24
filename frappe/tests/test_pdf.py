@@ -87,6 +87,119 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
+<<<<<<< HEAD
+=======
+	def test_password_with_output_writer_appends_pages(self):
+		from pypdf import PdfWriter
+
+		output = pdfgen.get_pdf("<p>first</p>", options={"password": "qwe"}, output=PdfWriter())
+		self.assertEqual(len(output.pages), 1)
+
+	def test_repeated_header_marked_hidden_pdf_still_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"><b>REPORT HEADER</b></div><p>report body</p>'
+		)
+		text = PdfReader(io.BytesIO(pdf)).pages[0].extract_text()
+		self.assertIn("REPORT HEADER", text)
+		self.assertIn("report body", text)
+
+	def test_empty_header_and_footer_are_skipped(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html" class="hidden-pdf"></div><p>body text</p><div id="footer-html"></div>'
+		)
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_print_format_margins_keep_header_and_footer_on_every_page(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		rows = "".join(f"<p>row {i}</p>" for i in range(150))
+		pdf = pdfgen.get_pdf(
+			"<style>.print-format { margin-top: 30mm; margin-bottom: 20mm; }</style>"
+			'<div class="print-format"><div id="header-html"><b>TOP</b></div>'
+			f"{rows}"
+			'<div id="footer-html">Page <span class="page"></span> of <span class="topage"></span></div></div>'
+		)
+		pages = PdfReader(io.BytesIO(pdf)).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			text = page.extract_text()
+			self.assertIn("TOP", text)
+			self.assertIn(f"Page {number} of {len(pages)}", text)
+
+	def test_links_are_clickable_where_they_print_with_header_and_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html"><a href="https://example.com/brochure">Brochure</a></div>'
+			'<a href="https://example.com/manual">Manual</a>'
+			'<div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		page = PdfReader(io.BytesIO(pdf)).pages[0]
+		baselines = {}
+
+		def record_baseline(text, cm, tm, *_):
+			baselines[text.strip()] = tm[4] * cm[1] + tm[5] * cm[3] + cm[5]
+
+		page.extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(page["/Annots"]), 2)
+		for annotation in page["/Annots"]:
+			annotation = annotation.get_object()
+			text = annotation["/A"]["/URI"].rsplit("/", 1)[1].title()
+			_, bottom, _, top = annotation["/Rect"]
+			self.assertGreaterEqual(baselines[text], bottom, text)
+			self.assertLessEqual(baselines[text], top, text)
+
+	def test_header_is_measured_after_its_image_loads(self):
+		import threading
+		import time
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		class SlowImageHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				time.sleep(0.5)
+				self.send_response(200)
+				self.send_header("Content-Type", "image/svg+xml")
+				self.end_headers()
+				self.wfile.write(b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="900"/>')
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), SlowImageHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdf = pdfgen.get_pdf(
+			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+			+ "<p>row</p>" * 10
+		)
+		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
+
+	def test_bulk_pdf_with_password_keeps_every_document(self):
+		import json
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		names = [
+			frappe.get_doc({"doctype": "ToDo", "description": f"bulk {i}"}).insert().name for i in range(2)
+		]
+
+		_download_multi_pdf(
+			"ToDo", json.dumps(names), format="Standard", options=json.dumps({"password": "qwe"})
+		)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		self.assertTrue(reader.is_encrypted)
+		self.assertTrue(reader.decrypt("qwe"))
+		self.assertGreaterEqual(len(reader.pages), 2)
+
+>>>>>>> ea72fac (test(pdf): links are clickable where they print with header and footer)
 	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
 		from frappe.utils.print_format import _download_multi_pdf
 
