@@ -3,17 +3,19 @@
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.query_report import get_print_format_data
+from frappe.desk.query_report import get_print_format_data, run
 from frappe.tests import IntegrationTestCase
-from frappe.utils.print_format import render_report_jinja
+from frappe.utils.print_format import download_report_pdf, render_report_jinja
 
 REPORT = "Test Jinja Print Report"
 PF_JINJA = "Test Jinja Print Format"
 PF_JS = "Test Jinja Print JS Format"
 PF_DISABLED = "Test Jinja Print Disabled Format"
+PF_TODO = "Test Jinja Print ToDo Format"
 LETTER_HEAD = "Test Jinja Print Letter Head"
 DOCTYPE_LETTER_HEAD = "Test Jinja Print Doctype Letter Head"
 NO_ACCESS_USER = "test-jinja-print-no-access@example.com"
+REPORT_USER = "test-jinja-print-report-user@example.com"
 
 TEMPLATE = """
 <h1 class="title">{{ report.report_name }}</h1>
@@ -102,6 +104,77 @@ class TestRenderReportJinja(IntegrationTestCase):
 				self.render()
 
 
+class TestDownloadReportPdf(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls) -> None:
+		super().setUpClass()
+		make_fixtures()
+		make_print_format(PF_TODO, "ToDo", "Jinja")
+		make_report_user()
+		frappe.set_user(REPORT_USER)
+		for priority, description in (
+			("High", "Renew the example.com domain"),
+			("Low", "Archive old invoices"),
+		):
+			frappe.get_doc({"doctype": "ToDo", "priority": priority, "description": description}).insert()
+		frappe.set_user("Administrator")
+
+	def setUp(self):
+		frappe.set_user(REPORT_USER)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def printed_html(self, **kwargs):
+		with patch("frappe.utils.print_format.get_pdf", return_value=b"%PDF") as get_pdf:
+			download_report_pdf("ToDo", no_letterhead=1, **kwargs)
+		return get_pdf.call_args.args[0]
+
+	def test_prints_rows_from_the_report_run(self):
+		html = self.printed_html()
+
+		self.assertIn("Renew the example.com domain", html)
+		self.assertIn("Archive old invoices", html)
+
+	def test_prints_only_the_visible_rows(self):
+		descriptions = [row["description"] for row in run("ToDo")["result"]]
+		html = self.printed_html(visible_idx=[descriptions.index("Renew the example.com domain")])
+
+		self.assertIn("Renew the example.com domain", html)
+		self.assertNotIn("Archive old invoices", html)
+
+	def test_prints_only_the_picked_columns(self):
+		html = self.printed_html(columns=["priority"])
+
+		self.assertIn("High", html)
+		self.assertNotIn("Renew the example.com domain", html)
+
+	def test_prints_a_value_that_does_not_fit_the_column_type(self):
+		report_run = {
+			"columns": [{"fieldname": "date", "fieldtype": "Date"}],
+			"result": [{"date": "Opening"}],
+		}
+		with patch("frappe.utils.print_format.run", return_value=report_run):
+			html = self.printed_html()
+
+		self.assertIn("Opening", html)
+
+	def test_jinja_format_renders_the_report_run(self):
+		html = self.printed_html(print_format=PF_TODO)
+
+		self.assertIn('<h1 class="title">ToDo</h1>', html)
+		self.assertIn('<p class="colcount">7</p>', html)
+
+	def test_rejects_a_format_of_another_report(self):
+		with self.assertRaises(frappe.ValidationError):
+			download_report_pdf("ToDo", print_format=PF_JINJA)
+
+	def test_requires_access_to_the_report(self):
+		make_user_without_access()
+		frappe.set_user(NO_ACCESS_USER)
+
+		with self.assertRaises(frappe.PermissionError):
+			download_report_pdf(REPORT)
+
+
 class TestGetPrintFormatData(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls) -> None:
@@ -170,3 +243,12 @@ def make_user_without_access():
 	user.first_name = "No Access"
 	user.send_welcome_email = 0
 	user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+
+def make_report_user():
+	user = frappe.new_doc("User")
+	user.email = REPORT_USER
+	user.first_name = "Report User"
+	user.send_welcome_email = 0
+	user.insert(ignore_permissions=True, ignore_if_duplicate=True)
+	user.add_roles("System Manager")
