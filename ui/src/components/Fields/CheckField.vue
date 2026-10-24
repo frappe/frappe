@@ -16,13 +16,14 @@ import type { FieldComponentEmits, FieldComponentProps } from "./types";
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();
 
-// Backends send `0 | 1`; adapt at the edge and emit a clean boolean.
+// The doc holds `0 | 1`, as the server stores it; the checkbox speaks boolean.
 const value = computed<boolean>({
 	get: () => Boolean(props.modelValue),
 	// Toggling a checkbox is a commit: sync the value and fire the trigger.
 	set: (v) => {
-		emit("update:modelValue", v);
-		emit("change", v);
+		const checked = v ? 1 : 0;
+		emit("update:modelValue", checked);
+		emit("change", checked);
 	},
 });
 </script>

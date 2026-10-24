@@ -15,7 +15,7 @@ describe("newRowValues", () => {
     ).toEqual({ item_code: "", uom: "Nos" });
   });
 
-  it("empties a numeric field to 0 and a Check to false, so arithmetic works", () => {
+  it("empties a numeric field and a Check to 0, so arithmetic works", () => {
     const row = newRowValues([
       field({ fieldname: "qty", fieldtype: "Int" }),
       field({ fieldname: "rate", fieldtype: "Currency" }),
@@ -23,7 +23,7 @@ describe("newRowValues", () => {
       field({ fieldname: "weight", fieldtype: "Float" }),
       field({ fieldname: "free", fieldtype: "Check" }),
     ]);
-    expect(row).toEqual({ qty: 0, rate: 0, discount: 0, weight: 0, free: false });
+    expect(row).toEqual({ qty: 0, rate: 0, discount: 0, weight: 0, free: 0 });
     expect(row.qty * row.rate).toBe(0);
   });
 
