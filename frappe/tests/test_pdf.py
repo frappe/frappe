@@ -189,6 +189,19 @@ class TestPdf(IntegrationTestCase):
 			self.assertIn("TOP", text)
 			self.assertIn(f"Page {number} of {len(pages)}", text)
 
+	def test_footer_is_measured_at_the_width_it_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		block = '<span style="display: inline-block; width: 380px; height: 40px"></span>'
+		footer = (
+			f'<div id="footer-html">{block}{block}'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		pages = PdfReader(io.BytesIO(pdfgen.get_pdf("<p>row</p>" * 120 + footer))).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
+
 	def test_header_is_measured_after_its_image_loads(self):
 		import threading
 		import time
@@ -457,13 +470,15 @@ class TestChromePdfGeometry(IntegrationTestCase):
 		browser.print_format = None
 		browser.options = options
 		browser.soup = BeautifulSoup("<html><head></head><body></body></html>", "html5lib")
+
+		def page(height):
+			return SimpleNamespace(
+				options={}, set_device_metrics=lambda width: None, get_element_height=lambda: height
+			)
+
 		browser.body_page = SimpleNamespace(options={})
-		browser.header_page = SimpleNamespace(options={}) if header_height is not None else None
-		browser.footer_page = SimpleNamespace(options={}) if footer_height is not None else None
-		if header_height is not None:
-			browser.header_height = header_height
-		if footer_height is not None:
-			browser.footer_height = footer_height
+		browser.header_page = page(header_height) if header_height is not None else None
+		browser.footer_page = page(footer_height) if footer_height is not None else None
 		return browser
 
 	def test_custom_page_size_converted_from_mm(self):
