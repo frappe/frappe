@@ -1090,8 +1090,8 @@ class TypstEmitter:
 		name = None
 		if data is not None:
 			kind = filetype.image_match(data)
-			if kind and kind.extension in ("png", "jpg", "gif", "webp"):
-				name = self._asset(kind.extension, data)
+			if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
+				name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
 			elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
 				name = self._asset("svg", data)
 		self._embedded[src] = name
