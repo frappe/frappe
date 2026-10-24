@@ -1,3 +1,30 @@
+const PAPER_SIZES = {
+	a3: [297, 420],
+	a4: [210, 297],
+	a5: [148, 210],
+	a6: [105, 148],
+	b4: [250, 353],
+	b5: [176, 250],
+	executive: [184.15, 266.7],
+	ledger: [279.4, 431.8],
+	legal: [215.9, 355.6],
+	letter: [215.9, 279.4],
+	tabloid: [279.4, 431.8],
+};
+
+const FOOTER_STYLE = `<style>
+	@media print {
+		.print-format:has(> #footer-html) {
+			display: flex;
+			flex-direction: column;
+			min-height: 100vh;
+		}
+		#footer-html {
+			margin-top: auto;
+		}
+	}
+</style>`;
+
 const PREVIEW_STYLE = `<style>
 	@media screen {
 		:root {
@@ -13,15 +40,8 @@ const PREVIEW_STYLE = `<style>
 			padding: calc(var(--spacing) * 8);
 		}
 		.print-format {
-			width: 8.27in;
-			max-width: none;
-			min-height: 11.69in;
 			border-radius: var(--radius-sm);
 			box-shadow: var(--shadow-md);
-		}
-		.print-format.landscape {
-			width: 11.69in;
-			min-height: 8.27in;
 		}
 	}
 </style>`;
@@ -234,9 +254,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			print_format,
 			orientation: this.orientation_set_by_user
 				? this.orientation_field.get_value()
-				: this.report.columns.length > 10
-				? "Landscape"
-				: "Portrait",
+				: "Landscape",
 			with_letter_head: letter_head ? 1 : 0,
 			letter_head_name: letter_head || null,
 			letter_head: letter_head ? frappe.boot.letter_heads?.[letter_head] : null,
@@ -257,12 +275,13 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		if (count !== this.render_count) return;
 		if (!out) return this.$preview.removeClass("is-rendering");
 
-		const { paper, orientation } = this.get_page_size(out.html);
-		if (orientation && !this.orientation_set_by_user) {
-			print_settings.orientation = frappe.utils.to_title_case(orientation);
+		const page_size = this.get_page_size(out.html);
+		if (page_size.orientation && !this.orientation_set_by_user) {
+			print_settings.orientation = page_size.orientation;
 		}
 		this.orientation_field.set_input(print_settings.orientation);
-		const size = `${paper} ${print_settings.orientation.toLowerCase()}`;
+		const size = this.get_size_for(page_size, print_settings.orientation);
+		const [width, height] = this.get_paper(page_size, print_settings);
 		this.print_settings = print_settings;
 		this.html = out.html.replace("</body>", `<style>@page { size: ${size}; }</style></body>`);
 		this.include_filters_field.toggle(out.format.type !== "jinja");
@@ -271,17 +290,66 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			!print_settings.print_format && !!this.pick_columns_field.get_value()
 		);
 		this.$iframe.off("load").on("load", () => this.on_preview_load());
-		this.$iframe.prop("srcdoc", this.html.replace("</head>", `${PREVIEW_STYLE}</head>`));
+		this.$iframe.prop(
+			"srcdoc",
+			this.html.replace(
+				"</head>",
+				`${PREVIEW_STYLE}<style>@media screen { .print-format, .print-format.landscape { width: ${width}; max-width: none; min-height: ${height}; } }</style></head>`
+			)
+		);
 	}
 
 	get_page_size(html) {
-		const size = html.match(/@page\s*\{[^}]*\bsize\s*:\s*([^;}]+)/i)?.[1] || "";
-		const tokens = size.trim().toLowerCase().split(/\s+/);
-		const orientation = tokens.find((token) => ["portrait", "landscape"].includes(token));
-		const paper = tokens.find(
-			(token) => /^[a-z]/.test(token) && token !== orientation && token !== "auto"
-		);
-		return { paper: paper || "", orientation };
+		const value = html.match(/@page\s*\{[^}]*\bsize\s*:\s*([^;}]+)/i)?.[1] || "";
+		const tokens = value.trim().toLowerCase().split(/\s+/).filter(Boolean);
+		const keyword = tokens.find((token) => token === "portrait" || token === "landscape");
+		const lengths = tokens.filter((token) => /^[\d.]+[a-z]+$/.test(token));
+		const [width, height] = lengths.map(parseFloat);
+		const orientation =
+			keyword || (lengths.length === 2 && (width > height ? "landscape" : "portrait"));
+		return {
+			orientation: orientation && frappe.utils.to_title_case(orientation),
+			name: tokens.find(
+				(token) => /^[a-z]/.test(token) && token !== keyword && token !== "auto"
+			),
+			lengths,
+		};
+	}
+
+	get_size_for(page_size, orientation) {
+		const { name, lengths } = page_size;
+		if (lengths.length !== 2)
+			return [name, orientation.toLowerCase()].filter(Boolean).join(" ");
+
+		const [width, height] = lengths;
+		const is_landscape = parseFloat(width) > parseFloat(height);
+		return is_landscape === (orientation === "Landscape")
+			? `${width} ${height}`
+			: `${height} ${width}`;
+	}
+
+	get_paper(page_size, print_settings) {
+		let [width, height] = page_size.lengths;
+		if (!height) {
+			const custom = !page_size.name && print_settings.pdf_page_size === "Custom";
+			const name = page_size.name || (print_settings.pdf_page_size || "a4").toLowerCase();
+			const mm =
+				custom && print_settings.pdf_page_width && print_settings.pdf_page_height
+					? [print_settings.pdf_page_width, print_settings.pdf_page_height]
+					: PAPER_SIZES[name] || PAPER_SIZES.a4;
+			[width, height] = mm.map((value) => `${value}mm`);
+		}
+		const is_landscape = parseFloat(width) > parseFloat(height);
+		return is_landscape === (print_settings.orientation === "Landscape")
+			? [width, height]
+			: [height, width];
+	}
+
+	show_footer(doc) {
+		const footer = doc.getElementById("footer-html");
+		if (!footer) return;
+		footer.classList.remove("visible-pdf");
+		doc.head.insertAdjacentHTML("beforeend", FOOTER_STYLE);
 	}
 
 	on_preview_load() {
@@ -290,6 +358,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		if (!doc?.body) return;
 		const landscape = this.print_settings.orientation === "Landscape";
 		doc.querySelector(".print-format")?.classList.toggle("landscape", landscape);
+		this.show_footer(doc);
 		this.$preview.removeClass("is-rendering");
 		this.preview_bar.attach(frame, { fit: true });
 		doc.addEventListener("keydown", (e) => {
@@ -326,7 +395,9 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		if (!this.html) return;
 		const win = window.open();
 		if (!win) return frappe.msgprint(__("Please enable pop-ups in your browser"));
+		this.report.make_access_log("Print", "HTML");
 		win.document.write(this.html);
+		this.show_footer(win.document);
 		win.document.close();
 	}
 
