@@ -370,6 +370,10 @@ class TestAuth(IntegrationTestCase):
 			self.assertEqual(home_page_after_login(), "/desk/users")
 
 			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", None)
+			with self.patch_hooks({"role_home_page": {"System Manager": ["orders"]}}):
+				self.assertEqual(home_page_after_login(), "orders")
+
 			frappe.db.set_value("Role", "System Manager", "home_page", "todo")
 			self.assertEqual(home_page_after_login(), "todo")
 

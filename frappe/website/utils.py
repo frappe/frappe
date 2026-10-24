@@ -158,12 +158,7 @@ def get_home_page_via_hooks():
 		home_page = frappe.get_hooks("website_user_home_page")[-1]
 
 	if not home_page:
-		role_home_page = frappe.get_hooks("role_home_page")
-		if role_home_page:
-			for role in frappe.get_roles():
-				if role in role_home_page:
-					home_page = role_home_page[role][-1]
-					break
+		home_page = get_role_home_page_via_hooks()
 
 	if not home_page:
 		home_page = frappe.get_hooks("home_page")
@@ -174,6 +169,14 @@ def get_home_page_via_hooks():
 		home_page = home_page.strip("/")
 
 	return home_page
+
+
+def get_role_home_page_via_hooks():
+	role_home_page = frappe.get_hooks("role_home_page")
+	if role_home_page:
+		for role in frappe.get_roles():
+			if role in role_home_page:
+				return role_home_page[role][-1]
 
 
 def get_boot_data():
