@@ -13,11 +13,7 @@ export interface TableMultiSelectProps extends InputLabelingProps {
   filters?: Record<string, unknown>;
   placeholder?: string;
   disabled?: boolean;
-  /**
-   * Show a Create action in the footer. The control does **not** create anything
-   * itself — it emits `create` and closes, and the host wires the behaviour,
-   * exactly like `Link`'s `creatable` + `@create`.
-   */
+  /** Show a Create action in the footer; it emits `create` and closes, and the host creates. */
   creatable?: boolean;
   /** What selected values display as until the search returns them. */
   titles?: Record<string, string>;
