@@ -43,42 +43,20 @@ export function withNameField(
 	return [{ ...first, sections: [section, ...first.sections] }, ...rest];
 }
 
-/** The query's values for the doctype's own fields and its prompt name, typed; a table's is JSON. */
-export function queryValues(query: LocationQuery, meta: DoctypeMeta): Values {
-	const values = typedQuery(query, meta.fields);
-	const name = queryText(query[NEW_NAME]);
-	if (name != null && isNamedByPrompt(meta)) values[NEW_NAME] = name;
-	return values;
-}
-
-/** The query's values for the layout's inline fields, which the meta does not type. */
-export function inlineQueryValues(
-	query: LocationQuery,
-	layout: FormLayoutSchema,
-	meta: DoctypeMeta
-): Values {
-	const own = new Set(meta.fields.map((field) => field.fieldname));
-	return typedQuery(
-		query,
-		layoutFields(layout).filter((field) => !own.has(field.fieldname))
-	);
-}
-
-function typedQuery(
-	query: LocationQuery,
-	fields: { fieldname: string; fieldtype: string }[]
-): Values {
+/** The query's values for the doctype's and the layout's fields and the prompt name, typed; a table's is JSON. */
+export function queryValues(query: LocationQuery, meta: DoctypeMeta, layout: FormLayoutSchema = []): Values {
+	const fields = new Map<string, string>(meta.fields.map((field) => [field.fieldname, field.fieldtype]));
+	for (const field of layoutFields(layout)) fields.set(field.fieldname, field.fieldtype);
 	const values: Values = {};
-	for (const { fieldname, fieldtype } of fields) {
-		const text = queryText(query[fieldname]);
-		const value = text == null ? undefined : typed(text, fieldtype);
-		if (value !== undefined) values[fieldname] = value;
+	for (const [key, given] of Object.entries(query)) {
+		const text = Array.isArray(given) ? given[0] : given;
+		if (text == null) continue;
+		const fieldtype = fields.get(key);
+		const value = fieldtype ? typed(text, fieldtype) : undefined;
+		if (value !== undefined) values[key] = value;
+		else if (key === NEW_NAME && isNamedByPrompt(meta)) values[key] = text;
 	}
 	return values;
-}
-
-function queryText(given: LocationQuery[string] | undefined): string | null | undefined {
-	return Array.isArray(given) ? given[0] : given;
 }
 
 /** Undefined for a value the field cannot hold, so the server default stays. */

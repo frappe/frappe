@@ -110,8 +110,10 @@ def quick_entry_fields(tabs: list) -> list:
 	]
 
 
-def column_of(fields: list) -> list:
-	return [{"name": "main", "columns": [{"fields": fields}]}]
+def inline_layout(fields: list, type: str = "Quick Entry"):
+	"""A Contact layout of one section holding `fields`."""
+	tree = [{"name": "main", "columns": [{"fields": fields}]}]
+	return make_layout(dt="Contact", type=type, layout=json.dumps(tree))
 
 
 def published_doctypes(publish) -> list[str]:
@@ -272,43 +274,53 @@ class TestFormLayout(IntegrationTestCase):
 		fields = result["layouts"][0]["layout"][0]["sections"][0]["columns"][0]["fields"]
 		self.assertEqual(fields, ["title"])
 
-	def test_inline_fields_come_back_as_authored(self):
+	def test_an_inline_field_may_replace_a_read_only_field(self):
 		email = {"fieldname": "email_id", "label": "Email", "fieldtype": "Data", "options": "Email"}
-		make_layout(
-			dt="Contact", type="Quick Entry", layout=json.dumps(column_of(["first_name", email]))
-		).insert()
+		inline_layout(["first_name", email]).insert()
 		section = get_form_layouts("Contact", "Quick Entry")["layouts"][0]["layout"][0]["sections"][0]
 		self.assertEqual(section["columns"][0]["fields"], ["first_name", email])
-
-	def test_an_inline_field_may_replace_a_read_only_field(self):
-		phone = {"fieldname": "phone", "fieldtype": "Data", "options": "Phone"}
-		make_layout(dt="Contact", type="New Record", layout=json.dumps(column_of([phone]))).insert()
 
 	def test_refuses_an_inline_field_outside_a_create_layout(self):
 		phone = {"fieldname": "phone", "fieldtype": "Data"}
 		for type in ("Details", "Side Panel"):
-			layout = make_layout(dt="Contact", type=type, layout=json.dumps(column_of([phone])))
-			self.assertRaises(frappe.ValidationError, layout.insert)
+			with self.assertRaisesRegex(frappe.ValidationError, "Only a Quick Entry or New Record layout"):
+				inline_layout([phone], type=type).insert()
 
 	def test_refuses_an_inline_field_without_a_name_or_type(self):
 		for field in (
 			{"fieldtype": "Data"},
 			{"fieldname": "nickname"},
 			{"fieldname": "", "fieldtype": "Data"},
+			{"fieldname": ["!=", ""], "fieldtype": "Data"},
 		):
-			layout = make_layout(dt="Contact", type="Quick Entry", layout=json.dumps(column_of([field])))
-			self.assertRaises(frappe.ValidationError, layout.insert)
+			with self.assertRaisesRegex(frappe.ValidationError, "needs a fieldname and a fieldtype"):
+				inline_layout([field]).insert()
+
+	def test_refuses_an_inline_field_that_holds_no_single_value(self):
+		for fieldtype in ("Section Break", "Table", "Button", "Unknown"):
+			with self.assertRaisesRegex(frappe.ValidationError, "which a layout cannot define"):
+				inline_layout([{"fieldname": "nickname", "fieldtype": fieldtype}]).insert()
+
+	def test_refuses_an_inline_standard_field(self):
+		for fieldname in ("name", "owner", "docstatus", "parent", "_assign"):
+			with self.assertRaisesRegex(frappe.ValidationError, "standard field of every document"):
+				inline_layout([{"fieldname": fieldname, "fieldtype": "Data"}]).insert()
 
 	def test_refuses_an_inline_field_named_like_a_writable_field(self):
-		first_name = {"fieldname": "first_name", "fieldtype": "Data"}
-		layout = make_layout(dt="Contact", type="Quick Entry", layout=json.dumps(column_of([first_name])))
-		self.assertRaises(frappe.ValidationError, layout.insert)
+		with self.assertRaisesRegex(frappe.ValidationError, "is already a field of Contact"):
+			inline_layout([{"fieldname": "first_name", "fieldtype": "Data"}]).insert()
+
+	def test_refuses_an_inline_field_placed_twice(self):
+		email = {"fieldname": "email_id", "fieldtype": "Data"}
+		for fields in ([email, email], ["email_id", email]):
+			with self.assertRaisesRegex(frappe.ValidationError, "more than once"):
+				inline_layout(fields).insert()
 
 	def test_refuses_a_section_named_like_an_inline_field(self):
 		nickname = {"fieldname": "nickname", "fieldtype": "Data"}
 		tree = [{"name": "nickname", "columns": [{"fields": [nickname]}]}]
 		layout = make_layout(dt="Contact", type="Quick Entry", layout=json.dumps(tree))
-		self.assertRaises(frappe.ValidationError, layout.insert)
+		self.assertRaisesRegex(frappe.ValidationError, "has the name of a field", layout.insert)
 
 	def test_a_save_announces_its_doctype(self):
 		with set_user(a_manager()), patch("frappe.publish_realtime") as publish:

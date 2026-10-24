@@ -96,6 +96,15 @@ describe("joinLayout — inline fields", () => {
 		expect(field.readOnly).toBeFalsy();
 	});
 
+	it("gates a replacement by the permlevel of the field it replaces", () => {
+		const fieldsWithLevel = [...fields, { fieldname: "phone", fieldtype: "Data", read_only: 1, permlevel: 1 }];
+		const phone = { fieldname: "phone", fieldtype: "Data", permlevel: 0 };
+		const [tab] = joinLayout(treeWith([phone]), fieldsWithLevel, {
+			fieldAccess: (field) => (field.permlevel === 1 ? "read" : "write"),
+		});
+		expect(tab.sections[0].columns[0].fields[0].readOnly).toBe(true);
+	});
+
 	it("gates an inline field by its permlevel", () => {
 		const secret = { fieldname: "pin", fieldtype: "Data", permlevel: 1 };
 		const [tab] = joinLayout(treeWith([secret]), fields, { fieldAccess: () => "none" });

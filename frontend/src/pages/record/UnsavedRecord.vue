@@ -97,7 +97,6 @@ import type { Boot } from "@/boot";
 import {
 	fetchNewDocument,
 	fieldDefaults,
-	inlineQueryValues,
 	insertBody,
 	queryValues,
 	withNameField,
@@ -219,7 +218,7 @@ async function open() {
 	const created = buildController();
 	await layout.settled();
 	if (!opening.current()) return;
-	doc.value = { ...doc.value, ...inlineQueryValues(props.query, detailsForm.value, meta.value) };
+	doc.value = { ...doc.value, ...queryValues(props.query, meta.value, detailsForm.value) };
 	await created.refresh();
 	if (!opening.current()) return;
 	opened.value = JSON.stringify(doc.value);

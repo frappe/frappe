@@ -389,6 +389,34 @@ describe("Edit full form", () => {
 	});
 });
 
+describe("inline fields", () => {
+	beforeEach(() => {
+		(server.meta.fields as unknown[]).push({ fieldname: "email_id", fieldtype: "Data", label: "Email", read_only: 1 });
+		const fields = ["title", { fieldname: "email_id", fieldtype: "Data", label: "Email" }, { fieldname: "nickname", fieldtype: "Data" }];
+		server.layouts = { ...server.layouts, layouts: [{ name: "row", layout: [{ sections: [{ columns: [{ fields }] }] }] }] };
+	});
+
+	it("posts a typed inline value under its own name", async () => {
+		const { root } = await open("Lead");
+
+		await type(root, "title", "Big deal");
+		await type(root, "email_id", "deal@example.com");
+		await type(root, "nickname", "BD");
+		await click(root, "Save");
+
+		expect(inserts()[0].body).toEqual({ title: "Big deal", email_id: "deal@example.com", nickname: "BD" });
+	});
+
+	it("carries a typed inline value to the full-page new record", async () => {
+		const { root } = await open("Lead");
+
+		await type(root, "nickname", "BD");
+		await click(root, "Edit full form");
+
+		expect(router.currentRoute.value.query).toEqual({ nickname: "BD" });
+	});
+});
+
 describe("defaults", () => {
 	it("fill the empty fields when they arrive, and leave what the person typed", async () => {
 		let answerDefaults!: () => void;

@@ -8,7 +8,6 @@ import { layoutFromFields } from "@/recordPage/formDialogLayout";
 import {
 	fieldDefaults,
 	fillEmpty,
-	inlineQueryValues,
 	insertBody,
 	queryValues,
 	typedValues,
@@ -186,10 +185,13 @@ describe("queryValues", () => {
 	});
 });
 
-describe("inlineQueryValues", () => {
+describe("queryValues with the layout", () => {
 	const meta = {
 		name: "Customer",
-		fields: [{ fieldname: "customer_name", fieldtype: "Data" }],
+		fields: [
+			{ fieldname: "customer_name", fieldtype: "Data" },
+			{ fieldname: "credit_days", fieldtype: "Data", read_only: 1 },
+		],
 	} as unknown as DoctypeMeta;
 	const layout = layoutFromFields([
 		{ fieldname: "customer_name", fieldtype: "Data" },
@@ -197,9 +199,10 @@ describe("inlineQueryValues", () => {
 		{ fieldname: "credit_days", fieldtype: "Int" },
 	]);
 
-	it("keeps the layout's inline fields, typed, and leaves the doctype's own to queryValues", () => {
+	it("keeps the layout's inline fields, typed by the layout over the meta", () => {
 		const query = { customer_name: "Acme", address_line1: "1 Main St", credit_days: "30", owner: "intruder" };
 
-		expect(inlineQueryValues(query, layout, meta)).toEqual({ address_line1: "1 Main St", credit_days: 30 });
+		expect(queryValues(query, meta, layout)).toEqual({ customer_name: "Acme", address_line1: "1 Main St", credit_days: 30 });
+		expect(queryValues(query, meta)).toEqual({ customer_name: "Acme", credit_days: "30" });
 	});
 });

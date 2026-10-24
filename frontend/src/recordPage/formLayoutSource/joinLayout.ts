@@ -82,7 +82,7 @@ function joinField(
 	byName: Map<string, RawMetaField>,
 	options: JoinLayoutOptions
 ): FieldNode[] {
-	const raw = typeof entry === "string" ? byName.get(entry) : entry;
+	const raw = typeof entry === "string" ? byName.get(entry) : inlineField(entry, byName);
 	if (!raw || LAYOUT_BREAKS.has(raw.fieldtype)) return [];
 	const node = mapField(
 		withAccess(raw, options.fieldAccess),
@@ -90,4 +90,10 @@ function joinField(
 		options.decorate
 	);
 	return [applyFieldPatch(node, options.overrides?.[raw.fieldname])];
+}
+
+/** An inline field that replaces a meta field keeps its permlevel, which the insert enforces. */
+function inlineField(field: InlineField, byName: Map<string, RawMetaField>): RawMetaField {
+	const replaced = byName.get(field.fieldname);
+	return replaced ? { ...field, permlevel: replaced.permlevel } : field;
 }
