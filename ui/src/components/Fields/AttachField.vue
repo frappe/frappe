@@ -31,29 +31,27 @@
 				<!-- For images the thumbnail doubles as a hover-zoom target: hovering
 				     floats a larger preview above the field (passive, delayed so a
 				     pass-through across fields doesn't flash); the click still
-				     previews. reka-ui flips the popover below on collision. -->
-				<Popover
+				     previews. reka-ui flips the card below on collision. -->
+				<HoverCard
 					v-else-if="imageOnly && modelValue"
-					trigger="hover"
-					placement="top-start"
-					:hoverDelay="0.4"
-					:leaveDelay="0.1"
+					side="top"
+					align="start"
+					:hoverDelay="400"
+					:leaveDelay="100"
 				>
-					<template #target>
+					<template #trigger>
 						<img
 							:src="modelValue"
 							alt=""
 							class="size-4 shrink-0 rounded-4 object-cover"
 						/>
 					</template>
-					<template #body-main>
-						<img
-							:src="modelValue"
-							alt=""
-							class="max-h-64 max-w-72 rounded-5 object-contain p-1"
-						/>
-					</template>
-				</Popover>
+					<img
+						:src="modelValue"
+						alt=""
+						class="max-h-64 max-w-72 rounded-5 object-contain p-1"
+					/>
+				</HoverCard>
 				<span
 					v-else
 					class="pointer-events-none size-3.5 shrink-0"
@@ -117,7 +115,7 @@
 // commit semantics (emit both `update:modelValue` and `change`). The dialog is
 // lazily mounted so the uploader/cropper load only when attaching.
 import { computed, defineAsyncComponent, ref, watch } from "vue";
-import { Popover, TextInput } from "frappe-ui";
+import { HoverCard, TextInput } from "frappe-ui";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { Restrictions, UploadResult, UploadTransport } from "../FileUpload/types";
 
