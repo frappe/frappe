@@ -28,7 +28,7 @@ from frappe.twofactor import (
 )
 from frappe.utils import cint, date_diff, datetime, today
 from frappe.utils.password import check_password, get_decrypted_password, validate_password_size
-from frappe.website.utils import get_home_page
+from frappe.website.utils import get_home_page, get_role_home_page
 
 SAFE_HTTP_METHODS = frozenset(("GET", "HEAD", "OPTIONS", "QUERY"))
 UNSAFE_HTTP_METHODS = frozenset(("POST", "PUT", "DELETE", "PATCH"))
@@ -217,10 +217,12 @@ class LoginManager:
 			frappe.local.cookie_manager.set_cookie("system_user", "yes", deduplicate=True)
 			if not resume:
 				frappe.local.response["message"] = "Logged In"
-				home_page = get_home_page() or "/desk"
-				if home_page == "desk" and get_default_app():
-					home_page = get_default_path() or home_page
-				frappe.local.response["home_page"] = home_page
+				home_page = None
+				if get_default_app() and not (
+					get_role_home_page() or frappe.get_user().load_user_default_workspace()
+				):
+					home_page = get_default_path()
+				frappe.local.response["home_page"] = home_page or get_home_page() or "/desk"
 
 		if not resume:
 			frappe.response["full_name"] = self.full_name
