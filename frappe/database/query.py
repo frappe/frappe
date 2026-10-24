@@ -221,8 +221,8 @@ FUNCTION_MAPPING = {
 	"MONTH": Month,
 	"YEAR": Year,
 	"DATE": functions.Date,
-	"VALUEWRAPPER": ValueWrapper,
 	"TIME": CustomFunction("TIME", ["time"]),
+	"VALUEWRAPPER": ValueWrapper,
 }
 
 # Functions that accept '*' as an argument (e.g., COUNT(*))
