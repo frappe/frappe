@@ -1,31 +1,24 @@
 <template>
 	<PageHeader :icon="info.icon" :title="spec.label">
 		<template v-if="canCreate" #actions>
-			<button
-				v-if="layout.narrow"
-				class="flow-icon-btn"
-				:title="`New ${spec.singular}`"
-				@click="create"
-			>
-				<FeatherIcon name="plus" class="h-4 w-4" />
-			</button>
 			<Button
-				v-else
+				v-if="layout.narrow"
 				variant="solid"
-				icon-left="plus"
-				:label="`New ${spec.singular}`"
+				icon="lucide-plus"
+				:title="newLabel"
 				@click="create"
 			/>
+			<Button v-else variant="solid" icon-left="plus" :label="newLabel" @click="create" />
 		</template>
 	</PageHeader>
 	<!-- the search and a menu per filter, once the list has loaded with something in it -->
-	<div v-if="loaded && !empty" class="flex flex-wrap items-center gap-2 px-5 py-3">
+	<div v-if="loaded && !empty" class="flex flex-wrap items-center gap-2 px-5 py-3 md:pb-4">
 		<FormControl
 			v-model="query"
 			type="text"
 			variant="subtle"
 			:placeholder="`Search ${spec.label.toLowerCase()}`"
-			class="w-64 max-md:w-full"
+			class="w-64 max-md:w-full [&_input]:text-sm"
 		>
 			<template #prefix>
 				<span class="lucide-search size-4 text-ink-gray-5" aria-hidden="true" />
@@ -73,7 +66,7 @@
 				v-if="canCreate"
 				class="mt-4"
 				icon-left="plus"
-				:label="`New ${spec.singular}`"
+				:label="newLabel"
 				@click="create"
 			/>
 		</div>
@@ -140,7 +133,6 @@ import { computed, h, inject, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { Badge, Button, ErrorMessage, FormControl } from "frappe-ui";
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { layout } from "@flow/ui-core/layout.js";
 
@@ -160,6 +152,9 @@ const route = useRoute();
 const router = useRouter();
 
 const canCreate = computed(() => page.can(props.spec.doctype, "create"));
+const newLabel = computed(
+	() => `New ${props.spec.singular[0].toUpperCase()}${props.spec.singular.slice(1)}`
+);
 const filters = computed(() => [STATUS_FILTER, ...props.info.filters(page.state.boot)]);
 const chosen = computed(() =>
 	Object.fromEntries(
