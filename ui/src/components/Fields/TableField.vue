@@ -462,7 +462,7 @@ function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
 	content: attr(data-preview) / "";
 	position: absolute;
 	inset: 0;
-	padding: 0 0.5rem;
+	@apply px-2;
 	line-height: 34px;
 	overflow: hidden;
 	white-space: nowrap;
