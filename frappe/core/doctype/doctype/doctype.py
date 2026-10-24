@@ -1797,6 +1797,30 @@ def validate_fields(meta: Meta):
 		if getattr(docfield, "max_height", None) and (docfield.max_height[-2:] not in ("px", "em")):
 			frappe.throw(f"Max for {frappe.bold(docfield.fieldname)} height must be in px, em, rem")
 
+	def check_vue_component_options(docfield):
+		if (
+			docfield.fieldtype != "Vue Component"
+			or frappe.flags.in_patch
+			or frappe.flags.in_fixtures
+			or frappe.flags.in_install
+		):
+			return
+
+		from frappe.utils.island import get_ui_islands
+
+		if not docfield.options:
+			frappe.throw(
+				_("Options required for Vue Component field {0}").format(
+					frappe.bold(docfield.label or docfield.fieldname)
+				),
+				title=_("Missing Island"),
+			)
+		if docfield.options not in get_ui_islands():
+			frappe.throw(
+				_('Island "{0}" is not on this site.').format(docfield.options),
+				title=_("Missing Island"),
+			)
+
 	def check_no_of_ratings(docfield):
 		if docfield.fieldtype == "Rating":
 			if docfield.options and (int(docfield.options) > 10 or int(docfield.options) < 3):
@@ -1879,6 +1903,7 @@ def validate_fields(meta: Meta):
 			check_child_table_option(d)
 			check_max_height(d)
 			check_no_of_ratings(d)
+			check_vue_component_options(d)
 
 	if not frappe.flags.in_migrate or in_ci:
 		check_fold(fields)

@@ -796,6 +796,24 @@ class TestDocType(IntegrationTestCase):
 
 		self.assertRaises(frappe.ValidationError, doctype.insert)
 
+	def test_vue_component_options_must_name_an_island_on_this_site(self):
+		def new_vue_component_doctype(island):
+			return new_doctype(
+				fields=[
+					{
+						"label": "Summary",
+						"fieldname": "summary",
+						"fieldtype": "Vue Component",
+						"options": island,
+					}
+				]
+			)
+
+		with patch("frappe.utils.island.get_ui_islands", return_value=["frappe.summary"]):
+			self.assertRaises(frappe.ValidationError, new_vue_component_doctype("frappe.missing").insert)
+			self.assertRaises(frappe.ValidationError, new_vue_component_doctype("").insert)
+			new_vue_component_doctype("frappe.summary").insert()
+
 	def test_missing_link_filters_field_is_allowed(self):
 		doctype = new_doctype()
 		doctype.fields[0].__dict__.pop("link_filters", None)

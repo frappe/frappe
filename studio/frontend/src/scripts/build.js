@@ -18,6 +18,7 @@ import { fileURLToPath } from "node:url"
 import { parseArgs } from "node:util"
 import frappeui from "frappe-ui/vite"
 import frameworkui from "@framework/ui/vite"
+import { islandConfig, islandContext } from "@framework/ui/vite/island"
 import sharedDependencyResolver from "../../vite/sharedDependencyResolver.js"
 import studioRootAlias from "../../vite/studioRootAlias.js"
 import frameworkUIAlias from "../../vite/frameworkUIAlias.js"
@@ -80,6 +81,8 @@ const { values: argv } = parseArgs({
 		icons: { type: "string" },
 		"app-folder": { type: "string" },
 		"tailwind-content": { type: "string", multiple: true },
+		"island-name": { type: "string" },
+		"island-components-file": { type: "string" },
 	},
 	strict: false,
 })
@@ -89,18 +92,32 @@ if (!argv.app) {
 	process.exit(1)
 }
 
-await generateAppBuild(
-	argv.app,
-	argv.components,
-	argv["out-dir"],
-	argv.base,
-	argv["custom-components"],
-	argv["page-scripts"],
-	argv.icons,
-	argv["router-file"],
-	argv["app-folder"],
-	argv["tailwind-content"],
-)
+if (argv["island-name"]) {
+	await generateComponentIsland(
+		argv["island-name"],
+		argv.app,
+		argv.components,
+		argv["custom-components"],
+		argv["island-components-file"],
+		argv["out-dir"],
+		argv.base,
+		argv.icons,
+		argv["tailwind-content"],
+	)
+} else {
+	await generateAppBuild(
+		argv.app,
+		argv.components,
+		argv["out-dir"],
+		argv.base,
+		argv["custom-components"],
+		argv["page-scripts"],
+		argv.icons,
+		argv["router-file"],
+		argv["app-folder"],
+		argv["tailwind-content"],
+	)
+}
 
 export async function generateAppBuild(
 	appName,
@@ -126,6 +143,27 @@ export async function generateAppBuild(
 	const iconList = icons ? icons.split(",") : []
 	await buildWithVite(appName, tempRendererPath, outDir, base, iconList, appFolder, tailwindContent)
 	deleteRendererFile(tempRendererPath)
+}
+
+export async function generateComponentIsland(
+	islandName,
+	componentId,
+	components,
+	customComponentsJson,
+	componentDocsFile,
+	outDir,
+	base,
+	icons,
+	tailwindContent = [],
+) {
+	const componentList = components ? components.split(",") : []
+	const customComponents = customComponentsJson ? JSON.parse(customComponentsJson) : {}
+	const componentSources = findComponentSources(componentList, customComponents)
+	const islandContent = getIslandContent(componentSources, componentId, componentDocsFile)
+	const entryFilePath = writeRendererFile(`island-${componentId}`, islandContent)
+	const iconList = icons ? icons.split(",") : []
+	await buildIslandWithVite(islandName, entryFilePath, outDir, base, iconList, tailwindContent)
+	deleteRendererFile(entryFilePath)
 }
 
 function findComponentSources(appComponents, customComponents = {}) {
@@ -172,6 +210,80 @@ function findComponentSources(appComponents, customComponents = {}) {
 }
 
 function getRendererContent(componentSources, pageScripts = [], routerFile = null) {
+	const { imports, registrations } = getComponentImports(componentSources)
+
+	// Per-page setup() modules keyed by page docname (code mode). The import() literals make
+	// Rollup chunk each page script (and the modules it imports); codeStore loads them on
+	// navigation.
+	const pageScriptImport = pageScripts.length
+		? `import { setPageScriptImporters } from "@/data/studioPageScripts"`
+		: ""
+	const pageScriptSetup = pageScripts.length
+		? `setPageScriptImporters({
+${pageScripts
+	.map((p) => `	${JSON.stringify(p.page_name)}: () => import(${JSON.stringify(p.file_path)}),`)
+	.join("\n")}
+})`
+		: ""
+
+	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
+	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
+	const routerConfig = routerFile ? "routerConfig" : ""
+
+	const rendererContent = `import "@/index.css"
+import { createApp, defineAsyncComponent } from "vue"
+import { createPinia } from "pinia"
+import "@/setupFrappeUIResource"
+import { createAppRouter } from "@/router/app_router"
+import ErrorPage from "@/pages/ErrorPage.vue"
+import AppRenderer from "@/AppRenderer.vue"
+import { resourcesPlugin } from "frappe-ui"
+import { initSocket } from "@/socket"
+${routerImport}
+
+${imports}
+${pageScriptImport}
+
+const app = createApp(AppRenderer)
+const pinia = createPinia()
+
+app.use(pinia)
+app.use(resourcesPlugin)
+app.provide("socket", initSocket())
+
+${registrations}
+window.__APP_COMPONENTS__ = app._context.components
+
+${pageScriptSetup}
+
+createAppRouter(${routerConfig})
+	.then((router) => app.use(router).mount("#app"))
+	.catch((error) => {
+		console.error(error)
+		createApp(ErrorPage, { error }).mount("#app")
+	})`
+	return rendererContent
+}
+
+function getIslandContent(componentSources, componentId, componentDocsFile) {
+	const { imports, registrations } = getComponentImports(componentSources)
+
+	return `import { defineAsyncComponent } from "vue"
+import { mountStudioComponent } from "@/island/mountStudioComponent"
+import componentDocs from ${JSON.stringify(componentDocsFile)}
+${imports}
+
+export const mount = (el, context) =>
+	mountStudioComponent(el, context, {
+		componentId: ${JSON.stringify(componentId)},
+		componentDocs,
+		registerComponents(app) {
+${registrations}
+		},
+	})`
+}
+
+function getComponentImports(componentSources) {
 	const {
 		frappeUIComponents,
 		frappeUIMolecules,
@@ -212,62 +324,15 @@ function getRendererContent(componentSources, pageScripts = [], routerFile = nul
 		...customComponentNames.map((comp) => `app.component("${comp}", ${comp})`),
 	].join("\n")
 
-	// Per-page setup() modules keyed by page docname (code mode). The import() literals make
-	// Rollup chunk each page script (and the modules it imports); codeStore loads them on
-	// navigation.
-	const pageScriptImport = pageScripts.length
-		? `import { setPageScriptImporters } from "@/data/studioPageScripts"`
-		: ""
-	const pageScriptSetup = pageScripts.length
-		? `setPageScriptImporters({
-${pageScripts
-	.map((p) => `	${JSON.stringify(p.page_name)}: () => import(${JSON.stringify(p.file_path)}),`)
-	.join("\n")}
-})`
-		: ""
-
-	// A standard app's studio/<app>/router.ts is compiled in; a custom app's router script is served with the page.
-	const routerImport = routerFile ? `import routerConfig from ${JSON.stringify(routerFile)}` : ""
-	const routerConfig = routerFile ? "routerConfig" : ""
-
-	const rendererContent = `import "@/index.css"
-import { createApp, defineAsyncComponent } from "vue"
-import { createPinia } from "pinia"
-import "@/setupFrappeUIResource"
-import { createAppRouter } from "@/router/app_router"
-import ErrorPage from "@/pages/ErrorPage.vue"
-import AppRenderer from "@/AppRenderer.vue"
-import { resourcesPlugin } from "frappe-ui"
-import { initSocket } from "@/socket"
-${routerImport}
-
-${frappeUIImports}
-${frappeUIMoleculeImports}
-${frappeUIExperimentalImports}
-${frameworkUIImports}
-${studioImports}
-${customImports}
-${pageScriptImport}
-
-const app = createApp(AppRenderer)
-const pinia = createPinia()
-
-app.use(pinia)
-app.use(resourcesPlugin)
-app.provide("socket", initSocket())
-
-${componentRegistrations}
-window.__APP_COMPONENTS__ = app._context.components
-
-${pageScriptSetup}
-
-createAppRouter(${routerConfig})
-	.then((router) => app.use(router).mount("#app"))
-	.catch((error) => {
-		console.error(error)
-		createApp(ErrorPage, { error }).mount("#app")
-	})`
-	return rendererContent
+	const imports = [
+		frappeUIImports,
+		frappeUIMoleculeImports,
+		frappeUIExperimentalImports,
+		frameworkUIImports,
+		studioImports,
+		customImports,
+	].join("\n")
+	return { imports, registrations: componentRegistrations }
 }
 
 // Build one `import { … } from "<source>"` line per @framework/ui source module,
@@ -370,6 +435,47 @@ async function buildWithVite(
 	})
 
 	console.log(`Vite build completed for ${appName}`)
+}
+
+async function buildIslandWithVite(islandName, entryFilePath, outDir, basePath, icons, tailwindContent) {
+	const frontendDir = path.resolve(__dirname, "../../")
+	const context = await islandContext({
+		app: "site",
+		root: frontendDir,
+		entries: { [islandName]: entryFilePath },
+		production: true,
+	})
+	const config = islandConfig({
+		...context,
+		paths: { distDir: outDir, urlPrefix: basePath.replace(/\/$/, "") },
+		tailwind: getAppTailwindConfig(null, icons, tailwindContent),
+	})
+	config.plugins = [
+		...config.plugins.filter((plugin) => plugin?.name !== "island-emit"),
+		studioRootAlias(),
+		sharedDependencyResolver(frontendDir),
+		writeIslandAssets(basePath),
+	]
+	config.resolve = {
+		alias: [...frameworkUIAlias(APPS_DIR), { find: "@", replacement: path.resolve(__dirname, "../") }],
+		dedupe: ["vue", "vue-router", "pinia", "frappe-ui"],
+	}
+
+	console.log(`Building island ${islandName} with Vite`)
+	await context.tools.vite.build(config)
+}
+
+function writeIslandAssets(basePath) {
+	return {
+		name: "studio-island-assets",
+		writeBundle(options, bundle) {
+			const files = Object.values(bundle)
+			const entry = files.find((file) => file.type === "chunk" && file.isEntry)
+			const css = files.find((file) => file.fileName.endsWith(".css"))
+			const assets = { js: basePath + entry.fileName, css: css ? basePath + css.fileName : null }
+			writeFileSync(path.join(options.dir, "island.json"), JSON.stringify(assets))
+		},
+	}
 }
 
 function getAppTailwindConfig(appFolder, appIconClasses, appTailwindContent) {

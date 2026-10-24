@@ -2,6 +2,7 @@
 # For license information, please see license.txt
 
 import os
+import re
 
 import frappe
 from frappe import _
@@ -11,6 +12,9 @@ from frappe.studio.export import delete_file, parse_json, remove_empty_values, v
 from frappe.studio.realtime import publish_doc_change
 from frappe.studio.sync_json import get_studio_folders
 from frappe.studio.utils import validate_file_name, walk_blocks
+from frappe.utils.island import SITE_ISLAND_PREFIX, remove_site_island
+
+ISLAND_COMPONENT_ID = re.compile(r"^[\w.-]+$")
 
 
 class StudioComponent(Document):
@@ -61,8 +65,32 @@ class StudioComponent(Document):
 	def on_update(self):
 		publish_doc_change("Studio Component", self.name)
 
+	@frappe.whitelist()
+	def publish(self) -> dict:
+		"""Build the component into a site island, so a Vue Component field can show it.
+		Failures are logged to an Error Log and returned as `build_error`."""
+		from frappe.studio.build import StudioComponentIslandBuilder
+
+		frappe.only_for("System Manager")
+		if not ISLAND_COMPONENT_ID.match(self.name):
+			frappe.throw(
+				_("Only letters, numbers, dots, hyphens and underscores can be in a published Component ID."),
+				title=_("Invalid Component ID"),
+			)
+		builder = StudioComponentIslandBuilder(self.name)
+		try:
+			builder.build()
+			return {"island": builder.island_name, "build_error": None}
+		except Exception as e:
+			error_log = frappe.log_error(
+				title=f"Studio component build failed: {self.name}",
+				message=getattr(e, "output", None) or frappe.get_traceback(),
+			)
+			return {"island": None, "build_error": {"error_log": error_log.name}}
+
 	def on_trash(self):
 		validate_standard_app_change(self)
+		remove_site_island(get_island_name(self.name), self.name)
 		if frappe.conf.developer_mode:
 			self.delete_files()
 
@@ -71,6 +99,11 @@ class StudioComponent(Document):
 		for folder in get_studio_folders():
 			for app_folder in os.listdir(folder):
 				delete_file(folder, app_folder, "studio_components", f"{frappe.scrub(self.name)}.json")
+
+
+def get_island_name(component_id: str) -> str:
+	"""The site island a published component is known by."""
+	return f"{SITE_ISLAND_PREFIX}studio.{component_id}"
 
 
 def mark_components_standard(names: list[str]):

@@ -68,6 +68,15 @@
 								icon="lucide-settings"
 								@click.prevent="store.studioLayout.rightPanelActiveTab = 'Interface'"
 							></Button>
+							<Button
+								v-if="canvasStore.editingMode === 'component'"
+								variant="subtle"
+								class="text-xs"
+								:loading="componentEditorStore.publishingComponent"
+								@click="componentEditorStore.publishComponent(canvasStore.fragmentData.fragmentId)"
+							>
+								Publish
+							</Button>
 							<Button variant="subtle" class="text-xs" @click="canvasStore.exitFragmentMode">
 								<template #prefix><span class="lucide-chevron-left !h-3 !w-3" /></template>
 								{{ parentFragmentName }}
@@ -194,6 +203,7 @@ import StudioCommandPalette from "@/components/CommandPalette/StudioCommandPalet
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
 import { studioPages } from "@/data/studioPages"
 import type { StudioPage } from "@/types/Studio/StudioPage"
 import { useStudioEvents } from "@/utils/useStudioEvents"
@@ -205,6 +215,7 @@ const route = useRoute()
 const router = useRouter()
 const store = useStudioStore()
 const canvasStore = useCanvasStore()
+const componentEditorStore = useComponentEditorStore()
 
 const getCompletions = useStudioCompletions()
 const getDynamicValueCompletions = useDynamicValueCompletions()

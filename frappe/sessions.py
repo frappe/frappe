@@ -21,10 +21,10 @@ from frappe.apps import get_apps, get_default_path, is_desk_apps
 from frappe.cache_manager import clear_user_cache, reset_metadata_version
 from frappe.database import savepoint
 from frappe.query_builder import Order
-from frappe.utils import cint, cstr, get_assets_json
+from frappe.utils import cint, cstr
 from frappe.utils.change_log import has_app_update_notifications
 from frappe.utils.data import add_to_date, sha256_hash
-from frappe.utils.island import get_ui_islands
+from frappe.utils.island import get_island_assets_json, get_ui_islands
 
 
 def hash_sid(sid: str) -> str:
@@ -197,7 +197,7 @@ def get():
 	bootinfo.notification_unread_count = frappe.db.count(
 		"Notification Log", {"read": 0, "for_user": frappe.session.user}
 	)
-	bootinfo.assets_json = get_assets_json()
+	bootinfo.assets_json = get_island_assets_json()
 	bootinfo.ui_islands = get_ui_islands()
 	bootinfo.read_only = bool(frappe.flags.read_only)
 
@@ -227,7 +227,7 @@ def get():
 
 @frappe.whitelist()
 def get_boot_assets_json():
-	return get_assets_json()
+	return get_island_assets_json()
 
 
 def get_csrf_token():

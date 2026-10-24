@@ -15,6 +15,7 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 	const selectedComponent = ref<string | null>(null)
 	const studioComponentBlock = ref<Block | null>(null)
 	const componentInputs = ref<ComponentInput[]>([])
+	const publishingComponent = ref(false)
 	const componentStore = useComponentStore()
 
 	async function createComponent(componentName: string, block?: Block | null) {
@@ -116,6 +117,37 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		)
 	}
 
+	function publishComponent(componentId: string) {
+		if (publishingComponent.value) return
+		if (useCanvasStore().isActiveFragmentDirty) {
+			toast.warning("Save the component before you publish it")
+			return
+		}
+		publishingComponent.value = true
+		return studioComponents.runDocMethod
+			.submit(
+				{ name: componentId, method: "publish" },
+				{
+					onSuccess(data: any) {
+						const { island, build_error } = data?.message || {}
+						if (build_error) {
+							toast.error("Component build failed", {
+								description: `See Error Log ${build_error.error_log}`,
+							})
+						} else {
+							toast.success(`Published as ${island}. Use it in a Vue Component field.`)
+						}
+					},
+					onError(error: any) {
+						toast.error("Failed to publish the component", {
+							description: error?.messages?.join(", "),
+						})
+					},
+				},
+			)
+			.finally(() => (publishingComponent.value = false))
+	}
+
 	async function deleteComponent(component: StudioComponent) {
 		if (isComponentUsed(component.component_id)) {
 			toast.error("Component is used in this page. You cannot delete it.")
@@ -193,6 +225,8 @@ const useComponentEditorStore = defineStore("componentEditorStore", () => {
 		createComponent,
 		promptNewComponent,
 		editComponent,
+		publishingComponent,
+		publishComponent,
 		deleteComponent,
 		// inputs
 		addComponentInput,
