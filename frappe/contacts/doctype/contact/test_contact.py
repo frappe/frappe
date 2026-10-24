@@ -281,6 +281,67 @@ class TestContact(IntegrationTestCase):
 			contact.validate_primary_contact()
 
 
+class TestContactFlatValues(IntegrationTestCase):
+	"""Run as a user who creates Contacts through the "All" role's owner rule."""
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user(a_contact_owner())
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+		super().tearDown()
+
+	def test_insert_turns_flat_values_into_primary_rows(self):
+		contact = flat_contact(
+			email_id="flat@example.com", phone="+91 0000000020", mobile_no="+91 0000000021"
+		)
+
+		self.assertEqual(
+			[(row.email_id, row.is_primary) for row in contact.email_ids], [("flat@example.com", 1)]
+		)
+		self.assertEqual(
+			[(row.phone, row.is_primary_phone, row.is_primary_mobile_no) for row in contact.phone_nos],
+			[("+91 0000000020", 1, 0), ("+91 0000000021", 0, 1)],
+		)
+		self.assertEqual(contact.email_id, "flat@example.com")
+		self.assertEqual(contact.phone, "+91 0000000020")
+		self.assertEqual(contact.mobile_no, "+91 0000000021")
+
+	def test_insert_marks_a_phone_that_is_also_the_mobile_number(self):
+		contact = flat_contact(phone="+91 0000000022", mobile_no="+91 0000000022")
+
+		self.assertEqual(
+			[(row.phone, row.is_primary_phone, row.is_primary_mobile_no) for row in contact.phone_nos],
+			[("+91 0000000022", 1, 1)],
+		)
+
+	def test_rows_win_over_flat_values_on_insert(self):
+		contact = create_contact("Table Wins", "Mr", save=False)
+		contact.add_email("row@example.com", is_primary=1)
+		contact.add_phone("+91 0000000023", is_primary_phone=1)
+		contact.update(
+			{"email_id": "flat@example.com", "phone": "+91 0000000024", "mobile_no": "+91 0000000025"}
+		)
+		contact.insert()
+
+		self.assertEqual([row.email_id for row in contact.email_ids], ["row@example.com"])
+		self.assertEqual([row.phone for row in contact.phone_nos], ["+91 0000000023"])
+		self.assertEqual(contact.email_id, "row@example.com")
+		self.assertEqual(contact.mobile_no, "")
+
+	def test_flat_values_do_nothing_on_update(self):
+		contact = create_contact("Flat Update", "Mr")
+		contact.update({"email_id": "flat@example.com", "phone": "+91 0000000026"})
+		contact.save()
+
+		self.assertEqual(contact.email_ids, [])
+		self.assertEqual(contact.phone_nos, [])
+		self.assertEqual(contact.email_id, "")
+		self.assertEqual(contact.phone, "")
+
+
 def create_contact(name, salutation, emails=None, phones=None, save=True):
 	doc = frappe.get_doc(
 		{"doctype": "Contact", "first_name": name, "status": "Open", "salutation": salutation}
@@ -298,3 +359,19 @@ def create_contact(name, salutation, emails=None, phones=None, save=True):
 		doc.insert()
 
 	return doc
+
+
+def flat_contact(**values):
+	contact = frappe.get_doc(
+		{"doctype": "Contact", "first_name": "Flat", "status": "Open", **values}
+	).insert()
+	return frappe.get_doc("Contact", contact.name)
+
+
+def a_contact_owner() -> str:
+	email = "test_contact_owner@example.com"
+	if not frappe.db.exists("User", email):
+		frappe.get_doc(doctype="User", email=email, first_name="Contact Owner", send_welcome_email=0).insert(
+			ignore_permissions=True
+		)
+	return email

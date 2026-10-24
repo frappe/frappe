@@ -67,6 +67,8 @@ class Contact(Document):
 
 	def validate(self):
 		self.full_name = self._get_full_name()
+		if self.is_new():
+			self.add_flat_values_as_rows()
 		self.set_primary_email()
 		self.set_primary("phone")
 		self.set_primary("mobile_no")
@@ -174,6 +176,23 @@ class Contact(Document):
 
 			if autosave:
 				self.save(ignore_permissions=True)
+
+	def add_flat_values_as_rows(self) -> None:
+		"""Turn a flat email, phone or mobile number into a primary row, when its table has none."""
+		if self.email_id and not self.email_ids:
+			self.append("email_ids", {"email_id": self.email_id, "is_primary": 1})
+		if not self.phone_nos:
+			self.add_flat_phones_as_rows()
+
+	def add_flat_phones_as_rows(self) -> None:
+		if self.phone:
+			self.append("phone_nos", {"phone": self.phone, "is_primary_phone": 1})
+		if not self.mobile_no:
+			return
+		if self.phone == self.mobile_no:
+			self.phone_nos[0].is_primary_mobile_no = 1
+		else:
+			self.append("phone_nos", {"phone": self.mobile_no, "is_primary_mobile_no": 1})
 
 	def set_primary_email(self):
 		if not self.email_ids:

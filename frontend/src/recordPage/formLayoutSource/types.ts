@@ -1,5 +1,6 @@
 // The `Form Layout` doctype's wire shapes: `get_form_layouts` returns rows as
-// authored — fieldnames stay strings; the meta join happens client-side.
+// authored — fieldnames stay strings, inline fields stay dicts; the meta join happens client-side.
+import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 
 export type FormLayoutType = "Details" | "Side Panel" | "Quick Entry" | "New Record";
 
@@ -7,8 +8,11 @@ export interface LayoutTreeColumn {
 	name?: string;
 	label?: string;
 	hideLabel?: boolean;
-	fields: string[];
+	fields: (string | InlineField)[];
 }
+
+/** A field a Quick Entry or New Record row defines itself; it replaces a read-only meta field of its name. */
+export type InlineField = RawMetaField;
 
 export interface LayoutTreeSection {
 	name?: string;

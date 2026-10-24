@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { joinLayout } from "../formLayoutSource/joinLayout";
 import { resolveLayout } from "@framework/ui/components/FormLayout/resolveLayout";
 import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
-import type { LayoutTree } from "../formLayoutSource/types";
+import type { LayoutTree, LayoutTreeColumn } from "../formLayoutSource/types";
 
 const fields: RawMetaField[] = [
 	{ fieldname: "first_name", fieldtype: "Data", label: "First Name", reqd: 1 },
@@ -10,9 +10,10 @@ const fields: RawMetaField[] = [
 	{ fieldname: "secret", fieldtype: "Data", permlevel: 1 },
 	{ fieldname: "a_break", fieldtype: "Section Break" },
 	{ fieldname: "notes", fieldtype: "Table", options: "Note Row" },
+	{ fieldname: "email_id", fieldtype: "Data", label: "Email Address", read_only: 1 },
 ];
 
-function treeWith(fieldnames: string[]): LayoutTree {
+function treeWith(fieldnames: LayoutTreeColumn["fields"]): LayoutTree {
 	return [
 		{
 			name: "first_tab",
@@ -74,6 +75,48 @@ describe("joinLayout", () => {
 		const [tab] = joinLayout(treeWith(["notes"]), fields, { childMetas });
 		const table = tab.sections[0].columns[0].fields[0];
 		expect(table.childFields?.map((f) => f.fieldname)).toEqual(["note"]);
+	});
+});
+
+describe("joinLayout — inline fields", () => {
+	it("renders an inline field beside meta fields", () => {
+		const nickname = { fieldname: "nickname", fieldtype: "Data", label: "Nickname" };
+		const [tab] = joinLayout(treeWith(["first_name", nickname]), fields);
+		const [first, inline] = tab.sections[0].columns[0].fields;
+		expect(first.fieldname).toBe("first_name");
+		expect(inline).toMatchObject({ fieldname: "nickname", fieldtype: "Data", label: "Nickname" });
+		expect(inline.readOnly).toBeFalsy();
+	});
+
+	it("replaces a read-only meta field of the same name", () => {
+		const email = { fieldname: "email_id", fieldtype: "Data", label: "Email", options: "Email" };
+		const [tab] = joinLayout(treeWith([email]), fields);
+		const [field] = tab.sections[0].columns[0].fields;
+		expect(field).toMatchObject({ fieldname: "email_id", label: "Email", options: "Email" });
+		expect(field.readOnly).toBeFalsy();
+	});
+
+	it("gates a replacement by the permlevel of the field it replaces", () => {
+		const fieldsWithLevel = [...fields, { fieldname: "phone", fieldtype: "Data", read_only: 1, permlevel: 1 }];
+		const phone = { fieldname: "phone", fieldtype: "Data", permlevel: 0 };
+		const [tab] = joinLayout(treeWith([phone]), fieldsWithLevel, {
+			fieldAccess: (field) => (field.permlevel === 1 ? "read" : "write"),
+		});
+		expect(tab.sections[0].columns[0].fields[0].readOnly).toBe(true);
+	});
+
+	it("gates an inline field by its permlevel", () => {
+		const secret = { fieldname: "pin", fieldtype: "Data", permlevel: 1 };
+		const [tab] = joinLayout(treeWith([secret]), fields, { fieldAccess: () => "none" });
+		expect(tab.sections[0].columns[0].fields[0].hidden).toBe(true);
+	});
+
+	it("takes the overrides of its fieldname", () => {
+		const nickname = { fieldname: "nickname", fieldtype: "Data" };
+		const [tab] = joinLayout(treeWith([nickname]), fields, {
+			overrides: { nickname: { meta: { label: "Known As" } } },
+		});
+		expect(tab.sections[0].columns[0].fields[0].label).toBe("Known As");
 	});
 });
 

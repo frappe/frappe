@@ -2,7 +2,7 @@
 // query the full page reads, the values "Edit full form" carries, and the insert body.
 import { runMethod } from "@framework/ui/api";
 import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import { NO_VALUE } from "@framework/ui/components/FormLayout/newRowValues";
+import { layoutFields, NO_VALUE } from "@framework/ui/components/FormLayout/newRowValues";
 import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
@@ -43,9 +43,10 @@ export function withNameField(
 	return [{ ...first, sections: [section, ...first.sections] }, ...rest];
 }
 
-/** The query's values for the doctype's own fields and its prompt name, typed; a table's is JSON. */
-export function queryValues(query: LocationQuery, meta: DoctypeMeta): Values {
+/** The query's values for the doctype's and the layout's fields and the prompt name, typed; a table's is JSON. */
+export function queryValues(query: LocationQuery, meta: DoctypeMeta, layout: FormLayoutSchema = []): Values {
 	const fields = new Map<string, string>(meta.fields.map((field) => [field.fieldname, field.fieldtype]));
+	for (const field of layoutFields(layout)) fields.set(field.fieldname, field.fieldtype);
 	const values: Values = {};
 	for (const [key, given] of Object.entries(query)) {
 		const text = Array.isArray(given) ? given[0] : given;

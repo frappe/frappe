@@ -14,7 +14,7 @@ import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
 import { withAccess } from "./fieldAccess";
 import { applyFieldPatch, type FieldPatch } from "./fieldPatch";
 import { buildColumn, buildSection } from "./section";
-import type { LayoutTree, LayoutTreeColumn, LayoutTreeSection } from "./types";
+import type { InlineField, LayoutTree, LayoutTreeColumn, LayoutTreeSection } from "./types";
 
 export interface JoinLayoutOptions {
 	/** Child doctype name → its flat meta `fields`, for `Table` columns. */
@@ -71,23 +71,29 @@ function joinColumn(
 ): Column {
 	return buildColumn(
 		column,
-		(column.fields ?? []).flatMap((fieldname) =>
-			joinField(fieldname, byName, options)
+		(column.fields ?? []).flatMap((entry) =>
+			joinField(entry, byName, options)
 		)
 	);
 }
 
 function joinField(
-	fieldname: string,
+	entry: string | InlineField,
 	byName: Map<string, RawMetaField>,
 	options: JoinLayoutOptions
 ): FieldNode[] {
-	const raw = byName.get(fieldname);
+	const raw = typeof entry === "string" ? byName.get(entry) : inlineField(entry, byName);
 	if (!raw || LAYOUT_BREAKS.has(raw.fieldtype)) return [];
 	const node = mapField(
 		withAccess(raw, options.fieldAccess),
 		options.childMetas ?? {},
 		options.decorate
 	);
-	return [applyFieldPatch(node, options.overrides?.[fieldname])];
+	return [applyFieldPatch(node, options.overrides?.[raw.fieldname])];
+}
+
+/** An inline field that replaces a meta field keeps its permlevel, which the insert enforces. */
+function inlineField(field: InlineField, byName: Map<string, RawMetaField>): RawMetaField {
+	const replaced = byName.get(field.fieldname);
+	return replaced ? { ...field, permlevel: replaced.permlevel } : field;
 }

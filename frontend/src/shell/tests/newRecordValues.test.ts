@@ -184,3 +184,25 @@ describe("queryValues", () => {
 		expect(queryValues({ [NEW_NAME]: "SI-X" }, { ...meta, autoname: "Prompt" })).toEqual({ [NEW_NAME]: "SI-X" });
 	});
 });
+
+describe("queryValues with the layout", () => {
+	const meta = {
+		name: "Customer",
+		fields: [
+			{ fieldname: "customer_name", fieldtype: "Data" },
+			{ fieldname: "credit_days", fieldtype: "Data", read_only: 1 },
+		],
+	} as unknown as DoctypeMeta;
+	const layout = layoutFromFields([
+		{ fieldname: "customer_name", fieldtype: "Data" },
+		{ fieldname: "address_line1", fieldtype: "Data" },
+		{ fieldname: "credit_days", fieldtype: "Int" },
+	]);
+
+	it("keeps the layout's inline fields, typed by the layout over the meta", () => {
+		const query = { customer_name: "Acme", address_line1: "1 Main St", credit_days: "30", owner: "intruder" };
+
+		expect(queryValues(query, meta, layout)).toEqual({ customer_name: "Acme", address_line1: "1 Main St", credit_days: 30 });
+		expect(queryValues(query, meta)).toEqual({ customer_name: "Acme", credit_days: "30" });
+	});
+});

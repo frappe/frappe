@@ -99,6 +99,7 @@ const server = {
   meta: noteMeta() as Record<string, any>,
   inserts: [] as Record<string, any>[],
   layoutTypes: [] as string[],
+  rows: {} as Record<string, unknown[]>,
   newDocReads: 0,
   insertFails: false,
   defaultsHeld: null as Promise<void> | null,
@@ -112,8 +113,10 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
   if (path === `/api/v2/method/${GET_CLIENT_SCRIPTS}`)
     return [{ data: { scripts: [{ name: "Note Script", script: "" }], can_write: false } }, 200];
   if (path === `/api/v2/method/${GET_FORM_LAYOUTS}`) {
-    server.layoutTypes.push(url.searchParams.get("type")!);
-    return [{ data: { layouts: [{ name: 1, condition: null, layout: LAYOUT }], fallback: LAYOUT } }, 200];
+    const type = url.searchParams.get("type")!;
+    server.layoutTypes.push(type);
+    const layout = server.rows[type] ?? LAYOUT;
+    return [{ data: { layouts: [{ name: 1, condition: null, layout }], fallback: LAYOUT } }, 200];
   }
   if (path === `/api/v2/method/${GET_NEW_DOC}`) {
     server.newDocReads++;
@@ -172,6 +175,7 @@ beforeEach(() => {
   server.meta = noteMeta();
   server.inserts = [];
   server.layoutTypes = [];
+  server.rows = {};
   server.newDocReads = 0;
   server.insertFails = false;
   server.defaultsHeld = null;
@@ -304,6 +308,38 @@ describe("opening /<doctype>/new", () => {
     );
     expect(fieldnames[0]).toBe("__newname");
     expect(input(root, "__newname")!.value).toBe("My Note");
+  });
+});
+
+describe("inline fields", () => {
+  const nickname = { fieldname: "nickname", fieldtype: "Data", label: "Nickname" };
+  const visits = { fieldname: "visits", fieldtype: "Int", label: "Visits" };
+
+  it("shows a New Record inline field, typed from the query, and inserts it", async () => {
+    server.rows["New Record"] = [{ sections: [{ columns: [{ fields: ["title", visits] }] }] }];
+    const { root } = await mount("/note/new?visits=3");
+
+    expect(input(root, "visits")!.value).toBe("3");
+    await save(root);
+
+    expect(server.inserts[0]).toMatchObject({ visits: 3 });
+  });
+
+  it("keeps a value carried from a Quick Entry inline field the page does not show, and inserts it", async () => {
+    server.rows["Quick Entry"] = [{ sections: [{ columns: [{ fields: ["title", nickname] }] }] }];
+    const { root } = await mount("/note/new?title=Hello&nickname=Nick&owner=intruder");
+
+    expect(input(root, "nickname")).toBeNull();
+    await save(root);
+
+    expect(server.inserts[0]).toMatchObject({ title: "Hello", nickname: "Nick" });
+    expect(server.inserts[0]).not.toHaveProperty("owner");
+  });
+
+  it("reads no Quick Entry rows when the address carries no values", async () => {
+    await mount("/note/new");
+
+    expect(server.layoutTypes).not.toContain("Quick Entry");
   });
 });
 
