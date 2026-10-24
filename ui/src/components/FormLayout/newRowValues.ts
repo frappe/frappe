@@ -1,4 +1,5 @@
 // What a freshly added child row starts with, from its docfield defaults.
+import { parseLongInt } from "./formatNumber";
 import type { FieldNode, FormLayoutSchema } from "./types";
 
 /**
@@ -20,7 +21,7 @@ export const NO_VALUE = new Set([
 
 const COLLECTIONS = new Set(["Table", "Table MultiSelect"]);
 
-const INTEGERS = new Set(["Int", "Long Int", "Check"]);
+const INTEGERS = new Set(["Int", "Check"]);
 const DECIMALS = new Set(["Float", "Currency", "Percent"]);
 /**
  * Fieldtypes whose empty is a number rather than a string — every numeric column
@@ -71,6 +72,7 @@ function defaultValue(field: FieldNode): any {
   if (raw == null || raw === "") return firstOption(field) ?? emptyValue(field);
   if (raw === "Today" || raw === "today") return today();
   if (raw === "Now" || raw === "now") return new Date().toISOString().slice(0, 19).replace("T", " ");
+  if (field.fieldtype === "Long Int") return parseLongInt(raw);
   if (INTEGERS.has(field.fieldtype)) return Math.trunc(Number(raw)) || 0;
   if (DECIMALS.has(field.fieldtype)) return Number(raw) || 0;
   return raw;
