@@ -87,6 +87,33 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
 
+	def test_links_are_clickable_where_they_print_with_header_and_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_chrome_pdf(
+			print_format=None,
+			html='<div id="header-html"><a href="https://example.com/brochure">Brochure</a></div>'
+			'<a href="https://example.com/manual">Manual</a>'
+			'<div id="footer-html"><b>BOTTOM</b></div>',
+			options={},
+			output=None,
+			pdf_generator="chrome",
+		)
+		page = PdfReader(io.BytesIO(pdf)).pages[0]
+		baselines = {}
+
+		def record_baseline(text, cm, tm, *_):
+			baselines[text.strip()] = tm[4] * cm[1] + tm[5] * cm[3] + cm[5]
+
+		page.extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(page["/Annots"]), 2)
+		for annotation in page["/Annots"]:
+			annotation = annotation.get_object()
+			text = annotation["/A"]["/URI"].rsplit("/", 1)[1].title()
+			_, bottom, _, top = annotation["/Rect"]
+			self.assertGreaterEqual(baselines[text], bottom, text)
+			self.assertLessEqual(baselines[text], top, text)
+
 	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
 		from frappe.utils.print_format import _download_multi_pdf
 
