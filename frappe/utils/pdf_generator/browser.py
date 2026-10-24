@@ -129,14 +129,10 @@ class Browser:
 	def fit_body_to_page(self):
 		if not self.options.get("shrink-to-fit"):
 			return
-		options = self.body_page.options
-		printable = 96 * (
-			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
-		)
-		self.body_page.set_device_metrics(width=int(printable), height=1000)
+		self.body_page.set_device_metrics(width=int(self.printable_width), height=1000)
 		content_width = self.body_page.get_content_width()
-		if content_width > printable:
-			options["scale"] = max(0.1, printable / content_width)
+		if content_width > self.printable_width:
+			self.body_page.options["scale"] = max(0.1, self.printable_width / content_width)
 
 	def close_page(self, type):
 		page = getattr(self, f"{type}_page")
@@ -382,14 +378,14 @@ class Browser:
 				self._get_converted_num(options["margin-right"]), "px", "in", only_number=True
 			)
 
-		printable = 96 * (
+		self.printable_width = 96 * (
 			updated_options["paperWidth"] - updated_options["marginLeft"] - updated_options["marginRight"]
 		)
 		if self.header_page:
-			self.header_page.set_device_metrics(width=int(printable))
+			self.header_page.set_device_metrics(width=int(self.printable_width))
 			self.header_height = self.header_page.get_element_height()
 		if self.footer_page:
-			self.footer_page.set_device_metrics(width=int(printable))
+			self.footer_page.set_device_metrics(width=int(self.printable_width))
 			self.footer_height = self.footer_page.get_element_height()
 
 		# make copy of options to update them in header, body, footer.
