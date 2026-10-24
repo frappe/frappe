@@ -147,6 +147,7 @@
 		v-else-if="field.type === 'textarea'"
 		type="textarea"
 		variant="outline"
+		class="[&_textarea]:text-base [&_textarea]:leading-normal"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"

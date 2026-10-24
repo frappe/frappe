@@ -3,7 +3,7 @@
 		<!-- set apart from a list's icon, which would otherwise read as one more button -->
 		<div
 			v-if="!flow.state.sidebarOpen"
-			:class="{ 'md:mr-1.5': !list }"
+			:class="list ? 'max-md:-mr-2' : 'md:mr-1.5'"
 			class="flex items-center gap-2"
 		>
 			<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
@@ -43,7 +43,9 @@
 			<h1 class="min-w-0 truncate font-medium text-ink-gray-9">{{ title }}</h1>
 		</nav>
 		<span class="min-w-2 flex-1" />
-		<div class="flex flex-none items-center gap-2"><slot name="actions" /></div>
+		<div class="flex flex-none items-center gap-2 [&_button]:text-sm">
+			<slot name="actions" />
+		</div>
 	</header>
 </template>
 
