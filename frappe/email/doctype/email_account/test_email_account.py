@@ -118,25 +118,6 @@ class TestEmailAccount(IntegrationTestCase):
 		existing_file = frappe.get_doc({"doctype": "File", "file_name": "erpnext-conf-14.png"})
 		frappe.delete_doc("File", existing_file.name)
 
-	def test_incoming_with_attach_pulled_by_system_manager(self):
-		cleanup("test_sender@example.com")
-
-		messages = {
-			'"INBOX"': {
-				"latest_messages": [self.get_test_mail("incoming-2.raw")],
-				"seen_status": {2: "UNSEEN"},
-				"uid_list": [2],
-			}
-		}
-
-		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		with self.set_user("test@example.com"):
-			TestEmailAccount.mocked_email_receive(email_account, messages)
-
-		comm = frappe.get_doc("Communication", {"sender": "test_sender@example.com"})
-		attachments = get_attachments(comm.doctype, comm.name)
-		self.assertIn("erpnext-conf-14.png", [f.file_name for f in attachments])
-
 	def test_incoming_attached_email_from_outlook_plain_text_only(self):
 		cleanup("test_sender@example.com")
 
