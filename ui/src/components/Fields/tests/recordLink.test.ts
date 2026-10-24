@@ -44,7 +44,10 @@ function render(
   app = createApp({ render: () => h(component, { field, modelValue }) });
   if (options.recordLink !== undefined) app.provide(RecordLinkKey, options.recordLink);
   app.provide(DocKey, ref(options.doc ?? {}));
-  app.provide(LinkTitlesKey, ref({ "Customer::CUST-001": "Acme Corp" }));
+  app.provide(
+    LinkTitlesKey,
+    ref({ "Customer::CUST-001": "Acme Corp", "Invoice::SI-001": "Spring order" })
+  );
   app.mount(host);
   return host;
 }
@@ -166,14 +169,14 @@ describe("a Dynamic Link field", () => {
     expect(arrow(root)).toBeNull();
   });
 
-  it("shows a read-only value as a link", () => {
+  it("shows a read-only value as a link with its title", () => {
     const root = render(DynamicLinkField, { ...reference, readOnly: true }, "SI-001", {
       recordLink: ROUTED,
       doc: { reference_doctype: "Invoice" },
     });
+    const anchor = root.querySelector('[data-slot="link-value"] a');
 
-    expect(root.querySelector('[data-slot="link-value"] a')?.getAttribute("href")).toBe(
-      "/desk/invoice/SI-001"
-    );
+    expect(anchor?.getAttribute("href")).toBe("/desk/invoice/SI-001");
+    expect(anchor?.textContent?.trim()).toBe("Spring order");
   });
 });

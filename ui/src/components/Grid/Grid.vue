@@ -612,8 +612,13 @@ function onRowClick(row: Record<string, any>, index: number) {
 }
 
 /* Read-only grid: cells are `pointer-events-none`, which also smothers a read-only
- * Link's record link. Restore pointer events on just that; it stops its own click. */
-.grid-disabled .grid-cell :deep([data-slot="link-value"] a) {
+ * Link's record link and edit button. Restore pointer events on just those. */
+.grid-disabled .grid-cell :deep([data-slot="link-value"] a),
+.grid-disabled .grid-cell :deep([data-slot="edit"]) {
 	pointer-events: auto;
+}
+
+.grid-disabled .grid-row:hover :deep([data-slot="edit"]) {
+	display: grid;
 }
 </style>

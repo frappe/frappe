@@ -61,6 +61,7 @@ import { computed, inject, nextTick, ref, watch } from "vue";
 import {
 	CommitKey,
 	DocKey,
+	LinkTitlesKey,
 	NO_COMMIT,
 	ResolveFieldKey,
 	UpdateKey,
@@ -83,6 +84,7 @@ const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
+const titles = inject(LinkTitlesKey, null);
 const getDocValue = useDocValueReader();
 
 function edit(fieldname: string, value: any) {
@@ -135,7 +137,10 @@ const display = computed(() => {
 });
 
 const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
-const openLabel = computed(() => __("Open {0}", [display.value]));
+const openLabel = computed(() => {
+	const title = titles?.value[`${linkedDoctype()}::${doc.value[props.field.fieldname]}`];
+	return __("Open {0}", [title ?? display.value]);
+});
 
 function linkedDoctype(): string {
 	const { fieldtype, options } = props.field;

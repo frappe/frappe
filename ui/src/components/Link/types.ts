@@ -4,7 +4,7 @@ export interface LinkProps extends InputLabelingProps {
   doctype: string;
   filters?: Record<string, unknown>;
   creatable?: boolean;
-  /** The current record's address; with one, the field shows an arrow that opens it. */
+  /** The current record's address; with one, the field shows an arrow to it whose plain click emits `redirect`. */
   href?: string | null;
   editable?: boolean;
   disabled?: boolean;

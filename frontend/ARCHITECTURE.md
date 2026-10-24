@@ -79,8 +79,8 @@ data, or record page words.
 
 - **The desk passes in what only the desk has**: the session, the CSRF token, the socket,
   upload limits, the invite address, Create through `CreateRecordKey`, and record pages
-  through `RecordLinkKey`. `ui/` works,
-  with a sensible default, when an app passes none of them.
+  through `RecordLinkKey`. `ui/` works, with a sensible default, when an app passes none
+  of them.
 - **Judge `ui/` by what it exports**, not by what the desk imports. "No app uses it
   today" is never a reason to cut or change something in `ui/`.
 - **The concept lists use the root index and the named subpaths** in `ui/package.json`.

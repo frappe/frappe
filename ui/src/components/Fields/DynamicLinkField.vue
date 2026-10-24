@@ -1,7 +1,7 @@
 <template>
 	<LinkValue
 		v-if="field.readOnly"
-		:text="linkCreate.title(value) ?? value"
+		:text="title ?? value"
 		:href="record.href.value"
 		:label="field.label"
 		:description="field.description"
@@ -15,7 +15,7 @@
 		v-model:open="open"
 		:doctype="doctype"
 		:filters="field.filters"
-		:title="linkCreate.title(value)"
+		:title="title"
 		:label="field.label"
 		:description="field.description"
 		:placeholder="field.placeholder"
@@ -38,7 +38,7 @@
 import { computed, inject, ref } from "vue";
 import { Link } from "../Link";
 import type { LinkExposed } from "../Link";
-import { DocKey, ParentDocKey } from "./types";
+import { DocKey, LinkTitlesKey, ParentDocKey } from "./types";
 import { pickSiblingValue } from "../FormLayout/pickSiblingValue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import { useLinkCreate } from "./useLinkCreate";
@@ -50,6 +50,7 @@ const emit = defineEmits<FieldComponentEmits>();
 
 const doc = inject(DocKey, null);
 const parentDoc = inject(ParentDocKey, null);
+const titles = inject(LinkTitlesKey, null);
 const link = ref<LinkExposed | null>(null);
 const open = ref(false);
 
@@ -82,4 +83,10 @@ const linkCreate = useLinkCreate({
 });
 
 const record = useRecordLink(doctype, value);
+
+const title = computed(
+	() =>
+		(value.value ? titles?.value[`${doctype.value}::${value.value}`] : undefined) ??
+		linkCreate.title(value.value)
+);
 </script>
