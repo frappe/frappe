@@ -17,9 +17,13 @@ describe("isSummaryField", () => {
       "Table",
       "Text Editor",
       "Code",
+      "JSON",
+      "Markdown Editor",
+      "HTML Editor",
       "Geolocation",
       "Image",
       "Attach",
+      "Attach Image",
     ])
       expect(isSummaryField(t)).toBe(true);
   });
@@ -60,6 +64,12 @@ describe("summarize", () => {
     expect(summarize("const a = 1\nconst b = 2", "Code")).toBe("const a = 1");
   });
 
+  it("takes the first line of the other code-family editors", () => {
+    expect(summarize('{\n  "a": 1\n}', "JSON")).toBe("{");
+    expect(summarize("# Title\nbody", "Markdown Editor")).toBe("# Title");
+    expect(summarize("<div>\n</div>", "HTML Editor")).toBe("<div>");
+  });
+
   it("falls back to Set and Not set", () => {
     expect(summarize("/files/a.png", "Image")).toBe("Set");
     expect(summarize("", "Attach")).toBe("Not set");
@@ -92,8 +102,69 @@ describe("displayValue", () => {
     ).toBe("$ 1,234.50");
   });
 
-  it("renders a link as its raw name", () => {
-    expect(displayValue("CRM-LEAD-0001", field("Link"))).toBe("CRM-LEAD-0001");
+  const linkTitles = {
+    "Customer::CUST-0001": "Acme Corp",
+    "Customer::CUST-0002": "TechStart Inc",
+  };
+
+  it("shows a link's title, and its name when it has none", () => {
+    const link = field("Link", { options: "Customer" });
+    expect(displayValue("CUST-0001", link, { linkTitles })).toBe("Acme Corp");
+    expect(displayValue("CUST-0009", link, { linkTitles })).toBe("CUST-0009");
+  });
+
+  it("shows a dynamic link's title, from the doctype its sibling names", () => {
+    const dynamic = field("Dynamic Link", { options: "link_doctype" });
+    const doc = { link_doctype: "Customer" };
+    expect(displayValue("CUST-0002", dynamic, { doc, linkTitles })).toBe(
+      "TechStart Inc",
+    );
+  });
+
+  it("joins a Table MultiSelect's linked titles", () => {
+    const multi = field("Table MultiSelect", {
+      childFields: [
+        { fieldname: "customer", fieldtype: "Link", options: "Customer" },
+      ],
+    });
+    const rows = [{ customer: "CUST-0001" }, { customer: "CUST-0002" }];
+    expect(displayValue(rows, multi, { linkTitles })).toBe(
+      "Acme Corp, TechStart Inc",
+    );
+    expect(displayValue([], multi)).toBe("");
+  });
+
+  it("summarizes an Image from the field its options name", () => {
+    const image = field("Image", { options: "photo" });
+    expect(displayValue(null, image, { doc: { photo: "/files/a.png" } })).toBe(
+      "Set",
+    );
+    expect(displayValue(null, image, { doc: {} })).toBe("Not set");
+  });
+
+  it("summarizes an Attach Image as Attach does", () => {
+    expect(displayValue("/files/a.png", field("Attach Image"))).toBe("Set");
+  });
+
+  it("shows a rating as stars out of the star count", () => {
+    expect(displayValue(0.6, field("Rating"))).toBe("3 / 5");
+    expect(displayValue(0.5, field("Rating", { options: "10" }))).toBe(
+      "5 / 10",
+    );
+  });
+
+  it("formats a duration as the form's control does", () => {
+    expect(displayValue(5445, field("Duration"))).toBe("1h 30m 45s");
+  });
+
+  it("shows a time as the form's picker does", () => {
+    expect(displayValue("9:15:00", field("Time"))).toBe("09:15");
+    expect(displayValue("14:05:30.000000", field("Time"))).toBe("14:05");
+  });
+
+  it("masks a password, typed or saved", () => {
+    expect(displayValue("hunter2", field("Password"))).toBe("••••••••");
+    expect(displayValue("*******", field("Password"))).toBe("••••••••");
   });
 
   it("summarizes the fieldtypes with no honest row", () => {

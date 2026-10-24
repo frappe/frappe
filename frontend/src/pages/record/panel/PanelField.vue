@@ -53,6 +53,7 @@ import { computed, inject, nextTick, ref, watch } from "vue";
 import {
 	CommitKey,
 	DocKey,
+	LinkTitlesKey,
 	NO_COMMIT,
 	ResolveFieldKey,
 	UpdateKey,
@@ -72,6 +73,7 @@ const doc = inject(DocKey)!;
 const update = inject(UpdateKey)!;
 const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
+const linkTitles = inject(LinkTitlesKey, null);
 const getDocValue = useDocValueReader();
 
 function edit(fieldname: string, value: any) {
@@ -120,6 +122,8 @@ const display = computed(() => {
 				: undefined,
 		numberFormat: defaults.number_format,
 		roundingMethod: defaults.rounding_method,
+		doc: doc.value,
+		linkTitles: linkTitles?.value,
 	});
 });
 
