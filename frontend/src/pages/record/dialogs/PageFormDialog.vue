@@ -52,6 +52,7 @@ import { Button, Dialog, ErrorMessage } from "frappe-ui";
 import type { DialogSize } from "frappe-ui";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";
+import { RecordLinkKey } from "@framework/ui/components/Fields/types";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
@@ -74,6 +75,8 @@ import FormSkeleton from "../skeletons/FormSkeleton.vue";
 
 // The dialog's fields commit to nothing, or they would fire the record's handlers under the same names.
 provide(CommitKey, NO_COMMIT);
+// A dialog has no guard for its unsaved values, so its Link fields open nothing.
+provide(RecordLinkKey, null);
 
 const props = defineProps<{ entry: PageDialogEntry }>();
 

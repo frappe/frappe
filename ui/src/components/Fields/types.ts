@@ -118,6 +118,15 @@ export interface CreateRecord {
 
 export const CreateRecordKey: InjectionKey<CreateRecord | null> = Symbol("CreateRecord");
 
+/** The host's record pages, which a Link or Dynamic Link field opens; absent or null, it opens none. */
+export interface RecordLink {
+  /** The record's address, or `null` when its doctype has none. */
+  href: (doctype: string, name: string) => string | null;
+  open: (doctype: string, name: string) => void;
+}
+
+export const RecordLinkKey: InjectionKey<RecordLink | null> = Symbol("RecordLink");
+
 /** Writes a field's live value into the doc on every change. Pure state sync. */
 export const UpdateKey: InjectionKey<(fieldname: string, value: any) => void> =
   Symbol("FormLayoutUpdate");

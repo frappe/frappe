@@ -476,8 +476,7 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep(input:not([type="checkbox"])),
 .grid-cell :deep(textarea),
 .grid-cell :deep(select),
-.grid-cell
-	:deep(button:not([data-slot="clear"]):not([data-slot="redirect"]):not([data-slot="edit"])),
+.grid-cell :deep(button:not([data-slot="clear"]):not([data-slot="edit"])),
 .grid-cell :deep(.combobox),
 .grid-cell :deep([data-slot="trigger"]) {
 	border: none;
@@ -607,16 +606,14 @@ function onRowClick(row: Record<string, any>, index: number) {
 	outline: none !important;
 }
 
-/* Read-only grid: cells are `pointer-events-none`, which also smothers a readonly
- * Link's redirect/edit buttons. Restore pointer events on just those two and reveal
- * them on ROW hover (the pointer falls through to the row). They `@click.stop`. */
-.grid-disabled .grid-cell :deep([data-slot="redirect"]),
-.grid-disabled .grid-cell :deep([data-slot="edit"]) {
-	pointer-events: auto;
+/* A read-only Link has no input box, so it takes the inputs' inset itself. */
+.grid-cell :deep([data-slot="link-value"]) {
+	padding-inline: 0.5rem;
 }
 
-.grid-disabled .grid-row:hover :deep([data-slot="redirect"]),
-.grid-disabled .grid-row:hover :deep([data-slot="edit"]) {
-	display: grid;
+/* Read-only grid: cells are `pointer-events-none`, which also smothers a read-only
+ * Link's record link. Restore pointer events on just that; it stops its own click. */
+.grid-disabled .grid-cell :deep([data-slot="link-value"] a) {
+	pointer-events: auto;
 }
 </style>

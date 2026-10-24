@@ -1,6 +1,6 @@
 <!--
   Demo of the host-side override pattern: a Link field that wires the shared
-  `Link`'s create / redirect / edit affordances to app behaviour. The lib ships a
+  `Link`'s create / edit affordances to app behaviour. The lib ships a
   plain select-only `LinkField`; an app that wants these actions registers its
   own component via `registerFieldType('Link', …)` — no lib changes, no prop.
   Here the handlers just `console.log`; a real host would call vue-router / open
@@ -18,10 +18,8 @@
 		:disabled="field.readOnly"
 		:title="title"
 		creatable
-		redirectable
 		editable
 		@create="onCreate"
-		@redirect="onRedirect"
 		@edit="onEdit"
 	/>
 </template>
@@ -58,14 +56,6 @@ function onCreate(query: string) {
 	});
 	// Prove the round-trip: a freshly-created record auto-selects into `doc`.
 	emit("update:modelValue", `${query || "New"} (created)`);
-}
-
-function onRedirect(name: string) {
-	console.log("redirect", {
-		doctype: props.field.options,
-		fieldname: props.field.fieldname,
-		name,
-	});
 }
 
 function onEdit(name: string) {

@@ -130,7 +130,7 @@ import { carryOver, defaultValueFor } from "../Filter/operators";
 import type { Filter } from "../Filter/types";
 import { valueControl } from "../Filter/valueControl";
 import { VALUE_CONTROLS } from "../Filter/valueControlComponents";
-import { CreateRecordKey } from "../Fields/types";
+import { CreateRecordKey, RecordLinkKey } from "../Fields/types";
 import { conditionOperators } from "./adapters";
 import { useConditionBuilderContext } from "./internal/context";
 import type {
@@ -152,8 +152,9 @@ const emit = defineEmits<{ update: [value: FieldConditionValue] }>();
 
 const context = useConditionBuilderContext();
 
-// A filter's value input picks a record; it never creates one.
+// A filter's value input picks a record; it never creates or opens one.
 provide(CreateRecordKey, null);
+provide(RecordLinkKey, null);
 const labels = context.labels;
 
 const fieldWordId = useId();
