@@ -108,7 +108,9 @@ function multiSelectTitles(
   const link = field.childFields?.find((f) => f.fieldtype === "Link");
   if (!link || !Array.isArray(rows)) return summarize(rows, field.fieldtype);
   return rows
-    .map((row) => linkTitle(link.options, row?.[link.fieldname], titles))
+    .map((row) => row?.[link.fieldname])
+    .filter((name) => !isEmptyValue(name))
+    .map((name) => linkTitle(link.options, name, titles))
     .join(", ");
 }
 

@@ -134,6 +134,17 @@ describe("displayValue", () => {
     expect(displayValue([], multi)).toBe("");
   });
 
+  it("skips a Table MultiSelect row with no link, and counts rows with no Link column", () => {
+    const multi = field("Table MultiSelect", {
+      childFields: [
+        { fieldname: "customer", fieldtype: "Link", options: "Customer" },
+      ],
+    });
+    const rows = [{ customer: "CUST-0001" }, { customer: null }];
+    expect(displayValue(rows, multi, { linkTitles })).toBe("Acme Corp");
+    expect(displayValue(rows, field("Table MultiSelect"))).toBe("2 items");
+  });
+
   it("summarizes an Image from the field its options name", () => {
     const image = field("Image", { options: "photo" });
     expect(displayValue(null, image, { doc: { photo: "/files/a.png" } })).toBe(
