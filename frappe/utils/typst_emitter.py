@@ -912,13 +912,12 @@ class TypstEmitter:
 		if fieldtype == "Image":
 			return self._image(df)
 		if fieldtype == "Attach Image" or df.get("renderer") == "AttachImage":
-			image = self._image(df)
-			return self._data_field(section, df, value_markup=image) if image else ""
+			return self._data_field(section, df, value_markup=self._image(df))
 		if fieldtype == "Signature":
 			name = self._embed_image(self.doc.get(df.get("fieldname")))
 			# Chrome prints the signature at its pixel size; without this, Typst prints it a third larger
-			image = f'#scale({PX_TO_PT:.0%}, reflow: true, image("{name}"))'
-			return self._data_field(section, df, value_markup=image) if name else ""
+			image = f'#scale({PX_TO_PT:.0%}, reflow: true, image("{name}"))' if name else ""
+			return self._data_field(section, df, value_markup=image)
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		if fieldtype == "Static Text":
@@ -986,7 +985,7 @@ class TypstEmitter:
 		value_args = [q(value)]
 		if value_color:
 			value_args.insert(0, f'fill: rgb("{value_color}")')
-		value_text = value_markup or f"#text({', '.join(value_args)})"
+		value_text = f"#text({', '.join(value_args)})" if value_markup is None else value_markup
 
 		align = df.get("align")
 		gap_effect = translate_custom_style(df.get("custom_style") or "")[0].get("gap")
