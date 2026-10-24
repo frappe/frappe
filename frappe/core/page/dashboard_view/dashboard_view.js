@@ -300,7 +300,9 @@ class Dashboard {
 			frappe.ui.empty_state({
 				icon: "lock",
 				title: __("You don't have access to anything on this dashboard"),
-				description: __("Ask your administrator for access to its reports or doctypes."),
+				description: __(
+					"Ask your administrator for access to its reports or document types."
+				),
 			})
 		);
 	}
