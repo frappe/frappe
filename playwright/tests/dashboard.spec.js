@@ -51,6 +51,7 @@ async function open_claimed_dashboard(page, desk, api, props) {
 	await claim(page, "Dashboard", { name: ISLAND, props });
 	await page.evaluate((name) => frappe.set_route("dashboard-view", name), dashboard);
 	await expect(page.locator(".dashboard-view-island .fixture-dashboard")).toBeAttached();
+	await expect(page.locator(".dashboard-graph")).toHaveCount(0);
 	return dashboard;
 }
 
