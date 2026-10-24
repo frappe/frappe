@@ -4,7 +4,8 @@ export interface LinkProps extends InputLabelingProps {
   doctype: string;
   filters?: Record<string, unknown>;
   creatable?: boolean;
-  redirectable?: boolean;
+  /** The current record's address; with one, the field shows an arrow to it whose plain click emits `redirect`. */
+  href?: string | null;
   editable?: boolean;
   disabled?: boolean;
   placeholder?: string;
@@ -21,6 +22,7 @@ export interface LinkSlots {
 
 export type LinkEmits = {
   create: [query: string];
+  /** A plain click on the arrow; a modified click is left to the browser. */
   redirect: [value: string];
   edit: [value: string];
 };

@@ -113,7 +113,7 @@ import NumberField from "../Fields/NumberField.vue";
 import DateField from "../Fields/DateField.vue";
 import DatetimeField from "../Fields/DatetimeField.vue";
 import DurationField from "../Fields/DurationField.vue";
-import { CreateRecordKey } from "../Fields/types";
+import { CreateRecordKey, RecordLinkKey } from "../Fields/types";
 import type { FieldMeta } from "../Fields/types";
 
 const props = defineProps<{
@@ -125,8 +125,9 @@ const props = defineProps<{
 // only reads and re-emits it; it never owns a data resource.
 const filters = defineModel<Filter[]>("filters", { default: () => [] });
 
-// A filter's value input picks a record; it never creates one.
+// A filter's value input picks a record; it never creates or opens one.
 provide(CreateRecordKey, null);
+provide(RecordLinkKey, null);
 
 // --- Overflow collapse -------------------------------------------------------
 // Each value input is a fixed `w-40` box (160px) on an 8px gap, so how many fit on

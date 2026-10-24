@@ -69,13 +69,14 @@ import LinkField from "@framework/ui/components/Fields/LinkField.vue";
 import TableMultiSelectField from "@framework/ui/components/Fields/TableMultiSelectField.vue";
 import Filter from "@framework/ui/components/Filter/Filter.vue";
 import QuickFilterInputs from "@framework/ui/components/QuickFilter/QuickFilterInputs.vue";
-import { CreateRecordKey, DocKey } from "@framework/ui/components/Fields/types";
+import { CreateRecordKey, DocKey, RecordLinkKey } from "@framework/ui/components/Fields/types";
 import type { FieldMeta } from "@framework/ui/components/Fields/types";
 import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { resetSession, setSession } from "@framework/ui/composables/useSession";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { useCreateRight } from "@/createRight";
+import { recordLink } from "@/router/recordLink";
 import { registerShell } from "@/router/routeFor";
 import { resetFormLayouts } from "@/recordPage";
 import { createPageDialogs } from "@/recordPage/dialog";
@@ -208,11 +209,12 @@ const Host = defineComponent({
 	},
 });
 
-function mount(part: () => unknown, { create = true, readOnlyMode = false } = {}) {
+function mount(part: () => unknown, { create = true, readOnlyMode = false, opens = false } = {}) {
 	const router = createRouter({
 		history: createMemoryHistory(),
 		routes: [
 			{ path: "/:doctype/new", name: "new-record", component: { render: () => null } },
+			{ path: "/:doctype/:name", name: "record", component: { render: () => null } },
 			{ path: "/:any(.*)", component: { render: () => null } },
 		],
 	});
@@ -224,6 +226,7 @@ function mount(part: () => unknown, { create = true, readOnlyMode = false } = {}
 	app.use(router);
 	app.provide("boot", boot);
 	if (create) app.provide(CreateRecordKey, { open: openCreate, useRight: useCreateRight });
+	if (opens) app.provide(RecordLinkKey, recordLink(router));
 	app.mount(root);
 	apps.push(app);
 	return { root, router };
@@ -769,5 +772,27 @@ describe("a Table MultiSelect field", () => {
 		await settle();
 
 		expect(picked()).toEqual([]);
+	});
+});
+
+describe("a Link field in a Create dialog", () => {
+	it("opens no record, while the page's Link field does", async () => {
+		const { root } = mount(
+			() =>
+				h("div", { "data-field": "page_customer" }, [
+					h(LinkField, {
+						field: { fieldname: "page_customer", fieldtype: "Link", options: "Customer" },
+						modelValue: "CUST-0001",
+					}),
+				]),
+			{ opens: true }
+		);
+		void openCreate("Customer", { values: { territory: "North" } });
+		await settle();
+
+		const pageArrow = within("page_customer", root).querySelector("a[data-slot=redirect]");
+		expect(pageArrow?.getAttribute("href")).toBe("/customer/CUST-0001");
+		expect(within("territory", dialog("New Customer")).querySelector("input")).not.toBeNull();
+		expect(within("territory", dialog("New Customer")).querySelector("a")).toBeNull();
 	});
 });
