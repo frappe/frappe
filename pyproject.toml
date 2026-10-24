@@ -15,7 +15,7 @@ dependencies = [
     "filetype~=1.2.0",
     "GitPython~=3.2.0",
     "Jinja2~=3.1.6",
-    "Pillow~=12.3.0",
+    "Pillow~=13.0.0",
     "plutoprint~=0.22.0; (sys_platform == 'linux' and platform_machine == 'x86_64') or (sys_platform == 'darwin' and platform_machine == 'arm64') or sys_platform == 'win32'",
     "PyJWT~=2.15.1",
     "duckdb~=1.4.3",
