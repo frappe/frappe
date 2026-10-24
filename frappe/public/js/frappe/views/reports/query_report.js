@@ -93,6 +93,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	set_default_secondary_action() {
 		this.refresh_button && this.refresh_button.remove();
+		this.print_button && this.print_button.remove();
 		this.refresh_button = this.page.add_action_icon(
 			"refresh-cw",
 			() => {
@@ -102,6 +103,14 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			"",
 			__("Reload Report")
 		);
+		if (frappe.model.can_print(this.report_doc?.ref_doctype)) {
+			this.print_button = this.page.add_action_icon(
+				"printer",
+				() => this.open_print_view(),
+				"",
+				__("Print")
+			);
+		}
 	}
 
 	get_no_result_message() {
@@ -1689,11 +1698,23 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	async pdf_report(print_settings) {
-		const format = await this.resolve_print_format(print_settings);
-
 		this.make_access_log("Print", "PDF");
 		frappe.show_alert({ message: __("Generating PDF..."), indicator: "blue" }, 5);
 
+		const out = await this.get_print_html(print_settings);
+		if (!out) return;
+
+		print_settings.report_name = this.get_pdf_filename();
+		frappe.render_pdf(out.html, print_settings);
+	}
+
+	open_print_view(route_options) {
+		this.get_validated_visible_indexes();
+		frappe.set_route("report-print", this.report_name, route_options || {});
+	}
+
+	async get_print_html(print_settings) {
+		const format = await this.resolve_print_format(print_settings);
 		const opts = await this.build_print_opts(print_settings, format);
 		if (!opts) return;
 
@@ -1705,9 +1726,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			lang: frappe.boot.lang,
 			layout_direction: frappe.utils.is_rtl() ? "rtl" : "ltr",
 		});
-
-		print_settings.report_name = this.get_pdf_filename();
-		frappe.render_pdf(html, print_settings);
+		return { html, format };
 	}
 
 	async build_print_opts(print_settings, format) {
@@ -2082,40 +2101,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			},
 			{
 				label: __("Print"),
-
-				action: () => {
-					this.get_validated_visible_indexes();
-
-					let dialog = frappe.ui.get_print_settings(
-						false,
-						(print_settings) => this.print_report(print_settings),
-						this.report_doc.default_letter_head,
-						this.get_visible_columns(),
-						true,
-						null,
-						this.report_doc.default_print_format
-					);
-					this.add_portrait_warning(dialog);
-				},
-				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
-				standard: true,
-			},
-			{
-				label: __("PDF"),
-				action: () => {
-					this.get_validated_visible_indexes();
-
-					let dialog = frappe.ui.get_print_settings(
-						false,
-						(print_settings) => this.pdf_report(print_settings),
-						this.report_doc.letter_head,
-						this.get_visible_columns(),
-						true,
-						"PDF Settings",
-						this.report_doc.default_print_format
-					);
-					this.add_portrait_warning(dialog);
-				},
+				action: () => this.open_print_view(),
 				condition: () => frappe.model.can_print(this.report_doc.ref_doctype),
 				standard: true,
 			},
@@ -2304,19 +2290,6 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		}
 
 		return items;
-	}
-
-	add_portrait_warning(dialog) {
-		if (this.columns.length > 10) {
-			dialog.set_df_property("orientation", "change", () => {
-				let value = dialog.get_value("orientation");
-				let description =
-					value === "Portrait"
-						? __("Report with more than 10 columns looks better in Landscape mode.")
-						: "";
-				dialog.set_df_property("orientation", "description", description);
-			});
-		}
 	}
 
 	add_custom_column(custom_column, custom_data, new_column_data, insert_after_index) {
@@ -2555,7 +2528,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	toggle_print_buttons(show) {
 		const menu = this.page.menu;
 		menu.find('[data-label="Print"]').parent().parent().toggle(show);
-		menu.find('[data-label="PDF"]').parent().parent().toggle(show);
+		this.print_button?.toggle(show);
 	}
 
 	get_checked_items(only_docnames) {
