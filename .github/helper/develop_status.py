@@ -53,7 +53,7 @@ def fixed_after(workflow, failed_run):
 		sha = gh(f"repos/{REPO}/pulls/{item['number']}")["head"]["sha"]
 		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?head_sha={sha}&event=pull_request")
 		run = next(iter(runs["workflow_runs"]), None)
-		if run and run["run_started_at"] > failed_run["created_at"] and suite_passed(run, workflow):
+		if run and suite_passed(run, workflow):
 			return True
 	return False
 
