@@ -367,6 +367,23 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		):
 			self.assertEqual(frappe.get_print("ToDo", todo.name, as_pdf=True), b"%PDF-typst")
 
+	def test_typst_pdf_skips_the_html_print_view(self):
+		from unittest.mock import patch
+
+		from frappe.www import printview
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		with patch.object(printview, "get_context", wraps=printview.get_context) as get_context:
+			frappe.get_print("ToDo", todo.name, print_format.name, as_pdf=True)
+
+		get_context.assert_not_called()
+
 	def test_unknown_pdf_generator_uses_print_settings_default(self):
 		from unittest.mock import patch
 

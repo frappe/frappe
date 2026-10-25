@@ -129,7 +129,7 @@ def get_print(
 		standard_pdf_options = set(pdf_options) <= {"password"}
 		if (
 			as_pdf
-			and generator in HTML_PDF_GENERATORS
+			and (generator in HTML_PDF_GENERATORS or (pf_doc and generator == "Typst"))
 			and ((pf_doc is None and standard_pdf_options) or (pf_doc and uses_beta_renderer(pf_doc)))
 		):
 			from frappe.core.doctype.access_log.access_log import make_access_log
