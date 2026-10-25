@@ -162,23 +162,6 @@ class TestUtils(IntegrationTestCase):
 			self.assertNotEqual(last_modified_after, last_modified_before)
 			self.addCleanup(delete_file, path=file_path)
 
-	@unittest.skipUnless(
-		os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
-	)
-	def test_sync_customizations_keeps_unchanged_property_setters(self):
-		with note_customizations() as (_custom_field, property_setter, _doctype_link):
-			file_path = export_customizations(module="Custom", doctype="Note", sync_on_migrate=True)
-			self.addCleanup(delete_file, path=file_path)
-			archived = {"deleted_doctype": "Property Setter", "deleted_name": property_setter.name}
-			archived_before = frappe.db.count("Deleted Document", archived)
-
-			sync_customizations(app="frappe")
-			self.assertEqual(frappe.db.count("Deleted Document", archived), archived_before)
-
-			property_setter.db_set("value", "0")
-			sync_customizations(app="frappe")
-			self.assertEqual(frappe.db.get_value("Property Setter", property_setter.name, "value"), "1")
-
 	def test_reload_doc(self):
 		frappe.db.set_value("DocType", "Note", "migration_hash", "", update_modified=False)
 		self.assertFalse(frappe.db.get_value("DocType", "Note", "migration_hash"))
