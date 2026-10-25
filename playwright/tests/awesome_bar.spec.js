@@ -152,3 +152,18 @@ test.describe("Awesome Bar page results", () => {
 		expect(routes(found.regular)).toContain("dashboard-view");
 	});
 });
+
+test.describe("Awesome Bar shortcut", () => {
+	const is_open = (page) => page.evaluate(() => frappe.app.awesome_bar.is_open());
+
+	test("numpad plus with ctrl does not open the awesome bar", async ({ page, desk }) => {
+		await page.goto("/desk/todo");
+		await desk.ready();
+
+		await page.keyboard.press("Control+NumpadAdd");
+		expect(await is_open(page)).toBe(false);
+
+		await page.keyboard.press("Control+k");
+		await expect.poll(() => is_open(page)).toBe(true);
+	});
+});
