@@ -95,20 +95,6 @@ def prepare_webform_test():
 
 
 @whitelist_for_tests
-def create_communication_record():
-	doc = frappe.get_doc(
-		{
-			"doctype": "Communication",
-			"recipients": "test@gmail.com",
-			"subject": "Test Form Communication 1",
-			"communication_date": frappe.utils.now_datetime(),
-		}
-	)
-	doc.insert()
-	return doc
-
-
-@whitelist_for_tests
 def setup_workflow():
 	from frappe.workflow.doctype.workflow.test_workflow import create_todo_workflow
 
@@ -188,56 +174,6 @@ def insert_contact(first_name, phone_number):
 	doc = frappe.get_doc({"doctype": "Contact", "first_name": first_name})
 	doc.append("phone_nos", {"phone": phone_number})
 	doc.insert()
-
-
-@whitelist_for_tests
-def create_form_tour():
-	if frappe.db.exists("Form Tour", {"name": "Test Form Tour"}):
-		return
-
-	tour = frappe.get_doc(
-		{
-			"doctype": "Form Tour",
-			"title": "Test Form Tour",
-			"reference_doctype": "Contact",
-			"save_on_complete": 1,
-			"steps": [
-				{
-					"title": "Test Title 1",
-					"description": "Test Description 1",
-					"has_next_condition": 1,
-					"next_step_condition": "eval: doc.first_name",
-					"fieldname": "first_name",
-					"fieldtype": "Data",
-				},
-				{
-					"title": "Test Title 2",
-					"description": "Test Description 2",
-					"has_next_condition": 1,
-					"next_step_condition": "eval: doc.last_name",
-					"fieldname": "last_name",
-					"fieldtype": "Data",
-				},
-				{
-					"title": "Test Title 3",
-					"description": "Test Description 3",
-					"fieldname": "phone_nos",
-					"fieldtype": "Table",
-				},
-				{
-					"title": "Test Title 4",
-					"description": "Test Description 4",
-					"is_table_field": 1,
-					"parent_fieldname": "phone_nos",
-					"next_step_condition": "eval: doc.phone",
-					"has_next_condition": 1,
-					"fieldname": "phone",
-					"fieldtype": "Data",
-				},
-			],
-		}
-	)
-	tour.insert()
 
 
 @whitelist_for_tests
