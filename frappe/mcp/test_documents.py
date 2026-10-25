@@ -102,9 +102,10 @@ class TestGetDocuments(McpTestCase):
 		self.assertFalse(result["has_next_page"])
 		self.assertEqual(self.result(doctype="ToDo", filters=filters, tool="count_documents")["result"], 0)
 
-	def test_no_mcp_page_size_cap(self):
-		result = self.result(doctype="ToDo", filters=self.filters, limit=101)
+	def test_page_size_is_capped(self):
+		result = self.result(doctype="ToDo", filters=self.filters, limit=100)
 		self.assertEqual(len(result["documents"]), 3)
+		self.assertTrue(self.read(doctype="ToDo", filters=self.filters, limit=101).json["result"]["isError"])
 
 	def test_missing_document_and_doctype(self):
 		for arguments in (
