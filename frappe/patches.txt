@@ -312,7 +312,6 @@ frappe.studio.doctype.studio_page.patches.migrate_blocks_to_frappe_ui_v1
 frappe.studio.doctype.studio_page.patches.migrate_charts_to_frappe_ui_charts
 frappe.studio.doctype.studio_page.patches.migrate_get_icon_calls
 execute:frappe.db.set_single_value("System Settings", "enable_mcp", 1)
-execute:frappe.db.set_single_value("System Settings", "allow_mcp_delete", 1)
 
 
 [post_fixture_sync]
