@@ -209,7 +209,7 @@ def get_rendered_template(
 ) -> str:
 	validate_print_permission(doc)
 
-	print_settings = frappe.get_single("Print Settings").as_dict()
+	print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 	print_settings.update(get_allowed_print_settings_override(doc, settings))
 
 	if isinstance(no_letterhead, str):
@@ -467,7 +467,7 @@ def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = 
 		return
 
 	if print_settings is None:
-		print_settings = frappe.get_single("Print Settings").as_dict()
+		print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 
 	if doc.docstatus.is_draft() and not cint(print_settings.get("allow_print_for_draft")):
 		frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
@@ -692,7 +692,7 @@ def has_value(df: "DocField", doc: "Document") -> bool:
 def get_print_style(
 	style: str | None = None, print_format: "PrintFormat" | None = None, for_legacy: bool = False
 ) -> str:
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = frappe.get_cached_doc("Print Settings")
 
 	if not style:
 		style = print_settings.print_style or ""
