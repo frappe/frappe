@@ -407,6 +407,8 @@ class Workspace(Document, DeskViews):
 		frappe.delete_doc_if_exists("Desktop Icon", self.name)
 
 	def after_delete(self):
+		self.keep_copy_for_restore()
+
 		if disable_saving_as_public():
 			return
 
@@ -417,6 +419,35 @@ class Workspace(Document, DeskViews):
 		# no folder to remove for such a page either.
 		if self.can_export() and frappe.db.exists("Module Def", self.module):
 			delete_folder(self.module, "Workspace", self.title)
+
+	def keep_copy_for_restore(self):
+		"""Keep the old row when an import replaces a workspace the site had edited.
+
+		A reload-delete writes no Deleted Document, so once a newer app version drops a
+		shipped shortcut or card, the rows an edited layout pointed at are gone for good. The
+		restore page (frappe/desk/page/workspace_restore) reads them back from this copy. A
+		workspace with no Version rows was never edited here and needs no copy. Once an import
+		after the last edit has kept one, later imports replace the app's own row and keep nothing.
+		"""
+		if not frappe.flags.in_import:
+			return
+		last_edit = frappe.db.get_value(
+			"Version",
+			{"ref_doctype": "Workspace", "docname": self.name},
+			"creation",
+			order_by="creation desc",
+		)
+		if not last_edit:
+			return
+		if frappe.db.exists(
+			"Deleted Document",
+			{"deleted_doctype": "Workspace", "deleted_name": self.name, "creation": (">", last_edit)},
+		):
+			return
+
+		from frappe.model.delete_doc import add_to_deleted_document
+
+		add_to_deleted_document(self)
 
 	@staticmethod
 	def rename_private_workspaces(old_name, new_name):
@@ -558,7 +589,7 @@ def sanitize_content(content: str | None) -> str | None:
 	left.
 
 	`content` is a Long Text field holding a JSON document, and every write of a Long Text field
-	goes through the XSS sanitizer (`BaseDocument._sanitize_content`). That sanitizer reads the
+	goes through the XSS sanitizer (`Document._sanitize_content`). That sanitizer reads the
 	whole field as HTML, so the markup a header block carries, such as `<span class=\\"h4\\">` with
 	quotes escaped because it lives inside a JSON string, comes back as `class="\\&quot;h4\\&quot;"`
 	and the field is no longer JSON. Every reader then raises, and the desk itself reads `Home`.

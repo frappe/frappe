@@ -123,7 +123,7 @@ frappe.Application = class Application {
 
 	setup_tours() {
 		if (
-			!window.Cypress &&
+			!navigator.webdriver &&
 			frappe.boot.onboarding_tours &&
 			frappe.boot.user.onboarding_status != null
 		) {
@@ -440,7 +440,6 @@ frappe.Application = class Application {
 	}
 	logout() {
 		var me = this;
-		me.logged_out = true;
 		frappe.confirm(__("Are you sure you want to log out?"), function () {
 			return frappe.call({
 				method: "logout",
@@ -449,6 +448,7 @@ frappe.Application = class Application {
 						return;
 					}
 
+					me.logged_out = true;
 					me.redirect_to_login();
 				},
 			});
@@ -511,7 +511,7 @@ frappe.Application = class Application {
 		if (
 			!Array.isArray(change_log) ||
 			!change_log.length ||
-			window.Cypress ||
+			navigator.webdriver ||
 			frappe.defaults.is_enabled("disable_change_log_notification")
 		) {
 			return;
@@ -542,12 +542,8 @@ frappe.Application = class Application {
 	}
 
 	set_desktop_page_class() {
-		// The two /app/desktop pages share CSS class names (.desktop-wrapper, .desktop-icon),
-		// so desktop.css scopes each set to one of these body classes. Exactly one is present.
-		const desktop_icons = frappe.boot.desktop_page === "Desktop Icons";
-		$("body")
-			.toggleClass("desktop-icons-page", desktop_icons)
-			.toggleClass("apps-page", !desktop_icons);
+		// desktop.css scopes its rules to this class. Both forms of /app/desktop share them.
+		$("body").addClass("desktop-page");
 	}
 
 	set_fullwidth_if_enabled() {

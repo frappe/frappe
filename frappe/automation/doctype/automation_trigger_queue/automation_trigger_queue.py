@@ -77,6 +77,9 @@ def _waiting_states_sql() -> str:
 
 
 def _ensure_partial_dedup_index():
+	"""Rebuild the partial index whenever its predicate no longer matches WAITING_STATES."""
+	if _covers_waiting_states(_get_partial_dedup_index_definition()):
+		return
 	# Raw DDL throughout: the query builder does not create indexes or generated columns.
 	frappe.db.sql_ddl(f"DROP INDEX IF EXISTS `{DEDUP_INDEX}`")
 	frappe.db.sql_ddl(
@@ -97,9 +100,28 @@ def _ensure_dedup_column():
 		""",
 		TABLE,
 	)
-	if expression and all(state in (expression[0][0] or "") for state in WAITING_STATES):
+	if expression and _covers_waiting_states(expression[0][0]):
 		return
 	_rebuild_dedup_column()
+
+
+def _get_partial_dedup_index_definition() -> str | None:
+	# Raw SQL: the catalogs are not DocTypes.
+	if frappe.db.db_type == "postgres":
+		definition = frappe.db.sql(
+			"SELECT indexdef FROM pg_indexes WHERE schemaname = %s AND indexname = %s",
+			(frappe.db.db_schema, DEDUP_INDEX),
+			pluck=True,
+		)
+	else:
+		definition = frappe.db.sql(
+			"SELECT sql FROM sqlite_master WHERE type = 'index' AND name = %s", (DEDUP_INDEX,), pluck=True
+		)
+	return definition[0] if definition else None
+
+
+def _covers_waiting_states(definition: str | None) -> bool:
+	return bool(definition) and all(state in definition for state in WAITING_STATES)
 
 
 def _rebuild_dedup_column():

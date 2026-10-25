@@ -86,9 +86,8 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 			size: this.size,
 			primary_action_label: this.primary_action_label || __("Get Items"),
 			secondary_action_label: __("Make {0}", [__(this.doctype)]),
-			primary_action: () => {
+			primary_action: (data_values) => {
 				let filters_data = this.get_custom_filters();
-				const data_values = cur_dialog.get_values(); // to pass values of data fields
 				const filtered_children = this.get_selected_child_names();
 				const selected_documents = [
 					...this.get_checked_values(),
@@ -317,9 +316,6 @@ frappe.ui.form.MultiSelectDialog = class MultiSelectDialog {
 				}
 			},
 		});
-		// 'Apply Filter' breaks since the filers are not in a popover
-		// Hence keeping it hidden
-		this.filter_group.wrapper.find(".apply-filters").hide();
 	}
 
 	get_custom_filters() {

@@ -105,6 +105,7 @@ class TestDashboardConnections(IntegrationTestCase):
 				"external_links_found": [
 					{
 						"doctype": "Test Doctype B With Child Table With Link To Doctype A",
+						"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
 						"open_count": 0,
 						"count": 1,
 					}
@@ -155,6 +156,7 @@ class TestDashboardConnections(IntegrationTestCase):
 			[
 				{
 					"doctype": "Test Doctype C With Duplicate Link To Doctype A",
+					"fieldname": "test_doctype_a_with_test_child_table_with_link_to_doctype_b",
 					"open_count": 0,
 					"count": 1,
 					"names": ["Voyager"],
@@ -226,6 +228,41 @@ class TestDashboardConnections(IntegrationTestCase):
 		todo = TestCustomizeForm().get_customize_form("ToDo")
 		todo.links = todo.links[:-2]
 		todo.run_method("save_customization")
+
+	def test_external_link_count_per_link_fieldname(self):
+		todo = frappe.get_doc(doctype="ToDo", description="test", allocated_to="test@example.com").insert()
+		frappe.get_doc(doctype="Test Doctype D", title="d-001", doclink=todo.name).insert()
+
+		dashboard = frappe._dict(
+			non_standard_fieldnames={"Test Doctype D": "follow_up"},
+			transactions=[
+				{"label": "Linked", "items": ["Test Doctype D"], "fieldnames": {"Test Doctype D": "doclink"}},
+				{
+					"label": "Follow Up",
+					"items": ["Test Doctype D"],
+					"fieldnames": {"Test Doctype D": "follow_up"},
+				},
+			],
+		)
+
+		# an internal link with no rows falls back to counting the external links
+		for internal_and_external_links in ({}, {"Test Doctype D": ["child_table", "doclink"]}):
+			dashboard.internal_and_external_links = internal_and_external_links
+
+			with (
+				self.subTest(internal_and_external_links=internal_and_external_links),
+				self.set_user("test@example.com"),
+				patch.object(todo.meta, "get_dashboard_data", return_value=dashboard),
+			):
+				connections = get_open_count("ToDo", todo.name)["count"]
+
+				self.assertEqual(
+					connections["external_links_found"],
+					[
+						{"doctype": "Test Doctype D", "fieldname": "doclink", "open_count": 0, "count": 1},
+						{"doctype": "Test Doctype D", "fieldname": "follow_up", "open_count": 0, "count": 0},
+					],
+				)
 
 	def test_open_count_restores_the_execution_timeout(self):
 		execution_timeout = frappe.db.get_execution_timeout()
@@ -456,6 +493,12 @@ def create_linked_doctypes():
 				"fieldname": "doclink",
 				"fieldtype": "Link",
 				"label": "DocLink",
+				"options": "ToDo",
+			},
+			{
+				"fieldname": "follow_up",
+				"fieldtype": "Link",
+				"label": "Follow Up",
 				"options": "ToDo",
 			},
 		],

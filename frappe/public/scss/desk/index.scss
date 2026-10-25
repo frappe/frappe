@@ -16,6 +16,7 @@
 @import "navbar";
 @import "search_widget";
 @import "../common/modal";
+@import "../common/email_composer";
 @import "settings_dialog";
 @import "user_settings_dialog";
 @import "doctype_settings";
@@ -33,6 +34,7 @@
 @import "main";
 @import "sidebar";
 @import "sidebar_panel";
+@import "mobile_nav";
 @import "dock";
 @import "list_sidebar";
 @import "form_sidebar";
@@ -46,6 +48,7 @@
 @import "frappe_gantt";
 @import "image_view";
 @import "kanban";
+@import "kanban_v2";
 @import "calendar";
 @import "dashboard_view";
 @import "charts";
@@ -66,3 +69,4 @@
 @import "card";
 @import "arrangement_editor";
 @import "document_template";
+@import "email_account";

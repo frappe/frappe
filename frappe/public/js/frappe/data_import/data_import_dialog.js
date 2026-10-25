@@ -8,6 +8,7 @@ frappe.data_import.open_data_import_dialog = function ({
 	reference_doctype = null,
 	import_type = "Insert New Records",
 	title = null,
+	on_close = null,
 } = {}) {
 	if (!data_import && !reference_doctype) {
 		frappe.throw(
@@ -21,12 +22,12 @@ frappe.data_import.open_data_import_dialog = function ({
 	// The meta carries the form script that mounts the wizard.
 	frappe.model.with_doctype("Data Import", () => {
 		frappe.require("data_import_wizard.bundle.js", () => {
-			_open({ data_import, reference_doctype, import_type, title });
+			_open({ data_import, reference_doctype, import_type, title, on_close });
 		});
 	});
 };
 
-function _open({ data_import, reference_doctype, import_type, title }) {
+function _open({ data_import, reference_doctype, import_type, title, on_close }) {
 	const dialog = new frappe.ui.Dialog({
 		title:
 			title || (data_import ? __("Data Import") : __("Import {0}", [__(reference_doctype)])),
@@ -87,5 +88,6 @@ function _open({ data_import, reference_doctype, import_type, title }) {
 		}
 		removeEventListener("beforeunload", frm.beforeUnloadListener, { capture: true });
 		if (window.cur_frm === frm) window.cur_frm = null;
+		on_close?.();
 	});
 }

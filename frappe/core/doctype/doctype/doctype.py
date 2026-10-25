@@ -15,7 +15,11 @@ from frappe.cache_manager import clear_controller_cache, clear_user_cache
 from frappe.custom.doctype.custom_field.custom_field import create_custom_field
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.database import savepoint
-from frappe.database.schema import validate_column_length, validate_column_name
+from frappe.database.schema import (
+	validate_column_length,
+	validate_column_name,
+	validate_table_name_length,
+)
 from frappe.desk.notifications import delete_notification_count_for, get_filters_for
 from frappe.desk.utils import validate_route_conflict
 from frappe.model import (
@@ -25,9 +29,8 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
-from frappe.model.document import Document
+from frappe.model.document import RESERVED_KEYWORDS, Document, get_controller
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
@@ -139,6 +142,7 @@ class DocType(Document):
 		is_virtual: DF.Check
 		issingle: DF.Check
 		istable: DF.Check
+		link_display_mode: DF.Literal["Search", "Select"]
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -170,6 +174,7 @@ class DocType(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_image_in_link: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -184,6 +189,25 @@ class DocType(Document):
 		track_views: DF.Check
 		translated_doctype: DF.Check
 	# end: auto-generated types
+
+	def before_insert(self):
+		if not self.istable and not self.permissions:
+			self.append(
+				"permissions",
+				{
+					"role": "System Manager",
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"export": 1,
+					"share": 1,
+					"print": 1,
+					"email": 1,
+					"submit": 1 if self.is_submittable else 0,
+				},
+			)
 
 	def validate(self):
 		"""Validate DocType before saving.
@@ -1104,15 +1128,7 @@ class DocType(Document):
 		if not name:
 			name = self.name
 
-		# a Doctype name is the tablename created in database
-		# `tab<Doctype Name>` the length of tablename is limited to 64 characters
-		max_length = frappe.db.MAX_COLUMN_LENGTH - 3
-		if len(name) > max_length:
-			# length(tab + <Doctype Name>) should be equal to 64 characters hence doctype should be 61 characters
-			frappe.throw(
-				_("Doctype name is limited to {0} characters ({1})").format(max_length, name),
-				frappe.NameError,
-			)
+		validate_table_name_length(name)
 
 		# a DocType name should not start or end with an empty space
 		if WHITESPACE_PADDING_PATTERN.search(name):
@@ -1130,7 +1146,7 @@ class DocType(Document):
 				title="Invalid Name",
 			)
 
-		validate_route_conflict(self.doctype, self.name)
+		validate_route_conflict(self.doctype, name, self.name)
 
 	@frappe.whitelist()
 	def check_pending_migration(self) -> bool:

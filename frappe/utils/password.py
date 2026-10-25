@@ -1,6 +1,9 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import unicodedata
+from functools import lru_cache
+
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
 from pypika.terms import Values
@@ -11,6 +14,7 @@ from frappe.query_builder import Table
 from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
+MAX_PASSWORD_SIZE = 512
 
 passlibctx = CryptContext(
 	schemes=[
@@ -18,6 +22,28 @@ passlibctx = CryptContext(
 		"argon2",
 	],
 )
+
+
+def normalize_password(pwd):
+	"""Same text typed as NFC or NFD must hash the same (RFC 8265)."""
+	return unicodedata.normalize("NFC", pwd)
+
+
+def validate_password_size(pwd, label=None):
+	if len(pwd) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(label or _("Password")))
+
+
+def verify_password(pwd, hashed):
+	normalized = normalize_password(pwd)
+	if passlibctx.verify(normalized, hashed):
+		return True, passlibctx.needs_update(hashed)
+
+	# hash saved before normalization, check raw input as before, rehash on match
+	if normalized != pwd and passlibctx.verify(pwd, hashed):
+		return True, True
+
+	return False, False
 
 
 def get_decrypted_password(doctype, name, fieldname="password", raise_exception=True):
@@ -99,11 +125,23 @@ def is_password_reused(user, pwd, doctype="User", fieldname="password"):
 		.run(as_dict=True)
 	)
 
-	return bool(result and passlibctx.verify(pwd, result[0].password))
+	return bool(result and verify_password(pwd, result[0].password)[0])
+
+
+@lru_cache(maxsize=1)
+def _placeholder_hash() -> str:
+	return passlibctx.hash(frappe.generate_hash())
+
+
+def verify_against_placeholder(pwd):
+	"""Spend the time of a real verification, so a missing password cannot be told from a wrong one."""
+	verify_password(pwd, _placeholder_hash())
 
 
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
+
+	validate_password_size(pwd)
 
 	result = (
 		frappe.qb.from_(Auth)
@@ -118,7 +156,12 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 		.run(as_dict=True)
 	)
 
-	if not result or not passlibctx.verify(pwd, result[0].password):
+	if result:
+		matched, needs_rehash = verify_password(pwd, result[0].password)
+	else:
+		verify_against_placeholder(pwd)
+		matched = needs_rehash = False
+	if not matched:
 		raise frappe.AuthenticationError(_("Incorrect User or Password"))
 
 	# lettercase agnostic
@@ -130,14 +173,16 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 	if delete_tracker_cache:
 		delete_login_failed_cache(user)
 
-	if passlibctx.needs_update(result[0].password):
+	if needs_rehash:
 		update_password(user, pwd, doctype, fieldname)
 
 	return user
 
 
 def delete_login_failed_cache(user):
-	frappe.cache.hdel("login_failed_count", user)
+	from frappe.auth import LoginAttemptTracker
+
+	LoginAttemptTracker(user).add_success_attempt()
 
 
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):
@@ -150,7 +195,9 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
-	hashPwd = passlibctx.hash(pwd)
+
+	validate_password_size(pwd)
+	hashPwd = passlibctx.hash(normalize_password(pwd))
 
 	query = frappe.qb.into(Auth).columns(
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted

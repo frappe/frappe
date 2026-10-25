@@ -11,13 +11,24 @@ from frappe import _
 from frappe.core.doctype.role.role import get_info_based_on_role, get_user_info
 from frappe.core.doctype.sms_settings.sms_settings import _send_sms as send_via_sms_gateway
 from frappe.desk.doctype.notification_log.notification_log import enqueue_create_notification
-from frappe.integrations.doctype.slack_webhook_url.slack_webhook_url import send_slack_message
+from frappe.integrations.doctype.notification_webhook_url.notification_webhook_url import (
+	NotificationWebhookURL,
+)
 from frappe.model.document import Document
 from frappe.modules.utils import export_module_json, get_doc_module
-from frappe.utils import add_to_date, cast, cint, now_datetime, nowdate, validate_email_address
+from frappe.utils import (
+	add_to_date,
+	cast,
+	cint,
+	get_email_address,
+	now_datetime,
+	nowdate,
+	validate_email_address,
+)
 from frappe.utils.data import evaluate_filters
 from frappe.utils.jinja import validate_template
 from frappe.utils.safe_exec import get_safe_globals
+from frappe.www.printview import validate_print_for_docstatus
 
 FORMATS = {"HTML": ".html", "Markdown": ".md", "Plain Text": ".txt"}
 FORBIDDEN_DOCUMENT_TYPES = frozenset(("Email Queue",))
@@ -38,7 +49,7 @@ class Notification(Document):
 
 		attach_files: DF.Literal["", "From Field", "All"]
 		attach_print: DF.Check
-		channel: DF.Literal["Email", "Slack", "System Notification", "SMS"]
+		channel: DF.Literal["Email", "Webhook", "System Notification", "SMS"]
 		condition: DF.Code | None
 		condition_type: DF.Literal["Python", "Filters"]
 		date_changed: DF.Literal[None]
@@ -70,6 +81,7 @@ class Notification(Document):
 		minutes_offset: DF.Int
 		module: DF.Link | None
 		notification_type: DF.Link | None
+		notification_webhook_url: DF.Link | None
 		print_format: DF.Link | None
 		property_value: DF.Data | None
 		recipients: DF.Table[NotificationRecipient]
@@ -78,10 +90,19 @@ class Notification(Document):
 		sender: DF.Link | None
 		sender_email: DF.Data | None
 		set_property_after_alert: DF.Literal[None]
-		slack_webhook_url: DF.Link | None
 		subject: DF.Data | None
 		value_changed: DF.Literal[None]
 	# end: auto-generated types
+
+	@classmethod
+	def prepare_for_import(cls, docdict: dict) -> None:
+		"""Normalize Slack notifications shipped by older app fixtures and JSON exports."""
+		if docdict.get("channel") != "Slack":
+			return
+		docdict["channel"] = "Webhook"
+		if not docdict.get("notification_webhook_url") and docdict.get("slack_webhook_url"):
+			docdict["notification_webhook_url"] = docdict["slack_webhook_url"]
+		docdict.pop("slack_webhook_url", None)
 
 	def onload(self):
 		"""load message"""
@@ -153,10 +174,16 @@ class Notification(Document):
 		self.remove_invalid_condition()
 
 	def validate(self):
-		if self.channel in ("Email", "Slack", "System Notification"):
+		if self.channel in ("Email", "Webhook", "System Notification"):
 			validate_template(self.subject)
 
 		validate_template(self.message)
+		if self.channel == "Webhook" and not self.notification_webhook_url:
+			frappe.throw(
+				_("Notification Webhook URL is required for the Webhook channel"),
+				frappe.MandatoryError,
+				title=_("Missing Webhook URL"),
+			)
 
 		if self.event in ("Days Before", "Days After") and not self.date_changed:
 			frappe.throw(_("Please specify which date field must be checked"))
@@ -434,8 +461,8 @@ def get_context(context):
 
 			if self.channel == "Email":
 				self.send_an_email(doc, context, template_content)
-			elif self.channel == "Slack":
-				self.send_a_slack_msg(doc, context)
+			elif self.channel == "Webhook":
+				self.send_webhook_message(doc, context)
 			elif self.channel == "SMS":
 				self.send_sms(doc, context)
 			elif self.channel == "System Notification":
@@ -581,10 +608,16 @@ def get_context(context):
 			communication=communication,
 		)
 
-	def send_a_slack_msg(self, doc, context):
-		send_slack_message(
-			webhook_url=self.slack_webhook_url,
-			message=frappe.render_template(self.message, context, restrict_globals=True),
+	def send_webhook_message(self, doc, context):
+		if not self.notification_webhook_url:
+			return
+		webhook: NotificationWebhookURL = frappe.get_doc(  # type: ignore[assignment]
+			"Notification Webhook URL",
+			self.notification_webhook_url,
+		)
+		message: str = frappe.render_template(self.message, context, restrict_globals=True)  # type: ignore[assignment]
+		webhook.send(
+			message=message,
 			reference_doctype=get_reference_doctype(doc),
 			reference_name=get_reference_name(doc),
 		)
@@ -643,11 +676,15 @@ def get_context(context):
 				if child_field:
 					for d in doc.get(child_field):
 						email_id = d.get(data_field)
+						if email_id == "Administrator":
+							email_id = get_email_address("Administrator")
 						if validate_email_address(email_id):
 							recipients.append(email_id)
 				# field from current doc
 				else:
 					email_ids_value = doc.get(data_field)
+					if email_ids_value == "Administrator":
+						email_ids_value = get_email_address("Administrator")
 					if validate_email_address(email_ids_value):
 						email_ids = email_ids_value.replace(",", "\n")
 						recipients = recipients + email_ids.split("\n")
@@ -726,29 +763,20 @@ def get_context(context):
 		"""check print settings and return dict with print info"""
 
 		print_settings = frappe.get_doc("Print Settings", "Print Settings")
-		if (doc.docstatus == 0 and not print_settings.allow_print_for_draft) or (
-			doc.docstatus == 2 and not print_settings.allow_print_for_cancelled
-		):
-			# ignoring attachment as draft and cancelled documents are not allowed to print
-			status = "Draft" if doc.docstatus == 0 else "Cancelled"
-			frappe.throw(
-				_(
-					"""Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"""
-				).format(status),
-				title=_("Error in Notification"),
-			)
-		else:
-			return {
-				"print_format_attachment": 1,
-				"doctype": doc.doctype,
-				"name": doc.name,
-				"print_format": self.print_format,
-				"print_letterhead": print_settings.with_letterhead,
-				"lang": doc.get("language")
-				or frappe.db.get_value("Print Format", self.print_format, "default_print_language")
+		validate_print_for_docstatus(doc, print_settings.as_dict())
+		return {
+			"print_format_attachment": 1,
+			"doctype": doc.doctype,
+			"name": doc.name,
+			"print_format": self.print_format,
+			"print_letterhead": print_settings.with_letterhead,
+			"lang": doc.get("language")
+			or (
+				frappe.db.get_value("Print Format", self.print_format, "default_print_language")
 				if self.print_format
-				else "en",
-			}
+				else "en"
+			),
+		}
 
 	def get_template(self, md_as_html=False):
 		module = get_doc_module(self.module, self.doctype, self.name)

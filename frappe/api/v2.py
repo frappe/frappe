@@ -19,7 +19,8 @@ from frappe import _, cint, cstr, get_newargs, is_whitelisted
 from frappe.api import discovery
 from frappe.core.doctype.server_script.server_script_utils import get_server_script_map
 from frappe.database.utils import DefaultOrderBy
-from frappe.handler import is_valid_http_method, run_server_script, upload_file
+from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
+from frappe.mcp import handle as handle_mcp
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -58,12 +59,7 @@ def handle_rpc_call(method: str, doctype: str | None = None):
 	if server_script:
 		return run_server_script(server_script)
 
-	try:
-		method = frappe.get_attr(method)
-	except frappe.AppNotInstalledError:
-		raise
-	except Exception as e:
-		frappe.throw(_("Failed to get method {0} with {1}").format(method, str(e)))
+	method = resolve_method(method)
 
 	is_whitelisted(method)
 	is_valid_http_method(method)
@@ -132,7 +128,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 						query = query.where(Project.is_private == 0)
 					return query
 	"""
-	from frappe.model.base_document import get_controller
+	from frappe.model.document import get_controller
 
 	args = frappe.form_dict
 	fields: list | None = frappe.parse_json(args.get("fields", None))
@@ -224,6 +220,7 @@ def update_doc(doctype: str, name: str):
 	data = frappe.form_dict
 
 	doc = frappe.get_doc(doctype, name, for_update=True)
+	doc.check_permission("write")
 	data.pop("flags", None)
 	doc.update(data)
 	doc.save()
@@ -585,7 +582,18 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 		kwargs = {}
 
 	assert frappe.request.method in PERMISSION_MAP, "run_doc_method route is only mounted for GET/POST/QUERY"
-	doc = frappe.get_doc(document, check_permission=PERMISSION_MAP[frappe.request.method])
+	doc = frappe.get_doc(document)
+	ptype = PERMISSION_MAP[frappe.request.method]
+	# unsaved docs need create, not write; `__islocal` comes from the client, so check the DB too
+	# (a Single always exists, whatever name the client sends)
+	if (
+		ptype == "write"
+		and doc.is_new()
+		and not doc.meta.issingle
+		and not frappe.db.exists(doc.doctype, doc.name)
+	):
+		ptype = "create"
+	doc.check_permission(ptype)
 	doc._original_modified = doc.modified
 	doc.check_if_latest()
 
@@ -602,6 +610,7 @@ def run_doc_method(method: str, document: dict[str, Any] | str, kwargs=None):
 
 
 url_rules = [
+	Rule("/mcp", methods=["POST", "GET", "DELETE"], endpoint=handle_mcp),
 	# Discovery APIs
 	Rule("/discovery", methods=["GET"], endpoint=discovery.root),
 	Rule(

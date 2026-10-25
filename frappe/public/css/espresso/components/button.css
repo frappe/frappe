@@ -66,6 +66,7 @@
     font-size: var(--text-base);
     font-weight: var(--font-weight-regular);
     line-height: 1;
+    vertical-align: middle;
     outline: none;
     transition: background-color 120ms, border-color 120ms, color 120ms;
 
@@ -92,8 +93,12 @@ a.es-button:focus {
     }
 }
 
+/* an open menu or popover keeps its trigger pressed (Dropdown and Popover set
+   aria-haspopup; plain disclosure toggles only set aria-expanded) */
 .es-button:not([data-variant]):active,
-.es-button[data-variant="subtle"]:active {
+.es-button:not([data-variant])[aria-haspopup][aria-expanded="true"],
+.es-button[data-variant="subtle"]:active,
+.es-button[data-variant="subtle"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-fill-bg-active);
 }
 
@@ -153,7 +158,8 @@ a.es-button:focus {
     }
 }
 
-.es-button[data-variant="solid"]:active {
+.es-button[data-variant="solid"]:active,
+.es-button[data-variant="solid"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-solid-bg-active);
 }
 
@@ -169,7 +175,8 @@ a.es-button:focus {
     }
 }
 
-.es-button[data-variant="outline"]:active {
+.es-button[data-variant="outline"]:active,
+.es-button[data-variant="outline"][aria-haspopup][aria-expanded="true"] {
     border-color: var(--bt-border-hover);
     background: var(--bt-outline-bg-active);
 }
@@ -185,7 +192,8 @@ a.es-button:focus {
     }
 }
 
-.es-button[data-variant="ghost"]:active {
+.es-button[data-variant="ghost"]:active,
+.es-button[data-variant="ghost"][aria-haspopup][aria-expanded="true"] {
     background: var(--bt-fill-bg-active);
 }
 
@@ -274,8 +282,8 @@ a.es-button:focus {
 }
 
 .es-button.btn-danger {
-    --bt-bg: var(--surface-red-5);
-    --bt-fg: var(--ink-white);
-    --bt-hover-bg: var(--surface-red-6);
-    --bt-active-bg: var(--surface-red-7);
+    --bt-solid-bg: var(--surface-red-7);
+    --bt-solid-bg-hover: var(--surface-red-8);
+    --bt-solid-bg-active: var(--surface-red-9);
+    --bt-solid-fg: var(--ink-red-1);
 }

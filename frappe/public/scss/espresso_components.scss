@@ -21,6 +21,8 @@
 
 @import "frappe/public/css/espresso/components/avatar.css";
 
+@import "frappe/public/css/espresso/components/avatar_group.css";
+
 @import "frappe/public/css/espresso/components/alert.css";
 
 @import "frappe/public/css/espresso/components/breadcrumbs.css";
@@ -34,6 +36,9 @@
 @import "frappe/public/css/espresso/components/popover.css";
 /* Modifier on .es-popover — must load after it. */
 @import "frappe/public/css/espresso/components/hover_card.css";
+
+/* Panel is an .es-menu — must load after menu.css. */
+@import "frappe/public/css/espresso/components/combobox.css";
 
 @import "frappe/public/css/espresso/components/tabs.css";
 

@@ -54,6 +54,21 @@ Defaults: `frappe_context=False`, `allow_guest=False`.
 `frappe_context=True` needs the worker thread, so the handler must be a plain
 function. Marking an `async def` handler with it raises at import.
 
+## Acknowledgements
+
+When the client emits with a callback, the handler's return value answers it:
+
+```python
+@realtime.on("project_subscribe")
+async def project_subscribe(socket: Socket, project: str) -> dict:
+    allowed = await socket.has_permission("Project", project)
+    if allowed:
+        await socket.join(f"project:{project}")
+    return {"subscribed": allowed}
+```
+
+With several handlers for one event, the last result that is not `None` is sent.
+
 ## Install scoping (important)
 
 A handler runs only if **its owning app is installed on the connecting site**. The owning app is detected automatically from the import — you do not declare it. So a handler in `your_app/realtime/handlers.py` runs only for sockets on sites that have

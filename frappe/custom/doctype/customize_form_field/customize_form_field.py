@@ -95,6 +95,7 @@ class CustomizeFormField(Document):
 		label: DF.Data | None
 		length: DF.Int
 		link_filters: DF.JSON | None
+		make_attachment_public: DF.Check
 		mandatory_depends_on: DF.Code | None
 		mask: DF.Check
 		max_value: DF.Float

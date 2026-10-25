@@ -211,9 +211,13 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 								: app.app_logo_url,
 							onclick: () => {
 								const route = sidebar.app_landing_route(app) || "/desk";
-								route.startsWith("http")
-									? window.open(route, "_blank")
-									: frappe.set_route(route);
+								if (route.startsWith("http")) {
+									window.open(route, "_blank");
+								} else if (sidebar.is_desk_route(route)) {
+									frappe.set_route(route);
+								} else {
+									window.location.href = route;
+								}
 							},
 						})),
 				},
@@ -380,8 +384,8 @@ frappe.ui.SidebarHeader = class SidebarHeader {
 	// the rail would have carried, which is the app's own logo. The module keeps the title, so
 	// between the two the header still says both.
 	//
-	// `header_icon` is left alone either way: it is the module's icon, and the onboarding widget
-	// reads it as one.
+	// `header_icon` is left alone either way: it stays the module's icon, whichever mark the header
+	// shows.
 	get_header_logo() {
 		if (this.sidebar.dock_enabled()) return this.header_icon;
 		const app = frappe.utils.app_logo(this.sidebar.get_sidebar_app());

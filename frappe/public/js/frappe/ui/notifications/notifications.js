@@ -213,7 +213,7 @@ frappe.ui.notifications = {
 			}
 			$.extend(frappe.route_options, filters);
 		}
-		frappe.set_route("List", doctype);
+		frappe.set_route("List", doctype, "List");
 	},
 };
 
@@ -404,7 +404,6 @@ class NotificationsView extends BaseNotificationsView {
 			method: "frappe.desk.doctype.notification_log.notification_log.get_notification_logs",
 			args: { limit: limit },
 			type: "GET",
-			cache: true,
 		});
 	}
 

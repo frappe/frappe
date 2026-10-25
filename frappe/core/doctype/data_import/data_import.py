@@ -108,6 +108,7 @@ class DataImport(Document):
 		importer = self.get_importer() if (self.import_file or self.google_sheets_url) else None
 		if importer:
 			self.set_payload_count(importer)
+			self.warn_if_no_column_matches(importer)
 			# The same URL can serve new content; changed mappings mean the warnings are stale.
 			mappings_before_sync = _value_mapping_state(self)
 			self.sync_value_mappings_from_import(importer)
@@ -115,6 +116,18 @@ class DataImport(Document):
 				self.template_warnings = ""
 		else:
 			self.set_payload_count()
+
+	def warn_if_no_column_matches(self, importer: Importer) -> None:
+		"""A file with no column for the record itself still saves, so its columns can be mapped next."""
+		if self.reference_doctype in (doctype for doctype, table_df in importer.import_file.header.doctypes):
+			return
+		frappe.msgprint(
+			_(
+				"None of the columns in your file match {0}. Check that it is the right file; if it is, map its columns to {0} fields in the next step."
+			).format(_(self.reference_doctype)),
+			alert=True,
+			indicator="orange",
+		)
 
 	def clear_stale_template_warnings(self, doc_before_save) -> None:
 		"""Clear saved warnings once the file or mappings change, or the wizard stays on Fix Issues."""
@@ -277,6 +290,7 @@ def stop_data_import(doc_name: str):
 		{"data_import": data_import.name},
 		doctype="Data Import",
 		docname=data_import.name,
+		after_commit=True,
 	)
 
 	if not job_was_running:
@@ -309,11 +323,13 @@ def start_import(data_import):
 
 	# A blocked run already sent `data_import_blocked`; a refresh too would reload twice.
 	if not (i and i.blocked_by_warnings):
+		# After the commit, so a reload reads the final status and not In Progress.
 		frappe.publish_realtime(
 			"data_import_refresh",
 			{"data_import": data_import.name},
 			doctype="Data Import",
 			docname=data_import.name,
+			after_commit=True,
 		)
 
 		# list_update is muted while in_import, so send one for the list once the import ends.
@@ -501,6 +517,7 @@ def import_file(doctype, file_path, import_type, submit_after_import=False, cons
 	else:
 		data_import.import_type = "Update Existing Records"
 
+	frappe.set_user_lang(frappe.session.user)
 	i = Importer(doctype=doctype, file_path=file_path, data_import=data_import, console=console)
 	data_import.set_payload_count(i)
 	i.import_data()

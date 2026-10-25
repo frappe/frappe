@@ -25,9 +25,9 @@ export const ListFilterMenu = {
 	get_layout_menu_items() {
 		const active = String(this.active_layout_name || "default_layout");
 		const layout_row = (layout) => ({
-			label: __(layout.filter_name),
+			label: this.get_layout_label(layout),
 			selected: String(layout.name) === active,
-			onclick: () => this.select_layout(layout.name, layout.filter_name),
+			onclick: () => this.select_layout(layout.name, this.get_layout_label(layout)),
 		});
 
 		const global_layouts = (this.filters || []).filter((f) => !f.for_user).map(layout_row);
@@ -144,7 +144,7 @@ export const ListFilterMenu = {
 
 	set_active_layout(layout) {
 		this.active_layout_name = layout.name;
-		this.active_layout_label = layout.filter_name;
+		this.active_layout_label = this.get_layout_label(layout);
 	},
 
 	set_active_default_layout() {
@@ -313,8 +313,8 @@ export const ListFilterMenu = {
 		this._applying_layout = true;
 		lv.last_args = null;
 		lv.sort_by = sort_by;
-		lv.sort_order = sort_order;
-		lv.sort_selector?.set_value(sort_by, sort_order);
+		lv.sort_order = sort_order.toLowerCase();
+		lv.sort_selector?.set_value(sort_by, lv.sort_order);
 
 		const apply_columns = () => {
 			lv.column_max_widths = {};

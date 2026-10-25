@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 
 import frappe
+from frappe import _
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
 from frappe.email.doctype.email_account.email_account import EmailAccount, notify_unreplied
@@ -393,6 +394,33 @@ class TestEmailAccount(IntegrationTestCase):
 
 		with self.assertRaises(Exception):
 			email_account.validate()
+
+	def test_moving_the_default_skips_the_old_default_accounts_checks(self):
+		frappe.db.savepoint("move_default")
+		self.addCleanup(frappe.db.rollback, save_point="move_default")
+		frappe.db.set_value("Email Account", "_Test Email Account 1", "default_outgoing", 1)
+		account = frappe.get_doc(
+			{
+				"doctype": "Email Account",
+				"email_account_name": "_Test Move Default",
+				"email_id": "move-default@example.com",
+				"enable_outgoing": 1,
+				"smtp_server": "smtp.example.com",
+			}
+		).insert()
+
+		def validate(doc):
+			if doc.name == "_Test Email Account 1":
+				frappe.throw(_("This mailbox needs reconnecting"))
+
+		with (
+			self.set_user("test@example.com"),
+			patch.object(EmailAccount, "validate", autospec=True, side_effect=validate),
+		):
+			account.default_outgoing = 1
+			account.save()
+
+		self.assertEqual(frappe.db.get_value("Email Account", "_Test Email Account 1", "default_outgoing"), 0)
 
 	def test_validation_surfaces_imap_auth_error(self):
 		# auth failure on save must raise, not swallow and leak a NONAUTH LIST error

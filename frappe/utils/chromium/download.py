@@ -186,11 +186,7 @@ def get_chromium_download_url():
 		"win64": "%s/win64/chrome-headless-shell-win64.zip",
 	}
 	linux_arm_download_path = {
-		"ubuntu20.04-arm64": "%s/chromium-headless-shell-linux-arm64.zip",
-		"ubuntu22.04-arm64": "%s/chromium-headless-shell-linux-arm64.zip",
-		"ubuntu24.04-arm64": "%s/chromium-headless-shell-linux-arm64.zip",
-		"debian11-arm64": "%s/chromium-headless-shell-linux-arm64.zip",
-		"debian12-arm64": "%s/chromium-headless-shell-linux-arm64.zip",
+		"linux-arm64": "%s/chromium-headless-shell-linux-arm64.zip",
 	}
 
 	platform_key = calculate_platform()
@@ -251,29 +247,7 @@ def calculate_platform():
 
 	# Handle Linux ARM-specific logic
 	if system == "linux" and arch == "aarch64":
-		distro_info = get_linux_distribution_info()
-		distro_id = distro_info.get("id", "")
-		version = distro_info.get("version", "")
-		major_version = int(version.split(".")[0]) if version else 0
-
-		if distro_id == "ubuntu":
-			if major_version < 20:
-				return "ubuntu18.04-arm64"
-			if major_version < 22:
-				return "ubuntu20.04-arm64"
-			if major_version < 24:
-				return "ubuntu22.04-arm64"
-			if major_version < 26:
-				return "ubuntu24.04-arm64"
-			return "<unknown>"
-
-		if distro_id in ["debian", "raspbian"]:
-			if major_version < 11:
-				return "debian10-arm64"
-			if major_version < 12:
-				return "debian11-arm64"
-			return "debian12-arm64"
-		return "<unknown>"
+		return "linux-arm64"
 
 	# Handle other platforms
 	elif system == "linux" and arch == "x86_64":
@@ -288,14 +262,3 @@ def calculate_platform():
 		return "win64"
 
 	return "<unknown>"
-
-
-def get_linux_distribution_info():
-	# not tested
-	"""Retrieve Linux distribution information using the `distro` library."""
-	try:
-		import distro
-	except ImportError:
-		return {"id": "", "version": ""}
-
-	return {"id": distro.id().lower(), "version": distro.version()}

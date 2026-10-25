@@ -4,6 +4,7 @@ import frappe
 from frappe import get_hooks
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
+from frappe.utils.logging import ensure_log_table, get_log_db
 from frappe.website.page_renderers.static_page import StaticPage
 from frappe.website.serve import get_response, get_response_content
 from frappe.website.utils import build_response, clear_website_cache, get_boot_data, get_home_page
@@ -15,12 +16,46 @@ class TestWebsite(IntegrationTestCase):
 		self._clearRequest()
 		self._developer_mode = frappe.conf.developer_mode
 		frappe.conf.developer_mode = 1
+		# Rendering a page can write an Access Log -- printview does. Note which rows are
+		# already there so teardown can remove only the ones this test caused.
+		self._access_logs_before = self._access_log_names()
 
 	def tearDown(self):
 		frappe.conf.developer_mode = self._developer_mode
-		frappe.db.delete("Access Log")
+		self._clear_access_logs_created_by_this_test()
 		frappe.set_user("Administrator")
 		self._clearRequest()
+
+	@staticmethod
+	def _access_log_names() -> set[str]:
+		ensure_log_table("Access Log")
+
+		return set(get_log_db().sql("SELECT name FROM `tabAccess Log`", pluck=True))
+
+	def _clear_access_logs_created_by_this_test(self):
+		"""Delete the Access Logs that appeared while this test ran, and nothing older.
+
+		Access Log rows live in the site's SQLite log database: a separate, autocommitting
+		connection that the test runner never rolls back. Before these rows moved there this
+		teardown was a `DELETE` on the primary connection, which `_rollback_db` undid, so it
+		never actually removed anything -- and the rows the test itself created were rolled
+		back with it. Both of those are gone now, so the teardown has to do real work, and
+		clearing the whole table would permanently destroy rows it does not own.
+
+		Scoped by difference against a snapshot taken in `setUp`, which is what keeps every
+		row that predates the test. A row written by another process *during* the test is
+		indistinguishable from the test's own output by name, so it is still removed; the
+		window is one test and narrowing it further would start leaving the test's own rows
+		behind, which is the thing this cleans up.
+		"""
+		created = self._access_log_names() - self._access_logs_before
+
+		if not created:
+			return
+
+		log_db = get_log_db()
+		log_db.delete("Access Log", {"name": ("in", list(created))})
+		log_db.commit()
 
 	def _clearRequest(self):
 		if hasattr(frappe.local, "request"):
@@ -133,7 +168,10 @@ class TestWebsite(IntegrationTestCase):
 		self.assertEqual(response.status_code, 417)
 
 	def test_login(self):
+		from frappe.auth import CookieManager
+
 		set_request(method="GET", path="/login")
+		frappe.local.cookie_manager = CookieManager()
 		response = get_response()
 		self.assertEqual(response.status_code, 200)
 
@@ -241,6 +279,21 @@ class TestWebsite(IntegrationTestCase):
 		delattr(frappe.hooks, "website_redirects")
 		frappe.client_cache.delete_value("app_hooks")
 
+	def test_redirect_with_query_string_after_bare_path(self):
+		self.addCleanup(frappe.cache.hdel, "website_redirects", "courses/course")
+		redirects = [
+			dict(source=r"/courses/course\?course=(.*)", target=r"/courses/\1", match_with_query_string=True)
+		]
+
+		with self.patch_hooks({"website_redirects": redirects}):
+			set_request(method="GET", path="/courses/course")
+			get_response()
+			set_request(method="GET", path="/courses/course?course=data")
+			response = get_response()
+
+		self.assertEqual(response.status_code, 301)
+		self.assertEqual(response.headers.get("Location"), "/courses/data")
+
 	def test_custom_page_renderer(self):
 		from frappe import get_hooks
 
@@ -266,7 +319,7 @@ class TestWebsite(IntegrationTestCase):
 	def test_printview_page(self):
 		frappe.set_user("Administrator")
 		content = get_response_content("/Language/ru")
-		self.assertIn('class="print-format-doc"', content)
+		self.assertIn('class="print-format-doc', content)
 		self.assertIn("Language Code", content)
 
 	def test_custom_base_template_path(self):

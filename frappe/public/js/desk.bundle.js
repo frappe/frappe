@@ -13,6 +13,7 @@ import "./frappe/ui/components/badge.js";
 import "./frappe/ui/components/skeleton.js";
 import "./frappe/ui/components/divider.js";
 import "./frappe/ui/components/avatar.js";
+import "./frappe/ui/components/avatar_group.js";
 import "./frappe/ui/components/alert.js";
 import "./frappe/ui/components/breadcrumbs.js";
 import "./frappe/ui/components/toast.js";
@@ -20,6 +21,8 @@ import "./frappe/ui/components/dropdown.js";
 import "./frappe/ui/components/context_menu.js";
 import "./frappe/ui/components/tooltip.js";
 import "./frappe/ui/components/popover.js";
+import "./frappe/ui/components/combobox.js";
+import "./frappe/ui/components/multi_combobox.js";
 import "./frappe/ui/components/hover_card.js";
 import "./frappe/ui/components/tabs.js";
 import "./frappe/ui/components/tab_buttons.js";
@@ -28,6 +31,7 @@ import "./frappe/ui/components/stepper.js";
 import "./frappe/ui/components/empty_state.js";
 import "./frappe/ui/components/panel_header.js";
 import "./frappe/ui/sidebar/sidebar_panel.js";
+import "./frappe/ui/mobile_nav_loader.js";
 
 import "./frappe/ui/background_tasks/background_tasks.js";
 import "./frappe/ui/keyboard.js";
@@ -76,6 +80,7 @@ import "./frappe/ui/island/index.js";
 import "./frappe/ui/naming_series.js";
 
 import "./frappe/model/model.js";
+import "./frappe/views/kanban_v2/settings.js";
 import "./frappe/db.js";
 import "./frappe/model/meta.js";
 import "./frappe/model/business_modules.js";
@@ -142,4 +147,3 @@ import "./frappe/scanner";
 
 import "./frappe/ui/address_autocomplete/autocomplete_dialog.js";
 import "./frappe/ui/desktop_icon.html";
-import "./frappe/ui/user_onboarding/user_onboarding.bundle.js";

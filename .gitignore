@@ -7,6 +7,13 @@
 *.egg-info
 dist/
 frappe/public/dist
+# studio editor build, exported studio app builds and the build's temp renderers
+frappe/public/studio
+frappe/public/app_builds
+.temp-app-renderers
+# flow page build
+frappe/public/flow
+frappe/www/flow/index.html
 # build/
 frappe/docs/current
 .vscode
@@ -66,7 +73,6 @@ coverage.xml
 *.cover
 .hypothesis/
 .pytest_cache/
-.cypress-coverage
 
 # Translations
 *.mo
@@ -188,9 +194,9 @@ typings/
 # next.js build output
 .next
 
-# cypress
-cypress/screenshots
-cypress/videos
+# playwright
+test-results/
+playwright-report/
 
 # JetBrains IDEs
 .idea/

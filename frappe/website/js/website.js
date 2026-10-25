@@ -182,7 +182,7 @@ $.extend(frappe, {
 					})
 					.join("<br>");
 				$(opts.error_msg).html(message_html).toggle(true);
-			} else {
+			} else if (!opts.silent) {
 				frappe.msgprint(server_messages);
 			}
 		}
@@ -428,10 +428,13 @@ $.extend(frappe, {
 			let $video = $(e.currentTarget);
 			let id = $video.data("youtubeId");
 			console.log(id);
+			let title = $video.find(".video-thumbnail").attr("alt") || __("Video");
 			$video.find(".video-thumbnail").hide();
-			$video.append(`
-				<iframe allowfullscreen="" class="section-video" f;rameborder="0" src="//youtube.com/embed/${id}?autoplay=1"></iframe>
-			`);
+			$video.append(
+				$(
+					`<iframe allowfullscreen="" class="section-video" f;rameborder="0" src="//youtube.com/embed/${id}?autoplay=1"></iframe>`
+				).attr("title", title)
+			);
 		});
 	},
 });

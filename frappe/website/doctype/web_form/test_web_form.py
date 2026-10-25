@@ -114,12 +114,25 @@ class TestWebForm(IntegrationTestCase):
 		self.make_temp_web_form(
 			web_form_fields=[
 				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
-				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
 				{"fieldname": "", "fieldtype": "Page Break", "label": "More"},
 				{"fieldname": "description", "fieldtype": "Text", "label": "Description"},
 			]
 		)
 		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_page_break_in_row_one_is_not_counted_as_a_page(self):
+		"""It names page 1, so the unnamed empty page after it is still page 2."""
+		frappe.clear_messages()
+		self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "", "fieldtype": "Page Break", "label": "Details"},
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title"},
+				{"fieldname": "", "fieldtype": "Page Break"},
+			]
+		)
+		messages = frappe.get_message_log()
+		self.assertEqual(len(messages), 1)
+		self.assertIn("Page 2", messages[0]["message"])
 
 	def test_web_form_data_field_options_are_enforced_on_server(self):
 		"""Email/Phone/URL set on a Web Form Field is not on the DocType, so the
@@ -1029,10 +1042,8 @@ class TestWebForm(IntegrationTestCase):
 
 	def test_web_form_request_expiry_is_enforced(self):
 		self.set_web_form_settings(key_required=1, login_required=0)
-		web_form_request = self.create_web_form_request(
-			expires_on=add_to_date(None, minutes=-1),
-			doc_values={"event_type": "Public"},
-		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+		web_form_request.db_set("expires_on", add_to_date(None, minutes=-1))
 
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.exceptions.LinkExpired):
@@ -1117,10 +1128,8 @@ class TestWebForm(IntegrationTestCase):
 
 	def test_get_web_form_list_rejects_expired_key(self):
 		self.set_web_form_settings(key_required=1, login_required=0, allow_multiple=1, show_list=1)
-		web_form_request = self.create_web_form_request(
-			expires_on=add_to_date(None, minutes=-1),
-			doc_values={"event_type": "Public"},
-		)
+		web_form_request = self.create_web_form_request(doc_values={"event_type": "Public"})
+		web_form_request.db_set("expires_on", add_to_date(None, minutes=-1))
 
 		frappe.set_user("Guest")
 		with self.assertRaises(frappe.exceptions.LinkExpired):
@@ -1354,6 +1363,35 @@ class TestWebForm(IntegrationTestCase):
 		child_link_field = next(f for f in result.event_participants if f["fieldname"] == "reference_doctype")
 		for options in (link_field.options, child_link_field["options"]):
 			self.assertEqual(sorted(option["value"] for option in options), ["Event", "ToDo"])
+
+	def test_link_field_options_skip_link_filters_of_another_doctype(self):
+		property_setter = make_property_setter(
+			"Event",
+			"reference_doctype",
+			"link_filters",
+			json.dumps([["DocType", "name", "in", ["Event", "ToDo"]]]),
+			"JSON",
+		)
+		self.addCleanup(frappe.delete_doc, "Property Setter", property_setter.name, force=True)
+
+		web_form = self.make_temp_web_form(
+			login_required=0,
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "reference_doctype",
+					"fieldtype": "Link",
+					"label": "Reference Document Type",
+					"options": "Module Def",
+				},
+			],
+		)
+
+		frappe.set_user(self.create_website_user("_test_web_form_link_filters@example.com"))
+		result = get_form_data(doctype="Event", web_form_name=web_form.name)
+
+		link_field = next(f for f in result.web_form.web_form_fields if f.fieldname == "reference_doctype")
+		self.assertIn("Core", link_field.options.split("\n"))
 
 	def test_get_link_options_blocked_for_unauthorized_link_on_guest_key_form(self):
 		self.set_web_form_settings(key_required=1, login_required=0)

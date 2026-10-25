@@ -1,4 +1,6 @@
 **/hooks.py,frappe.gettext.extractors.navbar.extract
+**/doctype/*/list_filter/*.json,frappe.gettext.extractors.list_filter.extract
+**/doctype/*/kanban_board/*.json,frappe.gettext.extractors.kanban_board.extract
 **/doctype/*/*.json,frappe.gettext.extractors.doctype.extract
 **/desktop_icon/*.json,frappe.gettext.extractors.desktop_icon.extract
 **/workspace_sidebar/*.json,frappe.gettext.extractors.workspace_sidebar.extract

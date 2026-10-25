@@ -1075,6 +1075,29 @@ class TestWhatACustomisationMayDo(DockTestCase):
 
 		self.assertEqual(names(dock_for(self.PERSON, among=None)), [ALPHA, "https://frappe.io"])
 
+	def test_a_layer_saved_again_keeps_what_it_added(self):
+		"""The editor sends back the rail it shows, add included. That add is the layer's own, so it
+		is not something below to reference, and the second save keeps it as an add."""
+		docs = added({"link_type": "URL", "url": "https://frappe.io"}, title="Frappe")
+		frappe.set_user(self.MANAGER)
+		save_site_dock(APP, payload(ALPHA, docs))
+		save_site_dock(APP, payload(ALPHA, docs))
+		frappe.set_user("Administrator")
+
+		self.assertEqual(names(dock_for(self.PERSON, among=None)), [ALPHA, "https://frappe.io"])
+		self.assertEqual([row["added"] for row in get_site_dock(APP)], [0, 1])
+
+	def test_a_person_saving_again_keeps_their_add_and_their_label(self):
+		docs = added({"link_type": "URL", "url": "https://frappe.io"}, title="Frappe")
+		frappe.set_user(self.PERSON)
+		save_user_dock(APP, payload(sidebar(ALPHA, title="Mine"), docs))
+		save_user_dock(APP, payload(sidebar(ALPHA, title="Mine"), docs))
+		frappe.set_user("Administrator")
+
+		rail = dock_for(self.PERSON, among=None)
+		self.assertEqual(names(rail), [ALPHA, "https://frappe.io"])
+		self.assertEqual(rail[0]["title"], "Mine")
+
 	def test_an_unreachable_add_is_refused(self):
 		"""Reach is the only bound. A user may name anything they can already navigate to and
 		nothing else, which stops an add from being a way past permissions.
@@ -1668,9 +1691,9 @@ class TestTheLandingFloor(IntegrationTestCase):
 		return next(app for app in get_app_data() if app["app_name"] == app_name)
 
 	def test_an_explicitly_declared_route_is_carried(self):
-		"""The top of the ladder: an app may have a front door outside its rail, or outside the
-		desk entirely, and this is the only way to have one."""
-		self.assertEqual(self.app_entry("frappe")["app_route"], "/app/build")
+		"""An app whose own UI is outside the desk needs a front door, and this is the only way to
+		have one. A desk app's rail wins over it, so for a desk app it is the fallback."""
+		self.assertEqual(self.app_entry("frappe")["app_route"], "/desk/build")
 
 	def test_the_derived_first_workspace_guess_is_gone(self):
 		"""It picked a workspace by `sequence_id`, which was always a guess, and a worse one under
@@ -1775,14 +1798,16 @@ class TestTheAppsEntrySet(IntegrationTestCase):
 class TestTheFrameworksDock(IntegrationTestCase):
 	"""The framework shipping its own dock as an exported document.
 
-	Twelve rows, not ten. The hook deliberately left `Geo` and `System` unnamed so they would follow
-	in `modules.txt` order. A record has no trailing tier, so naming them is required, and the rail
-	renders the same twelve buttons in the same order either way.
+	Fourteen rows, not twelve. The hook deliberately left `Geo` and `System` unnamed so they would
+	follow in `modules.txt` order. A record has no trailing tier, so naming them is required, and the
+	rail renders the same fourteen buttons in the same order either way.
 
 	"""
 
-	TWELVE: typing.ClassVar[list[str]] = [
+	FOURTEEN: typing.ClassVar[list[str]] = [
 		"Build",
+		"Studio",
+		"Flow",
 		"Users",
 		"Email",
 		"Website",
@@ -1802,9 +1827,9 @@ class TestTheFrameworksDock(IntegrationTestCase):
 
 		self.assertTrue(dock.standard)
 		self.assertEqual(dock.app, "frappe")
-		self.assertEqual([row.link_to for row in dock.items], self.TWELVE)
+		self.assertEqual([row.link_to for row in dock.items], self.FOURTEEN)
 		self.assertTrue(all(row.link_type == "Sidebar" for row in dock.items))
-		# All twelve are authored: nothing derives an icon or a title, because a prefill would
+		# All fourteen are authored: nothing derives an icon or a title, because a prefill would
 		# make divergence look like inheritance.
 		self.assertTrue(all(row.icon and row.title for row in dock.items))
 
@@ -1820,18 +1845,18 @@ class TestTheFrameworksDock(IntegrationTestCase):
 
 		self.assertEqual(
 			names(get_app_dock("frappe")),
-			self.TWELVE,
+			self.FOURTEEN,
 		)
 
 	def test_the_walked_case_renders_the_same_dock(self):
-		"""Fifteen modules in, twelve named, three code-only never nameable at all."""
+		"""Seventeen modules in, fourteen named, three code-only never nameable at all."""
 		from frappe.utils.modules import get_code_only_modules
 
 		frappe.set_user("Administrator")
 		clear_arrangements()
 
 		resolved = names(resolve_dock()["frappe"])
-		self.assertEqual([name for name in resolved if name in self.TWELVE], self.TWELVE)
+		self.assertEqual([name for name in resolved if name in self.FOURTEEN], self.FOURTEEN)
 
 		# the three the record cannot name, because they ship no navigation of their own
 		self.assertEqual(sorted(get_code_only_modules()), ["Core", "Custom", "Desk"])
