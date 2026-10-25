@@ -15,7 +15,7 @@ class TestSettings(McpTestCase):
 		doc = frappe.get_doc("System Settings")
 		original = {
 			field: doc.get(field)
-			for field in ("enable_mcp", "server_name", "agent_instructions", "allow_mcp_delete")
+			for field in ("enable_mcp", "server_name", "agent_instructions", "disable_mcp_delete")
 		}
 		try:
 			doc.update(values)
@@ -95,9 +95,9 @@ class TestSettings(McpTestCase):
 			response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
 			return {tool["name"] for tool in response.json["result"]["tools"]}
 
-		with self.settings(enable_mcp=1, allow_mcp_delete=1):
+		with self.settings(enable_mcp=1, disable_mcp_delete=0):
 			self.assertIn("delete_document", tool_names())
-		with self.settings(enable_mcp=1, allow_mcp_delete=0):
+		with self.settings(enable_mcp=1, disable_mcp_delete=1):
 			self.assertNotIn("delete_document", tool_names())
 			response = self.request(
 				{
