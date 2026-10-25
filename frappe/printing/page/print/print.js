@@ -819,22 +819,11 @@ frappe.ui.form.PrintView = class {
 	}
 
 	get_preview_document(out) {
-		const is_rtl = frappe.utils.is_rtl(this.lang_code);
-		const print_css = frappe.assets.bundled_asset("print.bundle.css", is_rtl);
-		return `<!DOCTYPE html>
-			<html lang="${this.lang_code}" dir="${is_rtl ? "rtl" : "ltr"}">
-			<head>
-				<meta charset="utf-8">
-				<link href="${frappe.urllib.get_base_url()}${print_css}" rel="stylesheet">
-				<style>${out.style || ""}</style>
-				<style>${out.page_style || ""}</style>
-			</head>
-			<body>
-				<div class="print-format-gutter">
-					<div class="print-format">${out.html || this.get_no_preview_html()}</div>
-				</div>
-			</body>
-			</html>`;
+		return frappe.ui.get_print_preview_document(
+			out,
+			this.lang_code,
+			this.get_no_preview_html()
+		);
 	}
 
 	render_barcodes(doc) {

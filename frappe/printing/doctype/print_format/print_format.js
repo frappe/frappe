@@ -40,6 +40,34 @@ frappe.ui.form.on("Print Format", {
 		frm.trigger("render_buttons");
 		frm.toggle_display("standard", frappe.boot.developer_mode);
 		frm.trigger("hide_absolute_value_field");
+		frm.trigger("render_html_preview");
+	},
+	html: (frm) => frm.events.queue_html_preview(frm),
+	css: (frm) => frm.events.queue_html_preview(frm),
+	queue_html_preview(frm) {
+		clearTimeout(frm._html_preview_timer);
+		frm._html_preview_timer = setTimeout(() => frm.trigger("render_html_preview"), 600);
+	},
+	async render_html_preview(frm) {
+		const field = frm.get_field("html_preview");
+		const { custom_format, raw_printing, print_format_for, doc_type } = frm.doc;
+		if (!custom_format || raw_printing || print_format_for !== "DocType" || !doc_type) return;
+		const [sample] = await frappe.db.get_list(doc_type, {
+			limit: 1,
+			order_by: "modified desc",
+		});
+		if (!sample) {
+			field.html(
+				`<p class="text-muted">${__("Create a {0} to see a preview.", [__(doc_type)])}</p>`
+			);
+			return;
+		}
+		const out = await frappe.xcall("frappe.www.printview.get_unsaved_format_preview", {
+			print_format: frm.doc,
+			doctype: doc_type,
+			name: sample.name,
+		});
+		frappe.ui.show_print_preview(field, out);
 	},
 	render_buttons: function (frm) {
 		frm.page.clear_inner_toolbar();

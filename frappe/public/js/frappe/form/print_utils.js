@@ -279,3 +279,39 @@ frappe.ui.form.qz_fail = function (e) {
 		20
 	);
 };
+
+frappe.ui.get_print_preview_document = function (out, lang_code, fallback_html = "") {
+	const is_rtl = frappe.utils.is_rtl(lang_code);
+	const print_css = frappe.assets.bundled_asset("print.bundle.css", is_rtl);
+	return `<!DOCTYPE html>
+		<html lang="${lang_code || frappe.boot.lang}" dir="${is_rtl ? "rtl" : "ltr"}">
+		<head>
+			<meta charset="utf-8">
+			<link href="${frappe.urllib.get_base_url()}${print_css}" rel="stylesheet">
+			<style>${out.style || ""}</style>
+			<style>${out.page_style || ""}</style>
+		</head>
+		<body>
+			<div class="print-format-gutter">
+				<div class="print-format">${out.html || fallback_html}</div>
+			</div>
+		</body>
+		</html>`;
+};
+
+frappe.ui.show_print_preview = function (field, out) {
+	if (out.error) {
+		field.$wrapper.html(
+			`<div class="print-format-preview-error">${frappe.utils.escape_html(out.error)}</div>`
+		);
+		return;
+	}
+	let frame = field.$wrapper.find("iframe.print-format-preview-frame");
+	if (!frame.length) {
+		frame = $(
+			'<iframe class="print-format-preview-frame" sandbox="allow-same-origin"></iframe>'
+		);
+		field.$wrapper.empty().append(frame);
+	}
+	frame.prop("srcdoc", frappe.ui.get_print_preview_document(out));
+};

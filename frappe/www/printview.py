@@ -414,6 +414,41 @@ def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
 
 
 @frappe.whitelist()
+def get_unsaved_format_preview(print_format: str | dict, doctype: str, name: str) -> dict[str, str | None]:
+	"""Render a Jinja print format that is still being edited, against an existing document."""
+	frappe.has_permission("Print Format", "write", throw=True)
+	print_format = frappe.get_doc(frappe.parse_json(print_format))
+	document = frappe.get_doc(doctype, name)
+	document.check_permission("print")
+	try:
+		html = get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
+	except Exception as e:
+		frappe.clear_last_message()
+		return {"error": str(e)}
+	return {
+		"html": html,
+		"style": get_print_style(print_format=print_format),
+		"page_style": get_preview_page_css(print_format),
+	}
+
+
+@frappe.whitelist()
+def get_letter_head_preview(
+	content: str | None = None, footer: str | None = None, css: str | None = None
+) -> dict[str, str]:
+	"""Render a Letter Head's header and footer as printing does, without a document."""
+	frappe.has_permission("Letter Head", "write", throw=True)
+	jenv = frappe.get_jenv()
+	try:
+		parts = [
+			jenv.from_string(source).render(doc=frappe._dict()) for source in (content, footer) if source
+		]
+	except Exception as e:
+		return {"error": str(e)}
+	return {"html": "<hr>".join(parts), "style": css}
+
+
+@frappe.whitelist()
 def get_rendered_raw_commands(
 	doc: str | dict, name: str | None = None, print_format: str | None = None
 ) -> dict:

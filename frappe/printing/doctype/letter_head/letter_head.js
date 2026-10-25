@@ -8,6 +8,7 @@ frappe.ui.form.on("Letter Head", {
 
 	refresh(frm) {
 		frm.enable_save();
+		frm.trigger("render_preview");
 
 		if (!frappe.boot.developer_mode) {
 			if (frm.is_new()) {
@@ -22,6 +23,24 @@ frappe.ui.form.on("Letter Head", {
 		}
 
 		frm.flag_public_attachments = true;
+	},
+
+	content: (frm) => frm.events.queue_preview(frm),
+	footer: (frm) => frm.events.queue_preview(frm),
+	custom_css: (frm) => frm.events.queue_preview(frm),
+	queue_preview(frm) {
+		clearTimeout(frm._preview_timer);
+		frm._preview_timer = setTimeout(() => frm.trigger("render_preview"), 600);
+	},
+	async render_preview(frm) {
+		const { source, footer_source, content, footer, custom_css } = frm.doc;
+		if (source !== "HTML" && footer_source !== "HTML") return;
+		const out = await frappe.xcall("frappe.www.printview.get_letter_head_preview", {
+			content: source === "HTML" ? content : null,
+			footer: footer_source === "HTML" ? footer : null,
+			css: custom_css,
+		});
+		frappe.ui.show_print_preview(frm.get_field("preview"), out);
 	},
 
 	validate: (frm) => {

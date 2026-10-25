@@ -407,3 +407,17 @@
 		background: var(--outline-gray-2);
 	}
 }
+
+.print-format-preview-frame {
+	width: 100%;
+	height: 600px;
+	border: 1px solid var(--border-color);
+	border-radius: var(--border-radius-md);
+	background: var(--white);
+}
+
+.print-format-preview-error {
+	padding: var(--padding-sm);
+	color: var(--red-600);
+	white-space: pre-wrap;
+}

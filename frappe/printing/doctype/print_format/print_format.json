@@ -21,6 +21,7 @@
   "print_format_type",
   "raw_printing",
   "html",
+  "html_preview",
   "raw_commands",
   "section_break_9",
   "margin_top",
@@ -131,6 +132,12 @@
    "oldfieldname": "html",
    "oldfieldtype": "Text Editor",
    "options": "Jinja"
+  },
+  {
+   "depends_on": "eval:doc.custom_format && !doc.raw_printing && doc.print_format_for == 'DocType'",
+   "fieldname": "html_preview",
+   "fieldtype": "HTML",
+   "label": "Preview"
   },
   {
    "depends_on": "raw_printing",
@@ -360,7 +367,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-18 12:00:00.000000",
+ "modified": "2026-10-25 12:33:15.486177",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
