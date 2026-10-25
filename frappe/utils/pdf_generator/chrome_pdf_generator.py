@@ -77,7 +77,7 @@ class ChromePDFGenerator:
 		# TODO: Better Implement logic to support for persistent chrome proccess.
 		self.USE_PERSISTENT_CHROMIUM = site_config.get("use_persistent_chromium", False)
 		#  time to wait for chromium to start and provide dev tools url used in _set_devtools_url.
-		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 3)
+		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 10)
 		# Allow a single PDF request to opt into interactive Chromium debugging in developer mode only.
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 
@@ -236,7 +236,7 @@ class ChromePDFGenerator:
 			except (psutil.NoSuchProcess, psutil.AccessDenied):
 				continue
 
-	def _set_devtools_url(self):
+	def _set_devtools_url(self, retry=True):
 		"""
 		Monitor Chromium's stderr for the DevTools WebSocket URL
 		----------------
@@ -263,8 +263,12 @@ class ChromePDFGenerator:
 					break
 
 		if not self._devtools_url:
+			alive = self._chromium_process.poll() is None
 			self._signal_chromium()
-			raise TimeoutError("Chromium took too long to start.")
+			if not (retry and alive):
+				raise TimeoutError("Chromium took too long to start.")
+			self.start_chromium_process(debug=self.debug_mode)
+			self._set_devtools_url(retry=False)
 
 	def _close_browser(self):
 		"""
