@@ -1,5 +1,3 @@
-import JsBarcode from "jsbarcode";
-
 frappe.ui.get_print_settings = function (
 	pdf,
 	callback,
@@ -317,16 +315,6 @@ frappe.ui.show_print_preview = function (field, out) {
 	}
 	frame
 		.off("load")
-		.on("load", () => frappe.ui.render_print_barcodes(frame.get(0).contentDocument));
+		.on("load", () => frappe.ui.form.ControlBarcode.render_svgs(frame.get(0).contentDocument));
 	frame.prop("srcdoc", frappe.ui.get_print_preview_document(out));
-};
-
-frappe.ui.render_print_barcodes = function (doc) {
-	doc.querySelectorAll("svg[data-barcode-value]").forEach((el) => {
-		const get_options = frappe.ui.form.ControlBarcode.prototype.get_options.bind({
-			df: { options: el.dataset.options },
-		});
-		JsBarcode(el, el.dataset.barcodeValue, get_options(el.dataset.barcodeValue));
-		el.setAttribute("width", "100%");
-	});
 };

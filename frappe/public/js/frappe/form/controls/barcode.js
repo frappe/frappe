@@ -1,6 +1,16 @@
 import JsBarcode from "jsbarcode";
 
 frappe.ui.form.ControlBarcode = class ControlBarcode extends frappe.ui.form.ControlData {
+	static render_svgs(doc) {
+		doc.querySelectorAll("svg[data-barcode-value]").forEach((el) => {
+			const get_options = this.prototype.get_options.bind({
+				df: { options: el.dataset.options },
+			});
+			JsBarcode(el, el.dataset.barcodeValue, get_options(el.dataset.barcodeValue));
+			el.setAttribute("width", "100%");
+		});
+	}
+
 	make_wrapper() {
 		// Create the elements for barcode area
 		super.make_wrapper();
