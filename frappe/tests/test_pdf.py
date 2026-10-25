@@ -675,3 +675,24 @@ class TestChromeCdpReliability(IntegrationTestCase):
 		page.session = FakeSession([(None, {"message": "boom"})] * 4)
 		with patch("frappe.utils.chromium.page.time.sleep"):
 			self.assertRaisesRegex(RuntimeError, "Error evaluating expression", page.evaluate, "1+1")
+
+	def test_set_tab_url_raises_when_navigation_is_never_intercepted(self):
+		from functools import partial
+		from unittest.mock import patch
+
+		from frappe.utils.chromium.page import Page
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		client = self.make_client()
+
+		class ChromiumThatNeverNavigates:
+			async def send(self, message):
+				client._handle_message({"id": frappe.json.loads(message)["id"], "result": {}})
+
+		client.connection = ChromiumThatNeverNavigates()
+		page = Page.__new__(Page)
+		page.session, page.session_id, page.target_id, page.frame_id = client, "sid", "tid", "fid"
+
+		with patch.object(client, "wait_for_event", partial(client.wait_for_event, timeout=0.05)):
+			self.assertRaisesRegex(RuntimeError, "Timed out", page.set_tab_url, "http://example.com")
