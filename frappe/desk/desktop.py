@@ -13,6 +13,7 @@ from frappe.core.doctype.custom_role.custom_role import get_custom_allowed_roles
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
+	effective_renderer,
 	get_customization,
 )
 from frappe.desk.utils import is_item_allowed
@@ -570,6 +571,7 @@ def _overlay_customization_properties(pages: list) -> bool:
 			page["is_hidden"] = 0
 		if customization.icon:
 			page["icon"] = customization.icon
+		page["renderer"] = effective_renderer(page.renderer, customization)
 		if customization.indicator_color:
 			page["indicator_color"] = customization.indicator_color
 		if customization.override_sequence:
@@ -629,6 +631,7 @@ def get_workspaces():
 		"link_type",
 		"link_to",
 		"external_link",
+		"renderer",
 	]
 	all_pages = frappe.get_all(
 		"Workspace", fields=fields, filters=filters, order_by=order_by, ignore_permissions=True
@@ -638,6 +641,10 @@ def get_workspaces():
 	# customization before filtering & sorting; roles & content are merged inside Workspace().
 	if _overlay_customization_properties(all_pages):
 		all_pages.sort(key=lambda page: page.get("sequence_id") or 0)
+
+	for page in all_pages:
+		if page.renderer != "Legacy":
+			del page["content"]
 
 	pages = []
 	private_pages = []
