@@ -153,7 +153,7 @@
 											class="mx-1 h-5 w-px shrink-0 bg-surface-gray-3"
 											aria-hidden="true"
 										/>
-										<EditorFixedMenu :items="emailToolbar" button-size="sm" />
+										<EditorFixedMenu :items="richTextToolbar" size="sm" />
 									</template>
 								</div>
 								<div
@@ -210,61 +210,12 @@ import { useScroll } from "@vueuse/core";
 import { Extension } from "@tiptap/core";
 import { Button, Spinner, toast } from "frappe-ui";
 import LucidePaperclip from "~icons/lucide/paperclip";
-import {
-	Editor,
-	EditorContent,
-	EditorFixedMenu,
-	EditorTableMenu,
-	RichTextKit,
-	Paragraph,
-	H2,
-	H3,
-	H4,
-	Separator,
-	Bold,
-	Italic,
-	FontColor,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-	BulletList,
-	OrderedList,
-	InsertImage,
-	InsertVideo,
-	InsertLink,
-	Blockquote,
-	InlineCode,
-	HorizontalRule,
-	InsertTable,
-} from "frappe-ui/editor";
+import { Editor, EditorContent, EditorFixedMenu, EditorTableMenu } from "frappe-ui/editor";
 import { sanitizeHtml } from "../../utils/sanitize";
+import { isEmptyHtml } from "../RichText/html";
+import { richTextKit, richTextToolbar } from "../RichText/kit";
 import { isAllowedType } from "../FileUpload/useUploader";
 import type { ComposerEditorProps, CoreSubmitPayload, UploadedFile } from "./types";
-
-const emailToolbar = [
-	Paragraph,
-	H2,
-	H3,
-	H4,
-	Separator,
-	Bold,
-	Italic,
-	FontColor,
-	Separator,
-	AlignLeft,
-	AlignCenter,
-	AlignRight,
-	BulletList,
-	OrderedList,
-	Separator,
-	InsertImage,
-	InsertVideo,
-	InsertLink,
-	Blockquote,
-	InlineCode,
-	HorizontalRule,
-	InsertTable,
-];
 
 const props = withDefaults(defineProps<ComposerEditorProps>(), {
 	placeholder: "Type your message…",
@@ -298,12 +249,7 @@ const mentionItems = computed(() =>
 // Built once so the editor isn't torn down on change; reactive bits thread in via
 // getters. Host extensions land after RichTextKit so they can override its defaults.
 const extensions = [
-	RichTextKit.configure({
-		heading: { levels: [2, 3, 4, 5, 6] },
-		mention: { items: () => mentionItems.value },
-		// Server sanitizing drops iframes, so a pasted URL would turn into an embed that is lost on send.
-		iframe: false,
-	}),
+	richTextKit(() => mentionItems.value),
 	...(props.extensions ?? []),
 	// Lowest priority, so an open suggestion menu takes Esc first; 0 would read as the default.
 	Extension.create({
@@ -367,7 +313,7 @@ function onDeleteAcrossQuote(event: KeyboardEvent) {
 
 function onQuotedInput() {
 	const html = quotedContentRef.value?.innerHTML ?? "";
-	quotedContent.value = isContentEmpty(html) ? null : html;
+	quotedContent.value = isEmptyHtml(html) ? null : html;
 }
 
 // Paint the quoted block when the model changes from outside; user edits no-op.
@@ -458,20 +404,13 @@ function removeAttachment(file: UploadedFile) {
 const isDisabled = computed(
 	() =>
 		props.disabled ||
-		(isContentEmpty(body.value) && !attachments.value.length) ||
+		(isEmptyHtml(body.value) && !attachments.value.length) ||
 		isUploading.value
 );
 
 const isEmpty = computed(
-	() => isContentEmpty(body.value) && !attachments.value.length && !quotedContent.value
+	() => isEmptyHtml(body.value) && !attachments.value.length && !quotedContent.value
 );
-
-function isContentEmpty(content: string) {
-	if (!content) return true;
-	const doc = new DOMParser().parseFromString(content, "text/html");
-	if (doc.querySelector("img, video, iframe, embed, object")) return false;
-	return (doc.body.textContent ?? "").trim().length === 0;
-}
 
 function focus() {
 	setTimeout(() => editor.value?.commands?.focus("start"), 0);

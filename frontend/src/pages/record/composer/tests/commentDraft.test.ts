@@ -2,8 +2,8 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick } from "vue";
 
-const { uploadCommentFile } = vi.hoisted(() => ({ uploadCommentFile: vi.fn() }));
-vi.mock("../commentUpload", () => ({ uploadCommentFile }));
+const { uploadMedia } = vi.hoisted(() => ({ uploadMedia: vi.fn() }));
+vi.mock("@framework/ui/components/RichText/upload", () => ({ uploadMedia }));
 
 import { composerDraft, openComposer } from "@/shell/composer";
 import { useCommentDraft } from "../useCommentDraft";
@@ -32,7 +32,7 @@ function draftOn(docname: string) {
 
 function uploadLater() {
 	let finish: () => void = () => {};
-	uploadCommentFile.mockReturnValue(new Promise((resolve) => (finish = () => resolve(MEDIA))));
+	uploadMedia.mockReturnValue(new Promise((resolve) => (finish = () => resolve(MEDIA))));
 	return () => finish();
 }
 

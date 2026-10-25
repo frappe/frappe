@@ -174,7 +174,7 @@ import { projectRecordHeader } from "./record/recordHeaderProjection";
 import { discardChanges } from "./record/discardChanges";
 import { runSave, useSaveKeys } from "./record/recordSave";
 import { provideRecordCommits } from "./record/recordCommits";
-import { landOnField, tabOf } from "./record/landOnField";
+import { landOnField, stopLanding, tabOf } from "./record/landOnField";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
@@ -922,6 +922,7 @@ useSaveKeys({
 });
 
 onUnmounted(() => {
+	stopLanding();
 	currentVisit.end();
 	controller.value?.leave();
 	live.dispose();

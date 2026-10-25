@@ -168,6 +168,7 @@ export function mapField(
     reqd: !!field.reqd,
     default: field.default,
     precision: coercePrecision(field.precision),
+    maxHeight: field.max_height || undefined,
     description: field.description,
     hidden: !!field.hidden,
     permlevel: field.permlevel,

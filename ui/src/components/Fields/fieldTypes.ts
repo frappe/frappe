@@ -22,6 +22,7 @@ import TableField from "./TableField.vue";
 import TableMultiSelectField from "./TableMultiSelectField.vue";
 import TextField from "./TextField.vue";
 import TextareaField from "./TextareaField.vue";
+import TextEditorField from "./TextEditorField.vue";
 import TimeField from "./TimeField.vue";
 
 /** Process-global fieldtype → component registry. */
@@ -88,6 +89,8 @@ const CodeEditorField = defineAsyncComponent(() => import("./CodeEditorField.vue
 for (const t of ["Code", "JSON", "Markdown Editor", "HTML Editor"]) {
   registerFieldType(t, CodeEditorField);
 }
+
+registerFieldType("Text Editor", TextEditorField);
 
 // `Heading`/`HTML` are display-only (no value, no emit).
 registerFieldType("Phone", PhoneField);

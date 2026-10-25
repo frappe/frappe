@@ -24,6 +24,7 @@ const VALUE_FIELDTYPES = [
   "JSON",
   "Markdown Editor",
   "HTML Editor",
+  "Text Editor",
   "Select",
   "Check",
   "Date",

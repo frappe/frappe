@@ -1794,6 +1794,134 @@ class TestChildTableAttachments(IntegrationTestCase):
 		self.assertEqual(doc_reloaded.parent_image, file_reloaded.file_url)
 
 
+class TestTextEditorFileAdoption(IntegrationTestCase):
+	"""A detached File a Text Editor field shows is attached to the record when its uploader saves."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+
+		cls.row_doctype = "Test Text Editor Row"
+		new_doctype(
+			cls.row_doctype,
+			istable=1,
+			fields=[{"label": "Notes", "fieldname": "notes", "fieldtype": "Text Editor"}],
+		).insert(ignore_if_duplicate=True)
+
+		cls.parent_doctype = "Test Text Editor Parent"
+		new_doctype(
+			cls.parent_doctype,
+			fields=[
+				{"label": "Body", "fieldname": "body", "fieldtype": "Text Editor"},
+				{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": cls.row_doctype},
+			],
+			permissions=[{"role": "All", "read": 1, "write": 1, "create": 1}],
+		).insert(ignore_if_duplicate=True)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.parent_doctype)
+		frappe.delete_doc_if_exists("DocType", cls.row_doctype)
+		super().tearDownClass()
+
+	def setUp(self):
+		frappe.set_user("test@example.com")
+		set_request(method="POST", path="/api/v2/document/Test Text Editor Parent")
+
+	def tearDown(self):
+		frappe.local.request = None
+		frappe.set_user("Administrator")
+		frappe.db.rollback()
+
+	def make_file(self, content: bytes):
+		return frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": f"inline_{frappe.generate_hash(length=8)}.png",
+				"content": content,
+				"is_private": 1,
+			}
+		).insert(ignore_permissions=True)
+
+	def make_record(self, **values):
+		return frappe.get_doc({"doctype": self.parent_doctype, **values}).insert()
+
+	def attachment_of(self, file):
+		return frappe.db.get_value(
+			"File", file.name, ["attached_to_doctype", "attached_to_name", "attached_to_field"], as_dict=True
+		)
+
+	def test_adopts_the_callers_file_in_a_field(self):
+		file = self.make_file(b"field-image")
+		body = f'<p>Plan</p><p><img src="{file.file_url}"></p>'
+
+		record = self.make_record(body=body)
+
+		attached = self.attachment_of(file)
+		self.assertEqual(attached.attached_to_doctype, self.parent_doctype)
+		self.assertEqual(attached.attached_to_name, record.name)
+		self.assertIsNone(attached.attached_to_field)
+		self.assertEqual(frappe.db.get_value(self.parent_doctype, record.name, "body"), body)
+
+	def test_adopts_the_callers_file_in_a_row(self):
+		file = self.make_file(b"row-image")
+
+		record = self.make_record(rows=[{"notes": f'<img src="{file.file_url}">'}])
+
+		attached = self.attachment_of(file)
+		self.assertEqual(attached.attached_to_doctype, self.parent_doctype)
+		self.assertEqual(attached.attached_to_name, record.name)
+
+	def test_adopts_on_a_later_save(self):
+		file = self.make_file(b"later-image")
+		record = self.make_record(body="<p>Plan</p>")
+
+		record.body = f'<p>Plan</p><img src="{file.file_url}">'
+		record.save()
+
+		self.assertEqual(self.attachment_of(file).attached_to_name, record.name)
+
+	def test_leaves_another_users_file(self):
+		frappe.set_user("test4@example.com")
+		file = self.make_file(b"other-users-image")
+
+		frappe.set_user("test@example.com")
+		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_files_outside_a_request(self):
+		file = self.make_file(b"background-image")
+		frappe.local.request = None
+
+		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_a_guests_file(self):
+		frappe.set_user("Guest")
+		file = self.make_file(b"guest-image")
+
+		frappe.get_doc({"doctype": self.parent_doctype, "body": f'<img src="{file.file_url}">'}).insert(
+			ignore_permissions=True
+		)
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_an_attached_file(self):
+		first = self.make_record(body="<p>First</p>")
+		file = self.make_file(b"attached-image")
+		frappe.db.set_value(
+			"File", file.name, {"attached_to_doctype": self.parent_doctype, "attached_to_name": first.name}
+		)
+
+		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertEqual(self.attachment_of(file).attached_to_name, first.name)
+
+
 class TestAttachmentsAccess(IntegrationTestCase):
 	def setUp(self) -> None:
 		frappe.db.delete("File", {"is_folder": 0})

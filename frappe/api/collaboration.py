@@ -4,13 +4,11 @@
 `PATCH .../comments/<name>` edits. Each answers with the refreshed part in the read's shape.
 """
 
-import html
-import re
-
 import frappe
 import frappe.share
 from frappe import _
 from frappe.api.include import DOCUMENT_PARTS, USER_ROW_KEY, USERS_PART, UnknownPartError, users_named_by
+from frappe.core.doctype.file.utils import attach_files, attach_inline_media
 from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.desk.doctype.tag.tag import add_tag, remove_tag
 from frappe.desk.form import assign_to
@@ -21,7 +19,6 @@ from frappe.utils import cint, get_fullname
 
 EVERYONE = "everyone"
 MAX_ATTACHMENTS = 10
-INLINE_MEDIA = re.compile(r'<(?:img|video|source)\b[^>]*?\ssrc\s*=\s*["\']([^"\']+)["\']')
 
 
 def add(doctype: str, name: str, part: str) -> dict:
@@ -188,26 +185,6 @@ def files_to_link(names: list[str]) -> list[str]:
 
 def linkable(file: dict) -> bool:
 	return file.owner == frappe.session.user and not file.attached_to_doctype and not file.is_folder
-
-
-def attach_inline_media(doc: Document, content: str) -> None:
-	"""Attach the caller's unattached Files shown inline in `content` to `doc`, as desk comments do."""
-	urls = list({html.unescape(url) for url in INLINE_MEDIA.findall(content or "")})
-	if not urls:
-		return
-	filters = {
-		"file_url": ("in", urls),
-		"owner": frappe.session.user,
-		"attached_to_doctype": ("is", "not set"),
-	}
-	attach_files(frappe.get_all("File", filters=filters, pluck="name"), doc.doctype, doc.name)
-
-
-def attach_files(names: list[str], doctype: str, name: str) -> None:
-	"""Attach the Files `names` to `doctype` `name` in one write; the caller has checked them."""
-	if names:
-		values = {"attached_to_doctype": doctype, "attached_to_name": name}
-		frappe.db.set_value("File", {"name": ("in", names)}, values)
 
 
 def remove_comment(doc: Document, name: str) -> None:
