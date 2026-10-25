@@ -114,7 +114,7 @@ def registry() -> tuple[Tool, ...]:
 		CALL_METHOD,
 		CALL_DOCUMENT_METHOD,
 	)
-	if frappe.get_system_settings("allow_mcp_delete"):
+	if not frappe.get_system_settings("disable_mcp_delete"):
 		return tools
 	return tuple(tool for tool in tools if tool is not DELETE_DOCUMENT)
 
