@@ -45,18 +45,40 @@ vi.mock("@framework/ui/api", () => ({
 }));
 
 vi.mock("@framework/ui/components/FormLayout", async () => {
-  const { RecordLinkKey } = await import("@framework/ui/components/Fields/types");
+  const { FieldErrorsKey, RecordLinkKey } = await import(
+    "@framework/ui/components/Fields/types"
+  );
   return {
-    // The real FormLayout is exercised in Chrome; here it owns the doc and shows the record link its fields get.
+    // The real FormLayout is exercised in Chrome; here it owns the doc and shows the record
+    // link its fields get, and an input per field with the error it would draw.
     FormLayout: defineComponent({
       props: {
         layout: { type: Array, required: true },
         doc: { type: Object, required: true },
       },
       emits: ["update:doc"],
-      setup() {
+      setup(props) {
         const link = inject(RecordLinkKey, undefined);
-        return () => h("form", { "data-record-link": link === null ? "none" : "host" });
+        const errors = inject(FieldErrorsKey, null);
+        const fields = () =>
+          (props.layout as any[]).flatMap((tab) =>
+            tab.sections.flatMap((section: any) =>
+              section.columns.flatMap((column: any) => column.fields),
+            ),
+          );
+        return () =>
+          h(
+            "form",
+            { "data-record-link": link === null ? "none" : "host" },
+            fields().map((field: any) =>
+              h("div", { class: "field", "data-fieldname": field.fieldname }, [
+                h("input", {
+                  name: field.fieldname,
+                  "data-error": errors?.value[field.fieldname],
+                }),
+              ]),
+            ),
+          );
       },
     }),
   };
@@ -177,7 +199,7 @@ describe("the form host", () => {
     expect(entry.settled).toEqual([{ note: "hi" }]);
   });
 
-  it("refuses a submit that leaves a mandatory field empty", async () => {
+  it("refuses a submit that leaves a mandatory field empty, and marks and focuses it", async () => {
     const onSubmit = vi.fn();
     const entry = makeEntry({
       fields: [
@@ -189,9 +211,10 @@ describe("the form host", () => {
 
     await click(root, "Submit");
 
-    expect(root.querySelector(".error")!.textContent).toBe(
-      "Please fill in Note",
-    );
+    const note = root.querySelector<HTMLInputElement>('input[name="note"]')!;
+    expect(note.getAttribute("data-error")).toBe("Note is required");
+    expect(root.querySelector(".error")).toBeNull();
+    expect(document.activeElement).toBe(note);
     expect(onSubmit).not.toHaveBeenCalled();
     expect(entry.settled).toEqual([]);
   });

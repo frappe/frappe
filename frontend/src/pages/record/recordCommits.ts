@@ -1,6 +1,6 @@
-// One commit channel for a record page's form and panel, forwarded so it follows the controller across loads.
-import { provide } from "vue";
-import { CommitKey } from "@framework/ui/components/Fields/types";
+// The engine's commit channel and field marks for a record page's form and panel, forwarded so they follow the controller across loads.
+import { computed, provide } from "vue";
+import { CommitKey, FieldErrorsKey } from "@framework/ui/components/Fields/types";
 import type { RecordPageController } from "@/recordPage";
 
 export function provideRecordCommits(controller: () => RecordPageController | null) {
@@ -9,4 +9,8 @@ export function provideRecordCommits(controller: () => RecordPageController | nu
 		commit: (fieldname, value, row) => controller()?.commits.commit(fieldname, value, row),
 		rowChanged: (row, change) => controller()?.commits.rowChanged(row, change),
 	});
+	provide(
+		FieldErrorsKey,
+		computed(() => controller()?.fieldErrors.drawn.value ?? {})
+	);
 }

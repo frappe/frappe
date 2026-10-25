@@ -171,6 +171,7 @@ const uploading = ref(false);
 function setImage(url: string) {
 	if (!field.value || !editable.value) return;
 	context.doc.value = { ...context.doc.value, [field.value.fieldname]: url };
+	commit.pending(field.value.fieldname, url);
 	commit.commit(field.value.fieldname, url);
 }
 

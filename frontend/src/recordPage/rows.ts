@@ -9,6 +9,7 @@ import {
 } from "@framework/ui/components/Fields/rowIdentity";
 import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
+import type { FieldErrors } from "./fieldErrors";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { toastScriptError } from "./clientScripts";
@@ -20,8 +21,11 @@ const ROWS_ARE_READ_ONLY: ReadOnlyAdvice = {
   instead: "page.doc[parentfield], which is the table itself",
 };
 
-/** The one engine member on a handle; everything else is a child fieldname. */
 const TRIGGER = "trigger";
+const SET_ERROR = "setError";
+const CLEAR_ERROR = "clearError";
+/** The engine members on a handle; everything else is a child fieldname. */
+const MEMBERS = [TRIGGER, SET_ERROR, CLEAR_ERROR];
 
 // `markRaw`'s stamp, answered by the traps below: it tells both Vue and the
 // outbound read-only guard that a handle is not data to descend into.
@@ -39,6 +43,8 @@ export interface RowsHost {
   childFields?: (doctype: string) => RawMetaField[] | undefined;
   /** Fires a row-keyed event across every source; `trigger`'s whole body. */
   dispatch: (event: string, row: RowAddress) => Promise<void>;
+  /** The marks a handle's `setError` and `clearError` write. */
+  errors: FieldErrors;
 }
 
 export interface Rows {
@@ -114,11 +120,26 @@ export function createRows(host: RowsHost): Rows {
       return host.dispatch(`${parentfield}.${fieldname}`, { parentfield, key });
     };
 
+    const setError = (fieldname: string, message: string) => {
+      required(SET_ERROR);
+      warnIfNoCell(parentfield, fieldname, SET_ERROR);
+      host.errors.mark({ parentfield, key, fieldname }, message, runningSource());
+      return new Error(message);
+    };
+
+    const clearError = (fieldname: string) => {
+      required(CLEAR_ERROR);
+      warnIfNoCell(parentfield, fieldname, CLEAR_ERROR);
+      host.errors.unmark({ parentfield, key, fieldname });
+    };
+
     // The target is an empty object, not the row: a Proxy may only lie about a
     // target's properties while the target is extensible and owns none.
     return new Proxy({} as PageRow, {
       get(_target, prop) {
         if (prop === TRIGGER) return trigger;
+        if (prop === SET_ERROR) return setError;
+        if (prop === CLEAR_ERROR) return clearError;
         if (prop === RAW) return true;
         if (probe(prop)) return resolve()?.[prop];
         return required(prop)[prop];
@@ -131,11 +152,11 @@ export function createRows(host: RowsHost): Rows {
         return Reflect.deleteProperty(required(prop), prop);
       },
       has(_target, prop) {
-        if (prop === TRIGGER || prop === RAW) return true;
+        if (prop === RAW || MEMBERS.includes(prop as string)) return true;
         if (probe(prop)) return !!resolve() && prop in resolve()!;
         return prop in required(prop);
       },
-      // A spread copies the row's own fields, not `trigger` or the stamp, and a
+      // A spread copies the row's own fields, not the members or the stamp, and a
       // removed row throws instead of spreading to `{}`; `*` names the whole row.
       ownKeys() {
         return Reflect.ownKeys(required("*"));
@@ -175,6 +196,12 @@ export function createRows(host: RowsHost): Rows {
     if (child && !child.some((one) => one.fieldname === fieldname))
       return refuseTrigger(`${said} — no such field on the child doctype.`);
     return true;
+  }
+
+  function warnIfNoCell(parentfield: string, fieldname: string, verb: string) {
+    const child = childFieldsOf(parentfield);
+    if (child && !child.some((one) => one.fieldname === fieldname))
+      warnOnce(`row.${verb}("${fieldname}") on ${parentfield} — no such field on the child doctype.`);
   }
 
   function childFieldsOf(parentfield: string): RawMetaField[] | undefined {

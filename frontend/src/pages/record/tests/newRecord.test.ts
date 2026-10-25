@@ -102,6 +102,7 @@ const server = {
   rows: {} as Record<string, unknown[]>,
   newDocReads: 0,
   insertFails: false,
+  insertFieldErrors: null as Record<string, unknown>[] | null,
   defaultsHeld: null as Promise<void> | null,
   insertHeld: null as Promise<void> | null,
   updates: [] as Record<string, any>[],
@@ -129,6 +130,8 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
     await server.insertHeld;
     if (server.insertFails)
       return [{ errors: [{ type: "ValidationError", message: "<b>Title</b> is taken" }] }, 417];
+    if (server.insertFieldErrors)
+      return [{ errors: [{ type: "ValidationError", message: "Refused", field_errors: server.insertFieldErrors }] }, 417];
     return [{ data: { ...body, doctype: "Note", name: body.__newname ?? "NOTE-1", modified: "2026-10-23 10:00:00" } }, 200];
   }
   if (init?.method === "PATCH" && path === "/api/v2/document/Note/NOTE-1") {
@@ -178,6 +181,7 @@ beforeEach(() => {
   server.rows = {};
   server.newDocReads = 0;
   server.insertFails = false;
+  server.insertFieldErrors = null;
   server.defaultsHeld = null;
   server.insertHeld = null;
   server.updates = [];
@@ -245,6 +249,10 @@ async function type(root: HTMLElement, fieldname: string, value: string) {
   field.dispatchEvent(new Event("change"));
   field.dispatchEvent(new Event("blur"));
   await settle();
+}
+
+function fieldText(root: HTMLElement, fieldname: string) {
+  return root.querySelector(`.field[data-fieldname="${fieldname}"]`)!.textContent!;
 }
 
 function saveButton(root: HTMLElement) {
@@ -446,6 +454,30 @@ describe("saving the new record", () => {
     expect(input(root, "title")!.value).toBe("Taken");
     expect(shown.errors).toEqual(["Title is taken"]);
     expect(header(root)).toContain("Not Saved");
+  });
+
+  it("marks an empty mandatory field, puts the cursor in it once the form unlocks, and inserts nothing", async () => {
+    server.meta.fields[0].reqd = 1;
+    const { root } = await mount("/note/new");
+
+    await save(root);
+    await new Promise(requestAnimationFrame);
+    await settle();
+
+    expect(server.inserts).toEqual([]);
+    expect(fieldText(root, "title")).toContain("Title is required");
+    expect(document.activeElement).toBe(input(root, "title"));
+  });
+
+  it("marks the fields a refused insert names", async () => {
+    server.insertFieldErrors = [{ fieldname: "status", message: "Status is not allowed" }];
+    const { root } = await mount("/note/new");
+
+    await save(root);
+
+    expect(server.inserts).toHaveLength(1);
+    expect(fieldText(root, "status")).toContain("Status is not allowed");
+    expect(shown.errors).toEqual(["Refused"]);
   });
 });
 

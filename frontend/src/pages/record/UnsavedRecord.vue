@@ -38,7 +38,7 @@
 			>
 				<template #form>
 					<!-- Locked while a save runs, so the reply never lands over an edit. -->
-					<div data-record-form :inert="painted.isSaving.value">
+					<div ref="formRoot" data-record-form :inert="painted.isSaving.value">
 						<FormLayout
 							v-if="form.length"
 							v-model:doc="doc"
@@ -110,6 +110,7 @@ import FormSkeleton from "./skeletons/FormSkeleton.vue";
 import HeaderSkeleton from "./skeletons/HeaderSkeleton.vue";
 import { discardChanges } from "./discardChanges";
 import { FORM_CLASSES } from "./formClasses";
+import { landOnField, stopLanding } from "./landOnField";
 import { openingKey } from "./openingKey";
 import { Visit } from "./visit";
 import { fetchMeta } from "./metaSource";
@@ -142,6 +143,7 @@ const actionsVersion = ref(0);
 const formTab = ref("");
 const activeFormTab = ref("");
 const formSections = ref<Record<string, boolean>>({});
+const formRoot = ref<HTMLElement | null>(null);
 let insertedName: string | null = null;
 let visit = new Visit();
 
@@ -189,6 +191,12 @@ const form = computed(() => {
 });
 
 provideRecordCommits(() => controller.value);
+
+const landing = {
+	root: () => formRoot.value,
+	layout: () => form.value,
+	showTab: (identity: string) => void (formTab.value = identity),
+};
 
 void open();
 
@@ -250,6 +258,7 @@ function buildController() {
 		formLayout: () => detailsForm.value,
 		activeFormTab: () => activeFormTab.value,
 		activateFormTab: (identity) => void (formTab.value = identity),
+		focusField: (fieldname, cursor) => void landOnField(landing, fieldname, cursor),
 		save: write,
 		onSaved: openSaved,
 		reload: open,
@@ -295,7 +304,9 @@ async function write() {
 		opened.value = JSON.stringify(document);
 		doc.value = JSON.parse(JSON.stringify(document));
 	} catch (exception) {
-		throw isApiError(exception) ? new Error(stripTags(exception.message)) : exception;
+		if (!isApiError(exception)) throw exception;
+		controller.value?.fieldErrors.markRefused(exception.fieldErrors, doc.value);
+		throw new Error(stripTags(exception.message));
 	}
 }
 
@@ -333,6 +344,7 @@ useSaveKeys({
 });
 
 onUnmounted(() => {
+	stopLanding();
 	visit.end();
 	controller.value?.leave();
 });
