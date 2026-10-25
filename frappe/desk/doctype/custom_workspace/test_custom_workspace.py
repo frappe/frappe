@@ -6,8 +6,10 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
+	effective_renderer,
 	effective_roles,
 	reset_workspace_customization,
+	upsert_property_customization,
 )
 from frappe.tests import IntegrationTestCase
 
@@ -106,6 +108,17 @@ class TestCustomWorkspaceUnit(IntegrationTestCase):
 
 		self.assertEqual(loads(doc.content), [BASE_CONTENT[0]])
 		self.assertIn("Stock Auditor", [r.role for r in doc.roles])
+
+	def test_effective_renderer(self):
+		for app in ("Legacy", "Frappe UI"):
+			for site, expected in (("Inherit", app), ("Legacy", "Legacy"), ("Frappe UI", "Frappe UI")):
+				with self.subTest(app=app, site=site):
+					customization = make_customization(renderer=site)
+					self.assertEqual(effective_renderer(app, customization), expected)
+					doc = make_base_doc()
+					doc.renderer = app
+					apply_customization(doc, customization)
+					self.assertEqual(doc.renderer, expected)
 
 	def test_no_user_layer_exists_for_workspaces(self):
 		# a private workspace is already yours to edit directly and a public one is the site's,
@@ -208,6 +221,18 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 
 		reset_workspace_customization(self.WORKSPACE)
 		self.assertFalse(frappe.db.exists("Custom Workspace", self.WORKSPACE))
+
+	def test_renderer_is_a_diff_and_reset_clears_it(self):
+		from frappe.desk.desktop import Workspace
+
+		upsert_property_customization(self.WORKSPACE, renderer="Legacy")
+		customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
+		self.assertFalse(customization.content)
+		self.assertFalse(customization.widgets)
+		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Legacy")
+
+		reset_workspace_customization(self.WORKSPACE)
+		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
 
 	def test_layout_customization_marks_the_page_as_frozen(self):
 		# The desk warns before the save that freezes a layout, so the payload has to say whether

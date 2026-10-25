@@ -27,6 +27,7 @@
   "hide_custom",
   "public",
   "is_hidden",
+  "renderer",
   "content",
   "module_onboarding",
   "number_cards_tab",
@@ -269,11 +270,18 @@
    "fieldtype": "Link",
    "label": "Module Onboarding",
    "options": "Module Onboarding"
+  },
+  {
+   "default": "Frappe UI",
+   "fieldname": "renderer",
+   "fieldtype": "Select",
+   "label": "Renderer",
+   "options": "Legacy\nFrappe UI"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-08-12 06:00:00.000000",
+ "modified": "2026-10-26 05:14:14.104209",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",

@@ -12,6 +12,7 @@
   "workspace",
   "visibility_section",
   "visibility",
+  "renderer",
   "roles_column_break",
   "added_roles",
   "removed_roles",
@@ -119,11 +120,19 @@
    "fieldname": "widgets",
    "fieldtype": "Long Text",
    "label": "Added Widgets"
+  },
+  {
+   "default": "Inherit",
+   "description": "Override how the standard workspace is drawn. \"Inherit\" keeps the app-shipped value.",
+   "fieldname": "renderer",
+   "fieldtype": "Select",
+   "label": "Renderer",
+   "options": "Inherit\nLegacy\nFrappe UI"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-08-11 19:49:46.000000",
+ "modified": "2026-10-26 05:14:14.594759",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom Workspace",

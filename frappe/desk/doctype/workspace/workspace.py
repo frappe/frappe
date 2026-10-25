@@ -67,6 +67,7 @@ class Workspace(Document, DeskViews):
 		parent_page: DF.Link | None
 		public: DF.Check
 		quick_lists: DF.Table[WorkspaceQuickList]
+		renderer: DF.Literal["Legacy", "Frappe UI"]
 		restrict_to_domain: DF.Link | None
 		roles: DF.Table[HasRole]
 		sequence_id: DF.Float
