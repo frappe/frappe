@@ -28,7 +28,6 @@ class SystemSettings(Document):
 		allow_login_after_fail: DF.Int
 		allow_login_using_mobile_number: DF.Check
 		allow_login_using_user_name: DF.Check
-		allow_mcp_delete: DF.Check
 		allowed_doctypes_for_guest_uploads: DF.SmallText | None
 		allowed_file_extensions: DF.SmallText | None
 		app_name: DF.Data | None
@@ -48,6 +47,7 @@ class SystemSettings(Document):
 		deny_multiple_sessions: DF.Check
 		disable_change_log_notification: DF.Check
 		disable_document_sharing: DF.Check
+		disable_mcp_delete: DF.Check
 		disable_product_suggestion: DF.Check
 		disable_standard_email_footer: DF.Check
 		disable_system_update_notification: DF.Check
