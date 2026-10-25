@@ -53,14 +53,21 @@ def fixed_after(workflow, failed_run):
 		sha = gh(f"repos/{REPO}/pulls/{item['number']}")["head"]["sha"]
 		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?head_sha={sha}&event=pull_request")
 		run = next(iter(runs["workflow_runs"]), None)
-		if run and run["created_at"] > failed_run["created_at"] and suite_passed(run, workflow):
+		if run and run["run_started_at"] > failed_run["created_at"] and suite_passed(run, workflow):
 			return True
 	return False
 
 
+def failed_job_url(run, gate_job):
+	"""The first failed job, whose log shows the error, or the run if none failed."""
+	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
+	failed = (job["html_url"] for job in jobs if job["conclusion"] == "failure" and job["name"] != gate_job)
+	return next(failed, run["html_url"])
+
+
 @cache
 def failing_suites():
-	"""{workflow: failed run url} for each suite whose latest finished full run on develop failed."""
+	"""{workflow: failed job url} for each suite whose latest finished full run on develop failed."""
 	failing = {}
 	for workflow, gate_job in SUITES.items():
 		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch=develop")
@@ -69,7 +76,7 @@ def failing_suites():
 				continue
 			conclusion = gate_conclusion(run, gate_job)
 			if conclusion == "failure" and not fixed_after(workflow, run):
-				failing[workflow] = run["html_url"]
+				failing[workflow] = failed_job_url(run, gate_job)
 			if conclusion in ("success", "failure"):
 				break
 	return failing

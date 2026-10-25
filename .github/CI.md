@@ -7,7 +7,7 @@ Every hour, if develop has new commits, the full suites run on develop: the serv
 Every open develop pull request has a **Develop status** check:
 
 - Green, "develop is passing": you can merge.
-- Red, "develop is failing": something already merged broke develop. The check links to the failed run. Don't merge until develop is fixed.
+- Red, "develop is failing": something already merged broke develop. The check links to the failed job, which shows the error. Don't merge until develop is fixed.
 
 When develop goes green again, every pull request turns green on its own. You don't need to push or re-run anything.
 
