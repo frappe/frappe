@@ -137,6 +137,7 @@ import {
 import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CodeErrorsKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
+import { focusField } from "@framework/ui/components/Fields/focusField";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
@@ -899,8 +900,7 @@ async function landOn(fieldname: string, cursor: boolean) {
 		);
 		if (cell) {
 			cell.scrollIntoView({ block: "center" });
-			if (cursor)
-				cell.querySelector<HTMLElement>("input, textarea, select, button")?.focus();
+			if (cursor) focusField(cell);
 			return;
 		}
 		await new Promise(requestAnimationFrame);

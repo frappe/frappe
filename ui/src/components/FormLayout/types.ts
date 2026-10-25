@@ -89,6 +89,8 @@ export interface RawMetaField {
   reqd?: boolean | 0 | 1;
   /** Decimal places; arrives as a number or numeric string from the backend. */
   precision?: number | string;
+  /** A CSS length that caps a tall control, such as a Text Editor. */
+  max_height?: string;
   hidden?: boolean | 0 | 1;
   read_only?: boolean | 0 | 1;
   /** Field-level permission level; access is DocPerm rows × user roles. */

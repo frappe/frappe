@@ -68,6 +68,7 @@ import {
 } from "@framework/ui/components/FormLayout/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { RecordAnchor } from "@framework/ui/components/Link";
+import { focusField } from "@framework/ui/components/Fields/focusField";
 import { useRecordLink } from "@framework/ui/components/Fields/useRecordLink";
 import { getFormatDefaults } from "@framework/ui/components/FormLayout/formatDefaults";
 import {
@@ -178,6 +179,6 @@ function onFocusout(event: FocusEvent) {
 watch(editing, async (on) => {
 	if (!on) return;
 	await nextTick();
-	cell.value?.querySelector<HTMLElement>("input, textarea, select, button")?.focus();
+	if (cell.value) focusField(cell.value);
 });
 </script>

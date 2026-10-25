@@ -104,6 +104,7 @@ import { Dialog } from "frappe-ui";
 import { Grid } from "../Grid";
 import TextareaField from "./TextareaField.vue";
 import type { GridColumn } from "../Grid";
+import { htmlToText } from "../RichText/html";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
 import { layoutFields, newRowValues } from "../FormLayout/newRowValues";
@@ -223,7 +224,7 @@ function onRowRemove({ rows: removed }: { rows: Record<string, any>[] }) {
 const NUMBER_FIELDTYPES = new Set(["Int", "Long Int", "Float", "Currency", "Percent"]);
 const CENTERED_FIELDTYPES = new Set(["Check", "Rating"]);
 
-// Fieldtypes whose editor can't live in a 34px single-row cell — multi-line code
+// Fieldtypes whose editor can't live in a 34px single-row cell — code and rich-text
 // editors, nested grids, and display-only blocks. The cell renders a read-only
 // summary instead; the row-edit dialog renders the full control. Button is NOT
 // here: it carries no value and its label fits a cell.
@@ -232,6 +233,7 @@ const SUMMARY_FIELDTYPES = new Set([
 	"JSON",
 	"Markdown Editor",
 	"HTML Editor",
+	"Text Editor",
 	"Table",
 	"Table MultiSelect",
 	"Image",
@@ -313,7 +315,7 @@ function isTextarea(field: FieldNode): boolean {
 }
 
 // Compact read-only text for a summary cell: a count for collections, resolved
-// presence for an Image, the label for a Heading, stripped text for HTML, and a
+// presence for an Image, the label for a Heading, the text of HTML and Text Editor, and a
 // one-line collapse of the raw string for the code editors. Editing happens in
 // the row-edit dialog, which renders the real control.
 function cellSummary(field: FieldNode, value: any, row: Record<string, any>): string {
@@ -333,6 +335,8 @@ function cellSummary(field: FieldNode, value: any, row: Record<string, any>): st
 		}
 		case "Heading":
 			return field.label ?? "";
+		case "Text Editor":
+			return oneLine(htmlToText(value)) || "—";
 		case "HTML": {
 			const text = (field.options ?? "")
 				.replace(/<[^>]*>/g, " ")

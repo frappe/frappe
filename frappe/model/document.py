@@ -1407,6 +1407,7 @@ class Document(_DocumentBase):
 			d._sanitize_content()
 			d._save_passwords()
 			d._validate_length()
+		self._attach_text_editor_files()
 		if self.is_new():
 			# don't set fields like _assign, _comments for new doc
 			for fieldname in optional_fields:
@@ -4134,6 +4135,12 @@ class Document(_DocumentBase):
 		if self.doctype != "DocType":
 			for df in self.meta.get("fields", {"fieldtype": ("=", "Text Editor")}):
 				extract_images_from_doc(self, df.fieldname)
+
+	def _attach_text_editor_files(self):
+		from frappe.core.doctype.file.utils import attach_text_editor_files
+
+		if self.doctype != "DocType":
+			attach_text_editor_files(self)
 
 
 def _throw_link_errors(message: str, links: list[tuple], exc: type[frappe.ValidationError]) -> None:

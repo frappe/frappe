@@ -23,6 +23,7 @@ import SelectField from "../SelectField.vue";
 import TableMultiSelectField from "../TableMultiSelectField.vue";
 import TextField from "../TextField.vue";
 import TextareaField from "../TextareaField.vue";
+import TextEditorField from "../TextEditorField.vue";
 import TimeField from "../TimeField.vue";
 
 describe("fieldTypes registry", () => {
@@ -49,6 +50,10 @@ describe("fieldTypes registry", () => {
     for (const t of ["Small Text", "Text", "Long Text"]) {
       expect(getFieldComponent(t)).toBe(TextareaField);
     }
+  });
+
+  it("resolves Text Editor to its rich-text field", () => {
+    expect(getFieldComponent("Text Editor")).toBe(TextEditorField);
   });
 
   it("resolves the code-family fieldtypes to CodeEditorField", async () => {

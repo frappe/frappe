@@ -4,6 +4,7 @@ import { formatField } from "@framework/ui/components/FormLayout/formatNumber";
 import type { FormatFieldOptions } from "@framework/ui/components/FormLayout/formatNumber";
 import { formatRating } from "@framework/ui/components/GroupBy/groupBy";
 import type { FieldMeta } from "@framework/ui/components/Fields/types";
+import { htmlToText } from "@framework/ui/components/RichText/html";
 
 export interface DisplayOptions extends FormatFieldOptions {
   /** The record, for a fieldtype that reads a sibling field: Image, Dynamic Link. */
@@ -47,7 +48,7 @@ export function summarize(value: unknown, fieldtype: string): string {
   if (isEmptyValue(value)) return "Not set";
   if (Array.isArray(value))
     return `${value.length} ${value.length === 1 ? "item" : "items"}`;
-  if (fieldtype === "Text Editor") return firstLine(stripHtml(String(value)));
+  if (fieldtype === "Text Editor") return firstLine(htmlToText(String(value)));
   if (CODE.includes(fieldtype)) return firstLine(String(value));
   return "Set";
 }
@@ -130,10 +131,6 @@ function sibling(field: FieldMeta, options: DisplayOptions): unknown {
 function formatTime(value: string): string {
   const match = /^(\d{1,2}):(\d{2})/.exec(value);
   return match ? `${match[1].padStart(2, "0")}:${match[2]}` : value;
-}
-
-function stripHtml(html: string): string {
-  return html.replace(/<[^>]*>/g, " ").replace(/&nbsp;/g, " ");
 }
 
 function firstLine(text: string): string {

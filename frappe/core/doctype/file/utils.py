@@ -1,4 +1,5 @@
 import hashlib
+import html
 import mimetypes
 import os
 import re
@@ -13,6 +14,8 @@ import frappe
 from frappe import _, safe_decode
 from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
+
+INLINE_MEDIA = re.compile(r'<(?:img|video|source)\b[^>]*?\ssrc\s*=\s*["\']([^"\']+)["\']')
 
 if TYPE_CHECKING:
 	from PIL.ImageFile import ImageFile
@@ -335,6 +338,36 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 		content = re.sub(r'<img[^>]*src\s*=\s*["\'](?=data:)(.*?)["\']', _save_file, content)
 
 	return content
+
+
+def attach_text_editor_files(doc: "Document") -> None:
+	"""Attach the caller's unattached Files shown in the Text Editor fields of `doc` or its rows to `doc`."""
+	content = "".join(
+		row.get(df.fieldname) or ""
+		for row in (doc, *doc.get_all_children())
+		for df in row.meta.get("fields", {"fieldtype": "Text Editor"})
+	)
+	attach_inline_media(doc, content)
+
+
+def attach_inline_media(doc: "Document", content: str) -> None:
+	"""Attach the caller's unattached Files shown inline in `content` to `doc`, as desk comments do."""
+	urls = list({html.unescape(url) for url in INLINE_MEDIA.findall(content or "")})
+	if not urls:
+		return
+	filters = {
+		"file_url": ("in", urls),
+		"owner": frappe.session.user,
+		"attached_to_doctype": ("is", "not set"),
+	}
+	attach_files(frappe.get_all("File", filters=filters, pluck="name"), doc.doctype, doc.name)
+
+
+def attach_files(names: list[str], doctype: str, name: str) -> None:
+	"""Attach the Files `names` to `doctype` `name` in one write; the caller has checked them."""
+	if names:
+		values = {"attached_to_doctype": doctype, "attached_to_name": name}
+		frappe.db.set_value("File", {"name": ("in", names)}, values)
 
 
 def get_corrupted_image_msg():
