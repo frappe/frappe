@@ -723,7 +723,7 @@ class _DocumentBase:
 
 		deprecation_warning(
 			"2026-10-19",
-			"v19",
+			"v17",
 			"`super(Document, self).__init__(d)` is deprecated, use `self.init_from_dict(d)` instead.",
 		)
 		self.init_from_dict(d)
@@ -4589,3 +4589,8 @@ def get_last_doc(
 def get_single(doctype):
 	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
 	return get_doc(doctype, doctype)
+
+
+# backward compatibility: `BaseDocument` was merged into `Document`
+# defined here so it can be imported from both the `document` and `base_document` modules
+BaseDocument = Document

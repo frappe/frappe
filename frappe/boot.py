@@ -26,9 +26,13 @@ from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.cloud_settings import (
 	get_boot_context as get_cloud_settings_boot_context,
 )
+from frappe.integrations.frappe_providers.cloud_settings import (
+	is_v2_site,
+)
+from frappe.integrations.frappe_providers.email_oauth import get_one_click_services
 from frappe.integrations.frappe_providers.frappecloud_billing import current_site_info, is_fc_site
 from frappe.model.document import get_controller
-from frappe.utils import add_user_info, get_system_timezone
+from frappe.utils import add_user_info, cint, get_system_timezone
 from frappe.utils.caching import redis_cache
 from frappe.utils.change_log import get_versions
 from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
@@ -130,12 +134,18 @@ def get_bootinfo():
 	bootinfo.desk_settings = get_desk_settings()
 	bootinfo.app_logo_url = get_app_logo()
 	bootinfo.link_title_doctypes = get_link_title_doctypes()
+	# only needed when the combobox setting is on; the setting comes back as a string
+	bootinfo.link_settings = (
+		get_link_settings() if cint(frappe.get_system_settings("enable_combobox_link_field")) else {}
+	)
 	bootinfo.web_form_request_forms = get_request_forms_by_doctype()
 	bootinfo.translated_doctypes = get_translated_doctypes()
 	bootinfo.doctype_ptype_map = get_doctype_ptype_map()
 	bootinfo.subscription_conf = add_subscription_conf()
 	bootinfo.is_fc_site = is_fc_site()
 	bootinfo.cloud_settings = get_cloud_settings_boot_context()
+	bootinfo.is_v2_site = is_v2_site()
+	bootinfo.one_click_email_services = get_one_click_services()
 	bootinfo.enable_address_autocompletion = frappe.db.get_single_value(
 		"Geolocation Settings", "enable_address_autocompletion"
 	)
@@ -584,6 +594,61 @@ def get_link_title_doctypes():
 		["doc_type as name"],
 	)
 	return filter_out_disabled_doctypes([d.name for d in dts + custom_dts if d])
+
+
+def get_link_settings() -> dict[str, dict]:
+	"""Non-default Link field settings per DocType; Property Setters override."""
+	from frappe.app_state import is_disabled_app_filtering_active, is_module_disabled
+	from frappe.desk.search import get_image_field
+
+	flags: dict[str, dict] = {}
+
+	for d in frappe.get_all(
+		"DocType",
+		or_filters={"link_display_mode": "Select", "show_image_in_link": 1},
+		fields=["name", "link_display_mode", "show_image_in_link"],
+	):
+		flags[d.name] = {
+			"select": d.link_display_mode == "Select",
+			"image": bool(cint(d.show_image_in_link)),
+		}
+
+	# skip the settings of disabled apps and modules, as Meta does
+	hide_disabled = is_disabled_app_filtering_active()
+	for ps in frappe.get_all(
+		"Property Setter",
+		filters={
+			"doctype_or_field": "DocType",
+			"property": ["in", ["link_display_mode", "show_image_in_link"]],
+		},
+		fields=["doc_type", "property", "value", "module", "is_app_disabled"],
+	):
+		if (hide_disabled and ps.is_app_disabled) or is_module_disabled(ps.module):
+			continue
+		entry = flags.setdefault(ps.doc_type, {"select": False, "image": False})
+		if ps.property == "link_display_mode":
+			entry["select"] = ps.value == "Select"
+		else:
+			entry["image"] = bool(cint(ps.value))
+
+	# skip Property Setters of deleted DocTypes
+	names = filter_out_disabled_doctypes([dt for dt, f in flags.items() if f["select"] or f["image"]])
+	existing = set(frappe.get_all("DocType", filters={"name": ["in", names]}, pluck="name"))
+
+	settings: dict[str, dict] = {}
+	for dt in names:
+		if dt not in existing:
+			continue
+		entry = {}
+		if flags[dt]["select"]:
+			entry["display_mode"] = "Select"
+		# image field name, so the client can load images without meta
+		if flags[dt]["image"] and (image_field := get_image_field(dt)):
+			entry["image_field"] = image_field
+		if entry:
+			settings[dt] = entry
+
+	return settings
 
 
 def set_time_zone(bootinfo):

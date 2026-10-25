@@ -409,7 +409,11 @@ export default class Grid {
 	delete_all_rows() {
 		const num_rows = this.data.length;
 		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [num_rows]), () => {
-			this.frm.doc[this.df.fieldname] = [];
+			if (this.frm) {
+				this.frm.doc[this.df.fieldname] = [];
+			} else {
+				this.df.data = [];
+			}
 			$(this.parent).find(".rows").empty();
 			this.grid_rows = [];
 			this.refresh();

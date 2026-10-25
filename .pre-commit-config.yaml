@@ -48,7 +48,9 @@ repos:
                 frappe/www/website_script.js|
                 frappe/templates/includes/.*|
                 frappe/public/js/lib/.*|
-                frappe/website/doctype/website_theme/website_theme_template.scss
+                frappe/website/doctype/website_theme/website_theme_template.scss|
+                studio/.*|
+                flow/.*
             )$
 
 
@@ -66,7 +68,9 @@ repos:
                 .*boilerplate.*|
                 frappe/www/website_script.js|
                 frappe/templates/includes/.*|
-                frappe/public/js/lib/.*
+                frappe/public/js/lib/.*|
+                studio/.*|
+                flow/.*
             )$
 
   - repo: local

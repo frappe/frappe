@@ -1,0 +1,124 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2026-05-20 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "section_break_config",
+  "provider",
+  "model_id",
+  "context_window",
+  "api_key",
+  "base_url",
+  "extra_params",
+  "section_break_access",
+  "roles"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "label": "Enabled"
+  },
+  {
+   "fieldname": "section_break_config",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "provider",
+   "fieldtype": "Link",
+   "label": "Provider",
+   "options": "Flow Provider"
+  },
+  {
+   "description": "LiteLLM model identifier. With a Provider linked, pick or type just the model (e.g. <code>claude-sonnet-4-6</code>); otherwise use <code>provider/model</code> form, e.g. <code>anthropic/claude-sonnet-4-6</code>, <code>openai/gpt-4.1</code>, <code>ollama/llama3.1</code>",
+   "fieldname": "model_id",
+   "fieldtype": "Autocomplete",
+   "in_list_view": 1,
+   "label": "Model ID",
+   "reqd": 1
+  },
+  {
+   "description": "Max input tokens. Auto-detected from the model on save; managed by Flow, not user-editable. 0 = unknown.",
+   "fieldname": "context_window",
+   "fieldtype": "Int",
+   "label": "Context Window",
+   "non_negative": 1,
+   "read_only": 1
+  },
+  {
+   "depends_on": "eval:!doc.provider",
+   "description": "API key to authenticate with this model's endpoint. Needed when no Provider is linked.",
+   "fieldname": "api_key",
+   "fieldtype": "Password",
+   "label": "API Key"
+  },
+  {
+   "depends_on": "eval:!doc.provider",
+   "description": "Endpoint for this model, e.g. a self-hosted Ollama (<code>http://localhost:11434</code>) or a proxy. Needed when no Provider is linked.",
+   "fieldname": "base_url",
+   "fieldtype": "Data",
+   "label": "Base URL"
+  },
+  {
+   "description": "Extra LiteLLM params sent with every call to this model, e.g. <code>{\"provider\": {\"zdr\": true}}</code> for OpenRouter's zero data retention. Flow Users can read them, so keep keys out.",
+   "fieldname": "extra_params",
+   "fieldtype": "JSON",
+   "label": "Extra Params"
+  },
+  {
+   "fieldname": "section_break_access",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "description": "Who can use this model; empty means every Flow User. Others pick another model for agents that run on it, but a sub-agent on it works for anyone using its agent. Disabling a role also drops it here, which can leave the model open to every Flow User.",
+   "fieldname": "roles",
+   "fieldtype": "Table MultiSelect",
+   "label": "Roles",
+   "options": "Has Role"
+  }
+ ],
+ "links": [],
+ "modified": "2026-10-21 16:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Model",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Flow User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

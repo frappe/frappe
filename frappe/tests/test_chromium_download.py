@@ -2,12 +2,15 @@
 # License: MIT. See LICENSE
 import io
 import os
+import sys
 import tempfile
 import zipfile
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import frappe
 from frappe.tests import UnitTestCase
-from frappe.utils.chromium.download import download_chromium
+from frappe.utils.chromium.download import download_chromium, get_chromium_download_url
 
 
 def _archive_containing(*names: str) -> bytes:
@@ -56,3 +59,17 @@ class TestChromiumDownload(UnitTestCase):
 
 		self.assertTrue(os.path.exists(executable), f"{executable} was not extracted")
 		self.assertTrue(os.access(executable, os.X_OK), f"{executable} is not executable")
+
+	def test_linux_arm64_download_url_on_amazon_linux(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with (
+			patch("platform.system", return_value="Linux"),
+			patch("platform.machine", return_value="aarch64"),
+			patch.dict(sys.modules, {"distro": SimpleNamespace(id=lambda: "amzn", version=lambda: "2023")}),
+			patch("frappe.get_common_site_config", return_value={}),
+		):
+			url = get_chromium_download_url()
+
+		self.assertTrue(url.endswith("/chromium-headless-shell-linux-arm64.zip"), url)

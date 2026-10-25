@@ -91,7 +91,7 @@ def is_test_module(file: str) -> bool:
 	return file.endswith(".py") and os.path.basename(file).startswith("test_")
 
 
-def importers(test_files: set[str], root: str = ".") -> set[str]:
+def importers(test_files: set[str], root: str = ".", pattern: str = TEST_GLOB) -> set[str]:
 	"""`test_files` plus every test module that imports one of them, directly or transitively.
 
 	A shared helper like `frappe/tests/test_api.py` or `test_helpers.py` is a test module that
@@ -108,7 +108,7 @@ def importers(test_files: set[str], root: str = ".") -> set[str]:
 
 	sources = {
 		os.path.relpath(path, root): open(path, encoding="utf-8").read()
-		for path in glob.iglob(os.path.join(root, TEST_GLOB), recursive=True)
+		for path in glob.iglob(os.path.join(root, pattern), recursive=True)
 	}
 
 	found = set(test_files)

@@ -32,10 +32,6 @@ function roles_input(page) {
 	return page.locator('.web-form .frappe-control[data-fieldname="roles"] input');
 }
 
-function visible_heading(page, text) {
-	return page.locator(".web-form .section-head:visible", { hasText: text });
-}
-
 async function submit(page) {
 	await page.locator(".web-form-actions button", { hasText: "Save" }).first().click();
 }
@@ -116,15 +112,59 @@ test.describe("Web Form Table MultiSelect", () => {
 });
 
 test.describe("Web Form Pages", () => {
-	const PAGES_ROUTE = "named-pages-note";
+	const PAGES_ROUTE = "paged-note";
+	const NAMED_PAGES_ROUTE = "named-pages-note";
 
 	test.use({ storageState: GUEST });
 
 	test.beforeAll(async ({ admin }) => {
 		await admin.insert_doc("DocType", web_form_source_doctype, true);
+		await seed_web_form(
+			admin,
+			[
+				{ fieldname: "title", fieldtype: "Data", label: "Title" },
+				{ fieldtype: "Page Break", label: "More" },
+				{ fieldname: "kind", fieldtype: "Select", label: "Kind" },
+				{ fieldtype: "Section Break", label: "Extras" },
+				{ fieldname: "alpha_note", fieldtype: "Data", label: "Alpha Note" },
+				{ fieldtype: "Page Break" },
+				{ fieldname: "bare_note", fieldtype: "Data", label: "Bare Note" },
+			],
+			{
+				title: PAGES_ROUTE,
+				route: PAGES_ROUTE,
+				doc_type: web_form_source_doctype.name,
+				published: 1,
+				login_required: 0,
+			}
+		);
+	});
+
+	test("Shows the stepper above the fields and moves it with the page", async ({ page }) => {
+		const stepper = page.locator(".web-form > .web-form-stepper:first-child");
+		const label = stepper.locator(".es-progress__label");
+		const hint = stepper.locator(".es-progress__hint");
+
+		await page.goto(`/${PAGES_ROUTE}/new`);
+		// a page with no Page Break label is named by its position
+		await expect(label).toHaveText("Page 1");
+		await expect(hint).toHaveText("1 of 3");
+
+		await page.locator(".btn-next").click();
+		await expect(label).toHaveText("More");
+		await expect(hint).toHaveText("2 of 3");
+
+		await page.locator(".btn-next").click();
+		await expect(label).toHaveText("Page 3");
+
+		await page.locator(".btn-previous").click();
+		await expect(label).toHaveText("More");
+		await expect(stepper.locator(".es-progress")).toHaveCount(1);
 	});
 
 	test("Opens on the page that a Page Break in row 1 names", async ({ page, admin }) => {
+		const label = page.locator(".web-form-stepper .es-progress__label");
+
 		await seed_web_form(
 			admin,
 			[
@@ -135,29 +175,69 @@ test.describe("Web Form Pages", () => {
 				{ fieldname: "kind", fieldtype: "Select", label: "Kind" },
 			],
 			{
-				title: PAGES_ROUTE,
-				route: PAGES_ROUTE,
+				title: NAMED_PAGES_ROUTE,
+				route: NAMED_PAGES_ROUTE,
 				doc_type: web_form_source_doctype.name,
 				published: 1,
 				login_required: 0,
 			}
 		);
 
-		await page.goto(`/${PAGES_ROUTE}/new`);
+		await page.goto(`/${NAMED_PAGES_ROUTE}/new`);
 		// the row names page 1, so the form does not open on a blank page
 		await expect(
 			page.locator('.web-form .frappe-control[data-fieldname="title"]')
 		).toBeVisible();
-		await expect(visible_heading(page, "About You")).toBeVisible();
+		await expect(label).toHaveText("About You");
+		await expect(page.locator(".web-form-stepper .es-progress__hint")).toHaveText("1 of 2");
 		// the section keeps its own heading under the page name
-		await expect(visible_heading(page, "Basics")).toBeVisible();
-		await expect(page.locator(".slides-progress .slide-step")).toHaveCount(2);
+		await expect(page.locator(".web-form .section-head:visible")).toHaveText(["Basics"]);
 
 		await page.locator(".btn-next").click();
 		await expect(
 			page.locator('.web-form .frappe-control[data-fieldname="kind"]')
 		).toBeVisible();
-		await expect(visible_heading(page, "More")).toBeVisible();
+		await expect(label).toHaveText("More");
+	});
+
+	test("Names a page in the stepper only, not above its fields", async ({ page }) => {
+		const headings = page.locator(".web-form .section-head:visible");
+
+		await page.goto(`/${PAGES_ROUTE}/new`);
+		await page.locator(".btn-next").click();
+		await expect(page.locator(".web-form-stepper .es-progress__label")).toHaveText("More");
+		// a Section Break on the page keeps its heading
+		await expect(headings).toHaveText(["Extras"]);
+	});
+
+	test("Keeps the page name as a heading when the other pages are empty", async ({
+		page,
+		admin,
+	}) => {
+		const SINGLE_PAGE_ROUTE = "single-named-page-note";
+
+		await seed_web_form(
+			admin,
+			[
+				{ fieldtype: "Page Break", label: "About You" },
+				{ fieldname: "title", fieldtype: "Data", label: "Title" },
+				{ fieldtype: "Page Break", label: "Empty" },
+			],
+			{
+				title: SINGLE_PAGE_ROUTE,
+				route: SINGLE_PAGE_ROUTE,
+				doc_type: web_form_source_doctype.name,
+				published: 1,
+				login_required: 0,
+			}
+		);
+
+		await page.goto(`/${SINGLE_PAGE_ROUTE}/new`);
+		await expect(
+			page.locator('.web-form .frappe-control[data-fieldname="title"]')
+		).toBeVisible();
+		await expect(page.locator(".web-form-stepper .es-progress")).toHaveCount(0);
+		await expect(page.locator(".web-form .section-head:visible")).toHaveText(["About You"]);
 	});
 });
 
