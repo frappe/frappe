@@ -43,6 +43,23 @@ class TestWorkspace(IntegrationTestCase):
 	# 	else:
 	# 		self.assertEqual(len(cards), 1)
 
+	def test_renderer_defaults_to_frappe_ui(self):
+		workspace = create_workspace(
+			name="Renderer Test", label="Renderer Test", public=1, title="Renderer Test"
+		)
+		workspace.insert()
+		self.assertEqual(workspace.renderer, "Frappe UI")
+
+	def test_renderer_patch_moves_every_workspace_to_frappe_ui(self):
+		workspace = create_workspace(
+			name="Renderer Test", label="Renderer Test", public=1, title="Renderer Test"
+		)
+		workspace.insert()
+		frappe.db.set_value("Workspace", workspace.name, "renderer", None)
+
+		frappe.get_attr("frappe.patches.v17_0.set_workspace_renderer_to_frappe_ui.execute")()
+		self.assertEqual(frappe.db.get_value("Workspace", workspace.name, "renderer"), "Frappe UI")
+
 	def test_save_page_with_new_widgets_as_dict(self):
 		"""save_page receives new_widgets already parsed into a dict by the request layer."""
 		from frappe.desk.doctype.workspace.workspace import save_page
