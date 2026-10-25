@@ -963,6 +963,28 @@ class TestImage(IntegrationTestCase):
 		self.assertEqual(len(reader.pages), 4)
 		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
 
+	def test_optimize_pdf_encodes_an_image_shared_by_every_page_once(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf._page import ImageFile
+
+		from frappe.utils.pdf import optimize_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		buf = io.BytesIO()
+		Image.new("RGB", (800, 800), (20, 150, 90)).save(buf, format="PDF")
+		page = PdfReader(buf).pages[0]
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.add_page(page)
+		out = io.BytesIO()
+		writer.write(out)
+
+		with patch.object(ImageFile, "replace", autospec=True, side_effect=ImageFile.replace) as replace:
+			optimize_pdf(out.getvalue())
+
+		replace.assert_called_once()
+
 	def test_optimize_pdf_skips_unprocessable_image_but_optimizes_rest(self):
 		from pypdf import PdfReader, PdfWriter
 
