@@ -229,6 +229,15 @@ class ChromiumManager:
 			)
 		return self._chromium_process
 
+	def _stop_chromium_process(self):
+		self._signal_chromium()
+		try:
+			self._chromium_process.wait(timeout=5)
+		except subprocess.TimeoutExpired:
+			self._signal_chromium(kill=True)
+			self._chromium_process.wait()
+		self._chromium_process.stderr.close()
+
 	def _signal_chromium(self, kill=False):
 		process = self._chromium_process
 		if platform.system().lower() == "windows":
@@ -303,6 +312,7 @@ class ChromiumManager:
 		except TimeoutError:
 			if not retry:
 				raise
+			self._stop_chromium_process()
 			self.start_chromium_process(debug=self.debug_mode)
 			self._set_devtools_url(retry=False)
 
@@ -353,12 +363,7 @@ class ChromiumManager:
 		if getattr(self, "USE_PERSISTENT_CHROMIUM", False):
 			return
 		if self._chromium_process:
-			self._signal_chromium()
-			try:
-				self._chromium_process.wait(timeout=5)
-			except subprocess.TimeoutExpired:
-				self._signal_chromium(kill=True)
-				self._chromium_process.wait()
+			self._stop_chromium_process()
 		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
