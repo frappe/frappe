@@ -41,6 +41,7 @@ jobs:
     name: Update Pull Requests
     if: ${{ github.event.action != 'closed' }}
     runs-on: ubuntu-latest
+    timeout-minutes: 180
     concurrency:
       group: develop-status-${{ github.event.pull_request.number || 'all' }}
       cancel-in-progress: true
@@ -64,6 +65,6 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           LABEL: ${{ github.event.label.name }}
-      - run: python .github/helper/develop_status.py ${{ github.event.pull_request.number && format('pr {0}', github.event.pull_request.number) || 'refresh' }}
+      - run: python .github/helper/develop_status.py ${{ github.event.pull_request.number && format('wait {0}', github.event.pull_request.number) || 'refresh' }}
         env:
           GH_TOKEN: ${{ github.token }}
