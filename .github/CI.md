@@ -18,7 +18,7 @@ When develop goes green again, every pull request turns green on its own. You do
 3. Add the `fixes-develop` label. The failing suite runs in full on your pull request.
 4. Merge it once those tests pass. Every pull request turns green right away. The full suites also run on develop once more to confirm, and if they fail, develop is red again.
 
-To re-test develop at any other time: open the **Actions** tab of the repo, click **Develop Status** in the list on the left, then click the **Run workflow** button on the right.
+To re-test develop at any other time: open the **Actions** tab of the repo, click **Develop Tests** in the list on the left, then click the **Run workflow** button on the right.
 
 ## Labels
 

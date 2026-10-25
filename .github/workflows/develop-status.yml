@@ -1,4 +1,4 @@
-name: Develop Status
+name: Develop Tests
 
 on:
   schedule:
