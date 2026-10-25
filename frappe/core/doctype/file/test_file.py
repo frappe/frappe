@@ -1922,6 +1922,8 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
 	)
 	def test_keeps_the_file_private_when_the_caller_may_not_make_it_public(self):
+		frappe.set_user("test1@example.com")
+		self.assertNotIn("System Manager", frappe.get_roles())
 		file = self.make_file(b"restricted-image")
 		body = f'<img src="{file.file_url}">'
 
