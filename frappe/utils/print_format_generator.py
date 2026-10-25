@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -1077,6 +1077,7 @@ class PrintFormatGenerator:
 		df["section"] = section
 		self.prepare_barcode(df)
 		self.prepare_linked_field(df)
+		self.prepare_dynamic_text(df)
 		self.prepare_date_format(df)
 		self.filter_conditional_rows(df)
 
@@ -1148,34 +1149,63 @@ class PrintFormatGenerator:
 		formatted value from the linked document."""
 		if df.get("fieldtype") != "Linked Field" or not df.get("link_path"):
 			return
-		path = df["link_path"]
-		if "." not in path:
+		resolved = self.resolve_linked_path(df["link_path"])
+		if resolved is None:
 			return
-		link_fieldname, target_fieldname = path.split(".", 1)
-		link_df = self.doc.meta.get_field(link_fieldname)
-		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
-			return
-		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
-			return
-		name = self.doc.get(link_fieldname)
-		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
-			return
-		target_meta = frappe.get_meta(link_df.options)
-		target_df = target_meta.get_field(target_fieldname)
-		if not target_df:
-			return
-		if target_df.permlevel:
-			target_doc = frappe.get_doc(link_df.options, name)
-			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
-				return
-		value = frappe.db.get_value(link_df.options, name, target_fieldname)
-		if value is None:
-			return
+		value, target_df = resolved
 		if target_df.fieldtype == "Attach Image":
 			df["renderer"] = "AttachImage"
 			df["_value"] = value
 			return
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
+
+	def resolve_linked_path(self, path):
+		"""The raw value and docfield behind link_field.target_field, or None when the
+		reader may not see it."""
+		if "." not in path:
+			return None
+		link_fieldname, target_fieldname = path.split(".", 1)
+		link_df = self.doc.meta.get_field(link_fieldname)
+		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
+			return None
+		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
+			return None
+		name = self.doc.get(link_fieldname)
+		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
+			return None
+		target_meta = frappe.get_meta(link_df.options)
+		target_df = target_meta.get_field(target_fieldname)
+		if not target_df:
+			return None
+		if target_df.permlevel:
+			target_doc = frappe.get_doc(link_df.options, name)
+			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
+				return None
+		value = frappe.db.get_value(link_df.options, name, target_fieldname)
+		if value is None:
+			return None
+		return value, target_df
+
+	def prepare_dynamic_text(self, df):
+		"""Join a Dynamic Text block's typed text and field values into one line."""
+		if df.get("fieldtype") != "Dynamic Text":
+			return
+		from frappe.utils import escape_html, strip_html
+
+		parts = []
+		for token in df.get("template") or []:
+			value = token.get("v") or ""
+			if token.get("t") != "f":
+				parts.append(escape_html(value))
+			elif "." in value:
+				resolved = self.resolve_linked_path(value)
+				if resolved:
+					parts.append(
+						escape_html(cstr(frappe.format_value(resolved[0], df=resolved[1], doc=self.doc)))
+					)
+			elif self.doc.meta.get_field(value) and self.has_field_access(self.doc, self.doc.meta, value):
+				parts.append(escape_html(strip_html(cstr(self.doc.get_formatted(value)))))
+		df["_value"] = "".join(parts).strip()
 
 	def prepare_date_format(self, df):
 		if (

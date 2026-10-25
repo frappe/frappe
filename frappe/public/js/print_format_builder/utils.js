@@ -393,6 +393,7 @@ export const FIELD_PLUCK_KEYS = [
 	"barcode_format",
 	"show_text",
 	"text",
+	"template",
 	"bold",
 	"font_size",
 	"link_path",

@@ -14,6 +14,7 @@ const CONTENT_FIELDTYPES = new Set([
 const NON_TEXT_FIELDTYPES = new Set([
 	...CONTENT_FIELDTYPES,
 	"Static Text",
+	"Dynamic Text",
 	"Typst",
 	"Table",
 	"Repeater",

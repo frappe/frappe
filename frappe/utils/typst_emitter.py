@@ -12,6 +12,7 @@ templates, client-side barcodes, …) are refused by :func:`typst_blockers`;
 they keep rendering through Chromium.
 """
 
+import html
 import json
 import re
 
@@ -923,6 +924,8 @@ class TypstEmitter:
 			return self._repeater(df)
 		if fieldtype == "Static Text":
 			return self._static_text(df)
+		if fieldtype == "Dynamic Text":
+			return self._static_text({**df, "text": html.unescape(df.get("_value") or "")})
 		return self._data_field(section, df)
 
 	def _static_text(self, df) -> str:

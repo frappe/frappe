@@ -60,6 +60,10 @@
 				{%- if (df.text or '')|trim -%}
 					{%- set ns.has_content = true -%}
 				{%- endif -%}
+			{%- elif df.fieldtype == 'Dynamic Text' -%}
+				{%- if df.get('_value') -%}
+					{%- set ns.has_content = true -%}
+				{%- endif -%}
 			{%- elif df.fieldtype == 'Typst' -%}
 				{%- if (df.typst or '')|trim -%}
 					{%- set ns.has_content = true -%}

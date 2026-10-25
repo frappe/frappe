@@ -262,6 +262,7 @@ function field_has_content(f) {
 	if (!store.is_visible(f.visible_if)) return false;
 	if (always_has_content(f)) return true;
 	if (f.fieldtype === "Static Text") return !!f.text?.trim();
+	if (f.fieldtype === "Dynamic Text") return !!f.template?.length;
 	if (f.fieldtype === "Typst") return !!f.typst?.trim();
 	if (f.fieldtype === "Linked Field") {
 		const value = store.linked_values.value[linked_target(f, store.meta.value, doc)?.key];

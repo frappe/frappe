@@ -55,6 +55,11 @@
 	>
 		{{ df.text || __("Empty text") }}
 	</div>
+	<FieldPreviewDynamic
+		v-else-if="df.fieldtype == 'Dynamic Text'"
+		:df="df"
+		:style="static_text_style"
+	/>
 	<FieldPreviewLinked v-else-if="df.fieldtype == 'Linked Field'" :df="df" />
 	<template v-else>
 		<div
@@ -112,6 +117,7 @@
 <script setup>
 import { computed, inject, ref, watch } from "vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
+import FieldPreviewDynamic from "./FieldPreviewDynamic.vue";
 import FieldPreviewLinked from "./FieldPreviewLinked.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
