@@ -10,6 +10,8 @@ import frappe
 from frappe.api import v2
 from frappe.mcp.tools import DocumentName, Tool, ToolArguments, form_dict
 
+LIST_LIMIT = 100
+
 
 class GetDocumentArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
@@ -27,7 +29,7 @@ class ListDocumentsArguments(ToolArguments):
 	fields: list[str] | None = None
 	order_by: str | None = None
 	start: int = Field(default=0, ge=0)
-	limit: int = Field(default=20, ge=1)
+	limit: int = Field(default=20, ge=1, le=LIST_LIMIT)
 
 
 class CreateDocumentArguments(ToolArguments):
@@ -87,7 +89,7 @@ def delete_document(doctype: str, name: str) -> None:
 
 LIST_DOCUMENTS = Tool(
 	name="list_documents",
-	description="List documents like frappe.get_list.",
+	description="List documents like frappe.get_list. Returns up to 100 per call; page with start.",
 	arguments=ListDocumentsArguments,
 	handler=list_documents,
 	annotations={"readOnlyHint": True},
