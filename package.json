@@ -3,8 +3,7 @@
   "scripts": {
     "build": "node esbuild",
     "production": "node esbuild --production",
-    "watch": "node esbuild --watch",
-    "coverage:report": "npx nyc report --reporter=clover"
+    "watch": "node esbuild --watch"
   },
   "repository": {
     "type": "git",
@@ -80,9 +79,6 @@
     "vuedraggable": "^4.1.0",
     "vuex": "4.0.2",
     "yargs": "^17.5.1"
-  },
-  "nyc": {
-    "report-dir": ".cypress-coverage"
   },
   "optionalDependencies": {
     "bufferutil": "^4.0.8",
