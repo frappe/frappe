@@ -1,4 +1,3 @@
-import contextlib
 import os
 import platform
 import signal
@@ -235,8 +234,12 @@ class ChromiumManager:
 		if platform.system().lower() == "windows":
 			process.kill() if kill else process.terminate()
 			return
-		with contextlib.suppress(ProcessLookupError):
+		try:
 			os.killpg(process.pid, signal.SIGKILL if kill else signal.SIGTERM)
+		except ProcessLookupError:
+			pass
+		except PermissionError:
+			process.kill() if kill else process.terminate()
 
 	def _reap_orphaned_chromium(self):
 		"""Kill chromium processes leaked by dead workers.
