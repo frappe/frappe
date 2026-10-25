@@ -63,6 +63,7 @@ def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | li
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
