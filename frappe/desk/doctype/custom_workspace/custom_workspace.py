@@ -54,6 +54,7 @@ class CustomWorkspace(Document):
 		]
 		override_sequence: DF.Check
 		removed_roles: DF.Table[HasRole]
+		renderer: DF.Literal["Inherit", "Legacy", "Frappe UI"]
 		sequence_id: DF.Float
 		visibility: DF.Literal["Inherit", "Visible", "Hidden"]
 		widgets: DF.LongText | None
@@ -115,6 +116,13 @@ def effective_roles(base_roles: list[str], customization: "CustomWorkspace") -> 
 	return list(roles)
 
 
+def effective_renderer(base_renderer: str, customization: "CustomWorkspace | None") -> str:
+	"""The site's renderer unless it is Inherit, else the app's."""
+	if customization and customization.renderer and customization.renderer != "Inherit":
+		return customization.renderer
+	return base_renderer
+
+
 def apply_customization(doc, customization: "CustomWorkspace") -> None:
 	"""Merge a customization onto a *fresh* (non-cached) Workspace doc, in place.
 
@@ -141,6 +149,7 @@ def _apply_properties(doc, customization) -> None:
 		doc.is_hidden = 0
 	if customization.icon:
 		doc.icon = customization.icon
+	doc.renderer = effective_renderer(doc.renderer, customization)
 	if customization.indicator_color:
 		doc.indicator_color = customization.indicator_color
 	if customization.override_sequence:
@@ -227,6 +236,7 @@ def upsert_property_customization(
 	icon: str | None = None,
 	indicator_color: str | None = None,
 	visibility: str | None = None,
+	renderer: str | None = None,
 	override_sequence: bool | None = None,
 	sequence_id: float | None = None,
 ) -> None:
@@ -238,6 +248,8 @@ def upsert_property_customization(
 		customization.indicator_color = indicator_color
 	if visibility is not None:
 		customization.visibility = visibility
+	if renderer is not None:
+		customization.renderer = renderer
 	if override_sequence is not None:
 		customization.override_sequence = override_sequence
 	if sequence_id is not None:
