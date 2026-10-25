@@ -132,6 +132,7 @@
   "enable_mcp",
   "server_name",
   "agent_instructions",
+  "allow_mcp_delete",
   "frappectl_section",
   "frappectl_help"
  ],
@@ -896,6 +897,13 @@
    "label": "Agent Instructions"
   },
   {
+   "default": "1",
+   "description": "Let AI agents delete documents the user can delete. AI clients may delete without asking the user first.",
+   "fieldname": "allow_mcp_delete",
+   "fieldtype": "Check",
+   "label": "Allow Deleting Documents"
+  },
+  {
    "fieldname": "frappectl_section",
    "fieldtype": "Section Break",
    "label": "frappectl"
@@ -908,7 +916,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-22 12:00:00.000000",
+ "modified": "2026-10-26 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
