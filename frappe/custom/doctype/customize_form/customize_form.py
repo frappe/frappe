@@ -236,8 +236,10 @@ class CustomizeForm(Document):
 
 		validate_series(self, self.autoname, self.doc_type)
 		validate_autoincrement_autoname(self)
-		self.flags.field_order_unchanged = [df.fieldname for df in self.fields] == [
-			df.fieldname for df in frappe.get_meta(self.doc_type).fields
+		fieldnames = [df.fieldname for df in self.fields]
+		meta_fieldnames = [df.fieldname for df in frappe.get_meta(self.doc_type).fields]
+		self.flags.field_order_unchanged = [f for f in fieldnames if f in meta_fieldnames] == [
+			f for f in meta_fieldnames if f in fieldnames
 		]
 		self.flags.update_db = False
 		self.flags.rebuild_doctype_for_global_search = False
