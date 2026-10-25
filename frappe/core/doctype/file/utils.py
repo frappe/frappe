@@ -15,7 +15,8 @@ from frappe import _, safe_decode
 from frappe.utils import cint, cstr, encode, get_files_path, random_string, strip
 from frappe.utils.file_manager import safe_b64decode
 
-INLINE_MEDIA = re.compile(r'<(?:img|video|source)\b[^>]*?\ssrc\s*=\s*["\']([^"\']+)["\']')
+# a double-quoted `src` may hold a `'`, as in a file named "John's photo.png"
+INLINE_MEDIA = re.compile(r'<(?:img|video|source)\b[^>]*?\ssrc\s*=\s*(?:"([^"]+)"|\'([^\']+)\')')
 
 if TYPE_CHECKING:
 	from PIL.ImageFile import ImageFile
@@ -341,29 +342,80 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 
 
 def attach_text_editor_files(doc: "Document") -> None:
-	"""Attach the caller's unattached Files shown in the Text Editor fields of `doc` or its rows to `doc`."""
+	"""Attach the caller's unattached Files shown in the Text Editor fields of `doc` or its rows to `doc`.
+
+	When the doctype sets `make_attachments_public`, each File is made public first, and the
+	fields are repointed at its new URL."""
 	# Guests share one owner, and a save outside a request acts for no uploader.
 	if frappe.session.user == "Guest" or not getattr(frappe.local, "request", None):
 		return
-	content = "".join(
-		row.get(df.fieldname) or ""
+	fields = [
+		(row, df.fieldname)
 		for row in (doc, *doc.get_all_children())
 		for df in row.meta.get("fields", {"fieldtype": "Text Editor"})
-	)
-	attach_inline_media(doc, content)
+	]
+	names = unattached_inline_files("".join(row.get(fieldname) or "" for row, fieldname in fields))
+	if not names:
+		return
+	if doc.meta.make_attachments_public and can_upload_public_files():
+		moved = make_files_public(names)
+		for row, fieldname in fields:
+			if row.get(fieldname):
+				row.set(fieldname, repoint_inline_media(row.get(fieldname), moved))
+	attach_files(names, doc.doctype, doc.name)
 
 
 def attach_inline_media(doc: "Document", content: str) -> None:
 	"""Attach the caller's unattached Files shown inline in `content` to `doc`, as desk comments do."""
-	urls = list({html.unescape(url) for url in INLINE_MEDIA.findall(content or "")})
+	attach_files(unattached_inline_files(content), doc.doctype, doc.name)
+
+
+def unattached_inline_files(content: str) -> list[str]:
+	"""The caller's unattached Files whose URL an `img`, `video` or `source` in `content` shows."""
+	urls = list({html.unescape(double or single) for double, single in INLINE_MEDIA.findall(content or "")})
 	if not urls:
-		return
+		return []
 	filters = {
 		"file_url": ("in", urls),
 		"owner": frappe.session.user,
 		"attached_to_doctype": ("is", "not set"),
 	}
-	attach_files(frappe.get_all("File", filters=filters, pluck="name"), doc.doctype, doc.name)
+	return frappe.get_all("File", filters=filters, pluck="name")
+
+
+def make_files_public(names: list[str]) -> dict[str, str]:
+	"""Make the caller's Files `names` public; maps each old URL to its new one."""
+	moved = {}
+	for name in names:
+		file = frappe.get_doc("File", name)
+		if not file.is_private:
+			continue
+		old_url = file.file_url
+		file.is_private = 0
+		file.save()
+		moved[old_url] = file.file_url
+	return moved
+
+
+def repoint_inline_media(content: str, moved: dict[str, str]) -> str:
+	"""`content` with each inline media URL in `moved` replaced by its new URL."""
+
+	def repoint(match: re.Match) -> str:
+		group = 1 if match.group(1) else 2
+		new_url = moved.get(html.unescape(match.group(group)))
+		if not new_url:
+			return match.group(0)
+		start, end = match.start(group) - match.start(), match.end(group) - match.start()
+		return match.group(0)[:start] + html.escape(new_url) + match.group(0)[end:]
+
+	return INLINE_MEDIA.sub(repoint, content)
+
+
+def can_upload_public_files() -> bool:
+	"""Whether the caller may make a File public; desk's uploader falls back to private otherwise."""
+	if not frappe.get_system_settings("only_allow_system_managers_to_upload_public_files"):
+		return True
+	return "System Manager" in frappe.get_roles()
 
 
 def attach_files(names: list[str], doctype: str, name: str) -> None:
