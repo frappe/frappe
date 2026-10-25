@@ -6,6 +6,8 @@
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
+		:error="error"
+		:cellError="cellError"
 		:newRow="newRow"
 		@change="(r: Record<string, any>[]) => emit('change', r)"
 		@commit="onCellCommit"
@@ -37,6 +39,23 @@
 					<div
 						v-else-if="isCentered(column.fieldname)"
 						class="flex w-full items-center justify-center"
+					>
+						<component
+							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:field="f"
+							:modelValue="value"
+							:row="row"
+							@update:modelValue="(v: any) => editCell(update, f, row, v)"
+							@change="commit"
+							v-bind="f.ui?.props"
+							v-on="cellListeners(f, row)"
+						/>
+					</div>
+					<div
+						v-else-if="isTextarea(f)"
+						class="grid-one-line w-full text-p-sm"
+						:class="f.readOnly ? 'text-ink-gray-5' : 'text-ink-gray-8'"
+						:data-preview="oneLine(value)"
 					>
 						<component
 							:is="f.ui?.component ?? resolveField(f.fieldtype)"
@@ -83,14 +102,22 @@
 import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../Grid";
+import TextareaField from "./TextareaField.vue";
 import type { GridColumn } from "../Grid";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
 import { layoutFields, newRowValues } from "../FormLayout/newRowValues";
-import { CommitKey, DocKey, NO_COMMIT, ParentDocKey } from "./types";
+import {
+	CommitKey,
+	DocKey,
+	FieldErrorsKey,
+	NO_COMMIT,
+	ParentDocKey,
+	fieldErrorKey,
+} from "./types";
 import { identify, rowKey } from "./rowIdentity";
 import { ResolveFieldKey } from "../FormLayout/types";
-import type { CommitChannel, RowAddress } from "./types";
+import type { CommitChannel, FieldError, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 import type { FieldNode, FormLayoutSchema } from "../FormLayout/types";
 
@@ -122,6 +149,29 @@ const rowChannel: CommitChannel = {
 	rowChanged: (row, change) => commit.rowChanged(row, change),
 };
 provide(CommitKey, rowChannel);
+
+const errors = inject(FieldErrorsKey, null);
+
+function cellError(row: Record<string, any>, column: GridColumn): FieldError | undefined {
+	const key = rowKey(row);
+	if (!errors || !key) return undefined;
+	const { fieldname } = column;
+	const error =
+		errors.value[fieldErrorKey({ parentfield: props.field.fieldname, key, fieldname })];
+	return error && !cellField(fieldname, row).hidden ? error : undefined;
+}
+
+// The dialog's fields are addressed by their bare fieldname, so its errors are the open row's.
+const rowErrors = computed<Record<string, FieldError>>(() => {
+	const row = editAddress();
+	if (!errors || !row) return {};
+	const found = layoutFields(editLayout.value).map((f): [string, FieldError | undefined] => [
+		f.fieldname,
+		errors.value[fieldErrorKey({ ...row, fieldname: f.fieldname })],
+	]);
+	return Object.fromEntries(found.filter(([, error]) => error));
+});
+provide(FieldErrorsKey, errors && rowErrors);
 
 function withAddress(dispatch: (row: RowAddress) => void) {
 	const row = editAddress();
@@ -257,6 +307,11 @@ function isSummaryField(field: FieldNode): boolean {
 	return SUMMARY_FIELDTYPES.has(field.fieldtype);
 }
 
+// A textarea cannot cut its text with an ellipsis, so an idle cell shows its value on one line.
+function isTextarea(field: FieldNode): boolean {
+	return !field.ui?.component && resolveField(field.fieldtype) === TextareaField;
+}
+
 // Compact read-only text for a summary cell: a count for collections, resolved
 // presence for an Image, the label for a Heading, stripped text for HTML, and a
 // one-line collapse of the raw string for the code editors. Editing happens in
@@ -285,12 +340,14 @@ function cellSummary(field: FieldNode, value: any, row: Record<string, any>): st
 				.trim();
 			return text || "HTML";
 		}
-		default: {
+		default:
 			// Code / JSON / Markdown Editor / HTML Editor — collapse to a single line.
-			const s = value == null ? "" : String(value).replace(/\s+/g, " ").trim();
-			return s || "—";
-		}
+			return oneLine(value) || "—";
 	}
+}
+
+function oneLine(value: any): string {
+	return value == null ? "" : String(value).replace(/\s+/g, " ").trim();
 }
 
 const rows = computed<Record<string, any>[]>({
@@ -425,3 +482,38 @@ function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
 // no `update:modelValue`/`change` for the whole table; `change` still fires from
 // the Grid on cell commit, add, remove and reorder, so it keeps its meaning.
 </script>
+
+<style scoped>
+/* The preview sits over the textarea, whose own text hides until it takes focus. */
+.grid-one-line {
+	position: relative;
+}
+
+.grid-one-line::after {
+	content: attr(data-preview);
+	content: attr(data-preview) / "";
+	position: absolute;
+	inset: 0;
+	@apply px-2;
+	line-height: 34px;
+	overflow: hidden;
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	pointer-events: none;
+}
+
+.grid-one-line:focus-within::after {
+	content: none;
+}
+
+.grid-one-line:not(:focus-within) :deep(textarea) {
+	color: transparent;
+}
+
+/* Forced colours repaint the hidden text, so the preview steps aside. */
+@media (forced-colors: active) {
+	.grid-one-line::after {
+		content: none;
+	}
+}
+</style>

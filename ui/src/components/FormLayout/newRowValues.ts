@@ -26,11 +26,12 @@ const DECIMALS = new Set(["Float", "Currency", "Percent"]);
 /**
  * Fieldtypes whose empty is a number rather than a string — every numeric column
  * the server can send back, so `Rating` and `Duration` (both `decimal`) and
- * `Long Int` (`bigint`) belong here too. `Check` is numeric server-side but is
- * seeded `false`; see `emptyValue`.
+ * `Long Int` (`bigint`) belong here too, and `Check`, which the server stores as
+ * `0 | 1`.
  */
 const NUMBERS = new Set([
   "Int",
+  "Check",
   "Long Int",
   "Float",
   "Currency",
@@ -81,14 +82,11 @@ function defaultValue(field: FieldNode): any {
 /**
  * The empty a field of this type holds when it declares no default.
  *
- * `Check` is `false` rather than the `0` the server sends, and the date-ish
- * types are `""` rather than the `null` the server sends (`get_valid_dict`
- * nulls an empty datetime on every write) — both as ticket 56 decided them.
- * The difference is only ever visible before the first save, and every input in
- * the stack binds these two the same way either way.
+ * The date-ish types are `""` rather than the `null` the server sends
+ * (`get_valid_dict` nulls an empty datetime on every write), as ticket 56
+ * decided. The difference is only ever visible before the first save.
  */
 function emptyValue(field: FieldNode): any {
-  if (field.fieldtype === "Check") return false;
   if (COLLECTIONS.has(field.fieldtype)) return [];
   if (NUMBERS.has(field.fieldtype)) return 0;
   return "";

@@ -1,6 +1,8 @@
+import type { InputLabelingProps as AtomLabelingProps } from "frappe-ui";
 import { InputLabelingProps } from "../types";
 
-export interface LinkProps extends InputLabelingProps {
+export interface LinkProps extends Omit<InputLabelingProps, "error"> {
+  error?: AtomLabelingProps["error"];
   doctype: string;
   filters?: Record<string, unknown>;
   creatable?: boolean;

@@ -7,6 +7,7 @@
 		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
+		:error="error"
 		:disabled="field.readOnly"
 		@focus="onFocus"
 		@blur="focused = false"
@@ -92,6 +93,9 @@ function parse(s: string): number | string {
 	// Empty input commits `0` (no null state); `flt('')` already returns 0.
 	const defaults = getFormatDefaults();
 	if (props.field.fieldtype === "Long Int") return parseLongInt(s, defaults.number_format);
+	if (props.field.fieldtype === "Int") {
+		return Math.trunc(flt(s, { numberFormat: defaults.number_format }));
+	}
 	return flt(s, {
 		numberFormat: defaults.number_format,
 		roundingMethod: defaults.rounding_method,

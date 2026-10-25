@@ -55,6 +55,19 @@ svg[data-barcode-value] {
 .filter-row div {
 	display: inline-block;
 }
+
+.print-grid {
+	tbody tr {
+		height: 30px;
+	}
+	tr.bold td {
+		font-weight: var(--font-weight-bold);
+	}
+}
+
+.print-format.smaller-font {
+	font-size: 4pt;
+}
 // prevent <ol> numbering conflicts
 .ql-editor {
 	counter-reset: none;

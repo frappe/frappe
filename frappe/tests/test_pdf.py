@@ -225,6 +225,27 @@ class TestPdf(IntegrationTestCase):
 		for number, page in enumerate(pages, start=1):
 			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
 
+	def test_pdf_renders_while_another_render_has_a_tab_open(self):
+		from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
+		from frappe.utils.pdf import get_host_url
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		generator, token = ChromiumManager.acquire()
+		self.addCleanup(generator.release, token)
+		if not generator._devtools_url:
+			generator._set_devtools_url()
+		session = CDPSocketClient(generator._devtools_url)
+		session.connect()
+		self.addCleanup(session.disconnect)
+		context, _error = session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+		page = Page(session, context["browserContextId"], "body")
+		page.set_tab_url(get_host_url())
+		page.wait_for_navigate()
+
+		pdf = pdfgen.get_pdf("<p>body text</p>")
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
 	def test_header_is_measured_after_its_image_loads(self):
 		import threading
 		import time
@@ -669,3 +690,24 @@ class TestChromeCdpReliability(IntegrationTestCase):
 		page.session = FakeSession([(None, {"message": "boom"})] * 4)
 		with patch("frappe.utils.chromium.page.time.sleep"):
 			self.assertRaisesRegex(RuntimeError, "Error evaluating expression", page.evaluate, "1+1")
+
+	def test_set_tab_url_raises_when_navigation_is_never_intercepted(self):
+		from functools import partial
+		from unittest.mock import patch
+
+		from frappe.utils.chromium.page import Page
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		client = self.make_client()
+
+		class ChromiumThatNeverNavigates:
+			async def send(self, message):
+				client._handle_message({"id": frappe.json.loads(message)["id"], "result": {}})
+
+		client.connection = ChromiumThatNeverNavigates()
+		page = Page.__new__(Page)
+		page.session, page.session_id, page.target_id, page.frame_id = client, "sid", "tid", "fid"
+
+		with patch.object(client, "wait_for_event", partial(client.wait_for_event, timeout=0.05)):
+			self.assertRaisesRegex(RuntimeError, "Timed out", page.set_tab_url, "http://example.com")

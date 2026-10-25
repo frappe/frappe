@@ -8,6 +8,8 @@ export interface GridColumn {
   fieldname: string;
   label?: string;
   reqd?: boolean;
+  /** Rendered as the cell's `data-fieldtype`, a handle for tests and CSS. */
+  fieldtype?: string;
   /**
    * Horizontal alignment for this column's cells *and* its header label, so the
    * two always agree. Defaults to left. Consumers set `"right"` for numeric
@@ -17,7 +19,8 @@ export interface GridColumn {
   align?: "left" | "right" | "center";
   /**
    * Initial track width in px, e.g. set from layout/meta. Omit for a flexible
-   * column that shares leftover space (`1fr`). Drag-resizing the column's right
+   * column that shares leftover space (`1fr`) down to 128px, past which the grid
+   * scrolls sideways. Drag-resizing the column's right
    * edge overrides this at runtime.
    */
   width?: number;
@@ -38,10 +41,12 @@ export interface GridProps {
   label?: string;
   /** Helper text rendered below the grid. Hidden while an error is shown. */
   description?: string;
-  /** Validation error below the grid: a string, or an `Error` with `messages[]`. */
-  error?: string | GridError;
+  /** Validation error below the grid: one message, several, or an `Error` with `messages[]`. */
+  error?: string | string[] | GridError;
   /** Renders a `*` next to the label. */
   required?: boolean;
+  /** A cell's error, drawn as a red ring with the message in a tooltip. */
+  cellError?: (row: Record<string, any>, column: GridColumn) => string | string[] | undefined;
   /** Seeds a newly added row. The grid sees only the columns, so whoever knows
    *  the whole child form supplies its docfield defaults. */
   newRow?: () => Record<string, any>;

@@ -91,7 +91,6 @@
     "sortablejs": "^1.15.7"
   },
   "devDependencies": {
-    "lucide-static": "1.47.0",
-    "source-map-js": "^1.2.1"
+    "lucide-static": "1.47.0"
   }
 }

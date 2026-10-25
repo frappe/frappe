@@ -88,7 +88,7 @@ class Browser:
 		# create browser context
 		result, error = self.session.send("Target.createBrowserContext", {"disposeOnDetach": True})
 		if error:
-			frappe.log_error(title="Error creating browser context:", message=f"{error}")
+			raise RuntimeError(f"Error creating browser context: {error}")
 		self.browser_context_id = result["browserContextId"]
 
 	def set_html(self, html):
