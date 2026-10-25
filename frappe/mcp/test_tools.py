@@ -42,6 +42,12 @@ class TestToolExecution(McpTestCase):
 				}
 			)
 
+	def test_every_tool_has_a_description(self):
+		response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
+		for tool in response.json["result"]["tools"]:
+			with self.subTest(tool=tool["name"]):
+				self.assertTrue(tool.get("description"))
+
 	def test_each_tool_rejects_arguments_from_other_operations(self):
 		cases = (
 			("search_doctypes", {"method": "frappe.ping"}),
