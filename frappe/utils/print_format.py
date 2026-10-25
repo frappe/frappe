@@ -380,9 +380,6 @@ def download_pdf(
 	style: str | None = None,
 	settings: str | None = None,
 ):
-	if pdf_generator is None:
-		pdf_generator = "wkhtmltopdf"
-
 	doc = doc or frappe.get_doc(doctype, name)
 	validate_print_permission(doc)
 
