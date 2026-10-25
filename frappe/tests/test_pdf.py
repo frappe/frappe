@@ -233,6 +233,15 @@ class TestPdf(IntegrationTestCase):
 		pdf = pdfgen.get_pdf("<p>body text</p>")
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
 
+	def test_pages_merged_with_header_and_footer_are_compressed(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		contents = PdfReader(io.BytesIO(pdf)).pages[0]["/Contents"]
+		self.assertEqual(contents.get("/Filter"), "/FlateDecode")
+
 	def test_header_is_measured_after_its_image_loads(self):
 		import threading
 		import time

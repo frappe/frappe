@@ -97,14 +97,13 @@ class PDFTransformer:
 				else:
 					p.merge_page(footer.pages[0])
 
-		if output:
-			output.append_pages_from_reader(body)
-			return output
-
-		writer = PdfWriter()
+		writer = output or PdfWriter()
+		first_new_page = len(writer.pages)
 		writer.append_pages_from_reader(body)
+		for page in writer.pages[first_new_page:]:
+			page.compress_content_streams()
 
-		return self.get_file_data_from_writer(writer)
+		return output or self.get_file_data_from_writer(writer)
 
 	def _transform(self, page, page_top, ty):
 		from pypdf.generic import FloatObject
