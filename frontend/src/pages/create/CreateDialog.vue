@@ -14,6 +14,7 @@
 			<FormLayout
 				v-if="layout.length"
 				v-model:doc="doc"
+				v-model:tab="formTab"
 				:layout="layout"
 				autofocus
 				@update:doc="typed = true"
@@ -45,16 +46,17 @@ import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useEventListener } from "@vueuse/core";
 import { Button, Dialog, ErrorMessage } from "frappe-ui";
-import { createDocument } from "@framework/ui/api";
+import { createDocument, isApiError } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";
-import { RecordLinkKey } from "@framework/ui/components/Fields/types";
+import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/components/Fields/types";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { __ } from "@/i18n";
-import { useFormLayout } from "@/recordPage";
+import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
 import { errorMessage } from "@/recordPage/errorMessage";
-import { formData, initialDoc, missingRequired } from "@/recordPage/formDialogLayout";
+import { formData, initialDoc } from "@/recordPage/formDialogLayout";
+import { landOnFirstMarked } from "@/pages/record/landOnField";
 import { routeForNew } from "@/router/routeFor";
 import type { CreateRequest } from "@/shell/create";
 import {
@@ -66,8 +68,10 @@ import {
 	withNameField,
 } from "@/newRecordValues";
 
+const errors = new FieldErrors();
+provide(FieldErrorsKey, errors.drawn);
 // The dialog's fields commit to nothing, or they would fire a record page's handlers.
-provide(CommitKey, NO_COMMIT);
+provide(CommitKey, errors.clearingOnEdit(NO_COMMIT));
 // A dialog has no guard for its unsaved values, so its Link fields open nothing.
 provide(RecordLinkKey, null);
 
@@ -92,6 +96,7 @@ const error = ref("");
 const newDoc = ref<Record<string, any> | null>(null);
 const doc = ref<Record<string, any>>({ ...values });
 const typed = ref(false);
+const formTab = ref("");
 let saved: Record<string, any> | null = null;
 
 const layout = computed<FormLayoutSchema>(() =>
@@ -152,13 +157,12 @@ useEventListener(
 
 async function save() {
 	if (saving.value || layoutFailed.value || props.request.settled()) return;
-	const missing = missingRequired(layout.value, doc.value);
-	if (missing.length) {
-		error.value = __("Please fill in {0}", [missing.join(", ")]);
-		return;
-	}
-	saving.value = true;
+	errors.clearAll();
 	error.value = "";
+	const missing = missingRequired(layout.value, doc.value);
+	for (const { address, message } of missing) errors.mark(address, message);
+	if (missing.length) return landOnFirstMarked(errors, landing, doc.value);
+	saving.value = true;
 	try {
 		const { data } = await createDocument(
 			doctype,
@@ -167,11 +171,19 @@ async function save() {
 		saved = data;
 		isOpen.value = false;
 	} catch (exception) {
+		if (isApiError(exception)) errors.markRefused(exception.fieldErrors, doc.value);
 		error.value = errorMessage(exception);
 	} finally {
 		saving.value = false;
 	}
+	landOnFirstMarked(errors, landing, doc.value);
 }
+
+const landing = {
+	root: () => body.value,
+	layout: () => layout.value,
+	showTab: (identity: string) => void (formTab.value = identity),
+};
 
 function editFullForm() {
 	const typed = typedValues(values, formData(layout.value, doc.value), defaults.value);

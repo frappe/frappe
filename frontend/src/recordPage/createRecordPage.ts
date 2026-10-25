@@ -21,6 +21,7 @@ import type {
 import { holdsChildRows } from "@framework/ui/components/Fields/rowIdentity";
 import type { RowAddress } from "@framework/ui/components/Fields/types";
 import { ActivitySurface, FilesSurface } from "./feed";
+import { FieldErrors } from "./fieldErrors";
 import { FieldsSurface } from "./fields";
 import { FormSurface } from "./form";
 import { FormTabsSurface } from "./formTabs";
@@ -35,6 +36,7 @@ import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
 import { clientScriptsLoaded, replacedClientScripts } from "./clientScripts";
 import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
+import { missingRequired, requiredRefusal } from "./requiredFields";
 import { RESTORED_VIEW, type Staging } from "./staging";
 import { Surface } from "./surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
@@ -53,7 +55,7 @@ import type {
   TabsApi,
 } from "./types";
 
-/** The name a `beforeSave` veto rejects under, so a host keeps the draft instead of reloading. */
+/** The name a save refused before it sent rejects under, so a host keeps the draft instead of reloading. */
 export const SAVE_VETO = "SaveVeto";
 
 /** A veto keeps the script's message; a non-Error throw is wrapped so it can carry the name. */
@@ -201,6 +203,8 @@ export interface RecordPageController {
   panelSections: Surface<PanelSectionItem>;
   /** Field property overrides; the host feeds `resolve()` to its layout source. */
   fields: FieldsSurface;
+  /** The marks on the form's fields; the host provides `drawn` as `FieldErrorsKey`. */
+  fieldErrors: FieldErrors;
   /** The Details form's list; its `tabs` overlay is fed to the same layout source. */
   form: FormSurface;
   /** A script's rows for the Activity tab, and the types it shows. */
@@ -246,12 +250,14 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     keys: PANEL_SECTION_KEYS,
   });
   const permissions = createPagePermissions(host);
+  const fieldErrors = new FieldErrors();
   const fields = new FieldsSurface({
     fields: () => host.meta.value?.fields,
     doc: () => host.doc.value,
     fieldAccess: (fieldname) => permissions.fieldAccess(fieldname),
     decorate: host.decorate,
     isSection: (name) => panelSections.has(name),
+    errors: fieldErrors,
   });
   const formTabs = new FormTabsSurface({
     tabs: () => host.formLayout?.(),
@@ -288,6 +294,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     fields: () => host.meta.value?.fields,
     childFields: host.childFields,
     dispatch: (event, row) => fireEvent(event, row),
+    errors: fieldErrors,
   });
   const surfaces: Staging[] = [
     quickActions,
@@ -297,6 +304,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     tabs,
     panelSections,
     fields,
+    fieldErrors,
     form,
     formTabs,
     activity,
@@ -331,9 +339,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   const cachedReads = new CachedReads(host.doctype, host.docname);
 
-  const commits = createCommitChannel({
-    dispatch: (event, row) => fireEvent(event, row),
-  });
+  const commits = fieldErrors.clearingOnEdit(
+    createCommitChannel({ dispatch: (event, row) => fireEvent(event, row) }),
+  );
 
   const gate = createPaintGate({
     doctype: host.doctype,
@@ -429,15 +437,35 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   async function runSave() {
-    await commits.flush();
+    fieldErrors.clearAll();
     try {
-      await fireEvent("beforeSave");
+      await commits.flush();
+      try {
+        await fireEvent("beforeSave");
+      } catch (error) {
+        throw asVeto(error);
+      }
+      if (gate.hasLeft()) return;
+      refuseMissing();
+      await host.save();
     } catch (error) {
-      throw asVeto(error);
+      focusFirstMarked();
+      throw error;
     }
-    if (gate.hasLeft()) return;
-    await host.save();
     await fireEvent("afterSave");
+  }
+
+  function refuseMissing() {
+    const missing = missingRequired(host.formLayout?.() ?? [], host.doc.value);
+    if (!missing.length) return;
+    for (const { address, message } of missing) fieldErrors.mark(address, message);
+    throw asVeto(new Error(requiredRefusal(missing)));
+  }
+
+  function focusFirstMarked() {
+    if (gate.hasLeft()) return;
+    const fieldname = fieldErrors.firstMarked(host.formLayout?.() ?? [], host.doc.value);
+    if (fieldname) focusField(fieldname);
   }
 
   function focusField(fieldname: string) {
@@ -832,11 +860,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       if (!child) continue;
       const has = (fieldname: string) =>
         child.some((one) => one.fieldname === fieldname);
-      if (has("trigger"))
-        // Once per child doctype for the session; navigating between records must not restate it.
-        warnRowIssue(
-          `${field.options}.trigger is shadowed by the row handle's own trigger() — read it from page.doc.${field.fieldname} instead`,
-        );
+      for (const member of ["trigger", "setError", "clearError"])
+        if (has(member))
+          // Once per child doctype for the session; navigating between records must not restate it.
+          warnRowIssue(
+            `${field.options}.${member} is shadowed by the row handle's own ${member}() — read it from page.doc.${field.fieldname} instead`,
+          );
       for (const lifecycle of Object.values(ROW_EVENTS))
         if (has(lifecycle))
           warnRowIssue(
@@ -854,6 +883,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     tabs,
     panelSections,
     fields,
+    fieldErrors,
     form,
     activity,
     files,

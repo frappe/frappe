@@ -1,8 +1,7 @@
-// Turns `page.dialog.form()` options into a `FormLayoutSchema` and reports which
-// mandatory fields are still empty. Pure: the `doctype` mode's fetch is the dialog's.
+// Turns `page.dialog.form()` options into a `FormLayoutSchema`. Pure: the `doctype`
+// mode's fetch is the dialog's.
 import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
 import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
-import { resolveLayout } from "@framework/ui/components/FormLayout/resolveLayout";
 import type {
   FieldNode,
   FormLayoutSchema,
@@ -104,25 +103,6 @@ export function initialDoc(
   return { ...doc, ...(defaults ?? {}) };
 }
 
-/** The labels a submit refuses over: mandatory, visible after `depends_on`, still empty. */
-export function missingRequired(
-  layout: FormLayoutSchema,
-  doc: Record<string, any>,
-): string[] {
-  const missing: string[] = [];
-  for (const tab of resolveLayout(layout, doc, doc)) {
-    if (tab.hidden) continue;
-    for (const section of tab.sections) {
-      if (section.hidden) continue;
-      for (const column of section.columns)
-        for (const field of column.fields)
-          if (field.reqd && !field.hidden && isEmpty(doc[field.fieldname]))
-            missing.push(field.label || field.fieldname);
-    }
-  }
-  return missing;
-}
-
 /** The values a submit resolves with: every field the layout rendered. */
 export function formData(
   layout: FormLayoutSchema,
@@ -185,9 +165,4 @@ function flatFields(layout: FormLayoutSchema): FieldNode[] {
 
 function isRawField(field: RawMetaField | undefined): field is RawMetaField {
   return field != null;
-}
-
-function isEmpty(value: any): boolean {
-  if (Array.isArray(value)) return value.length === 0;
-  return value == null || value === "";
 }

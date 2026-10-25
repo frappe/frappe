@@ -13,6 +13,13 @@
 				`[&_[role='tablist']::-webkit-scrollbar]:h-0 [&_[role='tab']]:shrink-0 [&_[role='tabpanel']]:overflow-visible !overflow-visible`,
 			]"
 		>
+			<template #tab-suffix="{ tab }">
+				<span
+					v-if="markedTabs.has(tab.value)"
+					class="size-1.5 shrink-0 rounded-full bg-surface-red-6"
+					aria-hidden="true"
+				/>
+			</template>
 			<template #tab-panel="{ tab }">
 				<div :ref="untabPanel" class="sections" :class="{ 'my-4 sm:my-5': hasTabs }">
 					<template
@@ -40,6 +47,7 @@ import { useFieldTypes } from "./useFieldTypes";
 import { applyTabOverride, resolveLayout } from "./resolveLayout";
 import { identifyTabs, tabStripLabel } from "./tabIdentity";
 import { NO_VALUE } from "./newRowValues";
+import { FieldErrorsKey, markedFieldnames } from "../Fields/types";
 import {
 	AutofocusKey,
 	CommitKey,
@@ -106,6 +114,25 @@ const visibleTabs = computed(() => {
 		label: tabStripLabel(tab.label, multipleTabs),
 		sections: tab.sections.filter((section) => !section.hidden),
 	}));
+});
+
+const errors = inject(FieldErrorsKey, null);
+
+// A hidden field draws no error, so it marks no tab.
+const markedTabs = computed(() => {
+	const marked = markedFieldnames(errors?.value ?? {});
+	if (!marked.size) return new Set<string>();
+	return new Set(
+		visibleTabs.value
+			.filter((tab) =>
+				tab.sections.some((section) =>
+					section.columns.some((column) =>
+						column.fields.some((field) => !field.hidden && marked.has(field.fieldname))
+					)
+				)
+			)
+			.map((tab) => tab.identity)
+	);
 });
 
 // Which tab is *shown* is derived, never stored: it is `desired` looked up in the

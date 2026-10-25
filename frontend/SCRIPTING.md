@@ -813,7 +813,7 @@ The Details form is the main column of the record: the doctype's `Details` layou
 fields in DocType order when no row applies. `page.fields` is an **overlay** on the fields
 authored there, cleared before every replay. It has no `add`, `move` or `order`, since
 ordering is the Form Layout's job; it speaks `hide`, `show`, `update`, `has` and `get`,
-and one **act**, `focus(fieldname)`. The overlay reaches the panel too: one field patch
+one **act**, `focus(fieldname)`, and the field errors, `setError` and `clearError`. The overlay reaches the panel too: one field patch
 feeds the Details form and the Side Panel layout, so `page.fields.hide('x')` hides `x` in
 both. A part beside a field is `page.form`'s to add, above.
 
@@ -839,16 +839,36 @@ hidden field warns in a development build and moves nobody, since `show()` is th
 that reveals one. On `activate`'s terms: resolved at the call, and inside a replay or a hold
 delivered when the replay or hold commits. The panel's own expand of a long row uses it.
 
+### Field errors: `setError(fieldname, message)`
+
+`setError` draws a message on a field: under its control in the form, in red under its row
+in the panel, and as a red dot on its form tab. `clearError(fieldname)` removes it. A row
+handle has the same two verbs for its own cells: `row.setError('qty', message)`. An error
+is display-only and does not refuse a save. It clears when the reader edits the field, when
+a save starts, and when a replay runs, so a script that wants it to last sets it again in
+`onRefresh`. Inside a replay or a hold it shows when that commits. An unknown fieldname warns
+in a development build. There is no reader, and a `page.dialog.form` has no `setError`.
+
+`setError` returns an `Error` that carries the message, so `throw page.fields.setError(...)`
+in `beforeSave` vetoes the save and marks the field in one line.
+
 ### Saving: `page.save()`
 
 `page.save()` is the one path; the Save button, `Ctrl+S` / `Cmd+S` and a script all call
 it. `Ctrl+S` does not save the page while focus is in a dialog, a popover or a dropdown. The
 order is fixed:
 
-1. The edit still pending in a focused control is flushed, so its field handler runs.
-2. `beforeSave` fires. A throw is a veto: nothing is sent, and the message shows.
-3. The whole document goes to the server.
-4. `afterSave` fires only when the server accepted.
+1. Every field error clears.
+2. The edit still pending in a focused control is flushed, so its field handler runs.
+3. `beforeSave` fires. A throw is a veto: nothing is sent, and the message shows.
+4. The mandatory check runs: each mandatory field shown after `depends_on` and still empty,
+   child rows included, is marked "{label} is required", and nothing is sent.
+5. The whole document goes to the server. A refusal shows its message and marks each field
+   it names.
+6. `afterSave` fires only when the server accepted.
+
+After a failed save the reader lands on the first marked field in form order, as `focus`
+moves them. A marked row cell lands on its table.
 
 On a clean document it resolves at once, sends nothing and shows nothing. The Save button
 is disabled then, with the tooltip "No changes to save", and the shortcut shows that text
@@ -879,6 +899,26 @@ export default {
   // The save channel: a throw here is a veto, and the record stays unsaved.
   beforeSave(page) {
     if (page.doc.probability > 100) throw new Error('Win chance is a percentage')
+  },
+}
+```
+
+And the field errors, on a child table `items` with a `qty` column:
+
+```js
+export default {
+  qty(page) {
+    if (page.doc.qty > 0) page.fields.clearError('qty')
+    else page.fields.setError('qty', __('Quantity must be positive'))
+  },
+  beforeSave(page) {
+    if (page.doc.qty <= 0) throw page.fields.setError('qty', __('Quantity must be positive'))
+  },
+  items: {
+    qty(page, row) {
+      if (row.qty > 0) row.clearError('qty')
+      else row.setError('qty', __('Quantity must be positive'))
+    },
   },
 }
 ```
