@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch
 
 import frappe
 from frappe.email.doctype.email_queue.email_queue import SendMailContext, get_email_retry_limit
-from frappe.tests.utils import FrappeTestCase
+from frappe.tests.utils import FrappeTestCase, change_settings
 
 
 class TestEmailQueue(FrappeTestCase):
@@ -146,7 +146,7 @@ class TestEmailQueue(FrappeTestCase):
 		self.assertIn(link, mock_session.sendmail.call_args.kwargs["msg"].decode())
 		self.assertNotIn(link, frappe.db.get_value("Email Queue", email_record.name, "message"))
 
-	@IntegrationTestCase.change_settings("System Settings", store_attached_pdf_document=0)
+	@change_settings("System Settings", store_attached_pdf_document=0)
 	def test_print_attachment_renders_once_for_every_recipient(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
