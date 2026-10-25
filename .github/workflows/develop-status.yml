@@ -1,0 +1,69 @@
+name: Develop Tests
+
+on:
+  schedule:
+    # How often the full server and UI suites run on develop, when develop has new commits.
+    - cron: "23 * * * *"
+  pull_request_target:
+    branches: [develop]
+    types: [opened, synchronize, reopened, labeled, unlabeled, closed]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  actions: write
+  statuses: write
+  pull-requests: read
+
+jobs:
+  run-suites:
+    name: Run Full Suites
+    if: >-
+      ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch'
+      || (github.event.action == 'closed' && github.event.pull_request.merged
+      && contains(github.event.pull_request.labels.*.name, 'fixes-develop')) }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/helper
+      - run: python .github/helper/develop_status.py start ${{ github.event_name != 'schedule' && 'all' || '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+      - name: Turn pull requests green once the fix lands
+        if: ${{ github.event.action == 'closed' }}
+        run: python .github/helper/develop_status.py refresh
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+  update:
+    name: Update Pull Requests
+    if: ${{ github.event.action != 'closed' }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: develop-status-${{ github.event.pull_request.number || 'all' }}
+      cancel-in-progress: true
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/helper
+      - name: Restart the suites when a full CI label is added
+        if: ${{ github.event.action == 'labeled' }}
+        run: |
+          labels=$(python -c "import sys; sys.path.insert(0, '.github/helper'); import roulette; print(roulette.FULL_CI_LABEL, roulette.FIX_DEVELOP_LABEL)")
+          case " $labels " in *" $LABEL "*) ;; *) exit 0 ;; esac
+          for workflow in server-tests.yml ui-tests.yml; do
+            run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
+            [ -n "$run_id" ] || continue
+            gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null && gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" > /dev/null || true
+            gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
+          done
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          LABEL: ${{ github.event.label.name }}
+      - run: python .github/helper/develop_status.py ${{ github.event.pull_request.number && format('pr {0}', github.event.pull_request.number) || 'refresh' }}
+        env:
+          GH_TOKEN: ${{ github.token }}

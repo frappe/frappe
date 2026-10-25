@@ -13,9 +13,12 @@ from frappe.utils.jinja_globals import is_rtl
 LARGE_PDF_SIZE = 2 * 1024 * 1024
 
 if TYPE_CHECKING:
+	from collections.abc import Iterator
+
 	import cssutils
 	from bs4 import BeautifulSoup
 	from pypdf import PdfReader, PdfWriter
+	from pypdf.generic import DictionaryObject, IndirectObject
 
 
 def pdf_header_html(soup, head, content, styles, html_id, css, path=None):
@@ -88,24 +91,34 @@ def get_pdf(
 	options: dict | None = None,
 	output: "PdfWriter" | None = None,
 	print_format: str | None = None,
+	pdf_generator: str = "chrome",
 ):
-	"""Render `html` to PDF with Chromium."""
-	from frappe.utils.chromium import ChromiumManager
-	from frappe.utils.pdf_generator.browser import Browser
+	"""Render `html` to PDF with Chromium or PlutoPrint."""
+	from pypdf import PdfReader
+
 	from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
+	from frappe.utils.pdf_generator.pluto import PlutoBrowser, plutoprint_can_render
 
 	options = dict(options or {})
 	password = options.pop("password", None)
-	generator, token = ChromiumManager.acquire()
-	try:
-		browser = Browser(generator, print_format, html, options)
-		pdf = PDFTransformer(browser).transform_pdf(output=output)
-	finally:
-		generator.release(token)
+	if pdf_generator == "PlutoPrint" and not options.get("page-ranges") and plutoprint_can_render(html):
+		pdf = PDFTransformer(PlutoBrowser(print_format, html, options)).transform_pdf(output=output)
+	else:
+		from frappe.utils.chromium import ChromiumManager
+		from frappe.utils.pdf_generator.browser import Browser
+
+		generator, token = ChromiumManager.acquire()
+		try:
+			browser = Browser(generator, print_format, html, options)
+			pdf = PDFTransformer(browser).transform_pdf(output=output)
+		finally:
+			generator.release(token)
 
 	if output:
 		return pdf
-	if len(pdf) > LARGE_PDF_SIZE:
+	if len(pdf) > LARGE_PDF_SIZE and any(
+		any(_image_xobjects(page)) for page in PdfReader(io.BytesIO(pdf)).pages
+	):
 		pdf = optimize_pdf(pdf, notify=False)
 	if password:
 		pdf = encrypt_pdf(pdf, password)
@@ -126,6 +139,12 @@ def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 	if pdf_generator != "chrome":
 		return
 	return get_pdf(html, options, output, print_format=print_format)
+
+
+def get_plutoprint_pdf(print_format, html, options, output, pdf_generator=None):
+	if pdf_generator != "PlutoPrint":
+		return
+	return get_pdf(html, options, output, print_format=print_format, pdf_generator="PlutoPrint")
 
 
 def get_print_format_styles(soup: "BeautifulSoup") -> list["cssutils.css.Property"]:
@@ -154,7 +173,7 @@ def get_print_format_styles(soup: "BeautifulSoup") -> list["cssutils.css.Propert
 		stylesheet += cstr(style_tag.string)
 
 	# Use css parser to tokenize the classes and their styles
-	parsed_sheet = cssutils.parseString(stylesheet)
+	parsed_sheet = cssutils.CSSParser(fetcher=lambda url: (None, "")).parseString(stylesheet)
 
 	# Get all styles that are only for .print-format
 	valid_styles = []
@@ -275,6 +294,27 @@ def _pdf_has_oversized_image(reader: "PdfReader", max_pixels: int) -> bool:
 	return False
 
 
+def _image_xobjects(
+	page_or_form: "DictionaryObject",
+	path: tuple[str, ...] = (),
+	parent_forms: tuple["IndirectObject", ...] = (),
+) -> "Iterator[tuple[tuple[str, ...], DictionaryObject]]":
+	"""Yield the `page.images` key and object of each image XObject, including inside form XObjects,
+	without the inline image scan of every content stream that `page.images` runs, which takes
+	seconds on long text-only PDFs.
+	"""
+	try:
+		xobjects = page_or_form["/Resources"]["/XObject"]
+	except KeyError:
+		return
+	for name, xobj in xobjects.items():
+		xobj = xobj.get_object()
+		if xobj.get("/Subtype") == "/Image":
+			yield (*path, name), xobj
+		elif xobj.get("/Subtype") == "/Form" and xobj.indirect_reference not in parent_forms:
+			yield from _image_xobjects(xobj, (*path, name), (*parent_forms, xobj.indirect_reference))
+
+
 def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600, notify: bool = True) -> bytes:
 	"""Recompress embedded raster images and compress content streams to shrink a PDF.
 
@@ -301,9 +341,13 @@ def optimize_pdf(content: bytes, quality: int = 85, max_dim: int = 1600, notify:
 
 		writer = PdfWriter(clone_from=reader)
 
+		seen_images = set()
 		unexpected_image_error_logged = False
 		for page in writer.pages:
-			for image_id in page.images.keys():
+			for image_id, xobj in _image_xobjects(page):
+				if xobj.indirect_reference in seen_images:
+					continue
+				seen_images.add(xobj.indirect_reference)
 				try:
 					img_file = page.images[image_id]
 					image = img_file.image

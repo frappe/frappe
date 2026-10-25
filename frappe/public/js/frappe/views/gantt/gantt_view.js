@@ -149,9 +149,48 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 
 	render_header() {}
 
+	set_result_height() {
+		super.set_result_height();
+		this.$result.css("height", this.$result.parent()[0].style.height);
+	}
+
+	fill_width(gantt) {
+		const width = gantt.$container.clientWidth;
+		if (gantt.dates.length * gantt.config.column_width >= width) return false;
+		gantt.config.column_width = Math.floor(width / gantt.dates.length);
+		gantt.$container.style.setProperty("--gv-column-width", gantt.config.column_width + "px");
+		return true;
+	}
+
+	scroll_to_today(gantt) {
+		if (gantt.get_closest_date()) return gantt.scroll_current();
+		const { step, unit } = gantt.config;
+		const before_start = moment().isBefore(gantt.gantt_start);
+		const edge = before_start ? gantt.gantt_start : gantt.gantt_end;
+		if (unit === "hour" && Math.abs(moment().diff(edge, unit)) / step > 3000) {
+			this.scroll_to_today_on_view_change = true;
+			return this.view_mode_group.set_value("Day");
+		}
+		if (before_start) {
+			gantt.gantt_start = moment()
+				.subtract(7, "days")
+				.startOf(unit === "hour" ? "day" : unit)
+				.toDate();
+		} else {
+			gantt.gantt_end = moment().add(7, "days").toDate();
+		}
+		gantt.update_view_scale(gantt.config.view_mode);
+		gantt.setup_date_values();
+		this.fill_width(gantt);
+		gantt.render();
+		gantt.$today_button.onclick = () => this.scroll_to_today(gantt);
+		gantt.scroll_current();
+	}
+
 	render_gantt() {
 		const me = this;
-		const gantt_view_mode = this.view_user_settings.gantt_view_mode || "Day";
+		const gantt_view_mode =
+			this.view_mode_group?.get_value() || this.view_user_settings.gantt_view_mode || "Day";
 		const field_map = this.calendar_settings.field_map;
 		const date_format = "YYYY-MM-DD";
 
@@ -160,6 +199,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 			bar_height: 35,
 			bar_corner_radius: 4,
 			hover_on_date: true,
+			infinite_padding: false,
 			view_mode: gantt_view_mode,
 			date_format: "YYYY-MM-DD",
 			readonly: !me.can_write,
@@ -195,11 +235,17 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 					});
 				}
 			},
-			on_view_change: (mode) => {
+			on_view_change: function (mode) {
 				// save view mode
 				me.save_view_user_settings({
 					gantt_view_mode: mode.name,
 				});
+				if (me.fill_width(this)) this.render();
+				this.$today_button.onclick = () => me.scroll_to_today(this);
+				if (me.scroll_to_today_on_view_change) {
+					me.scroll_to_today_on_view_change = false;
+					me.scroll_to_today(this);
+				}
 			},
 			popup: ({ task }) => {
 				var item = me.get_item(task.id);
@@ -219,6 +265,7 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		});
 		this.setup_view_mode_buttons();
 		this.set_colors();
+		this.set_result_height();
 	}
 
 	setup_view_mode_buttons() {
@@ -228,19 +275,18 @@ frappe.views.GanttView = class GanttView extends frappe.views.ListView {
 		if (this.$paging_area.find(".gantt-view-mode").length > 0) return;
 
 		const view_modes = this.gantt.options.view_modes || [];
-		const active = view_modes.find((mode) => this.gantt.view_is(mode.name));
-		const view_mode_group = new frappe.ui.TabButtons({
+		this.view_mode_group = new frappe.ui.TabButtons({
 			label: __("Gantt View Mode"),
 			css_class: "gantt-view-mode ms-2 me-2",
 			options: view_modes.map((mode) => ({
 				label: __(mode.name),
 				value: mode.name,
 			})),
-			value: active && active.name,
+			value: this.gantt.config.view_mode.name,
 			// change view mode asynchronously
 			on_change: (value) => setTimeout(() => this.gantt.change_view_mode(value), 0),
 		});
-		this.$paging_area.find(".level-left").append(view_mode_group.$el);
+		this.$paging_area.find(".level-left").append(this.view_mode_group.$el);
 	}
 
 	set_colors() {

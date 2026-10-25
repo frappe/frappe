@@ -152,17 +152,26 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 			content = content.split(b",")[1]
 		content = safe_b64decode(content)
 
-	file_size = check_max_file_size(content)
-	content_hash = get_content_hash(content)
-	content_type = mimetypes.guess_type(fname)[0]
-	fname = get_file_name(fname, content_hash[-6:])
-	file_data = get_file_data_from_hash(content_hash, is_private=is_private)
-	if not file_data:
-		call_hook_method("before_write_file", file_size=file_size)
+	import frappe.storage
 
-		write_file_method = get_hook_method("write_file", fallback=save_file_on_filesystem)
-		file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
-		file_data = copy(file_data)
+	if frappe.storage.enabled():
+		# Storage v2: File.save_file -> put_blob. The legacy write_file /
+		# delete_file_data_content hooks are ignored for v2 rows.
+		warn_deprecated_storage_hooks()
+		file_data = {"file_name": fname, "content": content, "is_private": cint(is_private)}
+	else:
+		file_size = check_max_file_size(content)
+		content_hash = get_content_hash(content)
+		content_type = mimetypes.guess_type(fname)[0]
+		fname = get_file_name(fname, content_hash[-6:])
+		file_data = get_file_data_from_hash(content_hash, is_private=is_private)
+		if not file_data:
+			call_hook_method("before_write_file", file_size=file_size)
+
+			write_file_method = get_hook_method("write_file", fallback=save_file_on_filesystem)
+			file_data = write_file_method(fname, content, content_type=content_type, is_private=is_private)
+			file_data = copy(file_data)
+		file_data.update({"file_size": file_size, "content_hash": content_hash, "is_private": is_private})
 
 	file_data.update(
 		{
@@ -171,9 +180,6 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 			"attached_to_name": dn,
 			"attached_to_field": df,
 			"folder": folder,
-			"file_size": file_size,
-			"content_hash": content_hash,
-			"is_private": is_private,
 		}
 	)
 
@@ -185,6 +191,19 @@ def save_file(fname, content, dt, dn, folder=None, decode=False, is_private=0, d
 		return frappe.get_doc("File", f.duplicate_entry)
 
 	return f
+
+
+def warn_deprecated_storage_hooks():
+	"""Deprecation-warn apps that still hook the legacy byte write/delete path."""
+	from frappe.deprecation_dumpster import deprecation_warning
+
+	for hook in ("write_file", "delete_file_data_content"):
+		if get_hook_method(hook):
+			deprecation_warning(
+				"2026-09-02",
+				"v19",
+				f"The {hook} hook is ignored for Storage v2 rows; implement a storage driver instead.",
+			)
 
 
 def get_file_data_from_hash(content_hash, is_private=0):

@@ -76,9 +76,30 @@ function build_desk_context() {
 		// Desk's anchor delegation then never matches, and a plain link reloads
 		// the page.
 		navigate: (route) => frappe.set_route(route),
+
+		// A value as desk prints a field of its type, as text. `doc` is what a fieldtype's
+		// `options` read, such as the field a Currency names for its currency.
+		format: (value, df, doc) =>
+			frappe.utils.html2text(frappe.format(value, df, { inline: true }, doc)),
+		format_axis_number,
+		developer_mode: Boolean(boot.developer_mode),
+		first_day_of_the_week: frappe.sys_defaults?.first_day_of_the_week || null,
 	};
 
 	return context;
+}
+
+/** An axis tick, shortened. A Currency axis keeps its symbol: "₹ 40 K". */
+function format_axis_number(value, df, doc) {
+	const shortened = frappe.utils.format_chart_axis_number(value);
+	if (df?.fieldtype !== "Currency") return shortened;
+
+	// as the number card prints a shortened amount
+	const [digits, unit] = shortened.split(" ");
+	const number = parseFloat(digits);
+	const decimals = frappe.utils.get_number_of_decimals(number);
+	const currency = frappe.meta.get_field_currency(df, doc);
+	return format_currency(number, currency, decimals) + (unit ? " " + unit : "");
 }
 
 frappe.provide("frappe.ui");

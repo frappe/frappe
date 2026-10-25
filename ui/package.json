@@ -57,6 +57,10 @@
       "import": "./src/components/ColumnSettings/index.ts",
       "types": "./src/components/ColumnSettings/index.ts"
     },
+    "./GroupBy": {
+      "import": "./src/components/GroupBy/index.ts",
+      "types": "./src/components/GroupBy/index.ts"
+    },
     "./fields": {
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
@@ -122,7 +126,7 @@
     "@vitejs/plugin-vue": ">=4",
     "@vueuse/core": ">=10.4.1",
     "autoprefixer": "^10.4.0",
-    "frappe-ui": ">=1.0.0-rc.1",
+    "frappe-ui": ">=1.0.2",
     "tailwindcss": "^3.4.0",
     "typescript": ">=5",
     "vite": ">=4",

@@ -84,6 +84,7 @@ class SiteMigration:
 		frappe.flags.touched_tables = set()
 		self.touched_tables_file = frappe.get_site_path("touched_tables.json")
 		frappe.clear_cache()
+		frappe.setup_module_map(include_all_apps=False)
 
 		if os.path.exists(self.touched_tables_file):
 			os.remove(self.touched_tables_file)

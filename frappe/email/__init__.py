@@ -169,7 +169,7 @@ def sendmail(
 	expose_recipients=None,
 	send_priority=1,
 	communication=None,
-	retry=1,
+	retry=None,
 	now=None,
 	read_receipt=None,
 	is_notification=False,
@@ -223,6 +223,15 @@ def sendmail(
 	"""
 
 	from frappe.utils.jinja import get_email_from_template
+
+	if retry is not None:
+		from frappe.deprecation_dumpster import deprecation_warning
+
+		deprecation_warning(
+			"2026-10-14",
+			"v17",
+			"`retry` parameter is deprecated and will be removed in the future.",
+		)
 
 	if recipients is None:
 		recipients = []

@@ -24,8 +24,7 @@ from frappe.database.utils import (
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
-from frappe.model.base_document import DOCTYPES_FOR_DOCTYPE
-from frappe.model.document import Document
+from frappe.model.document import DOCTYPES_FOR_DOCTYPE, Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
 
@@ -239,6 +238,15 @@ OPERATOR_MAPPING = {
 
 
 class Engine:
+	def __init__(self, db=None):
+		"""Build queries for `db`, defaulting to the site's primary connection.
+
+		A `Database` instance that is not `frappe.local.db` -- a replica, or the log
+		database -- needs its own dialect and its own `db_type` checks, otherwise it builds
+		MariaDB SQL and hands it to SQLite.
+		"""
+		self.db = db
+
 	def get_query(
 		self,
 		table: str | Table,
@@ -275,8 +283,9 @@ class Engine:
 			validate_filters: DEPRECATED. Will be removed in future versions.
 		"""
 
-		qb = frappe.local.qb
-		db_type = frappe.local.db.db_type
+		db = self.db or frappe.local.db
+		qb = db.qb
+		db_type = db.db_type
 
 		self.is_mariadb = db_type == "mariadb"
 		self.is_postgres = db_type == "postgres"
@@ -422,6 +431,8 @@ class Engine:
 		has_select_field = False
 		has_child_queries = False
 		has_name_field = False
+		# the main table's own name under any alias, not a joined table's: distinct rows map to documents
+		selects_own_name = False
 
 		for field in self.fields:
 			if isinstance(field, DynamicTableField):
@@ -438,10 +449,16 @@ class Engine:
 
 				if isinstance(field, Star) or (is_source_name and alias in (None, "name")):
 					has_name_field = True
+				# child queries need the `name` key; distinct rows only need the column, under any alias
+				if isinstance(field, Star) or is_source_name:
+					# an unbound name is the main table's: with a join, SQL rejects it as ambiguous
+					selects_own_name = selects_own_name or getattr(field, "table", None) in (None, self.table)
 
 		if not has_select_field:
 			self.query = self.query.select(self.table.name)
-			has_name_field = True
+			has_name_field = selects_own_name = True
+
+		self.query._selects_own_name = selects_own_name
 
 		if has_child_queries and not has_name_field:
 			self.query = self.query.select(self.table.name)
@@ -1059,6 +1076,17 @@ class Engine:
 		meta = frappe.get_meta(doctype)
 		if not meta.get_permissions(parenttype=parent_doctype):
 			return
+
+		if (
+			not meta.has_field(fieldname)
+			and fieldname not in meta.get_valid_columns()
+			and fieldname not in frappe.db.OPTIONAL_COLUMNS
+		):
+			frappe.throw(
+				_("Field not found: {0}").format(frappe.bold(f"{doctype}.{fieldname}")),
+				frappe.ValidationError,
+				title=_("Invalid Field"),
+			)
 
 		# Don't allow querying child table fields if user has only "select" permission
 		permission_type = self.get_permission_type(doctype, parent_doctype)

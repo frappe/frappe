@@ -1,7 +1,8 @@
 // The app switcher: the modules of the app that owns the sidebar on screen. Pinned (the default)
-// it is a column; floating it slides in over the sidebar when the pointer hits the window's left edge.
+// it is a column; floating it slides in over the sidebar when the pointer hits the window's left
+// edge (the right one in RTL).
 frappe.ui.Dock = class Dock {
-	// Pixels from the left edge: reveal at the edge, hide once the pointer is past the tray.
+	// Pixels from the dock's side of the window: reveal at the edge, hide once past the tray.
 	static REVEAL_EDGE = 1;
 	static HIDE_BAND = 90;
 
@@ -14,6 +15,7 @@ frappe.ui.Dock = class Dock {
 		this.is_pinned = false;
 		this.opener = null;
 		this.tooltips = [];
+		this.utility_tooltips = [];
 		this.make();
 	}
 
@@ -29,6 +31,7 @@ frappe.ui.Dock = class Dock {
 					</div>
 				</a>
 			</div>
+			<div class="dock-utilities"></div>
 			<div class="dock-items"></div>
 			<div class="dock-user">
 				<button class="dock-item dock-user-button" aria-label="${__("User Menu")}">
@@ -51,6 +54,7 @@ frappe.ui.Dock = class Dock {
 		this.$header.on("click", () => this.close());
 
 		this.setup_user_menu();
+		this.render_utilities();
 		this.setup_reveal();
 		this.setup_shortcut();
 		this.apply_open_state();
@@ -77,6 +81,10 @@ frappe.ui.Dock = class Dock {
 			$("body").toggleClass("dock-pinned", pinned);
 			pinned ? this.open() : this.close();
 		}
+		this.$dock.toggleClass(
+			"dock-owns-utilities",
+			this.is_pinned || !this.sidebar.page_allows_sidebar()
+		);
 		// A collapsed sidebar hides beside a pinned dock and folds to its rail otherwise.
 		this.sidebar.refit_collapsed_sidebar();
 	}
@@ -100,6 +108,49 @@ frappe.ui.Dock = class Dock {
 		});
 	}
 
+	// Search and notifications lead the tray when it owns them (see apply_pin). The classes are
+	// what the search modal and the notifications panel already listen on.
+	render_utilities() {
+		if (frappe.session.user === "Guest") return;
+		const $utilities = this.$dock.find(".dock-utilities");
+
+		if (frappe.boot.desk_settings.search_bar) {
+			$utilities.append(
+				this.make_utility({
+					label: __("Search"),
+					icon: "search",
+					css_class: "navbar-modal-search-mobile",
+				})
+			);
+		}
+
+		if (frappe.boot.desk_settings.notifications) {
+			const unread = frappe.boot.notification_unread_count || 0;
+			const $bell = this.make_utility({
+				label: __("Notifications"),
+				icon: "bell",
+				css_class: "sidebar-notification",
+				badge: `<span class="notification-count dock-item-dot ${
+					unread > 0 ? "" : "hidden"
+				}" aria-live="polite"></span>`,
+			});
+			$bell.on("click", () => frappe.ui.sidebar_panels.toggle("notifications"));
+			$utilities.append($bell);
+		}
+	}
+
+	make_utility({ label, icon, css_class, badge = "" }) {
+		const $item =
+			$(`<button class="dock-item ${css_class}" aria-label="${frappe.utils.escape_html(
+				label
+			)}">
+			<span class="dock-item-icon">${frappe.utils.icon(icon, "sm")}</span>
+			${badge}
+		</button>`);
+		this.name_tile($item, label, this.utility_tooltips);
+		return $item;
+	}
+
 	// `any-hover`, not `hover`: a tablet with a trackpad reports touch as its primary input.
 	static pointer_can_reveal() {
 		return window.matchMedia("(any-hover: hover)").matches;
@@ -109,17 +160,21 @@ frappe.ui.Dock = class Dock {
 	// for the sidebar rows under it. Not `mouseleave` either: a dock that slides in under a still
 	// pointer never gets `mouseenter`, so it would never get the leave.
 	setup_reveal() {
+		const rtl = frappe.utils.is_rtl();
 		$(document)
 			.off(".dock-edge")
 			.on("mousemove.dock-edge", (e) => {
 				if (!this.enabled || this.is_pinned) return;
+				const dist_from_edge = rtl
+					? document.documentElement.clientWidth - 1 - e.clientX
+					: e.clientX;
 				// Cheap exit for the common case: shut, and nowhere near the edge.
-				if (!this.is_open && e.clientX > frappe.ui.Dock.REVEAL_EDGE) return;
+				if (!this.is_open && dist_from_edge > frappe.ui.Dock.REVEAL_EDGE) return;
 
 				const open = this.should_open({
 					over_dock: !!$(e.target).closest(".dock").length,
 					holds_focus: this.holds_focus(),
-					dist_from_edge: e.clientX,
+					dist_from_edge,
 					currently_open: this.is_open,
 				});
 				open ? this.open() : this.close();
@@ -189,7 +244,7 @@ frappe.ui.Dock = class Dock {
 		this.opener = null;
 
 		this.is_open = false;
-		this.tooltips.forEach((tip) => tip.hide());
+		[...this.tooltips, ...this.utility_tooltips].forEach((tip) => tip.hide());
 		this.apply_open_state();
 
 		// Focus in a dock turning inert would fall to <body>.
@@ -270,8 +325,8 @@ frappe.ui.Dock = class Dock {
 			: frappe.utils.desktop_icon(label, "gray", "sm");
 	}
 
-	name_tile($el, label) {
-		this.tooltips.push(
+	name_tile($el, label, tooltips = this.tooltips) {
+		tooltips.push(
 			new frappe.ui.Tooltip($el[0], {
 				text: label,
 				side: "right",

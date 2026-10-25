@@ -197,10 +197,7 @@ class WebForm(WebsiteGenerator):
 
 	# export
 	def on_update(self):
-		"""
-		Writes the .txt for this page and if write_content is checked,
-		it will write out a .html file
-		"""
+		"""In developer mode, export a standard Web Form's JSON and create its .js and .py stubs."""
 		path = export_module_json(self, self.is_standard, self.module)
 
 		if path:
@@ -208,9 +205,10 @@ class WebForm(WebsiteGenerator):
 			if not os.path.exists(path + ".js"):
 				with open(path + ".js", "w") as f:
 					f.write(
-						"""frappe.ready(function() {
+						"""frappe.ready(function () {
 	// bind events here
-})"""
+});
+"""
 					)
 
 			# py
@@ -219,11 +217,18 @@ class WebForm(WebsiteGenerator):
 					f.write(
 						"""import frappe
 
+
 def get_context(context):
 	# do your magic here
 	pass
 """
 					)
+
+	def clear_cache(self):
+		frappe.cache.delete_key("bootinfo")
+		frappe.db.after_commit.add(lambda: frappe.cache.delete_key("bootinfo"))
+		frappe.db.after_rollback.add(lambda: frappe.cache.delete_key("bootinfo"))
+		return super().clear_cache()
 
 	def get_context(self, context):
 		"""Build context to render the `web_form.html` template"""
@@ -1328,10 +1333,11 @@ def get_link_options(
 			frappe.PermissionError,
 		)
 
+	# a web form field can link a different doctype than the docfield whose filters it inherits
 	filters = [
 		link_filter
 		for link_filter in json.loads(link_filters or "[]")
-		if not frappe.cstr(link_filter[3]).startswith("eval:")
+		if link_filter[0] == doctype and not frappe.cstr(link_filter[3]).startswith("eval:")
 	]
 	if web_form.login_required and not allow_read_on_all_link_options:
 		filters.append(["owner", "=", frappe.session.user])
@@ -1369,5 +1375,9 @@ def get_link_options(
 
 
 @redis_cache(ttl=60 * 60)
-def get_published_web_forms() -> dict[str, str]:
-	return frappe.get_all("Web Form", ["name", "route", "modified", "module"], {"published": 1})
+def get_published_web_forms() -> list[dict]:
+	return frappe.get_all(
+		"Web Form",
+		["name", "title", "route", "modified", "module", "doc_type", "key_required", "allow_edit"],
+		{"published": 1},
+	)

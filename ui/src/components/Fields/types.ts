@@ -75,7 +75,11 @@ export interface FieldComponentProps {
   field: FieldMeta;
   modelValue: any;
   row?: Record<string, any>;
+  /** Drawn under the input. Only the host sets it; a control never does. */
+  error?: FieldError;
 }
+
+export type FieldError = string | string[];
 
 export type FieldComponentEmits = {
   /** Live value on every change — keeps `doc` reactive while editing. */
@@ -115,6 +119,18 @@ export interface RowAddress {
 }
 
 export type RowChange = "add" | "remove";
+
+/** A top-level field by its fieldname, or one cell of a child row. */
+export type FieldAddress = string | (RowAddress & { fieldname: string });
+
+export function fieldErrorKey(address: FieldAddress): string {
+  if (typeof address === "string") return address;
+  return JSON.stringify([address.parentfield, address.key, address.fieldname]);
+}
+
+/** The host's field errors by `fieldErrorKey`; display-only, and null where there is no form. */
+export const FieldErrorsKey: InjectionKey<Ref<Readonly<Record<string, FieldError>>> | null> =
+  Symbol("FieldErrors");
 
 /**
  * Carries a field's *commit* (blur for typed inputs, selection for pickers) and

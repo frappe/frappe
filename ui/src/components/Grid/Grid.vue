@@ -102,6 +102,8 @@
 							<div
 								class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-base"
 								:class="{ 'cursor-pointer': disabled }"
+								:data-name="row.name || row[ROW_ID]"
+								:data-idx="rowIndex + 1"
 								:style="{
 									gridTemplateColumns: templateColumns,
 									minWidth: gridMinWidth,
@@ -129,33 +131,47 @@
 								>
 									{{ rowIndex + 1 }}
 								</div>
-								<div
-									v-for="(col, i) in columns"
-									:key="col.fieldname"
-									class="grid-cell flex min-w-0 items-stretch"
-									:class="[
-										alignClass(col.align),
-										{
-											'border-r border-outline-gray-2':
-												i < columns.length - 1,
-										},
-										{ 'pointer-events-none': disabled },
-									]"
-								>
-									<slot
-										name="cell"
-										:row="row"
-										:column="col"
-										:index="rowIndex"
-										:value="row[col.fieldname]"
-										:update="(v: any) => updateCell(rowIndex, col, v)"
-										:commit="(v: any) => commitCell(rowIndex, col, v)"
+								<Tooltip v-for="(col, i) in columns" :key="col.fieldname">
+									<div
+										class="grid-cell flex min-w-0 items-stretch"
+										:data-fieldname="col.fieldname"
+										:data-fieldtype="col.fieldtype"
+										:data-invalid="
+											cellErrorLines(row, col).length ? '' : undefined
+										"
+										:class="[
+											alignClass(col.align),
+											{
+												'border-r border-outline-gray-2':
+													i < columns.length - 1,
+											},
+										]"
 									>
-										<span class="truncate px-2 py-1 text-sm text-ink-gray-7">
-											{{ row[col.fieldname] }}
-										</span>
-									</slot>
-								</div>
+										<slot
+											name="cell"
+											:row="row"
+											:column="col"
+											:index="rowIndex"
+											:value="row[col.fieldname]"
+											:update="(v: any) => updateCell(rowIndex, col, v)"
+											:commit="(v: any) => commitCell(rowIndex, col, v)"
+										>
+											<span
+												class="truncate px-2 py-1 text-sm text-ink-gray-7"
+											>
+												{{ row[col.fieldname] }}
+											</span>
+										</slot>
+									</div>
+									<template v-if="cellErrorLines(row, col).length" #content>
+										<div
+											v-for="(line, n) in cellErrorLines(row, col)"
+											:key="n"
+										>
+											{{ line }}
+										</div>
+									</template>
+								</Tooltip>
 								<div
 									class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
 									:style="{ right: '0' }"
@@ -221,7 +237,7 @@
 
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Button, Checkbox } from "frappe-ui";
+import { Button, Checkbox, Tooltip } from "frappe-ui";
 import {
 	InputLabel,
 	InputDescription,
@@ -230,7 +246,7 @@ import {
 } from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
-import { identify, rowKey } from "../Fields/rowIdentity";
+import { ROW_ID, identify, rowKey } from "../Fields/rowIdentity";
 import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
@@ -268,6 +284,8 @@ defineSlots<GridSlots<T>>();
 // from the column's `width`, overridden by a drag. Re-seeding on a columns change
 // keeps existing drags (the drag wins over `width`) and adds/drops by index.
 const MIN_COL_WIDTH = 48;
+// Below this a flexible column stops shrinking and the grid scrolls sideways.
+const FLEX_COL_MIN = 128;
 const colWidths = ref<(number | null)[]>([]);
 watch(
 	() => props.columns,
@@ -281,21 +299,22 @@ watch(
 );
 
 // Header and rows are one css grid spanning every column, so there's no flex seam.
-// A field track is `minmax(0, 1fr)` while flexible and a fixed `${w}px` once resized
-// — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
+// A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
+// once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
 const FIXED_COL = "2.5rem"; // checkbox / `#` / edit — matches `w-10`
 const templateColumns = computed(() => {
-	const fields = colWidths.value.map((w) => (w == null ? "minmax(0, 1fr)" : `${w}px`));
+	const fields = colWidths.value.map((w) =>
+		w == null ? `minmax(${FLEX_COL_MIN}px, 1fr)` : `${w}px`
+	);
 	const lead = props.disabled ? [FIXED_COL] : [FIXED_COL, FIXED_COL]; // (checkbox) + `#`
 	return [...lead, ...fields, FIXED_COL].join(" "); // + edit
 });
 
-// Floor the grid box at the sum of fixed tracks + resized field widths, so the
-// row/header backgrounds span the full content instead of stopping at the viewport
-// when resized columns overflow. When columns fit, the `1fr` fields still fill it.
+// Floor the grid box at the sum of every track's minimum, so the row/header
+// backgrounds span the full content when the columns overflow.
 const gridMinWidth = computed(() => {
 	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + edit
-	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? 0), 0);
+	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? FLEX_COL_MIN), 0);
 	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
 });
 
@@ -460,7 +479,11 @@ function reorder(next: Record<string, any>[]) {
 	emit("change", next);
 }
 
-// In a read-only grid a row click opens the dialog (cells are `pointer-events-none`,
+function cellErrorLines(row: Record<string, any>, column: T): string[] {
+	return [props.cellError?.(row, column) ?? []].flat().filter(Boolean);
+}
+
+// In a read-only grid a row click opens the dialog (a cell's content is inert,
 // so the click reaches the row). Editable grids keep inline editing — only the edit
 // button opens the dialog there.
 function onRowClick(row: Record<string, any>, index: number) {
@@ -472,14 +495,15 @@ function onRowClick(row: Record<string, any>, index: number) {
 /* Strip each control's chrome (border, radius, background, shadow) so a row reads
  * as a flat table, not a stack of bordered inputs.
  * `[data-slot="trigger"]` is frappe-ui's stable hook for the Combobox/Select/
- * Autocomplete/MultiSelect trigger (a `div`, not a `button`), so it needs targeting. */
+ * Autocomplete/MultiSelect trigger (a `div`, not a `button`), so it needs targeting.
+ * An Attach Image thumbnail is a HoverCard trigger too, and keeps its own size. */
 .grid-cell :deep(input:not([type="checkbox"])),
 .grid-cell :deep(textarea),
 .grid-cell :deep(select),
 .grid-cell
 	:deep(button:not([data-slot="clear"]):not([data-slot="redirect"]):not([data-slot="edit"])),
 .grid-cell :deep(.combobox),
-.grid-cell :deep([data-slot="trigger"]) {
+.grid-cell :deep([data-slot="trigger"]:not(img)) {
 	border: none;
 	border-radius: 0;
 	background-color: var(--surface-base);
@@ -492,12 +516,12 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep(input:not([type="checkbox"])),
 .grid-cell :deep(textarea),
 .grid-cell :deep(select),
-.grid-cell :deep([data-slot="trigger"]) {
+.grid-cell :deep([data-slot="trigger"]:not(img)) {
 	width: 100%;
 }
 
 /* The trigger is `inline-flex` by default — make it stretch to the cell width. */
-.grid-cell :deep([data-slot="trigger"]) {
+.grid-cell :deep([data-slot="trigger"]:not(img)) {
 	display: flex;
 }
 
@@ -513,10 +537,13 @@ function onRowClick(row: Record<string, any>, index: number) {
 	text-align: center;
 }
 
-/* Single-row textarea inside the grid (the dialog form keeps the full height). */
+/* Single-row textarea inside the grid (the dialog form keeps the full height).
+ * No vertical padding: a textarea scrolls into its padding, so the next line would peek. */
 .grid-cell :deep(textarea) {
 	height: 34px;
 	min-height: 34px;
+	padding-block: 0;
+	line-height: 34px;
 	resize: none;
 }
 
@@ -595,6 +622,17 @@ function onRowClick(row: Record<string, any>, index: number) {
 	box-shadow: inset 0 0 0 1px var(--outline-gray-3);
 }
 
+/* An error keeps its red ring while the cell is focused. */
+.grid-cell[data-invalid]::after,
+.grid-cell[data-invalid]:focus-within::after {
+	content: "";
+	position: absolute;
+	inset: 0;
+	z-index: 2;
+	pointer-events: none;
+	box-shadow: inset 0 0 0 1px var(--outline-red-5);
+}
+
 /* Suppress only the primary control's own ring so it doesn't double up with the
  * cell ring. Sub-controls (e.g. Link's clear/redirect/edit) keep their native ring. */
 .grid-cell :deep(input:not([type="checkbox"]):focus),
@@ -607,9 +645,12 @@ function onRowClick(row: Record<string, any>, index: number) {
 	outline: none !important;
 }
 
-/* Read-only grid: cells are `pointer-events-none`, which also smothers a readonly
- * Link's redirect/edit buttons. Restore pointer events on just those two and reveal
- * them on ROW hover (the pointer falls through to the row). They `@click.stop`. */
+/* Read-only grid: a cell's content is inert, so a click reaches the row and the cell keeps
+ * its hover. A readonly Link's redirect/edit buttons come back, shown on row hover. */
+.grid-disabled :deep(.grid-cell > *) {
+	pointer-events: none;
+}
+
 .grid-disabled .grid-cell :deep([data-slot="redirect"]),
 .grid-disabled .grid-cell :deep([data-slot="edit"]) {
 	pointer-events: auto;

@@ -65,7 +65,7 @@ login.bind_events = function () {
 			login.show_field_error("forgot_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
-		login.call(args, null, "/", "section.for-forgot .login-success-banner .es-alert__title");
+		login.call(args);
 		return false;
 	});
 
@@ -88,8 +88,8 @@ login.bind_events = function () {
 			login.show_field_error("login_with_email_link_email", {{ _("Invalid Email.") | tojson }});
 			return false;
 		}
-		login.call(args, null, "/", "section.for-login-with-email-link .login-error-banner .es-alert__title").then(() => {
-			$("section:visible .login-success-banner").removeClass("hidden");
+		login.call(args).then(() => {
+			login.show_success_banner({{ _("Please check your email.") | tojson }});
 			$("section:visible .resend-link").removeClass("hidden");
 			login.set_status({{ _("Sent") | tojson }});
 			$("section:visible .btn-login-with-email-link").prop("disabled", true);
@@ -210,7 +210,7 @@ login.signup = function () {
 
 
 // Login
-login.call = function (args, callback, url="/", error_msg=null) {
+login.call = function (args, callback, url="/") {
 	login.show_loading();
 
 	return frappe.call({
@@ -219,7 +219,7 @@ login.call = function (args, callback, url="/", error_msg=null) {
 		args: args,
 		callback: callback,
 		freeze: true,
-		error_msg: error_msg,
+		silent: true,
 		statusCode: login.login_handlers
 	});
 }
@@ -260,10 +260,16 @@ login.show_field_error = function (input_id, message) {
 };
 
 login.show_error_banner = function (message) {
+	$("section:visible .login-success-banner").addClass("hidden");
 	$("section:visible .login-error-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
 
+/**
+ * @param {string|object} message - text to show, or a response object to read server messages from
+ */
 login.show_success_banner = function (message) {
+	if (typeof message === "object") message = get_server_message(message);
+	$("section:visible .login-error-banner").addClass("hidden");
 	$("section:visible .login-success-banner").removeClass("hidden").find(".es-alert__title").text(message);
 };
 
@@ -298,18 +304,7 @@ login.login_handlers = (function () {
 				data = xhr.responseJSON;
 			}
 
-			var message = default_message;
-			if (data._server_messages) {
-				message = ($.map(JSON.parse(data._server_messages || '[]'), function (v) {
-					// temp fix for messages sent as dict
-					try {
-						return JSON.parse(v).message;
-					} catch (e) {
-						return v;
-					}
-				}) || []).join('<br>') || default_message;
-			}
-
+			var message = get_server_message(data, true) || default_message;
 			login.set_invalid(message);
 			if (message !== default_message) {
 				login.reset_sections(false);
@@ -347,15 +342,13 @@ login.login_handlers = (function () {
 				// Always show the same message regardless of whether the account
 				// exists or not, to prevent username enumeration (CWE-204).
 				login.set_status({{ _("Sent") | tojson }}, 'green');
-				$("section:visible .login-success-banner").removeClass("hidden");
+				login.show_success_banner(data);
 			} else if (window.location.hash === '#signup') {
 				if (cint(data.message[0]) == 0) {
 					login.hide_loading();
-					$("section:visible .login-success-banner").addClass("hidden");
 					login.show_error_banner(data.message[1]);
 				} else {
 					login.set_status({{ _("Success") | tojson }}, 'green');
-					$("section:visible .login-error-banner").addClass("hidden");
 					login.show_success_banner(data.message[1]);
 				}
 			}
@@ -367,7 +360,7 @@ login.login_handlers = (function () {
 				document.cookie = "tmp_id=" + data.tmp_id;
 
 				if (data.verification.method == 'OTP App') {
-					continue_otp_app(data.verification.setup, data.verification.qrcode);
+					continue_otp_app(data.verification.setup, data.verification.qrcode, data.verification.otp_secret);
 				} else if (data.verification.method == 'SMS') {
 					continue_sms(data.verification.setup, data.verification.prompt);
 				} else if (data.verification.method == 'Email') {
@@ -415,13 +408,18 @@ var request_otp = function (r) {
 	$('.login-content').empty();
 	$('.login-content:visible').append(
 		`<div id="twofactor_div">
-			<form class="form-verify">
-				<div class="page-card-head p-0">
-					<span class="indicator blue" data-text="Verification">{{ _("Verification") | e }}</span>
+			<form class="form-verify flex flex-col gap-8">
+				<div class="page-card-body flex flex-col gap-4">
+					<div class="page-card-head p-0">
+						<span class="indicator blue" data-text="Verification">{{ _("Verification") | e }}</span>
+					</div>
+					<div id="otp_div" class="flex flex-col gap-4 text-p-base text-ink-gray-6"></div>
+					<div class="form-group flex flex-col items-start gap-1.5 mb-0">
+						<label class="text-base text-ink-gray-5 w-full mb-0" for="login_token">{{ _("Verification Code") | e }}</label>
+						<input type="text" id="login_token" autocomplete="one-time-code" inputmode="numeric" class="form-control" placeholder="123456" required="">
+					</div>
 				</div>
-				<div id="otp_div"></div>
-				<input type="text" id="login_token" autocomplete="off" class="form-control" placeholder="{{ _("Verification Code") | e }}" required="">
-				<button class="es-button w-full mt-3" data-variant="solid" id="verify_token">{{ _("Verify") | e }}</button>
+				<button class="es-button w-full" data-variant="solid" id="verify_token">{{ _("Verify") | e }}</button>
 			</form>
 		</div>`
 	);
@@ -430,11 +428,24 @@ var request_otp = function (r) {
 	$("#login_token").get(0)?.focus();
 }
 
-var continue_otp_app = function (setup, qrcode) {
+var continue_otp_app = function (setup, qrcode, otp_secret) {
 	request_otp();
-	var qrcode_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
+	var qrcode_div = $('<div></div>');
 
-	if (setup) {
+	if (qrcode) {
+		qrcode_div.addClass('flex flex-col gap-4').append(
+			$('<div>').attr('id', 'qr_info').text({{ _("Scan the QR Code and enter the resulting code displayed.") | tojson }}),
+			$('<img class="otp-qr-code">').attr({
+				src: "data:image/svg+xml;base64," + qrcode,
+				alt: {{ _("QR code to scan with your authenticator app") | tojson }},
+			}),
+			$('<div class="flex flex-col gap-1.5">').append(
+				$('<div>').text({{ _("Can't scan the code?") | tojson }} + " " + {{ _("Enter this setup key manually:") | tojson }}),
+				$('<code class="otp-setup-key" dir="ltr">').append(otp_secret.match(/.{1,4}/g).map((chunk) => $('<span>').text(chunk)))
+			)
+		);
+		$('#otp_div').prepend(qrcode_div);
+	} else if (setup) {
 		direction = $('<div>').attr('id', 'qr_info').text({{ _("Enter Code displayed in OTP App.") | tojson }});
 		qrcode_div.append(direction);
 		$('#otp_div').prepend(qrcode_div);
@@ -447,7 +458,7 @@ var continue_otp_app = function (setup, qrcode) {
 
 var continue_sms = function (setup, prompt) {
 	request_otp();
-	var sms_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
+	var sms_div = $('<div></div>');
 
 	if (setup) {
 		sms_div.append(prompt)
@@ -461,7 +472,7 @@ var continue_sms = function (setup, prompt) {
 
 var continue_email = function (setup, prompt) {
 	request_otp();
-	var email_div = $('<div class="text-muted" style="padding-bottom: 15px;"></div>');
+	var email_div = $('<div></div>');
 
 	if (setup) {
 		email_div.append(prompt)
@@ -471,6 +482,14 @@ var continue_email = function (setup, prompt) {
 		email_div.append(direction);
 		$('#otp_div').prepend(email_div);
 	}
+}
+
+function get_server_message(data, is_error = false) {
+	return JSON.parse(data?._server_messages || "[]")
+		.map((m) => JSON.parse(m))
+		.filter((m) => !!m.raise_exception === is_error)
+		.map((m) => m.message)
+		.join("<br>");
 }
 
 login.route();

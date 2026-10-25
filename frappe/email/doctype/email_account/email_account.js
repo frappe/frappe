@@ -43,15 +43,25 @@ function with_email_settings(fn) {
 	frappe.require("email_settings.bundle.js", () => fn(frappe.email_settings));
 }
 
-function oauth_access(frm) {
+function relay_provider(connected_app) {
+	const prefix = "frappe-cloud-relay:";
+	return (
+		connected_app.token_uri?.startsWith(prefix) && connected_app.token_uri.slice(prefix.length)
+	);
+}
+
+function oauth_access(frm, $btn) {
 	frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
 		const connected_app = frappe.get_doc("Connected App", frm.doc.connected_app);
-		if (
-			!frm.is_new() &&
-			connected_app.token_uri?.endsWith("press.api.email_oauth.relay_token")
-		) {
-			with_email_settings((email_settings) => email_settings.sign_in(frm.doc.name));
-			return;
+		if (relay_provider(connected_app)) {
+			$btn?.attr("aria-busy", "true");
+			return frappe
+				.xcall(
+					"frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
+					{ email_account: frm.doc.name }
+				)
+				.then((url) => (window.location.href = url))
+				.catch(() => $btn?.removeAttr("aria-busy"));
 		}
 		return frappe.call({
 			doc: connected_app,
@@ -167,6 +177,8 @@ frappe.ui.form.on("Email Account", {
 		if (frm.doc.__islocal) {
 			frm.add_child("imap_folder", { folder_name: "INBOX" });
 			frm.refresh_field("imap_folder");
+			// service prefilled (e.g. from the list's Add dialog): apply its server defaults
+			if (frm.doc.service) frm.trigger("service");
 		}
 		set_default_max_attachment_size(frm);
 	},
@@ -275,13 +287,31 @@ frappe.ui.form.on("Email Account", {
 					connected_user: frm.doc.connected_user,
 				},
 				callback: (r) => {
-					if (!r.message) {
+					if (r.message) {
+						frm.toggle_display("authorize_api_access", true);
+						return;
+					}
+					frappe.model.with_doc("Connected App", frm.doc.connected_app, () => {
+						const connected_app = frappe.get_doc(
+							"Connected App",
+							frm.doc.connected_app
+						);
+						const relay = relay_provider(connected_app);
+						frm.toggle_display("authorize_api_access", !relay);
 						let msg = __(
 							"This account is not signed in yet, so it cannot send or receive emails. Click Authorize API Access to sign in."
 						);
+						if (relay) {
+							const $reconnect = frm.add_custom_button(__("Reconnect"), () =>
+								oauth_access(frm, $reconnect)
+							);
+							msg = __(
+								"This mailbox was signed out. Reconnect it to sign in again."
+							);
+						}
 						frm.dashboard.clear_headline();
 						frm.dashboard.set_headline_alert(msg, "yellow");
-					}
+					});
 				},
 			});
 		}

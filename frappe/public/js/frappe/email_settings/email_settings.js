@@ -364,8 +364,8 @@ function show_providers(panel) {
 				$card.find(".email-provider-description").text(provider.description);
 				$card.on("click", () =>
 					load_setup().then((setup) =>
-						provider.oauth === "Microsoft" && setup.frappe_cloud_microsoft
-							? connect_microsoft()
+						setup.one_click_services[provider.service]
+							? sign_in_one_click(panel, provider, setup)
 							: show_account_form(panel, provider, setup)
 					)
 				);
@@ -769,7 +769,7 @@ function render_oauth_app(panel, provider) {
 	frappe.doctype_settings.render_loading(panel.body);
 
 	load_setup().then((setup) => {
-		if (provider === "Microsoft" && setup.frappe_cloud_microsoft) {
+		if (setup.one_click_services[PROVIDERS.find((p) => p.oauth === provider).service]) {
 			panel.set_view({
 				title: __("Sign in with Microsoft"),
 				description: __(
@@ -946,68 +946,20 @@ function render_general(panel) {
 	});
 }
 
-function connect_microsoft() {
+function sign_in_one_click(panel, provider, setup) {
 	return frappe
 		.call({
 			method: "frappe.integrations.frappe_providers.email_oauth.initiate_mailbox_connect",
-			args: { redirect_to: "/desk/email-account" },
+			args: { service: provider.service },
 			freeze: true,
 		})
 		.then((r) => {
-			window.location.href = r.message;
+			if (r.message) {
+				window.location.href = r.message;
+				return;
+			}
+			show_account_form(panel, provider, setup);
 		});
-}
-
-const MICROSOFT_RESULTS = {
-	cancelled: __("Sign in with Microsoft was cancelled. No account was added."),
-	expired: __(
-		"The Microsoft sign-in took longer than 10 minutes, or was started by another user. Add the account again."
-	),
-	admin_approval: __(
-		"Your Microsoft 365 admin has to approve Frappe Cloud before this mailbox can be connected. Ask them to grant admin consent, then add the account again."
-	),
-	not_team_member: __(
-		"Frappe Cloud could not confirm that you manage this site. Log in to Frappe Cloud with an account on this site's team, then add the account again."
-	),
-	already_connected: __("This mailbox is already added to this site."),
-	smtp_disabled: __(
-		"Microsoft 365 has SMTP sending turned off for this mailbox. Ask your Microsoft 365 admin to turn on Authenticated SMTP for it, then add the account again."
-	),
-	smtp_disabled_personal: __(
-		"Outlook.com does not allow sending from this account through other apps. In Outlook.com, open Settings > Mail > Forwarding and IMAP, turn on POP and IMAP access, then add the account again."
-	),
-	imap_disabled: __(
-		"Microsoft did not allow reading this mailbox over IMAP. Ask your Microsoft 365 admin to turn on IMAP for it, then add the account again."
-	),
-	failed: __("Could not connect the Microsoft mailbox. The Error Log has the details."),
-};
-
-frappe.email_settings.finish_microsoft_sign_in = function ({ result, state }) {
-	if (!state) return show_microsoft_result(result);
-	return frappe
-		.call({
-			method: "frappe.integrations.frappe_providers.email_oauth.finish_mailbox_connect",
-			args: { state },
-			freeze: true,
-			freeze_message: __(
-				"Connecting your Microsoft mailbox. This can take up to 30 seconds..."
-			),
-		})
-		.then((r) => show_microsoft_result(r.message));
-};
-
-function show_microsoft_result(result) {
-	return frappe.email_settings.open({ tab: "accounts" }).then(() => {
-		if (result === "connected") {
-			frappe.ui.toast({ message: __("Microsoft mailbox connected"), type: "success" });
-			return;
-		}
-		frappe.msgprint({
-			title: __("Microsoft Mailbox Not Connected"),
-			message: MICROSOFT_RESULTS[result] || MICROSOFT_RESULTS.failed,
-			indicator: result === "already_connected" ? "blue" : "red",
-		});
-	});
 }
 
 frappe.email_settings.sign_in = function (email_account) {

@@ -179,7 +179,7 @@ def get_email_setup() -> dict:
 	return {
 		"accounts": accounts,
 		"providers": providers,
-		"frappe_cloud_microsoft": email_oauth.is_available(),
+		"one_click_services": email_oauth.get_one_click_services(),
 	}
 
 
@@ -395,8 +395,10 @@ def authorize(email_account: str) -> str:
 			),
 			title=_("Not Allowed"),
 		)
-	if email_oauth.is_broker_app(doc.connected_app):
-		return email_oauth.initiate_mailbox_connect(redirect_to=email_oauth.DEFAULT_REDIRECT)
+	if (frappe.db.get_value("Connected App", doc.connected_app, "token_uri") or "").startswith(
+		email_oauth.FRAPPE_CLOUD_RELAY
+	):
+		return email_oauth.initiate_mailbox_connect(email_account=doc.name)
 	app = frappe.get_doc("Connected App", doc.connected_app)
 	return app.initiate_web_application_flow(
 		user=frappe.session.user, success_uri=get_url_to_form("Email Account", doc.name) + "?email_setup=1"

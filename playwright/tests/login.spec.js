@@ -68,3 +68,19 @@ test.describe("Login", () => {
 		);
 	});
 });
+
+test.describe("Logout", () => {
+	test("goes to login without the session expired dialog", async ({ page, desk }) => {
+		await page.goto("/desk/todo");
+		await desk.ready();
+		const redirect_to_login = new Promise((resolve) =>
+			page.route(/\/login\?redirect-to=/, (route) => resolve(route.abort("aborted")))
+		);
+
+		await page.evaluate(() => frappe.app.logout());
+		await page.getByRole("button", { name: "Yes", exact: true }).click();
+		await redirect_to_login;
+
+		expect(await page.evaluate(() => Boolean(frappe.app.session_expired_dialog))).toBe(false);
+	});
+});

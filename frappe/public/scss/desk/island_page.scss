@@ -67,3 +67,35 @@ body.full-height-page {
 		min-height: 0;
 	}
 }
+
+// Shown while the island's bundle loads (pageview.js show_island), over the empty host the
+// loader adds. A cached bundle is in within a frame or two, so it fades in only after a
+// short wait, and a fast load never shows it.
+.island-page-body {
+	position: relative;
+}
+
+.island-page-skeleton {
+	position: absolute;
+	inset: 0;
+	display: flex;
+	flex-direction: column;
+	gap: var(--padding-sm);
+	padding: var(--padding-md);
+	pointer-events: none;
+	opacity: 0;
+	animation: island-page-skeleton-in 150ms ease-out 300ms forwards;
+
+	> div {
+		flex: none;
+		height: 44px;
+		border-radius: var(--radius-lg);
+		background-color: var(--skeleton-bg);
+	}
+}
+
+@keyframes island-page-skeleton-in {
+	to {
+		opacity: 1;
+	}
+}

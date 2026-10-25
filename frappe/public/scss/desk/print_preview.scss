@@ -70,7 +70,7 @@
 		position: sticky;
 		top: var(--page-head-height);
 		align-self: flex-start;
-		max-height: calc(100vh - var(--page-head-height));
+		height: calc(100vh - var(--page-head-height));
 		overflow-y: auto;
 	}
 

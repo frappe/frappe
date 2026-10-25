@@ -409,7 +409,11 @@ export default class Grid {
 	delete_all_rows() {
 		const num_rows = this.data.length;
 		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [num_rows]), () => {
-			this.frm.doc[this.df.fieldname] = [];
+			if (this.frm) {
+				this.frm.doc[this.df.fieldname] = [];
+			} else {
+				this.df.data = [];
+			}
 			$(this.parent).find(".rows").empty();
 			this.grid_rows = [];
 			this.refresh();
@@ -608,13 +612,12 @@ export default class Grid {
 		let columns = this.visible_columns.map((col) => {
 			let df = col[0];
 			if (df.fieldname === fieldname) {
-				df.width = width;
 				// setup_columns renders from col[1]; keep it in sync for new rows.
 				col[1] = width;
 			}
 			return {
 				fieldname: df.fieldname,
-				width: this.get_column_width(df),
+				width: col[1],
 				sticky: df.sticky ? 1 : 0,
 			};
 		});
@@ -1608,6 +1611,7 @@ export default class Grid {
 						frappe.meta.get_docfield(this.doctype, row.fieldname);
 
 					if (column) {
+						column = { ...column };
 						column.in_list_view = 1;
 						// migrate legacy `columns` (1-12) to px
 						column.width = cint(row.width) || LEGACY_COLSIZE_TO_PX[row.columns];
