@@ -3,7 +3,7 @@
 from json import dumps
 
 import frappe
-from frappe.desk.desktop import get_desktop_page, get_workspace
+from frappe.desk.desktop import get_desktop_page, get_workspace, get_workspaces
 from frappe.tests import IntegrationTestCase
 
 DESK_USER = "test-get-workspace-user@example.com"
@@ -98,6 +98,17 @@ class TestGetWorkspace(IntegrationTestCase):
 
 		frappe.set_user(DESK_USER)
 		self.assertTrue(get_workspace(standard.name)["is_layout_customized"])
+
+	def test_boot_keeps_content_for_legacy_only(self):
+		make_workspace("GW Legacy", renderer="Legacy", content=[block("header", text="Old")])
+		frappe.set_user(DESK_USER)
+		frappe.local.request_cache.clear()
+		pages = {p.name: p for p in get_workspaces()["pages"]}
+
+		self.assertEqual(pages["GW Legacy"].renderer, "Legacy")
+		self.assertIn("Old", pages["GW Legacy"].content)
+		self.assertEqual(pages["GW Test"].renderer, "Frappe UI")
+		self.assertNotIn("content", pages["GW Test"])
 
 
 def block(block_type, name=None, text=None):

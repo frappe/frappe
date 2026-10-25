@@ -164,6 +164,7 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		self.assertEqual(len(base_content), 2)
 
 	def test_get_workspaces_renders_snapshot_content(self):
+		frappe.db.set_value("Workspace", self.WORKSPACE, "renderer", "Legacy")
 		frappe.get_doc(
 			{
 				"doctype": "Custom Workspace",
