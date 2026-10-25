@@ -8,6 +8,8 @@ from frappe.utils.data import cint, cstr
 from frappe.utils.pdf import get_host_url
 from frappe.utils.print_utils import convert_uom, parse_float_and_unit
 
+RECEIPT_WIDTHS = {"Receipt 80 mm": "80mm", "Receipt 58 mm": "58mm"}
+
 
 class Browser:
 	def __init__(self, generator, print_format, html, options):
@@ -36,6 +38,7 @@ class Browser:
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
 			self.fit_body_to_page()
+			self.fit_body_height()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			self.update_header_footer_page()
 
@@ -137,6 +140,17 @@ class Browser:
 		content_width = self.body_page.get_content_width()
 		if content_width > printable:
 			options["scale"] = max(0.1, printable / content_width)
+
+	def fit_body_height(self):
+		if not self.options.get("fit-height"):
+			return
+		options = self.body_page.options
+		printable = 96 * (
+			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
+		)
+		self.body_page.set_device_metrics(width=int(printable), height=1)
+		height = (self.body_page.get_content_height() + 2) * options.get("scale", 1) / 96
+		options["paperHeight"] = height + options.get("marginTop", 0) + options.get("marginBottom", 0)
 
 	def close_page(self, type):
 		page = getattr(self, f"{type}_page")
@@ -273,7 +287,19 @@ class Browser:
 			and (style.name not in PAGE_MARGIN_SIDES or re.fullmatch(f"0|{PAGE_LENGTH}", style.value.strip()))
 		}
 		self.options.update(options)
+		self._set_page_size_from_print_format()
 		self._set_page_size_from_page_rule()
+
+	def _set_page_size_from_print_format(self):
+		if any(self.options.get(key) for key in ("page-size", "page-width", "page-height")):
+			return
+		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
+			return
+		paper_size = frappe.get_cached_value("Print Format", self.print_format, "paper_size")
+		if receipt_width := RECEIPT_WIDTHS.get(paper_size):
+			self.options |= {"page-width": receipt_width, "page-height": "297mm", "fit-height": True}
+		elif paper_size:
+			self.options["page-size"] = paper_size
 
 	def _set_page_size_from_page_rule(self):
 		from frappe.www.printview import get_page_rule_size

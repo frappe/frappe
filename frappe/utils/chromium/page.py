@@ -441,6 +441,19 @@ class Page:
 		result = self.evaluate("document.documentElement.scrollWidth")
 		return (result or {}).get("result", {}).get("value") or 0
 
+	def get_content_height(self):
+		result = self.evaluate(
+			"""(() => {
+				const style = document.createElement("style");
+				style.textContent = "html, body, .print-format { height: auto !important; min-height: 0 !important; }";
+				document.head.appendChild(style);
+				const height = document.documentElement.scrollHeight;
+				style.remove();
+				return height;
+			})()"""
+		)
+		return (result or {}).get("result", {}).get("value") or 0
+
 	def capture_screenshot(self, image_format="jpeg", quality=30):
 		"""Screenshot the current viewport; returns raw image bytes."""
 		params = {"format": image_format, "captureBeyondViewport": False}
