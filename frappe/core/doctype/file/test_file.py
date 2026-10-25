@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import base64
+import html
 import io
 import os
 import shutil
@@ -1809,19 +1810,24 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 			fields=[{"label": "Notes", "fieldname": "notes", "fieldtype": "Text Editor"}],
 		).insert(ignore_if_duplicate=True)
 
+		fields = [
+			{"label": "Body", "fieldname": "body", "fieldtype": "Text Editor"},
+			{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": cls.row_doctype},
+		]
+		permissions = [{"role": "All", "read": 1, "write": 1, "create": 1}]
 		cls.parent_doctype = "Test Text Editor Parent"
+		new_doctype(cls.parent_doctype, fields=fields, permissions=permissions).insert(
+			ignore_if_duplicate=True
+		)
+		cls.public_doctype = "Test Text Editor Public"
 		new_doctype(
-			cls.parent_doctype,
-			fields=[
-				{"label": "Body", "fieldname": "body", "fieldtype": "Text Editor"},
-				{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": cls.row_doctype},
-			],
-			permissions=[{"role": "All", "read": 1, "write": 1, "create": 1}],
+			cls.public_doctype, fields=fields, permissions=permissions, make_attachments_public=1
 		).insert(ignore_if_duplicate=True)
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", cls.public_doctype)
 		frappe.delete_doc_if_exists("DocType", cls.parent_doctype)
 		frappe.delete_doc_if_exists("DocType", cls.row_doctype)
 		super().tearDownClass()
@@ -1835,22 +1841,25 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
-	def make_file(self, content: bytes):
+	def make_file(self, content: bytes, file_name: str | None = None):
 		return frappe.get_doc(
 			{
 				"doctype": "File",
-				"file_name": f"inline_{frappe.generate_hash(length=8)}.png",
+				"file_name": file_name or f"inline_{frappe.generate_hash(length=8)}.png",
 				"content": content,
 				"is_private": 1,
 			}
 		).insert(ignore_permissions=True)
 
-	def make_record(self, **values):
-		return frappe.get_doc({"doctype": self.parent_doctype, **values}).insert()
+	def make_record(self, doctype=None, **values):
+		return frappe.get_doc({"doctype": doctype or self.parent_doctype, **values}).insert()
 
 	def attachment_of(self, file):
 		return frappe.db.get_value(
-			"File", file.name, ["attached_to_doctype", "attached_to_name", "attached_to_field"], as_dict=True
+			"File",
+			file.name,
+			["attached_to_doctype", "attached_to_name", "attached_to_field", "is_private", "file_url"],
+			as_dict=True,
 		)
 
 	def test_adopts_the_callers_file_in_a_field(self):
@@ -1863,7 +1872,77 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		self.assertEqual(attached.attached_to_doctype, self.parent_doctype)
 		self.assertEqual(attached.attached_to_name, record.name)
 		self.assertIsNone(attached.attached_to_field)
+		self.assertEqual(attached.is_private, 1)
 		self.assertEqual(frappe.db.get_value(self.parent_doctype, record.name, "body"), body)
+
+	def test_makes_the_file_public_when_the_doctype_says_so(self):
+		file = self.make_file(b"public-image")
+		row_file = self.make_file(b"public-row-image")
+
+		record = self.make_record(
+			self.public_doctype,
+			body=f'<p>Plan</p><img src="{file.file_url}">',
+			rows=[{"notes": f'<img src="{row_file.file_url}">'}],
+		)
+
+		attached = self.attachment_of(file)
+		self.assertEqual(attached.is_private, 0)
+		self.assertEqual(attached.attached_to_name, record.name)
+		self.assertNotEqual(attached.file_url, file.file_url)
+		saved = frappe.get_doc(self.public_doctype, record.name)
+		self.assertEqual(saved.body, f'<p>Plan</p><img src="{attached.file_url}">')
+		row_attached = self.attachment_of(row_file)
+		self.assertEqual(row_attached.is_private, 0)
+		self.assertEqual(saved.rows[0].notes, f'<img src="{row_attached.file_url}">')
+
+	def test_repoints_every_place_an_escaped_url_shows(self):
+		file = self.make_file(b"escaped-image", "Tom & Ann's.png")
+		img = f'<img src="{html.escape(file.file_url, quote=False)}">'
+
+		record = self.make_record(self.public_doctype, body=img, rows=[{"notes": img}, {"notes": img}])
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.is_private, attached.attached_to_name), (0, record.name))
+		public = f'<img src="{html.escape(attached.file_url)}">'
+		self.assertEqual([record.body, *(row.notes for row in record.rows)], [public] * 3)
+
+	def test_makes_the_file_public_on_a_later_save(self):
+		record = self.make_record(self.public_doctype, body="<p>Plan</p>")
+		file = self.make_file(b"later-public-image")
+
+		record.body = f'<img src="{file.file_url}">'
+		record.save()
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.is_private, attached.attached_to_name), (0, record.name))
+		self.assertEqual(frappe.db.get_value(self.public_doctype, record.name, "body"), record.body)
+		self.assertIn(attached.file_url, record.body)
+
+	@IntegrationTestCase.change_settings(
+		"System Settings", {"only_allow_system_managers_to_upload_public_files": 1}
+	)
+	def test_keeps_the_file_private_when_the_caller_may_not_make_it_public(self):
+		frappe.set_user("test1@example.com")
+		self.assertNotIn("System Manager", frappe.get_roles())
+		file = self.make_file(b"restricted-image")
+		body = f'<img src="{file.file_url}">'
+
+		record = self.make_record(self.public_doctype, body=body)
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.is_private, attached.attached_to_name), (1, record.name))
+		self.assertEqual(frappe.db.get_value(self.public_doctype, record.name, "body"), body)
+
+	def test_leaves_an_attached_file_private(self):
+		first = self.make_record(self.public_doctype, body="<p>First</p>")
+		file = self.make_file(b"attached-private-image")
+		frappe.db.set_value(
+			"File", file.name, {"attached_to_doctype": self.public_doctype, "attached_to_name": first.name}
+		)
+
+		self.make_record(self.public_doctype, body=f'<img src="{file.file_url}">')
+
+		self.assertEqual(self.attachment_of(file).is_private, 1)
 
 	def test_adopts_the_callers_file_in_a_row(self):
 		file = self.make_file(b"row-image")

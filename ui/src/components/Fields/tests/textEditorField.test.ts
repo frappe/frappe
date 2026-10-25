@@ -205,25 +205,9 @@ describe("a Text Editor's image upload", () => {
     return upload(file);
   }
 
-  it("attaches to a saved record, with no field", async () => {
-    await uploadIn({ doc: { doctype: "Note", name: "N-1" } });
-    expect(transport.mock.calls[0][1]).toEqual({
-      isPrivate: true,
-      attachTo: { doctype: "Note", docname: "N-1" },
-    });
-  });
-
-  it("attaches a row's image to the parent record", async () => {
-    await uploadIn({
-      doc: { doctype: "Note Row", name: "row-1" },
-      parentDoc: { doctype: "Note", name: "N-1" },
-    });
-    expect(transport.mock.calls[0][1].attachTo).toEqual({ doctype: "Note", docname: "N-1" });
-  });
-
-  it("uploads a detached private file for a new record", async () => {
-    const media = await uploadIn({ doc: { title: "Unsaved" } });
-    expect(transport.mock.calls[0][1]).toEqual({ isPrivate: true, attachTo: undefined });
+  it("uploads a detached private file on a saved record too, for its save to adopt", async () => {
+    const media = await uploadIn({ doc: { doctype: "Note", name: "N-1" } });
+    expect(transport.mock.calls[0][1]).toEqual({ isPrivate: true });
     expect(media.file_url).toBe("/private/files/a.png");
   });
 });

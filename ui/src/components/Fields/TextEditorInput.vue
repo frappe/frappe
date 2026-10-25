@@ -34,14 +34,13 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, ref, watch } from "vue";
 import { Extension } from "@tiptap/core";
 import { Editor, EditorContent, EditorFixedMenu, EditorTableMenu } from "frappe-ui/editor";
 import type { MediaUploadRequestOptions } from "frappe-ui/editor";
 import { isEmptyHtml } from "../RichText/html";
 import { richTextKit, richTextToolbar } from "../RichText/kit";
 import { uploadMedia } from "../RichText/upload";
-import { DocKey, ParentDocKey } from "./types";
 import type { FieldMeta } from "./types";
 
 const props = defineProps<{
@@ -107,18 +106,10 @@ function onFocusOut(event: FocusEvent) {
 	atFocus = null;
 }
 
-const doc = inject(DocKey, null);
-const parentDoc = inject(ParentDocKey, null);
-
-// A saved record takes the file as an attachment; a new one, a detached file it adopts on save.
+// A detached file: the record's save adopts it and applies `make_attachments_public`.
 // Never `attached_to_field`: the File would then overwrite this field's HTML with its URL.
 function upload(file: File, options?: MediaUploadRequestOptions) {
-	const record = (parentDoc ?? doc)?.value;
-	const attachTo =
-		record?.doctype && record.name
-			? { doctype: record.doctype, docname: record.name }
-			: undefined;
-	return uploadMedia(file, options, { isPrivate: true, attachTo });
+	return uploadMedia(file, options);
 }
 
 const maxHeight = computed(() => {
