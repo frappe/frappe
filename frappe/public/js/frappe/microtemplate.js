@@ -238,8 +238,22 @@ frappe.render_pdf = function (html, opts = {}) {
 	var blob = new Blob([], { type: "text/xml" });
 	formData.append("blob", blob);
 
+	download_pdf("frappe.utils.print_format.report_to_pdf", formData, opts.report_name);
+};
+
+frappe.download_report_pdf = function (args, filename) {
+	const formData = new FormData();
+	for (const [key, value] of Object.entries(args)) {
+		if (value == null) continue;
+		formData.append(key, typeof value === "object" ? JSON.stringify(value) : value);
+	}
+
+	download_pdf("frappe.utils.print_format.download_report_pdf", formData, filename);
+};
+
+function download_pdf(method, formData, filename) {
 	var xhr = new XMLHttpRequest();
-	xhr.open("POST", "/api/method/frappe.utils.print_format.report_to_pdf");
+	xhr.open("POST", `/api/method/${method}`);
 	xhr.setRequestHeader("X-Frappe-CSRF-Token", frappe.csrf_token);
 	xhr.responseType = "arraybuffer";
 	xhr.timeout = 10 * 60 * 1000;
@@ -268,7 +282,7 @@ frappe.render_pdf = function (html, opts = {}) {
 		document.body.appendChild(hidden_a_tag);
 		hidden_a_tag.style = "display: none";
 		hidden_a_tag.href = objectUrl;
-		hidden_a_tag.download = opts.report_name || "report.pdf";
+		hidden_a_tag.download = filename || "report.pdf";
 
 		// Open report in a new window
 		hidden_a_tag.click();
@@ -288,4 +302,4 @@ frappe.render_pdf = function (html, opts = {}) {
 	};
 
 	xhr.send(formData);
-};
+}

@@ -1729,6 +1729,57 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return { html, format };
 	}
 
+	download_pdf_from_server(print_settings, format) {
+		const filters = this.get_filter_values(true);
+		let applied_filters = null;
+		if (print_settings.include_filters) {
+			applied_filters = {};
+			for (const [fieldname, value] of Object.entries(filters)) {
+				const docfield = frappe.query_report.get_filter(fieldname).df;
+				if (frappe.utils.is_empty(value) || docfield.hidden_due_to_dependency) continue;
+
+				applied_filters[__(docfield.label, null, docfield.parent)] =
+					docfield.fieldtype === "Check"
+						? this.boolean_labels[cint(value)]
+						: frappe.format(value, docfield, { for_print: true });
+			}
+		}
+
+		if (this.prepared_report_name) {
+			filters.prepared_report_name = this.prepared_report_name;
+		}
+
+		let visible_idx = this.get_validated_visible_indexes();
+		const total_rows = this.data.length - (this.raw_data.add_total_row ? 1 : 0);
+		if (visible_idx.length === total_rows && visible_idx.every((idx, i) => idx === i)) {
+			visible_idx = [];
+		}
+
+		frappe.download_report_pdf(
+			{
+				report_name: this.report_name,
+				filters,
+				orientation: print_settings.orientation,
+				print_format: format.print_format,
+				letterhead: print_settings.with_letter_head
+					? print_settings.letter_head_name
+					: null,
+				no_letterhead: print_settings.with_letter_head ? 0 : 1,
+				columns:
+					format.type === "grid"
+						? this.get_columns_for_print(print_settings, format).map(
+								(column) => column.fieldname
+						  )
+						: null,
+				visible_idx,
+				custom_columns: this.custom_columns,
+				applied_filters,
+				ignore_prepared_report: this.ignore_prepared_report ? 1 : 0,
+			},
+			this.get_pdf_filename()
+		);
+	}
+
 	async build_print_opts(print_settings, format) {
 		const title = __(this.report_name);
 		const landscape = print_settings.orientation == "Landscape";
