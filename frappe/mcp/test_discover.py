@@ -158,10 +158,23 @@ class TestDiscover(McpTestCase):
 				"frappe.api.discovery.search",
 				side_effect=discovery.DiscoveryCacheUnavailable("Index is being generated"),
 			),
+			patch("frappe.api.discovery.build_cache"),
 		):
 			self.assertTrue(self.discover("search_methods", {"query": "ToDo"}).json["result"]["isError"])
 			result = self.result("search_doctypes", {"query": ["ToDo"]})
 		self.assertIn("ToDo", result["result"])
+
+	def test_cold_method_index_is_built_in_the_request(self):
+		cold = discovery.DiscoveryCacheUnavailable("Index is being generated")
+		with (
+			self.manager(),
+			patch("frappe.api.discovery.search", side_effect=[cold, {"results": []}]) as search,
+			patch("frappe.api.discovery.build_cache") as build_cache,
+		):
+			response = self.discover("search_methods", {"query": "ToDo"})
+		self.assertFalse(response.json["result"]["isError"])
+		build_cache.assert_called_once()
+		self.assertEqual(search.call_count, 2)
 
 	def test_manager_cannot_discover_nonwhitelisted_methods(self):
 		with self.manager(), self.method_cache():
