@@ -45,6 +45,15 @@ describe("focusField", () => {
     expect(document.activeElement).toBe(el.querySelector("[contenteditable]"));
   });
 
+  it("stops waiting once stopped", async () => {
+    const el = cell("");
+    const stop = focusField(el);
+    stop();
+    el.innerHTML = '<div contenteditable="true"></div>';
+    await settle();
+    expect(document.activeElement).toBe(document.body);
+  });
+
   it("leaves the cursor where the reader moved it meanwhile", async () => {
     const el = cell("");
     const elsewhere = cell("<input />").querySelector("input")!;

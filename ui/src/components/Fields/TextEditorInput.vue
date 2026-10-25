@@ -5,13 +5,12 @@
 		:placeholder="field.placeholder"
 		:upload-function="upload"
 		@update:modelValue="onInput"
-		@focus="onFocus"
-		@blur="onBlur"
 	>
 		<div
-			ref="root"
 			class="flex flex-col rounded-4 border border-outline-gray-2 bg-surface-base hover:border-outline-gray-3 focus-within:border-outline-gray-4 focus-within:shadow-sm"
 			data-slot="text-editor"
+			@focusin="onFocusIn"
+			@focusout="onFocusOut"
 		>
 			<div
 				class="flex items-center overflow-x-auto border-b border-outline-gray-1 p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
@@ -35,7 +34,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, useTemplateRef, watch } from "vue";
+import { computed, inject, ref, watch } from "vue";
 import { Extension } from "@tiptap/core";
 import { Editor, EditorContent, EditorFixedMenu, EditorTableMenu } from "frappe-ui/editor";
 import type { MediaUploadRequestOptions } from "frappe-ui/editor";
@@ -56,8 +55,6 @@ const emit = defineEmits<{
 	"update:modelValue": [value: string];
 	change: [value: string];
 }>();
-
-const root = useTemplateRef<HTMLElement>("root");
 
 // ProseMirror marks every Esc handled, so a dialog around the field never sees it. Esc leaves
 // the body instead, after any open menu takes it; the next Esc reaches the dialog.
@@ -98,13 +95,14 @@ function onInput(html: string | null) {
 	if (atFocus === null) emit("change", value.value);
 }
 
-function onFocus() {
+function onFocusIn() {
 	atFocus ??= value.value;
 }
 
-// A click on the field's own toolbar keeps the edit open.
-function onBlur(event: FocusEvent) {
-	if (root.value?.contains(event.relatedTarget as Node | null)) return;
+// Focus moving within the field, as onto its toolbar, keeps the edit open.
+function onFocusOut(event: FocusEvent) {
+	const field = event.currentTarget as HTMLElement;
+	if (field.contains(event.relatedTarget as Node | null)) return;
 	if (atFocus !== null && value.value !== atFocus) emit("change", value.value);
 	atFocus = null;
 }

@@ -99,6 +99,24 @@ describe("an editable Text Editor", () => {
     expect(onChange.mock.calls).toEqual([["<p><strong>Hello there</strong></p>"]]);
   });
 
+  it("commits when focus leaves the field from its toolbar", async () => {
+    const { root, onChange } = mount("<p>Hello</p>");
+    const editor = await editorIn(root);
+    editor.commands.focus("end");
+    await frame();
+    editor.commands.insertContent(" there");
+    // happy-dom does not move focus onto the toolbar's buttons, so the moves are dispatched.
+    const button = root.querySelector<HTMLButtonElement>("[data-slot='fixed-menu'] button")!;
+    const move = (from: Element, to: Element) => {
+      from.dispatchEvent(new FocusEvent("blur", { relatedTarget: to }));
+      from.dispatchEvent(new FocusEvent("focusout", { relatedTarget: to, bubbles: true }));
+    };
+    move(editor.view.dom, button);
+    expect(onChange).not.toHaveBeenCalled();
+    move(button, document.body);
+    expect(onChange.mock.calls).toEqual([["<p>Hello there</p>"]]);
+  });
+
   it("commits nothing for a value its host set while it had focus", async () => {
     const { root, value, onChange } = mount("<p>Hello</p>");
     const editor = await editorIn(root);

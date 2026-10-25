@@ -889,7 +889,11 @@ function detailsTabOf(fieldname: string) {
 	);
 }
 
+// Stops a landing still waiting for a lazy control, when another lands or the page goes.
+let stopLanding = () => {};
+
 async function landOn(fieldname: string, cursor: boolean) {
+	stopLanding();
 	const tab = detailsTabOf(fieldname);
 	if (tab) formTab.value = tab.identity;
 	// The strip mounts a tab's panel a frame after the model moves, so the cell is polled for.
@@ -900,7 +904,7 @@ async function landOn(fieldname: string, cursor: boolean) {
 		);
 		if (cell) {
 			cell.scrollIntoView({ block: "center" });
-			if (cursor) focusField(cell);
+			if (cursor) stopLanding = focusField(cell);
 			return;
 		}
 		await new Promise(requestAnimationFrame);
@@ -943,6 +947,7 @@ useSaveKeys({
 });
 
 onUnmounted(() => {
+	stopLanding();
 	currentVisit.end();
 	controller.value?.leave();
 	live.dispose();

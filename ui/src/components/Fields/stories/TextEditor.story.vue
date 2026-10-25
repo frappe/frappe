@@ -1,7 +1,4 @@
-<!--
-  The Text Editor field: editable, read-only, empty, with an error, and a desk v1 value. Each
-  stored value prints below its field, so a v1 value shows what one edit turns it into.
--->
+<!-- The Text Editor field in each state, with its stored and committed value below it. -->
 <template>
 	<div class="flex max-w-2xl flex-col gap-8 p-6">
 		<div v-for="entry in entries" :key="entry.field.fieldname" class="flex flex-col gap-2">

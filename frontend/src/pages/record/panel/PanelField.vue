@@ -176,9 +176,11 @@ function onFocusout(event: FocusEvent) {
 	editing.value = false;
 }
 
-watch(editing, async (on) => {
+watch(editing, async (on, _previous, onCleanup) => {
 	if (!on) return;
+	let stop = () => {};
+	onCleanup(() => stop());
 	await nextTick();
-	if (cell.value) focusField(cell.value);
+	if (cell.value) stop = focusField(cell.value);
 });
 </script>

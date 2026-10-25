@@ -1,9 +1,9 @@
-/** Puts the cursor in a field's cell: a rich-text body before any input, so not its toolbar. */
-export function focusField(cell: HTMLElement): void {
+/** Focuses a field's cell, a rich-text body before any input; the result stops a pending wait. */
+export function focusField(cell: HTMLElement): () => void {
   const target = focusTarget(cell);
   if (target) {
     target.focus();
-    return;
+    return () => {};
   }
   // A lazy control draws its input after the cell; it takes focus then, unless focus moved first.
   const from = document.activeElement;
@@ -19,6 +19,7 @@ export function focusField(cell: HTMLElement): void {
   };
   observer.observe(cell, { childList: true, subtree: true });
   document.addEventListener("focusin", stop);
+  return stop;
 }
 
 function focusTarget(cell: HTMLElement): HTMLElement | null {
