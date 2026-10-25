@@ -1,9 +1,13 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+from json import dumps
 
 import frappe
-from frappe.desk.desktop import get_desktop_page
+from frappe.desk.desktop import get_desktop_page, get_workspace
 from frappe.tests import IntegrationTestCase
+
+DESK_USER = "test-get-workspace-user@example.com"
+MANAGER = "test-get-workspace-manager@example.com"
 
 
 class TestDesktop(IntegrationTestCase):
@@ -13,3 +17,146 @@ class TestDesktop(IntegrationTestCase):
 		result = get_desktop_page({"name": workspace})
 		self.assertIsInstance(result, dict)
 		self.assertIn("charts", result)
+
+
+class TestGetWorkspace(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(DESK_USER, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		make_chart("GW ToDo Chart", "ToDo")
+		make_chart("GW Error Chart", "Error Log")
+
+		self.workspace = make_workspace(
+			"GW Test",
+			content=[
+				block("chart", "ToDos"),
+				block("chart", "Errors"),
+				block("card", "Things"),
+				block("header", text="Hello"),
+			],
+			charts=[
+				{"chart_name": "GW ToDo Chart", "label": "ToDos"},
+				{"chart_name": "GW Error Chart", "label": "Errors"},
+			],
+			links=[
+				{"type": "Card Break", "label": "Things"},
+				{"type": "Link", "label": "ToDo", "link_type": "DocType", "link_to": "ToDo"},
+				{"type": "Link", "label": "Errors", "link_type": "DocType", "link_to": "Error Log"},
+			],
+		)
+
+	def test_unknown_workspace_is_not_found(self):
+		frappe.set_user(DESK_USER)
+		with self.assertRaises(frappe.DoesNotExistError):
+			get_workspace("No Such Workspace")
+
+	def test_role_gated_workspace_is_forbidden(self):
+		make_workspace("GW Gated", roles=["System Manager"])
+		frappe.set_user(DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			get_workspace("GW Gated")
+
+	def test_someone_elses_private_workspace_is_forbidden(self):
+		private = make_workspace("GW Private", public=0, for_user=MANAGER)
+		frappe.set_user(MANAGER)
+		self.assertFalse(get_workspace(private.name)["public"])
+		frappe.set_user(DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			get_workspace(private.name)
+
+	def test_unreadable_widgets_are_dropped_with_their_blocks(self):
+		frappe.set_user(DESK_USER)
+		payload = get_workspace("GW Test")
+
+		self.assertEqual(list(payload["widgets"]["charts"]), ["ToDos"])
+		self.assertEqual(payload["widgets"]["charts"]["ToDos"]["chart_settings"], {})
+		self.assertEqual(
+			[(b["type"], b["data"].get("chart_name")) for b in payload["content"]],
+			[("chart", "ToDos"), ("card", None), ("header", None)],
+		)
+		links = payload["widgets"]["cards"]["Things"]["links"]
+		self.assertEqual([link["link_to"] for link in links], ["ToDo"])
+		self.assertIsNone(payload["variant"])
+		self.assertFalse(payload["can_edit"])
+
+	def test_manager_can_edit(self):
+		frappe.set_user(MANAGER)
+		self.assertTrue(get_workspace("GW Test")["can_edit"])
+
+	def test_layout_is_customized_only_with_site_content(self):
+		standard = make_workspace("GW Standard", standard=1)
+		frappe.get_doc({"doctype": "Custom Workspace", "workspace": standard.name, "icon": "star"}).insert()
+
+		frappe.set_user(DESK_USER)
+		self.assertFalse(get_workspace(standard.name)["is_layout_customized"])
+
+		frappe.set_user("Administrator")
+		frappe.db.set_value("Custom Workspace", standard.name, "content", dumps([block("header", text="Hi")]))
+		frappe.get_doc("Custom Workspace", standard.name).clear_cache()
+
+		frappe.set_user(DESK_USER)
+		self.assertTrue(get_workspace(standard.name)["is_layout_customized"])
+
+
+def block(block_type, name=None, text=None):
+	data = {"col": 12}
+	if name:
+		data[f"{block_type}_name"] = name
+	if text:
+		data["text"] = text
+	return {"id": frappe.generate_hash(length=10), "type": block_type, "data": data}
+
+
+def make_workspace(title, content=(), public=1, **values):
+	frappe.delete_doc_if_exists("Custom Workspace", title)
+	for name in frappe.get_all("Workspace", {"title": title}, pluck="name"):
+		frappe.delete_doc("Workspace", name, force=True)
+
+	doc = frappe.new_doc("Workspace")
+	doc.label = doc.title = title
+	doc.module = "Desk"
+	doc.public = public
+	doc.content = dumps(list(content))
+	for key, value in values.items():
+		if key in ("charts", "links", "roles"):
+			for row in value:
+				doc.append(key, row if isinstance(row, dict) else {"role": row})
+		else:
+			doc.set(key, value)
+	doc.insert()
+	return doc
+
+
+def make_chart(name, doctype):
+	if frappe.db.exists("Dashboard Chart", name):
+		return
+	frappe.get_doc(
+		{
+			"doctype": "Dashboard Chart",
+			"chart_name": name,
+			"chart_type": "Count",
+			"document_type": doctype,
+			"based_on": "creation",
+			"timeseries": 1,
+			"timespan": "Last Year",
+			"time_interval": "Monthly",
+			"type": "Line",
+			"filters_json": "[]",
+		}
+	).insert()
+
+
+def make_user(email, roles):
+	if frappe.db.exists("User", email):
+		frappe.delete_doc("User", email, force=True, ignore_permissions=True)
+	frappe.get_doc(
+		{
+			"doctype": "User",
+			"email": email,
+			"first_name": email.split("@")[0],
+			"send_welcome_email": 0,
+			"roles": [{"role": role} for role in roles],
+		}
+	).insert(ignore_permissions=True)

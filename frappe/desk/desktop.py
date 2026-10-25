@@ -388,6 +388,160 @@ def get_desktop_page(page: str | dict):
 		return {}
 
 
+WIDGET_FIELDS = {
+	"chart": ("charts", ("label", "chart_name")),
+	"number_card": ("number_cards", ("label", "number_card_name")),
+	"shortcut": (
+		"shortcuts",
+		(
+			"label",
+			"type",
+			"link_to",
+			"doc_view",
+			"icon",
+			"color",
+			"format",
+			"stats_filter",
+			"url",
+			"kanban_board",
+			"report_ref_doctype",
+			"is_query_report",
+			"ref_doctype",
+		),
+	),
+	"card": ("cards", ("label", "icon", "description", "links")),
+	"quick_list": ("quick_lists", ("label", "document_type", "quick_list_filter")),
+	"custom_block": ("custom_blocks", ("label", "custom_block_name")),
+	"onboarding": ("onboardings", ("name", "title", "is_complete", "steps")),
+}
+
+LINK_FIELDS = (
+	"label",
+	"type",
+	"link_type",
+	"link_to",
+	"doctype_layout",
+	"is_query_report",
+	"report_ref_doctype",
+	"onboard",
+	"description",
+	"dependencies",
+	"incomplete_dependencies",
+	"count",
+)
+
+
+@frappe.whitelist(methods=["GET"])
+@frappe.read_only()
+def get_workspace(name: str, variant: str | None = None) -> dict:
+	"""Everything the workspace island draws, filtered to what the session user may read."""
+	module = frappe.db.get_value("Workspace", name, "module")
+	if module is None or module in get_disabled_modules():
+		raise frappe.DoesNotExistError(_("Workspace {0} not found").format(name))
+
+	from frappe.desk.doctype.workspace.workspace import can_edit_workspace
+
+	workspace = Workspace({"name": name})
+	doc = workspace.doc
+	if doc.for_user:
+		permitted = doc.for_user == frappe.session.user
+	else:
+		permitted = workspace.is_permitted()
+	if not permitted:
+		raise frappe.PermissionError(_("You are not permitted to open this workspace"))
+
+	workspace.build_workspace()
+	built = {
+		"chart": workspace.charts["items"],
+		"number_card": workspace.number_cards["items"],
+		"shortcut": workspace.shortcuts["items"],
+		"card": workspace.cards["items"],
+		"quick_list": workspace.quick_lists["items"],
+		"custom_block": workspace.custom_blocks["items"],
+		"onboarding": [
+			{"name": o["label"], "title": o["title"], "is_complete": 0, "steps": o["items"]}
+			for o in workspace.onboardings["items"]
+		],
+	}
+
+	content = loads(doc.content or "[]")
+	widgets = {key: {} for key, _fields in WIDGET_FIELDS.values()}
+	for block in content:
+		block_type = block.get("type")
+		if block_type not in WIDGET_FIELDS:
+			continue
+		block_name = (block.get("data") or {}).get(f"{block_type}_name")
+		item = _find_widget(built[block_type], block_type, block_name)
+		if item is not None:
+			key, fields = WIDGET_FIELDS[block_type]
+			widgets[key][block_name] = {field: item.get(field) for field in fields}
+
+	_fold_chart_settings(widgets["charts"])
+	_load_custom_blocks(widgets["custom_blocks"])
+	for card in widgets["cards"].values():
+		card["links"] = [{field: link.get(field) for field in LINK_FIELDS} for link in card["links"]]
+
+	content = [block for block in content if _is_drawable(block, widgets)]
+	customization = get_customization(name) if doc.standard else None
+
+	return {
+		"name": doc.name,
+		"title": _(doc.title),
+		"public": bool(doc.public),
+		"variant": None,
+		"content": content,
+		"widgets": widgets,
+		"can_edit": can_edit_workspace(doc),
+		"is_hidden": bool(doc.is_hidden),
+		"is_layout_customized": bool(customization and customization.content),
+	}
+
+
+def _find_widget(items: list, block_type: str, block_name: str | None):
+	# labels come back translated from the builder, so match the way legacy does
+	if not block_name:
+		return None
+	if block_type == "onboarding":
+		return next((item for item in items if item["name"] == block_name), None)
+	label = _(block_name)
+	return next((item for item in items if item.get("label") == label), None)
+
+
+def _is_drawable(block: dict, widgets: dict) -> bool:
+	block_type = block.get("type")
+	if block_type not in WIDGET_FIELDS:
+		return True
+	key, _fields = WIDGET_FIELDS[block_type]
+	return (block.get("data") or {}).get(f"{block_type}_name") in widgets[key]
+
+
+def _fold_chart_settings(charts: dict) -> None:
+	if not charts:
+		return
+	config = frappe.db.get_value("Dashboard Settings", frappe.session.user, "chart_config")
+	config = frappe.parse_json(config) or {}
+	for chart in charts.values():
+		chart["chart_settings"] = config.get(chart["chart_name"]) or {}
+
+
+def _load_custom_blocks(blocks: dict) -> None:
+	if not blocks:
+		return
+	names = [block["custom_block_name"] for block in blocks.values()]
+	records = {
+		r.name: r
+		for r in frappe.get_all(
+			"Custom HTML Block",
+			filters={"name": ("in", names)},
+			fields=["name", "html", "style", "script"],
+			ignore_permissions=True,
+		)
+	}
+	for block in blocks.values():
+		record = records.get(block.pop("custom_block_name")) or {}
+		block.update(html=record.get("html"), style=record.get("style"), script=record.get("script"))
+
+
 def _overlay_customization_properties(pages: list) -> bool:
 	"""Apply each site customization's property facet onto the listed page dict.
 
