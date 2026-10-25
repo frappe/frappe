@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 """Discover site metadata through Frappe's existing API discovery handlers."""
 
+from collections.abc import Callable
 from typing import TYPE_CHECKING, Annotated
 
 from pydantic import Field
@@ -58,19 +59,29 @@ def search_doctypes(query: str | list[str] | None = None, limit: int = SEARCH_LI
 
 
 def search_methods(query: str) -> list[dict]:
-	return [without(entry, "type") for entry in discovery.search(query)["results"]]
+	return [without(entry, "type") for entry in with_discovery_cache(discovery.search, query)["results"]]
 
 
 def method_schema(method: str, doctype: str | None = None) -> dict:
 	if doctype is not None:
-		return without(discovery.doctype_method(doctype, method), "type", "kind", "doctype", "method")
-	return without(discovery.method(method), "type", "kind")
+		entry = with_discovery_cache(discovery.doctype_method, doctype, method)
+		return without(entry, "type", "kind", "doctype", "method")
+	return without(with_discovery_cache(discovery.method, method), "type", "kind")
 
 
 def document_methods(doctype: str) -> list[dict]:
-	return [
-		without(entry, "type", "kind", "doctype") for entry in discovery.doctype_methods(doctype)["methods"]
-	]
+	methods = with_discovery_cache(discovery.doctype_methods, doctype)["methods"]
+	return [without(entry, "type", "kind", "doctype") for entry in methods]
+
+
+def with_discovery_cache(handler: Callable, *args):
+	"""Build an expired discovery cache in the request, so agents don't fail on a cold cache."""
+	try:
+		return handler(*args)
+	except discovery.DiscoveryCacheUnavailable:
+		frappe.clear_messages()
+		discovery.build_cache()
+		return handler(*args)
 
 
 def doctype_schema(doctype: str) -> dict:
