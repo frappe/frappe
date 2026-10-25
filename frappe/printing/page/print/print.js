@@ -1093,7 +1093,7 @@ frappe.ui.form.PrintView = class {
 			})
 			.then((blob) => {
 				const frame = document.createElement("iframe");
-				frame.style.cssText = "position:fixed;right:0;bottom:0;width:0;height:0;border:0";
+				frame.className = "print-pdf-frame";
 				frame.src = URL.createObjectURL(blob);
 				frame.onload = () => {
 					frappe.dom.unfreeze();
