@@ -6,6 +6,8 @@ import os
 import re
 from typing import TYPE_CHECKING, Optional, TypedDict
 
+from jinja2 import TemplateError
+
 import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
@@ -422,7 +424,7 @@ def get_unsaved_format_preview(print_format: str | dict, doctype: str, name: str
 	document.check_permission("print")
 	try:
 		html = get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
-	except Exception as e:
+	except (TemplateError, frappe.ValidationError) as e:
 		frappe.clear_last_message()
 		return {"error": str(e)}
 	return {
@@ -443,7 +445,8 @@ def get_letter_head_preview(
 		parts = [
 			jenv.from_string(source).render(doc=frappe._dict()) for source in (content, footer) if source
 		]
-	except Exception as e:
+	except (TemplateError, frappe.ValidationError) as e:
+		frappe.clear_last_message()
 		return {"error": str(e)}
 	return {"html": "<hr>".join(parts), "style": css}
 
