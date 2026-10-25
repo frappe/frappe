@@ -371,7 +371,9 @@ def attach_inline_media(doc: "Document", content: str) -> None:
 
 
 def unattached_inline_files(content: str) -> list[str]:
-	"""The caller's unattached Files whose URL an `img`, `video` or `source` in `content` shows."""
+	"""The caller's unattached Files whose URL an `img`, `video` or `source` in `content` shows.
+
+	Locks them, so a concurrent save that shows the same File waits and then finds it attached."""
 	urls = list({html.unescape(double or single) for double, single in INLINE_MEDIA.findall(content or "")})
 	if not urls:
 		return []
@@ -380,7 +382,7 @@ def unattached_inline_files(content: str) -> list[str]:
 		"owner": frappe.session.user,
 		"attached_to_doctype": ("is", "not set"),
 	}
-	return frappe.get_all("File", filters=filters, pluck="name")
+	return frappe.db.get_values("File", filters, "name", for_update=True, pluck=True)
 
 
 def make_files_public(names: list[str]) -> dict[str, str]:
