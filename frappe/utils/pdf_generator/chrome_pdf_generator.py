@@ -204,6 +204,15 @@ class ChromePDFGenerator:
 			)
 		return self._chromium_process
 
+	def _stop_chromium_process(self):
+		self._signal_chromium()
+		try:
+			self._chromium_process.wait(timeout=5)
+		except subprocess.TimeoutExpired:
+			self._signal_chromium(kill=True)
+			self._chromium_process.wait()
+		self._chromium_process.stderr.close()
+
 	def _signal_chromium(self, kill=False):
 		process = self._chromium_process
 		if platform.system().lower() == "windows":
@@ -267,9 +276,10 @@ class ChromePDFGenerator:
 
 		if not self._devtools_url:
 			alive = self._chromium_process.poll() is None
-			self._signal_chromium()
 			if not (retry and alive):
+				self._signal_chromium()
 				raise TimeoutError("Chromium took too long to start.")
+			self._stop_chromium_process()
 			self.start_chromium_process(debug=self.debug_mode)
 			self._set_devtools_url(retry=False)
 
@@ -281,7 +291,7 @@ class ChromePDFGenerator:
 			frappe.log("Cannot close Chromium as there are active browser instances.")
 			return
 		if self._chromium_process:
-			self._signal_chromium()
+			self._stop_chromium_process()
 		ChromePDFGenerator._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
