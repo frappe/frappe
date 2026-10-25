@@ -20,6 +20,7 @@
 				v-bind="field.ui?.props"
 				:field="controlField"
 				:modelValue="doc[field.fieldname]"
+				:error="error"
 				@update:modelValue="(value: any) => edit(field.fieldname, value)"
 				@change="(value: any) => onCommit(value)"
 				v-on="field.ui?.on ?? {}"
@@ -28,14 +29,14 @@
 
 		<div
 			v-else
-			class="group flex min-w-0 items-center gap-1.5 rounded px-1.5 py-1"
+			class="group flex min-w-0 flex-wrap items-center gap-x-1.5 rounded px-1.5 py-1"
 			:class="interactive ? 'cursor-pointer hover:bg-surface-gray-2' : ''"
 			:data-fieldname="field.fieldname"
 			@click="open"
 		>
 			<span
-				class="truncate text-base"
-				:class="display ? 'text-ink-gray-8' : 'text-ink-gray-4'"
+				class="min-w-0 flex-1 truncate text-base"
+				:class="error ? 'text-ink-red-4' : display ? 'text-ink-gray-8' : 'text-ink-gray-4'"
 			>
 				{{ display || placeholder }}
 			</span>
@@ -52,6 +53,9 @@
 				class="lucide-arrow-up-right ml-auto size-3.5 shrink-0 text-ink-gray-5 opacity-0 hover:text-ink-gray-7 focus-visible:opacity-100 group-hover:opacity-100"
 				@open="record.open"
 			/>
+			<span v-if="message" class="w-full truncate text-sm text-ink-red-4" :title="message">
+				{{ message }}
+			</span>
 		</div>
 	</div>
 </template>
@@ -66,6 +70,7 @@ import {
 	ResolveFieldKey,
 	UpdateKey,
 } from "@framework/ui/components/FormLayout/types";
+import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
 import { RecordAnchor } from "@framework/ui/components/Link";
 import { useRecordLink } from "@framework/ui/components/Fields/useRecordLink";
@@ -88,6 +93,9 @@ const resolveField = inject(ResolveFieldKey)!;
 const context = inject(PanelContextKey, null);
 const titles = inject(LinkTitlesKey, null);
 const getDocValue = useDocValueReader();
+const errors = inject(FieldErrorsKey, null);
+const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
+const message = computed(() => [error.value ?? []].flat().join(" "));
 
 function edit(fieldname: string, value: any) {
 	update(fieldname, value);

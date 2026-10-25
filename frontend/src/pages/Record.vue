@@ -95,7 +95,7 @@
 						:run="runAction"
 						:reloadDocinfo="reloadDocinfo"
 						:whileOnRecord="visitCheck"
-						:onDetails="(fieldname: string) => !!detailsTabOf(fieldname)"
+						:onDetails="(fieldname: string) => !!tabOf(form, fieldname)"
 						@expand="expand"
 					/>
 				</template>
@@ -138,7 +138,6 @@ import { documentKey } from "@framework/ui/cache";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CodeErrorsKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
 import type { FieldNode } from "@framework/ui/components/FormLayout/types";
-import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
 import { getSocketInstance } from "@framework/ui/socket";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { onScrollSettled } from "@framework/ui/utils/scrollLanding";
@@ -175,6 +174,7 @@ import { projectRecordHeader } from "./record/recordHeaderProjection";
 import { discardChanges } from "./record/discardChanges";
 import { runSave, useSaveKeys } from "./record/recordSave";
 import { provideRecordCommits } from "./record/recordCommits";
+import { landOnField, tabOf } from "./record/landOnField";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
 import {
 	activityPointer,
@@ -814,7 +814,7 @@ async function write() {
 }
 
 // A conflict is resolved with the reader, and compile errors are listed and marked; any other
-// refusal reads as text, since a msgprint is often HTML.
+// refusal marks the fields it names and reads as text, since a msgprint is often HTML.
 async function rethrowSaveError(
 	e: unknown,
 	visit: Visit,
@@ -828,6 +828,8 @@ async function rethrowSaveError(
 		if (visit.current()) showCodeErrors(e.codeErrors, sent, e.title);
 		throw codeErrorsError(e.message);
 	}
+	if (isApiError(e) && visit.current())
+		controller.value?.fieldErrors.markRefused(e.fieldErrors, doc.value);
 	throw isApiError(e) ? new Error(stripTags(e.message)) : e;
 }
 
@@ -874,38 +876,15 @@ async function runAction(action: QuickAction | HeaderItem) {
 	}
 }
 
+const landing = {
+	root: () => formRoot.value,
+	layout: () => form.value,
+	showTab: (identity: string) => void (formTab.value = identity),
+};
+
 async function focusOnDetails(fieldname: string, cursor: boolean) {
-	if (await tabsHost.showDetails(fieldname)) await landOn(fieldname, cursor);
-}
-
-function detailsTabOf(fieldname: string) {
-	return identifyTabs(form.value).find((one) =>
-		one.sections.some((section) =>
-			section.columns.some((column) =>
-				column.fields.some((field) => field.fieldname === fieldname)
-			)
-		)
-	);
-}
-
-async function landOn(fieldname: string, cursor: boolean) {
-	const tab = detailsTabOf(fieldname);
-	if (tab) formTab.value = tab.identity;
-	// The strip mounts a tab's panel a frame after the model moves, so the cell is polled for.
-	for (let frame = 0; frame < 10; frame++) {
-		await nextTick();
-		const cell = formRoot.value?.querySelector<HTMLElement>(
-			`.field[data-fieldname="${fieldname}"]`
-		);
-		if (cell) {
-			cell.scrollIntoView({ block: "center" });
-			if (cursor)
-				cell.querySelector<HTMLElement>("input, textarea, select, button")?.focus();
-			return;
-		}
-		await new Promise(requestAnimationFrame);
-	}
-	if (import.meta.env.DEV)
+	if (!(await tabsHost.showDetails(fieldname))) return;
+	if (!(await landOnField(landing, fieldname, cursor)) && import.meta.env.DEV)
 		console.warn(
 			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`
 		);

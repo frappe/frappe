@@ -11,6 +11,7 @@ import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
 import { runningSource } from "./context";
 import { withAccess } from "./formLayoutSource/fieldAccess";
+import type { FieldErrors } from "./fieldErrors";
 import { applyFieldPatch, type FieldPatch } from "./formLayoutSource/fieldPatch";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { StagedOverlay } from "./staging";
@@ -74,6 +75,8 @@ export interface FieldsSurfaceHost {
   decorate?: Decorator;
   /** Whether the panel carries this name, so a script reaching for a section here is told the verb that owns it. */
   isSection?: (name: string) => boolean;
+  /** The marks `setError` and `clearError` write. */
+  errors: FieldErrors;
 }
 
 type Op =
@@ -109,6 +112,17 @@ export class FieldsSurface extends StagedOverlay<Op> implements PageFields {
       fieldname,
       patch: translate(fieldname, patch),
     });
+  }
+
+  setError(fieldname: string, message: string) {
+    this.warnIfAbsent(fieldname, "setError");
+    this.host.errors.mark(fieldname, message, runningSource());
+    return new Error(message);
+  }
+
+  clearError(fieldname: string) {
+    this.warnIfAbsent(fieldname, "clearError");
+    this.host.errors.unmark(fieldname);
   }
 
   has(fieldname: string) {

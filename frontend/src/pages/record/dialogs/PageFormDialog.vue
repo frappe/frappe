@@ -9,8 +9,15 @@
 		:show-close-button="dismissible"
 		@after-leave="entry.dismiss()"
 	>
-		<FormLayout v-if="layout.length" v-model:doc="doc" :layout="layout" />
-		<FormSkeleton v-else-if="layoutLoading" :columns="1" :fields="4" />
+		<div ref="body">
+			<FormLayout
+				v-if="layout.length"
+				v-model:doc="doc"
+				v-model:tab="formTab"
+				:layout="layout"
+			/>
+			<FormSkeleton v-else-if="layoutLoading" :columns="1" :fields="4" />
+		</div>
 		<ErrorMessage v-if="error" class="mt-2" :message="error" />
 		<template #actions>
 			<div v-if="options.actions?.length" class="flex justify-end gap-2">
@@ -47,16 +54,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, reactive, ref, watch } from "vue";
+import { computed, provide, reactive, ref, useTemplateRef, watch } from "vue";
 import { Button, Dialog, ErrorMessage } from "frappe-ui";
 import type { DialogSize } from "frappe-ui";
 import { FormLayout } from "@framework/ui/components/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";
-import { RecordLinkKey } from "@framework/ui/components/Fields/types";
+import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/components/Fields/types";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
-import { useFormLayout } from "@/recordPage";
+import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
 import type { PageDialogEntry } from "@/recordPage/dialog";
 import { errorMessage } from "@/recordPage/errorMessage";
 import {
@@ -66,15 +73,18 @@ import {
 	layoutFromFields,
 	layoutFromTabs,
 	layoutMode,
-	missingRequired,
 	pickMetaFields,
 	warnAmbiguousLayout,
 } from "@/recordPage/formDialogLayout";
 import type { PageDialogAction } from "@/recordPage/types";
 import FormSkeleton from "../skeletons/FormSkeleton.vue";
+import { landOnFirstMarked } from "../landOnField";
 
+// Its own marks, so the record's do not show in the dialog's fields.
+const errors = new FieldErrors();
+provide(FieldErrorsKey, errors.drawn);
 // The dialog's fields commit to nothing, or they would fire the record's handlers under the same names.
-provide(CommitKey, NO_COMMIT);
+provide(CommitKey, errors.clearingOnEdit(NO_COMMIT));
 // A dialog has no guard for its unsaved values, so its Link fields open nothing.
 provide(RecordLinkKey, null);
 
@@ -87,6 +97,8 @@ warnAmbiguousLayout(options);
 const isOpen = ref(true);
 const error = ref("");
 const submitting = ref(false);
+const formTab = ref("");
+const body = useTemplateRef<HTMLElement>("body");
 const actionLoading = reactive((options.actions ?? []).map(() => false));
 
 const doc = ref<Record<string, any>>({ ...(options.defaults ?? {}) });
@@ -170,10 +182,19 @@ function cancel() {
 }
 
 function validate(): boolean {
+	errors.clearAll();
+	error.value = "";
 	const missing = missingRequired(layout.value, doc.value);
-	error.value = missing.length ? `Please fill in ${missing.join(", ")}` : "";
+	for (const { address, message } of missing) errors.mark(address, message);
+	if (missing.length) landOnFirstMarked(errors, landing, doc.value);
 	return missing.length === 0;
 }
+
+const landing = {
+	root: () => body.value,
+	layout: () => layout.value,
+	showTab: (identity: string) => void (formTab.value = identity),
+};
 
 async function submit() {
 	if (busy.value || !validate()) return;

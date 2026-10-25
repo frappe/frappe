@@ -37,11 +37,9 @@ import {
   layoutFromFields,
   layoutFromTabs,
   layoutMode,
-  missingRequired,
   pickMetaFields,
   warnAmbiguousLayout,
 } from "../formDialogLayout";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 
 function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
   return {
@@ -484,35 +482,5 @@ describe("form layout modes", () => {
       ["email"],
     );
     expect(layout[0].sections[0].columns[0].fields[0].reqd).toBe(true);
-  });
-});
-
-describe("mandatory checking", () => {
-  const layout: FormLayoutSchema = layoutFromFields([
-    {
-      fieldname: "summary",
-      fieldtype: "Small Text",
-      label: "Summary",
-      reqd: 1,
-    },
-    {
-      fieldname: "reason",
-      fieldtype: "Small Text",
-      label: "Reason",
-      reqd: 1,
-      depends_on: "eval:doc.summary == 'lost'",
-    },
-  ]);
-
-  it("names the empty mandatory fields by label", () => {
-    expect(missingRequired(layout, {})).toEqual(["Summary"]);
-  });
-
-  it("does not demand a field its depends_on has hidden", () => {
-    expect(missingRequired(layout, { summary: "won" })).toEqual([]);
-  });
-
-  it("demands a conditional field once it is on screen", () => {
-    expect(missingRequired(layout, { summary: "lost" })).toEqual(["Reason"]);
   });
 });

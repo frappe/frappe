@@ -159,6 +159,13 @@ export function fieldErrorKey(address: FieldAddress): string {
   return JSON.stringify([address.parentfield, address.key, address.fieldname]);
 }
 
+/** The top-level fields that hold an error; a row cell's error counts for its table. */
+export function markedFieldnames(errors: Readonly<Record<string, unknown>>): Set<string> {
+  return new Set(
+    Object.keys(errors).map((key) => (key.startsWith("[") ? JSON.parse(key)[0] : key))
+  );
+}
+
 /** The host's field errors by `fieldErrorKey`; display-only, and null where there is no form. */
 export const FieldErrorsKey: InjectionKey<Ref<Readonly<Record<string, FieldError>>> | null> =
   Symbol("FieldErrors");

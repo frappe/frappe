@@ -137,6 +137,7 @@ describe("the identity tile", () => {
 		dialog.emit("committed", [{ file_url: "/files/new.png", file_name: "new.png", is_private: true }]);
 		await nextTick();
 		expect(docRef.value.image).toBe("/files/new.png");
+		expect(commit.pending).toHaveBeenCalledWith("image", "/files/new.png");
 		expect(commit.commit).toHaveBeenCalledWith("image", "/files/new.png");
 		expect(root.querySelector("dialog")).toBeNull();
 	});

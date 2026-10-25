@@ -1,7 +1,7 @@
 // One Create request: the Quick Entry dialog or the full-page new record, the insert it sends,
 // and what the caller gets back. The server answers through a faked fetch.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, watch, type App } from "vue";
+import { createApp, defineComponent, h, inject, nextTick, watch, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 // A passthrough Dialog that ends its leave at once, so the test reads the form, not reka-ui.
@@ -49,31 +49,44 @@ vi.mock("frappe-ui", () => ({
 	dialog: { confirm: vi.fn(), danger: vi.fn() },
 }));
 
-// The real FormLayout is exercised in Chrome; this one draws an input per field and owns the doc.
-vi.mock("@framework/ui/components/FormLayout", () => ({
-	FormLayout: defineComponent({
-		props: { layout: { type: Array, required: true }, doc: { type: Object, required: true } },
-		emits: ["update:doc"],
-		setup(props, { emit }) {
-			const fields = () =>
-				(props.layout as any[]).flatMap((tab) =>
-					tab.sections.flatMap((section: any) => section.columns.flatMap((column: any) => column.fields))
-				);
-			return () =>
-				h(
-					"form",
-					fields().map((field: any) =>
-						h("input", {
-							name: field.fieldname,
-							value: props.doc[field.fieldname] ?? "",
-							onInput: (event: Event) =>
-								emit("update:doc", { ...props.doc, [field.fieldname]: (event.target as HTMLInputElement).value }),
-						})
-					)
-				);
-		},
-	}),
-}));
+// The real FormLayout is exercised in Chrome; this one draws an input per field, owns the doc,
+// and shows each field's error the way a control's atom would.
+vi.mock("@framework/ui/components/FormLayout", async () => {
+	const { CommitKey, FieldErrorsKey } = await import("@framework/ui/components/Fields/types");
+	return {
+		FormLayout: defineComponent({
+			props: { layout: { type: Array, required: true }, doc: { type: Object, required: true } },
+			emits: ["update:doc"],
+			setup(props, { emit }) {
+				const commit = inject(CommitKey)!;
+				const errors = inject(FieldErrorsKey, null);
+				const fields = () =>
+					(props.layout as any[]).flatMap((tab) =>
+						tab.sections.flatMap((section: any) => section.columns.flatMap((column: any) => column.fields))
+					);
+				const edit = (fieldname: string, value: string) => {
+					emit("update:doc", { ...props.doc, [fieldname]: value });
+					commit.pending(fieldname, value);
+				};
+				return () =>
+					h(
+						"form",
+						fields().map((field: any) =>
+							h("div", { class: "field", "data-fieldname": field.fieldname }, [
+								h("input", {
+									name: field.fieldname,
+									value: props.doc[field.fieldname] ?? "",
+									"data-error": errors?.value[field.fieldname],
+									onInput: (event: Event) =>
+										edit(field.fieldname, (event.target as HTMLInputElement).value),
+								}),
+							])
+						)
+					);
+			},
+		}),
+	};
+});
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
@@ -221,6 +234,16 @@ function input(root: HTMLElement, fieldname: string) {
 	return root.querySelector<HTMLInputElement>(`input[name='${fieldname}']`)!;
 }
 
+function errorOf(root: HTMLElement, fieldname: string) {
+	return input(root, fieldname).getAttribute("data-error");
+}
+
+/** The landing polls a frame for the cell, so the cursor arrives after the click settles. */
+async function landed() {
+	await new Promise(requestAnimationFrame);
+	await settle();
+}
+
 async function type(root: HTMLElement, fieldname: string, value: string) {
 	const field = input(root, fieldname);
 	field.value = value;
@@ -299,7 +322,7 @@ describe("saving", () => {
 		expect([...root.querySelectorAll("input")].map((field) => field.name)).toEqual(["__newname"]);
 		await click(root, "Save");
 		expect(inserts()).toEqual([]);
-		expect(root.querySelector(".error")!.textContent).toBe("Please fill in Territory Name");
+		expect(errorOf(root, "__newname")).toBe("Territory Name is required");
 
 		await type(root, "__newname", "North");
 		await click(root, "Save");
@@ -308,15 +331,50 @@ describe("saving", () => {
 		expect(answer.settled).toBe(true);
 	});
 
-	it("sends nothing while a mandatory field is empty, and says which", async () => {
+	it("sends nothing while a mandatory field is empty, and marks and focuses it", async () => {
 		const { root, answer } = await open("Lead");
 
 		await click(root, "Save");
+		await landed();
 
 		expect(inserts()).toEqual([]);
-		expect(root.querySelector(".error")!.textContent).toBe("Please fill in Title");
+		expect(errorOf(root, "title")).toBe("Title is required");
+		expect(root.querySelector(".error")).toBeNull();
+		expect(document.activeElement).toBe(root.querySelector('input[name="title"]'));
 		expect(answer.settled).toBe(false);
 		expect(root.querySelector("[data-dialog]")).not.toBeNull();
+	});
+
+	it("clears a mark when its field is edited", async () => {
+		const { root } = await open("Lead");
+		await click(root, "Save");
+
+		await type(root, "title", "Big deal");
+
+		expect(errorOf(root, "title")).toBeNull();
+	});
+
+	it("marks the fields a refused insert names, beside the server's message", async () => {
+		server.insert = () =>
+			json(
+				{
+					errors: [
+						{
+							type: "ValidationError",
+							message: "Source is not valid",
+							field_errors: [{ fieldname: "source", message: "Source is not valid" }],
+						},
+					],
+				},
+				417
+			);
+		const { root } = await open("Lead");
+
+		await type(root, "title", "Big deal");
+		await click(root, "Save");
+
+		expect(errorOf(root, "source")).toBe("Source is not valid");
+		expect(root.querySelector(".error")!.textContent).toBe("Source is not valid");
 	});
 
 	it("stays open with the server's message and the typed values when the insert fails", async () => {

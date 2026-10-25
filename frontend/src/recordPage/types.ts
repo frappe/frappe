@@ -355,6 +355,9 @@ export interface PageFields {
   get(fieldname: string): PageField | null;
   /** Moves the reader to the field: tab, scroll, cursor; read-only gets no cursor, unknown or hidden warns. */
   focus(fieldname: string): void;
+  /** Marks the field until it is edited, a save starts or a replay runs; `throw` the Error it returns to veto a save. */
+  setError(fieldname: string, message: string): Error;
+  clearError(fieldname: string): void;
 }
 
 /** What a script may override on one of the Form Layout's tabs. */
@@ -404,6 +407,9 @@ export interface PageForm extends SurfaceVerbs<FormItem> {
 export interface PageRow {
   /** Fires this row's handler for one child field: `row.trigger('rate')` dispatches `'products.rate'`. */
   trigger(fieldname: string): Promise<void>;
+  /** Marks one of this row's cells, on `page.fields.setError`'s terms. */
+  setError(fieldname: string, message: string): Error;
+  clearError(fieldname: string): void;
   [fieldname: string]: any;
 }
 
