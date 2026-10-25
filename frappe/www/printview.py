@@ -415,6 +415,17 @@ def get_preview_page_css(print_format: "PrintFormat" | None = None) -> str:
 	)
 
 
+PREVIEW_ERRORS = (
+	TemplateError,
+	frappe.ValidationError,
+	ArithmeticError,
+	AttributeError,
+	LookupError,
+	TypeError,
+	ValueError,
+)
+
+
 @frappe.whitelist()
 def get_unsaved_format_preview(print_format: str | dict, doctype: str, name: str) -> dict[str, str | None]:
 	"""Render a Jinja print format that is still being edited, against an existing document."""
@@ -424,7 +435,7 @@ def get_unsaved_format_preview(print_format: str | dict, doctype: str, name: str
 	document.check_permission("print")
 	try:
 		html = get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
-	except (TemplateError, frappe.ValidationError) as e:
+	except PREVIEW_ERRORS as e:
 		frappe.clear_last_message()
 		return {"error": str(e)}
 	return {
@@ -445,7 +456,7 @@ def get_letter_head_preview(
 		parts = [
 			jenv.from_string(source).render(doc=frappe._dict()) for source in (content, footer) if source
 		]
-	except (TemplateError, frappe.ValidationError) as e:
+	except PREVIEW_ERRORS as e:
 		frappe.clear_last_message()
 		return {"error": str(e)}
 	return {"html": "<hr>".join(parts), "style": css}
