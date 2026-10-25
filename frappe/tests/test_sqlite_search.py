@@ -50,6 +50,13 @@ class TestSQLiteSearch(SQLiteSearch):
 		return {"owner": frappe.session.user}
 
 
+class DisabledSearch(TestSQLiteSearch):
+	"""A search that is turned off."""
+
+	def is_search_enabled(self):
+		return False
+
+
 class BuildWindowSearch(TestSQLiteSearch):
 	"""Its own index file: these tests drop and rebuild, and must not touch a shared one."""
 
@@ -715,12 +722,6 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 
 	def test_search_disabled_state(self):
 		"""Test behavior when search is disabled."""
-
-		# Create a search class with search disabled
-		class DisabledSearch(TestSQLiteSearch):
-			def is_search_enabled(self):
-				return False
-
 		disabled_search = DisabledSearch()
 		disabled_search.drop_index()  # Ensure clean state
 
@@ -731,6 +732,29 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		# Build index should do nothing when disabled
 		disabled_search.build_index()  # Should not raise error but do nothing
 		self.assertFalse(disabled_search.index_exists())
+
+	def test_a_disabled_search_does_not_stop_the_searches_after_it(self):
+		"""Saves and deletes reach every enabled search, even one that comes after a search that is off."""
+		self.search.build_index()
+		note = self.test_notes[0]
+		doc_id = f"Note:{note.name}"
+
+		with patch(
+			"frappe.search.sqlite_search.get_search_classes", return_value=[DisabledSearch, TestSQLiteSearch]
+		):
+			note.title = "Edited After A Disabled Search"
+			note.save()
+			self.assertEqual(self.count_rows("search_index_queue", doc_id), 1)
+			self.assertEqual(self.count_rows("search_fts", doc_id), 1)
+
+			note.delete()
+			self.assertEqual(self.count_rows("search_fts", doc_id), 0)
+
+	def count_rows(self, table, doc_id):
+		conn = sqlite3.connect(self.search.db_path)
+		count = conn.execute(f"SELECT COUNT(*) FROM {table} WHERE doc_id = ?", (doc_id,)).fetchone()[0]
+		conn.close()
+		return count
 
 	@patch("frappe.enqueue")
 	def test_background_operations(self, mock_enqueue):
