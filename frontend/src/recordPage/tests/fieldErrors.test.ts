@@ -165,6 +165,25 @@ describe("a refused save", () => {
     expect(landed).toEqual(["qty"]);
   });
 
+  it("marks a new row by its position when the server named it before refusing", async () => {
+    const { host, doc } = makeHost();
+    doc.value.items.push({ __row_id: "row-9", item: "" });
+    const controller = createRecordPage({
+      ...host,
+      save: async () => {
+        controller.fieldErrors.markRefused(
+          [{ fieldname: "item", parentfield: "items", row: "server-made", idx: 3, message: "Item is required" }],
+          doc.value,
+        );
+        throw new Error("Refused");
+      },
+    });
+
+    await expect(controller.page.save()).rejects.toThrow();
+
+    expect(controller.fieldErrors.drawn.value).toEqual({ [ITEM("new:row-9")]: "Item is required" });
+  });
+
   it("clears every mark when the next save starts", async () => {
     const { host } = makeHost();
     let drawnAtWrite: unknown;

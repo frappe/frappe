@@ -59,6 +59,25 @@ describe("missingRequired", () => {
     ]);
   });
 
+  it("skips a cell its row dialog hides in a section", () => {
+    const table: FieldNode = {
+      ...items,
+      childLayout: [
+        {
+          sections: [
+            { columns: [{ fields: [{ fieldname: "item", fieldtype: "Data", label: "Item", reqd: true }] }] },
+            {
+              dependsOn: "eval:doc.item == 'x'",
+              columns: [{ fields: [{ fieldname: "note", fieldtype: "Data", label: "Note", reqd: true }] }],
+            },
+          ],
+        },
+      ],
+    };
+
+    expect(missingRequired(fieldsToLayout([table]), { items: [{ name: "a", item: "y" }] })).toEqual([]);
+  });
+
   it("demands a mandatory table with no rows", () => {
     const layout = fieldsToLayout([{ ...items, reqd: true }]);
 

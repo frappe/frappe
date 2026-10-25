@@ -58,7 +58,7 @@ export class FieldErrors implements Staging {
     if (this.shown.size) this.draw(new Map());
   }
 
-  /** Marks each field a refused save names; a row is found by its name, or by its position when it has none. */
+  /** Marks each field a refused save names; a row is found by its name, then by its position. */
   markRefused(refused: RefusedField[] | undefined, doc: Record<string, any>) {
     for (const { fieldname, parentfield, row, idx, message } of refused ?? []) {
       if (!parentfield) {
@@ -66,7 +66,9 @@ export class FieldErrors implements Staging {
         continue;
       }
       const table: Record<string, any>[] = Array.isArray(doc[parentfield]) ? doc[parentfield] : [];
-      const found = row ? table.find((one) => one.name === row) : idx ? table[idx - 1] : undefined;
+      const atIdx = idx ? table[idx - 1] : undefined;
+      // A row named by the server's own insert is still unnamed in the draft.
+      const found = row ? (table.find((one) => one.name === row) ?? (atIdx?.name ? undefined : atIdx)) : atIdx;
       if (found) this.mark({ parentfield, key: rowKey(identify(found))!, fieldname }, message);
     }
   }

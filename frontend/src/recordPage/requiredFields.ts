@@ -2,7 +2,6 @@
 // `depends_on` and still empty, in form order, a child row's cells included.
 import { identify, rowKey } from "@framework/ui/components/Fields/rowIdentity";
 import type { FieldAddress } from "@framework/ui/components/Fields/types";
-import { layoutFields } from "@framework/ui/components/FormLayout/newRowValues";
 import {
   applyTabOverride,
   resolveFieldConditionals,
@@ -36,8 +35,12 @@ export function missingRequired(
 }
 
 /** The top-level fields the form shows, in order: hidden tabs, sections and fields left out. */
-export function shownFields(layout: FormLayoutSchema, doc: Record<string, any>): FieldNode[] {
-  return resolveLayout(layout, doc)
+export function shownFields(
+  layout: FormLayoutSchema,
+  doc: Record<string, any>,
+  parent: Record<string, any> = doc,
+): FieldNode[] {
+  return resolveLayout(layout, doc, parent)
     .filter((tab) => !applyTabOverride(tab).hidden)
     .flatMap((tab) => tab.sections.filter((section) => !section.hidden))
     .flatMap((section) => section.columns.flatMap((column) => column.fields))
@@ -49,11 +52,15 @@ export function requiredRefusal(missing: MissingField[]): string {
   return __("Please fill in {0}", [[...new Set(missing.map((one) => one.shownIn))].join(", ")]);
 }
 
+// The row dialog's layout when there is one, so a cell its hidden section holds is not demanded.
 function missingCells(table: FieldNode, row: Record<string, any>, doc: Record<string, any>) {
-  const fields = table.childLayout ? layoutFields(table.childLayout) : (table.childFields ?? []);
+  const fields = table.childLayout
+    ? shownFields(table.childLayout, row, doc)
+    : (table.childFields ?? [])
+        .map((field) => resolveFieldConditionals(field, row, doc))
+        .filter((field) => !field.hidden);
   return fields
-    .map((field) => resolveFieldConditionals(field, row, doc))
-    .filter((field) => field.reqd && !field.hidden && isEmpty(row[field.fieldname]))
+    .filter((field) => field.reqd && isEmpty(row[field.fieldname]))
     .map((field) => ({
       address: { parentfield: table.fieldname, key: rowKey(identify(row))!, fieldname: field.fieldname },
       message: requiredMessage(labelOf(field)),
