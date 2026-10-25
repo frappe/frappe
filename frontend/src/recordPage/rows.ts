@@ -21,10 +21,10 @@ const ROWS_ARE_READ_ONLY: ReadOnlyAdvice = {
   instead: "page.doc[parentfield], which is the table itself",
 };
 
-/** The engine members on a handle; everything else is a child fieldname. */
 const TRIGGER = "trigger";
 const SET_ERROR = "setError";
 const CLEAR_ERROR = "clearError";
+/** The engine members on a handle; everything else is a child fieldname. */
 const MEMBERS = [TRIGGER, SET_ERROR, CLEAR_ERROR];
 
 // `markRaw`'s stamp, answered by the traps below: it tells both Vue and the

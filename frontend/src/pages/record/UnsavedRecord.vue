@@ -110,6 +110,7 @@ import FormSkeleton from "./skeletons/FormSkeleton.vue";
 import HeaderSkeleton from "./skeletons/HeaderSkeleton.vue";
 import { discardChanges } from "./discardChanges";
 import { FORM_CLASSES } from "./formClasses";
+import { landOnField } from "./landOnField";
 import { openingKey } from "./openingKey";
 import { Visit } from "./visit";
 import { fetchMeta } from "./metaSource";

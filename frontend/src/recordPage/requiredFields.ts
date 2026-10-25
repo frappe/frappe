@@ -44,7 +44,7 @@ export function shownFields(layout: FormLayoutSchema, doc: Record<string, any>):
     .filter((field) => !field.hidden);
 }
 
-/** The refusal a save or a submit shows, naming each field it marked or the table it sits in. */
+/** The refusal a record page's save shows, naming each field it marked or the table it sits in. */
 export function requiredRefusal(missing: MissingField[]): string {
   return __("Please fill in {0}", [[...new Set(missing.map((one) => one.shownIn))].join(", ")]);
 }

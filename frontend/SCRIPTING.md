@@ -903,7 +903,11 @@ export default {
 }
 ```
 
-And the field errors, on a child table `items` with a `qty` column:
+The walk: the label reads "Win chance (%)". Set status to Won, and the probability control
+shows 100 with no other click. Press Save, and a reload shows 100. Set probability to 120
+and press Save: the error shows and the server still has 100.
+
+And the field errors, on a `qty` field and on the `qty` column of a child table `items`:
 
 ```js
 export default {
@@ -922,10 +926,6 @@ export default {
   },
 }
 ```
-
-The walk: the label reads "Win chance (%)". Set status to Won, and the probability control
-shows 100 with no other click. Press Save, and a reload shows 100. Set probability to 120
-and press Save: the error shows and the server still has 100.
 
 And the act, with its two misses:
 

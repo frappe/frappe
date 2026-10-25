@@ -37,7 +37,6 @@ export function landOnFirstMarked(errors: FieldErrors, form: FieldLanding, doc: 
 	if (fieldname) void landOnField(form, fieldname, true);
 }
 
-/** The form tab that holds the field. */
 export function tabOf(layout: FormLayoutSchema, fieldname: string) {
 	return identifyTabs(layout).find((one) =>
 		one.sections.some((section) =>

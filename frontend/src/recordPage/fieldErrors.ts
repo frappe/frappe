@@ -9,6 +9,7 @@ import {
   type CommitChannel,
   type FieldAddress,
   type FieldError,
+  type RowAddress,
 } from "@framework/ui/components/Fields/types";
 import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
 import { shownFields } from "./requiredFields";
@@ -57,7 +58,7 @@ export class FieldErrors implements Staging {
     if (this.shown.size) this.draw(new Map());
   }
 
-  /** Marks each field a refused save names; a row is found by its name, then by its position. */
+  /** Marks each field a refused save names; a row is found by its name, or by its position when it has none. */
   markRefused(refused: RefusedField[] | undefined, doc: Record<string, any>) {
     for (const { fieldname, parentfield, row, idx, message } of refused ?? []) {
       if (!parentfield) {
@@ -65,7 +66,7 @@ export class FieldErrors implements Staging {
         continue;
       }
       const table: Record<string, any>[] = Array.isArray(doc[parentfield]) ? doc[parentfield] : [];
-      const found = (row && table.find((one) => one.name === row)) || (idx ? table[idx - 1] : undefined);
+      const found = row ? table.find((one) => one.name === row) : idx ? table[idx - 1] : undefined;
       if (found) this.mark({ parentfield, key: rowKey(identify(found))!, fieldname }, message);
     }
   }
@@ -77,7 +78,7 @@ export class FieldErrors implements Staging {
     return shownFields(layout, doc).find((field) => marked.has(field.fieldname))?.fieldname;
   }
 
-  /** `channel`, clearing a field's mark on its live edit and a table's when a row comes or goes. */
+  /** `channel`, clearing a field's mark on its live edit, a table's when a row comes or goes, and a removed row's. */
   clearingOnEdit<Channel extends CommitChannel>(channel: Channel): Channel {
     return {
       ...channel,
@@ -87,6 +88,7 @@ export class FieldErrors implements Staging {
       },
       rowChanged: (row, change) => {
         this.clear(row.parentfield);
+        if (change === "remove") this.clearRow(row);
         channel.rowChanged(row, change);
       },
     };
@@ -115,6 +117,15 @@ export class FieldErrors implements Staging {
   publishStaged(except: ReadonlySet<string>) {
     if (!this.staged) return;
     this.draw(new Map([...this.staged].filter(([, mark]) => !except.has(mark.source))));
+  }
+
+  /** A removed row's cells: their marks have nowhere left to draw. */
+  private clearRow({ parentfield, key }: RowAddress) {
+    const cells = [...new Set([...(this.staged?.keys() ?? []), ...this.shown.keys()])]
+      .filter((one) => one.startsWith("["))
+      .map((one) => JSON.parse(one) as [string, string, string])
+      .filter(([table, row]) => table === parentfield && row === key);
+    for (const [, , fieldname] of cells) this.clear({ parentfield, key, fieldname });
   }
 
   private draw(marks: Marks) {

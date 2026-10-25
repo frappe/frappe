@@ -876,13 +876,14 @@ async function runAction(action: QuickAction | HeaderItem) {
 	}
 }
 
+const landing = {
+	root: () => formRoot.value,
+	layout: () => form.value,
+	showTab: (identity: string) => void (formTab.value = identity),
+};
+
 async function focusOnDetails(fieldname: string, cursor: boolean) {
 	if (!(await tabsHost.showDetails(fieldname))) return;
-	const landing = {
-		root: () => formRoot.value,
-		layout: () => form.value,
-		showTab: (identity: string) => void (formTab.value = identity),
-	};
 	if (!(await landOnField(landing, fieldname, cursor)) && import.meta.env.DEV)
 		console.warn(
 			`[record-page] page.fields.focus("${fieldname}") — not on the form; the reader was not moved.`

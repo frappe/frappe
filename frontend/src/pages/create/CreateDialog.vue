@@ -161,7 +161,10 @@ async function save() {
 	error.value = "";
 	const missing = missingRequired(layout.value, doc.value);
 	for (const { address, message } of missing) errors.mark(address, message);
-	if (missing.length) return landOnFirstMarked(errors, landing, doc.value);
+	if (missing.length) {
+		landOnFirstMarked(errors, landing, doc.value);
+		return;
+	}
 	saving.value = true;
 	try {
 		const { data } = await createDocument(
@@ -173,10 +176,10 @@ async function save() {
 	} catch (exception) {
 		if (isApiError(exception)) errors.markRefused(exception.fieldErrors, doc.value);
 		error.value = errorMessage(exception);
+		landOnFirstMarked(errors, landing, doc.value);
 	} finally {
 		saving.value = false;
 	}
-	landOnFirstMarked(errors, landing, doc.value);
 }
 
 const landing = {

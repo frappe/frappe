@@ -137,7 +137,7 @@ describe("the mandatory check", () => {
 });
 
 describe("a refused save", () => {
-  it("marks the fields the server names, a row by its name, then by its position", async () => {
+  it("marks the fields the server names, a row by its name, or by its position when it has none", async () => {
     const { host, doc, landed } = makeHost();
     const controller = createRecordPage({
       ...host,
@@ -146,7 +146,7 @@ describe("a refused save", () => {
           [
             { fieldname: "item", parentfield: "items", row: "r2", idx: 1, message: "Nut is gone" },
             { fieldname: "item", parentfield: "items", idx: 1, message: "Bolt is gone" },
-            { fieldname: "item", parentfield: "items", row: "r9", message: "Unknown row" },
+            { fieldname: "item", parentfield: "items", row: "r9", idx: 2, message: "Removed row" },
             { fieldname: "qty", message: "Qty is too big" },
           ],
           doc.value,
@@ -283,6 +283,18 @@ describe("when a mark clears", () => {
     controller.commits.rowChanged({ parentfield: "items", key: "new:row-1" }, "add");
 
     expect(controller.fieldErrors.drawn.value).toEqual({});
+  });
+
+  it("clears a removed row's cells, and leaves the other rows'", () => {
+    const { host } = makeHost();
+    const controller = createRecordPage(host);
+    const [first, second] = controller.page.rows("items");
+    first.setError("item", "Bad bolt");
+    second.setError("item", "Bad nut");
+
+    controller.commits.rowChanged({ parentfield: "items", key: "name:r1" }, "remove");
+
+    expect(controller.fieldErrors.drawn.value).toEqual({ [ITEM("name:r2")]: "Bad nut" });
   });
 
   it("clears on a replay, which keeps what its own onRefresh marks", async () => {
