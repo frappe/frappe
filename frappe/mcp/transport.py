@@ -124,9 +124,10 @@ def check_headers(request: Request, payload: dict, params: dict) -> None:
 		raise McpError(protocol.HEADER_MISMATCH, "Protocol version header must match request metadata")
 	if request.headers.get("Mcp-Method") != payload["method"]:
 		raise McpError(protocol.HEADER_MISMATCH, "Mcp-Method header must match method")
-	if payload["method"] == "tools/call":
-		if decode_name(request.headers.get("Mcp-Name")) != params.get("name") or "name" not in params:
-			raise McpError(protocol.HEADER_MISMATCH, "Mcp-Name header must match the tool name")
+	name_field = {"tools/call": "name", "resources/read": "uri"}.get(payload["method"])
+	if name_field:
+		if name_field not in params or decode_name(request.headers.get("Mcp-Name")) != params[name_field]:
+			raise McpError(protocol.HEADER_MISMATCH, "Mcp-Name header must match {0}".format(name_field))
 
 
 def check_metadata(params: dict) -> None:
