@@ -283,7 +283,7 @@ frappe.views.BaseList = class BaseList {
 
 	/** The list is the page, so its one crumb is the title and carries no link. */
 	get_breadcrumbs() {
-		return [{ label: this.page_title, title: this.meta?.description }];
+		return [{ label: this.page_title, title: __(this.meta?.description) }];
 	}
 
 	hide_sidebar() {
