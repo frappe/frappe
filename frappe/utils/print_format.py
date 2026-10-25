@@ -19,7 +19,7 @@ from frappe.desk.query_report import (
 )
 from frappe.model.document import Document
 from frappe.translate import print_language
-from frappe.utils import cint, get_datetime, get_system_timezone
+from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -231,6 +231,7 @@ def _download_multi_pdf(
 	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
 
 	pdf_writer = PdfWriter()
+	failed = []
 
 	options = frappe.parse_json(options)
 
@@ -304,10 +305,7 @@ def _download_multi_pdf(
 					reference_doctype=doctype,
 					reference_name=ss,
 				)
-				if task_id:
-					frappe.publish_realtime(
-						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-					)
+				failed.append(get_link_to_form(doctype, ss))
 
 			# Publish progress
 			if task_id:
@@ -338,15 +336,12 @@ def _download_multi_pdf(
 						publish_failure(task_id, e)
 					raise
 				except Exception:
-					if task_id:
-						frappe.publish_realtime(
-							task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-						)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
+					failed.append(get_link_to_form(doctype_name, doc_name))
 
 				count += 1
 
@@ -384,6 +379,16 @@ def _download_multi_pdf(
 		else:
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
+
+	# after task_complete, so the list view's "PDF is ready" message cannot overwrite this title
+	if failed:
+		frappe.msgprint(
+			failed,
+			as_list=True,
+			indicator="red",
+			realtime=True,
+			title=_("Failed to print {0} documents").format(len(failed)),
+		)
 
 
 from frappe.deprecation_dumpster import read_multi_pdf
