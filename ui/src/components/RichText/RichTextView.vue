@@ -9,5 +9,6 @@ import { sanitizeHtml } from "../../utils/sanitize";
 
 const props = defineProps<{ html: string | null | undefined }>();
 
-const safe = computed(() => sanitizeHtml(props.html));
+// A `<style>` element in a stored value would restyle the whole page.
+const safe = computed(() => sanitizeHtml(props.html, { FORBID_TAGS: ["style"] }));
 </script>

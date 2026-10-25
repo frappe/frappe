@@ -30,13 +30,18 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, useId } from "vue";
+import { computed, defineAsyncComponent, h, useId } from "vue";
 import { ErrorMessage, FormLabel } from "frappe-ui";
 import RichTextView from "../RichText/RichTextView.vue";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
 
-// The editor chunk loads only when an editable field draws.
-const TextEditorInput = defineAsyncComponent(() => import("./TextEditorInput.vue"));
+// The editor chunk loads only when an editable field draws; the empty box holds its place.
+const TextEditorInput = defineAsyncComponent({
+	loader: () => import("./TextEditorInput.vue"),
+	loadingComponent: () =>
+		h("div", { class: "h-[10.8rem] rounded-4 border border-outline-gray-2" }),
+	delay: 0,
+});
 
 const props = defineProps<FieldComponentProps>();
 const emit = defineEmits<FieldComponentEmits>();

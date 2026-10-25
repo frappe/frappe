@@ -5,14 +5,20 @@ export function focusField(cell: HTMLElement): void {
     target.focus();
     return;
   }
-  // A lazy control draws its input after the cell; it takes focus then, unless the reader moved it.
+  // A lazy control draws its input after the cell; it takes focus then, unless focus moved first.
+  const from = document.activeElement;
   const observer = new MutationObserver(() => {
     const drawn = focusTarget(cell);
     if (!drawn) return;
-    observer.disconnect();
-    if (document.activeElement === document.body) drawn.focus();
+    stop();
+    if (document.activeElement === from) drawn.focus();
   });
+  const stop = () => {
+    observer.disconnect();
+    document.removeEventListener("focusin", stop);
+  };
   observer.observe(cell, { childList: true, subtree: true });
+  document.addEventListener("focusin", stop);
 }
 
 function focusTarget(cell: HTMLElement): HTMLElement | null {

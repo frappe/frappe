@@ -1795,8 +1795,7 @@ class TestChildTableAttachments(IntegrationTestCase):
 
 
 class TestTextEditorFileAdoption(IntegrationTestCase):
-	"""A detached File shown inline in a Text Editor field, uploaded before the record is
-	saved, is attached to the record on save, but only when the saver uploaded it."""
+	"""A detached File a Text Editor field shows is attached to the record when its uploader saves."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -1829,8 +1828,10 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 
 	def setUp(self):
 		frappe.set_user("test@example.com")
+		set_request(method="POST", path="/api/v2/document/Test Text Editor Parent")
 
 	def tearDown(self):
+		frappe.local.request = None
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
 
@@ -1888,6 +1889,24 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 
 		frappe.set_user("test@example.com")
 		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_files_outside_a_request(self):
+		file = self.make_file(b"background-image")
+		frappe.local.request = None
+
+		self.make_record(body=f'<img src="{file.file_url}">')
+
+		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
+
+	def test_leaves_a_guests_file(self):
+		frappe.set_user("Guest")
+		file = self.make_file(b"guest-image")
+
+		frappe.get_doc({"doctype": self.parent_doctype, "body": f'<img src="{file.file_url}">'}).insert(
+			ignore_permissions=True
+		)
 
 		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
 

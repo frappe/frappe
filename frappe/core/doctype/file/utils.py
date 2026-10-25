@@ -342,6 +342,9 @@ def extract_images_from_html(doc: "Document", content: str, is_private: bool = F
 
 def attach_text_editor_files(doc: "Document") -> None:
 	"""Attach the caller's unattached Files shown in the Text Editor fields of `doc` or its rows to `doc`."""
+	# Guests share one owner, and a save outside a request acts for no uploader.
+	if frappe.session.user == "Guest" or not getattr(frappe.local, "request", None):
+		return
 	content = "".join(
 		row.get(df.fieldname) or ""
 		for row in (doc, *doc.get_all_children())

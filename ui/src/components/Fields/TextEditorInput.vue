@@ -1,6 +1,6 @@
 <template>
 	<Editor
-		v-model="buffer"
+		:modelValue="buffer"
 		:extensions="extensions"
 		:placeholder="field.placeholder"
 		:upload-function="upload"
@@ -9,6 +9,7 @@
 		@blur="onBlur"
 	>
 		<div
+			ref="root"
 			class="flex flex-col rounded-4 border border-outline-gray-2 bg-surface-base hover:border-outline-gray-3 focus-within:border-outline-gray-4 focus-within:shadow-sm"
 			data-slot="text-editor"
 		>
@@ -34,7 +35,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, watch } from "vue";
+import { computed, inject, ref, useTemplateRef, watch } from "vue";
 import { Extension } from "@tiptap/core";
 import { Editor, EditorContent, EditorFixedMenu, EditorTableMenu } from "frappe-ui/editor";
 import type { MediaUploadRequestOptions } from "frappe-ui/editor";
@@ -56,6 +57,8 @@ const emit = defineEmits<{
 	change: [value: string];
 }>();
 
+const root = useTemplateRef<HTMLElement>("root");
+
 // ProseMirror marks every Esc handled, so a dialog around the field never sees it. Esc leaves
 // the body instead, after any open menu takes it; the next Esc reaches the dialog.
 const extensions = [
@@ -69,37 +72,39 @@ const extensions = [
 	}),
 ];
 
-// The editor's own HTML. A stored value reaches the doc only through an edit, so loading
-// one never writes back; an emptied editor stores "" and keeps its own empty block.
+// The editor's own HTML; an emptied editor keeps its empty block but stores "". A stored value
+// reaches the doc only through an edit, so loading one never writes back.
 const buffer = ref(props.modelValue ?? "");
-let emitted: string | null = null;
+const value = computed(() => (isEmptyHtml(buffer.value) ? "" : buffer.value));
+
+// The value when focus arrived, or `null` with no focus. An edit made then, such as a finished
+// upload, commits at once.
+let atFocus: string | null = null;
 
 watch(
 	() => props.modelValue ?? "",
-	(value) => {
-		if (value !== emitted) buffer.value = value;
-		emitted = null;
+	(next) => {
+		if (next === value.value) return;
+		buffer.value = next;
+		if (atFocus !== null) atFocus = next;
 	}
 );
 
-const value = computed(() => emitted ?? props.modelValue ?? "");
-
-// `null` while the editor has no focus; an edit made then, such as a finished upload, commits.
-let atFocus: string | null = null;
-
 function onInput(html: string | null) {
-	const next = !html || isEmptyHtml(html) ? "" : html;
-	if (next === value.value) return;
-	emitted = next;
-	emit("update:modelValue", next);
-	if (atFocus === null) emit("change", next);
+	const previous = value.value;
+	buffer.value = html ?? "";
+	if (value.value === previous) return;
+	emit("update:modelValue", value.value);
+	if (atFocus === null) emit("change", value.value);
 }
 
 function onFocus() {
-	atFocus = value.value;
+	atFocus ??= value.value;
 }
 
-function onBlur() {
+// A click on the field's own toolbar keeps the edit open.
+function onBlur(event: FocusEvent) {
+	if (root.value?.contains(event.relatedTarget as Node | null)) return;
 	if (atFocus !== null && value.value !== atFocus) emit("change", value.value);
 	atFocus = null;
 }

@@ -82,6 +82,36 @@ describe("an editable Text Editor", () => {
     expect(onChange.mock.calls).toEqual([["<p>Hello there!</p>"]]);
   });
 
+  it("keeps the edit open across a click on its own toolbar", async () => {
+    const { root, onChange } = mount("<p>Hello</p>");
+    const editor = await editorIn(root);
+    editor.commands.focus("end");
+    await frame();
+    editor.commands.insertContent(" there");
+    const bold = root.querySelector<HTMLButtonElement>("[data-slot='fixed-menu'] button[aria-label='Bold']")!;
+    bold.focus();
+    editor.chain().selectAll().toggleBold().run();
+    editor.commands.focus();
+    await frame();
+    expect(onChange).not.toHaveBeenCalled();
+    editor.commands.blur();
+    await frame();
+    expect(onChange.mock.calls).toEqual([["<p><strong>Hello there</strong></p>"]]);
+  });
+
+  it("commits nothing for a value its host set while it had focus", async () => {
+    const { root, value, onChange } = mount("<p>Hello</p>");
+    const editor = await editorIn(root);
+    editor.commands.focus("end");
+    await frame();
+    value.value = "<p>Saved elsewhere</p>";
+    await nextTick();
+    editor.commands.blur();
+    await frame();
+    expect(editor.getHTML()).toBe("<p>Saved elsewhere</p>");
+    expect(onChange).not.toHaveBeenCalled();
+  });
+
   it("commits nothing on a blur with no change", async () => {
     const { root, onChange } = mount("<p>Hello</p>");
     const editor = await editorIn(root);

@@ -4,7 +4,7 @@ import type { UploadedFile } from "@framework/ui/Composer";
 import type { MediaUploadProgress, UploadedMedia } from "frappe-ui/editor";
 import { saveComposerDraft } from "@/shell/composer";
 import { COMMENT_WRITER, readCommentDraft } from "./commentDraft";
-import { uploadCommentFile } from "./commentUpload";
+import { uploadMedia } from "@framework/ui/components/RichText/upload";
 
 const EMPTY_BODY = "<p></p>";
 
@@ -25,7 +25,7 @@ export function useCommentDraft(doctype: string, docname: string) {
 	// The editor passes options for inline media; the attach button calls with the file alone.
 	async function upload(file: File, options?: UploadOptions): Promise<UploadedMedia> {
 		const started = discards;
-		const media = await uploadCommentFile(file, options);
+		const media = await uploadMedia(file, options);
 		// A Discard during the upload dropped the file from the editor, so the draft drops it too.
 		if (!options && started === discards)
 			attachments.value = [...attachments.value, asAttachment(media)];
