@@ -145,6 +145,7 @@ class Browser:
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
 		options = self.options
+		self._add_page_number(soup)
 		# open header and footer pages
 		self._open_header_footer_pages()
 
@@ -188,6 +189,24 @@ class Browser:
 		for html_id in ["header-html", "footer-html"]:
 			for tag in soup.find_all(id=html_id):
 				tag.extract()
+
+	def _add_page_number(self, soup):
+		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
+		from frappe.utils.print_format_generator import page_number_html
+
+		if self.is_print_designer or not self.print_format or soup.find(class_=["page", "topage"]):
+			return
+		if not frappe.db.exists("Print Format", self.print_format):
+			return
+		print_format = frappe.get_cached_doc("Print Format", self.print_format)
+		position = (print_format.page_number or "").lower().replace(" ", "_")
+		if uses_beta_renderer(print_format) or not position.startswith(("top_", "bottom_")):
+			return
+		html_id = "header-html" if position.startswith("top_") else "footer-html"
+		if not (target := soup.find(id=html_id)):
+			target = soup.new_tag("div", id=html_id)
+			soup.body.append(target)
+		target.append(BeautifulSoup(page_number_html(position), "html.parser"))
 
 	def _inject_page_no_script(self, soup):
 		"""Make clone_and_update available to the header and footer pages, which take
