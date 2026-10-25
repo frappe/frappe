@@ -250,7 +250,11 @@ def _download_multi_pdf(
 				get_default_print_format,
 				uses_beta_renderer,
 			)
-			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+			from frappe.utils.print_utils import (
+				_print_format_doc_or_none,
+				_run_print_pdf_hooks,
+				resolve_pdf_generator,
+			)
 			from frappe.www.printview import set_link_titles, validate_print
 
 			pf_doc = _print_format_doc_or_none(format, print_doctype)
@@ -276,11 +280,19 @@ def _download_multi_pdf(
 			doc = frappe.get_doc(print_doctype, print_name)
 			validate_print(doc)
 			set_link_titles(doc)
+			_run_print_pdf_hooks(print_doctype, print_name, format)
 			pf = pf_doc or get_default_print_format(print_doctype)
 			generator = PrintFormatGenerator(
 				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
 			)
 			pdf = generator.render_pdf()
+			make_access_log(
+				doctype=doc.doctype,
+				document=doc.name,
+				file_type="PDF",
+				method="Print",
+				page=f"Print Format: {pf.name}",
+			)
 			for page in PdfReader(BytesIO(pdf)).pages:
 				pdf_writer.add_page(page)
 			return pdf_writer

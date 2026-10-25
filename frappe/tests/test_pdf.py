@@ -394,6 +394,55 @@ class TestPdf(IntegrationTestCase):
 
 		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
 
+	def test_on_print_pdf_hook_runs_for_emailed_prints(self):
+		from unittest.mock import patch
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
+		):
+			frappe.attach_print("ToDo", todo.name)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
+
+	def test_on_print_pdf_hook_runs_for_bulk_prints(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+		):
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name]))
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
+
 	def test_report_pdf_fits_wide_tables_and_runs_no_scripts(self):
 		from frappe.utils import print_format
 
