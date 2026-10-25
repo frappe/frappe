@@ -242,3 +242,25 @@ class TestPdf(IntegrationTestCase):
 		browser.prepare_options_for_pdf()
 
 		self.assertAlmostEqual(browser.body_page.options["marginLeft"], 15 / 25.4, delta=0.01)
+
+	def test_landscape_orientation_swaps_paper_size(self):
+		from types import SimpleNamespace
+
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.pdf_generator.browser import Browser
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		for orientation in ("Landscape", "landscape"):
+			browser = Browser.__new__(Browser)
+			browser.is_print_designer = False
+			browser.print_format = None
+			browser.options = {"page-size": "A4", "orientation": orientation}
+			browser.soup = BeautifulSoup("", "html5lib")
+			browser.body_page = SimpleNamespace(options={})
+			browser.header_page = browser.footer_page = None
+			browser.prepare_options_for_pdf()
+
+			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
+			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
