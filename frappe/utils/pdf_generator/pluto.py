@@ -149,8 +149,8 @@ class PlutoPage:
 		return self._book(self.viewport_width * POINTS_PER_PX, None).get_document_width()
 
 	def get_content_height(self):
-		book = self._book(self.viewport_width * POINTS_PER_PX, None, user_style=MEASURE_STYLE)
-		return book.get_document_height()
+		self.html += f"<style>{MEASURE_STYLE}</style>"
+		return self._book(self.viewport_width * POINTS_PER_PX, None).get_document_height()
 
 	def get_element_height(self, selector="body"):
 		book = self._book(self.viewport_width * POINTS_PER_PX, None, user_style=MEASURE_STYLE)

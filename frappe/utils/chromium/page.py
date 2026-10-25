@@ -447,9 +447,7 @@ class Page:
 				const style = document.createElement("style");
 				style.textContent = "html, body, .print-format { height: auto !important; min-height: 0 !important; }";
 				document.head.appendChild(style);
-				const height = document.documentElement.scrollHeight;
-				style.remove();
-				return height;
+				return document.documentElement.scrollHeight;
 			})()"""
 		)
 		return (result or {}).get("result", {}).get("value") or 0
