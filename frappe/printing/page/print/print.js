@@ -810,7 +810,7 @@ frappe.ui.form.PrintView = class {
 					footer.classList.add("hidden-pdf");
 					footer.classList.remove("visible-pdf");
 				});
-				this.render_barcodes(doc);
+				frappe.ui.render_print_barcodes(doc);
 				this.on_preview_load(iframe.get(0));
 			});
 			iframe.prop("srcdoc", this.get_preview_document(out));
@@ -824,16 +824,6 @@ frappe.ui.form.PrintView = class {
 			this.lang_code,
 			this.get_no_preview_html()
 		);
-	}
-
-	render_barcodes(doc) {
-		doc.querySelectorAll("svg[data-barcode-value]").forEach((el) => {
-			const get_options = frappe.ui.form.ControlBarcode.prototype.get_options.bind({
-				df: { options: el.dataset.options },
-			});
-			JsBarcode(el, el.dataset.barcodeValue, get_options(el.dataset.barcodeValue));
-			el.setAttribute("width", "100%");
-		});
 	}
 
 	setup_print_format_dom(out, $print_format) {
@@ -855,7 +845,7 @@ frappe.ui.form.PrintView = class {
 		this.$print_format_body
 			.find("body")
 			.html(`<div class="print-format print-format-preview">${out.html}</div>`);
-		this.render_barcodes(this.$print_format_body[0]);
+		frappe.ui.render_print_barcodes(this.$print_format_body[0]);
 		this.show_footer();
 
 		this.$print_format_body.find(".print-format").css({
