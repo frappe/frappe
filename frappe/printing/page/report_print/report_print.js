@@ -283,6 +283,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		const size = this.get_size_for(page_size, print_settings.orientation);
 		const [width, height] = this.get_paper(page_size, print_settings);
 		this.print_settings = print_settings;
+		this.format = out.format;
 		this.html = out.html.replace("</body>", `<style>@page { size: ${size}; }</style></body>`);
 		this.include_filters_field.toggle(out.format.type !== "jinja");
 		this.pick_columns_field.toggle(!print_settings.print_format);
@@ -403,6 +404,14 @@ frappe.views.ReportPrintView = class ReportPrintView {
 
 	download_pdf() {
 		if (!this.html) return;
+		if (
+			!this.report.tree_report &&
+			(this.format.type === "jinja" ||
+				(this.format.type === "grid" && !this.report.report_settings.formatter))
+		) {
+			return this.report.download_pdf_from_server(this.print_settings, this.format);
+		}
+
 		this.report.make_access_log("Print", "PDF");
 		frappe.render_pdf(this.html, {
 			...this.print_settings,

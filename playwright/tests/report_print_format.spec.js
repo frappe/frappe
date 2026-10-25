@@ -7,7 +7,7 @@ const JS_FORMAT = "Test Print Format JS";
 const PRINT_PAGE = "#page-report-print";
 
 const jinja_method = "frappe.utils.print_format.render_report_jinja";
-const pdf_method = "frappe.utils.print_format.report_to_pdf";
+const pdf_method = "frappe.utils.print_format.download_report_pdf";
 
 const is_post_to = (method) => (req) =>
 	req.method() === "POST" && req.url().includes(`/api/method/${method}`);
@@ -95,13 +95,38 @@ test.describe("Report Print Formats", () => {
 		expect(jinja_calls).toHaveLength(0);
 	});
 
-	test("sends the jinja body to the pdf service", async ({ page }) => {
+	test("downloads a jinja format pdf rendered on the server", async ({ page }) => {
 		await open_print_view(page, JINJA_FORMAT);
 		await expect(preview(page).locator("h1")).toHaveText("report body");
 
 		const pdf = page.waitForRequest(is_post_to(pdf_method));
 		await page.locator(`${PRINT_PAGE} button[data-label="PDF"]`).click();
 
-		expect((await pdf).postData()).toContain("report body");
+		expect((await pdf).postData()).toContain(JINJA_FORMAT);
+	});
+
+	test("downloads the rows in the order on screen", async ({ page }) => {
+		const visible_rows = () =>
+			page.evaluate(() => frappe.query_report.datatable.bodyRenderer.visibleRowIndices);
+		const report_order = await visible_rows();
+
+		await page.evaluate(() => frappe.query_report.datatable.sortColumn(1, "desc"));
+		await expect.poll(visible_rows).not.toEqual(report_order);
+		// every ToDo status has an "e", so the filter keeps all rows
+		await page.locator(".dt-row-filter .dt-cell--col-2 .dt-filter").pressSequentially("e");
+		await expect.poll(visible_rows).toEqual(report_order);
+
+		const on_screen = await page.evaluate(() =>
+			[...document.querySelectorAll(".dt-scrollable .dt-row")].map((row) =>
+				Number(row.dataset.rowIndex)
+			)
+		);
+		await open_print_view(page);
+		await expect(preview(page).locator(".print-format table")).toBeVisible();
+
+		const pdf = page.waitForRequest(is_post_to(pdf_method));
+		await page.locator(`${PRINT_PAGE} button[data-label="PDF"]`).click();
+
+		expect((await pdf).postData()).toContain(JSON.stringify(on_screen));
 	});
 });
