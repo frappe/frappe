@@ -7,9 +7,9 @@ test.describe("Business Modules", () => {
 
 	const field = (page, fieldname) =>
 		page.locator(`.form-layout .frappe-control[data-fieldname="${fieldname}"]`);
-	const column = (page, fieldname) =>
+	const column = (page, fieldname, table = "items") =>
 		page.locator(
-			`.frappe-control[data-fieldname="items"] .grid-heading-row .grid-static-col[data-fieldname="${fieldname}"]`
+			`.frappe-control[data-fieldname="${table}"] .grid-heading-row .grid-static-col[data-fieldname="${fieldname}"]`
 		);
 	const hide_module_fields = (page, modules) =>
 		page.evaluate((modules) => cur_frm.hide_module_fields(modules), modules);
@@ -31,6 +31,17 @@ test.describe("Business Modules", () => {
 		await hide_module_fields(page, []);
 		await expect(field(page, "tagged")).toBeVisible();
 		await expect(column(page, "tagged_col")).toBeVisible();
+	});
+
+	test("hides the column in every table of the same child doctype", async ({ page, desk }) => {
+		await desk.new_form("Test Module Fields");
+		await hide_module_fields(page, ["Stock"]);
+		await expect(column(page, "tagged_col", "items")).toHaveCount(0);
+		await expect(column(page, "tagged_col", "more_items")).toHaveCount(0);
+
+		await hide_module_fields(page, []);
+		await expect(column(page, "tagged_col", "items")).toBeVisible();
+		await expect(column(page, "tagged_col", "more_items")).toBeVisible();
 	});
 
 	test("keeps hiding after the form refreshes", async ({ page, desk }) => {

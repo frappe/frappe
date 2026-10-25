@@ -905,8 +905,8 @@ def create_webform_with_child_table_dropdown():
 def create_business_module_doctypes():
 	"""Two doctypes for the business module UI test.
 
-	"Test Module Fields" has a plain field, a field tagged "Stock", and a child
-	table whose "tagged_col" column is tagged "Stock".
+	"Test Module Fields" has a plain field, a field tagged "Stock", and two child
+	tables whose "tagged_col" column is tagged "Stock".
 	"""
 	create_child_doctype(
 		"Test Module Child",
@@ -921,6 +921,12 @@ def create_business_module_doctypes():
 			{"label": "Plain", "fieldname": "plain", "fieldtype": "Data"},
 			{"label": "Tagged", "fieldname": "tagged", "fieldtype": "Data"},
 			{"label": "Items", "fieldname": "items", "fieldtype": "Table", "options": "Test Module Child"},
+			{
+				"label": "More Items",
+				"fieldname": "more_items",
+				"fieldtype": "Table",
+				"options": "Test Module Child",
+			},
 		],
 	)
 	# No app registers modules on a test site, so set the tag directly.

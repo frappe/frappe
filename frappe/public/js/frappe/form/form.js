@@ -2153,20 +2153,26 @@ frappe.ui.form.Form = class FrappeForm {
 			}
 		}
 
-		// child table fields
-		for (const table_df of frappe.meta.get_table_fields(this.doctype)) {
-			const grid = this.fields_dict[table_df.fieldname]?.grid;
-			if (!grid) continue;
-			let changed = false;
+		// child table fields; tables of the same child doctype share their docfields
+		const grids = frappe.meta
+			.get_table_fields(this.doctype)
+			.map((table_df) => this.fields_dict[table_df.fieldname]?.grid)
+			.filter(Boolean);
+		const changed = {};
+		for (const grid of grids) {
 			for (const df of grid.docfields || []) {
-				if (!df.show_for_module) continue;
-				if (this.set_hidden_by_module(df, is_off(df))) {
-					grid.update_docfield_property(df.fieldname, "hidden", df.hidden);
-					changed = true;
+				if (df.show_for_module && this.set_hidden_by_module(df, is_off(df))) {
+					(changed[grid.doctype] = changed[grid.doctype] || []).push(df);
 				}
 			}
+		}
+		for (const grid of grids) {
+			if (!changed[grid.doctype]) continue;
+			for (const df of changed[grid.doctype]) {
+				grid.update_docfield_property(df.fieldname, "hidden", df.hidden);
+			}
 			// the grid caches its visible columns, so build them again
-			if (changed) grid.reset_grid();
+			grid.reset_grid();
 		}
 	}
 
