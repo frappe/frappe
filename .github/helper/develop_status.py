@@ -5,7 +5,9 @@ suites passed on it.
 
 Usage:
     python develop_status.py refresh       # every open develop pull request
+    python develop_status.py pr <number>   # one pull request
     python develop_status.py wait <number> # one pull request, until its fix tests finish
+    python develop_status.py commit <sha>  # the pull requests whose head is this commit
     python develop_status.py start [all]   # start the suites the new develop commits need
 """
 
@@ -178,7 +180,16 @@ if __name__ == "__main__":
 
 	develop = develop_state()
 	print(f"develop: {develop}")
-	started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-	for page in gh("--paginate", "--slurp", f"repos/{REPO}/pulls?base=develop&state=open&per_page=100"):
-		for pr in page:
-			post(pr, develop, started)
+	if sys.argv[1] == "pr":
+		post(gh(f"repos/{REPO}/pulls/{sys.argv[2]}"), develop)
+	elif sys.argv[1] == "commit":
+		query = f"repo:{REPO} is:pr is:open base:develop sha:{sys.argv[2]}"
+		for item in gh("-X", "GET", "search/issues", "-f", f"q={query}")["items"]:
+			pr = gh(f"repos/{REPO}/pulls/{item['number']}")
+			if pr["head"]["sha"] == sys.argv[2]:
+				post(pr, develop)
+	else:
+		started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+		for page in gh("--paginate", "--slurp", f"repos/{REPO}/pulls?base=develop&state=open&per_page=100"):
+			for pr in page:
+				post(pr, develop, started)
