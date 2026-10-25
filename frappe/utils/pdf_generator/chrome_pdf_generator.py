@@ -262,11 +262,15 @@ class ChromePDFGenerator:
 		"""
 		stderr = self._chromium_process.stderr
 		start_time = time.time()
+		exited = False
 
 		while time.time() - start_time < self.START_TIMEOUT:
 			# Read a single line from stderr and check if it contains the DevTools URL.
 			# Not using select() because it is not supported on Windows for non-socket file descriptors.
 			line = stderr.readline()
+			if not line:
+				exited = True
+				break
 			# not sure if "DevTools listening on" is consistent in all chromium versions.
 			if "DevTools listening on" in line:
 				url_start = line.find("ws://")
@@ -275,7 +279,7 @@ class ChromePDFGenerator:
 					break
 
 		if not self._devtools_url:
-			alive = self._chromium_process.poll() is None
+			alive = not exited and self._chromium_process.poll() is None
 			if not (retry and alive):
 				self._signal_chromium()
 				raise TimeoutError("Chromium took too long to start.")
