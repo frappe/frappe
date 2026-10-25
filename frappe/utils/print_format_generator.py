@@ -682,6 +682,7 @@ class PrintFormatGenerator:
 
 		import typst
 
+		from frappe.utils.pdf import encrypt_pdf
 		from frappe.utils.typst_emitter import (
 			TypstEmitter,
 			ensure_typst_fonts,
@@ -699,8 +700,6 @@ class PrintFormatGenerator:
 				_("This format can no longer render through Typst: {0}").format(", ".join(blockers)),
 				title=_("Typst renderer unavailable"),
 			)
-		if password:
-			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
 		ensure_typst_fonts(self.print_format.get("font"))
 		emitter = TypstEmitter(self)
@@ -747,7 +746,10 @@ class PrintFormatGenerator:
 			write_assets(assets)
 			# root pins file access to the tempdir — matters once formats can
 			# carry raw Typst markup (Typst blocks)
-			return typst.compile(path, root=tmp, font_paths=typst_font_paths())
+			pdf = typst.compile(path, root=tmp, font_paths=typst_font_paths())
+		if password:
+			pdf = encrypt_pdf(pdf, password)
+		return pdf
 
 	def _build_html_for_chrome(self):
 		"""Build the body HTML for the Chrome PDF pipeline.

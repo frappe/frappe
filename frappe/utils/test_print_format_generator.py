@@ -358,6 +358,22 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertTrue(reader.decrypt("qwe"))
 		self.assertEqual(len(reader.pages), 1)
 
+	def test_typst_pdf_with_password_is_encrypted(self):
+		import io
+
+		from pypdf import PdfReader
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		pdf = frappe.get_print("ToDo", todo.name, print_format=print_format.name, as_pdf=True, password="qwe")
+
+		self.assertTrue(PdfReader(io.BytesIO(pdf)).decrypt("qwe"))
+
 	def test_permlevel_restricted_fields_are_dropped(self):
 		"""A layout may reference permlevel-restricted fields; readers without access
 		to that permlevel must not get them in the print output."""
