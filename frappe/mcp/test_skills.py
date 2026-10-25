@@ -91,6 +91,22 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 		self.assertEqual(metadata["allowed-tools"], "read")
 		self.assertEqual(metadata["license"], "MIT")
 
+	def test_directories_include_only_direct_children(self):
+		for uri, expected in (
+			("skill://frappe", {"billing"}),
+			("skill://frappe/billing", {"refunds"}),
+			("skill://frappe/billing/refunds", {"refunds", "review", "assets", "references"}),
+			("skill://frappe/billing/refunds/references", {"rules one.md"}),
+		):
+			with self.subTest(uri=uri):
+				resources = self.catalog.read_directory(uri)["resources"]
+				self.assertEqual({item["name"] for item in resources}, expected)
+				self.assertTrue(all(item["uri"].rsplit("/", 1)[0] == uri for item in resources))
+		resources = self.catalog.read_directory("skill://frappe/billing/refunds")["resources"]
+		self.assertEqual(
+			next(item for item in resources if item["name"] == "review")["mimeType"], "inode/directory"
+		)
+
 	def test_unknown_and_noncanonical_uris_are_invalid_params(self):
 		uris = (
 			None,
@@ -121,6 +137,8 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			with self.subTest(path=path), self.assertRaises(protocol.McpError) as caught:
 				self.catalog.read_resource("skill://frappe/billing/refunds/" + path)
 			self.assertEqual(caught.exception.code, protocol.INVALID_PARAMS)
+		with self.assertRaises(protocol.McpError):
+			self.catalog.read_directory("skill://frappe/billing/refunds/escape/frappe")
 		entry = self.catalog.get_skill("skill://frappe/billing/refunds/SKILL.md")["skill"]
 		self.assertEqual(len(entry["resources"]), 4)
 
@@ -188,6 +206,19 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			self.catalog.get_skill(uri)
 		self.assertEqual(caught.exception.code, protocol.INTERNAL_ERROR)
 
+	def test_directory_pagination_and_cursor_scope(self):
+		for index in range(PAGE_SIZE):
+			self.write_file("frappe", f"billing/refunds/files/{index}.txt", b"file")
+		self.write_file("frappe", "billing/refunds/files/extra.txt", b"extra")
+		uri = "skill://frappe/billing/refunds/files"
+		first = self.catalog.read_directory(uri)
+		second = self.catalog.read_directory(uri, first["nextCursor"])
+		self.assertEqual(len(first["resources"]), PAGE_SIZE)
+		self.assertEqual(len(second["resources"]), 1)
+		self.assertNotIn("nextCursor", second)
+		with self.assertRaises(protocol.McpError):
+			self.catalog.read_directory("skill://frappe/billing/refunds", first["nextCursor"])
+
 	def test_no_skills_are_exposed_from_uninstalled_apps(self):
 		with patch("frappe.get_installed_apps", return_value=["other"]):
 			catalog = SkillCatalog()
@@ -201,3 +232,13 @@ class TestSkillCatalog(SkillFixtures, UnitTestCase):
 			catalog = SkillCatalog()
 		self.assertEqual(catalog.list_skills()["skills"], [])
 		self.assertEqual(catalog.list_resources()["resources"], [])
+
+	def test_empty_supporting_directories_and_encoded_filenames(self):
+		folder = self.root / "frappe/skills/billing/refunds/empty"
+		folder.mkdir()
+		self.assertEqual(self.catalog.read_directory("skill://frappe/billing/refunds/empty")["resources"], [])
+		self.write_file("frappe", "billing/refunds/references/price#1%.txt", b"Price")
+		uri = "skill://frappe/billing/refunds/references/price%231%25.txt"
+		self.assertEqual(self.catalog.read_resource(uri)["contents"][0]["text"], "Price")
+		entry = self.catalog.get_skill("skill://frappe/billing/refunds/SKILL.md")["skill"]
+		self.assertIn(uri, {resource["uri"] for resource in entry["resources"]})

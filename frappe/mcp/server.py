@@ -33,6 +33,7 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 		"skills/get",
 		"resources/list",
 		"resources/read",
+		"resources/directory/read",
 	):
 		catalog = SkillCatalog()
 		if method == "skills/list":
@@ -41,7 +42,9 @@ def dispatch(method: str, params: dict[str, Any], version: str) -> dict:
 			return catalog.get_skill(params.get("uri"))
 		if method == "resources/list":
 			return catalog.list_resources(params.get("cursor"))
-		return catalog.read_resource(params.get("uri"))
+		if method == "resources/read":
+			return catalog.read_resource(params.get("uri"))
+		return catalog.read_directory(params.get("uri"), params.get("cursor"))
 	if method == "resources/templates/list":
 		return page([], "resourceTemplates", params.get("cursor"), method)
 
@@ -72,7 +75,7 @@ def capabilities(version: str) -> dict:
 	return {
 		"tools": {"listChanged": False} if version == protocol.LEGACY_VERSION else {},
 		"resources": {},
-		"extensions": {EXTENSION: {}},
+		"extensions": {EXTENSION: {"directoryRead": True}},
 	}
 
 

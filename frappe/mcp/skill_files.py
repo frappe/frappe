@@ -40,6 +40,19 @@ class SkillFiles:
 			raise McpError(INTERNAL_ERROR, "Skill exceeds the 16 MiB size limit", status=500)
 		return content
 
+	def children(self, relative: Path) -> list[tuple[Path, bool]]:
+		try:
+			with ExitStack() as stack:
+				directory = self._directory(stack, relative)
+				children = []
+				for name in os.listdir(directory):
+					mode = os.stat(name, dir_fd=directory, follow_symlinks=False).st_mode
+					if stat.S_ISREG(mode) or stat.S_ISDIR(mode):
+						children.append((relative / name, stat.S_ISDIR(mode)))
+				return children
+		except OSError:
+			raise McpError(INVALID_PARAMS, "Unknown skill directory") from None
+
 	def paths(self, relative: Path = Path()) -> list[Path]:
 		paths = []
 		folder = self.root / relative

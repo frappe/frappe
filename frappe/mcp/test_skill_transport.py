@@ -56,7 +56,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 		).json["result"]
 		for result in (modern, legacy):
 			self.assertIn("resources", result["capabilities"])
-			self.assertEqual(result["capabilities"]["extensions"][EXTENSION], {})
+			self.assertEqual(result["capabilities"]["extensions"][EXTENSION], {"directoryRead": True})
 
 	def test_normal_desk_user_can_discover_and_read_nested_skills(self):
 		for modern in (True, False):
@@ -77,11 +77,16 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 				else:
 					self.assertNotIn("ttlMs", listing)
 
-	def test_base_resources(self):
+	def test_base_resources_and_directory_reading(self):
 		listing = self.rpc("resources/list").json["result"]["resources"]
 		self.assertEqual(len(listing), 2)
 		self.assertTrue(all(resource["mimeType"] == "text/markdown" for resource in listing))
 		self.assertEqual(self.rpc("resources/templates/list").json["result"]["resourceTemplates"], [])
+		directory = self.rpc("resources/directory/read", {"uri": "skill://frappe/billing/refunds/review"})
+		self.assertEqual(directory.status_code, 200)
+		self.assertEqual(
+			directory.json["result"]["resources"][0]["uri"], "skill://frappe/billing/refunds/review/SKILL.md"
+		)
 
 	def test_invalid_params_use_protocol_errors(self):
 		for method, params in (
@@ -89,6 +94,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 			("skills/get", {"uri": "skill://frappe/billing/refunds"}),
 			("skills/get", {"uri": "skill://frappe/missing/SKILL.md"}),
 			("resources/read", {"uri": "skill://frappe/private.txt"}),
+			("resources/directory/read", {"uri": "skill://frappe/billing/refunds/SKILL.md"}),
 			("skills/list", {"cursor": 42}),
 		):
 			with self.subTest(method=method, params=params):
@@ -97,7 +103,7 @@ class TestSkillTransport(SkillFixtures, McpTestCase):
 				self.assertEqual(response.json["error"]["code"], protocol.INVALID_PARAMS)
 
 	def test_skill_reads_require_authentication(self):
-		for method in ("skills/list", "resources/read"):
+		for method in ("skills/list", "resources/read", "resources/directory/read"):
 			with self.subTest(method=method):
 				self.assertEqual(self.rpc(method, auth=False).status_code, 401)
 

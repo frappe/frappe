@@ -55,6 +55,26 @@ class SkillCatalog:
 			resource["blob"] = base64.b64encode(content).decode("ascii")
 		return {"contents": [resource], **cache_policy()}
 
+	def read_directory(self, uri: str, cursor: str | None = None) -> dict:
+		app, path = self.location(uri)
+		folder = self.apps[app].root / path
+		if not folder.is_dir() or folder.is_symlink():
+			raise McpError(INVALID_PARAMS, "Unknown skill directory")
+		if self.owner(app, path):
+			resources = [
+				self.metadata(app, child, is_directory)
+				for child, is_directory in self.apps[app].children(path)
+			]
+		else:
+			children = set()
+			for _, skill in self.skill_paths(app):
+				if skill.is_relative_to(path) and len(skill.parts) > len(path.parts) + 1:
+					children.add(Path(*skill.parts[: len(path.parts) + 1]))
+			if not children:
+				raise McpError(INVALID_PARAMS, "Unknown skill directory")
+			resources = [self.metadata(app, child, True) for child in children]
+		return page(resources, "resources", cursor, uri)
+
 	def entry(self, app: str, path: Path) -> dict:
 		files = self.apps[app]
 		skill_content = files.read(path)
@@ -84,11 +104,15 @@ class SkillCatalog:
 				if path.name == "SKILL.md" and len(path.parts) >= 2:
 					yield name, path
 
-	def metadata(self, app: str, path: Path) -> dict:
-		resource = {"uri": resource_uri(app, path), "name": path.name, "mimeType": mime_type(path)}
-		if path.name == "SKILL.md":
-			metadata = self.apps[app].frontmatter(path)
-			resource.update(name=metadata["name"], description=metadata["description"])
+	def metadata(self, app: str, path: Path, is_directory: bool = False) -> dict:
+		resource = {"uri": resource_uri(app, path), "name": path.name}
+		if is_directory:
+			resource["mimeType"] = "inode/directory"
+		else:
+			resource["mimeType"] = mime_type(path)
+			if path.name == "SKILL.md":
+				metadata = self.apps[app].frontmatter(path)
+				resource.update(name=metadata["name"], description=metadata["description"])
 		return resource
 
 	def owner(self, app: str, directory: Path) -> Path | None:
