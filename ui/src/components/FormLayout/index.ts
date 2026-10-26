@@ -6,12 +6,20 @@ export type { RegisterFieldTypeOptions } from "../Fields/fieldTypes";
 // The file-upload primitive now lives in its own module — import upload
 // consumers, the headless engine, and the source seam from "@framework/ui/FileUpload".
 export { useChildRowModel } from "./useChildRowModel";
-export { buildLayoutFromMeta, compose } from "./buildLayoutFromMeta";
+export { buildLayoutFromMeta, compose, DROPPED_FIELDTYPES, mapField } from "./buildLayoutFromMeta";
 export type { BuildLayoutOptions, Decorator } from "./buildLayoutFromMeta";
 export { fieldsToLayout } from "./fieldsToLayout";
-export { resolveLayout } from "./resolveLayout";
+export {
+  applyTabOverride,
+  resolveFieldConditionals,
+  resolveLayout,
+  resolveTabConditionals,
+} from "./resolveLayout";
+export { identifyTabs, tabStripLabel } from "./tabIdentity";
+export { resolveFieldCurrency, useDocValueReader } from "./resolveCurrency";
+export { warnMissingCommit } from "./warnMissingCommit";
 export { CommitKey, LinkTitlesKey, NO_COMMIT } from "./types";
-export { newRowValues, layoutFields } from "./newRowValues";
+export { newRowValues, layoutFields, NO_VALUE } from "./newRowValues";
 export { evaluateDependsOn } from "./dependsOn";
 export {
   flt,

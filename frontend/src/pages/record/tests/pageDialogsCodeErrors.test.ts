@@ -1,7 +1,7 @@
 // A page dialog draws its own form, so the record's compile errors do not reach it.
 import { describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, inject, nextTick, ref } from "vue";
-import { CodeErrorsKey } from "@framework/ui/components/Fields/types";
+import { CodeErrorsKey } from "@framework/ui/fields/types";
 
 // The chrome is frappe-ui's; a passthrough here reads what the host provides, not reka-ui's transitions.
 vi.mock("frappe-ui", () => ({

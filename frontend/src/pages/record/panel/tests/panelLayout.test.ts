@@ -14,8 +14,8 @@ vi.mock("@framework/ui/api", () => ({
 	getMeta: vi.fn(async () => ({ data: null })),
 }));
 
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
-import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
+import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
 import { Surface } from "@/recordPage/surface";
 import type { PanelSectionItem } from "@/recordPage";
 import PanelLayout from "../PanelLayout.vue";

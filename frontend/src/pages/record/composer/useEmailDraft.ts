@@ -5,7 +5,7 @@ import type { UploadTransport } from "@framework/ui/FileUpload";
 import type { MediaUploadProgress, UploadedMedia } from "frappe-ui/editor";
 import { clearComposerDraft, composerDraft, saveComposerDraft } from "@/shell/composer";
 import { EMAIL_WRITER, isFreshEmailDraft, readEmailDraft, type EmailDraft } from "./emailDraft";
-import { uploadMedia } from "@framework/ui/components/RichText/upload";
+import { uploadMedia } from "@framework/ui/RichText";
 import { asAttachment } from "./useCommentDraft";
 
 const EMPTY_BODY = "<p></p>";

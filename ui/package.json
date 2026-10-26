@@ -13,6 +13,10 @@
       "import": "./src/components/FormLayout/index.ts",
       "types": "./src/components/FormLayout/index.ts"
     },
+    "./FormLayout/types": {
+      "import": "./src/components/FormLayout/types.ts",
+      "types": "./src/components/FormLayout/types.ts"
+    },
     "./ActivityTimeline": {
       "import": "./src/components/ActivityTimeline/index.ts",
       "types": "./src/components/ActivityTimeline/index.ts"
@@ -25,6 +29,7 @@
       "import": "./src/components/FileUpload/index.ts",
       "types": "./src/components/FileUpload/index.ts"
     },
+    "./FileUpload/FileUploadDialog.vue": "./src/components/FileUpload/FileUploadDialog.vue",
     "./InviteUser": {
       "import": "./src/components/InviteUser/index.ts",
       "types": "./src/components/InviteUser/index.ts"
@@ -69,9 +74,45 @@
       "import": "./src/components/Fields/index.ts",
       "types": "./src/components/Fields/index.ts"
     },
+    "./fields/types": {
+      "import": "./src/components/Fields/types.ts",
+      "types": "./src/components/Fields/types.ts"
+    },
+    "./Link": {
+      "import": "./src/components/Link/index.ts",
+      "types": "./src/components/Link/index.ts"
+    },
+    "./RichText": {
+      "import": "./src/components/RichText/index.ts",
+      "types": "./src/components/RichText/index.ts"
+    },
     "./api": {
       "import": "./src/api/index.ts",
       "types": "./src/api/index.ts"
+    },
+    "./cache": {
+      "import": "./src/cache/index.ts",
+      "types": "./src/cache/index.ts"
+    },
+    "./socket": {
+      "import": "./src/socket.ts",
+      "types": "./src/socket.ts"
+    },
+    "./useSession": {
+      "import": "./src/composables/useSession.ts",
+      "types": "./src/composables/useSession.ts"
+    },
+    "./useDoctypeMeta": {
+      "import": "./src/composables/useDoctypeMeta.ts",
+      "types": "./src/composables/useDoctypeMeta.ts"
+    },
+    "./useDocPermissions": {
+      "import": "./src/composables/useDocPermissions.ts",
+      "types": "./src/composables/useDocPermissions.ts"
+    },
+    "./useUserRoles": {
+      "import": "./src/composables/useUserRoles.ts",
+      "types": "./src/composables/useUserRoles.ts"
     },
     "./utils": {
       "import": "./src/utils/index.ts",

@@ -1,6 +1,6 @@
 // The `Form Layout` doctype's wire shapes: `get_form_layouts` returns rows as
 // authored — fieldnames stay strings, inline fields stay dicts; the meta join happens client-side.
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 
 export type FormLayoutType = "Details" | "Side Panel" | "Quick Entry" | "New Record";
 

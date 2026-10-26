@@ -2,7 +2,7 @@
 // replay or a hold lands when it commits, as the overlays' ops do.
 import { shallowRef } from "vue";
 import type { FieldError as RefusedField } from "@framework/ui/api";
-import { identify, rowKey } from "@framework/ui/components/Fields/rowIdentity";
+import { identify, rowKey } from "@framework/ui/fields";
 import {
   fieldErrorKey,
   markedFieldnames,
@@ -10,8 +10,8 @@ import {
   type FieldAddress,
   type FieldError,
   type RowAddress,
-} from "@framework/ui/components/Fields/types";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+} from "@framework/ui/fields/types";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { shownFields } from "./requiredFields";
 import type { Staging } from "./staging";
 

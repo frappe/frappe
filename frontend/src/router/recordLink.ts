@@ -1,6 +1,6 @@
 // The record pages a Link or Dynamic Link field opens, through `routeFor`, so a replacement page wins.
 import type { Router } from "vue-router";
-import type { RecordLink } from "@framework/ui/components/Fields/types";
+import type { RecordLink } from "@framework/ui/fields/types";
 import { routeFor } from "./routeFor";
 
 export function recordLink(router: Router): RecordLink {

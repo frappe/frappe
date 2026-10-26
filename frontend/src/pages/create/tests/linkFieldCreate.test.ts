@@ -28,7 +28,8 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 }));
 
 // The real FormLayout is exercised in Chrome; this one draws the real Link field and an input otherwise.
-vi.mock("@framework/ui/components/FormLayout", () => ({
+vi.mock("@framework/ui/FormLayout", async (importOriginal) => ({
+	...((await importOriginal()) as object),
 	FormLayout: defineComponent({
 		props: { layout: { type: Array, required: true }, doc: { type: Object, required: true } },
 		emits: ["update:doc"],
@@ -64,15 +65,13 @@ vi.mock("@framework/ui/components/FormLayout", () => ({
 
 import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
-import DynamicLinkField from "@framework/ui/components/Fields/DynamicLinkField.vue";
-import LinkField from "@framework/ui/components/Fields/LinkField.vue";
-import TableMultiSelectField from "@framework/ui/components/Fields/TableMultiSelectField.vue";
-import Filter from "@framework/ui/components/Filter/Filter.vue";
-import QuickFilterInputs from "@framework/ui/components/QuickFilter/QuickFilterInputs.vue";
-import { CreateRecordKey, DocKey, RecordLinkKey } from "@framework/ui/components/Fields/types";
-import type { FieldMeta } from "@framework/ui/components/Fields/types";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import { getFieldComponent } from "@framework/ui/fields";
+import { Filter } from "@framework/ui/Filter";
+import { QuickFilter } from "@framework/ui/QuickFilter";
+import { CreateRecordKey, DocKey, RecordLinkKey } from "@framework/ui/fields/types";
+import type { FieldMeta } from "@framework/ui/fields/types";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { useCreateRight } from "@/createRight";
@@ -83,6 +82,10 @@ import { createPageDialogs } from "@/recordPage/dialog";
 import { closeCreates, createDialog, createRequests, openCreate, registerCreateDialog } from "@/shell/create";
 import PageDialogs from "@/pages/record/dialogs/PageDialogs.vue";
 import CreateDialog from "../CreateDialog.vue";
+
+const LinkField = getFieldComponent("Link");
+const DynamicLinkField = getFieldComponent("Dynamic Link");
+const TableMultiSelectField = getFieldComponent("Table MultiSelect");
 
 const LAYOUTS = "/api/v2/method/frappe.desk.doctype.form_layout.form_layout.get_form_layouts";
 const NEW_DOC = "/api/v2/method/frappe.desk.form.load.get_new_doc";
@@ -341,7 +344,7 @@ describe("when the option shows", () => {
 		vi.stubGlobal("ResizeObserver", class { observe() {} unobserve() {} disconnect() {} });
 		mount(() =>
 			h("div", { "data-field": "customer" }, [
-				h(QuickFilterInputs, { fields: [{ fieldname: "customer", fieldtype: "Link", label: "Customer", options: "Customer" }] }),
+				h(QuickFilter, { doctype: "", fields: [{ fieldname: "customer", fieldtype: "Link", label: "Customer", options: "Customer" }] }),
 			])
 		);
 

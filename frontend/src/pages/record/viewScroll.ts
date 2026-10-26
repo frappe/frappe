@@ -1,5 +1,5 @@
 // The record page's scroll boxes as the view keeps them: the shown tab body and each body column.
-import { landScroll } from "@framework/ui/utils/scrollLanding";
+import { landScroll } from "@framework/ui/utils";
 import type { RecordView } from "./viewMemory";
 
 type Offsets = RecordView["offsets"];

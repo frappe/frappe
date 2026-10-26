@@ -10,16 +10,10 @@ import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
 import { runningSource, withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import { createHeldActs, type HeldAct } from "./heldActs";
-import {
-  DROPPED_FIELDTYPES,
-  type Decorator,
-} from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import type {
-  FormLayoutSchema,
-  RawMetaField,
-} from "@framework/ui/components/FormLayout/types";
-import { holdsChildRows } from "@framework/ui/components/Fields/rowIdentity";
-import type { RowAddress } from "@framework/ui/components/Fields/types";
+import { DROPPED_FIELDTYPES, type Decorator } from "@framework/ui/FormLayout";
+import type { FormLayoutSchema, RawMetaField } from "@framework/ui/FormLayout/types";
+import { holdsChildRows } from "@framework/ui/fields";
+import type { RowAddress } from "@framework/ui/fields/types";
 import { ActivitySurface, FilesSurface } from "./feed";
 import { FieldErrors } from "./fieldErrors";
 import { FieldsSurface } from "./fields";

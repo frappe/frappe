@@ -1,6 +1,6 @@
 // The one composer across records: the record and writer it is open on, and every draft of the session.
 import { markRaw, reactive, readonly, shallowReactive } from "vue";
-import { currentSession } from "@framework/ui/composables/useSession";
+import { currentSession } from "@framework/ui/useSession";
 import type { UploadTransport } from "@framework/ui/FileUpload";
 import { browserMemory } from "@/browserMemory";
 import type { ComposerWindow, RecordPageApi } from "@/recordPage";

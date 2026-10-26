@@ -102,7 +102,7 @@ import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/ex
 import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
-import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, inject, ref } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import type { Addresses } from "@/addresses";

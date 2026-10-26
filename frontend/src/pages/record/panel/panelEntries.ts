@@ -1,8 +1,8 @@
 // What the panel draws, item by item: the surface's visible list joined against the Side
 // Panel layout. A name the layout carries renders fields; any other renders its component.
 import type { Component } from "vue";
-import { resolveLayout } from "@framework/ui/components/FormLayout/resolveLayout";
-import type { FieldNode, FormLayoutSchema, Section } from "@framework/ui/components/FormLayout/types";
+import { resolveLayout } from "@framework/ui/FormLayout";
+import type { FieldNode, FormLayoutSchema, Section } from "@framework/ui/FormLayout/types";
 import { sectionName } from "@/recordPage/formLayoutSource/sectionName";
 import type { PanelSectionItem } from "@/recordPage";
 

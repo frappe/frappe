@@ -1,15 +1,14 @@
 // Turns `page.dialog.form()` options into a `FormLayoutSchema`. Pure: the `doctype`
 // mode's fetch is the dialog's.
-import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
+import { mapField, fieldsToLayout } from "@framework/ui/FormLayout";
 import type {
   FieldNode,
   FormLayoutSchema,
   RawMetaField,
   Section,
   Tab,
-} from "@framework/ui/components/FormLayout/types";
-import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
+} from "@framework/ui/FormLayout/types";
+import type { FieldAccess } from "@framework/ui/useDocPermissions";
 // The meta path's permlevel gate and section constructor, so a dialog and a
 // stored layout agree on what a reader may write and which sections open.
 import { withAccess } from "./formLayoutSource/fieldAccess";

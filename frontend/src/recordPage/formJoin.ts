@@ -6,7 +6,7 @@ import type {
   FormLayoutSchema,
   Section,
   Tab,
-} from "@framework/ui/components/FormLayout/types";
+} from "@framework/ui/FormLayout/types";
 import { BUILTIN } from "./surface";
 import type { ResolvedItem } from "./surface";
 import type { FormItem } from "./types";

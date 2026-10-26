@@ -2,7 +2,8 @@ import {
 	DROPPED_FIELDTYPES,
 	mapField,
 	type Decorator,
-} from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
+	identifyTabs,
+} from "@framework/ui/FormLayout";
 import type {
 	Column,
 	FieldNode,
@@ -11,9 +12,8 @@ import type {
 	Section,
 	Tab,
 	TabOverride,
-} from "@framework/ui/components/FormLayout/types";
-import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
-import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
+} from "@framework/ui/FormLayout/types";
+import type { FieldAccess } from "@framework/ui/useDocPermissions";
 import { withAccess } from "./fieldAccess";
 import { applyFieldPatch, type FieldPatch } from "./fieldPatch";
 import { buildColumn, buildSection } from "./section";

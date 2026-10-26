@@ -1,5 +1,5 @@
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
-import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import type { FieldAccess } from "@framework/ui/useDocPermissions";
 
 /**
  * Bakes a permlevel decision into a raw meta field before `mapField`: `read` demotes it,

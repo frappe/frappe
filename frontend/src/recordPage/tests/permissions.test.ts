@@ -20,9 +20,9 @@ vi.mock("@framework/ui/api", () => ({
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { whenLoaded } from "../pagePermissions";
 import { resetRegistry } from "../registry";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { setSession } from "@framework/ui/composables/useSession";
-import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { setSession } from "@framework/ui/useSession";
+import { resetUserRoles } from "@framework/ui/useUserRoles";
 
 const FIELDS = [
   { fieldname: "status", fieldtype: "Select", permlevel: 0 },

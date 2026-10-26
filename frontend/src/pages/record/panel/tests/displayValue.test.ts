@@ -5,7 +5,7 @@ import {
   isSummaryField,
   summarize,
 } from "../displayValue";
-import type { FieldMeta } from "@framework/ui/components/Fields/types";
+import type { FieldMeta } from "@framework/ui/fields/types";
 
 function field(fieldtype: string, extra: Partial<FieldMeta> = {}): FieldMeta {
   return { fieldname: "f", fieldtype, label: "F", ...extra };

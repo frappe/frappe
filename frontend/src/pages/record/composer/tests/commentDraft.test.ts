@@ -3,7 +3,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick } from "vue";
 
 const { uploadMedia } = vi.hoisted(() => ({ uploadMedia: vi.fn() }));
-vi.mock("@framework/ui/components/RichText/upload", () => ({ uploadMedia }));
+vi.mock("@framework/ui/RichText", async (importOriginal) => ({
+	...((await importOriginal()) as object),
+	uploadMedia,
+}));
 
 import { composerDraft, openComposer } from "@/shell/composer";
 import { useCommentDraft } from "../useCommentDraft";

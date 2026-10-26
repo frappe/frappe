@@ -1,12 +1,10 @@
 // The values a new record starts with and sends: the server defaults, the prompt-name field, the
 // query the full page reads, the values "Edit full form" carries, and the insert body.
 import { runMethod } from "@framework/ui/api";
-import { mapField } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import { layoutFields, NO_VALUE } from "@framework/ui/components/FormLayout/newRowValues";
-import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
-import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { isNamedByPrompt, NEW_NAME } from "@framework/ui/utils/naming";
+import { mapField, layoutFields, NO_VALUE, fieldsToLayout } from "@framework/ui/FormLayout";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
+import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { isNamedByPrompt, NEW_NAME } from "@framework/ui/utils";
 import type { LocationQuery } from "vue-router";
 import { __ } from "@/i18n";
 

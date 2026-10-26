@@ -1,10 +1,5 @@
 // One field's per-render property override, split by when each half applies.
-import type {
-	FieldMeta,
-	FieldNode,
-	FieldOverride,
-	FieldUI,
-} from "@framework/ui/components/FormLayout/types";
+import type { FieldMeta, FieldNode, FieldOverride, FieldUI } from "@framework/ui/FormLayout/types";
 
 /**
  * The build-time half: properties `mapField` sets once. `options` on a `Table` names

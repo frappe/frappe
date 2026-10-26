@@ -6,13 +6,13 @@ import { nextTick } from "vue";
 const fake = vi.hoisted(() => ({ getMeta: vi.fn(), runMethod: vi.fn(), version: 0 }));
 
 vi.mock("@framework/ui/api", () => ({ getMeta: fake.getMeta, runMethod: fake.runMethod }));
-vi.mock("@framework/ui/composables/useDocPermissions", () => ({
+vi.mock("@framework/ui/useDocPermissions", () => ({
 	useDocPermissions: () => ({ fieldAccess: () => "write" }),
 }));
 
-import { resetDoctypeMeta, useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { holdFresh } from "@framework/ui/utils/sharedState";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+import { resetDoctypeMeta, useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { holdFresh } from "@framework/ui/utils";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { resetFormLayouts, useFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
 import { resetListSettings, useListSettings } from "@/list/useListSettings";
 import { watchDoctypeUpdates } from "../doctypeUpdates";

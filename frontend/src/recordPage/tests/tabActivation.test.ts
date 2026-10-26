@@ -21,7 +21,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 
 const RECORD_TABS = [
   { name: "details", label: "Details" },

@@ -165,10 +165,11 @@ returns **200, never 404** — a 404 loses the asset preloads.
   copy had its own injection keys, so a Link field never found the `CreateRecordKey` that
   `main.ts` provides. The build has no pre-bundle and is not affected.
 
-So **`ui/package.json`'s `exports` map is load-bearing for every import from here.** Deep
-imports like `@framework/ui/components/Fields/rowIdentity` match no named key; they fall
-through the final wildcard entry, `"./*": { "import": "./src/*" }`. If a subpath import
-mysteriously fails to resolve, look at that map before anything else.
+So **`ui/package.json`'s `exports` map is load-bearing for every import from here.** The
+desk imports only the root and the named keys; `yarn lint` refuses any other
+`@framework/ui/` path, a `vi.mock` target included. A name the desk needs goes into a
+subpath's index, or a new key. If a subpath import mysteriously fails to resolve, look at
+that map before anything else.
 
 ## Where a contribution lives
 

@@ -1,8 +1,8 @@
 // Lands the reader on a form field: its tab first, then its cell, polled for while the tab's panel mounts.
 import { nextTick } from "vue";
-import { focusField } from "@framework/ui/components/Fields/focusField";
-import { identifyTabs } from "@framework/ui/components/FormLayout/tabIdentity";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+import { focusField } from "@framework/ui/fields";
+import { identifyTabs } from "@framework/ui/FormLayout";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import type { FieldErrors } from "@/recordPage";
 
 export interface FieldLanding {

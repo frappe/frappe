@@ -69,17 +69,16 @@ import {
 	NO_COMMIT,
 	ResolveFieldKey,
 	UpdateKey,
-} from "@framework/ui/components/FormLayout/types";
-import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/components/Fields/types";
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
-import { RecordAnchor } from "@framework/ui/components/Link";
-import { focusField } from "@framework/ui/components/Fields/focusField";
-import { useRecordLink } from "@framework/ui/components/Fields/useRecordLink";
-import { getFormatDefaults } from "@framework/ui/components/FormLayout/formatDefaults";
+} from "@framework/ui/FormLayout/types";
+import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/fields/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { RecordAnchor } from "@framework/ui/Link";
+import { focusField, useRecordLink } from "@framework/ui/fields";
 import {
+	getFormatDefaults,
 	resolveFieldCurrency,
 	useDocValueReader,
-} from "@framework/ui/components/FormLayout/resolveCurrency";
+} from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import { PanelContextKey } from "./context";
 import { displayValue, isSummaryField } from "./displayValue";

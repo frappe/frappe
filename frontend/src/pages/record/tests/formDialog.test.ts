@@ -44,11 +44,10 @@ vi.mock("@framework/ui/api", () => ({
   getMeta: vi.fn(async () => ({ data: null })),
 }));
 
-vi.mock("@framework/ui/components/FormLayout", async () => {
-  const { FieldErrorsKey, RecordLinkKey } = await import(
-    "@framework/ui/components/Fields/types"
-  );
+vi.mock("@framework/ui/FormLayout", async (importOriginal) => {
+  const { FieldErrorsKey, RecordLinkKey } = await import("@framework/ui/fields/types");
   return {
+    ...((await importOriginal()) as object),
     // The real FormLayout is exercised in Chrome; here it owns the doc and shows the record
     // link its fields get, and an input per field with the error it would draw.
     FormLayout: defineComponent({
@@ -85,7 +84,7 @@ vi.mock("@framework/ui/components/FormLayout", async () => {
 });
 
 import { getMeta, runMethod } from "@framework/ui/api";
-import { RecordLinkKey } from "@framework/ui/components/Fields/types";
+import { RecordLinkKey } from "@framework/ui/fields/types";
 import PageFormDialog from "../dialogs/PageFormDialog.vue";
 import type { PageDialogEntry } from "@/recordPage/dialog";
 import type { PageDialogFormOptions } from "@/recordPage/types";

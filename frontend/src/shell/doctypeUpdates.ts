@@ -1,6 +1,6 @@
 // A DocType change marks its meta, form layouts and list settings stale; open pages keep theirs.
 import type { RealtimeSocket } from "@framework/ui/socket";
-import { markDoctypeMetaStale } from "@framework/ui/composables/useDoctypeMeta";
+import { markDoctypeMetaStale } from "@framework/ui/useDoctypeMeta";
 import { markFormLayoutsStale } from "@/recordPage/formLayoutSource/useFormLayout";
 import { markListSettingsStale } from "@/list/useListSettings";
 

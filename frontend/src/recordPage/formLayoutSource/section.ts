@@ -1,7 +1,4 @@
-import type {
-  Column,
-  Section,
-} from "@framework/ui/components/FormLayout/types";
+import type { Column, Section } from "@framework/ui/FormLayout/types";
 
 /** The section keys a Form Layout row and a dialog both carry, so neither grows its own default. */
 export interface SectionSpec {

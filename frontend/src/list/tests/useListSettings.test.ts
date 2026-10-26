@@ -7,7 +7,7 @@ const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
 
 vi.mock("@framework/ui/api", () => ({ runMethod: fake.runMethod }));
 
-import { holdFresh } from "@framework/ui/utils/sharedState";
+import { holdFresh } from "@framework/ui/utils";
 import { markListSettingsStale, resetListSettings, useListSettings, WRITE_DEBOUNCE_MS } from "../useListSettings";
 
 const API = "frappe.desk.doctype.doctype_view.api";

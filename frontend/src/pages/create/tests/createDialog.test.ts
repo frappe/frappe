@@ -51,9 +51,10 @@ vi.mock("frappe-ui", () => ({
 
 // The real FormLayout is exercised in Chrome; this one draws an input per field, owns the doc,
 // and shows each field's error the way a control's atom would.
-vi.mock("@framework/ui/components/FormLayout", async () => {
-	const { CommitKey, FieldErrorsKey } = await import("@framework/ui/components/Fields/types");
+vi.mock("@framework/ui/FormLayout", async (importOriginal) => {
+	const { CommitKey, FieldErrorsKey } = await import("@framework/ui/fields/types");
 	return {
+		...((await importOriginal()) as object),
 		FormLayout: defineComponent({
 			props: { layout: { type: Array, required: true }, doc: { type: Object, required: true } },
 			emits: ["update:doc"],
@@ -95,8 +96,8 @@ import { registerShell, routeFor } from "@/router/routeFor";
 import { closeCreates, createRequests, openCreate, registerCreateDialog, type CreatedDoc } from "@/shell/create";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import CreateDialog from "../CreateDialog.vue";
 
 const LAYOUTS = "/api/v2/method/frappe.desk.doctype.form_layout.form_layout.get_form_layouts";

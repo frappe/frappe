@@ -20,8 +20,8 @@ import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { readOnly } from "../readOnly";
 import { resetRegistry } from "../registry";
 import { resetCustomizationErrorReports } from "../reportError";
-import { setSession } from "@framework/ui/composables/useSession";
-import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
+import { setSession } from "@framework/ui/useSession";
+import { resetUserRoles } from "@framework/ui/useUserRoles";
 import { toast as mockedToast } from "frappe-ui";
 import { runMethod as mockedCall } from "@framework/ui/api";
 

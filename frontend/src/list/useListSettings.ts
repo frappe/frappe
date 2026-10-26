@@ -1,7 +1,7 @@
 // One doctype's stored list settings: the site row and the person's own, fetched beside meta once
 // and again after a DocType change, written back silently. A write's response replaces both rows.
 import { runMethod } from "@framework/ui/api";
-import { landFresh } from "@framework/ui/utils/sharedState";
+import { landFresh } from "@framework/ui/utils";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
 import type { ListSettings, ListSettingsKey } from "./storedSettings";
 

@@ -15,7 +15,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import { FormSurface, resetFormWarnings } from "../form";
 import { FormTabsSurface } from "../formTabs";
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 
 const Part = { render: () => null };
 

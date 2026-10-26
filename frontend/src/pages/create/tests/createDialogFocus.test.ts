@@ -9,8 +9,8 @@ import { resetFormLayouts } from "@/recordPage";
 import { registerShell, routeFor } from "@/router/routeFor";
 import { closeCreates, createRequests, openCreate, registerCreateDialog } from "@/shell/create";
 import { clearDataCache } from "@framework/ui/cache";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import CreateDialog from "../CreateDialog.vue";
 
 const META = {

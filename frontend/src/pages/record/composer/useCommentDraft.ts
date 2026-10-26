@@ -4,7 +4,7 @@ import type { UploadedFile } from "@framework/ui/Composer";
 import type { MediaUploadProgress, UploadedMedia } from "frappe-ui/editor";
 import { saveComposerDraft } from "@/shell/composer";
 import { COMMENT_WRITER, readCommentDraft } from "./commentDraft";
-import { uploadMedia } from "@framework/ui/components/RichText/upload";
+import { uploadMedia } from "@framework/ui/RichText";
 
 const EMPTY_BODY = "<p></p>";
 

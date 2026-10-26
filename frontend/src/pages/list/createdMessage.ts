@@ -1,5 +1,5 @@
 // The toast a list shows after a Create: it names the record by its title, else by its name.
-import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
 
 const HTML_FIELDTYPES = ["Text Editor", "HTML Editor"];

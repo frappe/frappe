@@ -1,12 +1,12 @@
 // One doctype's list: the state the controls edit, seeded from the app default under the site's
 // and the person's stored rows, mirrored to the URL query, and written back on the person's acts.
-import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { applyColumnWidth, clearColumnWidth } from "@framework/ui/ColumnSettings";
 import type { ListColumn } from "@framework/ui/experimental/List";
 import { serializeFilters, type FilterCondition, type FilterField } from "@framework/ui/Filter";
 import { serializeOrderBy, type Sort } from "@framework/ui/SortBy";
-import { holdFresh } from "@framework/ui/utils/sharedState";
+import { holdFresh } from "@framework/ui/utils";
 import {
 	computed,
 	getCurrentScope,

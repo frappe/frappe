@@ -1,10 +1,7 @@
 // What a script may ask about permissions: the rights dict, the session's roles, and a field's access.
 import { watch, type ComputedRef, type Ref } from "vue";
-import {
-  useDocPermissions,
-  type FieldAccess,
-} from "@framework/ui/composables/useDocPermissions";
-import { useUserRoles } from "@framework/ui/composables/useUserRoles";
+import { useDocPermissions, type FieldAccess } from "@framework/ui/useDocPermissions";
+import { useUserRoles } from "@framework/ui/useUserRoles";
 
 /** Enforcement bookkeeping the `permissions` part ships beside the rights. Closed list: the
  *  right set is open-ended (custom `Permission Type` rows), so never allowlist. */

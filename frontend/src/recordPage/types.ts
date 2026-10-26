@@ -2,11 +2,8 @@
 // item schemas the four surfaces accept.
 import type { Component } from "vue";
 import type { Router } from "vue-router";
-import type {
-  BaseActivity,
-  VisibleTypes,
-} from "@framework/ui/components/ActivityTimeline/types";
-import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
+import type { BaseActivity, VisibleTypes } from "@framework/ui/ActivityTimeline";
+import type { FieldAccess } from "@framework/ui/useDocPermissions";
 
 /** Where an added or moved item lands; absent or unknown anchors append. */
 export type Position = { before?: string; after?: string };

@@ -1,13 +1,13 @@
 // The mandatory check a save and a dialog's submit share: each mandatory field shown after
 // `depends_on` and still empty, in form order, a child row's cells included.
-import { identify, rowKey } from "@framework/ui/components/Fields/rowIdentity";
-import type { FieldAddress } from "@framework/ui/components/Fields/types";
+import { identify, rowKey } from "@framework/ui/fields";
+import type { FieldAddress } from "@framework/ui/fields/types";
 import {
   applyTabOverride,
   resolveFieldConditionals,
   resolveLayout,
-} from "@framework/ui/components/FormLayout/resolveLayout";
-import type { FieldNode, FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+} from "@framework/ui/FormLayout";
+import type { FieldNode, FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 
 /** A mandatory field the check found empty, with the label of the field the form draws it in. */

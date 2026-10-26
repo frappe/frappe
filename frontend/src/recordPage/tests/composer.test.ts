@@ -11,7 +11,7 @@ vi.mock("@framework/ui/api", () => ({
   runMethod: vi.fn(async () => ({ data: null })),
 }));
 
-import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import type { Session } from "@framework/ui/api";
 import { composerHost } from "@/pages/record/composer/composerHost";
 import {

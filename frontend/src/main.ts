@@ -3,14 +3,10 @@
 import "@/index.css";
 import { createApp, defineAsyncComponent, h } from "vue";
 import { FrappeUI } from "frappe-ui";
-import { provideSession } from "@framework/ui/composables/useSession";
+import { provideSession } from "@framework/ui/useSession";
 // the types module, not the subsystem barrel: the shell must not load the dialog to boot
-import { UploadLimitsKey } from "@framework/ui/components/FileUpload/types";
-import {
-	CreateRecordKey,
-	RecordLinkKey,
-	TemplateNamesKey,
-} from "@framework/ui/components/Fields/types";
+import { UploadLimitsKey } from "@framework/ui/FileUpload";
+import { CreateRecordKey, RecordLinkKey, TemplateNamesKey } from "@framework/ui/fields/types";
 // The one file of the template compiler the shell may load: the names, not the compiler.
 import templateNames from "../templateCompiler/names.json";
 
