@@ -1,25 +1,30 @@
+// jQuery calls a special event's `remove` hook when `.empty()`, `.remove()` or
+// `.html()` tears an element down, and never for `.detach()`.
+$.event.special.vue_component_removed = {
+	remove(handle) {
+		handle.handler();
+	},
+};
+
 frappe.ui.form.ControlVueComponent = class ControlVueComponent extends frappe.ui.form.Control {
 	make() {
 		super.make();
+		this.$wrapper.on("vue_component_removed", () => this.release());
 		if (this.frm) {
 			this.dirty_event = `dirty.vue_component_${frappe.utils.get_random(8)}`;
 			$(this.frm.wrapper).on(
 				this.dirty_event,
-				frappe.utils.debounce(() => this.update(), 300)
+				frappe.utils.debounce(() => this.island?.update(this.get_props()), 300)
 			);
 		}
 	}
 
-	update() {
-		if (!this.wrapper.isConnected) {
-			this.release();
-			return;
-		}
-		this.island?.update(this.get_props());
+	release() {
+		this.frm && $(this.frm.wrapper).off(this.dirty_event);
+		this.unmount();
 	}
 
-	release() {
-		$(this.frm.wrapper).off(this.dirty_event);
+	unmount() {
 		this.island?.unmount();
 		this.island = null;
 	}
@@ -27,11 +32,16 @@ frappe.ui.form.ControlVueComponent = class ControlVueComponent extends frappe.ui
 	refresh_input() {
 		if (!this.df.options || !this.get_doc() || this.unavailable === this.df.options) return;
 
+		if (this.island && this.island_name !== this.df.options) {
+			this.unmount();
+		}
 		if (this.island) {
 			this.island.update(this.get_props());
 			return;
 		}
 
+		this.$wrapper.find(".vue-component-unavailable").remove();
+		this.island_name = this.df.options;
 		this.island = frappe.ui.mount_island(this.df.options, this.wrapper, this.get_props());
 		this.island.ready.catch((error) => {
 			console.error(error);
