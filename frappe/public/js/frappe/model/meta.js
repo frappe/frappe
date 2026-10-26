@@ -296,7 +296,11 @@ $.extend(frappe.meta, {
 			}
 		});
 
-		if (default_print_format && default_print_format != "Standard") {
+		if (
+			default_print_format &&
+			default_print_format != "Standard" &&
+			!restricted.includes(default_print_format)
+		) {
 			var index = print_format_list.indexOf(default_print_format);
 			print_format_list.splice(index, 1).sort();
 			print_format_list.unshift(default_print_format);
