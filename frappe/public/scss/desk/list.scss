@@ -4,7 +4,15 @@
 			.result {
 				min-width: 100%;
 				width: auto;
-				display: table;
+
+				// wide rows scroll sideways; a phone has no sideways scroll, so its rows fit the screen
+				@media (min-width: map-get($grid-breakpoints, "sm") + 1) {
+					display: table;
+
+					.list-row-container {
+						width: fit-content;
+					}
+				}
 
 				// Spacer rows reserve off-screen height in virtualized lists but should never intercept clicks.
 				.list-virtual-spacer {
@@ -56,11 +64,8 @@
 				}
 
 				.list-row-container {
-					width: fit-content;
 					min-width: 100%;
-				}
 
-				.list-row-container {
 					.level-left {
 						.list-row-col {
 							min-width: 50px;
@@ -225,6 +230,13 @@
 		flex: 4;
 		min-width: 80%;
 		padding: var(--padding-xs) 0;
+	}
+
+	.list-subject > span:last-child {
+		flex: 0 1 auto;
+		min-width: 0;
+		overflow: hidden;
+		text-overflow: ellipsis;
 	}
 
 	.level-right {
@@ -877,6 +889,7 @@ input.list-header-checkbox {
 				.level-right {
 					flex: 0 0 auto;
 					width: auto;
+					min-width: auto;
 					border-left: none;
 
 					.level-item.visible-xs {
