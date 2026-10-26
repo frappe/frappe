@@ -275,7 +275,7 @@ component group, with its main names.
 | --- | --- |
 | `AppShell` | The root component: rail, sidebar, page area, and the hash dialogs |
 | `PageFrame` | The frame every page draws inside: header, scroll area, gutter, and a page state in place of the content |
-| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`) | Loading, empty, empty with a filter, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home. `failedState` picks the state a failed read shows, with the server's message as text. Home, list and record share them |
+| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`) | Loading, empty, empty with a filter, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home. `failedState` picks the state a failed read shows, with the server's message as text. Home, list, record and the new record page share them |
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
@@ -737,7 +737,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | 11 hand-written "latest reply" counters | One "latest reply wins" helper | New map |
 | Two listeners on each record room | One | Activity column |
 | Separate comment and email writer pipelines | One | Activity column |
-| The new record page draws its own loading and error states | It draws the shared page states | New map |
 | Two server cache keys for doctype owners and the address table | One | New map |
 | First app wins for item kinds; last app wins for replacements | Last app wins everywhere | Build and publishing |
 | The session fetched twice | The desk passes it | @framework/ui |

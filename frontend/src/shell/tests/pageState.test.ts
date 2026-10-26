@@ -17,10 +17,11 @@ afterEach(() => {
 });
 
 const crm = { app: "crm", app_title: "CRM" };
+const BASE = "/apps/crm";
 
 async function mount(render: () => ReturnType<typeof h>, { at = "/crm-lead/x" } = {}) {
 	const router = createRouter({
-		history: createMemoryHistory("/apps/crm"),
+		history: createMemoryHistory(BASE),
 		routes: [
 			{ path: "/", name: "home", component: { render: () => null } },
 			{ path: "/:pathMatch(.*)*", component: { render: () => null } },
@@ -141,7 +142,7 @@ describe("PageState", () => {
 	it("offers the app's home when not found, labelled with the app's title", async () => {
 		const root = await mount(() => h(PageState, { name: "notFound" }));
 		expect(action(root)?.textContent?.trim()).toBe("Go to CRM home");
-		expect(action(root)?.getAttribute("href")).toBe("/apps/crm/");
+		expect(action(root)?.getAttribute("href")).toBe(`${BASE}/`);
 	});
 
 	it("offers no home on the home page itself, nor on any other state", async () => {

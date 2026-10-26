@@ -3,7 +3,7 @@
   Record form only. The first save inserts it and replaces the address with the saved record's.
 -->
 <template>
-	<PageFrame :scroll="false">
+	<PageFrame :scroll="false" :state="state">
 		<template v-if="painted" #aboveHeader>
 			<FrameBands :bands="frame.before" :page="painted.page" />
 		</template>
@@ -19,19 +19,15 @@
 				:favourited="false"
 				@run="runAction"
 			/>
-			<h1 v-else-if="error" class="text-lg font-semibold">{{ title }}</h1>
+			<h1 v-else-if="state" class="text-lg font-semibold">{{ title }}</h1>
 			<HeaderSkeleton v-else />
 		</template>
 
 		<FrameBands v-if="painted" :bands="frame.between" :page="painted.page" />
 
 		<template v-if="frame.body">
-			<p v-if="error" class="py-5 text-sm text-ink-red-4" :class="pageGutter">
-				{{ error }}
-			</p>
-
 			<BodyColumns
-				v-else-if="painted"
+				v-if="painted"
 				:items="bodyItems"
 				:page="painted.page"
 				:user="boot.session.user.name"
@@ -93,7 +89,8 @@ import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
 import { OpenSettingsKey } from "@/shell/openSettings";
-import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
+import PageFrame from "@/shell/PageFrame.vue";
+import { failedState, type PageStateValue } from "@/shell/pageState";
 import type { Boot } from "@/boot";
 import {
 	fetchNewDocument,
@@ -138,7 +135,7 @@ const meta = ref<any>(null);
 const opened = ref<string | null>(null);
 // The values the layout row is picked against, set once, so typing never switches the row.
 const openingValues = ref<Record<string, any>>({});
-const error = ref("");
+const state = shallowRef<PageStateValue | null>(null);
 const controller = shallowRef<RecordPageController | null>(null);
 const painted = computed(() => (controller.value?.ready.value ? controller.value : null));
 const actionsVersion = ref(0);
@@ -209,7 +206,7 @@ async function open() {
 	controller.value?.leave();
 	controller.value = null;
 	opened.value = null;
-	error.value = "";
+	state.value = null;
 	void loadRecordScripts(props.doctype);
 	const newDocument = fetchNewDocument(props.doctype);
 	// Read after the meta and the create right; a page that stops before then drops the failure.
@@ -218,7 +215,7 @@ async function open() {
 		meta.value = await fetchMeta(props.doctype);
 		if (!opening.current()) return;
 		if (!canCreate.value) {
-			error.value = __("You do not have permission to create {0}.", [__(props.doctype)]);
+			state.value = { name: "noPermission" };
 			return;
 		}
 		const newDoc = await newDocument;
@@ -230,7 +227,7 @@ async function open() {
 		openingValues.value = values;
 		doc.value = JSON.parse(JSON.stringify(values));
 	} catch (exception) {
-		if (opening.current()) error.value = errorMessage(exception);
+		if (opening.current()) state.value = failedState(exception, open);
 		return;
 	}
 

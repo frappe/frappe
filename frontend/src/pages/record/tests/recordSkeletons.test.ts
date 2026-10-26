@@ -337,7 +337,7 @@ describe("when the record read fails", () => {
     const missing = await open();
     const home = missing.querySelector<HTMLAnchorElement>("[data-page-state] a");
     expect(home?.textContent?.trim()).toBe("Go to Desk home");
-    expect(home?.getAttribute("href")).toBe("/apps/frappe/");
+    expect(home?.getAttribute("href")).toBe(`${boot.shell_base}/`);
 
     document.body.innerHTML = "";
     load.failure = new ApiError({ type: "Error", message: "no" } as never, 403);

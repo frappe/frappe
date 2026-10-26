@@ -1,7 +1,27 @@
 // The meta as a promise: settled now on a cached doctype, later on a fresh one.
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
-import { awaitMeta } from "../metaSource";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { awaitMeta, fetchMeta } from "../metaSource";
+
+describe("fetchMeta", () => {
+	afterEach(() => {
+		vi.unstubAllGlobals();
+		resetDoctypeMeta();
+	});
+
+	it("reads a meta again after a failed read, so Try again can open the page", async () => {
+		const reads = vi.fn(async () => {
+			if (reads.mock.calls.length === 1) throw new TypeError("Failed to fetch");
+			return new Response(JSON.stringify({ data: { name: "Note" } }), { status: 200 });
+		});
+		vi.stubGlobal("fetch", reads);
+
+		await expect(fetchMeta("Note")).rejects.toMatchObject({ type: "NetworkError" });
+		await expect(fetchMeta("Note")).resolves.toEqual({ name: "Note" });
+		expect(reads).toHaveBeenCalledTimes(2);
+	});
+});
 
 describe("awaitMeta", () => {
 	it("answers a meta the source already holds, as a second visit to the doctype finds it", async () => {
@@ -40,6 +60,16 @@ describe("awaitMeta", () => {
 		await nextTick();
 		await expect(settled).rejects.toThrow("Network down");
 		expect(source.meta.value).toEqual(stale);
+	});
+
+	it("waits while a failed read is read again, and answers the new read", async () => {
+		const source = { meta: ref<any>(null), error: ref<unknown>(new Error("offline")), loading: ref(true) };
+		const settled = awaitMeta(source);
+		source.meta.value = { name: "CRM Deal" };
+		source.error.value = null;
+		source.loading.value = false;
+		await nextTick();
+		await expect(settled).resolves.toEqual({ name: "CRM Deal" });
 	});
 
 	it("rejects with the source's error, now or later", async () => {

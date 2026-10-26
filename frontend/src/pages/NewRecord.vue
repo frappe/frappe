@@ -9,22 +9,13 @@
 		:doctype="doctype"
 		:query="route.query"
 	/>
-	<PageFrame v-else :title="__('Unknown')">
-		<p class="py-5 text-sm text-ink-gray-6">
-			{{
-				__("No doctype is served at {0} under this prefix.", [
-					String(route.params.doctype),
-				])
-			}}
-		</p>
-	</PageFrame>
+	<PageFrame v-else :state="{ name: 'notFound' }" />
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { useRoute } from "vue-router";
 import type { Addresses } from "@/addresses";
-import { __ } from "@/i18n";
 import { openingKey } from "./record/openingKey";
 import PageFrame from "@/shell/PageFrame.vue";
 import UnsavedRecord from "./record/UnsavedRecord.vue";

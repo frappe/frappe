@@ -1,15 +1,21 @@
-// The full-page new record at `/<doctype>/new`: what it opens with, the insert its save sends,
-// the leave warning, and what a script sees before and after the insert.
+// The full-page new record at `/<doctype>/new`: what it opens with, the page states it shows,
+// the insert its save sends, the leave warning, and what a script sees before and after the insert.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick } from "vue";
 import { RouterView, type Router } from "vue-router";
 
 vi.mock("@/shell/PageFrame.vue", async () => {
   const { defineComponent, h } = await import("vue");
+  const PageState = (await import("@/shell/PageState.vue")).default;
   return {
     pageGutter: "px-[--page-gutter]",
     default: defineComponent({
-      setup: (_, { slots }) => () => h("div", [h("header", slots.header?.()), slots.default?.()]),
+      props: ["state"],
+      setup: (props, { slots }) => () =>
+        h("div", [
+          h("header", slots.header?.()),
+          props.state ? h(PageState, props.state) : slots.default?.(),
+        ]),
     }),
   };
 });
@@ -103,6 +109,8 @@ function noteMeta() {
 
 const server = {
   meta: noteMeta() as Record<string, any>,
+  // Set by a test: the meta read throws it, or answers with it.
+  metaFailure: null as Error | [unknown, number] | null,
   inserts: [] as Record<string, any>[],
   layoutTypes: [] as string[],
   rows: {} as Record<string, unknown[]>,
@@ -116,7 +124,10 @@ const server = {
 
 async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> {
   const path = decodeURIComponent(url.pathname);
-  if (path === "/api/v2/doctype/Note/meta") return [{ data: server.meta }, 200];
+  if (path === "/api/v2/doctype/Note/meta") {
+    if (server.metaFailure instanceof Error) throw server.metaFailure;
+    return server.metaFailure ?? [{ data: server.meta }, 200];
+  }
   if (path === `/api/v2/method/${GET_CLIENT_SCRIPTS}`)
     return [{ data: { scripts: [{ name: "Note Script", script: "" }], can_write: false } }, 200];
   if (path === `/api/v2/method/${GET_FORM_LAYOUTS}`) {
@@ -182,6 +193,7 @@ const apps: ReturnType<typeof createApp>[] = [];
 
 beforeEach(() => {
   server.meta = noteMeta();
+  server.metaFailure = null;
   server.inserts = [];
   server.layoutTypes = [];
   server.rows = {};
@@ -227,10 +239,11 @@ async function settle() {
   }
 }
 
-async function mount(address: string): Promise<{ root: HTMLElement; router: Router }> {
+async function mount(address: string, afterRouting = () => {}): Promise<{ root: HTMLElement; router: Router }> {
   const router = createShellRouter(boot, addresses);
   registerShell({ boot, addresses, router });
   await router.push(address);
+  afterRouting();
   const root = document.createElement("div");
   document.body.appendChild(root);
   const app = createApp(defineComponent({ render: () => h(RouterView) }));
@@ -303,13 +316,26 @@ describe("opening /<doctype>/new", () => {
     expect(router.currentRoute.value.params.name).toBe("Note Settings");
   });
 
-  it("says not permitted, and reads no defaults, without the create right", async () => {
+  it("keeps the heading and shows the no permission state, with no action and no form, without the create right", async () => {
     server.meta = { ...noteMeta(), permissions: [{ role: "Note Writer", permlevel: 0, read: 1 }] };
 
     const { root } = await mount("/note/new");
 
-    expect(root.textContent).toContain("You do not have permission to create Note.");
+    expect(root.querySelector("h1")!.textContent).toBe("New Note");
+    expect(root.querySelector('[data-page-state="noPermission"]')).not.toBeNull();
+    expect(root.querySelector("[data-page-state] a, [data-page-state] button")).toBeNull();
     expect(input(root, "title")).toBeNull();
+  });
+
+  it("shows the not found state with the app's home, and no heading, once its slug serves no doctype", async () => {
+    // The router sends an unknown slug to the catch-all, so only a table without the doctype reaches this guard.
+    const { root } = await mount("/note/new", () => vi.spyOn(addresses, "doctypeOf").mockReturnValue(null));
+
+    expect(root.querySelector('[data-page-state="notFound"]')).not.toBeNull();
+    expect(root.querySelector("h1")).toBeNull();
+    const home = root.querySelector<HTMLAnchorElement>("[data-page-state] a");
+    expect(home?.textContent?.trim()).toBe("Go to frappe home");
+    expect(home?.getAttribute("href")).toBe(`${boot.shell_base}/`);
   });
 
   it("puts a name field at the top for a doctype named by prompt, filled from the query", async () => {
@@ -324,6 +350,58 @@ describe("opening /<doctype>/new", () => {
     expect(input(root, "__newname")!.value).toBe("My Note");
   });
 });
+
+describe("when a read fails", () => {
+  it.each([
+    [404, "notFound"],
+    [403, "noPermission"],
+  ])("shows the page state for a meta read refused with %i", async (status, state) => {
+    server.metaFailure = [{ errors: [{ type: "Error", message: "no" }] }, status];
+
+    const { root } = await mount("/note/new");
+
+    expect(root.querySelector("h1")!.textContent).toBe("New Note");
+    expect(root.querySelector(`[data-page-state="${state}"]`)).not.toBeNull();
+    expect(tryAgain(root)).toBeUndefined();
+  });
+
+  it("shows the offline state on a network failure, and Try again reads the meta again and opens the form", async () => {
+    server.metaFailure = new TypeError("Failed to fetch");
+
+    const { root } = await mount("/note/new");
+
+    expect(root.querySelector('[data-page-state="offline"]')).not.toBeNull();
+    expect(input(root, "title")).toBeNull();
+
+    server.metaFailure = null;
+    tryAgain(root).click();
+    await settle();
+
+    expect(root.querySelector("[data-page-state]")).toBeNull();
+    expect(input(root, "status")!.value).toBe("Open");
+  });
+
+  it("shows the failed state with the server's message as text, never as HTML, and Try again opens the form", async () => {
+    server.metaFailure = [{ errors: [{ type: "ValidationError", message: "<b>Disk</b> is full" }] }, 500];
+
+    const { root } = await mount("/note/new");
+
+    const state = root.querySelector('[data-page-state="failed"]')!;
+    expect(state.textContent).toContain("Disk is full");
+    expect(state.querySelector("b")).toBeNull();
+
+    server.metaFailure = null;
+    tryAgain(root).click();
+    await settle();
+
+    expect(root.querySelector("[data-page-state]")).toBeNull();
+    expect(input(root, "status")!.value).toBe("Open");
+  });
+});
+
+function tryAgain(root: HTMLElement) {
+  return [...root.querySelectorAll("button")].find((button) => button.textContent?.trim() === "Try again")!;
+}
 
 describe("inline fields", () => {
   const nickname = { fieldname: "nickname", fieldtype: "Data", label: "Nickname" };
