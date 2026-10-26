@@ -15,18 +15,18 @@ When develop goes green again, every pull request turns green on its own. You do
 
 1. Open the failed run from the Develop status check and find the test that fails.
 2. Open a pull request with the fix, or a revert of the change that broke it.
-3. Add the `fixes-develop` label. The failing suite runs in full on your pull request.
-4. Merge it once those tests pass. Every pull request turns green right away. The full suites also run on develop once more to confirm, and if they fail, develop is red again.
+3. Add the `fixes-develop` label. The failing suite runs in full on your pull request, and its Develop status stays yellow while those tests run.
+4. When they pass, its Develop status turns green and you can merge. If they fail, it turns red and links the failed job. Once it merges, every pull request turns green right away. The full suites also run on develop once more to confirm, and if they fail, develop is red again.
 
 To re-test develop at any other time: open the **Actions** tab of the repo, click **Develop Tests** in the list on the left, then click the **Run workflow** button on the right.
 
 ## Labels
 
-| Label                               | What it does                                                                                                                                                               |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `fixes-develop`                     | Your pull request fixes a failing develop. Its Develop status stays green so it can merge, and it runs in full whichever suite is failing on develop (server, UI or both). |
-| `run-full-ci`                       | Runs the full server and UI suites on your pull request. Use it for risky changes.                                                                                         |
-| `Run Server Tests` / `Run UI Tests` | Runs the full server or UI suite on your pull request.                                                                                                                     |
+| Label                               | What it does                                                                                                                                                   |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `fixes-develop`                     | Your pull request fixes a failing develop. It runs in full whichever suite is failing on develop (server, UI or both), and it can merge once those tests pass. |
+| `run-full-ci`                       | Runs the full server and UI suites on your pull request. Use it for risky changes.                                                                             |
+| `Run Server Tests` / `Run UI Tests` | Runs the full server or UI suite on your pull request.                                                                                                         |
 
 You can add a label any time. Adding `fixes-develop` or `run-full-ci` restarts your tests within a minute, no push needed. `Run Server Tests` and `Run UI Tests` take effect on your next push or re-run.
 
