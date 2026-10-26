@@ -217,7 +217,9 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	setup_load_on_scroll() {
 		if (this.view_name !== "List" || typeof IntersectionObserver === "undefined") return;
 		this.load_on_scroll = true;
-		this.$list_end = $(`<div class="list-end" aria-hidden="true"></div>`);
+		// 1px tall: with no height it sits on the scroll box's clip edge, which Safari never
+		// reports as visible after the first load
+		this.$list_end = $(`<div class="list-end h-px" aria-hidden="true"></div>`);
 		this.$result.after(this.$list_end);
 	}
 
