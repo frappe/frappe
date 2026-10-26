@@ -7,13 +7,16 @@ import walk from "./vite.walk.config.js";
 // Not `/assets/`: the bench answers that path with its own build.
 const BASE = "/_walk/";
 
-export default (env) =>
-	mergeConfig(walk(env), {
+export default (env) => {
+	// Without it the build falls back to the bench's own output folder and empties it.
+	if (!process.env.OUT_DIR) throw new Error("Set OUT_DIR to a folder outside the bench");
+	return mergeConfig(walk(env), {
 		base: BASE,
 		build: { outDir: process.env.OUT_DIR, emptyOutDir: true },
 		preview: { port: Number(process.env.WALK_PORT || 8098), strictPort: true },
 		plugins: [servesBuiltApps()],
 	});
+};
 
 function servesBuiltApps() {
 	return {

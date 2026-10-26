@@ -3,7 +3,7 @@
 
 import { chromium } from "playwright";
 import { writeFileSync } from "node:fs";
-import { BASE_URL, NETWORKS, logIn } from "./setup.js";
+import { BASE_URL, NETWORKS, jsonPathArgument, logIn, networkNames } from "./setup.js";
 
 const HOME = process.env.HOME_PATH || "/apps/crm";
 const LIST = process.env.LIST_PATH || "/apps/crm/crm-lead";
@@ -24,16 +24,12 @@ const SCENARIOS = {
 	"list → record (row)": (network) => click(network, LIST, ROWS, `a[href="${RECORD}"]`, FIELDS),
 };
 
-const results = await walk();
-if (process.argv.includes("--json"))
-	writeFileSync(
-		process.argv[process.argv.indexOf("--json") + 1],
-		JSON.stringify(results, null, 1)
-	);
+const jsonPath = jsonPathArgument();
+const results = await walk(networkNames());
+if (jsonPath) writeFileSync(jsonPath, JSON.stringify(results, null, 1));
 printTables(results);
 
-async function walk() {
-	const networks = process.env.NETWORK ? [process.env.NETWORK] : Object.keys(NETWORKS);
+async function walk(networks) {
 	const results = {};
 	for (const network of networks) {
 		for (const [name, run] of Object.entries(SCENARIOS)) {
@@ -63,7 +59,7 @@ async function cold(network, path, ready) {
 			rail: probe.frames.rail,
 			sidebar: probe.frames.sidebar,
 			skeleton: probe.frames.skeleton,
-			pageCode: await scriptsDoneBefore(page, content),
+			pageCode: await codeIn(page, 0, content),
 			content,
 			cls: layoutShift(probe.shifts),
 		};
@@ -83,10 +79,13 @@ async function click(network, from, fromReady, link, ready) {
 		await page.waitForSelector(ready, { timeout: NETWORKS[network].capMs });
 		await page.waitForTimeout(500);
 		const { click: clicked, shifts } = await page.evaluate(() => window.__budget);
+		const pageCode = await codeIn(page, clicked.at, clicked.drawn);
 		return {
 			address: clicked.pushed - clicked.at,
 			frame: clicked.frame - clicked.at,
+			painted: clicked.painted - clicked.at,
 			paint: clicked.paint ?? null,
+			pageCode: pageCode === null ? null : pageCode - clicked.at,
 			drawn: clicked.drawn - clicked.at,
 			cls: layoutShift(shifts.filter((shift) => shift.t > clicked.at)),
 		};
@@ -116,16 +115,19 @@ async function open(network) {
 	return { browser, page };
 }
 
-/** The last JS or CSS response before the content drew: when the page's code was in. */
-function scriptsDoneBefore(page, content) {
-	return page.evaluate((before) => {
-		const ends = performance
-			.getEntriesByType("resource")
-			.filter((entry) => /\.(js|css)$/.test(new URL(entry.name).pathname))
-			.map((entry) => entry.responseEnd)
-			.filter((end) => end <= before);
-		return ends.length ? Math.max(...ends) : null;
-	}, content);
+/** The last JS or CSS response asked for after `from` and in before `until`: the page's code. */
+function codeIn(page, from, until) {
+	return page.evaluate(
+		([from, until]) => {
+			const ends = performance
+				.getEntriesByType("resource")
+				.filter((entry) => /\.(js|css)$/.test(new URL(entry.name).pathname))
+				.filter((entry) => entry.startTime >= from && entry.responseEnd <= until)
+				.map((entry) => entry.responseEnd);
+			return ends.length ? Math.max(...ends) : null;
+		},
+		[from, until]
+	);
 }
 
 // Runs in the page before any script: one sample per animation frame.
@@ -185,7 +187,11 @@ function probe() {
 		seen("fields", "[data-crumbs] button > span[title]");
 		const clicked = budget.click;
 		if (clicked) {
-			if (clicked.frame === undefined && contentChangedAt !== null) clicked.frame = now;
+			if (clicked.frame === undefined && contentChangedAt !== null) {
+				clicked.frame = now;
+				// A task queued in a frame's callbacks runs after that frame has painted.
+				setTimeout(() => (clicked.painted = performance.now()));
+			}
 			if (clicked.drawn === undefined && document.querySelector(budget.ready))
 				clicked.drawn = now;
 		}
@@ -241,13 +247,13 @@ function printTables(results) {
 	);
 	console.log();
 	console.log(
-		"| Network | Click | Address changes | Frame changes | Click to next paint | Page drawn | Layout shift | Runs |"
+		"| Network | Click | Address changes | Frame changes | Frame painted | Click to next paint | Page code in | Page drawn | Layout shift | Runs |"
 	);
-	console.log("| --- | --- | --- | --- | --- | --- | --- | --- |");
+	console.log("| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |");
 	console.log(
 		rows(
 			names.filter((name) => !name.startsWith("cold")),
-			["address", "frame", "paint", "drawn", "cls"]
+			["address", "frame", "painted", "paint", "pageCode", "drawn", "cls"]
 		).join("\n")
 	);
 	const failed = Object.entries(results).filter(([, runs]) => runs.some((run) => run.error));

@@ -32,7 +32,7 @@ export async function setUp(choose = firstWithRows) {
 	return { jsonPath, networks, target };
 }
 
-function jsonPathArgument() {
+export function jsonPathArgument() {
 	const index = process.argv.indexOf("--json");
 	if (index === -1) return null;
 	const path = process.argv[index + 1];
@@ -40,7 +40,7 @@ function jsonPathArgument() {
 	return path;
 }
 
-function networkNames() {
+export function networkNames() {
 	if (!NETWORK) return Object.keys(NETWORKS);
 	if (!NETWORKS[NETWORK])
 		throw new Error(`Unknown NETWORK "${NETWORK}"; use ${Object.keys(NETWORKS).join(" or ")}`);

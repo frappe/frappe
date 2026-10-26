@@ -126,8 +126,10 @@ network and `SLOW_RUNS` times on the `slow` one. It prints the median of each co
 
 - cold loads: when the rail, the sidebar and the first skeleton draw, when the last JS or
   CSS file before the content arrived, when the content draws, and the layout shift;
-- clicks: when the address changes, when the page frame first changes, the browser's
-  click-to-next-paint time (Event Timing), when the page draws, and the layout shift.
+- clicks: when the address changes, the animation frame that first draws a change in the page
+  frame and when that frame has painted, the browser's click-to-next-paint time (Event
+  Timing, which drops a click under 16 ms), when the last JS or CSS file the click asked
+  for arrived, when the page draws, and the layout shift.
 
 Times count from the navigation start or the click. Measure built code: build the
 checkout with `vite.budget.config.js` to a folder outside the bench, serve it with
