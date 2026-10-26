@@ -17,6 +17,7 @@ from frappe.desk.query_report import (
 	normalize_result,
 	run,
 )
+from frappe.desk.utils import send_report_email
 from frappe.model.document import Document
 from frappe.translate import print_language
 from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
@@ -572,16 +573,12 @@ def download_report_pdf(
 	custom_columns: str | list[dict] | None = None,
 	applied_filters: str | dict | None = None,
 	ignore_prepared_report: bool | int = False,
+	in_background: bool | int = False,
 ) -> None:
-	"""Run the report on the server and return it as a PDF.
+	"""Run the report on the server and return it as a PDF, or email a link to it when built in the background.
 
 	`columns` are the fieldnames to print in order, `visible_idx` the row indices to print in order.
 	"""
-	from frappe.model import numeric_fieldtypes
-	from frappe.www.printview import get_print_style
-
-	filters = frappe.parse_json(filters) or {}
-	visible_idx = frappe.parse_json(visible_idx) or []
 	if print_format and frappe.db.get_value("Print Format", print_format, "report") != report_name:
 		frappe.throw(
 			_("Print Format {0} does not belong to report {1}").format(
@@ -595,6 +592,67 @@ def download_report_pdf(
 			_("You don't have permission to print: {0}").format(_(ref_doctype)),
 			frappe.PermissionError,
 		)
+
+	if cint(in_background):
+		user_email = frappe.get_cached_value("User", frappe.session.user, "email")
+		frappe.enqueue(
+			_download_report_pdf,
+			report_name=report_name,
+			filters=filters,
+			orientation=orientation,
+			print_format=print_format,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+			columns=columns,
+			visible_idx=visible_idx,
+			custom_columns=custom_columns,
+			applied_filters=applied_filters,
+			ignore_prepared_report=ignore_prepared_report,
+			user_email=user_email,
+			queue="long",
+		)
+		frappe.msgprint(
+			_(
+				"Your report is being generated in the background. You will receive an email on {0} with a download link once it is ready."
+			).format(user_email)
+		)
+		return
+
+	return _download_report_pdf(
+		report_name,
+		filters,
+		orientation,
+		print_format,
+		letterhead,
+		no_letterhead,
+		columns,
+		visible_idx,
+		custom_columns,
+		applied_filters,
+		ignore_prepared_report,
+	)
+
+
+def _download_report_pdf(
+	report_name: str,
+	filters: str | dict | None = None,
+	orientation: str = "Landscape",
+	print_format: str | None = None,
+	letterhead: str | None = None,
+	no_letterhead: bool | int = 0,
+	columns: str | list[str] | None = None,
+	visible_idx: str | list[int] | None = None,
+	custom_columns: str | list[dict] | None = None,
+	applied_filters: str | dict | None = None,
+	ignore_prepared_report: bool | int = False,
+	user_email: str | None = None,
+) -> None:
+	from frappe.model import numeric_fieldtypes
+	from frappe.www.printview import get_print_style
+
+	filters = frappe.parse_json(filters) or {}
+	visible_idx = frappe.parse_json(visible_idx) or []
+	ref_doctype = frappe.get_cached_value("Report", report_name, "ref_doctype")
 
 	data = frappe._dict(
 		run(
@@ -709,15 +767,19 @@ def download_report_pdf(
 		},
 	)
 
-	frappe.local.response.filename = f"{report_name}.pdf"
-	frappe.local.response.filecontent = get_pdf(
+	pdf = get_pdf(
 		html,
 		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
 		pdf_generator=resolve_pdf_generator(
 			print_format and frappe.get_cached_doc("Print Format", print_format)
 		),
 	)
-	frappe.local.response.type = "pdf"
+	if user_email:
+		send_report_email(user_email, report_name, "pdf", pdf, attached_to_name=report_name)
+	else:
+		frappe.local.response.filename = f"{report_name}.pdf"
+		frappe.local.response.filecontent = pdf
+		frappe.local.response.type = "pdf"
 
 
 @frappe.whitelist()
