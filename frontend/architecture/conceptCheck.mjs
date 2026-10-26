@@ -5,12 +5,30 @@ import path from "node:path";
 import { conceptsOf } from "./architectureDoc.mjs";
 
 export class ConceptCheck {
-  constructor(jsFiles, layerOf, doc, layerFile) {
+  constructor(jsFiles, layerOf, doc, layerFile, uiEntries) {
     this.files = jsFiles;
     this.layerOf = layerOf;
     this.listed = listedNames(doc, layerFile.layers);
     this.known = layerFile.knownUnlisted;
     this.unlisted = this.findUnlisted();
+    this.publicUi = this.findPublicUi(uiEntries);
+  }
+
+  isInternal(file, name) {
+    return file.startsWith("ui/") && !this.publicUi.has(`${file}#${name}`);
+  }
+
+  summary() {
+    const known = Object.entries(this.known).flatMap(([file, names]) =>
+      names.map((n) => [file, n])
+    );
+    const internal = known.filter(([file, n]) => this.isInternal(file, n));
+    const gaps = known.filter(([file, n]) => !this.isInternal(file, n));
+    const uiNames = count(internal, "ui/ names");
+    return [
+      `GAPS       ${count(gaps)}: no concept row yet`,
+      `INTERNAL   ${uiNames}: not public, so no concept row`,
+    ];
   }
 
   get newUnlisted() {
@@ -33,11 +51,12 @@ export class ConceptCheck {
 
   report() {
     return [
-      ...this.newUnlisted.map(
-        ([file, name]) =>
-          `NO CONCEPT ${name} (${file}): add it to layer ${this.layerOf(
-            file
-          )}'s concept table`
+      ...this.newUnlisted.map(([file, name]) =>
+        this.isInternal(file, name)
+          ? `NOT PUBLIC ${name} (${file}): crosses a folder but is not public, so it gets no concept row; keep it in its folder`
+          : `NO CONCEPT ${name} (${file}): add it to layer ${this.layerOf(
+              file
+            )}'s concept table`
       ),
       ...this.fixedUnlisted.map(
         ([file, name]) =>
@@ -53,14 +72,7 @@ export class ConceptCheck {
       for (const imp of info.imports) {
         if (!imp.target || path.dirname(imp.target) === path.dirname(file))
           continue;
-        // `* from` and `* as x` hand over every name the target exports.
-        const names =
-          imp.star || imp.namespace
-            ? [...this.exportsOf(imp.target)]
-            : imp.names.map((n) => n.from);
-        for (const name of names) {
-          const [home, homeName] = this.homeOf(imp.target, name);
-          const concept = homeName === "default" ? baseName(home) : homeName;
+        for (const [home, concept] of this.namesTaken(imp)) {
           const layer = this.layerOf(home);
           if (!layer || this.listed.get(layer)?.has(concept)) continue;
           if (!unlisted.has(home)) unlisted.set(home, new Set());
@@ -69,6 +81,49 @@ export class ConceptCheck {
       }
     }
     return new Map([...unlisted].sort(([a], [b]) => a.localeCompare(b)));
+  }
+
+  findPublicUi(uiEntries) {
+    const exported = new Set();
+    for (const entry of uiEntries.filter((e) => this.files.has(e))) {
+      const names = this.exportsOf(entry);
+      if (
+        entry.endsWith(".vue") ||
+        this.files.get(entry).exports.has("default")
+      )
+        names.add("default");
+      for (const name of names)
+        exported.add(this.conceptOf(entry, name).join("#"));
+    }
+    const imported = [...this.files]
+      .filter(([file]) => !file.startsWith("ui/"))
+      .flatMap(([, info]) => info.imports)
+      .filter((imp) => imp.target?.startsWith("ui/"))
+      .flatMap((imp) => this.publicNamesTaken(imp));
+    return new Set(imported.filter((key) => exported.has(key)));
+  }
+
+  // An `import()` names nothing the parser can see, so it counts as its default: the way the
+  // desk loads a component lazily. Kept out of namesTaken, which never counts lazy imports.
+  publicNamesTaken(imp) {
+    const names = imp.dynamic
+      ? [this.conceptOf(imp.target, "default")]
+      : this.namesTaken(imp);
+    return names.map((pair) => pair.join("#"));
+  }
+
+  namesTaken(imp) {
+    // `* from` and `* as x` hand over every name the target exports.
+    const names =
+      imp.star || imp.namespace
+        ? [...this.exportsOf(imp.target)]
+        : imp.names.map((n) => n.from);
+    return names.map((name) => this.conceptOf(imp.target, name));
+  }
+
+  conceptOf(file, name) {
+    const [home, homeName] = this.homeOf(file, name);
+    return [home, homeName === "default" ? baseName(home) : homeName];
   }
 
   // Follows `export { x } from` and `export * from` to the file that defines the name.
@@ -117,6 +172,11 @@ function listedNames(doc, layers) {
     listed.set(layer.id, names);
   }
   return listed;
+}
+
+function count(pairs, what = "names") {
+  const files = new Set(pairs.map(([file]) => file));
+  return `${pairs.length} ${what} in ${files.size} files`;
 }
 
 function baseName(file) {

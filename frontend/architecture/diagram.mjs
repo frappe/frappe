@@ -64,6 +64,7 @@ function main() {
   }
   if (process.argv.includes("--flows"))
     for (const line of structure.flows.report()) console.error(line);
+  for (const line of structure.concepts.summary()) console.error(line);
   for (const line of structure.report()) console.error(line);
   if (!structure.passes) process.exitCode = 1;
 }

@@ -35,6 +35,10 @@ export class Sources {
     return this.js;
   }
 
+  uiEntries() {
+    return Object.values(this.uiExports).map((file) => path.join("ui", file));
+  }
+
   readJsFiles() {
     const files = new Map();
     const queue = [
