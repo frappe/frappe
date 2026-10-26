@@ -18,6 +18,7 @@ POINTS_PER_PX = 0.75
 VIEWPORT_WIDTH = 800
 MAX_SHRINK = 0.5
 SCRIPT = re.compile(r"<script|\son[a-z]+\s*=", re.IGNORECASE)
+JINJA_TAG = re.compile(r"{%.*?%}|{{.*?}}|{#.*?#}", re.DOTALL)
 BASE_STYLE = "* { font-variant-ligatures: no-contextual; }"
 BREAK_WORD = re.compile(r"((?:overflow|word)-wrap\s*:\s*)(?:break-word|anywhere)", re.IGNORECASE)
 CSS_IN_HTML = re.compile(
@@ -75,7 +76,7 @@ def plutoprint_blockers(print_format=None) -> list[str]:
 		blockers.append(_("PlutoPrint is not installed on this server"))
 	if print_format:
 		source = "\n".join(cstr(print_format.get(field)) for field in ("html", "css", "format_data"))
-		if SCRIPT.search(source):
+		if SCRIPT.search(JINJA_TAG.sub("", source)):
 			blockers.append(_("JavaScript"))
 		if GRID.search(source):
 			blockers.append(_("CSS grid"))
