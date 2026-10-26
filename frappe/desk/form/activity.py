@@ -753,16 +753,18 @@ def get_child_table_changes(
 	return changes
 
 
-def readable_permlevels(meta, parenttype: str | None = None) -> set[int] | None:
-	"""Permlevels the session user can read (desk's field_display_status model);
+def readable_permlevels(meta, parenttype: str | None = None, right: str = "read") -> set[int] | None:
+	"""Permlevels the session user holds `right` on, read by default (desk's field_display_status model);
 	None ⇒ no permission rows defined, everything readable."""
 	if not meta.get_permissions(parenttype):
 		return None
-	levels = set(meta.get_permlevel_access("read", parenttype, user=frappe.session.user))
+	levels = set(meta.get_permlevel_access(right, parenttype, user=frappe.session.user))
 	# shared reads carry no role row; the doctype-wide get_shared check suffices —
 	# a role-less reader only passes check_permission via a share on this document
-	if 0 not in levels and frappe.share.get_shared(
-		parenttype or meta.name, frappe.session.user, rights=["read"], limit=1
+	if (
+		right in ("read", "write")
+		and 0 not in levels
+		and frappe.share.get_shared(parenttype or meta.name, frappe.session.user, rights=[right], limit=1)
 	):
 		levels.add(0)
 	return levels

@@ -149,6 +149,8 @@ class TestSettingsMerge(SettingsDialogTestCase):
 						component("search", settings='{"label": "Theme"}'),
 						{"key": "empty", "pane": "general"},
 						component("listy", bindings='{"u": {"type": "Single", "doctype": ["User"]}}'),
+						single("nested", fields='[["alpha"]]'),
+						component("unlabelled", settings='[{"keywords": ["dark"]}]'),
 					],
 					insert=False,
 				)
@@ -157,7 +159,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST), {"general": ["system"]})
 
-		self.assertEqual(len(logged.output), 5)
+		self.assertEqual(len(logged.output), 7)
 
 	def test_an_anchor_whose_target_is_not_a_name_leaves_the_block_in_run_order(self):
 		with authoring():

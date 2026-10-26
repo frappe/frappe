@@ -134,10 +134,9 @@ def get_addresses(v: str | None = None) -> dict:
 
 	# Whitelist excludes only Guest, and this enumerates every doctype; the gate is "may this
 	# session enter any prefix", because addressability is permission-independent.
-	from .permissions import has_app_permission
-	from .registry import get_prefix_registry
+	from .permissions import may_enter_any_prefix
 
-	if not any(has_app_permission(app) for app in set(get_prefix_registry().values())):
+	if not may_enter_any_prefix():
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	return get_address_table()

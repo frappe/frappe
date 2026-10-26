@@ -3,11 +3,59 @@
 # Unfiltered, so one merge can be cached for every user; who sees which pane is decided per
 # request, after this. Only the app layer is read: the site and user layers are not built.
 
+import hashlib
 import json
 
 import frappe
+from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.layers import anchor_attempts, place_by_anchors
+
+from .boot import report_oversized_keys
+from .doctypes import metadata_version
+from .permissions import may_enter_any_prefix
+from .settings_filter import SettingsFilter
+
+PANES_CACHE_KEY = "shell_settings_panes"
+
+
+@frappe.whitelist(methods=["GET"])
+def get_panes() -> dict:
+	"""The panes this user may see and their search label index, read when the dialog first opens."""
+	if not may_enter_any_prefix():
+		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
+
+	visible = SettingsFilter().filter(get_cached_panes())
+	report_oversized_keys(visible, None, reply="settings")
+	return visible
+
+
+def get_cached_panes() -> list[dict]:
+	"""The merged, unfiltered panes, cached on `metadata_version` and a digest of the stored records."""
+	# The stamp is read in the merge's transaction and before it, so a merge of old rows never carries
+	# a current stamp, whatever snapshot the request began with.
+	version = f"{metadata_version()}:{_records_stamp()}"
+	cached = frappe.client_cache.get_value(PANES_CACHE_KEY)
+
+	if isinstance(cached, dict) and cached.get("version") == version:
+		return cached["panes"]
+
+	panes = resolve_panes()
+	frappe.client_cache.set_value(PANES_CACHE_KEY, {"version": version, "panes": panes})
+	return panes
+
+
+def _records_stamp() -> str:
+	"""A digest of every app-layer record's name and `modified`, which any save or delete of one moves."""
+	# Every record, not the latest `modified`: a save committed after a later one would not move a maximum.
+	records = frappe.get_all(
+		"Settings Dialog",
+		filters={"standard": 1, "user": SITE_LAYER},
+		fields=["name", "modified"],
+		order_by="name asc",
+		as_list=True,
+	)
+	return hashlib.sha256(repr(records).encode()).hexdigest()
 
 
 def resolve_panes() -> list[dict]:
@@ -115,13 +163,13 @@ def _block(app: str, row) -> dict | None:
 		block["binding"] = _binding(
 			{"type": row.binding_type, "doctype": row.document_type, "resolver": row.name_resolver}
 		)
-		block["fields"] = _json(row.fields, list)
+		block["fields"] = _json(row.fields, list, str)
 		readable = block["binding"] is not None and block["fields"] is not None
 	else:
 		block["component"] = row.component
 		bindings = _json(row.bindings, dict)
 		block["bindings"] = bindings and {name: _binding(spec) for name, spec in bindings.items()}
-		block["settings"] = _json(row.settings, list)
+		block["settings"] = _search_settings(row.settings)
 		readable = (
 			bool(row.component)
 			and bindings is not None
@@ -143,14 +191,26 @@ def _binding(spec) -> dict | None:
 	return binding if all(isinstance(value, str) for value in binding.values()) else None
 
 
-def _json(raw, shape: type):
-	"""The column's value, its empty shape when blank, or None when it is not that shape."""
+def _json(raw, shape: type, item: type | None = None):
+	"""The column's value, its empty shape when blank, or None when it is not that shape of `item`s."""
 	try:
 		value = json.loads(raw) if raw else shape()
 	except (TypeError, ValueError):
 		return None
 
-	return value if isinstance(value, shape) else None
+	if not isinstance(value, shape) or (item and not all(isinstance(entry, item) for entry in value)):
+		return None
+
+	return value
+
+
+def _search_settings(raw) -> list | None:
+	"""A component block's `settings`, each a dict with a string label, as save checks them."""
+	settings = _json(raw, list, dict)
+	if settings is None or not all(isinstance(setting.get("label"), str) for setting in settings):
+		return None
+
+	return settings
 
 
 def _bound_doctypes(block: dict) -> list[str]:
