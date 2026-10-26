@@ -15,6 +15,7 @@
   "title",
   "type",
   "island",
+  "desk_view",
   "icon",
   "column_break0",
   "module",
@@ -122,12 +123,20 @@
    "fieldname": "shared_page",
    "fieldtype": "Check",
    "label": "Shared Page"
+  },
+  {
+   "depends_on": "eval:doc.type==\"Frappe UI\"",
+   "description": "Workspace: this page draws every workspace URL and has no URL of its own.",
+   "fieldname": "desk_view",
+   "fieldtype": "Select",
+   "label": "Desk View",
+   "options": "\nWorkspace"
   }
  ],
  "icon": "file",
  "idx": 1,
  "links": [],
- "modified": "2026-10-02 18:15:22.203364",
+ "modified": "2026-10-25 20:04:42.990959",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Page",
