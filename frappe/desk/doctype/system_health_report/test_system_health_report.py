@@ -1,6 +1,8 @@
 # Copyright (c) 2024, Frappe Technologies and Contributors
 # See license.txt
 
+from unittest.mock import patch
+
 import frappe
 from frappe.desk.form.load import getdoc
 from frappe.tests import IntegrationTestCase
