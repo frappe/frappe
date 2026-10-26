@@ -31,11 +31,12 @@ const text = computed(() => {
 		.map((token) => {
 			if (token.t !== "f") return token.v;
 			if (!doc) return "[" + token.v + "]";
+			let value = store.preview_values.value?.[token.v] ?? doc[token.v] ?? "";
 			if (token.v.includes(".")) {
 				const target = linked_target({ link_path: token.v }, store.meta.value, doc);
-				return target ? linked.value[target.key] ?? "" : "";
+				value = target ? linked.value[target.key] ?? "" : "";
 			}
-			return store.preview_values.value?.[token.v] ?? doc[token.v] ?? "";
+			return frappe.utils.html2text(String(value));
 		})
 		.join("")
 		.trim();
