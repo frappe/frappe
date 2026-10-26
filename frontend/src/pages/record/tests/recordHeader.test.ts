@@ -77,7 +77,10 @@ async function mount(
 const rightHand = (root: HTMLElement) =>
   [...root.querySelectorAll<HTMLElement>("[data-label]")].map((el) => el.dataset.label);
 
-const band = { group: "actions", items: [{ item: { name: "delete", label: "Delete" } }] };
+const band = {
+  group: "actions",
+  items: [{ item: { name: "delete", label: "Delete" }, source: "builtin", props: {}, members: [] }],
+};
 
 const crumb = (name: string, item: Partial<HeaderItem> = {}) => ({
   kind: "crumb" as const,

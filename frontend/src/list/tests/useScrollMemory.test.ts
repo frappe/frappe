@@ -24,7 +24,7 @@ afterEach(() => {
 /** The list's viewport, watched, with the history writes from here on counted. */
 async function watchedList() {
 	const viewport = ref<HTMLElement | null>(null);
-	scope.run(() => useScrollMemory(viewport, () => false, { doctype: "Lead", query: () => "a" }));
+	scope.run(() => useScrollMemory(() => viewport.value, () => false, { doctype: "Lead", query: () => "a" }));
 	const element = document.createElement("div");
 	viewport.value = element;
 	await nextTick();

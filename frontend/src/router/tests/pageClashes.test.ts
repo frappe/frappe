@@ -129,6 +129,6 @@ describe("the pages a navigation item can link to", () => {
 
 		const { pages } = itemContext(boot(false), addresses, router, [], {});
 
-		expect(pages.map((entry) => `${entry.app}/${entry.slug}`)).toEqual(["crm/deals"]);
+		expect(pages).toEqual([expect.objectContaining({ app: "crm", slug: "deals" })]);
 	});
 });

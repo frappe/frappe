@@ -26,6 +26,6 @@ function row(node: HeaderNode, run: Run) {
   // `run` wins over `href`, as the item type promises.
   if (!node.item.run && node.item.href) return { ...base, route: node.item.href };
   // A `route` in props is the link when the item has neither; the engine has dropped it otherwise.
-  if (!node.item.run && base.route) return base;
+  if (!node.item.run && node.props.route) return base;
   return { ...base, onClick: () => run(node.item) };
 }

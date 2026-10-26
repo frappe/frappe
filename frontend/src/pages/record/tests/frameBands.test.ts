@@ -2,7 +2,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createApp, defineComponent, h } from "vue";
 import FrameBands from "../FrameBands.vue";
-import { pageGutter } from "@/shell/PageFrame.vue";
 
 const Band = defineComponent({
   props: { page: Object, tone: String },
@@ -45,8 +44,8 @@ describe("FrameBands", () => {
       { name: "strip", component: Band, gutter: false },
     ]);
     const [banner, strip] = root.querySelectorAll<HTMLElement>("[data-frame-band]");
-    expect(banner.classList.contains(pageGutter)).toBe(true);
-    expect(strip.classList.contains(pageGutter)).toBe(false);
+    expect(banner.classList.contains("px-[--page-gutter]")).toBe(true);
+    expect(strip.classList.contains("px-[--page-gutter]")).toBe(false);
     expect(strip.className).toBe("");
   });
 

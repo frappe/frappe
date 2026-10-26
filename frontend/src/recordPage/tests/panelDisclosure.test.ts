@@ -133,7 +133,7 @@ describe("the ways to miss", () => {
   });
 
   it("reports a host that throws, and never rethrows", () => {
-    const errors: unknown[] = [];
+    const errors: unknown[][] = [];
     vi.spyOn(console, "error").mockImplementation((...args) => void errors.push(args));
     const { page } = makePage({
       discloseSection: () => {

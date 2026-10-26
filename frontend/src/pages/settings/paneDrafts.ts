@@ -126,7 +126,7 @@ export class PaneDrafts {
 
 function bind(block: SettingsBlock, draft: BindingDraft): BoundBlock {
 	const layout = computed(() =>
-		draft.state.meta ? blockLayout(block, draft.state.meta.fields, draft.state.childMetas) : []
+		draft.state.meta ? blockLayout(block, draft.state.meta.fields ?? [], draft.state.childMetas) : []
 	);
 	const fieldnames = computed(() => layoutFields(layout.value).map((field) => field.fieldname));
 	return { block, draft, layout, fieldnames };

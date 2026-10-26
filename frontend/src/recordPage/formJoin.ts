@@ -13,6 +13,9 @@ import type { FormItem } from "./types";
 
 type Entry = ResolvedItem<FormItem>;
 
+// An `update` can clear a part's component; the part keeps its place and draws nothing.
+const NOTHING = { render: () => null };
+
 /** The layout's sections as the surface's built-ins, in layout order. */
 export function formItems(layout: FormLayoutSchema): FormItem[] {
   return layout.flatMap((tab) => tab.sections.map(sectionItem));
@@ -68,7 +71,7 @@ class FormJoin {
   }
 
   // A part beside a field, or beside a part that is itself beside one, is a cell.
-  private fieldAnchor(entry: Entry, seen = new Set<Entry>()) {
+  private fieldAnchor(entry: Entry, seen = new Set<Entry>()): { column: Column } | undefined {
     seen.add(entry);
     const anchor = entry.position?.before ?? entry.position?.after;
     if (!anchor) return undefined;
@@ -105,6 +108,6 @@ class FormJoin {
   }
 
   private drawn(entry: Entry) {
-    return { component: entry.item.component, props: { ...entry.item.props, page: this.page } };
+    return { component: entry.item.component ?? NOTHING, props: { ...entry.item.props, page: this.page } };
   }
 }

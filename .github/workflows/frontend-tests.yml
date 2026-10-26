@@ -56,6 +56,10 @@ jobs:
       - name: Lint
         run: yarn --cwd frontend lint
 
+      - name: Type check
+        if: ${{ !cancelled() }}
+        run: yarn --cwd frontend typecheck
+
       - name: Check that every test file runs
         run: yarn --cwd frontend test:files
 

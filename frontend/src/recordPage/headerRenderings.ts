@@ -41,6 +41,8 @@ export type HeaderControl =
     }
   | { kind: "component"; item: HeaderItem; source: string; props: Record<string, any> };
 
+type ItemControl = Exclude<HeaderControl, { kind: "crumb" }>;
+
 /** One band of the `⋯` menu; it shows a heading iff its container was declared. */
 export interface HeaderBand {
   group: string;
@@ -91,12 +93,12 @@ export function projectHeader(
 
 // A pinned control is never demoted; the rest demote from the end, in order, once the pinned
 // ones have taken their slots. A component cannot live in `⋯`, so past the budget it is dropped.
-function fit(controls: HeaderControl[], budget: number, pinned: readonly string[]) {
-  const isPinned = (control: HeaderControl) => pinned.includes(control.item.name);
+function fit(controls: ItemControl[], budget: number, pinned: readonly string[]) {
+  const isPinned = (control: ItemControl) => pinned.includes(control.item.name);
   const free = Math.max(budget - controls.filter(isPinned).length, 0);
   let taken = 0;
-  const kept: HeaderControl[] = [];
-  const demoted: HeaderControl[] = [];
+  const kept: ItemControl[] = [];
+  const demoted: ItemControl[] = [];
   for (const control of controls) {
     if (isPinned(control) || taken++ < free) kept.push(control);
     else if (control.kind === "component") warnDroppedComponent(control.item);
@@ -116,11 +118,11 @@ function leftControls(nodes: HeaderNode[]): HeaderControl[] {
   });
 }
 
-function asButton(node: HeaderNode): HeaderControl {
+function asButton(node: HeaderNode): ItemControl {
   return { kind: "button", item: node.item, source: node.source, props: buttonProps(node) };
 }
 
-function asDropdown(node: HeaderNode): HeaderControl {
+function asDropdown(node: HeaderNode): ItemControl {
   return {
     kind: "dropdown",
     item: node.item,
@@ -131,7 +133,7 @@ function asDropdown(node: HeaderNode): HeaderControl {
 }
 
 // Unfiltered: the engine cannot know what a script's own component declares.
-function asComponent(node: HeaderNode): HeaderControl {
+function asComponent(node: HeaderNode): ItemControl {
   return { kind: "component", item: node.item, source: node.source, props: { ...node.item.props } };
 }
 
@@ -280,14 +282,14 @@ function isControl(node: HeaderNode) {
   return node.item.display === "button" || node.container === "dropdown";
 }
 
-function asControl(node: HeaderNode): HeaderControl {
+function asControl(node: HeaderNode): ItemControl {
   if (node.item.component) return asComponent(node);
   return node.container === "dropdown" ? asDropdown(node) : asButton(node);
 }
 
 // A demoted control keeps a band of its own, ahead of the built-ins. Banded by its
 // own name, not its `group`, so it does not read as a member of a dropdown demoted beside it.
-function demotedBands(controls: HeaderControl[]): HeaderBand[] {
+function demotedBands(controls: ItemControl[]): HeaderBand[] {
   return controls.map((control) =>
     control.kind !== "dropdown"
       ? { group: control.item.name, items: [row(control)] }
@@ -300,7 +302,7 @@ function demotedBands(controls: HeaderControl[]): HeaderBand[] {
 }
 
 // Drawn by the menu option now, so its props are read against that.
-function row(control: HeaderControl & { source: string }): HeaderNode {
+function row(control: ItemControl): HeaderNode {
   return menuRow({ item: control.item, source: control.source, props: {}, members: [] });
 }
 

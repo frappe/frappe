@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { fileURLToPath } from "node:url";
-import { build, type Rolldown } from "vite";
+import { build, type Alias, type Rolldown } from "vite";
 import { describe, expect, it, vi } from "vitest";
 import runtimeVue from "../runtimeVue.js";
 
@@ -18,7 +18,7 @@ const frontend = fileURLToPath(new URL("../..", import.meta.url));
 const COMPILER_CALL = /(?<!function )registerRuntimeCompiler\(/;
 
 // vuedraggable ships only UMD and CommonJS, so its `require("vue")` is the case to cover.
-async function buildDraggable(alias: object[]) {
+async function buildDraggable(alias: Alias[]) {
   const entry = {
     name: "entry",
     resolveId: (id: string) => (id === "entry" ? "\0entry" : undefined),
@@ -43,7 +43,7 @@ describe("the vue every importer gets", () => {
   it("is the shell config's alias", async () => {
     const { default: shellConfig } = await import("../../vite.config.js");
     const config = shellConfig({ command: "build", mode: "production" });
-    expect(config.resolve.alias).toContain(runtimeVue);
+    expect(config.resolve?.alias).toContain(runtimeVue);
   });
 
   it("holds no template compiler, even for a CommonJS package", async () => {

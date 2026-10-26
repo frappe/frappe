@@ -1,6 +1,7 @@
 // The join: the Details layout as `page.form` arranges it, with a part drawn at
 // its neighbour's grain and landing in its neighbour's tab.
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import { createApp, h } from "vue";
 import { Surface } from "../surface";
 import { formItems, joinForm } from "../formJoin";
 import { FORM_ITEM_KEYS } from "../types";
@@ -168,5 +169,28 @@ describe("a section as an item", () => {
     form.clear();
 
     expect(join(form).map((tab) => tab.sections)).toEqual([[], []]);
+  });
+});
+
+describe("a part an update left with no component", () => {
+  it("keeps its place, so a part beside it stays beside it, and draws nothing without a warning", () => {
+    const form = makeSurface();
+    form.add({ name: "score", label: "Score", component: Part }, { after: "deal_value" });
+    form.add({ name: "trend", component: Part }, { after: "score" });
+    form.update("score", { component: undefined });
+
+    const [details] = join(form);
+    const parts = details.sections[1].columns[0].parts ?? [];
+    expect(parts.map((part) => [part.name, part.after])).toEqual([
+      ["score", "deal_value"],
+      ["trend", "score"],
+    ]);
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+    const host = document.createElement("div");
+    createApp({ render: () => h(parts[0].component) }).mount(host);
+    expect(host.textContent).toBe("");
+    expect(warn).not.toHaveBeenCalled();
+    warn.mockRestore();
+    expect(sectionNames(details.sections)).toEqual(["overview", "pricing"]);
   });
 });

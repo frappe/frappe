@@ -94,18 +94,19 @@ describe("an app's Tailwind preset", () => {
       ],
       theme,
     );
-    const resolved = resolveConfig({ presets: loaded.map(({ preset }) => preset) }).theme as any;
+    const resolved = resolveConfig({ content: [], presets: loaded.map(({ preset }) => preset) }).theme as any;
     expect(resolved.colors["crm-ink"]).toBe("#111");
     expect(resolved.colors["erp-ink"]).toBe("#222");
   });
 
   it("wraps every preset with presets: [], so the framework's scale survives", () => {
     const preset = { theme: { extend: { colors: { x: "#000" } } } };
-    const bare = resolveConfig({ presets: [frameworkPreset(), preset] }).theme as any;
+    const bare = resolveConfig({ content: [], presets: [frameworkPreset(), preset] }).theme as any;
     expect(bare.borderRadius["4"]).toBeUndefined();
     const [{ preset: wrapped }] = checkPresets([{ app: "crm", preset }], theme);
-    const kept = resolveConfig({ presets: [frameworkPreset(), wrapped] }).theme as any;
-    expect(kept.borderRadius["4"]).toBe(theme.borderRadius["4"]);
+    const kept = resolveConfig({ content: [], presets: [frameworkPreset(), wrapped] }).theme as any;
+    const frameworkRadius: Record<string, string> = theme.borderRadius;
+    expect(kept.borderRadius["4"]).toBe(frameworkRadius["4"]);
     expect(kept.colors.x).toBe("#000");
   });
 });

@@ -16,7 +16,7 @@ const api = vi.hoisted(() => {
 		addShare: answer("shares", [{ user: "cy@example.com", read: 1, write: 1 }]),
 		removeShare: answer("shares", []),
 		addTag: vi.fn(async () => ({ data: { tags: ["urgent", "later"] } })),
-		removeTag: vi.fn(async () => ({ data: { tags: [] } })),
+		removeTag: vi.fn(async (): Promise<{ data: { tags: string[] } }> => ({ data: { tags: [] } })),
 	};
 });
 
@@ -108,6 +108,7 @@ function setup(info: DocInfo, component: any = RecordPeople, props: Record<strin
 		run: vi.fn(),
 		reloadDocinfo,
 		whileOnRecord: () => () => onRecord,
+		onDetails: () => false,
 	};
 	const root = document.createElement("div");
 	document.body.appendChild(root);

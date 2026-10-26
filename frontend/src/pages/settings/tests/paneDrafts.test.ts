@@ -52,6 +52,17 @@ beforeEach(() => {
 
 afterEach(() => vi.unstubAllGlobals());
 
+describe("a meta that carries no fields", () => {
+	it("binds a block to no rows instead of failing the pane", async () => {
+		server.metas["System Settings"] = { name: "System Settings", issingle: 1 };
+		const drafts = await opened(block("general", "auto", ["country"]));
+		const general = drafts.bound.get("general");
+
+		expect(general?.draft.state.failed).toBeFalsy();
+		expect(general?.fieldnames.value).toEqual([]);
+	});
+});
+
 describe("save modes", () => {
 	it("saves an auto block on commit, sending only its changed fields and modified", async () => {
 		const drafts = await opened(
