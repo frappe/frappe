@@ -1271,6 +1271,29 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertNotIn('document-status="draft"', html)
 		self.assertNotIn('document-status="cancelled"', html)
 
+	def test_typst_draft_heading_rendered(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		doc = self._make_submittable_doc(0)
+		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		with self.change_settings("Print Settings", add_draft_heading=1):
+			source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
+		self.assertIn('"DRAFT"', source)
+
+	def test_typst_cancelled_heading_rendered(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		doc = self._make_submittable_doc(2)
+		print_format = self._make_print_format(doc_type=doc.doctype, pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		source, _assets = TypstEmitter(PrintFormatGenerator(print_format, doc)).emit()
+		self.assertIn('"CANCELLED"', source)
+
 	def test_draft_print_blocked_when_not_allowed(self):
 		"""The new renderer enforces the draft-print guard on the beta path."""
 		with self.change_settings("Print Settings", allow_print_for_draft=0):
