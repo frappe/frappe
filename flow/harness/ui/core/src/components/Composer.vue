@@ -107,7 +107,7 @@
 			<div
 				v-if="$slots.start ? starting : startCwd"
 				ref="startRow"
-				class="start-row absolute bottom-full left-0 mb-1.5 flex min-w-0 max-w-full items-center gap-3 px-[9px] text-xs text-ink-gray-7 max-md:gap-1 dark:text-ink-gray-8"
+				class="start-row absolute bottom-full left-0 mb-1.5 flex min-w-0 max-w-full items-center gap-1 px-[9px] text-xs text-ink-gray-7 dark:text-ink-gray-8"
 			>
 				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
 				<slot name="start" :insert="replaceSlash">
