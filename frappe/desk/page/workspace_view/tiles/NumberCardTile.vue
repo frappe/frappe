@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import { NumberCard } from "frappe-ui/charts";
-import { load_card, open_card } from "./number_card.js";
+import { load_card, load_trend, open_card } from "./number_card.js";
 
 const props = defineProps({
 	widget: { type: Object, required: true },
@@ -12,6 +12,7 @@ const frappe = window.frappe;
 const __ = window.__;
 const result = ref(null);
 const failed = ref(false);
+const trend = ref(null);
 
 async function refresh() {
 	failed.value = false;
@@ -20,7 +21,9 @@ async function refresh() {
 	} catch (e) {
 		console.error(e);
 		failed.value = true;
+		return;
 	}
+	trend.value = await load_trend(result.value).catch(() => null);
 }
 
 onMounted(refresh);
@@ -42,6 +45,7 @@ const menu = computed(() => [
 		delta-suffix="%"
 		:delta-format="(value) => frappe.utils.shorten_number(value)"
 		:delta-caption="result?.caption || undefined"
+		:sparkline="trend ? { data: trend, color: result.card.color || undefined } : undefined"
 		:loading="!result && !failed"
 		:error="failed ? __('Could not load') : null"
 		@click="result && open_card(result)"

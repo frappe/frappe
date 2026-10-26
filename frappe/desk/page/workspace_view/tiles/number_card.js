@@ -52,6 +52,45 @@ export async function load_card(name) {
 	return result;
 }
 
+// How far back the trend reaches, at the card's own stats interval.
+const TREND_SPANS = {
+	Daily: { timespan: "Last Month" },
+	Weekly: { timespan: "Last Year" },
+	Monthly: { timespan: "Select Date Range", months: 24 },
+	Yearly: { timespan: "Select Date Range", months: 60 },
+};
+
+// A Document Type card's value per period, drawn as its sparkline. Min and Max have no
+// running series, and Report and Custom cards have no date to group on.
+export async function load_trend({ card, filters }) {
+	const frappe = window.frappe;
+	if (card.type !== "Document Type" || !["Count", "Sum", "Average"].includes(card.function)) {
+		return null;
+	}
+
+	const time_interval = card.stats_time_interval || "Weekly";
+	const { timespan, months } = TREND_SPANS[time_interval];
+	const today = frappe.datetime.get_today();
+	const data = await post("frappe.desk.doctype.dashboard_chart.dashboard_chart.get", {
+		chart: {
+			chart_type: card.function,
+			document_type: card.document_type,
+			parent_document_type: card.parent_document_type,
+			based_on: "creation",
+			value_based_on: card.aggregate_function_based_on,
+		},
+		no_cache: 1,
+		filters: [...filters],
+		timespan,
+		time_interval,
+		from_date: months ? frappe.datetime.add_months(today, -months) : null,
+		to_date: months ? today : null,
+	});
+
+	const values = data?.datasets?.[0]?.values || [];
+	return values.some((value) => value) ? values : null;
+}
+
 function format_doctype_number(card, number) {
 	if (card.function === "Count") return Promise.resolve(number);
 	return new Promise((resolve) =>
