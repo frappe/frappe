@@ -170,3 +170,21 @@ describe("a section as an item", () => {
     expect(join(form).map((tab) => tab.sections)).toEqual([[], []]);
   });
 });
+
+describe("a part an update left with no component", () => {
+  it("draws no empty cell beside its field, only a section with its label", () => {
+    const form = makeSurface();
+    form.add({ name: "score", label: "Score", component: Part }, { after: "deal_value" });
+    form.update("score", { component: undefined });
+
+    const [details] = join(form);
+    expect(details.sections[1].columns[0].parts).toEqual([]);
+    expect(details.sections.find((section) => section.name === "score")).toEqual({
+      name: "score",
+      label: "Score",
+      collapsible: false,
+      columns: [],
+      part: undefined,
+    });
+  });
+});

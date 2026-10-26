@@ -43,7 +43,7 @@ export function withNameField(
 
 /** The query's values for the doctype's and the layout's fields and the prompt name, typed; a table's is JSON. */
 export function queryValues(query: LocationQuery, meta: DoctypeMeta, layout: FormLayoutSchema = []): Values {
-	const fields = new Map<string, string>(meta.fields.map((field) => [field.fieldname, field.fieldtype]));
+	const fields = new Map<string, string>((meta.fields ?? []).map((field) => [field.fieldname, field.fieldtype]));
 	for (const field of layoutFields(layout)) fields.set(field.fieldname, field.fieldtype);
 	const values: Values = {};
 	for (const [key, given] of Object.entries(query)) {

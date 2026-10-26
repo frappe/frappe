@@ -8,7 +8,7 @@ interface Naming {
   title_field?: string;
 }
 
-export function isNamedByPrompt<T extends Naming>(meta: T | null | undefined): meta is T {
+export function isNamedByPrompt<T extends Naming>(meta: T | null | undefined): meta is T & { autoname: string } {
   return meta?.autoname?.toLowerCase() === "prompt";
 }
 

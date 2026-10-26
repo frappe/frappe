@@ -1,7 +1,7 @@
 // "Create" in a Link or Table MultiSelect field's dropdown: when it shows, what the new record starts
 // with, what the field takes after a save, and Create dialogs stacked above other dialogs. Fetch is faked.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, ref, watch, type App, type Component } from "vue";
+import { createApp, defineComponent, h, nextTick, ref, watch, type App, type Component, type VNode } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 // A passthrough Dialog that ends its leave at once, so the test reads the forms, not reka-ui.
@@ -206,13 +206,13 @@ const Host = defineComponent({
 	props: { part: { type: Function, required: true } },
 	setup(props) {
 		return () => [
-			h("main", (props.part as () => unknown)()),
+			h("main", (props.part as () => VNode)()),
 			createRequests.value.map((request) => h(createDialog() as Component, { key: request.id, request })),
 		];
 	},
 });
 
-function mount(part: () => unknown, { create = true, readOnlyMode = false, opens = false } = {}) {
+function mount(part: () => VNode, { create = true, readOnlyMode = false, opens = false } = {}) {
 	const router = createRouter({
 		history: createMemoryHistory(),
 		routes: [

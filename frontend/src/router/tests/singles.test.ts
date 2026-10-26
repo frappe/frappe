@@ -30,7 +30,7 @@ function boot(modular: boolean): Boot {
 		app: "erpnext",
 		shell_base: "/apps/erpnext",
 		prefixes: { erpnext: { app: "erpnext", modular } },
-	} as Boot;
+	} as unknown as Boot;
 }
 
 describe("a single's list address", () => {

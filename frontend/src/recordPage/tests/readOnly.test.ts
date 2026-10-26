@@ -18,6 +18,7 @@ import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { withRunningSource } from "../context";
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { readOnly } from "../readOnly";
+import type { RecordPageApi } from "../types";
 import { resetRegistry } from "../registry";
 import { resetCustomizationErrorReports } from "../reportError";
 import { setSession } from "@framework/ui/useSession";
@@ -69,6 +70,12 @@ async function withEditorPermission(canWrite: boolean) {
 }
 
 /** Publishes the session and hands back the very array `page.roles` reads through. */
+/** The page's meta, which every host here has loaded. */
+function metaOf(page: RecordPageApi) {
+  if (!page.meta) throw new Error("no meta on the page");
+  return page.meta;
+}
+
 function publishRoles(roles: string[]): string[] {
   const session: Session = {
     user: {
@@ -76,6 +83,7 @@ function publishRoles(roles: string[]): string[] {
       full_name: "Alice",
       email: "alice@example.com",
       user_image: null,
+      document_follow_notify: false,
     },
     roles,
     lang: "en",
@@ -243,7 +251,7 @@ describe("page.meta and page.perms at the door", () => {
     const { page } = createRecordPage(host);
 
     expect(() => {
-      page.meta.fields[1].hidden = 1;
+      metaOf(page).fields[1].hidden = 1;
     }).toThrow("page.meta.fields[1].hidden is read-only");
     expect(host.meta.value.fields[1].hidden).toBe(0);
   });
@@ -308,7 +316,7 @@ describe("the refusal reports on the customization error channel", () => {
 
     await withRunningSource("client-script:products", async () => {
       expect(() => {
-        page.meta.fields[0].hidden = 1;
+        metaOf(page).fields[0].hidden = 1;
       }).toThrow();
     });
 
@@ -327,7 +335,7 @@ describe("the refusal reports on the customization error channel", () => {
     const { page } = createRecordPage(makeHost());
 
     await withRunningSource("client-script:products", async () => {
-      for (const field of page.meta.fields)
+      for (const field of metaOf(page).fields)
         expect(() => {
           field.hidden = 1;
         }).toThrow();
@@ -345,7 +353,7 @@ describe("the refusal reports on the customization error channel", () => {
     const { page } = createRecordPage(makeHost());
 
     expect(() => {
-      page.meta.fields[0].hidden = 1;
+      metaOf(page).fields[0].hidden = 1;
     }).toThrow();
 
     expect(mockedCall).toHaveBeenCalledWith(REPORT_METHOD, expect.anything(), { nullable: true });

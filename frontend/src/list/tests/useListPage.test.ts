@@ -143,7 +143,7 @@ async function settleQuery() {
 }
 
 const SESSION: Session = {
-	user: { name: "alice@example.com", full_name: "Alice", email: "alice@example.com", user_image: null },
+	user: { name: "alice@example.com", full_name: "Alice", email: "alice@example.com", user_image: null, document_follow_notify: false },
 	roles: ["Desk User"],
 	lang: "en",
 	timezone: "Asia/Kolkata",

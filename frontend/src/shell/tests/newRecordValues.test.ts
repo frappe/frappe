@@ -144,7 +144,7 @@ describe("queryValues", () => {
 			{ fieldname: "grand_total", fieldtype: "Currency" },
 			{ fieldname: "items", fieldtype: "Table" },
 		],
-	} as unknown as DoctypeMeta;
+	} satisfies DoctypeMeta;
 
 	it("keeps the doctype's own fields, typed, and a table's rows from JSON", () => {
 		const rows = [{ item_code: "PEN", qty: 2 }];
@@ -177,6 +177,11 @@ describe("queryValues", () => {
 	it("drops a table whose value is not a JSON list, and takes the first of a repeated key", () => {
 		expect(queryValues({ items: "not json", customer: ["Acme", "Other"] }, meta)).toEqual({ customer: "Acme" });
 		expect(queryValues({ items: '{"item_code":"PEN"}' }, meta)).toEqual({});
+	});
+
+	it("reads the query's prompt name against a meta that carries no fields", () => {
+		const bare = { name: "Sales Invoice", autoname: "Prompt" };
+		expect(queryValues({ [NEW_NAME]: "SI-X", customer: "Acme" }, bare)).toEqual({ [NEW_NAME]: "SI-X" });
 	});
 
 	it("keeps a prompt name only for a doctype named by prompt", () => {

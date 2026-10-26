@@ -169,7 +169,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem>
 
 // `ops` is reactive, so a component stored on an item, or inside its props, would be
 // deep-reactified on its way in, which Vue warns about. Both opt out.
-function keepComponentRaw<Item extends SurfaceItem>(item: Partial<Item>) {
+function keepComponentRaw(item: Partial<SurfaceItem>) {
 	if (item.component) item.component = markRaw(item.component);
 	if (item.props) item.props = markRaw({ ...item.props });
 }

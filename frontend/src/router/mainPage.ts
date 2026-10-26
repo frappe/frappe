@@ -50,11 +50,10 @@ function framed(loader: Loader): Component {
 				return pageOf(module as Loaded);
 			}),
 		loadingComponent: FrameSkeleton,
-		errorComponent: {
+		errorComponent: defineComponent({
 			props: ["error"],
-			setup: (props: { error: unknown }) => () =>
-				h(PageFrame, { state: failedState(props.error, reloadAddress) }),
-		},
+			setup: (props) => () => h(PageFrame, { state: failedState(props.error, reloadAddress) }),
+		}),
 		delay: 0,
 	});
 	// The router warns on an async route component, so the routes get a plain one around it.

@@ -51,8 +51,8 @@ vi.mock("frappe-ui", () => ({
   },
 }));
 
-import CustomizeSidebarDialog, { type CustomizeTarget } from "../CustomizeSidebarDialog.vue";
-import { dropOn, move, saveArrangement, type ArrangedItem } from "@/arrangement";
+import CustomizeSidebarDialog from "../CustomizeSidebarDialog.vue";
+import { dropOn, move, saveArrangement, type Address, type ArrangedItem } from "@/arrangement";
 
 const runMethod = fake.runMethod;
 
@@ -236,7 +236,7 @@ async function switching(first: ArrangedItem[]) {
     () => new Promise((resolve) => resolvers.push((rows) => resolve({ data: rows })))
   );
 
-  const target = ref<CustomizeTarget | null>({
+  const target = ref<(Address & { title: string }) | null>({
     container: "Rail",
     address: "frappe",
     title: "Customize sidebar",

@@ -39,6 +39,11 @@ export function loadPresets(sourceDirs, theme = frameworkTheme()) {
 	return checkPresets(loaded, theme);
 }
 
+/**
+ * @param {{ app: string, preset: unknown }[]} loaded
+ * @param {ReturnType<typeof frameworkTheme>} theme
+ * @returns {{ app: string, preset: Partial<import("tailwindcss").Config> }[]}
+ */
 export function checkPresets(loaded, theme) {
 	const problems = [];
 	const writers = new Map();

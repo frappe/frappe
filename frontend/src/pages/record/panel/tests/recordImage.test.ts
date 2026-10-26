@@ -3,7 +3,9 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref } from "vue";
 
 const { upload, Plain } = vi.hoisted(() => ({
-	upload: vi.fn(async () => ({ file_url: "/files/new.png" })),
+	upload: vi.fn<(file: File, options: object) => Promise<{ file_url: string }>>(async () => ({
+		file_url: "/files/new.png",
+	})),
 	Plain: (tag: string) =>
 		defineComponent({
 			inheritAttrs: false,
@@ -73,6 +75,8 @@ async function mount(doc: Record<string, any>, write = true, meta: any = META) {
 		controller: { page: { router: { resolve: () => ({ href: "/x" }) } } } as any,
 		run: () => {},
 		reloadDocinfo: async () => {},
+		whileOnRecord: () => () => true,
+		onDetails: () => false,
 	});
 	app.provide(CommitKey, commit);
 	app.mount(root);

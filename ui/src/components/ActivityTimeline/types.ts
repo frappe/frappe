@@ -126,7 +126,7 @@ interface VersionChangeBase {
 export interface FieldChange {
   from: string;
   to: string;
-  timestamp: string;
+  timestamp?: string;
 }
 
 /** A shown field change; the frontend lays out the values. */

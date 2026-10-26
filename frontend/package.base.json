@@ -11,6 +11,7 @@
     "test:files": "node check-test-files.mjs",
     "test:page-js": "node check-page-js.mjs",
     "lint": "cd .. && eslint --config frontend/eslint.config.js frontend/src ui/src",
+    "typecheck": "tsc --noEmit",
     "base-lock": "./base-lock.sh"
   },
   "dependencies": {
@@ -45,6 +46,7 @@
     "jiti": "^1.21.7",
     "postcss": "^8.4.5",
     "tailwindcss": "^3.4.15",
+    "typescript": "^5.9.3",
     "vite": "8.1.5",
     "vitest": "^4.1.4",
     "vue-eslint-parser": "^10.4.1"

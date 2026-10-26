@@ -198,6 +198,7 @@ function publishRoles(roles: string[]): void {
       full_name: "Alice",
       email: "alice@example.com",
       user_image: null,
+      document_follow_notify: false,
     },
     roles,
     lang: "en",

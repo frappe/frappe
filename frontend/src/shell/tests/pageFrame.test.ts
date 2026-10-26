@@ -10,7 +10,7 @@ import {
 } from "vue";
 import { PageHeaderTarget } from "frappe-ui";
 
-import PageFrame, { pageGutter } from "../PageFrame.vue";
+import PageFrame from "../PageFrame.vue";
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -141,8 +141,7 @@ describe("the scroll prop", () => {
       '[data-slot="scroll-area-viewport"]'
     );
     expect(viewport).not.toBeNull();
-    for (const cls of pageGutter.split(" "))
-      expect(viewport!.classList.contains(cls)).toBe(true);
+    expect(viewport!.classList.contains("px-[--page-gutter]")).toBe(true);
   });
 
   it("hands the scroll to the page with scroll=false, and applies no gutter", async () => {

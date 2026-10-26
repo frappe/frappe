@@ -62,13 +62,14 @@ class FormJoin {
   }
 
   private place(entry: Entry) {
-    const cell = entry.source === BUILTIN ? undefined : this.fieldAnchor(entry);
-    if (cell) cell.column.parts?.push(this.columnPart(entry));
-    else this.tabs[this.tabOf(entry, new Set())].sections.push(this.sectionFor(entry));
+    const part = entry.source === BUILTIN ? undefined : this.part(entry);
+    const cell = part && this.fieldAnchor(entry);
+    if (cell) cell.column.parts?.push({ ...part, label: entry.item.label, ...entry.position });
+    else this.tabs[this.tabOf(entry, new Set())].sections.push(this.sectionFor(entry, part));
   }
 
   // A part beside a field, or beside a part that is itself beside one, is a cell.
-  private fieldAnchor(entry: Entry, seen = new Set<Entry>()) {
+  private fieldAnchor(entry: Entry, seen = new Set<Entry>()): { column: Column } | undefined {
     seen.add(entry);
     const anchor = entry.position?.before ?? entry.position?.after;
     if (!anchor) return undefined;
@@ -91,20 +92,17 @@ class FormJoin {
     return own ?? this.tabs.length - 1;
   }
 
-  private sectionFor(entry: Entry): Section {
+  private sectionFor(entry: Entry, part: ColumnPart | undefined): Section {
     const stored = this.sections.get(entry.item.name);
     if (entry.source === BUILTIN && stored)
       return { ...stored.section, label: entry.item.label ?? stored.section.label };
     const { name, label } = entry.item;
-    return { name, label, collapsible: false, columns: [], part: { name, ...this.drawn(entry) } };
+    return { name, label, collapsible: false, columns: [], part };
   }
 
-  private columnPart(entry: Entry): ColumnPart {
-    const { name, label } = entry.item;
-    return { name, label, ...this.drawn(entry), ...entry.position };
-  }
-
-  private drawn(entry: Entry) {
-    return { component: entry.item.component, props: { ...entry.item.props, page: this.page } };
+  // `page.form.add` drops a part without a component, but an `update` can still clear it.
+  private part(entry: Entry): ColumnPart | undefined {
+    const { name, component, props } = entry.item;
+    return component && { name, component, props: { ...props, page: this.page } };
   }
 }
