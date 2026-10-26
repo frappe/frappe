@@ -131,9 +131,9 @@ network and `SLOW_RUNS` times on the `slow` one. It prints the median of each co
   Timing, which drops a click under 16 ms), when the last JS or CSS file the click asked
   for arrived, when the page draws, and the layout shift.
 
-Times count from the navigation start or the click. Measure built code: build the
-checkout with `vite.budget.config.js` to a folder outside the bench, serve it with
-`vite preview`, and point the walk at it.
+Times count from the navigation start or the click. The walk exits with 1 when any run
+failed. Measure built code: build the checkout with `vite.budget.config.js` to a folder
+outside the bench, serve it with `vite preview`, and point the walk at it.
 
 ```sh
 cd frontend

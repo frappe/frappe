@@ -28,6 +28,10 @@ const jsonPath = jsonPathArgument();
 const results = await walk(networkNames());
 if (jsonPath) writeFileSync(jsonPath, JSON.stringify(results, null, 1));
 printTables(results);
+const failed = Object.values(results)
+	.flat()
+	.some((run) => run.error);
+process.exitCode = failed ? 1 : 0;
 
 async function walk(networks) {
 	const results = {};
