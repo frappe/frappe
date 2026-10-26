@@ -164,8 +164,11 @@ function cellOf(item: NavigationItem): Cell | null {
 		: { ...cell, href: rendering.href, sidebar: rendering.sidebar };
 }
 
+const openSettings = inject(OpenSettingsKey)!;
+
 const menu = computed<DropdownOptions>(() => [
 	{ label: "All apps", icon: "lucide-layout-grid", onClick: () => leave("/apps") },
+	{ label: "Settings", icon: "lucide-settings", onClick: () => openSettings() },
 	...(props.customizable
 		? [
 				{
@@ -187,8 +190,6 @@ const SCHEMES = [
 
 const confirmingLogout = ref(false);
 
-const openSettings = inject(OpenSettingsKey)!;
-
 const userMenu = computed<DropdownOptions>(() => [
 	{ group: "", hideLabel: true, options: [profileHeader()] },
 	{
@@ -200,7 +201,6 @@ const userMenu = computed<DropdownOptions>(() => [
 				icon: "lucide-circle-user",
 				onClick: () => openSettings("desk", "profile"),
 			},
-			{ label: "Settings", icon: "lucide-settings", onClick: () => openSettings() },
 			{
 				label: "Theme",
 				icon: "lucide-sun-moon",

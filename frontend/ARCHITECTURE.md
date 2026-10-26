@@ -277,7 +277,7 @@ component group, with its main names.
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
 | [Settings dialog](./CONTEXT.md#settings-dialog) (`ShellSettingsDialog`, `SettingsAddressBook`, `fetchPanes`) | The hash dialog at the [settings address](./CONTEXT.md#settings-address). Its chunk loads on the first open. It reads `get_panes` then and holds the reply for the tab, by `metadata_version` and user. It lists the framework's panes, the current app's group and an addressed foreign app's group for that visit. A short address is replaced by the full one; one it cannot show keeps its hash and shows one message. A block segment scrolls to the block and flashes it. Blocks draw their header and a skeleton |
-| Settings act (`OpenSettingsKey`, `OpenSettings`) | Opens the settings dialog at an address. `AppShell` provides it to the rail's user menu and to the record pages, which hand it to `page.openSettings()` |
+| Settings act (`OpenSettingsKey`, `OpenSettings`) | Opens the settings dialog at an address. `AppShell` provides it to the rail's app and user menus and to the record pages, which hand it to `page.openSettings()` |
 | Logout (`logout`, `LogoutDialog`) | End the session, and go to login with a way back |
 | Composer state (`composerState`, `openComposer`, `closeComposer`) | Which record's composer is open, with which writer, docked or floating |
 | Composer drafts | Unsent comments and emails, per record and writer |

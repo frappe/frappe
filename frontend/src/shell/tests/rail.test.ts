@@ -371,6 +371,23 @@ describe("the app menu", () => {
 		expect(await opened({ shareLink: "https://x/apps/crm" })).toContain("Copy link");
 		expect(await opened({})).not.toContain("Copy link");
 	});
+
+	it("offers Settings after All apps, which opens settings with no segments", async () => {
+		fake.openSettings.mockClear();
+		await opened({ customizable: true, shareLink: "https://x/apps/crm" });
+		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
+		expect(rows.map((row) => row.textContent?.trim())).toEqual([
+			"All apps",
+			"Settings",
+			"Customize sidebar",
+			"Copy link",
+		]);
+
+		rows[1].click();
+		await flush();
+		expect(fake.openSettings).toHaveBeenCalledOnce();
+		expect(fake.openSettings).toHaveBeenLastCalledWith();
+	});
 });
 
 describe("an authored icon", () => {
@@ -468,9 +485,9 @@ describe("the user menu", () => {
 		expect(menu.querySelector("[role='menuitem']")).toBe(header);
 	});
 
-	it("offers the five rows in order, with Log out in red", async () => {
+	it("offers the four rows in order, with Log out in red", async () => {
 		const menu = await opened();
-		expect(rows(menu)).toEqual(["My settings", "Settings", "Theme", "Desk v1", "Log out"]);
+		expect(rows(menu)).toEqual(["My settings", "Theme", "Desk v1", "Log out"]);
 		expect(row(menu, "Log out").className).toContain("red");
 	});
 
@@ -479,19 +496,15 @@ describe("the user menu", () => {
 		const groups = Array.from(menu.querySelectorAll("[data-slot='group']")).map((group) =>
 			Array.from(group.querySelectorAll(COMMANDS)).length
 		);
-		expect(groups).toEqual([0, 3, 1, 1]);
+		expect(groups).toEqual([0, 2, 1, 1]);
 	});
 
-	it("opens settings at the profile pane for My settings, and at the first pane for Settings", async () => {
+	it("opens settings at the profile pane for My settings", async () => {
 		fake.openSettings.mockClear();
 
 		row(await opened(), "My settings").click();
 		await flush();
 		expect(fake.openSettings).toHaveBeenLastCalledWith("desk", "profile");
-
-		row(await opened(), "Settings").click();
-		await flush();
-		expect(fake.openSettings).toHaveBeenLastCalledWith();
 	});
 
 	it("sends Desk v1 to v1's home", async () => {
