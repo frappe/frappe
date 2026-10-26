@@ -207,6 +207,11 @@ class TestShellRouting(IntegrationTestCase):
 		self.assertIsInstance(self.renderer_for("apps/no-such-app"), NotFoundPage)
 		self.assertIsInstance(self.renderer_for(other.route), StudioAppRenderer)
 
+	def test_a_home_page_under_apps_serves_the_shell(self):
+		set_request(method="GET", path="/")
+		with patch("frappe.website.path_resolver.get_home_page", return_value="apps/desk"):
+			self.assertIsInstance(self.renderer_for(""), ShellPage)
+
 	def test_a_route_rule_cannot_rewrite_a_path_under_apps(self):
 		rules = [
 			{"from_route": "/apps", "to_route": "login"},
