@@ -1,3 +1,4 @@
+import type { Component } from "vue"
 import type { ItemRenderer } from "@/navigation/types"
 
 // The complete list of what an app may contribute; if it is not here, an app cannot do it.
@@ -37,6 +38,16 @@ export type ReplacementContribution = {
   foreign: boolean
   title?: string
   component: () => Promise<unknown>
+}
+
+export type StandardPages = {
+  /** The page at a main list or record address: the declared page, else the standard one. */
+  main: Component
+  home: () => Promise<unknown>
+  module: () => Promise<unknown>
+  list: () => Promise<unknown>
+  record: () => Promise<unknown>
+  newRecord: () => Promise<unknown>
 }
 
 // Not contributable: a route table, a doctype opt-out, shell chrome (every error state

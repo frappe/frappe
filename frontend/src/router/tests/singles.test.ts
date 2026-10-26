@@ -4,7 +4,11 @@ import { describe, expect, it, vi } from "vitest";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
+import { registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
+
+registerStandardPages(standardPages);
 
 vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));

@@ -256,7 +256,7 @@ component group, with its main names.
 | `virtual:frappe/contributions` | The build's index of every app's contributed files |
 | [Contributions](./CONTEXT.md#contribution) (`Contributions`, `DoctypeContribution`, `RecordHandlers`) | Everything an app may add: doctype handlers, pages, item kinds, replacements |
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |
-| Page registrations (`pages`, `replacementFor`) | The page for each address. Standard pages are the default registration; an app's page replaces one. The last app wins |
+| Page registrations (`pages`, `replacementFor`, `registerStandardPages`, `standardPage`, `StandardPages`) | The page for each address. Standard pages are the default registration; an app's page replaces one. The last app wins |
 | Item kinds and the item contract (`itemRenderers`, `ItemRenderer`, `Rendering`, `ItemContext`) | What an app's `item.js` implements to draw a navigation item. The last app wins |
 | `registerContributions(appOrder)` | Runs once before the first route, in app order. Hands each file script to the script loader |
 
@@ -343,6 +343,7 @@ component group, with its main names.
 | `Home` | The prefix's landing page: module tiles |
 | `Module` | One module's contents |
 | `MainPage` | Shows the registered page for a list or record address |
+| Standard pages (`standardPages`) | The framework's own page for each address, which `main.ts` registers as the default |
 | `List`, `DoctypeList` | The standard list page, built on `useListPage` |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
@@ -625,7 +626,7 @@ baseline in the same PR.
 | Rule | The check fails when | Where it runs | Baseline |
 | --- | --- | --- | --- |
 | A layer uses only the layers it may use, and `ui/` uses no desk code | An import goes to a layer that the layer file does not allow. Every file in `ui/src` and `ui/island` is checked, also one the desk does not import | Frontend workflow, step "Check the desk structure": `node frontend/architecture/diagram.mjs --flows` | `knownBreaks` in `frontend/architecture/layers.json`, each with the ticket that removes it |
-| No new group of folders imports each other | A new group appears, or a known group grows or joins another | Frontend workflow, the same step | `knownLoops` in `layers.json`: 7 groups |
+| No new group of folders imports each other | A new group appears, or a known group grows or joins another | Frontend workflow, the same step | `knownLoops` in `layers.json`: 9 groups |
 | A new concept needs a ruling | A name imported or re-exported across a folder boundary is not in the concept table of the layer that defines it | Frontend workflow, the same step | `knownUnlisted` in `layers.json`: today's gaps |
 | Framework code outside `frappe/shell/` does not use the desk server | Code outside `frappe/shell/` imports `frappe.shell` or names it in a dotted path. Test files are skipped, and a `hooks.py` callback is not a use | Python tests, `frappe/tests/test_desk_server_layer.py` | The `knownBreaks` from outside `frappe/shell/` into it: `frappe/utils/data.py`, `frappe/bundler.py` and `frappe/website/page_renderers/shell_page.py` |
 | Every test file runs | A test file under `frontend/` or `ui/` matches no vitest pattern | Frontend workflow, `yarn test:files` | None |
@@ -708,7 +709,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | `contributions/registry.ts` imports `@/recordPage` to hand over record handlers | The registry no longer imports the engine | Build and publishing |
 | `shell/ComposerWindow.vue` imports the writers from `pages/record/composer/`; `shell/composer.ts` imports types from `@/recordPage` | The record page registers its writers | Activity column |
 | `shell/doctypeUpdates.ts` imports the layout and list settings caches | Each cache marks itself stale on `doctype_update` | Build and publishing |
-| `router/generated.ts` and `router/standardPages.ts` import the pages | The router reads page registrations | New map |
 | `main.ts` sets the record page's icon and prop hooks | The record page sets them when it registers | Build and publishing |
 | `useSession`, `useDoctypeMeta`, `useDocPermissions` and `useUserRoles` sit in the component layer | They move to `ui` data | @framework/ui |
 | Two import lists: the `import_map` hook for stored scripts, `@shell` for app files | One import list | Build and publishing |

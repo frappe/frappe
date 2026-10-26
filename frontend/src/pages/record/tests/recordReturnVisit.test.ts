@@ -56,9 +56,13 @@ import { resetClientScripts } from "@/recordPage/clientScripts";
 import { withRegisteringSource } from "@/recordPage/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { AuthoredHandlers, RecordPageApi, VisibleTypes } from "@/recordPage/types";
+import { registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell, routeFor } from "@/router/routeFor";
 import { resetViewMemory } from "../viewMemory";
+
+registerStandardPages(standardPages);
 
 const EARLIER = "2026-09-25 09:00:00.000000";
 const OLD = "2026-09-25 10:00:00.000000";

@@ -258,20 +258,6 @@
       "title": "Activity column: the composer window gets its writers by registration, not by import"
     },
     {
-      "from": "frontend/src/router/generated.ts",
-      "to": "frontend/src/pages/",
-      "why": "The router imports the standard pages instead of reading page registrations.",
-      "ticket": 43486,
-      "title": "Shell and routes: the router gets every page by registration"
-    },
-    {
-      "from": "frontend/src/router/standardPages.ts",
-      "to": "frontend/src/pages/",
-      "why": "The router imports the standard pages instead of reading page registrations.",
-      "ticket": 43486,
-      "title": "Shell and routes: the router gets every page by registration"
-    },
-    {
       "from": "ui/src/composables/useDoctypeMeta.ts",
       "to": "ui/src/components/FormLayout/",
       "why": "A ui data composable imports a type from a ui component.",
@@ -303,18 +289,17 @@
     ],
     [
       "frontend/src/list",
-      "frontend/src/pages",
-      "frontend/src/pages/list",
-      "frontend/src/pages/record",
       "frontend/src/pages/record/body",
       "frontend/src/pages/record/composer",
-      "frontend/src/pages/record/dialogs",
       "frontend/src/pages/record/feed",
       "frontend/src/pages/record/panel",
       "frontend/src/pages/record/skeletons",
-      "frontend/src/pages/record/tabs",
       "frontend/src/router",
       "frontend/src/shell"
+    ],
+    [
+      "frontend/src/pages/record",
+      "frontend/src/pages/record/dialogs"
     ],
     [
       "ui/src/components/ConditionBuilder",

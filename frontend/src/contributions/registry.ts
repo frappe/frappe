@@ -8,6 +8,7 @@ import type {
   ListHandlers,
   PageContribution,
   ReplacementContribution,
+  StandardPages,
 } from './types'
 
 export const pages: PageContribution[] = contributions.pages
@@ -20,6 +21,18 @@ const listHandlers = new Map<string, { app: string; handlers: ListHandlers }[]>(
 
 export function listHandlersFor(doctype: string) {
   return listHandlers.get(doctype) ?? []
+}
+
+let standard: StandardPages | null = null
+
+/** The default page of every address; registered before the router is built. */
+export function registerStandardPages(pages: StandardPages) {
+  standard = pages
+}
+
+export function standardPage<Key extends keyof StandardPages>(key: Key) {
+  if (!standard) throw new Error('[frappe] a standard page is read before it is registered.')
+  return standard[key]
 }
 
 /** Page key and doctype -> the one page that replaces it, filled by `registerContributions`. */

@@ -26,9 +26,13 @@ import type { Boot } from "@/boot";
 import { resetClientScripts } from "@/recordPage/clientScripts";
 import { resetFormLayouts } from "@/recordPage/formLayoutSource/useFormLayout";
 import { resetRegistry } from "@/recordPage/registry";
+import { registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import { resetViewMemory } from "../viewMemory";
+
+registerStandardPages(standardPages);
 
 const BIG = "9007199254740993";
 const GET_CLIENT_SCRIPTS = "frappe.custom.doctype.client_script.client_script.get_client_scripts";

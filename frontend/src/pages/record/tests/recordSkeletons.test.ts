@@ -87,11 +87,15 @@ import { FIRST_PAINT_LIMIT_MS } from "@/recordPage/paintGate";
 import { withRegisteringSource } from "@/recordPage/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { QuickAction, RecordPageApi } from "@/recordPage/types";
+import { registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { RecordFeeds } from "../feed/recordFeeds";
 import { loadRecord } from "../recordSource";
 import { resetViewMemory } from "../viewMemory";
 import { registerShell } from "@/router/routeFor";
+
+registerStandardPages(standardPages);
 
 const boot = {
   app: "frappe",

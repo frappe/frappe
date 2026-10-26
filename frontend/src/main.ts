@@ -24,7 +24,8 @@ import { installTranslate, loadTranslations } from "@/i18n";
 import { loadSprite, symbolGeometry } from "@/icons/sprite";
 import { setDrawnProps, setIconSource, watchClientScripts } from "@/recordPage";
 import { recordDrawnProps } from "@/pages/record/drawnProps";
-import { registerContributions } from "@/contributions/registry";
+import { registerContributions, registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import AppShell from "@/shell/AppShell.vue";
 import { openCreate, registerCreateDialog } from "@/shell/create";
 import { createSocket } from "@/shell/socket";
@@ -64,6 +65,7 @@ async function start() {
 
 	// Contributions register before the router's first resolution.
 	registerContributions(boot.app_order);
+	registerStandardPages(standardPages);
 
 	// Only now is the base known, and the shape: a modular app's route table is one segment deeper.
 	const router = createShellRouter(boot, addresses);

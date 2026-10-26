@@ -6,7 +6,11 @@ import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import type { PageContribution } from "@/contributions/types";
 import { itemContext } from "@/navigation/context";
+import { registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
+
+registerStandardPages(standardPages);
 
 const fake = vi.hoisted(() => ({ pages: [] as PageContribution[] }));
 
