@@ -60,6 +60,7 @@
 			:request="request"
 		/>
 
+		<ActKeys />
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
 		<Dialogs />
@@ -92,6 +93,8 @@ import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
+// Keys wait for no paint, so their code stays out of the cold-load chunk.
+const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;

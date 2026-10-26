@@ -70,6 +70,7 @@ import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
+import { ActKeys } from "@/shell/actKeys";
 import { resetViewMemory } from "../viewMemory";
 
 registerStandardPages(standardPages);
@@ -244,7 +245,7 @@ async function mount(address: string, afterRouting = () => {}): Promise<{ root: 
   afterRouting();
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const app = createApp(defineComponent({ render: () => h(RouterView) }));
+  const app = createApp(defineComponent({ render: () => [h(RouterView), h(ActKeys)] }));
   app.use(router);
   app.provide("boot", boot);
   app.provide("addresses", addresses);
@@ -469,7 +470,7 @@ describe("saving the new record", () => {
   it("saves on Ctrl+S", async () => {
     const { router } = await mount("/note/new?title=Hello");
 
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true }));
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true }));
     await settle();
 
     expect(server.inserts).toHaveLength(1);

@@ -42,6 +42,7 @@ import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
+import { ActKeys } from "@/shell/actKeys";
 import { resetViewMemory } from "../viewMemory";
 
 registerStandardPages(standardPages);
@@ -151,7 +152,7 @@ async function mount() {
   await router.push("/note/N-1");
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const app = createApp(defineComponent({ render: () => h(RouterView) }));
+  const app = createApp(defineComponent({ render: () => [h(RouterView), h(ActKeys)] }));
   app.use(router);
   app.provide("boot", boot);
   app.provide("addresses", addresses);
@@ -196,7 +197,7 @@ async function editTitle(root: HTMLElement, value: string) {
 }
 
 describe.each([
-  ["Ctrl+S", () => window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true }))],
+  ["Ctrl+S", () => document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true }))],
   ["the Save button", (root: HTMLElement) => saveButton(root).click()],
 ])("a save from %s", (_, press: (root: HTMLElement) => void) => {
   it("paints once, after afterSave, and the Save button spins until afterSave settles", async () => {

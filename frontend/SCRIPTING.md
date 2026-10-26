@@ -196,7 +196,7 @@ An act item takes four more keys, on `page.header`, `page.quickActions` and a ta
 
 | Key | What it does |
 | --- | --- |
-| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. Stored and listed; the shell does not bind it yet. |
+| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. The shell binds it while the act is available, and a press runs the act as a click does. Where a page act and a shell act share a combo, the page act runs. A combo with `Mod` or `Ctrl` also fires in a field, and none fires in a dialog, a popover or a dropdown. A key on an act that has an `argument` is not bound yet. |
 | `right` | A right the act needs: a ptype on this doctype (`'write'`), read from `page.perms`, or `{ doctype, ptype }` on another doctype, read from that doctype's level 0 permission rows and the reader's roles. |
 | `palette` | `false` keeps the act out of the palette. A script and a key still run it. |
 | `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. |
@@ -902,8 +902,10 @@ in `beforeSave` vetoes the save and marks the field in one line.
 
 ### Saving: `page.save()`
 
-`page.save()` is the one path; the Save button, `Ctrl+S` / `Cmd+S` and a script all call
-it. `Ctrl+S` does not save the page while focus is in a dialog, a popover or a dropdown. The
+`page.save()` is the one path; the Save button, `Mod+S` (`Cmd+S` on macOS, `Ctrl+S`
+elsewhere) and a script all call it. `Mod+S` is the `key` of the `header.save` act, so it does
+not save the page while focus is in a dialog, a popover or a dropdown, or while a script hides
+Save. The
 order is fixed:
 
 1. Every field error clears.

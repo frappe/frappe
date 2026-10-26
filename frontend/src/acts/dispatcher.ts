@@ -1,5 +1,6 @@
 // The one act dispatcher: it runs an act by its full name, `<surface>.<item>`, whoever asks.
 // A page registers the surfaces it draws; the shell and the list page register theirs the same way.
+import { shallowReactive } from "vue";
 import { toast } from "frappe-ui";
 import { __ } from "@/i18n";
 
@@ -94,7 +95,7 @@ interface Found {
 }
 
 export class ActDispatcher {
-	private scopes = new Map<string, ActScope>();
+	private scopes = shallowReactive(new Map<string, ActScope>());
 
 	/** A later scope takes a surface name over; the returned function lets go of only its own. */
 	register(scope: ActScope): () => void {
@@ -105,12 +106,12 @@ export class ActDispatcher {
 		};
 	}
 
-	/** Every act present, not hidden and allowed now, with its fields, `palette: false` ones too. */
-	available(): AvailableAct[] {
+	/** Every act present, not hidden and allowed now, `palette: false` ones too; `only` narrows them before a right is read. */
+	available(only: (item: ActItem) => boolean = () => true): AvailableAct[] {
 		const listed: AvailableAct[] = [];
 		for (const [surface, scope] of this.scopes)
 			for (const { item, hidden } of scope.surfaces[surface]())
-				if (isAct(item) && !hidden && (!item.right || scope.passes(item.right)))
+				if (isAct(item) && !hidden && only(item) && (!item.right || scope.passes(item.right)))
 					listed.push(describe(`${surface}.${item.name}`, item, scope));
 		return listed;
 	}
