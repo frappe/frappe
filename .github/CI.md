@@ -32,7 +32,7 @@ You can add a label any time. Adding `fixes-develop` or `run-full-ci` restarts y
 
 ## Tests on your pull request
 
-Pull requests into develop run only the linters. The server and UI test suites don't run on them, because develop runs them every hour. To run them on your pull request, add one of the labels above.
+Pull requests into develop and desk-v2 run only the linters. Develop runs the server and UI test suites every hour. To run them on your pull request, add one of the labels above.
 
 ## Settings
 
