@@ -150,7 +150,7 @@ frappe.ui.MobileNav = class MobileNav {
 	set_active() {
 		const route = frappe.get_route() || [];
 		// /desk (the app launcher) routes as [""]
-		const place = !route[0] || route[0] === "Workspaces" ? "home" : route[0];
+		const place = !route[0] || frappe.router.is_workspace_route(route) ? "home" : route[0];
 		for (const tab of this.tabs) {
 			tab.el.toggleAttribute("active", tab.name === place);
 		}

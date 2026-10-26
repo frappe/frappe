@@ -866,7 +866,7 @@ frappe.ui.Sidebar = class Sidebar {
 		if (frappe.router.page_info_for(route)?.system_page) return null;
 
 		// A private page's shell is its owner's, whatever module it is filed under.
-		if (route[0] === "Workspaces" && route[1] === "private") {
+		if (frappe.router.is_workspace_route(route) && route[1] === "private") {
 			const name = route[2];
 			const stated = frappe.router.current_shell;
 			if (stated && this.shell_lists_workspace(stated, name)) return stated;
@@ -880,7 +880,7 @@ frappe.ui.Sidebar = class Sidebar {
 		}
 
 		// A workspace route is answered by the shell that stores it.
-		if (route[0] === "Workspaces" && route.length >= 2) {
+		if (frappe.router.is_workspace_route(route) && route.length >= 2) {
 			return this.module_for_workspace(route[route.length - 1]);
 		}
 
@@ -1093,7 +1093,10 @@ frappe.ui.Sidebar = class Sidebar {
 		if (entry.link_type === "URL") return false;
 		if (entry.link_type === "Workspace") {
 			const route = frappe.get_route();
-			return route[0] === "Workspaces" && route[route.length - 1] === entry.link_to;
+			return (
+				frappe.router.is_workspace_route(route) &&
+				route[route.length - 1] === entry.link_to
+			);
 		}
 		return !!entry.module && entry.module === this.current_module;
 	}
@@ -1147,12 +1150,13 @@ frappe.ui.Sidebar = class Sidebar {
 	entity_from_route(route) {
 		// Before page_info: `dashboard-view` is itself a Page and would shadow the dashboard.
 		if (ENTITY_VIEW_ROUTES[route[0]] && route.length > 1) return route[1];
+		if (frappe.router.is_workspace_route(route) && route.length > 1) return route.at(-1);
 		if (route[0] && frappe.boot.page_info?.[route[0]]) return this.page_route_entity(route);
 		switch (route.length) {
 			case 1:
 				return route[0];
 			case 3:
-				return route[0] === "Workspaces" && route[1] === "private" ? route[2] : route[1];
+				return route[1];
 			case 2:
 				// For view routes such as ["List", "Customer"], the entity is the second element.
 				return route[1];

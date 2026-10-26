@@ -1029,7 +1029,7 @@ Object.assign(frappe.utils, {
 		if (route[0] === "modules") {
 			return __(route[1]).bold() + " " + __("Module");
 		}
-		if (route[0] === "Workspaces") {
+		if (frappe.router.is_workspace_route(route)) {
 			return __(route[1]).bold() + " " + __("Workspace");
 		}
 		if (route[0] === "dashboard") {
