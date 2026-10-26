@@ -70,9 +70,10 @@ export class BindingDraft {
 	unsaved(fieldnames: string[]): string[] {
 		return fieldnames.filter(
 			(fieldname) =>
-				this.dirty(fieldname) &&
 				!this.queued.has(fieldname) &&
-				!(this.sending.has(fieldname) && same(this.sending.get(fieldname), this.state.doc[fieldname]))
+				(this.sending.has(fieldname)
+					? !same(this.sending.get(fieldname), this.state.doc[fieldname])
+					: this.dirty(fieldname))
 		);
 	}
 
