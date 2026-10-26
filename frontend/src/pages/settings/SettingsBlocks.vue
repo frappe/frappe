@@ -1,11 +1,11 @@
-<!-- A pane's blocks, which the shell's settings dialog mounts: each generated block's rows over its
-     binding's draft, and a floating Save bar while a `button` block holds changes. -->
+<!-- A pane's blocks, which the shell's settings dialog mounts: generated rows over each binding's draft,
+     each component block's own file, and a floating Save bar while a `button` block holds changes. -->
 <template>
 	<div ref="root" class="contents">
 		<SettingsBody>
 			<LoadingStatus v-if="loading" />
 			<section
-				v-for="block in pane.blocks"
+				v-for="block in blocks"
 				:key="block.key"
 				:data-block="block.key"
 				class="relative isolate mt-8 scroll-mt-5 first-of-type:mt-5"
@@ -23,7 +23,11 @@
 					:reveal="reveal?.block === block.key ? reveal : undefined"
 					@commit="drafts.commit(drafts.bound.get(block.key)!)"
 				/>
-				<SettingsRowsSkeleton v-else :rows="3" />
+				<component
+					:is="components.get(block.key)"
+					v-else
+					:bindings="drafts.components.get(block.key) ?? {}"
+				/>
 			</section>
 			<div v-if="drafts.hasButtons" class="h-16" aria-hidden="true" />
 		</SettingsBody>
@@ -57,11 +61,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onUnmounted, ref } from "vue";
+import { computed, defineAsyncComponent, h, inject, onUnmounted, ref, type Component } from "vue";
 import { useRouter } from "vue-router";
 import { Button, dialog, SettingsBody } from "frappe-ui";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { settingsComponentFor } from "@/contributions/registry";
 import LoadingStatus from "@/shell/LoadingStatus.vue";
 import type { SettingsPane } from "@/shell/settingsPanes";
 import { discardChanges, type Confirm } from "../record/discardChanges";
@@ -80,8 +85,10 @@ const emit = defineEmits<{ loaded: [] }>();
 const FLASH =
 	"pointer-events-none absolute -inset-x-3 -inset-y-2 -z-10 rounded-4 bg-surface-gray-3 opacity-0";
 
+const components = componentsOf(props.pane);
+const blocks = props.pane.blocks.filter((block) => !block.component || components.has(block.key));
 const boot = inject<Boot>("boot")!;
-const drafts = new PaneDrafts(props.pane, boot.session.user.name, confirm);
+const drafts = new PaneDrafts({ ...props.pane, blocks }, boot.session.user.name, confirm);
 const loading = ref(true);
 drafts.loaded.then(() => {
 	loading.value = false;
@@ -115,6 +122,21 @@ onUnmounted(() => {
 	stopGuard();
 	drafts.close();
 });
+
+/** Each component block's file, loaded when the pane opens; a block whose file is missing is dropped. */
+function componentsOf(pane: SettingsPane): Map<string, Component> {
+	const components = new Map<string, Component>();
+	for (const block of pane.blocks) {
+		const loader = block.component && settingsComponentFor(block.app, block.component);
+		if (!loader) continue;
+		const component = defineAsyncComponent({
+			loader: loader as () => Promise<Component>,
+			loadingComponent: { render: () => h(SettingsRowsSkeleton, { rows: 3 }) },
+		});
+		components.set(block.key, component);
+	}
+	return components;
+}
 
 function paneOf(hash: string): string {
 	return hash.split("/").slice(0, 3).join("/");

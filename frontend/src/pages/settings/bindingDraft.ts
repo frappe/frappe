@@ -14,6 +14,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
 import { FieldErrors } from "@/recordPage";
+import { runAfterSave } from "@/shell/afterSave";
 import type { Confirm } from "../record/discardChanges";
 import { awaitMeta } from "../record/metaSource";
 import { mergeRefetch, same } from "../record/refetchMerge";
@@ -168,8 +169,10 @@ export class BindingDraft {
 			fieldnames.map((fieldname) => [fieldname, clone(this.state.doc[fieldname])])
 		);
 		try {
-			this.land((await this.write(values)).data, values);
+			const reply = (await this.write(values)).data;
+			this.land(reply, values);
 			this.settle(fieldnames, "saved");
+			runAfterSave({ doctype: this.doctype, name: this.name, doc: reply, changed: fieldnames });
 		} catch (error) {
 			if (isApiError(error) && error.isTimestampMismatch)
 				await this.resolveConflict(fieldnames, error);
