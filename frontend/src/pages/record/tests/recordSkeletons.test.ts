@@ -14,10 +14,16 @@ const load = vi.hoisted(() => ({
 
 vi.mock("@/shell/PageFrame.vue", async () => {
   const { defineComponent, h } = await import("vue");
+  const PageState = (await import("@/shell/PageState.vue")).default;
   return {
     pageGutter: "px-[--page-gutter]",
     default: defineComponent({
-      setup: (_, { slots }) => () => h("div", [h("header", slots.header?.()), slots.default?.()]),
+      props: ["state"],
+      setup: (props, { slots }) => () =>
+        h("div", [
+          h("header", slots.header?.()),
+          props.state ? h(PageState, props.state) : slots.default?.(),
+        ]),
     }),
   };
 });
@@ -312,19 +318,52 @@ describe("once the page has painted", () => {
 
 describe("when the record read fails", () => {
   it.each([
-    [404, "Not found."],
-    [403, "You do not have permission to read this record."],
-  ])("drops the skeletons for the plain heading and the error on a %i", async (status, text) => {
+    [404, "notFound"],
+    [403, "noPermission"],
+  ])("drops the skeletons for the plain heading and the page state on a %i", async (status, state) => {
     load.failure = new ApiError({ type: "Error", message: "no" } as never, status);
 
     const root = await open();
 
     expect(root.querySelector("h1")!.textContent).toBe("N-1");
-    expect(root.textContent).toContain(text);
+    expect(root.querySelector(`[data-page-state="${state}"]`)).not.toBeNull();
     expect(root.querySelector("[data-record-header-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-body-skeleton]")).toBeNull();
   });
+
+  it("shows the offline state on a network failure, and Try again reads the record again", async () => {
+    load.failure = new ApiError({ type: "NetworkError", message: "TypeError: Failed to fetch" }, 0);
+
+    const root = await open();
+
+    expect(root.querySelector('[data-page-state="offline"]')).not.toBeNull();
+    expect(root.textContent).not.toContain("Not found");
+
+    load.failure = null;
+    const reads = vi.mocked(loadRecord).mock.calls.length;
+    tryAgain(root).click();
+    await settle();
+
+    expect(vi.mocked(loadRecord).mock.calls.length).toBe(reads + 1);
+    expect(root.querySelector("[data-page-state]")).toBeNull();
+    expect(root.querySelector("[data-record-body-skeleton]")).not.toBeNull();
+  });
+
+  it("shows the failed state with the server's message as text, never as HTML", async () => {
+    load.failure = new ApiError({ type: "ValidationError", message: "<b>Disk</b> is full" }, 500);
+
+    const root = await open();
+
+    const state = root.querySelector('[data-page-state="failed"]')!;
+    expect(state.textContent).toContain("Disk is full");
+    expect(state.querySelector("b")).toBeNull();
+    expect(tryAgain(root)).not.toBeUndefined();
+  });
 });
+
+function tryAgain(root: HTMLElement) {
+  return [...root.querySelectorAll("button")].find((button) => button.textContent?.trim() === "Try again")!;
+}
 
 describe("a header or quick action's run paints once", () => {
   afterEach(() => resetRegistry());

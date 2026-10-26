@@ -61,7 +61,9 @@ export interface ListPage extends ListRows {
 	pageSize: Ref<number>;
 	/** The filters and sort the rows belong to, as one string: the session memory's key. */
 	rowsKey: () => string;
-	metaError: ComputedRef<string | null>;
+	/** Why the doctype's meta could not be read. */
+	metaError: ComputedRef<unknown>;
+	reloadMeta: () => void;
 	/** True once meta, the stored settings and the URL are read into the state above. */
 	seeded: ComputedRef<boolean>;
 	/** True when the person's own row holds columns. */
@@ -83,7 +85,7 @@ export interface ListPage extends ListRows {
 export function useListPage(doctype: string): ListPage {
 	const route = useRoute();
 	const router = useRouter();
-	const { meta, error, refreshing, refreshed } = useDoctypeMeta(doctype);
+	const { meta, error, refreshing, refreshed, reload: reloadMeta } = useDoctypeMeta(doctype);
 	const permissions = useDocPermissions(doctype);
 	const settings = useListSettings(doctype);
 	const listMeta = computed(() => meta.value as ListMeta | null);
@@ -302,7 +304,8 @@ export function useListPage(doctype: string): ListPage {
 		selection,
 		pageSize,
 		rowsKey,
-		metaError: computed(() => (error.value ? messageOf(error.value) : null)),
+		metaError: error,
+		reloadMeta,
 		seeded: computed(() => seeded.value),
 		columnsCustomized: computed(() => settings.has("user", "columns")),
 		resetColumns: async () => {

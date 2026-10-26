@@ -3,17 +3,14 @@
   address space.
 -->
 <template>
-	<PageFrame :title="title">
+	<PageFrame :title="title" :state="state">
 		<!-- "0 doctypes you can read" is a real answer, so it must not also be what a pending fetch looks like.
 		     The bar sits inline in a line of the same text size, so the count lands at the same height. -->
 		<div v-if="loading" class="pt-5 text-sm">
 			<Skeleton class="inline-block h-3 w-40 rounded-1 align-middle" />
 		</div>
 		<p v-else class="pt-5 text-sm text-ink-gray-6">
-			<template v-if="failed"> Could not load this module's doctypes. </template>
-			<template v-else>
-				{{ entries.length }} doctype{{ entries.length === 1 ? "" : "s" }} you can read.
-			</template>
+			{{ entries.length }} doctype{{ entries.length === 1 ? "" : "s" }} you can read.
 		</p>
 
 		<TileGridSkeleton v-if="loading" class="my-6" />
@@ -39,6 +36,7 @@ import type { Addresses } from "@/addresses";
 import { routeFor } from "@/router/routeFor";
 import { useContents } from "@/contents";
 import PageFrame from "@/shell/PageFrame.vue";
+import { failedState } from "@/shell/pageState";
 import TileGridSkeleton from "./TileGridSkeleton.vue";
 
 const boot = inject<Boot>("boot")!;
@@ -46,7 +44,8 @@ const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 
 const moduleSlug = computed(() => String(route.params.module ?? ""));
-const { entries, loading, failed } = useContents(boot.app, moduleSlug);
+const { entries, loading, error, reload } = useContents(boot.app, moduleSlug);
+const state = computed(() => (error.value ? failedState(error.value, reload) : null));
 // The slug is the address; the name is what a human reads.
 const title = computed(() => addresses.moduleName(moduleSlug.value) ?? moduleSlug.value);
 </script>

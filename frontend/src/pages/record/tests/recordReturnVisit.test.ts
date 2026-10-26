@@ -8,10 +8,16 @@ const made = vi.hoisted(() => ({ controllers: [] as any[] }));
 
 vi.mock("@/shell/PageFrame.vue", async () => {
   const { defineComponent, h } = await import("vue");
+  const PageState = (await import("@/shell/PageState.vue")).default;
   return {
     pageGutter: "px-[--page-gutter]",
     default: defineComponent({
-      setup: (_, { slots }) => () => h("div", [h("header", slots.header?.()), slots.default?.()]),
+      props: ["state"],
+      setup: (props, { slots }) => () =>
+        h("div", [
+          h("header", slots.header?.()),
+          props.state ? h(PageState, props.state) : slots.default?.(),
+        ]),
     }),
   };
 });
@@ -785,9 +791,9 @@ describe("a failed re-read", () => {
   });
 
   it.each([
-    [403, "You do not have permission to read this record."],
-    [404, "Not found."],
-  ])("of %i clears the painted record and shows the read error, as a cold load would", async (status, message) => {
+    [403, "noPermission"],
+    [404, "notFound"],
+  ])("of %i clears the painted record and shows the shared page state, as a cold load would", async (status, pageState) => {
     await register({ onRefresh: drawState });
     const { root, router } = await visitAndLeave();
     server.recordStatus = status;
@@ -798,7 +804,7 @@ describe("a failed re-read", () => {
 
     await settle();
 
-    expect(root.textContent).toContain(message);
+    expect(root.querySelector(`[data-page-state="${pageState}"]`)).not.toBeNull();
     expect(state(root)).toBeNull();
     expect(crumbs(root)).toBe("");
     expect(root.querySelector("[data-record-form]")).toBeNull();
