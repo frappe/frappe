@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref } from "vue";
+import { computed, onMounted, ref, watch } from "vue";
 import { Button, Dropdown, LoadingIndicator } from "frappe-ui";
 import { load_card, open_card } from "./number_card.js";
 
@@ -22,6 +22,7 @@ async function refresh() {
 }
 
 onMounted(refresh);
+watch(() => props.widget.number_card_name, refresh);
 
 const menu = computed(() => [
 	{ label: __("Refresh"), icon: "lucide-refresh-cw", onClick: refresh },
