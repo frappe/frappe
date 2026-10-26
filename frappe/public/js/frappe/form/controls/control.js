@@ -47,6 +47,7 @@ import "./rating";
 import "./duration";
 import "./icon";
 import "./phone";
+import "./vue_component";
 import "./json";
 
 // fieldtypes with a combobox variant behind the System Settings toggle; the email

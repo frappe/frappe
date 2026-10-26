@@ -864,3 +864,8 @@ label.switch-control {
 		}
 	}
 }
+
+.frappe-control[data-fieldtype="Vue Component"] .vue-component-unavailable {
+	color: var(--text-muted);
+	font-size: var(--text-sm);
+}
