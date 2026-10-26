@@ -20,6 +20,10 @@ def blank_pdf() -> bytes:
 	return stream.getvalue()
 
 
+def record_print(**kwargs):
+	pass
+
+
 def pdf_with_document_level_js() -> bytes:
 	from pypdf import PdfWriter
 
@@ -192,6 +196,100 @@ class TestPdf(IntegrationTestCase):
 
 		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
 		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
+
+	def test_footer_is_measured_at_the_width_it_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		block = '<span style="display: inline-block; width: 380px; height: 40px"></span>'
+		footer = (
+			f'<div id="footer-html">{block}{block}'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		pdf = pdfgen.get_chrome_pdf(None, "<p>row</p>" * 120 + footer, {}, None, pdf_generator="chrome")
+		pages = PdfReader(io.BytesIO(pdf)).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
+
+	def _builder_format(self):
+		import json
+
+		layout = {
+			"sections": [
+				{
+					"label": "Details",
+					"columns": [
+						{
+							"label": "",
+							"fields": [
+								{"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+							],
+						}
+					],
+				}
+			],
+			"header": {"columns": [{"label": "", "fields": []}]},
+			"footer": {"columns": [{"label": "", "fields": []}]},
+		}
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Print Hook {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"standard": "No",
+				"format_data": json.dumps(layout),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(print_format.delete, ignore_permissions=True)
+		return print_format
+
+	def _assert_print_hook_and_access_log(self, print_with):
+		from unittest.mock import patch
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		print_format = self._builder_format()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+			patch(
+				"frappe.utils.print_format_generator.PrintFormatGenerator.render_pdf",
+				return_value=blank_pdf(),
+			),
+		):
+			print_with(todo, print_format)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": print_format.name}])
+		self.assertTrue(
+			frappe.db.exists(
+				"Access Log", {"reference_document": todo.name, "page": f"Print Format: {print_format.name}"}
+			)
+		)
+
+	def test_emailed_builder_print_runs_the_hook_and_access_log(self):
+		self._assert_print_hook_and_access_log(
+			lambda todo, print_format: frappe.attach_print("ToDo", todo.name, print_format=print_format.name)
+		)
+
+	def test_bulk_builder_print_runs_the_hook_and_access_log(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self._assert_print_hook_and_access_log(
+			lambda todo, print_format: _download_multi_pdf(
+				"ToDo", frappe.as_json([todo.name]), format=print_format.name
+			)
+		)
 
 	def test_bulk_pdf_lists_the_documents_it_could_not_print(self):
 		from unittest.mock import ANY, patch

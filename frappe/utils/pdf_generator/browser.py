@@ -382,6 +382,16 @@ class Browser:
 				self._get_converted_num(options["margin-right"]), "px", "in", only_number=True
 			)
 
+		self.printable_width = 96 * (
+			updated_options["paperWidth"] - updated_options["marginLeft"] - updated_options["marginRight"]
+		)
+		if self.header_page:
+			self.header_page.set_device_metrics(width=int(self.printable_width))
+			self.header_height = self.header_page.get_element_height()
+		if self.footer_page:
+			self.footer_page.set_device_metrics(width=int(self.printable_width))
+			self.footer_height = self.footer_page.get_element_height()
+
 		# make copy of options to update them in header, body, footer.
 		self.body_page.options = updated_options.copy()
 		if self.header_page:
