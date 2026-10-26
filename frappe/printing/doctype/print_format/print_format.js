@@ -44,6 +44,7 @@ frappe.ui.form.on("Print Format", {
 	},
 	html: (frm) => frm.events.queue_html_preview(frm),
 	css: (frm) => frm.events.queue_html_preview(frm),
+	raw_printing: (frm) => frm.events.queue_html_preview(frm),
 	queue_html_preview(frm) {
 		clearTimeout(frm._html_preview_timer);
 		frm._html_preview_timer = setTimeout(() => frm.trigger("render_html_preview"), 600);
@@ -130,9 +131,11 @@ frappe.ui.form.on("Print Format", {
 			frm.set_value("print_format_builder_beta", 0);
 		}
 		frm.trigger("render_buttons");
+		frm.trigger("queue_html_preview");
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
+		frm.trigger("queue_html_preview");
 	},
 	disabled: function (frm) {
 		if (!frm.doc.disabled || !frm.doc.doc_type) return;
@@ -154,6 +157,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.print_format_for === "Report") {
 			frm.set_value("custom_format", 1);
 		}
+		frm.trigger("queue_html_preview");
 	},
 	hide_absolute_value_field: function (frm) {
 		// TODO: make it work with frm.doc.doc_type
