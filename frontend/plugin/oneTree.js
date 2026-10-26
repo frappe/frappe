@@ -42,9 +42,7 @@ export default function oneTree(manifest) {
 			if (Object.hasOwn(frameworkFiles, source) && insideAnApp(importer))
 				return frameworkFiles[source];
 
-			const owner = apps.find(
-				(entry) => entry.app !== "frappe" && importer.startsWith(entry.source_dir)
-			);
+			const owner = apps.find((entry) => importer.startsWith(entry.source_dir));
 			if (!owner) return;
 			// A scoped package's name is its first two segments, '@scope/pkg'.
 			const segments = source.split("/");

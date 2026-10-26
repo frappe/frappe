@@ -23,11 +23,13 @@ import { computed, h, inject, ref } from "vue";
 import { Avatar, Dropdown, useColorScheme, type DropdownOptions } from "frappe-ui";
 import type { Boot } from "@/boot";
 import LogoutDialog from "./LogoutDialog.vue";
+import { OpenSettingsKey } from "./openSettings";
 
 const USER_CELL =
 	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
 
 const boot = inject<Boot>("boot")!;
+const openSettings = inject(OpenSettingsKey)!;
 
 const { colorScheme, setColorScheme } = useColorScheme();
 const SCHEMES = [
@@ -38,7 +40,6 @@ const SCHEMES = [
 
 const confirmingLogout = ref(false);
 
-// Workaround: the settings dialog has no profile pane yet, so *My settings* opens v1's User form.
 const menu = computed<DropdownOptions>(() => [
 	{ group: "", hideLabel: true, options: [profileHeader()] },
 	{
@@ -48,7 +49,7 @@ const menu = computed<DropdownOptions>(() => [
 			{
 				label: "My settings",
 				icon: "lucide-circle-user",
-				onClick: () => leave(`/app/user/${encodeURIComponent(boot.session.user.name)}`),
+				onClick: () => openSettings("desk", "profile"),
 			},
 			{
 				label: "Theme",

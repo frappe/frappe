@@ -487,12 +487,15 @@ describe("the user menu", () => {
 		expect(groups).toEqual([0, 2, 1, 1]);
 	});
 
-	it("sends My settings to the person's v1 User form, and Desk v1 to v1's home", async () => {
+	it("opens My settings at desk's Profile pane, in place, and sends Desk v1 to v1's home", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		fake.openSettings.mockClear();
 
 		row(await opened(), "My settings").click();
 		await flush();
-		expect(assign).toHaveBeenLastCalledWith("/app/user/jane%40example.com");
+		expect(fake.openSettings).toHaveBeenCalledOnce();
+		expect(fake.openSettings).toHaveBeenLastCalledWith("desk", "profile");
+		expect(assign).not.toHaveBeenCalled();
 
 		row(await opened(), "Desk v1").click();
 		await flush();

@@ -6,13 +6,20 @@ import { defineConfig } from "vitest/config";
 import vue from "@vitejs/plugin-vue";
 import frappeui from "frappe-ui/vite";
 import contributions from "./plugin/contributions.js";
+import oneTree from "./plugin/oneTree.js";
 
+const ui = JSON.parse(readFileSync(new URL("../ui/package.json", import.meta.url), "utf8"));
 // The manifest is stated inline: frappe's own item renderers are contributions, and a
 // test that mocked the virtual module would exercise the mock.
+const declared = JSON.parse(readFileSync(new URL("./package.base.json", import.meta.url), "utf8"));
 const manifest = [
-	{ app: "frappe", source_dir: fileURLToPath(new URL("../frappe", import.meta.url)) },
+	{
+		app: "frappe",
+		source_dir: fileURLToPath(new URL("../frappe", import.meta.url)),
+		runtime_deps: declared.dependencies,
+		import_map: { "frappe/i18n": "./frontend/i18n.js" },
+	},
 ];
-const ui = JSON.parse(readFileSync(new URL("../ui/package.json", import.meta.url), "utf8"));
 
 export default defineConfig({
 	plugins: [
@@ -23,6 +30,8 @@ export default defineConfig({
 			manifest,
 			manifest.map((entry) => entry.source_dir)
 		),
+		// A contributed `.vue` file outside this root imports what frappe declares, as in the build.
+		oneTree(manifest),
 	],
 	resolve: {
 		alias: {
