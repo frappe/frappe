@@ -85,7 +85,7 @@ async function mount(name: string, bindings: Record<string, unknown> = {}) {
 
 function userBinding(values: Record<string, unknown>) {
 	return reactive({
-		doc: { name: "jane@example.com", email: "jane@example.com", ...values },
+		doc: { name: "jane@example.com", email: "jane@example.com", ...values } as Record<string, any>,
 		loading: false,
 		error: "",
 		commit: vi.fn(async () => {}),
