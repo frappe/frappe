@@ -9,7 +9,7 @@ const FRONTEND = import.meta.dirname;
 const BUDGETS = join(FRONTEND, "speed-budgets.json");
 
 export const PAGE_CHUNKS = {
-  home: "src/pages/Home.vue",
+  home: "src/pages/index/IndexPage.vue",
   list: "src/pages/List.vue",
   record: "src/pages/Record.vue",
 };

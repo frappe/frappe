@@ -5,20 +5,20 @@
 <template>
 	<DesktopShell
 		:scroll="false"
-		class="desk-shell relative h-screen w-screen bg-surface-base text-ink-gray-9"
+		class="relative h-screen w-screen bg-surface-base text-ink-gray-9"
+		:class="{ 'desk-shell': boot.app }"
 	>
-		<template #rail>
+		<template v-if="boot.app" #rail>
 			<RailColumn
 				:items="navigation.rail"
 				:context="contexts.rail"
 				:current="current.railKey"
-				:customizable="!!boot.app"
 				:share-link="shareLink"
 				@customize="customize.write('rail')"
 			/>
 		</template>
 
-		<template #sidebar>
+		<template v-if="boot.app" #sidebar>
 			<SidebarPanel
 				v-if="panel"
 				:key="panel.address"
@@ -36,6 +36,10 @@
 		<main class="flex min-h-0 flex-1 flex-col [&>*]:min-h-0 [&>*]:flex-1">
 			<RouterView />
 		</main>
+
+		<div v-if="!boot.app" class="absolute bottom-3 left-[11px] z-10" data-index-foot>
+			<UserMenu />
+		</div>
 
 		<!-- The hash dialogs: one hash, one Dialog, above any page. -->
 		<CustomizeSidebarDialog
@@ -85,6 +89,7 @@ import { OpenSettingsKey } from "./openSettings";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
+import UserMenu from "./UserMenu.vue";
 
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
 

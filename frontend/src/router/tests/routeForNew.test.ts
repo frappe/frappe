@@ -11,7 +11,6 @@ import { registerShell, routeFor, routeForNew } from "@/router/routeFor";
 
 registerStandardPages(standardPages);
 
-vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/Record.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/NewRecord.vue", () => ({ default: { render: () => null } }));

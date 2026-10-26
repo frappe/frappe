@@ -30,10 +30,10 @@ vi.mock("virtual:frappe/contributions", () => ({
 
 const registered: StandardPages = {
 	main: MainPage,
-	home: async () => page("registered home"),
 	list: async () => page("registered list"),
 	record: async () => page("registered record"),
 	newRecord: async () => page("registered new record"),
+	index: MainPage,
 };
 
 const addresses = new Addresses({

@@ -10,7 +10,6 @@ import { createShellRouter } from "@/router";
 
 registerStandardPages(standardPages);
 
-vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/Record.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));

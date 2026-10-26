@@ -274,10 +274,11 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `AppShell` | The root component: rail, sidebar, page area, and the hash dialogs |
+| `AppShell` | The root component: rail, sidebar, page area, and the hash dialogs. On the [index](./CONTEXT.md#index) it draws no rail and no sidebar, and `UserMenu` alone where the rail's foot would be |
 | `PageFrame` | The frame every page draws inside: header, scroll area, gutter, and a page state in place of the content |
-| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`, `NothingToOpen`) | Loading, empty, empty with a filter, nothing to open, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home; nothing to open offers all apps. `failedState` picks the state a failed read shows, with the server's message as text. Home, list, record and the new record page share them |
+| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`, `NothingToOpen`) | Loading, empty, empty with a filter, nothing to open, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home; nothing to open offers all apps. `failedState` picks the state a failed read shows, with the server's message as text. The list, record and new record pages share them |
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
+| `UserMenu` | The avatar menu: the profile, My settings, Theme, Desk v1 and Log out. The rail draws it at its foot, and the index in the same place |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
 | [Settings dialog](./CONTEXT.md#settings-dialog) (`ShellSettingsDialog`, `SettingsAddressBook`, `fetchPanes`, `SettingsPane`, `SettingsBlock`, `SettingsBinding`, `registerSettingsBlocks`) | The hash dialog at the [settings address](./CONTEXT.md#settings-address). Its chunk loads on the first open. It reads `get_panes` then and holds the reply for the tab, by `metadata_version` and user. It lists the framework's panes, the current app's group and an addressed foreign app's group for that visit. A short address is replaced by the full one; one it cannot show keeps its hash and shows one message. `main.ts` registers the page layer's component that draws a pane's blocks; its chunk loads with the pane list. A block segment scrolls to the block and flashes it once the pane's bindings have loaded |
@@ -295,9 +296,9 @@ component group, with its main names.
 | Section memory | Which sidebar sections a user opened or closed |
 | Sidebar memory (`sidebarMemory`) | Which sidebar this tab last showed for an address, per user |
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
-| Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
+| Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations. On the index it holds only `home`, which draws the index, and not found. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
 | Record link (`recordLink`) | *New.* What `main.ts` hands Link and Dynamic Link fields through `RecordLinkKey`: a record's `urlFor` address, or none for a doctype with no address, and a router push to it |
-| Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows: `FrameSkeleton` until the code is in, the failed or offline page state if it fails |
+| Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows: `FrameSkeleton`, or the page's own loading state, until the code is in, the failed or offline page state if it fails |
 
 ### 7. Page engines
 
@@ -352,7 +353,8 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `Home` | The [index](./CONTEXT.md#index) at `/apps`: a link to each app the user can open |
+| [Index](./CONTEXT.md#index) (`IndexPage`, `IndexSkeleton`, `AppTile`, `AppLogo`) | The page at `/apps`: a filter box over one tile per `boot.apps` entry, with no request. The box spans the first row's logos, three columns at least, and has focus on load. Typing filters by title, Enter opens the selection or the first match, and Esc clears the box. A tile opens its route by a full load. `IndexSkeleton` draws while the page's code loads |
+| Index selection (`Selection`, `Selectable`, `SelectionSection`, `selectableId`) | The one arrow-key movement over every section of the index, in page order. A section joins it with its items and its column count, draws an item as selected like a hover, and gives it `selectableId` as its element id, which the filter box names as its active descendant and scrolls into view |
 | `MainPage` | Shows the registered page for a list or record address |
 | Standard pages (`standardPages`) | The framework's own page for each address, which `main.ts` registers as the default |
 | `List`, `DoctypeList` | The standard list page, built on `useListPage` |
@@ -532,7 +534,7 @@ numbers. Every flow is also counted in files per flow and in timing guards.
 | 8 | The router is built from boot, addresses and page registrations | 6 | None. The router checks only that an address names a known doctype | Browser memory |
 | 9 | The socket opens and is handed to `ui/`. The desk hands `ui/` its session. Each cache of site data listens for `doctype_update` itself | 6, 3 | Realtime server: the user room; the site room for System Users only; each document room by read permission | Session store in browser memory |
 | 10 | The shell draws the rail and sidebar, before any page code arrives. Each row is drawn by its kind's renderer | 6, 5 | **Browser**: none; the rows were filtered in step 4 | Per-user browser memory: open sections, collapsed sidebar. Sidebar memory per tab, by address and user |
-| 11 | The router sends the bare address to its landing, or shows the nothing to open state | 6, 5 | **Browser**: none; the rows were filtered in step 4 | None |
+| 11 | The router sends the bare address to its landing, or shows the nothing to open state. On the index, the index page draws boot's apps with no request | 6, 5, 8 | **Browser**: none; the rows and the index's apps were filtered in step 4 | None |
 
 **Budget:** first paint time; boot size; `get_boot` time on the server; no request sent
 twice; layout shift; the shell drawn before the page's code arrives; a change on screen

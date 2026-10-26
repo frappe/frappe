@@ -5,7 +5,7 @@ import { createRouter, createWebHistory } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 import { declaredReplacements } from "@/contributions/registry";
-import { generatedRoutes } from "./generated";
+import { generatedRoutes, indexRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { isModular } from "./routeFor";
 import { landingOf } from "@/navigation/landing";
@@ -22,7 +22,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		routes: [
 			// Contributed pages match before generated routes: `/deals` must beat `/:doctype`.
 			...contributedRoutes(boot.app, modular, addresses),
-			...generatedRoutes(modular, !boot.app),
+			...(boot.app ? generatedRoutes(modular) : indexRoutes()),
 			{
 				path: "/:pathMatch(.*)*",
 				name: "not-found",
