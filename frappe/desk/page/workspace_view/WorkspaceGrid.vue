@@ -16,6 +16,7 @@ const props = defineProps({
 const ChartTile = defineAsyncComponent(() => import("./tiles/ChartTile.vue"));
 const QuickListTile = defineAsyncComponent(() => import("./tiles/QuickListTile.vue"));
 const OnboardingTile = defineAsyncComponent(() => import("./tiles/OnboardingTile.vue"));
+const CustomBlockTile = defineAsyncComponent(() => import("./tiles/CustomBlockTile.vue"));
 
 const TILES = {
 	number_card: { component: NumberCardTile, widgets: "number_cards", key: "number_card_name" },
@@ -24,6 +25,11 @@ const TILES = {
 	card: { component: CardTile, widgets: "cards", key: "card_name" },
 	quick_list: { component: QuickListTile, widgets: "quick_lists", key: "quick_list_name" },
 	onboarding: { component: OnboardingTile, widgets: "onboardings", key: "onboarding_name" },
+	custom_block: {
+		component: CustomBlockTile,
+		widgets: "custom_blocks",
+		key: "custom_block_name",
+	},
 };
 
 const sections = computed(() =>
