@@ -53,6 +53,38 @@ test.describe("Realtime updates", () => {
 		await expect.poll(() => page.evaluate(() => window.realtime_event_received)).toBe(true);
 	});
 
+	test("Runs the progress handler of a subscribed task", async ({ page, api }) => {
+		await page.evaluate(() => {
+			window.task_progress = null;
+			frappe.realtime.subscribe("playwright_task", {
+				progress: (data) => (window.task_progress = data.percent),
+			});
+		});
+
+		await api.call("frappe.tests.ui_test_helpers.publish_realtime", {
+			task_id: "playwright_task",
+			message: { percent: 50 },
+		});
+		await expect.poll(() => page.evaluate(() => window.task_progress)).toBe(50);
+	});
+
+	test("Ignores progress of a task subscribed without handlers", async ({ page, api }) => {
+		const errors = [];
+		page.on("pageerror", (error) => errors.push(error.message));
+		await page.evaluate(() => {
+			window.task_progress = null;
+			frappe.realtime.task_subscribe("playwright_task");
+			frappe.realtime.on("task_progress", (data) => (window.task_progress = data.percent));
+		});
+
+		await api.call("frappe.tests.ui_test_helpers.publish_realtime", {
+			task_id: "playwright_task",
+			message: { percent: 50 },
+		});
+		await expect.poll(() => page.evaluate(() => window.task_progress)).toBe(50);
+		expect(errors).toEqual([]);
+	});
+
 	test("Progress bar", async ({ page, api }) => {
 		const title = "RealTime Progress";
 		await api.call("frappe.tests.ui_test_helpers.publish_progress", { title });
