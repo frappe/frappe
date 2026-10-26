@@ -144,7 +144,9 @@ test("a new chat's agent is picked over the box from its own list, beside its sk
 	const skills = () => el.querySelector("button[title='Skills']");
 	const skillRows = () => [...skills().parentElement.querySelectorAll("[data-palette-item]")];
 	const skillNames = () =>
-		skillRows().map((row) => (row.querySelector("span") ?? row).textContent.trim());
+		skillRows().map((row) =>
+			(row.querySelector("span:not([aria-hidden])") ?? row).textContent.trim()
+		);
 	assert.equal(skills().textContent.trim(), "Skills");
 	skills().click();
 	await nextTick();

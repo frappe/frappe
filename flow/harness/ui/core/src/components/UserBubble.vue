@@ -23,7 +23,7 @@
 					:title="chip.title"
 				>
 					<span class="grid h-6 w-6 flex-none place-items-center rounded-5 bg-surface-gray-1 text-ink-gray-6">
-						<FeatherIcon :name="chip.icon" class="h-3.5 w-3.5" />
+						<span class="size-3.5" :class="chip.icon" aria-hidden="true" />
 					</span>
 					<span class="truncate text-xs font-medium text-ink-gray-8">{{ chip.label }}</span>
 				</span>
@@ -58,7 +58,7 @@
 				class="flow-hover-reveal grid h-6 w-6 place-items-center rounded-5 text-ink-gray-4 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 				@click="confirmRewind"
 			>
-				<FeatherIcon name="rotate-ccw" class="h-3.5 w-3.5" />
+				<span class="lucide-rotate-ccw size-3.5" aria-hidden="true" />
 			</button>
 			<CopyButton
 				:text="text"
@@ -71,7 +71,6 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, onMounted, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import {
@@ -116,13 +115,13 @@ const imageTiles = computed(() => attachments.value.filter((item) => previews.va
 const chips = computed(() => [
 	...split.value.refs.map((ref) => ({
 		key: `ref:${ref.path}:${ref.start}-${ref.end}`,
-		icon: "code",
+		icon: "lucide-code",
 		label: codeRefLabel(ref),
 		title: `${ref.path}:${ref.start}-${ref.end}`,
 	})),
 	...attachments.value
 		.filter((item) => !previews.value[item.id])
-		.map((item) => ({ key: item.id, icon: item.kind === "image" ? "image" : "file-text", label: item.name, title: item.name })),
+		.map((item) => ({ key: item.id, icon: item.kind === "image" ? "lucide-image" : "lucide-file-text", label: item.name, title: item.name })),
 ])
 
 const previews = ref({}) // attachment id → object URL of the stored image

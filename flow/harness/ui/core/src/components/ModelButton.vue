@@ -15,20 +15,23 @@
 				<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
 				<span class="flex-none font-normal text-ink-gray-5 dark:text-ink-gray-6">{{ effortLabel }}</span>
 			</template>
-			<FeatherIcon
-				name="chevron-down"
-				class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+			<span
+				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 				:class="pane ? 'rotate-180' : ''"
+				aria-hidden="true"
 			/>
 		</button>
 		<!-- its own lists, hung from it: a row each for the model and thinking, whose list takes their place -->
 		<PalettePanel v-if="pane === 'root'" title="Model and thinking" dropdown @close="close">
 			<div class="p-1">
 				<button v-for="entry in entries" :key="entry.pane" data-palette-item class="flow-palette-row" @click="pane = entry.pane">
-					<FeatherIcon :name="entry.icon" class="h-4 w-4 flex-none" />
+					<span class="size-4 flex-none" :class="entry.icon" aria-hidden="true" />
 					<span class="flex-none">{{ entry.label }}</span>
 					<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ entry.value }}</span>
-					<FeatherIcon name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
+					<span
+						class="lucide-chevron-right flow-palette-hint size-4 flex-none"
+						aria-hidden="true"
+					/>
 				</button>
 			</div>
 		</PalettePanel>
@@ -39,7 +42,6 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { EFFORT_LABELS, modelTitle } from "../transcript.js"
 import ModelPalette from "./ModelPalette.vue"
@@ -69,8 +71,8 @@ const modelLabel = computed(() => {
 })
 const effortLabel = computed(() => EFFORT_LABELS[currentEffort.value] ?? "Default")
 const entries = computed(() => [
-	{ pane: "models", label: "Model", icon: "cpu", value: modelLabel.value },
-	{ pane: "thinking", label: "Thinking", icon: "zap", value: effortLabel.value },
+	{ pane: "models", label: "Model", icon: "lucide-cpu", value: modelLabel.value },
+	{ pane: "thinking", label: "Thinking", icon: "lucide-zap", value: effortLabel.value },
 ])
 
 function close() {
