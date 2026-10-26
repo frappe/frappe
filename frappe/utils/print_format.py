@@ -490,7 +490,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		header = render_template(letter_head.content, {"doc": context_doc})
 		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
-			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
+			header += f"\n<style data-letter-head>\n{letter_head.custom_css}\n</style>\n"
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
 		rendered["header"] = header
