@@ -1151,12 +1151,17 @@ class TestChunkedUpload(IntegrationTestCase):
 
 	def test_uploads_of_the_same_name_do_not_share_a_buffer(self):
 		self.upload_chunk(0, size=10, total_file_size=20)
-		frappe.set_user("Administrator")
+		frappe.set_user("test4@example.com")
 		other_temp_path = self.use_temp_path()
 		self.upload_chunk(1, size=10, total_file_size=20)
 
 		self.assertNotEqual(self.temp_path, other_temp_path)
 		self.assertEqual(os.path.getsize(self.temp_path), 10)
+
+	def test_buffer_name_does_not_depend_on_filename_length(self):
+		from frappe.handler import get_chunk_temp_path
+
+		self.assertEqual(len(get_chunk_temp_path("a", 1).name), len(get_chunk_temp_path("あ" * 200, 1).name))
 
 
 @contextmanager
