@@ -413,6 +413,23 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			for df in column.get("fields", [])
 		]
 
+	def test_typst_pdf_skips_the_html_print_view(self):
+		from unittest.mock import patch
+
+		from frappe.www import printview
+
+		print_format = self._make_print_format(pdf_generator="Typst")
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc(
+			{"doctype": "ToDo", "description": "Send the Q3 price list to Contoso"}
+		).insert()
+
+		with patch.object(printview, "get_context", wraps=printview.get_context) as get_context:
+			frappe.get_print("ToDo", todo.name, print_format.name, as_pdf=True)
+
+		get_context.assert_not_called()
+
 	def test_get_print_degrades_for_deleted_format(self):
 		"""A print_format name that no longer exists must not raise DoesNotExistError
 		during pdf_generator resolution — it degrades to the Standard render, so

@@ -197,6 +197,19 @@ class TestPdf(IntegrationTestCase):
 		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
 		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
 
+	def test_pages_merged_with_header_and_footer_are_compressed(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_chrome_pdf(
+			None,
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>',
+			{},
+			None,
+			pdf_generator="chrome",
+		)
+		contents = PdfReader(io.BytesIO(pdf)).pages[0]["/Contents"]
+		self.assertEqual(contents.get("/Filter"), "/FlateDecode")
+
 	def test_footer_is_measured_at_the_width_it_prints(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
