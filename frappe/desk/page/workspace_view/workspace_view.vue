@@ -7,6 +7,7 @@ import EmptyWorkspace from "./EmptyWorkspace.vue";
 
 // read mode downloads no editor code
 const WorkspaceEditor = defineAsyncComponent(() => import("./editor/WorkspaceEditor.vue"));
+const ManageWorkspaces = defineAsyncComponent(() => import("./manage/ManageWorkspaces.vue"));
 
 // Every workspace whose renderer is Frappe UI, drawn at its usual URL.
 
@@ -27,6 +28,7 @@ const workspace = ref(null);
 const not_found = ref(false);
 const editing = ref(null);
 const edit_count = ref(0);
+const managing = ref(false);
 
 // `/desk/<slug>` arrives as [name], `/desk/private/<title>` as ["private", name].
 const target = computed(() =>
@@ -81,7 +83,7 @@ function actions() {
 	if (workspace.value.can_edit) list.push({ label: __("Edit"), onClick: () => edit() });
 	list.push({ label: __("New Workspace"), onClick: () => frappe.ui.new_workspace_dialog() });
 	if (workspace.value.can_edit) {
-		list.push({ label: __("Manage"), onClick: () => frappe.set_route("List", "Workspace") });
+		list.push({ label: __("Manage"), onClick: () => (managing.value = true) });
 	}
 	if (workspace.value.is_layout_customized && workspace.value.can_edit) {
 		list.push({ label: __("Reset to Standard"), onClick: reset });
@@ -135,6 +137,11 @@ watch(
 
 <template>
 	<FrappeUIProvider>
+		<ManageWorkspaces
+			v-if="managing"
+			:module="frappe.boot.workspaces.pages.find((p) => p.name === workspace?.name)?.module"
+			@close="managing = false"
+		/>
 		<WorkspaceEditor
 			v-if="editing"
 			:key="edit_count"
