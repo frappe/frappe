@@ -251,4 +251,41 @@ test.describe("Workspace island", () => {
 		const order = await tiles_in_order();
 		expect(order.indexOf("Playwright ToDos")).toBeLessThan(order.indexOf(CARD));
 	});
+
+	test("an editor adds a Body text and a shortcut", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
+		await open_editor(page);
+
+		await page.getByRole("button", { name: "Add text" }).click();
+		await page.getByLabel("Text", { exact: true }).fill("Added by the editor");
+		const panel = page.locator("aside");
+		await panel.getByText("Body", { exact: true }).click();
+		await panel.getByText("M", { exact: true }).click();
+
+		await page.getByRole("button", { name: "Add block" }).click();
+		await page.getByRole("menuitem", { name: "Shortcut" }).click();
+		await page.getByLabel("Label").fill("Added Notes");
+		await panel.getByRole("combobox").nth(1).click();
+		await page.keyboard.type("Note");
+		await page.getByRole("option", { name: /^Note\b(?! Seen)/ }).click();
+
+		const saved = page.waitForResponse((res) => res.url().includes("save_page"));
+		await page.getByRole("button", { name: "Save" }).click();
+		expect((await saved).ok()).toBeTruthy();
+
+		await page.reload();
+		await expect(page.locator(".ws-tile", { hasText: "Added by the editor" })).toBeVisible();
+		await expect(page.locator(".ws-tile", { hasText: "Added Notes" })).toBeVisible();
+	});
 });
+
+async function open_editor(page) {
+	await page.evaluate(() =>
+		$(frappe.pages["workspace-view"].page.menu)
+			.find(".dropdown-item")
+			.filter((i, item) => item.innerText.trim() === "Edit")
+			.click()
+	);
+	await expect(page).toHaveTitle(/Editing/);
+}
