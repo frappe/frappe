@@ -46,7 +46,8 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		// No `replace`: the bare address never enters history, and forcing one drops the entry before it.
 		if (to.name === "home" || to.name === "module") {
 			const moduleSlug = to.name === "module" ? String(to.params.module) : undefined;
-			return landingOf(boot, addresses, router, moduleSlug) ?? true;
+			const landing = landingOf(boot, addresses, router, moduleSlug);
+			return landing ? { path: landing.path, query: landing.query, hash: to.hash } : true;
 		}
 
 		const segment = to.params.doctype;

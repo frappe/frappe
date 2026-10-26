@@ -864,6 +864,14 @@ class TestShellBoot(IntegrationTestCase):
 		self.assertEqual(as_admin["doctypes"]["User"], ["user", "core"])
 		self.assertEqual(as_admin["doctypes"]["ToDo"], ["todo", "desk"])
 
+	def test_a_modules_sidebar_key_is_its_slug_with_underscores(self):
+		"""The client finds a module's sidebar in boot from the module's slug alone."""
+		from frappe.shell.doctypes import get_address_table, slug
+
+		names = [*get_address_table()["modules"].values(), "ERPNext Integrations", "Point-of-Sale Setup"]
+		for name in names:
+			self.assertEqual(frappe.scrub(f"Module Def {name}"), "module_def_" + slug(name).replace("-", "_"))
+
 	def test_the_address_table_is_full_bench_and_the_same_under_every_prefix(self):
 		"""The prefix is a lens: every doctype is addressable under every prefix, so the table is cacheable."""
 		from frappe.shell.doctypes import get_address_table
@@ -1150,8 +1158,8 @@ class TestModularAddresses(IntegrationTestCase):
 		frappe.set_user(email)
 		self.assertIn("Role", offered())
 
-	def test_the_module_landing_page_is_permission_filtered(self):
-		"""Addressability is not filtered, contents are; nobody pastes a module page as a record link."""
+	def test_a_modules_contents_are_permission_filtered(self):
+		"""Addressability is not filtered, contents are."""
 		from frappe.shell.doctypes import contents_for_app
 
 		self.assertTrue(contents_for_app("frappe", "core"))

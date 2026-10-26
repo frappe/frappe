@@ -113,7 +113,7 @@ export function routeForNew(
 	return { name: "new-record", params: doctypeParams(doctype), query };
 }
 
-/** The route for a module's landing page. Modular prefixes only. */
+/** The route for a module's address, which lands on its sidebar's first row. Modular only. */
 export function routeForModule(moduleSlug: string): RouteLocationRaw {
 	return { name: "module", params: { module: moduleSlug } };
 }

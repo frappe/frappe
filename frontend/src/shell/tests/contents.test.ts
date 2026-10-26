@@ -18,20 +18,9 @@ describe("fetchContents", () => {
 		);
 	});
 
-	it("sends no module when none is asked for", async () => {
-		runMethod.mockResolvedValueOnce({ data: [] });
-
-		await expect(fetchContents("frappe")).resolves.toEqual([]);
-		expect(runMethod).toHaveBeenLastCalledWith(
-			"frappe.shell.doctypes.get_contents",
-			{ app: "frappe" },
-			{ http: "GET" }
-		);
-	});
-
 	it("rejects when the wrapper throws", async () => {
 		runMethod.mockRejectedValueOnce(new Error("no such app"));
 
-		await expect(fetchContents("nope")).rejects.toThrow("no such app");
+		await expect(fetchContents("nope", "desk")).rejects.toThrow("no such app");
 	});
 });

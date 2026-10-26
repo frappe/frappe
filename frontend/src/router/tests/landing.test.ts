@@ -122,6 +122,24 @@ describe("an app's bare address", () => {
 		);
 	});
 
+	it("passes over a module item whose module lands nowhere", async () => {
+		const router = routerFor(
+			erpnext({ rail: [moduleItem("Accounts"), doctype("Item")], sidebars: {} })
+		);
+
+		await router.push("/");
+
+		expect(router.currentRoute.value.fullPath).toBe("/stock/item");
+	});
+
+	it("keeps the hash, so a dialog in the address still opens", async () => {
+		const router = routerFor(erpnext({ rail: [doctype("Item")], sidebars: {} }));
+
+		await router.push("/#settings");
+
+		expect(router.currentRoute.value.fullPath).toBe("/stock/item#settings");
+	});
+
 	it("stays and shows nothing to open when no rail item resolves", async () => {
 		const boot = erpnext({ rail: [link, section], sidebars: {} });
 		const router = routerFor(boot);

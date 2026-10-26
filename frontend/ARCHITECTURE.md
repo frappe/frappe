@@ -290,7 +290,7 @@ component group, with its main names.
 | Socket (`createSocket`, `repairRooms`) | Opens the realtime socket and hands it to `ui/` |
 | Item lookup (`rendererFor`, `renderingOf`, `labelOf`, `iconOf`, `itemContext`) | Draws an item through its kind's renderer |
 | Current item (`navigationDestinations`, `currentFrom`) | Which rail item and sidebar the current address belongs to |
-| [Landing](./CONTEXT.md#landing) (`landingOf`) | Where an app's or a module's bare address lands: the first item of the arranged rail, or the first row of the module's sidebar, that resolves to a route in this prefix. The router redirects `home` and `module` there from `boot.navigation`, with no request and before any page paints. With none, the address shows `NothingToOpen` |
+| [Landing](./CONTEXT.md#landing) (`landingOf`) | Where an app's or a module's bare address lands: the first item of the arranged rail, or the first row of the module's sidebar, that resolves to a route in this prefix; a rail module item counts only when its module lands. The router redirects `home` and `module` there from `boot.navigation`, with no request and before any page paints. With none, the address shows `NothingToOpen` |
 | Section memory | Which sidebar sections a user opened or closed |
 | Sidebar memory (`sidebarMemory`) | Which sidebar this tab last showed for an address, per user |
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |

@@ -8,16 +8,10 @@ export type ContentEntry = { doctype: string; slug: string; module: string };
 /**
  * Throws on failure: an empty list is a real answer here and must not be forged.
  */
-export async function fetchContents(
-	app: string,
-	module?: string
-): Promise<ContentEntry[]> {
-	const args: { app: string; module?: string } = { app };
-	if (module) args.module = module;
-
+export async function fetchContents(app: string, module: string): Promise<ContentEntry[]> {
 	const response = await runMethod<ContentEntry[]>(
 		"frappe.shell.doctypes.get_contents",
-		args,
+		{ app, module },
 		{ http: "GET" }
 	);
 	return response.data;

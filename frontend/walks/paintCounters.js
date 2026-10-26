@@ -5,7 +5,6 @@ export const MARKERS = {
 	skeletons: [
 		".fui-skeleton",
 		".animate-pulse",
-		"[data-tile-skeleton]",
 		"[data-record-header-skeleton]",
 		"[data-record-body-skeleton]",
 		"[data-record-tabs-skeleton]",

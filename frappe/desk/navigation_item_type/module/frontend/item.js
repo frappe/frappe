@@ -1,4 +1,4 @@
-// The `Module` kind: a module's landing page.
+// The `Module` kind: a module's address, which lands on the first row of its sidebar.
 //
 // `link_to` is the module's NAME; the address is its slug, and the slug comes off the
 // address table rather than from a re-implementation of `frappe.scrub` here — the same

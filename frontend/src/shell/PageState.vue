@@ -61,7 +61,7 @@ const looks = {
 	},
 	nothingToOpen: {
 		icon: "lucide-layout-grid",
-		// A getter: `boot` is read only when this state shows.
+		// A getter: a page state may mount with no boot provided, and only this one reads it.
 		get title() {
 			return __("Nothing in {0} you can open", [boot.app_title ?? boot.app ?? ""]);
 		},
