@@ -11,6 +11,7 @@ const props = defineProps({
 const host = ref(null);
 
 onMounted(() => {
+	if (!host.value) return;
 	const root = host.value.attachShadow({ mode: "open" });
 
 	const body = document.createElement("div");
@@ -28,5 +29,8 @@ onMounted(() => {
 </script>
 
 <template>
-	<div ref="host" class="ws-custom-block" />
+	<div v-if="!widget.html && !widget.script" class="p-4 text-base text-ink-gray-5">
+		{{ widget.label }}
+	</div>
+	<div v-else ref="host" class="ws-custom-block" />
 </template>

@@ -23,7 +23,12 @@ const BADGE_THEMES = {
 
 const counts = computed(() => {
 	const { type, doc_view, link_to } = props.widget;
-	return type === "DocType" && doc_view !== "New" && !frappe.boot.single_types.includes(link_to);
+	return (
+		type === "DocType" &&
+		link_to &&
+		doc_view !== "New" &&
+		!frappe.boot.single_types.includes(link_to)
+	);
 });
 
 onMounted(async () => {
