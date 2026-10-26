@@ -105,6 +105,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	hide_skeleton() {
 		this.$list_skeleton && this.$list_skeleton.hide();
 		this.parent.page.container.find(".layout-main").show();
+		// the shared scroller still has the last page's place: back to this list's own, or
+		// to the top when a link brought new filters
+		if (frappe.is_mobile()) {
+			const new_filters = !location.search && !$.isEmptyObject(frappe.route_options);
+			const same_list = location.search === this.scroll_search && !new_filters;
+			frappe.utils.scroll_to(same_list ? this.scroll_top : 0, false, 0, $(".main-section"));
+		}
 	}
 
 	get view_name() {
@@ -208,6 +215,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			}
 		});
 		this.setup_load_on_scroll();
+		this.remember_scroll_position();
 	}
 
 	// On a phone the plain list view hides the page-size pills and Load More (see
@@ -221,6 +229,24 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// reports as visible after the first load
 		this.$list_end = $(`<div class="list-end h-px" aria-hidden="true"></div>`);
 		this.$result.after(this.$list_end);
+	}
+
+	// phones scroll the list, not page through it, and other pages move the shared
+	// .main-section while it is away
+	remember_scroll_position() {
+		if (!this.load_on_scroll || !frappe.is_mobile()) return;
+		const main_section = document.querySelector(".main-section");
+		main_section?.addEventListener(
+			"scroll",
+			() => {
+				// the route changes before the pages swap, so the swap's jump is not saved
+				if (frappe.get_route_str() === this.page_name) {
+					this.scroll_top = main_section.scrollTop;
+					this.scroll_search = location.search;
+				}
+			},
+			{ passive: true }
+		);
 	}
 
 	// Past the virtualization threshold the rows scroll in their own box, so the early
