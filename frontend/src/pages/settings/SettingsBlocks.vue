@@ -72,7 +72,6 @@ import SettingsRowsSkeleton from "./SettingsRowsSkeleton.vue";
 
 const props = defineProps<{
 	pane: SettingsPane;
-	/** A search pick the dialog is about to scroll to; its block shows the field's tab. */
 	reveal?: { block: string; fieldname?: string };
 }>();
 const emit = defineEmits<{ loaded: [] }>();

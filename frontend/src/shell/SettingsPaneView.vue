@@ -33,7 +33,6 @@ const props = defineProps<{
 	blocks: Component;
 	/** The block the address names; it is scrolled to and flashed when the address changes to it. */
 	block?: string;
-	/** A search pick in this pane; a pane pick flashes the title. */
 	reveal?: SettingsHit;
 }>();
 
@@ -43,7 +42,6 @@ const TITLE_FLASH =
 const title = ref<HTMLElement | null>(null);
 const root = ref<HTMLElement | null>(null);
 const loaded = ref(false);
-/** The pick the blocks component shows the tab of. */
 const revealing = shallowRef<Target>();
 
 const target = computed<Target | undefined>(

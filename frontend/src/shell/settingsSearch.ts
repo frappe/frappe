@@ -21,7 +21,6 @@ export interface SettingsResults {
 	other: SettingsHit[];
 }
 
-/** The most results each list shows. */
 const LIMIT = 30;
 
 interface Entry {
