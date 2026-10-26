@@ -1072,10 +1072,11 @@ frappe.ui.form.PrintView = class {
 					name: me.frm.doc.name,
 					printer_setting: localStorage.getItem("network_printer"),
 					print_format: me.selected_format(),
-					no_letterhead: me.with_letterhead(),
+					no_letterhead: me.with_letterhead() ? 0 : 1,
 					letterhead: me.get_letterhead(),
 					style: me.get_print_style() || undefined,
 					settings: JSON.stringify(me.get_print_settings_param()),
+					_lang: me.lang_code,
 				},
 				callback: function () {},
 			});

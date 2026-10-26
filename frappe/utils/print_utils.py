@@ -33,7 +33,8 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	"""Pick the PDF engine for a render.
 
 	A builder format keeps its Typst or WeasyPrint choice and otherwise pins itself to
-	Chrome. Everything else honours an explicit choice, then the format's own setting."""
+	Chrome. Everything else honours an explicit choice, then the format's own setting,
+	then the site default in Print Settings."""
 	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
 	if print_format and uses_beta_renderer(print_format):
@@ -43,7 +44,11 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 		return "chrome"
 	if pdf_generator is not None:
 		return pdf_generator
-	return (print_format and print_format.get("pdf_generator")) or "wkhtmltopdf"
+	return (
+		(print_format and print_format.get("pdf_generator"))
+		or frappe.db.get_single_value("Print Settings", "pdf_generator")
+		or "wkhtmltopdf"
+	)
 
 
 def renders_through_generator(print_format) -> bool:

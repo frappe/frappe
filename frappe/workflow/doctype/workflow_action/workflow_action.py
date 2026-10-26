@@ -500,10 +500,8 @@ def get_common_email_args(doc):
 		else None
 	)
 
-	return {
-		"template": "workflow_action",
-		"header": "Workflow Action",
-		"attachments": [
+	try:
+		attachments = [
 			frappe.attach_print(
 				doctype,
 				docname,
@@ -512,7 +510,14 @@ def get_common_email_args(doc):
 				lang=lang,
 				print_format=print_format,
 			)
-		],
+		]
+	except frappe.PermissionError:
+		attachments = []
+
+	return {
+		"template": "workflow_action",
+		"header": "Workflow Action",
+		"attachments": attachments,
 		"subject": subject,
 		"message": response,
 	}

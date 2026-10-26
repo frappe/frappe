@@ -1,3 +1,4 @@
+import re
 from typing import ClassVar
 
 from bs4 import BeautifulSoup
@@ -209,6 +210,7 @@ class Browser:
 
 	def _parse_pdf_options_from_html(self):
 		from frappe.utils.pdf import get_print_format_styles
+		from frappe.www.printview import PAGE_LENGTH, PAGE_MARGIN_SIDES
 
 		soup: BeautifulSoup = self.soup
 		options = self._get_print_format_page_margins()
@@ -224,7 +226,12 @@ class Browser:
 			"page-width",
 			"page-height",
 		)
-		options |= {style.name: style.value for style in print_format_css if style.name in attrs}
+		options |= {
+			style.name: style.value
+			for style in print_format_css
+			if style.name in attrs
+			and (style.name not in PAGE_MARGIN_SIDES or re.fullmatch(f"0|{PAGE_LENGTH}", style.value.strip()))
+		}
 		self.options.update(options)
 		self._set_page_size_from_page_rule()
 
@@ -277,7 +284,6 @@ class Browser:
 			"marginBottom": 0,
 			"marginLeft": 0,
 			"marginRight": 0,
-			"landscape": options.get("orientation", "Portrait") == "Landscape",
 			"preferCSSPageSize": False,
 			"pageRanges": options.get("page-ranges", ""),
 			# Experimental
@@ -310,6 +316,12 @@ class Browser:
 
 		if isinstance(options["page-width"], str):
 			options["page-width"] = self._get_converted_num(options["page-width"])
+
+		if (
+			cstr(options.get("orientation")).lower() == "landscape"
+			and options["page-width"] < options["page-height"]
+		):
+			options["page-width"], options["page-height"] = options["page-height"], options["page-width"]
 
 		updated_options["paperWidth"] = convert_uom(options["page-width"], "px", "in", only_number=True)
 
