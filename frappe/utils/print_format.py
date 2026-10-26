@@ -278,6 +278,7 @@ def _download_multi_pdf(
 
 			from pypdf import PdfReader
 
+			from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 			from frappe.utils.print_format_generator import PrintFormatGenerator
 
 			doc = frappe.get_doc(print_doctype, print_name)
@@ -296,8 +297,10 @@ def _download_multi_pdf(
 				method="Print",
 				page=f"Print Format: {pf.name}",
 			)
-			for page in PdfReader(BytesIO(pdf)).pages:
-				pdf_writer.add_page(page)
+			reader = PdfReader(BytesIO(pdf))
+			first_new_page = len(pdf_writer.pages)
+			pdf_writer.append_pages_from_reader(reader)
+			PDFTransformer.resolve_internal_links(pdf_writer, reader, first_new_page)
 			return pdf_writer
 
 	if not isinstance(doctype, dict):

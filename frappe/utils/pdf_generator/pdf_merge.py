@@ -38,7 +38,7 @@ class PDFTransformer:
 				reader = PdfReader(BytesIO(body))
 				first_new_page = len(output.pages)
 				output.append_pages_from_reader(reader)
-				self._resolve_internal_links(output, reader, first_new_page)
+				self.resolve_internal_links(output, reader, first_new_page)
 				return output
 			return body
 
@@ -105,11 +105,12 @@ class PDFTransformer:
 		writer.append_pages_from_reader(body)
 		for page in writer.pages[first_new_page:]:
 			page.compress_content_streams()
-		self._resolve_internal_links(writer, body, first_new_page, body_transform)
+		self.resolve_internal_links(writer, body, first_new_page, body_transform)
 
 		return output or self.get_file_data_from_writer(writer)
 
-	def _resolve_internal_links(self, writer, reader, first_new_page, ty=0):
+	@staticmethod
+	def resolve_internal_links(writer, reader, first_new_page, ty=0):
 		from pypdf.generic import ArrayObject, FloatObject, NameObject
 
 		destinations = reader.named_destinations
