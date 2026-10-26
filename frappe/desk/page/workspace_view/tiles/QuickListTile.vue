@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Badge, Button, ItemListRow } from "frappe-ui";
 import { ChartCard, ChartContainer } from "frappe-ui/charts";
 import { get, post } from "../api.js";
@@ -24,8 +24,8 @@ const sort_field = ref(null);
 
 // `my_activity` orders by the session user's newest action instead of a field
 const MY_ACTIVITY = "my_activity";
-// the rows a tile shows
-const MAX_ROWS = 4;
+// the most rows any tile height shows; the tile draws as many as fit
+const MAX_ROWS = 20;
 
 // The first rows in the tile's order, with the fields the list view itself asks for.
 async function load() {
@@ -74,6 +74,28 @@ async function load() {
 	const docs = Array.isArray(data) ? data : frappe.utils.dict(data.keys, data.values);
 	rows.value = names ? docs.sort((a, b) => names.indexOf(a.name) - names.indexOf(b.name)) : docs;
 }
+
+const list = ref(null);
+const fit = ref(4);
+let observer = null;
+
+// as many whole rows as the list's height holds
+function measure() {
+	const row = list.value?.firstElementChild;
+	if (row?.offsetHeight)
+		fit.value = Math.max(1, Math.floor(list.value.clientHeight / row.offsetHeight));
+}
+
+watch(list, (element) => {
+	observer?.disconnect();
+	if (!element) return;
+	observer = new ResizeObserver(measure);
+	observer.observe(element);
+});
+watch(rows, () => nextTick(measure));
+onBeforeUnmount(() => observer?.disconnect());
+
+const visible = computed(() => rows.value?.slice(0, fit.value));
 
 function subtitle(doc) {
 	const event = activity.value[doc.name];
@@ -155,9 +177,9 @@ function text(value) {
 			<template #empty>
 				<span class="text-p-sm text-ink-gray-5">{{ __("No Data...") }}</span>
 			</template>
-			<div class="-mx-2 flex h-full flex-col overflow-hidden">
+			<div ref="list" class="-mx-2 flex h-full flex-col overflow-hidden">
 				<ItemListRow
-					v-for="doc in rows"
+					v-for="doc in visible"
 					:key="doc.name"
 					as="button"
 					type="button"

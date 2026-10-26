@@ -1,6 +1,6 @@
 // The editor's model: the layout's blocks as stored, and the widgets they point at.
 
-import { SIZES } from "../grid.js";
+import { SIZES, block_size } from "../grid.js";
 
 // names the default layout to the server, where a role would name a role layout
 export const DEFAULT_LAYOUT = "<default>";
@@ -60,12 +60,37 @@ export function sizes_of(type) {
 	return Object.keys(SIZES[type] || {});
 }
 
-// A preset is stored as `col`, plus `row` when the preset has a fixed height.
+// A preset is stored as `col`, plus `row` when the preset has a fixed height. A Tall block
+// stays Tall at its new width.
 export function set_size(block, preset) {
+	const tall = height_of(block) === "Tall";
 	const [col, row] = SIZES[block.type][preset];
 	block.data.col = col;
-	if (row) block.data.row = row;
+	if (row) block.data.row = tall ? row * TALL : row;
 	else delete block.data.row;
+}
+
+// A list or chart can be Tall, half again its preset's height, to show more of itself.
+const TALL = 1.5;
+export const HEIGHTS = ["Short", "Tall"];
+
+export function has_heights(block) {
+	return (preset_rows(block) || 0) >= 4;
+}
+
+export function height_of(block) {
+	const rows = preset_rows(block);
+	return rows && Number(block.data.row) > rows ? "Tall" : "Short";
+}
+
+export function set_height(block, height) {
+	const rows = preset_rows(block);
+	if (rows) block.data.row = height === "Tall" ? rows * TALL : rows;
+}
+
+function preset_rows(block) {
+	const preset = SIZES[block.type]?.[block_size(block).name];
+	return preset?.[1];
 }
 
 const new_id = () => Math.random().toString(36).slice(2, 12);
