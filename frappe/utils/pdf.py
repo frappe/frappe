@@ -102,20 +102,28 @@ def get_pdf(
 	options = dict(options or {})
 	password = options.pop("password", None)
 	if pdf_generator == "PlutoPrint" and not options.get("page-ranges") and plutoprint_can_render(html):
-		pdf = PDFTransformer(PlutoBrowser(print_format, html, options)).transform_pdf(output=output)
+		browser = PlutoBrowser(print_format, html, options)
+		pdf = PDFTransformer(browser).transform_pdf(output=None if browser.background else output)
 	else:
 		from frappe.utils.chromium import ChromiumManager
 		from frappe.utils.pdf_generator.browser import Browser
 
+		pdf_generator = "chrome"
 		generator, token = ChromiumManager.acquire()
 		try:
 			browser = Browser(generator, print_format, html, options)
-			pdf = PDFTransformer(browser).transform_pdf(output=output)
+			pdf = PDFTransformer(browser).transform_pdf(output=None if browser.background else output)
 		finally:
 			generator.release(token)
 
+	if browser.background:
+		pdf = underlay_background(
+			pdf, browser.background["url"], browser.background["opacity"], pdf_generator
+		)
+		if output:
+			output.append_pages_from_reader(PdfReader(io.BytesIO(pdf)))
 	if output:
-		return pdf
+		return output if browser.background else pdf
 	if len(pdf) > LARGE_PDF_SIZE and any(
 		any(_image_xobjects(page)) for page in PdfReader(io.BytesIO(pdf)).pages
 	):
@@ -123,6 +131,34 @@ def get_pdf(
 	if password:
 		pdf = encrypt_pdf(pdf, password)
 	return pdf
+
+
+def underlay_background(pdf: bytes, url: str, opacity: int, pdf_generator: str = "chrome") -> bytes:
+	"""Draw the image at ``url`` under every page of ``pdf``, edge to edge."""
+	from pypdf import PdfReader, PdfWriter
+
+	writer = PdfWriter(clone_from=io.BytesIO(pdf))
+	box = writer.pages[0].mediabox
+	width, height = float(box.width) * 25.4 / 72, float(box.height) * 25.4 / 72
+	html = (
+		"<!DOCTYPE html><html><head><style>@page{margin:0}html,body{margin:0}</style></head><body>"
+		f'<div style="width:{width}mm;height:{height}mm;opacity:{opacity / 100};'
+		f"background:url('{url}') center/100% 100% no-repeat\"></div></body></html>"
+	)
+	options = {
+		"margin-top": "0mm",
+		"margin-bottom": "0mm",
+		"margin-left": "0mm",
+		"margin-right": "0mm",
+		"page-width": f"{width}mm",
+		"page-height": f"{height}mm",
+	}
+	background_page = PdfReader(io.BytesIO(get_pdf(html, options, pdf_generator=pdf_generator))).pages[0]
+	for page in writer.pages:
+		page.merge_page(background_page, over=False)
+	out = io.BytesIO()
+	writer.write(out)
+	return out.getvalue()
 
 
 def encrypt_pdf(content: bytes, password: str) -> bytes:

@@ -287,6 +287,12 @@ def get_rendered_template(
 	hook_func = frappe.get_hooks("pdf_body_html")
 	html = frappe.get_attr(hook_func[-1])(jenv=jenv, template=template, print_format=print_format, args=args)
 
+	if letter_head.background_image:
+		html += (
+			f'<div id="page-background" hidden data-image="{escape_html(letter_head.background_image)}"'
+			f' data-opacity="{cint(letter_head.background_opacity)}"></div>'
+		)
+
 	if cint(trigger_print):
 		html += trigger_print_script
 
@@ -543,7 +549,15 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 		return frappe.db.get_value(
 			"Letter Head",
 			letterhead_name,
-			["content", "footer", "header_script", "footer_script", "custom_css"],
+			[
+				"content",
+				"footer",
+				"header_script",
+				"footer_script",
+				"custom_css",
+				"background_image",
+				"background_opacity",
+			],
 			as_dict=True,
 		)
 	else:
@@ -551,7 +565,15 @@ def get_letter_head(doc: "Document", no_letterhead: bool, letterhead: str | None
 			frappe.db.get_value(
 				"Letter Head",
 				{"is_default": 1},
-				["content", "footer", "header_script", "footer_script", "custom_css"],
+				[
+					"content",
+					"footer",
+					"header_script",
+					"footer_script",
+					"custom_css",
+					"background_image",
+					"background_opacity",
+				],
 				as_dict=True,
 			)
 			or {}

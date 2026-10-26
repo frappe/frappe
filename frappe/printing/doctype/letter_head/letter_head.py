@@ -20,6 +20,8 @@ class LetterHead(Document):
 		from frappe.types import DF
 
 		align: DF.Literal["Left", "Right", "Center"]
+		background_image: DF.AttachImage | None
+		background_opacity: DF.Int
 		content: DF.HTMLEditor | None
 		custom_css: DF.Code | None
 		disabled: DF.Check

@@ -29,6 +29,10 @@
   "column_break_kfvf",
   "footer_image_height",
   "footer_image_width",
+  "page_background_section",
+  "background_image",
+  "column_break_bgop",
+  "background_opacity",
   "header_section",
   "content",
   "custom_css",
@@ -89,6 +93,30 @@
    "fieldname": "image",
    "fieldtype": "Attach Image",
    "label": "Image"
+  },
+  {
+   "collapsible": 1,
+   "fieldname": "page_background_section",
+   "fieldtype": "Section Break",
+   "label": "Page Background"
+  },
+  {
+   "description": "Printed edge to edge under every page of the PDF, for example a watermark or stationery design.",
+   "fieldname": "background_image",
+   "fieldtype": "Attach Image",
+   "label": "Background Image"
+  },
+  {
+   "fieldname": "column_break_bgop",
+   "fieldtype": "Column Break"
+  },
+  {
+   "default": "100",
+   "depends_on": "background_image",
+   "fieldname": "background_opacity",
+   "fieldtype": "Int",
+   "label": "Background Opacity (%)",
+   "non_negative": 1
   },
   {
    "depends_on": "eval:doc.source==='HTML'",
@@ -241,7 +269,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2026-05-02 10:37:15.370451",
+ "modified": "2026-10-26 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",

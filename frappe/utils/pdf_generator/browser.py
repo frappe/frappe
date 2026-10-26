@@ -95,7 +95,18 @@ class Browser:
 		self.browser_context_id = result["browserContextId"]
 
 	def set_html(self, html):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+
 		self.soup = BeautifulSoup(html, "html5lib")
+		self.background = None
+		if marker := self.soup.find(id="page-background"):
+			self.background = PrintFormatGenerator.clean_background(
+				{"image": marker.get("data-image"), "opacity": marker.get("data-opacity")}
+			)
+			marker.decompose()
+			style = self.soup.new_tag("style")
+			style.string = "html, body, .print-format { background: transparent; }"
+			(self.soup.body or self.soup).append(style)
 
 	def set_options(self, options):
 		self.options = options

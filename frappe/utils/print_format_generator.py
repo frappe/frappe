@@ -407,6 +407,10 @@ class PrintFormatGenerator:
 		self.context.layout = self.layout
 		self.letterhead = self.get_letterhead(letterhead, no_letterhead)
 		self.context.letterhead = self.letterhead
+		if not self.layout.get("background") and self.letterhead and self.letterhead.background_image:
+			self.layout["background"] = self.clean_background(
+				{"image": self.letterhead.background_image, "opacity": self.letterhead.background_opacity}
+			)
 
 	def get_letterhead(self, letterhead, no_letterhead):
 		"""Resolve the letter head to print, most specific choice first.
@@ -602,29 +606,10 @@ class PrintFormatGenerator:
 	def underlay_background(
 		self, pdf: bytes, background: dict, password: str | None = None, pdf_generator: str = "chrome"
 	) -> bytes:
-		"""Draw the page background under every page of ``pdf``, edge to edge."""
-		from io import BytesIO
+		from frappe.utils.pdf import encrypt_pdf, underlay_background
 
-		from pypdf import PdfReader, PdfWriter
-
-		width, height = page_size_mm(self.print_settings)
-		html = (
-			"<!DOCTYPE html><html><head><style>@page{margin:0}html,body{margin:0}</style></head><body>"
-			f'<div style="width:{width}mm;height:{height}mm;opacity:{background["opacity"] / 100};'
-			f"background:url('{background['url']}') center/100% 100% no-repeat\"></div></body></html>"
-		)
-		options = {"margin-top": "0mm", "margin-bottom": "0mm", "margin-left": "0mm", "margin-right": "0mm"}
-		options.update(self.page_options())
-		background_pdf = render_html_pdf(self.print_format.name, html, options, pdf_generator)
-		background_page = PdfReader(BytesIO(background_pdf)).pages[0]
-		writer = PdfWriter(clone_from=BytesIO(pdf))
-		for page in writer.pages:
-			page.merge_page(background_page, over=False)
-		if password:
-			writer.encrypt(password)
-		out = BytesIO()
-		writer.write(out)
-		return out.getvalue()
+		pdf = underlay_background(pdf, background["url"], background["opacity"], pdf_generator)
+		return encrypt_pdf(pdf, password) if password else pdf
 
 	def page_options(self) -> dict:
 		"""The page size as the Chrome renderer takes it, from the settings this
