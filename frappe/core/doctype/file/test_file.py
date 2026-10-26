@@ -1183,6 +1183,20 @@ class TestAttachmentsAccess(IntegrationTestCase):
 			[],
 		)
 
+	def test_file_url_change_permission(self):
+		frappe.set_user("test@example.com")
+		private_file = frappe.get_doc(
+			doctype="File", file_name="url_change_private.txt", content="url-change-bytes", is_private=1
+		).insert()
+
+		frappe.set_user("test4@example.com")
+		other = frappe.get_doc(
+			doctype="File", file_url="https://example.com/x.pdf", file_name="x.pdf", is_private=1
+		).insert()
+
+		other.file_url = private_file.file_url
+		self.assertRaises(frappe.PermissionError, other.save)
+
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
 		frappe.db.rollback()
