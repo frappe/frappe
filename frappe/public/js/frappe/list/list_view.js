@@ -3,6 +3,8 @@ import ListSettings from "./list_settings";
 
 const LONG_PRESS_MS = 500;
 const LONG_PRESS_SLOP_PX = 10;
+// the phone card layout in list.scss
+const PHONE_CARD_QUERY = "(max-width: 576px)";
 
 frappe.provide("frappe.views");
 
@@ -1482,41 +1484,40 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_left_html(doc) {
 		let left_html = "";
-		const mobile_field_columns = this.columns.filter(
-			(col) => col.type === "Field" && col.df?.fieldname
-		);
-		let has_value_in_second_column = true;
-		if (mobile_field_columns.length > 1) {
-			const fieldname = mobile_field_columns[1].df.fieldname;
-			if (!doc[fieldname] && doc[fieldname] != 0) {
-				has_value_in_second_column = false;
-			}
-		}
-		for (let i = 0; i < this.columns.length; i++) {
-			let col = this.columns[i];
-
-			if (frappe.is_mobile() && col.type == "Field" && [3, 4].includes(i)) {
-				const no_seperator_class = !doc[col?.df?.fieldname] ? "no-seperator" : "";
-				left_html += `<div
-					class="mobile-layout ${no_seperator_class} ${i == 3 ? "mobile-layout-seperator" : ""}"
-					${no_seperator_class ? "style='padding-left: var(--margin-sm);'" : ""}
-					>
-					${this.get_column_html(col, doc, true)}
-				</div>`;
-			} else {
+		const mobile_columns = frappe.is_mobile() ? this.get_mobile_columns() : [];
+		for (const col of this.columns) {
+			if (!mobile_columns.includes(col)) {
 				left_html += this.get_column_html(col, doc, false);
 			}
 		}
 
-		if (!has_value_in_second_column) {
-			const container = document.createElement("div");
-			container.innerHTML = left_html;
-			const firstMobileLayout = container.querySelector(".mobile-layout");
-
-			if (firstMobileLayout) {
-				firstMobileLayout.classList.add("no-seperator");
-			}
-			left_html = container.innerHTML;
+		const has_value = (col) => !!doc[col.df.fieldname] || doc[col.df.fieldname] === 0;
+		const is_fixed_width = (df) =>
+			frappe.model.is_numeric_field(df) ||
+			["Date", "Datetime", "Time"].includes(df.fieldtype);
+		let mobile_html = "";
+		mobile_columns.forEach((col, i) => {
+			const empty = !has_value(col);
+			const no_seperator =
+				empty || (i === 0 && mobile_columns[1] && !has_value(mobile_columns[1]));
+			const classes = [
+				"mobile-layout",
+				no_seperator && "no-seperator",
+				i === 0 && "mobile-layout-seperator",
+				is_fixed_width(col.df) && "shrink-0",
+				empty && "ps-2",
+			].filter(Boolean);
+			// the ID opens the row; as a filter it would leave just this one
+			const html =
+				col.df.fieldname === "name"
+					? `<div class="list-row-col ellipsis">
+						<span class="ellipsis"><span class="ellipsis">${frappe.utils.escape_html(doc.name)}</span></span>
+					</div>`
+					: this.get_column_html(col, doc, true);
+			mobile_html += `<div class="${classes.join(" ")}">${html}</div>`;
+		});
+		if (mobile_html) {
+			left_html += `<div class="mobile-layout-line flex min-w-0">${mobile_html}</div>`;
 		}
 
 		left_html += this.generate_button_html(doc);
@@ -1527,6 +1528,36 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	get_right_html(doc) {
 		return this.get_meta_html(doc);
+	}
+
+	get_mobile_columns() {
+		const amount = this.get_mobile_amount_column();
+		if (!amount) {
+			return [this.columns[3], this.columns[4]].filter((col) => col?.type === "Field");
+		}
+		const fields = this.columns.filter((col) => col.type === "Field" && col.df?.fieldname);
+		const id = fields.find((col) => col.df.fieldname === "name");
+		const date = fields.find((col) => ["Date", "Datetime"].includes(col.df.fieldtype));
+		const rest = fields.filter((col) => ![amount, id, date].includes(col));
+		return [id, date, ...rest].filter(Boolean).slice(0, 2);
+	}
+
+	get_mobile_amount_column() {
+		if (!window.matchMedia(PHONE_CARD_QUERY).matches) return;
+		return this.columns.find(
+			(col) => col.type === "Field" && col.df?.fieldtype === "Currency"
+		);
+	}
+
+	get_mobile_amount_html(doc) {
+		const col = this.get_mobile_amount_column();
+		if (!col) return "";
+		const { fieldname } = col.df;
+		const formatter = this.settings.formatters?.[fieldname];
+		const html = formatter
+			? formatter(doc[fieldname], col.df, doc)
+			: frappe.format(doc[fieldname], col.df, { inline: true }, doc);
+		return `<span class="list-row-amount text-ink-gray-8 whitespace-nowrap">${html}</span>`;
 	}
 
 	get_list_row_html(doc, { virtual = false } = {}) {
@@ -1810,6 +1841,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		let html = "";
 
 		const modified = comment_when(doc.modified, true);
+		const amount_html = frappe.is_mobile() ? this.get_mobile_amount_html(doc) : "";
 
 		let assigned_to = ``;
 
@@ -1854,7 +1886,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 					${this.get_like_html(doc)}
 				</span>
 			</div>
-			<div class="level-item visible-xs text-right">
+			<div class="level-item visible-xs text-right ${amount_html && "flex-col items-end gap-0.5"}">
+				${amount_html}
 				${this.get_indicator_html(doc)}
 			</div>
 		`;
@@ -2080,6 +2113,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_sort_by();
 		this.setup_list_click();
 		this.setup_long_press();
+		this.setup_phone_card_change();
 		this.setup_drag_click();
 		this.setup_tag_visibility();
 		this.setup_new_doc_event();
@@ -2324,6 +2358,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// the phone's own long-press menu
 		this.$result.on("contextmenu", ".list-row-container", (e) => {
 			if (timer || this.long_pressed) e.preventDefault();
+		});
+	}
+
+	// the phone card puts the amount on the title's line, so turning the phone redraws the rows
+	setup_phone_card_change() {
+		window.matchMedia(PHONE_CARD_QUERY).addEventListener("change", () => {
+			if (frappe.get_route_str() === this.page_name) this.render_list();
 		});
 	}
 

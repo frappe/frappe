@@ -887,6 +887,13 @@ input.list-header-checkbox {
 						}
 					}
 
+					.mobile-layout-line {
+						.mobile-layout,
+						.mobile-layout .list-row-col {
+							min-width: 0;
+						}
+					}
+
 					.mobile-layout-seperator:not(.mobile-layout-seperator
 							~ .mobile-layout-seperator) {
 						padding-left: 27px;
@@ -911,6 +918,10 @@ input.list-header-checkbox {
 
 					.level-item.visible-xs {
 						margin-top: 1px;
+					}
+
+					.list-row-amount {
+						font-variant-numeric: tabular-nums;
 					}
 				}
 			}
