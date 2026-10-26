@@ -13,6 +13,9 @@ import type { FormItem } from "./types";
 
 type Entry = ResolvedItem<FormItem>;
 
+// An `update` can clear a part's component; the part keeps its place and draws nothing.
+const NOTHING = { render: () => null };
+
 /** The layout's sections as the surface's built-ins, in layout order. */
 export function formItems(layout: FormLayoutSchema): FormItem[] {
   return layout.flatMap((tab) => tab.sections.map(sectionItem));
@@ -62,10 +65,9 @@ class FormJoin {
   }
 
   private place(entry: Entry) {
-    const part = entry.source === BUILTIN ? undefined : this.part(entry);
-    const cell = part && this.fieldAnchor(entry);
-    if (cell) cell.column.parts?.push({ ...part, label: entry.item.label, ...entry.position });
-    else this.tabs[this.tabOf(entry, new Set())].sections.push(this.sectionFor(entry, part));
+    const cell = entry.source === BUILTIN ? undefined : this.fieldAnchor(entry);
+    if (cell) cell.column.parts?.push(this.columnPart(entry));
+    else this.tabs[this.tabOf(entry, new Set())].sections.push(this.sectionFor(entry));
   }
 
   // A part beside a field, or beside a part that is itself beside one, is a cell.
@@ -92,17 +94,20 @@ class FormJoin {
     return own ?? this.tabs.length - 1;
   }
 
-  private sectionFor(entry: Entry, part: ColumnPart | undefined): Section {
+  private sectionFor(entry: Entry): Section {
     const stored = this.sections.get(entry.item.name);
     if (entry.source === BUILTIN && stored)
       return { ...stored.section, label: entry.item.label ?? stored.section.label };
     const { name, label } = entry.item;
-    return { name, label, collapsible: false, columns: [], part };
+    return { name, label, collapsible: false, columns: [], part: { name, ...this.drawn(entry) } };
   }
 
-  // `page.form.add` drops a part without a component, but an `update` can still clear it.
-  private part(entry: Entry): ColumnPart | undefined {
-    const { name, component, props } = entry.item;
-    return component && { name, component, props: { ...props, page: this.page } };
+  private columnPart(entry: Entry): ColumnPart {
+    const { name, label } = entry.item;
+    return { name, label, ...this.drawn(entry), ...entry.position };
+  }
+
+  private drawn(entry: Entry) {
+    return { component: entry.item.component ?? NOTHING, props: { ...entry.item.props, page: this.page } };
   }
 }
