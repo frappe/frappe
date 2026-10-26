@@ -280,6 +280,10 @@ def _download_multi_pdf(
 
 			from frappe.utils.print_format_generator import PrintFormatGenerator
 
+			if pf_doc:
+				from frappe.printing.doctype.print_format.print_format import check_print_format_roles
+
+				check_print_format_roles(pf_doc)
 			doc = frappe.get_doc(print_doctype, print_name)
 			validate_print(doc)
 			set_link_titles(doc)
