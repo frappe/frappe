@@ -291,7 +291,7 @@
 .es-checklist__row {
     display: grid;
     grid-template-columns:
-        auto minmax(0, 1fr) calc(var(--spacing) * 22) calc(var(--spacing) * 40)
+        auto minmax(0, 1fr) calc(var(--spacing) * 22) calc(var(--spacing) * 37)
         calc(var(--spacing) * 24);
     grid-template-areas: "marker text status owner due";
     align-items: center;
@@ -404,6 +404,10 @@
 
 .es-checklist__owner .es-avatar {
     margin: 0;
+}
+
+.es-checklist__owner .es-combobox__actions:not(:has(> :not([hidden]))) {
+    display: none;
 }
 
 .es-checklist__trigger {
