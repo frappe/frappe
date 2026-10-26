@@ -5,6 +5,8 @@ const WORKSPACE = "Playwright Island";
 const CARD = "Playwright ToDo Count";
 const CHART = "Playwright ToDo Chart";
 const BLOCK = "Playwright Block";
+const LAYOUT_ROLE = "Playwright Layout Role";
+const LAYOUT_USER = "playwright-layout@example.com";
 const SAVE_CHART_CONFIG = "dashboard_settings.save_chart_config";
 
 test.describe("Workspace island", () => {
@@ -15,6 +17,18 @@ test.describe("Workspace island", () => {
 				roles: [...user.roles, { role: "Workspace Manager" }],
 			});
 		}
+		await admin.insert_doc("Role", { role_name: LAYOUT_ROLE, desk_access: 1 }, true);
+		await admin.insert_doc(
+			"User",
+			{
+				email: LAYOUT_USER,
+				first_name: "Layout",
+				new_password: "Playwright-Layout-1",
+				send_welcome_email: 0,
+				roles: [{ role: LAYOUT_ROLE }],
+			},
+			true
+		);
 		await admin.insert_doc(
 			"Number Card",
 			{
@@ -277,6 +291,33 @@ test.describe("Workspace island", () => {
 		await page.reload();
 		await expect(page.locator(".ws-tile", { hasText: "Added by the editor" })).toBeVisible();
 		await expect(page.locator(".ws-tile", { hasText: "Added Notes" })).toBeVisible();
+	});
+
+	test("a role layout reaches only people holding the role", async ({ page, desk }) => {
+		await page.goto("/desk/playwright-island");
+		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
+		await open_editor(page);
+
+		await page.getByRole("button", { name: "Default" }).click();
+		await page.getByRole("menuitem", { name: "New layout for a role" }).click();
+		const role = page.locator(".modal.show input[data-fieldname='role']");
+		await role.fill(LAYOUT_ROLE);
+		await role.blur();
+		await page.locator(".modal.show").getByRole("button", { name: "Create" }).click();
+
+		await page.getByRole("button", { name: "Add text" }).click();
+		await page.getByLabel("Text", { exact: true }).fill("Only for the role");
+		const saved = page.waitForResponse((res) => res.url().includes("save_page"));
+		await page.getByRole("button", { name: "Save" }).click();
+		expect((await saved).ok()).toBeTruthy();
+
+		await page.goto("/desk/playwright-island");
+		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
+		await expect(page.getByText("Only for the role")).toHaveCount(0);
+
+		await desk.login(LAYOUT_USER, "Playwright-Layout-1");
+		await page.goto("/desk/playwright-island");
+		await expect(page.getByText("Only for the role")).toBeVisible();
 	});
 });
 
