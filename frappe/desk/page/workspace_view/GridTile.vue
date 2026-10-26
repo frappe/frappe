@@ -6,20 +6,20 @@ const props = defineProps({
 });
 
 const body = ref(null);
-const measured_rows = ref(1);
+const measured_tracks = ref(1);
 let observer = null;
 
-// An auto-height tile snaps to its content in whole grid rows, so nothing clips or scrolls.
+// A grid row (a size's height unit) is 18 of the grid's tracks, gap included. See WorkspaceGrid.
+const TRACKS_PER_ROW = 18;
+
+// An auto-height tile spans just enough tracks for its content and the gap under it.
 onMounted(() => {
 	if (props.size.rows) return;
 	observer = new ResizeObserver(() => {
 		const style = getComputedStyle(body.value.closest(".ws-grid"));
-		const row = parseFloat(style.getPropertyValue("grid-auto-rows"));
-		const gap = parseFloat(style.getPropertyValue("row-gap")) || 0;
-		measured_rows.value = Math.max(
-			1,
-			Math.ceil((body.value.offsetHeight + gap) / (row + gap))
-		);
+		const track = parseFloat(style.getPropertyValue("grid-auto-rows"));
+		const gap = parseFloat(style.getPropertyValue("column-gap")) || 0;
+		measured_tracks.value = Math.max(1, Math.ceil((body.value.offsetHeight + gap) / track));
 	});
 	observer.observe(body.value);
 });
@@ -30,7 +30,7 @@ const style = computed(() => ({
 	"--span-12": props.size.span[12],
 	"--span-6": props.size.span[6],
 	"--span-2": props.size.span[2],
-	"--rows": props.size.rows || measured_rows.value,
+	"--tracks": props.size.rows ? props.size.rows * TRACKS_PER_ROW : measured_tracks.value,
 }));
 </script>
 
@@ -46,7 +46,8 @@ const style = computed(() => ({
 .ws-tile {
 	min-width: 0;
 	grid-column: span var(--span-2);
-	grid-row: span var(--rows);
+	grid-row: span var(--tracks);
+	padding-bottom: var(--ws-gap);
 }
 
 @media (min-width: 576px) {

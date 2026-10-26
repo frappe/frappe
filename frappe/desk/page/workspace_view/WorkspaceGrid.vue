@@ -134,9 +134,10 @@ function tile_for(block) {
 .ws-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
-	grid-auto-rows: var(--ws-row);
+	grid-auto-rows: calc((var(--ws-row) + var(--ws-gap)) / 18);
 	grid-auto-flow: row dense;
-	gap: var(--ws-gap);
+	column-gap: var(--ws-gap);
+	margin-bottom: calc(-1 * var(--ws-gap));
 	--ws-row: 3.5rem;
 	--ws-gap: 1rem;
 }
