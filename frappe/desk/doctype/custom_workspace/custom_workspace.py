@@ -193,6 +193,19 @@ def _append_widgets(doc, widgets: dict) -> None:
 		doc.build_links_table_from_card(widgets["card"])
 
 
+def replace_widgets(doc, widgets: dict) -> None:
+	"""Make a layout's widget rows exactly the stored set (a role layout's `widgets` is whole)."""
+	from frappe.desk.desktop import new_widget
+
+	for widget_type, parentfield in WIDGET_PARENTFIELD.items():
+		if widget_type == "card":
+			continue
+		doctype = doc.meta.get_field(parentfield).options
+		doc.set(parentfield, new_widget(widgets.get(widget_type), doctype, parentfield))
+	doc.set("links", [])
+	doc.build_links_table_from_card(widgets.get("card") or [])
+
+
 def upsert_content_customization(workspace: str, edited_content: list, new_widgets: dict) -> None:
 	"""Persist a content edit to a standard workspace as a snapshot (never touches the base)."""
 	customization = _get_or_new(workspace)

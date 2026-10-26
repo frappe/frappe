@@ -4,7 +4,7 @@ from json import dumps
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.desktop import get_desktop_page, get_workspace, get_workspaces
+from frappe.desk.desktop import DEFAULT_LAYOUT, get_desktop_page, get_workspace, get_workspaces
 from frappe.tests import IntegrationTestCase
 
 DESK_USER = "test-get-workspace-user@example.com"
@@ -140,6 +140,89 @@ class TestGetWorkspace(IntegrationTestCase):
 		self.assertNotIn("content", pages["GW Test"])
 
 
+class TestRoleLayouts(IntegrationTestCase):
+	ONE = "GW Role One"
+	TWO = "GW Role Two"
+	BOTH = "test-gw-both@example.com"
+	ONLY_TWO = "test-gw-two@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		for role in (self.ONE, self.TWO):
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": 1}).insert()
+		make_user(DESK_USER, ["Desk User"])
+		make_user(MANAGER, ["Desk User", "Workspace Manager"])
+		make_user(self.BOTH, ["Desk User", self.ONE, self.TWO])
+		make_user(self.ONLY_TWO, ["Desk User", self.TWO])
+		make_workspace(
+			"GW Layouts",
+			content=[block("header", text="Default")],
+			variants=[layout(self.ONE, "One"), layout(self.TWO, "Two")],
+		)
+
+	def heading(self, **kwargs):
+		payload = get_workspace("GW Layouts", **kwargs)
+		return payload["variant"], payload["content"][0]["data"]["text"]
+
+	def test_first_held_role_in_order_wins(self):
+		frappe.set_user(self.ONLY_TWO)
+		self.assertEqual(self.heading(), (self.TWO, "Two"))
+		frappe.set_user(self.BOTH)
+		self.assertEqual(self.heading(), (self.ONE, "One"))
+		frappe.set_user(DESK_USER)
+		self.assertEqual(self.heading(), (None, "Default"))
+
+	def test_administrator_holds_every_role(self):
+		self.assertEqual(self.heading(), (self.ONE, "One"))
+
+	def test_a_layout_carries_its_own_widgets(self):
+		frappe.set_user("Administrator")
+		ws = frappe.get_doc("Workspace", "GW Layouts")
+		ws.variants[1].content = dumps([block("shortcut", "Two Notes")])
+		ws.variants[1].widgets = dumps(
+			{"shortcut": [{"type": "DocType", "link_to": "Note", "label": "Two Notes"}]}
+		)
+		ws.save()
+
+		frappe.set_user(self.ONLY_TWO)
+		payload = get_workspace("GW Layouts")
+		self.assertEqual(list(payload["widgets"]["shortcuts"]), ["Two Notes"])
+
+	def test_automatic_and_unknown_roles_never_match(self):
+		ws = frappe.get_doc("Workspace", "GW Layouts")
+		ws.variants = []
+		ws.append("variants", layout("All", "All"))
+		ws.append("variants", layout("GW No Such Role", "Missing"))
+		ws.flags.ignore_validate = True
+		ws.flags.ignore_links = True
+		ws.save()
+
+		frappe.set_user(DESK_USER)
+		self.assertEqual(self.heading(), (None, "Default"))
+
+	def test_only_an_editor_picks_a_layout(self):
+		frappe.set_user(DESK_USER)
+		self.assertEqual(self.heading(variant=self.TWO), (None, "Default"))
+		frappe.set_user(MANAGER)
+		self.assertEqual(self.heading(variant=self.TWO), (self.TWO, "Two"))
+		self.assertEqual(self.heading(variant=DEFAULT_LAYOUT), (None, "Default"))
+
+	def test_a_private_workspace_never_walks(self):
+		private = make_workspace("GW Private Layouts", public=0, for_user=self.BOTH)
+		frappe.set_user(self.BOTH)
+		self.assertIsNone(get_workspace(private.name, variant=self.ONE)["variant"])
+
+
+def layout(role, text, widgets=None):
+	return {
+		"role": role,
+		"content": dumps([block("header", text=text)]),
+		"widgets": dumps(widgets or {}),
+	}
+
+
 def block(block_type, name=None, text=None):
 	data = {"col": 12}
 	if name:
@@ -160,7 +243,7 @@ def make_workspace(title, content=(), public=1, **values):
 	doc.public = public
 	doc.content = dumps(list(content))
 	for key, value in values.items():
-		if key in ("charts", "links", "roles"):
+		if key in ("charts", "links", "roles", "variants"):
 			for row in value:
 				doc.append(key, row if isinstance(row, dict) else {"role": row})
 		else:
