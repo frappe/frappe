@@ -305,11 +305,20 @@ frappe.ui.DatePicker = class DatePicker {
 
 	render_calendar() {
 		if (!this.calendar) return;
+		const focused = this.calendar.contains(document.activeElement)
+			? document.activeElement.dataset.focusKey || "title"
+			: null;
 		this.calendar.replaceChildren(
 			this.make_header(),
 			this.view === "date" ? this.make_grid() : this.make_month_year()
 		);
 		if (this.view !== "date") this.center_month_year();
+		if (focused) {
+			const target =
+				this.calendar.querySelector(`[data-focus-key="${focused}"]`) ||
+				this.calendar.querySelector('[data-focus-key="title"]');
+			target?.focus({ preventScroll: true });
+		}
 	}
 
 	make_header() {
@@ -319,7 +328,7 @@ frappe.ui.DatePicker = class DatePicker {
 			label: this.view_month.format("MMM YYYY"),
 			variant: "ghost",
 			css_class: "es-date-picker-calendar__title",
-			attrs: { "aria-live": "polite" },
+			attrs: { "aria-live": "polite", "data-focus-key": "title" },
 			onclick: () => {
 				this.view = this.view === "date" ? "month_year" : "date";
 				this.render_calendar();
@@ -336,18 +345,21 @@ frappe.ui.DatePicker = class DatePicker {
 				icon: "chevron-left",
 				variant: "ghost",
 				tooltip: __("Previous month"),
+				attrs: { "data-focus-key": "previous" },
 				onclick: () => this.shift_view(-1),
 			})[0],
 			frappe.ui.button({
 				label: __("Today"),
 				variant: "ghost",
 				css_class: "es-date-picker-calendar__today",
+				attrs: { "data-focus-key": "today" },
 				onclick: () => this.pick(frappe.datetime.get_today()),
 			})[0],
 			frappe.ui.button({
 				icon: "chevron-right",
 				variant: "ghost",
 				tooltip: __("Next month"),
+				attrs: { "data-focus-key": "next" },
 				onclick: () => this.shift_view(1),
 			})[0]
 		);
@@ -498,6 +510,11 @@ frappe.ui.DatePicker = class DatePicker {
 
 	shift_view(months) {
 		this.view_month = this.view_month.clone().add(months, "months");
+		if (!moment(this.focus_date, VALUE_FORMAT).isSame(this.view_month, "month")) {
+			this.focus_date =
+				this.find_available(this.view_month.clone(), 1) ||
+				this.view_month.format(VALUE_FORMAT);
+		}
 		this.render_calendar();
 	}
 
@@ -511,7 +528,7 @@ frappe.ui.DatePicker = class DatePicker {
 		const years = [];
 		for (let y = Math.min(first, year); y <= Math.max(last, year); y++) years.push(y);
 
-		const make_list = (label, items, is_current, on_pick) => {
+		const make_list = (label, key, items, is_current, on_pick) => {
 			const list = document.createElement("div");
 			list.className = "es-date-picker-calendar__list";
 			list.setAttribute("role", "listbox");
@@ -522,6 +539,7 @@ frappe.ui.DatePicker = class DatePicker {
 				item.className = "es-date-picker-calendar__list-item";
 				item.setAttribute("role", "option");
 				item.textContent = text;
+				item.dataset.focusKey = `${key}-${value}`;
 				const current = is_current(value);
 				item.setAttribute("aria-selected", String(current));
 				item.toggleAttribute("data-selected", current);
@@ -534,6 +552,7 @@ frappe.ui.DatePicker = class DatePicker {
 		wrap.append(
 			make_list(
 				__("Select year"),
+				"year",
 				years.map((y) => [y, String(y)]),
 				(y) => y === year,
 				(y) => {
@@ -543,6 +562,7 @@ frappe.ui.DatePicker = class DatePicker {
 			),
 			make_list(
 				__("Select month"),
+				"month",
 				moment.monthsShort().map((m, i) => [i, m]),
 				(m) => m === this.view_month.month(),
 				(m) => {
