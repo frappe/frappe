@@ -111,7 +111,7 @@ def has_permission(doc, ptype, user):
 	if user == "Administrator" or "System Manager" in frappe.get_roles(user):
 		return True
 
-	if doc.type == "Report" and doc.report_name in DeskViews.get_allowed_report_names(user=user):
+	if doc.type == "Report" and doc.report_name in DeskViews.get_cached_allowed_report_names(user):
 		return True
 
 	if doc.type == "Custom" and doc.document_type in get_cached_doctypes_with_read(user):

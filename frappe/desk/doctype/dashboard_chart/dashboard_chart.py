@@ -79,7 +79,7 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-		if doc.report_name in DeskViews.get_allowed_report_names(user=user):
+		if doc.report_name in DeskViews.get_cached_allowed_report_names(user):
 			return True
 	else:
 		if doc.document_type in get_cached_doctypes_with_read(user):
