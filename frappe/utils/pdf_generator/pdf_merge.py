@@ -93,12 +93,13 @@ class PDFTransformer:
 				else:
 					p.merge_page(footer.pages[0])
 
-		if output:
-			output.append_pages_from_reader(body)
-			return output
-
-		writer = PdfWriter()
+		writer = output or PdfWriter()
+		first_new_page = len(writer.pages)
 		writer.append_pages_from_reader(body)
+		for page in writer.pages[first_new_page:]:
+			page.compress_content_streams()
+		if output:
+			return output
 		if self.encrypt_password:
 			writer.encrypt(self.encrypt_password)
 
