@@ -63,6 +63,7 @@
 		/>
 
 		<ActKeys />
+		<PaletteKey />
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
 		<Dialogs />
@@ -72,11 +73,10 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, onUnmounted, provide, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
-import { DesktopShell, Dialogs, ToastProvider, useKeyboardShortcut } from "frappe-ui";
+import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
-import { __ } from "@/i18n";
 import { itemContext } from "@/navigation/context";
 import {
 	currentFrom,
@@ -90,7 +90,7 @@ import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import { OpenSettingsKey } from "./openSettings";
-import { openPalette, paletteOpen } from "./palette";
+import { paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
@@ -99,6 +99,9 @@ import UserMenu from "./UserMenu.vue";
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
 // Keys wait for no paint, so their code stays out of the cold-load chunk.
 const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
+const PaletteKey = defineAsyncComponent(() =>
+	import("./paletteKey").then((module) => module.PaletteKey)
+);
 const ShellPalette = defineAsyncComponent(() => import("./ShellPalette.vue"));
 
 const boot = inject<Boot>("boot")!;
@@ -263,20 +266,6 @@ watch(settings.open, (isOpen) => isOpen && (settingsOpened.value = true), { imme
 // Loaded on the first open, then kept, like the settings dialog.
 const paletteLoaded = ref(false);
 watch(paletteOpen, (isOpen) => isOpen && (paletteLoaded.value = true), { immediate: true });
-
-// The rich-text editor keeps its own Mod+K.
-useKeyboardShortcut({
-	combo: "Mod+K",
-	description: __("Search or run an action"),
-	allowInInput: true,
-	allowInDialog: true,
-	preventDefault: false,
-	handler: (event) => {
-		if ((event.target as Element | null)?.closest?.(".ProseMirror")) return;
-		event.preventDefault();
-		openPalette();
-	},
-});
 
 function replace(next: Navigation) {
 	navigation.value = next;

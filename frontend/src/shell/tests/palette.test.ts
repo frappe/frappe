@@ -81,6 +81,8 @@ async function shell(path = "/crm-deal", shellBoot: Boot = boot): Promise<Router
 	await router.isReady();
 	app.mount(host);
 	releases.push(() => app.unmount());
+	// Mod+K is bound by a lazy component; a test presses once it is in.
+	await import("../paletteKey");
 	await flush();
 	return router;
 }
