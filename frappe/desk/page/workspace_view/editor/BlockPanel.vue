@@ -93,6 +93,7 @@ function set_text_value(value) {
 
 function set(field, value) {
 	props.widget[field] = value;
+	if (field === "label") props.widget.renamed = true;
 	emit("change");
 }
 

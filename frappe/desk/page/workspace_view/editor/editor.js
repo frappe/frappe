@@ -99,7 +99,7 @@ export function new_block(type, widgets, title) {
 	for (let n = 2; widgets[spec.table][label]; n++) label = `${title} ${n}`;
 	block.data[name_key(type)] = label;
 	set_size(block, spec.size);
-	const widget = { label, ...JSON.parse(JSON.stringify(spec.defaults || {})) };
+	const widget = { label, renamed: true, ...JSON.parse(JSON.stringify(spec.defaults || {})) };
 	return { block, widget };
 }
 
@@ -167,7 +167,9 @@ export function to_save(blocks, widgets, touched) {
 			);
 		}
 		(new_widgets[type] ||= []).push(row);
-		stored.push({ id, type, data: { ...data, [name_key(type)]: item.label } });
+		// a label shown translated is stored as the block named it, unless the editor renamed it
+		row.label = item.renamed ? item.label : data[name_key(type)];
+		stored.push({ id, type, data: { ...data, [name_key(type)]: row.label } });
 	}
 	return { blocks: JSON.stringify(stored), new_widgets };
 }

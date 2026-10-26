@@ -72,7 +72,7 @@ function correct_private_segment() {
 
 function actions() {
 	const list = [];
-	if (workspace.value.can_edit) list.push({ label: __("Edit"), onClick: edit });
+	if (workspace.value.can_edit) list.push({ label: __("Edit"), onClick: () => edit() });
 	list.push({ label: __("New Workspace"), onClick: () => frappe.ui.new_workspace_dialog() });
 	if (workspace.value.can_edit) {
 		list.push({ label: __("Manage"), onClick: () => frappe.set_route("List", "Workspace") });
@@ -83,11 +83,11 @@ function actions() {
 	return list;
 }
 
-// The editor works on the default layout, whichever layout the reader was shown.
-async function edit() {
+// The editor opens on the default layout, whichever layout the reader was shown.
+async function edit(variant) {
 	editing.value = await get("frappe.desk.desktop.get_workspace", {
 		name: workspace.value.name,
-		variant: "<default>",
+		variant: variant || "<default>",
 	});
 	edit_count.value++;
 	const title = editing.value.public
@@ -134,6 +134,7 @@ watch(
 			:key="edit_count"
 			:workspace="editing"
 			@saved="edit"
+			@switch="edit"
 			@done="stop_editing"
 		/>
 		<div v-else class="mx-auto h-full max-w-4xl overflow-y-auto px-4 pt-4 pb-10">
@@ -160,7 +161,7 @@ watch(
 				<EmptyWorkspace
 					v-if="!workspace.content.length"
 					:can_edit="workspace.can_edit"
-					@edit="edit"
+					@edit="edit()"
 				/>
 				<WorkspaceGrid v-else :content="workspace.content" :widgets="workspace.widgets" />
 			</template>
