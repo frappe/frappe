@@ -252,6 +252,19 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 		labels = [s.label for s in result["shortcuts"]["items"]]
 		self.assertEqual(labels, ["My ToDos", "My Notes", "Audit"])
 
+	def test_switching_renderer_freezes_nothing(self):
+		from frappe.desk.doctype.workspace.workspace import set_workspace_renderer
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			set_workspace_renderer(self.WORKSPACE, "Legacy")
+			customization = frappe.get_doc("Custom Workspace", self.WORKSPACE)
+			self.assertEqual(customization.renderer, "Legacy")
+			self.assertFalse(customization.content)
+
+			set_workspace_renderer(self.WORKSPACE, "Frappe UI")
+		self.assertEqual(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "renderer"), "Inherit")
+		self.assertEqual(loads(frappe.db.get_value("Workspace", self.WORKSPACE, "content")), BASE_CONTENT)
+
 	def test_layout_customization_marks_the_page_as_frozen(self):
 		# The desk warns before the save that freezes a layout, so the payload has to say whether
 		# this workspace already has a snapshot. An appearance-only delta has frozen nothing and

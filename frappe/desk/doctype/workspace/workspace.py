@@ -1061,6 +1061,27 @@ def save_variant(doc, role: str, content: list, new_widgets: dict) -> None:
 	doc.save(ignore_permissions=True)
 
 
+@frappe.whitelist(methods=["POST"])
+def set_workspace_renderer(name: str, renderer: str):
+	"""Draw a workspace with the other renderer. On an app's workspace only the site's choice
+	changes, so its content keeps following the app."""
+	if renderer not in ("Legacy", "Frappe UI"):
+		frappe.throw(_("Unknown renderer {0}").format(renderer))
+
+	doc = frappe.get_doc("Workspace", name)
+	if not can_edit_workspace(doc):
+		frappe.throw(_("You need the Workspace Manager role to edit this workspace."), frappe.PermissionError)
+
+	if doc.standard and not frappe.conf.developer_mode:
+		from frappe.desk.doctype.custom_workspace.custom_workspace import upsert_property_customization
+
+		upsert_property_customization(name, renderer="Inherit" if renderer == doc.renderer else renderer)
+	else:
+		doc.renderer = renderer
+		doc.save(ignore_permissions=True)
+	return workspace_payload()
+
+
 @frappe.whitelist()
 def update_page(name: str, title: str, icon: str, indicator_color: str, parent: str, public: str | int):
 	public = frappe.parse_json(public)
