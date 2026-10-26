@@ -73,14 +73,17 @@ function makeRouter() {
 }
 
 /** The shell, mounted at `path` over the window's own history. */
-async function shell(path: string): Promise<{ host: HTMLElement; router: Router; app: App }> {
+async function shell(
+	path: string,
+	user = "reader@example.com"
+): Promise<{ host: HTMLElement; router: Router; app: App }> {
 	const boot = {
 		app: "erpnext",
 		shell_base: "/apps/erpnext",
 		prefixes: { erpnext: { app: "erpnext", modular: false } },
 		navigation: { rail, sidebars },
 		session: {
-			user: { name: "reader@example.com", full_name: "Reader", email: "reader@example.com" },
+			user: { name: user, full_name: "Reader", email: user },
 		},
 	} as unknown as Boot;
 
@@ -205,7 +208,8 @@ describe("the sidebar a page was read in", () => {
 
 describe("what the address-keyed record is left holding", () => {
 	function recorded() {
-		return JSON.parse(sessionStorage.getItem("frappe:desk:sidebar") ?? "{}");
+		const stored = JSON.parse(sessionStorage.getItem("frappe:desk:sidebars") ?? "{}");
+		return stored["reader@example.com"] ?? {};
 	}
 
 	it("records the sidebar a push resolved", async () => {
@@ -235,6 +239,16 @@ describe("what the address-keyed record is left holding", () => {
 		await router.push("/item");
 		await settle();
 		expect(open(host)).toBe("module_def_buying");
+	});
+
+	it("keeps one reader's record from the next reader in the same tab", async () => {
+		await walk();
+		document.body.innerHTML = "";
+
+		const { host, router } = await shell("/note", "colleague@example.com");
+		await router.push("/item");
+		await settle();
+		expect(open(host)).toBe("module_def_stock");
 	});
 });
 

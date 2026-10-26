@@ -2,6 +2,7 @@
 import { markRaw, reactive, readonly, shallowReactive } from "vue";
 import { currentSession } from "@framework/ui/composables/useSession";
 import type { UploadTransport } from "@framework/ui/FileUpload";
+import { browserMemory } from "@/browserMemory";
 import type { ComposerWindow, RecordPageApi } from "@/recordPage";
 import type { WriterItem } from "@/recordPage/types";
 
@@ -87,11 +88,7 @@ export function composerUser(): string {
 
 /** The reader's own choice of window, read from storage per user; an `open` never changes it. */
 export function preferredWindow(user = composerUser()): ComposerWindow {
-	try {
-		return localStorage.getItem(windowStorageKey(user)) === "floating" ? "floating" : "docked";
-	} catch {
-		return "docked";
-	}
+	return windowMemory(user).recall() ?? "docked";
 }
 
 /** Moves the open card; `remember` also keeps the choice for the next open. */
@@ -100,12 +97,7 @@ export function setComposerWindow(
 	{ remember = false }: { remember?: boolean } = {}
 ) {
 	state.window = placement;
-	if (!remember) return;
-	try {
-		localStorage.setItem(windowStorageKey(composerUser()), placement);
-	} catch {
-		// Storage can be full or refused; the next open then takes the default.
-	}
+	if (remember) windowMemory(composerUser()).remember(placement);
 }
 
 /** The record's band offers `el` for the docked card; the returned function takes it back. */
@@ -203,8 +195,12 @@ function forget(doctype: string, name: string) {
 	if (![...drafts.keys()].some((draft) => draft.startsWith(prefix))) kept.delete(key);
 }
 
-function windowStorageKey(user: string) {
-	return `desk:composer-window:${user}`;
+function windowMemory(user: string) {
+	return browserMemory("composer-window", user, isWindow, `desk:composer-window:${user}`);
+}
+
+function isWindow(value: unknown): value is ComposerWindow {
+	return value === "docked" || value === "floating";
 }
 
 function recordKey(doctype: string, name: string) {

@@ -252,7 +252,7 @@ component group, with its main names.
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
 | Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
-| Per-user browser memory (`browserMemory`, `BrowserMemory`) | One helper for every value kept in browser storage for one user. The record page uses it; the shell's copies have not moved yet |
+| Per-user browser memory (`browserMemory`, `tabMemory`, `BrowserMemory`) | One helper for every value kept in browser storage for one user: `browserMemory` for the browser, `tabMemory` for one tab. The composer's floating rectangle is the exception, because frappe-ui's `FloatingWindow` keeps it under its own key |
 | `virtual:frappe/contributions` | The build's index of every app's contributed files |
 | [Contributions](./CONTEXT.md#contribution) (`Contributions`, `DoctypeContribution`, `RecordHandlers`) | Everything an app may add: doctype handlers, pages, item kinds, replacements |
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |
@@ -280,7 +280,7 @@ component group, with its main names.
 | Item lookup (`rendererFor`, `renderingOf`, `labelOf`, `iconOf`, `itemContext`) | Draws an item through its kind's renderer |
 | Current item (`navigationDestinations`, `currentFrom`) | Which rail item and sidebar the current address belongs to |
 | Section memory | Which sidebar sections a user opened or closed |
-| Sidebar memory | Which sidebar this tab last showed for an address |
+| Sidebar memory (`sidebarMemory`) | Which sidebar this tab last showed for an address, per user |
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
 | Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
 | Record link (`recordLink`) | *New.* What `main.ts` hands Link and Dynamic Link fields through `RecordLinkKey`: a record's `urlFor` address, or none for a doctype with no address, and a router push to it |
@@ -724,7 +724,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | Separate comment and email writer pipelines | One | Activity column |
 | Three sets of loading and error states | One set of page states | New map |
 | The router waits for the next page's code | The frame changes at once | New map |
-| Three copies of per-user browser memory code in the shell | They use `browserMemory` | New map |
 | Two server cache keys for doctype owners and the address table | One | New map |
 | First app wins for item kinds; last app wins for replacements | Last app wins everywhere | Build and publishing |
 | The session fetched twice | The desk passes it | @framework/ui |

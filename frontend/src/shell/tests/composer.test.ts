@@ -47,6 +47,10 @@ function signIn(name: string) {
 	setSession(session as unknown as Session);
 }
 
+function storedWindows() {
+	return JSON.parse(localStorage.getItem("frappe:desk:composer-window") ?? "null");
+}
+
 function context(docname: string, extra: Partial<WriterContext> = {}): WriterContext {
 	return {
 		doctype: "Note",
@@ -130,7 +134,7 @@ describe("the window", () => {
 
 	it("opens where the reader last put it, kept per user", () => {
 		setComposerWindow("floating", { remember: true });
-		expect(localStorage.getItem(`desk:composer-window:${user}`)).toBe("floating");
+		expect(storedWindows()).toEqual({ [user]: "floating" });
 		openComposer("Note", name, "comment");
 		expect(composerState.window).toBe("floating");
 
@@ -141,17 +145,28 @@ describe("the window", () => {
 	});
 
 	it("reads the choice from storage on a fresh session", () => {
+		localStorage.setItem("frappe:desk:composer-window", JSON.stringify({ [user]: "floating" }));
+		expect(preferredWindow()).toBe("floating");
+		localStorage.setItem("frappe:desk:composer-window", JSON.stringify({ [user]: "sideways" }));
+		expect(preferredWindow()).toBe("docked");
+	});
+
+	it("moves a choice kept under its former key", () => {
 		localStorage.setItem(`desk:composer-window:${user}`, "floating");
 		expect(preferredWindow()).toBe("floating");
+		expect(localStorage.getItem(`desk:composer-window:${user}`)).toBeNull();
+		expect(storedWindows()).toEqual({ [user]: "floating" });
+
 		localStorage.setItem(`desk:composer-window:${user}-b`, "sideways");
 		expect(preferredWindow(`${user}-b`)).toBe("docked");
+		expect(localStorage.getItem(`desk:composer-window:${user}-b`)).toBeNull();
 	});
 
 	it("takes an open's window for that open only", () => {
 		openComposer("Note", name, "comment", undefined, "floating");
 		expect(composerState.window).toBe("floating");
 		expect(preferredWindow()).toBe("docked");
-		expect(localStorage.getItem(`desk:composer-window:${user}`)).toBeNull();
+		expect(storedWindows()).toBeNull();
 
 		openComposer("Note", name, "comment");
 		expect(composerState.window).toBe("docked");
@@ -166,7 +181,7 @@ describe("the window", () => {
 
 	it("reads the choice from storage alone, so a cleared entry reads as the default", () => {
 		setComposerWindow("floating", { remember: true });
-		localStorage.removeItem(`desk:composer-window:${user}`);
+		localStorage.removeItem("frappe:desk:composer-window");
 		expect(preferredWindow()).toBe("docked");
 	});
 

@@ -363,10 +363,6 @@
       "SectionMemory",
       "sectionMemory"
     ],
-    "frontend/src/navigation/sidebarMemory.ts": [
-      "recallSidebar",
-      "rememberSidebar"
-    ],
     "frontend/src/navigation/tree.ts": [
       "ItemNode",
       "containsKey"

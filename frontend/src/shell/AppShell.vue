@@ -75,7 +75,7 @@ import {
 	type CurrentNavigation,
 	type NavigationContexts,
 } from "@/navigation/current";
-import { recallSidebar, rememberSidebar } from "@/navigation/sidebarMemory";
+import { sidebarMemory } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
 import { failedPage } from "@/router/failedPage";
 import ComposerWindow from "./ComposerWindow.vue";
@@ -122,6 +122,8 @@ const sections = computed(() =>
 	)
 );
 
+const sidebarsByAddress = sidebarMemory(boot.session.user.name);
+
 // Off the payload, not per navigation: it costs a route resolution per row.
 const destinations = computed(() =>
 	navigationDestinations(navigation.value.rail, navigation.value.sidebars, contexts.value)
@@ -147,9 +149,12 @@ const canonical = computed(() => currentFrom(destinations.value, route.path));
 function resolve() {
 	const path = route.path;
 	// Most wanted first, each a tie-break only, so a stale or misspelled `?sidebar=` loses silently.
-	const prefer = [asked.value, stamped(), current.value.sidebar, recallSidebar(path)].filter(
-		(sidebar): sidebar is string => !!sidebar
-	);
+	const prefer = [
+		asked.value,
+		stamped(),
+		current.value.sidebar,
+		sidebarsByAddress.recall(path),
+	].filter((sidebar): sidebar is string => !!sidebar);
 
 	current.value = currentFrom(destinations.value, path, prefer);
 	const sidebar = current.value.sidebar;
@@ -157,7 +162,7 @@ function resolve() {
 		// Onto the entry, so back and forward return to the sidebar a page was read in. The
 		// compare leaves a pop's own state alone, which its forward entries hang off.
 		if (stamped() !== sidebar) keepInHistory("sidebar", sidebar);
-		if (!popped) rememberSidebar(path, sidebar);
+		if (!popped) sidebarsByAddress.remember(path, sidebar);
 	}
 	popped = false;
 }

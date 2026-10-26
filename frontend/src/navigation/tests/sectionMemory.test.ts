@@ -47,7 +47,7 @@ describe("remembering a toggle", () => {
 		kept.remember("leads-configure", false);
 
 		expect(memory().recall("leads-configure")).toBeUndefined();
-		expect(stored()).toEqual({});
+		expect(stored()).toEqual({ [READER]: {} });
 	});
 });
 

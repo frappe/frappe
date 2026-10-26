@@ -1,13 +1,12 @@
 // Which sections a reader has opened or shut for themselves. `localStorage`, so the unit is
 // the BROWSER — and keyed by user, because a browser profile is shared and a disclosure is not.
 
+import { browserMemory } from "@/browserMemory";
 import type { NavigationItem } from "@/boot";
-
-const KEY = "frappe:desk:sections";
 
 /** One reader's toggles for one container: section key to open. */
 type Sections = Record<string, boolean>;
-type Stored = Record<string, Record<string, Sections>>;
+type Containers = Record<string, Sections>;
 
 export type SectionMemory = {
 	/** What this reader decided about `key`, or nothing if they have not decided. */
@@ -15,25 +14,6 @@ export type SectionMemory = {
 	/** Record a click on `key`'s heading. */
 	remember(key: string, open: boolean): void;
 };
-
-function read(): Stored {
-	try {
-		const raw = localStorage.getItem(KEY);
-		const parsed = raw ? JSON.parse(raw) : null;
-		return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-	} catch {
-		// Storage throws in a sandboxed frame and at zero quota.
-		return {};
-	}
-}
-
-function write(stored: Stored): void {
-	try {
-		localStorage.setItem(KEY, JSON.stringify(stored));
-	} catch {
-		// Full or forbidden. The section still opens and closes for this page.
-	}
-}
 
 /**
  * This reader's disclosures for one container, read once and pruned against what it ships.
@@ -43,11 +23,12 @@ export function sectionMemory(
 	container: string,
 	items: Pick<NavigationItem, "key" | "keep_closed">[]
 ): SectionMemory {
+	const memory = browserMemory("sections", user, isContainers);
 	const shippedOpen = new Map(items.map((item) => [item.key, !item.keep_closed]));
 
 	const kept: Sections = {};
 
-	for (const [key, open] of Object.entries(read()[user]?.[container] ?? {})) {
+	for (const [key, open] of Object.entries(memory.recall()?.[container] ?? {})) {
 		// `has`, not truthiness on `get`: a section that is gone and one that ships shut
 		// both answer falsey, and only the first is stale.
 		if (!shippedOpen.has(key) || typeof open !== "boolean") continue;
@@ -56,14 +37,9 @@ export function sectionMemory(
 
 	/** Re-reads, so a write here cannot drop another container's entry. */
 	function save() {
-		const stored = read();
-		const forUser = { ...stored[user], [container]: kept };
-		if (!Object.keys(kept).length) delete forUser[container];
-
-		const next = { ...stored, [user]: forUser };
-		if (!Object.keys(forUser).length) delete next[user];
-
-		write(next);
+		const containers = { ...memory.recall(), [container]: kept };
+		if (!Object.keys(kept).length) delete containers[container];
+		memory.remember(containers);
 	}
 
 	return {
@@ -79,4 +55,8 @@ export function sectionMemory(
 			save();
 		},
 	};
+}
+
+function isContainers(value: unknown): value is Containers {
+	return !!value && typeof value === "object" && !Array.isArray(value);
 }

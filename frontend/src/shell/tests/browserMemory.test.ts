@@ -1,15 +1,17 @@
-// One value per user and name in this browser: users stay apart, a broken or misshapen store
+// One value per user and name, in the browser or one tab: users stay apart, a broken store
 // reads as nothing, a refused write is dropped, and a former key moves over once.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { browserMemory } from "@/browserMemory";
+import { browserMemory, tabMemory } from "@/browserMemory";
 
 const isNumber = (value: unknown): value is number => typeof value === "number";
+const isString = (value: unknown): value is string => typeof value === "string";
 const isObject = (value: unknown): value is Record<string, number> =>
 	!!value && typeof value === "object";
 
 afterEach(() => {
 	vi.unstubAllGlobals();
 	localStorage.clear();
+	sessionStorage.clear();
 });
 
 describe("browserMemory", () => {
@@ -73,5 +75,38 @@ describe("browserMemory", () => {
 		localStorage.setItem("old:ann", "NaN");
 		expect(browserMemory("height", "ann@example.com", isNumber, "old:ann").recall()).toBeUndefined();
 		expect(localStorage.getItem("old:ann")).toBeNull();
+	});
+
+	it("moves a former key that holds a bare string", () => {
+		localStorage.setItem("old:ann", "floating");
+		expect(browserMemory("window", "ann@example.com", isString, "old:ann").recall()).toBe("floating");
+		expect(localStorage.getItem("old:ann")).toBeNull();
+	});
+
+	it("drops a former key that fails the shape", () => {
+		localStorage.setItem("old:ann", '"tall"');
+		expect(browserMemory("height", "ann@example.com", isNumber, "old:ann").recall()).toBeUndefined();
+		expect(localStorage.getItem("old:ann")).toBeNull();
+		expect(localStorage.getItem("frappe:desk:height")).toBeNull();
+	});
+});
+
+describe("tabMemory", () => {
+	it("keeps two users in one tab apart, in sessionStorage", () => {
+		tabMemory("sidebars", "ann@example.com", isString).remember("stock");
+		tabMemory("sidebars", "bob@example.com", isString).remember("buying");
+		expect(tabMemory("sidebars", "ann@example.com", isString).recall()).toBe("stock");
+		expect(tabMemory("sidebars", "bob@example.com", isString).recall()).toBe("buying");
+		expect(localStorage.getItem("frappe:desk:sidebars")).toBeNull();
+	});
+
+	it("drops a write the tab refuses", () => {
+		vi.stubGlobal("sessionStorage", {
+			getItem: () => null,
+			setItem: () => {
+				throw new DOMException("full", "QuotaExceededError");
+			},
+		});
+		expect(() => tabMemory("sidebars", "ann@example.com", isString).remember("stock")).not.toThrow();
 	});
 });
