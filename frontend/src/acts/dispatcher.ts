@@ -48,8 +48,8 @@ export interface ActScope<Context = any> {
 	/** What `run` and `argument.options` receive. */
 	context: () => Context;
 	passes: (right: ActRight) => boolean;
-	/** Resolves once `passes` can answer for the right. */
-	settled: (right: ActRight) => Promise<void>;
+	/** A promise while `passes` cannot answer for the right yet; else nothing. */
+	settled: (right: ActRight) => Promise<void> | undefined;
 	hold: <T>(work: () => T | Promise<T>) => Promise<T>;
 	/** An act the reader asked for threw; the scope shows it and recovers. */
 	failed: (error: unknown) => void | Promise<void>;
@@ -88,6 +88,11 @@ interface Checked {
 	item: ActItem;
 }
 
+interface Found {
+	scope: ActScope;
+	entry: ActEntry;
+}
+
 export class ActDispatcher {
 	private scopes = new Map<string, ActScope>();
 
@@ -119,13 +124,18 @@ export class ActDispatcher {
 
 	/** Runs an act the reader asked for, by a click, the palette or a key; it never rejects. */
 	async perform(name: string, value?: unknown): Promise<void> {
-		const scope = this.lookup(name)?.scope;
+		let checked: Checked;
 		try {
-			await this.run(name, value);
+			const pending = this.check(name);
+			checked = pending instanceof Promise ? await pending : pending;
 		} catch (error) {
-			if (error instanceof ActDenied && error.act === name)
-				return void toast.error(deniedMessage(error));
-			await scope?.failed(error);
+			return void toast.error(deniedMessage(error as ActDenied));
+		}
+		const { scope, item } = checked;
+		try {
+			await scope.hold(() => item.run!(scope.context(), value));
+		} catch (error) {
+			await scope.failed(error);
 		}
 	}
 
@@ -133,12 +143,12 @@ export class ActDispatcher {
 	private check(name: string): Checked | Promise<Checked> {
 		const found = this.lookup(name);
 		const right = found?.entry.item.right;
-		if (found && right) return found.scope.settled(right).then(() => this.allowed(name));
-		return this.allowed(name);
+		const settling = found && right ? found.scope.settled(right) : undefined;
+		if (settling) return settling.then(() => this.allowed(name, this.lookup(name)));
+		return this.allowed(name, found);
 	}
 
-	private allowed(name: string): Checked {
-		const found = this.lookup(name);
+	private allowed(name: string, found: Found | null): Checked {
 		if (!found) throw new ActDenied(name, "missing");
 		const { scope, entry } = found;
 		if (entry.hidden) throw new ActDenied(name, "hidden");
@@ -146,7 +156,7 @@ export class ActDispatcher {
 		return { scope, item: entry.item };
 	}
 
-	private lookup(name: string) {
+	private lookup(name: string): Found | null {
 		const dot = name.indexOf(".");
 		const scope = dot > 0 ? this.scopes.get(name.slice(0, dot)) : undefined;
 		if (!scope) return null;

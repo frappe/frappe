@@ -196,6 +196,13 @@ describe("the pill", () => {
 		expect(controller.perform).toHaveBeenCalledExactlyOnceWith("tabs.attach_file");
 	});
 
+	it("leaves out a create with no name, which no act could run", async () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		const nameless: TabItem = { name: "notes", label: "Notes", create: { label: "Add a note", icon: "lucide-sticky-note", run } as any };
+		const { root } = await mountBand([ACTIVITY, nameless, FILES], "activity");
+		expect(options(root)).toEqual(["Attach a file"]);
+	});
+
 	it("draws no `+` menu when no tab creates anything", async () => {
 		const { root } = await mountBand([ACTIVITY, EMAILS], "activity");
 		expect(root.querySelector("[data-composer-create]")).toBeNull();

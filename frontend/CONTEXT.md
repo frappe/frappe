@@ -328,8 +328,9 @@ One line in the palette, showing an act, a place or a record. Not a child table'
 **Words that collide**.
 
 **Shell surface**: <a id="shell-surface"></a>
-The surface for acts that outlive a page: the shell's own acts and an app's global acts,
-named `shell.<item>`. Same item shape and verbs as a page surface.
+The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
+app's global acts, named `shell.<app>.<item>`. Same item shape and verbs as a page surface;
+`run` receives `(shell, value)`.
 
 ### The settings dialog
 

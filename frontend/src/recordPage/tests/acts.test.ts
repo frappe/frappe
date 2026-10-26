@@ -25,6 +25,8 @@ import { withRegisteringSource } from "../context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, HeaderItem, TabItem } from "../types";
 
+const controllers: ReturnType<typeof createRecordPage>[] = [];
+
 function makePage(overrides: Partial<RecordPageHost> = {}) {
   const host: RecordPageHost = {
     doctype: "CRM Lead",
@@ -47,6 +49,7 @@ function makePage(overrides: Partial<RecordPageHost> = {}) {
     ...overrides,
   };
   const controller = createRecordPage(host);
+  controllers.push(controller);
   controller.header.provideBuiltins(() => [{ name: "save", label: "Save", run: () => {} }]);
   return { controller, page: controller.page };
 }
@@ -69,7 +72,10 @@ beforeEach(() => {
   vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
-afterEach(() => vi.restoreAllMocks());
+afterEach(() => {
+  for (const controller of controllers.splice(0)) controller.leave();
+  vi.restoreAllMocks();
+});
 
 describe("page.run", () => {
   it("runs a header item by its full name inside a hold, with the value", async () => {
