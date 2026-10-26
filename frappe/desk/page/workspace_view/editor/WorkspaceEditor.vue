@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import { Badge, Button, Dropdown, Tooltip } from "frappe-ui";
+import { Alert, Badge, Button, Dropdown, Tooltip } from "frappe-ui";
 import { post } from "../api.js";
 import WorkspaceGrid from "../WorkspaceGrid.vue";
 import EmptyWorkspace from "../EmptyWorkspace.vue";
@@ -328,17 +328,17 @@ const menu = computed(() => {
 			<div class="min-h-0 flex-1 overflow-y-auto">
 				<div class="mx-auto max-w-4xl px-4 pt-4 pb-10">
 					<template v-if="previewing">
-						<div
-							class="mb-4 rounded-6 bg-surface-gray-2 px-3 py-2 text-base text-ink-gray-6"
-						>
-							{{
+						<Alert
+							class="mb-4"
+							icon="lucide-eye"
+							:title="
 								variant
-									? __("Previewing the {0} layout with your data.", [
+									? __('Previewing the {0} layout with your data.', [
 											__(variant),
 									  ])
-									: __("Previewing the default layout with your data.")
-							}}
-						</div>
+									: __('Previewing the default layout with your data.')
+							"
+						/>
 						<WorkspaceGrid :content="blocks" :widgets="widgets" />
 					</template>
 					<EmptyWorkspace v-else-if="!blocks.length" editing @add-text="add_text" />
