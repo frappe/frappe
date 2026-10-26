@@ -2,13 +2,16 @@
 import { computed } from "vue";
 import { block_size, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
+import NumberCardTile from "./tiles/NumberCardTile.vue";
 
 const props = defineProps({
 	content: { type: Array, required: true },
 	widgets: { type: Object, required: true },
 });
 
-const TILES = {};
+const TILES = {
+	number_card: { component: NumberCardTile, widgets: "number_cards", key: "number_card_name" },
+};
 
 const sections = computed(() =>
 	split_sections(props.content).map((blocks) =>
