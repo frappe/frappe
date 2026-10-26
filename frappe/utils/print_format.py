@@ -22,6 +22,7 @@ from frappe.translate import print_language
 from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 
 no_cache = 1
 
@@ -449,7 +450,9 @@ def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(),
 	)
 	frappe.local.response.type = "pdf"
 
@@ -706,7 +709,11 @@ def download_report_pdf(
 
 	frappe.local.response.filename = f"{report_name}.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
 	)
 	frappe.local.response.type = "pdf"
 
