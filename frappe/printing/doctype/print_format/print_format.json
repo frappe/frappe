@@ -103,6 +103,20 @@
    "read_only_depends_on": "eval:doc.print_format_for===\"Report\";"
   },
   {
+   "collapsible": 1,
+   "collapsible_depends_on": "roles",
+   "fieldname": "access_section",
+   "fieldtype": "Section Break",
+   "label": "Access"
+  },
+  {
+   "description": "If set, only users with one of these roles can print with this format.",
+   "fieldname": "roles",
+   "fieldtype": "Table",
+   "label": "Roles",
+   "options": "Has Role"
+  },
+  {
    "depends_on": "eval:doc.custom_format || doc.print_format_for == \"Report\"",
    "fieldname": "section_break_6",
    "fieldtype": "Section Break"
@@ -369,7 +383,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-25 12:27:23.348336",
+ "modified": "2026-10-26 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

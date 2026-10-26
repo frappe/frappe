@@ -281,7 +281,8 @@ $.extend(frappe.meta, {
 				!print_format_list.includes(d.name) &&
 				d.print_format_type !== "JS" &&
 				d.print_format_for !== "Report" &&
-				(cint(enable_raw_printing) || !d.raw_printing)
+				(cint(enable_raw_printing) || !d.raw_printing) &&
+				(!d.__roles?.length || frappe.user.has_role(d.__roles))
 			) {
 				print_format_list.push(d.name);
 			}

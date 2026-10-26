@@ -104,6 +104,10 @@ def get_print(
 
 	local = frappe.local
 	pf_doc = _print_format_doc_or_none(print_format, doctype)
+	if pf_doc:
+		from frappe.printing.doctype.print_format.print_format import check_print_format_roles
+
+		check_print_format_roles(pf_doc)
 	generator = resolve_pdf_generator(pf_doc, local.form_dict.get("pdf_generator") or pdf_generator)
 
 	settings = settings or local.form_dict.get("settings")

@@ -218,6 +218,13 @@ class FormMeta(Meta):
 			as_dict=1,
 			update={"doctype": ":Print Format"},
 		)
+		roles = frappe.get_all(
+			"Has Role",
+			filters={"parenttype": "Print Format", "parent": ("in", [pf.name for pf in print_formats])},
+			fields=["parent", "role"],
+		)
+		for pf in print_formats:
+			pf["__roles"] = [row.role for row in roles if row.parent == pf.name]
 
 		self.set("__print_formats", print_formats)
 

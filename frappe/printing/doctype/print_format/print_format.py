@@ -46,6 +46,7 @@ class PrintFormat(Document):
 	from typing import TYPE_CHECKING
 
 	if TYPE_CHECKING:
+		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
 		absolute_value: DF.Check
@@ -82,6 +83,7 @@ class PrintFormat(Document):
 		raw_commands: DF.Code | None
 		raw_printing: DF.Check
 		report: DF.Link | None
+		roles: DF.Table[HasRole]
 		show_label_colon: DF.Check
 		show_section_headings: DF.Check
 		standard: DF.Literal["No", "Yes"]
@@ -644,3 +646,13 @@ def printable_sample(doctype: str) -> str | None:
 	filters = {"docstatus": 1} if frappe.get_meta(doctype).is_submittable else {}
 	sample = frappe.get_list(doctype, filters=filters, limit=1, order_by="modified desc", pluck="name")
 	return sample[0] if sample else None
+
+
+def check_print_format_roles(print_format: "PrintFormat") -> None:
+	roles = {row.role for row in print_format.get("roles") or []}
+	if roles and not roles.intersection(frappe.get_roles()):
+		frappe.throw(
+			_("You are not allowed to print with {0}").format(frappe.bold(print_format.name)),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)
