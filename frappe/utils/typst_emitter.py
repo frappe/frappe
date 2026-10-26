@@ -527,7 +527,7 @@ class TypstEmitter:
 		lh_header = self._letterhead_image(lh, "header")
 		if lh_header:
 			self.header_src = "\n".join(p for p in (lh_header, self.header_src) if p)
-		parts = []
+		parts = [self._document_status()]
 		for s in self.layout.get("sections") or []:
 			body = self._section(s)
 			parts += [body, self._page_break(s, body)]
@@ -537,6 +537,18 @@ class TypstEmitter:
 		lh_footer = self._letterhead_image(lh, "footer")
 		if lh_footer:
 			self.footer_src = "\n".join(p for p in (self.footer_src, lh_footer) if p)
+
+	def _document_status(self) -> str:
+		print_settings = getattr(self.generator, "print_settings", None) or frappe.get_cached_doc(
+			"Print Settings"
+		)
+		if self.doc.meta.is_submittable and self.doc.docstatus == 0 and print_settings.add_draft_heading:
+			status = _("DRAFT")
+		elif self.doc.meta.is_submittable and self.doc.docstatus == 2:
+			status = _("CANCELLED")
+		else:
+			return ""
+		return f"#block(width: 100%, below: 5mm, align(center, text(size: 1.1em, weight: 500, {q(status)})))"
 
 	def _letterhead_image(self, lh, side) -> str:
 		if not lh:
