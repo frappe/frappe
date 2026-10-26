@@ -62,6 +62,7 @@ class PrintSettings(Document):
 			"Custom",
 		]
 		pdf_page_width: DF.Float
+		print_generated_pdf: DF.Check
 		print_style: DF.Link | None
 		repeat_header_footer: DF.Check
 		send_print_as_pdf: DF.Check

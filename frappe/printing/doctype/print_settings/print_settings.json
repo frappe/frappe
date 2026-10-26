@@ -9,6 +9,7 @@
   "pdf_settings",
   "send_print_as_pdf",
   "repeat_header_footer",
+  "print_generated_pdf",
   "pdf_generator",
   "max_bulk_print_docs",
   "max_concurrent_bulk_exports",
@@ -52,6 +53,13 @@
    "fieldname": "repeat_header_footer",
    "fieldtype": "Check",
    "label": "Repeat Header and Footer"
+  },
+  {
+   "default": "0",
+   "description": "The Print button prints the generated PDF instead of the page preview, so the printout matches the downloaded PDF.",
+   "fieldname": "print_generated_pdf",
+   "fieldtype": "Check",
+   "label": "Print the PDF"
   },
   {
    "fieldname": "column_break_4",
@@ -204,7 +212,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-11 12:00:00.000000",
+ "modified": "2026-10-26 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",
