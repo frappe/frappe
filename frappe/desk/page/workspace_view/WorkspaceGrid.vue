@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent } from "vue";
+import { computed, defineAsyncComponent, ref } from "vue";
 import { block_size, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
 import TextBlock from "./TextBlock.vue";
@@ -10,7 +10,19 @@ import CardTile from "./tiles/CardTile.vue";
 const props = defineProps({
 	content: { type: Array, required: true },
 	widgets: { type: Object, required: true },
+	// the editor's canvas: blocks are picked and dragged instead of used
+	editing: { type: Boolean, default: false },
+	selected: { type: String, default: null },
 });
+
+const emit = defineEmits(["select", "move"]);
+const dragged = ref(null);
+
+// A drop is stored as "insert before block N", or after the last block of a section.
+function drop(target) {
+	if (dragged.value && dragged.value !== target.id) emit("move", dragged.value, target);
+	dragged.value = null;
+}
 
 // tiles most workspaces do not have load on first use
 const ChartTile = defineAsyncComponent(() => import("./tiles/ChartTile.vue"));
@@ -51,21 +63,67 @@ function tile_for(block) {
 <template>
 	<div class="flex flex-col gap-6">
 		<section v-for="(section, index) in sections" :key="index" class="flex flex-col gap-3">
-			<TextBlock v-if="section.heading" :block="section.heading" />
+			<div v-if="section.heading" class="relative">
+				<TextBlock :block="section.heading" />
+				<div
+					v-if="editing"
+					class="ws-pick"
+					:class="{ 'ws-picked': selected === section.heading.id }"
+					draggable="true"
+					@click="emit('select', section.heading)"
+					@dragstart="dragged = section.heading.id"
+					@dragover.prevent
+					@drop.prevent="drop({ id: section.heading.id })"
+				/>
+			</div>
 			<div v-if="section.tiles.length" class="ws-grid">
 				<GridTile
 					v-for="{ block, size, tile } in section.tiles"
 					:key="block.id"
 					:size="size"
 				>
-					<component :is="tile.component" v-if="tile" v-bind="tile.props" />
+					<div class="relative h-full">
+						<component :is="tile.component" v-if="tile" v-bind="tile.props" />
+						<div
+							v-if="editing"
+							class="ws-pick"
+							:class="{ 'ws-picked': selected === block.id }"
+							draggable="true"
+							@click="emit('select', block)"
+							@dragstart="dragged = block.id"
+							@dragover.prevent
+							@drop.prevent="drop({ id: block.id })"
+						/>
+					</div>
 				</GridTile>
 			</div>
+			<div
+				v-if="editing && section.tiles.length"
+				class="h-4 rounded-4"
+				@dragover.prevent
+				@drop.prevent="drop({ after: section.tiles.at(-1).block.id })"
+			/>
 		</section>
 	</div>
 </template>
 
 <style scoped>
+.ws-pick {
+	position: absolute;
+	inset: 0;
+	cursor: grab;
+	border-radius: 12px;
+}
+
+.ws-pick:hover {
+	box-shadow: inset 0 0 0 1px var(--outline-gray-3);
+}
+
+.ws-picked,
+.ws-picked:hover {
+	box-shadow: inset 0 0 0 2px var(--outline-gray-5);
+}
+
 .ws-grid {
 	display: grid;
 	grid-template-columns: repeat(2, minmax(0, 1fr));
