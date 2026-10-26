@@ -90,7 +90,7 @@
    "label": "Login",
    "name_resolver": "",
    "pane": "system",
-   "save_mode": "auto"
+   "save_mode": "button"
   },
   {
    "binding_type": "Single",
@@ -110,7 +110,7 @@
    "label": "Two-factor authentication",
    "name_resolver": "",
    "pane": "system",
-   "save_mode": "auto"
+   "save_mode": "button"
   },
   {
    "binding_type": "Single",
@@ -130,15 +130,15 @@
    "label": "Files",
    "name_resolver": "",
    "pane": "system",
-   "save_mode": "auto"
+   "save_mode": "button"
   }
  ],
- "creation": "2026-10-27 02:09:18.494112",
+ "creation": "2026-10-27 02:31:38.625818",
  "docstatus": 0,
  "doctype": "Settings Dialog",
  "extends": "",
  "idx": 0,
- "modified": "2026-10-27 02:09:18.494112",
+ "modified": "2026-10-27 02:31:38.625818",
  "modified_by": "Administrator",
  "name": "frappe",
  "owner": "Administrator",

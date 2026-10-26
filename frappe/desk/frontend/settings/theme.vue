@@ -32,7 +32,7 @@
 			</span>
 			<span class="flex items-center gap-1.5 px-0.5 text-base text-ink-gray-8">
 				<span :class="scheme.icon" class="size-4 text-ink-gray-6" aria-hidden="true" />
-				{{ __(scheme.label) }}
+				{{ scheme.label }}
 			</span>
 		</button>
 	</div>
@@ -49,9 +49,9 @@ const LIGHT = "bg-white text-gray-900";
 const DARK = "bg-gray-900 text-white";
 
 const SCHEMES = [
-	{ label: "Light", value: "light", icon: "lucide-sun", halves: [LIGHT] },
-	{ label: "Dark", value: "dark", icon: "lucide-moon", halves: [DARK] },
-	{ label: "System", value: "system", icon: "lucide-monitor", halves: [LIGHT, DARK] },
+	{ label: __("Light"), value: "light", icon: "lucide-sun", halves: [LIGHT] },
+	{ label: __("Dark"), value: "dark", icon: "lucide-moon", halves: [DARK] },
+	{ label: __("System"), value: "system", icon: "lucide-monitor", halves: [LIGHT, DARK] },
 ] as const;
 
 const { colorScheme, setColorScheme } = useColorScheme();

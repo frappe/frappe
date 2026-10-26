@@ -36,6 +36,7 @@ WEBSITE_USER = "settings-website@example.com"
 SESSION_USER = {"binding_type": "Record", "document_type": "User", "name_resolver": "session_user"}
 APP_GATE = "frappe.shell.settings_filter.has_app_permission"
 APP_SCREEN = "frappe.shell.settings.app_screen"
+PROFILE_BLOCKS = ["photo", "details", "locale", "appearance", "notifications", "email", "session-defaults"]
 OWN_RECORD = {"binding_type": "Record", "document_type": RECORD, "name_resolver": "session_user"}
 
 
@@ -353,15 +354,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		self.assertEqual(
 			desk_blocks(AUTHOR),
 			{
-				"profile": [
-					"photo",
-					"details",
-					"locale",
-					"appearance",
-					"notifications",
-					"email",
-					"session-defaults",
-				],
+				"profile": PROFILE_BLOCKS,
 				"system": ["regional", "login", "password", "two-factor", "email", "files"],
 			},
 		)
@@ -369,8 +362,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 	def test_a_system_user_sees_desks_profile_pane_and_not_system(self):
 		ship_desk_panes()
 
-		self.assertEqual(list(desk_blocks(READER)), ["profile"])
-		self.assertEqual(len(desk_blocks(READER)["profile"]), 7)
+		self.assertEqual(desk_blocks(READER), {"profile": PROFILE_BLOCKS})
 
 	def test_every_field_a_desk_block_names_is_on_its_doctype(self):
 		record = ship_desk_panes()

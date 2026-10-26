@@ -1,8 +1,6 @@
 <!-- The person's session defaults: one Link per doctype the site's Session Default Settings lists. -->
 <template>
-	<p v-if="failed" class="py-3.5 text-base text-ink-red-7">
-		{{ __("Session defaults could not load") }}
-	</p>
+	<ErrorMessage v-if="failed" class="py-3.5" :message="__('Session defaults could not load')" />
 	<div v-else-if="!fields" aria-hidden="true">
 		<div class="flex items-center gap-8 py-3.5">
 			<Skeleton class="h-4 w-36 rounded-1" />
@@ -34,7 +32,7 @@
 
 <script setup lang="ts">
 import { reactive, ref } from "vue";
-import { SettingsRow, Skeleton, toast } from "frappe-ui";
+import { ErrorMessage, SettingsRow, Skeleton, toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { getFieldComponent } from "@framework/ui/FormLayout";
 import { __ } from "frappe/i18n";

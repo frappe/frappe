@@ -30,7 +30,7 @@
 			/>
 		</template>
 	</div>
-	<p v-if="user.error" class="pb-1 text-base text-ink-red-7">{{ user.error }}</p>
+	<ErrorMessage v-if="refused" class="pb-1" :message="refused" />
 	<FileUploadDialog
 		v-if="uploading"
 		v-model:open="uploading"
@@ -45,7 +45,7 @@
 
 <script setup lang="ts">
 import { defineAsyncComponent, ref } from "vue";
-import { Avatar, Button, Skeleton } from "frappe-ui";
+import { Avatar, Button, ErrorMessage, Skeleton } from "frappe-ui";
 import { __ } from "frappe/i18n";
 
 const FileUploadDialog = defineAsyncComponent(
@@ -65,12 +65,15 @@ const user = props.bindings.user;
 
 const uploading = ref(false);
 const busy = ref(false);
+/** The binding's error belongs to the whole draft, so only the one after this block's save shows here. */
+const refused = ref("");
 
 async function setImage(url: string | null) {
 	uploading.value = false;
 	user.doc.user_image = url;
 	busy.value = true;
 	await user.commit();
+	refused.value = user.error;
 	busy.value = false;
 }
 </script>

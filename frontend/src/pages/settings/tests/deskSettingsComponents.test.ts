@@ -156,6 +156,21 @@ describe("desk's settings components", () => {
 		expect(user.commit).toHaveBeenCalledOnce();
 	});
 
+	it("language and time zone: a refused save shows under its own row only", async () => {
+		const user = userBinding({ language: "en", time_zone: "Asia/Kolkata" });
+		user.commit.mockImplementation(async () => {
+			user.error = "Not a zone";
+		});
+		await mount("language-and-time-zone", { user });
+
+		drawn.time_zone.commit("Mars/Olympus");
+		await settle();
+
+		const rows = document.querySelectorAll<HTMLElement>("[data-fieldname]");
+		expect(rows[1].textContent).toContain("Not a zone");
+		expect(rows[0].textContent).not.toContain("Not a zone");
+	});
+
 	it("session defaults: one Link per default, and a change saves them all", async () => {
 		const saved = vi.fn(() => "success");
 		methods[`${SESSION_DEFAULTS}.get_session_default_values`] = () =>

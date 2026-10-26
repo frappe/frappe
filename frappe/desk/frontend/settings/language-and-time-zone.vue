@@ -1,6 +1,5 @@
 <!-- The person's language and time zone. The time zones come from the server, which a generated row cannot ask for. -->
 <template>
-	<p v-if="user.error" class="py-3.5 text-base text-ink-red-7">{{ user.error }}</p>
 	<div
 		v-for="field in fields"
 		:key="field.fieldname"
@@ -16,16 +15,39 @@
 				:field="{ ...field, label: '' }"
 				:model-value="user.doc[field.fieldname]"
 				@update:model-value="(value: unknown) => (user.doc[field.fieldname] = value)"
-				@change="user.commit()"
+				@change="commit(field.fieldname)"
 			/>
 		</SettingsRow>
+		<ErrorMessage
+			v-if="refused[field.fieldname]"
+			class="-mt-1.5 pb-3.5"
+			:message="refused[field.fieldname]"
+		/>
 	</div>
 </template>
 
-<script setup lang="ts">
-import { computed, ref } from "vue";
-import { SettingsRow, Skeleton } from "frappe-ui";
+<script lang="ts">
 import { runMethod } from "@framework/ui/api";
+
+let zones: Promise<string[]> | undefined;
+
+/** The server's time zones, read once while the desk is open; a failed read is not kept. */
+function zoneList(): Promise<string[]> {
+	zones ??= runMethod<{ timezones: string[] }>(
+		"frappe.core.doctype.user.user.get_timezones",
+		{},
+		{ http: "GET" }
+	).then(
+		({ data }) => data.timezones,
+		() => ((zones = undefined), [])
+	);
+	return zones;
+}
+</script>
+
+<script setup lang="ts">
+import { computed, reactive, ref } from "vue";
+import { ErrorMessage, SettingsRow, Skeleton } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
 import { __ } from "frappe/i18n";
 
@@ -41,21 +63,23 @@ const props = defineProps<{ bindings: { user: Binding } }>();
 const user = props.bindings.user;
 
 const timeZones = ref<string[]>([]);
-runMethod<{ timezones: string[] }>(
-	"frappe.core.doctype.user.user.get_timezones",
-	{},
-	{ http: "GET" }
-)
-	.then(({ data }) => (timeZones.value = data.timezones))
-	.catch(() => (timeZones.value = [user.doc.time_zone].filter(Boolean)));
+zoneList().then((zones) => (timeZones.value = zones));
 
 const fields = computed(() => [
 	{ fieldname: "language", fieldtype: "Link", options: "Language", label: __("Language") },
 	{
 		fieldname: "time_zone",
 		fieldtype: "Autocomplete",
-		options: timeZones.value.join("\n"),
+		options: [...new Set([user.doc.time_zone, ...timeZones.value])].filter(Boolean).join("\n"),
 		label: __("Time Zone"),
 	},
 ]);
+
+const refused = reactive<Record<string, string>>({});
+
+/** The binding's error belongs to the whole draft, so it shows under the row whose save it followed. */
+async function commit(fieldname: string) {
+	await user.commit();
+	refused[fieldname] = user.error;
+}
 </script>

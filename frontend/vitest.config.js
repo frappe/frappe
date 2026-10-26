@@ -9,9 +9,9 @@ import contributions from "./plugin/contributions.js";
 import oneTree from "./plugin/oneTree.js";
 
 const ui = JSON.parse(readFileSync(new URL("../ui/package.json", import.meta.url), "utf8"));
+const declared = JSON.parse(readFileSync(new URL("./package.base.json", import.meta.url), "utf8"));
 // The manifest is stated inline: frappe's own item renderers are contributions, and a
 // test that mocked the virtual module would exercise the mock.
-const declared = JSON.parse(readFileSync(new URL("./package.base.json", import.meta.url), "utf8"));
 const manifest = [
 	{
 		app: "frappe",
