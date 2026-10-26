@@ -488,7 +488,7 @@ function variantsTemplate(): BlockOptions {
 	}
 }
 
-function variantOption(label: string): BlockOptions {
+export function variantOption(label: string): BlockOptions {
 	return {
 		componentName: "container",
 		blockName: label.toLowerCase().replace(/\s+/g, "-"),

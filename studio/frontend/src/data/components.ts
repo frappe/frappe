@@ -773,6 +773,14 @@ export const COMPONENTS: FrappeUIComponents = {
 		icon: LucideSplit,
 		blockTemplate: "variants",
 		expandArrayProps: true,
+		overrideProps: {
+			options: {
+				type: "array",
+				inputType: "array",
+				required: true,
+				editor: defineAsyncComponent(() => import("@/components/VariantOptionsEditor.vue")),
+			},
+		},
 	},
 	HTML: {
 		name: "HTML",

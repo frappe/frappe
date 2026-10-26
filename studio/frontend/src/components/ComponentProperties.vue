@@ -8,11 +8,6 @@
 				<PropsEditor ref="propsEditor" :block="block" :multiEdit="multipleBlocksSelected" />
 			</SectionContainer>
 
-			<VariantsSection
-				v-if="block?.componentName === 'Variants' && !multipleBlocksSelected"
-				:block="block"
-			/>
-
 			<!-- slots -->
 			<SectionContainer title="Slots" v-show="filteredSections.includes('slots') && !multipleBlocksSelected">
 				<template #actions>
@@ -118,7 +113,6 @@ import { Combobox, Button, Tooltip, Badge } from "frappe-ui"
 import Block from "@/utils/block"
 import { getComponentSlots } from "@/utils/components"
 import PropsEditor from "@/components/PropsEditor.vue"
-import VariantsSection from "@/components/VariantsSection.vue"
 import ObjectEditor from "@/components/ObjectEditor.vue"
 import EmptyState from "@/components/EmptyState.vue"
 import SectionContainer from "@/components/SectionContainer.vue"
