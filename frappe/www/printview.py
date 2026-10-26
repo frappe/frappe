@@ -12,6 +12,7 @@ from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.printing.doctype.print_format.classic_converter import (
+	is_classic_layout,
 	uses_beta_renderer,
 	uses_legacy_weasyprint,
 )
@@ -272,7 +273,7 @@ def get_rendered_template(
 		elif print_format.custom_format:
 			template = get_template_from_string()
 
-		elif print_format.format_data:
+		elif is_classic_layout(print_format.format_data):
 			# set format data
 			format_data = json.loads(print_format.format_data)
 			for df in format_data:
