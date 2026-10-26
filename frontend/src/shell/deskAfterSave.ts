@@ -16,7 +16,7 @@ const SYSTEM_RELOAD_FIELDS = [
 	"first_day_of_the_week",
 ];
 
-/** `session.user` must be reactive, so the rail redraws when it changes. */
+/** Updates `session.user` in place; `fetchBoot` makes it reactive. */
 export function registerDeskAfterSave(session: Session): () => void {
 	const removers = [
 		registerAfterSave("User", (saved) => {

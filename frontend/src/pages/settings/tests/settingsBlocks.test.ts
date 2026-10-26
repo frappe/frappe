@@ -110,7 +110,7 @@ async function opened(pane = "system"): Promise<Router> {
 		routes: [{ path: "/:any(.*)*", component: { render: () => null } }],
 	});
 	await router.push("/deals");
-	await router.push(`/deals#settings/desk/${pane}`);
+	await router.push({ path: "/deals", hash: `#settings/desk/${pane}` });
 	await router.isReady();
 	mounted = createApp(ShellSettingsDialog);
 	mounted.provide("boot", {

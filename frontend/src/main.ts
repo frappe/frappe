@@ -1,7 +1,7 @@
 // The mount sequence. Boot resolves first: the router's base and shape come out of it.
 
 import "@/index.css";
-import { createApp, defineAsyncComponent, h, reactive } from "vue";
+import { createApp, defineAsyncComponent, h } from "vue";
 import { FrappeUI } from "frappe-ui";
 import { provideSession } from "@framework/ui/useSession";
 // the types module, not the subsystem barrel: the shell must not load the dialog to boot
@@ -51,7 +51,6 @@ async function start() {
 	setDrawnProps(recordDrawnProps());
 	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
 	registerSettingsBlocks(() => import("@/pages/settings/SettingsBlocks.vue"));
-	boot.session.user = reactive(boot.session.user);
 	registerDeskAfterSave(boot.session);
 
 	// The address table is awaited: the route table cannot resolve a URL without it, and

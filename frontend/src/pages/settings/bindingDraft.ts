@@ -193,8 +193,8 @@ export class BindingDraft {
 			{ doc: this.state.doc, saved: { ...this.state.saved, ...sent } },
 			reply
 		);
-		this.state.saved = { ...saved, modified: reply.modified };
-		this.state.doc = { ...doc, modified: reply.modified };
+		replace(this.state.saved, { ...saved, modified: reply.modified });
+		replace(this.state.doc, { ...doc, modified: reply.modified });
 		this.state.isNew = false;
 	}
 
@@ -216,8 +216,8 @@ export class BindingDraft {
 				if (!fieldnames.includes(fieldname) && this.dirty(fieldname) && touched(fieldname))
 					this.stale.add(fieldname);
 			const { doc, saved } = mergeRefetch(this.state, fresh);
-			this.state.saved = { ...saved, modified: fresh.modified };
-			this.state.doc = { ...doc, modified: fresh.modified };
+			replace(this.state.saved, { ...saved, modified: fresh.modified });
+			replace(this.state.doc, { ...doc, modified: fresh.modified });
 			for (const fieldname of fieldnames) this.queued.add(fieldname);
 			return;
 		}
@@ -255,8 +255,8 @@ export class BindingDraft {
 
 	private reset(document: Values) {
 		this.stale.clear();
-		this.state.saved = clone(document);
-		this.state.doc = clone(document);
+		replace(this.state.saved, clone(document));
+		replace(this.state.doc, clone(document));
 		this.state.marks = {};
 		this.fieldErrors.clearAll();
 	}
@@ -273,6 +273,12 @@ function messageOf(error: unknown): string {
 
 function pick(values: Values, fieldnames: string[]): Values {
 	return Object.fromEntries(fieldnames.map((fieldname) => [fieldname, values[fieldname]]));
+}
+
+/** In place, so a component that kept `doc` or `saved` keeps the live object. */
+function replace(target: Values, values: Values) {
+	for (const key of Object.keys(target)) if (!(key in values)) delete target[key];
+	Object.assign(target, values);
 }
 
 function clone<T>(value: T): T {

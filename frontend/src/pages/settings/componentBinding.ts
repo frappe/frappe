@@ -8,7 +8,7 @@ export interface ComponentBinding {
 	readonly saved: Record<string, any>;
 	readonly meta: DoctypeMeta | null;
 	readonly loading: boolean;
-	/** Why the binding could not be read, or "". */
+	/** Why the binding could not be read, or why its last save was refused; else "". */
 	readonly error: string;
 	/** A Record that does not exist yet; its first save inserts it. */
 	readonly isNew: boolean;
@@ -35,7 +35,8 @@ export function componentBinding(
 			return state.loading;
 		},
 		get error() {
-			return state.failed;
+			const [refused] = Object.values(draft.fieldErrors.drawn.value);
+			return state.failed || [refused ?? ""].flat().join(" ");
 		},
 		get isNew() {
 			return state.isNew;

@@ -27,12 +27,13 @@ describe("registerAfterSave", () => {
 		const other = vi.fn();
 		const removeFirst = registerAfterSave("Probe A", first);
 		const removeSecond = registerAfterSave("Probe A", second);
-		registerAfterSave("Probe B", other);
+		const removeOther = registerAfterSave("Probe B", other);
 
 		runAfterSave(saved("Probe A", "one", ["x"]));
 		removeFirst();
 		runAfterSave(saved("Probe A", "one", ["x"]));
 		removeSecond();
+		removeOther();
 
 		expect(first).toHaveBeenCalledTimes(1);
 		expect(second).toHaveBeenCalledTimes(2);

@@ -96,6 +96,21 @@ describe("a component block's bindings", () => {
 		expect(drafts.unsaved()).toBe(false);
 	});
 
+	it("keeps the doc a component held across a save live", async () => {
+		const drafts = await opened(component("calls", "auto", { system: SYSTEM }));
+		const { system } = drafts.components.get("calls")!;
+		const doc = system.doc;
+
+		doc.country = "India";
+		await system.commit();
+		doc.country = "Japan";
+		await system.commit();
+
+		expect(server.writes.map((write) => write.body.country)).toEqual(["India", "Japan"]);
+		expect(system.doc).toBe(doc);
+		expect(system.saved.country).toBe("Japan");
+	});
+
 	it("sends nothing on commit() in button mode; the Save bar saves the change", async () => {
 		const drafts = await opened(component("calls", "button", { system: SYSTEM }));
 		const { system } = drafts.components.get("calls")!;
@@ -187,6 +202,7 @@ describe("the after-save registry", () => {
 			};
 			system.doc.time_zone = "Mars";
 			await system.commit();
+			expect(system.error).toContain("Not a zone");
 		} finally {
 			unregister();
 		}

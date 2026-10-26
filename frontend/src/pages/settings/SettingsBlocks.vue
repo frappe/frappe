@@ -132,6 +132,14 @@ function componentsOf(pane: SettingsPane): Map<string, Component> {
 		const component = defineAsyncComponent({
 			loader: loader as () => Promise<Component>,
 			loadingComponent: { render: () => h(SettingsRowsSkeleton, { rows: 3 }) },
+			errorComponent: {
+				render: () =>
+					h(
+						"p",
+						{ class: "py-3.5 text-base text-ink-red-7" },
+						__("This block could not load")
+					),
+			},
 		});
 		components.set(block.key, component);
 	}

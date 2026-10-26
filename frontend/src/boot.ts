@@ -1,5 +1,6 @@
 // The shell's boot payload: small, per prefix, separate from desk v1's `frappe.sessions.get()`.
 
+import { reactive } from "vue";
 import { isApiError, runMethod, type Session } from "@framework/ui/api";
 
 /**
@@ -107,5 +108,7 @@ export async function fetchBoot(): Promise<Boot> {
 
 	// frappe-ui's request layer reads the token from this global; the shell has no Jinja to set it.
 	window.csrf_token = boot.csrf_token;
+	// Reactive, so the rail redraws when the after-save registry updates the person.
+	boot.session.user = reactive(boot.session.user);
 	return boot;
 }
