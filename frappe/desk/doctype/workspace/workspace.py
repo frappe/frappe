@@ -635,8 +635,8 @@ def sanitize_strings(value):
 def welcome_blocks(title: str) -> list[dict]:
 	"""Return the blocks an unwritten page opens on.
 
-	These are the same two blocks the desk seeds a hand-created page with (`initialize_new_page`
-	in workspace.js), so a page reads the same whichever end created it. Both are plain text,
+	These are the same two blocks the desk seeds a hand-created page with
+	(`frappe.ui.new_workspace_dialog`), so a page reads the same whichever end created it. Both are plain text,
 	which is all an unwritten page needs. Markup would be kept (see `sanitize_content`) but adds
 	nothing here.
 	"""
