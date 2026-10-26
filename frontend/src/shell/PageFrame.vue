@@ -1,7 +1,6 @@
 <!--
   A generated page's root: the pinned header row and, unless `scroll=false`, the scroll region.
-  The page owns the row's contents, its top and bottom padding, and its max width. A `state`
-  takes the content's place.
+  The page owns the row's contents, its top and bottom padding, and its max width.
 -->
 <template>
 	<!-- Always mounted and declared before the row: a deferred teleport takes its place in the
