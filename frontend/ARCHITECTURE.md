@@ -446,6 +446,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | --- | --- |
 | `build_shell` | `bench build` writes the manifest, installs packages if needed, builds once, and swaps the output in |
 | One vite config | One build for all apps, served at `/assets/frappe/frontend/` |
+| Entry chunk rule (`entryChunk`) | Every module the cold load runs goes in one `shell` chunk beside the entry, so a lazy chunk that shares one never splits it out. The import map's names load by `import()`, so they do not count as cold-load modules |
 | Aliases (`@/`, `@shell`, `vue`) | `@/` is private to the framework; `@shell` gives app files the desk names. `vue` is Vue's runtime build for every importer, a CommonJS package too, so no template compiles in the browser |
 | [Manifest](./CONTEXT.md#manifest) | The part the bundler needs moves here from `frappe/shell/` |
 | Shared packages ([singletons](./CONTEXT.md#singleton)) | `enforce_singletons` checks them at build time |
