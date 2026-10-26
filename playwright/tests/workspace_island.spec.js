@@ -321,6 +321,46 @@ test.describe("Workspace island", () => {
 	});
 });
 
+test.describe("Switching renderer", () => {
+	const SWITCH = "Playwright Switch";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.insert_doc(
+			"Workspace",
+			{
+				label: SWITCH,
+				title: SWITCH,
+				module: "Desk",
+				public: 1,
+				renderer: "Legacy",
+				content: JSON.stringify([
+					{ id: "sw-h", type: "header", data: { text: "Switch me", col: 12 } },
+				]),
+			},
+			true
+		);
+	});
+
+	test.afterAll(async ({ admin }) => {
+		await admin.remove_doc("Workspace", SWITCH, true);
+	});
+
+	test("from either editor to the other", async ({ page }) => {
+		await page.goto("/desk/playwright-switch");
+		await page.waitForFunction(() => frappe.workspace?.editor);
+		await page.evaluate(() => frappe.workspace.start_editing());
+
+		await page.getByRole("button", { name: "Switch to new layout" }).click();
+		await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
+		await expect(page).toHaveTitle(/Editing/);
+		await expect(page.getByRole("button", { name: "Save" })).toBeVisible();
+
+		await page.getByRole("button", { name: "More" }).click();
+		await page.getByRole("menuitem", { name: "Switch to old layout" }).click();
+		await expect(page.getByRole("button", { name: "Switch to new layout" })).toBeVisible();
+	});
+});
+
 async function open_editor(page) {
 	await page.evaluate(() =>
 		$(frappe.pages["workspace-view"].page.menu)
