@@ -967,6 +967,8 @@ frappe.ui.form.PrintView = class {
 				14
 			);
 			me.printer_setting_dialog();
+		} else if (cint(me.print_settings.print_generated_pdf)) {
+			me.print_pdf();
 		} else {
 			me.render_page("/printview?", true);
 		}
@@ -1023,70 +1025,103 @@ frappe.ui.form.PrintView = class {
 		});
 	}
 	render_pdf() {
+		let w = window.open(this.get_pdf_url());
+		if (!w) {
+			frappe.msgprint(__("Please enable pop-ups"));
+		}
+	}
+
+	get_pdf_url() {
 		let print_format = this.get_print_format();
-		if (this.renders_via_generator(print_format)) {
-			let params = new URLSearchParams({
-				doctype: this.frm.doc.doctype,
-				name: this.frm.doc.name,
-				letterhead: this.get_letterhead(),
-				// "Standard" when the selector is cleared: an omitted format means
-				// the doctype's default, the same as everywhere else in printing
-				print_format: this.selected_format(),
-			});
-			const settings = this.get_print_settings_param();
-			if (Object.keys(settings).length) {
-				params.append("settings", JSON.stringify(settings));
-			}
-			if (this.lang_code) {
-				params.append("_lang", this.lang_code);
-			}
-			if (this.get_print_style()) {
-				params.append("style", this.get_print_style());
-			}
-			let w = window.open(
-				`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
-			);
-			if (!w) {
-				frappe.msgprint(__("Please enable pop-ups"));
-				return;
-			}
-		} else {
-			this.render_page(
+		if (!this.renders_via_generator(print_format)) {
+			return this.get_page_url(
 				"/api/method/frappe.utils.print_format.download_pdf?",
 				false,
 				print_format?.pdf_generator
 			);
 		}
-	}
-	render_page(method, printit = false, pdf_generator) {
-		let w = window.open(
-			frappe.urllib.get_full_url(
-				method +
-					"doctype=" +
-					encodeURIComponent(this.frm.doc.doctype) +
-					"&name=" +
-					encodeURIComponent(this.frm.doc.name) +
-					(printit ? "&trigger_print=1" : "") +
-					"&format=" +
-					encodeURIComponent(this.selected_format()) +
-					"&no_letterhead=" +
-					(this.with_letterhead() ? "0" : "1") +
-					"&letterhead=" +
-					encodeURIComponent(this.get_letterhead()) +
-					"&settings=" +
-					encodeURIComponent(JSON.stringify(this.get_print_settings_param())) +
-					(this.lang_code ? "&_lang=" + this.lang_code : "") +
-					(this.get_print_style()
-						? "&style=" + encodeURIComponent(this.get_print_style())
-						: "") +
-					"&pdf_generator=" +
-					encodeURIComponent(pdf_generator || "chrome")
-			)
+		let params = new URLSearchParams({
+			doctype: this.frm.doc.doctype,
+			name: this.frm.doc.name,
+			letterhead: this.get_letterhead(),
+			// "Standard" when the selector is cleared: an omitted format means
+			// the doctype's default, the same as everywhere else in printing
+			print_format: this.selected_format(),
+		});
+		const settings = this.get_print_settings_param();
+		if (Object.keys(settings).length) {
+			params.append("settings", JSON.stringify(settings));
+		}
+		if (this.lang_code) {
+			params.append("_lang", this.lang_code);
+		}
+		if (this.get_print_style()) {
+			params.append("style", this.get_print_style());
+		}
+		return frappe.urllib.get_full_url(
+			`/api/method/frappe.utils.print_format_generator.download_pdf?${params}`
 		);
+	}
+
+	print_pdf() {
+		frappe.dom.freeze(__("Preparing PDF..."));
+		fetch(this.get_pdf_url())
+			.then((response) => {
+				if (!response.ok) throw new Error(response.statusText);
+				return response.blob();
+			})
+			.then((blob) => {
+				const frame = document.createElement("iframe");
+				frame.className = "print-pdf-frame";
+				frame.src = URL.createObjectURL(blob);
+				frame.onload = () => {
+					frappe.dom.unfreeze();
+					frame.contentWindow.focus();
+					frame.contentWindow.print();
+					setTimeout(() => {
+						URL.revokeObjectURL(frame.src);
+						frame.remove();
+					}, 60000);
+				};
+				document.body.appendChild(frame);
+			})
+			.catch(() => {
+				frappe.dom.unfreeze();
+				frappe.msgprint(__("Could not prepare the PDF for printing. Try Download PDF."));
+			});
+	}
+
+	render_page(method, printit = false, pdf_generator) {
+		let w = window.open(this.get_page_url(method, printit, pdf_generator));
 		if (!w) {
 			frappe.msgprint(__("Please enable pop-ups"));
 			return;
 		}
+	}
+
+	get_page_url(method, printit = false, pdf_generator) {
+		return frappe.urllib.get_full_url(
+			method +
+				"doctype=" +
+				encodeURIComponent(this.frm.doc.doctype) +
+				"&name=" +
+				encodeURIComponent(this.frm.doc.name) +
+				(printit ? "&trigger_print=1" : "") +
+				"&format=" +
+				encodeURIComponent(this.selected_format()) +
+				"&no_letterhead=" +
+				(this.with_letterhead() ? "0" : "1") +
+				"&letterhead=" +
+				encodeURIComponent(this.get_letterhead()) +
+				"&settings=" +
+				encodeURIComponent(JSON.stringify(this.get_print_settings_param())) +
+				(this.lang_code ? "&_lang=" + this.lang_code : "") +
+				(this.get_print_style()
+					? "&style=" + encodeURIComponent(this.get_print_style())
+					: "") +
+				"&pdf_generator=" +
+				encodeURIComponent(pdf_generator || "chrome")
+		);
 	}
 
 	get_print_html(callback) {

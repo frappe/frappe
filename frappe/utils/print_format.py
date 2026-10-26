@@ -19,7 +19,7 @@ from frappe.desk.query_report import (
 )
 from frappe.model.document import Document
 from frappe.translate import print_language
-from frappe.utils import cint, get_datetime, get_system_timezone
+from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -70,6 +70,7 @@ def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | li
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -231,6 +232,7 @@ def _download_multi_pdf(
 	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
 
 	pdf_writer = PdfWriter()
+	failed = []
 
 	options = frappe.parse_json(options)
 
@@ -250,7 +252,11 @@ def _download_multi_pdf(
 				get_default_print_format,
 				uses_beta_renderer,
 			)
-			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+			from frappe.utils.print_utils import (
+				_print_format_doc_or_none,
+				_run_print_pdf_hooks,
+				resolve_pdf_generator,
+			)
 			from frappe.www.printview import set_link_titles, validate_print
 
 			pf_doc = _print_format_doc_or_none(format, print_doctype)
@@ -276,11 +282,19 @@ def _download_multi_pdf(
 			doc = frappe.get_doc(print_doctype, print_name)
 			validate_print(doc)
 			set_link_titles(doc)
+			_run_print_pdf_hooks(print_doctype, print_name, format)
 			pf = pf_doc or get_default_print_format(print_doctype)
 			generator = PrintFormatGenerator(
 				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
 			)
 			pdf = generator.render_pdf()
+			make_access_log(
+				doctype=doc.doctype,
+				document=doc.name,
+				file_type="PDF",
+				method="Print",
+				page=f"Print Format: {pf.name}",
+			)
 			for page in PdfReader(BytesIO(pdf)).pages:
 				pdf_writer.add_page(page)
 			return pdf_writer
@@ -304,10 +318,7 @@ def _download_multi_pdf(
 					reference_doctype=doctype,
 					reference_name=ss,
 				)
-				if task_id:
-					frappe.publish_realtime(
-						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-					)
+				failed.append(get_link_to_form(doctype, ss))
 
 			# Publish progress
 			if task_id:
@@ -338,15 +349,12 @@ def _download_multi_pdf(
 						publish_failure(task_id, e)
 					raise
 				except Exception:
-					if task_id:
-						frappe.publish_realtime(
-							task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-						)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
+					failed.append(get_link_to_form(doctype_name, doc_name))
 
 				count += 1
 
@@ -384,6 +392,16 @@ def _download_multi_pdf(
 		else:
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
+
+	# after task_complete, so the list view's "PDF is ready" message cannot overwrite this title
+	if failed:
+		frappe.msgprint(
+			failed,
+			as_list=True,
+			indicator="red",
+			realtime=True,
+			title=_("Failed to print {0} documents").format(len(failed)),
+		)
 
 
 from frappe.deprecation_dumpster import read_multi_pdf

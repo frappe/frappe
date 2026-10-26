@@ -17,6 +17,7 @@
   "custom_format",
   "disabled",
   "pdf_generator",
+  "paper_size",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -319,6 +320,14 @@
    "fieldtype": "Select",
    "label": "PDF Generator",
    "options": "chrome\nPlutoPrint\nTypst"
+  },
+  {
+   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing",
+   "description": "Empty uses the size in Print Settings. A receipt size prints one page as tall as the content.",
+   "fieldname": "paper_size",
+   "fieldtype": "Select",
+   "label": "Paper Size",
+   "options": "\nA4\nA5\nA3\nLetter\nLegal\nReceipt 80 mm\nReceipt 58 mm"
   },
   {
    "default": "DocType",

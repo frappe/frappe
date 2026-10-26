@@ -408,6 +408,15 @@
 	}
 }
 
+.print-pdf-frame {
+	position: fixed;
+	right: 0;
+	bottom: 0;
+	width: 0;
+	height: 0;
+	border: 0;
+}
+
 .print-format-preview-frame {
 	width: 100%;
 	height: 600px;
