@@ -18,7 +18,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 )
 from frappe.shell.boot import BUDGET_LOG_TITLE, KEY_BUDGET
 from frappe.shell.permissions import default_app_permission, has_app_permission
-from frappe.shell.settings import PANES_CACHE_KEY, get_panes
+from frappe.shell.settings import PANES_CACHE_KEY, PANES_VERSION_KEY, get_panes
 from frappe.tests.classes.context_managers import set_user
 from frappe.tests.test_shell_settings import active
 
@@ -263,6 +263,12 @@ class TestSettingsFilter(SettingsDialogTestCase):
 					single("mine", doctype=SINGLE),
 					component("theme", settings=settings),
 					single("smtp", pane="system"),
+					component(
+						"mail",
+						pane="system",
+						settings=settings,
+						bindings=json.dumps({"smtp": binding("Single", "System Settings")}),
+					),
 				],
 			)
 
@@ -283,13 +289,13 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			record = ship(["general"], [single("mine", doctype=SINGLE)])
 
 		self.assertEqual(blocks_of(visible()), {"general": ["mine"]})
-		self.assertIsNotNone(frappe.client_cache.get_value(PANES_CACHE_KEY))
+		version = frappe.client_cache.get_value(PANES_VERSION_KEY)
 
 		with authoring():
 			record.append("blocks", component("theme"))
 			record.save()
 
-		self.assertIsNone(frappe.client_cache.get_value(PANES_CACHE_KEY))
+		self.assertNotEqual(frappe.client_cache.get_value(PANES_VERSION_KEY), version)
 		self.assertEqual(blocks_of(visible()), {"general": ["mine", "theme"]})
 
 		with authoring():

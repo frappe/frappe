@@ -16,6 +16,7 @@ from .permissions import may_enter_any_prefix
 from .settings_filter import SettingsFilter
 
 PANES_CACHE_KEY = "shell_settings_panes"
+PANES_VERSION_KEY = "shell_settings_panes_version"
 
 
 @frappe.whitelist(methods=["GET"])
@@ -24,14 +25,15 @@ def get_panes() -> dict:
 	if not may_enter_any_prefix():
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
-	reply = SettingsFilter().filter(get_cached_panes())
-	report_oversized_keys(reply, None, reply="settings")
-	return reply
+	visible = SettingsFilter().filter(get_cached_panes())
+	report_oversized_keys(visible, None, reply="settings")
+	return visible
 
 
 def get_cached_panes() -> list[dict]:
-	"""The merged, unfiltered panes, cached on `metadata_version` and cleared by a `Settings Dialog` write."""
-	version = metadata_version()
+	"""The merged, unfiltered panes, cached on `metadata_version` and the version a `Settings Dialog` write bumps."""
+	# Read before the merge: a write landing during it bumps past this, so its stale merge is never served.
+	version = f"{metadata_version()}:{frappe.client_cache.get_value(PANES_VERSION_KEY)}"
 	cached = frappe.client_cache.get_value(PANES_CACHE_KEY)
 
 	if isinstance(cached, dict) and cached.get("version") == version:
@@ -42,8 +44,8 @@ def get_cached_panes() -> list[dict]:
 	return panes
 
 
-def clear_cached_panes():
-	frappe.client_cache.delete_value(PANES_CACHE_KEY)
+def bump_panes_version():
+	frappe.client_cache.set_value(PANES_VERSION_KEY, frappe.generate_hash())
 
 
 def resolve_panes() -> list[dict]:
@@ -151,13 +153,13 @@ def _block(app: str, row) -> dict | None:
 		block["binding"] = _binding(
 			{"type": row.binding_type, "doctype": row.document_type, "resolver": row.name_resolver}
 		)
-		block["fields"] = _json(row.fields, list)
+		block["fields"] = _json(row.fields, list, str)
 		readable = block["binding"] is not None and block["fields"] is not None
 	else:
 		block["component"] = row.component
 		bindings = _json(row.bindings, dict)
 		block["bindings"] = bindings and {name: _binding(spec) for name, spec in bindings.items()}
-		block["settings"] = _json(row.settings, list)
+		block["settings"] = _search_settings(row.settings)
 		readable = (
 			bool(row.component)
 			and bindings is not None
@@ -179,14 +181,26 @@ def _binding(spec) -> dict | None:
 	return binding if all(isinstance(value, str) for value in binding.values()) else None
 
 
-def _json(raw, shape: type):
-	"""The column's value, its empty shape when blank, or None when it is not that shape."""
+def _json(raw, shape: type, item: type | None = None):
+	"""The column's value, its empty shape when blank, or None when it is not that shape of `item`s."""
 	try:
 		value = json.loads(raw) if raw else shape()
 	except (TypeError, ValueError):
 		return None
 
-	return value if isinstance(value, shape) else None
+	if not isinstance(value, shape) or (item and not all(isinstance(entry, item) for entry in value)):
+		return None
+
+	return value
+
+
+def _search_settings(raw) -> list | None:
+	"""A component block's `settings`, each a dict with a string label, as save checks them."""
+	settings = _json(raw, list, dict)
+	if settings is None or not all(isinstance(setting.get("label"), str) for setting in settings):
+		return None
+
+	return settings
 
 
 def _bound_doctypes(block: dict) -> list[str]:

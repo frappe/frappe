@@ -119,7 +119,7 @@ def report_oversized_keys(boot: dict, prefix: str | None, reply: str | None = No
 
 			# An atomic `SET NX`, so two workers claim the day's row once between them; `make_key`
 			# applies the site prefix `set_value` would.
-			claim = frappe.cache.make_key(f"boot_budget:{key}:{reply or prefix or SHELL_ROOT}")
+			claim = frappe.cache.make_key(f"boot_budget:{key}:{where if reply else prefix or SHELL_ROOT}")
 			# nosemgrep: frappe-cache-breaks-multitenancy
 			if not frappe.cache.set(name=claim, value=1, ex=_BUDGET_LOG_TTL, nx=True):
 				continue

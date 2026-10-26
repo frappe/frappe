@@ -23,6 +23,7 @@ class SettingsFilter:
 		self._records: dict[str, bool] = {}
 
 	def filter(self, panes: list[dict]) -> dict:
+		self.index = []
 		visible = [shown for pane in panes if (shown := self.pane(pane))]
 		return {"panes": visible, "index": self.index}
 
@@ -93,7 +94,7 @@ class SettingsFilter:
 
 	def access(self, doctype: str) -> "FieldAccess":
 		if doctype not in self._access:
-			self._access[doctype] = FieldAccess(doctype, self.user)
+			self._access[doctype] = FieldAccess(doctype)
 
 		return self._access[doctype]
 
@@ -105,13 +106,12 @@ class SettingsFilter:
 class FieldAccess:
 	"""What one user may do with a doctype's fields, by permlevel."""
 
-	def __init__(self, doctype: str, user: str):
+	def __init__(self, doctype: str):
 		self.meta = frappe.get_meta(doctype)
-		self.user = user
 		# None: the doctype has no permission rows, so no permlevel is held back.
 		self.readable = readable_permlevels(self.meta)
-		self.writable = self._permlevels("write", shared=True)
-		self.creates = self._holds(self._permlevels("create"), 0)
+		self.writable = readable_permlevels(self.meta, right="write")
+		self.creates = self._holds(readable_permlevels(self.meta, right="create"), 0)
 
 	def shape(self, block: dict) -> tuple[dict | None, list]:
 		"""The block with unreadable fields left out and unwritable ones marked, and its readable fields."""
@@ -147,21 +147,6 @@ class FieldAccess:
 			for field in self.meta.fields
 			if field.fieldtype not in display_fieldtypes and not field.hidden
 		]
-
-	def _permlevels(self, right: str, shared: bool = False) -> set[int] | None:
-		"""`readable_permlevels` for another right; a `shared` right holds permlevel 0 without a role row."""
-		if not self.meta.get_permissions():
-			return None
-
-		levels = set(self.meta.get_permlevel_access(right, user=self.user))
-		if (
-			shared
-			and 0 not in levels
-			and frappe.share.get_shared(self.meta.name, self.user, [right], limit=1)
-		):
-			levels.add(0)
-
-		return levels
 
 	@staticmethod
 	def _holds(levels: set[int] | None, permlevel: int) -> bool:
