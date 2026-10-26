@@ -131,7 +131,9 @@ def get_print(
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
-			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style, settings)
+			pdf = _render_builder_pdf(
+				pf_doc, doc_obj, letterhead, no_letterhead, pdf_options.get("password"), style, settings
+			)
 			make_access_log(
 				doctype=doc_obj.doctype,
 				document=doc_obj.name,
