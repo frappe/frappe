@@ -103,14 +103,43 @@ function subtitle(doc) {
 		const when = frappe.datetime.prettyDate(event.creation);
 		return [event.text || event.action, when].filter(Boolean).join(" · ");
 	}
-	if (sort_field.value && doc[sort_field.value.fieldname]) {
-		const value = frappe.format(doc[sort_field.value.fieldname], sort_field.value, {
-			inline: true,
-		});
-		return `${__(sort_field.value.label)} · ${text(value)}`;
+	const df = sort_field.value;
+	if (df && doc[df.fieldname]) {
+		const value = ["Date", "Datetime"].includes(df.fieldtype)
+			? relative(doc[df.fieldname])
+			: text(frappe.format(doc[df.fieldname], df, { inline: true }));
+		return `${__(df.label)} · ${value}`;
 	}
 	return frappe.datetime.prettyDate(doc.modified);
 }
+
+// "in 3 hours" or "2 days ago", read in the user's timezone as prettyDate reads it
+const UNITS = [
+	["year", 31536000],
+	["month", 2592000],
+	["week", 604800],
+	["day", 86400],
+	["hour", 3600],
+	["minute", 60],
+];
+
+function relative(value) {
+	const parse = (str) => new Date(str.replace(/-/g, "/").replace(/\.[0-9]*/, ""));
+	const when = parse(frappe.datetime.convert_to_user_tz(value));
+	const seconds = (when - parse(frappe.datetime.now_datetime())) / 1000;
+	const [unit, size] = UNITS.find(([, size]) => Math.abs(seconds) >= size) || UNITS.at(-1);
+	return new Intl.RelativeTimeFormat(frappe.boot.lang || "en", { numeric: "auto" }).format(
+		Math.round(seconds / size),
+		unit
+	);
+}
+
+// a badge every row shares, as when the filter fixes the status, says nothing
+const one_status = computed(
+	() =>
+		visible.value?.length > 1 &&
+		new Set(visible.value.map((doc) => indicator(doc)?.[0])).size === 1
+);
 
 onMounted(load);
 watch([doctype, order_by], load);
@@ -193,7 +222,7 @@ function text(value) {
 					<span class="block truncate text-sm text-ink-gray-5">
 						{{ subtitle(doc) }}
 					</span>
-					<template v-if="indicator(doc)" #suffix>
+					<template v-if="indicator(doc) && !one_status" #suffix>
 						<Badge
 							:label="indicator(doc)[0]"
 							:theme="badge_theme(indicator(doc)[1])"
