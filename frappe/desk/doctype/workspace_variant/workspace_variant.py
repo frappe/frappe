@@ -9,6 +9,9 @@ from frappe import _
 from frappe.model.document import Document
 from frappe.permissions import AUTOMATIC_ROLES
 
+# names the default layout where a role would name a role layout; a name never holds `<` or `>`
+DEFAULT_LAYOUT = "<default>"
+
 
 class WorkspaceVariant(Document):
 	# begin: auto-generated types

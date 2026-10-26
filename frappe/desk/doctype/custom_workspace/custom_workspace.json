@@ -24,7 +24,8 @@
   "sequence_id",
   "content_section",
   "content",
-  "widgets"
+  "widgets",
+  "variants"
  ],
  "fields": [
   {
@@ -128,11 +129,18 @@
    "fieldtype": "Select",
    "label": "Renderer",
    "options": "Inherit\nLegacy\nFrappe UI"
+  },
+  {
+   "description": "The site's role layouts. A row for a role the app ships replaces that layout in its place; any other comes after the app's layouts. Managed by the workspace editor.",
+   "fieldname": "variants",
+   "fieldtype": "Table",
+   "label": "Role Layouts",
+   "options": "Workspace Variant"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-26 05:14:14.594759",
+ "modified": "2026-10-26 06:40:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Custom Workspace",

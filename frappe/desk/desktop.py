@@ -17,6 +17,7 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	get_customization,
 	replace_widgets,
 )
+from frappe.desk.doctype.workspace_variant.workspace_variant import DEFAULT_LAYOUT
 from frappe.desk.utils import is_item_allowed
 from frappe.permissions import AUTOMATIC_ROLES
 from frappe.utils import cint
@@ -467,10 +468,6 @@ LINK_FIELDS = (
 )
 
 
-# names the default layout in `get_workspace`; a name can never contain `<` or `>`
-DEFAULT_LAYOUT = "<default>"
-
-
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
 def get_workspace(name: str, variant: str | None = None) -> dict:
@@ -539,8 +536,17 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"widgets": widgets,
 		"can_edit": can_edit,
 		"is_hidden": bool(doc.is_hidden),
-		"is_layout_customized": bool(not workspace.variant and customization and customization.content),
+		"is_layout_customized": is_layout_customized(customization, workspace.variant),
 	}
+
+
+def is_layout_customized(customization, variant: str | None) -> bool:
+	"""Whether the layout drawn is the site's copy rather than the app's."""
+	if not customization:
+		return False
+	if variant:
+		return variant in {row.role for row in customization.variants}
+	return bool(customization.content)
 
 
 def _find_widget(items: list, block_type: str, block_name: str | None):

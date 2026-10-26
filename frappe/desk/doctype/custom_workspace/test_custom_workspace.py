@@ -60,14 +60,14 @@ class TestCustomWorkspaceUnit(IntegrationTestCase):
 		apply_customization(doc, make_customization(content=snapshot))
 		self.assertEqual(loads(doc.content), snapshot)
 
-	def test_added_widget_item_is_appended(self):
+	def test_site_widgets_are_the_whole_set(self):
 		doc = make_base_doc()
 		snapshot = [*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]
 		apply_customization(
 			doc,
 			make_customization(content=snapshot, widgets={"shortcut": [ADDED_SHORTCUT_ITEM]}),
 		)
-		self.assertIn("Audit", [s.label for s in doc.shortcuts])
+		self.assertEqual([s.label for s in doc.shortcuts], ["Audit"])
 
 	def test_content_untouched_when_only_visibility_customized(self):
 		doc = make_base_doc()
@@ -211,8 +211,9 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 				new_widgets={},
 				blocks=dumps([BASE_CONTENT[0], ADDED_SHORTCUT_BLOCK]),
 			)
+		# the first save copied the app's widgets in, and the snapshot keeps the ones still used
 		widgets = loads(frappe.db.get_value("Custom Workspace", self.WORKSPACE, "widgets"))
-		self.assertEqual([w["label"] for w in widgets["shortcut"]], ["Audit"])
+		self.assertEqual([w["label"] for w in widgets["shortcut"]], ["My ToDos", "Audit"])
 
 	def test_reset_removes_customization(self):
 		frappe.get_doc(
@@ -234,6 +235,21 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 
 		reset_workspace_customization(self.WORKSPACE)
 		self.assertEqual(Workspace({"name": self.WORKSPACE}, minimal=True).doc.renderer, "Frappe UI")
+
+	def test_a_legacy_save_keeps_every_app_widget(self):
+		from frappe.desk.desktop import get_desktop_page
+		from frappe.desk.doctype.workspace.workspace import save_page
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			save_page(
+				self.WORKSPACE,
+				public=1,
+				new_widgets={"shortcut": [ADDED_SHORTCUT_ITEM]},
+				blocks=dumps([*BASE_CONTENT, ADDED_SHORTCUT_BLOCK]),
+			)
+		result = get_desktop_page({"name": self.WORKSPACE})
+		labels = [s.label for s in result["shortcuts"]["items"]]
+		self.assertEqual(labels, ["My ToDos", "My Notes", "Audit"])
 
 	def test_layout_customization_marks_the_page_as_frozen(self):
 		# The desk warns before the save that freezes a layout, so the payload has to say whether
@@ -269,3 +285,111 @@ class TestCustomWorkspaceIntegration(IntegrationTestCase):
 				frappe.get_doc({"doctype": "Custom Workspace", "workspace": private.name}).insert()
 		finally:
 			frappe.db.delete("Workspace", {"name": private.name})
+
+
+class TestSiteLayouts(IntegrationTestCase):
+	WORKSPACE = "CW Layouts Test"
+	ONE = "CW Role One"
+	TWO = "CW Role Two"
+	SITE = "CW Role Site"
+	USER = "test-cw-layouts@example.com"
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		for role in (self.ONE, self.TWO, self.SITE):
+			if not frappe.db.exists("Role", role):
+				frappe.get_doc({"doctype": "Role", "role_name": role, "desk_access": 1}).insert()
+		if frappe.db.exists("User", self.USER):
+			frappe.delete_doc("User", self.USER, force=True)
+		frappe.get_doc(
+			{"doctype": "User", "email": self.USER, "first_name": "CW", "send_welcome_email": 0}
+		).insert()
+
+		ws = frappe.new_doc("Workspace")
+		ws.label = ws.title = self.WORKSPACE
+		ws.module = "Desk"
+		ws.public = 1
+		ws.standard = 1
+		ws.content = dumps([header("Default")])
+		ws.append("variants", {"role": self.ONE, "content": dumps([header("One")]), "widgets": "{}"})
+		ws.append("variants", {"role": self.TWO, "content": dumps([header("Two")]), "widgets": "{}"})
+		ws.insert(ignore_if_duplicate=True)
+
+	def tearDown(self):
+		frappe.set_user("Administrator")
+		frappe.delete_doc_if_exists("Custom Workspace", self.WORKSPACE)
+		frappe.delete_doc("Workspace", self.WORKSPACE, force=True, ignore_missing=True)
+
+	def save(self, variant, text):
+		from frappe.desk.doctype.workspace.workspace import save_page
+
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			save_page(self.WORKSPACE, public=1, new_widgets={}, blocks=dumps([header(text)]), variant=variant)
+
+	def seen_by(self, *roles):
+		from frappe.desk.desktop import get_workspace
+
+		frappe.set_user("Administrator")
+		user = frappe.get_doc("User", self.USER)
+		user.set("roles", [{"role": role} for role in ("Desk User", *roles)])
+		user.save()
+		frappe.set_user(self.USER)
+		payload = get_workspace(self.WORKSPACE)
+		frappe.set_user("Administrator")
+		return payload["content"][0]["data"]["text"], payload["is_layout_customized"]
+
+	def ship(self, **changes):
+		"""What a migrate does to the app's record."""
+		ws = frappe.get_doc("Workspace", self.WORKSPACE)
+		ws.update(changes)
+		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			ws.save()
+
+	def test_editing_one_layout_freezes_only_it(self):
+		self.save(self.TWO, "Site Two")
+		self.ship(content=dumps([header("New Default")]))
+		frappe.db.set_value(
+			"Workspace Variant",
+			{"parent": self.WORKSPACE, "role": self.ONE},
+			"content",
+			dumps([header("New One")]),
+		)
+
+		self.assertEqual(self.seen_by(self.TWO), ("Site Two", True))
+		self.assertEqual(self.seen_by(self.ONE), ("New One", False))
+		self.assertEqual(self.seen_by(), ("New Default", False))
+
+	def test_a_site_layout_keeps_its_place_and_site_only_ones_come_last(self):
+		self.save(self.SITE, "Site Only")
+		self.save(self.TWO, "Site Two")
+		self.assertEqual(self.seen_by(self.SITE, self.TWO)[0], "Site Two")
+		self.assertEqual(self.seen_by(self.SITE)[0], "Site Only")
+
+	def test_reset_one_layout(self):
+		self.save(self.ONE, "Site One")
+		self.save(self.TWO, "Site Two")
+		reset_workspace_customization(self.WORKSPACE, self.ONE)
+
+		self.assertEqual(self.seen_by(self.ONE), ("One", False))
+		self.assertEqual(self.seen_by(self.TWO), ("Site Two", True))
+
+	def test_reset_refuses_a_site_only_layout(self):
+		self.save(self.SITE, "Site Only")
+		with self.assertRaises(frappe.ValidationError):
+			reset_workspace_customization(self.WORKSPACE, self.SITE)
+
+	def test_a_layout_the_app_drops_stays_as_the_sites(self):
+		self.save(self.TWO, "Site Two")
+		ws = frappe.get_doc("Workspace", self.WORKSPACE)
+		ws.set("variants", [row for row in ws.variants if row.role != self.TWO])
+		with patch.dict(frappe.conf, {"developer_mode": 1}):
+			ws.save()
+
+		self.assertEqual(self.seen_by(self.TWO), ("Site Two", True))
+		with self.assertRaises(frappe.ValidationError):
+			reset_workspace_customization(self.WORKSPACE, self.TWO)
+
+
+def header(text):
+	return {"id": frappe.generate_hash(length=8), "type": "header", "data": {"text": text, "col": 12}}
