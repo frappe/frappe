@@ -33,7 +33,6 @@ MULTI_PAGE_STYLE = (
 )
 MEASURE_STYLE = "html, body, .print-format { height: auto !important; min-height: 0 !important; }"
 USER_SCRIPT = re.compile(r"<script(?![^>]*(data-frappe-print|/print\.bundle\.))", re.IGNORECASE)
-LETTER_HEAD_STYLE = re.compile(r"<style data-letter-head>(.*?)</style>", re.IGNORECASE | re.DOTALL)
 GRID = re.compile(r"display\W+(inline-)?grid\b", re.IGNORECASE)
 INTER_WOFF2 = re.compile(r"/assets/frappe/css/fonts/inter/Inter-(\w+)\.woff2")
 FONT_FACE = re.compile(r"@font-face\s*\{[^}]*\}", re.IGNORECASE)
@@ -67,7 +66,7 @@ def plutoprint_can_render(html: str) -> bool:
 	html = html or ""
 	if "data-barcode-value=" in html or USER_SCRIPT.search(html):
 		return False
-	return not any(GRID.search(css) for css in LETTER_HEAD_STYLE.findall(html))
+	return not GRID.search(html)
 
 
 def plutoprint_blockers(print_format=None) -> list[str]:
