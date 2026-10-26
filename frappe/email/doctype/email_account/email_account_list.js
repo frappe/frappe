@@ -55,7 +55,9 @@ function add_email_account_dialog() {
 		.options.split("\n")
 		.filter(Boolean)
 		.sort((a, b) => rank(a) - rank(b));
-	const one_click = frappe.boot.one_click_email_services || {};
+	let one_click = {};
+	let loaded = false;
+	let picked;
 
 	const open_form = (service) => {
 		d.hide();
@@ -118,8 +120,9 @@ function add_email_account_dialog() {
 		return $tile.on("click", () => {
 			$tile.siblings().attr("aria-pressed", "false");
 			$tile.attr("aria-pressed", "true");
+			picked = [service, label];
 			set_actions(service, label);
-			d.enable_primary_action();
+			if (loaded) d.enable_primary_action();
 		});
 	};
 
@@ -142,6 +145,15 @@ function add_email_account_dialog() {
 	d.set_primary_action(__("Continue"));
 	d.disable_primary_action();
 	d.show();
+	frappe
+		.xcall("frappe.integrations.frappe_providers.email_oauth.get_one_click_services")
+		.then((services) => (one_click = services))
+		.finally(() => {
+			loaded = true;
+			if (!picked) return;
+			set_actions(...picked);
+			d.enable_primary_action();
+		});
 }
 
 function show_email_oauth_result(code, mailbox, provider) {
@@ -178,6 +190,27 @@ function show_email_oauth_result(code, mailbox, provider) {
 				"IMAP is turned off for this mailbox. Turn it on in Outlook settings or ask your admin."
 			),
 		},
+		google: {
+			admin_approval: __(
+				"Your Google Workspace admin has blocked Frappe. Ask them to allow it under Security > API controls in the Google Admin console."
+			),
+			imap_disabled:
+				__(
+					"IMAP is turned off for this mailbox. Turn it on in Gmail settings under Forwarding and POP/IMAP, or ask your Google Workspace admin."
+				) +
+				` <a href="https://mail.google.com/mail/u/0/#settings/fwdandpop" target="_blank">${__(
+					"Open Gmail settings"
+				)}</a>`,
+		},
+		yandex: {
+			imap_disabled:
+				__(
+					'IMAP is turned off for this mailbox. In Yandex Mail settings, under Email clients, turn on IMAP and "App passwords and OAuth tokens".'
+				) +
+				` <a href="https://mail.yandex.com/#setup/client" target="_blank">${__(
+					"Open Yandex Mail settings"
+				)}</a>`,
+		},
 	};
 	const error_messages = {
 		cancelled: __("Sign-in was cancelled."),
@@ -189,6 +222,9 @@ function show_email_oauth_result(code, mailbox, provider) {
 		),
 		imap_disabled: __(
 			"IMAP is turned off for this mailbox. Turn it on in your mail settings or ask your admin."
+		),
+		missing_permission: __(
+			"Frappe wasn't allowed to read and send your email. Sign in again and allow access to your mail."
 		),
 		already_connected: __("This mailbox is already connected."),
 		wrong_mailbox: __(
