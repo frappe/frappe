@@ -39,9 +39,9 @@
 					v-for="pane in group.panes"
 					:key="pane.key"
 					:value="`${group.prefix}/${pane.key}`"
-					class="min-w-0"
+					class="relative min-w-0"
 				>
-					<SettingsPaneView :pane="pane" :block="shown?.block" />
+					<SettingsPaneView :pane="pane" :blocks="blocks!" :block="shown?.block" />
 				</SettingsPanel>
 			</template>
 			<div
@@ -63,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, ref, shallowRef, watch } from "vue";
+import { computed, inject, ref, shallowRef, watch, type Component } from "vue";
 import {
 	Avatar,
 	Button,
@@ -80,6 +80,7 @@ import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import { useHashDialog } from "./useHashDialog";
 import { FRAMEWORK, SettingsAddressBook } from "./settingsAddress";
+import { loadSettingsBlocks } from "./settingsBlocks";
 import { fetchPanes } from "./settingsPanes";
 import SettingsPaneView from "./SettingsPaneView.vue";
 
@@ -87,12 +88,16 @@ const boot = inject<Boot>("boot")!;
 const hash = useHashDialog("settings");
 
 const book = shallowRef<SettingsAddressBook | null>(null);
+const blocks = shallowRef<Component>();
 const failed = ref(false);
 
 function load() {
 	failed.value = false;
-	fetchPanes(boot).then(
-		(reply) => (book.value = new SettingsAddressBook(reply, boot)),
+	Promise.all([fetchPanes(boot), loadSettingsBlocks()]).then(
+		([reply, component]) => {
+			blocks.value = component;
+			book.value = new SettingsAddressBook(reply, boot);
+		},
 		() => (failed.value = true)
 	);
 }
@@ -125,8 +130,10 @@ const open = computed({
 	set: (value) => (value ? hash.write() : hash.close()),
 });
 
+// Never undefined: reka's tabs read an undefined first value as uncontrolled and would switch
+// panes before the hash moves, past the blocks' leave question.
 const tab = computed({
-	get: () => (shown.value ? `${shown.value.prefix}/${shown.value.pane.key}` : undefined),
+	get: () => (shown.value ? `${shown.value.prefix}/${shown.value.pane.key}` : ""),
 	set: (value) => value && hash.write(...String(value).split("/")),
 });
 </script>

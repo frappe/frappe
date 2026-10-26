@@ -1,6 +1,6 @@
 // The settings dialog: what an address shows, which groups list, the one refusal, and the held reply.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, nextTick, onMounted, type App, type PropType } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
@@ -11,8 +11,23 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 
 import type { Boot } from "@/boot";
 import { SettingsAddressBook } from "../settingsAddress";
+import { registerSettingsBlocks } from "../settingsBlocks";
 import { fetchPanes, type PanesReply, type SettingsPane } from "../settingsPanes";
 import ShellSettingsDialog from "../ShellSettingsDialog.vue";
+
+/** The page layer's blocks, as far as the shell relies on them: a section per block, then `loaded`. */
+const Blocks = defineComponent({
+	props: { pane: { type: Object as PropType<SettingsPane>, required: true } },
+	emits: ["loaded"],
+	setup(props, { emit }) {
+		onMounted(() => emit("loaded"));
+		return () =>
+			props.pane.blocks.map((block) =>
+				h("section", { "data-block": block.key }, [h("span", { "data-flash": "" }), block.key])
+			);
+	},
+});
+registerSettingsBlocks(async () => ({ default: Blocks }));
 
 function pane(app: string, key: string, blocks = ["main"]): SettingsPane {
 	return {

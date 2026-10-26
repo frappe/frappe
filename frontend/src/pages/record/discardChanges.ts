@@ -2,11 +2,16 @@
 import { __ } from "@/i18n";
 import type { RecordPageApi } from "@/recordPage";
 
+export type Confirm = RecordPageApi["dialog"]["confirm"];
+
 /** True when the reader chose to discard. */
-export async function discardChanges(page: RecordPageApi): Promise<boolean> {
-	const discard = await page.dialog.confirm({
+export async function discardChanges(
+	confirm: Confirm,
+	message = __("This record has changes that are not saved.")
+): Promise<boolean> {
+	const discard = await confirm({
 		title: __("Discard unsaved changes?"),
-		message: __("This record has changes that are not saved."),
+		message,
 		confirmLabel: __("Discard"),
 		cancelLabel: __("Keep editing"),
 	});

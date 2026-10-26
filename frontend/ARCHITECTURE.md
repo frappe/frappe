@@ -276,7 +276,7 @@ component group, with its main names.
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
-| [Settings dialog](./CONTEXT.md#settings-dialog) (`ShellSettingsDialog`, `SettingsAddressBook`, `fetchPanes`) | The hash dialog at the [settings address](./CONTEXT.md#settings-address). Its chunk loads on the first open. It reads `get_panes` then and holds the reply for the tab, by `metadata_version` and user. It lists the framework's panes, the current app's group and an addressed foreign app's group for that visit. A short address is replaced by the full one; one it cannot show keeps its hash and shows one message. A block segment scrolls to the block and flashes it. Blocks draw their header and a skeleton |
+| [Settings dialog](./CONTEXT.md#settings-dialog) (`ShellSettingsDialog`, `SettingsAddressBook`, `fetchPanes`, `SettingsPane`, `SettingsBlock`, `SettingsBinding`, `registerSettingsBlocks`) | The hash dialog at the [settings address](./CONTEXT.md#settings-address). Its chunk loads on the first open. It reads `get_panes` then and holds the reply for the tab, by `metadata_version` and user. It lists the framework's panes, the current app's group and an addressed foreign app's group for that visit. A short address is replaced by the full one; one it cannot show keeps its hash and shows one message. `main.ts` registers the page layer's component that draws a pane's blocks; its chunk loads with the pane list. A block segment scrolls to the block and flashes it once the pane's bindings have loaded |
 | Settings act (`OpenSettingsKey`, `OpenSettings`) | Opens the settings dialog at an address. `AppShell` provides it to the rail's app and user menus and to the record pages, which hand it to `page.openSettings()` |
 | Logout (`logout`, `LogoutDialog`) | End the session, and go to login with a way back |
 | Composer state (`composerState`, `openComposer`, `closeComposer`) | Which record's composer is open, with which writer, docked or floating |
@@ -356,6 +356,7 @@ component group, with its main names.
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
 | New record page (`NewRecord`, `UnsavedRecord`, `NotSavedBadge`, `openingKey`) | The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
 | `TileGridSkeleton` | The loading skeleton for Home and Module |
+| Settings blocks (`SettingsBlocks`, `PaneDrafts`, `BindingDraft`) | A settings pane's generated blocks, which the shell's dialog mounts. Each [binding](./CONTEXT.md#binding) gets one draft, read fresh when the pane opens and shared by its blocks; a missing Record starts from its defaults and inserts on its first save. Each field is a settings row with its ui control and a save mark. An `auto` block saves a field when its control commits, a `button` block from the Save bar or Ctrl/Cmd+S. A save sends only the changed fields and `modified`, one at a time per binding, and a change made meanwhile joins the next. A 417 is sent again when the other save left those fields alone, else the record page's conflict question opens. Leaving a pane with changes no save holds asks the record page's discard question |
 | App pages | Pages an app contributes or uses as a replacement. They may import only the [import list](#9-customization) |
 
 **The record page** (`pages/Record.vue`, `pages/record/`)
@@ -363,14 +364,14 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | Record page host (`Record.vue`) | Fills `RecordPageHost`: loads, saves, and wires layouts, feeds, tabs and the composer. `UnsavedRecord` is the second host, for a record before its first save |
-| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | The form's classes, the header row's projection, the "Discard unsaved changes?" question, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload, and the commit channel and field errors |
+| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `Confirm`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | The form's classes, the header row's projection, the "Discard unsaved changes?" question, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload (the settings blocks ask the same question and use the same keys, scoped to their dialog), and the commit channel and field errors |
 | Field landing (`landOnField`, `landOnFirstMarked`, `tabOf`, `stopLanding`) | Moves a form to a field's tab and puts the cursor in it. The record page's focus and both form dialogs use it. `stopLanding` ends a landing still waiting for a lazy control, when a page unmounts |
 | Visit (`Visit`) | One object per visit to a record. Ending it aborts its reads, and a reply that belongs to an old visit is dropped |
 | Return-visit parts | *New.* Which record parts a return visit needs before it paints from memory |
 | Record source | The load, the parts re-read, the save, and a cached read |
-| Meta source | The doctype meta as one promise or its current value |
+| Meta source (`awaitMeta`) | The doctype meta as one promise or its current value |
 | Refetch merge | Merges a background re-read into the draft the reader is editing |
-| Save conflict (`SaveConflict`) | The error when someone else saved first, and the fields the reader would lose |
+| Save conflict (`SaveConflict`, `confirmConflict`) | The error when someone else saved first, the fields the reader would lose, and the question the record page and the settings blocks ask |
 | Save code errors (`SaveCodeErrors`, `codeErrorsError`, `shownInDialog`, `codeErrorFrames`, `CodeErrorFrame`, `CodeErrorsDialog`) | *New.* A save the server refused because a Code field's text does not compile. One dialog lists each error with the lines around it, and the Code field marks them until the next save |
 | Live scripts | Re-runs the page's scripts when a stored script of its doctype changes |
 | Record feeds (`RecordFeeds`) | The data behind `page.activity` and `page.files`, with the feed's first-paint functions |
