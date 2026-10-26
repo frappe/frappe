@@ -67,8 +67,6 @@
 				</button>
 			</div>
 		</RadioGroup>
-
-		<span class="text-xs text-ink-gray-5">The selected option is shown on the canvas.</span>
 	</div>
 </template>
 
@@ -82,14 +80,14 @@ import Block from "@/utils/block"
 import { variantOption } from "@/utils/blockTemplate/familyTemplates"
 import { confirmKeepVariantOption } from "@/utils/keepVariant"
 import { getBlockCopy } from "@/utils/serializer"
-import { getEditorVariantChoice, parseVariantOptions, setEditorVariantChoice, slug } from "@/utils/variants"
+import { getEditorVariantChoice, setEditorVariantChoice, slug, variantOptionNames } from "@/utils/variants"
 
-// Each option names the child subtree at its index, so every row action moves the
-// children in lockstep. The radio picks what the canvas shows; the row menu holds
-// rename, duplicate, keep and delete.
+// The option blocks are the single source of truth: each child carries its own
+// `variantOptionName`, so names follow the blocks through delete, duplicate, paste and
+// reorder from anywhere. The radio picks what the canvas shows.
 const props = defineProps<{ label?: string; block: Block }>()
 
-const options = computed(() => parseVariantOptions(props.block.componentProps.options))
+const options = computed(() => variantOptionNames(props.block))
 const shownIndex = computed(() =>
 	Math.min(getEditorVariantChoice(props.block.componentId), Math.max(options.value.length - 1, 0)),
 )
@@ -105,17 +103,13 @@ function rowMenu(index: number) {
 			condition: () => options.value.length > 1,
 		},
 		{
-			label: "Delete option",
+			label: "Delete",
 			icon: "lucide-trash-2",
 			theme: "red" as const,
 			onClick: () => deleteOption(index),
 			condition: () => options.value.length > 1,
 		},
 	]
-}
-
-function setOptionNames(names: string[]) {
-	props.block.setProp("options", names)
 }
 
 // the selection ring follows the swap (ComponentEditor re-anchors to the new
@@ -127,12 +121,14 @@ function showOption(index: number) {
 // a new option starts as a copy of the shown one — a variant is an alternative
 // version of what you see. An empty set still gets the placeholder scaffold.
 function addOption() {
-	const index = options.value.length
+	const index = props.block.children.length
 	const name = `Option ${index + 1}`
 	const shown = props.block.children[shownIndex.value]
-	setOptionNames([...options.value, name])
 	const added = props.block.addChild(shown ? getBlockCopy(shown) : variantOption(name), index, false)
-	if (added) added.blockName = optionBlockName(name)
+	if (added) {
+		added.variantOptionName = name
+		added.blockName = optionBlockName(name)
+	}
 	showOption(index)
 	startRename(index)
 }
@@ -148,7 +144,6 @@ function optionBlockName(name: string) {
 function deleteOption(index: number) {
 	const child = props.block.children[index]
 	if (child) props.block.removeChild(child)
-	setOptionNames(options.value.filter((_, i) => i !== index))
 	const shown = getEditorVariantChoice(props.block.componentId)
 	if (shown >= index) setEditorVariantChoice(props.block.componentId, Math.max(0, shown - 1))
 }
@@ -167,14 +162,12 @@ function focusRenameInput(component: any) {
 function commitRename(index: number, name: string) {
 	if (renamingIndex.value !== index) return
 	renamingIndex.value = null
-	if (!name.trim()) return
-	const previous = options.value[index]
-	const names = [...options.value]
-	names[index] = name.trim()
-	setOptionNames(names)
-	// keep the option's layer name in step, unless it was renamed by hand in the tree
 	const child = props.block.children[index]
-	if (child && (!child.blockName || child.blockName === optionBlockName(previous))) {
+	if (!child || !name.trim()) return
+	const previous = options.value[index]
+	child.variantOptionName = name.trim()
+	// keep the option's layer name in step, unless it was renamed by hand in the tree
+	if (!child.blockName || child.blockName === optionBlockName(previous)) {
 		child.blockName = optionBlockName(name.trim())
 	}
 }
@@ -193,12 +186,8 @@ function onDrop(to: number) {
 	const from = dragIndex.value
 	resetDrag()
 	if (from === null || from === to) return
-	const shownChild = props.block.children[shownIndex.value]
-	const names = [...options.value]
-	const [movedName] = names.splice(from, 1)
-	names.splice(to, 0, movedName)
-	setOptionNames(names)
 	const children = props.block.children
+	const shownChild = children[shownIndex.value]
 	const [movedChild] = children.splice(from, 1)
 	children.splice(to, 0, movedChild)
 	const shownAt = children.indexOf(shownChild)

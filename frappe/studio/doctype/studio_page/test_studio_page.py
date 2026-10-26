@@ -65,10 +65,10 @@ class TestStudioPage(IntegrationTestCase):
 					{
 						"componentId": "Variants-hero",
 						"componentName": "Variants",
-						"componentProps": {"name": "Hero", "options": ["A", "B"]},
+						"componentProps": {"name": "Hero"},
 						"children": [
-							{"componentId": "option-a", "componentName": "container", "children": []},
-							{"componentId": "option-b", "componentName": "container", "children": []},
+							{"componentId": "option-a", "variantOptionName": "A", "componentName": "container", "children": []},
+							{"componentId": "option-b", "variantOptionName": "B", "componentName": "container", "children": []},
 						],
 					}
 				],
@@ -80,6 +80,7 @@ class TestStudioPage(IntegrationTestCase):
 
 		kept = frappe.parse_json(frappe.db.get_value("Studio Page", page.name, "blocks"))
 		self.assertEqual(kept[0]["children"][0]["componentId"], "option-b")
+		self.assertNotIn("variantOptionName", kept[0]["children"][0])
 		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "missing-block", 0)
 
 	def test_publish_reports_unresolved_variants(self):

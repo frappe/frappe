@@ -17,7 +17,7 @@ import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@/utils/styleCopyPaste"
 import { confirmKeepVariantOption } from "@/utils/keepVariant"
-import { getEditorVariantChoice, parseVariantOptions, setEditorVariantChoice } from "@/utils/variants"
+import { getEditorVariantChoice, setEditorVariantChoice, variantOptionNames } from "@/utils/variants"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import components from "@/data/components"
@@ -272,10 +272,12 @@ function addVariantOf(target: Block) {
 	const wrap = () => {
 		const variantsBlock = getBlockInstance({
 			componentName: "Variants",
-			componentProps: { name: "Variant", options: ["Option A", "Option B"] },
+			componentProps: { name: "Variant" },
 		})
 		parentBlock.removeChild(target)
 		parentBlock.insertChild(variantsBlock, index, slotName)
+		target.variantOptionName = "Option 1"
+		duplicate.variantOptionName = "Option 2"
 		variantsBlock.insertChild(target, 0)
 		variantsBlock.insertChild(duplicate, 1)
 		setEditorVariantChoice(variantsBlock.componentId, 1)
@@ -286,7 +288,7 @@ function addVariantOf(target: Block) {
 }
 
 function keepShownOption(target: Block) {
-	const options = parseVariantOptions(target.componentProps.options)
+	const options = variantOptionNames(target)
 	const shownIndex = Math.min(getEditorVariantChoice(target.componentId), Math.max(options.length - 1, 0))
 	confirmKeepVariantOption(target, shownIndex)
 }

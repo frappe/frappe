@@ -483,14 +483,15 @@ function textBlock(
 function variantsTemplate(): BlockOptions {
 	return {
 		componentName: "Variants",
-		componentProps: { name: "Variant", options: ["Option A", "Option B"] },
-		children: [variantOption("Option A"), variantOption("Option B")],
+		componentProps: { name: "Variant" },
+		children: [variantOption("Option 1"), variantOption("Option 2")],
 	}
 }
 
 export function variantOption(label: string): BlockOptions {
 	return {
 		componentName: "container",
+		variantOptionName: label,
 		blockName: label.toLowerCase().replace(/\s+/g, "-"),
 		baseStyles: {
 			display: "flex",

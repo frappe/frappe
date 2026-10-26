@@ -27,6 +27,7 @@ class Block implements BlockOptions {
 	componentEvents: Record<string, any>
 	attributes: Record<string, any>
 	blockName?: string
+	variantOptionName?: string
 	children: Block[]
 	parentBlock: Block | null
 	baseStyles: BlockStyleMap
@@ -52,6 +53,7 @@ class Block implements BlockOptions {
 	constructor(options: BlockOptions) {
 		this.componentName = options.componentName
 		this.blockName = options.blockName
+		this.variantOptionName = options.variantOptionName
 		this.originalElement = options.originalElement
 		this.baseStyles = reactive(mergeLegacyRawStyles({ ...(options.baseStyles || {}) }, options.rawStyles))
 		this.mobileStyles = reactive(options.mobileStyles || {})

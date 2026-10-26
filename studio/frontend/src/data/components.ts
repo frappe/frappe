@@ -772,12 +772,15 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Variants",
 		icon: LucideSplit,
 		blockTemplate: "variants",
-		expandArrayProps: true,
+		// options are not a prop of the component — they live on the option blocks;
+		// this pair only puts their editor in the properties panel
+		additionalProps: {
+			options: { type: Array },
+		},
 		overrideProps: {
 			options: {
 				type: "array",
-				inputType: "array",
-				required: true,
+				inputType: "text",
 				editor: defineAsyncComponent(() => import("@/components/VariantOptionsEditor.vue")),
 			},
 		},

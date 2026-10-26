@@ -82,14 +82,14 @@ export function revealVariantOption(block: EditorBlock) {
 	}
 }
 
-export function parseVariantOptions(options: string[] | string | undefined): string[] {
-	if (Array.isArray(options)) return options.map(String)
-	try {
-		const parsed = JSON.parse(options || "[]")
-		return Array.isArray(parsed) ? parsed.map(String) : []
-	} catch {
-		return options ? options.split(",").map((option) => option.trim()) : []
-	}
+/** Option names live on the option blocks (`variantOptionName`); an unnamed block
+still gets a stable generic name. */
+export function variantOptionNames(block: {
+	children?: ({ variantOptionName?: string } | undefined)[]
+}): string[] {
+	return (block.children || []).map(
+		(child, index) => child?.variantOptionName || `Option ${index + 1}`,
+	)
 }
 
 export function releaseVariantSet(key: string) {

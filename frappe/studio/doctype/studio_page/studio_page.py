@@ -496,7 +496,11 @@ def replace_variants_block(block: dict, block_id: str, option_index: int) -> boo
 				options = child.get("children") or []
 				if not options:
 					return False
-				children[index] = options[min(option_index, len(options) - 1)]
+				kept = options[min(option_index, len(options) - 1)]
+				if isinstance(kept, dict):
+					# the block leaves the set, so it is no longer an option of anything
+					kept.pop("variantOptionName", None)
+				children[index] = kept
 				return True
 			if isinstance(child, dict) and replace_variants_block(child, block_id, option_index):
 				return True

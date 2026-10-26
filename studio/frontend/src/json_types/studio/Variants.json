@@ -1,25 +1,18 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "$ref": "#/definitions/VariantsProps",
-  "definitions": {
-    "VariantsProps": {
-      "type": "object",
-      "properties": {
-        "name": {
-          "type": "string"
-        },
-        "options": {
-          "type": "array",
-          "items": {
-            "type": "string"
-          }
-        }
-      },
-      "required": [
-        "name",
-        "options"
-      ],
-      "additionalProperties": false
+ "$schema": "http://json-schema.org/draft-07/schema#",
+ "$ref": "#/definitions/VariantsProps",
+ "definitions": {
+  "VariantsProps": {
+   "type": "object",
+   "properties": {
+    "name": {
+     "type": "string"
     }
+   },
+   "required": [
+    "name"
+   ],
+   "additionalProperties": false
   }
+ }
 }

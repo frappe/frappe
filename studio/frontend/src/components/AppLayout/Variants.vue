@@ -1,10 +1,10 @@
 <script lang="ts">
-import { Comment, Fragment, defineComponent, onBeforeUnmount, type PropType, type VNode } from "vue"
-import { parseVariantOptions, releaseVariantSet, useVariantSet } from "@/utils/variants"
+import { Comment, Fragment, defineComponent, onBeforeUnmount, type VNode } from "vue"
+import { releaseVariantSet, useVariantSet } from "@/utils/variants"
 
 /**
  * One container holding N named alternative subtrees and rendering one. Children are the
- * options, in order; `options` names them for the switcher pill, and the choice is mirrored
+ * options, in order, each named by its own block (`variantOptionName`); the choice is mirrored
  * to the URL (?v=<set>.<option>) so any combination is a shareable link.
  */
 export default defineComponent({
@@ -13,15 +13,17 @@ export default defineComponent({
 	inheritAttrs: false,
 	props: {
 		name: { type: String, default: "Variant" },
-		options: { type: [Array, String] as PropType<string[] | string>, default: () => [] },
 	},
 	setup(props, { slots, attrs }) {
-		const options = parseVariantOptions(props.options)
 		// the rendered block's id, so "Keep" can resolve this set back to its editor node
 		const blockId = String(attrs["data-component-id"] || "")
+		const optionBlocks = flattenSlot(slots.default?.() || []).map(
+			(vnode) => (vnode.props as any)?.block as { componentId?: string; variantOptionName?: string } | undefined,
+		)
 		// the option blocks' ids, so the pill can outline the rendered option on hover
-		const optionIds = flattenSlot(slots.default?.() || []).map(
-			(vnode) => (vnode.props as any)?.block?.componentId as string | undefined,
+		const optionIds = optionBlocks.map((block) => block?.componentId)
+		const options = optionBlocks.map(
+			(block, index) => block?.variantOptionName || `Option ${index + 1}`,
 		)
 		const { key, activeIndex } = useVariantSet({ name: props.name, options, blockId, optionIds })
 		onBeforeUnmount(() => releaseVariantSet(key))
