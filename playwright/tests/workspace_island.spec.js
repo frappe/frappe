@@ -1,4 +1,5 @@
 import { test, expect } from "../support";
+import { TEST_USER } from "../support/config";
 
 const WORKSPACE = "Playwright Island";
 const CARD = "Playwright ToDo Count";
@@ -8,6 +9,12 @@ const SAVE_CHART_CONFIG = "dashboard_settings.save_chart_config";
 
 test.describe("Workspace island", () => {
 	test.beforeAll(async ({ admin }) => {
+		const user = (await admin.get_doc("User", TEST_USER)).data;
+		if (!user.roles.some((row) => row.role === "Workspace Manager")) {
+			await admin.update_doc("User", TEST_USER, {
+				roles: [...user.roles, { role: "Workspace Manager" }],
+			});
+		}
 		await admin.insert_doc(
 			"Number Card",
 			{
@@ -217,5 +224,31 @@ test.describe("Workspace island", () => {
 		await expect(
 			page.getByText("This workspace does not exist, or you cannot open it.")
 		).toBeVisible();
+	});
+
+	test("an editor moves a tile and the order holds after a reload", async ({ page }) => {
+		const tile = (label) => page.locator(".ws-tile", { hasText: label });
+		const tiles_in_order = async () =>
+			(await page.locator(".ws-tile").allInnerTexts()).map((text) => text.split("\n")[0]);
+
+		await page.goto("/desk/playwright-island");
+		await expect(tile(CARD)).toBeVisible();
+		await page.evaluate(() =>
+			$(frappe.pages["workspace-view"].page.menu)
+				.find(".dropdown-item")
+				.filter((i, item) => item.innerText.trim() === "Edit")
+				.click()
+		);
+		await expect(page).toHaveTitle(/Editing/);
+
+		await tile("Playwright ToDos").locator(".ws-pick").dragTo(tile(CARD).locator(".ws-pick"));
+		const saved = page.waitForResponse((res) => res.url().includes("save_page"));
+		await page.getByRole("button", { name: "Save" }).click();
+		expect((await saved).ok()).toBeTruthy();
+
+		await page.reload();
+		await expect(tile(CARD)).toBeVisible();
+		const order = await tiles_in_order();
+		expect(order.indexOf("Playwright ToDos")).toBeLessThan(order.indexOf(CARD));
 	});
 });
