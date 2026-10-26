@@ -30,7 +30,7 @@ frappe.ui.form.on("Report", {
 			});
 		}
 
-		if (doc.is_standard === "Yes" && frm.perm[0].write) {
+		if (doc.is_standard === "Yes" && frappe.model.can_write("Report")) {
 			frm.add_custom_button(
 				doc.disabled ? __("Enable Report") : __("Disable Report"),
 				function () {
