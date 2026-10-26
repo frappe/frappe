@@ -6,6 +6,7 @@ def get_context(context):
 	from frappe.printing.doctype.print_format.classic_converter import uses_legacy_weasyprint
 	from frappe.utils.jinja_globals import is_rtl
 	from frappe.www.printview import (
+		get_print_filename,
 		get_print_style,
 		get_rendered_template,
 		resolve_print_format,
@@ -47,6 +48,7 @@ def get_context(context):
 				"lang": frappe.local.lang,
 				"layout_direction": "rtl" if is_rtl() else "ltr",
 				"title": doc.get_title() or doc.name,
+				"print_filename": get_print_filename(doc),
 				"comment": None,
 			},
 		)

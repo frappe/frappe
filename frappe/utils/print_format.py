@@ -12,6 +12,7 @@ from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.model.document import Document
 from frappe.translate import print_language
+from frappe.utils import get_link_to_form
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
 
@@ -215,6 +216,7 @@ def _download_multi_pdf(
 	from pypdf import PdfWriter
 
 	pdf_writer = PdfWriter()
+	failed = []
 
 	if isinstance(options, str):
 		options = json.loads(options)
@@ -293,10 +295,7 @@ def _download_multi_pdf(
 					reference_doctype=doctype,
 					reference_name=ss,
 				)
-				if task_id:
-					frappe.publish_realtime(
-						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-					)
+				failed.append(get_link_to_form(doctype, ss))
 
 			# Publish progress
 			if task_id:
@@ -326,15 +325,12 @@ def _download_multi_pdf(
 					publish_failure(task_id, e)
 					raise
 				except Exception:
-					if task_id:
-						frappe.publish_realtime(
-							task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-						)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
+					failed.append(get_link_to_form(doctype_name, doc_name))
 
 				count += 1
 
@@ -373,6 +369,15 @@ def _download_multi_pdf(
 		else:
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
+
+	if failed:
+		frappe.msgprint(
+			failed,
+			as_list=True,
+			indicator="red",
+			realtime=True,
+			title=_("Failed to print {0} documents").format(len(failed)),
+		)
 
 
 from frappe.deprecation_dumpster import read_multi_pdf
