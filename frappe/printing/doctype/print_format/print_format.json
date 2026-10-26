@@ -113,7 +113,7 @@
   {
    "description": "If set, only users with one of these roles can print with this format.",
    "fieldname": "roles",
-   "fieldtype": "Table",
+   "fieldtype": "Table MultiSelect",
    "label": "Roles",
    "options": "Has Role"
   },
@@ -384,7 +384,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-26 12:00:00.000000",
+ "modified": "2026-10-26 19:22:11.123856",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
