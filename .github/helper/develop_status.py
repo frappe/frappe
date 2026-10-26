@@ -1,14 +1,14 @@
 """
-Post a "Develop status" commit status on open develop pull requests: failing while the latest
-full server or UI run on develop failed, unless the pull request has the fix label and those
-suites passed on it.
+Post a "Develop status" commit status on open develop pull requests, and a "Desk-v2 status" on
+desk-v2 ones: failing while the latest full server or UI run on that branch failed, unless the
+pull request has the fix label and those suites passed on it.
 
 Usage:
-    python develop_status.py refresh       # every open develop pull request
+    python develop_status.py refresh       # every open develop and desk-v2 pull request
     python develop_status.py pr <number>   # one pull request
     python develop_status.py wait <number> # one pull request, until its fix tests finish
     python develop_status.py commit <sha>  # the pull requests whose head is this commit
-    python develop_status.py start [all]   # start the suites the new develop and desk-v2 commits need
+    python develop_status.py start [all] [branch]  # start the suites the branch's new commits need, or both branches'
 """
 
 import json
@@ -23,7 +23,7 @@ from roulette import FIX_DEVELOP_LABEL as FIX_LABEL
 from roulette import is_ci, is_docs, is_frontend_code, is_server_side_code
 
 REPO = os.environ["GITHUB_REPOSITORY"]
-CONTEXT = "Develop status"
+BRANCHES = ("develop", "desk-v2")
 SUITES = {"server-tests.yml": "Server Success", "ui-tests.yml": "UI Success"}
 TEST_JOBS = {"server-tests.yml": "Integration", "ui-tests.yml": "UI Test"}
 
@@ -62,9 +62,9 @@ def pr_run(workflow, sha):
 	return next(iter(runs["workflow_runs"]), None)
 
 
-def fixed_after(workflow, failed_run):
-	"""Was a fixes-develop pull request merged into develop after this failure, with this suite passing in full on it?"""
-	query = f"repo:{REPO} is:pr is:merged base:develop label:{FIX_LABEL} merged:>={failed_run['created_at']}"
+def fixed_after(workflow, failed_run, branch):
+	"""Was a fixes-develop pull request merged into the branch after this failure, with this suite passing in full on it?"""
+	query = f"repo:{REPO} is:pr is:merged base:{branch} label:{FIX_LABEL} merged:>={failed_run['created_at']}"
 	for item in gh("-X", "GET", "search/issues", "-f", f"q={query}")["items"]:
 		sha = gh(f"repos/{REPO}/pulls/{item['number']}")["head"]["sha"]
 		if suite_result(pr_run(workflow, sha), workflow)[0] == "success":
@@ -80,59 +80,62 @@ def failed_job_url(run, gate_job):
 
 
 @cache
-def failing_suites():
-	"""{workflow: failed job url} for each suite whose latest finished full run on develop failed."""
+def failing_suites(branch="develop"):
+	"""{workflow: failed job url} for each suite whose latest finished full run on the branch failed."""
 	failing = {}
 	for workflow, gate_job in SUITES.items():
-		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch=develop")
+		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch={branch}")
 		for run in runs["workflow_runs"]:
 			if run["event"] not in ("schedule", "workflow_dispatch"):
 				continue
 			conclusion = gate_conclusion(run, gate_job)
-			if conclusion == "failure" and not fixed_after(workflow, run):
+			if conclusion == "failure" and not fixed_after(workflow, run, branch):
 				failing[workflow] = failed_job_url(run, gate_job)
 			if conclusion in ("success", "failure"):
 				break
 	return failing
 
 
-def develop_state():
+def branch_state(branch):
 	"""(passing, url of a failed run)."""
-	failing = failing_suites()
+	failing = failing_suites(branch)
 	return not failing, next(iter(failing.values()), "")
 
 
 def fix_status(pr):
-	"""A fix pull request can merge only once every suite failing on develop passed on it."""
-	results = [suite_result(pr_run(workflow, pr["head"]["sha"]), workflow) for workflow in failing_suites()]
+	"""A fix pull request can merge only once every suite failing on its branch passed on it."""
+	branch, sha = pr["base"]["ref"], pr["head"]["sha"]
+	results = [suite_result(pr_run(workflow, sha), workflow) for workflow in failing_suites(branch)]
 	failed = next((url for state, url in results if state == "failure"), None)
 	if failed:
-		return "failure", "develop is failing and the fix failed its tests", failed
+		return "failure", f"{branch} is failing and the fix failed its tests", failed
 	if any(state == "pending" for state, _ in results):
-		return "pending", "develop is failing, testing the fix", ""
-	return "success", "develop is failing, the fix passed its tests", ""
+		return "pending", f"{branch} is failing, testing the fix", ""
+	return "success", f"{branch} is failing, the fix passed its tests", ""
 
 
-def post(pr, develop, started=None):
-	"""Set the pull request's Develop status and return its state."""
-	passing, url = develop
+def post(pr, started=None):
+	"""Set the pull request's branch status and return its state."""
+	branch = pr["base"]["ref"]
+	context = f"{branch.capitalize()} status"
+	passing, url = branch_state(branch)
 	if passing:
-		state, description = "success", "develop is passing"
+		state, description = "success", f"{branch} is passing"
 	elif any(label["name"] == FIX_LABEL for label in pr["labels"]):
 		state, description, url = fix_status(pr)
 	else:
-		state, description = "failure", "develop is failing, see the failed run"
+		state, description = "failure", f"{branch} is failing, see the failed run"
 
 	sha = pr["head"]["sha"]
 	current = next(
-		(s for s in gh(f"repos/{REPO}/commits/{sha}/status")["statuses"] if s["context"] == CONTEXT), None
+		(s for s in gh(f"repos/{REPO}/commits/{sha}/status")["statuses"] if s["context"] == context), None
 	)
 	if current and (current["state"], current["description"]) == (state, description):
 		return state
 	if current and started and current["updated_at"] >= started:
 		return current["state"]
 
-	fields = ["-f", f"state={state}", "-f", f"context={CONTEXT}", "-f", f"description={description}"]
+	fields = ["-f", f"state={state}", "-f", f"context={context}", "-f", f"description={description}"]
 	if url:
 		fields += ["-f", f"target_url={url}"]
 	gh("-X", "POST", f"repos/{REPO}/statuses/{sha}", *fields)
@@ -150,8 +153,8 @@ def needs_suite(workflow, files):
 	return any(not (is_docs(f) or is_server_side_code(f)) for f in files)
 
 
-def start(force=False):
-	for branch in ("develop", "desk-v2"):
+def start(force=False, branches=BRANCHES):
+	for branch in branches:
 		start_branch(branch, force)
 
 
@@ -174,27 +177,28 @@ def start_branch(branch, force):
 
 if __name__ == "__main__":
 	if sys.argv[1] == "start":
-		start(force=sys.argv[2:] == ["all"])
+		start("all" in sys.argv[2:], [b for b in sys.argv[2:] if b in BRANCHES] or BRANCHES)
 		sys.exit()
 
 	if sys.argv[1] == "wait":
-		while post(gh(f"repos/{REPO}/pulls/{sys.argv[2]}"), develop_state()) == "pending":
+		while post(gh(f"repos/{REPO}/pulls/{sys.argv[2]}")) == "pending":
 			time.sleep(60)
 			failing_suites.cache_clear()
 		sys.exit()
 
-	develop = develop_state()
-	print(f"develop: {develop}")
 	if sys.argv[1] == "pr":
-		post(gh(f"repos/{REPO}/pulls/{sys.argv[2]}"), develop)
+		post(gh(f"repos/{REPO}/pulls/{sys.argv[2]}"))
 	elif sys.argv[1] == "commit":
-		query = f"repo:{REPO} is:pr is:open base:develop sha:{sys.argv[2]}"
+		query = f"repo:{REPO} is:pr is:open sha:{sys.argv[2]}"
 		for item in gh("-X", "GET", "search/issues", "-f", f"q={query}")["items"]:
 			pr = gh(f"repos/{REPO}/pulls/{item['number']}")
-			if pr["head"]["sha"] == sys.argv[2]:
-				post(pr, develop)
+			if pr["head"]["sha"] == sys.argv[2] and pr["base"]["ref"] in BRANCHES:
+				post(pr)
 	else:
-		started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
-		for page in gh("--paginate", "--slurp", f"repos/{REPO}/pulls?base=develop&state=open&per_page=100"):
-			for pr in page:
-				post(pr, develop, started)
+		for branch in BRANCHES:
+			print(f"{branch}: {branch_state(branch)}")
+			started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
+			pulls = f"repos/{REPO}/pulls?base={branch}&state=open&per_page=100"
+			for page in gh("--paginate", "--slurp", pulls):
+				for pr in page:
+					post(pr, started)
