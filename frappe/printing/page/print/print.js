@@ -1085,6 +1085,24 @@ frappe.ui.form.PrintView = class {
 	}
 
 	print_pdf() {
+		let frame, url, timer;
+		let frozen = true;
+		const unfreeze = () => {
+			if (frozen) {
+				frozen = false;
+				frappe.dom.unfreeze();
+			}
+		};
+		const cleanup = () => {
+			clearTimeout(timer);
+			frame?.remove();
+			if (url) URL.revokeObjectURL(url);
+		};
+		const fail = () => {
+			unfreeze();
+			cleanup();
+			frappe.msgprint(__("Could not prepare the PDF for printing. Try Download PDF."));
+		};
 		frappe.dom.freeze(__("Preparing PDF..."));
 		fetch(this.get_pdf_url())
 			.then((response) => {
@@ -1092,24 +1110,26 @@ frappe.ui.form.PrintView = class {
 				return response.blob();
 			})
 			.then((blob) => {
-				const frame = document.createElement("iframe");
+				url = URL.createObjectURL(blob);
+				frame = document.createElement("iframe");
 				frame.className = "print-pdf-frame";
-				frame.src = URL.createObjectURL(blob);
+				timer = setTimeout(fail, 15000);
 				frame.onload = () => {
-					frappe.dom.unfreeze();
-					frame.contentWindow.focus();
-					frame.contentWindow.print();
-					setTimeout(() => {
-						URL.revokeObjectURL(frame.src);
-						frame.remove();
-					}, 60000);
+					clearTimeout(timer);
+					unfreeze();
+					try {
+						frame.contentWindow.focus();
+						frame.contentWindow.print();
+					} catch (e) {
+						fail();
+						return;
+					}
+					timer = setTimeout(cleanup, 60000);
 				};
+				frame.src = url;
 				document.body.appendChild(frame);
 			})
-			.catch(() => {
-				frappe.dom.unfreeze();
-				frappe.msgprint(__("Could not prepare the PDF for printing. Try Download PDF."));
-			});
+			.catch(fail);
 	}
 
 	render_page(method, printit = false, pdf_generator) {
