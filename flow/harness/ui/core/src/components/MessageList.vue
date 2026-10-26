@@ -146,7 +146,7 @@
 
 	<button
 		v-if="!stick && !empty"
-		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 shadow-md hover:text-ink-gray-9"
+		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 hover:text-ink-gray-9"
 		:style="{ bottom: composerHeight + 12 + 'px' }"
 		title="Scroll to bottom"
 		@click="toBottom"

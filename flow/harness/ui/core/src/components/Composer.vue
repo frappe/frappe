@@ -158,7 +158,7 @@
 							<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
 						</button>
 						<button
-							class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
+							class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
 							title="Remove attachment"
 							:aria-label="`Remove ${item.name}`"
 							:disabled="locked"
@@ -321,7 +321,7 @@
 
 					<button
 						v-if="running && !submitting"
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base shadow-sm hover:opacity-90"
+						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base hover:opacity-90"
 						title="Stop"
 						@click="flow.abort()"
 					>
@@ -329,7 +329,7 @@
 					</button>
 					<button
 						v-else
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 shadow-sm"
+						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6"
 						:class="
 							canSend || submitting
 								? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
