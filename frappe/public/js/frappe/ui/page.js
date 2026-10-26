@@ -619,6 +619,8 @@ frappe.ui.Page = class Page {
 		const responsive_hidden = (el) =>
 			(el.classList.contains("visible-xs") &&
 				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xs") &&
+				window.matchMedia("(max-width: 767.98px)").matches) ||
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];

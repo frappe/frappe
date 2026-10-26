@@ -2815,6 +2815,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				this.make_group_by_fields_modal();
 			},
 			standard: true,
+			class: "hidden-xs",
 		});
 
 		if (frappe.user.has_role("System Manager")) {

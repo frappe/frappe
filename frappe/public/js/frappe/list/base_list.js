@@ -70,6 +70,8 @@ frappe.views.BaseList = class BaseList {
 				label: __("Refresh"),
 				action: () => this.refresh(),
 				class: "visible-xs",
+				// views with a filter row have a Refresh button in it on phones
+				condition: () => Boolean(this.hide_filters || this.hide_page_form),
 			},
 		];
 	}
@@ -687,21 +689,17 @@ class FilterArea {
 	setup_mobile_toolbar() {
 		this.list_view.page.page_form.addClass("list-page-form");
 
-		$(`<button class="filter-toggle btn btn-default btn-sm hidden-lg">
-					<span class="filter-icon button-icon">
-						${frappe.utils.icon("chevrons-up-down")}
-					</span>
-				</button>`)
-			.prependTo(this.$filter_list_wrapper.find(".filter-selector"))
-			.on("click", () => this.toggle_standard_filter());
+		const refresh_button = frappe.ui.button({
+			icon: "refresh-cw",
+			title: __("Reload List"),
+			css_class: "hidden-lg",
+			onclick: () => this.list_view.refresh(),
+		});
+		this.$filter_list_wrapper.find(".filter-selector").prepend(refresh_button);
 
 		this.$mobile_id_filter = $('<div class="mobile-id-filter hidden-lg">').prependTo(
 			this.$filter_list_wrapper
 		);
-	}
-
-	toggle_standard_filter() {
-		this.list_view.page.page_form.toggleClass("standard-filters-visible");
 	}
 
 	place_id_filter() {

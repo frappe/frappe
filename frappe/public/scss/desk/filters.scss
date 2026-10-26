@@ -21,6 +21,14 @@
 		margin-left: 0;
 		border-inline-start: 1px solid var(--outline-gray-2);
 	}
+
+	// phones hide the label, so with no count either it is a square like its neighbours
+	@include media-breakpoint-down(xs) {
+		.filter-button:has(> .filter-label.hidden) {
+			padding-inline: 0;
+			width: var(--es-bt-h);
+		}
+	}
 }
 
 .filter-popover {

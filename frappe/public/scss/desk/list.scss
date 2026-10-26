@@ -706,17 +706,9 @@ input.list-header-checkbox {
 			flex-direction: column-reverse;
 			justify-content: flex-end;
 
+			// phones filter through the Filter sheet, which lists these fields' filters as rows
 			.standard-filter-section {
 				display: none;
-			}
-
-			&.standard-filters-visible .standard-filter-section {
-				display: flex;
-			}
-
-			// stacked, so the desktop gap between side-by-side fields only cuts them short
-			.standard-filter-section .form-group {
-				padding-right: 0;
 			}
 
 			// the ID box and the buttons carry different margins; centre them on one line
