@@ -333,7 +333,7 @@ function save(page: RecordPageApi) {
 
 async function confirmLeave() {
 	if (!dirty.value || !controller.value) return true;
-	return discardChanges(controller.value.page);
+	return discardChanges(controller.value.page.dialog.confirm);
 }
 
 onBeforeRouteLeave(confirmLeave);

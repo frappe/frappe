@@ -24,6 +24,7 @@ import { registerContributions, registerStandardPages } from "@/contributions/re
 import { standardPages } from "@/pages/standardPages";
 import AppShell from "@/shell/AppShell.vue";
 import { openCreate, registerCreateDialog } from "@/shell/create";
+import { registerSettingsBlocks } from "@/shell/settingsPanes";
 import { createSocket } from "@/shell/socket";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
 import Unauthorized from "@/shell/Unauthorized.vue";
@@ -48,6 +49,7 @@ async function start() {
 	setIconSource(symbolGeometry);
 	setDrawnProps(recordDrawnProps());
 	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
+	registerSettingsBlocks(() => import("@/pages/settings/SettingsBlocks.vue"));
 
 	// The address table is awaited: the route table cannot resolve a URL without it, and
 	// it is keyed on `boot.metadata_version`, so it cannot be fetched alongside boot.

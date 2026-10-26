@@ -208,6 +208,7 @@ import { landOffsets, readOffsets } from "./record/viewScroll";
 import { codeErrorFrames } from "./record/codeErrorFrames";
 import {
 	changedFields,
+	confirmConflict,
 	codeErrorsError,
 	conflictError,
 	shownInDialog,
@@ -841,14 +842,8 @@ async function resolveConflict() {
 		? personOf(latest.docinfo, latest.document.modified_by).name
 		: "Someone else";
 	const changed = changedFields(doc.value, saved.value, meta.value?.fields);
-	const mine = changed.length ? `your changes to ${changed.join(", ")}` : "your changes";
-	const reload = await controller.value!.page.dialog.confirm({
-		title: "Saved by someone else",
-		message: `${editor} saved this record after you opened it, so ${mine} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.`,
-		confirmLabel: "Reload and lose my changes",
-		cancelLabel: "Keep editing",
-	});
-	if (reload) await load();
+	if (await confirmConflict(controller.value!.page.dialog.confirm, editor, changed))
+		await load();
 }
 
 // A failing action would otherwise leave the draft mutated with no error, so it reloads;
@@ -885,7 +880,7 @@ function expand(field: FieldNode) {
 
 async function confirmLeave() {
 	if (!dirty.value || !controller.value) return true;
-	return discardChanges(controller.value.page);
+	return discardChanges(controller.value.page.dialog.confirm);
 }
 
 // A push still holds the entry being left, so its history entry takes the view as it is now.

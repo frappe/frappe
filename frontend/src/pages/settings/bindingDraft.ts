@@ -1,0 +1,255 @@
+// One binding's draft in an open pane: its fresh read, its saves one at a time, and each row's
+// save mark. Every block bound to the same doctype and name shares it.
+import { reactive } from "vue";
+import {
+	createDocument,
+	getDocument,
+	isApiError,
+	updateDocument,
+	type DocumentRecord,
+	type Envelope,
+} from "@framework/ui/api";
+import type { FieldAddress } from "@framework/ui/fields/types";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
+import { FieldErrors } from "@/recordPage";
+import type { Confirm } from "../record/discardChanges";
+import { awaitMeta } from "../record/metaSource";
+import { mergeRefetch, same } from "../record/refetchMerge";
+import { changedFields, confirmConflict, stripTags } from "../record/saveResponse";
+
+export type RowMark = "saving" | "saved" | "error";
+
+type Values = Record<string, any>;
+
+/** What a draft asks of its open pane. */
+export interface DraftHost {
+	confirm: Confirm;
+	/** True once the pane has closed; a save still in flight then reports its failure here. */
+	closed: () => boolean;
+	lost: () => void;
+}
+
+const SAVED_MARK_FOR = 2500;
+
+export class BindingDraft {
+	readonly state = reactive({
+		doc: {} as Values,
+		saved: {} as Values,
+		meta: null as DoctypeMeta | null,
+		childMetas: {} as Record<string, RawMetaField[]>,
+		loading: true,
+		failed: "",
+		isNew: false,
+		marks: {} as Record<string, RowMark>,
+	});
+	readonly fieldErrors = new FieldErrors();
+	readonly loaded: Promise<void>;
+	private queued = new Set<string>();
+	private sending = new Set<string>();
+	private running: Promise<void> | null = null;
+
+	constructor(
+		readonly doctype: string,
+		readonly name: string,
+		private single: boolean,
+		private host: DraftHost
+	) {
+		this.loaded = this.load();
+	}
+
+	dirty(fieldname: string): boolean {
+		return !same(this.state.doc[fieldname], this.state.saved[fieldname]);
+	}
+
+	/** Changed fields no save holds: a `button` block's edits, or an autosave that failed. */
+	unsaved(fieldnames: string[]): string[] {
+		return fieldnames.filter(
+			(fieldname) =>
+				this.dirty(fieldname) && !this.queued.has(fieldname) && !this.sending.has(fieldname)
+		);
+	}
+
+	edit(fieldname: string, value: unknown) {
+		this.state.doc[fieldname] = value;
+		this.fieldErrors.clear(fieldname);
+	}
+
+	/** Queues the changed fields, and any field a save in flight carries; that save is followed by one more. */
+	save(fieldnames: string[]): Promise<void> {
+		for (const fieldname of fieldnames) {
+			if (!this.dirty(fieldname) && !this.sending.has(fieldname)) continue;
+			this.queued.add(fieldname);
+			this.state.marks[fieldname] = "saving";
+		}
+		this.running ??= this.drain().finally(() => (this.running = null));
+		return this.running;
+	}
+
+	/** Marks fields not saved without sending them, as a missing mandatory value does. */
+	hold(fieldnames: string[], refusals: { address: FieldAddress; message: string }[]) {
+		for (const { address, message } of refusals) this.fieldErrors.mark(address, message);
+		for (const fieldname of fieldnames) this.state.marks[fieldname] = "error";
+	}
+
+	discard(fieldnames: string[]) {
+		for (const fieldname of fieldnames) {
+			this.state.doc[fieldname] = clone(this.state.saved[fieldname]);
+			delete this.state.marks[fieldname];
+			this.fieldErrors.unmark(fieldname);
+		}
+	}
+
+	private async load() {
+		try {
+			const source = useDoctypeMeta(this.doctype);
+			const [meta, document] = await Promise.all([awaitMeta(source), this.read()]);
+			this.state.meta = meta;
+			this.state.childMetas = Object.fromEntries(
+				Object.entries(source.metas.value).map(([doctype, child]) => [doctype, child.fields])
+			);
+			this.reset(document ?? (await this.newDocument(meta)));
+			this.state.isNew = !document;
+		} catch (error) {
+			this.state.failed = messageOf(error);
+		} finally {
+			this.state.loading = false;
+		}
+	}
+
+	/** Null for a Record that does not exist yet; a Single always reads. */
+	private async read(): Promise<Values | null> {
+		try {
+			return (await getDocument(this.doctype, this.name)).data;
+		} catch (error) {
+			if (!this.single && isApiError(error) && error.status === 404) return null;
+			throw error;
+		}
+	}
+
+	private async newDocument(meta: DoctypeMeta): Promise<Values> {
+		const defaults = fieldDefaults(await fetchNewDocument(this.doctype), meta);
+		return { ...defaults, [nameField(meta)]: this.name };
+	}
+
+	private async drain() {
+		while (this.queued.size) {
+			const fieldnames = [...this.queued].filter((fieldname) => this.dirty(fieldname));
+			for (const fieldname of this.queued)
+				if (!fieldnames.includes(fieldname)) delete this.state.marks[fieldname];
+			this.queued.clear();
+			if (!fieldnames.length) continue;
+			for (const fieldname of fieldnames) this.sending.add(fieldname);
+			try {
+				await this.send(fieldnames);
+			} finally {
+				this.sending.clear();
+			}
+		}
+	}
+
+	private async send(fieldnames: string[]) {
+		const values = Object.fromEntries(
+			fieldnames.map((fieldname) => [fieldname, clone(this.state.doc[fieldname])])
+		);
+		try {
+			this.land((await this.write(values)).data, values);
+			this.settle(fieldnames, "saved");
+		} catch (error) {
+			if (isApiError(error) && error.isTimestampMismatch) await this.resolveConflict(fieldnames);
+			else this.refuse(fieldnames, error);
+		}
+	}
+
+	private write(values: Values) {
+		if (this.state.isNew)
+			return createDocument(this.doctype, { ...values, [nameField(this.state.meta!)]: this.name });
+		const body = { ...values, modified: this.state.saved.modified } as DocumentRecord;
+		return updateDocument(this.doctype, this.name, body);
+	}
+
+	/** The reply is the saved copy; a field changed again while the save was out keeps its new value. */
+	private land(reply: Values, sent: Values) {
+		const { doc, saved } = mergeRefetch(
+			{ doc: this.state.doc, saved: { ...this.state.saved, ...sent } },
+			reply
+		);
+		this.state.saved = { ...saved, modified: reply.modified };
+		this.state.doc = { ...doc, modified: reply.modified };
+		this.state.isNew = false;
+	}
+
+	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses. */
+	private async resolveConflict(fieldnames: string[]) {
+		let latest: Envelope<Values>;
+		try {
+			latest = await getDocument(this.doctype, this.name, { include: ["users"] });
+		} catch (error) {
+			return this.refuse(fieldnames, error);
+		}
+		const fresh = latest.data;
+		const users = latest.users as Record<string, { full_name?: string }> | undefined;
+		if (fieldnames.every((fieldname) => same(fresh[fieldname], this.state.saved[fieldname]))) {
+			const { doc, saved } = mergeRefetch(this.state, fresh);
+			this.state.saved = { ...saved, modified: fresh.modified };
+			this.state.doc = { ...doc, modified: fresh.modified };
+			for (const fieldname of fieldnames) this.queued.add(fieldname);
+			return;
+		}
+		this.settle(fieldnames, "error");
+		if (this.host.closed()) return this.host.lost();
+		const editor = users?.[fresh.modified_by]?.full_name || fresh.modified_by;
+		const changed = changedFields(
+			pick(this.state.doc, fieldnames),
+			pick(this.state.saved, fieldnames),
+			this.state.meta?.fields
+		);
+		if (await confirmConflict(this.host.confirm, editor, changed)) this.reset(fresh);
+	}
+
+	private refuse(fieldnames: string[], error: unknown) {
+		if (isApiError(error) && error.fieldErrors?.length)
+			this.fieldErrors.markRefused(error.fieldErrors, this.state.doc);
+		else this.fieldErrors.mark(fieldnames[0], messageOf(error));
+		this.settle(fieldnames, "error");
+		if (this.host.closed()) this.host.lost();
+	}
+
+	/** A field queued again keeps its Saving… mark; Saved fades on its own. */
+	private settle(fieldnames: string[], mark: RowMark) {
+		for (const fieldname of fieldnames) {
+			if (this.queued.has(fieldname)) continue;
+			this.state.marks[fieldname] = mark;
+			if (mark !== "saved") continue;
+			this.fieldErrors.unmark(fieldname);
+			setTimeout(() => {
+				if (this.state.marks[fieldname] === "saved") delete this.state.marks[fieldname];
+			}, SAVED_MARK_FOR);
+		}
+	}
+
+	private reset(document: Values) {
+		this.state.saved = clone(document);
+		this.state.doc = clone(document);
+		this.state.marks = {};
+		this.fieldErrors.clearAll();
+	}
+}
+
+/** The field a record's name comes from: `<f>` for `field:<f>` naming, else `name`. */
+function nameField(meta: DoctypeMeta): string {
+	return meta.autoname?.startsWith("field:") ? meta.autoname.slice("field:".length).trim() : "name";
+}
+
+function messageOf(error: unknown): string {
+	return stripTags(error instanceof Error ? error.message : String(error));
+}
+
+function pick(values: Values, fieldnames: string[]): Values {
+	return Object.fromEntries(fieldnames.map((fieldname) => [fieldname, values[fieldname]]));
+}
+
+function clone<T>(value: T): T {
+	return value === undefined ? value : JSON.parse(JSON.stringify(value));
+}
