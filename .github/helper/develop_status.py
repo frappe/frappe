@@ -57,17 +57,21 @@ def suite_result(run, workflow):
 	return "pending", ""
 
 
-def pr_run(workflow, sha):
+def pr_run(workflow, pr):
+	"""The latest test run of this pull request, skipping runs of another pull request on the same commit."""
+	sha = pr["head"]["sha"]
 	runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?head_sha={sha}&event=pull_request")
-	return next(iter(runs["workflow_runs"]), None)
+	for run in runs["workflow_runs"]:
+		if not run["pull_requests"] or any(p["number"] == pr["number"] for p in run["pull_requests"]):
+			return run
 
 
 def fixed_after(workflow, failed_run, branch):
 	"""Was a fixes-develop pull request merged into the branch after this failure, with this suite passing in full on it?"""
 	query = f"repo:{REPO} is:pr is:merged base:{branch} label:{FIX_LABEL} merged:>={failed_run['created_at']}"
 	for item in gh("-X", "GET", "search/issues", "-f", f"q={query}")["items"]:
-		sha = gh(f"repos/{REPO}/pulls/{item['number']}")["head"]["sha"]
-		if suite_result(pr_run(workflow, sha), workflow)[0] == "success":
+		pr = gh(f"repos/{REPO}/pulls/{item['number']}")
+		if suite_result(pr_run(workflow, pr), workflow)[0] == "success":
 			return True
 	return False
 
@@ -104,8 +108,8 @@ def branch_state(branch):
 
 def fix_status(pr):
 	"""A fix pull request can merge only once every suite failing on its branch passed on it."""
-	branch, sha = pr["base"]["ref"], pr["head"]["sha"]
-	results = [suite_result(pr_run(workflow, sha), workflow) for workflow in failing_suites(branch)]
+	branch = pr["base"]["ref"]
+	results = [suite_result(pr_run(workflow, pr), workflow) for workflow in failing_suites(branch)]
 	failed = next((url for state, url in results if state == "failure"), None)
 	if failed:
 		return "failure", f"{branch} is failing and the fix failed its tests", failed
