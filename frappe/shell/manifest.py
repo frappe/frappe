@@ -64,6 +64,7 @@ def contribution_globs(source_dir: str) -> list[str]:
 		page_glob(source_dir),
 		# Beside the `Navigation Item Type` JSON, where the plugin reads the kind's real name.
 		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
+		os.path.join(source_dir, "*", "frontend", "settings", "*.vue"),
 	]
 
 

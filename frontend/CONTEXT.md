@@ -12,7 +12,7 @@ tables link to the entries here by their `<a id>`, so keep an id when you rename
 **One glossary.** A term means the same thing everywhere in this package. Where a word is
 defined here, this file is canonical — a comment that disagrees is a bug in the comment.
 Terms are in rough dependency order: hosting first, then contribution, then the record
-page.
+page, then the settings dialog.
 
 ## Language
 
@@ -140,6 +140,7 @@ Only ever this. A navigation item's axis is its **type**, and `Record` appears i
 | `<module>/doctype/<scrubbed>/frontend/pages/<name>.js` | replacement, owning app |
 | `<module>/custom/<scrubbed>/pages.json` | replacement, **foreign** doctype |
 | `<module>/custom/<scrubbed>/pages/<name>.js` | replacement, **foreign** doctype |
+| `<module>/frontend/settings/<name>.vue` | a settings block's component, loaded lazily |
 
 `frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
 handler files: warned about and ignored for now.
@@ -310,6 +311,59 @@ and its replacement, then deleted. Deliberately **not** dev-gated, since a remov
 on production sites.
 _Avoid_: deprecation (implies a period of continued working).
 
+### The settings dialog
+
+**Settings dialog**: <a id="settings-dialog"></a>
+The one dialog, owned by the shell, that every app adds settings to. A hash dialog: its
+address is in the hash, and Back closes it. The page under it does not change.
+_Avoid_: settings page, settings modal, overlay (the per-user record; see **Words that
+collide**).
+
+**Settings address**: <a id="settings-address"></a>
+`#settings/<prefix>/<pane>/<block>`, made of declared kebab-case keys, never labels. A short
+address opens the current prefix's first pane.
+
+**Pane**: <a id="pane"></a>
+One page of the settings dialog: a list of **blocks** under a label. A pane is in its own
+app's group, and an app adds a pane only to its own group. A pane with no block the user may
+see is not shown.
+_Avoid_: section (the glossary's avoid list), panel (the record page's right-hand column),
+tab.
+
+**Block**: <a id="block"></a>
+One part of a pane, with one **binding**, or a component's named bindings, or none. A
+**generated** block draws a doctype's fields; a **component** block is an app's
+`<module>/frontend/settings/<name>.vue`. Its key is unique in the merged pane, across apps.
+
+**Binding**: <a id="binding"></a>
+What a block reads and saves: a **Single**, a **Record** whose name a **name resolver**
+gives, or nothing. Its identity is the doctype plus the resolved name. Every block bound to
+one identity shares one **draft** and its **saved** copy, as the record page does.
+_Avoid_: source (it collides), dirty copy, buffer.
+
+**Name resolver**: <a id="name-resolver"></a>
+How a Record binding finds its record's name when the pane opens. A closed list:
+`session_user` only, for now.
+
+**Save mode**: <a id="save-mode"></a>
+A block's `save_mode`: `auto` (the default; a change saves when the control commits) or
+`button` (the pane's Save bar saves it).
+
+**Layer** (settings): <a id="settings-layer"></a>
+The app, site and user layers of the settings dialog, as in `Rail`. Only the app layer is
+built: apps contribute panes and blocks. The site and user layers are not built yet.
+_Avoid_: tier (that is the Client Script tier).
+
+**Settings Dialog**: <a id="settings-dialog-doctype"></a>
+The DocType behind the dialog: one app's layer, addressed like `Rail` by `app`, `extends`,
+`user` and `standard`. A record that `extends` a host adds blocks to the host's panes and
+no pane of its own. It ships as `<app>/settings_dialog/<name>/<name>.json`.
+
+**Settings Pane** and **Settings Block**: <a id="settings-pane"></a><a id="settings-block"></a>
+The two row types of a `Settings Dialog`: `panes` (key, label, icon, description) and
+`blocks` (key, pane, the binding or the component, `fields`, `bindings`, `settings` for
+search, `anchors`, `save_mode`). They share no content field, so they are two tables.
+
 ## Words that collide
 
 Recorded because the codebase genuinely overloads them. When writing a comment or a name,
@@ -332,6 +386,7 @@ reach for the unambiguous alternative.
   *exported* API may use it as a verb — say `push` or `append`.
 - **`tier`** — a customization tier (`client_script | extension | file_script`); the
   per-doctype set of loaded Client Scripts; and "the declarative tier" for `page.dialog.form`.
+  Never for the settings dialog's app, site and user **layers**.
 - **`name`** — a `SurfaceItem`'s address; a route param meaning docname; a `ClientScriptRow`
   name; and `PageFormTab.name`, which is explicitly *not* the address — that is `identity`.
 - **`actions`** — the contribution type's bag of `{name, label, run}`; dialog buttons; the

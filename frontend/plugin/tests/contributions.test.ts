@@ -445,3 +445,56 @@ describe("a page whose slug is already taken on the bench", () => {
     expect(code).not.toContain("console.warn(\"[frappe]");
   });
 });
+
+describe("a settings component", () => {
+  const SETTINGS = "export default {}";
+
+  it("is found under <module>/frontend/settings/ by its file name", () => {
+    const [crm] = bench({
+      crm: {
+        "fcrm/frontend/settings/telephony.vue": SETTINGS,
+        "fcrm/frontend/settings/notes.txt": "",
+      },
+    });
+
+    expect(discover([crm]).settings).toEqual([
+      {
+        app: "crm",
+        name: "telephony",
+        file: join(crm.source_dir, "fcrm/frontend/settings/telephony.vue"),
+      },
+    ]);
+  });
+
+  it("is imported lazily, so its chunk loads only when its pane opens", () => {
+    const [crm] = bench({ crm: { "fcrm/frontend/settings/telephony.vue": SETTINGS } });
+    const file = join(crm.source_dir, "fcrm/frontend/settings/telephony.vue");
+
+    const code = load(contributions([crm]));
+
+    expect(code).toContain(
+      `  settings: [\n` +
+        `    { app: "crm", name: "telephony", component: () => import(${JSON.stringify(file)}) },\n` +
+        `  ],`,
+    );
+    expect(code).not.toMatch(/^import .*telephony\.vue/m);
+  });
+
+  it("keeps one name per app, and drops a name two modules of one app ship", () => {
+    const [crm, helpdesk] = bench({
+      crm: {
+        "fcrm/frontend/settings/general.vue": SETTINGS,
+        "sales/frontend/settings/general.vue": SETTINGS,
+      },
+      helpdesk: { "desk/frontend/settings/general.vue": SETTINGS },
+    });
+    const { settings, warnings } = discover([crm, helpdesk]);
+
+    expect(settings.map((entry: { app: string }) => entry.app)).toEqual(["helpdesk"]);
+    expect(warnings).toEqual([
+      "[frappe] 'crm' ships more than one settings component named 'general': " +
+        `${join(crm.source_dir, "fcrm/frontend/settings/general.vue")}, ` +
+        `${join(crm.source_dir, "sales/frontend/settings/general.vue")}. None of them is used.`,
+    ]);
+  });
+});

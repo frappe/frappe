@@ -117,6 +117,8 @@ cut or a `ui/` change reshapes them.
 | [`Sidebar`](./CONTEXT.md#sidebar) (`navigation_items` table) | A sidebar per module or doctype. Desk v2 reads `navigation_items`; desk v1 reads `items` |
 | [`Navigation Item`](./CONTEXT.md#navigation-item) | A row's fields: key, parent, type, target, label, icon, anchors |
 | [`Navigation Item Type`](./CONTEXT.md#navigation-item-type) | Holds the rule for who can see a row of that type |
+| [`Settings Dialog`](./CONTEXT.md#settings-dialog-doctype) | One app's layer of the settings dialog, addressed like `Rail`. An `extends` record adds blocks to a host's panes and no pane. Only developer mode or a system write sets the app layer |
+| [`Settings Pane`](./CONTEXT.md#settings-pane) and [`Settings Block`](./CONTEXT.md#settings-block) | The two row types: a pane's key, label, icon and description; a block's key, pane, [binding](./CONTEXT.md#binding) or component, fields, named bindings, search settings, anchors and [save mode](./CONTEXT.md#save-mode). Keys are kebab-case, and a block key is unique in its merged pane |
 | `Doctype View` | Saved list settings (columns, sort, quick filters), per person or per site |
 | `Form Layout` | A stored layout for a doctype's Details, Side Panel, Quick Entry or New Record, with an optional condition. A Quick Entry or New Record row can also hold inline fields: DocField-shaped dicts beside the fieldnames, sent to the insert under their own names |
 | [`Client Script`](./CONTEXT.md#client-script) with `view = Record` | The table that holds the record page's stored scripts |
@@ -164,6 +166,7 @@ cut or a `ui/` change reshapes them.
 | Prefix check on install | Refuses an app whose prefix is taken or malformed |
 | Navigation resolution | Builds an app's rail and sidebars from base, site and user layers, filtered for the user |
 | Cross-app extensions (`app:key`) | Another app's rail rows, merged in with namespaced keys |
+| Settings merge (`resolve_panes`) | Every app's [panes](./CONTEXT.md#pane), each with its host's [blocks](./CONTEXT.md#block) and then extending apps' in `app_order`, anchored blocks moved. Drops an orphan block, a block bound to a doctype the site lacks, and an empty pane. Unfiltered, for one cache entry |
 | Visibility rules (`NavigationContext`) | Decides per row whether the user may see it |
 | `navigation_item_resolvers` hook | An app supplies the visibility rule for its own item type |
 | Arrangement | Stores only the difference between a user's or site's order and the layer below |
@@ -258,6 +261,7 @@ component group, with its main names.
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |
 | Page registrations (`pages`, `replacementFor`, `registerStandardPages`, `standardPage`, `StandardPages`) | The page for each address. Standard pages are the default registration; an app's page replaces one. The last app wins |
 | Item kinds and the item contract (`itemRenderers`, `ItemRenderer`, `Rendering`, `ItemContext`) | What an app's `item.js` implements to draw a navigation item. The last app wins |
+| Settings components (`settingsComponentFor`, `SettingsComponentContribution`) | The lazy component a settings block names, by app and name. A name with no file gives nothing and a warning, and the block is dropped |
 | `registerContributions(appOrder)` | Runs once before the first route, in app order. Hands each file script to the script loader |
 
 ### 6. Shell
@@ -409,6 +413,7 @@ the reference for each `page` member.
 | `page.activity`, `page.files`, `page.composer`, `page.dialog` | The feed, the attachments, the writers, and dialogs |
 | List file (`list.js`) | An app's changes to a doctype's list, such as extra columns |
 | Item file (`item.js`) | An app's renderer for one kind of navigation item |
+| Settings component file (`frontend/settings/<name>.vue`) | An app's component for one settings block. Its chunk loads when a pane that holds the block opens |
 | Import list | The one list of names that customization code and app pages may import |
 
 **The import list.** App files and stored scripts share one list:
@@ -484,6 +489,8 @@ Every way an app, a site admin or a user changes the desk, with the layer that h
 | add_to_apps_screen hook | App | 2 | hooks.py | The app's tile on /apps |  |  |
 | navigation_item_resolvers hook | App | 2 | hooks.py | Who can see the app's own item type | item.js item file |  |
 | Cross-app rail rows (app:key) | App | 2 | Navigation rows shipped by another app | Adds rows to another app's rail |  |  |
+| Settings panes and blocks | App | 1 | A Settings Dialog record shipped with the app; `extends` adds blocks to a host's panes | The app's panes in the settings dialog |  |  |
+| Settings component file | App | 9 | A `.vue` file in the app's `frontend/settings/` folder | One component block in a settings pane |  |  |
 | Base rail and sidebars | App | 1 | Rail and Sidebar records shipped with the app | The app's navigation |  |  |
 | Site rail and sidebar copy | Site | 1 | Rail and Sidebar site layer, or the customize dialog | Navigation for every user on the site |  |  |
 | Form Layout | Site | 1 | A Form Layout row | Details, Side Panel, Quick Entry or New Record layout, and inline fields in the two create layouts | Stored script | A field can be hidden three ways: the layout, a script, or the DocType |
