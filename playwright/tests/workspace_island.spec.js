@@ -193,7 +193,7 @@ test.describe("Workspace island", () => {
 		await expect(shortcut.locator("text=/^\\d+$/")).toBeVisible();
 
 		await page.locator(".ws-tile", { hasText: "Playwright Links" }).getByText("Notes").click();
-		await expect(page).toHaveURL(/\/desk\/note/);
+		await expect(page).toHaveURL(/\/note(\?|$)/);
 	});
 
 	test("a heading stays above its own section on a phone", async ({ page }) => {
@@ -319,6 +319,46 @@ test.describe("Workspace island", () => {
 		await page.goto("/desk/playwright-island");
 		await expect(page.getByText("Only for the role")).toBeVisible();
 	});
+
+	test("an editor previews a role layout and deletes it", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
+		await open_editor(page);
+
+		await page.getByRole("button", { name: "Default" }).click();
+		await page.getByRole("menuitem", { name: `${LAYOUT_ROLE} · Site` }).click();
+		await page.getByRole("button", { name: "Preview" }).click();
+		await expect(page.getByText(`Previewing the ${LAYOUT_ROLE} layout`)).toBeVisible();
+		await expect(page.getByText("Only for the role")).toBeVisible();
+
+		await page.getByRole("button", { name: "More" }).click();
+		await page.getByRole("menuitem", { name: "Delete layout" }).click();
+		await page.locator(".modal.show").getByRole("button", { name: "Yes" }).click();
+		await expect(page.getByRole("button", { name: "Default" })).toBeVisible();
+		await expect(page.getByText("Only for the role")).toHaveCount(0);
+	});
+
+	test("the grid has 12, 6 and 2 columns at desk's breakpoints", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+		const grid = page.locator(".ws-grid").first();
+		await expect(grid).toBeVisible();
+
+		const columns = () =>
+			grid.evaluate((el) => getComputedStyle(el).gridTemplateColumns.split(" ").length);
+		for (const [width, count] of [
+			[1400, 12],
+			[800, 6],
+			[400, 2],
+		]) {
+			await page.setViewportSize({ width, height: 900 });
+			await expect.poll(columns).toBe(count);
+		}
+	});
+
+	test("an unknown workspace is not found", async ({ page }) => {
+		await page.goto("/desk/no-such-playwright-workspace");
+		await expect(page.getByText("Page no-such-playwright-workspace not found")).toBeVisible();
+	});
 });
 
 test.describe("Switching renderer", () => {
@@ -348,6 +388,7 @@ test.describe("Switching renderer", () => {
 	test("from either editor to the other", async ({ page }) => {
 		await page.goto("/desk/playwright-switch");
 		await page.waitForFunction(() => frappe.workspace?.editor);
+		await expect(page.locator(".editor-js-container")).toBeVisible();
 		await page.evaluate(() => frappe.workspace.start_editing());
 
 		await page.getByRole("button", { name: "Switch to new layout" }).click();
