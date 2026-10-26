@@ -50,7 +50,8 @@ function page_doc() {
 }
 
 async function visit_page(page, desk, { build = true, route = [] } = {}) {
-	await page.goto("/app/website");
+	// not a workspace: those are drawn by a page too, and getpage is stubbed for this one
+	await page.goto("/app/todo");
 	await desk.ready();
 
 	const getpage = page.waitForResponse((res) => res.url().includes(GETPAGE));
