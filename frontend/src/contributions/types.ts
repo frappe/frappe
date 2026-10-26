@@ -51,9 +51,18 @@ export type ItemTypeContribution = {
   renderer: ItemRenderer
 }
 
+// A settings block's component: <module>/frontend/settings/<name>.vue, loaded when its pane
+// opens. The app's `Settings Dialog` record names it by `name`; nothing else is declared here.
+export type SettingsComponentContribution = {
+  app: string
+  name: string
+  component: () => Promise<unknown>
+}
+
 export type Contributions = {
   doctypes: DoctypeContribution[]
   pages: PageContribution[]
   itemTypes: ItemTypeContribution[]
+  settings: SettingsComponentContribution[]
   replacements: ReplacementContribution[]
 }

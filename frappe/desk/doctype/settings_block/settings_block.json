@@ -1,0 +1,166 @@
+{
+ "actions": [],
+ "allow_bulk_edit": 1,
+ "allow_rename": 1,
+ "creation": "2026-10-26 15:09:24.981720",
+ "description": "One block in a settings pane: a generated binding or a component.",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "key",
+  "pane",
+  "label",
+  "description",
+  "save_mode",
+  "binding_section",
+  "binding_type",
+  "document_type",
+  "name_resolver",
+  "column_break_binding",
+  "fields",
+  "component_section",
+  "component",
+  "bindings",
+  "column_break_component",
+  "settings",
+  "placement_section",
+  "anchors"
+ ],
+ "fields": [
+  {
+   "description": "Kebab-case, unique within the merged pane, frozen once shipped.",
+   "fieldname": "key",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Key",
+   "reqd": 1
+  },
+  {
+   "description": "The key of the pane this block sits in.",
+   "fieldname": "pane",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Pane",
+   "reqd": 1
+  },
+  {
+   "fieldname": "label",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Label"
+  },
+  {
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "label": "Description"
+  },
+  {
+   "default": "auto",
+   "description": "Auto saves each change; button waits for the pane's Save.",
+   "fieldname": "save_mode",
+   "fieldtype": "Select",
+   "label": "Save Mode",
+   "options": "auto\nbutton"
+  },
+  {
+   "fieldname": "binding_section",
+   "fieldtype": "Section Break",
+   "label": "Binding"
+  },
+  {
+   "description": "A generated block's binding. Blank for a component block.",
+   "fieldname": "binding_type",
+   "fieldtype": "Select",
+   "in_list_view": 1,
+   "label": "Binding Type",
+   "options": "\nSingle\nRecord"
+  },
+  {
+   "depends_on": "binding_type",
+   "fieldname": "document_type",
+   "fieldtype": "Link",
+   "label": "DocType",
+   "options": "DocType"
+  },
+  {
+   "depends_on": "eval:doc.binding_type == 'Record'",
+   "description": "How a Record binding's name is found when the pane opens.",
+   "fieldname": "name_resolver",
+   "fieldtype": "Select",
+   "label": "Name Resolver",
+   "mandatory_depends_on": "eval:doc.binding_type == 'Record'",
+   "options": "\nsession_user"
+  },
+  {
+   "fieldname": "column_break_binding",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "binding_type",
+   "description": "JSON list of fieldnames to show. Empty shows the doctype's whole layout.",
+   "fieldname": "fields",
+   "fieldtype": "Code",
+   "label": "Fields",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "component_section",
+   "fieldtype": "Section Break",
+   "label": "Component"
+  },
+  {
+   "depends_on": "eval:!doc.binding_type",
+   "description": "The name of /frontend/settings/.vue in this app.",
+   "fieldname": "component",
+   "fieldtype": "Data",
+   "label": "Component"
+  },
+  {
+   "depends_on": "component",
+   "description": "JSON object of named bindings: {name: {type, doctype, resolver}}.",
+   "fieldname": "bindings",
+   "fieldtype": "Code",
+   "label": "Bindings",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "column_break_component",
+   "fieldtype": "Column Break"
+  },
+  {
+   "depends_on": "component",
+   "description": "JSON list of {label, keywords} the component shows, for search.",
+   "fieldname": "settings",
+   "fieldtype": "Code",
+   "label": "Settings",
+   "options": "JSON"
+  },
+  {
+   "fieldname": "placement_section",
+   "fieldtype": "Section Break",
+   "label": "Placement"
+  },
+  {
+   "description": "Ordered JSON list of {after} or {before} a block key. First to resolve wins.",
+   "fieldname": "anchors",
+   "fieldtype": "Code",
+   "label": "Anchors",
+   "options": "JSON"
+  }
+ ],
+ "grid_page_length": 50,
+ "istable": 1,
+ "link_display_mode": "Search",
+ "links": [],
+ "modified": "2026-10-26 15:09:24.981720",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "Settings Block",
+ "owner": "Administrator",
+ "permissions": [],
+ "row_format": "Dynamic",
+ "rows_threshold_for_grid_search": 20,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": []
+}

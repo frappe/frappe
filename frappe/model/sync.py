@@ -59,7 +59,7 @@ IMPORTABLE_DOCTYPES = [
 # Do not confuse this with `APP_LEVEL_ENTITIES` below, which is the reaper's list of the old
 # hand-written app-level fixtures that are being retired. This is the ordinary export path,
 # rooted one level up.
-APP_ROOTED_DOCTYPES = [("desk", "dock"), ("desk", "sidebar"), ("desk", "rail")]
+APP_ROOTED_DOCTYPES = [("desk", "dock"), ("desk", "sidebar"), ("desk", "rail"), ("desk", "settings_dialog")]
 
 
 def sync_all(force=0, reset_permissions=False):
@@ -255,6 +255,7 @@ ORPHANABLE_ENTITIES = [
 	"Sidebar",
 	"Dock",
 	"Rail",
+	"Settings Dialog",
 	"Navigation Item Type",
 	"List Filter",
 	"Kanban Board",
@@ -285,6 +286,7 @@ def remove_orphan_entities(entity_types=None):
 		"Dock": {"standard": 1},
 		# Desk v2's rail: the app layer is file-backed; the site's and each person's are never candidates.
 		"Rail": {"standard": 1},
+		"Settings Dialog": {"standard": 1},
 		# `Navigation Item Type` has no filter: every kind is app content, so every row is file-backed.
 		# a user's own or a site-wide layout is never backed by a file
 		"List Filter": {"is_standard": 1},
