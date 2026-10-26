@@ -293,6 +293,50 @@ test.describe("Workspace island", () => {
 		expect(await page.evaluate(() => window.__defined)).toEqual([]);
 	});
 
+	test("Manage finds a workspace by name and saves who can see it", async ({ page, api }) => {
+		await page.goto("/desk/playwright-island");
+		await expect(page.locator(".ws-tile", { hasText: CARD })).toBeVisible();
+		await page.evaluate(() =>
+			$(frappe.pages["workspace-view"].page.menu)
+				.find(".dropdown-item")
+				.filter((i, item) => item.innerText.trim() === "Manage")
+				.click()
+		);
+
+		const dialog = page.getByRole("dialog");
+		await dialog.getByPlaceholder("Search workspaces").fill("Playwright Isl");
+		await expect(dialog.getByRole("tab")).toHaveCount(1);
+		await dialog.getByRole("tabpanel").getByText("Playwright Island", { exact: true }).click();
+
+		await dialog.getByLabel("Access").click();
+		await page.getByRole("option", { name: "To a group of users" }).click();
+		await dialog.getByRole("button", { name: "Add role" }).click();
+		await dialog.getByRole("tabpanel").getByRole("combobox").last().click();
+		await page.keyboard.type(LAYOUT_ROLE);
+		await page.getByRole("option", { name: new RegExp(`^${LAYOUT_ROLE}`) }).click();
+		await expect(dialog).toBeVisible();
+
+		const saved = page.waitForResponse((res) =>
+			res.url().includes("update_workspace_settings")
+		);
+		await dialog.getByRole("button", { name: "Save" }).click();
+		expect((await saved).ok()).toBeTruthy();
+
+		const settings = await api.call(
+			"frappe.desk.doctype.workspace.workspace.get_workspace_settings",
+			{
+				name: WORKSPACE,
+			}
+		);
+		expect(settings.message.roles).toEqual([LAYOUT_ROLE]);
+
+		// the later cases read the workspace as a user without that role
+		await api.call("frappe.desk.doctype.workspace.workspace.update_workspace_settings", {
+			name: WORKSPACE,
+			access: "public",
+		});
+	});
+
 	test("the workspace page has no URL of its own", async ({ page }) => {
 		await page.goto("/desk/workspace-view/playwright-island");
 		await expect(
