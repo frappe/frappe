@@ -5,6 +5,8 @@
 
 import frappe
 from frappe import _
+from frappe.model.document import Document
+from frappe.website.website_generator import WebsiteGenerator
 
 from . import SHELL_ROOT
 
@@ -28,7 +30,7 @@ def validate_route(doc, method=None):
 	"""Refuse a document whose `route` would land inside the shell's address space."""
 	# Refuse, not warn: `ShellPage` sits ahead of `StaticPage`, so the page would save and never load.
 	route = getattr(doc, "route", None)
-	if not route or not is_reserved(route):
+	if not route or not is_reserved(route) or not has_website_route(doc):
 		return
 
 	# Existing claims skip migrate, patch and install, as `validate_route_conflict` does.
@@ -43,4 +45,15 @@ def validate_route(doc, method=None):
 		).format(frappe.bold(route), frappe.bold(f"/{SHELL_ROOT}"), _(doc.doctype)),
 		exc=ReservedRouteError,
 		title=_("Reserved Route"),
+	)
+
+
+def has_website_route(doc: Document) -> bool:
+	# DocType's own meta has no web view, but `route` is where the website serves its documents.
+	if doc.doctype == "DocType":
+		return bool(doc.has_web_view)
+	return (
+		isinstance(doc, WebsiteGenerator)
+		or bool(doc.meta.has_web_view)
+		or doc.doctype in frappe.get_hooks("website_generators")
 	)
