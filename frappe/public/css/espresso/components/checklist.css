@@ -78,6 +78,10 @@
 }
 
 /* The bar's own track is the card's colour, one shade up. */
+.es-checklist .es-progress__segment {
+    border-radius: var(--radius-full);
+}
+
 .es-checklist .es-progress__segment:not([data-filled]) {
     background: var(--surface-gray-3);
 }
