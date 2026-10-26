@@ -194,6 +194,29 @@ class TestPassword(IntegrationTestCase):
 		self.assertFalse(get_password_list(dict(doctype="User", name=email)))
 		secho.assert_called_once()
 
+	def test_new_site_admin_password(self):
+		from frappe.core.doctype.system_settings.system_settings import clear_system_settings_cache
+		from frappe.utils.install import setup_admin_password
+
+		self.addCleanup(clear_system_settings_cache)
+		self.addCleanup(frappe.db.rollback)
+		admin_row = (Auth.doctype == "User") & (Auth.name == "Administrator") & (Auth.fieldname == "password")
+
+		# no password given: nothing stored, password login stays disabled
+		set_admin_password_login_setting(1)
+		frappe.qb.from_(Auth).delete().where(admin_row).run()
+		with patch.dict(frappe.conf, {"admin_password": None}):
+			setup_admin_password()
+		self.assertEqual(frappe.get_system_settings("disable_admin_pass_login"), 1)
+		self.assertFalse(frappe.qb.from_(Auth).select(Auth.password).where(admin_row).run())
+
+		# password given: stored, and password login turned back on
+		with patch.dict(frappe.conf, {"admin_password": "Eastern_43A1W"}):
+			setup_admin_password()
+		self.assertEqual(frappe.get_system_settings("disable_admin_pass_login"), 0)
+		self.assertEqual(frappe.db.get_default("disable_admin_pass_login"), "0")
+		self.assertEqual(check_password("Administrator", "Eastern_43A1W"), "Administrator")
+
 	def test_custom_encryption_key(self):
 		text = "Frappe Framework"
 		custom_encryption_key = Fernet.generate_key().decode()

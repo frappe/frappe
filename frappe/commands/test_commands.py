@@ -590,22 +590,90 @@ class TestCommands(BaseTestCommands):
 		self.execute("bench version -f invalid")
 		self.assertEqual(self.returncode, 2)
 
+	def keep_admin_password_and_login_settings(self):
+		"""The commands commit, so put Administrator's hash and both settings back afterwards."""
+		from frappe.utils.password import Auth, set_admin_password_login_setting
+
+		row = (Auth.doctype == "User") & (Auth.name == "Administrator") & (Auth.fieldname == "password")
+		stored_hash = frappe.qb.from_(Auth).select(Auth.password).where(row).run(pluck=True)
+		settings = {
+			field: frappe.db.get_single_value("System Settings", field, cache=False)
+			for field in ("disable_user_pass_login", "disable_admin_pass_login")
+		}
+
+		def restore():
+			frappe.db.rollback()
+			if stored_hash:
+				frappe.qb.update(Auth).set(Auth.password, stored_hash[0]).where(row).run()
+			else:
+				frappe.qb.from_(Auth).delete().where(row).run()
+			frappe.db.set_single_value(
+				"System Settings", "disable_user_pass_login", settings["disable_user_pass_login"]
+			)
+			set_admin_password_login_setting(settings["disable_admin_pass_login"])
+			frappe.db.commit()
+
+		self.addCleanup(restore)
+
+	def admin_password_login_disabled(self):
+		return frappe.db.get_single_value("System Settings", "disable_admin_pass_login", cache=False)
+
 	def test_set_password(self):
 		from frappe.utils.password import check_password
 
-		self.execute("bench --site {site} set-password Administrator test1")
+		self.keep_admin_password_and_login_settings()
+		user_pass_login_disabled = frappe.db.get_single_value(
+			"System Settings", "disable_user_pass_login", cache=False
+		)
+		admin_password_login_disabled = self.admin_password_login_disabled()
+
+		self.execute("bench --site {site} set-password Administrator test1 --yes")
+		if user_pass_login_disabled:
+			self.assertEqual(self.returncode, 1)
+			self.assertIn("password for Administrator is not set", self.stdout)
+			self.assertRaises(frappe.AuthenticationError, check_password, "Administrator", "test1")
+			return
+
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test1"), "Administrator")
+		self.assertEqual(self.admin_password_login_disabled(), 0)
+		if admin_password_login_disabled:
+			self.assertIn("Administrator password login is enabled", self.stdout)
 
+		# login is open now, so no confirmation is needed
 		self.execute("bench --site {site} set-admin-password test2")
 		self.assertEqual(self.returncode, 0)
 		self.assertEqual(check_password("Administrator", "test2"), "Administrator")
 
-		# Reset it back to original password
-		original_password = frappe.conf.admin_password or "admin"
-		self.execute("bench --site {{site}} set-admin-password {}".format(original_password))
+	def test_set_admin_password_confirms_before_enabling_password_login(self):
+		from frappe.utils.password import check_password, set_admin_password_login_setting
+
+		self.keep_admin_password_and_login_settings()
+		frappe.db.set_single_value("System Settings", "disable_user_pass_login", 0)
+		set_admin_password_login_setting(1)
+
+		self.execute("bench --site {site} set-admin-password test3", {"cmd_input": b"n\n"})
+		self.assertEqual(self.returncode, 1)
+		self.assertEqual(self.admin_password_login_disabled(), 1)
+		self.assertRaises(frappe.AuthenticationError, check_password, "Administrator", "test3")
+
+		self.execute("bench --site {site} set-admin-password test3 --yes")
 		self.assertEqual(self.returncode, 0)
-		self.assertEqual(check_password("Administrator", original_password), "Administrator")
+		self.assertIn("Administrator password login is enabled", self.stdout)
+		self.assertEqual(self.admin_password_login_disabled(), 0)
+		self.assertEqual(frappe.db.get_default("disable_admin_pass_login"), "0")
+		self.assertEqual(check_password("Administrator", "test3"), "Administrator")
+
+	def test_set_password_refused_while_user_pass_login_disabled(self):
+		from frappe.utils.password import check_password
+
+		self.keep_admin_password_and_login_settings()
+		frappe.db.set_single_value("System Settings", "disable_user_pass_login", 1)
+
+		self.execute("bench --site {site} set-password test@example.com test4 --yes")
+		self.assertEqual(self.returncode, 1)
+		self.assertIn("password for test@example.com is not set", self.stdout)
+		self.assertRaises(frappe.AuthenticationError, check_password, "test@example.com", "test4")
 
 	@skipIf(
 		not (frappe.conf.root_password and frappe.conf.admin_password and frappe.conf.db_type != "sqlite"),

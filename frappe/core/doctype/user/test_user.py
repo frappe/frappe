@@ -832,6 +832,39 @@ class TestUser(IntegrationTestCase):
 		self.assertIn(args["login_url"], body)
 		self.assertNotIn("update-password", body)
 
+	def test_password_reset_refused_while_password_login_disabled(self):
+		from frappe.utils import set_request
+		from frappe.utils.password import set_admin_password_login_setting
+		from frappe.website.serve import get_response
+
+		frappe.local.request_ip = "127.0.0.70"
+		frappe.db.set_value("User", "test@example.com", "reset_password_key", "")
+
+		with (
+			change_settings("System Settings", disable_user_pass_login=1, login_with_email_link=1),
+			self.set_user("test@example.com"),
+		):
+			set_request(method="POST", path="/api/method/frappe.core.doctype.user.user.reset_password")
+			self.assertRaises(frappe.PasswordLoginDisabledError, reset_password, "test@example.com")
+			self.assertFalse(frappe.db.get_value("User", "test@example.com", "reset_password_key"))
+
+			set_request(method="GET", path="/update-password")
+			self.assertEqual(get_response("update-password").status_code, 403)
+
+		set_request(method="GET", path="/update-password")
+		with self.set_user("test@example.com"):
+			self.assertEqual(get_response("update-password").status_code, 200)
+
+		# Administrator lock affects Administrator only
+		before = frappe.get_system_settings("disable_admin_pass_login")
+		set_admin_password_login_setting(1)
+		self.addCleanup(set_admin_password_login_setting, before)
+		with self.set_user("test@example.com"):
+			self.assertEqual(get_response("update-password").status_code, 200)
+		with self.set_user("Administrator"):
+			self.assertEqual(get_response("update-password").status_code, 403)
+			self.assertRaises(frappe.PasswordLoginDisabledError, reset_password, "Administrator")
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
 		from frappe.auth import CookieManager, LoginManager

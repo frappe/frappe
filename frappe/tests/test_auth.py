@@ -3,6 +3,7 @@
 import datetime
 import threading
 import time
+import unicodedata
 from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import Mock, patch
 
@@ -31,7 +32,7 @@ from frappe.tests.utils.test_capabilities import TestService, requires_test_serv
 from frappe.utils import get_datetime, get_site_url, now
 from frappe.utils.data import add_to_date, sha256_hash
 from frappe.utils.logging import get_log_db, log_table
-from frappe.utils.password import check_password
+from frappe.utils.password import Auth, check_password, passlibctx
 from frappe.www.login import _generate_temporary_login_link
 
 
@@ -270,6 +271,37 @@ class TestAuth(IntegrationTestCase):
 		self.assertEqual(frappe.local.response.message, "Password login is disabled for Administrator")
 		# the attempt still lands in the audit log
 		self.assertEqual(get_log_db().count("Activity Log", {"user": "Administrator"}), logs_before + 1)
+
+		# the right password, stored as a pre-normalization hash, gets the same answer and no rehash
+		correct = unicodedata.normalize("NFD", "Café_43A1W")
+		legacy_hash = self.store_admin_hash(passlibctx.hash(correct))
+		frappe.form_dict.pwd = correct
+		frappe.local.response = frappe._dict()
+		with self.assertRaises(frappe.PasswordLoginDisabledError):
+			LoginManager()
+		self.assertEqual(frappe.local.response.message, "Password login is disabled for Administrator")
+		self.assertEqual(self.admin_hash(), legacy_hash)
+
+	def admin_hash(self):
+		row = (Auth.doctype == "User") & (Auth.name == "Administrator") & (Auth.fieldname == "password")
+		return (frappe.qb.from_(Auth).select(Auth.password).where(row).run(pluck=True) or [None])[0]
+
+	def store_admin_hash(self, new_hash):
+		"""Replaces Administrator's stored hash, put back after the test."""
+		row = (Auth.doctype == "User") & (Auth.name == "Administrator") & (Auth.fieldname == "password")
+		original = self.admin_hash()
+
+		def restore():
+			frappe.qb.from_(Auth).delete().where(row).run()
+			if original:
+				frappe.qb.into(Auth).insert("User", "Administrator", "password", original, 0).run()
+			frappe.db.commit()
+
+		self.addCleanup(restore)
+		frappe.qb.from_(Auth).delete().where(row).run()
+		frappe.qb.into(Auth).insert("User", "Administrator", "password", new_hash, 0).run()
+		frappe.db.commit()
+		return new_hash
 
 	def test_forced_password_reset_does_not_leak_reset_key(self):
 		from frappe.auth import LoginManager
