@@ -162,6 +162,8 @@ class PrintFormat(Document):
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)
 
+		self.validate_paper_size()
+
 		if self.custom_format and self.raw_printing and not self.raw_commands:
 			frappe.throw(_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError)
 
@@ -175,6 +177,15 @@ class PrintFormat(Document):
 		self.validate_conditions()
 		self.validate_typst_renderer()
 		self.validate_plutoprint_renderer()
+
+	def validate_paper_size(self):
+		if self.paper_size != "Custom" or self.print_format_builder_beta or self.raw_printing:
+			return
+		if frappe.utils.flt(self.paper_width) <= 0 or frappe.utils.flt(self.paper_height) <= 0:
+			frappe.throw(
+				_("Enter a Paper Width and Paper Height above 0 for a Custom paper size."),
+				title=_("Invalid Paper Size"),
+			)
 
 	def validate_plutoprint_renderer(self):
 		from frappe.utils.pdf_generator.pluto import plutoprint_blockers
