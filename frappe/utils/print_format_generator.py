@@ -1039,6 +1039,7 @@ class PrintFormatGenerator:
 					if (
 						rows
 						and col.get("fieldname") != "idx"
+						and col.get("fieldtype") != "Blank"
 						and not column_has_value(rows, col.get("fieldname"), frappe._dict(col))
 					):
 						continue
