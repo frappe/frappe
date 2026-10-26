@@ -313,7 +313,13 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 		const actions = this.actions_menu_items.concat(this.workflow_action_menu_items);
 		actions.forEach((item) => {
-			const $item = this.page.add_actions_menu_item(item.label, item.action, item.standard);
+			const $item = this.page.add_actions_menu_item(
+				item.label,
+				item.action,
+				item.standard,
+				null,
+				item.icon
+			);
 			if (item.class) {
 				$item.addClass(item.class);
 			}
@@ -2921,6 +2927,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			actions.forEach((action) => {
 				workflow_actions.push({
 					label: __(action),
+					icon: "circle-arrow-right",
 					name: action,
 					action: () => {
 						me.disable_list_update = true;
@@ -3005,6 +3012,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_assignment = () => {
 			return {
 				label: __("Assign To", null, "Button in list view actions menu"),
+				icon: "user-plus",
 				action: () => {
 					this.disable_list_update = true;
 					bulk_operations.assign(this.get_checked_items(true), () => {
@@ -3020,6 +3028,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_assignment_clear = () => {
 			return {
 				label: __("Clear Assignment", null, "Button in list view actions menu"),
+				icon: "user-minus",
 				action: () => {
 					frappe.confirm(__("Are you sure you want to clear the assignments?"), () => {
 						this.disable_list_update = true;
@@ -3037,6 +3046,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_assignment_rule = () => {
 			return {
 				label: __("Apply Assignment Rule", null, "Button in list view actions menu"),
+				icon: "user-cog",
 				action: () => {
 					this.disable_list_update = true;
 					bulk_operations.apply_assignment_rule(this.get_checked_items(true), () => {
@@ -3052,6 +3062,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_add_tags = () => {
 			return {
 				label: __("Add Tags", null, "Button in list view actions menu"),
+				icon: "tag",
 				action: () => {
 					this.disable_list_update = true;
 					bulk_operations.add_tags(this.get_checked_items(true), () => {
@@ -3067,6 +3078,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_printing = () => {
 			return {
 				label: __("Print", null, "Button in list view actions menu"),
+				icon: "printer",
 				action: () => bulk_operations.print(this.get_checked_items()),
 				standard: true,
 			};
@@ -3075,6 +3087,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_delete = () => {
 			return {
 				label: __("Delete", null, "Button in list view actions menu"),
+				icon: "trash-2",
 				action: () => {
 					const docnames = this.get_checked_items(true).map((docname) =>
 						docname.toString()
@@ -3113,6 +3126,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_cancel = () => {
 			return {
 				label: __("Cancel", null, "Button in list view actions menu"),
+				icon: "circle-x",
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
@@ -3145,6 +3159,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_submit = () => {
 			return {
 				label: __("Submit", null, "Button in list view actions menu"),
+				icon: "circle-check",
 				action: () => {
 					const docnames = this.get_checked_items(true);
 					if (docnames.length > 0) {
@@ -3172,6 +3187,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_edit = () => {
 			return {
 				label: __("Edit", null, "Button in list view actions menu"),
+				icon: "pencil",
 				action: () => {
 					let field_mappings = {};
 
@@ -3223,6 +3239,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const bulk_export = () => {
 			return {
 				label: __("Export", null, "Button in list view actions menu"),
+				icon: "download",
 				action: () => {
 					const docnames = this.get_checked_items(true);
 
@@ -3235,6 +3252,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		const copy_to_clipboard = () => {
 			return {
 				label: __("Copy to Clipboard"),
+				icon: "copy",
 				action: () => {
 					const selected_items = this.get_checked_items();
 					if (selected_items.length === 0) {
