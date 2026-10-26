@@ -1,6 +1,7 @@
 // The page states: which one a failed read shows, how each draws, and the frame drawing one in place of the content.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type Component } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
 import { ApiError } from "@framework/ui/api";
 
 import PageFrame from "../PageFrame.vue";
@@ -15,13 +16,28 @@ afterEach(() => {
 	vi.restoreAllMocks();
 });
 
-function mount(render: () => ReturnType<typeof h>) {
+const crm = { app: "crm", app_title: "CRM" };
+
+async function mount(render: () => ReturnType<typeof h>, { at = "/crm-lead/x" } = {}) {
+	const router = createRouter({
+		history: createMemoryHistory("/apps/crm"),
+		routes: [
+			{ path: "/", name: "home", component: { render: () => null } },
+			{ path: "/:pathMatch(.*)*", component: { render: () => null } },
+		],
+	});
+	await router.push(at);
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp({ render });
+	app.use(router).provide("boot", crm);
 	app.mount(root);
 	mounted.push(app);
 	return root;
+}
+
+function action(root: HTMLElement) {
+	return root.querySelector<HTMLAnchorElement>("[data-page-state] a");
 }
 
 function tryAgain(root: HTMLElement) {
@@ -78,34 +94,34 @@ describe("PageState", () => {
 		["noPermission", "No permission"],
 		["offline", "No connection"],
 		["failed", "Something went wrong"],
-	])("draws the %s state with its own words", (name, title) => {
-		const root = mount(() => h(PageState, { name }));
+	])("draws the %s state with its own words", async (name, title) => {
+		const root = await mount(() => h(PageState, { name }));
 		expect(root.querySelector(`[data-page-state="${name}"]`)?.textContent).toContain(title);
 	});
 
-	it("announces a refusal or failure, and not an empty list", () => {
-		const failed = mount(() => h(PageState, { name: "failed" }));
-		const empty = mount(() => h(PageState, { name: "empty" }));
+	it("announces a refusal or failure, and not an empty list", async () => {
+		const failed = await mount(() => h(PageState, { name: "failed" }));
+		const empty = await mount(() => h(PageState, { name: "empty" }));
 		expect(failed.querySelector("[role='alert']")).not.toBeNull();
 		expect(empty.querySelector("[role='alert']")).toBeNull();
 	});
 
-	it("draws an escaped tag in the server's message as text, never as markup", () => {
+	it("draws an escaped tag in the server's message as text, never as markup", async () => {
 		const failure = new ApiError({ type: "ValidationError", message: "Bad name &lt;img src=x&gt;" }, 417);
-		const root = mount(() => h(PageState, failedState(failure, retry)));
+		const root = await mount(() => h(PageState, failedState(failure, retry)));
 		expect(root.querySelector("img")).toBeNull();
 		expect(root.textContent).toContain("Bad name <img src=x>");
 	});
 
-	it("draws the server's message under its own words", () => {
-		const root = mount(() => h(PageState, { name: "failed", message: "Disk is full" }));
+	it("draws the server's message under its own words", async () => {
+		const root = await mount(() => h(PageState, { name: "failed", message: "Disk is full" }));
 		expect(root.textContent).toContain("This page could not load.Disk is full");
 	});
 
 	it("holds Try again busy until the retry settles", async () => {
 		let settle!: () => void;
 		const pending = new Promise<void>((resolve) => (settle = resolve));
-		const root = mount(() => h(PageState, { name: "failed", retry: () => pending }));
+		const root = await mount(() => h(PageState, { name: "failed", retry: () => pending }));
 
 		tryAgain(root)!.click();
 		await nextTick();
@@ -117,9 +133,24 @@ describe("PageState", () => {
 		expect(tryAgain(root)!.disabled).toBe(false);
 	});
 
-	it("offers no Try again without a retry", () => {
-		const root = mount(() => h(PageState, { name: "notFound" }));
+	it("offers no Try again without a retry", async () => {
+		const root = await mount(() => h(PageState, { name: "notFound" }));
 		expect(tryAgain(root)).toBeUndefined();
+	});
+
+	it("offers the app's home when not found, labelled with the app's title", async () => {
+		const root = await mount(() => h(PageState, { name: "notFound" }));
+		expect(action(root)?.textContent?.trim()).toBe("Go to CRM home");
+		expect(action(root)?.getAttribute("href")).toBe("/apps/crm/");
+	});
+
+	it("offers no home on the home page itself, nor on any other state", async () => {
+		const home = await mount(() => h(PageState, { name: "notFound" }), { at: "/" });
+		expect(action(home)).toBeNull();
+		for (const name of ["empty", "filtered", "noPermission", "offline", "failed"] as const) {
+			const root = await mount(() => h(PageState, { name }));
+			expect(action(root)).toBeNull();
+		}
 	});
 });
 
@@ -128,16 +159,16 @@ describe("PageFrame's state", () => {
 		return mount(() => h(PageFrame as Component, props, { default: () => h("p", { "data-content": "" }) }));
 	}
 
-	it("takes the content's place, in a frame that scrolls or not", () => {
+	it("takes the content's place, in a frame that scrolls or not", async () => {
 		for (const scroll of [true, false]) {
-			const root = frame({ scroll, state: { name: "noPermission" } });
+			const root = await frame({ scroll, state: { name: "noPermission" } });
 			expect(root.querySelector('[data-page-state="noPermission"]')).not.toBeNull();
 			expect(root.querySelector("[data-content]")).toBeNull();
 		}
 	});
 
-	it("leaves the content alone when there is none", () => {
-		const root = frame({ state: null });
+	it("leaves the content alone when there is none", async () => {
+		const root = await frame({ state: null });
 		expect(root.querySelector("[data-page-state]")).toBeNull();
 		expect(root.querySelector("[data-content]")).not.toBeNull();
 	});

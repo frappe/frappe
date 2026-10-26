@@ -1,4 +1,4 @@
-<!-- One page state in place of a page's content: what happened, the server's message, and Try again. -->
+<!-- One page state in place of a page's content: what happened, the server's message, and Try again or the app's home. -->
 <template>
 	<div
 		:role="name === 'empty' || name === 'filtered' ? undefined : 'alert'"
@@ -20,13 +20,21 @@
 				:loading="retrying"
 				@click="run"
 			/>
+			<Button
+				v-else-if="name === 'notFound' && route.name !== 'home'"
+				class="mt-1"
+				:label="homeLabel"
+				:route="{ name: 'home' }"
+			/>
 		</div>
 	</div>
 </template>
 
 <script setup lang="ts">
 import { Button, ErrorMessage } from "frappe-ui";
-import { computed, ref } from "vue";
+import { computed, inject, ref } from "vue";
+import { useRoute } from "vue-router";
+import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import type { PageStateValue } from "./pageState";
 
@@ -66,6 +74,14 @@ const looks = {
 };
 
 const look = computed(() => looks[props.name]);
+
+const boot = inject<Boot>("boot")!;
+const route = useRoute();
+
+const homeLabel = computed(() => {
+	const title = boot.app_title ?? boot.app;
+	return title ? __("Go to {0} home", [title]) : __("Go to all apps");
+});
 
 // `ErrorMessage` reads its message as HTML: the text must not become markup again.
 function escaped(text: string) {

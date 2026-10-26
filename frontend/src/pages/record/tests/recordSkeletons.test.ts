@@ -107,6 +107,7 @@ await standardPages.record();
 
 const boot = {
   app: "frappe",
+  app_title: "Desk",
   shell_base: "/apps/frappe",
   prefixes: { frappe: { app: "frappe", modular: false } },
   session: { user: { name: "test@example.com", email: "test@example.com" } },
@@ -329,6 +330,19 @@ describe("when the record read fails", () => {
     expect(root.querySelector(`[data-page-state="${state}"]`)).not.toBeNull();
     expect(root.querySelector("[data-record-header-skeleton]")).toBeNull();
     expect(root.querySelector("[data-record-body-skeleton]")).toBeNull();
+  });
+
+  it("offers the app's home on a 404, and no action on a 403", async () => {
+    load.failure = new ApiError({ type: "Error", message: "no" } as never, 404);
+    const missing = await open();
+    const home = missing.querySelector<HTMLAnchorElement>("[data-page-state] a");
+    expect(home?.textContent?.trim()).toBe("Go to Desk home");
+    expect(home?.getAttribute("href")).toBe("/apps/frappe/");
+
+    document.body.innerHTML = "";
+    load.failure = new ApiError({ type: "Error", message: "no" } as never, 403);
+    const refused = await open();
+    expect(refused.querySelector("[data-page-state] a, [data-page-state] button")).toBeNull();
   });
 
   it("shows the offline state on a network failure, and Try again reads the record again", async () => {

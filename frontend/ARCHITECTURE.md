@@ -272,7 +272,7 @@ component group, with its main names.
 | --- | --- |
 | `AppShell` | The root component: rail, sidebar, page area, and the hash dialogs |
 | `PageFrame` | The frame every page draws inside: header, scroll area, gutter, and a page state in place of the content |
-| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`) | Loading, empty, empty with a filter, not found, no permission, offline and failed. Offline and failed offer Try again. `failedState` picks the state a failed read shows, with the server's message as text. Home, list and record share them |
+| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`) | Loading, empty, empty with a filter, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home. `failedState` picks the state a failed read shows, with the server's message as text. Home, list and record share them |
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
