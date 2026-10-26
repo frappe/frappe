@@ -124,7 +124,7 @@ def get_print(
 		if password:
 			pdf_options["password"] = password
 
-		if as_pdf and generator == "chrome" and pf_doc and uses_beta_renderer(pf_doc):
+		if as_pdf and generator in ("chrome", "Typst") and pf_doc and uses_beta_renderer(pf_doc):
 			from frappe.core.doctype.access_log.access_log import make_access_log
 			from frappe.model.document import Document
 			from frappe.www.printview import validate_print
