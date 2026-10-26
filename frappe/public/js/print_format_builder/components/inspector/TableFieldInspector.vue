@@ -99,6 +99,7 @@
 									:title="col.fieldname"
 								/>
 								<button
+									v-if="col.fieldtype !== 'Blank'"
 									class="es-button"
 									data-size="xs"
 									data-icon-button="true"
