@@ -9,7 +9,11 @@ from frappe import _
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.desktop import get_workspaces, save_new_widget
 from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
-from frappe.desk.doctype.workspace_variant.workspace_variant import sanitize_variants, validate_variants
+from frappe.desk.doctype.workspace_variant.workspace_variant import (
+	DEFAULT_LAYOUT,
+	sanitize_variants,
+	validate_variants,
+)
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -972,8 +976,11 @@ def add_private_to_sidebar(workspace):
 
 
 @frappe.whitelist()
-def save_page(name: str, public: str | int, new_widgets: dict, blocks: str):
+def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, variant: str | None = None):
+	"""Save one layout of a workspace: `variant` names a role layout, else the default."""
 	public = frappe.parse_json(public)
+	if variant == DEFAULT_LAYOUT:
+		variant = None
 
 	doc = frappe.get_doc("Workspace", name)
 	can_edit = can_edit_workspace(doc)
@@ -991,17 +998,34 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str):
 			upsert_content_customization,
 		)
 
-		upsert_content_customization(name, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"))
+		upsert_content_customization(
+			name, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"), variant
+		)
 		return {"name": name, "public": public, "label": doc.label}
 
 	if not doc.type:
 		doc.type = "Workspace"
+
+	if variant:
+		save_variant(doc, variant, frappe.parse_json(blocks), frappe.parse_json(new_widgets or "{}"))
+		return {"name": name, "public": public, "label": doc.label}
 
 	doc.content = blocks
 
 	save_new_widget(doc, name, blocks, new_widgets)
 
 	return {"name": name, "public": public, "label": doc.label}
+
+
+def save_variant(doc, role: str, content: list, new_widgets: dict) -> None:
+	"""Write a role layout onto the workspace itself, which exports with it in developer mode."""
+	from frappe.desk.doctype.custom_workspace.custom_workspace import _prune_widgets, merge_widgets
+
+	row = next((r for r in doc.variants if r.role == role), None) or doc.append("variants", {"role": role})
+	widgets = merge_widgets(loads(row.widgets or "{}"), new_widgets)
+	row.content = dumps(content)
+	row.widgets = dumps(_prune_widgets(widgets, content))
+	doc.save(ignore_permissions=True)
 
 
 @frappe.whitelist()

@@ -18,6 +18,8 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	_get_or_new,
 	_prune_widgets,
 	get_customization,
+	merge_widgets,
+	snapshot_widgets,
 )
 from frappe.desk.doctype.workspace.workspace import check_workspace_manager, workspace_payload
 from frappe.utils import cint, escape_html
@@ -122,7 +124,7 @@ def restore_workspace_edits(workspace: str) -> dict:
 
 	customization = _get_or_new(workspace)
 	customization.content = dumps(replay.content)
-	customization.widgets = dumps(replay.widgets)
+	customization.widgets = dumps(stored_widgets(replay, base))
 	customization.set("added_roles", [{"role": role} for role in replay.added_roles])
 	customization.set("removed_roles", [{"role": role} for role in replay.removed_roles])
 	for field, default in CUSTOMIZATION_PROPERTIES.items():
@@ -309,8 +311,7 @@ def cards_from_link_rows(rows: list[dict], warnings: list[str]) -> list[dict]:
 def drop_shadowed_widgets(widgets: dict, base, warnings: list[str]) -> None:
 	"""Drop added widgets that share a label with a shipped one.
 
-	`_append_widgets` puts site rows after the base rows and the desk takes the first row with
-	a matching label, so the shipped widget would win anyway. Cards are the exception:
+	The shipped widget keeps its label in the restored snapshot, so it would win anyway. Cards are the exception:
 	`build_links_table_from_card` replaces a shipped card with the same label.
 	"""
 	for widget_type in list(widgets):
@@ -446,11 +447,19 @@ def get_state(workspace, replay) -> str:
 	return "Overwritten"
 
 
+def stored_widgets(replay, base) -> dict:
+	"""The added widgets as a customization stores them: the layout's whole widget set."""
+	if replay.content is None:
+		return replay.widgets
+	return _prune_widgets(merge_widgets(snapshot_widgets(base), replay.widgets), replay.content)
+
+
 def holds_replay(customization, replay) -> bool:
 	"""Whether the customization is exactly what restoring would write."""
 	return (
 		loads(customization.content or "[]") == replay.content
-		and loads(customization.widgets or "{}") == replay.widgets
+		and loads(customization.widgets or "{}")
+		== stored_widgets(replay, frappe.get_cached_doc("Workspace", customization.workspace))
 		and sorted(r.role for r in customization.added_roles) == replay.added_roles
 		and sorted(r.role for r in customization.removed_roles) == replay.removed_roles
 		and all(
