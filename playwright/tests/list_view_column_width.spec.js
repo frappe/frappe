@@ -247,6 +247,10 @@ test.describe("List View — Column Widths on a saved layout", () => {
 			.locator(".layout-manage-row", { hasText: layout_name })
 			.locator(".layout-action-edit")
 			.click();
+		// the dialog focuses its name field once shown; typing before that lands in the name
+		await expect(
+			page.locator('.modal-dialog:visible [data-fieldname="filter_name"] input')
+		).toBeFocused();
 	}
 
 	test("dragging on a global layout saves the width only for the user", async ({
