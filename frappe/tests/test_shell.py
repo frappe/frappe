@@ -41,6 +41,7 @@ from frappe.shell.registry import (
 )
 from frappe.shell.route_guard import ReservedRouteError, is_reserved, validate_route
 from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
+from frappe.studio.tests.test_permissions import make_studio_user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.not_found_page import NotFoundPage
@@ -347,12 +348,16 @@ class TestReservedRouteGuard(IntegrationTestCase):
 		self.assertEqual(page.route, "shell-guard-test")
 
 	def test_a_studio_page_route_is_a_path_inside_its_app(self):
-		app = make_studio_app(app_name="guard-" + frappe.generate_hash(length=8))
-		page = make_studio_page(app.name, page_title="Apps", route="/apps")
+		with self.set_user(make_studio_user("shell-guard@example.com")):
+			app = make_studio_app(app_name="guard-" + frappe.generate_hash(length=8))
+			page = make_studio_page(app.name, page_title="Apps", route="/apps")
 		self.assertEqual(page.route, "/apps")
 
 	def test_a_studio_app_cannot_claim_apps(self):
-		with self.assertRaises(ReservedRouteError):
+		with (
+			self.set_user(make_studio_user("shell-guard@example.com")),
+			self.assertRaises(ReservedRouteError),
+		):
 			make_studio_app(app_name="guard-" + frappe.generate_hash(length=8), route="apps")
 
 	def test_a_doctype_route_is_checked_only_with_a_web_view(self):

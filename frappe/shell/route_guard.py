@@ -5,6 +5,7 @@
 
 import frappe
 from frappe import _
+from frappe.model.document import Document
 from frappe.website.website_generator import WebsiteGenerator
 
 from . import SHELL_ROOT
@@ -47,7 +48,7 @@ def validate_route(doc, method=None):
 	)
 
 
-def has_website_route(doc) -> bool:
+def has_website_route(doc: Document) -> bool:
 	# DocType's own meta has no web view, but `route` is where the website serves its documents.
 	if doc.doctype == "DocType":
 		return bool(doc.has_web_view)
