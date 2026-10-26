@@ -46,7 +46,18 @@ test.describe("Workspace island", () => {
 				content: JSON.stringify([
 					{ id: "pw-nc", type: "number_card", data: { number_card_name: CARD, col: 4 } },
 					{ id: "pw-ch", type: "chart", data: { chart_name: CHART, col: 12 } },
+					{
+						id: "pw-sc",
+						type: "shortcut",
+						data: { shortcut_name: "Playwright ToDos", col: 4 },
+					},
+					{ id: "pw-cd", type: "card", data: { card_name: "Playwright Links", col: 4 } },
 				]),
+				shortcuts: [{ type: "DocType", link_to: "ToDo", label: "Playwright ToDos" }],
+				links: [
+					{ type: "Card Break", label: "Playwright Links" },
+					{ type: "Link", label: "Notes", link_type: "DocType", link_to: "Note" },
+				],
 				number_cards: [{ number_card_name: CARD, label: CARD }],
 				charts: [{ chart_name: CHART, label: CHART }],
 			},
@@ -99,6 +110,16 @@ test.describe("Workspace island", () => {
 		await tile.getByRole("button", { name: "Chart actions" }).click();
 		await page.getByRole("menuitem", { name: "Refresh" }).click();
 		await refreshed;
+	});
+
+	test("a shortcut shows its count and a card link navigates", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+
+		const shortcut = page.locator(".ws-tile", { hasText: "Playwright ToDos" });
+		await expect(shortcut.locator("text=/^\\d+$/")).toBeVisible();
+
+		await page.locator(".ws-tile", { hasText: "Playwright Links" }).getByText("Notes").click();
+		await expect(page).toHaveURL(/\/desk\/note/);
 	});
 
 	test("the workspace page has no URL of its own", async ({ page }) => {
