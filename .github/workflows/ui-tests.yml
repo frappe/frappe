@@ -287,7 +287,7 @@ jobs:
   develop-status:
     name: Update Develop Status
     needs: success
-    if: ${{ always() && github.event_name != 'pull_request' && github.ref == 'refs/heads/develop' }}
+    if: ${{ always() && github.event_name != 'pull_request' && contains(fromJSON('["refs/heads/develop", "refs/heads/desk-v2"]'), github.ref) }}
     runs-on: ubuntu-latest
     concurrency:
       group: develop-status-all
@@ -300,6 +300,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
         with:
+          ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
       - run: python .github/helper/develop_status.py refresh
         env:
