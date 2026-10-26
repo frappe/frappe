@@ -1,7 +1,7 @@
 <script setup>
 import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Button, DateRangePicker, Dropdown, LoadingIndicator } from "frappe-ui";
-import ChartFilter from "./ChartFilter.vue";
+import DeskFilter from "./DeskFilter.vue";
 import { text_of } from "./number_card.js";
 import {
 	DATE_RANGE,
@@ -263,7 +263,7 @@ watch(
 						/>
 					</Dropdown>
 				</template>
-				<ChartFilter
+				<DeskFilter
 					v-if="is_doctype_chart && doc.document_type"
 					:doctype="doc.document_type"
 					:filters="filters"

@@ -3,7 +3,7 @@ import { computed } from "vue";
 import { useDoctypeMeta } from "@framework/ui";
 import { Filter, getFilterableFields, parseFilters, serializeFilters } from "@framework/ui/Filter";
 
-// The shared Filter speaks [field, operator, value]; a chart stores desk's filter rows.
+// The shared Filter speaks [field, operator, value]; desk stores [doctype, field, operator, value] rows.
 const props = defineProps({
 	doctype: { type: String, required: true },
 	filters: { type: Array, default: null },
@@ -28,7 +28,6 @@ const model = computed({
 				field,
 				operator,
 				value,
-				false,
 			])
 		),
 });
