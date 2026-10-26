@@ -168,7 +168,7 @@ cut or a `ui/` change reshapes them.
 | Cross-app extensions (`app:key`) | Another app's rail rows, merged in with namespaced keys |
 | Settings merge (`resolve_panes`) | Every app's [panes](./CONTEXT.md#pane), each with its host's [blocks](./CONTEXT.md#block) and then extending apps' in `app_order`, anchored blocks moved. Drops an orphan block, a block bound to a doctype the site lacks, and an empty pane. Unfiltered, for one cache entry |
 | Settings filter (`SettingsFilter`) | Drops the blocks a user may not use, the fields above their readable permlevel and the panes left empty, by the rail's role pass; marks unwritable fields read-only and builds the search label index from what is left |
-| `get_panes` | The settings dialog's panes and label index for this user, read on first open. The merge is cached on `metadata_version` and on the `Settings Dialog` records' count and last change, so a save or delete rebuilds it |
+| `get_panes` | The settings dialog's panes and label index for this user, read on first open. The merge is cached on `metadata_version` and on a digest of the `Settings Dialog` records' names and `modified`, so a save or delete rebuilds it |
 | Visibility rules (`NavigationContext`) | Decides per row whether the user may see it |
 | `navigation_item_resolvers` hook | An app supplies the visibility rule for its own item type |
 | Arrangement | Stores only the difference between a user's or site's order and the layer below |

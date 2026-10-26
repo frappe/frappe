@@ -3,13 +3,13 @@
 # Unfiltered, so one merge can be cached for every user; who sees which pane is decided per
 # request, after this. Only the app layer is read: the site and user layers are not built.
 
+import hashlib
 import json
 
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.layers import anchor_attempts, place_by_anchors
-from frappe.query_builder.functions import Count, Max
 
 from .boot import report_oversized_keys
 from .doctypes import metadata_version
@@ -31,7 +31,7 @@ def get_panes() -> dict:
 
 
 def get_cached_panes() -> list[dict]:
-	"""The merged, unfiltered panes, cached on `metadata_version` and the stored records' own stamp."""
+	"""The merged, unfiltered panes, cached on `metadata_version` and a digest of the stored records."""
 	# The stamp is read in the merge's transaction and before it, so a merge of old rows never carries
 	# a current stamp, whatever snapshot the request began with.
 	version = f"{metadata_version()}:{_records_stamp()}"
@@ -46,10 +46,16 @@ def get_cached_panes() -> list[dict]:
 
 
 def _records_stamp() -> str:
-	"""How many `Settings Dialog` records there are and when one last changed; a save or delete moves it."""
-	table = frappe.qb.DocType("Settings Dialog")
-	count, modified = frappe.qb.from_(table).select(Count("*"), Max(table.modified)).run()[0]
-	return f"{count}:{modified}"
+	"""A digest of every app-layer record's name and `modified`, which any save or delete of one moves."""
+	# Every record, not the latest `modified`: a save committed after a later one would not move a maximum.
+	records = frappe.get_all(
+		"Settings Dialog",
+		filters={"standard": 1, "user": SITE_LAYER},
+		fields=["name", "modified"],
+		order_by="name asc",
+		as_list=True,
+	)
+	return hashlib.sha256(repr(records).encode()).hexdigest()
 
 
 def resolve_panes() -> list[dict]:

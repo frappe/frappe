@@ -336,6 +336,31 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			frappe.db.commit()  # nosemgrep: frappe-manual-commit
 			frappe.db.savepoint("settings_dialog_test")
 
+	def test_a_save_committed_after_a_later_one_still_rebuilds_the_merge(self):
+		with authoring():
+			host = ship(["general"], [single("mine", doctype=SINGLE, label="Before")])
+			extension = ship(blocks=[component("dialer")], app=EXTENDER, extends=HOST)
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
+
+		try:
+			with authoring():
+				host.blocks[0].label = "After"
+				host.save()
+
+			with another_connection(), authoring():
+				frappe.get_doc("Settings Dialog", extension.name).save()
+				frappe.db.commit()  # nosemgrep: frappe-manual-commit
+				self.assertEqual(block_named(visible(), "mine")["label"], "Before")
+
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit
+			self.assertEqual(block_named(visible(), "mine")["label"], "After")
+		finally:
+			frappe.db.rollback()
+			for name in (extension.name, HOST):
+				frappe.delete_doc("Settings Dialog", name, force=True, ignore_permissions=True)
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit
+			frappe.db.savepoint("settings_dialog_test")
+
 	def test_the_merge_is_cached_on_metadata_version(self):
 		with authoring():
 			ship(["general"], [single("mine", doctype=SINGLE)])
