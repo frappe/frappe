@@ -297,7 +297,7 @@ def get_rendered_template(
 		letter_head.content = frappe.utils.jinja.render_template(letter_head.content, {"doc": doc.as_dict()})
 		if letter_head.custom_css:
 			letter_head.content += f"""
-			<style>
+			<style data-letter-head>
 				{letter_head.custom_css}
 			</style>
 			"""
@@ -815,7 +815,7 @@ def get_page_size_mm(overrides: dict | None = None) -> tuple[float, float]:
 
 
 def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
-	if not print_format or not print_format.css or print_format.pdf_generator != "chrome":
+	if not print_format or not print_format.css or print_format.pdf_generator not in ("chrome", "PlutoPrint"):
 		return " ".join(["15mm"] * 4)
 
 	margins = get_page_rule_margins(print_format.css)

@@ -189,7 +189,7 @@
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "wkhtmltopdf\nchrome"
+   "options": "wkhtmltopdf\nchrome\nPlutoPrint"
   },
   {
    "default": "100",
@@ -212,7 +212,7 @@
  "index_web_pages_for_search": 1,
  "issingle": 1,
  "links": [],
- "modified": "2026-10-26 12:00:00.000000",
+ "modified": "2026-10-26 14:00:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Settings",

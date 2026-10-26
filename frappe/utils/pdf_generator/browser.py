@@ -299,7 +299,11 @@ class Browser:
 		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
 			return {}
 		print_format = frappe.get_cached_doc("Print Format", self.print_format)
-		if not print_format.css or uses_beta_renderer(print_format) or print_format.pdf_generator != "chrome":
+		if (
+			not print_format.css
+			or uses_beta_renderer(print_format)
+			or print_format.pdf_generator not in ("chrome", "PlutoPrint")
+		):
 			return {}
 		return get_page_rule_margins(print_format.css)
 

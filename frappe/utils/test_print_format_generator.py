@@ -413,6 +413,19 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 			for df in column.get("fields", [])
 		]
 
+	def test_plutoprint_choice_is_kept_unless_the_format_needs_chrome(self):
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		pf = self._make_print_format(pdf_generator="PlutoPrint")
+		self.assertEqual(pf.pdf_generator, "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(pf), "PlutoPrint")
+
+		jinja = frappe._dict(
+			custom_format=1, pdf_generator="PlutoPrint", html="<div onclick='go()'>{{ doc.name }}</div>"
+		)
+		self.assertEqual(resolve_pdf_generator(jinja), "chrome")
+		self.assertEqual(resolve_pdf_generator(None, "PlutoPrint"), "PlutoPrint")
+
 	def test_get_print_degrades_for_deleted_format(self):
 		"""A print_format name that no longer exists must not raise DoesNotExistError
 		during pdf_generator resolution — it degrades to the Standard render, so
