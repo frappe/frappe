@@ -5,6 +5,12 @@ frappe.provide("frappe.ui.form.upload_first_review");
 
 const QUEUE_DOCTYPE = "Attachment Queue";
 
+// The unsaved document each entry is being written into, by entry name. Picking an
+// entry up again returns to that document instead of starting a new one, so a
+// half-filled form is not thrown away. Unsaved documents live in `locals` for the
+// session, the same as one started from "Add <DocType>".
+const documents_in_progress = {};
+
 /**
  * Write a new document of the entry's DocType beside the file it is written from:
  * the form on the left, the file on the right. Saving the document files the entry
@@ -17,13 +23,25 @@ frappe.ui.form.upload_first_review.start = function (entry) {
 	frappe.route_hooks.after_save = (frm) => file_entry_against(frm);
 
 	frappe.model.with_doctype(entry.document_type, () => {
-		frappe.set_route(
-			"Form",
-			entry.document_type,
-			frappe.model.make_new_doc_and_get_name(entry.document_type)
-		);
+		frappe.set_route("Form", entry.document_type, document_for(entry));
 	});
 };
+
+/**
+ * The document the entry is written into: the one already being filled in, or a new
+ * one. Mandatory child rows are created the same way "Add <DocType>" creates them.
+ */
+function document_for(entry) {
+	const started = documents_in_progress[entry.name];
+	const doc = started && frappe.get_doc(entry.document_type, started);
+	if (doc && doc.__islocal) return started;
+
+	documents_in_progress[entry.name] = frappe.model.make_new_doc_and_get_name(
+		entry.document_type,
+		true
+	);
+	return documents_in_progress[entry.name];
+}
 
 /**
  * Open the file beside the form, which is the review: the attachment preview pane
@@ -112,6 +130,8 @@ function file_entry_against(frm) {
 		.then(() => {
 			// filed, so a later save does not claim it again
 			review.entry.created_document = frm.docname;
+			// the document is no longer one being filled in
+			delete documents_in_progress[review.entry.name];
 			// the file is attached to the document now, so the sidebar can list it
 			frm.attachments && frm.attachments.refresh();
 			frappe.show_alert({

@@ -877,12 +877,14 @@ frappe.ui.form.Form = class FrappeForm {
 			return;
 		}
 		if (this._upload_first_review_docname === this.docname) return;
-		this._upload_first_review_docname = this.docname;
+		// One Form is shared by every document of its DocType, so this.docname moves on
+		// as the user does: the entry below belongs to the document asked about here.
+		const docname = (this._upload_first_review_docname = this.docname);
 
 		return frappe.db
 			.get_list("Attachment Queue", {
 				fields: ["name", "document_type", "source_file"],
-				filters: { document_type: this.doctype, created_document: this.docname },
+				filters: { document_type: this.doctype, created_document: docname },
 				limit: 1,
 			})
 			.then((entries) => {
@@ -890,6 +892,9 @@ frappe.ui.form.Form = class FrappeForm {
 
 				// the review ships as its own on-demand bundle
 				frappe.require("upload_first_review.bundle.js", () => {
+					// the form may have moved to another document while this loaded
+					if (this.docname !== docname) return;
+
 					frappe.ui.form.upload_first_review.open(this, entries[0]);
 				});
 			});
