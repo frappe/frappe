@@ -1,4 +1,3 @@
-import { FloatingPanel } from "./floating.js";
 import { validated } from "./utils.js";
 
 frappe.provide("frappe.ui");
@@ -65,14 +64,16 @@ frappe.ui.DatePicker = class DatePicker {
 		const custom = opts.trigger instanceof Element || opts.trigger?.jquery;
 		custom ? this.use_trigger($(opts.trigger)[0]) : this.make_field();
 
-		this.floating = new FloatingPanel({
-			anchor: this.input || this.el,
-			class_name: "es-date-picker-panel",
-			role: "dialog",
+		this.popover = new frappe.ui.Popover({
+			trigger: this.el,
+			content: () => this.make_panel(),
+			css_class: "es-date-picker-panel",
+			keep_focus: true,
 			side: opts.side,
 			align: opts.align,
 			offset: opts.offset,
-			on_close: () => this.after_close(),
+			on_open: () => this.after_open(),
+			on_close: (reason) => this.after_close(reason),
 		});
 		this.$el = $(this.el);
 		this.$el.data("es-date-picker", this);
@@ -81,7 +82,7 @@ frappe.ui.DatePicker = class DatePicker {
 	}
 
 	get is_open() {
-		return this.floating.is_open;
+		return this.popover.is_open;
 	}
 
 	get_value() {
@@ -112,6 +113,7 @@ frappe.ui.DatePicker = class DatePicker {
 	set_disabled(disabled) {
 		this.disabled = disabled;
 		if (this.input) this.input.disabled = disabled;
+		this.el.toggleAttribute("data-disabled", disabled);
 		if (disabled) this.close();
 	}
 
@@ -121,19 +123,21 @@ frappe.ui.DatePicker = class DatePicker {
 
 	open(focus_grid = !this.input) {
 		if (this.is_open || this.disabled) return;
-		this.view = "date";
-		this.view_month = this.get_start_month();
-		this.focus_date = this.get_initial_focus();
-		this.floating.open(this.make_panel());
+		this.focus_grid = focus_grid;
+		this.popover.open();
+	}
+
+	after_open() {
 		this.set_expanded(true);
-		if (focus_grid) this.focus_cell();
+		if (this.focus_grid ?? !this.input) this.focus_cell();
+		this.focus_grid = null;
 	}
 
 	/** @param {boolean} [refocus] Put focus back on the field or trigger. */
 	close(refocus = false) {
 		if (!this.is_open) return;
-		const had_focus = this.floating.panel?.contains(document.activeElement);
-		this.floating.close("owner");
+		const had_focus = this.popover.panel?.contains(document.activeElement);
+		this.popover.close("owner");
 		if (!(refocus || had_focus)) return;
 		this.refocusing = true;
 		this.focus({ preventScroll: true });
@@ -161,29 +165,26 @@ frappe.ui.DatePicker = class DatePicker {
 		this.input.placeholder = this.opts.placeholder || __("Select date");
 		this.input.readOnly = this.opts.typeable === false;
 
-		this.input.addEventListener("click", () => this.open(false));
+		wrap.addEventListener("pointerdown", () => (this.pressed_at = Date.now()));
 		this.input.addEventListener("focus", () => {
-			if (this.opts.open_on_focus && !this.refocusing) this.open(false);
+			const by_pointer = Date.now() - (this.pressed_at || 0) < 300;
+			if (this.opts.open_on_focus && !this.refocusing && !by_pointer) this.open(false);
 		});
 		this.input.addEventListener("keydown", (e) => this.handle_field_key(e));
 		this.input.addEventListener("blur", (e) => {
-			if (this.floating.panel?.contains(e.relatedTarget)) return;
+			if (this.popover.panel?.contains(e.relatedTarget)) return;
 			this.commit_input();
 		});
 		const chevron = wrap.querySelector(".es-date-picker__chevron");
 		chevron.addEventListener("mousedown", (e) => {
 			e.preventDefault();
 			this.input.focus();
-			this.toggle();
 		});
 		this.el = wrap;
 	}
 
 	use_trigger(el) {
 		this.el = el;
-		el.setAttribute("aria-haspopup", "dialog");
-		el.setAttribute("aria-expanded", "false");
-		el.addEventListener("click", () => this.toggle());
 		el.addEventListener("keydown", (e) => {
 			if (e.key === "ArrowDown" && !this.is_open) {
 				e.preventDefault();
@@ -244,20 +245,29 @@ frappe.ui.DatePicker = class DatePicker {
 		return this.opts.format || frappe.datetime.get_user_date_fmt().toUpperCase();
 	}
 
-	after_close() {
+	after_close(reason) {
 		this.set_expanded(false);
 		this.grid = null;
-	}
-
-	set_expanded(open) {
-		(this.input || this.el).setAttribute("aria-expanded", String(open));
-		if (this.input) {
-			this.input.setAttribute("aria-controls", this.floating.id);
-			this.el.setAttribute("data-state", open ? "open" : "closed");
+		this.calendar = null;
+		if (this.input && (reason === "escape" || reason === "tab")) {
+			this.input.focus({ preventScroll: true });
 		}
 	}
 
+	set_expanded(open) {
+		if (!this.input) return;
+		this.input.setAttribute("aria-expanded", String(open));
+		if (open) this.input.setAttribute("aria-controls", this.popover.panel.id);
+		else this.input.removeAttribute("aria-controls");
+		this.el.setAttribute("data-state", open ? "open" : "closed");
+	}
+
 	make_panel() {
+		if (this.disabled) return null;
+		this.view = "date";
+		this.view_month = this.get_start_month();
+		this.focus_date = this.get_initial_focus();
+
 		const body = document.createElement("div");
 		body.className = "es-date-picker-panel__body";
 		body.addEventListener("keydown", (e) => {
@@ -299,7 +309,6 @@ frappe.ui.DatePicker = class DatePicker {
 			this.make_header(),
 			this.view === "date" ? this.make_grid() : this.make_month_year()
 		);
-		this.floating.reposition();
 		if (this.view !== "date") this.center_month_year();
 	}
 

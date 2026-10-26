@@ -50,27 +50,20 @@
     transform: rotate(180deg);
 }
 
+.es-date-picker[data-disabled] {
+    pointer-events: none;
+}
+
 .es-date-picker .icon,
 .es-date-picker-panel .icon {
     margin: 0;
 }
 
-/* ---- panel ---- */
-.es-date-picker-panel {
-    position: fixed;
-    z-index: 1060;
-    box-sizing: border-box;
+/* ---- panel: a frappe.ui.Popover sized to the calendar ---- */
+.es-popover.es-date-picker-panel {
+    width: auto;
+    padding: 0;
     overflow: hidden;
-    background: var(--surface-elevation-2);
-    border-radius: var(--radius-6);
-    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05), var(--elevation-2xl);
-    animation: es-date-picker-in 80ms linear;
-}
-
-@keyframes es-date-picker-in {
-    from {
-        opacity: 0;
-    }
 }
 
 .es-date-picker-panel__body {
