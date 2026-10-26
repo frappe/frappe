@@ -125,6 +125,27 @@ class TestUser(IntegrationTestCase):
 		delete_contact(new_user.name)
 		frappe.delete_doc("User", new_user.name)
 
+	def test_frappe_social_login_userid_is_immutable(self):
+		user_id = frappe.generate_hash() + "@example.com"
+		user = frappe.get_doc(doctype="User", email=user_id, first_name="Tester").insert()
+		self.addCleanup(frappe.delete_doc, "User", user.name, force=True)
+
+		original_userid = user.get_social_login_userid("frappe")
+		self.assertTrue(original_userid)
+
+		# a write cannot change the OIDC `sub`, even though `userid` is only read_only in the form
+		user.social_logins[0].userid = "Administrator"
+		user.save()
+		user.reload()
+		self.assertEqual(user.get_social_login_userid("frappe"), original_userid)
+
+		# nor can it be replaced by dropping the row and appending a crafted one
+		user.social_logins = []
+		user.set_social_login_userid("frappe", "Administrator")
+		user.save()
+		user.reload()
+		self.assertEqual(user.get_social_login_userid("frappe"), original_userid)
+
 	def insert_user_as_manager(self, first_name, username=None):
 		if frappe.session.user == "Administrator":
 			manager = frappe.get_doc(
