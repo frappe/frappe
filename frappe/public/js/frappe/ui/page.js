@@ -211,6 +211,8 @@ frappe.ui.Page = class Page {
 			trigger: this.actions_btn_group.find("button"),
 			align: "end",
 			options: () => this.build_dropdown_options(this.actions),
+			sheet_on_mobile: true,
+			sheet_title: () => this.actions_sheet_title?.() || __("Actions"),
 		});
 		// the menus body-portal, so one left open would float over the next
 		// page — the container fires "hide" on the page element on switch
