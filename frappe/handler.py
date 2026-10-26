@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+import hashlib
 import os
 from mimetypes import guess_type
 from pathlib import Path
@@ -190,7 +191,7 @@ def upload_file():
 		total_file_size = int(frappe.form_dict.total_file_size or 0)
 		check_declared_size(total_file_size)
 
-		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=1))
+		temp_path = get_chunk_temp_path(filename, is_private)
 		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
 			f.seek(offset)
 			f.write(file.stream.read())
@@ -254,6 +255,12 @@ def upload_file():
 		for func in funcs:
 			doc = frappe.call(func, doc=doc)
 		return doc.save(ignore_permissions=ignore_permissions)
+
+
+def get_chunk_temp_path(filename: str, is_private) -> Path:
+	"""Buffer for an unfinished chunked upload: private, and not shared across users or privacy."""
+	owner = hashlib.sha256(f"{frappe.session.user}:{cint(is_private)}".encode()).hexdigest()[:10]
+	return Path(get_files_path(f".temp-{owner}-{get_safe_file_name(filename)}", is_private=1))
 
 
 def check_write_permission(doctype: str | None = None, name: str | None = None):
