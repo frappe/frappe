@@ -84,7 +84,7 @@ function format_number(card, number, df, doc) {
 }
 
 // `frappe.format` may return markup; parsed off-document so nothing in it runs.
-function text_of(html) {
+export function text_of(html) {
 	return new DOMParser().parseFromString(String(html), "text/html").body.textContent;
 }
 

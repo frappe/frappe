@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref, watch } from "vue";
-import { FrappeUIProvider } from "frappe-ui";
+import { FrappeUIProvider, setConfig } from "frappe-ui";
 import { get, post } from "./api.js";
 import WorkspaceGrid from "./WorkspaceGrid.vue";
 
@@ -15,6 +15,9 @@ const emit = defineEmits(["title", "actions"]);
 
 const frappe = window.frappe;
 const __ = window.__;
+
+// frappe-ui's own requests, such as a doctype's meta, carry desk's session token
+setConfig("requestHeaders", () => ({ "X-Frappe-CSRF-Token": frappe.csrf_token }));
 
 const workspace = ref(null);
 const not_found = ref(false);
