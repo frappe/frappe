@@ -1,6 +1,6 @@
 # The renderer that turns a URL under /apps into the shell document.
 
-# A built-in ahead of `StaticPage`, not a `page_renderer` hook: the hook swallows import
+# A built-in ahead of every other renderer, not a `page_renderer` hook: the hook swallows import
 # errors, so a typo here would silently drop every /apps URL to a 404.
 
 import os
@@ -9,6 +9,7 @@ import frappe
 from frappe.shell import SHELL_ROOT
 from frappe.shell.permissions import guard_prefix
 from frappe.shell.registry import resolve_prefix, split_shell_path
+from frappe.shell.route_guard import is_reserved
 from frappe.utils.data import is_desk_v2_enabled
 from frappe.website.page_renderers.base_renderer import BaseRenderer
 from frappe.website.page_renderers.redirect_page import RedirectPage
@@ -44,6 +45,7 @@ class ShellPage(BaseRenderer):
 	def __init__(self, path, http_status_code=None):
 		super().__init__(path, http_status_code)
 		self.is_index = self.path == SHELL_ROOT
+		self.reserved = is_reserved(self.path)
 		self.prefix = None
 		self.app = None
 
