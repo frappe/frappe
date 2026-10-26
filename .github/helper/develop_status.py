@@ -8,7 +8,7 @@ Usage:
     python develop_status.py pr <number>   # one pull request
     python develop_status.py wait <number> # one pull request, until its fix tests finish
     python develop_status.py commit <sha>  # the pull requests whose head is this commit
-    python develop_status.py start [all]   # start the suites the new develop commits need
+    python develop_status.py start [all]   # start the suites the new develop and desk-v2 commits need
 """
 
 import json
@@ -151,9 +151,14 @@ def needs_suite(workflow, files):
 
 
 def start(force=False):
-	head = gh(f"repos/{REPO}/commits/develop")["sha"]
+	for branch in ("develop", "desk-v2"):
+		start_branch(branch, force)
+
+
+def start_branch(branch, force):
+	head = gh(f"repos/{REPO}/commits/{branch}")["sha"]
 	for workflow in SUITES:
-		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch=develop")["workflow_runs"]
+		runs = gh(f"repos/{REPO}/actions/workflows/{workflow}/runs?branch={branch}")["workflow_runs"]
 		last = next((run for run in runs if run["event"] in ("schedule", "workflow_dispatch")), None)
 		if not force and last:
 			if last["status"] != "completed" or last["head_sha"] == head:
@@ -161,10 +166,10 @@ def start(force=False):
 			changes = gh(f"repos/{REPO}/compare/{last['head_sha']}...{head}")["files"]
 			files = [path for f in changes for path in (f["filename"], f.get("previous_filename")) if path]
 			if not needs_suite(workflow, None if len(changes) >= 300 else files):
-				print(f"{workflow}: no changes it can see since {last['head_sha'][:7]}")
+				print(f"{workflow} on {branch}: no changes it can see since {last['head_sha'][:7]}")
 				continue
-		subprocess.run(["gh", "workflow", "run", workflow, "--repo", REPO, "--ref", "develop"], check=True)
-		print(f"{workflow}: started on {head[:7]}")
+		subprocess.run(["gh", "workflow", "run", workflow, "--repo", REPO, "--ref", branch], check=True)
+		print(f"{workflow} on {branch}: started on {head[:7]}")
 
 
 if __name__ == "__main__":
