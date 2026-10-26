@@ -45,7 +45,6 @@ export async function load_card(name) {
 			);
 			if (typeof delta === "number" && !isNaN(delta)) {
 				result.delta = delta;
-				result.delta_label = window.frappe.utils.shorten_number(Math.abs(delta));
 				result.caption = window.__(STATS_CAPTIONS[card.stats_time_interval] || "");
 			}
 		}
