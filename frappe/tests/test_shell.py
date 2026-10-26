@@ -39,7 +39,8 @@ from frappe.shell.registry import (
 	shell_base,
 	split_shell_path,
 )
-from frappe.shell.route_guard import ReservedRouteError, is_reserved
+from frappe.shell.route_guard import ReservedRouteError, is_reserved, validate_route
+from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.website.page_renderers.not_found_page import NotFoundPage
@@ -344,6 +345,31 @@ class TestReservedRouteGuard(IntegrationTestCase):
 		page.insert()
 		self.addCleanup(lambda: frappe.delete_doc("Web Page", page.name, force=True))
 		self.assertEqual(page.route, "shell-guard-test")
+
+	def test_a_studio_page_route_is_a_path_inside_its_app(self):
+		app = make_studio_app(app_name="guard-" + frappe.generate_hash(length=8))
+		page = make_studio_page(app.name, page_title="Apps", route="/apps")
+		self.assertEqual(page.route, "/apps")
+
+	def test_a_studio_app_cannot_claim_apps(self):
+		with self.assertRaises(ReservedRouteError):
+			make_studio_app(app_name="guard-" + frappe.generate_hash(length=8), route="apps")
+
+	def test_a_doctype_route_is_checked_only_with_a_web_view(self):
+		doctype = frappe.get_doc(doctype="DocType", name="Shell Guard Probe", route="apps")
+		validate_route(doctype)
+
+		doctype.has_web_view = 1
+		with self.assertRaises(ReservedRouteError):
+			validate_route(doctype)
+
+	def test_a_doctype_listed_in_website_generators_is_checked(self):
+		todo = frappe.get_doc(doctype="ToDo", description="Shell guard probe")
+		todo.route = "apps/probe"
+		validate_route(todo)
+
+		with patch.object(frappe, "get_hooks", return_value=["ToDo"]), self.assertRaises(ReservedRouteError):
+			validate_route(todo)
 
 
 class TestSingletonEnforcement(IntegrationTestCase):
