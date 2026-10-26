@@ -101,6 +101,18 @@ class TestIndexTiles(IntegrationTestCase):
 		self.assertNotIn(LINK_APP, tiles)
 		self.assertIn(V2_APP, tiles)
 
+	def test_an_app_that_extends_a_host_and_ships_its_own_rail_keeps_its_tile(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		make_rail([], app=V2_APP, extends="frappe", standard=1)
+
+		self.assertEqual(self.tiles()[V2_APP]["kind"], "prefix")
+
+	def test_an_app_that_extends_an_inactive_host_keeps_its_tile(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		make_rail([], app=LINK_APP, extends="shell_absent_host", standard=1)
+
+		self.assertIn(LINK_APP, self.tiles())
+
 	def test_tiles_sort_by_sequence_then_install_order(self):
 		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link", sequence_id=1)})
 
@@ -108,6 +120,17 @@ class TestIndexTiles(IntegrationTestCase):
 		self.assertLess(order.index(LINK_APP), order.index(V2_APP))
 		# frappe declares 1000, so it trails both.
 		self.assertEqual(order[-1], "frappe")
+
+	def test_tiles_with_one_sequence_keep_install_order(self):
+		self.two_apps(
+			**{
+				V2_APP: screen(V2_APP, sequence_id=5),
+				LINK_APP: screen(LINK_APP, route="/link", sequence_id=5),
+			}
+		)
+
+		order = list(self.tiles())
+		self.assertEqual(order.index(LINK_APP), order.index(V2_APP) + 1)
 
 	def test_a_one_role_user_gets_v2_tiles_and_the_link_tiles_their_hook_allows(self):
 		self.two_apps(
@@ -136,6 +159,15 @@ class TestIndexTiles(IntegrationTestCase):
 		tiles = self.tiles(self.user)
 		self.assertNotIn(pending, tiles)
 		self.assertIn(LINK_APP, tiles)
+
+	def test_a_v2_tile_answers_to_the_apps_permission_hook(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		self.enterContext(
+			hooks_declaring("app_permission", {V2_APP: "frappe.permissions.check_app_permission"})
+		)
+
+		self.assertIn(V2_APP, self.tiles())
+		self.assertNotIn(V2_APP, self.tiles(self.user))
 
 	def test_a_raising_permission_hook_hides_the_tile(self):
 		self.two_apps(

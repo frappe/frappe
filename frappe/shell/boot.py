@@ -66,9 +66,10 @@ def app_boot(app: str) -> dict:
 		return {}
 
 
-def app_screen(app: str) -> dict:
-	"""The app's title and logo; `add_to_apps_screen` is read for presentation only, never membership."""
-	screen = (frappe.get_hooks("add_to_apps_screen", app_name=app) or [{}])[0]
+def app_screen(app: str, screen: dict | None = None) -> dict:
+	"""The app's title and logo, from its `add_to_apps_screen` entry."""
+	if screen is None:
+		screen = (frappe.get_hooks("add_to_apps_screen", app_name=app) or [{}])[0]
 	return {
 		"title": _(screen.get("title") or app.replace("_", " ").title()),
 		"logo": screen.get("logo"),
@@ -85,15 +86,17 @@ def index_boot() -> dict:
 
 
 def index_tiles() -> list[dict]:
-	"""One tile per app with an `add_to_apps_screen` hook that this user may open, in hook order."""
+	"""One tile per app with an `add_to_apps_screen` hook that this user may open, by `sequence_id`."""
+	active = frappe.get_active_apps(_ensure_on_bench=True)
 	rails = frappe.get_all("Rail", filters={"standard": 1}, fields=["app", "extends"])
 	v2_apps = {"frappe"} | {rail.app for rail in rails if rail.extends == NO_HOST}
-	companions = {rail.app for rail in rails if rail.extends != NO_HOST}
+	# Mounted on an active host, as v1's docked apps; an app with a rail of its own is no companion.
+	companions = {rail.app for rail in rails if rail.extends in active} - v2_apps
 	pending = setup_pending_apps()
 	prefixes = {app: prefix for prefix, app in get_prefix_registry().items()}
 	tiles = []
 
-	for app in frappe.get_active_apps(_ensure_on_bench=True):
+	for app in active:
 		screen = (frappe.get_hooks("add_to_apps_screen", app_name=app) or [None])[0]
 		if not screen or app in companions or app in pending:
 			continue
@@ -101,7 +104,7 @@ def index_tiles() -> list[dict]:
 		target = tile_target(app, screen, prefixes[app] if app in v2_apps else None)
 		if target:
 			sequence = screen.get("sequence_id") or DEFAULT_APP_SEQUENCE_ID
-			tiles.append((sequence, {"app": app, **app_screen(app), **target}))
+			tiles.append((sequence, {"app": app, **app_screen(app, screen), **target}))
 
 	# Stable, so apps with the same `sequence_id` keep their install order.
 	tiles.sort(key=lambda pair: pair[0])
@@ -123,7 +126,7 @@ def tile_target(app: str, screen: dict, prefix: str | None) -> dict | None:
 		return {"kind": "prefix", "route": shell_base(prefix)} if has_app_permission(app) else None
 
 	if may_link_out(app, screen):
-		# As v1's `get_route`: a hook with no route opens desk v1.
+		# A hook with no route opens desk v1.
 		return {"kind": "link", "route": screen.get("route") or "/desk"}
 
 	return None
