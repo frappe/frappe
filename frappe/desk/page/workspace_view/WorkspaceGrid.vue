@@ -16,6 +16,7 @@ const props = defineProps({
 });
 
 const emit = defineEmits(["select", "move"]);
+const __ = window.__;
 const dragged = ref(null);
 
 // A drop is stored as "insert before block N", or after the last block of a section.
@@ -55,15 +56,15 @@ function tile_for(block) {
 	if (block.type === "paragraph") return { component: TextBlock, props: { block } };
 	const tile = TILES[block.type];
 	if (!tile) return null;
-	const name = block.data[tile.key];
-	return { component: tile.component, props: { widget: props.widgets[tile.widgets][name] } };
+	const widget = props.widgets[tile.widgets][block.data[tile.key]];
+	return widget ? { component: tile.component, props: { widget } } : null;
 }
 </script>
 
 <template>
 	<div class="flex flex-col gap-6">
 		<section v-for="(section, index) in sections" :key="index" class="flex flex-col gap-3">
-			<div v-if="section.heading" class="relative">
+			<div v-if="section.heading" class="relative" :class="{ 'min-h-8': editing }">
 				<TextBlock :block="section.heading" />
 				<div
 					v-if="editing"
@@ -84,6 +85,12 @@ function tile_for(block) {
 				>
 					<div class="relative h-full">
 						<component :is="tile.component" v-if="tile" v-bind="tile.props" />
+						<div
+							v-else-if="editing"
+							class="flex h-full min-h-14 items-center rounded-6 border border-dashed border-outline-gray-2 p-4 text-base text-ink-gray-5"
+						>
+							{{ __(block.type.replace("_", " ")) }}
+						</div>
 						<div
 							v-if="editing"
 							class="ws-pick"
