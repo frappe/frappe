@@ -27,7 +27,12 @@ export class Desk {
 		await this.page.waitForFunction(
 			() => window.frappe && frappe.app && frappe.request.ajax_count === 0
 		);
-		await expect(this.page.locator(".layout-main-section:visible > *").first()).toBeAttached();
+		// a Frappe UI page, such as a workspace, draws into an island body instead
+		await expect(
+			this.page
+				.locator(".layout-main-section:visible > *, .island-page-body:visible")
+				.first()
+		).toBeAttached();
 	}
 
 	// On the dock in an app that has one, on the sidebar otherwise.
