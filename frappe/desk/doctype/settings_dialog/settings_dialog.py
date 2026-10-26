@@ -163,6 +163,10 @@ class SettingsDialog(Document):
 
 	def on_update(self):
 		self.export_settings_dialog()
+		clear_merged_panes()
+
+	def on_trash(self):
+		clear_merged_panes()
 
 	def export_settings_dialog(self):
 		"""Write this record to `<app>/settings_dialog/<name>/<name>.json`, rooted at the app as `Rail` is."""
@@ -172,6 +176,15 @@ class SettingsDialog(Document):
 			return
 
 		export_to_files(record_list=[[self.doctype, self.name]], record_app=self.app)
+
+
+def clear_merged_panes():
+	"""Drop the cached merge now and again at commit, so a read racing this write cannot keep it stale."""
+	from frappe.shell.settings import clear_cached_panes
+
+	clear_cached_panes()
+	frappe.db.after_commit.add(clear_cached_panes)
+	frappe.db.after_rollback.add(clear_cached_panes)
 
 
 def validate_key(key: str, kind: str, idx: int):

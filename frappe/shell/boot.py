@@ -99,8 +99,15 @@ def index_boot() -> dict:
 	return {**core_boot(), "shell_base": f"/{SHELL_ROOT}", "app": None, "apps": apps}
 
 
-def report_oversized_keys(boot: dict, prefix: str | None) -> None:
-	"""Weigh every top-level boot key and log the ones past `KEY_BUDGET`, shipping it whole."""
+def report_oversized_keys(boot: dict, prefix: str | None, reply: str | None = None) -> None:
+	"""Weigh every top-level key of a boot, or of the named `reply`, and log the ones past `KEY_BUDGET`."""
+	if reply:
+		where = f"the {reply} reply"
+	elif prefix:
+		where = f"prefix {prefix}"
+	else:
+		where = f"the /{SHELL_ROOT} index"
+
 	try:
 		# `orjson_dumps` serialises the response, so these are the bytes on the wire.
 		sizes = {key: len(orjson_dumps(value, default=str, decode=False)) for key, value in boot.items()}
@@ -112,18 +119,17 @@ def report_oversized_keys(boot: dict, prefix: str | None) -> None:
 
 			# An atomic `SET NX`, so two workers claim the day's row once between them; `make_key`
 			# applies the site prefix `set_value` would.
-			claim = frappe.cache.make_key(f"boot_budget:{key}:{prefix or SHELL_ROOT}")
+			claim = frappe.cache.make_key(f"boot_budget:{key}:{reply or prefix or SHELL_ROOT}")
 			# nosemgrep: frappe-cache-breaks-multitenancy
 			if not frappe.cache.set(name=claim, value=1, ex=_BUDGET_LOG_TTL, nx=True):
 				continue
 
-			where = f"prefix {prefix}" if prefix else f"the /{SHELL_ROOT} index"
 			# Deferred because boot is a GET, which is rolled back; Postgres would discard the row.
 			frappe.log_error(
 				title=BUDGET_LOG_TITLE,
 				message=(
 					f"{key} is {size:,} B for {frappe.session.user} at {where}, "
-					f"over the {KEY_BUDGET:,} B key budget; boot total {total:,} B."
+					f"over the {KEY_BUDGET:,} B key budget; total {total:,} B."
 				),
 				defer_insert=True,
 			)

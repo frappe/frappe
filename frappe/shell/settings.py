@@ -6,8 +6,44 @@
 import json
 
 import frappe
+from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.layers import anchor_attempts, place_by_anchors
+
+from .boot import report_oversized_keys
+from .doctypes import metadata_version
+from .permissions import may_enter_any_prefix
+from .settings_filter import SettingsFilter
+
+PANES_CACHE_KEY = "shell_settings_panes"
+
+
+@frappe.whitelist(methods=["GET"])
+def get_panes() -> dict:
+	"""The panes this user may see and their search label index, read when the dialog first opens."""
+	if not may_enter_any_prefix():
+		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
+
+	reply = SettingsFilter().filter(get_cached_panes())
+	report_oversized_keys(reply, None, reply="settings")
+	return reply
+
+
+def get_cached_panes() -> list[dict]:
+	"""The merged, unfiltered panes, cached on `metadata_version` and cleared by a `Settings Dialog` write."""
+	version = metadata_version()
+	cached = frappe.client_cache.get_value(PANES_CACHE_KEY)
+
+	if isinstance(cached, dict) and cached.get("version") == version:
+		return cached["panes"]
+
+	panes = resolve_panes()
+	frappe.client_cache.set_value(PANES_CACHE_KEY, {"version": version, "panes": panes})
+	return panes
+
+
+def clear_cached_panes():
+	frappe.client_cache.delete_value(PANES_CACHE_KEY)
 
 
 def resolve_panes() -> list[dict]:

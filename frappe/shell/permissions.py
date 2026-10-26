@@ -6,6 +6,8 @@ from urllib.parse import urlencode
 import frappe
 from frappe import _
 
+from .registry import get_prefix_registry
+
 
 def default_app_permission() -> bool:
 	"""What `/desk` has always meant: "Is a System User"."""
@@ -32,6 +34,11 @@ def has_app_permission(app: str) -> bool:
 		# A broken gate fails closed, unlike a broken `app_boot` contributor, which only loses its keys.
 		frappe.log_error(title=f"app_permission failed for {app}")
 		return False
+
+
+def may_enter_any_prefix() -> bool:
+	"""Whether this session may enter at least one prefix: the gate for a reply no single app owns."""
+	return any(has_app_permission(app) for app in set(get_prefix_registry().values()))
 
 
 def guard_prefix(app: str, path: str):
