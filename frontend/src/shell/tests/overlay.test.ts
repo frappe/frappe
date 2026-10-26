@@ -1,6 +1,6 @@
 // The overlay host: the customize dialog addressed by the hash, and the helper under it.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick } from "vue";
+import { createApp, defineComponent, h, inject, nextTick, type Component } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
@@ -10,6 +10,7 @@ import { registerShell } from "@/router/routeFor";
 import { resetNavigationReports } from "@/navigation/registry";
 import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
+import { OpenSettingsKey, type OpenSettings } from "../openSettings";
 import { useHashDialog } from "../useHashDialog";
 
 // The dialog loads its list when the hash names one; an empty list is enough to prove it opened.
@@ -49,18 +50,18 @@ async function settle() {
 	}
 }
 
-function makeRouter() {
+function makeRouter(page: Component = stub) {
 	return createRouter({
 		history: createMemoryHistory(),
 		routes: [
 			{ path: "/", name: "home", component: stub },
-			{ path: "/:doctype", name: "list", component: stub },
+			{ path: "/:doctype", name: "list", component: page },
 		],
 	});
 }
 
 /** The shell, mounted at `path`, with the Accounts panel open on `/sales-invoice`. */
-async function shell(path: string): Promise<{ host: HTMLElement; router: Router }> {
+async function shell(path: string, page?: Component): Promise<{ host: HTMLElement; router: Router }> {
 	const boot = {
 		app: "crm",
 		shell_base: "/apps/crm",
@@ -71,7 +72,7 @@ async function shell(path: string): Promise<{ host: HTMLElement; router: Router 
 		},
 	} as unknown as Boot;
 
-	const router = makeRouter();
+	const router = makeRouter(page);
 	registerShell({ boot, addresses, router });
 
 	const host = document.createElement("div");
@@ -138,7 +139,7 @@ describe("the dialog, addressed by the hash", () => {
 	});
 
 	it("opens nothing for a hash that is not its own", async () => {
-		await shell("/sales-invoice#settings/crm");
+		await shell("/sales-invoice#elsewhere/crm");
 		expect(dialog()).toBeNull();
 	});
 
@@ -170,6 +171,58 @@ describe("the dialog, addressed by the hash", () => {
 
 		expect(router.currentRoute.value.fullPath).toBe("/sales-invoice");
 		expect(dialog()).toBeNull();
+	});
+});
+
+describe("the settings act the shell provides", () => {
+	/** The shell on `path`, with the page under it holding the act it was handed. */
+	async function withAct(path: string) {
+		const handed: { act?: OpenSettings } = {};
+		const page = defineComponent({
+			setup() {
+				handed.act = inject(OpenSettingsKey);
+				return () => null;
+			},
+		});
+		const { router } = await shell(path, page);
+		return { router, act: handed.act! };
+	}
+
+	it("loads no dialog until the first open, then pushes the address it is given", async () => {
+		const { router, act } = await withAct("/sales-invoice");
+		expect(dialog()).toBeNull();
+
+		act("desk", "profile");
+		await settle();
+		expect(router.currentRoute.value.fullPath).toBe("/sales-invoice#settings/desk/profile");
+		// The chunk is a dynamic import, which lands some turns after the hash.
+		await vi.waitFor(() => expect(dialog()).not.toBeNull(), { timeout: 10000 });
+
+		router.go(-1);
+		await settle();
+		expect(router.currentRoute.value.fullPath).toBe("/sales-invoice");
+	});
+
+	it("writes #settings for no segment, and a missing one as empty", async () => {
+		const { router, act } = await withAct("/sales-invoice");
+		act();
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#settings");
+
+		act(undefined, "system");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#settings//system");
+	});
+
+	it("pushes over an open customize dialog, so Back returns to it", async () => {
+		const { router, act } = await withAct("/sales-invoice#customize/rail");
+		act("crm");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#settings/crm");
+
+		router.go(-1);
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#customize/rail");
 	});
 });
 

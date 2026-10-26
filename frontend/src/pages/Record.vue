@@ -222,12 +222,14 @@ import {
 	stripTags,
 } from "./record/saveResponse";
 import { openCreate } from "@/shell/create";
+import { OpenSettingsKey } from "@/shell/openSettings";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
+const openSettings = inject(OpenSettingsKey, undefined);
 const route = useRoute();
 const router = useRouter();
 
@@ -761,6 +763,7 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		reload: load,
 		router,
 		openCreate,
+		openSettings,
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 	});

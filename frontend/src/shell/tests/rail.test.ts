@@ -13,10 +13,11 @@ import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
+import { OpenSettingsKey } from "../openSettings";
 
 registerStandardPages(standardPages);
 
-const fake = vi.hoisted(() => ({ logout: vi.fn() }));
+const fake = vi.hoisted(() => ({ logout: vi.fn(), openSettings: vi.fn() }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
@@ -102,6 +103,7 @@ function mount(
 	});
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);
+	app.provide(OpenSettingsKey, fake.openSettings);
 	app.use(router);
 	app.mount(host);
 	mounted.push(app);
@@ -466,9 +468,9 @@ describe("the user menu", () => {
 		expect(menu.querySelector("[role='menuitem']")).toBe(header);
 	});
 
-	it("offers the four rows in order, with Log out in red", async () => {
+	it("offers the five rows in order, with Log out in red", async () => {
 		const menu = await opened();
-		expect(rows(menu)).toEqual(["My settings", "Theme", "Desk v1", "Log out"]);
+		expect(rows(menu)).toEqual(["My settings", "Settings", "Theme", "Desk v1", "Log out"]);
 		expect(row(menu, "Log out").className).toContain("red");
 	});
 
@@ -477,15 +479,23 @@ describe("the user menu", () => {
 		const groups = Array.from(menu.querySelectorAll("[data-slot='group']")).map((group) =>
 			Array.from(group.querySelectorAll(COMMANDS)).length
 		);
-		expect(groups).toEqual([0, 2, 1, 1]);
+		expect(groups).toEqual([0, 3, 1, 1]);
 	});
 
-	it("sends My settings to the person's v1 User form, and Desk v1 to v1's home", async () => {
-		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+	it("opens settings at the profile pane for My settings, and at the first pane for Settings", async () => {
+		fake.openSettings.mockClear();
 
 		row(await opened(), "My settings").click();
 		await flush();
-		expect(assign).toHaveBeenLastCalledWith("/app/user/jane%40example.com");
+		expect(fake.openSettings).toHaveBeenLastCalledWith("desk", "profile");
+
+		row(await opened(), "Settings").click();
+		await flush();
+		expect(fake.openSettings).toHaveBeenLastCalledWith();
+	});
+
+	it("sends Desk v1 to v1's home", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 
 		row(await opened(), "Desk v1").click();
 		await flush();

@@ -92,6 +92,7 @@ import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
+import { OpenSettingsKey } from "@/shell/openSettings";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import type { Boot } from "@/boot";
 import {
@@ -126,6 +127,7 @@ const props = defineProps<{ doctype: string; query: LocationQuery }>();
 const NO_RIGHTS = {};
 
 const boot = inject<Boot>("boot")!;
+const openSettings = inject(OpenSettingsKey, undefined);
 const router = useRouter();
 const canCreate = useCreateRight(props.doctype);
 
@@ -264,6 +266,7 @@ function buildController() {
 		reload: open,
 		router,
 		openCreate,
+		openSettings,
 		sourcesReady: () => loadRecordScripts(props.doctype),
 		activityRows: () => [],
 		scrollToActivity: async () => false,

@@ -183,6 +183,8 @@ export interface RecordPageHost {
     doctype: string,
     options: { values?: Record<string, any> },
   ) => Promise<Record<string, any> | null>;
+  /** The shell's settings act; `page.openSettings` warns and opens nothing without it. */
+  openSettings?: (prefix?: string, pane?: string, block?: string) => void;
   /** True when the host puts back the reader's view on this visit; `onOpen`'s view acts then do nothing. */
   restoresView?: () => boolean;
 }
@@ -409,6 +411,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       gate.hasLeft() || !host.openCreate
         ? Promise.resolve(null)
         : host.openCreate(doctype, { values: options?.values }),
+    openSettings: (...address) => openSettings(address),
     call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
     cached: <T>(key: string, fetch: () => Promise<T> | T) =>
       cachedReads.read(runningSource(), key, fetch) as T | undefined,
@@ -655,6 +658,29 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     if (!host.openWriter) return warnOpen(name, "this host draws no composer");
     if (tab !== host.activeTab()) activate("tabs", tab);
     host.openWriter(name, options);
+  }
+
+  /** Held in a replay or a hold, so the dialog opens over the page the commit paints. */
+  function openSettings(address: Parameters<RecordPageApi["openSettings"]>) {
+    if (gate.hasLeft()) return;
+    const deliver = () =>
+      host.openSettings
+        ? host.openSettings(...address)
+        : warnSettings(address, "this host opens no settings");
+    const taken = heldActs.take({
+      kind: "openSettings",
+      target: "",
+      isDrawn: () => true,
+      land: deliver,
+      refuse: (because) => warnSettings(address, because),
+    });
+    if (!taken) deliver();
+  }
+
+  function warnSettings(address: unknown[], because: string) {
+    if (!import.meta.env.DEV) return;
+    const given = address.map((segment) => JSON.stringify(segment)).join(", ");
+    console.warn(`[record-page] page.openSettings(${given}) — ${because}; nothing was opened.`);
   }
 
   function warnOpen(name: string, because: string) {

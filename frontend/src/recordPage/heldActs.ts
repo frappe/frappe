@@ -7,7 +7,7 @@ const NOT_DRAWN = "the first paint went ahead without it";
 const IN_BACKGROUND = "it ran in the replay after a background read";
 
 /** The order held acts land in, whatever order a script called them in. */
-const LANDING_ORDER = ["activate", "disclose", "focus", "scrollTo", "open"] as const;
+const LANDING_ORDER = ["activate", "disclose", "focus", "scrollTo", "open", "openSettings"] as const;
 
 /** One act a script made; for one kind and target, the last one held wins. */
 export interface HeldAct {

@@ -1,5 +1,5 @@
-// An overlay addressed by `route.hash`: `#<root>/<segments…>` on whatever page is open, so it
-// is linkable and Back dismisses it. One hash, one overlay.
+// A hash dialog addressed by `route.hash`: `#<root>/<segments…>` on whatever page is open, so it
+// is linkable and Back dismisses it. One hash, one hash dialog.
 
 import { computed, type ComputedRef } from "vue";
 import { useRoute, useRouter } from "vue-router";
@@ -35,7 +35,7 @@ export function useHashDialog(root: string): HashDialog {
 		else router.push(to);
 	}
 
-	// Only ever our own hash is dropped; another overlay's hash is not ours to throw away.
+	// Only ever our own hash is dropped; another hash dialog's hash is not ours to throw away.
 	function close() {
 		if (open.value) router.replace({ query: route.query, hash: "" });
 	}

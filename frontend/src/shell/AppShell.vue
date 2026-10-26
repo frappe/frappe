@@ -37,12 +37,14 @@
 			<RouterView />
 		</main>
 
-		<!-- The overlay host: one hash, one Dialog, above any page. `#customize/...` is its first tenant. -->
+		<!-- The hash dialogs: one hash, one Dialog, above any page. -->
 		<CustomizeSidebarDialog
 			:target="customizing"
 			@saved="replace"
 			@close="customize.close()"
 		/>
+
+		<ShellSettingsDialog v-if="settingsOpened" />
 
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
@@ -61,7 +63,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onUnmounted, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, onUnmounted, provide, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
@@ -79,9 +81,12 @@ import { sectionMemory } from "@/navigation/sectionMemory";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
+import { OpenSettingsKey } from "./openSettings";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
+
+const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
@@ -230,6 +235,15 @@ const customizing = computed<CustomizeTarget | null>(() => {
 		return { container: "Sidebar", address, title: "Customize this sidebar" };
 	return null;
 });
+
+const settings = useHashDialog("settings");
+provide(OpenSettingsKey, (...segments) =>
+	settings.write(...segments.map((segment) => segment ?? ""))
+);
+
+// Loaded on the first open, then kept, so a close plays the dialog's leave transition.
+const settingsOpened = ref(false);
+watch(settings.open, (isOpen) => isOpen && (settingsOpened.value = true), { immediate: true });
 
 function replace(next: Navigation) {
 	navigation.value = next;
