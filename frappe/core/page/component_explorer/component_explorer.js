@@ -1972,10 +1972,14 @@ frappe.pages["component-explorer"].on_page_load = function (wrapper) {
 					title: __("Adding and removing items"),
 					items: [
 						{
-							__code: 'frappe.ui.checklist({\n  title: "Onboarding",\n  items,\n  add_label: "Add activity",\n  on_add: (label, list) => list.set_items([...items, { id: label, label, removable: true }]),\n  on_remove: (item) => delete_activity(item.id),\n})',
+							__code: 'frappe.ui.checklist({\n  title: "Onboarding",\n  items,\n  add_label: "Add activity",\n  on_add: (label, list) => list.set_items([...items, { id: label, label, removable: true }]),\n  on_remove: (item) => delete_activity(item.id),\n  on_reorder: (ids) => save_order(ids),\n})',
 							title: "Onboarding",
 							add_label: "Add activity",
-							items: [{ id: "welcome", label: "Welcome lunch", removable: true }],
+							items: [
+								{ id: "welcome", label: "Welcome lunch", removable: true },
+								{ id: "desk", label: "Book a desk", removable: true },
+							],
+							on_reorder: () => null,
 							on_add: (label, list) =>
 								list.set_items([
 									...list.items.values(),

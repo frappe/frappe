@@ -949,6 +949,17 @@ test.describe("Espresso components", () => {
 			await expect(input).not.toBeFocused();
 		});
 
+		test("the arrow keys on a row's grip move it", async ({ page }) => {
+			const group = explorer_group(page, "adding and removing");
+			const labels = group.locator(".es-checklist__label");
+
+			await expect(labels).toHaveText(["Welcome lunch", "Book a desk"]);
+			await row(group, "Book a desk").locator(".es-checklist__grip").focus();
+			await page.keyboard.press("ArrowUp");
+			await expect(labels).toHaveText(["Book a desk", "Welcome lunch"]);
+			await expect(row(group, "Book a desk").locator(".es-checklist__grip")).toBeFocused();
+		});
+
 		test("Escape clears the add input without adding an item", async ({ page }) => {
 			const group = explorer_group(page, "adding and removing");
 			const input = group.getByRole("textbox", { name: "Add activity" });
@@ -956,7 +967,7 @@ test.describe("Espresso components", () => {
 			await input.fill("Not this one");
 			await input.press("Escape");
 			await expect(input).toHaveValue("");
-			await expect(group.locator(".es-checklist__item")).toHaveCount(1);
+			await expect(group.locator(".es-checklist__item")).toHaveCount(2);
 		});
 	});
 });

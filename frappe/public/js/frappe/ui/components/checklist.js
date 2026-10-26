@@ -35,6 +35,7 @@ frappe.provide("frappe.ui");
  * @property {(label:string, checklist:Checklist)=>void|Promise} [on_add] Shows an input below the items; Enter, or leaving the input, passes the typed label, and the caller adds the item through set_items. Reject to keep the text. Set it to null and call set_items to hide the input.
  * @property {string} [add_label] Placeholder of that input. Defaults to "Add item".
  * @property {(item:ChecklistItem, checklist:Checklist)=>void|Promise} [on_remove] Runs before a removable item is removed; reject to keep it.
+ * @property {(ids:string[], checklist:Checklist)=>void|Promise} [on_reorder] Shows a grip on each row to drag it, or move it with the arrow keys; gets the new order of ids. Reject to put the old order back. Set it to null and call set_items to hide the grips.
  * @property {string} [css_class] Extra classes on the root.
  */
 
@@ -114,6 +115,7 @@ frappe.ui.Checklist = class Checklist {
 			items.map((item) => [item.id, this.rows.get(item.id) || this.make_row(item.id)])
 		);
 		this.list.replaceChildren(...this.rows.values(), ...this.make_add());
+		this.setup_sorting();
 		this.make_progress();
 		this.update_head();
 		items.forEach((item) => this.update_row(item));
@@ -241,7 +243,11 @@ frappe.ui.Checklist = class Checklist {
 	make_row(id) {
 		const row = document.createElement("div");
 		row.className = "es-checklist__item";
+		row.dataset.id = id;
 		row.innerHTML = `
+			<button type="button" class="es-checklist__grip">
+				${frappe.utils.icon("grip-vertical", "xs", "", "", "", true)}
+			</button>
 			<div class="es-checklist__row">
 				<span class="es-checklist__marker"></span>
 				<button type="button" class="es-checklist__toggle">
@@ -268,7 +274,64 @@ frappe.ui.Checklist = class Checklist {
 			if (e.target.closest(controls) || row.hasAttribute("data-empty")) return;
 			this.set_open(this.open_id === id ? null : id);
 		});
+		const grip = row.querySelector(".es-checklist__grip");
+		grip.setAttribute("aria-label", __("Move"));
+		grip.addEventListener("keydown", (e) => {
+			const step = { ArrowUp: -1, ArrowDown: 1 }[e.key];
+			if (!step) return;
+			e.preventDefault();
+			this.move(id, step);
+		});
 		return row;
+	}
+
+	setup_sorting() {
+		const enabled = Boolean(this.opts.on_reorder);
+		this.el.toggleAttribute("data-sortable", enabled);
+		if (!enabled) {
+			this.sortable?.destroy();
+			this.sortable = null;
+			return;
+		}
+		if (this.sortable) return;
+		this.sortable = new Sortable(this.list, {
+			handle: ".es-checklist__grip",
+			draggable: ".es-checklist__item",
+			animation: 150,
+			ghostClass: "es-checklist__item--ghost",
+			onMove: (e) => !e.related.classList.contains("es-checklist__add"),
+			onEnd: () =>
+				this.reorder(
+					[...this.list.querySelectorAll(":scope > .es-checklist__item")].map(
+						(row) => row.dataset.id
+					)
+				),
+		});
+	}
+
+	move(id, step) {
+		const ids = [...this.items.keys()];
+		const from = ids.indexOf(id);
+		const to = from + step;
+		if (to < 0 || to >= ids.length) return;
+		ids.splice(to, 0, ...ids.splice(from, 1));
+		this.reorder(ids);
+		this.rows.get(id).querySelector(".es-checklist__grip").focus();
+	}
+
+	reorder(ids) {
+		const previous = [...this.items.keys()];
+		if (ids.join() === previous.join()) return;
+		this.apply_order(ids);
+		return Promise.resolve(this.opts.on_reorder?.(ids, this)).catch(() =>
+			this.apply_order(previous)
+		);
+	}
+
+	apply_order(ids) {
+		this.items = new Map(ids.map((id) => [id, this.items.get(id)]));
+		this.rows = new Map(ids.map((id) => [id, this.rows.get(id)]));
+		this.list.replaceChildren(...this.rows.values(), ...this.make_add());
 	}
 
 	update_row(item) {

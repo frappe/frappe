@@ -16,6 +16,7 @@
  *       <div class="es-checklist__items">
  *         <div class="es-checklist__item" data-status="pending|in_progress|stuck|done|skipped"
  *              data-open data-locked data-overdue data-empty>
+ *           <button class="es-checklist__grip">(with on_reorder: drag, or arrow keys)</button>
  *           <div class="es-checklist__row">
  *             <span class="es-checklist__marker">(icon, a status menu button, or the lock)</span>
  *             <button type="button" class="es-checklist__toggle" aria-expanded="false">
@@ -182,9 +183,54 @@
 }
 
 .es-checklist__item {
+    position: relative;
     padding: calc(var(--spacing) * 2);
     border-radius: var(--radius-md);
     transition: padding-block 200ms ease-out, background-color 200ms ease-out;
+}
+
+.es-checklist__grip {
+    position: absolute;
+    top: calc(var(--spacing) * 2);
+    left: calc(var(--spacing) * -3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: calc(var(--spacing) * 3);
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-sm);
+    background: none;
+    color: var(--ink-gray-4);
+    cursor: grab;
+    opacity: 0;
+}
+
+.es-checklist:not([data-sortable]) .es-checklist__grip {
+    display: none;
+}
+
+.es-checklist[data-sortable] .es-checklist__items {
+    margin-inline-start: calc(var(--spacing) * -3);
+    padding-inline-start: calc(var(--spacing) * 3);
+}
+
+.es-checklist__item:hover .es-checklist__grip,
+.es-checklist__grip:focus-visible {
+    opacity: 1;
+}
+
+.es-checklist__grip:focus-visible {
+    outline: var(--focus-outline-default);
+}
+
+.es-checklist__grip .icon {
+    margin: 0;
+}
+
+.es-checklist__item--ghost {
+    opacity: 0.4;
 }
 
 .es-checklist__item:not([data-open], [data-empty]) .es-checklist__row {
