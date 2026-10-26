@@ -9,6 +9,7 @@ from frappe import _
 from frappe.desk.desk_views import DeskViews
 from frappe.desk.desktop import get_workspaces, save_new_widget
 from frappe.desk.doctype.desktop_settings.desktop_settings import is_desktop_icons_page
+from frappe.desk.doctype.workspace_variant.workspace_variant import sanitize_variants, validate_variants
 from frappe.desk.utils import validate_route_conflict
 from frappe.model.document import Document
 from frappe.model.rename_doc import rename_doc
@@ -33,6 +34,7 @@ class Workspace(Document, DeskViews):
 		from frappe.desk.doctype.workspace_number_card.workspace_number_card import WorkspaceNumberCard
 		from frappe.desk.doctype.workspace_quick_list.workspace_quick_list import WorkspaceQuickList
 		from frappe.desk.doctype.workspace_shortcut.workspace_shortcut import WorkspaceShortcut
+		from frappe.desk.doctype.workspace_variant.workspace_variant import WorkspaceVariant
 		from frappe.types import DF
 
 		charts: DF.Table[WorkspaceChart]
@@ -75,6 +77,7 @@ class Workspace(Document, DeskViews):
 		standard: DF.Check
 		title: DF.Data
 		type: DF.Literal["Workspace", "Link", "URL"]
+		variants: DF.Table[WorkspaceVariant]
 	# end: auto-generated types
 
 	def before_validate(self):
@@ -82,6 +85,7 @@ class Workspace(Document, DeskViews):
 		# `ignore_validate`, which skips `validate` but not the sanitizer, and the import is the
 		# write that damaged every workspace shipping markup in its blocks.
 		self.content = sanitize_content(self.content)
+		sanitize_variants(self.variants)
 
 	def validate(self):
 		self.title = strip_html(self.title)
@@ -132,8 +136,14 @@ class Workspace(Document, DeskViews):
 				shortcut.report_ref_doctype = frappe.get_value("Report", shortcut.link_to, "ref_doctype")
 
 		self.validate_duplicate_widget_labels()
+		self.validate_variants()
 		self.validate_shared_page_has_a_module()
 		self.validate_private_page_is_yours()
+
+	def validate_variants(self):
+		if self.variants and not self.public:
+			frappe.throw(_("A private workspace has one layout."), title=_("Role Layouts"))
+		validate_variants(self.variants)
 
 	def validate_private_page_is_yours(self):
 		"""A private page belongs to the person named in `for_user`, and only they may write one.

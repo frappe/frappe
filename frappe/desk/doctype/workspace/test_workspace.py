@@ -60,6 +60,47 @@ class TestWorkspace(IntegrationTestCase):
 		frappe.get_attr("frappe.patches.v17_0.set_workspace_renderer_to_frappe_ui.execute")()
 		self.assertEqual(frappe.db.get_value("Workspace", workspace.name, "renderer"), "Frappe UI")
 
+	def test_role_layouts_are_validated(self):
+		def card(label):
+			return {"label": label, "links": "[]"}
+
+		def layout(role, *cards):
+			return {"role": role, "content": "[]", "widgets": json.dumps({"card": list(cards)})}
+
+		workspace = create_workspace(
+			name="Layouts Test", label="Layouts Test", public=1, title="Layouts Test"
+		)
+		workspace.content = "[]"
+		workspace.append("variants", layout("System Manager", card("Reports")))
+		workspace.append("variants", layout("Workspace Manager", card("Reports")))
+		workspace.insert()
+
+		for rows in (
+			[layout("System Manager", card("Reports"), card("Reports"))],
+			[layout("All")],
+			[layout("System Manager"), layout("System Manager")],
+		):
+			workspace.set("variants", rows)
+			with self.assertRaises(frappe.ValidationError):
+				workspace.save()
+
+		private = create_workspace(name="Private Layouts", label="Private Layouts", title="Private Layouts")
+		private.content = "[]"
+		private.append("variants", layout("System Manager"))
+		with self.assertRaises(frappe.ValidationError):
+			private.insert()
+
+	def test_role_layouts_round_trip_through_json(self):
+		workspace = create_workspace(name="Export Test", label="Export Test", public=1, title="Export Test")
+		workspace.content = "[]"
+		workspace.append("variants", {"role": "System Manager", "content": "[]", "widgets": "{}"})
+		exported = workspace.as_dict(no_default_fields=True)
+		self.assertEqual(exported["variants"][0]["role"], "System Manager")
+
+		exported.pop("variants")
+		imported = frappe.get_doc({**exported, "doctype": "Workspace"}).insert()
+		self.assertEqual(imported.variants, [])
+
 	def test_save_page_with_new_widgets_as_dict(self):
 		"""save_page receives new_widgets already parsed into a dict by the request layer."""
 		from frappe.desk.doctype.workspace.workspace import save_page

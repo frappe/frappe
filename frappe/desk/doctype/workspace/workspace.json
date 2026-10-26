@@ -43,7 +43,9 @@
   "custom_blocks_tab",
   "custom_blocks",
   "roles_tab",
-  "roles"
+  "roles",
+  "variants_tab",
+  "variants"
  ],
  "fields": [
   {
@@ -277,11 +279,23 @@
    "fieldtype": "Select",
    "label": "Renderer",
    "options": "Legacy\nFrappe UI"
+  },
+  {
+   "fieldname": "variants_tab",
+   "fieldtype": "Tab Break",
+   "label": "Role Layouts"
+  },
+  {
+   "description": "A person gets the first layout, in this order, whose role they hold, else the default.",
+   "fieldname": "variants",
+   "fieldtype": "Table",
+   "label": "Role Layouts",
+   "options": "Workspace Variant"
   }
  ],
  "in_create": 1,
  "links": [],
- "modified": "2026-10-26 05:14:14.104209",
+ "modified": "2026-10-26 06:20:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace",
