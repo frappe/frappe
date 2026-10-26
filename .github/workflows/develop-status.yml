@@ -5,7 +5,7 @@ on:
     # How often the full server and UI suites run on develop, when develop has new commits.
     - cron: "23 * * * *"
   pull_request_target:
-    branches: [develop]
+    branches: [develop, desk-v2]
     types: [opened, synchronize, reopened, labeled, unlabeled, closed]
   workflow_run:
     workflows: [Server, UI]
@@ -31,7 +31,7 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
-      - run: python .github/helper/develop_status.py start ${{ github.event_name != 'schedule' && 'all' || '' }}
+      - run: python .github/helper/develop_status.py start ${{ github.event_name != 'schedule' && 'all' || '' }} ${{ github.event.pull_request.base.ref }}
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Turn pull requests green once the fix lands

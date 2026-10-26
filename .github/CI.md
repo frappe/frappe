@@ -11,6 +11,8 @@ Every open develop pull request has a **Develop status** check:
 
 When develop goes green again, every pull request turns green on its own. You don't need to push or re-run anything.
 
+desk-v2 works the same way. Its pull requests get a **Desk-v2 status** check that follows desk-v2's own hourly runs, and `fixes-develop` on a desk-v2 pull request runs the suites failing on desk-v2. A failure on one branch never shows on the other branch's pull requests.
+
 ## When develop is failing
 
 1. Open the failed run from the Develop status check and find the test that fails.
