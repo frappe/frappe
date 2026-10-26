@@ -11,7 +11,7 @@
 				size="lg"
 				variant="subtle"
 				class="w-full"
-				:class="boxWidthClass(apps.length)"
+				:class="boxWidth"
 				:placeholder="__('Find an app')"
 				:aria-label="__('Find an app')"
 				role="combobox"
@@ -19,6 +19,7 @@
 				:aria-expanded="listboxes.length > 0"
 				:aria-controls="listboxes.join(' ') || undefined"
 				:aria-activedescendant="selection.activeId()"
+				:readonly="arranging"
 				@keydown="onKeydown"
 			>
 				<template #prefix>
@@ -29,6 +30,22 @@
 			<p v-if="!apps.length" class="mt-16 text-base text-ink-gray-5" data-index-state="none">
 				{{ __("No apps you can open yet.") }}
 			</p>
+
+			<ArrangeApps
+				v-else-if="arranging"
+				:apps="apps"
+				:box-width-class="boxWidth"
+				@done="finishArranging"
+			/>
+
+			<div
+				v-else-if="!matches.length && !query.trim()"
+				class="mt-16 flex flex-col items-center gap-3"
+				data-index-state="all-hidden"
+			>
+				<p class="text-base text-ink-gray-5">{{ __("You have hidden every app.") }}</p>
+				<Button :label="__('Arrange apps')" @click="startArranging" />
+			</div>
 
 			<div
 				v-else-if="!matches.length"
@@ -49,12 +66,27 @@
 				class="mt-12 grid gap-x-4 gap-y-6"
 				:class="gridClass(matches.length)"
 			>
-				<li v-for="app in matches" :key="app.app" role="none">
+				<li v-for="app in matches" :key="app.app" role="none" class="group/tile relative">
 					<AppTile
 						:id="selectableId(tileKey(app))"
 						:app="app"
 						:selected="selection.isSelected(tileKey(app))"
 					/>
+					<div
+						class="absolute right-2 top-0 opacity-0 transition group-hover/tile:opacity-100 has-[[data-state=open]]:opacity-100"
+					>
+						<Dropdown :options="tileMenu(app)" side="bottom" align="end">
+							<button
+								type="button"
+								class="flex size-6 items-center justify-center rounded-full bg-surface-white text-ink-gray-7 shadow ring-1 ring-outline-gray-2 hover:bg-surface-gray-2 focus-visible:focus-ring"
+								:aria-label="__('{0} options', [app.title])"
+								tabindex="-1"
+								data-tile-menu
+							>
+								<span class="lucide-ellipsis size-3.5" aria-hidden="true" />
+							</button>
+						</Dropdown>
+					</div>
 				</li>
 			</ul>
 
@@ -63,7 +95,7 @@
 				:id="FAVOURITES_ID"
 				:favourites="shownFavourites"
 				:selection="selection"
-				:class="boxWidthClass(apps.length)"
+				:class="boxWidth"
 			/>
 
 			<IndexRecent
@@ -72,40 +104,56 @@
 				:recent="shownRecent"
 				:selection="selection"
 				:site-zone="boot.session.timezone"
-				:class="boxWidthClass(apps.length)"
+				:class="boxWidth"
 			/>
 		</div>
 	</ScrollArea>
 </template>
 
 <script setup lang="ts">
-import { computed, inject, onMounted, ref, watch } from "vue";
-import { Button, ScrollArea, TextInput, type TextInputExposed } from "frappe-ui";
+import { computed, defineAsyncComponent, inject, onMounted, ref, watch } from "vue";
+import { Button, Dropdown, ScrollArea, TextInput, toast, type TextInputExposed } from "frappe-ui";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { usePageMenuItems } from "@/shell/pageMenu";
 import { matching, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
 import { favouriteKey } from "./favourites";
 import IndexFavourites from "./IndexFavourites.vue";
 import IndexRecent from "./IndexRecent.vue";
-import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
+import { PAGE_COLUMN, arrangeBoxWidthClass, boxWidthClass, columnsFor, gridClass } from "./grid";
+import { saveLayer } from "./layer";
 import { recentKey } from "./recent";
 import { Selection, selectableId, type SelectionSection } from "./selection";
+
+const ArrangeApps = defineAsyncComponent(() => import("./ArrangeApps.vue"));
 
 const TILES_ID = "index-apps";
 const FAVOURITES_ID = "index-favourites";
 const RECENT_ID = "index-recent";
 
 const boot = inject<Boot>("boot")!;
-const apps = boot.apps ?? [];
+const apps = ref<IndexApp[]>(boot.apps ?? []);
 const favourites = boot.favourites ?? [];
 const recent = boot.recent ?? [];
 
 const box = ref<TextInputExposed | null>(null);
 const query = ref("");
-const matches = computed(() => matching(apps, query.value));
-const shownFavourites = computed(() => (query.value.trim() ? [] : favourites));
-const shownRecent = computed(() => (query.value.trim() ? [] : recent));
+const arranging = ref(false);
+const matches = computed(() => (arranging.value ? [] : matching(apps.value, query.value)));
+const shownFavourites = computed(() => (query.value.trim() || arranging.value ? [] : favourites));
+const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] : recent));
+const boxWidth = computed(() =>
+	arranging.value
+		? arrangeBoxWidthClass(apps.value.length)
+		: boxWidthClass(matching(apps.value, "").length)
+);
+
+if (apps.value.length) {
+	usePageMenuItems([
+		{ label: __("Arrange apps"), icon: "lucide-layout-grid", onClick: startArranging },
+	]);
+}
 
 // In page order. A later section appends its items here and draws `selection.isSelected(key)`.
 const sections = computed<SelectionSection[]>(() => [
@@ -157,6 +205,37 @@ function onKeydown(event: KeyboardEvent) {
 function clear() {
 	query.value = "";
 	box.value?.focus();
+}
+
+function startArranging() {
+	query.value = "";
+	arranging.value = true;
+}
+
+function finishArranging(arranged: IndexApp[]) {
+	apps.value = arranged;
+	arranging.value = false;
+	box.value?.focus();
+}
+
+function tileMenu(app: IndexApp) {
+	return app.hidden
+		? [{ label: __("Show"), icon: "lucide-eye", onClick: () => setHidden(app, false) }]
+		: [{ label: __("Hide"), icon: "lucide-eye-off", onClick: () => setHidden(app, true) }];
+}
+
+async function setHidden(app: IndexApp, hidden: boolean) {
+	flag(app, hidden);
+	try {
+		await saveLayer(apps.value);
+	} catch (error) {
+		flag(app, !hidden);
+		toast.error(__("Could not save your apps: {0}", [(error as Error).message]));
+	}
+}
+
+function flag(app: IndexApp, hidden: boolean) {
+	apps.value = apps.value.map((entry) => (entry.app === app.app ? { ...entry, hidden } : entry));
 }
 
 function scrollIntoView(id: string) {

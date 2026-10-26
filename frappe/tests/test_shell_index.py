@@ -4,7 +4,8 @@ from contextlib import ExitStack
 
 import frappe
 from frappe.shell import SHELL_ROOT
-from frappe.shell.boot import get_boot
+from frappe.shell.boot import get_boot, save_index_layer
+from frappe.shell.index_layer import SETTINGS_KEY
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_shell import a_second_app, hooks_declaring
 from frappe.tests.test_shell_navigation import make_rail
@@ -28,6 +29,10 @@ class TestIndexTiles(IntegrationTestCase):
 		self.addCleanup(lambda: frappe.db.rollback(save_point="index_tiles_test"))
 		# Before any fake app is active: inserting a User loads every installed app's templates.
 		self.user = self.one_role_user()
+		# A row the hourly sync wrote on this site must not leak into a test's layer.
+		for user in ("Administrator", self.user):
+			frappe.cache.hset("_user_settings", f"{SETTINGS_KEY}::{user}", "{}")
+			self.addCleanup(frappe.cache.hdel, "_user_settings", f"{SETTINGS_KEY}::{user}")
 
 	def two_apps(self, **screens: dict):
 		"""A v2 app that ships a `Rail` and an app that links out, each declaring `screens[app]`."""
@@ -83,6 +88,7 @@ class TestIndexTiles(IntegrationTestCase):
 				"logo": f"/assets/{V2_APP}/logo.svg",
 				"kind": "prefix",
 				"route": f"/apps/{V2_PREFIX}",
+				"hidden": False,
 			},
 		)
 		self.assertEqual(tiles[LINK_APP]["kind"], "link")
@@ -175,3 +181,77 @@ class TestIndexTiles(IntegrationTestCase):
 		)
 
 		self.assertNotIn(LINK_APP, self.tiles())
+
+	def test_the_user_layer_orders_named_apps_and_puts_the_rest_last(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		frappe.set_user("Administrator")
+		save_index_layer(order=[LINK_APP, "frappe", V2_APP], hidden=[])
+
+		order = list(self.tiles())
+		self.assertEqual(order[:3], [LINK_APP, "frappe", V2_APP])
+
+		save_index_layer(order=[V2_APP], hidden=[])
+		order = list(self.tiles())
+		self.assertEqual(order[0], V2_APP)
+		# Unnamed apps keep the app layer's order behind the named one.
+		self.assertLess(order.index(LINK_APP), order.index("frappe"))
+
+	def test_a_hidden_app_keeps_its_tile_marked_hidden(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		frappe.set_user("Administrator")
+		returned = save_index_layer(order=[], hidden=[LINK_APP])
+
+		tiles = self.tiles()
+		self.assertTrue(tiles[LINK_APP]["hidden"])
+		self.assertFalse(tiles[V2_APP]["hidden"])
+		self.assertEqual(returned, list(tiles.values()))
+
+	def test_reset_and_an_unchanged_order_leave_no_layer(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		frappe.set_user("Administrator")
+		app_layer = list(self.tiles())
+		save_index_layer(order=list(reversed(app_layer)), hidden=[V2_APP])
+
+		self.assertEqual([tile["app"] for tile in save_index_layer(order=[], hidden=[])], app_layer)
+		self.assertEqual(self.stored("Administrator"), {})
+
+		save_index_layer(order=app_layer, hidden=[])
+		self.assertEqual(self.stored("Administrator"), {})
+
+	def test_a_layer_is_the_session_users_alone(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		frappe.set_user(self.user)
+		save_index_layer(order=[], hidden=[V2_APP])
+
+		self.assertTrue(self.tiles(self.user)[V2_APP]["hidden"])
+		self.assertFalse(self.tiles("Administrator")[V2_APP]["hidden"])
+
+	def test_a_save_keeps_only_the_users_own_tiles_once_each(self):
+		self.two_apps(
+			**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, has_permission="frappe.no_such.check")}
+		)
+		frappe.set_user("Administrator")
+		save_index_layer(order=[V2_APP, V2_APP, "no_such_app", LINK_APP], hidden=["no_such_app"])
+
+		self.assertEqual(self.stored("Administrator"), {"order": [V2_APP], "hidden": []})
+
+	def test_a_save_that_is_not_two_lists_is_refused(self):
+		frappe.set_user("Administrator")
+		for order, hidden in (("frappe", []), (["frappe"], [["frappe"]])):
+			with self.assertRaises(frappe.FrappeTypeError):
+				save_index_layer(order=order, hidden=hidden)
+
+	def test_a_stored_layer_that_is_not_one_reads_as_empty(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		app_layer = list(self.tiles())
+		for junk in ("[1, 2]", '{"order": "frappe", "hidden": [3]}', "not json"):
+			frappe.cache.hset("_user_settings", f"{SETTINGS_KEY}::Administrator", junk)
+			self.assertEqual(list(self.tiles()), app_layer)
+
+	def test_a_user_without_the_index_has_no_layer_to_save(self):
+		frappe.set_user("Guest")
+		with self.assertRaises(frappe.PermissionError):
+			save_index_layer(order=[], hidden=[])
+
+	def stored(self, user: str) -> dict:
+		return frappe.parse_json(frappe.cache.hget("_user_settings", f"{SETTINGS_KEY}::{user}"))

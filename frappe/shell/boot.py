@@ -17,6 +17,7 @@ from frappe.utils import cstr, orjson_dumps, strip_html
 
 from . import SHELL_ROOT
 from .doctypes import get_address_table, get_doctype_owners, metadata_version
+from .index_layer import arrange, write_layer
 from .links import canonical_path
 from .navigation import NO_HOST, resolve_navigation
 from .permissions import has_app_permission
@@ -86,18 +87,32 @@ def app_screen(app: str, screen: dict | None = None) -> dict:
 
 def index_boot() -> dict:
 	"""Boot for `/apps` itself, the index, which belongs to no app; the app list lives only here."""
-	# `@frappe.whitelist()` only excludes Guest; a Website User must not read core boot.
-	if not has_app_permission("frappe"):
-		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
-
+	tiles = gated_index_tiles()
 	return {
 		**core_boot(),
 		"shell_base": f"/{SHELL_ROOT}",
 		"app": None,
-		"apps": index_tiles(),
+		"apps": arrange(tiles),
 		"favourites": index_favourites(),
 		"recent": index_recent(),
 	}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_index_layer(order: list[str], hidden: list[str]) -> list[dict]:
+	"""Store the session user's order and hidden apps on the index; two empty lists reset it. Returns the tiles."""
+	tiles = gated_index_tiles()
+	write_layer(order, hidden, tiles)
+	return arrange(tiles)
+
+
+def gated_index_tiles() -> list[dict]:
+	"""The app layer's tiles, behind the index boot's own gate."""
+	# `@frappe.whitelist()` only excludes Guest; a Website User has no index.
+	if not has_app_permission("frappe"):
+		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
+
+	return index_tiles()
 
 
 def index_tiles() -> list[dict]:

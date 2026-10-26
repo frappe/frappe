@@ -181,6 +181,7 @@ cut or a `ui/` change reshapes them.
 | `get_addresses` | The address table, HTTP-cached on `metadata_version` |
 | `get_contents` | The doctypes, reports and pages of an app or module that the user can read |
 | Arrangement routes | Get, save or reset a rail or sidebar order |
+| Index layer (`arrange`, `save_index_layer`) | The person's order and hidden apps on the [index](./CONTEXT.md#index), one JSON in user settings under `/apps`, cached per user in `_user_settings`. The index boot puts the app layer's tiles in its order, an app it does not name last, and marks hidden ones. A save keeps only the person's own tiles; an order equal to the app layer's stores nothing, and Reset saves two empty lists |
 
 ### 3. `ui` data
 
@@ -278,7 +279,8 @@ component group, with its main names.
 | `PageFrame` | The frame every page draws inside: header, scroll area, gutter, and a page state in place of the content |
 | Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`, `NothingToOpen`) | Loading, empty, empty with a filter, nothing to open, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home; nothing to open offers all apps. `failedState` picks the state a failed read shows, with the server's message as text. The list, record and new record pages share them |
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
-| `UserMenu` | The avatar menu: the profile, My settings, Theme, Desk v1 and Log out. The rail draws it at its foot, and the index in the same place |
+| `UserMenu` | The avatar menu: the profile, My settings, Theme, the page's own rows, Desk v1 and Log out. The rail draws it at its foot, and the index in the same place |
+| Page menu rows (`pageMenuItems`, `usePageMenuItems`, `PageMenuItem`) | Rows the page on screen adds to the avatar menu while it is mounted. The index adds "Arrange apps" |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Act keys (`ActKeys`, `OpenArgument`, `overlayOf`) | Binds the `key` of each act the dispatcher lists as available through `useKeyboardShortcut`, while `AppShell` is mounted. Its code loads apart from the cold-load chunk. A press runs the act through `perform`; on a shared combo a page act wins over a shell act, with a dev warning. In a dialog, a popover or a dropdown (`overlayOf`) a key runs nothing, and a combo with Mod or Ctrl still blocks the browser's own key; such a combo also fires in a field. Only acts with a `key` have their right read. A key on an act with an argument is bound only when `AppShell` passes `OpenArgument` |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
@@ -356,7 +358,7 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| [Index](./CONTEXT.md#index) (`IndexPage`, `IndexSkeleton`, `AppTile`, `AppLogo`) | The page at `/apps`: a filter box over one tile per `boot.apps` entry, with no request. The box spans the first row's logos, three columns at least, and has focus on load. Typing filters by title, Enter opens the selection or the first match, and Esc clears the box. A tile opens its route by a full load. `IndexSkeleton` draws while the page's code loads |
+| [Index](./CONTEXT.md#index) (`IndexPage`, `IndexSkeleton`, `AppTile`, `AppLogo`, `ArrangeApps`) | The page at `/apps`: a filter box over one tile per `boot.apps` entry the person has not hidden, with no request. The box spans the first row's logos, three columns at least, and has focus on load. Typing filters by title, hidden apps too, Enter opens the selection or the first match, and Esc clears the box. A tile opens its route by a full load. A tile's menu hides it, or shows a hidden one the filter found. "Arrange apps" draws every app in a drag grid with an eye each, and Reset and Done store the user layer. `IndexSkeleton` draws while the page's code loads |
 | Index selection (`Selection`, `Selectable`, `SelectionSection`, `selectableId`) | The one arrow-key movement over every section of the index, in page order. A section joins it with its items and its column count, draws an item as selected like a hover, and gives it `selectableId` as its element id, which the filter box names as its active descendant and scrolls into view |
 | Index Favourites (`IndexFavourites`, `favouriteKey`) | The row of chips under the tiles: one per `boot.favourites` entry, the person's 8 latest favourite records they can still read, each with its app's logo and the record's title, opening the record's address by a full load. No row when there are none, or while the filter box holds a query. The chips are one section of the index selection |
 | Index Recent (`IndexRecent`, `recentKey`) | One row per `boot.recent` entry under Favourites: the person's 5 latest distinct list and record addresses they can still open, each with the logo of the app it was visited in, its title, its kind and how long ago, opening the address by a full load. No section when there are none, or while the filter box holds a query. The rows are one section of the index selection |
@@ -513,6 +515,7 @@ Every way an app, a site admin or a user changes the desk, with the layer that h
 | DocType and Customize Form | Site | 1 | DocType or Property Setter rows | Fields, labels, hidden, read-only |  |  |
 | Doctype View (user) | User | 1 | The list's column and sort panels | The user's own columns, sort and quick filters |  |  |
 | Arrangement (user) | User | 2 | The customize sidebar dialog | The user's order of rail and sidebar items |  |  |
+| Index layer (user) | User | 2 | Arrange apps in the avatar menu, or Hide in a tile's menu | The user's order and hidden tiles on /apps |  |  |
 | Per-user rail and sidebar | User | 1 | Rail and Sidebar user layer | Rows the user hides or adds |  |  |
 
 ## The flows
@@ -532,7 +535,7 @@ numbers. Every flow is also counted in files per flow and in timing guards.
 | 1 | The website router finds the shell page. It maps the prefix to an app and returns the built `index.html` | 2 | App permission, `guard_prefix` | Built page in process memory, by file path. Prefix map in the site cache |
 | 2 | An inline script sets the light or dark theme before the first paint | `index.html` | None | `localStorage` `theme` |
 | 3 | `main.ts` asks for boot and waits. A refusal shows the "no permission" page state | `main.ts`, 5, 3 | None in the browser | None |
-| 4 | The server builds boot: core keys, session, `metadata_version`, prefix map, and the rail and sidebars filtered for the user | 2, 1 | App permission; each navigation row filtered by readable doctypes, modules and pages. On the index, each favourite filtered by its record's read permission and its app's permission, and each recent visit by its app's permission and its doctype's or record's read permission | Session in Redis by session id; `metadata_version` and prefix map in the site cache; navigation not cached |
+| 4 | The server builds boot: core keys, session, `metadata_version`, prefix map, and the rail and sidebars filtered for the user | 2, 1 | App permission; each navigation row filtered by readable doctypes, modules and pages. On the index, each favourite filtered by its record's read permission and its app's permission, and each recent visit by its app's permission and its doctype's or record's read permission | Session in Redis by session id; `metadata_version` and prefix map in the site cache; navigation not cached. On the index, the user layer in `_user_settings` by `/apps` and user |
 | 5 | Translations and the icon sprite start, not awaited. `main.ts` registers the Create dialog | 5, 6 | None | HTTP cache, 1 year, by language and translation version. The sprite is a static file |
 | 6 | The address table loads, awaited | 5, 3, 2 | The user may enter at least one app | One server cache key, checked against `metadata_version`. HTTP cache, 1 year, by `metadata_version` |
 | 7 | `main.ts` registers the standard pages. Contributions register item kinds, app pages, replacements and handlers. The record page registers its icon and prop hooks | 5, 7, 8 | None | Browser memory, by item kind, by address kind and doctype, by doctype |
