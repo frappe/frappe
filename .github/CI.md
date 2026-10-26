@@ -37,4 +37,4 @@ Pull requests into develop run only the linters. The server and UI test suites d
 ## Settings
 
 - How often develop is tested: the `cron` at the top of `.github/workflows/develop-status.yml`.
-- Label names: the top of `.github/helper/roulette.py`.
+- Label names: the top of `.github/helper/roulette.py`, and the label checks in `.github/workflows/develop-status.yml`.
