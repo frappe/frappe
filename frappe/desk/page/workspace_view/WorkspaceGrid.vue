@@ -12,9 +12,10 @@ const props = defineProps({
 	widgets: { type: Object, required: true },
 });
 
-// tiles that pull in the shared Filter load on first use
+// tiles most workspaces do not have load on first use
 const ChartTile = defineAsyncComponent(() => import("./tiles/ChartTile.vue"));
 const QuickListTile = defineAsyncComponent(() => import("./tiles/QuickListTile.vue"));
+const OnboardingTile = defineAsyncComponent(() => import("./tiles/OnboardingTile.vue"));
 
 const TILES = {
 	number_card: { component: NumberCardTile, widgets: "number_cards", key: "number_card_name" },
@@ -22,6 +23,7 @@ const TILES = {
 	shortcut: { component: ShortcutTile, widgets: "shortcuts", key: "shortcut_name" },
 	card: { component: CardTile, widgets: "cards", key: "card_name" },
 	quick_list: { component: QuickListTile, widgets: "quick_lists", key: "quick_list_name" },
+	onboarding: { component: OnboardingTile, widgets: "onboardings", key: "onboarding_name" },
 };
 
 const sections = computed(() =>
