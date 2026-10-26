@@ -16,11 +16,12 @@ from frappe.translate import get_translation_version
 from frappe.utils import cstr, orjson_dumps, strip_html
 
 from . import SHELL_ROOT
-from .doctypes import get_doctype_owners, metadata_version
+from .doctypes import get_address_table, get_doctype_owners, metadata_version
 from .links import canonical_path
 from .navigation import NO_HOST, resolve_navigation
 from .permissions import has_app_permission
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
+from .route_history import Visit, latest_visits
 
 # Bytes one top-level boot key may reach before boot logs it.
 KEY_BUDGET = 100_000
@@ -32,6 +33,7 @@ _BUDGET_LOG_TTL = 24 * 60 * 60
 BUDGET_LOG_TITLE = "Boot key over budget"
 
 FAVOURITES_LIMIT = 8
+RECENT_LIMIT = 5
 
 
 def core_boot() -> dict:
@@ -94,6 +96,7 @@ def index_boot() -> dict:
 		"app": None,
 		"apps": index_tiles(),
 		"favourites": index_favourites(),
+		"recent": index_recent(),
 	}
 
 
@@ -198,6 +201,48 @@ def index_favourites() -> list[dict]:
 		)
 
 	return favourites
+
+
+def index_recent() -> list[dict]:
+	"""The person's last distinct list and record addresses, newest first, less those they can no longer open."""
+	visits = [visit for visit in latest_visits(RECENT_LIMIT) if has_app_permission(visit.app)]
+	names_by_doctype: dict[str, list[str]] = {}
+	for visit in visits:
+		if visit.name is not None:
+			names_by_doctype.setdefault(visit.doctype, []).append(visit.name)
+
+	titles = {doctype: readable_titles(doctype, names) for doctype, names in names_by_doctype.items()}
+	recent = []
+	for visit in visits:
+		heading = visit_heading(visit, titles)
+		if heading is None:
+			continue
+
+		screen = app_screen(visit.app)
+		recent.append(
+			{
+				"route": visit.route,
+				"title": heading[0],
+				"kind": heading[1],
+				"visited": visit.visited,
+				"app": visit.app,
+				"app_title": screen["title"],
+				"app_logo": screen["logo"],
+			}
+		)
+
+	return recent
+
+
+def visit_heading(visit: Visit, titles: dict[str, dict[str, str]]) -> tuple[str, str | None] | None:
+	"""A visit's title and kind: the record's title and doctype, or the doctype and "List"; None if unreadable."""
+	if visit.name is None:
+		return (_(visit.doctype), _("List")) if frappe.has_permission(visit.doctype, "read") else None
+
+	title = titles[visit.doctype].get(visit.name)
+	if title is None:
+		return None
+	return title, None if visit.doctype in get_address_table()["singles"] else _(visit.doctype)
 
 
 def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:

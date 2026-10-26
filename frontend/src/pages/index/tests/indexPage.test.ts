@@ -36,6 +36,38 @@ const FAVOURITES: BootFavourite[] = [
 	},
 ];
 
+type BootVisit = NonNullable<Boot["recent"]>[number];
+
+const RECENT: BootVisit[] = [
+	{
+		route: "/crm/crm-deal/CRM-DEAL-0001",
+		title: "Globex Corporation",
+		kind: "CRM Deal",
+		visited: "2026-10-26 17:28:00.000000",
+		app: "crm",
+		app_title: "CRM",
+		app_logo: "/assets/crm/logo.svg",
+	},
+	{
+		route: "/desk/todo",
+		title: "ToDo",
+		kind: "List",
+		visited: "2026-10-26 14:30:00.000000",
+		app: "frappe",
+		app_title: "Framework",
+		app_logo: null,
+	},
+	{
+		route: "/desk/system-settings/System%20Settings",
+		title: "System Settings",
+		kind: null,
+		visited: "2026-10-25 17:30:00.000000",
+		app: "frappe",
+		app_title: "Framework",
+		app_logo: null,
+	},
+];
+
 const mounted: App[] = [];
 let assign: ReturnType<typeof vi.fn>;
 
@@ -50,11 +82,16 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-async function mount(apps: BootApp[] = APPS, favourites: BootFavourite[] = []) {
+async function mount(
+	apps: BootApp[] = APPS,
+	favourites: BootFavourite[] = [],
+	recent: BootVisit[] = []
+) {
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	const app = createApp(IndexPage);
-	app.provide("boot", { app: null, apps, favourites } as unknown as Boot);
+	const session = { timezone: "Asia/Kolkata" };
+	app.provide("boot", { app: null, apps, favourites, recent, session } as unknown as Boot);
 	app.mount(host);
 	mounted.push(app);
 	await nextTick();
@@ -84,7 +121,7 @@ function tiles(host: HTMLElement) {
 
 function selected(host: HTMLElement) {
 	return [...host.querySelectorAll<HTMLElement>("[data-selected]")].map(
-		(item) => item.dataset.app ?? item.dataset.favourite
+		(item) => item.dataset.app ?? item.dataset.favourite ?? item.dataset.recent
 	);
 }
 
@@ -301,5 +338,81 @@ describe("the index's Favourites", () => {
 		expect(chips(host)).toHaveLength(2);
 		await press(host, "Enter");
 		expect(assign).toHaveBeenCalledWith("/deal/CRM-DEAL-0001");
+	});
+});
+
+describe("the index's Recent", () => {
+	beforeEach(() => {
+		vi.useFakeTimers({ toFake: ["Date"] });
+		vi.setSystemTime(new Date("2026-10-26T12:00:00Z"));
+	});
+
+	afterEach(() => vi.useRealTimers());
+
+	function rows(host: HTMLElement) {
+		return [...host.querySelectorAll<HTMLAnchorElement>("a[data-recent]")];
+	}
+
+	it("draws no Recent section when the person has visited nothing", async () => {
+		const host = await mount(APPS, FAVOURITES, []);
+		expect(host.querySelector("[data-index-recent]")).toBeNull();
+	});
+
+	it("draws a row per visit after Favourites, each with its logo, title, kind, time and address", async () => {
+		const host = await mount(APPS, FAVOURITES, RECENT);
+		const section = host.querySelector("[data-index-recent]")!;
+		expect(section.querySelector("h2")?.textContent?.trim()).toBe("Recent");
+		expect(section.previousElementSibling?.hasAttribute("data-index-favourites")).toBe(true);
+		expect(
+			rows(host).map((row) => [
+				[...row.querySelectorAll("[data-slot='item-label'] span span")]
+					.map((part) => part.textContent?.trim())
+					.join(" | "),
+				row.querySelector("[data-slot='item-suffix']")?.textContent?.trim(),
+				row.getAttribute("href"),
+			])
+		).toEqual([
+			["Globex Corporation | CRM Deal", "2 minutes ago", "/crm/crm-deal/CRM-DEAL-0001"],
+			["ToDo | List", "3 hours ago", "/desk/todo"],
+			["System Settings", "a day ago", "/desk/system-settings/System%20Settings"],
+		]);
+		const [deal, todo] = rows(host);
+		expect(deal.querySelector("img")?.getAttribute("src")).toBe("/assets/crm/logo.svg");
+		expect(todo.querySelector("[data-app-logo]")?.textContent?.trim()).toBe("F");
+	});
+
+	it("steps aside while the box holds a query", async () => {
+		const host = await mount(APPS, [], RECENT);
+		await type(host, "crm");
+		expect(rows(host)).toHaveLength(0);
+		await press(host, "Escape");
+		expect(rows(host)).toHaveLength(3);
+	});
+
+	it("joins the arrow keys after the last chip, one row at a time, and Enter opens the row", async () => {
+		const host = await mount(APPS, FAVOURITES, RECENT);
+		for (let step = 0; step < 4; step++) await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["recent:0"]);
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["recent:1"]);
+		const todo = rows(host)[1];
+		expect(todo.getAttribute("aria-selected")).toBe("true");
+		expect(box(host).getAttribute("aria-activedescendant")).toBe(todo.id);
+		await press(host, "ArrowUp");
+		await press(host, "ArrowUp");
+		expect(selected(host)).toEqual(["favourite:ToDo:t1"]);
+		await press(host, "ArrowDown");
+		await press(host, "ArrowDown");
+		await press(host, "Enter");
+		expect(assign).toHaveBeenCalledWith("/desk/todo");
+	});
+
+	it("names the Recent listbox as one the box controls while it is drawn", async () => {
+		const host = await mount(APPS, FAVOURITES, RECENT);
+		expect(box(host).getAttribute("aria-controls")).toBe(
+			"index-apps index-favourites index-recent"
+		);
+		await type(host, "zzz");
+		expect(box(host).getAttribute("aria-controls")).toBeNull();
 	});
 });

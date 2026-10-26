@@ -92,6 +92,19 @@ export type Boot = {
 		app_logo?: string | null;
 	}[];
 
+	// Present on the index only: the person's last list and record addresses, newest first.
+	recent?: {
+		route: string;
+		title: string;
+		/** The record's doctype, "List" for a list, none for a single. */
+		kind: string | null;
+		/** On the site's clock, `session.timezone`. */
+		visited: string;
+		app: string;
+		app_title: string;
+		app_logo?: string | null;
+	}[];
+
 	// --- the declaring app's contribution, merged under core ---
 	[appKey: string]: unknown;
 };

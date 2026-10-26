@@ -65,6 +65,15 @@
 				:selection="selection"
 				:class="boxWidthClass(apps.length)"
 			/>
+
+			<IndexRecent
+				v-if="shownRecent.length"
+				:id="RECENT_ID"
+				:recent="shownRecent"
+				:selection="selection"
+				:site-zone="boot.session.timezone"
+				:class="boxWidthClass(apps.length)"
+			/>
 		</div>
 	</ScrollArea>
 </template>
@@ -78,20 +87,25 @@ import { matching, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
 import { favouriteKey } from "./favourites";
 import IndexFavourites from "./IndexFavourites.vue";
+import IndexRecent from "./IndexRecent.vue";
 import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
+import { recentKey } from "./recent";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
 const TILES_ID = "index-apps";
 const FAVOURITES_ID = "index-favourites";
+const RECENT_ID = "index-recent";
 
 const boot = inject<Boot>("boot")!;
 const apps = boot.apps ?? [];
 const favourites = boot.favourites ?? [];
+const recent = boot.recent ?? [];
 
 const box = ref<TextInputExposed | null>(null);
 const query = ref("");
 const matches = computed(() => matching(apps, query.value));
 const shownFavourites = computed(() => (query.value.trim() ? [] : favourites));
+const shownRecent = computed(() => (query.value.trim() ? [] : recent));
 
 // In page order. A later section appends its items here and draws `selection.isSelected(key)`.
 const sections = computed<SelectionSection[]>(() => [
@@ -106,12 +120,20 @@ const sections = computed<SelectionSection[]>(() => [
 		})),
 		columns: 1,
 	},
+	{
+		items: shownRecent.value.map((visit, position) => ({
+			key: recentKey(position),
+			href: visit.route,
+		})),
+		columns: 1,
+	},
 ]);
 const selection = new Selection(() => sections.value);
 
 const listboxes = computed(() => [
 	...(matches.value.length ? [TILES_ID] : []),
 	...(shownFavourites.value.length ? [FAVOURITES_ID] : []),
+	...(shownRecent.value.length ? [RECENT_ID] : []),
 ]);
 
 watch(query, (typed) => (typed.trim() ? selection.selectFirst() : selection.clear()));
