@@ -181,7 +181,7 @@ cut or a `ui/` change reshapes them.
 | `get_addresses` | The address table, HTTP-cached on `metadata_version` |
 | `get_contents` | The doctypes, reports and pages of an app or module that the user can read |
 | Arrangement routes | Get, save or reset a rail or sidebar order |
-| Index layer (`arrange`, `save_index_layer`) | The person's order and hidden apps on the [index](./CONTEXT.md#index), one JSON in user settings under `/apps`, cached per user in `_user_settings`. The index boot puts the app layer's tiles in its order, an app it does not name last, and marks hidden ones. A save keeps only the person's own tiles; an order equal to the app layer's stores nothing, and Reset saves two empty lists |
+| Index layer (`arrange`, `save_index_layer`) | The person's order and hidden apps on the [index](./CONTEXT.md#index), one JSON in user settings under `/apps`, cached per user in `_user_settings` and written to `__UserSettings` on each save, since a full cache clear drops that hash. The index boot puts the app layer's tiles in its order, an app it does not name last, and marks hidden ones. A save keeps only the person's own tiles; an order equal to the app layer's stores nothing, and Reset saves two empty lists |
 
 ### 3. `ui` data
 

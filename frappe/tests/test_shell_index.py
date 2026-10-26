@@ -218,6 +218,14 @@ class TestIndexTiles(IntegrationTestCase):
 		save_index_layer(order=app_layer, hidden=[])
 		self.assertEqual(self.stored("Administrator"), {})
 
+	def test_a_saved_layer_outlives_a_cache_clear(self):
+		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
+		frappe.set_user("Administrator")
+		save_index_layer(order=[], hidden=[LINK_APP])
+		frappe.cache.hdel("_user_settings", f"{SETTINGS_KEY}::Administrator")
+
+		self.assertTrue(self.tiles()[LINK_APP]["hidden"])
+
 	def test_a_layer_is_the_session_users_alone(self):
 		self.two_apps(**{V2_APP: screen(V2_APP), LINK_APP: screen(LINK_APP, route="/link")})
 		frappe.set_user(self.user)

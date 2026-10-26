@@ -60,18 +60,29 @@ def sync_user_settings():
 	for key, data in frappe.cache.hgetall("_user_settings").items():
 		key = safe_decode(key)
 		doctype, user = key.split("::")  # WTF?
-		frappe.db.multisql(
-			{
-				"mariadb": """INSERT INTO `__UserSettings`(`user`, `doctype`, `data`)
-				VALUES (%s, %s, %s)
-				ON DUPLICATE key UPDATE `data`=%s""",
-				"*": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
-				VALUES (%s, %s, %s)
-				ON CONFLICT (`user`, `doctype`) DO UPDATE SET `data`=%s""",
-			},
-			(user, doctype, data, data),
-			as_dict=1,
-		)
+		_write_row(user, doctype, data)
+
+
+def save_user_settings_now(doctype: str, data: str):
+	"""Replace the session user's settings for `doctype` in the cache and in `__UserSettings` at once."""
+	# `frappe.clear_cache()` drops the whole cache hash, so a write left to the hourly sync can be lost.
+	update_user_settings(doctype, data, for_update=True)
+	_write_row(frappe.session.user, doctype, data)
+
+
+def _write_row(user: str, doctype: str, data: str):
+	frappe.db.multisql(
+		{
+			"mariadb": """INSERT INTO `__UserSettings`(`user`, `doctype`, `data`)
+			VALUES (%s, %s, %s)
+			ON DUPLICATE key UPDATE `data`=%s""",
+			"*": """INSERT INTO `__UserSettings` (`user`, `doctype`, `data`)
+			VALUES (%s, %s, %s)
+			ON CONFLICT (`user`, `doctype`) DO UPDATE SET `data`=%s""",
+		},
+		(user, doctype, data, data),
+		as_dict=1,
+	)
 
 
 @frappe.whitelist()

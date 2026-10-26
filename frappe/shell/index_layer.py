@@ -3,7 +3,7 @@
 
 import json
 
-from frappe.model.utils.user_settings import get_user_settings, update_user_settings
+from frappe.model.utils.user_settings import get_user_settings, save_user_settings_now
 
 from . import SHELL_ROOT
 
@@ -31,8 +31,7 @@ def write_layer(order: list[str], hidden: list[str], tiles: list[dict]) -> None:
 
 	hidden = _names(hidden, known)
 	stored = {"order": order, "hidden": hidden} if order or hidden else {}
-	# `for_update` replaces the row; without it user settings merge into what is there.
-	update_user_settings(SETTINGS_KEY, json.dumps(stored), for_update=True)
+	save_user_settings_now(SETTINGS_KEY, json.dumps(stored))
 
 
 def read_layer() -> dict:
