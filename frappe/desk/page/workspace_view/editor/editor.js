@@ -5,11 +5,54 @@ import { SIZES } from "../grid.js";
 // names the default layout to the server, where a role would name a role layout
 export const DEFAULT_LAYOUT = "<default>";
 
-// block type -> the payload's widget table, and the stored fields of one widget
+// Block type -> the payload's widget table, the stored fields of one widget, and the size and
+// values a new one starts with. Onboarding is a block alone, with no widget row.
 export const WIDGETS = {
-	number_card: { table: "number_cards", fields: ["label", "number_card_name"] },
-	chart: { table: "charts", fields: ["label", "chart_name"] },
+	number_card: { table: "number_cards", fields: ["label", "number_card_name"], size: "M" },
+	chart: { table: "charts", fields: ["label", "chart_name"], size: "L" },
+	shortcut: {
+		table: "shortcuts",
+		fields: ["label", "type", "link_to", "url", "doc_view", "color", "format", "stats_filter"],
+		size: "M",
+		defaults: { type: "DocType" },
+	},
+	card: {
+		table: "cards",
+		fields: ["label", "description", "links"],
+		size: "M",
+		defaults: { links: [] },
+	},
+	quick_list: {
+		table: "quick_lists",
+		fields: ["label", "document_type", "quick_list_filter"],
+		size: "M",
+	},
+	custom_block: { table: "custom_blocks", fields: ["label", "custom_block_name"], size: "M" },
 };
+
+// what `build_links_table_from_card` reads from a stored card's links
+const CARD_LINK_KEYS = [
+	"label",
+	"link_type",
+	"link_to",
+	"onboard",
+	"only_for",
+	"dependencies",
+	"is_query_report",
+];
+
+export const BLOCK_TYPES = [
+	"number_card",
+	"chart",
+	"shortcut",
+	"card",
+	"quick_list",
+	"onboarding",
+	"custom_block",
+];
+
+// Text is one item with sizes: three heading sizes and Body, which is a paragraph.
+export const TEXT_SIZES = { Large: 3, Medium: 4, Small: 5, Body: null };
 
 export const name_key = (type) => `${type}_name`;
 
@@ -25,10 +68,12 @@ export function set_size(block, preset) {
 	else delete block.data.row;
 }
 
+const new_id = () => Math.random().toString(36).slice(2, 12);
+
 export function with_ids(blocks) {
 	return blocks.map((block) => ({
 		...block,
-		id: block.id || Math.random().toString(36).slice(2, 12),
+		id: block.id || new_id(),
 		data: { ...block.data },
 	}));
 }
@@ -40,21 +85,89 @@ export function move(blocks, id, target) {
 	blocks.splice(target.after ? at + 1 : at, 0, block);
 }
 
+// A new block of `type` with its widget, labelled so no other widget of its type shares the label.
+export function new_block(type, widgets, title) {
+	const block = { id: new_id(), type, data: {} };
+	if (type === "onboarding") {
+		block.data.onboarding_name = "";
+		set_size(block, "Wide");
+		return { block };
+	}
+
+	const spec = WIDGETS[type];
+	let label = title;
+	for (let n = 2; widgets[spec.table][label]; n++) label = `${title} ${n}`;
+	block.data[name_key(type)] = label;
+	set_size(block, spec.size);
+	const widget = { label, ...JSON.parse(JSON.stringify(spec.defaults || {})) };
+	return { block, widget };
+}
+
+export function new_text() {
+	return { id: new_id(), type: "header", data: { text: heading_html(4, ""), col: 12 } };
+}
+
+export function text_size(block) {
+	if (block.type === "paragraph") return "Body";
+	const level = Number(/class="h(\d)"/.exec(block.data.text || "")?.[1] || 4);
+	return level <= 3 ? "Large" : level >= 5 ? "Small" : "Medium";
+}
+
+export function text_of(block) {
+	return new DOMParser().parseFromString(block.data.text || "", "text/html").body.textContent;
+}
+
+// Writes text and size together, since a size names the stored type: a heading or a paragraph.
+export function set_text(block, text, size) {
+	const level = TEXT_SIZES[size];
+	if (level) {
+		block.type = "header";
+		block.data = { ...block.data, text: heading_html(level, text), col: 12 };
+		delete block.data.row;
+	} else {
+		block.type = "paragraph";
+		block.data = { ...block.data, text: escape_html(text) };
+	}
+}
+
+function heading_html(level, text) {
+	return `<span class="h${level}"><b>${escape_html(text)}</b></span>`;
+}
+
+function escape_html(text) {
+	const div = document.createElement("div");
+	div.textContent = text;
+	return div.innerHTML;
+}
+
 /**
  * What `save_page` takes: the blocks as EditorJS stores them, and the widgets this session
- * changed in the stored shape. A changed widget's block points at its new label.
+ * touched in the stored shape. A touched widget's block points at its new label. A Body text
+ * with nothing in it is left out.
  */
 export function to_save(blocks, widgets, touched) {
 	const new_widgets = {};
-	const stored = blocks.map(({ id, type, data }) => {
+	const stored = [];
+	for (const { id, type, data } of blocks) {
+		if (type === "paragraph" && !text_of({ data }).trim()) continue;
+
 		const spec = WIDGETS[type];
-		if (!spec || !touched.has(id)) return { id, type, data };
+		if (!spec || !touched.has(id)) {
+			stored.push({ id, type, data });
+			continue;
+		}
 
 		const item = widgets[spec.table][data[name_key(type)]];
-		(new_widgets[type] ||= []).push(
-			Object.fromEntries(spec.fields.map((field) => [field, item[field]]))
-		);
-		return { id, type, data: { ...data, [name_key(type)]: item.label } };
-	});
+		const row = Object.fromEntries(spec.fields.map((field) => [field, item[field] ?? null]));
+		if (type === "card") {
+			row.links = JSON.stringify(
+				(item.links || []).map((link) =>
+					Object.fromEntries(CARD_LINK_KEYS.map((key) => [key, link[key] ?? null]))
+				)
+			);
+		}
+		(new_widgets[type] ||= []).push(row);
+		stored.push({ id, type, data: { ...data, [name_key(type)]: item.label } });
+	}
 	return { blocks: JSON.stringify(stored), new_widgets };
 }
