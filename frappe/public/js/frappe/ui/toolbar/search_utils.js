@@ -48,6 +48,7 @@ frappe.search.utils = {
 				values.push([route[2], route]);
 			} else if (
 				["List", "Tree", "Workspaces", "query-report"].includes(route[0]) ||
+				frappe.router.is_workspace_route(route) ||
 				route[2] === "Report"
 			) {
 				if (route[1]) {
@@ -73,10 +74,13 @@ frappe.search.utils = {
 					out.value = __(doctype);
 				}
 			} else if (
-				["List", "Tree", "Workspaces", "query-report"].includes(route[0]) &&
+				(["List", "Tree", "query-report"].includes(route[0]) ||
+					frappe.router.is_workspace_route(route)) &&
 				route.length > 1
 			) {
-				const view_type = route[0];
+				const view_type = frappe.router.is_workspace_route(route)
+					? "Workspaces"
+					: route[0];
 				const view_name = route[1];
 
 				let labelSuffix;

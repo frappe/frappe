@@ -219,8 +219,10 @@ frappe.router = {
 		// /desk/user/user-001 = ["Form", "User", "user-001"]
 		// /desk/event/view/calendar/default = ["List", "Event", "Calendar", "Default"]
 		switch (this.segment_kind(route[0])) {
-			case "workspace":
-				return ["Workspaces", frappe.workspaces[route[0]].name];
+			case "workspace": {
+				const page = frappe.workspaces[route[0]];
+				return [this.workspace_view_for(page), page.name];
+			}
 
 			case "private": {
 				// `/desk/private` on its own is the Private shell with no page named. The desk
@@ -228,7 +230,7 @@ frappe.router = {
 				if (!route[1]) return ["Workspaces", "private"];
 
 				const page = this.private_workspace(route[1]);
-				if (page) return ["Workspaces", "private", page.name];
+				if (page) return [this.workspace_view_for(page), "private", page.name];
 
 				// Not one of this user's pages, so `private` is being read the other way it can
 				// be: as the Private shell's own slug, with an ordinary route inside it.
@@ -256,6 +258,12 @@ frappe.router = {
 			case "doctype":
 				return await this.set_doctype_route(route);
 
+			case "page":
+				// The workspace Page has no URL of its own, so typed directly it names nothing.
+				if (route[0] === frappe.boot.workspace_view) return [route[0]];
+				this.doctype_layout = null;
+				return route;
+
 			default:
 				// A page, or a word the desk does not know: both are left for `render_page`.
 				// Clear stale layout -- standard routes skip set_doctype_route where it is
@@ -263,6 +271,19 @@ frappe.router = {
 				this.doctype_layout = null;
 				return route;
 		}
+	},
+
+	// The page that draws a workspace: the island's Page, or the legacy view.
+	workspace_view_for(page) {
+		if (page.renderer === "Legacy" || !frappe.boot.workspace_view) return "Workspaces";
+		return frappe.boot.workspace_view;
+	},
+
+	is_workspace_route(route) {
+		return (
+			route?.[0] === "Workspaces" ||
+			(!!frappe.boot.workspace_view && route?.[0] === frappe.boot.workspace_view)
+		);
 	},
 
 	// What the first segment of a route names, or null when the desk has never heard of it.
@@ -330,7 +351,7 @@ frappe.router = {
 	// `write_shell_into_url` cannot argue about the same segment.
 	respell_private_workspace() {
 		const route = this.current_route;
-		if (!(route?.[0] === "Workspaces" && route[1] === "private" && route[2])) return;
+		if (!(this.is_workspace_route(route) && route[1] === "private" && route[2])) return;
 
 		const page = frappe.workspaces[this.slug(route[2])];
 		if (!page) return;
