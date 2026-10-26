@@ -60,6 +60,7 @@
 			:request="request"
 		/>
 
+		<ActKeys />
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
 		<Dialogs />
@@ -82,6 +83,7 @@ import {
 } from "@/navigation/current";
 import { sidebarMemory } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
+import { ActKeys } from "./actKeys";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";

@@ -163,7 +163,7 @@ import { FILES_TAB, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { FORM_CLASSES } from "./record/formClasses";
 import { projectRecordHeader } from "./record/recordHeaderProjection";
 import { discardChanges } from "./record/discardChanges";
-import { runSave, useSaveKeys } from "./record/recordSave";
+import { runSave, useUnloadGuard } from "./record/recordSave";
 import { provideRecordCommits } from "./record/recordCommits";
 import { landOnField, stopLanding, tabOf } from "./record/landOnField";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
@@ -387,7 +387,7 @@ function headerBuiltins(): HeaderItem[] {
 			display: "button",
 			run: toggleFavourite,
 		},
-		{ name: "save", label: "Save", display: "button", run: runSave },
+		{ name: "save", label: "Save", display: "button", key: "Mod+S", run: saveFromHeader },
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
@@ -417,6 +417,12 @@ function toggleOnSidecar(
 			toast.error(errorMessage(e));
 		}
 	});
+}
+
+// Only a key, the palette or a script reaches Save on a clean doc, so it answers with the button's tooltip text.
+function saveFromHeader(page: RecordPageApi) {
+	if (!dirty.value) toast.info("No changes to save");
+	return runSave(page);
 }
 
 function toggleFavourite(page: RecordPageApi) {
@@ -898,15 +904,7 @@ onBeforeRouteUpdate((to, from) => {
 	return confirmLeave();
 });
 
-useSaveKeys({
-	// A key press is deliberate, so a clean doc answers with the button's tooltip text.
-	save: () => {
-		if (!controller.value) return;
-		if (!dirty.value) toast.info("No changes to save");
-		runSave(controller.value.page);
-	},
-	unsaved: () => dirty.value,
-});
+useUnloadGuard(() => dirty.value);
 
 onUnmounted(() => {
 	stopLanding();

@@ -1,5 +1,6 @@
 // The one act dispatcher: it runs an act by its full name, `<surface>.<item>`, whoever asks.
 // A page registers the surfaces it draws; the shell and the list page register theirs the same way.
+import { shallowReactive } from "vue";
 import { toast } from "frappe-ui";
 import { __ } from "@/i18n";
 
@@ -94,7 +95,7 @@ interface Found {
 }
 
 export class ActDispatcher {
-	private scopes = new Map<string, ActScope>();
+	private scopes = shallowReactive(new Map<string, ActScope>());
 
 	/** A later scope takes a surface name over; the returned function lets go of only its own. */
 	register(scope: ActScope): () => void {

@@ -1,20 +1,21 @@
-// Ctrl/Cmd+S on a record page with a dialog over it: a Create dialog saves itself, and the page never saves.
+// Ctrl/Cmd+S, the key of the page's Save act, with a dialog over the page: a Create dialog saves itself, and the page never saves.
 // The real Dialog draws each dialog in its portal; the server answers through a faked fetch.
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, type App, type Component } from "vue";
+import { createApp, defineComponent, h, nextTick, onUnmounted, type App, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 import { Addresses } from "@/addresses";
+import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { resetFormLayouts } from "@/recordPage";
 import { createPageDialogs } from "@/recordPage/dialog";
 import { registerShell } from "@/router/routeFor";
+import { ActKeys } from "@/shell/actKeys";
 import { closeCreates, createDialog, createRequests, openCreate, registerCreateDialog } from "@/shell/create";
 import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { resetSession, setSession } from "@framework/ui/useSession";
 import CreateDialog from "@/pages/create/CreateDialog.vue";
 import PageDialogs from "../dialogs/PageDialogs.vue";
-import { useSaveKeys } from "../recordSave";
 
 const META = {
 	name: "Lead",
@@ -76,15 +77,16 @@ async function settle() {
 	}
 }
 
-/** A record page's save keys, its own dialog stack and the shell's Create host, as the desk draws them. */
+/** A record page's Save act, its own dialog stack, the shell's Create host and act keys, as the desk draws them. */
 function mountRecordPage() {
 	const pageDialogs = createPageDialogs({ isReplaying: () => false, hold: async (work) => work() });
 	const Page = defineComponent({
 		setup() {
-			useSaveKeys({ save: pageSave, unsaved: () => true });
+			onUnmounted(registerSaveAct());
 			return () => [
 				h("main", [h("input", { name: "record-field" }), h(PageDialogs, { controller: { dialogs: pageDialogs.entries } })]),
 				createRequests.value.map((request) => h(createDialog() as Component, { key: request.id, request })),
+				h(ActKeys),
 			];
 		},
 	});
@@ -102,6 +104,17 @@ function mountRecordPage() {
 	app.mount(document.body.appendChild(document.createElement("div")));
 	apps.push(app);
 	return pageDialogs.api;
+}
+
+function registerSaveAct() {
+	return acts.register({
+		surfaces: { header: () => [{ item: { name: "save", label: "Save", key: "Mod+S", run: pageSave }, hidden: false }] },
+		context: () => ({}),
+		passes: () => true,
+		settled: () => undefined,
+		hold: async (work) => work(),
+		failed: () => {},
+	});
 }
 
 function focused() {

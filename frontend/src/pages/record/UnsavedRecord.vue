@@ -115,7 +115,7 @@ import { fetchMeta } from "./metaSource";
 import { provideRecordCommits } from "./recordCommits";
 import { saveRecord } from "./recordSource";
 import { projectRecordHeader } from "./recordHeaderProjection";
-import { runSave, useSaveKeys } from "./recordSave";
+import { runSave, useUnloadGuard } from "./recordSave";
 import { shownInDialog, stripTags } from "./saveResponse";
 
 const props = defineProps<{ doctype: string; query: LocationQuery }>();
@@ -289,7 +289,7 @@ function headerBuiltins(): HeaderItem[] {
 		},
 		{ name: "record", label: title.value, zone: "left", display: "crumb" },
 		{ name: "notSaved", label: __("Not Saved"), zone: "left", component: NotSavedBadge },
-		{ name: "save", label: __("Save"), display: "button", run: save },
+		{ name: "save", label: __("Save"), display: "button", key: "Mod+S", run: save },
 	];
 }
 
@@ -337,12 +337,7 @@ async function confirmLeave() {
 onBeforeRouteLeave(confirmLeave);
 onBeforeRouteUpdate((to, from) => openingKey(to) === openingKey(from) || confirmLeave());
 
-useSaveKeys({
-	save: () => {
-		if (controller.value) save(controller.value.page);
-	},
-	unsaved: () => dirty.value,
-});
+useUnloadGuard(() => dirty.value);
 
 onUnmounted(() => {
 	stopLanding();
