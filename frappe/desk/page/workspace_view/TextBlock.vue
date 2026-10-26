@@ -38,33 +38,34 @@ function with_user(text) {
 </template>
 
 <style scoped>
-/* legacy's workspace sizes, weights and inks */
+/* frappe-ui's type scale, mapped onto the h1-h6 classes stored text carries */
 .ws-text {
-	color: var(--ink-gray-5);
+	color: var(--ink-gray-7);
 	font-size: 14px;
-	line-height: 1.6;
+	line-height: 1.5;
+	letter-spacing: 0.02em;
 	overflow-wrap: anywhere;
 }
 
-.ws-text :deep(:is(.h1, .h2, .h3, .h4, .h5, .h6)) {
-	line-height: 1.2;
-	font-weight: 700;
-}
-
-.ws-text :deep(:is(.h1, .h2, .h3, .h6)) {
+.ws-text :deep(:is(.h1, .h2, .h3, .h4, .h5)) {
 	color: var(--ink-gray-9);
+	font-weight: 600;
+	line-height: 1.35;
 }
 
 .ws-text :deep(.h1) {
-	font-size: 28px;
+	font-size: 24px;
+	letter-spacing: 0.005em;
 }
 
 .ws-text :deep(.h2) {
-	font-size: 24px;
+	font-size: 20px;
+	letter-spacing: 0.005em;
 }
 
 .ws-text :deep(.h3) {
-	font-size: 20px;
+	font-size: 18px;
+	letter-spacing: 0.01em;
 }
 
 .ws-text :deep(.h4) {
@@ -73,17 +74,32 @@ function with_user(text) {
 
 .ws-text :deep(.h5) {
 	font-size: 14px;
+	color: var(--ink-gray-8);
 }
 
 .ws-text :deep(.h6) {
-	font-size: 11px;
+	color: var(--ink-gray-5);
+	font-size: 12px;
+	font-weight: 500;
+	line-height: 1.35;
 }
 
-.ws-text :deep(b) {
-	font-weight: 700;
+.ws-text :deep(:is(b, strong)) {
+	font-weight: 600;
+}
+
+.ws-text :deep(:is(.h1, .h2, .h3, .h4, .h5, .h6) :is(b, strong)) {
+	font-weight: inherit;
 }
 
 .ws-text :deep(a) {
+	color: var(--ink-gray-8);
 	text-decoration: underline;
+	text-decoration-color: var(--outline-gray-3);
+	text-underline-offset: 3px;
+}
+
+.ws-text :deep(a:hover) {
+	text-decoration-color: var(--ink-gray-5);
 }
 </style>
