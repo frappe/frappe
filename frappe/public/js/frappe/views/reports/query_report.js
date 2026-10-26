@@ -526,6 +526,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 								settings.custom_report_name
 							);
 							this.report_settings.html_format = settings.html_format;
+							this.report_settings.has_python_formatter =
+								settings.has_python_formatter;
 							this.report_settings.execution_time = settings.execution_time || 0;
 							frappe.query_reports[this.report_name] = this.report_settings;
 

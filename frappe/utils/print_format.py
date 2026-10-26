@@ -14,6 +14,7 @@ from frappe.desk.query_report import (
 	format_filter_value,
 	get_column_as_dict,
 	get_permitted_report_print_format,
+	get_report_doc,
 	normalize_result,
 	run,
 )
@@ -676,7 +677,7 @@ def _download_report_pdf(
 		if column.fieldname in masked_fields:
 			column.update(fieldtype="Data", options=None)
 	total_row = data.result.pop() if cint(data.add_total_row) and data.result else None
-	rows = normalize_result(data.result or [], report_columns)
+	rows = [frappe._dict(row) for row in normalize_result(data.result or [], report_columns)]
 
 	if visible_idx:
 		numbered_rows = [(index + 1, rows[index]) for index in visible_idx if 0 <= index < len(rows)]
@@ -707,8 +708,12 @@ def _download_report_pdf(
 		user_time_zone = ZoneInfo(
 			frappe.get_cached_value("User", frappe.session.user, "time_zone") or get_system_timezone()
 		)
+		first_row = numbered_rows[0][1] if numbered_rows else None
+		report_formatter = get_report_doc(report_name).get_formatter_from_module()
 
 		def format_value(value, column, row):
+			# frappe.format caches a field's currency per (doctype, name); totals use the first row's
+			doc = frappe._dict(first_row if row.is_total_row else row, doctype=report_name, name=id(row))
 			# reports put labels and placeholders in typed columns, e.g. "Opening" in a date column
 			try:
 				if column.fieldtype == "Datetime":
@@ -719,7 +724,7 @@ def _download_report_pdf(
 						.astimezone(user_time_zone)
 						.replace(tzinfo=None)
 					)
-				return frappe.format(value, column, row)
+				return frappe.format(value, column, doc)
 			except (frappe.ValidationError, ValueError, TypeError):
 				return value
 
@@ -746,9 +751,11 @@ def _download_report_pdf(
 				},
 				"columns": printed_columns,
 				"rows": numbered_rows,
-				"first_row": numbered_rows[0][1] if numbered_rows else None,
-				"row_doc": frappe._dict,
-				"format_value": format_value,
+				"format_value": (
+					lambda value, column, row: report_formatter(value, column, row, format_value)
+				)
+				if report_formatter
+				else format_value,
 				"link_titles": get_report_link_titles(printed_columns, [row for _, row in numbered_rows]),
 				"rows_per_table": REPORT_PDF_ROWS_PER_TABLE,
 				"numeric_fieldtypes": numeric_fieldtypes,
