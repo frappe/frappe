@@ -231,6 +231,8 @@ export interface MethodOptions extends CallOptions {
   http?: "GET" | "POST";
   /** The function returns nothing, so `data` is `null`. */
   nullable?: boolean;
+  /** The request outlives the page, for a write sent as the tab is hidden. */
+  keepalive?: boolean;
 }
 
 export type NullableMethodOptions = MethodOptions & { nullable: true };
@@ -248,11 +250,11 @@ export function runMethod<T = unknown>(
 export function runMethod<T = unknown>(
   method: string,
   args: Args = {},
-  { http = "POST", signal, nullable }: MethodOptions = {}
+  { http = "POST", signal, nullable, keepalive }: MethodOptions = {}
 ): Promise<Envelope<T | null>> {
   const path = `/method/${segment(method)}`;
   if (http === "GET") return request<T>("GET", path, { query: args, signal, nullable });
-  return request<T>("POST", path, { body: args, signal, nullable });
+  return request<T>("POST", path, { body: args, signal, nullable, keepalive });
 }
 
 export function runDocumentMethod<T = unknown>(
