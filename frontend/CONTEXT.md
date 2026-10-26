@@ -327,8 +327,8 @@ _Avoid_: deprecation (implies a period of continued working).
 
 **Act**: <a id="act"></a>
 Something the desk does when asked by name, by the palette, a script, a key or an LLM. It
-is a surface item that has `run`: a header item, a quick action, or a tab's `create` entry.
-Its full name is `<surface>.<item>` (`header.delete`, `tabs.attach_file`), and one
+is a surface item that has `run`: a header item, a quick action, a tab's `create` entry, or
+a list page built-in. Its full name is `<surface>.<item>` (`header.delete`, `list.create`), and one
 dispatcher runs it whoever calls, after it checks that the act is present, not hidden, and
 allowed by its `right`. A **held** act is a script's act that waits for the replay or hold
 to commit; *held* says when the act lands, it is not a second concept.
