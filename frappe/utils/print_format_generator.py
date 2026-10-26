@@ -1190,7 +1190,13 @@ class PrintFormatGenerator:
 		"""Join a Dynamic Text block's typed text and field values into one line."""
 		if df.get("fieldtype") != "Dynamic Text":
 			return
+		from html import unescape
+
 		from frappe.utils import escape_html, strip_html
+
+		def plain(value):
+			text = re.sub(r"<br\s*/?>|</(?:p|div|li)>", " ", cstr(value), flags=re.IGNORECASE)
+			return escape_html(" ".join(unescape(strip_html(text)).split()))
 
 		parts = []
 		for token in df.get("template") or []:
@@ -1200,11 +1206,9 @@ class PrintFormatGenerator:
 			elif "." in value:
 				resolved = self.resolve_linked_path(value)
 				if resolved:
-					parts.append(
-						escape_html(cstr(frappe.format_value(resolved[0], df=resolved[1], doc=self.doc)))
-					)
+					parts.append(plain(frappe.format_value(resolved[0], df=resolved[1], doc=self.doc)))
 			elif self.doc.meta.get_field(value) and self.has_field_access(self.doc, self.doc.meta, value):
-				parts.append(escape_html(strip_html(cstr(self.doc.get_formatted(value)))))
+				parts.append(plain(self.doc.get_formatted(value)))
 		df["_value"] = "".join(parts).strip()
 
 	def prepare_date_format(self, df):
