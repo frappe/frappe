@@ -41,6 +41,7 @@ class BackgroundTask(Document):
 		status: DF.Literal["Queued", "Running", "Completed", "Failed", "Cancelled"]
 		task_id: DF.Data
 		task_name: DF.Data
+		timeout: DF.Int
 		user: DF.Link
 	# end: auto-generated types
 
@@ -266,6 +267,7 @@ def retry_task(task_id: str):
 	frappe.enqueue(
 		_execute_task,
 		queue=task.queue or "default",
+		timeout=task.timeout or None,
 		job_id=task.job_id or task.task_id,
 		at_front=False,
 		task_id=task.task_id,
