@@ -5,13 +5,16 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot, NavigationItem } from "@/boot";
-import { registerContributions } from "@/contributions/registry";
+import { registerContributions, registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { generatedRoutes } from "@/router/generated";
 import { registerShell } from "@/router/routeFor";
 import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
+
+registerStandardPages(standardPages);
 
 const fake = vi.hoisted(() => ({ logout: vi.fn() }));
 

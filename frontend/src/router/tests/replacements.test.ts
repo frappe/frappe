@@ -5,12 +5,15 @@ import { isNavigationFailure, NavigationFailureType, RouterView } from "vue-rout
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
-import { registerContributions } from "@/contributions/registry";
+import { registerContributions, registerStandardPages } from "@/contributions/registry";
 import type { ReplacementContribution } from "@/contributions/types";
+import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { failedPage, resetFailedPage } from "@/router/failedPage";
 import { clearLoadedPages, loadedPage, mainPageFor, preloadMainPage } from "@/router/mainPage";
 import { registerShell, routeFor, urlFor } from "@/router/routeFor";
+
+registerStandardPages(standardPages);
 
 const setups = vi.hoisted(() => ({ count: 0, attrs: [] as object[] }));
 // Set by a test: the standard record page's leave and update guards refuse the navigation.

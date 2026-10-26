@@ -2,8 +2,7 @@
 import { defineAsyncComponent, type Component } from "vue";
 import type { RouteLocationNormalized } from "vue-router";
 import type { Addresses } from "@/addresses";
-import { replacementFor } from "@/contributions/registry";
-import { standardPages } from "./standardPages";
+import { replacementFor, standardPage } from "@/contributions/registry";
 
 type Loaded = { default?: Component } | Component;
 type Loader = () => Promise<unknown>;
@@ -21,7 +20,7 @@ export function mainPageFor(route: Route, addresses: Addresses) {
 	if ((key !== "list" && key !== "record") || !doctype) return null;
 
 	const declared = replacementFor(doctype, key);
-	if (!declared) return { loader: standardPages[key], props: null };
+	if (!declared) return { loader: standardPage(key), props: null };
 	const props = key === "record" ? { doctype, name: String(route.params.name) } : { doctype };
 	return { loader: declared.component, props };
 }

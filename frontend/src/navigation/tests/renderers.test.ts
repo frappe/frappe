@@ -5,12 +5,15 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot, NavigationItem } from "@/boot";
-import { itemRenderers, registerContributions } from "@/contributions/registry";
+import { itemRenderers, registerContributions, registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { generatedRoutes } from "@/router/generated";
 import { registerShell } from "@/router/routeFor";
 import { itemContext } from "../context";
 import { iconOf, renderingOf, labelOf, rendererFor, resetNavigationReports } from "../registry";
 import type { ItemContext, ItemRenderer } from "../types";
+
+registerStandardPages(standardPages);
 
 const addresses = new Addresses({
 	doctypes: {

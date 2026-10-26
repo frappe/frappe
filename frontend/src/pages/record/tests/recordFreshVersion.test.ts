@@ -39,10 +39,14 @@ import type { Boot } from "@/boot";
 import { resetClientScripts, watchClientScripts } from "@/recordPage/clientScripts";
 import { resetFormLayouts } from "@/recordPage/formLayoutSource/useFormLayout";
 import { resetRegistry } from "@/recordPage/registry";
+import { registerStandardPages } from "@/contributions/registry";
+import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell, routeFor } from "@/router/routeFor";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
 import { resetViewMemory } from "../viewMemory";
+
+registerStandardPages(standardPages);
 
 const OLD = "2026-09-25 10:00:00.000000";
 const NEW = "2026-09-25 11:00:00.000000";
