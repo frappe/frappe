@@ -235,6 +235,17 @@ commands.register({
 	},
 })
 
+// the same tab rule as clicking a block (StudioCanvas selectBlock); a restored
+// selection should land the user on the restored block's panel
+function refocusRightPanel() {
+	nextTick(() => {
+		const block = blockController.getSelectedBlocks()[0]
+		if (!block) return
+		store.studioLayout.rightPanelActiveTab =
+			block.isRoot() || block.isText() || block.isContainer() ? "Styles" : "Properties"
+	})
+}
+
 commands.register({
 	name: "undo",
 	title: "Undo",
@@ -244,7 +255,10 @@ commands.register({
 	keys: { combo: "Mod+Z", description: "Undo" },
 	action: () => {
 		const history = canvasStore.activeCanvas?.history
-		if (history?.canUndo()) history.undo()
+		if (history?.canUndo()) {
+			history.undo()
+			refocusRightPanel()
+		}
 	},
 })
 
@@ -257,6 +271,9 @@ commands.register({
 	keys: { combo: "Mod+Shift+Z", description: "Redo" },
 	action: () => {
 		const history = canvasStore.activeCanvas?.history
-		if (history?.canRedo()) history.redo()
+		if (history?.canRedo()) {
+			history.redo()
+			refocusRightPanel()
+		}
 	},
 })

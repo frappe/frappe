@@ -136,6 +136,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import { getBlockInfo } from "@/utils/helpers"
 import setPanAndZoom from "@/utils/panAndZoom"
 import Block from "@/utils/block"
+import { revealVariantOption } from "@/utils/variants"
 import { useCanvasDropZone } from "@/utils/useCanvasDropZone"
 import { useCanvasUtils } from "@/utils/useCanvasUtils"
 import type { BreakpointConfig, CanvasHistory } from "@/types/StudioCanvas"
@@ -256,6 +257,7 @@ function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 		toggleBlockSelection(block)
 	} else {
 		selectBlockById(block.componentId)
+		revealVariantOption(block)
 		// family-specific selection behavior (e.g. selecting a nav item activates its tab)
 		Block.getComponents()?.[block.componentName]?.onSelect?.(block)
 	}

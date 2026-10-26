@@ -76,6 +76,7 @@ import Repeater from "@/components/AppLayout/Repeater.vue"
 import HTML from "@/components/AppLayout/HTML.vue"
 import ImageView from "@/components/AppLayout/ImageView.vue"
 import TextBlock from "@/components/AppLayout/TextBlock.vue"
+import Variants from "@/components/AppLayout/Variants.vue"
 
 export function registerGlobalComponents(app: App) {
 	app.component("Alert", Alert)
@@ -256,4 +257,5 @@ export function registerGlobalComponents(app: App) {
 	app.component("HTML", HTML)
 	app.component("ImageView", ImageView)
 	app.component("TextBlock", TextBlock)
+	app.component("Variants", Variants)
 }

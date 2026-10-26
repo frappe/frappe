@@ -14,6 +14,7 @@ export const familyTemplates = {
 	"sidebar-label": sidebarLabelTemplate,
 	"sidebar-rail": sidebarRailTemplate,
 	"radio-group": radioGroupTemplate,
+	variants: variantsTemplate,
 	"bar-chart": () =>
 		chartTemplate("BarChart", { title: "Monthly Sales", data: MONTHLY_SALES, x: "month", y: ["sales", "target"] }),
 	"line-chart": () =>
@@ -475,6 +476,31 @@ function textBlock(
 		componentName: "TextBlock",
 		baseStyles: styles,
 		componentProps: { text, tag: "span", ...(fontSize && { fontSize }) },
+	}
+}
+
+// One container per option; the Variants block renders the one the URL (?v=) picks.
+function variantsTemplate(): BlockOptions {
+	return {
+		componentName: "Variants",
+		componentProps: { name: "Variant", options: ["Option A", "Option B"] },
+		children: [variantOption("Option A"), variantOption("Option B")],
+	}
+}
+
+function variantOption(label: string): BlockOptions {
+	return {
+		componentName: "container",
+		blockName: label.toLowerCase().replace(/\s+/g, "-"),
+		baseStyles: {
+			display: "flex",
+			flexDirection: "column",
+			gap: "8px",
+			height: "auto",
+			width: "100%",
+			padding: "12px",
+		} as BlockStyleMap,
+		children: [textBlock(`${label} content`)],
 	}
 }
 

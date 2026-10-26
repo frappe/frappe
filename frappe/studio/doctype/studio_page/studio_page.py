@@ -372,6 +372,18 @@ class StudioPage(Document):
 			self.blocks = self.draft_blocks
 			self.draft_blocks = None
 		self.save()
+		return {"unresolved_variants": self.unresolved_variants()}
+
+	def unresolved_variants(self) -> list[str]:
+		"""Names of Variants blocks the published page still carries: drafts nobody resolved
+		with Keep, served to viewers as their first option."""
+		blocks = parse_json(self.blocks) or []
+		if not blocks:
+			return []
+		return [
+			(block.get("componentProps") or {}).get("name") or "Variant"
+			for block in collect_variants_blocks(blocks[0])
+		]
 
 	@frappe.whitelist()
 	def unpublish(self):
@@ -448,6 +460,67 @@ class StudioPage(Document):
 def get_blocks(page) -> list[dict]:
 	"""The published and draft blocks of a page together"""
 	return [*(parse_json(page.blocks) or []), *(parse_json(page.draft_blocks) or [])]
+
+
+@frappe.whitelist()
+def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int) -> None:
+	"""Collapse a Variants block to its chosen child and delete the other options — the viewer
+	pill's "Keep". Applied to every copy of the block (draft and published), so what the
+	reviewer sees is what remains."""
+	frappe.has_permission("Studio Page", ptype="write", throw=True)
+	page = get_app_page(app_name, page_name)
+	option_index = frappe.utils.cint(option_index)
+
+	kept = False
+	for field in ("draft_blocks", "blocks"):
+		blocks = parse_json(page.get(field)) or []
+		if blocks and replace_variants_block(blocks[0], str(block_id), option_index):
+			page.set(field, frappe.as_json(blocks, indent=None))
+			kept = True
+	if not kept:
+		frappe.throw(_("This page has no variants block {0}.").format(block_id))
+
+	page._skip_validate = True
+	page.save()
+
+
+def replace_variants_block(block: dict, block_id: str, option_index: int) -> bool:
+	"""Swap the matching Variants child for its chosen option, anywhere in the tree."""
+	for children in child_lists(block):
+		for index, child in enumerate(children):
+			if (
+				isinstance(child, dict)
+				and child.get("componentName") == "Variants"
+				and child.get("componentId") == block_id
+			):
+				options = child.get("children") or []
+				if not options:
+					return False
+				children[index] = options[min(option_index, len(options) - 1)]
+				return True
+			if isinstance(child, dict) and replace_variants_block(child, block_id, option_index):
+				return True
+	return False
+
+
+def collect_variants_blocks(block: dict):
+	"""Every Variants block under a block, depth first."""
+	for children in child_lists(block):
+		for child in children:
+			if not isinstance(child, dict):
+				continue
+			if child.get("componentName") == "Variants":
+				yield child
+			yield from collect_variants_blocks(child)
+
+
+def child_lists(block: dict):
+	"""Every list of child blocks under a block: children, plus each slot's content."""
+	if isinstance(block.get("children"), list):
+		yield block["children"]
+	for slot in (block.get("componentSlots") or {}).values():
+		if isinstance(slot, dict) and isinstance(slot.get("slotContent"), list):
+			yield slot["slotContent"]
 
 
 def get_app_page(app_name: str, page_name: str) -> "StudioPage":

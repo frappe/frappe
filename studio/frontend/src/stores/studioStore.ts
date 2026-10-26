@@ -438,7 +438,13 @@ const useStudioStore = defineStore("store", () => {
 					},
 				},
 			)
-			.then(async () => {
+			.then(async (response: any) => {
+				const unresolved: string[] = response?.message?.unresolved_variants || []
+				if (unresolved.length) {
+					toast.warning("Published with unresolved variants", {
+						description: `${unresolved.join(", ")} — open the page and use Keep to settle on one option.`,
+					})
+				}
 				const buildError = await generateAppBuild()
 				activePage.value = await fetchPage(selectedPage.value!)
 				if (!activeApp.value || !activePage.value) return

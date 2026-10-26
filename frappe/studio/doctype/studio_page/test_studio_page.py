@@ -17,7 +17,7 @@ from frappe.studio.doctype.studio_page.copy_paste_handler import (
 	paste_data_source,
 	paste_page,
 )
-from frappe.studio.doctype.studio_page.studio_page import get_page
+from frappe.studio.doctype.studio_page.studio_page import get_page, keep_variant
 from frappe.studio.export import remove_empty_values
 from frappe.tests import IntegrationTestCase
 
@@ -55,6 +55,59 @@ def make_page_with_data(app_name: str):
 
 
 class TestStudioPage(IntegrationTestCase):
+	def test_keep_variant_collapses_the_block_to_the_chosen_option(self):
+		app = make_studio_app(app_name="variants-" + frappe.generate_hash(length=8))
+		blocks = [
+			{
+				"componentId": "root",
+				"componentName": "div",
+				"children": [
+					{
+						"componentId": "Variants-hero",
+						"componentName": "Variants",
+						"componentProps": {"name": "Hero", "options": ["A", "B"]},
+						"children": [
+							{"componentId": "option-a", "componentName": "container", "children": []},
+							{"componentId": "option-b", "componentName": "container", "children": []},
+						],
+					}
+				],
+			}
+		]
+		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/variants")
+
+		keep_variant(app.name, page.name, "Variants-hero", 1)
+
+		kept = frappe.parse_json(frappe.db.get_value("Studio Page", page.name, "blocks"))
+		self.assertEqual(kept[0]["children"][0]["componentId"], "option-b")
+		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "missing-block", 0)
+
+	def test_publish_reports_unresolved_variants(self):
+		app = make_studio_app(app_name="variants-" + frappe.generate_hash(length=8))
+		blocks = [
+			{
+				"componentId": "root",
+				"componentName": "div",
+				"children": [
+					{
+						"componentId": "Variants-hero",
+						"componentName": "Variants",
+						"componentProps": {"name": "Hero", "options": ["A", "B"]},
+						"children": [
+							{"componentId": "option-a", "componentName": "container", "children": []},
+							{"componentId": "option-b", "componentName": "container", "children": []},
+						],
+					}
+				],
+			}
+		]
+		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/variant-drafts")
+		self.assertEqual(page.publish()["unresolved_variants"], ["Hero"])
+
+		keep_variant(app.name, page.name, "Variants-hero", 0)
+		page.reload()
+		self.assertEqual(page.publish()["unresolved_variants"], [])
+
 	def test_page_title_must_scrub_to_a_single_folder_name(self):
 		app = make_studio_app(app_name="title-" + frappe.generate_hash(length=8))
 		self.assertRaises(frappe.ValidationError, make_studio_page, app.name, page_title="../../outside")
