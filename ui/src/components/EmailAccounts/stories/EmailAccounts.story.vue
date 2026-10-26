@@ -12,11 +12,7 @@
 			/>
 		</div>
 		<div class="h-[640px] rounded-4 border border-outline-gray-2 px-10 py-8">
-			<EmailAccounts
-				:key="`${cloud}-${empty}-${landings}`"
-				doctype="ToDo"
-				@created="(...a) => log('created', a)"
-			/>
+			<EmailAccounts :key="`${cloud}-${empty}-${landings}`" doctype="ToDo" />
 		</div>
 	</div>
 </template>
@@ -103,8 +99,6 @@ const accounts: EmailAccountDoc[] = [
 	},
 ];
 
-const log = (...args: unknown[]) => console.log("[EmailAccounts]", ...args);
-
 // sign-in lands on the page with these in the URL; the panel reads them when it mounts
 function land(code: string | number | null) {
 	const url = new URL(location.href);
@@ -125,14 +119,9 @@ const answers: Record<string, (args: Args) => unknown> = {
 				Object.assign(a, { [fieldname]: a.name === name ? value : 0 });
 	},
 	get_one_click_services: () => (cloud.value ? { "Outlook.com": "Outlook" } : {}),
-	initiate_mailbox_connect: (args) => {
-		log("connect", args);
-		return args.email_account || args.service === "Outlook.com" ? "#" : null;
-	},
-	run_doc_method: (args) => {
-		log("reconnect", args);
-		return "#";
-	},
+	initiate_mailbox_connect: (args) =>
+		args.email_account || args.service === "Outlook.com" ? "#" : null,
+	run_doc_method: () => "#",
 };
 
 // the panel fetches from Frappe itself, so the story answers its requests
