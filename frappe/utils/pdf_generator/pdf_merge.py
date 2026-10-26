@@ -97,22 +97,21 @@ class PDFTransformer:
 				else:
 					p.merge_page(footer.pages[0])
 
-		if output:
-			output.append_pages_from_reader(body)
-			return output
-
-		writer = PdfWriter()
+		writer = output or PdfWriter()
+		first_new_page = len(writer.pages)
 		writer.append_pages_from_reader(body)
+		for page in writer.pages[first_new_page:]:
+			page.compress_content_streams()
 
-		return self.get_file_data_from_writer(writer)
+		return output or self.get_file_data_from_writer(writer)
 
 	def _transform(self, page, page_top, ty):
-		from pypdf import PdfWriter, Transformation
 		from pypdf.generic import FloatObject
 
-		transform = Transformation().translate(ty=ty)
 		page.mediabox.upper_right = (page.mediabox.right, page_top)
-		page.add_transformation(transform)
+		content = page.get_contents()
+		content.set_data(f"q 1 0 0 1 0 {FloatObject(ty)} cm\n".encode() + content.get_data() + b"\nQ")
+		page.replace_contents(content)
 		for annotation in page.get("/Annots", []):
 			annotation = annotation.get_object()
 			for key in ("/Rect", "/QuadPoints"):

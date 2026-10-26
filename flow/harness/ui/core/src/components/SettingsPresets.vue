@@ -4,7 +4,7 @@
 		<div class="min-h-0 flex-1 overflow-y-auto px-4 pt-3 sm:px-8 md:pt-8">
 			<div class="flex items-center gap-2">
 				<button v-if="!headerBack" class="flow-icon-btn -my-1 -ml-1.5" title="Back to presets" @click="back">
-					<FeatherIcon name="arrow-left" class="h-4 w-4" />
+					<span class="lucide-arrow-left size-4" aria-hidden="true" />
 				</button>
 				<h2 class="text-base font-semibold text-ink-gray-9">{{ draft.default ? "Standard preset" : draft.id ? "Edit preset" : "New preset" }}</h2>
 			</div>
@@ -100,7 +100,7 @@
 					</span>
 				</button>
 				<button class="flow-icon-btn" title="Edit preset" @click="row.preset ? edit(row.preset) : editDefault()">
-					<FeatherIcon name="edit" class="h-4 w-4" />
+					<span class="lucide-square-pen size-4" aria-hidden="true" />
 				</button>
 			</div>
 		</div>
@@ -116,7 +116,6 @@ import { Checkbox } from "frappe-ui/src/components/Checkbox"
 import { TextInput } from "frappe-ui/src/components/TextInput"
 import { Textarea } from "frappe-ui/src/components/Textarea"
 import { dialog } from "frappe-ui/src/utils/dialog"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { layout } from "../layout.js"
 import { useSettingsBack } from "../settingsBack.js"

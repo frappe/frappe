@@ -71,6 +71,7 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
+		paper_size: DF.Literal["", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm"]
 		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check

@@ -23,10 +23,10 @@
 				<span class="min-w-0 truncate">
 					{{ agent.title }}
 				</span>
-				<FeatherIcon
+				<span
 					v-if="agent.name === current"
-					name="check"
-					class="ml-auto h-4 w-4 flex-none"
+					class="lucide-check ml-auto size-4 flex-none"
+					aria-hidden="true"
 				/>
 			</button>
 			<div v-if="!options.length" class="flow-palette-empty">No agents found</div>
@@ -36,7 +36,6 @@
 
 <script setup>
 import { computed, inject, toRef } from "vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 

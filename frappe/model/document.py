@@ -1223,19 +1223,14 @@ class Document(_DocumentBase):
 		):
 			existing_row_names = [row.name for row in all_rows if row.name and not row.is_new()]
 
-			tbl = frappe.qb.DocType(df.options)
-			qry = (
-				frappe.qb.from_(tbl)
-				.where(tbl.parent == str(self.name))
-				.where(tbl.parenttype == self.doctype)
-				.where(tbl.parentfield == fieldname)
-				.delete()
-			)
+			from frappe.utils.password import delete_child_row_passwords
 
+			removed_rows = {"parent": str(self.name), "parenttype": self.doctype, "parentfield": fieldname}
 			if existing_row_names:
-				qry = qry.where(tbl.name.notin(existing_row_names))
+				removed_rows["name"] = ("not in", existing_row_names)
 
-			qry.run()
+			delete_child_row_passwords(df.options, removed_rows)
+			frappe.db.delete(df.options, removed_rows)
 
 		# update / insert
 		for d in all_rows:
@@ -1286,6 +1281,8 @@ class Document(_DocumentBase):
 		"""Calls `frappe.naming.set_new_name` for parent and child docs."""
 
 		if self.flags.name_set and not force:
+			if set_child_names:
+				self.set_name_in_children()
 			return
 
 		autoname = self.meta.autoname or ""
@@ -1293,10 +1290,7 @@ class Document(_DocumentBase):
 		# If autoname has set as Prompt (name)
 		if self.get("__newname") and autoname.lower() == "prompt":
 			self.name = validate_name(self.doctype, self.get("__newname"))
-			self.flags.name_set = True
-			return
-
-		if set_name:
+		elif set_name:
 			self.name = validate_name(self.doctype, set_name)
 		else:
 			set_new_name(self)

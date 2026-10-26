@@ -11,7 +11,7 @@ from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
-from frappe.permissions import get_doctypes_with_read
+from frappe.permissions import get_cached_doctypes_with_read, get_doctypes_with_read
 from frappe.query_builder.functions import Date, UnixTimestamp
 from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
@@ -79,11 +79,10 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-		if doc.report_name in DeskViews.get_allowed_report_names(user=user):
+		if doc.report_name in DeskViews.get_cached_allowed_report_names(user):
 			return True
 	else:
-		allowed_doctypes = get_doctypes_with_read(user)
-		if doc.document_type in allowed_doctypes:
+		if doc.document_type in get_cached_doctypes_with_read(user):
 			return True
 
 	return False

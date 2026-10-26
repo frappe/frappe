@@ -14,7 +14,7 @@
 				title="Close"
 				@click="emit('close')"
 			>
-				<FeatherIcon name="x" class="h-4 w-4" />
+				<span class="lucide-x size-4" aria-hidden="true" />
 			</button>
 		</div>
 	</Teleport>
@@ -22,7 +22,6 @@
 
 <script setup>
 import { onBeforeUnmount, onMounted, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 defineProps({
 	src: { type: String, required: true },

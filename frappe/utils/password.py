@@ -242,6 +242,15 @@ def delete_all_passwords_for(doctype, name):
 			raise
 
 
+def delete_child_row_passwords(child_doctype: str, filters: dict):
+	"""Delete stored passwords of the `child_doctype` rows matching `filters`, before the rows are deleted."""
+	if not frappe.get_meta(child_doctype).get("fields", {"fieldtype": "Password"}):
+		return
+
+	if names := frappe.get_all(child_doctype, filters=filters, pluck="name"):
+		frappe.db.delete("__Auth", {"doctype": child_doctype, "name": ("in", names)})
+
+
 def rename_password(doctype, old_name, new_name):
 	# NOTE: fieldname is not considered, since the document is renamed
 	frappe.qb.update(Auth).set(Auth.name, new_name).where(

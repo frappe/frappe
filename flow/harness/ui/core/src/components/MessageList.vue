@@ -92,7 +92,7 @@
 					v-else-if="item.kind === 'compaction'"
 					class="flex items-center gap-2.5 text-sm text-ink-gray-5"
 				>
-					<FeatherIcon name="archive" class="h-3.5 w-3.5 flex-none" />
+					<span class="lucide-archive size-3.5 flex-none" aria-hidden="true" />
 					<span>Context compacted ({{ item.entry.reason }})</span>
 				</div>
 				<div
@@ -146,12 +146,12 @@
 
 	<button
 		v-if="!stick && !empty"
-		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 shadow-md hover:text-ink-gray-9"
+		class="absolute left-1/2 z-10 grid h-8 w-8 -translate-x-1/2 place-items-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-6 hover:text-ink-gray-9"
 		:style="{ bottom: composerHeight + 12 + 'px' }"
 		title="Scroll to bottom"
 		@click="toBottom"
 	>
-		<FeatherIcon name="arrow-down" class="h-4 w-4" />
+		<span class="lucide-arrow-down size-4" aria-hidden="true" />
 	</button>
 	<!-- a read-only chat has no composer to quote into -->
 	<AddToChat v-if="!flow.state.session?.read_only" :within="scroller" />
@@ -160,7 +160,6 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildItems, formatTime, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
 import AddToChat from "./AddToChat.vue"

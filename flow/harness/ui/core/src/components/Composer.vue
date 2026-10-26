@@ -36,11 +36,20 @@
 						</div>
 						<button data-palette-item class="flow-palette-row" @click="pick(m)">
 							<!-- skills go without: their section names them -->
-							<FeatherIcon v-if="!m.skill" :name="m.icon" class="h-4 w-4 flex-none" />
+							<span
+								v-if="!m.skill"
+								class="size-4 flex-none"
+								:class="m.icon"
+								aria-hidden="true"
+							/>
 							<span class="max-w-[40%] flex-none truncate">{{ m.label }}</span>
 							<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ m.hint }}</span>
 							<!-- a command that opens another list says so -->
-							<FeatherIcon v-if="m.stacked" name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
+							<span
+								v-if="m.stacked"
+								class="lucide-chevron-right flow-palette-hint size-4 flex-none"
+								aria-hidden="true"
+							/>
 						</button>
 					</template>
 					<div v-if="!menuItems.length" class="flow-palette-empty">
@@ -87,7 +96,7 @@
 						:disabled="disabled"
 						@click="steerQueued(item)"
 					>
-						<FeatherIcon name="corner-down-left" class="h-3 w-3" />
+						<span class="lucide-corner-down-left size-3" aria-hidden="true" />
 						{{ running ? "Steer" : "Send" }}
 					</button>
 					<button
@@ -96,7 +105,7 @@
 						:disabled="disabled"
 						@click="dropQueued(item)"
 					>
-						<FeatherIcon name="x" class="h-3 w-3" />
+						<span class="lucide-x size-3" aria-hidden="true" />
 					</button>
 				</div>
 			</div>
@@ -107,7 +116,7 @@
 			<div
 				v-if="$slots.start ? starting : startCwd"
 				ref="startRow"
-				class="start-row absolute bottom-full left-0 mb-1.5 flex min-w-0 max-w-full items-center gap-3 px-[9px] text-xs text-ink-gray-7 max-md:gap-1 dark:text-ink-gray-8"
+				class="start-row absolute bottom-full left-0 mb-1.5 flex min-w-0 max-w-full items-center gap-1 px-[9px] text-xs text-ink-gray-7 dark:text-ink-gray-8"
 			>
 				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
 				<slot name="start" :insert="replaceSlash">
@@ -117,11 +126,11 @@
 						:disabled="disabled"
 						@click="chooseFolder"
 					>
-						<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none" />
+						<span class="lucide-folder size-3.5 flex-none" aria-hidden="true" />
 						<span class="truncate">{{ flow.folderName(startCwd) }}</span>
 					</button>
 					<span v-if="git" class="hidden min-w-0 items-center gap-1.5 px-1.5 sm:flex" title="Branch">
-						<FeatherIcon name="git-branch" class="h-3.5 w-3.5 flex-none" />
+						<span class="lucide-git-branch size-3.5 flex-none" aria-hidden="true" />
 						<span class="truncate">{{ git.branch }}</span>
 						<!-- a linked worktree says so, as quietly as the model button's thinking level -->
 						<template v-if="git.worktree">
@@ -143,7 +152,10 @@
 					class="flex w-full items-center gap-2.5 rounded-6 border border-dashed border-outline-gray-3 bg-surface-gray-1 px-2.5 py-2 text-left hover:bg-surface-gray-2"
 					@click="chooseFolder"
 				>
-					<FeatherIcon name="folder" class="h-3.5 w-3.5 flex-none text-ink-gray-5" />
+					<span
+						class="lucide-folder size-3.5 flex-none text-ink-gray-5"
+						aria-hidden="true"
+					/>
 					<span class="min-w-0 flex-1 text-xs font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
 					<span class="flex-none text-2xs font-medium text-ink-gray-6">Browse…</span>
 				</button>
@@ -158,16 +170,19 @@
 							<img :src="item.previewUrl" :alt="item.name" class="h-full w-full object-cover" />
 						</button>
 						<button
-							class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 shadow-sm opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
+							class="absolute right-1 top-1 grid h-5 w-5 place-items-center rounded-full border border-outline-gray-2 bg-surface-base/90 text-ink-gray-6 opacity-90 backdrop-blur-sm transition hover:bg-surface-gray-2 hover:text-ink-gray-9 group-hover/attachment:opacity-100"
 							title="Remove attachment"
 							:aria-label="`Remove ${item.name}`"
 							:disabled="locked"
 							@click="removeAttachment(i)"
 						>
-							<FeatherIcon name="x" class="h-3 w-3" />
+							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 						<span v-if="item.preparing" class="pointer-events-none absolute bottom-1 left-1 rounded bg-surface-base/90 p-1" :aria-label="`Preparing ${item.name}`" role="status">
-							<FeatherIcon name="loader" class="h-3.5 w-3.5 animate-spin" />
+							<span
+								class="lucide-loader-circle size-3.5 animate-spin"
+								aria-hidden="true"
+							/>
 						</span>
 					</figure>
 				</div>
@@ -178,25 +193,32 @@
 						:class="chipClass"
 						:title="`${ref.rel}:${ref.start}-${ref.end}`"
 					>
-						<span :class="chipIconClass"><FeatherIcon name="code" class="h-3.5 w-3.5" /></span>
+						<span :class="chipIconClass"><span class="lucide-code size-3.5" aria-hidden="true" /></span>
 						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
 						<button :class="chipRemoveClass" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)">
-							<FeatherIcon name="x" class="h-3 w-3" />
+							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
-						<span :class="chipIconClass"><FeatherIcon name="align-left" class="h-3.5 w-3.5" /></span>
+						<span :class="chipIconClass"><span class="lucide-align-left size-3.5" aria-hidden="true" /></span>
 						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
 						<button :class="chipRemoveClass" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)">
-							<FeatherIcon name="x" class="h-3 w-3" />
+							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 					</span>
 					<span v-for="{ item, i } in fileChips" :key="item.key" :class="chipClass" :title="item.name">
 						<span v-if="item.preparing" :class="chipIconClass" :aria-label="`Preparing ${item.name}`" role="status">
-							<FeatherIcon name="loader" class="h-3.5 w-3.5 animate-spin" />
+							<span
+								class="lucide-loader-circle size-3.5 animate-spin"
+								aria-hidden="true"
+							/>
 						</span>
 						<span v-else :class="chipIconClass">
-							<FeatherIcon :name="item.kind === 'image' ? 'image' : 'file-text'" class="h-3.5 w-3.5" />
+							<span
+								class="size-3.5"
+								:class="item.kind === 'image' ? 'lucide-image' : 'lucide-file-text'"
+								aria-hidden="true"
+							/>
 						</span>
 						<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
 						<button
@@ -206,7 +228,7 @@
 							:disabled="locked"
 							@click="removeAttachment(i)"
 						>
-							<FeatherIcon name="x" class="h-3 w-3" />
+							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 					</span>
 				</div>
@@ -265,7 +287,7 @@
 						:disabled="locked"
 						@click="openFilePicker"
 					>
-						<FeatherIcon name="plus" class="h-4 w-4" />
+						<span class="lucide-plus size-4" aria-hidden="true" />
 					</button>
 
 					<!-- approval mode; its list hangs from it. A narrow frame shows the mode as its icon,
@@ -279,13 +301,18 @@
 							:aria-expanded="modeMenu"
 							@click="modeMenu ? closeModeMenu() : (modeMenu = true)"
 						>
-							<FeatherIcon v-if="layout.narrow" :name="MODE_ICONS[currentMode] ?? 'lock'" class="h-4 w-4" />
+							<span
+								v-if="layout.narrow"
+								class="size-4"
+								:class="MODE_ICONS[currentMode] ?? 'lucide-lock'"
+								aria-hidden="true"
+							/>
 							<template v-else>
 								{{ modeLabel }}
-								<FeatherIcon
-									name="chevron-down"
-									class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+								<span
+									class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 									:class="modeMenu ? 'rotate-180' : ''"
+									aria-hidden="true"
 								/>
 							</template>
 						</button>
@@ -301,12 +328,21 @@
 									class="flow-palette-row h-auto rounded-[16px] py-1.5"
 									@click="chooseMode(m.id)"
 								>
-									<FeatherIcon v-if="layout.narrow" :name="MODE_ICONS[m.id] ?? 'lock'" class="h-4 w-4 flex-none" />
+									<span
+										v-if="layout.narrow"
+										class="size-4 flex-none"
+										:class="MODE_ICONS[m.id] ?? 'lucide-lock'"
+										aria-hidden="true"
+									/>
 									<span class="min-w-0 flex-1">
 										<span class="block truncate">{{ m.label }}</span>
 										<span class="flow-palette-hint block text-xs leading-snug">{{ m.desc }}</span>
 									</span>
-									<FeatherIcon v-if="currentMode === m.id" name="check" class="h-4 w-4 flex-none" />
+									<span
+										v-if="currentMode === m.id"
+										class="lucide-check size-4 flex-none"
+										aria-hidden="true"
+									/>
 								</button>
 							</div>
 						</PalettePanel>
@@ -321,7 +357,7 @@
 
 					<button
 						v-if="running && !submitting"
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base shadow-sm hover:opacity-90"
+						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 bg-surface-gray-10 text-ink-base hover:opacity-90"
 						title="Stop"
 						@click="flow.abort()"
 					>
@@ -329,7 +365,7 @@
 					</button>
 					<button
 						v-else
-						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6 shadow-sm"
+						class="ml-1 grid h-8 w-8 flex-none place-items-center rounded-6"
 						:class="
 							canSend || submitting
 								? 'bg-surface-gray-10 text-ink-base hover:opacity-90'
@@ -340,8 +376,12 @@
 						:aria-busy="submitting"
 						@click="submit"
 					>
-						<FeatherIcon v-if="submitting" name="loader" class="h-4 w-4 animate-spin" />
-						<FeatherIcon v-else name="arrow-up" class="h-4 w-4" />
+						<span
+							v-if="submitting"
+							class="lucide-loader-circle size-4 animate-spin"
+							aria-hidden="true"
+						/>
+						<span v-else class="lucide-arrow-up size-4" aria-hidden="true" />
 					</button>
 				</div>
 			</fieldset>
@@ -352,7 +392,6 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 import { dialogs as frappeDialogs } from "frappe-ui/src/utils/dialog"
 
 import { layout } from "../layout.js"
@@ -692,16 +731,16 @@ async function chooseFolder() {
 }
 
 const COMMANDS = [
-	{ name: "model", label: "Model", icon: "cpu", hint: "Choose the model", stacked: true, run: () => (paletteView.value = "models") },
-	{ name: "thinking", label: "Thinking", icon: "zap", hint: "Set the reasoning effort", stacked: true, run: () => (paletteView.value = "thinking") },
-	{ name: "providers", label: "Providers", icon: "key", hint: "Connect model providers", stacked: true, run: () => (paletteView.value = "providers") },
-	{ name: "transcript", label: "Transcript", icon: "list", hint: "Every step and what it cost in tokens", run: () => flow.setTranscriptOpen(true) },
-	{ name: "new", label: "New chat", icon: "plus", hint: "Start a fresh conversation", run: () => flow.startNewChat() },
-	{ name: "rewind", label: "Rewind", icon: "rotate-ccw", hint: "Branch from before your last message", run: rewind },
-	{ name: "compact", label: "Compact", icon: "minimize-2", hint: "Summarize and shrink context", run: () => flow.compact() },
-	{ name: "reload", label: "Reload extensions", icon: "refresh-cw", hint: "Re-import server extensions", run: () => flow.reloadExtensions() },
-	{ name: "abort", label: "Abort", icon: "square", hint: "Interrupt the running turn", run: () => flow.abort() },
-	{ name: "settings", label: "Settings", icon: "settings", hint: "Custom instructions, defaults and theme", run: () => flow.setSettingsOpen(true) },
+	{ name: "model", label: "Model", icon: "lucide-cpu", hint: "Choose the model", stacked: true, run: () => (paletteView.value = "models") },
+	{ name: "thinking", label: "Thinking", icon: "lucide-zap", hint: "Set the reasoning effort", stacked: true, run: () => (paletteView.value = "thinking") },
+	{ name: "providers", label: "Providers", icon: "lucide-key", hint: "Connect model providers", stacked: true, run: () => (paletteView.value = "providers") },
+	{ name: "transcript", label: "Transcript", icon: "lucide-list", hint: "Every step and what it cost in tokens", run: () => flow.setTranscriptOpen(true) },
+	{ name: "new", label: "New chat", icon: "lucide-plus", hint: "Start a fresh conversation", run: () => flow.startNewChat() },
+	{ name: "rewind", label: "Rewind", icon: "lucide-rotate-ccw", hint: "Branch from before your last message", run: rewind },
+	{ name: "compact", label: "Compact", icon: "lucide-minimize-2", hint: "Summarize and shrink context", run: () => flow.compact() },
+	{ name: "reload", label: "Reload extensions", icon: "lucide-refresh-cw", hint: "Re-import server extensions", run: () => flow.reloadExtensions() },
+	{ name: "abort", label: "Abort", icon: "lucide-square", hint: "Interrupt the running turn", run: () => flow.abort() },
+	{ name: "settings", label: "Settings", icon: "lucide-settings", hint: "Custom instructions, defaults and theme", run: () => flow.setSettingsOpen(true) },
 	// typed only, "/cwd <path>": the way in that the folder notice names on a host with no folder dialog
 	{ name: "cwd", hidden: true, run: cwdCommand },
 ]
@@ -722,7 +761,7 @@ const skillCommands = computed(() =>
 	(skillsEnabled.value ? flow.state.skills ?? [] : []).map((skill) => ({
 		name: `skill:${skill.name}`,
 		label: skill.name,
-		icon: "book-open",
+		icon: "lucide-book-open",
 		hint: skill.description,
 		skill: true,
 	})),
@@ -814,7 +853,7 @@ const currentMode = computed(() => {
 })
 const modeLabel = computed(() => props.modes.find((m) => m.id === currentMode.value)?.label ?? currentMode.value)
 // a narrow frame's mode button: tools locked behind a yes, or unlocked
-const MODE_ICONS = { ask: "lock", auto: "unlock" }
+const MODE_ICONS = { ask: "lucide-lock", auto: "lucide-lock-open" }
 
 const currentModel = computed(() => flow.state.conversation.model ?? flow.state.prefs.lastModel)
 const currentImageSupport = computed(() => {
