@@ -221,6 +221,19 @@ class TestPdf(IntegrationTestCase):
 		pdf = pdfgen.get_chrome_pdf(None, "<p>body text</p>", {}, None, pdf_generator="chrome")
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
 
+	def test_pages_merged_with_header_and_footer_are_compressed(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_chrome_pdf(
+			None,
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>',
+			{},
+			None,
+			pdf_generator="chrome",
+		)
+		contents = PdfReader(io.BytesIO(pdf)).pages[0]["/Contents"]
+		self.assertEqual(contents.get("/Filter"), "/FlateDecode")
+
 	def test_footer_is_measured_at_the_width_it_prints(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")

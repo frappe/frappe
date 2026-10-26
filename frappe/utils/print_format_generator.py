@@ -482,7 +482,7 @@ class PrintFormatGenerator:
 		# a stale link shouldn't fail the render — templates degrade to no letter head too
 		if not name or not frappe.db.exists("Letter Head", name):
 			return None
-		return frappe.get_doc("Letter Head", name)
+		return frappe.get_cached_doc("Letter Head", name)
 
 	def format_page_settings(self) -> dict:
 		try:
@@ -517,7 +517,7 @@ class PrintFormatGenerator:
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
 		print_style = (
-			frappe.get_doc("Print Style", style_name)
+			frappe.get_cached_doc("Print Style", style_name)
 			if style_name and frappe.db.exists("Print Style", {"name": style_name, "disabled": 0})
 			else None
 		)

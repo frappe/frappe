@@ -6,7 +6,7 @@ from bs4 import BeautifulSoup
 import frappe
 from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
-from frappe.utils.print_utils import convert_uom, parse_float_and_unit
+from frappe.utils.print_utils import _print_format_doc_or_none, convert_uom, parse_float_and_unit
 
 RECEIPT_WIDTHS = {"Receipt 80 mm": "80mm", "Receipt 58 mm": "58mm"}
 
@@ -296,11 +296,10 @@ class Browser:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 		from frappe.www.printview import get_page_rule_margins
 
-		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
-			return {}
-		print_format = frappe.get_cached_doc("Print Format", self.print_format)
+		print_format = _print_format_doc_or_none(self.print_format)
 		if (
-			not print_format.css
+			not print_format
+			or not print_format.css
 			or uses_beta_renderer(print_format)
 			or print_format.pdf_generator not in ("chrome", "PlutoPrint")
 		):
