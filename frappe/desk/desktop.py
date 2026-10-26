@@ -493,6 +493,32 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 	can_edit = can_edit_workspace(doc)
 	workspace.use_layout(variant if can_edit else None)
 	doc = workspace.doc
+	widgets = readable_widgets(workspace)
+	_fold_chart_settings(widgets["charts"])
+	_load_custom_blocks(widgets["custom_blocks"])
+	for card in widgets["cards"].values():
+		card["links"] = [{field: link.get(field) for field in LINK_FIELDS} for link in card["links"]]
+
+	content = loads(doc.content or "[]")
+	content = [block for block in content if is_drawable(block, widgets)]
+	customization = get_customization(name) if doc.standard else None
+
+	return {
+		"name": doc.name,
+		"title": _(doc.title),
+		"public": bool(doc.public),
+		"variant": workspace.variant,
+		"content": content,
+		"widgets": widgets,
+		"can_edit": can_edit,
+		"is_hidden": bool(doc.is_hidden),
+		"standard": bool(doc.standard),
+		"is_layout_customized": is_layout_customized(customization, workspace.variant),
+	}
+
+
+def readable_widgets(workspace) -> dict:
+	"""The drawn layout's widgets the session user may read, keyed by widget table and label."""
 	workspace.build_workspace()
 	built = {
 		"chart": workspace.charts["items"],
@@ -507,9 +533,8 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		],
 	}
 
-	content = loads(doc.content or "[]")
 	widgets = {key: {} for key, _fields in WIDGET_FIELDS.values()}
-	for block in content:
+	for block in loads(workspace.doc.content or "[]"):
 		block_type = block.get("type")
 		if block_type not in WIDGET_FIELDS:
 			continue
@@ -518,26 +543,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		if item is not None:
 			key, fields = WIDGET_FIELDS[block_type]
 			widgets[key][block_name] = {field: item.get(field) for field in fields}
-
-	_fold_chart_settings(widgets["charts"])
-	_load_custom_blocks(widgets["custom_blocks"])
-	for card in widgets["cards"].values():
-		card["links"] = [{field: link.get(field) for field in LINK_FIELDS} for link in card["links"]]
-
-	content = [block for block in content if _is_drawable(block, widgets)]
-	customization = get_customization(name) if doc.standard else None
-
-	return {
-		"name": doc.name,
-		"title": _(doc.title),
-		"public": bool(doc.public),
-		"variant": workspace.variant,
-		"content": content,
-		"widgets": widgets,
-		"can_edit": can_edit,
-		"is_hidden": bool(doc.is_hidden),
-		"is_layout_customized": is_layout_customized(customization, workspace.variant),
-	}
+	return widgets
 
 
 def is_layout_customized(customization, variant: str | None) -> bool:
@@ -559,7 +565,7 @@ def _find_widget(items: list, block_type: str, block_name: str | None):
 	return next((item for item in items if item.get("label") == label), None)
 
 
-def _is_drawable(block: dict, widgets: dict) -> bool:
+def is_drawable(block: dict, widgets: dict) -> bool:
 	block_type = block.get("type")
 	if block_type not in WIDGET_FIELDS:
 		return True
@@ -590,7 +596,7 @@ def _load_custom_blocks(blocks: dict) -> None:
 		)
 	}
 	for block in blocks.values():
-		record = records.get(block.pop("custom_block_name")) or {}
+		record = records.get(block["custom_block_name"]) or {}
 		block.update(html=record.get("html"), style=record.get("style"), script=record.get("script"))
 
 

@@ -990,6 +990,8 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, vari
 			frappe.PermissionError,
 		)
 
+	blocks = dumps(merge_unseen_blocks(name, variant, frappe.parse_json(blocks)))
+
 	# A standard (app-shipped) workspace is never edited in place on a site. The site's layout
 	# changes are stored as a delta on top of the live base, so app updates keep arriving. In
 	# developer mode the app author edits the base itself so it exports to JSON.
@@ -1015,6 +1017,36 @@ def save_page(name: str, public: str | int, new_widgets: dict, blocks: str, vari
 	save_new_widget(doc, name, blocks, new_widgets)
 
 	return {"name": name, "public": public, "label": doc.label}
+
+
+def merge_unseen_blocks(name: str, variant: str | None, blocks: list) -> list:
+	"""Put back the blocks the editor could not see, each after the block it followed.
+
+	An editor is shown only the widgets they may read, so their save would otherwise drop the
+	rest for everyone. The stored layout and the saving user's permissions say which those are.
+	"""
+	from frappe.desk.desktop import Workspace, is_drawable, readable_widgets
+
+	workspace = Workspace({"name": name})
+	workspace.use_layout(variant or DEFAULT_LAYOUT)
+	stored = loads(workspace.doc.content or "[]")
+	widgets = readable_widgets(workspace)
+
+	merged = list(blocks)
+	kept = {block_key(block) for block in merged}
+	for index, block in enumerate(stored):
+		if is_drawable(block, widgets):
+			continue
+		before = (block_key(b) for b in reversed(stored[:index]))
+		anchor = next((key for key in before if key in kept), None)
+		at = 0 if anchor is None else [block_key(b) for b in merged].index(anchor) + 1
+		merged.insert(at, block)
+		kept.add(block_key(block))
+	return merged
+
+
+def block_key(block: dict) -> str:
+	return block.get("id") or dumps(block, sort_keys=True)
 
 
 def save_variant(doc, role: str, content: list, new_widgets: dict) -> None:
