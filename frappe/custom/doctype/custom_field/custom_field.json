@@ -48,6 +48,7 @@
   "mask",
   "ignore_user_permissions",
   "hidden",
+  "show_for_module",
   "print_hide",
   "print_hide_if_no_value",
   "print_width",
@@ -288,6 +289,13 @@
    "fieldname": "hidden",
    "fieldtype": "Check",
    "label": "Hidden"
+  },
+  {
+   "depends_on": "eval:!doc.reqd && !doc.mandatory_depends_on && frappe.boot.business_modules && frappe.boot.business_modules.length",
+   "description": "Show this field only when this module is on. Leave empty to always show it.",
+   "fieldname": "show_for_module",
+   "fieldtype": "Select",
+   "label": "Show for Module"
   },
   {
    "default": "0",
@@ -548,7 +556,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-23 14:47:18.443497",
+ "modified": "2026-09-30 17:52:56.311491",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
