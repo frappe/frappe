@@ -107,7 +107,7 @@ export class BindingDraft {
 			this.state.doc[fieldname] = clone(this.state.saved[fieldname]);
 			this.stale.delete(fieldname);
 			delete this.state.marks[fieldname];
-			this.fieldErrors.unmark(fieldname);
+			this.unmark(fieldname);
 		}
 	}
 
@@ -246,10 +246,21 @@ export class BindingDraft {
 			if (this.queued.has(fieldname)) continue;
 			this.state.marks[fieldname] = mark;
 			if (mark !== "saved") continue;
-			this.fieldErrors.unmark(fieldname);
+			this.unmark(fieldname);
 			setTimeout(() => {
 				if (this.state.marks[fieldname] === "saved") delete this.state.marks[fieldname];
 			}, SAVED_MARK_FOR);
+		}
+	}
+
+	/** The field's own mark, and the marks on its rows' cells when it is a table. */
+	private unmark(fieldname: string) {
+		this.fieldErrors.unmark(fieldname);
+		for (const key of Object.keys(this.fieldErrors.drawn.value)) {
+			if (!key.startsWith("[")) continue;
+			const [parentfield, row, cell] = JSON.parse(key) as [string, string, string];
+			if (parentfield === fieldname)
+				this.fieldErrors.unmark({ parentfield, key: row, fieldname: cell });
 		}
 	}
 

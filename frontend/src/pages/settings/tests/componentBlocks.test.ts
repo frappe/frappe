@@ -157,6 +157,33 @@ describe("a component block's bindings", () => {
 	});
 });
 
+describe("a refused save", () => {
+	it("shows a row cell's refusal in error, and clears it when the table saves", async () => {
+		const drafts = await opened(component("calls", "auto", { system: SYSTEM }));
+		const { system } = drafts.components.get("calls")!;
+		server.refusal = {
+			entry: {
+				type: "ValidationError",
+				message: "Bad rule",
+				field_errors: [
+					{ fieldname: "rule", parentfield: "rules", row: "r1", message: "Bad rule" },
+				],
+			},
+			status: 417,
+		};
+
+		system.doc.rules[0].rule = "bad";
+		await system.commit();
+		expect(system.error).toBe("Bad rule");
+
+		system.doc.rules[0].rule = "good";
+		await system.commit();
+
+		expect(server.writes).toHaveLength(2);
+		expect(system.error).toBe("");
+	});
+});
+
 describe("a component block with no binding", () => {
 	it("reads nothing and stays out of the pane's dirty state and Save bar", async () => {
 		const drafts = await opened(component("theme", "auto", undefined));
