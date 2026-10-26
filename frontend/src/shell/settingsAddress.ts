@@ -54,6 +54,11 @@ export class SettingsAddressBook {
 			.map((prefix) => this.group(prefix));
 	}
 
+	/** Every prefix's group, listed or not, for search. */
+	everyGroup(): PaneGroup[] {
+		return [...this.byPrefix.keys()].map((prefix) => this.group(prefix));
+	}
+
 	/** Whether a shown prefix is one `groups()` lists only while it is visited. */
 	isForeign(prefix: string): boolean {
 		return prefix !== this.frameworkPrefix && prefix !== this.currentPrefix;

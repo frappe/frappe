@@ -41,7 +41,8 @@ export interface SettingsIndexEntry {
 	pane: string;
 	block: string;
 	fieldname?: string;
-	label: string;
+	/** Left out for a field with no label, whose row is titled by its fieldname. */
+	label?: string;
 	description?: string;
 	keywords?: string[];
 }

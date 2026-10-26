@@ -20,6 +20,7 @@
 				<SettingsBlockRows
 					v-if="drafts.bound.has(block.key)"
 					:bound="drafts.bound.get(block.key)!"
+					:reveal="reveal?.block === block.key ? reveal : undefined"
 					@commit="drafts.commit(drafts.bound.get(block.key)!)"
 				/>
 				<SettingsRowsSkeleton v-else :rows="3" />
@@ -69,7 +70,11 @@ import { PaneDrafts } from "./paneDrafts";
 import SettingsBlockRows from "./SettingsBlockRows.vue";
 import SettingsRowsSkeleton from "./SettingsRowsSkeleton.vue";
 
-const props = defineProps<{ pane: SettingsPane }>();
+const props = defineProps<{
+	pane: SettingsPane;
+	/** A search pick the dialog is about to scroll to; its block shows the field's tab. */
+	reveal?: { block: string; fieldname?: string };
+}>();
 const emit = defineEmits<{ loaded: [] }>();
 
 /** A rounded gray layer a little wider than the block, behind its content. */

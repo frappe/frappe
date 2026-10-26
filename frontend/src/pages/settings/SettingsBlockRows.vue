@@ -31,7 +31,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, provide, ref } from "vue";
+import { computed, provide, ref, watch } from "vue";
 import { TabButtons } from "frappe-ui";
 import {
 	getFieldComponent,
@@ -46,7 +46,7 @@ import type { BoundBlock } from "./paneDrafts";
 import SettingsFieldRow from "./SettingsFieldRow.vue";
 import SettingsRowsSkeleton from "./SettingsRowsSkeleton.vue";
 
-const props = defineProps<{ bound: BoundBlock }>();
+const props = defineProps<{ bound: BoundBlock; reveal?: { fieldname?: string } }>();
 const emit = defineEmits<{ commit: [] }>();
 
 const MOST_ROWS = 6;
@@ -86,6 +86,17 @@ const tab = computed({
 	get: () => shownTab.value?.identity,
 	set: (identity) => (picked.value = identity),
 });
+watch(
+	() => props.reveal,
+	(pick) => {
+		const holder = tabs.value.find((one) =>
+			one.sections.some((section) =>
+				section.columns[0].fields.some((field) => field.fieldname === pick?.fieldname)
+			)
+		);
+		if (holder) picked.value = holder.identity;
+	}
+);
 const sections = computed(
 	() => shownTab.value?.sections.filter((section) => !section.hidden) ?? []
 );

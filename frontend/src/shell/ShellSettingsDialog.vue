@@ -3,29 +3,32 @@
 <template>
 	<SettingsDialog v-model:open="open" v-model:tab="tab" size="5xl" :keyboard-shortcut="false">
 		<SettingsSidebar>
-			<SettingsNavGroup
-				v-for="group in groups"
-				:key="group.prefix"
-				:label="group.label"
-				:data-group="group.prefix"
-			>
-				<SettingsNavItem
-					v-for="pane in group.panes"
-					:key="pane.key"
-					:value="`${group.prefix}/${pane.key}`"
+			<SettingsSearchBox v-model="query" :search="search" @pick="pick" />
+			<template v-if="!query.trim()">
+				<SettingsNavGroup
+					v-for="group in groups"
+					:key="group.prefix"
+					:label="group.label"
+					:data-group="group.prefix"
 				>
-					<template #prefix>
-						<Avatar
-							v-if="pane.app === FRAMEWORK && pane.key === 'profile'"
-							size="xs"
-							:label="boot.session.user.full_name"
-							:image="boot.session.user.user_image"
-						/>
-						<Icon v-else :name="pane.icon" class="text-ink-gray-6" />
-					</template>
-					{{ __(pane.label) }}
-				</SettingsNavItem>
-			</SettingsNavGroup>
+					<SettingsNavItem
+						v-for="pane in group.panes"
+						:key="pane.key"
+						:value="`${group.prefix}/${pane.key}`"
+					>
+						<template #prefix>
+							<Avatar
+								v-if="pane.app === FRAMEWORK && pane.key === 'profile'"
+								size="xs"
+								:label="boot.session.user.full_name"
+								:image="boot.session.user.user_image"
+							/>
+							<Icon v-else :name="pane.icon" class="text-ink-gray-6" />
+						</template>
+						{{ __(pane.label) }}
+					</SettingsNavItem>
+				</SettingsNavGroup>
+			</template>
 			<div v-if="!book && !failed" class="flex flex-col gap-0.5" aria-hidden="true">
 				<div v-for="row in 3" :key="row" class="flex h-7 items-center gap-2 px-2">
 					<Skeleton class="size-4 rounded-2" />
@@ -41,7 +44,12 @@
 					:value="`${group.prefix}/${pane.key}`"
 					class="relative min-w-0"
 				>
-					<SettingsPaneView :pane="pane" :blocks="blocks!" :block="shown?.block" />
+					<SettingsPaneView
+						:pane="pane"
+						:blocks="blocks!"
+						:block="shown?.block"
+						:reveal="reveal?.pane === pane ? reveal : undefined"
+					/>
 				</SettingsPanel>
 			</template>
 			<div
@@ -64,6 +72,7 @@
 
 <script setup lang="ts">
 import { computed, inject, ref, shallowRef, watch, type Component } from "vue";
+import { isNavigationFailure, NavigationFailureType } from "vue-router";
 import {
 	Avatar,
 	Button,
@@ -82,14 +91,20 @@ import { useHashDialog } from "./useHashDialog";
 import { FRAMEWORK, SettingsAddressBook } from "./settingsAddress";
 import { loadSettingsBlocks } from "./settingsBlocks";
 import { fetchPanes } from "./settingsPanes";
+import { SettingsSearch, type SettingsHit } from "./settingsSearch";
 import SettingsPaneView from "./SettingsPaneView.vue";
+import SettingsSearchBox from "./SettingsSearchBox.vue";
 
 const boot = inject<Boot>("boot")!;
 const hash = useHashDialog("settings");
 
 const book = shallowRef<SettingsAddressBook | null>(null);
+const search = shallowRef<SettingsSearch>();
 const blocks = shallowRef<Component>();
 const failed = ref(false);
+const query = ref("");
+/** A search pick, until the dialog shows another pane. */
+const reveal = shallowRef<SettingsHit>();
 
 function load() {
 	failed.value = false;
@@ -97,6 +112,7 @@ function load() {
 		([reply, component]) => {
 			blocks.value = component;
 			book.value = new SettingsAddressBook(reply, boot);
+			search.value = new SettingsSearch(reply, book.value);
 		},
 		() => (failed.value = true)
 	);
@@ -121,7 +137,19 @@ watch(
 	},
 	{ immediate: true }
 );
-watch(hash.open, (isOpen) => isOpen || (visiting.value = undefined));
+watch(shown, (address) => address?.pane === reveal.value?.pane || (reveal.value = undefined));
+watch(hash.open, (isOpen) => {
+	if (isOpen) return;
+	visiting.value = undefined;
+	query.value = "";
+});
+
+function pick(hit: SettingsHit) {
+	reveal.value = { ...hit };
+	hash.write(hit.prefix, hit.pane.key).then((failure) => {
+		if (isNavigationFailure(failure, NavigationFailureType.aborted)) reveal.value = undefined;
+	});
+}
 
 const groups = computed(() => book.value?.groups(visiting.value) ?? []);
 
