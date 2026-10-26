@@ -241,7 +241,8 @@
 .es-checklist__row {
     display: grid;
     grid-template-columns:
-        auto minmax(0, 1fr) calc(var(--spacing) * 22) 28px calc(var(--spacing) * 24);
+        auto minmax(0, 1fr) calc(var(--spacing) * 22) calc(var(--spacing) * 44)
+        calc(var(--spacing) * 24);
     grid-template-areas: "marker text status owner due";
     align-items: center;
     column-gap: calc(var(--spacing) * 3);

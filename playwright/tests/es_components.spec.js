@@ -871,9 +871,12 @@ test.describe("Espresso components", () => {
 		}) => {
 			const employee = row(onboarding(page), "Create Employee");
 
-			await employee.locator(".es-checklist__owner button").click();
-			const users = page.locator(".es-combobox-panel");
-			await expect(users.locator(".es-combobox-panel__search-input")).toBeFocused();
+			await expect(employee.locator(".es-checklist__owner [role=combobox]")).toContainText(
+				"Select assignee"
+			);
+			await employee.locator(".es-checklist__owner [role=combobox]").click();
+			const users = page.locator(".es-combobox__panel");
+			await expect(users.locator(".es-combobox__search input")).toBeFocused();
 			await page.keyboard.type("administrator");
 			await expect(users.getByRole("option", { name: /Administrator/ })).toBeVisible();
 			await page.keyboard.press("Enter");

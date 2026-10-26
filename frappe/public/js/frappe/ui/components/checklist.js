@@ -351,57 +351,41 @@ frappe.ui.Checklist = class Checklist {
 
 	make_owner(item) {
 		const user = item.assignee && frappe.user_info(item.assignee);
-		const face = user
-			? frappe.ui.avatar({
-					label: user.fullname,
-					image: user.image,
-					size: "sm",
-					theme: "auto",
-			  })
-			: $(frappe.utils.icon("user-plus", "sm", "", "", "", true));
-		if (!this.opts.on_assign) return user ? face[0] : document.createTextNode("");
+		if (!this.opts.on_assign) {
+			return user
+				? frappe.ui.avatar({
+						label: user.fullname,
+						image: user.image,
+						size: "sm",
+						theme: "auto",
+				  })[0]
+				: document.createTextNode("");
+		}
 
-		const trigger = this.make_control(face, user ? user.fullname : __("Assign"));
-		trigger.setAttribute("data-icon-button", "true");
-		this.attach_user_picker(trigger, item);
-		return trigger;
-	}
-
-	// The users Assign To offers, searched on the server as the user types.
-	attach_user_picker(trigger, item) {
-		const assign = (user) => this.save_field(item, "assignee", user, this.opts.on_assign);
-		new frappe.ui.Combobox({
-			trigger,
-			align: "end",
-			value: item.assignee || null,
+		const combobox = new frappe.ui.Combobox({
+			placeholder: __("Select assignee"),
 			search_placeholder: __("Search users"),
-			empty_text: __("No users found"),
-			item_prefix: (option) =>
-				frappe.ui.avatar({
-					label: option.label,
-					image: frappe.user_info(option.value).image,
-					size: "sm",
-					theme: "auto",
-				})[0],
 			options: (txt) =>
 				frappe.db
 					.get_link_options("User", txt, { user_type: "System User", enabled: 1 })
-					.then((users) => [
-						...users.map(({ value, description }) => ({
+					.then((users) =>
+						users.map(({ value, description }) => ({
 							value,
 							label: description || value,
 							description: description ? value : "",
-						})),
-						{
-							type: "custom",
-							label: __("Unassign"),
-							icon: "user-x",
-							condition: () => Boolean(item.assignee),
-							onclick: () => assign(null),
-						},
-					]),
-			on_change: (user) => user && assign(user),
+							image: frappe.user_info(value).image,
+							avatar: true,
+						}))
+					),
+			on_change: (assignee) =>
+				this.save_field(item, "assignee", assignee || null, this.opts.on_assign),
 		});
+		combobox.set_value(item.assignee || null, {
+			label: user?.fullname,
+			image: user?.image,
+			avatar: true,
+		});
+		return combobox.trigger_el;
 	}
 
 	make_due(item) {
