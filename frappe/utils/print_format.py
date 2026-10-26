@@ -446,13 +446,15 @@ def download_pdf(
 
 @frappe.whitelist()
 @frappe.concurrent_limit()
-def report_to_pdf(html: str, orientation: str = "Landscape"):
+def report_to_pdf(html: str, orientation: str = "Landscape", print_format: str | None = None):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
 		html,
 		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
-		pdf_generator=resolve_pdf_generator(),
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
 	)
 	frappe.local.response.type = "pdf"
 
