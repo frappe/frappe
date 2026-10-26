@@ -226,10 +226,14 @@ it("reports a new one-click mailbox as created, then drops the result from the U
 
 it("reports a new one-click mailbox only once its account loads", async () => {
   const listed = call.getMockImplementation()!;
-  call.mockImplementationOnce(async () => {
-    throw new Error("Server down");
+  let down = true;
+  call.mockImplementation(async (method: string, args) => {
+    if (method === "frappe.client.get_list" && down) {
+      down = false;
+      throw new Error("Server down");
+    }
+    return listed(method, args);
   });
-  call.mockImplementation(listed);
   const onCreated = await landWith(
     "email_oauth=connected&email_oauth_mailbox=sales%40example.com",
   );
