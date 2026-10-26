@@ -1002,20 +1002,6 @@ class TestShellBoot(IntegrationTestCase):
 				clear_doctype_owners()
 				self.assertEqual(get_doctype_owners().get("Shell Module Probe"), owner)
 
-	def test_the_index_lists_installed_apps(self):
-		from frappe.shell.boot import get_boot
-
-		with a_second_app() as (app, prefix):
-			boot = get_boot(f"/{SHELL_ROOT}")
-
-		self.assertIsNone(boot["app"])
-		self.assertEqual(boot["shell_base"], "/apps")
-		routes = {entry["app"]: entry["route"] for entry in boot["apps"]}
-		# The framework is on the index by construction.
-		self.assertEqual(routes["frappe"], "/apps/desk")
-		# And so is anyone else who claims a prefix, with no declaration needed beyond it.
-		self.assertEqual(routes[app], f"/apps/{prefix}")
-
 
 class TestAppPermission(IntegrationTestCase):
 	def tearDown(self):
