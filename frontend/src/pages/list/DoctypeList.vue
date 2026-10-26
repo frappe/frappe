@@ -8,11 +8,11 @@
 			<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
 				<Breadcrumbs class="-ml-0.5" :items="crumbs" />
 				<Button
-					v-if="canCreate"
+					v-if="createAct"
 					variant="solid"
-					icon-left="lucide-plus"
-					:label="__('Create')"
-					@click="create"
+					:icon-left="createAct.icon"
+					:label="createAct.label"
+					@click="listActs.perform('create')"
 				/>
 			</div>
 		</template>
@@ -98,7 +98,6 @@ import { SortBy } from "@framework/ui/SortBy";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { computed, ref } from "vue";
 import { useRouter } from "vue-router";
-import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
@@ -109,6 +108,7 @@ import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
 import { createdMessage } from "./createdMessage";
 import DeleteDialog from "./DeleteDialog.vue";
+import { useListActs } from "./listActs";
 
 const props = defineProps<{ doctype: string }>();
 
@@ -151,7 +151,6 @@ const {
 } = useListPage(props.doctype);
 
 const { meta } = useDoctypeMeta(props.doctype);
-const canCreate = useCreateRight(props.doctype);
 let creating = false;
 
 async function create() {
@@ -179,15 +178,34 @@ useScrollMemory(
 	{ doctype: props.doctype, query: rowsKey }
 );
 
-const menuOptions = [
-	{
-		label: "Customize Quick Filter",
-		icon: "lucide-sliders-horizontal",
-		onClick: () => (customizing.value = true),
-	},
-];
+const listActs = useListActs({
+	doctype: props.doctype,
+	create,
+	customizeQuickFilter: () => (customizing.value = true),
+	confirmDelete: () => (confirmingDelete.value = true),
+	customizing: () => customizing.value,
+	selected: () => selection.value.length,
+});
 
-const bulkActions: BulkAction[] = [
-	{ label: "Delete", theme: "red", onClick: () => (confirmingDelete.value = true) },
-];
+const createAct = computed(() => listActs.drawn("create"));
+
+const menuOptions = computed(() =>
+	drawnActs(["customize_quick_filter"]).map((act) => ({
+		label: act.label,
+		icon: act.icon,
+		onClick: () => listActs.perform(act.name),
+	}))
+);
+
+const bulkActions = computed<BulkAction[]>(() =>
+	drawnActs(["delete"]).map((act) => ({
+		label: act.label!,
+		theme: "red",
+		onClick: () => listActs.perform(act.name),
+	}))
+);
+
+function drawnActs(names: string[]) {
+	return names.flatMap((name) => listActs.drawn(name) ?? []);
+}
 </script>

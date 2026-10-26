@@ -337,7 +337,7 @@ component group, with its main names.
 | Form join | Joins the Details layout with the parts a script adds |
 | Form layout source (`useFormLayout`, `markFormLayoutsStale`) | One fetch per doctype and layout type; picks the matching row. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Script loader (`loadRecordScripts`, `addFileScript`) | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
-| Page permissions | Rights, roles and field access, ready before handlers run |
+| Page permissions (`whenLoaded`) | Rights, roles and field access, ready before handlers run. `whenLoaded` resolves once a loading flag clears, so an act's right waits for its doctype's meta; the list surface uses it too |
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
 | Page dialogs | The engine behind `page.dialog` |
@@ -358,7 +358,7 @@ component group, with its main names.
 | Index selection (`Selection`, `Selectable`, `SelectionSection`, `selectableId`) | The one arrow-key movement over every section of the index, in page order. A section joins it with its items and its column count, draws an item as selected like a hover, and gives it `selectableId` as its element id, which the filter box names as its active descendant and scrolls into view |
 | `MainPage` | Shows the registered page for a list or record address |
 | Standard pages (`standardPages`) | The framework's own page for each address, which `main.ts` registers as the default |
-| `List`, `DoctypeList` | The standard list page, built on `useListPage` |
+| `List`, `DoctypeList`, list acts (`useListActs`) | The standard list page, built on `useListPage`. Its built-ins are acts on one `list` surface: `list.create` (the create right), `list.customize_quick_filter`, and `list.delete` while rows are selected (the delete right). Its buttons and menus draw from those items, and draw an item only when its right passes. Scripts get no verbs on it yet |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
 | New record page (`NewRecord`, `UnsavedRecord`, `NotSavedBadge`, `openingKey`) | The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
