@@ -2,6 +2,7 @@
 // `Sidebar` rail item's link resolves to a row inside its panel, and prefix matching lights two rows.
 
 import type { NavigationItem } from "@/boot";
+import { resolveItemRoute } from "./registry";
 import type { ItemContext, Rendering } from "./types";
 
 /** One route navigation can be standing on, and what being on it means. */
@@ -51,14 +52,13 @@ export function navigationDestinations(
 	contexts: NavigationContexts
 ): Destination[] {
 	const destinations: Destination[] = [];
-	const router = contexts.rail.router;
 
 	const add = (rendering: Rendering | null, found: CurrentNavigation) => {
 		// `href` rows leave the prefix and `group`/`expand` rows go nowhere.
 		if (!rendering || !("to" in rendering)) return;
 
 		// Resolvable, because `renderingOf` already resolved it once (`registry.ts`).
-		destinations.push({ path: router.resolve(rendering.to).path, found });
+		destinations.push({ path: resolveItemRoute(contexts.rail, rendering.to).path, found });
 	};
 
 	for (const item of rail) {

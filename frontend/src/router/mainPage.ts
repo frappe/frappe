@@ -45,10 +45,12 @@ function framed(loader: Loader, loading: Component): Component {
 	let loaded = false;
 	const page = defineAsyncComponent({
 		loader: () =>
-			loader().then((module) => {
-				loaded = true;
-				return pageOf(module as Loaded);
-			}),
+			afterFramePaint()
+				.then(loader)
+				.then((module) => {
+					loaded = true;
+					return pageOf(module as Loaded);
+				}),
 		loadingComponent: loading,
 		errorComponent: defineComponent({
 			props: ["error"],
@@ -69,6 +71,22 @@ function framed(loader: Loader, loading: Component): Component {
 				return h(page, { key });
 			};
 		},
+	});
+}
+
+/** Resolves once the frame has painted; at once when nothing paints first. */
+function afterFramePaint(): Promise<void> {
+	// In the click's task, vite's preload helper holds the frame's paint. A cold load, or a tab that is
+	// or goes hidden, does not wait: the paint comes late or never, and the page would arrive that late.
+	const painted = performance.getEntriesByName("first-contentful-paint").length > 0;
+	if (!painted || document.hidden) return Promise.resolve();
+	return new Promise((resolve) => {
+		const done = () => {
+			document.removeEventListener("visibilitychange", done);
+			resolve();
+		};
+		document.addEventListener("visibilitychange", done);
+		requestAnimationFrame(() => setTimeout(done));
 	});
 }
 

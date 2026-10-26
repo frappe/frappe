@@ -27,10 +27,12 @@
 		<!-- Stretched over `SidebarRail`'s own padding, so the scrollbar sits on the rail's edge. -->
 		<ScrollArea class="-mx-[11px] min-h-0 flex-1 self-stretch" viewportClass="px-[11px]">
 			<nav class="flex flex-col items-center gap-3" :aria-label="appTitle">
-				<!-- `SidebarRailItem` puts attributes on its link, so the test hooks sit on a wrapper. -->
+				<!-- `SidebarRailItem` puts attributes on its link, so the test hooks sit on a wrapper. Its slot
+				     reads the loop variable, so without `v-memo` a route change redraws every cell. -->
 				<div
 					v-for="cell in cells"
 					:key="cell.key"
+					v-memo="[cell, cell.key === current]"
 					:data-key="cell.key"
 					:data-sidebar="cell.sidebar"
 				>
@@ -110,7 +112,7 @@ const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
-	shareLink?: string;
+	shareLink?: () => string;
 }>();
 const emit = defineEmits<{ customize: [] }>();
 
@@ -161,7 +163,7 @@ function leave(href: string) {
 async function copyLink() {
 	if (!props.shareLink) return;
 	try {
-		await navigator.clipboard.writeText(props.shareLink);
+		await navigator.clipboard.writeText(props.shareLink());
 	} catch {
 		toast.error("Could not copy the link");
 		return;

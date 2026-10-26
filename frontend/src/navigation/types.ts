@@ -11,6 +11,7 @@ import type { ContentEntry } from "@/contents";
  * load, so an `<a>`), a heading, or rows fetched on demand. `sidebar` annotates a destination.
  */
 export type Rendering =
+	// Complete: the shell resolves it against the start location, never the current route.
 	| { to: RouteLocationRaw; sidebar?: string }
 	| { href: string; sidebar?: string }
 	| { group: true }

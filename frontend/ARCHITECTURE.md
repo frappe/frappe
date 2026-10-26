@@ -299,7 +299,7 @@ component group, with its main names.
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
 | Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations. On the index it holds only `home`, which draws the index, and not found. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
 | Record link (`recordLink`) | *New.* What `main.ts` hands Link and Dynamic Link fields through `RecordLinkKey`: a record's `urlFor` address, or none for a doctype with no address, and a router push to it |
-| Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows: `FrameSkeleton`, or the page's own loading state, until the code is in, the failed or offline page state if it fails |
+| Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address once the frame has painted (at once on a cold load or in a hidden tab): `FrameSkeleton`, or the page's own loading state, until the code is in, the failed or offline page state if it fails |
 
 ### 7. Page engines
 
@@ -548,7 +548,7 @@ size; on a return visit, skeleton frames and time until usable.
 | --- | --- | --- | --- | --- |
 | 1 | A sidebar row's link, built with `routeFor`, is clicked | 6, 5 | None | None |
 | 2 | The router checks the slug against the address table | 6 | None: an address check, not a permission check | Browser memory |
-| 3 | The address and the frame change at once. The page shows its skeleton while the registered page's code loads. The shell picks the sidebar for the new address | 6 | None | Loaded pages in browser memory. Sidebar memory per tab, by address and user |
+| 3 | The address and the frame change at once. The page shows its skeleton, and the registered page's code starts loading once that frame has painted. The shell picks the sidebar for the new address | 6 | None | Loaded pages in browser memory. Sidebar memory per tab, by address and user |
 | 4 | The list page asks for the doctype's meta. Roles come from the session | 7, 3 | Any signed-in user | Browser memory, by doctype; marked stale on `doctype_update` |
 | 5 | The list loads its saved settings (the site row and the user's row) and works out columns, sort and quick filters | 7, 3 | Read on the doctype; System Manager for the site row. **Browser**: columns on fields the user cannot read are dropped | Browser memory, by doctype; marked stale on `doctype_update` |
 | 6 | The rows are read, with the count on the first page | 7, 3, 1 | Doctype read, row rules and field permissions in the query | Data cache, by doctype and query. Rows memory, by doctype. Page size and scroll in the history entry |

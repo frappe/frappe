@@ -117,6 +117,44 @@ every return step passes on every network, and 1 otherwise.
 | `DOCTYPE`    | the first rail or sidebar doctype that has rows | The doctype whose list and record to use |
 | `NETWORK`    | both                                            | `normal` or `slow`                       |
 
+## Click-budget walk
+
+`clickBudget.js` measures the click budget and the shell's paint on a cold load, at a 4x
+slower CPU. It opens a list and a record cold, and clicks list → a list in another sidebar
+(a rail item) and list → record (a row). Each step runs in a new browser, `RUNS` times on
+the `normal` network and `SLOW_RUNS` times on the `slow` one. It prints the median of each
+column:
+
+- cold loads: when the rail, the sidebar and the first skeleton draw, when the last JS or
+  CSS file before the content arrived, when the content draws, and the layout shift;
+- clicks: when the address changes, the animation frame that first draws a change in the page
+  frame and when that frame has painted, the browser's click-to-next-paint time (Event
+  Timing, which drops a click under 16 ms), when the last JS or CSS file the click asked
+  for arrived, when the page draws, and the layout shift.
+
+Times count from the navigation start or the click. The walk exits with 1 when any run
+failed. Measure built code: build the checkout with `vite.budget.config.js` to a folder
+outside the bench, serve it with `vite preview`, and point the walk at it.
+
+```sh
+cd frontend
+OUT_DIR=/tmp/desk-build ./node_modules/.bin/vite build --config walks/vite.budget.config.js
+OUT_DIR=/tmp/desk-build WALK_PORT=8187 ./node_modules/.bin/vite preview --config walks/vite.budget.config.js
+BASE_URL=http://<site>:8187 yarn --cwd walks walk:budget --json /tmp/budget.json
+```
+
+| Variable          | Default                                  | Meaning                                         |
+| ----------------- | ---------------------------------------- | ----------------------------------------------- |
+| `LIST_PATH`       | `/apps/crm/crm-lead`                     | The list both clicks start from                 |
+| `OTHER_LIST_PATH` | `/apps/crm/crm-deal`                     | A list in another sidebar, opened from the rail |
+| `RECORD_PATH`     | `/apps/crm/crm-lead/CRM-LEAD-2026-00006` | A record with a row on the list's first page    |
+| `RUNS`            | `5`                                      | Runs of each step on the normal network         |
+| `SLOW_RUNS`       | `2`                                      | Runs of each step on the slow network           |
+| `ONLY`            | every step                               | Runs only the steps whose name contains it      |
+| `SID`             | none                                     | A session cookie to use in place of the login   |
+
+`BASE_URL`, `USR`, `PWD_FRAPPE` and `NETWORK` are as for the other walks.
+
 ## Field-coverage seed
 
 `seed_field_coverage.py` makes a sample DocType with one field of every fieldtype, so each

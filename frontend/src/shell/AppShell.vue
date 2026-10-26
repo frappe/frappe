@@ -181,8 +181,9 @@ function stamped(): string | undefined {
 }
 
 // The parameter seeds the record, then leaves the address by `replace` with no second history entry.
+// Each navigation, not each address: a back can land on the same address stamped with another sidebar.
 watch(
-	[() => route.fullPath, destinations],
+	[router.currentRoute, destinations],
 	() => {
 		// Repeated in the address it arrives as an array, which must still be consumed.
 		const asking = route.query.sidebar;
@@ -202,14 +203,15 @@ watch(
 );
 
 // The link to hand someone else; the parameter goes on only where it says something.
-const shareLink = computed(() => {
+// Built on the click: a link handed down as a value would redraw the rail on every route change.
+function shareLink(): string {
 	const sidebar = current.value.sidebar;
 	const query =
 		sidebar && sidebar !== canonical.value.sidebar ? { ...route.query, sidebar } : route.query;
 
 	const to = router.resolve({ path: route.path, query, hash: route.hash });
 	return new URL(to.href, window.location.origin).href;
-});
+}
 
 // The panel, or nothing. An empty sidebar is absent from the payload; the count is the last fence.
 const panel = computed(() => {
