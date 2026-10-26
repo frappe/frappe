@@ -16,8 +16,8 @@
 				:aria-label="__('Find an app')"
 				role="combobox"
 				aria-autocomplete="list"
-				:aria-expanded="matches.length > 0"
-				:aria-controls="matches.length ? TILES_ID : undefined"
+				:aria-expanded="listboxes.length > 0"
+				:aria-controls="listboxes.join(' ') || undefined"
 				:aria-activedescendant="selection.activeId()"
 				@keydown="onKeydown"
 			>
@@ -57,6 +57,14 @@
 					/>
 				</li>
 			</ul>
+
+			<IndexFavourites
+				v-if="shownFavourites.length"
+				:id="FAVOURITES_ID"
+				:favourites="shownFavourites"
+				:selection="selection"
+				:class="boxWidthClass(apps.length)"
+			/>
 		</div>
 	</ScrollArea>
 </template>
@@ -68,17 +76,22 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { matching, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
+import { favouriteKey } from "./favourites";
+import IndexFavourites from "./IndexFavourites.vue";
 import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
 const TILES_ID = "index-apps";
+const FAVOURITES_ID = "index-favourites";
 
 const boot = inject<Boot>("boot")!;
 const apps = boot.apps ?? [];
+const favourites = boot.favourites ?? [];
 
 const box = ref<TextInputExposed | null>(null);
 const query = ref("");
 const matches = computed(() => matching(apps, query.value));
+const shownFavourites = computed(() => (query.value.trim() ? [] : favourites));
 
 // In page order. A later section appends its items here and draws `selection.isSelected(key)`.
 const sections = computed<SelectionSection[]>(() => [
@@ -86,8 +99,20 @@ const sections = computed<SelectionSection[]>(() => [
 		items: matches.value.map((app) => ({ key: tileKey(app), href: app.route })),
 		columns: columnsFor(matches.value.length),
 	},
+	{
+		items: shownFavourites.value.map((favourite) => ({
+			key: favouriteKey(favourite),
+			href: favourite.route,
+		})),
+		columns: 1,
+	},
 ]);
 const selection = new Selection(() => sections.value);
+
+const listboxes = computed(() => [
+	...(matches.value.length ? [TILES_ID] : []),
+	...(shownFavourites.value.length ? [FAVOURITES_ID] : []),
+]);
 
 watch(query, (typed) => (typed.trim() ? selection.selectFirst() : selection.clear()));
 

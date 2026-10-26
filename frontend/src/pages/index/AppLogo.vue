@@ -1,11 +1,11 @@
 <!--
-  An app's 56px logo: as is when it fills its square, a bare mark at half size on a white plate,
-  and the title's first letter when there is no logo or it fails to load.
+  An app's logo, 56px or 16px: as is when it fills its square, a bare mark at half size on a white
+  plate, and the title's first letter when there is no logo or it fails to load.
 -->
 <template>
 	<span
-		class="flex size-14 shrink-0 items-center justify-center"
-		:class="frame"
+		class="flex shrink-0 items-center justify-center"
+		:class="[SIZES[size], frame]"
 		data-app-logo
 		:data-bare="bare || undefined"
 	>
@@ -27,10 +27,15 @@
 <script setup lang="ts">
 import { computed, ref } from "vue";
 
-const props = defineProps<{ logo?: string | null; title: string }>();
+const props = withDefaults(
+	defineProps<{ logo?: string | null; title: string; size?: 56 | 16 }>(),
+	{ size: 56 }
+);
+
+const SIZES = { 56: "size-14 text-2xl", 16: "size-4 text-2xs" };
 
 const PLATE = "rounded-[22%] bg-white ring-1 ring-inset ring-outline-gray-2";
-const LETTER = "rounded-[22%] bg-surface-gray-3 text-2xl font-medium text-ink-gray-6";
+const LETTER = "rounded-[22%] bg-surface-gray-3 font-medium text-ink-gray-6";
 
 const bare = ref(false);
 const broken = ref(false);

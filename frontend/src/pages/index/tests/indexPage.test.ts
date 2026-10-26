@@ -13,6 +13,29 @@ const APPS: BootApp[] = [
 	{ app: "gameplan", title: "Gameplan", logo: null, kind: "link", route: "/g" },
 ];
 
+type BootFavourite = NonNullable<Boot["favourites"]>[number];
+
+const FAVOURITES: BootFavourite[] = [
+	{
+		doctype: "CRM Deal",
+		name: "CRM-DEAL-0001",
+		title: "Globex Corporation",
+		route: "/deal/CRM-DEAL-0001",
+		app: "crm",
+		app_title: "CRM",
+		app_logo: "/assets/crm/logo.svg",
+	},
+	{
+		doctype: "ToDo",
+		name: "t1",
+		title: "Call Globex",
+		route: "/todo/t1",
+		app: "frappe",
+		app_title: "Framework",
+		app_logo: null,
+	},
+];
+
 const mounted: App[] = [];
 let assign: ReturnType<typeof vi.fn>;
 
@@ -27,11 +50,11 @@ afterEach(() => {
 	vi.unstubAllGlobals();
 });
 
-async function mount(apps: BootApp[] = APPS) {
+async function mount(apps: BootApp[] = APPS, favourites: BootFavourite[] = []) {
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	const app = createApp(IndexPage);
-	app.provide("boot", { app: null, apps } as unknown as Boot);
+	app.provide("boot", { app: null, apps, favourites } as unknown as Boot);
 	app.mount(host);
 	mounted.push(app);
 	await nextTick();
@@ -60,7 +83,13 @@ function tiles(host: HTMLElement) {
 }
 
 function selected(host: HTMLElement) {
-	return [...host.querySelectorAll<HTMLElement>("[data-selected]")].map((tile) => tile.dataset.app);
+	return [...host.querySelectorAll<HTMLElement>("[data-selected]")].map(
+		(item) => item.dataset.app ?? item.dataset.favourite
+	);
+}
+
+function chips(host: HTMLElement) {
+	return [...host.querySelectorAll<HTMLAnchorElement>("a[data-favourite]")];
 }
 
 describe("the index page", () => {
@@ -195,5 +224,82 @@ describe("the index page", () => {
 		);
 		await press(host, "Enter");
 		expect(assign).not.toHaveBeenCalled();
+	});
+});
+
+describe("the index's Favourites", () => {
+	it("draws no Favourites row when the person has none", async () => {
+		const host = await mount(APPS, []);
+		expect(host.querySelector("[data-index-favourites]")).toBeNull();
+	});
+
+	it("draws a chip per favourite under the tiles, in boot's order, each a link to its record", async () => {
+		const host = await mount(APPS, FAVOURITES);
+		const section = host.querySelector("[data-index-favourites]")!;
+		expect(section.querySelector("h2")?.textContent?.trim()).toBe("Favourites");
+		expect(host.querySelector("[data-index-favourites]")?.previousElementSibling?.id).toBe(
+			"index-apps"
+		);
+		expect(chips(host).map((chip) => [chip.lastElementChild?.textContent, chip.getAttribute("href")])).toEqual([
+			["Globex Corporation", "/deal/CRM-DEAL-0001"],
+			["Call Globex", "/todo/t1"],
+		]);
+	});
+
+	it("draws each chip with its app's logo, and the app's first letter for an app with none", async () => {
+		const host = await mount(APPS, FAVOURITES);
+		const [deal, todo] = chips(host);
+		expect(deal.querySelector("img")?.getAttribute("src")).toBe("/assets/crm/logo.svg");
+		expect(todo.querySelector("[data-app-logo]")?.textContent?.trim()).toBe("F");
+	});
+
+	it("steps aside while the box holds a query, and comes back when it is cleared", async () => {
+		const host = await mount(APPS, FAVOURITES);
+		await type(host, "crm");
+		expect(chips(host)).toHaveLength(0);
+		await press(host, "Escape");
+		expect(chips(host)).toHaveLength(2);
+	});
+
+	it("joins the arrow keys: Down from the last row of tiles reaches the first chip", async () => {
+		const host = await mount(APPS, FAVOURITES);
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["frappe"]);
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["favourite:CRM Deal:CRM-DEAL-0001"]);
+		await press(host, "ArrowRight");
+		expect(selected(host)).toEqual(["favourite:ToDo:t1"]);
+		const todo = chips(host)[1];
+		expect(todo.getAttribute("aria-selected")).toBe("true");
+		expect(box(host).getAttribute("aria-activedescendant")).toBe(todo.id);
+		await press(host, "Enter");
+		expect(assign).toHaveBeenCalledWith("/todo/t1");
+	});
+
+	it("moves through wrapped chips with Down, and back up from the first chip to the last tile", async () => {
+		const host = await mount(APPS, FAVOURITES);
+		await press(host, "ArrowDown");
+		await press(host, "ArrowDown");
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["favourite:ToDo:t1"]);
+		await press(host, "ArrowUp");
+		await press(host, "ArrowUp");
+		expect(selected(host)).toEqual(["gameplan"]);
+	});
+
+	it("names the Favourites listbox as one the box controls while it is drawn", async () => {
+		const host = await mount(APPS, FAVOURITES);
+		const list = host.querySelector("[data-index-favourites] [role='listbox']")!;
+		expect(box(host).getAttribute("aria-controls")).toBe(`index-apps ${list.id}`);
+		await type(host, "zzz");
+		expect(box(host).getAttribute("aria-controls")).toBeNull();
+		expect(box(host).getAttribute("aria-expanded")).toBe("false");
+	});
+
+	it("draws the Favourites row when the person can open no app", async () => {
+		const host = await mount([], FAVOURITES);
+		expect(chips(host)).toHaveLength(2);
+		await press(host, "Enter");
+		expect(assign).toHaveBeenCalledWith("/deal/CRM-DEAL-0001");
 	});
 });
