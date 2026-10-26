@@ -88,6 +88,9 @@ data, or record page words.
   any other `@framework/ui/` path in `frontend/src`, a `vi.mock` target included. The
   `"./*"` entry stays for now, so an app can still import any file. No export carries a
   promise yet. The @framework/ui map decides the public surface.
+- **A `ui/` name is a concept row only when it is public**: the root or a named subpath
+  exports it, and code outside `ui/` imports it. Any other `ui/` name is internal and gets
+  no row. The structure check works this out and counts internal names apart from gaps.
 - **`ui/` has its own tools for apps**: `ui/vite`, the vite plugin for an app that uses
   `@framework/ui`, and `ui/island`. They are not part of the desk build.
 
@@ -639,7 +642,7 @@ baseline in the same PR.
 | --- | --- | --- | --- |
 | A layer uses only the layers it may use, and `ui/` uses no desk code | An import goes to a layer that the layer file does not allow. Every file in `ui/src` and `ui/island` is checked, also one the desk does not import | Frontend workflow, step "Check the desk structure": `node frontend/architecture/diagram.mjs --flows` | `knownBreaks` in `frontend/architecture/layers.json`, each with the ticket that removes it |
 | No new group of folders imports each other | A new group appears, or a known group grows or joins another | Frontend workflow, the same step | `knownLoops` in `layers.json`: 9 groups |
-| A new concept needs a ruling | A name imported or re-exported across a folder boundary is not in the concept table of the layer that defines it | Frontend workflow, the same step | `knownUnlisted` in `layers.json`: today's gaps |
+| A new concept needs a ruling | A name imported or re-exported across a folder boundary is not in the concept table of the layer that defines it. A `ui/` name that is not public fails as `NOT PUBLIC`, because it gets no row | Frontend workflow, the same step | `knownUnlisted` in `layers.json`: today's gaps. The step prints how many are internal `ui/` names |
 | Framework code outside `frappe/shell/` does not use the desk server | Code outside `frappe/shell/` imports `frappe.shell` or names it in a dotted path. Test files are skipped, and a `hooks.py` callback is not a use | Python tests, `frappe/tests/test_desk_server_layer.py` | The `knownBreaks` from outside `frappe/shell/` into it: `frappe/utils/data.py`, `frappe/bundler.py` and `frappe/website/page_renderers/shell_page.py` |
 | Every test file runs | A test file under `frontend/` or `ui/` matches no vitest pattern | Frontend workflow, `yarn test:files` | None |
 | A page's JS does not grow past its baseline | A page's JS is more than 5 KB gzip above its baseline | UI workflow, `yarn test:page-js` | `frontend/speed-budgets.json` |

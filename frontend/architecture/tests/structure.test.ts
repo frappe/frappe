@@ -24,7 +24,9 @@ const doc = [
 
 const files = {
 	"ARCH.md": doc,
-	"ui/package.json": JSON.stringify({ exports: { ".": "./src/index.ts" } }),
+	"ui/package.json": JSON.stringify({
+		exports: { ".": "./src/index.ts", "./extra": "./src/extra/index.ts", "./*": "./src/*" },
+	}),
 	"ui/src/index.ts": [
 		'export * from "./api";',
 		'export { default as Button } from "./components/Button.vue";',
@@ -109,25 +111,43 @@ describe("ConceptCheck", () => {
 	it("fails on each name that crosses a folder and is in no concept table", () => {
 		expect(check({}).report()).toEqual([
 			"NO CONCEPT Shape (frontend/src/app/shape.ts): add it to layer 2's concept table",
-			"NO CONCEPT hidden (ui/src/api/index.ts): add it to layer 1's concept table",
-			"NO CONCEPT helper (ui/src/utils/helper.ts): add it to layer 1's concept table",
+			"NOT PUBLIC hidden (ui/src/api/index.ts): gets no concept row; keep it in its folder or add it to knownUnlisted",
+			"NOT PUBLIC helper (ui/src/utils/helper.ts): gets no concept row; keep it in its folder or add it to knownUnlisted",
 		]);
 	});
 
-	it("passes when every unlisted name is in the baseline", () => {
-		const structure = check(unlisted);
-		expect(structure.report()).toEqual([]);
-		expect(structure.passes).toBe(true);
+	it("counts ui/ names that the desk does not import through a public entry apart from gaps", () => {
+		expect(check(unlisted).concepts.summary()).toEqual([
+			"GAPS       1 names in 1 files: no concept row yet",
+			"INTERNAL   2 ui/ names in 2 files: not public, so no concept row",
+		]);
 	});
 
-	it("counts every name a namespace import takes", () => {
+	it("counts a ui/ name as a gap once a named subpath exports it and the desk imports it", () => {
+		const extra = {
+			"ui/src/extra/index.ts": 'export { helper } from "../utils/helper";\n',
+			"frontend/src/extra/use.ts": 'import { helper } from "@framework/ui/extra";\n',
+		};
+		withFiles(extra, () => {
+			const structure = check({});
+			expect(structure.report()).toContain(
+				"NO CONCEPT helper (ui/src/utils/helper.ts): add it to layer 1's concept table"
+			);
+			expect(check(unlisted).concepts.summary()).toEqual([
+				"GAPS       2 names in 2 files: no concept row yet",
+				"INTERNAL   1 ui/ names in 1 files: not public, so no concept row",
+			]);
+		});
+	});
+
+	it("counts every name a namespace import takes, and a name only ./* reaches is not public", () => {
 		const extra = {
 			"ui/src/utils/more.ts": "export const more = 1;\n",
 			"frontend/src/extra/ns.ts": 'import * as more from "@framework/ui/utils/more";\n',
 		};
 		withFiles(extra, () => {
 			expect(check(unlisted).report()).toEqual([
-				"NO CONCEPT more (ui/src/utils/more.ts): add it to layer 1's concept table",
+				"NOT PUBLIC more (ui/src/utils/more.ts): gets no concept row; keep it in its folder or add it to knownUnlisted",
 			]);
 		});
 	});

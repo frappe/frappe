@@ -35,6 +35,11 @@ export class Sources {
     return this.js;
   }
 
+  // "./*" is left out: it is not a public entry.
+  uiEntries() {
+    return Object.values(this.uiExports).map((file) => path.join("ui", file));
+  }
+
   readJsFiles() {
     const files = new Map();
     const queue = [

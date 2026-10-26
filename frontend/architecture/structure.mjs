@@ -26,7 +26,8 @@ export class StructureCheck {
       sources.jsFiles(),
       (file) => this.layers.layerOf(file),
       this.doc,
-      this.layerFile
+      this.layerFile,
+      sources.uiEntries()
     );
     this.flows = new FlowReach(sources.jsFiles(), this.layerFile.flowEntries);
   }
