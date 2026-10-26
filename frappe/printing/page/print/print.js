@@ -123,10 +123,12 @@ frappe.ui.form.PrintView = class {
 			options: "Print Format",
 			label: __("Print Format"),
 			get_query: () => {
+				const restricted = frappe.meta.get_restricted_print_formats(this.frm.doctype);
 				return {
 					filters: {
 						doc_type: this.frm.doctype,
 						print_format_for: ["in", ["DocType", ""]],
+						...(restricted.length && { name: ["not in", restricted] }),
 					},
 				};
 			},

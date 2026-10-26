@@ -264,6 +264,13 @@ $.extend(frappe.meta, {
 		];
 	},
 
+	get_restricted_print_formats: function (doctype) {
+		return frappe
+			.get_list(":Print Format", { doc_type: doctype })
+			.filter((d) => d.__roles?.length && !frappe.user.has_role(d.__roles))
+			.map((d) => d.name);
+	},
+
 	get_print_formats: function (doctype) {
 		var print_format_list = ["Standard"];
 		var default_print_format = locals.DocType[doctype].default_print_format;
@@ -271,6 +278,7 @@ $.extend(frappe.meta, {
 			":Print Settings",
 			"Print Settings"
 		).enable_raw_printing;
+		const restricted = frappe.meta.get_restricted_print_formats(doctype);
 		var print_formats = frappe
 			.get_list(":Print Format", { doc_type: doctype })
 			.sort(function (a, b) {
@@ -282,7 +290,7 @@ $.extend(frappe.meta, {
 				d.print_format_type !== "JS" &&
 				d.print_format_for !== "Report" &&
 				(cint(enable_raw_printing) || !d.raw_printing) &&
-				(!d.__roles?.length || frappe.user.has_role(d.__roles))
+				!restricted.includes(d.name)
 			) {
 				print_format_list.push(d.name);
 			}

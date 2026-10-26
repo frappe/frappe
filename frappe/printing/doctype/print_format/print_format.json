@@ -105,6 +105,7 @@
   {
    "collapsible": 1,
    "collapsible_depends_on": "roles",
+   "depends_on": "eval:doc.print_format_for != \"Report\"",
    "fieldname": "access_section",
    "fieldtype": "Section Break",
    "label": "Access"
