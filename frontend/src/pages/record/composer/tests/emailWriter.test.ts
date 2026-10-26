@@ -86,15 +86,6 @@ vi.mock("@framework/ui/FileUpload", async (importOriginal) => ({
 	...((await importOriginal()) as object),
 	defaultTransport,
 }));
-// The editor's upload falls back to ui's own transport, which a mock of the subpath cannot reach.
-vi.mock("@framework/ui/RichText", async (importOriginal) => {
-	const original = (await importOriginal()) as typeof import("@framework/ui/RichText");
-	return {
-		...original,
-		uploadMedia: (...[file, options, args, transport]: Parameters<typeof original.uploadMedia>) =>
-			original.uploadMedia(file, options, args, transport ?? defaultTransport),
-	};
-});
 vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => ({
 	...((await importOriginal()) as object),
 	addPendingActivity,
