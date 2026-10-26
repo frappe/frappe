@@ -15,8 +15,10 @@ from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
 	effective_renderer,
 	get_customization,
+	replace_widgets,
 )
 from frappe.desk.utils import is_item_allowed
+from frappe.permissions import AUTOMATIC_ROLES
 from frappe.utils import cint
 from frappe.utils.caching import request_cache
 
@@ -41,11 +43,13 @@ class Workspace(DeskViews):
 		self.workspace_manager = "Workspace Manager" in frappe.get_roles()
 
 		self.user = frappe.get_user()
+		self.variant = None
 
 		# A standard workspace stays the live, app-owned base; a site's customization is a
 		# separate delta merged on top here. Use a fresh (non-cached) doc on the merge path
 		# so we never mutate the shared cached document.
 		customization = get_customization(self.page_name)
+		self.doc_is_shared = not customization
 		if customization:
 			self.doc = frappe.get_doc("Workspace", self.page_name)
 			apply_customization(self.doc, customization)
@@ -56,10 +60,7 @@ class Workspace(DeskViews):
 		self.onboarding_list = []
 
 		if not minimal:
-			if self.doc.content:
-				self.onboarding_list = [
-					x["data"]["onboarding_name"] for x in loads(self.doc.content) if x["type"] == "onboarding"
-				]
+			self.onboarding_list = self.get_onboarding_names()
 
 			self.table_counts = get_table_with_counts()
 
@@ -100,6 +101,40 @@ class Workspace(DeskViews):
 
 		if has_common(frappe.get_roles(), allowed):
 			return True
+
+	def get_onboarding_names(self):
+		if not self.doc.content:
+			return []
+		return [x["data"]["onboarding_name"] for x in loads(self.doc.content) if x["type"] == "onboarding"]
+
+	def use_layout(self, requested: str | None = None) -> None:
+		"""Draw the first role layout, in the app's order, whose role the session holds.
+
+		`requested` names a layout to draw instead: a role, or `DEFAULT_LAYOUT`. A private
+		workspace has one layout and never walks.
+		"""
+		if not self.doc.public:
+			return
+
+		rows = {row.role: row for row in self.doc.get("variants") or []}
+		# app import skips validate, so a hand-edited JSON may still bind an automatic role
+		for role in AUTOMATIC_ROLES:
+			rows.pop(role, None)
+
+		if requested:
+			role = requested if requested in rows else None
+		else:
+			roles = set(frappe.get_roles())
+			role = next((role for role in rows if role in roles), None)
+		if not role:
+			return
+
+		if self.doc_is_shared:
+			self.doc = frappe.get_doc("Workspace", self.page_name)
+		self.doc.content = rows[role].content or "[]"
+		replace_widgets(self.doc, loads(rows[role].widgets or "{}"))
+		self.onboarding_list = self.get_onboarding_names()
+		self.variant = role
 
 	def get_cached(self, cache_key, fallback_fn):
 		value = frappe.cache.get_value(cache_key, user=frappe.session.user)
@@ -432,10 +467,17 @@ LINK_FIELDS = (
 )
 
 
+# names the default layout in `get_workspace`; a name can never contain `<` or `>`
+DEFAULT_LAYOUT = "<default>"
+
+
 @frappe.whitelist(methods=["GET"])
 @frappe.read_only()
 def get_workspace(name: str, variant: str | None = None) -> dict:
-	"""Everything the workspace island draws, filtered to what the session user may read."""
+	"""Everything the workspace island draws, filtered to what the session user may read.
+
+	`variant` asks for one layout, a role or `DEFAULT_LAYOUT`, and only an editor gets it.
+	"""
 	module = frappe.db.get_value("Workspace", name, "module")
 	if module is None or module in get_disabled_modules():
 		raise frappe.DoesNotExistError(_("Workspace {0} not found").format(name))
@@ -451,6 +493,9 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 	if not permitted:
 		raise frappe.PermissionError(_("You are not permitted to open this workspace"))
 
+	can_edit = can_edit_workspace(doc)
+	workspace.use_layout(variant if can_edit else None)
+	doc = workspace.doc
 	workspace.build_workspace()
 	built = {
 		"chart": workspace.charts["items"],
@@ -489,12 +534,12 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"name": doc.name,
 		"title": _(doc.title),
 		"public": bool(doc.public),
-		"variant": None,
+		"variant": workspace.variant,
 		"content": content,
 		"widgets": widgets,
-		"can_edit": can_edit_workspace(doc),
+		"can_edit": can_edit,
 		"is_hidden": bool(doc.is_hidden),
-		"is_layout_customized": bool(customization and customization.content),
+		"is_layout_customized": bool(not workspace.variant and customization and customization.content),
 	}
 
 
