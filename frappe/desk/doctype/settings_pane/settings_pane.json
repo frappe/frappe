@@ -1,7 +1,6 @@
 {
  "actions": [],
  "allow_bulk_edit": 1,
- "allow_rename": 1,
  "creation": "2026-10-26 15:09:23.706798",
  "description": "One pane an app adds to the settings dialog.",
  "doctype": "DocType",
@@ -45,7 +44,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-26 15:09:23.706798",
+ "modified": "2026-10-26 15:36:54.825179",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Settings Pane",

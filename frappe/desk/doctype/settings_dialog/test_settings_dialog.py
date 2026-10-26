@@ -149,6 +149,11 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				frappe.ValidationError, ship, ["general"], [single("system", name_resolver="session_user")]
 			)
 
+	def test_a_hosts_block_names_one_of_its_own_panes(self):
+		with authoring():
+			self.assertRaises(frappe.ValidationError, ship, ["general"], [single("system", pane="gone")])
+			ship(blocks=[component("calls", pane="any-host-pane")], app=EXTENDER, extends=HOST)
+
 	def test_a_block_is_a_binding_or_a_component(self):
 		with authoring():
 			self.assertRaises(
@@ -163,6 +168,7 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			"fields": single("system", fields='{"a": 1}'),
 			"bindings": component("theme", bindings='["user"]'),
 			"settings": component("theme", settings='"Theme"'),
+			"settings label": component("theme", settings='[{"keywords": "dark"}]'),
 			"anchors": component("theme", anchors="not json"),
 		}
 

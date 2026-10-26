@@ -15,7 +15,7 @@ def resolve_panes() -> list[dict]:
 	apps = frappe.get_active_apps(_ensure_on_bench=True)
 	records = _shipped_records(apps)
 	panes = _rows_by_parent("Settings Pane", records)
-	blocks = _rows_by_parent("Settings Block", records)
+	blocks = _readable_blocks(records)
 	installed = _installed_doctypes(blocks)
 
 	resolved = []
@@ -38,16 +38,17 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 	anchored: dict[str, list[tuple[dict, list[dict]]]] = {}
 
 	for record in contributors:
-		for row in blocks.get(record.name, []):
+		for row, block in blocks.get(record.name, []):
 			pane = by_key.get(row.pane)
-			if pane is None or not _binds_installed(row, installed):
+			if pane is None or not all(doctype in installed for doctype in _bound_doctypes(block)):
 				continue
 
-			if any(block["key"] == row.key for block in pane["blocks"]):
-				_warn_duplicate(record.app, row, pane)
+			if any(other["key"] == block["key"] for other in pane["blocks"]):
+				_warn(
+					f"block {row.key!r} from {record.app!r} repeats a key in pane {pane['app']}/{pane['key']}"
+				)
 				continue
 
-			block = _block(record.app, row)
 			pane["blocks"].append(block)
 
 			if record.extends and (attempts := _placements(row.anchors)):
@@ -73,15 +74,16 @@ def _place(blocks: list[dict], placed: list[tuple[dict, list[dict]]]):
 
 
 def _placements(raw) -> list[dict]:
-	"""A block's anchors, keeping only `after` and `before`: a pane's blocks do not nest."""
-	return [attempt for attempt in anchor_attempts(raw) if attempt["after"] or attempt["before"]]
+	"""A block's anchors as `after` or `before` only: a pane's blocks do not nest."""
+	return [
+		{**attempt, "parent_key": None}
+		for attempt in anchor_attempts(raw)
+		if attempt["after"] or attempt["before"]
+	]
 
 
-def _warn_duplicate(app: str, row, pane: dict):
-	frappe.logger("shell").warning(
-		f"Settings block {row.key!r} from {app!r} repeats a key in pane {pane['app']}/{pane['key']}; "
-		"the block earlier in run order is kept."
-	)
+def _warn(problem: str):
+	frappe.logger("shell").warning(f"Settings {problem}; the block is left out of the settings dialog.")
 
 
 # The wire shape
@@ -99,8 +101,9 @@ def _pane(app: str, row) -> dict:
 	return pane
 
 
-def _block(app: str, row) -> dict:
-	"""One block as the browser gets it: a generated `binding`, or a `component` with named `bindings`."""
+def _block(app: str, row) -> dict | None:
+	"""One block as the browser gets it, or None when a JSON column will not read."""
+	# Migrate imports a shipped record without `validate`, so a hand-edited file arrives unchecked.
 	block = {"key": row.key, "app": app, "save_mode": row.save_mode or "auto"}
 
 	if row.label:
@@ -109,35 +112,51 @@ def _block(app: str, row) -> dict:
 		block["description"] = row.description
 
 	if row.binding_type:
-		block["binding"] = _binding(row.binding_type, row.document_type, row.name_resolver)
-		if fields := _json(row.fields):
-			block["fields"] = fields
-		return block
+		block["binding"] = _binding(
+			{"type": row.binding_type, "doctype": row.document_type, "resolver": row.name_resolver}
+		)
+		block["fields"] = _json(row.fields, list)
+		readable = block["binding"] is not None and block["fields"] is not None
+	else:
+		block["component"] = row.component
+		bindings = _json(row.bindings, dict)
+		block["bindings"] = bindings and {name: _binding(spec) for name, spec in bindings.items()}
+		block["settings"] = _json(row.settings, list)
+		readable = (
+			bool(row.component)
+			and bindings is not None
+			and None not in block["bindings"].values()
+			and block["settings"] is not None
+		)
 
-	block["component"] = row.component
-	if bindings := _json(row.bindings):
-		block["bindings"] = {
-			name: _binding(binding["type"], binding["doctype"], binding.get("resolver"))
-			for name, binding in bindings.items()
-		}
-	if settings := _json(row.settings):
-		block["settings"] = settings
+	if not readable:
+		return None
 
-	return block
-
-
-def _binding(binding_type: str, doctype: str, resolver: str | None) -> dict:
-	binding = {"type": binding_type, "doctype": doctype}
-
-	if resolver:
-		binding["resolver"] = resolver
-
-	return binding
+	return {field: value for field, value in block.items() if value or field == "key"}
 
 
-def _json(raw):
-	"""A JSON column the controller already checked on save."""
-	return json.loads(raw) if raw else None
+def _binding(spec) -> dict | None:
+	if not isinstance(spec, dict) or not spec.get("type") or not spec.get("doctype"):
+		return None
+
+	return {field: spec[field] for field in ("type", "doctype", "resolver") if spec.get(field)}
+
+
+def _json(raw, shape: type):
+	"""The column's value, its empty shape when blank, or None when it is not that shape."""
+	try:
+		value = json.loads(raw) if raw else shape()
+	except (TypeError, ValueError):
+		return None
+
+	return value if isinstance(value, shape) else None
+
+
+def _bound_doctypes(block: dict) -> list[str]:
+	if "binding" in block:
+		return [block["binding"]["doctype"]]
+
+	return [binding["doctype"] for binding in block.get("bindings", {}).values()]
 
 
 # The stored records
@@ -162,6 +181,22 @@ def _shipped_records(apps: list[str]) -> list:
 	)
 
 
+def _readable_blocks(records: list) -> dict[str, list[tuple]]:
+	"""Each record's block rows with their wire shape; a row that will not read is logged and left out."""
+	app_of = {record.name: record.app for record in records}
+	readable: dict[str, list[tuple]] = {}
+
+	for parent, rows in _rows_by_parent("Settings Block", records).items():
+		for row in rows:
+			block = _block(app_of[parent], row)
+			if block is None:
+				_warn(f"block {row.key!r} from {app_of[parent]!r} holds JSON that will not read")
+				continue
+			readable.setdefault(parent, []).append((row, block))
+
+	return readable
+
+
 def _rows_by_parent(doctype: str, records: list) -> dict[str, list]:
 	if not records:
 		return {}
@@ -179,21 +214,12 @@ def _rows_by_parent(doctype: str, records: list) -> dict[str, list]:
 	return rows
 
 
-def _installed_doctypes(blocks: dict[str, list]) -> set[str]:
+def _installed_doctypes(blocks: dict[str, list[tuple]]) -> set[str]:
 	"""Of the doctypes the blocks bind, the ones this site has."""
-	named = {doctype for rows in blocks.values() for row in rows for doctype in _bound_doctypes(row)}
+	named = {
+		doctype for pairs in blocks.values() for _row, block in pairs for doctype in _bound_doctypes(block)
+	}
 	if not named:
 		return set()
 
 	return set(frappe.get_all("DocType", filters={"name": ("in", list(named))}, pluck="name"))
-
-
-def _binds_installed(row, installed: set[str]) -> bool:
-	return all(doctype in installed for doctype in _bound_doctypes(row))
-
-
-def _bound_doctypes(row) -> list[str]:
-	if row.binding_type:
-		return [row.document_type]
-
-	return [binding["doctype"] for binding in (_json(row.bindings) or {}).values()]

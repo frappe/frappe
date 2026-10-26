@@ -122,10 +122,18 @@ class SettingsDialog(Document):
 			seen.add(pane.key)
 
 	def validate_blocks(self):
+		own_panes = {pane.key for pane in self.panes}
 		seen = set()
 
 		for block in self.blocks:
 			validate_key(block.key, _("Block"), block.idx)
+			if not self.extends and block.pane not in own_panes:
+				frappe.throw(
+					_("Block row {0} names the pane {1}, which this record does not have.").format(
+						block.idx, frappe.bold(block.pane)
+					),
+					title=_("Unknown Pane"),
+				)
 			if (block.pane, block.key) in seen:
 				frappe.throw(
 					_("Block row {0} repeats the key {1} in pane {2}.").format(
@@ -189,7 +197,7 @@ def validate_binding_shape(block):
 		validate_json_list(block, "fields", str)
 	elif block.component:
 		validate_named_bindings(block)
-		validate_json_list(block, "settings", dict)
+		validate_search_settings(block)
 	else:
 		frappe.throw(
 			_("Block row {0} needs a binding type or a component.").format(block.idx),
@@ -232,6 +240,12 @@ def validate_named_bindings(block):
 		if not isinstance(binding, dict):
 			refuse_json(block, "bindings")
 		validate_binding(block.idx, binding.get("type"), binding.get("doctype"), binding.get("resolver"))
+
+
+def validate_search_settings(block):
+	validate_json_list(block, "settings", dict)
+	if not all(isinstance(entry.get("label"), str) for entry in parse_json(block, "settings", [])):
+		refuse_json(block, "settings")
 
 
 def validate_json_list(block, fieldname: str, item_type: type):

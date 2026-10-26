@@ -115,6 +115,43 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		self.assertEqual([(block["key"], block["app"]) for block in merged[0]["blocks"]], [("theme", HOST)])
 		self.assertIn("'theme'", logged.output[0])
 
+	def test_an_anchor_naming_a_parent_does_not_nest_the_block(self):
+		with authoring():
+			ship(["general"], [single("system"), component("theme"), component("defaults")])
+			ship(
+				blocks=[
+					anchored("calls", {"after": "theme", "parent_key": "system"}),
+					anchored("dial", {"after": "system"}),
+				],
+				app=EXTENDER,
+				extends=HOST,
+			)
+
+		self.assertEqual(
+			block_keys(HOST, HOST, EXTENDER), {"general": ["system", "dial", "theme", "calls", "defaults"]}
+		)
+
+	def test_a_block_imported_with_unreadable_json_is_dropped_and_logged(self):
+		with authoring():
+			unchecked(
+				ship(
+					["general"],
+					[
+						single("system"),
+						single("listed", fields="not json"),
+						component("theme", bindings='{"user": {"doctype": "User"}}'),
+						component("search", settings='{"label": "Theme"}'),
+						{"key": "empty", "pane": "general"},
+					],
+					insert=False,
+				)
+			)
+
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(block_keys(HOST, HOST), {"general": ["system"]})
+
+		self.assertEqual(len(logged.output), 4)
+
 	def test_an_orphan_block_is_dropped(self):
 		with authoring():
 			ship(["general"], [single("system")])

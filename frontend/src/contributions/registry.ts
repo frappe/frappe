@@ -39,7 +39,7 @@ export function settingsComponentFor(app: string, name: string) {
   const found = contributions.settings.find((entry) => entry.app === app && entry.name === name)
   if (!found) {
     console.warn(
-      `[frappe] settings block dropped: ${app} ships no ${name}.vue under <module>/frontend/settings/.`,
+      `[frappe] settings block dropped: the build holds no settings component '${name}' from ${app}.`,
     )
   }
   return found?.component

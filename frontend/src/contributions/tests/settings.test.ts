@@ -45,6 +45,6 @@ describe('settingsComponentFor', () => {
     expect(settingsComponentFor('crm', 'dialer')).toBeUndefined()
     expect(settingsComponentFor('helpdesk', 'telephony')).toBeUndefined()
     expect(warn).toHaveBeenCalledTimes(2)
-    expect(warn.mock.calls[0][0]).toContain('crm ships no dialer.vue')
+    expect(warn.mock.calls[0][0]).toContain("no settings component 'dialer' from crm")
   })
 })
