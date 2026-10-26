@@ -71,12 +71,12 @@ export type Boot = {
 	// click costs no request. Absent on the index. What an app contains is `contents.ts`.
 	navigation?: Navigation;
 
-	// Present on the index only.
+	// Present on the index only. A `link` tile leaves the shell: its route is the app's own UI or desk v1.
 	apps?: {
 		app: string;
-		prefix: string;
 		title: string;
-		logo?: string;
+		logo?: string | null;
+		kind: "prefix" | "link";
 		route: string;
 	}[];
 
