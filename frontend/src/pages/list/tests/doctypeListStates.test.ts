@@ -104,14 +104,17 @@ afterEach(() => {
 
 async function mount(component = DoctypeList, doctype: string | null = "Contact") {
 	const router = createRouter({
-		history: createMemoryHistory(),
-		routes: [{ path: "/:doctype", component: { render: () => null } }],
+		history: createMemoryHistory("/apps/crm"),
+		routes: [
+			{ path: "/", name: "home", component: { render: () => null } },
+			{ path: "/:doctype", component: { render: () => null } },
+		],
 	});
 	await router.push("/contact");
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(component, { doctype }) }));
-	app.use(router).provide("addresses", {
+	app.use(router).provide("boot", { app: "crm", app_title: "CRM" }).provide("addresses", {
 		moduleName: () => null,
 		doctypeOf: () => doctype,
 	});
@@ -122,6 +125,7 @@ async function mount(component = DoctypeList, doctype: string | null = "Contact"
 		state: () => root.querySelector<HTMLElement>("[data-page-state]")?.dataset.pageState,
 		text: () => root.textContent ?? "",
 		has: (selector: string) => root.querySelector(selector) !== null,
+		action: () => root.querySelector<HTMLAnchorElement>("[data-page-state] a"),
 		tryAgain: () =>
 			[...root.querySelectorAll("button")]
 				.find((button) => button.textContent?.trim() === "Try again")!
@@ -143,6 +147,15 @@ describe("a failed meta read", () => {
 		expect(list.has("[data-stub-filter]")).toBe(false);
 		expect(list.has("[data-stub-list]")).toBe(false);
 		expect(list.text()).toContain("Contact");
+	});
+
+	it("draws the not found state on a 404, which offers the app's home", async () => {
+		const list = await mount();
+		await set("metaError", new ApiError({ type: "DoesNotExistError", message: "Gone" }, 404));
+
+		expect(list.state()).toBe("notFound");
+		expect(list.action()?.textContent?.trim()).toBe("Go to CRM home");
+		expect(list.action()?.getAttribute("href")).toBe("/apps/crm/");
 	});
 
 	it("draws the offline state on a network failure, and Try again reads the meta again", async () => {
@@ -191,8 +204,10 @@ describe("a rows read", () => {
 });
 
 describe("an address with no doctype", () => {
-	it("draws the not found state", async () => {
+	it("draws the not found state, which offers the app's home", async () => {
 		const list = await mount(List, null);
 		expect(list.state()).toBe("notFound");
+		expect(list.action()?.textContent?.trim()).toBe("Go to CRM home");
+		expect(list.action()?.getAttribute("href")).toBe("/apps/crm/");
 	});
 });
