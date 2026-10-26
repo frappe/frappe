@@ -215,8 +215,6 @@ import {
 	shownInDialog,
 	stripTags,
 } from "./record/saveResponse";
-import { openCreate } from "@/shell/create";
-import { OpenSettingsKey } from "@/shell/openSettings";
 import PageFrame from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import { recents } from "@/shell/recents";
@@ -225,7 +223,6 @@ import type { Addresses } from "@/addresses";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
-const openSettings = inject(OpenSettingsKey, undefined);
 const route = useRoute();
 const router = useRouter();
 
@@ -765,8 +762,6 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		save: write,
 		reload: load,
 		router,
-		openCreate,
-		openSettings,
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 		actFailed,

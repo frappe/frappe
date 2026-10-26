@@ -1,8 +1,9 @@
 // The overlay host: the customize dialog addressed by the hash, and the helper under it.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, inject, nextTick, type Component } from "vue";
+import { createApp, defineComponent, h, nextTick, type Component } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
+import { acts } from "@/acts/dispatcher";
 import { Addresses } from "@/addresses";
 import type { Boot, NavigationItem } from "@/boot";
 import { registerContributions } from "@/contributions/registry";
@@ -10,7 +11,6 @@ import { registerShell } from "@/router/routeFor";
 import { resetNavigationReports } from "@/navigation/registry";
 import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
-import { OpenSettingsKey, type OpenSettings } from "../openSettings";
 import { useHashDialog } from "../useHashDialog";
 
 // The dialog loads its list when the hash names one; an empty list is enough to prove it opened.
@@ -174,18 +174,13 @@ describe("the dialog, addressed by the hash", () => {
 	});
 });
 
-describe("the settings act the shell provides", () => {
-	/** The shell on `path`, with the page under it holding the act it was handed. */
+describe("the settings act on the shell surface", () => {
+	/** The shell on `path`, and `shell.open_settings` run by name. */
 	async function withAct(path: string) {
-		const handed: { act?: OpenSettings } = {};
-		const page = defineComponent({
-			setup() {
-				handed.act = inject(OpenSettingsKey);
-				return () => null;
-			},
-		});
-		const { router } = await shell(path, page);
-		return { router, act: handed.act! };
+		const { router } = await shell(path);
+		const act = (prefix?: string, pane?: string, block?: string) =>
+			void acts.run("shell.open_settings", { prefix, pane, block });
+		return { router, act };
 	}
 
 	it("loads no dialog until the first open, then pushes the address it is given", async () => {

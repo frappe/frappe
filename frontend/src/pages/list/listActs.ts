@@ -44,8 +44,7 @@ export function useListActs(host: ListActsHost): ListActs {
   onScopeDispose(release);
 
   return {
-    drawn: (name) =>
-      acts.available().find((act) => act.name === `list.${name}`),
+    drawn: (name) => acts.find(`list.${name}`),
     perform: (act) => void acts.perform(act.name),
   };
 }

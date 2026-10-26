@@ -192,6 +192,18 @@ whose `act` is the name and whose `reason` is `'missing'` (no item has that name
 reader lacks its right). A click, and later the palette and a key, show a failure in a
 toast instead, and the record reloads unless a `beforeSave` vetoed a save.
 
+`page.run` also runs the shell's acts, which outlive the page and are named `shell.<item>`.
+Each menu entry in the rail and the avatar menu is one of them: `shell.all_apps`,
+`shell.customize_sidebar`, `shell.copy_link` and `shell.toggle_sidebar` (while a sidebar
+shows), `shell.open_settings` with `{ prefix, pane, block }`, `shell.my_settings`,
+`shell.theme` with `'light'`, `'dark'` or `'system'`, `shell.desk_v1`, and `shell.log_out`,
+which asks first. `shell.create` takes a doctype, or `{ doctype, values }`.
+`page.create()` and `page.openSettings()` run `shell.create` and `shell.open_settings`.
+
+```js
+page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('shell.theme', 'dark') })
+```
+
 An act item takes four more keys, on `page.header`, `page.quickActions` and a tab's `create`:
 
 | Key | What it does |

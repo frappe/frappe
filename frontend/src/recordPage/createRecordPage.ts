@@ -181,13 +181,6 @@ export interface RecordPageHost {
   activeWriter?: ComposerHost["activeWriter"];
   windowState?: ComposerHost["windowState"];
   setWindow?: ComposerHost["setWindow"];
-  /** The shell's Create; `page.create` resolves `null` without it. */
-  openCreate?: (
-    doctype: string,
-    options: { values?: Record<string, any> },
-  ) => Promise<Record<string, any> | null>;
-  /** The shell's settings act; `page.openSettings` warns and opens nothing without it. */
-  openSettings?: (prefix?: string, pane?: string, block?: string) => void;
   /** True when the host puts back the reader's view on this visit; `onOpen`'s view acts then do nothing. */
   restoresView?: () => boolean;
   /** An act the reader asked for threw; absent, the engine shows the error in a toast. */
@@ -414,10 +407,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       error: (message) => toast.error(message),
     },
     dialog: dialogs.api,
-    create: (doctype, options) =>
-      gate.hasLeft() || !host.openCreate
-        ? Promise.resolve(null)
-        : host.openCreate(doctype, { values: options?.values }),
+    create: (doctype, options) => {
+      if (gate.hasLeft()) return Promise.resolve(null);
+      const created = acts.run("shell.create", { doctype, values: options?.values });
+      return created as Promise<Record<string, any> | null>;
+    },
     openSettings: (...address) => openSettings(address),
     call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
     run: (name, value) => (gate.hasLeft() ? Promise.resolve() : acts.run(name, value)),
@@ -681,10 +675,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   /** Held in a replay or a hold, so the dialog opens over the page the commit paints. */
   function openSettings(address: Parameters<RecordPageApi["openSettings"]>) {
     if (gate.hasLeft()) return;
+    const [prefix, pane, block] = address;
     const deliver = () =>
-      host.openSettings
-        ? host.openSettings(...address)
-        : warnSettings(address, "this host opens no settings");
+      void acts
+        .run("shell.open_settings", { prefix, pane, block })
+        .catch((error) => warnSettings(address, errorMessage(error)));
     const taken = heldActs.take({
       kind: "openSettings",
       target: "",

@@ -241,9 +241,6 @@ describe("the groups", () => {
 			],
 			quickActions: [act("email", "Send an email")],
 		});
-		register({
-			shell: [act("toggle_sidebar", "Toggle sidebar"), act("crm.log_a_call", "Log a call")],
-		});
 		releases.push(
 			registerPageRows(() => [
 				{ id: "tab:activity", label: "Go to tab: Activity", run: () => ran.push("tab") },
@@ -280,6 +277,10 @@ describe("the groups", () => {
 
 	it("ranks a typed query in This page, then Desk with an app act's app", async () => {
 		await shell();
+		// After the shell, so this surface takes `shell` over from the shell's own acts.
+		register({
+			shell: [act("toggle_sidebar", "Toggle sidebar"), act("crm.log_a_call", "Log a call")],
+		});
 		await open();
 		await type("s");
 
@@ -290,6 +291,20 @@ describe("the groups", () => {
 
 		await type("crm");
 		expect(drawn()).toEqual([["Desk", "Log a call CRM"]]);
+	});
+
+	it("draws the shell's own acts in Desk, but not Create or Theme until they can ask for a value", async () => {
+		await shell("/crm-deal");
+		await open();
+
+		await type("sidebar");
+		expect(drawn()).toEqual([["Desk", "Customize sidebar"]]);
+		await type("log");
+		expect(drawn()).toEqual([["Desk", "Log out"]]);
+		for (const query of ["create", "theme"]) {
+			await type(query);
+			expect(drawn()).toEqual([]);
+		}
 	});
 
 	it("never draws a denied, hidden, opted-out or argument act", async () => {

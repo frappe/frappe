@@ -105,7 +105,6 @@ import {
 	SidebarRailItem,
 	ScrollArea,
 	Tooltip,
-	toast,
 	type DropdownOptions,
 } from "frappe-ui";
 import type { Boot, NavigationItem } from "@/boot";
@@ -114,8 +113,8 @@ import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
-import { OpenSettingsKey } from "./openSettings";
 import { openPalette } from "./palette";
+import { shellMenu } from "./shellActs";
 import UserMenu from "./UserMenu.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
@@ -134,15 +133,12 @@ const CELL =
 const TRIGGER =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-4 text-base text-ink-gray-8 transition hover:bg-surface-gray-3 focus-visible:ring-0 focus-visible:focus-ring";
 
-// The shell decides `current` (one row across rail and panel) and `shareLink` (it knows whether
-// the panel needs naming); a context is composed once per list.
+// The shell decides `current`, one row across rail and panel; a context is composed once per list.
 const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
-	shareLink?: () => string;
 }>();
-const emit = defineEmits<{ customize: [] }>();
 
 const boot = inject<Boot>("boot")!;
 
@@ -174,28 +170,7 @@ function cellOf(item: NavigationItem): Cell | null {
 		: { ...cell, href: rendering.href, sidebar: rendering.sidebar };
 }
 
-const openSettings = inject(OpenSettingsKey)!;
+const APP_MENU = ["all_apps", "open_settings", "customize_sidebar", "copy_link"];
 
-const menu = computed<DropdownOptions>(() => [
-	{ label: "All apps", icon: "lucide-layout-grid", onClick: () => leave("/apps") },
-	{ label: "Settings", icon: "lucide-settings", onClick: () => openSettings() },
-	{ label: "Customize sidebar", icon: "lucide-settings-2", onClick: () => emit("customize") },
-	...(props.shareLink ? [{ label: "Copy link", icon: "lucide-link", onClick: copyLink }] : []),
-]);
-
-function leave(href: string) {
-	window.location.assign(href);
-}
-
-// The menu closes on the click, so the confirmation is a toast.
-async function copyLink() {
-	if (!props.shareLink) return;
-	try {
-		await navigator.clipboard.writeText(props.shareLink());
-	} catch {
-		toast.error("Could not copy the link");
-		return;
-	}
-	toast.success("Link copied");
-}
+const menu = computed<DropdownOptions>(() => shellMenu(APP_MENU));
 </script>
