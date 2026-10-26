@@ -42,16 +42,19 @@ async function chunks(plugins: object[]) {
   ) as Rolldown.OutputChunk[];
 }
 
-/** The modules the cold load runs: the entry chunk and its static imports. */
+/** The modules the cold load runs: the entry chunk and every chunk it imports statically. */
 function coldLoad(all: Rolldown.OutputChunk[]) {
-  const entry = all.find((chunk) => chunk.facadeModuleId === "\0entry")!;
-  const loaded = [
-    entry,
-    ...entry.imports.map((file) => all.find((c) => c.fileName === file)!),
-  ];
+  const loaded = new Map<string, Rolldown.OutputChunk>();
+  const visit = (chunk: Rolldown.OutputChunk) => {
+    if (loaded.has(chunk.fileName)) return;
+    loaded.set(chunk.fileName, chunk);
+    for (const file of chunk.imports)
+      visit(all.find((c) => c.fileName === file)!);
+  };
+  visit(all.find((chunk) => chunk.facadeModuleId === "\0entry")!);
   return {
-    files: loaded.length,
-    modules: loaded.flatMap((chunk) => chunk.moduleIds),
+    files: loaded.size,
+    modules: [...loaded.values()].flatMap((chunk) => chunk.moduleIds),
   };
 }
 
