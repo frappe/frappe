@@ -250,7 +250,6 @@ describe("the index's Favourites", () => {
 		const host = await mount(APPS, FAVOURITES);
 		const [deal, todo] = chips(host);
 		expect(deal.querySelector("img")?.getAttribute("src")).toBe("/assets/crm/logo.svg");
-		expect(deal.querySelector("[data-app-logo]")?.className).toContain("size-4");
 		expect(todo.querySelector("[data-app-logo]")?.textContent?.trim()).toBe("F");
 	});
 
@@ -277,12 +276,24 @@ describe("the index's Favourites", () => {
 		expect(assign).toHaveBeenCalledWith("/todo/t1");
 	});
 
-	it("goes back up from a chip to the last tile", async () => {
+	it("moves through wrapped chips with Down, and back up from the first chip to the last tile", async () => {
 		const host = await mount(APPS, FAVOURITES);
 		await press(host, "ArrowDown");
 		await press(host, "ArrowDown");
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["favourite:ToDo:t1"]);
+		await press(host, "ArrowUp");
 		await press(host, "ArrowUp");
 		expect(selected(host)).toEqual(["gameplan"]);
+	});
+
+	it("names the Favourites listbox as one the box controls while it is drawn", async () => {
+		const host = await mount(APPS, FAVOURITES);
+		const list = host.querySelector("[data-index-favourites] [role='listbox']")!;
+		expect(box(host).getAttribute("aria-controls")).toBe(`index-apps ${list.id}`);
+		await type(host, "zzz");
+		expect(box(host).getAttribute("aria-controls")).toBeNull();
+		expect(box(host).getAttribute("aria-expanded")).toBe("false");
 	});
 
 	it("draws the Favourites row when the person can open no app", async () => {

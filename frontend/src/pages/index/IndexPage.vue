@@ -16,8 +16,8 @@
 				:aria-label="__('Find an app')"
 				role="combobox"
 				aria-autocomplete="list"
-				:aria-expanded="matches.length > 0"
-				:aria-controls="matches.length ? TILES_ID : undefined"
+				:aria-expanded="listboxes.length > 0"
+				:aria-controls="listboxes.join(' ') || undefined"
 				:aria-activedescendant="selection.activeId()"
 				@keydown="onKeydown"
 			>
@@ -60,8 +60,9 @@
 
 			<IndexFavourites
 				v-if="shownFavourites.length"
+				:id="FAVOURITES_ID"
 				:favourites="shownFavourites"
-				:selected="selection.selected.value"
+				:selection="selection"
 				:class="boxWidthClass(apps.length)"
 			/>
 		</div>
@@ -81,6 +82,7 @@ import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
 const TILES_ID = "index-apps";
+const FAVOURITES_ID = "index-favourites";
 
 const boot = inject<Boot>("boot")!;
 const apps = boot.apps ?? [];
@@ -102,10 +104,15 @@ const sections = computed<SelectionSection[]>(() => [
 			key: favouriteKey(favourite),
 			href: favourite.route,
 		})),
-		columns: shownFavourites.value.length,
+		columns: 1,
 	},
 ]);
 const selection = new Selection(() => sections.value);
+
+const listboxes = computed(() => [
+	...(matches.value.length ? [TILES_ID] : []),
+	...(shownFavourites.value.length ? [FAVOURITES_ID] : []),
+]);
 
 watch(query, (typed) => (typed.trim() ? selection.selectFirst() : selection.clear()));
 

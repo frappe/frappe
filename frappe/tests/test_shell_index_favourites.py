@@ -1,8 +1,10 @@
 # The index boot's Favourites: the person's latest favourite records they can still read.
 
+from unittest.mock import patch
+
 import frappe
 from frappe.shell import SHELL_ROOT
-from frappe.shell.boot import get_boot
+from frappe.shell.boot import get_boot, index_favourites
 from frappe.shell.links import canonical_path
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
@@ -104,3 +106,56 @@ class TestIndexFavourites(IntegrationTestCase):
 		self.favourite("ToDo", self.todo("<p>Call &amp; plan</p>", allocated_to=USER))
 
 		self.assertEqual(self.favourites()[0]["title"], "Call & plan")
+
+	def note(self, title: str) -> str:
+		return frappe.get_doc(doctype="Note", title=title, public=1).insert(ignore_permissions=True).name
+
+	def test_favourites_of_several_doctypes_keep_their_order(self):
+		first, second = (
+			self.todo("Probe first", allocated_to=USER),
+			self.todo("Probe third", allocated_to=USER),
+		)
+		note = self.note("Probe second")
+		for doctype, name in (("ToDo", first), ("Note", note), ("ToDo", second)):
+			self.favourite(doctype, name)
+
+		self.assertEqual(
+			[(row["doctype"], row["title"]) for row in self.favourites()],
+			[("ToDo", "Probe third"), ("Note", "Probe second"), ("ToDo", "Probe first")],
+		)
+
+	def test_a_record_outside_the_persons_user_permissions_is_left_out(self):
+		allowed, other = self.note("Probe allowed"), self.note("Probe other")
+		for name in (allowed, other):
+			self.favourite("Note", name)
+		frappe.get_doc(doctype="User Permission", user=USER, allow="Note", for_value=allowed).insert(
+			ignore_permissions=True
+		)
+
+		self.assertEqual([row["name"] for row in self.favourites()], [allowed])
+
+	def test_a_single_the_person_cannot_read_is_left_out(self):
+		self.favourite("System Settings", "System Settings")
+
+		self.assertEqual(self.favourites(), [])
+
+	def test_a_record_in_an_app_the_person_cannot_enter_is_left_out(self):
+		self.favourite("ToDo", self.todo("Probe task", allocated_to=USER))
+		self.favourite("Note", self.note("Probe note"))
+		frappe.set_user(USER)
+
+		with patch(
+			"frappe.shell.boot.get_doctype_owners", return_value={"ToDo": "probe_app", "Note": "frappe"}
+		):
+			with patch("frappe.shell.boot.has_app_permission", side_effect=lambda app: app == "frappe"):
+				self.assertEqual([row["doctype"] for row in index_favourites()], ["Note"])
+
+	def test_the_index_reads_favourites_in_one_query_plus_a_share_and_a_list_read_per_doctype(self):
+		self.favourite("ToDo", self.todo("Probe task", allocated_to=USER))
+		self.favourite("ToDo", self.todo("Probe task 2", allocated_to=USER))
+		self.favourite("Note", self.note("Probe note"))
+		frappe.set_user(USER)
+		index_favourites()
+
+		with self.assertQueryCount(5):
+			self.assertEqual(len(index_favourites()), 3)

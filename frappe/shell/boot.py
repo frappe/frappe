@@ -10,6 +10,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.desk.link_title import get_link_titles
 from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
 from frappe.utils import cstr, orjson_dumps, strip_html
@@ -30,7 +31,6 @@ _BUDGET_LOG_TTL = 24 * 60 * 60
 # Fixed, so the rows group in the Error Log list.
 BUDGET_LOG_TITLE = "Boot key over budget"
 
-# The most favourites the index draws.
 FAVOURITES_LIMIT = 8
 
 
@@ -158,7 +158,7 @@ def may_link_out(app: str, screen: dict) -> bool:
 
 
 def index_favourites() -> list[dict]:
-	"""The person's 8 latest favourites, newest first, less those whose record they can no longer open."""
+	"""The person's latest favourites, newest first, less those whose record they can no longer open."""
 	rows = frappe.get_all(
 		"Favourite",
 		filters={"user": frappe.session.user},
@@ -201,7 +201,7 @@ def index_favourites() -> list[dict]:
 
 
 def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:
-	"""`{name: title}` for the records of `names` this person may read, in one query."""
+	"""`{name: title}` for the records of `names` this person may read; a raising doctype lists none."""
 	meta = frappe.get_meta(doctype)
 	if meta.is_virtual or not frappe.has_permission(doctype, "read"):
 		return {}
@@ -209,9 +209,13 @@ def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:
 	if meta.issingle:
 		return {doctype: _(doctype)} if doctype in names else {}
 
-	title_field = meta.title_field or "name"
-	records = frappe.get_list(doctype, filters={"name": ("in", names)}, fields=["name", title_field])
-	return {record.name: plain_text(record.get(title_field)) or record.name for record in records}
+	try:
+		titles = get_link_titles(doctype, meta.title_field or "name", set(names))
+	except Exception:
+		frappe.log_error(title=f"Index favourites failed for {doctype}")
+		return {}
+
+	return {name: plain_text(title) or name for name, title in titles.items()}
 
 
 def plain_text(value) -> str:
