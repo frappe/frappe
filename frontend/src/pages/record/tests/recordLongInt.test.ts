@@ -33,6 +33,8 @@ import { registerShell } from "@/router/routeFor";
 import { resetViewMemory } from "../viewMemory";
 
 registerStandardPages(standardPages);
+// The router draws a page before its code is in; these tests start once it is.
+await standardPages.record();
 
 const BIG = "9007199254740993";
 const GET_CLIENT_SCRIPTS = "frappe.custom.doctype.client_script.client_script.get_client_scripts";

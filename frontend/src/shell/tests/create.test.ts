@@ -9,7 +9,6 @@ import type { Boot } from "@/boot";
 import { registerContributions } from "@/contributions/registry";
 import { resetSprite } from "@/icons/sprite";
 import { resetNavigationReports } from "@/navigation/registry";
-import { resetFailedPage, trackFailedPages } from "@/router/failedPage";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
 import {
@@ -132,7 +131,6 @@ describe("the shell's Create dialogs", () => {
 				{ path: "/:doctype", name: "list", component: { render: () => null } },
 			],
 		});
-		trackFailedPages(router);
 		registerShell({ boot, addresses, router });
 		const host = document.createElement("div");
 		document.body.appendChild(host);
@@ -157,7 +155,6 @@ describe("the shell's Create dialogs", () => {
 
 	beforeEach(() => {
 		document.body.innerHTML = "";
-		resetFailedPage();
 		resetNavigationReports();
 		resetSprite();
 	});

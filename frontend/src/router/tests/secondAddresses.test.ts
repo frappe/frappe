@@ -6,9 +6,8 @@ import type { Boot } from "@/boot";
 import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
+import { loadedPage } from "@/router/mainPage";
 import { registerShell, urlFor } from "@/router/routeFor";
-import List from "@/pages/List.vue";
-import Record from "@/pages/Record.vue";
 
 registerStandardPages(standardPages);
 
@@ -53,7 +52,7 @@ describe.each([
 
 		expect(route.name).toBe("standard-list");
 		expect(route.params).toEqual({ ...module, doctype: "sales-invoice" });
-		expect(route.matched[0].components?.default).toBe(List);
+		expect(route.matched[0].components?.default).toBe(loadedPage(standardPages.list));
 	});
 
 	it("opens the standard record page at /:name/record", async () => {
@@ -62,7 +61,7 @@ describe.each([
 
 		expect(route.name).toBe("standard-record");
 		expect(route.params).toEqual({ ...module, doctype: "sales-invoice", name: "SI-001" });
-		expect(route.matched[0].components?.default).toBe(Record);
+		expect(route.matched[0].components?.default).toBe(loadedPage(standardPages.record));
 	});
 
 	it("opens a saved view under the list kind", async () => {

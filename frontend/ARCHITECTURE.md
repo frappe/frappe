@@ -272,7 +272,7 @@ component group, with its main names.
 | --- | --- |
 | `AppShell` | The root component: rail, sidebar, page area, and the customize dialog |
 | `PageFrame` | The frame every page draws inside: header, scroll area, gutter |
-| Page states | Loading, empty, empty with a filter, not found, no permission, offline, failed, each with a retry. Home, list and record share them |
+| Page states (`FrameSkeleton`, `PageLoadError`, `NotFound`) | Loading, empty, empty with a filter, not found, no permission, offline, failed, each with a retry. Home, list and record share them |
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
@@ -290,8 +290,7 @@ component group, with its main names.
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
 | Router (`createShellRouter`, `contributedRoutes`) | The route table from boot, addresses and page registrations. `/<doctype>/new` is the `new-record` route: always the standard new record page, so the word `new` is reserved. A saved record named "new" stays at `/<doctype>/new/record` |
 | Record link (`recordLink`) | *New.* What `main.ts` hands Link and Dynamic Link fields through `RecordLinkKey`: a record's `urlFor` address, or none for a doctype with no address, and a router push to it |
-| Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows |
-| Failed page | Which page's code failed to load |
+| Page loader (`mainPageFor`, `loadedPage`) | Loads the registered page for an address while the frame already shows: `FrameSkeleton` until the code is in, `PageLoadError` if it fails |
 
 ### 7. Page engines
 
@@ -732,7 +731,6 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | Two listeners on each record room | One | Activity column |
 | Separate comment and email writer pipelines | One | Activity column |
 | Three sets of loading and error states | One set of page states | New map |
-| The router waits for the next page's code | The frame changes at once | New map |
 | Two server cache keys for doctype owners and the address table | One | New map |
 | First app wins for item kinds; last app wins for replacements | Last app wins everywhere | Build and publishing |
 | The session fetched twice | The desk passes it | @framework/ui |

@@ -8,8 +8,7 @@ import { declaredReplacements } from "@/contributions/registry";
 import { generatedRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { isModular } from "./routeFor";
-import { preloadMainPage } from "./mainPage";
-import { trackFailedPages } from "./failedPage";
+import NotFound from "@/shell/NotFound.vue";
 
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
 
@@ -26,7 +25,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 			{
 				path: "/:pathMatch(.*)*",
 				name: "not-found",
-				component: () => import("@/shell/NotFound.vue"),
+				component: NotFound,
 			},
 		],
 	});
@@ -69,10 +68,6 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		// The shell owns the miss; otherwise `/:doctype` swallows every unknown path as an empty list.
 		return miss(to);
 	});
-
-	// After the guard above, so the page loads for the final address, never a redirected one.
-	router.beforeResolve((to) => preloadMainPage(to, addresses));
-	trackFailedPages(router);
 
 	return router;
 }

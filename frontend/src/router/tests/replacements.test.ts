@@ -1,7 +1,13 @@
 // The page an app declares in place of a doctype's list or record page, at the main address.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, useAttrs } from "vue";
-import { isNavigationFailure, NavigationFailureType, RouterView } from "vue-router";
+import { createApp, defineComponent, h, nextTick, useAttrs, type Component } from "vue";
+import {
+	createMemoryHistory,
+	createRouter,
+	isNavigationFailure,
+	NavigationFailureType,
+	RouterView,
+} from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
@@ -9,8 +15,7 @@ import { registerContributions, registerStandardPages } from "@/contributions/re
 import type { ReplacementContribution } from "@/contributions/types";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
-import { failedPage, resetFailedPage } from "@/router/failedPage";
-import { clearLoadedPages, loadedPage, mainPageFor, preloadMainPage } from "@/router/mainPage";
+import { clearLoadedPages, loadedPage } from "@/router/mainPage";
 import { registerShell, routeFor, urlFor } from "@/router/routeFor";
 
 registerStandardPages(standardPages);
@@ -21,6 +26,8 @@ const guard = vi.hoisted(() => ({ block: false }));
 const fake = vi.hoisted(() => ({ replacements: [] as ReplacementContribution[] }));
 // Set by a test: how many more times the flaky page fails to load before it loads.
 const flaky = vi.hoisted(() => ({ failures: 0 }));
+// Set by a test: the slow page's code, which arrives when the test says.
+const slow = vi.hoisted(() => ({ load: new Promise<unknown>(() => {}) }));
 
 const DeclaredPage = defineComponent({
 	props: { doctype: String, name: String },
@@ -78,6 +85,17 @@ vi.mock("@/pages/Record.vue", async () => {
 		}),
 	};
 });
+vi.mock("@/pages/NewRecord.vue", async () => {
+	const { onBeforeRouteLeave } = await import("vue-router");
+	return {
+		default: defineComponent({
+			setup() {
+				onBeforeRouteLeave(() => !guard.block);
+				return () => h("div", { "data-page": "new-record" });
+			},
+		}),
+	};
+});
 vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
@@ -88,6 +106,7 @@ const addresses = new Addresses({
 		"Accounts Settings": ["accounts-settings", "accounts"],
 		"Journal Entry": ["journal-entry", "accounts"],
 		"Payment Entry": ["payment-entry", "accounts"],
+		"Delivery Note": ["delivery-note", "accounts"],
 	},
 	modules: { accounts: "Accounts" },
 	singles: ["Accounts Settings"],
@@ -113,6 +132,7 @@ beforeAll(async () => {
 			throw new Error("the page failed to load");
 		}),
 		declared("Payment Entry", "record", flakyPage),
+		declared("Delivery Note", "record", () => slow.load),
 	];
 	await registerContributions(["frappe", "erpnext"]);
 });
@@ -122,7 +142,6 @@ beforeEach(() => {
 	setups.attrs = [];
 	guard.block = false;
 	flaky.failures = 0;
-	resetFailedPage();
 	for (const page of [salesInvoicePage, singleListPage, flakyPage]) page.mockClear();
 	clearLoadedPages();
 	warn = vi.spyOn(console, "warn").mockImplementation(() => {});
@@ -131,7 +150,7 @@ beforeEach(() => {
 afterEach(() => {
 	for (const app of apps.splice(0)) app.unmount();
 	document.body.innerHTML = "";
-	warn.mockRestore();
+	vi.restoreAllMocks();
 });
 
 async function settle() {
@@ -158,6 +177,17 @@ async function mount(modular: boolean, path: string) {
 
 async function blocked(navigation: Promise<unknown>) {
 	return isNavigationFailure(await navigation, NavigationFailureType.aborted);
+}
+
+function failure(root: HTMLElement) {
+	return root.querySelector("[role='alert']")?.textContent;
+}
+
+function tryAgain(root: HTMLElement) {
+	const retry = [...root.querySelectorAll("button")].find(
+		(button) => button.textContent?.trim() === "Try again"
+	);
+	retry!.click();
 }
 
 function shown(root: HTMLElement) {
@@ -216,18 +246,36 @@ describe.each([
 		expect(setups.count).toBe(2);
 	});
 
-	it("fails the navigation when the declared page does not load", async () => {
+	it("changes the address and shows the error page when the declared page does not load", async () => {
 		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
 		const error = vi.spyOn(console, "error").mockImplementation(() => {});
 
-		await expect(router.push(`${prefix}/journal-entry/JE-001`)).rejects.toThrow(
-			"the page failed to load"
-		);
+		await router.push(`${prefix}/journal-entry/JE-001`);
 		await settle();
 		error.mockRestore();
 
-		expect(router.currentRoute.value.params.name).toBe("PI-001");
-		expect(shown(root)).toEqual({ page: "record" });
+		expect(router.currentRoute.value.params.name).toBe("JE-001");
+		expect(shown(root)).toBeNull();
+		expect(failure(root)).toContain("This page could not load.");
+	});
+
+	it("changes the address and draws the frame's skeleton while the page's code loads", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
+		let arrive!: (page: Component) => void;
+		slow.load = new Promise((resolve) => (arrive = resolve));
+
+		await router.push(`${prefix}/delivery-note/DN-001`);
+		await nextTick();
+
+		expect(router.currentRoute.value.params.name).toBe("DN-001");
+		expect(root.querySelector("[data-frame-skeleton]")).not.toBeNull();
+		expect(shown(root)).toBeNull();
+
+		arrive(DeclaredPage);
+		await settle();
+
+		expect(root.querySelector("[data-frame-skeleton]")).toBeNull();
+		expect(shown(root)).toEqual({ page: "declared", doctype: "Delivery Note", name: "DN-001" });
 	});
 
 	it("keeps the standard record page's guard between two records", async () => {
@@ -250,6 +298,25 @@ describe.each([
 		expect(shown(root)).toEqual({ page: "record" });
 	});
 
+	it("keeps the standard record page's guard at its second address", async () => {
+		const { root, router } = await mount(modular, `${prefix}/sales-invoice/SI-001/record`);
+		guard.block = true;
+
+		expect(await blocked(router.push(`${prefix}/sales-invoice/SI-002/record`))).toBe(true);
+		expect(await blocked(router.push(`${prefix}/sales-invoice`))).toBe(true);
+		expect(router.currentRoute.value.params.name).toBe("SI-001");
+		expect(shown(root)).toEqual({ page: "record" });
+	});
+
+	it("keeps the new record page's guard", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/new`);
+		guard.block = true;
+
+		expect(await blocked(router.push(`${prefix}/purchase-invoice`))).toBe(true);
+		expect(router.currentRoute.value.name).toBe("new-record");
+		expect(shown(root)).toEqual({ page: "new-record" });
+	});
+
 	it("keeps the standard record page's guard on the way to a declared record", async () => {
 		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
 		guard.block = true;
@@ -267,12 +334,15 @@ describe.each([
 			"/sales-invoice/SI-001",
 			{ page: "declared", doctype: "Sales Invoice", name: "SI-001" },
 		],
-	])("shows %s one tick after the navigation, as it loaded first", async (_, path, page) => {
-		const { root, router } = await mount(modular, "/");
+	])("shows %s on a return one tick after the navigation, with no skeleton", async (_, path, page) => {
+		const { root, router } = await mount(modular, `${prefix}${path}`);
+		await router.push("/");
+		await settle();
 		await router.push(`${prefix}${path}`);
 		await nextTick();
 
 		expect(shown(root)).toEqual(page);
+		expect(root.querySelector("[data-frame-skeleton]")).toBeNull();
 	});
 
 	it("loads the declared page once, for the canonical address", async () => {
@@ -296,10 +366,12 @@ describe.each([
 		const error = vi.spyOn(console, "error").mockImplementation(() => {});
 		flaky.failures = 1;
 
-		await expect(router.push(`${prefix}/payment-entry/PE-001`)).rejects.toThrow(
-			"the page failed to load once"
-		);
+		await router.push(`${prefix}/payment-entry/PE-001`);
+		await settle();
+		expect(failure(root)).toContain("This page could not load.");
 		error.mockRestore();
+		await router.push(`${prefix}/purchase-invoice/PI-001`);
+		await settle();
 		await router.push(`${prefix}/payment-entry/PE-001`);
 		await settle();
 
@@ -307,37 +379,31 @@ describe.each([
 		expect(flakyPage).toHaveBeenCalledTimes(2);
 	});
 
-	it.each([
-		{ name: "JE/001", encoded: "JE%2F001" },
-		{ name: "JE#002?x", encoded: "JE%23002%3Fx" },
-	])(
-		"records the encoded address of $name when its declared page fails to load",
-		async ({ encoded }) => {
-			const router = createShellRouter(boot(modular), addresses);
-			const error = vi.spyOn(console, "error").mockImplementation(() => {});
+	it("reloads the address from Try again when its declared page fails to load", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+		const reload = vi.spyOn(window.location, "reload").mockImplementation(() => {});
 
-			await expect(router.push(`${prefix}/journal-entry/${encoded}`)).rejects.toThrow(
-				"the page failed to load"
-			);
-			expect(error).toHaveBeenCalledWith(
-				expect.objectContaining({ message: "the page failed to load" })
-			);
-			error.mockRestore();
+		await router.push(`${prefix}/journal-entry/JE-001`);
+		await settle();
+		error.mockRestore();
+		tryAgain(root);
 
-			expect(failedPage.value).toBe(`/apps/erpnext${prefix}/journal-entry/${encoded}`);
-		}
-	);
+		expect(reload).toHaveBeenCalledOnce();
+	});
 
-	it("forgets the failed address once another navigation lands", async () => {
-		const router = createShellRouter(boot(modular), addresses);
+	it("shows the next page once the reader leaves a page that failed to load", async () => {
+		const { root, router } = await mount(modular, `${prefix}/purchase-invoice/PI-001`);
 		const error = vi.spyOn(console, "error").mockImplementation(() => {});
 
-		await router.push(`${prefix}/journal-entry/JE-001`).catch(() => {});
+		await router.push(`${prefix}/journal-entry/JE-001`);
+		await settle();
 		error.mockRestore();
-		await router.push(`${prefix}/purchase-invoice/PI-001`);
+		await router.push(`${prefix}/purchase-invoice/PI-002`);
+		await settle();
 
-		expect(failedPage.value).toBeNull();
-		expect(router.currentRoute.value.params.name).toBe("PI-001");
+		expect(failure(root)).toBeUndefined();
+		expect(shown(root)).toEqual({ page: "record" });
 	});
 
 	it("builds the second address with standard only when the page is replaced", async () => {
@@ -387,14 +453,35 @@ describe("a list page declared for a single", () => {
 	});
 });
 
-describe("a page rendered before its preload", () => {
-	it("still lets the preload load the page", async () => {
-		const route = { name: "record", params: { doctype: "sales-invoice", name: "SI-001" } };
-		const loader = mainPageFor(route, addresses)!.loader;
-		loadedPage(loader);
-		await preloadMainPage(route, addresses);
+describe("a page whose code failed to load", () => {
+	it("loads again at the next address that uses the same page", async () => {
+		let failures = 1;
+		const loader = vi.fn(async () => {
+			if (failures-- > 0) throw new Error("the page failed to load once");
+			return { default: DeclaredPage };
+		});
+		const router = createRouter({
+			history: createMemoryHistory(),
+			routes: [{ path: "/note/:name", component: loadedPage(loader), props: true }],
+		});
+		const root = document.createElement("div");
+		document.body.appendChild(root);
+		const app = createApp(defineComponent({ render: () => h(RouterView) }));
+		app.use(router);
+		const error = vi.spyOn(console, "error").mockImplementation(() => {});
+		await router.push("/note/one");
+		app.mount(root);
+		apps.push(app);
+		await settle();
+		error.mockRestore();
 
-		expect(salesInvoicePage).toHaveBeenCalledOnce();
-		expect(loadedPage(loader)).toBe(DeclaredPage);
+		expect(failure(root)).toContain("This page could not load.");
+
+		await router.push("/note/two");
+		await settle();
+
+		expect(failure(root)).toBeUndefined();
+		expect(shown(root)).toEqual({ page: "declared", name: "two" });
+		expect(loader).toHaveBeenCalledTimes(2);
 	});
 });

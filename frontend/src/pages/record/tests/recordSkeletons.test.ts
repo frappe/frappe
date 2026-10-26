@@ -96,6 +96,8 @@ import { resetViewMemory } from "../viewMemory";
 import { registerShell } from "@/router/routeFor";
 
 registerStandardPages(standardPages);
+// The router draws a page before its code is in; these tests start once it is.
+await standardPages.record();
 
 const boot = {
   app: "frappe",

@@ -63,6 +63,8 @@ import { registerShell, routeFor } from "@/router/routeFor";
 import { resetViewMemory } from "../viewMemory";
 
 registerStandardPages(standardPages);
+// The router draws a page before its code is in; these tests start once it is.
+await standardPages.record();
 
 const EARLIER = "2026-09-25 09:00:00.000000";
 const OLD = "2026-09-25 10:00:00.000000";
