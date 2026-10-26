@@ -574,7 +574,7 @@ describe("refresh({ background: true })", () => {
   it("draws nothing when an unchanged replay hands one new object to two ops", async () => {
     await register("deal", {
       onRefresh: (page: RecordPageApi) => {
-        const create = { label: "New", icon: "lucide-plus", run };
+        const create = { name: "new", label: "New", icon: "lucide-plus", run };
         page.tabs.add([
           { name: "one", label: "One", create },
           { name: "two", label: "Two", create },
