@@ -102,7 +102,7 @@ class Page:
 			"Target.createTarget", {"url": "", "browserContextId": browser_context_id}
 		)
 		if error:
-			frappe.log_error(title="Error creating new page:", message=f"{error}")
+			raise RuntimeError(f"Error creating new page: {error}")
 
 		self.target_id = result["targetId"]
 		self.type = page_type
@@ -187,11 +187,13 @@ class Page:
 		)
 
 		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
 		def intercept_and_fulfill():
 			self.session.wait_for_event(event)
-			self.session.send(
+			if not event[1].done() or event[1].cancelled():
+				raise RuntimeError("Timed out waiting for the page navigation request")
+			self.send(
 				"Fetch.fulfillRequest",
 				{"requestId": event[1].result(), "responseCode": 200},
 				return_future=True,
@@ -214,7 +216,7 @@ class Page:
 				if isinstance(url, str) and url.startswith(get_host_url()):
 					if resource := read_local_resource(url):
 						content, content_type = resource
-						self.session.send(
+						self.send(
 							"Fetch.fulfillRequest",
 							{
 								"requestId": data["request_id"],
@@ -228,20 +230,20 @@ class Page:
 						)
 						return
 					elif urllib.parse.urlparse(url).path.lstrip("/"):
-						self.session.send(
+						self.send(
 							"Fetch.failRequest",
 							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
 							return_future=True,
 						)
 						return
 				elif self.block_external_requests:
-					self.session.send(
+					self.send(
 						"Fetch.failRequest",
 						{"requestId": data["request_id"], "errorReason": "BlockedByClient"},
 						return_future=True,
 					)
 					return
-				self.session.send(
+				self.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},
 					return_future=True,
@@ -253,7 +255,7 @@ class Page:
 		)
 
 		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
 	def set_tab_url(self, url):
 		"""Navigate to a URL and fulfill the request with status code 200."""
@@ -439,6 +441,17 @@ class Page:
 		result = self.evaluate("document.documentElement.scrollWidth")
 		return (result or {}).get("result", {}).get("value") or 0
 
+	def get_content_height(self):
+		result = self.evaluate(
+			"""(() => {
+				const style = document.createElement("style");
+				style.textContent = "html, body, .print-format { height: auto !important; min-height: 0 !important; }";
+				document.head.appendChild(style);
+				return document.documentElement.scrollHeight;
+			})()"""
+		)
+		return (result or {}).get("result", {}).get("value") or 0
+
 	def capture_screenshot(self, image_format="jpeg", quality=30):
 		"""Screenshot the current viewport; returns raw image bytes."""
 		params = {"format": image_format, "captureBeyondViewport": False}
@@ -465,6 +478,8 @@ class Page:
 	def get_pdf_stream_id(self):
 		# wait for the send task to complete; its result is the response future
 		self.session.wait_for_event(self.wait_for_pdf)
+		if not self.wait_for_pdf.done() or self.wait_for_pdf.cancelled():
+			raise RuntimeError("Timed out sending Page.printToPDF")
 		response_future = self.wait_for_pdf.result()
 		# the task resolves when the command is *sent*, so also wait for the
 		# Page.printToPDF response before reading the stream handle
@@ -509,7 +524,7 @@ class Page:
 		return PdfReader(BytesIO(pdf_data))
 
 	def close(self):
-		self.session.send("Fetch.disable")
+		self.send("Fetch.disable")
 		_result, error = self.send("Target.closeTarget", {"targetId": self.target_id})
 		if error:
 			raise RuntimeError(f"Error closing target: {error}")

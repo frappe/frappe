@@ -8,7 +8,7 @@
 	>
 		<div class="flex items-center gap-2">
 			<button v-if="!headerBack" class="flow-icon-btn -my-1 -ml-1.5" title="Back to skills" @click="back">
-				<FeatherIcon name="arrow-left" class="h-4 w-4" />
+				<span class="lucide-arrow-left size-4" aria-hidden="true" />
 			</button>
 			<h2 class="text-base font-semibold text-ink-gray-9">{{ editing.isNew ? "New skill" : editing.name }}</h2>
 			<Badge v-if="!editing.isNew" :label="SCOPE_LABELS[editing.scope]" variant="subtle" theme="gray" />
@@ -29,7 +29,7 @@
 			spellcheck="false"
 		/>
 		<p v-if="editing.error" class="mt-2 flex items-center gap-1.5 text-xs text-ink-red-6">
-			<FeatherIcon name="alert-circle" class="h-3.5 w-3.5 flex-none" />
+			<span class="lucide-circle-alert size-3.5 flex-none" aria-hidden="true" />
 			{{ editing.error }}
 		</p>
 
@@ -76,12 +76,18 @@
 						<div class="min-w-0 flex-1">
 							<div class="text-sm font-medium text-ink-gray-9">{{ row.name }}</div>
 							<p v-if="row.error" class="mt-1 flex items-center gap-1.5 truncate text-xs text-ink-red-6">
-								<FeatherIcon name="alert-circle" class="h-3.5 w-3.5 flex-none" />
+								<span
+									class="lucide-circle-alert size-3.5 flex-none"
+									aria-hidden="true"
+								/>
 								{{ row.error }}
 							</p>
 							<p v-else class="mt-1 truncate text-xs text-ink-gray-6">{{ row.description }}</p>
 						</div>
-						<FeatherIcon name="chevron-right" class="h-4 w-4 flex-none text-ink-gray-4" />
+						<span
+							class="lucide-chevron-right size-4 flex-none text-ink-gray-4"
+							aria-hidden="true"
+						/>
 					</button>
 				</div>
 				<p v-else-if="!loading" class="mt-3 text-xs text-ink-gray-5">{{ scope.empty }}</p>
@@ -101,7 +107,6 @@ import { Button } from "frappe-ui/src/components/Button"
 import { Select } from "frappe-ui/src/components/Select"
 import { TextInput } from "frappe-ui/src/components/TextInput"
 import { dialog } from "frappe-ui/src/utils/dialog"
-import FeatherIcon from "./FeatherIcon.vue"
 import LoadingState from "./LoadingState.vue"
 
 import { layout } from "../layout.js"

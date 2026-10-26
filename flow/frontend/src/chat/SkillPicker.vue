@@ -9,12 +9,12 @@
 			:aria-expanded="open"
 			@click="open ? close() : show()"
 		>
-			<FeatherIcon name="book-open" class="h-3.5 w-3.5 flex-none" />
+			<span class="lucide-book-open size-3.5 flex-none" aria-hidden="true" />
 			<span class="truncate">Skills</span>
-			<FeatherIcon
-				name="chevron-down"
-				class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+			<span
+				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 				:class="open ? 'rotate-180' : ''"
+				aria-hidden="true"
 			/>
 		</button>
 		<PalettePanel
@@ -57,7 +57,7 @@
 					class="flow-palette-row"
 					@click="create"
 				>
-					<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
+					<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
 					Add a skill
 				</button>
 			</div>
@@ -68,7 +68,6 @@
 <script setup>
 import { computed, inject, nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

@@ -13,7 +13,7 @@
 			@mousedown.prevent
 			@click="add"
 		>
-			<FeatherIcon name="message-square" class="h-3.5 w-3.5 text-ink-gray-6" />
+			<span class="lucide-message-square size-3.5 text-ink-gray-6" aria-hidden="true" />
 			Add to chat
 		</button>
 	</div>
@@ -21,7 +21,6 @@
 
 <script setup>
 import { inject, onBeforeUnmount, onMounted, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 // Floating "Add to chat" pill over a text selection inside `within`: queues the
 // selected text as a quote for the composer.

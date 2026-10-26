@@ -272,8 +272,7 @@ class User(Document):
 		if self.default_app and self.default_app not in frappe.get_installed_apps():
 			self.default_app = ""
 
-		if (self.name not in ["Administrator", "Guest"]) and (not self.get_social_login_userid("frappe")):
-			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
+		self.set_frappe_social_login_userid()
 
 	def disable_email_fields_if_user_disabled(self):
 		if not self.enabled:
@@ -949,6 +948,32 @@ class User(Document):
 			social_logins["username"] = username
 
 		self.append("social_logins", social_logins)
+
+	def set_frappe_social_login_userid(self):
+		"""The `frappe` provider userid is this site's OIDC `sub` claim, so it must stay
+		server-controlled: generated once and never changed by a later write."""
+		if self.name in STANDARD_USERS:
+			return
+
+		stored_userid = None
+		if not self.is_new():
+			stored_userid = frappe.db.get_value(
+				"User Social Login",
+				{"parent": self.name, "provider": "frappe"},
+				"userid",
+			)
+
+		frappe_logins = [d for d in self.social_logins if d.provider == "frappe"]
+
+		if stored_userid:
+			if frappe_logins:
+				frappe_logins[0].userid = stored_userid
+				for extra in frappe_logins[1:]:
+					self.social_logins.remove(extra)
+			else:
+				self.set_social_login_userid("frappe", stored_userid)
+		elif not frappe_logins:
+			self.set_social_login_userid("frappe", frappe.generate_hash(length=39))
 
 	def get_restricted_ip_list(self):
 		return get_restricted_ip_list(self)
