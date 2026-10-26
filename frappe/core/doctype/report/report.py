@@ -23,8 +23,6 @@ from frappe.utils import cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 from frappe.utils.xlsxutils import XLSXMetadata
 
-PRINT_DEFAULTS = {"default_print_format": "Print Format", "default_letter_head": "Letter Head"}
-
 
 class Report(Document):
 	_DOCTYPE_NAME = "Report"
@@ -103,15 +101,6 @@ class Report(Document):
 
 	def before_insert(self):
 		self.set_doctype_roles()
-
-	def before_import(self):
-		site_defaults = frappe.db.get_value("Report", self.name, list(PRINT_DEFAULTS), as_dict=True)
-		if not site_defaults:
-			return
-		for fieldname, doctype in PRINT_DEFAULTS.items():
-			value = site_defaults[fieldname]
-			if value and frappe.db.get_value(doctype, value, "standard") == "No":
-				self.set(fieldname, value)
 
 	def on_update(self):
 		self.export_doc()
