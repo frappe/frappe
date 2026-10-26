@@ -144,8 +144,14 @@ export class ActDispatcher {
 		const found = this.lookup(name);
 		const right = found?.entry.item.right;
 		const settling = found && right ? found.scope.settled(right) : undefined;
-		if (settling) return settling.then(() => this.allowed(name, this.lookup(name)));
+		if (settling) return settling.then(() => this.allowed(name, this.sameScope(name, found)));
 		return this.allowed(name, found);
+	}
+
+	// A page that replaced the asking one while the right settled holds a different act of the same name.
+	private sameScope(name: string, asked: Found | null) {
+		const found = this.lookup(name);
+		return found && found.scope === asked?.scope ? found : null;
 	}
 
 	private allowed(name: string, found: Found | null): Checked {

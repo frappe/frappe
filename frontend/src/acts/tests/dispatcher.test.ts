@@ -35,6 +35,27 @@ describe("the dispatcher", () => {
     expect(dispatcher.available().map((act) => act.name)).toEqual(["shell.crm.log_a_call"]);
   });
 
+  it("runs nothing when another scope took the surface while the right settled", async () => {
+    const dispatcher = new ActDispatcher();
+    let release = () => {};
+    const ran: string[] = [];
+    const entry = (label: string) => () => [
+      { item: { name: "convert", right: "write", run: () => void ran.push(label) }, hidden: false },
+    ];
+    dispatcher.register({
+      ...scope("old"),
+      surfaces: { header: entry("old") },
+      settled: () => new Promise<void>((resolve) => (release = resolve)),
+    });
+
+    const asked = dispatcher.run("header.convert").catch((error) => error);
+    dispatcher.register({ ...scope("new"), surfaces: { header: entry("new") } });
+    release();
+
+    expect(await asked).toMatchObject({ reason: "missing" });
+    expect(ran).toEqual([]);
+  });
+
   it("waits for a right to settle before it checks it", async () => {
     const dispatcher = new ActDispatcher();
     let loaded = false;
