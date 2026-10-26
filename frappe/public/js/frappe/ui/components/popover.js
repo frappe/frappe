@@ -12,6 +12,7 @@ frappe.provide("frappe.ui");
  * @property {"start"|"center"|"end"} [align="start"] How the panel lines up along that side.
  * @property {number} [offset=4] Gap between trigger and panel, in px.
  * @property {string} [css_class] Extra classes on the panel (e.g. to override the default width).
+ * @property {boolean} [keep_focus=false] Leave focus where it is when the panel opens, for a field the user keeps typing into.
  * @property {function} [on_open] Called after the panel is placed and focused.
  * @property {function} [on_close] Called with the reason: "escape" | "outside" | "tab" | "blur" | "owner".
  */
@@ -125,7 +126,7 @@ frappe.ui.Popover = class Popover {
 		// focus the panel, not its first control — the radix default. A
 		// screen reader announces the dialog, and Tab reaches the controls;
 		// auto-focusing an input would start typing-mode unannounced.
-		panel.focus({ preventScroll: true });
+		if (!this.opts.keep_focus) panel.focus({ preventScroll: true });
 
 		// Escape and Tab bookkeeping live on the panel — focus is inside it
 		// (tabindex -1 keeps it there), so there's no need for a global key
