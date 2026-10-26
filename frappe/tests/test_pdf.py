@@ -193,6 +193,23 @@ class TestPdf(IntegrationTestCase):
 		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
 		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
 
+	def test_bulk_pdf_lists_the_documents_it_could_not_print(self):
+		from unittest.mock import ANY, patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+
+		with patch.object(frappe, "publish_realtime") as publish_realtime:
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name, deleted.name]))
+
+		publish_realtime.assert_called_with(event="msgprint", message=ANY)
+		self.assertIn(deleted.name, publish_realtime.call_args.kwargs["message"].message[0])
+
 	def test_smart_shrinking_is_opt_in(self):
 		from unittest.mock import patch
 
