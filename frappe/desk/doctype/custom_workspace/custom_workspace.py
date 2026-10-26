@@ -378,3 +378,26 @@ def reset_workspace_customization(workspace: str, variant: str | None = None) ->
 			)
 		customization.set("variants", [row for row in customization.variants if row.role != variant])
 	customization.save(ignore_permissions=True)
+
+
+@frappe.whitelist()
+def delete_workspace_layout(workspace: str, variant: str) -> None:
+	"""Delete a role layout the site added. An app's own layout is reset, never deleted."""
+	from frappe.desk.doctype.workspace.workspace import is_workspace_manager
+
+	if not is_workspace_manager():
+		frappe.throw(_("You need to be Workspace Manager to delete a layout."), frappe.PermissionError)
+
+	base = frappe.get_doc("Workspace", workspace)
+	if base.standard and not frappe.conf.developer_mode:
+		if variant in {row.role for row in base.variants}:
+			frappe.throw(_("The {0} layout comes with the app. Reset it instead.").format(_(variant)))
+		if not frappe.db.exists("Custom Workspace", workspace):
+			return
+		customization = frappe.get_doc("Custom Workspace", workspace)
+		customization.set("variants", [row for row in customization.variants if row.role != variant])
+		customization.save(ignore_permissions=True)
+		return
+
+	base.set("variants", [row for row in base.variants if row.role != variant])
+	base.save(ignore_permissions=True)

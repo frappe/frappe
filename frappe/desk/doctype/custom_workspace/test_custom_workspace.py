@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.custom_workspace.custom_workspace import (
 	apply_customization,
+	delete_workspace_layout,
 	effective_renderer,
 	effective_roles,
 	reset_workspace_customization,
@@ -389,6 +390,30 @@ class TestSiteLayouts(IntegrationTestCase):
 		self.assertEqual(self.seen_by(self.TWO), ("Site Two", True))
 		with self.assertRaises(frappe.ValidationError):
 			reset_workspace_customization(self.WORKSPACE, self.TWO)
+
+	def test_a_site_only_layout_can_be_deleted_and_an_app_one_cannot(self):
+		self.save(self.SITE, "Site Only")
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			delete_workspace_layout(self.WORKSPACE, self.SITE)
+			with self.assertRaises(frappe.ValidationError):
+				delete_workspace_layout(self.WORKSPACE, self.ONE)
+		self.assertEqual(self.seen_by(self.SITE), ("Default", False))
+
+	def test_the_editor_lists_layouts_with_their_source(self):
+		from frappe.desk.desktop import get_workspace
+
+		self.save(self.TWO, "Site Two")
+		self.save(self.SITE, "Site Only")
+		self.seen_by("Workspace Manager")
+		frappe.set_user(self.USER)
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			payload = get_workspace(self.WORKSPACE)
+
+		sources = [(layout["role"], layout["source"]) for layout in payload["layouts"]]
+		self.assertEqual([role for role, _source in sources], [None, self.ONE, self.TWO, self.SITE])
+		self.assertEqual(sources[2][1], "Site copy")
+		self.assertEqual(sources[3][1], "Site")
+		self.assertEqual(payload["save_target"], "site copy")
 
 
 def header(text):

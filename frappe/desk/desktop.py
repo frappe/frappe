@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 # Author - Shivam Mishra <shivam@frappe.io>
 
+import os
 from functools import wraps
 from json import JSONDecodeError, dumps, loads
 
@@ -514,7 +515,39 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"is_hidden": bool(doc.is_hidden),
 		"standard": bool(doc.standard),
 		"is_layout_customized": is_layout_customized(customization, workspace.variant),
+		**(editor_context(doc, customization) if can_edit else {}),
 	}
+
+
+def editor_context(doc, customization) -> dict:
+	"""What the editor shows about where a save goes: the layouts, and the file or site copy."""
+	from frappe.desk.doctype.workspace.workspace import get_workspace_app
+
+	if not doc.public:
+		return {"layouts": [], "save_target": "private"}
+
+	base = frappe.get_cached_doc("Workspace", doc.name)
+	if not base.standard:
+		layouts = [{"role": None, "source": "Site"}]
+		layouts += [{"role": row.role, "source": "Site"} for row in base.variants]
+		return {"layouts": layouts, "save_target": "site"}
+
+	app = get_workspace_app(base)
+	app_title = (frappe.get_hooks("app_title", app_name=app) or [app])[0] if app else _("App")
+	site_roles = [row.role for row in customization.variants] if customization else []
+	app_roles = [row.role for row in base.variants]
+
+	layouts = [
+		{"role": None, "source": "Site copy" if customization and customization.content else app_title}
+	]
+	layouts += [{"role": r, "source": "Site copy" if r in site_roles else app_title} for r in app_roles]
+	layouts += [{"role": r, "source": "Site"} for r in site_roles if r not in app_roles]
+
+	if frappe.conf.developer_mode:
+		scrubbed = frappe.scrub(base.name)
+		path = os.path.join(frappe.get_module_path(base.module), "workspace", scrubbed, f"{scrubbed}.json")
+		return {"layouts": layouts, "save_target": os.path.relpath(path, frappe.get_app_source_path(app))}
+	return {"layouts": layouts, "save_target": "site copy"}
 
 
 def readable_widgets(workspace) -> dict:
