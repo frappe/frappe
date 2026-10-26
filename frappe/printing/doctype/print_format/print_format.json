@@ -329,7 +329,7 @@
    "fieldname": "paper_width",
    "fieldtype": "Float",
    "label": "Paper Width (in mm)",
-   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\""
+   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing"
   },
   {
    "depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing",
@@ -337,7 +337,7 @@
    "fieldname": "paper_height",
    "fieldtype": "Float",
    "label": "Paper Height (in mm)",
-   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\""
+   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing"
   },
   {
    "default": "DocType",
@@ -386,7 +386,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-26 12:00:00.000000",
+ "modified": "2026-10-26 19:45:28.002865",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",
