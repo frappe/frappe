@@ -76,11 +76,18 @@ function framed(loader: Loader, loading: Component): Component {
 
 /** Resolves once the frame has painted; at once when nothing paints first. */
 function afterFramePaint(): Promise<void> {
-	// In the click's task, vite's preload helper holds the frame's paint. A cold load or a hidden tab
-	// does not wait: the paint comes late or never, and the page code would arrive that much later.
+	// In the click's task, vite's preload helper holds the frame's paint. A cold load, or a tab that is
+	// or goes hidden, does not wait: the paint comes late or never, and the page would arrive that late.
 	const painted = performance.getEntriesByName("first-contentful-paint").length > 0;
 	if (!painted || document.hidden) return Promise.resolve();
-	return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
+	return new Promise((resolve) => {
+		const done = () => {
+			document.removeEventListener("visibilitychange", done);
+			resolve();
+		};
+		document.addEventListener("visibilitychange", done);
+		requestAnimationFrame(() => setTimeout(done));
+	});
 }
 
 // A full reload: the browser can keep a failed module fetch and fail an in-app retry again.
