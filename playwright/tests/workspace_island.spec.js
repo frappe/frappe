@@ -3,6 +3,7 @@ import { test, expect } from "../support";
 const WORKSPACE = "Playwright Island";
 const CARD = "Playwright ToDo Count";
 const CHART = "Playwright ToDo Chart";
+const BLOCK = "Playwright Block";
 const SAVE_CHART_CONFIG = "dashboard_settings.save_chart_config";
 
 test.describe("Workspace island", () => {
@@ -32,6 +33,16 @@ test.describe("Workspace island", () => {
 				type: "Bar",
 				filters_json: "[]",
 				is_public: 1,
+			},
+			true
+		);
+		await admin.insert_doc(
+			"Custom HTML Block",
+			{
+				name: BLOCK,
+				html: '<p class="pw-block">Static text</p>',
+				style: "p { color: rgb(255, 0, 0); }",
+				script: 'root_element.querySelector(".pw-block").textContent = "Written by script";',
 			},
 			true
 		);
@@ -68,11 +79,17 @@ test.describe("Workspace island", () => {
 						data: { text: "Playwright body text", col: 4 },
 					},
 					{
+						id: "pw-cb",
+						type: "custom_block",
+						data: { custom_block_name: BLOCK, col: 4 },
+					},
+					{
 						id: "pw-ql",
 						type: "quick_list",
 						data: { quick_list_name: "Closed ToDos", col: 6 },
 					},
 				]),
+				custom_blocks: [{ custom_block_name: BLOCK, label: BLOCK }],
 				quick_lists: [
 					{
 						document_type: "ToDo",
@@ -181,6 +198,18 @@ test.describe("Workspace island", () => {
 
 		await list.getByRole("button", { name: "Clear All Filters" }).click();
 		await expect(list.getByText("Playwright open todo").first()).toBeVisible();
+	});
+
+	test("a custom block runs its script in its own root", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+
+		const block = page.locator(".pw-block");
+		await expect(block).toHaveText("Written by script");
+		await expect(block).toHaveCSS("color", "rgb(255, 0, 0)");
+		await expect(page.getByText("Playwright body text")).not.toHaveCSS(
+			"color",
+			"rgb(255, 0, 0)"
+		);
 	});
 
 	test("the workspace page has no URL of its own", async ({ page }) => {
