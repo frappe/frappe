@@ -58,14 +58,21 @@ frappe.ui.form.on("Print Format", {
 			raw_printing ||
 			print_format_for !== "DocType" ||
 			!doc_type
-		)
+		) {
+			field.$wrapper.empty();
 			return;
-		const [sample] = await frappe.db.get_list(doc_type, {
-			limit: 1,
-			order_by: "modified desc",
-		});
+		}
+		await frappe.model.with_doctype(doc_type);
+		let name = doc_type;
+		if (!frappe.get_meta(doc_type).issingle) {
+			const [sample] = await frappe.db.get_list(doc_type, {
+				limit: 1,
+				order_by: "modified desc",
+			});
+			name = sample?.name;
+		}
 		if (request !== frm._html_preview_request) return;
-		if (!sample) {
+		if (!name) {
 			field.html(
 				`<p class="text-muted">${__("Create a {0} to see a preview.", [__(doc_type)])}</p>`
 			);
@@ -74,7 +81,7 @@ frappe.ui.form.on("Print Format", {
 		const out = await frappe.xcall("frappe.www.printview.get_unsaved_format_preview", {
 			print_format: frm.doc,
 			doctype: doc_type,
-			name: sample.name,
+			name,
 		});
 		if (request !== frm._html_preview_request) return;
 		frappe.ui.show_print_preview(field, out);
