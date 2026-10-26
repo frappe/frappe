@@ -132,19 +132,36 @@ class TestUser(IntegrationTestCase):
 
 		original_userid = user.get_social_login_userid("frappe")
 		self.assertTrue(original_userid)
+		row_name = user.social_logins[0].name
+
+		# the owner can be granted write on their own record, e.g. through sharing
+		frappe.share.add("User", user.name, user.name, write=1)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user(user.name)
 
 		# a write cannot change the OIDC `sub`, even though `userid` is only read_only in the form
+		user = frappe.get_doc("User", user.name)
 		user.social_logins[0].userid = "Administrator"
 		user.save()
-		user.reload()
-		self.assertEqual(user.get_social_login_userid("frappe"), original_userid)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
 
 		# nor can it be replaced by dropping the row and appending a crafted one
 		user.social_logins = []
 		user.set_social_login_userid("frappe", "Administrator")
 		user.save()
-		user.reload()
-		self.assertEqual(user.get_social_login_userid("frappe"), original_userid)
+		self.assertEqual(
+			frappe.db.get_value("User Social Login", {"parent": user.name, "provider": "frappe"}, "userid"),
+			original_userid,
+		)
+
+		# nor through a direct save of the child row, which skips the parent controller
+		row_name = frappe.db.get_value(
+			"User Social Login", {"parent": user.name, "provider": "frappe"}, "name"
+		)
+		child = frappe.get_doc("User Social Login", row_name)
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
 
 	def insert_user_as_manager(self, first_name, username=None):
 		if frappe.session.user == "Administrator":
