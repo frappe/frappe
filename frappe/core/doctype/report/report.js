@@ -30,7 +30,11 @@ frappe.ui.form.on("Report", {
 			});
 		}
 
-		if (doc.is_standard === "Yes" && !frappe.boot.developer_mode && frm.perm[0].write) {
+		if (
+			doc.is_standard === "Yes" &&
+			!frappe.boot.developer_mode &&
+			frappe.model.can_write("Report")
+		) {
 			frm.add_custom_button(__("Set Print Defaults"), () =>
 				frm.trigger("set_print_defaults")
 			);
