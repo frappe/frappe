@@ -147,9 +147,9 @@ def develop_failing(workflow):
 
 
 def skips_test_suites(pr_number, repo="frappe/frappe"):
-	"""Check if the PR targets develop or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return base == "develop" or base.endswith("-hotfix")
+	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 
 
 def has_label(pr_number, label, repo="frappe/frappe"):
