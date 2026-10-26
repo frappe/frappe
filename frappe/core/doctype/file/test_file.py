@@ -1131,6 +1131,16 @@ class TestChunkedUpload(IntegrationTestCase):
 			self.upload_chunk(0, size=10, total_file_size=2 * 1024 * 1024)
 		self.assertFalse(os.path.exists(self.temp_path))
 
+	def test_partial_public_upload_is_not_left_in_public_files(self):
+		public_temp_path = get_files_path(".temp-chunked_upload.txt", is_private=0)
+		self.addCleanup(lambda: os.path.exists(public_temp_path) and os.remove(public_temp_path))
+
+		frappe.form_dict.is_private = 0
+		self.upload_chunk(0, size=10, total_file_size=20)
+
+		self.assertFalse(os.path.exists(public_temp_path))
+		self.assertTrue(os.path.exists(self.temp_path))
+
 
 @contextmanager
 def convert_to_symlink(directory):

@@ -190,7 +190,7 @@ def upload_file():
 		total_file_size = int(frappe.form_dict.total_file_size or 0)
 		check_declared_size(total_file_size)
 
-		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=is_private))
+		temp_path = Path(get_files_path(".temp-" + get_safe_file_name(filename), is_private=1))
 		with temp_path.open("ab" if current_chunk > 0 else "wb") as f:
 			f.seek(offset)
 			f.write(file.stream.read())
