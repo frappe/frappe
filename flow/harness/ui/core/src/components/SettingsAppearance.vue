@@ -33,7 +33,7 @@
 								:disabled="step.by > 0 ? size >= CHAT_FONT_SIZE.max : size <= CHAT_FONT_SIZE.min"
 								@click="flow.setChatFontSize(size + step.by)"
 							>
-								<FeatherIcon :name="step.icon" class="h-3 w-3" />
+								<span class="size-3" :class="step.icon" aria-hidden="true" />
 							</button>
 						</span>
 					</span>
@@ -57,7 +57,6 @@ import { computed, inject } from "vue"
 import { Button } from "frappe-ui/src/components/Button"
 import { Select } from "frappe-ui/src/components/Select"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { CHAT_FONT_SIZE, CHAT_FONT_WEIGHT } from "../layout.js"
 import SettingsPage from "./SettingsPage.vue"
@@ -69,8 +68,8 @@ const THEMES = [
 	{ label: "Dark", value: "dark" },
 ]
 const STEPS = [
-	{ by: 1, icon: "chevron-up", title: "Increase font size" },
-	{ by: -1, icon: "chevron-down", title: "Decrease font size" },
+	{ by: 1, icon: "lucide-chevron-up", title: "Increase font size" },
+	{ by: -1, icon: "lucide-chevron-down", title: "Decrease font size" },
 ]
 const flow = inject("flow")
 const { colorScheme, setColorScheme } = useColorScheme()

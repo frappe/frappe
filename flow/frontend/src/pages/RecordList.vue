@@ -8,7 +8,7 @@
 				:title="newLabel"
 				@click="create"
 			/>
-			<Button v-else variant="solid" icon-left="plus" :label="newLabel" @click="create" />
+			<Button v-else variant="solid" icon-left="lucide-plus" :label="newLabel" @click="create" />
 		</template>
 	</PageHeader>
 	<!-- the search and a menu per filter, once the list has loaded with something in it -->
@@ -53,7 +53,7 @@
 	<div class="min-h-0 flex-1 overflow-y-auto px-5 pb-10">
 		<LoadingState
 			v-if="loading && !loaded"
-			class="justify-center py-16 text-xs text-ink-gray-5"
+			class="h-full justify-center text-xs text-ink-gray-5"
 		/>
 		<!-- nothing yet: what the page is for, and the way to a first one -->
 		<div v-else-if="empty" class="flex flex-col items-center px-6 py-16 text-center">
@@ -65,7 +65,7 @@
 			<Button
 				v-if="canCreate"
 				class="mt-4"
-				icon-left="plus"
+				icon-left="lucide-plus"
 				:label="newLabel"
 				@click="create"
 			/>

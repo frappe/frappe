@@ -8,17 +8,16 @@
 			@click="$emit('toggle')"
 		>
 			<span>{{ label }}</span>
-			<FeatherIcon
-				name="chevron-right"
-				class="mt-px h-3.5 w-3.5 flex-none transition-transform"
+			<span
+				class="lucide-chevron-right mt-px size-3.5 flex-none transition-transform"
 				:class="expanded ? 'rotate-90' : ''"
+				aria-hidden="true"
 			/>
 		</button>
 	</div>
 </template>
 
 <script setup>
-import FeatherIcon from "./FeatherIcon.vue"
 
 defineProps({
 	label: { type: String, required: true },

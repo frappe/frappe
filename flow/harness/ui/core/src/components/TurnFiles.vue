@@ -11,7 +11,7 @@
 				:title="file.path"
 				@click="flow.openDiffFile(file.path)"
 			>
-				<FeatherIcon name="file" class="h-4 w-4 flex-none text-ink-gray-5" />
+				<span class="lucide-file size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 				<span class="flex-none text-sm font-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
 				<span class="min-w-0 truncate text-xs text-ink-gray-4">{{ dirPath(file.path) }}</span>
 				<span class="flex-1" />
@@ -31,7 +31,6 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { compactDisplayText, fileName } from "../transcript.js"
 

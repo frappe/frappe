@@ -9,16 +9,16 @@
 			<!-- leading slot doubles as the disclosure control: the tool icon yields
 			     to a chevron on hover, and to the rotated (close) chevron while open -->
 			<span class="relative h-3.5 w-3.5 flex-none self-center text-ink-gray-5">
-				<FeatherIcon
-					:name="icon"
-					class="h-3.5 w-3.5 transition-opacity"
-					:class="open ? 'opacity-0' : expandable || link ? 'group-hover:opacity-0' : ''"
+				<span
+					class="size-3.5 transition-opacity"
+					:class="[icon, open ? 'opacity-0' : expandable || link ? 'group-hover:opacity-0' : '']"
+					aria-hidden="true"
 				/>
-				<FeatherIcon
+				<span
 					v-if="expandable || link"
-					name="chevron-right"
-					class="absolute inset-0 h-3.5 w-3.5 transition-[opacity,transform]"
+					class="lucide-chevron-right absolute inset-0 size-3.5 transition-[opacity,transform]"
 					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
+					aria-hidden="true"
 				/>
 			</span>
 			<!-- template text renders like a label, argument values like a subject -->
@@ -102,7 +102,6 @@
 
 <script setup>
 import { computed, inject, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { usePanelOpen } from "../panels.js"
 import {

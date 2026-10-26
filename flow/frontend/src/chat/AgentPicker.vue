@@ -9,12 +9,12 @@
 			:aria-expanded="open"
 			@click="open ? close() : show()"
 		>
-			<FeatherIcon name="bot" class="h-3.5 w-3.5 flex-none" />
+			<span class="lucide-bot size-3.5 flex-none" aria-hidden="true" />
 			<span class="truncate">{{ title }}</span>
-			<FeatherIcon
-				name="chevron-down"
-				class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+			<span
+				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 				:class="open ? 'rotate-180' : ''"
+				aria-hidden="true"
 			/>
 		</button>
 		<PalettePanel
@@ -44,10 +44,10 @@
 					@click="choose(agent.name)"
 				>
 					<span class="min-w-0 truncate">{{ agent.title }}</span>
-					<FeatherIcon
+					<span
 						v-if="agent.name === current"
-						name="check"
-						class="ml-auto h-4 w-4 flex-none"
+						class="lucide-check ml-auto size-4 flex-none"
+						aria-hidden="true"
 					/>
 				</button>
 				<div v-if="!options.length" class="flow-palette-empty">No matching agents</div>
@@ -58,7 +58,6 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

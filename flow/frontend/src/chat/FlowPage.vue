@@ -149,7 +149,7 @@ import { presentTool } from "./toolMeta.js";
 // the composer commands Flow serves, its own agent picker first; the rest need the
 // daemon's file system or providers
 const COMMANDS = [
-	{ name: "agents", label: "Agent", icon: "bot", hint: "Choose the agent", view: "agents" },
+	{ name: "agents", label: "Agent", icon: "lucide-bot", hint: "Choose the agent", view: "agents" },
 	"model",
 	"thinking",
 	"transcript",
@@ -232,7 +232,7 @@ const placeholder = computed(() => {
 });
 // the header names a chat's agent where the harness names its folder
 const { current: agent, title: agentTitle } = useAgent(store, page);
-const agentCrumb = computed(() => (agent.value ? { icon: "bot", label: agentTitle.value } : null));
+const agentCrumb = computed(() => (agent.value ? { icon: "lucide-bot", label: agentTitle.value } : null));
 // someone else's chat is view-only: its tools would run as its owner
 const readOnly = computed(() => Boolean(page.state.readOnly[store.state.sessionId]));
 // only its owner shares a chat, once it has loaded and said who that is

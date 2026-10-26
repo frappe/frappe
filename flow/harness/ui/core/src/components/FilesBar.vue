@@ -20,7 +20,7 @@
 				<div
 					class="flex h-8 items-center gap-2 rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
 				>
-					<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
+					<span class="lucide-search size-3.5 flex-none" aria-hidden="true" />
 					<input
 						ref="searchInput"
 						v-model="fileQuery"
@@ -34,7 +34,7 @@
 						title="Clear"
 						@click="fileQuery = ''"
 					>
-						<FeatherIcon name="x" class="h-3 w-3" />
+						<span class="lucide-x size-3" aria-hidden="true" />
 					</button>
 				</div>
 			</div>
@@ -57,7 +57,10 @@
 						@keydown.enter.prevent="flow.openDiffFile(file.path)"
 					>
 						<span class="grid h-4 w-4 flex-none place-items-center">
-							<FeatherIcon name="file" class="h-3.5 w-3.5 text-ink-gray-5" />
+							<span
+								class="lucide-file size-3.5 text-ink-gray-5"
+								aria-hidden="true"
+							/>
 						</span>
 						<span class="min-w-0 truncate">{{ fileName(file.path) }}</span>
 						<span class="flex-1" />
@@ -105,9 +108,10 @@
 									:style="{ left: (level - 1) * 16 + 16 + 'px' }"
 								/>
 								<span class="grid h-4 w-4 flex-none place-items-center">
-									<FeatherIcon
-										:name="row.type === 'dir' ? (row.open ? 'chevron-down' : 'chevron-right') : 'file'"
-										class="h-3.5 w-3.5 text-ink-gray-5"
+									<span
+										class="size-3.5 text-ink-gray-5"
+										:class="row.type === 'dir' ? (row.open ? 'lucide-chevron-down' : 'lucide-chevron-right') : 'lucide-file'"
+										aria-hidden="true"
 									/>
 								</span>
 								<span class="min-w-0 truncate">{{ row.name }}</span>
@@ -144,7 +148,6 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, reactive, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import { fileName } from "../transcript.js"

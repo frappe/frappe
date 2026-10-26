@@ -15,11 +15,11 @@
 			class="block object-contain"
 		/>
 	</span>
-	<FeatherIcon
+	<span
 		v-else
-		name="server"
+		class="lucide-server flex-none text-ink-gray-6"
 		:style="{ width: `${size}px`, height: `${size}px` }"
-		class="flex-none text-ink-gray-6"
+		aria-hidden="true"
 	/>
 </template>
 
@@ -37,7 +37,6 @@ import openai from "@lobehub/icons-static-svg/icons/openai.svg"
 import opencode from "@lobehub/icons-static-svg/icons/opencode.svg"
 import openrouter from "@lobehub/icons-static-svg/icons/openrouter-color.svg"
 import xai from "@lobehub/icons-static-svg/icons/xai.svg"
-import FeatherIcon from "./FeatherIcon.vue"
 
 const props = defineProps({
 	providerId: { type: String, required: true },

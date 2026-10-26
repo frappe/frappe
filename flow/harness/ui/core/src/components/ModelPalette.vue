@@ -14,7 +14,11 @@
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="flow.state.modelsLoading ? 'animate-spin' : ''" />
+				<span
+					class="lucide-refresh-cw size-3.5"
+					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
+					aria-hidden="true"
+				/>
 			</button>
 		</template>
 
@@ -31,7 +35,11 @@
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="flow.state.modelsLoading ? 'animate-spin' : ''" />
+				<span
+					class="lucide-refresh-cw size-3.5"
+					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
+					aria-hidden="true"
+				/>
 			</button>
 		</div>
 
@@ -51,7 +59,11 @@
 					@click="choose(m.name)"
 				>
 					<span class="min-w-0 truncate">{{ m.title }}</span>
-					<FeatherIcon v-if="m.name === currentModel" name="check" class="ml-auto h-4 w-4 flex-none" />
+					<span
+						v-if="m.name === currentModel"
+						class="lucide-check ml-auto size-4 flex-none"
+						aria-hidden="true"
+					/>
 				</button>
 			</template>
 			<!-- a typed provider/model not in the list is usable as-is: discovery is a suggestion, not a gate -->
@@ -69,7 +81,7 @@
 			<template v-else-if="!groups.length && !custom">
 				<div class="flow-palette-empty">{{ providers ? "No models yet" : "No models available" }}</div>
 				<button v-if="providers" data-palette-item class="flow-palette-row" @click="emit('providers')">
-					<FeatherIcon name="key" class="h-4 w-4 flex-none" />
+					<span class="lucide-key size-4 flex-none" aria-hidden="true" />
 					Connect a provider
 				</button>
 			</template>
@@ -79,7 +91,6 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import { layout } from "../layout.js"

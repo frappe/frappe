@@ -12,10 +12,10 @@
 					class="h-3.5 w-3.5 transition-opacity"
 					:class="open ? 'opacity-0' : 'group-hover:opacity-0'"
 				/>
-				<FeatherIcon
-					name="chevron-right"
-					class="absolute inset-0 h-3.5 w-3.5 transition-[opacity,transform]"
+				<span
+					class="lucide-chevron-right absolute inset-0 size-3.5 transition-[opacity,transform]"
 					:class="open ? 'rotate-90 opacity-100' : 'opacity-0 group-hover:opacity-100'"
+					aria-hidden="true"
 				/>
 			</span>
 			<span class="flex-none text-sm font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
@@ -33,7 +33,6 @@
 </template>
 
 <script setup>
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { usePanelOpen } from "../panels.js"
 import MarkdownContent from "./MarkdownContent.vue"

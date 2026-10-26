@@ -14,77 +14,77 @@ import SnippetView from "./tools/SnippetView.vue";
 // to orient itself: one row, no dropdown.
 const TOOLS = {
 	find_doctypes: {
-		icon: "search",
+		icon: "lucide-search",
 		label: "Finding DocTypes",
 		stat: (result) => countOf(result.doctypes.length, result.total, "match", "matches"),
 	},
 	describe: {
-		icon: "layers",
+		icon: "lucide-layers",
 		label: "Reading DocType Meta",
 		stat: (result) => count(result.fields?.length ?? 0, "field"),
 	},
 	read_records: {
-		icon: "database",
+		icon: "lucide-database",
 		label: "Reading Records",
 		view: ReadView,
 		stat: (result) => countOf(result.records.length, result.total, "record"),
 	},
 	run_report: {
-		icon: "bar-chart-2",
+		icon: "lucide-chart-column",
 		label: "Running Report",
 		view: ReportView,
 		stat: (result) => countOf(result.rows.length, result.row_count, "row"),
 	},
 	create: {
-		icon: "file-plus",
+		icon: "lucide-file-plus",
 		label: "Creating Records",
 		view: CreateView,
 		asks: true,
 		stat: (result) => outcome(result.created, "created"),
 	},
 	update: {
-		icon: "edit-3",
+		icon: "lucide-pen-line",
 		label: "Updating Records",
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.updated, "updated"),
 	},
 	delete: {
-		icon: "trash-2",
+		icon: "lucide-trash-2",
 		label: "Deleting Records",
 		view: NamesView,
 		asks: true,
 		stat: (result) => outcome(result.deleted, "deleted"),
 	},
 	run_action: {
-		icon: "play",
+		icon: "lucide-play",
 		label: (args) => ACTIONS[args.action] ?? "Running Document Actions",
 		view: NamesView,
 		asks: true,
 		stat: (result) =>
 			result.action === "rename" ? "renamed" : outcome(result.results, "done"),
 	},
-	execute: { icon: "code", label: "Running Code", view: CodeView, asks: true },
+	execute: { icon: "lucide-code", label: "Running Code", view: CodeView, asks: true },
 	search_knowledge: {
-		icon: "book-open",
+		icon: "lucide-book-open",
 		label: "Searching Knowledge",
 		view: SnippetView,
 		stat: (result) => count(result.length, "hit"),
 	},
 	search_attachments: {
-		icon: "paperclip",
+		icon: "lucide-paperclip",
 		label: "Searching Attachments",
 		view: SnippetView,
 		stat: (result) => count(result.length, "hit"),
 	},
 	update_memory: {
-		icon: "bookmark",
+		icon: "lucide-bookmark",
 		label: "Saving Memory",
 		stat: (result) => result.action ?? "",
 	},
-	load_skill: { icon: "book", label: "Loading Skill" },
+	load_skill: { icon: "lucide-book", label: "Loading Skill" },
 	// the flow server's own tool: its row opens the child's thread in the workspace panel
-	subagent: { icon: "bot", label: "Sub-agent" },
+	subagent: { icon: "lucide-bot", label: "Sub-agent" },
 };
 
 const ACTIONS = {

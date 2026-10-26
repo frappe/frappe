@@ -331,17 +331,17 @@ export function stepLabel(name) {
 
 // Leading row icons for the built-in tools; extension tools get the generic wrench.
 const STEP_ICONS = {
-	subagent: "bot",
-	read: "file-text",
-	grep: "search",
-	bash: "terminal",
-	edit: "edit-3",
-	write: "file-plus",
-	websearch: "globe",
+	subagent: "lucide-bot",
+	read: "lucide-file-text",
+	grep: "lucide-search",
+	bash: "lucide-terminal",
+	edit: "lucide-pen-line",
+	write: "lucide-file-plus",
+	websearch: "lucide-globe",
 }
 
 export function stepIcon(name) {
-	return STEP_ICONS[name] ?? "tool"
+	return STEP_ICONS[name] ?? "lucide-wrench"
 }
 
 export function humanizeToolName(name) {

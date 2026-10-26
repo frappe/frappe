@@ -50,7 +50,7 @@
 					:title="`Remove ${nameOf(user)}'s access`"
 					@click="remove(user.name)"
 				>
-					<FeatherIcon name="x" class="h-3.5 w-3.5" />
+					<span class="lucide-x size-3.5" aria-hidden="true" />
 				</button>
 			</li>
 			<li v-if="loading"><LoadingState class="py-1 text-xs text-ink-gray-5" /></li>
@@ -58,7 +58,7 @@
 		<div class="mt-5 flex justify-end">
 			<CopyButton
 				:text="link"
-				icon="link"
+				icon="lucide-link"
 				title="Copy link"
 				class="flex h-7 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2 text-base text-ink-gray-8 hover:border-outline-gray-3 active:bg-surface-gray-4"
 			>
@@ -73,7 +73,6 @@ import { computed, inject, nextTick, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Avatar, Dialog, FormControl, Select, toast } from "frappe-ui";
 import CopyButton from "@flow/ui-core/components/CopyButton.vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { layout } from "@flow/ui-core/layout.js";

@@ -16,7 +16,7 @@
 				class="flow-palette-row"
 				@click="goUp"
 			>
-				<FeatherIcon name="corner-left-up" class="h-4 w-4 flex-none" />
+				<span class="lucide-corner-left-up size-4 flex-none" aria-hidden="true" />
 				<span class="flow-palette-hint min-w-0 flex-1 truncate">..</span>
 			</button>
 			<button
@@ -26,7 +26,11 @@
 				class="flow-palette-row"
 				@click="choose(row)"
 			>
-				<FeatherIcon :name="row.dir ? 'folder' : 'file-text'" class="h-4 w-4 flex-none" />
+				<span
+					class="size-4 flex-none"
+					:class="row.dir ? 'lucide-folder' : 'lucide-file-text'"
+					aria-hidden="true"
+				/>
 				<span class="min-w-0 flex-1 truncate">{{ row.label }}</span>
 			</button>
 			<LoadingState v-if="rows === null" class="justify-center px-3 py-8 text-xs text-ink-gray-5" />
@@ -42,7 +46,6 @@
 
 <script setup>
 import { computed, inject, ref, toRef, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import LoadingState from "./LoadingState.vue"

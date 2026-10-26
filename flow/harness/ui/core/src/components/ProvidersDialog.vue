@@ -14,7 +14,11 @@
 				title="Refresh providers"
 				@click="reload"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="loading ? 'animate-spin' : ''" />
+				<span
+					class="lucide-refresh-cw size-3.5"
+					:class="loading ? 'animate-spin' : ''"
+					aria-hidden="true"
+				/>
 			</button>
 		</template>
 
@@ -35,7 +39,11 @@
 					<span class="h-1.5 w-1.5 rounded-full bg-surface-green-7" />
 					Connected
 				</span>
-				<FeatherIcon v-else name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
+				<span
+					v-else
+					class="lucide-chevron-right flow-palette-hint size-4 flex-none"
+					aria-hidden="true"
+				/>
 			</button>
 			<LoadingState v-if="loading && !rows.length" class="justify-center px-3 py-7 text-xs text-ink-gray-5" />
 			<div
@@ -52,12 +60,15 @@
 				class="flow-palette-row"
 				@click="select(CUSTOM_OPTION)"
 			>
-				<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
+				<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
 				<span class="flex-none">Add custom endpoint</span>
 				<span class="flow-palette-hint min-w-0 flex-1 truncate">
 					Ollama, LM Studio, or any OpenAI-compatible URL
 				</span>
-				<FeatherIcon name="chevron-right" class="flow-palette-hint h-4 w-4 flex-none" />
+				<span
+					class="lucide-chevron-right flow-palette-hint size-4 flex-none"
+					aria-hidden="true"
+				/>
 			</button>
 		</div>
 
@@ -117,7 +128,7 @@
 						:disabled="saving"
 						@click="disconnect"
 					>
-						<FeatherIcon name="log-out" class="h-3.5 w-3.5" />
+						<span class="lucide-log-out size-3.5" aria-hidden="true" />
 						Disconnect
 					</button>
 					<button
@@ -125,7 +136,11 @@
 						class="flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 						:disabled="!canSaveCustom || saving"
 					>
-						<FeatherIcon :name="editingCustom ? 'check' : 'plus'" class="h-3.5 w-3.5" />
+						<span
+							class="size-3.5"
+							:class="editingCustom ? 'lucide-check' : 'lucide-plus'"
+							aria-hidden="true"
+						/>
 						{{ editingCustom ? "Save changes" : "Add endpoint" }}
 					</button>
 				</div>
@@ -135,7 +150,7 @@
 				<div
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
 				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
+					<span class="lucide-circle-check size-4 text-ink-green-7" aria-hidden="true" />
 					Ready to use
 				</div>
 				<button
@@ -144,7 +159,7 @@
 					:disabled="saving"
 					@click="disconnect"
 				>
-					<FeatherIcon name="log-out" class="h-3.5 w-3.5" />
+					<span class="lucide-log-out size-3.5" aria-hidden="true" />
 					Disconnect
 				</button>
 			</div>
@@ -163,7 +178,7 @@
 					class="mt-3 flex h-8 items-center gap-1.5 rounded-5 bg-surface-gray-10 px-3 text-xs font-medium text-ink-base hover:opacity-90 disabled:cursor-not-allowed disabled:border disabled:border-outline-gray-2 disabled:bg-surface-gray-1 disabled:text-ink-gray-4 disabled:hover:opacity-100"
 					:disabled="!apiKey.trim() || saving"
 				>
-					<FeatherIcon name="key" class="h-3.5 w-3.5" />
+					<span class="lucide-key size-3.5" aria-hidden="true" />
 					Save API key
 				</button>
 			</form>
@@ -175,7 +190,7 @@
 					:disabled="saving"
 					@click="beginOAuth"
 				>
-					<FeatherIcon name="external-link" class="h-3.5 w-3.5" />
+					<span class="lucide-external-link size-3.5" aria-hidden="true" />
 					Sign in
 				</button>
 				<div
@@ -195,14 +210,14 @@
 					rel="noopener noreferrer"
 					class="mt-2 flex w-fit items-center gap-1.5 text-xs text-ink-gray-6 underline hover:text-ink-gray-9"
 				>
-					<FeatherIcon name="external-link" class="h-3 w-3" />
+					<span class="lucide-external-link size-3" aria-hidden="true" />
 					Open the sign-in page
 				</a>
 				<div
 					v-if="oauthStatus === 'connected'"
 					class="flex items-center gap-2 rounded-5 border border-outline-gray-1 bg-surface-gray-1 px-3 py-2.5 text-xs text-ink-gray-7"
 				>
-					<FeatherIcon name="check-circle" class="h-4 w-4 text-ink-green-7" />
+					<span class="lucide-circle-check size-4 text-ink-green-7" aria-hidden="true" />
 					Connected
 				</div>
 				<div v-if="oauthError" class="mt-2 text-xs leading-relaxed text-ink-red-6">
@@ -236,7 +251,6 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, ref, toRef } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import LoadingState from "./LoadingState.vue"

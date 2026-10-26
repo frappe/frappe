@@ -21,7 +21,7 @@
 							<div v-if="title" class="mt-1.5 truncate text-sm text-ink-gray-6">{{ title }}</div>
 						</div>
 						<button ref="closeEl" class="flow-icon-btn flex-none" title="Close" @click="close">
-							<FeatherIcon name="x" class="h-3.5 w-3.5" />
+							<span class="lucide-x size-3.5" aria-hidden="true" />
 						</button>
 					</div>
 				</header>
@@ -67,7 +67,6 @@
 
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { buildTranscriptRows, formatTokens } from "../transcript.js"
 

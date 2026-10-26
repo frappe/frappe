@@ -12,7 +12,11 @@
 				<span class="flex-none">{{ level.label }}</span>
 				<span class="flow-palette-hint min-w-0 flex-1 truncate">{{ level.desc }}</span>
 				<!-- the hint follows the label, so the tick takes the right edge -->
-				<FeatherIcon v-if="level.id === currentEffort" name="check" class="h-4 w-4 flex-none" />
+				<span
+					v-if="level.id === currentEffort"
+					class="lucide-check size-4 flex-none"
+					aria-hidden="true"
+				/>
 			</button>
 			<div v-if="!levels.length" class="flow-palette-empty">
 				No matching levels
@@ -23,7 +27,6 @@
 
 <script setup>
 import { computed, inject } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { EFFORTS, EFFORT_LABELS } from "../transcript.js"
 import PalettePanel from "./PalettePanel.vue"

@@ -28,7 +28,7 @@
 			<span class="text-sm font-semibold text-ink-gray-9">Flow</span>
 			<span class="flex-1" />
 			<button class="flow-icon-btn" title="Hide sidebar" @click="emit('close')">
-				<FeatherIcon name="sidebar" class="h-3.5 w-3.5" />
+				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
 			</button>
 		</div>
 
@@ -307,7 +307,6 @@ import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import HoverCard from "frappe-ui/src/components/HoverCard/HoverCard.vue"
 import SidebarItem from "frappe-ui/src/components/Sidebar/SidebarItem.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import { layout, useSlide } from "../layout.js"

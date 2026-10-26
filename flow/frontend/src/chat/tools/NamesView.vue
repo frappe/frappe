@@ -78,7 +78,11 @@ function amended(outcome, name) {
 	return outcome?.name && outcome.name !== name ? { renamed_to: outcome.name } : {};
 }
 
+// a returned record fills the row's columns, all but the name amended() reads
 function returned(outcome) {
-	return outcome == null ? {} : { returned: outcome };
+	if (outcome == null) return {};
+	if (typeof outcome !== "object" || Array.isArray(outcome)) return { returned: outcome };
+	const { name, ...fields } = outcome;
+	return fields;
 }
 </script>

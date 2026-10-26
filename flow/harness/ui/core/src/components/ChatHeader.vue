@@ -5,10 +5,10 @@
 	>
 		<template v-if="!sidebarOpen">
 			<button class="flow-icon-btn" title="Show sidebar" @click="emit('open-sidebar')">
-				<FeatherIcon name="sidebar" class="h-3.5 w-3.5" />
+				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
 			</button>
 			<button class="flow-icon-btn" title="New chat" @click="flow.startNewChat()">
-				<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+				<span class="lucide-plus size-3.5" aria-hidden="true" />
 			</button>
 		</template>
 
@@ -16,7 +16,7 @@
 		     chat shows no crumb, title or line under them until its first message goes out -->
 		<div v-if="started" class="flex min-w-0 items-center gap-2" :title="headerTitle">
 			<span v-if="lead" class="hidden min-w-0 flex-none items-center gap-1.5 text-title text-ink-gray-5 sm:flex">
-				<FeatherIcon :name="lead.icon" class="h-3.5 w-3.5 flex-none" />
+				<span class="size-3.5 flex-none" :class="lead.icon" aria-hidden="true" />
 				<span class="max-w-[220px] truncate">{{ lead.label }}</span>
 			</span>
 			<span v-if="lead" aria-hidden="true" class="hidden flex-none text-title text-ink-gray-3 sm:inline">/</span>
@@ -56,7 +56,7 @@
 
 			<ChatMenu v-if="menu" :session-id="flow.state.sessionId" :title="title" :actions="actions">
 				<button class="flow-icon-btn" title="Chat options">
-					<FeatherIcon name="more-horizontal" class="h-4 w-4" />
+					<span class="lucide-ellipsis size-4" aria-hidden="true" />
 				</button>
 			</ChatMenu>
 			<button
@@ -65,7 +65,7 @@
 				title="Open panel"
 				@click="flow.setWorkspaceOpen(true)"
 			>
-				<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
+				<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
 			</button>
 		</span>
 	</header>
@@ -73,7 +73,6 @@
 
 <script setup>
 import { computed, inject } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { conversationTitle, formatTokens } from "../transcript.js"
 import ChatMenu from "./ChatMenu.vue"
@@ -109,7 +108,7 @@ const title = computed(
 const keptFolder = computed(() => flow.state.sessions.find((s) => s.session_id === flow.state.sessionId)?.workspace)
 // before the title: the host's crumb, or the folder by its workspace's name, whose full path shows on hover
 const lead = computed(
-	() => props.crumb ?? (cwd.value ? { icon: "folder", label: flow.folderName(keptFolder.value ?? cwd.value), path: cwd.value } : null),
+	() => props.crumb ?? (cwd.value ? { icon: "lucide-folder", label: flow.folderName(keptFolder.value ?? cwd.value), path: cwd.value } : null),
 )
 
 const headerTitle = computed(() => (lead.value ? `${lead.value.path ?? lead.value.label} / ${title.value}` : title.value))

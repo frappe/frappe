@@ -7,10 +7,10 @@
 			class="flex items-center gap-2"
 		>
 			<button class="flow-icon-btn" title="Show sidebar" @click="flow.setSidebarOpen(true)">
-				<FeatherIcon name="sidebar" class="h-3.5 w-3.5" />
+				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
 			</button>
 			<button class="flow-icon-btn max-md:hidden" title="New chat" @click="newChat">
-				<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+				<span class="lucide-plus size-3.5" aria-hidden="true" />
 			</button>
 		</div>
 		<!-- a record leads with the way back to its list, a list with its page's icon -->
@@ -20,7 +20,7 @@
 			:title="`Back to ${list.label.toLowerCase()}`"
 			@click="emit('back')"
 		>
-			<FeatherIcon name="arrow-left" class="h-4 w-4" />
+			<span class="lucide-arrow-left size-4" aria-hidden="true" />
 		</button>
 		<!-- where the page sits: a record follows its list, which it links to. A narrow frame's bar
 		     keeps the name alone, for the room its actions leave -->
@@ -55,7 +55,6 @@
 
 <script setup>
 import { inject } from "vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 
 // A page's bar, where a chat has its header: the way to the sidebar while it is hidden, where
 // the page sits, and its actions at the end.
