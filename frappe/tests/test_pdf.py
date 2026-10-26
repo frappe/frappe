@@ -346,9 +346,21 @@ class TestPdf(IntegrationTestCase):
 			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
 
 	def test_b5_page_size_is_portrait(self):
+		from types import SimpleNamespace
+
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.pdf_generator.browser import Browser
+
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
-		browser = self.make_browser({"page-size": "B5"})
+		browser = Browser.__new__(Browser)
+		browser.is_print_designer = False
+		browser.print_format = None
+		browser.options = {"page-size": "B5"}
+		browser.soup = BeautifulSoup("", "html5lib")
+		browser.body_page = SimpleNamespace(options={})
+		browser.header_page = browser.footer_page = None
 		browser.prepare_options_for_pdf()
 
 		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
