@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import { Button, Select, TabButtons, TextInput, Textarea } from "frappe-ui";
+import { Button, Select, Switch, TabButtons, TextInput, Textarea } from "frappe-ui";
 import { Link } from "@framework/ui";
 import { block_size } from "../grid.js";
 import {
@@ -38,8 +38,9 @@ const TITLES = {
 
 const LINK_TYPES = ["DocType", "Report", "Page"];
 
-// A slimmed copy of desk's widget dialog: `link` names a doctype, `options` makes a select, and
-// `when` hides a field the widget's other values make moot.
+// A slimmed copy of desk's widget dialog: `link` names a doctype, `options` makes a select,
+// `inverse_switch` is a switch that is on while its check is off, and `when` hides a field the
+// widget's other values make moot.
 const FIELDS = {
 	number_card: [{ field: "number_card_name", label: "Number Card", link: "Number Card" }],
 	chart: [{ field: "chart_name", label: "Dashboard Chart", link: "Dashboard Chart" }],
@@ -79,6 +80,10 @@ const FIELDS = {
 			options: (w) => order_options(w.document_type),
 			when: (w) => w.document_type,
 		},
+		{ field: "hide_filter", label: "Filter", inverse_switch: true },
+		{ field: "hide_refresh", label: "Refresh", inverse_switch: true },
+		{ field: "hide_new", label: "Add new", inverse_switch: true },
+		{ field: "hide_view_list", label: "View List", inverse_switch: true },
 	],
 	custom_block: [
 		{ field: "custom_block_name", label: "Custom HTML Block", link: "Custom HTML Block" },
@@ -213,6 +218,12 @@ function remove_link(index) {
 					:options="options_of(field)"
 					:model-value="widget[field.field] || ''"
 					@update:model-value="(value) => set(field.field, value)"
+				/>
+				<Switch
+					v-else-if="field.inverse_switch"
+					:label="__(field.label)"
+					:model-value="!Number(widget[field.field])"
+					@update:model-value="(on) => set(field.field, on ? 0 : 1)"
 				/>
 				<Textarea
 					v-else-if="field.textarea"
