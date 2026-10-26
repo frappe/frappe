@@ -730,6 +730,21 @@ class TestTypstRender(IntegrationTestCase):
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf, todo)).emit()
 		self.assertIn("margin: (top: 0.0mm, bottom: 0.0mm, left: 0.0mm, right: 0.0mm)", source)
 
+	def test_field_alignment_matches_html(self):
+		from frappe.utils.print_format_generator import PrintFormatGenerator
+		from frappe.utils.typst_emitter import TypstEmitter
+
+		pf = self.make(layout_with())
+		todo = self.make_todo()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		emitter = TypstEmitter(PrintFormatGenerator(pf, todo))
+		df = {"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+		left_right = emitter._data_field({"field_orientation": "left-right"}, {**df, "align": "right"})
+		inline = emitter._data_field({}, {**df, "show_label": "inline", "align": "center"})
+		self.assertTrue(left_right.startswith("#align(right)[#grid(columns: (auto, auto)"))
+		self.assertIn("[#align(center)[#text(", inline)
+
 	@unittest.skipUnless(has_typst(), "typst not installed")
 	def test_image_format_comes_from_its_content(self):
 		from io import BytesIO
