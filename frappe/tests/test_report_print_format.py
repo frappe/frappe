@@ -189,6 +189,18 @@ class TestDownloadReportPdf(IntegrationTestCase):
 		with self.assertRaises(frappe.PermissionError):
 			download_report_pdf(REPORT)
 
+	def test_in_background_emails_the_pdf_to_the_user(self):
+		with (
+			patch("frappe.utils.print_format.get_pdf", return_value=b"%PDF"),
+			patch("frappe.utils.print_format.send_report_email") as send_report_email,
+			patch("frappe.enqueue", side_effect=lambda method, queue, **kwargs: method(**kwargs)),
+		):
+			download_report_pdf("ToDo", no_letterhead=1, in_background=1)
+
+		send_report_email.assert_called_once_with(
+			REPORT_USER, "ToDo", "pdf", b"%PDF", attached_to_name="ToDo"
+		)
+
 
 class TestGetPrintFormatData(IntegrationTestCase):
 	@classmethod
