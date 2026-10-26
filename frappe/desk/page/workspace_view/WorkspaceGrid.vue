@@ -2,6 +2,7 @@
 import { computed, defineAsyncComponent } from "vue";
 import { block_size, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
+import TextBlock from "./TextBlock.vue";
 import NumberCardTile from "./tiles/NumberCardTile.vue";
 import ShortcutTile from "./tiles/ShortcutTile.vue";
 import CardTile from "./tiles/CardTile.vue";
@@ -21,26 +22,35 @@ const TILES = {
 };
 
 const sections = computed(() =>
-	split_sections(props.content).map((blocks) =>
-		blocks.map((block) => ({ block, size: block_size(block), tile: tile_for(block) }))
-	)
+	split_sections(props.content).map(({ heading, blocks }) => ({
+		heading,
+		tiles: blocks.map((block) => ({ block, size: block_size(block), tile: tile_for(block) })),
+	}))
 );
 
 function tile_for(block) {
+	if (block.type === "paragraph") return { component: TextBlock, props: { block } };
 	const tile = TILES[block.type];
 	if (!tile) return null;
 	const name = block.data[tile.key];
-	return { component: tile.component, widget: props.widgets[tile.widgets][name] };
+	return { component: tile.component, props: { widget: props.widgets[tile.widgets][name] } };
 }
 </script>
 
 <template>
 	<div class="flex flex-col gap-6">
-		<div v-for="(section, index) in sections" :key="index" class="ws-grid">
-			<GridTile v-for="{ block, size, tile } in section" :key="block.id" :size="size">
-				<component :is="tile.component" v-if="tile" :widget="tile.widget" />
-			</GridTile>
-		</div>
+		<section v-for="(section, index) in sections" :key="index" class="flex flex-col gap-3">
+			<TextBlock v-if="section.heading" :block="section.heading" />
+			<div v-if="section.tiles.length" class="ws-grid">
+				<GridTile
+					v-for="{ block, size, tile } in section.tiles"
+					:key="block.id"
+					:size="size"
+				>
+					<component :is="tile.component" v-if="tile" v-bind="tile.props" />
+				</GridTile>
+			</div>
+		</section>
 	</div>
 </template>
 

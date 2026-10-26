@@ -37,12 +37,24 @@ export function block_size(block) {
 	};
 }
 
-// A spacer ends a section, and each section packs on its own.
+// A spacer, a heading or a full-width paragraph ends a section. A heading or a full-width
+// paragraph draws above the section that follows it, and each section packs on its own.
 export function split_sections(blocks) {
-	const sections = [[]];
+	const sections = [];
+	let current = null;
 	for (const block of blocks) {
-		if (block.type === "spacer") sections.push([]);
-		else sections.at(-1).push(block);
+		if (block.type === "spacer" || is_full_width_text(block)) {
+			current = { heading: block.type === "spacer" ? null : block, blocks: [] };
+			sections.push(current);
+		} else {
+			if (!current) sections.push((current = { heading: null, blocks: [] }));
+			current.blocks.push(block);
+		}
 	}
-	return sections.filter((section) => section.length);
+	return sections.filter((section) => section.heading || section.blocks.length);
+}
+
+function is_full_width_text(block) {
+	if (block.type === "header") return true;
+	return block.type === "paragraph" && block_size(block).name === "Full";
 }
