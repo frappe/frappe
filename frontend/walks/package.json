@@ -4,7 +4,8 @@
   "type": "module",
   "scripts": {
     "walk": "node returnVisit.js",
-    "walk:view": "node viewRestore.js"
+    "walk:view": "node viewRestore.js",
+    "walk:budget": "node clickBudget.js"
   },
   "devDependencies": {
     "playwright": "1.62.1"
