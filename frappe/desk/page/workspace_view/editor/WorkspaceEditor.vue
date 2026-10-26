@@ -244,10 +244,22 @@ function delete_workspace() {
 	);
 }
 
+function switch_renderer() {
+	const go = () => frappe.ui.switch_workspace_renderer(props.workspace, "Legacy");
+	if (!dirty.value) return go();
+	frappe.confirm(__("Discard your unsaved changes?"), go);
+}
+
 const menu = computed(() => {
+	const switch_item = {
+		label: __("Switch to old layout"),
+		icon: "lucide-history",
+		onClick: switch_renderer,
+	};
 	if (!props.workspace.public) {
 		return [
 			{ label: __("Delete workspace"), icon: "lucide-trash-2", onClick: delete_workspace },
+			switch_item,
 		];
 	}
 	const items = [];
@@ -268,6 +280,7 @@ const menu = computed(() => {
 			onClick: reset_workspace,
 		});
 	}
+	items.push(switch_item);
 	return items;
 });
 </script>

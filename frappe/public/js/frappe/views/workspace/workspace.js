@@ -112,7 +112,11 @@ frappe.views.Workspace = class Workspace {
 		}
 
 		let page = this.get_page_to_show();
-		if (this._page?.name === page.name) return; // already shown
+		if (this._page?.name === page.name) {
+			// back from the new layout: draw what it saved, in edit mode
+			if (frappe.ui.open_workspace_editor === page.name) this.reload();
+			return;
+		}
 
 		if (!frappe.router.current_route[0]) {
 			frappe.route_flags.replace_route = true;
@@ -264,15 +268,7 @@ frappe.views.Workspace = class Workspace {
 						{
 							label: __("Edit"),
 							icon: "pencil",
-							onclick: async () => {
-								if (!this.editor || !this.editor.readOnly) return;
-								this.is_read_only = false;
-								await this.editor.readOnly.toggle();
-								this.editor.isReady.then(() => {
-									this.setup_customization_buttons(this._page);
-									this.make_blocks_sortable();
-								});
-							},
+							onclick: () => this.start_editing(),
 							condition: () => {
 								return this.is_editable(current_page);
 							},
@@ -374,6 +370,23 @@ frappe.views.Workspace = class Workspace {
 		}
 	}
 
+	async start_editing() {
+		if (!this.editor || !this.editor.readOnly || !this.is_read_only) return;
+		this.is_read_only = false;
+		await this.editor.readOnly.toggle();
+		this.editor.isReady.then(() => {
+			this.setup_customization_buttons(this._page);
+			this.make_blocks_sortable();
+		});
+	}
+
+	// A new workspace, or one just switched here, opens in edit mode.
+	open_editor_if_asked() {
+		if (frappe.ui.open_workspace_editor !== this._page?.name) return;
+		frappe.ui.open_workspace_editor = null;
+		if (this.is_editable(this._page)) this.editor.isReady.then(() => this.start_editing());
+	}
+
 	prepare_editorjs() {
 		if (this.editor) {
 			this.editor.isReady.then(() => {
@@ -384,10 +397,13 @@ frappe.views.Workspace = class Workspace {
 				this.editor.configuration.tools.quick_list.config.page_data = this.page_data;
 				this.editor.configuration.tools.number_card.config.page_data = this.page_data;
 				this.editor.configuration.tools.custom_block.config.page_data = this.page_data;
-				this.editor.render({ blocks: this.content || [] });
+				this.editor
+					.render({ blocks: this.content || [] })
+					.then(() => this.open_editor_if_asked());
 			});
 		} else {
 			this.initialize_editorjs(this.content);
+			this.open_editor_if_asked();
 		}
 	}
 
@@ -1020,6 +1036,21 @@ frappe.views.Workspace = class Workspace {
 			this.reload();
 			frappe.show_alert({ message: __("Customizations Discarded"), indicator: "info" });
 		});
+
+		this.is_editable(page) &&
+			this.page.add_inner_button(__("Switch to new layout"), () => {
+				frappe.confirm(
+					__("Switch to the new layout? Unsaved changes are lost."),
+					async () => {
+						this.body.removeClass("edit-mode");
+						this.clear_page_actions();
+						$("#full-search-button").removeClass("hidden");
+						await this.editor.readOnly.toggle();
+						this.is_read_only = true;
+						frappe.ui.switch_workspace_renderer(page, "Frappe UI");
+					}
+				);
+			});
 
 		if (page.name && this.has_access) {
 			this.page.add_inner_button(__("Settings"), () => {

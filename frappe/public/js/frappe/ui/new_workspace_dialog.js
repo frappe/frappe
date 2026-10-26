@@ -1,4 +1,4 @@
-// The New Workspace dialog, shared by every workspace renderer.
+// The New Workspace dialog and the renderer switch, shared by every workspace renderer.
 
 // "Access" options: a virtual field that maps to the underlying `public`, `for_user` and `roles`.
 const ACCESS_PRIVATE = __("Only to you");
@@ -221,12 +221,28 @@ frappe.ui.new_workspace_dialog = async function () {
 
 			create_workspace(new_page).then(() => {
 				if (new_page.type === "Workspace") {
+					// a new workspace opens in its renderer's editor
+					frappe.ui.open_workspace_editor = new_page.name;
 					frappe.set_route(frappe.ui.workspace_route(new_page));
 				}
 			});
 		},
 	});
 	d.show();
+};
+
+// Draw `page` with the other renderer and land in that renderer's editor at the same URL.
+frappe.ui.switch_workspace_renderer = function (page, renderer) {
+	return frappe
+		.xcall("frappe.desk.doctype.workspace.workspace.set_workspace_renderer", {
+			name: page.name,
+			renderer,
+		})
+		.then((message) => {
+			frappe.ui.update_workspace_pages(message);
+			frappe.ui.open_workspace_editor = page.name;
+			frappe.router.route();
+		});
 };
 
 function create_workspace(new_page) {

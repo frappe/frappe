@@ -49,6 +49,12 @@ async function load() {
 	correct_private_segment();
 	emit("title", workspace.value.title);
 	emit("actions", actions());
+
+	// a new workspace, or one just switched here, opens in the editor
+	if (frappe.ui.open_workspace_editor === workspace.value.name) {
+		frappe.ui.open_workspace_editor = null;
+		if (workspace.value.can_edit) edit();
+	}
 }
 
 function show_not_found() {
