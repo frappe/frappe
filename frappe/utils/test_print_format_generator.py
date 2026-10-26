@@ -292,6 +292,47 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertTrue(reader.decrypt("qwe"))
 		self.assertEqual(len(reader.pages), 1)
 
+	def test_bulk_pdf_links_stay_in_their_own_document(self):
+		import io
+
+		from pypdf import PdfReader
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		html = '<a href="#totals">See totals</a>' + "<p>row</p>" * 80 + '<p id="totals">Totals</p>'
+		print_format = self._make_print_format(
+			pdf_generator="chrome",
+			format_data=json.dumps(
+				{
+					"sections": [
+						{
+							"columns": [
+								{"fields": [{"fieldtype": "HTML", "fieldname": "_html1", "html": html}]}
+							]
+						}
+					]
+				}
+			),
+		)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todos = [
+			frappe.get_doc({"doctype": "ToDo", "description": description}).insert().name
+			for description in ("Send the Q3 price list to Contoso", "Renew the Fabrikam support contract")
+		]
+
+		_download_multi_pdf("ToDo", json.dumps(todos), format=print_format.name, no_letterhead=1)
+
+		reader = PdfReader(io.BytesIO(frappe.local.response.filecontent))
+		(first_page, first_target), (second_page, second_target) = (
+			(number, reader.get_page_number(annotation.get_object()["/Dest"][0].get_object()))
+			for number, page in enumerate(reader.pages)
+			for annotation in page.get("/Annots", [])
+		)
+		self.assertLess(first_page, first_target)
+		self.assertLess(first_target, second_page)
+		self.assertLess(second_page, second_target)
+
 	def test_typst_pdf_with_password_is_encrypted(self):
 		import io
 
