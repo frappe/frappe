@@ -12,7 +12,7 @@
 					variant="solid"
 					:icon-left="createAct.icon"
 					:label="createAct.label"
-					@click="listActs.perform('create')"
+					@click="listActs.perform(createAct)"
 				/>
 			</div>
 		</template>
@@ -188,24 +188,16 @@ const listActs = useListActs({
 });
 
 const createAct = computed(() => listActs.drawn("create"));
+const quickFilterAct = computed(() => listActs.drawn("customize_quick_filter"));
+const deleteAct = computed(() => listActs.drawn("delete"));
 
-const menuOptions = computed(() =>
-	drawnActs(["customize_quick_filter"]).map((act) => ({
-		label: act.label,
-		icon: act.icon,
-		onClick: () => listActs.perform(act.name),
-	}))
-);
+const menuOptions = computed(() => {
+	const act = quickFilterAct.value;
+	return act ? [{ label: act.label, icon: act.icon, onClick: () => listActs.perform(act) }] : [];
+});
 
-const bulkActions = computed<BulkAction[]>(() =>
-	drawnActs(["delete"]).map((act) => ({
-		label: act.label!,
-		theme: "red",
-		onClick: () => listActs.perform(act.name),
-	}))
-);
-
-function drawnActs(names: string[]) {
-	return names.flatMap((name) => listActs.drawn(name) ?? []);
-}
+const bulkActions = computed<BulkAction[]>(() => {
+	const act = deleteAct.value;
+	return act ? [{ label: act.label!, theme: "red", onClick: () => listActs.perform(act) }] : [];
+});
 </script>
