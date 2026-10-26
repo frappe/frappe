@@ -281,7 +281,7 @@ watch(screen, (name) => emit("title", SCREENS[name] || __("Profile")), { immedia
 					/>
 				</section>
 
-				<Group>
+				<Group v-if="!frappe.defaults.is_enabled('disable_user_pass_login')">
 					<Row
 						icon="lucide-key-round"
 						:label="__('Change Password')"

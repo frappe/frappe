@@ -170,23 +170,9 @@ frappe.ui.form.on("User", {
 				frm.add_custom_button(
 					__("Change Password"),
 					function () {
-						if (
-							frm.doc.name === "Administrator" &&
-							frappe.defaults.is_enabled("disable_admin_pass_login")
-						) {
-							frappe.msgprint({
-								title: __("Password Login Disabled"),
-								message: __(
-									"Password login is disabled. Turn off {0} in System Settings to use password actions.",
-									[frappe.utils.bold(__("Disable Administrator Password Login"))]
-								),
-								indicator: "orange",
-							});
-						} else {
-							frappe.ui.show_change_password_dialog(frm.doc.name, () =>
-								frm.reload_doc()
-							);
-						}
+						frappe.ui.show_change_password_dialog(frm.doc.name, () =>
+							frm.reload_doc()
+						);
 					},
 					__("Password")
 				);
