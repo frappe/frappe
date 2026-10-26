@@ -3,8 +3,20 @@ import { computed, ref } from "vue";
 import { Button, Dropdown } from "frappe-ui";
 import { post } from "../api.js";
 import WorkspaceGrid from "../WorkspaceGrid.vue";
+import EmptyWorkspace from "../EmptyWorkspace.vue";
 import BlockPanel from "./BlockPanel.vue";
-import { DEFAULT_LAYOUT, WIDGETS, move, name_key, set_size, to_save, with_ids } from "./editor.js";
+import {
+	BLOCK_TYPES,
+	DEFAULT_LAYOUT,
+	WIDGETS,
+	move,
+	name_key,
+	new_block,
+	new_text,
+	set_size,
+	to_save,
+	with_ids,
+} from "./editor.js";
 
 // The default layout, edited in place on the grid it is read on.
 const props = defineProps({
@@ -34,6 +46,41 @@ const selected_widget = computed(() => {
 
 function on_move(id, target) {
 	move(blocks.value, id, target);
+}
+
+const TITLES = {
+	number_card: __("Number Card"),
+	chart: __("Chart"),
+	shortcut: __("Shortcut"),
+	card: __("Card"),
+	quick_list: __("Quick List"),
+	onboarding: __("Onboarding"),
+	custom_block: __("Custom Block"),
+};
+
+const add_menu = BLOCK_TYPES.map((type) => ({
+	label: TITLES[type],
+	onClick: () => add_block(type),
+}));
+
+// A new block goes after the selected one, or last, and is selected.
+function insert(block) {
+	const at = blocks.value.findIndex((b) => b.id === selected_id.value);
+	blocks.value.splice(at === -1 ? blocks.value.length : at + 1, 0, block);
+	selected_id.value = block.id;
+}
+
+function add_block(type) {
+	const { block, widget } = new_block(type, widgets.value, TITLES[type]);
+	if (widget) {
+		widgets.value[WIDGETS[type].table][widget.label] = widget;
+		touched.value.add(block.id);
+	}
+	insert(block);
+}
+
+function add_text() {
+	insert(new_text());
 }
 
 function remove() {
@@ -94,6 +141,11 @@ const menu = computed(() =>
 			<div
 				class="flex items-center justify-end gap-2 border-b border-outline-gray-1 px-4 py-2"
 			>
+				<Dropdown :options="add_menu">
+					<Button icon-left="lucide-plus" :label="__('Add block')" />
+				</Dropdown>
+				<Button icon-left="lucide-type" :label="__('Add text')" @click="add_text" />
+				<div class="flex-1" />
 				<Dropdown v-if="menu.length" align="end" :options="menu">
 					<Button variant="ghost" icon="lucide-more-horizontal" :label="__('More')" />
 				</Dropdown>
@@ -102,7 +154,9 @@ const menu = computed(() =>
 			</div>
 			<div class="min-h-0 flex-1 overflow-y-auto">
 				<div class="mx-auto max-w-4xl px-4 pt-4 pb-10">
+					<EmptyWorkspace v-if="!blocks.length" editing @add-text="add_text" />
 					<WorkspaceGrid
+						v-else
 						:content="blocks"
 						:widgets="widgets"
 						editing
