@@ -185,7 +185,6 @@ frappe.ui.Checklist = class Checklist {
 		this.el.querySelector(".es-checklist__collapse").inert = !expanded;
 	}
 
-	// Rebuilt only when the count changes, so the bar animates from one value to the next.
 	make_progress() {
 		const { total } = this.get_progress();
 		if (this.progress && this.progress_total === total) return;
@@ -206,8 +205,6 @@ frappe.ui.Checklist = class Checklist {
 		this.progress?.set_value(total ? ((done + skipped) / total) * 100 : 0);
 	}
 
-	// The open row stays open until it finishes; then the next unfinished row opens. A row the
-	// user opened while finished stays open, and a user who closed every row keeps them closed.
 	sync_open() {
 		const open = this.items.get(this.open_id);
 		let next = open;
@@ -428,7 +425,6 @@ frappe.ui.Checklist = class Checklist {
 		return trigger;
 	}
 
-	// Owner and date: ghost buttons, so they read as clickable.
 	make_control($content, label) {
 		const control = document.createElement("button");
 		control.className = "es-checklist__control";
@@ -465,7 +461,6 @@ frappe.ui.Checklist = class Checklist {
 		this.pickers.delete(item_id);
 	}
 
-	// Saves through the caller, then updates the row; a rejected save leaves the row as it was.
 	save_field(item, field, value, save, revert) {
 		if (value === (item[field] || null)) return;
 		return Promise.resolve(save(item, value))
@@ -473,7 +468,6 @@ frappe.ui.Checklist = class Checklist {
 			.catch(() => revert?.());
 	}
 
-	// A skipped row offers only Undo skip, so skipping can't stand in for unlocking it.
 	make_actions(item, locked) {
 		const remove =
 			item.removable && this.opts.on_remove
