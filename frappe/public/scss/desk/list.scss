@@ -151,12 +151,23 @@
 		z-index: 2;
 	}
 
-	&:hover {
+	// pressed shows under the finger and goes with it, as the sheet's rows do
+	-webkit-tap-highlight-color: transparent;
+
+	&:active,
+	&:active .level-right {
 		background-color: var(--highlight-color);
 	}
 
-	&:hover .level-right {
-		background-color: var(--highlight-color);
+	// a touch screen keeps :hover on the row a scroll started from
+	@media (hover: hover) {
+		&:hover {
+			background-color: var(--highlight-color);
+		}
+
+		&:hover .level-right {
+			background-color: var(--highlight-color);
+		}
 	}
 }
 
@@ -220,9 +231,17 @@
 	-webkit-transition: color 0.2s;
 	@include get_textstyle("base", "regular");
 
-	&:hover:not(.list-row-head) {
-		.level-right {
-			box-shadow: -5px 0px 5px var(--highlight-color);
+	&:not(.list-row-head) {
+		@include hover-only-with-pointer {
+			.level-right {
+				box-shadow: -5px 0px 5px var(--highlight-color);
+			}
+		}
+	}
+
+	@media (hover: none) {
+		a:hover {
+			text-decoration: none;
 		}
 	}
 
