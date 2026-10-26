@@ -323,6 +323,27 @@ and its replacement, then deleted. Deliberately **not** dev-gated, since a remov
 on production sites.
 _Avoid_: deprecation (implies a period of continued working).
 
+### Acts
+
+**Act**: <a id="act"></a>
+Something the desk does when asked by name, by the palette, a script, a key or an LLM. It
+is a surface item that has `run`: a header item, a quick action, or a tab's `create` entry.
+Its full name is `<surface>.<item>` (`header.delete`, `tabs.attach_file`), and one
+dispatcher runs it whoever calls, after it checks that the act is present, not hidden, and
+allowed by its `right`. A **held** act is a script's act that waits for the replay or hold
+to commit; *held* says when the act lands, it is not a second concept.
+_Avoid_: command (it stays only in the feature's name, the command palette, and frappe-ui's
+component), action (already overloaded; see **Words that collide**).
+
+**Row**: <a id="row"></a>
+One line in the palette, showing an act, a place or a record. Not a child table's row; see
+**Words that collide**.
+
+**Shell surface**: <a id="shell-surface"></a>
+The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
+app's global acts, named `shell.<app>.<item>`. Same item shape and verbs as a page surface;
+`run` receives `(shell, value)`.
+
 ### The settings dialog
 
 **Settings dialog**: <a id="settings-dialog"></a>
@@ -402,7 +423,10 @@ reach for the unambiguous alternative.
 - **`name`** — a `SurfaceItem`'s address; a route param meaning docname; a `ClientScriptRow`
   name; and `PageFormTab.name`, which is explicitly *not* the address — that is `identity`.
 - **`actions`** — the contribution type's bag of `{name, label, run}`; dialog buttons; the
-  default group a header item lands in; and, loosely, quick actions.
+  default group a header item lands in; and, loosely, quick actions. Say **act** for
+  something the desk runs by name.
+- **`row`** — a child table's row (`page.rows()`, the row handle); a palette **row**; a
+  rail or sidebar row. Say *child row* or *palette row* where both could be meant.
 - **`overlay`** — (a) the **field overlay**, a script's render-time override of a field;
   (b) the per-user **overlay**, a server record that customizes what the page holds. Say
   which; neither is disclosure.

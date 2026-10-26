@@ -10,6 +10,8 @@ export interface UseDocPermissions {
   can: (right: string) => boolean;
   /** Permlevels the user's roles hold `right` on, from the meta's DocPerm rows. */
   allowedPermlevels: (right: "read" | "write" | "create") => number[];
+  /** Whether the user's roles hold any right, custom ones too, at permlevel 0; false until both load. */
+  holds: (right: string) => boolean;
   /** What a permlevel'd field may render as. */
   fieldAccess: (field: { permlevel?: number }) => FieldAccess;
   /** True while roles or meta are still loading (field access is Write until then). */
@@ -45,6 +47,14 @@ export function useDocPermissions(
     return [...(permlevels.value?.[right] ?? [])].sort((a, b) => a - b);
   }
 
+  function holds(right: string): boolean {
+    const held = roles.value;
+    if (!held || !meta.value?.permissions) return false;
+    return meta.value.permissions.some(
+      (row) => !row.permlevel && held.includes(row.role) && Boolean(row[right])
+    );
+  }
+
   // Fail-open while roles/meta load: better a field the server refuses to save
   // than a form that flashes empty. Permlevel 0 is doc-level territory (`can`).
   function fieldAccess(field: { permlevel?: number }): FieldAccess {
@@ -58,6 +68,7 @@ export function useDocPermissions(
   return {
     can: (right) => Boolean(toValue(docPermissions)?.[right]),
     allowedPermlevels,
+    holds,
     fieldAccess,
     loading: computed(() => metaLoading.value || rolesLoading.value),
   };

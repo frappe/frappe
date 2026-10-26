@@ -9,7 +9,9 @@ import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
 import { runningSource, withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
+import { errorMessage } from "./errorMessage";
 import { createHeldActs, type HeldAct } from "./heldActs";
+import { acts } from "@/acts/dispatcher";
 import { DROPPED_FIELDTYPES, type Decorator } from "@framework/ui/FormLayout";
 import type { FormLayoutSchema, RawMetaField } from "@framework/ui/FormLayout/types";
 import { holdsChildRows } from "@framework/ui/fields";
@@ -23,6 +25,7 @@ import { FrameSurface } from "./frame";
 import { BodySurface } from "./body";
 import { HeaderSurface } from "./headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
+import { registerPageActs } from "./pageActs";
 import { createPagePermissions } from "./pagePermissions";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import { registrationsFor, type Registration } from "./registry";
@@ -187,6 +190,8 @@ export interface RecordPageHost {
   openSettings?: (prefix?: string, pane?: string, block?: string) => void;
   /** True when the host puts back the reader's view on this visit; `onOpen`'s view acts then do nothing. */
   restoresView?: () => boolean;
+  /** An act the reader asked for threw; absent, the engine shows the error in a toast. */
+  actFailed?: (error: unknown) => void | Promise<void>;
 }
 
 export interface RecordPageController {
@@ -221,6 +226,8 @@ export interface RecordPageController {
   firePost: (key: string) => Promise<void>;
   /** Fetches the `page.cached` keys `paintNow` read, for the host's background reads; answers when they land or at the late limit. */
   fetchCached: () => Promise<void>;
+  /** Runs an act the reader asked for, by a click, the palette or a key; a failure goes to `actFailed`. */
+  perform: (name: string, value?: unknown) => Promise<void>;
   /** Runs script code the host calls outside an event, so its ops paint once, when it finishes. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
   /** True from a `page.save()` until its `afterSave` settles. */
@@ -413,6 +420,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
         : host.openCreate(doctype, { values: options?.values }),
     openSettings: (...address) => openSettings(address),
     call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
+    run: (name, value) => (gate.hasLeft() ? Promise.resolve() : acts.run(name, value)),
     cached: <T>(key: string, fetch: () => Promise<T> | T) =>
       cachedReads.read(runningSource(), key, fetch) as T | undefined,
     // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
@@ -420,6 +428,16 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   };
 
   const refreshView = pageView(page);
+
+  const unregisterActs = registerPageActs({
+    page,
+    header,
+    quickActions,
+    tabs,
+    permissions,
+    hold,
+    failed: (error) => (host.actFailed ? host.actFailed(error) : void toast.error(errorMessage(error))),
+  });
 
   // One sequence at a time: a second `page.save()` mid-flight joins it, so no handler fires twice.
   const saving = shallowRef<Promise<void> | null>(null);
@@ -914,12 +932,14 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     fireEvent,
     firePost,
     fetchCached: gate.fetchCached,
+    perform: (name, value) => (gate.hasLeft() ? Promise.resolve() : acts.perform(name, value)),
     hold,
     isSaving: computed(() => saving.value !== null),
     ready: gate.ready,
     isReplaying: gate.isReplaying,
     dialogs: dialogs.entries,
     leave: () => {
+      unregisterActs();
       refreshView.close();
       gate.leave();
     },

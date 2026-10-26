@@ -4,6 +4,7 @@ import type { Component } from "vue";
 import type { Router } from "vue-router";
 import type { BaseActivity, VisibleTypes } from "@framework/ui/ActivityTimeline";
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
+import type { ActFields } from "@/acts/dispatcher";
 
 /** Where an added or moved item lands; absent or unknown anchors append. */
 export type Position = { before?: string; after?: string };
@@ -15,10 +16,16 @@ export interface SurfaceItem {
   [key: string]: any;
 }
 
-export interface QuickAction extends SurfaceItem {
+/** The fields an item that has `run` carries as an act; `run` receives the argument's value. */
+export type PageActFields = ActFields<RecordPageApi>;
+
+/** The keys every act item adds to its surface's list. */
+export const ACT_KEYS: readonly string[] = ["key", "right", "palette", "argument"];
+
+export interface QuickAction extends SurfaceItem, PageActFields {
   label: string;
   description?: string;
-  run?: (page: RecordPageApi) => any;
+  run?: (page: RecordPageApi, value?: any) => any;
 }
 
 // Each item type's keys as a list beside it: a key outside the list is dropped with a dev
@@ -29,6 +36,7 @@ export const QUICK_ACTION_KEYS: readonly string[] = [
   "icon",
   "description",
   "run",
+  ...ACT_KEYS,
 ];
 
 /** Which half of the header row an item sits in; omitted means `right`. */
@@ -38,7 +46,7 @@ export type HeaderZone = "left" | "right";
  * One item of the header row: a crumb, a button, a menu entry or `Save`. A `dropdown`
  * or a `section` is a container: its members point at it with `group`, two deep.
  */
-export interface HeaderItem extends SurfaceItem {
+export interface HeaderItem extends SurfaceItem, PageActFields {
   label: string;
   zone?: HeaderZone;
   /** Omitted: an entry in `⋯` on the right, a button on the left. */
@@ -47,7 +55,7 @@ export interface HeaderItem extends SurfaceItem {
   group?: string;
   /** A path this item links to; `run` wins when both are given. */
   href?: string;
-  run?: (page: RecordPageApi) => any;
+  run?: (page: RecordPageApi, value?: any) => any;
   /** Draws the item itself, as a control in either zone; `display` and `group` then do nothing. */
   component?: Component;
   /** Forwarded to whatever draws the item, filtered to its declared props; a `component`'s are not filtered. */
@@ -65,12 +73,15 @@ export const HEADER_ITEM_KEYS: readonly string[] = [
   "run",
   "component",
   "props",
+  ...ACT_KEYS,
 ];
 
-export interface TabCreateAction {
+/** A tab's entry in the composer's `+` menu; its act is `tabs.<name>`. */
+export interface TabCreateAction extends PageActFields {
+  name: string;
   label: string;
   icon: string;
-  run: (page: RecordPageApi) => any;
+  run: (page: RecordPageApi, value?: any) => any;
 }
 
 export interface TabItem extends SurfaceItem {
@@ -594,6 +605,8 @@ export interface RecordPageApi {
   /** Opens the settings dialog at `#settings/<prefix>/<pane>/<block>`; each segment is optional. */
   openSettings(prefix?: string, pane?: string, block?: string): void;
   call(method: string, params?: Record<string, any>): Promise<any>;
+  /** Runs an act by its full name, `<surface>.<item>`, in a hold; rejects with `ActDenied` or the act's error. */
+  run(name: string, value?: unknown): Promise<unknown>;
   /** Server data for `onRefresh`: the value kept for `key`, fetched once per visit; undefined until a fetch lands. */
   cached<T>(key: string, fetch: () => Promise<T> | T): T | undefined;
   router: Router;

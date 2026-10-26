@@ -18,7 +18,7 @@
 				:saving="painted.isSaving.value"
 				:favourites="favourites"
 				:favourited="favourited"
-				@run="runAction"
+				@run="runHeaderItem"
 			/>
 			<div v-else-if="state" class="flex items-center gap-3">
 				<h1 class="text-lg font-semibold">{{ route.params.name }}</h1>
@@ -84,7 +84,7 @@
 						:layoutLoading="panelLoading"
 						:disclosure="disclosure"
 						:collapsed="collapsed"
-						:run="runAction"
+						:run="runQuickAction"
 						:reloadDocinfo="reloadDocinfo"
 						:whileOnRecord="visitCheck"
 						:onDetails="(fieldname: string) => !!tabOf(form, fieldname)"
@@ -397,7 +397,7 @@ function headerBuiltins(): HeaderItem[] {
 	return items;
 }
 
-// A failure toasts here: `runAction` would otherwise reload over the draft. Clicks queue, so
+// A failure toasts here: `actFailed` would otherwise reload over the draft. Clicks queue, so
 // each one reads the state the one before it left and two quick clicks toggle twice.
 function toggleOnSidecar(
 	page: RecordPageApi,
@@ -754,6 +754,7 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		openSettings,
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
+		actFailed,
 	});
 	created.header.provideBuiltins(headerBuiltins);
 	created.quickActions.provideBuiltins(() =>
@@ -846,18 +847,20 @@ async function resolveConflict() {
 		await load();
 }
 
-// A failing action would otherwise leave the draft mutated with no error, so it reloads;
+function runHeaderItem(item: HeaderItem) {
+	if (item.run) void controller.value?.perform(`header.${item.name}`);
+}
+
+function runQuickAction(action: QuickAction) {
+	if (action.run) void controller.value?.perform(`quickActions.${action.name}`);
+}
+
+// A failing act would otherwise leave the draft mutated with no error, so it reloads;
 // a save the reader vetoed or must resolve keeps the draft, as the built-in Save does.
-async function runAction(action: QuickAction | HeaderItem) {
-	const current = controller.value!;
-	try {
-		await current.hold(() => action.run?.(current.page));
-	} catch (e) {
-		const name = (e as Error)?.name;
-		if (shownInDialog(e)) return;
-		toast.error(errorMessage(e));
-		if (name !== SAVE_VETO) await load();
-	}
+async function actFailed(e: unknown) {
+	if (shownInDialog(e)) return;
+	toast.error(errorMessage(e));
+	if ((e as Error)?.name !== SAVE_VETO) await load();
 }
 
 const landing = {

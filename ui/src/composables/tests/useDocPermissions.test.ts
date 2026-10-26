@@ -167,6 +167,28 @@ describe("allowedPermlevels", () => {
   });
 });
 
+describe("holds", () => {
+  beforeEach(reset);
+
+  it("answers any right at permlevel 0 from the user's roles, a custom one too", async () => {
+    state.roles = ["Sales User"];
+    state.permissions = [
+      { role: "Sales User", permlevel: 0, read: 1, approve_deal: 1 },
+      { role: "Sales User", permlevel: 1, delete: 1 },
+      { role: "Sales Manager", permlevel: 0, delete: 1, submit: 1 },
+    ];
+    const { holds } = await access();
+
+    expect(holds("approve_deal")).toBe(true);
+    expect(holds("delete")).toBe(false);
+    expect(holds("submit")).toBe(false);
+  });
+
+  it("is false while the meta is still loading", () => {
+    expect(useDocPermissions("Note").holds("read")).toBe(false);
+  });
+});
+
 describe("doc-level rights", () => {
   beforeEach(reset);
 

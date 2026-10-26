@@ -17,7 +17,7 @@
 				:saving="painted.isSaving.value"
 				:favourites="[]"
 				:favourited="false"
-				@run="runAction"
+				@run="runHeaderItem"
 			/>
 			<h1 v-else-if="state" class="text-lg font-semibold">{{ title }}</h1>
 			<HeaderSkeleton v-else />
@@ -265,6 +265,7 @@ function buildController() {
 		openCreate,
 		openSettings,
 		sourcesReady: () => loadRecordScripts(props.doctype),
+		actFailed,
 		activityRows: () => [],
 		scrollToActivity: async () => false,
 		reloadActivity: async () => {},
@@ -314,13 +315,13 @@ async function openSaved() {
 	if (insertedName) await router.replace(routeFor(props.doctype, insertedName));
 }
 
-async function runAction(action: HeaderItem) {
-	const current = controller.value!;
-	try {
-		await current.hold(() => action.run?.(current.page));
-	} catch (exception) {
-		if (!shownInDialog(exception)) toast.error(errorMessage(exception));
-	}
+function runHeaderItem(item: HeaderItem) {
+	if (item.run) void controller.value?.perform(`header.${item.name}`);
+}
+
+// No reload: the record has no saved copy to go back to, so the draft stays.
+function actFailed(exception: unknown) {
+	if (!shownInDialog(exception)) toast.error(errorMessage(exception));
 }
 
 /** After the insert, Save with no changes only opens the saved record again. */

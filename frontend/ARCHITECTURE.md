@@ -45,7 +45,7 @@ The HTML page, the JS files and the icon sprite are static files.
 | 8 | Pages | The index, list page, record page and its parts; pages an app contributes | `frontend/src/pages/`; app `frontend/pages/` and replacement pages | 1 to 7 |
 | 7 | Page engines | The record page engine and its `page` object; the list engine; the script loader | `frontend/src/recordPage/`, `frontend/src/list/` | 1 to 6 |
 | 6 | Shell | Rail, sidebar, navigation, router, page frame, page states, composer window, socket | `frontend/src/shell/`, `navigation/`, `router/` | 1 to 5 |
-| 5 | Desk services and registry | Boot data, addresses and `routeFor`, translations, icons, arrangement, browser memory; the registry of everything an app adds | `frontend/src/` root modules, `icons/`, `contributions/` | 1 to 4 |
+| 5 | Desk services and registry | Boot data, addresses and `routeFor`, translations, icons, arrangement, browser memory; the registry of everything an app adds | `frontend/src/` root modules, `icons/`, `contributions/`, `acts/` | 1 to 4 |
 | 4 | `ui` components | Fields, forms, lists, filters, the activity feed, the composer, upload | `ui/src/components/`, `ui/src/experimental/`, `ui/island/`, the other composables | 3, and 1 through it |
 | 3 | `ui` data | Requests, the data cache, the socket rooms, the session, meta, permissions | `ui/src/api/`, `ui/src/cache/`, `ui/src/socket.ts`, `ui/src/utils/`, the four data composables | 1 |
 | 2 | Desk server | The shell page, boot, the address table, navigation, arrangement, app prefixes | `frappe/shell/` | 1 |
@@ -202,7 +202,7 @@ The list is what `ui/` exports from its root index and from the data subpaths: `
 | Data cache (`@framework/ui/cache`: `readCachedDocument`, `readCachedList`, `readCachedRows`, `clearDataCache`, `onRecordLeft`, `documentKey`, `listCacheKey`, `DocumentEntry`, `ListEntry`, `feedFieldRead`, `feedListError`, `holdDocument`) | The one in-memory store of records and list queries. Every reply goes into it, in the order the requests were sent. It keeps any read. It keeps 50 complete records while their replies add up to 32 MB or less, and it never drops the record read last, the open one. `feedListError` drops a list the server refused with a 403 or 404. `feedFieldRead` keeps a record that `getDocumentFields` read with no list, up to 200. `holdDocument` keeps an entry past every limit while a field on screen shows it. It tells a listener when a record's complete entry goes, and the Activity feed frees the rows it kept for that record |
 | Session store (`@framework/ui/useSession`: `useSession`, `setSession`, `provideSession`, `currentSession`, `SessionKey`) | One shared session. The desk passes its own; `ui/` fetches one only when none is passed |
 | Doctype meta store (`@framework/ui/useDoctypeMeta`: `useDoctypeMeta`, `DoctypeMeta`, `markDoctypeMetaStale`) | Fetches and holds each doctype's meta. On `doctype_update` it keeps the old meta on show and reads a fresh one. An empty doctype reads nothing |
-| Permissions (`@framework/ui/useDocPermissions`: `useDocPermissions`, `FieldAccess`) | What the user may do with a record, from its read, and the access to each field by permission level, from the meta's permission rows and the session's roles. For display only: the server enforces |
+| Permissions (`@framework/ui/useDocPermissions`: `useDocPermissions`, `FieldAccess`) | What the user may do with a record, from its read; the access to each field by permission level, and whether the roles hold a right on the doctype at level 0, from the meta's permission rows and the session's roles. For display only: the server enforces |
 | Roles (`@framework/ui/useUserRoles`: `useUserRoles`) | The session user's roles, from the one shared session |
 | Naming (`NEW_NAME`, `isNamedByPrompt`, `typedTextField`) | How a doctype names a new record: the insert key for a typed name, the prompt rule, and the field that typed text fills |
 | Filter prefill (`equalityValues`) | The values a new record starts with from the equality filters it was created under. The list's Create and a Link field's Create both use it |
@@ -268,6 +268,7 @@ component group, with its main names.
 | Item kinds and the item contract (`itemRenderers`, `ItemRenderer`, `Rendering`, `ItemContext`) | What an app's `item.js` implements to draw a navigation item. The last app wins |
 | Settings components (`settingsComponentFor`, `SettingsComponentContribution`) | The lazy component a settings block names, by app and name. A name with no file gives nothing and a warning, and the block is dropped |
 | `registerContributions(appOrder)` | Runs once before the first route, in app order. Hands each file script to the script loader |
+| [Act](./CONTEXT.md#act) dispatcher (`acts`, `ActDispatcher`, `ActScope`, `ActEntry`, `ActItem`, `ActFields`, `ActRight`, `ActArgument`, `ActOption`, `AvailableAct`, `ActDenied`) | The desk's one dispatcher. A page registers a scope: its act surfaces by name, its context, its right check and its hold; the shell and the list page register theirs the same way. `run` finds `<surface>.<item>` as drawn after the replay, checks that it is present, not hidden and allowed, and runs it in the scope's hold, or rejects with `ActDenied`. `perform` is the reader's way in: a click, the palette or a key. A denial shows a toast, and a failure goes to the scope. `available` lists the acts present, shown and allowed now, with their fields. No request and no cache |
 
 ### 6. Shell
 
@@ -319,7 +320,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
-| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, Create, settings, and whether it restored the reader's view. A new record's host adds `isNew` and `onSaved`, which runs after `afterSave`. The engine draws nothing |
+| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, Create, settings, what a failed act does, and whether it restored the reader's view. A new record's host adds `isNew` and `onSaved`, which runs after `afterSave`. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
@@ -410,7 +411,7 @@ the reference for each `page` member.
 | [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.isNew`, `page.doctype`, `page.docname`) | `page.isDirty` says whether the draft differs from the saved copy. `page.isNew` is true until the first save, and `page.save()` then inserts, also with no changes |
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
-| Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.create()`, `page.openSettings()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, open Create for any doctype, open the settings dialog, navigate, show a toast. `page.create()` gives the saved record, or `null` |
+| Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.create()`, `page.openSettings()`, `page.run()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, open Create for any doctype, open the settings dialog, run an act by name, navigate, show a toast. `page.create()` gives the saved record, or `null` |
 | `page.cached()` | *New.* Server data for `onRefresh`: the kept value at once, fetched once per visit |
 | [Surface](./CONTEXT.md#surface) verbs (`add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`, `Position`) | The same verbs on every list surface |
 | [Built-in](./CONTEXT.md#built-in) item names | The names a script hides or moves: frame, body, tabs, panel sections, actions, writers |

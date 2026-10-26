@@ -179,6 +179,38 @@ page.header.add({
 })
 ```
 
+`page.run(name, value)` runs an **act** by its full name, `<surface>.<item>`. An act is an
+item that has `run`: a header item (`header.delete`), a quick action (`quickActions.email`)
+or a tab's `create` entry (`tabs.attach_file`). A crumb with only an `href` is a link, and a
+`dropdown` or a `section` holds other items, so neither is an act. The act runs in a hold, as
+a click on it does, and its `run` receives `(page, value)`. `page.run` finds the act as the
+page drew it after the last replay, so an act a script adds under an `if` in `onRefresh` is
+there only while the `if` holds, and where two scripts add the same name, the later one's
+`run` is the one that runs. It rejects with what `run` threw, or with an `ActDenied` error,
+whose `act` is the name and whose `reason` is `'missing'` (no item has that name and a
+`run`), `'hidden'` (the item, or the container it sits in, is hidden) or `'right'` (the
+reader lacks its right). A click, and later the palette and a key, show a failure in a
+toast instead, and the record reloads unless a `beforeSave` vetoed a save.
+
+An act item takes four more keys, on `page.header`, `page.quickActions` and a tab's `create`:
+
+| Key | What it does |
+| --- | --- |
+| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. Stored and listed; the shell does not bind it yet. |
+| `right` | A right the act needs: a ptype on this doctype (`'write'`), read from `page.perms`, or `{ doctype, ptype }` on another doctype, read from that doctype's level 0 permission rows and the reader's roles. |
+| `palette` | `false` keeps the act out of the palette. A script and a key still run it. |
+| `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. |
+
+```js
+page.header.add({
+  name: 'convert_to_deal',
+  label: 'Convert to deal',
+  right: { doctype: 'CRM Deal', ptype: 'create' },
+  run: (page) => page.call('my_app.api.convert_lead', { lead: page.docname }),
+})
+page.quickActions.add({ name: 'convert', label: 'Convert', run: (page) => page.run('header.convert_to_deal') })
+```
+
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads
@@ -439,7 +471,7 @@ back, and the items stay addressable. The same verb is on `page.panelSections`,
 | `zone` | `'left'` or `'right'`. Omitted means `'right'`. |
 | `display` | On the right: `'button'`, `'dropdown'`, `'section'`, or omitted for an entry in `⋯`. On the left: `'crumb'`, `'dropdown'`, or omitted for a button. |
 | `href` | A path inside this app's prefix; a crumb with one is a link. |
-| `run` | `(page) => any`. A crumb or button with one runs it; `run` wins over `href`. |
+| `run` | `(page, value) => any`. A crumb or button with one runs it; `run` wins over `href`. An item with `run` is an act, `header.<name>`, and takes `key`, `right`, `palette` and `argument` (see `page.run`). |
 | `group` | The container this sits in. A member sits in its container's zone. A name no item declares forms a band of its own in `⋯`, with no heading. |
 | `icon` | `lucide-<name>`, any of the shell's lucide icons; the page draws one the bundle never used from its sprite. |
 | `component` | A Vue component that draws the item itself, as a panel section's does. It is a control in its zone and receives `{ ...props, page }`. |
@@ -975,7 +1007,7 @@ address opens the first shown tab, Details unless a script moved another ahead o
 | `icon` | `lucide-<name>`, drawn before the label. |
 | `component` | Draws the tab's body. It receives `{ ...props, page }`. |
 | `props` | Bound onto `component`. |
-| `create` | `{ label, icon, run }`: an entry in the composer's `+` menu while the tab is on the strip. |
+| `create` | `{ name, label, icon, run }`: an entry in the composer's `+` menu while the tab is on the strip. It is the act `tabs.<name>`, hidden with its tab, and takes the act keys of `page.run`. |
 | `composer` | `true` draws the composer band at the foot of the tab, as on Activity and Emails. |
 
 The page draws a tab's body inside a scroller. A component that draws its own scroller sets
