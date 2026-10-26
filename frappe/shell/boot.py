@@ -1,5 +1,7 @@
 # The v2 boot — a small payload of core plus the declaring app, not `frappe.sessions.get()`.
 
+from html import unescape
+
 import frappe
 from frappe import _
 from frappe.boot import DEFAULT_APP_SEQUENCE_ID
@@ -10,10 +12,11 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 )
 from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
-from frappe.utils import orjson_dumps
+from frappe.utils import cstr, orjson_dumps, strip_html
 
 from . import SHELL_ROOT
-from .doctypes import metadata_version
+from .doctypes import get_doctype_owners, metadata_version
+from .links import canonical_path
 from .navigation import NO_HOST, resolve_navigation
 from .permissions import has_app_permission
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
@@ -26,6 +29,9 @@ _BUDGET_LOG_TTL = 24 * 60 * 60
 
 # Fixed, so the rows group in the Error Log list.
 BUDGET_LOG_TITLE = "Boot key over budget"
+
+# The most favourites the index draws.
+FAVOURITES_LIMIT = 8
 
 
 def core_boot() -> dict:
@@ -82,7 +88,13 @@ def index_boot() -> dict:
 	if not has_app_permission("frappe"):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
-	return {**core_boot(), "shell_base": f"/{SHELL_ROOT}", "app": None, "apps": index_tiles()}
+	return {
+		**core_boot(),
+		"shell_base": f"/{SHELL_ROOT}",
+		"app": None,
+		"apps": index_tiles(),
+		"favourites": index_favourites(),
+	}
 
 
 def index_tiles() -> list[dict]:
@@ -143,6 +155,68 @@ def may_link_out(app: str, screen: dict) -> bool:
 	except Exception:
 		frappe.log_error(title=f"add_to_apps_screen has_permission failed for {app}")
 		return False
+
+
+def index_favourites() -> list[dict]:
+	"""The person's 8 latest favourites, newest first, less those whose record they can no longer open."""
+	rows = frappe.get_all(
+		"Favourite",
+		filters={"user": frappe.session.user},
+		fields=["reference_doctype", "reference_name"],
+		order_by="creation desc",
+		limit=FAVOURITES_LIMIT,
+	)
+	owners = get_doctype_owners()
+	names_by_doctype: dict[str, list[str]] = {}
+	for row in rows:
+		names_by_doctype.setdefault(row.reference_doctype, []).append(row.reference_name)
+
+	titles = {
+		doctype: readable_titles(doctype, names)
+		for doctype, names in names_by_doctype.items()
+		if doctype in owners and has_app_permission(owners[doctype])
+	}
+
+	favourites = []
+	for row in rows:
+		doctype, name = row.reference_doctype, row.reference_name
+		title = titles.get(doctype, {}).get(name)
+		if title is None:
+			continue
+
+		screen = app_screen(owners[doctype])
+		favourites.append(
+			{
+				"doctype": doctype,
+				"name": name,
+				"title": title,
+				"route": canonical_path(doctype, name),
+				"app": owners[doctype],
+				"app_title": screen["title"],
+				"app_logo": screen["logo"],
+			}
+		)
+
+	return favourites
+
+
+def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:
+	"""`{name: title}` for the records of `names` this person may read, in one query."""
+	meta = frappe.get_meta(doctype)
+	if meta.is_virtual or not frappe.has_permission(doctype, "read"):
+		return {}
+
+	if meta.issingle:
+		return {doctype: _(doctype)} if doctype in names else {}
+
+	title_field = meta.title_field or "name"
+	records = frappe.get_list(doctype, filters={"name": ("in", names)}, fields=["name", title_field])
+	return {record.name: plain_text(record.get(title_field)) or record.name for record in records}
+
+
+def plain_text(value) -> str:
+	"""A title field may be a Text Editor; a chip draws text."""
+	return unescape(strip_html(cstr(value))).strip()
 
 
 def report_oversized_keys(boot: dict, prefix: str | None, reply: str | None = None) -> None:

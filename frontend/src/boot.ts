@@ -81,6 +81,17 @@ export type Boot = {
 		route: string;
 	}[];
 
+	// Present on the index only: the person's latest favourite records, newest first.
+	favourites?: {
+		doctype: string;
+		name: string;
+		title: string;
+		route: string;
+		app: string;
+		app_title: string;
+		app_logo?: string | null;
+	}[];
+
 	// --- the declaring app's contribution, merged under core ---
 	[appKey: string]: unknown;
 };

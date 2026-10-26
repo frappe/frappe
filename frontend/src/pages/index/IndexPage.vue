@@ -57,6 +57,13 @@
 					/>
 				</li>
 			</ul>
+
+			<IndexFavourites
+				v-if="shownFavourites.length"
+				:favourites="shownFavourites"
+				:selected="selection.selected.value"
+				:class="boxWidthClass(apps.length)"
+			/>
 		</div>
 	</ScrollArea>
 </template>
@@ -68,6 +75,8 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { matching, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
+import { favouriteKey } from "./favourites";
+import IndexFavourites from "./IndexFavourites.vue";
 import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
@@ -75,16 +84,25 @@ const TILES_ID = "index-apps";
 
 const boot = inject<Boot>("boot")!;
 const apps = boot.apps ?? [];
+const favourites = boot.favourites ?? [];
 
 const box = ref<TextInputExposed | null>(null);
 const query = ref("");
 const matches = computed(() => matching(apps, query.value));
+const shownFavourites = computed(() => (query.value.trim() ? [] : favourites));
 
 // In page order. A later section appends its items here and draws `selection.isSelected(key)`.
 const sections = computed<SelectionSection[]>(() => [
 	{
 		items: matches.value.map((app) => ({ key: tileKey(app), href: app.route })),
 		columns: columnsFor(matches.value.length),
+	},
+	{
+		items: shownFavourites.value.map((favourite) => ({
+			key: favouriteKey(favourite),
+			href: favourite.route,
+		})),
+		columns: shownFavourites.value.length,
 	},
 ]);
 const selection = new Selection(() => sections.value);
