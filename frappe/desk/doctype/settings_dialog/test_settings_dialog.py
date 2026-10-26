@@ -170,6 +170,9 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			"settings": component("theme", settings='"Theme"'),
 			"settings label": component("theme", settings='[{"keywords": "dark"}]'),
 			"anchors": component("theme", anchors="not json"),
+			"anchor target": component("theme", anchors='[{"after": ["system"]}]'),
+			"anchor parent": component("theme", anchors='[{"after": "system", "parent_key": "x"}]'),
+			"binding doctype": component("theme", bindings='{"u": {"type": "Single", "doctype": ["User"]}}'),
 		}
 
 		with authoring():

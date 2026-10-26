@@ -78,7 +78,7 @@ def _placements(raw) -> list[dict]:
 	return [
 		{**attempt, "parent_key": None}
 		for attempt in anchor_attempts(raw)
-		if attempt["after"] or attempt["before"]
+		if isinstance(attempt["after"] or attempt["before"], str)
 	]
 
 
@@ -139,7 +139,8 @@ def _binding(spec) -> dict | None:
 	if not isinstance(spec, dict) or not spec.get("type") or not spec.get("doctype"):
 		return None
 
-	return {field: spec[field] for field in ("type", "doctype", "resolver") if spec.get(field)}
+	binding = {field: spec[field] for field in ("type", "doctype", "resolver") if spec.get(field)}
+	return binding if all(isinstance(value, str) for value in binding.values()) else None
 
 
 def _json(raw, shape: type):

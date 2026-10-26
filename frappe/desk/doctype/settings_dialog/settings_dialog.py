@@ -204,11 +204,11 @@ def validate_binding_shape(block):
 			title=_("Invalid Block"),
 		)
 
-	validate_json_list(block, "anchors", dict)
+	validate_anchors(block)
 
 
 def validate_binding(idx: int, binding_type: str, doctype: str, resolver: str | None):
-	if binding_type not in BINDING_TYPES or not doctype:
+	if binding_type not in BINDING_TYPES or not doctype or not isinstance(doctype, str):
 		frappe.throw(
 			_("Block row {0}: a binding needs a type ({1}) and a doctype.").format(
 				idx, ", ".join(BINDING_TYPES)
@@ -240,6 +240,14 @@ def validate_named_bindings(block):
 		if not isinstance(binding, dict):
 			refuse_json(block, "bindings")
 		validate_binding(block.idx, binding.get("type"), binding.get("doctype"), binding.get("resolver"))
+
+
+def validate_anchors(block):
+	"""Each anchor names one block to sit `after` or `before`, and nothing else."""
+	validate_json_list(block, "anchors", dict)
+	for anchor in parse_json(block, "anchors", []):
+		if len(anchor) != 1 or not isinstance(anchor.get("after") or anchor.get("before"), str):
+			refuse_json(block, "anchors")
 
 
 def validate_search_settings(block):

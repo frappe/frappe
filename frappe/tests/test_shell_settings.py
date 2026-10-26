@@ -90,10 +90,13 @@ class TestSettingsMerge(SettingsDialogTestCase):
 	def test_an_anchor_that_does_not_resolve_leaves_the_block_in_run_order(self):
 		with authoring():
 			ship(["general"], [single("system"), component("theme")])
-			ship(
-				blocks=[anchored("calls", {"after": "gone"}, {"parent_key": "system"})],
-				app=EXTENDER,
-				extends=HOST,
+			unchecked(
+				ship(
+					blocks=[anchored("calls", {"after": "gone"}, {"parent_key": "system"})],
+					app=EXTENDER,
+					extends=HOST,
+					insert=False,
+				)
 			)
 
 		self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme", "calls"]})
@@ -118,13 +121,16 @@ class TestSettingsMerge(SettingsDialogTestCase):
 	def test_an_anchor_naming_a_parent_does_not_nest_the_block(self):
 		with authoring():
 			ship(["general"], [single("system"), component("theme"), component("defaults")])
-			ship(
-				blocks=[
-					anchored("calls", {"after": "theme", "parent_key": "system"}),
-					anchored("dial", {"after": "system"}),
-				],
-				app=EXTENDER,
-				extends=HOST,
+			unchecked(
+				ship(
+					blocks=[
+						anchored("calls", {"after": "theme", "parent_key": "system"}),
+						anchored("dial", {"after": "system"}),
+					],
+					app=EXTENDER,
+					extends=HOST,
+					insert=False,
+				)
 			)
 
 		self.assertEqual(
@@ -142,6 +148,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 						component("theme", bindings='{"user": {"doctype": "User"}}'),
 						component("search", settings='{"label": "Theme"}'),
 						{"key": "empty", "pane": "general"},
+						component("listy", bindings='{"u": {"type": "Single", "doctype": ["User"]}}'),
 					],
 					insert=False,
 				)
@@ -150,7 +157,21 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST), {"general": ["system"]})
 
-		self.assertEqual(len(logged.output), 4)
+		self.assertEqual(len(logged.output), 5)
+
+	def test_an_anchor_whose_target_is_not_a_name_leaves_the_block_in_run_order(self):
+		with authoring():
+			ship(["general"], [single("system"), component("theme")])
+			unchecked(
+				ship(
+					blocks=[anchored("calls", {"after": ["system"]})],
+					app=EXTENDER,
+					extends=HOST,
+					insert=False,
+				)
+			)
+
+		self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["system", "theme", "calls"]})
 
 	def test_an_orphan_block_is_dropped(self):
 		with authoring():
