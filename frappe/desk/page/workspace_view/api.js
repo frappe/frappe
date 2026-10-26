@@ -22,10 +22,21 @@ async function request(url, options) {
 		...options,
 		headers: { Accept: "application/json", ...options.headers },
 	});
+	const body = await response.json().catch(() => ({}));
 	if (!response.ok) {
-		const error = new Error(`${url} failed with ${response.status}`);
+		const error = new Error(server_message(body) || `${url} failed with ${response.status}`);
 		error.status = response.status;
 		throw error;
 	}
-	return (await response.json()).message;
+	return body.message;
+}
+
+// the first message the server raised, as text
+function server_message(body) {
+	try {
+		const html = JSON.parse(JSON.parse(body._server_messages)[0]).message;
+		return new DOMParser().parseFromString(html, "text/html").body.textContent;
+	} catch {
+		return null;
+	}
 }

@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from "vue";
+import { computed, defineAsyncComponent } from "vue";
 import { block_size, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
 import NumberCardTile from "./tiles/NumberCardTile.vue";
@@ -9,8 +9,11 @@ const props = defineProps({
 	widgets: { type: Object, required: true },
 });
 
+const ChartTile = defineAsyncComponent(() => import("./tiles/ChartTile.vue"));
+
 const TILES = {
 	number_card: { component: NumberCardTile, widgets: "number_cards", key: "number_card_name" },
+	chart: { component: ChartTile, widgets: "charts", key: "chart_name" },
 };
 
 const sections = computed(() =>
