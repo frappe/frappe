@@ -7,7 +7,7 @@
 // [width in 12 columns, height in rows]. A null height fits the content.
 export const SIZES = {
 	shortcut: { S: [3, 2], M: [4, 2], L: [6, 2] },
-	number_card: { S: [3, 2], M: [4, 2], L: [6, 2] },
+	number_card: { S: [3, 2.5], M: [4, 2.5], L: [6, 2.5] },
 	card: { M: [4, null], L: [6, null] },
 	quick_list: { M: [4, 4], L: [6, 4] },
 	chart: { L: [6, 4], Wide: [12, 4] },
