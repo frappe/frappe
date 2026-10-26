@@ -1,6 +1,7 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
 import {
+	Avatar,
 	Badge,
 	SettingsBody,
 	SettingsContent,
@@ -12,7 +13,7 @@ import {
 	SettingsSidebar,
 	TextInput,
 } from "frappe-ui";
-import { List, ListCell, ListHeader, ListHeaderCell, ListRow, ListRows } from "frappe-ui/list";
+import { List, ListCell, ListHeader, ListHeaderCellSort, ListRow, ListRows } from "frappe-ui/list";
 import WorkspaceSettings from "./WorkspaceSettings.vue";
 
 // Every workspace the user may manage, grouped by the module that decides where it appears.
@@ -107,6 +108,40 @@ function access(page) {
 	return { label: page.for_user ? __("Private") : __("Shared"), theme: "gray" };
 }
 
+// Sorting is the list's own: by title, owner or access, toggled from the header.
+const sort = ref({ field: "title", direction: "asc" });
+
+function toggle_sort(field) {
+	const same = sort.value.field === field;
+	sort.value = { field, direction: same && sort.value.direction === "asc" ? "desc" : "asc" };
+}
+
+function direction_for(field) {
+	return sort.value.field === field ? sort.value.direction : null;
+}
+
+function sort_icon(direction) {
+	if (!direction) return "lucide-arrow-up-down";
+	return direction === "asc" ? "lucide-arrow-up" : "lucide-arrow-down";
+}
+
+function sorted(list) {
+	const { field, direction } = sort.value;
+	const key = (page) =>
+		field === "access"
+			? access(page).label
+			: field === "owner"
+			? page.for_user || ""
+			: __(page.title);
+	const factor = direction === "desc" ? -1 : 1;
+	return [...list].sort((a, b) => factor * key(a).localeCompare(key(b)));
+}
+
+function owner(page) {
+	const info = frappe.user_info(page.for_user);
+	return { name: info.fullname || page.for_user, image: info.image };
+}
+
 function changed(message, module) {
 	frappe.ui.update_workspace_pages(message);
 	load(module);
@@ -151,17 +186,34 @@ function changed(message, module) {
 					<SettingsHeader :title="group.label" :description="describe(group)" />
 					<SettingsBody>
 						<List
-							class="w-full list-row-px-3"
-							:columns="['minmax(0,1fr)', 'minmax(0,12rem)', '7rem']"
+							:active="editing?.name"
+							class="-mx-3 w-[calc(100%+1.5rem)] list-row-px-3"
+							:columns="['minmax(0,1fr)', 'minmax(0,14rem)', '7rem']"
+							:row-height="56"
 						>
 							<ListHeader>
-								<ListHeaderCell>{{ __("Workspace") }}</ListHeaderCell>
-								<ListHeaderCell>{{ __("Owner") }}</ListHeaderCell>
-								<ListHeaderCell>{{ __("Access") }}</ListHeaderCell>
+								<ListHeaderCellSort
+									v-for="[field, label] in [
+										['title', __('Workspace')],
+										['owner', __('Owner')],
+										['access', __('Access')],
+									]"
+									:key="field"
+									:direction="direction_for(field)"
+									@click="toggle_sort(field)"
+								>
+									{{ label }}
+									<template #sort-indicator="{ direction }">
+										<span
+											class="block size-3.5"
+											:class="sort_icon(direction)"
+										/>
+									</template>
+								</ListHeaderCellSort>
 							</ListHeader>
 							<ListRows
 								v-slot="{ item: page, value }"
-								:items="group.pages"
+								:items="sorted(group.pages)"
 								row-key="name"
 							>
 								<ListRow :value="value" @click="editing = page">
@@ -171,9 +223,24 @@ function changed(message, module) {
 										</span>
 									</ListCell>
 									<ListCell>
-										<span class="truncate text-base text-ink-gray-6">
-											{{ page.for_user || "" }}
-										</span>
+										<template v-if="page.for_user">
+											<Avatar
+												size="lg"
+												:label="owner(page).name"
+												:image="owner(page).image"
+											/>
+											<div class="ml-2.5 min-w-0">
+												<div class="truncate text-base text-ink-gray-8">
+													{{ owner(page).name }}
+												</div>
+												<div
+													v-if="owner(page).name !== page.for_user"
+													class="mt-0.5 truncate text-sm text-ink-gray-5"
+												>
+													{{ page.for_user }}
+												</div>
+											</div>
+										</template>
 									</ListCell>
 									<ListCell>
 										<Badge
