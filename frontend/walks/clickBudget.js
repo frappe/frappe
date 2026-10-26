@@ -1,26 +1,31 @@
-// The click-budget walk: cold loads of home, a list and a record, and the clicks home → list
-// (rail) and list → record (row), at a 4x slower CPU. Prints the median tables.
+// The click-budget walk: cold loads of a list and a record, and the clicks list → list in another
+// sidebar (rail) and list → record (row), at a 4x slower CPU. Prints the median tables.
 
 import { chromium } from "playwright";
 import { writeFileSync } from "node:fs";
 import { BASE_URL, NETWORKS, jsonPathArgument, logIn, networkNames } from "./setup.js";
 
-const HOME = process.env.HOME_PATH || "/apps/crm";
 const LIST = process.env.LIST_PATH || "/apps/crm/crm-lead";
+const OTHER_LIST = process.env.OTHER_LIST_PATH || "/apps/crm/crm-deal";
 const RECORD = process.env.RECORD_PATH || "/apps/crm/crm-lead/CRM-LEAD-2026-00006";
 const RUNS = Number(process.env.RUNS || 5);
 const SLOW_RUNS = Number(process.env.SLOW_RUNS || 2);
 const ONLY = process.env.ONLY;
 
-const RAIL = '[data-slot="sidebar-rail-item"]';
 const ROWS = 'a[data-slot="list-row"][href]';
 const FIELDS = "[data-crumbs] button > span[title]";
 
 const SCENARIOS = {
-	"cold home": (network) => cold(network, HOME, RAIL),
 	"cold list": (network) => cold(network, LIST, ROWS),
 	"cold record": (network) => cold(network, RECORD, FIELDS),
-	"home → list (rail)": (network) => click(network, HOME, RAIL, `a[href^="${LIST}"]`, ROWS),
+	"list → list in another sidebar (rail)": (network) =>
+		click(
+			network,
+			LIST,
+			ROWS,
+			`nav a[href^="${OTHER_LIST}"]`,
+			`${ROWS}[href^="${OTHER_LIST}/"]`
+		),
 	"list → record (row)": (network) => click(network, LIST, ROWS, `a[href="${RECORD}"]`, FIELDS),
 };
 

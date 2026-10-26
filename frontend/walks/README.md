@@ -120,9 +120,10 @@ every return step passes on every network, and 1 otherwise.
 ## Click-budget walk
 
 `clickBudget.js` measures the click budget and the shell's paint on a cold load, at a 4x
-slower CPU. It opens home, a list and a record cold, and clicks home → list (a rail item)
-and list → record (a row). Each step runs in a new browser, `RUNS` times on the `normal`
-network and `SLOW_RUNS` times on the `slow` one. It prints the median of each column:
+slower CPU. It opens a list and a record cold, and clicks list → a list in another sidebar
+(a rail item) and list → record (a row). Each step runs in a new browser, `RUNS` times on
+the `normal` network and `SLOW_RUNS` times on the `slow` one. It prints the median of each
+column:
 
 - cold loads: when the rail, the sidebar and the first skeleton draw, when the last JS or
   CSS file before the content arrived, when the content draws, and the layout shift;
@@ -142,15 +143,15 @@ OUT_DIR=/tmp/desk-build WALK_PORT=8187 ./node_modules/.bin/vite preview --config
 BASE_URL=http://<site>:8187 yarn --cwd walks walk:budget --json /tmp/budget.json
 ```
 
-| Variable      | Default                                  | Meaning                                       |
-| ------------- | ---------------------------------------- | --------------------------------------------- |
-| `HOME_PATH`   | `/apps/crm`                              | The home page                                 |
-| `LIST_PATH`   | `/apps/crm/crm-lead`                     | The list a rail item opens from home          |
-| `RECORD_PATH` | `/apps/crm/crm-lead/CRM-LEAD-2026-00006` | A record with a row on the list's first page  |
-| `RUNS`        | `5`                                      | Runs of each step on the normal network       |
-| `SLOW_RUNS`   | `2`                                      | Runs of each step on the slow network         |
-| `ONLY`        | every step                               | Runs only the steps whose name contains it    |
-| `SID`         | none                                     | A session cookie to use in place of the login |
+| Variable          | Default                                  | Meaning                                         |
+| ----------------- | ---------------------------------------- | ----------------------------------------------- |
+| `LIST_PATH`       | `/apps/crm/crm-lead`                     | The list both clicks start from                 |
+| `OTHER_LIST_PATH` | `/apps/crm/crm-deal`                     | A list in another sidebar, opened from the rail |
+| `RECORD_PATH`     | `/apps/crm/crm-lead/CRM-LEAD-2026-00006` | A record with a row on the list's first page    |
+| `RUNS`            | `5`                                      | Runs of each step on the normal network         |
+| `SLOW_RUNS`       | `2`                                      | Runs of each step on the slow network           |
+| `ONLY`            | every step                               | Runs only the steps whose name contains it      |
+| `SID`             | none                                     | A session cookie to use in place of the login   |
 
 `BASE_URL`, `USR`, `PWD_FRAPPE` and `NETWORK` are as for the other walks.
 
