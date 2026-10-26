@@ -89,7 +89,7 @@ class Workspace(Document, DeskViews):
 		# `ignore_validate`, which skips `validate` but not the sanitizer, and the import is the
 		# write that damaged every workspace shipping markup in its blocks.
 		self.content = sanitize_content(self.content)
-		sanitize_variants(self.variants)
+		sanitize_variants(self.get("variants") or [])
 
 	def validate(self):
 		self.title = strip_html(self.title)
@@ -145,9 +145,10 @@ class Workspace(Document, DeskViews):
 		self.validate_private_page_is_yours()
 
 	def validate_variants(self):
-		if self.variants and not self.public:
+		variants = self.get("variants") or []
+		if variants and not self.public:
 			frappe.throw(_("A private workspace has one layout."), title=_("Role Layouts"))
-		validate_variants(self.variants)
+		validate_variants(variants)
 
 	def validate_private_page_is_yours(self):
 		"""A private page belongs to the person named in `for_user`, and only they may write one.
