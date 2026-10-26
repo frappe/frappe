@@ -129,6 +129,20 @@ class TestPdf(IntegrationTestCase):
 		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
 		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
 
+	def test_footer_is_measured_at_the_width_it_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		block = '<span style="display: inline-block; width: 380px; height: 40px"></span>'
+		footer = (
+			f'<div id="footer-html">{block}{block}'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		pdf = pdfgen.get_chrome_pdf(None, "<p>row</p>" * 120 + footer, {}, None, pdf_generator="chrome")
+		pages = PdfReader(io.BytesIO(pdf)).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
+
 	def test_smart_shrinking_is_opt_in(self):
 		from unittest.mock import patch
 
