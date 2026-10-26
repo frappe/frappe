@@ -870,7 +870,7 @@
   },
   {
    "default": "0",
-   "description": "Serve Desk v2 at /apps. The bench needs desk_v2 in common_site_config.",
+   "description": "Serve Desk v2 at /apps.",
    "fieldname": "enable_desk_v2",
    "fieldtype": "Check",
    "label": "Enable Desk v2"
@@ -916,7 +916,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-22 13:34:01.911327",
+ "modified": "2026-10-26 13:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

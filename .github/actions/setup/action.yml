@@ -207,9 +207,6 @@ runs:
       # build it in the background while the site is being created)
       start_time=$(date +%s)
 
-      # Before the build: `bench build` builds the desk v2 shell only where this is set.
-      bench set-config -g desk_v2 1 --parse
-
       build_pid=""
       if [ "$BUILD_ASSETS" == "true" ]; then
         CI=Yes bench build --force --production &> ${GITHUB_WORKSPACE}/build_assets.log &

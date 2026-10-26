@@ -11,7 +11,7 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-from frappe.bundler import build_shell, swap_shell_assets
+from frappe.bundler import swap_shell_assets
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.shell import SHELL_ROOT
 from frappe.shell.address_clash import page_files
@@ -1480,13 +1480,3 @@ class TestDeskV2Switch(IntegrationTestCase):
 		frappe.set_user(self.user)
 		set_request(method="GET", path="/apps/desk")
 		self.assertEqual(get_response().status_code, 200)
-
-	def test_the_build_skips_the_shell_unless_the_bench_sets_desk_v2(self):
-		with (
-			patch.dict(frappe.conf, {"desk_v2": 0}),
-			patch("frappe.shell.manifest.write") as write_manifest,
-			patch("frappe.commands.popen") as popen,
-		):
-			build_shell(frappe.get_app_source_path("frappe"))
-		write_manifest.assert_not_called()
-		popen.assert_not_called()
