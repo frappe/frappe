@@ -375,6 +375,17 @@ class Page:
 		if error:
 			raise RuntimeError(f"Error setting device metrics: {error}")
 
+	def get_content_height(self):
+		result = self.evaluate(
+			"""(() => {
+				const style = document.createElement("style");
+				style.textContent = "html, body, .print-format { height: auto !important; min-height: 0 !important; }";
+				document.head.appendChild(style);
+				return document.documentElement.scrollHeight;
+			})()"""
+		)
+		return (result or {}).get("result", {}).get("value") or 0
+
 	def capture_screenshot(self, image_format="jpeg", quality=30):
 		"""Screenshot the current viewport; returns raw image bytes."""
 		params = {"format": image_format, "captureBeyondViewport": False}
