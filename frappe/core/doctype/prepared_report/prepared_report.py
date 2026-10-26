@@ -253,6 +253,9 @@ def stop_prepared_report(report_name: str):
 	prepared_report = frappe.get_doc("Prepared Report", report_name)
 	prepared_report.check_permission("write")
 
+	if prepared_report.owner != frappe.session.user and "System Manager" not in frappe.get_roles():
+		frappe.throw(_("Not permitted"), frappe.PermissionError)
+
 	job_id = prepared_report.job_id
 	if job_id:
 		if not job_id.startswith(frappe.local.site):
