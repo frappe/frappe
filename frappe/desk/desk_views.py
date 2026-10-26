@@ -37,6 +37,9 @@ class DeskViews:
 		bootinfo.page_info = self.pages
 		bootinfo.allowed_reports = self.reports
 		bootinfo.workspaces = self.workspaces
+		bootinfo.workspace_view = next(
+			(name for name, page in self.pages.items() if page.get("desk_view") == "Workspace"), None
+		)
 		bootinfo.dashboards = self.dashboards
 
 	# The properties below are the per-user view-permission data read by `is_item_allowed`.
@@ -192,7 +195,13 @@ class DeskViews:
 			columns = (report.name.as_("title"), report.ref_doctype, report.report_type, report.module)
 		else:
 			# The two flags decide a page's shell on the client: see `Sidebar.shell_for_route`.
-			columns = (page.title.as_("title"), page.module, page.system_page, page.shared_page)
+			columns = (
+				page.title.as_("title"),
+				page.module,
+				page.system_page,
+				page.shared_page,
+				page.desk_view,
+			)
 
 		customRole = DocType("Custom Role")
 		hasRole = DocType("Has Role")
@@ -200,7 +209,10 @@ class DeskViews:
 
 		def shell_flags(row):
 			# Only the flag that is set is shipped; most pages have neither.
-			return {flag: 1 for flag in ("system_page", "shared_page") if row.get(flag)}
+			flags = {flag: 1 for flag in ("system_page", "shared_page") if row.get(flag)}
+			if row.get("desk_view"):
+				flags["desk_view"] = row.desk_view
+			return flags
 
 		def exclude_disabled_reports(query):
 			return query.where(report.disabled == 0) if is_report else query

@@ -26,6 +26,7 @@ class Page(Document):
 		from frappe.core.doctype.has_role.has_role import HasRole
 		from frappe.types import DF
 
+		desk_view: DF.Literal["", "Workspace"]
 		icon: DF.Data | None
 		island: DF.Data | None
 		module: DF.Link
@@ -72,6 +73,7 @@ class Page(Document):
 
 		self.validate_shell()
 		self.validate_island()
+		self.validate_desk_view()
 
 	def validate_shell(self):
 		if self.system_page and self.shared_page:
@@ -80,6 +82,13 @@ class Page(Document):
 					"A page is either a System Page, which opens in no sidebar, or a Shared Page, which opens in any. It cannot be both."
 				)
 			)
+
+	def validate_desk_view(self):
+		if not self.desk_view:
+			return
+		other = frappe.db.get_value("Page", {"desk_view": self.desk_view, "name": ("!=", self.name)})
+		if other:
+			frappe.throw(_("Page {0} already draws every {1} URL.").format(other, _(self.desk_view)))
 
 	def validate_island(self):
 		"""The two things a Frappe UI page needs before it can be built at all."""

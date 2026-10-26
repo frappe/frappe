@@ -168,6 +168,14 @@ class TestPage(IntegrationTestCase):
 		self.make_page(standard="No", system_page=1)
 		self.make_page(standard="No", shared_page=1)
 
+	@patch.dict(frappe.conf, {"developer_mode": 1})
+	def test_only_one_page_draws_workspaces(self):
+		if not frappe.db.exists("Page", {"desk_view": "Workspace"}):
+			self.make_page(type="Frappe UI", desk_view="Workspace")
+
+		with self.assertRaises(frappe.ValidationError):
+			self.make_page(type="Frappe UI", desk_view="Workspace")
+
 	def make_page(self, **values):
 		"""A standard Page, written to disk and removed when the case ends."""
 		page = frappe.new_doc(
