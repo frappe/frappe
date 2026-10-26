@@ -22,6 +22,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				auto_make: true,
 				centered: false,
 				keep_grid_form_open: false,
+				// on a phone, show as a frappe.ui.BottomSheet: for dialogs that are not static
+				// or minimizable and set their actions before show()
+				sheet_on_mobile: false,
 			},
 			opts
 		);
@@ -129,7 +132,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				// Bootstrap's focus guard goes before the first focus, so a combobox
 				// panel (mounted in <body>) can take it
 				$(document).off("focusin.modal");
-				me.focus_on_first_input();
+				if (!me.sheet) me.focus_on_first_input();
 				me.hide_scrollbar(true);
 				me.on_page_show && me.on_page_show();
 				$(document).trigger("frappe.ui.Dialog:shown");
@@ -302,6 +305,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	set_title(t) {
 		this.$wrapper.find(".modal-title").html(t);
+		this.sheet?.set_title(this.$wrapper.find(".modal-title").text());
 	}
 
 	set_indicator() {
@@ -314,6 +318,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	show() {
+		this.restore_from_sheet?.();
+		if (this.sheet_on_mobile && frappe.is_mobile()) return this.show_as_sheet();
+
 		// show it
 		if (window.location.pathname.startsWith("/desk")) {
 			this.handle_focus();
@@ -341,7 +348,48 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		return this;
 	}
 
+	show_as_sheet() {
+		this.clear_message();
+		this.primary_action_fulfilled = false;
+		this.is_visible = true;
+		frappe.require(["bottom_sheet.bundle.js", "bottom_sheet.bundle.css"]).then(() => {
+			if (this.is_visible && !this.sheet) this.open_sheet();
+		});
+		return this;
+	}
+
+	open_sheet() {
+		const actions = this.footer.children();
+		const buttons = actions.find(".es-button");
+		frappe.ui.button.dress(buttons, { size: "md" });
+		this.sheet = new frappe.ui.BottomSheet({
+			title: this.$wrapper.find(".modal-title").text(),
+			show_close: true,
+			content: this.modal_body.get(0),
+			footer: this.footer.hasClass("hide") ? null : actions.get(),
+			on_close: () => {
+				this.sheet = null;
+				this.is_visible = false;
+				// moved back on the next show: now, the sheet would slide out empty
+				this.restore_from_sheet = () => {
+					this.restore_from_sheet = null;
+					frappe.ui.button.dress(buttons, { size: "sm" });
+					this.header.after(this.modal_body);
+					this.footer.append(actions);
+				};
+				this.$wrapper.trigger("hide.bs.modal").trigger("hidden.bs.modal");
+			},
+		});
+		this.$wrapper.trigger("show.bs.modal");
+		this.sheet.open();
+		this.$wrapper.trigger("shown.bs.modal");
+	}
+
 	hide() {
+		if (this.sheet) {
+			this.sheet.close();
+			return;
+		}
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
 	}
