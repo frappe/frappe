@@ -1,7 +1,6 @@
 // Builds the desk architecture page from the code, layers.json and ARCHITECTURE.md.
 // Usage: node frontend/architecture/diagram.mjs [--stdout | --out <file>] [--flows].
 // Exits 1 when a structure check fails. --flows also prints the files each flow reaches.
-// It always prints the known concept gaps apart from the internal ui/ names.
 
 import fs from "node:fs";
 import os from "node:os";

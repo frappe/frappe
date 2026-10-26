@@ -1,7 +1,5 @@
 // Checks that each name exported across a folder boundary is in the concept table of the layer
 // that defines it. knownUnlisted in layers.json holds today's gaps; the list may only shrink.
-// A ui/ name is public when a public entry exports it and code outside ui/ imports it. Any
-// other ui/ name is internal: it never gets a concept row, so it is counted apart from gaps.
 
 import path from "node:path";
 import { conceptsOf } from "./architectureDoc.mjs";
@@ -55,7 +53,7 @@ export class ConceptCheck {
     return [
       ...this.newUnlisted.map(([file, name]) =>
         this.isInternal(file, name)
-          ? `NOT PUBLIC ${name} (${file}): gets no concept row; keep it in its folder or add it to knownUnlisted`
+          ? `NOT PUBLIC ${name} (${file}): crosses a folder but is not public, so it gets no concept row; keep it in its folder`
           : `NO CONCEPT ${name} (${file}): add it to layer ${this.layerOf(
               file
             )}'s concept table`
@@ -101,8 +99,17 @@ export class ConceptCheck {
       .filter(([file]) => !file.startsWith("ui/"))
       .flatMap(([, info]) => info.imports)
       .filter((imp) => imp.target?.startsWith("ui/"))
-      .flatMap((imp) => this.namesTaken(imp).map((pair) => pair.join("#")));
+      .flatMap((imp) => this.publicNamesTaken(imp));
     return new Set(imported.filter((key) => exported.has(key)));
+  }
+
+  // An `import()` names nothing the parser can see, so it counts as its default: the way the
+  // desk loads a component lazily. Kept out of namesTaken, which never counts lazy imports.
+  publicNamesTaken(imp) {
+    const names = imp.dynamic
+      ? [this.conceptOf(imp.target, "default")]
+      : this.namesTaken(imp);
+    return names.map((pair) => pair.join("#"));
   }
 
   namesTaken(imp) {
