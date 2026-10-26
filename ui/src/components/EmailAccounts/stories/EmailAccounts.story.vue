@@ -22,7 +22,7 @@
 </template>
 
 <script setup lang="ts">
-import { Select, Switch } from "frappe-ui";
+import { Select, Switch, getCachedResource } from "frappe-ui";
 import { onBeforeUnmount, ref, watch } from "vue";
 import EmailAccounts from "../EmailAccounts.vue";
 import type { EmailAccountDoc } from "../types";
@@ -30,17 +30,7 @@ import type { EmailAccountDoc } from "../types";
 const cloud = ref(true);
 const empty = ref(false);
 const landings = ref(0);
-const host = window as { is_v2_site?: boolean };
-watch(
-	cloud,
-	(value) => {
-		host.is_v2_site = value;
-	},
-	{ immediate: true }
-);
-onBeforeUnmount(() => {
-	delete host.is_v2_site;
-});
+watch(cloud, () => getCachedResource("one_click_email_services")?.reload());
 const results = [
 	"connected",
 	"reconnected",

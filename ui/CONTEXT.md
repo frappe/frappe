@@ -120,9 +120,8 @@ _Avoid_: email config, email setup.
 **One-click sign-in**:
 Connecting a mailbox by signing in to its provider through Frappe Cloud
 (`email_oauth.initiate_mailbox_connect`), with no password or OAuth app to set up. Only on
-Frappe Cloud v2 sites, which the host tells the panel from its boot (`is_v2_site` on `window`, or
-in `frappe.boot` in Desk). The panel asks the site which services can sign in this way
-(`email_oauth.get_one_click_services`, cached for 10 minutes). Picking one of those services signs
+Frappe Cloud v2 sites. The panel asks the site which services can sign in this way
+(`email_oauth.get_one_click_services`, cached for 10 minutes; empty elsewhere). Picking one of those services signs
 in; any other opens the form. When
 Frappe Cloud can't sign the service in right now, the panel opens the form with a note saying so.
 _Avoid_: relay connect, OAuth connect (OAuth also covers an account's own app).
@@ -142,7 +141,7 @@ when both are off.
 **Reconnect**:
 Signing an existing OAuth account in again, from its edit screen or its Desk form, which moves
 it to a fresh token without creating a new account. An **OAuth** account runs one-click
-sign-in again, only on Frappe Cloud v2 sites; elsewhere it is reconnected in Desk. An
+sign-in again, only while its service can sign in in one click; otherwise it is reconnected in Desk. An
 **OAuth: custom app** account runs its own Connected App's flow
 (`initiate_web_application_flow`) as its connected user, on any site; signing in for another
 user needs write access to the Connected App.

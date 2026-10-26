@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import {
   authKind,
   credentials,
@@ -256,21 +256,15 @@ describe("account state", () => {
 });
 
 describe("reconnectable", () => {
-  afterEach(() => vi.unstubAllGlobals());
+  it("reconnects a Frappe Cloud sign-in only while its service signs in in one click, an own OAuth app anywhere", () => {
+    const outlook = { service: "Outlook.com" };
+    expect(reconnectable({ ...outlook, authKind: "oauth" }, {})).toBe(false);
+    expect(reconnectable({ ...outlook, authKind: "oauth-custom" }, {})).toBe(true);
 
-  it("reconnects a Frappe Cloud sign-in only on a Frappe Cloud V2 site, an own OAuth app anywhere", () => {
-    expect(reconnectable({ authKind: "oauth" })).toBe(false);
-    expect(reconnectable({ authKind: "oauth-custom" })).toBe(true);
-
-    vi.stubGlobal("is_v2_site", true);
-    expect(reconnectable({ authKind: "oauth" })).toBe(true);
-    expect(reconnectable({ authKind: "oauth-custom" })).toBe(true);
-    expect(reconnectable({ authKind: "password" })).toBe(false);
-  });
-
-  it("reads the V2 flag from Desk's boot when the host page has no global for it", () => {
-    vi.stubGlobal("frappe", { boot: { is_v2_site: true } });
-    expect(reconnectable({ authKind: "oauth" })).toBe(true);
+    const oneClick = { "Outlook.com": "Outlook" };
+    expect(reconnectable({ ...outlook, authKind: "oauth" }, oneClick)).toBe(true);
+    expect(reconnectable({ service: "GMail", authKind: "oauth" }, oneClick)).toBe(false);
+    expect(reconnectable({ ...outlook, authKind: "password" }, oneClick)).toBe(false);
   });
 });
 

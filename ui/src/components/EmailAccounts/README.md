@@ -31,9 +31,6 @@ const unsaved = ref(false);
 - **`providers`**: the Email Account `service` values to offer tiles for when adding an
   account, such as `["GMail", "Outlook.com", ""]`, where `""` is Custom email. All of them by
   default.
-- **`is_v2_site`**: not a prop. The host puts it on `window` from its boot (`is_v2_site()` in
-  `frappe.integrations.frappe_providers.cloud_settings`), as Helpdesk's `www/helpdesk/index.py`
-  does; in Desk the panel reads it from `frappe.boot`. Off when not set.
 - **`created(service)`**: a mailbox was added, with a password or API key, or by one-click
   sign-in, for host side effects such as onboarding steps and telemetry. A reconnect is not a
   new mailbox and does not emit it.
@@ -41,9 +38,11 @@ const unsaved = ref(false);
   save, after confirming Back, and when the panel unmounts. The panel's own Back asks before
   dropping changes; the host uses `dirty` to guard its own navigation, such as closing its
   settings dialog or switching to another settings screen. Unmounting the panel drops the draft.
-- **One-click sign-in**: when adding, the panel asks the site which services can sign in in one
-  click (`get_one_click_services`, cached by the site for 10 minutes; empty off Frappe Cloud).
-  Picking one of them signs in through
+- **One-click sign-in**: the panel asks the site which services can sign in in one click
+  (`get_one_click_services`, cached by the site for 10 minutes; empty off Frappe Cloud V2), so the
+  host sets nothing up for it. A signed-out mailbox that one-click sign-in made shows Reconnect only
+  while its service is in that list; otherwise it links to Desk. When adding,
+  picking one of them signs in through
   Frappe Cloud (`initiate_mailbox_connect`); any other tile opens its form. When Frappe Cloud
   can't sign the service in right now, the panel opens the form with a note saying so. Desk's own Add dialog
   also offers "Set up manually"; the panel doesn't. Sign-in leaves the page and lands back on it with

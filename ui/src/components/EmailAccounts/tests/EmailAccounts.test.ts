@@ -179,7 +179,6 @@ it("signs in on Frappe Cloud V2 when the provider has one-click sign-in", async 
     href: "https://example.com/helpdesk/tickets?status=Open",
     assign,
   });
-  vi.stubGlobal("is_v2_site", true);
   oneClick = { "Outlook.com": "Outlook" };
   await openTiles();
   await settle();

@@ -1,5 +1,5 @@
 import { reactive } from "vue";
-import { call, createListResource } from "frappe-ui";
+import { call, createListResource, createResource } from "frappe-ui";
 import {
   authKind,
   markSignInStarted,
@@ -38,6 +38,19 @@ const FIELDS = [
   "frappe_mail_site",
   "api_key",
 ];
+
+/**
+ * The services this site signs in in one click now, with their labels; empty off Frappe Cloud V2.
+ * Every caller shares one resource, refetched on each call.
+ */
+export function useOneClick() {
+  return createResource({
+    url: "frappe.integrations.frappe_providers.email_oauth.get_one_click_services",
+    cache: "one_click_email_services",
+    auto: true,
+    initialData: {},
+  });
+}
 
 /**
  * Data behind `EmailAccounts`: reads and writes Email Account through a list resource.

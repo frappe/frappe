@@ -12,6 +12,11 @@ vi.mock("frappe-ui", async (importOriginal) => ({
   frappeRequest: async () => [],
 }));
 
+const oneClick = vi.hoisted(() => ({ services: {} as Record<string, string> }));
+vi.mock("../useEmailAccounts", () => ({
+  useOneClick: () => ({ data: oneClick.services }),
+}));
+
 const reconnect = vi.fn();
 const pull = vi.fn();
 const update = vi.fn();
@@ -61,7 +66,7 @@ function mount(overrides = {}) {
 beforeEach(() => {
   confirm.mockReset();
   reconnect.mockReset();
-  vi.stubGlobal("is_v2_site", true);
+  oneClick.services = { "Outlook.com": "Outlook" };
   pull.mockReset();
   update.mockReset();
   onBack.mockReset();
@@ -71,7 +76,6 @@ beforeEach(() => {
 afterEach(() => {
   app.unmount();
   root.remove();
-  vi.unstubAllGlobals();
 });
 
 it("reconnects straight away when nothing is edited", () => {
@@ -168,8 +172,8 @@ it("reports a failed save in a toast, keeps the edits and refocuses the field", 
   expect(document.activeElement).toBe(name);
 });
 
-it("sends Desk a Frappe Cloud sign-in off Frappe Cloud V2", () => {
-  vi.stubGlobal("is_v2_site", false);
+it("sends Desk a Frappe Cloud sign-in when its service doesn't sign in in one click", () => {
+  oneClick.services = {};
   const { reconnect: button } = mount();
   expect(root.querySelector(".bg-surface-amber-1")!.textContent).toContain(
     "Reconnect it in Desk.",
@@ -180,8 +184,8 @@ it("sends Desk a Frappe Cloud sign-in off Frappe Cloud V2", () => {
   expect(button).toBeUndefined();
 });
 
-it("reconnects a mailbox with its own OAuth app, on or off Frappe Cloud V2", () => {
-  vi.stubGlobal("is_v2_site", false);
+it("reconnects a mailbox with its own OAuth app, with or without one-click sign-in", () => {
+  oneClick.services = {};
   const { reconnect: button } = mount({
     authKind: "oauth-custom",
     token_uri: "https://login.microsoftonline.com/token",

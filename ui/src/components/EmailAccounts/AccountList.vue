@@ -185,7 +185,7 @@
 									<span class="truncate">{{ __("Mail has stopped") }}</span>
 								</span>
 								<Button
-									v-if="reconnectable(account)"
+									v-if="reconnectable(account, oneClick.data)"
 									class="shrink-0"
 									variant="outline"
 									:label="__('Reconnect')"
@@ -262,6 +262,7 @@ import {
 	serviceOf,
 } from "./services";
 import type { EmailAccount, EmailAccountsController } from "./types";
+import { useOneClick } from "./useEmailAccounts";
 
 const props = defineProps<{
 	controller: EmailAccountsController;
@@ -273,6 +274,7 @@ const props = defineProps<{
 	oauthProvider?: string | null;
 }>();
 const emit = defineEmits<{ add: []; open: [name: string] }>();
+const oneClick = useOneClick();
 const oauthResult = defineModel<string | null>("oauthResult");
 const helpLink = computed(
 	() => oauthResult.value && oauthHelpLink(oauthResult.value, props.oauthProvider)

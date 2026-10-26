@@ -93,7 +93,7 @@
 </template>
 
 <script setup lang="ts">
-import { Button, ErrorMessage, ScrollArea, createResource, toast } from "frappe-ui";
+import { Button, ErrorMessage, ScrollArea, toast } from "frappe-ui";
 import { computed, nextTick, ref, shallowRef, useId, watch } from "vue";
 import { translate as __ } from "../../utils/translate";
 import AccountFields from "./AccountFields.vue";
@@ -101,16 +101,12 @@ import BackHeader from "./BackHeader.vue";
 import Banner from "./Banner.vue";
 import { emptyForm, errorText, services, validate } from "./services";
 import type { EmailAccountsController, EmailService, FieldError } from "./types";
+import { useOneClick } from "./useEmailAccounts";
 
 const props = defineProps<{ controller: EmailAccountsController; providers?: string[] }>();
 const emit = defineEmits<{ back: []; created: [service: string]; dirty: [dirty: boolean] }>();
 
-const oneClick = createResource({
-	url: "frappe.integrations.frappe_providers.email_oauth.get_one_click_services",
-	cache: "one_click_email_services",
-	auto: true,
-	initialData: {},
-});
+const oneClick = useOneClick();
 const offered = computed(() =>
 	props.providers ? services.filter((s) => props.providers!.includes(s.service)) : services
 );

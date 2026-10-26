@@ -410,24 +410,14 @@ export function errorText(e: unknown): string {
   return message ?? "";
 }
 
-/**
- * Whether the host's boot says the site is on Frappe Cloud V2, the only place a mailbox can
- * sign in in one click. Read on use, as the host may set it after this module loads.
- */
-export function isV2Site(): boolean {
-  const host = globalThis as {
-    is_v2_site?: boolean;
-    frappe?: { boot?: { is_v2_site?: boolean } };
-  };
-  return Boolean(host.is_v2_site ?? host.frappe?.boot?.is_v2_site);
-}
-
+/** `oneClick`: the services the site signs in in one click now, from `get_one_click_services`. */
 export function reconnectable(
-  account: Pick<EmailAccount, "authKind">,
+  account: Pick<EmailAccount, "authKind" | "service">,
+  oneClick: Record<string, string>,
 ): boolean {
   return (
     account.authKind === "oauth-custom" ||
-    (isV2Site() && account.authKind === "oauth")
+    (account.authKind === "oauth" && Boolean(oneClick[account.service]))
   );
 }
 

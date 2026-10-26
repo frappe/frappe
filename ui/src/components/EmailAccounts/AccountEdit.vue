@@ -99,12 +99,14 @@ import {
 	validate,
 } from "./services";
 import type { EmailAccount, EmailAccountsController, FieldError } from "./types";
+import { useOneClick } from "./useEmailAccounts";
 
 const props = defineProps<{ controller: EmailAccountsController; account: EmailAccount }>();
 const emit = defineEmits<{ back: [name: string]; dirty: [dirty: boolean] }>();
 
 const service = computed(() => serviceOf(props.account));
-const reconnectable = computed(() => canReconnect(props.account));
+const oneClick = useOneClick();
+const reconnectable = computed(() => canReconnect(props.account, oneClick.data));
 const formId = useId();
 
 const form = ref(emptyForm(props.account));

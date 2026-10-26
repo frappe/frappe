@@ -8,6 +8,10 @@ vi.mock("frappe-ui", async (importOriginal) => ({
   ...(await importOriginal<typeof import("frappe-ui")>()),
   toast: { success: vi.fn(), error: vi.fn() },
 }));
+const oneClick = vi.hoisted(() => ({ services: {} as Record<string, string> }));
+vi.mock("../useEmailAccounts", () => ({
+  useOneClick: () => ({ data: oneClick.services }),
+}));
 
 let app: App;
 let root: HTMLElement;
@@ -52,10 +56,10 @@ beforeEach(() => {
 afterEach(() => {
   app.unmount();
   root.remove();
-  vi.unstubAllGlobals();
+  oneClick.services = {};
 });
 
-it("offers reconnect for an own OAuth app anywhere, and for a Frappe Cloud sign-in on Frappe Cloud V2", () => {
+it("offers reconnect for an own OAuth app anywhere, and for a Frappe Cloud sign-in while its service signs in in one click", () => {
   const signedOut = (name: string, authKind: string) => ({
     ...account(name, 0),
     auth_method: "OAuth",
@@ -71,7 +75,7 @@ it("offers reconnect for an own OAuth app anywhere, and for a Frappe Cloud sign-
   remount({ accounts });
   expect(actions()).toEqual(["desk", "reconnect"]);
 
-  vi.stubGlobal("is_v2_site", true);
+  oneClick.services = { GMail: "Gmail" };
   remount({ accounts });
   expect(actions()).toEqual(["reconnect", "reconnect"]);
 });
