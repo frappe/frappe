@@ -112,7 +112,7 @@
 			</section>
 		</form>
 		<p v-else-if="error" class="px-6 py-16 text-center text-sm text-ink-gray-5">{{ error }}</p>
-		<LoadingState v-else class="justify-center py-16 text-xs text-ink-gray-5" />
+		<LoadingState v-else class="h-full justify-center text-xs text-ink-gray-5" />
 	</div>
 </template>
 

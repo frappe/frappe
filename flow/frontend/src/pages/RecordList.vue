@@ -53,7 +53,7 @@
 	<div class="min-h-0 flex-1 overflow-y-auto px-5 pb-10">
 		<LoadingState
 			v-if="loading && !loaded"
-			class="justify-center py-16 text-xs text-ink-gray-5"
+			class="h-full justify-center text-xs text-ink-gray-5"
 		/>
 		<!-- nothing yet: what the page is for, and the way to a first one -->
 		<div v-else-if="empty" class="flex flex-col items-center px-6 py-16 text-center">
