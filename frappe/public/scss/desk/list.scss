@@ -137,6 +137,8 @@
 	flex-direction: column;
 	padding-inline: var(--padding-sm);
 	border-radius: var(--radius);
+	// the :active highlight below replaces the tap flash
+	-webkit-tap-highlight-color: transparent;
 
 	&:focus {
 		.list-row {
@@ -151,8 +153,14 @@
 		z-index: 2;
 	}
 
-	// pressed shows under the finger and goes with it, as the sheet's rows do
-	-webkit-tap-highlight-color: transparent;
+	// a held touch opens the row's actions (list_view.js setup_long_press), not text selection
+	@include media-breakpoint-down(sm) {
+		@media (hover: none) {
+			-webkit-user-select: none;
+			user-select: none;
+			-webkit-touch-callout: none;
+		}
+	}
 
 	&:active,
 	&:active .level-right {
@@ -160,12 +168,10 @@
 	}
 
 	// a touch screen keeps :hover on the row a scroll started from
-	@media (hover: hover) {
-		&:hover {
-			background-color: var(--highlight-color);
-		}
+	@include hover-only-with-pointer {
+		background-color: var(--highlight-color);
 
-		&:hover .level-right {
+		.level-right {
 			background-color: var(--highlight-color);
 		}
 	}

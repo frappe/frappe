@@ -1,6 +1,9 @@
 import BulkOperations from "./bulk_operations";
 import ListSettings from "./list_settings";
 
+const LONG_PRESS_MS = 500;
+const LONG_PRESS_SLOP_PX = 10;
+
 frappe.provide("frappe.views");
 
 frappe.views.ListView = class ListView extends frappe.views.BaseList {
@@ -298,6 +301,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	set_actions_menu_items() {
+		this.page.actions_sheet_title = () => {
+			const checked = this.get_checked_items();
+			if (checked.length !== 1) return __("{0} items selected", [checked.length]);
+			const doc = checked[0];
+			return frappe.utils.html2text(doc[this.meta.title_field] || "") || doc.name;
+		};
 		this.actions_menu_items = this.get_actions_menu_items();
 		this.workflow_action_menu_items = this.get_workflow_action_menu_items();
 		this.workflow_action_items = {};
@@ -2064,6 +2073,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		this.setup_filterable();
 		this.setup_sort_by();
 		this.setup_list_click();
+		this.setup_long_press();
 		this.setup_drag_click();
 		this.setup_tag_visibility();
 		this.setup_new_doc_event();
@@ -2259,6 +2269,55 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				frappe.set_route(link.pathname);
 				return false;
 			}
+		});
+	}
+
+	setup_long_press() {
+		let timer = null;
+		let start = null;
+		const cancel = () => {
+			clearTimeout(timer);
+			timer = null;
+		};
+		this.$result.on("pointerdown", ".list-row-container", (e) => {
+			this.long_pressed = false;
+			if (e.pointerType !== "touch" || !frappe.is_mobile()) return;
+			const $checkbox = $(e.currentTarget).find(".list-row-checkbox");
+			if (!$checkbox.length || $(e.target).is(":checkbox")) return;
+			start = { x: e.clientX, y: e.clientY };
+			cancel();
+			timer = setTimeout(() => {
+				timer = null;
+				// the rows were redrawn under the finger, so this one is gone
+				if (!$checkbox[0].isConnected) return;
+				this.long_pressed = true;
+				// the click that ends a long press would open the row, or land on the sheet's scrim
+				const swallow = (event) => {
+					event.preventDefault();
+					event.stopPropagation();
+				};
+				window.addEventListener("click", swallow, { capture: true, once: true });
+				window.addEventListener(
+					"pointerdown",
+					() => window.removeEventListener("click", swallow, true),
+					{ capture: true, once: true }
+				);
+				$checkbox.prop("checked", true).trigger("change");
+				// the menu shows the workflow actions this row allows
+				Promise.resolve(this.toggle_workflow_actions()).finally(() =>
+					this.page.actions_dropdown.open()
+				);
+			}, LONG_PRESS_MS);
+		});
+		this.$result.on("pointermove", ".list-row-container", (e) => {
+			if (!timer) return;
+			const moved = Math.hypot(e.clientX - start.x, e.clientY - start.y);
+			if (moved > LONG_PRESS_SLOP_PX) cancel();
+		});
+		this.$result.on("pointerup pointercancel", ".list-row-container", cancel);
+		// the phone's own long-press menu
+		this.$result.on("contextmenu", ".list-row-container", (e) => {
+			if (timer || this.long_pressed) e.preventDefault();
 		});
 	}
 
@@ -2892,7 +2951,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		// the debounced call can land after a quick select-then-deselect
 		if (!checked_items.length) return;
 
-		frappe
+		return frappe
 			.xcall("frappe.model.workflow.get_common_transition_actions", {
 				docs: checked_items,
 				doctype: this.doctype,
