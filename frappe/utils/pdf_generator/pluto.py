@@ -301,6 +301,8 @@ def local_resource_fetcher(block_external_requests=False):
 			return self.cache[url]
 
 		def fetch(self, url):
+			if url.lower().startswith("file:"):
+				raise plutoprint.Error(f"Blocked {url}")
 			if url.startswith(get_host_url()):
 				if ttf := inter_ttf_path(url):
 					return plutoprint.default_resource_fetcher.fetch_url(ttf.resolve().as_uri())
