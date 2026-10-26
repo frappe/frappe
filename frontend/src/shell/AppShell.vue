@@ -83,7 +83,6 @@ import {
 } from "@/navigation/current";
 import { sidebarMemory } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
-import { ActKeys } from "./actKeys";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
@@ -94,6 +93,8 @@ import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
+// Keys wait for no paint, so their code stays out of the cold-load chunk.
+const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;

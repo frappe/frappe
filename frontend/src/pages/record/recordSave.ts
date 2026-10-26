@@ -3,7 +3,7 @@
 import { onMounted, onUnmounted } from "vue";
 import { toast } from "frappe-ui";
 import { errorMessage, type RecordPageApi } from "@/recordPage";
-import { overlayOf } from "@/shell/actKeys";
+import { overlayOf } from "@/shell/overlay";
 import { shownInDialog } from "./saveResponse";
 
 /** Not through an action runner: a failed save keeps the draft on screen and toasts, unless a dialog showed it. */

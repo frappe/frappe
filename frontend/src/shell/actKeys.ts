@@ -3,6 +3,7 @@
 import { computed, defineComponent, h, watch, type PropType } from "vue";
 import { useKeyboardShortcut, type KeyboardShortcutCombo } from "frappe-ui";
 import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
+import { overlayOf } from "./overlay";
 
 /** Opens the palette at an act's argument step; without it, a key on an act with an argument is not bound. */
 export type OpenArgument = (act: AvailableAct) => void;
@@ -31,13 +32,6 @@ export const ActKeys = defineComponent({
 			);
 	},
 });
-
-/** A keypress inside a dialog, a popover or a dropdown belongs to it: the overlay it came from, or none. */
-export function overlayOf(target: EventTarget | null): Element | null {
-	return target instanceof Element
-		? target.closest('[role="dialog"],[role="listbox"],[role="menu"]')
-		: null;
-}
 
 /** One combo's registration, for the act that holds it now. */
 const ActKey = defineComponent({
