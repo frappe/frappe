@@ -76,6 +76,7 @@ import { DesktopShell, Dialogs, ToastProvider, useKeyboardShortcut } from "frapp
 import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
+import { __ } from "@/i18n";
 import { itemContext } from "@/navigation/context";
 import {
 	currentFrom,
@@ -266,7 +267,7 @@ watch(paletteOpen, (isOpen) => isOpen && (paletteLoaded.value = true), { immedia
 // The rich-text editor keeps its own Mod+K.
 useKeyboardShortcut({
 	combo: "Mod+K",
-	description: "Search or run an action",
+	description: __("Search or run an action"),
 	allowInInput: true,
 	allowInDialog: true,
 	preventDefault: false,

@@ -49,16 +49,18 @@ class Recents {
 	retitle(path: string, label: string) {
 		if (!this.router || !label) return;
 		const href = this.router.resolve(path).href;
-		const recent = this.stored().find((one) => one.href === href);
+		const stored = this.stored();
+		const recent = stored.find((one) => one.href === href);
 		if (!recent || recent.label === label) return;
-		this.write(this.stored().map((one) => (one.href === href ? { ...one, label } : one)));
+		this.write(stored.map((one) => (one === recent ? { ...one, label } : one)));
 	}
 
 	private keep(recent: Recent) {
-		const earlier = this.stored().find((one) => one.href === recent.href);
+		const stored = this.stored();
+		const earlier = stored.find((one) => one.href === recent.href);
 		// A record's title outlives the visit; the route alone only knows its name.
 		const label = recent.kind === "record" && earlier ? earlier.label : recent.label;
-		const others = this.stored().filter((one) => one.href !== recent.href);
+		const others = stored.filter((one) => one !== earlier);
 		this.write([{ ...recent, label }, ...others].slice(0, LIMIT));
 	}
 
@@ -92,12 +94,10 @@ function recentOf(
 	if (RECORD_ROUTES.has(name)) {
 		const record = String(to.params.name);
 		return record === doctype
-			? { href, label: doctype, description: app, kind: "list" }
+			? { href, label: doctype, description: app, kind: "record" }
 			: { href, label: record, description: doctype, kind: "record" };
 	}
 	if (LIST_ROUTES.has(name)) return { href, label: doctype, description: app, kind: "list" };
-	if (name === "saved-view")
-		return { href, label: String(to.params.viewName), description: doctype, kind: "list" };
 	return null;
 }
 

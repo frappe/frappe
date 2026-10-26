@@ -13,11 +13,7 @@
 		<CommandPaletteInput :placeholder="__('Search or run an action')" />
 
 		<CommandPaletteList>
-			<CommandPaletteGroup
-				v-for="group in groups"
-				:key="group.label"
-				:label="__(group.label)"
-			>
+			<CommandPaletteGroup v-for="group in groups" :key="group.label" :label="group.label">
 				<PaletteRow v-for="row in group.rows" :key="row.id" :row="row" />
 			</CommandPaletteGroup>
 		</CommandPaletteList>
@@ -73,18 +69,13 @@ import PaletteRow from "./PaletteRow.vue";
 const context: PaletteContext = { boot: inject<Boot>("boot")!, router: useRouter() };
 const query = ref("");
 
-// Read only while open: the acts on hand change with the page, and a closed palette asks nothing.
 const groups = computed(() =>
-	paletteOpen.value
-		? paletteGroups
-				.map((group) => ({ label: group.label, rows: group.rows(query.value, context) }))
-				.filter((group) => group.rows.length)
-		: []
+	paletteGroups
+		.map((group) => ({ label: group.label, rows: group.rows(query.value, context) }))
+		.filter((group) => group.rows.length)
 );
 
-const pinned = computed(() =>
-	paletteOpen.value ? pinnedRows.flatMap((rows) => rows(query.value, context)) : []
-);
+const pinned = computed(() => pinnedRows.flatMap((rows) => rows(query.value, context)));
 
 function select(value: unknown) {
 	(value as Row).run();

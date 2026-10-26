@@ -1,4 +1,5 @@
 // The palette's own search: no fuzzy matching, three tiers, then recency, then the alphabet.
+import { matchTier } from "./matchTier";
 import type { PaletteRow } from "./palette";
 import { recents } from "./recents";
 
@@ -21,22 +22,8 @@ export function rank(rows: PaletteRow[], query: string): PaletteRow[] {
 }
 
 function tierOf(row: PaletteRow, needle: string): number {
-	return Math.min(...[row.label, ...(row.keywords ?? [])].map((text) => tierIn(text, needle)));
-}
-
-/** 0 at the start, 1 at the start of a later word, 2 inside a word, `MISS` when absent. */
-function tierIn(text: string, needle: string): number {
-	const haystack = text.toLowerCase();
-	let best = MISS;
-	for (let at = haystack.indexOf(needle); at >= 0; at = haystack.indexOf(needle, at + 1)) {
-		if (at === 0) return 0;
-		best = Math.min(best, isWordStart(haystack, at) ? 1 : 2);
-	}
-	return best;
-}
-
-function isWordStart(text: string, at: number) {
-	return !/[\p{L}\p{N}]/u.test(text[at - 1]);
+	const tiers = [row.label, ...(row.keywords ?? [])].map((text) => matchTier(text, needle) ?? MISS);
+	return Math.min(...tiers);
 }
 
 function recencyOf(row: PaletteRow) {

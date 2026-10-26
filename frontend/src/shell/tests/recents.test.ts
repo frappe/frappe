@@ -50,7 +50,7 @@ function shown() {
 beforeEach(() => localStorage.clear());
 
 describe("recents", () => {
-	it("keeps lists, records, saved views and pages, newest first, and nothing else", async () => {
+	it("keeps lists, records, singles and pages, newest first, and nothing else", async () => {
 		const router = track();
 		await router.push("/crm-deal");
 		await router.push("/crm-deal/DEAL-1");
@@ -60,9 +60,8 @@ describe("recents", () => {
 		await router.push("/system-settings/System Settings");
 
 		expect(shown()).toEqual([
-			["System Settings", "CRM", "list"],
+			["System Settings", "CRM", "record"],
 			["Deals", "CRM", "page"],
-			["open", "CRM Deal", "list"],
 			["DEAL-1", "CRM Deal", "record"],
 			["CRM Deal", "CRM", "list"],
 		]);

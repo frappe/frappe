@@ -25,7 +25,7 @@
 		</div>
 
 		<div class="mb-3 flex shrink-0 flex-col items-center gap-3 self-stretch">
-			<div class="w-full border-t border-outline-gray-2" aria-hidden="true" />
+			<Divider flex-item />
 			<Tooltip side="right">
 				<template #content>
 					<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
@@ -43,7 +43,7 @@
 					<span class="lucide-search size-4" aria-hidden="true" />
 				</button>
 			</Tooltip>
-			<div class="w-full border-t border-outline-gray-2" aria-hidden="true" />
+			<Divider flex-item />
 		</div>
 
 		<!-- Stretched over `SidebarRail`'s own padding, so the scrollbar sits on the rail's edge. -->
@@ -98,6 +98,7 @@
 import { computed, inject } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import {
+	Divider,
 	Dropdown,
 	KeyboardShortcut,
 	SidebarRail,

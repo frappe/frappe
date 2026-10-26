@@ -1,8 +1,8 @@
-// The palette's groups in their fixed order, and the rows pinned below the list. A later group
-// or pinned row is one more entry in its list; each one builds its own rows.
+// The palette's groups in their fixed order, and the rows pinned below the list.
 import type { Router } from "vue-router";
 import { acts, type AvailableAct } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
+import { __ } from "@/i18n";
 import { pageRows, type PaletteRow } from "./palette";
 import { rank } from "./paletteRanking";
 import { recents, type Recent } from "./recents";
@@ -13,7 +13,8 @@ export interface PaletteContext {
 }
 
 export interface PaletteGroup {
-	label: string;
+	/** Read at each draw, so it is translated once the messages have loaded. */
+	readonly label: string;
 	/** Its rows for the query, ranked and capped; none hides the group. */
 	rows: (query: string, context: PaletteContext) => PaletteRow[];
 }
@@ -26,18 +27,24 @@ const RECENT_ICONS: Record<Recent["kind"], string> = {
 };
 
 const recent: PaletteGroup = {
-	label: "Recent",
+	get label() {
+		return __("Recent");
+	},
 	rows: (query, context) =>
 		query.trim() ? [] : recents.list().slice(0, RECENT_CAP).map((one) => recentRow(one, context)),
 };
 
 const thisPage: PaletteGroup = {
-	label: "This page",
+	get label() {
+		return __("This page");
+	},
 	rows: (query) => rank([...actRows((act) => !isShellAct(act)), ...pageRows()], query),
 };
 
 const desk: PaletteGroup = {
-	label: "Desk",
+	get label() {
+		return __("Desk");
+	},
 	rows: (query, context) =>
 		query.trim() ? rank(actRows(isShellAct, context.boot), query) : [],
 };
@@ -51,14 +58,14 @@ function recentRow(one: Recent, context: PaletteContext): PaletteRow {
 	return {
 		id: `recent:${one.href}`,
 		label: one.label,
-		description: one.description,
+		description: one.kind === "record" && one.description ? __(one.description) : one.description,
 		icon: RECENT_ICONS[one.kind],
 		href: one.href,
 		run: () => open(one.href, context),
 	};
 }
 
-/** The acts available now that the palette may show; an act asking for a value waits for its step. */
+/** The acts available now that the palette may show. */
 function actRows(where: (act: AvailableAct) => boolean, boot?: Boot): PaletteRow[] {
 	return acts
 		.available()

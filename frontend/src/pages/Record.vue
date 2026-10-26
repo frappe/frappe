@@ -264,10 +264,8 @@ const docname = computed(() => String(route.params.name));
 
 const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
 
-// The palette's "Go to tab" rows follow the page that draws the strip.
 watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRows(created)));
 
-// The palette's recents keep the saved title, which the address does not carry.
 watch(
 	() => saved.value.name === docname.value && saved.value[meta.value?.title_field],
 	(title) => title && recents.retitle(route.path, String(title))

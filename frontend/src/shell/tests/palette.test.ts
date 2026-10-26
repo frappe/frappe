@@ -58,23 +58,23 @@ async function flush() {
 	}
 }
 
-async function shell(path = "/crm-deal"): Promise<Router> {
+async function shell(path = "/crm-deal", shellBoot: Boot = boot): Promise<Router> {
 	const router = createRouter({
-		history: createMemoryHistory(boot.shell_base),
+		history: createMemoryHistory(shellBoot.shell_base),
 		routes: [
 			{ path: "/", name: "home", component: page },
 			{ path: "/:doctype", name: "list", component: page },
 			{ path: "/:doctype/:name", name: "record", component: page },
 		],
 	});
-	registerShell({ boot, addresses, router });
-	recents.track(router, boot, addresses);
+	registerShell({ boot: shellBoot, addresses, router });
+	recents.track(router, shellBoot, addresses);
 
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	const app = createApp(AppShell);
 	installTranslate(app);
-	app.provide("boot", boot);
+	app.provide("boot", shellBoot);
 	app.provide("addresses", addresses);
 	app.use(router);
 	await router.push(path);
@@ -103,11 +103,18 @@ function act(name: string, label: string, extra: Partial<ActEntry["item"]> = {})
 	return { item: { name, label, run: () => void ran.push(name), ...extra }, hidden: false };
 }
 
+/** The keydown, so a test can ask whether the browser's own Mod+K was stopped. */
 function pressModK(target: EventTarget = document) {
 	const mac = /Mac|iPhone|iPad/i.test(navigator.platform);
-	target.dispatchEvent(
-		new KeyboardEvent("keydown", { key: "k", ctrlKey: !mac, metaKey: mac, bubbles: true })
-	);
+	const event = new KeyboardEvent("keydown", {
+		key: "k",
+		ctrlKey: !mac,
+		metaKey: mac,
+		bubbles: true,
+		cancelable: true,
+	});
+	target.dispatchEvent(event);
+	return event;
 }
 
 async function open() {
@@ -169,8 +176,10 @@ afterEach(() => {
 describe("opening the palette", () => {
 	it("opens on Mod+K, and adds nothing to the address", async () => {
 		const router = await shell();
-		await open();
+		const pressed = pressModK();
+		await vi.waitFor(() => expect(input()).not.toBeNull(), { timeout: 10000 });
 
+		expect(pressed.defaultPrevented).toBe(true);
 		expect(paletteOpen.value).toBe(true);
 		expect(router.currentRoute.value.fullPath).toBe("/crm-deal");
 	});
@@ -193,10 +202,22 @@ describe("opening the palette", () => {
 		editor.contentEditable = "true";
 		document.body.appendChild(editor);
 
-		pressModK(editor);
+		const pressed = pressModK(editor);
 		await flush();
 
+		expect(pressed.defaultPrevented).toBe(false);
 		expect(paletteOpen.value).toBe(false);
+	});
+
+	it("draws the acts of a page that registers while it is open", async () => {
+		await shell();
+		await open();
+		expect(drawn()).toEqual([["Recent", "CRM Deal CRM"]]);
+
+		register({ header: [act("save", "Save")] });
+		await flush();
+
+		expect(drawn()).toEqual([["Recent", "CRM Deal CRM"], ["This page", "Save"]]);
 	});
 
 	it("opens from the rail's search item", async () => {
@@ -303,6 +324,48 @@ describe("the groups", () => {
 		await flush();
 
 		expect(router.currentRoute.value.fullPath).toBe("/crm-deal/DEAL-1");
+	});
+});
+
+describe("a recent of another prefix", () => {
+	/** A recent kept under another app's prefix, as that app's own shell would keep it. */
+	async function keptElsewhere() {
+		const elsewhere = { ...boot, app: "helpdesk", shell_base: boot.shell_base.replace("crm", "helpdesk") };
+		const router = createRouter({
+			history: createMemoryHistory(elsewhere.shell_base),
+			routes: [{ path: "/:doctype/:name", name: "record", component: page }],
+		});
+		recents.track(router, elsewhere, addresses);
+		await router.push("/todo/T-1");
+		return router.resolve("/todo/T-1").href;
+	}
+
+	it("loads the other prefix's document, not a route of this one", async () => {
+		const href = await keptElsewhere();
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const router = await shell();
+		await open();
+
+		row(`recent:${href}`)!.click();
+		await flush();
+
+		expect(assign).toHaveBeenCalledWith(href);
+		expect(router.currentRoute.value.fullPath).toBe("/crm-deal");
+		assign.mockRestore();
+	});
+
+	it("loads it from the index, which has no app routes", async () => {
+		const href = await keptElsewhere();
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const index = { ...boot, app: null, app_title: undefined, shell_base: boot.shell_base.replace("/crm", "") };
+		await shell("/", index as unknown as Boot);
+		await open();
+
+		row(`recent:${href}`)!.click();
+		await flush();
+
+		expect(assign).toHaveBeenCalledWith(href);
+		assign.mockRestore();
 	});
 });
 
