@@ -64,7 +64,7 @@ jobs:
             run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
             [ -n "$run_id" ] || continue
             gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
-            until [ "$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json status --jq .status 2>/dev/null)" = completed ]; do sleep 10; done
+            for _ in $(seq 360); do [ "$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break; sleep 10; done
             gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
           done
         env:
