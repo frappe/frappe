@@ -23,7 +23,15 @@ frappe.ui.form.upload_first_review.start = function (entry) {
 	frappe.route_hooks.after_save = (frm) => file_entry_against(frm);
 
 	frappe.model.with_doctype(entry.document_type, () => {
-		frappe.set_route("Form", entry.document_type, document_for(entry));
+		// The document has to exist before the entry goes into route_options, since
+		// creating it consumes them (see frappe.model.get_new_doc).
+		const docname = document_for(entry);
+
+		// The route carries the entry, so the file can be put back beside the form
+		// from the URL alone — however the page got there, and whatever clears the
+		// pane in between. Read back in Form.show_upload_first_review().
+		frappe.route_options = { attachment_queue: entry.name };
+		frappe.set_route("Form", entry.document_type, docname);
 	});
 };
 
@@ -54,26 +62,49 @@ frappe.ui.form.upload_first_review.open = function (frm, entry) {
 	const file_url = safe_href(entry.source_file, "upload_first_review");
 	if (!frm.attachments || !file_url) return;
 
-	frm.upload_first_review = { entry, file_url, docname: frm.docname };
+	// a review already running for this document keeps the reader's own decisions,
+	// such as having closed the file
+	const running = frm.upload_first_review;
+	if (!running || running.docname !== frm.docname || running.entry.name !== entry.name) {
+		frm.upload_first_review = { entry, file_url, docname: frm.docname, closed: false };
+	}
+
 	open_pane(frm);
 	keep_open_across_refreshes(frm);
 };
 
 function open_pane(frm) {
 	const review = frm.upload_first_review;
+	if (review.closed) return;
 
 	// a no-op while the pane already holds this file, so the file is never reloaded
 	frm.attachments.show_attachment_preview(
 		{ file_name: queued_file_name(review.entry.source_file) },
 		review.file_url
 	);
-	frm.attachments.attachment_preview.addClass("upload-first-review");
+
+	const $pane = frm.attachments.attachment_preview;
+	$pane.addClass("upload-first-review");
+
+	// The reader closing the file ends the review; anything else that drops the pane
+	// (a form render, a route change clearing it) does not, so it is put back.
+	$pane
+		.find(".attachment-preview-close")
+		.off("click.upload_first_review")
+		.on("click.upload_first_review", () => end_review(frm));
+
+	// the pane's own Escape handler closes it without going through that button
+	$(document)
+		.off("keydown.upload_first_review")
+		.on("keydown.upload_first_review", (event) => {
+			if (event.key === "Escape" && !$pane.hasClass("hidden")) end_review(frm);
+		});
 }
 
 /**
- * The pane outlives a form render, but saving a new document renames it, and the
- * pane is dropped when the form moves on to another document — so take the file
- * back after every render, until the review is over.
+ * The pane is dropped by anything that rebuilds the form's sidebar or clears the
+ * preview (a failed save re-renders the form; a route change empties it), so take
+ * the file back after every render until the review is over.
  */
 function keep_open_across_refreshes(frm) {
 	$(document)
@@ -89,18 +120,17 @@ function keep_open_across_refreshes(frm) {
 			// document in it is not the one being reviewed.
 			if (frm.docname !== review.docname) return;
 
-			// the pane marks the page while it is open, and only the user closing it
-			// clears that — so this tells a dropped pane apart from a dismissed one
-			if (!frm.page.wrapper.hasClass("attachment-preview-open")) return;
-
 			open_pane(frm);
 		});
 }
 
 /** Close the split screen and leave the form as it would be without a review. */
 function end_review(frm) {
-	frm.upload_first_review = null;
+	const review = frm.upload_first_review;
+	if (review) review.closed = true;
+
 	$(document).off("form-refresh.upload_first_review");
+	$(document).off("keydown.upload_first_review");
 	frm.attachments && frm.attachments.hide_attachment_preview();
 }
 

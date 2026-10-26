@@ -871,11 +871,23 @@ frappe.ui.form.Form = class FrappeForm {
 
 	show_upload_first_review() {
 		// A document written from an uploaded file keeps the file it was written from,
-		// so a draft reopens beside it however it was reached. Only DocTypes that take
-		// the workflow are asked about, and only until the document is submitted.
-		if (!this.meta.enable_upload_first_workflow || this.is_new() || this.doc.docstatus !== 0) {
-			return;
-		}
+		// so the review reopens beside it however the document was reached. The entry
+		// rides in the route while the document is unsaved, and is looked up by the
+		// document it was filed against once it is saved. Only DocTypes that take the
+		// workflow are asked about, and only until the document is submitted.
+		if (!this.meta.enable_upload_first_workflow || this.doc.docstatus !== 0) return;
+
+		// same as the layout param: route_options on a fresh route, the URL after that
+		const from_route_options = frappe.route_options?.attachment_queue;
+		const entry_name =
+			from_route_options ||
+			new URLSearchParams(window.location.search).get("attachment_queue");
+		if (from_route_options) delete frappe.route_options.attachment_queue;
+
+		// an unsaved document is in no queue entry yet, so the route is the only link
+		if (!entry_name && this.is_new()) return;
+		// already reviewing this document, including a pane the reader closed
+		if (this.upload_first_review?.docname === this.docname) return;
 		if (this._upload_first_review_docname === this.docname) return;
 		// One Form is shared by every document of its DocType, so this.docname moves on
 		// as the user does: the entry below belongs to the document asked about here.
@@ -884,7 +896,9 @@ frappe.ui.form.Form = class FrappeForm {
 		return frappe.db
 			.get_list("Attachment Queue", {
 				fields: ["name", "document_type", "source_file"],
-				filters: { document_type: this.doctype, created_document: docname },
+				filters: entry_name
+					? { name: entry_name }
+					: { document_type: this.doctype, created_document: docname },
 				limit: 1,
 			})
 			.then((entries) => {
