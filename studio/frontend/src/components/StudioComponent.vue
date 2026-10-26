@@ -111,6 +111,7 @@ import {
 	useAttrs,
 	inject,
 	ComputedRef,
+	nextTick,
 	onErrorCaptured,
 	h,
 	getCurrentInstance,
@@ -128,6 +129,7 @@ import useCanvasStore from "@/stores/canvasStore"
 import useStudioStore from "@/stores/studioStore"
 import { getBlockInfo, getComponentRoot, isObjectEmpty } from "@/utils/helpers"
 import { isReorderable, startBlockReorder } from "@/utils/useBlockReorder"
+import { getEditorVariantChoice } from "@/utils/variants"
 import { isDynamicValue } from "@/utils/code"
 
 import type { CanvasProps } from "@/types/StudioCanvas"
@@ -295,16 +297,41 @@ const isPrimaryInstance = computed(() => {
 	return instanceIndex === undefined || instanceIndex === 0
 })
 
+const isVariantsBlock = props.block.componentName === "Variants"
+
+// A Variants block swaps its rendered option in place: the instance survives but its
+// root element is replaced, which `target` cannot observe. Re-resolve after the swap.
+const targetRevision = ref(0)
+if (isVariantsBlock) {
+	watch(
+		() => getEditorVariantChoice(props.block.componentId),
+		() => nextTick(() => targetRevision.value++),
+	)
+}
+
 const target = computed<HTMLElement | null>(() => {
+	targetRevision.value
 	if (!componentRef.value) return null
 	const root = getComponentRoot(componentRef)
-	if (root instanceof HTMLElement || root instanceof SVGElement) return root as HTMLElement
-	// Fallback for renderless-root components (Popover root) with $el/$rootRef is undefined/not a DOM element
-	// return the real DOM element so the ComponentEditor can anchor to it.
+	// After a swap the instance can still hold the removed root. Only trust a root that
+	// is in the live document; otherwise resolve from the DOM below.
+	if ((root instanceof HTMLElement || root instanceof SVGElement) && root.isConnected) {
+		return root as HTMLElement
+	}
+	// Resolve from the DOM when the component has no usable root element: a renderless
+	// root (Popover), or a Variants block, which renders only its shown option.
 	return document.querySelector(
-		`[data-component-id="${props.block.componentId}"][data-breakpoint="${props.breakpoint}"]`,
+		`[data-component-id="${targetBlockId()}"][data-breakpoint="${props.breakpoint}"]`,
 	) as HTMLElement | null
 })
+
+// A Variants block has no element of its own; its shown option carries the id to anchor
+// to. Clamp like the runtime does, so a stale choice still points at a rendered option.
+function targetBlockId() {
+	if (!isVariantsBlock || !props.block.children.length) return props.block.componentId
+	const index = Math.min(getEditorVariantChoice(props.block.componentId), props.block.children.length - 1)
+	return props.block.children[index]?.componentId ?? props.block.componentId
+}
 
 const loadEditor = computed(() => {
 	return (

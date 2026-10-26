@@ -354,6 +354,17 @@ onMounted(() => {
 	tracker.value = trackTarget(props.target, editor.value, canvasProps)
 })
 
+// The block's root element can be replaced in place (a Variants block swapping its
+// shown option). Re-anchor the overlay to the new element.
+watch(
+	() => props.target,
+	(target) => {
+		if (!target || !editor.value) return
+		tracker.value?.cleanup()
+		tracker.value = trackTarget(target, editor.value, canvasProps)
+	},
+)
+
 defineExpose({
 	element: editor,
 })
