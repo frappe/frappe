@@ -67,7 +67,19 @@ test.describe("Workspace island", () => {
 						type: "paragraph",
 						data: { text: "Playwright body text", col: 4 },
 					},
+					{
+						id: "pw-ql",
+						type: "quick_list",
+						data: { quick_list_name: "Closed ToDos", col: 6 },
+					},
 				]),
+				quick_lists: [
+					{
+						document_type: "ToDo",
+						label: "Closed ToDos",
+						quick_list_filter: JSON.stringify([["ToDo", "status", "=", "Closed"]]),
+					},
+				],
 				shortcuts: [{ type: "DocType", link_to: "ToDo", label: "Playwright ToDos" }],
 				links: [
 					{ type: "Card Break", label: "Playwright Links" },
@@ -80,7 +92,16 @@ test.describe("Workspace island", () => {
 		);
 	});
 
+	let todo;
+	test.beforeAll(async ({ admin }) => {
+		todo = await admin.insert_doc("ToDo", {
+			description: "Playwright open todo",
+			status: "Open",
+		});
+	});
+
 	test.afterAll(async ({ admin }) => {
+		await admin.remove_doc("ToDo", todo.name, true);
 		await admin.remove_doc("Workspace", WORKSPACE, true);
 	});
 
@@ -149,6 +170,17 @@ test.describe("Workspace island", () => {
 
 		expect(await top(card)).toBeLessThan(await top(second));
 		expect(await top(second)).toBeLessThan(await top(body));
+	});
+
+	test("a quick list shows its filtered rows and the filter can change", async ({ page }) => {
+		await page.goto("/desk/playwright-island");
+
+		const list = page.locator(".ws-tile", { hasText: "Closed ToDos" });
+		await expect(list.getByRole("button", { name: /^Filter/ })).toContainText("1");
+		await expect(list.getByText("Playwright open todo")).toHaveCount(0);
+
+		await list.getByRole("button", { name: "Clear All Filters" }).click();
+		await expect(list.getByText("Playwright open todo").first()).toBeVisible();
 	});
 
 	test("the workspace page has no URL of its own", async ({ page }) => {
