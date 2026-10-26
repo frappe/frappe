@@ -12,13 +12,16 @@ const props = defineProps({
 	widgets: { type: Object, required: true },
 });
 
+// tiles that pull in the shared Filter load on first use
 const ChartTile = defineAsyncComponent(() => import("./tiles/ChartTile.vue"));
+const QuickListTile = defineAsyncComponent(() => import("./tiles/QuickListTile.vue"));
 
 const TILES = {
 	number_card: { component: NumberCardTile, widgets: "number_cards", key: "number_card_name" },
 	chart: { component: ChartTile, widgets: "charts", key: "chart_name" },
 	shortcut: { component: ShortcutTile, widgets: "shortcuts", key: "shortcut_name" },
 	card: { component: CardTile, widgets: "cards", key: "card_name" },
+	quick_list: { component: QuickListTile, widgets: "quick_lists", key: "quick_list_name" },
 };
 
 const sections = computed(() =>
