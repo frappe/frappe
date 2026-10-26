@@ -172,6 +172,16 @@ def measure_time(func):
 	return wrapper
 
 
+def encrypt_pdf(content: bytes, password: str) -> bytes:
+	from pypdf import PdfReader, PdfWriter
+
+	writer = PdfWriter(clone_from=PdfReader(io.BytesIO(content)))
+	writer.encrypt(password)
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
 @measure_time
 def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 	from frappe.utils.pdf_generator.browser import Browser
@@ -471,31 +481,46 @@ def pdf_contains_js(file_content: bytes):
 	from io import BytesIO
 
 	from pypdf import PdfReader, errors
+	from pypdf.generic import IndirectObject
 
 	reader = PdfReader(BytesIO(file_content))
 
-	def has_javascript(obj):
+	def has_javascript(obj, seen=None):
+		if seen is None:
+			seen = set()
+		if isinstance(obj, IndirectObject):
+			key = (obj.idnum, obj.generation)
+			if key in seen:
+				return False
+			seen.add(key)
+			obj = obj.get_object()
 		if isinstance(obj, dict):
 			for key, value in obj.items():
+				if key == "/Parent":
+					continue
 				if key in ("/JS", "/JavaScript"):
 					return True
-				if has_javascript(value):
+				if has_javascript(value, seen):
 					return True
 		elif isinstance(obj, list):
 			for item in obj:
-				if has_javascript(item):
+				if has_javascript(item, seen):
 					return True
 		return False
 
 	root = reader.trailer.get("/Root", {})
-	if has_javascript(root):
-		return True
 
 	try:
+		if has_javascript(root):
+			return True
+
 		for page in reader.pages:
 			if has_javascript(page):
 				return True
 	except errors.FileNotDecryptedError:
+		# resolving any indirect object (root, page, or otherwise) requires
+		# decryption; an encrypted file we can't decrypt is treated as not
+		# containing JS, same as an unreadable/undecryptable file always was
 		pass
 
 	return False
