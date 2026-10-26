@@ -18,8 +18,7 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 	const dialog = new frappe.ui.Dialog({
 		title: __("Documents for Review"),
 		size: "extra-large",
-		fields: [{ fieldtype: "HTML", 
-			fieldname: "pending" }],
+		fields: [{ fieldtype: "HTML", fieldname: "pending" }],
 		primary_action_label: __("Process"),
 		primary_action: () => frappe.ui.attachment_queue.start_review(selected, dialog),
 	});
