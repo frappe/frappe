@@ -14,7 +14,8 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 import type { Boot } from "@/boot";
 import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { registerSettingsBlocks, type PanesReply, type SettingsBlock } from "@/shell/settingsPanes";
+import { registerSettingsBlocks } from "@/shell/settingsBlocks";
+import type { PanesReply, SettingsBlock } from "@/shell/settingsPanes";
 import ShellSettingsDialog from "@/shell/ShellSettingsDialog.vue";
 import SettingsBlocks from "../SettingsBlocks.vue";
 import { SettingsServer } from "./settingsServer";
@@ -88,6 +89,7 @@ async function opened(): Promise<Router> {
 		history: createMemoryHistory(),
 		routes: [{ path: "/:any(.*)*", component: { render: () => null } }],
 	});
+	await router.push("/deals");
 	await router.push("/deals#settings/desk/system");
 	await router.isReady();
 	mounted = createApp(ShellSettingsDialog);
@@ -219,6 +221,36 @@ describe("leaving with unsaved changes", () => {
 		expect(fake.confirm).toHaveBeenCalledTimes(1);
 		expect(router.currentRoute.value.hash).toBe("#settings/desk/system");
 		expect(input("time_zone").value).toBe("Asia/Kolkata");
+	});
+
+	it("asks before Back", async () => {
+		const router = await opened();
+		type("time_zone", "Asia/Kolkata");
+		fake.confirm.mockImplementation((options) => options.onCancel());
+
+		router.back();
+		await settle();
+
+		expect(fake.confirm).toHaveBeenCalledTimes(1);
+		expect(router.currentRoute.value.hash).toBe("#settings/desk/system");
+	});
+
+	it("saves a typed auto field when the dialog closes, without asking", async () => {
+		const router = await opened();
+		// happy-dom fires no `change` when a typed input blurs; a browser does.
+		input("country").addEventListener("blur", (event) =>
+			event.target!.dispatchEvent(new Event("change", { bubbles: true }))
+		);
+		input("country").focus();
+		type("country", "India");
+
+		await router.replace({ hash: "" });
+		await settle();
+
+		expect(fake.confirm).not.toHaveBeenCalled();
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ country: "India", modified: expect.any(String) },
+		]);
 	});
 
 	it("leaves without asking when nothing is unsaved", async () => {

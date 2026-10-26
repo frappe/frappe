@@ -1,7 +1,7 @@
 <!-- A pane's blocks, which the shell's settings dialog mounts: each generated block's rows over its
      binding's draft, and a floating Save bar while a `button` block holds changes. -->
 <template>
-	<div class="contents" @keydown="onKeydown">
+	<div ref="root" class="contents">
 		<SettingsBody>
 			<LoadingStatus v-if="loading" />
 			<section
@@ -22,16 +22,7 @@
 					:bound="drafts.bound.get(block.key)!"
 					@commit="drafts.commit(drafts.bound.get(block.key)!)"
 				/>
-				<div
-					v-for="row in 3"
-					v-else
-					:key="row"
-					aria-hidden="true"
-					class="flex items-center gap-8 border-b border-outline-gray-1 py-3.5 last:border-b-0"
-				>
-					<Skeleton class="h-4 w-36 rounded-1" />
-					<Skeleton class="ml-auto h-7 w-56 rounded-4" />
-				</div>
+				<SettingsRowsSkeleton v-else :rows="3" />
 			</section>
 			<div v-if="drafts.hasButtons" class="h-16" aria-hidden="true" />
 		</SettingsBody>
@@ -67,14 +58,16 @@
 <script setup lang="ts">
 import { computed, inject, onUnmounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import { Button, dialog, SettingsBody, Skeleton } from "frappe-ui";
+import { Button, dialog, SettingsBody } from "frappe-ui";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import LoadingStatus from "@/shell/LoadingStatus.vue";
 import type { SettingsPane } from "@/shell/settingsPanes";
 import { discardChanges, type Confirm } from "../record/discardChanges";
+import { useSaveKeys } from "../record/recordSave";
 import { PaneDrafts } from "./paneDrafts";
 import SettingsBlockRows from "./SettingsBlockRows.vue";
+import SettingsRowsSkeleton from "./SettingsRowsSkeleton.vue";
 
 const props = defineProps<{ pane: SettingsPane }>();
 const emit = defineEmits<{ loaded: [] }>();
@@ -99,11 +92,12 @@ const barText = computed(() => {
 	return unsaved === 1 ? __("1 unsaved change") : __("{0} unsaved changes", [unsaved]);
 });
 
-function onKeydown(event: KeyboardEvent) {
-	if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
-	event.preventDefault();
-	if (!event.repeat) void drafts.saveButtons();
-}
+const root = ref<HTMLElement | null>(null);
+useSaveKeys({
+	save: () => void drafts.saveButtons(),
+	unsaved: () => drafts.unsaved(),
+	dialog: () => root.value?.closest('[role="dialog"]'),
+});
 
 // A pane switch, Back, Esc and a route change all move the address; a typed value is committed first.
 const router = useRouter();

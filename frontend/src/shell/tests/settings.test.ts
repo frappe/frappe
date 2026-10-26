@@ -11,12 +11,8 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 
 import type { Boot } from "@/boot";
 import { SettingsAddressBook } from "../settingsAddress";
-import {
-	fetchPanes,
-	registerSettingsBlocks,
-	type PanesReply,
-	type SettingsPane,
-} from "../settingsPanes";
+import { registerSettingsBlocks } from "../settingsBlocks";
+import { fetchPanes, type PanesReply, type SettingsPane } from "../settingsPanes";
 import ShellSettingsDialog from "../ShellSettingsDialog.vue";
 
 /** The page layer's blocks, as far as the shell relies on them: a section per block, then `loaded`. */

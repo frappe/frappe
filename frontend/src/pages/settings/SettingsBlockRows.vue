@@ -1,16 +1,7 @@
 <!-- A generated block's rows: a skeleton while its binding loads, then its doctype's tabs as a tab
      strip and its sections as sub-headings, with `depends_on` read from the draft. -->
 <template>
-	<div v-if="state.loading" aria-hidden="true">
-		<div
-			v-for="row in skeletonRows"
-			:key="row"
-			class="flex items-center gap-8 border-b border-outline-gray-1 py-3.5 last:border-b-0"
-		>
-			<Skeleton class="h-4 w-36 rounded-1" />
-			<Skeleton class="ml-auto h-7 w-56 rounded-4" />
-		</div>
-	</div>
+	<SettingsRowsSkeleton v-if="state.loading" :rows="skeletonRows" />
 	<p v-else-if="state.failed" class="py-3.5 text-base text-ink-red-7">
 		{{ __("{0} could not load: {1}", [__(bound.draft.doctype), state.failed]) }}
 	</p>
@@ -41,7 +32,7 @@
 
 <script setup lang="ts">
 import { computed, provide, ref } from "vue";
-import { Skeleton, TabButtons } from "frappe-ui";
+import { TabButtons } from "frappe-ui";
 import {
 	getFieldComponent,
 	identifyTabs,
@@ -53,6 +44,7 @@ import { DocKey, FieldErrorsKey } from "@framework/ui/fields/types";
 import { __ } from "@/i18n";
 import type { BoundBlock } from "./paneDrafts";
 import SettingsFieldRow from "./SettingsFieldRow.vue";
+import SettingsRowsSkeleton from "./SettingsRowsSkeleton.vue";
 
 const props = defineProps<{ bound: BoundBlock }>();
 const emit = defineEmits<{ commit: [] }>();

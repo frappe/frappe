@@ -364,7 +364,7 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | Record page host (`Record.vue`) | Fills `RecordPageHost`: loads, saves, and wires layouts, feeds, tabs and the composer. `UnsavedRecord` is the second host, for a record before its first save |
-| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `Confirm`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | The form's classes, the header row's projection, the "Discard unsaved changes?" question, which the settings blocks also ask, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload, and the commit channel and field errors |
+| Host parts both hosts share (`FORM_CLASSES`, `projectRecordHeader`, `discardChanges`, `Confirm`, `runSave`, `useSaveKeys`, `provideRecordCommits`) | The form's classes, the header row's projection, the "Discard unsaved changes?" question, the save from the header and from Ctrl/Cmd+S, the browser's question before a reload (the settings blocks ask the same question and use the same keys, scoped to their dialog), and the commit channel and field errors |
 | Field landing (`landOnField`, `landOnFirstMarked`, `tabOf`, `stopLanding`) | Moves a form to a field's tab and puts the cursor in it. The record page's focus and both form dialogs use it. `stopLanding` ends a landing still waiting for a lazy control, when a page unmounts |
 | Visit (`Visit`) | One object per visit to a record. Ending it aborts its reads, and a reply that belongs to an old visit is dropped |
 | Return-visit parts | *New.* Which record parts a return visit needs before it paints from memory |

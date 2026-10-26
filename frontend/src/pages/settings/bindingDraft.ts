@@ -48,6 +48,8 @@ export class BindingDraft {
 	readonly loaded: Promise<void>;
 	private queued = new Set<string>();
 	private sending = new Set<string>();
+	/** Unsent fields a silently re-sent save found changed elsewhere; their own save asks first. */
+	private stale = new Set<string>();
 	private running: Promise<void> | null = null;
 
 	constructor(
@@ -74,6 +76,8 @@ export class BindingDraft {
 	edit(fieldname: string, value: unknown) {
 		this.state.doc[fieldname] = value;
 		this.fieldErrors.clear(fieldname);
+		if (!this.dirty(fieldname) && this.state.marks[fieldname] === "error")
+			delete this.state.marks[fieldname];
 	}
 
 	/** Queues the changed fields, and any field a save in flight carries; that save is followed by one more. */
@@ -96,6 +100,7 @@ export class BindingDraft {
 	discard(fieldnames: string[]) {
 		for (const fieldname of fieldnames) {
 			this.state.doc[fieldname] = clone(this.state.saved[fieldname]);
+			this.stale.delete(fieldname);
 			delete this.state.marks[fieldname];
 			this.fieldErrors.unmark(fieldname);
 		}
@@ -150,6 +155,8 @@ export class BindingDraft {
 	}
 
 	private async send(fieldnames: string[]) {
+		if (fieldnames.some((fieldname) => this.stale.has(fieldname)))
+			return this.resolveConflict(fieldnames, null);
 		const values = Object.fromEntries(
 			fieldnames.map((fieldname) => [fieldname, clone(this.state.doc[fieldname])])
 		);
@@ -157,7 +164,8 @@ export class BindingDraft {
 			this.land((await this.write(values)).data, values);
 			this.settle(fieldnames, "saved");
 		} catch (error) {
-			if (isApiError(error) && error.isTimestampMismatch) await this.resolveConflict(fieldnames);
+			if (isApiError(error) && error.isTimestampMismatch)
+				await this.resolveConflict(fieldnames, error);
 			else this.refuse(fieldnames, error);
 		}
 	}
@@ -181,7 +189,7 @@ export class BindingDraft {
 	}
 
 	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses. */
-	private async resolveConflict(fieldnames: string[]) {
+	private async resolveConflict(fieldnames: string[], refusal: unknown) {
 		let latest: Envelope<Values>;
 		try {
 			latest = await getDocument(this.doctype, this.name, { include: ["users"] });
@@ -190,7 +198,13 @@ export class BindingDraft {
 		}
 		const fresh = latest.data;
 		const users = latest.users as Record<string, { full_name?: string }> | undefined;
-		if (fieldnames.every((fieldname) => same(fresh[fieldname], this.state.saved[fieldname]))) {
+		const touched = (fieldname: string) =>
+			this.stale.has(fieldname) || !same(fresh[fieldname], this.state.saved[fieldname]);
+		if (!fieldnames.some(touched)) {
+			if (fresh.modified === this.state.saved.modified) return this.refuse(fieldnames, refusal);
+			for (const fieldname of Object.keys(this.state.doc))
+				if (!fieldnames.includes(fieldname) && this.dirty(fieldname) && touched(fieldname))
+					this.stale.add(fieldname);
 			const { doc, saved } = mergeRefetch(this.state, fresh);
 			this.state.saved = { ...saved, modified: fresh.modified };
 			this.state.doc = { ...doc, modified: fresh.modified };
@@ -230,6 +244,7 @@ export class BindingDraft {
 	}
 
 	private reset(document: Values) {
+		this.stale.clear();
 		this.state.saved = clone(document);
 		this.state.doc = clone(document);
 		this.state.marks = {};

@@ -80,7 +80,8 @@ import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import { useHashDialog } from "./useHashDialog";
 import { FRAMEWORK, SettingsAddressBook } from "./settingsAddress";
-import { fetchPanes, loadSettingsBlocks } from "./settingsPanes";
+import { loadSettingsBlocks } from "./settingsBlocks";
+import { fetchPanes } from "./settingsPanes";
 import SettingsPaneView from "./SettingsPaneView.vue";
 
 const boot = inject<Boot>("boot")!;

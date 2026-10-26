@@ -1,6 +1,7 @@
 // What the page makes of a failed save: the conflict it throws, the message it shows,
 // and the fields the reader would lose.
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { __ } from "@/i18n";
 import type { Confirm } from "./discardChanges";
 
 /** The name a save rejected for a conflict throws under; the dialog has already told the reader. */
@@ -49,12 +50,15 @@ export async function confirmConflict(
   editor: string,
   changed: string[],
 ): Promise<boolean> {
-  const mine = changed.length ? `your changes to ${changed.join(", ")}` : "your changes";
+  const mine = changed.length ? __("your changes to {0}", [changed.join(", ")]) : __("your changes");
   const reload = await confirm({
-    title: "Saved by someone else",
-    message: `${editor} saved this record after you opened it, so ${mine} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.`,
-    confirmLabel: "Reload and lose my changes",
-    cancelLabel: "Keep editing",
+    title: __("Saved by someone else"),
+    message: __(
+      "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.",
+      [editor, mine],
+    ),
+    confirmLabel: __("Reload and lose my changes"),
+    cancelLabel: __("Keep editing"),
   });
   return !!reload;
 }

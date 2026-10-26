@@ -14,12 +14,16 @@ export async function runSave(page: RecordPageApi | undefined) {
 	}
 }
 
-/** Ctrl/Cmd+S calls `save` once per press, never from a dialog or a dropdown; a reload or a tab close asks while `unsaved` is true. */
-export function useSaveKeys(options: { save: () => void; unsaved: () => boolean }) {
+/** Ctrl/Cmd+S calls `save` once per press, only from inside `dialog` when one is given, else never from a dialog or a dropdown; a reload or a tab close asks while `unsaved` is true. */
+export function useSaveKeys(options: {
+	save: () => void;
+	unsaved: () => boolean;
+	dialog?: () => Element | null | undefined;
+}) {
 	function onKeydown(event: KeyboardEvent) {
 		if (!(event.metaKey || event.ctrlKey) || event.key.toLowerCase() !== "s") return;
 		event.preventDefault();
-		if (event.repeat || fromOverlay(event.target)) return;
+		if (event.repeat || overlayOf(event.target) !== (options.dialog?.() ?? null)) return;
 		options.save();
 	}
 
@@ -38,6 +42,6 @@ export function useSaveKeys(options: { save: () => void; unsaved: () => boolean 
 }
 
 /** A dropdown that frappe-ui portals to `<body>` from inside a dialog is not inside that dialog. */
-function fromOverlay(target: EventTarget | null) {
-	return target instanceof Element && !!target.closest('[role="dialog"],[role="listbox"],[role="menu"]');
+function overlayOf(target: EventTarget | null): Element | null {
+	return target instanceof Element ? target.closest('[role="dialog"],[role="listbox"],[role="menu"]') : null;
 }

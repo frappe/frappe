@@ -24,7 +24,7 @@ import { registerContributions, registerStandardPages } from "@/contributions/re
 import { standardPages } from "@/pages/standardPages";
 import AppShell from "@/shell/AppShell.vue";
 import { openCreate, registerCreateDialog } from "@/shell/create";
-import { registerSettingsBlocks } from "@/shell/settingsPanes";
+import { registerSettingsBlocks } from "@/shell/settingsBlocks";
 import { createSocket } from "@/shell/socket";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
 import Unauthorized from "@/shell/Unauthorized.vue";

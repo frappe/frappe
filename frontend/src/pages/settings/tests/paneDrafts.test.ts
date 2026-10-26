@@ -217,6 +217,50 @@ describe("a conflict with a save made elsewhere", () => {
 	});
 });
 
+describe("a change made elsewhere under an edit not sent yet", () => {
+	it("re-sends an autosave silently, then asks before the pending field's own save", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("zone", "button", ["time_zone"])
+		);
+		const general = drafts.bound.get("general")!;
+		const zone = drafts.bound.get("zone")!;
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { time_zone: "Asia/Tokyo" });
+		confirm.mockResolvedValue(null);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		expect(confirm).not.toHaveBeenCalled();
+		expect(server.writes).toHaveLength(2);
+
+		await drafts.saveButtons();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.writes).toHaveLength(2);
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Tokyo");
+		expect(zone.draft.state.marks.time_zone).toBe("error");
+	});
+
+	it("refuses a 417 whose re-read shows no newer save, instead of sending again", async () => {
+		const drafts = await opened(block("general", "auto", ["country"]));
+		const general = drafts.bound.get("general")!;
+		server.refusal = {
+			entry: { type: "TimestampMismatchError", message: "Document has been modified" },
+			status: 417,
+		};
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+
+		expect(server.writes).toHaveLength(1);
+		expect(general.draft.state.marks.country).toBe("error");
+		expect(confirm).not.toHaveBeenCalled();
+	});
+});
+
 describe("failures", () => {
 	it("keeps a refused value with the server's message, and counts the block on the Save bar", async () => {
 		const drafts = await opened(block("zone", "button", ["time_zone"]));
@@ -238,6 +282,10 @@ describe("failures", () => {
 		expect(zone.draft.state.marks.time_zone).toBe("error");
 		expect(drafts.failedCount.value).toBe(1);
 		expect(drafts.unsaved()).toBe(true);
+
+		zone.draft.edit("time_zone", "Europe/Paris");
+		expect(zone.draft.state.marks.time_zone).toBeUndefined();
+		expect(drafts.failedCount.value).toBe(0);
 	});
 
 	it("names the pane in a toast when an autosave fails after the pane closed", async () => {

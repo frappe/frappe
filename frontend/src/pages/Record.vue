@@ -840,7 +840,7 @@ async function resolveConflict() {
 	if (!visit.current()) return;
 	const editor = latest
 		? personOf(latest.docinfo, latest.document.modified_by).name
-		: "Someone else";
+		: __("Someone else");
 	const changed = changedFields(doc.value, saved.value, meta.value?.fields);
 	if (await confirmConflict(controller.value!.page.dialog.confirm, editor, changed))
 		await load();
