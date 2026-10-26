@@ -3,6 +3,8 @@ import { computed, defineAsyncComponent } from "vue";
 import { block_size, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
 import NumberCardTile from "./tiles/NumberCardTile.vue";
+import ShortcutTile from "./tiles/ShortcutTile.vue";
+import CardTile from "./tiles/CardTile.vue";
 
 const props = defineProps({
 	content: { type: Array, required: true },
@@ -14,6 +16,8 @@ const ChartTile = defineAsyncComponent(() => import("./tiles/ChartTile.vue"));
 const TILES = {
 	number_card: { component: NumberCardTile, widgets: "number_cards", key: "number_card_name" },
 	chart: { component: ChartTile, widgets: "charts", key: "chart_name" },
+	shortcut: { component: ShortcutTile, widgets: "shortcuts", key: "shortcut_name" },
+	card: { component: CardTile, widgets: "cards", key: "card_name" },
 };
 
 const sections = computed(() =>
