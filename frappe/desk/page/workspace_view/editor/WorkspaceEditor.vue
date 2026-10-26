@@ -1,6 +1,6 @@
 <script setup>
 import { computed, ref } from "vue";
-import { Button, Dropdown } from "frappe-ui";
+import { Badge, Button, Dropdown, Tooltip } from "frappe-ui";
 import { post } from "../api.js";
 import WorkspaceGrid from "../WorkspaceGrid.vue";
 import EmptyWorkspace from "../EmptyWorkspace.vue";
@@ -18,12 +18,12 @@ import {
 	with_ids,
 } from "./editor.js";
 
-// The default layout, edited in place on the grid it is read on.
+// One layout, edited in place on the grid it is read on.
 const props = defineProps({
 	workspace: { type: Object, required: true },
 });
 
-const emit = defineEmits(["saved", "done"]);
+const emit = defineEmits(["saved", "done", "switch"]);
 
 const frappe = window.frappe;
 const __ = window.__;
@@ -33,8 +33,17 @@ const widgets = ref(JSON.parse(JSON.stringify(props.workspace.widgets)));
 const touched = ref(new Set());
 const selected_id = ref(null);
 const saving = ref(false);
+const previewing = ref(false);
+const variant = ref(props.workspace.variant);
+const layouts = ref([...(props.workspace.layouts || [])]);
+const layout = computed(() => layouts.value.find((l) => l.role === variant.value));
 const initial = JSON.stringify(blocks.value);
-const dirty = computed(() => touched.value.size > 0 || JSON.stringify(blocks.value) !== initial);
+const dirty = computed(
+	() =>
+		layout.value?.source === "New" ||
+		touched.value.size > 0 ||
+		JSON.stringify(blocks.value) !== initial
+);
 
 const selected = computed(() => blocks.value.find((block) => block.id === selected_id.value));
 const selected_widget = computed(() => {
@@ -97,10 +106,10 @@ async function save() {
 			public: props.workspace.public ? 1 : 0,
 			new_widgets,
 			blocks: saved,
-			variant: DEFAULT_LAYOUT,
+			variant: variant.value || DEFAULT_LAYOUT,
 		});
 		frappe.show_alert({ message: __("Saved"), indicator: "green" });
-		emit("saved");
+		emit("saved", variant.value);
 	} catch (e) {
 		frappe.msgprint(frappe.utils.escape_html(e.message));
 	} finally {
@@ -128,11 +137,139 @@ function reset_workspace() {
 	);
 }
 
-const menu = computed(() =>
-	props.workspace.standard
-		? [{ label: __("Reset workspace"), icon: "lucide-rotate-ccw", onClick: reset_workspace }]
-		: []
-);
+const layout_label = (l) => (l.role ? __(l.role) : __("Default"));
+
+const layout_menu = computed(() => [
+	...layouts.value.map((l) => ({
+		label: `${layout_label(l)} · ${__(l.source)}`,
+		onClick: () => switch_to(l.role),
+	})),
+	{ label: __("New layout for a role"), icon: "lucide-plus", onClick: new_layout },
+]);
+
+function switch_to(role) {
+	if (role === variant.value) return;
+	if (!dirty.value) return emit("switch", role);
+	frappe.confirm(__("Discard your unsaved changes?"), () => emit("switch", role));
+}
+
+// A new layout starts as a whole copy of the one on screen, and exists once it is saved.
+function new_layout() {
+	const taken = [...layouts.value.map((l) => l.role).filter(Boolean)];
+	frappe.prompt(
+		{
+			fieldname: "role",
+			fieldtype: "Link",
+			options: "Role",
+			label: __("Role"),
+			reqd: 1,
+			get_query: () => ({
+				filters: {
+					name: ["not in", [...taken, "Guest", "All", "Desk User", "Administrator"]],
+					desk_access: 1,
+				},
+			}),
+		},
+		({ role }) => {
+			layouts.value.push({ role, source: "New" });
+			variant.value = role;
+			for (const block of blocks.value) {
+				if (WIDGETS[block.type]) touched.value.add(block.id);
+			}
+		},
+		__("New layout for a role"),
+		__("Create")
+	);
+}
+
+// What saving this layout does, said before the first save freezes anything.
+const hint = computed(() => {
+	const target = props.workspace.save_target;
+	if (target === "private") {
+		return {
+			icon: "lucide-lock",
+			text: __("This workspace is private. Your edits reach only you."),
+		};
+	}
+	if (target && target.includes("/")) {
+		return { icon: "lucide-file-code", text: __("Save writes to {0}", [target]) };
+	}
+	if (target === "site copy" && !["Site copy", "Site", "New"].includes(layout.value?.source)) {
+		return {
+			icon: "lucide-triangle-alert",
+			text: __(
+				"Saving makes a site copy of this layout. It stops getting updates from {0}.",
+				[layout.value?.source]
+			),
+		};
+	}
+	return null;
+});
+
+function reset_layout() {
+	frappe.confirm(
+		__("Bring back the app's {0} layout?", [layout_label(layout.value)]),
+		async () => {
+			await post(
+				"frappe.desk.doctype.custom_workspace.custom_workspace.reset_workspace_customization",
+				{ workspace: props.workspace.name, variant: variant.value || DEFAULT_LAYOUT }
+			);
+			emit("saved", variant.value);
+		}
+	);
+}
+
+function delete_layout() {
+	frappe.confirm(__("Delete the {0} layout?", [layout_label(layout.value)]), async () => {
+		await post(
+			"frappe.desk.doctype.custom_workspace.custom_workspace.delete_workspace_layout",
+			{
+				workspace: props.workspace.name,
+				variant: variant.value,
+			}
+		);
+		emit("switch", null);
+	});
+}
+
+function delete_workspace() {
+	frappe.confirm(
+		__("Delete {0}?", [frappe.utils.escape_html(props.workspace.title)]),
+		async () => {
+			await post("frappe.desk.doctype.workspace.workspace.delete_page", {
+				name: props.workspace.name,
+			});
+			frappe.set_route("/desk");
+		}
+	);
+}
+
+const menu = computed(() => {
+	if (!props.workspace.public) {
+		return [
+			{ label: __("Delete workspace"), icon: "lucide-trash-2", onClick: delete_workspace },
+		];
+	}
+	const items = [];
+	if (layout.value?.source === "Site copy") {
+		items.push({
+			label: __("Reset this layout"),
+			icon: "lucide-undo-2",
+			onClick: reset_layout,
+		});
+	}
+	if (layout.value?.source === "Site" && variant.value) {
+		items.push({ label: __("Delete layout"), icon: "lucide-trash-2", onClick: delete_layout });
+	}
+	if (props.workspace.standard) {
+		items.push({
+			label: __("Reset workspace"),
+			icon: "lucide-rotate-ccw",
+			onClick: reset_workspace,
+		});
+	}
+	return items;
+});
 </script>
 
 <template>
@@ -141,11 +278,34 @@ const menu = computed(() =>
 			<div
 				class="flex items-center justify-end gap-2 border-b border-outline-gray-1 px-4 py-2"
 			>
-				<Dropdown :options="add_menu">
-					<Button icon-left="lucide-plus" :label="__('Add block')" />
+				<Dropdown v-if="layouts.length" :options="layout_menu">
+					<Button icon-right="lucide-chevron-down" :label="layout_label(layout || {})">
+						<template #prefix>
+							<Badge v-if="layout" size="sm" :label="__(layout.source)" />
+						</template>
+					</Button>
 				</Dropdown>
-				<Button icon-left="lucide-type" :label="__('Add text')" @click="add_text" />
+				<Tooltip v-if="hint" :text="hint.text">
+					<span
+						:class="hint.icon"
+						class="size-4 text-ink-gray-5"
+						:aria-label="hint.text"
+					/>
+				</Tooltip>
+				<template v-if="!previewing">
+					<Dropdown :options="add_menu">
+						<Button icon-left="lucide-plus" :label="__('Add block')" />
+					</Dropdown>
+					<Button icon-left="lucide-type" :label="__('Add text')" @click="add_text" />
+				</template>
 				<div class="flex-1" />
+				<Button
+					v-if="workspace.public"
+					:variant="previewing ? 'subtle' : 'ghost'"
+					icon-left="lucide-eye"
+					:label="__('Preview')"
+					@click="previewing = !previewing"
+				/>
 				<Dropdown v-if="menu.length" align="end" :options="menu">
 					<Button variant="ghost" icon="lucide-more-horizontal" :label="__('More')" />
 				</Dropdown>
@@ -154,7 +314,21 @@ const menu = computed(() =>
 			</div>
 			<div class="min-h-0 flex-1 overflow-y-auto">
 				<div class="mx-auto max-w-4xl px-4 pt-4 pb-10">
-					<EmptyWorkspace v-if="!blocks.length" editing @add-text="add_text" />
+					<template v-if="previewing">
+						<div
+							class="mb-4 rounded-6 bg-surface-gray-2 px-3 py-2 text-base text-ink-gray-6"
+						>
+							{{
+								variant
+									? __("Previewing the {0} layout with your data.", [
+											__(variant),
+									  ])
+									: __("Previewing the default layout with your data.")
+							}}
+						</div>
+						<WorkspaceGrid :content="blocks" :widgets="widgets" />
+					</template>
+					<EmptyWorkspace v-else-if="!blocks.length" editing @add-text="add_text" />
 					<WorkspaceGrid
 						v-else
 						:content="blocks"
@@ -168,7 +342,7 @@ const menu = computed(() =>
 			</div>
 		</div>
 		<BlockPanel
-			v-if="selected"
+			v-if="selected && !previewing"
 			:key="selected.id"
 			:block="selected"
 			:widget="selected_widget"
