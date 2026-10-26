@@ -28,7 +28,7 @@ def is_reserved(route: str) -> bool:
 
 def validate_route(doc, method=None):
 	"""Refuse a document whose `route` would land inside the shell's address space."""
-	# Refuse, not warn: `ShellPage` sits ahead of `StaticPage`, so the page would save and never load.
+	# Refuse, not warn: `ShellPage` runs before every other renderer, so the page would save and never load.
 	route = getattr(doc, "route", None)
 	if not route or not is_reserved(route) or not has_website_route(doc):
 		return

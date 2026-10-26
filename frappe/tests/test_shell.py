@@ -40,6 +40,7 @@ from frappe.shell.registry import (
 	split_shell_path,
 )
 from frappe.shell.route_guard import ReservedRouteError, is_reserved, validate_route
+from frappe.studio.doctype.studio_app.studio_app import StudioAppRenderer
 from frappe.studio.doctype.studio_app.test_studio_app import make_studio_app, make_studio_page
 from frappe.studio.tests.test_permissions import make_studio_user
 from frappe.tests import IntegrationTestCase
@@ -191,6 +192,30 @@ class TestShellRouting(IntegrationTestCase):
 	def test_an_unclaimed_prefix_is_a_website_404(self):
 		"""The shell owns error states only inside a prefix it serves."""
 		self.assertIsInstance(self.renderer_for("apps/no-such-app"), NotFoundPage)
+
+	def test_a_studio_app_routed_apps_does_not_take_over_the_shell(self):
+		"""Install, migrate and patch skip the route guard, so a Studio App can still hold `apps`."""
+		with patch.dict(frappe.flags, {"in_migrate": True}):
+			takeover = make_studio_app(app_name="takeover-" + frappe.generate_hash(length=8), route="apps")
+		other = make_studio_app(app_name="other-" + frappe.generate_hash(length=8))
+		for app in (takeover, other):
+			self.addCleanup(frappe.delete_doc, "Studio App", app.name, force=True)
+			make_studio_page(app.name, route="/home")
+
+		self.assertIsInstance(self.renderer_for(SHELL_ROOT), ShellPage)
+		self.assertIsInstance(self.renderer_for("apps/desk"), ShellPage)
+		self.assertIsInstance(self.renderer_for("apps/no-such-app"), NotFoundPage)
+		self.assertIsInstance(self.renderer_for(other.route), StudioAppRenderer)
+
+	def test_a_route_rule_cannot_rewrite_a_path_under_apps(self):
+		rules = [
+			{"from_route": "/apps", "to_route": "login"},
+			{"from_route": "/apps/<path:rest>", "to_route": "login"},
+		]
+		with patch("frappe.website.path_resolver.get_website_rules", return_value=rules):
+			for path in (SHELL_ROOT, "apps/desk/todo"):
+				set_request(method="GET", path=f"/{path}")
+				self.assertIsInstance(self.renderer_for(path), ShellPage)
 
 	def test_desk_v1_is_untouched(self):
 		"""`/desk` is v1's and stays v1's, even though the framework claims `/apps/desk`."""

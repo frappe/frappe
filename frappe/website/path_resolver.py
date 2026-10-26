@@ -54,6 +54,11 @@ class PathResolver:
 		except frappe.Redirect as e:
 			return frappe.flags.redirect_location, RedirectPage(self.path, e.http_status_code)
 
+		# On the request path, before any rewrite or other renderer: nothing else may serve under /apps.
+		shell = ShellPage(self.path, self.http_status_code)
+		if shell.reserved:
+			return self.path, shell if shell.can_render() else NotFoundPage(self.path)
+
 		if website_path_resolvers := frappe.get_hooks("website_path_resolver"):
 			for resolver in website_path_resolvers:
 				endpoint = frappe.get_attr(resolver)(self.path)
@@ -70,8 +75,6 @@ class PathResolver:
 		custom_renderers = self.get_custom_page_renderers()
 		renderers = [
 			*custom_renderers,
-			# Ahead of StaticPage, so a file under an app's `www/` cannot shadow the shell at a claimed prefix.
-			ShellPage,
 			StaticPage,
 			WebFormPage,
 			DocumentPage,
