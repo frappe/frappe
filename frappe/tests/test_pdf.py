@@ -20,6 +20,70 @@ def blank_pdf() -> bytes:
 	return stream.getvalue()
 
 
+def pdf_with_document_level_js() -> bytes:
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	writer.add_js("app.alert('hello from pdf');")
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def pdf_with_page_level_js() -> bytes:
+	from pypdf import PdfWriter
+	from pypdf.generic import DictionaryObject, NameObject, TextStringObject
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	action = DictionaryObject(
+		{
+			NameObject("/S"): NameObject("/JavaScript"),
+			NameObject("/JS"): TextStringObject("app.alert('hello from page');"),
+		}
+	)
+	writer.pages[0][NameObject("/AA")] = DictionaryObject({NameObject("/O"): writer._add_object(action)})
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def encrypted_pdf_with_js() -> bytes:
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	writer.add_js("app.alert('hello from encrypted');")
+	writer.encrypt("frappe")
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def js_reachable_without_resolving_indirects(content: bytes) -> bool:
+	reader = PdfReader(io.BytesIO(content))
+
+	def walk(obj):
+		if isinstance(obj, dict):
+			for key, value in obj.items():
+				if key == "/Parent":
+					continue
+				if key in ("/JS", "/JavaScript"):
+					return True
+				if walk(value):
+					return True
+		elif isinstance(obj, list):
+			for item in obj:
+				if walk(item):
+					return True
+		return False
+
+	if walk(reader.trailer.get("/Root", {})):
+		return True
+	return any(walk(page) for page in reader.pages)
+
+
 class TestPdf(IntegrationTestCase):
 	@property
 	def html(self):
@@ -153,6 +217,23 @@ class TestPdf(IntegrationTestCase):
 		pdf = pdfgen.get_chrome_pdf(None, "<p>body text</p>", {}, None, pdf_generator="chrome")
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
 
+	def test_bulk_pdf_lists_the_documents_it_could_not_print(self):
+		from unittest.mock import ANY, patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+
+		with patch.object(frappe, "publish_realtime") as publish_realtime:
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name, deleted.name]))
+
+		publish_realtime.assert_called_with(event="msgprint", message=ANY)
+		self.assertIn(deleted.name, publish_realtime.call_args.kwargs["message"].message[0])
+
 	def test_smart_shrinking_is_opt_in(self):
 		from unittest.mock import patch
 
@@ -247,6 +328,22 @@ class TestPdf(IntegrationTestCase):
 		# If image was actually retrieved then size will be  in few kbs, else bytes.
 		self.assertGreaterEqual(len(pdf), 10_000)
 
+	def test_pdf_contains_js_detects_document_level_js(self):
+		content = pdf_with_document_level_js()
+		self.assertFalse(js_reachable_without_resolving_indirects(content))
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_detects_page_level_js(self):
+		content = pdf_with_page_level_js()
+		self.assertFalse(js_reachable_without_resolving_indirects(content))
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_false_for_clean_pdf(self):
+		self.assertFalse(pdfgen.pdf_contains_js(blank_pdf()))
+
+	def test_pdf_contains_js_does_not_raise_on_encrypted_pdf(self):
+		self.assertFalse(pdfgen.pdf_contains_js(encrypted_pdf_with_js()))
+
 	def test_print_format_margin_without_a_length_is_ignored(self):
 		from types import SimpleNamespace
 
@@ -288,3 +385,24 @@ class TestPdf(IntegrationTestCase):
 
 			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
 			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
+
+	def test_b5_page_size_is_portrait(self):
+		from types import SimpleNamespace
+
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.pdf_generator.browser import Browser
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = Browser.__new__(Browser)
+		browser.is_print_designer = False
+		browser.print_format = None
+		browser.options = {"page-size": "B5"}
+		browser.soup = BeautifulSoup("", "html5lib")
+		browser.body_page = SimpleNamespace(options={})
+		browser.header_page = browser.footer_page = None
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
+		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 9.84, delta=0.05)
