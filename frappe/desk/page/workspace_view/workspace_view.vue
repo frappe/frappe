@@ -1,8 +1,11 @@
 <script setup>
-import { computed, ref, watch } from "vue";
+import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { FrappeUIProvider, setConfig } from "frappe-ui";
 import { get, post } from "./api.js";
 import WorkspaceGrid from "./WorkspaceGrid.vue";
+
+// read mode downloads no editor code
+const WorkspaceEditor = defineAsyncComponent(() => import("./editor/WorkspaceEditor.vue"));
 
 // Every workspace whose renderer is Frappe UI, drawn at its usual URL.
 
@@ -21,6 +24,8 @@ setConfig("requestHeaders", () => ({ "X-Frappe-CSRF-Token": frappe.csrf_token })
 
 const workspace = ref(null);
 const not_found = ref(false);
+const editing = ref(null);
+const edit_count = ref(0);
 
 // `/desk/<slug>` arrives as [name], `/desk/private/<title>` as ["private", name].
 const target = computed(() =>
@@ -65,7 +70,9 @@ function correct_private_segment() {
 }
 
 function actions() {
-	const list = [{ label: __("New Workspace"), onClick: () => frappe.ui.new_workspace_dialog() }];
+	const list = [];
+	if (workspace.value.can_edit) list.push({ label: __("Edit"), onClick: edit });
+	list.push({ label: __("New Workspace"), onClick: () => frappe.ui.new_workspace_dialog() });
 	if (workspace.value.can_edit) {
 		list.push({ label: __("Manage"), onClick: () => frappe.set_route("List", "Workspace") });
 	}
@@ -73,6 +80,25 @@ function actions() {
 		list.push({ label: __("Reset to Standard"), onClick: reset });
 	}
 	return list;
+}
+
+// The editor works on the default layout, whichever layout the reader was shown.
+async function edit() {
+	editing.value = await get("frappe.desk.desktop.get_workspace", {
+		name: workspace.value.name,
+		variant: "<default>",
+	});
+	edit_count.value++;
+	const title = editing.value.public
+		? __("Editing {0}", [editing.value.title])
+		: __("Private / Editing {0}", [editing.value.title]);
+	emit("title", title);
+	emit("actions", []);
+}
+
+function stop_editing() {
+	editing.value = null;
+	load();
 }
 
 function reset() {
@@ -90,12 +116,26 @@ function reset() {
 	});
 }
 
-watch(() => target.value.name + target.value.private, load, { immediate: true });
+watch(
+	() => target.value.name + target.value.private,
+	() => {
+		editing.value = null;
+		load();
+	},
+	{ immediate: true }
+);
 </script>
 
 <template>
 	<FrappeUIProvider>
-		<div class="mx-auto h-full max-w-4xl overflow-y-auto px-4 pt-4 pb-10">
+		<WorkspaceEditor
+			v-if="editing"
+			:key="edit_count"
+			:workspace="editing"
+			@saved="edit"
+			@done="stop_editing"
+		/>
+		<div v-else class="mx-auto h-full max-w-4xl overflow-y-auto px-4 pt-4 pb-10">
 			<div
 				v-if="not_found"
 				class="flex flex-col items-center gap-2 py-24 text-center text-ink-gray-5"
