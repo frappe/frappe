@@ -82,8 +82,9 @@ export class SettingsSearch {
 			});
 		}
 		for (const { block, label, fieldname, description, keywords } of indexed) {
+			const shown = label || fieldname;
+			if (!shown) continue;
 			const blockLabel = pane.blocks.find((one) => one.key === block)?.label;
-			const shown = label || fieldname!;
 			this.entries.push({ prefix, pane, block, blockLabel, fieldname, label: shown, description, keywords });
 		}
 	}

@@ -41,6 +41,7 @@ const REPLY: PanesReply = {
 		{ app: "helpdesk", pane: "tickets", block: "main", fieldname: "ticket_format", label: "Ticket Format" },
 		{ app: "frappe", pane: "profile", block: "main", label: "Theme", keywords: ["dark mode"] },
 		{ app: "frappe", pane: "system", block: "main", fieldname: "smtp_port" },
+		{ app: "frappe", pane: "profile", block: "main", keywords: ["dark"] },
 		{ app: "unprefixed", pane: "hidden", block: "main", fieldname: "format", label: "Format" },
 	],
 	titles: { frappe: "Frappe", crm: "CRM", helpdesk: "Helpdesk", unprefixed: "Unprefixed" },
@@ -88,7 +89,7 @@ describe("settings search", () => {
 	it("matches pane labels and descriptions, block labels and a component's declared keywords", () => {
 		expect(find("system").own).toEqual(["System", "System details"]);
 		expect(find("sessions").results.own[0]).toMatchObject({ label: "System", where: "Frappe" });
-		expect(find("dark").results.own[0]).toMatchObject({ label: "Theme", block: "main" });
+		expect(find("dark").results.own).toEqual([expect.objectContaining({ label: "Theme", block: "main" })]);
 		expect(find("smtp").results.own[0]).toMatchObject({ label: "smtp_port", fieldname: "smtp_port" });
 	});
 
