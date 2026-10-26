@@ -96,8 +96,8 @@ vi.mock("@/pages/NewRecord.vue", async () => {
 		}),
 	};
 });
-vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
+vi.mock("@/shell/NothingToOpen.vue", () => ({ default: { render: () => null } }));
 
 const addresses = new Addresses({
 	doctypes: {

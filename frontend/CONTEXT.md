@@ -55,7 +55,7 @@ under core). `location.pathname` is its only input; the document carries nothing
 This prefix's rail and *every* sidebar in it, already resolved: the app's rows, the site's
 arrangement and this person's, merged server-side. The browser never restacks those layers.
 It rides boot so that no rail click costs a request; what an app *contains* is a different
-list and is still fetched by the pages that show it (`contents.ts`).
+list and is fetched only when a `Module Contents` row expands (`contents.ts`).
 _Avoid_: navigation as a word for an app's contents — the rail is authored, the contents
 list is derived, and the two disagree on purpose.
 
@@ -71,6 +71,18 @@ a param, so the same routes serve any number of doctypes.
 There is no per-doctype route and no opt-out.
 The list and record routes open a doctype's declared replacement page when one exists.
 _Avoid_: default route, implicit route.
+
+**Index**: <a id="index"></a>
+The page at `/apps`, which belongs to no app: one way into each app the user can open.
+_Avoid_: apps screen (desk v1's page), home page.
+
+**Landing**: <a id="landing"></a>
+The row an app's or a module's bare address resolves to. `/apps/<prefix>` lands on the first
+item of the person's arranged rail that resolves to a route in the prefix; a modular app's
+`/apps/<prefix>/<module>` lands on the first row of that module's sidebar. The shell's router
+computes it from `boot.navigation` and redirects there, so the bare address never enters
+history. An address with no landing shows "Nothing in <App> you can open".
+_Avoid_: home page, module page; neither exists.
 
 **Contributed route**:
 A route synthesised from a `PageContribution`, named `page:<app>:<slug>`, and live only

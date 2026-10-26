@@ -31,7 +31,6 @@ vi.mock("virtual:frappe/contributions", () => ({
 const registered: StandardPages = {
 	main: MainPage,
 	home: async () => page("registered home"),
-	module: async () => page("registered module"),
 	list: async () => page("registered list"),
 	record: async () => page("registered record"),
 	newRecord: async () => page("registered new record"),
@@ -66,8 +65,6 @@ afterEach(() => {
 
 describe("the standard pages", () => {
 	it.each([
-		["/", "registered home"],
-		["/accounts", "registered module"],
 		["/accounts/purchase-invoice", "registered list"],
 		["/accounts/purchase-invoice/PI-001", "registered record"],
 		["/accounts/purchase-invoice/new", "registered new record"],
