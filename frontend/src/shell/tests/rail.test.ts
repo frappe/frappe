@@ -499,16 +499,12 @@ describe("the user menu", () => {
 		expect(groups).toEqual([0, 2, 1, 1]);
 	});
 
-	it("opens settings at the profile pane for My settings", async () => {
-		fake.openSettings.mockClear();
+	it("sends My settings to the person's v1 User form, and Desk v1 to v1's home", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 
 		row(await opened(), "My settings").click();
 		await flush();
-		expect(fake.openSettings).toHaveBeenLastCalledWith("desk", "profile");
-	});
-
-	it("sends Desk v1 to v1's home", async () => {
-		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		expect(assign).toHaveBeenLastCalledWith("/app/user/jane%40example.com");
 
 		row(await opened(), "Desk v1").click();
 		await flush();

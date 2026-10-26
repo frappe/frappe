@@ -190,6 +190,7 @@ const SCHEMES = [
 
 const confirmingLogout = ref(false);
 
+// Workaround: the settings dialog has no profile pane yet, so *My settings* opens v1's User form.
 const userMenu = computed<DropdownOptions>(() => [
 	{ group: "", hideLabel: true, options: [profileHeader()] },
 	{
@@ -199,7 +200,7 @@ const userMenu = computed<DropdownOptions>(() => [
 			{
 				label: "My settings",
 				icon: "lucide-circle-user",
-				onClick: () => openSettings("desk", "profile"),
+				onClick: () => leave(`/app/user/${encodeURIComponent(boot.session.user.name)}`),
 			},
 			{
 				label: "Theme",
