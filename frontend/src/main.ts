@@ -26,6 +26,7 @@ import AppShell from "@/shell/AppShell.vue";
 import { openCreate, registerCreateDialog } from "@/shell/create";
 import { registerSettingsBlocks } from "@/shell/settingsBlocks";
 import { registerDeskAfterSave } from "@/shell/deskAfterSave";
+import { recents } from "@/shell/recents";
 import { recordRouteHistory } from "@/shell/routeHistory";
 import { createSocket } from "@/shell/socket";
 import { watchDoctypeUpdates } from "@/shell/doctypeUpdates";
@@ -74,6 +75,8 @@ async function start() {
 	// Fill the shell slot before anything can call `routeFor`.
 	registerShell({ boot, addresses, router });
 	recordRouteHistory(router, boot.shell_base);
+	// Before `app.use(router)`, which makes the first navigation.
+	recents.track(router, boot, addresses);
 
 	const app = createApp(AppShell);
 	installTranslate(app);
