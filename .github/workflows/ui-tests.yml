@@ -88,7 +88,6 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      # the editor's yarn install (part of bench build) downloads the Cypress binary
       - name: Cache Cypress binary
         uses: actions/cache@v4
         with:
@@ -104,6 +103,13 @@ jobs:
           disable-socketio: true
           db-root-password: ${{ env.DB_ROOT_PASSWORD }}
           db: mariadb
+
+      - name: Install Cypress binary
+        env:
+          CYPRESS_INSTALL_BINARY: ""
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
+          yarn cypress install
 
       # the data-source specs call the test site through the dev server's proxy
       - name: Run Component Tests
