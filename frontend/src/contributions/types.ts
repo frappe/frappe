@@ -3,10 +3,9 @@ import type { ItemRenderer } from "@/navigation/types"
 
 // The complete list of what an app may contribute; if it is not here, an app cannot do it.
 
-export type RecordHandlers = {
-  actions?: { name: string; label: string; icon?: string; run: (page: unknown) => unknown }[]
-  [key: string]: unknown
-}
+type RecordHandler = (page: object, row?: object) => unknown
+
+export type RecordHandlers = Record<string, RecordHandler | Record<string, RecordHandler>>
 
 export type ListHandlers = {
   columns?: { fieldname: string; width?: number }[]

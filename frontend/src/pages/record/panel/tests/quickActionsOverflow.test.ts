@@ -62,6 +62,8 @@ function mount(actions: ReturnType<typeof ref<any[]>>) {
 		controller: { page: { call: vi.fn() }, quickActions: { visible: () => actions.value } } as any,
 		run: vi.fn(),
 		reloadDocinfo: vi.fn(async () => {}),
+		whileOnRecord: () => () => true,
+		onDetails: () => false,
 	});
 	app.mount(root);
 	mounted.push(app);

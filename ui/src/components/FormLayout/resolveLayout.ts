@@ -186,11 +186,11 @@ export function resolveLayout(
  * Exported because the Record page's `page.form.tabs` answers "is this one tab on
  * screen" without resolving the whole form, and the two must not drift.
  */
-export function resolveTabConditionals(
-  t: Tab,
+export function resolveTabConditionals<T extends Tab>(
+  t: T,
   doc: Record<string, any>,
   parent: Record<string, any> = doc
-): Tab {
+): T {
   return {
     ...t,
     hidden:

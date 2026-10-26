@@ -106,7 +106,7 @@ describe("joinLayout — inline fields", () => {
 	});
 
 	it("gates a replacement by the permlevel of the field it replaces", () => {
-		const fieldsWithLevel = [...fields, { fieldname: "phone", fieldtype: "Data", read_only: 1, permlevel: 1 }];
+		const fieldsWithLevel: RawMetaField[] = [...fields, { fieldname: "phone", fieldtype: "Data", read_only: 1, permlevel: 1 }];
 		const phone = { fieldname: "phone", fieldtype: "Data", permlevel: 0 };
 		const [tab] = joinLayout(treeWith([phone]), fieldsWithLevel, {
 			fieldAccess: (field) => (field.permlevel === 1 ? "read" : "write"),

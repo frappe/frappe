@@ -281,7 +281,11 @@ function generate({ doctypes, pages, itemTypes, settings, replacements, warnings
 	return lines.join("\n");
 }
 
-/** Prints discovery's warnings in the terminal that runs the build. */
+/**
+ * Prints discovery's warnings in the terminal that runs the build.
+ * @param {string[]} warnings
+ * @param {Pick<Console, "warn">} [logger]
+ */
 export function report(warnings, logger = console) {
 	for (const warning of warnings) logger.warn(warning);
 }

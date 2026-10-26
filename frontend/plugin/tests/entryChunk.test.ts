@@ -1,6 +1,6 @@
 // @vitest-environment node
 import { fileURLToPath } from "node:url";
-import { build, type Rolldown } from "vite";
+import { build, type Plugin, type Rolldown } from "vite";
 import { describe, expect, it } from "vitest";
 import entryChunk from "../entryChunk.js";
 import importMap from "../importMap.js";
@@ -29,7 +29,7 @@ const manifest = [
   { app: "frappe", source_dir: "/f", import_map: { pkg: "pkg" } },
 ];
 
-async function chunks(plugins: object[]) {
+async function chunks(plugins: Plugin[]) {
   const output = (await build({
     configFile: false,
     root: frontend,

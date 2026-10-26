@@ -14,6 +14,7 @@ vi.mock("@framework/ui/api", () => ({
 }));
 
 import { markRaw } from "vue";
+import { FieldErrors } from "../fieldErrors";
 import { FieldsSurface, resetFieldWarnings } from "../fields";
 import type { FieldsSurfaceHost } from "../fields";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
@@ -33,6 +34,7 @@ function makeSurface(
     fields: () => FIELDS,
     doc: () => ({ qty: 0 }),
     fieldAccess: (): FieldAccess => "write",
+    errors: new FieldErrors(),
     ...host,
   });
 }
@@ -275,8 +277,8 @@ describe("get — the reader", () => {
   });
 
   it("carries none of the pipeline's internals", () => {
-    const snapshot = makeSurface().get("rate")! as Record<string, unknown>;
+    const snapshot = makeSurface().get("rate");
     for (const internal of ["dependsOn", "permDenied", "override", "readOnly"])
-      expect(snapshot[internal]).toBeUndefined();
+      expect(snapshot).not.toHaveProperty(internal);
   });
 });

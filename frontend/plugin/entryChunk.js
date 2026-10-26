@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const SHELL_ENTRY = join(dirname(fileURLToPath(import.meta.url)), "..", "src", "main.ts");
 
+/** @returns {import("vite").Plugin} */
 export default function entryChunk(entry = SHELL_ENTRY) {
 	return {
 		name: "frappe-entry-chunk",

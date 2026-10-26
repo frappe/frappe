@@ -80,6 +80,7 @@ export default function importMap(manifest) {
 
 /** Each published name's module, in `apps.txt` order; a file value is rooted at the app's source dir. */
 export function publishedTargets(manifest) {
+	/** @type {Record<string, string>} */
 	const targets = {};
 	for (const { source_dir, import_map } of manifest) {
 		for (const [name, value] of Object.entries(import_map ?? {})) {

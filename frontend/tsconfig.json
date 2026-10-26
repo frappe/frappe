@@ -9,7 +9,10 @@
     "baseUrl": ".",
     "paths": { "@/*": ["src/*"] },
     "skipLibCheck": true,
-    "noEmit": true
+    "noEmit": true,
+    "allowJs": true,
+    "preserveSymlinks": true,
+    "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*.ts", "src/**/*.vue", "plugin/**/*.js", "plugin/**/*.ts"]
+  "include": ["src/**/*.ts", "plugin/**/*.js", "plugin/**/*.ts"]
 }
