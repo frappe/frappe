@@ -1,7 +1,9 @@
 // What a script may ask about permissions: the rights dict, the session's roles, and a field's access.
 import { watch, type ComputedRef, type Ref } from "vue";
 import { useDocPermissions, type FieldAccess } from "@framework/ui/useDocPermissions";
+import { useDoctypeMeta, type DoctypeMeta, type UseDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useUserRoles } from "@framework/ui/useUserRoles";
+import type { ActRight } from "@/acts/dispatcher";
 
 /** Enforcement bookkeeping the `permissions` part ships beside the rights. Closed list: the
  *  right set is open-ended (custom `Permission Type` rows), so never allowlist. */
@@ -22,6 +24,10 @@ export interface PagePermissions {
   ready: () => Promise<void>;
   /** True once roles and meta are in, for a replay that must not wait. */
   loaded: () => boolean;
+  /** An act's right: this doctype's from `perms`, another's from its meta's level 0 rows and the roles. */
+  passes: (right: ActRight) => boolean;
+  /** Resolves once `passes` can answer: another doctype's meta has loaded. */
+  settled: (right: ActRight) => Promise<void>;
 }
 
 export function createPagePermissions(
@@ -34,6 +40,7 @@ export function createPagePermissions(
     null;
   // One promise for every replay: `refresh` runs on each paint and each save.
   let loaded: Promise<void> | null = null;
+  const metas = new Map<string, UseDoctypeMeta>();
 
   return {
     perms: () => {
@@ -45,7 +52,31 @@ export function createPagePermissions(
     fieldAccess: (fieldname) => accessTo(fieldname),
     ready: () => (loaded ??= whenLoaded(loading)),
     loaded: () => !loading.value,
+    passes: (right) => {
+      const { doctype, ptype } = rightOn(right);
+      if (doctype === host.doctype) return Boolean(host.perms()[ptype]);
+      return holdsAtLevel0(metaOf(doctype).meta.value?.permissions ?? [], ptype);
+    },
+    settled: (right) => {
+      const { doctype } = rightOn(right);
+      return doctype === host.doctype ? Promise.resolve() : whenLoaded(metaOf(doctype).loading);
+    },
   };
+
+  function rightOn(right: ActRight) {
+    return typeof right === "string" ? { doctype: host.doctype, ptype: right } : right;
+  }
+
+  function metaOf(doctype: string) {
+    let meta = metas.get(doctype);
+    if (!meta) metas.set(doctype, (meta = useDoctypeMeta(doctype)));
+    return meta;
+  }
+
+  function holdsAtLevel0(rows: NonNullable<DoctypeMeta["permissions"]>, ptype: string) {
+    const held = roles.value ?? [];
+    return rows.some((row) => !row.permlevel && held.includes(row.role) && Boolean(row[ptype]));
+  }
 
   function rightsView(from: Record<string, any>) {
     const view: Record<string, any> = {};

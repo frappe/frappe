@@ -112,13 +112,13 @@ const run = vi.fn();
 const FILES: TabItem = {
 	name: "files",
 	label: "Files",
-	create: { label: "Attach a file", icon: "lucide-paperclip", run },
+	create: { name: "attach_file", label: "Attach a file", icon: "lucide-paperclip", run },
 };
 const CALLS: TabItem = {
 	name: "calls",
 	label: "Calls",
 	composer: true,
-	create: { label: "Log a call", icon: "lucide-phone", run },
+	create: { name: "log_call", label: "Log a call", icon: "lucide-phone", run },
 };
 
 const apps: ReturnType<typeof createApp>[] = [];
@@ -144,8 +144,8 @@ function fakeController() {
 		composer,
 		toast: { error: vi.fn(), success: vi.fn() },
 	};
-	const hold = vi.fn(async (work: () => unknown) => work());
-	return { page, composer, hold, firePost: vi.fn(async () => {}) } as any;
+	const perform = vi.fn(async () => {});
+	return { page, composer, perform, firePost: vi.fn(async () => {}) } as any;
 }
 
 async function mountBand(tabs: TabItem[], active: string, controller = fakeController()) {
@@ -189,12 +189,11 @@ describe("where the band draws", () => {
 });
 
 describe("the pill", () => {
-	it("lists every visible tab's create in strip order and runs the one picked", async () => {
+	it("lists every visible tab's create in strip order and runs the one picked as its act", async () => {
 		const { root, controller } = await mountBand([ACTIVITY, CALLS, FILES], "activity");
 		expect(options(root)).toEqual(["Log a call", "Attach a file"]);
 		(root.querySelector('[data-option="Attach a file"]') as HTMLElement).click();
-		expect(run).toHaveBeenCalledWith(controller.page);
-		expect(controller.hold).toHaveBeenCalledOnce();
+		expect(controller.perform).toHaveBeenCalledExactlyOnceWith("tabs.attach_file");
 	});
 
 	it("draws no `+` menu when no tab creates anything", async () => {

@@ -51,6 +51,7 @@ export function recordTabBuiltins({ requestUpload }: RecordTabOptions = {}): Tab
 
 function attachAFile(requestUpload: () => void): TabCreateAction {
   return {
+    name: "attach_file",
     label: __("Attach a file"),
     icon: "lucide-paperclip",
     run: () => requestUpload(),

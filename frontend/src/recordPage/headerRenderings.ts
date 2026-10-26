@@ -140,7 +140,7 @@ function buttonProps(node: HeaderNode) {
 }
 
 // A component is drawn by itself, so `display` and `group` are not read off it.
-function containerDisplay(item: HeaderItem): ContainerDisplay | undefined {
+export function containerDisplay(item: HeaderItem): ContainerDisplay | undefined {
   if (item.component) return undefined;
   if (item.display === "dropdown" || item.display === "section")
     return item.display;
@@ -155,7 +155,7 @@ function containersOf(items: HeaderItem[]) {
 }
 
 /** The items a hidden container has not taken with it; a `group` naming a plain item is no floor. */
-function surviving(resolved: ResolvedItem<HeaderItem>[]): ResolvedItem<HeaderItem>[] {
+export function surviving(resolved: ResolvedItem<HeaderItem>[]): ResolvedItem<HeaderItem>[] {
   const containers = containersOf(resolved.map((entry) => entry.item));
   const hidden = new Set(
     resolved.filter((entry) => entry.hidden).map((entry) => entry.item.name)
