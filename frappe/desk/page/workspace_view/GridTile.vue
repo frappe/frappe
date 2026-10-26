@@ -13,7 +13,7 @@ let observer = null;
 onMounted(() => {
 	if (props.size.rows) return;
 	observer = new ResizeObserver(() => {
-		const style = getComputedStyle(body.value.parentElement);
+		const style = getComputedStyle(body.value.closest(".ws-grid"));
 		const row = parseFloat(style.getPropertyValue("grid-auto-rows"));
 		const gap = parseFloat(style.getPropertyValue("row-gap")) || 0;
 		measured_rows.value = Math.max(
