@@ -1,14 +1,21 @@
 // The settings dialog with its registered blocks: rows drawn from the binding, the save mark,
-// the Save bar and Ctrl/Cmd+S, the missing Record's note, and the question before leaving.
+// the Save bar and Ctrl/Cmd+S, the missing Record's note, component blocks, and the question before leaving.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, inject, nextTick, type App, type PropType } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
-const fake = vi.hoisted(() => ({ confirm: vi.fn() }));
+const fake = vi.hoisted(() => ({
+	confirm: vi.fn(),
+	components: {} as Record<string, () => Promise<unknown>>,
+}));
 vi.mock("frappe-ui", async (importOriginal) => ({
 	...(await importOriginal<typeof import("frappe-ui")>()),
 	dialog: { confirm: fake.confirm },
 	toast: { success: vi.fn(), error: vi.fn() },
+}));
+vi.mock("@/contributions/registry", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@/contributions/registry")>()),
+	settingsComponentFor: (_app: string, name: string) => fake.components[name],
 }));
 
 import type { Boot } from "@/boot";
@@ -49,6 +56,17 @@ const REPLY: PanesReply = {
 	panes: [
 		{ app: "frappe", key: "system", label: "System", icon: "settings", blocks: BLOCKS },
 		{ app: "frappe", key: "profile", label: "Profile", icon: "user", blocks: [] },
+		{
+			app: "frappe",
+			key: "calls",
+			label: "Calls",
+			icon: "phone",
+			blocks: [
+				{ key: "dialer", app: "frappe", save_mode: "auto", component: "dialer", bindings: { system: SYSTEM } },
+				{ key: "theme", app: "frappe", save_mode: "auto", component: "theme" },
+				{ key: "gone", app: "frappe", save_mode: "auto", component: "gone", label: "Gone" },
+			],
+		},
 	],
 	index: [],
 	titles: { frappe: "Frappe" },
@@ -86,13 +104,13 @@ async function settle() {
 	}
 }
 
-async function opened(): Promise<Router> {
+async function opened(pane = "system"): Promise<Router> {
 	const router = createRouter({
 		history: createMemoryHistory(),
 		routes: [{ path: "/:any(.*)*", component: { render: () => null } }],
 	});
 	await router.push("/deals");
-	await router.push("/deals#settings/desk/system");
+	await router.push({ path: "/deals", hash: `#settings/desk/${pane}` });
 	await router.isReady();
 	mounted = createApp(ShellSettingsDialog);
 	mounted.provide("boot", {
@@ -301,5 +319,52 @@ describe("leaving with unsaved changes", () => {
 
 		expect(fake.confirm).not.toHaveBeenCalled();
 		expect(router.currentRoute.value.hash).toBe("");
+	});
+});
+
+describe("a component block", () => {
+	/** Edits `country` through its binding and commits on change, as an app's file would. */
+	const Dialer = defineComponent({
+		props: { bindings: { type: Object as PropType<Record<string, any>>, required: true } },
+		setup(props) {
+			return () =>
+				h("input", {
+					"data-dialer": "",
+					value: props.bindings.system.doc.country,
+					onInput: (event: Event) =>
+						(props.bindings.system.doc.country = (event.target as HTMLInputElement).value),
+					onChange: () => props.bindings.system.commit(),
+				});
+		},
+	});
+	const Theme = defineComponent({
+		props: { bindings: { type: Object, required: true } },
+		setup: (props) => () => h("p", { "data-theme": "" }, Object.keys(props.bindings).length),
+	});
+
+	beforeEach(() => {
+		fake.components = { dialer: async () => Dialer, theme: async () => ({ __esModule: true, default: Theme }) };
+	});
+
+	it("draws the app's file with its bindings, and saves what it commits", async () => {
+		await opened("calls");
+		const dialer = document.body.querySelector<HTMLInputElement>("[data-dialer]")!;
+		expect(dialer.value).toBe("France");
+
+		dialer.value = "India";
+		dialer.dispatchEvent(new Event("input", { bubbles: true }));
+		dialer.dispatchEvent(new Event("change", { bubbles: true }));
+		await settle();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ country: "India", modified: expect.any(String) },
+		]);
+	});
+
+	it("draws a block with no binding with empty bindings, and drops a block whose file is missing", async () => {
+		await opened("calls");
+
+		expect(document.body.querySelector("[data-theme]")!.textContent).toBe("0");
+		expect(document.body.querySelector("[data-block='gone']")).toBeNull();
 	});
 });

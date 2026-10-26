@@ -1,5 +1,7 @@
-// Boot's one side effect: the CSRF token lands where frappe-ui's request layer reads it.
+// Boot's side effects: the CSRF token lands where frappe-ui's request layer reads it, and the
+// session's person is reactive.
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { isReactive } from "vue";
 
 import { ApiError } from "@framework/ui/api";
 
@@ -22,11 +24,14 @@ describe("fetchBoot", () => {
     delete (window as { csrf_token?: string }).csrf_token;
   });
 
-  it("publishes the session's CSRF token on window for frappe-ui's requests", async () => {
-    fake.runMethod.mockResolvedValue({ data: { csrf_token: "tok-123", app_order: ["frappe"] } });
+  it("publishes the CSRF token on window for frappe-ui's requests, and makes the person reactive", async () => {
+    fake.runMethod.mockResolvedValue({
+      data: { csrf_token: "tok-123", app_order: ["frappe"], session: { user: { name: "a@example.com" } } },
+    });
 
     const boot = await fetchBoot();
 
+    expect(isReactive(boot.session.user)).toBe(true);
     expect(boot.csrf_token).toBe("tok-123");
     expect(window.csrf_token).toBe("tok-123");
     expect(fake.runMethod).toHaveBeenCalledWith(

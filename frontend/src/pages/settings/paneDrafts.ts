@@ -9,9 +9,10 @@ import { missingRequired } from "@/recordPage";
 import type { SettingsBinding, SettingsBlock, SettingsPane } from "@/shell/settingsPanes";
 import type { Confirm } from "../record/discardChanges";
 import { BindingDraft } from "./bindingDraft";
+import { componentBinding, type ComponentBinding } from "./componentBinding";
 import { blockLayout } from "./settingsRows";
 
-/** A generated block with its draft and the fields it draws. */
+/** A block's hold on one draft: a generated block's fields, or a component's named binding. */
 export interface BoundBlock {
 	block: SettingsBlock;
 	draft: BindingDraft;
@@ -20,7 +21,10 @@ export interface BoundBlock {
 }
 
 export class PaneDrafts {
+	/** The generated blocks, by key. */
 	readonly bound = new Map<string, BoundBlock>();
+	/** Each component block's named bindings, by block key; a block with none is not here. */
+	readonly components = new Map<string, Record<string, ComponentBinding>>();
 	readonly loaded: Promise<void>;
 	/** How many fields the `button` blocks have changed. */
 	readonly unsavedCount: ComputedRef<number>;
@@ -30,6 +34,7 @@ export class PaneDrafts {
 	/** Whether the pane has a `button` block, and so a Save bar to keep rows clear of. */
 	readonly hasButtons: boolean;
 	private isClosed = false;
+	private claims: BoundBlock[] = [];
 
 	constructor(pane: SettingsPane, sessionUser: string, confirm: Confirm) {
 		const drafts = new Map<string, BindingDraft>();
@@ -38,18 +43,28 @@ export class PaneDrafts {
 			closed: () => this.isClosed,
 			lost: () => toast.error(__("{0} did not save", [__(pane.label)])),
 		};
-		for (const block of pane.blocks) {
-			if (!block.binding) continue;
-			const { doctype, type } = block.binding;
-			const name = resolveName(block.binding, sessionUser);
-			const identity = `${doctype}/${name}`;
+		const draftOf = (binding: SettingsBinding) => {
+			const name = resolveName(binding, sessionUser);
+			const identity = `${binding.doctype}/${name}`;
 			if (!drafts.has(identity))
-				drafts.set(identity, new BindingDraft(doctype, name, type === "Single", host));
-			this.bound.set(block.key, bind(block, drafts.get(identity)!));
+				drafts.set(
+					identity,
+					new BindingDraft(binding.doctype, name, binding.type === "Single", host)
+				);
+			return drafts.get(identity)!;
+		};
+		for (const block of pane.blocks) {
+			if (block.binding) {
+				const bound = bind(block, draftOf(block.binding));
+				this.bound.set(block.key, bound);
+				this.claims.push(bound);
+			} else if (block.bindings && Object.keys(block.bindings).length) {
+				this.components.set(block.key, this.bindComponent(block, draftOf));
+			}
 		}
 		this.loaded = Promise.all([...drafts.values()].map((draft) => draft.loaded)).then(() => {});
 
-		const buttons = [...this.bound.values()].filter(({ block }) => block.save_mode === "button");
+		const buttons = this.claims.filter(({ block }) => block.save_mode === "button");
 		this.hasButtons = buttons.length > 0;
 		const marked = (bound: BoundBlock, mark: string) =>
 			bound.fieldnames.value.some((fieldname) => bound.draft.state.marks[fieldname] === mark);
@@ -63,23 +78,27 @@ export class PaneDrafts {
 					)
 				).size
 		);
-		this.failedCount = computed(() => buttons.filter((bound) => marked(bound, "error")).length);
+		this.failedCount = computed(
+			() =>
+				new Set(buttons.filter((bound) => marked(bound, "error")).map(({ block }) => block.key))
+					.size
+		);
 		this.saving = computed(() => buttons.some((bound) => marked(bound, "saving")));
 	}
 
 	/** An `auto` block's commit: its binding's changed `auto` fields, the ones that failed before included. */
-	commit(bound: BoundBlock) {
+	async commit(bound: BoundBlock) {
 		if (bound.block.save_mode !== "auto") return;
 		const { draft } = bound;
 		const fieldnames = this.fieldnamesOf(draft, "auto").filter(
 			(fieldname) => draft.dirty(fieldname) || draft.state.marks[fieldname] === "saving"
 		);
-		this.saveOrHold(draft, fieldnames);
+		await this.saveOrHold(draft, fieldnames);
 	}
 
 	/** The Save bar: each binding's `button` changes, in parallel, with nothing rolled back. */
 	async saveButtons() {
-		const drafts = new Set([...this.bound.values()].map(({ draft }) => draft));
+		const drafts = new Set(this.claims.map(({ draft }) => draft));
 		await Promise.all(
 			[...drafts].map((draft) =>
 				this.saveOrHold(
@@ -91,15 +110,13 @@ export class PaneDrafts {
 	}
 
 	discardButtons() {
-		for (const { block, draft, fieldnames } of this.bound.values())
+		for (const { block, draft, fieldnames } of this.claims)
 			if (block.save_mode === "button") draft.discard(fieldnames.value);
 	}
 
 	/** True while a change no save holds would be lost: a `button` edit or a failed autosave. */
 	unsaved(): boolean {
-		return [...this.bound.values()].some(
-			({ draft, fieldnames }) => draft.unsaved(fieldnames.value).length > 0
-		);
+		return this.claims.some(({ draft, fieldnames }) => draft.unsaved(fieldnames.value).length > 0);
 	}
 
 	/** A save still in flight finishes; if it then fails, a toast names the pane. */
@@ -107,9 +124,36 @@ export class PaneDrafts {
 		this.isClosed = true;
 	}
 
-	private saveOrHold(draft: BindingDraft, fieldnames: string[]) {
+	/** A component's named bindings; each claims the fields of its doctype no generated block draws. */
+	private bindComponent(block: SettingsBlock, draftOf: (binding: SettingsBinding) => BindingDraft) {
+		const named = Object.entries(block.bindings!).map(([name, binding]) => {
+			const draft = draftOf(binding);
+			const claim: BoundBlock = {
+				block,
+				draft,
+				layout: computed(() => []),
+				fieldnames: computed(() => this.unclaimedFields(draft)),
+			};
+			this.claims.push(claim);
+			return [name, componentBinding(draft, () => this.commit(claim))] as const;
+		});
+		return Object.fromEntries(named);
+	}
+
+	private unclaimedFields(draft: BindingDraft): string[] {
+		const drawn = new Set(
+			this.claims
+				.filter((claim) => claim.draft === draft && claim.block.binding)
+				.flatMap((claim) => claim.fieldnames.value)
+		);
+		return (draft.state.meta?.fields ?? [])
+			.map((field) => field.fieldname)
+			.filter((fieldname) => !drawn.has(fieldname));
+	}
+
+	private async saveOrHold(draft: BindingDraft, fieldnames: string[]) {
 		if (!fieldnames.length) return;
-		const missing = [...this.bound.values()]
+		const missing = this.claims
 			.filter((bound) => bound.draft === draft)
 			.flatMap(({ layout }) => missingRequired(layout.value, draft.state.doc));
 		if (missing.length) return draft.hold(fieldnames, missing);
@@ -117,7 +161,7 @@ export class PaneDrafts {
 	}
 
 	private fieldnamesOf(draft: BindingDraft, mode: SettingsBlock["save_mode"]): string[] {
-		const fieldnames = [...this.bound.values()]
+		const fieldnames = this.claims
 			.filter(({ block, draft: other }) => other === draft && block.save_mode === mode)
 			.flatMap((bound) => bound.fieldnames.value);
 		return [...new Set(fieldnames)];

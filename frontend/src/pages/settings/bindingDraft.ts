@@ -14,6 +14,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
 import { FieldErrors } from "@/recordPage";
+import { runAfterSave } from "@/shell/afterSave";
 import type { Confirm } from "../record/discardChanges";
 import { awaitMeta } from "../record/metaSource";
 import { mergeRefetch, same } from "../record/refetchMerge";
@@ -106,7 +107,7 @@ export class BindingDraft {
 			this.state.doc[fieldname] = clone(this.state.saved[fieldname]);
 			this.stale.delete(fieldname);
 			delete this.state.marks[fieldname];
-			this.fieldErrors.unmark(fieldname);
+			this.unmark(fieldname);
 		}
 	}
 
@@ -168,8 +169,10 @@ export class BindingDraft {
 			fieldnames.map((fieldname) => [fieldname, clone(this.state.doc[fieldname])])
 		);
 		try {
-			this.land((await this.write(values)).data, values);
+			const reply = (await this.write(values)).data;
+			this.land(reply, values);
 			this.settle(fieldnames, "saved");
+			runAfterSave({ doctype: this.doctype, name: this.name, doc: reply, changed: fieldnames });
 		} catch (error) {
 			if (isApiError(error) && error.isTimestampMismatch)
 				await this.resolveConflict(fieldnames, error);
@@ -190,8 +193,8 @@ export class BindingDraft {
 			{ doc: this.state.doc, saved: { ...this.state.saved, ...sent } },
 			reply
 		);
-		this.state.saved = { ...saved, modified: reply.modified };
-		this.state.doc = { ...doc, modified: reply.modified };
+		replace(this.state.saved, { ...saved, modified: reply.modified });
+		replace(this.state.doc, { ...doc, modified: reply.modified });
 		this.state.isNew = false;
 	}
 
@@ -213,8 +216,8 @@ export class BindingDraft {
 				if (!fieldnames.includes(fieldname) && this.dirty(fieldname) && touched(fieldname))
 					this.stale.add(fieldname);
 			const { doc, saved } = mergeRefetch(this.state, fresh);
-			this.state.saved = { ...saved, modified: fresh.modified };
-			this.state.doc = { ...doc, modified: fresh.modified };
+			replace(this.state.saved, { ...saved, modified: fresh.modified });
+			replace(this.state.doc, { ...doc, modified: fresh.modified });
 			for (const fieldname of fieldnames) this.queued.add(fieldname);
 			return;
 		}
@@ -243,17 +246,28 @@ export class BindingDraft {
 			if (this.queued.has(fieldname)) continue;
 			this.state.marks[fieldname] = mark;
 			if (mark !== "saved") continue;
-			this.fieldErrors.unmark(fieldname);
+			this.unmark(fieldname);
 			setTimeout(() => {
 				if (this.state.marks[fieldname] === "saved") delete this.state.marks[fieldname];
 			}, SAVED_MARK_FOR);
 		}
 	}
 
+	/** The field's own mark, and the marks on its rows' cells when it is a table. */
+	private unmark(fieldname: string) {
+		this.fieldErrors.unmark(fieldname);
+		for (const key of Object.keys(this.fieldErrors.drawn.value)) {
+			if (!key.startsWith("[")) continue;
+			const [parentfield, row, cell] = JSON.parse(key) as [string, string, string];
+			if (parentfield === fieldname)
+				this.fieldErrors.unmark({ parentfield, key: row, fieldname: cell });
+		}
+	}
+
 	private reset(document: Values) {
 		this.stale.clear();
-		this.state.saved = clone(document);
-		this.state.doc = clone(document);
+		replace(this.state.saved, clone(document));
+		replace(this.state.doc, clone(document));
 		this.state.marks = {};
 		this.fieldErrors.clearAll();
 	}
@@ -270,6 +284,12 @@ function messageOf(error: unknown): string {
 
 function pick(values: Values, fieldnames: string[]): Values {
 	return Object.fromEntries(fieldnames.map((fieldname) => [fieldname, values[fieldname]]));
+}
+
+/** In place, so a component that kept `doc` or `saved` keeps the live object. */
+function replace(target: Values, values: Values) {
+	for (const key of Object.keys(target)) if (!(key in values)) delete target[key];
+	Object.assign(target, values);
 }
 
 function clone<T>(value: T): T {
