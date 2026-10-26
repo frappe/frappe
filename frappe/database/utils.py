@@ -77,6 +77,17 @@ def convert_to_value(o: FilterValue):
 	return o
 
 
+def resolve_session_user(value):
+	"""`@me` in a filter value stands for the current user, alone or as `%@me%` for a like match."""
+	if value == "@me":
+		return frappe.session.user
+	if value == "%@me%":
+		return f"%{frappe.session.user}%"
+	if isinstance(value, list | tuple) and "@me" in value:
+		return type(value)(frappe.session.user if v == "@me" else v for v in value)
+	return value
+
+
 def is_non_text_field(doctype: str, fieldname: str, df=None) -> bool:
 	"""Return whether a DocField is stored in a non-text database column."""
 	from frappe.model.meta import get_default_df

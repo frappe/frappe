@@ -21,6 +21,7 @@ from frappe.database.utils import (
 	get_order_by_fields,
 	is_non_text_field,
 	is_order_by_in_select,
+	resolve_session_user,
 )
 from frappe.model import CORE_DOCTYPES as PERMITTED_CORE_DOCTYPES
 from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtypes
@@ -675,7 +676,7 @@ class Engine:
 			_value = value
 		else:
 			# Regular value processing for literal comparisons like: table.field = 'value'
-			_value = convert_to_value(value)
+			_value = convert_to_value(resolve_session_user(value))
 
 		if isinstance(value, Document):
 			frappe.throw(_("Document cannot be used as a filter value"))
