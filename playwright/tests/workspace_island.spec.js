@@ -44,6 +44,11 @@ test.describe("Workspace island", () => {
 				public: 1,
 				renderer: "Frappe UI",
 				content: JSON.stringify([
+					{
+						id: "pw-h1",
+						type: "header",
+						data: { text: '<span class="h4">First</span>' },
+					},
 					{ id: "pw-nc", type: "number_card", data: { number_card_name: CARD, col: 4 } },
 					{ id: "pw-ch", type: "chart", data: { chart_name: CHART, col: 12 } },
 					{
@@ -52,6 +57,16 @@ test.describe("Workspace island", () => {
 						data: { shortcut_name: "Playwright ToDos", col: 4 },
 					},
 					{ id: "pw-cd", type: "card", data: { card_name: "Playwright Links", col: 4 } },
+					{
+						id: "pw-h2",
+						type: "header",
+						data: { text: '<span class="h4">Second</span>' },
+					},
+					{
+						id: "pw-p",
+						type: "paragraph",
+						data: { text: "Playwright body text", col: 4 },
+					},
 				]),
 				shortcuts: [{ type: "DocType", link_to: "ToDo", label: "Playwright ToDos" }],
 				links: [
@@ -120,6 +135,20 @@ test.describe("Workspace island", () => {
 
 		await page.locator(".ws-tile", { hasText: "Playwright Links" }).getByText("Notes").click();
 		await expect(page).toHaveURL(/\/desk\/note/);
+	});
+
+	test("a heading stays above its own section on a phone", async ({ page }) => {
+		await page.setViewportSize({ width: 400, height: 900 });
+		await page.goto("/desk/playwright-island");
+
+		const top = async (locator) => (await locator.boundingBox()).y;
+		const second = page.locator(".ws-text", { hasText: "Second" });
+		const body = page.locator(".ws-tile", { hasText: "Playwright body text" });
+		const card = page.locator(".ws-tile", { hasText: "Playwright Links" });
+		await expect(body).toBeVisible();
+
+		expect(await top(card)).toBeLessThan(await top(second));
+		expect(await top(second)).toBeLessThan(await top(body));
 	});
 
 	test("the workspace page has no URL of its own", async ({ page }) => {
