@@ -1,4 +1,4 @@
-<!-- The avatar menu: the person's profile, settings, theme, desk v1 and log out. The rail and the index draw it. -->
+<!-- The avatar menu: the person's profile, settings, theme, the page's own rows, desk v1 and log out. The rail and the index draw it. -->
 <template>
 	<Dropdown :options="menu" side="right" align="end">
 		<button
@@ -23,6 +23,7 @@ import { computed, h, inject, ref } from "vue";
 import { Avatar, Dropdown, useColorScheme, type DropdownOptions } from "frappe-ui";
 import type { Boot } from "@/boot";
 import LogoutDialog from "./LogoutDialog.vue";
+import { pageMenuItems } from "./pageMenu";
 
 const USER_CELL =
 	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
@@ -60,6 +61,7 @@ const menu = computed<DropdownOptions>(() => [
 					onClick: () => setColorScheme(scheme.value),
 				})),
 			},
+			...pageMenuItems.value,
 		],
 	},
 	{

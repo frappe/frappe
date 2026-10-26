@@ -1,16 +1,24 @@
 // The index page: one tile per boot app, the filter box, its states, and the keys it answers.
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick, type App } from "vue";
 import type { Boot } from "@/boot";
+import { pageMenuItems } from "@/shell/pageMenu";
 import IndexPage from "../IndexPage.vue";
+
+const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
+
+vi.mock("@framework/ui/api", async (original) => ({
+	...(await original<object>()),
+	runMethod: fake.runMethod,
+}));
 
 type BootApp = NonNullable<Boot["apps"]>[number];
 
 const APPS: BootApp[] = [
-	{ app: "frappe", title: "Framework", logo: "/assets/frappe/logo.svg", kind: "prefix", route: "/apps/desk" },
-	{ app: "erpnext", title: "ERPNext", logo: null, kind: "prefix", route: "/apps/erpnext" },
-	{ app: "crm", title: "CRM", logo: "/assets/crm/logo.svg", kind: "prefix", route: "/apps/crm" },
-	{ app: "gameplan", title: "Gameplan", logo: null, kind: "link", route: "/g" },
+	{ app: "frappe", title: "Framework", logo: "/assets/frappe/logo.svg", kind: "prefix", route: "/apps/desk", hidden: false },
+	{ app: "erpnext", title: "ERPNext", logo: null, kind: "prefix", route: "/apps/erpnext", hidden: false },
+	{ app: "crm", title: "CRM", logo: "/assets/crm/logo.svg", kind: "prefix", route: "/apps/crm", hidden: false },
+	{ app: "gameplan", title: "Gameplan", logo: null, kind: "link", route: "/g", hidden: false },
 ];
 
 type BootFavourite = NonNullable<Boot["favourites"]>[number];
@@ -72,6 +80,7 @@ const mounted: App[] = [];
 let assign: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
+	fake.runMethod.mockReset();
 	assign = vi.fn();
 	vi.stubGlobal("location", { ...window.location, assign });
 });
@@ -414,5 +423,221 @@ describe("the index's Recent", () => {
 		);
 		await type(host, "zzz");
 		expect(box(host).getAttribute("aria-controls")).toBeNull();
+	});
+});
+
+describe("the person's layer", () => {
+	const HIDDEN_CRM = APPS.map((app) => ({ ...app, hidden: app.app === "crm" }));
+
+	// The page loads it lazily; loaded here, a click draws it within one flush.
+	beforeAll(() => import("../ArrangeApps.vue"));
+
+	async function flush() {
+		for (let tick = 0; tick < 5; tick++) await new Promise((resolve) => setTimeout(resolve));
+		await nextTick();
+	}
+
+	async function openTileMenu(host: HTMLElement, app: string) {
+		const tile = tiles(host).find((tile) => tile.dataset.app === app)!;
+		const trigger = tile.parentElement!.querySelector<HTMLElement>("[data-tile-menu]")!;
+		trigger.dispatchEvent(new KeyboardEvent("keydown", { key: "Enter", bubbles: true }));
+		await flush();
+		return [...document.body.querySelectorAll<HTMLElement>("[role='menuitem']")];
+	}
+
+	function saved() {
+		return fake.runMethod.mock.calls.map(([method, args]) => [method, args]);
+	}
+
+	function arrangeGrid(host: HTMLElement) {
+		return [...host.querySelectorAll<HTMLElement>("li[data-app]")].map((tile) => [
+			tile.dataset.app,
+			tile.querySelector("[data-eye]")!.getAttribute("aria-pressed"),
+		]);
+	}
+
+	async function arrange(host: HTMLElement) {
+		pageMenuItems.value.find((item) => item.label === "Arrange apps")!.onClick();
+		await flush();
+		return host.querySelector<HTMLElement>("[data-arrange-strip]")!;
+	}
+
+	function button(root: HTMLElement, label: string) {
+		return [...root.querySelectorAll("button")].find((node) => node.textContent?.trim() === label)!;
+	}
+
+	it("leaves a hidden app out of the grid and the box's width, but the filter still finds it", async () => {
+		const host = await mount(HIDDEN_CRM);
+		expect(tiles(host).map((tile) => tile.dataset.app)).toEqual(["frappe", "erpnext", "gameplan"]);
+		expect(box(host).parentElement!.className).toContain("max-w-[312px]");
+
+		await type(host, "cr");
+		expect(tiles(host).map((tile) => tile.dataset.app)).toEqual(["crm"]);
+		await press(host, "Enter");
+		expect(assign).toHaveBeenCalledWith("/apps/crm");
+	});
+
+	it("hides a tile from its menu at once, and stores the layer", async () => {
+		fake.runMethod.mockResolvedValue({ data: HIDDEN_CRM });
+		const host = await mount();
+		const [hide] = await openTileMenu(host, "crm");
+		expect(hide.textContent?.trim()).toBe("Hide");
+
+		hide.click();
+		await flush();
+		expect(tiles(host).map((tile) => tile.dataset.app)).not.toContain("crm");
+		expect(saved()).toEqual([
+			[
+				"frappe.shell.boot.save_index_layer",
+				{ order: ["frappe", "erpnext", "crm", "gameplan"], hidden: ["crm"] },
+			],
+		]);
+	});
+
+	it("puts back only the tile whose save failed", async () => {
+		let failFirst!: (error: Error) => void;
+		fake.runMethod
+			.mockReturnValueOnce(new Promise((_resolve, reject) => (failFirst = reject)))
+			.mockResolvedValue({ data: [] });
+		const host = await mount();
+		(await openTileMenu(host, "crm"))[0].click();
+		await flush();
+		(await openTileMenu(host, "gameplan"))[0].click();
+		await flush();
+		expect(tiles(host).map((tile) => tile.dataset.app)).toEqual(["frappe", "erpnext"]);
+
+		failFirst(new Error("offline"));
+		await flush();
+		expect(tiles(host).map((tile) => tile.dataset.app)).toEqual(["frappe", "erpnext", "crm"]);
+	});
+
+	it("offers Show on a hidden app the filter found", async () => {
+		fake.runMethod.mockResolvedValue({ data: APPS });
+		const host = await mount(HIDDEN_CRM);
+		await type(host, "crm");
+		const [show] = await openTileMenu(host, "crm");
+		expect(show.textContent?.trim()).toBe("Show");
+
+		show.click();
+		await flush();
+		await type(host, "");
+		expect(tiles(host).map((tile) => tile.dataset.app)).toContain("crm");
+		expect(saved()[0][1]).toEqual({ order: ["frappe", "erpnext", "crm", "gameplan"], hidden: [] });
+	});
+
+	it("says so when every app is hidden, with a way to arrange them", async () => {
+		const host = await mount(APPS.map((app) => ({ ...app, hidden: true })));
+		const state = host.querySelector<HTMLElement>("[data-index-state='all-hidden']")!;
+		expect(state.textContent).toContain("You have hidden every app.");
+
+		button(state, "Arrange apps").click();
+		await flush();
+		expect(host.querySelector("[data-arrange-strip]")).not.toBeNull();
+	});
+
+	it("adds Arrange apps to the avatar menu while the index is drawn", async () => {
+		await mount();
+		expect(pageMenuItems.value.map((item) => item.label)).toEqual(["Arrange apps"]);
+		mounted.splice(0).forEach((app) => app.unmount());
+		expect(pageMenuItems.value).toEqual([]);
+
+		await mount([]);
+		expect(pageMenuItems.value).toEqual([]);
+	});
+
+	it("keeps the rows of a page that mounted before the last one unmounted", async () => {
+		await mount();
+		const [first] = mounted.splice(0);
+		await mount();
+		first.unmount();
+		expect(pageMenuItems.value.map((item) => item.label)).toEqual(["Arrange apps"]);
+	});
+
+	it("steps Favourites and Recent aside while arranging", async () => {
+		const host = await mount(APPS, FAVOURITES, RECENT);
+		expect(host.querySelector("[data-index-recent]")).not.toBeNull();
+		await arrange(host);
+		expect(chips(host)).toHaveLength(0);
+		expect(host.querySelector("[data-index-recent]")).toBeNull();
+	});
+
+	it("arranges every app, hidden ones too, and Done stores the draft", async () => {
+		const host = await mount(HIDDEN_CRM);
+		await type(host, "erp");
+		const strip = await arrange(host);
+		expect(box(host).value).toBe("");
+		// The box and the strip span the drag grid of all four apps, not the three shown.
+		expect(box(host).parentElement!.className).toContain("max-w-[440px]");
+		expect(strip.className).toContain("max-w-[440px]");
+		expect(strip.textContent).toContain("Drag to reorder. Click the eye to hide an app.");
+		expect(arrangeGrid(host)).toEqual([
+			["frappe", "false"],
+			["erpnext", "false"],
+			["crm", "true"],
+			["gameplan", "false"],
+		]);
+		expect(tiles(host)).toHaveLength(0);
+
+		host.querySelector<HTMLElement>("li[data-app='crm'] [data-eye]")!.click();
+		host.querySelector<HTMLElement>("li[data-app='gameplan'] [data-eye]")!.click();
+		await nextTick();
+		const gameplanEye = host.querySelector<HTMLElement>("li[data-app='gameplan'] [data-eye]")!;
+		expect(gameplanEye.getAttribute("aria-label")).toBe("Hide Gameplan");
+
+		// Alt+Left moves an app one place, keeping focus on its eye; the first app stays first.
+		gameplanEye.focus();
+		gameplanEye.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "ArrowLeft", altKey: true, bubbles: true, cancelable: true })
+		);
+		await nextTick();
+		expect(document.activeElement).toBe(host.querySelector("li[data-app='gameplan'] [data-eye]"));
+		const frappeEye = host.querySelector<HTMLElement>("li[data-app='frappe'] [data-eye]")!;
+		frappeEye.dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowLeft", altKey: true, bubbles: true }));
+		await nextTick();
+		expect(arrangeGrid(host).map(([app]) => app)).toEqual(["frappe", "erpnext", "gameplan", "crm"]);
+
+		const stored = [APPS[0], APPS[1], { ...APPS[3], hidden: true }, APPS[2]];
+		fake.runMethod.mockResolvedValue({ data: stored });
+		button(strip, "Done").click();
+		await flush();
+
+		expect(saved()).toEqual([
+			[
+				"frappe.shell.boot.save_index_layer",
+				{ order: ["frappe", "erpnext", "gameplan", "crm"], hidden: ["gameplan"] },
+			],
+		]);
+		expect(host.querySelector("[data-arrange-strip]")).toBeNull();
+		expect(tiles(host).map((tile) => tile.dataset.app)).toEqual(["frappe", "erpnext", "crm"]);
+		expect(document.activeElement).toBe(box(host));
+	});
+
+	it("resets to the app layer and stays in arrange mode", async () => {
+		const host = await mount(HIDDEN_CRM);
+		const strip = await arrange(host);
+		const appLayer = [APPS[2], APPS[0], APPS[1], APPS[3]];
+		fake.runMethod.mockResolvedValue({ data: appLayer });
+
+		button(strip, "Reset").click();
+		await flush();
+
+		expect(saved()).toEqual([["frappe.shell.boot.save_index_layer", { order: [], hidden: [] }]]);
+		expect(arrangeGrid(host).map(([app, hidden]) => `${app}:${hidden}`)).toEqual([
+			"crm:false",
+			"frappe:false",
+			"erpnext:false",
+			"gameplan:false",
+		]);
+		expect(host.querySelector("[data-arrange-strip]")).not.toBeNull();
+	});
+
+	it("stays in arrange mode with the draft when Done fails", async () => {
+		const host = await mount(HIDDEN_CRM);
+		const strip = await arrange(host);
+		fake.runMethod.mockRejectedValue(new Error("offline"));
+		button(strip, "Done").click();
+		await flush();
+		expect(host.querySelector("[data-arrange-strip]")).not.toBeNull();
+		expect(arrangeGrid(host)).toHaveLength(4);
 	});
 });

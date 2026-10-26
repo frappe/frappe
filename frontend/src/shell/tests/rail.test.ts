@@ -14,6 +14,7 @@ import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
 import { OpenSettingsKey } from "../openSettings";
+import { pageMenuItems } from "../pageMenu";
 
 registerStandardPages(standardPages);
 
@@ -477,6 +478,20 @@ describe("the user menu", () => {
 		const menu = await opened();
 		expect(rows(menu)).toEqual(["My settings", "Theme", "Desk v1", "Log out"]);
 		expect(row(menu, "Log out").className).toContain("red");
+	});
+
+	it("offers the page's own rows after Theme, while the page holds them", async () => {
+		const arrange = vi.fn();
+		pageMenuItems.value = [{ label: "Arrange apps", icon: "lucide-layout-grid", onClick: arrange }];
+		try {
+			const menu = await opened();
+			expect(rows(menu)).toEqual(["My settings", "Theme", "Arrange apps", "Desk v1", "Log out"]);
+			row(menu, "Arrange apps").click();
+			await flush();
+			expect(arrange).toHaveBeenCalledOnce();
+		} finally {
+			pageMenuItems.value = [];
+		}
 	});
 
 	it("separates the groups: the person's rows, Desk v1, Log out", async () => {

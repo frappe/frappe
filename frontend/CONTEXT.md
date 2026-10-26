@@ -74,6 +74,9 @@ _Avoid_: default route, implicit route.
 
 **Index**: <a id="index"></a>
 The page at `/apps`, which belongs to no app: one way into each app the user can open.
+Its tiles stack two layers: the app layer (the hook's `sequence_id`) and the person's user
+layer (their order and the apps they hid). A hidden app leaves the grid, and the filter still
+finds it. A site layer would sit between the two; it is not built.
 _Avoid_: apps screen (desk v1's page), home page.
 
 **Landing**: <a id="landing"></a>
