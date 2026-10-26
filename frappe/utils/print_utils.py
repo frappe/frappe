@@ -51,6 +51,12 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	)
 
 
+def _run_print_pdf_hooks(doctype, name, print_format):
+	for hook in frappe.get_hooks("on_print_pdf"):
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+
+
 def renders_through_generator(print_format) -> bool:
 	"""Whether the doc must be rendered by PrintFormatGenerator instead of the HTML pipeline."""
 	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
@@ -266,6 +272,7 @@ def attach_print(
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
+					_run_print_pdf_hooks(doctype, name, print_format)
 					letterhead_name = letterhead if print_letterhead else None
 					if uses_legacy_weasyprint(pf_doc):
 						from frappe.utils.weasyprint import legacy_generator
@@ -287,6 +294,15 @@ def attach_print(
 							style=style,
 							settings=settings,
 						)
+					from frappe.core.doctype.access_log.access_log import make_access_log
+
+					make_access_log(
+						doctype=doc_obj.doctype,
+						document=doc_obj.name,
+						file_type="PDF",
+						method="Print",
+						page=f"Print Format: {pf_doc.name}",
+					)
 				else:
 					kwargs["as_pdf"] = True
 					content = get_print(doctype, name, **kwargs)
