@@ -1,0 +1,22 @@
+{
+ "content": null,
+ "creation": "2026-10-25 20:05:09.396731",
+ "desk_view": "Workspace",
+ "docstatus": 0,
+ "doctype": "Page",
+ "idx": 0,
+ "modified": "2026-10-25 20:05:09.396731",
+ "modified_by": "Administrator",
+ "module": "Desk",
+ "name": "workspace-view",
+ "owner": "Administrator",
+ "page_name": "workspace-view",
+ "roles": [],
+ "script": null,
+ "shared_page": 0,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Workspace",
+ "type": "Frappe UI"
+}
