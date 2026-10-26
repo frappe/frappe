@@ -22,9 +22,6 @@ class UserSocialLogin(Document):
 		userid: DF.Data | None
 		username: DF.Data | None
 	# end: auto-generated types
-<<<<<<< HEAD
-	pass
-=======
 
 	def validate(self):
 		self.disallow_frappe_userid_change()
@@ -49,4 +46,3 @@ class UserSocialLogin(Document):
 		stored_userid = before.userid if stored_provider == "frappe" else None
 		if self.userid != stored_userid:
 			frappe.throw(_("Cannot change the sign-in identifier for the frappe provider."))
->>>>>>> 42f1114 (fix: keep the OIDC `sub` claim immutable after user creation (#45247))
