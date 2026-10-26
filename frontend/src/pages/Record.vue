@@ -167,6 +167,7 @@ import { runSave, useUnloadGuard } from "./record/recordSave";
 import { provideRecordCommits } from "./record/recordCommits";
 import { landOnField, stopLanding, tabOf } from "./record/landOnField";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
+import { registerTabRows } from "./record/tabs/tabRows";
 import {
 	activityPointer,
 	addressesFeed,
@@ -218,6 +219,7 @@ import { openCreate } from "@/shell/create";
 import { OpenSettingsKey } from "@/shell/openSettings";
 import PageFrame from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
+import { recents } from "@/shell/recents";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 
@@ -261,6 +263,13 @@ const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype))
 const docname = computed(() => String(route.params.name));
 
 const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
+
+watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRows(created)));
+
+watch(
+	() => saved.value.name === docname.value && saved.value[meta.value?.title_field],
+	(title) => title && recents.retitle(route.path, String(title))
+);
 
 // Off the sidecar, like the people rows: a favourite is never part of the draft.
 const favourites = computed(() => favouritesOf(docinfo.value, boot.session.user.name));

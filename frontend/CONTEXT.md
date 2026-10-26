@@ -342,6 +342,10 @@ component), action (already overloaded; see **Words that collide**).
 One line in the palette, showing an act, a place or a record. Not a child table's row; see
 **Words that collide**.
 
+**Recent**: <a id="recent"></a>
+A place or record this user opened lately, by any route, kept in this browser. The palette
+shows the last few on the empty query.
+
 **Shell surface**: <a id="shell-surface"></a>
 The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
 app's global acts, named `shell.<app>.<item>`. Same item shape and verbs as a page surface;

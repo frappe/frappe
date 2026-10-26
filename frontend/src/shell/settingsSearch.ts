@@ -1,5 +1,6 @@
 // Settings search over the pane list and the label index the server sent with it; no request per query.
 import { __ } from "@/i18n";
+import { matchTier } from "./matchTier";
 import type { SettingsAddressBook } from "./settingsAddress";
 import type { PanesReply, SettingsIndexEntry, SettingsPane } from "./settingsPanes";
 
@@ -98,10 +99,8 @@ export class SettingsSearch {
 
 /** 0 when the label starts with the query, 1 when a word in it does, 2 anywhere in it, 3 in its other text. */
 function rank(entry: Entry, needle: string): number | null {
-	const label = __(entry.label).toLowerCase();
-	if (label.startsWith(needle)) return 0;
-	if (label.includes(` ${needle}`)) return 1;
-	if (label.includes(needle)) return 2;
+	const tier = matchTier(__(entry.label), needle);
+	if (tier !== null) return tier;
 	const other = [entry.description, ...(entry.keywords ?? [])];
 	return other.some((text) => text && __(text).toLowerCase().includes(needle)) ? 3 : null;
 }

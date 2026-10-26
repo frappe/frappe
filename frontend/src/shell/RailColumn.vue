@@ -24,6 +24,28 @@
 			</Dropdown>
 		</div>
 
+		<div class="mb-3 flex shrink-0 flex-col items-center gap-3 self-stretch">
+			<Divider flex-item />
+			<Tooltip side="right">
+				<template #content>
+					<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
+						Search <KeyboardShortcut combo="Mod+K" />
+					</span>
+				</template>
+				<button
+					type="button"
+					data-key="palette-trigger"
+					:class="TRIGGER"
+					aria-label="Search"
+					aria-keyshortcuts="Control+K Meta+K"
+					@click="openPalette"
+				>
+					<span class="lucide-search size-4" aria-hidden="true" />
+				</button>
+			</Tooltip>
+			<Divider flex-item />
+		</div>
+
 		<!-- Stretched over `SidebarRail`'s own padding, so the scrollbar sits on the rail's edge. -->
 		<ScrollArea class="-mx-[11px] min-h-0 flex-1 self-stretch" viewportClass="px-[11px]">
 			<nav class="flex flex-col items-center gap-3" :aria-label="appTitle">
@@ -76,7 +98,9 @@
 import { computed, inject } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import {
+	Divider,
 	Dropdown,
+	KeyboardShortcut,
 	SidebarRail,
 	SidebarRailItem,
 	ScrollArea,
@@ -91,6 +115,7 @@ import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import { OpenSettingsKey } from "./openSettings";
+import { openPalette } from "./palette";
 import UserMenu from "./UserMenu.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
@@ -105,6 +130,9 @@ const LETTER_TILE =
 // `SidebarRailItem`'s own inactive tile.
 const CELL =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
+// `SidebarRailItem`'s `ghost` cell, whose own tooltip would put the key on a second line.
+const TRIGGER =
+	"relative flex size-7 shrink-0 items-center justify-center rounded-4 text-base text-ink-gray-8 transition hover:bg-surface-gray-3 focus-visible:ring-0 focus-visible:focus-ring";
 
 // The shell decides `current` (one row across rail and panel) and `shareLink` (it knows whether
 // the panel needs naming); a context is composed once per list.
