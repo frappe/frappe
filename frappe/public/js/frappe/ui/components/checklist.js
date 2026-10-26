@@ -96,6 +96,7 @@ frappe.ui.Checklist = class Checklist {
 
 		this.items = new Map();
 		this.rows = new Map();
+		this.pickers = new Map();
 		this.open_id = null;
 		this.closed_by_user = false;
 
@@ -106,6 +107,8 @@ frappe.ui.Checklist = class Checklist {
 
 	/** Replace all items. Rows are kept by id, so the open row stays open across a refresh. */
 	set_items(items) {
+		const ids = new Set(items.map((item) => item.id));
+		[...this.rows.keys()].filter((id) => !ids.has(id)).forEach((id) => this.close_pickers(id));
 		this.items = new Map(items.map((item) => [item.id, item]));
 		this.rows = new Map(
 			items.map((item) => [item.id, this.rows.get(item.id) || this.make_row(item.id)])
@@ -128,6 +131,7 @@ frappe.ui.Checklist = class Checklist {
 		if (!item) return;
 		Object.assign(item, changes);
 		this.update_row(item);
+		this.make_progress();
 		this.update_head();
 		this.sync_open();
 	}
@@ -137,6 +141,7 @@ frappe.ui.Checklist = class Checklist {
 	}
 
 	remove_item(item_id) {
+		this.close_pickers(item_id);
 		this.rows.get(item_id)?.remove();
 		this.rows.delete(item_id);
 		this.items.delete(item_id);
@@ -177,6 +182,7 @@ frappe.ui.Checklist = class Checklist {
 	set_expanded(expanded) {
 		this.el.toggleAttribute("data-collapsed", !expanded);
 		this.head.setAttribute("aria-expanded", String(expanded));
+		this.el.querySelector(".es-checklist__collapse").inert = !expanded;
 	}
 
 	// Rebuilt only when the count changes, so the bar animates from one value to the next.
@@ -269,6 +275,7 @@ frappe.ui.Checklist = class Checklist {
 	}
 
 	update_row(item) {
+		this.close_pickers(item.id);
 		const row = this.rows.get(item.id);
 		const reason = this.is_finished(item) ? null : item.locked;
 		row.setAttribute("data-status", this.get_state(item));
@@ -362,6 +369,12 @@ frappe.ui.Checklist = class Checklist {
 				: document.createTextNode("");
 		}
 
+		const show_assignee = () =>
+			combobox.set_value(item.assignee || null, {
+				label: user?.fullname,
+				image: user?.image,
+				avatar: true,
+			});
 		const combobox = new frappe.ui.Combobox({
 			placeholder: __("Select assignee"),
 			search_placeholder: __("Search users"),
@@ -378,13 +391,16 @@ frappe.ui.Checklist = class Checklist {
 						}))
 					),
 			on_change: (assignee) =>
-				this.save_field(item, "assignee", assignee || null, this.opts.on_assign),
+				this.save_field(
+					item,
+					"assignee",
+					assignee || null,
+					this.opts.on_assign,
+					show_assignee
+				),
 		});
-		combobox.set_value(item.assignee || null, {
-			label: user?.fullname,
-			image: user?.image,
-			avatar: true,
-		});
+		show_assignee();
+		this.track_picker(item.id, combobox);
 		return combobox.trigger_el;
 	}
 
@@ -424,7 +440,7 @@ frappe.ui.Checklist = class Checklist {
 	}
 
 	attach_date_picker(trigger, item) {
-		new frappe.ui.DatePicker({
+		const picker = new frappe.ui.DatePicker({
 			trigger,
 			align: "end",
 			value: item.due_date || "",
@@ -432,16 +448,29 @@ frappe.ui.Checklist = class Checklist {
 				? [{ label: __("Clear"), onclick: (picker) => picker.clear() }]
 				: [],
 			on_change: (date) =>
-				this.save_field(item, "due_date", date || null, this.opts.on_due_date_change),
+				this.save_field(item, "due_date", date || null, this.opts.on_due_date_change, () =>
+					picker.set_value(item.due_date || "")
+				),
 		});
+		this.track_picker(item.id, picker);
+	}
+
+	track_picker(item_id, picker) {
+		if (!this.pickers.has(item_id)) this.pickers.set(item_id, []);
+		this.pickers.get(item_id).push(picker);
+	}
+
+	close_pickers(item_id) {
+		(this.pickers.get(item_id) || []).forEach((picker) => picker.close());
+		this.pickers.delete(item_id);
 	}
 
 	// Saves through the caller, then updates the row; a rejected save leaves the row as it was.
-	save_field(item, field, value, save) {
+	save_field(item, field, value, save, revert) {
 		if (value === (item[field] || null)) return;
-		return Promise.resolve(save(item, value)).then(() =>
-			this.update_item(item.id, { [field]: value })
-		);
+		return Promise.resolve(save(item, value))
+			.then(() => this.update_item(item.id, { [field]: value }))
+			.catch(() => revert?.());
 	}
 
 	// A skipped row offers only Undo skip, so skipping can't stand in for unlocking it.
