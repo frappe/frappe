@@ -1,6 +1,6 @@
 <script setup>
 import { computed, defineAsyncComponent, ref, watch } from "vue";
-import { FrappeUIProvider, setConfig } from "frappe-ui";
+import { Alert, FrappeUIProvider, setConfig } from "frappe-ui";
 import { get, post } from "./api.js";
 import WorkspaceGrid from "./WorkspaceGrid.vue";
 import EmptyWorkspace from "./EmptyWorkspace.vue";
@@ -154,16 +154,16 @@ watch(
 				</p>
 			</div>
 			<template v-else-if="workspace">
-				<div
+				<Alert
 					v-if="workspace.is_hidden && workspace.can_edit"
-					class="mb-4 rounded-6 bg-surface-gray-2 px-3 py-2 text-base text-ink-gray-6"
-				>
-					{{
+					class="mb-4"
+					icon="lucide-eye-off"
+					:title="
 						__(
-							"This workspace is hidden from other users. You can see it because you're a Workspace Manager."
+							'This workspace is hidden from other users. You can see it because you\'re a Workspace Manager.'
 						)
-					}}
-				</div>
+					"
+				/>
 				<EmptyWorkspace
 					v-if="!workspace.content.length"
 					:can_edit="workspace.can_edit"

@@ -1,5 +1,6 @@
 <script setup>
-import { Button, Popover, Tooltip } from "frappe-ui";
+import { Button, ItemListRow, Popover, Tooltip } from "frappe-ui";
+import { ChartCard } from "frappe-ui/charts";
 import { useHost } from "@framework/ui/island";
 
 defineProps({
@@ -33,9 +34,11 @@ function blocked_text(link) {
 </script>
 
 <template>
-	<div class="rounded-6 border border-outline-gray-1 bg-surface-base p-4">
-		<div class="mb-2 flex items-center gap-1">
-			<span class="truncate text-base font-medium text-ink-gray-8">{{ widget.label }}</span>
+	<ChartCard>
+		<div class="mb-1.5 flex h-[21px] items-center gap-1">
+			<span class="truncate text-p-base font-medium text-ink-gray-8">{{
+				widget.label
+			}}</span>
 			<Popover v-if="widget.description" side="top">
 				<template #trigger>
 					<Button
@@ -50,37 +53,31 @@ function blocked_text(link) {
 				</div>
 			</Popover>
 		</div>
-		<ul class="flex flex-col">
+		<ul class="-mx-2 flex flex-col">
 			<li v-for="link in widget.links" :key="link.label + link.link_to">
 				<Tooltip v-if="is_blocked(link)" :text="blocked_text(link)">
-					<span class="block truncate py-1 text-base text-ink-gray-4">{{
-						link.label
-					}}</span>
+					<ItemListRow disabled>
+						<span class="block truncate">{{ link.label }}</span>
+					</ItemListRow>
 				</Tooltip>
 				<Tooltip
-					v-else-if="link.description"
-					:text="__(link.description)"
+					v-else
+					:text="link.description ? __(link.description) : undefined"
+					:disabled="!link.description"
 					:hover-delay="0.6"
 				>
-					<button
+					<ItemListRow
+						as="button"
 						type="button"
-						class="block w-full truncate rounded py-1 text-left text-base text-ink-gray-7 hover:text-ink-gray-9"
-						:class="{ 'font-medium': link.onboard }"
+						class="text-left hover:bg-surface-gray-2 hover:text-ink-gray-9"
 						@click="host.navigate(route_for(link))"
 					>
-						{{ link.label }}
-					</button>
+						<span class="block truncate" :class="{ 'font-medium': link.onboard }">
+							{{ link.label }}
+						</span>
+					</ItemListRow>
 				</Tooltip>
-				<button
-					v-else
-					type="button"
-					class="block w-full truncate rounded py-1 text-left text-base text-ink-gray-7 hover:text-ink-gray-9"
-					:class="{ 'font-medium': link.onboard }"
-					@click="host.navigate(route_for(link))"
-				>
-					{{ link.label }}
-				</button>
 			</li>
 		</ul>
-	</div>
+	</ChartCard>
 </template>

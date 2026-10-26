@@ -1,8 +1,10 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { Badge, Button, LoadingIndicator } from "frappe-ui";
+import { Badge, Button, ItemListRow } from "frappe-ui";
+import { ChartCard, ChartContainer } from "frappe-ui/charts";
 import { post } from "../api.js";
 import DeskFilter from "./DeskFilter.vue";
+import { badge_theme } from "./badge_theme.js";
 
 const props = defineProps({
 	widget: { type: Object, required: true },
@@ -80,62 +82,63 @@ function text(value) {
 </script>
 
 <template>
-	<div class="flex h-full flex-col rounded-6 border border-outline-gray-1 bg-surface-base p-4">
-		<div class="mb-2 flex items-center justify-between gap-2">
-			<span class="truncate text-base font-medium text-ink-gray-8">{{ widget.label }}</span>
-			<div class="flex shrink-0 items-center gap-1">
-				<DeskFilter
-					v-if="doctype"
-					:key="doctype"
-					:doctype="doctype"
-					:filters="filters"
-					@change="set_filters"
-				/>
-				<Button
-					size="sm"
-					variant="ghost"
-					icon="lucide-refresh-cw"
-					:label="__('Refresh List')"
-					@click="load"
-				/>
-				<Button
-					v-if="can_create"
-					size="sm"
-					variant="ghost"
-					icon="lucide-plus"
-					:label="__('Add New') + ' ' + __(doctype)"
-					@click="add_new"
-				/>
-			</div>
-		</div>
-		<div class="min-h-0 flex-1 overflow-hidden">
-			<LoadingIndicator v-if="!rows" class="size-4 text-ink-gray-4" />
-			<p v-else-if="!rows.length" class="text-base text-ink-gray-5">
-				{{ __("No Data...") }}
-			</p>
-			<button
-				v-for="doc in rows"
-				v-else
-				:key="doc.name"
-				type="button"
-				class="flex w-full items-center gap-2 rounded px-1 py-1.5 text-left hover:bg-surface-gray-2"
-				@click="open(doc, $event)"
-			>
-				<span class="min-w-0 flex-1">
-					<span class="block truncate text-base text-ink-gray-8">
-						{{ text(doc[title_field]) }}
-					</span>
+	<ChartCard class="h-full">
+		<ChartContainer :title="widget.label" :loading="!rows" :empty="rows?.length === 0">
+			<template #actions>
+				<div class="flex items-center gap-1">
+					<DeskFilter
+						v-if="doctype"
+						:key="doctype"
+						:doctype="doctype"
+						:filters="filters"
+						@change="set_filters"
+					/>
+					<Button
+						size="sm"
+						variant="ghost"
+						icon="lucide-refresh-cw"
+						:label="__('Refresh List')"
+						@click="load"
+					/>
+					<Button
+						v-if="can_create"
+						size="sm"
+						variant="ghost"
+						icon="lucide-plus"
+						:label="__('Add New') + ' ' + __(doctype)"
+						@click="add_new"
+					/>
+				</div>
+			</template>
+			<template #empty>
+				<span class="text-p-sm text-ink-gray-5">{{ __("No Data...") }}</span>
+			</template>
+			<div class="-mx-2 flex h-full flex-col overflow-hidden">
+				<ItemListRow
+					v-for="doc in rows"
+					:key="doc.name"
+					as="button"
+					type="button"
+					class="text-left hover:bg-surface-gray-2"
+					@click="open(doc, $event)"
+				>
+					<span class="block truncate text-ink-gray-8">{{
+						text(doc[title_field])
+					}}</span>
 					<span class="block text-sm text-ink-gray-5">
 						{{ frappe.datetime.prettyDate(doc.modified) }}
 					</span>
-				</span>
-				<Badge
-					v-if="indicator(doc)"
-					:label="indicator(doc)[0]"
-					:theme="indicator(doc)[1]"
-				/>
-			</button>
-		</div>
-		<Button class="mt-1 self-start" size="sm" :label="__('View List')" @click="open_list" />
-	</div>
+					<template v-if="indicator(doc)" #suffix>
+						<Badge
+							:label="indicator(doc)[0]"
+							:theme="badge_theme(indicator(doc)[1])"
+						/>
+					</template>
+				</ItemListRow>
+			</div>
+			<template #legend>
+				<Button class="self-start" size="sm" :label="__('View List')" @click="open_list" />
+			</template>
+		</ChartContainer>
+	</ChartCard>
 </template>

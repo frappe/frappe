@@ -1,6 +1,7 @@
 <script setup>
 import { computed, ref } from "vue";
-import { Badge, Button, Progress } from "frappe-ui";
+import { Badge, Button, ItemListRow, Progress } from "frappe-ui";
+import { ChartCard } from "frappe-ui/charts";
 import { get_shell, import_records, run_action, update_step } from "./onboarding.js";
 
 const props = defineProps({
@@ -58,40 +59,53 @@ function module_label(step) {
 </script>
 
 <template>
-	<div class="rounded-6 border border-outline-gray-1 bg-surface-base p-4">
-		<div class="mb-3 flex flex-col gap-2">
-			<div class="text-base font-medium text-ink-gray-8">{{ widget.title }}</div>
-			<div class="text-sm text-ink-gray-5">{{ progress_label }}</div>
-			<Progress :value="all_done ? 100 : ((completed + skipped) / required.length) * 100" />
+	<ChartCard>
+		<div class="mb-3 flex flex-col gap-1.5">
+			<div class="flex items-baseline justify-between gap-3">
+				<span class="truncate text-p-base font-medium text-ink-gray-8">
+					{{ widget.title }}
+				</span>
+				<span class="shrink-0 text-p-sm text-ink-gray-5">{{ progress_label }}</span>
+			</div>
+			<Progress
+				size="sm"
+				:value="all_done ? 100 : ((completed + skipped) / required.length) * 100"
+			/>
 		</div>
-		<p v-if="all_done" class="text-base text-ink-gray-6">{{ __("You're all set up.") }}</p>
-		<ul v-else class="flex flex-col gap-0.5">
-			<li v-for="step in steps" :key="step.name" class="rounded px-2">
-				<button
+		<p v-if="all_done" class="text-p-base text-ink-gray-6">{{ __("You're all set up.") }}</p>
+		<ul v-else class="-mx-2 flex flex-col gap-0.5">
+			<li v-for="step in steps" :key="step.name">
+				<ItemListRow
+					as="button"
 					type="button"
-					class="flex w-full items-center gap-2 py-1.5 text-left"
+					class="text-left hover:bg-surface-gray-2"
+					:active="step === open_step"
 					:aria-expanded="step === open_step"
 					@click="open_step = step"
 				>
-					<span :class="step_icon(step)" class="size-4 shrink-0" aria-hidden="true" />
-					<span v-if="step.module" class="shrink-0 text-base text-ink-gray-5">
-						{{ module_label(step) }}
+					<template #prefix>
+						<span :class="step_icon(step)" class="size-4" aria-hidden="true" />
+					</template>
+					<span class="flex min-w-0 items-center gap-2">
+						<span v-if="step.module" class="shrink-0 text-ink-gray-5">
+							{{ module_label(step) }}
+						</span>
+						<span
+							class="truncate"
+							:class="is_done(step) ? 'text-ink-gray-5' : 'text-ink-gray-8'"
+						>
+							{{ step.title }}
+						</span>
+						<Badge v-if="step.is_optional" size="sm" :label="__('Optional')" />
 					</span>
-					<span
-						class="truncate text-base"
-						:class="is_done(step) ? 'text-ink-gray-5' : 'text-ink-gray-8'"
-					>
-						{{ step.title }}
-					</span>
-					<Badge v-if="step.is_optional" size="sm" :label="__('Optional')" />
-					<span v-if="step.is_skipped" class="ms-auto text-sm text-ink-gray-4">
-						{{ __("Skipped") }}
-					</span>
-				</button>
-				<div v-if="step === open_step" class="flex flex-col gap-3 pb-3 ps-6">
+					<template v-if="step.is_skipped" #suffix>
+						<span class="text-sm text-ink-gray-4">{{ __("Skipped") }}</span>
+					</template>
+				</ItemListRow>
+				<div v-if="step === open_step" class="flex flex-col gap-3 px-2 pb-3 pt-2 ps-8">
 					<div
 						v-if="step.description"
-						class="text-sm text-ink-gray-6"
+						class="text-p-sm text-ink-gray-6"
 						v-html="frappe.markdown(step.description)"
 					/>
 					<div class="flex items-center gap-2">
@@ -110,7 +124,7 @@ function module_label(step) {
 						/>
 						<Button
 							v-if="!is_done(step)"
-							variant="subtle"
+							variant="ghost"
 							:label="__('Skip')"
 							@click="skip(step)"
 						/>
@@ -118,5 +132,5 @@ function module_label(step) {
 				</div>
 			</li>
 		</ul>
-	</div>
+	</ChartCard>
 </template>

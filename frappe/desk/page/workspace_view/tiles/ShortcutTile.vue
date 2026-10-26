@@ -1,6 +1,8 @@
 <script setup>
 import { computed, onMounted, ref } from "vue";
 import { Badge } from "frappe-ui";
+import { ChartCard } from "frappe-ui/charts";
+import { badge_theme } from "./badge_theme.js";
 
 const props = defineProps({
 	widget: { type: Object, required: true },
@@ -9,17 +11,6 @@ const props = defineProps({
 const frappe = window.frappe;
 const __ = window.__;
 const count = ref(null);
-
-const BADGE_THEMES = {
-	Grey: "gray",
-	Green: "green",
-	Red: "red",
-	Orange: "amber",
-	Pink: "violet",
-	Yellow: "amber",
-	Blue: "blue",
-	Cyan: "blue",
-};
 
 const counts = computed(() => {
 	const { type, doc_view, link_to } = props.widget;
@@ -43,9 +34,7 @@ const label = computed(() => {
 	return format ? __(format).replace(/{}/g, count.value) : String(count.value);
 });
 
-const theme = computed(() =>
-	props.widget.color && count.value ? BADGE_THEMES[props.widget.color] || "gray" : "gray"
-);
+const theme = computed(() => (count.value ? badge_theme(props.widget.color) : "gray"));
 
 function open(event) {
 	const w = props.widget;
@@ -77,15 +66,19 @@ function open(event) {
 </script>
 
 <template>
-	<button
-		type="button"
-		class="flex h-full w-full items-center justify-between gap-2 rounded-6 border border-outline-gray-1 bg-surface-base px-4 text-left hover:border-outline-gray-2 focus-visible:outline focus-visible:outline-2 focus-visible:outline-outline-gray-3"
-		@click="open"
-	>
-		<span class="truncate text-base font-medium text-ink-gray-8">{{ widget.label }}</span>
-		<span class="flex shrink-0 items-center gap-2">
-			<Badge v-if="label !== null" :label="label" :theme="theme" />
-			<span class="lucide-arrow-up-right size-3 text-ink-gray-5" aria-hidden="true" />
-		</span>
-	</button>
+	<ChartCard class="flex h-full items-center hover:border-outline-gray-2">
+		<button
+			type="button"
+			class="flex w-full items-center justify-between gap-2 text-left after:absolute after:inset-0 after:rounded-4 focus-visible:outline-none focus-visible:after:ring-2 focus-visible:after:ring-outline-gray-3"
+			@click="open"
+		>
+			<span class="truncate text-p-base font-medium text-ink-gray-8">{{
+				widget.label
+			}}</span>
+			<span class="flex shrink-0 items-center gap-2">
+				<Badge v-if="label !== null" :label="label" :theme="theme" />
+				<span class="lucide-arrow-up-right size-4 text-ink-gray-5" aria-hidden="true" />
+			</span>
+		</button>
+	</ChartCard>
 </template>

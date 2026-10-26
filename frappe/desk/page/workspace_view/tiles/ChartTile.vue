@@ -1,6 +1,7 @@
 <script setup>
-import { computed, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Button, DateRangePicker, Dropdown, LoadingIndicator } from "frappe-ui";
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { Button, DateRangePicker, Dropdown } from "frappe-ui";
+import { ChartCard, ChartContainer } from "frappe-ui/charts";
 import DeskFilter from "./DeskFilter.vue";
 import { text_of } from "./number_card.js";
 import {
@@ -22,7 +23,6 @@ const props = defineProps({
 
 const frappe = window.frappe;
 const __ = window.__;
-const CHART_HEIGHT = 200;
 
 const chart = ref(null);
 const settings = ref({ ...(props.widget.chart_settings || {}) });
@@ -58,8 +58,16 @@ async function draw() {
 			state.value = { empty: true };
 			return;
 		}
-		const config = await chart_config(chart.value, data, result, settings.value, CHART_HEIGHT);
-		state.value = { data, summary: summary || [] };
+		state.value = { data, summary: summary || [], loading: true };
+		// the plot fills what the summary row leaves of the tile
+		await nextTick();
+		const config = await chart_config(
+			chart.value,
+			data,
+			result,
+			settings.value,
+			target.value.clientHeight
+		);
 		mount("frappe.chart", { config });
 	} catch (e) {
 		state.value = { error: e.message || __("This chart couldn't load") };
@@ -71,7 +79,11 @@ async function draw() {
 function mount(island, island_props) {
 	requestAnimationFrame(() => {
 		if (!target.value) return;
-		if (handle && handle.island === island) return handle.update(island_props);
+		if (handle && handle.island === island) {
+			handle.update(island_props);
+			state.value = { ...state.value, loading: false };
+			return;
+		}
 		handle?.unmount();
 		handle = frappe.ui.mount_island(island, target.value, island_props);
 		handle.island = island;
@@ -226,57 +238,57 @@ watch(
 </script>
 
 <template>
-	<div class="flex h-full flex-col rounded-6 border border-outline-gray-1 bg-surface-base p-4">
-		<div class="flex items-start justify-between gap-2">
-			<div class="min-w-0">
-				<div class="truncate text-base font-medium text-ink-gray-8">
-					{{ widget.label }}
-				</div>
-				<div v-if="last_synced" class="truncate text-sm text-ink-gray-5">
-					{{ last_synced }}
-				</div>
-			</div>
-			<div v-if="doc && !chart.island" class="flex shrink-0 items-center gap-1">
-				<template v-if="doc.timeseries && is_heatmap">
-					<Dropdown :options="year_options">
-						<Button
-							size="sm"
-							:label="String(settings.heatmap_year || doc.heatmap_year)"
+	<ChartCard class="h-full">
+		<ChartContainer
+			:title="widget.label"
+			:subtitle="last_synced"
+			:loading="state.loading"
+			:error="state.error"
+			:empty="state.empty"
+		>
+			<template #actions>
+				<div v-if="doc && !chart.island" class="flex items-center gap-1">
+					<template v-if="doc.timeseries && is_heatmap">
+						<Dropdown :options="year_options">
+							<Button
+								size="sm"
+								:label="String(settings.heatmap_year || doc.heatmap_year)"
+							/>
+						</Dropdown>
+					</template>
+					<template v-else-if="doc.timeseries">
+						<DateRangePicker
+							v-if="settings.timespan === DATE_RANGE"
+							v-model="date_range"
+							class="w-48"
+							:placeholder="__('Date Range')"
 						/>
-					</Dropdown>
-				</template>
-				<template v-else-if="doc.timeseries">
-					<DateRangePicker
-						v-if="settings.timespan === DATE_RANGE"
-						v-model="date_range"
-						class="w-48"
-						:placeholder="__('Date Range')"
+						<Dropdown :options="timespan_options">
+							<Button size="sm" :label="__(settings.timespan || doc.timespan)" />
+						</Dropdown>
+						<Dropdown :options="interval_options">
+							<Button
+								size="sm"
+								icon-left="lucide-calendar"
+								:label="__(settings.time_interval || doc.time_interval)"
+							/>
+						</Dropdown>
+					</template>
+					<DeskFilter
+						v-if="is_doctype_chart && doc.document_type"
+						:doctype="doc.document_type"
+						:filters="filters"
+						@change="set_filters"
 					/>
-					<Dropdown :options="timespan_options">
-						<Button size="sm" :label="__(settings.timespan || doc.timespan)" />
-					</Dropdown>
-					<Dropdown :options="interval_options">
-						<Button
-							size="sm"
-							icon-left="lucide-calendar"
-							:label="__(settings.time_interval || doc.time_interval)"
-						/>
-					</Dropdown>
-				</template>
-				<DeskFilter
-					v-if="is_doctype_chart && doc.document_type"
-					:doctype="doc.document_type"
-					:filters="filters"
-					@change="set_filters"
-				/>
-				<Button
-					v-else
-					size="sm"
-					icon="lucide-list-filter"
-					:label="__('Filter')"
-					@click="open_filter_dialog"
-				/>
-				<Dropdown align="end" :options="menu">
+					<Button
+						v-else
+						size="sm"
+						icon="lucide-list-filter"
+						:label="__('Filter')"
+						@click="open_filter_dialog"
+					/>
+				</div>
+				<Dropdown v-if="doc" align="end" :options="menu">
 					<Button
 						size="sm"
 						variant="ghost"
@@ -284,52 +296,28 @@ watch(
 						:label="__('Chart actions')"
 					/>
 				</Dropdown>
-			</div>
-			<Dropdown v-else-if="doc" align="end" :options="menu">
-				<Button
-					size="sm"
-					variant="ghost"
-					icon="lucide-more-horizontal"
-					:label="__('Chart actions')"
-				/>
-			</Dropdown>
-		</div>
-
-		<div v-if="state.summary?.length" class="mt-2 flex flex-wrap gap-4">
-			<div v-for="item in state.summary" :key="item.label" class="flex flex-col">
-				<span class="text-sm text-ink-gray-5">{{ item.label }}</span>
-				<span class="text-base font-medium text-ink-gray-8">{{
-					summary_value(item)
-				}}</span>
-			</div>
-		</div>
-
-		<div class="relative mt-2 min-h-0 flex-1 overflow-hidden">
-			<div
-				v-if="state.error"
-				class="flex h-full items-center justify-center px-4 text-center"
-			>
-				<span class="text-base text-ink-amber-3">{{ state.error }}</span>
-			</div>
-			<div
-				v-else-if="state.empty"
-				class="flex h-full flex-col items-center justify-center gap-2 text-ink-gray-5"
-			>
-				<span class="lucide-chart-column size-5" aria-hidden="true" />
-				<span class="text-base">
-					{{ doc.empty_state_message ? __(doc.empty_state_message) : __("No data yet") }}
+			</template>
+			<template #empty>
+				<span class="text-p-sm text-ink-gray-5">
+					{{
+						doc?.empty_state_message ? __(doc.empty_state_message) : __("No data yet")
+					}}
 				</span>
+			</template>
+			<template #error="{ error }">
+				<span class="max-w-sm text-p-sm text-ink-gray-5">{{ error }}</span>
+			</template>
+			<div class="flex h-full flex-col gap-2">
+				<div v-if="state.summary?.length" class="flex flex-wrap gap-4">
+					<div v-for="item in state.summary" :key="item.label" class="flex flex-col">
+						<span class="text-sm text-ink-gray-5">{{ item.label }}</span>
+						<span class="text-base font-medium text-ink-gray-8">
+							{{ summary_value(item) }}
+						</span>
+					</div>
+				</div>
+				<div ref="target" class="min-h-0 w-full flex-1" />
 			</div>
-			<LoadingIndicator
-				v-else-if="state.loading"
-				class="absolute left-1/2 top-1/2 size-4 text-ink-gray-4"
-			/>
-			<div
-				v-show="!state.error && !state.empty"
-				ref="target"
-				class="w-full"
-				:style="{ height: `${CHART_HEIGHT}px` }"
-			/>
-		</div>
-	</div>
+		</ChartContainer>
+	</ChartCard>
 </template>
