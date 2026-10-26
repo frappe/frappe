@@ -100,6 +100,29 @@ class TestGetWorkspace(IntegrationTestCase):
 		frappe.set_user(DESK_USER)
 		self.assertTrue(get_workspace(standard.name)["is_layout_customized"])
 
+	def test_a_save_keeps_blocks_the_editor_could_not_see(self):
+		from frappe.desk.doctype.workspace.workspace import save_page
+
+		reader = "test-gw-reader@example.com"
+		make_user(reader, ["Desk User", "System Manager"])
+
+		frappe.set_user(MANAGER)
+		seen = get_workspace("GW Test")["content"]
+		self.assertNotIn("Errors", [b["data"].get("chart_name") for b in seen])
+		hello, todos, things = seen[2], seen[0], seen[1]
+		save_page("GW Test", public=1, new_widgets={}, blocks=dumps([hello, todos, things]))
+
+		frappe.set_user(reader)
+		payload = get_workspace("GW Test")
+		self.assertEqual(
+			[
+				b["data"].get("chart_name") or b["data"].get("card_name") or b["data"].get("text")
+				for b in payload["content"]
+			],
+			["Hello", "ToDos", "Errors", "Things"],
+		)
+		self.assertIn("Errors", payload["widgets"]["charts"])
+
 	def test_complete_onboarding_is_left_out(self):
 		frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
 		step = make_named(
