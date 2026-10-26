@@ -30,13 +30,21 @@ class UserSocialLogin(Document):
 
 	def disallow_frappe_userid_change(self):
 		"""`userid` for the `frappe` provider is this site's OIDC `sub`; it is managed on the
-		parent User, so a direct write to this row cannot set or change it."""
-		if self.provider != "frappe":
+		parent User, so a direct write to this row cannot set or change it, nor relabel another
+		provider's row as `frappe` to smuggle one in."""
+		before = (
+			None
+			if self.is_new()
+			else frappe.db.get_value(self.doctype, self.name, ["provider", "userid"], as_dict=True)
+		)
+		stored_provider = before.provider if before else None
+
+		if self.provider != "frappe" and stored_provider != "frappe":
 			return
 
-		stored_userid = None
-		if not self.is_new():
-			stored_userid = frappe.db.get_value(self.doctype, self.name, "userid")
+		if stored_provider and stored_provider != self.provider:
+			frappe.throw(_("Cannot change the provider of this sign-in identifier."))
 
+		stored_userid = before.userid if stored_provider == "frappe" else None
 		if self.userid != stored_userid:
 			frappe.throw(_("Cannot change the sign-in identifier for the frappe provider."))

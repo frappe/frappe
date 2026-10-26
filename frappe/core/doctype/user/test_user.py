@@ -163,6 +163,13 @@ class TestUser(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, child.save)
 		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "userid"), original_userid)
 
+		# nor by relabeling the frappe row as another provider to smuggle a userid back in
+		child = frappe.get_doc("User Social Login", row_name)
+		child.provider = "custom"
+		child.userid = "Administrator"
+		self.assertRaises(frappe.ValidationError, child.save)
+		self.assertEqual(frappe.db.get_value("User Social Login", row_name, "provider"), "frappe")
+
 	def insert_user_as_manager(self, first_name, username=None):
 		if frappe.session.user == "Administrator":
 			manager = frappe.get_doc(
