@@ -252,7 +252,8 @@ def validate_anchors(block):
 
 def validate_search_settings(block):
 	validate_json_list(block, "settings", dict)
-	if not all(isinstance(entry.get("label"), str) for entry in parse_json(block, "settings", [])):
+	labels = [entry.get("label") for entry in parse_json(block, "settings", [])]
+	if not all(isinstance(label, str) and label.strip() for label in labels):
 		refuse_json(block, "settings")
 
 
