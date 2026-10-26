@@ -477,6 +477,21 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		jinja.save()
 		self.assertEqual(jinja.pdf_generator, "chrome")
 
+	def test_jinja_variable_starting_with_on_keeps_plutoprint(self):
+		from frappe.utils.print_utils import resolve_pdf_generator
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		jinja = frappe._dict(
+			pdf_generator="PlutoPrint",
+			html='{%- set ongoing = doc.status == "Open" -%}<p>{{ doc.description }}</p>',
+		)
+		script = frappe._dict(
+			pdf_generator="PlutoPrint", html='<p onclick="print()">{{ doc.description }}</p>'
+		)
+		self.assertEqual(resolve_pdf_generator(jinja), "PlutoPrint")
+		self.assertEqual(resolve_pdf_generator(script), "chrome")
+
 	def test_standard_print_uses_print_settings_default(self):
 		from frappe.utils.print_utils import resolve_pdf_generator
 
