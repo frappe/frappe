@@ -252,8 +252,8 @@ export default class NumberCardWidget extends Widget {
 
 		let number_parts;
 
-		// Use full number if the checkbox is enabled
-		if (this.card_doc.show_full_number) {
+		// Use full number if the checkbox is enabled; a duration formats its own units
+		if (this.card_doc.show_full_number || df?.fieldtype === "Duration") {
 			number_parts = [this.number.toString(), ""];
 		} else {
 			const shortened_number = frappe.utils.shorten_number(this.number, default_country, 5);

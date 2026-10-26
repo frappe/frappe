@@ -110,9 +110,11 @@ function format_number(card, number, df, doc) {
 		return window.__("N/A", null, "Number not available");
 	}
 
-	const [value, symbol = ""] = card.show_full_number
-		? [String(number)]
-		: frappe.utils.shorten_number(number, frappe.sys_defaults.country, 5).split(" ");
+	// a duration formats its own units, so it is never shortened
+	const [value, symbol = ""] =
+		card.show_full_number || df?.fieldtype === "Duration"
+			? [String(number)]
+			: frappe.utils.shorten_number(number, frappe.sys_defaults.country, 5).split(" ");
 	const suffix = symbol ? " " + symbol : "";
 
 	if (card.currency) return window.format_currency(parseFloat(value), card.currency) + suffix;
