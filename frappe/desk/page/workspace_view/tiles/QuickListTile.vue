@@ -1,5 +1,5 @@
 <script setup>
-import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
 import { Badge, Button, ItemListRow } from "frappe-ui";
 import { ChartCard, ChartContainer } from "frappe-ui/charts";
 import { get, post } from "../api.js";
@@ -75,15 +75,19 @@ async function load() {
 	rows.value = names ? docs.sort((a, b) => names.indexOf(a.name) - names.indexOf(b.name)) : docs;
 }
 
+const card = ref(null);
 const list = ref(null);
 const fit = ref(4);
+const max_height = inject("tile_max_height", ref(null));
 let observer = null;
 
-// as many whole rows as the list's height holds
+// as many whole rows as the tile's largest height holds, so the tile ends at its last row
 function measure() {
 	const row = list.value?.firstElementChild;
-	if (row?.offsetHeight)
-		fit.value = Math.max(1, Math.floor(list.value.clientHeight / row.offsetHeight));
+	const card_height = card.value?.$el.offsetHeight;
+	if (!row?.offsetHeight || !max_height.value || !card_height) return;
+	const room = max_height.value - (card_height - list.value.offsetHeight);
+	fit.value = Math.max(1, Math.floor(room / row.offsetHeight));
 }
 
 watch(list, (element) => {
@@ -92,7 +96,7 @@ watch(list, (element) => {
 	observer = new ResizeObserver(measure);
 	observer.observe(element);
 });
-watch(rows, () => nextTick(measure));
+watch([rows, max_height], () => nextTick(measure));
 onBeforeUnmount(() => observer?.disconnect());
 
 const visible = computed(() => rows.value?.slice(0, fit.value));
@@ -175,7 +179,7 @@ function text(value) {
 </script>
 
 <template>
-	<ChartCard class="h-full">
+	<ChartCard ref="card" :style="{ height: !rows && max_height ? `${max_height}px` : null }">
 		<ChartContainer :title="widget.label" :loading="!rows" :empty="rows?.length === 0">
 			<template #actions>
 				<div class="flex items-center gap-1">
@@ -207,7 +211,11 @@ function text(value) {
 			<template #empty>
 				<span class="text-p-sm text-ink-gray-5">{{ __("No Data...") }}</span>
 			</template>
-			<div ref="list" class="-mx-2 flex h-full flex-col overflow-hidden">
+			<div
+				ref="list"
+				class="-mx-2 flex flex-col overflow-hidden"
+				:class="{ 'min-h-16': rows?.length === 0 }"
+			>
 				<ItemListRow
 					v-for="doc in visible"
 					:key="doc.name"

@@ -4,7 +4,8 @@
 // optional height in grid rows that legacy ignores. Both snap to the named sizes of the block's
 // type when read, and nothing is written back until an editor saves.
 
-// [width in 12 columns, height in rows]. A null height fits the content.
+// [width in 12 columns, height in rows]. A null height fits the content, and a quick list's
+// height is the most it grows to.
 export const SIZES = {
 	shortcut: { S: [3, null], M: [4, null], L: [6, null] },
 	number_card: { S: [3, 2.5], M: [4, 2.5], L: [6, 2.5] },
@@ -18,6 +19,7 @@ export const SIZES = {
 };
 
 const SMALL = new Set(["S", "M"]);
+const SHRINKS = new Set(["quick_list"]);
 
 export function block_size(block) {
 	const presets = Object.entries(SIZES[block.type] || { Full: [12, null] });
@@ -34,6 +36,7 @@ export function block_size(block) {
 		name,
 		span: { 12: width, 6: SMALL.has(name) ? 3 : 6, 2: SMALL.has(name) ? 1 : 2 },
 		rows: Number(block.data?.row) || height,
+		shrinks: SHRINKS.has(block.type),
 	};
 }
 
