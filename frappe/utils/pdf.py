@@ -172,6 +172,16 @@ def measure_time(func):
 	return wrapper
 
 
+def encrypt_pdf(content: bytes, password: str) -> bytes:
+	from pypdf import PdfReader, PdfWriter
+
+	writer = PdfWriter(clone_from=PdfReader(io.BytesIO(content)))
+	writer.encrypt(password)
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
 @measure_time
 def get_chrome_pdf(print_format, html, options, output, pdf_generator=None):
 	from frappe.utils.pdf_generator.browser import Browser
