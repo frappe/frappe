@@ -5,7 +5,7 @@ import frappe
 from frappe import _
 from frappe.model import display_fieldtypes, get_permitted_fields, no_value_fields
 from frappe.model import table_fields as table_fieldtypes
-from frappe.utils import flt, format_duration, groupby_metric
+from frappe.utils import flt, format_duration, groupby_metric, make_filter_tuple
 from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response, get_default_xlsx_styles
 
@@ -153,9 +153,8 @@ class Exporter:
 		if not frappe.permissions.can_export(self.doctype):
 			frappe.permissions.can_export(self.doctype, raise_exception=True, is_owner=True)
 			if isinstance(filters, dict):
-				filters = {**filters, "owner": frappe.session.user}
-			else:
-				filters = [*(filters or []), ["owner", "=", frappe.session.user]]
+				filters = [make_filter_tuple(self.doctype, k, v) for k, v in filters.items()]
+			filters = [*(filters or []), ["owner", "=", frappe.session.user]]
 
 		for doc in self.get_data_as_docs(filters):
 			rows = []
@@ -192,9 +191,12 @@ class Exporter:
 			row[i] = value
 		return rows
 
-	def get_data_as_docs(self, filters):
+	def get_data_as_docs(self, filters=None):
 		def format_column_name(df):
 			return f"`tab{df.parent}`.`{df.fieldname}`"
+
+		if filters is None:
+			filters = self.export_filters
 
 		if self.meta.is_nested_set():
 			order_by = "lft ASC"

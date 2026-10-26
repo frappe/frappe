@@ -196,10 +196,17 @@ class TestExporter(IntegrationTestCase):
 		with self.set_user("test2@example.com"):
 			frappe.get_doc(doctype=doctype_name, title=own_doc).insert(ignore_permissions=True)
 			exporter = Exporter(doctype_name, export_fields={doctype_name: ["title"]}, export_data=True)
+			excluding_own = Exporter(
+				doctype_name,
+				export_fields={doctype_name: ["title"]},
+				export_data=True,
+				export_filters={"owner": ["!=", "test2@example.com"]},
+			)
 
 		titles = [row[0] for row in exporter.get_csv_array()[1:]]
 		self.assertIn(own_doc, titles)
 		self.assertNotIn(other_doc, titles)
+		self.assertEqual(excluding_own.get_csv_array()[1:], [])
 
 	def test_template_includes_import_provider_tables(self):
 		test_doc = "_Test Provider Export"
