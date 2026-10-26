@@ -41,10 +41,7 @@ frappe.provide("frappe.ui");
 
 const STATUSES = ["in_progress", "stuck"];
 
-const STATUS_LABELS = {
-	in_progress: __("In Progress"),
-	stuck: __("Stuck"),
-};
+const status_label = (status) => ({ in_progress: __("In Progress"), stuck: __("Stuck") }[status]);
 
 const MARKER_ICONS = {
 	pending: "circle",
@@ -337,6 +334,9 @@ frappe.ui.Checklist = class Checklist {
 	update_row(item) {
 		this.close_pickers(item.id);
 		const row = this.rows.get(item.id);
+		const focus_key = row.contains(document.activeElement)
+			? document.activeElement.closest("[data-focus-key]")?.dataset.focusKey
+			: null;
 		const reason = this.is_finished(item) ? null : item.locked;
 		row.setAttribute("data-status", this.get_state(item));
 		row.toggleAttribute("data-locked", Boolean(reason));
@@ -353,6 +353,7 @@ frappe.ui.Checklist = class Checklist {
 		row.querySelector(".es-checklist__actions").replaceChildren(
 			...this.make_actions(item, Boolean(reason))
 		);
+		if (focus_key) row.querySelector(`[data-focus-key="${focus_key}"]`)?.focus();
 	}
 
 	make_title(item) {
@@ -377,14 +378,15 @@ frappe.ui.Checklist = class Checklist {
 				this.update_item(item.id, { status })
 			);
 		const options = STATUSES.filter((status) => status !== item.status).map((status) => ({
-			label: STATUS_LABELS[status],
+			label: status_label(status),
 			icon: MARKER_ICONS[status],
 			onclick: () => set(status),
 		}));
 		if (item.status) {
 			options.push({ label: __("Clear status"), icon: "circle", onclick: () => set(null) });
 		}
-		new frappe.ui.Dropdown({ trigger, options });
+		trigger.dataset.focusKey = "status";
+		this.track_picker(item.id, new frappe.ui.Dropdown({ trigger, options }));
 		return trigger;
 	}
 
@@ -407,7 +409,7 @@ frappe.ui.Checklist = class Checklist {
 			skipped.textContent = __("Skipped");
 			return skipped;
 		}
-		const label = !this.is_finished(item) && STATUS_LABELS[item.status];
+		const label = !this.is_finished(item) && status_label(item.status);
 		if (!label) return document.createTextNode("");
 		return frappe.ui.badge({
 			label,
@@ -438,9 +440,10 @@ frappe.ui.Checklist = class Checklist {
 		const combobox = new frappe.ui.Combobox({
 			placeholder: __("Select assignee"),
 			search_placeholder: __("Search users"),
+			filterable: false,
 			options: (txt) =>
 				frappe.db
-					.get_link_options("User", txt, { user_type: "System User", enabled: 1 })
+					.get_link_options("User", txt, { user_type: "System User", enabled: 1 }, 20)
 					.then((users) =>
 						users.map(({ value, description }) => ({
 							value,
@@ -461,6 +464,7 @@ frappe.ui.Checklist = class Checklist {
 		});
 		show_assignee();
 		this.track_picker(item.id, combobox);
+		combobox.trigger_el.dataset.focusKey = "assignee";
 		return combobox.trigger_el;
 	}
 
@@ -473,6 +477,7 @@ frappe.ui.Checklist = class Checklist {
 		if (!this.opts.on_due_date_change) return document.createTextNode(text);
 
 		const trigger = this.make_control($("<span></span>").text(text), __("Due date"));
+		trigger.dataset.focusKey = "due_date";
 		trigger.toggleAttribute("data-empty", !item.due_date);
 		this.attach_date_picker(trigger, item);
 		return trigger;

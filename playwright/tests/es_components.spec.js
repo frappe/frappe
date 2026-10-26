@@ -922,7 +922,7 @@ test.describe("Espresso components", () => {
 		test("typing a label and pressing Enter adds an item, and Remove deletes it", async ({
 			page,
 		}) => {
-			const group = explorer_group(page, "adding and removing");
+			const group = explorer_group(page, "Adding and removing");
 			const input = group.getByRole("textbox", { name: "Add activity" });
 
 			await input.fill("Order a desk");
@@ -939,7 +939,7 @@ test.describe("Espresso components", () => {
 		});
 
 		test("leaving the add input with text in it adds the item", async ({ page }) => {
-			const group = explorer_group(page, "adding and removing");
+			const group = explorer_group(page, "Adding and removing");
 			const input = group.getByRole("textbox", { name: "Add activity" });
 
 			await input.fill("Order a chair");
@@ -950,7 +950,7 @@ test.describe("Espresso components", () => {
 		});
 
 		test("the arrow keys on a row's grip move it", async ({ page }) => {
-			const group = explorer_group(page, "adding and removing");
+			const group = explorer_group(page, "Adding and removing");
 			const labels = group.locator(".es-checklist__label");
 
 			await expect(labels).toHaveText(["Welcome lunch", "Book a desk"]);
@@ -961,7 +961,7 @@ test.describe("Espresso components", () => {
 		});
 
 		test("Escape clears the add input without adding an item", async ({ page }) => {
-			const group = explorer_group(page, "adding and removing");
+			const group = explorer_group(page, "Adding and removing");
 			const input = group.getByRole("textbox", { name: "Add activity" });
 
 			await input.fill("Not this one");

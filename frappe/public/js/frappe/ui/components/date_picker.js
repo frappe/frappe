@@ -211,8 +211,8 @@ frappe.ui.DatePicker = class DatePicker {
 	commit_input() {
 		if (!this.input || this.input.readOnly) return true;
 		const raw = this.input.value.trim();
-		if (!raw) {
-			this.commit(this.opts.clearable === false ? frappe.datetime.get_today() : "");
+		if (!raw && this.opts.clearable !== false) {
+			this.commit("");
 			return true;
 		}
 		const format = this.get_format();
@@ -243,6 +243,17 @@ frappe.ui.DatePicker = class DatePicker {
 
 	get_format() {
 		return this.opts.format || frappe.datetime.get_user_date_fmt().toUpperCase();
+	}
+
+	get_names() {
+		const names = $.fn.datepicker?.language?.[frappe.boot.lang];
+		return (
+			names || {
+				days: moment.weekdays(),
+				daysMin: moment.weekdaysMin(),
+				monthsShort: moment.monthsShort(),
+			}
+		);
 	}
 
 	after_close(reason) {
@@ -324,8 +335,9 @@ frappe.ui.DatePicker = class DatePicker {
 	make_header() {
 		const header = document.createElement("div");
 		header.className = "es-date-picker-calendar__header";
+		const month = this.get_names().monthsShort[this.view_month.month()];
 		const title = frappe.ui.button({
-			label: this.view_month.format("MMM YYYY"),
+			label: `${month} ${this.view_month.year()}`,
 			variant: "ghost",
 			css_class: "es-date-picker-calendar__title",
 			attrs: { "aria-live": "polite", "data-focus-key": "title" },
@@ -374,14 +386,14 @@ frappe.ui.DatePicker = class DatePicker {
 		grid.setAttribute("aria-label", __("Calendar dates"));
 
 		const first_day = frappe.datetime.get_first_day_of_the_week_index();
-		const weekdays = moment.weekdaysMin();
+		const { days, daysMin } = this.get_names();
 		const head = document.createElement("div");
 		head.className = "es-date-picker-calendar__weekdays";
 		for (let i = 0; i < 7; i++) {
 			const label = document.createElement("span");
 			label.className = "es-date-picker-calendar__weekday";
-			label.textContent = weekdays[(first_day + i) % 7].charAt(0);
-			label.title = moment.weekdays()[(first_day + i) % 7];
+			label.textContent = daysMin[(first_day + i) % 7].charAt(0);
+			label.title = days[(first_day + i) % 7];
 			head.append(label);
 		}
 		grid.append(head);
@@ -563,7 +575,7 @@ frappe.ui.DatePicker = class DatePicker {
 			make_list(
 				__("Select month"),
 				"month",
-				moment.monthsShort().map((m, i) => [i, m]),
+				this.get_names().monthsShort.map((m, i) => [i, m]),
 				(m) => m === this.view_month.month(),
 				(m) => {
 					this.view_month = this.view_month.clone().month(m);

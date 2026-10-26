@@ -473,11 +473,20 @@
     gap: calc(var(--spacing) * 2);
 }
 
-/* Narrow cards let the badge, owner and date take only the room they need. */
+/* Narrow cards keep the label whole and let the assignee give way first. */
 @container (max-width: 560px) {
     .es-checklist__row {
-        grid-template-columns: auto minmax(0, 1fr) auto auto auto;
+        grid-template-columns: auto auto auto minmax(calc(var(--spacing) * 14), 1fr) auto;
         column-gap: calc(var(--spacing) * 2);
+    }
+
+    .es-checklist__owner {
+        justify-content: end;
+    }
+
+    .es-checklist__owner .es-combobox {
+        width: auto;
+        min-width: 0;
     }
 
     .es-checklist__content {
