@@ -102,9 +102,11 @@ afterEach(() => {
 	page.reloadMeta.mockReset();
 });
 
+const BASE = "/apps/crm";
+
 async function mount(component = DoctypeList, doctype: string | null = "Contact") {
 	const router = createRouter({
-		history: createMemoryHistory("/apps/crm"),
+		history: createMemoryHistory(BASE),
 		routes: [
 			{ path: "/", name: "home", component: { render: () => null } },
 			{ path: "/:doctype", component: { render: () => null } },
@@ -155,7 +157,7 @@ describe("a failed meta read", () => {
 
 		expect(list.state()).toBe("notFound");
 		expect(list.action()?.textContent?.trim()).toBe("Go to CRM home");
-		expect(list.action()?.getAttribute("href")).toBe("/apps/crm/");
+		expect(list.action()?.getAttribute("href")).toBe(`${BASE}/`);
 	});
 
 	it("draws the offline state on a network failure, and Try again reads the meta again", async () => {
@@ -208,6 +210,6 @@ describe("an address with no doctype", () => {
 		const list = await mount(List, null);
 		expect(list.state()).toBe("notFound");
 		expect(list.action()?.textContent?.trim()).toBe("Go to CRM home");
-		expect(list.action()?.getAttribute("href")).toBe("/apps/crm/");
+		expect(list.action()?.getAttribute("href")).toBe(`${BASE}/`);
 	});
 });

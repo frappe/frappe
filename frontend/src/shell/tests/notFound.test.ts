@@ -39,7 +39,7 @@ describe("the catch-all page", () => {
 		const crm = { app: "crm", app_title: "CRM", shell_base: "/apps/crm" };
 		const home = await open(crm, "/crm-lead/CRM-LEAD-1/no/such/page");
 		expect(home?.textContent?.trim()).toBe("Go to CRM home");
-		expect(home?.getAttribute("href")).toBe("/apps/crm/");
+		expect(home?.getAttribute("href")).toBe(`${crm.shell_base}/`);
 	});
 
 	it("offers all apps on the index, which belongs to no app", async () => {

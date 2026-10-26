@@ -335,7 +335,7 @@ describe("opening /<doctype>/new", () => {
     expect(root.querySelector("h1")).toBeNull();
     const home = root.querySelector<HTMLAnchorElement>("[data-page-state] a");
     expect(home?.textContent?.trim()).toBe("Go to frappe home");
-    expect(home?.getAttribute("href")).toBe("/apps/frappe/");
+    expect(home?.getAttribute("href")).toBe(`${boot.shell_base}/`);
   });
 
   it("puts a name field at the top for a doctype named by prompt, filled from the query", async () => {
