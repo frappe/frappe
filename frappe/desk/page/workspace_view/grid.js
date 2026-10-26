@@ -9,10 +9,10 @@ export const SIZES = {
 	shortcut: { S: [3, null], M: [4, null], L: [6, null] },
 	number_card: { S: [3, 2.5], M: [4, 2.5], L: [6, 2.5] },
 	card: { M: [4, null], L: [6, null] },
-	quick_list: { M: [4, 4], L: [6, 4] },
-	chart: { L: [6, 4], Wide: [12, 4] },
+	quick_list: { M: [4, 4], L: [6, 4], XL: [8, 4] },
+	chart: { L: [6, 4], XL: [8, 4], Wide: [12, 4] },
 	onboarding: { L: [6, null], Wide: [12, null] },
-	custom_block: { M: [4, null], L: [6, null], Wide: [12, null] },
+	custom_block: { M: [4, null], L: [6, null], XL: [8, null], Wide: [12, null] },
 	header: { Full: [12, null] },
 	paragraph: { M: [4, null], L: [6, null], Full: [12, null] },
 };

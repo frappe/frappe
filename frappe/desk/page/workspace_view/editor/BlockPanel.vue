@@ -3,7 +3,17 @@ import { computed, ref } from "vue";
 import { Button, Select, TabButtons, TextInput, Textarea } from "frappe-ui";
 import { Link } from "@framework/ui";
 import { block_size } from "../grid.js";
-import { TEXT_SIZES, set_text, sizes_of, text_of, text_size } from "./editor.js";
+import {
+	HEIGHTS,
+	TEXT_SIZES,
+	has_heights,
+	height_of,
+	set_height,
+	set_text,
+	sizes_of,
+	text_of,
+	text_size,
+} from "./editor.js";
 
 // The selected block's fields, its size and its removal. Every change applies to the canvas live.
 const props = defineProps({
@@ -98,6 +108,12 @@ function options_of(field) {
 	if (typeof field.options === "function") return field.options(props.widget);
 	return field.options.map((value) => ({ label: __(value), value }));
 }
+
+const height_options = HEIGHTS.map((name) => ({ label: __(name), value: name }));
+const height = computed({
+	get: () => height_of(props.block),
+	set: (value) => set_height(props.block, value),
+});
 
 const is_text = computed(() => ["header", "paragraph"].includes(props.block.type));
 const fields = computed(() =>
@@ -262,6 +278,10 @@ function remove_link(index) {
 		<div v-if="size_options.length > 1" class="flex flex-col gap-1.5">
 			<span class="text-sm text-ink-gray-5">{{ __("Size") }}</span>
 			<TabButtons v-model="size" :options="size_options" />
+		</div>
+		<div v-if="has_heights(block)" class="flex flex-col gap-1.5">
+			<span class="text-sm text-ink-gray-5">{{ __("Height") }}</span>
+			<TabButtons v-model="height" :options="height_options" />
 		</div>
 		<Button
 			class="self-start"
