@@ -181,8 +181,9 @@ function stamped(): string | undefined {
 }
 
 // The parameter seeds the record, then leaves the address by `replace` with no second history entry.
+// Each navigation, not each address: a back can land on the same address stamped with another sidebar.
 watch(
-	[() => route.fullPath, destinations],
+	[router.currentRoute, destinations],
 	() => {
 		// Repeated in the address it arrives as an array, which must still be consumed.
 		const asking = route.query.sidebar;

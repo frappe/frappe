@@ -45,10 +45,12 @@ function framed(loader: Loader, loading: Component): Component {
 	let loaded = false;
 	const page = defineAsyncComponent({
 		loader: () =>
-			loader().then((module) => {
-				loaded = true;
-				return pageOf(module as Loaded);
-			}),
+			afterFramePaint()
+				.then(loader)
+				.then((module) => {
+					loaded = true;
+					return pageOf(module as Loaded);
+				}),
 		loadingComponent: loading,
 		errorComponent: defineComponent({
 			props: ["error"],
@@ -70,6 +72,14 @@ function framed(loader: Loader, loading: Component): Component {
 			};
 		},
 	});
+}
+
+/** Resolves once the frame has painted; before the document's first paint, at once. */
+function afterFramePaint(): Promise<void> {
+	// In the click's task, vite's preload helper holds the frame's paint. A cold load does not wait
+	// for the shell's first paint, or its page code would arrive that much later.
+	if (!performance.getEntriesByName("first-contentful-paint").length) return Promise.resolve();
+	return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
 }
 
 // A full reload: the browser can keep a failed module fetch and fail an in-app retry again.

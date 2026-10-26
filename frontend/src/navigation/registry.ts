@@ -1,6 +1,7 @@
 // Type name -> renderer, and the two failure paths: no renderer, and a renderer that throws.
 // Both skip the item and log once; one app's bad row must not blank the rail.
 
+import { START_LOCATION, type RouteLocationRaw } from "vue-router";
 import type { NavigationItem } from "@/boot";
 import { itemRenderers } from "@/contributions/registry";
 import type { ItemContext, ItemRenderer, Rendering } from "./types";
@@ -43,7 +44,7 @@ export function renderingOf(
 		const rendering = renderer.render(item, context);
 
 		// Resolved here so an unresolvable route fails in this handler, not inside `RouterLink`.
-		if (rendering && "to" in rendering) context.router.resolve(rendering.to);
+		if (rendering && "to" in rendering) resolveItemRoute(context, rendering.to);
 
 		return rendering;
 	} catch (error) {
@@ -57,6 +58,12 @@ export function renderingOf(
 	} finally {
 		depth -= 1;
 	}
+}
+
+/** An item's route, resolved without reading the current route. */
+// Resolved against the current route, every rail and sidebar row would redraw on each route change.
+export function resolveItemRoute(context: ItemContext, to: RouteLocationRaw) {
+	return context.router.resolve(to, START_LOCATION);
 }
 
 /**
