@@ -1776,12 +1776,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		if (in_background) {
 			frappe.call({
 				method: "frappe.utils.print_format.download_report_pdf",
-				// frappe.call sends a null as "", which the server cannot parse as JSON
-				args: Object.fromEntries(
-					Object.entries({ ...args, in_background: 1 }).filter(
-						([, value]) => value != null
-					)
-				),
+				args: { ...args, in_background: 1 },
 			});
 		} else {
 			frappe.download_report_pdf(args, this.get_pdf_filename());
