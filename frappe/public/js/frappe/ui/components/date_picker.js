@@ -265,8 +265,8 @@ frappe.ui.DatePicker = class DatePicker {
 	make_panel() {
 		if (this.disabled) return null;
 		this.view = "date";
-		this.view_month = this.get_start_month();
 		this.focus_date = this.get_initial_focus();
+		this.view_month = moment(this.focus_date, VALUE_FORMAT).startOf("month");
 
 		const body = document.createElement("div");
 		body.className = "es-date-picker-panel__body";
@@ -567,15 +567,26 @@ frappe.ui.DatePicker = class DatePicker {
 		});
 	}
 
+	get_start_date() {
+		if (this.value) return this.value;
+		const today = frappe.datetime.get_today();
+		if (this.opts.min && this.opts.min > today) return this.opts.min;
+		if (this.opts.max && this.opts.max < today) return this.opts.max;
+		return today;
+	}
+
 	get_start_month() {
-		return moment(this.value || frappe.datetime.get_today(), VALUE_FORMAT).startOf("month");
+		return moment(this.get_start_date(), VALUE_FORMAT).startOf("month");
 	}
 
 	get_initial_focus() {
-		const today = frappe.datetime.get_today();
 		if (this.value && this.is_available(this.value)) return this.value;
-		if (this.is_available(today)) return today;
-		return this.find_available(this.view_month.clone(), 1) || today;
+		const start = moment(this.get_start_date(), VALUE_FORMAT);
+		return (
+			this.find_available(start.clone(), 1) ||
+			this.find_available(start.clone(), -1) ||
+			start.format(VALUE_FORMAT)
+		);
 	}
 
 	is_available(value) {
