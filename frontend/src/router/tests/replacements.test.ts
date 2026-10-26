@@ -69,7 +69,6 @@ vi.mock("virtual:frappe/contributions", () => ({
 	},
 }));
 
-vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({
 	default: { render: () => h("div", { "data-page": "list" }) },
 }));

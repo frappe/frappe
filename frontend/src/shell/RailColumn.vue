@@ -65,38 +65,21 @@
 
 		<!-- The person's cell, pinned to the foot by the `ScrollArea`'s `flex-1` above it. -->
 		<div class="mt-3 flex shrink-0 items-center justify-center">
-			<Dropdown :options="userMenu" side="right" align="end">
-				<button
-					type="button"
-					data-key="user-menu"
-					:class="USER_CELL"
-					:aria-label="boot.session.user.full_name"
-				>
-					<Avatar
-						:image="boot.session.user.user_image"
-						:label="boot.session.user.full_name"
-						size="lg"
-					/>
-				</button>
-			</Dropdown>
+			<UserMenu />
 		</div>
-
-		<LogoutDialog v-model="confirmingLogout" />
 	</SidebarRail>
 </template>
 
 <script setup lang="ts">
-import { computed, h, inject, ref } from "vue";
+import { computed, inject } from "vue";
 import type { RouteLocationRaw } from "vue-router";
 import {
-	Avatar,
 	Dropdown,
 	SidebarRail,
 	SidebarRailItem,
 	ScrollArea,
 	Tooltip,
 	toast,
-	useColorScheme,
 	type DropdownOptions,
 } from "frappe-ui";
 import type { Boot, NavigationItem } from "@/boot";
@@ -105,8 +88,8 @@ import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
-import LogoutDialog from "./LogoutDialog.vue";
 import { OpenSettingsKey } from "./openSettings";
+import UserMenu from "./UserMenu.vue";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 	| { to: RouteLocationRaw }
@@ -117,26 +100,23 @@ const TILE =
 	"flex size-7 items-center justify-center rounded-[7px] transition focus-visible:ring-0 focus-visible:focus-ring";
 const LETTER_TILE =
 	"bg-surface-gray-3 text-sm font-medium text-ink-gray-8 hover:bg-surface-gray-4";
-const USER_CELL =
-	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
 // `SidebarRailItem`'s own inactive tile.
 const CELL =
 	"relative flex size-7 shrink-0 items-center justify-center rounded-[7px] bg-surface-gray-3 text-base transition focus-visible:ring-0 focus-visible:focus-ring";
 
-// The shell decides `customizable` (off on the index), `current` (one row across rail and panel)
-// and `shareLink` (it knows whether the panel needs naming); a context is composed once per list.
+// The shell decides `current` (one row across rail and panel) and `shareLink` (it knows whether
+// the panel needs naming); a context is composed once per list.
 const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
-	customizable?: boolean;
 	shareLink?: string;
 }>();
 const emit = defineEmits<{ customize: [] }>();
 
 const boot = inject<Boot>("boot")!;
 
-const appTitle = computed(() => boot.app_title ?? boot.app ?? "Apps");
+const appTitle = computed(() => boot.app_title ?? boot.app!);
 
 const tree = useItemTree(() => props.items, "the rail");
 
@@ -169,102 +149,9 @@ const openSettings = inject(OpenSettingsKey)!;
 const menu = computed<DropdownOptions>(() => [
 	{ label: "All apps", icon: "lucide-layout-grid", onClick: () => leave("/apps") },
 	{ label: "Settings", icon: "lucide-settings", onClick: () => openSettings() },
-	...(props.customizable
-		? [
-				{
-					label: "Customize sidebar",
-					icon: "lucide-settings-2",
-					onClick: () => emit("customize"),
-				},
-		  ]
-		: []),
+	{ label: "Customize sidebar", icon: "lucide-settings-2", onClick: () => emit("customize") },
 	...(props.shareLink ? [{ label: "Copy link", icon: "lucide-link", onClick: copyLink }] : []),
 ]);
-
-const { colorScheme, setColorScheme } = useColorScheme();
-const SCHEMES = [
-	{ label: "Light", value: "light", icon: "lucide-sun" },
-	{ label: "Dark", value: "dark", icon: "lucide-moon" },
-	{ label: "System", value: "system", icon: "lucide-monitor" },
-] as const;
-
-const confirmingLogout = ref(false);
-
-// Workaround: the settings dialog has no profile pane yet, so *My settings* opens v1's User form.
-const userMenu = computed<DropdownOptions>(() => [
-	{ group: "", hideLabel: true, options: [profileHeader()] },
-	{
-		group: "",
-		hideLabel: true,
-		options: [
-			{
-				label: "My settings",
-				icon: "lucide-circle-user",
-				onClick: () => leave(`/app/user/${encodeURIComponent(boot.session.user.name)}`),
-			},
-			{
-				label: "Theme",
-				icon: "lucide-sun-moon",
-				submenu: SCHEMES.map((scheme) => ({
-					label: scheme.label,
-					icon: scheme.icon,
-					selected: colorScheme.value === scheme.value,
-					onClick: () => setColorScheme(scheme.value),
-				})),
-			},
-		],
-	},
-	{
-		group: "",
-		hideLabel: true,
-		options: [
-			{ label: "Desk v1", icon: "lucide-arrow-left-right", onClick: () => leave("/app") },
-		],
-	},
-	{
-		group: "",
-		hideLabel: true,
-		options: [
-			{
-				label: "Log out",
-				icon: "lucide-log-out",
-				theme: "red",
-				onClick: () => (confirmingLogout.value = true),
-			},
-		],
-	},
-]);
-
-// A disabled row cannot be selected; the inline cursor beats the wrapper's `cursor-not-allowed`.
-function profileHeader() {
-	const { full_name, user_image, email } = boot.session.user;
-	return {
-		label: full_name,
-		disabled: true,
-		slots: {
-			item: () =>
-				h(
-					"div",
-					{
-						"data-key": "profile",
-						class: "flex items-center gap-2 px-2 py-1.5",
-						style: { cursor: "default" },
-					},
-					[
-						h(Avatar, { image: user_image, label: full_name, size: "xl" }),
-						h("div", { class: "flex flex-col gap-0.5 min-w-0" }, [
-							h(
-								"div",
-								{ class: "truncate text-sm font-semibold text-ink-gray-9" },
-								full_name
-							),
-							h("div", { class: "truncate text-xs text-ink-gray-5" }, email),
-						]),
-					]
-				),
-		},
-	};
-}
 
 function leave(href: string) {
 	window.location.assign(href);

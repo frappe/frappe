@@ -11,7 +11,6 @@ import { createShellRouter } from "@/router";
 
 registerStandardPages(standardPages);
 
-vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 
 const addresses = new Addresses({ doctypes: { "CRM Lead": ["crm-lead", "crm"] }, modules: {} });
 const apps: ReturnType<typeof createApp>[] = [];

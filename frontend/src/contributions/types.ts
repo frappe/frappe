@@ -42,10 +42,11 @@ export type ReplacementContribution = {
 export type StandardPages = {
   /** The page at a main list or record address: the declared page, else the standard one. */
   main: Component
-  home: () => Promise<unknown>
   list: () => Promise<unknown>
   record: () => Promise<unknown>
   newRecord: () => Promise<unknown>
+  /** The index at `/apps`, drawn with its own loading state. */
+  index: Component
 }
 
 // Not contributable: a route table, a doctype opt-out, shell chrome (every error state

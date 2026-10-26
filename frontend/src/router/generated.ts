@@ -5,16 +5,16 @@ import type { StandardPages } from "@/contributions/types";
 import NothingToOpen from "@/shell/NothingToOpen.vue";
 import { loadedPage } from "./mainPage";
 
-export function generatedRoutes(modular: boolean, index = false) {
+export function generatedRoutes(modular: boolean) {
 	// Two tables, one set of names, so `routeFor` never branches on shape. The shape is
 	// fixed per app: one that varied within an app could not be parsed.
-	return modular ? modularRoutes() : flatRoutes(index);
+	return modular ? modularRoutes() : flatRoutes();
 }
 
-function flatRoutes(index: boolean) {
+function flatRoutes() {
 	return [
 		// An app's home redirects to its landing and shows this only when none resolves.
-		{ path: "/", name: "home", component: index ? loaded("home") : NothingToOpen },
+		{ path: "/", name: "home", component: NothingToOpen },
 
 		// /apps/crm/crm-deal
 		{ path: "/:doctype", name: "list", component: standardPage("main") },
@@ -65,8 +65,13 @@ function modularRoutes() {
 	];
 }
 
+/** The index's one route: it belongs to no app, so it has no doctype to address. */
+export function indexRoutes() {
+	return [{ path: "/", name: "home", component: standardPage("index") }];
+}
+
 /** A lazy standard page, drawn in the frame while its code loads. */
-function loaded(key: Exclude<keyof StandardPages, "main">) {
+function loaded(key: Exclude<keyof StandardPages, "main" | "index">) {
 	return loadedPage(standardPage(key));
 }
 

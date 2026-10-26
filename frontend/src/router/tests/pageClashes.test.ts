@@ -17,7 +17,6 @@ const fake = vi.hoisted(() => ({ pages: [] as PageContribution[] }));
 vi.mock("virtual:frappe/contributions", () => ({
 	default: { doctypes: [], pages: fake.pages, itemTypes: [], replacements: [] },
 }));
-vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/Record.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));

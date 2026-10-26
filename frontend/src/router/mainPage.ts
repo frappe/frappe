@@ -26,11 +26,11 @@ export function mainPageFor(route: Route, addresses: Addresses) {
 	return { loader: declared.component, props };
 }
 
-/** The page a loader gives: the frame's skeleton at once, then the page once its code is in. */
-export function loadedPage(loader: Loader) {
+/** The page a loader gives: its loading state at once, then the page once its code is in. */
+export function loadedPage(loader: Loader, loading: Component = FrameSkeleton) {
 	let page = pages.get(loader);
 	if (!page) {
-		page = framed(loader);
+		page = framed(loader, loading);
 		pages.set(loader, page);
 	}
 	return page;
@@ -41,7 +41,7 @@ export function clearLoadedPages() {
 	pages.clear();
 }
 
-function framed(loader: Loader): Component {
+function framed(loader: Loader, loading: Component): Component {
 	let loaded = false;
 	const page = defineAsyncComponent({
 		loader: () =>
@@ -49,7 +49,7 @@ function framed(loader: Loader): Component {
 				loaded = true;
 				return pageOf(module as Loaded);
 			}),
-		loadingComponent: FrameSkeleton,
+		loadingComponent: loading,
 		errorComponent: defineComponent({
 			props: ["error"],
 			setup: (props) => () => h(PageFrame, { state: failedState(props.error, reloadAddress) }),

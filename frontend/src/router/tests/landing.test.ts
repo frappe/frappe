@@ -12,7 +12,6 @@ import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
 import NothingToOpen from "@/shell/NothingToOpen.vue";
 
-vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/Record.vue", () => ({ default: { render: () => null } }));
 

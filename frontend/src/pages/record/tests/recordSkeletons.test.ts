@@ -80,7 +80,6 @@ vi.mock("@/recordPage", async (importOriginal) => {
   };
 });
 
-vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 

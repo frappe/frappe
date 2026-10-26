@@ -66,7 +66,6 @@ function unmountAll() {
 type Options = {
 	sidebars?: Record<string, NavigationItem[]>;
 	current?: string;
-	customizable?: boolean;
 	shareLink?: string;
 	boot?: Boot;
 };
@@ -97,7 +96,6 @@ function mount(
 				items: items.value,
 				context: itemContext(boot, addresses, router, items.value, options.sidebars ?? {}),
 				current: options.current,
-				customizable: options.customizable,
 				shareLink: options.shareLink,
 			}),
 	});
@@ -333,12 +331,6 @@ describe("the app tile", () => {
 		const image = host.querySelector("[data-key='app-menu'] img");
 		expect(image?.getAttribute("src")).toBe("/assets/crm/logo.svg");
 	});
-
-	it("reads Apps on the index, which belongs to no app", () => {
-		const index = { ...crm, app: null, app_title: undefined } as unknown as Boot;
-		const tile = rail([], { boot: index }).querySelector("[data-key='app-menu']")!;
-		expect(tile.textContent?.trim()).toBe("A");
-	});
 });
 
 describe("the app menu", () => {
@@ -359,12 +351,8 @@ describe("the app menu", () => {
 		expect(text).not.toContain("Theme");
 	});
 
-	it("offers Customize sidebar inside an app", async () => {
-		expect(await opened({ customizable: true })).toContain("Customize sidebar");
-	});
-
-	it("does not offer it on the index, which has no rail to customize", async () => {
-		expect(await opened({ customizable: false })).not.toContain("Customize sidebar");
+	it("offers Customize sidebar", async () => {
+		expect(await opened({})).toContain("Customize sidebar");
 	});
 
 	it("offers Copy link only when the shell handed it one", async () => {
@@ -374,7 +362,7 @@ describe("the app menu", () => {
 
 	it("offers Settings after All apps, which opens settings with no segments", async () => {
 		fake.openSettings.mockClear();
-		await opened({ customizable: true, shareLink: "https://x/apps/crm" });
+		await opened({ shareLink: "https://x/apps/crm" });
 		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
 		expect(rows.map((row) => row.textContent?.trim())).toEqual([
 			"All apps",

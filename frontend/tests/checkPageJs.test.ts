@@ -6,7 +6,7 @@ const manifest = {
   "index.html": { file: "assets/index.js", imports: ["_vue.js"] },
   "_vue.js": { file: "assets/vue.js" },
   "_shared.js": { file: "assets/shared.js", imports: ["_vue.js"] },
-  "src/pages/Home.vue": { file: "assets/Home.js" },
+  "src/pages/index/IndexPage.vue": { file: "assets/IndexPage.js" },
   "src/pages/List.vue": { file: "assets/List.js", imports: ["_shared.js"] },
   "src/pages/Record.vue": {
     file: "assets/Record.js",
@@ -25,7 +25,7 @@ describe("pageJsKb", () => {
     const entry = gzipped("assets/index.js") + gzipped("assets/vue.js");
 
     expect(pageJsKb(manifest, read)).toEqual({
-      home: kb(entry + gzipped("assets/Home.js")),
+      home: kb(entry + gzipped("assets/IndexPage.js")),
       list: kb(entry + gzipped("assets/List.js") + gzipped("assets/shared.js")),
       record: kb(entry + gzipped("assets/Record.js") + gzipped("assets/shared.js")),
     });
