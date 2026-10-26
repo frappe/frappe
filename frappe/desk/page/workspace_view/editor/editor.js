@@ -24,7 +24,7 @@ export const WIDGETS = {
 	},
 	quick_list: {
 		table: "quick_lists",
-		fields: ["label", "document_type", "quick_list_filter"],
+		fields: ["label", "document_type", "quick_list_filter", "order_by"],
 		size: "M",
 	},
 	custom_block: { table: "custom_blocks", fields: ["label", "custom_block_name"], size: "M" },

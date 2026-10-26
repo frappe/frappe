@@ -2,7 +2,7 @@
 import { computed, onMounted, ref, watch } from "vue";
 import { Badge, Button, ItemListRow } from "frappe-ui";
 import { ChartCard, ChartContainer } from "frappe-ui/charts";
-import { post } from "../api.js";
+import { get, post } from "../api.js";
 import DeskFilter from "./DeskFilter.vue";
 import { badge_theme } from "./badge_theme.js";
 
@@ -18,8 +18,16 @@ const rows = ref(null);
 const title_field = ref("name");
 const can_create = ref(false);
 const filters = ref(frappe.utils.process_filter_expression(props.widget.quick_list_filter) || []);
+const activity = ref({});
+const order_by = computed(() => props.widget.order_by || "creation desc");
+const sort_field = ref(null);
 
-// The newest four rows, with the fields the list view itself asks for.
+// `my_activity` orders by the session user's newest action instead of a field
+const MY_ACTIVITY = "my_activity";
+// the rows a tile shows
+const MAX_ROWS = 4;
+
+// The first rows in the tile's order, with the fields the list view itself asks for.
 async function load() {
 	rows.value = null;
 	const doctype = props.widget.document_type;
@@ -29,7 +37,13 @@ async function load() {
 	title_field.value = meta?.title_field || "name";
 	can_create.value = frappe.model.can_create(doctype);
 
+	const [fieldname] = order_by.value.split(" ");
+	sort_field.value = ["creation", "modified", MY_ACTIVITY].includes(fieldname)
+		? null
+		: frappe.meta.get_docfield(doctype, fieldname) || null;
+
 	const fields = ["name", title_field.value, "modified"];
+	if (sort_field.value) fields.push(sort_field.value.fieldname);
 	if (frappe.meta.has_field(doctype, "status")) fields.push("status", "docstatus");
 	const workflow_field = frappe.workflow.get_state_fieldname(doctype);
 	if (workflow_field) fields.push(workflow_field);
@@ -37,19 +51,47 @@ async function load() {
 		if (frappe.meta.has_field(doctype, field)) fields.push(field);
 	}
 
+	let names = null;
+	if (order_by.value === MY_ACTIVITY) {
+		const events = await get("frappe.desk.desktop.get_recent_activity", {
+			doctype,
+			filters: JSON.stringify(filters.value),
+			limit: MAX_ROWS,
+		});
+		activity.value = Object.fromEntries(events.map((event) => [event.name, event]));
+		names = events.map((event) => event.name);
+		if (!names.length) return (rows.value = []);
+	}
+
 	const data = await post("frappe.desk.reportview.get", {
 		doctype,
 		fields: [...new Set(fields)],
-		filters: filters.value,
-		order_by: "creation desc",
+		filters: names ? [...filters.value, [doctype, "name", "in", names]] : filters.value,
+		order_by: names ? "creation desc" : order_by.value,
 		start: 0,
-		page_length: 4,
+		page_length: MAX_ROWS,
 	});
-	rows.value = Array.isArray(data) ? data : frappe.utils.dict(data.keys, data.values);
+	const docs = Array.isArray(data) ? data : frappe.utils.dict(data.keys, data.values);
+	rows.value = names ? docs.sort((a, b) => names.indexOf(a.name) - names.indexOf(b.name)) : docs;
+}
+
+function subtitle(doc) {
+	const event = activity.value[doc.name];
+	if (order_by.value === MY_ACTIVITY && event) {
+		const when = frappe.datetime.prettyDate(event.creation);
+		return [event.text || event.action, when].filter(Boolean).join(" · ");
+	}
+	if (sort_field.value && doc[sort_field.value.fieldname]) {
+		const value = frappe.format(doc[sort_field.value.fieldname], sort_field.value, {
+			inline: true,
+		});
+		return `${__(sort_field.value.label)} · ${text(value)}`;
+	}
+	return frappe.datetime.prettyDate(doc.modified);
 }
 
 onMounted(load);
-watch(doctype, load);
+watch([doctype, order_by], load);
 
 function set_filters(next) {
 	filters.value = next;
@@ -125,8 +167,8 @@ function text(value) {
 					<span class="block truncate text-ink-gray-8">{{
 						text(doc[title_field])
 					}}</span>
-					<span class="block text-sm text-ink-gray-5">
-						{{ frappe.datetime.prettyDate(doc.modified) }}
+					<span class="block truncate text-sm text-ink-gray-5">
+						{{ subtitle(doc) }}
 					</span>
 					<template v-if="indicator(doc)" #suffix>
 						<Badge
