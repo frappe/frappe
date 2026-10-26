@@ -10,6 +10,7 @@ import importMap from "./plugin/importMap.js";
 import classList from "./plugin/classList.js";
 import templateStrings from "./plugin/templateStrings.js";
 import runtimeVue from "./plugin/runtimeVue.js";
+import entryChunk from "./plugin/entryChunk.js";
 import { readManifest, readAllSourceDirs } from "./plugin/manifest.js";
 import { loadPresets } from "./plugin/presets.js";
 
@@ -39,6 +40,7 @@ export default defineConfig(({ command }) => ({
 		// Publishes the names each app's `import_map` hook declares; see the plugin.
 		importMap(manifest),
 		classList(),
+		entryChunk(),
 	],
 	resolve: {
 		alias: [

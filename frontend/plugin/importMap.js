@@ -4,6 +4,7 @@
 import { join } from "node:path";
 
 const VIRTUAL_PREFIX = "\0published:";
+const LOADER = "\0published-loader";
 
 export default function importMap(manifest) {
 	// A manifest from before the hook has no `import_map` at all, not even frappe's four names.
@@ -20,6 +21,15 @@ export default function importMap(manifest) {
 	let logger = console;
 	return {
 		name: "frappe-import-map",
+		config: (config) => ({
+			build: {
+				rolldownOptions: {
+					output: {
+						chunkFileNames: chunkFileNames(config.build?.assetsDir ?? "assets"),
+					},
+				},
+			},
+		}),
 		configResolved(config) {
 			base = config.base;
 			building = config.command === "build";
@@ -27,20 +37,20 @@ export default function importMap(manifest) {
 		},
 		buildStart() {
 			if (!building) return;
-			// One entry chunk per name; rolldown hoists what the shell also uses into shared chunks.
-			for (const name of names) {
-				this.emitFile({
-					type: "chunk",
-					id: VIRTUAL_PREFIX + name,
-					name: chunkName(name),
-					preserveSignature: "strict",
-				});
-			}
+			// One chunk per name, loaded by `import()` from one unused entry: a name loads after the
+			// shell, and as an entry of its own its imports would count as the shell's initial modules.
+			this.emitFile({
+				type: "chunk",
+				id: LOADER,
+				name: "published-loader",
+				preserveSignature: "strict",
+			});
 		},
 		resolveId(id) {
-			if (id.startsWith(VIRTUAL_PREFIX)) return id;
+			if (id.startsWith(VIRTUAL_PREFIX) || id === LOADER) return id;
 		},
 		load(id) {
+			if (id === LOADER) return loaderSource(names);
 			if (!id.startsWith(VIRTUAL_PREFIX)) return;
 			// `export *` forwards named exports only: a published file's default export is not published.
 			return `export * from ${JSON.stringify(published[id.slice(VIRTUAL_PREFIX.length)])};`;
@@ -97,6 +107,24 @@ export function isFileValue(value) {
 
 export function chunkName(name) {
 	return "published-" + name.replaceAll("@", "").replaceAll("/", "-");
+}
+
+/** A dynamic chunk is named from its module id; a published name keeps its readable file name. */
+export function chunkFileNames(assetsDir) {
+	return ({ facadeModuleId }) => {
+		const name = facadeModuleId?.startsWith(VIRTUAL_PREFIX)
+			? chunkName(facadeModuleId.slice(VIRTUAL_PREFIX.length))
+			: "[name]";
+		return `${assetsDir}/${name}-[hash].js`;
+	};
+}
+
+export function loaderSource(names) {
+	const loaders = names.map(
+		(name) =>
+			`\t${JSON.stringify(name)}: () => import(${JSON.stringify(VIRTUAL_PREFIX + name)}),`
+	);
+	return `export default {\n${loaders.join("\n")}\n};\n`;
 }
 
 /** Each published name's emitted chunk; a name with no chunk fails the build, not the page. */

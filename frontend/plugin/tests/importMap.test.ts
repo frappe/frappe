@@ -1,10 +1,12 @@
 import { describe, expect, it } from "vitest";
 import importMap, {
   builtImports,
+  chunkFileNames,
   chunkName,
   devImports,
   importMapTag,
   isFileValue,
+  loaderSource,
   publishedChunks,
   publishedStyling,
   publishedTargets,
@@ -110,11 +112,9 @@ describe("the published import map", () => {
   });
 
   it("gives an app's name a chunk and a map line, beside the framework's four", () => {
-    const emitted: any[] = [];
-    plugin("build").buildStart.call({
-      emitFile: (file: unknown) => emitted.push(file),
-    });
-    expect(emitted.map((file) => file.name)).toContain("published-crm-lib");
+    expect(plugin("build").load("\0published-loader")).toContain(
+      '"crm/lib": () => import("\\u0000published:crm/lib"),',
+    );
     const bundle = bundleWith(PUBLISHED);
     const result = plugin("build").transformIndexHtml.handler("<html></html>", {
       bundle,
@@ -233,20 +233,40 @@ describe("the published import map", () => {
     expect(devImports(["vue"]).vue).toBe("/@id/__x00__published:vue");
   });
 
-  it("emits one entry chunk per name at build start, and none on the dev server", () => {
+  it("emits one loader entry at build start, and none on the dev server", () => {
     const emitted: unknown[] = [];
     const context = { emitFile: (file: unknown) => emitted.push(file) };
     plugin("serve").buildStart.call(context);
     expect(emitted).toEqual([]);
     plugin("build").buildStart.call(context);
-    expect(emitted).toEqual(
-      PUBLISHED.map((name) => ({
+    expect(emitted).toEqual([
+      {
         type: "chunk",
-        id: `\0published:${name}`,
-        name: chunkName(name),
+        id: "\0published-loader",
+        name: "published-loader",
         preserveSignature: "strict",
-      })),
+      },
+    ]);
+  });
+
+  it("loads each name by import(), so no name is an entry whose imports count as the shell's", () => {
+    expect(loaderSource(["vue", "crm/lib"])).toBe(
+      "export default {\n" +
+        '\t"vue": () => import("\\u0000published:vue"),\n' +
+        '\t"crm/lib": () => import("\\u0000published:crm/lib"),\n' +
+        "};\n",
     );
+  });
+
+  it("names a published chunk's file after its name, and any other chunk as vite does", () => {
+    const fileName = chunkFileNames("assets");
+    expect(fileName({ facadeModuleId: "\0published:@framework/ui" })).toBe(
+      "assets/published-framework-ui-[hash].js",
+    );
+    expect(fileName({ facadeModuleId: "/src/pages/Home.vue" })).toBe(
+      "assets/[name]-[hash].js",
+    );
+    expect(fileName({ facadeModuleId: null })).toBe("assets/[name]-[hash].js");
   });
 
   it("resolves and loads a virtual id as a re-export of the package", () => {
