@@ -11,7 +11,8 @@ import { resetNavigationReports } from "@/navigation/registry";
 import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
 
-const STORE = "frappe:desk:sidebar-collapsed";
+const STORE = "frappe:desk:collapsed-sidebar";
+const READER = "reader@example.com";
 
 const addresses = new Addresses({
 	doctypes: { "Sales Invoice": ["sales-invoice", "accounts"] },
@@ -35,14 +36,14 @@ async function flush() {
 	await nextTick();
 }
 
-async function shell(): Promise<HTMLElement> {
+async function shell(user = READER): Promise<HTMLElement> {
 	const boot = {
 		app: "crm",
 		shell_base: "/apps/crm",
 		prefixes: { crm: { app: "crm", modular: false } },
 		navigation: { rail: [accounts], sidebars },
 		session: {
-			user: { name: "reader@example.com", full_name: "Reader", email: "reader@example.com" },
+			user: { name: user, full_name: "Reader", email: user },
 		},
 	} as unknown as Boot;
 
@@ -111,7 +112,7 @@ describe("the edge button", () => {
 
 		expect(state(host)).toBe("collapsed");
 		expect(panel(host).hasAttribute("inert")).toBe(true);
-		expect(localStorage.getItem(STORE)).toBe("true");
+		expect(JSON.parse(localStorage.getItem(STORE)!)).toEqual({ [READER]: true });
 
 		// A fresh shell over the same browser comes up collapsed.
 		const again = await shell();
@@ -121,6 +122,23 @@ describe("the edge button", () => {
 		await flush();
 		expect(state(again)).toBe("expanded");
 		expect(again.querySelector("[data-slot='sidebar']")!.hasAttribute("inert")).toBe(false);
+	});
+});
+
+describe("whose collapse it is", () => {
+	it("keeps one reader's collapse from another on the same browser", async () => {
+		const host = await shell();
+		host.querySelector<HTMLElement>("[aria-label='Collapse sidebar']")!.click();
+		await flush();
+
+		expect(state(await shell("colleague@example.com"))).toBe("expanded");
+		expect(state(await shell())).toBe("collapsed");
+	});
+
+	it("takes over the collapse kept before it was per reader", async () => {
+		localStorage.setItem("frappe:desk:sidebar-collapsed", "true");
+		expect(state(await shell())).toBe("collapsed");
+		expect(localStorage.getItem("frappe:desk:sidebar-collapsed")).toBeNull();
 	});
 });
 

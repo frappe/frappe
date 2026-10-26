@@ -48,9 +48,10 @@
 </template>
 
 <script setup lang="ts">
-import { useLocalStorage } from "@vueuse/core";
+import { inject, ref, watch } from "vue";
 import { Button, ScrollArea, Sidebar } from "frappe-ui";
-import type { NavigationItem } from "@/boot";
+import { browserMemory } from "@/browserMemory";
+import type { Boot, NavigationItem } from "@/boot";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
@@ -69,7 +70,15 @@ const props = defineProps<{
 }>();
 const emit = defineEmits<{ customize: [] }>();
 
-const collapsed = useLocalStorage("frappe:desk:sidebar-collapsed", false);
+const boot = inject<Boot>("boot")!;
+const collapsedMemory = browserMemory(
+	"collapsed-sidebar",
+	boot.session.user.name,
+	(value): value is boolean => typeof value === "boolean",
+	"frappe:desk:sidebar-collapsed"
+);
+const collapsed = ref(collapsedMemory.recall() ?? false);
+watch(collapsed, collapsedMemory.remember);
 
 const tree = useItemTree(
 	() => props.items,
