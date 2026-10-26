@@ -3,6 +3,7 @@ import { computed, defineAsyncComponent, ref, watch } from "vue";
 import { FrappeUIProvider, setConfig } from "frappe-ui";
 import { get, post } from "./api.js";
 import WorkspaceGrid from "./WorkspaceGrid.vue";
+import EmptyWorkspace from "./EmptyWorkspace.vue";
 
 // read mode downloads no editor code
 const WorkspaceEditor = defineAsyncComponent(() => import("./editor/WorkspaceEditor.vue"));
@@ -156,7 +157,12 @@ watch(
 						)
 					}}
 				</div>
-				<WorkspaceGrid :content="workspace.content" :widgets="workspace.widgets" />
+				<EmptyWorkspace
+					v-if="!workspace.content.length"
+					:can_edit="workspace.can_edit"
+					@edit="edit"
+				/>
+				<WorkspaceGrid v-else :content="workspace.content" :widgets="workspace.widgets" />
 			</template>
 		</div>
 	</FrappeUIProvider>
