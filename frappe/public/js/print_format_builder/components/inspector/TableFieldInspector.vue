@@ -99,7 +99,6 @@
 									:title="col.fieldname"
 								/>
 								<button
-									v-if="col.fieldtype !== 'Blank'"
 									class="es-button"
 									data-size="xs"
 									data-icon-button="true"
@@ -206,7 +205,12 @@
 										</div>
 									</template>
 								</draggable>
-								<div class="pfb-col-add-row" v-if="merge_field_opts(col).length">
+								<div
+									class="pfb-col-add-row"
+									v-if="
+										col.fieldtype !== 'Blank' && merge_field_opts(col).length
+									"
+								>
 									<Autocomplete
 										:options="merge_field_opts(col)"
 										:placeholder="__('Add field...')"
