@@ -268,4 +268,35 @@ test.describe("List View", () => {
 			"#icon-arrow-up-narrow-wide"
 		);
 	});
+
+	test("sorts from a sheet on phones", async ({ page, desk }) => {
+		await page.setViewportSize({ width: 375, height: 667 });
+		await desk.go_to_list("ToDo");
+		await desk.clear_filters();
+		await page.evaluate(() => cur_list.sort_selector.set_value("creation", "desc"));
+
+		const sort_button = page.getByRole("button", { name: "Sort", exact: true });
+		const sheet = page.locator(".es-bottom-sheet");
+		const option = (name) => sheet.getByRole("button", { name, exact: true });
+
+		await sort_button.click();
+		await expect(option("Descending")).toHaveAttribute("aria-pressed", "true");
+		await expect(option("Created On")).toHaveAttribute("aria-pressed", "true");
+
+		await option("Ascending").click();
+		await expect(sheet).toBeHidden();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["creation", "asc"]);
+
+		await sort_button.click();
+		await option("Last Updated On").click();
+		await expect
+			.poll(() => page.evaluate(() => [cur_list.sort_by, cur_list.sort_order]))
+			.toEqual(["modified", "asc"]);
+		await expect(sort_button.locator("use")).toHaveAttribute(
+			"href",
+			"#icon-arrow-up-narrow-wide"
+		);
+	});
 });
