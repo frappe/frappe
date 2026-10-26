@@ -448,7 +448,7 @@ WIDGET_FIELDS = {
 		),
 	),
 	"card": ("cards", ("label", "icon", "description", "links")),
-	"quick_list": ("quick_lists", ("label", "document_type", "quick_list_filter")),
+	"quick_list": ("quick_lists", ("label", "document_type", "quick_list_filter", "order_by")),
 	"custom_block": ("custom_blocks", ("label", "custom_block_name")),
 	"onboarding": ("onboardings", ("name", "title", "is_complete", "steps")),
 }
@@ -957,6 +957,103 @@ def prepare_widget(config, doctype, parentfield):
 
 		prepare_widget_list.append(doc)
 	return prepare_widget_list
+
+
+# (doctype, field naming the user, field naming the document doctype, its name field, action, filters)
+ACTIVITY_SOURCES = (
+	(
+		"Communication",
+		"owner",
+		"reference_doctype",
+		"reference_name",
+		"Replied",
+		{"sent_or_received": "Sent"},
+	),
+	(
+		"Comment",
+		"comment_email",
+		"reference_doctype",
+		"reference_name",
+		"Commented",
+		{"comment_type": "Comment"},
+	),
+	("Version", "owner", "ref_doctype", "docname", "Updated", {}),
+	("View Log", "viewed_by", "reference_doctype", "reference_name", "Viewed", {}),
+	("ToDo", "assigned_by", "reference_type", "reference_name", "Assigned", {}),
+)
+RECENT_ACTIVITY_DAYS = 30
+
+
+@frappe.whitelist(methods=["GET"])
+@frappe.read_only()
+def get_recent_activity(
+	doctype: str, filters: str | dict | list | None = None, limit: int = 20
+) -> list[dict]:
+	"""The session user's newest action in the last 30 days on each document of `doctype` that
+	`filters` match and the user may read, newest first. An edit counts only when it changed a
+	field the list view shows or filters on."""
+	limit = min(cint(limit) or 20, 100)
+	since = frappe.utils.add_days(frappe.utils.now_datetime(), -RECENT_ACTIVITY_DAYS)
+	reported = [
+		df
+		for df in frappe.get_meta(doctype).fields
+		if (df.in_list_view or df.in_standard_filter) and not df.permlevel
+	]
+
+	latest = {}
+	for source, user_field, doctype_field, name_field, action, extra in ACTIVITY_SOURCES:
+		fields = [f"{name_field} as name", "creation"]
+		if source == "Version":
+			fields.append("data")
+		for row in frappe.get_all(
+			source,
+			filters={
+				**extra,
+				user_field: frappe.session.user,
+				doctype_field: doctype,
+				"creation": (">=", since),
+			},
+			fields=fields,
+			order_by="creation desc",
+			limit=limit * 5,
+		):
+			text = _change_text(reported, row.data) if source == "Version" else None
+			if source == "Version" and not text:
+				continue
+			if row.name and (row.name not in latest or row.creation > latest[row.name].creation):
+				latest[row.name] = _dict(name=row.name, creation=row.creation, action=_(action), text=text)
+
+	if not latest:
+		return []
+
+	filters = frappe.parse_json(filters) or []
+	if isinstance(filters, dict):
+		filters = [
+			[doctype, field, *(value if isinstance(value, list) else ["=", value])]
+			for field, value in filters.items()
+		]
+	readable = set(
+		frappe.get_list(
+			doctype, filters=[*filters, [doctype, "name", "in", list(latest)]], pluck="name", limit=0
+		)
+	)
+	return sorted(
+		(event for name, event in latest.items() if name in readable),
+		key=lambda event: event.creation,
+		reverse=True,
+	)[:limit]
+
+
+def _change_text(reported: list, data: str | None) -> str | None:
+	"""The first of `reported` fields a Version changed, as 'Set Status to Closed'."""
+	try:
+		changed = {field: new for field, _old, new in (loads(data).get("changed") or [])}
+	except (JSONDecodeError, TypeError, ValueError):
+		return None
+
+	for df in reported:
+		if df.fieldname in changed:
+			return _("Set {0} to {1}").format(_(df.label), changed[df.fieldname])
 
 
 @frappe.whitelist()

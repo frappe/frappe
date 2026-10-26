@@ -18,6 +18,7 @@ class WorkspaceQuickList(Document):
 
 		document_type: DF.Link
 		label: DF.Data
+		order_by: DF.Data | None
 		parent: DF.Data
 		parentfield: DF.Data
 		parenttype: DF.Data

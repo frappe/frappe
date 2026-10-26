@@ -4,7 +4,13 @@ from json import dumps
 from unittest.mock import patch
 
 import frappe
-from frappe.desk.desktop import DEFAULT_LAYOUT, get_desktop_page, get_workspace, get_workspaces
+from frappe.desk.desktop import (
+	DEFAULT_LAYOUT,
+	get_desktop_page,
+	get_recent_activity,
+	get_workspace,
+	get_workspaces,
+)
 from frappe.tests import IntegrationTestCase
 
 DESK_USER = "test-get-workspace-user@example.com"
@@ -236,6 +242,61 @@ class TestRoleLayouts(IntegrationTestCase):
 		private = make_workspace("GW Private Layouts", public=0, for_user=self.BOTH)
 		frappe.set_user(self.BOTH)
 		self.assertIsNone(get_workspace(private.name, variant=self.ONE)["variant"])
+
+
+class TestRecentActivity(IntegrationTestCase):
+	def setUp(self):
+		frappe.set_user("Administrator")
+		self.addCleanup(frappe.set_user, "Administrator")
+		make_user(DESK_USER, ["Desk User"])
+		frappe.db.delete("ToDo", {"owner": DESK_USER})
+		frappe.db.delete("Version", {"owner": DESK_USER})
+		frappe.db.delete("Comment", {"comment_email": DESK_USER})
+		hidden = frappe.get_doc({"doctype": "ToDo", "description": "Hidden"}).insert()
+
+		frappe.set_user(DESK_USER)
+		self.commented = frappe.get_doc({"doctype": "ToDo", "description": "Commented"}).insert()
+		self.closed = frappe.get_doc({"doctype": "ToDo", "description": "Closed"}).insert()
+
+		comment = self.commented.add_comment("Comment", "On it")
+		self.commented.description = "Commented, then reworded"
+		self.commented.save(ignore_version=False)
+		self.closed.status = "Closed"
+		self.closed.save(ignore_version=False)
+		hidden_comment = frappe.get_doc(
+			{
+				"doctype": "Comment",
+				"comment_type": "Comment",
+				"reference_doctype": "ToDo",
+				"reference_name": hidden.name,
+				"content": "Not mine to read",
+				"comment_email": DESK_USER,
+			}
+		).insert(ignore_permissions=True)
+
+		self.set_creation("Comment", comment.name, -3)
+		self.set_creation("Version", self.version_of(self.commented), -1)
+		self.set_creation("Version", self.version_of(self.closed), -2)
+		self.set_creation("Comment", hidden_comment.name, 0)
+
+	def set_creation(self, doctype, name, minutes):
+		creation = frappe.utils.add_to_date(frappe.utils.now_datetime(), minutes=minutes)
+		frappe.db.set_value(doctype, name, "creation", creation, update_modified=False)
+
+	def version_of(self, doc):
+		return frappe.db.get_value("Version", {"ref_doctype": "ToDo", "docname": doc.name})
+
+	def test_newest_action_per_readable_document_first(self):
+		activity = get_recent_activity("ToDo")
+		self.assertEqual([event.name for event in activity], [self.closed.name, self.commented.name])
+		self.assertEqual(activity[0].text, "Set Status to Closed")
+		self.assertEqual(activity[1].action, "Commented")
+
+	def test_filters_narrow_the_documents(self):
+		activity = get_recent_activity("ToDo", filters=[["ToDo", "status", "=", "Open"]])
+		self.assertEqual([event.name for event in activity], [self.commented.name])
+		activity = get_recent_activity("ToDo", filters={"status": "Open"})
+		self.assertEqual([event.name for event in activity], [self.commented.name])
 
 
 def layout(role, text, widgets=None):

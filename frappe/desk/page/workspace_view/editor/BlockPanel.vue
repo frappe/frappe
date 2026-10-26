@@ -61,11 +61,43 @@ const FIELDS = {
 		{ field: "format", label: "Format", placeholder: "{} Open" },
 	],
 	card: [{ field: "description", label: "Description", textarea: true }],
-	quick_list: [{ field: "document_type", label: "DocType", link: "DocType" }],
+	quick_list: [
+		{ field: "document_type", label: "DocType", link: "DocType" },
+		{
+			field: "order_by",
+			label: "Order",
+			options: (w) => order_options(w.document_type),
+			when: (w) => w.document_type,
+		},
+	],
 	custom_block: [
 		{ field: "custom_block_name", label: "Custom HTML Block", link: "Custom HTML Block" },
 	],
 };
+
+const SORTABLE = ["Date", "Datetime", "Int", "Float", "Currency", "Duration", "Rating"];
+
+// newest first, the session user's latest action, or a date or number field either way
+function order_options(doctype) {
+	const options = [
+		{ label: __("Newest first"), value: "" },
+		{ label: __("My recent activity"), value: "my_activity" },
+	];
+	for (const df of window.frappe.get_meta(doctype)?.fields || []) {
+		if (!SORTABLE.includes(df.fieldtype)) continue;
+		const label = __(df.label);
+		options.push(
+			{ label: __("{0}, lowest first", [label]), value: `${df.fieldname} asc` },
+			{ label: __("{0}, highest first", [label]), value: `${df.fieldname} desc` }
+		);
+	}
+	return options;
+}
+
+function options_of(field) {
+	if (typeof field.options === "function") return field.options(props.widget);
+	return field.options.map((value) => ({ label: __(value), value }));
+}
 
 const is_text = computed(() => ["header", "paragraph"].includes(props.block.type));
 const fields = computed(() =>
@@ -162,7 +194,7 @@ function remove_link(index) {
 				<Select
 					v-else-if="field.options"
 					:label="__(field.label)"
-					:options="field.options.map((value) => ({ label: __(value), value }))"
+					:options="options_of(field)"
 					:model-value="widget[field.field] || ''"
 					@update:model-value="(value) => set(field.field, value)"
 				/>
