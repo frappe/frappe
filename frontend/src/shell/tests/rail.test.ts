@@ -66,7 +66,7 @@ function unmountAll() {
 type Options = {
 	sidebars?: Record<string, NavigationItem[]>;
 	current?: string;
-	shareLink?: string;
+	shareLink?: () => string;
 	boot?: Boot;
 };
 
@@ -356,13 +356,13 @@ describe("the app menu", () => {
 	});
 
 	it("offers Copy link only when the shell handed it one", async () => {
-		expect(await opened({ shareLink: "https://x/apps/crm" })).toContain("Copy link");
+		expect(await opened({ shareLink: () => "https://x/apps/crm" })).toContain("Copy link");
 		expect(await opened({})).not.toContain("Copy link");
 	});
 
 	it("offers Settings after All apps, which opens settings with no segments", async () => {
 		fake.openSettings.mockClear();
-		await opened({ shareLink: "https://x/apps/crm" });
+		await opened({ shareLink: () => "https://x/apps/crm" });
 		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
 		expect(rows.map((row) => row.textContent?.trim())).toEqual([
 			"All apps",

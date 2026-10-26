@@ -112,7 +112,7 @@ const props = defineProps<{
 	items: NavigationItem[];
 	context: ItemContext;
 	current?: string;
-	shareLink?: string;
+	shareLink?: () => string;
 }>();
 const emit = defineEmits<{ customize: [] }>();
 
@@ -163,7 +163,7 @@ function leave(href: string) {
 async function copyLink() {
 	if (!props.shareLink) return;
 	try {
-		await navigator.clipboard.writeText(props.shareLink);
+		await navigator.clipboard.writeText(props.shareLink());
 	} catch {
 		toast.error("Could not copy the link");
 		return;

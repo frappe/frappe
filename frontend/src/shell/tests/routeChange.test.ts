@@ -137,6 +137,7 @@ describe("a route change", () => {
 		await router.push("/sales-invoice/SI-001");
 		await settle();
 
+		expect(redraws.get("RailColumn")).toBeUndefined();
 		expect(redraws.get("SidebarRailItem")).toBeUndefined();
 		expect(redraws.get("SidebarRow")).toBeUndefined();
 	});
