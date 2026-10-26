@@ -448,7 +448,19 @@ WIDGET_FIELDS = {
 		),
 	),
 	"card": ("cards", ("label", "icon", "description", "links")),
-	"quick_list": ("quick_lists", ("label", "document_type", "quick_list_filter", "order_by")),
+	"quick_list": (
+		"quick_lists",
+		(
+			"label",
+			"document_type",
+			"quick_list_filter",
+			"order_by",
+			"hide_filter",
+			"hide_refresh",
+			"hide_new",
+			"hide_view_list",
+		),
+	),
 	"custom_block": ("custom_blocks", ("label", "custom_block_name")),
 	"onboarding": ("onboardings", ("name", "title", "is_complete", "steps")),
 }

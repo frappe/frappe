@@ -17,6 +17,10 @@ class WorkspaceQuickList(Document):
 		from frappe.types import DF
 
 		document_type: DF.Link
+		hide_filter: DF.Check
+		hide_new: DF.Check
+		hide_refresh: DF.Check
+		hide_view_list: DF.Check
 		label: DF.Data
 		order_by: DF.Data | None
 		parent: DF.Data

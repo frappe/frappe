@@ -151,13 +151,14 @@ function text(value) {
 			<template #actions>
 				<div class="flex items-center gap-1">
 					<DeskFilter
-						v-if="doctype"
+						v-if="doctype && !Number(widget.hide_filter)"
 						:key="doctype"
 						:doctype="doctype"
 						:filters="filters"
 						@change="set_filters"
 					/>
 					<Button
+						v-if="!Number(widget.hide_refresh)"
 						size="sm"
 						variant="ghost"
 						icon="lucide-refresh-cw"
@@ -165,7 +166,7 @@ function text(value) {
 						@click="load"
 					/>
 					<Button
-						v-if="can_create"
+						v-if="can_create && !Number(widget.hide_new)"
 						size="sm"
 						variant="ghost"
 						icon="lucide-plus"
@@ -200,7 +201,7 @@ function text(value) {
 					</template>
 				</ItemListRow>
 			</div>
-			<template #legend>
+			<template v-if="!Number(widget.hide_view_list)" #legend>
 				<Button class="self-start" size="sm" :label="__('View List')" @click="open_list" />
 			</template>
 		</ChartContainer>

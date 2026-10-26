@@ -10,7 +10,12 @@
   "label",
   "section_break_4",
   "quick_list_filter",
-  "order_by"
+  "order_by",
+  "controls_section",
+  "hide_filter",
+  "hide_refresh",
+  "hide_new",
+  "hide_view_list"
  ],
  "fields": [
   {
@@ -48,12 +53,41 @@
    "fieldname": "order_by",
    "fieldtype": "Data",
    "label": "Order By"
+  },
+  {
+   "fieldname": "controls_section",
+   "fieldtype": "Section Break",
+   "label": "Controls"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_filter",
+   "fieldtype": "Check",
+   "label": "Hide Filter"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_refresh",
+   "fieldtype": "Check",
+   "label": "Hide Refresh"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_new",
+   "fieldtype": "Check",
+   "label": "Hide New"
+  },
+  {
+   "default": "0",
+   "fieldname": "hide_view_list",
+   "fieldtype": "Check",
+   "label": "Hide View List"
   }
  ],
  "index_web_pages_for_search": 1,
  "istable": 1,
  "links": [],
- "modified": "2026-10-26 13:46:58.893139",
+ "modified": "2026-10-26 14:27:55.513037",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Workspace Quick List",
