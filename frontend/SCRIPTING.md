@@ -163,6 +163,22 @@ page.header.add({
 })
 ```
 
+`page.openSettings(prefix, pane, block)` opens the settings dialog over the page at
+`#settings/<prefix>/<pane>/<block>`. The arguments are the address's segments in order, each
+one optional: `page.openSettings()` opens the current app's first pane, and a block scrolls
+the pane to that block. It writes the address and returns nothing; the page under the dialog
+does not change, and Back closes it. A call in a replay or a hold opens the dialog after the
+commit, and the last call wins. A pane that does not exist, or that the reader cannot see,
+opens the dialog with one message that does not say which.
+
+```js
+page.header.add({
+  name: 'telephony',
+  label: 'Telephony settings',
+  run: (page) => page.openSettings('crm', 'general', 'telephony'),
+})
+```
+
 On a **return visit**, a record seen earlier in the same tab and reached again by Back,
 Forward or a link, the page paints from memory before the first frame, and `onRefresh`
 runs twice: once over the remembered record, then once more when the background reads

@@ -13,10 +13,11 @@ import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
+import { OpenSettingsKey } from "../openSettings";
 
 registerStandardPages(standardPages);
 
-const fake = vi.hoisted(() => ({ logout: vi.fn() }));
+const fake = vi.hoisted(() => ({ logout: vi.fn(), openSettings: vi.fn() }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
@@ -102,6 +103,7 @@ function mount(
 	});
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);
+	app.provide(OpenSettingsKey, fake.openSettings);
 	app.use(router);
 	app.mount(host);
 	mounted.push(app);
@@ -368,6 +370,23 @@ describe("the app menu", () => {
 	it("offers Copy link only when the shell handed it one", async () => {
 		expect(await opened({ shareLink: "https://x/apps/crm" })).toContain("Copy link");
 		expect(await opened({})).not.toContain("Copy link");
+	});
+
+	it("offers Settings after All apps, which opens settings with no segments", async () => {
+		fake.openSettings.mockClear();
+		await opened({ customizable: true, shareLink: "https://x/apps/crm" });
+		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
+		expect(rows.map((row) => row.textContent?.trim())).toEqual([
+			"All apps",
+			"Settings",
+			"Customize sidebar",
+			"Copy link",
+		]);
+
+		rows[1].click();
+		await flush();
+		expect(fake.openSettings).toHaveBeenCalledOnce();
+		expect(fake.openSettings).toHaveBeenLastCalledWith();
 	});
 });
 

@@ -11,7 +11,7 @@ from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.layers import anchor_attempts, place_by_anchors
 
-from .boot import report_oversized_keys
+from .boot import app_screen, report_oversized_keys
 from .doctypes import metadata_version
 from .permissions import may_enter_any_prefix
 from .settings_filter import SettingsFilter
@@ -21,11 +21,12 @@ PANES_CACHE_KEY = "shell_settings_panes"
 
 @frappe.whitelist(methods=["GET"])
 def get_panes() -> dict:
-	"""The panes this user may see and their search label index, read when the dialog first opens."""
+	"""The panes this user may see, their search label index and their apps' titles, read on first open."""
 	if not may_enter_any_prefix():
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	visible = SettingsFilter().filter(get_cached_panes())
+	visible["titles"] = {app: app_screen(app)["title"] for app in {pane["app"] for pane in visible["panes"]}}
 	report_oversized_keys(visible, None, reply="settings")
 	return visible
 

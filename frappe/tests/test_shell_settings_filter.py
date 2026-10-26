@@ -17,7 +17,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	ship,
 	single,
 )
-from frappe.shell.boot import BUDGET_LOG_TITLE, KEY_BUDGET
+from frappe.shell.boot import BUDGET_LOG_TITLE, KEY_BUDGET, app_screen
 from frappe.shell.permissions import default_app_permission, has_app_permission
 from frappe.shell.registry import clear_prefix_registry, get_prefix_registry
 from frappe.shell.settings import PANES_CACHE_KEY, get_panes
@@ -35,6 +35,7 @@ WEBSITE_USER = "settings-website@example.com"
 
 SESSION_USER = {"binding_type": "Record", "document_type": "User", "name_resolver": "session_user"}
 APP_GATE = "frappe.shell.settings_filter.has_app_permission"
+APP_SCREEN = "frappe.shell.settings.app_screen"
 OWN_RECORD = {"binding_type": "Record", "document_type": RECORD, "name_resolver": "session_user"}
 
 
@@ -92,13 +93,23 @@ def visible(user: str = READER, gate=None) -> dict:
 	"""The endpoint's reply for this user, with the merge seeing `HOST` and `EXTENDER` as installed."""
 	# Built first: built under `active`, the registry would load the hooks of apps that do not exist.
 	get_prefix_registry()
-	with active(HOST, EXTENDER), set_user(user), patch(APP_GATE, side_effect=gate or entered):
+	with (
+		active(HOST, EXTENDER),
+		set_user(user),
+		patch(APP_GATE, side_effect=gate or entered),
+		patch(APP_SCREEN, side_effect=screen),
+	):
 		return get_panes()
 
 
 def entered(app: str) -> bool:
 	"""`has_app_permission` for the test apps, which are never installed and so have no hooks."""
 	return default_app_permission() if app in (HOST, EXTENDER) else has_app_permission(app)
+
+
+def screen(app: str) -> dict:
+	"""`app_screen` for the test apps, which have no hooks module to read a title from."""
+	return {"title": f"{app.title()} App", "logo": None} if app in (HOST, EXTENDER) else app_screen(app)
 
 
 def blocks_of(reply: dict) -> dict[str, list[str]]:
@@ -298,6 +309,14 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		self.assertEqual(reply["index"][0]["description"], "The first")
 		self.assertEqual(reply["index"][2]["keywords"], ["theme"])
 		self.assertNotIn("settings", block_named(reply, "theme"))
+
+	def test_the_reply_names_the_title_of_each_app_it_holds_a_pane_of(self):
+		with authoring():
+			ship(["general"], [single("mine", doctype=SINGLE)])
+			ship(["calls"], [single("system", pane="calls")], app=EXTENDER)
+
+		self.assertEqual(visible()["titles"], {HOST: "Acme App"})
+		self.assertEqual(visible(AUTHOR)["titles"], {HOST: "Acme App", EXTENDER: "Telephony App"})
 
 	# The cache and the gate
 

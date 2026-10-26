@@ -591,6 +591,8 @@ export interface RecordPageApi {
     doctype: string,
     options?: { values?: Record<string, any> },
   ): Promise<Record<string, any> | null>;
+  /** Opens the settings dialog at `#settings/<prefix>/<pane>/<block>`; each segment is optional. */
+  openSettings(prefix?: string, pane?: string, block?: string): void;
   call(method: string, params?: Record<string, any>): Promise<any>;
   /** Server data for `onRefresh`: the value kept for `key`, fetched once per visit; undefined until a fetch lands. */
   cached<T>(key: string, fetch: () => Promise<T> | T): T | undefined;

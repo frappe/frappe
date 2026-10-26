@@ -106,6 +106,7 @@ import type { ItemNode } from "@/navigation/tree";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
 import LogoutDialog from "./LogoutDialog.vue";
+import { OpenSettingsKey } from "./openSettings";
 
 type Cell = { key: string; label: string; icon?: string; sidebar?: string } & (
 	| { to: RouteLocationRaw }
@@ -163,8 +164,11 @@ function cellOf(item: NavigationItem): Cell | null {
 		: { ...cell, href: rendering.href, sidebar: rendering.sidebar };
 }
 
+const openSettings = inject(OpenSettingsKey)!;
+
 const menu = computed<DropdownOptions>(() => [
 	{ label: "All apps", icon: "lucide-layout-grid", onClick: () => leave("/apps") },
+	{ label: "Settings", icon: "lucide-settings", onClick: () => openSettings() },
 	...(props.customizable
 		? [
 				{

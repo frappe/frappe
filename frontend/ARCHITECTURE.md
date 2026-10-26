@@ -170,7 +170,7 @@ cut or a `ui/` change reshapes them.
 | Cross-app extensions (`app:key`) | Another app's rail rows, merged in with namespaced keys |
 | Settings merge (`resolve_panes`) | Every app's [panes](./CONTEXT.md#pane), each with its host's [blocks](./CONTEXT.md#block) and then extending apps' in `app_order`, anchored blocks moved. Drops an orphan block, a block bound to a doctype the site lacks, and an empty pane. Unfiltered, for one cache entry |
 | Settings filter (`SettingsFilter`) | Drops the blocks a user may not use, the fields above their readable permlevel and the panes left empty, by the rail's role pass; marks unwritable fields read-only and builds the search label index from what is left |
-| `get_panes` | The settings dialog's panes and label index for this user, read on first open. The merge is cached on `metadata_version` and on a digest of the `Settings Dialog` records' names and `modified`, so a save or delete rebuilds it |
+| `get_panes` | The settings dialog's panes and label index for this user, and the title of each app it holds a pane of, read on first open. The merge is cached on `metadata_version` and on a digest of the `Settings Dialog` records' names and `modified`, so a save or delete rebuilds it |
 | Visibility rules (`NavigationContext`) | Decides per row whether the user may see it |
 | `navigation_item_resolvers` hook | An app supplies the visibility rule for its own item type |
 | Arrangement | Stores only the difference between a user's or site's order and the layer below |
@@ -270,12 +270,14 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `AppShell` | The root component: rail, sidebar, page area, and the customize dialog |
+| `AppShell` | The root component: rail, sidebar, page area, and the hash dialogs |
 | `PageFrame` | The frame every page draws inside: header, scroll area, gutter |
 | Page states (`FrameSkeleton`, `PageLoadError`, `NotFound`) | Loading, empty, empty with a filter, not found, no permission, offline, failed, each with a retry. Home, list and record share them |
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
+| [Settings dialog](./CONTEXT.md#settings-dialog) (`ShellSettingsDialog`, `SettingsAddressBook`, `fetchPanes`) | The hash dialog at the [settings address](./CONTEXT.md#settings-address). Its chunk loads on the first open. It reads `get_panes` then and holds the reply for the tab, by `metadata_version` and user. It lists the framework's panes, the current app's group and an addressed foreign app's group for that visit. A short address is replaced by the full one; one it cannot show keeps its hash and shows one message. A block segment scrolls to the block and flashes it. Blocks draw their header and a skeleton |
+| Settings act (`OpenSettingsKey`, `OpenSettings`) | Opens the settings dialog at an address. `AppShell` provides it to the rail's app and user menus and to the record pages, which hand it to `page.openSettings()` |
 | Logout (`logout`, `LogoutDialog`) | End the session, and go to login with a way back |
 | Composer state (`composerState`, `openComposer`, `closeComposer`) | Which record's composer is open, with which writer, docked or floating |
 | Composer drafts | Unsent comments and emails, per record and writer |
@@ -313,14 +315,14 @@ component group, with its main names.
 | Concept | What it is |
 | --- | --- |
 | `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
-| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, Create, and whether it restored the reader's view. A new record's host adds `isNew` and `onSaved`, which runs after `afterSave`. The engine draws nothing |
+| `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, Create, settings, and whether it restored the reader's view. A new record's host adds `isNew` and `onSaved`, which runs after `afterSave`. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
 | [Source](./CONTEXT.md#source) context | Which source is registering or running now |
 | [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
 | Staging | Acts wait during a replay and appear at one commit |
 | Paint gate (`LATE_LIMIT_MS`) | When the page first paints, how a late `onRefresh` or a first visit's `page.cached` fetch lands, when `onOpen` runs, and the one repaint for background reads on a return visit. `LATE_LIMIT_MS` (5 s) is the longest it waits for a late part |
 | Cached reads | *New.* The engine behind `page.cached`: one fetch per key per visit, and a value kept while the record's complete entry stays in the data cache, up to 20 keys for each record and script |
-| Held acts (`createHeldActs`) | One queue for the acts a script asks for during a replay (tab move, panel section open or close, field focus, feed scroll, composer open). They run after the commit |
+| Held acts (`createHeldActs`) | One queue for the acts a script asks for during a replay (tab move, panel section open or close, field focus, feed scroll, composer open, settings open). They run after the commit |
 | [Commit](./CONTEXT.md#commit) channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
 | [Field](./CONTEXT.md#field-overlay) and form tab overlays | Changes keyed by fieldname or tab identity |
 | Header projection | Turns the header list into two zones, nesting and overflow |
@@ -405,7 +407,7 @@ the reference for each `page` member.
 | [Document](./CONTEXT.md#record) (`page.doc`, `page.saved`, `page.isDirty`, `page.isNew`, `page.doctype`, `page.docname`) | `page.isDirty` says whether the draft differs from the saved copy. `page.isNew` is true until the first save, and `page.save()` then inserts, also with no changes |
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
-| Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.create()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, open Create for any doctype, navigate, show a toast. `page.create()` gives the saved record, or `null` |
+| Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.create()`, `page.openSettings()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, open Create for any doctype, open the settings dialog, navigate, show a toast. `page.create()` gives the saved record, or `null` |
 | `page.cached()` | *New.* Server data for `onRefresh`: the kept value at once, fetched once per visit |
 | [Surface](./CONTEXT.md#surface) verbs (`add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`, `Position`) | The same verbs on every list surface |
 | [Built-in](./CONTEXT.md#built-in) item names | The names a script hides or moves: frame, body, tabs, panel sections, actions, writers |

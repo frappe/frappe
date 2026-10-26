@@ -1,7 +1,7 @@
 {
   "jsToleranceKb": 5,
-  "home": { "budget": { "jsKb": 300, "calls": 4 }, "baseline": { "jsKb": 279.3, "calls": 4 } },
-  "list": { "budget": { "jsKb": 320, "calls": 7 }, "baseline": { "jsKb": 350, "calls": 7 } },
-  "record": { "budget": { "jsKb": 460, "calls": 9 }, "baseline": { "jsKb": 709.2, "calls": 13 } },
+  "home": { "budget": { "jsKb": 300, "calls": 4 }, "baseline": { "jsKb": 284.7, "calls": 4 } },
+  "list": { "budget": { "jsKb": 320, "calls": 7 }, "baseline": { "jsKb": 354.2, "calls": 7 } },
+  "record": { "budget": { "jsKb": 460, "calls": 9 }, "baseline": { "jsKb": 711.9, "calls": 13 } },
   "save": { "baseline": { "calls": 2 } }
 }
