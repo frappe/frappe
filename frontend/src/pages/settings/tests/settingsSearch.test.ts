@@ -170,6 +170,18 @@ describe("settings search", () => {
 		expect(flash).toHaveBeenCalledTimes(1);
 	});
 
+	it("scrolls to a block address in the same pane after a pick", async () => {
+		const router = await opened("#settings/desk/walk");
+		await search("time");
+		await press("Enter");
+		scroll.mockClear();
+
+		await router.replace({ hash: "#settings/desk/walk/main" });
+		await settle();
+
+		expect(scroll.mock.contexts).toEqual([document.body.querySelector("[data-block='main']")]);
+	});
+
 	it("flashes a picked pane's title", async () => {
 		await opened("#settings/desk/profile");
 		await search("walk");

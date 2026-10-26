@@ -103,7 +103,7 @@ const search = shallowRef<SettingsSearch>();
 const blocks = shallowRef<Component>();
 const failed = ref(false);
 const query = ref("");
-/** A search pick, until the dialog shows another pane. */
+/** A search pick, until the dialog shows another pane or a block address. */
 const reveal = shallowRef<SettingsHit>();
 
 function load() {
@@ -137,7 +137,9 @@ watch(
 	},
 	{ immediate: true }
 );
-watch(shown, (address) => address?.pane === reveal.value?.pane || (reveal.value = undefined));
+watch(shown, (address) => {
+	if (address?.pane !== reveal.value?.pane || address?.block) reveal.value = undefined;
+});
 watch(hash.open, (isOpen) => {
 	if (isOpen) return;
 	visiting.value = undefined;
