@@ -25,12 +25,12 @@ const DESCRIPTIONS = {
 	memories: "What agents have remembered.",
 };
 const ICONS = {
-	general: "settings",
-	tools: "tool",
-	models: "box",
-	providers: "key",
-	knowledge: "database",
-	memories: "bookmark",
+	general: "lucide-settings",
+	tools: "lucide-wrench",
+	models: "lucide-box",
+	providers: "lucide-key",
+	knowledge: "lucide-database",
+	memories: "lucide-bookmark",
 };
 
 const page = inject("flowPage");

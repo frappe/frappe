@@ -107,28 +107,29 @@ def has_skip_ci_label(pr_number, repo="frappe/frappe"):
 def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
 	"""Check if the PR has the 'Run Server Tests' or full CI label, or fixes failing server tests on develop."""
 	return any(has_label(pr_number, label, repo) for label in ("Run Server Tests", FULL_CI_LABEL)) or (
-		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and develop_failing("server-tests.yml")
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "server-tests.yml")
 	)
 
 
 def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
 	"""Check if the PR has the 'Run UI Tests' or full CI label, or fixes failing UI tests on develop."""
 	return any(has_label(pr_number, label, repo) for label in ("Run UI Tests", FULL_CI_LABEL)) or (
-		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and develop_failing("ui-tests.yml")
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and base_failing(pr_number, repo, "ui-tests.yml")
 	)
 
 
-def develop_failing(workflow):
-	"""Is this suite's latest full run on develop failing?"""
-	from develop_status import failing_suites
+def base_failing(pr_number, repo, workflow):
+	"""Is this suite's latest full run failing on the branch the PR targets, or on develop for other branches?"""
+	from develop_status import BRANCHES, failing_suites
 
-	return workflow in failing_suites()
+	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
+	return workflow in failing_suites(base if base in BRANCHES else "develop")
 
 
 def skips_test_suites(pr_number, repo="frappe/frappe"):
-	"""Check if the PR targets develop or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	"""Check if the PR targets develop, desk-v2 or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
 	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return base == "develop" or base.endswith("-hotfix")
+	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 
 
 def has_label(pr_number, label, repo="frappe/frappe"):

@@ -5,7 +5,7 @@ on:
     # How often the full server and UI suites run on develop, when develop has new commits.
     - cron: "23 * * * *"
   pull_request_target:
-    branches: [develop]
+    branches: [develop, desk-v2]
     types: [opened, synchronize, reopened, labeled, unlabeled, closed]
   workflow_run:
     workflows: [Server, UI]
@@ -31,7 +31,7 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
-      - run: python .github/helper/develop_status.py start ${{ github.event_name != 'schedule' && 'all' || '' }}
+      - run: python .github/helper/develop_status.py start ${{ github.event_name != 'schedule' && 'all' || '' }} ${{ github.event.pull_request.base.ref }}
         env:
           GH_TOKEN: ${{ github.token }}
       - name: Turn pull requests green once the fix lands
@@ -63,7 +63,8 @@ jobs:
           for workflow in server-tests.yml ui-tests.yml; do
             run_id=$(gh run list --repo "$GITHUB_REPOSITORY" --workflow "$workflow" --commit "$HEAD_SHA" --limit 1 --json databaseId --jq '.[0].databaseId')
             [ -n "$run_id" ] || continue
-            gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null && gh run watch "$run_id" --repo "$GITHUB_REPOSITORY" > /dev/null || true
+            gh run cancel "$run_id" --repo "$GITHUB_REPOSITORY" 2>/dev/null || true
+            for _ in $(seq 360); do [ "$(gh run view "$run_id" --repo "$GITHUB_REPOSITORY" --json status --jq .status)" = completed ] && break; sleep 10; done
             gh run rerun "$run_id" --repo "$GITHUB_REPOSITORY"
           done
         env:
