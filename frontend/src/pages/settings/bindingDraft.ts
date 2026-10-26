@@ -116,7 +116,9 @@ export class BindingDraft {
 			const [meta, document] = await Promise.all([awaitMeta(source), this.read()]);
 			this.state.meta = meta;
 			this.state.childMetas = Object.fromEntries(
-				Object.entries(source.metas.value).map(([doctype, child]) => [doctype, child.fields ?? []])
+				Object.entries(source.metas.value).flatMap(([doctype, child]) =>
+					child.fields ? [[doctype, child.fields]] : []
+				)
 			);
 			this.reset(document ?? (await this.newDocument(meta)));
 			this.state.isNew = !document;

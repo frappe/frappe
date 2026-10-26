@@ -69,13 +69,13 @@ async function withEditorPermission(canWrite: boolean) {
   (mockedCall as any).mockClear();
 }
 
-/** Publishes the session and hands back the very array `page.roles` reads through. */
 /** The page's meta, which every host here has loaded. */
 function metaOf(page: RecordPageApi) {
   if (!page.meta) throw new Error("no meta on the page");
   return page.meta;
 }
 
+/** Publishes the session and hands back the very array `page.roles` reads through. */
 function publishRoles(roles: string[]): string[] {
   const session: Session = {
     user: {

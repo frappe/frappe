@@ -3,7 +3,6 @@ import type { ItemRenderer } from "@/navigation/types"
 
 // The complete list of what an app may contribute; if it is not here, an app cannot do it.
 
-// The page engine types a handler's arguments, and checks each entry when it loads them.
 type RecordHandler = (page: object, row?: object) => unknown
 
 export type RecordHandlers = Record<string, RecordHandler | Record<string, RecordHandler>>
