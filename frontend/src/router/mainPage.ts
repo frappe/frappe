@@ -74,11 +74,12 @@ function framed(loader: Loader, loading: Component): Component {
 	});
 }
 
-/** Resolves once the frame has painted; before the document's first paint, at once. */
+/** Resolves once the frame has painted; at once when nothing paints first. */
 function afterFramePaint(): Promise<void> {
-	// In the click's task, vite's preload helper holds the frame's paint. A cold load does not wait
-	// for the shell's first paint, or its page code would arrive that much later.
-	if (!performance.getEntriesByName("first-contentful-paint").length) return Promise.resolve();
+	// In the click's task, vite's preload helper holds the frame's paint. A cold load or a hidden tab
+	// does not wait: the paint comes late or never, and the page code would arrive that much later.
+	const painted = performance.getEntriesByName("first-contentful-paint").length > 0;
+	if (!painted || document.hidden) return Promise.resolve();
 	return new Promise((resolve) => requestAnimationFrame(() => setTimeout(resolve)));
 }
 

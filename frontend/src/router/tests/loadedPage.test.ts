@@ -69,6 +69,16 @@ describe("a page's code", () => {
 		expect(host.querySelector("[data-page]")).not.toBeNull();
 	});
 
+	it("is imported at once in a hidden tab, which paints no frame", async () => {
+		painted(true);
+		vi.spyOn(document, "hidden", "get").mockReturnValue(true);
+		const loader = vi.fn(async () => page);
+
+		const host = await open(loader);
+		expect(loader).toHaveBeenCalledOnce();
+		expect(host.querySelector("[data-page]")).not.toBeNull();
+	});
+
 	it("is imported at once before the document's first paint", async () => {
 		painted(false);
 		const loader = vi.fn(async () => page);
