@@ -237,6 +237,8 @@ class TestWorkspaceRestore(IntegrationTestCase):
 		doc.module = "Desk"
 		doc.public = 1
 		doc.standard = 1
+		# these cases read the layout from boot, which carries content for Legacy only
+		doc.renderer = "Legacy"
 		doc.content = dumps(BASE_CONTENT)
 		doc.append("shortcuts", {"type": "DocType", "link_to": "ToDo", "label": "My ToDos"})
 		doc.insert(ignore_if_duplicate=True)
