@@ -9,7 +9,9 @@ const props = defineProps({
 
 const __ = window.__;
 
-const html = computed(() => {
+const html = computed(() => with_user(translated()));
+
+function translated() {
 	const text = __(props.block.data.text || "");
 	if (props.block.type !== "header") return text;
 	if (!/<[a-z][\s\S]*>/i.test(text)) return `<span class="h4">${text}</span>`;
@@ -17,7 +19,13 @@ const html = computed(() => {
 	const inner = new DOMParser().parseFromString(text, "text/html").body.textContent;
 	const escaped = window.frappe.utils.escape_html(inner);
 	return text.replace(escaped, __(escaped));
-});
+}
+
+// `{first_name}` greets whoever is reading
+function with_user(text) {
+	const first_name = window.frappe.boot.user?.first_name || window.frappe.session.user_fullname;
+	return text.replaceAll("{first_name}", window.frappe.utils.escape_html(first_name || ""));
+}
 </script>
 
 <template>
