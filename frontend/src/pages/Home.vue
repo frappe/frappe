@@ -2,19 +2,14 @@
   Three things behind one route: the index at `/apps`, an app's home, and a modular app's module list.
 -->
 <template>
-	<PageFrame :title="boot.app ?? 'Apps'">
+	<PageFrame :title="boot.app ?? 'Apps'" :state="state">
 		<div v-if="boot.app" class="py-5">
 			<p class="text-sm text-ink-gray-6">
 				Served by the framework shell at <code>{{ boot.shell_base }}</code
 				>.
 			</p>
 
-			<!-- An empty grid and one that failed to load must not look the same. -->
-			<p v-if="failed" class="mt-6 text-sm text-ink-gray-6">
-				Could not load this app's navigation.
-			</p>
-
-			<TileGridSkeleton v-else-if="loading" class="mt-6" />
+			<TileGridSkeleton v-if="loading" class="mt-6" />
 
 			<ul v-else-if="modular" class="mt-6 grid max-w-2xl grid-cols-2 gap-2">
 				<li v-for="module in modules" :key="module.slug">
@@ -65,13 +60,20 @@ import type { Addresses } from "@/addresses";
 import { routeFor, routeForModule, isModular } from "@/router/routeFor";
 import { useContents } from "@/contents";
 import PageFrame from "@/shell/PageFrame.vue";
+import { failedState, type PageStateValue } from "@/shell/pageState";
 import TileGridSkeleton from "./TileGridSkeleton.vue";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
 
 const modular = computed(() => isModular(boot));
-const { entries, loading, failed } = useContents(boot.app);
+const { entries, loading, error, reload } = useContents(boot.app);
+
+const state = computed((): PageStateValue | null => {
+	if (error.value) return failedState(error.value, reload);
+	if (boot.app && !loading.value && !entries.value.length) return { name: "empty" };
+	return null;
+});
 
 // Derived from what the reader can read: an empty module is a tile that leads nowhere.
 const modules = computed(() => {

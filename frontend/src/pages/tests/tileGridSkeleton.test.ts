@@ -1,15 +1,26 @@
-// The app home and a module page draw a tile grid skeleton while their contents load, and only then.
+// The app home and a module page draw a tile grid skeleton while their contents load, and only then;
+// after, a failed or empty read draws the frame's page state.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 const runMethod = vi.hoisted(() => vi.fn());
-vi.mock("@framework/ui/api", () => ({ runMethod }));
+vi.mock("@framework/ui/api", async (importOriginal) => ({
+	...(await importOriginal<typeof import("@framework/ui/api")>()),
+	runMethod,
+}));
 
 // The frame's header teleports into a shell target this test does not draw.
 vi.mock("@/shell/PageFrame.vue", async () => {
-	const { defineComponent } = await import("vue");
-	return { default: defineComponent({ setup: (_, { slots }) => () => slots.default?.() }) };
+	const { defineComponent, h } = await import("vue");
+	const PageState = (await import("@/shell/PageState.vue")).default;
+	return {
+		default: defineComponent({
+			props: ["state"],
+			setup: (props, { slots }) => () =>
+				props.state ? h(PageState, props.state) : slots.default?.(),
+		}),
+	};
 });
 
 vi.mock("@/router/routeFor", async (importOriginal) => ({
@@ -17,6 +28,7 @@ vi.mock("@/router/routeFor", async (importOriginal) => ({
 	routeFor: () => "/",
 }));
 
+import { ApiError } from "@framework/ui/api";
 import Home from "../Home.vue";
 import Module from "../Module.vue";
 
@@ -45,8 +57,8 @@ function pendingContents() {
 			answer(data);
 			await settle();
 		},
-		fail: async () => {
-			fail(new Error("no"));
+		fail: async (error: Error = new Error("no")) => {
+			fail(error);
 			await settle();
 		},
 	};
@@ -77,6 +89,11 @@ async function mount(page: typeof Home) {
 		links: () => root.querySelectorAll("li a").length,
 		text: () => root.textContent ?? "",
 		statuses: () => [...root.querySelectorAll('[role="status"]')].map((node) => node.textContent),
+		state: () => root.querySelector<HTMLElement>("[data-page-state]"),
+		tryAgain: () =>
+			[...root.querySelectorAll("button")]
+				.find((button) => button.textContent?.trim() === "Try again")!
+				.click(),
 	};
 }
 
@@ -105,7 +122,52 @@ describe("Home", () => {
 		const page = await mount(Home);
 		await read.fail();
 		expect(page.skeletons()).toBe(0);
-		expect(page.text()).toContain("Could not load this app's navigation.");
+		expect(page.state()?.dataset.pageState).toBe("failed");
+	});
+});
+
+describe("Home's page states", () => {
+	it("draws the empty state for an app with nothing the reader can open", async () => {
+		const read = pendingContents();
+		const page = await mount(Home);
+		await read.answer([]);
+		expect(page.state()?.dataset.pageState).toBe("empty");
+		expect(page.text()).toContain("Nothing here yet");
+	});
+
+	it("draws the failed state with the server's message as text, and Try again reads again", async () => {
+		const read = pendingContents();
+		const page = await mount(Home);
+		await read.fail(new ApiError({ type: "Error", message: "<p>No <b>contents</b></p>" }, 500));
+
+		expect(page.state()?.dataset.pageState).toBe("failed");
+		expect(page.state()?.textContent).toContain("No contents");
+		expect(page.state()?.querySelector("b")).toBeNull();
+
+		const again = pendingContents();
+		page.tryAgain();
+		await settle();
+		expect(page.state()).toBeNull();
+		expect(page.tiles()).toBe(6);
+
+		await again.answer([{ doctype: "Note", slug: "note", module: "desk" }]);
+		expect(page.links()).toBe(1);
+	});
+
+	it("draws the offline state, not a failure, when the request never reached the server", async () => {
+		const read = pendingContents();
+		const page = await mount(Home);
+		await read.fail(new ApiError({ type: "NetworkError", message: "TypeError: Failed to fetch" }, 0));
+		expect(page.state()?.dataset.pageState).toBe("offline");
+		expect(page.text()).toContain("Try again");
+	});
+
+	it("draws the no permission state on a 403", async () => {
+		const read = pendingContents();
+		const page = await mount(Home);
+		await read.fail(new ApiError({ type: "PermissionError", message: "Not allowed" }, 403));
+		expect(page.state()?.dataset.pageState).toBe("noPermission");
+		expect(page.text()).not.toContain("Try again");
 	});
 });
 

@@ -3,7 +3,7 @@
   record-page engine with a header row, the Details form, the panel and its own scroll.
 -->
 <template>
-	<PageFrame :scroll="false">
+	<PageFrame :scroll="false" :state="doctype ? state : { name: 'notFound' }">
 		<template v-if="painted" #aboveHeader>
 			<FrameBands :bands="frame.before" :page="painted.page" />
 		</template>
@@ -20,27 +20,19 @@
 				:favourited="favourited"
 				@run="runAction"
 			/>
-			<div v-else-if="error" class="flex items-center gap-3">
+			<div v-else-if="state" class="flex items-center gap-3">
 				<h1 class="text-lg font-semibold">{{ route.params.name }}</h1>
 				<span class="text-sm text-ink-gray-5">{{ doctype }}</span>
 			</div>
 			<HeaderSkeleton v-else />
 		</template>
 
-		<p v-if="!doctype" class="py-5 text-sm text-ink-gray-6" :class="pageGutter">
-			No doctype is served at <code>{{ route.params.doctype }}</code> under this prefix.
-		</p>
+		<FrameBands v-if="painted" :bands="frame.between" :page="painted.page" />
 
-		<FrameBands v-else-if="painted" :bands="frame.between" :page="painted.page" />
-
-		<template v-if="doctype && frame.body">
-			<p v-if="error" class="py-5 text-sm text-ink-red-4" :class="pageGutter">
-				{{ error }}
-			</p>
-
+		<template v-if="frame.body">
 			<!-- Keyed per record: a paint from memory patches in place, and would keep the last record's scroll. -->
 			<BodyColumns
-				v-else-if="painted"
+				v-if="painted"
 				ref="body"
 				:key="documentKey(painted.page.doctype, painted.page.docname)"
 				:items="bodyItems"
@@ -223,7 +215,8 @@ import {
 } from "./record/saveResponse";
 import { openCreate } from "@/shell/create";
 import { OpenSettingsKey } from "@/shell/openSettings";
-import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
+import PageFrame from "@/shell/PageFrame.vue";
+import { failedState, type PageStateValue } from "@/shell/pageState";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 
@@ -239,7 +232,7 @@ const meta = ref<any>(null);
 const docinfo = ref<DocInfo | null>(null);
 const linkTitles = ref<Record<string, string>>({});
 const codeErrors = ref<CodeError[]>([]);
-const error = ref("");
+const state = shallowRef<PageStateValue | null>(null);
 const controller = shallowRef<RecordPageController | null>(null);
 const painted = computed(() => (controller.value?.ready.value ? controller.value : null));
 // The doctype's Side Panel layout, or nothing: the panel never falls back to the Details layout.
@@ -488,7 +481,7 @@ async function load({ fromMemory = false } = {}) {
 	openedQuery.value = view ? { ...route.query, tab: view.tab } : route.query;
 	keeper = viewKeeper(target.doctype, target.name);
 	keeping = false;
-	error.value = "";
+	state.value = null;
 	codeErrors.value = [];
 	live.follow(target.doctype, target.name);
 
@@ -626,7 +619,7 @@ async function applyInBackground(
 			read.status === "fulfilled" ? read.value() : undefined
 		);
 		await Promise.all(rereads);
-		if (!visit.current() || error.value) return;
+		if (!visit.current() || state.value) return;
 	} finally {
 		release();
 		if (visit.current()) feeds.endKeptRead();
@@ -649,13 +642,7 @@ function takeRefetch(fresh: LoadedRecord, before: DocInfo | null) {
 function takeReadFailure(failure: unknown) {
 	if (!isApiError(failure) || (failure.status !== 403 && failure.status !== 404)) return;
 	blank();
-	error.value = readFailure(failure);
-}
-
-function readFailure(failure: unknown) {
-	return isApiError(failure) && failure.status === 403
-		? __("You do not have permission to read this record.")
-		: __("Not found.");
+	state.value = failedState(failure, load);
 }
 
 function show(loaded: LoadedRecord, metadata: any) {
@@ -682,7 +669,7 @@ async function openRecord({ visit, target, pointer, details, panel, view, feedRe
 		show(loaded, metadata);
 	} catch (e) {
 		if (!visit.current()) return;
-		error.value = readFailure(e);
+		state.value = failedState(e, load);
 		return;
 	}
 

@@ -4,7 +4,8 @@ import { useRoute, type RouteLocationNormalized } from "vue-router";
 import type { Addresses } from "@/addresses";
 import { replacementFor, standardPage } from "@/contributions/registry";
 import FrameSkeleton from "@/shell/FrameSkeleton.vue";
-import PageLoadError from "@/shell/PageLoadError.vue";
+import PageFrame from "@/shell/PageFrame.vue";
+import { failedState } from "@/shell/pageState";
 
 type Loaded = { default?: Component } | Component;
 type Loader = () => Promise<unknown>;
@@ -49,7 +50,11 @@ function framed(loader: Loader): Component {
 				return pageOf(module as Loaded);
 			}),
 		loadingComponent: FrameSkeleton,
-		errorComponent: { props: ["error"], render: () => h(PageLoadError) },
+		errorComponent: {
+			props: ["error"],
+			setup: (props: { error: unknown }) => () =>
+				h(PageFrame, { state: failedState(props.error, reloadAddress) }),
+		},
 		delay: 0,
 	});
 	// The router warns on an async route component, so the routes get a plain one around it.
@@ -66,6 +71,11 @@ function framed(loader: Loader): Component {
 			};
 		},
 	});
+}
+
+// A full reload: the browser can keep a failed module fetch and fail an in-app retry again.
+function reloadAddress() {
+	window.location.reload();
 }
 
 /** A module's default export, read as vue-router reads a lazy route component. */
