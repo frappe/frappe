@@ -41,7 +41,8 @@ export interface SettingsIndexEntry {
 	pane: string;
 	block: string;
 	fieldname?: string;
-	label: string;
+	/** Left out when blank: a field's row is then titled by its fieldname; an imported component setting has none. */
+	label?: string;
 	description?: string;
 	keywords?: string[];
 }

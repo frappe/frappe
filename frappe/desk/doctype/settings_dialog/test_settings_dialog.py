@@ -169,6 +169,7 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			"bindings": component("theme", bindings='["user"]'),
 			"settings": component("theme", settings='"Theme"'),
 			"settings label": component("theme", settings='[{"keywords": "dark"}]'),
+			"settings blank label": component("theme", settings='[{"label": " ", "keywords": "dark"}]'),
 			"anchors": component("theme", anchors="not json"),
 			"anchor target": component("theme", anchors='[{"after": ["system"]}]'),
 			"anchor parent": component("theme", anchors='[{"after": "system", "parent_key": "x"}]'),

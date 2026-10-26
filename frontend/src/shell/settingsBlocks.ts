@@ -5,7 +5,7 @@ type BlocksLoader = () => Promise<{ default: Component }>;
 
 let blocksLoader: BlocksLoader | null = null;
 
-/** `main.ts` registers the page layer's component that draws a pane's blocks; it takes `pane` and emits `loaded`. */
+/** `main.ts` registers the page layer's component that draws a pane's blocks; it takes `pane` and `reveal`, and emits `loaded`. */
 export function registerSettingsBlocks(loader: BlocksLoader) {
 	blocksLoader = loader;
 }
