@@ -11,7 +11,7 @@ from frappe.desk.desk_views import DeskViews
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.modules.export_file import export_to_files
-from frappe.permissions import get_doctypes_with_read
+from frappe.permissions import get_cached_doctypes_with_read, get_doctypes_with_read
 from frappe.query_builder.functions import Date, UnixTimestamp
 from frappe.utils import cint, flt, get_datetime, getdate, has_common, now_datetime, nowdate
 from frappe.utils.dashboard import cache_source
@@ -79,11 +79,10 @@ def has_permission(doc, ptype, user):
 		if has_common(roles, allowed):
 			return True
 	elif doc.chart_type == "Report":
-		if doc.report_name in DeskViews.get_allowed_report_names(user=user):
+		if doc.report_name in DeskViews.get_cached_allowed_report_names(user):
 			return True
 	else:
-		allowed_doctypes = get_doctypes_with_read(user)
-		if doc.document_type in allowed_doctypes:
+		if doc.document_type in get_cached_doctypes_with_read(user):
 			return True
 
 	return False
@@ -221,6 +220,8 @@ def get_chart_config(chart, filters, timespan, timegrain, from_date, to_date):
 			else get_period(r[0], timegrain)
 			for r in result
 		],
+		# each period's first day, so a chart can place it on a time axis
+		"dates": [str(get_period_beginning(r[0], timegrain)) for r in result],
 		"datasets": [{"name": _(chart.name), "values": [r[1] for r in result]}],
 	}
 
@@ -288,8 +289,11 @@ def get_group_by_chart_config(chart, filters) -> dict | None:
 				item.name = _(item.get("name", "Not Specified"))
 
 	if data:
+		empty_label = (
+			_("No {0}").format(_(group_by_field_field.label)) if group_by_field_field else _("Not Set")
+		)
 		return {
-			"labels": [item.name for item in data],
+			"labels": [item.name or empty_label for item in data],
 			"datasets": [{"name": _(chart.name), "values": [item["count"] for item in data]}],
 		}
 	return None

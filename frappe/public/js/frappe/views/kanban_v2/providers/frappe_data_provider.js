@@ -38,7 +38,7 @@ export class FrappeDataProvider {
 		const user_fields = meta.fields
 			.filter((df) => df.fieldtype === "Link" && df.options === "User")
 			.map((df) => df.fieldname)
-			.concat("owner");
+			.concat("owner", "modified_by");
 
 		const missing = new Set();
 		for (const card of cards) {
@@ -158,6 +158,9 @@ export class FrappeDataProvider {
 			if (data && data.doctype === doctype) cb(data.name);
 		};
 		frappe.realtime.on("list_update", handler);
-		return () => frappe.realtime.off("list_update", handler);
+		return () => {
+			frappe.realtime.off("list_update", handler);
+			frappe.realtime.doctype_unsubscribe(doctype);
+		};
 	}
 }

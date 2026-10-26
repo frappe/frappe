@@ -17,6 +17,7 @@
   "custom_format",
   "disabled",
   "pdf_generator",
+  "paper_size",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -259,7 +260,7 @@
    "fieldname": "print_format_builder_beta",
    "fieldtype": "Check",
    "hidden": 1,
-   "label": "Print Format Builder"
+   "label": "Print Format Editor"
   },
   {
    "default": "15",
@@ -307,11 +308,19 @@
    "label": "Show Colon After Field Labels"
   },
   {
-   "default": "chrome",
+   "default": "PlutoPrint",
    "fieldname": "pdf_generator",
    "fieldtype": "Select",
    "label": "PDF Generator",
-   "options": "chrome\nTypst"
+   "options": "chrome\nPlutoPrint\nTypst"
+  },
+  {
+   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing",
+   "description": "Empty uses the size in Print Settings. A receipt size prints one page as tall as the content.",
+   "fieldname": "paper_size",
+   "fieldtype": "Select",
+   "label": "Paper Size",
+   "options": "\nA4\nA5\nA3\nLetter\nLegal\nReceipt 80 mm\nReceipt 58 mm"
   },
   {
    "default": "DocType",
@@ -360,7 +369,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-10 12:00:00.000000",
+ "modified": "2026-10-25 12:27:23.348336",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

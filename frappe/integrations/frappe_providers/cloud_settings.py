@@ -123,10 +123,15 @@ class PilotClient:
 # --- access control -------------------------------------------------------
 
 
+def is_v2_site() -> bool:
+	"""A site is cloud-managed (Frappe Cloud V2) when its bench wrote pilot credentials into
+	the site config. Self-hosted and V1 sites never have these."""
+	return bool(frappe.conf.get("pilot_endpoint") and frappe.conf.get("pilot_auth_token"))
+
+
 def is_cloud_settings_enabled() -> bool:
-	"""A site is cloud-managed when its bench wrote pilot credentials into the
-	site config. Self-hosted sites never have these, so the modal stays hidden."""
-	if not (frappe.conf.get("pilot_endpoint") and frappe.conf.get("pilot_auth_token")):
+	"""Self-hosted sites aren't V2 sites, so the modal stays hidden."""
+	if not is_v2_site():
 		return False
 	if frappe.session.user == "Guest":
 		return False

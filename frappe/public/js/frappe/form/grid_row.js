@@ -262,7 +262,7 @@ export default class GridRow {
 		} else if (this.show_search) {
 			this.row_check = $(`
 				<div class="row-check col search">
-					<input type="text" class="form-control input-xs text-center invisible">
+					<input type="checkbox" class="invisible" tabindex="-1">
 				</div>`).appendTo(this.row);
 
 			this.row_index = $(
@@ -475,11 +475,11 @@ export default class GridRow {
 				},
 			],
 			secondary_action_label: __("Select All"),
-			secondary_action: () => this.select_all_columns(docfields),
+			secondary_action: () => d.fields_dict.fields.select_all(),
 		});
 
-		d.set_primary_action(__("Add"), () => {
-			let selected_fields = d.get_values().fields;
+		d.set_primary_action(__("Add"), (values) => {
+			let selected_fields = values.fields;
 			const existing_settings = {};
 			this.selected_columns_for_grid.forEach((col) => {
 				existing_settings[col.fieldname] = col;
@@ -510,17 +510,6 @@ export default class GridRow {
 		});
 
 		d.show();
-	}
-
-	select_all_columns(docfields) {
-		docfields.forEach((docfield) => {
-			if (docfield.checked) {
-				return;
-			}
-			$(`.checkbox.unit-checkbox input[type="checkbox"][data-unit="${docfield.value}"]`)
-				.prop("checked", true)
-				.trigger("change");
-		});
 	}
 
 	prepare_columns_for_dialog(selected_fields) {
@@ -720,7 +709,7 @@ export default class GridRow {
 		const fields =
 			this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
-				: this.docfields;
+				: this.grid.docfields;
 
 		this.grid.visible_columns.forEach((col, ci) => {
 			// to get update df for the row
@@ -765,8 +754,12 @@ export default class GridRow {
 		this.columns_list[this.columns_list.length - 1]?.addClass("grid-data-last");
 
 		if (this.show_search) {
-			// last empty column
-			$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
+			Object.values(this.search_columns).at(-1)?.addClass("grid-data-last");
+
+			// last empty column, matching the header's column configure button
+			if (!(this.grid.df.in_place_edit && !this.frm)) {
+				$(`<div class="col grid-static-col search"></div>`).appendTo(this.row);
+			}
 		}
 
 		// Button has no stored value; static_area stays empty while field_area is hidden until the row
@@ -799,6 +792,9 @@ export default class GridRow {
 		const row_df = this.docfields?.find((df) => df.fieldname === fieldname);
 
 		if (!column_df || !row_df || column_df === row_df) return column_df;
+		if (!this.doc) {
+			return { ...row_df, sticky: column_df.sticky, in_list_view: column_df.in_list_view };
+		}
 
 		row_df.sticky = column_df.sticky;
 		row_df.in_list_view = column_df.in_list_view;
@@ -1545,7 +1541,7 @@ export default class GridRow {
 		let fields =
 			this.grid.user_defined_columns && this.grid.user_defined_columns.length > 0
 				? this.grid.user_defined_columns
-				: this.docfields;
+				: this.grid.docfields;
 
 		let df = this.get_column_docfield(fields, fieldname);
 

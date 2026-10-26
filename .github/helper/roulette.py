@@ -29,21 +29,8 @@ import urllib.request
 from functools import cache
 from urllib.error import HTTPError
 
-import impact_map
-
-# Restored from the nightly run by the workflow; absent means "run everything".
-IMPACT_MAP_FILE = "impact-map.json"
-
-# A change to the framework's spine or to test infrastructure can affect any test, so the map's
-# answer is not worth trusting. Test modules under these paths are exempt -- see below.
-CORE_PATHS = (
-	"frappe/__init__.py",
-	"frappe/hooks.py",
-	"frappe/database/",
-	"frappe/model/",
-	"frappe/parallel_test_runner.py",
-	"frappe/tests/",
-)
+FULL_CI_LABEL = "run-full-ci"
+FIX_DEVELOP_LABEL = "fixes-develop"
 
 
 @cache
@@ -118,13 +105,30 @@ def has_skip_ci_label(pr_number, repo="frappe/frappe"):
 
 
 def has_run_server_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run Server Tests' label."""
-	return has_label(pr_number, "Run Server Tests", repo)
+	"""Check if the PR has the 'Run Server Tests' or full CI label, or fixes failing server tests on develop."""
+	return any(has_label(pr_number, label, repo) for label in ("Run Server Tests", FULL_CI_LABEL)) or (
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and develop_failing("server-tests.yml")
+	)
 
 
 def has_run_ui_tests_label(pr_number, repo="frappe/frappe"):
-	"""Check if the PR has the 'Run UI Tests' label."""
-	return has_label(pr_number, "Run UI Tests", repo)
+	"""Check if the PR has the 'Run UI Tests' or full CI label, or fixes failing UI tests on develop."""
+	return any(has_label(pr_number, label, repo) for label in ("Run UI Tests", FULL_CI_LABEL)) or (
+		has_label(pr_number, FIX_DEVELOP_LABEL, repo) and develop_failing("ui-tests.yml")
+	)
+
+
+def develop_failing(workflow):
+	"""Is this suite's latest full run on develop failing?"""
+	from develop_status import failing_suites
+
+	return workflow in failing_suites()
+
+
+def skips_test_suites(pr_number, repo="frappe/frappe"):
+	"""Check if the PR targets develop or a hotfix branch: develop runs the suites every hour, hotfix on the release PR."""
+	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
+	return base == "develop" or base.endswith("-hotfix")
 
 
 def has_label(pr_number, label, repo="frappe/frappe"):
@@ -156,9 +160,19 @@ def is_ci(file):
 
 
 def is_frontend_code(file):
-	"""Check if the file is frontend code."""
+	"""Check if the file is frontend code. `.html` in the `frappe` package outside `public` is Jinja rendered on the server."""
+	if os.path.basename(file) in ("package.json", "yarn.lock") and not file.startswith("frappe/"):
+		return True
+	if (
+		file.startswith("frontend/")
+		and file.endswith(".json")
+		and not os.path.basename(file).startswith("package")
+	):
+		return True
+	if file.endswith(".html") and file.startswith("frappe/") and not file.startswith("frappe/public/"):
+		return False
 	return file.lower().endswith(
-		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".ts", ".vue", ".html", ".svg")
+		(".css", ".scss", ".less", ".sass", ".styl", ".js", ".mjs", ".ts", ".vue", ".html", ".svg")
 	)
 
 
@@ -168,61 +182,30 @@ def matches_postgres_filenames(files_list):
 	return any(any(word in f.lower() for word in db_keywords) for f in files_list)
 
 
-def select_tests(files_list):
-	"""Test modules a pull request needs, according to the impact map. See #42028.
-
-	Returns None for "run the full suite" and prints why; [] when nothing server-side changed.
-	"""
-	try:
-		with open(IMPACT_MAP_FILE) as f:
-			loaded_map = json.load(f)
-	except (OSError, ValueError) as exc:
-		print(f"Running full suite, no usable impact map ({exc})")
-		return None
-
-	# JSON outside the `frappe` package -- `ui/package.json` and the like -- is not schema.
-	relevant_files = [
-		f
-		for f in files_list
-		if f.endswith((".py", ".po")) or (f.endswith(".json") and f.startswith("frappe/"))
-	]
-	# Coverage cannot see dependency bumps and the like, so those force the full suite. Frontend code
-	# is safe to ignore, except `.html`: that is mostly Jinja rendered on the server.
-	ignorable_files = [
-		f for f in files_list if is_docs(f) or (is_frontend_code(f) and not f.endswith(".html"))
-	]
-	other_files = [f for f in files_list if f not in relevant_files and f not in ignorable_files]
-	# A test module's content can only break its own tests and those of modules importing it.
-	core_files = [f for f in relevant_files if f.startswith(CORE_PATHS) and not impact_map.is_test_module(f)]
-
-	if other_files:
-		print(f"Running full suite, changes coverage cannot see: {other_files}")
-	elif schema_files := [f for f in relevant_files if not f.endswith(".py")]:
-		print(f"Running full suite, schema/translation changes: {schema_files}")
-	elif core_files:
-		print(f"Running full suite, core changes: {core_files}")
-	elif impact_map.is_stale(loaded_map):
-		print(f"Running full suite, map from {loaded_map['generated_at']} is stale")
-	elif unmapped := impact_map.unmapped(loaded_map, relevant_files):
-		print(f"Running full suite, no tests attributed to: {unmapped}")
-	else:
-		selected = impact_map.select(loaded_map, relevant_files)
-		total = len(impact_map.all_tests(loaded_map))
-		print(f"Running {len(selected)}/{total} test modules for {relevant_files}:")
-		for test_file in selected:
-			print(f"  {test_file}")
-		return selected
-
-	return None
-
-
 def is_docs(file):
-	"""Check if the file is documentation or image."""
-	regex = re.compile(r"\.(md|png|jpg|jpeg|csv|svg)$|^.github|LICENSE")
+	"""Check if the file is documentation, an image or font, repo tooling config or the translation template (no runtime effect)."""
+	regex = re.compile(
+		r"\.(md|png|jpg|jpeg|gif|webp|ico|csv|svg|woff2?|ttf|otf|eot)$|^.github|LICENSE|/locale/main\.pot$"
+		r"|^(\.gitignore|\.eslintignore|\.releaserc|\.pre-commit-config\.yaml|CODEOWNERS)$"
+	)
 	return bool(regex.search(file))
 
 
+def _selftest():
+	assert is_docs("frappe/locale/main.pot"), "translation template alone must skip tests"
+	assert not is_docs("frappe/locale/de.po"), "translations change output, must run tests"
+	assert not is_frontend_code("frappe/templates/print_format/print_format.html"), (
+		"Jinja must run server tests"
+	)
+	assert is_frontend_code("studio/frontend/index.html"), "app pages outside the frappe package are frontend"
+	print("roulette selftest OK")
+
+
 if __name__ == "__main__":
+	if sys.argv[1:] == ["selftest"]:
+		_selftest()
+		sys.exit(0)
+
 	files_list = sys.argv[1:]
 	build_type = os.environ.get("TYPE")
 	pr_number = os.environ.get("PR_NUMBER")
@@ -247,6 +230,17 @@ if __name__ == "__main__":
 	updated_py_file_count = len(list(filter(is_server_side_code, files_list)))
 	only_py_changed = updated_py_file_count == len(files_list)
 	run_postgres = has_label(pr_number, "postgres", repo)
+
+	if build_type == "server":
+		tests_requested = has_run_server_tests_label(pr_number, repo)
+	else:
+		tests_requested = has_run_ui_tests_label(pr_number, repo)
+
+	if os.environ.get("SKIP_ON_PRS") and skips_test_suites(pr_number, repo) and not tests_requested:
+		print(
+			"Develop and hotfix PRs skip the test suites, they run on the branch instead; stopping build process."
+		)
+		sys.exit(0)
 
 	# Check for Skip CI label and other conditions
 	if has_skip_ci_label(pr_number, repo):
@@ -274,16 +268,5 @@ if __name__ == "__main__":
 		sys.exit(0)
 
 	# If we reach here, run the build
-	selected_tests = None
-	# An explicit request for server tests gets the full suite.
-	if build_type == "server" and not ci_files_changed and not has_run_server_tests_label(pr_number, repo):
-		selected_tests = select_tests(files_list)
-		if selected_tests == []:
-			print("No server-side changes; Stopping Python build process.")
-			sys.exit(0)
-
 	os.system('echo "build=strawberry" >> $GITHUB_OUTPUT')
-	# Empty means the full suite. Written without a shell: these are PR-controlled file names.
-	with open(os.environ["GITHUB_OUTPUT"], "a") as f:
-		f.write(f"tests={' '.join(selected_tests or [])}\n")
 	os.system(f'echo "run_postgres={"true" if run_postgres else "false"}" >> $GITHUB_OUTPUT')

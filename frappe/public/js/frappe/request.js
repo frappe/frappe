@@ -462,7 +462,7 @@ frappe.request.handle_session_expiry = function (response) {
 	// the dialog and the redirect live on frappe.app, which only exists once
 	// start_app() has run on document ready. Requests fired from top level module
 	// code can land before that, so fall through to the regular handlers instead.
-	if (!frappe.app) return false;
+	if (!frappe.app || frappe.app.logged_out) return false;
 
 	if (!frappe.app.session_expired_dialog && !frappe.request.is_session_expired(response)) {
 		return false;
@@ -477,8 +477,6 @@ frappe.request.cleanup = function (opts, r) {
 	if (opts.btn) {
 		$(opts.btn).prop("disabled", false);
 	}
-
-	$("body").attr("data-ajax-state", "complete");
 
 	// un-freeze page
 	if (opts.freeze) frappe.dom.unfreeze();
@@ -718,6 +716,7 @@ $(document).ajaxSend(function () {
 $(document).ajaxComplete(function () {
 	frappe.request.ajax_count--;
 	if (!frappe.request.ajax_count) {
+		$("body").attr("data-ajax-state", "complete");
 		$.each(frappe.request.waiting_for_ajax || [], function (i, fn) {
 			fn();
 		});

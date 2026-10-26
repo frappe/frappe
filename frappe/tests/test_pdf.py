@@ -189,6 +189,98 @@ class TestPdf(IntegrationTestCase):
 			self.assertIn("TOP", text)
 			self.assertIn(f"Page {number} of {len(pages)}", text)
 
+	def test_links_are_clickable_where_they_print_with_header_and_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html"><a href="https://example.com/brochure">Brochure</a></div>'
+			'<a href="https://example.com/manual">Manual</a>'
+			'<div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		page = PdfReader(io.BytesIO(pdf)).pages[0]
+		baselines = {}
+
+		def record_baseline(text, cm, tm, *_):
+			baselines[text.strip()] = tm[4] * cm[1] + tm[5] * cm[3] + cm[5]
+
+		page.extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(page["/Annots"]), 2)
+		for annotation in page["/Annots"]:
+			annotation = annotation.get_object()
+			text = annotation["/A"]["/URI"].rsplit("/", 1)[1].title()
+			_, bottom, _, top = annotation["/Rect"]
+			self.assertGreaterEqual(baselines[text], bottom, text)
+			self.assertLessEqual(baselines[text], top, text)
+
+	def test_footer_is_measured_at_the_width_it_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		block = '<span style="display: inline-block; width: 380px; height: 40px"></span>'
+		footer = (
+			f'<div id="footer-html">{block}{block}'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		pages = PdfReader(io.BytesIO(pdfgen.get_pdf("<p>row</p>" * 120 + footer))).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
+
+	def test_pdf_renders_while_another_render_has_a_tab_open(self):
+		from frappe.utils.chromium import CDPSocketClient, ChromiumManager, Page
+		from frappe.utils.pdf import get_host_url
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		generator, token = ChromiumManager.acquire()
+		self.addCleanup(generator.release, token)
+		if not generator._devtools_url:
+			generator._set_devtools_url()
+		session = CDPSocketClient(generator._devtools_url)
+		session.connect()
+		self.addCleanup(session.disconnect)
+		context, _error = session.send("Target.createBrowserContext", {"disposeOnDetach": True})
+		page = Page(session, context["browserContextId"], "body")
+		page.set_tab_url(get_host_url())
+		page.wait_for_navigate()
+
+		pdf = pdfgen.get_pdf("<p>body text</p>")
+		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_pages_merged_with_header_and_footer_are_compressed(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>'
+		)
+		contents = PdfReader(io.BytesIO(pdf)).pages[0]["/Contents"]
+		self.assertEqual(contents.get("/Filter"), "/FlateDecode")
+
+	def test_header_is_measured_after_its_image_loads(self):
+		import threading
+		import time
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		class SlowImageHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				time.sleep(0.5)
+				self.send_response(200)
+				self.send_header("Content-Type", "image/svg+xml")
+				self.end_headers()
+				self.wfile.write(b'<svg xmlns="http://www.w3.org/2000/svg" width="10" height="900"/>')
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), SlowImageHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdf = pdfgen.get_pdf(
+			f'<div id="header-html"><img src="http://127.0.0.1:{server.server_port}"></div>'
+			+ "<p>row</p>" * 10
+		)
+		self.assertGreater(len(PdfReader(io.BytesIO(pdf)).pages), 1)
+
 	def test_bulk_pdf_with_password_keeps_every_document(self):
 		import json
 
@@ -209,6 +301,38 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(reader.decrypt("qwe"))
 		self.assertGreaterEqual(len(reader.pages), 2)
 
+	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+		task_id = frappe.generate_hash()
+
+		_download_multi_pdf({"ToDo": [todo.name, deleted.name]}, "ToDo", task_id=task_id)
+
+		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
+		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
+
+	def test_bulk_pdf_lists_the_documents_it_could_not_print(self):
+		from unittest.mock import ANY, patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+
+		with patch.object(frappe, "publish_realtime") as publish_realtime:
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name, deleted.name]))
+
+		publish_realtime.assert_called_with(event="msgprint", message=ANY)
+		self.assertIn(deleted.name, publish_realtime.call_args.kwargs["message"].message[0])
+
 	def test_large_pdf_is_optimized_before_encryption(self):
 		import os
 
@@ -226,6 +350,33 @@ class TestPdf(IntegrationTestCase):
 		reader = PdfReader(io.BytesIO(pdfgen.get_pdf(html, {"password": "qwe"})))
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt("qwe"))
+
+	def test_large_pdf_without_images_is_not_optimized(self):
+		from unittest.mock import patch
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		with (
+			patch.object(pdfgen, "LARGE_PDF_SIZE", 0),
+			patch.object(pdfgen, "optimize_pdf") as optimize_pdf,
+		):
+			pdfgen.get_pdf("<p>Renew the example.com domain</p>")
+
+		optimize_pdf.assert_not_called()
+
+	def test_large_pdf_with_translucent_image_is_optimized(self):
+		import os
+
+		from PIL import Image
+
+		path = frappe.get_site_path("public", "files", "_test_translucent_photo.jpg")
+		Image.effect_noise((3000, 3000), 80).convert("RGB").save(path, quality=95)
+		self.addCleanup(os.remove, path)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		html = '<img src="/files/_test_translucent_photo.jpg" style="width: 80px; opacity: 0.5">'
+		self.assertLess(len(pdfgen.get_pdf(html)), pdfgen.LARGE_PDF_SIZE)
 
 	def test_pdf_visibility_classes_apply_to_the_body(self):
 		pdf = pdfgen.get_pdf(
@@ -260,6 +411,55 @@ class TestPdf(IntegrationTestCase):
 
 		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
 
+	def test_on_print_pdf_hook_runs_for_emailed_prints(self):
+		from unittest.mock import patch
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
+		):
+			frappe.attach_print("ToDo", todo.name)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
+
+	def test_on_print_pdf_hook_runs_for_bulk_prints(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+		):
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name]))
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
+
 	def test_report_pdf_fits_wide_tables_and_runs_no_scripts(self):
 		from frappe.utils import print_format
 
@@ -291,6 +491,53 @@ class TestPdf(IntegrationTestCase):
 		self.assertTrue(options["block-external-requests"])
 		self.assertTrue(options["shrink-to-fit"])
 		self.assertEqual(options["orientation"], "Portrait")
+
+	def test_network_print_raises_the_pdf_generation_error(self):
+		import sys
+		from unittest.mock import MagicMock, patch
+
+		from frappe.utils import print_format
+
+		printer = frappe.get_doc(
+			doctype="Network Printer Settings",
+			name="Office Printer",
+			server_ip="localhost",
+			port=631,
+			printer_name="Office Printer",
+		).insert()
+		cups = MagicMock(IPPError=type("IPPError", (Exception,), {}))
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with (
+			patch.dict(sys.modules, {"cups": cups}),
+			patch.object(frappe, "get_print", side_effect=ConnectionRefusedError),
+			self.assertRaises(ConnectionRefusedError),
+		):
+			print_format.print_by_server("User", "test@example.com", printer.name)
+
+	def test_print_styles_are_read_without_fetching_css_imports(self):
+		import threading
+		from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
+
+		requested = []
+
+		class StylesheetHandler(BaseHTTPRequestHandler):
+			def do_GET(self):
+				requested.append(self.path)
+
+		server = ThreadingHTTPServer(("127.0.0.1", 0), StylesheetHandler)
+		threading.Thread(target=server.serve_forever, daemon=True).start()
+		self.addCleanup(server.server_close)
+		self.addCleanup(server.shutdown)
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		pdfgen.get_pdf(
+			f'<style>@import url("http://127.0.0.1:{server.server_port}/print.css");</style><p>row</p>',
+			{"block-external-requests": True},
+		)
+		self.assertEqual(requested, [])
 
 	def test_pdf_generation_as_a_user(self):
 		frappe.set_user("Administrator")
@@ -342,13 +589,15 @@ class TestChromePdfGeometry(IntegrationTestCase):
 		browser.print_format = None
 		browser.options = options
 		browser.soup = BeautifulSoup("<html><head></head><body></body></html>", "html5lib")
+
+		def page(height):
+			return SimpleNamespace(
+				options={}, set_device_metrics=lambda width: None, get_element_height=lambda: height
+			)
+
 		browser.body_page = SimpleNamespace(options={})
-		browser.header_page = SimpleNamespace(options={}) if header_height is not None else None
-		browser.footer_page = SimpleNamespace(options={}) if footer_height is not None else None
-		if header_height is not None:
-			browser.header_height = header_height
-		if footer_height is not None:
-			browser.footer_height = footer_height
+		browser.header_page = page(header_height) if header_height is not None else None
+		browser.footer_page = page(footer_height) if footer_height is not None else None
 		return browser
 
 	def test_custom_page_size_converted_from_mm(self):
@@ -379,6 +628,26 @@ class TestChromePdfGeometry(IntegrationTestCase):
 
 			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
 			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
+
+	def test_b5_page_size_is_portrait(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = self.make_browser({"page-size": "B5"})
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
+		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 9.84, delta=0.05)
+
+	def test_print_format_margin_without_a_length_is_ignored(self):
+		from bs4 import BeautifulSoup
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = self.make_browser({"page-size": "A4"})
+		browser.soup = BeautifulSoup("<style>.print-format { margin-left: auto; }</style>", "html5lib")
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["marginLeft"], 15 / 25.4, delta=0.01)
 
 	def test_print_format_page_margin_reaches_pdf(self):
 		print_format = frappe.get_doc(
@@ -496,3 +765,24 @@ class TestChromeCdpReliability(IntegrationTestCase):
 		page.session = FakeSession([(None, {"message": "boom"})] * 4)
 		with patch("frappe.utils.chromium.page.time.sleep"):
 			self.assertRaisesRegex(RuntimeError, "Error evaluating expression", page.evaluate, "1+1")
+
+	def test_set_tab_url_raises_when_navigation_is_never_intercepted(self):
+		from functools import partial
+		from unittest.mock import patch
+
+		from frappe.utils.chromium.page import Page
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		client = self.make_client()
+
+		class ChromiumThatNeverNavigates:
+			async def send(self, message):
+				client._handle_message({"id": frappe.json.loads(message)["id"], "result": {}})
+
+		client.connection = ChromiumThatNeverNavigates()
+		page = Page.__new__(Page)
+		page.session, page.session_id, page.target_id, page.frame_id = client, "sid", "tid", "fid"
+
+		with patch.object(client, "wait_for_event", partial(client.wait_for_event, timeout=0.05)):
+			self.assertRaisesRegex(RuntimeError, "Timed out", page.set_tab_url, "http://example.com")

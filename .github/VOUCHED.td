@@ -24,12 +24,14 @@ dankgarlic1
 dependabot[bot]
 FawazAlhafiz
 frappe-pr-bot
+frappe-release-bot[bot]
 gajjug004
 gavindsouza
 g-sowani
 harshp4114
 HenningWendtland
 humedi
+jacob-salvi
 karm1000
 kaulith
 KerollesFathy

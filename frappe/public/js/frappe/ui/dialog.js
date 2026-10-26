@@ -126,11 +126,13 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.display = true;
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
+				// Bootstrap's focus guard goes before the first focus, so a combobox
+				// panel (mounted in <body>) can take it
+				$(document).off("focusin.modal");
 				me.focus_on_first_input();
 				me.hide_scrollbar(true);
 				me.on_page_show && me.on_page_show();
 				$(document).trigger("frappe.ui.Dialog:shown");
-				$(document).off("focusin.modal");
 			})
 			.on("scroll", function () {
 				var $input = $("input:focus");
@@ -396,10 +398,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		let action_button = frappe.ui.button({
 			label,
 			css_class: css_class || "",
+			onclick: action,
 		});
 		this.custom_actions.append(action_button);
-
-		action && action_button.click(action);
 	}
 
 	add_custom_button() {}

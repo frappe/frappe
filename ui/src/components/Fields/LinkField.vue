@@ -8,6 +8,7 @@
 		:description="field.description"
 		:placeholder="field.placeholder"
 		:required="field.reqd"
+		:error="error"
 		:disabled="field.readOnly"
 	>
 		<!-- Forward any slots (e.g. a #prefix affordance) on to the Link control. -->

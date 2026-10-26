@@ -30,6 +30,18 @@ export class Desk {
 		await expect(this.page.locator(".layout-main-section:visible > *").first()).toBeAttached();
 	}
 
+	// On the dock in an app that has one, on the sidebar otherwise.
+	async open_search() {
+		// A floating dock sits off-screen and inert until it is revealed.
+		await this.page.evaluate(() => frappe.app.sidebar.dock?.open());
+		await this.page
+			.locator(
+				".dock .navbar-modal-search-mobile, .body-sidebar .navbar-modal-search-mobile"
+			)
+			.filter({ visible: true })
+			.click();
+	}
+
 	async new_form(doctype) {
 		const route = slug(doctype);
 		const body = this.page.locator("body");
@@ -181,10 +193,30 @@ export class Desk {
 		await expect(this.page.locator(".filter-popover")).toBeAttached();
 	}
 
+	// a second click on the Filter button closes the panel
+	async close_list_filter() {
+		await this.page.locator(".filter-section .filter-button").click();
+		await expect(this.page.locator(".filter-popover")).toHaveCount(0);
+	}
+
+	// a filter row's field picker opens as a combobox panel in <body>
+	async pick_filter_field(label) {
+		const input = this.page.locator(
+			".es-combobox__panel[data-state='open'] .es-combobox__input"
+		);
+		await input.fill(label);
+		await input.press("Enter");
+	}
+
 	async clear_filters() {
-		// saved filters are applied before the first refresh, so let that one render first
+		// saved filters are applied before the first refresh, so let that one render first.
+		// A phone's List view hides the paging area for scroll loading, so a row counts too.
 		await expect(
-			this.page.locator(".list-paging-area:visible, .no-result:visible").first()
+			this.page
+				.locator(
+					".list-paging-area:visible, .result .list-row-container:not(:has(.render-list-checkbox)) .list-row:visible, .no-result:visible"
+				)
+				.first()
 		).toBeVisible();
 		if (!(await this.page.evaluate(() => cur_list.filter_area.get().length))) {
 			return;

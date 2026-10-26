@@ -1,0 +1,127 @@
+{
+ "actions": [],
+ "allow_rename": 1,
+ "autoname": "field:title",
+ "creation": "2026-09-11 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "title",
+  "enabled",
+  "is_global",
+  "user_invocable",
+  "is_system_generated",
+  "app",
+  "section_break_description",
+  "description",
+  "section_break_instructions",
+  "instructions"
+ ],
+ "fields": [
+  {
+   "fieldname": "title",
+   "fieldtype": "Data",
+   "in_list_view": 1,
+   "label": "Title",
+   "reqd": 1,
+   "unique": 1
+  },
+  {
+   "default": "1",
+   "fieldname": "enabled",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Enabled"
+  },
+  {
+   "default": "0",
+   "description": "Every agent gets this skill without binding it. Use it for site-wide conventions, and to give the built-in assistant skills.",
+   "fieldname": "is_global",
+   "fieldtype": "Check",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Available to All Agents"
+  },
+  {
+   "default": "0",
+   "description": "Anyone chatting with an agent that has this skill can start it by typing /skill: and its name. Agents can load it either way.",
+   "fieldname": "user_invocable",
+   "fieldtype": "Check",
+   "in_standard_filter": 1,
+   "label": "User Invocable"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_system_generated",
+   "fieldtype": "Check",
+   "label": "System Generated",
+   "read_only": 1
+  },
+  {
+   "description": "The app that ships this skill in its skills folder.",
+   "fieldname": "app",
+   "fieldtype": "Data",
+   "label": "App",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_description",
+   "fieldtype": "Section Break"
+  },
+  {
+   "description": "Shown to the agent in its skill index: what this skill covers and when to load it. Keep it to one line.",
+   "fieldname": "description",
+   "fieldtype": "Small Text",
+   "ignore_xss_filter": 1,
+   "label": "Description",
+   "read_only_depends_on": "eval:doc.is_system_generated",
+   "reqd": 1
+  },
+  {
+   "fieldname": "section_break_instructions",
+   "fieldtype": "Section Break",
+   "label": "Instructions"
+  },
+  {
+   "description": "Markdown instructions the agent receives when it loads this skill.",
+   "fieldname": "instructions",
+   "fieldtype": "Long Text",
+   "ignore_xss_filter": 1,
+   "label": "Instructions",
+   "read_only_depends_on": "eval:doc.is_system_generated",
+   "reqd": 1
+  }
+ ],
+ "index_web_pages_for_search": 1,
+ "links": [],
+ "modified": "2026-10-21 12:00:00.000000",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Skill",
+ "naming_rule": "By fieldname",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "create": 1,
+   "delete": 1,
+   "print": 1,
+   "read": 1,
+   "report": 1,
+   "role": "System Manager",
+   "share": 1,
+   "write": 1
+  },
+  {
+   "read": 1,
+   "role": "Flow User"
+  }
+ ],
+ "row_format": "Dynamic",
+ "show_title_field_in_link": 1,
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "title_field": "title",
+ "track_changes": 1
+}

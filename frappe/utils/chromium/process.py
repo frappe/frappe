@@ -1,5 +1,6 @@
 import os
 import platform
+import signal
 import subprocess
 import threading
 import time
@@ -96,7 +97,7 @@ class ChromiumManager:
 		# TODO: Better Implement logic to support for persistent chrome proccess.
 		self.USE_PERSISTENT_CHROMIUM = site_config.get("use_persistent_chromium", False)
 		#  time to wait for chromium to start and provide dev tools url used in _set_devtools_url.
-		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 3)
+		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 10)
 		# Allow a single PDF request to opt into interactive Chromium debugging in developer mode only.
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 
@@ -144,6 +145,8 @@ class ChromiumManager:
 					# 0 will automatically select a random open port from the ephemeral port range.
 					"--remote-debugging-port=0",
 					"--disable-gpu",  # GPU is not available in production environment.
+					"--in-process-gpu",
+					"--enable-features=NetworkServiceInProcess2",
 					"--disable-field-trial-config",
 					"--disable-background-networking",
 					"--disable-background-timer-throttling",
@@ -217,9 +220,35 @@ class ChromiumManager:
 			)
 		else:
 			self._chromium_process = subprocess.Popen(
-				command_args, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, text=True, errors="replace"
+				command_args,
+				stdout=subprocess.DEVNULL,
+				stderr=subprocess.PIPE,
+				text=True,
+				errors="replace",
+				start_new_session=True,
 			)
 		return self._chromium_process
+
+	def _stop_chromium_process(self):
+		self._signal_chromium()
+		try:
+			self._chromium_process.wait(timeout=5)
+		except subprocess.TimeoutExpired:
+			self._signal_chromium(kill=True)
+			self._chromium_process.wait()
+		self._chromium_process.stderr.close()
+
+	def _signal_chromium(self, kill=False):
+		process = self._chromium_process
+		if platform.system().lower() == "windows":
+			process.kill() if kill else process.terminate()
+			return
+		try:
+			os.killpg(process.pid, signal.SIGKILL if kill else signal.SIGTERM)
+		except ProcessLookupError:
+			pass
+		except PermissionError:
+			process.kill() if kill else process.terminate()
 
 	def _reap_orphaned_chromium(self):
 		"""Kill chromium processes leaked by dead workers.
@@ -244,7 +273,7 @@ class ChromiumManager:
 			except (psutil.NoSuchProcess, psutil.AccessDenied):
 				continue
 
-	def _set_devtools_url(self):
+	def _set_devtools_url(self, retry=True):
 		"""
 		Monitor Chromium's stderr for the DevTools WebSocket URL
 		----------------
@@ -278,7 +307,14 @@ class ChromiumManager:
 			self._drain_stderr(stderr)
 			return
 
-		self._raise_start_failure(output)
+		try:
+			self._raise_start_failure(output)
+		except TimeoutError:
+			if not retry:
+				raise
+			self._stop_chromium_process()
+			self.start_chromium_process(debug=self.debug_mode)
+			self._set_devtools_url(retry=False)
 
 	def _drain_stderr(self, stderr):
 		"""Keep reading chromium's stderr for the rest of its lifetime.
@@ -301,7 +337,7 @@ class ChromiumManager:
 		chromium_output = "".join(output).strip() or "<no output on stderr>"
 
 		if exit_code is None:
-			self._chromium_process.terminate()
+			self._signal_chromium()
 			raise TimeoutError(
 				f"Chromium did not report a DevTools URL within {self.START_TIMEOUT}s. "
 				f"Raise `chromium_start_timeout` in site config if this machine is slow.\n"
@@ -327,12 +363,7 @@ class ChromiumManager:
 		if getattr(self, "USE_PERSISTENT_CHROMIUM", False):
 			return
 		if self._chromium_process:
-			self._chromium_process.terminate()
-			try:
-				self._chromium_process.wait(timeout=5)
-			except subprocess.TimeoutExpired:
-				self._chromium_process.kill()
-				self._chromium_process.wait()
+			self._stop_chromium_process()
 		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None

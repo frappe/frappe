@@ -787,6 +787,13 @@ class TestSidebarTitleIsRoutable(IntegrationTestCase):
 
 		self.assertEqual(make_sidebar(module, title=title).name, title)
 
+	def test_a_sidebar_may_take_its_own_module_name_in_other_case(self):
+		"""Module Def names compare without case in the database, so a title that differs from its
+		own module only in case still finds that module.
+		"""
+		title = self.MODULE.upper()
+		self.assertEqual(make_sidebar(self.MODULE, title=title).name, title)
+
 	def test_renaming_a_sidebar_to_its_own_slug_is_allowed(self):
 		"""Changing only the case or the spacing of a title leaves its segment where it was, and
 		it must not collide with itself.

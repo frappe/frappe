@@ -26,6 +26,9 @@ class TestWorkflow(IntegrationTestCase):
 		super().setUpClass()
 		make_test_records("User")
 		cls.enterClassContext(cls.enable_safe_exec())
+		create_workflow_state_field("ToDo")
+		create_workflow_state_field("Domain")
+		create_new_submittable_doctype()
 
 	def setUp(self):
 		self.patcher = patch("frappe.attach_print", return_value={})
@@ -111,7 +114,8 @@ class TestWorkflow(IntegrationTestCase):
 
 		todo = create_new_todo()
 		# docnames as a native list (frappe.parse_json passthrough); < 20 docs runs inline
-		bulk_workflow_approval([todo.name], "ToDo", "Approve")
+		with patch.object(frappe.db, "commit"):
+			bulk_workflow_approval([todo.name], "ToDo", "Approve")
 		self.assertEqual(frappe.db.get_value("ToDo", todo.name, "workflow_state"), "Approved")
 
 	def test_if_workflow_actions_were_processed_using_role(self):
@@ -202,6 +206,39 @@ class TestWorkflow(IntegrationTestCase):
 
 		workflow.states[1].doc_status = 0
 		workflow.save()
+
+	def test_workflow_action_email_leaves_out_a_draft_print_when_drafts_cannot_print(self):
+		from frappe.workflow.doctype.workflow_action.workflow_action import get_common_email_args
+
+		self.patcher.stop()
+		doc = frappe.get_doc(
+			{"doctype": create_new_submittable_doctype().name, "test_field": "test"}
+		).insert()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+
+		with self.change_settings("Print Settings", allow_print_for_draft=0):
+			self.assertEqual(get_common_email_args(doc)["attachments"], [])
+
+	def test_queued_workflow_action_returns_doc(self):
+		dt = create_new_submittable_doctype()
+		workflow = create_submittable_workflow(dt.name)
+		workflow._update_state_docstatus = True
+		workflow.states[1].doc_status = 1
+		workflow.save()
+		doc = frappe.get_doc({"doctype": dt.name, "test_field": "test"}).insert()
+
+		with (
+			patch.object(doc.meta, "queue_in_background", 1),
+			patch("frappe.utils.scheduler.is_scheduler_inactive", return_value=False),
+		):
+			queued_doc = apply_workflow(doc, "Approve")
+
+		self.assertEqual(queued_doc.name, doc.name)
+		self.assertEqual(queued_doc.workflow_state, "Approved")
+		self.assertTrue(
+			frappe.db.exists("Submission Queue", {"ref_doctype": dt.name, "ref_docname": doc.name})
+		)
 
 	def test_syntax_error_in_transition_rule(self):
 		self.workflow.transitions[0].condition = 'doc.status =! "Closed"'
@@ -459,6 +496,9 @@ def create_new_todo(priority=None, **kwargs):
 
 
 def create_new_submittable_doctype():
+	if frappe.db.exists("DocType", "Test Submittable Doc"):
+		return frappe.get_doc("DocType", "Test Submittable Doc")
+
 	return frappe.get_doc(
 		{
 			"doctype": "DocType",
@@ -481,6 +521,9 @@ def create_new_submittable_doctype():
 
 
 def create_submittable_workflow(doctype):
+	if frappe.db.exists("Workflow", "Submittable Workflow"):
+		return frappe.get_doc("Workflow", "Submittable Workflow")
+
 	workflow = frappe.get_doc(
 		{
 			"doctype": "Workflow",

@@ -361,9 +361,24 @@ export default class Grid {
 				if (!this.frm) {
 					this.df.data = this.get_data();
 					this.df.data = this.df.data.filter((row) => row.idx != doc.idx);
+					this.grid_rows_by_docname[doc.name]?.remove();
+					dirty = true;
+					return;
 				}
-				this.grid_rows_by_docname[doc.name]?.remove();
-				dirty = true;
+				if (!this.is_editable()) return;
+				return this.frm.script_manager
+					.trigger("before_" + this.df.fieldname + "_remove", doc.doctype, doc.name)
+					.then(() => {
+						frappe.model.clear_doc(doc.doctype, doc.name);
+						dirty = true;
+						this.frm.script_manager.trigger(
+							this.df.fieldname + "_remove",
+							doc.doctype,
+							doc.name
+						);
+						this.frm.dirty();
+					})
+					.catch((e) => console.trace(e));
 			});
 			tasks.push(() => frappe.timeout(0.1));
 		});
@@ -394,7 +409,11 @@ export default class Grid {
 	delete_all_rows() {
 		const num_rows = this.data.length;
 		frappe.confirm(__("Are you sure you want to delete all {0} rows?", [num_rows]), () => {
-			this.frm.doc[this.df.fieldname] = [];
+			if (this.frm) {
+				this.frm.doc[this.df.fieldname] = [];
+			} else {
+				this.df.data = [];
+			}
 			$(this.parent).find(".rows").empty();
 			this.grid_rows = [];
 			this.refresh();
@@ -593,13 +612,12 @@ export default class Grid {
 		let columns = this.visible_columns.map((col) => {
 			let df = col[0];
 			if (df.fieldname === fieldname) {
-				df.width = width;
 				// setup_columns renders from col[1]; keep it in sync for new rows.
 				col[1] = width;
 			}
 			return {
 				fieldname: df.fieldname,
-				width: this.get_column_width(df),
+				width: col[1],
 				sticky: df.sticky ? 1 : 0,
 			};
 		});
@@ -947,6 +965,9 @@ export default class Grid {
 		this.grid_sortable = new Sortable($rows.get(0), {
 			group: { name: this.df.fieldname },
 			handle: ".sortable-handle",
+			delay: 250,
+			delayOnTouchOnly: true,
+			touchStartThreshold: 5,
 			draggable: ".grid-row",
 			animation: 100,
 			filter: (evt) => {
@@ -1590,6 +1611,7 @@ export default class Grid {
 						frappe.meta.get_docfield(this.doctype, row.fieldname);
 
 					if (column) {
+						column = { ...column };
 						column.in_list_view = 1;
 						// migrate legacy `columns` (1-12) to px
 						column.width = cint(row.width) || LEGACY_COLSIZE_TO_PX[row.columns];

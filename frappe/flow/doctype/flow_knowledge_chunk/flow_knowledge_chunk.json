@@ -1,0 +1,106 @@
+{
+ "actions": [],
+ "autoname": "autoincrement",
+ "creation": "2026-06-11 00:00:00",
+ "doctype": "DocType",
+ "engine": "InnoDB",
+ "field_order": [
+  "knowledge_base",
+  "source",
+  "column_break_meta",
+  "chunk_index",
+  "reference_doctype",
+  "reference_name",
+  "section_break_content",
+  "content",
+  "content_hash"
+ ],
+ "fields": [
+  {
+   "fieldname": "knowledge_base",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Knowledge Base",
+   "options": "Flow Knowledge Base",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "source",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "in_standard_filter": 1,
+   "label": "Source",
+   "options": "Flow Knowledge Source",
+   "read_only": 1,
+   "reqd": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "column_break_meta",
+   "fieldtype": "Column Break"
+  },
+  {
+   "description": "Position of this chunk within its source, starting at 0.",
+   "fieldname": "chunk_index",
+   "fieldtype": "Int",
+   "label": "Chunk Index",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_doctype",
+   "fieldtype": "Link",
+   "label": "Reference DocType",
+   "options": "DocType",
+   "read_only": 1
+  },
+  {
+   "fieldname": "reference_name",
+   "fieldtype": "Dynamic Link",
+   "label": "Reference Name",
+   "options": "reference_doctype",
+   "read_only": 1,
+   "search_index": 1
+  },
+  {
+   "fieldname": "section_break_content",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "content",
+   "fieldtype": "Long Text",
+   "label": "Content",
+   "read_only": 1,
+   "reqd": 1
+  },
+  {
+   "description": "Hash of the source document's indexed text; lets re-sync skip unchanged rows.",
+   "fieldname": "content_hash",
+   "fieldtype": "Data",
+   "label": "Content Hash",
+   "read_only": 1
+  }
+ ],
+ "in_create": 1,
+ "links": [],
+ "modified": "2026-06-11 00:00:00",
+ "modified_by": "Administrator",
+ "module": "Flow",
+ "name": "Flow Knowledge Chunk",
+ "naming_rule": "Autoincrement",
+ "owner": "Administrator",
+ "permissions": [
+  {
+   "read": 1,
+   "report": 1,
+   "role": "System Manager"
+  }
+ ],
+ "row_format": "Dynamic",
+ "sort_field": "creation",
+ "sort_order": "DESC",
+ "states": [],
+ "track_changes": 0
+}

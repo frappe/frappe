@@ -29,9 +29,8 @@ from frappe.model import (
 	no_value_fields,
 	table_fields,
 )
-from frappe.model.base_document import RESERVED_KEYWORDS, get_controller
 from frappe.model.docfield import supports_translation
-from frappe.model.document import Document
+from frappe.model.document import RESERVED_KEYWORDS, Document, get_controller
 from frappe.model.meta import Meta
 from frappe.modules import get_doc_path, make_boilerplate
 from frappe.modules.import_file import get_file_path
@@ -143,6 +142,7 @@ class DocType(Document):
 		is_virtual: DF.Check
 		issingle: DF.Check
 		istable: DF.Check
+		link_display_mode: DF.Literal["Search", "Select"]
 		links: DF.Table[DocTypeLink]
 		make_attachments_public: DF.Check
 		max_attachments: DF.Int
@@ -174,6 +174,7 @@ class DocType(Document):
 		search_fields: DF.Data | None
 		sender_field: DF.Data | None
 		sender_name_field: DF.Data | None
+		show_image_in_link: DF.Check
 		show_name_in_global_search: DF.Check
 		show_preview_popup: DF.Check
 		show_title_field_in_link: DF.Check
@@ -188,6 +189,25 @@ class DocType(Document):
 		track_views: DF.Check
 		translated_doctype: DF.Check
 	# end: auto-generated types
+
+	def before_insert(self):
+		if not self.istable and not self.permissions:
+			self.append(
+				"permissions",
+				{
+					"role": "System Manager",
+					"read": 1,
+					"write": 1,
+					"create": 1,
+					"delete": 1,
+					"report": 1,
+					"export": 1,
+					"share": 1,
+					"print": 1,
+					"email": 1,
+					"submit": 1 if self.is_submittable else 0,
+				},
+			)
 
 	def validate(self):
 		"""Validate DocType before saving.
@@ -1123,7 +1143,7 @@ class DocType(Document):
 				title="Invalid Name",
 			)
 
-		validate_route_conflict(self.doctype, self.name)
+		validate_route_conflict(self.doctype, name, self.name)
 
 	@frappe.whitelist()
 	def check_pending_migration(self) -> bool:

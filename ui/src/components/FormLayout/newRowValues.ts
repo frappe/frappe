@@ -1,4 +1,5 @@
 // What a freshly added child row starts with, from its docfield defaults.
+import { parseLongInt } from "./formatNumber";
 import type { FieldNode, FormLayoutSchema } from "./types";
 
 /**
@@ -25,11 +26,12 @@ const DECIMALS = new Set(["Float", "Currency", "Percent"]);
 /**
  * Fieldtypes whose empty is a number rather than a string — every numeric column
  * the server can send back, so `Rating` and `Duration` (both `decimal`) and
- * `Long Int` (`bigint`) belong here too. `Check` is numeric server-side but is
- * seeded `false`; see `emptyValue`.
+ * `Long Int` (`bigint`) belong here too, and `Check`, which the server stores as
+ * `0 | 1`.
  */
 const NUMBERS = new Set([
   "Int",
+  "Check",
   "Long Int",
   "Float",
   "Currency",
@@ -71,6 +73,7 @@ function defaultValue(field: FieldNode): any {
   if (raw == null || raw === "") return firstOption(field) ?? emptyValue(field);
   if (raw === "Today" || raw === "today") return today();
   if (raw === "Now" || raw === "now") return new Date().toISOString().slice(0, 19).replace("T", " ");
+  if (field.fieldtype === "Long Int") return parseLongInt(raw);
   if (INTEGERS.has(field.fieldtype)) return Math.trunc(Number(raw)) || 0;
   if (DECIMALS.has(field.fieldtype)) return Number(raw) || 0;
   return raw;
@@ -79,14 +82,11 @@ function defaultValue(field: FieldNode): any {
 /**
  * The empty a field of this type holds when it declares no default.
  *
- * `Check` is `false` rather than the `0` the server sends, and the date-ish
- * types are `""` rather than the `null` the server sends (`get_valid_dict`
- * nulls an empty datetime on every write) — both as ticket 56 decided them.
- * The difference is only ever visible before the first save, and every input in
- * the stack binds these two the same way either way.
+ * The date-ish types are `""` rather than the `null` the server sends
+ * (`get_valid_dict` nulls an empty datetime on every write), as ticket 56
+ * decided. The difference is only ever visible before the first save.
  */
 function emptyValue(field: FieldNode): any {
-  if (field.fieldtype === "Check") return false;
   if (COLLECTIONS.has(field.fieldtype)) return [];
   if (NUMBERS.has(field.fieldtype)) return 0;
   return "";
