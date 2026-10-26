@@ -3,7 +3,7 @@
 import { ref } from "vue";
 import { dayjs } from "frappe-ui";
 import { compareActivities } from "@framework/ui/ActivityTimeline";
-import { currentSession } from "@framework/ui/composables/useSession";
+import { currentSession } from "@framework/ui/useSession";
 import { runningSource } from "./context";
 import { readOnly } from "./readOnly";
 import type { HeldAct, TakeResult } from "./heldActs";

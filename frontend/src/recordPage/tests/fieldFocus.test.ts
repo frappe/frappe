@@ -22,7 +22,7 @@ vi.mock("@framework/ui/api", () => ({
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { resetFieldWarnings } from "../fields";
 import { registerRecordPage, resetRegistry } from "../registry";
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 
 const FIELDS: RawMetaField[] = [
   { fieldname: "status", fieldtype: "Select", options: "Open\nWon" },

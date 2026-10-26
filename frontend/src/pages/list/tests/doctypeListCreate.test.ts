@@ -72,8 +72,8 @@ import { registerShell } from "@/router/routeFor";
 import { closeCreates, createRequests, registerCreateDialog } from "@/shell/create";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import DoctypeList from "../DoctypeList.vue";
 
 const fetchMock = vi.fn<typeof fetch>();

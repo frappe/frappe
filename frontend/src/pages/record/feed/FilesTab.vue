@@ -77,7 +77,7 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import { Button, toast } from "frappe-ui";
-import TimeAgo from "@framework/ui/components/ActivityTimeline/TimeAgo.vue";
+import { TimeAgo } from "@framework/ui/ActivityTimeline";
 import { errorMessage, type FileRow, type RecordPageApi } from "@/recordPage";
 import { __, __n } from "@/i18n";
 import { personOf } from "../panel/context";

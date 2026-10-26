@@ -19,8 +19,8 @@ import {
 	NO_COMMIT,
 	ResolveFieldKey,
 	UpdateKey,
-} from "@framework/ui/components/FormLayout/types";
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
+} from "@framework/ui/FormLayout/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { PanelContextKey } from "../context";
 import PanelField from "../PanelField.vue";
 

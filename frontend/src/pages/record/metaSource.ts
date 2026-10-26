@@ -1,6 +1,6 @@
 // The doctype's meta through the shared source, as one promise a load can await or as it is now.
 import { watch } from "vue";
-import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 
 type Settling = {
 	meta: { value: any };

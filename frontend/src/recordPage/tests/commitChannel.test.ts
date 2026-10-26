@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { createCommitChannel } from "../commitChannel";
-import type { RowAddress } from "@framework/ui/components/Fields/types";
+import type { RowAddress } from "@framework/ui/fields/types";
 
 function channel() {
   const fired: string[] = [];

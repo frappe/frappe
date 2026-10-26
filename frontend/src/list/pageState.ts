@@ -1,6 +1,6 @@
 // The page size and scroll offset, kept in the history entry for Back and per doctype for a
 // return by any other route. The rows, and how many showed, are the shared cache's list entry.
-import { keepInHistory } from "@framework/ui/utils/historyState";
+import { keepInHistory } from "@framework/ui/utils";
 
 export interface ListMemory {
 	pageSize?: number;

@@ -135,13 +135,12 @@ import {
 	type Envelope,
 } from "@framework/ui/api";
 import { documentKey } from "@framework/ui/cache";
-import { FormLayout } from "@framework/ui/components/FormLayout";
-import { CodeErrorsKey, LinkTitlesKey } from "@framework/ui/components/Fields/types";
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
+import { FormLayout } from "@framework/ui/FormLayout";
+import { CodeErrorsKey, LinkTitlesKey } from "@framework/ui/fields/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { getSocketInstance } from "@framework/ui/socket";
-import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { onScrollSettled } from "@framework/ui/utils/scrollLanding";
-import { holdFresh } from "@framework/ui/utils/sharedState";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { onScrollSettled, holdFresh } from "@framework/ui/utils";
 import {
 	createRecordPage,
 	errorMessage,

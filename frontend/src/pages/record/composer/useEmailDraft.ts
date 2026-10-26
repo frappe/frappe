@@ -1,11 +1,11 @@
 // The email writer's draft: the headers, body, quote and attachments, saved into the store as they change.
 import { ref, watch } from "vue";
 import type { Recipient, UploadedFile } from "@framework/ui/Composer";
-import type { UploadTransport } from "@framework/ui/FileUpload";
+import { defaultTransport, type UploadTransport } from "@framework/ui/FileUpload";
 import type { MediaUploadProgress, UploadedMedia } from "frappe-ui/editor";
 import { clearComposerDraft, composerDraft, saveComposerDraft } from "@/shell/composer";
 import { EMAIL_WRITER, isFreshEmailDraft, readEmailDraft, type EmailDraft } from "./emailDraft";
-import { uploadMedia } from "@framework/ui/components/RichText/upload";
+import { uploadMedia } from "@framework/ui/RichText";
 import { asAttachment } from "./useCommentDraft";
 
 const EMPTY_BODY = "<p></p>";
@@ -42,7 +42,7 @@ export function useEmailDraft(
 	// The editor passes options for inline media; the attach button calls with the file alone.
 	async function upload(file: File, options?: UploadOptions): Promise<UploadedMedia> {
 		const started = discards;
-		const media = await uploadMedia(file, options, { isPrivate: true }, transport());
+		const media = await uploadMedia(file, options, { isPrivate: true }, transport() ?? defaultTransport);
 		// A Discard during the upload dropped the file from the editor, so the draft drops it too.
 		if (!options && started === discards)
 			attachments.value = [...attachments.value, asAttachment(media)];

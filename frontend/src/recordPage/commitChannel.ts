@@ -1,10 +1,6 @@
 // Turns a field's commit into the event key a script's handler is registered under,
 // so events are dispatched where the value changed, not diffed out of the document.
-import type {
-  CommitChannel,
-  RowAddress,
-  RowChange,
-} from "@framework/ui/components/Fields/types";
+import type { CommitChannel, RowAddress, RowChange } from "@framework/ui/fields/types";
 import { ROW_EVENTS } from "./flattenHandlers";
 
 export interface CommitChannelHost {

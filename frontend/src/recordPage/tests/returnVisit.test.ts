@@ -26,7 +26,7 @@ vi.mock("@framework/ui/api", async () => {
 });
 
 import { runMethod } from "@framework/ui/api";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { LATE_LIMIT_MS } from "../paintGate";

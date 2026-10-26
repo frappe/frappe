@@ -91,16 +91,16 @@
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, ref, watch } from "vue";
 import { LoadingIndicator, Tooltip } from "frappe-ui";
-import { CommitKey, LinkTitlesKey, NO_COMMIT } from "@framework/ui/components/Fields/types";
-import { defaultTransport } from "@framework/ui/components/FileUpload/useFileUpload";
-import type { UploadResult, UploadTransport } from "@framework/ui/components/FileUpload/types";
-import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
+import { CommitKey, LinkTitlesKey, NO_COMMIT } from "@framework/ui/fields/types";
+import { defaultTransport } from "@framework/ui/FileUpload";
+import type { UploadResult, UploadTransport } from "@framework/ui/FileUpload";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { routeFor } from "@/router/routeFor";
 import { PanelContextKey } from "./context";
 import { imageFieldOf, initialsOf } from "./imageField";
 
 const FileUploadDialog = defineAsyncComponent(
-	() => import("@framework/ui/components/FileUpload/FileUploadDialog.vue")
+	() => import("@framework/ui/FileUpload/FileUploadDialog.vue")
 );
 
 const props = defineProps<{ label: string }>();

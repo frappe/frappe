@@ -19,8 +19,8 @@ vi.mock("@framework/ui/api", () => ({
   getMeta: vi.fn(async () => ({ data: null })),
 }));
 
-import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
+import { fieldsToLayout } from "@framework/ui/FormLayout";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { resetFieldWarnings } from "../fields";
 import { registerRecordPage, resetRegistry } from "../registry";

@@ -5,7 +5,7 @@ import { Surface } from "../surface";
 import { formItems, joinForm } from "../formJoin";
 import { FORM_ITEM_KEYS } from "../types";
 import type { FormItem } from "../types";
-import type { FormLayoutSchema, Section } from "@framework/ui/components/FormLayout/types";
+import type { FormLayoutSchema, Section } from "@framework/ui/FormLayout/types";
 
 const Part = { render: () => null };
 const page = { doc: {} };

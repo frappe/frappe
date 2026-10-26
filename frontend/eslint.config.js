@@ -1,5 +1,7 @@
 // Keeps the desk on REST API v2: no v1 address and no frappe-ui fetch primitive in
 // `frontend/src` or `ui/src`; every request goes through the wrapper in `ui/src/api`.
+// Keeps `frontend/src` off `ui/` internals: it imports only the subpaths `ui/package.json` names.
+import { readFileSync } from "node:fs";
 import tsParser from "@typescript-eslint/parser";
 import vue from "eslint-plugin-vue";
 import vueParser from "vue-eslint-parser";
@@ -51,6 +53,22 @@ const noFrappeUiFetch = [
 	},
 ];
 
+const UI_SUBPATHS = Object.keys(
+	JSON.parse(readFileSync(new URL("../ui/package.json", import.meta.url), "utf8")).exports
+)
+	.filter((key) => key.startsWith("./") && !key.includes("*"))
+	.map((key) => key.slice(2).replace(/[./]/g, "\\$&"));
+
+const DEEP_UI_PATH = `/^@framework\\/ui\\/(?!(${UI_SUBPATHS.join("|")})$)/`;
+const deepUiPathMessage =
+	"A deep @framework/ui path. Import from the root or a subpath in ui/package.json.";
+
+// Any string, not only an import, so a `vi.mock` target and an `import()` are held to it too.
+const noDeepUiPath = [
+	{ selector: `Literal[value=${DEEP_UI_PATH}]`, message: deepUiPathMessage },
+	{ selector: `TemplateElement[value.raw=${DEEP_UI_PATH}]`, message: deepUiPathMessage },
+];
+
 // The core rule sees the script alone; the plugin's twin walks the template, where a
 // plain attribute value is a `VLiteral`.
 const noV1AddressInTemplate = [
@@ -79,6 +97,10 @@ export default [
 		plugins: { vue },
 		languageOptions,
 		rules,
+	},
+	{
+		files: ["frontend/src/**/*.{js,ts,vue}"],
+		rules: { "no-restricted-syntax": [...noV1Address, ...noDeepUiPath] },
 	},
 	{
 		// develop's GroupBy still fetches through v1; the desk does not use it until it is ported

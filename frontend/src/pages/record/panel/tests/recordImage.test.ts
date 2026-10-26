@@ -16,19 +16,19 @@ vi.mock("frappe-ui", () => ({
 	LoadingIndicator: Plain("i"),
 }));
 
-vi.mock("@framework/ui/components/FileUpload/useFileUpload", () => ({ defaultTransport: upload }));
+vi.mock("@framework/ui/FileUpload", () => ({ defaultTransport: upload }));
 
 vi.mock("@/router/routeFor", () => ({ routeFor: () => ({ name: "record" }) }));
 
 // The reader's access to the field's permlevel; the real one needs meta and roles from the server.
 let fieldAccess = "write";
-vi.mock("@framework/ui/composables/useDocPermissions", () => ({
+vi.mock("@framework/ui/useDocPermissions", () => ({
 	useDocPermissions: () => ({ fieldAccess: () => fieldAccess }),
 }));
 
 // The dialog stands in for itself: it exposes its transport and lets a test commit an upload.
 const dialogs: any[] = [];
-vi.mock("@framework/ui/components/FileUpload/FileUploadDialog.vue", () => ({
+vi.mock("@framework/ui/FileUpload/FileUploadDialog.vue", () => ({
 	// Vue unwraps an async import only when the module says it is one.
 	__esModule: true,
 	default: defineComponent({
@@ -41,7 +41,7 @@ vi.mock("@framework/ui/components/FileUpload/FileUploadDialog.vue", () => ({
 	}),
 }));
 
-import { CommitKey } from "@framework/ui/components/Fields/types";
+import { CommitKey } from "@framework/ui/fields/types";
 import { PanelContextKey } from "../context";
 import RecordImage from "../RecordImage.vue";
 

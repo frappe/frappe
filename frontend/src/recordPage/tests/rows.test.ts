@@ -18,7 +18,7 @@ import { registerRecordPage, resetRegistry } from "../registry";
 import { withRegisteringSource } from "../context";
 import { resetCustomizationErrorReports } from "../reportError";
 import { resetRowWarnings } from "../rows";
-import { ROW_ID } from "@framework/ui/components/Fields/rowIdentity";
+import { ROW_ID } from "@framework/ui/fields";
 import type { RecordPageApi, PageRow } from "../types";
 
 const CHILD_FIELDS = [

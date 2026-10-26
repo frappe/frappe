@@ -1,16 +1,12 @@
 import { computed, shallowReactive, toValue, watch } from "vue";
 import type { ComputedRef, MaybeRefOrGetter, Ref } from "vue";
 import { runMethod } from "@framework/ui/api";
-import type {
-	FormLayoutSchema,
-	RawMetaField,
-	TabOverride,
-} from "@framework/ui/components/FormLayout/types";
-import type { Decorator } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
+import type { FormLayoutSchema, RawMetaField, TabOverride } from "@framework/ui/FormLayout/types";
+import type { Decorator } from "@framework/ui/FormLayout";
 import type { FieldPatch } from "./fieldPatch";
-import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
-import { landFresh, memoizedState } from "@framework/ui/utils/sharedState";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
+import { landFresh, memoizedState } from "@framework/ui/utils";
 import { chooseLayout } from "./chooseLayout";
 import { joinLayout } from "./joinLayout";
 import type { FormLayoutsResponse, FormLayoutType } from "./types";

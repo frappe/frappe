@@ -57,12 +57,12 @@
 import { computed, provide, reactive, ref, useTemplateRef, watch } from "vue";
 import { Button, Dialog, ErrorMessage } from "frappe-ui";
 import type { DialogSize } from "frappe-ui";
-import { FormLayout } from "@framework/ui/components/FormLayout";
-import { CommitKey, NO_COMMIT } from "@framework/ui/components/FormLayout/types";
-import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/components/Fields/types";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
-import { useDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
+import { FormLayout } from "@framework/ui/FormLayout";
+import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
+import { FieldErrorsKey, RecordLinkKey } from "@framework/ui/fields/types";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
+import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
 import type { PageDialogEntry } from "@/recordPage/dialog";
 import { errorMessage } from "@/recordPage/errorMessage";

@@ -692,9 +692,6 @@
     "ui/src/components/ActivityTimeline/LogItem.vue": [
       "LogItem"
     ],
-    "ui/src/components/ActivityTimeline/TimeAgo.vue": [
-      "TimeAgo"
-    ],
     "ui/src/components/ActivityTimeline/TimelineContainer.vue": [
       "TimelineContainer"
     ],
@@ -864,12 +861,6 @@
     "ui/src/components/Fields/RatingField.vue": [
       "RatingField"
     ],
-    "ui/src/components/Fields/rowIdentity.ts": [
-      "ROW_ID",
-      "holdsChildRows",
-      "identify",
-      "rowKey"
-    ],
     "ui/src/components/Fields/SelectField.vue": [
       "SelectField"
     ],
@@ -926,9 +917,6 @@
     "ui/src/components/Filter/valueControlComponents.ts": [
       "VALUE_CONTROLS"
     ],
-    "ui/src/components/FormLayout/buildLayoutFromMeta.ts": [
-      "mapField"
-    ],
     "ui/src/components/FormLayout/formatNumber.ts": [
       "FormatFieldOptions"
     ],
@@ -938,28 +926,12 @@
     "ui/src/components/FormLayout/pickSiblingValue.ts": [
       "pickSiblingValue"
     ],
-    "ui/src/components/FormLayout/resolveCurrency.ts": [
-      "resolveFieldCurrency"
-    ],
-    "ui/src/components/FormLayout/resolveLayout.ts": [
-      "applyTabOverride",
-      "resolveFieldConditionals",
-      "resolveTabConditionals"
-    ],
-    "ui/src/components/FormLayout/tabIdentity.ts": [
-      "identifyTabs",
-      "tabStripLabel"
-    ],
     "ui/src/components/FormLayout/types.ts": [
       "ColumnPart",
       "FieldOverride",
       "FieldUI",
       "RawMetaField",
-      "ResolveFieldKey",
       "TabOverride"
-    ],
-    "ui/src/components/FormLayout/warnMissingCommit.ts": [
-      "warnMissingCommit"
     ],
     "ui/src/components/Grid/types.ts": [
       "GridCellSlotProps",
@@ -1085,10 +1057,6 @@
       "InputSize",
       "InputVariant"
     ],
-    "ui/src/composables/useDocPermissions.ts": [
-      "FieldAccess",
-      "useDocPermissions"
-    ],
     "ui/src/composables/useDoctypeMeta.ts": [
       "UseDoctypeMeta"
     ],
@@ -1104,18 +1072,9 @@
     "ui/src/composables/useSession.ts": [
       "UseSession"
     ],
-    "ui/src/composables/useUserRoles.ts": [
-      "useUserRoles"
-    ],
     "ui/src/experimental/List/types.ts": [
       "BulkAction",
       "ListColumn"
-    ],
-    "ui/src/socket.ts": [
-      "RealtimeSocket",
-      "getSocketInstance",
-      "resubscribeHeldDocs",
-      "subscribeToDoc"
     ],
     "ui/src/telemetry/pulse.ts": [
       "PulseAnonymousMode",
@@ -1131,9 +1090,6 @@
     ],
     "ui/src/utils/session.ts": [
       "sessionUser"
-    ],
-    "ui/src/utils/sharedState.ts": [
-      "memoizedState"
     ],
     "ui/src/components/ActivityTimeline/utils.ts": [
       "dateFormat"

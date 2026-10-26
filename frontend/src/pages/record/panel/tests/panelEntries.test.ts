@@ -1,6 +1,6 @@
 // The panel's list: layout sections and script items in one order, fields or a component each.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { layoutItems, layoutSections, panelEntries, resetPanelEntryWarnings } from "../panelEntries";
 
 const field = (fieldname: string, extra: Record<string, any> = {}) => ({

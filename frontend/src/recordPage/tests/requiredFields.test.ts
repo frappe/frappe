@@ -1,7 +1,7 @@
 // The mandatory check a save and a dialog share: what it marks, what it skips, and the refusal it names.
 import { describe, expect, it } from "vitest";
-import { fieldsToLayout } from "@framework/ui/components/FormLayout/fieldsToLayout";
-import type { FieldNode, FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+import { fieldsToLayout } from "@framework/ui/FormLayout";
+import type { FieldNode, FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { missingRequired, requiredRefusal, shownFields } from "../requiredFields";
 
 const summary: FieldNode = { fieldname: "summary", fieldtype: "Small Text", label: "Summary", reqd: true };

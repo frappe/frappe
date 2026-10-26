@@ -16,8 +16,8 @@ vi.mock("@framework/ui/api", () => ({
 import { markRaw } from "vue";
 import { FieldsSurface, resetFieldWarnings } from "../fields";
 import type { FieldsSurfaceHost } from "../fields";
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
-import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import type { FieldAccess } from "@framework/ui/useDocPermissions";
 
 const FIELDS: RawMetaField[] = [
   { fieldname: "status", fieldtype: "Select", options: "Open\nWon" },

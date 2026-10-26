@@ -34,6 +34,7 @@ function attribution(sender: string, timestamp?: string) {
 function plainText(html: string) {
 	const marked = html.replace(/<\/(div|p)>/gi, "<br></$1>").replace(/<br\s*\/?>/gi, "\n");
 	const doc = new DOMParser().parseFromString(marked, "text/html");
-	doc.querySelectorAll("style, script").forEach((node) => node.remove());
+	// vuedraggable's core-js swaps NodeList's forEach for Array's, which happy-dom's NodeList cannot serve.
+	for (const node of doc.querySelectorAll("style, script")) node.remove();
 	return (doc.body.textContent ?? "").replace(/\n{3,}/g, "\n\n").trim();
 }

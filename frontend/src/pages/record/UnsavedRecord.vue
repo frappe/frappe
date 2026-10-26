@@ -74,7 +74,7 @@ import {
 } from "vue-router";
 import { toast } from "frappe-ui";
 import { createDocument, isApiError } from "@framework/ui/api";
-import { FormLayout } from "@framework/ui/components/FormLayout";
+import { FormLayout } from "@framework/ui/FormLayout";
 import {
 	createRecordPage,
 	errorMessage,

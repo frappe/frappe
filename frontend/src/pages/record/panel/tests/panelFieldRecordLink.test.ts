@@ -9,9 +9,9 @@ import {
 	CommitKey,
 	ResolveFieldKey,
 	UpdateKey,
-} from "@framework/ui/components/FormLayout/types";
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
-import { RecordLinkKey } from "@framework/ui/components/Fields/types";
+} from "@framework/ui/FormLayout/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { RecordLinkKey } from "@framework/ui/fields/types";
 import PanelField from "../PanelField.vue";
 
 const Editor = defineComponent({ setup: () => () => h("input", { "data-editor": "" }) });

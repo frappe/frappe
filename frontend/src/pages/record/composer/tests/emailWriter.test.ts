@@ -86,7 +86,6 @@ vi.mock("@framework/ui/FileUpload", async (importOriginal) => ({
 	...((await importOriginal()) as object),
 	defaultTransport,
 }));
-vi.mock("@framework/ui/components/FileUpload/useFileUpload", () => ({ defaultTransport }));
 vi.mock("@framework/ui/ActivityTimeline", async (importOriginal) => ({
 	...((await importOriginal()) as object),
 	addPendingActivity,

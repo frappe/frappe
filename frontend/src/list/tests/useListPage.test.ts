@@ -36,9 +36,9 @@ import {
 	markDoctypeMetaStale,
 	resetDoctypeMeta,
 	useDoctypeMeta,
-} from "@framework/ui/composables/useDoctypeMeta";
-import { setSession } from "@framework/ui/composables/useSession";
-import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
+} from "@framework/ui/useDoctypeMeta";
+import { setSession } from "@framework/ui/useSession";
+import { resetUserRoles } from "@framework/ui/useUserRoles";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
 import { forgetRows, readListMemory, recallRows, writeListMemory } from "../pageState";

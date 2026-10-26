@@ -48,8 +48,8 @@ vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
 import { activityTimelineRows } from "@framework/ui/ActivityTimeline";
 import { clearDataCache, feedListRead, readCachedDocument, settleTicket, takeTicket } from "@framework/ui/cache";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { resetUserRoles, useUserRoles } from "@framework/ui/composables/useUserRoles";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { resetUserRoles, useUserRoles } from "@framework/ui/useUserRoles";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetClientScripts } from "@/recordPage/clientScripts";

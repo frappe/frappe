@@ -15,7 +15,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import { FormTabsSurface, resetFormTabWarnings } from "../formTabs";
 import type { FormTabsSurfaceHost } from "../formTabs";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 
 /** Three tabs: one named, one conditional, one with nothing but a label. */
 const LAYOUT: FormLayoutSchema = [

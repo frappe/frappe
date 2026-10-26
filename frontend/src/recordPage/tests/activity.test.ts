@@ -21,7 +21,7 @@ vi.mock("@framework/ui/api", () => ({
   getMeta: vi.fn(async () => ({ data: null })),
 }));
 
-import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import type { Session } from "@framework/ui/api";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";

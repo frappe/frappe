@@ -23,7 +23,7 @@
 
 <script setup lang="ts">
 import { provide, toRef } from "vue";
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
 import type { QuickAction, RecordPageController } from "@/recordPage";
 import { PanelContextKey, type DocInfo } from "./context";
 import type { Disclosure } from "./disclosure";

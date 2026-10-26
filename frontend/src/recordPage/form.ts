@@ -1,7 +1,7 @@
 // The Details form surface: the layout's sections as built-ins, a script's parts
 // between or beside them, and the form's tab strip as `tabs`.
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
-import { DROPPED_FIELDTYPES } from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import { DROPPED_FIELDTYPES } from "@framework/ui/FormLayout";
 import type { FormTabsSurface } from "./formTabs";
 import { Surface } from "./surface";
 import { FORM_ITEM_KEYS } from "./types";

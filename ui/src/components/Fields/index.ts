@@ -6,6 +6,9 @@ export { registerFieldType, getFieldComponent } from "./fieldTypes";
 export type { RegisterFieldTypeOptions } from "./fieldTypes";
 
 export { fieldtypeToLanguage } from "./fieldtypeToLanguage";
+export { focusField } from "./focusField";
+export { holdsChildRows, identify, ROW_ID, rowKey } from "./rowIdentity";
+export { useRecordLink } from "./useRecordLink";
 
 // The field contract every value-input satisfies, plus the form-context
 // injection keys the deep-injection inputs (Table/Number/Image/DynamicLink) read.

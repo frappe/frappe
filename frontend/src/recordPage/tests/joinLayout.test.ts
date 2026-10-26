@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { joinLayout } from "../formLayoutSource/joinLayout";
-import { resolveLayout } from "@framework/ui/components/FormLayout/resolveLayout";
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
+import { resolveLayout } from "@framework/ui/FormLayout";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { LayoutTree, LayoutTreeColumn } from "../formLayoutSource/types";
 
 const fields: RawMetaField[] = [

@@ -1,6 +1,6 @@
 // What the page makes of a failed save: the conflict it throws, the message it shows,
 // and the fields the reader would lose.
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 
 /** The name a save rejected for a conflict throws under; the dialog has already told the reader. */
 export const SAVE_CONFLICT = "SaveConflict";

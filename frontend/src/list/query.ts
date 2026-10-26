@@ -10,7 +10,7 @@ import {
 } from "@framework/ui/Filter";
 import { parseOrderBy, serializeOrderBy, type Sort } from "@framework/ui/SortBy";
 import type { RawMetaField } from "@framework/ui/FormLayout";
-import { equalityValues } from "@framework/ui/utils/equalityValues";
+import { equalityValues } from "@framework/ui/utils";
 import type { LocationQuery } from "vue-router";
 
 export const SORT_KEY = "_sort";

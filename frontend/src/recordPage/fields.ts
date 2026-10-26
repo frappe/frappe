@@ -5,10 +5,10 @@ import {
   DROPPED_FIELDTYPES,
   mapField,
   type Decorator,
-} from "@framework/ui/components/FormLayout/buildLayoutFromMeta";
-import { resolveFieldConditionals } from "@framework/ui/components/FormLayout/resolveLayout";
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
-import type { FieldAccess } from "@framework/ui/composables/useDocPermissions";
+  resolveFieldConditionals,
+} from "@framework/ui/FormLayout";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
+import type { FieldAccess } from "@framework/ui/useDocPermissions";
 import { runningSource } from "./context";
 import { withAccess } from "./formLayoutSource/fieldAccess";
 import type { FieldErrors } from "./fieldErrors";

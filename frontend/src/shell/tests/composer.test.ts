@@ -1,7 +1,7 @@
 // The composer store: one open writer across records, and drafts kept per record and writer.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { isProxy } from "vue";
-import { resetSession, setSession } from "@framework/ui/composables/useSession";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import type { Session } from "@framework/ui/api";
 import {
 	activeWriter,

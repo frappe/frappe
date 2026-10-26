@@ -1,10 +1,10 @@
 /** Read-state strings for a panel row: one line per field, whatever its fieldtype. */
 import { formatDuration } from "frappe-ui";
-import { formatField } from "@framework/ui/components/FormLayout/formatNumber";
-import type { FormatFieldOptions } from "@framework/ui/components/FormLayout/formatNumber";
-import { formatRating } from "@framework/ui/components/GroupBy/groupBy";
-import type { FieldMeta } from "@framework/ui/components/Fields/types";
-import { htmlToText } from "@framework/ui/components/RichText/html";
+import { formatField } from "@framework/ui/FormLayout";
+import type { FormatFieldOptions } from "@framework/ui/FormLayout";
+import { formatRating } from "@framework/ui/GroupBy";
+import type { FieldMeta } from "@framework/ui/fields/types";
+import { htmlToText } from "@framework/ui/RichText";
 
 export interface DisplayOptions extends FormatFieldOptions {
   /** The record, for a fieldtype that reads a sibling field: Image, Dynamic Link. */

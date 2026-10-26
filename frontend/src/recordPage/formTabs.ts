@@ -4,18 +4,12 @@ import { shallowReactive } from "vue";
 import {
   applyTabOverride,
   resolveTabConditionals,
-} from "@framework/ui/components/FormLayout/resolveLayout";
-import {
   identifyTabs,
   tabStripLabel,
-} from "@framework/ui/components/FormLayout/tabIdentity";
+} from "@framework/ui/FormLayout";
 import { runningSource } from "./context";
 import { StagedOverlay } from "./staging";
-import type {
-  FormLayoutSchema,
-  Tab,
-  TabOverride,
-} from "@framework/ui/components/FormLayout/types";
+import type { FormLayoutSchema, Tab, TabOverride } from "@framework/ui/FormLayout/types";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import type { PageFormTab, PageFormTabPatch, PageFormTabs } from "./types";
 

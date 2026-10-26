@@ -30,15 +30,9 @@
 
 <script setup lang="ts">
 import { computed, inject, provide } from "vue";
-import { useFieldTypes } from "@framework/ui/components/FormLayout/useFieldTypes";
-import {
-	CommitKey,
-	DocKey,
-	ResolveFieldKey,
-	UpdateKey,
-} from "@framework/ui/components/FormLayout/types";
-import { warnMissingCommit } from "@framework/ui/components/FormLayout/warnMissingCommit";
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
+import { useFieldTypes, warnMissingCommit } from "@framework/ui/FormLayout";
+import { CommitKey, DocKey, ResolveFieldKey, UpdateKey } from "@framework/ui/FormLayout/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { BUILTIN, type Surface } from "@/recordPage/surface";
 import type { PanelSectionItem, RecordPageApi } from "@/recordPage";
 import PanelSectionsSkeleton from "../skeletons/PanelSectionsSkeleton.vue";

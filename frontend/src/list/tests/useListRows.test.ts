@@ -1,7 +1,7 @@
 // The rows composable on its own: when the first query runs, what a page-size change fetches,
 // and how the count beside the first page reads in the footer.
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { ApiError } from "@framework/ui/api/envelope";
+import { ApiError } from "@framework/ui/api";
 import {
 	clearDataCache,
 	feedListRead,
@@ -19,6 +19,7 @@ const fake = vi.hoisted(() => ({
 }));
 
 vi.mock("@framework/ui/api", async (original) => ({
+	ApiError: (await original<typeof import("@framework/ui/api")>()).ApiError,
 	isApiError: (await original<typeof import("@framework/ui/api")>()).isApiError,
 	listDocuments: fake.listDocuments,
 	countDocuments: fake.countDocuments,

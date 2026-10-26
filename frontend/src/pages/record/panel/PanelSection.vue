@@ -45,7 +45,7 @@
 </template>
 
 <script setup lang="ts">
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
 import PanelField from "./PanelField.vue";
 
 // Headers stack, each pinned below the ones before it; a fixed height makes the offset

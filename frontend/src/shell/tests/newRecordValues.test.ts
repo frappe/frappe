@@ -1,9 +1,9 @@
 // The values a new record starts with and sends: the prompt-name field, the defaults, the
 // query the full page reads, the values Edit full form carries, and the insert body.
 import { describe, expect, it } from "vitest";
-import type { FormLayoutSchema } from "@framework/ui/components/FormLayout/types";
-import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { NEW_NAME } from "@framework/ui/utils/naming";
+import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
+import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { NEW_NAME } from "@framework/ui/utils";
 import { layoutFromFields } from "@/recordPage/formDialogLayout";
 import {
 	fieldDefaults,

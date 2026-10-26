@@ -65,7 +65,7 @@
 import { computed, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
-import { keepInHistory } from "@framework/ui/utils/historyState";
+import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import { itemContext } from "@/navigation/context";

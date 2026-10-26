@@ -33,8 +33,8 @@ vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
 import { clearDataCache } from "@framework/ui/cache";
-import { resetDoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { resetUserRoles } from "@framework/ui/composables/useUserRoles";
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { resetUserRoles } from "@framework/ui/useUserRoles";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetClientScripts } from "@/recordPage/clientScripts";

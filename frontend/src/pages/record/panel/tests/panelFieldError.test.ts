@@ -14,15 +14,15 @@ vi.mock("@framework/ui/api", () => ({
 	getMeta: vi.fn(async () => ({ data: null })),
 }));
 
-import { FieldErrorsKey } from "@framework/ui/components/Fields/types";
+import { FieldErrorsKey } from "@framework/ui/fields/types";
 import {
 	CommitKey,
 	DocKey,
 	NO_COMMIT,
 	ResolveFieldKey,
 	UpdateKey,
-} from "@framework/ui/components/FormLayout/types";
-import type { FieldNode } from "@framework/ui/components/FormLayout/types";
+} from "@framework/ui/FormLayout/types";
+import type { FieldNode } from "@framework/ui/FormLayout/types";
 import PanelField from "../PanelField.vue";
 
 const Control = defineComponent({

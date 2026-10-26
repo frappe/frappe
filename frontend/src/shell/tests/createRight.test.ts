@@ -1,6 +1,6 @@
 // Who may create a doctype's records: the desk's rules over the level 0 create right.
 import { describe, expect, it } from "vitest";
-import type { DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
+import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { canCreate } from "@/createRight";
 
 const USER = { user: "test@example.com", createsAtLevel0: true, readOnlyMode: false };

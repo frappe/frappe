@@ -1,6 +1,6 @@
 // What the save dialog shows for each compile error: where it is and the lines around it.
 import type { CodeError } from "@framework/ui/api";
-import type { RawMetaField } from "@framework/ui/components/FormLayout/types";
+import type { RawMetaField } from "@framework/ui/FormLayout/types";
 
 export interface CodeLine {
   number: number;

@@ -1,9 +1,9 @@
 // Whether the person may create a doctype's records, from the meta and session the page already
 // holds. It can miss a disabled module; the insert checks again.
 import { computed, inject, type ComputedRef, type MaybeRefOrGetter } from "vue";
-import { useDocPermissions } from "@framework/ui/composables/useDocPermissions";
-import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/composables/useDoctypeMeta";
-import { useSession } from "@framework/ui/composables/useSession";
+import { useDocPermissions } from "@framework/ui/useDocPermissions";
+import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { useSession } from "@framework/ui/useSession";
 import type { Boot } from "@/boot";
 
 /** False until the meta and the session load. */
