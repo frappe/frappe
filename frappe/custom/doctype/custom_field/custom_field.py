@@ -83,6 +83,7 @@ class CustomField(Document):
 			"Text",
 			"Text Editor",
 			"Time",
+			"Vue Component",
 		]
 		hidden: DF.Check
 		hide_border: DF.Check
