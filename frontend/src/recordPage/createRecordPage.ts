@@ -407,13 +407,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       error: (message) => toast.error(message),
     },
     dialog: dialogs.api,
-    create: (doctype, options) =>
-      gate.hasLeft()
-        ? Promise.resolve(null)
-        : (acts.run("shell.create", { doctype, values: options?.values }) as Promise<Record<
-            string,
-            any
-          > | null>),
+    create: (doctype, options) => {
+      if (gate.hasLeft()) return Promise.resolve(null);
+      const created = acts.run("shell.create", { doctype, values: options?.values });
+      return created as Promise<Record<string, any> | null>;
+    },
     openSettings: (...address) => openSettings(address),
     call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
     run: (name, value) => (gate.hasLeft() ? Promise.resolve() : acts.run(name, value)),

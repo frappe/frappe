@@ -348,8 +348,8 @@ shows the last few on the empty query.
 
 **Shell surface**: <a id="shell-surface"></a>
 The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
-app's global acts, named `shell.<app>.<item>`. Same item shape and verbs as a page surface;
-`run` receives `(shell, value)`.
+app's global acts, named `shell.<app>.<item>`. Same item shape as a page surface, with no
+verbs for scripts yet; `run` receives `(shell, value)`.
 
 ### The settings dialog
 

@@ -47,7 +47,7 @@
 			v-if="toggle"
 			:open="!collapsed"
 			:label="toggle.label!"
-			@toggle="run(toggle)"
+			@toggle="acts.perform(toggle.name)"
 		/>
 	</div>
 </template>
@@ -55,7 +55,7 @@
 <script setup lang="ts">
 import { computed } from "vue";
 import { Button, ScrollArea, Sidebar } from "frappe-ui";
-import { acts, type AvailableAct } from "@/acts/dispatcher";
+import { acts } from "@/acts/dispatcher";
 import type { NavigationItem } from "@/boot";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
@@ -78,10 +78,6 @@ const props = defineProps<{
 const emit = defineEmits<{ customize: [] }>();
 
 const toggle = computed(() => shellAct("toggle_sidebar"));
-
-function run(act: AvailableAct) {
-	void acts.perform(act.name);
-}
 
 const tree = useItemTree(
 	() => props.items,

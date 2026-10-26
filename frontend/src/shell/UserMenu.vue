@@ -21,9 +21,8 @@ import { computed, h, inject } from "vue";
 import { Avatar, Dropdown, useColorScheme, type DropdownOptions } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
-import { __ } from "@/i18n";
 import { pageMenuItems } from "./pageMenu";
-import { COLOR_SCHEMES, shellAct, shellMenu } from "./shellActs";
+import { colorSchemes, shellAct, shellMenu } from "./shellActs";
 
 const USER_CELL =
 	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
@@ -46,8 +45,8 @@ const menu = computed<DropdownOptions>(() =>
 function themeRow() {
 	const theme = shellAct("theme");
 	if (!theme) return [];
-	const submenu = COLOR_SCHEMES.map((scheme) => ({
-		label: __(scheme.label),
+	const submenu = colorSchemes().map((scheme) => ({
+		label: scheme.label,
 		icon: scheme.icon,
 		selected: colorScheme.value === scheme.value,
 		onClick: () => void acts.perform(theme.name, scheme.value),

@@ -13,6 +13,7 @@ import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
+import { useColorScheme } from "frappe-ui";
 import { pageMenuItems } from "../pageMenu";
 import { useShellActs } from "../shellActs";
 
@@ -536,6 +537,29 @@ describe("the user menu", () => {
 		row(await opened(), "Desk v1").click();
 		await flush();
 		expect(assign).toHaveBeenLastCalledWith("/app");
+	});
+
+	it("sets the scheme a Theme row names, through shell.theme, and marks it selected", async () => {
+		const { colorScheme } = useColorScheme();
+		const menu = await opened();
+		row(menu, "Theme").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+		await flush();
+		await flush();
+		const dark = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']")).find(
+			(node) => node.textContent?.trim() === "Dark"
+		)!;
+		dark.click();
+		await flush();
+		expect(colorScheme.value).toBe("dark");
+		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
+
+		const reopened = await opened();
+		row(reopened, "Theme").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+		await flush();
+		await flush();
+		const checked = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem'][data-state='checked']"));
+		expect(checked.map((node) => node.textContent?.trim())).toEqual(["Dark"]);
+		useColorScheme().setColorScheme("light");
 	});
 
 	it("asks the shell to confirm a log out", async () => {

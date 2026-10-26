@@ -23,16 +23,16 @@ export interface Shell {
 }
 
 /** `shell.create`'s value: a doctype, or a doctype with the values its record starts with. */
-export type CreateValue = string | { doctype: string; values?: Record<string, any> };
+type CreateValue = string | { doctype: string; values?: Record<string, any> };
 
 /** `shell.open_settings`'s value: the settings address's segments; none opens the first pane. */
-export interface SettingsAddress {
+interface SettingsAddress {
 	prefix?: string;
 	pane?: string;
 	block?: string;
 }
 
-export interface ShellActsHost {
+interface ShellActsHost {
 	boot: Boot;
 	router: Router;
 	openSettings: OpenSettings;
@@ -41,7 +41,7 @@ export interface ShellActsHost {
 	rail?: RailActsHost;
 }
 
-export interface RailActsHost {
+interface RailActsHost {
 	customize: () => void;
 	/** The link to the page as shown; without it there is no Copy link. */
 	shareLink?: () => string;
@@ -50,11 +50,14 @@ export interface RailActsHost {
 	toggleSidebar: () => void;
 }
 
-export const COLOR_SCHEMES: { value: ColorScheme; label: string; icon: string }[] = [
-	{ value: "light", label: "Light", icon: "lucide-sun" },
-	{ value: "dark", label: "Dark", icon: "lucide-moon" },
-	{ value: "system", label: "System", icon: "lucide-monitor" },
-];
+/** The schemes `shell.theme` takes, labelled in the reader's language. */
+export function colorSchemes(): { value: ColorScheme; label: string; icon: string }[] {
+	return [
+		{ value: "light", label: __("Light"), icon: "lucide-sun" },
+		{ value: "dark", label: __("Dark"), icon: "lucide-moon" },
+		{ value: "system", label: __("System"), icon: "lucide-monitor" },
+	];
+}
 
 /** Registers the `shell` surface for the shell's life. */
 export function useShellActs(host: ShellActsHost) {
@@ -65,7 +68,7 @@ export function useShellActs(host: ShellActsHost) {
 			shell: () => shellItems(host, setColorScheme).map((item) => ({ item, hidden: false })),
 		},
 		context: () => shell,
-		// No built-in shell act carries a right, and the shell has no doctype of its own.
+		// No built-in shell act carries a right.
 		passes: () => false,
 		settled: () => undefined,
 		hold: async (work) => work(),
@@ -87,7 +90,7 @@ export function shellMenu(names: string[]): ShellMenuOption[] {
 	});
 }
 
-export interface ShellMenuOption {
+interface ShellMenuOption {
 	label: string;
 	icon?: string;
 	onClick: () => void;
@@ -169,7 +172,7 @@ function segmentsOf({ prefix, pane, block }: SettingsAddress = {}) {
 	return segments;
 }
 
-// Until the argument step can ask for the doctype, a palette row would open Create for nothing.
+// A palette row has no doctype to give Create.
 function createItem(): ActItem<Shell> {
 	return {
 		name: "create",
@@ -204,10 +207,10 @@ function personItems(
 			icon: "lucide-sun-moon",
 			argument: {
 				label: __("Theme"),
-				options: () => COLOR_SCHEMES.map(({ value, label }) => ({ value, label: __(label) })),
+				options: () => colorSchemes().map(({ value, label }) => ({ value, label })),
 			},
 			run: (_shell, scheme: ColorScheme) => {
-				if (!COLOR_SCHEMES.some(({ value }) => value === scheme))
+				if (!colorSchemes().some(({ value }) => value === scheme))
 					throw new Error(__("Theme is light, dark or system"));
 				setColorScheme(scheme);
 			},
