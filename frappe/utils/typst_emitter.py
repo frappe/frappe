@@ -991,11 +991,11 @@ class TypstEmitter:
 			if gap_pt is None:
 				gap = df.get("label_gap")
 				gap_pt = pt(gap) if gap else 4
-			if align in ("right",):
-				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
-			else:
-				body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
-			return self._text_props(df, body)
+			if align in ("center", "right") and section.get("field_orientation") != "left-right":
+				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
+				return self._text_props(df, body)
+			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
+			return _aligned(self._text_props(df, body), align)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
