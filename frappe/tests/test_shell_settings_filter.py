@@ -107,9 +107,7 @@ def ship_desk_panes():
 	"""Desk's shipped `Settings Dialog` record, as a migrate imports it."""
 	from frappe.modules.import_file import import_file_by_path
 
-	import_file_by_path(
-		frappe.get_app_path("frappe", "settings_dialog", "frappe", "frappe.json"), force=True
-	)
+	import_file_by_path(frappe.get_app_path("frappe", "settings_dialog", "frappe", "frappe.json"), force=True)
 	return frappe.get_doc("Settings Dialog", "frappe")
 
 
