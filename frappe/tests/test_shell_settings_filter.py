@@ -1,6 +1,7 @@
 # The settings dialog's pane-list endpoint: who sees which pane, block and field, the search label
 # index, and the cache. Never as Administrator: `may_read` and the permlevels pass every check for it.
 
+import contextlib
 import json
 from unittest.mock import patch
 
@@ -18,7 +19,8 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 )
 from frappe.shell.boot import BUDGET_LOG_TITLE, KEY_BUDGET
 from frappe.shell.permissions import default_app_permission, has_app_permission
-from frappe.shell.settings import PANES_CACHE_KEY, PANES_VERSION_KEY, get_panes
+from frappe.shell.registry import clear_prefix_registry, get_prefix_registry
+from frappe.shell.settings import PANES_CACHE_KEY, get_panes
 from frappe.tests.classes.context_managers import set_user
 from frappe.tests.test_shell_settings import active
 
@@ -65,6 +67,18 @@ def a_user(email: str, roles: list[str], user_type: str = "System User"):
 		).insert()
 
 
+@contextlib.contextmanager
+def another_connection():
+	"""Run the block on a second database connection, as a concurrent request would."""
+	mine = frappe.local.db
+	frappe.connect(set_admin_as_user=False)
+	try:
+		yield
+	finally:
+		frappe.db.close()
+		frappe.local.db = mine
+
+
 def binding(type_: str, doctype: str) -> dict:
 	spec = {"type": type_, "doctype": doctype}
 	return {**spec, "resolver": "session_user"} if type_ == "Record" else spec
@@ -76,6 +90,8 @@ def bound(key: str, **bindings: dict) -> dict:
 
 def visible(user: str = READER, gate=None) -> dict:
 	"""The endpoint's reply for this user, with the merge seeing `HOST` and `EXTENDER` as installed."""
+	# Built first: built under `active`, the registry would load the hooks of apps that do not exist.
+	get_prefix_registry()
 	with active(HOST, EXTENDER), set_user(user), patch(APP_GATE, side_effect=gate or entered):
 		return get_panes()
 
@@ -139,7 +155,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		a_user(CREATOR, ["Desk User", READER_ROLE, CREATOR_ROLE])
 		a_user(WEBSITE_USER, [], user_type="Website User")
 		# DocType DDL commits anyway, so the users are committed with it.
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
 
 	@classmethod
 	def tearDownClass(cls):
@@ -149,12 +165,13 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			frappe.delete_doc("User", user, force=True, ignore_permissions=True)
 		for role in (READER_ROLE, CREATOR_ROLE):
 			frappe.delete_doc("Role", role, force=True, ignore_permissions=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep: frappe-manual-commit
 		super().tearDownClass()
 
 	def setUp(self):
 		super().setUp()
 		frappe.client_cache.delete_value(PANES_CACHE_KEY)
+		clear_prefix_registry()
 
 	# Each binding kind
 
@@ -284,24 +301,40 @@ class TestSettingsFilter(SettingsDialogTestCase):
 
 	# The cache and the gate
 
-	def test_a_settings_dialog_save_clears_the_cached_merge(self):
+	def test_a_settings_dialog_save_or_delete_rebuilds_the_cached_merge(self):
 		with authoring():
 			record = ship(["general"], [single("mine", doctype=SINGLE)])
 
 		self.assertEqual(blocks_of(visible()), {"general": ["mine"]})
-		version = frappe.client_cache.get_value(PANES_VERSION_KEY)
 
 		with authoring():
 			record.append("blocks", component("theme"))
 			record.save()
 
-		self.assertNotEqual(frappe.client_cache.get_value(PANES_VERSION_KEY), version)
 		self.assertEqual(blocks_of(visible()), {"general": ["mine", "theme"]})
 
 		with authoring():
 			record.delete()
 
 		self.assertEqual(blocks_of(visible()), {})
+
+	def test_a_merge_read_in_a_snapshot_older_than_a_save_is_not_kept(self):
+		visible()
+
+		try:
+			with another_connection(), authoring():
+				ship(["general"], [single("mine", doctype=SINGLE)])
+				frappe.db.commit()  # nosemgrep: frappe-manual-commit
+
+			self.assertEqual(blocks_of(visible()), {}, "this transaction's snapshot predates the save")
+
+			frappe.db.rollback()
+			self.assertEqual(blocks_of(visible()), {"general": ["mine"]})
+		finally:
+			frappe.db.rollback()
+			frappe.delete_doc("Settings Dialog", HOST, force=True, ignore_permissions=True)
+			frappe.db.commit()  # nosemgrep: frappe-manual-commit
+			frappe.db.savepoint("settings_dialog_test")
 
 	def test_the_merge_is_cached_on_metadata_version(self):
 		with authoring():

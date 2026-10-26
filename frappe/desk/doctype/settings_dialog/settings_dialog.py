@@ -163,10 +163,6 @@ class SettingsDialog(Document):
 
 	def on_update(self):
 		self.export_settings_dialog()
-		expire_merged_panes()
-
-	def on_trash(self):
-		expire_merged_panes()
 
 	def export_settings_dialog(self):
 		"""Write this record to `<app>/settings_dialog/<name>/<name>.json`, rooted at the app as `Rail` is."""
@@ -176,15 +172,6 @@ class SettingsDialog(Document):
 			return
 
 		export_to_files(record_list=[[self.doctype, self.name]], record_app=self.app)
-
-
-def expire_merged_panes():
-	"""Bump the cached merge's version now, for this transaction, and again once it commits or rolls back."""
-	from frappe.shell.settings import bump_panes_version
-
-	bump_panes_version()
-	frappe.db.after_commit.add(bump_panes_version)
-	frappe.db.after_rollback.add(bump_panes_version)
 
 
 def validate_key(key: str, kind: str, idx: int):

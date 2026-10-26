@@ -9,6 +9,7 @@ import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.layers import anchor_attempts, place_by_anchors
+from frappe.query_builder.functions import Count, Max
 
 from .boot import report_oversized_keys
 from .doctypes import metadata_version
@@ -16,7 +17,6 @@ from .permissions import may_enter_any_prefix
 from .settings_filter import SettingsFilter
 
 PANES_CACHE_KEY = "shell_settings_panes"
-PANES_VERSION_KEY = "shell_settings_panes_version"
 
 
 @frappe.whitelist(methods=["GET"])
@@ -31,9 +31,10 @@ def get_panes() -> dict:
 
 
 def get_cached_panes() -> list[dict]:
-	"""The merged, unfiltered panes, cached on `metadata_version` and the version a `Settings Dialog` write bumps."""
-	# Read before the merge: a write landing during it bumps past this, so its stale merge is never served.
-	version = f"{metadata_version()}:{frappe.client_cache.get_value(PANES_VERSION_KEY)}"
+	"""The merged, unfiltered panes, cached on `metadata_version` and the stored records' own stamp."""
+	# The stamp is read in the merge's transaction and before it, so a merge of old rows never carries
+	# a current stamp, whatever snapshot the request began with.
+	version = f"{metadata_version()}:{_records_stamp()}"
 	cached = frappe.client_cache.get_value(PANES_CACHE_KEY)
 
 	if isinstance(cached, dict) and cached.get("version") == version:
@@ -44,8 +45,11 @@ def get_cached_panes() -> list[dict]:
 	return panes
 
 
-def bump_panes_version():
-	frappe.client_cache.set_value(PANES_VERSION_KEY, frappe.generate_hash())
+def _records_stamp() -> str:
+	"""How many `Settings Dialog` records there are and when one last changed; a save or delete moves it."""
+	table = frappe.qb.DocType("Settings Dialog")
+	count, modified = frappe.qb.from_(table).select(Count("*"), Max(table.modified)).run()[0]
+	return f"{count}:{modified}"
 
 
 def resolve_panes() -> list[dict]:
