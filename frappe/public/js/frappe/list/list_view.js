@@ -3281,10 +3281,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			actions_menu_items.push(bulk_edit());
 		}
 
-		if (
-			frappe.model.can_export(doctype) &&
-			!frappe.boot.user.can_export_owner_only?.includes(doctype)
-		) {
+		if (frappe.model.can_export(doctype)) {
 			actions_menu_items.push(bulk_export());
 		}
 
