@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 from json import dumps
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.desktop import get_desktop_page, get_workspace, get_workspaces
@@ -99,6 +100,34 @@ class TestGetWorkspace(IntegrationTestCase):
 		frappe.set_user(DESK_USER)
 		self.assertTrue(get_workspace(standard.name)["is_layout_customized"])
 
+	def test_complete_onboarding_is_left_out(self):
+		frappe.db.set_single_value("System Settings", "enable_onboarding", 1)
+		step = make_named(
+			"Onboarding Step", "GW Step", title="GW Step", action="Go to Page", path="/desk/todo"
+		)
+		make_named(
+			"Module Onboarding",
+			"GW Onboarding",
+			title="GW Onboarding",
+			module="Desk",
+			success_message="Done",
+			documentation_url="https://example.com",
+			allow_roles=[{"role": "Desk User"}],
+			steps=[{"step": step.name}],
+		)
+		make_workspace("GW Onboard", content=[block("onboarding", "GW Onboarding")])
+
+		frappe.set_user(DESK_USER)
+		self.assertIn("GW Onboarding", get_workspace("GW Onboard")["widgets"]["onboardings"])
+
+		frappe.set_user("Administrator")
+		frappe.db.set_value("Onboarding Step", step.name, "is_complete", 1)
+
+		frappe.set_user(DESK_USER)
+		payload = get_workspace("GW Onboard")
+		self.assertEqual(payload["widgets"]["onboardings"], {})
+		self.assertEqual(payload["content"], [])
+
 	def test_boot_keeps_content_for_legacy_only(self):
 		make_workspace("GW Legacy", renderer="Legacy", content=[block("header", text="Old")])
 		frappe.set_user(DESK_USER)
@@ -138,6 +167,16 @@ def make_workspace(title, content=(), public=1, **values):
 			doc.set(key, value)
 	doc.insert()
 	return doc
+
+
+def make_named(doctype, name, **values):
+	if frappe.db.exists(doctype, name):
+		return frappe.get_doc(doctype, name)
+	doc = frappe.get_doc({"doctype": doctype, **values})
+	doc.name = name
+	# developer mode would export the record into the app
+	with patch.dict(frappe.conf, {"developer_mode": 0}):
+		return doc.insert()
 
 
 def make_chart(name, doctype):
