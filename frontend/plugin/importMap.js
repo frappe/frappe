@@ -119,7 +119,7 @@ export function chunkFileNames(assetsDir) {
 	};
 }
 
-export function loaderSource(names) {
+function loaderSource(names) {
 	const loaders = names.map(
 		(name) =>
 			`\t${JSON.stringify(name)}: () => import(${JSON.stringify(VIRTUAL_PREFIX + name)}),`

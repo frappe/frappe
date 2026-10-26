@@ -1,5 +1,5 @@
-// Every module the cold load runs goes in one chunk beside the entry. Without this rule, each module
-// the entry shares with a lazy chunk gets a chunk of its own, and every page pays for the split.
+// Every module the cold load runs goes in one chunk beside the entry, so a lazy chunk never splits
+// one out. `$initial` counts each emitted entry's imports: add a chunk by `import()`, as importMap does.
 
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";

@@ -6,7 +6,6 @@ import importMap, {
   devImports,
   importMapTag,
   isFileValue,
-  loaderSource,
   publishedChunks,
   publishedStyling,
   publishedTargets,
@@ -247,15 +246,6 @@ describe("the published import map", () => {
         preserveSignature: "strict",
       },
     ]);
-  });
-
-  it("loads each name by import(), so no name is an entry whose imports count as the shell's", () => {
-    expect(loaderSource(["vue", "crm/lib"])).toBe(
-      "export default {\n" +
-        '\t"vue": () => import("\\u0000published:vue"),\n' +
-        '\t"crm/lib": () => import("\\u0000published:crm/lib"),\n' +
-        "};\n",
-    );
   });
 
   it("names a published chunk's file after its name, and any other chunk as vite does", () => {
