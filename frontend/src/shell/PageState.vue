@@ -1,7 +1,7 @@
-<!-- One page state in place of a page's content: what happened, the server's message, and Try again or the app's home. -->
+<!-- One page state in place of a page's content: what happened, the server's message, and Try again, the app's home or all apps. -->
 <template>
 	<div
-		:role="name === 'empty' || name === 'filtered' ? undefined : 'alert'"
+		:role="QUIET.has(name) ? undefined : 'alert'"
 		class="flex min-h-0 flex-1 flex-col overflow-y-auto"
 		:data-page-state="name"
 	>
@@ -26,6 +26,12 @@
 				:label="homeLabel"
 				:route="{ name: 'home' }"
 			/>
+			<Button
+				v-else-if="name === 'nothingToOpen'"
+				class="mt-1"
+				:label="__('All apps')"
+				@click="allApps"
+			/>
 		</div>
 	</div>
 </template>
@@ -40,6 +46,8 @@ import type { PageStateValue } from "./pageState";
 
 const props = defineProps<PageStateValue>();
 
+const QUIET = new Set(["empty", "filtered", "nothingToOpen"]);
+
 const looks = {
 	empty: {
 		icon: "lucide-inbox",
@@ -50,6 +58,14 @@ const looks = {
 		icon: "lucide-funnel-x",
 		title: __("No matching records"),
 		description: __("Change or clear the filters to see more."),
+	},
+	nothingToOpen: {
+		icon: "lucide-layout-grid",
+		// A getter: a page state may mount with no boot provided, and only this one reads it.
+		get title() {
+			return __("Nothing in {0} you can open", [boot.app_title ?? boot.app ?? ""]);
+		},
+		description: __("Ask your administrator for access, or open another app."),
 	},
 	notFound: {
 		icon: "lucide-search-x",
@@ -88,6 +104,11 @@ function escaped(text: string) {
 	return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 const retrying = ref(false);
+
+// A full load: the index is another document, with its own boot.
+function allApps() {
+	window.location.assign("/apps");
+}
 
 async function run() {
 	retrying.value = true;

@@ -96,12 +96,11 @@ import { Filter } from "@framework/ui/Filter";
 import { QuickFilter } from "@framework/ui/QuickFilter";
 import { SortBy } from "@framework/ui/SortBy";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { computed, inject, ref } from "vue";
-import { useRoute, useRouter } from "vue-router";
-import type { Addresses } from "@/addresses";
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
 import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
-import { routeFor, routeForModule } from "@/router/routeFor";
+import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
 import { useListPage } from "@/list/useListPage";
 import { useScrollMemory } from "@/list/useScrollMemory";
@@ -113,23 +112,9 @@ import DeleteDialog from "./DeleteDialog.vue";
 
 const props = defineProps<{ doctype: string }>();
 
-const addresses = inject<Addresses>("addresses")!;
-const route = useRoute();
 const router = useRouter();
 
-// Under a modular prefix the address holds the module, so the crumbs walk down to the list.
-const crumbs = computed(() => {
-	const moduleSlug = route.params.module ? String(route.params.module) : "";
-	const doctype = { label: props.doctype };
-	if (!moduleSlug) return [doctype];
-	return [
-		{
-			label: addresses.moduleName(moduleSlug) ?? moduleSlug,
-			route: routeForModule(moduleSlug),
-		},
-		doctype,
-	];
-});
+const crumbs = computed(() => [{ label: props.doctype }]);
 
 const {
 	filters,

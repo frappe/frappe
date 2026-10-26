@@ -42,7 +42,7 @@ The HTML page, the JS files and the icon sprite are static files.
 | # | Layer | Holds | Where | May use |
 | --- | --- | --- | --- | --- |
 | 9 | Customization | Code an app or a site adds: file scripts, stored scripts, list and item files | App folders; `Client Script` rows | Only the [import list](#9-customization), and the `page` object it is handed |
-| 8 | Pages | Home, module, list page, record page and its parts; pages an app contributes | `frontend/src/pages/`; app `frontend/pages/` and replacement pages | 1 to 7 |
+| 8 | Pages | The index, list page, record page and its parts; pages an app contributes | `frontend/src/pages/`; app `frontend/pages/` and replacement pages | 1 to 7 |
 | 7 | Page engines | The record page engine and its `page` object; the list engine; the script loader | `frontend/src/recordPage/`, `frontend/src/list/` | 1 to 6 |
 | 6 | Shell | Rail, sidebar, navigation, router, page frame, page states, composer window, socket | `frontend/src/shell/`, `navigation/`, `router/` | 1 to 5 |
 | 5 | Desk services and registry | Boot data, addresses and `routeFor`, translations, icons, arrangement, browser memory; the registry of everything an app adds | `frontend/src/` root modules, `icons/`, `contributions/` | 1 to 4 |
@@ -256,7 +256,7 @@ component group, with its main names.
 | Arrangement (`fetchArrangement`, `saveArrangement`, `resetArrangement`, `move`) | Read, save and reset the order of rail and sidebar items |
 | Create right (`useCreateRight`) | Whether the person may create a doctype's records, from the meta, the session roles and read-only mode. No request; the insert checks again. The doctype may change, and an empty one is never creatable |
 | New record values (`fetchNewDocument`, `withNameField`, `fieldDefaults`, `fillEmpty`, `queryValues`, `typedValues`, `insertBody`) | What a new record starts with and sends, for the Create dialog and the new record page: the server defaults, the prompt-name field, the query values, the values "Edit full form" carries, and an insert body with no `name` |
-| Module contents (`fetchContents`, `useContents`, `ContentEntry`) | What a module holds, filtered for the user |
+| Module contents (`fetchContents`, `ContentEntry`) | What a module holds, filtered for the user |
 | Translations (`loadTranslations`, `__`, `__n`, `installTranslate`) | Fetch the messages at start, translate a string or a plural, and put `__` and `__n` in every component template |
 | Icons (`Icon`, the sprite) | One SVG sprite, loaded once, and the component that draws a symbol or an emoji |
 | Latest reply wins | *New.* One helper for the desk's "only the newest answer counts" guards. `ui/` keeps its own, because it may not use this layer |
@@ -275,7 +275,7 @@ component group, with its main names.
 | --- | --- |
 | `AppShell` | The root component: rail, sidebar, page area, and the hash dialogs |
 | `PageFrame` | The frame every page draws inside: header, scroll area, gutter, and a page state in place of the content |
-| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`) | Loading, empty, empty with a filter, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home. `failedState` picks the state a failed read shows, with the server's message as text. Home, list, record and the new record page share them |
+| Page states (`FrameSkeleton`, `PageState`, `PageStateValue`, `failedState`, `NotFound`, `NothingToOpen`) | Loading, empty, empty with a filter, nothing to open, not found, no permission, offline and failed. Offline and failed offer Try again; not found offers the app's home; nothing to open offers all apps. `failedState` picks the state a failed read shows, with the server's message as text. Home, list, record and the new record page share them |
 | Rail and sidebar (`RailColumn`, `SidebarPanel`, `SidebarRow`, `SidebarEdge`) | Draw the rail, the sidebar tree and its drag edge |
 | `CustomizeSidebarDialog` | Reorder and hide rail and sidebar items, per user or per site |
 | Hash dialogs (`useHashDialog`) | A dialog addressed by `#...` in the address, so Back closes it |
@@ -290,6 +290,7 @@ component group, with its main names.
 | Socket (`createSocket`, `repairRooms`) | Opens the realtime socket and hands it to `ui/` |
 | Item lookup (`rendererFor`, `renderingOf`, `labelOf`, `iconOf`, `itemContext`) | Draws an item through its kind's renderer |
 | Current item (`navigationDestinations`, `currentFrom`) | Which rail item and sidebar the current address belongs to |
+| [Landing](./CONTEXT.md#landing) (`landingOf`) | Where an app's or a module's bare address lands: the first item of the arranged rail, or the first row of the module's sidebar, that resolves to a route in this prefix; a rail module item counts only when its module lands. The router redirects `home` and `module` there from `boot.navigation`, with no request and before any page paints. With none, the address shows `NothingToOpen` |
 | Section memory | Which sidebar sections a user opened or closed |
 | Sidebar memory (`sidebarMemory`) | Which sidebar this tab last showed for an address, per user |
 | Item tree (`buildTree`, `useItemTree`) | Turns flat navigation rows into a tree |
@@ -350,15 +351,13 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `Home` | The prefix's landing page: module tiles |
-| `Module` | One module's contents |
+| `Home` | The [index](./CONTEXT.md#index) at `/apps`: a link to each app the user can open |
 | `MainPage` | Shows the registered page for a list or record address |
 | Standard pages (`standardPages`) | The framework's own page for each address, which `main.ts` registers as the default |
 | `List`, `DoctypeList` | The standard list page, built on `useListPage` |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |
 | New record page (`NewRecord`, `UnsavedRecord`, `NotSavedBadge`, `openingKey`) | The full-page new record at `/<doctype>/new`. Builds the record from the server defaults and the query, shows the header and the New Record form only, inserts on the first save and replaces the address with the saved record's. Each address is a new opening |
-| `TileGridSkeleton` | The loading skeleton for Home and Module |
 | Settings blocks (`SettingsBlocks`, `PaneDrafts`, `BindingDraft`) | A settings pane's generated blocks, which the shell's dialog mounts. Each [binding](./CONTEXT.md#binding) gets one draft, read fresh when the pane opens and shared by its blocks; a missing Record starts from its defaults and inserts on its first save. Each field is a settings row with its ui control and a save mark. An `auto` block saves a field when its control commits, a `button` block from the Save bar or Ctrl/Cmd+S. A save sends only the changed fields and `modified`, one at a time per binding, and a change made meanwhile joins the next. A 417 is sent again when the other save left those fields alone, else the record page's conflict question opens. Leaving a pane with changes no save holds asks the record page's discard question |
 | App pages | Pages an app contributes or uses as a replacement. They may import only the [import list](#9-customization) |
 
@@ -532,7 +531,7 @@ numbers. Every flow is also counted in files per flow and in timing guards.
 | 8 | The router is built from boot, addresses and page registrations | 6 | None. The router checks only that an address names a known doctype | Browser memory |
 | 9 | The socket opens and is handed to `ui/`. The desk hands `ui/` its session. Each cache of site data listens for `doctype_update` itself | 6, 3 | Realtime server: the user room; the site room for System Users only; each document room by read permission | Session store in browser memory |
 | 10 | The shell draws the rail and sidebar, before any page code arrives. Each row is drawn by its kind's renderer | 6, 5 | **Browser**: none; the rows were filtered in step 4 | Per-user browser memory: open sections, collapsed sidebar. Sidebar memory per tab, by address and user |
-| 11 | The home page loads the app's contents and draws its tiles, or a page state | 8, 5, 2 | App permission; readable doctypes only | None |
+| 11 | The router sends the bare address to its landing, or shows the nothing to open state | 6, 5 | **Browser**: none; the rows were filtered in step 4 | None |
 
 **Budget:** first paint time; boot size; `get_boot` time on the server; no request sent
 twice; layout shift; the shell drawn before the page's code arrives; a change on screen

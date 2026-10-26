@@ -15,7 +15,6 @@ vi.mock("@/shell/PageFrame.vue", async () => {
 
 vi.mock("@/pages/Home.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/pages/List.vue", () => ({ default: { render: () => null } }));
-vi.mock("@/pages/Module.vue", () => ({ default: { render: () => null } }));
 vi.mock("@/shell/NotFound.vue", () => ({ default: { render: () => null } }));
 
 import { clearDataCache } from "@framework/ui/cache";

@@ -5,6 +5,7 @@ import { htmlToText } from "@framework/ui/RichText";
 export type PageStateName =
 	| "empty"
 	| "filtered"
+	| "nothingToOpen"
 	| "notFound"
 	| "noPermission"
 	| "offline"

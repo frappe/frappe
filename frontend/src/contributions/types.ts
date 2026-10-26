@@ -43,7 +43,6 @@ export type StandardPages = {
   /** The page at a main list or record address: the declared page, else the standard one. */
   main: Component
   home: () => Promise<unknown>
-  module: () => Promise<unknown>
   list: () => Promise<unknown>
   record: () => Promise<unknown>
   newRecord: () => Promise<unknown>

@@ -2,17 +2,19 @@
 
 import { standardPage } from "@/contributions/registry";
 import type { StandardPages } from "@/contributions/types";
+import NothingToOpen from "@/shell/NothingToOpen.vue";
 import { loadedPage } from "./mainPage";
 
-export function generatedRoutes(modular: boolean) {
+export function generatedRoutes(modular: boolean, index = false) {
 	// Two tables, one set of names, so `routeFor` never branches on shape. The shape is
 	// fixed per app: one that varied within an app could not be parsed.
-	return modular ? modularRoutes() : flatRoutes();
+	return modular ? modularRoutes() : flatRoutes(index);
 }
 
-function flatRoutes() {
+function flatRoutes(index: boolean) {
 	return [
-		{ path: "/", name: "home", component: loaded("home") },
+		// An app's home redirects to its landing and shows this only when none resolves.
+		{ path: "/", name: "home", component: index ? loaded("home") : NothingToOpen },
 
 		// /apps/crm/crm-deal
 		{ path: "/:doctype", name: "list", component: standardPage("main") },
@@ -36,11 +38,10 @@ function flatRoutes() {
 
 function modularRoutes() {
 	return [
-		// The home lists modules here; every addressable level lands somewhere.
-		{ path: "/", name: "home", component: loaded("home") },
+		{ path: "/", name: "home", component: NothingToOpen },
 
-		// /apps/erpnext/accounts, permission-filtered; addresses are not.
-		{ path: "/:module", name: "module", component: loaded("module") },
+		// /apps/erpnext/accounts lands on the first row of the module's sidebar.
+		{ path: "/:module", name: "module", component: NothingToOpen },
 
 		// /apps/erpnext/accounts/sales-invoice/SI-001
 		{ path: "/:module/:doctype", name: "list", component: standardPage("main") },

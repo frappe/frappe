@@ -8,6 +8,7 @@ import { declaredReplacements } from "@/contributions/registry";
 import { generatedRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { isModular } from "./routeFor";
+import { landingOf } from "@/navigation/landing";
 import NotFound from "@/shell/NotFound.vue";
 
 const RECORD_ROUTES = new Set(["record", "standard-record"]);
@@ -21,7 +22,7 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 		routes: [
 			// Contributed pages match before generated routes: `/deals` must beat `/:doctype`.
 			...contributedRoutes(boot.app, modular, addresses),
-			...generatedRoutes(modular),
+			...generatedRoutes(modular, !boot.app),
 			{
 				path: "/:pathMatch(.*)*",
 				name: "not-found",
@@ -40,6 +41,13 @@ export function createShellRouter(boot: Boot, addresses: Addresses) {
 				const flat = flatAddress(to, addresses);
 				return flat ?? miss(to);
 			}
+		}
+
+		// No `replace`: the bare address never enters history, and forcing one drops the entry before it.
+		if (to.name === "home" || to.name === "module") {
+			const moduleSlug = to.name === "module" ? String(to.params.module) : undefined;
+			const landing = landingOf(boot, addresses, router, moduleSlug);
+			return landing ? { path: landing.path, query: landing.query, hash: to.hash } : true;
 		}
 
 		const segment = to.params.doctype;

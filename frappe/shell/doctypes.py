@@ -182,7 +182,7 @@ def contents_for_app(app: str, module: str | None = None) -> list[dict]:
 
 @frappe.whitelist(methods=["GET"])
 def get_contents(app: str, module: str | None = None) -> list[dict]:
-	"""An app's contents, or one module's, fetched on arrival at the page that shows them."""
+	"""An app's contents, or one module's, fetched when a `Module Contents` row expands."""
 	from .permissions import has_app_permission
 	from .registry import get_prefix_registry
 

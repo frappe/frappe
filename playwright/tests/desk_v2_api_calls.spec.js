@@ -45,8 +45,8 @@ test.describe("Desk v2 API calls", () => {
 		await request?.dispose();
 	});
 
-	test("loads home cold", async ({ page }) => {
-		expect_baseline("home", await cold_visit(page, "/apps/desk"));
+	test("loads the index cold", async ({ page }) => {
+		expect_baseline("home", await cold_visit(page, "/apps"));
 	});
 
 	test("loads the list cold", async ({ page }) => {
