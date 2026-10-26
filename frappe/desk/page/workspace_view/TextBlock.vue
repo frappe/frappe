@@ -21,10 +21,15 @@ function translated() {
 	return text.replace(escaped, __(escaped));
 }
 
-// `{first_name}` greets whoever is reading
+// `{first_name}`, `{last_name}` and `{full_name}` greet whoever is reading
 function with_user(text) {
-	const first_name = window.frappe.boot.user?.first_name || window.frappe.session.user_fullname;
-	return text.replaceAll("{first_name}", window.frappe.utils.escape_html(first_name || ""));
+	const { escape_html } = window.frappe.utils;
+	const user = window.frappe.boot.user || {};
+	const full_name = window.frappe.session.user_fullname || "";
+	return text
+		.replaceAll("{first_name}", escape_html(user.first_name || full_name))
+		.replaceAll("{last_name}", escape_html(user.last_name || ""))
+		.replaceAll("{full_name}", escape_html(full_name));
 }
 </script>
 
