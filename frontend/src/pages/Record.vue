@@ -421,7 +421,7 @@ function toggleOnSidecar(
 
 // Only a key, the palette or a script reaches Save on a clean doc, so it answers with the button's tooltip text.
 function saveFromHeader(page: RecordPageApi) {
-	if (!dirty.value) toast.info("No changes to save");
+	if (!dirty.value) toast.info(__("No changes to save"));
 	return runSave(page);
 }
 

@@ -902,9 +902,10 @@ in `beforeSave` vetoes the save and marks the field in one line.
 
 ### Saving: `page.save()`
 
-`page.save()` is the one path; the Save button, `Ctrl+S` / `Cmd+S` and a script all call
-it. `Ctrl+S` is the `key` of the `header.save` act, so it does not save the page while focus
-is in a dialog, a popover or a dropdown, or while a script hides Save. The
+`page.save()` is the one path; the Save button, `Mod+S` (`Cmd+S` on macOS, `Ctrl+S`
+elsewhere) and a script all call it. `Mod+S` is the `key` of the `header.save` act, so it does
+not save the page while focus is in a dialog, a popover or a dropdown, or while a script hides
+Save. The
 order is fixed:
 
 1. Every field error clears.

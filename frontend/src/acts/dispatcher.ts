@@ -106,12 +106,12 @@ export class ActDispatcher {
 		};
 	}
 
-	/** Every act present, not hidden and allowed now, with its fields, `palette: false` ones too. */
-	available(): AvailableAct[] {
+	/** Every act present, not hidden and allowed now, `palette: false` ones too; `only` narrows them before a right is read. */
+	available(only: (item: ActItem) => boolean = () => true): AvailableAct[] {
 		const listed: AvailableAct[] = [];
 		for (const [surface, scope] of this.scopes)
 			for (const { item, hidden } of scope.surfaces[surface]())
-				if (isAct(item) && !hidden && (!item.right || scope.passes(item.right)))
+				if (isAct(item) && !hidden && only(item) && (!item.right || scope.passes(item.right)))
 					listed.push(describe(`${surface}.${item.name}`, item, scope));
 		return listed;
 	}

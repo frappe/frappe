@@ -2,7 +2,7 @@
 // the act through the dispatcher, so its checks run as they do for a click.
 import { computed, defineComponent, h, watch, type PropType } from "vue";
 import { useKeyboardShortcut, type KeyboardShortcutCombo } from "frappe-ui";
-import { acts, type AvailableAct } from "@/acts/dispatcher";
+import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
 
 /** Opens the palette at an act's argument step; without it, a key on an act with an argument is not bound. */
 export type OpenArgument = (act: AvailableAct) => void;
@@ -14,7 +14,10 @@ export const ActKeys = defineComponent({
 		openArgument: { type: Function as PropType<OpenArgument>, default: undefined },
 	},
 	setup(props) {
-		const bindings = computed(() => actsByCombo(acts.available(), props.openArgument));
+		const bindings = computed(() => {
+			const bound = (item: ActItem) => Boolean(item.key && (!item.argument || props.openArgument));
+			return actsByCombo(acts.available(bound));
+		});
 		watch(bindings, warnOnCollisions, { immediate: true });
 
 		function press(act: AvailableAct) {
@@ -23,8 +26,8 @@ export const ActKeys = defineComponent({
 		}
 
 		return () =>
-			[...bindings.value].map(([combo, [act]]) =>
-				h(ActKey, { key: `${combo} ${act.name}`, combo, act, onPress: press })
+			[...bindings.value.values()].map(([act]) =>
+				h(ActKey, { key: `${act.key} ${act.name}`, act, onPress: press })
 			);
 	},
 });
@@ -40,30 +43,34 @@ export function overlayOf(target: EventTarget | null): Element | null {
 const ActKey = defineComponent({
 	name: "ActKey",
 	props: {
-		combo: { type: String, required: true },
 		act: { type: Object as PropType<AvailableAct>, required: true },
 	},
 	emits: { press: (_act: AvailableAct) => true },
 	setup(props, { emit }) {
-		// In an overlay the combo does nothing, but it still keeps the browser's own Mod+S off the page.
+		const combo = props.act.key!;
+		const command = typesNothing(combo);
 		useKeyboardShortcut({
-			combo: props.combo as KeyboardShortcutCombo,
+			combo: combo as KeyboardShortcutCombo,
 			description: props.act.label ?? props.act.name,
-			allowInDialog: true,
-			allowInInput: typesNothing(props.combo),
+			allowInInput: command,
+			allowInDialog: command,
+			preventDefault: false,
 			handler: (event) => {
-				if (!event.repeat && !overlayOf(event.target)) emit("press", props.act);
+				// In an overlay a Mod combo runs nothing, yet still keeps the browser's own Mod+S off the page.
+				if (overlayOf(event.target)) return void (command && event.preventDefault());
+				event.preventDefault();
+				if (!event.repeat) emit("press", props.act);
 			},
 		});
 		return () => null;
 	},
 });
 
-function actsByCombo(available: AvailableAct[], openArgument: OpenArgument | undefined) {
+function actsByCombo(available: AvailableAct[]) {
 	const byCombo = new Map<string, AvailableAct[]>();
 	for (const act of available) {
-		if (!act.key || (act.argument && !openArgument)) continue;
-		byCombo.set(act.key, [...(byCombo.get(act.key) ?? []), act]);
+		const combo = canonical(act.key!);
+		byCombo.set(combo, [...(byCombo.get(combo) ?? []), act]);
 	}
 	for (const holders of byCombo.values()) holders.sort((a, b) => rank(a) - rank(b));
 	return byCombo;
@@ -77,20 +84,24 @@ const warned = new Set<string>();
 
 function warnOnCollisions(bindings: Map<string, AvailableAct[]>) {
 	if (!import.meta.env.DEV) return;
-	for (const [combo, holders] of bindings) {
+	for (const holders of bindings.values()) {
 		if (holders.length < 2) continue;
 		const names = holders.map((act) => act.name);
-		const message = `${combo} is the key of ${names.join(", ")}; ${names[0]} runs`;
+		const message = `${holders[0].key} is the key of ${names.join(", ")}; ${names[0]} runs`;
 		if (warned.has(message)) continue;
 		warned.add(message);
 		console.warn(`[acts] ${message}`);
 	}
 }
 
-/** A combo with Mod or Ctrl types no text, so it fires while a field has focus. */
+/** One spelling per physical combo: `useKeyboardShortcut` reads modifiers in any order and any case. */
+function canonical(combo: string) {
+	const parts = combo.split("+").map((part) => part.trim().toLowerCase());
+	const key = parts.pop();
+	return [...parts.sort(), key].join("+");
+}
+
+/** A combo with Mod or Ctrl types no text, so it fires while a field or a dialog has focus. */
 function typesNothing(combo: string) {
-	return combo
-		.split("+")
-		.slice(0, -1)
-		.some((modifier) => ["mod", "ctrl"].includes(modifier.trim().toLowerCase()));
+	return canonical(combo).split("+").slice(0, -1).some((modifier) => modifier === "mod" || modifier === "ctrl");
 }

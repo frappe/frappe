@@ -157,6 +157,62 @@ describe("act keys", () => {
 		expect(warn).toHaveBeenCalledWith(expect.stringContaining("header.duplicate, shell.toggle_sidebar"));
 	});
 
+	it("treats one combo spelled two ways as one combo", async () => {
+		vi.spyOn(console, "warn").mockImplementation(() => {});
+		const shellRun = vi.fn();
+		const pageRun = vi.fn();
+		registerScope("header", [{ item: { name: "duplicate", key: "mod+shift+d", run: pageRun }, hidden: false }]);
+		registerScope("shell", [{ item: { name: "toggle_sidebar", key: "Shift+Mod+D", run: shellRun }, hidden: false }]);
+		mountKeys();
+
+		await press(CTRL_SHIFT_D);
+
+		expect(pageRun).toHaveBeenCalledOnce();
+		expect(shellRun).not.toHaveBeenCalled();
+	});
+
+	it("leaves a key to the dialog, popover or dropdown it is pressed in", async () => {
+		const back = vi.fn();
+		const save = vi.fn();
+		registerScope("header", [
+			{ item: { name: "back", key: "Escape", run: back }, hidden: false },
+			{ item: { name: "save", key: "Mod+S", run: save }, hidden: false },
+		]);
+		mountKeys();
+		const dialog = document.body.appendChild(document.createElement("div"));
+		dialog.setAttribute("role", "dialog");
+		const menu = document.body.appendChild(document.createElement("div"));
+		menu.setAttribute("role", "menu");
+
+		const escapes = [await press({ key: "Escape" }, dialog), await press({ key: "Escape" }, menu)];
+		const saveInDialog = await press({ key: "s", ctrlKey: true }, dialog);
+
+		expect(escapes.map((event) => event.defaultPrevented)).toEqual([false, false]);
+		expect(saveInDialog.defaultPrevented).toBe(true);
+		expect(back).not.toHaveBeenCalled();
+		expect(save).not.toHaveBeenCalled();
+		await press({ key: "Escape" });
+		expect(back).toHaveBeenCalledOnce();
+	});
+
+	it("reads no right of an act that has no key", async () => {
+		const passes = vi.fn(() => true);
+		unregisters.push(
+			acts.register({
+				surfaces: { header: () => [{ item: { name: "convert", right: { doctype: "CRM Deal", ptype: "create" }, run: vi.fn() }, hidden: false }] },
+				context: () => ({}),
+				passes,
+				settled: () => undefined,
+				hold: async (work) => work(),
+				failed: () => {},
+			})
+		);
+		mountKeys();
+		await nextTick();
+
+		expect(passes).not.toHaveBeenCalled();
+	});
+
 	it("runs the shell act once the page that shadowed it lets go", async () => {
 		const shellRun = vi.fn();
 		vi.spyOn(console, "warn").mockImplementation(() => {});
