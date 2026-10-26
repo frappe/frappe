@@ -43,7 +43,7 @@ def read_file_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str
 	if not (file := find_file_by_url("/" + clean_path, name=fid)):
 		return None
 	try:
-		content = file.get_content()
+		content = file.get_content(encodings=[])
 	except FileNotFoundError:
 		return None
 	except Exception:
