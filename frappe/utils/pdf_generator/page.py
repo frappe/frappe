@@ -149,11 +149,11 @@ class Page:
 		)
 
 		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
 		def intercept_and_fulfill():
 			self.session.wait_for_event(event)
-			self.session.send(
+			self.send(
 				"Fetch.fulfillRequest",
 				{"requestId": event[1].result(), "responseCode": 200},
 				return_future=True,
@@ -176,7 +176,7 @@ class Page:
 				if isinstance(url, str) and url.startswith(get_host_url()):
 					if resource := read_local_resource(url):
 						content, content_type = resource
-						self.session.send(
+						self.send(
 							"Fetch.fulfillRequest",
 							{
 								"requestId": data["request_id"],
@@ -190,13 +190,13 @@ class Page:
 						)
 						return
 					elif urllib.parse.urlparse(url).path.lstrip("/"):
-						self.session.send(
+						self.send(
 							"Fetch.failRequest",
 							{"requestId": data["request_id"], "errorReason": "AccessDenied"},
 							return_future=True,
 						)
 						return
-				self.session.send(
+				self.send(
 					"Fetch.continueRequest",
 					{"requestId": data["request_id"]},
 					return_future=True,
@@ -208,7 +208,7 @@ class Page:
 		)
 
 		# Enable request interception for the specified URL pattern
-		self.session.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
+		self.send("Fetch.enable", {"patterns": [{"urlPattern": url_pattern}]})
 
 	def set_tab_url(self, url):
 		"""Navigate to a URL and fulfill the request with status code 200."""
@@ -456,7 +456,7 @@ class Page:
 		return PdfReader(BytesIO(pdf_data))
 
 	def close(self):
-		self.session.send("Fetch.disable")
+		self.send("Fetch.disable")
 		_result, error = self.send("Target.closeTarget", {"targetId": self.target_id})
 		if error:
 			raise RuntimeError(f"Error closing target: {error}")
