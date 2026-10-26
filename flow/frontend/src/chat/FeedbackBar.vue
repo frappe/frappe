@@ -7,7 +7,7 @@
 			:disabled="busy"
 			@click="rate(rating === 'Up' ? 'None' : 'Up')"
 		>
-			<FeatherIcon name="thumbs-up" class="h-3.5 w-3.5" />
+			<span class="lucide-thumbs-up size-3.5" aria-hidden="true" />
 		</button>
 		<button
 			class="flow-feedback-btn"
@@ -16,7 +16,7 @@
 			:disabled="busy"
 			@click="rating === 'Down' ? rate('None') : askWhy()"
 		>
-			<FeatherIcon name="thumbs-down" class="h-3.5 w-3.5" />
+			<span class="lucide-thumbs-down size-3.5" aria-hidden="true" />
 		</button>
 	</span>
 </template>
@@ -24,7 +24,6 @@
 <script setup>
 import { computed, inject, ref } from "vue";
 import { dialog, toast } from "frappe-ui";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 
 // Rendered by the core's message list after each finished turn (options.turnActions).
 const props = defineProps({
@@ -110,8 +109,6 @@ async function rate(value, comment = "") {
 }
 .flow-feedback-selected {
 	color: var(--ink-gray-8);
-}
-.flow-feedback-selected :deep(svg) {
-	fill: currentColor;
+	background: var(--surface-gray-3);
 }
 </style>

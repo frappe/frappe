@@ -35,7 +35,7 @@
 			<Dropdown v-if="canDelete" align="end" :options="menu">
 				<template #trigger>
 					<button class="flow-icon-btn" title="More">
-						<FeatherIcon name="more-horizontal" class="h-4 w-4" />
+						<span class="lucide-ellipsis size-4" aria-hidden="true" />
 					</button>
 				</template>
 			</Dropdown>
@@ -121,7 +121,6 @@ import { computed, inject, onBeforeUnmount, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Button, dialog, toast } from "frappe-ui";
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

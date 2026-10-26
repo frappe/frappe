@@ -8,7 +8,7 @@
 				:title="newLabel"
 				@click="create"
 			/>
-			<Button v-else variant="solid" icon-left="plus" :label="newLabel" @click="create" />
+			<Button v-else variant="solid" icon-left="lucide-plus" :label="newLabel" @click="create" />
 		</template>
 	</PageHeader>
 	<!-- the search and a menu per filter, once the list has loaded with something in it -->
@@ -65,7 +65,7 @@
 			<Button
 				v-if="canCreate"
 				class="mt-4"
-				icon-left="plus"
+				icon-left="lucide-plus"
 				:label="newLabel"
 				@click="create"
 			/>
