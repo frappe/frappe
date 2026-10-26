@@ -5,6 +5,8 @@ const WORKSPACE = "Playwright Island";
 const CARD = "Playwright ToDo Count";
 const CHART = "Playwright ToDo Chart";
 const BLOCK = "Playwright Block";
+const BLUE_BLOCK = "Playwright Blue Block";
+const LATE_BLOCK = "Playwright Late Block";
 const LAYOUT_ROLE = "Playwright Layout Role";
 const LAYOUT_USER = "playwright-layout@example.com";
 const SAVE_CHART_CONFIG = "dashboard_settings.save_chart_config";
@@ -68,6 +70,26 @@ test.describe("Workspace island", () => {
 			true
 		);
 		await admin.insert_doc(
+			"Custom HTML Block",
+			{
+				name: BLUE_BLOCK,
+				html: '<p class="pw-blue">Blue text</p>',
+				style: "p { color: rgb(0, 0, 255); }",
+			},
+			true
+		);
+		await admin.insert_doc(
+			"Custom HTML Block",
+			{
+				name: LATE_BLOCK,
+				html: '<div class="pw-late">Waiting</div>',
+				script: `setTimeout(() => {
+					root_element.querySelector(".pw-late").innerHTML = "<p>Filled</p>".repeat(10);
+				}, 3000);`,
+			},
+			true
+		);
+		await admin.insert_doc(
 			"Workspace",
 			{
 				label: WORKSPACE,
@@ -105,12 +127,25 @@ test.describe("Workspace island", () => {
 						data: { custom_block_name: BLOCK, col: 4 },
 					},
 					{
+						id: "pw-cb2",
+						type: "custom_block",
+						data: { custom_block_name: BLUE_BLOCK, col: 4 },
+					},
+					{
+						id: "pw-cb3",
+						type: "custom_block",
+						data: { custom_block_name: LATE_BLOCK, col: 4 },
+					},
+					{
 						id: "pw-ql",
 						type: "quick_list",
 						data: { quick_list_name: "Closed ToDos", col: 6 },
 					},
 				]),
-				custom_blocks: [{ custom_block_name: BLOCK, label: BLOCK }],
+				custom_blocks: [BLOCK, BLUE_BLOCK, LATE_BLOCK].map((name) => ({
+					custom_block_name: name,
+					label: name,
+				})),
 				quick_lists: [
 					{
 						document_type: "ToDo",
@@ -231,6 +266,31 @@ test.describe("Workspace island", () => {
 			"color",
 			"rgb(255, 0, 0)"
 		);
+	});
+
+	test("custom blocks keep their styles apart, define no element and grow when filled", async ({
+		page,
+	}) => {
+		await page.addInitScript(() => {
+			window.__defined = [];
+			const define = customElements.define.bind(customElements);
+			customElements.define = (name, ...rest) => {
+				window.__defined.push(name);
+				return define(name, ...rest);
+			};
+		});
+		await page.goto("/desk/playwright-island");
+
+		await expect(page.locator(".pw-blue")).toHaveCSS("color", "rgb(0, 0, 255)");
+		await expect(page.locator(".pw-block")).toHaveCSS("color", "rgb(255, 0, 0)");
+
+		const late = page.locator(".ws-tile", { has: page.locator(".pw-late") });
+		await expect(page.locator(".pw-late")).toHaveText("Waiting");
+		const before = (await late.boundingBox()).height;
+		await expect(page.locator(".pw-late p")).toHaveCount(10);
+		await expect.poll(async () => (await late.boundingBox()).height).toBeGreaterThan(before);
+
+		expect(await page.evaluate(() => window.__defined)).toEqual([]);
 	});
 
 	test("the workspace page has no URL of its own", async ({ page }) => {
