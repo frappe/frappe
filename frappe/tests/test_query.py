@@ -97,6 +97,22 @@ class TestQuery(IntegrationTestCase):
 			query,
 		)
 
+	def test_me_stands_for_the_session_user(self):
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		def sql(filters):
+			return frappe.qb.get_query("ToDo", fields=["name"], filters=filters).get_sql()
+
+		self.assertEqual(sql({"owner": "@me"}), sql({"owner": "test@example.com"}))
+		self.assertEqual(
+			sql({"_assign": ["like", "%@me%"]}), sql({"_assign": ["like", "%test@example.com%"]})
+		)
+		self.assertEqual(
+			sql({"owner": ["in", ["@me", "Guest"]]}), sql({"owner": ["in", ["test@example.com", "Guest"]]})
+		)
+		self.assertIn("@meta.com", sql({"owner": "john@meta.com"}))
+
 	def test_like_filter_on_non_text_field(self):
 		query = frappe.qb.get_query("DocType", fields=["name"], filters={"docstatus": ["like", "0"]})
 		names = query.run(pluck=True)
