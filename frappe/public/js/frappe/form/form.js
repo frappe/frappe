@@ -697,6 +697,7 @@ frappe.ui.form.Form = class FrappeForm {
 				},
 				() => this.cscript.is_onload && this.is_new() && this.focus_on_first_input(),
 				() => this.run_after_load_hook(),
+				() => this.show_upload_first_review(),
 				() => this.dashboard.after_refresh(),
 				() => (this.cscript.is_onload = false),
 				() => this.configure_breadcrumb_width(),
@@ -866,6 +867,32 @@ frappe.ui.form.Form = class FrappeForm {
 
 			route_callback(this);
 		}
+	}
+
+	show_upload_first_review() {
+		// A document written from an uploaded file keeps the file it was written from,
+		// so a draft reopens beside it however it was reached. Only DocTypes that take
+		// the workflow are asked about, and only until the document is submitted.
+		if (!this.meta.enable_upload_first_workflow || this.is_new() || this.doc.docstatus !== 0) {
+			return;
+		}
+		if (this._upload_first_review_docname === this.docname) return;
+		this._upload_first_review_docname = this.docname;
+
+		return frappe.db
+			.get_list("Attachment Queue", {
+				fields: ["name", "document_type", "source_file"],
+				filters: { document_type: this.doctype, created_document: this.docname },
+				limit: 1,
+			})
+			.then((entries) => {
+				if (!entries.length) return;
+
+				// the review ships as its own on-demand bundle
+				frappe.require("upload_first_review.bundle.js", () => {
+					frappe.ui.form.upload_first_review.open(this, entries[0]);
+				});
+			});
 	}
 
 	refresh_fields() {

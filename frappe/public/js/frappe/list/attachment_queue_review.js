@@ -18,7 +18,8 @@ frappe.ui.attachment_queue.show_pending = function (document_type) {
 	const dialog = new frappe.ui.Dialog({
 		title: __("Documents for Review"),
 		size: "extra-large",
-		fields: [{ fieldtype: "HTML", fieldname: "pending" }],
+		fields: [{ fieldtype: "HTML", 
+			fieldname: "pending" }],
 		primary_action_label: __("Process"),
 		primary_action: () => frappe.ui.attachment_queue.start_review(selected, dialog),
 	});
@@ -163,6 +164,6 @@ frappe.ui.attachment_queue.start_review = function (entry, dialog) {
 	// The split screen ships as its own on-demand bundle (kept out of this one),
 	// so load it before opening.
 	frappe.require("upload_first_review.bundle.js", () => {
-		frappe.ui.form.upload_first_review(entry);
+		frappe.ui.form.upload_first_review.start(entry);
 	});
 };

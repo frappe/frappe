@@ -32,13 +32,6 @@
 	}
 }
 
-// A review writes a brand-new document, where the form sidebar — and with it the
-// section the preview pane lives in — is hidden. The preview rule in
-// form_sidebar.scss already hides the sidebar's own content behind the file.
-.layout-side-section.hide-sidebar:has(.attachment-preview.upload-first-review) {
-	display: block;
-}
-
 .attachment-queue-review-preview-body {
 	iframe {
 		width: 100%;

@@ -300,29 +300,30 @@ body[data-route^="Form"] {
 			position: relative;
 		}
 
-		.attachment-preview {
-			height: 100%;
-		}
-
 		&:focus {
 			outline: none;
 		}
 	}
 
-	.layout-main:has(.layout-side-section .attachment-preview:not(.hidden)) {
+	// The preview is its own column next to the form, not part of the side section
+	// (see setup_preview_area), and it takes that section's place while it is open.
+	.layout-main:has(> .attachment-preview:not(.hidden)) {
 		.layout-main-section-wrapper {
 			flex: 1 1 calc(100% - var(--attachment-preview-width));
 			width: calc(100% - var(--attachment-preview-width));
 			min-width: 0;
 		}
 
-		.layout-side-section {
+		> .attachment-preview {
 			flex: 0 0 var(--attachment-preview-width);
 			width: var(--attachment-preview-width);
 			min-width: var(--attachment-preview-width);
+			height: calc(100vh - var(--page-head-height));
+			position: sticky;
+			top: var(--page-head-height);
 		}
 
-		.form-sidebar {
+		.layout-side-section {
 			display: none !important;
 		}
 	}
