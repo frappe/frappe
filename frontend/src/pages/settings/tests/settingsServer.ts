@@ -18,6 +18,7 @@ export const SYSTEM_SETTINGS = {
 		{ fieldname: "enable_onboarding", fieldtype: "Check", label: "Enable Onboarding" },
 		{ fieldname: "time_zone", fieldtype: "Data", label: "Time Zone" },
 		{ fieldname: "app_name", fieldtype: "Data", label: "App Name" },
+		{ fieldname: "rules", fieldtype: "Table", label: "Rules", options: "Walk Rule" },
 	],
 };
 
@@ -46,7 +47,11 @@ export class SettingsServer {
 	private stamp = 0;
 
 	constructor() {
-		this.put("System Settings", "System Settings", { country: "France", time_zone: "Europe/Paris" });
+		this.put("System Settings", "System Settings", {
+			country: "France",
+			time_zone: "Europe/Paris",
+			rules: [{ name: "r1", rule: "old" }],
+		});
 		this.fetch.mockImplementation((url, init) => this.handle(String(url), init));
 	}
 

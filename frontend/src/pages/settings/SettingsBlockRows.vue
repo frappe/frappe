@@ -40,7 +40,7 @@ import {
 	tabStripLabel,
 } from "@framework/ui/FormLayout";
 import { ResolveFieldKey } from "@framework/ui/FormLayout/types";
-import { DocKey, FieldErrorsKey } from "@framework/ui/fields/types";
+import { CommitKey, DocKey, FieldErrorsKey } from "@framework/ui/fields/types";
 import { __ } from "@/i18n";
 import type { BoundBlock } from "./paneDrafts";
 import SettingsFieldRow from "./SettingsFieldRow.vue";
@@ -58,6 +58,12 @@ provide(
 	computed(() => state.doc)
 );
 provide(ResolveFieldKey, getFieldComponent);
+// A Table's cells and row dialog write the row in place and report it here, not through `change`.
+provide(CommitKey, {
+	pending: () => {},
+	commit: () => emit("commit"),
+	rowChanged: () => emit("commit"),
+});
 provide(FieldErrorsKey, props.bound.draft.fieldErrors.drawn);
 
 /** As many rows as a field list names, up to `MOST_ROWS`; a whole layout shows three. */

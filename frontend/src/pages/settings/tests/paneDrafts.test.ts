@@ -94,6 +94,25 @@ describe("save modes", () => {
 		expect(drafts.unsaved()).toBe(false);
 	});
 
+	it("keeps an edit made while the Save bar's save is out unsaved, so leaving still asks", async () => {
+		const drafts = await opened(block("zone", "button", ["time_zone"]));
+		const zone = drafts.bound.get("zone")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		const saving = drafts.saveButtons();
+		await settled();
+		expect(drafts.unsaved()).toBe(false);
+		zone.draft.edit("time_zone", "Asia/Tokyo");
+		expect(drafts.unsaved()).toBe(true);
+
+		server.held = null;
+		release();
+		await saving;
+		expect(drafts.unsaved()).toBe(true);
+	});
+
 	it("puts a button block's changes back on Discard", async () => {
 		const drafts = await opened(block("zone", "button", ["time_zone"]));
 		const zone = drafts.bound.get("zone")!;

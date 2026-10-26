@@ -1,7 +1,7 @@
 // The settings dialog with its registered blocks: rows drawn from the binding, the save mark,
 // the Save bar and Ctrl/Cmd+S, the missing Record's note, and the question before leaving.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, nextTick, type App } from "vue";
+import { createApp, defineComponent, h, inject, nextTick, type App, type PropType } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 const fake = vi.hoisted(() => ({ confirm: vi.fn() }));
@@ -13,6 +13,8 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 
 import type { Boot } from "@/boot";
 import { clearDataCache } from "@framework/ui/cache";
+import { getFieldComponent, registerFieldType } from "@framework/ui/FormLayout";
+import { CommitKey } from "@framework/ui/fields/types";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { registerSettingsBlocks } from "@/shell/settingsBlocks";
 import type { PanesReply, SettingsBlock } from "@/shell/settingsPanes";
@@ -29,7 +31,7 @@ const BLOCKS: SettingsBlock[] = [
 		save_mode: "auto",
 		label: "General",
 		binding: SYSTEM,
-		fields: ["country", "enable_onboarding", "app_name"],
+		fields: ["country", "enable_onboarding", "app_name", "rules"],
 		read_only_fields: ["app_name"],
 	},
 	{ key: "zone", app: "frappe", save_mode: "button", label: "Zone", binding: SYSTEM, fields: ["time_zone"] },
@@ -152,6 +154,44 @@ describe("a generated block", () => {
 			{ country: "India", modified: expect.any(String) },
 		]);
 		expect(row("country").textContent).toContain("Saved");
+	});
+});
+
+describe("a Table field", () => {
+	/** Edits its first row in place and reports it on the commit channel, as the row dialog does. */
+	const RowDialogProbe = defineComponent({
+		props: { field: { type: Object, required: true }, modelValue: Array as PropType<any[]> },
+		setup(props) {
+			const commit = inject(CommitKey)!;
+			return () =>
+				h(
+					"button",
+					{
+						"data-probe": "",
+						onClick: () => {
+							props.modelValue![0].rule = "new";
+							commit.commit("rule", "new", { parentfield: props.field.fieldname, key: "r1" });
+						},
+					},
+					"edit row"
+				);
+		},
+	});
+
+	it("autosaves a row edited through its row dialog", async () => {
+		const table = getFieldComponent("Table");
+		registerFieldType("Table", RowDialogProbe);
+		try {
+			await opened();
+			row("rules").querySelector<HTMLElement>("[data-probe]")!.click();
+			await settle();
+		} finally {
+			registerFieldType("Table", table);
+		}
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ rules: [expect.objectContaining({ name: "r1", rule: "new" })], modified: expect.any(String) },
+		]);
 	});
 });
 

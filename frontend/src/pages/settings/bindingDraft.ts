@@ -47,7 +47,8 @@ export class BindingDraft {
 	readonly fieldErrors = new FieldErrors();
 	readonly loaded: Promise<void>;
 	private queued = new Set<string>();
-	private sending = new Set<string>();
+	/** Each field a save in flight carries, with the value it sent. */
+	private sending = new Map<string, unknown>();
 	/** Unsent fields a silently re-sent save found changed elsewhere; their own save asks first. */
 	private stale = new Set<string>();
 	private running: Promise<void> | null = null;
@@ -69,7 +70,9 @@ export class BindingDraft {
 	unsaved(fieldnames: string[]): string[] {
 		return fieldnames.filter(
 			(fieldname) =>
-				this.dirty(fieldname) && !this.queued.has(fieldname) && !this.sending.has(fieldname)
+				this.dirty(fieldname) &&
+				!this.queued.has(fieldname) &&
+				!(this.sending.has(fieldname) && same(this.sending.get(fieldname), this.state.doc[fieldname]))
 		);
 	}
 
@@ -145,7 +148,8 @@ export class BindingDraft {
 				if (!fieldnames.includes(fieldname)) delete this.state.marks[fieldname];
 			this.queued.clear();
 			if (!fieldnames.length) continue;
-			for (const fieldname of fieldnames) this.sending.add(fieldname);
+			for (const fieldname of fieldnames)
+				this.sending.set(fieldname, clone(this.state.doc[fieldname]));
 			try {
 				await this.send(fieldnames);
 			} finally {
