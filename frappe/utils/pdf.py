@@ -118,7 +118,11 @@ def get_pdf(
 
 	if browser.background:
 		pdf = underlay_background(
-			pdf, browser.background["url"], browser.background["opacity"], pdf_generator
+			pdf,
+			browser.background["url"],
+			browser.background["opacity"],
+			pdf_generator,
+			bool(options.get("block-external-requests")),
 		)
 		if output:
 			output.append_pages_from_reader(PdfReader(io.BytesIO(pdf)))
@@ -133,7 +137,13 @@ def get_pdf(
 	return pdf
 
 
-def underlay_background(pdf: bytes, url: str, opacity: int, pdf_generator: str = "chrome") -> bytes:
+def underlay_background(
+	pdf: bytes,
+	url: str,
+	opacity: int,
+	pdf_generator: str = "chrome",
+	block_external_requests: bool = False,
+) -> bytes:
 	"""Draw the image at ``url`` under every page of ``pdf``, edge to edge."""
 	from pypdf import PdfReader, PdfWriter
 
@@ -152,6 +162,7 @@ def underlay_background(pdf: bytes, url: str, opacity: int, pdf_generator: str =
 		"margin-right": "0mm",
 		"page-width": f"{width}mm",
 		"page-height": f"{height}mm",
+		"block-external-requests": block_external_requests,
 	}
 	background_page = PdfReader(io.BytesIO(get_pdf(html, options, pdf_generator=pdf_generator))).pages[0]
 	for page in writer.pages:
