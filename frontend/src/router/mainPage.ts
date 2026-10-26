@@ -1,8 +1,10 @@
-// The page a main list or record address opens: an app's declared page, else the standard one.
-import { defineAsyncComponent, type Component } from "vue";
-import type { RouteLocationNormalized } from "vue-router";
+// The page an address opens, drawn while its code loads: a declared page, else the standard one.
+import { defineAsyncComponent, defineComponent, h, type Component } from "vue";
+import { useRoute, type RouteLocationNormalized } from "vue-router";
 import type { Addresses } from "@/addresses";
 import { replacementFor, standardPage } from "@/contributions/registry";
+import FrameSkeleton from "@/shell/FrameSkeleton.vue";
+import PageLoadError from "@/shell/PageLoadError.vue";
 
 type Loaded = { default?: Component } | Component;
 type Loader = () => Promise<unknown>;
@@ -10,8 +12,6 @@ type Route = Pick<RouteLocationNormalized, "name" | "params">;
 
 // One component per loader, so a render does not create a new component type and remount the page.
 const pages = new Map<Loader, Component>();
-// A page rendered before its preload; kept apart so the preload still loads the real one.
-const fallbacks = new Map<Loader, Component>();
 
 /** The loader a main address opens and, for a declared page, its props; null on other routes. */
 export function mainPageFor(route: Route, addresses: Addresses) {
@@ -25,30 +25,47 @@ export function mainPageFor(route: Route, addresses: Addresses) {
 	return { loader: declared.component, props };
 }
 
-/** Loads the page before the navigation confirms, so a failed import fails the navigation. */
-export async function preloadMainPage(route: Route, addresses: Addresses) {
-	const loader = mainPageFor(route, addresses)?.loader;
-	if (!loader || pages.has(loader)) return;
-	pages.set(loader, pageOf((await loader()) as Loaded));
-	fallbacks.delete(loader);
-}
-
-/** The preloaded page, or one that loads itself when no preload ran. */
+/** The page a loader gives: the frame's skeleton at once, then the page once its code is in. */
 export function loadedPage(loader: Loader) {
-	const page = pages.get(loader);
-	if (page) return page;
-	let fallback = fallbacks.get(loader);
-	if (!fallback) {
-		fallback = defineAsyncComponent(() => loader().then((loaded) => pageOf(loaded as Loaded)));
-		fallbacks.set(loader, fallback);
+	let page = pages.get(loader);
+	if (!page) {
+		page = framed(loader);
+		pages.set(loader, page);
 	}
-	return fallback;
+	return page;
 }
 
 /** Forgets every loaded page; for tests. */
 export function clearLoadedPages() {
 	pages.clear();
-	fallbacks.clear();
+}
+
+function framed(loader: Loader): Component {
+	let loaded = false;
+	const page = defineAsyncComponent({
+		loader: () =>
+			loader().then((module) => {
+				loaded = true;
+				return pageOf(module as Loaded);
+			}),
+		loadingComponent: FrameSkeleton,
+		errorComponent: { props: ["error"], render: () => h(PageLoadError) },
+		delay: 0,
+	});
+	// The router warns on an async route component, so the routes get a plain one around it.
+	return defineComponent({
+		name: "LoadedPage",
+		setup() {
+			const route = useRoute();
+			let key: string | undefined;
+			return () => {
+				// Vue loads a failed page again only on a remount: the key follows the address
+				// until the code is in.
+				if (!loaded) key = route.path;
+				return h(page, { key });
+			};
+		},
+	});
 }
 
 /** A module's default export, read as vue-router reads a lazy route component. */

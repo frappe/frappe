@@ -3,6 +3,7 @@
 import type { Addresses } from '@/addresses'
 import { pages } from '@/contributions/registry'
 import type { PageContribution } from '@/contributions/types'
+import { loadedPage } from './mainPage'
 
 export function contributedRoutes(app: string | null, modular: boolean, addresses: Addresses) {
   if (!app) return []
@@ -15,7 +16,7 @@ export function contributedRoutes(app: string | null, modular: boolean, addresse
     .map((page) => ({
       path: `/${page.slug}`,
       name: `page:${page.app}:${page.slug}`,
-      component: page.component,
+      component: loadedPage(page.component),
       meta: { title: page.title },
     }))
 }

@@ -69,6 +69,8 @@ import { registerShell } from "@/router/routeFor";
 import { resetViewMemory } from "../viewMemory";
 
 registerStandardPages(standardPages);
+// The router draws a page before its code is in; these tests start once it is.
+await Promise.all([standardPages.record(), standardPages.newRecord()]);
 
 const GET_CLIENT_SCRIPTS = "frappe.custom.doctype.client_script.client_script.get_client_scripts";
 const GET_FORM_LAYOUTS = "frappe.desk.doctype.form_layout.form_layout.get_form_layouts";

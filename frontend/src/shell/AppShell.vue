@@ -34,8 +34,7 @@
 		</template>
 
 		<main class="flex min-h-0 flex-1 flex-col [&>*]:min-h-0 [&>*]:flex-1">
-			<PageLoadError v-if="failedPage" :href="failedPage" />
-			<RouterView v-else />
+			<RouterView />
 		</main>
 
 		<!-- The overlay host: one hash, one Dialog, above any page. `#customize/...` is its first tenant. -->
@@ -77,11 +76,9 @@ import {
 } from "@/navigation/current";
 import { sidebarMemory } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
-import { failedPage } from "@/router/failedPage";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
-import PageLoadError from "./PageLoadError.vue";
 import RailColumn from "./RailColumn.vue";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";

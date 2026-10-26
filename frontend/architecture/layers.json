@@ -601,9 +601,6 @@
       "TabItem",
       "WriterItem"
     ],
-    "frontend/src/router/failedPage.ts": [
-      "failedPage"
-    ],
     "frontend/src/router/routeFor.ts": [
       "RouteOptions",
       "isModular",

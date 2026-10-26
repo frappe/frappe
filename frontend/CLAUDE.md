@@ -189,6 +189,9 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
 | `<app>/<module>/frontend/pages/<slug>.js` | a standalone page |
 | `<app>/<module>/navigation_item_type/<scrubbed>/frontend/item.js` | a navigation item kind |
 
+- **A page's route guards are `onBeforeRouteLeave` and `onBeforeRouteUpdate` in `setup`.** The
+  router draws a page inside the frame while its code loads, so an options-API `beforeRoute*`
+  never runs.
 - **The `frontend/` segment in the page path is load-bearing** — `<module>/page/` is desk
   v1's Page doctype and `templates/pages/` is website templates.
 - **`frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved

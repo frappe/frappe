@@ -13,13 +13,8 @@
 import { Button } from "frappe-ui";
 import { __ } from "@/i18n";
 
-const props = defineProps<{ href: string }>();
-
 // A full reload: the browser can keep a failed module fetch and fail an in-app retry again.
 function retry() {
-	const { pathname, search, hash } = window.location;
-	// Assigning the current address with a hash only scrolls to the hash; it does not reload.
-	if (props.href === pathname + search + hash) window.location.reload();
-	else window.location.assign(props.href);
+	window.location.reload();
 }
 </script>
