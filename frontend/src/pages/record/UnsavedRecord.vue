@@ -87,8 +87,6 @@ import {
 import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
-import { openCreate } from "@/shell/create";
-import { OpenSettingsKey } from "@/shell/openSettings";
 import PageFrame from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import type { Boot } from "@/boot";
@@ -124,7 +122,6 @@ const props = defineProps<{ doctype: string; query: LocationQuery }>();
 const NO_RIGHTS = {};
 
 const boot = inject<Boot>("boot")!;
-const openSettings = inject(OpenSettingsKey, undefined);
 const router = useRouter();
 const canCreate = useCreateRight(props.doctype);
 
@@ -262,8 +259,6 @@ function buildController() {
 		onSaved: openSaved,
 		reload: open,
 		router,
-		openCreate,
-		openSettings,
 		sourcesReady: () => loadRecordScripts(props.doctype),
 		actFailed,
 		activityRows: () => [],

@@ -1,4 +1,4 @@
-// `page.openSettings`: the shell's settings act, held in a replay and quiet once the page has gone.
+// `page.openSettings`: the shell's `open_settings` act, held in a replay and quiet once the page has gone.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
@@ -10,6 +10,7 @@ vi.mock("@framework/ui/api", () => ({
   runMethod: vi.fn(async () => ({ data: null })),
 }));
 
+import { acts } from "@/acts/dispatcher";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 
@@ -44,22 +45,44 @@ beforeEach(() => {
   vi.spyOn(console, "warn").mockImplementation((message) => void warnings.push(String(message)));
 });
 
-afterEach(() => vi.restoreAllMocks());
+let release = () => {};
+afterEach(() => {
+  release();
+  vi.restoreAllMocks();
+});
+
+/** A shell surface holding only `shell.open_settings`; each run records the address it was given. */
+function shellSettings() {
+  const openSettings = vi.fn();
+  release = acts.register({
+    surfaces: {
+      shell: () => [{ item: { name: "open_settings", run: (_shell, value) => openSettings(value) }, hidden: false }],
+    },
+    context: () => undefined,
+    passes: () => false,
+    settled: () => undefined,
+    hold: async (work) => work(),
+    failed: () => {},
+  });
+  return openSettings;
+}
+
+const address = (prefix?: string, pane?: string, block?: string) => [{ prefix, pane, block }];
 
 describe("page.openSettings", () => {
-  it("hands the shell the address segments as given", () => {
-    const openSettings = vi.fn();
-    const { page } = createRecordPage(makeHost({ openSettings }));
+  it("runs shell.open_settings with the address segments as given", () => {
+    const openSettings = shellSettings();
+    const { page } = createRecordPage(makeHost());
 
     page.openSettings("crm", "general", "telephony");
     page.openSettings();
 
-    expect(openSettings.mock.calls).toEqual([["crm", "general", "telephony"], []]);
+    expect(openSettings.mock.calls).toEqual([address("crm", "general", "telephony"), address()]);
   });
 
   it("waits for the commit when called in a replay, and the last call wins", async () => {
-    const openSettings = vi.fn();
-    const controller = createRecordPage(makeHost({ openSettings }));
+    const openSettings = shellSettings();
+    const controller = createRecordPage(makeHost());
     let seen: unknown[] = [];
     registerRecordPage("CRM Deal", {
       onRefresh: (page) => {
@@ -71,38 +94,39 @@ describe("page.openSettings", () => {
     await controller.refresh();
 
     expect(seen).toEqual([]);
-    expect(openSettings.mock.calls).toEqual([["desk", "system"]]);
+    expect(openSettings.mock.calls).toEqual([address("desk", "system")]);
   });
 
   it("drops a call in the replay after a background read, with a warning", async () => {
-    const openSettings = vi.fn();
-    const controller = createRecordPage(makeHost({ openSettings }));
+    const openSettings = shellSettings();
+    const controller = createRecordPage(makeHost());
     registerRecordPage("CRM Deal", { onRefresh: (page) => page.openSettings("desk", "profile") });
     await controller.refresh();
 
     await controller.refresh({ background: true });
 
-    expect(openSettings.mock.calls).toEqual([["desk", "profile"]]);
+    expect(openSettings.mock.calls).toEqual([address("desk", "profile")]);
     expect(warnings).toEqual([
       '[record-page] page.openSettings("desk", "profile") — it ran in the replay after a background read; nothing was opened.',
     ]);
   });
 
   it("opens nothing once the page has left", () => {
-    const openSettings = vi.fn();
-    const controller = createRecordPage(makeHost({ openSettings }));
+    const openSettings = shellSettings();
+    const controller = createRecordPage(makeHost());
     controller.leave();
 
     controller.page.openSettings("desk");
     expect(openSettings).not.toHaveBeenCalled();
   });
 
-  it("warns and opens nothing on a host with no settings act", () => {
+  it("warns and opens nothing when no shell holds the act", async () => {
     const { page } = createRecordPage(makeHost());
 
     page.openSettings("desk", "profile");
+    await Promise.resolve();
     expect(warnings.join("\n")).toContain(
-      'page.openSettings("desk", "profile") — this host opens no settings'
+      'page.openSettings("desk", "profile") — shell.open_settings: no surface holds this act now'
     );
   });
 });

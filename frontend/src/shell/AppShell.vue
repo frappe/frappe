@@ -13,8 +13,6 @@
 				:items="navigation.rail"
 				:context="contexts.rail"
 				:current="current.railKey"
-				:share-link="shareLink"
-				@customize="customize.write('rail')"
 			/>
 		</template>
 
@@ -28,6 +26,7 @@
 				:title="panel.title"
 				:current="current.rowKey"
 				:sections="sections[panel.address]"
+				:collapsed="sidebarCollapsed"
 				customizable
 				@customize="customize.write('sidebar', panel.address)"
 			/>
@@ -51,6 +50,7 @@
 		<ShellSettingsDialog v-if="settingsOpened" />
 
 		<ShellPalette v-if="paletteLoaded" />
+		<LogoutDialog v-model="confirmingLogout" />
 
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
@@ -71,11 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, onUnmounted, provide, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
+import { browserMemory } from "@/browserMemory";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import { itemContext } from "@/navigation/context";
 import {
@@ -89,9 +90,10 @@ import { sectionMemory } from "@/navigation/sectionMemory";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
-import { OpenSettingsKey } from "./openSettings";
+import LogoutDialog from "./LogoutDialog.vue";
 import { paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
+import { useShellActs, type OpenSettings } from "./shellActs";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
@@ -255,9 +257,8 @@ const customizing = computed<CustomizeTarget | null>(() => {
 });
 
 const settings = useHashDialog("settings");
-provide(OpenSettingsKey, (...segments) =>
-	settings.write(...segments.map((segment) => segment ?? ""))
-);
+const openSettings: OpenSettings = (...segments) =>
+	settings.write(...segments.map((segment) => segment ?? ""));
 
 // Loaded on the first open, then kept, so a close plays the dialog's leave transition.
 const settingsOpened = ref(false);
@@ -271,6 +272,32 @@ function replace(next: Navigation) {
 	navigation.value = next;
 	boot.navigation = next;
 }
+
+const collapsedMemory = browserMemory(
+	"collapsed-sidebar",
+	boot.session.user.name,
+	(value): value is boolean => typeof value === "boolean",
+	"frappe:desk:sidebar-collapsed"
+);
+const sidebarCollapsed = ref(collapsedMemory.recall() ?? false);
+watch(sidebarCollapsed, collapsedMemory.remember);
+
+const confirmingLogout = ref(false);
+
+useShellActs({
+	boot,
+	router,
+	openSettings,
+	confirmLogout: () => void (confirmingLogout.value = true),
+	rail: boot.app
+		? {
+				customize: () => customize.write("rail"),
+				shareLink,
+				sidebarCollapsed: () => (panel.value ? sidebarCollapsed.value : null),
+				toggleSidebar: () => void (sidebarCollapsed.value = !sidebarCollapsed.value),
+		  }
+		: undefined,
+});
 </script>
 
 <style scoped>

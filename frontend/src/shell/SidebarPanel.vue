@@ -1,13 +1,13 @@
 <!--
   The panel a linked rail item opens, on frappe-ui's `Sidebar`. Nothing opens it by clicking: the
-  address does. It collapses to nothing with the seam, and the collapse is kept in this browser.
+  address does. It collapses to nothing with the seam, through the shell's `toggle_sidebar` act.
 -->
 <template>
 	<div class="group/sidebar relative flex h-full shrink-0">
 		<!-- Bound, never `null`: left unset, `Sidebar` collapses itself below the `sm` breakpoint.
 		     `border-0` while collapsed, or its 1px sits beside the content's and reads as 2px. -->
 		<Sidebar
-			v-model:collapsed="collapsed"
+			:collapsed="collapsed"
 			width="14rem"
 			collapsedWidth="0px"
 			:class="collapsed ? 'border-0' : 'border-l border-outline-gray-1'"
@@ -43,18 +43,24 @@
 			</ScrollArea>
 		</Sidebar>
 
-		<SidebarEdge :open="!collapsed" @toggle="collapsed = !collapsed" />
+		<SidebarEdge
+			v-if="toggle"
+			:open="!collapsed"
+			:label="toggle.label!"
+			@toggle="run(toggle)"
+		/>
 	</div>
 </template>
 
 <script setup lang="ts">
-import { inject, ref, watch } from "vue";
+import { computed } from "vue";
 import { Button, ScrollArea, Sidebar } from "frappe-ui";
-import { browserMemory } from "@/browserMemory";
-import type { Boot, NavigationItem } from "@/boot";
+import { acts, type AvailableAct } from "@/acts/dispatcher";
+import type { NavigationItem } from "@/boot";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";
+import { shellAct } from "./shellActs";
 import SidebarEdge from "./SidebarEdge.vue";
 import SidebarRow from "./SidebarRow.vue";
 
@@ -67,18 +73,15 @@ const props = defineProps<{
 	current?: string;
 	sections?: SectionMemory;
 	customizable?: boolean;
+	collapsed: boolean;
 }>();
 const emit = defineEmits<{ customize: [] }>();
 
-const boot = inject<Boot>("boot")!;
-const collapsedMemory = browserMemory(
-	"collapsed-sidebar",
-	boot.session.user.name,
-	(value): value is boolean => typeof value === "boolean",
-	"frappe:desk:sidebar-collapsed"
-);
-const collapsed = ref(collapsedMemory.recall() ?? false);
-watch(collapsed, collapsedMemory.remember);
+const toggle = computed(() => shellAct("toggle_sidebar"));
+
+function run(act: AvailableAct) {
+	void acts.perform(act.name);
+}
 
 const tree = useItemTree(
 	() => props.items,

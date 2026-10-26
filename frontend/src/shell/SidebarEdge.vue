@@ -15,7 +15,7 @@
 		type="button"
 		class="absolute bottom-1/3 left-full z-20 flex size-6 -translate-x-1/2 translate-y-1/2 items-center justify-center rounded-full border border-outline-gray-2 bg-surface-base text-ink-gray-5 shadow-sm transition-opacity hover:bg-surface-gray-2 focus-visible:opacity-100 focus-visible:focus-ring"
 		:class="open ? 'opacity-0 group-hover/sidebar:opacity-100' : 'opacity-100'"
-		:aria-label="open ? 'Collapse sidebar' : 'Expand sidebar'"
+		:aria-label="label"
 		:aria-expanded="open"
 		@click="emit('toggle')"
 	>
@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { onUnmounted } from "vue";
 
-const props = defineProps<{ open: boolean }>();
+const props = defineProps<{ open: boolean; label: string }>();
 const emit = defineEmits<{ toggle: [] }>();
 
 /** How far the seam travels before the drag counts as a collapse or a reopen. */

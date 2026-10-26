@@ -110,10 +110,17 @@ export class ActDispatcher {
 	available(only: (item: ActItem) => boolean = () => true): AvailableAct[] {
 		const listed: AvailableAct[] = [];
 		for (const [surface, scope] of this.scopes)
-			for (const { item, hidden } of scope.surfaces[surface]())
-				if (isAct(item) && !hidden && only(item) && (!item.right || scope.passes(item.right)))
-					listed.push(describe(`${surface}.${item.name}`, item, scope));
+			for (const entry of scope.surfaces[surface]())
+				if (isAct(entry.item) && only(entry.item) && isAvailable(scope, entry))
+					listed.push(describe(`${surface}.${entry.item.name}`, entry.item, scope));
 		return listed;
+	}
+
+	/** One act by its full name while `available()` would list it; reads only its own surface. */
+	find(name: string): AvailableAct | undefined {
+		const found = this.lookup(name);
+		if (!found || !isAvailable(found.scope, found.entry)) return undefined;
+		return describe(name, found.entry.item, found.scope);
 	}
 
 	/** Runs the act inside its scope's hold; rejects with `ActDenied`, or with what the act threw. */
@@ -180,6 +187,10 @@ export const acts = new ActDispatcher();
 
 function isAct(item: ActItem) {
 	return typeof item.run === "function";
+}
+
+function isAvailable(scope: ActScope, { item, hidden }: ActEntry) {
+	return !hidden && (!item.right || scope.passes(item.right));
 }
 
 function describe(name: string, item: ActItem, scope: ActScope): AvailableAct {
