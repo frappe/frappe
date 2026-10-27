@@ -174,17 +174,22 @@ describe("a generated block", () => {
 		expect(row("country").textContent).toContain("Saved");
 	});
 
-	it("keeps a cleared required field's message after the field is left", async () => {
+	it.each([
+		["Data", "input"],
+		["Small Text", "textarea"],
+	])("keeps a cleared required %s field's message after the field is left", async (fieldtype, tag) => {
 		server.metas["System Settings"] = {
 			...SYSTEM_SETTINGS,
 			fields: SYSTEM_SETTINGS.fields.map((field) =>
-				field.fieldname === "country" ? { ...field, reqd: 1 } : field
+				field.fieldname === "country" ? { ...field, fieldtype, reqd: 1 } : field
 			),
 		};
 		await opened();
+		const control = row("country").querySelector<HTMLInputElement>(tag)!;
 
-		type("country", "");
-		input("country").dispatchEvent(new Event("change", { bubbles: true }));
+		control.value = "";
+		control.dispatchEvent(new Event("input", { bubbles: true }));
+		control.dispatchEvent(new Event("change", { bubbles: true }));
 		await settle();
 
 		expect(server.writes).toEqual([]);

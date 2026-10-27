@@ -8,6 +8,8 @@ export interface CommitChannelHost {
 }
 
 export interface RecordCommitChannel extends CommitChannel {
+  /** False for an echo of the value last committed, which is no edit. */
+  pending: (fieldname: string, value: any, row?: RowAddress) => boolean;
   /** Fires the handler of an edit whose commit never arrived, and waits for the handlers already running. */
   flush: () => Promise<void>;
 }
@@ -54,7 +56,9 @@ export function createCommitChannel(
   return {
     pending: (fieldname, value, row) => {
       const event = fieldEvent(fieldname, row);
-      if (settles(event, value, row)) pending = { event, value, row };
+      if (!settles(event, value, row)) return false;
+      pending = { event, value, row };
+      return true;
     },
     commit,
     rowChanged: (row, change) => {

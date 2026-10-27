@@ -80,13 +80,13 @@ export class FieldErrors implements Staging {
     return shownFields(layout, doc).find((field) => marked.has(field.fieldname))?.fieldname;
   }
 
-  /** `channel`, clearing a field's mark on its live edit, a table's when a row comes or goes, and a removed row's. */
+  /** `channel`, clearing a field's mark on its live edit (not on an echo its `pending` answers false to), a table's when a row comes or goes, and a removed row's. */
   clearingOnEdit<Channel extends CommitChannel>(channel: Channel): Channel {
     return {
       ...channel,
       pending: (fieldname, value, row) => {
-        this.clear(row ? { ...row, fieldname } : fieldname);
-        channel.pending(fieldname, value, row);
+        const edited: unknown = channel.pending(fieldname, value, row);
+        if (edited !== false) this.clear(row ? { ...row, fieldname } : fieldname);
       },
       rowChanged: (row, change) => {
         this.clear(row.parentfield);
