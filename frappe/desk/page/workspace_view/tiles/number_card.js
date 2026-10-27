@@ -52,12 +52,13 @@ export async function load_card(name) {
 	return result;
 }
 
-// How far back the trend reaches, at the card's own stats interval.
-const TREND_SPANS = {
-	Daily: { timespan: "Last Month" },
-	Weekly: { timespan: "Last Year" },
-	Monthly: { timespan: "Select Date Range", months: 24 },
-	Yearly: { timespan: "Select Date Range", months: 60 },
+// The trend's last 12 periods, at the card's own stats interval.
+const TREND_POINTS = 12;
+const TREND_START = {
+	Daily: (today) => window.frappe.datetime.add_days(today, 1 - TREND_POINTS),
+	Weekly: (today) => window.frappe.datetime.add_days(today, 7 * (1 - TREND_POINTS)),
+	Monthly: (today) => window.frappe.datetime.add_months(today, 1 - TREND_POINTS),
+	Yearly: (today) => window.frappe.datetime.add_months(today, 12 * (1 - TREND_POINTS)),
 };
 
 // A Document Type card's value per period, drawn as its sparkline. Min and Max have no
@@ -69,7 +70,6 @@ export async function load_trend({ card, filters }) {
 	}
 
 	const time_interval = card.stats_time_interval || "Weekly";
-	const { timespan, months } = TREND_SPANS[time_interval];
 	const today = frappe.datetime.get_today();
 	const data = await post("frappe.desk.doctype.dashboard_chart.dashboard_chart.get", {
 		chart: {
@@ -81,13 +81,13 @@ export async function load_trend({ card, filters }) {
 		},
 		no_cache: 1,
 		filters: [...filters],
-		timespan,
+		timespan: "Select Date Range",
 		time_interval,
-		from_date: months ? frappe.datetime.add_months(today, -months) : null,
-		to_date: months ? today : null,
+		from_date: TREND_START[time_interval](today),
+		to_date: today,
 	});
 
-	const values = data?.datasets?.[0]?.values || [];
+	const values = (data?.datasets?.[0]?.values || []).slice(-TREND_POINTS);
 	return values.some((value) => value) ? values : null;
 }
 
