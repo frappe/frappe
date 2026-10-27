@@ -772,8 +772,6 @@ export const COMPONENTS: FrappeUIComponents = {
 		title: "Variants",
 		icon: LucideSplit,
 		blockTemplate: "variants",
-		// options are not a prop of the component — they live on the option blocks;
-		// this pair only puts their editor in the properties panel
 		additionalProps: {
 			options: { type: Array },
 		},

@@ -5,7 +5,7 @@
 			<router-view v-slot="{ Component, route }">
 				<component :is="Component" :key="`${route.meta.pageName}:${revision}`" />
 			</router-view>
-			<VariantsViewerPill v-if="showReviewChrome" />
+			<VariantsViewerPill v-if="showVariantsPill" />
 		</FrappeUIProvider>
 	</div>
 </template>
@@ -15,9 +15,9 @@ import { defineAsyncComponent, ref } from "vue"
 import { FrappeUIProvider } from "frappe-ui"
 import { useLivePreview } from "@/utils/useLivePreview"
 
-// review chrome shows where apps are developed — dev benches; a published
-// app on a production site stays clean and never loads it
-const showReviewChrome = Boolean((window as any).is_developer_mode)
+// the pill shows where apps are developed — dev benches; a published app on a
+// production site stays clean and never loads it
+const showVariantsPill = Boolean((window as any).is_developer_mode)
 const VariantsViewerPill = defineAsyncComponent(() => import("@/components/VariantsViewerPill.vue"))
 const revision = window.is_preview ? useLivePreview() : ref(0)
 </script>

@@ -139,7 +139,7 @@ class StudioApp(WebsiteGenerator):
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
-		# the review chrome only renders on a dev bench, so only it pays for the permission check
+		# the variants pill only renders on a dev bench, so only it pays for the permission check
 		context.can_edit_app = bool(context.is_developer_mode and check_app_permission())
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
 		context.router_script = self.get_router_script()
