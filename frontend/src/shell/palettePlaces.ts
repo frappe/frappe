@@ -240,12 +240,13 @@ function joinPlaces(sidebar: PaletteRow[], doctypes: PaletteRow[]): PaletteRow[]
 		const same = byAddress.get(row.href);
 		if (!same) return row;
 		byAddress.delete(row.href);
-		return { ...row, keywords: [...new Set([...(row.keywords ?? []), ...(same.keywords ?? [])])] };
+		const keywords = [...new Set([...(row.keywords ?? []), ...(same.keywords ?? [])])];
+		return { ...row, doctype: row.doctype ?? same.doctype, keywords };
 	});
-	const others = [...byAddress.values()];
-	const looks = new Set(others.map(looksOf));
+	const unclaimed = [...byAddress.values()];
+	const looks = new Set(unclaimed.map(looksOf));
 	const told = kept.map((row) => (looks.has(looksOf(row)) ? { ...row, description: __("Sidebar") } : row));
-	return [...told, ...others];
+	return [...told, ...unclaimed];
 }
 
 function looksOf(row: PaletteRow) {

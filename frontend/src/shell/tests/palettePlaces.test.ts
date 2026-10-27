@@ -1,4 +1,5 @@
 // The palette's places read: once the tab holds a reply it asks no more, and each read retries on its own.
+// Go to draws a sidebar row in place of its doctype's row at one address, and tells two addresses apart.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createMemoryHistory, createRouter } from "vue-router";
 
@@ -50,6 +51,7 @@ const router = createRouter({
 	routes: [
 		{ path: "/", name: "home", component: page },
 		{ path: "/:doctype", name: "list", component: page },
+		{ path: "/:doctype/:name", name: "record", component: page },
 	],
 });
 const context: PaletteContext = {
@@ -125,6 +127,15 @@ describe("a sidebar row and a doctype row", () => {
 		const deal = [`sidebar:${boot.shell_base}/crm-deal`, "Deals", "CRM"];
 		expect(goToRows([deals], "deal")).toEqual([deal]);
 		expect(goToRows([deals], "crm deal")).toEqual([deal]);
+	});
+
+	it("keeps the doctype row's Tab narrowing on a link row that stands in for it", () => {
+		const link: NavigationItem = { key: "link", item_type: "Link", label: "Deals", url: `${boot.shell_base}/crm-deal` };
+		const withSidebar = { ...context, boot: { ...boot, navigation: { rail: [link], sidebars: {} } } };
+		registerShell(withSidebar);
+		expect(goTo.rows("deal", withSidebar).map((row) => [row.id, row.doctype])).toEqual([
+			[`sidebar:${link.url}`, "CRM Deal"],
+		]);
 	});
 
 	it("keeps both rows for two addresses, and the sidebar's says so", () => {
