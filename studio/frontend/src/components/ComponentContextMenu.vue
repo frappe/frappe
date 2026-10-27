@@ -175,11 +175,7 @@ const contextMenuOptions: ContextMenuOption[] = [
 	{
 		label: "Add Variant",
 		action: () => addVariantOf(block.value),
-		condition: () =>
-			Boolean(block.value.getParentBlock()) &&
-			block.value.componentName !== "Variants" &&
-			!block.value.isRepeater() &&
-			!block.value.isRepeated(),
+		condition: () => Boolean(block.value.getParentBlock()) && block.value.componentName !== "Variants",
 	},
 	{
 		label: "Keep Shown Option",
