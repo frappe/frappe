@@ -102,7 +102,6 @@ async function edit(variant) {
 		? __("Editing {0}", [editing.value.title])
 		: __("Private / Editing {0}", [editing.value.title]);
 	emit("title", title);
-	emit("actions", []);
 }
 
 function stop_editing() {
@@ -149,6 +148,7 @@ watch(
 			@saved="edit"
 			@switch="edit"
 			@done="stop_editing"
+			@actions="(list) => emit('actions', list)"
 		/>
 		<div v-else class="mx-auto h-full max-w-4xl overflow-y-auto px-4 pt-4 pb-10">
 			<div

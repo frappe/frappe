@@ -187,6 +187,8 @@ A page island fills a page. It draws no page header. It reports two things, and 
 - `title`, a `string` or `null`.
 - `actions`, an `Action[]`. An `Action` is `{ label, icon? }` plus either an `onClick` or an `href`.
 
+An action may also name a `placement`, which asks the host to show it in the header instead of the menu: `"primary"` and `"secondary"` for the header's main buttons, `"toolbar"` for a button beside them. A toolbar action with a `group` is a row of the dropdown button that `group` names. `"breadcrumb"` actions are the rows of a menu on a crumb after the title, labelled by their `group`, for a choice that belongs to the page, such as which layout of it is open. A host that has no such slot shows the action as a menu row.
+
 An `onClick` runs in the island. An `href` is a URL to a page outside the host app. The host decides what a link out of the app does. Desk opens it in a new tab.
 
 Both are plain events. A Vue host binds `@title` and `@actions`. A desk caller passes `onTitle` and `onActions`. An island that fills less than a page reports neither. See [decision 0010](island/decisions/0010-a-page-island-reports-title-and-actions.md).

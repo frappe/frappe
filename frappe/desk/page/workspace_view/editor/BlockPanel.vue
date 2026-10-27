@@ -188,9 +188,7 @@ function remove_link(index) {
 </script>
 
 <template>
-	<aside
-		class="flex w-72 shrink-0 flex-col gap-4 overflow-y-auto border-l border-outline-gray-1 p-4"
-	>
+	<section class="flex flex-col gap-4 p-5">
 		<div class="flex items-center justify-between">
 			<span class="text-base font-medium text-ink-gray-8">
 				{{ TITLES[block.type] || __("Block") }}
@@ -332,5 +330,5 @@ function remove_link(index) {
 			:label="__('Remove block')"
 			@click="emit('remove')"
 		/>
-	</aside>
+	</section>
 </template>

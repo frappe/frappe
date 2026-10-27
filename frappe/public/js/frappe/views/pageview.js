@@ -143,6 +143,7 @@ frappe.views.Page = class Page {
 
 		$(this.wrapper).on("hide", () => {
 			document.body.classList.remove(ISLAND_PAGE_CLASS);
+			this.crumb_menu?.close("owner");
 		});
 	}
 
@@ -195,21 +196,57 @@ frappe.views.Page = class Page {
 	 *
 	 * The title is the last breadcrumb, and also names the browser tab.
 	 *
-	 * An action is `{ label, icon? }` plus either an `onClick` or an `href`. An
-	 * `href` leads out of desk, so desk opens it in a new tab. A desk menu row is
-	 * a click handler rather than a link, because `add_dropdown_item` writes its
-	 * own `href="#"`. Desk's menu rows carry no icon, so the icon goes unread.
+	 * An action is `{ label, icon?, placement?, group? }` plus either an `onClick` or
+	 * an `href`. An `href` leads out of desk, so desk opens it in a new tab. A desk
+	 * menu row is a click handler rather than a link, because `add_dropdown_item`
+	 * writes its own `href="#"`. Desk's menu rows carry no icon, so the icon goes
+	 * unread there.
+	 *
+	 * `placement` puts the action in the head instead of the menu: "primary" and
+	 * "secondary" are the page's two action buttons, and "toolbar" is a button
+	 * beside them, or a row of the dropdown button named by `group`.
+	 * "breadcrumb" actions are the rows of a crumb after the title, labelled by
+	 * their `group`, for a choice that sits under the page, such as its layout.
 	 */
 	set_island_chrome() {
 		const label = this.island_title || __(this.pagedoc.title) || this.pagedoc.name;
 		const page = this.wrapper.page;
-		page.set_breadcrumbs([{ label: label }]);
+		const crumbs = this.island_actions.filter((a) => a.placement === "breadcrumb");
+		const trail = [{ label: label }];
+		if (crumbs.length) {
+			trail.push({
+				label: crumbs[0].group,
+				suffix: "chevrons-up-down",
+				// a crumb with no onclick renders as text; the menu below owns its clicks
+				onclick: () => {},
+			});
+		}
+		page.set_breadcrumbs(trail);
+		this.crumb_menu?.destroy();
+		this.crumb_menu = crumbs.length
+			? new frappe.ui.Dropdown({
+					trigger: page.$breadcrumbs.find(".es-breadcrumbs__item").last(),
+					options: crumbs.map((a) => ({ label: a.label, onclick: a.onClick })),
+			  })
+			: null;
 		frappe.utils.set_title(label);
 
 		page.clear_menu();
+		page.clear_actions();
+		page.clear_inner_toolbar();
 		this.island_actions.forEach((action) => {
 			const click = action.href ? () => window.open(action.href, "_blank") : action.onClick;
-			page.add_menu_item(action.label, click);
+			if (action.placement === "primary") {
+				page.set_primary_action(action.label, click, action.icon);
+			} else if (action.placement === "secondary") {
+				page.set_secondary_action(action.label, click, action.icon);
+			} else if (action.placement === "breadcrumb") {
+				return;
+			} else if (action.placement === "toolbar") {
+				page.add_inner_button(action.label, click, action.group);
+			} else {
+				page.add_menu_item(action.label, click);
+			}
 		});
 	}
 
