@@ -63,6 +63,8 @@ const UI_OPERATOR: Record<string, FilterOperator> = {
   equals: "equals",
   LIKE: "like",
   "NOT LIKE": "not like",
+  like: "like",
+  "not like": "not like",
   ">": ">",
   "<": "<",
   ">=": ">=",

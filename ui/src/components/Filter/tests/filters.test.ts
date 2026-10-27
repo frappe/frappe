@@ -117,6 +117,15 @@ describe("parseFilters", () => {
     ]);
   });
 
+  it("parses a lowercase like, which is how desk stores it", () => {
+    expect(parseFilters([STATUS], [["status", "like", "%Op%"]])).toEqual([
+      { field: STATUS, fieldname: "status", operator: "like", value: "%Op%" },
+    ]);
+    expect(parseFilters([STATUS], [["status", "not like", "%Op%"]])[0].operator).toBe(
+      "not like"
+    );
+  });
+
   it("surfaces a Check =-boolean as a Yes/No equals condition", () => {
     expect(parseFilters([ACTIVE], [["is_active", "=", true]])).toEqual([
       {
