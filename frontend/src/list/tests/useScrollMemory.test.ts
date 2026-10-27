@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, ref } from "vue";
 
-import { forgetRows, readListMemory, recallRows, rememberRows } from "../pageState";
+import { readListMemory, recallRows, rememberRows } from "../pageState";
 import { useScrollMemory } from "../useScrollMemory";
 
 let scope = effectScope();
@@ -11,12 +11,13 @@ beforeEach(() => {
 	scope = effectScope();
 	vi.useFakeTimers();
 	history.replaceState({ position: 3, list: { scrollTop: 240 } }, "");
+	// A rows key is never empty, so this clears the last test's memory.
+	rememberRows("Lead", { query: "", pageSize: 20 });
 	rememberRows("Lead", { query: "a", pageSize: 20 });
 });
 
 afterEach(() => {
 	scope.stop();
-	forgetRows("Lead");
 	vi.restoreAllMocks();
 	vi.useRealTimers();
 });

@@ -8,12 +8,6 @@ import type { Navigation, NavigationItem } from "@/boot";
 export type Container = "Rail" | "Sidebar";
 
 /**
- * Whose layer. `user` is always the session user; `site` is what everyone sees and needs a
- * System Manager.
- */
-export type Scope = "user" | "site";
-
-/**
  * A row as the editor holds it. `hidden` is absent from `boot.navigation`, so the editor
  * asks for it back.
  */
@@ -22,13 +16,10 @@ export type ArrangedItem = NavigationItem & { hidden?: 1 };
 /** The address of one container: an app name for a rail, a scrubbed address for a sidebar. */
 export type Address = { container: Container; address: string };
 
-export async function fetchArrangement(
-	{ container, address }: Address,
-	scope: Scope = "user"
-): Promise<ArrangedItem[]> {
+export async function fetchArrangement({ container, address }: Address): Promise<ArrangedItem[]> {
 	const response = await runMethod<ArrangedItem[]>(
 		"frappe.shell.arrangement.get_arrangement",
-		{ container, address, scope },
+		{ container, address, scope: "user" },
 		{ http: "GET" }
 	);
 	return response.data;
@@ -36,26 +27,22 @@ export async function fetchArrangement(
 
 export async function saveArrangement(
 	{ container, address }: Address,
-	items: ArrangedItem[],
-	scope: Scope = "user"
+	items: ArrangedItem[]
 ): Promise<Navigation> {
 	const response = await runMethod<Navigation>("frappe.shell.arrangement.save_arrangement", {
 		container,
 		address,
-		scope,
+		scope: "user",
 		items,
 	});
 	return response.data;
 }
 
-export async function resetArrangement(
-	{ container, address }: Address,
-	scope: Scope = "user"
-): Promise<Navigation> {
+export async function resetArrangement({ container, address }: Address): Promise<Navigation> {
 	const response = await runMethod<Navigation>("frappe.shell.arrangement.reset_arrangement", {
 		container,
 		address,
-		scope,
+		scope: "user",
 	});
 	return response.data;
 }

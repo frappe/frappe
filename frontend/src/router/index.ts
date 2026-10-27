@@ -137,11 +137,3 @@ function checkModule(to: any, addresses: Addresses) {
 	// Not a miss: the record exists and this is the wrong spelling of its address.
 	return { ...to, params: { ...to.params, module: address[1] }, replace: true };
 }
-
-/** The real doctype behind a URL segment, or null if the site does not serve one. */
-export function resolveDoctype(
-	addresses: Addresses,
-	segment: string
-): string | null {
-	return addresses.doctypeOf(segment);
-}

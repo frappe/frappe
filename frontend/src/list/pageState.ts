@@ -39,7 +39,3 @@ export function recallRows(doctype: string, query: string): RowsMemory | undefin
 	const memory = rowsByDoctype.get(doctype);
 	return memory?.query === query ? memory : undefined;
 }
-
-export function forgetRows(doctype: string): void {
-	rowsByDoctype.delete(doctype);
-}

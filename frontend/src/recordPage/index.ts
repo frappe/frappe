@@ -27,7 +27,6 @@ export type { IconSource } from "./iconClasses";
 export {
   clientScriptChanges,
   invalidateClientScripts,
-  reloadClientScripts,
   watchClientScripts,
 } from "./clientScripts";
 export { addFileScript, loadRecordScripts } from "./scriptLoader";
