@@ -246,6 +246,24 @@ describe("page.fields.setError and clearError", () => {
     expect(controller.fieldErrors.drawn.value).toEqual({ qty: "Quantity must be positive" });
   });
 
+  it("keeps a field handler's mark when the control sends the committed value again", async () => {
+    const { host } = makeHost();
+    const controller = createRecordPage(host);
+    registerRecordPage("CRM Deal", {
+      qty(page) {
+        page.fields.setError("qty", "Quantity must be positive");
+      },
+    });
+
+    const committed = controller.commits.commit("qty", -1);
+    controller.commits.pending("qty", -1);
+    await committed;
+
+    expect(controller.fieldErrors.drawn.value).toEqual({ qty: "Quantity must be positive" });
+    controller.commits.pending("qty", 5);
+    expect(controller.fieldErrors.drawn.value).toEqual({});
+  });
+
   it("warns about a field the doctype does not have", () => {
     const { host } = makeHost();
     const controller = createRecordPage(host);

@@ -27,7 +27,7 @@ import { registerSettingsBlocks } from "@/shell/settingsBlocks";
 import type { PanesReply, SettingsBlock } from "@/shell/settingsPanes";
 import ShellSettingsDialog from "@/shell/ShellSettingsDialog.vue";
 import SettingsBlocks from "../SettingsBlocks.vue";
-import { SettingsServer } from "./settingsServer";
+import { SettingsServer, SYSTEM_SETTINGS } from "./settingsServer";
 
 const SYSTEM = { type: "Single", doctype: "System Settings" } as const;
 
@@ -172,6 +172,29 @@ describe("a generated block", () => {
 			{ country: "India", modified: expect.any(String) },
 		]);
 		expect(row("country").textContent).toContain("Saved");
+	});
+
+	it.each([
+		["Data", "input"],
+		["Small Text", "textarea"],
+	])("keeps a cleared required %s field's message after the field is left", async (fieldtype, tag) => {
+		server.metas["System Settings"] = {
+			...SYSTEM_SETTINGS,
+			fields: SYSTEM_SETTINGS.fields.map((field) =>
+				field.fieldname === "country" ? { ...field, fieldtype, reqd: 1 } : field
+			),
+		};
+		await opened();
+		const control = row("country").querySelector<HTMLInputElement>(tag)!;
+
+		control.value = "";
+		control.dispatchEvent(new Event("input", { bubbles: true }));
+		control.dispatchEvent(new Event("change", { bubbles: true }));
+		await settle();
+
+		expect(server.writes).toEqual([]);
+		expect(row("country").textContent).toContain("Not saved");
+		expect(row("country").textContent).toContain("Country is required");
 	});
 });
 
