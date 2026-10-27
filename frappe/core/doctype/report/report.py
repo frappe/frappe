@@ -526,21 +526,14 @@ class Report(Document):
 		validated = frappe._dict({key: filters[key] for key in FRAMEWORK_FILTER_KEYS if key in filters})
 		for row in self.filters:
 			value = filters[row.fieldname] if row.fieldname in filters else get_filter_default(row, user)
-			if value in (None, ""):
+			if value in (None, "", []):
 				if row.mandatory:
 					frappe.throw(
 						_("{0} is mandatory").format(frappe.bold(_(row.label))), title=_("Missing Filters")
 					)
 				continue
 
-			if not isinstance(value, str | int | float):
-				frappe.throw(
-					_("{0} must be a single value").format(frappe.bold(_(row.label))),
-					title=_("Invalid Filters"),
-				)
-
-			validate_filter_value(row, value, user)
-			validated[row.fieldname] = cast(row.fieldtype, value)
+			validated[row.fieldname] = get_validated_value(row, value, user)
 
 		return validated
 
@@ -567,7 +560,33 @@ def get_filter_default(row, user):
 	return get_static_default_value(row, [], [])
 
 
-def validate_filter_value(row, value, user):
+def get_validated_value(row, value, user):
+	if row.fieldtype in ("MultiSelectList", "DateRange"):
+		if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+			frappe.throw(
+				_("{0} must be a list of values").format(frappe.bold(_(row.label))),
+				title=_("Invalid Filters"),
+			)
+
+		if row.fieldtype == "DateRange":
+			if len(value) != 2:
+				frappe.throw(
+					_("{0} must have a start and an end date").format(frappe.bold(_(row.label))),
+					title=_("Invalid Filters"),
+				)
+			return [cast("Date", item) for item in value]
+
+		if row.options:
+			for item in value:
+				validate_link_value(row.options, item, user)
+		return value
+
+	if not isinstance(value, str | int | float):
+		frappe.throw(
+			_("{0} must be a single value").format(frappe.bold(_(row.label))),
+			title=_("Invalid Filters"),
+		)
+
 	if row.fieldtype == "Select" and value not in (options := (row.options or "").split("\n")):
 		frappe.throw(
 			_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(
@@ -577,21 +596,27 @@ def validate_filter_value(row, value, user):
 		)
 
 	if row.fieldtype == "Link" and not row.wildcard_filter:
-		if not frappe.db.exists(row.options, value):
-			frappe.throw(
-				_("{0} {1} not found").format(_(row.options), value),
-				frappe.DoesNotExistError,
-				title=_("Invalid Filters"),
-			)
+		validate_link_value(row.options, value, user)
 
-		if not frappe.has_permission(row.options, "read", value, user=user) and not frappe.has_permission(
-			row.options, "select", value, user=user
-		):
-			frappe.throw(
-				_("You do not have permission to access {0}: {1}.").format(_(row.options), value),
-				frappe.PermissionError,
-				title=_("Invalid Filters"),
-			)
+	return cast(row.fieldtype, value)
+
+
+def validate_link_value(doctype, value, user):
+	if not frappe.db.exists(doctype, value):
+		frappe.throw(
+			_("{0} {1} not found").format(_(doctype), value),
+			frappe.DoesNotExistError,
+			title=_("Invalid Filters"),
+		)
+
+	if not frappe.has_permission(doctype, "read", value, user=user) and not frappe.has_permission(
+		doctype, "select", value, user=user
+	):
+		frappe.throw(
+			_("You do not have permission to access {0}: {1}.").format(_(doctype), value),
+			frappe.PermissionError,
+			title=_("Invalid Filters"),
+		)
 
 
 def is_prepared_report_enabled(report):

@@ -154,16 +154,32 @@ frappe.report_utils = {
 
 	merge_server_filters(report_settings, report_filters) {
 		const js_filters = report_settings.filters || [];
-		report_settings.filters = report_filters.map((row) => ({
-			default: row.default,
-			...js_filters.find((filter) => filter.fieldname === row.fieldname),
-			fieldname: row.fieldname,
-			label: __(row.label),
-			fieldtype: row.fieldtype,
-			options: row.options,
-			reqd: row.mandatory,
-			wildcard_filter: row.wildcard_filter,
-		}));
+		const server_fieldnames = report_filters.map((row) => row.fieldname);
+		for (const filter of js_filters) {
+			if (!server_fieldnames.includes(filter.fieldname)) {
+				console.warn(
+					`[Query Report] Filter without a Report Filter row: ${filter.fieldname}`
+				);
+			}
+		}
+
+		report_settings.filters = report_filters.map((row) => {
+			const js_filter = js_filters.find((filter) => filter.fieldname === row.fieldname);
+			const filter = {
+				default: row.default,
+				...js_filter,
+				fieldname: row.fieldname,
+				label: __(row.label),
+				fieldtype: row.fieldtype,
+				options: row.options || js_filter?.options,
+				reqd: row.mandatory,
+				wildcard_filter: row.wildcard_filter,
+			};
+			if (filter.fieldtype === "MultiSelectList" && row.options && !filter.get_data) {
+				filter.get_data = (txt) => frappe.db.get_link_options(row.options, txt);
+			}
+			return filter;
+		});
 		report_settings.validate_filters = 1;
 	},
 

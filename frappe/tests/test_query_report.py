@@ -831,6 +831,23 @@ data = columns, result
 			with self.assertRaisesRegex(frappe.ValidationError, "priority"):
 				run(report.name, {"allocated_to": user, "priority": "High"})
 
+	def test_validated_list_filters(self):
+		report, user = self.make_filtered_report()
+
+		filters = report.get_validated_filters(
+			{"allocated_to": user, "users": [user], "period": ["2026-01-01", "2026-01-31"]}, user
+		)
+		self.assertEqual(filters.users, [user])
+		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
+		self.assertNotIn("users", report.get_validated_filters({"allocated_to": user, "users": []}, user))
+
+		with self.assertRaisesRegex(frappe.ValidationError, "list of values"):
+			report.get_validated_filters({"allocated_to": user, "users": user}, user)
+		with self.assertRaisesRegex(frappe.ValidationError, "start and an end date"):
+			report.get_validated_filters({"allocated_to": user, "period": ["2026-01-01"]}, user)
+		with self.assertRaises(frappe.PermissionError):
+			report.get_validated_filters({"allocated_to": user, "users": [user, "Administrator"]}, user)
+
 	def test_filters_without_validation_reach_the_report_unchanged(self):
 		report, user = self.make_filtered_report(validate_filters=0)
 
@@ -875,6 +892,8 @@ data = columns, result
 					dict(
 						fieldname="job_type", label="Job Type", fieldtype="Link", options="Scheduled Job Type"
 					),
+					dict(fieldname="users", label="Users", fieldtype="MultiSelectList", options="User"),
+					dict(fieldname="period", label="Period", fieldtype="DateRange"),
 				],
 				"columns": [
 					dict(fieldname="status", label="Status", fieldtype="Data"),
