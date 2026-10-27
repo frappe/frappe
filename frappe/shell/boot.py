@@ -226,25 +226,14 @@ def index_favourites() -> list[dict]:
 
 def index_recent() -> list[dict]:
 	"""The person's last distinct list and record addresses, newest first, less those they can no longer open."""
-	visits = [visit for visit in latest_visits(RECENT_LIMIT) if has_app_permission(visit.app)]
-	names_by_doctype: dict[str, list[str]] = {}
-	for visit in visits:
-		if visit.name is not None:
-			names_by_doctype.setdefault(visit.doctype, []).append(visit.name)
-
-	titles = {doctype: readable_titles(doctype, names) for doctype, names in names_by_doctype.items()}
 	recent = []
-	for visit in visits:
-		heading = visit_heading(visit, titles)
-		if heading is None:
-			continue
-
+	for visit, title, subtitle in titled_visits(RECENT_LIMIT):
 		screen = app_screen(visit.app)
 		recent.append(
 			{
 				"route": visit.route,
-				"title": heading[0],
-				"kind": heading[1],
+				"title": title,
+				"kind": subtitle,
 				"visited": visit.visited,
 				"app": visit.app,
 				"app_title": screen["title"],
@@ -253,6 +242,18 @@ def index_recent() -> list[dict]:
 		)
 
 	return recent
+
+
+def titled_visits(limit: int) -> list[tuple[Visit, str, str | None]]:
+	"""Of the person's last `limit` distinct visits, those they can still open, each with its title and subtitle."""
+	visits = [visit for visit in latest_visits(limit) if has_app_permission(visit.app)]
+	names_by_doctype: dict[str, list[str]] = {}
+	for visit in visits:
+		if visit.name is not None:
+			names_by_doctype.setdefault(visit.doctype, []).append(visit.name)
+
+	titles = {doctype: readable_titles(doctype, names) for doctype, names in names_by_doctype.items()}
+	return [(visit, *heading) for visit in visits if (heading := visit_heading(visit, titles))]
 
 
 def visit_heading(visit: Visit, titles: dict[str, dict[str, str]]) -> tuple[str, str | None] | None:
