@@ -36,7 +36,7 @@ You can add a label any time. Adding `fixes-develop` or `run-full-ci` restarts y
 
 Pull requests into develop and desk-v2 run only the linters. Develop and desk-v2 run the server and UI test suites every hour. To run them on your pull request, add one of the labels above.
 
-A desk-v2 pull request that changes `frontend/` or `ui/` also runs the server suite, because server tests such as `frappe/tests/test_shell.py` read those files.
+Some server tests, such as `frappe/tests/test_shell.py`, read the desk-v2 frontend: `frontend/`, `ui/` and the `frontend/` folders in apps. A desk-v2 pull request that changes them does not run the server suite, so run those tests yourself (`bench --site <site> run-tests --module frappe.tests.test_shell`) or add `Run Server Tests`. The hourly desk-v2 run counts these files for the server suite.
 
 ## Settings
 
