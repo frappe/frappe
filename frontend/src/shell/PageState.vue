@@ -10,7 +10,7 @@
 			<span class="size-7 text-ink-gray-4" :class="look.icon" aria-hidden="true" />
 			<div class="flex max-w-md flex-col items-center gap-1.5">
 				<p class="text-lg font-medium text-ink-gray-8">{{ look.title }}</p>
-				<p class="text-p-sm text-ink-gray-6">{{ look.description }}</p>
+				<p class="text-p-sm text-ink-gray-6">{{ description }}</p>
 				<ErrorMessage v-if="message" :message="escaped(message)" />
 			</div>
 			<Button
@@ -90,6 +90,11 @@ const looks = {
 };
 
 const look = computed(() => looks[props.name]);
+
+const description = computed(() => {
+	if (props.name !== "noPermission" || !props.act) return look.value.description;
+	return __("You do not have permission to create {0}.", [__(props.act.doctype)]);
+});
 
 const boot = inject<Boot>("boot")!;
 const route = useRoute();

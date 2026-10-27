@@ -321,7 +321,9 @@ describe("opening /<doctype>/new", () => {
     const { root } = await mount("/note/new");
 
     expect(root.querySelector("h1")!.textContent).toBe("New Note");
-    expect(root.querySelector('[data-page-state="noPermission"]')).not.toBeNull();
+    expect(root.querySelector('[data-page-state="noPermission"]')!.textContent).toContain(
+      "You do not have permission to create Note.",
+    );
     expect(root.querySelector("[data-page-state] a, [data-page-state] button")).toBeNull();
     expect(input(root, "title")).toBeNull();
   });

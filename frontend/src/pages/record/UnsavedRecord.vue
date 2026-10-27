@@ -212,7 +212,10 @@ async function open() {
 		meta.value = await fetchMeta(props.doctype);
 		if (!opening.current()) return;
 		if (!canCreate.value) {
-			state.value = { name: "noPermission" };
+			state.value = {
+				name: "noPermission",
+				act: { name: "create", doctype: props.doctype },
+			};
 			return;
 		}
 		const newDoc = await newDocument;

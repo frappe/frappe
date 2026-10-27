@@ -2,11 +2,17 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick, type Component } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
-import { ApiError } from "@framework/ui/api";
+import { ApiError, getTranslations } from "@framework/ui/api";
+import { loadTranslations } from "@/i18n";
 
 import PageFrame from "../PageFrame.vue";
 import PageState from "../PageState.vue";
 import { failedState, type PageStateName } from "../pageState";
+
+vi.mock("@framework/ui/api", async (original) => ({
+	...(await original<typeof import("@framework/ui/api")>()),
+	getTranslations: vi.fn(),
+}));
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -98,6 +104,37 @@ describe("PageState", () => {
 	])("draws the %s state with its own words", async (name, title) => {
 		const root = await mount(() => h(PageState, { name }));
 		expect(root.querySelector(`[data-page-state="${name}"]`)?.textContent).toContain(title);
+	});
+
+	it("says the person may not see this when no permission names no act", async () => {
+		const root = await mount(() => h(PageState, { name: "noPermission" }));
+		expect(root.textContent).toContain("You do not have permission to see this.");
+	});
+
+	it("names the denied act in gray words, never in the red message", async () => {
+		const act = { name: "create", doctype: "Note" } as const;
+		const root = await mount(() => h(PageState, { name: "noPermission", act }));
+		const words = [...root.querySelectorAll("p")].find(
+			(p) => p.textContent === "You do not have permission to create Note.",
+		);
+		expect(words?.classList.contains("text-ink-gray-6")).toBe(true);
+		expect(root.textContent).not.toContain("You do not have permission to see this.");
+		expect(root.querySelector(".text-ink-red-7")).toBeNull();
+	});
+
+	it("names the doctype by its translated label", async () => {
+		const permission = "You do not have permission to create {0}.";
+		const german = { Note: "Notiz", [permission]: "Kein Recht, {0} anzulegen." };
+		vi.mocked(getTranslations).mockResolvedValue({ data: german });
+		await loadTranslations("v1", "de");
+		try {
+			const act = { name: "create", doctype: "Note" } as const;
+			const root = await mount(() => h(PageState, { name: "noPermission", act }));
+			expect(root.textContent).toContain("Kein Recht, Notiz anzulegen.");
+		} finally {
+			vi.mocked(getTranslations).mockResolvedValue({ data: {} });
+			await loadTranslations("v2", "en");
+		}
 	});
 
 	it("announces a refusal or failure, and not an empty list", async () => {
