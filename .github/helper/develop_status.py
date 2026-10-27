@@ -149,7 +149,7 @@ def post(pr, started=None):
 	return state
 
 
-def needs_suite(workflow, files, branch):
+def needs_suite(workflow, files, branch="develop"):
 	"""Can these changed files affect this suite? The pull request plan's rules in roulette.py, except that
 	desk-v2's frontend counts for its server suite: desk-v2 pull requests skip the server tests that read it."""
 	if files is None or any(is_ci(f) for f in files):
