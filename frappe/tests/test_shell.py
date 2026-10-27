@@ -1019,6 +1019,53 @@ class TestAppPermission(IntegrationTestCase):
 			self.assertFalse(has_app_permission("crm"))
 
 
+class TestWebsiteUserRedirect(IntegrationTestCase):
+	"""A user with no desk role has no app to open: every shell address sends them to `/me`."""
+
+	def setUp(self):
+		frappe.set_user("Administrator")
+		switch_desk_v2(self, on=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def tearDown(self):
+		frappe.flags.redirect_location = None
+		if hasattr(frappe.local, "request"):
+			delattr(frappe.local, "request")
+
+	def make_user(self, email: str, roles: list[str]) -> str:
+		user = frappe.get_doc(
+			doctype="User", email=email, first_name="Shell Redirect", roles=[{"role": r} for r in roles]
+		).insert(ignore_if_duplicate=True, ignore_permissions=True)
+		return user.name
+
+	def get(self, path: str):
+		set_request(method="GET", path=path)
+		return get_response()
+
+	def test_a_website_user_is_sent_to_me_from_the_index_and_a_prefix(self):
+		frappe.set_user(self.make_user("shell-redirect-noroles@example.com", []))
+		self.assertEqual(frappe.db.get_value("User", frappe.session.user, "user_type"), "Website User")
+
+		for path in ("/apps", "/apps/desk", "/apps/desk/todo"):
+			response = self.get(path)
+			self.assertEqual(response.status_code, 302, path)
+			self.assertEqual(response.headers["Location"], "/me", path)
+
+	def test_a_desk_user_still_gets_the_index(self):
+		frappe.set_user(self.make_user("shell-redirect-desk@example.com", ["Desk User"]))
+		self.assertEqual(self.get("/apps").status_code, 200)
+
+	def test_a_desk_user_refused_by_the_gate_gets_a_403_not_a_redirect(self):
+		frappe.set_user(self.make_user("shell-redirect-desk@example.com", ["Desk User"]))
+		with hooks_declaring("app_permission", {"frappe": "frappe.shell.nonexistent.handler"}):
+			self.assertEqual(self.get("/apps").status_code, 403)
+
+	def test_guest_is_still_sent_to_login_from_the_index(self):
+		frappe.set_user("Guest")
+		response = self.get("/apps")
+		self.assertTrue(response.headers["Location"].startswith("/login?redirect-to="))
+
+
 class TestModularAddresses(IntegrationTestCase):
 	"""The three-segment shape an app opts into with `app_modular`."""
 
