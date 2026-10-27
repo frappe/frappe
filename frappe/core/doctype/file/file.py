@@ -283,7 +283,12 @@ class File(Document):
 		if not self.file_url:
 			return
 
-		filters = {"file_url": self.file_url, "is_private": 1}
+		file_url = self.file_url
+		site_url = get_url()
+		if file_url.startswith(site_url):
+			file_url = file_url.split(site_url, 1)[1]
+
+		filters = {"file_url": file_url, "is_private": 1}
 		if not self.is_new():
 			filters["name"] = ["!=", self.name]
 

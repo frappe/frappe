@@ -2114,6 +2114,17 @@ class TestFileUtils(IntegrationTestCase):
 			own.file_url = alias
 			self.assertRaisesRegex(ValidationError, "File URL", own.save)
 
+		# the plain URL of this site is the same file as the local one
+		alias = f"{site_url}/private/files/alias_victim.txt"
+		doc = frappe.get_doc(
+			{"doctype": "File", "file_name": "alias.txt", "file_url": alias, "is_private": 1}
+		)
+		self.assertRaises(frappe.PermissionError, doc.insert)
+
+		own.reload()
+		own.file_url = alias
+		self.assertRaises(frappe.PermissionError, own.save)
+
 	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
 		from frappe.utils.file_manager import get_file_path
 
