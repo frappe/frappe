@@ -859,6 +859,29 @@ data = columns, result
 		with self.assertRaises(frappe.PermissionError):
 			report.get_validated_filters({"allocated_to": user, "users": [user, "Administrator"]}, user)
 
+	def test_prepared_report_by_name_validates_its_saved_filters(self):
+		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
+
+		report, user = self.make_filtered_report()
+		report.prepared_report = 1
+		report.filters[0].default = None
+		report.save()
+
+		with self.set_user(user):
+			prepared_report = frappe.get_doc(
+				{
+					"doctype": "Prepared Report",
+					"report_name": report.name,
+					"filters": json.dumps({"allocated_to": user}),
+				}
+			).insert(ignore_permissions=True)
+			create_json_gz_file(
+				{"columns": [], "result": []}, prepared_report.doctype, prepared_report.name, report.name
+			)
+			result = run(report.name, {"prepared_report_name": prepared_report.name})
+
+		self.assertEqual(result["doc"].name, prepared_report.name)
+
 	def test_filters_without_validation_reach_the_report_unchanged(self):
 		report, user = self.make_filtered_report(validate_filters=0)
 

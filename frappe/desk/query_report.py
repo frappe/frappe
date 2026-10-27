@@ -338,7 +338,10 @@ def _run(
 						frappe.has_permission("Prepared Report", "read", dn, throw=True)
 			else:
 				dn = ""
-			if report.validate_filters:
+			if report.validate_filters and dn:
+				saved_filters = json.loads(frappe.db.get_value("Prepared Report", dn, "filters"))
+				report.get_validated_filters(saved_filters, user)
+			elif report.validate_filters:
 				report.get_validated_filters(filters or {}, user)
 			result = get_prepared_report_result(report, filters, dn, user)
 			result["attachments"] = get_attachments("Prepared Report", dn)
