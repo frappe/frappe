@@ -1,10 +1,9 @@
-/** Read-state strings for a panel row: one line per field, whatever its fieldtype. */
+/** The string a field shows in a panel row, a read-only form field and a read-only grid cell. */
 import { formatDuration } from "frappe-ui";
-import { formatField } from "@framework/ui/FormLayout";
-import type { FormatFieldOptions } from "@framework/ui/FormLayout";
-import { formatRating } from "@framework/ui/GroupBy";
-import type { FieldMeta } from "@framework/ui/fields/types";
-import { htmlToText } from "@framework/ui/RichText";
+import { NUMBER_FIELDTYPES, formatField, formatRating } from "./formatNumber";
+import type { FormatFieldOptions } from "./formatNumber";
+import type { FieldMeta } from "../Fields/types";
+import { htmlToText } from "../RichText/html";
 
 export interface DisplayOptions extends FormatFieldOptions {
   /** The record, for a fieldtype that reads a sibling field: Image, Dynamic Link. */
@@ -12,8 +11,6 @@ export interface DisplayOptions extends FormatFieldOptions {
   /** The record's link titles, keyed `doctype::name`. */
   linkTitles?: Record<string, string>;
 }
-
-const NUMERIC = ["Int", "Float", "Currency", "Percent"];
 
 const CODE = ["Code", "JSON", "Markdown Editor", "HTML Editor"];
 
@@ -53,15 +50,15 @@ export function summarize(value: unknown, fieldtype: string): string {
   return "Set";
 }
 
-/**
- * The string a panel row shows when it is not being edited. Returns `''` for an
- * empty value, which is what the row renders its `Add …` placeholder for.
- */
+/** A field's display string; `''` when empty, so each caller draws its own placeholder. */
 export function displayValue(
   value: unknown,
   field: FieldMeta,
   options: DisplayOptions = {},
 ): string {
+  // A `Read Only` field formats as Data with its own `options`, so each Data case applies to it.
+  if (field.fieldtype === "Read Only")
+    return displayValue(value, { ...field, fieldtype: "Data" }, options);
   const { fieldtype } = field;
   // An Image field holds no value: it shows the attachment its `options` field names.
   if (fieldtype === "Image") return summarize(sibling(field, options), fieldtype);
@@ -69,7 +66,7 @@ export function displayValue(
   // A Check has no unset state: an absent value is `No`, not a placeholder.
   if (fieldtype === "Check") return value ? "Yes" : "No";
   if (isEmptyValue(value)) return "";
-  if (NUMERIC.includes(fieldtype))
+  if (NUMBER_FIELDTYPES.includes(fieldtype))
     return formatField(value, { ...options, fieldtype });
   return formatValue(value, field, options);
 }
@@ -93,6 +90,8 @@ function formatValue(
       return formatDuration(Number(value));
     case "Time":
       return formatTime(String(value));
+    case "Datetime":
+      return formatDatetime(String(value));
     case "Password":
       return PASSWORD_MASK;
     default:
@@ -131,6 +130,13 @@ function sibling(field: FieldMeta, options: DisplayOptions): unknown {
 function formatTime(value: string): string {
   const match = /^(\d{1,2}):(\d{2})/.exec(value);
   return match ? `${match[1].padStart(2, "0")}:${match[2]}` : value;
+}
+
+// The server sends `2026-10-24 09:15:00.123456`; the form's DateTimePicker shows
+// `2026-10-24 09:15:00`.
+function formatDatetime(value: string): string {
+  const match = /^(\d{4}-\d{2}-\d{2})[ T](\d{2}:\d{2}:\d{2})/.exec(value);
+  return match ? `${match[1]} ${match[2]}` : value;
 }
 
 function firstLine(text: string): string {

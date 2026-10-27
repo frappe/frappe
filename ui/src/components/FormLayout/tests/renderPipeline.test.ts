@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it } from "vitest";
-import { createApp, defineComponent, h } from "vue";
+import { createApp, defineComponent, h, ref } from "vue";
 import type { App } from "vue";
 import FormLayoutColumn from "../FormLayoutColumn.vue";
 import { buildLayoutFromMeta } from "../buildLayoutFromMeta";
@@ -68,7 +68,7 @@ function render(
   app = createApp({
     render: () => h(FormLayoutColumn, { column: layout[0].sections[0].columns[0] }),
   });
-  app.provide(DocKey, { value: doc } as any);
+  app.provide(DocKey, ref(doc));
   app.provide(UpdateKey, (name: string, value: any) => (doc[name] = value));
   app.provide(ResolveFieldKey, () => StubField);
   app.mount(host);
@@ -117,6 +117,7 @@ describe("meta → DOM", () => {
       [
         field({
           fieldname: "rate",
+          fieldtype: "Check",
           mandatory_depends_on: "eval:doc.billable",
           read_only_depends_on: "eval:doc.locked",
         }),
@@ -126,6 +127,16 @@ describe("meta → DOM", () => {
     const el = host.querySelector("[data-stub][data-fieldname='rate']")!;
     expect(el.getAttribute("data-reqd")).toBe("true");
     expect(el.getAttribute("data-read-only")).toBe("true");
+  });
+
+  it("draws a field resolved read-only as its value, not its control", () => {
+    const host = render(
+      [field({ fieldname: "code", read_only_depends_on: "eval:doc.locked" })],
+      { locked: 1, code: "X-1" }
+    );
+    expect(host.querySelector("[data-stub]")).toBeNull();
+    const value = host.querySelector("[data-fieldname='code'] [data-slot='read-value']");
+    expect(value?.textContent?.trim()).toBe("X-1");
   });
 
   it("an override puts a depends_on-hidden field back in the DOM", () => {
@@ -187,7 +198,7 @@ function renderColumn(fields: FieldNode[], doc: Record<string, any> = {}) {
   app = createApp({
     render: () => h(FormLayoutColumn, { column: { name: "c", fields } }),
   });
-  app.provide(DocKey, { value: doc } as any);
+  app.provide(DocKey, ref(doc));
   app.provide(UpdateKey, (name: string, value: any) => (doc[name] = value));
   app.provide(ResolveFieldKey, () => StubField);
   app.mount(host);

@@ -7,6 +7,7 @@ import type {
   GroupByField,
   GroupBySettings,
 } from "./types";
+export { formatRating } from "../FormLayout/formatNumber";
 
 export const AGGREGATE_FUNCTIONS: ReadonlyArray<{
   label: string;
@@ -324,15 +325,4 @@ export function parseGroupBy(raw: unknown): GroupBySettings | null {
   if (sort) parsed.sort = sort;
   if (extras.showTotals === true) parsed.showTotals = true;
   return parsed;
-}
-
-const ratingFormat = new Intl.NumberFormat(undefined, {
-  maximumFractionDigits: 1,
-});
-
-/** A Rating is stored as a fraction of its stars (0.6 of 5 is 3 stars); show it on
- *  the field's own scale, as "3 / 5". `options` holds the star count, 5 when unset. */
-export function formatRating(value: number, options?: string): string {
-  const stars = Number(options) || 5;
-  return `${ratingFormat.format(value * stars)} / ${stars}`;
 }

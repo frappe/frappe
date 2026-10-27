@@ -118,6 +118,7 @@ export function resolveFieldConditionals<
       evaluateDependsOn(f.mandatoryDependsOn, doc, parent));
   const readOnly =
     f.readOnly ||
+    f.fieldtype === "Read Only" ||
     (!!f.readOnlyDependsOn &&
       evaluateDependsOn(f.readOnlyDependsOn, doc, parent));
 

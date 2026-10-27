@@ -74,14 +74,9 @@ import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { RecordAnchor } from "@framework/ui/Link";
 import { focusField, useRecordLink } from "@framework/ui/fields";
-import {
-	getFormatDefaults,
-	resolveFieldCurrency,
-	useDocValueReader,
-} from "@framework/ui/FormLayout";
+import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import { PanelContextKey } from "./context";
-import { displayValue, isSummaryField } from "./displayValue";
 
 const props = defineProps<{ field: FieldNode }>();
 const emit = defineEmits<{ expand: [field: FieldNode] }>();
@@ -92,7 +87,7 @@ const commit = inject(CommitKey, NO_COMMIT);
 const resolveField = inject(ResolveFieldKey)!;
 const context = inject(PanelContextKey, null);
 const titles = inject(LinkTitlesKey, null);
-const getDocValue = useDocValueReader();
+const displayField = useFieldDisplay();
 const errors = inject(FieldErrorsKey, null);
 const error = computed(() => errors?.value[fieldErrorKey(props.field.fieldname)]);
 const message = computed(() => [error.value ?? []].flat().join(" "));
@@ -134,24 +129,9 @@ const placeholder = computed(() =>
 	interactive.value && !summary.value ? `Add ${props.field.label}...` : ""
 );
 
-const display = computed(() => {
-	const defaults = getFormatDefaults();
-	return displayValue(doc.value[props.field.fieldname], props.field, {
-		precision: props.field.precision,
-		currency:
-			props.field.fieldtype === "Currency"
-				? resolveFieldCurrency(props.field.options, {
-						doc: doc.value,
-						defaultCurrency: defaults.currency,
-						getDocValue,
-				  })
-				: undefined,
-		numberFormat: defaults.number_format,
-		roundingMethod: defaults.rounding_method,
-		doc: doc.value,
-		linkTitles: titles?.value,
-	});
-});
+const display = computed(() =>
+	displayField(props.field, doc.value[props.field.fieldname], { doc: doc.value })
+);
 
 const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
 const openLabel = computed(() => {

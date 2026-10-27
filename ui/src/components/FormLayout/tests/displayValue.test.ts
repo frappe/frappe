@@ -5,7 +5,7 @@ import {
   isSummaryField,
   summarize,
 } from "../displayValue";
-import type { FieldMeta } from "@framework/ui/fields/types";
+import type { FieldMeta } from "../../Fields/types";
 
 function field(fieldtype: string, extra: Partial<FieldMeta> = {}): FieldMeta {
   return { fieldname: "f", fieldtype, label: "F", ...extra };
@@ -100,6 +100,9 @@ describe("displayValue", () => {
         currency: "USD",
       }),
     ).toBe("$ 1,234.50");
+    expect(displayValue("9007199254740993", field("Long Int"))).toBe(
+      "9007199254740993",
+    );
   });
 
   const linkTitles = {
@@ -173,6 +176,15 @@ describe("displayValue", () => {
     expect(displayValue("14:05:30.000000", field("Time"))).toBe("14:05");
   });
 
+  it("shows a datetime as the form's picker does, without microseconds", () => {
+    expect(
+      displayValue("2026-10-24 09:15:00.123456", field("Datetime")),
+    ).toBe("2026-10-24 09:15:00");
+    expect(displayValue("2026-10-24 09:15:00", field("Datetime"))).toBe(
+      "2026-10-24 09:15:00",
+    );
+  });
+
   it("masks a password, typed or saved", () => {
     expect(displayValue("hunter2", field("Password"))).toBe("••••••••");
     expect(displayValue("*******", field("Password"))).toBe("••••••••");
@@ -180,5 +192,18 @@ describe("displayValue", () => {
 
   it("summarizes the fieldtypes with no honest row", () => {
     expect(displayValue([{}, {}], field("Table"))).toBe("2 items");
+  });
+});
+
+describe("a Read Only field", () => {
+  it("routes through the Data path, keeping its options", () => {
+    for (const options of ["", "Email", "IBAN", "URL"])
+      expect(displayValue("ab@example.com", field("Read Only", { options }))).toBe(
+        displayValue("ab@example.com", field("Data", { options }))
+      );
+  });
+
+  it("is empty for no value", () => {
+    expect(displayValue(null, field("Read Only"))).toBe("");
   });
 });

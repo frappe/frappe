@@ -17,6 +17,10 @@ export {
 } from "./resolveLayout";
 export { identifyTabs, tabStripLabel } from "./tabIdentity";
 export { resolveFieldCurrency, useDocValueReader } from "./resolveCurrency";
+export { displayValue, isEmptyValue, isSummaryField, summarize } from "./displayValue";
+export type { DisplayOptions } from "./displayValue";
+export { useFieldDisplay } from "./useFieldDisplay";
+export type { FieldDisplay } from "./useFieldDisplay";
 export { warnMissingCommit } from "./warnMissingCommit";
 export { CommitKey, LinkTitlesKey, NO_COMMIT } from "./types";
 export { newRowValues, layoutFields, NO_VALUE } from "./newRowValues";
@@ -30,6 +34,7 @@ export {
   getNumberFormatInfo,
   DEFAULT_NUMBER_FORMAT,
   DEFAULT_ROUNDING_METHOD,
+  NUMBER_FIELDTYPES,
 } from "./formatNumber";
 export {
   getFormatDefaults,

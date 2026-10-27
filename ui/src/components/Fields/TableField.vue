@@ -41,7 +41,7 @@
 						class="flex w-full items-center justify-center"
 					>
 						<component
-							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:is="cellControl(f)"
 							:field="f"
 							:modelValue="value"
 							:row="row"
@@ -58,7 +58,7 @@
 						:data-preview="oneLine(value)"
 					>
 						<component
-							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:is="cellControl(f)"
 							:field="f"
 							:modelValue="value"
 							:row="row"
@@ -69,7 +69,7 @@
 						/>
 					</div>
 					<component
-						:is="f.ui?.component ?? resolveField(f.fieldtype)"
+						:is="cellControl(f)"
 						v-else
 						class="w-full"
 						:field="f"
@@ -100,12 +100,16 @@
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
+import type { Component } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../Grid";
 import TextareaField from "./TextareaField.vue";
+import ReadOnlyField from "./ReadOnlyField.vue";
+import { drawsReadValue } from "./readView";
 import type { GridColumn } from "../Grid";
 import { htmlToText } from "../RichText/html";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
+import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
 import { layoutFields, newRowValues } from "../FormLayout/newRowValues";
 import {
@@ -221,7 +225,6 @@ function onRowRemove({ rows: removed }: { rows: Record<string, any>[] }) {
 
 // Per-fieldtype alignment, applied to header + cells so they agree. Numeric
 // right-aligns (desk); checkbox/rating center.
-const NUMBER_FIELDTYPES = new Set(["Int", "Long Int", "Float", "Currency", "Percent"]);
 const CENTERED_FIELDTYPES = new Set(["Check", "Rating"]);
 
 // Fieldtypes whose editor can't live in a 34px cell; the row-edit dialog draws the control.
@@ -245,7 +248,7 @@ const SUMMARY_FIELDTYPES = new Set([
 const KEEP_CELL_LABEL = new Set(["Button", "Heading"]);
 
 function alignFor(fieldtype: string): GridColumn["align"] {
-	if (NUMBER_FIELDTYPES.has(fieldtype)) return "right";
+	if (NUMBER_FIELDTYPES.includes(fieldtype)) return "right";
 	if (CENTERED_FIELDTYPES.has(fieldtype)) return "center";
 	return undefined;
 }
@@ -309,7 +312,12 @@ function isSummaryField(field: FieldNode): boolean {
 
 // A textarea cannot cut its text with an ellipsis, so an idle cell shows its value on one line.
 function isTextarea(field: FieldNode): boolean {
-	return !field.ui?.component && resolveField(field.fieldtype) === TextareaField;
+	return cellControl(field) === TextareaField;
+}
+
+function cellControl(field: FieldNode): Component {
+	if (drawsReadValue(field)) return ReadOnlyField;
+	return field.ui?.component ?? resolveField(field.fieldtype);
 }
 
 // One line of read-only text for a summary cell: a count, presence, a label, or the text.

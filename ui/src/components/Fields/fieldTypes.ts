@@ -24,6 +24,7 @@ import TextField from "./TextField.vue";
 import TextareaField from "./TextareaField.vue";
 import TextEditorField from "./TextEditorField.vue";
 import TimeField from "./TimeField.vue";
+import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 
 /** Process-global fieldtype → component registry. */
 const registry = new Map<string, Component>();
@@ -72,7 +73,7 @@ registerFieldType("Time", TimeField);
 
 // One numeric control formats per fieldtype with lib defaults; apps register
 // their own for site-accurate settings (see formatNumber.ts).
-for (const t of ["Int", "Long Int", "Float", "Currency", "Percent"]) {
+for (const t of NUMBER_FIELDTYPES) {
   registerFieldType(t, NumberField);
 }
 
@@ -126,7 +127,8 @@ registerFieldType("Table", TableField);
 
 registerFieldType("Table MultiSelect", TableMultiSelectField);
 
-// buildLayoutFromMeta marks `Read Only` as `readOnly`, which TextField disables.
+// resolveFieldConditionals marks `Read Only` readOnly, so drawsReadValue draws the read look;
+// only one an override un-locks (`readOnly: false`) reaches this input.
 registerFieldType("Read Only", TextField);
 
 registerFieldType(FALLBACK, TextField);
