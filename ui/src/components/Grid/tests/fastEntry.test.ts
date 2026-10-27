@@ -136,6 +136,17 @@ describe("Grid arrow keys", () => {
     expect(document.activeElement).toBe(input(0, 0));
   });
 
+  it("leaves the keys to a picker whose open trigger sits beside the input", () => {
+    render(twoRows());
+    const a = input(0, 0);
+    const trigger = document.createElement("button");
+    trigger.setAttribute("aria-expanded", "true");
+    a.parentElement!.appendChild(trigger);
+    a.focus();
+    press(a, "ArrowDown");
+    expect(document.activeElement).toBe(a);
+  });
+
   it("leaves the keys to an open picker", () => {
     render(twoRows());
     const a = input(0, 0);
@@ -209,6 +220,19 @@ describe("Grid paste", () => {
     expect(events.commit).toEqual([]);
   });
 
+  it("writes every cell before a commit handler can replace the rows", async () => {
+    const original = twoRows();
+    const { rows } = render(original, {
+      onCommit: () => (rows.value = []),
+    });
+    paste(input(0, 0), "x\ty\nu\tv");
+    await nextTick();
+    expect(original.map(({ a, b }) => [a, b])).toEqual([
+      ["x", "y"],
+      ["u", "v"],
+    ]);
+  });
+
   it("leaves a single value to the input's own paste", () => {
     const { events } = render(twoRows());
     const event = paste(input(0, 0), "just one\n");
@@ -231,7 +255,7 @@ describe("Grid insert and duplicate", () => {
 
   it("duplicates a row below its source, with no name and a fresh __row_id", async () => {
     const { rows, events } = render([
-      { name: "r1", idx: 1, a: "1", b: "2" },
+      { name: "r1", idx: 1, docstatus: 1, a: "1", b: "2" },
       { [ROW_ID]: "row-old", a: "3" },
     ]);
     menuItem(0, "Duplicate")!.click();
@@ -240,6 +264,7 @@ describe("Grid insert and duplicate", () => {
     expect(copy).toMatchObject({ a: "1", b: "2" });
     expect(copy.name).toBeUndefined();
     expect(copy.idx).toBeUndefined();
+    expect(copy.docstatus).toBeUndefined();
     expect(copy[ROW_ID]).toBeTruthy();
     expect(copy[ROW_ID]).not.toBe("row-old");
     expect(events.add).toBe(1);
@@ -269,8 +294,9 @@ describe("Grid fast entry under cannotAddRows", () => {
     expect(host!.querySelector('[aria-label="Edit Row"]')).not.toBeNull();
   });
 
-  it("refuses the insert and duplicate keys", async () => {
-    const { rows } = render(twoRows(), { cannotAddRows: true });
+  it("refuses the insert and duplicate keys without building a row", async () => {
+    const newRow = vi.fn(() => ({}));
+    const { rows } = render(twoRows(), { cannotAddRows: true, newRow });
     const event = new KeyboardEvent("keydown", {
       key: "ArrowDown",
       ctrlKey: true,
@@ -281,6 +307,7 @@ describe("Grid fast entry under cannotAddRows", () => {
     press(input(0, 0), "ArrowDown", { shiftKey: true, altKey: true });
     await nextTick();
     expect(rows.value).toHaveLength(2);
+    expect(newRow).not.toHaveBeenCalled();
     expect(event.defaultPrevented).toBe(false);
   });
 

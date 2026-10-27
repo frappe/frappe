@@ -189,7 +189,7 @@
 										<Button
 											variant="ghost"
 											icon="lucide-ellipsis"
-											:aria-label="'Row Actions'"
+											:aria-label="__('Row Actions')"
 										/>
 									</Dropdown>
 								</div>
@@ -265,6 +265,7 @@ import { arrowStep, cellAt, focusCell, moveFocus, rowShortcut } from "./cellNavi
 import type { CellAt, RowShortcut } from "./cellNavigation";
 import { acceptsPaste, isBlock, parseBlock, planPaste } from "./pasteBlock";
 import type { PastePlan } from "./pasteBlock";
+import { translate as __ } from "../../utils/translate";
 import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
@@ -505,10 +506,14 @@ function insertRow(index: number, row = freshRow()): boolean {
 
 function rowMenu(row: Record<string, any>, index: number) {
 	return [
-		{ label: "Insert Above", icon: "lucide-arrow-up", onClick: () => insertRow(index) },
-		{ label: "Insert Below", icon: "lucide-arrow-down", onClick: () => insertRow(index + 1) },
+		{ label: __("Insert Above"), icon: "lucide-arrow-up", onClick: () => insertRow(index) },
 		{
-			label: "Duplicate",
+			label: __("Insert Below"),
+			icon: "lucide-arrow-down",
+			onClick: () => insertRow(index + 1),
+		},
+		{
+			label: __("Duplicate"),
 			icon: "lucide-copy",
 			onClick: () => insertRow(index + 1, copyRow(row)),
 		},
@@ -529,6 +534,7 @@ function onCellKeydown(e: KeyboardEvent) {
 }
 
 function runRowShortcut(shortcut: RowShortcut, at: CellAt): boolean {
+	if (!canAddRows.value) return false;
 	const index = shortcut === "insertAbove" ? at.rowIndex : at.rowIndex + 1;
 	const row = shortcut === "duplicate" ? copyRow(rows.value[at.rowIndex]) : freshRow();
 	if (!insertRow(index, row)) return false;
@@ -557,17 +563,18 @@ function applyPaste({ addRows, writes }: PastePlan) {
 		rows.value = next;
 		for (const row of added) emit("add", { row });
 	}
-	let changed = added.length > 0;
+	// Every write and the `change` land before any commit, whose handlers may reshape the rows.
+	const written: { row: Record<string, any>; column: T }[] = [];
 	for (const { rowIndex, columnIndex, text } of writes) {
 		const row = next[rowIndex];
 		const column = props.columns[columnIndex];
 		const parsed = props.parsePaste ? props.parsePaste(row, column, text) : { value: text };
 		if (!parsed || row[column.fieldname] === parsed.value) continue;
 		row[column.fieldname] = parsed.value;
-		emit("commit", { row, column, pasted: true });
-		changed = true;
+		written.push({ row, column });
 	}
-	if (changed) emit("change", next);
+	if (added.length || written.length) emit("change", next);
+	for (const { row, column } of written) emit("commit", { row, column, pasted: true });
 }
 
 function deleteSelected() {
