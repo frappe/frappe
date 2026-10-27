@@ -278,6 +278,22 @@ describe("the index page", () => {
 		expect(host.querySelector("[data-index-state='no-match'] button")).toBeNull();
 	});
 
+	it("still says so above Ask Flow, which is offered for any text", async () => {
+		document.documentElement.dataset.flow = "ready";
+		try {
+			const host = await mount();
+			await type(host, "zzz");
+			await vi.waitFor(() =>
+				expect(host.querySelector("[data-index-state='no-match']")?.textContent?.trim()).toBe(
+					"No results for “zzz”"
+				)
+			);
+			expect(host.querySelector("[data-result='ask-flow']")).not.toBeNull();
+		} finally {
+			delete document.documentElement.dataset.flow;
+		}
+	});
+
 	it("says when the person can open no app", async () => {
 		const host = await mount([]);
 		expect(host.querySelector("[data-index-state='none']")?.textContent?.trim()).toBe(

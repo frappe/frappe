@@ -37,9 +37,11 @@ export function indexSearch(query: Ref<string>, context: PaletteContext) {
 	);
 	onScopeDispose(() => search.follow(""));
 
+	// Ask Flow is offered for any text, so it is no match: "No results" still shows above it.
+	const found = computed<DrawnGroup[]>(() => search.groups(query.value));
 	const groups = computed<DrawnGroup[]>(() => {
 		const pinned = search.pinned(query.value);
-		return [...search.groups(query.value), ...(pinned.length ? [{ label: "", rows: pinned }] : [])];
+		return [...found.value, ...(pinned.length ? [{ label: "", rows: pinned }] : [])];
 	});
 	const sections = computed<SelectionSection[]>(() =>
 		groups.value.map((group) => ({
@@ -47,7 +49,7 @@ export function indexSearch(query: Ref<string>, context: PaletteContext) {
 			columns: 1,
 		}))
 	);
-	return { groups, sections, settled };
+	return { groups, found, sections, settled };
 }
 
 export function resultKey(row: PaletteRow): string {

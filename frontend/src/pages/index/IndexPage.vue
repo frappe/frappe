@@ -171,11 +171,14 @@ const moreApps = computed(() =>
 const tileCount = computed(() => matches.value.length + (moreApps.value ? 1 : 0));
 const shownFavourites = computed(() => (query.value.trim() || arranging.value ? [] : favourites));
 const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] : recent));
-const search = useIndexSearch(query, boot);
+const { search, failed: searchFailed } = useIndexSearch(query, boot);
 const results = computed(() => search.value?.groups.value ?? []);
 // Not before the places answer: the rows still on their way would contradict it.
 const nothingFound = computed(
-	() => !matches.value.length && !results.value.length && !!search.value?.settled.value
+	() =>
+		!matches.value.length &&
+		!search.value?.found.value.length &&
+		(search.value ? search.value.settled.value : searchFailed.value)
 );
 // Arranging draws every app, hidden ones too, and no "Get more apps" tile.
 const boxWidth = computed(() =>
