@@ -27,14 +27,13 @@ export function usePaletteArgument(query: Ref<string>) {
 			options.value = [];
 			failed.value = false;
 			waiting.value = false;
-			if (!name) return;
 			query.value = "";
-			ask("");
+			if (name) ask("");
 		},
 		{ immediate: true }
 	);
 	watch(settled, (typed) => {
-		if (paletteArgument.value && asked.value?.text !== typed) ask(typed);
+		if (paletteOpen.value && paletteArgument.value && asked.value?.text !== typed) ask(typed);
 	});
 	// A page that lets go of the act while its step shows takes the step with it.
 	watch(
@@ -53,9 +52,9 @@ export function usePaletteArgument(query: Ref<string>) {
 		} catch (error) {
 			return refuse(ticket, error);
 		}
-		if (!(reply instanceof Promise)) return answer(ticket, reply);
+		if (Array.isArray(reply)) return answer(ticket, reply);
 		waiting.value = true;
-		reply.then(
+		Promise.resolve(reply).then(
 			(found) => answer(ticket, found),
 			(error) => refuse(ticket, error)
 		);
@@ -111,7 +110,9 @@ function optionRow(name: string, option: ActOption): PaletteRow {
 		id: `option:${keyOf(option.value)}`,
 		label: option.label,
 		description: option.description,
-		keywords: option.description ? [option.description] : undefined,
+		keywords: [option.description, typeof option.value === "string" ? option.value : undefined].filter(
+			(word): word is string => !!word
+		),
 		run: () => acts.perform(name, option.value),
 	};
 }

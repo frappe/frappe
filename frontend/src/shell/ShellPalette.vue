@@ -30,6 +30,7 @@
 							class="flex size-4 items-center justify-center rounded-2 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
 							tabindex="-1"
 							:aria-label="__('Back')"
+							@mousedown.prevent
 							@click="step.leave()"
 						>
 							<span class="lucide-x size-3" aria-hidden="true" />

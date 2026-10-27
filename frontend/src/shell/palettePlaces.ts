@@ -234,7 +234,7 @@ class PlaceRows {
 }
 
 function placesFailed(error: unknown) {
-	console.error("[frappe] the palette could not read its places", error);
+	console.error("[frappe] the palette could not read its places or settings panes", error);
 }
 
 /** The doctypes the user may create, each with its app's title. */

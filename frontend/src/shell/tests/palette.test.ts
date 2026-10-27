@@ -1313,6 +1313,61 @@ describe("the argument step", () => {
 		expect(paletteOpen.value).toBe(true);
 	});
 
+	it("matches an option's value as well as its label", async () => {
+		assignAct(() => [{ value: "sarah@example.com", label: "Sarah Connor" }, john]);
+		await shell();
+		await enterAssign();
+
+		await type("sarah@");
+		expect(drawn()).toEqual([["Users", "Sarah Connor"]]);
+	});
+
+	it("asks nothing more once the palette closes on a pick", async () => {
+		const options = vi.fn(() => [sarah, john]);
+		assignAct(options);
+		await shell();
+		await enterAssign();
+		await type("jo");
+		await vi.waitFor(() => expect(options).toHaveBeenCalledTimes(2));
+		await press("Enter");
+		await new Promise((resolve) => setTimeout(resolve, 300));
+
+		expect(options).toHaveBeenCalledTimes(2);
+		expect(picked).toEqual(["john@example.com"]);
+	});
+
+	it("opens at the first step after closing at a step, and Mod+K at a step goes there too", async () => {
+		assignAct(() => [sarah, john]);
+		await shell();
+		await enterAssign();
+		paletteOpen.value = false;
+		await flush();
+		await open();
+		expect(chip()).toBeNull();
+
+		await type("assign");
+		await press("Enter");
+		await type("jo");
+		pressModK(input()!);
+		await flush();
+		expect(chip()).toBeNull();
+		expect(input()!.value).toBe("");
+	});
+
+	it("opens the settings pane picked at shell.open_settings' step", async () => {
+		const router = await shell();
+		await open();
+		await type("settings");
+		expect(row("act:shell.open_settings")!.dataset.state).toBe("active");
+		await press("Enter");
+
+		await vi.waitFor(() => expect(drawn()).toEqual([["Settings panes", "Users Desk"]]));
+		await press("Enter");
+		await flush();
+
+		expect(router.currentRoute.value.hash).toBe("#settings/desk/users");
+	});
+
 	it("runs shell.create with the doctype picked from the places", async () => {
 		registerCreateDialog({ render: () => null });
 		await shell();

@@ -179,8 +179,8 @@ describe("the acts the shell holds", () => {
 				method === "frappe.shell.palette.places"
 					? {
 							doctypes: [
-								{ name: "Sales Invoice", app: "crm", route: "/apps/crm/sales-invoice", can_create: true },
-								{ name: "Lead", app: "crm", route: "/apps/crm/lead", can_create: false },
+								{ name: "Sales Invoice", app: "crm", route: `${inApp.shell_base}/sales-invoice`, can_create: true },
+								{ name: "Lead", app: "crm", route: `${inApp.shell_base}/lead`, can_create: false },
 							],
 							apps: [],
 							titles: { crm: "CRM" },
