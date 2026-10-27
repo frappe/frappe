@@ -23,12 +23,13 @@ class TestSystemSettings(IntegrationTestCase):
 		with self.set_user("test@example.com"):
 			self.assertEqual(load()["defaults"]["time_zone"], "Australia/Brisbane")
 
-	def test_every_system_manager_sees_enable_desk_v2(self):
+	def test_enable_desk_v2_is_an_unhidden_preview(self):
 		field = frappe.get_meta("System Settings").get_field("enable_desk_v2")
 		self.assertFalse(field.hidden)
 		self.assertFalse(field.depends_on)
 		self.assertFalse(field.read_only)
 		self.assertFalse(field.permlevel)
+		self.assertIn("Preview", field.description)
 
 
 class TestClassicChartsOnUpgrade(IntegrationTestCase):
