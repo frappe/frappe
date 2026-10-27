@@ -11,6 +11,12 @@ from frappe.search.sqlite_search import (
 	_build_lock_name,
 	build_index,
 	build_index_if_not_exists,
+<<<<<<< HEAD
+=======
+	delete_doc_index,
+	index_docs_in_queue,
+	update_doc_index,
+>>>>>>> 4cadbe1 (fix: keep indexing for other search classes when one has no index)
 )
 from frappe.tests import IntegrationTestCase
 from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime
@@ -47,6 +53,12 @@ class TestSQLiteSearch(SQLiteSearch):
 			return {}
 		# Simulate user-specific filtering
 		return {"owner": frappe.session.user}
+
+
+class UnindexedSearch(TestSQLiteSearch):
+	"""Another app's search whose index is never built."""
+
+	INDEX_NAME = "test_unindexed_search.db"
 
 
 class BuildWindowSearch(TestSQLiteSearch):
@@ -453,6 +465,117 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 		# Should return empty results or minimal results
 		self.assertLessEqual(len(results["results"]), 1)
 
+<<<<<<< HEAD
+=======
+	def test_index_queue(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			doc_id = f"Note:{new_note.name}"
+
+			# should be present in the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count, 1, "Document should be present in the index queue after index_doc call"
+			)
+
+			# should not be indexed yet
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count = cursor.fetchone()[0]
+			self.assertEqual(
+				db_count,
+				0,
+				"Document should not be indexed immediately after index_doc call, should be in queue instead",
+			)
+
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			# after processing the queue, it should be indexed and removed from the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count_after = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count_after, 0, "Document should be removed from index queue after processing"
+			)
+
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count_after = cursor.fetchone()[0]
+			self.assertEqual(db_count_after, 1, "Document should be indexed after processing the queue")
+			conn.close()
+
+		finally:
+			new_note.delete()
+
+	def test_index_queue_deduplication(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			new_note.reload()
+			new_note.content = "Updated content"
+			new_note.save()
+
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchall()
+			self.assertEqual(
+				len(queue_count),
+				1,
+				"There should only be one entry in the index queue for the document, even after multiple index_doc calls",
+			)
+			conn.close()
+
+		finally:
+			new_note.delete()
+
+	def test_a_search_without_an_index_does_not_block_the_others(self):
+		self.search.build_index()
+		note = self.test_notes[0]
+		doc_id = f"Note:{note.name}"
+
+		with patch(
+			"frappe.search.sqlite_search.get_search_classes",
+			return_value=[UnindexedSearch, TestSQLiteSearch],
+		):
+			update_doc_index(note)
+			self.assertEqual(self.count_rows("search_index_queue", doc_id), 1)
+
+			delete_doc_index(note)
+			self.assertEqual(self.count_rows("search_index_queue", doc_id), 0)
+			self.assertEqual(self.count_rows("search_fts", doc_id), 0)
+
+	def count_rows(self, table, doc_id):
+		conn = sqlite3.connect(self.search.db_path)
+		try:
+			return conn.execute(f"SELECT COUNT(*) FROM {table} WHERE doc_id = ?", (doc_id,)).fetchone()[0]
+		finally:
+			conn.close()
+
+>>>>>>> 4cadbe1 (fix: keep indexing for other search classes when one has no index)
 	def test_document_indexing_operations(self):
 		"""Test individual document indexing and removal operations."""
 		self.search.build_index()
