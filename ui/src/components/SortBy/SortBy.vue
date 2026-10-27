@@ -33,7 +33,7 @@
 	</Combobox>
 
 	<!-- Non-empty: the sort popover (single-sort compact / multi-sort badge). -->
-	<Popover v-else side="bottom" align="end">
+	<Popover v-else :open="popoverOpen" side="bottom" align="end" @update:open="setOpen">
 		<template #trigger="{ open }">
 			<Button
 				v-if="model.length > 1"
@@ -148,10 +148,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref, shallowRef, watch, type Component } from "vue";
 import { Button, Combobox, Popover } from "frappe-ui";
-// @ts-ignore — vuedraggable ships no bundled types
-import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getSortOptions } from "./getSortOptions";
 import type { Sort, SortByProps, SortOption } from "./types";
@@ -165,6 +163,24 @@ const props = withDefaults(defineProps<SortByProps>(), {
 const model = defineModel<Sort[]>({ default: () => [] });
 
 const { meta } = useDoctypeMeta(props.doctype);
+
+// vuedraggable loads on the first open; the popover opens once it is in, never empty.
+const Draggable = shallowRef<Component>();
+const popoverOpen = ref(false);
+
+async function setOpen(value: boolean) {
+	// @ts-ignore — vuedraggable ships no bundled types
+	if (value) Draggable.value ??= (await import("vuedraggable")).default;
+	popoverOpen.value = value && model.value.length > 0;
+}
+
+// Emptying the sorts unmounts the popover, so the next one starts closed.
+watch(
+	() => model.value.length,
+	(length) => {
+		if (!length) popoverOpen.value = false;
+	}
+);
 
 // Field Options derived client-side from Meta — no CRM endpoint.
 const allOptions = computed<SortOption[]>(() => getSortOptions(meta.value?.fields ?? []));

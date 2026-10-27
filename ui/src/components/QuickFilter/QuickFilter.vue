@@ -21,7 +21,7 @@
 -->
 <template>
 	<QuickFilterCustomize
-		v-if="customizing"
+		v-if="customizing && QuickFilterCustomize"
 		:fields="surfaced"
 		:addable-fields="addableFields"
 		@update:fields="onUpdateFields"
@@ -41,13 +41,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, shallowRef, watch, type Component } from "vue";
 import { Skeleton } from "frappe-ui";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getFilterableFields } from "../Filter/getFilterableFields";
 import { getQuickFilterFields } from "./getQuickFilterFields";
 import QuickFilterInputs from "./QuickFilterInputs.vue";
-import QuickFilterCustomize from "./QuickFilterCustomize.vue";
 import type { Filter, FilterField } from "../Filter/types";
 import type { QuickFilterProps } from "./types";
 
@@ -66,6 +65,24 @@ const fields = defineModel<FilterField[] | undefined>("fields", { default: undef
 const customizing = defineModel<boolean>("customizing", { default: false });
 
 const { meta, loading } = useDoctypeMeta(props.doctype);
+
+// The customize face (and vuedraggable) loads when customizing starts; the inputs
+// stay until it is in.
+const QuickFilterCustomize = shallowRef<Component>();
+watch(
+	customizing,
+	async (on) => {
+		if (!on || QuickFilterCustomize.value) return;
+		try {
+			QuickFilterCustomize.value = (await import("./QuickFilterCustomize.vue")).default;
+		} catch (error) {
+			// The host hides its toolbar while customizing, so a failed load must leave the mode.
+			customizing.value = false;
+			throw error;
+		}
+	},
+	{ immediate: true }
+);
 
 // Unknown only while no host set is bound and the first meta read is in flight; a failed read
 // falls back to the Name default.
