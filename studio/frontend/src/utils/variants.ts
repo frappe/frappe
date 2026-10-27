@@ -137,7 +137,7 @@ export function keepDialogText(options: string[], keptIndex: number) {
 		others.length > 1 ? `${others.slice(0, -1).join(", ")} and ${others[others.length - 1]}` : others[0]
 	return {
 		title: `Keep "${named[keptIndex]}" variant?`,
-		message: `This deletes the other variant${others.length > 1 ? "s" : ""} ${listed} from the page.`,
+		message: `This deletes the other ${listed} variant${others.length > 1 ? "s" : ""} from the page.`,
 	}
 }
 
