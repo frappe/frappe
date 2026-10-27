@@ -2068,12 +2068,10 @@ Object.assign(frappe.utils, {
 		filters = filter ? new Function(`return ${filter}`)() : [];
 		return this.cleanup_filters(filters);
 	},
+	// saved filters can carry an unused fifth value, an old "hidden" flag
 	cleanup_filters(filters) {
-		if (filters.length && filters[0].length == 5) {
-			filters.pop();
-			return filters;
-		}
-		return filters;
+		if (!Array.isArray(filters)) return filters;
+		return filters.map((filter) => (filter?.length == 5 ? filter.slice(0, 4) : filter));
 	},
 	get_filter_from_json(filter_json, doctype) {
 		// convert json to filter array
