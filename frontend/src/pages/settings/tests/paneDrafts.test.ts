@@ -322,6 +322,28 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(onboarding.draft.state.marks.enable_onboarding).toBe("saved");
 	});
 
+	it("names and resets only the fields the other save changed, and saves the rest of the batch", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockResolvedValue(true);
+
+		await drafts.saveButtons();
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(confirm.mock.calls[0][0].message).toContain("your changes to Country cannot");
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			time_zone: "Asia/Kolkata",
+		});
+		expect(regional.draft.dirty("country")).toBe(false);
+		expect(regional.draft.dirty("time_zone")).toBe(false);
+		expect(regional.draft.state.marks.time_zone).toBe("saved");
+	});
+
 	it("asks again before saving a kept edit the other save also changed", async () => {
 		const drafts = await opened(
 			block("general", "auto", ["country"]),

@@ -219,14 +219,19 @@ export class BindingDraft {
 		this.settle(fieldnames, "error");
 		if (this.host.closed()) return this.host.lost();
 		const editor = users?.[fresh.modified_by]?.full_name || fresh.modified_by;
+		const conflicting = fieldnames.filter(touched);
 		const changed = changedFields(
-			pick(this.state.doc, fieldnames),
-			pick(this.state.saved, fieldnames),
+			pick(this.state.doc, conflicting),
+			pick(this.state.saved, conflicting),
 			this.state.meta?.fields
 		);
 		if (!(await confirmConflict(this.host.confirm, editor, changed))) return;
-		this.discard(fieldnames);
+		this.discard(conflicting);
 		this.adopt(fresh, touched);
+		for (const fieldname of fieldnames.filter((fieldname) => !conflicting.includes(fieldname))) {
+			this.queued.add(fieldname);
+			this.state.marks[fieldname] = "saving";
+		}
 	}
 
 	/** Takes the newer copy under the reader's other edits; one the other save also changed asks before its own save. */
