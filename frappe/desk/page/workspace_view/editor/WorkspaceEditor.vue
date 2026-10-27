@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { Alert, Badge, Button, Dropdown, Tooltip } from "frappe-ui";
 import { post } from "../api.js";
 import WorkspaceGrid from "../WorkspaceGrid.vue";
@@ -52,6 +52,30 @@ const selected_widget = computed(() => {
 		? widgets.value[spec.table][selected.value.data[name_key(selected.value.type)]]
 		: null;
 });
+
+// An onboarding picked here has no steps until the page is saved and loaded again, so they are
+// fetched the way the legacy widget fetches them. Onboardings are not saved with the page.
+async function load_onboarding(name) {
+	const doc = await frappe.model.with_doc("Module Onboarding", name);
+	if (!doc) return;
+	const steps = await frappe.xcall(
+		"frappe.desk.doctype.onboarding_step.onboarding_step.get_onboarding_steps",
+		{ ob_steps: doc.steps }
+	);
+	widgets.value.onboardings[name] = { name, title: __(doc.title), is_complete: 0, steps };
+}
+
+watch(
+	() =>
+		blocks.value
+			.filter((block) => block.type === "onboarding")
+			.map((block) => block.data.onboarding_name),
+	(names) => {
+		for (const name of names) {
+			if (name && !widgets.value.onboardings[name]) load_onboarding(name);
+		}
+	}
+);
 
 function on_move(id, target) {
 	move(blocks.value, id, target);

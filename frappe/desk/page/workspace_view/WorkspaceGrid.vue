@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, ref } from "vue";
+import { computed, defineAsyncComponent, provide, ref } from "vue";
 import { block_size, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
 import TextBlock from "./TextBlock.vue";
@@ -24,6 +24,12 @@ function drop(target) {
 	if (dragged.value && dragged.value !== target.id) emit("move", dragged.value, target);
 	dragged.value = null;
 }
+
+// a tile that hides itself for its viewer, like a dismissed onboarding, stays on show to edit
+provide(
+	"editing",
+	computed(() => props.editing)
+);
 
 // tiles most workspaces do not have load on first use
 const ChartTile = defineAsyncComponent(() => import("./tiles/ChartTile.vue"));
