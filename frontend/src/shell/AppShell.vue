@@ -62,7 +62,7 @@
 			:request="request"
 		/>
 
-		<ActKeys />
+		<ActKeys :open-argument="openArgument" />
 		<PaletteKey />
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
@@ -87,11 +87,12 @@ import {
 } from "@/navigation/current";
 import { sidebarMemory } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
+import type { OpenArgument } from "./actKeys";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import LogoutDialog from "./LogoutDialog.vue";
-import { paletteOpen } from "./palette";
+import { openArgumentStep, paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
 import SidebarPanel from "./SidebarPanel.vue";
@@ -266,6 +267,8 @@ const openSettings: OpenSettings = (...segments) =>
 // Loaded on the first open, then kept, so a close plays the dialog's leave transition.
 const settingsOpened = ref(false);
 watch(settings.open, (isOpen) => isOpen && (settingsOpened.value = true), { immediate: true });
+
+const openArgument: OpenArgument = (act) => openArgumentStep(act.name);
 
 // Loaded on the first open, then kept, like the settings dialog.
 const paletteLoaded = ref(false);

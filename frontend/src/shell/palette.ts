@@ -26,12 +26,24 @@ export interface PaletteRow {
 	disabled?: boolean;
 	/** The doctype Tab narrows the search to, on a row that opens its list. */
 	doctype?: string;
+	/** Picking it keeps the palette open, as an act's argument step does. */
+	stays?: boolean;
 	run: () => unknown;
 }
 
 export const paletteOpen = ref(false);
 
+/** The act whose argument step the palette shows, by its full name; `null` on the first step. */
+export const paletteArgument = ref<string | null>(null);
+
 export function openPalette() {
+	paletteArgument.value = null;
+	paletteOpen.value = true;
+}
+
+/** Opens the palette at the argument step of the act `name`, or moves an open one there. */
+export function openArgumentStep(name: string) {
+	paletteArgument.value = name;
 	paletteOpen.value = true;
 }
 

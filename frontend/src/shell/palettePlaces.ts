@@ -2,7 +2,7 @@
 import { computed, shallowRef, type ComputedRef } from "vue";
 import type { RouteLocation } from "vue-router";
 import { runMethod } from "@framework/ui/api";
-import { acts } from "@/acts/dispatcher";
+import { acts, type ActOption } from "@/acts/dispatcher";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import { __ } from "@/i18n";
 import { itemContext } from "@/navigation/context";
@@ -35,20 +35,18 @@ const ROUTE_ICONS: Record<string, string> = {
 	record: "lucide-file-text",
 };
 
-/** A read the tab keeps once it answers; a failed one is asked again on the next open. */
+/** A read the tab keeps once it answers; a failed one is asked again on the next ask. */
 class HeldRead<T> {
 	readonly value = shallowRef<T | null>(null);
-	private asking = false;
+	private asking: Promise<T> | null = null;
 
-	ask(read: () => Promise<T>) {
-		if (this.value.value || this.asking) return;
-		this.asking = true;
-		read()
-			.then(
-				(reply) => void (this.value.value = reply),
-				(error) => console.error("[frappe] the palette could not read its places", error)
-			)
-			.finally(() => (this.asking = false));
+	/** The reply the tab holds, the read in flight, or a new read. */
+	ask(read: () => Promise<T>): Promise<T> {
+		if (this.value.value) return Promise.resolve(this.value.value);
+		this.asking ??= read()
+			.then((reply) => (this.value.value = reply))
+			.finally(() => (this.asking = null));
+		return this.asking;
 	}
 }
 
@@ -57,8 +55,27 @@ const panes = new HeldRead<PanesReply>();
 
 /** Asks for the places and the settings panes the tab does not hold yet. */
 export function loadPlaces(boot: Boot) {
-	places.ask(fetchPlaces);
-	panes.ask(() => fetchPanes(boot));
+	places.ask(fetchPlaces).catch(placesFailed);
+	panes.ask(() => fetchPanes(boot)).catch(placesFailed);
+}
+
+/** `shell.create`'s options: each doctype the user may create. */
+export async function createOptions(): Promise<ActOption[]> {
+	return creatable(await places.ask(fetchPlaces)).map(({ doctype, app }) => ({
+		value: doctype.name,
+		label: __(doctype.name),
+		description: app,
+	}));
+}
+
+/** `shell.open_settings`'s options: each settings pane the user may open, at its address. */
+export async function paneOptions(boot: Boot): Promise<ActOption[]> {
+	const reply = await panes.ask(() => fetchPanes(boot));
+	return everyPane(reply, boot).map(({ prefix, pane }) => ({
+		value: { prefix, pane: pane.key },
+		label: __(pane.label),
+		description: reply.titles[pane.app],
+	}));
 }
 
 export const goTo: PaletteGroup = {
@@ -145,35 +162,27 @@ class PlaceRows {
 	private paneRows(): PaletteRow[] {
 		const reply = panes.value.value;
 		if (!reply) return [];
-		const book = new SettingsAddressBook(reply, this.context.boot);
-		return book.everyGroup().flatMap(({ prefix, panes: groupPanes }) =>
-			groupPanes.map((pane) => ({
-				id: `settings:${prefix}/${pane.key}`,
-				label: __(pane.label),
-				description: reply.titles[pane.app],
-				keywords: [__("Settings")],
-				icon: "lucide-settings",
-				run: () => acts.perform("shell.open_settings", { prefix, pane: pane.key }),
-			}))
-		);
+		return everyPane(reply, this.context.boot).map(({ prefix, pane }) => ({
+			id: `settings:${prefix}/${pane.key}`,
+			label: __(pane.label),
+			description: reply.titles[pane.app],
+			keywords: [__("Settings")],
+			icon: "lucide-settings",
+			run: () => acts.perform("shell.open_settings", { prefix, pane: pane.key }),
+		}));
 	}
 
 	private createRows(): PaletteRow[] {
 		const reply = places.value.value;
 		if (!reply) return [];
-		return reply.doctypes
-			.filter((doctype) => doctype.can_create)
-			.map((doctype) => {
-				const app = reply.titles[doctype.app] ?? doctype.app;
-				return {
-					id: `create:${doctype.name}`,
-					label: __("New {0}", [__(doctype.name)]),
-					description: app,
-					keywords: [doctype.name, app],
-					icon: "lucide-plus",
-					run: () => acts.perform("shell.create", doctype.name),
-				};
-			});
+		return creatable(reply).map(({ doctype, app }) => ({
+			id: `create:${doctype.name}`,
+			label: __("New {0}", [__(doctype.name)]),
+			description: app,
+			keywords: [doctype.name, app],
+			icon: "lucide-plus",
+			run: () => acts.perform("shell.create", doctype.name),
+		}));
 	}
 
 	// `boot.navigation` is replaced whole on a save and is not reactive, so its identity is the key.
@@ -222,6 +231,24 @@ class PlaceRows {
 		const { boot, router } = this.context;
 		return router.hasRoute("record") && href.startsWith(`${boot.shell_base}/`);
 	}
+}
+
+function placesFailed(error: unknown) {
+	console.error("[frappe] the palette could not read its places", error);
+}
+
+/** The doctypes the user may create, each with its app's title. */
+function creatable(reply: PlacesReply) {
+	return reply.doctypes
+		.filter((doctype) => doctype.can_create)
+		.map((doctype) => ({ doctype, app: reply.titles[doctype.app] ?? doctype.app }));
+}
+
+/** Every pane, each with the prefix its address opens under. */
+function everyPane(reply: PanesReply, boot: Boot) {
+	return new SettingsAddressBook(reply, boot)
+		.everyGroup()
+		.flatMap(({ prefix, panes: groupPanes }) => groupPanes.map((pane) => ({ prefix, pane })));
 }
 
 function isList(route: RouteLocation) {

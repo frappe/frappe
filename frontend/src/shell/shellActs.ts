@@ -129,7 +129,7 @@ function shellItems(
 ): ActItem<Shell>[] {
 	return [
 		...(host.rail ? railItems(host.rail) : []),
-		openSettingsItem(),
+		openSettingsItem(host.boot),
 		...personItems(host, setColorScheme),
 		createItem(),
 	];
@@ -169,11 +169,15 @@ function railItems(rail: RailActsHost): ActItem<Shell>[] {
 	return items;
 }
 
-function openSettingsItem(): ActItem<Shell> {
+function openSettingsItem(boot: Boot): ActItem<Shell> {
 	return {
 		name: "open_settings",
 		label: __("Settings"),
 		icon: "lucide-settings",
+		argument: {
+			label: __("Settings panes"),
+			options: () => import("./palettePlaces").then((places) => places.paneOptions(boot)),
+		},
 		run: (shell, address?: SettingsAddress) => shell.openSettings(...segmentsOf(address)),
 	};
 }
@@ -185,13 +189,15 @@ function segmentsOf({ prefix, pane, block }: SettingsAddress = {}) {
 	return segments;
 }
 
-// A bare "Create" row has no doctype to give; the palette offers New X rows instead.
 function createItem(): ActItem<Shell> {
 	return {
 		name: "create",
 		label: __("Create"),
 		icon: "lucide-plus",
-		palette: false,
+		argument: {
+			label: __("DocTypes"),
+			options: () => import("./palettePlaces").then((places) => places.createOptions()),
+		},
 		run: (shell, value: CreateValue) => {
 			const { doctype, values } =
 				typeof value === "string" ? { doctype: value, values: undefined } : value ?? {};
@@ -219,7 +225,7 @@ function personItems(
 			label: __("Theme"),
 			icon: "lucide-sun-moon",
 			argument: {
-				label: __("Theme"),
+				label: __("Themes"),
 				options: () => colorSchemes().map(({ value, label }) => ({ value, label })),
 			},
 			run: (_shell, scheme: ColorScheme) => {

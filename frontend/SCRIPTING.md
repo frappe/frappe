@@ -234,10 +234,10 @@ An act item takes four more keys, on `page.header`, `page.quickActions` and a ta
 
 | Key | What it does |
 | --- | --- |
-| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. The shell binds it while the act is available, and a press runs the act as a click does. Where a page act and a shell act share a combo, the page act runs. A combo with `Mod` or `Ctrl` also fires in a field, and none fires in a dialog, a popover or a dropdown. A key on an act that has an `argument` is not bound yet. |
+| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. The shell binds it while the act is available, and a press runs the act as a click does. Where a page act and a shell act share a combo, the page act runs. A combo with `Mod` or `Ctrl` also fires in a field, and none fires in a dialog, a popover or a dropdown. A key on an act that has an `argument` opens the palette at its argument step. |
 | `right` | A right the act needs: a ptype on this doctype (`'write'`), read from `page.perms`, or `{ doctype, ptype }` on another doctype, read from that doctype's level 0 permission rows and the reader's roles. |
 | `palette` | `false` keeps the act out of the palette. A script and a key still run it. |
-| `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. |
+| `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. The palette lists the rows under `label` (`'Users'`) and ranks them by the typed text, and asks `options` again after each pause in the typing. |
 
 ```js
 page.header.add({

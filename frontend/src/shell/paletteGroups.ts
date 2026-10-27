@@ -4,7 +4,7 @@ import { acts, type AvailableAct } from "@/acts/dispatcher";
 import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
-import { pageRows, type PaletteRow } from "./palette";
+import { openArgumentStep, pageRows, type PaletteRow } from "./palette";
 import { askFlow } from "./paletteFlow";
 import { create, goTo, openPlace } from "./palettePlaces";
 import { rank } from "./paletteRanking";
@@ -76,7 +76,7 @@ function recentRow(one: Recent, context: PaletteContext): PaletteRow {
 function actRows(where: (act: AvailableAct) => boolean, boot?: Boot): PaletteRow[] {
 	return acts
 		.available()
-		.filter((act) => act.palette !== false && !act.argument && act.label && where(act))
+		.filter((act) => act.palette !== false && act.label && where(act))
 		.map((act) => {
 			const app = boot && appOf(act, boot);
 			return {
@@ -86,7 +86,8 @@ function actRows(where: (act: AvailableAct) => boolean, boot?: Boot): PaletteRow
 				key: act.key,
 				description: app,
 				keywords: app ? [app] : undefined,
-				run: () => acts.perform(act.name),
+				stays: Boolean(act.argument),
+				run: () => (act.argument ? openArgumentStep(act.name) : acts.perform(act.name)),
 			};
 		});
 }
