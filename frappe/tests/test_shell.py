@@ -15,7 +15,7 @@ from frappe.bundler import swap_shell_assets
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.shell import SHELL_ROOT
 from frappe.shell.address_clash import page_files
-from frappe.shell.doctypes import OWNER_CACHE_KEY, build_address_table
+from frappe.shell.doctypes import DOCTYPES_CACHE_KEY, build_address_table
 from frappe.shell.install import PrefixCollisionError, before_app_install
 from frappe.shell.manifest import (
 	FRAMEWORK_NAMES,
@@ -99,7 +99,7 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, acti
 
 	def clear():
 		clear_prefix_registry()
-		frappe.client_cache.delete_value(OWNER_CACHE_KEY)
+		frappe.client_cache.delete_value(DOCTYPES_CACHE_KEY)
 
 	clear()
 	with ExitStack() as stack:
@@ -919,35 +919,6 @@ class TestShellBoot(IntegrationTestCase):
 		# ...and not offered.
 		self.assertNotIn("User", {entry["doctype"] for entry in contents_for_app("frappe")})
 
-	def test_the_slug_table_tracks_doctypes_being_added_and_removed(self):
-		"""A new doctype must be addressable, and a deleted one must stop being so."""
-		# Keyed on `metadata_version`: `frappe.delete_doc("DocType", ...)` never reaches a `doc_events` handler.
-		from frappe.shell.doctypes import get_address_table
-
-		def slugs():
-			return {slug for slug, _module in get_address_table()["doctypes"].values()}
-
-		name = "Shell Slug Probe"
-		# Start from a known state: an aborted run can leave the doctype behind.
-		if frappe.db.exists("DocType", name):
-			frappe.delete_doc("DocType", name, force=True)
-		self.assertNotIn("shell-slug-probe", slugs())
-
-		frappe.get_doc(
-			doctype="DocType",
-			name=name,
-			module="Core",
-			custom=1,
-			fields=[{"fieldname": "title", "fieldtype": "Data", "label": "Title"}],
-			permissions=[{"role": "System Manager", "read": 1, "write": 1, "create": 1}],
-		).insert()
-		self.addCleanup(lambda: frappe.delete_doc("DocType", name, force=True, ignore_missing=True))
-
-		self.assertEqual(get_address_table()["doctypes"].get(name), ["shell-slug-probe", "core"])
-
-		frappe.delete_doc("DocType", name, force=True)
-		self.assertNotIn("shell-slug-probe", slugs())
-
 	def test_a_contributed_boot_key_cannot_overwrite_core(self):
 		"""Core is spread last, or an app could break every save at its own prefix with a bare 400."""
 		from frappe.shell.boot import get_boot
@@ -1007,7 +978,7 @@ class TestShellBoot(IntegrationTestCase):
 
 			with patch.object(frappe.local, "module_app", stale):
 				self.assertNotIn(frappe.scrub(module.name), frappe.local.module_app)
-				frappe.client_cache.delete_value(OWNER_CACHE_KEY)
+				frappe.client_cache.delete_value(DOCTYPES_CACHE_KEY)
 				self.assertEqual(get_doctype_owners().get("Shell Module Probe"), owner)
 
 

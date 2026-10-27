@@ -4,7 +4,7 @@
 import frappe
 
 from . import SHELL_ROOT
-from .doctypes import get_address_table, get_doctype_owners
+from .doctypes import get_shell_doctypes
 from .registry import declared_prefix, is_modular
 
 
@@ -14,10 +14,11 @@ def canonical_path(doctype: str, name: str | None = None) -> str:
 
 	from frappe.utils import cstr, quoted
 
-	app = get_doctype_owners().get(doctype, "frappe")
+	doctypes = get_shell_doctypes()
+	app = doctypes["owners"].get(doctype, "frappe")
 	prefix = declared_prefix(app)
 
-	table = get_address_table()
+	table = doctypes["table"]
 	address = table["doctypes"].get(doctype)
 	if not address and doctype in table.get("unaddressed", ()):
 		# Its slug opens another DocType; spelled by name, the link reaches not-found instead.
