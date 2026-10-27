@@ -3,6 +3,8 @@
 		v-model="rows"
 		:columns="columns"
 		:disabled="field.readOnly"
+		:cannotAddRows="field.cannotAddRows"
+		:cannotDeleteRows="field.cannotDeleteRows"
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
