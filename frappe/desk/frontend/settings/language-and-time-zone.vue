@@ -99,7 +99,7 @@ const fields = computed(() => [
 
 const refused = reactive<Record<string, string>>({});
 
-/** The binding's error belongs to the whole draft, so it shows under the row whose save it followed. */
+/** The binding's error is shared by every component on this draft, so it is read right after this block's save. */
 async function commit(fieldname: string) {
 	await user.commit();
 	refused[fieldname] = user.error;

@@ -20,6 +20,8 @@ export interface BoundBlock {
 	fieldnames: ComputedRef<string[]>;
 }
 
+type SaveMode = SettingsBlock["save_mode"];
+
 export class PaneDrafts {
 	/** The generated blocks, by key. */
 	readonly bound = new Map<string, BoundBlock>();
@@ -93,7 +95,7 @@ export class PaneDrafts {
 		const fieldnames = this.fieldnamesOf(draft, "auto").filter(
 			(fieldname) => draft.dirty(fieldname) || draft.state.marks[fieldname] === "saving"
 		);
-		await this.saveOrHold(draft, fieldnames);
+		await this.saveOrHold(draft, "auto", fieldnames);
 	}
 
 	/** The Save bar: each binding's `button` changes, in parallel, with nothing rolled back. */
@@ -103,6 +105,7 @@ export class PaneDrafts {
 			[...drafts].map((draft) =>
 				this.saveOrHold(
 					draft,
+					"button",
 					this.fieldnamesOf(draft, "button").filter((fieldname) => draft.dirty(fieldname))
 				)
 			)
@@ -158,30 +161,29 @@ export class PaneDrafts {
 			.filter((fieldname) => !drawn.has(fieldname));
 	}
 
-	/** Only the blocks sending a field are checked: one block's empty required field never holds another's save. */
-	private async saveOrHold(draft: BindingDraft, fieldnames: string[]) {
-		const blocked = this.claims
-			.filter(
-				(bound) =>
-					bound.draft === draft &&
-					bound.fieldnames.value.some((fieldname) => fieldnames.includes(fieldname))
-			)
-			.map((bound) => ({
-				owned: bound.fieldnames.value,
-				missing: missingRequired(bound.layout.value, draft.state.doc),
-			}))
-			.filter(({ missing }) => missing.length);
-		const held = new Set(blocked.flatMap(({ owned }) => owned));
-		if (blocked.length)
+	/** An insert checks every block's required fields; a patch only those of the blocks in its mode that send a field. */
+	private async saveOrHold(draft: BindingDraft, mode: SaveMode, fieldnames: string[]) {
+		if (!fieldnames.length) return;
+		const held = new Set<string>();
+		const missing: ReturnType<typeof missingRequired> = [];
+		for (const bound of this.claims) {
+			if (bound.draft !== draft || !(draft.state.isNew || sends(bound, mode, fieldnames))) continue;
+			const empty = missingRequired(bound.layout.value, draft.state.doc);
+			if (!empty.length) continue;
+			missing.push(...empty);
+			for (const fieldname of draft.state.isNew ? fieldnames : bound.fieldnames.value)
+				held.add(fieldname);
+		}
+		if (missing.length)
 			draft.hold(
 				fieldnames.filter((fieldname) => held.has(fieldname)),
-				blocked.flatMap(({ missing }) => missing)
+				missing
 			);
 		const sent = fieldnames.filter((fieldname) => !held.has(fieldname));
 		if (sent.length) return draft.save(sent);
 	}
 
-	private fieldnamesOf(draft: BindingDraft, mode: SettingsBlock["save_mode"]): string[] {
+	private fieldnamesOf(draft: BindingDraft, mode: SaveMode): string[] {
 		const fieldnames = this.claims
 			.filter(({ block, draft: other }) => other === draft && block.save_mode === mode)
 			.flatMap((bound) => bound.fieldnames.value);
@@ -195,6 +197,13 @@ function bind(block: SettingsBlock, draft: BindingDraft): BoundBlock {
 	);
 	const fieldnames = computed(() => layoutFields(layout.value).map((field) => field.fieldname));
 	return { block, draft, layout, fieldnames };
+}
+
+function sends(bound: BoundBlock, mode: SaveMode, fieldnames: string[]): boolean {
+	return (
+		bound.block.save_mode === mode &&
+		bound.fieldnames.value.some((fieldname) => fieldnames.includes(fieldname))
+	);
 }
 
 /** A Single is named after its doctype; `session_user` names the person signed in. */

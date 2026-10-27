@@ -66,7 +66,7 @@ const user = props.bindings.user;
 
 const uploading = ref(false);
 const busy = ref(false);
-/** The binding's error belongs to the whole draft, so only the one after this block's save shows here. */
+/** The binding's error is shared by every component on this draft, so it is read right after this block's save. */
 const refused = ref("");
 
 async function setImage(url: string | null) {

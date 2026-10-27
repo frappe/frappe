@@ -9,7 +9,7 @@ import {
 	type DocumentRecord,
 	type Envelope,
 } from "@framework/ui/api";
-import type { FieldAddress } from "@framework/ui/fields/types";
+import { fieldnameOfErrorKey, type FieldAddress } from "@framework/ui/fields/types";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
@@ -235,7 +235,7 @@ export class BindingDraft {
 	private refuse(fieldnames: string[], error: unknown) {
 		if (isApiError(error) && error.fieldErrors?.length)
 			this.fieldErrors.markRefused(error.fieldErrors, this.state.doc);
-		else this.fieldErrors.mark(fieldnames[0], messageOf(error));
+		else for (const fieldname of fieldnames) this.fieldErrors.mark(fieldname, messageOf(error));
 		this.settle(fieldnames, "error");
 		if (this.host.closed()) this.host.lost();
 	}
@@ -256,12 +256,8 @@ export class BindingDraft {
 	/** The field's own mark, and the marks on its rows' cells when it is a table. */
 	private unmark(fieldname: string) {
 		this.fieldErrors.unmark(fieldname);
-		for (const key of Object.keys(this.fieldErrors.drawn.value)) {
-			if (!key.startsWith("[")) continue;
-			const [parentfield, row, cell] = JSON.parse(key) as [string, string, string];
-			if (parentfield === fieldname)
-				this.fieldErrors.unmark({ parentfield, key: row, fieldname: cell });
-		}
+		for (const key of Object.keys(this.fieldErrors.drawn.value))
+			if (fieldnameOfErrorKey(key) === fieldname) this.fieldErrors.unmark(key);
 	}
 
 	private reset(document: Values) {

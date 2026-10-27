@@ -14,13 +14,17 @@ import { clearDataCache, holdDocument, readCachedDocument } from "@framework/ui/
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import type { SettingsBlock, SettingsPane } from "@/shell/settingsPanes";
 import { PaneDrafts } from "../paneDrafts";
-import { SettingsServer, SYSTEM_SETTINGS } from "./settingsServer";
+import { SettingsServer, SYSTEM_SETTINGS, TELEPHONY_AGENT, WALK_RULE } from "./settingsServer";
 
 const USER = "reader@example.com";
 const SYSTEM = { type: "Single" as const, doctype: "System Settings" };
 
 function block(key: string, save_mode: "auto" | "button", fields: string[], extra: Partial<SettingsBlock> = {}) {
 	return { key, app: "frappe", save_mode, binding: SYSTEM, fields, ...extra } as SettingsBlock;
+}
+
+function component(key: string, bindings: SettingsBlock["bindings"]) {
+	return { key, app: "frappe", save_mode: "auto", component: "probe", bindings } as SettingsBlock;
 }
 
 function pane(...blocks: SettingsBlock[]): SettingsPane {
@@ -394,6 +398,25 @@ describe("a Record that does not exist yet", () => {
 		expect(bound.draft.state.marks.mobile_no).toBe("error");
 		server.metas["Telephony Agent"].fields[2].reqd = 0;
 	});
+
+	it("holds the insert while another block's mandatory field is empty", async () => {
+		server.metas["Telephony Agent"] = {
+			...TELEPHONY_AGENT,
+			fields: TELEPHONY_AGENT.fields.map((field) =>
+				field.fieldname === "extension" ? { ...field, reqd: 1 } : field
+			),
+		};
+		const drafts = await opened(agent, { ...agent, key: "extension", fields: ["extension"] });
+		const bound = drafts.bound.get("agent")!;
+
+		bound.draft.edit("mobile_no", "+91 98");
+		drafts.commit(bound);
+		await settled();
+
+		expect(server.writes).toEqual([]);
+		expect(bound.draft.fieldErrors.drawn.value.extension).toBe("Extension is required");
+		expect(bound.draft.state.marks.mobile_no).toBe("error");
+	});
 });
 
 describe("a required field another block leaves empty", () => {
@@ -457,13 +480,10 @@ describe("a required field another block leaves empty", () => {
 	});
 
 	it("autosaves a component block's field without showing another block's held field as its error", async () => {
-		const drafts = await opened(block("name", "auto", ["country"]), {
-			key: "zone",
-			app: "frappe",
-			save_mode: "auto",
-			component: "language-and-time-zone",
-			bindings: { system: SYSTEM },
-		} as SettingsBlock);
+		const drafts = await opened(
+			block("name", "auto", ["country"]),
+			component("zone", { system: SYSTEM })
+		);
 		const name = drafts.bound.get("name")!;
 		const { system } = drafts.components.get("zone")!;
 
@@ -478,6 +498,102 @@ describe("a required field another block leaves empty", () => {
 		]);
 		expect(name.draft.fieldErrors.drawn.value.country).toBe("Country is required");
 		expect(system.error).toBe("");
+	});
+
+	it("shows a component's own refusal, not another block's held field", async () => {
+		const drafts = await opened(
+			block("name", "auto", ["country"]),
+			component("zone", { system: SYSTEM })
+		);
+		const name = drafts.bound.get("name")!;
+		const { system } = drafts.components.get("zone")!;
+		name.draft.edit("country", "");
+		drafts.commit(name);
+		await settled();
+		server.refusal = { entry: { type: "ValidationError", message: "Not a zone" }, status: 417 };
+
+		system.doc.time_zone = "Mars";
+		await system.commit();
+
+		expect(system.error).toBe("Not a zone");
+	});
+
+	it("saves the Save bar's other block while one button block holds its empty field", async () => {
+		const drafts = await opened(
+			block("region", "button", ["country", "time_zone"]),
+			block("branding", "button", ["app_name"])
+		);
+		const region = drafts.bound.get("region")!;
+
+		region.draft.edit("country", "");
+		region.draft.edit("app_name", "Desk");
+		await drafts.saveButtons();
+		await settled();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ app_name: "Desk", modified: expect.any(String) },
+		]);
+		expect(region.draft.state.marks).toMatchObject({ country: "error", app_name: "saved" });
+		expect(drafts.failedCount.value).toBe(1);
+	});
+
+	it("holds a block whose table has an empty required cell, and saves another block", async () => {
+		server.metas["Walk Rule"] = {
+			...WALK_RULE,
+			fields: [{ ...WALK_RULE.fields[0], reqd: 1 }],
+		};
+		const drafts = await opened(
+			block("rules", "auto", ["rules"]),
+			block("email", "auto", ["enable_onboarding"])
+		);
+		const rules = drafts.bound.get("rules")!;
+		const email = drafts.bound.get("email")!;
+
+		rules.draft.edit("rules", [{ name: "r1", rule: "" }]);
+		drafts.commit(rules);
+		await settled();
+		email.draft.edit("enable_onboarding", 1);
+		drafts.commit(email);
+		await settled();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ enable_onboarding: 1, modified: expect.any(String) },
+		]);
+		expect(Object.values(rules.draft.fieldErrors.drawn.value)).toEqual(["Rule is required"]);
+		expect(rules.draft.state.marks.rules).toBe("error");
+	});
+});
+
+describe("a generated block's refused save", () => {
+	it("stays off a component block's error, which shows the component's own refusal", async () => {
+		const drafts = await opened(
+			block("branding", "button", ["app_name"]),
+			component("zone", { system: SYSTEM })
+		);
+		const branding = drafts.bound.get("branding")!;
+		const { system } = drafts.components.get("zone")!;
+		server.refusal = {
+			entry: {
+				type: "ValidationError",
+				message: "App name taken",
+				field_errors: [{ fieldname: "app_name", message: "App name taken" }],
+			},
+			status: 417,
+		};
+
+		branding.draft.edit("app_name", "Desk");
+		await drafts.saveButtons();
+		system.doc.time_zone = "Asia/Kolkata";
+		await system.commit();
+
+		expect(branding.draft.fieldErrors.drawn.value.app_name).toBe("App name taken");
+		expect(system.error).toBe("");
+
+		server.refusal = { entry: { type: "ValidationError", message: "Not a zone" }, status: 417 };
+		system.doc.time_zone = "Mars";
+		await system.commit();
+
+		expect(system.error).toBe("Not a zone");
 	});
 });
 

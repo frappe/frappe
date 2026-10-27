@@ -161,11 +161,14 @@ export function fieldErrorKey(address: FieldAddress): string {
   return JSON.stringify([address.parentfield, address.key, address.fieldname]);
 }
 
+/** The top-level field a `fieldErrorKey` belongs to: a row cell's is its table. */
+export function fieldnameOfErrorKey(key: string): string {
+  return key.startsWith("[") ? JSON.parse(key)[0] : key;
+}
+
 /** The top-level fields that hold an error; a row cell's error counts for its table. */
 export function markedFieldnames(errors: Readonly<Record<string, unknown>>): Set<string> {
-  return new Set(
-    Object.keys(errors).map((key) => (key.startsWith("[") ? JSON.parse(key)[0] : key))
-  );
+  return new Set(Object.keys(errors).map(fieldnameOfErrorKey));
 }
 
 /** The host's field errors by `fieldErrorKey`; display-only, and null where there is no form. */

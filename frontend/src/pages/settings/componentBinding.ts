@@ -1,5 +1,7 @@
 // What a component block gets for each named binding: the pane's shared draft, read live.
+import { fieldnameOfErrorKey } from "@framework/ui/fields/types";
 import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { __ } from "@/i18n";
 import type { BindingDraft } from "./bindingDraft";
 
 export interface ComponentBinding {
@@ -8,7 +10,7 @@ export interface ComponentBinding {
 	readonly saved: Record<string, any>;
 	readonly meta: DoctypeMeta | null;
 	readonly loading: boolean;
-	/** Why the binding could not be read, or why a save of this block's fields was refused; else "". */
+	/** Why the binding could not be read, or why a save of the fields no generated block draws was refused; else "". */
 	readonly error: string;
 	/** A Record that does not exist yet; its first save inserts it. */
 	readonly isNew: boolean;
@@ -45,15 +47,11 @@ export function componentBinding(
 	};
 }
 
-/** Another block's held field leaves its message drawn on the shared draft; it is not this block's. */
-function refusal(draft: BindingDraft, owned: string[]): string {
-	if (!owned.some((fieldname) => draft.state.marks[fieldname] === "error")) return "";
-	const drawn = Object.entries(draft.fieldErrors.drawn.value);
-	const [, message] = drawn.find(([key]) => owned.includes(fieldOf(key))) ?? drawn[0] ?? [];
-	return [message ?? ""].flat().join(" ");
-}
 
-/** A table cell's key is `[parentfield, row, cell]`; the table field owns it. */
-function fieldOf(key: string): string {
-	return key.startsWith("[") ? JSON.parse(key)[0] : key;
+/** Only the owned fields' errors: another block's refusal stays on its own row. */
+function refusal(draft: BindingDraft, owned: string[]): string {
+	const drawn = Object.entries(draft.fieldErrors.drawn.value);
+	const [, message] = drawn.find(([key]) => owned.includes(fieldnameOfErrorKey(key))) ?? [];
+	if (message) return [message].flat().join(" ");
+	return owned.some((fieldname) => draft.state.marks[fieldname] === "error") ? __("Did not save") : "";
 }
