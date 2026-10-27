@@ -1,6 +1,7 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import errno
+import json
 import os
 import re
 import shlex
@@ -134,9 +135,15 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	manifest, apps, deps_changed = write_manifest(frontend_path)
 	lock_refreshed = refresh_lockfile(frontend_path)
 
-	# Install when the tree is missing or the composed dependency set changed. devDependencies are
-	# the test and lint tools; `--production=false` because yarn v1 skips them under NODE_ENV=production.
-	if not os.path.exists(os.path.join(frontend_path, "node_modules")) or deps_changed or lock_refreshed:
+	# devDependencies are the test and lint tools. `--production=false` because yarn v1 skips them
+	# under NODE_ENV=production.
+	dev_tools_missing = not production and installed_without_dev_tools(frontend_path)
+	if (
+		not os.path.exists(os.path.join(frontend_path, "node_modules"))
+		or deps_changed
+		or lock_refreshed
+		or dev_tools_missing
+	):
 		install = "yarn install --production" if production else "yarn install --production=false"
 		frappe.commands.popen(install, cwd=frontend_path, env=get_node_env(), raise_err=True)
 
@@ -171,6 +178,15 @@ def refresh_lockfile(frontend_path: str) -> bool:
 		return False
 	shutil.copyfile(base, lockfile)
 	return True
+
+
+def installed_without_dev_tools(frontend_path: str) -> bool:
+	"""Whether the last `yarn install` skipped devDependencies; yarn v1 records its flags."""
+	try:
+		with open(os.path.join(frontend_path, "node_modules", ".yarn-integrity")) as f:
+			return "production" in json.load(f).get("flags", [])
+	except (OSError, ValueError):
+		return False
 
 
 def swap_shell_assets(staging: str, published: str):

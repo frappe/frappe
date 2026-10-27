@@ -117,12 +117,16 @@ class TestBuildOrder(UnitTestCase):
 			swap.assert_not_called()
 
 
-def shell_build_commands(production: bool) -> list[str]:
-	"""The commands `build_shell` runs on a fresh tree, with yarn stubbed."""
+def shell_build_commands(production: bool, installed_flags: list[str] | None = None) -> list[str]:
+	"""The commands `build_shell` runs, with yarn stubbed; `installed_flags` stands for an installed tree."""
 	with tempfile.TemporaryDirectory() as source:
 		frontend = os.path.join(source, "frontend")
 		os.makedirs(frontend)
 		open(os.path.join(frontend, "package.base.json"), "w").close()
+		if installed_flags is not None:
+			os.makedirs(os.path.join(frontend, "node_modules"))
+			with open(os.path.join(frontend, "node_modules", ".yarn-integrity"), "w") as f:
+				json.dump({"flags": installed_flags}, f)
 		staging = os.path.join(source, "frappe", "public", "frontend.staging")
 		commands = []
 
@@ -155,6 +159,14 @@ class TestShellBuildWeight(UnitTestCase):
 		self.assertEqual(install, "yarn install --production=false")
 		self.assertNotIn("--sourcemap", build)
 
+	def test_development_build_reinstalls_a_tree_installed_without_test_tools(self):
+		install, _build = shell_build_commands(production=False, installed_flags=["production"])
+		self.assertEqual(install, "yarn install --production=false")
+
+	def test_unchanged_tree_is_not_reinstalled(self):
+		self.assertEqual(len(shell_build_commands(production=False, installed_flags=[])), 1)
+		self.assertEqual(len(shell_build_commands(production=True, installed_flags=["production"])), 1)
+
 	def test_build_files_import_no_dev_dependency(self):
 		frontend = frontend_dir()
 		with open(os.path.join(frontend, "package.base.json")) as f:
@@ -166,7 +178,7 @@ class TestShellBuildWeight(UnitTestCase):
 				self.assertFalse(imported & dev_dependencies)
 
 
-IMPORT = re.compile(r"""(?:from|import)\s*["']([^"']+)["']""")
+IMPORT = re.compile(r"""(?:from|import)\s*\(?\s*["']([^"']+)["']""")
 # postcss loads each plugin by its key's package name.
 POSTCSS_PLUGIN = re.compile(r"^\s*([\w@/-]+): \{[^{}]*\}", re.MULTILINE)
 
