@@ -208,13 +208,14 @@ def pdf_contains_js(file_content: bytes):
 
 	Returns:
 		bool: True if the PDF contains JavaScript, False otherwise and also if the file is encrypted.
+
+	Raises:
+		frappe.ValidationError: If the file cannot be parsed as a PDF.
 	"""
 	from io import BytesIO
 
 	from pypdf import PdfReader, errors
 	from pypdf.generic import IndirectObject
-
-	reader = PdfReader(BytesIO(file_content))
 
 	def has_javascript(obj, seen=None):
 		if seen is None:
@@ -239,20 +240,21 @@ def pdf_contains_js(file_content: bytes):
 					return True
 		return False
 
-	root = reader.trailer.get("/Root", {})
-
 	try:
-		if has_javascript(root):
+		reader = PdfReader(BytesIO(file_content))
+		if has_javascript(reader.trailer.get("/Root", {})):
 			return True
 
 		for page in reader.pages:
 			if has_javascript(page):
 				return True
 	except errors.FileNotDecryptedError:
-		# resolving any indirect object (root, page, or otherwise) requires
-		# decryption; an encrypted file we can't decrypt is treated as not
-		# containing JS, same as an unreadable/undecryptable file always was
+		# resolving any indirect object requires decryption; an encrypted
+		# file we can't decrypt is treated as not containing JS
 		pass
+	except errors.PyPdfError:
+		# a damaged PDF can't be scanned for JS, so it is refused
+		frappe.throw(_("This PDF is damaged and can't be uploaded."), frappe.ValidationError)
 
 	return False
 
