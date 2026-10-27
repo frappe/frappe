@@ -74,10 +74,10 @@ describe("page.openSettings", () => {
     const openSettings = shellSettings();
     const { page } = createRecordPage(makeHost());
 
-    page.openSettings("crm", "general", "telephony");
+    page.openSettings("desk", "profile", "telephony");
     page.openSettings();
 
-    expect(openSettings.mock.calls).toEqual([address("crm", "general", "telephony"), address()]);
+    expect(openSettings.mock.calls).toEqual([address("desk", "profile", "telephony"), address()]);
   });
 
   it("waits for the commit when called in a replay, and the last call wins", async () => {

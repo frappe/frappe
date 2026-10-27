@@ -169,13 +169,18 @@ one optional: `page.openSettings()` opens the current app's first pane, and a bl
 the pane to that block. It writes the address and returns nothing; the page under the dialog
 does not change, and Back closes it. A call in a replay or a hold opens the dialog after the
 commit, and the last call wins. A pane that does not exist, or that the reader cannot see,
-opens the dialog with one message that does not say which.
+opens the dialog with one message that does not say which. A block that the pane does not hold
+is ignored: the address stays, and the pane opens at the top with no message.
+
+A block that an app adds to another app's pane has that pane's address. CRM adds its
+`telephony` block to desk's Profile pane, so the block's address is
+`#settings/desk/profile/telephony`:
 
 ```js
 page.header.add({
   name: 'telephony',
   label: 'Telephony settings',
-  run: (page) => page.openSettings('crm', 'general', 'telephony'),
+  run: (page) => page.openSettings('desk', 'profile', 'telephony'),
 })
 ```
 
