@@ -270,6 +270,21 @@ class TestIndexFavourites(IntegrationTestCase):
 			):
 				self.assertEqual([row["doctype"] for row in index_favourites()["favourites"]], ["Note"])
 
+	def test_a_list_or_view_in_an_app_the_person_cannot_enter_is_left_out(self):
+		self.favourite("DocType", "ToDo")
+		self.favourite("Doctype View", self.view())
+		self.favourite("DocType", "Note")
+		frappe.set_user(USER)
+
+		with patch(
+			"frappe.shell.index_favourites.get_doctype_owners",
+			return_value={"ToDo": "probe_app", "Note": "frappe"},
+		):
+			with patch(
+				"frappe.shell.index_favourites.has_app_permission", side_effect=lambda app: app == "frappe"
+			):
+				self.assertEqual([row["name"] for row in index_favourites()["favourites"]], ["Note"])
+
 	def test_the_index_reads_favourites_in_one_query_plus_a_share_and_a_list_read_per_doctype(self):
 		self.favourite("ToDo", self.todo("Probe task", allocated_to=USER))
 		self.favourite("ToDo", self.todo("Probe task 2", allocated_to=USER))

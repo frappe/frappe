@@ -58,6 +58,7 @@ class Chips:
 		self.rows = rows
 		self.owners = get_doctype_owners()
 		self.views = readable_views(names_of(rows, SAVED_VIEW))
+		self.apps: dict[str, bool] = {}
 		self.titles = self.record_titles()
 
 	def draw(self) -> list[dict]:
@@ -123,7 +124,10 @@ class Chips:
 
 	def may_open(self, doctype: str) -> bool:
 		"""The doctype has an address, and the person may enter the app that owns it."""
-		return doctype in self.owners and has_app_permission(self.owners[doctype])
+		app = self.owners.get(doctype)
+		if app and app not in self.apps:
+			self.apps[app] = has_app_permission(app)
+		return bool(app and self.apps[app])
 
 
 def names_of(rows: list[frappe._dict], doctype: str) -> list[str]:

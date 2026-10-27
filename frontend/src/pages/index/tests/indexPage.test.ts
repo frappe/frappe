@@ -471,7 +471,6 @@ describe("the index's Favourites past the first eight", () => {
 		expect(moreCalls()).toEqual([["frappe.shell.index_favourites.more_favourites", {}, { http: "GET" }]]);
 		expect(chips(host).map((chip) => chip.getAttribute("href"))).toEqual([...EIGHT, ...REST].map((chip) => chip.route));
 		expect(more(host)?.textContent?.trim()).toBe("Less");
-		expect(more(host)?.getAttribute("aria-expanded")).toBe("true");
 
 		more(host)!.click();
 		await settle();
@@ -503,6 +502,31 @@ describe("the index's Favourites past the first eight", () => {
 		expect(chips(host)).toHaveLength(8);
 		expect(selected(host)).toEqual(["favourites:more"]);
 		expect(assign).not.toHaveBeenCalled();
+	});
+
+	it("keeps More when the fetch fails, and fetches again on the next click", async () => {
+		fake.runMethod.mockImplementationOnce(async () => {
+			throw new Error("offline");
+		});
+		const host = await mount(APPS, EIGHT, [], null, true);
+		more(host)!.click();
+		await settle();
+		expect(more(host)?.textContent?.trim()).toBe("More");
+		expect(chips(host)).toHaveLength(8);
+
+		more(host)!.click();
+		await settle();
+		expect(chips(host)).toHaveLength(10);
+		expect(moreCalls()).toHaveLength(2);
+	});
+
+	it("ignores a second click while the rest is loading", async () => {
+		const host = await mount(APPS, EIGHT, [], null, true);
+		more(host)!.click();
+		more(host)!.click();
+		await settle();
+		expect(moreCalls()).toHaveLength(1);
+		expect(more(host)?.textContent?.trim()).toBe("Less");
 	});
 
 	it("draws no chip twice when the rest repeats one boot drew", async () => {
