@@ -4,8 +4,8 @@
 -->
 <template>
 	<Dialog :modelValue="!!target" size="sm" :title="target?.title" @update:modelValue="dismissed">
-		<p v-if="loadFailed" class="text-sm text-ink-red-4">
-			{{ loadFailed }}
+		<p v-if="loadFailed !== null" class="text-sm text-ink-red-4">
+			{{ __("Could not load this list: {0}", [loadFailed]) }}
 		</p>
 
 		<template v-else-if="loading">
@@ -23,8 +23,8 @@
 		</template>
 
 		<template v-else>
-			<p v-if="writeFailed" class="text-sm text-ink-red-4">
-				{{ writeFailed }}
+			<p v-if="writeFailed !== null" class="text-sm text-ink-red-4">
+				{{ __("Could not save this list: {0}", [writeFailed]) }}
 			</p>
 
 			<ul data-testid="customize">
@@ -46,7 +46,7 @@
 						class="min-w-0 flex-1 rounded-4 bg-transparent px-1 py-0.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2 focus:bg-surface-gray-2"
 						:value="item.label ?? ''"
 						:placeholder="item.link_to ?? item.key"
-						:aria-label="`Name of ${item.key}`"
+						:aria-label="__('Name of {0}', [item.key])"
 						@input="rename(item.key, ($event.target as HTMLInputElement).value)"
 					/>
 					<!-- `lucide-` prefixed: frappe-ui's Button takes a CSS class, and a bare name
@@ -54,19 +54,21 @@
 					<Button
 						variant="ghost"
 						icon="lucide-chevron-up"
-						:aria-label="`Move ${item.key} up`"
+						:aria-label="__('Move {0} up', [item.key])"
 						@click="items = move(items, item.key, -1)"
 					/>
 					<Button
 						variant="ghost"
 						icon="lucide-chevron-down"
-						:aria-label="`Move ${item.key} down`"
+						:aria-label="__('Move {0} down', [item.key])"
 						@click="items = move(items, item.key, 1)"
 					/>
 					<Button
 						variant="ghost"
 						:icon="item.hidden ? 'lucide-eye-off' : 'lucide-eye'"
-						:aria-label="`${item.hidden ? 'Show' : 'Hide'} ${item.key}`"
+						:aria-label="
+							item.hidden ? __('Show {0}', [item.key]) : __('Hide {0}', [item.key])
+						"
 						@click="toggleHidden(item.key)"
 					/>
 				</li>
@@ -75,12 +77,12 @@
 
 		<template #actions>
 			<div class="flex justify-end gap-2">
-				<Button label="Reset" :loading="busy" :disabled="loading" @click="reset" />
+				<Button :label="__('Reset')" :loading="busy" :disabled="loading" @click="reset" />
 				<Button
 					variant="solid"
-					label="Save"
+					:label="__('Save')"
 					:loading="busy"
-					:disabled="loading || !!loadFailed"
+					:disabled="loading || loadFailed !== null"
 					@click="save"
 				/>
 			</div>
@@ -99,6 +101,7 @@ export type CustomizeTarget = Address & { title: string };
 import { ref, watch } from "vue";
 import { Button, Dialog, Skeleton } from "frappe-ui";
 import type { Navigation } from "@/boot";
+import { __ } from "@/i18n";
 import LoadingStatus from "./LoadingStatus.vue";
 import {
 	type Address,
@@ -155,8 +158,7 @@ async function read(target: Address, mine: number) {
 		items.value = rows;
 		loadFailed.value = null;
 	} catch (error) {
-		if (mine === generation)
-			loadFailed.value = `Could not load this list: ${(error as Error).message}`;
+		if (mine === generation) loadFailed.value = (error as Error).message;
 	}
 }
 
@@ -208,8 +210,7 @@ async function write(request: Promise<Navigation>, mine: number) {
 		if (mine === generation) writeFailed.value = null;
 		emit("saved", navigation);
 	} catch (error) {
-		if (mine === generation)
-			writeFailed.value = `Could not save this list: ${(error as Error).message}`;
+		if (mine === generation) writeFailed.value = (error as Error).message;
 	}
 }
 </script>
