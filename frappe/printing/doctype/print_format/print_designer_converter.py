@@ -130,7 +130,7 @@ class PrintDesignerConverter:
 			"footer": self.zone(footer),
 		}
 		if setup := (self.settings.get("userProvidedJinja") or "").strip():
-			layout["jinja_setup"] = setup
+			layout["global_variables"] = setup
 		if page := self.page_settings():
 			layout["page"] = page
 		return layout, self.notes
