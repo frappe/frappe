@@ -241,7 +241,7 @@ function joinPlaces(sidebar: PaletteRow[], doctypes: PaletteRow[]): PaletteRow[]
 		if (!same) return row;
 		byAddress.delete(row.href);
 		const keywords = [...new Set([...(row.keywords ?? []), ...(same.keywords ?? [])])];
-		return { ...row, doctype: row.doctype ?? same.doctype, keywords };
+		return { ...row, description: same.description, doctype: row.doctype ?? same.doctype, keywords };
 	});
 	const unclaimed = [...byAddress.values()];
 	const looks = new Set(unclaimed.map(looksOf));

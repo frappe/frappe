@@ -138,6 +138,11 @@ describe("a sidebar row and a doctype row", () => {
 		]);
 	});
 
+	it("names the app that owns the place on a link row to another app's doctype", () => {
+		const todo: NavigationItem = { key: "todo", item_type: "Link", label: "My ToDos", url: `${deskBase}/todo` };
+		expect(goToRows([todo], "todo")).toEqual([[`sidebar:${todo.url}`, "My ToDos", "Desk"]]);
+	});
+
 	it("keeps both rows for two addresses, and the sidebar's says so", () => {
 		expect(goToRows([open], "deal")).toEqual([
 			[`sidebar:${open.url}`, "CRM Deal", "Sidebar"],
