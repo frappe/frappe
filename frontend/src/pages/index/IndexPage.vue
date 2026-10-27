@@ -35,6 +35,7 @@
 				v-else-if="arranging"
 				:apps="apps"
 				:box-width-class="boxWidth"
+				@reset="(reset) => (apps = reset)"
 				@done="finishArranging"
 			/>
 

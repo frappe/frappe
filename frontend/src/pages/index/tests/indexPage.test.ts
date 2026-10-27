@@ -641,6 +641,19 @@ describe("the person's layer", () => {
 		expect(host.querySelector("[data-arrange-strip]")).not.toBeNull();
 	});
 
+	it("keeps the box and the strip on the drag grid when Reset returns fewer apps", async () => {
+		const host = await mount(APPS);
+		const strip = await arrange(host);
+		fake.runMethod.mockResolvedValue({ data: APPS.slice(0, 3) });
+
+		button(strip, "Reset").click();
+		await flush();
+
+		expect(arrangeGrid(host)).toHaveLength(3);
+		expect(box(host).parentElement!.className).toContain("max-w-[312px]");
+		expect(strip.className).toContain("max-w-[312px]");
+	});
+
 	it("stays in arrange mode with the draft when Done fails", async () => {
 		const host = await mount(HIDDEN_CRM);
 		const strip = await arrange(host);

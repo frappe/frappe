@@ -69,7 +69,7 @@ import { gridClass } from "./grid";
 import { resetLayer, saveLayer } from "./layer";
 
 const props = defineProps<{ apps: IndexApp[]; boxWidthClass: string }>();
-const emit = defineEmits<{ done: [apps: IndexApp[]] }>();
+const emit = defineEmits<{ done: [apps: IndexApp[]]; reset: [apps: IndexApp[]] }>();
 
 const draft = ref<IndexApp[]>([...props.apps]);
 const saving = ref(false);
@@ -95,7 +95,9 @@ async function move(app: IndexApp, by: -1 | 1) {
 
 async function reset() {
 	const apps = await write(resetLayer);
-	if (apps) draft.value = apps;
+	if (!apps) return;
+	draft.value = apps;
+	emit("reset", apps);
 }
 
 async function done() {
