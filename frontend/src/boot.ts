@@ -138,3 +138,4 @@ export async function fetchBoot(): Promise<Boot> {
 	boot.session.user = reactive(boot.session.user);
 	return boot;
 }
+export const brokenOnPurpose45320 = "/apps/desk/todo/";
