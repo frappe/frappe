@@ -53,6 +53,7 @@
 import { computed } from "vue";
 import { ErrorMessage, SettingsRow, Switch } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
+import { fieldnameOfErrorKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 import type { BindingDraft } from "./bindingDraft";
@@ -76,10 +77,10 @@ const mark = computed(() => props.draft.state.marks[props.field.fieldname]);
 /** The field's own message, or its first row cell's for a table. */
 const message = computed(() => {
 	const drawn = props.draft.fieldErrors.drawn.value;
-	const cell = Object.keys(drawn).find(
-		(key) => key.startsWith("[") && JSON.parse(key)[0] === props.field.fieldname
+	const key = Object.keys(drawn).find(
+		(one) => fieldnameOfErrorKey(one) === props.field.fieldname
 	);
-	return drawn[props.field.fieldname] ?? (cell ? drawn[cell] : undefined);
+	return drawn[props.field.fieldname] ?? (key ? drawn[key] : undefined);
 });
 
 function edit(next: unknown) {

@@ -32,12 +32,19 @@ export const TELEPHONY_AGENT = {
 	],
 };
 
+export const WALK_RULE = {
+	name: "Walk Rule",
+	istable: 1,
+	fields: [{ fieldname: "rule", fieldtype: "Data", label: "Rule" }],
+};
+
 export class SettingsServer {
 	readonly fetch = vi.fn<typeof fetch>();
 	readonly writes: Write[] = [];
 	readonly metas: Record<string, Values> = {
 		"System Settings": SYSTEM_SETTINGS,
 		"Telephony Agent": TELEPHONY_AGENT,
+		"Walk Rule": WALK_RULE,
 	};
 	readonly docs = new Map<string, Values>();
 	/** The next write's reply waits until this resolves. */
@@ -74,7 +81,7 @@ export class SettingsServer {
 		const path = decodeURIComponent(new URL(url, "http://x").pathname);
 		const method = init?.method ?? "GET";
 		const meta = path.match(/^\/api\/v2\/doctype\/(.+)\/meta$/);
-		if (meta) return json({ data: this.metas[meta[1]] });
+		if (meta) return json({ data: this.metas[meta[1]], children: this.children(meta[1]) });
 		if (path === "/api/v2/method/frappe.desk.form.load.get_new_doc")
 			return json({ data: { mobile_no: "", extension: "" } });
 		const [, doctype, name] = path.match(/^\/api\/v2\/document\/([^/]+)(?:\/(.+))?$/) ?? [];
@@ -89,6 +96,12 @@ export class SettingsServer {
 			return json({ errors: [entry] }, status);
 		}
 		return method === "POST" ? this.insert(doctype, body) : this.update(doctype, name, body);
+	}
+
+	private children(doctype: string): Values[] {
+		return (this.metas[doctype]?.fields ?? [])
+			.filter((field: Values) => field.fieldtype === "Table" && this.metas[field.options])
+			.map((field: Values) => this.metas[field.options]);
 	}
 
 	private read(doctype: string, name: string) {

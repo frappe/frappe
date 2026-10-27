@@ -20,6 +20,8 @@ export interface BoundBlock {
 	fieldnames: ComputedRef<string[]>;
 }
 
+type SaveMode = SettingsBlock["save_mode"];
+
 export class PaneDrafts {
 	/** The generated blocks, by key. */
 	readonly bound = new Map<string, BoundBlock>();
@@ -86,14 +88,17 @@ export class PaneDrafts {
 		this.saving = computed(() => buttons.some((bound) => marked(bound, "saving")));
 	}
 
-	/** An `auto` block's commit: its binding's changed `auto` fields, the ones that failed before included. */
+	/** An `auto` block's commit: its binding's changed `auto` fields; one that failed is sent again only by its own block. */
 	async commit(bound: BoundBlock) {
 		if (bound.block.save_mode !== "auto") return;
 		const { draft } = bound;
+		const own = new Set(bound.fieldnames.value);
 		const fieldnames = this.fieldnamesOf(draft, "auto").filter(
-			(fieldname) => draft.dirty(fieldname) || draft.state.marks[fieldname] === "saving"
+			(fieldname) =>
+				(draft.dirty(fieldname) || draft.state.marks[fieldname] === "saving") &&
+				(draft.state.marks[fieldname] !== "error" || own.has(fieldname))
 		);
-		await this.saveOrHold(draft, fieldnames);
+		await this.saveOrHold(draft, "auto", fieldnames);
 	}
 
 	/** The Save bar: each binding's `button` changes, in parallel, with nothing rolled back. */
@@ -103,6 +108,7 @@ export class PaneDrafts {
 			[...drafts].map((draft) =>
 				this.saveOrHold(
 					draft,
+					"button",
 					this.fieldnamesOf(draft, "button").filter((fieldname) => draft.dirty(fieldname))
 				)
 			)
@@ -135,7 +141,14 @@ export class PaneDrafts {
 				fieldnames: computed(() => this.unclaimedFields(draft)),
 			};
 			this.claims.push(claim);
-			return [name, componentBinding(draft, () => this.commit(claim))] as const;
+			return [
+				name,
+				componentBinding(
+					draft,
+					() => claim.fieldnames.value,
+					() => this.commit(claim)
+				),
+			] as const;
 		});
 		return Object.fromEntries(named);
 	}
@@ -151,16 +164,29 @@ export class PaneDrafts {
 			.filter((fieldname) => !drawn.has(fieldname));
 	}
 
-	private async saveOrHold(draft: BindingDraft, fieldnames: string[]) {
+	/** An insert checks every block's required fields; a patch only those of the blocks in its mode that send a field. */
+	private async saveOrHold(draft: BindingDraft, mode: SaveMode, fieldnames: string[]) {
 		if (!fieldnames.length) return;
-		const missing = this.claims
-			.filter((bound) => bound.draft === draft)
-			.flatMap(({ layout }) => missingRequired(layout.value, draft.state.doc));
-		if (missing.length) return draft.hold(fieldnames, missing);
-		return draft.save(fieldnames);
+		const held = new Set<string>();
+		const missing: ReturnType<typeof missingRequired> = [];
+		for (const bound of this.claims) {
+			if (bound.draft !== draft || !(draft.state.isNew || sends(bound, mode, fieldnames))) continue;
+			const empty = missingRequired(bound.layout.value, draft.state.doc);
+			if (!empty.length) continue;
+			missing.push(...empty);
+			for (const fieldname of draft.state.isNew ? fieldnames : bound.fieldnames.value)
+				held.add(fieldname);
+		}
+		if (missing.length)
+			draft.hold(
+				fieldnames.filter((fieldname) => held.has(fieldname)),
+				missing
+			);
+		const sent = fieldnames.filter((fieldname) => !held.has(fieldname));
+		if (sent.length) return draft.save(sent);
 	}
 
-	private fieldnamesOf(draft: BindingDraft, mode: SettingsBlock["save_mode"]): string[] {
+	private fieldnamesOf(draft: BindingDraft, mode: SaveMode): string[] {
 		const fieldnames = this.claims
 			.filter(({ block, draft: other }) => other === draft && block.save_mode === mode)
 			.flatMap((bound) => bound.fieldnames.value);
@@ -174,6 +200,13 @@ function bind(block: SettingsBlock, draft: BindingDraft): BoundBlock {
 	);
 	const fieldnames = computed(() => layoutFields(layout.value).map((field) => field.fieldname));
 	return { block, draft, layout, fieldnames };
+}
+
+function sends(bound: BoundBlock, mode: SaveMode, fieldnames: string[]): boolean {
+	return (
+		bound.block.save_mode === mode &&
+		bound.fieldnames.value.some((fieldname) => fieldnames.includes(fieldname))
+	);
 }
 
 /** A Single is named after its doctype; `session_user` names the person signed in. */
