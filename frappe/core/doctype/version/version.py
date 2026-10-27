@@ -10,6 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import cstr
 
 FIELDTYPES_TO_IGNORE = frozenset(fieldtype for fieldtype in no_value_fields if fieldtype not in table_fields)
+STANDARD_VERSIONED_FIELDS = frozenset({"name", "docstatus"})
 
 
 class Version(Document):
@@ -187,7 +188,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 	# name & docstatus
 	if not for_child:
-		for key in ("name", "docstatus"):
+		for key in sorted(STANDARD_VERSIONED_FIELDS):
 			old_value = getattr(old, key)
 			new_value = getattr(new, key)
 
