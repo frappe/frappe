@@ -438,7 +438,7 @@ def get_unsaved_format_preview(
 	document = frappe.get_doc(doctype, name)
 	document.check_permission("print")
 	try:
-		with print_language(lang):
+		with print_language(document.get("language") or lang):
 			html = get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
 	except PREVIEW_ERRORS as e:
 		frappe.clear_last_message()
