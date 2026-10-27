@@ -2,8 +2,6 @@
 
 const MOST_COLUMNS = 6;
 const FEWEST_BOX_COLUMNS = 3;
-// The arrange strip's hint, Reset and Done fit on one line from four columns.
-const FEWEST_ARRANGE_COLUMNS = 4;
 
 // Literal classes, so Tailwind finds them. One per column count.
 const GRID_COLUMNS = [
@@ -35,11 +33,6 @@ export function gridClass(tiles: number): string {
 /** The filter box spans the first row's logos, never fewer than three columns. */
 export function boxWidthClass(tiles: number): string {
 	return BOX_WIDTHS[Math.max(columnsFor(tiles), FEWEST_BOX_COLUMNS)];
-}
-
-/** While arranging, the box and the strip span the drag grid of every app, never fewer than four columns. */
-export function arrangeBoxWidthClass(tiles: number): string {
-	return BOX_WIDTHS[Math.max(columnsFor(tiles), FEWEST_ARRANGE_COLUMNS)];
 }
 
 /** The page's centred column: the box sits at 18vh from the top. */

@@ -1,11 +1,11 @@
 <!-- Arrange mode: every app in a drag grid with an eye to hide it, under a strip with Reset and Done. -->
 <template>
 	<div
-		class="mt-6 flex w-full items-center justify-between gap-3 rounded-5 bg-surface-gray-2 py-2 pl-3 pr-2"
+		class="mt-6 flex w-full flex-wrap items-center justify-end gap-x-3 gap-y-2 rounded-5 bg-surface-gray-2 py-2 pl-3 pr-2"
 		:class="boxWidthClass"
 		data-arrange-strip
 	>
-		<span class="text-sm text-ink-gray-7">
+		<span class="flex-auto text-sm text-ink-gray-7">
 			{{ __("Drag to reorder. Click the eye to hide an app.") }}
 		</span>
 		<div class="flex shrink-0 gap-2">
@@ -69,7 +69,7 @@ import { gridClass } from "./grid";
 import { resetLayer, saveLayer } from "./layer";
 
 const props = defineProps<{ apps: IndexApp[]; boxWidthClass: string }>();
-const emit = defineEmits<{ done: [apps: IndexApp[]] }>();
+const emit = defineEmits<{ done: [apps: IndexApp[]]; reset: [apps: IndexApp[]] }>();
 
 const draft = ref<IndexApp[]>([...props.apps]);
 const saving = ref(false);
@@ -95,7 +95,9 @@ async function move(app: IndexApp, by: -1 | 1) {
 
 async function reset() {
 	const apps = await write(resetLayer);
-	if (apps) draft.value = apps;
+	if (!apps) return;
+	draft.value = apps;
+	emit("reset", apps);
 }
 
 async function done() {

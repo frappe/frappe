@@ -1,4 +1,4 @@
-<!-- The index while its code loads: the filter box at its final width, and four tiles. -->
+<!-- The index while its code loads: the filter box and the first row of tiles, at their final width. -->
 <template>
 	<div class="flex min-h-0 flex-1 flex-col" data-index-skeleton>
 		<LoadingStatus />
@@ -7,7 +7,7 @@
 				size="lg"
 				variant="subtle"
 				class="w-full"
-				:class="boxWidthClass(unfilteredTiles(boot.apps ?? [], boot.more_apps))"
+				:class="boxWidthClass(tiles)"
 				:placeholder="__('Find an app')"
 				readonly
 				tabindex="-1"
@@ -17,9 +17,9 @@
 				</template>
 			</TextInput>
 
-			<div class="mt-12 grid gap-x-4 gap-y-6" :class="gridClass(TILES)">
+			<div class="mt-12 grid gap-x-4 gap-y-6" :class="gridClass(tiles)">
 				<div
-					v-for="tile in TILES"
+					v-for="tile in columnsFor(tiles)"
 					:key="tile"
 					class="flex flex-col items-center gap-2 p-2"
 				>
@@ -38,12 +38,11 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import LoadingStatus from "@/shell/LoadingStatus.vue";
 import { unfilteredTiles } from "./apps";
-import { PAGE_COLUMN, boxWidthClass, gridClass } from "./grid";
-
-const TILES = 4;
+import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
 
 // A page's props reach its loading state too; they mean nothing here.
 defineOptions({ inheritAttrs: false });
 
 const boot = inject<Boot>("boot")!;
+const tiles = unfilteredTiles(boot.apps ?? [], boot.more_apps);
 </script>

@@ -35,6 +35,7 @@
 				v-else-if="arranging"
 				:apps="apps"
 				:box-width-class="boxWidth"
+				@reset="(reset) => (apps = reset)"
 				@done="finishArranging"
 			/>
 
@@ -130,7 +131,7 @@ import AppTile from "./AppTile.vue";
 import { favouriteKey } from "./favourites";
 import IndexFavourites from "./IndexFavourites.vue";
 import IndexRecent from "./IndexRecent.vue";
-import { PAGE_COLUMN, arrangeBoxWidthClass, boxWidthClass, columnsFor, gridClass } from "./grid";
+import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
 import { saveLayer } from "./layer";
 import MoreAppsTile from "./MoreAppsTile.vue";
 import { recentKey } from "./recent";
@@ -162,10 +163,11 @@ const moreApps = computed(() =>
 const tileCount = computed(() => matches.value.length + (moreApps.value ? 1 : 0));
 const shownFavourites = computed(() => (query.value.trim() || arranging.value ? [] : favourites));
 const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] : recent));
+// Arranging draws every app, hidden ones too, and no "Get more apps" tile.
 const boxWidth = computed(() =>
-	arranging.value
-		? arrangeBoxWidthClass(apps.value.length)
-		: boxWidthClass(unfilteredTiles(apps.value, boot.more_apps))
+	boxWidthClass(
+		arranging.value ? apps.value.length : unfilteredTiles(apps.value, boot.more_apps)
+	)
 );
 
 if (apps.value.length) {
