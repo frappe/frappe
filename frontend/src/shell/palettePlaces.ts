@@ -56,10 +56,12 @@ class HeldRead<T> {
 const places = new HeldRead<PlacesReply>();
 const panes = new HeldRead<PanesReply>();
 
-/** Asks for the places and the settings panes the tab does not hold yet. */
-export function loadPlaces(boot: Boot) {
-	places.ask(fetchPlaces).catch(placesFailed);
-	panes.ask(() => fetchPanes(boot)).catch(placesFailed);
+/** Asks for the places and the settings panes the tab does not hold yet; settles when both answer. */
+export function loadPlaces(boot: Boot): Promise<unknown> {
+	return Promise.all([
+		places.ask(fetchPlaces).catch(placesFailed),
+		panes.ask(() => fetchPanes(boot)).catch(placesFailed),
+	]);
 }
 
 /** `shell.create`'s options: each doctype the user may create. */
@@ -81,13 +83,10 @@ export async function paneOptions(boot: Boot): Promise<ActOption[]> {
 	}));
 }
 
-export const goTo: PaletteGroup = {
-	get label() {
-		return __("Go to");
-	},
-	rows: (query, context) =>
-		query.trim() ? rank(rowsFor(context).goTo.value, query).slice(0, GO_TO_CAP) : [],
-};
+export const goTo = goToGroup((rows) => rows.goTo.value);
+
+/** Go to without the apps, for the index, whose tiles are the apps. */
+export const goToPlaces = goToGroup((rows) => rows.goToPlaces.value);
 
 export const create: PaletteGroup = {
 	get label() {
@@ -96,6 +95,16 @@ export const create: PaletteGroup = {
 	rows: (query, context) =>
 		query.trim() ? rank(rowsFor(context).create.value, query).slice(0, CREATE_CAP) : [],
 };
+
+function goToGroup(rowsOf: (rows: PlaceRows) => PaletteRow[]): PaletteGroup {
+	return {
+		get label() {
+			return __("Go to");
+		},
+		rows: (query, context) =>
+			query.trim() ? rank(rowsOf(rowsFor(context)), query).slice(0, GO_TO_CAP) : [],
+	};
+}
 
 /** In this prefix the router moves; another prefix is another document. */
 export function openPlace(href: string, { boot, router }: PaletteContext) {
@@ -122,16 +131,17 @@ function rowsFor(context: PaletteContext): PlaceRows {
 /** One palette's place rows, rebuilt when a reply lands or the navigation is replaced. */
 class PlaceRows {
 	readonly goTo: ComputedRef<PaletteRow[]>;
+	readonly goToPlaces: ComputedRef<PaletteRow[]>;
 	readonly create: ComputedRef<PaletteRow[]>;
 	private readonly doctypes = computed(() => this.doctypeRows());
 	private navigation: { from?: Navigation; rows: PaletteRow[] } = { rows: [] };
 
 	constructor(private readonly context: PaletteContext) {
-		const others = computed(() => [...this.appRows(), ...this.paneRows()]);
-		this.goTo = computed(() => [
-			...joinPlaces(this.sidebarRows().map((row) => this.ownedBy(row)), this.doctypes.value),
-			...others.value,
-		]);
+		const joined = computed(() => joinPlaces(this.sidebarRows().map((row) => this.ownedBy(row)), this.doctypes.value));
+		const apps = computed(() => this.appRows());
+		const panes = computed(() => this.paneRows());
+		this.goTo = computed(() => [...joined.value, ...apps.value, ...panes.value]);
+		this.goToPlaces = computed(() => [...joined.value, ...panes.value]);
 		this.create = computed(() => this.createRows());
 	}
 

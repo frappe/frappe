@@ -14,6 +14,8 @@ interface FoundRecord {
 	doctype: string;
 	name: string;
 	label: string;
+	/** Its address in its own app's prefix. */
+	route: string;
 }
 
 const SHORTEST_QUERY = 2;
@@ -58,15 +60,16 @@ class RecordSearch {
 	}
 }
 
-const recordSearch = new RecordSearch();
+// One per palette context: the palette and the index's box each follow their own query.
+const searches = new WeakMap<PaletteContext, RecordSearch>();
 
 export const records: PaletteGroup = {
 	get label() {
 		return __("Records");
 	},
-	follow: (query, context) => recordSearch.follow(query, pageDoctype(context)),
+	follow: (query, context) => searchOf(context).follow(query, pageDoctype(context)),
 	rows: (_query, context) => {
-		const found = recordSearch.found.value;
+		const found = searchOf(context).found.value;
 		if (found === "searching") return [searchingRow()];
 		if (found === "failed") return [failedRow()];
 		return found.map((record) => recordRow(record, context));
@@ -88,6 +91,12 @@ export function findRow(query: string, context: PaletteContext): PaletteRow[] {
 	];
 }
 
+function searchOf(context: PaletteContext): RecordSearch {
+	let search = searches.get(context);
+	if (!search) searches.set(context, (search = new RecordSearch()));
+	return search;
+}
+
 function searchingRow(): PaletteRow {
 	return { id: "records:searching", label: __("Searching…"), pending: true, run: () => {} };
 }
@@ -103,7 +112,10 @@ function failedRow(): PaletteRow {
 }
 
 function recordRow(record: FoundRecord, context: PaletteContext): PaletteRow {
-	const href = urlFor(record.doctype, String(record.name));
+	// The index's router holds no record route; an app's keeps the record in its own prefix.
+	const href = context.router.hasRoute("record")
+		? urlFor(record.doctype, String(record.name))
+		: record.route;
 	return {
 		id: `record:${record.doctype}/${record.name}`,
 		label: String(record.label),

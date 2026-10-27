@@ -48,19 +48,24 @@
 				<Button :label="__('Arrange apps')" @click="startArranging" />
 			</div>
 
-			<div
-				v-else-if="!matches.length"
-				class="mt-16 flex flex-col items-center gap-3"
+			<p
+				v-else-if="nothingFound"
+				class="mt-16 text-base text-ink-gray-5"
 				data-index-state="no-match"
 			>
-				<p class="text-base text-ink-gray-5">
-					{{ __("No app matches “{0}”.", [query.trim()]) }}
-				</p>
-				<Button :label="__('Clear')" @click="clear" />
-			</div>
+				{{ __("No results for “{0}”", [query.trim()]) }}
+			</p>
+
+			<p
+				v-else-if="searchBroken"
+				class="mt-16 text-base text-ink-gray-5"
+				data-index-state="search-failed"
+			>
+				{{ __("Could not search for “{0}”", [query.trim()]) }}
+			</p>
 
 			<ul
-				v-else
+				v-if="matches.length"
 				:id="TILES_ID"
 				role="listbox"
 				:aria-label="__('Apps')"
@@ -97,6 +102,14 @@
 					/>
 				</li>
 			</ul>
+
+			<IndexResults
+				v-if="results.length"
+				:id-prefix="RESULTS_ID"
+				:groups="results"
+				:selection="selection"
+				:class="boxWidth"
+			/>
 
 			<IndexFavourites
 				v-if="shownFavourites.length"
@@ -135,14 +148,17 @@ import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
 import { saveLayer } from "./layer";
 import MoreAppsTile from "./MoreAppsTile.vue";
 import { recentKey } from "./recent";
+import { useIndexSearch } from "./indexSearchLoader";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
 const ArrangeApps = defineAsyncComponent(() => import("./ArrangeApps.vue"));
 const IndexNotices = defineAsyncComponent(() => import("./IndexNotices.vue"));
+const IndexResults = defineAsyncComponent(() => import("./IndexResults.vue"));
 
 const TILES_ID = "index-apps";
 const FAVOURITES_ID = "index-favourites";
 const RECENT_ID = "index-recent";
+const RESULTS_ID = "index-results";
 const MORE_APPS_KEY = "more-apps";
 
 const boot = inject<Boot>("boot")!;
@@ -163,6 +179,14 @@ const moreApps = computed(() =>
 const tileCount = computed(() => matches.value.length + (moreApps.value ? 1 : 0));
 const shownFavourites = computed(() => (query.value.trim() || arranging.value ? [] : favourites));
 const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] : recent));
+const { search, failed: searchFailed } = useIndexSearch(query, boot);
+const results = computed(() => search.value?.groups.value ?? []);
+// Not before the places answer: the rows still on their way would contradict it.
+const nothingFound = computed(
+	() =>
+		!matches.value.length && !search.value?.found.value.length && !!search.value?.settled.value
+);
+const searchBroken = computed(() => !matches.value.length && !search.value && searchFailed.value);
 // Arranging draws every app, hidden ones too, and no "Get more apps" tile.
 const boxWidth = computed(() =>
 	boxWidthClass(
@@ -185,6 +209,7 @@ const sections = computed<SelectionSection[]>(() => [
 		],
 		columns: columnsFor(tileCount.value),
 	},
+	...(search.value?.sections.value ?? []),
 	{
 		items: shownFavourites.value.map((favourite) => ({
 			key: favouriteKey(favourite),
@@ -206,9 +231,12 @@ const listboxes = computed(() => [
 	...(matches.value.length ? [TILES_ID] : []),
 	...(shownFavourites.value.length ? [FAVOURITES_ID] : []),
 	...(shownRecent.value.length ? [RECENT_ID] : []),
+	...results.value.map((_, position) => `${RESULTS_ID}-${position}`),
 ]);
 
 watch(query, (typed) => (typed.trim() ? selection.selectFirst() : selection.clear()));
+// Result rows arrive after the keystroke; the selection moves to the first if its item went.
+watch(sections, () => query.value.trim() && selection.keep());
 
 // Focus stays in the box, so the browser does not scroll to the selection by itself.
 watch(selection.selected, (key) => key && scrollIntoView(selectableId(key)), { flush: "post" });
@@ -220,15 +248,11 @@ function onKeydown(event: KeyboardEvent) {
 		event.preventDefault();
 	} else if (event.key === "Enter" && !event.isComposing) {
 		const target = selection.target();
-		if (target) window.location.assign(target.href);
+		if (target?.run) target.run();
+		else if (target?.href) window.location.assign(target.href);
 	} else if (event.key === "Escape") {
 		query.value = "";
 	}
-}
-
-function clear() {
-	query.value = "";
-	box.value?.focus();
 }
 
 function startArranging() {

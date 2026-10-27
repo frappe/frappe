@@ -1,8 +1,8 @@
 // The arrow-key selection on the index: one movement over every section's items, in page order.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
 
-/** One item the arrow keys can reach. `key` is unique on the page; Enter opens `href`. */
-export type Selectable = { key: string; href: string };
+/** One item the arrow keys can reach. `key` is unique on the page; Enter calls `run`, else opens `href`. */
+export type Selectable = { key: string; href?: string; run?: () => unknown };
 
 /** A run of items drawn in `columns` columns, in reading order. A list is one column. */
 export type SelectionSection = { items: Selectable[]; columns: number };
@@ -13,7 +13,8 @@ const ARROWS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 
 /** The element id an item draws with, so the filter box can point at the selected one. */
 export function selectableId(key: string): string {
-	return `index-item-${key.replace(/[^\w-]/g, "-")}`;
+	// Every other character as its code point, `_` too, so two record names never share an id.
+	return `index-item-${key.replace(/[^A-Za-z0-9-]/gu, (c) => `_${c.codePointAt(0)!.toString(16)}_`)}`;
 }
 
 export class Selection {
@@ -26,6 +27,11 @@ export class Selection {
 
 	isSelected(key: string): boolean {
 		return this.selected.value === key;
+	}
+
+	/** `selectableId`, for the results chunk: importing it there splits this module out of the page's chunk. */
+	idOf(key: string): string {
+		return selectableId(key);
 	}
 
 	/** The selected item's element id, for `aria-activedescendant`. */
@@ -41,6 +47,11 @@ export class Selection {
 
 	selectFirst() {
 		this.selected.value = this.sections.value[0]?.items[0]?.key ?? null;
+	}
+
+	/** Selects the first item when the selected one is no longer drawn, as when rows arrive late. */
+	keep() {
+		if (!this.place()) this.selectFirst();
 	}
 
 	clear() {

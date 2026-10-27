@@ -2,11 +2,14 @@
 # License: MIT. See LICENSE
 """The command palette's server side."""
 
+from urllib.parse import urlsplit
+
 import frappe
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	get_doctypes_for_global_search,
 )
 from frappe.desk.search import build_for_autosuggest, search_widget
+from frappe.utils import get_url_to_form
 
 RECORDS_PER_DOCTYPE = 3
 RECORDS_IN_ALL = 10
@@ -40,16 +43,26 @@ def has_rows(doctype: str) -> bool:
 
 
 def records_of(doctype: str, txt: str) -> list[dict]:
-	"""Labelled as a Link field shows them: the title where the doctype shows titles in links."""
+	"""Labelled as a Link field shows them, with the address in its own app's prefix."""
 	results = search_widget(doctype, txt, page_length=RECORDS_PER_DOCTYPE)
 	if len(results) == RECORDS_PER_DOCTYPE and not any(is_exact(row[0], txt) for row in results):
 		# a prefix match ties with the exact name, so a full page may have left it out
 		named = search_widget(doctype, txt, filters={"name": ["like", escape_like(txt)]}, page_length=1)
 		results = [*(row for row in named if is_exact(row[0], txt)), *results][:RECORDS_PER_DOCTYPE]
 	return [
-		{"doctype": doctype, "name": row["value"], "label": row.get("label") or row["value"]}
+		{
+			"doctype": doctype,
+			"name": row["value"],
+			"label": row.get("label") or row["value"],
+			"route": record_path(doctype, row["value"]),
+		}
 		for row in build_for_autosuggest(results, doctype=doctype)
 	]
+
+
+def record_path(doctype: str, name: str) -> str:
+	"""The record's address, path only, so it opens on the host the search was made from."""
+	return urlsplit(get_url_to_form(doctype, name)).path
 
 
 def escape_like(txt: str) -> str:

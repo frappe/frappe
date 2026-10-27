@@ -1,4 +1,5 @@
-// The palette's groups in their fixed order, and the rows pinned below the list.
+// The palette's groups in their fixed order, the rows pinned below the list, and the one
+// query-to-rows step that the palette and the index's filter box both draw from.
 import type { Router } from "vue-router";
 import { acts, type AvailableAct } from "@/acts/dispatcher";
 import type { Addresses } from "@/addresses";
@@ -6,7 +7,7 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { openArgumentStep, pageRows, type PaletteRow } from "./palette";
 import { askFlow } from "./paletteFlow";
-import { create, goTo, openPlace } from "./palettePlaces";
+import { create, goTo, loadPlaces, openPlace } from "./palettePlaces";
 import { rank } from "./paletteRanking";
 import { findRow, records } from "./paletteRecords";
 import { recentVisits, type RecentVisit } from "./recentVisits";
@@ -47,7 +48,7 @@ const thisPage: PaletteGroup = {
 	rows: (query) => rank([...actRows((act) => !isShellAct(act)), ...pageRows()], query),
 };
 
-const desk: PaletteGroup = {
+export const desk: PaletteGroup = {
 	get label() {
 		return __("Desk");
 	},
@@ -59,6 +60,47 @@ export const paletteGroups: PaletteGroup[] = [recent, thisPage, desk, goTo, crea
 
 /** Rows below the scrolling list, which never scroll away; the arrow keys reach them last. */
 export const pinnedRows: PaletteGroup["rows"][] = [findRow, askFlow];
+
+/** A group as drawn: its label and its rows for the query. */
+export interface DrawnGroup {
+	label: string;
+	rows: PaletteRow[];
+}
+
+/** The groups a search draws, in order, and the rows it pins after them. */
+export interface PaletteSource {
+	groups: PaletteGroup[];
+	pinned: PaletteGroup["rows"][];
+}
+
+/** One context's search over a source: the palette's own by default. */
+export class PaletteSearch {
+	constructor(
+		private readonly context: PaletteContext,
+		private readonly source: PaletteSource = { groups: paletteGroups, pinned: pinnedRows }
+	) {}
+
+	/** The groups that have rows for `query`, in the source's order. */
+	groups(query: string): DrawnGroup[] {
+		return this.source.groups
+			.map((group) => ({ label: group.label, rows: group.rows(query, this.context) }))
+			.filter((group) => group.rows.length);
+	}
+
+	pinned(query: string): PaletteRow[] {
+		return this.source.pinned.flatMap((rows) => rows(query, this.context));
+	}
+
+	/** Hands the query to the groups that ask the server; an empty one stops their asking. */
+	follow(query: string) {
+		this.source.groups.forEach((group) => group.follow?.(query, this.context));
+	}
+
+	/** Asks for the places and panes Go to and Create draw from, if the tab lacks them. */
+	load(): Promise<unknown> {
+		return loadPlaces(this.context.boot);
+	}
+}
 
 function recentRow(one: RecentVisit, context: PaletteContext): PaletteRow {
 	return {

@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.palette import search_records
+from frappe.shell.links import canonical_path
 from frappe.tests import IntegrationTestCase
 
 READER = "palette-reader@example.com"
@@ -47,7 +48,9 @@ class TestSearchRecords(IntegrationTestCase):
 		with listed([self.closed, first]), self.set_user(READER):
 			found = search_records("Kestrel", doctype=self.closed)
 
-		self.assertEqual(found, [{"doctype": first, "name": "Kestrel Ridge", "label": "Kestrel Ridge"}])
+		self.assertEqual(
+			without_route(found), [{"doctype": first, "name": "Kestrel Ridge", "label": "Kestrel Ridge"}]
+		)
 
 	def test_exact_name_comes_first(self):
 		first, second = self.readable[:2]
@@ -96,7 +99,23 @@ class TestSearchRecords(IntegrationTestCase):
 		with listed([self.titled]), self.set_user(READER):
 			found = search_records("Kestrel")
 
-		self.assertEqual(found, [{"doctype": self.titled, "name": "KES-0001", "label": "Kestrel Ridge"}])
+		self.assertEqual(
+			without_route(found), [{"doctype": self.titled, "name": "KES-0001", "label": "Kestrel Ridge"}]
+		)
+
+	def test_a_record_carries_its_v2_address_without_the_host(self):
+		first = self.readable[0]
+		add_records(first, "Kestrel Ridge")
+
+		with (
+			listed([first]),
+			self.set_user(READER),
+			patch("frappe.utils.data.is_desk_v2_enabled", return_value=True),
+		):
+			found = search_records("Kestrel")
+
+		self.assertEqual([row["route"] for row in found], [canonical_path(first, "Kestrel Ridge")])
+		self.assertTrue(found[0]["route"].startswith("/apps/"))
 
 	def test_single_is_skipped(self):
 		first = self.readable[0]
@@ -127,3 +146,8 @@ def add_records(doctype: str, *names: str):
 
 def listed(doctypes: list[str]):
 	return patch("frappe.desk.palette.get_doctypes_for_global_search", return_value=doctypes)
+
+
+def without_route(found: list[dict]) -> list[dict]:
+	"""The rows without their address, which its own test checks."""
+	return [{key: value for key, value in row.items() if key != "route"} for row in found]
