@@ -428,8 +428,9 @@ watch(
 	() => componentRef.value,
 	() => {
 		if (!componentRef.value) return
-		// set data attrs for the components which only bind styles and class to the actual root element
-		if (target.value && target.value instanceof Element) {
+		// set data attrs for the components which only bind styles and class to the actual root
+		// element; a Variants block's root is the shown option's element, which keeps its own
+		if (!isVariantsBlock && target.value && target.value instanceof Element) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
 			target.value?.setAttribute("data-breakpoint", props.breakpoint)
 		}

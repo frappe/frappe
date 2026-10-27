@@ -268,6 +268,9 @@ const handleError = (event: any) => (error: any) => {
 }
 
 onMounted(() => {
+	// a Variants block has no element of its own: its root is the shown option's element,
+	// which stays the option's to identify
+	if (props.block.componentName === "Variants") return
 	const componentRoot = getComponentRoot(componentRef)
 	if (componentRoot) {
 		// explicitly set data-component-id for frappeui components with inheritAttrs: false
