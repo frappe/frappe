@@ -12,7 +12,7 @@ const NUMBER_CARD_ROWS = 39 / 18;
 export const SIZES = {
 	shortcut: { S: [3, null], M: [4, null], L: [6, null] },
 	number_card: { S: [2, NUMBER_CARD_ROWS], M: [3, NUMBER_CARD_ROWS], L: [6, NUMBER_CARD_ROWS] },
-	card: { M: [4, null], L: [6, null] },
+	card: { M: [4, null] },
 	quick_list: { M: [4, 4], L: [6, 4], XL: [8, 4] },
 	chart: { L: [6, 4], XL: [8, 4], Wide: [12, 4] },
 	onboarding: { L: [6, null], Wide: [12, null] },
