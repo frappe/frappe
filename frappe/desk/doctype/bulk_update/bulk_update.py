@@ -74,7 +74,7 @@ def submit_cancel_or_update_docs(
 		else:
 			task_name = _("Bulk Update")
 
-		frappe.enqueue_task(
+		task = frappe.enqueue_task(
 			method="frappe.desk.doctype.bulk_update.bulk_update._bulk_action",
 			doctype=doctype,
 			docnames=docnames,
@@ -85,6 +85,7 @@ def submit_cancel_or_update_docs(
 			timeout=1000,
 			enqueue_after_commit=True,
 		)
+		return task
 	else:
 		frappe.throw(_("Bulk operations only support up to 500 documents."), title=_("Too Many Documents"))
 
