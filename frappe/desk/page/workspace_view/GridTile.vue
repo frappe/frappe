@@ -14,6 +14,10 @@ const fixed = computed(() => props.size.rows && !props.size.shrinks);
 
 // the height in px a shrinking tile may grow to, for a tile that fills itself to fit
 provide("tile_max_height", max_height);
+provide(
+	"tile_size",
+	computed(() => props.size.name)
+);
 
 // A grid row (a size's height unit) is 18 of the grid's tracks, gap included. See WorkspaceGrid.
 const TRACKS_PER_ROW = 18;
