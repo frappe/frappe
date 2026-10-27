@@ -492,7 +492,12 @@ def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int
 		page._skip_validate = True
 		page.save()
 	elif not keep_component_variant(page, str(block_id), option_index):
-		frappe.throw(_("This page has no variants block {0}.").format(block_id))
+		# the block may be gone or the option may be, and the caller reloads either way
+		frappe.throw(
+			_("Could not keep option {0} of variants block {1}. Reload the page and try again.").format(
+				option_index, block_id
+			)
+		)
 
 
 def keep_component_variant(page: "StudioPage", block_id: str, option_index: int) -> bool:

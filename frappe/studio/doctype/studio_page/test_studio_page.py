@@ -88,7 +88,10 @@ class TestStudioPage(IntegrationTestCase):
 
 		# an index the block never offered must be refused, not clamped onto a neighbour
 		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", -1)
-		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", 5)
+		# the message names the option, so a bad index is not reported as a missing block
+		with self.assertRaises(frappe.ValidationError) as refused:
+			keep_variant(app.name, page.name, "Variants-hero", 5)
+		self.assertIn("option 5", str(refused.exception))
 
 		# a draft edited down to fewer options must not fail a Keep the published copy serves
 		draft = frappe.parse_json(frappe.as_json(blocks))
