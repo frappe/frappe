@@ -1,6 +1,8 @@
 // The index page: one tile per boot app, the filter box, its states, and the keys it answers.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick, type App } from "vue";
+import { createMemoryHistory, createRouter } from "vue-router";
+import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { pageMenuItems } from "@/shell/pageMenu";
 import IndexPage from "../IndexPage.vue";
@@ -77,11 +79,22 @@ const RECENT: BootVisit[] = [
 	},
 ];
 
+// The palette's server reads, answering nothing: this file tests the page, not its search.
+const NOTHING_FOUND: Record<string, unknown> = {
+	"frappe.shell.palette.places": { doctypes: [], apps: [], titles: {} },
+	"frappe.shell.settings.get_panes": { panes: [], index: [], titles: {} },
+};
+
 const mounted: App[] = [];
+
+// The search's chunk loads on the first keystroke; its first transform here outlasts a `waitFor`.
+beforeAll(() => import("../indexSearch"), 60000);
 let assign: ReturnType<typeof vi.fn>;
 
 beforeEach(() => {
-	fake.runMethod.mockReset();
+	fake.runMethod.mockReset().mockImplementation(async (method: string) => ({
+		data: NOTHING_FOUND[method] ?? [],
+	}));
 	assign = vi.fn();
 	vi.stubGlobal("location", { ...window.location, assign });
 });
@@ -101,8 +114,10 @@ async function mount(
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	const app = createApp(IndexPage);
-	const session = { timezone: "Asia/Kolkata" };
-	app.provide("boot", { app: null, apps, favourites, recent, more_apps: moreApps, session } as unknown as Boot);
+	const session = { timezone: "Asia/Kolkata", user: { name: "reader@example.com" } };
+	app.provide("boot", { app: null, apps, favourites, recent, more_apps: moreApps, session, prefixes: {} } as unknown as Boot);
+	app.provide("addresses", new Addresses({ doctypes: {}, modules: {}, singles: [] }));
+	app.use(createRouter({ history: createMemoryHistory(), routes: [{ path: "/", component: {} }] }));
 	app.mount(host);
 	mounted.push(app);
 	await nextTick();
@@ -251,18 +266,16 @@ describe("the index page", () => {
 		expect(selected(host)).toEqual([]);
 	});
 
-	it("says when nothing matches, and Clear brings every tile back", async () => {
+	it("says in one line when no tile and no row matches", async () => {
 		const host = await mount();
 		await type(host, "zzz");
-		const state = host.querySelector("[data-index-state='no-match']")!;
-		expect(state.textContent).toContain("No app matches “zzz”.");
+		await vi.waitFor(() =>
+			expect(host.querySelector("[data-index-state='no-match']")?.textContent?.trim()).toBe(
+				"No results for “zzz”"
+			)
+		);
 		expect(tiles(host)).toHaveLength(0);
-
-		state.querySelector("button")!.click();
-		await nextTick();
-		expect(box(host).value).toBe("");
-		expect(tiles(host)).toHaveLength(4);
-		expect(document.activeElement).toBe(box(host));
+		expect(host.querySelector("[data-index-state='no-match'] button")).toBeNull();
 	});
 
 	it("says when the person can open no app", async () => {
@@ -712,7 +725,9 @@ describe("the index's Get more apps tile", () => {
 		await type(host, "e");
 		expect(moreApps(host)).toBeNull();
 		await type(host, "get more");
-		expect(host.querySelector("[data-index-state='no-match']")).not.toBeNull();
+		await vi.waitFor(() =>
+			expect(host.querySelector("[data-index-state='no-match']")).not.toBeNull()
+		);
 		await press(host, "Escape");
 		expect(moreApps(host)).not.toBeNull();
 	});

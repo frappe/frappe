@@ -1,6 +1,7 @@
 <!--
   The command palette on frappe-ui's `CommandPalette*` parts. It ranks its own rows, so the
-  parts' filter is off. The groups and the pinned rows come from `paletteGroups.ts`.
+  parts' filter is off. The groups and the pinned rows come from `PaletteSearch`, which the
+  index's filter box draws from too.
 -->
 <template>
 	<CommandPalette
@@ -117,8 +118,7 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { paletteOpen, type PaletteRow as Row } from "./palette";
 import { usePaletteArgument } from "./paletteArgument";
-import { paletteGroups, pinnedRows, type PaletteContext } from "./paletteGroups";
-import { loadPlaces } from "./palettePlaces";
+import { PaletteSearch, type PaletteContext } from "./paletteGroups";
 import { usePaletteScope } from "./paletteScope";
 import { PaletteHighlight } from "./paletteHighlight";
 import PaletteRow from "./PaletteRow.vue";
@@ -128,6 +128,7 @@ const context: PaletteContext = {
 	router: useRouter(),
 	addresses: inject<Addresses>("addresses")!,
 };
+const search = new PaletteSearch(context);
 const query = ref("");
 const scope = usePaletteScope(query, context);
 const argument = usePaletteArgument(query);
@@ -162,10 +163,7 @@ const step = computed(() => {
 // A closed palette, or one in a second step, asks nothing more of the groups' server searches.
 watch(
 	[query, () => context.router.currentRoute.value.path, () => Boolean(step.value), paletteOpen],
-	([text, , stepped, isOpen]) => {
-		const asked = isOpen && !stepped ? text : "";
-		paletteGroups.forEach((group) => group.follow?.(asked, context));
-	}
+	([text, , stepped, isOpen]) => search.follow(isOpen && !stepped ? text : "")
 );
 
 // The scope is left on the next open, so the closing palette keeps its rows as it fades.
@@ -174,7 +172,7 @@ watch(
 	(isOpen) => {
 		if (!isOpen) return;
 		scope.leave();
-		loadPlaces(context.boot);
+		search.load();
 	},
 	{ immediate: true }
 );
@@ -184,15 +182,11 @@ const groups = computed(() => {
 		return step.value.rows.length
 			? [{ label: step.value.heading, rows: step.value.rows }]
 			: [];
-	return paletteGroups
-		.map((group) => ({ label: group.label, rows: group.rows(query.value, context) }))
-		.filter((group) => group.rows.length);
+	return search.groups(query.value);
 });
 
 // A second step pins nothing, so its own prompts stay in view.
-const pinned = computed(() =>
-	step.value ? [] : pinnedRows.flatMap((rows) => rows(query.value, context))
-);
+const pinned = computed(() => (step.value ? [] : search.pinned(query.value)));
 
 const drawnRows = computed(() => [
 	...groups.value.flatMap((group) => group.rows),

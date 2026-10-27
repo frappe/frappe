@@ -1,8 +1,8 @@
 // The arrow-key selection on the index: one movement over every section's items, in page order.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
 
-/** One item the arrow keys can reach. `key` is unique on the page; Enter opens `href`. */
-export type Selectable = { key: string; href: string };
+/** One item the arrow keys can reach. `key` is unique on the page; Enter calls `run`, else opens `href`. */
+export type Selectable = { key: string; href?: string; run?: () => unknown };
 
 /** A run of items drawn in `columns` columns, in reading order. A list is one column. */
 export type SelectionSection = { items: Selectable[]; columns: number };
@@ -28,6 +28,11 @@ export class Selection {
 		return this.selected.value === key;
 	}
 
+	/** The element id the item `key` draws with; the lazy results reach `selectableId` here. */
+	idOf(key: string): string {
+		return selectableId(key);
+	}
+
 	/** The selected item's element id, for `aria-activedescendant`. */
 	activeId(): string | undefined {
 		return this.selected.value ? selectableId(this.selected.value) : undefined;
@@ -41,6 +46,11 @@ export class Selection {
 
 	selectFirst() {
 		this.selected.value = this.sections.value[0]?.items[0]?.key ?? null;
+	}
+
+	/** Selects the first item when the selected one is no longer drawn, as when rows arrive late. */
+	keep() {
+		if (!this.place()) this.selectFirst();
 	}
 
 	clear() {
