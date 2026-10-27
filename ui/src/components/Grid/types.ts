@@ -54,6 +54,13 @@ export interface GridProps {
   /** Seeds a newly added row. The grid sees only the columns, so whoever knows
    *  the whole child form supplies its docfield defaults. */
   newRow?: () => Record<string, any>;
+  /** The value a pasted cell commits, or `null` to leave the cell alone.
+   *  Without it a pasted cell commits its text. */
+  parsePaste?: (
+    row: Record<string, any>,
+    column: GridColumn,
+    text: string
+  ) => { value: unknown } | null;
 }
 
 export type GridEmits = {

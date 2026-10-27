@@ -17,12 +17,11 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref } from "vue";
+import { computed, inject, nextTick, ref, watch } from "vue";
 import { TextInput } from "frappe-ui";
 import { DocKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
-import { flt, parseLongInt } from "../FormLayout/formatNumber";
-import { getFormatDefaults } from "../FormLayout/formatDefaults";
+import { parseNumberText } from "./parseText";
 import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
 
 const props = defineProps<FieldComponentProps>();
@@ -62,17 +61,17 @@ function formatted(value: any): string {
 }
 
 function parse(s: string): number | string {
-	// Empty input commits `0` (no null state); `flt('')` already returns 0.
-	const defaults = getFormatDefaults();
-	if (props.field.fieldtype === "Long Int") return parseLongInt(s, defaults.number_format);
-	if (props.field.fieldtype === "Int") {
-		return Math.trunc(flt(s, { numberFormat: defaults.number_format }));
-	}
-	return flt(s, {
-		numberFormat: defaults.number_format,
-		roundingMethod: defaults.rounding_method,
-	});
+	return parseNumberText(props.field.fieldtype, s);
 }
+
+// A paste into the grid writes the model under a focused cell; show what it wrote.
+watch(
+	() => props.modelValue,
+	(value) => {
+		if (!focused.value || parse(draft.value) === value) return;
+		draft.value = String(numericValue(value));
+	}
+);
 
 // Show raw value while focused and select-all so a fresh entry overwrites (Frappe's FormattedInput).
 function onFocus() {

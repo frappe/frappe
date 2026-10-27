@@ -112,7 +112,7 @@ function render(
 
 /** The per-row edit button lives in the frozen right-hand column. */
 function openRow(index: number) {
-  const buttons = host!.querySelectorAll<HTMLElement>(".sticky.right-0 button");
+  const buttons = host!.querySelectorAll<HTMLElement>('.sticky.right-0 button[aria-label="Edit Row"]');
   buttons[index].dispatchEvent(new Event("click"));
   // The dialog's FormLayout is an async component (module-cycle break), so the
   // dynamic import has to settle before its fields are in the DOM.
