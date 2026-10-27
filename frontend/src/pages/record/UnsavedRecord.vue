@@ -88,6 +88,7 @@ import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import PageFrame from "@/shell/PageFrame.vue";
+import { openArgumentStep } from "@/shell/palette";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import type { Boot } from "@/boot";
 import {
@@ -265,6 +266,7 @@ function buildController() {
 		router,
 		sourcesReady: () => loadRecordScripts(props.doctype),
 		actFailed,
+		openArgument: openArgumentStep,
 		activityRows: () => [],
 		scrollToActivity: async () => false,
 		reloadActivity: async () => {},

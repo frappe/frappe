@@ -1301,6 +1301,45 @@ describe("the argument step", () => {
 		);
 	});
 
+	it("draws an option's avatar, icon and disabled reason, and never picks a disabled one", async () => {
+		assignAct(() => [
+			{ value: "sarah@example.com", label: "Sarah Connor", image: "/files/sarah.png", disabled: "Assigned" },
+			{ value: "john@example.com", label: "John Parker", image: null },
+			{ value: "light", label: "Light", icon: "lucide-sun" },
+		]);
+		await shell();
+		await enterAssign();
+
+		const sarahRow = row("option:sarah@example.com")!;
+		expect(sarahRow.dataset.disabled).toBe("");
+		expect(sarahRow.textContent).toContain("Assigned");
+		expect(sarahRow.querySelector("img")?.getAttribute("src")).toBe("/files/sarah.png");
+		expect(row("option:john@example.com")!.querySelector(".rounded-full")?.textContent?.trim()).toBe("J");
+		expect(row("option:light")!.querySelector(".lucide-sun")).not.toBeNull();
+
+		await type("sarah");
+		await press("Enter");
+		expect(picked).toEqual([]);
+		expect(paletteOpen.value).toBe(true);
+	});
+
+	it("draws at most 50 ranked options, and typing finds the rest", async () => {
+		const many = Array.from({ length: 80 }, (_, index) => ({
+			value: `user${index}@example.com`,
+			label: `User ${String(index).padStart(2, "0")}`,
+		}));
+		assignAct(() => many);
+		await shell();
+		await enterAssign();
+
+		const [shown] = drawn();
+		expect(shown).toHaveLength(51);
+		expect(shown.at(-1)).toBe("User 49");
+
+		await type("79");
+		expect(drawn()).toEqual([["Users", "User 79"]]);
+	});
+
 	it("opens at the act's argument step from its key", async () => {
 		assignAct(() => [sarah, john], { key: "Mod+Shift+Y" });
 		await shell();

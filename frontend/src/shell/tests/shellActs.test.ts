@@ -277,9 +277,9 @@ describe("each shell act, run by name", () => {
 		await shell();
 		const theme = acts.available().find((act) => act.name === "shell.theme")!;
 		expect(await theme.argument!.options("")).toEqual([
-			{ value: "light", label: "Light" },
-			{ value: "dark", label: "Dark" },
-			{ value: "system", label: "System" },
+			{ value: "light", label: "Light", icon: "lucide-sun" },
+			{ value: "dark", label: "Dark", icon: "lucide-moon" },
+			{ value: "system", label: "System", icon: "lucide-monitor" },
 		]);
 
 		await acts.run("shell.theme", "dark");

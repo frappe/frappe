@@ -7,6 +7,7 @@ import { paletteArgument, paletteOpen, type PaletteRow } from "./palette";
 import { rank } from "./paletteRanking";
 
 const PAUSE_MS = 200;
+const MAX_ROWS = 50;
 
 /** The act whose argument the palette asks for, its options ranked by the query, and the way back. */
 export function usePaletteArgument(query: Ref<string>) {
@@ -82,7 +83,7 @@ export function usePaletteArgument(query: Ref<string>) {
 		const ranked = rank(
 			options.value.map((option) => optionRow(name, option)),
 			text.value
-		);
+		).slice(0, MAX_ROWS);
 		const behind = waiting.value || asked.value?.text !== text.value;
 		if (!ranked.length && behind && !failed.value)
 			return [{ id: "searching", label: __("Searching…"), pending: true, run: () => {} }];
@@ -110,6 +111,10 @@ function optionRow(name: string, option: ActOption): PaletteRow {
 		id: `option:${keyOf(option.value)}`,
 		label: option.label,
 		description: option.description,
+		icon: option.icon,
+		image: option.image,
+		disabled: Boolean(option.disabled),
+		hint: option.disabled,
 		keywords: [option.description, typeof option.value === "string" ? option.value : undefined].filter(
 			(word): word is string => !!word
 		),

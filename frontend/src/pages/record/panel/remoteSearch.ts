@@ -66,12 +66,18 @@ export function useRemoteSearch<Option extends SearchOption>(
 }
 
 async function searchUsers(query: string): Promise<SearchOption[]> {
+	const rows = await findUsers(query);
+	return rows.map((row) => ({ label: row.label || row.value, value: row.value }));
+}
+
+/** The link search's users: each one's id as `value`, and the full name as `description`. */
+export async function findUsers(query: string) {
 	const { data } = await searchDocuments("User", {
 		txt: query,
 		filters: USER_FILTERS,
 		limit: PAGE_LENGTH,
 	});
-	return data.map((row) => ({ label: row.label || row.value, value: row.value }));
+	return data;
 }
 
 async function searchTags(call: Call, doctype: string, query: string): Promise<SearchOption[]> {

@@ -188,8 +188,8 @@ import { canFollow, declinedMessage } from "./record/follow";
 import { useLiveDocinfo, warnDocinfoFailed } from "./record/liveDocinfo";
 import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
-import { mergePart } from "./record/panel/peopleActions";
-import { tagsOf } from "./record/panel/people";
+import { mergePart, peopleActions } from "./record/panel/peopleActions";
+import { assigneesOf, tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
 import RecordPanel from "./record/panel/RecordPanel.vue";
@@ -216,6 +216,7 @@ import {
 	stripTags,
 } from "./record/saveResponse";
 import PageFrame from "@/shell/PageFrame.vue";
+import { openArgumentStep } from "@/shell/palette";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import { recentVisits } from "@/shell/recentVisits";
 import type { Boot } from "@/boot";
@@ -398,22 +399,32 @@ function headerBuiltins(): HeaderItem[] {
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
-			{ single, follow: follow.value }
+			{
+				single,
+				follow: follow.value,
+				assign: { assignees: assigneesOf(docinfo.value), assign: assignUser },
+			}
 		)
 	);
 	return items;
 }
 
-// A failure toasts here: `actFailed` would otherwise reload over the draft. Clicks queue, so
-// each one reads the state the one before it left and two quick clicks toggle twice.
+// Turns run in the order queued, so each reads the state the one before it left (two quick
+// toggles toggle twice), and a turn for a record the page has left does nothing.
+function inPageTurn(page: RecordPageApi, run: () => Promise<void>) {
+	return currentVisit.inTurn(async () => {
+		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
+		await run();
+	});
+}
+
+// A failure toasts here: `actFailed` would otherwise reload over the draft.
 function toggleOnSidecar(
 	page: RecordPageApi,
 	write: () => Promise<Envelope<Partial<DocInfo>>>,
 	after?: (answer: Envelope<Partial<DocInfo>>) => void
 ) {
-	return currentVisit.inTurn(async () => {
-		// A turn that outlived its record would read the next record's state; it does nothing.
-		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
+	return inPageTurn(page, async () => {
 		const visit = currentVisit;
 		try {
 			const answer = await write();
@@ -436,6 +447,17 @@ function toggleFavourite(page: RecordPageApi) {
 	return toggleOnSidecar(page, () =>
 		(favourited.value ? removeFavourite : addFavourite)(page.doctype, page.docname)
 	);
+}
+
+function assignUser(page: RecordPageApi, user: string) {
+	const source = {
+		doctype: page.doctype,
+		docname: page.docname,
+		docinfo,
+		whileOnRecord: visitCheck,
+		controller: { page },
+	};
+	return inPageTurn(page, () => peopleActions(source).assign(user));
 }
 
 // The server declines a follow without failing, and says why beside the data.
@@ -766,6 +788,7 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 		actFailed,
+		openArgument: openArgumentStep,
 	});
 	created.header.provideBuiltins(headerBuiltins);
 	created.quickActions.provideBuiltins(() =>

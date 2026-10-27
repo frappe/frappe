@@ -3,11 +3,15 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 vi.mock("@/router/routeFor", () => ({ routeFor: (doctype: string) => ({ name: "list", doctype }) }));
 
-const { deleteDocument } = vi.hoisted(() => ({ deleteDocument: vi.fn(async () => ({ data: "ok" })) }));
-vi.mock("@framework/ui/api", () => ({ deleteDocument }));
+const { deleteDocument, searchDocuments } = vi.hoisted(() => ({
+  deleteDocument: vi.fn(async () => ({ data: "ok" })),
+  searchDocuments: vi.fn(),
+}));
+vi.mock("@framework/ui/api", () => ({ deleteDocument, searchDocuments }));
 
 import { headerMenuBuiltins, quickActionBuiltins, type FavouriteState, type FollowState } from "../builtinActions";
 import { FILES_TAB, recordTabBuiltins } from "../tabs/recordTabs";
+import { assignOptions, type AssignState } from "../assignAct";
 
 const names = (perms: Record<string, any>, tagged = false) =>
   quickActionBuiltins(perms, tagged).map((a) => a.name);
@@ -184,5 +188,71 @@ describe("quickActionBuiltins", () => {
     await quickActionBuiltins({})[1].run!(page);
     expect(writeText).toHaveBeenCalledWith(window.location.href);
     expect(page.toast.success).toHaveBeenCalledWith("Link copied");
+  });
+});
+
+describe("Assign to…", () => {
+  const sarah = { id: "sarah@example.com", name: "Sarah Connor", image: "/files/sarah.png" };
+  const assignState = (assignees = [sarah]): AssignState => ({ assignees, assign: vi.fn() });
+  const assignRow = (perms: Record<string, any>, state = assignState()) =>
+    headerMenuBuiltins(perms, off, { assign: state }).find((item) => item.name === "assign");
+
+  it("sits in its own band above the copies, behind the write right", () => {
+    expect(assignRow({})).toMatchObject({ right: "write" });
+    const rows = headerMenuBuiltins({ write: 1 }, off, { assign: assignState() });
+    expect(rows.map((item) => [item.name, item.group])).toEqual([
+      ["favourite_row", "favourite_band"],
+      ["assign", "assign_band"],
+      ["copy_url", "copies"],
+      ["copy_id", "copies"],
+    ]);
+    expect(rows[1]).toMatchObject({ label: "Assign to…", argument: { label: "Users" } });
+  });
+
+  it("lists the server's users with avatars, marks the assigned ones, and adds those it did not return", async () => {
+    searchDocuments.mockResolvedValue({
+      data: [
+        { value: "john@example.com", label: "john@example.com", description: "John Parker" },
+        { value: "sarah@example.com", label: "sarah@example.com", description: "Sarah Connor" },
+        { value: "bot@example.com", label: "bot@example.com" },
+        { value: "ann@example.com", label: "Ann Lee" },
+      ],
+    });
+    const emily = { id: "emily@example.com", name: "Emily Chen" };
+
+    const options = await assignOptions([sarah, emily], "e");
+
+    expect(searchDocuments).toHaveBeenCalledWith("User", expect.objectContaining({ txt: "e" }));
+    expect(options).toEqual([
+      { value: "john@example.com", label: "John Parker", description: "john@example.com", image: null },
+      {
+        value: "sarah@example.com",
+        label: "Sarah Connor",
+        description: "sarah@example.com",
+        image: "/files/sarah.png",
+        disabled: "Assigned",
+      },
+      { value: "bot@example.com", label: "bot@example.com", image: null },
+      { value: "ann@example.com", label: "Ann Lee", description: "ann@example.com", image: null },
+      {
+        value: "emily@example.com",
+        label: "Emily Chen",
+        description: "emily@example.com",
+        image: null,
+        disabled: "Assigned",
+      },
+    ]);
+  });
+
+  it("assigns the picked user, and says so when run with none", () => {
+    const state = assignState();
+    const row = assignRow({ write: 1 }, state)!;
+    const page = fakePage(true);
+
+    row.run!(page, "john@example.com");
+    row.run!(page);
+
+    expect(state.assign).toHaveBeenCalledExactlyOnceWith(page, "john@example.com");
+    expect(page.toast.error).toHaveBeenCalledExactlyOnceWith("Pick a user to assign");
   });
 });

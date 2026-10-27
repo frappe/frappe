@@ -10,6 +10,8 @@ export interface PaletteRow {
 	/** Gray text before the label, such as "Ask Flow:". */
 	lead?: string;
 	icon?: string;
+	/** An avatar in place of the icon: the picture's address, or `null` for the label's initials. */
+	image?: string | null;
 	/** Gray text after the label: the doctype for a record, the app for a place or an app act. */
 	description?: string;
 	/** Words the search also matches, never drawn. */
@@ -22,7 +24,7 @@ export interface PaletteRow {
 	href?: string;
 	/** A stand-in while rows load, such as "Searching…": drawn with a spinner, never picked. */
 	pending?: boolean;
-	/** A note that is not an act, such as a failed search: drawn gray, never picked. */
+	/** A note that is not an act, or a choice that cannot be picked: drawn gray, never picked. */
 	disabled?: boolean;
 	/** The doctype Tab narrows the search to, on a row that opens its list. */
 	doctype?: string;

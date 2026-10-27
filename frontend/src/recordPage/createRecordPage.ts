@@ -167,6 +167,8 @@ export interface RecordPageHost {
   restoresView?: () => boolean;
   /** An act the reader asked for threw; absent, the engine shows the error in a toast. */
   actFailed?: (error: unknown) => void | Promise<void>;
+  /** Asks the reader for a clicked act's argument, as the palette's argument step; without it the act runs with none. */
+  openArgument?: (name: string) => void;
 }
 
 export interface RecordPageController {
@@ -201,7 +203,7 @@ export interface RecordPageController {
   firePost: (key: string) => Promise<void>;
   /** Fetches the `page.cached` keys `paintNow` read, for the host's background reads; answers when they land or at the late limit. */
   fetchCached: () => Promise<void>;
-  /** Runs an act the reader asked for, by a click, the palette or a key; a failure goes to `actFailed`. */
+  /** Runs an act the reader clicked; a failure goes to `actFailed`. With no value, an act that takes one opens its palette step. */
   perform: (name: string, value?: unknown) => Promise<void>;
   /** Whether the item's right passes, so a surface draws it; the dispatcher's own check. */
   allows: (item: ActFields) => boolean;
@@ -788,7 +790,12 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     fireEvent,
     firePost,
     fetchCached: engine.fetchCached,
-    perform: (name, value) => (engine.hasLeft() ? Promise.resolve() : acts.perform(name, value)),
+    perform: (name, value) => {
+      if (engine.hasLeft()) return Promise.resolve();
+      if (value === undefined && host.openArgument && acts.find(name)?.argument)
+        return Promise.resolve(host.openArgument(name));
+      return acts.perform(name, value);
+    },
     allows: (item) => passesRight(permissions, item),
     hold,
     isSaving: computed(() => saving.value !== null),

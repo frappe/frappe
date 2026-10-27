@@ -49,6 +49,7 @@ import { createRecordPage, type RecordPageHost } from "@/recordPage/createRecord
 import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { AuthoredHandlers } from "@/recordPage/types";
+import { assignItem } from "../assignAct";
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -384,6 +385,16 @@ describe("an item's right", () => {
     expect(acts.find("header.archive")).toBeUndefined();
     expect(rightHand(await drawn(menu, { read: 1, delete: 1 }))).toContain("More");
     expect(acts.find("header.archive")).toBeDefined();
+  });
+
+  it("offers Assign to… only with the write right, through the same check", async () => {
+    const assign = {
+      onRefresh: (page: any) => page.header.add(assignItem({ assignees: [], assign: () => {} })),
+    };
+    await drawn(assign, { read: 1, write: 0 });
+    expect(acts.find("header.assign")).toBeUndefined();
+    await drawn(assign, { read: 1, write: 1 });
+    expect(acts.find("header.assign")).toBeDefined();
   });
 
   it("draws an item with a right on another doctype once that right settles and passes", async () => {
