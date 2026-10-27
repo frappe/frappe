@@ -409,10 +409,10 @@ function headerBuiltins(): HeaderItem[] {
 	return items;
 }
 
-// Clicks queue, so each one reads the state the one before it left and two quick clicks toggle twice.
+// Turns run in the order queued, so each reads the state the one before it left (two quick
+// toggles toggle twice), and a turn for a record the page has left does nothing.
 function inPageTurn(page: RecordPageApi, run: () => Promise<void>) {
 	return currentVisit.inTurn(async () => {
-		// A turn that outlived its record would read the next record's state; it does nothing.
 		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
 		await run();
 	});
