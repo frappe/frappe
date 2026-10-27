@@ -409,16 +409,22 @@ function headerBuiltins(): HeaderItem[] {
 	return items;
 }
 
-// A failure toasts here: `actFailed` would otherwise reload over the draft. Clicks queue, so
-// each one reads the state the one before it left and two quick clicks toggle twice.
+// Clicks queue, so each one reads the state the one before it left and two quick clicks toggle twice.
+function inPageTurn(page: RecordPageApi, run: () => Promise<void>) {
+	return currentVisit.inTurn(async () => {
+		// A turn that outlived its record would read the next record's state; it does nothing.
+		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
+		await run();
+	});
+}
+
+// A failure toasts here: `actFailed` would otherwise reload over the draft.
 function toggleOnSidecar(
 	page: RecordPageApi,
 	write: () => Promise<Envelope<Partial<DocInfo>>>,
 	after?: (answer: Envelope<Partial<DocInfo>>) => void
 ) {
-	return currentVisit.inTurn(async () => {
-		// A turn that outlived its record would read the next record's state; it does nothing.
-		if (page.doctype !== doctype.value || page.docname !== docname.value) return;
+	return inPageTurn(page, async () => {
 		const visit = currentVisit;
 		try {
 			const answer = await write();
@@ -444,9 +450,14 @@ function toggleFavourite(page: RecordPageApi) {
 }
 
 function assignUser(page: RecordPageApi, user: string) {
-	const { doctype, docname } = page;
-	const source = { doctype, docname, docinfo, whileOnRecord: visitCheck, controller: { page } };
-	return peopleActions(source).assign(user);
+	const source = {
+		doctype: page.doctype,
+		docname: page.docname,
+		docinfo,
+		whileOnRecord: visitCheck,
+		controller: { page },
+	};
+	return inPageTurn(page, () => peopleActions(source).assign(user));
 }
 
 // The server declines a follow without failing, and says why beside the data.
