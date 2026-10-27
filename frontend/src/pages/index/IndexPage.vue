@@ -112,11 +112,12 @@
 			/>
 
 			<IndexFavourites
-				v-if="shownFavourites.length"
+				v-if="favouritesDrawn"
 				:id="FAVOURITES_ID"
-				:favourites="shownFavourites"
+				:favourites="favourites"
 				:selection="selection"
 				:class="boxWidth"
+				@toggle="toggleFavourites"
 			/>
 
 			<IndexRecent
@@ -141,7 +142,7 @@ import { __ } from "@/i18n";
 import { usePageMenuItems } from "@/shell/pageMenu";
 import { matching, unfilteredTiles, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
-import { favouriteKey } from "./favourites";
+import { Favourites, MORE_FAVOURITES_KEY, favouriteKey } from "./favourites";
 import IndexFavourites from "./IndexFavourites.vue";
 import IndexRecent from "./IndexRecent.vue";
 import { PAGE_COLUMN, boxWidthClass, columnsFor, gridClass } from "./grid";
@@ -163,7 +164,7 @@ const MORE_APPS_KEY = "more-apps";
 
 const boot = inject<Boot>("boot")!;
 const apps = ref<IndexApp[]>(boot.apps ?? []);
-const favourites = boot.favourites ?? [];
+const favourites = new Favourites(boot.favourites ?? [], !!boot.more_favourites);
 const recent = boot.recent ?? [];
 const notices = boot.notices ?? {};
 const hasNotices = Object.keys(notices).length > 0;
@@ -177,7 +178,12 @@ const moreApps = computed(() =>
 	matches.value.length && !query.value.trim() ? boot.more_apps ?? null : null
 );
 const tileCount = computed(() => matches.value.length + (moreApps.value ? 1 : 0));
-const shownFavourites = computed(() => (query.value.trim() || arranging.value ? [] : favourites));
+const favouritesDrawn = computed(
+	() =>
+		!query.value.trim() &&
+		!arranging.value &&
+		(favourites.shown.value.length > 0 || favourites.hasMore)
+);
 const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] : recent));
 const { search, failed: searchFailed } = useIndexSearch(query, boot);
 const results = computed(() => search.value?.groups.value ?? []);
@@ -211,10 +217,17 @@ const sections = computed<SelectionSection[]>(() => [
 	},
 	...(search.value?.sections.value ?? []),
 	{
-		items: shownFavourites.value.map((favourite) => ({
-			key: favouriteKey(favourite),
-			href: favourite.route,
-		})),
+		items: favouritesDrawn.value
+			? [
+					...favourites.shown.value.map((favourite) => ({
+						key: favouriteKey(favourite),
+						href: favourite.route,
+					})),
+					...(favourites.hasMore
+						? [{ key: MORE_FAVOURITES_KEY, run: toggleFavourites }]
+						: []),
+			  ]
+			: [],
 		columns: 1,
 	},
 	{
@@ -229,7 +242,7 @@ const selection = new Selection(() => sections.value);
 
 const listboxes = computed(() => [
 	...(matches.value.length ? [TILES_ID] : []),
-	...(shownFavourites.value.length ? [FAVOURITES_ID] : []),
+	...(favouritesDrawn.value ? [FAVOURITES_ID] : []),
 	...(shownRecent.value.length ? [RECENT_ID] : []),
 	...results.value.map((_, position) => `${RESULTS_ID}-${position}`),
 ]);
@@ -252,6 +265,15 @@ function onKeydown(event: KeyboardEvent) {
 		else if (target?.href) window.location.assign(target.href);
 	} else if (event.key === "Escape") {
 		query.value = "";
+	}
+}
+
+async function toggleFavourites() {
+	selection.selected.value = MORE_FAVOURITES_KEY;
+	try {
+		await favourites.toggle();
+	} catch (error) {
+		toast.error(__("Could not load your favourites: {0}", [(error as Error).message]));
 	}
 }
 

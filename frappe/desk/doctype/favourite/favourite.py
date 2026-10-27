@@ -116,8 +116,28 @@ def readable_list(doctype: str) -> str:
 	stored = frappe.db.get_value("DocType", doctype)
 	if not stored:
 		raise frappe.DoesNotExistError(_("{0} {1} not found").format(_("DocType"), doctype))
-	frappe.has_permission(stored, "read", throw=True)
+	if not may_read_list(stored):
+		frappe.throw(_("You are not permitted to read {0}.").format(_(stored)), frappe.PermissionError)
 	return stored
+
+
+def may_read_list(doctype: str) -> bool:
+	"""A list's read check: `read` on its doctype, never on the `DocType` record most people cannot read."""
+	return bool(frappe.has_permission(doctype, "read"))
+
+
+def readable_views(names: list[str]) -> dict[str, frappe._dict]:
+	"""`{name: view}` of the saved views the person may read, on a list they may read; one query."""
+	if not names:
+		return {}
+	# `get_list` applies the view's own read rule (its permission query), so this is the toggle's check in bulk.
+	views = frappe.get_list(
+		SAVED_VIEW,
+		filters={"name": ("in", names)},
+		fields=["name", "label", "reference_doctype"],
+		limit_page_length=0,
+	)
+	return {view.name: view for view in views if may_read_list(view.reference_doctype)}
 
 
 def list_favourites(doctype: str) -> dict:
