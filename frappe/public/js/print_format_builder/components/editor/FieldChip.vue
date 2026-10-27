@@ -168,6 +168,7 @@ function edit_html() {
 		initial_html: props.df.html || "",
 		doctype: store.meta.value?.name,
 		docname: store.preview_doc_name.value,
+		jinja_setup: store.layout.value?.jinja_setup,
 		on_save: (html) => (props.df.html = html),
 	});
 }

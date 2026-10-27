@@ -135,6 +135,20 @@
 			</InspectorRow>
 		</InspectorSection>
 
+		<InspectorSection :label="__('Jinja setup')" :init-open="!!layout.jinja_setup">
+			<textarea
+				class="form-control form-control-sm pfb-css-input"
+				:placeholder="__('{% set total_qty = doc.items | sum(attribute=\'qty\') %}')"
+				spellcheck="false"
+				rows="8"
+				:value="layout.jinja_setup || ''"
+				@input="(e) => (layout.jinja_setup = e.target.value)"
+			></textarea>
+			<div class="pfb-insp-hint text-muted">
+				{{ __("Runs once per print. HTML blocks can use the variables it sets.") }}
+			</div>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Custom CSS')" :init-open="false">
 			<textarea
 				class="form-control form-control-sm pfb-css-input"
