@@ -105,7 +105,6 @@ function mount(
 					router,
 					openSettings: fake.openSettings,
 					confirmLogout: fake.confirmLogout,
-					appActs: { items: () => [], pending: () => undefined },
 					rail: {
 						customize: fake.customize,
 						shareLink: options.shareLink,

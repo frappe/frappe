@@ -4,7 +4,7 @@ import { onMounted, shallowRef } from "vue";
 import type { ActItem } from "@/acts/dispatcher";
 import { actsFiles } from "@/contributions/registry";
 
-export interface AppActs {
+interface AppActs {
 	/** Each app act as the shell surface holds it, named `<app>.<item>`. */
 	items: () => ActItem[];
 	/** A promise until every app's acts are in, which starts the import if it has not started; then nothing. */
@@ -25,7 +25,7 @@ export function useAppActs(): AppActs {
 	};
 }
 
-/** Every active app's acts by their name on the surface; one app's broken file costs only its own acts. */
+/** Every active app's acts by their name on the surface. */
 async function importAll(): Promise<Map<string, ActItem>> {
 	const files = [...actsFiles];
 	const results = await Promise.allSettled(files.map((file) => file.load()));
@@ -50,18 +50,20 @@ function actsOf(app: string, exported: unknown): ActItem[] {
 		warn(`${app}'s acts.js has no list as its default export; it adds no act.`);
 		return [];
 	}
-	return exported.filter((item) => isAct(app, item));
+	return exported.filter((item) => validAct(app, item));
 }
 
-/** A named item with `run`. A right must name its doctype, since the shell has none of its own. */
-function isAct(app: string, item: unknown): item is ActItem {
+/** A named item with `run`, whose right, if any, is `{ doctype, ptype }`. */
+function validAct(app: string, item: unknown): item is ActItem {
 	const act = item as Partial<ActItem> | null;
 	if (typeof act?.name !== "string" || typeof act.run !== "function") {
 		warn(`${app}'s acts.js holds an entry with no name or no run; it is ignored.`);
 		return false;
 	}
-	if (typeof act.right === "string")
-		warn(`shell.${app}.${act.name}: a shell act's right is { doctype, ptype }, so it is never allowed.`);
+	if (typeof act.right === "string") {
+		warn(`shell.${app}.${act.name} is ignored: a shell act's right is { doctype, ptype }.`);
+		return false;
+	}
 	return true;
 }
 

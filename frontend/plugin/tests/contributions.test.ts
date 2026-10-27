@@ -529,4 +529,3 @@ describe("an app's acts", () => {
     expect(code).not.toMatch(/^import .*acts\.js/m);
   });
 });
-

@@ -91,7 +91,6 @@ import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
 import LogoutDialog from "./LogoutDialog.vue";
-import { useAppActs } from "./appActs";
 import { paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
 import { useShellActs, type OpenSettings } from "./shellActs";
@@ -107,7 +106,7 @@ const PaletteKey = defineAsyncComponent(() =>
 );
 // Opened before the apps' acts are in, the palette waits for them.
 const ShellPalette = defineAsyncComponent(() =>
-	Promise.all([import("./ShellPalette.vue"), appActs.pending()]).then(([module]) => module)
+	Promise.all([import("./ShellPalette.vue"), appActsPending()]).then(([module]) => module)
 );
 
 const boot = inject<Boot>("boot")!;
@@ -288,13 +287,11 @@ watch(sidebarCollapsed, collapsedMemory.remember);
 
 const confirmingLogout = ref(false);
 
-const appActs = useAppActs();
-useShellActs({
+const { appActsPending } = useShellActs({
 	boot,
 	router,
 	openSettings,
 	confirmLogout: () => void (confirmingLogout.value = true),
-	appActs,
 	rail: boot.app
 		? {
 				customize: () => customize.write("rail"),

@@ -200,21 +200,45 @@ describe("an app's acts", () => {
 
 	it("make a name no app ships wait for the import, then refuse it as missing", async () => {
 		const gate = deferred();
-		ship("crm", [logACall()], gate.promise);
+		const load = ship("crm", [logACall()], gate.promise);
 		await shell();
 
+		let settled = false;
 		const asked = acts.run("shell.crm.nope").catch((error) => error);
-		gate.open();
+		void asked.then(() => (settled = true));
+		await flush();
+		expect(load).toHaveBeenCalledOnce();
+		expect(settled).toBe(false);
 
+		gate.open();
 		expect(await asked).toBeInstanceOf(ActDenied);
 		expect(await asked).toMatchObject({ reason: "missing" });
 	});
 
-	it("never hold up the shell's own acts", async () => {
-		ship("crm", [logACall()], new Promise(() => {}));
+	it("never hold up the shell's own acts, present or missing", async () => {
+		const load = ship("crm", [logACall()], new Promise(() => {}));
 		await shell();
 
 		await expect(acts.run("shell.theme", "dark")).resolves.toBeUndefined();
+		await expect(acts.run("shell.nope")).rejects.toMatchObject({ reason: "missing" });
+		expect(load).not.toHaveBeenCalled();
+	});
+
+	it("read their label each time, so a label from __() follows the messages", async () => {
+		let label = "Log a call";
+		ship("crm", [
+			{
+				...logACall(),
+				get label() {
+					return label;
+				},
+			},
+		]);
+		await shell();
+		await paint();
+
+		label = "Anruf erfassen";
+		expect(acts.find("shell.crm.log_a_call")?.label).toBe("Anruf erfassen");
 	});
 
 	it("make the palette opened before the import finishes wait for it", async () => {
@@ -222,6 +246,7 @@ describe("an app's acts", () => {
 		ship("crm", [logACall()], gate.promise);
 		await shell();
 
+		await import("../ShellPalette.vue");
 		paletteOpen.value = true;
 		await flush();
 		expect(document.querySelector("[data-slot='command-palette-input']")).toBeNull();
@@ -234,7 +259,7 @@ describe("an app's acts", () => {
 		expect(appActNames()).toEqual(["shell.crm.log_a_call"]);
 	});
 
-	it("pass a right on a named doctype by the reader's roles, and never a bare ptype", async () => {
+	it("pass a right on a named doctype by the reader's roles, and drop one with a bare ptype", async () => {
 		publishRoles(["Sales User"]);
 		state.metas["CRM Call Log"] = {
 			name: "CRM Call Log",
@@ -252,10 +277,10 @@ describe("an app's acts", () => {
 		await acts.run("shell.crm.log_a_call");
 		expect(run).toHaveBeenCalledOnce();
 		await expect(acts.run("shell.crm.drop_call")).rejects.toMatchObject({ reason: "right" });
-		await expect(acts.run("shell.crm.bare")).rejects.toMatchObject({ reason: "right" });
+		await expect(acts.run("shell.crm.bare")).rejects.toMatchObject({ reason: "missing" });
 		expect(appActNames()).toEqual(["shell.crm.log_a_call"]);
 		expect(console.warn).toHaveBeenCalledWith(
-			"[frappe] shell.crm.bare: a shell act's right is { doctype, ptype }, so it is never allowed."
+			"[frappe] shell.crm.bare is ignored: a shell act's right is { doctype, ptype }."
 		);
 	});
 

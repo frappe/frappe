@@ -52,7 +52,7 @@ def page_glob(source_dir: str) -> str:
 
 
 def contribution_globs(source_dir: str) -> list[str]:
-	"""The six contribution kinds, as paths; a file anywhere else is not a contribution."""
+	"""The contribution kinds, as paths; a file anywhere else is not a contribution."""
 	return [
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "record.js"),
 		os.path.join(source_dir, "*", "doctype", "*", "frontend", "list.js"),
@@ -65,6 +65,7 @@ def contribution_globs(source_dir: str) -> list[str]:
 		# Beside the `Navigation Item Type` JSON, where the plugin reads the kind's real name.
 		os.path.join(source_dir, "*", "navigation_item_type", "*", "frontend", "item.js"),
 		os.path.join(source_dir, "*", "frontend", "settings", "*.vue"),
+		os.path.join(source_dir, "*", "frontend", "acts.js"),
 	]
 
 

@@ -51,8 +51,8 @@ export interface ActScope<Context = any> {
 	passes: (right: ActRight) => boolean;
 	/** A promise while `passes` cannot answer for the right yet; else nothing. */
 	settled: (right: ActRight) => Promise<void> | undefined;
-	/** A promise while some of its acts are still loading; a name it does not hold yet waits for it. */
-	loading?: () => Promise<void> | undefined;
+	/** A promise while the act `name`, which it does not hold yet, may still load; else nothing. */
+	loading?: (name: string) => Promise<void> | undefined;
 	hold: <T>(work: () => T | Promise<T>) => Promise<T>;
 	/** An act the reader asked for threw; the scope shows it and recovers. */
 	failed: (error: unknown) => void | Promise<void>;
@@ -149,10 +149,10 @@ export class ActDispatcher {
 		}
 	}
 
-	// Synchronous unless a right must settle, so a click's act starts in the click's own tick.
+	// Synchronous unless a right must settle or the act still loads, so a click's act starts in the click's own tick.
 	private check(name: string): Checked | Promise<Checked> {
 		const found = this.lookup(name);
-		const loading = found ? undefined : this.scopes.get(surfaceOf(name))?.loading?.();
+		const loading = found ? undefined : this.scopes.get(surfaceOf(name))?.loading?.(name);
 		if (loading) return loading.then(() => this.check(name));
 		const right = found?.entry.item.right;
 		const settling = found && right ? found.scope.settled(right) : undefined;

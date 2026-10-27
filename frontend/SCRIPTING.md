@@ -209,8 +209,9 @@ list of acts. Each joins the shell surface under the app's name, so CRM's `log_a
 `shell.crm.log_a_call`, and its `run` receives `(shell, value)`, where `shell` holds
 `router`, `toast`, `call`, `run`, `create` and `openSettings` and nothing that needs a
 record. The desk imports the file at idle after the first paint, and `page.run` and the
-palette wait for it when asked sooner. A shell act's `right` must be `{ doctype, ptype }`,
-since the shell has no doctype of its own; a bare ptype such as `'create'` never passes.
+palette wait for it when asked sooner. A shell act's `right` is `{ doctype, ptype }`; an act
+whose right is a bare ptype such as `'create'` is ignored, with a warning. Give `label` as a
+getter, so it is translated each time it is read, also when the messages arrive late.
 
 ```js
 // crm/fcrm/frontend/acts.js
@@ -219,7 +220,9 @@ import { __ } from 'frappe/i18n'
 export default [
   {
     name: 'log_a_call',
-    label: __('Log a call'),
+    get label() {
+      return __('Log a call')
+    },
     icon: 'lucide-phone',
     right: { doctype: 'CRM Call Log', ptype: 'create' },
     run: (shell) => shell.create('CRM Call Log'),
