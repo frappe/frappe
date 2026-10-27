@@ -113,22 +113,18 @@ def bundle(
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_source_path("frappe")
-
-	# The desk v2 shell, before the esbuild pass: a singleton conflict must fail before vite starts.
-	build_shell(frappe_app_path, production=mode == "production")
-
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 	with suppress(Exception):
 		frappe.cache.flushdb()
 
 
-def build_shell(frappe_app_path: str, production: bool = False):
+def build_shell(production: bool = False):
 	"""Assemble the manifest and run the framework's one vite build; `--app X` is accepted and ignored."""
 	from frappe.shell.manifest import cost_report
 	from frappe.shell.manifest import write as write_manifest
 
-	frontend_path = os.path.join(frappe_app_path, "frontend")
+	frontend_path = os.path.join(frappe.get_app_source_path("frappe"), "frontend")
 	# Guard on the committed half: `package.json` is generated and gitignored, so a fresh clone
 	# would silently build nothing.
 	if not os.path.exists(os.path.join(frontend_path, "package.base.json")):
