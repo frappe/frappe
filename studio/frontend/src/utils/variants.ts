@@ -17,6 +17,14 @@ export interface VariantSet {
 	optionIds?: (string | undefined)[]
 }
 
+// One row of a variants switcher, however the surface resolves its sets (VariantRows.vue)
+export interface VariantRow {
+	key: string
+	name: string
+	options: string[]
+	activeIndex: number
+}
+
 const mountedSets = reactive<Map<string, VariantSet>>(new Map())
 
 // Editor-only: which option each Variants block shows on the canvas, keyed by block id.

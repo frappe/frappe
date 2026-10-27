@@ -1,37 +1,4 @@
 <template>
-	<DefineRow v-slot="{ s, solo }">
-		<!-- In the panel each row is a subgrid, so names, options and Keep line up across rows. -->
-		<div
-			class="items-center"
-			:class="solo ? 'flex gap-2' : 'col-span-full grid grid-cols-subgrid'"
-			@mouseenter="hover(s)"
-			@mouseleave="hover(null)"
-		>
-			<span class="flex min-w-0 items-center gap-2 text-p-sm" :class="solo ? 'text-ink-gray-5' : 'text-ink-gray-8'">
-				<span v-if="isOffDefault(s)" class="size-1.5 shrink-0 rounded-full bg-surface-blue-7" aria-hidden="true" />
-				{{ s.name }}
-			</span>
-			<TabButtons
-				class="justify-self-start"
-				:options="opts(s)"
-				:model-value="s.options[activeIndex(s)]"
-				@update:model-value="(v: TabButtonValue) => pick(s, v)"
-			/>
-			<template v-if="canKeep">
-				<span class="flex shrink-0 justify-end">
-					<Button
-						:class="solo || isOffDefault(s) || hovered?.key === s.key ? '' : 'invisible'"
-						variant="ghost"
-						:aria-label="`Keep ${s.options[activeIndex(s)]} for ${s.name}`"
-						@click="keepVariant(s)"
-					>
-						Keep
-					</Button>
-				</span>
-			</template>
-		</div>
-	</DefineRow>
-
 	<div
 		v-if="rows.length"
 		ref="stack"
@@ -42,12 +9,7 @@
 			id="studio-variants-panel"
 			class="pointer-events-auto max-h-[60vh] w-max max-w-full overflow-y-auto rounded-5 bg-surface-elevation-2 p-3 shadow-lg ring-1 ring-outline-gray-1"
 		>
-			<div
-				class="grid items-center gap-x-4 gap-y-3"
-				:class="canKeep ? 'grid-cols-[auto_auto_auto]' : 'grid-cols-[auto_auto]'"
-			>
-				<Row v-for="s in rows" :key="s.key" :s="s" />
-			</div>
+			<VariantRows :rows="rows" :can-keep="canKeep" @pick="pickRow" @keep="keepRow" @hover="hoverRow" />
 		</div>
 		<div
 			data-pill="variants"
@@ -66,10 +28,9 @@
 				<span class="flex items-center gap-1.5">
 					<span class="text-p-sm text-ink-gray-8">Variants</span>
 					<span class="text-p-sm tabular-nums text-ink-gray-5">{{ rows.length }}</span>
-					<span v-if="anyOffDefault" class="size-1.5 rounded-full bg-surface-blue-7" aria-hidden="true" />
 				</span>
 			</Button>
-			<Row v-else :s="rows[0]" solo />
+			<VariantRows v-else :rows="rows" :can-keep="canKeep" solo @pick="pickRow" @keep="keepRow" @hover="hoverRow" />
 		</div>
 	</div>
 
@@ -86,19 +47,21 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, ref, shallowRef, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
-import { createReusableTemplate, onClickOutside, useEventListener } from "@vueuse/core"
-import { Button, TabButtons, call, dialog, toast, type TabButtonValue } from "frappe-ui"
-import { choiceIndex, keepDialogText, useMountedVariantSets, withChoice, type VariantSet } from "@/utils/variants"
+import { onClickOutside, useEventListener } from "@vueuse/core"
+import { Button, call, dialog, toast } from "frappe-ui"
+import VariantRows from "@/components/VariantRows.vue"
+import {
+	choiceIndex,
+	keepDialogText,
+	useMountedVariantSets,
+	withChoice,
+	type VariantRow,
+	type VariantSet,
+} from "@/utils/variants"
 
 // The viewer's variants pill, bottom right. One mounted set renders inline; more collapse
 // behind a count and expand into a panel. Every choice is mirrored to the URL, so the
 // current combination is a link.
-const [DefineRow, Row] = createReusableTemplate<{ s: VariantSet; solo?: boolean }>({
-	inheritAttrs: false,
-	// Declared, so a bare `solo` arrives as true rather than as an empty attribute.
-	props: { s: { type: Object, required: true }, solo: Boolean },
-})
-
 const route = useRoute()
 const router = useRouter()
 const sets = useMountedVariantSets()
@@ -116,10 +79,30 @@ onMounted(async () => {
 // Rows in page order (top to bottom, then left to right), worked out when the panel
 // opens and when the page's sets change, not continuously.
 const order = ref<string[]>([])
-const rows = computed(() => {
+const orderedSets = computed(() => {
 	const o = order.value
 	return [...sets.value].sort((a, b) => (o.indexOf(a.key) + 1 || 99) - (o.indexOf(b.key) + 1 || 99))
 })
+const rows = computed<VariantRow[]>(() =>
+	orderedSets.value.map((s) => ({
+		key: s.key,
+		name: s.name,
+		options: s.options,
+		activeIndex: activeIndex(s),
+	})),
+)
+const setOf = (row: VariantRow) => sets.value.find((s) => s.key === row.key)
+function pickRow(row: VariantRow, option: string) {
+	const set = setOf(row)
+	if (set) pick(set, option)
+}
+function keepRow(row: VariantRow) {
+	const set = setOf(row)
+	if (set) keepVariant(set)
+}
+function hoverRow(row: VariantRow | null) {
+	hover(row ? (setOf(row) ?? null) : null)
+}
 function sortRows() {
 	const at = (set: VariantSet) => elementOf(set)?.getBoundingClientRect() ?? { top: 1e9, left: 0 }
 	order.value = [...sets.value].sort((a, b) => at(a).top - at(b).top || at(a).left - at(b).left).map((s) => s.key)
@@ -127,7 +110,6 @@ function sortRows() {
 watch(() => sets.value.length, () => nextTick(sortRows), { flush: "post" })
 
 const multi = computed(() => rows.value.length > 1)
-const anyOffDefault = computed(() => rows.value.some(isOffDefault))
 
 const open = ref(false)
 function toggle() {
@@ -144,9 +126,8 @@ useEventListener(document, "keydown", (e: KeyboardEvent) => {
 	;(document.querySelector('[data-pill="variants"]') as HTMLElement | null)?.querySelector("button")?.focus()
 })
 
-const opts = (set: VariantSet) => set.options.map((option) => ({ value: option, label: option }))
-function pick(set: VariantSet, value: TabButtonValue) {
-	const index = set.options.indexOf(String(value))
+function pick(set: VariantSet, value: string) {
+	const index = set.options.indexOf(value)
 	if (index < 0) return
 	const serialized = withChoice(String(route.query.v ?? ""), set.key, set.options, index)
 	router.replace({ query: { ...route.query, v: serialized || undefined } })
@@ -154,10 +135,6 @@ function pick(set: VariantSet, value: TabButtonValue) {
 
 function activeIndex(set: VariantSet) {
 	return choiceIndex(String(route.query.v ?? ""), set.key, set.options)
-}
-
-function isOffDefault(set: VariantSet) {
-	return activeIndex(set) > 0
 }
 
 function keepVariant(set: VariantSet) {

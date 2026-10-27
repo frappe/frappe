@@ -105,6 +105,10 @@
 				<FitScreenIcon />
 			</div>
 		</div>
+		<!-- the preview pill's corner, so the control sits in the same place in edit and preview -->
+		<div class="absolute bottom-12 right-6 z-40" v-show="!canvasProps.panning">
+			<VariantsPill :suspended="canvasProps.scaling || canvasProps.panning" />
+		</div>
 
 		<DraggablePopup
 			v-model="store.showSearchBlock"
@@ -122,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { Ref, ref, watch, reactive, computed, onMounted, provide } from "vue"
+import { Ref, ref, watch, reactive, computed, nextTick, onMounted, provide } from "vue"
 import { LoadingIndicator, Tooltip } from "frappe-ui"
 import StudioComponent from "@/components/StudioComponent.vue"
 import FitScreenIcon from "@/components/Icons/FitScreenIcon.vue"
@@ -130,6 +134,7 @@ import DraggablePopup from "@/components/DraggablePopup.vue"
 import SearchBlock from "@/components/SearchBlock.vue"
 import DropIndicator from "@/components/DropIndicator.vue"
 import BlockSnapGuides from "@/components/BlockSnapGuides.vue"
+import VariantsPill from "@/components/VariantsPill.vue"
 
 import useStudioStore from "@/stores/studioStore"
 import useCanvasStore from "@/stores/canvasStore"
@@ -219,6 +224,7 @@ function selectBreakpoint(breakpoint: BreakpointConfig) {
 
 // clone props.block into canvas data to avoid mutating them
 const rootComponent = ref(getBlockCopy(props.componentTree, true))
+
 const history = ref(null) as Ref<null> | CanvasHistory
 
 // block hover & selection
