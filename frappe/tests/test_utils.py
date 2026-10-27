@@ -2531,3 +2531,12 @@ class TestMsgPrint(UnitTestCase):
 		frappe.msgprint("<ul><li>abc<li></ul>")
 		message = frappe.get_message_log()[-1]
 		self.assertIn("<ul><li>", message.message)
+
+	def test_raised_message_keeps_html_in_a_terminal(self):
+		# tags are stripped for printing to a terminal, not from the raised exception
+		with patch("sys.stdin") as stdin:
+			stdin.isatty.return_value = True
+			with self.assertRaises(frappe.ValidationError) as raised:
+				frappe.throw("first<br>second")
+
+		self.assertEqual(str(raised.exception), "first<br>second")
