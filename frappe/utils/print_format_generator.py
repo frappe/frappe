@@ -25,9 +25,10 @@ def render_jinja_template(
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
-		return frappe.render_template(
-			template, {**global_variables_context(global_variables, doc), "doc": doc}
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		context = {**global_variables_context(global_variables, doc), "doc": doc}
+		return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			template, context
+		)
 	except Exception as e:
 		# fail with 417 instead of 500 so the canvas can degrade inline
 		# rather than the client popping the error-report dialog
@@ -43,8 +44,14 @@ def global_variables_context(template: str | None, doc) -> dict:
 
 	if ".__" in template:
 		frappe.throw(_("Illegal template"))
-	with safe_render_flags():
-		module = get_jenv().from_string(template).make_module({"doc": doc})
+	try:
+		with safe_render_flags():
+			module = get_jenv().from_string(template).make_module({"doc": doc})
+	except Exception as e:
+		frappe.throw(
+			_("The global variables of this print format could not be set: {0}").format(str(e)),
+			title=_("Print Format Error"),
+		)
 	return {key: value for key, value in vars(module).items() if not key.startswith("_")}
 
 
@@ -1143,9 +1150,10 @@ class PrintFormatGenerator:
 
 	def prepare_html(self, df):
 		if df.get("fieldtype") == "HTML" and not df.get("_hidden"):
-			df["_html"] = frappe.render_template(
+			rendered = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 				df.get("html") or "", self.jinja_context
-			)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			)
+			df["_html"] = rendered
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
