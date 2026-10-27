@@ -102,9 +102,4 @@ export default [
 		files: ["frontend/src/**/*.{js,ts,vue}"],
 		rules: { "no-restricted-syntax": [...noV1Address, ...noDeepUiPath] },
 	},
-	{
-		// develop's GroupBy still fetches through v1; the desk does not use it until it is ported
-		files: ["ui/src/components/GroupBy/useGroupByData.ts"],
-		rules: { "no-restricted-imports": "off" },
-	},
 ];

@@ -1,28 +1,32 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick, ref } from "vue";
 
-// frappe-ui is unresolvable in unit tests, so stand in a resource that records the
-// params of every fetch and lets a test set the data it would have returned.
-const h = vi.hoisted(() => ({ resources: [] as any[] }));
-vi.mock("frappe-ui", async () => {
-  const { reactive } = await import("vue");
-  return {
-    createResource: (options: {
-      makeParams: () => Record<string, unknown>;
-    }) => {
-      const resource = reactive({
-        data: null as unknown,
-        loading: false,
-        calls: [] as Record<string, unknown>[],
-        fetch() {
-          resource.calls.push(options.makeParams());
-        },
-      });
-      h.resources.push(resource);
-      return resource;
-    },
-  };
-});
+type AggregateQuery = Parameters<typeof import("../../../api").listAggregates>[1];
+
+// Each read answers with what the test set for its kind: the groups, the group
+// keys (limit 1000) or the totals (limit 1).
+const h = vi.hoisted(() => ({
+  calls: [] as { doctype: string; query: AggregateQuery }[],
+  answers: { groups: [], keys: [], totals: [] } as Record<string, unknown[]>,
+}));
+vi.mock("../../../api", () => ({
+  listAggregates: vi.fn(async (doctype: string, query: AggregateQuery) => {
+    h.calls.push({ doctype, query });
+    return { data: h.answers[kind(query)], has_next_page: false };
+  }),
+}));
+
+function kind(query: AggregateQuery): "groups" | "keys" | "totals" {
+  if (query.limit === 1000) return "keys";
+  return query.group_by ? "groups" : "totals";
+}
+
+function sent(of: "groups" | "keys" | "totals") {
+  return h.calls.filter((call) => kind(call.query) === of).map((call) => call.query);
+}
+
+// Lets every pending read land.
+const settle = () => new Promise((resolve) => setTimeout(resolve));
 
 import { useGroupByData } from "../useGroupByData";
 import type { GroupBySettings } from "../types";
@@ -33,108 +37,131 @@ const BY_STATUS: GroupBySettings = {
 };
 
 beforeEach(() => {
-  h.resources.length = 0;
+  h.calls.length = 0;
+  h.answers = { groups: [], keys: [], totals: [] };
 });
 
 describe("useGroupByData", () => {
-  it("fetches one row per group and the group keys for the total", () => {
+  it("reads one row per group and the group keys for the total over listAggregates", () => {
     useGroupByData("Sales Order", BY_STATUS, { docstatus: 1 });
-    const [groups, keys] = h.resources;
 
-    expect(groups.calls).toEqual([
+    expect(h.calls.map((call) => call.doctype)).toEqual(["Sales Order", "Sales Order"]);
+    expect(sent("groups")).toEqual([
       {
-        doctype: "Sales Order",
         filters: { docstatus: 1 },
         fields: ["status", { COUNT: "name", as: "_aggregate_0" }],
         group_by: "status",
         order_by: "_aggregate_0 desc, status asc",
-        limit_page_length: 20,
+        limit: 20,
       },
     ]);
-    expect(keys.calls).toEqual([
-      {
-        doctype: "Sales Order",
-        filters: { docstatus: 1 },
-        fields: ["status"],
-        group_by: "status",
-        limit_page_length: 1000,
-      },
+    expect(sent("keys")).toEqual([
+      { filters: { docstatus: 1 }, fields: ["status"], group_by: "status", limit: 1000 },
     ]);
   });
 
   it("fetches nothing for an ungrouped list", () => {
     const data = useGroupByData("Sales Order", null, {});
     data.loadMore();
-    expect(h.resources.every((r) => r.calls.length === 0)).toBe(true);
+    expect(h.calls).toEqual([]);
     expect(data.rows.value).toEqual([]);
   });
 
-  it("reads rows and counts from the fetched data", () => {
+  it("reads rows and counts from the fetched data", async () => {
+    h.answers.groups = [{ status: "Won", _aggregate_0: 3 }];
+    h.answers.keys = [{ status: "Won" }, { status: "Lost" }];
     const data = useGroupByData("Sales Order", BY_STATUS, {});
-    const [groups, keys] = h.resources;
     expect(data.hasCounts.value).toBe(false);
+    expect(data.loading.value).toBe(true);
 
-    groups.data = [{ status: "Won", _aggregate_0: 3 }];
-    keys.data = [{ status: "Won" }, { status: "Lost" }];
-
+    await settle();
+    expect(data.loading.value).toBe(false);
     expect(data.rows.value).toEqual([{ status: "Won", _aggregate_0: 3 }]);
     expect(data.rowCount.value).toBe(1);
     expect(data.totalCount.value).toBe(2);
     expect(data.hasCounts.value).toBe(true);
   });
 
+  it("keeps the latest read when an earlier one lands after it", async () => {
+    const { listAggregates } = await import("../../../api");
+    let answerFirst!: (rows: unknown) => void;
+    vi.mocked(listAggregates).mockImplementationOnce(
+      (_, query) =>
+        new Promise((resolve) => {
+          h.calls.push({ doctype: "Sales Order", query });
+          answerFirst = (rows) => resolve({ data: rows, has_next_page: false } as never);
+        })
+    );
+    const filters = ref<Record<string, unknown>>({});
+    const data = useGroupByData("Sales Order", BY_STATUS, filters);
+
+    h.answers.groups = [{ status: "Won" }];
+    filters.value = { status: "Won" };
+    await nextTick();
+    await settle();
+    answerFirst([{ status: "Lost" }]);
+    await settle();
+    expect(data.rows.value).toEqual([{ status: "Won" }]);
+    expect(data.loading.value).toBe(false);
+  });
+
+  it("keeps the last rows when a read fails", async () => {
+    const { listAggregates } = await import("../../../api");
+    const error = vi.spyOn(console, "error").mockImplementation(() => {});
+    h.answers.groups = [{ status: "Won" }];
+    const data = useGroupByData("Sales Order", BY_STATUS, {});
+    await settle();
+
+    vi.mocked(listAggregates).mockRejectedValueOnce(new Error("offline"));
+    data.reload();
+    await settle();
+    expect(data.rows.value).toEqual([{ status: "Won" }]);
+    expect(data.loading.value).toBe(false);
+    expect(error).toHaveBeenCalledOnce();
+    error.mockRestore();
+  });
+
   it("grows the page on loadMore and starts over when the filters change", async () => {
     const filters = ref<Record<string, unknown>>({});
     const data = useGroupByData("Sales Order", BY_STATUS, filters);
-    const [groups] = h.resources;
 
     data.loadMore();
-    expect(groups.calls.at(-1).limit_page_length).toBe(40);
+    expect(sent("groups").at(-1)!.limit).toBe(40);
 
     filters.value = { status: "Won" };
     await nextTick();
-    expect(groups.calls.at(-1)).toMatchObject({
-      filters: { status: "Won" },
-      limit_page_length: 20,
-    });
+    expect(sent("groups").at(-1)).toMatchObject({ filters: { status: "Won" }, limit: 20 });
   });
 
   it("refetches with the new page length", async () => {
     const data = useGroupByData("Sales Order", BY_STATUS, {});
-    const [groups] = h.resources;
-
     data.pageLength.value = 50;
     await nextTick();
-    expect(groups.calls.at(-1).limit_page_length).toBe(50);
+    expect(sent("groups").at(-1)!.limit).toBe(50);
   });
 
-  it("fetches the totals over every record only when totals are on", () => {
+  it("fetches the totals over every record only when totals are on", async () => {
     useGroupByData("Sales Order", BY_STATUS, {});
-    expect(h.resources[2].calls).toEqual([]);
+    expect(sent("totals")).toEqual([]);
 
-    h.resources.length = 0;
+    h.answers.totals = [{ _aggregate_0: 690 }];
     const data = useGroupByData(
       "Sales Order",
       { ...BY_STATUS, showTotals: true },
       { docstatus: 1 }
     );
-    const totals = h.resources[2];
-    expect(totals.calls).toEqual([
-      {
-        doctype: "Sales Order",
-        filters: { docstatus: 1 },
-        fields: [{ COUNT: "name", as: "_aggregate_0" }],
-        limit_page_length: 1,
-      },
+    expect(sent("totals")).toEqual([
+      { filters: { docstatus: 1 }, fields: [{ COUNT: "name", as: "_aggregate_0" }], limit: 1 },
     ]);
-    totals.data = [{ _aggregate_0: 690 }];
+    await settle();
     expect(data.totals.value).toEqual({ _aggregate_0: 690 });
   });
 
   it("drops the totals once the last aggregate is removed", async () => {
+    h.answers.totals = [{ _aggregate_0: 690 }];
     const groupBy = ref<GroupBySettings>({ ...BY_STATUS, showTotals: true });
     const data = useGroupByData("Sales Order", groupBy, {});
-    h.resources[2].data = [{ _aggregate_0: 690 }];
+    await settle();
     expect(data.totals.value).toEqual({ _aggregate_0: 690 });
 
     groupBy.value = { ...groupBy.value, aggregates: [] };
@@ -145,50 +172,50 @@ describe("useGroupByData", () => {
   it("keeps the loaded pages when only a column width changes", async () => {
     const groupBy = ref<GroupBySettings>({ ...BY_STATUS });
     const data = useGroupByData("Sales Order", groupBy, {});
-    const [groups] = h.resources;
     data.loadMore();
-    const calls = groups.calls.length;
+    const calls = sent("groups").length;
 
     groupBy.value = { ...groupBy.value, widths: { status: "300px" } };
     await nextTick();
-    expect(groups.calls.length).toBe(calls);
+    expect(sent("groups").length).toBe(calls);
 
     groupBy.value = {
       ...groupBy.value,
       sort: [{ fieldname: "status", direction: "asc" }],
     };
     await nextTick();
-    expect(groups.calls.at(-1)).toMatchObject({
-      order_by: "status asc",
-      limit_page_length: 20,
-    });
+    expect(sent("groups").at(-1)).toMatchObject({ order_by: "status asc", limit: 20 });
   });
 
   it("counts up to the cap, then keeps paging while pages come back full", async () => {
+    h.answers.keys = Array.from({ length: 1000 }, (_, status) => ({ status }));
+    h.answers.groups = [{ status: 1 }, { status: 2 }];
     const data = useGroupByData("Sales Order", BY_STATUS, {});
-    const [groups, keys] = h.resources;
     data.pageLength.value = 2;
     await nextTick();
-    expect(keys.calls.at(-1).limit_page_length).toBe(1000);
-    expect(groups.calls.at(-1).limit_page_length).toBe(2);
+    expect(sent("keys").at(-1)!.limit).toBe(1000);
+    expect(sent("groups").at(-1)!.limit).toBe(2);
 
-    keys.data = Array.from({ length: 1000 }, (_, status) => ({ status }));
-    groups.data = [{ status: 1 }, { status: 2 }];
+    await settle();
     expect(data.totalCapped.value).toBe(true);
     expect(data.hasNextPage.value).toBe(true);
 
+    h.answers.groups = [{ status: 1 }, { status: 2 }, { status: 3 }];
     data.loadMore();
-    groups.data = [{ status: 1 }, { status: 2 }, { status: 3 }];
+    await settle();
     expect(data.hasNextPage.value).toBe(false);
   });
 
-  it("offers more groups only while some are not loaded, under the cap", () => {
+  it("offers more groups only while some are not loaded, under the cap", async () => {
+    h.answers.keys = [{ status: "Won" }, { status: "Lost" }];
+    h.answers.groups = [{ status: "Won" }];
     const data = useGroupByData("Sales Order", BY_STATUS, {});
-    const [groups, keys] = h.resources;
-    keys.data = [{ status: "Won" }, { status: "Lost" }];
-    groups.data = [{ status: "Won" }];
+    await settle();
     expect(data.hasNextPage.value).toBe(true);
-    groups.data = [{ status: "Won" }, { status: "Lost" }];
+
+    h.answers.groups = [{ status: "Won" }, { status: "Lost" }];
+    data.loadMore();
+    await settle();
     expect(data.hasNextPage.value).toBe(false);
   });
 });
