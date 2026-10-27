@@ -44,6 +44,7 @@ const NOT_COPIED = new Set([
   "name",
   ROW_ID,
   "idx",
+  "docstatus",
   "doctype",
   "parent",
   "parentfield",

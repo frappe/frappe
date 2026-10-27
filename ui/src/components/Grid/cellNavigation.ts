@@ -79,8 +79,8 @@ function cellsOf(row: HTMLElement): HTMLElement[] {
 
 function keepsOwnArrows(el: HTMLElement): boolean {
   if (el.tagName === "TEXTAREA" || el.tagName === "SELECT" || el.isContentEditable) return true;
-  const open = el.closest('[aria-expanded="true"], [data-state="open"]');
-  return Boolean(open && el.closest(".grid-cell")?.contains(open));
+  // The open trigger can be a sibling of the focused input, so look across the cell.
+  return Boolean(el.closest(".grid-cell")?.querySelector('[aria-expanded="true"], [data-state="open"]'));
 }
 
 function caretAt(el: HTMLElement, edge: "start" | "end"): boolean {
