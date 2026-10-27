@@ -17,6 +17,7 @@ import NumberField from "./NumberField.vue";
 import PasswordField from "./PasswordField.vue";
 import PhoneField from "./PhoneField.vue";
 import ReadOnlyField from "./ReadOnlyField.vue";
+import { NUMBER_FIELDTYPES } from "./readView";
 import RatingField from "./RatingField.vue";
 import SelectField from "./SelectField.vue";
 import TableField from "./TableField.vue";
@@ -73,7 +74,7 @@ registerFieldType("Time", TimeField);
 
 // One numeric control formats per fieldtype with lib defaults; apps register
 // their own for site-accurate settings (see formatNumber.ts).
-for (const t of ["Int", "Long Int", "Float", "Currency", "Percent"]) {
+for (const t of NUMBER_FIELDTYPES) {
   registerFieldType(t, NumberField);
 }
 

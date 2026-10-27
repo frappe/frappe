@@ -68,3 +68,18 @@ export function setFormatDefaults(partial: FormatDefaults): void {
 export function resetFormatDefaults(): void {
   override.value = {};
 }
+
+/** Decimal places for a numeric field: its own `precision`, else the site's currency or
+ *  float precision, else `undefined` (the formatter derives it). Int has none. */
+export function resolvePrecision(field: {
+  fieldtype?: string;
+  precision?: number | null;
+}): number | undefined {
+  if (field.fieldtype === "Int" || field.fieldtype === "Long Int") return undefined;
+  if (field.precision != null) return field.precision;
+  const d = getFormatDefaults();
+  const site = field.fieldtype === "Currency" ? d.currency_precision : d.float_precision;
+  if (site == null || site === "") return undefined;
+  const n = Number(site);
+  return Number.isNaN(n) ? undefined : n;
+}

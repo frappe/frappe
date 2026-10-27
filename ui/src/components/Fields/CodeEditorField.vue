@@ -20,14 +20,11 @@
 				:label="field.label"
 				:required="field.reqd"
 			/>
-			<div
+			<ReadValue
 				v-if="unset"
-				class="flex h-7 items-center rounded-4 bg-surface-gray-1 px-2 text-base text-ink-gray-5"
+				:placeholder="__('Not set')"
 				:class="{ 'mt-1': field.label }"
-				data-slot="read-value"
-			>
-				{{ __("Not set") }}
-			</div>
+			/>
 			<div v-else class="relative" :class="{ 'mt-1': field.label }">
 				<CodeEditor
 					ref="editor"
@@ -153,6 +150,7 @@ import { CodeEditor, CodeEditorContent, CodeKit, loadLanguage } from "frappe-ui/
 import type { CodeEditorExposed } from "frappe-ui/code-editor";
 import { InputDescription, InputLabel } from "frappe-ui/experimental";
 import CodePreview from "./CodePreview.vue";
+import ReadValue from "./ReadValue.vue";
 import { translate as __ } from "../../utils/translate";
 import { markCodeErrors } from "./codeErrorMarks";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";

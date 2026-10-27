@@ -100,6 +100,9 @@ describe("displayValue", () => {
         currency: "USD",
       }),
     ).toBe("$ 1,234.50");
+    expect(displayValue("9007199254740993", field("Long Int"))).toBe(
+      "9007199254740993",
+    );
   });
 
   const linkTitles = {
@@ -171,6 +174,15 @@ describe("displayValue", () => {
   it("shows a time as the form's picker does", () => {
     expect(displayValue("9:15:00", field("Time"))).toBe("09:15");
     expect(displayValue("14:05:30.000000", field("Time"))).toBe("14:05");
+  });
+
+  it("shows a datetime as the form's picker does, without microseconds", () => {
+    expect(
+      displayValue("2026-10-24 09:15:00.123456", field("Datetime")),
+    ).toBe("2026-10-24 09:15:00");
+    expect(displayValue("2026-10-24 09:15:00", field("Datetime"))).toBe(
+      "2026-10-24 09:15:00",
+    );
   });
 
   it("masks a password, typed or saved", () => {

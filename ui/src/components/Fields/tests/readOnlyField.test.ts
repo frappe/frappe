@@ -1,7 +1,19 @@
 // A field the user cannot edit draws its formatted value, not a disabled control.
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, ref } from "vue";
+import { createApp, defineComponent, h, ref } from "vue";
 import type { App } from "vue";
+
+vi.mock("frappe-ui", async (importOriginal) => {
+  const real = (await importOriginal()) as Record<string, unknown>;
+  return {
+    ...real,
+    Dialog: defineComponent({
+      props: { open: { type: Boolean, default: false } },
+      setup: (props, { slots }) => () =>
+        props.open ? h("div", { "data-dialog": "" }, slots.default?.()) : null,
+    }),
+  };
+});
 import FormLayoutField from "../../FormLayout/FormLayoutField.vue";
 import TableField from "../TableField.vue";
 import { getFieldComponent } from "../fieldTypes";
@@ -45,6 +57,9 @@ describe("a field the user cannot edit", () => {
     ["Select", { options: "Open\nClosed" }, "Closed", "Closed"],
     ["Time", {}, "9:15:00", "09:15"],
     ["Password", {}, "secret", "••••••••"],
+    ["Datetime", {}, "2026-10-24 09:15:00.123456", "2026-10-24 09:15:00"],
+    ["Int", {}, null, "0"],
+    ["Currency", { options: "" }, null, "₹ 0.00"],
   ];
   for (const [fieldtype, extra, value, shown] of cases) {
     it(`draws a read-only ${fieldtype} as its formatted value, with no input`, () => {
@@ -55,6 +70,21 @@ describe("a field the user cannot edit", () => {
       expect(el.textContent).toContain("F");
     });
   }
+
+  it("falls back to the site's float and currency precision", () => {
+    setFormatDefaults({ number_format: "#,###.##", currency: "INR", float_precision: 3, currency_precision: 0 });
+    const float = mount({ fieldtype: "Float", readOnly: true }, { f: 1234.5 });
+    expect(readValue(float)?.textContent?.trim()).toBe("1,234.500");
+    app?.unmount();
+    const currency = mount({ fieldtype: "Currency", options: "", readOnly: true }, { f: 1500.5 });
+    expect(readValue(currency)?.textContent?.trim()).toBe("₹ 1,500");
+  });
+
+  it("keeps a read-only Link's title anchor", () => {
+    const el = mount({ fieldtype: "Link", options: "User", readOnly: true }, { f: "ada@x.com" });
+    expect(readValue(el)).toBeNull();
+    expect(el.querySelector("[data-slot='link-value']")).not.toBeNull();
+  });
 
   it("draws a field above the user's permlevel the same way", () => {
     const el = mount({ fieldtype: "Data", readOnly: true, permDenied: true, permlevel: 1 }, { f: "x" });
@@ -116,28 +146,51 @@ describe("a read-only code field", () => {
   });
 });
 
-describe("a read-only grid cell", () => {
-  it("draws the formatted value, the same string as the form", () => {
-    setFormatDefaults({ number_format: "#,###.##" });
-    const field = {
-      fieldname: "items",
-      fieldtype: "Table",
-      label: "Items",
-      readOnly: true,
-      childFields: [{ fieldname: "qty", fieldtype: "Float", label: "Qty", precision: 2 }],
-    };
+describe("a read-only table", () => {
+  const childFields = [
+    { fieldname: "qty", fieldtype: "Float", label: "Qty", precision: 2 },
+    { fieldname: "amount", fieldtype: "Currency", label: "Amount", options: "currency" },
+  ];
+
+  function mountTable(rows: Record<string, any>[], doc: Record<string, any> = {}): HTMLElement {
+    const field = { fieldname: "items", fieldtype: "Table", label: "Items", readOnly: true, childFields };
     host = document.createElement("div");
     document.body.appendChild(host);
-    app = createApp({
-      render: () => h(TableField, { field, modelValue: [{ name: "r1", qty: 4200 }] }),
-    });
-    app.provide(DocKey, ref({}));
+    app = createApp({ render: () => h(TableField, { field, modelValue: rows }) });
+    app.provide(DocKey, ref(doc));
     app.provide(UpdateKey, () => {});
     app.provide(CommitKey, NO_COMMIT);
     app.provide(ResolveFieldKey, getFieldComponent);
     app.mount(host);
-    const cell = host.querySelector(".grid-cell[data-fieldname='qty']")!;
-    expect(cell.querySelector("[data-slot='read-value']")?.textContent?.trim()).toBe("4,200.00");
-    expect(cell.querySelector("input")).toBeNull();
+    return host;
+  }
+
+  const cellText = (el: HTMLElement, fieldname: string) =>
+    el.querySelector(`.grid-cell[data-fieldname='${fieldname}'] [data-slot='read-value']`)?.textContent?.trim();
+
+  it("draws a cell's formatted value, the same string as the form", () => {
+    setFormatDefaults({ number_format: "#,###.##" });
+    const el = mountTable([{ name: "r1", qty: 4200 }]);
+    expect(cellText(el, "qty")).toBe("4,200.00");
+    expect(el.querySelector(".grid-cell[data-fieldname='qty'] input")).toBeNull();
+  });
+
+  it("formats a cell's Currency in the row's currency, else the parent's", () => {
+    setFormatDefaults({ number_format: "#,###.##", currency: "INR" });
+    const fromRow = mountTable([{ name: "r1", amount: 10, currency: "USD" }], { currency: "EUR" });
+    expect(cellText(fromRow, "amount")).toBe("$ 10.00");
+    app?.unmount();
+    const fromParent = mountTable([{ name: "r1", amount: 10 }], { currency: "EUR" });
+    expect(cellText(fromParent, "amount")).toBe("€ 10.00");
+  });
+
+  it("draws the row dialog's fields as values, in the parent's currency", async () => {
+    setFormatDefaults({ number_format: "#,###.##", currency: "INR" });
+    const el = mountTable([{ name: "r1", qty: 4200, amount: 10 }], { currency: "EUR" });
+    (el.querySelector(".grid-cell[data-fieldname='qty']") as HTMLElement).click();
+    const values = () =>
+      [...el.querySelectorAll("[data-dialog] [data-slot='read-value']")].map((v) => v.textContent?.trim());
+    await vi.waitFor(() => expect(values()).toEqual(["4,200.00", "€ 10.00"]));
+    expect(el.querySelector("[data-dialog] input")).toBeNull();
   });
 });

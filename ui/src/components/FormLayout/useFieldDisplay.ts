@@ -1,33 +1,40 @@
 import { inject } from "vue";
 import { displayValue } from "./displayValue";
-import { getFormatDefaults } from "./formatDefaults";
+import { getFormatDefaults, resolvePrecision } from "./formatDefaults";
 import { resolveFieldCurrency, useDocValueReader } from "./resolveCurrency";
+import type { RecordContext } from "./pickSiblingValue";
 import { LinkTitlesKey } from "../Fields/types";
 import type { FieldMeta } from "../Fields/types";
 
-/** Formats a field of `doc` for display; see `useFieldDisplay`. */
-export type FieldDisplay = (field: FieldMeta, doc: Record<string, any>) => string;
+/** Formats `value` of `field` for display; see `useFieldDisplay`. */
+export type FieldDisplay = (
+  field: FieldMeta,
+  value: unknown,
+  records?: RecordContext
+) => string;
 
-/** `displayValue` bound to the host's format defaults, currency and link titles.
- *  Call it in `setup`; the formatter it returns is reactive inside a computed. */
+/** `displayValue` bound to the site's format defaults, a Currency field's resolved
+ *  currency and the host's link titles. `records` holds the document, and the row and
+ *  parent document of a child-table field. Call it in `setup`; the formatter it
+ *  returns is reactive inside a computed. */
 export function useFieldDisplay(): FieldDisplay {
   const titles = inject(LinkTitlesKey, null);
   const getDocValue = useDocValueReader();
-  return (field, doc) => {
+  return (field, value, records = {}) => {
     const defaults = getFormatDefaults();
-    return displayValue(doc[field.fieldname], field, {
-      precision: field.precision,
+    return displayValue(value, field, {
+      precision: resolvePrecision(field),
       currency:
         field.fieldtype === "Currency"
           ? resolveFieldCurrency(field.options, {
-              doc,
+              ...records,
               defaultCurrency: defaults.currency,
               getDocValue,
             })
           : undefined,
       numberFormat: defaults.number_format,
       roundingMethod: defaults.rounding_method,
-      doc,
+      doc: records.row ?? records.doc ?? undefined,
       linkTitles: titles?.value,
     });
   };

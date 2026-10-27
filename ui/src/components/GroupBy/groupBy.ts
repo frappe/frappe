@@ -1,5 +1,4 @@
 import type { RawMetaField } from "../FormLayout/types";
-export { formatRating } from "../FormLayout/formatNumber";
 import type { Sort } from "../SortBy/types";
 import type {
   Aggregate,
@@ -8,6 +7,7 @@ import type {
   GroupByField,
   GroupBySettings,
 } from "./types";
+export { formatRating } from "../FormLayout/formatNumber";
 
 export const AGGREGATE_FUNCTIONS: ReadonlyArray<{
   label: string;

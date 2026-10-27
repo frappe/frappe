@@ -129,7 +129,9 @@ const placeholder = computed(() =>
 	interactive.value && !summary.value ? `Add ${props.field.label}...` : ""
 );
 
-const display = computed(() => displayField(props.field, doc.value));
+const display = computed(() =>
+	displayField(props.field, doc.value[props.field.fieldname], { doc: doc.value })
+);
 
 const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
 const openLabel = computed(() => {

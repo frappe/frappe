@@ -11,18 +11,25 @@
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import ReadValue from "./ReadValue.vue";
-import { DocKey } from "./types";
+import { DocKey, ParentDocKey } from "./types";
+import { NUMBER_FIELDTYPES } from "./readView";
 import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
 import type { FieldComponentProps } from "./types";
 
 const props = defineProps<FieldComponentProps>();
 
 const doc = inject(DocKey, null);
+const parentDoc = inject(ParentDocKey, null);
 const display = useFieldDisplay();
 
-// A grid cell passes its row; a form field reads the document.
 const text = computed(() => {
-	const record = props.row ?? doc?.value ?? {};
-	return display(props.field, { ...record, [props.field.fieldname]: props.modelValue });
+	const { field, modelValue } = props;
+	const unset = modelValue == null || modelValue === "";
+	const value = unset && NUMBER_FIELDTYPES.includes(field.fieldtype) ? 0 : modelValue;
+	return display(field, value, {
+		doc: doc?.value,
+		row: props.row,
+		parentDoc: parentDoc?.value,
+	});
 });
 </script>
