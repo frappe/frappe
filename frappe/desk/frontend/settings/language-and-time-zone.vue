@@ -31,6 +31,16 @@ import { runMethod } from "@framework/ui/api";
 
 let zones: Promise<string[]> | undefined;
 
+/** A language code's name in the desk's language, or the code when the browser cannot name it. */
+function languageName(code: unknown, displayIn = "en"): string {
+	if (typeof code !== "string" || !code) return "";
+	try {
+		return new Intl.DisplayNames([displayIn], { type: "language" }).of(code) || code;
+	} catch {
+		return code;
+	}
+}
+
 /** The server's time zones, read once while the desk is open; a failed read is not kept. */
 function zoneList(): Promise<string[]> {
 	zones ??= runMethod<{ timezones: string[] }>(
@@ -49,6 +59,7 @@ function zoneList(): Promise<string[]> {
 import { computed, reactive, ref } from "vue";
 import { ErrorMessage, SettingsRow, Skeleton } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
+import { useSession } from "@framework/ui/useSession";
 import { __ } from "frappe/i18n";
 
 /** The part of the settings dialog's binding this block reads; the full shape is `ComponentBinding`. */
@@ -62,11 +73,20 @@ interface Binding {
 const props = defineProps<{ bindings: { user: Binding } }>();
 const user = props.bindings.user;
 
+const { session } = useSession();
+const siteLanguage = languageName(session.value?.defaults.language, session.value?.lang);
+
 const timeZones = ref<string[]>([]);
 zoneList().then((zones) => (timeZones.value = zones));
 
 const fields = computed(() => [
-	{ fieldname: "language", fieldtype: "Link", options: "Language", label: __("Language") },
+	{
+		fieldname: "language",
+		fieldtype: "Link",
+		options: "Language",
+		label: __("Language"),
+		placeholder: siteLanguage ? __("{0} (site default)", [siteLanguage]) : undefined,
+	},
 	{
 		fieldname: "time_zone",
 		fieldtype: "Autocomplete",

@@ -2063,6 +2063,20 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		# the browser reads this key to find the row it just made
 		self.assertEqual(response.json["data"]["file"], rows[0]["name"])
 
+	def test_attach_follows_the_doctypes_public_attachments(self):
+		# `User` makes its attachments public, so a photo is public whatever the uploader sent
+		photo = self.upload(
+			self.resource("User", self.TEST_USER, "attachments"), b"photo", "me.txt", is_private="1"
+		)
+		kept = self.upload(self.attachments_path(self.todo.name), b"hello", "kept.txt", is_private="1")
+		self.assertEqual(photo.status_code, 200, photo.json)
+		self.assertEqual(kept.status_code, 200, kept.json)
+		frappe.db.rollback()
+		self.addCleanup(frappe.delete_doc_if_exists, "File", photo.json["data"]["file"], force=True)
+
+		self.assertEqual(frappe.db.get_value("File", photo.json["data"]["file"], "is_private"), 0)
+		self.assertEqual(frappe.db.get_value("File", kept.json["data"]["file"], "is_private"), 1)
+
 	def test_a_chunk_that_is_not_the_last_answers_with_no_file(self):
 		response = self.upload(
 			self.attachments_path(self.todo.name),

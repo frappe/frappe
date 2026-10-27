@@ -11,14 +11,17 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 
 import { useColorScheme } from "frappe-ui";
 import { getFieldComponent, registerFieldType } from "@framework/ui/FormLayout";
+import { setSession } from "@framework/ui/useSession";
 import { settingsComponentFor } from "@/contributions/registry";
 
 const NAMES = ["theme", "profile-photo", "language-and-time-zone", "session-defaults"];
 const SESSION_DEFAULTS = "frappe.core.doctype.session_default_settings.session_default_settings";
 
 /** A field control that shows what it was handed and commits a value on click. */
-const drawn: Record<string, { options?: string; modelValue: unknown; commit: (value: unknown) => void }> =
-	{};
+const drawn: Record<
+	string,
+	{ options?: string; placeholder?: string; modelValue: unknown; commit: (value: unknown) => void }
+> = {};
 const FieldProbe = defineComponent({
 	props: { field: { type: Object, required: true }, modelValue: null },
 	emits: ["update:modelValue", "change"],
@@ -26,6 +29,7 @@ const FieldProbe = defineComponent({
 		return () => {
 			drawn[props.field.fieldname] = {
 				options: props.field.options,
+				placeholder: props.field.placeholder,
 				modelValue: props.modelValue,
 				commit: (value) => {
 					emit("update:modelValue", value);
@@ -169,6 +173,22 @@ describe("desk's settings components", () => {
 		const rows = document.querySelectorAll<HTMLElement>("[data-fieldname]");
 		expect(rows[1].textContent).toContain("Not a zone");
 		expect(rows[0].textContent).not.toContain("Not a zone");
+	});
+
+	it("language and time zone: an empty language shows the site default as its placeholder", async () => {
+		setSession({
+			user: { name: "jane@example.com" },
+			roles: [],
+			lang: "en",
+			timezone: "Asia/Kolkata",
+			defaults: { language: "en" },
+		} as unknown as Parameters<typeof setSession>[0]);
+		await mount("language-and-time-zone", { user: userBinding({ language: null }) });
+
+		expect(drawn.language).toMatchObject({
+			modelValue: null,
+			placeholder: "English (site default)",
+		});
 	});
 
 	it("session defaults: one Link per default, and a change saves them all", async () => {
