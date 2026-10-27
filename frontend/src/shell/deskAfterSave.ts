@@ -39,5 +39,5 @@ export function registerDeskAfterSave(session: Session): () => void {
 /** True unless boot shows a language of the person's own: `defaults.language` is the site's. */
 function followsSiteLanguage(session: Session): boolean {
 	const site = session.defaults.language;
-	return typeof site !== "string" || site === session.lang;
+	return typeof site !== "string" || !site || site === session.lang;
 }
