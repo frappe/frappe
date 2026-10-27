@@ -20,6 +20,7 @@ import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { setSession } from "@framework/ui/useSession";
 import { resetUserRoles } from "@framework/ui/useUserRoles";
 import { ActDenied, acts } from "@/acts/dispatcher";
+import { openArgumentStep, paletteArgument, paletteOpen } from "@/shell/palette";
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
 import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "../registry";
@@ -298,6 +299,29 @@ describe("an act the reader asks for", () => {
 
     expect(actFailed).toHaveBeenCalledExactlyOnceWith(veto);
     expect(toast.error).toHaveBeenCalledExactlyOnceWith("You do not have permission to do this");
+  });
+
+  it("opens the palette at the argument step of a clicked act that takes one, and runs it when given a value", async () => {
+    const run = vi.fn();
+    const assign: HeaderItem = {
+      name: "assign",
+      label: "Assign to…",
+      argument: { label: "Users", options: () => [] },
+      run,
+    };
+    await register("crm", { onRefresh: (page) => page.header.add([assign]) });
+    const { controller } = makePage({ openArgument: openArgumentStep });
+    await controller.refresh();
+
+    await controller.perform("header.assign");
+    expect(run).not.toHaveBeenCalled();
+    expect(paletteOpen.value).toBe(true);
+    expect(paletteArgument.value).toBe("header.assign");
+
+    await controller.perform("header.assign", "sarah@example.com");
+    expect(run).toHaveBeenCalledExactlyOnceWith(expect.anything(), "sarah@example.com");
+    paletteOpen.value = false;
+    paletteArgument.value = null;
   });
 });
 

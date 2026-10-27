@@ -12,6 +12,11 @@ export interface ActOption {
 	value: unknown;
 	label: string;
 	description?: string;
+	icon?: string;
+	/** Draws a round avatar in place of the icon: the picture at this address, or the label's initials when `null`. */
+	image?: string | null;
+	/** Why the option cannot be picked, such as "Assigned"; drawn on its right. */
+	disabled?: string;
 }
 
 export interface ActArgument<Context = any> {

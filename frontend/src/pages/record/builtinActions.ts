@@ -5,6 +5,7 @@ import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import type { TabCreateAction } from "@/recordPage/types";
 import { routeFor } from "@/router/routeFor";
 import { favouriteWording } from "@/pages/favourite/favouriteWording";
+import { assignItem, type AssignState } from "./assignAct";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,
@@ -45,12 +46,12 @@ function followWording({ following }: FollowState) {
 
 /**
  * The header's `⋯` rows: no `display`, so the projection files them under the menu.
- * Three bands by `group`: the reader's own toggles, the record's copies, then Delete.
+ * Four bands by `group`: the reader's own toggles, Assign to, the record's copies, then Delete.
  */
 export function headerMenuBuiltins(
   perms: Record<string, any>,
   favourite: FavouriteState,
-  options: { single?: boolean; follow?: FollowState } = {}
+  options: { single?: boolean; follow?: FollowState; assign?: AssignState } = {}
 ): HeaderItem[] {
   const items: HeaderItem[] = [
     {
@@ -67,6 +68,7 @@ export function headerMenuBuiltins(
       run: options.follow.toggle,
       ...followWording(options.follow),
     });
+  if (perms.write && options.assign) items.push(assignItem(options.assign));
   items.push(
     { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
     { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }

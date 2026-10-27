@@ -1,4 +1,4 @@
-<!-- One palette row: icon, label, gray description, and the act's key or a hint on the right. -->
+<!-- One palette row: icon or avatar, label, gray description, and the act's key or a hint on the right. -->
 <template>
 	<CommandPaletteItem
 		:value="row"
@@ -8,6 +8,13 @@
 	>
 		<template #prefix>
 			<LoadingIndicator v-if="row.pending" class="size-4 shrink-0 text-ink-gray-5" />
+			<Avatar
+				v-else-if="row.image !== undefined"
+				:image="row.image ?? undefined"
+				:label="row.label"
+				size="xs"
+				class="shrink-0"
+			/>
 			<span
 				v-else
 				:class="[row.icon, 'size-4 shrink-0 text-ink-gray-6']"
@@ -30,7 +37,7 @@
 </template>
 
 <script setup lang="ts">
-import { KeyboardShortcut, LoadingIndicator } from "frappe-ui";
+import { Avatar, KeyboardShortcut, LoadingIndicator } from "frappe-ui";
 import { CommandPaletteItem } from "frappe-ui/experimental";
 import type { PaletteRow } from "./palette";
 

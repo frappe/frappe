@@ -224,7 +224,7 @@ function personItems(
 			icon: "lucide-sun-moon",
 			argument: {
 				label: __("Themes"),
-				options: () => colorSchemes().map(({ value, label }) => ({ value, label })),
+				options: () => colorSchemes(),
 			},
 			run: (_shell, scheme: ColorScheme) => {
 				if (!colorSchemes().some(({ value }) => value === scheme))

@@ -118,6 +118,7 @@ import {
 } from "vue-router";
 import { toast } from "frappe-ui";
 import {
+	addAssignment,
 	addFavourite,
 	addFollow,
 	isApiError,
@@ -189,7 +190,7 @@ import { useLiveDocinfo, warnDocinfoFailed } from "./record/liveDocinfo";
 import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
 import { mergePart } from "./record/panel/peopleActions";
-import { tagsOf } from "./record/panel/people";
+import { assigneesOf, tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
 import RecordPanel from "./record/panel/RecordPanel.vue";
@@ -216,6 +217,7 @@ import {
 	stripTags,
 } from "./record/saveResponse";
 import PageFrame from "@/shell/PageFrame.vue";
+import { openArgumentStep } from "@/shell/palette";
 import { failedState, type PageStateValue } from "@/shell/pageState";
 import { recentVisits } from "@/shell/recentVisits";
 import type { Boot } from "@/boot";
@@ -398,7 +400,11 @@ function headerBuiltins(): HeaderItem[] {
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
-			{ single, follow: follow.value }
+			{
+				single,
+				follow: follow.value,
+				assign: { assignees: assigneesOf(docinfo.value), assign: assignUser },
+			}
 		)
 	);
 	return items;
@@ -436,6 +442,10 @@ function toggleFavourite(page: RecordPageApi) {
 	return toggleOnSidecar(page, () =>
 		(favourited.value ? removeFavourite : addFavourite)(page.doctype, page.docname)
 	);
+}
+
+function assignUser(page: RecordPageApi, user: string) {
+	return toggleOnSidecar(page, () => addAssignment(page.doctype, page.docname, { user }));
 }
 
 // The server declines a follow without failing, and says why beside the data.
@@ -766,6 +776,7 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 		actFailed,
+		openArgument: openArgumentStep,
 	});
 	created.header.provideBuiltins(headerBuiltins);
 	created.quickActions.provideBuiltins(() =>
