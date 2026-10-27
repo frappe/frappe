@@ -405,12 +405,18 @@ class TestStudioPage(IntegrationTestCase):
 			path = os.path.join(page.get_component_folder_path(), f"{frappe.scrub(component.name)}.json")
 			self.assertTrue(os.path.exists(path))
 
+			handwritten = os.path.join(page.get_component_folder_path(), "MyWidget.vue")
+			with open(handwritten, "w") as f:
+				f.write("<template><div /></template>")
+
 			page.blocks = "[]"
 			page.save()
 			self.assertTrue(os.path.exists(path))  # still used by the other page
+			self.assertTrue(os.path.exists(handwritten))  # a hand-written file is not a component file
 
 			other.delete()
 			self.assertFalse(os.path.exists(path))
+			self.assertTrue(os.path.exists(handwritten))
 
 	def test_standard_pages_cannot_be_changed_outside_developer_mode(self):
 		app = make_studio_app(app_name="deployed-" + frappe.generate_hash(length=10))
