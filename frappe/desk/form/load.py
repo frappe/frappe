@@ -21,7 +21,7 @@ from frappe.permissions import (
 	check_doctype_permission,
 	get_doc_permissions,
 	has_permission,
-	validate_system_user,
+	validate_desk_user,
 )
 from frappe.utils.data import cstr
 from frappe.utils.user import is_website_user
@@ -69,7 +69,7 @@ def getdoc(doctype: str, name: str | int):
 @frappe.whitelist()
 def getdoctype(doctype: str, with_parent: int | bool = False):
 	"""load doctype"""
-	validate_system_user()
+	validate_desk_user()
 
 	docs = []
 	parent_dt = None

@@ -52,11 +52,21 @@ class TestLoad(IntegrationTestCase):
 		frappe.set_user(website_user.name)
 		self.assertRaises(frappe.PermissionError, get_user_info_for_viewers, ["test@example.com"])
 
-	def test_desk_meta_endpoints_require_system_user(self):
-		website_user = frappe.get_doc(
-			doctype="User", email="meta_portal@example.com", first_name="Portal", user_type="Website User"
-		).insert(ignore_permissions=True, ignore_mandatory=True)
-		self.addCleanup(frappe.delete_doc, "User", website_user.name, force=True)
+	def test_desk_meta_endpoints_require_desk_user(self):
+		from frappe.core.doctype.user_type.test_user_type import create_role
+
+		create_role()
+		custom_type = frappe.get_doc(
+			doctype="User Type", name="Meta Test Type", role="_Test User Type"
+		).insert()
+		self.addCleanup(frappe.delete_doc, "User Type", custom_type.name, force=True)
+
+		users = {}
+		for key, user_type in (("website", "Website User"), ("custom", custom_type.name)):
+			users[key] = frappe.get_doc(
+				doctype="User", email=f"meta_{key}@example.com", first_name="Meta", user_type=user_type
+			).insert(ignore_permissions=True, ignore_mandatory=True)
+			self.addCleanup(frappe.delete_doc, "User", users[key].name, force=True)
 		self.addCleanup(frappe.set_user, "Administrator")
 		endpoints = (
 			lambda: getdoctype("Role"),
@@ -65,14 +75,15 @@ class TestLoad(IntegrationTestCase):
 			get_module_installed_apps,
 		)
 
-		frappe.set_user(website_user.name)
+		frappe.set_user(users["website"].name)
 		for endpoint in endpoints:
 			self.assertRaises(frappe.PermissionError, endpoint)
 
-		frappe.set_user("test@example.com")
 		frappe.local.response = frappe._dict(docs=[])
-		for endpoint in endpoints:
-			endpoint()
+		for desk_user in ("test@example.com", users["custom"].name):
+			frappe.set_user(desk_user)
+			for endpoint in endpoints:
+				endpoint()
 		self.assertEqual(frappe.response.docs[0]["name"], "Role")
 
 	def test_add_comments_hides_attachment_activity_for_restricted_fields(self):

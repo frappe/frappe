@@ -103,7 +103,7 @@ def update_last_known_versions():
 
 @frappe.whitelist()
 def get_versions(include_disabled: bool = False):
-	frappe.permissions.validate_system_user()
+	frappe.permissions.validate_desk_user()
 	return get_app_versions(include_disabled)
 
 
