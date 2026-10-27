@@ -552,12 +552,12 @@ class Report(Document):
 
 def get_filter_default(row, user):
 	if row.default == "__user":
-		return user
-
-	if row.fieldtype == "Link" and (user_default := frappe.defaults.get_user_default(row.fieldname, user)):
+		default = user
+	elif row.fieldtype == "Link" and (user_default := frappe.defaults.get_user_default(row.fieldname, user)):
 		return user_default
+	else:
+		default = get_static_default_value(row, [], [])
 
-	default = get_static_default_value(row, [], [])
 	if default and row.fieldtype == "MultiSelectList":
 		return [default]
 	if default and row.fieldtype == "DateRange":

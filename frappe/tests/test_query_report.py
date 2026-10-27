@@ -847,6 +847,9 @@ data = columns, result
 		self.assertEqual(filters.users, [user])
 		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
 
+		report.filters[-2].default = "__user"
+		self.assertEqual(report.get_validated_filters({"allocated_to": user}, user).users, [user])
+
 		with self.assertRaisesRegex(frappe.ValidationError, "list of values"):
 			report.get_validated_filters({"allocated_to": user, "users": user}, user)
 		with self.assertRaisesRegex(frappe.ValidationError, "start and an end date"):
