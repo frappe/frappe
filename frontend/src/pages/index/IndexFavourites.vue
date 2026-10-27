@@ -17,8 +17,8 @@
 					role="option"
 					:aria-selected="chip.selected"
 					:title="chip.favourite.title"
-					class="inline-flex h-8 max-w-full items-center gap-2 rounded-4 px-2.5 text-sm text-ink-gray-8 outline-none transition hover:bg-surface-gray-3 focus-visible:focus-ring"
-					:class="chip.selected ? 'bg-surface-gray-3' : 'bg-surface-gray-2'"
+					class="inline-flex h-8 max-w-full items-center gap-2 rounded-4 px-2.5 text-sm text-ink-gray-8 outline-none transition hover:bg-surface-gray-4 focus-visible:focus-ring"
+					:class="chip.selected ? 'bg-surface-gray-4' : 'bg-surface-gray-2'"
 					:data-favourite="chip.key"
 					:data-selected="chip.selected || undefined"
 				>

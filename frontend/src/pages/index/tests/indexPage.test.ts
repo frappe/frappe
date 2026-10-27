@@ -614,6 +614,14 @@ describe("the person's layer", () => {
 		expect(document.activeElement).toBe(box(host));
 	});
 
+	it("spans the strip and the box over the drag grid's logos, three columns at least", async () => {
+		const host = await mount(APPS.slice(0, 3));
+		const strip = await arrange(host);
+		expect(box(host).parentElement!.className).toContain("max-w-[312px]");
+		expect(strip.className).toContain("max-w-[312px]");
+		expect(strip.className).toContain("flex-wrap");
+	});
+
 	it("resets to the app layer and stays in arrange mode", async () => {
 		const host = await mount(HIDDEN_CRM);
 		const strip = await arrange(host);
@@ -682,6 +690,8 @@ describe("the index's Get more apps tile", () => {
 		skeleton.mount(host);
 		mounted.push(skeleton);
 		expect(host.querySelector("input")!.parentElement!.className).toContain("max-w-[568px]");
+		expect(host.querySelector("[data-index-skeleton] .grid")!.className).toContain("grid-cols-[repeat(5,112px)]");
+		expect(host.querySelector("[data-index-skeleton] .grid")!.children).toHaveLength(5);
 	});
 
 	it("never matches the filter", async () => {
