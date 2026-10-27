@@ -1,16 +1,24 @@
 // One doctype's stored list settings: the site row and the person's own, fetched beside meta once
 // and again after a DocType change, written back silently. A write's response replaces both rows.
+// The same read says which of the list and its saved views the person starred; a star toggles in turn with the writes.
 import { runMethod } from "@framework/ui/api";
 import { landFresh } from "@framework/ui/utils";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
 import type { ListSettings, ListSettingsKey } from "./storedSettings";
 
 const API = "frappe.desk.doctype.doctype_view.api";
+const TOGGLE_FAVOURITE = "frappe.desk.doctype.favourite.favourite.toggle_favourite";
 export const VIEW_TYPE = "List";
 /** Column edits in the popover come in bursts; one write carries the burst. */
 export const WRITE_DEBOUNCE_MS = 500;
 
 export type Scope = "user" | "site";
+
+/** Whether the person starred the list itself, and the names of the saved views they starred. */
+export interface ListFavourites {
+	list: boolean;
+	views: string[];
+}
 
 export interface ListSettingsHandle {
 	loaded: ComputedRef<boolean>;
@@ -28,6 +36,10 @@ export interface ListSettingsHandle {
 	refreshing: ComputedRef<boolean>;
 	/** Resolves once the fresh read of stale settings has arrived, shown or held. */
 	refreshed: () => Promise<void>;
+	/** Null until a settings read succeeds: the star cannot be drawn without it. */
+	favourites: ComputedRef<ListFavourites | null>;
+	/** Stars or unstars the list, or the saved view `view`; rejects with the server's refusal. */
+	toggleFavourite: (view: string | null) => Promise<void>;
 }
 
 interface Tiers {
@@ -37,6 +49,7 @@ interface Tiers {
 
 interface Entry {
 	tiers: Ref<Tiers>;
+	favourites: Ref<ListFavourites | null>;
 	loaded: Ref<boolean>;
 	pending: ListSettings | null;
 	/** How many times each key was reset; a failed patch comes back only for keys reset no further. */
@@ -96,6 +109,8 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		flush,
 		refreshing: computed(() => entry.refreshing.value),
 		refreshed: () => entry.refreshed,
+		favourites: computed(() => entry.favourites.value),
+		toggleFavourite: (view) => toggleFavourite(entry, doctype, view),
 	};
 }
 
@@ -119,6 +134,7 @@ function entryFor(doctype: string): Entry {
 	const seeded = existing?.loaded.value ?? false;
 	const entry: Entry = {
 		tiers: ref(seeded ? existing!.tiers.value : { site: null, user: null }),
+		favourites: ref(seeded ? existing!.favourites.value : null),
 		loaded: ref(seeded),
 		pending: null,
 		resets: {},
@@ -152,7 +168,9 @@ function flushEntry(entry: Entry, doctype: string): Promise<void> {
 
 async function load(entry: Entry, doctype: string) {
 	try {
-		const tiers = tiersOf(await send(`${API}.get`, { doctype, type: VIEW_TYPE }));
+		const response = await send(`${API}.get`, { doctype, type: VIEW_TYPE });
+		const tiers = tiersOf(response);
+		entry.favourites.value = favouritesOf(response);
 		if (!entry.refreshing.value) entry.tiers.value = tiers;
 		else
 			landFresh(() => {
@@ -163,8 +181,8 @@ async function load(entry: Entry, doctype: string) {
 			});
 	} catch (failure) {
 		console.warn(`[list] settings for ${doctype} did not load`, failure);
-		// A failed refresh keeps the stale rows on show, and the next caller reads again.
-		if (entry.refreshing.value) entry.stale = true;
+		// A failed read keeps what is on show, and the next caller reads again.
+		entry.stale = true;
 		entry.refreshing.value = false;
 	}
 	entry.loaded.value = true;
@@ -181,6 +199,33 @@ function write(entry: Entry, send: () => Promise<unknown>, onFailure?: () => voi
 		}
 	});
 	return entry.queue;
+}
+
+/** Whether `view`, or the list itself when null, is starred. */
+export function isFavourite(favourites: ListFavourites | null, view: string | null): boolean {
+	if (!favourites) return false;
+	return view === null ? favourites.list : favourites.views.includes(view);
+}
+
+function toggleFavourite(entry: Entry, doctype: string, view: string | null): Promise<void> {
+	const turn = entry.queue.then(async () => {
+		const adding = !isFavourite(entry.favourites.value, view);
+		const target =
+			view === null ? { doctype: "DocType", name: doctype } : { doctype: "Doctype View", name: view };
+		await runMethod(TOGGLE_FAVOURITE, { ...target, add: adding }, { nullable: true });
+		markFavourite(entry, view, adding);
+	});
+	entry.queue = turn.catch(() => undefined);
+	return turn;
+}
+
+function markFavourite(entry: Entry, view: string | null, favourited: boolean) {
+	const { list, views } = entry.favourites.value ?? { list: false, views: [] };
+	if (view === null) entry.favourites.value = { list: favourited, views };
+	else {
+		const others = views.filter((name) => name !== view);
+		entry.favourites.value = { list, views: favourited ? [...others, view] : others };
+	}
 }
 
 /** A patch that failed waits for the next flush, under whatever was saved since, minus any key reset since. */
@@ -207,6 +252,12 @@ async function send(method: string, args: Record<string, unknown>): Promise<unkn
 function tiersOf(response: unknown): Tiers {
 	const rows = (response ?? {}) as { site?: unknown; user?: unknown };
 	return { site: settingsOf(rows.site), user: settingsOf(rows.user) };
+}
+
+function favouritesOf(response: unknown): ListFavourites {
+	const favourites = (response as { favourites?: Partial<ListFavourites> } | null)?.favourites;
+	const views = Array.isArray(favourites?.views) ? favourites.views : [];
+	return { list: favourites?.list === true, views: views.filter((v) => typeof v === "string") };
 }
 
 function settingsOf(value: unknown): ListSettings | null {

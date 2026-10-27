@@ -6,6 +6,7 @@ from unittest.mock import patch
 import frappe
 from frappe.desk.doctype.doctype_view import api
 from frappe.desk.doctype.doctype_view.api import get, reset, save
+from frappe.desk.doctype.favourite.favourite import toggle_favourite
 from frappe.exceptions import FrappeTypeError
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
@@ -98,7 +99,9 @@ class TestDoctypeView(DoctypeViewTestCase):
 class TestApi(DoctypeViewTestCase):
 	def test_nothing_stored_reads_as_two_absences(self):
 		with set_user(self.person):
-			self.assertEqual(get(DOCTYPE), {"site": None, "user": None})
+			self.assertEqual(
+				get(DOCTYPE), {"site": None, "user": None, "favourites": {"list": False, "views": []}}
+			)
 
 	def test_a_save_patches_keys_on_the_caller_s_own_row(self):
 		with set_user(self.person):
@@ -158,14 +161,38 @@ class TestApi(DoctypeViewTestCase):
 
 		with set_user(self.person):
 			save(DOCTYPE, "List", "user", {"columns": []})
-			self.assertEqual(get(DOCTYPE), {"site": {"sort": []}, "user": {"columns": []}})
+			self.assertEqual(
+				get(DOCTYPE),
+				{"site": {"sort": []}, "user": {"columns": []}, "favourites": {"list": False, "views": []}},
+			)
 
 		with set_user(self.other):
-			self.assertEqual(get(DOCTYPE), {"site": {"sort": []}, "user": None})
+			self.assertEqual(
+				get(DOCTYPE), {"site": {"sort": []}, "user": None, "favourites": {"list": False, "views": []}}
+			)
 
 	def test_a_doctype_the_caller_cannot_read_is_refused(self):
 		with set_user(self.person):
 			self.assertRaises(frappe.PermissionError, get, PRIVATE_DOCTYPE)
+
+	def test_the_read_says_which_of_the_list_and_its_views_the_caller_starred(self):
+		view = make_view(label="Open notes", settings={}).insert().name
+		other_view = make_view(label="Closed notes", settings={}).insert().name
+		with set_user(self.person):
+			toggle_favourite("DocType", DOCTYPE, add=True)
+			toggle_favourite("Doctype View", view, add=True)
+			self.assertEqual(get(DOCTYPE)["favourites"], {"list": True, "views": [view]})
+
+		with set_user(self.other):
+			toggle_favourite("Doctype View", other_view, add=True)
+			self.assertEqual(get(DOCTYPE)["favourites"], {"list": False, "views": [other_view]})
+
+	def test_a_starred_view_of_another_doctype_is_not_this_list_s(self):
+		elsewhere = make_view(reference_doctype="ToDo", label="Elsewhere", settings={}).insert().name
+		with set_user(self.person):
+			toggle_favourite("Doctype View", elsewhere, add=True)
+			toggle_favourite("DocType", "ToDo", add=True)
+			self.assertEqual(get(DOCTYPE)["favourites"], {"list": False, "views": []})
 
 	def test_a_bad_argument_is_refused_before_anything_is_read(self):
 		with set_user(self.person):
