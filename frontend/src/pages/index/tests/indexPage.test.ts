@@ -81,7 +81,7 @@ const RECENT: BootVisit[] = [
 
 // The palette's server reads, answering nothing: this file tests the page, not its search.
 const NOTHING_FOUND: Record<string, unknown> = {
-	"frappe.shell.palette.places": { doctypes: [], apps: [], titles: {} },
+	"frappe.shell.palette.places": { doctypes: [], apps: [], titles: {}, recent: [] },
 	"frappe.shell.settings.get_panes": { panes: [], index: [], titles: {} },
 };
 

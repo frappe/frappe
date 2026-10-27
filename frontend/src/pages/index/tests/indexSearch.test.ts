@@ -33,6 +33,7 @@ const PLACES = {
 	],
 	apps: [{ app: "crm", title: "CRM", route: "/apps/crm" }],
 	titles: { erpnext: "ERPNext", crm: "CRM" },
+	recent: [],
 };
 
 const PALMER = {
