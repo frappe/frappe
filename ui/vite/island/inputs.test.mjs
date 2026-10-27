@@ -35,6 +35,7 @@ function builtBench() {
     "apps/frappe/frappe/desk/page/notifications/notifications.vue",
     "<template/>"
   );
+  write("apps/erpnext/yarn.lock", "chart-lib@1");
   write("apps/erpnext/node_modules/chart-lib/index.js", "export {}");
 
   const root = path.join(bench, "apps/frappe/island-toolchain");
@@ -161,8 +162,14 @@ test("new tailwind plugins build again", () => {
   );
 });
 
-test("an edited package outside the toolchain builds again", () => {
+test("a new app lockfile builds again", () => {
   const { options, write } = builtBench();
-  write("apps/erpnext/node_modules/chart-lib/index.js", "export const v = 2");
+  write("apps/erpnext/yarn.lock", "chart-lib@2");
   assert.equal(islandsUnchanged(options), false);
+});
+
+test("no app node_modules still reuses prebuilt output", () => {
+  const { bench, options } = builtBench();
+  fs.rmSync(path.join(bench, "apps/erpnext/node_modules"), { recursive: true });
+  assert.equal(islandsUnchanged(options), true);
 });

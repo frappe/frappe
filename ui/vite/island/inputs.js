@@ -3,10 +3,10 @@
 //
 // The key covers the entries, the mode, the options that reach the output, the
 // toolchain's lockfile, the preset's own source, and every file the last build
-// read outside the toolchain's node_modules. Files inside it are covered by the
-// lockfile instead, so the key can be checked on a bench whose toolchain is not
-// installed yet, such as one that downloaded prebuilt assets. Paths are relative
-// to the bench, for the same reason.
+// read. A file inside a node_modules is covered by the lockfile that installed
+// it instead, so the key can be checked on a bench whose packages are not
+// installed, such as one that downloaded prebuilt assets. Paths are relative to
+// the bench, for the same reason.
 //
 // The stamp sits inside the output directory, which vite empties on every build,
 // so output and stamp always go away together.
@@ -93,7 +93,11 @@ function inputsKey({ paths, root, entries, production, files, ...options }) {
 	return hash.digest("hex");
 }
 
-/** Module ids as bench-relative paths of real files outside the toolchain's node_modules. */
+/**
+ * Module ids as bench-relative paths of the files that decide them. A package
+ * stands for the lockfile of the folder that installed it, which a bench without
+ * that node_modules still has. The toolchain's packages are covered already.
+ */
 function sourceFiles(benchRoot, root, moduleIds) {
 	const toolchainModules = path.join(root, "node_modules") + path.sep;
 	const files = new Set();
@@ -101,9 +105,24 @@ function sourceFiles(benchRoot, root, moduleIds) {
 		const file = id.split("?")[0];
 		if (!path.isAbsolute(file) || file.startsWith(toolchainModules)) continue;
 		if (!fs.existsSync(file)) continue;
-		files.add(path.relative(benchRoot, file));
+		files.add(path.relative(benchRoot, owningLockfile(file) ?? file));
 	}
 	return [...files].sort();
+}
+
+const LOCKFILES = ["yarn.lock", "package-lock.json", "pnpm-lock.yaml"];
+
+/** The lockfile beside the outermost node_modules a file sits in, if any. */
+function owningLockfile(file) {
+	const parts = file.split(path.sep);
+	const index = parts.indexOf("node_modules");
+	if (index === -1) return null;
+	const owner = parts.slice(0, index).join(path.sep);
+	for (const name of LOCKFILES) {
+		const lockfile = path.join(owner, name);
+		if (fs.existsSync(lockfile)) return lockfile;
+	}
+	return null;
 }
 
 /** The preset's own source: its output changes when this code does. */
