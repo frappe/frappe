@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.palette import record_path, search_records
+from frappe.desk.palette import search_records
 from frappe.shell.links import canonical_path
 from frappe.tests import IntegrationTestCase
 
@@ -49,15 +49,7 @@ class TestSearchRecords(IntegrationTestCase):
 			found = search_records("Kestrel", doctype=self.closed)
 
 		self.assertEqual(
-			found,
-			[
-				{
-					"doctype": first,
-					"name": "Kestrel Ridge",
-					"label": "Kestrel Ridge",
-					"route": record_path(first, "Kestrel Ridge"),
-				}
-			],
+			without_route(found), [{"doctype": first, "name": "Kestrel Ridge", "label": "Kestrel Ridge"}]
 		)
 
 	def test_exact_name_comes_first(self):
@@ -107,9 +99,8 @@ class TestSearchRecords(IntegrationTestCase):
 		with listed([self.titled]), self.set_user(READER):
 			found = search_records("Kestrel")
 
-		route = record_path(self.titled, "KES-0001")
 		self.assertEqual(
-			found, [{"doctype": self.titled, "name": "KES-0001", "label": "Kestrel Ridge", "route": route}]
+			without_route(found), [{"doctype": self.titled, "name": "KES-0001", "label": "Kestrel Ridge"}]
 		)
 
 	def test_a_record_carries_its_v2_address_without_the_host(self):
@@ -155,3 +146,8 @@ def add_records(doctype: str, *names: str):
 
 def listed(doctypes: list[str]):
 	return patch("frappe.desk.palette.get_doctypes_for_global_search", return_value=doctypes)
+
+
+def without_route(found: list[dict]) -> list[dict]:
+	"""The rows without their address, which its own test checks."""
+	return [{key: value for key, value in row.items() if key != "route"} for row in found]

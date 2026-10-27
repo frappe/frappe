@@ -1,6 +1,6 @@
 // The index's one arrow-key movement: across a grid, and on into the next section.
 import { describe, expect, it } from "vitest";
-import { Selection, type SelectionSection } from "../selection";
+import { Selection, selectableId, type SelectionSection } from "../selection";
 
 function items(prefix: string, count: number) {
 	return Array.from({ length: count }, (_, index) => ({
@@ -73,5 +73,14 @@ describe("the index selection", () => {
 		expect(selection.move("ArrowDown")).toBe(true);
 		expect(selection.selected.value).toBeNull();
 		expect(selection.target()).toBeUndefined();
+	});
+});
+
+describe("an item's element id", () => {
+	it("is a valid id that no two keys share, whatever their script or punctuation", () => {
+		const keys = ["A-B", "A/B", "A_B", "علي", "حسن"].map((name) => `result:record:Customer/${name}`);
+		const ids = keys.map(selectableId);
+		expect(new Set(ids).size).toBe(keys.length);
+		ids.forEach((id) => expect(id).toMatch(/^index-item-[\w-]+$/));
 	});
 });

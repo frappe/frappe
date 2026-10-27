@@ -25,11 +25,16 @@ export type IndexSearch = ReturnType<typeof indexSearch>;
 /** The rows for `query` and their selection sections; it follows `query` until its effect scope stops. */
 export function indexSearch(query: Ref<string>, context: PaletteContext) {
 	const search = new PaletteSearch(context, INDEX_SOURCE);
-	// Until the places answer, an empty result is not yet "no results".
 	const settled = ref(false);
-	search.load().then(() => (settled.value = true));
-
-	watch(query, (text) => search.follow(text), { immediate: true });
+	// Each keystroke, as each palette open: a held reply costs no request, a failed one is asked again.
+	watch(
+		query,
+		(text) => {
+			search.follow(text);
+			search.load().then(() => (settled.value = true));
+		},
+		{ immediate: true }
+	);
 	onScopeDispose(() => search.follow(""));
 
 	const groups = computed<DrawnGroup[]>(() => {

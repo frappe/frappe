@@ -13,7 +13,8 @@ const ARROWS = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"]);
 
 /** The element id an item draws with, so the filter box can point at the selected one. */
 export function selectableId(key: string): string {
-	return `index-item-${key.replace(/[^\w-]/g, "-")}`;
+	// Every other character as its code point, `_` too, so two record names never share an id.
+	return `index-item-${key.replace(/[^A-Za-z0-9-]/gu, (c) => `_${c.codePointAt(0)!.toString(16)}_`)}`;
 }
 
 export class Selection {
@@ -28,7 +29,7 @@ export class Selection {
 		return this.selected.value === key;
 	}
 
-	/** The element id the item `key` draws with; the lazy results reach `selectableId` here. */
+	/** `selectableId`, for the results chunk: importing it there splits this module out of the page's chunk. */
 	idOf(key: string): string {
 		return selectableId(key);
 	}

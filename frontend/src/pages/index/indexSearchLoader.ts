@@ -10,11 +10,19 @@ export function useIndexSearch(query: Ref<string>, boot: Boot): Ref<IndexSearch 
 	const search = shallowRef<IndexSearch | null>(null);
 	const scope = effectScope();
 	const context = { boot, router: useRouter(), addresses: inject<Addresses>("addresses")! };
-	const stop = watch(query, async (typed) => {
-		if (!typed.trim()) return;
-		stop();
-		const { indexSearch } = await import("./indexSearch");
-		if (scope.active) search.value = scope.run(() => indexSearch(query, context))!;
+	let loading = false;
+	// A failed load is tried again on the next keystroke.
+	watch(query, async (typed) => {
+		if (!typed.trim() || search.value || loading) return;
+		loading = true;
+		try {
+			const { indexSearch } = await import("./indexSearch");
+			if (scope.active) search.value = scope.run(() => indexSearch(query, context))!;
+		} catch (error) {
+			console.error("[frappe] the index could not load its search", error);
+		} finally {
+			loading = false;
+		}
 	});
 	return search;
 }
