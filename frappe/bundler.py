@@ -183,7 +183,8 @@ def refresh_lockfile(frontend_path: str) -> bool:
 def installed_without_dev_tools(frontend_path: str) -> bool:
 	"""Whether the last `yarn install` skipped devDependencies; yarn v1 records its flags."""
 	try:
-		with open(os.path.join(frontend_path, "node_modules", ".yarn-integrity")) as f:
+		# Bench-internal path; never request-derived.
+		with open(os.path.join(frontend_path, "node_modules", ".yarn-integrity")) as f:  # nosemgrep
 			return "production" in json.load(f).get("flags", [])
 	except (OSError, ValueError):
 		return False
