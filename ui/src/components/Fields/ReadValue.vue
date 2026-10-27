@@ -1,4 +1,3 @@
-<!-- The read look: a field's label over its value in a borderless gray box. The default slot replaces the text. -->
 <template>
 	<div class="space-y-1.5">
 		<FormLabel v-if="label" :label="label" :required="required" />

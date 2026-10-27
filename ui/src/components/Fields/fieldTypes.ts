@@ -127,8 +127,6 @@ registerFieldType("Table", TableField);
 
 registerFieldType("Table MultiSelect", TableMultiSelectField);
 
-// buildLayoutFromMeta marks `Read Only` as `readOnly`; the form draws any read-only
-// field as ReadOnlyField, and the registry agrees for a host that resolves it directly.
 registerFieldType("Read Only", ReadOnlyField);
 
 registerFieldType(FALLBACK, TextField);

@@ -1,10 +1,6 @@
 import type { FieldNode } from "../FormLayout/types";
 
-/**
- * Fieldtypes whose control draws its own read view, so a read-only one keeps it:
- * a title link, a checkbox, stars, rich text, a file or image, a grid, a map, code,
- * or no value at all.
- */
+/** Fieldtypes whose control draws its own read view, or that hold no value. */
 const OWN_READ_VIEW = new Set([
   "Link",
   "Dynamic Link",
@@ -26,11 +22,8 @@ const OWN_READ_VIEW = new Set([
   "Button",
 ]);
 
-/**
- * Whether a field draws the read look (`ReadOnlyField`) instead of its control: the
- * user cannot edit it (the `Read Only` type, `read_only`, or above their permlevel,
- * all of which arrive as `readOnly`), and no `ui.component` replaces the control.
- */
+/** Whether a read-only field (`Read Only`, `read_only`, or above the user's permlevel)
+ *  draws `ReadOnlyField` instead of its control; a `ui.component` always wins. */
 export function drawsReadValue(field: FieldNode): boolean {
   return !!field.readOnly && !field.ui?.component && !OWN_READ_VIEW.has(field.fieldtype);
 }

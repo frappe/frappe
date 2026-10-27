@@ -1,4 +1,3 @@
-<!-- Fields the user cannot edit: each draws its formatted value, or keeps its own read view. -->
 <template>
 	<div class="max-w-3xl p-6">
 		<FormLayout v-model:doc="doc" :layout="layout" />

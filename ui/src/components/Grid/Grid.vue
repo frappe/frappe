@@ -533,7 +533,6 @@ function onRowClick(row: Record<string, any>, index: number) {
 	text-align: right;
 }
 
-/* A read-only value sits on one line, cut with an ellipsis, on the column's side. */
 .grid-cell :deep([data-slot="read-value"]) {
 	width: 100%;
 }

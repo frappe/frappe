@@ -8,12 +8,8 @@ import type { FieldMeta } from "../Fields/types";
 /** Formats a field of `doc` for display; see `useFieldDisplay`. */
 export type FieldDisplay = (field: FieldMeta, doc: Record<string, any>) => string;
 
-/**
- * A formatter bound to the host: the site's number format and rounding, a Currency
- * field's resolved currency, and the host's link titles (`LinkTitlesKey`). Call it
- * in `setup`; the returned function reads reactive state, so a computed that calls
- * it re-runs when the record, the titles or the format defaults change.
- */
+/** `displayValue` bound to the host's format defaults, currency and link titles.
+ *  Call it in `setup`; the formatter it returns is reactive inside a computed. */
 export function useFieldDisplay(): FieldDisplay {
   const titles = inject(LinkTitlesKey, null);
   const getDocValue = useDocValueReader();

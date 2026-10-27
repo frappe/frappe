@@ -1,4 +1,3 @@
-<!-- A field the user cannot edit, drawn as its formatted value (see `readView.ts` for which fields). -->
 <template>
 	<ReadValue
 		:text="text"

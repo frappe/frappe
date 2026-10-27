@@ -1,4 +1,4 @@
-// A field the user cannot edit draws its formatted value, not a disabled control (#45414).
+// A field the user cannot edit draws its formatted value, not a disabled control.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, ref } from "vue";
 import type { App } from "vue";

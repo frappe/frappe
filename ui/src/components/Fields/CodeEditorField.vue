@@ -180,7 +180,6 @@ const emit = defineEmits<FieldComponentEmits>();
 // Value stays a string; LinkField-style get (the editor owns its own buffer, so
 // no setter — commits flow through `onInput`/`onCommit`).
 const value = computed<string>(() => props.modelValue ?? "");
-// A read-only field with no value draws "Not set" in place of an empty editor.
 const unset = computed(() => Boolean(props.field.readOnly) && !value.value);
 
 const language = computed(() => fieldtypeToLanguage(props.field));
@@ -398,7 +397,6 @@ function onCommit(v: string) {
 	--code-min-height: calc(5lh + 2 * var(--code-padding-y, 6px));
 }
 
-/* A read-only editor fits its content. */
 .code-fit {
 	--code-min-height: 0;
 }
