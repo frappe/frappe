@@ -14,8 +14,6 @@ export interface PaletteContext {
 	boot: Boot;
 	router: Router;
 	addresses: Addresses;
-	/** The doctype Tab narrowed the palette to, if any. */
-	narrowed: () => string | null;
 }
 
 export interface PaletteGroup {

@@ -25,13 +25,17 @@ class RecordSearch {
 	readonly found = shallowRef<FoundRecord[] | "searching" | "failed">([]);
 	private timer: ReturnType<typeof setTimeout> | undefined;
 	private asking: AbortController | undefined;
+	private question = "";
 
 	/** Asks once the typing has paused, and drops the question asked before. */
 	follow(query: string, doctype: string | null) {
+		const text = query.trim();
+		const question = text.length < SHORTEST_QUERY ? "" : JSON.stringify([text, doctype]);
+		if (question === this.question) return;
+		this.question = question;
 		clearTimeout(this.timer);
 		this.asking?.abort();
-		const text = query.trim();
-		if (text.length < SHORTEST_QUERY) {
+		if (!question) {
 			this.found.value = [];
 			return;
 		}
@@ -69,11 +73,11 @@ export const records: PaletteGroup = {
 	},
 };
 
-/** "Find “<text>” in <doctype>", on a list or record page once something is typed, unless narrowed. */
+/** "Find “<text>” in <doctype>", on a list or record page once something is typed. */
 export function findRow(query: string, context: PaletteContext): PaletteRow[] {
 	const text = query.trim();
 	const doctype = pageDoctype(context);
-	if (!text || !doctype || context.narrowed()) return [];
+	if (!text || !doctype) return [];
 	return [
 		{
 			id: "find",

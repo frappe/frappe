@@ -44,12 +44,16 @@ def records_of(doctype: str, txt: str) -> list[dict]:
 	results = search_widget(doctype, txt, page_length=RECORDS_PER_DOCTYPE)
 	if len(results) == RECORDS_PER_DOCTYPE and not any(is_exact(row[0], txt) for row in results):
 		# a prefix match ties with the exact name, so a full page may have left it out
-		named = search_widget(doctype, txt, filters={"name": txt}, page_length=1)
+		named = search_widget(doctype, txt, filters={"name": ["like", escape_like(txt)]}, page_length=1)
 		results = [*(row for row in named if is_exact(row[0], txt)), *results][:RECORDS_PER_DOCTYPE]
 	return [
 		{"doctype": doctype, "name": row["value"], "label": row.get("label") or row["value"]}
 		for row in build_for_autosuggest(results, doctype=doctype)
 	]
+
+
+def escape_like(txt: str) -> str:
+	return txt.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
 
 
 def is_exact(name, txt: str) -> bool:

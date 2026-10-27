@@ -240,7 +240,10 @@ beforeEach(() => {
 	vi.mocked(getMeta).mockReset().mockRejectedValue(new Error("no meta in this test"));
 });
 
-afterEach(() => {
+afterEach(async () => {
+	// Closing tells the record search, a module of its own, to forget the last question.
+	paletteOpen.value = false;
+	await nextTick();
 	releases.splice(0).forEach((release) => release());
 	pinnedRows.splice(builtInPinned);
 });
@@ -860,22 +863,35 @@ describe("records", () => {
 		);
 	});
 
-	it("puts the keyboard on the first record once they arrive, not on Find", async () => {
+	it("puts the keyboard on the first record once they arrive, when nothing held it", async () => {
 		searchRecords.mockResolvedValue({
 			data: [acme, { doctype: "ToDo", name: "T-1", label: "Call Acme" }],
 		});
-		const router = await shell("/crm-lead");
+		const router = await shell("/");
 		await open();
 		await type("acme");
+
 		expect(row("record:CRM Deal/DEAL-1")!.dataset.state).toBe("active");
 		await press("ArrowDown");
 		expect(row("record:ToDo/T-1")!.dataset.state).toBe("active");
-		await press("ArrowDown");
-		expect(row("find")!.dataset.state).toBe("active");
-		await press("ArrowUp");
 		await press("ArrowUp");
 		await press("Enter");
 		expect(router.currentRoute.value.fullPath).toBe("/crm-deal/DEAL-1");
+	});
+
+	it("leaves the keyboard on Find when records arrive above it, and the arrow keys walk them", async () => {
+		searchRecords.mockResolvedValue({
+			data: [acme, { doctype: "ToDo", name: "T-1", label: "Call Acme" }],
+		});
+		await shell("/crm-lead");
+		await open();
+		await type("acme");
+
+		expect(row("find")!.dataset.state).toBe("active");
+		await press("ArrowUp");
+		expect(row("record:ToDo/T-1")!.dataset.state).toBe("active");
+		await press("ArrowUp");
+		expect(row("record:CRM Deal/DEAL-1")!.dataset.state).toBe("active");
 	});
 
 	it("keeps the keyboard on a row it already holds when records arrive", async () => {
@@ -911,6 +927,16 @@ describe("records", () => {
 			{ txt: "acme", doctype: "CRM Lead" },
 			expect.anything()
 		);
+	});
+
+	it("asks nothing once the palette closes during the pause", async () => {
+		await shell();
+		await open();
+		await type("acme", { settle: false });
+		paletteOpen.value = false;
+		await new Promise((resolve) => setTimeout(resolve, 250));
+
+		expect(searchRecords).not.toHaveBeenCalled();
 	});
 
 	it("opens a picked record", async () => {

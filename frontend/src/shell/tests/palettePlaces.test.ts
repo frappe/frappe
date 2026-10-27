@@ -51,7 +51,6 @@ const context: PaletteContext = {
 	boot,
 	router,
 	addresses: new Addresses({ doctypes: { ToDo: ["todo", "desk"] }, modules: { desk: "Desk" } }),
-	narrowed: () => null,
 };
 
 async function settle() {

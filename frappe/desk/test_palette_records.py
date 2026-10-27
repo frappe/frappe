@@ -23,12 +23,13 @@ class TestSearchRecords(IntegrationTestCase):
 			).insert()
 		cls.readable = [readable_doctype() for _ in range(4)]
 		cls.titled = readable_doctype(title_field="some_fieldname", show_title_field_in_link=1)
+		cls.single = readable_doctype(issingle=1)
 		cls.closed = new_doctype(autoname="Prompt").insert().name
 		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
-		for doctype in [*cls.readable, cls.titled, cls.closed]:
+		for doctype in [*cls.readable, cls.titled, cls.single, cls.closed]:
 			frappe.delete_doc("DocType", doctype, force=True)
 		frappe.delete_doc("User", READER, force=True)
 		frappe.delete_doc("Role", ROLE, force=True)
@@ -61,12 +62,12 @@ class TestSearchRecords(IntegrationTestCase):
 
 	def test_exact_name_is_kept_behind_three_newer_matches(self):
 		first = self.readable[0]
-		add_records(first, "Kestrel", "Kestrel Alpha", "Kestrel Beta", "Kestrel Gamma")
+		add_records(first, "Kestrel_1", "Kestrel_1 Alpha", "Kestrel_1 Beta", "Kestrel_1 Gamma", "Kestrel11")
 
 		with listed([first]), self.set_user(READER):
-			found = search_records("kestrel")
+			found = search_records("kestrel_1")
 
-		self.assertEqual([row["name"] for row in found][:1], ["Kestrel"])
+		self.assertEqual([row["name"] for row in found][:1], ["Kestrel_1"])
 		self.assertEqual(len(found), 3)
 
 	def test_current_doctype_comes_before_the_listed_ones(self):
@@ -96,6 +97,15 @@ class TestSearchRecords(IntegrationTestCase):
 			found = search_records("Kestrel")
 
 		self.assertEqual(found, [{"doctype": self.titled, "name": "KES-0001", "label": "Kestrel Ridge"}])
+
+	def test_single_is_skipped(self):
+		first = self.readable[0]
+		add_records(first, "Kestrel")
+
+		with listed([self.single, first]), self.set_user(READER):
+			found = search_records("Kestrel", doctype=self.single)
+
+		self.assertEqual([row["doctype"] for row in found], [first])
 
 	def test_short_query_searches_nothing(self):
 		add_records(self.readable[0], "K9")

@@ -41,7 +41,7 @@
 
 			<!-- One listbox: reka orders the rows of a second one by when they mounted, not by place. -->
 			<CommandPaletteList class="flex flex-col">
-				<div role="none" class="min-h-0 overflow-y-auto overscroll-contain">
+				<div role="none" tabindex="-1" class="min-h-0 overflow-y-auto overscroll-contain">
 					<CommandPaletteGroup
 						v-for="group in groups"
 						:key="group.label"
@@ -59,7 +59,7 @@
 					<PaletteRow v-for="row in pinned" :key="row.id" :row="row" />
 				</div>
 			</CommandPaletteList>
-			<PaletteHighlight :rows="listedRows" :pinned="pinned" />
+			<PaletteHighlight :rows="drawnRows" />
 
 			<CommandPaletteEmpty v-slot="{ query: text }">
 				{{
@@ -123,14 +123,17 @@ const context: PaletteContext = {
 	boot: inject<Boot>("boot")!,
 	router: useRouter(),
 	addresses: inject<Addresses>("addresses")!,
-	narrowed: () => scope.doctype.value,
 };
 const query = ref("");
 const scope = usePaletteScope(query, context);
 
-// A narrowed palette searches its doctype alone, so the groups that ask the server stop.
-watch([query, () => context.router.currentRoute.value.path, scope.doctype], ([text, , narrowed]) =>
-	paletteGroups.forEach((group) => group.follow?.(narrowed ? "" : text, context))
+// A closed or narrowed palette asks nothing more of the groups' server searches.
+watch(
+	[query, () => context.router.currentRoute.value.path, scope.doctype, paletteOpen],
+	([text, , narrowed, isOpen]) => {
+		const asked = isOpen && !narrowed ? text : "";
+		paletteGroups.forEach((group) => group.follow?.(asked, context));
+	}
 );
 
 // The scope is left on the next open, so the closing palette keeps its rows as it fades.
@@ -152,9 +155,15 @@ const groups = computed(() => {
 		.filter((group) => group.rows.length);
 });
 
-const pinned = computed(() => pinnedRows.flatMap((rows) => rows(query.value, context)));
+// A narrowed palette pins nothing, so its own prompts stay in view.
+const pinned = computed(() =>
+	scope.doctype.value ? [] : pinnedRows.flatMap((rows) => rows(query.value, context))
+);
 
-const listedRows = computed(() => groups.value.flatMap((group) => group.rows));
+const drawnRows = computed(() => [
+	...groups.value.flatMap((group) => group.rows),
+	...pinned.value,
+]);
 
 function select(value: unknown) {
 	(value as Row).run();
