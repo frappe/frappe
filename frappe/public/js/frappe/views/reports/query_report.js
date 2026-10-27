@@ -507,7 +507,8 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 	get_report_settings() {
 		return new Promise((resolve, reject) => {
-			if (frappe.query_reports[this.report_name]) {
+			// other screens load only the report script, without the rest of get_script's settings
+			if (frappe.query_reports[this.report_name]?.has_python_formatter !== undefined) {
 				this.report_settings = frappe.query_reports[this.report_name];
 				resolve();
 			} else {
