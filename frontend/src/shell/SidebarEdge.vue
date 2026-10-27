@@ -64,7 +64,7 @@ function stopDrag() {
 	window.removeEventListener("pointermove", onPointerMove);
 }
 
-// The panel remounts per address, and a drag can outlive it.
+// The panel unmounts where the address has no sidebar, and a drag can outlive it.
 onUnmounted(stopDrag);
 
 // A drag that already toggled must not toggle again on its closing click.

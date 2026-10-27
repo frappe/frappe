@@ -29,11 +29,12 @@
 			</div>
 
 			<!-- `pt-0.5`: the first row's shadow is otherwise clipped on the viewport's top edge. -->
-			<ScrollArea class="min-h-0 flex-1" viewportClass="px-2 pb-2 pt-0.5">
+			<ScrollArea ref="scroller" class="min-h-0 flex-1" viewportClass="px-2 pb-2 pt-0.5">
 				<nav class="flex flex-col gap-0.5" :aria-label="title">
+					<!-- Keyed per sidebar: a section reused across sidebars replays its open/close transition. -->
 					<SidebarRow
 						v-for="node in tree"
-						:key="node.item.key"
+						:key="`${address}:${node.item.key}`"
 						:node="node"
 						:context="context"
 						:current="current"
@@ -53,7 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, useTemplateRef, watch } from "vue";
 import { Button, ScrollArea, Sidebar } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import type { NavigationItem } from "@/boot";
@@ -83,5 +84,15 @@ const toggle = computed(() => shellAct("toggle_sidebar"));
 const tree = useItemTree(
 	() => props.items,
 	() => `the ${props.address} sidebar`
+);
+
+// Kept mounted across sidebars: without this, the next one opens at the last one's scroll offset.
+const scroller = useTemplateRef<InstanceType<typeof ScrollArea>>("scroller");
+watch(
+	() => props.address,
+	() => {
+		const viewport = scroller.value?.viewportElement;
+		if (viewport) viewport.scrollTop = 0;
+	}
 );
 </script>

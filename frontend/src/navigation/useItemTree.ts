@@ -1,5 +1,5 @@
 // The tree a container draws, with the once-per-key cycle report; `buildTree` stays pure.
-// One set per container: a key is unique only within one container.
+// Once per container and key: keys are unique per container, and a panel's container changes.
 
 import { computed, type ComputedRef, type MaybeRefOrGetter, toValue } from "vue";
 import type { NavigationItem } from "@/boot";
@@ -17,8 +17,9 @@ export function useItemTree(
 
 	return computed(() =>
 		buildTree(toValue(items), (key) => {
-			if (reported.has(key)) return;
-			reported.add(key);
+			const id = JSON.stringify([toValue(container), key]);
+			if (reported.has(id)) return;
+			reported.add(id);
 			console.error(
 				`[frappe] navigation item '${key}' in ${toValue(container)} is its own ancestor; ` +
 					`it is drawn at the top level.`
