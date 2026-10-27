@@ -40,7 +40,7 @@ function headerEntries(
 ): ActEntry[] {
   const shown = namesOf(surviving(resolved));
   const drawn = namesOf(surviving(hidingDenied(resolved, allows)));
-  // An item denied by its own right stays shown, so the dispatcher refuses it for that right.
+  // An item denied by its own right is left to the dispatcher's right check, so `run` rejects it as `right`.
   const hidden = (item: HeaderItem) =>
     !shown.has(item.name) || (allows(item) && !drawn.has(item.name));
   return resolved
