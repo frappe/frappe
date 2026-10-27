@@ -11,6 +11,7 @@
 		:error="error"
 		:cellError="cellError"
 		:newRow="newRow"
+		:parsePaste="pasteCell"
 		@change="(r: Record<string, any>[]) => emit('change', r)"
 		@commit="onCellCommit"
 		@add="onRowAdd"
@@ -118,6 +119,7 @@ import {
 	fieldErrorKey,
 } from "./types";
 import { identify, rowKey } from "./rowIdentity";
+import { parsePastedText } from "./parseText";
 import { ResolveFieldKey } from "../FormLayout/types";
 import type { CommitChannel, FieldError, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
@@ -195,6 +197,15 @@ function newRow(): Record<string, any> {
 		? layoutFields(props.field.childLayout)
 		: props.field.childFields ?? [];
 	return newRowValues(fields);
+}
+
+// A pasted cell takes only what its control would: never a cell the reader cannot edit.
+function pasteCell(row: Record<string, any>, column: GridColumn, text: string) {
+	const f = cellField(column.fieldname, row);
+	if (f.hidden || f.readOnly || f.permDenied || isSummaryField(f) || f.fieldtype === "Button") {
+		return null;
+	}
+	return { value: parsePastedText(f.fieldtype, text) };
 }
 
 // A cell being typed owes a commit too: a save mid-edit must fire its handler.

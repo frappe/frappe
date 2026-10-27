@@ -38,6 +38,8 @@
 					ref="scroller"
 					class="grid-scroller overflow-x-auto"
 					@scroll="updateScrollShadows"
+					@keydown.capture="onCellKeydown"
+					@paste="onCellPaste"
 				>
 					<!-- Header -->
 					<div
@@ -183,6 +185,13 @@
 										:aria-label="'Edit Row'"
 										@click="emit('edit', { row, index: rowIndex })"
 									/>
+									<Dropdown v-if="canAddRows" :options="rowMenu(row, rowIndex)">
+										<Button
+											variant="ghost"
+											icon="lucide-ellipsis"
+											:aria-label="'Row Actions'"
+										/>
+									</Dropdown>
 								</div>
 							</div>
 						</template>
@@ -199,7 +208,7 @@
 				<div
 					class="grid-scroll-shadow grid-scroll-shadow-right"
 					:class="{ 'is-visible': canScrollRight }"
-					:style="{ right: SIDE_COL_WIDTH }"
+					:style="{ right: endColWidth }"
 				/>
 			</div>
 
@@ -242,7 +251,7 @@
 
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Button, Checkbox, Tooltip } from "frappe-ui";
+import { Button, Checkbox, Dropdown, Tooltip } from "frappe-ui";
 import {
 	InputLabel,
 	InputDescription,
@@ -251,7 +260,11 @@ import {
 } from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
-import { ROW_ID, identify, rowKey } from "../Fields/rowIdentity";
+import { ROW_ID, copyRow, identify, rowKey } from "../Fields/rowIdentity";
+import { arrowStep, cellAt, focusCell, moveFocus, rowShortcut } from "./cellNavigation";
+import type { CellAt, RowShortcut } from "./cellNavigation";
+import { acceptsPaste, isBlock, parseBlock, planPaste } from "./pasteBlock";
+import type { PastePlan } from "./pasteBlock";
 import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
@@ -307,20 +320,25 @@ watch(
 // A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
 // once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
 const FIXED_COL = "2.5rem"; // checkbox / `#` / edit — matches `w-10`
+const canAddRows = computed(
+	() => !props.disabled && !props.cannotAddRows && props.columns.length > 0
+);
+const endColRem = computed(() => (canAddRows.value ? 4 : 2.5));
+const endColWidth = computed(() => `${endColRem.value}rem`);
 const templateColumns = computed(() => {
 	const fields = colWidths.value.map((w) =>
 		w == null ? `minmax(${FLEX_COL_MIN}px, 1fr)` : `${w}px`
 	);
 	const lead = props.disabled ? [FIXED_COL] : [FIXED_COL, FIXED_COL]; // (checkbox) + `#`
-	return [...lead, ...fields, FIXED_COL].join(" "); // + edit
+	return [...lead, ...fields, endColWidth.value].join(" "); // + edit (and row menu)
 });
 
 // Floor the grid box at the sum of every track's minimum, so the row/header
 // backgrounds span the full content when the columns overflow.
 const gridMinWidth = computed(() => {
-	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + edit
+	const leadCount = props.disabled ? 1 : 2;
 	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? FLEX_COL_MIN), 0);
-	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
+	return `calc(${leadCount * 2.5 + endColRem.value}rem + ${fieldPx}px)`;
 });
 
 // Sticky offset for the `#` column: after the checkbox column when selection is on,
@@ -465,14 +483,88 @@ function commitCell(index: number, col: T, value: any) {
 	emit("change", rows.value);
 }
 
+function addRow() {
+	insertRow(rows.value.length);
+}
+
 // `newRow` seeds the child doctype's docfield defaults; the caller supplies it
 // because the grid sees only the columns, not the whole child form.
-function addRow() {
-	const row = identify(props.newRow?.() ?? {});
-	const next = [...rows.value, row];
+function freshRow(): Record<string, any> {
+	return identify(props.newRow?.() ?? {});
+}
+
+function insertRow(index: number, row = freshRow()): boolean {
+	if (!canAddRows.value) return false;
+	const next = [...rows.value];
+	next.splice(index, 0, row);
 	rows.value = next;
 	emit("add", { row });
 	emit("change", next);
+	return true;
+}
+
+function rowMenu(row: Record<string, any>, index: number) {
+	return [
+		{ label: "Insert Above", icon: "lucide-arrow-up", onClick: () => insertRow(index) },
+		{ label: "Insert Below", icon: "lucide-arrow-down", onClick: () => insertRow(index + 1) },
+		{
+			label: "Duplicate",
+			icon: "lucide-copy",
+			onClick: () => insertRow(index + 1, copyRow(row)),
+		},
+	];
+}
+
+// Capture phase: an arrow must move cells before a closed picker opens on it.
+function onCellKeydown(e: KeyboardEvent) {
+	const at = props.disabled ? null : cellAt(e.target);
+	if (!at) return;
+	const shortcut = rowShortcut(e);
+	const step = shortcut ? null : arrowStep(e);
+	if (shortcut) {
+		if (!runRowShortcut(shortcut, at)) return;
+	} else if (!step || !moveFocus(scroller.value!, at, step)) return;
+	e.preventDefault();
+	e.stopPropagation();
+}
+
+function runRowShortcut(shortcut: RowShortcut, at: CellAt): boolean {
+	const index = shortcut === "insertAbove" ? at.rowIndex : at.rowIndex + 1;
+	const row = shortcut === "duplicate" ? copyRow(rows.value[at.rowIndex]) : freshRow();
+	if (!insertRow(index, row)) return false;
+	nextTick(() => focusCell(scroller.value!, { rowIndex: index, columnIndex: at.columnIndex }));
+	return true;
+}
+
+function onCellPaste(e: ClipboardEvent) {
+	const at = props.disabled ? null : cellAt(e.target);
+	if (!at || !acceptsPaste(e.target)) return;
+	const block = parseBlock(e.clipboardData?.getData("text/plain") ?? "");
+	if (!isBlock(block)) return;
+	e.preventDefault();
+	const target = { ...at, rowCount: rows.value.length, columns: props.columns };
+	applyPaste(planPaste(block, { ...target, canAddRows: canAddRows.value }));
+}
+
+// Rows are added first, so a cell commits on a row its consumer already knows.
+function applyPaste({ addRows, writes }: PastePlan) {
+	const added = Array.from({ length: addRows }, freshRow);
+	const next = [...rows.value, ...added];
+	if (added.length) {
+		rows.value = next;
+		for (const row of added) emit("add", { row });
+	}
+	let changed = added.length > 0;
+	for (const { rowIndex, columnIndex, text } of writes) {
+		const row = next[rowIndex];
+		const column = props.columns[columnIndex];
+		const parsed = props.parsePaste ? props.parsePaste(row, column, text) : { value: text };
+		if (!parsed || row[column.fieldname] === parsed.value) continue;
+		row[column.fieldname] = parsed.value;
+		emit("commit", { row, column });
+		changed = true;
+	}
+	if (changed) emit("change", next);
 }
 
 function deleteSelected() {

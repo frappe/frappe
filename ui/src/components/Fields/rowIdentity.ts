@@ -38,3 +38,24 @@ export function identify(row: Record<string, any>): Record<string, any> {
   if (!rowKey(row)) row[ROW_ID] = mintRowId();
   return row;
 }
+
+/** Server bookkeeping a copied row must not carry; the copy gets its own. */
+const NOT_COPIED = new Set([
+  "name",
+  ROW_ID,
+  "idx",
+  "doctype",
+  "parent",
+  "parentfield",
+  "parenttype",
+  "owner",
+  "creation",
+  "modified",
+  "modified_by",
+]);
+
+/** A new row with the source's values: no `name`, a fresh `__row_id`. */
+export function copyRow(row: Record<string, any>): Record<string, any> {
+  const copy = Object.fromEntries(Object.entries(row).filter(([key]) => !NOT_COPIED.has(key)));
+  return identify(copy);
+}

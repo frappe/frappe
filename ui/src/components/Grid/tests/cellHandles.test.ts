@@ -42,14 +42,14 @@ describe("Grid columns", () => {
   it("widens the rows past the viewport so many columns scroll sideways", () => {
     const grid = render(manyColumns(38), [{ name: "r1" }]);
     const row = grid.querySelector<HTMLElement>(".grid-row")!;
-    expect(row.style.minWidth).toBe(`calc(7.5rem + ${38 * 128}px)`);
+    expect(row.style.minWidth).toBe(`calc(9rem + ${38 * 128}px)`);
   });
 
   it("counts a resized column at its own width", () => {
     const grid = render([{ fieldname: "a", width: 60 }, { fieldname: "b" }], [{ name: "r1" }]);
     const row = grid.querySelector<HTMLElement>(".grid-row")!;
     expect(row.style.gridTemplateColumns).toContain("60px minmax(128px, 1fr)");
-    expect(row.style.minWidth).toBe(`calc(7.5rem + ${60 + 128}px)`);
+    expect(row.style.minWidth).toBe(`calc(9rem + ${60 + 128}px)`);
   });
 });
 
