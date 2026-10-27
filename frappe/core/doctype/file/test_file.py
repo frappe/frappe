@@ -2093,11 +2093,25 @@ class TestFileUtils(IntegrationTestCase):
 		self.addCleanup(frappe.delete_doc, "File", victim.name, force=True, ignore_permissions=True)
 
 		frappe.set_user("test4@example.com")
-		for alias in ("/private/files/./alias_victim.txt", "/private/files//alias_victim.txt"):
+		own = frappe.get_doc(
+			{"doctype": "File", "file_name": "alias_own.txt", "content": "mine", "is_private": 1}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", own.name, force=True, ignore_permissions=True)
+
+		site_url = frappe.utils.get_url()
+		for alias in (
+			"/private/files/./alias_victim.txt",
+			"/private/files//alias_victim.txt",
+			f"{site_url}/private/files/./alias_victim.txt",
+		):
 			doc = frappe.get_doc(
 				{"doctype": "File", "file_name": "alias.txt", "file_url": alias, "is_private": 1}
 			)
 			self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
+
+			own.reload()
+			own.file_url = alias
+			self.assertRaisesRegex(ValidationError, "File URL", own.save)
 
 	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
 		from frappe.utils.file_manager import get_file_path

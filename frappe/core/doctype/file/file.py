@@ -156,6 +156,7 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
+		self.validate_remote_file()
 		self.validate_canonical_file_url()
 		self.validate_private_file_access()
 		# before ingestion, which may read the linked blob's bytes
@@ -219,6 +220,7 @@ class File(Document):
 
 		# must run before handle_is_private_changed, which legitimately rewrites file_url
 		if not self.is_new() and self.has_value_changed("file_url"):
+			self.validate_remote_file()
 			self.validate_canonical_file_url()
 			self.validate_private_file_access()
 
