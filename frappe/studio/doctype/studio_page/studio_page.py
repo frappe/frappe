@@ -9,6 +9,7 @@ from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.studio.doctype.studio_component.studio_component import (
+	extract_component_names,
 	get_components_for_blocks,
 	mark_components_standard,
 )
@@ -376,13 +377,20 @@ class StudioPage(Document):
 
 	def unresolved_variants(self) -> list[str]:
 		"""Names of Variants blocks the published page still carries: drafts nobody resolved
-		with Keep, served to viewers as their first option."""
+		with Keep, served to viewers as their first option. Components the page uses are
+		scanned too — their variants render on the page just the same."""
 		blocks = parse_json(self.blocks) or []
 		if not blocks:
 			return []
+		roots = [blocks[0]]
+		for component_name in used_component_names(blocks[0]):
+			component_block = parse_json(frappe.db.get_value("Studio Component", component_name, "block"))
+			if component_block:
+				roots.append(component_block)
 		return [
 			(block.get("componentProps") or {}).get("name") or "Variant"
-			for block in collect_variants_blocks(blocks[0])
+			for root in roots
+			for block in collect_variants_blocks(root)
 		]
 
 	@frappe.whitelist()
@@ -477,11 +485,47 @@ def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int
 		if blocks and replace_variants_block(blocks[0], str(block_id), option_index):
 			page.set(field, frappe.as_json(blocks, indent=None))
 			kept = True
-	if not kept:
+	if kept:
+		page._skip_validate = True
+		page.save()
+	elif not keep_component_variant(page, str(block_id), option_index):
 		frappe.throw(_("This page has no variants block {0}.").format(block_id))
 
-	page._skip_validate = True
-	page.save()
+
+def keep_component_variant(page: "StudioPage", block_id: str, option_index: int) -> bool:
+	"""The block can live inside a studio component the page uses; keeping it edits the
+	component, so every instance on every page follows."""
+	names = set()
+	for field in ("draft_blocks", "blocks"):
+		blocks = parse_json(page.get(field)) or []
+		if blocks:
+			names |= used_component_names(blocks[0])
+	for component_name in names:
+		component = frappe.get_doc("Studio Component", component_name)
+		component_block = parse_json(component.block)
+		if component_block and replace_variants_block(component_block, block_id, option_index):
+			component.block = frappe.as_json(component_block, indent=None)
+			component.save()
+			if page.is_standard:
+				page.export_components()
+			return True
+	return False
+
+
+def used_component_names(block: dict) -> set[str]:
+	"""Names of every studio component under a block, nested component references included."""
+	names = extract_component_names(block)
+	pending = names
+	while pending:
+		rows = frappe.get_all(
+			"Studio Component", filters={"name": ["in", list(pending)]}, fields=["name", "block"]
+		)
+		pending = set()
+		for row in rows:
+			nested = extract_component_names(parse_json(row.block) or []) - names
+			names |= nested
+			pending |= nested
+	return names
 
 
 def replace_variants_block(block: dict, block_id: str, option_index: int) -> bool:

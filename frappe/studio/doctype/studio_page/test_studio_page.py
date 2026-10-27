@@ -67,8 +67,18 @@ class TestStudioPage(IntegrationTestCase):
 						"componentName": "Variants",
 						"componentProps": {"name": "Hero"},
 						"children": [
-							{"componentId": "option-a", "variantOptionName": "A", "componentName": "container", "children": []},
-							{"componentId": "option-b", "variantOptionName": "B", "componentName": "container", "children": []},
+							{
+								"componentId": "option-a",
+								"variantOptionName": "A",
+								"componentName": "container",
+								"children": [],
+							},
+							{
+								"componentId": "option-b",
+								"variantOptionName": "B",
+								"componentName": "container",
+								"children": [],
+							},
 						],
 					}
 				],
@@ -82,6 +92,61 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertEqual(kept[0]["children"][0]["componentId"], "option-b")
 		self.assertNotIn("variantOptionName", kept[0]["children"][0])
 		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "missing-block", 0)
+
+	def test_keep_variant_resolves_into_a_studio_component(self):
+		app = make_studio_app(app_name="variants-" + frappe.generate_hash(length=8))
+		component = make_component(
+			"Card " + frappe.generate_hash(length=8),
+			block={
+				"componentId": "comp-root",
+				"componentName": "div",
+				"children": [
+					{
+						"componentId": "Variants-card",
+						"componentName": "Variants",
+						"componentProps": {"name": "Card"},
+						"children": [
+							{
+								"componentId": "card-a",
+								"variantOptionName": "A",
+								"componentName": "container",
+								"children": [],
+							},
+							{
+								"componentId": "card-b",
+								"variantOptionName": "B",
+								"componentName": "container",
+								"children": [],
+							},
+						],
+					}
+				],
+			},
+		)
+		blocks = [
+			{
+				"componentId": "root",
+				"componentName": "div",
+				"children": [
+					{
+						"componentId": "card-1",
+						"componentName": component.name,
+						"isStudioComponent": True,
+						"children": [],
+					}
+				],
+			}
+		]
+		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/component-variants")
+
+		self.assertIn("Card", page.unresolved_variants())
+
+		keep_variant(app.name, page.name, "Variants-card", 1)
+
+		kept = frappe.parse_json(frappe.db.get_value("Studio Component", component.name, "block"))
+		self.assertEqual(kept["children"][0]["componentId"], "card-b")
+		self.assertNotIn("variantOptionName", kept["children"][0])
+		self.assertEqual(page.reload().unresolved_variants(), [])
 
 	def test_publish_reports_unresolved_variants(self):
 		app = make_studio_app(app_name="variants-" + frappe.generate_hash(length=8))

@@ -42,13 +42,17 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref, watch } from "vue"
-import { Popover } from "frappe-ui"
+import { call, dialog, Popover } from "frappe-ui"
 import VariantRows from "@/components/VariantRows.vue"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
+import useComponentEditorStore from "@/stores/componentEditorStore"
+import useComponentStore from "@/stores/componentStore"
+import useStudioStore from "@/stores/studioStore"
 import { confirmKeepVariantOption } from "@/utils/keepVariant"
 import {
 	getEditorVariantChoice,
+	keepDialogText,
 	setEditorVariantChoice,
 	variantOptionNames,
 	type VariantRow,
@@ -72,20 +76,41 @@ watch(
 watch(open, (isOpen) => !isOpen && outlineVariant(null))
 
 const canvasStore = useCanvasStore()
+const componentStore = useComponentStore()
+const componentEditorStore = useComponentEditorStore()
+const store = useStudioStore()
 
-const variantBlocks = computed(() => collectVariantBlocks(canvasStore.activeCanvas?.getRootBlock()))
-
-function collectVariantBlocks(block?: Block | null): Block[] {
-	if (!block) return []
-	const found: Block[] = []
-	if (block.componentName === "Variants") found.push(block)
-	for (const child of block.children || []) found.push(...collectVariantBlocks(child))
-	for (const slot of Object.values(block.componentSlots || {})) {
-		if (!Array.isArray(slot.slotContent)) continue
-		for (const child of slot.slotContent) found.push(...collectVariantBlocks(child as Block))
-	}
-	return found
+// a set can live in the page tree or inside a studio component the page uses; a
+// component's set is listed once, however many instances render it, and one choice
+// drives them all — instances share the definition's block ids
+interface VariantSource {
+	block: Block
+	ownerComponent?: string
 }
+
+const variantSources = computed<VariantSource[]>(() => {
+	const sources: VariantSource[] = []
+	const visitedComponents = new Set<string>()
+
+	function collect(block?: Block | null, ownerComponent?: string) {
+		if (!block) return
+		if (block.componentName === "Variants") sources.push({ block, ownerComponent })
+		if (block.isStudioComponent && !visitedComponents.has(block.componentName)) {
+			visitedComponents.add(block.componentName)
+			collect(componentStore.componentMap.get(block.componentName), block.componentName)
+		}
+		for (const child of block.children || []) collect(child, ownerComponent)
+		for (const slot of Object.values(block.componentSlots || {})) {
+			if (!Array.isArray(slot.slotContent)) continue
+			for (const child of slot.slotContent) collect(child as Block, ownerComponent)
+		}
+	}
+
+	collect(canvasStore.activeCanvas?.getRootBlock())
+	return sources
+})
+
+const variantBlocks = computed(() => variantSources.value.map((source) => source.block))
 
 function shownVariantIndex(variantsBlock: Block) {
 	const names = variantOptionNames(variantsBlock)
@@ -102,7 +127,9 @@ const variantRows = computed<VariantRow[]>(() =>
 		}
 	}),
 )
-const variantBlockOf = (row: VariantRow) => variantBlocks.value.find((block) => block.componentId === row.key)
+const variantSourceOf = (row: VariantRow) =>
+	variantSources.value.find((source) => source.block.componentId === row.key)
+const variantBlockOf = (row: VariantRow) => variantSourceOf(row)?.block
 const anyOffDefault = computed(() => variantRows.value.some((row) => row.activeIndex > 0))
 
 function pickRow(row: VariantRow, option: string) {
@@ -114,16 +141,39 @@ function pickRow(row: VariantRow, option: string) {
 	outlineVariant(block)
 }
 function keepRow(row: VariantRow) {
-	const block = variantBlockOf(row)
-	if (!block) return
+	const source = variantSourceOf(row)
+	if (!source) return
 	outlineVariant(null)
-	confirmKeepVariantOption(block, shownVariantIndex(block))
+	if (!source.ownerComponent) {
+		confirmKeepVariantOption(source.block, shownVariantIndex(source.block))
+		return
+	}
+	// the set lives in a studio component, so keeping edits the component itself:
+	// saved on the server, every instance on every page follows, no page undo
+	const ownerComponent = source.ownerComponent
+	dialog.confirm({
+		...keepDialogText(row.options, shownVariantIndex(source.block)),
+		confirmLabel: "Keep",
+		onConfirm: async () => {
+			await call("frappe.studio.doctype.studio_page.studio_page.keep_variant", {
+				app_name: store.activeApp?.name,
+				page_name: store.activePage?.name,
+				block_id: source.block.componentId,
+				option_index: shownVariantIndex(source.block),
+			})
+			await componentStore.reloadComponent(ownerComponent)
+		},
+	})
 }
 function hoverRow(row: VariantRow | null) {
 	outlineVariant(row ? (variantBlockOf(row) ?? null) : null)
 }
 function selectRow(row: VariantRow) {
-	variantBlockOf(row)?.selectBlock()
+	const source = variantSourceOf(row)
+	if (!source) return
+	// a component's blocks cannot be selected on the page canvas — edit the component
+	if (source.ownerComponent) componentEditorStore.editComponent(source.ownerComponent)
+	else source.block.selectBlock()
 }
 
 // -- outline over the hovered set's shown option, so the row can be spotted on canvas --
