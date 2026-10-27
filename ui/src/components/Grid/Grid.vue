@@ -319,7 +319,7 @@ watch(
 // Header and rows are one css grid spanning every column, so there's no flex seam.
 // A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
 // once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
-const FIXED_COL = "2.5rem"; // checkbox / `#` / edit — matches `w-10`
+const FIXED_COL = "2.5rem"; // checkbox / `#` — matches `w-10`
 const canAddRows = computed(
 	() => !props.disabled && !props.cannotAddRows && props.columns.length > 0
 );
@@ -542,8 +542,11 @@ function onCellPaste(e: ClipboardEvent) {
 	const block = parseBlock(e.clipboardData?.getData("text/plain") ?? "");
 	if (!isBlock(block)) return;
 	e.preventDefault();
+	// A focused control keeps its own draft and would commit it back on blur.
+	(e.target as HTMLElement).blur();
 	const target = { ...at, rowCount: rows.value.length, columns: props.columns };
 	applyPaste(planPaste(block, { ...target, canAddRows: canAddRows.value }));
+	nextTick(() => focusCell(scroller.value!, at));
 }
 
 // Rows are added first, so a cell commits on a row its consumer already knows.
@@ -561,7 +564,7 @@ function applyPaste({ addRows, writes }: PastePlan) {
 		const parsed = props.parsePaste ? props.parsePaste(row, column, text) : { value: text };
 		if (!parsed || row[column.fieldname] === parsed.value) continue;
 		row[column.fieldname] = parsed.value;
-		emit("commit", { row, column });
+		emit("commit", { row, column, pasted: true });
 		changed = true;
 	}
 	if (changed) emit("change", next);

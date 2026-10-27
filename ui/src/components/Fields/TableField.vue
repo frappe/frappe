@@ -205,7 +205,8 @@ function pasteCell(row: Record<string, any>, column: GridColumn, text: string) {
 	if (f.hidden || f.readOnly || f.permDenied || isSummaryField(f) || f.fieldtype === "Button") {
 		return null;
 	}
-	return { value: parsePastedText(f.fieldtype, text) };
+	const options = typeof f.options === "string" ? f.options : undefined;
+	return { value: parsePastedText(f.fieldtype, text, options) };
 }
 
 // A cell being typed owes a commit too: a save mid-edit must fire its handler.
@@ -219,8 +220,19 @@ function editCell(
 	commit.pending(field.fieldname, value, addressOf(row));
 }
 
-function onCellCommit({ row, column }: { row: Record<string, any>; column: GridColumn }) {
-	commit.commit(column.fieldname, row[column.fieldname], addressOf(row));
+function onCellCommit({
+	row,
+	column,
+	pasted,
+}: {
+	row: Record<string, any>;
+	column: GridColumn;
+	pasted?: boolean;
+}) {
+	const value = row[column.fieldname];
+	commit.commit(column.fieldname, value, addressOf(row));
+	// A typed value reaches `ui.on.change` through its control; a pasted one has none.
+	if (pasted) cellListeners(cellField(column.fieldname, row), row).change?.(value);
 }
 
 function onRowAdd({ row }: { row: Record<string, any> }) {

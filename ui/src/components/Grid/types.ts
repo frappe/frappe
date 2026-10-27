@@ -75,7 +75,7 @@ export type GridEmits = {
    * rows array moved: this names the row and the column, so a consumer can
    * dispatch a per-row event without diffing to work out what moved.
    */
-  commit: [payload: { row: Record<string, any>; column: GridColumn }];
+  commit: [payload: { row: Record<string, any>; column: GridColumn; pasted?: boolean }];
   /** A row was added, carrying the row so a consumer can address it. */
   add: [payload: { row: Record<string, any> }];
   /** Rows were deleted, carrying them as they last were. */

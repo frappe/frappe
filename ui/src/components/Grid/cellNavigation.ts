@@ -1,5 +1,3 @@
-// Keyboard entry between grid cells, read from the rows the grid renders.
-
 export interface CellAt {
   rowIndex: number;
   columnIndex: number;
@@ -17,7 +15,6 @@ const FOCUSABLE = [
   '[tabindex]:not([tabindex="-1"])',
 ].join(", ");
 
-/** The cell an event came from, by its row's position and the cell's column. */
 export function cellAt(target: EventTarget | null): CellAt | null {
   const cell = target instanceof Element ? target.closest<HTMLElement>(".grid-cell") : null;
   const row = cell?.closest<HTMLElement>(".grid-row");
@@ -33,7 +30,7 @@ export function cellAt(target: EventTarget | null): CellAt | null {
  * end of the text, and a textarea, a select or an open picker keeps its keys.
  */
 export function arrowStep(e: KeyboardEvent): Step | null {
-  if (e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return null;
+  if (e.isComposing || e.altKey || e.ctrlKey || e.metaKey || e.shiftKey) return null;
   const el = e.target as HTMLElement;
   if (keepsOwnArrows(el)) return null;
   if (e.key === "ArrowUp") return [-1, 0];
@@ -45,7 +42,7 @@ export function arrowStep(e: KeyboardEvent): Step | null {
 
 /** Desk v1's keys: Ctrl/Cmd+Up or Down inserts a row, Shift+Alt+Down duplicates. */
 export function rowShortcut(e: KeyboardEvent): RowShortcut | null {
-  if ((e.target as HTMLElement).tagName === "TEXTAREA") return null;
+  if (e.isComposing || (e.target as HTMLElement).tagName === "TEXTAREA") return null;
   const mod = e.ctrlKey || e.metaKey;
   if (mod && !e.shiftKey && !e.altKey) {
     if (e.key === "ArrowUp") return "insertAbove";
@@ -55,7 +52,6 @@ export function rowShortcut(e: KeyboardEvent): RowShortcut | null {
   return null;
 }
 
-/** Focus the next cell along `step` that has a control, stopping at the grid's edges. */
 export function moveFocus(root: HTMLElement, from: CellAt, [dr, dc]: Step): boolean {
   let at = { rowIndex: from.rowIndex + dr, columnIndex: from.columnIndex + dc };
   while (cellElement(root, at)) {
