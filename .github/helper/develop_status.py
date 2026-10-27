@@ -26,6 +26,7 @@ REPO = os.environ["GITHUB_REPOSITORY"]
 BRANCHES = ("develop", "desk-v2")
 SUITES = {"server-tests.yml": "Server Success", "ui-tests.yml": "UI Success"}
 TEST_JOBS = {"server-tests.yml": "Integration", "ui-tests.yml": "UI Test"}
+STATUS_JOB = "Update Develop Status"
 
 
 def gh(*args):
@@ -35,7 +36,7 @@ def gh(*args):
 def gate_conclusion(run, gate_job):
 	"""The gate job's result, or None for a run that hasn't finished or was cancelled."""
 	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
-	if any(job["conclusion"] == "cancelled" for job in jobs):
+	if any(job["conclusion"] == "cancelled" and job["name"] != STATUS_JOB for job in jobs):
 		return None
 	return next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)
 
@@ -45,7 +46,7 @@ def suite_result(run, workflow):
 	if not run or run["status"] != "completed":
 		return "pending", ""
 	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
-	if any(job["conclusion"] == "cancelled" for job in jobs):
+	if any(job["conclusion"] == "cancelled" and job["name"] != STATUS_JOB for job in jobs):
 		return "pending", ""
 	failed = next((job["html_url"] for job in jobs if job["conclusion"] == "failure"), None)
 	if failed:

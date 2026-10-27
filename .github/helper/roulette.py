@@ -254,7 +254,7 @@ if __name__ == "__main__":
 			sys.exit(0)
 	elif ci_files_changed:
 		print("CI related files were updated, running all build processes.")
-	elif only_docs_changed:
+	elif only_docs_changed and not tests_requested:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
 	elif (
