@@ -115,7 +115,7 @@ companion off the apps screen; declaring your own rail costs nothing.
 
 1. `flow_agents` - list of methods that return `frappe.flow.Agent` objects. Flow saves them as Flow Agents
    after migrate and app installs. Example: `flow_agents = ["myapp.ai.agents"]`.
-1. `flow_tools` - list of `@tool` functions. Flow saves each as a locked Flow Tool that any agent can use, and gives it to the built-in assistant, so every Flow User can call it. A tool runs as that user: check permissions in it, never write with `ignore_permissions`.
+1. `flow_tools` - list of `@tool` functions. Flow saves each as a locked Flow Tool that any agent can use, and gives it to the built-in assistant, so every Flow User can call it. A tool runs as that user: check permissions in it, never write with `ignore_permissions`. A tool whose name a builtin or another tool already holds is skipped, with an Error Log.
    Example: `flow_tools = ["myapp.ai.get_open_todos"]`.
 
 #### Notifications

@@ -50,8 +50,27 @@ def _with_sub_agents(agent: Agent) -> Iterator[Agent]:
 def sync_tools(_app: str | None = None) -> None:
 	"""Write each `@tool` the installed apps list under the `flow_tools` hook as a locked Imported
 	Flow Tool, for any agent to attach. Runs after migrate and app installs."""
+	for hooked in hooked_tools():
+		_ensure_tool(hooked)
+
+
+def hooked_tools() -> list[Tool]:
+	"""Each `@tool` the installed apps list under the `flow_tools` hook. One whose name another
+	tool holds, a builtin, a desk tool or another app's, is skipped with an Error Log, so an
+	app cannot fail migrate."""
+	tools: dict[str, Tool] = {}
 	for path in frappe.get_hooks("flow_tools"):
-		_ensure_tool(frappe.get_attr(path))
+		hooked = frappe.get_attr(path)
+		if hooked.name in tools:
+			taken = tools[hooked.name] is not hooked
+		else:
+			row = frappe.db.get_value("Flow Tool", hooked.name, "import_path", as_dict=True)
+			taken = bool(row) and row.import_path != _tool_import_path(hooked)
+		if taken:
+			frappe.log_error(title=f"Flow tool {path!r} skipped: the name {hooked.name!r} is taken")
+		else:
+			tools[hooked.name] = hooked
+	return list(tools.values())
 
 
 class Agent:

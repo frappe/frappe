@@ -15,6 +15,7 @@ from frappe.flow.assistant import (
 from frappe.flow.assistant.assistant import ASSISTANT_MAX_ITERATIONS
 from frappe.flow.doctype.flow_agent.flow_agent import MAX_SKILLS
 from frappe.flow.doctype.flow_skill.test_flow_skill import AppSkills
+from frappe.flow.lib.agent import sync_tools
 from frappe.flow.tools.builtins import BUILTIN_TOOLS
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_weekday, today
@@ -26,12 +27,24 @@ def probe_app_tool(*, ctx: ToolContext) -> str:
 	return "ok"
 
 
-def with_probe_app_tool(get_hooks):
-	"""frappe.get_hooks, as if an installed app listed probe_app_tool under flow_tools."""
+@tool(name="describe")
+def app_describe(*, ctx: ToolContext) -> str:
+	"""An app tool named like a builtin."""
+	return "ok"
+
+
+@tool(name="probe_app_tool")
+def other_probe_app_tool(*, ctx: ToolContext) -> str:
+	"""Another app's tool, named like probe_app_tool."""
+	return "ok"
+
+
+def with_app_tools(get_hooks, *tools: str):
+	"""frappe.get_hooks, as if installed apps listed these tools of this module under flow_tools."""
 
 	def patched(hook=None, *args, **kwargs):
 		if hook == "flow_tools":
-			return ["frappe.flow.tests.test_ai_assistant.probe_app_tool"]
+			return [f"{__name__}.{name}" for name in tools]
 		return get_hooks(hook, *args, **kwargs)
 
 	return patched
@@ -167,18 +180,44 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		doc.reload()
 		self.assertEqual([row.skill for row in doc.skills], [house.name])
 
-	def test_the_assistant_gains_an_apps_flow_tools_and_drops_them_with_the_app(self):
+	def test_the_assistant_gains_an_apps_flow_tools_on_install_and_drops_them_on_uninstall(self):
+		for hook in ("after_app_install", "after_app_uninstall"):
+			self.assertIn(
+				"frappe.flow.assistant.sync_assistant_skills", frappe.get_hooks(hook, app_name="frappe")
+			)
 		builtins = {t.name for t in BUILTIN_TOOLS}
-		with patch("frappe.get_hooks", side_effect=with_probe_app_tool(frappe.get_hooks)):
-			sync_builtin_assistant(model=self.model.name)
+		with patch("frappe.get_hooks", side_effect=with_app_tools(frappe.get_hooks, "probe_app_tool")):
+			sync_assistant_skills("myapp")
 		tools = {row.tool for row in frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).tools}
 		self.assertIn("probe_app_tool", tools)
 		self.assertTrue(builtins <= tools)
 
-		sync_builtin_assistant(model=self.model.name)
+		sync_assistant_skills("myapp")
 		tools = {row.tool for row in frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).tools}
 		self.assertNotIn("probe_app_tool", tools)
 		self.assertTrue(builtins <= tools)
+
+	def test_an_app_tool_whose_name_is_taken_is_skipped_not_fatal(self):
+		hooked = with_app_tools(frappe.get_hooks, "app_describe", "probe_app_tool", "other_probe_app_tool")
+		with patch("frappe.get_hooks", side_effect=hooked):
+			sync_builtin_assistant(model=self.model.name)
+			sync_tools()
+
+		tools = [row.tool for row in frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).tools]
+		self.assertEqual(tools.count("describe"), 1)
+		self.assertEqual(tools.count("probe_app_tool"), 1)
+		self.assertEqual(
+			frappe.db.get_value("Flow Tool", "describe", "import_path"), "frappe.flow.tools.builtins.describe"
+		)
+		self.assertEqual(
+			frappe.db.get_value("Flow Tool", "probe_app_tool", "import_path"), f"{__name__}.probe_app_tool"
+		)
+		skipped = frappe.get_all("Error Log", {"method": ("like", "Flow tool % skipped%")}, pluck="method")
+		self.assertIn(f"Flow tool '{__name__}.app_describe' skipped: the name 'describe' is taken", skipped)
+		self.assertIn(
+			f"Flow tool '{__name__}.other_probe_app_tool' skipped: the name 'probe_app_tool' is taken",
+			skipped,
+		)
 
 	def test_a_new_model_replaces_only_one_the_assistant_lost(self):
 		with patch("frappe.flow.assistant.assistant.sync_builtin_assistant") as sync:

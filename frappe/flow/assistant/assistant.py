@@ -85,7 +85,7 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 	the skills and knowledge the site added. Called from after_migrate."""
 	from frappe.flow.doctype.flow_skill.flow_skill import sync_skills
 	from frappe.flow.knowledge import Knowledge
-	from frappe.flow.lib.agent import Agent
+	from frappe.flow.lib.agent import Agent, hooked_tools
 	from frappe.flow.tools.builtins import BUILTIN_TOOLS, sync_builtin_tools
 
 	sync_builtin_tools()
@@ -94,8 +94,6 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 	model_name = model or frappe.db.get_value("Flow Model", {"enabled": 1}, "name")
 	if not model_name:
 		return
-
-	app_tools = [frappe.get_attr(path) for path in frappe.get_hooks("flow_tools")]
 
 	knowledge = []
 	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
@@ -109,7 +107,7 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		name=ASSISTANT_AGENT_TITLE,
 		model=model_name,
 		instructions=ASSISTANT_INSTRUCTIONS,
-		tools=[*BUILTIN_TOOLS, *app_tools],
+		tools=[*BUILTIN_TOOLS, *hooked_tools()],
 		knowledge=knowledge,
 		skills=skills,
 		max_iterations=ASSISTANT_MAX_ITERATIONS,
