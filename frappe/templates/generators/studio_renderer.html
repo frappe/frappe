@@ -35,6 +35,7 @@
 			window.router_file = {{ router_file|tojson }};
 			window.is_guest = {{ is_guest|tojson }};
 			window.is_developer_mode = {{ is_developer_mode }};
+			window.can_edit_app = {{ can_edit_app|tojson }};
 		</script>
 		{% if is_developer_mode %}
 			<!-- the editor's vite dev server serves the renderer with HMR; protocol-relative so it loads over the page's own scheme -->
