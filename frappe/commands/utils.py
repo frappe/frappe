@@ -103,7 +103,7 @@ def build(
 		run_after_build_hook(apps)
 
 		# Last, so a failed shell build still exits non-zero but cannot leave a bench with no v1 assets.
-		build_shell(production=mode == "production")
+		build_shell(frappe.get_app_source_path("frappe"), production=mode == "production")
 
 
 def run_after_build_hook(built_apps: list[str]):

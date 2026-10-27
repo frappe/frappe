@@ -128,12 +128,14 @@ across the tree, because nothing mechanical is going to enforce the latter.
 
 ## Never run `yarn build` by hand
 
-`bench build` runs the shell build last (`build_shell` in `frappe/bundler.py`) and overrides two settings that
-`frontend/vite.config.js` deliberately sets for the bench path: `outDir` and
+`bench build` runs the shell build last (`build_shell` in `frappe/bundler.py`) and overrides
+two settings that `frontend/vite.config.js` deliberately sets for the bench path: `outDir` and
 `emptyOutDir: false`. A bare `yarn build` writes **straight into the served tree** and
-leaks stale hashed chunks: 98 files and 14 MB after a handful of builds. `bench build` instead builds to a staging directory and rename-swaps it.
+leaks stale hashed chunks: 98 files and 14 MB after a handful of builds. `bench build`
+instead builds to a staging directory and rename-swaps it.
 
-Related: `build_shell` **returns silently if `frontend/package.base.json` is missing**. That guard is on the *committed* half on purpose — guarding
+Related: `build_shell` **returns silently if `frontend/package.base.json` is missing**.
+That guard is on the *committed* half on purpose — guarding
 on the generated `package.json` would make a fresh clone build nothing and then serve
 "Shell Not Built" at every `/apps` URL. `bench build --app X` reaches the shell build and
 is accepted-and-ignored rather than refused.

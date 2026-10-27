@@ -119,12 +119,12 @@ def bundle(
 		frappe.cache.flushdb()
 
 
-def build_shell(production: bool = False):
+def build_shell(frappe_app_path: str, production: bool = False):
 	"""Assemble the manifest and run the framework's one vite build; `--app X` is accepted and ignored."""
 	from frappe.shell.manifest import cost_report
 	from frappe.shell.manifest import write as write_manifest
 
-	frontend_path = os.path.join(frappe.get_app_source_path("frappe"), "frontend")
+	frontend_path = os.path.join(frappe_app_path, "frontend")
 	# Guard on the committed half: `package.json` is generated and gitignored, so a fresh clone
 	# would silently build nothing.
 	if not os.path.exists(os.path.join(frontend_path, "package.base.json")):
