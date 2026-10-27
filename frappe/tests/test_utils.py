@@ -2046,7 +2046,6 @@ class TestMsgPrint(UnitTestCase):
 		self.assertIn("<ul><li>", message.message)
 
 	def test_raised_message_keeps_html_in_a_terminal(self):
-		# tags are stripped for printing to a terminal, not from the raised exception
 		with patch("sys.stdin") as stdin:
 			stdin.isatty.return_value = True
 			with self.assertRaises(frappe.ValidationError) as raised:
