@@ -13,6 +13,7 @@ frappe.provide("frappe.ui");
  * @property {(index:number)=>void} [on_step_click] Called for an unlocked step; call set_current to move.
  * @property {(index:number)=>void} [on_locked_click] Called for a locked step; ignored if not given.
  * @property {boolean} [compact] Show a progress bar with "Step x of y" instead of the steps, for narrow layouts.
+ * @property {(done:number, count:number)=>string} [hint] Replaces the "Step x of y" text in compact mode.
  * @property {"right"|"left"|"top"|"bottom"} [label_position="right"] Where each label sits relative to its marker.
  * @property {string} [css_class] Extra classes on the nav.
  */
@@ -37,6 +38,7 @@ frappe.ui.Stepper = class Stepper {
 		this.on_step_click = opts.on_step_click || null;
 		this.on_locked_click = opts.on_locked_click || null;
 		this.compact = Boolean(opts.compact);
+		this.hint = opts.hint || ((done, count) => __("Step {0} of {1}", [done, count]));
 
 		this.nav = document.createElement("nav");
 		this.nav.className = ["es-stepper", opts.css_class].filter(Boolean).join(" ");
@@ -189,7 +191,7 @@ frappe.ui.Stepper = class Stepper {
 		$(this.nav).append(
 			frappe.ui.progress({
 				label: this.steps[this.current]?.label || "",
-				hint: () => __("Step {0} of {1}", [done, count]),
+				hint: () => this.hint(done, count),
 				intervals: true,
 				interval_count: count,
 				size: "md",
