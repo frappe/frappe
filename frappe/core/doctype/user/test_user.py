@@ -17,10 +17,12 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	generate_keys,
 	get_all_roles,
 	get_perm_info,
 	handle_password_test_fail,
 	reset_password,
+	revoke_keys,
 	rewrite_owner_fields,
 	sign_up,
 	test_password_strength,
@@ -1048,6 +1050,66 @@ class TestUser(IntegrationTestCase):
 
 				with self.assertRaises(frappe.PermissionError):
 					bulk_remove_roles([target.name], ["_Test Role 4"])
+
+	def test_generate_keys_can_rotate_the_api_key(self):
+		from frappe.auth import validate_api_key_secret
+		from frappe.utils.password import get_decrypted_password
+
+		with test_user(roles=["System Manager"]) as manager, test_user(roles=["_Test Role 4"]) as target:
+			with self.set_user(manager.name):
+				old_keys = generate_keys(target.name)
+				self.assertEqual(generate_keys(target.name)["api_key"], old_keys["api_key"])
+
+				new_keys = generate_keys(target.name, regenerate_api_key=True)
+
+			self.assertNotEqual(new_keys["api_key"], old_keys["api_key"])
+			self.assertNotEqual(new_keys["api_secret"], old_keys["api_secret"])
+			self.assertEqual(frappe.db.get_value("User", target.name, "api_key"), new_keys["api_key"])
+			self.assertEqual(
+				get_decrypted_password("User", target.name, "api_secret"), new_keys["api_secret"]
+			)
+			with self.assertRaises(frappe.AuthenticationError):
+				validate_api_key_secret(old_keys["api_key"], old_keys["api_secret"])
+
+	def test_revoke_keys_turns_off_api_access(self):
+		from frappe.auth import validate_api_key_secret
+		from frappe.utils.password import get_decrypted_password
+
+		with test_user(roles=["System Manager"]) as manager, test_user(roles=["_Test Role 4"]) as target:
+			with self.set_user(manager.name):
+				keys = generate_keys(target.name)
+				revoke_keys(target.name)
+
+			self.assertIsNone(frappe.db.get_value("User", target.name, "api_key"))
+			self.assertIsNone(
+				get_decrypted_password("User", target.name, "api_secret", raise_exception=False)
+			)
+			with self.assertRaises(frappe.AuthenticationError):
+				validate_api_key_secret(keys["api_key"], keys["api_secret"])
+
+	def test_api_keys_can_only_be_managed_by_system_manager(self):
+		with test_user(roles=["_Test Role 4"]) as target:
+			for user in (target.name, "Guest"):
+				with self.set_user(user):
+					with self.assertRaises(frappe.PermissionError):
+						generate_keys(target.name)
+					with self.assertRaises(frappe.PermissionError):
+						generate_keys(target.name, regenerate_api_key=True)
+					with self.assertRaises(frappe.PermissionError):
+						revoke_keys(target.name)
+
+	def test_api_keys_respect_user_permissions(self):
+		from frappe.permissions import add_user_permission
+
+		with test_user(roles=["System Manager"]) as manager, test_user(roles=["_Test Role 4"]) as target:
+			add_user_permission("User", manager.name, manager.name)
+			with self.set_user(manager.name):
+				with self.assertRaises(frappe.PermissionError):
+					generate_keys(target.name)
+				with self.assertRaises(frappe.PermissionError):
+					revoke_keys(target.name)
+
+			self.assertIsNone(frappe.db.get_value("User", target.name, "api_key"))
 
 
 class TestImpersonation(FrappeAPITestCase):
