@@ -111,19 +111,30 @@ describe("desk's settings components", () => {
 		for (const name of NAMES) expect(settingsComponentFor("frappe", name)).toBeTypeOf("function");
 	});
 
-	it("theme: a pick applies the colour scheme and marks it chosen", async () => {
+	it("theme: one row whose select shows the scheme in use, with its icon, and applies a pick", async () => {
 		const { colorScheme, setColorScheme } = useColorScheme();
 		setColorScheme("light");
 		await mount("theme");
+		const trigger = document.querySelector<HTMLElement>("button[role='combobox']")!;
 
-		document.querySelector<HTMLElement>("[data-scheme='dark']")!.click();
-		await nextTick();
+		expect(trigger.textContent).toContain("Light");
+		expect(trigger.querySelector(".lucide-sun")).toBeTruthy();
+
+		trigger.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0 }));
+		trigger.click();
+		await settle();
+		const dark = Array.from(document.querySelectorAll<HTMLElement>("[role='option']")).find(
+			(option) => option.textContent?.includes("Dark")
+		)!;
+		expect(dark.querySelector(".lucide-moon")).toBeTruthy();
+		dark.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, button: 0, pointerType: "mouse" }));
+		dark.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, button: 0, pointerType: "mouse" }));
+		dark.click();
+		await settle();
 
 		expect(colorScheme.value).toBe("dark");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
-		expect(document.querySelector("[data-scheme='dark']")!.getAttribute("aria-checked")).toBe(
-			"true"
-		);
+		expect(trigger.textContent).toContain("Dark");
 		setColorScheme("light");
 	});
 
