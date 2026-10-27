@@ -15,7 +15,9 @@ from frappe.utils.jinja_globals import is_rtl
 
 
 @frappe.whitelist()
-def render_jinja_template(template: str, doctype: str, docname: str, jinja_setup: str | None = None) -> str:
+def render_jinja_template(
+	template: str, doctype: str, docname: str, global_variables: str | None = None
+) -> str:
 	"""Render a raw Jinja2 template string with doc context (used by the print format builder preview)."""
 	frappe.only_for("System Manager")
 	doc = frappe.get_doc(doctype, docname)
@@ -24,7 +26,7 @@ def render_jinja_template(template: str, doctype: str, docname: str, jinja_setup
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
 		return frappe.render_template(
-			template, {**jinja_setup_context(jinja_setup, doc), "doc": doc}
+			template, {**global_variables_context(global_variables, doc), "doc": doc}
 		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
 	except Exception as e:
 		# fail with 417 instead of 500 so the canvas can degrade inline
@@ -33,8 +35,8 @@ def render_jinja_template(template: str, doctype: str, docname: str, jinja_setup
 		frappe.throw(_("Failed to render template: {0}").format(str(e)), frappe.ValidationError)
 
 
-def jinja_setup_context(template: str | None, doc) -> dict:
-	"""The variables a format's Jinja setup sets, rendered once for all of its HTML blocks."""
+def global_variables_context(template: str | None, doc) -> dict:
+	"""The global variables a format sets, rendered once for all of its HTML blocks."""
 	if not template:
 		return {}
 	from frappe.utils.jinja import get_jenv, safe_render_flags
@@ -1105,7 +1107,10 @@ class PrintFormatGenerator:
 
 	def set_field_renderers(self, layout):
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
-		self.jinja_context = {**jinja_setup_context(layout.get("jinja_setup"), self.doc), "doc": self.doc}
+		self.jinja_context = {
+			**global_variables_context(layout.get("global_variables"), self.doc),
+			"doc": self.doc,
+		}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
 				section["_hidden"] = not self.eval_condition(
