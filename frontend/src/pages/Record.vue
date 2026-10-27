@@ -118,7 +118,6 @@ import {
 } from "vue-router";
 import { toast } from "frappe-ui";
 import {
-	addAssignment,
 	addFavourite,
 	addFollow,
 	isApiError,
@@ -189,7 +188,7 @@ import { canFollow, declinedMessage } from "./record/follow";
 import { useLiveDocinfo, warnDocinfoFailed } from "./record/liveDocinfo";
 import { useLiveClientScripts } from "./record/liveClientScripts";
 import { personOf, type DocInfo } from "./record/panel/context";
-import { mergePart } from "./record/panel/peopleActions";
+import { mergePart, peopleActions } from "./record/panel/peopleActions";
 import { assigneesOf, tagsOf } from "./record/panel/people";
 import { useDisclosure } from "./record/panel/disclosure";
 import { layoutItems, layoutSections } from "./record/panel/panelEntries";
@@ -445,7 +444,9 @@ function toggleFavourite(page: RecordPageApi) {
 }
 
 function assignUser(page: RecordPageApi, user: string) {
-	return toggleOnSidecar(page, () => addAssignment(page.doctype, page.docname, { user }));
+	const { doctype, docname } = page;
+	const source = { doctype, docname, docinfo, whileOnRecord: visitCheck, controller: { page } };
+	return peopleActions(source).assign(user);
 }
 
 // The server declines a follow without failing, and says why beside the data.

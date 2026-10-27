@@ -9,12 +9,17 @@ import {
 	type Envelope,
 	type Users,
 } from "@framework/ui/api";
-import { errorMessage } from "@/recordPage";
+import { errorMessage, type RecordPageApi } from "@/recordPage";
 import type { DocInfo, PanelContext } from "./context";
 
 type PartAnswer = Partial<DocInfo> & { users?: Users };
 
-export function peopleActions(context: PanelContext) {
+/** What the writes read; the record menu's "Assign to…" hands it the page's own parts. */
+type PeopleSource = Pick<PanelContext, "doctype" | "docname" | "docinfo" | "whileOnRecord"> & {
+	controller: { page: Pick<RecordPageApi, "toast"> };
+};
+
+export function peopleActions(context: PeopleSource) {
 	const { doctype, docname, controller, docinfo, whileOnRecord } = context;
 	const page = controller.page;
 
