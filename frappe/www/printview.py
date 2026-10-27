@@ -12,6 +12,7 @@ from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
 from frappe.printing.doctype.print_format.classic_converter import (
+	is_classic_layout,
 	uses_beta_renderer,
 	uses_legacy_weasyprint,
 )
@@ -88,6 +89,7 @@ def get_context(context) -> PrintContext:
 		"standalone": standalone,
 		"comment": frappe.session.user,
 		"title": frappe.utils.strip_html(cstr(doc.get_title() or doc.name)),
+		"print_filename": get_print_filename(doc),
 		"lang": frappe.local.lang,
 		"layout_direction": "rtl" if is_rtl() else "ltr",
 		"doctype": frappe.form_dict.doctype,
@@ -202,6 +204,12 @@ def resolve_print_format(print_format_name: "str | None", meta: "Meta") -> tuple
 	return print_format, uses_beta_renderer(print_format)
 
 
+def get_print_filename(doc: "Document") -> str:
+	from frappe.core.doctype.file.utils import get_safe_file_name
+
+	return get_safe_file_name(doc.name)
+
+
 def get_rendered_template(
 	doc: "Document",
 	print_format: "PrintFormat" | None = None,
@@ -214,7 +222,7 @@ def get_rendered_template(
 	if not frappe.flags.ignore_print_permissions:
 		validate_print_permission(doc)
 
-	print_settings = frappe.get_single("Print Settings").as_dict()
+	print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 	print_settings.update(settings or {})
 
 	if isinstance(no_letterhead, str):
@@ -265,7 +273,7 @@ def get_rendered_template(
 		elif print_format.custom_format:
 			template = get_template_from_string()
 
-		elif print_format.format_data:
+		elif is_classic_layout(print_format.format_data):
 			# set format data
 			format_data = json.loads(print_format.format_data)
 			for df in format_data:
@@ -524,7 +532,7 @@ def validate_print_for_docstatus(doc: "Document", print_settings: dict | None = 
 		return
 
 	if print_settings is None:
-		print_settings = frappe.get_single("Print Settings").as_dict()
+		print_settings = frappe.get_cached_doc("Print Settings").as_dict()
 
 	if doc.docstatus.is_draft() and not cint(print_settings.get("allow_print_for_draft")):
 		frappe.throw(_("Not allowed to print draft documents"), frappe.PermissionError)
@@ -756,7 +764,7 @@ def get_print_style(
 	for_legacy: bool = False,
 	overrides: dict | None = None,
 ) -> str:
-	print_settings = frappe.get_doc("Print Settings")
+	print_settings = frappe.get_cached_doc("Print Settings")
 	overrides = overrides or {}
 	font = overrides.get("print_font")
 
@@ -997,7 +1005,14 @@ window.print();
 // NOTE: doesn't close if print is cancelled in Chrome
 // Changed timeout to 5s from 1s because it blocked mobile view rendering
 setTimeout(function() {
-	window.close();
+	// mobile browsers return from print() while their print dialog is still open
+	if (document.hasFocus()) {
+		window.close();
+	} else {
+		window.addEventListener("focus", function() {
+			window.close();
+		});
+	}
 }, 5000);
 </script>
 """

@@ -33,7 +33,8 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 	"""Pick the PDF engine for a render.
 
 	A builder format keeps its Typst or WeasyPrint choice and otherwise pins itself to
-	Chrome. Everything else honours an explicit choice, then the format's own setting."""
+	Chrome. Everything else honours an explicit choice, then the format's own setting,
+	then the site default in Print Settings."""
 	from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 
 	if print_format and uses_beta_renderer(print_format):
@@ -43,7 +44,17 @@ def resolve_pdf_generator(print_format=None, pdf_generator: str | None = None) -
 		return "chrome"
 	if pdf_generator is not None:
 		return pdf_generator
-	return (print_format and print_format.get("pdf_generator")) or "wkhtmltopdf"
+	return (
+		(print_format and print_format.get("pdf_generator"))
+		or frappe.db.get_single_value("Print Settings", "pdf_generator")
+		or "wkhtmltopdf"
+	)
+
+
+def _run_print_pdf_hooks(doctype, name, print_format):
+	for hook in frappe.get_hooks("on_print_pdf"):
+		# nosemgrep: frappe-semgrep-rules.rules.security.frappe-codeinjection-eval
+		frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
 
 
 def renders_through_generator(print_format) -> bool:
@@ -119,14 +130,16 @@ def get_print(
 		if password:
 			pdf_options["password"] = password
 
-		if as_pdf and generator == "chrome" and pf_doc and uses_beta_renderer(pf_doc):
+		if as_pdf and generator in ("chrome", "Typst") and pf_doc and uses_beta_renderer(pf_doc):
 			from frappe.core.doctype.access_log.access_log import make_access_log
 			from frappe.model.document import Document
 			from frappe.www.printview import validate_print
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
-			pdf = _render_builder_pdf(pf_doc, doc_obj, letterhead, no_letterhead, password, style, settings)
+			pdf = _render_builder_pdf(
+				pf_doc, doc_obj, letterhead, no_letterhead, pdf_options.get("password"), style, settings
+			)
 			make_access_log(
 				doctype=doc_obj.doctype,
 				document=doc_obj.name,
@@ -190,8 +203,7 @@ def get_print(
 			finally:
 				restore_print_context(previous)
 
-		for hook in frappe.get_hooks("on_print_pdf"):
-			frappe.call(hook, doctype=doctype, name=name, print_format=print_format)
+		_run_print_pdf_hooks(doctype, name, print_format)
 
 		return get_pdf(html, options=pdf_options, output=output)
 	finally:
@@ -261,6 +273,7 @@ def attach_print(
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
+					_run_print_pdf_hooks(doctype, name, print_format)
 					letterhead_name = letterhead if print_letterhead else None
 					if uses_legacy_weasyprint(pf_doc):
 						from frappe.utils.weasyprint import legacy_generator
@@ -282,6 +295,15 @@ def attach_print(
 							style=style,
 							settings=settings,
 						)
+					from frappe.core.doctype.access_log.access_log import make_access_log
+
+					make_access_log(
+						doctype=doc_obj.doctype,
+						document=doc_obj.name,
+						file_type="PDF",
+						method="Print",
+						page=f"Print Format: {pf_doc.name}",
+					)
 				else:
 					kwargs["as_pdf"] = True
 					content = get_print(doctype, name, **kwargs)

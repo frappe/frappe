@@ -15,11 +15,15 @@ they keep rendering through Chromium.
 import json
 import re
 
+import filetype
+
 import frappe
 from frappe import _
 from frappe.printing.fieldtypes import MERGE_IMAGE_FIELDTYPES, is_image_column
 from frappe.printing.layout import iter_nodes
+from frappe.translate import get_parent_language
 from frappe.utils.html_utils import unescape_html
+from frappe.utils.jinja_globals import is_rtl
 
 #: px (builder/CSS space) → pt (Typst space)
 PX_TO_PT = 0.75
@@ -30,6 +34,15 @@ MUTED = "#6b7280"
 DEFAULT_FONT = "Inter"
 SHRINK_JUSTIFY = ("center", "right-end", "space-between", "space-evenly")
 FULL_WIDTH_FIELDTYPES = ("Divider",)
+RATING_STAR_PATH = (
+	"M11.5516 2.90849C11.735 2.53687 12.265 2.53687 12.4484 2.90849L14.8226 7.71919C14.8954 7.86677 "
+	"15.0362 7.96905 15.1991 7.99271L20.508 8.76415C20.9181 8.82374 21.0818 9.32772 20.7851 "
+	"9.61699L16.9435 13.3616C16.8257 13.4765 16.7719 13.642 16.7997 13.8042L17.7066 19.0916C17.7766 "
+	"19.5001 17.3479 19.8116 16.9811 19.6187L12.2327 17.1223C12.087 17.0457 11.913 17.0457 11.7673 "
+	"17.1223L7.01888 19.6187C6.65207 19.8116 6.22335 19.5001 6.29341 19.0916L7.20028 13.8042C7.2281 "
+	"13.642 7.17433 13.4765 7.05648 13.3616L3.21491 9.61699C2.91815 9.32772 3.08191 8.82374 3.49202 "
+	"8.76415L8.80094 7.99271C8.9638 7.96905 9.10458 7.86677 9.17741 7.71919L11.5516 2.90849Z"
+)
 
 
 def pt(px, default=0.0) -> float:
@@ -368,6 +381,9 @@ def q(value) -> str:
 #: every character Typst assigns meaning to in markup mode — Typst accepts a
 #: backslash escape for any punctuation, so escaping renders each literally
 _TYPST_SPECIALS = re.compile(r"([\\#$*_\[\]`~'\"@<>/=+-])")
+#: Typst reads a dot as formatting only in "1. " (a numbered list) and "..." (an ellipsis);
+#: escaping every dot would also break numbers like 12.5 written inside Typst code
+_TYPST_DOT_MARKUP = re.compile(r"(?m)^([ \t]*\d+)\.(?=\s|$)|(\.\.)\.")
 
 
 class TypstRaw(str):
@@ -378,7 +394,7 @@ def typst_escape(value):
 	if isinstance(value, TypstRaw):
 		return str(value)
 	text = _CONTROL_CHARS.sub("", str(value if value is not None else ""))
-	return _TYPST_SPECIALS.sub(r"\\\1", text)
+	return _TYPST_DOT_MARKUP.sub(r"\1\2\\.", _TYPST_SPECIALS.sub(r"\\\1", text))
 
 
 def render_typst_template(markup: str, context: dict) -> str:
@@ -526,16 +542,16 @@ class TypstEmitter:
 			getattr(self.generator, "print_settings", None) or frappe.get_cached_doc("Print Settings")
 		)
 
+	def _margin_mm(self, side: str) -> float:
+		margin = self.print_format.get(f"margin_{side}")
+		return 15 if margin is None else frappe.utils.flt(margin)
+
 	def measure_source(self) -> str:
 		"""A document whose only output is the measured height of each zone, read
 		back with typst.query — how the top/bottom margins learn to make room."""
 		self.prepare()
-		pf = self.print_format
 		page_width, page_height = self._page_size_mm()
-		inner = round(
-			page_width - (frappe.utils.flt(pf.margin_left) or 15) - (frappe.utils.flt(pf.margin_right) or 15),
-			2,
-		)
+		inner = round(page_width - self._margin_mm("left") - self._margin_mm("right"), 2)
 		lines = [
 			f"#set page(width: {page_width}mm, height: {page_height}mm)",
 			self._text_setup(),
@@ -574,14 +590,14 @@ class TypstEmitter:
 
 	def _page_setup(self, header_zone=None, footer_zone=None, header_height_pt=0, footer_height_pt=0) -> str:
 		pf = self.print_format
-		top = frappe.utils.flt(pf.margin_top) or 15
-		bottom = frappe.utils.flt(pf.margin_bottom) or 15
+		top = self._margin_mm("top")
+		bottom = self._margin_mm("bottom")
 		top_expr = f"{top}mm + {round(header_height_pt + 12, 2)}pt" if header_zone else f"{top}mm"
 		bottom_expr = f"{bottom}mm + {round(footer_height_pt + 12, 2)}pt" if footer_zone else f"{bottom}mm"
 		margins = (
 			f"(top: {top_expr}, bottom: {bottom_expr}, "
-			f"left: {frappe.utils.flt(pf.margin_left) or 15}mm, "
-			f"right: {frappe.utils.flt(pf.margin_right) or 15}mm)"
+			f"left: {self._margin_mm('left')}mm, "
+			f"right: {self._margin_mm('right')}mm)"
 		)
 		page_width, page_height = self._page_size_mm()
 		args = [f"width: {page_width}mm", f"height: {page_height}mm", f"margin: {margins}"]
@@ -639,6 +655,12 @@ class TypstEmitter:
 		size_pt = pt(pf.font_size, 14)
 		args = [f"size: {size_pt}pt"]
 		args.append(f'font: ({q(font_family(pf.get("font")))}, "Libertinus Serif")')
+		lang = frappe.local.lang or "en"
+		lang = get_parent_language(lang) or lang
+		# Typst only accepts two or three letter language codes, and a site can add its own longer ones
+		if re.fullmatch(r"[a-zA-Z]{2,3}", lang):
+			args.append(f"lang: {q(lang)}")
+		args.append(f"dir: {'rtl' if is_rtl() else 'ltr'}")
 		value_color = safe_color(pf.get("value_color"))
 		if value_color:
 			args.append(f'fill: rgb("{value_color}")')
@@ -663,8 +685,19 @@ class TypstEmitter:
 		grid = self._columns_grid(section, columns, rendered_columns)
 		body = grid
 		if section.get("label") and section.get("show_label") != "hide" and not zone:
-			label = f"#text(size: 0.9em, weight: 600, {q(_(section['label']))})"
-			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
+			label = f"#text(size: 1.1em, weight: 700, {q(_(section['label']))})"
+			if section.get("field_borders"):
+				pad = f"{pt(section.get('cell_padding'), 8)}pt"
+				color = safe_color(section.get("border_color")) or "#e2e2e2"
+				ruled = (
+					f'stroke: (bottom: 0.75pt + rgb("{color}")), inset: (bottom: {pad}), outset: (x: {pad})'
+				)
+				spacing = pad
+			else:
+				ruled = 'stroke: (bottom: 1.125pt + rgb("#e2e2e2")), inset: (bottom: 0.35em)'
+				spacing = "0.75em"
+			heading = f"#block(width: 100%, {ruled})[{label}]"
+			body = f"#stack(spacing: {spacing},\n[{heading}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
@@ -866,11 +899,21 @@ class TypstEmitter:
 			height = frappe.utils.flt(df.get("height")) or 13
 			return f"#v({pt(height)}pt)"
 		if fieldtype == "Table":
-			return self._table(df)
+			in_zone = section is self.layout.get("header") or section is self.layout.get("footer")
+			return self._table(df, keep_together=section.get("keep_together") or in_zone)
 		if fieldtype == "Barcode":
 			return self._barcode(df)
-		if fieldtype in ("Image", "Attach Image") or df.get("renderer") == "AttachImage":
+		if fieldtype == "Image":
 			return self._image(df)
+		if fieldtype == "Attach Image" or df.get("renderer") == "AttachImage":
+			return self._data_field(section, df, value_markup=self._image(df))
+		if fieldtype == "Signature":
+			name = self._embed_image(self.doc.get(df.get("fieldname")))
+			# Chrome prints the signature at its pixel size; without this, Typst prints it a third larger
+			image = f'#scale({PX_TO_PT:.0%}, reflow: true, image("{name}"))' if name else ""
+			return self._data_field(section, df, value_markup=image)
+		if fieldtype == "Rating":
+			return self._data_field(section, df, value_markup=self._rating(df))
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		if fieldtype == "Static Text":
@@ -919,7 +962,7 @@ class TypstEmitter:
 			or MUTED
 		)
 
-	def _data_field(self, section, df) -> str:
+	def _data_field(self, section, df, value_markup=None) -> str:
 		value = self._formatted_value(df)
 		if not value and not df.get("show_empty"):
 			return ""
@@ -930,11 +973,15 @@ class TypstEmitter:
 		value_color = safe_color(df.get("value_color"))
 		label = ""
 		if show_label != "hide" and df.get("label"):
-			label = muted_text(_(df["label"]), label_color)
+			colon = (
+				(show_label == "inline" and section.get("field_orientation") != "left-right")
+				or self.print_format.get("show_label_colon")
+			) and not df.get("hide_colon")
+			label = muted_text(_(df["label"]) + (":" if colon else ""), label_color)
 		value_args = [q(value)]
 		if value_color:
 			value_args.insert(0, f'fill: rgb("{value_color}")')
-		value_text = f"#text({', '.join(value_args)})"
+		value_text = f"#text({', '.join(value_args)})" if value_markup is None else value_markup
 
 		align = df.get("align")
 		gap_effect = translate_custom_style(df.get("custom_style") or "")[0].get("gap")
@@ -944,11 +991,11 @@ class TypstEmitter:
 			if gap_pt is None:
 				gap = df.get("label_gap")
 				gap_pt = pt(gap) if gap else 4
-			if align in ("right",):
-				body = f"#grid(columns: (1fr, auto), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
-			else:
-				body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
-			return self._text_props(df, body)
+			if align in ("center", "right") and section.get("field_orientation") != "left-right":
+				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
+				return self._text_props(df, body)
+			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
+			return _aligned(self._text_props(df, body), align)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
@@ -1035,13 +1082,13 @@ class TypstEmitter:
 		if src in self._embedded:
 			return self._embedded[src]
 		data = self._read_site_file(src)
-		if data is None:
-			name = None
-		else:
-			suffix = src.split("?", 1)[0].rsplit(".", 1)[-1].lower()
-			if suffix not in ("png", "jpg", "jpeg", "svg", "gif", "webp"):
-				suffix = "png"
-			name = self._asset(suffix, data)
+		name = None
+		if data is not None:
+			kind = filetype.image_match(data)
+			if kind and kind.extension in ("png", "apng", "jpg", "gif", "webp"):
+				name = self._asset("png" if kind.extension == "apng" else kind.extension, data)
+			elif not kind and src.split("?", 1)[0].lower().endswith(".svg"):
+				name = self._asset("svg", data)
 		self._embedded[src] = name
 		return name
 
@@ -1076,6 +1123,16 @@ class TypstEmitter:
 		name = self._asset("svg", data)
 		width = self._dimension(df.get("width")) or "35mm"
 		return _aligned(f'#image("{name}", width: {width})', df.get("align"))
+
+	def _rating(self, df) -> str:
+		total = frappe.utils.cint(df.get("options")) or 5
+		filled = min(int(frappe.utils.flt(self.doc.get(df.get("fieldname"))) * total + 0.5), total)
+		stars = "".join(
+			f'<path transform="translate({24 * i})" fill="{color}" stroke="{color}" d="{RATING_STAR_PATH}"/>'
+			for i, color in enumerate(["#f6c35e"] * filled + ["#dce0e3"] * (total - filled))
+		)
+		svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {24 * total} 24">{stars}</svg>'
+		return f'#box(image("{self._asset("svg", svg.encode())}", height: 1.5em))'
 
 	def _repeater(self, df) -> str:
 		source = df.get("source")
@@ -1116,7 +1173,7 @@ class TypstEmitter:
 
 	# ── tables ──────────────────────────────────────────────────
 
-	def _table(self, df) -> str:
+	def _table(self, df, keep_together=False) -> str:
 		columns = df.get("table_columns") or []
 		if not columns:
 			return ""
@@ -1133,10 +1190,12 @@ class TypstEmitter:
 		header_cells = [
 			f"#text(weight: 600, size: 0.85em, {q(_(col.get('label') or ''))})" for col in columns
 		]
-		body_cells = []
-		for row in rows:
-			for col in columns:
-				body_cells.append(self._table_cell(row, col))
+		pages = [[]]
+		for i, row in enumerate(rows):
+			# Typst can't break a kept together section or the page header and footer, so a split there would only repeat the header
+			if i and row.get("page_break") and not keep_together:
+				pages.append([])
+			pages[-1] += [self._table_cell(row, col) for col in columns]
 
 		# table_header is a mode string, not a flag: "none" drops the header, "plain"
 		# keeps it without a fill (mirrors Table.html)
@@ -1163,9 +1222,17 @@ class TypstEmitter:
 			cells = ["table.header(" + ", ".join(f"[{cell}]" for cell in header_cells) + ")"]
 		else:
 			cells = []
-		cells += [f"[{cell}]" for cell in body_cells]
-		table = "table(" + ", ".join(parts) + ",\n" + ",\n".join(cells)
-		return self._block_label(df) + self._min_height(df, table, len(columns), stroke == rule)
+		tables = [
+			"table(" + ", ".join(parts) + ",\n" + ",\n".join(cells + [f"[{cell}]" for cell in page])
+			for page in pages
+		]
+		# Typst won't start a new page inside a section; a column break does, as the page has one column
+		earlier_pages = "".join(f"#{table})\n#colbreak()\n" for table in tables[:-1])
+		return (
+			self._block_label(df)
+			+ earlier_pages
+			+ self._min_height(df, tables[-1], len(columns), stroke == rule)
+		)
 
 	@staticmethod
 	def _min_height(df, table: str, ncols: int, bordered: bool) -> str:

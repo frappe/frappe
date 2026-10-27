@@ -18,6 +18,7 @@
   "custom_format",
   "disabled",
   "pdf_generator",
+  "paper_size",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -323,6 +324,14 @@
    "options": "wkhtmltopdf\nchrome\nTypst\nWeasyPrint"
   },
   {
+   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing && doc.pdf_generator === 'chrome'",
+   "description": "Empty uses the size in Print Settings. A receipt size prints one page as tall as the content.",
+   "fieldname": "paper_size",
+   "fieldtype": "Select",
+   "label": "Paper Size",
+   "options": "\nA4\nA5\nA3\nLetter\nLegal\nReceipt 80 mm\nReceipt 58 mm"
+  },
+  {
    "default": "DocType",
    "fieldname": "print_format_for",
    "fieldtype": "Select",
@@ -352,7 +361,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-14 12:00:00.000000",
+ "modified": "2026-10-26 12:30:00.000000",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

@@ -67,6 +67,7 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
+		paper_size: DF.Literal["", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm"]
 		pdf_generator: DF.Literal["wkhtmltopdf", "chrome", "Typst", "WeasyPrint"]
 		preview_image: DF.AttachImage | None
 		print_format_builder: DF.Check
@@ -166,11 +167,12 @@ class PrintFormat(Document):
 
 	def extract_images(self):
 		from frappe.core.doctype.file.utils import extract_images_from_html
+		from frappe.printing.doctype.print_format.classic_converter import is_classic_layout
 
 		if self.print_format_builder_beta:
 			return
 
-		if self.format_data:
+		if is_classic_layout(self.format_data):
 			data = json.loads(self.format_data)
 			for df in data:
 				if df.get("fieldtype") and df["fieldtype"] in ("HTML", "Custom HTML") and df.get("options"):

@@ -433,7 +433,7 @@ def remove_app(app_name, dry_run=False, yes=False, no_backup=False, force=False)
 			return
 
 	# Don't allow uninstalling if we have dependent apps installed
-	for app in frappe.get_installed_apps():
+	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		if app != app_name and is_required_by(app_name, app):
 			click.secho(f"App {app_name} is a dependency of {app}. Uninstall {app} first.", fg="yellow")
 			return

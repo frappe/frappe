@@ -20,6 +20,74 @@ def blank_pdf() -> bytes:
 	return stream.getvalue()
 
 
+def record_print(**kwargs):
+	pass
+
+
+def pdf_with_document_level_js() -> bytes:
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	writer.add_js("app.alert('hello from pdf');")
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def pdf_with_page_level_js() -> bytes:
+	from pypdf import PdfWriter
+	from pypdf.generic import DictionaryObject, NameObject, TextStringObject
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	action = DictionaryObject(
+		{
+			NameObject("/S"): NameObject("/JavaScript"),
+			NameObject("/JS"): TextStringObject("app.alert('hello from page');"),
+		}
+	)
+	writer.pages[0][NameObject("/AA")] = DictionaryObject({NameObject("/O"): writer._add_object(action)})
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def encrypted_pdf_with_js() -> bytes:
+	from pypdf import PdfWriter
+
+	writer = PdfWriter()
+	writer.add_blank_page(width=72, height=72)
+	writer.add_js("app.alert('hello from encrypted');")
+	writer.encrypt("frappe")
+	stream = io.BytesIO()
+	writer.write(stream)
+	return stream.getvalue()
+
+
+def js_reachable_without_resolving_indirects(content: bytes) -> bool:
+	reader = PdfReader(io.BytesIO(content))
+
+	def walk(obj):
+		if isinstance(obj, dict):
+			for key, value in obj.items():
+				if key == "/Parent":
+					continue
+				if key in ("/JS", "/JavaScript"):
+					return True
+				if walk(value):
+					return True
+		elif isinstance(obj, list):
+			for item in obj:
+				if walk(item):
+					return True
+		return False
+
+	if walk(reader.trailer.get("/Root", {})):
+		return True
+	return any(walk(page) for page in reader.pages)
+
+
 class TestPdf(IntegrationTestCase):
 	@property
 	def html(self):
@@ -86,6 +154,172 @@ class TestPdf(IntegrationTestCase):
 		reader = PdfReader(io.BytesIO(pdf))
 		self.assertTrue(reader.is_encrypted)
 		self.assertTrue(reader.decrypt(password))
+
+	def test_links_are_clickable_where_they_print_with_header_and_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_chrome_pdf(
+			print_format=None,
+			html='<div id="header-html"><a href="https://example.com/brochure">Brochure</a></div>'
+			'<a href="https://example.com/manual">Manual</a>'
+			'<div id="footer-html"><b>BOTTOM</b></div>',
+			options={},
+			output=None,
+			pdf_generator="chrome",
+		)
+		page = PdfReader(io.BytesIO(pdf)).pages[0]
+		baselines = {}
+
+		def record_baseline(text, cm, tm, *_):
+			baselines[text.strip()] = tm[4] * cm[1] + tm[5] * cm[3] + cm[5]
+
+		page.extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(page["/Annots"]), 2)
+		for annotation in page["/Annots"]:
+			annotation = annotation.get_object()
+			text = annotation["/A"]["/URI"].rsplit("/", 1)[1].title()
+			_, bottom, _, top = annotation["/Rect"]
+			self.assertGreaterEqual(baselines[text], bottom, text)
+			self.assertLessEqual(baselines[text], top, text)
+
+	def test_bulk_pdf_by_doctype_skips_a_deleted_document(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+		task_id = frappe.generate_hash()
+
+		_download_multi_pdf({"ToDo": [todo.name, deleted.name]}, "ToDo", task_id=task_id)
+
+		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
+		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
+
+	def test_pages_merged_with_header_and_footer_are_compressed(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_chrome_pdf(
+			None,
+			'<div id="header-html"><b>TOP</b></div><p>body text</p><div id="footer-html"><b>BOTTOM</b></div>',
+			{},
+			None,
+			pdf_generator="chrome",
+		)
+		contents = PdfReader(io.BytesIO(pdf)).pages[0]["/Contents"]
+		self.assertEqual(contents.get("/Filter"), "/FlateDecode")
+
+	def test_footer_is_measured_at_the_width_it_prints(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		block = '<span style="display: inline-block; width: 380px; height: 40px"></span>'
+		footer = (
+			f'<div id="footer-html">{block}{block}'
+			'<p>Page <span class="page"></span> of <span class="topage"></span></p></div>'
+		)
+		pdf = pdfgen.get_chrome_pdf(None, "<p>row</p>" * 120 + footer, {}, None, pdf_generator="chrome")
+		pages = PdfReader(io.BytesIO(pdf)).pages
+		self.assertGreater(len(pages), 1)
+		for number, page in enumerate(pages, start=1):
+			self.assertIn(f"Page {number} of {len(pages)}", page.extract_text())
+
+	def _builder_format(self):
+		import json
+
+		layout = {
+			"sections": [
+				{
+					"label": "Details",
+					"columns": [
+						{
+							"label": "",
+							"fields": [
+								{"fieldtype": "Data", "fieldname": "description", "label": "Description"}
+							],
+						}
+					],
+				}
+			],
+			"header": {"columns": [{"label": "", "fields": []}]},
+			"footer": {"columns": [{"label": "", "fields": []}]},
+		}
+		print_format = frappe.get_doc(
+			{
+				"doctype": "Print Format",
+				"name": f"_Test Print Hook {frappe.generate_hash(length=6)}",
+				"doc_type": "ToDo",
+				"print_format_builder_beta": 1,
+				"standard": "No",
+				"format_data": json.dumps(layout),
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(print_format.delete, ignore_permissions=True)
+		return print_format
+
+	def _assert_print_hook_and_access_log(self, print_with):
+		from unittest.mock import patch
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		print_format = self._builder_format()
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+			patch(
+				"frappe.utils.print_format_generator.PrintFormatGenerator.render_pdf",
+				return_value=blank_pdf(),
+			),
+		):
+			print_with(todo, print_format)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": print_format.name}])
+		self.assertTrue(
+			frappe.db.exists(
+				"Access Log", {"reference_document": todo.name, "page": f"Print Format: {print_format.name}"}
+			)
+		)
+
+	def test_emailed_builder_print_runs_the_hook_and_access_log(self):
+		self._assert_print_hook_and_access_log(
+			lambda todo, print_format: frappe.attach_print("ToDo", todo.name, print_format=print_format.name)
+		)
+
+	def test_bulk_builder_print_runs_the_hook_and_access_log(self):
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self._assert_print_hook_and_access_log(
+			lambda todo, print_format: _download_multi_pdf(
+				"ToDo", frappe.as_json([todo.name]), format=print_format.name
+			)
+		)
+
+	def test_bulk_pdf_lists_the_documents_it_could_not_print(self):
+		from unittest.mock import ANY, patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+
+		with patch.object(frappe, "publish_realtime") as publish_realtime:
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name, deleted.name]))
+
+		publish_realtime.assert_called_with(event="msgprint", message=ANY)
+		self.assertIn(deleted.name, publish_realtime.call_args.kwargs["message"].message[0])
 
 	def test_smart_shrinking_is_opt_in(self):
 		from unittest.mock import patch
@@ -180,3 +414,82 @@ class TestPdf(IntegrationTestCase):
 
 		# If image was actually retrieved then size will be  in few kbs, else bytes.
 		self.assertGreaterEqual(len(pdf), 10_000)
+
+	def test_pdf_contains_js_detects_document_level_js(self):
+		content = pdf_with_document_level_js()
+		self.assertFalse(js_reachable_without_resolving_indirects(content))
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_detects_page_level_js(self):
+		content = pdf_with_page_level_js()
+		self.assertFalse(js_reachable_without_resolving_indirects(content))
+		self.assertTrue(pdfgen.pdf_contains_js(content))
+
+	def test_pdf_contains_js_false_for_clean_pdf(self):
+		self.assertFalse(pdfgen.pdf_contains_js(blank_pdf()))
+
+	def test_pdf_contains_js_does_not_raise_on_encrypted_pdf(self):
+		self.assertFalse(pdfgen.pdf_contains_js(encrypted_pdf_with_js()))
+
+	def test_print_format_margin_without_a_length_is_ignored(self):
+		from types import SimpleNamespace
+
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.pdf_generator.browser import Browser
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = Browser.__new__(Browser)
+		browser.is_print_designer = False
+		browser.print_format = None
+		browser.options = {"page-size": "A4"}
+		browser.soup = BeautifulSoup("<style>.print-format { margin-left: auto; }</style>", "html5lib")
+		browser.body_page = SimpleNamespace(options={})
+		browser.header_page = browser.footer_page = None
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["marginLeft"], 15 / 25.4, delta=0.01)
+
+	def test_landscape_orientation_swaps_paper_size(self):
+		from types import SimpleNamespace
+
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.pdf_generator.browser import Browser
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		for orientation in ("Landscape", "landscape"):
+			browser = Browser.__new__(Browser)
+			browser.is_print_designer = False
+			browser.print_format = None
+			browser.options = {"page-size": "A4", "orientation": orientation}
+			browser.soup = BeautifulSoup("", "html5lib")
+			browser.body_page = SimpleNamespace(options={})
+			browser.header_page = browser.footer_page = None
+			browser.prepare_options_for_pdf()
+
+			self.assertAlmostEqual(browser.body_page.options["paperWidth"], 11.69, delta=0.05)
+			self.assertAlmostEqual(browser.body_page.options["paperHeight"], 8.27, delta=0.05)
+
+	def test_b5_page_size_is_portrait(self):
+		from types import SimpleNamespace
+
+		from bs4 import BeautifulSoup
+
+		from frappe.utils.pdf_generator.browser import Browser
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		browser = Browser.__new__(Browser)
+		browser.is_print_designer = False
+		browser.print_format = None
+		browser.options = {"page-size": "B5"}
+		browser.soup = BeautifulSoup("", "html5lib")
+		browser.body_page = SimpleNamespace(options={})
+		browser.header_page = browser.footer_page = None
+		browser.prepare_options_for_pdf()
+
+		self.assertAlmostEqual(browser.body_page.options["paperWidth"], 6.93, delta=0.05)
+		self.assertAlmostEqual(browser.body_page.options["paperHeight"], 9.84, delta=0.05)

@@ -347,6 +347,28 @@ def page_size_mm(print_settings) -> tuple[float, float]:
 BACKGROUND_IMAGE_URL = re.compile(r"(/|https?://)[^\r\n]+")
 
 
+PAGE_NUMBER_ALIGN = {
+	"top_left": "left",
+	"top_center": "center",
+	"top_right": "right",
+	"bottom_left": "left",
+	"bottom_center": "center",
+	"bottom_right": "right",
+}
+
+
+def page_number_html(position: str) -> str:
+	"""Page X of Y markup that the Chrome renderer fills in per page."""
+	align = PAGE_NUMBER_ALIGN.get(position, "center")
+	return (
+		f'<div style="text-align:{align};font-size:10px;padding:2px 0;">'
+		'<span class="page"></span>'
+		f" {_('of')} "
+		'<span class="topage"></span>'
+		"</div>"
+	)
+
+
 def layout_page_settings(layout: dict | list | None) -> dict:
 	"""The paper size and orientation a builder layout saves, as Print Settings keys."""
 	page = layout.get("page") if isinstance(layout, dict) else None
@@ -399,14 +421,6 @@ class PrintFormatGenerator:
 
 	_TOP_POSITIONS: ClassVar[set[str]] = {"top_left", "top_center", "top_right"}
 	_BOTTOM_POSITIONS: ClassVar[set[str]] = {"bottom_left", "bottom_center", "bottom_right"}
-	_ALIGN_MAP: ClassVar[dict[str, str]] = {
-		"top_left": "left",
-		"top_center": "center",
-		"top_right": "right",
-		"bottom_left": "left",
-		"bottom_center": "center",
-		"bottom_right": "right",
-	}
 	_FIELD_RENDERERS: ClassVar[dict[str, str]] = {"HTML Editor": "HTML", "Markdown Editor": "Markdown"}
 	JUSTIFY_MODES: ClassVar[frozenset[str]] = frozenset(
 		{"space-between", "space-evenly", "center", "right-end"}
@@ -459,7 +473,7 @@ class PrintFormatGenerator:
 		# a stale link shouldn't fail the render — templates degrade to no letter head too
 		if not name or not frappe.db.exists("Letter Head", name):
 			return None
-		return frappe.get_doc("Letter Head", name)
+		return frappe.get_cached_doc("Letter Head", name)
 
 	def format_page_settings(self) -> dict:
 		try:
@@ -494,7 +508,7 @@ class PrintFormatGenerator:
 		body_width = page_width - self.print_format.margin_left - self.print_format.margin_right
 		style_name = self.style or self.print_settings.print_style
 		print_style = (
-			frappe.get_doc("Print Style", style_name)
+			frappe.get_cached_doc("Print Style", style_name)
 			if style_name and frappe.db.exists("Print Style", {"name": style_name, "disabled": 0})
 			else None
 		)
@@ -682,6 +696,7 @@ class PrintFormatGenerator:
 
 		import typst
 
+		from frappe.utils.pdf import encrypt_pdf
 		from frappe.utils.typst_emitter import (
 			TypstEmitter,
 			ensure_typst_fonts,
@@ -699,8 +714,6 @@ class PrintFormatGenerator:
 				_("This format can no longer render through Typst: {0}").format(", ".join(blockers)),
 				title=_("Typst renderer unavailable"),
 			)
-		if password:
-			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
 		ensure_typst_fonts(self.print_format.get("font"))
 		emitter = TypstEmitter(self)
@@ -747,7 +760,10 @@ class PrintFormatGenerator:
 			write_assets(assets)
 			# root pins file access to the tempdir — matters once formats can
 			# carry raw Typst markup (Typst blocks)
-			return typst.compile(path, root=tmp, font_paths=typst_font_paths())
+			pdf = typst.compile(path, root=tmp, font_paths=typst_font_paths())
+		if password:
+			pdf = encrypt_pdf(pdf, password)
+		return pdf
 
 	def _build_html_for_chrome(self):
 		"""Build the body HTML for the Chrome PDF pipeline.
@@ -884,14 +900,7 @@ class PrintFormatGenerator:
 		return html.strip()
 
 	def _page_number_html(self, position: str) -> str:
-		align = self._ALIGN_MAP.get(position, "center")
-		return (
-			f'<div style="text-align:{align};font-size:10px;padding:2px 0;">'
-			'<span class="page"></span>'
-			f" {_('of')} "
-			'<span class="topage"></span>'
-			"</div>"
-		)
+		return page_number_html(position)
 
 	EMPTY_LAYOUT: ClassVar[dict] = {
 		"sections": [],

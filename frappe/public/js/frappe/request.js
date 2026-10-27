@@ -447,8 +447,6 @@ frappe.request.cleanup = function (opts, r) {
 		$(opts.btn).prop("disabled", false);
 	}
 
-	$("body").attr("data-ajax-state", "complete");
-
 	// un-freeze page
 	if (opts.freeze) frappe.dom.unfreeze();
 
@@ -685,6 +683,7 @@ $(document).ajaxSend(function () {
 $(document).ajaxComplete(function () {
 	frappe.request.ajax_count--;
 	if (!frappe.request.ajax_count) {
+		$("body").attr("data-ajax-state", "complete");
 		$.each(frappe.request.waiting_for_ajax || [], function (i, fn) {
 			fn();
 		});
