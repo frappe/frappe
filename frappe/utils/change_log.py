@@ -107,7 +107,7 @@ def get_versions():
 	"""Get versions of all installed apps.
 =======
 def get_versions(include_disabled: bool = False):
-	frappe.permissions.validate_system_user()
+	frappe.permissions.validate_desk_user()
 	return get_app_versions(include_disabled)
 
 
