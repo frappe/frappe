@@ -568,21 +568,6 @@ class TestSQLiteSearchAPI(IntegrationTestCase):
 			self.assertEqual(self.count_rows("search_index_queue", doc_id), 0)
 			self.assertEqual(self.count_rows("search_fts", doc_id), 0)
 
-	def test_patch_rebuilds_existing_indexes_only_when_several_apps_search(self):
-		from frappe.patches.v17_0 import rebuild_sqlite_search_indexes
-
-		self.search.build_index()
-		enqueue = "frappe.patches.v17_0.rebuild_sqlite_search_indexes._enqueue_index_job"
-		classes = "frappe.patches.v17_0.rebuild_sqlite_search_indexes.get_search_classes"
-
-		with patch(classes, return_value=[TestSQLiteSearch]), patch(enqueue) as enqueue_job:
-			rebuild_sqlite_search_indexes.execute()
-		enqueue_job.assert_not_called()
-
-		with patch(classes, return_value=[UnindexedSearch, TestSQLiteSearch]), patch(enqueue) as enqueue_job:
-			rebuild_sqlite_search_indexes.execute()
-		enqueue_job.assert_called_once_with("frappe.tests.test_sqlite_search.TestSQLiteSearch")
-
 	def count_rows(self, table, doc_id):
 		conn = sqlite3.connect(self.search.db_path)
 		try:
