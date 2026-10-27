@@ -412,7 +412,6 @@ describe("the list surface", () => {
     expect(root.querySelector("header [data-favourite]")).toBeNull();
     expect(listActNames()).not.toContain("list.favourite");
 
-    // The next visit reads again, and the star comes back.
     vi.mocked(fetch).mockImplementation(real);
     for (const app of apps.splice(0)) app.unmount();
     const again = await mount();
