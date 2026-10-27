@@ -3,7 +3,7 @@
 		<!-- row metrics and typography mirror ThoughtStep exactly: when this block
 		     merges into a tool group it swaps components without moving a pixel -->
 		<button
-			class="group flex w-full cursor-pointer items-baseline gap-2.5 py-2.5 text-left"
+			class="group flex w-full cursor-pointer items-baseline gap-2.5 py-2 text-left md:py-2.5"
 			@click="open = !open"
 		>
 			<!-- leading slot doubles as the disclosure control (see ToolStep) -->

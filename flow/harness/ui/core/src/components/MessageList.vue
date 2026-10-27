@@ -123,12 +123,12 @@
 
 			<!-- Before the first streamed block (or during retry/compaction), no
 			     transcript item owns the live status, so render one fallback line.
-			     py-2.5 keeps it on the same rhythm as the rows that replace it; after
+			     Its padding keeps it on the same rhythm as the rows that replace it; after
 			     a thinking block the thread gap collapses too, so the status sits
 			     exactly where the upcoming tool row will render. -->
 			<div
 				v-if="showStandaloneStatus"
-				class="py-2.5 text-base font-medium"
+				class="py-2 text-base font-medium md:py-2.5"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
 				<span class="flow-shimmer">{{ liveLabel }}</span>
