@@ -202,7 +202,7 @@ import {
 	saveRecord,
 	type LoadedRecord,
 } from "./record/recordSource";
-import { mergeRefetch, same } from "./record/refetchMerge";
+import { mergeRefetch, same, sameContent } from "./record/refetchMerge";
 import { recallView, viewKeeper, type RecordView } from "./record/viewMemory";
 import { Visit } from "./record/visit";
 import { landOffsets, readOffsets } from "./record/viewScroll";
@@ -259,7 +259,7 @@ let releaseFresh = () => {};
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
 const docname = computed(() => String(route.params.name));
 
-const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
+const dirty = computed(() => !sameContent(doc.value, saved.value));
 
 watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRows(created)));
 

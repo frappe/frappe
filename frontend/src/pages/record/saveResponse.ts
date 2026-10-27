@@ -3,6 +3,7 @@
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 import type { Confirm } from "./discardChanges";
+import { sameContent } from "./refetchMerge";
 
 /** The name a save rejected for a conflict throws under; the dialog has already told the reader. */
 export const SAVE_CONFLICT = "SaveConflict";
@@ -33,7 +34,7 @@ export function changedFields(
 ): string[] {
   const changed = new Set(
     [...Object.keys(doc), ...Object.keys(saved)].filter(
-      (key) => !key.startsWith("_") && JSON.stringify(doc[key]) !== JSON.stringify(saved[key]),
+      (key) => !key.startsWith("_") && !sameContent(doc[key], saved[key]),
     ),
   );
   const labelled: string[] = [];

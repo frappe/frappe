@@ -31,6 +31,11 @@ function pane(...blocks: SettingsBlock[]): SettingsPane {
 	return { app: "frappe", key: "system", label: "System", blocks };
 }
 
+/** A child row as Frappe sends it, stamped by the last save of its parent. */
+function rule(value: string, modified: string) {
+	return { name: "r1", parentfield: "rules", rule: value, modified, modified_by: "admin@example.com" };
+}
+
 let server: SettingsServer;
 const confirm = vi.fn();
 
@@ -231,6 +236,52 @@ describe("a conflict with a save made elsewhere", () => {
 		});
 		expect(general.draft.state.marks.country).toBe("saved");
 		expect(general.draft.state.saved.time_zone).toBe("Asia/Tokyo");
+	});
+
+	it("sends a table edit again when the other save only restamped the table's rows", async () => {
+		server.put("System Settings", "System Settings", { rules: [rule("old", "2026-10-01 10:00:00")] });
+		const drafts = await opened(block("rules", "button", ["rules"]));
+		const rules = drafts.bound.get("rules")!;
+		server.put("System Settings", "System Settings", {
+			time_zone: "Asia/Tokyo",
+			rules: [rule("old", "2026-10-01 11:00:00")],
+		});
+
+		rules.draft.edit("rules", [rule("new", "2026-10-01 10:00:00")]);
+		await drafts.saveButtons();
+		await settled();
+
+		expect(confirm).not.toHaveBeenCalled();
+		expect(server.doc("System Settings", "System Settings").rules).toMatchObject([{ rule: "new" }]);
+		expect(rules.draft.dirty("rules")).toBe(false);
+	});
+
+	it("saves a table edit kept over a Reload without asking, when the other save left the table alone", async () => {
+		server.put("System Settings", "System Settings", { rules: [rule("old", "2026-10-01 10:00:00")] });
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("rules", "button", ["rules"])
+		);
+		const general = drafts.bound.get("general")!;
+		const rules = drafts.bound.get("rules")!;
+		rules.draft.edit("rules", [rule("new", "2026-10-01 10:00:00")]);
+		server.put("System Settings", "System Settings", {
+			country: "Spain",
+			rules: [rule("old", "2026-10-01 11:00:00")],
+		});
+		confirm.mockResolvedValue(true);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		await drafts.saveButtons();
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			rules: [{ rule: "new" }],
+		});
 	});
 
 	it("asks the record page's question when the other save touched a field this save sends", async () => {

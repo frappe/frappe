@@ -1,9 +1,13 @@
 // A background re-read merged into the draft: untouched fields follow the server, touched ones stay the reader's.
 import { describe, expect, it } from "vitest";
-import { mergeRefetch } from "../refetchMerge";
+import { mergeRefetch, sameContent } from "../refetchMerge";
 
 const OLD = "2026-09-25 10:00:00.000000";
 const NEW = "2026-09-25 11:00:00.000000";
+
+function row(qty: number, modified: string) {
+	return { name: "r1", parentfield: "items", qty, modified, modified_by: "ada" };
+}
 
 function draft(saved: Record<string, any>, edits: Record<string, any> = {}) {
 	return { saved, doc: { ...JSON.parse(JSON.stringify(saved)), ...edits } };
@@ -51,6 +55,28 @@ describe("mergeRefetch", () => {
 		expect(merged.doc.modified).toBe(OLD);
 	});
 
+	it("does not count rows another save only restamped as a change to an edited table", () => {
+		const current = draft(
+			{ name: "D-1", modified: OLD, status: "Open", items: [row(1, OLD)] },
+			{ items: [row(5, OLD)] }
+		);
+		const fresh = { name: "D-1", modified: NEW, status: "Won", items: [row(1, NEW)] };
+
+		const merged = mergeRefetch(current, fresh);
+
+		expect(merged.saved).toEqual(fresh);
+		expect(merged.doc).toEqual({ ...fresh, items: [row(5, OLD)] });
+	});
+
+	it("still counts a restamped row whose content another save also changed", () => {
+		const current = draft({ name: "D-1", modified: OLD, items: [row(1, OLD)] }, { items: [row(5, OLD)] });
+
+		const merged = mergeRefetch(current, { name: "D-1", modified: NEW, items: [row(9, NEW)] });
+
+		expect(merged.doc.items).toEqual([row(5, OLD)]);
+		expect(merged.doc.modified).toBe(OLD);
+	});
+
 	it("keeps a field the reader added and drops one the server no longer sends", () => {
 		const current = draft({ name: "D-1", modified: OLD, gone: "x" }, { added: "mine" });
 
@@ -74,5 +100,17 @@ describe("mergeRefetch", () => {
 		const merged = mergeRefetch(current, { name: "D-1", modified: OLD, status: "Open" });
 
 		expect(merged).toEqual(current);
+	});
+});
+
+describe("sameContent", () => {
+	it("ignores the stamps on a child row, at any depth of the document", () => {
+		expect(sameContent({ modified: OLD, items: [row(1, OLD)] }, { modified: OLD, items: [row(1, NEW)] })).toBe(true);
+		expect(sameContent({ modified: OLD, items: [row(1, OLD)] }, { modified: NEW, items: [row(1, OLD)] })).toBe(false);
+	});
+
+	it("keeps the stamps of a value that is not a child row, such as a list in a JSON field", () => {
+		const entry = (owner: string) => ({ owner, note: "x" });
+		expect(sameContent({ log: [entry("a@example.com")] }, { log: [entry("b@example.com")] })).toBe(false);
 	});
 });
