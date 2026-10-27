@@ -12,6 +12,7 @@ vi.mock("frappe-ui", async (importOriginal) => {
   const real = (await importOriginal()) as Record<string, unknown>;
   return {
     ...real,
+    ...(await import("../../Grid/tests/menuStubs")),
     Dialog: defineComponent({
       props: { open: { type: Boolean, default: false } },
       emits: ["update:open"],
@@ -110,10 +111,10 @@ function render(
   return { rows, emitted, committed };
 }
 
-/** The per-row edit button lives in the frozen right-hand column. */
+/** Edit sits in each row's menu, in the frozen right-hand column. */
 function openRow(index: number) {
-  const buttons = host!.querySelectorAll<HTMLElement>('.sticky.right-0 button[aria-label="Edit Row"]');
-  buttons[index].dispatchEvent(new Event("click"));
+  const items = host!.querySelectorAll<HTMLElement>('.sticky.right-0 [data-menu-item="Edit"]');
+  items[index].dispatchEvent(new Event("click"));
   // The dialog's FormLayout is an async component (module-cycle break), so the
   // dynamic import has to settle before its fields are in the DOM.
   return flush();

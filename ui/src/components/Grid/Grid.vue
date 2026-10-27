@@ -91,111 +91,114 @@
 					</div>
 
 					<!-- Rows -->
-					<Draggable
-						v-if="rows.length"
-						:modelValue="rows"
-						:item-key="keyOf"
-						:disabled="disabled"
-						handle=".grid-drag-handle"
-						tag="div"
-						@update:modelValue="reorder"
-					>
-						<template #item="{ element: row, index: rowIndex }">
-							<div
-								class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-base"
-								:class="{ 'cursor-pointer': disabled }"
-								:data-name="row.name || row[ROW_ID]"
-								:data-idx="rowIndex + 1"
-								:style="{
-									gridTemplateColumns: templateColumns,
-									minWidth: gridMinWidth,
-								}"
-								@click="onRowClick(row, rowIndex)"
+					<ContextMenu v-if="rows.length" :options="contextMenu">
+						<div>
+							<Draggable
+								:modelValue="rows"
+								:item-key="keyOf"
+								:disabled="disabled"
+								handle=".grid-drag-handle"
+								tag="div"
+								@update:modelValue="reorder"
 							>
-								<div
-									v-if="!disabled"
-									class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base"
-									:style="{ left: '0' }"
-								>
-									<Checkbox
-										:modelValue="isSelected(row)"
-										:aria-label="`Select row ${rowIndex + 1}`"
-										@update:modelValue="
-											(checked: unknown) => setRow(row, checked as boolean)
-										"
-									/>
-								</div>
-								<div
-									class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base py-2 text-sm text-ink-gray-7"
-									:class="{ 'grid-drag-handle cursor-grab': !disabled }"
-									:style="{ left: numberColLeft }"
-									:title="disabled ? undefined : 'Drag to reorder'"
-								>
-									{{ rowIndex + 1 }}
-								</div>
-								<Tooltip v-for="(col, i) in columns" :key="col.fieldname">
+								<template #item="{ element: row, index: rowIndex }">
 									<div
-										class="grid-cell flex min-w-0 items-stretch"
-										:data-fieldname="col.fieldname"
-										:data-fieldtype="col.fieldtype"
-										:data-invalid="
-											cellErrorLines(row, col).length ? '' : undefined
-										"
-										:class="[
-											alignClass(col.align),
-											{
-												'border-r border-outline-gray-2':
-													i < columns.length - 1,
-											},
-										]"
+										class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-base"
+										:class="{ 'cursor-pointer': disabled }"
+										:data-name="row.name || row[ROW_ID]"
+										:data-idx="rowIndex + 1"
+										:style="{
+											gridTemplateColumns: templateColumns,
+											minWidth: gridMinWidth,
+										}"
+										@click="onRowClick(row, rowIndex)"
+										@contextmenu="contextRowIndex = rowIndex"
 									>
-										<slot
-											name="cell"
-											:row="row"
-											:column="col"
-											:index="rowIndex"
-											:value="row[col.fieldname]"
-											:update="(v: any) => updateCell(rowIndex, col, v)"
-											:commit="(v: any) => commitCell(rowIndex, col, v)"
-										>
-											<span
-												class="truncate px-2 py-1 text-sm text-ink-gray-7"
-											>
-												{{ row[col.fieldname] }}
-											</span>
-										</slot>
-									</div>
-									<template v-if="cellErrorLines(row, col).length" #content>
 										<div
-											v-for="(line, n) in cellErrorLines(row, col)"
-											:key="n"
+											v-if="!disabled"
+											class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base"
+											:style="{ left: '0' }"
 										>
-											{{ line }}
+											<Checkbox
+												:modelValue="isSelected(row)"
+												:aria-label="`Select row ${rowIndex + 1}`"
+												@update:modelValue="
+													(checked: unknown) =>
+														setRow(row, checked as boolean)
+												"
+											/>
 										</div>
-									</template>
-								</Tooltip>
-								<div
-									class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
-									:style="{ right: '0' }"
-								>
-									<Button
-										variant="ghost"
-										icon="lucide-square-pen"
-										:tooltip="'Edit Row'"
-										:aria-label="'Edit Row'"
-										@click="emit('edit', { row, index: rowIndex })"
-									/>
-									<Dropdown v-if="canAddRows" :options="rowMenu(row, rowIndex)">
-										<Button
-											variant="ghost"
-											icon="lucide-ellipsis"
-											:aria-label="__('Row Actions')"
-										/>
-									</Dropdown>
-								</div>
-							</div>
-						</template>
-					</Draggable>
+										<div
+											class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base py-2 text-sm text-ink-gray-7"
+											:class="{ 'grid-drag-handle cursor-grab': !disabled }"
+											:style="{ left: numberColLeft }"
+											:title="disabled ? undefined : 'Drag to reorder'"
+										>
+											{{ rowIndex + 1 }}
+										</div>
+										<Tooltip v-for="(col, i) in columns" :key="col.fieldname">
+											<div
+												class="grid-cell flex min-w-0 items-stretch"
+												:data-fieldname="col.fieldname"
+												:data-fieldtype="col.fieldtype"
+												:data-invalid="
+													cellErrorLines(row, col).length
+														? ''
+														: undefined
+												"
+												:class="[
+													alignClass(col.align),
+													{
+														'border-r border-outline-gray-2':
+															i < columns.length - 1,
+													},
+												]"
+											>
+												<slot
+													name="cell"
+													:row="row"
+													:column="col"
+													:index="rowIndex"
+													:value="row[col.fieldname]"
+													:update="(v: any) => updateCell(rowIndex, col, v)"
+													:commit="(v: any) => commitCell(rowIndex, col, v)"
+												>
+													<span
+														class="truncate px-2 py-1 text-sm text-ink-gray-7"
+													>
+														{{ row[col.fieldname] }}
+													</span>
+												</slot>
+											</div>
+											<template
+												v-if="cellErrorLines(row, col).length"
+												#content
+											>
+												<div
+													v-for="(line, n) in cellErrorLines(row, col)"
+													:key="n"
+												>
+													{{ line }}
+												</div>
+											</template>
+										</Tooltip>
+										<div
+											class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
+											:style="{ right: '0' }"
+										>
+											<Dropdown :options="rowMenu(row, rowIndex)">
+												<Button
+													variant="ghost"
+													icon="lucide-ellipsis"
+													:aria-label="__('Row Actions')"
+												/>
+											</Dropdown>
+										</div>
+									</div>
+								</template>
+							</Draggable>
+						</div>
+					</ContextMenu>
 				</div>
 
 				<!-- Scroll shadows: full-height strips pinned just inside the frozen
@@ -208,7 +211,7 @@
 				<div
 					class="grid-scroll-shadow grid-scroll-shadow-right"
 					:class="{ 'is-visible': canScrollRight }"
-					:style="{ right: endColWidth }"
+					:style="{ right: SIDE_COL_WIDTH }"
 				/>
 			</div>
 
@@ -251,7 +254,7 @@
 
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Button, Checkbox, Dropdown, Tooltip } from "frappe-ui";
+import { Button, Checkbox, ContextMenu, Dropdown, Tooltip } from "frappe-ui";
 import {
 	InputLabel,
 	InputDescription,
@@ -320,26 +323,24 @@ watch(
 // Header and rows are one css grid spanning every column, so there's no flex seam.
 // A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
 // once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
-const FIXED_COL = "2.5rem"; // checkbox / `#` — matches `w-10`
+const FIXED_COL = "2.5rem"; // checkbox / `#` / row menu — matches `w-10`
 const canAddRows = computed(
 	() => !props.disabled && !props.cannotAddRows && props.columns.length > 0
 );
-const endColRem = computed(() => (canAddRows.value ? 4 : 2.5));
-const endColWidth = computed(() => `${endColRem.value}rem`);
 const templateColumns = computed(() => {
 	const fields = colWidths.value.map((w) =>
 		w == null ? `minmax(${FLEX_COL_MIN}px, 1fr)` : `${w}px`
 	);
 	const lead = props.disabled ? [FIXED_COL] : [FIXED_COL, FIXED_COL]; // (checkbox) + `#`
-	return [...lead, ...fields, endColWidth.value].join(" "); // + edit (and row menu)
+	return [...lead, ...fields, FIXED_COL].join(" "); // + row menu
 });
 
 // Floor the grid box at the sum of every track's minimum, so the row/header
 // backgrounds span the full content when the columns overflow.
 const gridMinWidth = computed(() => {
-	const leadCount = props.disabled ? 1 : 2;
+	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + row menu
 	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? FLEX_COL_MIN), 0);
-	return `calc(${leadCount * 2.5 + endColRem.value}rem + ${fieldPx}px)`;
+	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
 });
 
 // Sticky offset for the `#` column: after the checkbox column when selection is on,
@@ -504,8 +505,16 @@ function insertRow(index: number, row = freshRow()): boolean {
 	return true;
 }
 
+// Without `canAddRows` only Edit is left, as v1's row form drops its insert buttons.
 function rowMenu(row: Record<string, any>, index: number) {
+	const edit = {
+		label: __("Edit"),
+		icon: "lucide-square-pen",
+		onClick: () => emit("edit", { row, index }),
+	};
+	if (!canAddRows.value) return [edit];
 	return [
+		edit,
 		{ label: __("Insert Above"), icon: "lucide-arrow-up", onClick: () => insertRow(index) },
 		{
 			label: __("Insert Below"),
@@ -519,6 +528,15 @@ function rowMenu(row: Record<string, any>, index: number) {
 		},
 	];
 }
+
+// One context menu serves every row; the row under the pointer sets its items
+// before reka's trigger, on the wrapper, opens it.
+const contextRowIndex = ref<number | null>(null);
+const contextMenu = computed(() => {
+	const index = contextRowIndex.value;
+	const row = index == null ? undefined : rows.value[index];
+	return row ? rowMenu(row, index!) : [];
+});
 
 // Capture phase: an arrow must move cells before a closed picker opens on it.
 function onCellKeydown(e: KeyboardEvent) {
@@ -599,8 +617,8 @@ function cellErrorLines(row: Record<string, any>, column: T): string[] {
 }
 
 // In a read-only grid a row click opens the dialog (a cell's content is inert,
-// so the click reaches the row). Editable grids keep inline editing — only the edit
-// button opens the dialog there.
+// so the click reaches the row). Editable grids keep inline editing — only the row
+// menu's Edit opens the dialog there.
 function onRowClick(row: Record<string, any>, index: number) {
 	if (props.disabled) emit("edit", { row, index });
 }
