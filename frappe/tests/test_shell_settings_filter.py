@@ -36,6 +36,7 @@ WEBSITE_USER = "settings-website@example.com"
 SESSION_USER = {"binding_type": "Record", "document_type": "User", "name_resolver": "session_user"}
 APP_GATE = "frappe.shell.settings_filter.has_app_permission"
 APP_SCREEN = "frappe.shell.settings.app_screen"
+PROFILE_BLOCKS = ["photo", "details", "locale", "appearance", "notifications", "email", "session-defaults"]
 OWN_RECORD = {"binding_type": "Record", "document_type": RECORD, "name_resolver": "session_user"}
 
 
@@ -102,6 +103,25 @@ def visible(user: str = READER, gate=None) -> dict:
 		return get_panes()
 
 
+def ship_desk_panes():
+	"""Desk's shipped `Settings Dialog` record, as a migrate imports it."""
+	from frappe.modules.import_file import import_file_by_path
+
+	import_file_by_path(frappe.get_app_path("frappe", "settings_dialog", "frappe", "frappe.json"), force=True)
+	return frappe.get_doc("Settings Dialog", "frappe")
+
+
+def desk_blocks(user: str) -> dict[str, list[str]]:
+	"""Each of desk's panes this user may see, with its blocks."""
+	with set_user(user):
+		reply = get_panes()
+	return {
+		pane["key"]: [block["key"] for block in pane["blocks"]]
+		for pane in reply["panes"]
+		if pane["app"] == "frappe"
+	}
+
+
 def entered(app: str) -> bool:
 	"""`has_app_permission` for the test apps, which are never installed and so have no hooks."""
 	return default_app_permission() if app in (HOST, EXTENDER) else has_app_permission(app)
@@ -118,6 +138,11 @@ def blocks_of(reply: dict) -> dict[str, list[str]]:
 		for pane in reply["panes"]
 		if pane["app"] == HOST
 	}
+
+
+def titles_of_test_apps(reply: dict) -> dict[str, str]:
+	"""The titles of the test apps, without frappe's, whose shipped panes every user may see."""
+	return {app: title for app, title in reply["titles"].items() if app in (HOST, EXTENDER)}
 
 
 def block_named(reply: dict, key: str) -> dict:
@@ -301,13 +326,14 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			)
 
 		reply = visible()
+		entries = [entry for entry in reply["index"] if entry["app"] == HOST]
 
 		self.assertEqual(
 			indexed(reply),
 			[("general", "mine", "alpha"), ("general", "mine", "beta"), ("general", "theme", "Dark mode")],
 		)
-		self.assertEqual(reply["index"][0]["description"], "The first")
-		self.assertEqual(reply["index"][2]["keywords"], ["theme"])
+		self.assertEqual(entries[0]["description"], "The first")
+		self.assertEqual(entries[2]["keywords"], ["theme"])
 		self.assertNotIn("settings", block_named(reply, "theme"))
 
 	def test_the_reply_names_the_title_of_each_app_it_holds_a_pane_of(self):
@@ -315,8 +341,43 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			ship(["general"], [single("mine", doctype=SINGLE)])
 			ship(["calls"], [single("system", pane="calls")], app=EXTENDER)
 
-		self.assertEqual(visible()["titles"], {HOST: "Acme App"})
-		self.assertEqual(visible(AUTHOR)["titles"], {HOST: "Acme App", EXTENDER: "Telephony App"})
+		self.assertEqual(titles_of_test_apps(visible()), {HOST: "Acme App"})
+		self.assertEqual(titles_of_test_apps(visible(AUTHOR)), {HOST: "Acme App", EXTENDER: "Telephony App"})
+
+	# Desk's own panes
+
+	def test_a_system_manager_sees_desks_profile_and_system_panes(self):
+		ship_desk_panes()
+
+		self.assertEqual(
+			desk_blocks(AUTHOR),
+			{
+				"profile": PROFILE_BLOCKS,
+				"system": ["regional", "login", "password", "two-factor", "email", "files"],
+			},
+		)
+
+	def test_a_system_user_sees_desks_profile_pane_and_not_system(self):
+		ship_desk_panes()
+
+		self.assertEqual(desk_blocks(READER), {"profile": PROFILE_BLOCKS})
+
+	def test_every_field_a_desk_block_names_is_on_its_doctype(self):
+		record = ship_desk_panes()
+
+		for block in record.blocks:
+			if not block.fields:
+				continue
+			meta = frappe.get_meta(block.document_type)
+			missing = [field for field in json.loads(block.fields) if not meta.has_field(field)]
+			with self.subTest(block=block.key):
+				self.assertEqual(missing, [])
+
+	def test_desks_shipped_record_passes_its_own_checks(self):
+		record = ship_desk_panes()
+
+		with authoring():
+			record.run_method("validate")
 
 	# The cache and the gate
 

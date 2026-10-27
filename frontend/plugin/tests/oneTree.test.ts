@@ -181,6 +181,40 @@ describe("a package an app declares", () => {
   });
 });
 
+describe("the framework's own module source", () => {
+  const frontend = fileURLToPath(new URL("../..", import.meta.url));
+  const frappeSource = mkdtempSync(join(tmpdir(), "one-tree-frappe-"));
+  const settingsFile = join(frappeSource, "theme.vue");
+  writeFileSync(settingsFile, "");
+  let server: ViteDevServer;
+
+  beforeAll(async () => {
+    server = await createServer({
+      configFile: false,
+      root: frontend,
+      logLevel: "silent",
+      plugins: [
+        oneTree([{ app: "frappe", source_dir: frappeSource, runtime_deps: { "frappe-ui": "*" } }]),
+      ],
+      resolve: { preserveSymlinks: true },
+      server: { middlewareMode: true, hmr: false, watch: null },
+      optimizeDeps: { noDiscovery: true, include: [] },
+    });
+  });
+
+  afterAll(async () => {
+    await server?.close();
+    rmSync(frappeSource, { recursive: true });
+  });
+
+  it("resolves frappe's declared packages from the shell, as an app's", async () => {
+    const resolveFrom = async (importer: string) =>
+      (await server.environments.client.pluginContainer.resolveId("frappe-ui", importer))?.id;
+
+    expect(await resolveFrom(settingsFile)).toBe(await resolveFrom(`${frontend}src/main.ts`));
+  });
+});
+
 describe("the linked ui in the dev server", () => {
   // The bench's layout: ui outside the root, linked into node_modules.
   const root = realpathSync(mkdtempSync(join(tmpdir(), "one-tree-ui-")));

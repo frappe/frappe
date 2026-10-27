@@ -1,0 +1,161 @@
+{
+ "app": "frappe",
+ "blocks": [
+  {
+   "binding_type": "",
+   "bindings": "{\"user\": {\"type\": \"Record\", \"doctype\": \"User\", \"resolver\": \"session_user\"}}",
+   "component": "profile-photo",
+   "key": "photo",
+   "name_resolver": "",
+   "pane": "profile",
+   "save_mode": "auto",
+   "settings": "[{\"label\": \"Photo\", \"keywords\": [\"avatar\", \"picture\", \"image\"]}]"
+  },
+  {
+   "binding_type": "Record",
+   "document_type": "User",
+   "fields": "[\"first_name\", \"middle_name\", \"last_name\", \"username\"]",
+   "key": "details",
+   "name_resolver": "session_user",
+   "pane": "profile",
+   "save_mode": "auto"
+  },
+  {
+   "binding_type": "",
+   "bindings": "{\"user\": {\"type\": \"Record\", \"doctype\": \"User\", \"resolver\": \"session_user\"}}",
+   "component": "language-and-time-zone",
+   "key": "locale",
+   "label": "Language and time zone",
+   "name_resolver": "",
+   "pane": "profile",
+   "save_mode": "auto",
+   "settings": "[{\"label\": \"Language\"}, {\"label\": \"Time Zone\", \"keywords\": [\"timezone\"]}]"
+  },
+  {
+   "binding_type": "",
+   "component": "theme",
+   "key": "appearance",
+   "label": "Appearance",
+   "name_resolver": "",
+   "pane": "profile",
+   "save_mode": "auto",
+   "settings": "[{\"label\": \"Theme\", \"keywords\": [\"dark mode\", \"light mode\", \"color scheme\"]}]"
+  },
+  {
+   "binding_type": "Record",
+   "document_type": "User",
+   "fields": "[\"document_follow_notify\", \"document_follow_frequency\", \"thread_notify\"]",
+   "key": "notifications",
+   "label": "Notifications",
+   "name_resolver": "session_user",
+   "pane": "profile",
+   "save_mode": "auto"
+  },
+  {
+   "binding_type": "Record",
+   "document_type": "User",
+   "fields": "[\"email_signature\"]",
+   "key": "email",
+   "label": "Email",
+   "name_resolver": "session_user",
+   "pane": "profile",
+   "save_mode": "auto"
+  },
+  {
+   "binding_type": "",
+   "component": "session-defaults",
+   "description": "Values new records start with, until you log out.",
+   "key": "session-defaults",
+   "label": "Session defaults",
+   "name_resolver": "",
+   "pane": "profile",
+   "save_mode": "auto",
+   "settings": "[{\"label\": \"Session defaults\", \"keywords\": [\"default company\", \"defaults\"]}]"
+  },
+  {
+   "binding_type": "Single",
+   "document_type": "System Settings",
+   "fields": "[\"country\", \"language\", \"currency\", \"date_format\", \"time_format\", \"number_format\", \"use_number_format_from_currency\", \"first_day_of_the_week\", \"float_precision\", \"currency_precision\"]",
+   "key": "regional",
+   "label": "Region and formats",
+   "name_resolver": "",
+   "pane": "system",
+   "save_mode": "button"
+  },
+  {
+   "binding_type": "Single",
+   "document_type": "System Settings",
+   "fields": "[\"allow_login_using_user_name\", \"allow_login_using_mobile_number\", \"login_with_email_link\", \"login_with_email_link_expiry\", \"disable_user_pass_login\", \"session_expiry\", \"deny_multiple_sessions\", \"allow_consecutive_login_attempts\", \"allow_login_after_fail\"]",
+   "key": "login",
+   "label": "Login",
+   "name_resolver": "",
+   "pane": "system",
+   "save_mode": "button"
+  },
+  {
+   "binding_type": "Single",
+   "document_type": "System Settings",
+   "fields": "[\"enable_password_policy\", \"minimum_password_score\", \"force_user_to_reset_password\", \"reset_password_link_expiry_duration\", \"password_reset_limit\", \"logout_on_password_reset\"]",
+   "key": "password",
+   "label": "Password",
+   "name_resolver": "",
+   "pane": "system",
+   "save_mode": "button"
+  },
+  {
+   "binding_type": "Single",
+   "document_type": "System Settings",
+   "fields": "[\"enable_two_factor_auth\", \"two_factor_method\", \"otp_issuer_name\", \"otp_sms_template\", \"bypass_2fa_for_retricted_ip_users\", \"bypass_restrict_ip_check_if_2fa_enabled\"]",
+   "key": "two-factor",
+   "label": "Two-factor authentication",
+   "name_resolver": "",
+   "pane": "system",
+   "save_mode": "button"
+  },
+  {
+   "binding_type": "Single",
+   "document_type": "System Settings",
+   "fields": "[\"email_footer_address\", \"disable_standard_email_footer\", \"attach_view_link\", \"email_retry_limit\"]",
+   "key": "email",
+   "label": "Email",
+   "name_resolver": "",
+   "pane": "system",
+   "save_mode": "auto"
+  },
+  {
+   "binding_type": "Single",
+   "document_type": "System Settings",
+   "fields": "[\"max_file_size\", \"allowed_file_extensions\", \"only_allow_system_managers_to_upload_public_files\", \"strip_exif_metadata_from_uploaded_images\", \"allow_guests_to_upload_files\", \"allowed_doctypes_for_guest_uploads\"]",
+   "key": "files",
+   "label": "Files",
+   "name_resolver": "",
+   "pane": "system",
+   "save_mode": "button"
+  }
+ ],
+ "creation": "2026-10-27 02:31:38.625818",
+ "docstatus": 0,
+ "doctype": "Settings Dialog",
+ "extends": "",
+ "idx": 0,
+ "modified": "2026-10-27 02:31:38.625818",
+ "modified_by": "Administrator",
+ "name": "frappe",
+ "owner": "Administrator",
+ "panes": [
+  {
+   "description": "Your name, photo, language and notifications.",
+   "icon": "user",
+   "key": "profile",
+   "label": "Profile"
+  },
+  {
+   "description": "Site-wide formats, login rules and file limits.",
+   "icon": "settings",
+   "key": "system",
+   "label": "System"
+  }
+ ],
+ "standard": 1,
+ "user": ""
+}

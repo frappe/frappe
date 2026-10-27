@@ -211,14 +211,12 @@ function personItems(
 	host: ShellActsHost,
 	setColorScheme: (scheme: ColorScheme) => void
 ): ActItem<Shell>[] {
-	const user = host.boot.session.user.name;
 	return [
 		{
-			// Workaround: the settings dialog has no profile pane yet, so this opens v1's User form.
 			name: "my_settings",
 			label: __("My settings"),
 			icon: "lucide-circle-user",
-			run: () => leave(`/app/user/${encodeURIComponent(user)}`),
+			run: (shell) => shell.openSettings("desk", "profile"),
 		},
 		{
 			name: "theme",

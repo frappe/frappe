@@ -204,16 +204,23 @@ describe("the acts the shell holds", () => {
 });
 
 describe("each shell act, run by name", () => {
-	it("all_apps, my_settings and desk_v1 leave for their pages", async () => {
+	it("all_apps and desk_v1 leave for their pages", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 		await shell();
 
 		await acts.run("shell.all_apps");
 		expect(assign).toHaveBeenLastCalledWith("/apps");
-		await acts.run("shell.my_settings");
-		expect(assign).toHaveBeenLastCalledWith("/app/user/jane%40example.com");
 		await acts.run("shell.desk_v1");
 		expect(assign).toHaveBeenLastCalledWith("/app");
+	});
+
+	it("my_settings opens desk's Profile pane in place", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const { router } = await shell();
+		await acts.run("shell.my_settings");
+		await settle();
+		expect(router.currentRoute.value.hash).toBe("#settings/desk/profile");
+		expect(assign).not.toHaveBeenCalled();
 	});
 
 	it("customize_sidebar opens the rail's customize dialog", async () => {

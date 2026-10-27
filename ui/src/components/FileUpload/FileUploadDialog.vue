@@ -318,6 +318,7 @@ const props = withDefaults(defineProps<FileUploadDialogProps>(), {
 	multiple: false,
 	imageOnly: false,
 	crop: false,
+	isPrivate: true,
 	title: "Upload",
 	trayLabel: "Uploading files",
 });
@@ -351,6 +352,7 @@ const uploader = useUploader({
 	imageOnly: props.imageOnly,
 	folder: props.folder,
 	attachTo: props.attachTo,
+	isPrivate: props.isPrivate,
 });
 
 // ── the add-menu ───────────────────────────────────────────────────────────

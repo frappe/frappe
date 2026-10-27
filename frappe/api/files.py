@@ -7,6 +7,7 @@ one that hangs on a record; `DELETE .../attachments/<file>` removes it.
 import frappe
 from frappe import _
 from frappe.api.include import DOCUMENT_PARTS, USERS_PART, users_named_by
+from frappe.core.doctype.file.utils import can_upload_public_files
 from frappe.handler import upload_file
 from frappe.model.document import Document
 
@@ -42,6 +43,8 @@ def attach(doctype: str, name: str):
 	# `upload_file` reads the document it attaches to from the form, and checks `write` on it
 	frappe.form_dict["doctype"] = doctype
 	frappe.form_dict["docname"] = name
+	if frappe.get_meta(doctype).make_attachments_public:
+		frappe.form_dict["is_private"] = 0 if can_upload_public_files() else 1
 
 	created = upload()
 	if not created:
