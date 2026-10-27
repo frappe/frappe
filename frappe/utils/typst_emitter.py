@@ -527,7 +527,7 @@ class TypstEmitter:
 		lh_header = self._letterhead_image(lh, "header")
 		if lh_header:
 			self.header_src = "\n".join(p for p in (lh_header, self.header_src) if p)
-		parts = []
+		parts = [self._document_status()]
 		for s in self.layout.get("sections") or []:
 			body = self._section(s)
 			parts += [body, self._page_break(s, body)]
@@ -537,6 +537,18 @@ class TypstEmitter:
 		lh_footer = self._letterhead_image(lh, "footer")
 		if lh_footer:
 			self.footer_src = "\n".join(p for p in (self.footer_src, lh_footer) if p)
+
+	def _document_status(self) -> str:
+		print_settings = getattr(self.generator, "print_settings", None) or frappe.get_cached_doc(
+			"Print Settings"
+		)
+		if self.doc.meta.is_submittable and self.doc.docstatus == 0 and print_settings.add_draft_heading:
+			status = _("DRAFT")
+		elif self.doc.meta.is_submittable and self.doc.docstatus == 2:
+			status = _("CANCELLED")
+		else:
+			return ""
+		return f"#block(width: 100%, below: 5mm, align(center, text(size: 1.1em, weight: 500, {q(status)})))"
 
 	def _letterhead_image(self, lh, side) -> str:
 		if not lh:
@@ -712,8 +724,19 @@ class TypstEmitter:
 		grid = self._columns_grid(section, columns, rendered_columns)
 		body = grid
 		if section.get("label") and section.get("show_label") != "hide" and not zone:
-			label = f"#text(size: 0.9em, weight: 600, {q(_(section['label']))})"
-			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
+			label = f"#text(size: 1.1em, weight: 700, {q(_(section['label']))})"
+			if section.get("field_borders"):
+				pad = f"{pt(section.get('cell_padding'), 8)}pt"
+				color = safe_color(section.get("border_color")) or "#e2e2e2"
+				ruled = (
+					f'stroke: (bottom: 0.75pt + rgb("{color}")), inset: (bottom: {pad}), outset: (x: {pad})'
+				)
+				spacing = pad
+			else:
+				ruled = 'stroke: (bottom: 1.125pt + rgb("#e2e2e2")), inset: (bottom: 0.35em)'
+				spacing = "0.75em"
+			heading = f"#block(width: 100%, {ruled})[{label}]"
+			body = f"#stack(spacing: {spacing},\n[{heading}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
@@ -937,10 +960,10 @@ class TypstEmitter:
 		return self._data_field(section, df)
 
 	def _static_text(self, df) -> str:
-		text = (df.get("text") or "").strip()
+		text = (df.get("_text") if "_text" in df else _(df.get("text") or "")).strip()
 		if not text:
 			return ""
-		out = self._text_props(df, typst_escape(_(text)).replace("\n", " \\\n"))
+		out = self._text_props(df, typst_escape(text).replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out
@@ -1007,11 +1030,11 @@ class TypstEmitter:
 			if gap_pt is None:
 				gap = df.get("label_gap")
 				gap_pt = pt(gap) if gap else 4
-			if align in ("right",):
-				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
-			else:
-				body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
-			return self._text_props(df, body)
+			if align in ("center", "right") and section.get("field_orientation") != "left-right":
+				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
+				return self._text_props(df, body)
+			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
+			return _aligned(self._text_props(df, body), align)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")

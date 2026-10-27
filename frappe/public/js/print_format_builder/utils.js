@@ -654,6 +654,20 @@ export function get_image_dimensions(src) {
 }
 
 // Option lists shared by the inspectors
+export function text_field_paths(text, meta) {
+	return [...(text || "").matchAll(/\{([\w.]+)\}/g)]
+		.map((m) => m[1])
+		.filter((path) => {
+			const [fieldname, target] = path.split(".");
+			const df = meta?.fields?.find((f) => f.fieldname === fieldname);
+			if (!target) return !!df || fieldname === "name";
+			return (
+				df?.fieldtype === "Link" &&
+				!!frappe.get_meta(df.options)?.fields?.some((f) => f.fieldname === target)
+			);
+		});
+}
+
 export function value_field_opts(fields) {
 	return (fields || [])
 		.filter((f) => !frappe.model.no_value_type.includes(f.fieldtype))

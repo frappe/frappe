@@ -23,7 +23,11 @@
 				@click="toggleDiffLayout"
 			>
 				<template #icon>
-					<FeatherIcon :name="diffSplit ? 'align-justify' : 'columns'" class="h-4 w-4" />
+					<span
+						class="size-4"
+						:class="diffSplit ? 'lucide-align-justify' : 'lucide-columns-2'"
+						aria-hidden="true"
+					/>
 				</template>
 			</Button>
 			<Button
@@ -47,7 +51,7 @@
 				@click="explorerOpen = !explorerOpen"
 			>
 				<template #icon>
-					<FeatherIcon name="folder" class="h-4 w-4" />
+					<span class="lucide-folder size-4" aria-hidden="true" />
 				</template>
 			</Button>
 		</div>
@@ -59,7 +63,7 @@
 					v-if="!activeTab"
 					class="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center"
 				>
-					<FeatherIcon name="file-text" class="h-6 w-6 text-ink-gray-3" />
+					<span class="lucide-file-text size-6 text-ink-gray-3" aria-hidden="true" />
 					<span class="text-sm text-ink-gray-5">No file open</span>
 					<span class="text-xs leading-5 text-ink-gray-4">
 						{{
@@ -99,7 +103,6 @@
 import { computed, inject, onBeforeUnmount, ref, watch } from "vue"
 import Breadcrumbs from "frappe-ui/src/components/Breadcrumbs/Breadcrumbs.vue"
 import Button from "frappe-ui/src/components/Button/Button.vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { compactDisplayText } from "../transcript.js"
 import FilesBar from "./FilesBar.vue"

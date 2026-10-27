@@ -543,6 +543,7 @@ ignore_links_on_delete = [
 	"Sidebar",
 	"Custom Sidebar",
 	"Dock",
+	"Background Task",
 	# Flow keeps these as bookkeeping: an indexed doc, a trigger's target, a chat's model.
 	"Flow Knowledge Chunk",
 	"Flow Run",

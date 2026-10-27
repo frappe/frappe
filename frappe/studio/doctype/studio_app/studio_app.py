@@ -17,7 +17,7 @@ from frappe.studio.export import (
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import get_app_file_path, validate_installed_app, walk_blocks
+from frappe.studio.utils import get_app_file_path, get_export_folder, validate_installed_app, walk_blocks
 from frappe.utils import get_files_path
 from frappe.website.page_renderers.document_page import DocumentPage
 from frappe.website.utils import cleanup_page_name
@@ -563,7 +563,7 @@ class StudioApp(WebsiteGenerator):
 		return target
 
 	def get_folder_path(self, name: str | None = None, frappe_app: str | None = None):
-		return frappe.get_app_source_path(frappe_app or self.frappe_app, "studio", name or self.name)
+		return get_export_folder(frappe_app or self.frappe_app, name or self.name)
 
 
 def validate_app_name(name: str):

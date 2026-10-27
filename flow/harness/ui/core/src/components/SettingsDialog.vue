@@ -15,13 +15,13 @@
 						class="flex h-9 items-center gap-0.5 rounded-6 pl-1 pr-2.5 text-ink-gray-8 hover:bg-surface-gray-2"
 						@click="stepBack"
 					>
-						<FeatherIcon name="chevron-left" class="h-5 w-5" />
+						<span class="lucide-chevron-left size-5" aria-hidden="true" />
 						<DialogTitle as="span" class="text-base">{{ back ? sectionLabel : "Settings" }}</DialogTitle>
 					</button>
 					<DialogTitle v-else class="px-2 text-base font-semibold text-ink-gray-9">Settings</DialogTitle>
 					<span class="flex-1" />
 					<DialogClose class="grid h-9 w-9 place-items-center rounded-6 text-ink-gray-7 hover:bg-surface-gray-2" title="Close">
-						<FeatherIcon name="x" class="h-4 w-4" />
+						<span class="lucide-x size-4" aria-hidden="true" />
 					</DialogClose>
 				</header>
 				<div class="relative min-h-0 flex-1 overflow-hidden">
@@ -41,9 +41,16 @@
 									class="flex h-12 w-full items-center gap-3 rounded-7 px-3 text-left text-base text-ink-gray-9 hover:bg-surface-gray-2 active:bg-surface-gray-2"
 									@click="openSection(item.id)"
 								>
-									<FeatherIcon :name="item.icon" class="h-[18px] w-[18px] flex-none text-ink-gray-6" />
+									<span
+										class="h-[18px] w-[18px] flex-none text-ink-gray-6"
+										:class="item.icon"
+										aria-hidden="true"
+									/>
 									<span class="min-w-0 flex-1 truncate">{{ item.label }}</span>
-									<FeatherIcon name="chevron-right" class="h-4 w-4 flex-none text-ink-gray-4" />
+									<span
+										class="lucide-chevron-right size-4 flex-none text-ink-gray-4"
+										aria-hidden="true"
+									/>
 								</button>
 							</template>
 						</nav>
@@ -68,7 +75,11 @@
 				</template>
 				<SettingsNavItem v-for="item in group.tabs" :key="item.id" :value="item.id" class="text-xs">
 					<template #prefix>
-						<FeatherIcon :name="item.icon" class="h-4 w-4 text-ink-gray-6" />
+						<span
+							class="size-4 text-ink-gray-6"
+							:class="item.icon"
+							aria-hidden="true"
+						/>
 					</template>
 					{{ item.label }}
 				</SettingsNavItem>
@@ -97,7 +108,6 @@ import {
 	SettingsSidebar,
 } from "frappe-ui/src/components/SettingsDialog"
 import { dialogs } from "frappe-ui/src/utils/dialog"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { layout } from "../layout.js"
 import { provideSettingsBack } from "../settingsBack.js"

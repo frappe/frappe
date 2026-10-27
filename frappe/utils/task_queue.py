@@ -62,6 +62,7 @@ def enqueue_task(
 	doc.method = method_name
 	doc.arguments = arguments_json
 	doc.queue = queue
+	doc.timeout = timeout
 	doc.show_progress_bar = show_progress_bar
 	doc.allow_user_cancellation = allow_user_cancellation
 	doc.allow_user_retry = allow_user_retry

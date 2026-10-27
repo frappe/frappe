@@ -10,7 +10,7 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.jinja_globals import is_rtl
 
 
@@ -354,6 +354,8 @@ def get_page_size_mm(page: dict | str | None = None) -> tuple[float, float]:
 	return (height, width) if settings.get("page_orientation") == "Landscape" else (width, height)
 
 
+STATIC_TEXT_FIELD = re.compile(r"\{([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\}")
+
 MAX_CONDITIONS = 200
 
 
@@ -443,6 +445,15 @@ class PrintFormatGenerator:
 			layout = frappe.parse_json(self.print_format.format_data)
 		except ValueError:
 			return {}
+		if isinstance(layout, list):
+			pf = self.print_format
+			if pf.paper_size == "Custom" and pf.paper_width and pf.paper_height:
+				return {
+					"pdf_page_size": "Custom",
+					"pdf_page_width": pf.paper_width,
+					"pdf_page_height": pf.paper_height,
+				}
+			return layout_page_settings({"page": {"size": pf.paper_size}})
 		return layout_page_settings(layout)
 
 	def apply_page_overrides(self):
@@ -1086,6 +1097,7 @@ class PrintFormatGenerator:
 		df["section"] = section
 		self.prepare_barcode(df)
 		self.prepare_linked_field(df)
+		self.prepare_static_text(df)
 		self.prepare_date_format(df)
 		self.filter_conditional_rows(df)
 
@@ -1157,34 +1169,82 @@ class PrintFormatGenerator:
 		formatted value from the linked document."""
 		if df.get("fieldtype") != "Linked Field" or not df.get("link_path"):
 			return
-		path = df["link_path"]
-		if "." not in path:
+		resolved = self.resolve_linked_path(df["link_path"])
+		if resolved is None:
 			return
-		link_fieldname, target_fieldname = path.split(".", 1)
-		link_df = self.doc.meta.get_field(link_fieldname)
-		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
-			return
-		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
-			return
-		name = self.doc.get(link_fieldname)
-		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
-			return
-		target_meta = frappe.get_meta(link_df.options)
-		target_df = target_meta.get_field(target_fieldname)
-		if not target_df:
-			return
-		if target_df.permlevel:
-			target_doc = frappe.get_doc(link_df.options, name)
-			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
-				return
-		value = frappe.db.get_value(link_df.options, name, target_fieldname)
-		if value is None:
-			return
+		value, target_df = resolved
 		if target_df.fieldtype == "Attach Image":
 			df["renderer"] = "AttachImage"
 			df["_value"] = value
 			return
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
+
+	def resolve_linked_path(self, path):
+		"""The raw value and docfield behind link_field.target_field, or None when the
+		reader may not see it."""
+		if "." not in path:
+			return None
+		link_fieldname, target_fieldname = path.split(".", 1)
+		link_df = self.doc.meta.get_field(link_fieldname)
+		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
+			return None
+		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
+			return None
+		name = self.doc.get(link_fieldname)
+		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
+			return None
+		target_meta = frappe.get_meta(link_df.options)
+		target_df = target_meta.get_field(target_fieldname)
+		if not target_df:
+			return None
+		if target_df.permlevel:
+			target_doc = frappe.get_doc(link_df.options, name)
+			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
+				return None
+		value = frappe.db.get_value(link_df.options, name, target_fieldname)
+		if value is None:
+			return None
+		return value, target_df
+
+	def prepare_static_text(self, df):
+		"""Fill the {field} and {link_field.field} placeholders of a Static Text block."""
+		text = df.get("text") or ""
+		if df.get("fieldtype") != "Static Text" or "{" not in text:
+			return
+		lines = [STATIC_TEXT_FIELD.sub(self.static_text_value, _(line)) for line in text.split("\n")]
+		df["_text"] = "\n".join(lines)
+
+	def static_text_value(self, match) -> str:
+		from html import unescape
+
+		from frappe.utils import strip_html
+
+		path = match.group(1)
+		if "." in path:
+			link_fieldname, target_fieldname = path.split(".", 1)
+			link_df = self.doc.meta.get_field(link_fieldname)
+			if not link_df or link_df.fieldtype != "Link" or not link_df.options:
+				return match.group(0)
+			target_df = frappe.get_meta(link_df.options).get_field(target_fieldname)
+			if not target_df:
+				return match.group(0)
+			resolved = self.resolve_linked_path(path)
+			if not resolved:
+				return ""
+			value = frappe.format_value(resolved[0], df=resolved[1], doc=self.doc)
+			fieldtype = target_df.fieldtype
+		else:
+			field = self.doc.meta.get_field(path)
+			if not field and path != "name":
+				return match.group(0)
+			if field and not self.has_field_access(self.doc, self.doc.meta, path):
+				return ""
+			value = self.doc.get_formatted(path) if field else self.doc.name
+			fieldtype = field.fieldtype if field else "Data"
+		value = re.sub(r"<br\s*/?>|</(?:p|div|li)>", " ", cstr(value), flags=re.IGNORECASE)
+		if fieldtype in ("Text Editor", "HTML Editor", "Markdown Editor"):
+			value = unescape(strip_html(value))
+		return " ".join(value.split())
 
 	def prepare_date_format(self, df):
 		if (

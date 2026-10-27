@@ -212,6 +212,27 @@ class TestPdf(IntegrationTestCase):
 			self.assertGreaterEqual(baselines[text], bottom, text)
 			self.assertLessEqual(baselines[text], top, text)
 
+	def test_internal_link_lands_on_its_target_with_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<a href="#totals">See totals</a>'
+			+ "<p>row</p>" * 80
+			+ '<p id="totals">Totals</p><div id="footer-html"><p style="height: 150px">BOTTOM</p></div>'
+		)
+		reader = PdfReader(io.BytesIO(pdf))
+		page, _, _, top, _ = reader.pages[0]["/Annots"][0].get_object()["/Dest"]
+		baselines = []
+
+		def record_baseline(text, cm, tm, *_):
+			if text.strip() == "Totals":
+				baselines.append(tm[4] * cm[1] + tm[5] * cm[3] + cm[5])
+
+		reader.pages[reader.get_page_number(page.get_object())].extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(baselines), 1)
+		self.assertGreater(top, baselines[0])
+		self.assertLess(top, baselines[0] + 72)
+
 	def test_footer_is_measured_at_the_width_it_prints(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
