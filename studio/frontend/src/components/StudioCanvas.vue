@@ -97,7 +97,7 @@
 		</div>
 
 		<div
-			class="text-sm-semibold fixed bottom-12 left-[50%] z-40 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
+			class="text-sm-semibold fixed bottom-12 left-[50%] z-20 flex translate-x-[-50%] cursor-default items-center justify-center gap-2 rounded-6 bg-surface-base px-3 py-2 text-center text-ink-gray-5 shadow-md"
 			v-show="!canvasProps.panning"
 		>
 			{{ Math.round(canvasProps.scale * 100) + "%" }}
@@ -106,7 +106,7 @@
 			</div>
 		</div>
 		<!-- the corner the viewer pill uses, so the control does not move between edit and view -->
-		<div class="absolute bottom-12 right-6 z-40" v-show="!canvasProps.panning">
+		<div class="absolute bottom-12 right-6 z-20" v-show="!canvasProps.panning">
 			<VariantsEditorPill :suspended="canvasProps.scaling || canvasProps.panning" />
 		</div>
 
