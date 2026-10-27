@@ -215,6 +215,7 @@ describe("Assign to…", () => {
         { value: "john@example.com", label: "john@example.com", description: "John Parker" },
         { value: "sarah@example.com", label: "sarah@example.com", description: "Sarah Connor" },
         { value: "bot@example.com", label: "bot@example.com" },
+        { value: "ann@example.com", label: "Ann Lee" },
       ],
     });
     const emily = { id: "emily@example.com", name: "Emily Chen" };
@@ -232,6 +233,7 @@ describe("Assign to…", () => {
         disabled: "Assigned",
       },
       { value: "bot@example.com", label: "bot@example.com", image: null },
+      { value: "ann@example.com", label: "Ann Lee", description: "ann@example.com", image: null },
       {
         value: "emily@example.com",
         label: "Emily Chen",

@@ -1,5 +1,6 @@
 // `header.assign`, the `⋯` menu's "Assign to…": its argument step lists users, the assigned ones marked.
 import type { ActOption } from "@/acts/dispatcher";
+import { __ } from "@/i18n";
 import type { HeaderItem, RecordPageApi } from "@/recordPage";
 import type { Person } from "./panel/people";
 import { findUsers } from "./panel/remoteSearch";
@@ -13,14 +14,14 @@ export interface AssignState {
 export function assignItem(state: AssignState): HeaderItem {
   return {
     name: "assign",
-    label: "Assign to…",
+    label: __("Assign to…"),
     icon: "lucide-user-plus",
     group: "assign_band",
     argument: {
-      label: "Users",
+      label: __("Users"),
       options: (_page: RecordPageApi, query: string) => assignOptions(state.assignees, query),
     },
-    run: (page, user?: string) => (user ? state.assign(page, user) : page.toast.error("Pick a user to assign")),
+    run: (page, user?: string) => (user ? state.assign(page, user) : page.toast.error(__("Pick a user to assign"))),
   };
 }
 
@@ -28,15 +29,20 @@ export function assignItem(state: AssignState): HeaderItem {
 export async function assignOptions(assignees: Person[], query: string): Promise<ActOption[]> {
   const found = await findUsers(query);
   const assigned = new Map(assignees.map((person) => [person.id, person]));
-  const options = found.map(({ value, description }) => userOption(value, description || value, assigned.get(value)));
+  const options = found.map((row) => userOption(row.value, nameOf(row), assigned.get(row.value)));
   const listed = new Set(found.map(({ value }) => value));
   for (const person of assignees) if (!listed.has(person.id)) options.push(userOption(person.id, person.name, person));
   return options;
 }
 
+// With User's title shown in link fields, the search puts the full name in `label` and drops `description`.
+function nameOf({ value, label, description }: { value: string; label?: string; description?: string }) {
+  return label && label !== value ? label : description || value;
+}
+
 function userOption(user: string, name: string, assignee?: Person): ActOption {
   const option: ActOption = { value: user, label: name, image: assignee?.image ?? null };
   if (name !== user) option.description = user;
-  if (assignee) option.disabled = "Assigned";
+  if (assignee) option.disabled = __("Assigned");
   return option;
 }

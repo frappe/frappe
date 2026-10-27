@@ -74,6 +74,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  paletteOpen.value = false;
+  paletteArgument.value = null;
   for (const controller of controllers.splice(0)) controller.leave();
   vi.restoreAllMocks();
 });
@@ -320,8 +322,6 @@ describe("an act the reader asks for", () => {
 
     await controller.perform("header.assign", "sarah@example.com");
     expect(run).toHaveBeenCalledExactlyOnceWith(expect.anything(), "sarah@example.com");
-    paletteOpen.value = false;
-    paletteArgument.value = null;
   });
 });
 
