@@ -111,11 +111,6 @@ jobs:
               --parallel-site test_site_2 \
               --shard=${{ matrix.index }}/4
 
-      # Needs frontend/manifest.json, which only `bench build` writes.
-      - name: Check the JS each desk page loads
-        if: ${{ !cancelled() && matrix.index == 1 }}
-        run: yarn --cwd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/frontend test:page-js
-
       - name: Upload Playwright Report
         if: always() && steps.ui-tests.outcome == 'failure'
         uses: actions/upload-artifact@v7

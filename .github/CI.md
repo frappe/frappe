@@ -36,6 +36,8 @@ You can add a label any time. Adding `fixes-develop` or `run-full-ci` restarts y
 
 Pull requests into develop and desk-v2 run only the linters. Develop and desk-v2 run the server and UI test suites every hour. To run them on your pull request, add one of the labels above.
 
+A desk-v2 pull request that changes `frontend/` or `ui/` also runs the server suite, because server tests such as `frappe/tests/test_shell.py` read those files.
+
 ## Settings
 
 - How often develop is tested: the `cron` at the top of `.github/workflows/develop-status.yml`.
