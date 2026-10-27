@@ -158,7 +158,7 @@ class TestStudioPage(IntegrationTestCase):
 					{
 						"componentId": "Variants-hero",
 						"componentName": "Variants",
-						"componentProps": {"name": "Hero", "options": ["A", "B"]},
+						"componentProps": {"name": "Hero"},
 						"children": [
 							{"componentId": "option-a", "componentName": "container", "children": []},
 							{"componentId": "option-b", "componentName": "container", "children": []},

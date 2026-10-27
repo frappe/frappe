@@ -9,7 +9,6 @@ from frappe.exceptions import TimestampMismatchError
 from frappe.model.document import Document
 from frappe.model.naming import append_number_if_name_exists
 from frappe.studio.doctype.studio_component.studio_component import (
-	extract_component_names,
 	get_components_for_blocks,
 	mark_components_standard,
 )
@@ -29,8 +28,8 @@ from frappe.studio.export import (
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import camel_case_to_kebab_case, validate_file_name
-from frappe.utils import get_datetime
+from frappe.studio.utils import camel_case_to_kebab_case, has_page_write_perm, validate_file_name, walk_blocks
+from frappe.utils import cint, get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.
@@ -382,15 +381,12 @@ class StudioPage(Document):
 		blocks = parse_json(self.blocks) or []
 		if not blocks:
 			return []
-		roots = [blocks[0]]
-		for component_name in used_component_names(blocks[0]):
-			component_block = parse_json(frappe.db.get_value("Studio Component", component_name, "block"))
-			if component_block:
-				roots.append(component_block)
+		trees = [blocks, *(parse_json(component["block"]) for component in get_components_for_blocks(blocks))]
 		return [
 			(block.get("componentProps") or {}).get("name") or "Variant"
-			for root in roots
-			for block in collect_variants_blocks(root)
+			for tree in trees
+			for block in walk_blocks(tree)
+			if block.get("componentName") == "Variants"
 		]
 
 	@frappe.whitelist()
@@ -471,18 +467,19 @@ def get_blocks(page) -> list[dict]:
 
 
 @frappe.whitelist()
+@has_page_write_perm()
 def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int) -> None:
 	"""Collapse a Variants block to its chosen child and delete the other options — the viewer
 	pill's "Keep". Applied to every copy of the block (draft and published), so what the
 	reviewer sees is what remains."""
-	frappe.has_permission("Studio Page", ptype="write", throw=True)
-	page = get_app_page(app_name, page_name)
-	option_index = frappe.utils.cint(option_index)
+	# get_app_page serves the cached doc; the write goes through its own copy
+	page = frappe.get_doc("Studio Page", get_app_page(app_name, page_name).name)
+	option_index = cint(option_index)
 
 	kept = False
 	for field in ("draft_blocks", "blocks"):
 		blocks = parse_json(page.get(field)) or []
-		if blocks and replace_variants_block(blocks[0], str(block_id), option_index):
+		if blocks and replace_variants_block(blocks, str(block_id), option_index):
 			page.set(field, frappe.as_json(blocks, indent=None))
 			kept = True
 	if kept:
@@ -495,71 +492,39 @@ def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int
 def keep_component_variant(page: "StudioPage", block_id: str, option_index: int) -> bool:
 	"""The block can live inside a studio component the page uses; keeping it edits the
 	component, so every instance on every page follows."""
-	names = set()
-	for field in ("draft_blocks", "blocks"):
-		blocks = parse_json(page.get(field)) or []
-		if blocks:
-			names |= used_component_names(blocks[0])
-	for component_name in names:
-		component = frappe.get_doc("Studio Component", component_name)
-		component_block = parse_json(component.block)
-		if component_block and replace_variants_block(component_block, block_id, option_index):
-			component.block = frappe.as_json(component_block, indent=None)
-			component.save()
-			if page.is_standard:
-				page.export_components()
-			return True
+	for component in get_components_for_blocks(get_blocks(page)):
+		block = parse_json(component["block"])
+		if not block or not replace_variants_block(block, block_id, option_index):
+			continue
+		component_doc = frappe.get_doc("Studio Component", component["name"])
+		component_doc.block = frappe.as_json(block, indent=None)
+		component_doc.save()
+		if page.is_standard:
+			page.export_components()
+		return True
 	return False
 
 
-def used_component_names(block: dict) -> set[str]:
-	"""Names of every studio component under a block, nested component references included."""
-	names = extract_component_names(block)
-	pending = names
-	while pending:
-		rows = frappe.get_all(
-			"Studio Component", filters={"name": ["in", list(pending)]}, fields=["name", "block"]
-		)
-		pending = set()
-		for row in rows:
-			nested = extract_component_names(parse_json(row.block) or []) - names
-			names |= nested
-			pending |= nested
-	return names
-
-
-def replace_variants_block(block: dict, block_id: str, option_index: int) -> bool:
-	"""Swap the matching Variants child for its chosen option, anywhere in the tree."""
-	for children in child_lists(block):
-		for index, child in enumerate(children):
-			if (
-				isinstance(child, dict)
-				and child.get("componentName") == "Variants"
-				and child.get("componentId") == block_id
-			):
+def replace_variants_block(blocks, block_id: str, option_index: int) -> bool:
+	"""Swap the matching Variants block for its chosen option, anywhere in the tree."""
+	for parent in walk_blocks(blocks):
+		for children in child_lists(parent):
+			for index, child in enumerate(children):
+				if not isinstance(child, dict) or child.get("componentId") != block_id:
+					continue
+				if child.get("componentName") != "Variants":
+					continue
 				options = child.get("children") or []
 				if not options:
 					return False
 				kept = options[min(option_index, len(options) - 1)]
-				if isinstance(kept, dict):
-					# the block leaves the set, so it is no longer an option of anything
-					kept.pop("variantOptionName", None)
+				if not isinstance(kept, dict):
+					return False
+				# the block leaves the set, so it is no longer an option of anything
+				kept.pop("variantOptionName", None)
 				children[index] = kept
 				return True
-			if isinstance(child, dict) and replace_variants_block(child, block_id, option_index):
-				return True
 	return False
-
-
-def collect_variants_blocks(block: dict):
-	"""Every Variants block under a block, depth first."""
-	for children in child_lists(block):
-		for child in children:
-			if not isinstance(child, dict):
-				continue
-			if child.get("componentName") == "Variants":
-				yield child
-			yield from collect_variants_blocks(child)
 
 
 def child_lists(block: dict):
