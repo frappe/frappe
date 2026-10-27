@@ -51,6 +51,30 @@ describe("mergeRefetch", () => {
 		expect(merged.doc.modified).toBe(OLD);
 	});
 
+	it("does not count rows another save only restamped as a change to an edited table", () => {
+		const row = (qty: number, modified: string) => ({ name: "r1", qty, modified, modified_by: "ada" });
+		const current = draft(
+			{ name: "D-1", modified: OLD, status: "Open", items: [row(1, OLD)] },
+			{ items: [row(5, OLD)] }
+		);
+		const fresh = { name: "D-1", modified: NEW, status: "Won", items: [row(1, NEW)] };
+
+		const merged = mergeRefetch(current, fresh);
+
+		expect(merged.saved).toEqual(fresh);
+		expect(merged.doc).toEqual({ ...fresh, items: [row(5, OLD)] });
+	});
+
+	it("still counts a restamped row whose content another save also changed", () => {
+		const row = (qty: number, modified: string) => ({ name: "r1", qty, modified, modified_by: "ada" });
+		const current = draft({ name: "D-1", modified: OLD, items: [row(1, OLD)] }, { items: [row(5, OLD)] });
+
+		const merged = mergeRefetch(current, { name: "D-1", modified: NEW, items: [row(9, NEW)] });
+
+		expect(merged.doc.items).toEqual([row(5, OLD)]);
+		expect(merged.doc.modified).toBe(OLD);
+	});
+
 	it("keeps a field the reader added and drops one the server no longer sends", () => {
 		const current = draft({ name: "D-1", modified: OLD, gone: "x" }, { added: "mine" });
 

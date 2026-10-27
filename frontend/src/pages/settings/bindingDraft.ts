@@ -17,7 +17,7 @@ import { FieldErrors } from "@/recordPage";
 import { runAfterSave } from "@/afterSave";
 import type { Confirm } from "../record/discardChanges";
 import { awaitMeta } from "../record/metaSource";
-import { mergeRefetch, same } from "../record/refetchMerge";
+import { mergeRefetch, sameField } from "../record/refetchMerge";
 import { changedFields, confirmConflict, stripTags } from "../record/saveResponse";
 
 export type RowMark = "saving" | "saved" | "error";
@@ -64,7 +64,7 @@ export class BindingDraft {
 	}
 
 	dirty(fieldname: string): boolean {
-		return !same(this.state.doc[fieldname], this.state.saved[fieldname]);
+		return !sameField(this.state.doc[fieldname], this.state.saved[fieldname]);
 	}
 
 	/** Changed fields no save holds: a `button` block's edits, or an autosave that failed. */
@@ -73,7 +73,7 @@ export class BindingDraft {
 			(fieldname) =>
 				!this.queued.has(fieldname) &&
 				(this.sending.has(fieldname)
-					? !same(this.sending.get(fieldname), this.state.doc[fieldname])
+					? !sameField(this.sending.get(fieldname), this.state.doc[fieldname])
 					: this.dirty(fieldname))
 		);
 	}
@@ -209,9 +209,9 @@ export class BindingDraft {
 		const fresh = latest.data;
 		const users = latest.users as Record<string, { full_name?: string }> | undefined;
 		const touched = (fieldname: string) =>
-			this.stale.has(fieldname) || !same(fresh[fieldname], this.state.saved[fieldname]);
+			this.stale.has(fieldname) || !sameField(fresh[fieldname], this.state.saved[fieldname]);
 		const conflicting = fieldnames.filter(
-			(fieldname) => touched(fieldname) && !same(this.state.doc[fieldname], fresh[fieldname])
+			(fieldname) => touched(fieldname) && !sameField(this.state.doc[fieldname], fresh[fieldname])
 		);
 		if (!conflicting.length) {
 			if (refusal && fresh.modified === this.state.saved.modified) return this.refuse(fieldnames, refusal);

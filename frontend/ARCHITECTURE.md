@@ -389,7 +389,7 @@ component group, with its main names.
 | Return-visit parts | *New.* Which record parts a return visit needs before it paints from memory |
 | Record source | The load, the parts re-read, the save, and a cached read |
 | Meta source (`awaitMeta`) | The doctype meta as one promise or its current value |
-| Refetch merge | Merges a background re-read into the draft the reader is editing |
+| Refetch merge (`sameField`) | Merges a background re-read into the draft the reader is editing. `sameField` is the one field-value comparison it and the settings drafts use: a child table's rows are compared without the stamps any save of the parent rewrites |
 | Save conflict (`SaveConflict`, `confirmConflict`) | The error when someone else saved first, the fields the reader would lose, and the question the record page and the settings blocks ask |
 | Save code errors (`SaveCodeErrors`, `codeErrorsError`, `shownInDialog`, `codeErrorFrames`, `CodeErrorFrame`, `CodeErrorsDialog`) | *New.* A save the server refused because a Code field's text does not compile. One dialog lists each error with the lines around it, and the Code field marks them until the next save |
 | Live scripts | Re-runs the page's scripts when a stored script of its doctype changes |

@@ -12,15 +12,32 @@ export function mergeRefetch({ doc, saved }: Draft, fresh: Record<string, any>):
 	const merged: Draft = { saved: { ...fresh }, doc: JSON.parse(JSON.stringify(fresh)) };
 	let overlap = false;
 	for (const field of new Set([...Object.keys(saved), ...Object.keys(doc)])) {
-		if (same(doc[field], saved[field])) continue;
+		if (sameField(doc[field], saved[field])) continue;
 		merged.doc[field] = doc[field];
-		if (!same(fresh[field], saved[field])) overlap = true;
+		if (!sameField(fresh[field], saved[field])) overlap = true;
 	}
 	if (overlap) merged.saved.modified = merged.doc.modified = saved.modified;
 	return merged;
 }
 
-/** Equal by content; a child table is one value, so any change to its rows is a change. */
+/** Equal by content, row stamps included. */
 export function same(one: unknown, other: unknown) {
 	return JSON.stringify(one) === JSON.stringify(other);
+}
+
+/** Equal as field values; a child table is one value, its rows compared without their stamps. */
+export function sameField(one: unknown, other: unknown) {
+	return same(withoutRowStamps(one), withoutRowStamps(other));
+}
+
+// Bookkeeping that any save of the parent restamps on every row; never a reader's edit.
+const ROW_STAMPS = new Set(["modified", "modified_by", "creation", "owner"]);
+
+function withoutRowStamps(value: unknown) {
+	if (!Array.isArray(value)) return value;
+	return value.map((row) =>
+		row && typeof row === "object" && !Array.isArray(row)
+			? Object.fromEntries(Object.entries(row).filter(([key]) => !ROW_STAMPS.has(key)))
+			: row
+	);
 }
