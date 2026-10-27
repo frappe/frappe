@@ -26,6 +26,7 @@ from flow_harness.session.subagents import _child_inputs
 from flow_harness.session.transcript import Transcript
 from flow_harness.tools import ToolContext, ToolResult, select_tools, tool
 from flow_harness.tools.builtins.subagent import subagent
+from flow_harness.tools.bundled.suggest_replies import suggest_replies
 
 
 class ScriptedModel(MockModel):
@@ -96,7 +97,7 @@ async def _until(check):
 
 
 async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
-	session, events = _session(tmp_path)
+	session, events = _session(tmp_path, tools=[*SessionConfig().tools, "suggest_replies"])
 	model = ScriptedModel(
 		{
 			"go": [
@@ -117,15 +118,16 @@ async def test_a_subagent_answers_from_a_fresh_context(tmp_path):
 
 	await _run(session, "go", model, before_tool_call=before)
 
-	# the child saw only its task, with the session's prompt and tools minus subagent
+	# the child saw only its task, with the session's prompt and tools minus subagent and suggest_replies
 	child = next(r for r in model.requests if _last_user(r.messages) == "count the beans")
 	assert [m.type for m in child.messages] == ["user_message"]
 	assert session.config.system_prompt is not None
 	assert child.system_prompt == session.config.system_prompt.replace(
 		f"\n- subagent: {subagent.prompt_snippet}", ""
-	)
-	assert "- subagent: " in session.config.system_prompt and "- subagent: " not in child.system_prompt
-	assert "subagent" not in [t["function"]["name"] for t in child.tools]
+	).replace(f"\n- suggest_replies: {suggest_replies.prompt_snippet}", "")
+	for name in ("subagent", "suggest_replies"):
+		assert f"- {name}: " in session.config.system_prompt and f"- {name}: " not in child.system_prompt
+		assert name not in [t["function"]["name"] for t in child.tools]
 	# the run's hooks reach the child
 	assert seen == ["subagent", "read"]
 	assert _of(events, "tool_result", subagent="c1")[0]["content"] == "not for you"
