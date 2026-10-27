@@ -1313,7 +1313,6 @@ class TestListPartsV2(FrappeAPITestCase):
 		self.assertEqual(response.json["count"], 2)
 
 	def test_group_by_with_sum_and_count(self):
-		# GroupBy's reads: one row per group, then the same aggregates over every row
 		aggregates = [{"COUNT": "name", "as": "_aggregate_0"}, {"SUM": "idx", "as": "_aggregate_1"}]
 		closed = self.todos[2].name
 		for todo, idx in zip(self.todos, (1, 2, 4), strict=True):

@@ -70,19 +70,19 @@ export function useGroupByData(
     return settings;
   }
 
-  const groups = aggregateRead(doctype, () => ({
+  const groups = aggregateRead("groups", doctype, () => ({
     filters: toValue(filters),
     ...serializeGroupBy(grouping()),
     limit: limit.value,
   }));
 
   // The group fields alone, one row per group, to count them.
-  const groupKeys = aggregateRead(doctype, () => {
+  const groupKeys = aggregateRead("group keys", doctype, () => {
     const { fields, group_by } = serializeGroupBy({ ...grouping(), aggregates: [] });
     return { filters: toValue(filters), fields, group_by, limit: COUNT_CAP };
   });
 
-  const totals = aggregateRead(doctype, () => ({
+  const totals = aggregateRead("totals", doctype, () => ({
     filters: toValue(filters),
     fields: serializeGroupByTotals(grouping())?.fields ?? [],
     limit: 1,
@@ -149,24 +149,30 @@ export function useGroupByData(
   };
 }
 
-// The latest read wins: one that lands after a later one is dropped. A failed read
-// keeps the rows the last good one gave.
+// The latest read wins: a newer read aborts the one before it, and one that lands
+// late is dropped. A failed read keeps the rows the last good one gave.
 function aggregateRead(
+  label: string,
   doctype: MaybeRefOrGetter<string>,
   makeQuery: () => Parameters<typeof listAggregates>[1]
 ) {
   const data = shallowRef<Record<string, unknown>[] | null>(null);
   const loading = ref(false);
   let generation = 0;
+  let inFlight: AbortController | null = null;
 
   async function fetch() {
     const mine = ++generation;
+    inFlight?.abort();
+    const controller = (inFlight = new AbortController());
     loading.value = true;
     try {
-      const { data: rows } = await listAggregates(toValue(doctype), makeQuery());
+      const { data: rows } = await listAggregates(toValue(doctype), makeQuery(), {
+        signal: controller.signal,
+      });
       if (mine === generation) data.value = rows;
     } catch (failure) {
-      if (mine === generation) console.error("Could not read the grouped rows:", failure);
+      if (mine === generation) console.error(`Could not read the GroupBy ${label}:`, failure);
     } finally {
       if (mine === generation) loading.value = false;
     }

@@ -3,29 +3,28 @@ import { nextTick, ref } from "vue";
 
 type AggregateQuery = Parameters<typeof import("../../../api").listAggregates>[1];
 
-// Each read answers with what the test set for its kind: the groups, the group
-// keys (limit 1000) or the totals (limit 1).
 const h = vi.hoisted(() => ({
-  calls: [] as { doctype: string; query: AggregateQuery }[],
+  calls: [] as { doctype: string; query: AggregateQuery; signal?: AbortSignal }[],
   answers: { groups: [], keys: [], totals: [] } as Record<string, unknown[]>,
 }));
 vi.mock("../../../api", () => ({
-  listAggregates: vi.fn(async (doctype: string, query: AggregateQuery) => {
-    h.calls.push({ doctype, query });
-    return { data: h.answers[kind(query)], has_next_page: false };
-  }),
+  listAggregates: vi.fn(
+    async (doctype: string, query: AggregateQuery, options?: { signal?: AbortSignal }) => {
+      h.calls.push({ doctype, query, signal: options?.signal });
+      return { data: h.answers[kind(query)], has_next_page: false };
+    }
+  ),
 }));
 
 function kind(query: AggregateQuery): "groups" | "keys" | "totals" {
-  if (query.limit === 1000) return "keys";
-  return query.group_by ? "groups" : "totals";
+  if (!query.group_by) return "totals";
+  return query.order_by ? "groups" : "keys";
 }
 
 function sent(of: "groups" | "keys" | "totals") {
   return h.calls.filter((call) => kind(call.query) === of).map((call) => call.query);
 }
 
-// Lets every pending read land.
 const settle = () => new Promise((resolve) => setTimeout(resolve));
 
 import { useGroupByData } from "../useGroupByData";
@@ -103,6 +102,18 @@ describe("useGroupByData", () => {
     await settle();
     expect(data.rows.value).toEqual([{ status: "Won" }]);
     expect(data.loading.value).toBe(false);
+  });
+
+  it("aborts a read once a newer one starts", async () => {
+    const filters = ref<Record<string, unknown>>({});
+    useGroupByData("Sales Order", BY_STATUS, filters);
+    const first = h.calls.filter((call) => kind(call.query) === "groups")[0];
+
+    filters.value = { status: "Won" };
+    await nextTick();
+    const [, second] = h.calls.filter((call) => kind(call.query) === "groups");
+    expect(first.signal?.aborted).toBe(true);
+    expect(second.signal?.aborted).toBe(false);
   });
 
   it("keeps the last rows when a read fails", async () => {
