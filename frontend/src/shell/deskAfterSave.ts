@@ -24,7 +24,20 @@ export function registerDeskAfterSave(session: Session): () => void {
 			session.user.document_follow_notify = Boolean(saved.doc.document_follow_notify);
 			askReload(saved, USER_RELOAD_FIELDS);
 		}),
-		registerAfterSave("System Settings", (saved) => askReload(saved, SYSTEM_RELOAD_FIELDS)),
+		registerAfterSave("System Settings", (saved) =>
+			askReload(
+				saved,
+				followsSiteLanguage(session)
+					? [...SYSTEM_RELOAD_FIELDS, "language"]
+					: SYSTEM_RELOAD_FIELDS
+			)
+		),
 	];
 	return () => removers.forEach((remove) => remove());
+}
+
+/** True unless boot shows a language of the person's own: `defaults.language` is the site's. */
+function followsSiteLanguage(session: Session): boolean {
+	const site = session.defaults.language;
+	return typeof site !== "string" || !site || site === session.lang;
 }

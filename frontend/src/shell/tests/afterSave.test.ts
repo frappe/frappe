@@ -152,4 +152,31 @@ describe("desk's after-save handlers", () => {
 		runAfterSave(saved("System Settings", "System Settings", ["date_format"]));
 		expect(fake.toast).toHaveBeenCalledTimes(1);
 	});
+
+	it("asks for a reload on a site language change when boot shows no site language", () => {
+		runAfterSave(saved("System Settings", "System Settings", ["language"]));
+		session.defaults = { language: "" };
+		runAfterSave(saved("System Settings", "System Settings", ["language"]));
+
+		expect(fake.toast).toHaveBeenCalledTimes(2);
+	});
+
+	it("asks for a reload on a site language change when the session follows the site", () => {
+		session.defaults = { language: "en" };
+		runAfterSave(saved("System Settings", "System Settings", ["language"]));
+
+		expect(fake.toast).toHaveBeenCalledTimes(1);
+	});
+
+	it("skips the site language reload for a person with a language of their own", () => {
+		session.defaults = { language: "en" };
+		session.lang = "de";
+		runAfterSave(saved("System Settings", "System Settings", ["language"]));
+		expect(fake.toast).not.toHaveBeenCalled();
+
+		runAfterSave(
+			saved("System Settings", "System Settings", ["language", "date_format"])
+		);
+		expect(fake.toast).toHaveBeenCalledTimes(1);
+	});
 });
