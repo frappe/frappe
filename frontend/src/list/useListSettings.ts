@@ -1,5 +1,6 @@
 // One doctype's stored list settings: the site row and the person's own, fetched beside meta once
 // and again after a DocType change, written back silently. A write's response replaces both rows.
+// The same read says which of the list and its saved views the person starred.
 import { runMethod } from "@framework/ui/api";
 import { landFresh } from "@framework/ui/utils";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
@@ -11,6 +12,12 @@ export const VIEW_TYPE = "List";
 export const WRITE_DEBOUNCE_MS = 500;
 
 export type Scope = "user" | "site";
+
+/** Whether the person starred the list itself, and the names of the saved views they starred. */
+export interface ListFavourites {
+	list: boolean;
+	views: string[];
+}
 
 export interface ListSettingsHandle {
 	loaded: ComputedRef<boolean>;
@@ -28,6 +35,9 @@ export interface ListSettingsHandle {
 	refreshing: ComputedRef<boolean>;
 	/** Resolves once the fresh read of stale settings has arrived, shown or held. */
 	refreshed: () => Promise<void>;
+	favourites: ComputedRef<ListFavourites>;
+	/** Records a star the server already took: the list's when `view` is null. */
+	markFavourite: (view: string | null, favourited: boolean) => void;
 }
 
 interface Tiers {
@@ -37,6 +47,7 @@ interface Tiers {
 
 interface Entry {
 	tiers: Ref<Tiers>;
+	favourites: Ref<ListFavourites>;
 	loaded: Ref<boolean>;
 	pending: ListSettings | null;
 	/** How many times each key was reset; a failed patch comes back only for keys reset no further. */
@@ -96,6 +107,8 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		flush,
 		refreshing: computed(() => entry.refreshing.value),
 		refreshed: () => entry.refreshed,
+		favourites: computed(() => entry.favourites.value),
+		markFavourite: (view, favourited) => markFavourite(entry, view, favourited),
 	};
 }
 
@@ -119,6 +132,7 @@ function entryFor(doctype: string): Entry {
 	const seeded = existing?.loaded.value ?? false;
 	const entry: Entry = {
 		tiers: ref(seeded ? existing!.tiers.value : { site: null, user: null }),
+		favourites: ref(seeded ? existing!.favourites.value : { list: false, views: [] }),
 		loaded: ref(seeded),
 		pending: null,
 		resets: {},
@@ -152,7 +166,9 @@ function flushEntry(entry: Entry, doctype: string): Promise<void> {
 
 async function load(entry: Entry, doctype: string) {
 	try {
-		const tiers = tiersOf(await send(`${API}.get`, { doctype, type: VIEW_TYPE }));
+		const response = await send(`${API}.get`, { doctype, type: VIEW_TYPE });
+		const tiers = tiersOf(response);
+		entry.favourites.value = favouritesOf(response);
 		if (!entry.refreshing.value) entry.tiers.value = tiers;
 		else
 			landFresh(() => {
@@ -183,6 +199,15 @@ function write(entry: Entry, send: () => Promise<unknown>, onFailure?: () => voi
 	return entry.queue;
 }
 
+function markFavourite(entry: Entry, view: string | null, favourited: boolean) {
+	const { list, views } = entry.favourites.value;
+	if (view === null) entry.favourites.value = { list: favourited, views };
+	else {
+		const others = views.filter((name) => name !== view);
+		entry.favourites.value = { list, views: favourited ? [...others, view] : others };
+	}
+}
+
 /** A patch that failed waits for the next flush, under whatever was saved since, minus any key reset since. */
 function restore(entry: Entry, patch: ListSettings, marks: Entry["resets"]) {
 	const kept: ListSettings = {};
@@ -207,6 +232,12 @@ async function send(method: string, args: Record<string, unknown>): Promise<unkn
 function tiersOf(response: unknown): Tiers {
 	const rows = (response ?? {}) as { site?: unknown; user?: unknown };
 	return { site: settingsOf(rows.site), user: settingsOf(rows.user) };
+}
+
+function favouritesOf(response: unknown): ListFavourites {
+	const favourites = (response as { favourites?: Partial<ListFavourites> } | null)?.favourites;
+	const views = Array.isArray(favourites?.views) ? favourites.views : [];
+	return { list: favourites?.list === true, views: views.filter((v) => typeof v === "string") };
 }
 
 function settingsOf(value: unknown): ListSettings | null {

@@ -21,6 +21,8 @@ export interface ListActsHost {
   confirmDelete: () => void;
   customizing: () => boolean;
   selected: () => number;
+  favourited: () => boolean;
+  toggleFavourite: () => unknown;
 }
 
 export interface ListActs {
@@ -58,6 +60,16 @@ function listEntries(host: ListActsHost): ActEntry[] {
         icon: "lucide-plus",
         right: "create",
         run: () => host.create(),
+      },
+      hidden: false,
+    },
+    {
+      item: {
+        name: "favourite",
+        ...(host.favourited()
+          ? { label: __("Remove from favourites"), icon: "lucide-star-off" }
+          : { label: __("Add to favourites"), icon: "lucide-star" }),
+        run: () => host.toggleFavourite(),
       },
       hidden: false,
     },

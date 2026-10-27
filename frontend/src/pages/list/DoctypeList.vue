@@ -6,7 +6,15 @@
 	<PageFrame :scroll="false" :state="metaError ? failedState(metaError, reloadMeta) : null">
 		<template #header>
 			<div class="flex min-w-0 flex-1 items-center justify-between gap-3">
-				<Breadcrumbs class="-ml-0.5" :items="crumbs" />
+				<div class="flex min-w-0 flex-1 items-center gap-1 text-base">
+					<Breadcrumbs class="-ml-0.5" :items="crumbs" />
+					<Tooltip v-if="favouriteAct" :text="favouriteAct.label">
+						<FavouriteStar
+							:favourited="favourite.favourited.value"
+							@click="listActs.perform(favouriteAct)"
+						/>
+					</Tooltip>
+				</div>
 				<Button
 					v-if="createAct"
 					variant="solid"
@@ -89,7 +97,7 @@
 </template>
 
 <script setup lang="ts">
-import { Breadcrumbs, Button, Dropdown, Skeleton, toast } from "frappe-ui";
+import { Breadcrumbs, Button, Dropdown, Skeleton, Tooltip, toast } from "frappe-ui";
 import { ColumnSettings } from "@framework/ui/ColumnSettings";
 import { List, ListBulkBar, ListFooter, type BulkAction } from "@framework/ui/experimental/List";
 import { Filter } from "@framework/ui/Filter";
@@ -101,8 +109,10 @@ import { useRouter } from "vue-router";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
+import { useListFavourite } from "@/list/useListFavourite";
 import { useListPage } from "@/list/useListPage";
 import { useScrollMemory } from "@/list/useScrollMemory";
+import FavouriteStar from "@/pages/favourite/FavouriteStar.vue";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
 import { failedState } from "@/shell/pageState";
 import PageState from "@/shell/PageState.vue";
@@ -110,7 +120,8 @@ import { createdMessage } from "./createdMessage";
 import DeleteDialog from "./DeleteDialog.vue";
 import { useListActs } from "./listActs";
 
-const props = defineProps<{ doctype: string }>();
+/** `view` is the saved view in the address, if any. */
+const props = defineProps<{ doctype: string; view?: string | null }>();
 
 const router = useRouter();
 
@@ -178,6 +189,8 @@ useScrollMemory(
 	{ doctype: props.doctype, query: rowsKey }
 );
 
+const favourite = useListFavourite(props.doctype, () => props.view ?? null);
+
 const listActs = useListActs({
 	doctype: props.doctype,
 	create,
@@ -185,9 +198,12 @@ const listActs = useListActs({
 	confirmDelete: () => (confirmingDelete.value = true),
 	customizing: () => customizing.value,
 	selected: () => selection.value.length,
+	favourited: () => favourite.favourited.value,
+	toggleFavourite: favourite.toggle,
 });
 
 const createAct = computed(() => listActs.drawn("create"));
+const favouriteAct = computed(() => listActs.drawn("favourite"));
 const quickFilterAct = computed(() => listActs.drawn("customize_quick_filter"));
 const deleteAct = computed(() => listActs.drawn("delete"));
 

@@ -2,26 +2,33 @@
 # License: MIT. See LICENSE
 
 import frappe
-from frappe.desk.doctype.favourite.favourite import get_favourites, toggle_favourite
+from frappe.desk.doctype.favourite.favourite import get_favourites, list_favourites, toggle_favourite
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import queued_docinfo_updates
 
 DESK_USER = "favourite-plain@example.com"
+# A list every Desk User reads, and one only a System Manager reads.
+READABLE = "Note"
+PRIVATE = "Error Log"
+
+
+def make_plain_user():
+	# The shared test user is a System Manager here; a favourite's rules need a plain reader.
+	if not frappe.db.exists("User", DESK_USER):
+		frappe.get_doc(
+			doctype="User",
+			email=DESK_USER,
+			first_name="Plain",
+			send_welcome_email=0,
+			roles=[{"role": "Desk User"}],
+		).insert(ignore_permissions=True)
 
 
 class TestFavourite(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		# The shared test user is a System Manager here; a favourite's rules need a plain reader.
-		if not frappe.db.exists("User", DESK_USER):
-			frappe.get_doc(
-				doctype="User",
-				email=DESK_USER,
-				first_name="Plain",
-				send_welcome_email=0,
-				roles=[{"role": "Desk User"}],
-			).insert(ignore_permissions=True)
+		make_plain_user()
 
 	def _users(self, todo):
 		return [row.user for row in get_favourites("ToDo", todo.name)]
@@ -135,3 +142,81 @@ class TestFavourite(IntegrationTestCase):
 			)
 			self.assertFalse(frappe.has_permission("Favourite", "delete", doc=admins))
 			self.assertFalse(frappe.has_permission("Favourite", "read", doc=admins))
+
+
+class TestListAndViewFavourites(IntegrationTestCase):
+	"""A list is stored as its DocType record and a saved view as its view row; read comes from the doctype."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		make_plain_user()
+
+	def _starred(self, doctype, name, user=DESK_USER):
+		return frappe.db.exists(
+			"Favourite", {"user": user, "reference_doctype": doctype, "reference_name": name}
+		)
+
+	def _view(self, doctype=READABLE, user=""):
+		# A fresh label each time: the class rolls back once, and a label is part of a view's address.
+		label = frappe.generate_hash(length=8)
+		return frappe.get_doc(
+			doctype="Doctype View",
+			reference_doctype=doctype,
+			type="List",
+			user=user,
+			label=label,
+			settings={},
+		).insert(ignore_permissions=True)
+
+	def test_a_plain_user_stars_and_unstars_a_list(self):
+		self.assertFalse(frappe.has_permission("DocType", "read", doc=READABLE, user=DESK_USER))
+
+		with self.set_user(DESK_USER):
+			toggle_favourite("DocType", READABLE, add=True)
+			self.assertTrue(self._starred("DocType", READABLE))
+			self.assertEqual(list_favourites(READABLE), {"list": True, "views": []})
+
+			toggle_favourite("DocType", READABLE, add=False)
+			self.assertFalse(self._starred("DocType", READABLE))
+
+	def test_a_list_needs_read_on_its_doctype(self):
+		with self.set_user(DESK_USER):
+			self.assertRaises(frappe.PermissionError, toggle_favourite, "DocType", PRIVATE, True)
+			self.assertRaises(frappe.DoesNotExistError, toggle_favourite, "DocType", "No Such Doctype", True)
+		self.assertFalse(self._starred("DocType", PRIVATE))
+
+	def test_a_plain_user_stars_and_unstars_a_saved_view(self):
+		view = self._view().name
+
+		with self.set_user(DESK_USER):
+			toggle_favourite("Doctype View", view, add=True)
+			self.assertTrue(self._starred("Doctype View", view))
+			self.assertEqual(list_favourites(READABLE), {"list": False, "views": [view]})
+
+			toggle_favourite("Doctype View", view, add=False)
+			self.assertFalse(self._starred("Doctype View", view))
+
+	def test_a_saved_view_needs_read_on_the_view_and_its_doctype(self):
+		someone_elses = self._view(user="Administrator").name
+		of_a_private_doctype = self._view(doctype=PRIVATE).name
+
+		with self.set_user(DESK_USER):
+			self.assertRaises(frappe.PermissionError, toggle_favourite, "Doctype View", someone_elses, True)
+			self.assertRaises(
+				frappe.PermissionError, toggle_favourite, "Doctype View", of_a_private_doctype, True
+			)
+			self.assertRaises(
+				frappe.DoesNotExistError, toggle_favourite, "Doctype View", "no-such-view", True
+			)
+		self.assertFalse(
+			frappe.db.exists("Favourite", {"user": DESK_USER, "reference_doctype": "Doctype View"})
+		)
+
+	def test_deleting_a_saved_view_drops_its_favourites(self):
+		view = self._view()
+		with self.set_user(DESK_USER):
+			toggle_favourite("Doctype View", view.name, add=True)
+
+		view.delete(ignore_permissions=True)
+		self.assertFalse(self._starred("Doctype View", view.name))

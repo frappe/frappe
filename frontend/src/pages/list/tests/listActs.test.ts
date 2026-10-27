@@ -1,5 +1,5 @@
-// The list page's act surface: `list.create`, `list.customize_quick_filter` and `list.delete` run by
-// name through the dispatcher, are drawn from the same items, and are refused without their right.
+// The list page's act surface: `list.create`, `list.favourite`, `list.customize_quick_filter` and
+// `list.delete` run by name through the dispatcher, are drawn from the same items, and are refused without their right.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   createApp,
@@ -119,6 +119,7 @@ import type { Session } from "@framework/ui/api";
 import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { resetSession, setSession } from "@framework/ui/useSession";
+import { resetListSettings } from "@/list/useListSettings";
 import DoctypeList from "../DoctypeList.vue";
 
 const addresses = new Addresses({
@@ -156,7 +157,12 @@ const ALL_RIGHTS = {
 };
 const READ_ONLY = { role: "Sales User", permlevel: 0, read: 1 };
 
+const SETTINGS = "frappe.desk.doctype.doctype_view.api.get";
+const TOGGLE = "frappe.desk.doctype.favourite.favourite.toggle_favourite";
+
 let permissions: Record<string, unknown>[];
+let starred: { list: boolean; views: string[] };
+let toggles: Record<string, unknown>[];
 const apps: App[] = [];
 
 beforeEach(() => {
@@ -167,10 +173,22 @@ beforeEach(() => {
   closeCreates();
   permissions = [ALL_RIGHTS];
   page.selectedAtMount = [];
+  starred = { list: false, views: [] };
+  toggles = [];
+  resetListSettings();
   vi.stubGlobal(
     "fetch",
-    vi.fn(async (url: string) => {
+    vi.fn(async (url: string, init?: RequestInit) => {
       const path = new URL(String(url), "http://x").pathname;
+      if (path === `/api/v2/method/${SETTINGS}`)
+        return new Response(
+          JSON.stringify({ data: { site: null, user: null, favourites: starred } })
+        );
+      if (path === `/api/v2/method/${TOGGLE}`) {
+        toggles.push(JSON.parse(String(init?.body)));
+        // A whitelisted method that returns nothing answers with no `data` at all.
+        return new Response("{}");
+      }
       if (path !== "/api/v2/doctype/Contact/meta")
         return new Response(
           JSON.stringify({ errors: [{ type: "NotFound", message: path }] }),
@@ -198,7 +216,7 @@ async function settle() {
   }
 }
 
-async function mount(whileLoading?: () => void) {
+async function mount(whileLoading?: () => void, view: string | null = null) {
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -215,7 +233,7 @@ async function mount(whileLoading?: () => void) {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const app = createApp(
-    defineComponent({ render: () => h(DoctypeList, { doctype: "Contact" }) })
+    defineComponent({ render: () => h(DoctypeList, { doctype: "Contact", view }) })
   );
   app.use(router).provide("addresses", addresses).provide("boot", boot);
   app.mount(root);
@@ -246,11 +264,12 @@ async function denial(name: string) {
 }
 
 describe("the list surface", () => {
-  it("lists the three built-ins by name while rows are selected", async () => {
+  it("lists the four built-ins by name while rows are selected", async () => {
     page.selectedAtMount = ["CONT-0001"];
     await mount();
     expect(listActNames()).toEqual([
       "list.create",
+      "list.favourite",
       "list.customize_quick_filter",
       "list.delete",
     ]);
@@ -304,7 +323,48 @@ describe("the list surface", () => {
       )
     ).not.toContain("Create");
     expect(bulkLabels(root)).toEqual([]);
-    expect(listActNames()).toEqual(["list.customize_quick_filter"]);
+    expect(listActNames()).toEqual(["list.favourite", "list.customize_quick_filter"]);
+  });
+
+  it("runs list.favourite on the plain list, stars the list and draws the star filled", async () => {
+    const root = await mount();
+    const star = () => root.querySelector("header [data-favourite]")!;
+    expect(star().getAttribute("aria-pressed")).toBe("false");
+
+    await acts.run("list.favourite");
+    await settle();
+    expect(toggles).toEqual([{ doctype: "DocType", name: "Contact", add: true }]);
+    expect(star().getAttribute("aria-pressed")).toBe("true");
+    expect(acts.find("list.favourite")?.label).toBe("Remove from favourites");
+
+    (star() as HTMLElement).click();
+    await settle();
+    expect(toggles[1]).toEqual({ doctype: "DocType", name: "Contact", add: false });
+    expect(star().getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("stars the saved view on a saved view's address, and reads its state from the settings read", async () => {
+    starred = { list: true, views: ["open-contacts"] };
+    const root = await mount(undefined, "open-contacts");
+    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("true");
+
+    await acts.run("list.favourite");
+    await settle();
+    expect(toggles).toEqual([{ doctype: "Doctype View", name: "open-contacts", add: false }]);
+    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("keeps the star as it was when the server refuses", async () => {
+    const root = await mount();
+    vi.mocked(fetch).mockImplementationOnce(
+      async () =>
+        new Response(JSON.stringify({ errors: [{ type: "PermissionError", message: "No" }] }), {
+          status: 403,
+        })
+    );
+    await expect(acts.run("list.favourite")).rejects.toBeTruthy();
+    await settle();
+    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("false");
   });
 
   it("waits for the meta before it checks a right", async () => {

@@ -89,6 +89,23 @@ class TestIndexFavourites(IntegrationTestCase):
 
 		self.assertEqual([row["name"] for row in self.favourites()], [mine])
 
+	def test_starred_lists_and_saved_views_have_no_chip_and_take_no_slot(self):
+		"""The index draws records only for now; a list or view row would open its DocType or view record."""
+		view = frappe.get_doc(
+			doctype="Doctype View", reference_doctype="ToDo", type="List", label="Probe view", settings={}
+		).insert(ignore_permissions=True)
+		names = [self.todo(f"Probe task {number}", allocated_to="Administrator") for number in range(8)]
+		for name in names:
+			self.favourite("ToDo", name, user="Administrator")
+		self.favourite("DocType", "ToDo", user="Administrator")
+		self.favourite("Doctype View", view.name, user="Administrator")
+
+		favourites = self.favourites("Administrator")
+
+		self.assertEqual(
+			[(row["doctype"], row["name"]) for row in favourites], [("ToDo", n) for n in names[::-1]]
+		)
+
 	def test_a_single_is_titled_by_its_doctype(self):
 		self.favourite("System Settings", "System Settings", user="Administrator")
 

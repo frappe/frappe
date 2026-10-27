@@ -3,7 +3,7 @@
   new doctype is a new list, with its own state and its own controls.
 -->
 <template>
-	<DoctypeList v-if="doctype" :key="doctype" :doctype="doctype" />
+	<DoctypeList v-if="doctype" :key="doctype" :doctype="doctype" :view="view" />
 	<NotFound v-else />
 </template>
 
@@ -18,4 +18,5 @@ const addresses = inject<Addresses>("addresses")!;
 const route = useRoute();
 
 const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype)));
+const view = computed(() => (route.params.viewName ? String(route.params.viewName) : null));
 </script>

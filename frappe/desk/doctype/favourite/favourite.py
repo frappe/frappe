@@ -1,10 +1,17 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
-"""A reader's bookmark on a record: one row per user and record, and nothing on the timeline."""
+"""A reader's bookmark on a record, a list or a saved view: one row per user and target, and nothing on the timeline."""
 
 import frappe
+from frappe import _
 from frappe.model.document import Document
+
+# A list is stored as its DocType record and a saved view as its view row, so these two
+# doctypes' rows are never records: read rights come from the list's doctype instead.
+LIST = "DocType"
+SAVED_VIEW = "Doctype View"
+NOT_RECORDS = (LIST, SAVED_VIEW)
 
 
 class Favourite(Document):
@@ -67,10 +74,10 @@ def has_permission(doc, ptype="read", user=None):
 
 @frappe.whitelist()
 def toggle_favourite(doctype: str, name: str, add: str | bool = False):
-	"""Add or remove the current user's favourite on the given record; `add` truthy adds."""
+	"""Add or remove the current user's favourite on a record, a list or a saved view; `add` truthy adds."""
 	from frappe.utils.data import sbool
 
-	frappe.has_permission(doctype, "read", doc=name, throw=True)
+	check_read(doctype, name)
 
 	key = {"user": frappe.session.user, "reference_doctype": doctype, "reference_name": str(name)}
 	if not sbool(add):
@@ -88,6 +95,49 @@ def toggle_favourite(doctype: str, name: str, add: str | bool = False):
 	except frappe.UniqueValidationError:
 		# A second click landed between the check and the insert; the row is there.
 		frappe.db.rollback(save_point="favourite")
+
+
+def check_read(doctype: str, name: str):
+	"""Refuse unless the person may read what the row points at."""
+	if doctype == LIST:
+		return check_list_read(name)
+
+	if doctype == SAVED_VIEW:
+		view_doctype = frappe.db.get_value(SAVED_VIEW, name, "reference_doctype")
+		if not view_doctype:
+			raise frappe.DoesNotExistError(_("{0} {1} not found").format(_(SAVED_VIEW), name))
+		frappe.has_permission(SAVED_VIEW, "read", doc=name, throw=True)
+		return check_list_read(view_doctype)
+
+	frappe.has_permission(doctype, "read", doc=name, throw=True)
+
+
+def check_list_read(doctype: str):
+	if not frappe.db.exists("DocType", doctype):
+		raise frappe.DoesNotExistError(_("{0} {1} not found").format(_("DocType"), doctype))
+	frappe.has_permission(doctype, "read", throw=True)
+
+
+def list_favourites(doctype: str) -> dict:
+	"""Whether the person starred this doctype's list, and which of its saved views."""
+	view = frappe.qb.DocType(SAVED_VIEW)
+	favourite = frappe.qb.DocType("Favourite")
+	views = frappe.qb.from_(view).select(view.name).where(view.reference_doctype == doctype)
+	rows = (
+		frappe.qb.from_(favourite)
+		.select(favourite.reference_doctype, favourite.reference_name)
+		.where(favourite.user == frappe.session.user)
+		.where(
+			((favourite.reference_doctype == LIST) & (favourite.reference_name == doctype))
+			| ((favourite.reference_doctype == SAVED_VIEW) & favourite.reference_name.isin(views))
+		)
+		.run(as_dict=True)
+	)
+
+	return {
+		"list": any(row.reference_doctype == LIST for row in rows),
+		"views": sorted(row.reference_name for row in rows if row.reference_doctype == SAVED_VIEW),
+	}
 
 
 def get_favourites(doctype: str, name: str) -> list[dict]:

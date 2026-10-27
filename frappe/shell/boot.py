@@ -10,6 +10,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.desk.doctype.favourite.favourite import NOT_RECORDS
 from frappe.desk.link_title import get_link_titles
 from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
 from frappe.sessions import get_session_info
@@ -185,7 +186,8 @@ def index_favourites() -> list[dict]:
 	"""The person's latest favourites, newest first, less those whose record they can no longer open."""
 	rows = frappe.get_all(
 		"Favourite",
-		filters={"user": frappe.session.user},
+		# Lists and saved views have no chip yet; filtered here so they do not take a record's slot.
+		filters={"user": frappe.session.user, "reference_doctype": ("not in", NOT_RECORDS)},
 		fields=["reference_doctype", "reference_name"],
 		order_by="creation desc",
 		limit=FAVOURITES_LIMIT,
