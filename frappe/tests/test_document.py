@@ -277,6 +277,27 @@ class TestDocument(IntegrationTestCase):
 		self.assertRaises(frappe.PermissionError, d.save)
 		frappe.set_user("Administrator")
 
+	def test_child_row_permlevel_fields_on_insert(self):
+		child = new_doctype(
+			istable=1,
+			fields=[{"label": "Approved", "fieldname": "approved", "fieldtype": "Data", "permlevel": 1}],
+		).insert()
+		parent = new_doctype(
+			fields=[{"label": "Rows", "fieldname": "rows", "fieldtype": "Table", "options": child.name}],
+			permissions=[
+				{"role": "All", "read": 1, "write": 1, "create": 1},
+				{"role": "System Manager", "read": 1, "write": 1, "create": 1},
+				{"role": "System Manager", "permlevel": 1, "read": 1, "write": 1},
+			],
+		).insert()
+
+		def insert_as(user):
+			with self.set_user(user):
+				return frappe.get_doc({"doctype": parent.name, "rows": [{"approved": "yes"}]}).insert()
+
+		self.assertFalse(insert_as("test1@example.com").rows[0].approved)
+		self.assertEqual(insert_as("test@example.com").rows[0].approved, "yes")
+
 	def test_link_validation(self):
 		frappe.delete_doc_if_exists("User", "test_link_validation@example.com", 1)
 
