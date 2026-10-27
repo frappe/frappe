@@ -48,7 +48,7 @@ export function islandsUnchanged(options) {
 	const packages = stamp.packages ?? {};
 	const reinstalled = Object.entries(packages).some(([dir, version]) => {
 		const manifest = readJson(path.join(paths.benchRoot, dir, "package.json"));
-		return manifest && manifest.version !== version;
+		return manifest && (manifest.version ?? "") !== version;
 	});
 	if (reinstalled) return false;
 

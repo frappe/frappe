@@ -209,3 +209,31 @@ test("a lockfile above a nested node_modules covers it", () => {
   write("apps/erpnext/yarn.lock", "chart-lib@1\nhoisted@2");
   assert.equal(islandsUnchanged(options), false);
 });
+
+test("a package without a version still reuses the output", () => {
+  const { bench, write } = builtBench();
+  write("apps/node_modules/shared-lib/package.json", "{}");
+  const root = path.join(bench, "apps/frappe/island-toolchain");
+  const options = {
+    app: "frappe",
+    subdir: "page-island",
+    root,
+    entries: {
+      "frappe.page.notifications": path.join(
+        bench,
+        "apps/frappe/frappe/desk/page/notifications/notifications.island.js"
+      ),
+    },
+    production: true,
+  };
+  writeInputsStamp(
+    {
+      ...options,
+      paths: benchPaths(bench, "frappe", "page-island"),
+      mode: "production",
+    },
+    [path.join(bench, "apps/node_modules/shared-lib/index.js")],
+    { "frappe.page.notifications.island.js": URL }
+  );
+  assert.equal(islandsUnchanged(options), true);
+});
