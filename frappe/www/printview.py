@@ -450,6 +450,16 @@ def get_unsaved_format_preview(
 	}
 
 
+class BlankDoc(frappe._dict):
+	"""A document with no values, so fields in a letter head preview print as blanks."""
+
+	def __getattr__(self, key):
+		return ""
+
+	def get(self, key, default=""):
+		return super().get(key, default)
+
+
 @frappe.whitelist()
 def get_letter_head_preview(
 	content: str | None = None, footer: str | None = None, css: str | None = None
@@ -458,9 +468,7 @@ def get_letter_head_preview(
 	frappe.has_permission("Letter Head", "write", throw=True)
 	jenv = frappe.get_jenv()
 	try:
-		parts = [
-			jenv.from_string(source).render(doc=frappe._dict()) for source in (content, footer) if source
-		]
+		parts = [jenv.from_string(source).render(doc=BlankDoc()) for source in (content, footer) if source]
 	except PREVIEW_ERRORS as e:
 		frappe.clear_last_message()
 		return {"error": str(e)}
