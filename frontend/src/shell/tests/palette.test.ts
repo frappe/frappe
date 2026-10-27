@@ -72,8 +72,8 @@ const placesReply = {
 	titles: { crm: "CRM", frappe: "Desk" },
 	// `Route History` as the server reads it: a deal this tab also visits, and a task under another prefix.
 	recent: [
-		{ route: `${crmBase}/crm-deal/DEAL-1`, title: "Acme deal", kind: "record", description: "CRM Deal", visited: 2 },
-		{ route: `${deskBase}/todo/T-9`, title: "Call back Acme", kind: "record", description: "ToDo", visited: 1 },
+		{ route: `${crmBase}/crm-deal/DEAL-1`, doctype: "CRM Deal", name: "DEAL-1", title: "Acme deal", kind: "record", description: "CRM Deal", visited: 2 },
+		{ route: `${deskBase}/todo/T-9`, doctype: "ToDo", name: "T-9", title: "Call back Acme", kind: "record", description: "ToDo", visited: 1 },
 	],
 };
 
@@ -126,10 +126,15 @@ async function flush() {
 async function shell(path = "/crm-deal", shellBoot: Boot = boot): Promise<Router> {
 	const router = createRouter({
 		history: createMemoryHistory(shellBoot.shell_base),
+		// The index has no doctype routes.
 		routes: [
 			{ path: "/", name: "home", component: page },
-			{ path: "/:doctype", name: "list", component: page },
-			{ path: "/:doctype/:name", name: "record", component: page },
+			...(shellBoot.app
+				? [
+						{ path: "/:doctype", name: "list", component: page },
+						{ path: "/:doctype/:name", name: "record", component: page },
+				  ]
+				: []),
 		],
 	});
 	registerShell({ boot: shellBoot, addresses, router });
@@ -461,23 +466,23 @@ describe("the groups", () => {
 	});
 });
 
-describe("a recent of another prefix", () => {
+describe("a recent visited under another prefix", () => {
 	const href = `${deskBase}/todo/T-9`;
 
-	it("loads the other prefix's document, not a route of this one", async () => {
+	it("opens under this prefix, as a route of this one", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 		const router = await shell();
 		await open();
 
-		row(`recent:${href}`)!.click();
+		row(`recent:${crmBase}/todo/T-9`)!.click();
 		await flush();
 
-		expect(assign).toHaveBeenCalledWith(href);
-		expect(router.currentRoute.value.fullPath).toBe("/crm-deal");
+		expect(router.currentRoute.value.fullPath).toBe("/todo/T-9");
+		expect(assign).not.toHaveBeenCalled();
 		assign.mockRestore();
 	});
 
-	it("loads it from the index, which has no app routes", async () => {
+	it("loads its own address from the index, which has no app routes", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 		const index = { ...boot, app: null, app_title: undefined, shell_base: boot.shell_base.replace("/crm", "") };
 		await shell("/", index as unknown as Boot);
@@ -534,9 +539,9 @@ describe("places", () => {
 		expect(drawn()).toEqual([["Go to", "System Settings Desk"]]);
 	});
 
-	it("routes to a doctype in this prefix and loads one under another app's prefix", async () => {
+	it("routes to a doctype under this prefix, one another app owns too", async () => {
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
-		const router = await shell("/todo");
+		const router = await shell();
 		await open();
 		await type("lead");
 		row("doctype:CRM Lead")!.click();
@@ -547,7 +552,8 @@ describe("places", () => {
 		await type("todo");
 		row("doctype:ToDo")!.click();
 		await flush();
-		expect(assign).toHaveBeenCalledWith(`${deskBase}/todo`);
+		expect(router.currentRoute.value.fullPath).toBe("/todo");
+		expect(assign).not.toHaveBeenCalled();
 		assign.mockRestore();
 	});
 
@@ -620,16 +626,24 @@ describe("Tab on a doctype row", () => {
 		expect(footer()).not.toContain("to search in");
 	});
 
-	it("offers no Tab on a single, nor on a doctype under another app's prefix", async () => {
+	it("offers no Tab on a single", async () => {
 		await shell("/todo");
 		await open();
 
-		for (const query of ["system", "todo"]) {
-			await type(query);
-			expect(footer()).not.toContain("to search in");
-			await press("Tab");
-			expect(chip()).toBeNull();
-		}
+		await type("system");
+		expect(footer()).not.toContain("to search in");
+		await press("Tab");
+		expect(chip()).toBeNull();
+	});
+
+	it("narrows on a doctype another app owns", async () => {
+		await shell();
+		await open();
+
+		await type("todo");
+		expect(footer()).toContain("to search in ToDo");
+		await press("Tab");
+		expect(chip()).not.toBeNull();
 	});
 
 	it("leaves Shift+Tab alone", async () => {

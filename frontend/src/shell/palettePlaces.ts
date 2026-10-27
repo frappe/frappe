@@ -8,6 +8,7 @@ import { __ } from "@/i18n";
 import { itemContext } from "@/navigation/context";
 import { labelOf } from "@/navigation/registry";
 import type { ItemContext } from "@/navigation/types";
+import { canRoute, urlFor } from "@/router/routeFor";
 import type { PaletteRow } from "./palette";
 import type { PaletteContext, PaletteGroup } from "./paletteGroups";
 import { rank } from "./paletteRanking";
@@ -18,7 +19,7 @@ import { fetchPanes, type PanesReply } from "./settingsPanes";
 export interface DoctypePlace {
 	name: string;
 	app: string;
-	/** The doctype's own address, under its app's prefix. */
+	/** The doctype's own address, under its app's prefix: the index opens it there. */
 	route: string;
 	can_create: boolean;
 }
@@ -127,7 +128,10 @@ class PlaceRows {
 
 	constructor(private readonly context: PaletteContext) {
 		const others = computed(() => [...this.appRows(), ...this.paneRows()]);
-		this.goTo = computed(() => [...joinPlaces(this.sidebarRows(), this.doctypes.value), ...others.value]);
+		this.goTo = computed(() => [
+			...joinPlaces(this.sidebarRows().map((row) => this.ownedBy(row)), this.doctypes.value),
+			...others.value,
+		]);
 		this.create = computed(() => this.createRows());
 	}
 
@@ -138,17 +142,28 @@ class PlaceRows {
 		return reply.doctypes.map((doctype) => {
 			const app = reply.titles[doctype.app] ?? doctype.app;
 			const single = addresses.isSingle(doctype.name);
+			const here = this.routable(doctype.name);
+			const href = here ? urlFor(doctype.name) : doctype.route;
 			return {
 				id: `doctype:${doctype.name}`,
 				label: __(doctype.name),
 				description: app,
 				keywords: [doctype.name, app],
 				icon: single ? ROUTE_ICONS.record : ROUTE_ICONS.list,
-				href: doctype.route,
-				doctype: !single && this.opensRecordsAt(doctype.route) ? doctype.name : undefined,
-				run: () => openPlace(doctype.route, this.context),
+				href,
+				doctype: !single && here ? doctype.name : undefined,
+				run: () => openPlace(href, this.context),
 			};
 		});
+	}
+
+	/** A sidebar row that leaves this app says which app it opens. */
+	private ownedBy(row: PaletteRow): PaletteRow {
+		const { href } = row;
+		const base = this.context.boot.shell_base;
+		if (!href || href === base || href.startsWith(`${base}/`)) return row;
+		const app = places.value.value?.apps.find((one) => href === one.route || href.startsWith(`${one.route}/`));
+		return app ? { ...row, description: app.title } : row;
 	}
 
 	private appRows(): PaletteRow[] {
@@ -224,15 +239,19 @@ class PlaceRows {
 			keywords: doctype ? [doctype] : undefined,
 			icon: route ? ROUTE_ICONS[String(route.name)] ?? "lucide-app-window" : "lucide-link",
 			href,
-			doctype: doctype && this.opensRecordsAt(href) ? doctype : undefined,
+			doctype: doctype && this.opensRecords() ? doctype : undefined,
 			run: () => openPlace(href, this.context),
 		};
 	}
 
-	/** Tab narrows only where this router opens the records it finds at their doctype's address. */
-	private opensRecordsAt(href: string) {
-		const { boot, router } = this.context;
-		return router.hasRoute("record") && href.startsWith(`${boot.shell_base}/`);
+	/** Opened under this app's prefix, as a sidebar row is; else, as on the index, at the owner's address. */
+	private routable(doctype: string) {
+		return this.opensRecords() && canRoute(doctype);
+	}
+
+	/** Tab narrows only where this router opens the records it finds. */
+	private opensRecords() {
+		return this.context.router.hasRoute("record");
 	}
 }
 

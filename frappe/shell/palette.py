@@ -66,6 +66,8 @@ def recent_place(visit: Visit, title: str, subtitle: str | None, zone: ZoneInfo)
 	record = visit.name is not None
 	return {
 		"route": visit.route,
+		"doctype": visit.doctype,
+		"name": visit.name,
 		"title": title,
 		"kind": "record" if record else "list",
 		"description": subtitle if record and subtitle else app_screen(visit.app)["title"],

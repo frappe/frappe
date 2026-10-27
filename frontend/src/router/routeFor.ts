@@ -73,6 +73,13 @@ export function routeFor(
 	return { name: standardOr(doctype, "list", options), params, query: options.query };
 }
 
+/** Whether `routeFor` can spell the doctype's address under this prefix, without throwing. */
+export function canRoute(doctype: string): boolean {
+	const { boot, addresses } = current();
+	const address = addresses.addressOf(doctype);
+	return Boolean(address && (!isModular(boot) || address[1]));
+}
+
 /** The doctype's slug and, under a modular prefix, its module. */
 function doctypeParams(doctype: string): Record<string, string> {
 	const { boot, addresses } = current();
