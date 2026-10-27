@@ -135,7 +135,7 @@ frappe.views.KanbanView = class KanbanView extends frappe.views.ListView {
 	}
 
 	toggle_result_area() {
-		this.$result.toggle(this.data.length > 0);
+		this.$result.show();
 	}
 
 	get_board() {

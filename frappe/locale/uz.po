@@ -2,8 +2,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: frappe\n"
 "Report-Msgid-Bugs-To: developers@frappe.io\n"
-"POT-Creation-Date: 2026-10-17 17:34+0000\n"
-"PO-Revision-Date: 2026-10-19 04:19\n"
+"POT-Creation-Date: 2026-10-25 09:36+0000\n"
+"PO-Revision-Date: 2026-10-26 04:19\n"
 "Last-Translator: developers@frappe.io\n"
 "Language-Team: Uzbek\n"
 "MIME-Version: 1.0\n"
@@ -78,7 +78,7 @@ msgstr "&lt;head&gt; HTML"
 msgid "'In Global Search' is not allowed for field {0} of type {1}"
 msgstr "{1} turidagi {0} maydoni uchun \"Global qidiruvda\" ga ruxsat berilmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1333
+#: frappe/core/doctype/doctype/doctype.py:1332
 #, python-brace-format
 msgid "'In Global Search' not allowed for type {0} in row {1}"
 msgstr "{1} qatoridagi {0} turi uchun \"Global qidiruvda\" ga ruxsat berilmaydi"
@@ -107,7 +107,7 @@ msgstr "'{0}' haqiqiy IBAN emas"
 msgid "'{0}' is not a valid URL"
 msgstr "'{0}' yaroqli URL emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1327
+#: frappe/core/doctype/doctype/doctype.py:1326
 #, python-brace-format
 msgid "'{0}' not allowed for type {1} in row {2}"
 msgstr "'{0}' {2} qatoridagi {1} turi uchun ruxsat berilmagan"
@@ -164,7 +164,7 @@ msgstr "1 ta hisobot"
 msgid "1 comment"
 msgstr "1 ta izoh"
 
-#: frappe/tests/test_utils.py:885
+#: frappe/tests/test_utils.py:886
 msgid "1 day ago"
 msgstr "1 kun oldin"
 
@@ -173,17 +173,17 @@ msgid "1 hour"
 msgstr "1 soat"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:54
-#: frappe/tests/test_utils.py:883
+#: frappe/tests/test_utils.py:884
 msgid "1 hour ago"
 msgstr "1 soat oldin"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:50
-#: frappe/tests/test_utils.py:881
+#: frappe/tests/test_utils.py:882
 msgid "1 minute ago"
 msgstr "1 daqiqa oldin"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:68
-#: frappe/tests/test_utils.py:889
+#: frappe/tests/test_utils.py:890
 msgid "1 month ago"
 msgstr "1 oy oldin"
 
@@ -207,37 +207,37 @@ msgctxt "User added row to child table"
 msgid "1 row to {0}"
 msgstr "1 qator {0} ga"
 
-#: frappe/tests/test_utils.py:880
+#: frappe/tests/test_utils.py:881
 msgid "1 second ago"
 msgstr "1 soniya oldin"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:64
-#: frappe/tests/test_utils.py:887
+#: frappe/tests/test_utils.py:888
 msgid "1 week ago"
 msgstr "1 hafta oldin"
 
 #: frappe/public/js/frappe/utils/pretty_date.js:72
-#: frappe/tests/test_utils.py:891
+#: frappe/tests/test_utils.py:892
 msgid "1 year ago"
 msgstr "1 yil oldin"
 
-#: frappe/tests/test_utils.py:884
+#: frappe/tests/test_utils.py:885
 msgid "2 hours ago"
 msgstr "2 soat oldin"
 
-#: frappe/tests/test_utils.py:890
+#: frappe/tests/test_utils.py:891
 msgid "2 months ago"
 msgstr "2 oy oldin"
 
-#: frappe/tests/test_utils.py:888
+#: frappe/tests/test_utils.py:889
 msgid "2 weeks ago"
 msgstr "2 hafta oldin"
 
-#: frappe/tests/test_utils.py:892
+#: frappe/tests/test_utils.py:893
 msgid "2 years ago"
 msgstr "2 yil oldin"
 
-#: frappe/tests/test_utils.py:882
+#: frappe/tests/test_utils.py:883
 msgid "3 minutes ago"
 msgstr "3 daqiqa oldin"
 
@@ -253,7 +253,7 @@ msgstr "4 soat"
 msgid "5 Records"
 msgstr "5 ta yozuv"
 
-#: frappe/tests/test_utils.py:886
+#: frappe/tests/test_utils.py:887
 msgid "5 days ago"
 msgstr "5 kun oldin"
 
@@ -619,7 +619,7 @@ msgstr "<p>Yuqoridagi HTML bilan ishlash uchun siz ota-ona selektori sifatida `r
 "some_class_element.textContent = \"Yangi kontent\";\n"
 "</code></pre>"
 
-#: frappe/twofactor.py:454
+#: frappe/twofactor.py:452
 #, python-brace-format
 msgid "<p>Your OTP secret on {0} has been reset. If you did not perform this reset and did not request it, please contact your System Administrator immediately.</p>"
 msgstr "<p> {0} manzilidagi OTP maxfiy kodingiz qayta o'rnatildi. Agar siz ushbu qayta o'rnatishni amalga oshirmagan bo'lsangiz va uni so'ramagan bo'lsangiz, darhol tizim administratoringizga murojaat qiling.</p>"
@@ -740,7 +740,7 @@ msgstr ">="
 msgid "A DocType (Document Type) is used to insert forms in ERPNext. Forms such as Customer, Orders, and Invoices are Doctypes in the backend. You can also create new DocTypes to create new forms in ERPNext as per your business needs."
 msgstr "ERPNext’ga shakllarni kiritish uchun DocType (Hujjat turi) ishlatiladi. Mijozlar, Buyurtmalar va Fakturalar kabi shakllar orqa tomonda Doctype hisoblanadi. Shuningdek, biznes ehtiyojlaringizga qarab ERPNext’da yangi shakllar yaratish uchun yangi DocType’lar yaratishingiz mumkin."
 
-#: frappe/core/doctype/doctype/doctype.py:1030
+#: frappe/core/doctype/doctype/doctype.py:1029
 msgid "A DocType's name should start with a letter and can only consist of letters, numbers, spaces, underscores and hyphens"
 msgstr "DocType nomi harf bilan boshlanishi va faqat harflar, raqamlar, bo'shliqlar, pastki chiziqlar va defislardan iborat bo'lishi kerak."
 
@@ -753,7 +753,7 @@ msgstr "Tanlangan postda muqova rasmi bo'lishi kerak"
 msgid "A field with the name {0} already exists in {1}"
 msgstr "{0} nomli maydon {1} da allaqachon mavjud"
 
-#: frappe/core/doctype/file/file.py:359
+#: frappe/core/doctype/file/file.py:363
 #, python-brace-format
 msgid "A file with same name {} already exists"
 msgstr "{} nomli fayl allaqachon mavjud"
@@ -772,7 +772,7 @@ msgstr "Foydalanuvchi ruxsat berganidan keyin Mijoz ilovasi kirish huquqiga ega 
 msgid "A new account has been created for you at {0}"
 msgstr "Siz uchun {0} manzilida yangi hisob yaratildi."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:409
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:418
 #, python-brace-format
 msgid "A recurring {0} {1} has been created for you via Auto Repeat {2}."
 msgstr "Avtomatik takrorlash {2} orqali siz uchun takrorlanuvchi {0} {1} yaratildi."
@@ -1008,7 +1008,7 @@ msgstr "Kirish tokeni"
 msgid "Access Token URL"
 msgstr "Kirish tokenining URL manzili"
 
-#: frappe/auth.py:488
+#: frappe/auth.py:489
 msgid "Access not allowed from this IP Address"
 msgstr "Ushbu IP manzildan kirishga ruxsat berilmagan"
 
@@ -1075,7 +1075,7 @@ msgstr "Harakat / Marshrut"
 msgid "Action Complete"
 msgstr "Harakat tugallandi"
 
-#: frappe/model/document.py:1741
+#: frappe/model/document.py:3094
 msgid "Action Failed"
 msgstr "Harakat bajarilmadi"
 
@@ -1520,7 +1520,7 @@ msgstr "Filtrni qo'shish/yangilash"
 msgid "Added HTML in the &lt;head&gt; section of the web page, primarily used for website verification and SEO"
 msgstr "Veb-sahifaning &lt;head&gt; bo'limiga HTML qo'shildi, asosan veb-saytni tekshirish va SEO uchun ishlatiladi"
 
-#: frappe/core/doctype/log_settings/log_settings.py:81
+#: frappe/core/doctype/log_settings/log_settings.py:80
 #, python-brace-format
 msgid "Added default log doctypes: {}"
 msgstr "Standart jurnal hujjat turlari qo'shildi: {}"
@@ -1981,7 +1981,7 @@ msgid "Allow Print for Cancelled"
 msgstr "Chop etish bekor qilinganda ruxsat berish"
 
 #. Label of a Check field in DocType 'Print Settings'
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:416
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:425
 #: frappe/printing/doctype/print_settings/print_settings.json:78
 msgid "Allow Print for Draft"
 msgstr "Qoralama uchun chop etishga ruxsat berish"
@@ -2284,7 +2284,7 @@ msgstr "O'zgartirish kiritish"
 msgid "Amendment Naming Override"
 msgstr "O'zgartirishni nomlashni bekor qilish"
 
-#: frappe/model/document.py:444
+#: frappe/model/document.py:565
 msgid "Amendment Not Allowed"
 msgstr "Tuzatishga ruxsat berilmagan"
 
@@ -2435,7 +2435,7 @@ msgstr "{0} moduli uchun ilova topilmadi"
 msgid "App that produced this notification; used to scope app-specific panels. Derived from the reference document when not set explicitly."
 msgstr ""
 
-#: frappe/__init__.py:1758
+#: frappe/__init__.py:1753
 #, python-brace-format
 msgid "App {0} is not installed"
 msgstr "{0} ilovasi o'rnatilmagan"
@@ -2795,7 +2795,7 @@ msgstr "Tayinlangan"
 msgid "Assigned By Full Name"
 msgstr "To'liq ism bilan tayinlangan"
 
-#: frappe/model/meta.py:55
+#: frappe/model/meta.py:54
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:48
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:71
 #: frappe/public/js/frappe/model/meta.js:206
@@ -2963,7 +2963,7 @@ msgstr "Maydonga biriktirilgan"
 msgid "Attached To Name"
 msgstr "Ismga biriktirilgan"
 
-#: frappe/core/doctype/file/file.py:233
+#: frappe/core/doctype/file/file.py:237
 msgid "Attached To Name must be a string or an integer"
 msgstr "Ismga biriktirilgan satr yoki butun son bo'lishi kerak"
 
@@ -2987,7 +2987,7 @@ msgstr "Ilova"
 msgid "Attachment Gallery"
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1679 frappe/desk/form/load.py:229
+#: frappe/core/doctype/doctype/doctype.py:1678 frappe/desk/form/load.py:229
 msgid "Attachment Gallery filters must target File."
 msgstr ""
 
@@ -2998,7 +2998,7 @@ msgstr ""
 msgid "Attachment Limit (MB)"
 msgstr "Ilova limiti (MB)"
 
-#: frappe/core/doctype/file/file.py:426
+#: frappe/core/doctype/file/file.py:430
 #: frappe/public/js/frappe/form/sidebar/attachments.js:36
 msgid "Attachment Limit Reached"
 msgstr "Qo'shimchalar limiti tugadi"
@@ -3209,7 +3209,7 @@ msgstr "Avtomatik takrorlash kuni"
 msgid "Auto Repeat Day{0} {1} has been repeated."
 msgstr "Avtomatik takrorlash kuni{0} {1} takrorlandi."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:457
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:466
 msgid "Auto Repeat Document Creation Failed"
 msgstr "Avtomatik takrorlash hujjatini yaratish muvaffaqiyatsiz tugadi"
 
@@ -3221,7 +3221,7 @@ msgstr "Avtomatik takrorlash jadvali"
 msgid "Auto Repeat created for this document"
 msgstr "Ushbu hujjat uchun avtomatik takrorlash yaratildi"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:460
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:469
 #, python-brace-format
 msgid "Auto Repeat failed for {0}"
 msgstr "{0} uchun avtomatik takrorlash amalga oshmadi"
@@ -3272,7 +3272,7 @@ msgstr "Avtomatik takrorlash amalga oshmadi. Muammolarni hal qilgandan so'ng, il
 
 #: frappe/automation/doctype/auto_repeat/auto_repeat.py:238
 msgid "Auto repeat skipped. The owner cannot access the reference document."
-msgstr ""
+msgstr "Avtomatik takrorlash o'tkazib yuborildi. Egasi havola hujjatga kira olmaydi."
 
 #. Option for the 'Type' (Select) field in DocType 'DocField'
 #. Option for the 'Field Type' (Select) field in DocType 'Custom Field'
@@ -3524,7 +3524,7 @@ msgstr "Fon rasmi (25 tadan ortiq hujjat uchun talab qilinadi)"
 msgid "Background Workers"
 msgstr "Fon ishchilari"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:173
+#: frappe/integrations/doctype/google_drive/google_drive.py:175
 msgid "Backing up Data."
 msgstr "Ma'lumotlarni zaxiralash."
 
@@ -4338,7 +4338,7 @@ msgstr "Yozishi mumkin"
 msgid "Can not rename as column {0} is already present on DocType."
 msgstr "DocType’da {0} ustuni allaqachon mavjud bo‘lgani uchun nomini o‘zgartirib bo‘lmadi."
 
-#: frappe/core/doctype/doctype/doctype.py:1142
+#: frappe/core/doctype/doctype/doctype.py:1141
 msgid "Can only change to/from Autoincrement naming rule when there is no data in the doctype"
 msgstr "Faqat hujjat turida ma'lumotlar bo'lmaganda, Autoincrement nomlash qoidasiga o'zgartirish/o'zgartirish mumkin"
 
@@ -4446,11 +4446,11 @@ msgstr "Qiymatlarni olib bo'lmayapti"
 msgid "Cannot Remove"
 msgstr "Olib bo'lmaydi"
 
-#: frappe/model/base_document.py:1088
+#: frappe/model/document.py:2813
 msgid "Cannot Update After Submit"
 msgstr "Yuborgandan keyin yangilab bo'lmaydi"
 
-#: frappe/core/doctype/file/file.py:756 frappe/utils/file_manager.py:388
+#: frappe/core/doctype/file/file.py:760 frappe/utils/file_manager.py:388
 #, python-brace-format
 msgid "Cannot access file path {0}"
 msgstr "Fayl yo'liga kirish imkoni yo'q {0}"
@@ -4474,11 +4474,11 @@ msgstr "Yuborishdan oldin bekor qilib bo'lmaydi. O'tish davriga qarang {0}"
 msgid "Cannot cancel {0}."
 msgstr "{0} ni bekor qilib bo'lmaydi."
 
-#: frappe/model/document.py:902
+#: frappe/model/document.py:1025
 msgid "Cannot change docstatus from 0 (Draft) to 2 (Cancelled)"
 msgstr "docstatus parametrini 0 (Qoralama) dan 2 (Bekor qilingan) ga o'zgartirib bo'lmadi."
 
-#: frappe/model/document.py:916
+#: frappe/model/document.py:1039
 msgid "Cannot change docstatus from 1 (Submitted) to 0 (Draft)"
 msgstr "Docstatus parametrini 1 (Yuborilgan) dan 0 (Qoralama) ga o'zgartirib bo'lmadi."
 
@@ -4492,7 +4492,7 @@ msgstr "Bekor qilingan hujjatning holatini o'zgartirib bo'lmadi <b>({0} Holat)</
 msgid "Cannot change state of Cancelled Document. Transition row {0}"
 msgstr "Bekor qilingan hujjatning holatini o'zgartirib bo'lmaydi. O'tish qatori {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1132
+#: frappe/core/doctype/doctype/doctype.py:1131
 msgid "Cannot change to/from autoincrement autoname in Customize Form"
 msgstr "Moslashtirish formasida avtomatik oshirish avtomatik nomini o'zgartirib bo'lmaydi"
 
@@ -4505,7 +4505,7 @@ msgstr "Quyidagi kichik hujjatga qarshi {0} yaratib bo'lmadi: {1}"
 msgid "Cannot create private workspace of other users"
 msgstr "Boshqa foydalanuvchilarning shaxsiy ish maydonini yaratib bo'lmaydi"
 
-#: frappe/core/doctype/file/file.py:251
+#: frappe/core/doctype/file/file.py:255
 msgid "Cannot delete Home and Attachments folders"
 msgstr "\"Uy\" va \"Qo'shimchalar\" papkalarini o'chirib bo'lmaydi"
 
@@ -4577,7 +4577,7 @@ msgstr "Standart jadvallarni tahrirlab bo'lmaydi"
 msgid "Cannot edit a standard report. Please duplicate and create a new report"
 msgstr "Standart hisobotni tahrirlab bo'lmaydi. Iltimos, nusxasini oling va yangi hisobot yarating"
 
-#: frappe/model/document.py:922
+#: frappe/model/document.py:1045
 msgid "Cannot edit cancelled document"
 msgstr "Bekor qilingan hujjatni tahrirlab bo'lmadi"
 
@@ -4599,12 +4599,12 @@ msgstr "Standart maydonlarni tahrirlab bo'lmaydi"
 msgid "Cannot enable {0} for a non-submittable doctype"
 msgstr "Yuborilmaydigan hujjat turi uchun {0} ni yoqib bo'lmadi"
 
-#: frappe/core/doctype/file/file.py:354
+#: frappe/core/doctype/file/file.py:358
 #, python-brace-format
 msgid "Cannot find file {} on disk"
 msgstr "Diskda {} faylini topib bo'lmadi"
 
-#: frappe/core/doctype/file/file.py:701
+#: frappe/core/doctype/file/file.py:705
 msgid "Cannot get file contents of a Folder"
 msgstr "Papkaning fayl mazmunini olib bo'lmadi"
 
@@ -4616,7 +4616,7 @@ msgstr "Bir nechta printerlarni bitta chop etish formatiga bog'lab bo'lmaydi."
 msgid "Cannot import table with more than 5000 rows."
 msgstr "5000 dan ortiq qatorli jadvalni import qilib bo'lmaydi."
 
-#: frappe/model/document.py:990
+#: frappe/model/document.py:1113
 #, python-brace-format
 msgid "Cannot link cancelled document: {0}"
 msgstr "Bekor qilingan hujjatni bog'lab bo'lmadi: {0}"
@@ -4736,7 +4736,7 @@ msgstr "Kategoriya nomi"
 msgid "Category for the in-app notification. Used for filtering and per-user email preferences."
 msgstr ""
 
-#: frappe/utils/data.py:1373
+#: frappe/utils/data.py:1375
 msgid "Cent"
 msgstr "Sent"
 
@@ -4901,7 +4901,7 @@ msgstr "Buzilgan havolalarni tekshiring"
 msgid "Check columns to select, drag to set order."
 msgstr "Ustunlarni belgilash uchun belgilang, tartibni o'rnatish uchun sudrab boring."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:463
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:472
 #, python-brace-format
 msgid "Check the Error Log for more information: {0}"
 msgstr "Qo'shimcha ma'lumot olish uchun Xatolar jurnalini tekshiring: {0}"
@@ -4961,7 +4961,7 @@ msgstr "Bolalar hujjat turlariga ruxsat berilmaydi"
 msgid "Child Doctype"
 msgstr "Bola hujjat turi"
 
-#: frappe/core/doctype/doctype/doctype.py:1626
+#: frappe/core/doctype/doctype/doctype.py:1625
 #, python-brace-format
 msgid "Child Table {0} for field {1}"
 msgstr "{1} maydoni uchun {0} bolalar jadvali"
@@ -5237,7 +5237,7 @@ msgstr "Mijoz skripti"
 #: frappe/core/doctype/communication/communication.js:39
 #: frappe/desk/doctype/todo/todo.js:23
 #: frappe/public/js/frappe/form/form_tour.js:17
-#: frappe/public/js/frappe/ui/messages.js:248
+#: frappe/public/js/frappe/ui/messages.js:255
 #: frappe/website/js/bootstrap-4.js:39
 msgid "Close"
 msgstr "Yopish"
@@ -6032,7 +6032,7 @@ msgstr "Buferga nusxalandi."
 
 #: frappe/public/js/frappe/ui/toolbar/about.js:69
 msgid "Copy Apps Version"
-msgstr ""
+msgstr "Ilovalar versiyasini nusxalash"
 
 #: frappe/website/doctype/web_form/web_form.js:29
 msgid "Copy Embed Code"
@@ -6077,7 +6077,7 @@ msgstr "To'g'ri versiya:"
 msgid "Could not connect to outgoing email server"
 msgstr "Chiquvchi elektron pochta serveriga ulanib bo'lmadi"
 
-#: frappe/model/document.py:986
+#: frappe/model/document.py:1109
 #, python-brace-format
 msgid "Could not find {0}"
 msgstr "{0} topilmadi"
@@ -6329,7 +6329,7 @@ msgstr "Yaratilgan"
 msgid "Created At"
 msgstr "Yaratilgan joyi"
 
-#: frappe/model/meta.py:52
+#: frappe/model/meta.py:51
 #: frappe/public/js/frappe/list/list_sidebar_group_by.js:73
 #: frappe/public/js/frappe/model/meta.js:203
 #: frappe/public/js/frappe/model/model.js:124
@@ -6342,7 +6342,7 @@ msgid "Created Custom Field {0} in {1}"
 msgstr "{1} ichida {0} maxsus maydon yaratildi"
 
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.js:241
-#: frappe/email/doctype/notification/notification.js:32 frappe/model/meta.py:47
+#: frappe/email/doctype/notification/notification.js:32 frappe/model/meta.py:46
 #: frappe/public/js/frappe/model/meta.js:198
 #: frappe/public/js/frappe/model/model.js:126
 #: frappe/public/js/frappe/views/dashboard/dashboard_view.js:479
@@ -7006,7 +7006,7 @@ msgstr "{0}uchun ma'lumotlarni import qilishga ruxsat berilmagan. DocType sozlam
 msgid "Data Too Long"
 msgstr "Ma'lumotlar juda uzun"
 
-#: frappe/model/base_document.py:745
+#: frappe/model/document.py:2470
 msgid "Data missing in table"
 msgstr "Jadvalda ma'lumotlar yo'q"
 
@@ -7338,12 +7338,12 @@ msgstr "Standart ish maydoni"
 msgid "Default display currency"
 msgstr "Standart ko'rsatish valyutasi"
 
-#: frappe/core/doctype/doctype/doctype.py:1355
+#: frappe/core/doctype/doctype/doctype.py:1354
 #, python-brace-format
 msgid "Default for 'Check' type of field {0} must be either '0' or '1'"
 msgstr "\"Tekshirish\" maydonining standart qiymati {0} uchun '0' yoki '1' bo'lishi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1368
+#: frappe/core/doctype/doctype/doctype.py:1367
 #, python-brace-format
 msgid "Default value for {0} must be in the list of options."
 msgstr "{0} uchun standart qiymat variantlar ro'yxatida bo'lishi kerak."
@@ -7791,7 +7791,7 @@ msgstr "Ushbu hujjat turli \"holatlar\"da mavjud bo'lishi mumkin. Masalan, \"Och
 msgid "Digits"
 msgstr "Raqamlar"
 
-#: frappe/utils/data.py:1406
+#: frappe/utils/data.py:1408
 msgctxt "Currency"
 msgid "Dinars"
 msgstr "Dinarlar"
@@ -8115,7 +8115,7 @@ msgstr "Quyidagi holatlarning DocStatus ko'rsatkichlari o'zgardi:<br><strong>{0}
 msgid "DocType"
 msgstr "DocType"
 
-#: frappe/core/doctype/doctype/doctype.py:1557
+#: frappe/core/doctype/doctype/doctype.py:1556
 #, python-brace-format
 msgid "DocType <b>{0}</b> provided for the field <b>{1}</b> must have atleast one Link field"
 msgstr "DocType <b>{0}</b> maydoni uchun berilgan <b>{1}</b> kamida bitta Havola maydoniga ega bo'lishi kerak"
@@ -8168,11 +8168,11 @@ msgstr "DocType holati"
 msgid "DocType View"
 msgstr "DocType ko'rinishi"
 
-#: frappe/core/doctype/doctype/doctype.py:661
+#: frappe/core/doctype/doctype/doctype.py:660
 msgid "DocType can not be merged"
 msgstr "DocType ni birlashtirib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:655
+#: frappe/core/doctype/doctype/doctype.py:654
 msgid "DocType can only be renamed by Administrator"
 msgstr "DocType nomini faqat administrator o'zgartirishi mumkin"
 
@@ -8193,7 +8193,7 @@ msgstr "DocType satr bo'lishi kerak"
 msgid "DocType must have atleast one field"
 msgstr "DocType kamida bitta maydonga ega bo'lishi kerak"
 
-#: frappe/core/doctype/log_settings/log_settings.py:57
+#: frappe/core/doctype/log_settings/log_settings.py:56
 msgid "DocType not supported by Log Settings."
 msgstr "DocType jurnal sozlamalari tomonidan qo'llab-quvvatlanmaydi."
 
@@ -8216,7 +8216,7 @@ msgstr "DocType {0} mavjud emas."
 msgid "DocType {} not found"
 msgstr "DocType {} topilmadi"
 
-#: frappe/core/doctype/doctype/doctype.py:1023
+#: frappe/core/doctype/doctype/doctype.py:1022
 msgid "DocType's name should not start or end with whitespace"
 msgstr "DocType nomi bo'sh joy bilan boshlanmasligi yoki tugamasligi kerak"
 
@@ -8240,7 +8240,7 @@ msgstr "Hujjat turi"
 msgid "Doctype To Sync"
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1017
+#: frappe/core/doctype/doctype/doctype.py:1016
 #, python-brace-format
 msgid "Doctype name is limited to {0} characters ({1})"
 msgstr "Doctype nomi {0} belgidan iborat ({1})"
@@ -8294,22 +8294,22 @@ msgstr "Hujjatlarni bog'lash"
 msgid "Document Links"
 msgstr "Hujjat havolalari"
 
-#: frappe/core/doctype/doctype/doctype.py:1190
+#: frappe/core/doctype/doctype/doctype.py:1189
 #, python-brace-format
 msgid "Document Links Row #{0}: Could not find field {1} in {2} DocType"
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1210
+#: frappe/core/doctype/doctype/doctype.py:1209
 #, python-brace-format
 msgid "Document Links Row #{0}: Invalid doctype or fieldname."
 msgstr "Hujjat havolalari qatori #{0}: Noto'g'ri hujjat turi yoki maydon nomi."
 
-#: frappe/core/doctype/doctype/doctype.py:1173
+#: frappe/core/doctype/doctype/doctype.py:1172
 #, python-brace-format
 msgid "Document Links Row #{0}: Parent DocType is mandatory for internal links"
 msgstr "Hujjat havolalari qatori #{0}: Ichki havolalar uchun ota-ona DocType majburiydir"
 
-#: frappe/core/doctype/doctype/doctype.py:1179
+#: frappe/core/doctype/doctype/doctype.py:1178
 #, python-brace-format
 msgid "Document Links Row #{0}: Table Fieldname is mandatory for internal links"
 msgstr "Hujjat havolalari qatori #{0}: Jadval maydoni nomi ichki havolalar uchun majburiydir"
@@ -8352,7 +8352,7 @@ msgstr "Hujjatni nomlash qoidasi sharti"
 msgid "Document Naming Settings"
 msgstr "Hujjat nomlash sozlamalari"
 
-#: frappe/model/document.py:371
+#: frappe/model/document.py:492
 msgid "Document Queued"
 msgstr "Hujjat navbatga qo'yildi"
 
@@ -8402,7 +8402,7 @@ msgstr "Hujjatlarni ulashish hisoboti"
 msgid "Document States"
 msgstr "Hujjat holatlari"
 
-#: frappe/model/meta.py:48 frappe/public/js/frappe/model/meta.js:199
+#: frappe/model/meta.py:47 frappe/public/js/frappe/model/meta.js:199
 #: frappe/public/js/frappe/model/model.js:137
 msgid "Document Status"
 msgstr "Hujjat holati"
@@ -8505,7 +8505,7 @@ msgid "Document Types and Permissions"
 msgstr "Hujjat turlari va ruxsatnomalar"
 
 #: frappe/core/doctype/submission_queue/submission_queue.py:163
-#: frappe/model/document.py:1810
+#: frappe/model/document.py:3163
 msgid "Document Unlocked"
 msgstr "Hujjat qulfdan chiqarildi"
 
@@ -8653,7 +8653,7 @@ msgstr "Hisobingiz yo'qmi?"
 
 #: frappe/public/js/frappe/form/form_tour.js:16
 #: frappe/public/js/frappe/form/sidebar/assign_to.js:344
-#: frappe/public/js/frappe/ui/messages.js:235
+#: frappe/public/js/frappe/ui/messages.js:242
 #: frappe/public/js/onboarding_tours/onboarding_tours.js:17
 #: frappe/public/js/print_format_builder/HTMLEditor.vue:5
 #: frappe/public/js/print_format_builder/LetterHeadEditor.vue:52
@@ -8787,7 +8787,7 @@ msgstr "Dropbox yangilash tokeni"
 msgid "Dropbox Settings"
 msgstr "Dropbox sozlamalari"
 
-#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:347
+#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:349
 msgid "Dropbox Setup"
 msgstr "Dropbox sozlamalari"
 
@@ -8831,7 +8831,7 @@ msgstr "Takroriy yozuv"
 msgid "Duplicate Filter Name"
 msgstr "Filtr nomining takrorlanishi"
 
-#: frappe/model/base_document.py:604 frappe/model/rename_doc.py:100
+#: frappe/model/document.py:2329 frappe/model/rename_doc.py:100
 msgid "Duplicate Name"
 msgstr "Takroriy ism"
 
@@ -9618,7 +9618,7 @@ msgstr "Kuzatuv sahifa ko'rinishlarini yoqish"
 
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:338
-#: frappe/twofactor.py:440
+#: frappe/twofactor.py:438
 msgid "Enable Two Factor Auth"
 msgstr "Ikki faktorli avtorizatsiyani yoqish"
 
@@ -9950,7 +9950,7 @@ msgstr "Teng"
 #: frappe/email/doctype/email_queue_recipient/email_queue_recipient.json:31
 #: frappe/integrations/doctype/integration_request/integration_request.json:58
 #: frappe/integrations/doctype/webhook_request_log/webhook_request_log.json:69
-#: frappe/model/base_document.py:745 frappe/model/base_document.py:751
+#: frappe/model/document.py:2470 frappe/model/document.py:2476
 #: frappe/public/js/frappe/ui/messages.js:22
 msgid "Error"
 msgstr "Xato"
@@ -10036,11 +10036,11 @@ msgstr "Elektron pochta hisobiga ulanishda xatolik {0}"
 msgid "Error while evaluating Notification {0}. Please fix your template."
 msgstr "Bildirishnomani baholashda xatolik yuz berdi {0}. Iltimos, shabloningizni tuzating."
 
-#: frappe/model/document.py:875
+#: frappe/model/document.py:998
 msgid "Error: Document has been modified after you have opened it"
 msgstr "Xato: Hujjat ochilgandan keyin o'zgartirildi"
 
-#: frappe/model/base_document.py:759
+#: frappe/model/document.py:2484
 #, python-brace-format
 msgid "Error: Value missing for {0}: {1}"
 msgstr "Xato: {0}uchun qiymat yetishmayapti: {1}"
@@ -10490,7 +10490,7 @@ msgstr "Soʻrovning asosiy qismini hisoblashda xatolik yuz berdi: {}"
 msgid "Failed to connect to server"
 msgstr "Serverga ulanib bo'lmadi"
 
-#: frappe/auth.py:701
+#: frappe/auth.py:702
 msgid "Failed to decode token, please provide a valid base64-encoded token."
 msgstr "Tokenni dekodlashda xatolik yuz berdi, iltimos, base64-kodlangan tokenni taqdim eting."
 
@@ -10674,11 +10674,11 @@ msgstr "{0} dan maydonlar olinmoqda ..."
 msgid "Field"
 msgstr "Maydon"
 
-#: frappe/core/doctype/doctype/doctype.py:418
+#: frappe/core/doctype/doctype/doctype.py:417
 msgid "Field \"route\" is mandatory for Web Views"
 msgstr "Veb ko'rinishlar uchun \"marshrut\" maydoni majburiydir"
 
-#: frappe/core/doctype/doctype/doctype.py:1505
+#: frappe/core/doctype/doctype/doctype.py:1504
 msgid "Field \"title\" is mandatory if \"Website Search Field\" is set."
 msgstr "Agar \"Veb-sayt qidiruv maydoni\" o'rnatilgan bo'lsa, \"sarlavha\" maydoni majburiydir."
 
@@ -10696,7 +10696,7 @@ msgstr "<code>{0}</code> maydoni {1} da topilmadi"
 msgid "Field Description"
 msgstr "Maydon tavsifi"
 
-#: frappe/core/doctype/doctype/doctype.py:1072
+#: frappe/core/doctype/doctype/doctype.py:1071
 msgid "Field Missing"
 msgstr "Maydon yo'q"
 
@@ -10784,12 +10784,12 @@ msgstr "{0} maydoni topilmadi."
 msgid "Fieldname"
 msgstr "Maydon nomi"
 
-#: frappe/core/doctype/doctype/doctype.py:273
+#: frappe/core/doctype/doctype/doctype.py:272
 #, python-brace-format
 msgid "Fieldname '{0}' conflicting with a {1} of the name {2} in {3}"
 msgstr "{0}' maydoni nomi {3} maydonidagi {2} nomining {1} raqami bilan ziddiyatga ega"
 
-#: frappe/core/doctype/doctype/doctype.py:1071
+#: frappe/core/doctype/doctype/doctype.py:1070
 #, python-brace-format
 msgid "Fieldname called {0} must exist to enable autonaming"
 msgstr "Avtomatik nomlashni yoqish uchun {0} nomli maydon nomi mavjud bo'lishi kerak"
@@ -10817,12 +10817,12 @@ msgstr "Maydon nomi {0} bir necha marta paydo bo'ladi"
 msgid "Fieldname {0} cannot have special characters like {1}"
 msgstr "{0} maydoni nomida {1} kabi maxsus belgilar bo'lmasligi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1928
+#: frappe/core/doctype/doctype/doctype.py:1927
 #, python-brace-format
 msgid "Fieldname {0} conflicting with meta object"
 msgstr "Fieldname {0} meta obyekt bilan ziddiyatli"
 
-#: frappe/core/doctype/doctype/doctype.py:509
+#: frappe/core/doctype/doctype/doctype.py:508
 #: frappe/public/js/form_builder/utils.js:299
 #, python-brace-format
 msgid "Fieldname {0} is restricted"
@@ -10856,7 +10856,7 @@ msgstr "Maydonlar"
 msgid "Fields Multicheck"
 msgstr "Maydonlarni ko'p marta tekshirish"
 
-#: frappe/core/doctype/file/file.py:517
+#: frappe/core/doctype/file/file.py:521
 msgid "Fields `file_name` or `file_url` must be set for File"
 msgstr "Fayl uchun `file_name` yoki `file_url` maydonlari o'rnatilishi kerak"
 
@@ -10888,7 +10888,7 @@ msgstr "{2} qatoridagi {0} dan {1} ga o'zgartirib bo'lmaydi"
 #: frappe/custom/doctype/custom_field/custom_field.py:193
 #, python-brace-format
 msgid "Fieldtype of {0} in {1} cannot be changed from {2} to {3}"
-msgstr ""
+msgstr "{1} dagi {0} maydonining turini {2} dan {3} ga o'zgartirib bo'lmaydi"
 
 #. Label of a shortcut in the Tools Workspace
 #. Name of a DocType
@@ -10963,7 +10963,7 @@ msgstr "Mavjud qo'shimchani nusxalashda fayl URL manzili talab qilinadi."
 msgid "File backup is ready"
 msgstr "Fayl zaxira nusxasi tayyor"
 
-#: frappe/core/doctype/file/file.py:759
+#: frappe/core/doctype/file/file.py:763
 #, python-brace-format
 msgid "File name cannot have {0}"
 msgstr "Fayl nomida {0} bo'lmasligi kerak"
@@ -10972,7 +10972,7 @@ msgstr "Fayl nomida {0} bo'lmasligi kerak"
 msgid "File not attached"
 msgstr "Fayl biriktirilmagan"
 
-#: frappe/core/doctype/file/file.py:869 frappe/public/js/frappe/request.js:195
+#: frappe/core/doctype/file/file.py:873 frappe/public/js/frappe/request.js:195
 #: frappe/utils/file_manager.py:222
 #, python-brace-format
 msgid "File size exceeded the maximum allowed size of {0} MB"
@@ -10982,7 +10982,7 @@ msgstr "Fayl hajmi ruxsat etilgan maksimal {0} MB hajmidan oshib ketdi"
 msgid "File too big"
 msgstr "Fayl juda katta"
 
-#: frappe/core/doctype/file/file.py:478
+#: frappe/core/doctype/file/file.py:482
 #, python-brace-format
 msgid "File type of {0} is not allowed"
 msgstr "{0} fayl turiga ruxsat berilmaydi"
@@ -10991,7 +10991,7 @@ msgstr "{0} fayl turiga ruxsat berilmaydi"
 msgid "File upload failed."
 msgstr "Fayl yuklash amalga oshmadi."
 
-#: frappe/core/doctype/file/file.py:465 frappe/core/doctype/file/file.py:533
+#: frappe/core/doctype/file/file.py:469 frappe/core/doctype/file/file.py:537
 #, python-brace-format
 msgid "File {0} does not exist"
 msgstr "{0} fayli mavjud emas"
@@ -11050,11 +11050,11 @@ msgstr "Filtr nomi"
 msgid "Filter Values"
 msgstr "Filtr qiymatlari"
 
-#: frappe/utils/data.py:1959
+#: frappe/utils/data.py:1969
 msgid "Filter must be a tuple or list (in a list)"
 msgstr "Filtr juftlik yoki ro'yxat (ro'yxatda) bo'lishi kerak"
 
-#: frappe/utils/data.py:1967
+#: frappe/utils/data.py:1977
 #, python-brace-format
 msgid "Filter must have 4 values (doctype, fieldname, operator, value): {0}"
 msgstr "Filtrda 4 ta qiymat bo'lishi kerak (doctype, maydon nomi, operator, qiymat): {0}"
@@ -11143,7 +11143,7 @@ msgstr ""
 
 #: frappe/desk/form/load.py:227
 msgid "Filters must be four-value rows with string doctypes, fields, and operators."
-msgstr ""
+msgstr "Filtrlar DocType, maydon va operatorlar satr bo'lgan to'rt qiymatli qatorlar bo'lishi kerak."
 
 #: frappe/public/js/frappe/views/kanban/kanban_view.js:202
 msgid "Filters saved"
@@ -11270,11 +11270,11 @@ msgstr "Suzuvchi aniqlik"
 msgid "Fold"
 msgstr "Buklang"
 
-#: frappe/core/doctype/doctype/doctype.py:1429
+#: frappe/core/doctype/doctype/doctype.py:1428
 msgid "Fold can not be at the end of the form"
 msgstr "Buklama shaklning oxirida bo'lishi mumkin emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1427
+#: frappe/core/doctype/doctype/doctype.py:1426
 msgid "Fold must come before a Section Break"
 msgstr "Buklama bo'lim tanaffusidan oldin bo'lishi kerak"
 
@@ -11292,7 +11292,7 @@ msgstr "Papka nomi"
 msgid "Folder name should not include '/' (slash)"
 msgstr "Jild nomida '/' (qiyalik) bo'lmasligi kerak"
 
-#: frappe/core/doctype/file/file.py:579
+#: frappe/core/doctype/file/file.py:583
 #, python-brace-format
 msgid "Folder {0} is not empty"
 msgstr "{0} papkasi bo'sh emas"
@@ -11537,7 +11537,7 @@ msgstr "Bir nechta manzillar uchun manzilni turli qatorlarga kiriting. Masalan, 
 msgid "For updating, you can update only selective columns."
 msgstr "Yangilash uchun faqat tanlangan ustunlarni yangilashingiz mumkin."
 
-#: frappe/core/doctype/doctype/doctype.py:1772
+#: frappe/core/doctype/doctype/doctype.py:1771
 #, python-brace-format
 msgid "For {0} at level {1} in {2} in row {3}"
 msgstr "{3} qatoridagi {2} dagi {1} darajasida {0} uchun"
@@ -11837,9 +11837,9 @@ msgstr "Funksiyaga asoslangan"
 #: frappe/model/db_query.py:278
 #, python-brace-format
 msgid "Function {0} is not allowed in this query."
-msgstr ""
+msgstr "Bu so'rovda {0} funksiyasiga ruxsat berilmagan."
 
-#: frappe/__init__.py:884
+#: frappe/__init__.py:883
 #, python-brace-format
 msgid "Function {0} is not whitelisted."
 msgstr "{0} funksiyasi oq ro'yxatga kiritilmagan."
@@ -12044,7 +12044,7 @@ msgstr "Ortga qaytish"
 #: frappe/website/doctype/web_form/web_form.js:385
 #: frappe/website/doctype/web_form/web_form.js:389
 msgid "Go to Access Control section"
-msgstr ""
+msgstr "Kirishni boshqarish bo'limiga o'tish"
 
 #: frappe/desk/doctype/notification_settings/notification_settings.js:17
 msgid "Go to Notification Settings List"
@@ -12235,12 +12235,12 @@ msgstr "Google Drive - Google Drive’da papka yaratib bo‘lmadi - Xato kodi {0
 msgid "Google Drive - Could not find folder in Google Drive - Error Code {0}"
 msgstr "Google Drive - Google Drive'da papka topilmadi - Xato kodi {0}"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:196
+#: frappe/integrations/doctype/google_drive/google_drive.py:198
 #, python-brace-format
 msgid "Google Drive - Could not locate - {0}"
 msgstr "Google Drive - Topilmadi - {0}"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:207
+#: frappe/integrations/doctype/google_drive/google_drive.py:209
 msgid "Google Drive Backup Successful."
 msgstr "Google Drive zaxira nusxasi muvaffaqiyatli."
 
@@ -12609,7 +12609,7 @@ msgstr "Sarlavha"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json:293
 msgid "Headline of the in-app notification. Falls back to Subject if left blank. Supports Jinja."
-msgstr ""
+msgstr "Ilova ichidagi bildirishnomaning sarlavhasi. Bo‘sh qoldirilsa, Mavzu ishlatiladi. Jinja qo‘llab-quvvatlanadi."
 
 #. Option for the 'Type' (Select) field in DocType 'Dashboard Chart'
 #: frappe/desk/doctype/dashboard_chart/dashboard_chart.json:140
@@ -12730,7 +12730,7 @@ msgstr "Yashirin maydonlar"
 #: frappe/public/js/frappe/views/reports/query_report.js:1653
 #, python-brace-format
 msgid "Hidden columns include: {0}"
-msgstr ""
+msgstr "Yashirin ustunlar quyidagilarni o'z ichiga oladi: {0}"
 
 #. Option for the 'Page Number' (Select) field in DocType 'Print Format'
 #: frappe/printing/doctype/print_format/print_format.json:264
@@ -12977,7 +12977,7 @@ msgstr "Sizda hali hech qanday ish maydoniga kirish imkoni yo'q deb o'ylayman, l
 #: frappe/core/doctype/data_import/importer.py:1145
 #: frappe/core/doctype/data_import/importer.py:1210
 #: frappe/core/doctype/data_import/importer.py:1213
-#: frappe/desk/report/todo/todo.py:36 frappe/model/meta.py:46
+#: frappe/desk/report/todo/todo.py:36 frappe/model/meta.py:45
 #: frappe/public/js/frappe/data_import/data_exporter.js:333
 #: frappe/public/js/frappe/data_import/data_exporter.js:348
 #: frappe/public/js/frappe/list/list_settings.js:335
@@ -13085,7 +13085,7 @@ msgstr "Agar \"Qattiq foydalanuvchi ruxsatini qo'llash\" katagiga belgi qo'yilga
 msgid "If Checked workflow status will not override status in list view"
 msgstr "Agar tekshirilgan ish oqimi holati ro'yxat ko'rinishidagi holatni bekor qilmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1784
+#: frappe/core/doctype/doctype/doctype.py:1783
 #: frappe/public/js/frappe/roles_editor.js:99
 msgid "If Owner"
 msgstr "Agar egasi bo'lsa"
@@ -13251,7 +13251,7 @@ msgstr "Agar ushbu ko'rsatmalar foydali bo'lmasa, iltimos, GitHub muammolari bo'
 #. Success message of the request-data Web Form
 #: frappe/website/web_form/request_data/request_data.json:33
 msgid "If this email is registered with us, a download link will be sent to it."
-msgstr ""
+msgstr "Agar bu elektron pochta bizda ro'yxatdan o'tgan bo'lsa, unga yuklab olish havolasi yuboriladi."
 
 #: frappe/core/doctype/user/user.py:1108
 msgid "If this email is registered with us, we have sent password reset instructions to it. Please check your inbox."
@@ -13351,7 +13351,7 @@ msgstr "Bu oʻlchamdan katta qoʻshimchalarni eʼtiborsiz qoldiring"
 msgid "Ignored Apps"
 msgstr "E'tiborsiz qoldirilgan ilovalar"
 
-#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:348
+#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:350
 msgid "Illegal Access Token. Please try again"
 msgstr "Noqonuniy kirish tokeni. Qaytadan urinib ko'ring"
 
@@ -13419,11 +13419,11 @@ msgstr "Rasm ko'rinishi"
 msgid "Image Width"
 msgstr "Rasm kengligi"
 
-#: frappe/core/doctype/doctype/doctype.py:1485
+#: frappe/core/doctype/doctype/doctype.py:1484
 msgid "Image field must be a valid fieldname"
 msgstr "Rasm maydoni to'g'ri maydon nomi bo'lishi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1487
+#: frappe/core/doctype/doctype/doctype.py:1486
 msgid "Image field must be of type Attach Image"
 msgstr "Rasm maydoni \"Rasmni biriktirish\" turida bo'lishi kerak"
 
@@ -13465,7 +13465,7 @@ msgstr "{0} tomonidan taqlid qilingan"
 msgid "Impersonating {0}"
 msgstr "{0} ning o'zini taqlid qilishi"
 
-#: frappe/core/doctype/log_settings/log_settings.py:56
+#: frappe/core/doctype/log_settings/log_settings.py:55
 msgid "Implement `clear_old_logs` method to enable auto error clearing."
 msgstr "Xatolarni avtomatik ravishda tozalashni yoqish uchun `clear_old_logs` usulini qo'llang."
 
@@ -13781,7 +13781,7 @@ msgstr "Kiruvchi elektron pochta hisob qaydnomasi noto'g'ri"
 msgid "Incomplete Virtual Doctype Implementation"
 msgstr "Tugallanmagan virtual hujjat turini amalga oshirish"
 
-#: frappe/auth.py:252
+#: frappe/auth.py:256
 msgid "Incomplete login details"
 msgstr "Kirish ma'lumotlari to'liq emas"
 
@@ -13797,16 +13797,16 @@ msgstr "Noto'g'ri URL"
 msgid "Incorrect User or Password"
 msgstr "Noto'g'ri foydalanuvchi yoki parol"
 
-#: frappe/twofactor.py:174 frappe/twofactor.py:186
+#: frappe/twofactor.py:172 frappe/twofactor.py:184
 msgid "Incorrect Verification code"
 msgstr "Noto'g'ri tasdiqlash kodi"
 
-#: frappe/model/document.py:1406
+#: frappe/model/document.py:1531
 #, python-brace-format
 msgid "Incorrect value in row {0}:"
 msgstr "{0} qatoridagi qiymat noto'g'ri:"
 
-#: frappe/model/document.py:1408
+#: frappe/model/document.py:1533
 msgid "Incorrect value:"
 msgstr "Noto'g'ri qiymat:"
 
@@ -13816,7 +13816,7 @@ msgstr "Noto'g'ri qiymat:"
 #: frappe/core/doctype/docfield/docfield.json:155
 #: frappe/core/doctype/recorder_query/recorder_query.json:95
 #: frappe/custom/doctype/custom_field/custom_field.json:355
-#: frappe/model/meta.py:49 frappe/public/js/frappe/model/meta.js:200
+#: frappe/model/meta.py:48 frappe/public/js/frappe/model/meta.js:200
 #: frappe/public/js/frappe/model/model.js:125
 #: frappe/public/js/frappe/views/reports/report_view.js:1028
 msgid "Index"
@@ -13983,7 +13983,7 @@ msgstr "Hisobotni o'chirish uchun yetarli ruxsatlar yo'q"
 msgid "Insufficient Permissions for editing Report"
 msgstr "Hisobotni tahrirlash uchun yetarli ruxsatlar yo'q"
 
-#: frappe/core/doctype/doctype/doctype.py:446
+#: frappe/core/doctype/doctype/doctype.py:445
 msgid "Insufficient attachment limit"
 msgstr "Ilova chegarasi yetarli emas"
 
@@ -14141,7 +14141,7 @@ msgstr "Noto'g'ri hisob ma'lumotlari"
 msgid "Invalid Credentials for Email Account: {0}"
 msgstr "Elektron pochta hisobi uchun noto'g'ri ma'lumotlar: {0}"
 
-#: frappe/utils/data.py:107 frappe/utils/data.py:256
+#: frappe/utils/data.py:109 frappe/utils/data.py:258
 msgid "Invalid Date"
 msgstr "Noto'g'ri sana"
 
@@ -14158,11 +14158,11 @@ msgstr "Noto'g'ri hujjat turi: {0}"
 msgid "Invalid Doctype"
 msgstr "Noto'g'ri hujjat turi"
 
-#: frappe/core/doctype/doctype/doctype.py:1251
+#: frappe/core/doctype/doctype/doctype.py:1250
 msgid "Invalid Fieldname"
 msgstr "Maydon nomi noto'g'ri"
 
-#: frappe/core/doctype/file/file.py:304 frappe/core/doctype/file/file.py:311
+#: frappe/core/doctype/file/file.py:308 frappe/core/doctype/file/file.py:315
 msgid "Invalid File URL"
 msgstr "Fayl URL manzili noto'g'ri"
 
@@ -14175,12 +14175,12 @@ msgstr "{0} maydonining {1}turidagi filtr formati noto'g'ri. Uni to'g'ri o'rnati
 msgid "Invalid Filter Value"
 msgstr "Noto'g'ri filtr qiymati"
 
-#: frappe/core/doctype/doctype/doctype.py:1672
+#: frappe/core/doctype/doctype/doctype.py:1671
 #, python-brace-format
 msgid "Invalid Filters for field {0}. Filters must be a list of filters, where each filter is a list with four values: doctype, fieldname, operator, and value."
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1662
+#: frappe/core/doctype/doctype/doctype.py:1661
 #, python-brace-format
 msgid "Invalid Filters for field {0}. Filters must be valid JSON."
 msgstr ""
@@ -14219,8 +14219,8 @@ msgstr "Noto'g'ri nomlash seriyasi: {}"
 msgid "Invalid Operation"
 msgstr "Noto'g'ri operatsiya"
 
-#: frappe/core/doctype/doctype/doctype.py:1620
-#: frappe/core/doctype/doctype/doctype.py:1629
+#: frappe/core/doctype/doctype/doctype.py:1619
+#: frappe/core/doctype/doctype/doctype.py:1628
 msgid "Invalid Option"
 msgstr "Noto'g'ri variant"
 
@@ -14250,7 +14250,7 @@ msgstr "Parol noto'g'ri"
 msgid "Invalid Phone Number"
 msgstr "Noto'g'ri telefon raqami"
 
-#: frappe/auth.py:99 frappe/integrations/google_oauth.py:201
+#: frappe/auth.py:104 frappe/integrations/google_oauth.py:201
 #: frappe/utils/oauth.py:230 frappe/utils/oauth.py:242 frappe/www/login.py:128
 msgid "Invalid Request"
 msgstr "Noto'g'ri so'rov"
@@ -14260,7 +14260,7 @@ msgstr "Noto'g'ri so'rov"
 msgid "Invalid Search Field {0}"
 msgstr "Qidiruv maydoni noto'g'ri {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1193
+#: frappe/core/doctype/doctype/doctype.py:1192
 msgid "Invalid Table Fieldname"
 msgstr "Jadval maydoni nomi noto'g'ri"
 
@@ -14268,7 +14268,7 @@ msgstr "Jadval maydoni nomi noto'g'ri"
 msgid "Invalid Transition"
 msgstr "Noto'g'ri o'tish"
 
-#: frappe/core/doctype/file/file.py:322
+#: frappe/core/doctype/file/file.py:326
 #: frappe/public/js/frappe/file_uploader/FileUploader.vue:550
 #: frappe/public/js/frappe/widgets/widget_dialog.js:583
 #: frappe/utils/csvutils.py:233 frappe/utils/csvutils.py:254
@@ -14328,7 +14328,7 @@ msgstr "Zaxira yo'li noto'g'ri"
 msgid "Invalid column"
 msgstr "Noto'g'ri ustun"
 
-#: frappe/model/document.py:905 frappe/model/document.py:919
+#: frappe/model/document.py:1028 frappe/model/document.py:1042
 msgid "Invalid docstatus"
 msgstr "Noto'g'ri hujjat holati"
 
@@ -14346,19 +14346,19 @@ msgstr "{0} ({1} ) filtrida noto'g'ri ifoda o'rnatilgan"
 msgid "Invalid field for grouping"
 msgstr "Guruhlash uchun maydon noto'g'ri"
 
-#: frappe/utils/data.py:2071
+#: frappe/utils/data.py:2081
 #, python-brace-format
 msgid "Invalid field name {0}"
 msgstr "Maydon nomi noto'g'ri {0}"
 
-#: frappe/core/doctype/doctype/doctype.py:1080
+#: frappe/core/doctype/doctype/doctype.py:1079
 #, python-brace-format
 msgid "Invalid fieldname '{0}' in autoname"
 msgstr "Avtomatik nomdagi '{0}' maydon nomi noto'g'ri"
 
 #: frappe/utils/file_manager.py:238
 msgid "Invalid file name"
-msgstr ""
+msgstr "Noto'g'ri fayl nomi"
 
 #: frappe/client.py:378
 #, python-brace-format
@@ -14442,7 +14442,7 @@ msgstr "Maydonlar uchun noto'g'ri qiymatlar:"
 msgid "Invalid wkhtmltopdf version"
 msgstr "wkhtmltopdf versiyasi noto'g'ri"
 
-#: frappe/core/doctype/doctype/doctype.py:1543
+#: frappe/core/doctype/doctype/doctype.py:1542
 #, python-brace-format
 msgid "Invalid {0} condition"
 msgstr "{0} sharti noto'g'ri"
@@ -14645,7 +14645,7 @@ msgstr "Ommaviy"
 msgid "Is Published Field"
 msgstr "Nashr qilingan maydon"
 
-#: frappe/core/doctype/doctype/doctype.py:1494
+#: frappe/core/doctype/doctype/doctype.py:1493
 msgid "Is Published Field must be a valid fieldname"
 msgstr "Nashr qilingan maydon haqiqiy maydon nomi bo'lishi kerak"
 
@@ -14961,7 +14961,7 @@ msgstr "Kalit"
 
 #: frappe/website/doctype/web_form/web_form.js:390
 msgid "Key Required"
-msgstr ""
+msgstr "Kalit majburiy"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json:419
@@ -15368,12 +15368,12 @@ msgstr "Oxirgi sinxronlash yoqilgan"
 msgid "Last Synced On"
 msgstr "Oxirgi sinxronlash sanasi"
 
-#: frappe/model/meta.py:51 frappe/public/js/frappe/model/meta.js:202
+#: frappe/model/meta.py:50 frappe/public/js/frappe/model/meta.js:202
 #: frappe/public/js/frappe/model/model.js:131
 msgid "Last Updated By"
 msgstr "Oxirgi marta yangilangan"
 
-#: frappe/model/meta.py:50 frappe/public/js/frappe/model/meta.js:201
+#: frappe/model/meta.py:49 frappe/public/js/frappe/model/meta.js:201
 #: frappe/public/js/frappe/model/model.js:127
 msgid "Last Updated On"
 msgstr "Oxirgi yangilanish sanasi"
@@ -15682,7 +15682,7 @@ msgstr "{0}ga layk bosing: {1}"
 msgid "Liked"
 msgstr "Yoqdi"
 
-#: frappe/model/meta.py:54 frappe/public/js/frappe/model/meta.js:205
+#: frappe/model/meta.py:53 frappe/public/js/frappe/model/meta.js:205
 #: frappe/public/js/frappe/model/model.js:135
 msgid "Liked By"
 msgstr "Yoqtirgan"
@@ -16122,14 +16122,14 @@ msgstr "Kirish sahifasi"
 
 #: frappe/website/doctype/web_form/web_form.js:386
 msgid "Login Required"
-msgstr ""
+msgstr "Tizimga kirish majburiy"
 
 #: frappe/www/login.py:157
 #, python-brace-format
 msgid "Login To {0}"
 msgstr "{0} ga kirish"
 
-#: frappe/twofactor.py:258
+#: frappe/twofactor.py:256
 #, python-brace-format
 msgid "Login Verification Code from {}"
 msgstr "{} dan kirishni tasdiqlash kodi"
@@ -16142,21 +16142,21 @@ msgstr "Kirish va brauzerda ko'rish"
 msgid "Login link sent to your email"
 msgstr "Kirish havolasi elektron pochtangizga yuborildi"
 
-#: frappe/auth.py:338 frappe/auth.py:341
+#: frappe/auth.py:339 frappe/auth.py:342
 msgid "Login not allowed at this time"
 msgstr "Hozirda kirishga ruxsat berilmagan"
 
 #: frappe/website/doctype/web_form/web_form.js:393
 #, python-brace-format
 msgid "Login or a request key is required to see web form list view. Enable {0} to see list settings"
-msgstr ""
+msgstr "Veb-shakl ro'yxat ko'rinishini ko'rish uchun tizimga kirish yoki so'rov kaliti talab qilinadi. Ro'yxat sozlamalarini ko'rish uchun {0} ni yoqing"
 
 #. Label of a Check field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json:116
 msgid "Login required"
 msgstr "Kirish talab qilinadi"
 
-#: frappe/twofactor.py:162
+#: frappe/twofactor.py:160
 msgid "Login session expired, refresh page to retry"
 msgstr "Kirish sessiyasi tugadi, qayta urinish uchun sahifani yangilang"
 
@@ -16199,7 +16199,7 @@ msgstr "Elektron pochta havolasi bilan tizimga kiring"
 msgid "Login with email link expiry (in minutes)"
 msgstr "Elektron pochta havolasi bilan tizimga kirish muddati (daqiqalarda)"
 
-#: frappe/auth.py:132
+#: frappe/auth.py:137
 msgid "Login with username and password is not allowed."
 msgstr "Foydalanuvchi nomi va parol bilan tizimga kirishga ruxsat berilmaydi."
 
@@ -16578,7 +16578,7 @@ msgstr "Maksimal qiymat"
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:800
 msgid "Max Zip Extract Size (MB)"
-msgstr ""
+msgstr "Maksimal ZIP ochish hajmi (MB)"
 
 #. Label of a Int field in DocType 'Web Form'
 #: frappe/website/doctype/web_form/web_form.json:189
@@ -16595,7 +16595,7 @@ msgstr "Har bir foydalanuvchi uchun maksimal avtomatik elektron pochta hisoboti"
 msgid "Max signups allowed per hour"
 msgstr "Soatiga maksimal ro'yxatdan o'tishga ruxsat berilgan"
 
-#: frappe/core/doctype/doctype/doctype.py:1321
+#: frappe/core/doctype/doctype/doctype.py:1320
 #, python-brace-format
 msgid "Max width for type Currency is 100px in row {0}"
 msgstr "Valyuta turi uchun maksimal kenglik {0} qatorida 100 piksel"
@@ -16606,7 +16606,7 @@ msgstr "Valyuta turi uchun maksimal kenglik {0} qatorida 100 piksel"
 msgid "Maximum"
 msgstr "Maksimal"
 
-#: frappe/core/doctype/file/file.py:422
+#: frappe/core/doctype/file/file.py:426
 #, python-brace-format
 msgid "Maximum Attachment Limit of {0} has been reached for {1} {2}."
 msgstr "{1} {2} uchun {0} maksimal biriktirish chegarasiga erishildi."
@@ -16638,7 +16638,7 @@ msgstr "\n"
 #. 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:797
 msgid "Maximum total size a ZIP archive is allowed to expand to when extracted."
-msgstr ""
+msgstr "ZIP arxivi ochilganda kengayishi mumkin bo'lgan maksimal umumiy hajm."
 
 #: frappe/model/rename_doc.py:680
 #, python-brace-format
@@ -16745,7 +16745,7 @@ msgstr "Birlashtirish faqat Guruhdan Guruhga yoki Barg Tugunidan Barg Tuguniga o
 msgid "Message"
 msgstr "Xabar"
 
-#: frappe/__init__.py:558 frappe/public/js/frappe/ui/messages.js:271
+#: frappe/__init__.py:557 frappe/public/js/frappe/ui/messages.js:271
 msgctxt "Default title of the message dialog"
 msgid "Message"
 msgstr "Xabar"
@@ -16882,7 +16882,7 @@ msgstr "SEO uchun meta sarlavha"
 msgid "Method"
 msgstr "Usul"
 
-#: frappe/__init__.py:886
+#: frappe/__init__.py:885
 msgid "Method Not Allowed"
 msgstr "Usulga ruxsat berilmagan"
 
@@ -16958,7 +16958,7 @@ msgstr "Miss"
 msgid "Missing DocType"
 msgstr "DocType yo'q"
 
-#: frappe/core/doctype/doctype/doctype.py:1505
+#: frappe/core/doctype/doctype/doctype.py:1504
 msgid "Missing Field"
 msgstr "Yo'qolgan maydon"
 
@@ -17549,7 +17549,7 @@ msgstr "Asosiy kontentga o'tish"
 #. Label of a Check field in DocType 'User'
 #: frappe/core/doctype/user/user.json:821
 msgid "Navigation Buttons"
-msgstr ""
+msgstr "Navigatsiya tugmalari"
 
 #. Label of a Section Break field in DocType 'User'
 #: frappe/core/doctype/user/user.json:755
@@ -17572,7 +17572,7 @@ msgstr "Umumiy ish joylarini tahrirlash uchun ish maydoni menejeri lavozimi kera
 msgid "Need Workspace Manager role to hide/unhide public workspaces"
 msgstr "Umumiy ish joylarini yashirish/ko'rsatish uchun ish maydoni menejeri roli kerak"
 
-#: frappe/model/document.py:676
+#: frappe/model/document.py:797
 msgid "Negative Value"
 msgstr "Salbiy qiymat"
 
@@ -18074,7 +18074,7 @@ msgstr "{0} uchun nom ko'rsatilmagan"
 msgid "No New notifications"
 msgstr "Yangi bildirishnomalar yo'q"
 
-#: frappe/core/doctype/doctype/doctype.py:1764
+#: frappe/core/doctype/doctype/doctype.py:1763
 msgid "No Permissions Specified"
 msgstr "Ruxsatlar ko'rsatilmagan"
 
@@ -18194,7 +18194,7 @@ msgstr "Hozircha izohlar yo'q. "
 msgid "No contacts added yet."
 msgstr "Hali hech qanday kontakt qo'shilmagan."
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:447
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:456
 msgid "No contacts linked to document"
 msgstr "Hujjatga bog'langan kontaktlar yo'q"
 
@@ -18277,7 +18277,7 @@ msgstr "Ustunlar soni"
 msgid "No of Rows (Max 500)"
 msgstr "Qatorlar soni (maksimal 500)"
 
-#: frappe/__init__.py:1082 frappe/client.py:143 frappe/client.py:185
+#: frappe/__init__.py:1081 frappe/client.py:143 frappe/client.py:185
 #, python-brace-format
 msgid "No permission for {0}"
 msgstr "{0} uchun ruxsat yo'q"
@@ -18440,7 +18440,7 @@ msgstr "Yoqmaydi"
 msgid "Not Linked to any record"
 msgstr "Hech qanday yozuvga bog'lanmagan"
 
-#: frappe/__init__.py:969 frappe/app.py:404 frappe/desk/calendar.py:28
+#: frappe/__init__.py:968 frappe/app.py:404 frappe/desk/calendar.py:28
 #: frappe/geo/utils.py:103
 #: frappe/public/js/frappe/web_form/webform_script.js:15
 #: frappe/website/doctype/web_form/web_form.py:990
@@ -18523,7 +18523,7 @@ msgstr "{0}uchun ruxsat berilmagan: {1}"
 msgid "Not allowed to attach {0} document, please enable Allow Print For {0} in Print Settings"
 msgstr "{0} hujjatni biriktirishga ruxsat berilmagan, iltimos, Chop etish sozlamalarida {0} uchun Chop etishga ruxsat berish funksiyasini yoqing"
 
-#: frappe/core/doctype/doctype/doctype.py:343
+#: frappe/core/doctype/doctype/doctype.py:342
 msgid "Not allowed to create custom Virtual DocType."
 msgstr "Maxsus Virtual DocType yaratishga ruxsat berilmagan."
 
@@ -18547,7 +18547,7 @@ msgstr "Topilmadi"
 msgid "Not in Developer Mode"
 msgstr "Dasturchi rejimida emas"
 
-#: frappe/core/doctype/doctype/doctype.py:338
+#: frappe/core/doctype/doctype/doctype.py:337
 msgid "Not in Developer Mode! Set in site_config.json or make 'Custom' DocType."
 msgstr "Dasturchi rejimida emas! site_config.json fayliga o'rnating yoki \"Maxsus\" DocType faylini yarating."
 
@@ -18567,7 +18567,7 @@ msgstr "Ruxsat berilmagan"
 #: frappe/model/db_query.py:1634
 #, python-brace-format
 msgid "Not permitted to sort or group by {0}"
-msgstr ""
+msgstr "{0} bo'yicha saralash yoki guruhlashga ruxsat berilmagan"
 
 #: frappe/public/js/frappe/list/list_view.js:50
 #, python-brace-format
@@ -18581,7 +18581,7 @@ msgstr "Ruxsat berilmagan. {0}."
 
 #. Label of a Link in the Tools Workspace
 #. Name of a DocType
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:416
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:425
 #: frappe/automation/workspace/tools/tools.json:90
 #: frappe/desk/doctype/note/note.json:93
 #: frappe/public/js/frappe/form/controls/data.js:51
@@ -18694,7 +18694,7 @@ msgstr "Bildirishnomalar jurnali"
 #. Label of a Small Text field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json:306
 msgid "Notification Message"
-msgstr ""
+msgstr "Bildirishnoma xabari"
 
 #. Name of a DocType
 #: frappe/email/doctype/notification_recipient/notification_recipient.json:55
@@ -18717,7 +18717,7 @@ msgstr "Obuna bo'lgan bildirishnoma hujjati"
 #. Label of a Data field in DocType 'Notification'
 #: frappe/email/doctype/notification/notification.json:297
 msgid "Notification Title"
-msgstr ""
+msgstr "Bildirishnoma sarlavhasi"
 
 #. Name of a DocType
 #. Label of a Link field in DocType 'Notification Type Preference'
@@ -18851,7 +18851,7 @@ msgstr "Guruhlar soni"
 msgid "Number of Queries"
 msgstr "So'rovlar soni"
 
-#: frappe/core/doctype/doctype/doctype.py:443
+#: frappe/core/doctype/doctype/doctype.py:442
 #: frappe/public/js/frappe/doctype/index.js:66
 #, python-brace-format
 msgid "Number of attachment fields are more than {}, limit updated to {}."
@@ -18975,12 +18975,12 @@ msgstr "OTP SMS shabloni"
 msgid "OTP SMS Template must contain <code>{0}</code> placeholder to insert the OTP."
 msgstr "Bir martalik parolni kiritish uchun SMS shablonida <code>{0}</code> joy egallovchisi bo'lishi kerak."
 
-#: frappe/twofactor.py:452
+#: frappe/twofactor.py:450
 #, python-brace-format
 msgid "OTP Secret Reset - {0}"
 msgstr "OTP maxfiy sozlamalarini tiklash - {0}"
 
-#: frappe/twofactor.py:471
+#: frappe/twofactor.py:469
 msgid "OTP Secret has been reset. Re-registration will be required on next login."
 msgstr "OTP siri qayta o'rnatildi. Keyingi kirishda qayta ro'yxatdan o'tish talab qilinadi."
 
@@ -19129,7 +19129,7 @@ msgstr "Buni o'rnatganingizdan so'ng, foydalanuvchilar faqat havola mavjud bo'lg
 msgid "One Last Step"
 msgstr "Oxirgi qadam"
 
-#: frappe/twofactor.py:276
+#: frappe/twofactor.py:274
 #, python-brace-format
 msgid "One Time Password (OTP) Registration Code from {}"
 msgstr "Bir martalik parol (OTP) ro'yxatdan o'tish kodi {} dan"
@@ -19168,7 +19168,7 @@ msgstr "Faqat administrator Yozuvchidan foydalanishi mumkin"
 msgid "Only Allow Edit For"
 msgstr "Faqat tahrirlashga ruxsat berish"
 
-#: frappe/core/doctype/doctype/doctype.py:1599
+#: frappe/core/doctype/doctype/doctype.py:1598
 msgid "Only Options allowed for Data field are:"
 msgstr "Ma'lumotlar maydoni uchun faqat quyidagi variantlarga ruxsat beriladi:"
 
@@ -19177,7 +19177,7 @@ msgstr "Ma'lumotlar maydoni uchun faqat quyidagi variantlarga ruxsat beriladi:"
 msgid "Only Send Records Updated in Last X Hours"
 msgstr "Faqat oxirgi X soat ichida yangilangan yozuvlarni yuboring"
 
-#: frappe/core/doctype/file/file.py:196
+#: frappe/core/doctype/file/file.py:200
 msgid "Only System Managers can make this file public."
 msgstr "Ushbu faylni faqat tizim menejerlari ommaga oshkor qilishi mumkin."
 
@@ -19382,7 +19382,7 @@ msgstr "Ochilgan"
 msgid "Operation"
 msgstr "Operatsiya"
 
-#: frappe/utils/data.py:2002
+#: frappe/utils/data.py:2012
 #, python-brace-format
 msgid "Operator must be one of {0}"
 msgstr "Operator {0} dan biri bo'lishi kerak"
@@ -19409,7 +19409,7 @@ msgstr "2-variant"
 msgid "Option 3"
 msgstr "3-variant"
 
-#: frappe/core/doctype/doctype/doctype.py:1617
+#: frappe/core/doctype/doctype/doctype.py:1616
 #, python-brace-format
 msgid "Option {0} for field {1} is not a child table"
 msgstr "{1} maydoni uchun {0} parametri bolalar jadvali emas"
@@ -19418,7 +19418,7 @@ msgstr "{1} maydoni uchun {0} parametri bolalar jadvali emas"
 #. 'Notification'
 #: frappe/email/doctype/notification/notification.json:302
 msgid "Optional body of the in-app notification. Supports Jinja."
-msgstr ""
+msgstr "Ilova ichidagi bildirishnomaning ixtiyoriy matni. Jinja qo‘llab-quvvatlanadi."
 
 #. Description of the 'CC' (Code) field in DocType 'Notification Recipient'
 #: frappe/email/doctype/notification_recipient/notification_recipient.json:17
@@ -19450,7 +19450,7 @@ msgstr "Ixtiyoriy: Agar bu ifoda rost bo'lsa, ogohlantirish yuboriladi"
 msgid "Options"
 msgstr "Tanlovlar"
 
-#: frappe/core/doctype/doctype/doctype.py:1346
+#: frappe/core/doctype/doctype/doctype.py:1345
 msgid "Options 'Dynamic Link' type of field must point to another Link Field with options as 'DocType'"
 msgstr "\"Dynamic Link\" parametrlari maydoni \"DocType\" parametrlari bilan boshqa \"Link\" maydoniga ishora qilishi kerak."
 
@@ -19459,7 +19459,7 @@ msgstr "\"Dynamic Link\" parametrlari maydoni \"DocType\" parametrlari bilan bos
 msgid "Options Help"
 msgstr "Variantlar bo'yicha yordam"
 
-#: frappe/core/doctype/doctype/doctype.py:1639
+#: frappe/core/doctype/doctype/doctype.py:1638
 msgid "Options for Rating field can range from 3 to 10"
 msgstr "Reyting maydoni uchun variantlar 3 dan 10 gacha bo'lishi mumkin"
 
@@ -19467,7 +19467,7 @@ msgstr "Reyting maydoni uchun variantlar 3 dan 10 gacha bo'lishi mumkin"
 msgid "Options for select. Each option on a new line."
 msgstr "Tanlash uchun variantlar. Har bir variant yangi qatorda."
 
-#: frappe/core/doctype/doctype/doctype.py:1362
+#: frappe/core/doctype/doctype/doctype.py:1361
 #, python-brace-format
 msgid "Options for {0} must be set before setting the default value."
 msgstr "Standart qiymatni o'rnatishdan oldin {0} parametrlari o'rnatilishi kerak."
@@ -19477,7 +19477,7 @@ msgstr "Standart qiymatni o'rnatishdan oldin {0} parametrlari o'rnatilishi kerak
 msgid "Options is required for field {0} of type {1}"
 msgstr "{1} turidagi {0} maydoni uchun parametrlar talab qilinadi"
 
-#: frappe/model/base_document.py:808
+#: frappe/model/document.py:2533
 #, python-brace-format
 msgid "Options not set for link field {0}"
 msgstr "Havola maydoni uchun parametrlar o'rnatilmagan {0}"
@@ -19865,11 +19865,11 @@ msgstr "Ota-ona maydoni"
 
 #. Label of a Data field in DocType 'DocType'
 #: frappe/core/doctype/doctype/doctype.json:483
-#: frappe/core/doctype/doctype/doctype.py:928
+#: frappe/core/doctype/doctype/doctype.py:927
 msgid "Parent Field (Tree)"
 msgstr "Ota-ona maydoni (daraxt)"
 
-#: frappe/core/doctype/doctype/doctype.py:934
+#: frappe/core/doctype/doctype/doctype.py:933
 msgid "Parent Field must be a valid fieldname"
 msgstr "Ota-maydon haqiqiy maydon nomi bo'lishi kerak"
 
@@ -19878,7 +19878,7 @@ msgstr "Ota-maydon haqiqiy maydon nomi bo'lishi kerak"
 msgid "Parent Label"
 msgstr "Ota-ona yorlig'i"
 
-#: frappe/core/doctype/doctype/doctype.py:1176
+#: frappe/core/doctype/doctype/doctype.py:1175
 msgid "Parent Missing"
 msgstr "Ota-ona yo'qolgan"
 
@@ -20007,7 +20007,7 @@ msgstr "Parol talablari bajarilmadi"
 msgid "Password set"
 msgstr "Parol o'rnatildi"
 
-#: frappe/auth.py:255
+#: frappe/auth.py:259
 msgid "Password size exceeded the maximum allowed size"
 msgstr "Parol hajmi ruxsat etilgan maksimal hajmdan oshib ketdi"
 
@@ -20239,8 +20239,8 @@ msgstr "Ruxsat turi"
 msgid "Permissions"
 msgstr "Ruxsatnomalar"
 
-#: frappe/core/doctype/doctype/doctype.py:1855
-#: frappe/core/doctype/doctype/doctype.py:1865
+#: frappe/core/doctype/doctype/doctype.py:1854
+#: frappe/core/doctype/doctype/doctype.py:1864
 msgid "Permissions Error"
 msgstr "Ruxsatnomalar xatosi"
 
@@ -20400,7 +20400,7 @@ msgstr "Iltimos, jadvalni o'rnating"
 msgid "Please Update SMS Settings"
 msgstr "SMS sozlamalarini yangilang"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:614
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:623
 msgid "Please add a subject to your email"
 msgstr "Iltimos, elektron pochtangizga mavzu qo'shing"
 
@@ -20433,7 +20433,7 @@ msgstr "Iltimos, paketni ilova qiling"
 msgid "Please check the filter values set for Dashboard Chart: {}"
 msgstr "Iltimos, boshqaruv paneli diagrammasi uchun o'rnatilgan filtr qiymatlarini tekshiring: {}"
 
-#: frappe/model/base_document.py:882
+#: frappe/model/document.py:2607
 #, python-brace-format
 msgid "Please check the value of \"Fetch From\" set for field {0}"
 msgstr "Iltimos, {0} maydoni uchun \"Fetch From\" qiymatini tekshiring"
@@ -20446,11 +20446,11 @@ msgstr "Tasdiqlash uchun elektron pochtangizni tekshiring"
 msgid "Please check your email login credentials."
 msgstr "Iltimos, elektron pochtangizga kirish ma'lumotlaringizni tekshiring."
 
-#: frappe/twofactor.py:242
+#: frappe/twofactor.py:240
 msgid "Please check your registered email address for instructions on how to proceed. Do not close this window as you will have to return to it."
 msgstr "Davom etish bo'yicha ko'rsatmalar uchun ro'yxatdan o'tgan elektron pochta manzilingizni tekshiring. Ushbu oynani yopmang, chunki unga qaytishingiz kerak bo'ladi."
 
-#: frappe/twofactor.py:285
+#: frappe/twofactor.py:283
 #, python-brace-format
 msgid "Please click on the following link and follow the instructions on the page. {0}"
 msgstr "Iltimos, quyidagi havolani bosing va sahifadagi ko'rsatmalarga amal qiling. {0}"
@@ -20459,7 +20459,7 @@ msgstr "Iltimos, quyidagi havolani bosing va sahifadagi ko'rsatmalarga amal qili
 msgid "Please click on the following link to set your new password"
 msgstr "Yangi parolingizni o'rnatish uchun quyidagi havolani bosing"
 
-#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:343
+#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:345
 msgid "Please close this window"
 msgstr "Iltimos, ushbu oynani yoping"
 
@@ -20497,7 +20497,7 @@ msgstr "O'zgartirishlar kiritish uchun buni nusxalash"
 msgid "Please enable atleast one Social Login Key or LDAP or Login With Email Link before disabling username/password based login."
 msgstr "Foydalanuvchi nomi/parol asosida kirishni o'chirishdan oldin kamida bitta ijtimoiy tarmoqqa kirish kalitini yoki LDAP yoki elektron pochta orqali kirish havolasini yoqing."
 
-#: frappe/desk/doctype/notification_log/notification_log.js:51
+#: frappe/desk/doctype/notification_log/notification_log.js:56
 #: frappe/email/doctype/auto_email_report/auto_email_report.js:17
 #: frappe/printing/page/print/print.js:641
 #: frappe/printing/page/print/print.js:671
@@ -20582,7 +20582,7 @@ msgstr "Iltimos, eski parolingizni kiriting."
 msgid "Please fill the following mandatory fields before saving:"
 msgstr "Saqlashdan oldin quyidagi majburiy maydonlarni to'ldiring:"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:422
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:431
 #, python-brace-format
 msgid "Please find attached {0}: {1}"
 msgstr "Iltimos, ilova qilingan {0}ni toping: {1}"
@@ -20599,7 +20599,7 @@ msgstr "Fikr qoldirish uchun tizimga kiring."
 msgid "Please make sure the Reference Communication Docs are not circularly linked."
 msgstr "Iltimos, ma'lumotnoma aloqa hujjatlari aylana shaklida bog'lanmaganligiga ishonch hosil qiling."
 
-#: frappe/model/document.py:877
+#: frappe/model/document.py:1000
 msgid "Please refresh to get the latest document."
 msgstr "Eng so'nggi hujjatni olish uchun yangilang."
 
@@ -20676,7 +20676,7 @@ msgstr "Iltimos, fayl yoki URL manzilini tanlang"
 msgid "Please select a valid csv file with data"
 msgstr "Iltimos, ma'lumotlarga ega bo'lgan yaroqli csv faylini tanlang"
 
-#: frappe/utils/data.py:256
+#: frappe/utils/data.py:258
 msgid "Please select a valid date filter"
 msgstr "Iltimos, to'g'ri sana filtrini tanlang"
 
@@ -20708,7 +20708,7 @@ msgstr "Iltimos, foydalanilayotgan LDAP katalogini tanlang"
 msgid "Please select {0}"
 msgstr "Iltimos, {0} ni tanlang"
 
-#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:305
+#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:307
 msgid "Please set Dropbox access keys in site config or doctype"
 msgstr "Iltimos, sayt konfiguratsiyasi yoki doctype faylida Dropbox kirish kalitlarini o'rnating"
 
@@ -20939,12 +20939,12 @@ msgstr "{0} ostida joylashtirilgan postlar"
 msgid "Precision"
 msgstr "Aniqlik"
 
-#: frappe/core/doctype/doctype/doctype.py:1648
+#: frappe/core/doctype/doctype/doctype.py:1647
 #, python-brace-format
 msgid "Precision ({0}) for {1} cannot be greater than its length ({2})."
 msgstr "{1} uchun aniqlik ({0}) uning uzunligidan ({2} ) katta bo'lmasligi kerak."
 
-#: frappe/core/doctype/doctype/doctype.py:1379
+#: frappe/core/doctype/doctype/doctype.py:1378
 msgid "Precision should be between 1 and 6"
 msgstr "Aniqlik 1 dan 6 gacha bo'lishi kerak"
 
@@ -21481,7 +21481,7 @@ msgstr "Mulk turi"
 msgid "Protect Attached Files"
 msgstr "Ilova qilingan fayllarni himoya qiling"
 
-#: frappe/core/doctype/file/file.py:608
+#: frappe/core/doctype/file/file.py:612
 msgid "Protected File"
 msgstr "Himoyalangan fayl"
 
@@ -21739,7 +21739,7 @@ msgstr "So'rov tahlili yakunlandi. Tavsiya etilgan indekslarni tekshiring."
 msgid "Queue"
 msgstr "Navbat"
 
-#: frappe/utils/background_jobs.py:633
+#: frappe/utils/background_jobs.py:644
 msgid "Queue Overloaded"
 msgstr "Navbat haddan tashqari yuklangan"
 
@@ -21760,7 +21760,7 @@ msgstr "Navbat turi(lari)"
 msgid "Queue in Background (BETA)"
 msgstr "Orqa fonda navbat (BETA)"
 
-#: frappe/utils/background_jobs.py:466
+#: frappe/utils/background_jobs.py:477
 #, python-brace-format
 msgid "Queue should be one of {0}"
 msgstr "Navbat {0} dan biri bo'lishi kerak"
@@ -21790,8 +21790,8 @@ msgstr "Navbatda"
 msgid "Queued By"
 msgstr "Navbatga qo'yilgan"
 
-#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:65
-#: frappe/integrations/doctype/google_drive/google_drive.py:156
+#: frappe/integrations/doctype/dropbox_settings/dropbox_settings.py:67
+#: frappe/integrations/doctype/google_drive/google_drive.py:158
 msgid "Queued for backup. It may take a few minutes to an hour."
 msgstr "Zaxira nusxasi uchun navbatga qo'yildi. Bu bir necha daqiqadan bir soatgacha vaqt olishi mumkin."
 
@@ -22157,7 +22157,7 @@ msgstr "Yozuvchi tavsiya etilgan indeks"
 msgid "Records for following doctypes will be filtered"
 msgstr "Quyidagi hujjat turlari uchun yozuvlar filtrlanadi"
 
-#: frappe/core/doctype/doctype/doctype.py:1587
+#: frappe/core/doctype/doctype/doctype.py:1586
 msgid "Recursive Fetch From"
 msgstr "Rekursiv olish"
 
@@ -22171,7 +22171,7 @@ msgstr "Qizil"
 #. Label of a Check field in DocType 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json:158
 msgid "Redact Message After Send"
-msgstr ""
+msgstr "Yuborilgandan keyin xabarni yashirish"
 
 #. Label of a Select field in DocType 'Website Route Redirect'
 #: frappe/website/doctype/website_route_redirect/website_route_redirect.json:30
@@ -22679,7 +22679,7 @@ msgstr "Maydon nomini qayta nomlash"
 msgid "Rename {0}"
 msgstr "{0} ni qayta nomlash"
 
-#: frappe/core/doctype/doctype/doctype.py:703
+#: frappe/core/doctype/doctype/doctype.py:702
 msgid "Renamed files and replaced code in controllers, please check!"
 msgstr "Fayllarning nomi o'zgartirildi va kontrollerlardagi kod almashtirildi, iltimos, tekshiring!"
 
@@ -22748,7 +22748,7 @@ msgstr "Takrorlaydi {0}"
 #. 'Email Queue'
 #: frappe/email/doctype/email_queue/email_queue.json:155
 msgid "Replace the message body with a placeholder once the email has been sent, so that sensitive content like password reset links is not retained in the queue."
-msgstr ""
+msgstr "Elektron pochta yuborilgach, xabar matnini joylashtiruvchi bilan almashtiradi, shunda parolni tiklash havolalari kabi maxfiy mazmun navbatda saqlanmaydi."
 
 #: frappe/core/doctype/role/role.js:64
 msgid "Replicate"
@@ -22923,7 +22923,7 @@ msgstr "Hisobot turi"
 msgid "Report View"
 msgstr "Hisobot ko'rinishi"
 
-#: frappe/core/doctype/doctype/doctype.py:1830
+#: frappe/core/doctype/doctype/doctype.py:1829
 msgid "Report cannot be set for Single types"
 msgstr "Hisobotni bitta tur uchun o'rnatib bo'lmaydi"
 
@@ -23614,8 +23614,8 @@ msgstr "Yo'nalish yo'naltirishlari"
 msgid "Route: Example \"/app\""
 msgstr "Yo'nalish: Misol \"/app\""
 
-#: frappe/model/base_document.py:753 frappe/model/base_document.py:794
-#: frappe/model/document.py:661
+#: frappe/model/document.py:782 frappe/model/document.py:2478
+#: frappe/model/document.py:2519
 msgid "Row"
 msgstr "Qator"
 
@@ -23623,18 +23623,18 @@ msgstr "Qator"
 msgid "Row #"
 msgstr "Qator raqami"
 
-#: frappe/core/doctype/doctype/doctype.py:1853
-#: frappe/core/doctype/doctype/doctype.py:1863
+#: frappe/core/doctype/doctype/doctype.py:1852
+#: frappe/core/doctype/doctype/doctype.py:1862
 #, python-brace-format
 msgid "Row # {0}: Non administrator user can not set the role {1} to the custom doctype"
 msgstr "Qator raqami {0}: Administrator bo'lmagan foydalanuvchi {1} rolini maxsus hujjat turiga o'rnata olmaydi"
 
-#: frappe/model/base_document.py:913
+#: frappe/model/document.py:2638
 #, python-brace-format
 msgid "Row #{0}:"
 msgstr "#{0} qatori:"
 
-#: frappe/core/doctype/doctype/doctype.py:504
+#: frappe/core/doctype/doctype/doctype.py:503
 #, python-brace-format
 msgid "Row #{}: Fieldname is required"
 msgstr "Qator #{}: Maydon nomini kiritish shart"
@@ -23772,7 +23772,7 @@ msgstr "S3 zaxira sozlamalari"
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.js:20
 #, python-brace-format
 msgid "S3 Backup has been queued. You can track the progress <a href='/app/rq-job/{0}' target='_blank'>here</a>."
-msgstr ""
+msgstr "S3 zaxira nusxasi navbatga qo'yildi. Jarayonni <a href='/app/rq-job/{0}' target='_blank'>bu yerda</a> kuzatishingiz mumkin."
 
 #. Label of a Section Break field in DocType 'S3 Backup Settings'
 #: frappe/integrations/doctype/s3_backup_settings/s3_backup_settings.json:111
@@ -24266,7 +24266,7 @@ msgstr "Qidiruv natijalari"
 msgid "Search by filename or extension"
 msgstr "Fayl nomi yoki kengaytmasi bo'yicha qidiruv"
 
-#: frappe/core/doctype/doctype/doctype.py:1446
+#: frappe/core/doctype/doctype/doctype.py:1445
 #, python-brace-format
 msgid "Search field {0} is not valid"
 msgstr "{0} qidiruv maydoni yaroqsiz"
@@ -24694,11 +24694,11 @@ msgstr "Xususiyatlarini tahrirlash uchun maydonni tanlang."
 msgid "Select a group {0} first."
 msgstr "Avval {0} guruhini tanlang."
 
-#: frappe/core/doctype/doctype/doctype.py:1963
+#: frappe/core/doctype/doctype/doctype.py:1962
 msgid "Select a valid Sender Field for creating documents from Email"
 msgstr "Elektron pochtadan hujjatlar yaratish uchun to'g'ri \"Yuboruvchi\" maydonini tanlang"
 
-#: frappe/core/doctype/doctype/doctype.py:1947
+#: frappe/core/doctype/doctype/doctype.py:1946
 msgid "Select a valid Subject field for creating documents from Email"
 msgstr "Elektron pochtadan hujjatlar yaratish uchun to'g'ri Mavzu maydonini tanlang"
 
@@ -24792,7 +24792,7 @@ msgstr "Yuborish"
 #. Label of a Check field in DocType 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json:132
 msgid "Send Acknowledgement Email"
-msgstr ""
+msgstr "Qabul qilinganlik haqida elektron pochta yuborish"
 
 #. Label of a Datetime field in DocType 'Communication'
 #. Label of a Datetime field in DocType 'Email Queue'
@@ -24945,7 +24945,7 @@ msgstr "Agar bu maydon qiymati o'zgarsa, ogohlantirish yuboring"
 #. 'Contact Us Settings'
 #: frappe/website/doctype/contact_us_settings/contact_us_settings.json:129
 msgid "Send an acknowledgement email to the email address entered in the contact form."
-msgstr ""
+msgstr "Aloqa shaklida kiritilgan elektron pochta manzilga tasdiqlash xabarini yuboring."
 
 #. Label of a Check field in DocType 'Event'
 #: frappe/desk/doctype/event/event.json:97
@@ -25021,7 +25021,7 @@ msgstr "Yuboruvchining elektron pochta manzili"
 msgid "Sender Email Field"
 msgstr "Yuboruvchining elektron pochta maydoni"
 
-#: frappe/core/doctype/doctype/doctype.py:1966
+#: frappe/core/doctype/doctype/doctype.py:1965
 msgid "Sender Field should have Email in options"
 msgstr "Yuboruvchi maydonida elektron pochta sozlamalari bo'lishi kerak"
 
@@ -25118,7 +25118,7 @@ msgstr "Seriya {} uchun yangilandi"
 msgid "Series counter for {} updated to {} successfully"
 msgstr "{} uchun ketma-ket hisoblagich {} ga muvaffaqiyatli yangilandi"
 
-#: frappe/core/doctype/doctype/doctype.py:1104
+#: frappe/core/doctype/doctype/doctype.py:1103
 #: frappe/core/doctype/document_naming_settings/document_naming_settings.py:170
 #, python-brace-format
 msgid "Series {0} already used in {1}"
@@ -25637,7 +25637,7 @@ msgstr "Qo'shimchalarni ko'rsatish"
 
 #: frappe/desk/doctype/kanban_board/kanban_board.js:10
 msgid "Show Board"
-msgstr ""
+msgstr "Doskani ko'rsatish"
 
 #: frappe/desk/doctype/calendar_view/calendar_view.js:10
 msgid "Show Calendar"
@@ -26275,7 +26275,7 @@ msgstr "Saralash parametrlari"
 msgid "Sort Order"
 msgstr "Saralash tartibi"
 
-#: frappe/core/doctype/doctype/doctype.py:1529
+#: frappe/core/doctype/doctype/doctype.py:1528
 #, python-brace-format
 msgid "Sort field {0} must be a valid fieldname"
 msgstr "{0} saralash maydoni to'g'ri maydon nomi bo'lishi kerak"
@@ -26391,7 +26391,7 @@ msgstr "Standart"
 msgid "Standard DocType can not be deleted."
 msgstr "Standart DocType faylini o'chirib bo'lmaydi."
 
-#: frappe/core/doctype/doctype/doctype.py:231
+#: frappe/core/doctype/doctype/doctype.py:230
 msgid "Standard DocType cannot have default print format, use Customize Form"
 msgstr "Standart DocType standart chop etish formatiga ega bo'la olmaydi, Formani sozlashdan foydalaning"
 
@@ -26793,7 +26793,7 @@ msgstr "Mavzu"
 msgid "Subject Field"
 msgstr "Mavzu maydoni"
 
-#: frappe/core/doctype/doctype/doctype.py:1956
+#: frappe/core/doctype/doctype/doctype.py:1955
 msgid "Subject Field type should be Data, Text, Long Text, Small Text, Text Editor"
 msgstr "Mavzu maydoni turi quyidagicha bo'lishi kerak: Ma'lumotlar, Matn, Uzun matn, Kichik matn, Matn muharriri"
 
@@ -26922,7 +26922,7 @@ msgstr "{0} yuborilmoqda"
 
 #: frappe/model/db_query.py:274
 msgid "Subqueries are not allowed in this query."
-msgstr ""
+msgstr "Bu so'rovda ichki so'rovlarga ruxsat berilmagan."
 
 #. Option for the 'Address Type' (Select) field in DocType 'Address'
 #: frappe/contacts/doctype/address/address.json:47
@@ -27046,7 +27046,7 @@ msgstr "{0} {1} muvaffaqiyatli bajarildi. {2}dan yozib olish amalga oshirildi. X
 #: frappe/core/doctype/data_import/data_import.js:161
 #, python-brace-format
 msgid "Successfully {0} {1} records out of {2}. Click on Export Errored Rows, fix the errors and import again."
-msgstr ""
+msgstr "{2} ta yozuvdan {1} tasi muvaffaqiyatli {0}. \"Xatoli qatorlarni eksport qilish\" tugmasini bosing, xatolarni tuzating va qayta import qiling."
 
 #: frappe/core/doctype/data_import/data_import.js:151
 #, python-brace-format
@@ -27153,7 +27153,7 @@ msgstr ""
 #. Label of a Check field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:794
 msgid "Sync In Batches"
-msgstr ""
+msgstr "Partiyalarda sinxronizatsiya"
 
 #. Label of a Int field in DocType 'System Settings'
 #: frappe/core/doctype/system_settings/system_settings.json:775
@@ -27207,7 +27207,7 @@ msgstr "Sinxronlash"
 msgid "Syncing {0} of {1}"
 msgstr "Sinxronizatsiya qilinmoqda {0} / {1}"
 
-#: frappe/utils/data.py:2347
+#: frappe/utils/data.py:2357
 msgid "Syntax Error"
 msgstr "Sintaksis xatosi"
 
@@ -27495,7 +27495,7 @@ msgstr "Jadval maydoni"
 msgid "Table Fieldname"
 msgstr "Jadval maydoni nomi"
 
-#: frappe/core/doctype/doctype/doctype.py:1182
+#: frappe/core/doctype/doctype/doctype.py:1181
 msgid "Table Fieldname Missing"
 msgstr "Jadval maydoni nomi yo'q"
 
@@ -27526,7 +27526,7 @@ msgstr "Stol qirqilgan"
 msgid "Table updated"
 msgstr "Jadval yangilandi"
 
-#: frappe/model/document.py:1429
+#: frappe/model/document.py:1554
 #, python-brace-format
 msgid "Table {0} cannot be empty"
 msgstr "{0} jadvali bo'sh bo'lmasligi kerak"
@@ -27546,7 +27546,7 @@ msgstr "Teg"
 msgid "Tag Link"
 msgstr "Teg havolasi"
 
-#: frappe/model/meta.py:53
+#: frappe/model/meta.py:52
 #: frappe/public/js/frappe/form/templates/form_sidebar.html:100
 #: frappe/public/js/frappe/list/bulk_operations.js:444
 #: frappe/public/js/frappe/list/list_sidebar.html:50
@@ -27712,7 +27712,7 @@ msgstr "rahmat"
 
 #: frappe/www/contact.py:48
 msgid "Thank you for reaching out to us. We will get back to you at the earliest."
-msgstr ""
+msgstr "Biz bilan bog'langaningiz uchun rahmat. Imkon qadar tez orada siz bilan bog'lanamiz."
 
 #: frappe/website/doctype/web_form/templates/web_form.html:146
 msgid "Thank you for spending your valuable time to fill this form"
@@ -27765,11 +27765,11 @@ msgstr "Google Cloud Console’dan <a href=\"https://console.cloud.google.com/ap
 msgid "The Condition '{0}' is invalid"
 msgstr "'{0}' sharti yaroqsiz"
 
-#: frappe/core/doctype/file/file.py:927
+#: frappe/core/doctype/file/file.py:931
 msgid "The File URL does not belong to this File record"
 msgstr ""
 
-#: frappe/core/doctype/file/file.py:304 frappe/core/doctype/file/file.py:310
+#: frappe/core/doctype/file/file.py:308 frappe/core/doctype/file/file.py:314
 msgid "The File URL you've entered is incorrect"
 msgstr "Siz kiritgan fayl URL manzili noto'g'ri"
 
@@ -27861,7 +27861,7 @@ msgstr "{1} dagi {0} maydoni foydalanuvchi ruxsatlarini e'tiborsiz qoldirishga r
 msgid "The field {0} in {1} links to {2} and not {3}"
 msgstr "{1} dagi {0} maydoni {2} ga bog'laydi, {3} ga bog'lamaydi"
 
-#: frappe/core/doctype/file/file.py:236
+#: frappe/core/doctype/file/file.py:240
 msgid "The fieldname you've specified in Attached To Field is invalid"
 msgstr "\"Qo'shimcha maydon\"da ko'rsatgan maydon nomi noto'g'ri"
 
@@ -28074,7 +28074,7 @@ msgstr "Navbatda allaqachon bir xil filtrlarga ega {0} mavjud:"
 msgid "There can be only 9 Page Break fields in a Web Form"
 msgstr "Veb-formada faqat 9 ta sahifa ajratish maydonlari bo'lishi mumkin"
 
-#: frappe/core/doctype/doctype/doctype.py:1422
+#: frappe/core/doctype/doctype/doctype.py:1421
 msgid "There can be only one Fold in a form"
 msgstr "Formada faqat bitta katlama bo'lishi mumkin"
 
@@ -28091,7 +28091,7 @@ msgstr "Eksport qilinadigan ma'lumotlar yo'q"
 msgid "There is nothing new to show you right now."
 msgstr "Hozir sizga ko'rsatadigan yangi narsa yo'q."
 
-#: frappe/core/doctype/file/file.py:753 frappe/utils/file_manager.py:384
+#: frappe/core/doctype/file/file.py:757 frappe/utils/file_manager.py:384
 #, python-brace-format
 msgid "There is some problem with the file url: {0}"
 msgstr "Fayl URL manzili bilan bog'liq muammo bor: {0}"
@@ -28179,7 +28179,7 @@ msgstr "Ushbu Kanban kengashi xususiy bo'ladi"
 msgid "This Month"
 msgstr "Bu oy"
 
-#: frappe/core/doctype/file/file.py:482
+#: frappe/core/doctype/file/file.py:486
 msgid "This PDF cannot be uploaded as it contains unsafe content."
 msgstr "Ushbu PDF faylini yuklab bo'lmaydi, chunki unda xavfli kontent mavjud."
 
@@ -28207,7 +28207,7 @@ msgstr "Bu yil"
 msgid "This action is irreversible. Do you wish to continue?"
 msgstr "Bu amalni qaytarib bo'lmaydi. Davom etmoqchimisiz?"
 
-#: frappe/__init__.py:965
+#: frappe/__init__.py:964
 #, python-brace-format
 msgid "This action is only allowed for {}"
 msgstr "Bu amal faqat {} uchun ruxsat berilgan"
@@ -28236,7 +28236,7 @@ msgstr "Agar sozlangan bo'lsa, ushbu jadval barcha foydalanuvchilar uchun mavjud
 msgid "This doctype has no orphan fields to trim"
 msgstr "Ushbu hujjat turida qirqish uchun yetim maydonlar yo'q"
 
-#: frappe/core/doctype/doctype/doctype.py:1050
+#: frappe/core/doctype/doctype/doctype.py:1049
 msgid "This doctype has pending migrations, run 'bench migrate' before modifying the doctype to avoid losing changes."
 msgstr "Ushbu doctype kutilayotgan migratsiyalarga ega, o'zgarishlarni yo'qotmaslik uchun doctype ni o'zgartirishdan oldin 'bench migration' buyrug'ini bajaring."
 
@@ -28273,7 +28273,7 @@ msgstr "Ushbu hujjatda saqlanmagan o'zgarishlar mavjud, ular yakuniy PDF faylida
 msgid "This document is already amended, you cannot ammend it again"
 msgstr "Ushbu hujjat allaqachon o'zgartirilgan, siz uni qayta o'zgartira olmaysiz"
 
-#: frappe/model/document.py:369
+#: frappe/model/document.py:490
 msgid "This document is currently locked and queued for execution. Please try again after some time."
 msgstr "Ushbu hujjat hozirda qulflangan va ijro etish uchun navbatga qo'yilgan. Biroz vaqtdan keyin qayta urinib ko'ring."
 
@@ -28303,7 +28303,7 @@ msgstr "Bu maydon faqat bu yerda belgilangan maydon nomi qiymatga ega bo'lsa YOK
 "eval:doc.myfield=='My Value'\n"
 "eval:doc.age&gt;18"
 
-#: frappe/core/doctype/file/file.py:607
+#: frappe/core/doctype/file/file.py:611
 msgid "This file is attached to a protected document and cannot be deleted."
 msgstr "Ushbu fayl himoyalangan hujjatga biriktirilgan va uni o'chirib bo'lmaydi."
 
@@ -28629,11 +28629,11 @@ msgstr "Vaqt jadvali havolalari"
 msgid "Timeline Name"
 msgstr "Xronologiya nomi"
 
-#: frappe/core/doctype/doctype/doctype.py:1517
+#: frappe/core/doctype/doctype/doctype.py:1516
 msgid "Timeline field must be a Link or Dynamic Link"
 msgstr "Vaqt jadvali maydoni havola yoki dinamik havola bo'lishi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1513
+#: frappe/core/doctype/doctype/doctype.py:1512
 msgid "Timeline field must be a valid fieldname"
 msgstr "Vaqt jadvali maydoni to'g'ri maydon nomi bo'lishi kerak"
 
@@ -28734,7 +28734,7 @@ msgstr "Sarlavha maydoni"
 msgid "Title Prefix"
 msgstr "Sarlavha prefiksi"
 
-#: frappe/core/doctype/doctype/doctype.py:1454
+#: frappe/core/doctype/doctype/doctype.py:1453
 msgid "Title field must be a valid fieldname"
 msgstr "Sarlavha maydoni to'g'ri maydon nomi bo'lishi kerak"
 
@@ -28974,7 +28974,7 @@ msgstr "Juda ko'p so'rovlar"
 msgid "Too many changes to database in single action."
 msgstr "Ma'lumotlar bazasida bitta harakatda juda ko'p o'zgarishlar."
 
-#: frappe/utils/background_jobs.py:632
+#: frappe/utils/background_jobs.py:643
 #, python-brace-format
 msgid "Too many queued background jobs ({0}). Please retry after some time."
 msgstr "Navbatdagi fon vazifalari juda ko'p ({0}). Iltimos, biroz vaqtdan keyin qayta urinib ko'ring."
@@ -29503,7 +29503,7 @@ msgstr "URL manzili https:// bilan boshlanishi kerak"
 msgid "URL for documentation or help"
 msgstr "Hujjatlar yoki yordam uchun URL"
 
-#: frappe/core/doctype/file/file.py:321
+#: frappe/core/doctype/file/file.py:325
 msgid "URL must start with http:// or https://"
 msgstr "URL http:// yoki https:// bilan boshlanishi kerak"
 
@@ -29551,7 +29551,7 @@ msgstr "Elektron pochta hisobi yo'qligi sababli pochta xabarlarini yuborib bo'lm
 msgid "Unable to update event"
 msgstr "Tadbirni yangilab bo‘lmadi"
 
-#: frappe/core/doctype/file/file.py:571
+#: frappe/core/doctype/file/file.py:575
 #, python-brace-format
 msgid "Unable to write file format for {0}"
 msgstr "{0} uchun fayl formatini yozib bo'lmadi"
@@ -29613,12 +29613,12 @@ msgstr "Noma'lum"
 msgid "Unknown Column: {0}"
 msgstr "Noma'lum ustun: {0}"
 
-#: frappe/utils/data.py:1086
+#: frappe/utils/data.py:1088
 #, python-brace-format
 msgid "Unknown Rounding Method: {}"
 msgstr "Noma'lum yaxlitlash usuli: {}"
 
-#: frappe/auth.py:315
+#: frappe/auth.py:316
 msgid "Unknown User"
 msgstr "Noma'lum foydalanuvchi"
 
@@ -29897,11 +29897,11 @@ msgstr "Dropbox’ga yuklandi"
 msgid "Uploaded To Google Drive"
 msgstr "Google Drive’ga yuklandi"
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:199
+#: frappe/integrations/doctype/google_drive/google_drive.py:201
 msgid "Uploading backup to Google Drive."
 msgstr "Zaxira nusxasi Google Drive’ga yuklanmoqda."
 
-#: frappe/integrations/doctype/google_drive/google_drive.py:204
+#: frappe/integrations/doctype/google_drive/google_drive.py:206
 msgid "Uploading successful."
 msgstr "Yuklash muvaffaqiyatli amalga oshirildi."
 
@@ -30541,16 +30541,16 @@ msgstr "Qiymat o'zgartirildi"
 msgid "Value To Be Set"
 msgstr "O'rnatiladigan qiymat"
 
-#: frappe/model/base_document.py:978 frappe/model/document.py:719
+#: frappe/model/document.py:842 frappe/model/document.py:2703
 #, python-brace-format
 msgid "Value cannot be changed for {0}"
 msgstr "{0} uchun qiymatni o'zgartirib bo'lmaydi"
 
-#: frappe/model/document.py:663
+#: frappe/model/document.py:784
 msgid "Value cannot be negative for"
 msgstr "Qiymat manfiy bo'lishi mumkin emas"
 
-#: frappe/model/document.py:667
+#: frappe/model/document.py:788
 #, python-brace-format
 msgid "Value cannot be negative for {0}: {1}"
 msgstr "{0}uchun qiymat manfiy bo'lishi mumkin emas: {1}"
@@ -30564,7 +30564,7 @@ msgstr "Tekshirish maydonining qiymati 0 yoki 1 bo'lishi mumkin"
 msgid "Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
 msgstr "{0} maydoni uchun qiymat {1}da juda uzun. Uzunlik {2} belgidan kam bo'lishi kerak"
 
-#: frappe/model/base_document.py:393
+#: frappe/model/document.py:2118
 #, python-brace-format
 msgid "Value for {0} cannot be a list"
 msgstr "{0} qiymati ro'yxat bo'la olmaydi"
@@ -30575,7 +30575,7 @@ msgstr "{0} qiymati ro'yxat bo'la olmaydi"
 msgid "Value from this field will be set as the due date in the ToDo"
 msgstr "Ushbu maydondagi qiymat ToDo’da bajarilish muddati sifatida o‘rnatiladi"
 
-#: frappe/model/base_document.py:755
+#: frappe/model/document.py:2480
 msgid "Value missing for"
 msgstr "Qiymat yetishmayapti"
 
@@ -30589,7 +30589,7 @@ msgstr "Qiymat {0} qiymatlaridan biri bo'lishi kerak"
 msgid "Value to Validate"
 msgstr "Tekshirish uchun qiymat"
 
-#: frappe/model/base_document.py:1051
+#: frappe/model/document.py:2776
 msgid "Value too big"
 msgstr "Qiymat juda katta"
 
@@ -30598,7 +30598,7 @@ msgstr "Qiymat juda katta"
 msgid "Value {0} missing for {1}"
 msgstr "{1} uchun {0} qiymati yo'q"
 
-#: frappe/core/doctype/data_import/importer.py:754 frappe/utils/data.py:707
+#: frappe/core/doctype/data_import/importer.py:754 frappe/utils/data.py:709
 #, python-brace-format
 msgid "Value {0} must be in the valid duration format: d h m s"
 msgstr "{0} qiymati amal qiladigan davomiylik formatida bo'lishi kerak: dhms"
@@ -30621,7 +30621,7 @@ msgstr "Verdana"
 msgid "Verification"
 msgstr "Tasdiqlash"
 
-#: frappe/templates/includes/login/login.js:334 frappe/twofactor.py:359
+#: frappe/templates/includes/login/login.js:334 frappe/twofactor.py:357
 msgid "Verification Code"
 msgstr "Tasdiq kodi"
 
@@ -30633,7 +30633,7 @@ msgstr "Tasdiqlash havolasi"
 msgid "Verification code email not sent. Please contact Administrator."
 msgstr "Tasdiqlash kodi yuborilgan elektron pochta xabari yuborilmadi. Iltimos, administrator bilan bog'laning."
 
-#: frappe/twofactor.py:246
+#: frappe/twofactor.py:244
 msgid "Verification code has been sent to your registered email address."
 msgstr "Tasdiqlash kodi ro'yxatdan o'tgan elektron pochta manzilingizga yuborildi."
 
@@ -30857,7 +30857,7 @@ msgstr "Ogohlantirish: {1} ga tegishli hech qanday jadvalda {0} ni topib bo'lmad
 msgid "Warning: Updating counter may lead to document name conflicts if not done properly"
 msgstr "Ogohlantirish: Hisoblagichni yangilash to'g'ri bajarilmasa, hujjat nomidagi ziddiyatlarga olib kelishi mumkin"
 
-#: frappe/core/doctype/doctype/doctype.py:457
+#: frappe/core/doctype/doctype/doctype.py:456
 msgid "Warning: Usage of 'format:' is discouraged."
 msgstr "Ogohlantirish: 'format:' dan foydalanish tavsiya etilmaydi."
 
@@ -31130,7 +31130,7 @@ msgstr "Veb-sayt skripti"
 msgid "Website Search Field"
 msgstr "Veb-sayt qidiruv maydoni"
 
-#: frappe/core/doctype/doctype/doctype.py:1501
+#: frappe/core/doctype/doctype/doctype.py:1500
 msgid "Website Search Field must be a valid fieldname"
 msgstr "Veb-sayt qidiruv maydoni to'g'ri maydon nomi bo'lishi kerak"
 
@@ -31641,7 +31641,7 @@ msgstr "Yakunlash"
 msgid "Write"
 msgstr "Yozing"
 
-#: frappe/model/base_document.py:885
+#: frappe/model/document.py:2610
 msgid "Wrong Fetch From value"
 msgstr "Noto'g'ri From qiymatini olish"
 
@@ -31851,7 +31851,7 @@ msgstr "Siz tizimga kirmasdan ushbu sahifaga kira olmaysiz."
 msgid "You are not permitted to access this page."
 msgstr "Sizga bu sahifaga kirishga ruxsat berilmagan."
 
-#: frappe/__init__.py:883
+#: frappe/__init__.py:882
 msgid "You are not permitted to access this resource. Login to access"
 msgstr "Sizga ushbu resursga kirishga ruxsat berilmagan. Kirish uchun tizimga kiring"
 
@@ -31912,7 +31912,7 @@ msgstr "Ushbu sahifani o'rganib chiqqandan so'ng, siz ro'yxatdan o'tishni davom 
 msgid "You can disable this {0} instead of deleting it."
 msgstr "Siz buni o'chirish o'rniga {0} ni o'chirib qo'yishingiz mumkin."
 
-#: frappe/core/doctype/file/file.py:871
+#: frappe/core/doctype/file/file.py:875
 msgid "You can increase the limit from System Settings."
 msgstr "Siz limitni Tizim sozlamalaridan oshirishingiz mumkin."
 
@@ -32070,7 +32070,7 @@ msgstr "Sizda yetarlicha sharh ballari yo'q"
 msgid "You do not have import permission for {0}"
 msgstr "Sizda {0} uchun import qilish uchun ruxsat yo'q"
 
-#: frappe/core/doctype/file/file.py:224
+#: frappe/core/doctype/file/file.py:228
 msgid "You do not have permission to access this file"
 msgstr "Sizda bu faylga kirish uchun ruxsat yo'q"
 
@@ -32124,7 +32124,7 @@ msgstr "Sizda {0} haqida hisobot olish uchun ruxsat yo'q."
 #: frappe/desk/query_report.py:88
 #, python-brace-format
 msgid "You don't have permission to print: {0}"
-msgstr ""
+msgstr "Sizda chop etish uchun ruxsat yo'q: {0}"
 
 #: frappe/utils/file_manager.py:427
 #, python-brace-format
@@ -32166,7 +32166,7 @@ msgstr "Siz qiymat kiritmadingiz. Maydon bo'sh qilib o'rnatiladi."
 msgid "You have received a ❤️ like on your blog post"
 msgstr "Siz blogingizdagi postga ❤️ layk bosdingiz"
 
-#: frappe/twofactor.py:439
+#: frappe/twofactor.py:437
 msgid "You have to enable Two Factor Auth from System Settings."
 msgstr "Tizim sozlamalarida ikki faktorli avtorizatsiyani yoqishingiz kerak."
 
@@ -32178,7 +32178,7 @@ msgstr "Ushbu shaklda saqlanmagan o'zgarishlar mavjud. Davom etishdan oldin saql
 msgid "You have unseen notifications"
 msgstr "Sizda ko'rilmagan bildirishnomalar bor"
 
-#: frappe/core/doctype/log_settings/log_settings.py:125
+#: frappe/core/doctype/log_settings/log_settings.py:124
 #, python-brace-format
 msgid "You have unseen {0}"
 msgstr "Sizda {0} ko'rilmagan"
@@ -32203,7 +32203,7 @@ msgstr "Siz buni oxirgi marta tahrirladingiz"
 
 #: frappe/desk/form/activity.py:177
 msgid "You last edited this document"
-msgstr ""
+msgstr "Ushbu hujjatni oxirgi marta siz tahrirlagansiz"
 
 #: frappe/public/js/frappe/widgets/widget_dialog.js:327
 msgid "You must add atleast one link."
@@ -32218,7 +32218,7 @@ msgstr "Ushbu shakldan foydalanish uchun tizimga kirishingiz kerak."
 msgid "You must login to use this form"
 msgstr ""
 
-#: frappe/model/document.py:253
+#: frappe/model/document.py:374
 #, python-brace-format
 msgid "You need the '{0}' permission on {1} {2} to perform this action."
 msgstr "Ushbu amalni bajarish uchun sizga {1} {2} faylida '{0}' ruxsatnomasi kerak."
@@ -32387,7 +32387,7 @@ msgstr "Sizning yorliqlaringiz"
 msgid "Your account has been deleted"
 msgstr "Hisobingiz o'chirib tashlandi"
 
-#: frappe/auth.py:511
+#: frappe/auth.py:512
 #, python-brace-format
 msgid "Your account has been locked and will resume after {0} seconds"
 msgstr "Hisobingiz qulflandi va {0} soniyadan keyin qayta tiklanadi"
@@ -32399,7 +32399,7 @@ msgstr "{0} {1} bo'yicha topshirig'ingiz {2} tomonidan olib tashlandi"
 
 #: frappe/integrations/google_oauth.py:202
 msgid "Your authorization attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Avtorizatsiya urinishingiz noto'g'ri yoki muddati tugagan. Iltimos, qayta urinib ko'ring."
 
 #: frappe/core/doctype/file/file.js:76
 msgid "Your browser does not support the audio element."
@@ -32438,7 +32438,7 @@ msgstr "{0} ga qo'shilish taklifnomangiz muddati tugadi."
 
 #: frappe/utils/oauth.py:231
 msgid "Your login attempt is invalid or has expired. Please try again."
-msgstr ""
+msgstr "Tizimga kirish urinishingiz noto'g'ri yoki muddati tugagan. Iltimos, qayta urinib ko'ring."
 
 #: frappe/templates/emails/new_user.html:6
 msgid "Your login id is"
@@ -32489,7 +32489,7 @@ msgstr "Tasdiqlash kodingiz {0}"
 msgid "Your website is all set up!"
 msgstr "Veb-saytingiz tayyor!"
 
-#: frappe/utils/data.py:1399
+#: frappe/utils/data.py:1401
 msgid "Zero"
 msgstr "Nol"
 
@@ -32499,10 +32499,10 @@ msgstr "Nol"
 msgid "Zero means send records updated at anytime"
 msgstr "Nol degani istalgan vaqtda yangilangan yozuvlarni yuborishni anglatadi"
 
-#: frappe/core/doctype/file/file.py:656 frappe/core/doctype/file/file.py:674
+#: frappe/core/doctype/file/file.py:660 frappe/core/doctype/file/file.py:678
 #, python-brace-format
 msgid "Zip file extracts to more than the maximum allowed size of {0} MB"
-msgstr ""
+msgstr "ZIP fayl ochilganda ruxsat etilgan maksimal hajm {0} MB dan oshib ketadi"
 
 #: frappe/public/js/frappe/form/footer/version_timeline_content_builder.js:360
 #, python-brace-format
@@ -32572,7 +32572,7 @@ msgstr "o'ngga tekislash"
 msgid "amend"
 msgstr "tuzatish"
 
-#: frappe/public/js/frappe/utils/utils.js:406 frappe/utils/data.py:1413
+#: frappe/public/js/frappe/utils/utils.js:406 frappe/utils/data.py:1415
 msgid "and"
 msgstr "va"
 
@@ -33362,7 +33362,7 @@ msgstr "on_update"
 msgid "on_update_after_submit"
 msgstr "on_update_after_submit"
 
-#: frappe/utils/data.py:1422
+#: frappe/utils/data.py:1424
 msgid "only."
 msgstr "faqat."
 
@@ -34076,7 +34076,7 @@ msgstr "{0} Modullar"
 msgid "{0} Name"
 msgstr "{0} Ism"
 
-#: frappe/model/base_document.py:1081
+#: frappe/model/document.py:2806
 #, python-brace-format
 msgid "{0} Not allowed to change {1} after submission from {2} to {3}"
 msgstr "{0} Yuborilgandan so'ng {1} ni {2} dan {3} ga o'zgartirishga ruxsat berilmaydi"
@@ -34149,7 +34149,7 @@ msgstr "{0} allaqachon obunani bekor qilgan"
 msgid "{0} already unsubscribed for {1} {2}"
 msgstr "{0} {1} {2} uchun obunani bekor qildi"
 
-#: frappe/utils/data.py:1573
+#: frappe/utils/data.py:1575
 #, python-brace-format
 msgid "{0} and {1}"
 msgstr "{0} va {1}"
@@ -34228,7 +34228,7 @@ msgctxt "Form timeline"
 msgid "{0} cancelled this document {1}"
 msgstr "{0} ushbu hujjatni bekor qildi {1}"
 
-#: frappe/model/document.py:442
+#: frappe/model/document.py:563
 #, python-brace-format
 msgid "{0} cannot be amended because it is not cancelled. Please cancel the document before creating an amendment."
 msgstr "{0} bekor qilinmaganligi sababli uni o'zgartirib bo'lmaydi. Iltimos, o'zgartirish kiritishdan oldin hujjatni bekor qiling."
@@ -34274,7 +34274,7 @@ msgstr "{0} {1} ni {2} ga o'zgartirildi"
 msgid "{0} comments"
 msgstr "{0} izohlar"
 
-#: frappe/core/doctype/doctype/doctype.py:1585
+#: frappe/core/doctype/doctype/doctype.py:1584
 #, python-brace-format
 msgid "{0} contains an invalid Fetch From expression, Fetch From can't be self-referential."
 msgstr "{0} tarkibida yaroqsiz Fetch From ifodasi mavjud, Fetch From o'z-o'ziga havola bo'la olmaydi."
@@ -34419,7 +34419,7 @@ msgstr "{0} elektron pochta guruhiga muvaffaqiyatli qo'shildi."
 msgid "{0} has left the conversation in {1} {2}"
 msgstr "{0} {1} {2} dagi suhbatni tark etdi"
 
-#: frappe/__init__.py:2448
+#: frappe/__init__.py:2443
 #, python-brace-format
 msgid "{0} has no versions tracked."
 msgstr "{0} ning kuzatilgan versiyalari yo'q."
@@ -34443,24 +34443,24 @@ msgstr "{0} qatorida {1} URL va pastki elementlar bo'lishi mumkin emas"
 #: frappe/model/delete_doc.py:62
 #, python-brace-format
 msgid "{0} is a Virtual DocType and must implement its own delete() method."
-msgstr ""
+msgstr "{0} Virtual DocType bo'lib, o'zining delete() usulini amalga oshirishi kerak."
 
 #: frappe/desk/doctype/notification_type/notification_type.py:41
 #, python-brace-format
 msgid "{0} is a built-in Notification Type and cannot be deleted. Disable it instead."
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:929
+#: frappe/core/doctype/doctype/doctype.py:928
 #, python-brace-format
 msgid "{0} is a mandatory field"
 msgstr "{0} maydonni to'ldirish shart"
 
-#: frappe/core/doctype/file/file.py:669
+#: frappe/core/doctype/file/file.py:673
 #, python-brace-format
 msgid "{0} is a not a valid zip file"
 msgstr "{0} yaroqsiz zip fayli"
 
-#: frappe/core/doctype/doctype/doctype.py:1597
+#: frappe/core/doctype/doctype/doctype.py:1596
 #, python-brace-format
 msgid "{0} is an invalid Data field."
 msgstr "{0} yaroqsiz ma'lumotlar maydoni."
@@ -34577,7 +34577,7 @@ msgstr "{0} {1} uchun yaroqli ota-maydon emas"
 msgid "{0} is not a valid report format. Report format should one of the following {1}"
 msgstr "{0} yaroqli hisobot formati emas. Hisobot formati quyidagi {1} dan biri bo'lishi kerak."
 
-#: frappe/core/doctype/file/file.py:633
+#: frappe/core/doctype/file/file.py:637
 #, python-brace-format
 msgid "{0} is not a zip file"
 msgstr "{0} zip fayli emas"
@@ -34590,7 +34590,7 @@ msgstr "{0} {1} uchun ruxsat berilgan rol emas"
 #: frappe/desk/query_report.py:79
 #, python-brace-format
 msgid "{0} is not an enabled Print Format for a Report"
-msgstr ""
+msgstr "{0} hisobot uchun yoqilgan Chop etish formati emas."
 
 #: frappe/public/js/frappe/views/reports/report_view.js:1463
 #, python-brace-format
@@ -34665,7 +34665,7 @@ msgstr "{0} oxirgi marta buni tahrirladim"
 #: frappe/desk/form/activity.py:178
 #, python-brace-format
 msgid "{0} last edited this document"
-msgstr ""
+msgstr "Bu hujjatni oxirgi marta {0} tahrirladi"
 
 #: frappe/desk/form/activity.py:280
 #, python-brace-format
@@ -34702,42 +34702,42 @@ msgstr "{0} daqiqa oldin"
 msgid "{0} months ago"
 msgstr "{0} oy oldin"
 
-#: frappe/model/document.py:1657
+#: frappe/model/document.py:1782
 #, python-brace-format
 msgid "{0} must be after {1}"
 msgstr "{0} {1} dan keyin kelishi kerak"
 
-#: frappe/model/document.py:1415
+#: frappe/model/document.py:1540
 #, python-brace-format
 msgid "{0} must be beginning with '{1}'"
 msgstr "{0} '{1} ' bilan boshlanishi kerak"
 
-#: frappe/model/document.py:1417
+#: frappe/model/document.py:1542
 #, python-brace-format
 msgid "{0} must be equal to '{1}'"
 msgstr "{0} qiymati '{1} ' ga teng bo'lishi kerak"
 
-#: frappe/model/document.py:1413
+#: frappe/model/document.py:1538
 #, python-brace-format
 msgid "{0} must be none of {1}"
 msgstr "{0} {1} ning hech biri bo'lmasligi kerak"
 
-#: frappe/model/document.py:1411 frappe/utils/csvutils.py:168
+#: frappe/model/document.py:1536 frappe/utils/csvutils.py:168
 #, python-brace-format
 msgid "{0} must be one of {1}"
 msgstr "{0} {1} dan biri bo'lishi kerak"
 
-#: frappe/model/base_document.py:812
+#: frappe/model/document.py:2537
 #, python-brace-format
 msgid "{0} must be set first"
 msgstr "Avval {0} sozlanishi kerak"
 
-#: frappe/model/base_document.py:670
+#: frappe/model/document.py:2395
 #, python-brace-format
 msgid "{0} must be unique"
 msgstr "{0} noyob bo'lishi kerak"
 
-#: frappe/model/document.py:1419
+#: frappe/model/document.py:1544
 #, python-brace-format
 msgid "{0} must be {1} {2}"
 msgstr "{0} {1} {2} bo'lishi kerak"
@@ -34786,7 +34786,7 @@ msgstr "{0} / {1} ({2} bolalari bo'lgan qatorlar)"
 msgid "{0} of {1} sent"
 msgstr "{0} / {1} yuborildi"
 
-#: frappe/utils/data.py:1569
+#: frappe/utils/data.py:1571
 #, python-brace-format
 msgid "{0} or {1}"
 msgstr "{0} yoki {1}"
@@ -34860,7 +34860,7 @@ msgstr "{0} qaytarildi {1}"
 msgid "{0} role does not have permission on any doctype"
 msgstr "{0} roli hech qanday hujjat turida ruxsatga ega emas"
 
-#: frappe/model/document.py:1650
+#: frappe/model/document.py:1775
 #, python-brace-format
 msgid "{0} row #{1}: "
 msgstr "{0} qator #{1}: "
@@ -34902,7 +34902,7 @@ msgstr "{0} ushbu hujjatni hamma bilan baham ko'rdi"
 msgid "{0} shared this document with {1}"
 msgstr "{0} ushbu hujjatni {1} bilan baham ko'rdi"
 
-#: frappe/core/doctype/doctype/doctype.py:324
+#: frappe/core/doctype/doctype/doctype.py:323
 #, python-brace-format
 msgid "{0} should be indexed because it's referred in dashboard connections"
 msgstr "{0} indekslanishi kerak, chunki u boshqaruv paneli ulanishlarida ko'rsatilgan"
@@ -34997,12 +34997,12 @@ msgstr "{0} {1} qo'shildi"
 msgid "{0} {1} added to Dashboard {2}"
 msgstr "{0} {1} Boshqaruv paneliga qo'shildi {2}"
 
-#: frappe/model/base_document.py:603 frappe/model/rename_doc.py:99
+#: frappe/model/document.py:2328 frappe/model/rename_doc.py:99
 #, python-brace-format
 msgid "{0} {1} already exists"
 msgstr "{0} {1} allaqachon mavjud"
 
-#: frappe/model/base_document.py:918
+#: frappe/model/document.py:2643
 #, python-brace-format
 msgid "{0} {1} cannot be \"{2}\". It should be one of \"{3}\""
 msgstr "{0} {1} \"{2}\" bo'lishi mumkin emas. Bu \"{3} \" dan biri bo'lishi kerak."
@@ -35022,7 +35022,7 @@ msgstr "{0} {1} mavjud emas, birlashtirish uchun yangi maqsadni tanlang"
 msgid "{0} {1} is linked with the following submitted documents: {2}"
 msgstr "{0} {1} quyidagi taqdim etilgan hujjatlar bilan bog'langan: {2}"
 
-#: frappe/model/document.py:180 frappe/permissions.py:580
+#: frappe/model/document.py:301 frappe/permissions.py:580
 #, python-brace-format
 msgid "{0} {1} not found"
 msgstr "{0} {1} topilmadi"
@@ -35032,7 +35032,7 @@ msgstr "{0} {1} topilmadi"
 msgid "{0} {1}: Submitted Record cannot be deleted. You must {2} Cancel {3} it first."
 msgstr "{0} {1}: Yuborilgan yozuvni o'chirib bo'lmaydi. Avval uni {2} bekor qilishingiz kerak {3}."
 
-#: frappe/model/base_document.py:1042
+#: frappe/model/document.py:2767
 #, python-brace-format
 msgid "{0}, Row {1}"
 msgstr "{0}, Qator {1}"
@@ -35042,73 +35042,73 @@ msgstr "{0}, Qator {1}"
 msgid "{0}/{1} complete | Please leave this tab open until completion."
 msgstr "{0}/{1} tugallandi | Iltimos, tugallanguncha ushbu yorliqni ochiq qoldiring."
 
-#: frappe/model/base_document.py:1047
+#: frappe/model/document.py:2772
 #, python-brace-format
 msgid "{0}: '{1}' ({3}) will get truncated, as max characters allowed is {2}"
 msgstr "{0}: '{1}' ({3}) qisqartiriladi, chunki ruxsat etilgan maksimal belgilar {2} dir."
 
-#: frappe/core/doctype/doctype/doctype.py:1821
+#: frappe/core/doctype/doctype/doctype.py:1820
 #, python-brace-format
 msgid "{0}: Cannot set Amend without Cancel"
 msgstr "{0}: Bekor qilmasdan o'zgartirishni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1839
+#: frappe/core/doctype/doctype/doctype.py:1838
 #, python-brace-format
 msgid "{0}: Cannot set Assign Amend if not Submittable"
 msgstr "{0}: Agar Submittable bo'lmasa, Assign O'zgartirishni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1837
+#: frappe/core/doctype/doctype/doctype.py:1836
 #, python-brace-format
 msgid "{0}: Cannot set Assign Submit if not Submittable"
 msgstr "{0}: Agar Submittable bo'lmasa, Assign Submit ni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1816
+#: frappe/core/doctype/doctype/doctype.py:1815
 #, python-brace-format
 msgid "{0}: Cannot set Cancel without Submit"
 msgstr "{0}: Yuborishsiz Bekor qilish funksiyasini o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1823
+#: frappe/core/doctype/doctype/doctype.py:1822
 #, python-brace-format
 msgid "{0}: Cannot set Import without Create"
 msgstr "{0}: Yaratmasdan importni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1819
+#: frappe/core/doctype/doctype/doctype.py:1818
 #, python-brace-format
 msgid "{0}: Cannot set Submit, Cancel, Amend without Write"
 msgstr "{0}: Yozmasdan Yuborish, Bekor qilish, O'zgartirishni o'rnatib bo'lmaydi"
 
-#: frappe/core/doctype/doctype/doctype.py:1843
+#: frappe/core/doctype/doctype/doctype.py:1842
 #, python-brace-format
 msgid "{0}: Cannot set import as {1} is not importable"
 msgstr "{0}: {1} import qilib bo'lmaydiganligi sababli importni o'rnatib bo'lmaydi"
 
-#: frappe/automation/doctype/auto_repeat/auto_repeat.py:415
+#: frappe/automation/doctype/auto_repeat/auto_repeat.py:424
 #, python-brace-format
 msgid "{0}: Failed to attach new recurring document. To enable attaching document in the auto repeat notification email, enable {1} in Print Settings"
 msgstr "{0}: Yangi takrorlanuvchi hujjatni biriktirishda xatolik yuz berdi. Avtomatik takrorlanish haqida bildirishnoma elektron pochtasida hujjatni biriktirishni yoqish uchun Chop etish sozlamalarida {1} ni yoqing."
 
-#: frappe/core/doctype/doctype/doctype.py:1405
+#: frappe/core/doctype/doctype/doctype.py:1404
 #, python-brace-format
 msgid "{0}: Field '{1}' cannot be set as Unique as it has non-unique values"
 msgstr "{0}: '{1}' maydoni noyob bo'lmagan qiymatlarga ega bo'lgani uchun uni noyob deb o'rnatib bo'lmaydi."
 
-#: frappe/core/doctype/doctype/doctype.py:1313
+#: frappe/core/doctype/doctype/doctype.py:1312
 #: frappe/website/doctype/web_form/web_form.py:143
 #, python-brace-format
 msgid "{0}: Field {1} in row {2} cannot be hidden and mandatory without default"
 msgstr "{0}: {2} qatoridagi {1} maydoni sukut bo'yicha yashirilishi va majburiy bo'lishi mumkin emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1272
+#: frappe/core/doctype/doctype/doctype.py:1271
 #, python-brace-format
 msgid "{0}: Field {1} of type {2} cannot be mandatory"
 msgstr "{0}: {2} turdagi {1} maydoni majburiy bo'lishi mumkin emas"
 
-#: frappe/core/doctype/doctype/doctype.py:1260
+#: frappe/core/doctype/doctype/doctype.py:1259
 #, python-brace-format
 msgid "{0}: Fieldname {1} appears multiple times in rows {2}"
 msgstr "{0}: Maydon nomi {1} qatorlarda bir necha marta paydo bo'ladi {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1392
+#: frappe/core/doctype/doctype/doctype.py:1391
 #, python-brace-format
 msgid "{0}: Fieldtype {1} for {2} cannot be unique"
 msgstr "{0}: {2} uchun {1} maydon turi noyob bo'lishi mumkin emas"
@@ -35118,27 +35118,27 @@ msgstr "{0}: {2} uchun {1} maydon turi noyob bo'lishi mumkin emas"
 msgid "{0}: Link field cannot reference DocType {1} without Guest read permission"
 msgstr ""
 
-#: frappe/core/doctype/doctype/doctype.py:1776
+#: frappe/core/doctype/doctype/doctype.py:1775
 #, python-brace-format
 msgid "{0}: No basic permissions set"
 msgstr "{0}: Asosiy ruxsatnomalar o'rnatilmagan"
 
-#: frappe/core/doctype/doctype/doctype.py:1790
+#: frappe/core/doctype/doctype/doctype.py:1789
 #, python-brace-format
 msgid "{0}: Only one rule allowed with the same Role, Level and {1}"
 msgstr "{0}: Faqat bitta qoidaga ruxsat beriladi, bir xil rol, daraja va {1} bilan."
 
-#: frappe/core/doctype/doctype/doctype.py:1294
+#: frappe/core/doctype/doctype/doctype.py:1293
 #, python-brace-format
 msgid "{0}: Options must be a valid DocType for field {1} in row {2}"
 msgstr "{0}: {2} qatoridagi {1} maydoni uchun parametrlar haqiqiy DocType bo'lishi kerak"
 
-#: frappe/core/doctype/doctype/doctype.py:1283
+#: frappe/core/doctype/doctype/doctype.py:1282
 #, python-brace-format
 msgid "{0}: Options required for Link or Table type field {1} in row {2}"
 msgstr "{0}: {2} qatoridagi {1} bogʻlanish yoki jadval turi maydoni uchun kerakli parametrlar"
 
-#: frappe/core/doctype/doctype/doctype.py:1301
+#: frappe/core/doctype/doctype/doctype.py:1300
 #, python-brace-format
 msgid "{0}: Options {1} must be the same as doctype name {2} for the field {3}"
 msgstr "{0}: {3} maydoni uchun {1} parametrlari doctype name {2} bilan bir xil bo'lishi kerak."
@@ -35148,7 +35148,7 @@ msgstr "{0}: {3} maydoni uchun {1} parametrlari doctype name {2} bilan bir xil b
 msgid "{0}: Other permission rules may also apply"
 msgstr "{0}: Boshqa ruxsat berish qoidalari ham qo'llanilishi mumkin"
 
-#: frappe/core/doctype/doctype/doctype.py:1805
+#: frappe/core/doctype/doctype/doctype.py:1804
 #, python-brace-format
 msgid "{0}: Permission at level 0 must be set before higher levels are set"
 msgstr "{0}: Yuqori darajalar o'rnatilishidan oldin 0 darajasidagi ruxsatnoma o'rnatilishi kerak"
@@ -35158,7 +35158,7 @@ msgstr "{0}: Yuqori darajalar o'rnatilishidan oldin 0 darajasidagi ruxsatnoma o'
 msgid "{0}: You can increase the limit for the field if required via {1}"
 msgstr "{0}: Agar kerak bo'lsa, {1} orqali maydon uchun limitni oshirishingiz mumkin."
 
-#: frappe/core/doctype/doctype/doctype.py:1247
+#: frappe/core/doctype/doctype/doctype.py:1246
 #, python-brace-format
 msgid "{0}: fieldname cannot be set to reserved keyword {1}"
 msgstr "{0}: maydon nomini zaxiralangan kalit so'zga o'rnatib bo'lmaydi {1}"
@@ -35179,7 +35179,7 @@ msgstr "{0}: {1} {2} holatiga o'rnatilgan"
 msgid "{0}: {1} vs {2}"
 msgstr "{0}: {1} va {2}"
 
-#: frappe/core/doctype/doctype/doctype.py:1413
+#: frappe/core/doctype/doctype/doctype.py:1412
 #, python-brace-format
 msgid "{0}:Fieldtype {1} for {2} cannot be indexed"
 msgstr "{0}:Maydon turi {1} uchun {2} indekslanib bo'lmaydi"
@@ -35204,7 +35204,7 @@ msgstr "{count} qator tanlandi"
 msgid "{count} rows selected"
 msgstr "{count} qatorlar tanlandi"
 
-#: frappe/core/doctype/doctype/doctype.py:1467
+#: frappe/core/doctype/doctype/doctype.py:1466
 #, python-brace-format
 msgid "{{{0}}} is not a valid fieldname pattern. It should be {{field_name}}."
 msgstr "{{{0}}} yaroqli maydon nomi naqsh emas. U {{field_name}} bo'lishi kerak."
@@ -35220,12 +35220,12 @@ msgstr "{} Faol"
 msgid "{} Complete"
 msgstr "{} Tugallandi"
 
-#: frappe/utils/data.py:2341
+#: frappe/utils/data.py:2351
 #, python-brace-format
 msgid "{} Invalid python code on line {}"
 msgstr "{} {} qatorida noto'g'ri python kodi"
 
-#: frappe/utils/data.py:2350
+#: frappe/utils/data.py:2360
 #, python-brace-format
 msgid "{} Possibly invalid python code. <br>{}"
 msgstr "{} Python kodi noto'g'ri bo'lishi mumkin. <br>{}"
@@ -35236,7 +35236,7 @@ msgstr "{} Python kodi noto'g'ri bo'lishi mumkin. <br>{}"
 msgid "{} Published"
 msgstr "{} Nashr qilindi"
 
-#: frappe/core/doctype/log_settings/log_settings.py:54
+#: frappe/core/doctype/log_settings/log_settings.py:53
 #, python-brace-format
 msgid "{} does not support automated log clearing."
 msgstr "{} avtomatik jurnallarni tozalashni qo'llab-quvvatlamaydi."
@@ -35253,7 +35253,7 @@ msgstr "{} maydoni bo'sh bo'lishi mumkin emas."
 msgid "{} has been disabled. It can only be enabled if {} is checked."
 msgstr "{} oʻchirib qoʻyildi. Uni faqat {} belgilangan boʻlsa yoqish mumkin."
 
-#: frappe/utils/data.py:106
+#: frappe/utils/data.py:108
 #, python-brace-format
 msgid "{} is not a valid date string."
 msgstr "{} yaroqli sana qatori emas."
