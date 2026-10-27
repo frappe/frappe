@@ -737,4 +737,9 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 
 @frappe.whitelist()
 def get_installed_apps():
+<<<<<<< HEAD
 	return frappe.get_installed_apps()
+=======
+	frappe.permissions.validate_system_user()
+	return frappe.get_active_apps()
+>>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)

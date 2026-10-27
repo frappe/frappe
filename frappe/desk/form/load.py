@@ -16,7 +16,12 @@ from frappe.desk.form.document_follow import is_document_followed
 from frappe.desk.link_title import send_link_titles
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
-from frappe.permissions import check_doctype_permission, get_doc_permissions, has_permission
+from frappe.permissions import (
+	check_doctype_permission,
+	get_doc_permissions,
+	has_permission,
+	validate_system_user,
+)
 from frappe.utils.data import cstr
 
 
@@ -62,6 +67,7 @@ def getdoc(doctype: str, name: str | int):
 @frappe.whitelist()
 def getdoctype(doctype: str, with_parent: int | bool = False):
 	"""load doctype"""
+	validate_system_user()
 
 	docs = []
 	parent_dt = None
