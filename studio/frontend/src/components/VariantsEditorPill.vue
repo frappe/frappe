@@ -84,12 +84,17 @@ const variantSources = computed<VariantSource[]>(() => {
 
 	function collect(block?: Block | null, ownerComponent?: string) {
 		if (!block) return
-		if (block.componentName === "Variants") sources.push({ block, ownerComponent })
+		const isVariantSet = block.componentName === "Variants"
+		if (isVariantSet) sources.push({ block, ownerComponent })
 		if (block.isStudioComponent && !visitedComponents.has(block.componentName)) {
 			visitedComponents.add(block.componentName)
 			collect(componentStore.componentMap.get(block.componentName), block.componentName)
 		}
-		for (const child of block.children || []) collect(child, ownerComponent)
+		// the options a set hides are not on the canvas, so a set inside one is not listed
+		const children = block.children || []
+		for (const child of isVariantSet ? [children[shownVariantIndex(block)]] : children) {
+			collect(child, ownerComponent)
+		}
 		for (const slot of Object.values(block.componentSlots || {})) {
 			if (!Array.isArray(slot.slotContent)) continue
 			for (const child of slot.slotContent) collect(child as Block, ownerComponent)
