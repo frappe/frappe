@@ -105,15 +105,35 @@ class AttachmentQueue(Document):
 
 	@staticmethod
 	def clear_old_logs(days: int = 30) -> None:
+		"""Clear entries that have produced a document. An entry still waiting for one is
+		unfinished work, and deleting it would take the uploaded file with it."""
 		cutoff = add_to_date(now(), days=-cint(days), as_datetime=True)
 		rows = frappe.get_all(
 			"Attachment Queue",
-			filters={"modified": ("<", cutoff)},
+			filters={"modified": ("<", cutoff), "created_document": ("is", "set")},
 			pluck="name",
 		)
 
 		for name in rows:
 			frappe.delete_doc("Attachment Queue", name, delete_permanently=True)
+
+
+def unlink_deleted_document(doc, method=None):
+	"""Return an entry to the queue when the document written from its file is deleted.
+
+	The file itself stays with the entry, so the upload is waiting for review again
+	instead of pointing at a document that is gone.
+	"""
+	# Meta is cached, so every other DocType pays nothing for this.
+	if not frappe.get_meta(doc.doctype).get("enable_upload_first_workflow"):
+		return
+
+	for name in frappe.get_all(
+		"Attachment Queue",
+		filters={"document_type": doc.doctype, "created_document": cstr(doc.name)},
+		pluck="name",
+	):
+		frappe.db.set_value("Attachment Queue", name, "created_document", None)
 
 
 def get_file_extension(file_url: str) -> str:

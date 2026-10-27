@@ -4,8 +4,9 @@
 from uuid import uuid4
 
 import frappe
+from frappe.core.doctype.attachment_queue.attachment_queue import AttachmentQueue
 from frappe.tests import IntegrationTestCase
-from frappe.utils import cstr
+from frappe.utils import add_to_date, cstr, now
 from frappe.utils.file_manager import save_file
 
 TEST_USER = "test@example.com"
@@ -226,6 +227,36 @@ class TestAttachmentQueue(IntegrationTestCase):
 			queue_doc.reload()
 			self.assertFalse(queue_doc.created_document)
 			self.assertFalse(self.attachments_of(target))
+
+	def test_deleting_the_document_returns_the_entry_to_the_queue(self):
+		with self.set_user(TEST_USER):
+			file_doc = self.make_file("UNLINKED", "unlinked.pdf")
+			queue_doc = self.make_queue(file_doc.file_url)
+			target = self.make_target_document()
+			queue_doc.link_to_document(target.name)
+
+			frappe.delete_doc(TARGET_DOCTYPE, target.name, ignore_permissions=True)
+
+			queue_doc.reload()
+			# waiting for review again, with the file it was uploaded with
+			self.assertFalse(queue_doc.created_document)
+			self.assertTrue(frappe.db.exists("File", {"file_url": file_doc.file_url}))
+
+	def test_clearing_old_logs_keeps_entries_that_produced_no_document(self):
+		reviewed = self.make_committed_queue("REVIEWED", "reviewed.pdf")
+		waiting = self.make_committed_queue("WAITING", "waiting.pdf")
+		target = self.make_target_document()
+		reviewed.link_to_document(target.name)
+
+		old = add_to_date(now(), days=-60, as_datetime=True)
+		for name in (reviewed.name, waiting.name):
+			frappe.db.set_value("Attachment Queue", name, "modified", old, update_modified=False)
+
+		AttachmentQueue.clear_old_logs(days=30)
+
+		self.assertFalse(frappe.db.exists("Attachment Queue", reviewed.name))
+		# an unreviewed upload is unfinished work, however old it is
+		self.assertTrue(frappe.db.exists("Attachment Queue", waiting.name))
 
 	def test_a_row_is_readable_only_when_its_target_doctype_is(self):
 		unreadable_target = self.make_unreadable_target()

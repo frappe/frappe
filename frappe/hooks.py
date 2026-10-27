@@ -265,6 +265,7 @@ doc_events = {
 			"frappe.desk.notifications.clear_doctype_notifications",
 			"frappe.workflow.doctype.workflow_action.workflow_action.process_workflow_actions",
 			"frappe.search.sqlite_search.delete_doc_index",
+			"frappe.core.doctype.attachment_queue.attachment_queue.unlink_deleted_document",
 			"frappe.flow.triggers.dispatch",
 		],
 		"on_update_after_submit": [
