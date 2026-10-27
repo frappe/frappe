@@ -21,6 +21,7 @@ from frappe.core.api.file import (
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed, MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import (
+	find_file_by_url,
 	get_corrupted_image_msg,
 	get_extension,
 	get_web_image,
@@ -902,6 +903,23 @@ class TestFile(IntegrationTestCase):
 			)
 		finally:
 			frappe.set_user("Administrator")
+
+	def test_find_file_by_url_ignores_urls_that_differ_in_case(self):
+		for owner, file_url in (
+			("test@example.com", "/private/files/CaseCheck.txt"),
+			("test4@example.com", "/private/files/casecheck.txt"),
+		):
+			frappe.set_user(owner)
+			file = frappe.new_doc("File")
+			file.update({"file_name": file_url.split("/")[-1], "file_url": file_url, "is_private": 1})
+			file.set_new_name()
+			file.db_insert()
+			self.addCleanup(frappe.delete_doc, "File", file.name, force=True, ignore_permissions=True)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+
+		self.assertIsNone(find_file_by_url("/private/files/CaseCheck.txt"))
+		self.assertEqual(find_file_by_url("/private/files/casecheck.txt").owner, "test4@example.com")
 
 	def test_zip_files_adds_a_repeated_file_once(self):
 		from frappe.core.doctype.file.file import File

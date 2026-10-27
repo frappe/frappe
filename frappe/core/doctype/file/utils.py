@@ -551,6 +551,9 @@ def find_file_by_url(path: str, name: str | None = None) -> "File" | None:
 	# if the file is accessible from any one of those documents
 	# then it should be downloadable
 	for file_data in files:
+		# the database collation ignores case, the filesystem does not
+		if file_data.file_url != filters["file_url"]:
+			continue
 		file: File = frappe.get_doc(doctype="File", **file_data)
 		if file.is_downloadable():
 			return file
