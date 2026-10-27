@@ -8,7 +8,7 @@ vi.mock("frappe-ui", () => ({ toast: fake.toast }));
 import type { Session } from "@framework/ui/api";
 import { registerAfterSave, runAfterSave, type SavedBinding } from "@/afterSave";
 import { registerDeskAfterSave } from "../deskAfterSave";
-import { registerAfterSave as appRegisterAfterSave } from "@/public";
+import { askReload as appAskReload, registerAfterSave as appRegisterAfterSave } from "@/public";
 
 const USER = "reader@example.com";
 
@@ -66,6 +66,19 @@ describe("registerAfterSave", () => {
 		remove();
 
 		expect(run).toHaveBeenCalledTimes(1);
+	});
+});
+
+describe("askReload", () => {
+	beforeEach(() => fake.toast.mockReset());
+
+	it("is on the app import list, and toasts only when a listed field changed", () => {
+		appAskReload(saved("Probe E", "Probe E", ["label"]), ["currency"]);
+		expect(fake.toast).not.toHaveBeenCalled();
+
+		appAskReload(saved("Probe E", "Probe E", ["label", "currency"]), ["currency"]);
+		expect(fake.toast).toHaveBeenCalledTimes(1);
+		expect(fake.toast.mock.calls[0][1].id).toBe("settings-reload");
 	});
 });
 
