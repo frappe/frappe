@@ -43,8 +43,8 @@ def attach(doctype: str, name: str):
 	# `upload_file` reads the document it attaches to from the form, and checks `write` on it
 	frappe.form_dict["doctype"] = doctype
 	frappe.form_dict["docname"] = name
-	if frappe.get_meta(doctype).make_attachments_public and can_upload_public_files():
-		frappe.form_dict["is_private"] = 0
+	if frappe.get_meta(doctype).make_attachments_public:
+		frappe.form_dict["is_private"] = 0 if can_upload_public_files() else 1
 
 	created = upload()
 	if not created:

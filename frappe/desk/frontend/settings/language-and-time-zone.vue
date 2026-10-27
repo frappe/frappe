@@ -55,7 +55,7 @@ function zoneList(): Promise<string[]> {
 </script>
 
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from "vue";
+import { computed, reactive, ref } from "vue";
 import { ErrorMessage, SettingsRow, Skeleton } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
 import { useSession } from "@framework/ui/useSession";
@@ -74,11 +74,7 @@ const user = props.bindings.user;
 
 const { session } = useSession();
 const siteLanguage = ref("");
-watch(
-	() => !user.loading && !user.doc.language && session.value?.defaults.language,
-	async (code) => code && (siteLanguage.value = await siteLanguageName(code)),
-	{ immediate: true }
-);
+siteLanguageName(session.value?.defaults.language).then((name) => (siteLanguage.value = name));
 
 const timeZones = ref<string[]>([]);
 zoneList().then((zones) => (timeZones.value = zones));

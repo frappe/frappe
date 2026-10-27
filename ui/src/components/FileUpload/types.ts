@@ -127,7 +127,7 @@ export interface FileUploadDialogProps {
   transport?: UploadTransport;
   progressMode?: ProgressMode;
   folder?: string;
-  /** Whether a file starts private; the uploader can still change it. Default true. */
+  /** Whether a file starts private; the uploader can still change it. */
   isPrivate?: boolean;
   /** Accepted for API compatibility with the tabbed dialog; not rendered here. */
   title?: string;

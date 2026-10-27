@@ -11,7 +11,7 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 
 import { useColorScheme } from "frappe-ui";
 import { getFieldComponent, registerFieldType } from "@framework/ui/FormLayout";
-import { setSession } from "@framework/ui/useSession";
+import { resetSession, setSession } from "@framework/ui/useSession";
 import { settingsComponentFor } from "@/contributions/registry";
 
 const NAMES = ["theme", "profile-photo", "language-and-time-zone", "session-defaults"];
@@ -72,6 +72,7 @@ afterEach(() => {
 	for (const [fieldtype, component] of Object.entries(originals))
 		registerFieldType(fieldtype, component);
 	vi.unstubAllGlobals();
+	resetSession();
 });
 
 async function settle() {

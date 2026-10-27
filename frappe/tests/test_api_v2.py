@@ -1927,6 +1927,9 @@ def sid_of(user: str) -> str:
 		frappe.set_user(original_user)
 
 
+PUBLIC_UPLOADS = "only_allow_system_managers_to_upload_public_files"
+
+
 class TestFileRoutesV2(FrappeAPITestCase):
 	"""Uploading through `POST /document/File`, and the `attachments` sub-resource."""
 
@@ -2064,7 +2067,6 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		self.assertEqual(response.json["data"]["file"], rows[0]["name"])
 
 	def test_attach_follows_the_doctypes_public_attachments(self):
-		# `User` makes its attachments public, so a photo is public whatever the uploader sent
 		photo = self.upload(
 			self.resource("User", self.TEST_USER, "attachments"), b"photo", "me.txt", is_private="1"
 		)
@@ -2077,6 +2079,24 @@ class TestFileRoutesV2(FrappeAPITestCase):
 
 		self.assertEqual(frappe.db.get_value("File", files[0], "is_private"), 0)
 		self.assertEqual(frappe.db.get_value("File", files[1], "is_private"), 1)
+
+	def test_attach_keeps_a_file_private_when_the_uploader_may_not_make_it_public(self):
+		previous = frappe.db.get_single_value("System Settings", PUBLIC_UPLOADS)
+		self.set_public_uploads(1)
+		self.addCleanup(self.set_public_uploads, previous)
+
+		photo = self.upload(
+			self.resource("User", self.TEST_USER, "attachments"), b"photo", "me.txt", is_private="0"
+		)
+		self.assertEqual(photo.status_code, 200, photo.json)
+		frappe.db.rollback()
+		self.addCleanup(self.drop_files, photo.json["data"]["file"])
+
+		self.assertEqual(frappe.db.get_value("File", photo.json["data"]["file"], "is_private"), 1)
+
+	def set_public_uploads(self, only_system_managers: int):
+		frappe.db.set_single_value("System Settings", PUBLIC_UPLOADS, only_system_managers)
+		frappe.db.commit()  # nosemgrep
 
 	def drop_files(self, *names: str):
 		frappe.db.rollback()
