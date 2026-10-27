@@ -10,9 +10,11 @@
 			<div class="flex items-start gap-2">
 				<div class="min-w-0 flex-1">
 					<div class="text-base-medium leading-tighter text-ink-gray-8">{{ title }}</div>
-					<div v-if="description" class="mt-1 text-base leading-5 text-ink-gray-6">
-						{{ description }}
-					</div>
+					<div
+						v-if="description"
+						class="mt-1 text-base leading-5 text-ink-gray-6 [&_a]:underline"
+						v-html="description"
+					/>
 				</div>
 				<SettingsSaveMark :mark="mark" />
 			</div>
@@ -25,7 +27,10 @@
 				@change="emit('commit')"
 			/>
 		</div>
-		<SettingsRow v-else :title="title" :description="description">
+		<SettingsRow v-else :title="title">
+			<template v-if="description" #description>
+				<div class="[&_a]:underline" v-html="description" />
+			</template>
 			<div class="flex items-center gap-2">
 				<SettingsSaveMark :mark="mark" />
 				<Switch
@@ -53,6 +58,7 @@
 import { computed } from "vue";
 import { ErrorMessage, SettingsRow, Switch } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
+import { sanitizeHtml } from "@framework/ui/utils";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { __ } from "@/i18n";
 import type { BindingDraft } from "./bindingDraft";
@@ -66,8 +72,17 @@ const emit = defineEmits<{ commit: [] }>();
 const FLASH =
 	"pointer-events-none absolute -inset-x-3 inset-y-1 -z-10 rounded-4 bg-surface-gray-3 opacity-0";
 
+/** A `<style>` in a description would restyle the whole desk. */
+const DESCRIPTION_RULES = {
+	ADD_ATTR: ["target"],
+	FORBID_TAGS: ["style"],
+	FORBID_ATTR: ["style"],
+};
+
 const title = computed(() => __(props.field.label || props.field.fieldname));
-const description = computed(() => props.field.description && __(props.field.description));
+const description = computed(
+	() => props.field.description && descriptionHtml(__(props.field.description))
+);
 const control = computed(() => getFieldComponent(props.field.fieldtype));
 const bare = computed(() => ({ ...props.field, label: "", description: "" }));
 const value = computed(() => props.draft.state.doc[props.field.fieldname]);
@@ -89,5 +104,16 @@ function edit(next: unknown) {
 function toggle(on: boolean) {
 	edit(on ? 1 : 0);
 	emit("commit");
+}
+
+/** A description as sanitised HTML, each link opening a new tab. */
+function descriptionHtml(text: string): string {
+	const template = document.createElement("template");
+	template.innerHTML = text;
+	for (const link of template.content.querySelectorAll("a[href]")) {
+		link.setAttribute("target", "_blank");
+		link.setAttribute("rel", "noopener noreferrer");
+	}
+	return sanitizeHtml(template.innerHTML, DESCRIPTION_RULES);
 }
 </script>

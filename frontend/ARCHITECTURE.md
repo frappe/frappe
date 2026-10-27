@@ -211,6 +211,7 @@ The list is what `ui/` exports from its root index and from the data subpaths: `
 | Filter prefill (`equalityValues`) | The values a new record starts with from the equality filters it was created under. The list's Create and a Link field's Create both use it |
 | Shared memo (`memoizedState`, `holdFresh`, `landFresh`) | One state per key, built once and shared by every caller. A stale memo's fresh value shows as soon as it arrives. While a page holds fresh values, they show together when it lets go, in the same step as the page's own reads |
 | Scoped registry (`setScoped`) | Overrides a map entry for one Vue scope |
+| Sanitiser (`sanitizeHtml`) | *New.* Strips scripts and event handlers from stored HTML before it is drawn. Rich text, the composer and a settings row's description draw through it |
 | Scroll landing (`landScroll`, `onScrollSettled`) | *New.* Puts a kept scroll offset back once the content is tall enough, and reports a scroll once it has stopped for 150 ms. The list and the record page keep their offsets with it |
 | History state (`keepInHistory`) | *New.* Writes one key of the history entry's state, and survives a browser that refuses the write. The list, the record view and the shell's sidebar write through it |
 | Socket input (`@framework/ui/socket`: `getSocketInstance`, `subscribeToDoc`, `resubscribeHeldDocs`, `RealtimeSocket`) | *Changed.* The app hands `ui/` its socket, and `ui/` joins record rooms on it. `ui/` warns when there is none. A reconnected socket joins the held rooms again |

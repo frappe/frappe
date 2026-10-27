@@ -1082,9 +1082,6 @@
       "telemetryPlugin",
       "useTelemetry"
     ],
-    "ui/src/utils/sanitize.ts": [
-      "sanitizeHtml"
-    ],
     "ui/src/utils/session.ts": [
       "sessionUser"
     ],
