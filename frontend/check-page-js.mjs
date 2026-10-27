@@ -12,6 +12,7 @@ export const PAGE_CHUNKS = {
   home: "src/pages/index/IndexPage.vue",
   list: "src/pages/List.vue",
   record: "src/pages/Record.vue",
+  new: "src/pages/NewRecord.vue",
 };
 
 // Not `import.meta.main`: Node 24.0 and 24.1 lack it, and the check would pass unrun.
