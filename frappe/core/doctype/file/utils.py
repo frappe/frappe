@@ -209,17 +209,19 @@ def delete_file(path: str) -> None:
 
 
 def remove_file_by_url(file_url: str, doctype: str | None = None, name: str | None = None) -> "Document":
+	filters = {"file_url": file_url}
 	if doctype and name:
-		fid = frappe.db.get_value(
-			"File",
-			{
-				"file_url": file_url,
-				"attached_to_doctype": doctype,
-				"attached_to_name": name,
-			},
-		)
-	else:
-		fid = frappe.db.get_value("File", {"file_url": file_url})
+		filters.update({"attached_to_doctype": doctype, "attached_to_name": name})
+
+	# the database collation ignores case, the filesystem does not
+	fid = next(
+		(
+			file.name
+			for file in frappe.get_all("File", filters=filters, fields=["name", "file_url"])
+			if file.file_url == file_url
+		),
+		None,
+	)
 
 	if fid:
 		from frappe.utils.file_manager import remove_file
