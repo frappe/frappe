@@ -1164,6 +1164,34 @@ class TestChunkedUpload(IntegrationTestCase):
 		self.assertEqual(len(get_chunk_temp_path("a", 1).name), len(get_chunk_temp_path("あ" * 200, 1).name))
 
 
+class TestPrivateFileDownload(IntegrationTestCase):
+	def download(self, file_name=None):
+		from frappe.utils.response import download_private_file
+
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc({"doctype": "File", "file_name": "note.txt", "content": "x", "is_private": 1})
+		file.insert()
+		self.addCleanup(frappe.delete_doc, "File", file.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.form_dict.clear)
+		self.addCleanup(setattr, frappe.local, "request", None)
+
+		if file_name:
+			file.file_name = file_name
+			file.save()
+		set_request(path=file.file_url)
+		frappe.form_dict.fid = file.name
+		return download_private_file(file.file_url)
+
+	def test_file_renamed_to_html_is_downloaded(self):
+		response = self.download("page.html")
+		self.assertTrue(response.headers["Content-Disposition"].startswith("attachment"))
+
+	def test_text_file_is_shown_inline(self):
+		response = self.download()
+		self.assertFalse(response.headers["Content-Disposition"].startswith("attachment"))
+
+
 @contextmanager
 def convert_to_symlink(directory):
 	"""Moves a directory to temp directory and symlinks original path for testing"""
