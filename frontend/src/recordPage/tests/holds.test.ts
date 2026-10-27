@@ -19,7 +19,7 @@ vi.mock("@framework/ui/api", () => ({
 }));
 
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
-import { HOST_SOURCE, runningSource, withRegisteringSource } from "../context";
+import { HOST_SOURCE, runningSource, withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
 

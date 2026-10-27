@@ -7,7 +7,7 @@ import { Addresses } from "@/addresses";
 import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
 import { resetFormLayouts } from "@/recordPage";
-import { createPageDialogs } from "@/recordPage/dialog";
+import { createPageDialogs } from "@/pageEngine/dialog";
 import { registerShell } from "@/router/routeFor";
 import { ActKeys } from "@/shell/actKeys";
 import { closeCreates, createDialog, createRequests, openCreate, registerCreateDialog } from "@/shell/create";

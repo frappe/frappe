@@ -1,8 +1,8 @@
 // The record page's acts on the dispatcher: the header items, quick actions and tab `create`
 // entries that have `run`, read as drawn after the replay.
 import { acts, passesRight, type ActEntry, type ActScope } from "@/acts/dispatcher";
-import { containerDisplay, hidingDenied, surviving } from "./headerRenderings";
-import type { ResolvedItem, Surface } from "./surface";
+import { containerDisplay, hidingDenied, surviving } from "@/pageEngine/headerRenderings";
+import type { ResolvedItem, Surface } from "@/pageEngine/surface";
 import type { HeaderItem, QuickAction, RecordPageApi, TabItem } from "./types";
 import type { PagePermissions } from "./pagePermissions";
 

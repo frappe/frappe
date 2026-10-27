@@ -1,9 +1,8 @@
-// When the record page paints: replays and holds stage every overlay, and the first
+// When a page paints: replays and holds stage every overlay, and the first
 // paint lifts the skeletons once, or goes ahead without a late script.
 import { computed, ref, type ComputedRef, type Ref } from "vue";
-import { clientScriptWait } from "./clientScripts";
-import type { Registration } from "./registry";
 import type { Staging } from "./staging";
+import type { Registration } from "./types";
 
 /** How long the first paint waits for the page's scripts before it goes ahead without a late one. */
 export const FIRST_PAINT_LIMIT_MS = 500;
@@ -13,7 +12,8 @@ export const LATE_LIMIT_MS = 5000;
 
 export interface PaintGateHost {
   doctype: string;
-  docname: string;
+  /** The record's or the page's name, for the first paint's warning. */
+  name: string;
   /** Every overlay a replay or a hold stages. */
   surfaces: Staging[];
   /** Resolves when sources that register after mount (Client Scripts) are in. */
@@ -32,6 +32,8 @@ export interface PaintGateHost {
   /** Delivers the acts held so far; `drawnOnly` drops one whose target is not drawn. */
   deliverHeldActs: (drawnOnly: boolean) => void;
   closeDialogs: () => void;
+  /** What the first paint names when it went ahead without the sources. */
+  lateLabel: () => string;
 }
 
 export interface PaintGate {
@@ -291,7 +293,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     releaseEarlyActs();
     ready.value = true;
     console.warn(
-      `[record-page] ${host.doctype} ${host.docname} painted after ${FIRST_PAINT_LIMIT_MS} ms without waiting for ${late}; its changes land when it finishes.`,
+      `[record-page] ${host.doctype} ${host.name} painted after ${FIRST_PAINT_LIMIT_MS} ms without waiting for ${late}; its changes land when it finishes.`,
     );
   }
 
@@ -307,7 +309,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
 
   function lateWait() {
     if (state.awaiting === "permissions") return "the page's permissions";
-    return clientScriptWait(host.doctype) ?? "the page's scripts";
+    return host.lateLabel();
   }
 
   async function hold<T>(work: () => Promise<T> | T): Promise<T> {

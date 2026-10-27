@@ -27,7 +27,7 @@ vi.mock("@framework/ui/api", async () => {
 
 import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
-import { withRegisteringSource } from "../context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, PanelSectionItem, RecordPageApi } from "../types";

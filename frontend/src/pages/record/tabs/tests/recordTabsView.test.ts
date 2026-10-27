@@ -25,10 +25,10 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 }));
 
 import RecordTabs from "../RecordTabs.vue";
-import type { ResolvedItem } from "@/recordPage/surface";
+import type { ResolvedItem } from "@/pageEngine/surface";
 import type { TabItem } from "@/recordPage/types";
 import { recordTabBuiltins, RecordTabsHost, scrollsItself } from "../recordTabs";
-import { Surface } from "@/recordPage/surface";
+import { Surface } from "@/pageEngine/surface";
 import { TAB_ITEM_KEYS } from "@/recordPage/types";
 
 const Audit = defineComponent({

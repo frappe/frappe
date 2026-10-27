@@ -22,7 +22,7 @@ import {
   setComposerWindow,
 } from "@/shell/composer";
 import { isComposerTab } from "../composer";
-import { withRegisteringSource } from "../context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { createRecordPage, RECORD_PAGE_EVENTS, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
 import {

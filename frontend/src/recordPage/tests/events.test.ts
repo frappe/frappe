@@ -21,7 +21,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, registrationsFor, resetRegistry } from "../registry";
-import { HOST_SOURCE, registeringSource, withRegisteringSource } from "../context";
+import { HOST_SOURCE, registeringSource, withRegisteringSource } from "@/pageEngine/context";
 import { resetCustomizationErrorReports } from "../reportError";
 import { resetRowWarnings } from "../rows";
 import { runMethod as mockedCall } from "@framework/ui/api";

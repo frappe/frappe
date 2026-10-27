@@ -1,6 +1,6 @@
 // How a script addresses a child row: `page.rows('products')` and the handle it hands
 // back, which re-finds its row on every access and throws once the row is gone.
-import { runningSource } from "./context";
+import { runningSource } from "@/pageEngine/context";
 import { holdsChildRows, identify, ROW_ID, rowKey } from "@framework/ui/fields";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { RowAddress } from "@framework/ui/fields/types";

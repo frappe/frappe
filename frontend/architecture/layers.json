@@ -57,6 +57,7 @@
       "name": "Page engines",
       "section": "7-page-engines",
       "paths": [
+        "frontend/src/pageEngine/",
         "frontend/src/recordPage/",
         "frontend/src/list/"
       ],
@@ -207,6 +208,13 @@
       "why": "The names an app may import include routeFor, which lives in the router.",
       "ticket": 43494,
       "title": "Shell and routes: routeFor and the item.js contract move to desk services"
+    },
+    {
+      "from": "frontend/src/public.ts",
+      "to": "frontend/src/pageEngine/",
+      "why": "The names an app may import include createPageEngine, which lives in the page engines layer.",
+      "ticket": 43085,
+      "title": "Desk v2 — one bench, one build: how an app's frontend enters the bundle"
     },
     {
       "from": "frontend/src/contributions/registry.ts",
@@ -504,17 +512,6 @@
     "frontend/src/pages/record/tabs/RecordTabs.vue": [
       "RecordTabs"
     ],
-    "frontend/src/recordPage/body.ts": [
-      "BODY_BUILTINS",
-      "BodyColumn",
-      "ColumnBounds",
-      "EdgeSide",
-      "Remembered",
-      "STRIP_WIDTH",
-      "dragOutcome",
-      "isDrawn",
-      "projectBody"
-    ],
     "frontend/src/recordPage/clientScripts.ts": [
       "clientScriptChanges",
       "watchClientScripts"
@@ -525,12 +522,6 @@
     "frontend/src/recordPage/createRecordPage.ts": [
       "RecordPageController",
       "SAVE_VETO"
-    ],
-    "frontend/src/recordPage/dialog.ts": [
-      "PageDialogEntry"
-    ],
-    "frontend/src/recordPage/drawnProps.ts": [
-      "DrawnProps"
     ],
     "frontend/src/recordPage/errorMessage.ts": [
       "errorMessage"
@@ -570,30 +561,12 @@
       "UseFormLayout",
       "resetFormLayouts"
     ],
-    "frontend/src/recordPage/frame.ts": [
-      "projectFrame"
-    ],
-    "frontend/src/recordPage/headerRenderings.ts": [
-      "HeaderControl",
-      "HeaderNode",
-      "HeaderProjection",
-      "isEmptyHeader",
-      "projectHeader"
-    ],
-    "frontend/src/recordPage/surface.ts": [
-      "BUILTIN",
-      "ResolvedItem"
-    ],
     "frontend/src/recordPage/types.ts": [
       "ActivityItem",
       "ActivityRow",
-      "BodyItem",
       "ComposerWindow",
       "FeedItem",
       "FileRow",
-      "FrameItem",
-      "HeaderItem",
-      "PageDialogAction",
       "PanelSectionItem",
       "QuickAction",
       "RecordPageApi",

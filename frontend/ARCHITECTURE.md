@@ -43,7 +43,7 @@ The HTML page, the JS files and the icon sprite are static files.
 | --- | --- | --- | --- | --- |
 | 9 | Customization | Code an app or a site adds: file scripts, stored scripts, list and item files | App folders; `Client Script` rows | Only the [import list](#9-customization), and the `page` object it is handed |
 | 8 | Pages | The index, list page, record page and its parts; pages an app contributes | `frontend/src/pages/`; app `frontend/pages/` and replacement pages | 1 to 7 |
-| 7 | Page engines | The record page engine and its `page` object; the list engine; the script loader | `frontend/src/recordPage/`, `frontend/src/list/` | 1 to 6 |
+| 7 | Page engines | The page engine and its builder; the record page engine and its `page` object; the list engine; the script loader | `frontend/src/pageEngine/`, `frontend/src/recordPage/`, `frontend/src/list/` | 1 to 6 |
 | 6 | Shell | Rail, sidebar, navigation, router, page frame, page states, composer window, socket | `frontend/src/shell/`, `navigation/`, `router/` | 1 to 5 |
 | 5 | Desk services and registry | Boot data, addresses and `routeFor`, translations, icons, arrangement, browser memory; the registry of everything an app adds | `frontend/src/` root modules, `icons/`, `contributions/`, `acts/` | 1 to 4 |
 | 4 | `ui` components | Fields, forms, lists, filters, the activity feed, the composer, upload | `ui/src/components/`, `ui/src/experimental/`, `ui/island/`, the other composables | 3, and 1 through it |
@@ -327,36 +327,44 @@ component group, with its main names.
 | Rows memory | Rows and scroll per doctype for the session, so any return lands in place |
 | `useScrollMemory` | Restores and saves the scroll from the two memories |
 
+**The page engine** (`frontend/src/pageEngine/`)
+
+| Concept | What it is |
+| --- | --- |
+| `createPageEngine` (`PageEngine`, `PageEngineSpec`) | Builds a page from the caller's own lists, events, sources and extra `page` members. It adds the `frame`, `header` and `body` lists, the paint gate, the replay, `onOpen`, the held acts and the dialogs. The record page is built on it; an app page imports it from `@shell` |
+| Base page (`PageApi`, `PageToast`) | The `page` every engine hands its handlers: `doctype`, `meta`, `perms`, `roles`, `frame`, `header`, `body`, `refresh()`, `toast`, `dialog`, `call`, `cached` and `router`. A page adds its own members |
+| Item schemas (`SurfaceItem`, `Position`, `HeaderItem`, `HeaderZone`, `FrameItem`, `BodyItem`, `ACT_KEYS`, `HEADER_ITEM_KEYS`, `FRAME_ITEM_KEYS`, `BODY_ITEM_KEYS`) | The items the three built-in lists take, and the keys each list reads |
+| [Source](./CONTEXT.md#source) context (`HOST_SOURCE`, `registeringSource`, `runningSource`, `withRegisteringSource`, `withRunningSource`, `Registration`) | Which source is registering or running now, and a source's handlers |
+| [`Surface`](./CONTEXT.md#surface) (`SurfaceVerbs`, `ResolvedItem`, `BUILTIN`) | The class behind each list surface |
+| Staging (`Staging`, `StagedOverlay`, `RESTORED_VIEW`) | Acts wait during a replay and appear at one commit |
+| Paint gate (`FIRST_PAINT_LIMIT_MS`, `LATE_LIMIT_MS`, `LateRefresh`, `RefreshOptions`) | When the page first paints, how a late `onRefresh` or a first visit's `page.cached` fetch lands, when `onOpen` runs, and the one repaint for background reads on a return visit. `FIRST_PAINT_LIMIT_MS` (500 ms) is the longest the first paint waits for a source. `LATE_LIMIT_MS` (5 s) is the longest it waits for a late part |
+| Held acts (`createHeldActs`, `HeldAct`, `TakeResult`) | One queue for the acts a script asks for during a replay (tab move, panel section open or close, field focus, feed scroll, composer open, settings open). They run after the commit |
+| Header projection (`HeaderSurface`, `projectHeader`, `isEmptyHeader`, `zoneOf`, `containerDisplay`, `surviving`, `hidingDenied`, `HeaderBand`, `HeaderControl`, `HeaderNode`, `HeaderProjection`) | Turns the header list into two zones, nesting and overflow. `hidingDenied` hides each item whose right fails, so a container takes its members with it; the header's draw and the dispatcher's `header` surface both read it |
+| Frame and body projection (`FrameSurface`, `projectFrame`, `FrameProjection`, `BodySurface`, `BODY_BUILTINS`, `projectBody`, `columnBounds`, `dragOutcome`, `isDrawn`, `STRIP_WIDTH`, `BodyColumn`, `ColumnBounds`, `EdgeSide`, `Remembered`) | Orders frame bands and works out body column widths |
+| Page dialogs (`PageDialog`, `PageDialogEntry`, `PageDialogField`, `PageDialogColumn`, `PageDialogSection`, `PageDialogTab`, `PageDialogAction`, `PageDialogActionContext`, `PageDialogFormOptions`, `PageDialogOpenOptions`, `PageDialogControl`, `PageDialogConfirmAction`, `PageDialogConfirmOptions`, `PageDialogDangerOptions`) | The engine behind `page.dialog` |
+| Icon and prop hooks (`setIconSource`, `IconSource`, `setDrawnProps`, `DrawnProps`) | The record page hands the engine an icon lookup and frappe-ui's `Button` prop names when it registers. Both halves are one concept |
+
 **The record page engine** (`frontend/src/recordPage/`)
 
 | Concept | What it is |
 | --- | --- |
-| `createRecordPage` | Builds `page` and every surface for one record, fires events, runs the replay |
+| `createRecordPage` | Builds the record's `page` on `createPageEngine`: its own lists, events and members over the engine's |
 | `RecordPageHost` | *Changed.* The contract a page fills: document, save, tabs, feeds, composer, what a failed act does, and whether it restored the reader's view. A new record's host adds `isNew` and `onSaved`, which runs after `afterSave`. The engine draws nothing |
 | Script registry | The registered handlers per doctype and source |
-| [Source](./CONTEXT.md#source) context | Which source is registering or running now |
-| [`Surface`](./CONTEXT.md#surface) | The class behind each list surface |
-| Staging | Acts wait during a replay and appear at one commit |
-| Paint gate (`LATE_LIMIT_MS`) | When the page first paints, how a late `onRefresh` or a first visit's `page.cached` fetch lands, when `onOpen` runs, and the one repaint for background reads on a return visit. `LATE_LIMIT_MS` (5 s) is the longest it waits for a late part |
 | Cached reads | *New.* The engine behind `page.cached`: one fetch per key per visit, and a value kept while the record's complete entry stays in the data cache, up to 20 keys for each record and script |
-| Held acts (`createHeldActs`) | One queue for the acts a script asks for during a replay (tab move, panel section open or close, field focus, feed scroll, composer open, settings open). They run after the commit |
 | [Commit](./CONTEXT.md#commit) channel | Turns a field change into a handler key (`qty`, `items.qty`, `items.onAdd`) and runs it |
 | [Field](./CONTEXT.md#field-overlay) and form tab overlays | Changes keyed by fieldname or tab identity |
-| Header projection (`hidingDenied`) | Turns the header list into two zones, nesting and overflow. `hidingDenied` hides each item whose right fails, so a container takes its members with it; the header's draw and the dispatcher's `header` surface both read it |
-| Frame and body projection | Orders frame bands and works out body column widths |
 | Form join | Joins the Details layout with the parts a script adds |
 | Form layout source (`useFormLayout`, `markFormLayoutsStale`) | One fetch per doctype and layout type; picks the matching row. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Script loader (`loadRecordScripts`, `addFileScript`) | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
 | Page permissions | Rights, roles and field access, ready before handlers run |
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
-| Page dialogs | The engine behind `page.dialog` |
 | Field errors (`FieldErrors`) | The marks on a form's fields and row cells, from the mandatory check, a refused save's `fieldErrors` and `page.fields.setError`. A mark clears on its field's edit, at a save's start and on a replay. One made during a replay or a hold lands at its commit |
 | Mandatory check (`missingRequired`) | Each mandatory field shown after `depends_on` and still empty, child rows included. A save and both form dialogs run it before they send |
 | [Row handles](./CONTEXT.md#row-handle) | Refuse once their row is gone |
 | Feed surfaces | The engine behind `page.activity` and `page.files` |
 | Composer surface (`ComposerHost`) | `page.composer`, over a host that owns the composer state |
-| Icon and prop hooks (`setIconSource`, `setDrawnProps`) | The record page hands the engine an icon lookup and frappe-ui's `Button` prop names when it registers. Both halves are one concept |
 
 ### 8. Pages
 
@@ -449,7 +457,7 @@ the reference for each `page` member.
 | `vue`, `vue-router`, `frappe-ui` | The framework's shared packages |
 | `@framework/ui` | All of `ui/` while the `"./*"` entry stays |
 | `frappe/i18n` | `__` and `__n`. A script imports them. A `template:` string, and every other component template, gets both with no import |
-| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`, and the after-save registry's `registerAfterSave`, `askReload`, `AfterSave`, `SavedBinding`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
+| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`, the after-save registry's `registerAfterSave`, `askReload`, `AfterSave`, `SavedBinding`, and the page engine's `createPageEngine`, `PageApi`, `PageEngine`, `PageEngineSpec`, `Surface`, `SurfaceVerbs`, `Registration`, the item types and `FIRST_PAINT_LIMIT_MS`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
 | App names | Names an app publishes through its `import_map` hook |
 
 A script reaches the rest of the desk only through the `page` object it is handed.
@@ -745,6 +753,7 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | `frappe/bundler.py` imports `frappe/shell/manifest.py` | The manifest code the bundler needs moves into the build | Build and publishing |
 | The shell page renderer is in `frappe/website/page_renderers/` and imports `frappe/shell/` | It moves into `frappe/shell/`, found through the `page_renderer` hook | New map |
 | `routeFor` is in `router/` and the item contract is in `navigation/types.ts` | Both move to layer 5 | New map |
+| `public.ts` (`@shell`, layer 5) gives app pages `createPageEngine` from layer 7 | The one import list names it with no layer break | Build and publishing |
 | `contributions/registry.ts` imports `@/recordPage` to hand over record handlers | The registry no longer imports the engine | Build and publishing |
 | `shell/ComposerWindow.vue` imports the writers from `pages/record/composer/`; `shell/composer.ts` imports types from `@/recordPage` | The record page registers its writers | Activity column |
 | `shell/doctypeUpdates.ts` imports the layout and list settings caches | Each cache marks itself stale on `doctype_update` | Build and publishing |

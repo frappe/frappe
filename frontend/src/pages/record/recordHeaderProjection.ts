@@ -1,6 +1,6 @@
 // The record header row as the page draws it: three top-level controls on the right, the rest in `⋯`.
 import { hidingDenied, projectHeader, type HeaderItem } from "@/recordPage";
-import type { ResolvedItem } from "@/recordPage/surface";
+import type { ResolvedItem } from "@/pageEngine/surface";
 
 const HEADER_BUDGET = 3;
 // Save keeps its slot whatever a script adds; it is the only pinned control.

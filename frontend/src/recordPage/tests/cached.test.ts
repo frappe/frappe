@@ -32,9 +32,9 @@ import {
 } from "@framework/ui/cache";
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { createRecordPage } from "../createRecordPage";
-import { withRegisteringSource } from "../context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { resetKeptValues } from "../keptValues";
-import { FIRST_PAINT_LIMIT_MS, LATE_LIMIT_MS } from "../paintGate";
+import { FIRST_PAINT_LIMIT_MS, LATE_LIMIT_MS } from "@/pageEngine/paintGate";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
 

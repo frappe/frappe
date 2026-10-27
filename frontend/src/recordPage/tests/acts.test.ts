@@ -21,7 +21,7 @@ import { setSession } from "@framework/ui/useSession";
 import { resetUserRoles } from "@framework/ui/useUserRoles";
 import { ActDenied, acts } from "@/acts/dispatcher";
 import { createRecordPage, SAVE_VETO, type RecordPageHost } from "../createRecordPage";
-import { withRegisteringSource } from "../context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, HeaderItem, TabItem } from "../types";
 

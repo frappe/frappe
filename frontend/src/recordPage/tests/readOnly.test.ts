@@ -15,7 +15,7 @@ vi.mock("@framework/ui/api", () => ({
 }));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
-import { withRunningSource } from "../context";
+import { withRunningSource } from "@/pageEngine/context";
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { readOnly } from "../readOnly";
 import type { RecordPageApi } from "../types";

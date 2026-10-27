@@ -15,7 +15,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
 import { registerRecordPage, resetRegistry } from "../registry";
-import { withRegisteringSource } from "../context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { resetCustomizationErrorReports } from "../reportError";
 import { resetRowWarnings } from "../rows";
 import { ROW_ID } from "@framework/ui/fields";

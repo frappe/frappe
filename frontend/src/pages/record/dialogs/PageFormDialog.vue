@@ -64,7 +64,7 @@ import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { FieldErrors, missingRequired, useFormLayout } from "@/recordPage";
-import type { PageDialogEntry } from "@/recordPage/dialog";
+import type { PageDialogEntry } from "@/pageEngine/dialog";
 import { errorMessage } from "@/recordPage/errorMessage";
 import {
 	applyRequired,

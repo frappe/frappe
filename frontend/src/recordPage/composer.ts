@@ -1,7 +1,7 @@
 // `page.composer`: the writers the band at the foot of a composer tab offers, and the
 // acts that open and close one. The host draws the band and keeps the drafts.
-import type { HeldAct, TakeResult } from "./heldActs";
-import { Surface } from "./surface";
+import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";
+import { Surface } from "@/pageEngine/surface";
 import { WRITER_ITEM_KEYS } from "./types";
 import type {
   ComposerOpenOptions,

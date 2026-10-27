@@ -57,7 +57,7 @@ import { resetUserRoles, useUserRoles } from "@framework/ui/useUserRoles";
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { resetClientScripts } from "@/recordPage/clientScripts";
-import { withRegisteringSource } from "@/recordPage/context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { AuthoredHandlers, RecordPageApi, VisibleTypes } from "@/recordPage/types";
 import { registerStandardPages } from "@/contributions/registry";

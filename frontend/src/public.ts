@@ -10,3 +10,15 @@ export {
 } from "@/router/routeFor";
 export type { ContentEntry } from "@/contents";
 export { askReload, registerAfterSave, type AfterSave, type SavedBinding } from "@/afterSave";
+export { createPageEngine, FIRST_PAINT_LIMIT_MS, Surface } from "@/pageEngine";
+export type {
+	BodyItem,
+	FrameItem,
+	HeaderItem,
+	PageApi,
+	PageEngine,
+	PageEngineSpec,
+	Registration,
+	SurfaceItem,
+	SurfaceVerbs,
+} from "@/pageEngine";

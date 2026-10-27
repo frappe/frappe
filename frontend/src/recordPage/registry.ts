@@ -1,6 +1,6 @@
 // Where every script lands, whatever delivered it: file scripts on their doctype's
 // first load, extensions as the loader imports them. Run order is precedence.
-import { registeringSource } from "./context";
+import { registeringSource } from "@/pageEngine/context";
 import { flattenHandlers } from "./flattenHandlers";
 import type { AuthoredHandlers, RecordPageHandlers } from "./types";
 

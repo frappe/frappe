@@ -2,7 +2,7 @@
 // its neighbour's grain and landing in its neighbour's tab.
 import { describe, expect, it, vi } from "vitest";
 import { createApp, h } from "vue";
-import { Surface } from "../surface";
+import { Surface } from "@/pageEngine/surface";
 import { formItems, joinForm } from "../formJoin";
 import { FORM_ITEM_KEYS } from "../types";
 import type { FormItem } from "../types";

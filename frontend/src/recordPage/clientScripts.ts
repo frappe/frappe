@@ -4,7 +4,7 @@ import { reactive, readonly, ref } from "vue";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import type { RealtimeSocket } from "@framework/ui/socket";
-import { withRegisteringSource } from "./context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { evaluateClientScript } from "./evaluateClientScript";
 import { CLIENT_SCRIPT_CHANGED, GET_CLIENT_SCRIPTS } from "./clientScriptTypes";
 import type { ClientScriptRow, ClientScriptsResponse } from "./clientScriptTypes";

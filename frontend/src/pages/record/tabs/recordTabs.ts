@@ -1,7 +1,7 @@
 // The record's tab strip, host side: the four built-ins, the tab the address names, and its moves.
 import { markRaw, ref, watch, type Component, type Ref } from "vue";
 import type { LocationQueryValue, RouteLocationNormalizedLoaded, Router } from "vue-router";
-import type { Surface } from "@/recordPage/surface";
+import type { Surface } from "@/pageEngine/surface";
 import type { TabCreateAction, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
 import ActivityTab from "../feed/ActivityTab.vue";

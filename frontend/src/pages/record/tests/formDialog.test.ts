@@ -86,7 +86,7 @@ vi.mock("@framework/ui/FormLayout", async (importOriginal) => {
 import { getMeta, runMethod } from "@framework/ui/api";
 import { RecordLinkKey } from "@framework/ui/fields/types";
 import PageFormDialog from "../dialogs/PageFormDialog.vue";
-import type { PageDialogEntry } from "@/recordPage/dialog";
+import type { PageDialogEntry } from "@/pageEngine/dialog";
 import type { PageDialogFormOptions } from "@/recordPage/types";
 
 function makeEntry(form: PageDialogFormOptions) {

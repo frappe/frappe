@@ -12,7 +12,7 @@
 </template>
 
 <script setup lang="ts">
-import { BODY_BUILTINS } from "@/recordPage/body";
+import { BODY_BUILTINS } from "@/pageEngine/body";
 import BodyColumns from "../body/BodyColumns.vue";
 import PanelSkeleton from "./PanelSkeleton.vue";
 import TabsSkeleton from "./TabsSkeleton.vue";

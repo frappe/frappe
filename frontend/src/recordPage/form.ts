@@ -3,7 +3,7 @@
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { DROPPED_FIELDTYPES } from "@framework/ui/FormLayout";
 import type { FormTabsSurface } from "./formTabs";
-import { Surface } from "./surface";
+import { Surface } from "@/pageEngine/surface";
 import { FORM_ITEM_KEYS } from "./types";
 import type { FormItem, Position } from "./types";
 

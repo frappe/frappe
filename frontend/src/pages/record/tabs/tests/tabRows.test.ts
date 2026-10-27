@@ -2,7 +2,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { RecordPageController } from "@/recordPage";
-import { Surface } from "@/recordPage/surface";
+import { Surface } from "@/pageEngine/surface";
 import { TAB_ITEM_KEYS, type TabItem } from "@/recordPage/types";
 import { pageRows } from "@/shell/palette";
 import { registerTabRows } from "../tabRows";

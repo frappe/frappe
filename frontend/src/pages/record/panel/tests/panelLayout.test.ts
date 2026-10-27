@@ -16,7 +16,7 @@ vi.mock("@framework/ui/api", () => ({
 
 import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
-import { Surface } from "@/recordPage/surface";
+import { Surface } from "@/pageEngine/surface";
 import type { PanelSectionItem } from "@/recordPage";
 import PanelLayout from "../PanelLayout.vue";
 import { layoutItems, layoutSections } from "../panelEntries";

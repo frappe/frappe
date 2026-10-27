@@ -1,16 +1,15 @@
-// Builds the curated `page` and the controller that fires events into it. Handlers
-// run serially, each in its own try/catch; only a `beforeSave` throw aborts anything.
+// Builds the record's `page` on the page engine, and the controller that fires events
+// into it; only a `beforeSave` throw aborts anything.
 import { computed, shallowRef, type ComputedRef, type Ref } from "vue";
 import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
-import { runMethod } from "@framework/ui/api";
+import { createPageEngine } from "@/pageEngine";
 import { CachedReads } from "./cachedReads";
 import { createCommitChannel, type RecordCommitChannel } from "./commitChannel";
 import { ComposerSurface, composerTab, type ComposerHost } from "./composer";
-import { runningSource, withRunningSource } from "./context";
-import { createPageDialogs, type PageDialogEntry } from "./dialog";
+import type { PageDialogEntry } from "@/pageEngine/dialog";
 import { errorMessage } from "./errorMessage";
-import { createHeldActs, type HeldAct } from "./heldActs";
+import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";
 import { acts, passesRight, type ActFields } from "@/acts/dispatcher";
 import { DROPPED_FIELDTYPES, type Decorator } from "@framework/ui/FormLayout";
 import type { FormLayoutSchema, RawMetaField } from "@framework/ui/FormLayout/types";
@@ -21,31 +20,28 @@ import { FieldErrors } from "./fieldErrors";
 import { FieldsSurface } from "./fields";
 import { FormSurface } from "./form";
 import { FormTabsSurface } from "./formTabs";
-import { FrameSurface } from "./frame";
-import { BodySurface } from "./body";
-import { HeaderSurface } from "./headerRenderings";
+import type { FrameSurface } from "@/pageEngine/frame";
+import type { BodySurface } from "@/pageEngine/body";
+import type { HeaderSurface } from "@/pageEngine/headerRenderings";
 import { ROW_EVENTS } from "./flattenHandlers";
 import { registerPageActs } from "./pageActs";
 import { createPagePermissions } from "./pagePermissions";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
-import { registrationsFor, type Registration } from "./registry";
+import { registrationsFor } from "./registry";
 import { reportCustomizationError } from "./reportError";
 import { createRows, warnRowIssue } from "./rows";
-import { clientScriptsLoaded, replacedClientScripts } from "./clientScripts";
-import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
+import { clientScriptsLoaded, clientScriptWait, replacedClientScripts } from "./clientScripts";
+import type { RefreshOptions } from "@/pageEngine/paintGate";
 import { missingRequired, requiredRefusal } from "./requiredFields";
-import { RESTORED_VIEW, type Staging } from "./staging";
-import { Surface } from "./surface";
+import { RESTORED_VIEW } from "@/pageEngine/staging";
+import { Surface } from "@/pageEngine/surface";
 import { PANEL_SECTION_KEYS, QUICK_ACTION_KEYS, TAB_ITEM_KEYS } from "./types";
 import type {
   ActivityRow,
   ComposerOpenOptions,
   FileRow,
-  Handler,
-  PageRow,
   PanelSectionItem,
   PanelSectionsApi,
-  PostedRow,
   QuickAction,
   RecordPageApi,
   TabItem,
@@ -60,20 +56,6 @@ function asVeto(error: unknown): Error {
   const veto = error instanceof Error ? error : new Error(String(error));
   veto.name = SAVE_VETO;
   return veto;
-}
-
-// Gives itself back for any read, call or write, and an await on it never resumes.
-const INERT: any = new Proxy(() => {}, {
-  get: (_, key) => (key === Symbol.toPrimitive ? () => undefined : INERT),
-  apply: () => INERT,
-  set: () => true,
-});
-
-/** The `page` `onRefresh` and `onOpen` get; once closed, every member read off it is inert. */
-function pageView(page: RecordPageApi) {
-  let open = true;
-  const view = new Proxy(page, { get: (target, key) => (open ? Reflect.get(target, key) : INERT) });
-  return { page: view, close: () => void (open = false) };
 }
 
 /** `target` with the named members answered from `members`; every other read and write goes through. */
@@ -239,9 +221,6 @@ export interface RecordPageController {
 
 export function createRecordPage(host: RecordPageHost): RecordPageController {
   const quickActions = new Surface<QuickAction>({ surface: "quickActions", keys: QUICK_ACTION_KEYS });
-  const frame = new FrameSurface();
-  const body = new BodySurface();
-  const header = new HeaderSurface();
   const tabs = new Surface<TabItem>({ surface: "tabs", keys: TAB_ITEM_KEYS });
   const panelSections = new Surface<PanelSectionItem>({
     surface: "panelSections",
@@ -262,15 +241,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     doc: () => host.doc.value,
   });
   const form = new FormSurface({ fields: () => host.meta.value?.fields }, formTabs);
-  const heldActs = createHeldActs({
-    isStaging: () => gate.isStaging(),
-    inBackground: () => gate.inBackground(),
-  });
   const activity = new ActivitySurface({
     rows: () => host.activityRows(),
     scrollTo: (key) => host.scrollToActivity(key),
     reload: () => host.reloadActivity(),
-    take: heldActs.take,
+    take: (act): TakeResult => engine.heldActs.take(act),
   });
   const files = new FilesSurface({
     rows: () => host.fileRows(),
@@ -284,8 +259,8 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       windowState: () => host.windowState?.() ?? "docked",
       setWindow: (window) => host.setWindow?.(window),
     },
-    heldActs.take,
-    heldActs.drop,
+    (act): TakeResult => engine.heldActs.take(act),
+    (kind, target): void => engine.heldActs.drop(kind, target),
   );
   const rows = createRows({
     doc: () => host.doc.value,
@@ -294,22 +269,6 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     dispatch: (event, row) => fireEvent(event, row),
     errors: fieldErrors,
   });
-  const surfaces: Staging[] = [
-    quickActions,
-    frame,
-    body,
-    header,
-    tabs,
-    panelSections,
-    fields,
-    fieldErrors,
-    form,
-    formTabs,
-    activity,
-    files,
-    composer,
-  ];
-
   Object.defineProperty(tabs, "active", { get: () => host.activeTab() });
   Object.defineProperty(formTabs, "active", {
     get: () => host.activeFormTab?.() ?? "",
@@ -341,89 +300,83 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     createCommitChannel({ dispatch: (event, row) => fireEvent(event, row) }),
   );
 
-  const gate = createPaintGate({
+  const engine = createPageEngine({
     doctype: host.doctype,
-    docname: host.docname,
-    surfaces,
+    name: host.docname,
+    lists: {
+      quickActions,
+      tabs: tabs as Surface<TabItem> & TabsApi,
+      panelSections: panelSections as Surface<PanelSectionItem> & PanelSectionsApi,
+      fields,
+      form,
+      activity,
+      files,
+      composer,
+    },
+    overlays: [fieldErrors, formTabs],
+    events: RECORD_PAGE_EVENTS,
+    sources: () => registrationsFor(host.doctype),
+    extras: () => recordMembers(),
+    meta: () => readOnly(host.meta.value, META_IS_READ_ONLY),
+    // Read-only goes outermost, so a write is refused before the unknown-right
+    // advisory inside `permissions.perms()` gets to fire.
+    perms: () => readOnly(permissions.perms(), PERMS_ARE_READ_ONLY),
+    roles: () => readOnly(permissions.roles(), ROLES_ARE_READ_ONLY),
+    router: host.router,
+    cached: cachedReads,
     sourcesReady: host.sourcesReady,
     permissionsReady: () => permissions.ready(),
     loaded: () =>
       permissions.loaded() && (!host.sourcesReady || clientScriptsLoaded(host.doctype)),
-    runRefresh: (ran, beforeSources) =>
-      runRefresh(ran, beforeSources ? replacedClientScripts(host.doctype) : undefined),
-    fetchCached: () => cachedReads.fetchUnfetched(),
-    runOpen: (registrations) => runOpen(registrations),
+    skippedBeforeSources: () => replacedClientScripts(host.doctype),
+    lateLabel: () => clientScriptWait(host.doctype) ?? "the page's scripts",
+    openView: (view) => (host.restoresView?.() ? restoredView(view) : view),
     warnUnknownHandlers: () => warnUnknownHandlers(),
-    deliverHeldActs: heldActs.release,
-    closeDialogs: () => dialogs.closeAll(),
+    vetoes: ["beforeSave"],
+    // No `route`: the reporter reads `location`, the URL an admin can paste;
+    // `router.fullPath` drops the app's base.
+    report: (error, source, event) =>
+      reportCustomizationError(error, {
+        source,
+        event,
+        doctype: host.doctype,
+        record: host.docname,
+      }),
   });
-  const { hold } = gate;
+  const { frame, body, header, hold } = engine;
+  const page: RecordPageApi = engine.page;
 
-  const dialogs = createPageDialogs({ isReplaying: () => gate.isReplaying.value, hold });
-
-  const page: RecordPageApi = {
-    doctype: host.doctype,
-    docname: host.docname,
-    // Exempt from the read-only rule: mutating the document *is* the API.
-    get doc() {
-      return host.doc.value;
-    },
-    get saved() {
-      return readOnly(host.saved.value, SAVED_IS_READ_ONLY);
-    },
-    get meta() {
-      return readOnly(host.meta.value, META_IS_READ_ONLY);
-    },
-    // Read-only goes outermost, so a write is refused before the unknown-right
-    // advisory inside `permissions.perms()` gets to fire.
-    get perms() {
-      return readOnly(permissions.perms(), PERMS_ARE_READ_ONLY);
-    },
-    get roles() {
-      return readOnly(permissions.roles(), ROLES_ARE_READ_ONLY);
-    },
-    fieldAccess: (fieldname) => permissions.fieldAccess(fieldname),
-    get isDirty() {
-      return host.isDirty();
-    },
-    get isNew() {
-      return host.isNew?.() ?? false;
-    },
-    quickActions,
-    frame,
-    body,
-    header,
-    tabs: tabs as unknown as TabsApi,
-    panelSections: panelSections as unknown as PanelSectionsApi,
-    fields,
-    form,
-    activity,
-    files,
-    composer,
-    rows: rows.rows,
-    save: () => save(),
-    reload: () => (gate.hasLeft() ? Promise.resolve() : host.reload()),
-    refresh: () => gate.refresh(),
-    toast: {
-      success: (message) => toast.success(message),
-      error: (message) => toast.error(message),
-    },
-    dialog: dialogs.api,
-    create: (doctype, options) => {
-      if (gate.hasLeft()) return Promise.resolve(null);
-      const created = acts.run("shell.create", { doctype, values: options?.values });
-      return created as Promise<Record<string, any> | null>;
-    },
-    openSettings: (...address) => openSettings(address),
-    call: (method, params) => runMethod(method, params).then((envelope) => envelope.data),
-    run: (name, value) => (gate.hasLeft() ? Promise.resolve() : acts.run(name, value)),
-    cached: <T>(key: string, fetch: () => Promise<T> | T) =>
-      cachedReads.read(runningSource(), key, fetch) as T | undefined,
-    // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
-    router: host.router,
-  };
-
-  const refreshView = pageView(page);
+  /** The record's own `page` members, over the engine's. */
+  function recordMembers() {
+    return {
+      docname: host.docname,
+      // Exempt from the read-only rule: mutating the document *is* the API.
+      get doc() {
+        return host.doc.value;
+      },
+      get saved() {
+        return readOnly(host.saved.value, SAVED_IS_READ_ONLY);
+      },
+      fieldAccess: (fieldname: string) => permissions.fieldAccess(fieldname),
+      get isDirty() {
+        return host.isDirty();
+      },
+      get isNew() {
+        return host.isNew?.() ?? false;
+      },
+      rows: rows.rows,
+      save: () => save(),
+      reload: () => (engine.hasLeft() ? Promise.resolve() : host.reload()),
+      create: (doctype: string, options?: { values?: Record<string, any> }) => {
+        if (engine.hasLeft()) return Promise.resolve(null);
+        const created = acts.run("shell.create", { doctype, values: options?.values });
+        return created as Promise<Record<string, any> | null>;
+      },
+      openSettings: (...address: Parameters<RecordPageApi["openSettings"]>) => openSettings(address),
+      run: (name: string, value?: unknown) =>
+        engine.hasLeft() ? Promise.resolve() : acts.run(name, value),
+    };
+  }
 
   const unregisterActs = registerPageActs({
     page,
@@ -440,9 +393,9 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   /** The one save path: a clean saved doc resolves at once, a `beforeSave` throw sends nothing, and it paints once. */
   function save() {
-    if (gate.hasLeft() || (!page.isNew && !host.isDirty())) return Promise.resolve();
+    if (engine.hasLeft() || (!page.isNew && !host.isDirty())) return Promise.resolve();
     saving.value ??= hold(runSave)
-      .then(() => (gate.hasLeft() ? undefined : host.onSaved?.()))
+      .then(() => (engine.hasLeft() ? undefined : host.onSaved?.()))
       .finally(() => (saving.value = null));
     return saving.value;
   }
@@ -456,7 +409,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       } catch (error) {
         throw asVeto(error);
       }
-      if (gate.hasLeft()) return;
+      if (engine.hasLeft()) return;
       refuseMissing();
       await host.save();
     } catch (error) {
@@ -474,7 +427,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   }
 
   function focusFirstMarked() {
-    if (gate.hasLeft()) return;
+    if (engine.hasLeft()) return;
     const fieldname = fieldErrors.firstMarked(host.formLayout?.() ?? [], host.doc.value);
     if (fieldname) focusField(fieldname);
   }
@@ -491,7 +444,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       },
       refuse: (because) => warnFocus(fieldname, because),
     };
-    if (!heldActs.take(act)) deliverFocus(fieldname);
+    if (!engine.heldActs.take(act)) deliverFocus(fieldname);
   }
 
   function canFocus(fieldname: string, gone = "no such field") {
@@ -542,7 +495,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
       },
       refuse: (because) => warnDisclose(name, open, because),
     };
-    if (!heldActs.take(act)) deliverDisclosure(name, open);
+    if (!engine.heldActs.take(act)) deliverDisclosure(name, open);
   }
 
   function canDisclose(name: string, open: boolean, gone = "no such section") {
@@ -603,7 +556,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     };
     // Held until commit: until then the host still renders the last replay's strip, and a
     // move onto a tab not yet on it shows the fallback for a tick.
-    if (!heldActs.take(act)) move(strip, name);
+    if (!engine.heldActs.take(act)) move(strip, name);
   }
 
   // Re-read, not replayed: a later source can hide the tab an earlier one
@@ -676,13 +629,13 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
 
   /** Held in a replay or a hold, so the dialog opens over the page the commit paints. */
   function openSettings(address: Parameters<RecordPageApi["openSettings"]>) {
-    if (gate.hasLeft()) return;
+    if (engine.hasLeft()) return;
     const [prefix, pane, block] = address;
     const deliver = () =>
       void acts
         .run("shell.open_settings", { prefix, pane, block })
         .catch((error) => warnSettings(address, errorMessage(error)));
-    const taken = heldActs.take({
+    const taken = engine.heldActs.take({
       kind: "openSettings",
       target: "",
       isDrawn: () => true,
@@ -708,82 +661,15 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   async function fireEvent(event: string, row?: RowAddress) {
     // One handle for the whole dispatch, and the same object `page.rows()` hands back.
     const detail = row ? rows.handle(row) : undefined;
-    await hold(() => dispatch(event, detail));
+    await engine.fire(event, detail);
   }
 
   function firePost(key: string) {
-    return hold(() => dispatch("onPost", { name: key }));
-  }
-
-  async function dispatch(event: string, detail?: PageRow | PostedRow) {
-    for (const { source, handlers } of registrationsFor(host.doctype)) {
-      const handler = handlers[event];
-      if (!handler) continue;
-      const run = () =>
-        withRunningSource(source, async () => {
-          try {
-            await handler(page, detail);
-          } catch (error) {
-            reportHandlerError(source, event, error);
-          }
-        });
-      await gate.asSource(source, run);
-    }
-  }
-
-  /** A replay's pass, synchronous; `ran` carries its first pass into its second, so no source runs twice. */
-  function runRefresh(ran: Set<Registration>, skipping?: ReadonlySet<string>) {
-    const late: LateRefresh[] = [];
-    for (const registration of registrationsFor(host.doctype)) {
-      if (ran.has(registration) || skipping?.has(registration.source)) continue;
-      ran.add(registration);
-      const { source, handlers } = registration;
-      const handler = handlers.onRefresh;
-      const settled = handler && refreshWith(source, handler);
-      if (settled) late.push({ source, settled });
-    }
-    return late;
-  }
-
-  /** Answers when the rest of an `onRefresh` that returned a promise settles. */
-  function refreshWith(source: string, handler: Handler) {
-    try {
-      let result: unknown;
-      withRunningSource(source, () => {
-        result = handler(refreshView.page);
-      });
-      if (!(result instanceof Promise)) return;
-      warnAsyncRefresh(source);
-      return result.then(
-        () => {},
-        (error) => reportHandlerError(source, "onRefresh", error),
-      );
-    } catch (error) {
-      reportHandlerError(source, "onRefresh", error);
-    }
-  }
-
-  /** Its part after an await is not held and names no source, as `onRefresh`'s: handlers here overlap. */
-  function runOpen(registrations: Registration[]) {
-    const view = host.restoresView?.() ? restoredView() : refreshView.page;
-    for (const { source, handlers } of registrations) {
-      const handler = handlers.onOpen;
-      if (!handler) continue;
-      try {
-        let result: unknown;
-        withRunningSource(source, () => {
-          result = handler(view);
-        });
-        if (result instanceof Promise)
-          void result.catch((error) => reportHandlerError(source, "onOpen", error));
-      } catch (error) {
-        reportHandlerError(source, "onOpen", error);
-      }
-    }
+    return engine.fire("onPost", { name: key });
   }
 
   /** The `page` `onOpen` gets when the host puts back the reader's view: its view acts warn and do nothing. */
-  function restoredView(): RecordPageApi {
+  function restoredView<View extends object>(view: View): View {
     const skipped: Record<string, unknown> = {
       tabs: overriding(page.tabs, {
         activate: (name: string) => {
@@ -819,38 +705,11 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
           composer.isVisible(name) ? warnOpen(name, RESTORED_VIEW) : composer.open(name, options),
       }),
     };
-    return new Proxy(refreshView.page, {
-      get: (view, key) => {
-        const member = Reflect.get(view, key);
-        return member !== INERT && Object.hasOwn(skipped, key) ? skipped[key as string] : member;
-      },
-    });
-  }
-
-  // Filed in production too, so an admin sees which scripts to move to a cached read.
-  function warnAsyncRefresh(source: string) {
-    const message = `[record-page] ${source}.onRefresh on ${host.doctype} returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.`;
-    if (import.meta.env.DEV) console.warn(message);
-    reportCustomizationError(new Error(message), {
-      source,
-      event: "onRefresh (async)",
-      doctype: host.doctype,
-      record: host.docname,
-    });
-  }
-
-  function reportHandlerError(source: string, event: string, error: unknown) {
-    // `beforeSave` rethrows to abort the save and is not reported: the user
-    // is looking straight at a failed save, and a working veto is not an error.
-    if (event === "beforeSave") throw error;
-    console.error(`[record-page] ${source}.${event} on ${host.doctype} threw`, error);
-    // No `route`: the reporter reads `location`, the URL an admin can paste;
-    // `router.fullPath` drops the app's base.
-    reportCustomizationError(error, {
-      source,
-      event,
-      doctype: host.doctype,
-      record: host.docname,
+    return new Proxy(view, {
+      get: (target, key) =>
+        !engine.hasLeft() && Object.hasOwn(skipped, key)
+          ? skipped[key as string]
+          : Reflect.get(target, key),
     });
   }
 
@@ -924,22 +783,21 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     files,
     composer,
     commits,
-    refresh: gate.refresh,
-    paintNow: gate.paintNow,
+    refresh: engine.refresh,
+    paintNow: engine.paintNow,
     fireEvent,
     firePost,
-    fetchCached: gate.fetchCached,
-    perform: (name, value) => (gate.hasLeft() ? Promise.resolve() : acts.perform(name, value)),
+    fetchCached: engine.fetchCached,
+    perform: (name, value) => (engine.hasLeft() ? Promise.resolve() : acts.perform(name, value)),
     allows: (item) => passesRight(permissions, item),
     hold,
     isSaving: computed(() => saving.value !== null),
-    ready: gate.ready,
-    isReplaying: gate.isReplaying,
-    dialogs: dialogs.entries,
+    ready: engine.ready,
+    isReplaying: engine.isReplaying,
+    dialogs: engine.dialogs,
     leave: () => {
       unregisterActs();
-      refreshView.close();
-      gate.leave();
+      engine.leave();
     },
   };
 }
