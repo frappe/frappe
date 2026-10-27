@@ -667,7 +667,7 @@ baseline in the same PR.
 | Framework code outside `frappe/shell/` does not use the desk server | Code outside `frappe/shell/` imports `frappe.shell` or names it in a dotted path. Test files are skipped, and a `hooks.py` callback is not a use | Python tests, `frappe/tests/test_desk_server_layer.py` | The `knownBreaks` from outside `frappe/shell/` into it: `frappe/utils/data.py`, `frappe/bundler.py` and `frappe/website/page_renderers/shell_page.py` |
 | Every test file runs | A test file under `frontend/` or `ui/` matches no vitest pattern | Frontend workflow, `yarn test:files` | None |
 | A page's JS does not grow past its baseline | A page's JS is more than 5 KB gzip above its baseline | Frontend workflow, `yarn test:page-js` | `frontend/speed-budgets.json` |
-| A page does not send more API calls than its baseline | A cold load of home, list or record, or a save, sends more API calls than its baseline. There is no tolerance | UI workflow, the Playwright spec `playwright/tests/desk_v2_api_calls.spec.js` | `frontend/speed-budgets.json` |
+| A page does not send more API calls than its baseline | A cold load of home, list, record or a new record, a save, or the first or a later open of the list's Create dialog sends more API calls than its baseline. There is no tolerance | UI workflow, the Playwright spec `playwright/tests/desk_v2_api_calls.spec.js` | `frontend/speed-budgets.json` |
 
 CI also prints the files that each flow's entry file reaches, but does not fail on the
 count. A fail on file count pushes code into fewer, larger files. The entry files are
@@ -684,8 +684,10 @@ CPU.
 | Home, cold | 400 ms, 4 calls, 300 KB JS |
 | List, cold | 600 ms, 7 calls, 320 KB JS |
 | Record, cold | 700 ms, 9 calls, 460 KB JS |
+| New record, cold | 9 calls, 460 KB JS |
 | Return visit to any page | No skeleton frame, 50 ms or less |
 | Save | The call count measured when the check was added. No time target until the save shows a confirmation |
+| Create dialog, open | The call count measured when the check was added, for the first open and for a later one |
 
 When a page meets its budget, the simpler code wins over more speed.
 

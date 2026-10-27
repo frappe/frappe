@@ -1,4 +1,4 @@
-// Fails when a cold desk v2 load or a save sends more API calls than its baseline.
+// Fails when a cold desk v2 load, a save or a Create open sends more API calls than its baseline.
 import fs from "fs";
 import path from "path";
 import { test, expect, ADMIN_PASSWORD, TEST_USER } from "../support";
@@ -55,6 +55,24 @@ test.describe("Desk v2 API calls", () => {
 
 	test("loads a record cold", async ({ page }) => {
 		expect_baseline("record", await cold_visit(page, `/apps/desk/todo/${todo}`));
+	});
+
+	test("loads a new record cold", async ({ page }) => {
+		expect_baseline("new", await cold_visit(page, "/apps/desk/todo/new?priority=High"));
+	});
+
+	test("opens the Create dialog", async ({ page }) => {
+		await cold_visit(page, "/apps/desk/todo");
+		const create = page.getByRole("button", { name: "Create", exact: true });
+		const dialog = page.getByRole("dialog", { name: "New ToDo" });
+
+		expect_baseline("create", await count_calls(page, () => create.click()));
+		await expect(dialog).toBeVisible();
+		await dialog.getByRole("button", { name: "Close" }).click();
+		await expect(dialog).toBeHidden();
+
+		expect_baseline("createAgain", await count_calls(page, () => create.click()));
+		await expect(dialog).toBeVisible();
 	});
 
 	test("saves a record", async ({ page }) => {

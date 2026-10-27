@@ -14,6 +14,7 @@ const manifest = {
     dynamicImports: ["_editor.js"],
   },
   "_editor.js": { file: "assets/editor.js" },
+  "src/pages/NewRecord.vue": { file: "assets/NewRecord.js", imports: ["_shared.js"] },
 };
 
 const kb = (bytes: number) => Math.round((bytes / 1024) * 10) / 10;
@@ -28,6 +29,7 @@ describe("pageJsKb", () => {
       home: kb(entry + gzipped("assets/IndexPage.js")),
       list: kb(entry + gzipped("assets/List.js") + gzipped("assets/shared.js")),
       record: kb(entry + gzipped("assets/Record.js") + gzipped("assets/shared.js")),
+      new: kb(entry + gzipped("assets/NewRecord.js") + gzipped("assets/shared.js")),
     });
   });
 
