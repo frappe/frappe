@@ -416,7 +416,7 @@ component group, with its main names.
 | Form tab memory | The last form tab per doctype, per user |
 | Record view (`RecordView`, `recallView`, `viewKeeper`, `readOffsets`, `landOffsets`) | *New.* The reader's tab, form tab, sections, panel sections and scroll on a record, put back on a return visit. Kept in the history entry, and per record while its complete cache entry stays |
 | Dock height | The docked composer's height, per user |
-| Docinfo readers (`assigneesOf`) | Assignees, shares, tags, favourites and follow, and their actions |
+| Docinfo readers (`assigneesOf`, `peopleActions`) | Assignees, shares, tags, favourites and follow, and their actions. The panel's pickers and `header.assign` write through the same `peopleActions` |
 | Remote search (`findUsers`) | Server search for the user and tag pickers, and for `header.assign`'s step; the last answer wins |
 
 ### 9. Customization
