@@ -36,7 +36,7 @@
 	</Combobox>
 
 	<!-- Non-empty: the columns popover with its reorder / rename / remove rows. -->
-	<Popover v-else ref="popoverRef" side="bottom" align="end">
+	<Popover v-else :open="popoverOpen" side="bottom" align="end" @update:open="setOpen">
 		<template #trigger>
 			<Button
 				:label="hideLabel ? undefined : 'Columns'"
@@ -134,10 +134,8 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref } from "vue";
+import { computed, nextTick, ref, shallowRef, watch, type Component } from "vue";
 import { Button, Combobox, Popover, TextInput } from "frappe-ui";
-// @ts-ignore — vuedraggable ships no bundled types
-import Draggable from "vuedraggable";
 import { useDoctypeMeta } from "../../composables/useDoctypeMeta";
 import { getColumnOptions } from "./getColumnOptions";
 import type { Column, ColumnOption, ColumnSettingsProps } from "./types";
@@ -170,10 +168,23 @@ function onResetClick() {
 // reads and re-emits this array, never a data resource and never persistence.
 const model = defineModel<Column[]>({ default: () => [] });
 
-// The popover only mounts once a column exists (`v-else`); a ref lets us open it
-// right after the empty-state picker seeds the first one, so the user lands on the
-// row list instead of having to click "Columns" again.
-const popoverRef = ref<{ open: () => void } | null>(null);
+// vuedraggable loads on the first open; the popover opens once it is in, never empty.
+const Draggable = shallowRef<Component>();
+const popoverOpen = ref(false);
+
+async function setOpen(value: boolean) {
+	// @ts-ignore — vuedraggable ships no bundled types
+	if (value) Draggable.value ??= (await import("vuedraggable")).default;
+	popoverOpen.value = value && model.value.length > 0;
+}
+
+// Emptying the columns unmounts the popover, so the next one starts closed.
+watch(
+	() => model.value.length,
+	(length) => {
+		if (!length) popoverOpen.value = false;
+	}
+);
 
 const { meta } = useDoctypeMeta(props.doctype);
 
@@ -198,13 +209,13 @@ function fieldnameOf(option: unknown): string | null {
 	return o.value ?? o.fieldname ?? null;
 }
 
-function addColumn(option: unknown) {
+async function addColumn(option: unknown) {
 	const fieldname = fieldnameOf(option);
 	if (!fieldname || model.value.some((c) => c.fieldname === fieldname)) return;
 	const label = allOptions.value.find((o) => o.fieldname === fieldname)?.label ?? fieldname;
 	model.value = [...model.value, { fieldname, label }];
-	// Open the popover once it mounts (no-op when adding from inside an open one).
-	nextTick(() => popoverRef.value?.open());
+	// The first column mounts the popover; open it so the user lands on the row list.
+	await setOpen(true);
 }
 
 function removeColumn(index: number) {
