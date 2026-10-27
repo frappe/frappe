@@ -121,6 +121,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.onhide && me.onhide();
 				me.on_hide && me.on_hide();
 			})
+			.on("hidden.bs.modal", function () {
+				me.$wrapper.css("z-index", "");
+			})
 			.on("shown.bs.modal", function () {
 				// focus on first input
 				me.display = true;
