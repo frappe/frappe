@@ -135,7 +135,14 @@ export class PaneDrafts {
 				fieldnames: computed(() => this.unclaimedFields(draft)),
 			};
 			this.claims.push(claim);
-			return [name, componentBinding(draft, () => this.commit(claim))] as const;
+			return [
+				name,
+				componentBinding(
+					draft,
+					() => claim.fieldnames.value,
+					() => this.commit(claim)
+				),
+			] as const;
 		});
 		return Object.fromEntries(named);
 	}
@@ -151,13 +158,27 @@ export class PaneDrafts {
 			.filter((fieldname) => !drawn.has(fieldname));
 	}
 
+	/** Only the blocks sending a field are checked: one block's empty required field never holds another's save. */
 	private async saveOrHold(draft: BindingDraft, fieldnames: string[]) {
-		if (!fieldnames.length) return;
-		const missing = this.claims
-			.filter((bound) => bound.draft === draft)
-			.flatMap(({ layout }) => missingRequired(layout.value, draft.state.doc));
-		if (missing.length) return draft.hold(fieldnames, missing);
-		return draft.save(fieldnames);
+		const blocked = this.claims
+			.filter(
+				(bound) =>
+					bound.draft === draft &&
+					bound.fieldnames.value.some((fieldname) => fieldnames.includes(fieldname))
+			)
+			.map((bound) => ({
+				owned: bound.fieldnames.value,
+				missing: missingRequired(bound.layout.value, draft.state.doc),
+			}))
+			.filter(({ missing }) => missing.length);
+		const held = new Set(blocked.flatMap(({ owned }) => owned));
+		if (blocked.length)
+			draft.hold(
+				fieldnames.filter((fieldname) => held.has(fieldname)),
+				blocked.flatMap(({ missing }) => missing)
+			);
+		const sent = fieldnames.filter((fieldname) => !held.has(fieldname));
+		if (sent.length) return draft.save(sent);
 	}
 
 	private fieldnamesOf(draft: BindingDraft, mode: SettingsBlock["save_mode"]): string[] {

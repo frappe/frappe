@@ -14,7 +14,7 @@ import { clearDataCache, holdDocument, readCachedDocument } from "@framework/ui/
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import type { SettingsBlock, SettingsPane } from "@/shell/settingsPanes";
 import { PaneDrafts } from "../paneDrafts";
-import { SettingsServer } from "./settingsServer";
+import { SettingsServer, SYSTEM_SETTINGS } from "./settingsServer";
 
 const USER = "reader@example.com";
 const SYSTEM = { type: "Single" as const, doctype: "System Settings" };
@@ -393,6 +393,91 @@ describe("a Record that does not exist yet", () => {
 		expect(bound.draft.fieldErrors.drawn.value.extension).toBe("Extension is required");
 		expect(bound.draft.state.marks.mobile_no).toBe("error");
 		server.metas["Telephony Agent"].fields[2].reqd = 0;
+	});
+});
+
+describe("a required field another block leaves empty", () => {
+	beforeEach(() => {
+		server.metas["System Settings"] = {
+			...SYSTEM_SETTINGS,
+			fields: SYSTEM_SETTINGS.fields.map((field) =>
+				field.fieldname === "country" ? { ...field, reqd: 1 } : field
+			),
+		};
+	});
+
+	it("autosaves a block while a button block holds the empty field, and still holds that block's Save", async () => {
+		const drafts = await opened(
+			block("region", "button", ["country", "time_zone"]),
+			block("email", "auto", ["enable_onboarding"])
+		);
+		const region = drafts.bound.get("region")!;
+		const email = drafts.bound.get("email")!;
+
+		region.draft.edit("country", "");
+		email.draft.edit("enable_onboarding", 1);
+		drafts.commit(email);
+		await settled();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ enable_onboarding: 1, modified: expect.any(String) },
+		]);
+		expect(email.draft.state.marks.enable_onboarding).toBe("saved");
+
+		region.draft.edit("time_zone", "Asia/Kolkata");
+		await drafts.saveButtons();
+
+		expect(server.writes).toHaveLength(1);
+		expect(region.draft.fieldErrors.drawn.value.country).toBe("Country is required");
+		expect(region.draft.state.marks).toMatchObject({ country: "error", time_zone: "error" });
+	});
+
+	it("autosaves one block while another auto block on the same record holds its empty field", async () => {
+		const drafts = await opened(
+			block("name", "auto", ["country"]),
+			block("zone", "auto", ["time_zone"])
+		);
+		const name = drafts.bound.get("name")!;
+		const zone = drafts.bound.get("zone")!;
+
+		name.draft.edit("country", "");
+		drafts.commit(name);
+		await settled();
+		expect(server.writes).toEqual([]);
+
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		drafts.commit(zone);
+		await settled();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ time_zone: "Asia/Kolkata", modified: expect.any(String) },
+		]);
+		expect(zone.draft.state.marks).toMatchObject({ country: "error", time_zone: "saved" });
+		expect(name.draft.dirty("country")).toBe(true);
+	});
+
+	it("autosaves a component block's field without showing another block's held field as its error", async () => {
+		const drafts = await opened(block("name", "auto", ["country"]), {
+			key: "zone",
+			app: "frappe",
+			save_mode: "auto",
+			component: "language-and-time-zone",
+			bindings: { system: SYSTEM },
+		} as SettingsBlock);
+		const name = drafts.bound.get("name")!;
+		const { system } = drafts.components.get("zone")!;
+
+		name.draft.edit("country", "");
+		drafts.commit(name);
+		await settled();
+		system.doc.time_zone = "Asia/Kolkata";
+		await system.commit();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ time_zone: "Asia/Kolkata", modified: expect.any(String) },
+		]);
+		expect(name.draft.fieldErrors.drawn.value.country).toBe("Country is required");
+		expect(system.error).toBe("");
 	});
 });
 
