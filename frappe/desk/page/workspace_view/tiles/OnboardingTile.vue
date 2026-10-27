@@ -2,6 +2,7 @@
 import { computed, inject, onMounted, reactive, ref, watch } from "vue";
 import { Button, Progress } from "frappe-ui";
 import { get_shell, import_records, run_action, update_step } from "./onboarding.js";
+import { get_youtube_id } from "../../../../public/js/frappe/widgets/youtube_id.js";
 
 const props = defineProps({
 	widget: { type: Object, required: true },
@@ -10,6 +11,7 @@ const props = defineProps({
 const frappe = window.frappe;
 const __ = window.__;
 const size = inject("tile_size", ref("Wide"));
+const editing = inject("editing", ref(false));
 const steps = ref(props.widget.steps.map((step) => ({ ...step })));
 
 const is_done = (step) => step.is_complete || step.is_skipped;
@@ -25,15 +27,49 @@ const skipped = computed(
 const all_done = computed(() => completed.value + skipped.value === counted.value.length);
 const progress_label = computed(() =>
 	skipped.value
-		? __("{0} of {1} steps done, {2} skipped", [
-				completed.value + skipped.value,
+		? __("{0} of {1} done · {2} skipped", [
+				completed.value,
 				counted.value.length,
 				skipped.value,
 		  ])
 		: __("{0} of {1} steps done", [completed.value, counted.value.length])
 );
 
+// An onboarding whose steps lead to other onboardings is where a new user starts, so it greets
+// them and keeps its own title for the line below, as the legacy widget does.
+const leads_to_onboardings = computed(() =>
+	steps.value.some((step) => step.action === "Complete Onboarding")
+);
+const greeting = computed(() => {
+	const hour = new Date().getHours();
+	// Administrator's first name is the account's name, not a person's
+	const name = frappe.session.user === "Administrator" ? "" : frappe.boot.user.first_name;
+	if (hour >= 5 && hour < 12) return name ? __("Good morning, {0}", [name]) : __("Good morning");
+	if (hour >= 12 && hour < 17)
+		return name ? __("Good afternoon, {0}", [name]) : __("Good afternoon");
+	return name ? __("Good evening, {0}", [name]) : __("Good evening");
+});
+const heading = computed(() => {
+	if (all_done.value) return __("You're set up");
+	return leads_to_onboardings.value ? greeting.value : props.widget.title;
+});
+const subheading = computed(() => {
+	if (all_done.value) return __("{0} is done.", [props.widget.title]);
+	return leads_to_onboardings.value
+		? `${props.widget.title} · ${progress_label.value}`
+		: progress_label.value;
+});
+
 const open = ref(next_step()?.name ?? null);
+
+// the editor can point the block at another onboarding
+watch(
+	() => props.widget,
+	(widget) => {
+		steps.value = widget.steps.map((step) => ({ ...step }));
+		open.value = next_step()?.name ?? null;
+	}
+);
 const open_step = computed(() => steps.value.find((step) => step.name === open.value));
 
 // the next unfinished step after this one, required before optional
@@ -164,23 +200,93 @@ function hide() {
 	hidden.value = true;
 	remember();
 }
+
+// Dismiss hides it for a day in this browser, under the key and the title the legacy widget uses,
+// so dismissing it in either renderer hides both.
+const DISMISSED = "dismissed-onboarding";
+const dismissed = ref(dismissed_today());
+
+function dismissed_list() {
+	return JSON.parse(localStorage.getItem(DISMISSED) || "{}");
+}
+
+function dismissed_today() {
+	const at = dismissed_list()[props.widget.title];
+	return !!at && frappe.datetime.get_hour_diff(new Date(), new Date(at)) < 24;
+}
+
+function dismiss() {
+	localStorage.setItem(
+		DISMISSED,
+		JSON.stringify({
+			...dismissed_list(),
+			[props.widget.title]: frappe.datetime.now_datetime(),
+		})
+	);
+	dismissed.value = true;
+	frappe.telemetry.capture("onboarding_dismissed", "frappe_onboarding", {
+		onboarding: props.widget.name,
+	});
+}
+
+// What people open from a step, the same events the legacy widget sends
+function capture_step_event(event, step, properties = {}) {
+	frappe.telemetry.capture(event, "frappe_onboarding", {
+		step: step.name,
+		onboarding: props.widget.name,
+		...properties,
+	});
+}
+
+function act(step) {
+	if (step.action === "View Docs")
+		capture_step_event("step_docs_opened", step, { url: step.path });
+	run_action(step);
+}
+
+// Only the thumbnail loads with the step; the player, and YouTube's cookies with it, wait for a
+// click. maxresdefault exists only for HD uploads, and a missing one comes back as an error or as
+// YouTube's 120px grey placeholder, so it falls back to hqdefault, which always exists.
+const playing = ref(null);
+const low_res = reactive({});
+
+function thumbnail(id) {
+	return `https://i.ytimg.com/vi/${id}/${low_res[id] ? "hqdefault" : "maxresdefault"}.jpg`;
+}
+
+function check_thumbnail(event, id) {
+	if (event.type === "error" || event.target.naturalWidth <= 120) low_res[id] = true;
+}
+
+function play(step) {
+	capture_step_event("step_video_played", step);
+	playing.value = step.name;
+}
+
+function on_description_click(event, step) {
+	const link = event.target.closest("a");
+	if (link) capture_step_event("step_docs_opened", step, { url: link.href });
+}
 </script>
 
 <template>
 	<section
-		v-if="loaded && !hidden"
+		v-if="loaded && (editing || (!hidden && !dismissed))"
 		class="rounded-4 border border-outline-gray-1 bg-surface-base dark:border-outline-gray-2"
 	>
 		<header class="flex items-start gap-3 px-4 pb-3 pt-3.5">
 			<div class="min-w-0 flex-1">
-				<h3 class="text-base-semibold text-ink-gray-9">
-					{{ all_done ? __("You're set up") : widget.title }}
-				</h3>
-				<p class="mt-0.5 text-p-sm text-ink-gray-6">
-					{{ all_done ? __("{0} is done.", [widget.title]) : progress_label }}
-				</p>
+				<h3 class="truncate text-base-semibold text-ink-gray-9">{{ heading }}</h3>
+				<p class="mt-0.5 text-p-sm text-ink-gray-6">{{ subheading }}</p>
 			</div>
 			<Button v-if="all_done" size="sm" variant="subtle" :label="__('Hide')" @click="hide" />
+			<Button
+				v-else-if="!editing"
+				size="sm"
+				variant="ghost"
+				:label="__('Dismiss', null, 'Stop showing the onboarding widget.')"
+				@click="dismiss"
+			/>
 			<Button
 				size="sm"
 				variant="ghost"
@@ -194,6 +300,7 @@ function hide() {
 			<Progress
 				size="sm"
 				:value="((completed + skipped) / counted.length) * 100"
+				:intervals="counted.length"
 				:aria-label="`${widget.title}: ${progress_label}`"
 			/>
 		</div>
@@ -255,57 +362,112 @@ function hide() {
 						</button>
 						<div
 							v-if="step.name === open"
-							class="bg-surface-gray-1 px-4 pb-4 pt-3 ps-11"
+							class="flex flex-col gap-4 bg-surface-gray-1 px-4 pb-4 pt-3 ps-11"
+							:class="{ 'sm:flex-row-reverse': size !== 'L' }"
 						>
 							<div
-								v-if="step.description"
-								class="text-p-sm text-ink-gray-7"
-								v-html="frappe.markdown(split_docs(step.description).text)"
-							/>
-							<p
-								v-if="step.is_submittable && !step.is_complete"
-								class="mt-1.5 text-p-xs text-ink-gray-6"
+								v-if="get_youtube_id(step.intro_video_url)"
+								class="aspect-video w-full max-w-80 shrink-0 overflow-hidden rounded-4 bg-surface-gray-3"
+								:class="{ 'sm:w-56': size !== 'L' }"
 							>
-								{{ __("Finishes when you submit one, not when you save it.") }}
-							</p>
-							<div class="mt-3 flex flex-wrap items-center gap-2">
-								<Button
-									:variant="step.is_complete ? 'subtle' : 'solid'"
-									:label="
-										step.is_complete
-											? __('Open again')
-											: step.action_label || step.title
-									"
-									@click="run_action(step)"
+								<iframe
+									v-if="playing === step.name"
+									class="size-full border-0"
+									:src="`https://www.youtube-nocookie.com/embed/${get_youtube_id(
+										step.intro_video_url
+									)}?autoplay=1`"
+									:title="__('YouTube video player')"
+									allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+									referrerpolicy="strict-origin-when-cross-origin"
+									allowfullscreen
 								/>
-								<Button
-									v-if="step.can_import && !step.is_complete"
-									variant="subtle"
-									icon-left="lucide-import"
-									:label="__('Import')"
-									@click="import_records(step)"
+								<button
+									v-else
+									type="button"
+									class="onboarding-video group relative block size-full"
+									:aria-label="__('Play video')"
+									@click="play(step)"
+								>
+									<img
+										:src="thumbnail(get_youtube_id(step.intro_video_url))"
+										alt=""
+										decoding="async"
+										class="size-full object-cover"
+										@load="
+											check_thumbnail(
+												$event,
+												get_youtube_id(step.intro_video_url)
+											)
+										"
+										@error="
+											check_thumbnail(
+												$event,
+												get_youtube_id(step.intro_video_url)
+											)
+										"
+									/>
+									<span class="onboarding-video-play">
+										<span class="lucide-play size-5" aria-hidden="true" />
+									</span>
+								</button>
+							</div>
+							<div class="min-w-0 flex-1">
+								<div
+									v-if="step.description"
+									class="text-p-sm text-ink-gray-7"
+									v-html="frappe.markdown(split_docs(step.description).text)"
+									@click="on_description_click($event, step)"
 								/>
-								<Button
-									v-if="split_docs(step.description).docs"
-									variant="ghost"
-									icon-left="lucide-book-open"
-									:label="split_docs(step.description).docs.label"
-									:href="split_docs(step.description).docs.link"
-									target="_blank"
-								/>
-								<span class="flex-1" />
-								<Button
-									v-if="step.is_skipped"
-									variant="ghost"
-									:label="__('Undo skip')"
-									@click="unskip(step)"
-								/>
-								<Button
-									v-else-if="!step.is_complete"
-									variant="ghost"
-									:label="__('Skip')"
-									@click="skip(step)"
-								/>
+								<p
+									v-if="step.is_submittable && !step.is_complete"
+									class="mt-1.5 text-p-xs text-ink-gray-6"
+								>
+									{{ __("Finishes when you submit one, not when you save it.") }}
+								</p>
+								<div class="mt-3 flex flex-wrap items-center gap-2">
+									<Button
+										:variant="step.is_complete ? 'subtle' : 'solid'"
+										:label="
+											step.is_complete
+												? __('Open again')
+												: step.action_label || step.title
+										"
+										@click="act(step)"
+									/>
+									<Button
+										v-if="step.can_import && !step.is_complete"
+										variant="subtle"
+										icon-left="lucide-import"
+										:label="__('Import')"
+										@click="import_records(step)"
+									/>
+									<Button
+										v-if="split_docs(step.description).docs"
+										variant="ghost"
+										icon-left="lucide-book-open"
+										:label="split_docs(step.description).docs.label"
+										:href="split_docs(step.description).docs.link"
+										target="_blank"
+										@click="
+											capture_step_event('step_docs_opened', step, {
+												url: split_docs(step.description).docs.link,
+											})
+										"
+									/>
+									<span class="flex-1" />
+									<Button
+										v-if="step.is_skipped"
+										variant="ghost"
+										:label="__('Undo skip')"
+										@click="unskip(step)"
+									/>
+									<Button
+										v-else-if="!step.is_complete"
+										variant="ghost"
+										:label="__('Skip')"
+										@click="skip(step)"
+									/>
+								</div>
 							</div>
 						</div>
 					</li>
@@ -314,3 +476,24 @@ function hide() {
 		</template>
 	</section>
 </template>
+
+<style scoped>
+/* the play button sits on a photo, so it is dark in both themes, as in the legacy widget */
+.onboarding-video-play {
+	position: absolute;
+	inset: 0;
+	margin: auto;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: calc(var(--spacing) * 12);
+	height: calc(var(--spacing) * 12);
+	border-radius: 999px;
+	background-color: rgba(0, 0, 0, 0.7);
+	color: white;
+}
+
+.onboarding-video:hover .onboarding-video-play {
+	background-color: rgba(0, 0, 0, 0.85);
+}
+</style>
