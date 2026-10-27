@@ -19,7 +19,8 @@ describe("planPaste", () => {
   const target = { rowIndex: 0, columnIndex: 0, rowCount: 1, columns, canAddRows: true };
 
   it("maps the columns by a header line that names them", () => {
-    const plan = planPaste([["Quantity", "item"], ["3", "Pen"]], target);
+    const plan = planPaste([["Quantity", "colour", "item"], ["3", "red", "Pen"]], target);
+    expect(plan.addRows).toBe(0);
     expect(plan.writes).toEqual([
       { rowIndex: 0, columnIndex: 1, text: "3" },
       { rowIndex: 0, columnIndex: 0, text: "Pen" },

@@ -17,7 +17,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, inject, nextTick, ref, watch } from "vue";
+import { computed, inject, nextTick, ref } from "vue";
 import { TextInput } from "frappe-ui";
 import { DocKey, ParentDocKey } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
@@ -63,15 +63,6 @@ function formatted(value: any): string {
 function parse(s: string): number | string {
 	return parseNumberText(props.field.fieldtype, s);
 }
-
-// A paste into the grid writes the model under a focused cell; show what it wrote.
-watch(
-	() => props.modelValue,
-	(value) => {
-		if (!focused.value || parse(draft.value) === value) return;
-		draft.value = String(numericValue(value));
-	}
-);
 
 // Show raw value while focused and select-all so a fresh entry overwrites (Frappe's FormattedInput).
 function onFocus() {

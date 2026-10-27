@@ -32,6 +32,11 @@ const CHILD_FIELDS: FieldMeta[] = [
   { fieldname: "note", fieldtype: "Data", readOnly: true },
 ];
 
+const changed: unknown[][] = [];
+CHILD_FIELDS[1].ui = {
+  on: { change: (value: unknown, row: any) => changed.push([value, row.item]) },
+};
+
 function render(rows: Record<string, any>[]) {
   const value = ref(rows);
   const commits: string[] = [];
@@ -72,6 +77,8 @@ describe("TableField paste", () => {
     expect(value.value[0].note).toBeUndefined();
     expect(value.value[1]).toMatchObject({ item: "Ink", qty: 0, rate: 3, done: 0 });
     expect(commits.filter((f) => f === "note")).toEqual([]);
+    // Ink's `x` parses to the 0 its new row already holds: no commit, no change.
+    expect(changed).toEqual([[2, "Pen"]]);
   });
 });
 
@@ -81,6 +88,12 @@ describe("parsePastedText", () => {
     expect(parsePastedText("Date", "27/10/2026")).toBe("2026-10-27");
     expect(parsePastedText("Date", "2026-10-27")).toBe("2026-10-27");
     expect(parsePastedText("Date", "next week")).toBe("next week");
+  });
+
+  it("turns a pasted star count into the fraction a Rating stores", () => {
+    expect(parsePastedText("Rating", "4")).toBe(0.8);
+    expect(parsePastedText("Rating", "3", "10")).toBe(0.3);
+    expect(parsePastedText("Rating", "0.5")).toBe(0.5);
   });
 
   it("reads a Check as 1 or 0 and leaves text alone", () => {

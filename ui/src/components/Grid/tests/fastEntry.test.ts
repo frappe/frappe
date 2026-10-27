@@ -190,6 +190,25 @@ describe("Grid paste", () => {
     expect(rows.value[0]).toMatchObject({ a: 7, b: "2", c: 9 });
   });
 
+  it("blurs the cell before writing, so its control cannot commit a stale draft, then refocuses it", async () => {
+    const { rows } = render(twoRows());
+    const target = input(0, 0);
+    target.focus();
+    const seen: string[] = [];
+    target.addEventListener("blur", () => seen.push(`blur:${rows.value[0].a}`));
+    paste(target, "x\ty");
+    await nextTick();
+    expect(seen).toEqual(["blur:1"]);
+    expect(document.activeElement).toBe(input(0, 0));
+  });
+
+  it("does nothing in a read-only grid", () => {
+    const { events } = render(twoRows(), { disabled: true });
+    const event = paste(input(0, 0), "x\ty");
+    expect(event.defaultPrevented).toBe(false);
+    expect(events.commit).toEqual([]);
+  });
+
   it("leaves a single value to the input's own paste", () => {
     const { events } = render(twoRows());
     const event = paste(input(0, 0), "just one\n");

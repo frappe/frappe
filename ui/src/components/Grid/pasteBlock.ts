@@ -1,5 +1,3 @@
-// A block copied from a spreadsheet: cells split by tabs, rows by newlines.
-
 export interface PasteWrite {
   rowIndex: number;
   columnIndex: number;
@@ -20,7 +18,6 @@ export interface PasteTarget {
   canAddRows: boolean;
 }
 
-/** A pasted value is a block when it spans more than one cell. */
 export function isBlock(block: string[][]): boolean {
   return block.length > 1 || (block[0]?.length ?? 0) > 1;
 }
