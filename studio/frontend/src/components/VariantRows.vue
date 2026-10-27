@@ -55,12 +55,12 @@ import { createReusableTemplate } from "@vueuse/core"
 import { TabButtons } from "frappe-ui"
 import type { VariantRow } from "@/utils/variants"
 
-// The switcher rows both surfaces share: name · options · Keep. Purely visual —
-// the preview pill and the editor popover wire the emits to their own state.
+// The switcher rows both pills share: name · options · Keep. Purely visual —
+// each pill wires the emits to its own state.
 defineProps<{
 	rows: VariantRow[]
 	canKeep?: boolean
-	// render only the first row, inline — the preview pill's single-set mode
+	// render only the first row, inline — the viewer pill's single-set mode
 	solo?: boolean
 	// the editor's rows: clicking a name selects the Variants block
 	selectable?: boolean

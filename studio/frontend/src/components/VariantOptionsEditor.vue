@@ -119,7 +119,7 @@ function showOption(index: number) {
 }
 
 // a new option starts as a copy of the shown one — a variant is an alternative
-// version of what you see. An empty set still gets the placeholder scaffold.
+// version of what you see
 function addOption() {
 	const index = props.block.children.length
 	const name = `Option ${index + 1}`
@@ -148,7 +148,6 @@ function deleteOption(index: number) {
 	if (shown >= index) setEditorVariantChoice(props.block.componentId, Math.max(0, shown - 1))
 }
 
-// -- rename --
 const renamingIndex = ref<number | null>(null)
 
 function startRename(index: number) {

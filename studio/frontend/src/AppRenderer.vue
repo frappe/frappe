@@ -15,7 +15,7 @@ import { defineAsyncComponent, ref } from "vue"
 import { FrappeUIProvider } from "frappe-ui"
 import { useLivePreview } from "@/utils/useLivePreview"
 
-// review chrome (the variants pill) shows where apps are developed — dev benches; a published
+// review chrome shows where apps are developed — dev benches; a published
 // app on a production site stays clean and never loads it
 const showReviewChrome = Boolean((window as any).is_developer_mode)
 const VariantsViewerPill = defineAsyncComponent(() => import("@/components/VariantsViewerPill.vue"))

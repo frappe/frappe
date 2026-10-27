@@ -2,11 +2,10 @@ import { nextTick, ref } from "vue"
 import { useEventListener } from "@vueuse/core"
 
 /**
- * The ring a variants pill draws over the option its hovered row renders. The element is read
- * through a getter on every measure, so a row that swaps its option re-measures without being
- * pointed at the new element. `follow` keeps the ring on the element while the viewport scrolls
- * or resizes — the live page moves under it, while the editor canvas moves with its own
- * transform and re-measures on demand instead.
+ * A viewport rect for an element, to draw an outline over it. The element comes from a getter
+ * re-read on every measure, so a caller whose target is replaced never has to hand over the new
+ * element. `follow` tracks scroll and resize, for a target that moves with the page; a target
+ * inside its own transformed surface re-measures on demand instead.
  */
 export function useBlockOutline(follow = false) {
 	const rect = ref<DOMRect | null>(null)
@@ -22,7 +21,7 @@ export function useBlockOutline(follow = false) {
 			rect.value = null
 			return
 		}
-		// a pick swaps the option in the same tick; measure once the new element is there
+		// the target can be replaced in this same tick; measure once the new one is in the DOM
 		nextTick(measure)
 	}
 

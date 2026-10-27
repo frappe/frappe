@@ -105,7 +105,7 @@
 				<FitScreenIcon />
 			</div>
 		</div>
-		<!-- the preview pill's corner, so the control sits in the same place in edit and preview -->
+		<!-- the corner the viewer pill uses, so the control does not move between edit and view -->
 		<div class="absolute bottom-12 right-6 z-40" v-show="!canvasProps.panning">
 			<VariantsEditorPill :suspended="canvasProps.scaling || canvasProps.panning" />
 		</div>

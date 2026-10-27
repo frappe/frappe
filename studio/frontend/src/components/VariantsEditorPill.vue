@@ -165,7 +165,7 @@ function selectRow(row: VariantRow) {
 	else source.block.selectBlock()
 }
 
-// -- outline over the hovered set's shown option, so the row can be spotted on canvas --
+// outlining the shown option lets a row be spotted on canvas
 const { rect: outlineRect, outline } = useBlockOutline()
 
 function outlineVariant(variantsBlock: Block | null) {

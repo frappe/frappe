@@ -299,8 +299,8 @@ const isPrimaryInstance = computed(() => {
 
 const isVariantsBlock = props.block.componentName === "Variants"
 
-// A Variants block swaps its rendered option in place: the instance survives but its
-// root element is replaced, which `target` cannot observe. Re-resolve after the swap.
+// A Variants block swaps its rendered option in place: the instance survives but its root
+// element is replaced, which `target` cannot observe on its own.
 const targetRevision = ref(0)
 if (isVariantsBlock) {
 	watch(
@@ -313,13 +313,11 @@ const target = computed<HTMLElement | null>(() => {
 	targetRevision.value
 	if (!componentRef.value) return null
 	const root = getComponentRoot(componentRef)
-	// After a swap the instance can still hold the removed root. Only trust a root that
-	// is in the live document; otherwise resolve from the DOM below.
+	// after a swap the instance can still hold the root it has just removed
 	if ((root instanceof HTMLElement || root instanceof SVGElement) && root.isConnected) {
 		return root as HTMLElement
 	}
-	// Resolve from the DOM when the component has no usable root element: a renderless
-	// root (Popover), or a Variants block, which renders only its shown option.
+	// no usable root element: a renderless root (Popover), or a Variants block
 	return document.querySelector(
 		`[data-component-id="${targetBlockId()}"][data-breakpoint="${props.breakpoint}"]`,
 	) as HTMLElement | null

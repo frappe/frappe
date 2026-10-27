@@ -149,7 +149,6 @@ function keepVariant(set: VariantSet) {
 	})
 }
 
-// -- hover outline over the hovered set's rendered option --
 const { rect: outlineRect, outline, measure } = useBlockOutline(true)
 const hovered = ref<VariantSet | null>(null)
 

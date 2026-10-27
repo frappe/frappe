@@ -479,7 +479,6 @@ function textBlock(
 	}
 }
 
-// One container per option; the Variants block renders the one the URL (?v=) picks.
 function variantsTemplate(): BlockOptions {
 	return {
 		componentName: "Variants",

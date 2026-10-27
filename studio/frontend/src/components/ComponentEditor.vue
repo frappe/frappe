@@ -354,8 +354,7 @@ onMounted(() => {
 	tracker.value = trackTarget(props.target, editor.value, canvasProps)
 })
 
-// The block's root element can be replaced in place (a Variants block swapping its
-// shown option). Re-anchor the overlay to the new element.
+// a block's root element can be replaced while its instance lives on
 watch(
 	() => props.target,
 	(target) => {

@@ -28,16 +28,14 @@ export default defineComponent({
 		onBeforeUnmount(() => releaseVariantSet(blockId))
 
 		return () => {
-			// child blocks arrive wrapped in a fragment; the options are its children. Read here
-			// and not in setup: a slot read outside the render function warns, and freezes the
-			// options as they were when the block mounted.
+			// child blocks arrive wrapped in a fragment; the options are its children. Vue warns
+			// on a slot read outside the render function, so the set is resolved here.
 			const options = flattenSlot(slots.default?.() || [])
 			if (!options.length) return null
 			const set = registerVariantSet({
 				blockId,
 				name: props.name,
 				options: options.map((option, index) => optionBlock(option)?.variantOptionName || `Option ${index + 1}`),
-				// the option blocks' ids, so the pill can outline the rendered option on hover
 				optionIds: options.map((option) => optionBlock(option)?.componentId),
 			})
 			return options[Math.min(activeVariantIndex(set, String(route?.query?.v ?? "")), options.length - 1)]
