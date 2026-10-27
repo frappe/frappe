@@ -688,7 +688,14 @@ window.print();
 // NOTE: doesn't close if print is cancelled in Chrome
 // Changed timeout to 5s from 1s because it blocked mobile view rendering
 setTimeout(function() {
-	window.close();
+	// mobile browsers return from print() while their print dialog is still open
+	if (document.hasFocus()) {
+		window.close();
+	} else {
+		window.addEventListener("focus", function() {
+			window.close();
+		});
+	}
 }, 5000);
 </script>
 """
