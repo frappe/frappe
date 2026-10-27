@@ -127,8 +127,8 @@ registerFieldType("Table", TableField);
 
 registerFieldType("Table MultiSelect", TableMultiSelectField);
 
-// buildLayoutFromMeta marks `Read Only` as `readOnly`, so drawsReadValue draws the read look;
-// an un-locked one (`override: { readOnly: false }`) is a plain input.
+// drawsReadValue draws the read look for a `Read Only` field; only one an override
+// un-locks (`readOnly: false`) reaches this input.
 registerFieldType("Read Only", TextField);
 
 registerFieldType(FALLBACK, TextField);

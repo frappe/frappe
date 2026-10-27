@@ -24,5 +24,6 @@ const OWN_READ_VIEW = new Set([
 
 /** Whether a read-only field draws `ReadOnlyField` instead of its control; a `ui.component` wins. */
 export function drawsReadValue(field: FieldNode): boolean {
-  return !!field.readOnly && !field.ui?.component && !OWN_READ_VIEW.has(field.fieldtype);
+  const readOnly = field.readOnly ?? field.fieldtype === "Read Only";
+  return readOnly && !field.ui?.component && !OWN_READ_VIEW.has(field.fieldtype);
 }
