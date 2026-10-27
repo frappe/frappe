@@ -33,7 +33,6 @@ export function sameContent(one: unknown, other: unknown) {
 // Bookkeeping that any save of the parent restamps on every row; never a reader's edit.
 const ROW_STAMPS = new Set(["modified", "modified_by", "creation", "owner"]);
 
-function withoutRowStamps(_key: string, value: unknown) {
-	if (!value || typeof value !== "object" || !("parentfield" in value)) return value;
-	return Object.fromEntries(Object.entries(value).filter(([key]) => !ROW_STAMPS.has(key)));
+function withoutRowStamps(this: object, key: string, value: unknown) {
+	return ROW_STAMPS.has(key) && "parentfield" in this ? undefined : value;
 }
