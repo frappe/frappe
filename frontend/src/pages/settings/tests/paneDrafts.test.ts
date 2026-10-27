@@ -344,6 +344,59 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(regional.draft.state.marks.time_zone).toBe("saved");
 	});
 
+	it("sends none of the batch when the reader keeps editing", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockResolvedValue(null);
+
+		await drafts.saveButtons();
+		await settled();
+
+		expect(server.writes).toHaveLength(1);
+		expect(server.doc("System Settings", "System Settings").time_zone).not.toBe("Asia/Kolkata");
+		expect(regional.draft.state.marks).toMatchObject({ country: "error", time_zone: "error" });
+		expect(regional.draft.dirty("time_zone")).toBe(true);
+	});
+
+	it("does not ask about a kept edit that matches what the other save wrote", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("zone", "button", ["time_zone"])
+		);
+		const general = drafts.bound.get("general")!;
+		const zone = drafts.bound.get("zone")!;
+		zone.draft.edit("time_zone", "Asia/Tokyo");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		confirm.mockResolvedValue(true);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		zone.draft.edit("time_zone", "Asia/Seoul");
+		await drafts.saveButtons();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Seoul");
+	});
+
+	it("does not ask when the other save wrote the same value", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		regional.draft.edit("country", "Spain");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+
+		await drafts.saveButtons();
+		await settled();
+
+		expect(confirm).not.toHaveBeenCalled();
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Kolkata");
+		expect(regional.draft.dirty("country")).toBe(false);
+	});
+
 	it("asks again before saving a kept edit the other save also changed", async () => {
 		const drafts = await opened(
 			block("general", "auto", ["country"]),
