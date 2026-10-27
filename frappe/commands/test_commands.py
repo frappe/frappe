@@ -664,6 +664,19 @@ class TestCommands(BaseTestCommands):
 		self.assertEqual(frappe.db.get_default("disable_admin_pass_login"), "0")
 		self.assertEqual(check_password("Administrator", "test3"), "Administrator")
 
+	def test_set_password_uses_stored_name(self):
+		from frappe.utils.password import check_password, set_admin_password_login_setting
+
+		self.keep_admin_password_and_login_settings()
+		frappe.db.set_single_value("System Settings", "disable_user_pass_login", 0)
+		set_admin_password_login_setting(1)
+
+		# lowercase still reaches the Administrator confirmation, so answering "n" stops it
+		self.execute("bench --site {site} set-password administrator test5", {"cmd_input": b"n\n"})
+		self.assertEqual(self.returncode, 1)
+		self.assertEqual(self.admin_password_login_disabled(), 1)
+		self.assertRaises(frappe.AuthenticationError, check_password, "Administrator", "test5")
+
 	def test_set_password_refused_while_user_pass_login_disabled(self):
 		from frappe.utils.password import check_password
 
@@ -672,7 +685,7 @@ class TestCommands(BaseTestCommands):
 
 		self.execute("bench --site {site} set-password test@example.com test4 --yes")
 		self.assertEqual(self.returncode, 1)
-		self.assertIn("password for test@example.com is not set", self.stdout)
+		self.assertIn("password for User test@example.com is not set", self.stdout)
 		self.assertRaises(frappe.AuthenticationError, check_password, "test@example.com", "test4")
 
 	@skipIf(

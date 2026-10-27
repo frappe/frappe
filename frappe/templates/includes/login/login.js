@@ -184,6 +184,10 @@ login.steptwo = function () {
 }
 
 login.forgot = function () {
+	if (!$("section.for-forgot").length) {
+		window.location.replace("/login");
+		return;
+	}
 	login.reset_sections();
 	if ($("#login_email").val()) {
 		$("#forgot_email").val($("#login_email").val());
@@ -306,7 +310,7 @@ login.login_handlers = (function () {
 
 			var message = get_server_message(data, true) || default_message;
 			if (data.exc_type === "PasswordLoginDisabledError") {
-				message = {{ _("Passwords are disabled for Administrator") | tojson }};
+				message = {{ _("Passwords are disabled for Administrator.") | tojson }};
 			}
 			login.set_invalid(message);
 			if (message !== default_message) {

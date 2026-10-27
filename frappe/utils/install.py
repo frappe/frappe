@@ -141,7 +141,7 @@ def setup_admin_password():
 	password = frappe.conf.get("admin_password")
 	if not password:
 		click.secho(
-			f"Administrator password login is disabled on {frappe.local.site}. ",
+			f"Administrator password login is disabled on {frappe.local.site}.",
 			fg="yellow",
 		)
 		return

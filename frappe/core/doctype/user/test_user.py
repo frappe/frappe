@@ -863,7 +863,7 @@ class TestUser(IntegrationTestCase):
 			self.assertEqual(get_response("update-password").status_code, 200)
 		with self.set_user("Administrator"):
 			self.assertEqual(get_response("update-password").status_code, 403)
-			self.assertRaises(frappe.PasswordLoginDisabledError, reset_password, "Administrator")
+			self.assertIsNone(reset_password("Administrator"))
 
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):

@@ -197,17 +197,18 @@ def is_password_login_disabled(user, doctype="User"):
 
 
 def throw_password_login_disabled():
-	if "System Manager" in frappe.get_roles():
-		setting = (
-			_("Disable Username/Password Login")
-			if frappe.get_system_settings("disable_user_pass_login")
-			else _("Disable Administrator Password Login")
-		)
+	# the Administrator setting is permlevel 1, so only the Administrator role can turn it off
+	if frappe.get_system_settings("disable_user_pass_login"):
+		setting, role = _("Disable Username/Password Login"), "System Manager"
+		message = _("Password login and related actions are disabled on this site.")
+	else:
+		setting, role = _("Disable Administrator Password Login"), "Administrator"
+		message = _("Password login is disabled for Administrator")
+
+	if role in frappe.get_roles():
 		message = _(
 			"Password login is disabled. Turn off {0} in System Settings to use password actions."
 		).format(frappe.bold(setting))
-	else:
-		message = _("Password login and related actions are disabled on this site.")
 	frappe.throw(message, exc=frappe.PasswordLoginDisabledError)
 
 
@@ -229,7 +230,7 @@ def warn_admin_password_login_enabled():
 
 def warn_password_not_set(user):
 	click.secho(
-		f"Warning: password for {user} is not set. 'Disable Username/Password Login' is on in System Settings, "
+		f"Warning: password for User {user} is not set. 'Disable Username/Password Login' is on in System Settings, "
 		"so password login is disabled for this site.",
 		fg="yellow",
 	)

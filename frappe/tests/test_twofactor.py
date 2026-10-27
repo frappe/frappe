@@ -332,11 +332,16 @@ class TestResetOtpSecret(IntegrationTestCase):
 
 	def test_administrator_blocked_when_either_setting_is_on(self):
 		self.set_single("System Settings", "disable_admin_pass_login", 1)
-		self.assertRaises(frappe.ValidationError, reset_otp_secret, "Administrator")
+		self.assertRaises(frappe.PasswordLoginDisabledError, reset_otp_secret, "Administrator")
+		# any spelling resolves to the stored name
+		self.assertRaises(frappe.PasswordLoginDisabledError, reset_otp_secret, "administrator")
 
 		self.set_single("System Settings", "disable_admin_pass_login", 0)
 		self.set_single("System Settings", "disable_user_pass_login", 1)
-		self.assertRaises(frappe.ValidationError, reset_otp_secret, "Administrator")
+		self.assertRaises(frappe.PasswordLoginDisabledError, reset_otp_secret, "Administrator")
+
+	def test_unknown_user_is_refused(self):
+		self.assertRaises(frappe.DoesNotExistError, reset_otp_secret, "nobody@example.com")
 
 	def test_user_blocked_without_ldap_when_user_pass_login_is_off(self):
 		self.set_single("System Settings", "disable_user_pass_login", 1)

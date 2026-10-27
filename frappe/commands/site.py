@@ -1263,9 +1263,10 @@ def set_user_password(site, user, password, logout_all_sessions=False, yes=False
 		frappe.init(site)
 		frappe.connect()
 
-		if not frappe.db.exists("User", user):
+		if not (user_name := frappe.db.exists("User", user)):
 			print(f"User {user} does not exist")
 			sys.exit(1)
+		user = user_name
 
 		# update_password refuses every user while this is on, so stop before asking for a password
 		if frappe.get_system_settings("disable_user_pass_login"):
@@ -1276,7 +1277,8 @@ def set_user_password(site, user, password, logout_all_sessions=False, yes=False
 		if enable_admin_password_login:
 			if not yes:
 				click.confirm(
-					f"Administrator password login is disabled on {site}. Setting a password turns it back on. Do you want to continue?",
+					f"Setting a password turns Administrator password login on for {site}, which leaves the account open to brute force attacks.\n"
+					"You can turn it off again with 'Disable Administrator Password Login' in System Settings. Do you want to continue?",
 					abort=True,
 				)
 			# turn the setting off first, update_password refuses Administrator password write while it is on
@@ -1289,7 +1291,7 @@ def set_user_password(site, user, password, logout_all_sessions=False, yes=False
 		frappe.db.set_value("User", user, "last_password_reset_date", frappe.utils.today())
 		frappe.db.commit()
 
-		if enable_admin_password_login:
+		if enable_admin_password_login and yes:
 			warn_admin_password_login_enabled()
 	finally:
 		frappe.destroy()

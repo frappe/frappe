@@ -367,6 +367,10 @@ def disable():
 
 @frappe.whitelist()
 def reset_otp_secret(user: str):
+	if not (user_name := frappe.db.exists("User", user)):
+		frappe.throw(_("User {0} does not exist").format(user), frappe.DoesNotExistError)
+	user = user_name
+
 	if frappe.session.user != user:
 		frappe.only_for("System Manager", message=True)
 
