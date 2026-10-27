@@ -25,6 +25,8 @@ class TestIndexTiles(IntegrationTestCase):
 		super().setUp()
 		self.addCleanup(frappe.clear_document_cache, "Installed Applications", "Installed Applications")
 		self.addCleanup(frappe.set_user, "Administrator")
+		# What's new reads every active app's version, which the fake apps here do not have.
+		self.enterContext(self.change_settings("System Settings", disable_change_log_notification=1))
 		frappe.db.savepoint("index_tiles_test")
 		self.addCleanup(lambda: frappe.db.rollback(save_point="index_tiles_test"))
 		# Before any fake app is active: inserting a User loads every installed app's templates.
