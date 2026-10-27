@@ -2084,6 +2084,21 @@ class TestFileUtils(IntegrationTestCase):
 		finally:
 			victim.delete()
 
+	def test_file_url_with_dot_or_empty_segments_cannot_reach_other_private_file(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		victim = frappe.get_doc(
+			{"doctype": "File", "file_name": "alias_victim.txt", "content": "secret", "is_private": 1}
+		).insert()
+		self.addCleanup(frappe.delete_doc, "File", victim.name, force=True, ignore_permissions=True)
+
+		frappe.set_user("test4@example.com")
+		for alias in ("/private/files/./alias_victim.txt", "/private/files//alias_victim.txt"):
+			doc = frappe.get_doc(
+				{"doctype": "File", "file_name": "alias.txt", "file_url": alias, "is_private": 1}
+			)
+			self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
+
 	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
 		from frappe.utils.file_manager import get_file_path
 

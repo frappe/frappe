@@ -9,6 +9,7 @@ import copyreg
 import io
 import mimetypes
 import os
+import posixpath
 import re
 import zipfile
 from typing import TYPE_CHECKING
@@ -155,6 +156,7 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
+		self.validate_canonical_file_url()
 		self.validate_private_file_access()
 		# before ingestion, which may read the linked blob's bytes
 		self.validate_blob_reference()
@@ -217,6 +219,7 @@ class File(Document):
 
 		# must run before handle_is_private_changed, which legitimately rewrites file_url
 		if not self.is_new() and self.has_value_changed("file_url"):
+			self.validate_canonical_file_url()
 			self.validate_private_file_access()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
@@ -257,6 +260,15 @@ class File(Document):
 				frappe.only_for("System Manager")
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
+
+	def validate_canonical_file_url(self):
+		"""Reject a local file_url with `.` or empty segments: it reaches the same file as the plain
+		path, but is not matched by the access check, which compares the URL as written."""
+		if not self.file_url or self.is_remote_file:
+			return
+
+		if posixpath.normpath(self.file_url) != self.file_url:
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
 
 	def validate_private_file_access(self):
 		"""Validate that the user has permission to access an existing private file."""
