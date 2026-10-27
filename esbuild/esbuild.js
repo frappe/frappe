@@ -155,6 +155,13 @@ async function execute() {
 	}
 	if (RUN_BUILD_COMMAND) {
 		await run_build_command_for_apps(APPS);
+		if (APPS.includes("frappe")) {
+			await run_frontend_build(
+				"studio",
+				path.resolve(__dirname, "..", "studio", "frontend")
+			);
+			await run_frontend_build("flow", path.resolve(__dirname, "..", "flow"));
+		}
 	}
 	if (!WATCH_MODE) {
 		process.exit(0);
@@ -688,6 +695,32 @@ async function run_build_command_for_apps(apps) {
 	}
 
 	log("Build commands finished.");
+}
+
+// The studio editor (studio/frontend/) and the flow page (flow/) are vite apps inside this
+// repo, built like app frontends; their output is part of frappe's assets, so a failure fails
+// the build.
+async function run_frontend_build(name, frontend_path) {
+	const unregister_signal_handlers = register_build_signal_handlers();
+	try {
+		await run_app_build(name, frontend_path);
+	} catch (error) {
+		await terminate_build_children();
+		log_error(
+			`${error.step === "install" ? "yarn install" : "yarn build"} failed for ${name}`
+		);
+		if (VERBOSE) {
+			log(chalk.dim(error.stack || error.message || String(error)));
+		} else if (error.output) {
+			log(error.output.trim());
+		} else {
+			log_warn("Run again with --verbose for more details.");
+		}
+		error.reported = true;
+		throw error;
+	} finally {
+		unregister_signal_handlers();
+	}
 }
 
 async function run_app_build(app, root_app_path) {

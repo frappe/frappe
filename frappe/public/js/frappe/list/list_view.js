@@ -71,6 +71,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	show() {
 		this.parent.disable_scroll_to_top = true;
+		this._shown_layout_name =
+			this.list_filter?._initial_layout_restored && this.list_filter.active_layout_name;
 		super.show();
 	}
 
@@ -841,10 +843,12 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	before_refresh() {
 		let route_promise = Promise.resolve();
+		let has_route_filters = false;
 
 		if (frappe.route_options && this.filter_area) {
 			if (frappe.route_options.reset_filters) {
 				frappe.route_options = null;
+				this._shown_layout_name = null;
 				const url = new URL(window.location.href);
 				url.searchParams.delete("reset_filters");
 				history.replaceState(history.state, "", url.toString());
@@ -858,6 +862,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				frappe.route_options = null;
 
 				if (this.filters.length > 0) {
+					has_route_filters = true;
 					route_promise = this.filter_area
 						.clear(false)
 						.then(() => this.filter_area.set(this.filters));
@@ -870,6 +875,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				if (this.list_filter && !this.list_filter._initial_layout_restored) {
 					return this.list_filter.restore_layout_from_route_signature({
 						refresh: false,
+						has_route_filters,
+						shown_name: this._shown_layout_name,
 					});
 				}
 			})
@@ -1123,13 +1130,15 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 		}
 
 		this.prune_checked_docnames();
-		this.capture_column_widths_from_dom();
+		const refresh_header = this._refresh_header_on_render || this._pending_initial_header;
+		if (!refresh_header) {
+			this.capture_column_widths_from_dom();
+		}
 
 		// clear rows
 		this.$result.find(".list-row-container").remove();
 		this.$result.find(".list-virtual-spacer").remove();
 		this.parent.page.main.parent().addClass("list-view");
-		const refresh_header = this._refresh_header_on_render || this._pending_initial_header;
 		this.render_header(refresh_header);
 		if (refresh_header) {
 			this._header_rendered_in_list = true;
@@ -2435,6 +2444,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	disable_realtime_updates() {
+		// The handler stays bound, so later updates land here again.
+		if (!this.realtime_events_setup) return;
 		frappe.realtime.doctype_unsubscribe(this.doctype);
 		this.realtime_events_setup = false;
 	}

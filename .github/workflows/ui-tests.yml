@@ -8,17 +8,18 @@ on:
     - cron: "0 0 * * *"
 
 concurrency:
-  group: ui-develop-${{ github.event_name }}-${{ github.event.number }}
+  group: ui-develop-${{ github.event_name }}-${{ github.event.number || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
   # Do not change this as GITHUB_TOKEN is being used by roulette
   contents: read
+  actions: read
 
 jobs:
   checkrun:
     name: Plan Tests
-    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run UI Tests') }}
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'Skip CI') || contains(github.event.pull_request.labels.*.name, 'Run UI Tests') || contains(github.event.pull_request.labels.*.name, 'run-full-ci') || contains(github.event.pull_request.labels.*.name, 'fixes-develop') }}
     runs-on: ubuntu-latest
     outputs:
       build: ${{ steps.check-build.outputs.build }}
@@ -31,6 +32,7 @@ jobs:
           python "${GITHUB_WORKSPACE}/.github/helper/roulette.py"
         env:
           TYPE: "ui"
+          SKIP_ON_PRS: "true"
           PR_NUMBER: ${{ github.event.number }}
           REPO_NAME: ${{ github.repository }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -74,7 +76,7 @@ jobs:
       - name: Verify yarn.lock
         run: |
           cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}
-          git diff --exit-code yarn.lock
+          git diff --exit-code yarn.lock studio/frontend/yarn.lock flow/yarn.lock
 
       - name: Cache Playwright browsers
         uses: actions/cache@v6
@@ -132,10 +134,95 @@ jobs:
             cat $f
           done
 
+  studio:
+    name: Studio Component Tests
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      # not NODE_ENV=production: yarn would skip the editor's devDependencies, cypress included
+      PYTHONWARNINGS: "ignore"
+      DB_ROOT_PASSWORD: db_root
+    services:
+      mariadb:
+        image: mariadb:11.8
+        ports:
+          - 3306:3306
+        options: --health-cmd="healthcheck.sh --connect --innodb_initialized" --health-interval=5s --health-timeout=2s --health-retries=3 --tmpfs=/var/lib/mysql:rw,noexec,nosuid,size=2g
+        env:
+          MARIADB_ROOT_PASSWORD: ${{ env.DB_ROOT_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Cache Cypress binary
+        uses: actions/cache@v6
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('studio/frontend/yarn.lock') }}
+
+      - uses: ./.github/actions/setup
+        name: Environment Setup
+        with:
+          python-version: '3.14'
+          node-version: 24
+          build-assets: true
+          disable-socketio: true
+          disable-workers: true
+          db-root-password: ${{ env.DB_ROOT_PASSWORD }}
+          db: mariadb
+
+      - name: Install Cypress binary
+        env:
+          CYPRESS_INSTALL_BINARY: ""
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
+          yarn cypress install
+
+      # the data-source specs call the test site through the dev server's proxy
+      - name: Run Component Tests
+        run: |
+          cd ${GITHUB_WORKSPACE}/apps/${{ github.event.repository.name }}/studio/frontend
+          yarn test:cypress
+
+      - name: Upload Cypress screenshots
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: cypress-screenshots
+          path: apps/${{ github.event.repository.name }}/studio/frontend/cypress/screenshots
+
+      - name: Show bench output
+        if: ${{ always() }}
+        run: |
+          cat bench_start.log || true
+
+  flow:
+    name: Flow Page Tests
+    needs: checkrun
+    if: ${{ needs.checkrun.outputs.build == 'strawberry' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: flow/yarn.lock
+
+      # node --test alone: the page's tests need no site
+      - name: Run Page Tests
+        run: |
+          cd flow
+          yarn install --frozen-lockfile
+          yarn test
+
   # TIP: Require this single check in branch protection, e.g. UI / Success
   success:
     name: UI Success
-    needs: [test]
+    needs: [test, studio, flow]
     if: always()
     runs-on: ubuntu-latest
     steps:
@@ -144,6 +231,8 @@ jobs:
         run: |
           stati = [
             '${{ needs.test.result }}',
+            '${{ needs.studio.result }}',
+            '${{ needs.flow.result }}',
           ]
 
           nopass = ["failure", "cancelled"]
@@ -153,3 +242,25 @@ jobs:
           if all(r in dopass for r in stati):
             exit(0)
           exit(1)
+
+  develop-status:
+    name: Update Develop Status
+    needs: success
+    if: ${{ always() && github.event_name != 'pull_request' && contains(fromJSON('["refs/heads/develop", "refs/heads/desk-v2"]'), github.ref) }}
+    runs-on: ubuntu-latest
+    concurrency:
+      group: develop-status-all
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      actions: read
+      statuses: write
+      pull-requests: read
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/helper
+      - run: python .github/helper/develop_status.py refresh
+        env:
+          GH_TOKEN: ${{ github.token }}

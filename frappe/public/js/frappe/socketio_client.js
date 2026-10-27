@@ -6,6 +6,8 @@ class RealTimeClient {
 	constructor() {
 		this.open_tasks = {};
 		this.open_docs = new Set();
+		// doctype -> number of views using its room
+		this.subscribed_doctypes = new Map();
 		this.disabled = false;
 	}
 
@@ -68,6 +70,9 @@ class RealTimeClient {
 			console.log("Unable to connect to " + this.get_host(port));
 			return;
 		}
+
+		// The server forgets a socket's rooms when it reconnects.
+		this.socket.io.on("reconnect", () => this.restore_subscriptions());
 
 		this.socket.on("connect_error", function (err) {
 			console.error("Error connecting to socket.io:", err.message);
@@ -143,10 +148,26 @@ class RealTimeClient {
 		this.emit("task_unsubscribe", task_id);
 	}
 	doctype_subscribe(doctype) {
+		this.subscribed_doctypes.set(doctype, (this.subscribed_doctypes.get(doctype) || 0) + 1);
 		this.emit("doctype_subscribe", doctype);
 	}
 	doctype_unsubscribe(doctype) {
+		const count = (this.subscribed_doctypes.get(doctype) || 0) - 1;
+		if (count > 0) {
+			this.subscribed_doctypes.set(doctype, count);
+			return;
+		}
+		this.subscribed_doctypes.delete(doctype);
 		this.emit("doctype_unsubscribe", doctype);
+	}
+	restore_subscriptions() {
+		for (const doctype of this.subscribed_doctypes.keys()) {
+			this.emit("doctype_subscribe", doctype);
+		}
+		for (const doc of this.open_docs) {
+			const separator = doc.indexOf(":");
+			this.emit("doc_subscribe", doc.slice(0, separator), doc.slice(separator + 1));
+		}
 	}
 	doc_subscribe(doctype, docname) {
 		if (frappe.flags.doc_subscribe) {
@@ -178,10 +199,10 @@ class RealTimeClient {
 		this.emit("doc_close", doctype, docname);
 	}
 	setup_listeners() {
-		this.socket.on("task_status_change", function (data) {
+		this.socket.on("task_status_change", (data) => {
 			this.process_response(data, data.status.toLowerCase());
 		});
-		this.socket.on("task_progress", function (data) {
+		this.socket.on("task_progress", (data) => {
 			this.process_response(data, "progress");
 		});
 	}
@@ -192,6 +213,9 @@ class RealTimeClient {
 
 		// success
 		let opts = this.open_tasks[data.task_id];
+		if (!opts) {
+			return;
+		}
 		if (opts[method]) {
 			opts[method](data);
 		}

@@ -129,7 +129,7 @@ def get_print(
 		standard_pdf_options = set(pdf_options) <= {"password"}
 		if (
 			as_pdf
-			and generator in HTML_PDF_GENERATORS
+			and (generator in HTML_PDF_GENERATORS or (pf_doc and generator == "Typst"))
 			and ((pf_doc is None and standard_pdf_options) or (pf_doc and uses_beta_renderer(pf_doc)))
 		):
 			from frappe.core.doctype.access_log.access_log import make_access_log
@@ -273,18 +273,28 @@ def attach_print(
 				if html:
 					content = get_pdf(html, options={"password": password} if password else None)
 				elif render_via_generator:
+					from frappe.core.doctype.access_log.access_log import make_access_log
 					from frappe.www.printview import validate_print_for_docstatus
 
 					doc_obj = doc or frappe.get_cached_doc(doctype, name)
 					validate_print_for_docstatus(doc_obj)
+					_run_print_pdf_hooks(doctype, name, print_format)
+					render_format = pf_doc or get_default_print_format(doc_obj.doctype)
 					content = _render_builder_pdf(
-						pf_doc or get_default_print_format(doc_obj.doctype),
+						render_format,
 						doc_obj,
 						letterhead if print_letterhead else None,
 						not print_letterhead,
 						password,
 						style=style,
 						settings=settings,
+					)
+					make_access_log(
+						doctype=doc_obj.doctype,
+						document=doc_obj.name,
+						file_type="PDF",
+						method="Print",
+						page=f"Print Format: {render_format.name}",
 					)
 				else:
 					kwargs["as_pdf"] = True

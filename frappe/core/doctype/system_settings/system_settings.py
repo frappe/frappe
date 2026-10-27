@@ -20,6 +20,7 @@ class SystemSettings(Document):
 	if TYPE_CHECKING:
 		from frappe.types import DF
 
+		agent_instructions: DF.LongText | None
 		allow_clearing_link_fields: DF.Check
 		allow_consecutive_login_attempts: DF.Int
 		allow_error_traceback: DF.Check
@@ -54,6 +55,8 @@ class SystemSettings(Document):
 		dormant_days: DF.Int
 		email_footer_address: DF.SmallText | None
 		email_retry_limit: DF.Int
+		enable_combobox_link_field: DF.Check
+		enable_mcp: DF.Check
 		enable_onboarding: DF.Check
 		enable_password_policy: DF.Check
 		enable_scheduler: DF.Check
@@ -102,6 +105,7 @@ class SystemSettings(Document):
 		reset_password_link_expiry_duration: DF.Duration | None
 		reset_password_template: DF.Link | None
 		rounding_method: DF.Literal["Banker's Rounding (legacy)", "Banker's Rounding", "Commercial Rounding"]
+		server_name: DF.Data | None
 		session_expiry: DF.Data | None
 		setup_complete: DF.Check
 		show_absolute_datetime_in_timeline: DF.Check

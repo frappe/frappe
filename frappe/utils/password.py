@@ -6,7 +6,6 @@ from functools import lru_cache
 
 from cryptography.fernet import Fernet, InvalidToken
 from passlib.context import CryptContext
-from passlib.exc import PasswordSizeError
 from pypika.terms import Values
 
 import frappe
@@ -15,6 +14,7 @@ from frappe.query_builder import Table
 from frappe.utils import cstr, encode
 
 Auth = Table("__Auth")
+MAX_PASSWORD_SIZE = 512
 
 passlibctx = CryptContext(
 	schemes=[
@@ -27,6 +27,11 @@ passlibctx = CryptContext(
 def normalize_password(pwd):
 	"""Same text typed as NFC or NFD must hash the same (RFC 8265)."""
 	return unicodedata.normalize("NFC", pwd)
+
+
+def validate_password_size(pwd, label=None):
+	if len(pwd) > MAX_PASSWORD_SIZE:
+		frappe.throw(_("{0} size exceeded the maximum allowed size.").format(label or _("Password")))
 
 
 def verify_password(pwd, hashed):
@@ -136,6 +141,8 @@ def verify_against_placeholder(pwd):
 def check_password(user, pwd, doctype="User", fieldname="password", delete_tracker_cache=True):
 	"""Checks if user and password are correct, else raises frappe.AuthenticationError"""
 
+	validate_password_size(pwd)
+
 	result = (
 		frappe.qb.from_(Auth)
 		.select(Auth.name, Auth.password)
@@ -173,7 +180,9 @@ def check_password(user, pwd, doctype="User", fieldname="password", delete_track
 
 
 def delete_login_failed_cache(user):
-	frappe.cache.hdel("login_failed_count", user)
+	from frappe.auth import LoginAttemptTracker
+
+	LoginAttemptTracker(user).add_success_attempt()
 
 
 def update_password(user, pwd, doctype="User", fieldname="password", logout_all_sessions=False):
@@ -186,10 +195,9 @@ def update_password(user, pwd, doctype="User", fieldname="password", logout_all_
 	:param fieldname: fieldname (in given doctype) (for encryption)
 	:param logout_all_session: delete all other session
 	"""
-	try:
-		hashPwd = passlibctx.hash(normalize_password(pwd))
-	except PasswordSizeError:
-		frappe.throw(_("Password size exceeded the maximum allowed size."))
+
+	validate_password_size(pwd)
+	hashPwd = passlibctx.hash(normalize_password(pwd))
 
 	query = frappe.qb.into(Auth).columns(
 		Auth.doctype, Auth.name, Auth.fieldname, Auth.password, Auth.encrypted
@@ -232,6 +240,15 @@ def delete_all_passwords_for(doctype, name):
 	except Exception as e:
 		if not frappe.db.is_missing_column(e):
 			raise
+
+
+def delete_child_row_passwords(child_doctype: str, filters: dict):
+	"""Delete stored passwords of the `child_doctype` rows matching `filters`, before the rows are deleted."""
+	if not frappe.get_meta(child_doctype).get("fields", {"fieldtype": "Password"}):
+		return
+
+	if names := frappe.get_all(child_doctype, filters=filters, pluck="name"):
+		frappe.db.delete("__Auth", {"doctype": child_doctype, "name": ("in", names)})
 
 
 def rename_password(doctype, old_name, new_name):

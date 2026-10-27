@@ -1,9 +1,12 @@
 # Copyright (c) 2021, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import datetime
+import threading
 import time
+from concurrent.futures import ThreadPoolExecutor
 from unittest.mock import Mock, patch
 
+import redis
 import requests
 from werkzeug.test import EnvironBuilder
 from werkzeug.wrappers import Request
@@ -13,6 +16,7 @@ from frappe.auth import (
 	CookieManager,
 	LoginAttemptTracker,
 	LoginManager,
+	UnknownUserLoginAttemptTracker,
 	get_login_attempt_tracker,
 	validate_api_key_secret,
 	validate_auth,
@@ -324,6 +328,55 @@ class TestAuth(IntegrationTestCase):
 
 		self.assertEqual(frappe.local.response.get("message"), "Password Reset")
 
+	def test_login_lands_on_default_app(self):
+		from frappe.auth import LoginManager
+		from frappe.hooks import app_home
+		from frappe.utils import set_request
+
+		def home_page_after_login():
+			frappe.cache.hdel("home_page", self.test_user_email)
+			set_request(method="POST", path="/api/method/login")
+			frappe.form_dict.usr = self.test_user_email
+			frappe.form_dict.pwd = self.test_user_password
+			frappe.local.response = frappe._dict()
+			frappe.local.request_ip = "127.0.0.68"
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			return frappe.local.response.home_page
+
+		self.addCleanup(frappe.form_dict.clear)
+		self.addCleanup(self.set_system_settings, "default_app", "")
+		for doctype, field in (("Website Settings", "home_page"), ("Portal Settings", "default_portal_home")):
+			self.addCleanup(
+				frappe.db.set_single_value, doctype, field, frappe.db.get_single_value(doctype, field)
+			)
+		self.addCleanup(frappe.db.set_value, "Role", "System Manager", "home_page", None)
+		self.addCleanup(frappe.db.set_value, "User", self.test_user_email, "default_workspace", None)
+
+		# only frappe is installed in CI, and the apps screen leaves it out
+		with patch("frappe.apps.get_apps", return_value=[{"name": "test_app", "route": "/desk/test-app"}]):
+			self.assertEqual(home_page_after_login(), "desk")
+
+			self.set_system_settings("default_app", "frappe")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Website Settings", "home_page", "about")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", "/contact")
+			self.assertEqual(home_page_after_login(), app_home)
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", "Users")
+			self.assertEqual(home_page_after_login(), "/desk/users")
+
+			frappe.db.set_value("User", self.test_user_email, "default_workspace", None)
+			frappe.db.set_single_value("Portal Settings", "default_portal_home", None)
+			with self.patch_hooks({"role_home_page": {"System Manager": ["orders"]}}):
+				self.assertEqual(home_page_after_login(), "orders")
+
+			frappe.db.set_value("Role", "System Manager", "home_page", "todo")
+			self.assertEqual(home_page_after_login(), "todo")
+
 	@requires_test_service(TestService.WEB_SERVER)
 	def test_login_with_email_link(self):
 		user = self.test_user_email
@@ -602,6 +655,64 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())
+
+	def test_failure_counter_always_expires(self):
+		tracker = LoginAttemptTracker("expiring-tester", max_consecutive_login_attempts=3, lock_interval=60)
+		tracker.add_success_attempt()
+		self.addCleanup(tracker.add_success_attempt)
+
+		for _ in range(5):
+			tracker.add_failure_attempt()
+			self.assertGreater(frappe.cache.ttl(tracker.cache_key), 0)
+
+	def test_tracker_ignores_an_unreachable_cache(self):
+		tracker = LoginAttemptTracker("offline-tester", max_consecutive_login_attempts=1, lock_interval=60)
+		down = redis.exceptions.ConnectionError
+
+		with (
+			patch.object(frappe.cache, "get", side_effect=down),
+			patch.object(frappe.cache, "eval", side_effect=down),
+			patch.object(frappe.cache, "delete", side_effect=down),
+		):
+			tracker.add_failure_attempt()
+			tracker.add_failure_attempt()
+			self.assertEqual(tracker.login_failed_count, 0)
+			self.assertTrue(tracker.is_user_allowed())
+			tracker.add_success_attempt()
+
+	def test_concurrent_failures_are_all_counted(self):
+		self.assert_concurrent_failures_are_counted(LoginAttemptTracker)
+
+	def test_concurrent_failures_of_unknown_names_are_all_counted(self):
+		self.assert_concurrent_failures_are_counted(UnknownUserLoginAttemptTracker)
+
+	def assert_concurrent_failures_are_counted(self, tracker_class):
+		site, sites_path = frappe.local.site, frappe.local.sites_path
+
+		def new_tracker():
+			return tracker_class("concurrent-tester", max_consecutive_login_attempts=10, lock_interval=60)
+
+		tracker = new_tracker()
+		tracker.add_success_attempt()
+		self.addCleanup(tracker.add_success_attempt)
+
+		attempts = 20
+		barrier = threading.Barrier(attempts, timeout=10)
+
+		def fail_login(_):
+			try:
+				frappe.init(site, sites_path=sites_path)
+				frappe.connect()
+				barrier.wait()
+				new_tracker().add_failure_attempt()
+			finally:
+				frappe.destroy()
+
+		with ThreadPoolExecutor(max_workers=attempts) as pool:
+			list(pool.map(fail_login, range(attempts)))
+
+		self.assertEqual(tracker.login_failed_count, attempts)
+		self.assertFalse(tracker.is_user_allowed())
 
 
 class TestSessionIdHashing(FrappeAPITestCase):

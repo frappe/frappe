@@ -227,12 +227,114 @@ class BaseTestCommands(IntegrationTestCase):
 
 class TestCommands(BaseTestCommands):
 	def test_browse_sid(self):
-		with patch("click.launch") as launch:
+		self.setup_test_site()
+
+		with patch("webbrowser.open") as launch:
 			with cli(frappe.commands.site.browse, ["--user", "Administrator", "--sid"]) as result:
 				self.assertEqual(result.exit_code, 0)
 				self.assertTrue(result.output.strip())
-				self.assertNotIn("Login URL", result.output)
+				self.assertNotIn("URL:", result.output)
 				launch.assert_not_called()
+
+	def test_browse_prints_and_opens_site_url(self):
+		site = frappe.local.site
+		with patch.dict(os.environ), patch("webbrowser.open") as launch:
+			os.environ.pop("SSH_CONNECTION", None)
+			with cli(frappe.commands.site.browse, [site, "--user", "Administrator"]) as result:
+				self.assertEqual(result.exit_code, 0)
+				url = result.output.strip().removeprefix("URL: ")
+				self.assertIn(f"//{site}", url)
+				self.assertIn("?sid=", url)
+				launch.assert_called_once_with(url)
+
+	def test_browse_skips_browser_over_ssh(self):
+		with patch.dict(os.environ, {"SSH_CONNECTION": "10.0.0.1 22 10.0.0.2 22"}):
+			with patch("webbrowser.open") as launch:
+				with cli(
+					frappe.commands.site.browse, [frappe.local.site, "--user", "Administrator"]
+				) as result:
+					self.assertEqual(result.exit_code, 0)
+					self.assertIn("URL: ", result.output)
+					launch.assert_not_called()
+
+	def test_browse_website_user_lands_on_home_page(self):
+		user = self.make_browse_website_user()
+		with patch.dict(frappe.conf, {"developer_mode": 1}), patch("webbrowser.open"):
+			with cli(frappe.commands.site.browse, [frappe.local.site, "--user", user]) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertIn("/me?sid=", result.output)
+
+	def test_browse_keeps_query_and_fragment_of_home_page(self):
+		user = self.make_browse_website_user()
+		original = frappe.db.get_single_value("Portal Settings", "default_portal_home")
+		frappe.db.set_single_value("Portal Settings", "default_portal_home", "me?view=list#tab")
+		frappe.db.commit()
+		self.addCleanup(frappe.db.set_single_value, "Portal Settings", "default_portal_home", original)
+		self.addCleanup(frappe.db.commit)
+		frappe.cache.hdel("home_page", user)
+		with patch.dict(frappe.conf, {"developer_mode": 1}), patch("webbrowser.open"):
+			with cli(frappe.commands.site.browse, [frappe.local.site, "--user", user]) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertRegex(result.output, r"/me\?view=list&sid=[^&#\s]+#tab")
+
+	def test_browse_refuses_non_admin_without_developer_mode(self):
+		user = self.make_browse_website_user()
+		with patch.dict(frappe.conf, {"developer_mode": 0}), patch("webbrowser.open") as launch:
+			with cli(frappe.commands.site.browse, [frappe.local.site, "--user", user]) as result:
+				self.assertEqual(result.exit_code, 1)
+				self.assertIn("Only browsing as Administrator is supported", result.output)
+				self.assertNotIn("URL:", result.output)
+				launch.assert_not_called()
+
+	def test_browse_site_argument_takes_priority(self):
+		context_site = CLI_CONTEXT.sites[0]
+		self.assertIn(context_site, frappe.utils.get_sites())
+
+		with patch("webbrowser.open") as launch:
+			with cli(frappe.commands.site.browse, ["missing-browse-site.test"]) as result:
+				self.assertEqual(
+					result.exit_code,
+					1,
+					f"browse used the context site {context_site} instead of the argument",
+				)
+				self.assertIn("Site named missing-browse-site.test doesn't exist", result.output)
+				self.assertNotIn(context_site, result.output)
+				launch.assert_not_called()
+
+	def test_browse_dev_forces_webserver_port(self):
+		site = frappe.local.site
+		config = {
+			"host_name": None,
+			"developer_mode": 0,
+			"http_port": None,
+			"webserver_port": 8123,
+			"restart_supervisor_on_update": 1,
+		}
+		with patch.dict(frappe.conf, config), patch("webbrowser.open"):
+			with cli(frappe.commands.site.browse, [site, "--dev"]) as result:
+				self.assertEqual(result.exit_code, 0)
+				self.assertIn(f"//{site}:8123", result.output)
+
+	def make_browse_website_user(self):
+		email = "browse-website-user@example.com"
+		if not frappe.db.exists("User", email):
+			frappe.get_doc(
+				doctype="User",
+				email=email,
+				first_name="Browse",
+				user_type="Website User",
+				send_welcome_email=0,
+			).insert(ignore_permissions=True)
+			frappe.db.commit()
+		self.addCleanup(self.delete_browse_user, email)
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		return email
+
+	def delete_browse_user(self, email):
+		frappe.cache.hdel("home_page", email)
+		frappe.sessions.clear_sessions(email, force=True)
+		frappe.delete_doc("User", email, ignore_permissions=True, force=True)
+		frappe.db.commit()
 
 	def test_execute(self):
 		# test 1: execute a command expecting a numeric output
@@ -1172,6 +1274,26 @@ class TestSchedulerUtils(BaseTestCommands):
 			self.assertEqual(result.exit_code, 0)
 
 
+def _run_console_session(site, cells, args):
+	from IPython.terminal.embed import InteractiveShellEmbed
+
+	entered = []
+
+	def interact(shell):
+		frappe.set_user("Guest")
+		for cell in cells:
+			shell.run_cell(cell).raise_error()
+		entered.append(True)
+
+	with patch.object(InteractiveShellEmbed, "interact", interact):
+		result = CliRunner().invoke(frappe.commands.utils.console, args=args, obj=frappe._dict(sites=[site]))
+	if result.exception:
+		print(result.output)
+		raise result.exception
+	assert result.exit_code == 0, result.output
+	assert entered, "The console did not enter its interactive shell"
+
+
 class TestCommandUtils(IntegrationTestCase):
 	def test_bench_helper(self):
 		from frappe.utils.bench_helper import get_app_groups
@@ -1179,6 +1301,65 @@ class TestCommandUtils(IntegrationTestCase):
 		app_groups = get_app_groups()
 		self.assertIn("frappe", app_groups)
 		self.assertIsInstance(app_groups["frappe"], click.Group)
+
+	def run_console(self, cells, autoreload=False):
+		# Isolate IPython's singleton and the console's atexit cleanup from the test runner.
+		result = subprocess.run(
+			[
+				sys.executable,
+				"-c",
+				"import json, sys, frappe; frappe.init(sys.argv[1]); "
+				"from frappe.commands.test_commands import _run_console_session; "
+				"_run_console_session(sys.argv[1], json.loads(sys.argv[2]), json.loads(sys.argv[3]))",
+				frappe.local.site,
+				json.dumps(cells),
+				json.dumps(["--autoreload"] if autoreload else []),
+			],
+			capture_output=True,
+			text=True,
+			timeout=30,
+		)
+		self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+
+	def test_console_frappe_and_database(self):
+		self.run_console(
+			[
+				"assert frappe.__name__ == 'frappe'",
+				f"assert frappe.local.site == {frappe.local.site!r}",
+				"assert frappe.session.user == 'Guest'",
+				"assert frappe.db.get_value('User', 'Guest', 'name') == 'Guest'",
+				"def query_guest(): return frappe.db.get_value('User', 'Guest', 'name')",
+				"assert query_guest() == 'Guest'",
+			]
+		)
+
+	def test_console_does_not_expose_command_locals(self):
+		self.run_console(
+			[
+				"assert not {'context', 'site', 'autoreload', 'register', 'terminal', "
+				"'all_apps', 'failed_to_import', 'app', 'InteractiveShellEmbed', 'ultratb'} "
+				"& (set(locals()) | set(globals()))",
+			]
+		)
+
+	def test_console_functions_share_namespace(self):
+		for autoreload in (False, True):
+			with self.subTest(autoreload=autoreload):
+				self.run_console(
+					[
+						"value = 10",
+						"def first(): return value",
+						"def second(): return first()",
+						"assert second() == 10",
+						"value = 20",
+						"assert second() == 20",
+						"from collections import Counter",
+						"def count_values(): return Counter(first() for _ in range(3))",
+						"assert count_values() == {20: 3}",
+						"assert [first() for _ in range(3)] == [20, 20, 20]",
+					],
+					autoreload=autoreload,
+				)
 
 
 class TestTrimDatabase(IntegrationTestCase):

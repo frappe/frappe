@@ -446,6 +446,12 @@ class TestMoney(IntegrationTestCase):
 				(0, "MRO Zero only."),
 				("Fail", ""),
 			],
+			"USD": [
+				(0.29, "Twenty Nine Cent only."),
+				(0.57, "Fifty Seven Cent only."),
+				(0.58, "Fifty Eight Cent only."),
+				(1.57, "USD One and Fifty Seven Cent only."),
+			],
 		}
 
 		for currency, cases in test_cases.items():
@@ -956,6 +962,28 @@ class TestImage(IntegrationTestCase):
 		reader = PdfReader(io.BytesIO(optimized_content))
 		self.assertEqual(len(reader.pages), 4)
 		self.assertEqual(next(iter(reader.pages[0].images)).image.size, (800, 800))
+
+	def test_optimize_pdf_encodes_an_image_shared_by_every_page_once(self):
+		from pypdf import PdfReader, PdfWriter
+		from pypdf._page import ImageFile
+
+		from frappe.utils.pdf import optimize_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		buf = io.BytesIO()
+		Image.new("RGB", (800, 800), (20, 150, 90)).save(buf, format="PDF")
+		page = PdfReader(buf).pages[0]
+		writer = PdfWriter()
+		for _ in range(4):
+			writer.add_page(page)
+		out = io.BytesIO()
+		writer.write(out)
+
+		with patch.object(ImageFile, "replace", autospec=True, side_effect=ImageFile.replace) as replace:
+			optimize_pdf(out.getvalue())
+
+		replace.assert_called_once()
 
 	def test_optimize_pdf_skips_unprocessable_image_but_optimizes_rest(self):
 		from pypdf import PdfReader, PdfWriter
@@ -1887,6 +1915,24 @@ class TestMiscUtils(IntegrationTestCase):
 	def test_get_url_to_form(self):
 		self.assertTrue(get_url_to_form("System Settings").endswith("/desk/system-settings"))
 		self.assertTrue(get_url_to_form("User", "Test User").endswith("/desk/user/Test%20User"))
+
+	@patch.dict(
+		frappe.conf,
+		{
+			"host_name": None,
+			"hostname": None,
+			"http_port": None,
+			"webserver_port": 8000,
+			"developer_mode": 0,
+			"restart_supervisor_on_update": 1,
+		},
+	)
+	def test_get_url_dev(self):
+		self.assertNotIn(":8000", get_url("/desk", allow_header_override=False))
+		self.assertEqual(
+			get_url("/desk", allow_header_override=False, for_dev_server=True),
+			f"http://{frappe.local.site}:8000/desk",
+		)
 
 	def test_safe_json_load(self):
 		self.assertEqual(safe_json_loads("{}"), {})

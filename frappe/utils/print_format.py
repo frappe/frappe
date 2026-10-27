@@ -3,16 +3,26 @@ import os
 import tempfile
 import uuid
 from io import BytesIO
+from zoneinfo import ZoneInfo
 
 import frappe
 from frappe import _
 from frappe.core.doctype.access_log.access_log import make_access_log
-from frappe.desk.query_report import get_permitted_report_print_format
+from frappe.desk.link_title import get_report_link_titles
+from frappe.desk.query_report import (
+	add_total_row,
+	format_filter_value,
+	get_column_as_dict,
+	get_permitted_report_print_format,
+	normalize_result,
+	run,
+)
 from frappe.model.document import Document
 from frappe.translate import print_language
-from frappe.utils import cint
+from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 
 no_cache = 1
 
@@ -61,6 +71,7 @@ def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | li
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -222,14 +233,9 @@ def _download_multi_pdf(
 	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
 
 	pdf_writer = PdfWriter()
+	failed = []
 
 	options = frappe.parse_json(options)
-
-	if (options or {}).get("password") and format:
-		# Typst can't encrypt — failing here once beats silently dropping
-		# every document inside the loop below
-		if frappe.db.get_value("Print Format", format, "pdf_generator") == "Typst":
-			frappe.throw(_("PDF encryption is not supported by the Typst renderer"))
 
 	def document_language(print_doctype, print_name):
 		"""The print page's precedence: the document's own language, then the
@@ -247,7 +253,11 @@ def _download_multi_pdf(
 				get_default_print_format,
 				uses_beta_renderer,
 			)
-			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+			from frappe.utils.print_utils import (
+				_print_format_doc_or_none,
+				_run_print_pdf_hooks,
+				resolve_pdf_generator,
+			)
 			from frappe.www.printview import set_link_titles, validate_print
 
 			pf_doc = _print_format_doc_or_none(format, print_doctype)
@@ -268,18 +278,29 @@ def _download_multi_pdf(
 
 			from pypdf import PdfReader
 
+			from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 			from frappe.utils.print_format_generator import PrintFormatGenerator
 
 			doc = frappe.get_doc(print_doctype, print_name)
 			validate_print(doc)
 			set_link_titles(doc)
+			_run_print_pdf_hooks(print_doctype, print_name, format)
 			pf = pf_doc or get_default_print_format(print_doctype)
 			generator = PrintFormatGenerator(
 				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
 			)
 			pdf = generator.render_pdf()
-			for page in PdfReader(BytesIO(pdf)).pages:
-				pdf_writer.add_page(page)
+			make_access_log(
+				doctype=doc.doctype,
+				document=doc.name,
+				file_type="PDF",
+				method="Print",
+				page=f"Print Format: {pf.name}",
+			)
+			reader = PdfReader(BytesIO(pdf))
+			first_new_page = len(pdf_writer.pages)
+			pdf_writer.append_pages_from_reader(reader)
+			PDFTransformer.resolve_internal_links(pdf_writer, reader, first_new_page)
 			return pdf_writer
 
 	if not isinstance(doctype, dict):
@@ -301,10 +322,7 @@ def _download_multi_pdf(
 					reference_doctype=doctype,
 					reference_name=ss,
 				)
-				if task_id:
-					frappe.publish_realtime(
-						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-					)
+				failed.append(get_link_to_form(doctype, ss))
 
 			# Publish progress
 			if task_id:
@@ -324,7 +342,7 @@ def _download_multi_pdf(
 
 	else:
 		total_docs = sum([len(doctype[dt]) for dt in doctype])
-		count = 1
+		count = 0
 		for doctype_name in doctype:
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
@@ -335,14 +353,12 @@ def _download_multi_pdf(
 						publish_failure(task_id, e)
 					raise
 				except Exception:
-					if task_id:
-						frappe.publish_realtime(task_id=task_id, message="Failed", user=frappe.session.user)
 					frappe.log_error(
 						title="Error in Multi PDF download",
-						message=f"Permission Error on doc {doc_name} of doctype {doctype_name}",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
+					failed.append(get_link_to_form(doctype_name, doc_name))
 
 				count += 1
 
@@ -380,6 +396,16 @@ def _download_multi_pdf(
 		else:
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
+
+	# after task_complete, so the list view's "PDF is ready" message cannot overwrite this title
+	if failed:
+		frappe.msgprint(
+			failed,
+			as_list=True,
+			indicator="red",
+			realtime=True,
+			title=_("Failed to print {0} documents").format(len(failed)),
+		)
 
 
 from frappe.deprecation_dumpster import read_multi_pdf
@@ -423,11 +449,15 @@ def download_pdf(
 
 @frappe.whitelist()
 @frappe.concurrent_limit()
-def report_to_pdf(html: str, orientation: str = "Landscape"):
+def report_to_pdf(html: str, orientation: str = "Landscape", print_format: str | None = None):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
 	)
 	frappe.local.response.type = "pdf"
 
@@ -465,7 +495,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		header = render_template(letter_head.content, {"doc": context_doc})
 		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
-			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
+			header += f"\n<style data-letter-head>\n{letter_head.custom_css}\n</style>\n"
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
 		rendered["header"] = header
@@ -527,6 +557,172 @@ def render_report_jinja(
 	return {"body": body, "letter_head": letter_head}
 
 
+# Chrome fails to print a single table of tens of thousands of rows
+REPORT_PDF_ROWS_PER_TABLE = 1000
+
+
+@frappe.whitelist(methods=["POST"])
+@frappe.concurrent_limit()
+def download_report_pdf(
+	report_name: str,
+	filters: str | dict | None = None,
+	orientation: str = "Landscape",
+	print_format: str | None = None,
+	letterhead: str | None = None,
+	no_letterhead: bool | int = 0,
+	columns: str | list[str] | None = None,
+	visible_idx: str | list[int] | None = None,
+	custom_columns: str | list[dict] | None = None,
+	applied_filters: str | dict | None = None,
+	ignore_prepared_report: bool | int = False,
+) -> None:
+	"""Run the report on the server and return it as a PDF.
+
+	`columns` are the fieldnames to print in order, `visible_idx` the row indices to print in order.
+	"""
+	from frappe.model import numeric_fieldtypes
+	from frappe.www.printview import get_print_style
+
+	filters = frappe.parse_json(filters) or {}
+	visible_idx = frappe.parse_json(visible_idx) or []
+	if print_format and frappe.db.get_value("Print Format", print_format, "report") != report_name:
+		frappe.throw(
+			_("Print Format {0} does not belong to report {1}").format(
+				frappe.bold(print_format), frappe.bold(_(report_name))
+			),
+			title=_("Invalid Print Format"),
+		)
+	ref_doctype = frappe.get_cached_value("Report", report_name, "ref_doctype")
+	if not frappe.has_permission(ref_doctype, "print"):
+		frappe.throw(
+			_("You don't have permission to print: {0}").format(_(ref_doctype)),
+			frappe.PermissionError,
+		)
+
+	data = frappe._dict(
+		run(
+			report_name,
+			filters,
+			ignore_prepared_report=ignore_prepared_report,
+			custom_columns=frappe.parse_json(custom_columns),
+			are_default_filters=False,
+		)
+	)
+	if not data.columns:
+		frappe.throw(_("No data to export"), title=_("No Data"))
+	make_access_log(report_name=report_name, filters=filters, file_type="PDF", method="Print")
+
+	report_columns = [get_column_as_dict(column) for column in data.columns]
+	masked_fields = {field.fieldname for field in frappe.get_meta(ref_doctype).get_masked_fields()}
+	for column in report_columns:
+		if column.fieldname in masked_fields:
+			column.update(fieldtype="Data", options=None)
+	total_row = data.result.pop() if cint(data.add_total_row) and data.result else None
+	rows = normalize_result(data.result or [], report_columns)
+
+	if visible_idx:
+		numbered_rows = [(index + 1, rows[index]) for index in visible_idx if 0 <= index < len(rows)]
+		if total_row:
+			total_row = numbered_rows and add_total_row([row for _, row in numbered_rows], report_columns)[-1]
+	else:
+		numbered_rows = list(enumerate(rows, start=1))
+
+	if total_row:
+		fieldnames = [column.fieldname for column in report_columns]
+		numbered_rows.append(
+			(None, frappe._dict(zip(fieldnames, total_row, strict=False), is_total_row=True))
+		)
+
+	if print_format:
+		rendered = render_report_jinja(
+			print_format,
+			data=[row for _, row in numbered_rows],
+			columns=report_columns,
+			filters=filters,
+			letterhead=letterhead,
+			no_letterhead=no_letterhead,
+		)
+		content, letter_head = rendered["body"], rendered["letter_head"]
+		printed_columns = report_columns
+	else:
+		system_time_zone = ZoneInfo(get_system_timezone())
+		user_time_zone = ZoneInfo(
+			frappe.get_cached_value("User", frappe.session.user, "time_zone") or get_system_timezone()
+		)
+
+		def format_value(value, column, row):
+			# reports put labels and placeholders in typed columns, e.g. "Opening" in a date column
+			try:
+				if column.fieldtype == "Datetime":
+					# the desk shows datetimes in the user's time zone
+					value = (
+						get_datetime(value)
+						.replace(tzinfo=system_time_zone)
+						.astimezone(user_time_zone)
+						.replace(tzinfo=None)
+					)
+				return frappe.format(value, column, row)
+			except (frappe.ValidationError, ValueError, TypeError):
+				return value
+
+		columns = frappe.parse_json(columns)
+		printed_columns = (
+			[column for fieldname in columns for column in report_columns if column.fieldname == fieldname]
+			if columns
+			else [column for column in report_columns if not column.hidden]
+		)
+		letter_head = (
+			None
+			if cint(no_letterhead)
+			else render_letterhead_for_print(
+				letterhead,
+				filters | {"company": filters.get("company") or frappe.defaults.get_user_default("company")},
+			)
+		)
+		content = frappe.get_template("templates/print_formats/report_print_grid.html").render(
+			{
+				"title": report_name,
+				"applied_filters": {
+					label: format_filter_value(value)
+					for label, value in (frappe.parse_json(applied_filters) or {}).items()
+				},
+				"columns": printed_columns,
+				"rows": numbered_rows,
+				"first_row": numbered_rows[0][1] if numbered_rows else None,
+				"row_doc": frappe._dict,
+				"format_value": format_value,
+				"link_titles": get_report_link_titles(printed_columns, [row for _, row in numbered_rows]),
+				"rows_per_table": REPORT_PDF_ROWS_PER_TABLE,
+				"numeric_fieldtypes": numeric_fieldtypes,
+			},
+		)
+
+	print_settings = frappe.get_single("Print Settings")
+	html = frappe.get_template("templates/print_formats/report_print_template.html").render(
+		{
+			"title": _(report_name),
+			"lang": frappe.local.lang,
+			"landscape": orientation == "Landscape",
+			"print_css": get_print_style(print_settings.print_style or "Redesign", for_legacy=True),
+			"use_smaller_font": len(printed_columns) > 20
+			and (not print_format or frappe.get_cached_value("Report", report_name, "is_standard") != "Yes"),
+			"letter_head": letter_head,
+			"repeat_header_footer": print_settings.repeat_header_footer,
+			"content": content,
+		},
+	)
+
+	frappe.local.response.filename = f"{report_name}.pdf"
+	frappe.local.response.filecontent = get_pdf(
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
+	)
+	frappe.local.response.type = "pdf"
+
+
 @frappe.whitelist()
 def print_by_server(
 	doctype: str,
@@ -538,6 +734,7 @@ def print_by_server(
 	file_path: str | None = None,  # backward compatibility
 	style: str | None = None,
 	settings: str | None = None,
+	letterhead: str | None = None,
 ):
 	print_settings = frappe.get_doc("Network Printer Settings", printer_setting)
 	try:
@@ -561,6 +758,7 @@ def print_by_server(
 			style=style,
 			doc=doc,
 			no_letterhead=no_letterhead,
+			letterhead=letterhead,
 			as_pdf=True,
 			output=output,
 			settings=settings,

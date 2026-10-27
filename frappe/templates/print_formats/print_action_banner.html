@@ -3,7 +3,7 @@
 		{{ _("Print") }}
 	</a>
 	<a class="p-2"
-		href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|e}}&name={{name|e}}&format={{print_format|e}}{% if letterhead %}&letterhead={{letterhead|e}}{% endif %}{% if no_letterhead %}&no_letterhead={{no_letterhead|e}}{% endif %}{% if lang %}&_lang={{lang|e}}{% endif %}{% if key %}&key={{key|e}}{% endif %}{% if pdf_generator %}&pdf_generator={{pdf_generator|e}}{% endif %}{% if style %}&style={{style|urlencode}}{% endif %}{% if settings %}&settings={{settings|urlencode}}{% endif %}">
+		href="/api/method/frappe.utils.print_format.download_pdf?doctype={{doctype|urlencode}}&name={{name|urlencode}}&format={{print_format|urlencode}}{% if letterhead %}&letterhead={{letterhead|urlencode}}{% endif %}{% if no_letterhead %}&no_letterhead={{no_letterhead|urlencode}}{% endif %}{% if lang %}&_lang={{lang|urlencode}}{% endif %}{% if key %}&key={{key|urlencode}}{% endif %}{% if pdf_generator %}&pdf_generator={{pdf_generator|urlencode}}{% endif %}{% if style %}&style={{style|urlencode}}{% endif %}{% if settings %}&settings={{settings|urlencode}}{% endif %}">
 		{{ _('Get PDF') }}
 	</a>
 </div>
