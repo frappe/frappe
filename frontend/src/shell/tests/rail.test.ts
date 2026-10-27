@@ -1,6 +1,6 @@
 // What the rail draws. Mounted with Vue's own `createApp`: this package has no `@vue/test-utils`.
 import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
-import { createApp, h, nextTick, ref, type App, type Ref } from "vue";
+import { createApp, defineComponent, h, nextTick, ref, type App, type Ref } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
@@ -13,11 +13,18 @@ import { itemContext } from "@/navigation/context";
 import { resetNavigationReports } from "@/navigation/registry";
 import { loadSprite, resetSprite } from "@/icons/sprite";
 import RailColumn from "../RailColumn.vue";
-import { OpenSettingsKey } from "../openSettings";
+import { useColorScheme } from "frappe-ui";
+import { pageMenuItems } from "../pageMenu";
+import { useShellActs } from "../shellActs";
 
 registerStandardPages(standardPages);
 
-const fake = vi.hoisted(() => ({ logout: vi.fn(), openSettings: vi.fn() }));
+const fake = vi.hoisted(() => ({
+	logout: vi.fn(),
+	openSettings: vi.fn(),
+	customize: vi.fn(),
+	confirmLogout: vi.fn(),
+}));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
@@ -66,7 +73,7 @@ function unmountAll() {
 type Options = {
 	sidebars?: Record<string, NavigationItem[]>;
 	current?: string;
-	shareLink?: string;
+	shareLink?: () => string;
 	boot?: Boot;
 };
 
@@ -89,19 +96,33 @@ function mount(
 	});
 	registerShell({ boot, addresses, router });
 
-	// The shell composes the context; the rail is mounted alone here, so this stands in for it.
-	const app = createApp({
-		render: () =>
-			h(RailColumn, {
-				items: items.value,
-				context: itemContext(boot, addresses, router, items.value, options.sidebars ?? {}),
-				current: options.current,
-				shareLink: options.shareLink,
-			}),
-	});
+	// The shell composes the context and registers its acts; the rail is mounted alone here, so this stands in for it.
+	const app = createApp(
+		defineComponent({
+			setup() {
+				useShellActs({
+					boot,
+					router,
+					openSettings: fake.openSettings,
+					confirmLogout: fake.confirmLogout,
+					rail: {
+						customize: fake.customize,
+						shareLink: options.shareLink,
+						sidebarCollapsed: () => null,
+						toggleSidebar: () => {},
+					},
+				});
+				return () =>
+					h(RailColumn, {
+						items: items.value,
+						context: itemContext(boot, addresses, router, items.value, options.sidebars ?? {}),
+						current: options.current,
+					});
+			},
+		})
+	);
 	app.provide("boot", boot);
 	app.provide("addresses", addresses);
-	app.provide(OpenSettingsKey, fake.openSettings);
 	app.use(router);
 	app.mount(host);
 	mounted.push(app);
@@ -351,18 +372,23 @@ describe("the app menu", () => {
 		expect(text).not.toContain("Theme");
 	});
 
-	it("offers Customize sidebar", async () => {
+	it("offers Customize sidebar, which runs the shell's customize", async () => {
 		expect(await opened({})).toContain("Customize sidebar");
+		Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"))
+			.find((row) => row.textContent?.trim() === "Customize sidebar")!
+			.click();
+		await flush();
+		expect(fake.customize).toHaveBeenCalledOnce();
 	});
 
 	it("offers Copy link only when the shell handed it one", async () => {
-		expect(await opened({ shareLink: "https://x/apps/crm" })).toContain("Copy link");
+		expect(await opened({ shareLink: () => "https://x/apps/crm" })).toContain("Copy link");
 		expect(await opened({})).not.toContain("Copy link");
 	});
 
 	it("offers Settings after All apps, which opens settings with no segments", async () => {
 		fake.openSettings.mockClear();
-		await opened({ shareLink: "https://x/apps/crm" });
+		await opened({ shareLink: () => "https://x/apps/crm" });
 		const rows = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']"));
 		expect(rows.map((row) => row.textContent?.trim())).toEqual([
 			"All apps",
@@ -479,6 +505,20 @@ describe("the user menu", () => {
 		expect(row(menu, "Log out").className).toContain("red");
 	});
 
+	it("offers the page's own rows after Theme, while the page holds them", async () => {
+		const arrange = vi.fn();
+		pageMenuItems.value = [{ label: "Arrange apps", icon: "lucide-layout-grid", onClick: arrange }];
+		try {
+			const menu = await opened();
+			expect(rows(menu)).toEqual(["My settings", "Theme", "Arrange apps", "Desk v1", "Log out"]);
+			row(menu, "Arrange apps").click();
+			await flush();
+			expect(arrange).toHaveBeenCalledOnce();
+		} finally {
+			pageMenuItems.value = [];
+		}
+	});
+
 	it("separates the groups: the person's rows, Desk v1, Log out", async () => {
 		const menu = await opened();
 		const groups = Array.from(menu.querySelectorAll("[data-slot='group']")).map((group) =>
@@ -502,60 +542,33 @@ describe("the user menu", () => {
 		expect(assign).toHaveBeenLastCalledWith("/app");
 	});
 
-	it("asks before logging out, and Cancel keeps the session", async () => {
-		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
-		fake.logout.mockResolvedValue({ data: null });
+	it("sets the scheme a Theme row names, through shell.theme, and marks it selected", async () => {
+		const { colorScheme } = useColorScheme();
+		const menu = await opened();
+		row(menu, "Theme").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+		await flush();
+		await flush();
+		const dark = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem']")).find(
+			(node) => node.textContent?.trim() === "Dark"
+		)!;
+		dark.click();
+		await flush();
+		expect(colorScheme.value).toBe("dark");
+		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
 
+		const reopened = await opened();
+		row(reopened, "Theme").dispatchEvent(new KeyboardEvent("keydown", { key: "ArrowRight", bubbles: true }));
+		await flush();
+		await flush();
+		const checked = Array.from(document.body.querySelectorAll<HTMLElement>("[role='menuitem'][data-state='checked']"));
+		expect(checked.map((node) => node.textContent?.trim())).toEqual(["Dark"]);
+		useColorScheme().setColorScheme("light");
+	});
+
+	it("asks the shell to confirm a log out", async () => {
 		row(await opened(), "Log out").click();
 		await flush();
-
-		const dialog = document.body.querySelector<HTMLElement>("[role='dialog']")!;
-		expect(dialog.textContent).toContain("Log out?");
-		expect(dialog.textContent).toContain("You will need to sign in again.");
-
-		Array.from(dialog.querySelectorAll("button"))
-			.find((button) => button.textContent?.trim() === "Cancel")!
-			.click();
-		await flush();
-
-		expect(document.body.querySelector("[role='dialog']")).toBeNull();
+		expect(fake.confirmLogout).toHaveBeenCalledOnce();
 		expect(fake.logout).not.toHaveBeenCalled();
-		expect(assign).not.toHaveBeenCalled();
-	});
-
-	it("logs out on confirmation and goes to login with the way back, hash dropped", async () => {
-		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
-		fake.logout.mockResolvedValue({ data: null });
-		window.history.replaceState(null, "", "/crm-deal?sidebar=fcrm#customize/rail");
-
-		row(await opened(), "Log out").click();
-		await flush();
-		Array.from(document.body.querySelector("[role='dialog']")!.querySelectorAll("button"))
-			.find((button) => button.textContent?.trim() === "Log out")!
-			.click();
-		await flush();
-		await flush();
-
-		expect(fake.logout).toHaveBeenCalled();
-		expect(assign).toHaveBeenCalledWith("/login?redirect-to=%2Fcrm-deal%3Fsidebar%3Dfcrm");
-		window.history.replaceState(null, "", "/");
-	});
-
-	it("keeps the dialog and toasts when the log out fails", async () => {
-		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
-		const { toast } = await import("frappe-ui");
-		fake.logout.mockRejectedValueOnce(new Error("offline"));
-
-		row(await opened(), "Log out").click();
-		await flush();
-		Array.from(document.body.querySelector("[role='dialog']")!.querySelectorAll("button"))
-			.find((button) => button.textContent?.trim() === "Log out")!
-			.click();
-		await flush();
-		await flush();
-
-		expect(document.body.querySelector("[role='dialog']")).not.toBeNull();
-		expect(toast.error).toHaveBeenCalledWith("Could not log out");
-		expect(assign).not.toHaveBeenCalled();
 	});
 });

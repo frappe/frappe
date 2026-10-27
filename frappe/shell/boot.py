@@ -1,5 +1,7 @@
 # The v2 boot — a small payload of core plus the declaring app, not `frappe.sessions.get()`.
 
+from html import unescape
+
 import frappe
 from frappe import _
 from frappe.boot import DEFAULT_APP_SEQUENCE_ID
@@ -8,15 +10,19 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_completed_apps,
 	get_setup_wizard_not_required_apps,
 )
+from frappe.desk.link_title import get_link_titles
 from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
-from frappe.utils import orjson_dumps
+from frappe.utils import cstr, orjson_dumps, strip_html
 
 from . import SHELL_ROOT
-from .doctypes import metadata_version
+from .doctypes import get_address_table, get_doctype_owners, metadata_version
+from .index_layer import arrange, write_layer
+from .links import canonical_path
 from .navigation import NO_HOST, resolve_navigation
 from .permissions import has_app_permission
 from .registry import get_prefix_registry, prefix_map, shell_base, split_shell_path
+from .route_history import Visit, latest_visits
 
 # Bytes one top-level boot key may reach before boot logs it.
 KEY_BUDGET = 100_000
@@ -26,6 +32,9 @@ _BUDGET_LOG_TTL = 24 * 60 * 60
 
 # Fixed, so the rows group in the Error Log list.
 BUDGET_LOG_TITLE = "Boot key over budget"
+
+FAVOURITES_LIMIT = 8
+RECENT_LIMIT = 5
 
 
 def core_boot() -> dict:
@@ -78,11 +87,32 @@ def app_screen(app: str, screen: dict | None = None) -> dict:
 
 def index_boot() -> dict:
 	"""Boot for `/apps` itself, the index, which belongs to no app; the app list lives only here."""
-	# `@frappe.whitelist()` only excludes Guest; a Website User must not read core boot.
+	tiles = gated_index_tiles()
+	return {
+		**core_boot(),
+		"shell_base": f"/{SHELL_ROOT}",
+		"app": None,
+		"apps": arrange(tiles),
+		"favourites": index_favourites(),
+		"recent": index_recent(),
+	}
+
+
+@frappe.whitelist(methods=["POST"])
+def save_index_layer(order: list[str], hidden: list[str]) -> list[dict]:
+	"""Store the session user's order and hidden apps on the index; two empty lists reset it. Returns the tiles."""
+	tiles = gated_index_tiles()
+	write_layer(order, hidden, tiles)
+	return arrange(tiles)
+
+
+def gated_index_tiles() -> list[dict]:
+	"""The app layer's tiles, behind the index boot's own gate."""
+	# `@frappe.whitelist()` only excludes Guest; a Website User has no index.
 	if not has_app_permission("frappe"):
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
-	return {**core_boot(), "shell_base": f"/{SHELL_ROOT}", "app": None, "apps": index_tiles()}
+	return index_tiles()
 
 
 def index_tiles() -> list[dict]:
@@ -143,6 +173,114 @@ def may_link_out(app: str, screen: dict) -> bool:
 	except Exception:
 		frappe.log_error(title=f"add_to_apps_screen has_permission failed for {app}")
 		return False
+
+
+def index_favourites() -> list[dict]:
+	"""The person's latest favourites, newest first, less those whose record they can no longer open."""
+	rows = frappe.get_all(
+		"Favourite",
+		filters={"user": frappe.session.user},
+		fields=["reference_doctype", "reference_name"],
+		order_by="creation desc",
+		limit=FAVOURITES_LIMIT,
+	)
+	owners = get_doctype_owners()
+	names_by_doctype: dict[str, list[str]] = {}
+	for row in rows:
+		names_by_doctype.setdefault(row.reference_doctype, []).append(row.reference_name)
+
+	titles = {
+		doctype: readable_titles(doctype, names)
+		for doctype, names in names_by_doctype.items()
+		if doctype in owners and has_app_permission(owners[doctype])
+	}
+
+	favourites = []
+	for row in rows:
+		doctype, name = row.reference_doctype, row.reference_name
+		title = titles.get(doctype, {}).get(name)
+		if title is None:
+			continue
+
+		screen = app_screen(owners[doctype])
+		favourites.append(
+			{
+				"doctype": doctype,
+				"name": name,
+				"title": title,
+				"route": canonical_path(doctype, name),
+				"app": owners[doctype],
+				"app_title": screen["title"],
+				"app_logo": screen["logo"],
+			}
+		)
+
+	return favourites
+
+
+def index_recent() -> list[dict]:
+	"""The person's last distinct list and record addresses, newest first, less those they can no longer open."""
+	visits = [visit for visit in latest_visits(RECENT_LIMIT) if has_app_permission(visit.app)]
+	names_by_doctype: dict[str, list[str]] = {}
+	for visit in visits:
+		if visit.name is not None:
+			names_by_doctype.setdefault(visit.doctype, []).append(visit.name)
+
+	titles = {doctype: readable_titles(doctype, names) for doctype, names in names_by_doctype.items()}
+	recent = []
+	for visit in visits:
+		heading = visit_heading(visit, titles)
+		if heading is None:
+			continue
+
+		screen = app_screen(visit.app)
+		recent.append(
+			{
+				"route": visit.route,
+				"title": heading[0],
+				"kind": heading[1],
+				"visited": visit.visited,
+				"app": visit.app,
+				"app_title": screen["title"],
+				"app_logo": screen["logo"],
+			}
+		)
+
+	return recent
+
+
+def visit_heading(visit: Visit, titles: dict[str, dict[str, str]]) -> tuple[str, str | None] | None:
+	"""A visit's title and kind: the record's title and doctype, or the doctype and "List"; None if unreadable."""
+	if visit.name is None:
+		return (_(visit.doctype), _("List")) if frappe.has_permission(visit.doctype, "read") else None
+
+	title = titles[visit.doctype].get(visit.name)
+	if title is None:
+		return None
+	return title, None if visit.doctype in get_address_table()["singles"] else _(visit.doctype)
+
+
+def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:
+	"""`{name: title}` for the records of `names` this person may read; a raising doctype lists none."""
+	meta = frappe.get_meta(doctype)
+	if meta.is_virtual or not frappe.has_permission(doctype, "read"):
+		return {}
+
+	if meta.issingle:
+		return {doctype: _(doctype)} if doctype in names else {}
+
+	try:
+		titles = get_link_titles(doctype, meta.title_field or "name", set(names))
+	except Exception:
+		frappe.log_error(title=f"Index favourites failed for {doctype}")
+		return {}
+
+	return {name: plain_text(title) or name for name, title in titles.items()}
+
+
+def plain_text(value) -> str:
+	"""A title field may be a Text Editor; a chip draws text."""
+	return unescape(strip_html(cstr(value))).strip()
 
 
 def report_oversized_keys(boot: dict, prefix: str | None, reply: str | None = None) -> None:

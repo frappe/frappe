@@ -13,8 +13,6 @@
 				:items="navigation.rail"
 				:context="contexts.rail"
 				:current="current.railKey"
-				:share-link="shareLink"
-				@customize="customize.write('rail')"
 			/>
 		</template>
 
@@ -28,6 +26,7 @@
 				:title="panel.title"
 				:current="current.rowKey"
 				:sections="sections[panel.address]"
+				:collapsed="sidebarCollapsed"
 				customizable
 				@customize="customize.write('sidebar', panel.address)"
 			/>
@@ -50,6 +49,9 @@
 
 		<ShellSettingsDialog v-if="settingsOpened" />
 
+		<ShellPalette v-if="paletteLoaded" />
+		<LogoutDialog v-model="confirmingLogout" />
+
 		<!-- The open writer, here so a floating one outlives the page it was opened on. -->
 		<ComposerWindow :user="boot.session.user" />
 
@@ -60,6 +62,8 @@
 			:request="request"
 		/>
 
+		<ActKeys :open-argument="openArgument" />
+		<PaletteKey />
 		<ToastProvider />
 		<!-- frappe-ui's imperative dialog stack; `page.dialog.confirm` and `danger` render here. -->
 		<Dialogs />
@@ -67,11 +71,12 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, onUnmounted, provide, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, onUnmounted, ref, watch } from "vue";
 import { RouterView, useRoute, useRouter } from "vue-router";
 import { DesktopShell, Dialogs, ToastProvider } from "frappe-ui";
 import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
+import { browserMemory } from "@/browserMemory";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
 import { itemContext } from "@/navigation/context";
 import {
@@ -82,16 +87,28 @@ import {
 } from "@/navigation/current";
 import { sidebarMemory } from "@/navigation/sidebarMemory";
 import { sectionMemory } from "@/navigation/sectionMemory";
+import type { OpenArgument } from "./actKeys";
 import ComposerWindow from "./ComposerWindow.vue";
 import { closeCreates, createDialog, createRequests } from "./create";
 import CustomizeSidebarDialog, { type CustomizeTarget } from "./CustomizeSidebarDialog.vue";
-import { OpenSettingsKey } from "./openSettings";
+import LogoutDialog from "./LogoutDialog.vue";
+import { openArgumentStep, paletteOpen } from "./palette";
 import RailColumn from "./RailColumn.vue";
+import { useShellActs, type OpenSettings } from "./shellActs";
 import SidebarPanel from "./SidebarPanel.vue";
 import { useHashDialog } from "./useHashDialog";
 import UserMenu from "./UserMenu.vue";
 
 const ShellSettingsDialog = defineAsyncComponent(() => import("./ShellSettingsDialog.vue"));
+// Keys wait for no paint, so their code stays out of the cold-load chunk.
+const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => module.ActKeys));
+const PaletteKey = defineAsyncComponent(() =>
+	import("./paletteKey").then((module) => module.PaletteKey)
+);
+// Opened before the apps' acts are in, the palette waits for them.
+const ShellPalette = defineAsyncComponent(() =>
+	Promise.all([import("./ShellPalette.vue"), appActsPending()]).then(([module]) => module)
+);
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
@@ -181,8 +198,9 @@ function stamped(): string | undefined {
 }
 
 // The parameter seeds the record, then leaves the address by `replace` with no second history entry.
+// Each navigation, not each address: a back can land on the same address stamped with another sidebar.
 watch(
-	[() => route.fullPath, destinations],
+	[router.currentRoute, destinations],
 	() => {
 		// Repeated in the address it arrives as an array, which must still be consumed.
 		const asking = route.query.sidebar;
@@ -202,14 +220,15 @@ watch(
 );
 
 // The link to hand someone else; the parameter goes on only where it says something.
-const shareLink = computed(() => {
+// Built on the click: a link handed down as a value would redraw the rail on every route change.
+function shareLink(): string {
 	const sidebar = current.value.sidebar;
 	const query =
 		sidebar && sidebar !== canonical.value.sidebar ? { ...route.query, sidebar } : route.query;
 
 	const to = router.resolve({ path: route.path, query, hash: route.hash });
 	return new URL(to.href, window.location.origin).href;
-});
+}
 
 // The panel, or nothing. An empty sidebar is absent from the payload; the count is the last fence.
 const panel = computed(() => {
@@ -242,18 +261,49 @@ const customizing = computed<CustomizeTarget | null>(() => {
 });
 
 const settings = useHashDialog("settings");
-provide(OpenSettingsKey, (...segments) =>
-	settings.write(...segments.map((segment) => segment ?? ""))
-);
+const openSettings: OpenSettings = (...segments) =>
+	settings.write(...segments.map((segment) => segment ?? ""));
 
 // Loaded on the first open, then kept, so a close plays the dialog's leave transition.
 const settingsOpened = ref(false);
 watch(settings.open, (isOpen) => isOpen && (settingsOpened.value = true), { immediate: true });
 
+const openArgument: OpenArgument = (act) => openArgumentStep(act.name);
+
+// Loaded on the first open, then kept, like the settings dialog.
+const paletteLoaded = ref(false);
+watch(paletteOpen, (isOpen) => isOpen && (paletteLoaded.value = true), { immediate: true });
+
 function replace(next: Navigation) {
 	navigation.value = next;
 	boot.navigation = next;
 }
+
+const collapsedMemory = browserMemory(
+	"collapsed-sidebar",
+	boot.session.user.name,
+	(value): value is boolean => typeof value === "boolean",
+	"frappe:desk:sidebar-collapsed"
+);
+const sidebarCollapsed = ref(collapsedMemory.recall() ?? false);
+watch(sidebarCollapsed, collapsedMemory.remember);
+
+const confirmingLogout = ref(false);
+
+const { appActsPending } = useShellActs({
+	boot,
+	router,
+	openSettings,
+	confirmLogout: () => void (confirmingLogout.value = true),
+	rail: boot.app
+		? {
+				customize: () => customize.write("rail"),
+				shareLink,
+				sidebarCollapsed: () => (panel.value ? sidebarCollapsed.value : null),
+				toggleSidebar: () => void (sidebarCollapsed.value = !sidebarCollapsed.value),
+		  }
+		: undefined,
+});
 </script>
 
 <style scoped>

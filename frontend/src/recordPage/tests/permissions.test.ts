@@ -18,7 +18,7 @@ vi.mock("@framework/ui/api", () => ({
 }));
 
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
-import { whenLoaded } from "../pagePermissions";
+import { whenLoaded } from "@/acts/doctypeRight";
 import { resetRegistry } from "../registry";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { setSession } from "@framework/ui/useSession";

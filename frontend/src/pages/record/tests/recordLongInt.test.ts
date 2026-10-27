@@ -28,6 +28,7 @@ import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
 import { registerShell } from "@/router/routeFor";
+import { ActKeys } from "@/shell/actKeys";
 import { resetViewMemory } from "../viewMemory";
 
 registerStandardPages(standardPages);
@@ -134,7 +135,7 @@ async function mount() {
   await router.push("/note/N-1");
   const root = document.createElement("div");
   document.body.appendChild(root);
-  const app = createApp(defineComponent({ render: () => h(RouterView) }));
+  const app = createApp(defineComponent({ render: () => [h(RouterView), h(ActKeys)] }));
   app.use(router);
   app.provide("boot", boot);
   app.provide("addresses", addresses);
@@ -164,7 +165,7 @@ describe("a Long Int past 2^53 on the record page", () => {
     expect(input(root, "views").value).toBe(BIG);
 
     await editTitle(root, "Second");
-    window.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true }));
+    document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true }));
     await settle();
 
     expect(sent.patch).toBeDefined();

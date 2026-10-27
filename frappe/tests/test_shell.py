@@ -1395,6 +1395,22 @@ class TestNavigationItemRenderers(IntegrationTestCase):
 
 			self.assertTrue(contributes(source_dir))
 
+	def test_an_app_shipping_only_acts_reaches_the_bundle(self):
+		import os
+		import tempfile
+
+		from frappe.shell.manifest import contributes
+
+		with tempfile.TemporaryDirectory() as source_dir:
+			frontend = os.path.join(source_dir, "telephony", "frontend")
+			os.makedirs(frontend)
+			self.assertFalse(contributes(source_dir), "nothing shipped yet")
+
+			with open(os.path.join(frontend, "acts.js"), "w") as handle:
+				handle.write("export default []\n")
+
+			self.assertTrue(contributes(source_dir))
+
 
 class TestReplacementPageContributions(IntegrationTestCase):
 	"""An app whose only contribution is a replacement page still reaches the bundle."""

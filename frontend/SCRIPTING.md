@@ -192,14 +192,52 @@ whose `act` is the name and whose `reason` is `'missing'` (no item has that name
 reader lacks its right). A click, and later the palette and a key, show a failure in a
 toast instead, and the record reloads unless a `beforeSave` vetoed a save.
 
+`page.run` also runs the shell's acts, which outlive the page and are named `shell.<item>`.
+Each menu entry in the rail and the avatar menu is one of them: `shell.all_apps`,
+`shell.customize_sidebar`, `shell.copy_link` and `shell.toggle_sidebar` (while a sidebar
+shows), `shell.open_settings` with `{ prefix, pane, block }`, `shell.my_settings`,
+`shell.theme` with `'light'`, `'dark'` or `'system'`, `shell.desk_v1`, and `shell.log_out`,
+which asks first. `shell.create` takes a doctype, or `{ doctype, values }`.
+`page.create()` and `page.openSettings()` run `shell.create` and `shell.open_settings`.
+
+```js
+page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('shell.theme', 'dark') })
+```
+
+An app adds its own global acts in `<module>/frontend/acts.js`, whose default export is a
+list of acts. Each joins the shell surface under the app's name, so CRM's `log_a_call` is
+`shell.crm.log_a_call`, and its `run` receives `(shell, value)`, where `shell` holds
+`router`, `toast`, `call`, `run`, `create` and `openSettings` and nothing that needs a
+record. The desk imports the file at idle after the first paint, and `page.run` and the
+palette wait for it when asked sooner. A shell act's `right` is `{ doctype, ptype }`; an act
+whose right is a bare ptype such as `'create'` is ignored, with a warning. Give `label` as a
+getter, so it is translated each time it is read, also when the messages arrive late.
+
+```js
+// crm/fcrm/frontend/acts.js
+import { __ } from 'frappe/i18n'
+
+export default [
+  {
+    name: 'log_a_call',
+    get label() {
+      return __('Log a call')
+    },
+    icon: 'lucide-phone',
+    right: { doctype: 'CRM Call Log', ptype: 'create' },
+    run: (shell) => shell.create('CRM Call Log'),
+  },
+]
+```
+
 An act item takes four more keys, on `page.header`, `page.quickActions` and a tab's `create`:
 
 | Key | What it does |
 | --- | --- |
-| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. Stored and listed; the shell does not bind it yet. |
+| `key` | A default key combo in `useKeyboardShortcut` syntax, such as `'Mod+Shift+D'`. The shell binds it while the act is available, and a press runs the act as a click does. Where a page act and a shell act share a combo, the page act runs. A combo with `Mod` or `Ctrl` also fires in a field, and none fires in a dialog, a popover or a dropdown. A key on an act that has an `argument` opens the palette at its argument step. |
 | `right` | A right the act needs: a ptype on this doctype (`'write'`), read from `page.perms`, or `{ doctype, ptype }` on another doctype, read from that doctype's level 0 permission rows and the reader's roles. |
 | `palette` | `false` keeps the act out of the palette. A script and a key still run it. |
-| `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. |
+| `argument` | `{ label, options(page, query) }`: the one value the act asks for. `options` returns rows `{ value, label, description? }`, or a promise of them, and the chosen `value` reaches `run(page, value)`. The palette lists the rows under `label` (`'Users'`) and ranks them by the typed text, and asks `options` again after each pause in the typing. |
 
 ```js
 page.header.add({
@@ -902,8 +940,10 @@ in `beforeSave` vetoes the save and marks the field in one line.
 
 ### Saving: `page.save()`
 
-`page.save()` is the one path; the Save button, `Ctrl+S` / `Cmd+S` and a script all call
-it. `Ctrl+S` does not save the page while focus is in a dialog, a popover or a dropdown. The
+`page.save()` is the one path; the Save button, `Mod+S` (`Cmd+S` on macOS, `Ctrl+S`
+elsewhere) and a script all call it. `Mod+S` is the `key` of the `header.save` act, so it does
+not save the page while focus is in a dialog, a popover or a dropdown, or while a script hides
+Save. The
 order is fixed:
 
 1. Every field error clears.

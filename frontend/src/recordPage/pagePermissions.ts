@@ -1,8 +1,9 @@
 // What a script may ask about permissions: the rights dict, the session's roles, and a field's access.
-import { watch, type ComputedRef, type Ref } from "vue";
+import type { Ref } from "vue";
 import { useDocPermissions, type FieldAccess } from "@framework/ui/useDocPermissions";
 import { useUserRoles } from "@framework/ui/useUserRoles";
 import type { ActRight } from "@/acts/dispatcher";
+import { doctypeRight, whenLoaded } from "@/acts/doctypeRight";
 
 /** Enforcement bookkeeping the `permissions` part ships beside the rights. Closed list: the
  *  right set is open-ended (custom `Permission Type` rows), so never allowlist. */
@@ -51,15 +52,13 @@ export function createPagePermissions(
     ready: () => (loaded ??= whenLoaded(loading)),
     loaded: () => !loading.value,
     passes: (right) => {
-      const { doctype, ptype } = rightOn(right);
-      if (doctype === host.doctype) return Boolean(host.perms()[ptype]);
-      return useDocPermissions(doctype).holds(ptype);
+      const on = rightOn(right);
+      if (on.doctype === host.doctype) return Boolean(host.perms()[on.ptype]);
+      return doctypeRight.passes(on);
     },
     settled: (right) => {
-      const { doctype } = rightOn(right);
-      if (doctype === host.doctype) return undefined;
-      const { loading } = useDocPermissions(doctype);
-      return loading.value ? whenLoaded(loading) : undefined;
+      const on = rightOn(right);
+      return on.doctype === host.doctype ? undefined : doctypeRight.settled(on);
     },
   };
 
@@ -106,16 +105,4 @@ export function createPagePermissions(
     warned.add(message);
     console.warn(`[record-page] ${message}`);
   }
-}
-
-/** Resolves the first time `loading` is false, then disposes its watcher. */
-export function whenLoaded(loading: ComputedRef<boolean>): Promise<void> {
-  if (!loading.value) return Promise.resolve();
-  return new Promise((resolve) => {
-    const stop = watch(loading, (still) => {
-      if (still) return;
-      stop();
-      resolve();
-    });
-  });
 }

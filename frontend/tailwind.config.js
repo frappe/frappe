@@ -25,6 +25,8 @@ export default {
 		join(here, "../ui/src/**/*.{vue,js,ts,jsx,tsx}"),
 		join(here, "node_modules/frappe-ui/src/**/*.{vue,js,ts,jsx,tsx}"),
 		join(here, "node_modules/frappe-ui/frappe/**/*.{vue,js,ts,jsx,tsx}"),
+		// Its parts draw with classes nothing else uses: no padding and no active row without it.
+		join(here, "node_modules/frappe-ui/experimental/CommandPalette/**/*.vue"),
 		...appContent(manifest),
 	],
 	theme: { extend: {} },

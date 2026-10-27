@@ -74,6 +74,9 @@ _Avoid_: default route, implicit route.
 
 **Index**: <a id="index"></a>
 The page at `/apps`, which belongs to no app: one way into each app the user can open.
+Its tiles stack two layers: the app layer (the hook's `sequence_id`) and the person's user
+layer (their order and the apps they hid). A hidden app leaves the grid, and the filter still
+finds it. A site layer would sit between the two; it is not built.
 _Avoid_: apps screen (desk v1's page), home page.
 
 **Landing**: <a id="landing"></a>
@@ -139,7 +142,7 @@ _Avoid_: customization (that is the *effect*; a contribution is the delivery), p
 extension (see below).
 
 **Kind**: <a id="kind"></a>
-Which of the five contributions a file is — and a kind **is a path**, not a declaration.
+Which contribution a file is — and a kind **is a path**, not a declaration.
 Only ever this. A navigation item's axis is its **type**, and `Record` appears in both lists:
 
 | path | kind |
@@ -153,6 +156,7 @@ Only ever this. A navigation item's axis is its **type**, and `Record` appears i
 | `<module>/custom/<scrubbed>/pages.json` | replacement, **foreign** doctype |
 | `<module>/custom/<scrubbed>/pages/<name>.js` | replacement, **foreign** doctype |
 | `<module>/frontend/settings/<name>.vue` | a settings block's component, loaded lazily |
+| `<module>/frontend/acts.js` | an app's global acts on the **shell surface**, imported at idle |
 
 `frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
 handler files: warned about and ignored for now.
@@ -327,10 +331,10 @@ _Avoid_: deprecation (implies a period of continued working).
 
 **Act**: <a id="act"></a>
 Something the desk does when asked by name, by the palette, a script, a key or an LLM. It
-is a surface item that has `run`: a header item, a quick action, or a tab's `create` entry.
-Its full name is `<surface>.<item>` (`header.delete`, `tabs.attach_file`), and one
-dispatcher runs it whoever calls, after it checks that the act is present, not hidden, and
-allowed by its `right`. A **held** act is a script's act that waits for the replay or hold
+is a surface item that has `run`: a header item, a quick action, a tab's `create` entry, a
+list page built-in, or a shell act. Its full name is `<surface>.<item>` (`header.delete`,
+`list.create`, `shell.toggle_sidebar`), and one dispatcher runs it whoever calls, after it
+checks that the act is present, not hidden, and allowed by its `right`. A **held** act is a script's act that waits for the replay or hold
 to commit; *held* says when the act lands, it is not a second concept.
 _Avoid_: command (it stays only in the feature's name, the command palette, and frappe-ui's
 component), action (already overloaded; see **Words that collide**).
@@ -339,10 +343,14 @@ component), action (already overloaded; see **Words that collide**).
 One line in the palette, showing an act, a place or a record. Not a child table's row; see
 **Words that collide**.
 
+**Recent**: <a id="recent"></a>
+A place or record this user opened lately, by any route, kept in this browser. The palette
+shows the last few on the empty query.
+
 **Shell surface**: <a id="shell-surface"></a>
 The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
-app's global acts, named `shell.<app>.<item>`. Same item shape and verbs as a page surface;
-`run` receives `(shell, value)`.
+app's global acts from its `acts.js`, named `shell.<app>.<item>`. Same item shape as a page surface, with no
+verbs for scripts yet; `run` receives `(shell, value)`.
 
 ### The settings dialog
 

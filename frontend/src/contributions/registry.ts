@@ -4,6 +4,7 @@ import contributions from 'virtual:frappe/contributions'
 import { addFileScript } from '@/recordPage'
 import type { ItemRenderer } from '@/navigation/types'
 import type {
+  ActsContribution,
   DoctypeContribution,
   ListHandlers,
   PageContribution,
@@ -58,6 +59,9 @@ export function settingsComponentFor(app: string, name: string) {
   return found?.component
 }
 
+/** Each active app's `acts.js`, in the site's app order; filled by `registerContributions`. */
+export const actsFiles: ActsContribution[] = []
+
 /**
  * Run order per doctype: the owning app first, then the site's `app_order`. Ownership is
  * structural: a file under `custom/` is somebody else's doctype.
@@ -87,6 +91,7 @@ function ordered<T extends { app: string }>(
 export function registerContributions(appOrder: string[]) {
   registerItemTypes(appOrder)
   registerReplacements(appOrder)
+  registerActs(appOrder)
 
   const byDoctype = new Map<string, DoctypeContribution[]>()
   for (const contribution of contributions.doctypes) {
@@ -108,6 +113,13 @@ export function registerContributions(appOrder: string[]) {
       addFileScript(doctype, { app: contribution.app, handlers: contribution.handlers })
     }
   }
+}
+
+/** Only an app the site has active adds acts, in the site's order. */
+function registerActs(appOrder: string[]) {
+  const active = contributions.acts.filter((contribution) => appOrder.includes(contribution.app))
+  actsFiles.length = 0
+  actsFiles.push(...ordered(active, appOrder))
 }
 
 /**

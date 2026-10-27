@@ -72,13 +72,39 @@ export type Boot = {
 	// click costs no request. Absent on the index. What an app contains is `contents.ts`.
 	navigation?: Navigation;
 
-	// Present on the index only. A `link` tile leaves the shell: its route is the app's own UI or desk v1.
+	// Present on the index only, in the person's order. A `link` tile leaves the shell: its route is
+	// the app's own UI or desk v1. A `hidden` tile is left out of the grid but still found by the filter.
 	apps?: {
 		app: string;
 		title: string;
 		logo?: string | null;
 		kind: "prefix" | "link";
 		route: string;
+		hidden: boolean;
+	}[];
+
+	// Present on the index only: the person's latest favourite records, newest first.
+	favourites?: {
+		doctype: string;
+		name: string;
+		title: string;
+		route: string;
+		app: string;
+		app_title: string;
+		app_logo?: string | null;
+	}[];
+
+	// Present on the index only: the person's last list and record addresses, newest first.
+	recent?: {
+		route: string;
+		title: string;
+		/** The record's doctype, "List" for a list, none for a single. */
+		kind: string | null;
+		/** On the site's clock, `session.timezone`. */
+		visited: string;
+		app: string;
+		app_title: string;
+		app_logo?: string | null;
 	}[];
 
 	// --- the declaring app's contribution, merged under core ---

@@ -498,3 +498,34 @@ describe("a settings component", () => {
     ]);
   });
 });
+
+describe("an app's acts", () => {
+  const ACTS = "export default []";
+
+  it("are found at <module>/frontend/acts.js, one file per module", () => {
+    const [crm] = bench({
+      crm: {
+        "fcrm/frontend/acts.js": ACTS,
+        "telephony/frontend/acts.js": ACTS,
+        "fcrm/doctype/crm_deal/frontend/acts.js": ACTS,
+      },
+    });
+
+    expect(discover([crm]).acts).toEqual([
+      { app: "crm", file: join(crm.source_dir, "fcrm/frontend/acts.js") },
+      { app: "crm", file: join(crm.source_dir, "telephony/frontend/acts.js") },
+    ]);
+  });
+
+  it("are imported lazily, so the cold load carries none of their code", () => {
+    const [crm] = bench({ crm: { "fcrm/frontend/acts.js": ACTS } });
+    const file = join(crm.source_dir, "fcrm/frontend/acts.js");
+
+    const code = load(contributions([crm]));
+
+    expect(code).toContain(
+      `  acts: [\n` + `    { app: "crm", load: () => import(${JSON.stringify(file)}) },\n` + `  ],`,
+    );
+    expect(code).not.toMatch(/^import .*acts\.js/m);
+  });
+});

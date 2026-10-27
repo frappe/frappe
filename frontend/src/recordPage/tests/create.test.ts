@@ -1,5 +1,5 @@
-// `page.create`: the shell's Create, given only the values, and quiet once the page has gone.
-import { describe, expect, it, vi } from "vitest";
+// `page.create`: the shell's `create` act, given only the values, and quiet once the page has gone.
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { ref } from "vue";
 
 vi.mock("frappe-ui", () => ({
@@ -19,7 +19,23 @@ vi.mock("@framework/ui/api", () => ({
   getMeta: vi.fn(async () => ({ data: null })),
 }));
 
+import { acts, ActDenied } from "@/acts/dispatcher";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
+
+let release = () => {};
+afterEach(() => release());
+
+/** A shell surface holding only `shell.create`, which runs `create` with the act's value. */
+function shellCreate(create: (value: unknown) => unknown) {
+  release = acts.register({
+    surfaces: { shell: () => [{ item: { name: "create", run: (_shell, value) => create(value) }, hidden: false }] },
+    context: () => undefined,
+    passes: () => false,
+    settled: () => undefined,
+    hold: async (work) => work(),
+    failed: () => {},
+  });
+}
 
 function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
   return {
@@ -45,39 +61,44 @@ function makeHost(overrides: Partial<RecordPageHost> = {}): RecordPageHost {
 }
 
 describe("page.create", () => {
-  it("opens the host's Create with only the values, and resolves with its answer", async () => {
-    const openCreate = vi.fn(async () => ({ name: "CONTACT-1" }));
-    const { page } = createRecordPage(makeHost({ openCreate }));
+  it("runs shell.create with the doctype and only the values, and resolves with its answer", async () => {
+    const create = vi.fn(async () => ({ name: "CONTACT-1" }));
+    shellCreate(create);
+    const { page } = createRecordPage(makeHost());
 
     const created = await page.create("Contact", {
       values: { company: "Acme" },
       onSave: () => {},
     } as any);
 
-    expect(openCreate).toHaveBeenCalledWith("Contact", { values: { company: "Acme" } });
+    expect(create).toHaveBeenCalledWith({ doctype: "Contact", values: { company: "Acme" } });
     expect(created).toEqual({ name: "CONTACT-1" });
   });
 
   it("passes no values when the script gives none", async () => {
-    const openCreate = vi.fn(async () => null);
-    const { page } = createRecordPage(makeHost({ openCreate }));
+    const create = vi.fn(async () => null);
+    shellCreate(create);
+    const { page } = createRecordPage(makeHost());
 
     expect(await page.create("Contact")).toBeNull();
-    expect(openCreate).toHaveBeenCalledWith("Contact", { values: undefined });
+    expect(create).toHaveBeenCalledWith({ doctype: "Contact", values: undefined });
   });
 
   it("resolves null without opening once the page has left", async () => {
-    const openCreate = vi.fn(async () => ({ name: "CONTACT-1" }));
-    const controller = createRecordPage(makeHost({ openCreate }));
+    const create = vi.fn(async () => ({ name: "CONTACT-1" }));
+    shellCreate(create);
+    const controller = createRecordPage(makeHost());
     controller.leave();
 
     expect(await controller.page.create("Contact", { values: { company: "Acme" } })).toBeNull();
-    expect(openCreate).not.toHaveBeenCalled();
+    expect(create).not.toHaveBeenCalled();
   });
 
-  it("resolves null on a host with no Create", async () => {
+  it("rejects with ActDenied when no shell holds the act", async () => {
     const { page } = createRecordPage(makeHost());
 
-    expect(await page.create("Contact", { values: { company: "Acme" } })).toBeNull();
+    const denied = await page.create("Contact").catch((error) => error);
+    expect(denied).toBeInstanceOf(ActDenied);
+    expect(denied).toMatchObject({ act: "shell.create", reason: "missing" });
   });
 });

@@ -69,10 +69,18 @@ export type SettingsComponentContribution = {
   component: () => Promise<unknown>
 }
 
+// An app's global acts: <module>/frontend/acts.js, whose default export is a list of acts. The
+// shell imports it at idle and names each act `shell.<app>.<item>`.
+export type ActsContribution = {
+  app: string
+  load: () => Promise<{ default?: unknown }>
+}
+
 export type Contributions = {
   doctypes: DoctypeContribution[]
   pages: PageContribution[]
   itemTypes: ItemTypeContribution[]
   settings: SettingsComponentContribution[]
+  acts: ActsContribution[]
   replacements: ReplacementContribution[]
 }

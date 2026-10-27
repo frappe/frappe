@@ -163,10 +163,11 @@ import { FILES_TAB, recordTabBuiltins } from "./record/tabs/recordTabs";
 import { FORM_CLASSES } from "./record/formClasses";
 import { projectRecordHeader } from "./record/recordHeaderProjection";
 import { discardChanges } from "./record/discardChanges";
-import { runSave, useSaveKeys } from "./record/recordSave";
+import { runSave, useUnloadGuard } from "./record/recordSave";
 import { provideRecordCommits } from "./record/recordCommits";
 import { landOnField, stopLanding, tabOf } from "./record/landOnField";
 import { useRecordTabs } from "./record/tabs/useRecordTabs";
+import { registerTabRows } from "./record/tabs/tabRows";
 import {
 	activityPointer,
 	addressesFeed,
@@ -214,16 +215,14 @@ import {
 	shownInDialog,
 	stripTags,
 } from "./record/saveResponse";
-import { openCreate } from "@/shell/create";
-import { OpenSettingsKey } from "@/shell/openSettings";
 import PageFrame from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
+import { recents } from "@/shell/recents";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
-const openSettings = inject(OpenSettingsKey, undefined);
 const route = useRoute();
 const router = useRouter();
 
@@ -261,6 +260,13 @@ const doctype = computed(() => addresses.doctypeOf(String(route.params.doctype))
 const docname = computed(() => String(route.params.name));
 
 const dirty = computed(() => JSON.stringify(doc.value) !== JSON.stringify(saved.value));
+
+watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRows(created)));
+
+watch(
+	() => saved.value.name === docname.value && saved.value[meta.value?.title_field],
+	(title) => title && recents.retitle(route.path, String(title))
+);
 
 // Off the sidecar, like the people rows: a favourite is never part of the draft.
 const favourites = computed(() => favouritesOf(docinfo.value, boot.session.user.name));
@@ -387,7 +393,7 @@ function headerBuiltins(): HeaderItem[] {
 			display: "button",
 			run: toggleFavourite,
 		},
-		{ name: "save", label: "Save", display: "button", run: runSave },
+		{ name: "save", label: "Save", display: "button", key: "Mod+S", run: saveFromHeader },
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
@@ -417,6 +423,12 @@ function toggleOnSidecar(
 			toast.error(errorMessage(e));
 		}
 	});
+}
+
+// Only a key, the palette or a script reaches Save on a clean doc, so it answers with the button's tooltip text.
+function saveFromHeader(page: RecordPageApi) {
+	if (!dirty.value) toast.info(__("No changes to save"));
+	return runSave(page);
 }
 
 function toggleFavourite(page: RecordPageApi) {
@@ -750,8 +762,6 @@ function buildController({ target, pointer, details, panel, view }: Opening) {
 		save: write,
 		reload: load,
 		router,
-		openCreate,
-		openSettings,
 		sourcesReady: () => loadRecordScripts(target.doctype),
 		restoresView: () => view !== null,
 		actFailed,
@@ -898,15 +908,7 @@ onBeforeRouteUpdate((to, from) => {
 	return confirmLeave();
 });
 
-useSaveKeys({
-	// A key press is deliberate, so a clean doc answers with the button's tooltip text.
-	save: () => {
-		if (!controller.value) return;
-		if (!dirty.value) toast.info("No changes to save");
-		runSave(controller.value.page);
-	},
-	unsaved: () => dirty.value,
-});
+useUnloadGuard(() => dirty.value);
 
 onUnmounted(() => {
 	stopLanding();

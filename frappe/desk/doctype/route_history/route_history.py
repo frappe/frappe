@@ -60,7 +60,8 @@ def frequently_visited_links():
 	candidates = frappe.get_all(
 		"Route History",
 		fields=["route", {"COUNT": "name", "as": "count"}],
-		filters={"user": frappe.session.user},
+		# Desk v2's `/apps/…` addresses are rows too, and desk v1's router cannot open them.
+		filters={"user": frappe.session.user, "route": ["not like", "/apps/%"]},
 		group_by="route",
 		order_by="count desc",
 		limit=25,

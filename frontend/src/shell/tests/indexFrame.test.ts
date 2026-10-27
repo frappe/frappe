@@ -21,7 +21,7 @@ const index = {
 	shell_base: "/apps",
 	prefixes: { desk: { app: "frappe", modular: false } },
 	session,
-	apps: [{ app: "frappe", title: "Framework", logo: null, kind: "prefix", route: "/apps/desk" }],
+	apps: [{ app: "frappe", title: "Framework", logo: null, kind: "prefix", route: "/apps/desk", hidden: false }],
 } as unknown as Boot;
 
 const desk = {

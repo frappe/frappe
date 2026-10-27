@@ -1,4 +1,4 @@
-<!-- The avatar menu: the person's profile, settings, theme, desk v1 and log out. The rail and the index draw it. -->
+<!-- The avatar menu: the person's profile, the shell's acts for them and the page's own rows. The rail and the index draw it. -->
 <template>
 	<Dropdown :options="menu" side="right" align="end">
 		<button
@@ -14,75 +14,45 @@
 			/>
 		</button>
 	</Dropdown>
-
-	<LogoutDialog v-model="confirmingLogout" />
 </template>
 
 <script setup lang="ts">
-import { computed, h, inject, ref } from "vue";
+import { computed, h, inject } from "vue";
 import { Avatar, Dropdown, useColorScheme, type DropdownOptions } from "frappe-ui";
+import { acts } from "@/acts/dispatcher";
 import type { Boot } from "@/boot";
-import LogoutDialog from "./LogoutDialog.vue";
-import { OpenSettingsKey } from "./openSettings";
+import { pageMenuItems } from "./pageMenu";
+import { colorSchemes, shellAct, shellMenu } from "./shellActs";
 
 const USER_CELL =
 	"flex rounded-full transition hover:opacity-90 focus-visible:ring-0 focus-visible:focus-ring";
 
 const boot = inject<Boot>("boot")!;
-const openSettings = inject(OpenSettingsKey)!;
 
-const { colorScheme, setColorScheme } = useColorScheme();
-const SCHEMES = [
-	{ label: "Light", value: "light", icon: "lucide-sun" },
-	{ label: "Dark", value: "dark", icon: "lucide-moon" },
-	{ label: "System", value: "system", icon: "lucide-monitor" },
-] as const;
+const { colorScheme } = useColorScheme();
 
-const confirmingLogout = ref(false);
+const menu = computed<DropdownOptions>(() =>
+	[
+		[profileHeader()],
+		[...shellMenu(["my_settings"]), ...themeRow(), ...pageMenuItems.value],
+		shellMenu(["desk_v1"]),
+		shellMenu(["log_out"]).map((option) => ({ ...option, theme: "red" as const })),
+	]
+		.filter((options) => options.length)
+		.map((options) => ({ group: "", hideLabel: true, options }))
+);
 
-const menu = computed<DropdownOptions>(() => [
-	{ group: "", hideLabel: true, options: [profileHeader()] },
-	{
-		group: "",
-		hideLabel: true,
-		options: [
-			{
-				label: "My settings",
-				icon: "lucide-circle-user",
-				onClick: () => openSettings("desk", "profile"),
-			},
-			{
-				label: "Theme",
-				icon: "lucide-sun-moon",
-				submenu: SCHEMES.map((scheme) => ({
-					label: scheme.label,
-					icon: scheme.icon,
-					selected: colorScheme.value === scheme.value,
-					onClick: () => setColorScheme(scheme.value),
-				})),
-			},
-		],
-	},
-	{
-		group: "",
-		hideLabel: true,
-		options: [
-			{ label: "Desk v1", icon: "lucide-arrow-left-right", onClick: () => leave("/app") },
-		],
-	},
-	{
-		group: "",
-		hideLabel: true,
-		options: [
-			{
-				label: "Log out",
-				icon: "lucide-log-out",
-				theme: "red",
-				onClick: () => (confirmingLogout.value = true),
-			},
-		],
-	},
-]);
+function themeRow() {
+	const theme = shellAct("theme");
+	if (!theme) return [];
+	const submenu = colorSchemes().map((scheme) => ({
+		label: scheme.label,
+		icon: scheme.icon,
+		selected: colorScheme.value === scheme.value,
+		onClick: () => void acts.perform(theme.name, scheme.value),
+	}));
+	return [{ label: theme.label!, icon: theme.icon, submenu }];
+}
 
 // A disabled row cannot be selected; the inline cursor beats the wrapper's `cursor-not-allowed`.
 function profileHeader() {
@@ -113,9 +83,5 @@ function profileHeader() {
 				),
 		},
 	};
-}
-
-function leave(href: string) {
-	window.location.assign(href);
 }
 </script>

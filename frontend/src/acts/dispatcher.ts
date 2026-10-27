@@ -1,5 +1,6 @@
 // The one act dispatcher: it runs an act by its full name, `<surface>.<item>`, whoever asks.
 // A page registers the surfaces it draws; the shell and the list page register theirs the same way.
+import { shallowReactive } from "vue";
 import { toast } from "frappe-ui";
 import { __ } from "@/i18n";
 
@@ -50,6 +51,8 @@ export interface ActScope<Context = any> {
 	passes: (right: ActRight) => boolean;
 	/** A promise while `passes` cannot answer for the right yet; else nothing. */
 	settled: (right: ActRight) => Promise<void> | undefined;
+	/** A promise while the act `name`, which it does not hold yet, may still load; else nothing. */
+	loading?: (name: string) => Promise<void> | undefined;
 	hold: <T>(work: () => T | Promise<T>) => Promise<T>;
 	/** An act the reader asked for threw; the scope shows it and recovers. */
 	failed: (error: unknown) => void | Promise<void>;
@@ -94,7 +97,7 @@ interface Found {
 }
 
 export class ActDispatcher {
-	private scopes = new Map<string, ActScope>();
+	private scopes = shallowReactive(new Map<string, ActScope>());
 
 	/** A later scope takes a surface name over; the returned function lets go of only its own. */
 	register(scope: ActScope): () => void {
@@ -105,14 +108,21 @@ export class ActDispatcher {
 		};
 	}
 
-	/** Every act present, not hidden and allowed now, with its fields, `palette: false` ones too. */
-	available(): AvailableAct[] {
+	/** Every act present, not hidden and allowed now, `palette: false` ones too; `only` narrows them before a right is read. */
+	available(only: (item: ActItem) => boolean = () => true): AvailableAct[] {
 		const listed: AvailableAct[] = [];
 		for (const [surface, scope] of this.scopes)
-			for (const { item, hidden } of scope.surfaces[surface]())
-				if (isAct(item) && !hidden && (!item.right || scope.passes(item.right)))
-					listed.push(describe(`${surface}.${item.name}`, item, scope));
+			for (const entry of scope.surfaces[surface]())
+				if (isAct(entry.item) && only(entry.item) && isAvailable(scope, entry))
+					listed.push(describe(`${surface}.${entry.item.name}`, entry.item, scope));
 		return listed;
+	}
+
+	/** One act by its full name while `available()` would list it; reads only its own surface. */
+	find(name: string): AvailableAct | undefined {
+		const found = this.lookup(name);
+		if (!found || !isAvailable(found.scope, found.entry)) return undefined;
+		return describe(name, found.entry.item, found.scope);
 	}
 
 	/** Runs the act inside its scope's hold; rejects with `ActDenied`, or with what the act threw. */
@@ -139,9 +149,11 @@ export class ActDispatcher {
 		}
 	}
 
-	// Synchronous unless a right must settle, so a click's act starts in the click's own tick.
+	// Synchronous unless a right must settle or the act still loads, so a click's act starts in the click's own tick.
 	private check(name: string): Checked | Promise<Checked> {
 		const found = this.lookup(name);
+		const loading = found ? undefined : this.scopes.get(surfaceOf(name))?.loading?.(name);
+		if (loading) return loading.then(() => this.check(name));
 		const right = found?.entry.item.right;
 		const settling = found && right ? found.scope.settled(right) : undefined;
 		if (settling) return settling.then(() => this.allowed(name, this.sameScope(name, found)));
@@ -163,11 +175,11 @@ export class ActDispatcher {
 	}
 
 	private lookup(name: string): Found | null {
-		const dot = name.indexOf(".");
-		const scope = dot > 0 ? this.scopes.get(name.slice(0, dot)) : undefined;
+		const surface = surfaceOf(name);
+		const scope = this.scopes.get(surface);
 		if (!scope) return null;
-		const item = name.slice(dot + 1);
-		const entry = scope.surfaces[name.slice(0, dot)]().find(
+		const item = name.slice(surface.length + 1);
+		const entry = scope.surfaces[surface]().find(
 			(candidate) => candidate.item.name === item && isAct(candidate.item)
 		);
 		return entry ? { scope, entry } : null;
@@ -177,8 +189,17 @@ export class ActDispatcher {
 /** The desk's one dispatcher. */
 export const acts = new ActDispatcher();
 
+function surfaceOf(name: string) {
+	const dot = name.indexOf(".");
+	return dot > 0 ? name.slice(0, dot) : "";
+}
+
 function isAct(item: ActItem) {
 	return typeof item.run === "function";
+}
+
+function isAvailable(scope: ActScope, { item, hidden }: ActEntry) {
+	return !hidden && (!item.right || scope.passes(item.right));
 }
 
 function describe(name: string, item: ActItem, scope: ActScope): AvailableAct {
