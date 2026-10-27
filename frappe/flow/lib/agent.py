@@ -57,15 +57,20 @@ def sync_tools(_app: str | None = None) -> None:
 def hooked_tools() -> list[Tool]:
 	"""Each `@tool` the installed apps list under the `flow_tools` hook. One whose name another
 	tool holds, a builtin, a desk tool or another app's, is skipped with an Error Log, so an
-	app cannot fail migrate."""
+	app cannot fail migrate. One the app moved to another module takes its old row over."""
 	tools: dict[str, Tool] = {}
 	for path in frappe.get_hooks("flow_tools"):
 		hooked = frappe.get_attr(path)
 		if hooked.name in tools:
 			taken = tools[hooked.name] is not hooked
 		else:
-			row = frappe.db.get_value("Flow Tool", hooked.name, "import_path", as_dict=True)
-			taken = bool(row) and row.import_path != _tool_import_path(hooked)
+			import_path = _tool_import_path(hooked)
+			row = frappe.db.get_value(
+				"Flow Tool", hooked.name, ["import_path", "type", "is_system_generated"], as_dict=True
+			)
+			taken = (
+				bool(row) and row.import_path != import_path and _holds_name(hooked.name, row, import_path)
+			)
 		if taken:
 			frappe.log_error(title=f"Flow tool {path!r} skipped: the name {hooked.name!r} is taken")
 		else:
@@ -159,13 +164,17 @@ def _ensure_tool(tool: Tool) -> str:
 		"background": int(tool.background is True),
 		"is_system_generated": 1,
 	}
-	row = frappe.db.get_value("Flow Tool", tool.name, ["import_path", *definition], as_dict=True)
-	if row and row.import_path != import_path:
+	row = frappe.db.get_value("Flow Tool", tool.name, ["import_path", "type", *definition], as_dict=True)
+	if row and row.import_path != import_path and _holds_name(tool.name, row, import_path):
 		frappe.throw(
 			_("Flow Tool {0} already exists with a different definition.").format(tool.name),
 			title=_("Tool Conflict"),
 		)
-	if row and all(row.get(key) == value for key, value in definition.items()):
+	if (
+		row
+		and row.import_path == import_path
+		and all(row.get(key) == value for key, value in definition.items())
+	):
 		return tool.name
 	if row:
 		doc = frappe.get_doc("Flow Tool", tool.name)
@@ -179,9 +188,29 @@ def _ensure_tool(tool: Tool) -> str:
 				"import_path": import_path,
 			}
 		)
-	doc.update(definition)
+	doc.update({**definition, "import_path": import_path})
 	doc.save(ignore_permissions=True)
 	return tool.name
+
+
+def _holds_name(name: str, row: dict, import_path: str) -> bool:
+	"""Whether the Flow Tool `row` keeps its name from a tool at `import_path`: a builtin, a desk
+	tool, or another installed app's tool that still imports. A row the same app left behind
+	when it moved the tool, or one whose code is gone, gives way."""
+	from frappe.flow.tools.builtins import BUILTIN_TOOLS
+
+	if name in {builtin.name for builtin in BUILTIN_TOOLS}:
+		return True
+	if not row.is_system_generated or row.type != "Imported":
+		return True
+	app = row.import_path.split(".", 1)[0]
+	if app == import_path.split(".", 1)[0] or app not in frappe.get_installed_apps():
+		return False
+	try:
+		frappe.get_attr(row.import_path)
+	except Exception:
+		return False
+	return True
 
 
 def _tool_import_path(tool: Tool) -> str:

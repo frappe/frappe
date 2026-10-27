@@ -219,6 +219,18 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 			skipped,
 		)
 
+	def test_an_app_tool_takes_over_its_row_when_moved_or_left_by_a_gone_app(self):
+		hooked = with_app_tools(frappe.get_hooks, "probe_app_tool")
+		new_path = f"{__name__}.probe_app_tool"
+		for old_path in ("frappe.flow.tests.old_tools.probe_app_tool", "gone_app.ai.probe_app_tool"):
+			with patch("frappe.get_hooks", side_effect=hooked):
+				sync_tools()
+				frappe.db.set_value("Flow Tool", "probe_app_tool", "import_path", old_path)
+				sync_builtin_assistant(model=self.model.name)
+			self.assertEqual(frappe.db.get_value("Flow Tool", "probe_app_tool", "import_path"), new_path)
+			tools = {row.tool for row in frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).tools}
+			self.assertIn("probe_app_tool", tools)
+
 	def test_a_new_model_replaces_only_one_the_assistant_lost(self):
 		with patch("frappe.flow.assistant.assistant.sync_builtin_assistant") as sync:
 			self.insert_model("Second Model")
