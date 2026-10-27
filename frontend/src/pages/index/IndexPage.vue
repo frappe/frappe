@@ -150,7 +150,7 @@ const box = ref<TextInputExposed | null>(null);
 const query = ref("");
 const arranging = ref(false);
 const matches = computed(() => (arranging.value ? [] : matching(apps.value, query.value)));
-// Not an app, so the filter never matches it: it shows only beside the unfiltered grid.
+// Never a filter match, and only with the grid: the arrow keys must not reach an undrawn item.
 const moreApps = computed(() =>
 	matches.value.length && !query.value.trim() ? boot.more_apps ?? null : null
 );
