@@ -196,7 +196,7 @@ describe("displayValue", () => {
 });
 
 describe("a Read Only field", () => {
-  it("formats as Data with the same options", () => {
+  it("routes through the Data path, keeping its options", () => {
     for (const options of ["", "Email", "IBAN", "URL"])
       expect(displayValue("ab@example.com", field("Read Only", { options }))).toBe(
         displayValue("ab@example.com", field("Data", { options }))

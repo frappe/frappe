@@ -56,6 +56,8 @@ export function displayValue(
   field: FieldMeta,
   options: DisplayOptions = {},
 ): string {
+  // A no-op until the Data options task (#43212) adds Data cases; then they
+  // format a `Read Only` field with its `options` too.
   if (field.fieldtype === "Read Only")
     return displayValue(value, { ...field, fieldtype: "Data" }, options);
   const { fieldtype } = field;
