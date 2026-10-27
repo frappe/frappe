@@ -16,6 +16,7 @@ vi.mock("virtual:frappe/contributions", () => ({
 		doctypes: [],
 		pages: [],
 		itemTypes: [],
+		acts: [],
 		replacements: [
 			{
 				app: "erpnext",

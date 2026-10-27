@@ -204,6 +204,32 @@ which asks first. `shell.create` takes a doctype, or `{ doctype, values }`.
 page.header.add({ name: 'dark', label: 'Dark theme', run: (page) => page.run('shell.theme', 'dark') })
 ```
 
+An app adds its own global acts in `<module>/frontend/acts.js`, whose default export is a
+list of acts. Each joins the shell surface under the app's name, so CRM's `log_a_call` is
+`shell.crm.log_a_call`, and its `run` receives `(shell, value)`, where `shell` holds
+`router`, `toast`, `call`, `run`, `create` and `openSettings` and nothing that needs a
+record. The desk imports the file at idle after the first paint, and `page.run` and the
+palette wait for it when asked sooner. A shell act's `right` is `{ doctype, ptype }`; an act
+whose right is a bare ptype such as `'create'` is ignored, with a warning. Give `label` as a
+getter, so it is translated each time it is read, also when the messages arrive late.
+
+```js
+// crm/fcrm/frontend/acts.js
+import { __ } from 'frappe/i18n'
+
+export default [
+  {
+    name: 'log_a_call',
+    get label() {
+      return __('Log a call')
+    },
+    icon: 'lucide-phone',
+    right: { doctype: 'CRM Call Log', ptype: 'create' },
+    run: (shell) => shell.create('CRM Call Log'),
+  },
+]
+```
+
 An act item takes four more keys, on `page.header`, `page.quickActions` and a tab's `create`:
 
 | Key | What it does |

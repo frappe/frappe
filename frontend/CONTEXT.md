@@ -142,7 +142,7 @@ _Avoid_: customization (that is the *effect*; a contribution is the delivery), p
 extension (see below).
 
 **Kind**: <a id="kind"></a>
-Which of the five contributions a file is — and a kind **is a path**, not a declaration.
+Which contribution a file is — and a kind **is a path**, not a declaration.
 Only ever this. A navigation item's axis is its **type**, and `Record` appears in both lists:
 
 | path | kind |
@@ -156,6 +156,7 @@ Only ever this. A navigation item's axis is its **type**, and `Record` appears i
 | `<module>/custom/<scrubbed>/pages.json` | replacement, **foreign** doctype |
 | `<module>/custom/<scrubbed>/pages/<name>.js` | replacement, **foreign** doctype |
 | `<module>/frontend/settings/<name>.vue` | a settings block's component, loaded lazily |
+| `<module>/frontend/acts.js` | an app's global acts on the **shell surface**, imported at idle |
 
 `frontend/<name>.js` beside `pages/<name>.js`, and `custom/<x>/<name>.js`, are reserved
 handler files: warned about and ignored for now.
@@ -348,7 +349,7 @@ shows the last few on the empty query.
 
 **Shell surface**: <a id="shell-surface"></a>
 The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an
-app's global acts, named `shell.<app>.<item>`. Same item shape as a page surface, with no
+app's global acts from its `acts.js`, named `shell.<app>.<item>`. Same item shape as a page surface, with no
 verbs for scripts yet; `run` receives `(shell, value)`.
 
 ### The settings dialog

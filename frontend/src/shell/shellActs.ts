@@ -5,8 +5,10 @@ import type { Router } from "vue-router";
 import { toast, useColorScheme, type ColorScheme } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
+import { doctypeRight } from "@/acts/doctypeRight";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import { useAppActs } from "./appActs";
 import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
 
 /** Opens `#settings/<prefix>/<pane>/<block>`; each segment is optional, in order. */
@@ -59,22 +61,28 @@ export function colorSchemes(): { value: ColorScheme; label: string; icon: strin
 	];
 }
 
-/** Registers the `shell` surface for the shell's life. */
+/** Registers the `shell` surface for the shell's life; the palette waits on `appActsPending`. */
 export function useShellActs(host: ShellActsHost) {
 	const shell = shellFor(host);
+	const appActs = useAppActs();
 	const { setColorScheme } = useColorScheme();
 	const release = acts.register({
 		surfaces: {
-			shell: () => shellItems(host, setColorScheme).map((item) => ({ item, hidden: false })),
+			shell: () =>
+				[...shellItems(host, setColorScheme), ...appActs.items()].map((item) => ({
+					item,
+					hidden: false,
+				})),
 		},
 		context: () => shell,
-		// No built-in shell act carries a right.
-		passes: () => false,
-		settled: () => undefined,
+		passes: (right) => typeof right !== "string" && doctypeRight.passes(right),
+		settled: (right) => (typeof right === "string" ? undefined : doctypeRight.settled(right)),
+		loading: (name) => (isAppAct(name) ? appActs.pending() : undefined),
 		hold: async (work) => work(),
 		failed: (error) => void toast.error(error instanceof Error ? error.message : String(error)),
 	});
 	onScopeDispose(release);
+	return { appActsPending: appActs.pending };
 }
 
 /** The shell act `name` while a menu draws it: the one rule for whether a shell entry is drawn. */
@@ -94,6 +102,11 @@ interface ShellMenuOption {
 	label: string;
 	icon?: string;
 	onClick: () => void;
+}
+
+/** An app's act is `shell.<app>.<item>`; the shell's own are `shell.<item>`. */
+function isAppAct(name: string) {
+	return name.split(".").length > 2;
 }
 
 function shellFor(host: ShellActsHost): Shell {

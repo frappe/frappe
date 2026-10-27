@@ -9,6 +9,7 @@ vi.mock('virtual:frappe/contributions', () => ({
     doctypes: [],
     pages: [],
     itemTypes: [],
+    acts: [],
     get replacements() {
       return fake.replacements
     },

@@ -104,7 +104,10 @@ const ActKeys = defineAsyncComponent(() => import("./actKeys").then((module) => 
 const PaletteKey = defineAsyncComponent(() =>
 	import("./paletteKey").then((module) => module.PaletteKey)
 );
-const ShellPalette = defineAsyncComponent(() => import("./ShellPalette.vue"));
+// Opened before the apps' acts are in, the palette waits for them.
+const ShellPalette = defineAsyncComponent(() =>
+	Promise.all([import("./ShellPalette.vue"), appActsPending()]).then(([module]) => module)
+);
 
 const boot = inject<Boot>("boot")!;
 const addresses = inject<Addresses>("addresses")!;
@@ -284,7 +287,7 @@ watch(sidebarCollapsed, collapsedMemory.remember);
 
 const confirmingLogout = ref(false);
 
-useShellActs({
+const { appActsPending } = useShellActs({
 	boot,
 	router,
 	openSettings,
