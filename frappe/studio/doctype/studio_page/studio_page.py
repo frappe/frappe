@@ -28,7 +28,13 @@ from frappe.studio.export import (
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import camel_case_to_kebab_case, get_export_folder, has_page_write_perm, validate_file_name, walk_blocks
+from frappe.studio.utils import (
+	camel_case_to_kebab_case,
+	get_export_folder,
+	has_page_write_perm,
+	validate_file_name,
+	walk_blocks,
+)
 from frappe.utils import cint, get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
