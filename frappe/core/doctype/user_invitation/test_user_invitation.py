@@ -278,9 +278,9 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 	def test_resend_invite_needs_write(self):
 		invitation = self.insert_invitation_without_mail()
-		frappe.local.request = frappe._dict(method="POST")
 		reader = self.make_user("invitation-reader@example.com")
 		writer = self.make_user("invitation-writer@example.com")
+		self.enterContext(patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True))
 		frappe.share.add("User Invitation", invitation.name, reader, read=1, write=0)
 		frappe.share.add("User Invitation", invitation.name, writer, read=1, write=1)
 

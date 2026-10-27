@@ -120,7 +120,7 @@ class TestDataImportStartPermission(IntegrationTestCase):
 			frappe.share.add("Data Import", cls.data_import.name, email, read=1, write=write)
 
 	def setUp(self):
-		frappe.local.request = frappe._dict(method="POST")
+		self.enterContext(patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True))
 		self.addCleanup(frappe.set_user, "Administrator")
 
 	def test_run_doc_method_refuses_a_reader(self):
