@@ -43,9 +43,10 @@ import {
 	getEditorVariantChoice,
 	keepDialogText,
 	setEditorVariantChoice,
+	variantOptionNames,
 	type VariantRow,
 } from "@/utils/variants"
-import { confirmKeepVariantOption, variantOptionNames } from "@/utils/variantsEditor"
+import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 
 // The editor's variants pill, beside the zoom chip — the collapsed form the live app's pill
 // uses, so both surfaces read the same. Rows come from the canvas block tree; which option
@@ -102,8 +103,7 @@ const variantSources = computed<VariantSource[]>(() => {
 const variantBlocks = computed(() => variantSources.value.map((source) => source.block))
 
 function shownVariantIndex(variantsBlock: Block) {
-	const names = variantOptionNames(variantsBlock)
-	return Math.min(getEditorVariantChoice(variantsBlock.componentId), Math.max(names.length - 1, 0))
+	return getEditorVariantChoice(variantsBlock.componentId, variantsBlock.children.length)
 }
 
 const variantRows = computed<VariantRow[]>(() =>

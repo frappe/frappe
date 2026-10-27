@@ -16,8 +16,8 @@ import type { ContextMenuOption, ContextMenuGroup, FrappeUIComponent } from "@/t
 import type { StudioComponent } from "@/types/Studio/StudioComponent"
 import { getBlockCopy, getBlockInstance, getComponentBlock } from "@/utils/serializer"
 import { canPasteStylesTo, copyBlockStyles, pasteBlockStyles } from "@/utils/styleCopyPaste"
-import { getEditorVariantChoice, setEditorVariantChoice } from "@/utils/variants"
-import { confirmKeepVariantOption, variantOptionNames } from "@/utils/variantsEditor"
+import { getEditorVariantChoice, setEditorVariantChoice, variantOptionNames } from "@/utils/variants"
+import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 import getBlockTemplate from "@/utils/blockTemplate"
 import FormDialog from "@/components/FormDialog.vue"
 import components from "@/data/components"
@@ -284,7 +284,7 @@ function addVariantOf(target: Block) {
 
 function keepShownOption(target: Block) {
 	const options = variantOptionNames(target)
-	const shownIndex = Math.min(getEditorVariantChoice(target.componentId), Math.max(options.length - 1, 0))
+	const shownIndex = getEditorVariantChoice(target.componentId, options.length)
 	confirmKeepVariantOption(target, shownIndex)
 }
 

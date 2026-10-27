@@ -304,7 +304,7 @@ const isVariantsBlock = props.block.componentName === "Variants"
 const targetRevision = ref(0)
 if (isVariantsBlock) {
 	watch(
-		() => getEditorVariantChoice(props.block.componentId),
+		() => getEditorVariantChoice(props.block.componentId, props.block.children.length),
 		() => nextTick(() => targetRevision.value++),
 	)
 }
@@ -327,7 +327,7 @@ const target = computed<HTMLElement | null>(() => {
 // to. Clamp like the runtime does, so a stale choice still points at a rendered option.
 function targetBlockId() {
 	if (!isVariantsBlock || !props.block.children.length) return props.block.componentId
-	const index = Math.min(getEditorVariantChoice(props.block.componentId), props.block.children.length - 1)
+	const index = getEditorVariantChoice(props.block.componentId, props.block.children.length)
 	return props.block.children[index]?.componentId ?? props.block.componentId
 }
 

@@ -28,7 +28,7 @@
 					>
 						<LucideGripVertical class="size-3" />
 					</button>
-					<Radio :value="String(index)" :title="`Show ${option || `Option ${index + 1}`} on the canvas`" />
+					<Radio :value="String(index)" :title="`Show ${option} on the canvas`" />
 					<Input
 						v-if="renamingIndex === index"
 						:ref="focusRenameInput"
@@ -44,7 +44,7 @@
 						class="min-w-0 flex-1 cursor-default truncate text-p-sm text-ink-gray-7"
 						@dblclick="startRename(index)"
 					>
-						{{ option || `Option ${index + 1}` }}
+						{{ option }}
 					</span>
 					<Dropdown :options="rowMenu(index)">
 						<template v-slot="{ open }">
@@ -79,8 +79,8 @@ import LucideGripVertical from "~icons/lucide/grip-vertical"
 import Block from "@/utils/block"
 import { variantOption } from "@/utils/blockTemplate/familyTemplates"
 import { getBlockCopy } from "@/utils/serializer"
-import { getEditorVariantChoice, setEditorVariantChoice, slug } from "@/utils/variants"
-import { confirmKeepVariantOption, variantOptionNames } from "@/utils/variantsEditor"
+import { getEditorVariantChoice, setEditorVariantChoice, slug, variantOptionNames } from "@/utils/variants"
+import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 
 // The option blocks are the single source of truth: each child carries its own
 // `variantOptionName`, so names follow the blocks through delete, duplicate, paste and
@@ -88,9 +88,7 @@ import { confirmKeepVariantOption, variantOptionNames } from "@/utils/variantsEd
 const props = defineProps<{ label?: string; block: Block }>()
 
 const options = computed(() => variantOptionNames(props.block))
-const shownIndex = computed(() =>
-	Math.min(getEditorVariantChoice(props.block.componentId), Math.max(options.value.length - 1, 0)),
-)
+const shownIndex = computed(() => getEditorVariantChoice(props.block.componentId, options.value.length))
 
 function rowMenu(index: number) {
 	return [
@@ -142,9 +140,9 @@ function optionBlockName(name: string) {
 }
 
 function deleteOption(index: number) {
+	const shown = getEditorVariantChoice(props.block.componentId, props.block.children.length)
 	const child = props.block.children[index]
 	if (child) props.block.removeChild(child)
-	const shown = getEditorVariantChoice(props.block.componentId)
 	if (shown >= index) setEditorVariantChoice(props.block.componentId, Math.max(0, shown - 1))
 }
 

@@ -6,14 +6,14 @@
 import { dialog, toast } from "frappe-ui"
 import useCanvasStore from "@/stores/canvasStore"
 import type Block from "@/utils/block"
-import { keepDialogText, setEditorVariantChoice } from "@/utils/variants"
+import { keepDialogText, setEditorVariantChoice, variantOptionNames } from "@/utils/variants"
 
 /** Confirm and collapse a Variants block to one of its options — a local canvas edit,
 unlike the viewer pill's server call, so undo and autosave treat it like any other
 block change. */
 export function confirmKeepVariantOption(target: Block, index: number) {
 	const options = variantOptionNames(target)
-	const kept = options[index] || `Option ${index + 1}`
+	const kept = options[index]
 	dialog.confirm({
 		...keepDialogText(options, index),
 		confirmLabel: "Keep",
@@ -51,14 +51,4 @@ export function revealVariantOption(block: Block) {
 		child = parent
 		parent = child.getParentBlock?.()
 	}
-}
-
-/** Option names live on the option blocks (`variantOptionName`); an unnamed block
-still gets a stable generic name. */
-export function variantOptionNames(block: {
-	children?: ({ variantOptionName?: string } | undefined)[]
-}): string[] {
-	return (block.children || []).map(
-		(child, index) => child?.variantOptionName || `Option ${index + 1}`,
-	)
 }

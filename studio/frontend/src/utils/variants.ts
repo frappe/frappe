@@ -64,9 +64,7 @@ export function registerVariantSet(set: Omit<VariantSet, "token">): VariantSet {
 
 /** The option a set shows: the editor's canvas choice when one is set, the URL otherwise. */
 export function activeVariantIndex(set: VariantSet, serialized: string): number {
-	const lastOption = Math.max(set.options.length - 1, 0)
-	const editorChoice = editorChoices.get(set.blockId)
-	if (editorChoice !== undefined) return Math.min(editorChoice, lastOption)
+	if (editorChoices.has(set.blockId)) return getEditorVariantChoice(set.blockId, set.options.length)
 	const chosen = parseChoices(serialized)[set.token]
 	const index = set.options.findIndex((option) => slug(option) === chosen)
 	return index === -1 ? 0 : index
@@ -84,8 +82,9 @@ function variantToken(blockId: string, name: string): string {
 	return resolved
 }
 
-export function getEditorVariantChoice(blockId: string): number {
-	return editorChoices.get(blockId) ?? 0
+/** The option the editor canvas shows for a block, clamped to the options it still has. */
+export function getEditorVariantChoice(blockId: string, optionCount: number): number {
+	return Math.min(editorChoices.get(blockId) ?? 0, Math.max(optionCount - 1, 0))
 }
 
 export function setEditorVariantChoice(blockId: string, index: number) {
@@ -111,14 +110,23 @@ function parseChoices(serialized: string): Record<string, string> {
 	return choices
 }
 
+/** Option names live on the option blocks (`variantOptionName`); an unnamed block
+still gets a stable generic name. Every list of option names comes from here. */
+export function variantOptionNames(block: {
+	children?: ({ variantOptionName?: string } | undefined)[]
+}): string[] {
+	return (block.children || []).map(
+		(child, index) => child?.variantOptionName || `Option ${index + 1}`,
+	)
+}
+
 /** The Keep confirmation copy, shared by the viewer pill and the editor panel. */
 export function keepDialogText(options: string[], keptIndex: number) {
-	const named = options.map((name, index) => name || `Option ${index + 1}`)
-	const others = named.filter((_, index) => index !== keptIndex).map((name) => `"${name}"`)
+	const others = options.filter((_, index) => index !== keptIndex).map((name) => `"${name}"`)
 	const listed =
 		others.length > 1 ? `${others.slice(0, -1).join(", ")} and ${others[others.length - 1]}` : others[0]
 	return {
-		title: `Keep "${named[keptIndex]}" variant?`,
+		title: `Keep "${options[keptIndex]}" variant?`,
 		message: `This deletes the other ${listed} variant${others.length > 1 ? "s" : ""} from the page.`,
 	}
 }

@@ -6,6 +6,7 @@ import {
 	registerVariantSet,
 	releaseVariantSet,
 	retainVariantSet,
+	variantOptionNames,
 } from "@/utils/variants"
 
 /**
@@ -32,11 +33,12 @@ export default defineComponent({
 			// on a slot read outside the render function, so the set is resolved here.
 			const options = flattenSlot(slots.default?.() || [])
 			if (!options.length) return null
+			const optionBlocks = options.map(optionBlock)
 			const set = registerVariantSet({
 				blockId,
 				name: props.name,
-				options: options.map((option, index) => optionBlock(option)?.variantOptionName || `Option ${index + 1}`),
-				optionIds: options.map((option) => optionBlock(option)?.componentId),
+				options: variantOptionNames({ children: optionBlocks }),
+				optionIds: optionBlocks.map((block) => block?.componentId),
 			})
 			return options[Math.min(activeVariantIndex(set, String(route?.query?.v ?? "")), options.length - 1)]
 		}
