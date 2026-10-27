@@ -1,6 +1,6 @@
 <script setup>
-import { computed, ref, watch } from "vue";
-import { Alert, Badge, Button, Dropdown, Tooltip } from "frappe-ui";
+import { computed, onMounted, ref, watch } from "vue";
+import { Alert, Button } from "frappe-ui";
 import { post } from "../api.js";
 import WorkspaceGrid from "../WorkspaceGrid.vue";
 import EmptyWorkspace from "../EmptyWorkspace.vue";
@@ -23,7 +23,7 @@ const props = defineProps({
 	workspace: { type: Object, required: true },
 });
 
-const emit = defineEmits(["saved", "done", "switch"]);
+const emit = defineEmits(["saved", "done", "switch", "actions"]);
 
 const frappe = window.frappe;
 const __ = window.__;
@@ -32,7 +32,6 @@ const blocks = ref(with_ids(props.workspace.content));
 const widgets = ref(JSON.parse(JSON.stringify(props.workspace.widgets)));
 const touched = ref(new Set());
 const selected_id = ref(null);
-const saving = ref(false);
 const previewing = ref(false);
 const variant = ref(props.workspace.variant);
 const layouts = ref([...(props.workspace.layouts || [])]);
@@ -91,10 +90,15 @@ const TITLES = {
 	custom_block: __("Custom Block"),
 };
 
-const add_menu = BLOCK_TYPES.map((type) => ({
-	label: TITLES[type],
-	onClick: () => add_block(type),
-}));
+const ICONS = {
+	number_card: "lucide-hash",
+	chart: "lucide-chart-column",
+	shortcut: "lucide-mouse-pointer-click",
+	card: "lucide-square-stack",
+	quick_list: "lucide-list",
+	onboarding: "lucide-list-checks",
+	custom_block: "lucide-code",
+};
 
 // A new block goes after the selected one, or last, and is selected.
 function insert(block) {
@@ -122,7 +126,6 @@ function remove() {
 }
 
 async function save() {
-	saving.value = true;
 	try {
 		const { blocks: saved, new_widgets } = to_save(blocks.value, widgets.value, touched.value);
 		await post("frappe.desk.doctype.workspace.workspace.save_page", {
@@ -136,8 +139,6 @@ async function save() {
 		emit("saved", variant.value);
 	} catch (e) {
 		frappe.msgprint(frappe.utils.escape_html(e.message));
-	} finally {
-		saving.value = false;
 	}
 }
 
@@ -163,13 +164,24 @@ function reset_workspace() {
 
 const layout_label = (l) => (l.role ? __(l.role) : __("Default"));
 
-const layout_menu = computed(() => [
-	...layouts.value.map((l) => ({
-		label: `${layout_label(l)} · ${__(l.source)}`,
-		onClick: () => switch_to(l.role),
-	})),
-	{ label: __("New layout for a role"), icon: "lucide-plus", onClick: new_layout },
-]);
+function layout_actions() {
+	if (!layouts.value.length) return [];
+	const group = `${layout_label(layout.value || {})} · ${__(layout.value?.source || "New")}`;
+	return [
+		...layouts.value.map((l) => ({
+			label: `${layout_label(l)} · ${__(l.source)}`,
+			placement: "breadcrumb",
+			group,
+			onClick: () => switch_to(l.role),
+		})),
+		{
+			label: __("New layout for a role"),
+			placement: "breadcrumb",
+			group,
+			onClick: new_layout,
+		},
+	];
+}
 
 function switch_to(role) {
 	if (role === variant.value) return;
@@ -268,22 +280,10 @@ function delete_workspace() {
 	);
 }
 
-function switch_renderer() {
-	const go = () => frappe.ui.switch_workspace_renderer(props.workspace, "Legacy");
-	if (!dirty.value) return go();
-	frappe.confirm(__("Discard your unsaved changes?"), go);
-}
-
 const menu = computed(() => {
-	const switch_item = {
-		label: __("Switch to old layout"),
-		icon: "lucide-history",
-		onClick: switch_renderer,
-	};
 	if (!props.workspace.public) {
 		return [
 			{ label: __("Delete workspace"), icon: "lucide-trash-2", onClick: delete_workspace },
-			switch_item,
 		];
 	}
 	const items = [];
@@ -304,55 +304,53 @@ const menu = computed(() => {
 			onClick: reset_workspace,
 		});
 	}
-	items.push(switch_item);
 	return items;
 });
+
+watch(
+	() => [
+		...layout_actions(),
+		...(props.workspace.public
+			? [
+					{
+						label: previewing.value ? __("Exit preview") : __("Preview"),
+						placement: "toolbar",
+						onClick: () => (previewing.value = !previewing.value),
+					},
+			  ]
+			: []),
+		...menu.value,
+		{ label: __("Done"), placement: "secondary", onClick: done },
+		{ label: __("Save"), placement: "primary", onClick: save },
+	],
+	(actions) => emit("actions", actions),
+	{ immediate: true }
+);
+
+// The pane opens once the canvas has painted closed, so it slides in instead of arriving drawn.
+const opened = ref(false);
+onMounted(() => requestAnimationFrame(() => requestAnimationFrame(() => (opened.value = true))));
+const pane_open = computed(() => opened.value && !previewing.value);
 </script>
 
 <template>
-	<div class="flex h-full min-h-0">
-		<div class="flex min-w-0 flex-1 flex-col">
-			<div
-				class="flex items-center justify-end gap-2 border-b border-outline-gray-1 px-4 py-2"
-			>
-				<Dropdown v-if="layouts.length" :options="layout_menu">
-					<Button icon-right="lucide-chevron-down" :label="layout_label(layout || {})">
-						<template #prefix>
-							<Badge v-if="layout" size="sm" :label="__(layout.source)" />
-						</template>
-					</Button>
-				</Dropdown>
-				<Tooltip v-if="hint" :text="hint.text">
-					<span
-						:class="hint.icon"
-						class="size-4 text-ink-gray-5"
-						:aria-label="hint.text"
-					/>
-				</Tooltip>
-				<template v-if="!previewing">
-					<Dropdown :options="add_menu">
-						<Button icon-left="lucide-plus" :label="__('Add block')" />
-					</Dropdown>
-					<Button icon-left="lucide-type" :label="__('Add text')" @click="add_text" />
-				</template>
-				<div class="flex-1" />
-				<Button
-					v-if="workspace.public"
-					:variant="previewing ? 'subtle' : 'ghost'"
-					icon-left="lucide-eye"
-					:label="__('Preview')"
-					@click="previewing = !previewing"
-				/>
-				<Dropdown v-if="menu.length" align="end" :options="menu">
-					<Button variant="ghost" icon="lucide-more-horizontal" :label="__('More')" />
-				</Dropdown>
-				<Button :label="__('Done')" @click="done" />
-				<Button variant="solid" :label="__('Save')" :loading="saving" @click="save" />
-			</div>
-			<div class="min-h-0 flex-1 overflow-y-auto">
-				<div class="mx-auto max-w-4xl px-4 pt-4 pb-10">
-					<template v-if="previewing">
+	<div class="h-full overflow-y-auto">
+		<div
+			class="grid min-h-full transition-[grid-template-columns] duration-300 ease-out motion-reduce:transition-none"
+			:class="
+				pane_open ? 'grid-cols-[minmax(0,1fr)_22rem]' : 'grid-cols-[minmax(0,1fr)_0rem]'
+			"
+		>
+			<div class="min-w-0 px-4 pt-4 pb-10">
+				<div class="mx-auto max-w-4xl">
+					<Transition
+						enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
+						enter-from-class="-translate-y-1 opacity-0"
+						leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
+						leave-to-class="-translate-y-1 opacity-0"
+					>
 						<Alert
+							v-if="previewing"
 							class="mb-4"
 							icon="lucide-eye"
 							:title="
@@ -363,8 +361,8 @@ const menu = computed(() => {
 									: __('Previewing the default layout with your data.')
 							"
 						/>
-						<WorkspaceGrid :content="blocks" :widgets="widgets" />
-					</template>
+					</Transition>
+					<WorkspaceGrid v-if="previewing" :content="blocks" :widgets="widgets" />
 					<EmptyWorkspace v-else-if="!blocks.length" editing @add-text="add_text" />
 					<WorkspaceGrid
 						v-else
@@ -377,16 +375,78 @@ const menu = computed(() => {
 					/>
 				</div>
 			</div>
+			<div class="min-w-0 overflow-clip">
+				<Transition
+					enter-active-class="transition duration-300 ease-out delay-75 motion-reduce:transition-none"
+					enter-from-class="translate-x-6 opacity-0"
+					leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
+					leave-to-class="translate-x-6 opacity-0"
+				>
+					<aside
+						v-if="pane_open"
+						class="sticky top-4 mt-4 mr-4 mb-10 flex w-[21rem] flex-col rounded-6 border border-outline-gray-2 bg-surface-base"
+					>
+						<Transition
+							mode="out-in"
+							enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
+							enter-from-class="translate-y-1 opacity-0"
+							leave-active-class="transition duration-100 ease-in motion-reduce:transition-none"
+							leave-to-class="opacity-0"
+						>
+							<BlockPanel
+								v-if="selected"
+								:key="selected.id"
+								class="border-b border-outline-gray-2"
+								:block="selected"
+								:widget="selected_widget"
+								@change="touched.add(selected.id)"
+								@resize="(preset) => set_size(selected, preset)"
+								@remove="remove"
+								@close="selected_id = null"
+							/>
+						</Transition>
+						<section class="flex flex-col gap-3 p-5">
+							<div class="flex flex-col gap-1">
+								<span class="text-base font-medium text-ink-gray-8">
+									{{ __("Add blocks") }}
+								</span>
+								<p class="text-p-sm text-ink-gray-5">
+									{{
+										__(
+											"Add a block or some text, or select one on the canvas to edit it."
+										)
+									}}
+								</p>
+							</div>
+							<div class="flex flex-wrap gap-2">
+								<Button
+									v-for="type in BLOCK_TYPES"
+									:key="type"
+									:icon-left="ICONS[type]"
+									:label="TITLES[type]"
+									@click="add_block(type)"
+								/>
+								<Button
+									icon-left="lucide-type"
+									:label="__('Text')"
+									@click="add_text"
+								/>
+							</div>
+						</section>
+						<section
+							v-if="hint"
+							class="flex items-start gap-2 border-t border-outline-gray-2 p-5 text-p-sm text-ink-gray-5"
+						>
+							<span
+								:class="hint.icon"
+								class="mt-0.5 size-4 shrink-0"
+								aria-hidden="true"
+							/>
+							<span class="min-w-0 [overflow-wrap:anywhere]">{{ hint.text }}</span>
+						</section>
+					</aside>
+				</Transition>
+			</div>
 		</div>
-		<BlockPanel
-			v-if="selected && !previewing"
-			:key="selected.id"
-			:block="selected"
-			:widget="selected_widget"
-			@change="touched.add(selected.id)"
-			@resize="(preset) => set_size(selected, preset)"
-			@remove="remove"
-			@close="selected_id = null"
-		/>
 	</div>
 </template>

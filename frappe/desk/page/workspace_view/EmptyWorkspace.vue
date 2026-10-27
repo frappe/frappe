@@ -20,7 +20,7 @@ const __ = window.__;
 		<p class="max-w-80 text-base text-ink-gray-5">
 			{{
 				editing
-					? __("Add block puts a chart, card or list here. Add text gives it a heading.")
+					? __("Pick a chart, card or list from the panel, or add text for a heading.")
 					: __("Nothing has been added to it yet.")
 			}}
 		</p>
