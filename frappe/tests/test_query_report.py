@@ -859,6 +859,21 @@ data = columns, result
 		with self.assertRaises(frappe.PermissionError):
 			report.get_validated_filters({"allocated_to": user, "users": [user, "Administrator"]}, user)
 
+	def test_get_script_resolves_validated_filter_defaults(self):
+		report, user = self.make_filtered_report()
+		report.filters[-2].default = "__user"
+		report.filters[-1].default = "2026-01-01,2026-01-31"
+		report.save()
+
+		with self.set_user(user):
+			filters = get_script(report.name)["filters"]
+
+		defaults = {row["fieldname"]: row["default"] for row in filters}
+		self.assertEqual(defaults["allocated_to"], user)
+		self.assertEqual(defaults["from_date"], frappe.utils.nowdate())
+		self.assertEqual(defaults["users"], [user])
+		self.assertEqual(defaults["period"], ["2026-01-01", "2026-01-31"])
+
 	def test_prepared_report_by_name_validates_its_saved_filters(self):
 		from frappe.core.doctype.prepared_report.prepared_report import create_json_gz_file
 

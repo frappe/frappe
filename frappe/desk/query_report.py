@@ -247,11 +247,19 @@ def get_script(report_name: str):
 	if not script:
 		script = f"frappe.query_reports[{json.dumps(report_name)}]={{}}"
 
+	filters = report.filters
+	if report.validate_filters:
+		from frappe.core.doctype.report.report import get_filter_default
+
+		filters = [
+			row.as_dict() | {"default": get_filter_default(row, frappe.session.user)} for row in filters
+		]
+
 	return {
 		"script": render_include(script),
 		"html_format": html_format,
 		"execution_time": frappe.cache.hget("report_execution_time", report_name) or 0,
-		"filters": report.filters,
+		"filters": filters,
 		"validate_filters": report.validate_filters,
 		"custom_report_name": report.name if report.get("is_custom_report") else None,
 	}
