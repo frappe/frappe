@@ -331,10 +331,10 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `createPageEngine` (`PageEngine`, `PageEngineSpec`) | Builds a page from the caller's own lists, events, sources and extra `page` members. It adds the `frame`, `header` and `body` lists, the paint gate, the replay, `onOpen`, the held acts and the dialogs. The record page is built on it; an app page imports it from `@shell` |
+| `createPageEngine` (`PageEngine`, `PageEngineSpec`, `CachedProvider`) | Builds a page from the caller's own lists, events, sources and extra `page` members. It adds the `frame`, `header` and `body` lists, the paint gate, the replay, `onOpen`, the held acts and the dialogs. The record page is built on it; an app page imports it from `@shell` |
 | Base page (`PageApi`, `PageToast`) | The `page` every engine hands its handlers: `doctype`, `meta`, `perms`, `roles`, `frame`, `header`, `body`, `refresh()`, `toast`, `dialog`, `call`, `cached` and `router`. A page adds its own members |
 | Item schemas (`SurfaceItem`, `Position`, `HeaderItem`, `HeaderZone`, `FrameItem`, `BodyItem`, `ACT_KEYS`, `HEADER_ITEM_KEYS`, `FRAME_ITEM_KEYS`, `BODY_ITEM_KEYS`) | The items the three built-in lists take, and the keys each list reads |
-| [Source](./CONTEXT.md#source) context (`HOST_SOURCE`, `registeringSource`, `runningSource`, `withRegisteringSource`, `withRunningSource`, `Registration`) | Which source is registering or running now, and a source's handlers |
+| [Source](./CONTEXT.md#source) context (`HOST_SOURCE`, `registeringSource`, `runningSource`, `withRegisteringSource`, `withRunningSource`, `Registration`, `Handler`) | Which source is registering or running now, and a source's handlers |
 | [`Surface`](./CONTEXT.md#surface) (`SurfaceVerbs`, `ResolvedItem`, `BUILTIN`) | The class behind each list surface |
 | Staging (`Staging`, `StagedOverlay`, `RESTORED_VIEW`) | Acts wait during a replay and appear at one commit |
 | Paint gate (`FIRST_PAINT_LIMIT_MS`, `LATE_LIMIT_MS`, `LateRefresh`, `RefreshOptions`) | When the page first paints, how a late `onRefresh` or a first visit's `page.cached` fetch lands, when `onOpen` runs, and the one repaint for background reads on a return visit. `FIRST_PAINT_LIMIT_MS` (500 ms) is the longest the first paint waits for a source. `LATE_LIMIT_MS` (5 s) is the longest it waits for a late part |
@@ -457,7 +457,7 @@ the reference for each `page` member.
 | `vue`, `vue-router`, `frappe-ui` | The framework's shared packages |
 | `@framework/ui` | All of `ui/` while the `"./*"` entry stays |
 | `frappe/i18n` | `__` and `__n`. A script imports them. A `template:` string, and every other component template, gets both with no import |
-| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`, the after-save registry's `registerAfterSave`, `askReload`, `AfterSave`, `SavedBinding`, and the page engine's `createPageEngine`, `PageApi`, `PageEngine`, `PageEngineSpec`, `Surface`, `SurfaceVerbs`, `Registration`, the item types and `FIRST_PAINT_LIMIT_MS`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
+| Desk names | `routeFor`, `routeForModule`, `urlFor`, `RouteOptions`, `isModular`, `ContentEntry`, the after-save registry's `registerAfterSave`, `askReload`, `AfterSave`, `SavedBinding`, and the page engine's `createPageEngine`, `PageApi`, `PageEngine`, `PageEngineSpec`, `CachedProvider`, `Handler`, `Surface`, `SurfaceVerbs`, `Registration`, the item types and `FIRST_PAINT_LIMIT_MS`. App files import them from `@shell` today; stored scripts cannot. The one module name is for Build and publishing to choose |
 | App names | Names an app publishes through its `import_map` hook |
 
 A script reaches the rest of the desk only through the `page` object it is handed.

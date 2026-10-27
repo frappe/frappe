@@ -20,11 +20,11 @@ export const ACT_KEYS: readonly string[] = ["key", "right", "palette", "argument
 /** Which half of the header row an item sits in; omitted means `right`. */
 export type HeaderZone = "left" | "right";
 
+// Unnamed, the page is `any`, so the engine draws any page's items.
 /**
  * One item of the header row: a crumb, a button, a menu entry or `Save`. A `dropdown`
  * or a `section` is a container: its members point at it with `group`, two deep.
  */
-// Unnamed, the page is `any`, so the engine draws any page's items.
 export interface HeaderItem<Page extends PageApi = any> extends SurfaceItem, ActFields<Page> {
   label: string;
   zone?: HeaderZone;

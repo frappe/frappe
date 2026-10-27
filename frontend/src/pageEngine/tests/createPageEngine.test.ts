@@ -67,16 +67,18 @@ describe("a page made with the builder", () => {
     register("one", {
       onRefresh: (page) => {
         page.widgets.hide("a");
-        page.widgets.add({ name: "c" }, { before: "b" });
+        page.widgets.add([{ name: "c" }, { name: "d" }], { before: "b" });
       },
     });
     const engine = makeEngine();
+    expect(engine.page.count).toBe(2);
 
     await engine.refresh();
-    expect(drawn(engine)).toEqual(["c", "b"]);
+    expect(drawn(engine)).toEqual(["c", "d", "b"]);
+    expect(engine.page.count).toBe(3);
     await engine.refresh();
-    expect(drawn(engine)).toEqual(["c", "b"]);
-    expect(engine.page.count).toBe(2);
+    expect(drawn(engine)).toEqual(["c", "d", "b"]);
+    expect(engine.page.count).toBe(3);
   });
 
   it("commits once per handler, when it ends", async () => {
@@ -129,6 +131,7 @@ describe("a page made with the builder", () => {
     const pause = gate();
     register("slow", {
       onRefresh: async (page) => {
+        page.widgets.add({ name: "early" });
         await pause.opened;
         page.widgets.add({ name: "slow" });
       },
@@ -145,6 +148,6 @@ describe("a page made with the builder", () => {
 
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
-    expect(drawn(engine)).toEqual(["a", "b", "fast", "slow"]);
+    expect(drawn(engine)).toEqual(["a", "b", "early", "fast", "slow"]);
   });
 });

@@ -13,7 +13,9 @@ export { askReload, registerAfterSave, type AfterSave, type SavedBinding } from 
 export { createPageEngine, FIRST_PAINT_LIMIT_MS, Surface } from "@/pageEngine";
 export type {
 	BodyItem,
+	CachedProvider,
 	FrameItem,
+	Handler,
 	HeaderItem,
 	PageApi,
 	PageEngine,
