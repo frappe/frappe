@@ -1,9 +1,13 @@
 # Copyright (c) 2020, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+from unittest.mock import patch
+
 import frappe
+from frappe.core.doctype.data_import.data_import import form_start_import
 from frappe.core.doctype.data_import.importer import Column
-from frappe.tests import UnitTestCase
+from frappe.handler import run_doc_method
+from frappe.tests import IntegrationTestCase, UnitTestCase
 
 # Keep in sync with depends_on on use_csv_sniffer / custom_delimiters in data_import.json
 CSV_IMPORT_SOURCE_DEPENDS_ON = "eval:doc.google_sheets_url || (doc.import_file && doc.import_file.split('.').pop().toLowerCase() === 'csv')"
@@ -97,3 +101,49 @@ class TestDataImport(UnitTestCase):
 		self.assertEqual(meta.get_field("use_csv_sniffer").depends_on, CSV_IMPORT_SOURCE_DEPENDS_ON)
 		self.assertEqual(meta.get_field("custom_delimiters").depends_on, CSV_IMPORT_SOURCE_DEPENDS_ON)
 		self.assertEqual(meta.get_field("delimiter_options").depends_on, CSV_DELIMITER_OPTIONS_DEPENDS_ON)
+
+
+class TestDataImportStartPermission(IntegrationTestCase):
+	READER = "data-import-reader@example.com"
+	WRITER = "data-import-writer@example.com"
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		cls.data_import = frappe.get_doc(
+			{"doctype": "Data Import", "reference_doctype": "User", "import_type": "Insert New Records"}
+		).insert()
+		for email, write in ((cls.READER, 0), (cls.WRITER, 1)):
+			frappe.get_doc(doctype="User", email=email, first_name=email, send_welcome_email=0).insert(
+				ignore_if_duplicate=True
+			)
+			frappe.share.add("Data Import", cls.data_import.name, email, read=1, write=write)
+
+	def setUp(self):
+		frappe.local.request = frappe._dict(method="POST")
+		self.addCleanup(frappe.set_user, "Administrator")
+
+	def test_run_doc_method_refuses_a_reader(self):
+		frappe.set_user(self.READER)
+		with patch("frappe.core.doctype.data_import.data_import.enqueue") as enqueue:
+			self.assertRaises(frappe.PermissionError, self.run_start_import)
+		enqueue.assert_not_called()
+
+	def test_run_doc_method_starts_the_import_for_a_writer(self):
+		frappe.set_user(self.WRITER)
+		with patch("frappe.core.doctype.data_import.data_import.enqueue") as enqueue:
+			self.run_start_import()
+		enqueue.assert_called_once()
+		self.assertTrue(frappe.response["message"])
+
+	def test_form_start_import_checks_write(self):
+		frappe.set_user(self.READER)
+		self.assertRaises(frappe.PermissionError, form_start_import, self.data_import.name)
+
+		frappe.set_user(self.WRITER)
+		with patch("frappe.core.doctype.data_import.data_import.enqueue") as enqueue:
+			self.assertTrue(form_start_import(self.data_import.name))
+		enqueue.assert_called_once()
+
+	def run_start_import(self):
+		run_doc_method("start_import", dt="Data Import", dn=self.data_import.name)

@@ -2,6 +2,7 @@
 # See license.txt
 
 import re
+from unittest.mock import patch
 
 import frappe
 import frappe.utils
@@ -10,8 +11,10 @@ from frappe.core.api.user_invitation import (
 	cancel_invitation,
 	get_pending_invitations,
 	invite_by_email,
+	resend_invitation,
 )
-from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
+from frappe.core.doctype.user_invitation.user_invitation import UserInvitation, mark_expired_invitations
+from frappe.handler import run_doc_method
 from frappe.tests import IntegrationTestCase
 
 emails = [
@@ -272,6 +275,63 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 		self.assertFalse(res["cancelled_now"])
 		self.assertEqual(len(self.get_email_names()), 2)
+
+	def test_resend_invite_needs_write(self):
+		invitation = self.insert_invitation_without_mail()
+		frappe.local.request = frappe._dict(method="POST")
+		reader = self.make_user("invitation-reader@example.com")
+		writer = self.make_user("invitation-writer@example.com")
+		frappe.share.add("User Invitation", invitation.name, reader, read=1, write=0)
+		frappe.share.add("User Invitation", invitation.name, writer, read=1, write=1)
+
+		frappe.set_user(reader)
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			self.assertRaises(
+				frappe.PermissionError,
+				run_doc_method,
+				"resend_invite",
+				dt="User Invitation",
+				dn=invitation.name,
+			)
+		send.assert_not_called()
+
+		frappe.set_user(writer)
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			run_doc_method("resend_invite", dt="User Invitation", dn=invitation.name)
+		send.assert_called_once()
+
+	def test_resend_invitation_api_works_for_an_app_role_without_write(self):
+		role = "Test Invitation Manager"
+		frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert(ignore_if_duplicate=True)
+		manager = self.make_user("invitation-manager@example.com", role)
+		invitation = self.insert_invitation_without_mail()
+		get_hooks = frappe.get_hooks
+
+		def hooks_with_role(hook=None, *args, **kwargs):
+			if hook == "user_invitation":
+				return {"allowed_roles": {role: []}}
+			return get_hooks(hook, *args, **kwargs)
+
+		frappe.set_user(manager)
+		with (
+			patch("frappe.get_hooks", hooks_with_role),
+			patch.object(UserInvitation, "send_invitation_mail") as send,
+		):
+			resend_invitation(invitation.name, "frappe")
+		send.assert_called_once()
+
+	def make_user(self, email: str, *roles: str) -> str:
+		user = frappe.get_doc(doctype="User", email=email, first_name=email, send_welcome_email=0)
+		user.append_roles(*roles)
+		user.insert(ignore_if_duplicate=True)
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		self.addCleanup(frappe.delete_doc, "User", email, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		return email
+
+	def insert_invitation_without_mail(self):
+		with patch.object(UserInvitation, "send_invitation_mail"):
+			return self.get_dummy_invitation().insert()
 
 	def get_dummy_invitation(self):
 		return frappe.get_doc(
