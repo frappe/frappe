@@ -37,23 +37,21 @@ const probes = Array.from({ length: 10 }, (_, index) => ({
 	name: `Probe ${index}`,
 	app: "crm",
 	route: `${crmBase}/probe-${index}`,
-	single: false,
 	can_create: true,
 }));
 
 /** What `frappe.shell.palette.places` answers: read once, so one reply serves every test. */
 const placesReply = {
 	doctypes: [
-		{ name: "CRM Deal", app: "crm", route: `${crmBase}/crm-deal`, single: false, can_create: true },
-		{ name: "CRM Lead", app: "crm", route: `${crmBase}/crm-lead`, single: false, can_create: false },
+		{ name: "CRM Deal", app: "crm", route: `${crmBase}/crm-deal`, can_create: true },
+		{ name: "CRM Lead", app: "crm", route: `${crmBase}/crm-lead`, can_create: false },
 		{
 			name: "System Settings",
 			app: "frappe",
 			route: `${deskBase}/system-settings/System Settings`,
-			single: true,
 			can_create: false,
 		},
-		{ name: "ToDo", app: "frappe", route: `${deskBase}/todo`, single: false, can_create: true },
+		{ name: "ToDo", app: "frappe", route: `${deskBase}/todo`, can_create: true },
 		...probes,
 	],
 	apps: [
@@ -74,8 +72,10 @@ const addresses = new Addresses({
 		"CRM Deal": ["crm-deal", "fcrm"],
 		"CRM Lead": ["crm-lead", "fcrm"],
 		ToDo: ["todo", "desk"],
+		"System Settings": ["system-settings", "core"],
 	},
-	modules: { fcrm: "FCRM", desk: "Desk" },
+	modules: { fcrm: "FCRM", desk: "Desk", core: "Core" },
+	singles: ["System Settings"],
 });
 
 const deals: NavigationItem = {
@@ -582,6 +582,42 @@ describe("Tab on a doctype row", () => {
 		expect(footer()).toContain("to search in CRM Deal");
 		await type("system");
 		expect(footer()).not.toContain("to search in");
+	});
+
+	it("offers no Tab on a single, nor on a doctype under another app's prefix", async () => {
+		await shell("/todo");
+		await open();
+
+		for (const query of ["system", "todo"]) {
+			await type(query);
+			expect(footer()).not.toContain("to search in");
+			await press("Tab");
+			expect(chip()).toBeNull();
+		}
+	});
+
+	it("leaves Shift+Tab alone", async () => {
+		await shell("/todo");
+		await open();
+		await type("deal");
+
+		input()!.dispatchEvent(new KeyboardEvent("keydown", { key: "Tab", shiftKey: true, bubbles: true }));
+		await flush();
+
+		expect(chip()).toBeNull();
+	});
+
+	it("says so when the search fails, and searches again on the next pause", async () => {
+		server.searchDocuments
+			.mockRejectedValueOnce(new Error("refused"))
+			.mockResolvedValueOnce({ data: [deal("DEAL-3", "PivotTech Solutions")] });
+		await narrowToDeals();
+
+		await type("pi");
+		await vi.waitFor(() => expect(empty()).toBe("Could not search CRM Deal"));
+		await type("piv");
+		expect(drawn()).toEqual([["Records", "Searching…"]]);
+		await vi.waitFor(() => expect(drawn()).toEqual([["Records", "PivotTech Solutions DEAL-3"]]));
 	});
 
 	it("narrows the palette to the doctype, with a chip and an empty query", async () => {

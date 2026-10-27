@@ -125,10 +125,16 @@ const context: PaletteContext = {
 const query = ref("");
 const scope = usePaletteScope(query, context);
 
-// Mounted on the first open, so the places are read then.
-loadPlaces(context.boot);
-// On the next open, so the closing palette keeps its rows through the leave transition.
-watch(paletteOpen, (isOpen) => isOpen && scope.leave());
+// The scope is left on the next open, so the closing palette keeps its rows as it fades.
+watch(
+	paletteOpen,
+	(isOpen) => {
+		if (!isOpen) return;
+		scope.leave();
+		loadPlaces(context.boot);
+	},
+	{ immediate: true }
+);
 
 const groups = computed(() => {
 	if (scope.doctype.value)
@@ -155,7 +161,8 @@ function narrowable(row: Row | undefined): row is Row & { doctype: string } {
 
 // Tab, Esc and Backspace are stopped here, or the dialog moves the focus out or closes.
 function onKeydown(event: KeyboardEvent, active: Row | undefined) {
-	if (event.key === "Tab" && narrowable(active)) {
+	if (event.isComposing) return;
+	if (event.key === "Tab" && !event.shiftKey && narrowable(active)) {
 		event.preventDefault();
 		event.stopPropagation();
 		scope.enter(active.doctype);
