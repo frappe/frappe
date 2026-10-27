@@ -50,11 +50,13 @@
 						<PaletteRow v-for="row in group.rows" :key="row.id" :row="row" />
 					</CommandPaletteGroup>
 				</div>
+				<!-- Alone, it draws no rule of its own: the input's already sits above it. -->
 				<div
 					v-if="pinned.length"
 					role="none"
 					data-slot="palette-pinned"
-					class="shrink-0 border-t border-outline-gray-1 py-2 dark:border-outline-gray-2"
+					class="shrink-0 border-outline-gray-1 py-2 dark:border-outline-gray-2"
+					:class="{ 'border-t': groups.length }"
 				>
 					<PaletteRow v-for="row in pinned" :key="row.id" :row="row" />
 				</div>

@@ -246,6 +246,7 @@ afterEach(async () => {
 	await nextTick();
 	releases.splice(0).forEach((release) => release());
 	pinnedRows.splice(builtInPinned);
+	delete document.documentElement.dataset.flow;
 });
 
 describe("opening the palette", () => {
@@ -1004,5 +1005,103 @@ describe("Find in the current doctype", () => {
 		await flush();
 
 		expect(router.currentRoute.value.query).toEqual({ organization: '["LIKE","%acme%"]' });
+	});
+});
+
+describe("Ask Flow", () => {
+	const asked: unknown[] = [];
+	const listen = (event: Event) => asked.push((event as CustomEvent).detail);
+
+	beforeEach(() => {
+		asked.length = 0;
+		window.addEventListener("flow:ask", listen);
+	});
+
+	afterEach(() => window.removeEventListener("flow:ask", listen));
+
+	function pinnedArea() {
+		return document.body.querySelector("[data-slot='palette-pinned']");
+	}
+
+	function pinnedRowIds() {
+		return Array.from(pinnedArea()?.querySelectorAll<HTMLElement>("[data-row]") ?? []).map(
+			(one) => one.dataset.row
+		);
+	}
+
+	function empty() {
+		return document.body.querySelector("[data-slot='command-palette-empty']")?.textContent?.trim();
+	}
+
+	it("never shows while Flow's launcher has not said it is ready", async () => {
+		await shell("/");
+		await open();
+		await type("zzz plan");
+
+		expect(row("ask-flow")).toBeNull();
+		expect(empty()).toBe("No results for “zzz plan”");
+	});
+
+	it("never shows on the empty query", async () => {
+		document.documentElement.dataset.flow = "ready";
+		await shell("/");
+		await open();
+
+		expect(row("ask-flow")).toBeNull();
+		expect(pinnedArea()).toBeNull();
+	});
+
+	it("shows alone when nothing else matches, and hands the text to Flow", async () => {
+		document.documentElement.dataset.flow = "ready";
+		await shell("/");
+		await open();
+		await type("  zzz plan ");
+
+		expect(drawn()).toEqual([]);
+		expect(empty()).toBeUndefined();
+		expect(pinnedArea()!.textContent!.replace(/\s+/g, " ").trim()).toBe(
+			"Ask Flow: zzz plan New chat in Flow"
+		);
+		expect(pinnedArea()!.classList).not.toContain("border-t");
+		expect(row("ask-flow")!.dataset.state).toBe("active");
+
+		await press("Enter");
+		expect(asked).toEqual([{ text: "zzz plan" }]);
+		expect(paletteOpen.value).toBe(false);
+	});
+
+	it("comes last, after Find, and the arrow keys reach it last", async () => {
+		document.documentElement.dataset.flow = "ready";
+		register({ header: [act("save", "Save")] });
+		await shell();
+		await open();
+		await type("save");
+
+		expect(drawn()).toEqual([["This page", "Save"]]);
+		expect(pinnedRowIds()).toEqual(["find", "ask-flow"]);
+		expect(pinnedArea()!.classList).toContain("border-t");
+		expect(row("act:header.save")!.dataset.state).toBe("active");
+		for (const expected of ["find", "ask-flow", "ask-flow"]) {
+			await press("ArrowDown");
+			expect(row(expected)!.dataset.state).toBe("active");
+		}
+
+		row("ask-flow")!.click();
+		await flush();
+		expect(asked).toEqual([{ text: "save" }]);
+		expect(ran).toEqual([]);
+	});
+
+	it("is not pinned while narrowed, so the scope's own prompt shows", async () => {
+		document.documentElement.dataset.flow = "ready";
+		await shell("/todo");
+		await open();
+		await type("deal", { settle: false });
+		expect(row("ask-flow")).not.toBeNull();
+		await press("Tab");
+
+		await type("p");
+		expect(row("ask-flow")).toBeNull();
+		expect(empty()).toBe("Type to search CRM Deal");
 	});
 });

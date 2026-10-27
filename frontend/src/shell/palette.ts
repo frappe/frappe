@@ -7,6 +7,8 @@ export interface PaletteRow {
 	/** Unique in the palette, such as `act:header.save` or `tab:activity`. */
 	id: string;
 	label: string;
+	/** Gray text before the label, such as "Ask Flow:". */
+	lead?: string;
 	icon?: string;
 	/** Gray text after the label: the doctype for a record, the app for a place or an app act. */
 	description?: string;
@@ -14,6 +16,8 @@ export interface PaletteRow {
 	keywords?: string[];
 	/** The act's key, drawn on the right; the palette does not bind it. */
 	key?: string;
+	/** Gray text on the right of a row with no key, such as "New chat in Flow". */
+	hint?: string;
 	/** A place or record's address; ties in the ranking go to the one opened last. */
 	href?: string;
 	/** A stand-in while rows load, such as "Searching…": drawn with a spinner, never picked. */
