@@ -599,7 +599,11 @@ def get_context(context):
 		for field in context.web_form_doc.web_form_fields:
 			if field.fieldtype == "Table":
 				field.fields = get_in_list_view_fields(
-					field.options, self.name, web_form_request_key, docname
+					field.options,
+					self.name,
+					web_form_request_key,
+					docname,
+					field.allow_read_on_all_link_options,
 				)
 
 			if field.fieldtype == "Table MultiSelect":
@@ -1187,7 +1191,11 @@ def get_form_data(
 	for field in out.web_form.web_form_fields:
 		if field.fieldtype == "Table":
 			field.fields = get_in_list_view_fields(
-				field.options, web_form_name, web_form_request_key, docname
+				field.options,
+				web_form_name,
+				web_form_request_key,
+				docname,
+				field.allow_read_on_all_link_options,
 			)
 			out.update({field.fieldname: field.fields})
 
@@ -1221,7 +1229,9 @@ def get_web_form_list_fields(web_form_doc: "WebForm", web_form_request_key: str 
 	return fields
 
 
-def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=None, docname=None):
+def get_in_list_view_fields(
+	doctype, web_form_name=None, web_form_request_key=None, docname=None, allow_read_on_all_link_options=False
+):
 	meta = frappe.get_meta(doctype)
 	fields = []
 
@@ -1242,6 +1252,7 @@ def get_in_list_view_fields(doctype, web_form_name=None, web_form_request_key=No
 
 		df = meta.get_field(fieldname).as_dict()
 		if df.get("options") and df.get("fieldtype") == "Link":
+			df.allow_read_on_all_link_options = allow_read_on_all_link_options
 			process_link_field(df, web_form_name, web_form_request_key, docname)
 		return df
 
