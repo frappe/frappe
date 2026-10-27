@@ -14,7 +14,7 @@ import {
 	valueControl,
 } from "@framework/ui/Filter";
 
-// A filter list edited in place, one condition stacked under the next so it fits the panel.
+// A filter list edited in place, one condition per line.
 // Desk stores [doctype, field, operator, value] rows, all of them joined by AND.
 const props = defineProps({
 	doctype: { type: String, required: true },
@@ -99,26 +99,16 @@ function remove(index) {
 		<div
 			v-for="(condition, index) in conditions"
 			:key="index"
-			class="flex flex-col gap-1.5 rounded-4 border border-outline-gray-1 p-2"
+			class="grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)_auto] items-center gap-1"
 		>
-			<div class="flex items-center gap-1">
-				<Combobox
-					class="min-w-0 flex-1"
-					trigger="button"
-					variant="subtle"
-					:model-value="condition.fieldname"
-					:options="fields"
-					:placeholder="__('Select field')"
-					@update:selected-option="(option) => set_field(option, index)"
-				/>
-				<Button
-					size="sm"
-					variant="ghost"
-					icon="lucide-trash-2"
-					:label="__('Remove condition')"
-					@click="remove(index)"
-				/>
-			</div>
+			<Combobox
+				trigger="button"
+				variant="subtle"
+				:model-value="condition.fieldname"
+				:options="fields"
+				:placeholder="__('Select field')"
+				@update:selected-option="(option) => set_field(option, index)"
+			/>
 			<Select
 				:model-value="condition.operator"
 				:options="getOperators(condition.field?.fieldtype ?? '', condition.fieldname)"
@@ -130,6 +120,13 @@ function remove(index) {
 				class="w-full"
 				:model-value="condition.value"
 				@update:model-value="(value) => set_value(value, index)"
+			/>
+			<Button
+				size="sm"
+				variant="ghost"
+				icon="lucide-trash-2"
+				:label="__('Remove condition')"
+				@click="remove(index)"
 			/>
 		</div>
 		<Combobox :options="fields" :model-value="null" @update:selected-option="add">
