@@ -1,7 +1,8 @@
-<!-- What's new: each updated app's release notes, newest version first. -->
+<!-- What's new: each updated app's release notes, read on open, which records them seen. -->
 <template>
 	<Dialog v-model="open" :title="__('What\'s new')" size="2xl">
-		<div class="flex flex-col gap-8" data-whats-new>
+		<LoadingText v-if="!entries" />
+		<div v-else class="flex flex-col gap-8" data-whats-new>
 			<section v-for="entry in entries" :key="entry.title" class="flex flex-col gap-4">
 				<h3 class="text-xl-semibold text-ink-gray-9">
 					{{ entry.title }} {{ entry.version }}
@@ -19,12 +20,23 @@
 </template>
 
 <script setup lang="ts">
-import { Dialog } from "frappe-ui";
+import { ref } from "vue";
+import { Dialog, LoadingText, toast } from "frappe-ui";
 import { RichTextView } from "@framework/ui/RichText";
 import { __ } from "@/i18n";
-import type { WhatsNewEntry } from "./notices";
+import { readWhatsNew, type WhatsNewEntry } from "./notices";
 
-defineProps<{ entries: WhatsNewEntry[] }>();
+const emit = defineEmits<{ failed: [] }>();
 
 const open = defineModel<boolean>({ required: true });
+const entries = ref<WhatsNewEntry[] | null>(null);
+
+readWhatsNew().then(
+	(read) => (entries.value = read),
+	(error: Error) => {
+		toast.error(__("Could not load what's new: {0}", [error.message]));
+		open.value = false;
+		emit("failed");
+	}
+);
 </script>

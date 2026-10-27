@@ -4,7 +4,9 @@ import type { Boot } from "@/boot";
 import { tabMemory } from "@/browserMemory";
 
 export type IndexNoticeList = NonNullable<Boot["notices"]>;
-export type WhatsNewEntry = NonNullable<IndexNoticeList["whats_new"]>[number];
+export type WhatsNewEntry = NonNullable<IndexNoticeList["whats_new"]>[number] & {
+	notes: { version: string; html: string }[];
+};
 export type NoticeKey = keyof IndexNoticeList;
 
 /** The keys of the cards this person has closed in this tab. */
@@ -12,9 +14,10 @@ export function tuckedNotices(user: string) {
 	return tabMemory<NoticeKey[]>("index-notices-tucked", user, isKeyList);
 }
 
-/** Records that this person has seen the release notes of every app's current version. */
-export function markWhatsNewSeen() {
-	return runMethod("frappe.utils.change_log.update_last_known_versions", {}, { nullable: true });
+/** The release notes of each app updated since this person last looked, which the server then records as seen. */
+export async function readWhatsNew(): Promise<WhatsNewEntry[]> {
+	const response = await runMethod<WhatsNewEntry[]>("frappe.shell.index_notices.read_whats_new");
+	return response.data;
 }
 
 function isKeyList(value: unknown): value is NoticeKey[] {

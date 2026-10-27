@@ -6,8 +6,8 @@
 	<TransitionGroup
 		tag="div"
 		class="fixed bottom-3 right-3 z-10 flex w-80 flex-col gap-2"
-		:aria-label="__('Notices')"
-		role="region"
+		:role="cards.length ? 'region' : undefined"
+		:aria-label="cards.length ? __('Notices') : undefined"
 		enter-from-class="translate-y-2 opacity-0"
 		leave-to-class="translate-y-2 opacity-0"
 		enter-active-class="transition duration-200"
@@ -53,17 +53,17 @@
 	</Teleport>
 
 	<WhatsNewDialog
-		v-if="whatsNew && done.includes('whats_new')"
+		v-if="whatsNewOpened"
 		v-model="readingWhatsNew"
-		:entries="whatsNew"
+		@failed="whatsNewOpened = false"
 	/>
 </template>
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, ref } from "vue";
-import { Alert, SidebarRailItem, toast, type AlertAction } from "frappe-ui";
+import { Alert, SidebarRailItem, type AlertAction } from "frappe-ui";
 import { __, __n } from "@/i18n";
-import { markWhatsNewSeen, tuckedNotices, type IndexNoticeList, type NoticeKey } from "./notices";
+import { tuckedNotices, type IndexNoticeList, type NoticeKey } from "./notices";
 
 const WhatsNewDialog = defineAsyncComponent(() => import("./WhatsNewDialog.vue"));
 
@@ -78,12 +78,14 @@ type Card = {
 const props = defineProps<{ notices: IndexNoticeList; user: string }>();
 
 const memory = tuckedNotices(props.user);
-const done = ref<NoticeKey[]>([]);
+const whatsNewOpened = ref(false);
 const tuckedKeys = ref<NoticeKey[]>(memory.recall() ?? []);
 const readingWhatsNew = ref(false);
 const whatsNew = props.notices.whats_new;
 
-const open = computed(() => allCards().filter((card) => !done.value.includes(card.key)));
+const open = computed(() =>
+	allCards().filter((card) => card.key !== "whats_new" || !whatsNewOpened.value)
+);
 const cards = computed(() => open.value.filter((card) => !tuckedKeys.value.includes(card.key)));
 const tucked = computed(() => open.value.filter((card) => tuckedKeys.value.includes(card.key)));
 
@@ -95,7 +97,7 @@ function allCards(): Card[] {
 			icon: "lucide-list-checks",
 			title: __("Finish setting up this site"),
 			description: __(
-				"Apps waiting for the setup wizard: {0}. Until it is done, only System Managers can open them.",
+				"Apps waiting for the setup wizard: {0}. Until it is done, only System Managers see them here.",
 				[setup.apps.join(", ")]
 			),
 			action: {
@@ -123,15 +125,8 @@ function untuck() {
 	memory.remember([]);
 }
 
-async function openWhatsNew() {
+function openWhatsNew() {
+	whatsNewOpened.value = true;
 	readingWhatsNew.value = true;
-	done.value = [...done.value, "whats_new"];
-	try {
-		await markWhatsNewSeen();
-	} catch (error) {
-		toast.error(
-			__("Could not mark the release notes as read: {0}", [(error as Error).message])
-		);
-	}
 }
 </script>

@@ -17,14 +17,16 @@ const USER = "manager@example.com";
 
 const NOTICES: IndexNoticeList = {
 	setup: { apps: ["Frappe Framework", "ERPNext"], route: "/desk/setup-wizard" },
-	whats_new: [
-		{
-			title: "ERPNext",
-			version: "17.1.0",
-			notes: [{ version: "17.1.0", html: "<h3>Stock</h3><p>Faster <b>ledgers</b>.</p>" }],
-		},
-	],
+	whats_new: [{ title: "ERPNext", version: "17.1.0" }],
 };
+
+const NOTES = [
+	{
+		title: "ERPNext",
+		version: "17.1.0",
+		notes: [{ version: "17.1.0", html: "<h3>Stock</h3><p>Faster <b>ledgers</b>.</p>" }],
+	},
+];
 
 const mounted: App[] = [];
 let assign: ReturnType<typeof vi.fn>;
@@ -32,7 +34,7 @@ let assign: ReturnType<typeof vi.fn>;
 beforeAll(() => Promise.all([import("../IndexNotices.vue"), import("../WhatsNewDialog.vue")]));
 
 beforeEach(() => {
-	fake.runMethod.mockReset().mockResolvedValue({ data: null });
+	fake.runMethod.mockReset().mockResolvedValue({ data: NOTES });
 	assign = vi.fn();
 	vi.stubGlobal("location", { ...window.location, assign });
 	sessionStorage.clear();
@@ -139,7 +141,7 @@ describe("the index's notices", () => {
 		expect(cards(other.host)).toEqual(["setup", "whats_new"]);
 	});
 
-	it("opens what's new in a dialog, marks it seen, and drops the notice for good", async () => {
+	it("opens what's new in a dialog that reads the notes, and drops the notice for good", async () => {
 		const { host, foot } = await mountNotices();
 		button(card(host, "setup"), "Dismiss").click();
 		await flush();
@@ -147,16 +149,23 @@ describe("the index's notices", () => {
 		button(card(host, "whats_new"), "See what's new").click();
 		await flush();
 
-		expect(fake.runMethod).toHaveBeenCalledWith(
-			"frappe.utils.change_log.update_last_known_versions",
-			{},
-			{ nullable: true }
-		);
+		expect(fake.runMethod).toHaveBeenCalledWith("frappe.shell.index_notices.read_whats_new");
 		const dialog = document.querySelector<HTMLElement>("[data-whats-new]")!;
 		expect(dialog.textContent).toContain("ERPNext 17.1.0");
 		expect(dialog.querySelector("b")?.textContent).toBe("ledgers");
 		expect(cards(host)).toEqual([]);
 		expect(bell(foot)?.getAttribute("aria-label")).toBe("1 notice");
+	});
+
+	it("brings the card back when the notes cannot be read", async () => {
+		fake.runMethod.mockRejectedValue(new Error("offline"));
+		const { host } = await mountNotices();
+
+		button(card(host, "whats_new"), "See what's new").click();
+		await flush();
+
+		expect(document.querySelector("[data-whats-new]")).toBeNull();
+		expect(cards(host)).toEqual(["setup", "whats_new"]);
 	});
 
 	it("leaves out a notice boot does not send", async () => {

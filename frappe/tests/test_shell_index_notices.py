@@ -1,12 +1,13 @@
 # The index boot's notices: the site's setup nudge and what's new, for the managers who act on them.
 
 import json
+from unittest.mock import patch
 
 import frappe
 from frappe.desk.page.setup_wizard.setup_wizard import get_setup_wizard_url
 from frappe.shell import SHELL_ROOT
 from frappe.shell.boot import get_boot
-from frappe.shell.index_notices import index_notices
+from frappe.shell.index_notices import index_notices, read_whats_new
 from frappe.tests import IntegrationTestCase
 from frappe.utils.change_log import get_versions
 
@@ -15,7 +16,7 @@ USER = "shell-notices-probe@example.com"
 SYSTEM_MANAGER = "shell-notices-system-manager@example.com"
 WORKSPACE_MANAGER = "shell-notices-workspace-manager@example.com"
 
-# Frappe ships change log files for v6 to v8, so a person who last saw v7 has notes to read.
+# Frappe ships change log files from v5 on, so a person who last saw v7 has notes to read.
 OLD_FRAPPE = "7.0.0"
 
 
@@ -77,10 +78,7 @@ class TestIndexNotices(IntegrationTestCase):
 		notices = self.notices(SYSTEM_MANAGER)
 
 		self.assertNotIn("setup", notices)
-		frappe_entry = next(entry for entry in notices["whats_new"] if entry["title"] == "Frappe Framework")
-		self.assertEqual(frappe_entry["version"], frappe.__version__)
-		self.assertTrue(frappe_entry["notes"])
-		self.assertTrue(all(note["html"].strip().startswith("<") for note in frappe_entry["notes"]))
+		self.assertIn({"title": "Frappe Framework", "version": frappe.__version__}, notices["whats_new"])
 
 	def test_an_unfinished_site_gets_one_setup_nudge_to_the_wizard_and_no_whats_new(self):
 		self.leave_setup_unfinished()
@@ -95,11 +93,29 @@ class TestIndexNotices(IntegrationTestCase):
 		self.leave_setup_unfinished()
 		self.assertEqual(self.notices(WORKSPACE_MANAGER), {})
 
-	def test_whats_new_is_gone_once_the_person_has_seen_this_version(self):
+	def test_reading_whats_new_gives_the_notes_as_html_and_records_them_seen(self):
 		frappe.set_user(SYSTEM_MANAGER)
-		frappe.get_attr("frappe.utils.change_log.update_last_known_versions")()
 
+		entries = read_whats_new()
+
+		frappe_entry = next(entry for entry in entries if entry["title"] == "Frappe Framework")
+		self.assertEqual(frappe_entry["version"], frappe.__version__)
+		self.assertTrue(frappe_entry["notes"])
+		self.assertTrue(all(note["html"].strip().startswith("<") for note in frappe_entry["notes"]))
 		self.assertNotIn("whats_new", self.notices(SYSTEM_MANAGER))
+
+	def test_only_a_manager_may_read_whats_new(self):
+		frappe.set_user(USER)
+
+		self.assertRaises(frappe.PermissionError, read_whats_new)
+
+	def test_a_manager_who_has_seen_every_version_pays_no_git_call(self):
+		frappe.set_user(SYSTEM_MANAGER)
+		read_whats_new()
+
+		with patch("frappe.shell.index_notices.get_change_log") as change_log:
+			self.assertNotIn("whats_new", self.notices(SYSTEM_MANAGER))
+		change_log.assert_not_called()
 
 	def test_the_system_setting_turns_whats_new_off(self):
 		frappe.db.set_single_value("System Settings", "disable_change_log_notification", 1)

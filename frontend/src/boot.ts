@@ -115,12 +115,8 @@ export type Boot = {
 	notices?: {
 		/** The site's unfinished setup wizard, for a System Manager. */
 		setup?: { apps: string[]; route: string };
-		/** Each app updated since this person last opened what's new, with its notes as HTML. */
-		whats_new?: {
-			title: string;
-			version: string;
-			notes: { version: string; html: string }[];
-		}[];
+		/** Each app updated since this person last opened what's new; the notes load on open. */
+		whats_new?: { title: string; version: string }[];
 	};
 
 	// --- the declaring app's contribution, merged under core ---
