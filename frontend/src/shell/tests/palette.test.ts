@@ -3,6 +3,8 @@
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
+import { getMeta } from "@framework/ui/api";
+import { resetDoctypeMeta, useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 
 import { acts, type ActEntry, type ActScope } from "@/acts/dispatcher";
 import { Addresses } from "@/addresses";
@@ -20,14 +22,22 @@ import { recents } from "../recents";
 
 registerStandardPages(standardPages);
 
-const server = vi.hoisted(() => ({ runMethod: vi.fn(), searchDocuments: vi.fn() }));
+const server = vi.hoisted(() => ({
+	runMethod: vi.fn(),
+	searchDocuments: vi.fn(),
+	searchRecords: vi.fn(),
+}));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
 	getTranslations: vi.fn(),
+	getMeta: vi.fn(),
 	runMethod: server.runMethod,
 	searchDocuments: server.searchDocuments,
 }));
+
+const searchRecords = server.searchRecords;
+const builtInPinned = pinnedRows.length;
 
 // The prefixes the server's addresses sit under, as `canonical_path` writes them.
 const crmBase = "/apps/crm";
@@ -178,11 +188,14 @@ function input() {
 	return document.body.querySelector<HTMLInputElement>("[data-slot='command-palette-input'] input");
 }
 
-async function type(text: string) {
+/** Types into the field, and lets the record search answer unless asked not to. */
+async function type(text: string, { settle = true } = {}) {
 	const field = input()!;
 	field.value = text;
 	field.dispatchEvent(new Event("input", { bubbles: true }));
 	await flush();
+	if (settle && row("records:searching"))
+		await vi.waitFor(() => expect(row("records:searching")).toBeNull());
 }
 
 /** Each group's heading and its rows' labels, in the order drawn. */
@@ -211,9 +224,10 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
-	server.runMethod.mockImplementation(async (method: string) => ({
-		data: method === "frappe.shell.palette.places" ? placesReply : panesReply,
-	}));
+	server.runMethod.mockImplementation(async (method: string, ...rest: unknown[]) => {
+		if (method === "frappe.desk.palette.search_records") return searchRecords(method, ...rest);
+		return { data: method === "frappe.shell.palette.places" ? placesReply : panesReply };
+	});
 	server.searchDocuments.mockReset();
 	document.body.innerHTML = "";
 	localStorage.clear();
@@ -221,11 +235,14 @@ beforeEach(() => {
 	ran.length = 0;
 	resetNavigationReports();
 	resetSprite();
+	resetDoctypeMeta();
+	searchRecords.mockReset().mockResolvedValue({ data: [] });
+	vi.mocked(getMeta).mockReset().mockRejectedValue(new Error("no meta in this test"));
 });
 
 afterEach(() => {
 	releases.splice(0).forEach((release) => release());
-	pinnedRows.splice(0);
+	pinnedRows.splice(builtInPinned);
 });
 
 describe("opening the palette", () => {
@@ -377,7 +394,8 @@ describe("the groups", () => {
 	});
 
 	it("never draws a denied, hidden, opted-out or argument act", async () => {
-		await shell();
+		// Off a list or record, so no Find row is pinned and the empty state shows.
+		await shell("/");
 		await open();
 
 		for (const query of ["delete", "gone", "secret", "assign"]) {
@@ -552,7 +570,7 @@ describe("Tab on a doctype row", () => {
 	async function narrowToDeals() {
 		const router = await shell("/todo");
 		await open();
-		await type("deal");
+		await type("deal", { settle: false });
 		expect(row(`sidebar:${crmBase}/crm-deal`)!.dataset.state).toBe("active");
 		await press("Tab");
 		return router;
@@ -618,6 +636,17 @@ describe("Tab on a doctype row", () => {
 		await type("piv");
 		expect(drawn()).toEqual([["Records", "Searching…"]]);
 		await vi.waitFor(() => expect(drawn()).toEqual([["Records", "PivotTech Solutions DEAL-3"]]));
+	});
+
+	it("asks no cross-doctype record search and pins no Find while narrowed", async () => {
+		server.searchDocuments.mockResolvedValue({ data: [] });
+		await narrowToDeals();
+		await type("piv");
+		await new Promise((resolve) => setTimeout(resolve, 250));
+
+		const asked = searchRecords.mock.calls.map(([, args]) => (args as { txt: string }).txt);
+		expect(asked).not.toContain("piv");
+		expect(document.body.querySelector("[data-slot='palette-pinned']")).toBeNull();
 	});
 
 	it("narrows the palette to the doctype, with a chip and an empty query", async () => {
@@ -719,10 +748,235 @@ describe("the pinned area", () => {
 		expect(ran).toEqual(["pinned"]);
 	});
 
+	it("moves the arrow keys in drawn order after the rows change under a pinned row", async () => {
+		register({ header: [act("save", "Save"), act("send", "Send")] });
+		searchRecords.mockResolvedValue({
+			data: ["DEAL-1", "DEAL-2", "DEAL-3"].map((name) => ({ doctype: "CRM Deal", name, label: name })),
+		});
+		await shell("/crm-deal");
+		await open();
+		await type("se");
+
+		const drawnIds = Array.from(
+			document.body.querySelectorAll<HTMLElement>("[data-slot='command-palette-item']")
+		).map((item) => item.dataset.row);
+		const activeId = () =>
+			document.body.querySelector<HTMLElement>(
+				"[data-slot='command-palette-item'][data-state='active']"
+			)?.dataset.row;
+		const visited = [activeId()];
+		for (let step = 1; step < drawnIds.length; step++) {
+			await press("ArrowDown");
+			visited.push(activeId());
+		}
+		expect(visited).toEqual(drawnIds);
+	});
+
 	it("draws no second list while nothing is pinned", async () => {
 		await shell();
 		await open();
 
 		expect(document.body.querySelector("[data-slot='palette-pinned']")).toBeNull();
+	});
+});
+
+describe("records", () => {
+	const acme = { doctype: "CRM Deal", name: "DEAL-1", label: "Acme Corp" };
+
+	/** Each record search's arguments, and a way to answer it. */
+	function heldSearches() {
+		const held: { args: unknown; signal: AbortSignal; answer: (rows: unknown[]) => void }[] = [];
+		searchRecords.mockImplementation(
+			(_method, args, options) =>
+				new Promise((resolve) =>
+					held.push({
+						args,
+						signal: options!.signal!,
+						answer: (rows) => resolve({ data: rows }),
+					})
+				) as never
+		);
+		return held;
+	}
+
+	it("asks the server once the typing pauses, with Searching… meanwhile", async () => {
+		const held = heldSearches();
+		await shell("/crm-deal/DEAL-9");
+		await open();
+
+		await type("ac", { settle: false });
+		await type("acm", { settle: false });
+		expect(drawn()).toEqual([["Records", "Searching…"]]);
+		expect(row("records:searching")!.dataset.disabled).toBe("");
+		expect(held).toEqual([]);
+
+		await vi.waitFor(() => expect(held).toHaveLength(1));
+		expect(searchRecords).toHaveBeenCalledWith(
+			"frappe.desk.palette.search_records",
+			{ txt: "acm", doctype: "CRM Deal" },
+			expect.objectContaining({ http: "GET" })
+		);
+		held[0].answer([acme, { doctype: "ToDo", name: "T-1", label: "Call Acme" }]);
+		await flush();
+
+		expect(drawn()).toEqual([["Records", "Acme Corp CRM Deal", "Call Acme ToDo"]]);
+	});
+
+	it("drops a question still unanswered when the text changes", async () => {
+		const held = heldSearches();
+		await shell();
+		await open();
+
+		await type("ac", { settle: false });
+		await vi.waitFor(() => expect(held).toHaveLength(1));
+		await type("acme", { settle: false });
+		expect(held[0].signal.aborted).toBe(true);
+
+		await vi.waitFor(() => expect(held).toHaveLength(2));
+		held[1].answer([acme]);
+		held[0].answer([{ doctype: "ToDo", name: "T-1", label: "Stale" }]);
+		await flush();
+
+		expect(drawn()).toEqual([["Records", "Acme Corp CRM Deal"]]);
+	});
+
+	it("searches nothing under two characters, and no doctype off a list or record", async () => {
+		await shell("/");
+		await open();
+
+		await type("a", { settle: false });
+		await new Promise((resolve) => setTimeout(resolve, 250));
+		expect(searchRecords).not.toHaveBeenCalledWith(
+			"frappe.desk.palette.search_records",
+			expect.anything(),
+			expect.anything()
+		);
+
+		await type("ac");
+		expect(searchRecords).toHaveBeenCalledWith(
+			"frappe.desk.palette.search_records",
+			{ txt: "ac" },
+			expect.anything()
+		);
+	});
+
+	it("puts the keyboard on the first record once they arrive, not on Find", async () => {
+		searchRecords.mockResolvedValue({
+			data: [acme, { doctype: "ToDo", name: "T-1", label: "Call Acme" }],
+		});
+		const router = await shell("/crm-lead");
+		await open();
+		await type("acme");
+		expect(row("record:CRM Deal/DEAL-1")!.dataset.state).toBe("active");
+		await press("ArrowDown");
+		expect(row("record:ToDo/T-1")!.dataset.state).toBe("active");
+		await press("ArrowDown");
+		expect(row("find")!.dataset.state).toBe("active");
+		await press("ArrowUp");
+		await press("ArrowUp");
+		await press("Enter");
+		expect(router.currentRoute.value.fullPath).toBe("/crm-deal/DEAL-1");
+	});
+
+	it("keeps the keyboard on a row it already holds when records arrive", async () => {
+		register({ header: [act("acme_report", "Acme report")] });
+		searchRecords.mockResolvedValue({ data: [acme] });
+		await shell("/crm-lead");
+		await open();
+		await type("acme");
+
+		expect(row("act:header.acme_report")!.dataset.state).toBe("active");
+	});
+
+	it("says so when the search fails", async () => {
+		searchRecords.mockRejectedValue(new Error("server down"));
+		await shell();
+		await open();
+		await type("acme");
+
+		expect(drawn()).toEqual([["Records", "Could not search records"]]);
+		expect(row("records:failed")!.dataset.disabled).toBe("");
+	});
+
+	it("asks again for the new page's doctype when the page changes while open", async () => {
+		const router = await shell("/crm-deal");
+		await open();
+		await type("acme");
+		await router.push("/crm-lead/LEAD-1");
+		await flush();
+		await vi.waitFor(() => expect(row("records:searching")).toBeNull());
+
+		expect(searchRecords).toHaveBeenLastCalledWith(
+			"frappe.desk.palette.search_records",
+			{ txt: "acme", doctype: "CRM Lead" },
+			expect.anything()
+		);
+	});
+
+	it("opens a picked record", async () => {
+		searchRecords.mockResolvedValue({ data: [acme] });
+		const router = await shell("/crm-lead");
+		await open();
+		await type("acme");
+
+		row("record:CRM Deal/DEAL-1")!.click();
+		await flush();
+
+		expect(router.currentRoute.value.fullPath).toBe("/crm-deal/DEAL-1");
+		expect(paletteOpen.value).toBe(false);
+	});
+});
+
+describe("Find in the current doctype", () => {
+	function pinned() {
+		return document.body.querySelector("[data-slot='palette-pinned']")?.textContent?.trim();
+	}
+
+	it("is pinned on a list or record page once something is typed", async () => {
+		await shell("/crm-deal/DEAL-1");
+		await open();
+		expect(pinned()).toBeUndefined();
+
+		await type("acme");
+		expect(pinned()).toBe("Find “acme” in CRM Deal");
+	});
+
+	it("is not offered off a list or record page", async () => {
+		await shell("/");
+		await open();
+		await type("acme");
+
+		expect(pinned()).toBeUndefined();
+	});
+
+	it("opens the list filtered on the name", async () => {
+		const router = await shell("/crm-deal/DEAL-1");
+		await open();
+		await type("acme");
+
+		row("find")!.click();
+		await flush();
+
+		expect(router.currentRoute.value.path).toBe("/crm-deal");
+		expect(router.currentRoute.value.query).toEqual({ name: '["LIKE","%acme%"]' });
+	});
+
+	it("filters on the title field when the doctype has one", async () => {
+		vi.mocked(getMeta).mockResolvedValue({
+			data: {
+				name: "CRM Deal",
+				title_field: "organization",
+				fields: [{ fieldname: "organization", fieldtype: "Data", label: "Organization" }],
+			},
+		} as never);
+		await vi.waitFor(() => expect(useDoctypeMeta("CRM Deal").meta.value).not.toBeNull());
+		const router = await shell("/crm-deal");
+		await open();
+		await type("acme");
+
+		row("find")!.click();
+		await flush();
+
+		expect(router.currentRoute.value.query).toEqual({ organization: '["LIKE","%acme%"]' });
 	});
 });

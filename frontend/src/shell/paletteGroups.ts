@@ -7,12 +7,15 @@ import { __ } from "@/i18n";
 import { pageRows, type PaletteRow } from "./palette";
 import { create, goTo, openPlace } from "./palettePlaces";
 import { rank } from "./paletteRanking";
+import { findRow, records } from "./paletteRecords";
 import { recents, type Recent } from "./recents";
 
 export interface PaletteContext {
 	boot: Boot;
 	router: Router;
 	addresses: Addresses;
+	/** The doctype Tab narrowed the palette to, if any. */
+	narrowed: () => string | null;
 }
 
 export interface PaletteGroup {
@@ -20,6 +23,8 @@ export interface PaletteGroup {
 	readonly label: string;
 	/** Its rows for the query, ranked and capped; none hides the group. */
 	rows: (query: string, context: PaletteContext) => PaletteRow[];
+	/** A group that asks the server hears each change of query here. */
+	follow?: (query: string, context: PaletteContext) => void;
 }
 
 const RECENT_CAP = 5;
@@ -52,10 +57,10 @@ const desk: PaletteGroup = {
 		query.trim() ? rank(actRows(isShellAct, context.boot), query) : [],
 };
 
-export const paletteGroups: PaletteGroup[] = [recent, thisPage, desk, goTo, create];
+export const paletteGroups: PaletteGroup[] = [recent, thisPage, desk, goTo, create, records];
 
 /** Rows below the scrolling list, which never scroll away; the arrow keys reach them last. */
-export const pinnedRows: PaletteGroup["rows"][] = [];
+export const pinnedRows: PaletteGroup["rows"][] = [findRow];
 
 function recentRow(one: Recent, context: PaletteContext): PaletteRow {
 	return {

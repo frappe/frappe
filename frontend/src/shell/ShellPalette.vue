@@ -39,25 +39,27 @@
 				</template>
 			</CommandPaletteInput>
 
-			<CommandPaletteList>
-				<CommandPaletteGroup
-					v-for="group in groups"
-					:key="group.label"
-					:label="group.label"
+			<!-- One listbox: reka orders the rows of a second one by when they mounted, not by place. -->
+			<CommandPaletteList class="flex flex-col">
+				<div role="none" class="min-h-0 overflow-y-auto overscroll-contain">
+					<CommandPaletteGroup
+						v-for="group in groups"
+						:key="group.label"
+						:label="group.label"
+					>
+						<PaletteRow v-for="row in group.rows" :key="row.id" :row="row" />
+					</CommandPaletteGroup>
+				</div>
+				<div
+					v-if="pinned.length"
+					role="none"
+					data-slot="palette-pinned"
+					class="shrink-0 border-t border-outline-gray-1 py-2 dark:border-outline-gray-2"
 				>
-					<PaletteRow v-for="row in group.rows" :key="row.id" :row="row" />
-				</CommandPaletteGroup>
+					<PaletteRow v-for="row in pinned" :key="row.id" :row="row" />
+				</div>
 			</CommandPaletteList>
-			<PaletteHighlight :rows="drawnRows" />
-
-			<!-- A second listbox, so the arrow keys reach these rows and they never scroll away. -->
-			<CommandPaletteList
-				v-if="pinned.length"
-				data-slot="palette-pinned"
-				class="shrink-0 border-t border-outline-gray-1 py-2 dark:border-outline-gray-2"
-			>
-				<PaletteRow v-for="row in pinned" :key="row.id" :row="row" />
-			</CommandPaletteList>
+			<PaletteHighlight :rows="listedRows" :pinned="pinned" />
 
 			<CommandPaletteEmpty v-slot="{ query: text }">
 				{{
@@ -121,9 +123,15 @@ const context: PaletteContext = {
 	boot: inject<Boot>("boot")!,
 	router: useRouter(),
 	addresses: inject<Addresses>("addresses")!,
+	narrowed: () => scope.doctype.value,
 };
 const query = ref("");
 const scope = usePaletteScope(query, context);
+
+// A narrowed palette searches its doctype alone, so the groups that ask the server stop.
+watch([query, () => context.router.currentRoute.value.path, scope.doctype], ([text, , narrowed]) =>
+	paletteGroups.forEach((group) => group.follow?.(narrowed ? "" : text, context))
+);
 
 // The scope is left on the next open, so the closing palette keeps its rows as it fades.
 watch(
@@ -146,10 +154,7 @@ const groups = computed(() => {
 
 const pinned = computed(() => pinnedRows.flatMap((rows) => rows(query.value, context)));
 
-const drawnRows = computed(() => [
-	...groups.value.flatMap((group) => group.rows),
-	...pinned.value,
-]);
+const listedRows = computed(() => groups.value.flatMap((group) => group.rows));
 
 function select(value: unknown) {
 	(value as Row).run();
