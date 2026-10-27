@@ -197,12 +197,13 @@ class FlowLauncher {
 		this.squeeze();
 	}
 
-	// the page narrows beside the open panel, as an editor's does beside its side bar; a phone's
-	// panel covers it
+	// the page narrows beside the open panel, as an editor's does beside its side bar; in a window
+	// too narrow to leave the page its room, the panel covers the page instead
 	squeeze() {
-		const docked = this.state.open && innerWidth >= PHONE_WIDTH;
+		const width = this.dock_width();
+		const docked = this.state.open && innerWidth - width >= MIN_PAGE_WIDTH;
 		const page = document.documentElement;
-		page.style.setProperty("--flow-dock-width", docked ? `${this.dock_width()}px` : "");
+		page.style.setProperty("--flow-dock-width", docked ? `${width}px` : "");
 		page.toggleAttribute("data-flow-docked", docked);
 	}
 
