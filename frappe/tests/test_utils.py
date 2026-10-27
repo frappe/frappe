@@ -2050,6 +2050,6 @@ class TestMsgPrint(UnitTestCase):
 		with patch("sys.stdin") as stdin:
 			stdin.isatty.return_value = True
 			with self.assertRaises(frappe.ValidationError) as raised:
-				frappe.throw("first<br>second")
+				frappe.throw("first<br>second")  # nosemgrep: frappe-missing-translate-function-python
 
 		self.assertEqual(str(raised.exception), "first<br>second")
