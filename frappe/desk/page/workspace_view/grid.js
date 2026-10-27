@@ -4,11 +4,14 @@
 // optional height in grid rows that legacy ignores. Both snap to the named sizes of the block's
 // type when read, and nothing is written back until an editor saves.
 
+// frappe-ui's NumberCard with a change and a sparkline is 140px tall: 39 tracks, at 18 a row
+const NUMBER_CARD_ROWS = 39 / 18;
+
 // [width in 12 columns, height in rows]. A null height fits the content, and a quick list's
 // height is the most it grows to.
 export const SIZES = {
 	shortcut: { S: [3, null], M: [4, null], L: [6, null] },
-	number_card: { S: [3, 2.5], M: [4, 2.5], L: [6, 2.5] },
+	number_card: { S: [2, NUMBER_CARD_ROWS], M: [3, NUMBER_CARD_ROWS], L: [6, NUMBER_CARD_ROWS] },
 	card: { M: [4, null], L: [6, null] },
 	quick_list: { M: [4, 4], L: [6, 4], XL: [8, 4] },
 	chart: { L: [6, 4], XL: [8, 4], Wide: [12, 4] },

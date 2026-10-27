@@ -64,8 +64,5 @@ const menu = computed(() => [
 				</Dropdown>
 			</div>
 		</template>
-		<template #error="{ error }">
-			<div class="text-base text-ink-gray-5">{{ error }}</div>
-		</template>
 	</NumberCard>
 </template>
