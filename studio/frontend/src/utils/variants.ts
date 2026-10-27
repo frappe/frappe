@@ -31,8 +31,8 @@ const mountedSets = reactive<Map<string, VariantSet>>(new Map())
 const mountCounts = new Map<string, number>()
 const tokens = new Map<string, string>()
 
-// Editor-only: which option each Variants block shows on the canvas, keyed by block id.
-// The renderer bundle never writes it, so there the URL stays the single source of truth.
+// Which option each Variants block shows on the editor canvas, keyed by block id. Only the
+// editor writes it (variantsEditor.ts); in the renderer the URL stays the single source of truth.
 const editorChoices = reactive<Map<string, number>>(new Map())
 
 export function useMountedVariantSets() {
@@ -90,38 +90,6 @@ export function getEditorVariantChoice(blockId: string): number {
 
 export function setEditorVariantChoice(blockId: string, index: number) {
 	editorChoices.set(blockId, index)
-}
-
-interface EditorBlock {
-	componentId: string
-	componentName: string
-	children: EditorBlock[]
-	getParentBlock: () => EditorBlock | null
-}
-
-/** Keep the selection visible: when the selected block sits inside a Variants option that
-isn't the one on canvas, switch that Variants block to the option holding it. */
-export function revealVariantOption(block: EditorBlock) {
-	let child = block
-	let parent = child.getParentBlock?.()
-	while (parent) {
-		if (parent.componentName === "Variants") {
-			const index = parent.children.indexOf(child)
-			if (index !== -1) setEditorVariantChoice(parent.componentId, index)
-		}
-		child = parent
-		parent = child.getParentBlock?.()
-	}
-}
-
-/** Option names live on the option blocks (`variantOptionName`); an unnamed block
-still gets a stable generic name. */
-export function variantOptionNames(block: {
-	children?: ({ variantOptionName?: string } | undefined)[]
-}): string[] {
-	return (block.children || []).map(
-		(child, index) => child?.variantOptionName || `Option ${index + 1}`,
-	)
 }
 
 /** The `v` query after choosing an option; the first option is the default and stays out of it. */

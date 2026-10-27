@@ -78,9 +78,9 @@ import InputLabel from "@/components/InputLabel.vue"
 import LucideGripVertical from "~icons/lucide/grip-vertical"
 import Block from "@/utils/block"
 import { variantOption } from "@/utils/blockTemplate/familyTemplates"
-import { confirmKeepVariantOption } from "@/utils/keepVariant"
 import { getBlockCopy } from "@/utils/serializer"
-import { getEditorVariantChoice, setEditorVariantChoice, slug, variantOptionNames } from "@/utils/variants"
+import { getEditorVariantChoice, setEditorVariantChoice, slug } from "@/utils/variants"
+import { confirmKeepVariantOption, variantOptionNames } from "@/utils/variantsEditor"
 
 // The option blocks are the single source of truth: each child carries its own
 // `variantOptionName`, so names follow the blocks through delete, duplicate, paste and

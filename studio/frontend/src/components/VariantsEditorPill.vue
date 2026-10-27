@@ -38,15 +38,14 @@ import useCanvasStore from "@/stores/canvasStore"
 import useComponentEditorStore from "@/stores/componentEditorStore"
 import useComponentStore from "@/stores/componentStore"
 import useStudioStore from "@/stores/studioStore"
-import { confirmKeepVariantOption } from "@/utils/keepVariant"
 import { useBlockOutline } from "@/utils/useBlockOutline"
 import {
 	getEditorVariantChoice,
 	keepDialogText,
 	setEditorVariantChoice,
-	variantOptionNames,
 	type VariantRow,
 } from "@/utils/variants"
+import { confirmKeepVariantOption, variantOptionNames } from "@/utils/variantsEditor"
 
 // The editor's variants pill, beside the zoom chip — the collapsed form the live app's pill
 // uses, so both surfaces read the same. Rows come from the canvas block tree; which option
