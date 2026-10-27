@@ -135,9 +135,18 @@ class TestPalettePlaces(IntegrationTestCase):
 		self.assertEqual(
 			[{key: value for key, value in row.items() if key != "visited"} for row in recent],
 			[
-				{"route": f"/{SHELL_ROOT}/desk/todo", "title": "ToDo", "kind": "list", "description": desk},
+				{
+					"route": f"/{SHELL_ROOT}/desk/todo",
+					"doctype": "ToDo",
+					"name": None,
+					"title": "ToDo",
+					"kind": "list",
+					"description": desk,
+				},
 				{
 					"route": f"/{SHELL_ROOT}/desk/todo/{name}",
+					"doctype": "ToDo",
+					"name": name,
 					"title": "Call Globex",
 					"kind": "record",
 					"description": "ToDo",
@@ -171,6 +180,6 @@ class TestPalettePlaces(IntegrationTestCase):
 		[row] = self.places_of(MANAGER)["recent"]
 
 		self.assertEqual(
-			(row["title"], row["kind"], row["description"]),
-			("System Settings", "record", app_screen("frappe")["title"]),
+			(row["doctype"], row["name"], row["title"], row["kind"], row["description"]),
+			("System Settings", "System Settings", "System Settings", "record", app_screen("frappe")["title"]),
 		)

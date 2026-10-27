@@ -4,6 +4,7 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
+import { registerShell } from "@/router/routeFor";
 import { recentVisits } from "../recentVisits";
 
 const boot = {
@@ -30,6 +31,7 @@ beforeEach(() => {
 			{ path: "/:doctype/:name", name: "record", component: { render: () => null } },
 		],
 	});
+	registerShell({ boot, addresses, router });
 	recentVisits.track(router, boot, addresses);
 	recentVisits.heard([]);
 });
@@ -66,8 +68,8 @@ describe("recent visits", () => {
 		await visit("/crm-deal/DEAL-1");
 		const later = Date.now() + 5000;
 		recentVisits.heard([
-			{ route: `${boot.shell_base}/crm-deal/DEAL-2`, title: "Globex deal", kind: "record", visited: later },
-			{ route: `${boot.shell_base}/crm-deal/DEAL-3`, title: "Initech deal", kind: "record", visited: 1 },
+			{ route: `${boot.shell_base}/crm-deal/DEAL-2`, doctype: "CRM Deal", name: "DEAL-2", title: "Globex deal", kind: "record", visited: later },
+			{ route: `${boot.shell_base}/crm-deal/DEAL-3`, doctype: "CRM Deal", name: "DEAL-3", title: "Initech deal", kind: "record", visited: 1 },
 		]);
 
 		expect(titles()).toEqual(["Globex deal", "DEAL-1", "Initech deal"]);
@@ -78,7 +80,7 @@ describe("recent visits", () => {
 		await visit("/crm-deal/DEAL-1");
 		await visit("/crm-deal");
 		recentVisits.heard([
-			{ route: `${boot.shell_base}/crm-deal/DEAL-1`, title: "Acme deal", kind: "record", visited: Date.now() + 5000 },
+			{ route: `${boot.shell_base}/crm-deal/DEAL-1`, doctype: "CRM Deal", name: "DEAL-1", title: "Acme deal", kind: "record", visited: Date.now() + 5000 },
 		]);
 
 		expect(titles()).toEqual(["Acme deal", "CRM Deal"]);

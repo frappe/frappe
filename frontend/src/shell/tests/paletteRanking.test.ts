@@ -60,7 +60,7 @@ describe("rank", () => {
 	});
 
 	it("breaks a tie by the row opened last, here or on the server, then by the alphabet", async () => {
-		recentVisits.heard([{ route: `${boot.shell_base}/crm-note`, title: "CRM Note", kind: "list", visited: 0 }]);
+		recentVisits.heard([{ route: `${boot.shell_base}/crm-note`, doctype: "CRM Note", title: "CRM Note", kind: "list", visited: 0 }]);
 		await router.push("/crm-lead");
 		await router.push("/crm-deal");
 		const href = (path: string) => router.resolve(path).href;
