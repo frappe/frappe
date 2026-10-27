@@ -251,7 +251,7 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(general.draft.state.marks.country).toBe("error");
 	});
 
-	it("reloads the binding when the reader chooses Reload", async () => {
+	it("takes the other save's values for the refused fields when the reader chooses Reload", async () => {
 		const drafts = await opened(block("general", "auto", ["country"]));
 		const general = drafts.bound.get("general")!;
 		server.put("System Settings", "System Settings", { country: "Spain" });
@@ -285,13 +285,41 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(zone.draft.state.doc.time_zone).toBe("Asia/Kolkata");
 		expect(zone.draft.dirty("time_zone")).toBe(true);
 
+		const { modified } = server.doc("System Settings", "System Settings");
 		await drafts.saveButtons();
 
 		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.writes.at(-1)?.body).toEqual({ time_zone: "Asia/Kolkata", modified });
 		expect(server.doc("System Settings", "System Settings")).toMatchObject({
 			country: "Spain",
 			time_zone: "Asia/Kolkata",
 		});
+	});
+
+	it("still sends an autosave queued behind the refused save after Reload", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("onboarding", "auto", ["enable_onboarding"])
+		);
+		const general = drafts.bound.get("general")!;
+		const onboarding = drafts.bound.get("onboarding")!;
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockImplementation(async () => {
+			onboarding.draft.edit("enable_onboarding", 0);
+			drafts.commit(onboarding);
+			return true;
+		});
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			enable_onboarding: 0,
+		});
+		expect(onboarding.draft.state.marks.enable_onboarding).toBe("saved");
 	});
 
 	it("asks again before saving a kept edit the other save also changed", async () => {
@@ -313,6 +341,7 @@ describe("a conflict with a save made elsewhere", () => {
 		await drafts.saveButtons();
 
 		expect(confirm).toHaveBeenCalledTimes(2);
+		expect(confirm.mock.calls[1][0].message).toContain("your changes to Time Zone");
 		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Tokyo");
 		expect(zone.draft.state.marks.time_zone).toBe("error");
 	});

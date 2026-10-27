@@ -50,7 +50,7 @@ export class BindingDraft {
 	private queued = new Set<string>();
 	/** Each field a save in flight carries, with the value it sent. */
 	private sending = new Map<string, unknown>();
-	/** Unsent fields a silently re-sent save found changed elsewhere; their own save asks first. */
+	/** Unsent fields found changed elsewhere since their edit; their own save asks first. */
 	private stale = new Set<string>();
 	private running: Promise<void> | null = null;
 
