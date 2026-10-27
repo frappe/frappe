@@ -25,6 +25,7 @@ from frappe.model.document import Document
 from frappe.permissions import SYSTEM_USER_ROLE, get_doctypes_with_read, get_role_permissions
 from frappe.utils import (
 	cint,
+	get_files_path,
 	get_link_to_form,
 	get_table_name,
 	get_url,
@@ -155,6 +156,7 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
+		self.set_real_file_url()
 		self.validate_private_file_access()
 		# before ingestion, which may read the linked blob's bytes
 		self.validate_blob_reference()
@@ -216,12 +218,20 @@ class File(Document):
 		self.enforce_public_file_restrictions()
 
 		# must run before handle_is_private_changed, which legitimately rewrites file_url
-		if not self.is_new() and self.has_value_changed("file_url"):
-			self.validate_private_file_access()
+		file_url_changed = False
+		# file_name only locates the file when there is no file_url
+		if not self.is_new() and (
+			self.has_value_changed("file_url") or (not self.file_url and self.has_value_changed("file_name"))
+		):
+			self.set_real_file_url()
+			file_url_changed = self.has_value_changed("file_url")
+			if file_url_changed:
+				self.validate_private_file_access()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
 		# this case is handled inside handle_is_private_changed
-		if not self.is_new() and self.has_value_changed("is_private"):
+		# a new file_url already names the file in its folder, so there is nothing to move
+		if not self.is_new() and self.has_value_changed("is_private") and not file_url_changed:
 			self.handle_is_private_changed()
 
 		self.validate_file_path()
@@ -257,6 +267,33 @@ class File(Document):
 				frappe.only_for("System Manager")
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
+
+	def set_real_file_url(self):
+		"""Set file_url from the file it points to on disk, so each file has one file_url."""
+		if self.is_folder or self.get("blob"):
+			return
+
+		self.validate_remote_file()
+		if (self.file_url or "").startswith(URL_PREFIXES):
+			return
+
+		# a new upload gets its file_url once its content is stored
+		if not self.file_url and (not self.file_name or (self.is_new() and self.content)):
+			return
+
+		if ".." in (self.file_url or "").split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
+		if self.is_new():
+			self.set_is_private()
+
+		base = os.path.realpath(get_files_path(is_private=self.is_private))
+		path = os.path.realpath(self.get_full_path())
+		if path == base or os.path.commonpath((base, path)) != base:
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
+		prefix = "/private/files/" if self.is_private else "/files/"
+		self.file_url = prefix + os.path.relpath(path, base).replace(os.sep, "/")
 
 	def validate_private_file_access(self):
 		"""Validate that the user has permission to access an existing private file."""
