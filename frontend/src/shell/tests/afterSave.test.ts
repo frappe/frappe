@@ -6,8 +6,9 @@ const fake = vi.hoisted(() => ({ toast: vi.fn() }));
 vi.mock("frappe-ui", () => ({ toast: fake.toast }));
 
 import type { Session } from "@framework/ui/api";
-import { registerAfterSave, runAfterSave, type SavedBinding } from "../afterSave";
+import { registerAfterSave, runAfterSave, type SavedBinding } from "@/afterSave";
 import { registerDeskAfterSave } from "../deskAfterSave";
+import { registerAfterSave as appRegisterAfterSave } from "@/public";
 
 const USER = "reader@example.com";
 
@@ -55,6 +56,16 @@ describe("registerAfterSave", () => {
 		expect(next).toHaveBeenCalledTimes(1);
 		expect(error).toHaveBeenCalledTimes(1);
 		error.mockRestore();
+	});
+
+	it("is on the app import list (`@shell`), on the shell's own registry", () => {
+		const run = vi.fn();
+		const remove = appRegisterAfterSave("Probe D", run);
+
+		runAfterSave(saved("Probe D", "Probe D", ["x"]));
+		remove();
+
+		expect(run).toHaveBeenCalledTimes(1);
 	});
 });
 

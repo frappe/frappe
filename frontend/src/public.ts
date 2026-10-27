@@ -9,3 +9,4 @@ export {
 	type RouteOptions,
 } from "@/router/routeFor";
 export type { ContentEntry } from "@/contents";
+export { registerAfterSave, type AfterSave, type SavedBinding } from "@/afterSave";

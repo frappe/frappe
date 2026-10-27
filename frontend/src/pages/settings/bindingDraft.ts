@@ -14,7 +14,7 @@ import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
 import { FieldErrors } from "@/recordPage";
-import { runAfterSave } from "@/shell/afterSave";
+import { runAfterSave } from "@/afterSave";
 import type { Confirm } from "../record/discardChanges";
 import { awaitMeta } from "../record/metaSource";
 import { mergeRefetch, same } from "../record/refetchMerge";

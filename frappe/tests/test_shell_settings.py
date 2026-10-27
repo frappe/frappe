@@ -11,6 +11,7 @@ from frappe.desk.doctype.settings_dialog.test_settings_dialog import (
 	HOST,
 	SettingsDialogTestCase,
 	authoring,
+	bound,
 	component,
 	pane,
 	ship,
@@ -117,6 +118,16 @@ class TestSettingsMerge(SettingsDialogTestCase):
 
 		self.assertEqual([(block["key"], block["app"]) for block in merged[0]["blocks"]], [("theme", HOST)])
 		self.assertIn("'theme'", logged.output[0])
+
+	def test_a_component_block_in_another_save_mode_on_the_same_binding_is_dropped_and_warns(self):
+		with authoring():
+			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
+			unchecked(ship(["general"], [bound("photo"), bound("name")], insert=False))
+
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["photo", "name"]})
+
+		self.assertIn("'calls'", logged.output[0])
 
 	def test_an_anchor_naming_a_parent_does_not_nest_the_block(self):
 		with authoring():

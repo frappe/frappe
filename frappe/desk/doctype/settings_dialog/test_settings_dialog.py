@@ -55,6 +55,12 @@ def component(key: str, pane: str = "general", **kwargs) -> dict:
 	return {"key": key, "pane": pane, "component": key, **kwargs}
 
 
+def bound(key: str, pane: str = "general", **kwargs) -> dict:
+	"""A component block on the session `User`."""
+	binding = {"type": "Record", "doctype": "User", "resolver": "session_user"}
+	return component(key, pane, bindings=json.dumps({"user": binding}), **kwargs)
+
+
 class SettingsDialogTestCase(IntegrationTestCase):
 	"""Roll back after every test: a shipped record is named for its app, so two tests would collide."""
 
@@ -186,6 +192,43 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				[
 					single("system", fields='["language", "time_zone"]'),
 					component("theme", settings='[{"label": "Theme", "keywords": "dark light"}]'),
+				],
+			)
+
+	def test_component_blocks_on_one_binding_share_a_save_mode(self):
+		with authoring():
+			self.assertRaises(
+				frappe.ValidationError,
+				ship,
+				["general"],
+				[bound("photo"), bound("signature", save_mode="button")],
+			)
+			ship(
+				["general", "other"],
+				[bound("photo"), bound("name"), bound("signature", pane="other", save_mode="button")],
+			)
+
+	def test_a_component_block_in_a_hosts_pane_shares_the_hosts_save_mode(self):
+		with authoring():
+			ship(["general"], [bound("photo", save_mode="button")])
+			self.assertRaises(
+				frappe.ValidationError, ship, blocks=[bound("calls")], app=EXTENDER, extends=HOST
+			)
+			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
+
+	def test_the_host_is_refused_a_save_mode_an_extension_already_holds(self):
+		with authoring():
+			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
+			self.assertRaises(frappe.ValidationError, ship, ["general"], [bound("photo")])
+			ship(["general"], [bound("photo", save_mode="button")])
+
+	def test_a_generated_block_may_differ_from_a_component_on_its_binding(self):
+		with authoring():
+			ship(
+				["general"],
+				[
+					single("me", doctype="User", binding_type="Record", name_resolver="session_user"),
+					bound("photo", save_mode="button"),
 				],
 			)
 

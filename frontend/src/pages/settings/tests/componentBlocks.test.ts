@@ -10,7 +10,7 @@ vi.mock("frappe-ui", async (importOriginal) => ({
 
 import { clearDataCache } from "@framework/ui/cache";
 import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
-import { registerAfterSave } from "@/shell/afterSave";
+import { registerAfterSave } from "@/afterSave";
 import type { SettingsBlock, SettingsPane } from "@/shell/settingsPanes";
 import { PaneDrafts } from "../paneDrafts";
 import { SettingsServer } from "./settingsServer";

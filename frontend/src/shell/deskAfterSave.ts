@@ -3,7 +3,7 @@
 import { toast } from "frappe-ui";
 import type { Session } from "@framework/ui/api";
 import { __ } from "@/i18n";
-import { registerAfterSave, type SavedBinding } from "./afterSave";
+import { registerAfterSave, type SavedBinding } from "@/afterSave";
 
 const USER_RELOAD_FIELDS = ["language", "time_zone"];
 const SYSTEM_RELOAD_FIELDS = [

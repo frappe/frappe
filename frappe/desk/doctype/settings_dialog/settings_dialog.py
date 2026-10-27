@@ -57,6 +57,7 @@ class SettingsDialog(Document):
 		self.validate_pane_keys()
 		self.validate_blocks()
 		self.refuse_block_keys_taken_on_the_site()
+		self.refuse_mixed_save_modes_on_a_binding()
 
 	def validate_app_content(self):
 		"""Only developer mode or a system write may set or clear `standard`, which is app content."""
@@ -161,6 +162,31 @@ class SettingsDialog(Document):
 					title=_("Duplicate Key"),
 				)
 
+	def refuse_mixed_save_modes_on_a_binding(self):
+		"""Component blocks on one draft own the same fields, so an `auto` commit would send a `button` block's edits."""
+		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
+
+		first = {}
+		for block in [*shipped, *self.blocks]:
+			mode = block.save_mode or "auto"
+			for address in component_binding_addresses(block):
+				key, app, other_mode = first.setdefault(
+					address, (block.key, block.get("app") or self.app, mode)
+				)
+				if other_mode != mode:
+					frappe.throw(
+						_(
+							"Component blocks {0} from {1} and {2} in pane {3} both edit {4}, so they need one save mode."
+						).format(
+							frappe.bold(key),
+							frappe.bold(app),
+							frappe.bold(block.key),
+							frappe.bold(block.pane),
+							frappe.bold(address[1]),
+						),
+						title=_("Mixed Save Modes"),
+					)
+
 	def on_update(self):
 		self.export_settings_dialog()
 
@@ -263,6 +289,25 @@ def validate_json_list(block, fieldname: str, item_type: type):
 		refuse_json(block, fieldname)
 
 
+def component_binding_addresses(block) -> list[tuple[str, str, str]]:
+	"""`(pane, doctype, resolver)` per named binding: one draft each. Skips JSON a shipped record holds unvalidated."""
+	if not block.get("component") or not block.get("bindings"):
+		return []
+
+	try:
+		bindings = json.loads(block.bindings)
+	except ValueError:
+		return []
+	if not isinstance(bindings, dict):
+		return []
+
+	return [
+		(block.pane, binding.get("doctype"), binding.get("resolver") or "")
+		for binding in bindings.values()
+		if isinstance(binding, dict)
+	]
+
+
 def parse_json(block, fieldname: str, default):
 	raw = block.get(fieldname)
 	if not raw:
@@ -285,6 +330,11 @@ def refuse_json(block, fieldname: str):
 
 def shipped_block_keys(host: str, exclude: str) -> dict[tuple[str, str], str]:
 	"""`(pane, key) -> app` for every block another shipped record puts in this host's panes."""
+	return {(block.pane, block.key): block.app for block in shipped_blocks(host, exclude)}
+
+
+def shipped_blocks(host: str, exclude: str) -> list[frappe._dict]:
+	"""Every block another shipped record puts in this host's panes, with its record's `app`."""
 	records = frappe.get_all(
 		"Settings Dialog",
 		filters={"standard": 1, "user": SITE_LAYER, "name": ("!=", exclude)},
@@ -293,14 +343,16 @@ def shipped_block_keys(host: str, exclude: str) -> dict[tuple[str, str], str]:
 	)
 	owners = {record.name: record.app for record in records if (record.extends or record.app) == host}
 	if not owners:
-		return {}
+		return []
 
 	blocks = frappe.get_all(
 		"Settings Block",
 		filters={"parenttype": "Settings Dialog", "parent": ("in", list(owners))},
-		fields=["parent", "pane", "key"],
+		fields=["parent", "pane", "key", "save_mode", "component", "bindings"],
 	)
-	return {(block.pane, block.key): owners[block.parent] for block in blocks}
+	for block in blocks:
+		block.app = owners[block.parent]
+	return blocks
 
 
 def on_doctype_update():
