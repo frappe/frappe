@@ -167,5 +167,6 @@ describe("a page made with the builder", () => {
     expect(() => createPageEngine(spec({ refresh: widgets }, {}))).toThrow(/"refresh"/);
     expect(() => createPageEngine(spec({ widgets }, { cached: () => 1 }))).toThrow(/"cached"/);
     expect(() => createPageEngine(spec({ widgets }, { widgets: 1 }))).toThrow(/"widgets"/);
+    expect(createPageEngine(spec({ widgets }, { constructor: 1 })).page.constructor).toBe(1);
   });
 });

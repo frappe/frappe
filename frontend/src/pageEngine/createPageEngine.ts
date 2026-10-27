@@ -194,7 +194,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
     // Descriptors, not a spread: a spread would read each getter once, here.
     const descriptors = Object.getOwnPropertyDescriptors(members);
     for (const key of Object.keys(descriptors))
-      if (key in page)
+      if (Object.hasOwn(page, key))
         throw new Error(`[record-page] the ${kind} "${key}" on ${spec.doctype} would replace the page's own "${key}"`);
     Object.defineProperties(page, descriptors);
   }
