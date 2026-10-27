@@ -432,7 +432,7 @@ class StudioPage(Document):
 		blocks = [block for page in pages for block in get_blocks(page)]
 		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
 		for file in os.listdir(folder):
-			if file.removesuffix(".json") not in used:
+			if file.endswith(".json") and file.removesuffix(".json") not in used:
 				delete_file(folder, file)
 
 	def get_component_folder_path(self) -> str:
