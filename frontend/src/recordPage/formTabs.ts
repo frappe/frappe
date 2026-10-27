@@ -7,8 +7,8 @@ import {
   identifyTabs,
   tabStripLabel,
 } from "@framework/ui/FormLayout";
-import { runningSource } from "./context";
-import { StagedOverlay } from "./staging";
+import { runningSource } from "@/pageEngine/context";
+import { StagedOverlay } from "@/pageEngine/staging";
 import type { FormLayoutSchema, Tab, TabOverride } from "@framework/ui/FormLayout/types";
 import { readOnly, type ReadOnlyAdvice } from "./readOnly";
 import type { PageFormTab, PageFormTabPatch, PageFormTabs } from "./types";

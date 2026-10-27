@@ -13,7 +13,7 @@ import {
 } from "@framework/ui/fields/types";
 import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { shownFields } from "./requiredFields";
-import type { Staging } from "./staging";
+import type { Staging } from "@/pageEngine/staging";
 
 interface Mark {
   message: FieldError;

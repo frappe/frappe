@@ -27,8 +27,8 @@ vi.mock("@framework/ui/api", async () => {
 
 import { loadClientScripts, resetClientScripts } from "../clientScripts";
 import { createRecordPage, type RecordPageHost } from "../createRecordPage";
-import { FIRST_PAINT_LIMIT_MS } from "../paintGate";
-import { HOST_SOURCE, runningSource, withRegisteringSource } from "../context";
+import { FIRST_PAINT_LIMIT_MS } from "@/pageEngine/paintGate";
+import { HOST_SOURCE, runningSource, withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "../registry";
 import type { AuthoredHandlers, RecordPageApi } from "../types";
 

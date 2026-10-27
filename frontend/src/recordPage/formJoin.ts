@@ -7,8 +7,8 @@ import type {
   Section,
   Tab,
 } from "@framework/ui/FormLayout/types";
-import { BUILTIN } from "./surface";
-import type { ResolvedItem } from "./surface";
+import { BUILTIN } from "@/pageEngine/surface";
+import type { ResolvedItem } from "@/pageEngine/surface";
 import type { FormItem } from "./types";
 
 type Entry = ResolvedItem<FormItem>;

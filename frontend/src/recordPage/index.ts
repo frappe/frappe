@@ -14,7 +14,7 @@ export {
   runningSource,
   withRegisteringSource,
   withRunningSource,
-} from "./context";
+} from "@/pageEngine";
 
 export { createRecordPage, SAVE_VETO } from "./createRecordPage";
 export { createCommitChannel } from "./commitChannel";
@@ -22,8 +22,8 @@ export type { RecordCommitChannel } from "./commitChannel";
 export { errorMessage } from "./errorMessage";
 export { FieldErrors } from "./fieldErrors";
 export { missingRequired } from "./requiredFields";
-export { setIconSource } from "./iconClasses";
-export type { IconSource } from "./iconClasses";
+export { setIconSource } from "@/pageEngine";
+export type { IconSource } from "@/pageEngine";
 export {
   clientScriptChanges,
   invalidateClientScripts,
@@ -34,19 +34,19 @@ export type { RecordPageController } from "./createRecordPage";
 
 export type { AuthoredHandlers, Handler, PostedRow, RecordPageHandlers } from "./types";
 
-export { hidingDenied, isEmptyHeader, projectHeader, zoneOf } from "./headerRenderings";
-export { projectFrame } from "./frame";
-export type { FrameProjection } from "./frame";
-export { columnBounds, dragOutcome, isDrawn, projectBody, STRIP_WIDTH } from "./body";
-export type { BodyColumn, ColumnBounds, EdgeSide, Remembered } from "./body";
-export { setDrawnProps } from "./drawnProps";
-export type { DrawnProps } from "./drawnProps";
+export { hidingDenied, isEmptyHeader, projectHeader, zoneOf } from "@/pageEngine";
+export { projectFrame } from "@/pageEngine";
+export type { FrameProjection } from "@/pageEngine";
+export { columnBounds, dragOutcome, isDrawn, projectBody, STRIP_WIDTH } from "@/pageEngine";
+export type { BodyColumn, ColumnBounds, EdgeSide, Remembered } from "@/pageEngine";
+export { setDrawnProps } from "@/pageEngine";
+export type { DrawnProps } from "@/pageEngine";
 export type {
   HeaderBand,
   HeaderControl,
   HeaderNode,
   HeaderProjection,
-} from "./headerRenderings";
+} from "@/pageEngine";
 export { formItems, joinForm } from "./formJoin";
 export { COMPOSER_TABS, isComposerTab } from "./composer";
 export type { ComposerHost, ComposerSurface } from "./composer";

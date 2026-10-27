@@ -149,7 +149,7 @@ import {
 	type RecordPageController,
 } from "@/recordPage";
 import type { UseFormLayout } from "@/recordPage/formLayoutSource/useFormLayout";
-import { LATE_LIMIT_MS } from "@/recordPage/paintGate";
+import { LATE_LIMIT_MS } from "@/pageEngine/paintGate";
 import { routeFor } from "@/router/routeFor";
 import { __ } from "@/i18n";
 import BodyColumns from "./record/body/BodyColumns.vue";

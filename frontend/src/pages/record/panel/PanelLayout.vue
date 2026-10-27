@@ -33,7 +33,7 @@ import { computed, inject, provide } from "vue";
 import { useFieldTypes, warnMissingCommit } from "@framework/ui/FormLayout";
 import { CommitKey, DocKey, ResolveFieldKey, UpdateKey } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
-import { BUILTIN, type Surface } from "@/recordPage/surface";
+import { BUILTIN, type Surface } from "@/pageEngine/surface";
 import type { PanelSectionItem, RecordPageApi } from "@/recordPage";
 import PanelSectionsSkeleton from "../skeletons/PanelSectionsSkeleton.vue";
 import PanelSection from "./PanelSection.vue";

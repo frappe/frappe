@@ -16,7 +16,7 @@ import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { resetUserRoles } from "@framework/ui/useUserRoles";
 import { acts, type ActEntry, type ActScope } from "@/acts/dispatcher";
 import { createRecordPage, type RecordPageHost } from "@/recordPage/createRecordPage";
-import { withRegisteringSource } from "@/recordPage/context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { AuthoredHandlers } from "@/recordPage/types";
 import { ActKeys, type OpenArgument } from "../actKeys";

@@ -60,7 +60,7 @@
 <script setup lang="ts">
 import { computed, inject, reactive, ref, watch } from "vue";
 import { ScrollArea, Tabs } from "frappe-ui";
-import type { ResolvedItem } from "@/recordPage/surface";
+import type { ResolvedItem } from "@/pageEngine/surface";
 import type { RecordPageApi, TabItem } from "@/recordPage/types";
 import { __ } from "@/i18n";
 import { RecordFeedsKey } from "../feed/recordFeeds";

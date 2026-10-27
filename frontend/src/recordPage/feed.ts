@@ -4,10 +4,10 @@ import { ref } from "vue";
 import { dayjs } from "frappe-ui";
 import { compareActivities } from "@framework/ui/ActivityTimeline";
 import { currentSession } from "@framework/ui/useSession";
-import { runningSource } from "./context";
+import { runningSource } from "@/pageEngine/context";
 import { readOnly } from "./readOnly";
-import type { HeldAct, TakeResult } from "./heldActs";
-import { BUILTIN, Surface } from "./surface";
+import type { HeldAct, TakeResult } from "@/pageEngine/heldActs";
+import { BUILTIN, Surface } from "@/pageEngine/surface";
 import { FEED_ITEM_KEYS } from "./types";
 import type {
   ActivityItem,

@@ -1,6 +1,6 @@
 // The one loader the record page asks for a doctype's scripts: the file scripts apps ship, then its Client Scripts.
 import { loadClientScripts } from "./clientScripts";
-import { withRegisteringSource } from "./context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage } from "./registry";
 import type { AuthoredHandlers } from "./types";
 

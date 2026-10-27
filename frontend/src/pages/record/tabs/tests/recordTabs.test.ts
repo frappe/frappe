@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, reactive, ref, shallowRef, type EffectScope } from "vue";
 
-import { Surface } from "@/recordPage/surface";
+import { Surface } from "@/pageEngine/surface";
 import { TAB_ITEM_KEYS, type TabItem } from "@/recordPage/types";
 import { recordTabBuiltins, RecordTabsHost } from "../recordTabs";
 import { watchShownTab } from "../useRecordTabs";

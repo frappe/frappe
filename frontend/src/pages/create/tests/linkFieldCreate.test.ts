@@ -78,7 +78,7 @@ import { useCreateRight } from "@/createRight";
 import { recordLink } from "@/router/recordLink";
 import { registerShell } from "@/router/routeFor";
 import { resetFormLayouts } from "@/recordPage";
-import { createPageDialogs } from "@/recordPage/dialog";
+import { createPageDialogs } from "@/pageEngine/dialog";
 import { closeCreates, createDialog, createRequests, openCreate, registerCreateDialog } from "@/shell/create";
 import PageDialogs from "@/pages/record/dialogs/PageDialogs.vue";
 import CreateDialog from "../CreateDialog.vue";

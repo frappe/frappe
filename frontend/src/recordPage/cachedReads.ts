@@ -1,6 +1,6 @@
 // `page.cached` for one visit: a kept value at once, and one fetch per key per visit.
 import { keeperFor, keptValue } from "./keptValues";
-import type { LateRefresh } from "./paintGate";
+import type { LateRefresh } from "@/pageEngine/paintGate";
 
 interface CachedRead {
   source: string;

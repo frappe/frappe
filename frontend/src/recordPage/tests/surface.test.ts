@@ -1,8 +1,8 @@
 // The merge & ordering rules as executable claims.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { isReactive, nextTick, watchEffect } from "vue";
-import { Surface } from "../surface";
-import { HeaderSurface } from "../headerRenderings";
+import { Surface } from "@/pageEngine/surface";
+import { HeaderSurface } from "@/pageEngine/headerRenderings";
 import {
 	HEADER_ITEM_KEYS,
 	PANEL_SECTION_KEYS,
@@ -10,7 +10,7 @@ import {
 	TAB_ITEM_KEYS,
 } from "../types";
 import { registerRecordPage, registrationsFor, resetRegistry } from "../registry";
-import { withRegisteringSource } from "../context";
+import { withRegisteringSource } from "@/pageEngine/context";
 
 function names(surface: Surface) {
 	return surface.visible().map((item) => item.name);

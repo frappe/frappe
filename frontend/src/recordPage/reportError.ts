@@ -1,7 +1,7 @@
 // A customization failure's Error Log row, which an admin can read without being in
 // the room. Fire-and-forget: an error channel that can itself error is a loop.
 import { runMethod } from "@framework/ui/api";
-import { HOST_SOURCE } from "./context";
+import { HOST_SOURCE } from "@/pageEngine/context";
 
 const REPORT_METHOD =
   "frappe.desk.customization_error.report_customization_error";

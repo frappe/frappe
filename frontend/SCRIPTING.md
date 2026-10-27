@@ -9,6 +9,22 @@ and what it may import.
 One section per region of the page. A region's section lands with the region, so a
 region not listed here is not yet addressable.
 
+## The page engine
+
+The record page is built on `createPageEngine`. An app file imports it from `@shell`.
+Every page made with it gives its handlers a `page` with these members: `doctype`,
+`meta`, `perms`, `roles`, `frame`, `header`, `body`, `refresh()`, `toast`, `dialog`,
+`call`, `cached` and `router`. They work as this document describes them for the record
+page, except `cached`. `page.cached` keeps values only through a `cached` provider
+(`CachedProvider`) that the page gives the builder. The record page gives its per-record
+cache. An app page that gives no provider gets `undefined` from `page.cached` every time,
+and no fetch runs.
+
+An app page builds its own engine. It gives the builder its own lists, its own event
+names and its own `page` members, and the builder adds the rest. The record page's own
+members, such as `doc`, `fields` and `save()`, are the record page's additions. The file
+an app page's handlers go in is not built yet.
+
 ## Where a script runs
 
 A record-page script is a `Client Script` row with `view = Record` and `dt` set to the
