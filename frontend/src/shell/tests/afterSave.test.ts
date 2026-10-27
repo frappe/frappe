@@ -8,7 +8,7 @@ vi.mock("frappe-ui", () => ({ toast: fake.toast }));
 import type { Session } from "@framework/ui/api";
 import { registerAfterSave, runAfterSave, type SavedBinding } from "@/afterSave";
 import { registerDeskAfterSave } from "../deskAfterSave";
-import { registerAfterSave as appRegisterAfterSave } from "@shell";
+import { registerAfterSave as appRegisterAfterSave } from "@/public";
 
 const USER = "reader@example.com";
 
@@ -58,7 +58,7 @@ describe("registerAfterSave", () => {
 		error.mockRestore();
 	});
 
-	it("is on the app import list, on the shell's own registry", () => {
+	it("is on the app import list (`@shell`), on the shell's own registry", () => {
 		const run = vi.fn();
 		const remove = appRegisterAfterSave("Probe D", run);
 
