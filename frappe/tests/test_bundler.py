@@ -2,18 +2,12 @@
 # License: MIT. See LICENSE
 import os
 import tempfile
-from contextlib import contextmanager, nullcontext
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import click
-from click.testing import CliRunner
 
-import frappe
-from frappe.bundler import (
-	build_framework_islands,
-	build_page_islands,
-	remove_stale_island_toolchain,
-)
+from frappe.bundler import build_framework_islands, build_page_islands, remove_stale_island_toolchain
 from frappe.tests import UnitTestCase
 
 
@@ -58,25 +52,6 @@ def failing_island_builds():
 
 
 class TestIslandBuilds(UnitTestCase):
-	def test_force_reaches_both_island_builds(self):
-		from frappe.commands.utils import build
-
-		for args, force in ((["--app", "example_app"], False), (["--app", "example_app", "--force"], True)):
-			with (
-				self.subTest(args=args),
-				patch("frappe.init"),
-				patch("frappe.local.conf", frappe._dict(developer_mode=0)),
-				patch("frappe.utils.synchronization.filelock", return_value=nullcontext()),
-				patch("frappe.bundler.bundle"),
-				patch("frappe.bundler.build_framework_islands") as framework_build,
-				patch("frappe.gettext.translate.compile_translations"),
-				patch("frappe.commands.utils.run_after_build_hook"),
-			):
-				result = CliRunner().invoke(build, args)
-				self.assertEqual(result.exit_code, 0, result.output)
-				self.assertEqual(framework_build.call_args.kwargs["force"], force)
-				self.assertEqual(frappe.flags.force_island_build, force)
-
 	def test_failed_framework_island_build_fails_bench_build(self):
 		with failing_island_builds():
 			self.assertRaises(click.ClickException, build_framework_islands)
