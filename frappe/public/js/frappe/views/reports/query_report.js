@@ -2553,6 +2553,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			title,
 			description,
 			actions,
+			css_class: "whitespace-pre-wrap", // multiline error messages
 		})[0].outerHTML;
 	}
 

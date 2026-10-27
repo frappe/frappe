@@ -42,7 +42,7 @@ class TestQueryReport(IntegrationTestCase):
 				)
 			),
 		)
-		# the same message once frappe has stripped its markup (worker stdin is a tty)
+		# a message with no markup is kept as it is
 		self.assertEqual(
 			"Please select a Company.",
 			get_user_facing_error(
@@ -854,6 +854,26 @@ data = columns, result
 		from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 
 		make_property_setter(doctype, None, "show_title_field_in_link", "1", "Check", for_doctype=True)
+
+	def test_user_facing_error_keeps_line_breaks(self):
+		from frappe.desk.query_report import get_user_facing_error
+
+		traceback = (
+			"Traceback (most recent call last):\n  File 'x.py', line 1\n"
+			"frappe.exceptions.ValidationError: "
+			"Row 4: first.<br>Row 4: <b>second</b> one.<BR><br />Row 5: third."
+		)
+
+		# the report view shows each message on its own line
+		self.assertEqual(
+			"Row 4: first.\nRow 4: second one.\n\nRow 5: third.",
+			get_user_facing_error(traceback, keep_line_breaks=True),
+		)
+		# the notification stays on one line, since an email subject drops newlines
+		self.assertEqual(
+			"Row 4: first. Row 4: second one. Row 5: third.",
+			get_user_facing_error(traceback),
+		)
 
 
 def create_mock_data():
