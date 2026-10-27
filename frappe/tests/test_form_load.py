@@ -1,6 +1,7 @@
 # Copyright (c) 2015, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
 from frappe.desk.form.load import get_docinfo, get_versions, getdoc, getdoctype
@@ -367,6 +368,60 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		self.assertIn("email_ids", tables)
 		self.assertIn("designation", changed)
 		self.assertIn("is_primary", self._child_fields(versions, "email_ids"))
+
+
+class TestStandardFieldsInVersions(IntegrationTestCase):
+	"""get_diff records `name` and `docstatus` in `changed`, but neither is a DocField, so
+	the permlevel filter in get_versions has to allow them through on its own. Without that
+	a submit-only version carries no changes at all and drops out of the timeline."""
+
+	RESTRICTED_USER = "test@example.com"
+
+	def setUp(self):
+		self.dt = new_doctype(
+			is_submittable=1,
+			track_changes=1,
+			fields=[
+				{"label": "Public Field", "fieldname": "public_field", "fieldtype": "Data"},
+				{"label": "Secret Field", "fieldname": "secret_field", "fieldtype": "Data", "permlevel": 1},
+			],
+			permissions=[{"role": "All", "read": 1}],
+		).insert()
+		self.addCleanup(self.dt.delete)
+
+	def _submitted_doc(self):
+		doc = frappe.get_doc(
+			{"doctype": self.dt.name, "public_field": "visible", "secret_field": "hidden"}
+		).insert()
+		# submit() skips version tracking under tests (Document._save defaults ignore_version
+		# to frappe.in_test), so take the same path by hand with versioning left on
+		doc.docstatus = 1
+		doc.save(ignore_version=False)
+		return doc
+
+	def _changed(self, versions):
+		changed = []
+		for version in versions:
+			changed.extend(frappe.parse_json(version.data).get("changed", []))
+		return changed
+
+	def test_docstatus_change_survives_permlevel_filtering(self):
+		doc = self._submitted_doc()
+
+		with self.set_user(self.RESTRICTED_USER):
+			versions = get_versions(frappe.get_doc(self.dt.name, doc.name))
+
+		changed = self._changed(versions)
+		self.assertIn(["docstatus", 0, 1], [list(log) for log in changed])
+		# the restricted field is still filtered out — docstatus is not a blanket exemption
+		self.assertNotIn("secret_field", [log[0] for log in changed])
+
+	def test_docstatus_change_is_kept_for_administrator(self):
+		doc = self._submitted_doc()
+
+		versions = get_versions(frappe.get_doc(self.dt.name, doc.name))
+
+		self.assertIn(["docstatus", 0, 1], [list(log) for log in self._changed(versions)])
 
 
 def get_blog(blog_name):
