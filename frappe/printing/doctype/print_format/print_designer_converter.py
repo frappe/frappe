@@ -390,7 +390,7 @@ class PrintDesignerConverter:
 		node = {
 			"label": "Text",
 			"fieldname": self.name("static_text"),
-			"fieldtype": "StaticText",
+			"fieldtype": "Static Text",
 			"text": text,
 			"custom": 1,
 		}
@@ -554,7 +554,7 @@ class PrintDesignerConverter:
 				return f'{{%- if doc.{node["fieldname"]} -%}}<img src="{{{{ doc.{node["fieldname"]} }}}}" style="max-width: 100%;">{{%- endif -%}}'
 			if node["fieldtype"] == "Table":
 				return self.table_html(element, node)
-			if node["fieldtype"] not in ("StaticText",):
+			if node["fieldtype"] != "Static Text":
 				return f"{{{{ doc.get_formatted({node['fieldname']!r}) }}}}"
 			inner = node.get("text") or ""
 		return f'<div style="{style}">{inner}</div>' if style else f"<div>{inner}</div>"
