@@ -97,7 +97,7 @@ frappe.ui.form.on("Print Format", {
 		if (frm.doc.custom_format) {
 			frm.set_value("print_format_builder_beta", 0);
 		}
-		frm.trigger("render_buttons");
+		frm.trigger("render_buttons").then(() => frm.trigger("render_convert_button"));
 	},
 	doc_type: function (frm) {
 		frm.trigger("hide_absolute_value_field");
