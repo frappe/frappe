@@ -73,6 +73,7 @@ afterEach(() => {
 		registerFieldType(fieldtype, component);
 	vi.unstubAllGlobals();
 	resetSession();
+	useColorScheme().setColorScheme("light");
 });
 
 async function settle() {
@@ -135,7 +136,6 @@ describe("desk's settings components", () => {
 		expect(colorScheme.value).toBe("dark");
 		expect(document.documentElement.getAttribute("data-theme")).toBe("dark");
 		expect(trigger.textContent).toContain("Dark");
-		setColorScheme("light");
 	});
 
 	it("profile photo: shows the person and removes the photo through the binding", async () => {

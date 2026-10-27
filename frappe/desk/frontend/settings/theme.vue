@@ -5,7 +5,7 @@
 			class="w-56"
 			:model-value="colorScheme"
 			:options="SCHEMES"
-			@update:model-value="(scheme) => setColorScheme(scheme as ColorScheme)"
+			@update:model-value="setColorScheme"
 		/>
 	</SettingsRow>
 </template>
@@ -17,7 +17,7 @@ import { __ } from "frappe/i18n";
 /** A block with no binding is handed an empty `bindings`. */
 defineProps<{ bindings: Record<string, never> }>();
 
-const SCHEMES = [
+const SCHEMES: { label: string; value: ColorScheme; icon: string }[] = [
 	{ label: __("Light"), value: "light", icon: "lucide-sun" },
 	{ label: __("Dark"), value: "dark", icon: "lucide-moon" },
 	{ label: __("System"), value: "system", icon: "lucide-monitor" },
