@@ -33,7 +33,7 @@ function pane(...blocks: SettingsBlock[]): SettingsPane {
 
 /** A child row as Frappe sends it, stamped by the last save of its parent. */
 function rule(value: string, modified: string) {
-	return { name: "r1", rule: value, modified, modified_by: "admin@example.com" };
+	return { name: "r1", parentfield: "rules", rule: value, modified, modified_by: "admin@example.com" };
 }
 
 let server: SettingsServer;

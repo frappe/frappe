@@ -43,6 +43,12 @@ describe("changedFields", () => {
     expect(changedFields(doc, saved, [])).toEqual([]);
     expect(changedFields({ items: [] }, saved, [])).toEqual(["items"]);
   });
+
+  it("does not name a table whose rows another save only restamped", () => {
+    const row = (modified: string) => ({ name: "a", parentfield: "items", qty: 1, modified });
+    const saved = { items: [row("2026-10-01 11:00:00")] };
+    expect(changedFields({ items: [row("2026-10-01 10:00:00")] }, saved, [])).toEqual([]);
+  });
 });
 
 describe("conflictError", () => {
