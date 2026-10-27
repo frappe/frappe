@@ -79,7 +79,9 @@ export class BindingDraft {
 		);
 	}
 
+	/** An unchanged value is no edit: frappe-ui's inputs send it again on `change`, after the commit's hold drew its message. */
 	edit(fieldname: string, value: unknown) {
+		if (sameContent(this.state.doc[fieldname], value)) return;
 		this.state.doc[fieldname] = value;
 		this.fieldErrors.clear(fieldname);
 		if (!this.dirty(fieldname) && this.state.marks[fieldname] === "error")
