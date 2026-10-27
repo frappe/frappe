@@ -123,8 +123,8 @@ class PlaceRows {
 	private navigation: { from?: Navigation; rows: PaletteRow[] } = { rows: [] };
 
 	constructor(private readonly context: PaletteContext) {
-		const others = computed(() => [...this.doctypes.value, ...this.appRows(), ...this.paneRows()]);
-		this.goTo = computed(() => [...this.sidebarRows(), ...others.value]);
+		const others = computed(() => [...this.appRows(), ...this.paneRows()]);
+		this.goTo = computed(() => [...joinPlaces(this.sidebarRows(), this.doctypes.value), ...others.value]);
 		this.create = computed(() => this.createRows());
 	}
 
@@ -231,6 +231,26 @@ class PlaceRows {
 		const { boot, router } = this.context;
 		return router.hasRoute("record") && href.startsWith(`${boot.shell_base}/`);
 	}
+}
+
+/** One row per address, the sidebar's; a look-alike sidebar row at another address reads "Sidebar". */
+function joinPlaces(sidebar: PaletteRow[], doctypes: PaletteRow[]): PaletteRow[] {
+	const byAddress = new Map(doctypes.map((row) => [row.href, row]));
+	const kept = sidebar.map((row) => {
+		const same = byAddress.get(row.href);
+		if (!same) return row;
+		byAddress.delete(row.href);
+		const keywords = [...new Set([...(row.keywords ?? []), ...(same.keywords ?? [])])];
+		return { ...row, description: same.description, doctype: row.doctype ?? same.doctype, keywords };
+	});
+	const unclaimed = [...byAddress.values()];
+	const looks = new Set(unclaimed.map(looksOf));
+	const told = kept.map((row) => (looks.has(looksOf(row)) ? { ...row, description: __("Sidebar") } : row));
+	return [...told, ...unclaimed];
+}
+
+function looksOf(row: PaletteRow) {
+	return JSON.stringify([row.label, row.description]);
 }
 
 function placesFailed(error: unknown) {
