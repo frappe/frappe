@@ -1,4 +1,3 @@
-// The page engine's one entry: the builder a page is made with, and what a page's host reads off it.
 export { createPageEngine } from "./createPageEngine";
 export type { CachedProvider, PageEngine, PageEngineSpec } from "./createPageEngine";
 export { FIRST_PAINT_LIMIT_MS } from "./paintGate";

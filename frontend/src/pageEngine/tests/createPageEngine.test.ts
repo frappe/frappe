@@ -1,4 +1,3 @@
-// A second page made with the builder: one list, one event and one extra member.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { watchEffect } from "vue";
 
@@ -149,5 +148,24 @@ describe("a page made with the builder", () => {
     pause.open();
     await vi.advanceTimersByTimeAsync(0);
     expect(drawn(engine)).toEqual(["a", "b", "early", "fast", "slow"]);
+  });
+
+  it("refuses a list or extra member that would replace a member of the base page", () => {
+    const spec = (lists: Record<string, Surface<any>>, extras: object) => ({
+      doctype: "Widget Board",
+      name: "board",
+      lists,
+      sources: () => [],
+      extras: () => extras,
+      meta: () => null,
+      perms: () => ({}),
+      roles: () => [],
+      router: {} as any,
+    });
+    const widgets = new Surface({ surface: "widgets", keys: ["name"] });
+
+    expect(() => createPageEngine(spec({ refresh: widgets }, {}))).toThrow(/"refresh"/);
+    expect(() => createPageEngine(spec({ widgets }, { cached: () => 1 }))).toThrow(/"cached"/);
+    expect(() => createPageEngine(spec({ widgets }, { widgets: 1 }))).toThrow(/"widgets"/);
   });
 });

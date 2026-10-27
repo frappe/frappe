@@ -1,5 +1,3 @@
-// Builds a page on the engine: the three built-in lists and the caller's own, the paint
-// gate, the replay and the `page` each handler gets. Handlers run serially, each in its own try/catch.
 import type { ComputedRef, Ref } from "vue";
 import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
@@ -163,8 +161,8 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
       spec.cached?.read(runningSource(), key, fetch) as T | undefined,
     // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
     router: spec.router,
-    ...spec.lists,
   } as EnginePage<Lists, Extras>;
+  addMembers(spec.lists, "list");
 
   const refreshView = pageView(page);
 
@@ -189,9 +187,17 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
       gate.leave();
     },
   };
-  // Descriptors, not a spread: a spread would read each getter once, here.
-  Object.defineProperties(page, Object.getOwnPropertyDescriptors(spec.extras(engine)));
+  addMembers(spec.extras(engine), "extra member");
   return engine;
+
+  function addMembers(members: object, kind: string) {
+    // Descriptors, not a spread: a spread would read each getter once, here.
+    const descriptors = Object.getOwnPropertyDescriptors(members);
+    for (const key of Object.keys(descriptors))
+      if (key in page)
+        throw new Error(`[record-page] the ${kind} "${key}" on ${spec.doctype} would replace the page's own "${key}"`);
+    Object.defineProperties(page, descriptors);
+  }
 
   function fire(event: string, detail?: unknown) {
     return hold(() => dispatch(event, detail));

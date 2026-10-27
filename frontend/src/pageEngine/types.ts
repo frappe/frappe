@@ -1,5 +1,3 @@
-// What every page built on the engine shares: the base `page`, the surface verbs and
-// the item schemas of the three built-in lists.
 import type { Component } from "vue";
 import type { Router } from "vue-router";
 import type { ActFields } from "@/acts/dispatcher";
