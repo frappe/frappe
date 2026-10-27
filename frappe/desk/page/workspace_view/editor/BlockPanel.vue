@@ -2,6 +2,7 @@
 import { computed, ref } from "vue";
 import { Button, Select, Switch, TabButtons, TextInput, Textarea } from "frappe-ui";
 import { Link } from "@framework/ui";
+import InlineFilter from "./InlineFilter.vue";
 import { block_size } from "../grid.js";
 import {
 	HEIGHTS,
@@ -70,6 +71,16 @@ const FIELDS = {
 			options: ["", "Grey", "Green", "Red", "Orange", "Pink", "Yellow", "Blue", "Cyan"],
 		},
 		{ field: "format", label: "Format", placeholder: "{} Open" },
+		{
+			field: "stats_filter",
+			label: "Filter",
+			filter: true,
+			when: (w) =>
+				w.type === "DocType" &&
+				w.link_to &&
+				w.doc_view !== "New" &&
+				!window.frappe.boot.single_types.includes(w.link_to),
+		},
 	],
 	card: [{ field: "description", label: "Description", textarea: true }],
 	quick_list: [
@@ -150,6 +161,17 @@ function set(field, value) {
 	emit("change");
 }
 
+// old shortcuts store filters as an object, e.g. { "status": "Open" }
+function filter_rows(widget) {
+	const filters = window.frappe.utils.process_filter_expression(widget.stats_filter) || [];
+	if (Array.isArray(filters)) return filters;
+	return Object.entries(filters).map(([field, value]) => [
+		widget.link_to,
+		field,
+		...(Array.isArray(value) ? value : ["=", value]),
+	]);
+}
+
 function link_doctype(field) {
 	return typeof field.link === "function" ? field.link(props.widget) : field.link;
 }
@@ -219,6 +241,15 @@ function remove_link(index) {
 					:model-value="widget[field.field] || ''"
 					@update:model-value="(value) => set(field.field, value)"
 				/>
+				<div v-else-if="field.filter" class="flex flex-col gap-1.5">
+					<span class="text-sm text-ink-gray-5">{{ __(field.label) }}</span>
+					<InlineFilter
+						:key="widget.link_to"
+						:doctype="widget.link_to"
+						:filters="filter_rows(widget)"
+						@change="(rows) => set(field.field, JSON.stringify(rows))"
+					/>
+				</div>
 				<Switch
 					v-else-if="field.inverse_switch"
 					:label="__(field.label)"
