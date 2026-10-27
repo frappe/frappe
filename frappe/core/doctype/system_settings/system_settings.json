@@ -870,7 +870,7 @@
   },
   {
    "default": "0",
-   "description": "Serve Desk v2 at /apps.",
+   "description": "Preview. Apps without desk v2 support open in desk v1.",
    "fieldname": "enable_desk_v2",
    "fieldtype": "Check",
    "label": "Enable Desk v2"
@@ -916,7 +916,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-26 13:30:00.000000",
+ "modified": "2026-10-27 18:30:00.000000",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",
