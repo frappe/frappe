@@ -255,7 +255,7 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(general.draft.state.marks.country).toBe("error");
 	});
 
-	it("reloads the binding when the reader chooses Reload", async () => {
+	it("takes the other save's values for the refused fields when the reader chooses Reload", async () => {
 		const drafts = await opened(block("general", "auto", ["country"]));
 		const general = drafts.bound.get("general")!;
 		server.put("System Settings", "System Settings", { country: "Spain" });
@@ -267,6 +267,162 @@ describe("a conflict with a save made elsewhere", () => {
 
 		expect(general.draft.state.doc.country).toBe("Spain");
 		expect(general.draft.dirty("country")).toBe(false);
+	});
+
+	it("keeps another block's unsaved edits on Reload, and saves them over the reloaded copy", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("zone", "button", ["time_zone"])
+		);
+		const general = drafts.bound.get("general")!;
+		const zone = drafts.bound.get("zone")!;
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockResolvedValue(true);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(general.draft.state.doc.country).toBe("Spain");
+		expect(zone.draft.state.doc.time_zone).toBe("Asia/Kolkata");
+		expect(zone.draft.dirty("time_zone")).toBe(true);
+
+		const { modified } = server.doc("System Settings", "System Settings");
+		await drafts.saveButtons();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.writes.at(-1)?.body).toEqual({ time_zone: "Asia/Kolkata", modified });
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			time_zone: "Asia/Kolkata",
+		});
+	});
+
+	it("still sends an autosave queued behind the refused save after Reload", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("onboarding", "auto", ["enable_onboarding"])
+		);
+		const general = drafts.bound.get("general")!;
+		const onboarding = drafts.bound.get("onboarding")!;
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockImplementation(async () => {
+			onboarding.draft.edit("enable_onboarding", 0);
+			drafts.commit(onboarding);
+			return true;
+		});
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			enable_onboarding: 0,
+		});
+		expect(onboarding.draft.state.marks.enable_onboarding).toBe("saved");
+	});
+
+	it("names and resets only the fields the other save changed, and saves the rest of the batch", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockResolvedValue(true);
+
+		await drafts.saveButtons();
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(confirm.mock.calls[0][0].message).toContain("your changes to Country cannot");
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			time_zone: "Asia/Kolkata",
+		});
+		expect(regional.draft.dirty("country")).toBe(false);
+		expect(regional.draft.dirty("time_zone")).toBe(false);
+		expect(regional.draft.state.marks.time_zone).toBe("saved");
+	});
+
+	it("sends none of the batch when the reader keeps editing", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockResolvedValue(null);
+
+		await drafts.saveButtons();
+		await settled();
+
+		expect(server.writes).toHaveLength(1);
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Europe/Paris");
+		expect(regional.draft.state.marks).toMatchObject({ country: "error", time_zone: "error" });
+		expect(regional.draft.dirty("time_zone")).toBe(true);
+	});
+
+	it("does not ask about a kept edit that matches what the other save wrote", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("zone", "button", ["time_zone"])
+		);
+		const general = drafts.bound.get("general")!;
+		const zone = drafts.bound.get("zone")!;
+		zone.draft.edit("time_zone", "Asia/Tokyo");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		confirm.mockResolvedValue(true);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		zone.draft.edit("time_zone", "Asia/Seoul");
+		await drafts.saveButtons();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Seoul");
+	});
+
+	it("does not ask when the other save wrote the same value", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		regional.draft.edit("country", "Spain");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+
+		await drafts.saveButtons();
+		await settled();
+
+		expect(confirm).not.toHaveBeenCalled();
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Kolkata");
+		expect(regional.draft.dirty("country")).toBe(false);
+	});
+
+	it("asks again before saving a kept edit the other save also changed", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("zone", "button", ["time_zone"])
+		);
+		const general = drafts.bound.get("general")!;
+		const zone = drafts.bound.get("zone")!;
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		confirm.mockResolvedValueOnce(true).mockResolvedValueOnce(null);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		expect(zone.draft.state.doc.time_zone).toBe("Asia/Kolkata");
+
+		await drafts.saveButtons();
+
+		expect(confirm).toHaveBeenCalledTimes(2);
+		expect(confirm.mock.calls[1][0].message).toContain("your changes to Time Zone");
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Tokyo");
+		expect(zone.draft.state.marks.time_zone).toBe("error");
 	});
 });
 

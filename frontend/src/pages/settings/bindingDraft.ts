@@ -50,7 +50,7 @@ export class BindingDraft {
 	private queued = new Set<string>();
 	/** Each field a save in flight carries, with the value it sent. */
 	private sending = new Map<string, unknown>();
-	/** Unsent fields a silently re-sent save found changed elsewhere; their own save asks first. */
+	/** Unsent fields found changed elsewhere since their edit; their own save asks first. */
 	private stale = new Set<string>();
 	private running: Promise<void> | null = null;
 
@@ -198,7 +198,7 @@ export class BindingDraft {
 		this.state.isNew = false;
 	}
 
-	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses. */
+	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses, and Reload sends the rest. */
 	private async resolveConflict(fieldnames: string[], refusal: unknown) {
 		let latest: Envelope<Values>;
 		try {
@@ -210,14 +210,12 @@ export class BindingDraft {
 		const users = latest.users as Record<string, { full_name?: string }> | undefined;
 		const touched = (fieldname: string) =>
 			this.stale.has(fieldname) || !same(fresh[fieldname], this.state.saved[fieldname]);
-		if (!fieldnames.some(touched)) {
-			if (fresh.modified === this.state.saved.modified) return this.refuse(fieldnames, refusal);
-			for (const fieldname of Object.keys(this.state.doc))
-				if (!fieldnames.includes(fieldname) && this.dirty(fieldname) && touched(fieldname))
-					this.stale.add(fieldname);
-			const { doc, saved } = mergeRefetch(this.state, fresh);
-			replace(this.state.saved, { ...saved, modified: fresh.modified });
-			replace(this.state.doc, { ...doc, modified: fresh.modified });
+		const conflicting = fieldnames.filter(
+			(fieldname) => touched(fieldname) && !same(this.state.doc[fieldname], fresh[fieldname])
+		);
+		if (!conflicting.length) {
+			if (refusal && fresh.modified === this.state.saved.modified) return this.refuse(fieldnames, refusal);
+			this.adopt(fresh, touched);
 			for (const fieldname of fieldnames) this.queued.add(fieldname);
 			return;
 		}
@@ -225,11 +223,27 @@ export class BindingDraft {
 		if (this.host.closed()) return this.host.lost();
 		const editor = users?.[fresh.modified_by]?.full_name || fresh.modified_by;
 		const changed = changedFields(
-			pick(this.state.doc, fieldnames),
-			pick(this.state.saved, fieldnames),
+			pick(this.state.doc, conflicting),
+			pick(this.state.saved, conflicting),
 			this.state.meta?.fields
 		);
-		if (await confirmConflict(this.host.confirm, editor, changed)) this.reset(fresh);
+		if (!(await confirmConflict(this.host.confirm, editor, changed))) return;
+		this.discard(conflicting);
+		this.adopt(fresh, touched);
+		for (const fieldname of fieldnames.filter((fieldname) => !conflicting.includes(fieldname))) {
+			this.queued.add(fieldname);
+			this.state.marks[fieldname] = "saving";
+		}
+	}
+
+	/** Takes the newer copy under the reader's edits; one the other save also changed asks before its own save. */
+	private adopt(fresh: Values, touched: (fieldname: string) => boolean) {
+		for (const fieldname of Object.keys(this.state.doc))
+			if (this.dirty(fieldname) && touched(fieldname)) this.stale.add(fieldname);
+		const { doc, saved } = mergeRefetch(this.state, fresh);
+		replace(this.state.saved, { ...saved, modified: fresh.modified });
+		replace(this.state.doc, { ...doc, modified: fresh.modified });
+		for (const fieldname of this.stale) if (!this.dirty(fieldname)) this.stale.delete(fieldname);
 	}
 
 	private refuse(fieldnames: string[], error: unknown) {
