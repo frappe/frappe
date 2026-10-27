@@ -1,6 +1,6 @@
 // The palette's ranking: three tiers on the label and the hidden keywords, then recency, then the alphabet.
 import { beforeEach, describe, expect, it } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
@@ -27,7 +27,17 @@ function labels(rows: PaletteRow[]) {
 	return rows.map((one) => one.label);
 }
 
-beforeEach(() => recentVisits.heard([]));
+let router: Router;
+
+// Tracking anew forgets the last test's visits; the server's are replaced whole.
+beforeEach(() => {
+	router = createRouter({
+		history: createMemoryHistory(boot.shell_base),
+		routes: [{ path: "/:doctype", name: "list", component: { render: () => null } }],
+	});
+	recentVisits.track(router, boot, addresses);
+	recentVisits.heard([]);
+});
 
 describe("rank", () => {
 	it("puts a label that starts with the query first, then a word that does, then any match", () => {
@@ -49,12 +59,7 @@ describe("rank", () => {
 		expect(labels(rank(rows, "crm"))).toEqual(["Log a call", "Scrm"]);
 	});
 
-	it("breaks a tie by the row opened last, this tab's visits before the server's, then by the alphabet", async () => {
-		const router = createRouter({
-			history: createMemoryHistory(boot.shell_base),
-			routes: [{ path: "/:doctype", name: "list", component: { render: () => null } }],
-		});
-		recentVisits.track(router, boot, addresses);
+	it("breaks a tie by the row opened last, here or on the server, then by the alphabet", async () => {
 		recentVisits.heard([{ route: `${boot.shell_base}/crm-note`, title: "CRM Note", kind: "list", visited: 0 }]);
 		await router.push("/crm-lead");
 		await router.push("/crm-deal");

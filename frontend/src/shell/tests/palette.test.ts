@@ -757,8 +757,9 @@ describe("the pinned area", () => {
 		const list = document.body.querySelector("[data-slot='palette-pinned']");
 		expect(list?.textContent).toContain("Pinned row");
 
-		// Past Recent's three rows, the first of which holds the keyboard.
-		for (let step = 0; step < 3; step++) await press("ArrowDown");
+		// Past Recent's rows, the first of which holds the keyboard.
+		const recentRows = drawn()[0].length - 1;
+		for (let step = 0; step < recentRows; step++) await press("ArrowDown");
 		expect(row("act:header.save")!.dataset.state).toBe("active");
 		await press("ArrowDown");
 		expect(row("pinned")!.dataset.state).toBe("active");

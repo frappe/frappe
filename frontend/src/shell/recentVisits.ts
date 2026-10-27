@@ -99,7 +99,8 @@ function merge(tab: TabVisit[], server: RecentVisit[]): RecentVisit[] {
 
 /** A record says its doctype, a list or a single its app, as the server writes them. */
 function drawn(visit: TabVisit, heard?: RecentVisit): RecentVisit {
-	const { route, doctype, name, app, visited } = visit;
+	const { route, doctype, name, app } = visit;
+	const visited = Math.max(visit.visited, heard?.visited ?? 0);
 	if (!name) return { route, title: __(doctype), kind: "list", description: app, visited };
 	const title = visit.title ?? (name === doctype ? __(doctype) : heard?.title ?? name);
 	const description = name === doctype ? app : __(doctype);

@@ -73,4 +73,14 @@ describe("recent visits", () => {
 		expect(titles()).toEqual(["Globex deal", "DEAL-1", "Initech deal"]);
 		expect(recentVisits.recency(`${boot.shell_base}/crm-deal/DEAL-1`)).toBe(1);
 	});
+
+	it("moves this tab's visit up when another tab opened the same address later", async () => {
+		await visit("/crm-deal/DEAL-1");
+		await visit("/crm-deal");
+		recentVisits.heard([
+			{ route: `${boot.shell_base}/crm-deal/DEAL-1`, title: "Acme deal", kind: "record", visited: Date.now() + 5000 },
+		]);
+
+		expect(titles()).toEqual(["Acme deal", "CRM Deal"]);
+	});
 });

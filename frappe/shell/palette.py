@@ -12,7 +12,7 @@ from .links import canonical_path
 from .permissions import has_app_permission, may_enter_any_prefix
 from .route_history import Visit
 
-RECENT_LIMIT = 20
+RECENT_VISITS_LIMIT = 20
 
 
 @frappe.whitelist(methods=["GET"])
@@ -58,7 +58,7 @@ def place_doctypes() -> list[dict]:
 def recent_places() -> list[dict]:
 	"""The person's last distinct list and record visits they can still open, titled, newest first."""
 	zone = ZoneInfo(get_system_timezone())
-	return [recent_place(visit, *heading, zone) for visit, *heading in titled_visits(RECENT_LIMIT)]
+	return [recent_place(visit, *heading, zone) for visit, *heading in titled_visits(RECENT_VISITS_LIMIT)]
 
 
 def recent_place(visit: Visit, title: str, subtitle: str | None, zone: ZoneInfo) -> dict:

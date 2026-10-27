@@ -279,7 +279,7 @@ def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:
 	try:
 		titles = get_link_titles(doctype, meta.title_field or "name", set(names))
 	except Exception:
-		frappe.log_error(title=f"Index favourites failed for {doctype}")
+		frappe.log_error(title=f"Readable titles failed for {doctype}")
 		return {}
 
 	return {name: plain_text(title) or name for name, title in titles.items()}
