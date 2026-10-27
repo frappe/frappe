@@ -1,6 +1,9 @@
 name: Frontend
 
 on:
+  # desk-v2 runs it too, so two PRs that each stay inside the page-JS tolerance cannot add up unseen.
+  push:
+    branches: [desk-v2]
   pull_request:
     paths:
       - "frontend/**"
@@ -8,11 +11,13 @@ on:
       # The structure check also checks frappe/shell/. A use of it from the rest of frappe/ is
       # checked by frappe/tests/test_desk_server_layer.py in the server tests, not here.
       - "frappe/shell/**"
+      # Contributed pages, records and settings are part of the build the page-JS check measures.
+      - "frappe/**/frontend/**"
       - ".github/workflows/frontend-tests.yml"
   workflow_dispatch:
 
 concurrency:
-  group: frontend-${{ github.event_name }}-${{ github.event.number }}
+  group: frontend-${{ github.event_name }}-${{ github.event.number || github.ref_name }}
   cancel-in-progress: true
 
 permissions:
@@ -31,6 +36,13 @@ jobs:
         with:
           node-version: 24
           check-latest: true
+
+      - uses: astral-sh/setup-uv@v10.3.2
+        with:
+          python-version: "3.14"
+          activate-environment: true
+          venv-path: ${{ runner.temp }}/venv
+          cache-dependency-glob: pyproject.toml
 
       - id: yarn-cache-dir-path
         run: echo "dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
@@ -71,6 +83,20 @@ jobs:
       - name: Check the desk structure
         if: ${{ !cancelled() }}
         run: node frontend/architecture/diagram.mjs --flows --out desk-architecture.html
+
+      # mysqlclient needs system libraries, and writing the manifest does not import it.
+      - name: Write the build manifest
+        if: ${{ !cancelled() }}
+        run: |
+          python -c 'import tomllib; print("\n".join(d for d in tomllib.load(open("pyproject.toml", "rb"))["project"]["dependencies"] if not d.startswith("mysqlclient")))' > "$RUNNER_TEMP/requirements.txt"
+          uv pip install --quiet -r "$RUNNER_TEMP/requirements.txt"
+          mkdir "$RUNNER_TEMP/sites"
+          echo frappe > "$RUNNER_TEMP/sites/apps.txt"
+          python -c 'import frappe; frappe.init("", sites_path="'"$RUNNER_TEMP/sites"'"); from frappe.shell.manifest import write; write()'
+
+      - name: Check the JS each desk page loads
+        if: ${{ !cancelled() }}
+        run: yarn --cwd frontend test:page-js
 
       - name: Upload the architecture page
         if: ${{ !cancelled() }}

@@ -83,7 +83,11 @@ def get_files_list(pr_number, repo="frappe/frappe"):
 	:param repo: Repository name
 	:return: List of changed file names
 	"""
-	return [change["filename"] for change in fetch_pr_data(pr_number, repo, "files")]
+	files, page = [], 1
+	while changes := fetch_pr_data(pr_number, repo, f"files?per_page=100&page={page}"):
+		files += [change["filename"] for change in changes]
+		page += 1
+	return files
 
 
 def get_output(command, shell=True):
@@ -132,6 +136,12 @@ def skips_test_suites(pr_number, repo="frappe/frappe"):
 	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 
 
+def runs_desk_server_tests(pr_number, files_list, repo="frappe/frappe"):
+	"""Does a desk-v2 PR change the desk-v2 frontend? Server tests such as `test_shell.py` read it."""
+	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
+	return base == "desk-v2" and any(is_desk_frontend(f) for f in files_list)
+
+
 def has_label(pr_number, label, repo="frappe/frappe"):
 	"""
 	Check if the pull request has a specific label.
@@ -177,6 +187,11 @@ def is_frontend_code(file):
 	)
 
 
+def is_desk_frontend(file):
+	"""The desk-v2 frontend, and the pages, records and settings an app contributes to it."""
+	return file.startswith(("frontend/", "ui/")) or (file.startswith("frappe/") and "/frontend/" in file)
+
+
 def matches_postgres_filenames(files_list):
 	"""Check if any changed files suggest database involvement."""
 	db_keywords = ["database", "query", "schema", "postgres"]
@@ -199,6 +214,11 @@ def _selftest():
 		"Jinja must run server tests"
 	)
 	assert is_frontend_code("studio/frontend/index.html"), "app pages outside the frappe package are frontend"
+	assert is_desk_frontend("ui/src/index.ts"), "desk-v2's server tests read ui/"
+	assert is_desk_frontend("frappe/desk/navigation_item_type/page/frontend/item.js"), (
+		"test_shell.py reads contributions"
+	)
+	assert not is_desk_frontend("frappe/public/js/frappe/ui/dialog.js"), "desk v1 is not desk-v2's frontend"
 	print("roulette selftest OK")
 
 
@@ -233,7 +253,9 @@ if __name__ == "__main__":
 	run_postgres = has_label(pr_number, "postgres", repo)
 
 	if build_type == "server":
-		tests_requested = has_run_server_tests_label(pr_number, repo)
+		tests_requested = has_run_server_tests_label(pr_number, repo) or runs_desk_server_tests(
+			pr_number, files_list, repo
+		)
 	else:
 		tests_requested = has_run_ui_tests_label(pr_number, repo)
 
@@ -257,11 +279,7 @@ if __name__ == "__main__":
 	elif only_docs_changed:
 		print("Only docs were updated, stopping build process.")
 		sys.exit(0)
-	elif (
-		only_frontend_code_changed
-		and build_type == "server"
-		and not has_run_server_tests_label(pr_number, repo)
-	):
+	elif only_frontend_code_changed and build_type == "server" and not tests_requested:
 		print("Only Frontend code was updated; Stopping Python build process.")
 		sys.exit(0)
 	elif build_type == "ui" and only_py_changed and not has_run_ui_tests_label(pr_number, repo):
