@@ -72,7 +72,7 @@
 
 <script setup lang="ts">
 import { computed, nextTick, ref } from "vue"
-import { Dropdown, Radio, RadioGroup } from "frappe-ui"
+import { Dropdown, Radio, RadioGroup, toast } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
 import Block from "@/utils/block"
@@ -168,10 +168,16 @@ function commitRename(index: number, name: string) {
 	const child = props.block.children[index]
 	if (!child || !name.trim()) return
 	const previous = options.value[index]
-	child.variantOptionName = name.trim()
+	const renamed = name.trim()
+	// a URL resolves an option by the slug of its name, so two options cannot share one
+	if (options.value.some((option, at) => at !== index && slug(option) === slug(renamed))) {
+		toast.error(`Another option is already named "${renamed}"`)
+		return
+	}
+	child.variantOptionName = renamed
 	// keep the option's layer name in step, unless it was renamed by hand in the tree
 	if (!child.blockName || child.blockName === optionBlockName(previous)) {
-		child.blockName = optionBlockName(name.trim())
+		child.blockName = optionBlockName(renamed)
 	}
 }
 
