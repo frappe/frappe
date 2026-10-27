@@ -101,24 +101,32 @@ class OnboardingStep(Document):
 		Read one level deep: a step there that leads to yet another onboarding counts only once it
 		is ticked off or skipped, so two onboardings that lead to each other cannot loop.
 		"""
+		progress = self.onboarding_progress()
+		if progress is None:
+			return None
+		done, total = progress
+		return done == total
+
+	def onboarding_progress(self) -> tuple[int, int] | None:
+		"""How many required steps of the onboarding this step leads to are done, out of how many.
+
+		Read the way `is_onboarding_done` reads them, one level deep."""
 		if not self.module_onboarding or not frappe.db.exists("Module Onboarding", self.module_onboarding):
 			return None
 
 		onboarding = frappe.get_doc("Module Onboarding", self.module_onboarding)
+		required = [row for row in onboarding.steps if not row.is_optional]
 		if onboarding.is_complete:
-			return True
+			return len(required), len(required)
 
-		for row in onboarding.steps:
-			if row.is_optional:
-				continue
+		done = 0
+		for row in required:
 			step = frappe.get_doc("Onboarding Step", row.step)
 			if step.action == "Complete Onboarding":
-				done = step.is_complete or step.is_skipped
+				done += bool(step.is_complete or step.is_skipped)
 			else:
-				done = step.is_done()
-			if not done:
-				return False
-		return True
+				done += step.is_done()
+		return done, len(required)
 
 	def get_record_filters(self, meta) -> dict:
 		"""The step's `route_options`, the defaults its new record opens with, as filters.
@@ -185,15 +193,19 @@ def get_step_details(name: str, is_optional: bool | int = 0) -> dict:
 	step.title = _(doc.title)
 	step.description = _(doc.description) if doc.description else None
 	step.action_label = _(doc.action_label) if doc.action_label else None
-	step.is_complete = int(bool(doc.is_complete or doc.is_work_done()))
+	if step.action == "Complete Onboarding":
+		# the widget opens this module and shows how far its own onboarding is
+		step.module = frappe.db.get_value("Module Onboarding", step.module_onboarding, "module")
+		step.module_progress = doc.onboarding_progress()
+		work_done = step.module_progress and step.module_progress[0] == step.module_progress[1]
+	else:
+		work_done = doc.is_work_done()
+	step.is_complete = int(bool(doc.is_complete or work_done))
 	if step.action == "Create Entry":
 		step.is_submittable = frappe.db.get_value(
 			"DocType", step.reference_document, "is_submittable", cache=True
 		)
 		step.can_import = can_import(step.reference_document, step.is_submittable)
-	elif step.action == "Complete Onboarding":
-		# the widget opens this module and shows its icon
-		step.module = frappe.db.get_value("Module Onboarding", step.module_onboarding, "module")
 	return step
 
 

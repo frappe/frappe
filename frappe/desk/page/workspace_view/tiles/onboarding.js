@@ -1,12 +1,12 @@
 // What an onboarding step's action does, as the desk onboarding widget does it. Every action is
 // a hand-off to desk: a route, a form tour, a quick entry or a dialog over the page.
 
-export function update_step(step, field) {
+export function update_step(step, field, value = 1) {
 	// a step done means the hooks set up for it are spent
 	window.frappe.route_hooks = {};
 	return window.frappe
-		.xcall("frappe.desk.desktop.update_onboarding_step", { name: step.name, field, value: 1 })
-		.then(() => (step[field] = 1));
+		.xcall("frappe.desk.desktop.update_onboarding_step", { name: step.name, field, value })
+		.then(() => (step[field] = value));
 }
 
 export function run_action(step) {

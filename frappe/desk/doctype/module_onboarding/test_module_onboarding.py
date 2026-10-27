@@ -417,11 +417,13 @@ class TestStepCompletion(OnboardingTestCase):
 
 		self.assertEqual(get_step_details(lead).module, self.module)
 		self.assertFalse(get_step_details(lead).is_complete)
+		self.assertEqual(get_step_details(lead).module_progress, (0, 1))
 		with self.assertRaisesRegex(frappe.ValidationError, "Finish Test Module Onboarding"):
 			update_onboarding_step(lead, "is_complete", 1)
 
 		self.make_record(self.record_doctype)
 		self.assertTrue(get_step_details(lead).is_complete)
+		self.assertEqual(get_step_details(lead).module_progress, (1, 1))
 
 	def test_onboardings_leading_to_each_other_do_not_loop(self):
 		"""Each reads the other one level deep, by whether its step there is ticked off."""
