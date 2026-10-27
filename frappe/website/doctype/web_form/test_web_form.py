@@ -1380,6 +1380,36 @@ class TestWebForm(IntegrationTestCase):
 		for options in (link_field.options, child_link_field["options"]):
 			self.assertEqual(sorted(option["value"] for option in options), ["Event", "ToDo"])
 
+	def test_table_field_allow_read_on_all_link_options(self):
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1},
+				{
+					"fieldname": "event_participants",
+					"fieldtype": "Table",
+					"label": "Event Participants",
+					"options": "Event Participants",
+				},
+			],
+		)
+		user = self.create_website_user("_test_web_form_table_links@example.com")
+
+		def child_link_options():
+			frappe.set_user(user)
+			result = get_form_data(doctype="Event", web_form_name=web_form.name)
+			frappe.set_user("Administrator")
+
+			child_link_field = next(
+				f for f in result.event_participants if f["fieldname"] == "reference_doctype"
+			)
+			return [option["value"] for option in child_link_field["options"]]
+
+		self.assertEqual(child_link_options(), [])
+
+		web_form.web_form_fields[1].allow_read_on_all_link_options = 1
+		web_form.save(ignore_permissions=True)
+		self.assertIn("Event", child_link_options())
+
 	def test_link_field_options_skip_link_filters_of_another_doctype(self):
 		property_setter = make_property_setter(
 			"Event",
