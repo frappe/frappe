@@ -504,15 +504,6 @@ const draggable_blocks = computed(() => [
 		text: "",
 	},
 	{
-		label: __("Dynamic Text"),
-		fieldname: "dynamic_text",
-		fieldtype: "Dynamic Text",
-		custom: 1,
-		icon: "braces",
-		desc: __("Text mixed with field values, like an address on one line"),
-		template: [],
-	},
-	{
 		label: __("Linked Field"),
 		fieldname: "linked_field",
 		fieldtype: "Linked Field",
@@ -651,7 +642,6 @@ function field_broken(f) {
 const FIELD_ICONS = {
 	Table: "table",
 	"Static Text": "type",
-	"Dynamic Text": "braces",
 	"Linked Field": "link",
 	Repeater: "rows-3",
 	Image: "image",

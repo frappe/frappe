@@ -47,16 +47,8 @@
 	</template>
 	<FieldPreviewTable v-else-if="df.fieldtype == 'Table'" :df="df" />
 	<FieldPreviewRepeater v-else-if="df.fieldtype == 'Repeater'" :df="df" />
-	<div
+	<FieldPreviewText
 		v-else-if="df.fieldtype == 'Static Text'"
-		class="value"
-		:class="{ 'text-muted': !df.text }"
-		:style="static_text_style"
-	>
-		{{ df.text || __("Empty text") }}
-	</div>
-	<FieldPreviewDynamic
-		v-else-if="df.fieldtype == 'Dynamic Text'"
 		:df="df"
 		:style="static_text_style"
 	/>
@@ -117,8 +109,8 @@
 <script setup>
 import { computed, inject, ref, watch } from "vue";
 import FieldPreviewBarcode from "./FieldPreviewBarcode.vue";
-import FieldPreviewDynamic from "./FieldPreviewDynamic.vue";
 import FieldPreviewLinked from "./FieldPreviewLinked.vue";
+import FieldPreviewText from "./FieldPreviewText.vue";
 import FieldPreviewRepeater from "./FieldPreviewRepeater.vue";
 import FieldPreviewTable from "./FieldPreviewTable.vue";
 import { render_jinja_html, strip_unsafe_html } from "../../utils";

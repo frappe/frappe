@@ -10,7 +10,6 @@ import VisibilitySection from "./VisibilitySection.vue";
 import HtmlBlockRows from "./HtmlBlockRows.vue";
 import TypstBlockRow from "./TypstBlockRow.vue";
 import StaticTextRow from "./StaticTextRow.vue";
-import DynamicTextRow from "./DynamicTextRow.vue";
 import ImageBlockRows from "./ImageBlockRows.vue";
 import BarcodeRows from "./BarcodeRows.vue";
 import LinkedFieldRows from "./LinkedFieldRows.vue";
@@ -24,7 +23,6 @@ const SPECIAL = new Set([
 	"Typst",
 	"Barcode",
 	"Static Text",
-	"Dynamic Text",
 	"Linked Field",
 	"Spacer",
 	"Divider",
@@ -33,7 +31,6 @@ const is_image_block = (df) => df.fieldtype === "Image" && !!df.custom;
 const is_plain = (df) => !SPECIAL.has(df.fieldtype) && !is_image_block(df);
 const has_label = (df) => is_plain(df) || df.fieldtype === "Linked Field";
 const is_static_text = ft("Static Text");
-const is_text_block = (df) => ["Static Text", "Dynamic Text"].includes(df.fieldtype);
 const styled_text = (df) => is_text(df) && !is_static_text(df);
 
 const bold = (when) => ({
@@ -100,13 +97,6 @@ export const FIELD_SECTIONS = [
 				when: is_static_text,
 			},
 			{
-				key: "template",
-				component: DynamicTextRow,
-				bare: true,
-				single: true,
-				when: ft("Dynamic Text"),
-			},
-			{
 				key: "linked",
 				component: LinkedFieldRows,
 				bare: true,
@@ -162,8 +152,8 @@ export const FIELD_SECTIONS = [
 				get: (df) => df.date_format ?? "",
 				set: (df, v, ctx) => ctx.set(df, "date_format", v, ""),
 			},
-			bold(is_text_block),
-			font_size(is_text_block),
+			bold(is_static_text),
+			font_size(is_static_text),
 		],
 	},
 	{

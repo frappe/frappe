@@ -24,9 +24,6 @@
 				>
 					{{ df.text }}
 				</div>
-				<div v-else-if="df.fieldtype == 'Dynamic Text' && df.template?.length">
-					{{ df.template.map((t) => (t.t === "f" ? "[" + t.v + "]" : t.v)).join("") }}
-				</div>
 				<img
 					v-else-if="df.fieldtype == 'Image' && df.custom && df.image_url"
 					:src="df.image_url"
