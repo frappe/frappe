@@ -90,8 +90,15 @@ class TestStudioPage(IntegrationTestCase):
 		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", -1)
 		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", 5)
 
+		# a draft edited down to fewer options must not fail a Keep the published copy serves
+		draft = frappe.parse_json(frappe.as_json(blocks))
+		draft[0]["children"][0]["children"].pop()
+		frappe.db.set_value("Studio Page", page.name, "draft_blocks", frappe.as_json(draft))
+
 		keep_variant(app.name, page.name, "Variants-hero", 1)
 
+		draft = frappe.parse_json(frappe.db.get_value("Studio Page", page.name, "draft_blocks"))
+		self.assertEqual(draft[0]["children"][0]["componentName"], "Variants")
 		kept = frappe.parse_json(frappe.db.get_value("Studio Page", page.name, "blocks"))
 		self.assertEqual(kept[0]["children"][0]["componentId"], "option-b")
 		self.assertNotIn("variantOptionName", kept[0]["children"][0])

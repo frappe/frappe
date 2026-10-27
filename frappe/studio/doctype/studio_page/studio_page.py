@@ -520,11 +520,11 @@ def replace_variants_block(blocks, block_id: str, option_index: int) -> bool:
 					continue
 				if child.get("componentName") != "Variants":
 					continue
+				# the draft and the published copy can hold different numbers of options, so a copy
+				# without this one is left alone instead of failing the whole request
 				options = child.get("children") or []
-				if not options:
-					return False
 				if not 0 <= option_index < len(options):
-					frappe.throw(_("This variants block has no option {0}.").format(option_index))
+					return False
 				kept = options[option_index]
 				if not isinstance(kept, dict):
 					return False
