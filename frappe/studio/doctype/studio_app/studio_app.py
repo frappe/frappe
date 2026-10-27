@@ -286,11 +286,16 @@ class StudioApp(WebsiteGenerator):
 	@frappe.whitelist()
 	def publish_app(self):
 		pages = self.pages
+		unresolved_variants = []
 		for page in pages:
 			page_doc = frappe.get_doc("Studio Page", page)
-			page_doc.publish()
+			unresolved_variants += page_doc.publish()["unresolved_variants"]
 
-		return {"published_pages": len(pages), **self.generate_app_build()}
+		return {
+			"published_pages": len(pages),
+			"unresolved_variants": unresolved_variants,
+			**self.generate_app_build(),
+		}
 
 	@frappe.whitelist()
 	def unpublish_app(self):

@@ -439,12 +439,7 @@ const useStudioStore = defineStore("store", () => {
 				},
 			)
 			.then(async (response: any) => {
-				const unresolved: string[] = response?.message?.unresolved_variants || []
-				if (unresolved.length) {
-					toast.warning("Published with unresolved variants", {
-						description: `${unresolved.join(", ")} — open the page and use Keep to settle on one option.`,
-					})
-				}
+				warnAboutUnresolvedVariants(response?.message?.unresolved_variants)
 				const buildError = await generateAppBuild()
 				activePage.value = await fetchPage(selectedPage.value!)
 				if (!activeApp.value || !activePage.value) return
@@ -522,6 +517,13 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
+	function warnAboutUnresolvedVariants(names: string[] | undefined) {
+		if (!names?.length) return
+		toast.warning("Published with unresolved variants", {
+			description: `${names.join(", ")} — open the page and use Keep to settle on one option.`,
+		})
+	}
+
 	async function publishApp() {
 		// the publish button and the command palette both publish; one at a time
 		if (!activeApp.value || publishingApp.value) return
@@ -535,6 +537,7 @@ const useStudioStore = defineStore("store", () => {
 				async onSuccess(data: any) {
 					activePage.value = await fetchPage(selectedPage.value!)
 					setAppPages(activeApp.value!.name)
+					warnAboutUnresolvedVariants(data?.message?.unresolved_variants)
 					const buildError = data?.message?.build_error
 					if (buildError) {
 						showBuildErrorDialog(
