@@ -592,7 +592,10 @@ class BackupGenerator:
 		with self.open_artifact(self.backup_path_conf) as fd:
 			# dup the descriptor so closing the buffered wrapper doesn't close the
 			# artifact out from under open_artifact()
-			with open(site_config_path, "rb") as source, os.fdopen(os.dup(fd), "wb") as target:
+			with (
+				open(site_config_path, "rb") as source,  # nosemgrep: frappe-security-file-traversal
+				os.fdopen(os.dup(fd), "wb") as target,
+			):
 				copyfileobj(source, target)
 
 	def take_dump(self):

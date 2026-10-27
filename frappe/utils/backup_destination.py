@@ -280,9 +280,11 @@ class S3Destination:
 				# just doesn't allow listing. Uploading may well be permitted, so
 				# this isn't grounds to refuse the backup.
 				return
-			frappe.throw(_("Cannot reach backup destination {0}: {1}").format(self.url_for(""), code or e))
+			frappe.throw(
+				_("Cannot reach backup destination {0}: {1}").format(self.url_for(""), code or str(e))
+			)
 		except BotoCoreError as e:
-			frappe.throw(_("Cannot reach backup destination {0}: {1}").format(self.url_for(""), e))
+			frappe.throw(_("Cannot reach backup destination {0}: {1}").format(self.url_for(""), str(e)))
 
 	def download_url(self, name: str, expires_in: int = 3600) -> str:
 		"""A presigned URL that downloads `name` without credentials.
