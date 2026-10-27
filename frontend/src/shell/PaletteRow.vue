@@ -1,4 +1,4 @@
-<!-- One palette row: icon, label, gray description, and the act's key on the right. -->
+<!-- One palette row: icon, label, gray description, and the act's key or a hint on the right. -->
 <template>
 	<CommandPaletteItem
 		:value="row"
@@ -14,6 +14,7 @@
 				aria-hidden="true"
 			/>
 		</template>
+		<span v-if="row.lead" class="font-normal text-ink-gray-6">{{ row.lead }}</span>
 		{{ row.label }}
 		<span v-if="row.description" class="pl-1.5 font-normal text-ink-gray-5">{{
 			row.description
@@ -21,6 +22,9 @@
 		<template v-if="row.key" #suffix>
 			<!-- A flex box and its own `leading-none`, or the key's `text-sm` line makes the row 1.5px taller. -->
 			<span class="flex"><KeyboardShortcut :combo="row.key" class="leading-none" /></span>
+		</template>
+		<template v-else-if="row.hint" #suffix>
+			<span class="flex text-sm leading-none text-ink-gray-5">{{ row.hint }}</span>
 		</template>
 	</CommandPaletteItem>
 </template>

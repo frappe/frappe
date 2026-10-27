@@ -5,6 +5,7 @@ import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { pageRows, type PaletteRow } from "./palette";
+import { askFlow } from "./paletteFlow";
 import { create, goTo, openPlace } from "./palettePlaces";
 import { rank } from "./paletteRanking";
 import { findRow, records } from "./paletteRecords";
@@ -58,7 +59,7 @@ const desk: PaletteGroup = {
 export const paletteGroups: PaletteGroup[] = [recent, thisPage, desk, goTo, create, records];
 
 /** Rows below the scrolling list, which never scroll away; the arrow keys reach them last. */
-export const pinnedRows: PaletteGroup["rows"][] = [findRow];
+export const pinnedRows: PaletteGroup["rows"][] = [findRow, askFlow];
 
 function recentRow(one: Recent, context: PaletteContext): PaletteRow {
 	return {
