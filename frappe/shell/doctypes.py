@@ -9,8 +9,7 @@ from frappe.boot import get_boot_module_app
 from frappe.cache_manager import reset_metadata_version
 from frappe.utils.caching import http_cache
 
-OWNER_CACHE_KEY = "shell_doctype_owners"
-ADDRESS_CACHE_KEY = "shell_address_table_v2"
+DOCTYPES_CACHE_KEY = "shell_doctypes"
 
 
 def slug(doctype: str) -> str:
@@ -35,18 +34,26 @@ def build_doctype_owners() -> dict[str, str]:
 
 
 def get_doctype_owners() -> dict[str, str]:
-	"""Cached on `metadata_version`, the framework's own schema-change signal."""
+	return get_shell_doctypes()["owners"]
+
+
+def get_address_table() -> dict:
+	return get_shell_doctypes()["table"]
+
+
+def get_shell_doctypes() -> dict:
+	"""`{"owners": ..., "table": ...}` under one key, cached on `metadata_version`."""
 	# Not a `doc_events` hook: `frappe.delete_doc("DocType", ...)` never reaches one, and
 	# `reset_metadata_version()` is already on every schema-change path.
-	version = frappe.client_cache.get_value("metadata_version") or reset_metadata_version()
-	cached = frappe.client_cache.get_value(OWNER_CACHE_KEY)
+	version = metadata_version()
+	cached = frappe.client_cache.get_value(DOCTYPES_CACHE_KEY)
 
 	if isinstance(cached, dict) and cached.get("version") == version:
-		return cached["owners"]
+		return cached
 
-	owners = build_doctype_owners()
-	frappe.client_cache.set_value(OWNER_CACHE_KEY, {"version": version, "owners": owners})
-	return owners
+	doctypes = {"version": version, "owners": build_doctype_owners(), "table": build_address_table()}
+	frappe.client_cache.set_value(DOCTYPES_CACHE_KEY, doctypes)
+	return doctypes
 
 
 def metadata_version() -> str:
@@ -105,19 +112,6 @@ def claim(holders: dict[str, str], doctype: str, name: str) -> bool:
 	return True
 
 
-def get_address_table() -> dict:
-	"""Cached on `metadata_version`, exactly as the owner registry is."""
-	version = metadata_version()
-	cached = frappe.client_cache.get_value(ADDRESS_CACHE_KEY)
-
-	if isinstance(cached, dict) and cached.get("version") == version:
-		return cached["table"]
-
-	table = build_address_table()
-	frappe.client_cache.set_value(ADDRESS_CACHE_KEY, {"version": version, "table": table})
-	return table
-
-
 @frappe.whitelist(methods=["GET"])
 @http_cache(max_age=31536000)
 def get_addresses(v: str | None = None) -> dict:
@@ -150,8 +144,8 @@ def contents_for_app(app: str, module: str | None = None) -> list[dict]:
 	"""What an app contains: its own doctypes, permission-filtered, optionally to one module."""
 	# Not the address table: addressability is full-bench and permission-independent;
 	# contents are per-app and filtered. Nothing reconciles this with the authored rail.
-	table = get_address_table()
-	owners = get_doctype_owners()
+	doctypes = get_shell_doctypes()
+	table, owners = doctypes["table"], doctypes["owners"]
 	readable = get_readable_doctypes()
 	entries = []
 

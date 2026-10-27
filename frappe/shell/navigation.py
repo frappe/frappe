@@ -479,11 +479,12 @@ def _derive_rail(app: str) -> list[dict]:
 	"""An app's rail when it ships no `Rail` record: its own doctypes, permission-filtered."""
 	# The key is the doctype name, which stays stable through a slug change and a later conversion.
 	# No label and no icon, because nobody authored either; the renderer falls back to the destination.
-	from .doctypes import get_address_table, get_doctype_owners, get_readable_doctypes
+	from .doctypes import get_readable_doctypes, get_shell_doctypes
 
-	addressable = get_address_table()["doctypes"]
+	doctypes = get_shell_doctypes()
+	addressable = doctypes["table"]["doctypes"]
 	readable = get_readable_doctypes()
-	owners = get_doctype_owners()
+	owners = doctypes["owners"]
 
 	return [
 		{"key": doctype, "item_type": "DocType", "link_doctype": "DocType", "link_to": doctype}

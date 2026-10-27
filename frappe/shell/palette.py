@@ -4,7 +4,7 @@ import frappe
 from frappe import _
 
 from .boot import app_screen, index_tiles
-from .doctypes import get_address_table, get_doctype_owners
+from .doctypes import get_shell_doctypes
 from .links import canonical_path
 from .permissions import has_app_permission, may_enter_any_prefix
 
@@ -31,9 +31,9 @@ def place_doctypes() -> list[dict]:
 	user = frappe.get_user()
 	readable = user.get_can_read()
 	creatable = set(user.can_create)
-	table = get_address_table()
+	doctypes = get_shell_doctypes()
+	table, owners = doctypes["table"], doctypes["owners"]
 	singles = set(table["singles"])
-	owners = get_doctype_owners()
 	enterable = {app: has_app_permission(app) for app in set(owners.values())}
 
 	return [
