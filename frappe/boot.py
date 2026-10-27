@@ -21,6 +21,7 @@ from frappe.desk.form.load import get_meta_bundle
 from frappe.email.inbox import get_email_accounts
 from frappe.integrations.frappe_providers.frappecloud_billing import is_fc_site
 from frappe.model.document import get_controller
+<<<<<<< HEAD
 from frappe.permissions import has_permission
 from frappe.query_builder import DocType
 from frappe.query_builder.functions import Count
@@ -32,6 +33,12 @@ from frappe.social.doctype.energy_point_settings.energy_point_settings import (
 from frappe.utils import add_user_info, cstr, get_system_timezone
 from frappe.utils.change_log import get_versions
 from frappe.utils.frappecloud import on_frappecloud
+=======
+from frappe.utils import add_user_info, cint, get_system_timezone
+from frappe.utils.caching import redis_cache
+from frappe.utils.change_log import get_app_versions
+from frappe.website.doctype.web_form_request.web_form_request import get_request_forms_by_doctype
+>>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 from frappe.website.doctype.web_page_view.web_page_view import is_tracking_enabled
 
 
@@ -97,7 +104,7 @@ def get_bootinfo():
 
 	if bootinfo.lang:
 		bootinfo.lang = str(bootinfo.lang)
-	bootinfo.versions = {k: v["version"] for k, v in get_versions().items()}
+	bootinfo.versions = {k: v["version"] for k, v in get_app_versions().items()}
 
 	bootinfo.error_report_email = frappe.conf.error_report_email
 	bootinfo.calendars = sorted(frappe.get_hooks("calendars"))
