@@ -4,7 +4,13 @@
 		<h2 id="index-recent-title" class="mb-2 text-sm font-medium text-ink-gray-5">
 			{{ __("Recent") }}
 		</h2>
-		<ul :id="id" role="listbox" aria-labelledby="index-recent-title" class="flex flex-col">
+		<!-- Out by the row's own padding, so a row's logo and time sit on the box's edges. -->
+		<ul
+			:id="id"
+			role="listbox"
+			aria-labelledby="index-recent-title"
+			class="-mx-3 flex flex-col"
+		>
 			<li v-for="row in rows" :key="row.key" role="none">
 				<ItemListRow
 					:id="selectableId(row.key)"

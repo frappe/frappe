@@ -64,7 +64,7 @@
 				role="listbox"
 				:aria-label="__('Apps')"
 				class="mt-12 grid gap-x-4 gap-y-6"
-				:class="gridClass(matches.length)"
+				:class="gridClass(tileCount)"
 			>
 				<li v-for="app in matches" :key="app.app" role="none" class="group/tile relative">
 					<AppTile
@@ -87,6 +87,13 @@
 							</button>
 						</Dropdown>
 					</div>
+				</li>
+				<li v-if="moreApps" role="none">
+					<MoreAppsTile
+						:id="selectableId(MORE_APPS_KEY)"
+						:href="moreApps"
+						:selected="selection.isSelected(MORE_APPS_KEY)"
+					/>
 				</li>
 			</ul>
 
@@ -116,13 +123,14 @@ import { Button, Dropdown, ScrollArea, TextInput, toast, type TextInputExposed }
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { usePageMenuItems } from "@/shell/pageMenu";
-import { matching, type IndexApp } from "./apps";
+import { matching, unfilteredTiles, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
 import { favouriteKey } from "./favourites";
 import IndexFavourites from "./IndexFavourites.vue";
 import IndexRecent from "./IndexRecent.vue";
 import { PAGE_COLUMN, arrangeBoxWidthClass, boxWidthClass, columnsFor, gridClass } from "./grid";
 import { saveLayer } from "./layer";
+import MoreAppsTile from "./MoreAppsTile.vue";
 import { recentKey } from "./recent";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
@@ -131,6 +139,7 @@ const ArrangeApps = defineAsyncComponent(() => import("./ArrangeApps.vue"));
 const TILES_ID = "index-apps";
 const FAVOURITES_ID = "index-favourites";
 const RECENT_ID = "index-recent";
+const MORE_APPS_KEY = "more-apps";
 
 const boot = inject<Boot>("boot")!;
 const apps = ref<IndexApp[]>(boot.apps ?? []);
@@ -141,12 +150,17 @@ const box = ref<TextInputExposed | null>(null);
 const query = ref("");
 const arranging = ref(false);
 const matches = computed(() => (arranging.value ? [] : matching(apps.value, query.value)));
+// Never a filter match, and only with the grid: the arrow keys must not reach an undrawn item.
+const moreApps = computed(() =>
+	matches.value.length && !query.value.trim() ? boot.more_apps ?? null : null
+);
+const tileCount = computed(() => matches.value.length + (moreApps.value ? 1 : 0));
 const shownFavourites = computed(() => (query.value.trim() || arranging.value ? [] : favourites));
 const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] : recent));
 const boxWidth = computed(() =>
 	arranging.value
 		? arrangeBoxWidthClass(apps.value.length)
-		: boxWidthClass(matching(apps.value, "").length)
+		: boxWidthClass(unfilteredTiles(apps.value, boot.more_apps))
 );
 
 if (apps.value.length) {
@@ -158,8 +172,11 @@ if (apps.value.length) {
 // In page order. A later section appends its items here and draws `selection.isSelected(key)`.
 const sections = computed<SelectionSection[]>(() => [
 	{
-		items: matches.value.map((app) => ({ key: tileKey(app), href: app.route })),
-		columns: columnsFor(matches.value.length),
+		items: [
+			...matches.value.map((app) => ({ key: tileKey(app), href: app.route })),
+			...(moreApps.value ? [{ key: MORE_APPS_KEY, href: moreApps.value }] : []),
+		],
+		columns: columnsFor(tileCount.value),
 	},
 	{
 		items: shownFavourites.value.map((favourite) => ({

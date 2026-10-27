@@ -10,3 +10,8 @@ export function matching(apps: IndexApp[], query: string): IndexApp[] {
 		? apps.filter((app) => app.title.toLowerCase().includes(needle))
 		: apps.filter((app) => !app.hidden);
 }
+
+/** How many tiles the unfiltered grid draws: the apps not hidden, and "Get more apps" when boot offers it. */
+export function unfilteredTiles(apps: IndexApp[], moreApps?: string | null): number {
+	return matching(apps, "").length + (moreApps ? 1 : 0);
+}

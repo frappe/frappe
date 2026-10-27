@@ -24,6 +24,7 @@ frappe.pages["desktop"].on_page_load = function (wrapper) {
 		hide_sidebar: true,
 		hide_dock: true,
 	});
+	open_cloud_settings_from_url();
 
 	// Desktop Settings -> Desktop Page picks which grid renders here. `Desktop Icons` is the
 	// arrangeable icon grid; it's ~1200 lines in its own bundle (Page.load_assets only serves
@@ -44,6 +45,97 @@ frappe.pages["desktop"].on_page_show = function (wrapper) {
 	// optional-chained: the lazy Desktop Icons bundle may not have resolved yet
 	frappe.pages["desktop"].desktop_page?.update();
 };
+
+// Pilot's Cloud Settings dialog, shared by the cloud button and the `?cloud_settings=1` address.
+class CloudSettingsOpener {
+	prefetch(bundle) {
+		if (this._prefetched) return;
+		this._prefetched = true;
+		if (!bundle.js) return;
+		const link = document.createElement("link");
+		link.rel = "prefetch";
+		link.href = bundle.js;
+		document.head.appendChild(link);
+	}
+
+	async open(settings) {
+		try {
+			await this.load(settings.bundle);
+		} catch (error) {
+			// Pilot may be unreachable or the origin blocked; let the user retry.
+			console.error("Cloud settings bundle failed to load", error); // eslint-disable-line no-console
+			frappe.show_alert({
+				message: __("Couldn't open Cloud settings. Please try again."),
+				indicator: "red",
+			});
+			return;
+		}
+		// A 200 that never registers show() must not stick: clear the promise and
+		// bust the URL so the next click cannot reuse the API-less HTTP response.
+		if (typeof frappe.cloudSettings?.show !== "function") {
+			this.invalidate();
+			frappe.show_alert({
+				message: __("Couldn't open Cloud settings. Please try again."),
+				indicator: "red",
+			});
+			return;
+		}
+		frappe.cloudSettings.show(settings);
+	}
+
+	invalidate() {
+		this._loaded = null;
+		this._cache_bust = Date.now();
+		// Drop any partial global left by an API-less evaluation so a retry can
+		// re-register cleanly.
+		delete frappe.cloudSettings;
+		document
+			.querySelectorAll("script[data-cloud-settings-bundle]")
+			.forEach((el) => el.remove());
+	}
+
+	bundle_url(bundle) {
+		const base = bundle.js;
+		if (!this._cache_bust) return base;
+		const sep = base.includes("?") ? "&" : "?";
+		return `${base}${sep}_=${this._cache_bust}`;
+	}
+
+	// Load pilot's cross-origin bundle once. It's a classic-script IIFE, so no CORS
+	// is involved, and it carries its own styles (the dialog renders in a shadow
+	// root), so there is no stylesheet to link. A failed load rejects and clears
+	// the cache so a later click can retry.
+	load(bundle) {
+		if (this._loaded) return this._loaded;
+
+		const src = this.bundle_url(bundle);
+		this._loaded = new Promise((resolve, reject) => {
+			const script = document.createElement("script");
+			script.src = src;
+			script.dataset.cloudSettingsBundle = "1";
+			script.onload = resolve;
+			script.onerror = () => reject(new Error(`Failed to load ${src}`));
+			document.head.appendChild(script);
+		}).catch((error) => {
+			this._loaded = null;
+			throw error;
+		});
+		return this._loaded;
+	}
+}
+
+const cloud_settings_opener = new CloudSettingsOpener();
+
+// Either desktop opens the dialog from the address; dropped so a reload does not reopen it.
+function open_cloud_settings_from_url() {
+	const url = new URL(window.location.href);
+	if (!url.searchParams.has("cloud_settings")) return;
+
+	url.searchParams.delete("cloud_settings");
+	history.replaceState(history.state, "", url);
+	const settings = frappe.boot.cloud_settings;
+	if (settings?.enabled && settings.bundle?.js) cloud_settings_opener.open(settings);
+}
 
 class DesktopPage {
 	constructor(page) {
@@ -152,87 +244,12 @@ class DesktopPage {
 
 		// Warm the cache on hover so the first click feels instant.
 		$button.off("mouseenter.cloud-settings").on("mouseenter.cloud-settings", () => {
-			this.prefetch_cloud_settings_bundle(settings.bundle);
+			cloud_settings_opener.prefetch(settings.bundle);
 		});
 
 		$button.off("click.cloud-settings").on("click.cloud-settings", () => {
-			this.open_cloud_settings(settings);
+			cloud_settings_opener.open(settings);
 		});
-	}
-
-	prefetch_cloud_settings_bundle(bundle) {
-		if (this._cloud_settings_prefetched) return;
-		this._cloud_settings_prefetched = true;
-		if (!bundle.js) return;
-		const link = document.createElement("link");
-		link.rel = "prefetch";
-		link.href = bundle.js;
-		document.head.appendChild(link);
-	}
-
-	async open_cloud_settings(settings) {
-		try {
-			await this.load_cloud_settings_bundle(settings.bundle);
-		} catch (error) {
-			// Pilot may be unreachable or the origin blocked; let the user retry.
-			console.error("Cloud settings bundle failed to load", error); // eslint-disable-line no-console
-			frappe.show_alert({
-				message: __("Couldn't open Cloud settings. Please try again."),
-				indicator: "red",
-			});
-			return;
-		}
-		// A 200 that never registers show() must not stick: clear the promise and
-		// bust the URL so the next click cannot reuse the API-less HTTP response.
-		if (typeof frappe.cloudSettings?.show !== "function") {
-			this.invalidate_cloud_settings_bundle();
-			frappe.show_alert({
-				message: __("Couldn't open Cloud settings. Please try again."),
-				indicator: "red",
-			});
-			return;
-		}
-		frappe.cloudSettings.show(settings);
-	}
-
-	invalidate_cloud_settings_bundle() {
-		this._cloud_settings_loaded = null;
-		this._cloud_settings_cache_bust = Date.now();
-		// Drop any partial global left by an API-less evaluation so a retry can
-		// re-register cleanly.
-		delete frappe.cloudSettings;
-		document
-			.querySelectorAll("script[data-cloud-settings-bundle]")
-			.forEach((el) => el.remove());
-	}
-
-	cloud_settings_bundle_url(bundle) {
-		const base = bundle.js;
-		if (!this._cloud_settings_cache_bust) return base;
-		const sep = base.includes("?") ? "&" : "?";
-		return `${base}${sep}_=${this._cloud_settings_cache_bust}`;
-	}
-
-	// Load pilot's cross-origin bundle once. It's a classic-script IIFE, so no CORS
-	// is involved, and it carries its own styles (the dialog renders in a shadow
-	// root), so there is no stylesheet to link. A failed load rejects and clears
-	// the cache so a later click can retry.
-	load_cloud_settings_bundle(bundle) {
-		if (this._cloud_settings_loaded) return this._cloud_settings_loaded;
-
-		const src = this.cloud_settings_bundle_url(bundle);
-		this._cloud_settings_loaded = new Promise((resolve, reject) => {
-			const script = document.createElement("script");
-			script.src = src;
-			script.dataset.cloudSettingsBundle = "1";
-			script.onload = resolve;
-			script.onerror = () => reject(new Error(`Failed to load ${src}`));
-			document.head.appendChild(script);
-		}).catch((error) => {
-			this._cloud_settings_loaded = null;
-			throw error;
-		});
-		return this._cloud_settings_loaded;
 	}
 
 	setup_notifications() {
