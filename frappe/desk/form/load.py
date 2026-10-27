@@ -245,6 +245,7 @@ def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
 
+	from frappe.core.doctype.version.version import STANDARD_VERSIONED_FIELDS
 	from frappe.model.utils.mask import mask_version_data
 
 	versions = frappe.get_all(
@@ -270,6 +271,7 @@ def get_versions(doc: "Document") -> list[dict]:
 		return mask_version_data(versions, doc.doctype)
 
 	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in has_read_permission}
+	allowed_parent_fields |= STANDARD_VERSIONED_FIELDS
 	allowed_child_fields = {}
 	for table_field in doc.meta.get_table_fields():
 		# The table field's own permlevel gates the whole table, same as apply_fieldlevel_read_permissions
