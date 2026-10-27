@@ -5,8 +5,24 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
+<<<<<<< HEAD
 from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
 from frappe.tests.utils import FrappeTestCase
+=======
+from frappe.search.sqlite_search import (
+	SQLiteSearch,
+	SQLiteSearchIndexMissingError,
+	_build_lock_name,
+	build_index,
+	build_index_if_not_exists,
+	delete_doc_index,
+	index_docs_in_queue,
+	update_doc_index,
+)
+from frappe.tests import IntegrationTestCase
+from frappe.utils import convert_utc_to_system_timezone, get_datetime, now_datetime
+from frappe.utils.synchronization import filelock
+>>>>>>> 4cadbe1 (fix: keep indexing for other search classes when one has no index)
 
 
 class TestSQLiteSearch(SQLiteSearch):
@@ -41,7 +57,124 @@ class TestSQLiteSearch(SQLiteSearch):
 		return {"owner": frappe.session.user}
 
 
+<<<<<<< HEAD
 class TestSQLiteSearchAPI(FrappeTestCase):
+=======
+class UnindexedSearch(TestSQLiteSearch):
+	"""Another app's search whose index is never built."""
+
+	INDEX_NAME = "test_unindexed_search.db"
+
+
+class BuildWindowSearch(TestSQLiteSearch):
+	"""Its own index file: these tests drop and rebuild, and must not touch a shared one."""
+
+	INDEX_NAME = "test_build_window_search.db"
+	BUILD_VOCABULARY = False
+
+	INDEXABLE_DOCTYPES: ClassVar = {
+		"Note": {
+			"fields": ["name", "title", "content", "owner", {"modified": "creation"}],
+		},
+	}
+
+
+class TestBuildWindow(IntegrationTestCase):
+	"""Writes made while a build was running, which the build itself cannot see."""
+
+	def setUp(self):
+		self.search = BuildWindowSearch()
+		self.search.drop_index()
+		self.addCleanup(self.search.drop_index)
+
+	def test_a_document_edited_during_the_build_is_caught_up(self):
+		"""The config maps modified to creation for scoring, which an edit does not move."""
+		note = frappe.get_doc(doctype="Note", title="Before Edit", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		started_at = now_datetime()
+		self.search.build_index()
+		self.assertEqual(self.indexed_title(note.name), "Before Edit")
+
+		note.title = "After Edit"
+		note.save()
+		self.search.index_documents_changed_during_build(started_at)
+
+		self.assertEqual(self.indexed_title(note.name), "After Edit")
+
+	def test_a_document_deleted_during_the_build_is_removed(self):
+		note = frappe.get_doc(doctype="Note", title="Deleted Mid Build", content="body").insert()
+
+		started_at = now_datetime()
+		self.search.build_index()
+		self.assertEqual(self.indexed_title(note.name), "Deleted Mid Build")
+
+		frappe.delete_doc("Note", note.name)
+		self.search.index_documents_changed_during_build(started_at)
+
+		self.assertIsNone(self.indexed_title(note.name))
+
+	def test_a_continuation_starts_from_the_interrupted_build(self):
+		"""A fresh build writes its progress into the temp database, not the live one."""
+		note = frappe.get_doc(doctype="Note", title="Interrupted Build", content="body").insert()
+		self.addCleanup(frappe.delete_doc, "Note", note.name, force=True)
+
+		temp_path = self.search._get_db_path(is_temp=True)
+		self.addCleanup(lambda: os.path.exists(temp_path) and os.unlink(temp_path))
+
+		with patch.object(BuildWindowSearch, "_index_documents", side_effect=RuntimeError("killed")):
+			with self.assertRaises(RuntimeError):
+				self.search.build_index(batch_size=1)
+
+		interrupted = BuildWindowSearch()
+		interrupted.db_path = temp_path
+		stamps = [
+			row["started_at"] for row in interrupted._get_index_progress().values() if row.get("started_at")
+		]
+		self.assertTrue(stamps, "the interrupted build left no progress rows behind")
+		expected = convert_utc_to_system_timezone(get_datetime(min(stamps))).replace(tzinfo=None)
+
+		carried = []
+		with patch.object(
+			BuildWindowSearch,
+			"index_documents_changed_during_build",
+			lambda instance, started_at, **kwargs: carried.append(started_at),
+		):
+			BuildWindowSearch().build_index(is_continuation=True)
+
+		self.assertEqual(carried, [expected])
+
+	def test_the_index_reports_complete_without_the_vocabulary_pass(self):
+		"""_is_indexing_complete waits on the vocabulary flag, which the skipped pass never sets."""
+		self.search.build_index()
+
+		self.assertFalse(BuildWindowSearch.BUILD_VOCABULARY)
+		self.assertTrue(self.search._is_indexing_complete())
+
+	def test_the_vocabulary_pass_runs_only_when_it_is_turned_on(self):
+		with (
+			patch.object(BuildWindowSearch, "_is_vocabulary_built_needed", return_value=False),
+			patch.object(BuildWindowSearch, "_build_vocabulary_incremental") as vocabulary,
+		):
+			BuildWindowSearch().build_index()
+			vocabulary.assert_not_called()
+
+			with patch.object(BuildWindowSearch, "BUILD_VOCABULARY", True):
+				BuildWindowSearch().build_index()
+
+			vocabulary.assert_called()
+
+	def indexed_title(self, name):
+		connection = self.search._get_connection(read_only=True)
+		try:
+			row = connection.execute("SELECT * FROM search_fts WHERE name = ?", (name,)).fetchone()
+			return row["title"] if row else None
+		finally:
+			connection.close()
+
+
+class TestSQLiteSearchAPI(IntegrationTestCase):
+>>>>>>> 4cadbe1 (fix: keep indexing for other search classes when one has no index)
 	"""Test suite for SQLiteSearch public API functionality."""
 
 	@classmethod
@@ -306,6 +439,117 @@ class TestSQLiteSearchAPI(FrappeTestCase):
 		# Should return empty results or minimal results
 		self.assertLessEqual(len(results["results"]), 1)
 
+<<<<<<< HEAD
+=======
+	def test_index_queue(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			doc_id = f"Note:{new_note.name}"
+
+			# should be present in the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count, 1, "Document should be present in the index queue after index_doc call"
+			)
+
+			# should not be indexed yet
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count = cursor.fetchone()[0]
+			self.assertEqual(
+				db_count,
+				0,
+				"Document should not be indexed immediately after index_doc call, should be in queue instead",
+			)
+
+			with patch("frappe.get_hooks") as mock_get_hooks:
+				mock_get_hooks.return_value = ["frappe.tests.test_sqlite_search.TestSQLiteSearch"]
+				index_docs_in_queue()
+
+			# after processing the queue, it should be indexed and removed from the queue
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count_after = cursor.fetchone()[0]
+			self.assertEqual(
+				queue_count_after, 0, "Document should be removed from index queue after processing"
+			)
+
+			cursor.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,))
+			db_count_after = cursor.fetchone()[0]
+			self.assertEqual(db_count_after, 1, "Document should be indexed after processing the queue")
+			conn.close()
+
+		finally:
+			new_note.delete()
+
+	def test_index_queue_deduplication(self):
+		self.search.build_index()
+		new_note = frappe.get_doc(
+			{
+				"doctype": "Note",
+				"title": "Newly Added Document",
+				"content": "This document was added after initial indexing",
+			}
+		)
+		new_note.insert()
+
+		try:
+			self.search.index_doc("Note", new_note.name)
+			new_note.reload()
+			new_note.content = "Updated content"
+			new_note.save()
+
+			doc_id = f"Note:{new_note.name}"
+			conn = sqlite3.connect(self.search.db_path)
+			cursor = conn.cursor()
+			cursor.execute("SELECT COUNT(*) FROM search_index_queue WHERE doc_id = ?", (doc_id,))
+			queue_count = cursor.fetchall()
+			self.assertEqual(
+				len(queue_count),
+				1,
+				"There should only be one entry in the index queue for the document, even after multiple index_doc calls",
+			)
+			conn.close()
+
+		finally:
+			new_note.delete()
+
+	def test_a_search_without_an_index_does_not_block_the_others(self):
+		self.search.build_index()
+		note = self.test_notes[0]
+		doc_id = f"Note:{note.name}"
+
+		with patch(
+			"frappe.search.sqlite_search.get_search_classes",
+			return_value=[UnindexedSearch, TestSQLiteSearch],
+		):
+			update_doc_index(note)
+			self.assertEqual(self.count_rows("search_index_queue", doc_id), 1)
+
+			delete_doc_index(note)
+			self.assertEqual(self.count_rows("search_index_queue", doc_id), 0)
+			self.assertEqual(self.count_rows("search_fts", doc_id), 0)
+
+	def count_rows(self, table, doc_id):
+		conn = sqlite3.connect(self.search.db_path)
+		try:
+			return conn.execute(f"SELECT COUNT(*) FROM {table} WHERE doc_id = ?", (doc_id,)).fetchone()[0]
+		finally:
+			conn.close()
+
+>>>>>>> 4cadbe1 (fix: keep indexing for other search classes when one has no index)
 	def test_document_indexing_operations(self):
 		"""Test individual document indexing and removal operations."""
 		self.search.build_index()
