@@ -71,6 +71,12 @@ describe("a field the user cannot edit", () => {
     });
   }
 
+  it("draws an un-locked Read Only field as an input", () => {
+    const el = mount({ fieldtype: "Read Only", readOnly: false }, { f: "Ada" });
+    expect(readValue(el)).toBeNull();
+    expect((el.querySelector("input") as HTMLInputElement | null)?.value).toBe("Ada");
+  });
+
   it("falls back to the site's float and currency precision", () => {
     setFormatDefaults({ number_format: "#,###.##", currency: "INR", float_precision: 3, currency_precision: 0 });
     const float = mount({ fieldtype: "Float", readOnly: true }, { f: 1234.5 });

@@ -109,6 +109,7 @@ import { drawsReadValue } from "./readView";
 import type { GridColumn } from "../Grid";
 import { htmlToText } from "../RichText/html";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
+import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 import { resolveFieldConditionals } from "../FormLayout/resolveLayout";
 import { layoutFields, newRowValues } from "../FormLayout/newRowValues";
 import {
@@ -224,7 +225,6 @@ function onRowRemove({ rows: removed }: { rows: Record<string, any>[] }) {
 
 // Per-fieldtype alignment, applied to header + cells so they agree. Numeric
 // right-aligns (desk); checkbox/rating center.
-const NUMBER_FIELDTYPES = new Set(["Int", "Long Int", "Float", "Currency", "Percent"]);
 const CENTERED_FIELDTYPES = new Set(["Check", "Rating"]);
 
 // Fieldtypes whose editor can't live in a 34px cell; the row-edit dialog draws the control.
@@ -248,7 +248,7 @@ const SUMMARY_FIELDTYPES = new Set([
 const KEEP_CELL_LABEL = new Set(["Button", "Heading"]);
 
 function alignFor(fieldtype: string): GridColumn["align"] {
-	if (NUMBER_FIELDTYPES.has(fieldtype)) return "right";
+	if (NUMBER_FIELDTYPES.includes(fieldtype)) return "right";
 	if (CENTERED_FIELDTYPES.has(fieldtype)) return "center";
 	return undefined;
 }

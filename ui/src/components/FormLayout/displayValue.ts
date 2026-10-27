@@ -1,6 +1,6 @@
 /** The string a field shows in a panel row, a read-only form field and a read-only grid cell. */
 import { formatDuration } from "frappe-ui";
-import { formatField, formatRating } from "./formatNumber";
+import { NUMBER_FIELDTYPES, formatField, formatRating } from "./formatNumber";
 import type { FormatFieldOptions } from "./formatNumber";
 import type { FieldMeta } from "../Fields/types";
 import { htmlToText } from "../RichText/html";
@@ -11,8 +11,6 @@ export interface DisplayOptions extends FormatFieldOptions {
   /** The record's link titles, keyed `doctype::name`. */
   linkTitles?: Record<string, string>;
 }
-
-const NUMERIC = ["Int", "Long Int", "Float", "Currency", "Percent"];
 
 const CODE = ["Code", "JSON", "Markdown Editor", "HTML Editor"];
 
@@ -67,7 +65,7 @@ export function displayValue(
   // A Check has no unset state: an absent value is `No`, not a placeholder.
   if (fieldtype === "Check") return value ? "Yes" : "No";
   if (isEmptyValue(value)) return "";
-  if (NUMERIC.includes(fieldtype))
+  if (NUMBER_FIELDTYPES.includes(fieldtype))
     return formatField(value, { ...options, fieldtype });
   return formatValue(value, field, options);
 }

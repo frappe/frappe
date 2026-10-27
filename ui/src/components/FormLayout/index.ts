@@ -34,6 +34,7 @@ export {
   getNumberFormatInfo,
   DEFAULT_NUMBER_FORMAT,
   DEFAULT_ROUNDING_METHOD,
+  NUMBER_FIELDTYPES,
 } from "./formatNumber";
 export {
   getFormatDefaults,

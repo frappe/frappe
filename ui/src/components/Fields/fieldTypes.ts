@@ -16,8 +16,6 @@ import LinkField from "./LinkField.vue";
 import NumberField from "./NumberField.vue";
 import PasswordField from "./PasswordField.vue";
 import PhoneField from "./PhoneField.vue";
-import ReadOnlyField from "./ReadOnlyField.vue";
-import { NUMBER_FIELDTYPES } from "./readView";
 import RatingField from "./RatingField.vue";
 import SelectField from "./SelectField.vue";
 import TableField from "./TableField.vue";
@@ -26,6 +24,7 @@ import TextField from "./TextField.vue";
 import TextareaField from "./TextareaField.vue";
 import TextEditorField from "./TextEditorField.vue";
 import TimeField from "./TimeField.vue";
+import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 
 /** Process-global fieldtype → component registry. */
 const registry = new Map<string, Component>();
@@ -128,6 +127,8 @@ registerFieldType("Table", TableField);
 
 registerFieldType("Table MultiSelect", TableMultiSelectField);
 
-registerFieldType("Read Only", ReadOnlyField);
+// buildLayoutFromMeta marks `Read Only` as `readOnly`, so drawsReadValue draws the read look;
+// an un-locked one (`override: { readOnly: false }`) is a plain input.
+registerFieldType("Read Only", TextField);
 
 registerFieldType(FALLBACK, TextField);

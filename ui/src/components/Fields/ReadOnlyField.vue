@@ -12,7 +12,7 @@
 import { computed, inject } from "vue";
 import ReadValue from "./ReadValue.vue";
 import { DocKey, ParentDocKey } from "./types";
-import { NUMBER_FIELDTYPES } from "./readView";
+import { NUMBER_FIELDTYPES } from "../FormLayout/formatNumber";
 import { useFieldDisplay } from "../FormLayout/useFieldDisplay";
 import type { FieldComponentProps } from "./types";
 

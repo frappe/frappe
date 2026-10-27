@@ -6,6 +6,9 @@
  * explicit arguments with lib-level defaults rather than reading globals.
  */
 
+/** Fieldtypes that hold a number. A number has no unset state: Frappe shows `0`. */
+export const NUMBER_FIELDTYPES = ["Int", "Long Int", "Float", "Currency", "Percent"];
+
 /** Locale grouping/decimal table, keyed by Frappe's number-format strings. */
 const NUMBER_FORMAT_INFO: Record<
   string,
