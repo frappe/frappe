@@ -247,15 +247,6 @@ def get_versions(doc: "Document") -> list[dict]:
 
 	from frappe.model.utils.mask import mask_version_data
 
-	def filter_logs(logs, allowed_fields: list[str]):
-		if not logs:
-			return []
-		filtered_logs = []
-		for log in logs:
-			if log[0] in allowed_fields:
-				filtered_logs.append(log)
-		return filtered_logs
-
 	versions = frappe.get_all(
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
