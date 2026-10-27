@@ -71,12 +71,6 @@ describe("a field the user cannot edit", () => {
     });
   }
 
-  it("draws a Read Only field with no readOnly flag as its value", () => {
-    const el = mount({ fieldtype: "Read Only" }, { f: "Ada" });
-    expect(readValue(el)?.textContent?.trim()).toBe("Ada");
-    expect(el.querySelector("input")).toBeNull();
-  });
-
   it("draws an un-locked Read Only field as an input", () => {
     const el = mount({ fieldtype: "Read Only", readOnly: false }, { f: "Ada" });
     expect(readValue(el)).toBeNull();

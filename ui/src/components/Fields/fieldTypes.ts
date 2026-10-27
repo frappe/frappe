@@ -127,8 +127,8 @@ registerFieldType("Table", TableField);
 
 registerFieldType("Table MultiSelect", TableMultiSelectField);
 
-// drawsReadValue draws the read look for a `Read Only` field; only one an override
-// un-locks (`readOnly: false`) reaches this input.
+// resolveFieldConditionals marks `Read Only` readOnly, so drawsReadValue draws the read look;
+// only one an override un-locks (`readOnly: false`) reaches this input.
 registerFieldType("Read Only", TextField);
 
 registerFieldType(FALLBACK, TextField);

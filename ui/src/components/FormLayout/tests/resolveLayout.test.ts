@@ -374,6 +374,11 @@ describe("the permlevel floor is the denial, not the level", () => {
     expect(resolveFieldConditionals(field, {}).hidden).toBe(false);
   });
 
+  it("resolves a `Read Only` fieldtype with no readOnly flag as readOnly", () => {
+    const field: FieldNode = { fieldname: "code", fieldtype: "Read Only" };
+    expect(resolveFieldConditionals(field, {}).readOnly).toBe(true);
+  });
+
   it("lets an override un-lock a `Read Only` fieldtype carrying a permlevel", () => {
     // `mapField` marks the `Read Only` *fieldtype* readOnly. That is not a
     // permission decision, so a permlevel on the same field must not freeze it.
