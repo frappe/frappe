@@ -399,14 +399,19 @@ describe("a Record that does not exist yet", () => {
 		server.metas["Telephony Agent"].fields[2].reqd = 0;
 	});
 
-	it("holds the insert while another block's mandatory field is empty", async () => {
+	it("holds the insert while a button block's mandatory field is empty", async () => {
 		server.metas["Telephony Agent"] = {
 			...TELEPHONY_AGENT,
 			fields: TELEPHONY_AGENT.fields.map((field) =>
 				field.fieldname === "extension" ? { ...field, reqd: 1 } : field
 			),
 		};
-		const drafts = await opened(agent, { ...agent, key: "extension", fields: ["extension"] });
+		const drafts = await opened(agent, {
+			...agent,
+			key: "extension",
+			save_mode: "button",
+			fields: ["extension"],
+		});
 		const bound = drafts.bound.get("agent")!;
 
 		bound.draft.edit("mobile_no", "+91 98");
@@ -565,6 +570,74 @@ describe("a required field another block leaves empty", () => {
 });
 
 describe("a generated block's refused save", () => {
+	it("marks each field it sent with a message that names no field", async () => {
+		const drafts = await opened(block("general", "auto", ["country", "enable_onboarding"]));
+		const general = drafts.bound.get("general")!;
+		server.refusal = { entry: { type: "ValidationError", message: "Server down" }, status: 417 };
+
+		general.draft.edit("country", "India");
+		general.draft.edit("enable_onboarding", 1);
+		drafts.commit(general);
+		await settled();
+
+		expect(general.draft.fieldErrors.drawn.value).toEqual({
+			country: "Server down",
+			enable_onboarding: "Server down",
+		});
+	});
+
+	it("is sent again only by its own block's commit", async () => {
+		const drafts = await opened(
+			block("branding", "auto", ["app_name"]),
+			block("zone", "auto", ["time_zone"])
+		);
+		const branding = drafts.bound.get("branding")!;
+		const zone = drafts.bound.get("zone")!;
+		server.refusal = { entry: { type: "ValidationError", message: "App name taken" }, status: 417 };
+
+		branding.draft.edit("app_name", "Desk");
+		drafts.commit(branding);
+		await settled();
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		drafts.commit(zone);
+		await settled();
+		drafts.commit(branding);
+		await settled();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ app_name: "Desk", modified: expect.any(String) },
+			{ time_zone: "Asia/Kolkata", modified: expect.any(String) },
+			{ app_name: "Desk", modified: expect.any(String) },
+		]);
+	});
+
+	it("leaves a component's error at Did not save when a shared save names only another block's field", async () => {
+		const drafts = await opened(
+			block("branding", "auto", ["app_name"]),
+			component("zone", { system: SYSTEM })
+		);
+		const branding = drafts.bound.get("branding")!;
+		const { system } = drafts.components.get("zone")!;
+		server.refusal = {
+			entry: {
+				type: "ValidationError",
+				message: "App name taken",
+				field_errors: [{ fieldname: "app_name", message: "App name taken" }],
+			},
+			status: 417,
+		};
+
+		branding.draft.edit("app_name", "Desk");
+		system.doc.time_zone = "Asia/Kolkata";
+		await system.commit();
+
+		expect(server.writes.map((write) => Object.keys(write.body).sort())).toEqual([
+			["app_name", "modified", "time_zone"],
+		]);
+		expect(branding.draft.fieldErrors.drawn.value.app_name).toBe("App name taken");
+		expect(system.error).toBe("Did not save");
+	});
+
 	it("stays off a component block's error, which shows the component's own refusal", async () => {
 		const drafts = await opened(
 			block("branding", "button", ["app_name"]),

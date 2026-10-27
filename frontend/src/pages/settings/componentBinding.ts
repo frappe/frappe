@@ -47,7 +47,6 @@ export function componentBinding(
 	};
 }
 
-
 /** Only the owned fields' errors: another block's refusal stays on its own row. */
 function refusal(draft: BindingDraft, owned: string[]): string {
 	const drawn = Object.entries(draft.fieldErrors.drawn.value);
