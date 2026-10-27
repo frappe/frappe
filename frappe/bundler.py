@@ -113,10 +113,6 @@ def bundle(
 
 	check_node_executable()
 	frappe_app_path = frappe.get_app_source_path("frappe")
-
-	# The desk v2 shell, before the esbuild pass: a singleton conflict must fail before vite starts.
-	build_shell(frappe_app_path, production=mode == "production")
-
 	frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env(), raise_err=True)
 
 	with suppress(Exception):
