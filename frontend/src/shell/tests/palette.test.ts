@@ -20,10 +20,54 @@ import { recents } from "../recents";
 
 registerStandardPages(standardPages);
 
+const server = vi.hoisted(() => ({ runMethod: vi.fn(), searchDocuments: vi.fn() }));
+
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
 	getTranslations: vi.fn(),
+	runMethod: server.runMethod,
+	searchDocuments: server.searchDocuments,
 }));
+
+// The prefixes the server's addresses sit under, as `canonical_path` writes them.
+const crmBase = "/apps/crm";
+const deskBase = "/apps/desk";
+
+const probes = Array.from({ length: 10 }, (_, index) => ({
+	name: `Probe ${index}`,
+	app: "crm",
+	route: `${crmBase}/probe-${index}`,
+	single: false,
+	can_create: true,
+}));
+
+/** What `frappe.shell.palette.places` answers: read once, so one reply serves every test. */
+const placesReply = {
+	doctypes: [
+		{ name: "CRM Deal", app: "crm", route: `${crmBase}/crm-deal`, single: false, can_create: true },
+		{ name: "CRM Lead", app: "crm", route: `${crmBase}/crm-lead`, single: false, can_create: false },
+		{
+			name: "System Settings",
+			app: "frappe",
+			route: `${deskBase}/system-settings/System Settings`,
+			single: true,
+			can_create: false,
+		},
+		{ name: "ToDo", app: "frappe", route: `${deskBase}/todo`, single: false, can_create: true },
+		...probes,
+	],
+	apps: [
+		{ app: "crm", title: "CRM", route: crmBase },
+		{ app: "frappe", title: "Desk", route: deskBase },
+	],
+	titles: { crm: "CRM", frappe: "Desk" },
+};
+
+const panesReply = {
+	panes: [{ app: "frappe", key: "users", label: "Users", blocks: [] }],
+	index: [],
+	titles: { frappe: "Desk" },
+};
 
 const addresses = new Addresses({
 	doctypes: {
@@ -34,13 +78,18 @@ const addresses = new Addresses({
 	modules: { fcrm: "FCRM", desk: "Desk" },
 });
 
-const deals: NavigationItem = { key: "deals", item_type: "DocType", link_to: "CRM Deal" };
+const deals: NavigationItem = {
+	key: "deals",
+	item_type: "DocType",
+	link_to: "CRM Deal",
+	label: "Deals",
+};
 
 const boot = {
 	app: "crm",
 	app_title: "CRM",
 	shell_base: "/apps/crm",
-	prefixes: { crm: { app: "crm", modular: false } },
+	prefixes: { crm: { app: "crm", modular: false }, desk: { app: "frappe", modular: false } },
 	navigation: { rail: [deals], sidebars: {} },
 	session: {
 		user: { name: "reader@example.com", full_name: "Reader", email: "reader@example.com" },
@@ -162,6 +211,10 @@ beforeAll(async () => {
 });
 
 beforeEach(() => {
+	server.runMethod.mockImplementation(async (method: string) => ({
+		data: method === "frappe.shell.palette.places" ? placesReply : panesReply,
+	}));
+	server.searchDocuments.mockReset();
 	document.body.innerHTML = "";
 	localStorage.clear();
 	paletteOpen.value = false;
@@ -275,7 +328,7 @@ describe("the groups", () => {
 		expect(drawn()[0]).toEqual(["Recent", "T-7 ToDo", "T-6 ToDo", "T-5 ToDo", "T-4 ToDo", "T-3 ToDo"]);
 	});
 
-	it("ranks a typed query in This page, then Desk with an app act's app", async () => {
+	it("ranks a typed query in This page, Desk with an app act's app, Go to, then Create", async () => {
 		await shell();
 		// After the shell, so this surface takes `shell` over from the shell's own acts.
 		register({
@@ -287,10 +340,26 @@ describe("the groups", () => {
 		expect(drawn()).toEqual([
 			["This page", "Save", "Send an email"],
 			["Desk", "Toggle sidebar"],
+			["Go to", "System Settings Desk", "Users Desk", "Deals CRM", "Desk", "ToDo Desk"],
+			["Create", "New ToDo Desk"],
 		]);
 
 		await type("crm");
-		expect(drawn()).toEqual([["Desk", "Log a call CRM"]]);
+		expect(drawn()).toEqual([
+			["Desk", "Log a call CRM"],
+			[
+				"Go to",
+				"CRM Deal CRM",
+				"Deals CRM",
+				"CRM",
+				"CRM Lead CRM",
+				"Probe 0 CRM",
+				"Probe 1 CRM",
+				"Probe 2 CRM",
+				"Probe 3 CRM",
+			],
+			["Create", "New CRM Deal CRM", "New Probe 0 CRM", "New Probe 1 CRM", "New Probe 2 CRM", "New Probe 3 CRM"],
+		]);
 	});
 
 	it("draws the shell's own acts in Desk, but not Create or Theme until they can ask for a value", async () => {
@@ -383,6 +452,214 @@ describe("a recent of another prefix", () => {
 
 		expect(assign).toHaveBeenCalledWith(href);
 		assign.mockRestore();
+	});
+});
+
+describe("places", () => {
+	/** Takes the shell surface over, so a picked row's shell act is recorded with its value. */
+	function recordShellActs() {
+		const values: unknown[] = [];
+		const record = (name: string) =>
+			act(name, name, { run: (_context: unknown, value: unknown) => void values.push([name, value]) });
+		register({ shell: [record("create"), record("open_settings")] });
+		return values;
+	}
+
+	it("reads the places once in the tab, however often it opens", async () => {
+		await shell();
+		await open();
+		paletteOpen.value = false;
+		await flush();
+		await open();
+
+		const asked = server.runMethod.mock.calls.filter(([method]) => method === "frappe.shell.palette.places");
+		// The module holds the reply for the tab, so this counts every open in this file.
+		expect(asked).toHaveLength(1);
+	});
+
+	it("goes to a sidebar row, a doctype, and New X for a doctype the user may create", async () => {
+		await shell("/todo");
+		await open();
+		await type("deal");
+
+		expect(drawn()).toEqual([
+			["Go to", "Deals CRM", "CRM Deal CRM"],
+			["Create", "New CRM Deal CRM"],
+		]);
+	});
+
+	it("offers no New X for a doctype the user may only read, nor for a single", async () => {
+		await shell("/todo");
+		await open();
+
+		await type("lead");
+		expect(drawn()).toEqual([["Go to", "CRM Lead CRM"]]);
+		await type("system");
+		expect(drawn()).toEqual([["Go to", "System Settings Desk"]]);
+	});
+
+	it("routes to a doctype in this prefix and loads one under another app's prefix", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		const router = await shell("/todo");
+		await open();
+		await type("lead");
+		row("doctype:CRM Lead")!.click();
+		await flush();
+		expect(router.currentRoute.value.fullPath).toBe("/crm-lead");
+
+		await open();
+		await type("todo");
+		row("doctype:ToDo")!.click();
+		await flush();
+		expect(assign).toHaveBeenCalledWith(`${deskBase}/todo`);
+		assign.mockRestore();
+	});
+
+	it("opens an app", async () => {
+		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+		await shell();
+		await open();
+		await type("desk");
+
+		row("app:frappe")!.click();
+		await flush();
+
+		expect(assign).toHaveBeenCalledWith(deskBase);
+		assign.mockRestore();
+	});
+
+	it("runs shell.create for New X and shell.open_settings for a settings pane", async () => {
+		await shell();
+		const values = recordShellActs();
+		await open();
+
+		await type("new crm deal");
+		row("create:CRM Deal")!.click();
+		await flush();
+		await open();
+		await type("users");
+		row("settings:desk/users")!.click();
+		await flush();
+
+		expect(values).toEqual([
+			["create", "CRM Deal"],
+			["open_settings", { prefix: "desk", pane: "users" }],
+		]);
+	});
+});
+
+describe("Tab on a doctype row", () => {
+	async function narrowToDeals() {
+		const router = await shell("/todo");
+		await open();
+		await type("deal");
+		expect(row(`sidebar:${crmBase}/crm-deal`)!.dataset.state).toBe("active");
+		await press("Tab");
+		return router;
+	}
+
+	function chip() {
+		return document.body.querySelector("[data-slot='palette-scope-chip']");
+	}
+
+	function empty() {
+		return document.body.querySelector("[data-slot='command-palette-empty']")?.textContent?.trim();
+	}
+
+	function footer() {
+		return document.body.querySelector("[data-slot='command-palette-footer']")?.textContent ?? "";
+	}
+
+	function deal(name: string, label: string) {
+		return { value: name, label, description: "" };
+	}
+
+	it("says Tab searches in the active row's doctype", async () => {
+		await shell("/todo");
+		await open();
+		await type("deal");
+
+		expect(footer()).toContain("to search in CRM Deal");
+		await type("system");
+		expect(footer()).not.toContain("to search in");
+	});
+
+	it("narrows the palette to the doctype, with a chip and an empty query", async () => {
+		await narrowToDeals();
+
+		expect(chip()?.textContent).toContain("in CRM Deal");
+		expect(input()!.value).toBe("");
+		expect(input()!.placeholder).toBe("Search CRM Deal");
+		expect(drawn()).toEqual([]);
+		expect(empty()).toBe("Type to search CRM Deal");
+		expect(footer()).toContain("back");
+	});
+
+	it("searches the doctype after a pause, from two characters, and Enter opens the record", async () => {
+		server.searchDocuments.mockResolvedValue({ data: [deal("DEAL-3", "PivotTech Solutions")] });
+		const router = await narrowToDeals();
+
+		await type("p");
+		expect(empty()).toBe("Type to search CRM Deal");
+		await type("pi");
+		expect(drawn()).toEqual([["Records", "Searching…"]]);
+		await type("piv");
+		await vi.waitFor(() => expect(drawn()).toEqual([["Records", "PivotTech Solutions DEAL-3"]]));
+
+		expect(server.searchDocuments).toHaveBeenCalledTimes(1);
+		expect(server.searchDocuments).toHaveBeenCalledWith(
+			"CRM Deal",
+			{ txt: "piv", filters: {}, limit: 10 },
+			{}
+		);
+		// The keyboard was on "Searching…", which cannot be picked; the record takes it.
+		await vi.waitFor(() => expect(row("record:CRM Deal/DEAL-3")!.dataset.state).toBe("active"));
+		await press("Enter");
+		expect(router.currentRoute.value.fullPath).toBe("/crm-deal/DEAL-3");
+	});
+
+	it("drops an answer to an older query", async () => {
+		let answerFirst: (value: unknown) => void = () => {};
+		server.searchDocuments
+			.mockImplementationOnce(() => new Promise((resolve) => (answerFirst = resolve)))
+			.mockResolvedValueOnce({ data: [deal("DEAL-5", "Meridian Systems")] });
+		await narrowToDeals();
+
+		await type("pi");
+		await vi.waitFor(() => expect(server.searchDocuments).toHaveBeenCalledTimes(1));
+		await type("me");
+		await vi.waitFor(() => expect(drawn()).toEqual([["Records", "Meridian Systems DEAL-5"]]));
+		answerFirst({ data: [deal("DEAL-3", "PivotTech Solutions")] });
+		await flush();
+
+		expect(drawn()).toEqual([["Records", "Meridian Systems DEAL-5"]]);
+	});
+
+	it("leaves the scope on Backspace in an empty input, and on Esc without closing", async () => {
+		await narrowToDeals();
+		await press("Backspace");
+		expect(chip()).toBeNull();
+		expect(input()!.placeholder).toBe("Search or run an action");
+
+		await type("deal");
+		await press("Tab");
+		await press("Escape");
+		expect(chip()).toBeNull();
+		expect(paletteOpen.value).toBe(true);
+	});
+
+	it("leaves the scope by the chip's ×, and when the palette closes", async () => {
+		await narrowToDeals();
+		chip()!.querySelector("button")!.click();
+		await flush();
+		expect(chip()).toBeNull();
+
+		await type("deal");
+		await press("Tab");
+		paletteOpen.value = false;
+		await flush();
+		await open();
+		expect(chip()).toBeNull();
 	});
 });
 
