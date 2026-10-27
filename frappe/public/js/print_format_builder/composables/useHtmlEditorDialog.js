@@ -20,7 +20,14 @@ function write_preview(iframe, html) {
 	doc.close();
 }
 
-export function open_html_editor({ title, initial_html, on_save, doctype, docname, jinja_setup }) {
+export function open_html_editor({
+	title,
+	initial_html,
+	on_save,
+	doctype,
+	docname,
+	global_variables,
+}) {
 	const d = new frappe.ui.Dialog({
 		title,
 		size: "extra-large",
@@ -66,7 +73,9 @@ export function open_html_editor({ title, initial_html, on_save, doctype, docnam
 		const update_preview = async (html) => {
 			write_preview(
 				preview,
-				(await render_jinja_html(html || "", doctype, docname, jinja_setup)) ?? html ?? ""
+				(await render_jinja_html(html || "", doctype, docname, global_variables)) ??
+					html ??
+					""
 			);
 		};
 		update_preview(initial_html);
