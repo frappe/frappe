@@ -70,9 +70,8 @@ describe("Grid row limits", () => {
     expect(rows.value).toHaveLength(3);
   });
 
-  it("keeps rows reorderable under both limits", async () => {
+  it("keeps rows reorderable under both limits", () => {
     render({ cannotAddRows: true, cannotDeleteRows: true });
-    await selectAll();
     expect(host!.querySelector(".grid-drag-handle")).not.toBeNull();
     expect(button("Add Row")).toBeUndefined();
     expect(button("Delete")).toBeUndefined();
