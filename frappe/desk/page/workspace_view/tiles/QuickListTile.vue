@@ -3,6 +3,7 @@ import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } fr
 import { Badge, Button, ItemListRow } from "frappe-ui";
 import { ChartCard, ChartContainer } from "frappe-ui/charts";
 import { get, post } from "../api.js";
+import { filter_rows } from "../filters.js";
 import DeskFilter from "./DeskFilter.vue";
 import { badge_theme } from "./badge_theme.js";
 
@@ -17,7 +18,7 @@ const doctype = computed(() => props.widget.document_type);
 const rows = ref(null);
 const title_field = ref("name");
 const can_create = ref(false);
-const filters = ref(frappe.utils.process_filter_expression(props.widget.quick_list_filter) || []);
+const filters = ref(filter_rows(props.widget.quick_list_filter, props.widget.document_type));
 const activity = ref({});
 const order_by = computed(() => props.widget.order_by || "creation desc");
 const sort_field = ref(null);
