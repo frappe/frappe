@@ -111,6 +111,18 @@ export type Boot = {
 	// that can install apps from Cloud Settings; none elsewhere.
 	more_apps?: string | null;
 
+	// Present on the index only: what this person may act on. A person without a manager role gets none.
+	notices?: {
+		/** The site's unfinished setup wizard, for a System Manager. */
+		setup?: { apps: string[]; route: string };
+		/** Each app updated since this person last opened what's new, with its notes as HTML. */
+		whats_new?: {
+			title: string;
+			version: string;
+			notes: { version: string; html: string }[];
+		}[];
+	};
+
 	// --- the declaring app's contribution, merged under core ---
 	[appKey: string]: unknown;
 };

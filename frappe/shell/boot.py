@@ -19,6 +19,7 @@ from frappe.utils import cstr, orjson_dumps, strip_html
 from . import SHELL_ROOT
 from .doctypes import get_address_table, get_doctype_owners, metadata_version
 from .index_layer import arrange, write_layer
+from .index_notices import index_notices
 from .links import canonical_path
 from .navigation import NO_HOST, resolve_navigation
 from .permissions import has_app_permission
@@ -91,14 +92,16 @@ def app_screen(app: str, screen: dict | None = None) -> dict:
 def index_boot() -> dict:
 	"""Boot for `/apps` itself, the index, which belongs to no app; the app list lives only here."""
 	tiles = gated_index_tiles()
+	core = core_boot()
 	return {
-		**core_boot(),
+		**core,
 		"shell_base": f"/{SHELL_ROOT}",
 		"app": None,
 		"apps": arrange(tiles),
 		"favourites": index_favourites(),
 		"recent": index_recent(),
 		"more_apps": CLOUD_SETTINGS_ROUTE if is_cloud_settings_enabled() else None,
+		"notices": index_notices(core["setup_complete"]),
 	}
 
 

@@ -202,9 +202,9 @@ def get_apps_with_incomplete_dependencies(current_app):
 def get_setup_wizard_pending_apps(apps=None):
 	"""Get list of apps that have completed setup wizard"""
 
-	apps: InstalledApplications = frappe.client_cache.get_doc("Installed Applications")
+	installed: InstalledApplications = frappe.client_cache.get_doc("Installed Applications")
 	pending_apps = [
-		a.app_name for a in apps.installed_applications if a.has_setup_wizard and not a.is_setup_complete
+		a.app_name for a in installed.installed_applications if a.has_setup_wizard and not a.is_setup_complete
 	]
 	if apps:
 		pending_apps = [a for a in pending_apps if a in apps]

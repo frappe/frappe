@@ -36,7 +36,12 @@
 			<RouterView />
 		</main>
 
-		<div v-if="!boot.app" class="absolute bottom-3 left-[11px] z-10" data-index-foot>
+		<div
+			v-if="!boot.app"
+			class="absolute bottom-3 left-[11px] z-10 flex flex-col items-center"
+			data-index-foot
+		>
+			<div data-index-foot-notices />
 			<UserMenu />
 		</div>
 

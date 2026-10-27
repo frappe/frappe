@@ -114,6 +114,8 @@
 				:class="boxWidth"
 			/>
 		</div>
+
+		<IndexNotices v-if="hasNotices" :notices="notices" :user="boot.session.user.name" />
 	</ScrollArea>
 </template>
 
@@ -135,6 +137,7 @@ import { recentKey } from "./recent";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
 const ArrangeApps = defineAsyncComponent(() => import("./ArrangeApps.vue"));
+const IndexNotices = defineAsyncComponent(() => import("./IndexNotices.vue"));
 
 const TILES_ID = "index-apps";
 const FAVOURITES_ID = "index-favourites";
@@ -145,6 +148,8 @@ const boot = inject<Boot>("boot")!;
 const apps = ref<IndexApp[]>(boot.apps ?? []);
 const favourites = boot.favourites ?? [];
 const recent = boot.recent ?? [];
+const notices = boot.notices ?? {};
+const hasNotices = Object.keys(notices).length > 0;
 
 const box = ref<TextInputExposed | null>(null);
 const query = ref("");
