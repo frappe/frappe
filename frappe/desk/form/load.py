@@ -22,7 +22,7 @@ from frappe.permissions import (
 	check_doctype_permission,
 	get_doc_permissions,
 	has_permission,
-	validate_system_user,
+	validate_desk_user,
 )
 >>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 from frappe.utils.data import cstr
@@ -75,7 +75,7 @@ def getdoc(doctype: str, name: str | int):
 @frappe.whitelist()
 def getdoctype(doctype: str, with_parent: int | bool = False, cached_timestamp: str | None = None):
 	"""load doctype"""
-	validate_system_user()
+	validate_desk_user()
 
 	docs = []
 	parent_dt = None
