@@ -19,6 +19,7 @@ from frappe.integrations.frappe_providers.cloud_settings import (
 PILOT_CONF = {
 	"pilot_endpoint": "https://pilot.example.com",
 	"pilot_auth_token": "secret-token",
+	"cloud_settings_enabled": 1,
 }
 
 
@@ -132,6 +133,16 @@ class TestCloudSettings(_CloudTestCase):
 	def test_disabled_for_self_hosted_site(self):
 		"""A self-hosted site has no pilot credentials, so the modal stays hidden."""
 		with patch("frappe.get_roles", return_value=["System Manager"]):
+			self.assertFalse(is_cloud_settings_enabled())
+			self.assertEqual(get_boot_context(), {"enabled": False})
+
+	def test_disabled_on_a_pilot_host_without_central(self):
+		"""Pilot writes credentials on every site, but sets the flag only on a Central host."""
+		conf = {key: value for key, value in PILOT_CONF.items() if key != "cloud_settings_enabled"}
+		with (
+			patch.dict(frappe.conf, conf),
+			patch("frappe.get_roles", return_value=["System Manager"]),
+		):
 			self.assertFalse(is_cloud_settings_enabled())
 			self.assertEqual(get_boot_context(), {"enabled": False})
 

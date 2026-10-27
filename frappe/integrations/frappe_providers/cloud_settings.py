@@ -130,8 +130,9 @@ def is_v2_site() -> bool:
 
 
 def is_cloud_settings_enabled() -> bool:
-	"""Self-hosted sites aren't V2 sites, so the modal stays hidden."""
-	if not is_v2_site():
+	"""Self-hosted sites aren't V2 sites, so the modal stays hidden. Pilot sets
+	`cloud_settings_enabled` only on a Central host, because billing needs Central."""
+	if not is_v2_site() or not frappe.conf.get("cloud_settings_enabled"):
 		return False
 	if frappe.session.user == "Guest":
 		return False
