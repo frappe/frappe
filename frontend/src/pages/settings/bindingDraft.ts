@@ -49,7 +49,7 @@ export class BindingDraft {
 	readonly fieldErrors = new FieldErrors();
 	readonly loaded: Promise<void>;
 	private queued = new Set<string>();
-	/** Each field a save in flight carries, with the value it sent; an insert's added required fields too. */
+	/** Each field a save in flight carries, with the value it sent. */
 	private sending = new Map<string, unknown>();
 	/** Fields a hold marked while a save was out; that save's refusal leaves them as the hold drew them. */
 	private heldMeanwhile = new Set<string>();
@@ -281,7 +281,7 @@ export class BindingDraft {
 		for (const fieldname of this.stale) if (!this.dirty(fieldname)) this.stale.delete(fieldname);
 	}
 
-	/** A sent field set back before the reply landed keeps no refusal, and a hold placed meanwhile keeps its own. */
+	/** A field set back before the reply landed keeps no refusal, and a hold placed meanwhile stays. */
 	private refuse(fieldnames: string[], error: unknown) {
 		const sent = [...this.sending.keys()];
 		const refusals = (isApiError(error) && error.fieldErrors) || [];
@@ -289,7 +289,7 @@ export class BindingDraft {
 		const failed = sent.filter(
 			(fieldname) => (fieldnames.includes(fieldname) || named.includes(fieldname)) && this.dirty(fieldname)
 		);
-		const quiet = sent.filter((fieldname) => this.heldMeanwhile.has(fieldname) || !this.dirty(fieldname));
+		const quiet = sent.filter((fieldname) => this.holding(fieldname) || !this.dirty(fieldname));
 		if (refusals.length)
 			this.fieldErrors.markRefused(
 				refusals.filter((refused) => !quiet.includes(refused.parentfield ?? refused.fieldname)),
@@ -297,7 +297,7 @@ export class BindingDraft {
 			);
 		else
 			for (const fieldname of failed)
-				if (!this.heldMeanwhile.has(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
+				if (!this.holding(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
 		for (const fieldname of quiet) {
 			if (this.heldMeanwhile.has(fieldname)) continue;
 			this.unmark(fieldname);
@@ -305,6 +305,14 @@ export class BindingDraft {
 		}
 		this.settle(failed, "error");
 		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
+	}
+
+	/** Only while the hold's message is still drawn: an edit, or a component's own change, may have cleared it. */
+	private holding(fieldname: string): boolean {
+		return (
+			this.heldMeanwhile.has(fieldname) &&
+			Object.keys(this.fieldErrors.drawn.value).some((key) => fieldnameOfErrorKey(key) === fieldname)
+		);
 	}
 
 	/** A field queued again keeps Saving…, and one changed since it was sent keeps its hold or none; Saved fades on its own. */
