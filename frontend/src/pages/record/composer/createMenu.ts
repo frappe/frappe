@@ -1,4 +1,4 @@
-// The `+` menu: the `create` of every tab on the strip, in strip order. Each runs as the act `tabs.<name>`.
+// The `+` menu: the `create` of every tab on the strip whose right passes, in strip order. Each runs as the act `tabs.<name>`.
 import type { RecordPageController } from "@/recordPage";
 import type { TabCreateAction, TabItem } from "@/recordPage/types";
 
@@ -10,7 +10,7 @@ export interface CreateOption {
 
 export function createOptions(tabs: TabItem[], controller: RecordPageController): CreateOption[] {
 	return tabs.flatMap(({ name, create }) =>
-		create && named(name, create)
+		create && named(name, create) && controller.allows(create)
 			? [
 					{
 						label: create.label,

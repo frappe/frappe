@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 vi.mock("frappe-ui", () => ({ toast: { success: vi.fn(), error: vi.fn() } }));
 vi.mock("@framework/ui/api", () => ({ getTranslations: vi.fn() }));
 
-import { ActDenied, ActDispatcher, type ActScope } from "../dispatcher";
+import { ActDenied, ActDispatcher, passesRight, type ActScope } from "../dispatcher";
 
 describe("the dispatcher", () => {
   it("keeps a newer scope's surface when an older scope lets go", async () => {
@@ -67,9 +67,8 @@ describe("the dispatcher", () => {
         header: () => [{ item: { name: "convert", right: { doctype: "CRM Deal", ptype: "create" }, run: () => void ran.push("convert") }, hidden: false }],
       },
       passes: () => loaded,
-      settled: async () => {
-        if (settles-- > 0) loaded = true;
-      },
+      settled: () =>
+        settles-- > 0 ? Promise.resolve().then(() => void (loaded = true)) : undefined,
     });
 
     await dispatcher.run("header.convert");
@@ -81,6 +80,16 @@ describe("the dispatcher", () => {
   });
 });
 
+describe("passesRight", () => {
+  it("fails a right that has not settled, even while passes says yes", () => {
+    const loading = { passes: () => true, settled: () => new Promise<void>(() => {}) };
+    const loaded = { passes: () => true, settled: () => undefined };
+    expect(passesRight(loading, { right: "delete" })).toBe(false);
+    expect(passesRight(loaded, { right: "delete" })).toBe(true);
+    expect(passesRight(loading, {})).toBe(true);
+  });
+});
+
 function scope(label: string): ActScope & { ran: string[] } {
   const ran: string[] = [];
   return {
@@ -88,7 +97,7 @@ function scope(label: string): ActScope & { ran: string[] } {
     surfaces: { header: () => [{ item: { name: "go", run: () => void ran.push(label) }, hidden: false }] },
     context: () => null,
     passes: () => true,
-    settled: async () => {},
+    settled: () => undefined,
     hold: async (work) => work(),
     failed: () => {},
   };

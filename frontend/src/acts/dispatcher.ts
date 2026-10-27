@@ -170,7 +170,7 @@ export class ActDispatcher {
 		if (!found) throw new ActDenied(name, "missing");
 		const { scope, entry } = found;
 		if (entry.hidden) throw new ActDenied(name, "hidden");
-		if (entry.item.right && !scope.passes(entry.item.right)) throw new ActDenied(name, "right");
+		if (!passesRight(scope, entry.item)) throw new ActDenied(name, "right");
 		return { scope, item: entry.item };
 	}
 
@@ -186,6 +186,14 @@ export class ActDispatcher {
 	}
 }
 
+/** Whether the item's right has settled and passes: a surface draws an item only while it does. */
+export function passesRight(
+	scope: Pick<ActScope, "passes" | "settled">,
+	{ right }: ActFields
+): boolean {
+	return !right || (!scope.settled(right) && scope.passes(right));
+}
+
 /** The desk's one dispatcher. */
 export const acts = new ActDispatcher();
 
@@ -199,7 +207,7 @@ function isAct(item: ActItem) {
 }
 
 function isAvailable(scope: ActScope, { item, hidden }: ActEntry) {
-	return !hidden && (!item.right || scope.passes(item.right));
+	return !hidden && passesRight(scope, item);
 }
 
 function describe(name: string, item: ActItem, scope: ActScope): AvailableAct {

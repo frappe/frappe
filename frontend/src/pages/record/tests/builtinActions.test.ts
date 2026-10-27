@@ -137,6 +137,12 @@ describe("quickActionBuiltins", () => {
     expect(requestUpload).toHaveBeenCalledOnce();
   });
 
+  it("gives attach the Files tab entry's right, so the two hide together", () => {
+    const create = { name: "attach_file", label: "Attach a file", icon: "lucide-paperclip", right: "delete", run: () => {} };
+    const attach = quickActionBuiltins({}, true, undefined, create).find((a) => a.name === "attach");
+    expect(attach?.right).toBe("delete");
+  });
+
   it("seeds tags with write, only while the record has none", () => {
     expect(names({ write: 1 })).toEqual(["comment", "copy_link", "tags"]);
     expect(names({ write: 1 }, true)).toEqual(["comment", "copy_link"]);

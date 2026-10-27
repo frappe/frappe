@@ -145,7 +145,8 @@ function fakeController() {
 		toast: { error: vi.fn(), success: vi.fn() },
 	};
 	const perform = vi.fn(async () => {});
-	return { page, composer, perform, firePost: vi.fn(async () => {}) } as any;
+	const allows = (item: { right?: string }) => item.right !== "delete";
+	return { page, composer, perform, allows, firePost: vi.fn(async () => {}) } as any;
 }
 
 async function mountBand(tabs: TabItem[], active: string, controller = fakeController()) {
@@ -200,6 +201,16 @@ describe("the pill", () => {
 		vi.spyOn(console, "warn").mockImplementation(() => {});
 		const nameless: TabItem = { name: "notes", label: "Notes", create: { label: "Add a note", icon: "lucide-sticky-note", run } as any };
 		const { root } = await mountBand([ACTIVITY, nameless, FILES], "activity");
+		expect(options(root)).toEqual(["Attach a file"]);
+	});
+
+	it("leaves out a create whose right fails", async () => {
+		const purge: TabItem = {
+			name: "purge",
+			label: "Purge",
+			create: { name: "purge", label: "Purge all", icon: "lucide-trash", right: "delete", run },
+		};
+		const { root } = await mountBand([ACTIVITY, purge, FILES], "activity");
 		expect(options(root)).toEqual(["Attach a file"]);
 	});
 

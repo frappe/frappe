@@ -1,7 +1,7 @@
 // The record page's acts on the dispatcher: the header items, quick actions and tab `create`
 // entries that have `run`, read as drawn after the replay.
-import { acts, type ActEntry, type ActScope } from "@/acts/dispatcher";
-import { containerDisplay, surviving } from "./headerRenderings";
+import { acts, passesRight, type ActEntry, type ActScope } from "@/acts/dispatcher";
+import { containerDisplay, hidingDenied, surviving } from "./headerRenderings";
 import type { ResolvedItem, Surface } from "./surface";
 import type { HeaderItem, QuickAction, RecordPageApi, TabItem } from "./types";
 import type { PagePermissions } from "./pagePermissions";
@@ -20,7 +20,8 @@ export interface PageActsHost {
 export function registerPageActs(host: PageActsHost): () => void {
   return acts.register({
     surfaces: {
-      header: () => headerEntries(host.header.resolve()),
+      header: () =>
+        headerEntries(host.header.resolve(), (item) => passesRight(host.permissions, item)),
       quickActions: () => host.quickActions.resolve(),
       tabs: () => createEntries(host.tabs.resolve()),
     },
@@ -32,12 +33,23 @@ export function registerPageActs(host: PageActsHost): () => void {
   });
 }
 
-/** A container is no act, and a member of a hidden container is hidden with it. */
-function headerEntries(resolved: ResolvedItem<HeaderItem>[]): ActEntry[] {
-  const drawn = new Set(surviving(resolved).map((entry) => entry.item.name));
+/** A container is no act, and a member of a container hidden or denied is hidden with it. */
+function headerEntries(
+  resolved: ResolvedItem<HeaderItem>[],
+  allows: (item: HeaderItem) => boolean
+): ActEntry[] {
+  const shown = namesOf(surviving(resolved));
+  const drawn = namesOf(surviving(hidingDenied(resolved, allows)));
+  // An item denied by its own right stays shown, so the dispatcher refuses it for that right.
+  const hidden = (item: HeaderItem) =>
+    !shown.has(item.name) || (allows(item) && !drawn.has(item.name));
   return resolved
     .filter((entry) => !containerDisplay(entry.item))
-    .map((entry) => ({ item: entry.item, hidden: !drawn.has(entry.item.name) }));
+    .map((entry) => ({ item: entry.item, hidden: hidden(entry.item) }));
+}
+
+function namesOf(entries: ResolvedItem<HeaderItem>[]) {
+  return new Set(entries.map((entry) => entry.item.name));
 }
 
 /** A tab's `create` entry is hidden with its tab. */

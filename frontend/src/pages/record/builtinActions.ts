@@ -16,7 +16,8 @@ export function quickActionBuiltins(
   // No right gates it: a comment needs only read.
   actions.push({ name: "comment", label: "Comment", icon: "lucide-message-square", run: openComment });
   // The Files tab's own `+` entry, so it goes when that entry goes: no write right, or the tab hidden.
-  if (attach) actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", run: attach.run });
+  if (attach)
+    actions.push({ name: "attach", label: "Attach", icon: "lucide-paperclip", run: attach.run, right: attach.right });
   if (perms.print) actions.push({ name: "print", label: "Print", icon: "lucide-printer", run: print });
   actions.push({ name: "copy_link", label: "Copy link", icon: "lucide-link", run: copyLink });
   if (follow) actions.push({ name: "follow", ...followWording(follow), run: follow.toggle });

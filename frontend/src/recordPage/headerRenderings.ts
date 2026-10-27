@@ -156,6 +156,16 @@ function containersOf(items: HeaderItem[]) {
   return containers;
 }
 
+/** Each entry whose right fails, as hidden, so a container takes its members with it. */
+export function hidingDenied(
+  resolved: ResolvedItem<HeaderItem>[],
+  allows: (item: HeaderItem) => boolean
+): ResolvedItem<HeaderItem>[] {
+  return resolved.map((entry) =>
+    entry.hidden || allows(entry.item) ? entry : { ...entry, hidden: true }
+  );
+}
+
 /** The items a hidden container has not taken with it; a `group` naming a plain item is no floor. */
 export function surviving(resolved: ResolvedItem<HeaderItem>[]): ResolvedItem<HeaderItem>[] {
   const containers = containersOf(resolved.map((entry) => entry.item));
