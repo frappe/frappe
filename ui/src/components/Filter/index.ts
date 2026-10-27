@@ -6,7 +6,16 @@ export { default as Filter } from "./Filter.vue";
 export { parseFilters, serializeFilters } from "./filters";
 export type { WireFilter, WireFilters } from "./filters";
 export { getFilterableFields, pickFilterFields } from "./getFilterableFields";
-export { getOperators, getDefaultOperator, getDefaultValue } from "./operators";
+export {
+  getOperators,
+  getDefaultOperator,
+  getDefaultValue,
+  conditionFor,
+  carryOver,
+  defaultValueFor,
+} from "./operators";
+export { valueControl } from "./valueControl";
+export { VALUE_CONTROLS } from "./valueControlComponents";
 export type { OperatorOption } from "./operators";
 export type {
   Filter as FilterCondition,
