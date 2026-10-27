@@ -16,6 +16,10 @@ export interface PaletteRow {
 	key?: string;
 	/** A place or record's address; ties in the ranking go to the one opened last. */
 	href?: string;
+	/** A stand-in while rows load, such as "Searching…": drawn with a spinner, never picked. */
+	pending?: boolean;
+	/** The doctype Tab narrows the search to, on a row that opens its list. */
+	doctype?: string;
 	run: () => unknown;
 }
 

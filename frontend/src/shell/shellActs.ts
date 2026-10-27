@@ -185,7 +185,7 @@ function segmentsOf({ prefix, pane, block }: SettingsAddress = {}) {
 	return segments;
 }
 
-// A palette row has no doctype to give Create.
+// A bare "Create" row has no doctype to give; the palette offers New X rows instead.
 function createItem(): ActItem<Shell> {
 	return {
 		name: "create",

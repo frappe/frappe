@@ -1,15 +1,18 @@
 // The palette's groups in their fixed order, and the rows pinned below the list.
 import type { Router } from "vue-router";
 import { acts, type AvailableAct } from "@/acts/dispatcher";
+import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { pageRows, type PaletteRow } from "./palette";
+import { create, goTo, openPlace } from "./palettePlaces";
 import { rank } from "./paletteRanking";
 import { recents, type Recent } from "./recents";
 
 export interface PaletteContext {
 	boot: Boot;
 	router: Router;
+	addresses: Addresses;
 }
 
 export interface PaletteGroup {
@@ -49,7 +52,7 @@ const desk: PaletteGroup = {
 		query.trim() ? rank(actRows(isShellAct, context.boot), query) : [],
 };
 
-export const paletteGroups: PaletteGroup[] = [recent, thisPage, desk];
+export const paletteGroups: PaletteGroup[] = [recent, thisPage, desk, goTo, create];
 
 /** Rows below the scrolling list, which never scroll away; the arrow keys reach them last. */
 export const pinnedRows: PaletteGroup["rows"][] = [];
@@ -61,7 +64,7 @@ function recentRow(one: Recent, context: PaletteContext): PaletteRow {
 		description: one.kind === "record" && one.description ? __(one.description) : one.description,
 		icon: RECENT_ICONS[one.kind],
 		href: one.href,
-		run: () => open(one.href, context),
+		run: () => openPlace(one.href, context),
 	};
 }
 
@@ -93,11 +96,4 @@ function appOf(act: AvailableAct, boot: Boot): string | undefined {
 	const [, app, item] = act.name.split(".");
 	if (!item) return undefined;
 	return app === boot.app ? boot.app_title ?? app : app;
-}
-
-/** In this prefix the router moves; another prefix is another document. */
-function open(href: string, { boot, router }: PaletteContext) {
-	const base = `${boot.shell_base}/`;
-	if (boot.app && href.startsWith(base)) router.push(href.slice(boot.shell_base.length));
-	else window.location.assign(href);
 }
