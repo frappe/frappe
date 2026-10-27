@@ -7,13 +7,17 @@ from unittest.mock import patch
 import frappe
 from frappe.core.doctype.communication.communication import parse_email
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.module_def.module_def import get_installed_apps as get_module_installed_apps
+from frappe.desk.desktop import get_installed_apps
 from frappe.desk.form.load import (
 	add_comments,
 	get_document_email,
 	get_filtered_attachments,
 	get_user_info_for_viewers,
+	getdoctype,
 )
 from frappe.tests import IntegrationTestCase
+from frappe.utils.change_log import get_versions
 
 
 class TestLoad(IntegrationTestCase):
@@ -47,6 +51,29 @@ class TestLoad(IntegrationTestCase):
 
 		frappe.set_user(website_user.name)
 		self.assertRaises(frappe.PermissionError, get_user_info_for_viewers, ["test@example.com"])
+
+	def test_desk_meta_endpoints_require_system_user(self):
+		website_user = frappe.get_doc(
+			doctype="User", email="meta_portal@example.com", first_name="Portal", user_type="Website User"
+		).insert(ignore_permissions=True, ignore_mandatory=True)
+		self.addCleanup(frappe.delete_doc, "User", website_user.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		endpoints = (
+			lambda: getdoctype("Role"),
+			get_versions,
+			get_installed_apps,
+			get_module_installed_apps,
+		)
+
+		frappe.set_user(website_user.name)
+		for endpoint in endpoints:
+			self.assertRaises(frappe.PermissionError, endpoint)
+
+		frappe.set_user("test@example.com")
+		frappe.local.response = frappe._dict(docs=[])
+		for endpoint in endpoints:
+			endpoint()
+		self.assertEqual(frappe.response.docs[0]["name"], "Role")
 
 	def test_add_comments_hides_attachment_activity_for_restricted_fields(self):
 		doctype = new_doctype(

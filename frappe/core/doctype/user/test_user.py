@@ -17,6 +17,8 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	get_all_roles,
+	get_perm_info,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -49,6 +51,16 @@ class TestUser(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
+
+	def test_role_listing_requires_role_read(self):
+		# test1 is a System User with no roles, i.e. no read on Role
+		frappe.set_user("test1@example.com")
+		self.assertRaises(frappe.PermissionError, get_all_roles)
+		self.assertRaises(frappe.PermissionError, get_perm_info, "System Manager")
+
+		frappe.set_user("test@example.com")
+		self.assertIn("System Manager", get_all_roles())
+		self.assertTrue(get_perm_info("System Manager"))
 
 	@staticmethod
 	def reset_password(user) -> str:

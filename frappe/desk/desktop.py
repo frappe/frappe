@@ -741,4 +741,5 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 
 @frappe.whitelist()
 def get_installed_apps():
+	frappe.permissions.validate_system_user()
 	return frappe.get_active_apps()
