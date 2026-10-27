@@ -275,8 +275,11 @@ describe("Grid row menu", () => {
   });
 
   it("keeps the menu in a read-only grid, with Edit only", async () => {
-    render(twoRows(), { disabled: true });
+    const onEdit = vi.fn();
+    render(twoRows(), { disabled: true, onEdit });
     expect(menuLabels(0)).toEqual(["Edit"]);
+    host!.querySelector<HTMLElement>('[aria-label="Row Actions"]')!.click();
+    expect(onEdit).not.toHaveBeenCalled();
     rightClick(host!.querySelectorAll(".grid-row")[1]);
     await nextTick();
     expect(host!.querySelectorAll("[data-context-menu] [data-menu-item]")).toHaveLength(1);
