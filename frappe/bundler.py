@@ -153,7 +153,9 @@ def watch(apps=None):
 				process.terminate()
 
 
-def island_build_command(script: str, production: bool = False, watch: bool = False) -> str:
+def island_build_command(
+	script: str, production: bool = False, watch: bool = False, force: bool = False
+) -> str:
 	"""A framework island build in `ui/vite/island/`, as a shell command.
 
 	It runs on framework's own toolchain, installed beside `ui/`, so it
@@ -165,17 +167,19 @@ def island_build_command(script: str, production: bool = False, watch: bool = Fa
 		command += " --production"
 	if watch:
 		command += " --watch"
+	if force:
+		command += " --force"
 	return command
 
 
-def build_framework_islands(production: bool = False):
+def build_framework_islands(production: bool = False, force: bool = False):
 	"""Build the islands desk draws by default, such as `frappe.chart`.
 
 	Raises on failure, so `bench build` fails: unlike a page island, desk draws
 	these without anyone opting in.
 	"""
 	frappe_app_path = frappe.get_app_source_path("frappe")
-	command = island_build_command("build-framework.js", production=production)
+	command = island_build_command("build-framework.js", production=production, force=force)
 
 	if frappe.commands.popen(command, cwd=frappe_app_path, env=get_node_env()):
 		toolchain = os.path.join(frappe_app_path, "island-toolchain")
@@ -194,7 +198,9 @@ def build_page_islands(built_apps: list[str] | None = None):
 	"""
 	# The same reading `bench build` uses to pick its own mode.
 	development = frappe.local.conf.developer_mode or frappe._dev_server
-	command = island_build_command("build-pages.js", production=not development)
+	command = island_build_command(
+		"build-pages.js", production=not development, force=frappe.flags.force_island_build
+	)
 
 	if frappe.commands.popen(command, cwd=frappe.get_app_source_path("frappe"), env=get_node_env()):
 		click.secho(

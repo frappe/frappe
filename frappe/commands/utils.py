@@ -87,7 +87,8 @@ def build(
 			using_cached=using_cached,
 			esbuild_target=esbuild_target,
 		)
-		build_framework_islands(production=mode == "production")
+		build_framework_islands(production=mode == "production", force=force)
+		frappe.flags.force_island_build = force
 
 		if apps and isinstance(apps, str):
 			apps = apps.split(",")
