@@ -1020,7 +1020,7 @@ class TestAppPermission(IntegrationTestCase):
 
 
 class TestWebsiteUserRedirect(IntegrationTestCase):
-	"""A user with no desk role has no app to open: every shell address sends them to `/me`."""
+	"""A Website User is sent to `/me` from every shell address; any other signed-in user is let in."""
 
 	def setUp(self):
 		frappe.set_user("Administrator")
@@ -1064,6 +1064,27 @@ class TestWebsiteUserRedirect(IntegrationTestCase):
 		frappe.set_user("Guest")
 		response = self.get("/apps")
 		self.assertTrue(response.headers["Location"].startswith("/login?redirect-to="))
+
+	def test_a_custom_user_type_user_gets_the_index_and_the_desk(self):
+		from frappe.shell.boot import get_boot
+
+		frappe.set_user(self.make_custom_user_type_user())
+
+		for path in ("/apps", "/apps/desk"):
+			self.assertEqual(self.get(path).status_code, 200, path)
+
+		boot = get_boot("/apps")
+		self.assertIn("frappe", [tile["app"] for tile in boot["apps"]])
+		self.assertTrue(boot["session"]["defaults"])
+
+	def make_custom_user_type_user(self) -> str:
+		from frappe.core.doctype.user_type.test_user_type import create_role, create_user_type
+
+		create_role()
+		user_type = create_user_type("_Test Shell User Type").name
+		user = self.make_user("shell-redirect-custom-type@example.com", [])
+		frappe.db.set_value("User", user, "user_type", user_type)
+		return user
 
 
 class TestModularAddresses(IntegrationTestCase):

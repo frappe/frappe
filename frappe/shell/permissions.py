@@ -10,12 +10,12 @@ from .registry import get_prefix_registry
 
 
 def default_app_permission() -> bool:
-	"""What `/desk` has always meant: "Is a System User"."""
+	"""What `/desk` has always meant: signed in and not a Website User."""
 	# Not `add_to_apps_screen[].has_permission`: frappe's entry there also wants System Manager.
 	if frappe.session.user == "Guest":
 		return False
 
-	return session_user_type() == "System User"
+	return session_user_type() != "Website User"
 
 
 def has_app_permission(app: str) -> bool:

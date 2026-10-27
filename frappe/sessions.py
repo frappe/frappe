@@ -228,11 +228,12 @@ def get():
 def get_session_info() -> dict:
 	"""The signed-in person and the site settings a client renders for them."""
 	from frappe.defaults import get_defaults
+	from frappe.shell.permissions import default_app_permission
 
 	user = frappe.get_cached_doc("User", frappe.session.user)
 	# the site's merged defaults (company, currency, fiscal year, anything an app set) are
 	# desk data, and this route also answers a Guest and a Website User
-	is_desk_user = user.user_type == "System User"
+	is_desk_user = default_app_permission()
 	return {
 		"user": {
 			"name": user.name,
