@@ -10,7 +10,7 @@ from rq.timeouts import JobTimeoutException
 
 import frappe
 from frappe import _
-from frappe.core.doctype.data_import.exporter import Exporter
+from frappe.core.doctype.data_import.exporter import Exporter, get_export_filters
 from frappe.core.doctype.data_import.importer import UPSERT, Importer
 from frappe.model import CORE_DOCTYPES
 from frappe.model.document import Document
@@ -394,6 +394,16 @@ def download_template(
 		order_by=order_by,
 	)
 	e.build_response()
+
+
+@frappe.whitelist()
+def get_export_count(
+	doctype: str,
+	export_filters: str | dict[str, Any] | list[list[Any]] | None = None,
+) -> int:
+	frappe.has_permission(doctype, "read", throw=True)
+	export_filters = get_export_filters(doctype, frappe.parse_json(export_filters))
+	return frappe.get_list(doctype, filters=export_filters, fields=[{"COUNT": "*", "as": "count"}])[0].count
 
 
 @frappe.whitelist()

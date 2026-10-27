@@ -10,6 +10,16 @@ from frappe.utils.csvutils import build_csv_response
 from frappe.utils.xlsxutils import build_xlsx_response, get_default_xlsx_styles
 
 
+def get_export_filters(doctype, filters=None):
+	if frappe.permissions.can_export(doctype):
+		return filters
+
+	frappe.permissions.can_export(doctype, raise_exception=True, is_owner=True)
+	if isinstance(filters, dict):
+		filters = [make_filter_tuple(doctype, k, v) for k, v in filters.items()]
+	return [*(filters or []), ["owner", "=", frappe.session.user]]
+
+
 class Exporter:
 	def __init__(
 		self,
@@ -149,12 +159,7 @@ class Exporter:
 
 	def get_data_to_export(self):
 		table_fields = [f for f in self.exportable_fields if f != self.doctype]
-		filters = self.export_filters
-		if not frappe.permissions.can_export(self.doctype):
-			frappe.permissions.can_export(self.doctype, raise_exception=True, is_owner=True)
-			if isinstance(filters, dict):
-				filters = [make_filter_tuple(self.doctype, k, v) for k, v in filters.items()]
-			filters = [*(filters or []), ["owner", "=", frappe.session.user]]
+		filters = get_export_filters(self.doctype, self.export_filters)
 
 		for doc in self.get_data_as_docs(filters):
 			rows = []
