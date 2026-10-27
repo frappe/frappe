@@ -74,8 +74,7 @@ class TestIndexNotices(IntegrationTestCase):
 		self.assertEqual(self.notices(USER), {})
 
 		with self.assertQueryCount(0):
-			self.assertEqual(index_notices(setup_complete=True), {})
-			self.assertEqual(index_notices(setup_complete=False), {})
+			self.assertEqual(index_notices(), {})
 
 	def test_a_system_manager_on_a_finished_site_gets_whats_new_and_no_setup_nudge(self):
 		notices = self.notices(SYSTEM_MANAGER)

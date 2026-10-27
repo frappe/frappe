@@ -92,16 +92,15 @@ def app_screen(app: str, screen: dict | None = None) -> dict:
 def index_boot() -> dict:
 	"""Boot for `/apps` itself, the index, which belongs to no app; the app list lives only here."""
 	tiles = gated_index_tiles()
-	core = core_boot()
 	return {
-		**core,
+		**core_boot(),
 		"shell_base": f"/{SHELL_ROOT}",
 		"app": None,
 		"apps": arrange(tiles),
 		"favourites": index_favourites(),
 		"recent": index_recent(),
 		"more_apps": CLOUD_SETTINGS_ROUTE if is_cloud_settings_enabled() else None,
-		"notices": index_notices(core["setup_complete"]),
+		"notices": index_notices(),
 	}
 
 
