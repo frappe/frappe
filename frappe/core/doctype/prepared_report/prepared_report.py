@@ -284,7 +284,7 @@ def stop_prepared_report(report_name: str):
 			frappe.db.set_value("Background Task", {"name": ["in", tasks]}, "status", "Cancelled")
 			for task in tasks:
 				task_doc = frappe.get_doc("Background Task", task)
-				task_doc._publish({"status": "Failed"})
+				task_doc._publish({"task_id": task_doc.task_id, "status": "Cancelled"})
 
 
 def process_filters_for_prepared_report(filters: dict[str, Any] | str) -> str:

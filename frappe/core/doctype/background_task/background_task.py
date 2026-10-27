@@ -226,7 +226,7 @@ def stop_task(task_id: str):
 	)
 
 
-@frappe.whitelist()
+@frappe.whitelist(methods=["POST"])
 def retry_task(task_id: str):
 	task_name = frappe.db.get_value("Background Task", {"task_id": task_id}, "name")
 	if not task_name:
@@ -286,7 +286,7 @@ def retry_task(task_id: str):
 
 
 def handle_internal_doctypes(task):
-	if task.ref_doctype == "Prepared Report":
+	if task.ref_doctype == "Prepared Report" and frappe.db.exists("Prepared Report", task.ref_docname):
 		from frappe.core.doctype.prepared_report.prepared_report import stop_prepared_report
 
 		stop_prepared_report(task.ref_docname)
