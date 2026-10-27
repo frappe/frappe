@@ -190,4 +190,39 @@ test.describe("Grid", () => {
 
 		await expect(table.locator(".grid-add-row")).not.toHaveClass(/(^|\s)hidden(\s|$)/);
 	});
+
+	test("parks the Link dropdown on the grid and puts it back when it closes", async ({
+		page,
+	}) => {
+		const table = get_table(page, "links");
+		await table.scrollIntoViewIfNeeded();
+		// the drift comes from page scroll, so scroll .main-section: Desk never scrolls the window
+		await expect
+			.poll(() => table.evaluate((el) => el.closest(".main-section").scrollTop))
+			.toBeGreaterThan(100);
+
+		await table.locator(".grid-add-row").click();
+		// the cell renders its control only once the row turns editable
+		await table
+			.locator('.grid-row[data-idx="1"] .grid-static-col[data-fieldname="link_doctype"]')
+			.click();
+		const cell = table.locator(
+			'.grid-row[data-idx="1"] [data-fieldname="link_doctype"] input'
+		);
+		await cell.pressSequentially("User");
+
+		// the cell clips the dropdown, so it opens parked on the grid instead
+		const parked = table.locator(".grid-field > .awesomplete");
+		await expect(parked.locator("ul")).toBeVisible();
+
+		const parked_box = await parked.evaluate((el) => el.getBoundingClientRect().toJSON());
+		const cell_box = await cell.evaluate((el) => el.getBoundingClientRect().toJSON());
+		expect(parked_box.top - cell_box.top).toBeGreaterThanOrEqual(0);
+		expect(parked_box.top - cell_box.top).toBeLessThanOrEqual(100);
+		expect(Math.abs(parked_box.left - cell_box.left)).toBeLessThanOrEqual(5);
+
+		await cell.press("Escape");
+
+		await expect(table.locator(".grid-field > .awesomplete")).toHaveCount(0);
+	});
 });
