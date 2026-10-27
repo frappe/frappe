@@ -46,7 +46,7 @@ import RecordHeader from "../RecordHeader.vue";
 import { projectRecordHeader } from "../recordHeaderProjection";
 import type { HeaderItem, HeaderProjection } from "@/recordPage";
 import { createRecordPage, type RecordPageHost } from "@/recordPage/createRecordPage";
-import { withRegisteringSource } from "@/recordPage/context";
+import { withRegisteringSource } from "@/pageEngine/context";
 import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
 import type { AuthoredHandlers } from "@/recordPage/types";
 
