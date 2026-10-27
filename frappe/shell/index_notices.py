@@ -15,9 +15,14 @@ WHATS_NEW_CACHE_PREFIX = "index_whats_new::"
 WHATS_NEW_CACHE_SECONDS = 24 * 60 * 60
 
 
-def index_notices(setup_complete: bool) -> dict:
+def index_notices() -> dict:
 	"""The notices this person acts on; a person without a manager role gets none and pays nothing."""
 	roles = set(frappe.get_roles())
+	if not roles & ({SETUP_ROLE} | WHATS_NEW_ROLES):
+		return {}
+
+	# Request-cached: core boot has already read it.
+	setup_complete = frappe.is_setup_complete()
 	notices = {}
 
 	if SETUP_ROLE in roles and not setup_complete:
