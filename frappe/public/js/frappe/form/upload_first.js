@@ -31,19 +31,12 @@ frappe.ui.form.upload_first = function (document_type) {
 				)
 				.then(() =>
 					frappe.show_alert({
-						message: __("{0} queued for {1}", [
-							file_doc.file_name,
-							__(document_type),
-						]),
+						message: __("{0} queued for {1}", [file_doc.file_name, __(document_type)]),
 						indicator: "green",
 					})
 				)
 				.catch((error) => {
-					console.error(
-						"Failed to queue uploaded file:",
-						file_doc.file_name,
-						error
-					);
+					console.error("Failed to queue uploaded file:", file_doc.file_name, error);
 
 					frappe.msgprint({
 						title: __("Queueing Failed"),
