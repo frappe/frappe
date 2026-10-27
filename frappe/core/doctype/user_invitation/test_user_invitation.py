@@ -2,6 +2,7 @@
 # See license.txt
 
 import re
+from unittest.mock import patch
 
 import frappe
 import frappe.utils
@@ -10,8 +11,10 @@ from frappe.core.api.user_invitation import (
 	cancel_invitation,
 	get_pending_invitations,
 	invite_by_email,
+	resend_invitation,
 )
-from frappe.core.doctype.user_invitation.user_invitation import mark_expired_invitations
+from frappe.core.doctype.user_invitation.user_invitation import UserInvitation, mark_expired_invitations
+from frappe.handler import run_doc_method
 from frappe.tests import IntegrationTestCase
 
 emails = [
@@ -272,6 +275,41 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 		self.assertFalse(res["cancelled_now"])
 		self.assertEqual(len(self.get_email_names()), 2)
+
+	def test_resend_invite_needs_write(self):
+		invitation = self.insert_invitation_without_mail()
+		frappe.local.request = frappe._dict(method="POST")
+		reader, writer = emails[2], emails[3]
+		for email, write in ((reader, 0), (writer, 1)):
+			frappe.get_doc(doctype="User", email=email, first_name=email, send_welcome_email=0).insert()
+			frappe.share.add("User Invitation", invitation.name, email, read=1, write=write)
+		self.addCleanup(frappe.set_user, emails[0])
+
+		frappe.set_user(reader)
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			self.assertRaises(
+				frappe.PermissionError,
+				run_doc_method,
+				"resend_invite",
+				dt="User Invitation",
+				dn=invitation.name,
+			)
+		send.assert_not_called()
+
+		frappe.set_user(writer)
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			run_doc_method("resend_invite", dt="User Invitation", dn=invitation.name)
+		send.assert_called_once()
+
+	def test_resend_invitation_api(self):
+		invitation = self.insert_invitation_without_mail()
+		with patch.object(UserInvitation, "send_invitation_mail") as send:
+			resend_invitation(invitation.name, "frappe")
+		send.assert_called_once()
+
+	def insert_invitation_without_mail(self):
+		with patch.object(UserInvitation, "send_invitation_mail"):
+			return self.get_dummy_invitation().insert()
 
 	def get_dummy_invitation(self):
 		return frappe.get_doc(

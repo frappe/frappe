@@ -120,6 +120,7 @@ def resend_invitation(
 		# message is not specific enough for security
 		frappe.throw(title=_("Error"), msg=_("Invitation not found"))
 
+	invitation.flags.ignore_permissions = True
 	invitation.resend_invite()
 
 

@@ -212,6 +212,8 @@ class DataImport(Document):
 	def start_import(self):
 		from frappe.utils.scheduler import is_scheduler_inactive
 
+		# run_doc_method only checks read before it calls a doc method.
+		self.check_permission("write")
 		run_now = frappe.in_test or frappe.conf.developer_mode
 		if is_scheduler_inactive() and not run_now:
 			frappe.throw(_("Scheduler is inactive. Cannot import data."), title=_("Scheduler Inactive"))
