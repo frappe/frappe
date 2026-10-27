@@ -264,6 +264,58 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(general.draft.state.doc.country).toBe("Spain");
 		expect(general.draft.dirty("country")).toBe(false);
 	});
+
+	it("keeps another block's unsaved edits on Reload, and saves them over the reloaded copy", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("zone", "button", ["time_zone"])
+		);
+		const general = drafts.bound.get("general")!;
+		const zone = drafts.bound.get("zone")!;
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		confirm.mockResolvedValue(true);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(general.draft.state.doc.country).toBe("Spain");
+		expect(zone.draft.state.doc.time_zone).toBe("Asia/Kolkata");
+		expect(zone.draft.dirty("time_zone")).toBe(true);
+
+		await drafts.saveButtons();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			time_zone: "Asia/Kolkata",
+		});
+	});
+
+	it("asks again before saving a kept edit the other save also changed", async () => {
+		const drafts = await opened(
+			block("general", "auto", ["country"]),
+			block("zone", "button", ["time_zone"])
+		);
+		const general = drafts.bound.get("general")!;
+		const zone = drafts.bound.get("zone")!;
+		zone.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		confirm.mockResolvedValueOnce(true).mockResolvedValueOnce(null);
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		expect(zone.draft.state.doc.time_zone).toBe("Asia/Kolkata");
+
+		await drafts.saveButtons();
+
+		expect(confirm).toHaveBeenCalledTimes(2);
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Tokyo");
+		expect(zone.draft.state.marks.time_zone).toBe("error");
+	});
 });
 
 describe("a change made elsewhere under an edit not sent yet", () => {
