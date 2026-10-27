@@ -8981,7 +8981,7 @@ msgstr "Opprett eller rediger arbeidsflyt"
 
 #: frappe/desk/page/setup_wizard/setup_wizard.js:616
 msgid "Create your account"
-msgstr ""
+msgstr "Opprett din konto"
 
 #: frappe/public/js/frappe/list/list_view.js:781
 #, python-brace-format
