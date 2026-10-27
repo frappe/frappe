@@ -8,8 +8,6 @@ from frappe import _
 
 from .registry import get_prefix_registry
 
-WEBSITE_USER_HOME = "/me"
-
 
 def default_app_permission() -> bool:
 	"""What `/desk` has always meant: "Is a System User"."""
@@ -50,13 +48,14 @@ def guard_prefix(app: str, path: str):
 
 	if session_user_type() == "Website User":
 		# 302: a browser keeps a 301, and the user may be given a desk role later.
-		frappe.flags.redirect_location = WEBSITE_USER_HOME
+		frappe.flags.redirect_location = "/me"
 		raise frappe.Redirect(302)
 
 	frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 
 def session_user_type() -> str | None:
+	"""The session user's User Type: System User, Website User or a custom one."""
 	# `user_type` is on the session in a request and absent off-request (jobs, tests, `bench execute`).
 	user_type = frappe.session.data.get("user_type") if frappe.session.data else None
 	return user_type or frappe.get_cached_value("User", frappe.session.user, "user_type")
