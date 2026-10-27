@@ -63,6 +63,10 @@ frappe.ui.form.on("Print Format", {
 			field.$wrapper.empty();
 			return;
 		}
+		if (!frm.doc.html?.trim()) {
+			field.html(`<p class="text-muted">${__("Write the HTML to see a preview.")}</p>`);
+			return;
+		}
 		await frappe.model.with_doctype(doc_type);
 		let name = doc_type;
 		if (!frappe.get_meta(doc_type).issingle) {
