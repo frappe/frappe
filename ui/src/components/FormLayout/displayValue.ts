@@ -1,10 +1,13 @@
-/** Read-state strings for a panel row: one line per field, whatever its fieldtype. */
+/**
+ * The string a field shows when the user is not editing it, whatever its fieldtype:
+ * a panel row, a read-only form field, a read-only grid cell. One formatter, so a
+ * value reads the same in all three.
+ */
 import { formatDuration } from "frappe-ui";
-import { formatField } from "@framework/ui/FormLayout";
-import type { FormatFieldOptions } from "@framework/ui/FormLayout";
-import { formatRating } from "@framework/ui/GroupBy";
-import type { FieldMeta } from "@framework/ui/fields/types";
-import { htmlToText } from "@framework/ui/RichText";
+import { formatField, formatRating } from "./formatNumber";
+import type { FormatFieldOptions } from "./formatNumber";
+import type { FieldMeta } from "../Fields/types";
+import { htmlToText } from "../RichText/html";
 
 export interface DisplayOptions extends FormatFieldOptions {
   /** The record, for a fieldtype that reads a sibling field: Image, Dynamic Link. */
@@ -54,14 +57,17 @@ export function summarize(value: unknown, fieldtype: string): string {
 }
 
 /**
- * The string a panel row shows when it is not being edited. Returns `''` for an
- * empty value, which is what the row renders its `Add …` placeholder for.
+ * The string a field shows when it is not being edited. Returns `''` for an empty
+ * value, so each caller draws its own placeholder. A `Read Only` field formats as
+ * Data with the same `options`, so a Data option case applies to it too.
  */
 export function displayValue(
   value: unknown,
   field: FieldMeta,
   options: DisplayOptions = {},
 ): string {
+  if (field.fieldtype === "Read Only")
+    return displayValue(value, { ...field, fieldtype: "Data" }, options);
   const { fieldtype } = field;
   // An Image field holds no value: it shows the attachment its `options` field names.
   if (fieldtype === "Image") return summarize(sibling(field, options), fieldtype);

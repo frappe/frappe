@@ -16,6 +16,7 @@ import LinkField from "./LinkField.vue";
 import NumberField from "./NumberField.vue";
 import PasswordField from "./PasswordField.vue";
 import PhoneField from "./PhoneField.vue";
+import ReadOnlyField from "./ReadOnlyField.vue";
 import RatingField from "./RatingField.vue";
 import SelectField from "./SelectField.vue";
 import TableField from "./TableField.vue";
@@ -126,7 +127,8 @@ registerFieldType("Table", TableField);
 
 registerFieldType("Table MultiSelect", TableMultiSelectField);
 
-// buildLayoutFromMeta marks `Read Only` as `readOnly`, which TextField disables.
-registerFieldType("Read Only", TextField);
+// buildLayoutFromMeta marks `Read Only` as `readOnly`; the form draws any read-only
+// field as ReadOnlyField, and the registry agrees for a host that resolves it directly.
+registerFieldType("Read Only", ReadOnlyField);
 
 registerFieldType(FALLBACK, TextField);

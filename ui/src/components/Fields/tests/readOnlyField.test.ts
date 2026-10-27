@@ -1,0 +1,143 @@
+// A field the user cannot edit draws its formatted value, not a disabled control (#45414).
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createApp, h, ref } from "vue";
+import type { App } from "vue";
+import FormLayoutField from "../../FormLayout/FormLayoutField.vue";
+import TableField from "../TableField.vue";
+import { getFieldComponent } from "../fieldTypes";
+import { CommitKey, DocKey, NO_COMMIT, UpdateKey } from "../types";
+import { ResolveFieldKey } from "../../FormLayout/types";
+import { setFormatDefaults, resetFormatDefaults } from "../../FormLayout/formatDefaults";
+import type { FieldNode } from "../../FormLayout/types";
+
+let app: App | undefined;
+let host: HTMLElement | undefined;
+
+afterEach(() => {
+  app?.unmount();
+  host?.remove();
+  app = host = undefined;
+  resetFormatDefaults();
+});
+
+function mount(field: Partial<FieldNode>, doc: Record<string, any>): HTMLElement {
+  const node = { fieldname: "f", label: "F", ...field } as FieldNode;
+  host = document.createElement("div");
+  document.body.appendChild(host);
+  app = createApp({ render: () => h(FormLayoutField, { field: node }) });
+  app.provide(DocKey, ref(doc));
+  app.provide(UpdateKey, () => {});
+  app.provide(CommitKey, NO_COMMIT);
+  app.provide(ResolveFieldKey, getFieldComponent);
+  app.mount(host);
+  return host;
+}
+
+const readValue = (el: HTMLElement) => el.querySelector("[data-slot='read-value']");
+
+describe("a field the user cannot edit", () => {
+  const cases: [string, Partial<FieldNode>, unknown, string][] = [
+    ["Read Only", {}, "IBAN DE89", "IBAN DE89"],
+    ["Data", {}, "Ada", "Ada"],
+    ["Int", {}, 1234567, "1234567"],
+    ["Float", { precision: 2 }, 1234.5, "1,234.50"],
+    ["Currency", { options: "" }, 1500.5, "₹ 1,500.50"],
+    ["Select", { options: "Open\nClosed" }, "Closed", "Closed"],
+    ["Time", {}, "9:15:00", "09:15"],
+    ["Password", {}, "secret", "••••••••"],
+  ];
+  for (const [fieldtype, extra, value, shown] of cases) {
+    it(`draws a read-only ${fieldtype} as its formatted value, with no input`, () => {
+      setFormatDefaults({ number_format: "#,###.##", currency: "INR" });
+      const el = mount({ fieldtype, readOnly: true, ...extra }, { f: value });
+      expect(readValue(el)?.textContent?.trim()).toBe(shown);
+      expect(el.querySelector("input, textarea, select, button")).toBeNull();
+      expect(el.textContent).toContain("F");
+    });
+  }
+
+  it("draws a field above the user's permlevel the same way", () => {
+    const el = mount({ fieldtype: "Data", readOnly: true, permDenied: true, permlevel: 1 }, { f: "x" });
+    expect(readValue(el)?.textContent?.trim()).toBe("x");
+  });
+
+  it("keeps an editable field's control", () => {
+    const el = mount({ fieldtype: "Data" }, { f: "x" });
+    expect(readValue(el)).toBeNull();
+    expect(el.querySelector("input")).not.toBeNull();
+  });
+
+  it("keeps a ui.component that replaces the control", () => {
+    const Custom = { render: () => h("i", { "data-custom": "" }) };
+    const el = mount({ fieldtype: "Data", readOnly: true, ui: { component: Custom } }, { f: "x" });
+    expect(el.querySelector("[data-custom]")).not.toBeNull();
+    expect(readValue(el)).toBeNull();
+  });
+});
+
+describe("a control with its own read view keeps it when read-only", () => {
+  it("Check", () => {
+    const el = mount({ fieldtype: "Check", readOnly: true }, { f: 1 });
+    expect(readValue(el)).toBeNull();
+    expect(el.querySelector("input[type='checkbox']")).not.toBeNull();
+  });
+
+  it("Rating", () => {
+    const el = mount({ fieldtype: "Rating", readOnly: true }, { f: 0.6 });
+    expect(readValue(el)).toBeNull();
+    expect(el.querySelectorAll("svg, button").length).toBeGreaterThan(0);
+  });
+
+  it("Text Editor", () => {
+    const el = mount({ fieldtype: "Text Editor", readOnly: true }, { f: "<p>Hi</p>" });
+    expect(readValue(el)).toBeNull();
+    expect(el.querySelector("[data-slot='text-editor-value']")).not.toBeNull();
+  });
+});
+
+describe("a read-only code field", () => {
+  it("keeps the code view and drops the five-line minimum", async () => {
+    const el = mount({ fieldtype: "Code", options: "JavaScript", readOnly: true }, { f: "let a = 1;" });
+    await vi.waitFor(() => expect(el.querySelector(".cm-editor")).not.toBeNull());
+    expect(el.querySelector(".code-content")?.classList.contains("code-fit")).toBe(true);
+    expect(el.querySelector(".cm-content")?.getAttribute("contenteditable")).toBe("false");
+  });
+
+  it("an editable one keeps the minimum", async () => {
+    const el = mount({ fieldtype: "Code", options: "JavaScript" }, { f: "" });
+    await vi.waitFor(() => expect(el.querySelector(".cm-editor")).not.toBeNull());
+    expect(el.querySelector(".code-content")?.classList.contains("code-fit")).toBe(false);
+  });
+
+  it('shows "Not set" when empty, with no editor', async () => {
+    const el = mount({ fieldtype: "JSON", readOnly: true }, { f: "" });
+    await vi.waitFor(() => expect(readValue(el)?.textContent?.trim()).toBe("Not set"));
+    expect(el.querySelector(".cm-editor")).toBeNull();
+  });
+});
+
+describe("a read-only grid cell", () => {
+  it("draws the formatted value, the same string as the form", () => {
+    setFormatDefaults({ number_format: "#,###.##" });
+    const field = {
+      fieldname: "items",
+      fieldtype: "Table",
+      label: "Items",
+      readOnly: true,
+      childFields: [{ fieldname: "qty", fieldtype: "Float", label: "Qty", precision: 2 }],
+    };
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    app = createApp({
+      render: () => h(TableField, { field, modelValue: [{ name: "r1", qty: 4200 }] }),
+    });
+    app.provide(DocKey, ref({}));
+    app.provide(UpdateKey, () => {});
+    app.provide(CommitKey, NO_COMMIT);
+    app.provide(ResolveFieldKey, getFieldComponent);
+    app.mount(host);
+    const cell = host.querySelector(".grid-cell[data-fieldname='qty']")!;
+    expect(cell.querySelector("[data-slot='read-value']")?.textContent?.trim()).toBe("4,200.00");
+    expect(cell.querySelector("input")).toBeNull();
+  });
+});

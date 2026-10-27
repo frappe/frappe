@@ -11,7 +11,7 @@
 		     handlers into an array, so `ui.on.change` and the layout's own
 		     `update:modelValue` both fire. -->
 		<component
-			:is="field.ui?.component ?? resolved"
+			:is="control"
 			v-bind="field.ui?.props"
 			:field="field"
 			:modelValue="doc[field.fieldname]"
@@ -27,6 +27,8 @@
 import { computed, inject } from "vue";
 import { AutofocusKey, CommitKey, DocKey, NO_COMMIT, ResolveFieldKey, UpdateKey } from "./types";
 import { holdsChildRows } from "../Fields/rowIdentity";
+import { drawsReadValue } from "../Fields/readView";
+import ReadOnlyField from "../Fields/ReadOnlyField.vue";
 import { FieldErrorsKey, fieldErrorKey } from "../Fields/types";
 import type { FieldNode } from "./types";
 
@@ -56,5 +58,8 @@ function onCommit(value: any) {
 }
 
 // `ui.component` swaps the control for this one node; otherwise resolve by fieldtype.
-const resolved = computed(() => resolveField(props.field.fieldtype));
+const control = computed(() => {
+	if (drawsReadValue(props.field)) return ReadOnlyField;
+	return props.field.ui?.component ?? resolveField(props.field.fieldtype);
+});
 </script>

@@ -887,9 +887,6 @@
     "ui/src/components/Filter/valueControlComponents.ts": [
       "VALUE_CONTROLS"
     ],
-    "ui/src/components/FormLayout/formatNumber.ts": [
-      "FormatFieldOptions"
-    ],
     "ui/src/components/FormLayout/newRowValues.ts": [
       "layoutFields"
     ],

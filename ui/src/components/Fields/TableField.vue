@@ -41,7 +41,7 @@
 						class="flex w-full items-center justify-center"
 					>
 						<component
-							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:is="cellControl(f)"
 							:field="f"
 							:modelValue="value"
 							:row="row"
@@ -58,7 +58,7 @@
 						:data-preview="oneLine(value)"
 					>
 						<component
-							:is="f.ui?.component ?? resolveField(f.fieldtype)"
+							:is="cellControl(f)"
 							:field="f"
 							:modelValue="value"
 							:row="row"
@@ -69,7 +69,7 @@
 						/>
 					</div>
 					<component
-						:is="f.ui?.component ?? resolveField(f.fieldtype)"
+						:is="cellControl(f)"
 						v-else
 						class="w-full"
 						:field="f"
@@ -100,9 +100,12 @@
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
+import type { Component } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../Grid";
 import TextareaField from "./TextareaField.vue";
+import ReadOnlyField from "./ReadOnlyField.vue";
+import { drawsReadValue } from "./readView";
 import type { GridColumn } from "../Grid";
 import { htmlToText } from "../RichText/html";
 import { fieldsToLayout } from "../FormLayout/fieldsToLayout";
@@ -309,7 +312,12 @@ function isSummaryField(field: FieldNode): boolean {
 
 // A textarea cannot cut its text with an ellipsis, so an idle cell shows its value on one line.
 function isTextarea(field: FieldNode): boolean {
-	return !field.ui?.component && resolveField(field.fieldtype) === TextareaField;
+	return cellControl(field) === TextareaField;
+}
+
+function cellControl(field: FieldNode): Component {
+	if (drawsReadValue(field)) return ReadOnlyField;
+	return field.ui?.component ?? resolveField(field.fieldtype);
 }
 
 // One line of read-only text for a summary cell: a count, presence, a label, or the text.

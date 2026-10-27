@@ -347,3 +347,14 @@ function roundNumber(
   );
   return roundNumber(num, precision, DEFAULT_ROUNDING_METHOD);
 }
+
+const ratingFormat = new Intl.NumberFormat(undefined, {
+  maximumFractionDigits: 1,
+});
+
+/** A Rating is stored as a fraction of its stars (0.6 of 5 is 3 stars); show it on
+ *  the field's own scale, as "3 / 5". `options` holds the star count, 5 when unset. */
+export function formatRating(value: number, options?: string): string {
+  const stars = Number(options) || 5;
+  return `${ratingFormat.format(value * stars)} / ${stars}`;
+}

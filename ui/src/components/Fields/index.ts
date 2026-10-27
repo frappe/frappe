@@ -9,6 +9,9 @@ export { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 export { focusField } from "./focusField";
 export { holdsChildRows, identify, ROW_ID, rowKey } from "./rowIdentity";
 export { useRecordLink } from "./useRecordLink";
+export { drawsReadValue } from "./readView";
+export { default as ReadOnlyField } from "./ReadOnlyField.vue";
+export { default as ReadValue } from "./ReadValue.vue";
 
 // The field contract every value-input satisfies, plus the form-context
 // injection keys the deep-injection inputs (Table/Number/Image/DynamicLink) read.

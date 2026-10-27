@@ -20,7 +20,15 @@
 				:label="field.label"
 				:required="field.reqd"
 			/>
-			<div class="relative" :class="{ 'mt-1': field.label }">
+			<div
+				v-if="unset"
+				class="flex h-7 items-center rounded-4 bg-surface-gray-1 px-2 text-base text-ink-gray-5"
+				:class="{ 'mt-1': field.label }"
+				data-slot="read-value"
+			>
+				{{ __("Not set") }}
+			</div>
+			<div v-else class="relative" :class="{ 'mt-1': field.label }">
 				<CodeEditor
 					ref="editor"
 					:modelValue="value"
@@ -33,6 +41,7 @@
 					<CodeEditorContent
 						class="code-content"
 						:class="{
+							'code-fit': field.readOnly,
 							'code-collapsed': !expanded,
 							'code-fade': showExpand && !expanded,
 						}"
@@ -93,7 +102,8 @@
 					v-show="previewOpen"
 					:modelValue="value"
 					:language="language"
-					class="mt-1 min-h-[4.5rem] rounded-5 border border-outline-gray-1 p-3"
+					class="mt-1 rounded-5 border border-outline-gray-1 p-3"
+					:class="{ 'min-h-[4.5rem]': !field.readOnly }"
 				/>
 			</div>
 		</div>
@@ -113,7 +123,8 @@
 			<CodePreview
 				:modelValue="value"
 				:language="language"
-				class="min-h-[4.5rem] rounded-5 border border-outline-gray-1 p-3"
+				class="rounded-5 border border-outline-gray-1 p-3"
+				:class="{ 'min-h-[4.5rem]': !field.readOnly }"
 			/>
 		</div>
 	</div>
@@ -142,6 +153,7 @@ import { CodeEditor, CodeEditorContent, CodeKit, loadLanguage } from "frappe-ui/
 import type { CodeEditorExposed } from "frappe-ui/code-editor";
 import { InputDescription, InputLabel } from "frappe-ui/experimental";
 import CodePreview from "./CodePreview.vue";
+import { translate as __ } from "../../utils/translate";
 import { markCodeErrors } from "./codeErrorMarks";
 import { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 import { CodeErrorsKey, ParentDocKey, TemplateNamesKey } from "./types";
@@ -168,6 +180,8 @@ const emit = defineEmits<FieldComponentEmits>();
 // Value stays a string; LinkField-style get (the editor owns its own buffer, so
 // no setter — commits flow through `onInput`/`onCommit`).
 const value = computed<string>(() => props.modelValue ?? "");
+// A read-only field with no value draws "Not set" in place of an empty editor.
+const unset = computed(() => Boolean(props.field.readOnly) && !value.value);
 
 const language = computed(() => fieldtypeToLanguage(props.field));
 
@@ -314,7 +328,7 @@ let observer: ResizeObserver | null = null;
 
 const layout = computed<"editor" | "split" | "stacked">(() => {
 	// Nothing to preview → always the bare editor, even if `view` asks otherwise.
-	if (!hasPreview.value) return "editor";
+	if (!hasPreview.value || unset.value) return "editor";
 	if (props.view !== "auto") return props.view;
 	return isWide.value ? "split" : "stacked";
 });
@@ -382,6 +396,11 @@ function onCommit(v: string) {
 /* `lh` resolves on CodeMirror's content element, whose border-box height includes the padding. */
 .code-content {
 	--code-min-height: calc(5lh + 2 * var(--code-padding-y, 6px));
+}
+
+/* A read-only editor fits its content. */
+.code-fit {
+	--code-min-height: 0;
 }
 
 /* The cap a collapsed editor is held to. `--code-max-height` is the part's own hook, so

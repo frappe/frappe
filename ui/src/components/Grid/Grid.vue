@@ -503,7 +503,8 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell :deep(button:not([data-slot="clear"]):not([data-slot="edit"])),
 .grid-cell :deep(.combobox),
 .grid-cell :deep([data-slot="trigger"]:not(img)),
-.grid-cell :deep([data-slot="link-value"]) {
+.grid-cell :deep([data-slot="link-value"]),
+.grid-cell :deep([data-slot="read-value"]) {
 	border: none;
 	border-radius: 0;
 	background-color: var(--surface-base);
@@ -530,6 +531,21 @@ function onRowClick(row: Record<string, any>, index: number) {
 .grid-cell.text-right :deep(input:not([type="checkbox"])),
 .grid-cell.text-right :deep(textarea) {
 	text-align: right;
+}
+
+/* A read-only value sits on one line, cut with an ellipsis, on the column's side. */
+.grid-cell :deep([data-slot="read-value"]) {
+	width: 100%;
+}
+
+.grid-cell :deep([data-slot="read-value"] > span) {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.grid-cell.text-right :deep([data-slot="read-value"]) {
+	justify-content: flex-end;
 }
 
 .grid-cell.text-center :deep(input:not([type="checkbox"])),

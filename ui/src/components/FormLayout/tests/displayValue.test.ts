@@ -5,7 +5,7 @@ import {
   isSummaryField,
   summarize,
 } from "../displayValue";
-import type { FieldMeta } from "@framework/ui/fields/types";
+import type { FieldMeta } from "../../Fields/types";
 
 function field(fieldtype: string, extra: Partial<FieldMeta> = {}): FieldMeta {
   return { fieldname: "f", fieldtype, label: "F", ...extra };
@@ -180,5 +180,18 @@ describe("displayValue", () => {
 
   it("summarizes the fieldtypes with no honest row", () => {
     expect(displayValue([{}, {}], field("Table"))).toBe("2 items");
+  });
+});
+
+describe("a Read Only field", () => {
+  it("formats as Data with the same options", () => {
+    for (const options of ["", "Email", "IBAN", "URL"])
+      expect(displayValue("ab@example.com", field("Read Only", { options }))).toBe(
+        displayValue("ab@example.com", field("Data", { options }))
+      );
+  });
+
+  it("is empty for no value", () => {
+    expect(displayValue(null, field("Read Only"))).toBe("");
   });
 });
