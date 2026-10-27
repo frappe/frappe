@@ -69,8 +69,7 @@ export function resetFormatDefaults(): void {
   override.value = {};
 }
 
-/** Decimal places for a numeric field: its own `precision`, else the site's currency or
- *  float precision, else `undefined` (the formatter derives it). Int has none. */
+/** Decimal places for a numeric field: its own `precision`, else the site's, else `undefined`. */
 export function resolvePrecision(field: {
   fieldtype?: string;
   precision?: number | null;

@@ -1,5 +1,4 @@
-/** The string a field shows when nobody edits it: a panel row, a read-only form
- *  field, a read-only grid cell. One formatter, so a value reads the same in all three. */
+/** The string a field shows in a panel row, a read-only form field and a read-only grid cell. */
 import { formatDuration } from "frappe-ui";
 import { formatField, formatRating } from "./formatNumber";
 import type { FormatFieldOptions } from "./formatNumber";
@@ -53,8 +52,7 @@ export function summarize(value: unknown, fieldtype: string): string {
   return "Set";
 }
 
-/** A field's display string; `''` when empty, so each caller draws its own placeholder.
- *  A `Read Only` field formats as Data with the same `options`. */
+/** A field's display string; `''` when empty, so each caller draws its own placeholder. */
 export function displayValue(
   value: unknown,
   field: FieldMeta,

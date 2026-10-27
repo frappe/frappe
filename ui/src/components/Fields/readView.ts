@@ -25,8 +25,7 @@ const OWN_READ_VIEW = new Set([
   "Button",
 ]);
 
-/** Whether a read-only field (`Read Only`, `read_only`, or above the user's permlevel)
- *  draws `ReadOnlyField` instead of its control; a `ui.component` always wins. */
+/** Whether a read-only field draws `ReadOnlyField` instead of its control; a `ui.component` wins. */
 export function drawsReadValue(field: FieldNode): boolean {
   return !!field.readOnly && !field.ui?.component && !OWN_READ_VIEW.has(field.fieldtype);
 }

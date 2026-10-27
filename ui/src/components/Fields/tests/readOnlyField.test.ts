@@ -125,6 +125,22 @@ describe("a control with its own read view keeps it when read-only", () => {
   });
 });
 
+describe("a read-only Attach Image keeps its own view", () => {
+  it("draws the image, not a text box", () => {
+    const el = mount({ fieldtype: "Attach Image", readOnly: true }, { f: "/files/logo.png" });
+    expect(readValue(el)).toBeNull();
+    expect(el.querySelector("img")?.getAttribute("src")).toContain("/files/logo.png");
+  });
+});
+
+describe("a read-only multi-line text", () => {
+  it("draws every line in the form", () => {
+    const el = mount({ fieldtype: "Small Text", readOnly: true }, { f: "one\ntwo" });
+    expect(readValue(el)?.textContent).toContain("one\ntwo");
+    expect(el.querySelector("textarea")).toBeNull();
+  });
+});
+
 describe("a read-only code field", () => {
   it("keeps the code view and drops the five-line minimum", async () => {
     const el = mount({ fieldtype: "Code", options: "JavaScript", readOnly: true }, { f: "let a = 1;" });
@@ -173,6 +189,23 @@ describe("a read-only table", () => {
     const el = mountTable([{ name: "r1", qty: 4200 }]);
     expect(cellText(el, "qty")).toBe("4,200.00");
     expect(el.querySelector(".grid-cell[data-fieldname='qty'] input")).toBeNull();
+  });
+
+  it("draws a multi-line text cell as its value, with no textarea", () => {
+    const field = {
+      fieldname: "items", fieldtype: "Table", label: "Items", readOnly: true,
+      childFields: [{ fieldname: "notes", fieldtype: "Text", label: "Notes" }],
+    };
+    host = document.createElement("div");
+    document.body.appendChild(host);
+    app = createApp({ render: () => h(TableField, { field, modelValue: [{ name: "r1", notes: "one\ntwo" }] }) });
+    app.provide(DocKey, ref({}));
+    app.provide(UpdateKey, () => {});
+    app.provide(CommitKey, NO_COMMIT);
+    app.provide(ResolveFieldKey, getFieldComponent);
+    app.mount(host);
+    expect(cellText(host, "notes")).toBe("one\ntwo");
+    expect(host.querySelector(".grid-cell[data-fieldname='notes'] textarea")).toBeNull();
   });
 
   it("formats a cell's Currency in the row's currency, else the parent's", () => {

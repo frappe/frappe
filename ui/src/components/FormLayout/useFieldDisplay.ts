@@ -13,10 +13,7 @@ export type FieldDisplay = (
   records?: RecordContext
 ) => string;
 
-/** `displayValue` bound to the site's format defaults, a Currency field's resolved
- *  currency and the host's link titles. `records` holds the document, and the row and
- *  parent document of a child-table field. Call it in `setup`; the formatter it
- *  returns is reactive inside a computed. */
+/** `displayValue` bound to the site's format defaults, a Currency field's currency and link titles. */
 export function useFieldDisplay(): FieldDisplay {
   const titles = inject(LinkTitlesKey, null);
   const getDocValue = useDocValueReader();
