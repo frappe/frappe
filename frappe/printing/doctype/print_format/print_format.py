@@ -663,9 +663,13 @@ def printable_sample(doctype: str) -> str | None:
 	return sample[0] if sample else None
 
 
-def check_print_format_roles(print_format: "PrintFormat") -> None:
+def can_print_with(print_format: "PrintFormat") -> bool:
 	roles = {row.role for row in print_format.get("roles") or []}
-	if roles and not roles.intersection(frappe.get_roles()):
+	return not roles or bool(roles.intersection(frappe.get_roles()))
+
+
+def check_print_format_roles(print_format: "PrintFormat") -> None:
+	if not can_print_with(print_format):
 		frappe.throw(
 			_("You are not allowed to print with {0}").format(frappe.bold(print_format.name)),
 			frappe.PermissionError,
