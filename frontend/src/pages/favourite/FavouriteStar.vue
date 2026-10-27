@@ -2,7 +2,7 @@
 <template>
 	<Button
 		variant="ghost"
-		:label="favourited ? __('Remove from favourites') : __('Add to favourites')"
+		:label="favouriteWording(favourited).label"
 		:aria-pressed="favourited"
 		data-favourite
 	>
@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { Button } from "frappe-ui";
-import { __ } from "@/i18n";
+import { favouriteWording } from "./favouriteWording";
 
 defineProps<{ favourited: boolean }>();
 </script>
