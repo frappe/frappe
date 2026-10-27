@@ -100,6 +100,22 @@ describe("PageState", () => {
 		expect(root.querySelector(`[data-page-state="${name}"]`)?.textContent).toContain(title);
 	});
 
+	it("says the person may not see this when no permission names no act", async () => {
+		const root = await mount(() => h(PageState, { name: "noPermission" }));
+		expect(root.textContent).toContain("You do not have permission to see this.");
+	});
+
+	it("names the denied act in gray words, never in the red message", async () => {
+		const act = { name: "create", doctype: "Note" } as const;
+		const root = await mount(() => h(PageState, { name: "noPermission", act }));
+		const words = [...root.querySelectorAll("p")].find(
+			(p) => p.textContent === "You do not have permission to create Note.",
+		);
+		expect(words?.classList.contains("text-ink-gray-6")).toBe(true);
+		expect(root.textContent).not.toContain("You do not have permission to see this.");
+		expect(root.querySelector(".text-ink-red-7")).toBeNull();
+	});
+
 	it("announces a refusal or failure, and not an empty list", async () => {
 		const failed = await mount(() => h(PageState, { name: "failed" }));
 		const empty = await mount(() => h(PageState, { name: "empty" }));
