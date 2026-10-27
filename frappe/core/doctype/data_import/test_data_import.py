@@ -120,6 +120,7 @@ class TestDataImportStartPermission(IntegrationTestCase):
 			frappe.share.add("Data Import", cls.data_import.name, email, read=1, write=write)
 
 	def setUp(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
 		frappe.local.request = frappe._dict(method="POST")
 		self.addCleanup(frappe.set_user, "Administrator")
 
