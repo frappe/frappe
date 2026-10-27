@@ -427,14 +427,19 @@ PREVIEW_ERRORS = (
 
 
 @frappe.whitelist()
-def get_unsaved_format_preview(print_format: str | dict, doctype: str, name: str) -> dict[str, str | None]:
+def get_unsaved_format_preview(
+	print_format: str | dict, doctype: str, name: str, lang: str | None = None
+) -> dict[str, str | None]:
 	"""Render a Jinja print format that is still being edited, against an existing document."""
+	from frappe.translate import print_language
+
 	frappe.has_permission("Print Format", "write", throw=True)
 	print_format = frappe.get_doc(frappe.parse_json(print_format))
 	document = frappe.get_doc(doctype, name)
 	document.check_permission("print")
 	try:
-		html = get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
+		with print_language(lang):
+			html = get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
 	except PREVIEW_ERRORS as e:
 		frappe.clear_last_message()
 		return {"error": str(e)}

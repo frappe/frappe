@@ -85,6 +85,7 @@ frappe.ui.form.on("Print Format", {
 			print_format: frm.doc,
 			doctype: doc_type,
 			name,
+			lang: frm.doc.default_print_language || null,
 		});
 		if (request !== frm._html_preview_request) return;
 		frappe.ui.show_print_preview(field, out);
