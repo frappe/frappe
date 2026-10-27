@@ -279,11 +279,10 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 	def test_resend_invite_needs_write(self):
 		invitation = self.insert_invitation_without_mail()
 		frappe.local.request = frappe._dict(method="POST")
-		reader, writer = emails[2], emails[3]
-		for email, write in ((reader, 0), (writer, 1)):
-			frappe.get_doc(doctype="User", email=email, first_name=email, send_welcome_email=0).insert()
-			frappe.share.add("User Invitation", invitation.name, email, read=1, write=write)
-		self.addCleanup(frappe.set_user, emails[0])
+		reader = self.make_user("invitation-reader@example.com")
+		writer = self.make_user("invitation-writer@example.com")
+		frappe.share.add("User Invitation", invitation.name, reader, read=1, write=0)
+		frappe.share.add("User Invitation", invitation.name, writer, read=1, write=1)
 
 		frappe.set_user(reader)
 		with patch.object(UserInvitation, "send_invitation_mail") as send:
@@ -301,11 +300,34 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 			run_doc_method("resend_invite", dt="User Invitation", dn=invitation.name)
 		send.assert_called_once()
 
-	def test_resend_invitation_api(self):
+	def test_resend_invitation_api_works_for_an_app_role_without_write(self):
+		role = "Test Invitation Manager"
+		frappe.get_doc(doctype="Role", role_name=role, desk_access=1).insert(ignore_if_duplicate=True)
+		manager = self.make_user("invitation-manager@example.com", role)
 		invitation = self.insert_invitation_without_mail()
-		with patch.object(UserInvitation, "send_invitation_mail") as send:
+		get_hooks = frappe.get_hooks
+
+		def hooks_with_role(hook=None, *args, **kwargs):
+			if hook == "user_invitation":
+				return {"allowed_roles": {role: []}}
+			return get_hooks(hook, *args, **kwargs)
+
+		frappe.set_user(manager)
+		with (
+			patch("frappe.get_hooks", hooks_with_role),
+			patch.object(UserInvitation, "send_invitation_mail") as send,
+		):
 			resend_invitation(invitation.name, "frappe")
 		send.assert_called_once()
+
+	def make_user(self, email: str, *roles: str) -> str:
+		user = frappe.get_doc(doctype="User", email=email, first_name=email, send_welcome_email=0)
+		user.append_roles(*roles)
+		user.insert(ignore_if_duplicate=True)
+		self.addCleanup(frappe.set_user, frappe.session.user)
+		self.addCleanup(frappe.delete_doc, "User", email, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		return email
 
 	def insert_invitation_without_mail(self):
 		with patch.object(UserInvitation, "send_invitation_mail"):

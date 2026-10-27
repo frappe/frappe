@@ -4,6 +4,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.data_import.data_import import DataImport
+from frappe.core.doctype.data_import.data_import import start_import as run_import_job
 from frappe.core.doctype.data_import.import_provider import ImportProvider
 from frappe.core.doctype.data_import.importer import (
 	ACTION_INSERT,
@@ -731,7 +732,7 @@ class TestImporter(IntegrationTestCase):
 		data_import = self._contact_import_creating_gender(gender, "Zed Denied Test")
 
 		with self.set_user(self._user_without_gender_create()):
-			data_import.start_import()
+			run_import_job(data_import.name)
 		self.assertEqual(data_import.reload().status, "Error")
 		self.assertFalse(frappe.db.exists("Gender", gender))
 		self.assertFalse(frappe.db.exists("Contact", {"first_name": "Zed Denied Test"}))
