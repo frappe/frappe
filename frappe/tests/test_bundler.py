@@ -3,7 +3,7 @@
 import os
 import subprocess
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from unittest.mock import patch
 
 import click
@@ -92,7 +92,9 @@ class TestBuildOrder(UnitTestCase):
 					lambda *a, **kw: steps.append("translations"),
 				),
 				patch("frappe.commands.utils.run_after_build_hook", lambda apps: steps.append("after_build")),
-				patch("frappe.shell.manifest.write", return_value=({}, [], False)),
+				patch("frappe.get_app_path", return_value=os.path.join(source, "frappe")),
+				patch("frappe.utils.synchronization.filelock", lambda *a, **kw: nullcontext()),
+				patch("frappe.shell.manifest.write", lambda *a: steps.append("shell") or ([], [], False)),
 				patch("frappe.bundler.refresh_lockfile", return_value=False),
 				patch("frappe.shell.manifest.cost_report", return_value=[]),
 				patch("frappe.bundler.swap_shell_assets") as swap,
@@ -102,6 +104,6 @@ class TestBuildOrder(UnitTestCase):
 			self.assertNotEqual(result.exit_code, 0)
 			self.assertIsInstance(result.exception, subprocess.CalledProcessError)
 			self.assertTrue(result.exception.cmd.startswith("yarn build"))
-			self.assertEqual(steps, ["esbuild", "islands", "translations", "after_build"])
+			self.assertEqual(steps, ["esbuild", "islands", "translations", "after_build", "shell"])
 			self.assertTrue(os.path.exists(v1_asset))
 			swap.assert_not_called()
