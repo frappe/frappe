@@ -38,6 +38,7 @@ vi.mock("frappe-ui", () => {
 	};
 });
 
+import { passesRight, type ActFields } from "@/acts/dispatcher";
 import { PanelContextKey } from "../context";
 import QuickActions from "../QuickActions.vue";
 
@@ -49,7 +50,7 @@ afterEach(() => {
 	seen.open.splice(0);
 });
 
-function mount(actions: ReturnType<typeof ref<any[]>>) {
+function mount(actions: ReturnType<typeof ref<any[]>>, perms: Record<string, number> = {}) {
 	const root = document.createElement("div");
 	document.body.appendChild(root);
 	const app = createApp(defineComponent({ render: () => h(QuickActions) }));
@@ -59,7 +60,12 @@ function mount(actions: ReturnType<typeof ref<any[]>>) {
 		doc: ref({}),
 		meta: ref(null),
 		docinfo: ref({ permissions: { write: 1 } }),
-		controller: { page: { call: vi.fn() }, quickActions: { visible: () => actions.value } } as any,
+		controller: {
+			page: { call: vi.fn() },
+			quickActions: { visible: () => actions.value },
+			allows: (item: ActFields) =>
+				passesRight({ passes: (right) => Boolean(perms[right as string]), settled: () => undefined }, item),
+		} as any,
 		run: vi.fn(),
 		reloadDocinfo: vi.fn(async () => {}),
 		whileOnRecord: () => () => true,
@@ -94,5 +100,16 @@ describe("the overflow", () => {
 		await nextTick();
 		await nextTick();
 		expect(seen.open.at(-1)).toBe(false);
+	});
+
+	it("draws an action only for a reader who holds its right", () => {
+		const actions = ref<any[]>([
+			{ name: "print", label: "Print", icon: "lucide-printer" },
+			{ name: "purge", label: "Purge", icon: "lucide-trash", right: "delete", run: () => {} },
+		]);
+		const rows = (root: HTMLElement) =>
+			[...root.querySelectorAll<HTMLElement>("[data-menu-row]")].map((row) => row.dataset.menuRow);
+		expect(rows(mount(actions, { read: 1, delete: 0 }))).toEqual(["Print"]);
+		expect(rows(mount(actions, { read: 1, delete: 1 }))).toEqual(["Print", "Purge"]);
 	});
 });

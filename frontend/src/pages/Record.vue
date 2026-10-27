@@ -281,7 +281,8 @@ const follow = computed(() =>
 
 const header = computed(() => {
 	actionsVersion.value;
-	return projectRecordHeader(controller.value?.header.resolve() ?? []);
+	const page = controller.value;
+	return projectRecordHeader(page?.header.resolve() ?? [], (item) => page!.allows(item));
 });
 
 const frame = computed(() => {

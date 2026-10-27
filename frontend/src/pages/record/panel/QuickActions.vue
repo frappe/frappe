@@ -100,7 +100,9 @@ const props = defineProps<{ vertical?: boolean }>();
 const context = inject(PanelContextKey)!;
 const people = peopleActions(context);
 
-const actions = computed(() => context.controller.quickActions.visible());
+const actions = computed(() =>
+	context.controller.quickActions.visible().filter(context.controller.allows)
+);
 const tags = computed(() => tagsOf(context.docinfo.value));
 const placement = computed(() => (props.vertical ? "left" : "top"));
 

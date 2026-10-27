@@ -104,7 +104,7 @@ function setup(info: DocInfo, component: any = RecordPeople, props: Record<strin
 		doc: ref({}),
 		meta: ref(null),
 		docinfo,
-		controller: { page, quickActions: { visible: () => quickActions } } as any,
+		controller: { page, quickActions: { visible: () => quickActions }, allows: () => true } as any,
 		run: vi.fn(),
 		reloadDocinfo,
 		whileOnRecord: () => () => onRecord,

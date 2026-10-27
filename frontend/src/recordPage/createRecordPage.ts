@@ -11,7 +11,7 @@ import { runningSource, withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import { errorMessage } from "./errorMessage";
 import { createHeldActs, type HeldAct } from "./heldActs";
-import { acts } from "@/acts/dispatcher";
+import { acts, passesRight, type ActFields } from "@/acts/dispatcher";
 import { DROPPED_FIELDTYPES, type Decorator } from "@framework/ui/FormLayout";
 import type { FormLayoutSchema, RawMetaField } from "@framework/ui/FormLayout/types";
 import { holdsChildRows } from "@framework/ui/fields";
@@ -221,6 +221,8 @@ export interface RecordPageController {
   fetchCached: () => Promise<void>;
   /** Runs an act the reader asked for, by a click, the palette or a key; a failure goes to `actFailed`. */
   perform: (name: string, value?: unknown) => Promise<void>;
+  /** Whether the item's right passes, so a surface draws it; the dispatcher's own check. */
+  allows: (item: ActFields) => boolean;
   /** Runs script code the host calls outside an event, so its ops paint once, when it finishes. */
   hold: <T>(work: () => Promise<T> | T) => Promise<T>;
   /** True from a `page.save()` until its `afterSave` settles. */
@@ -928,6 +930,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
     firePost,
     fetchCached: gate.fetchCached,
     perform: (name, value) => (gate.hasLeft() ? Promise.resolve() : acts.perform(name, value)),
+    allows: (item) => passesRight(permissions, item),
     hold,
     isSaving: computed(() => saving.value !== null),
     ready: gate.ready,

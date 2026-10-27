@@ -1,10 +1,12 @@
 // The header's two zones: crumb runs and the star left; a script's controls, `⋯`, then Save right.
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick } from "vue";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { computed, createApp, defineComponent, h, nextTick, ref } from "vue";
 import { createMemoryHistory, createRouter } from "vue-router";
 
 // Hoisted with the mocks, so each factory can reach it.
-const { Plain } = vi.hoisted(() => ({
+const { Plain, metas, metaHeld } = vi.hoisted(() => ({
+  metas: {} as Record<string, any>,
+  metaHeld: { until: Promise.resolve() },
   Plain: (tag: string) =>
     defineComponent({
       inheritAttrs: false,
@@ -25,10 +27,28 @@ vi.mock("frappe-ui", async (importActual) => ({
   }),
   // No `data-label`: the order check reads that attribute off every button.
   Avatar: defineComponent({ render: () => h("i") }),
+  toast: { success: vi.fn(), error: vi.fn() },
+  frappeRequest: vi.fn(),
+}));
+vi.mock("@framework/ui/api", () => ({
+  runMethod: vi.fn(async () => ({ data: null })),
+  getMeta: vi.fn(async (doctype: string) => {
+    if (doctype === "CRM Deal") await metaHeld.until;
+    return { data: metas[doctype] ?? null, children: [] };
+  }),
 }));
 
+import { resetDoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { setSession } from "@framework/ui/useSession";
+import { resetUserRoles } from "@framework/ui/useUserRoles";
+import { acts } from "@/acts/dispatcher";
 import RecordHeader from "../RecordHeader.vue";
+import { projectRecordHeader } from "../recordHeaderProjection";
 import type { HeaderItem, HeaderProjection } from "@/recordPage";
+import { createRecordPage, type RecordPageHost } from "@/recordPage/createRecordPage";
+import { withRegisteringSource } from "@/recordPage/context";
+import { registerRecordPage, resetRegistry } from "@/recordPage/registry";
+import type { AuthoredHandlers } from "@/recordPage/types";
 
 const mounted: ReturnType<typeof createApp>[] = [];
 
@@ -288,5 +308,109 @@ describe("props on a control", () => {
     );
     expect(flag(busy, "save", "disabled")).toBe(false);
     expect(flag(busy, "save", "loading")).toBe(true);
+  });
+});
+
+describe("an item's right", () => {
+  const controllers: ReturnType<typeof createRecordPage>[] = [];
+
+  beforeEach(() => {
+    resetRegistry();
+    resetDoctypeMeta();
+    resetUserRoles();
+    for (const doctype of Object.keys(metas)) delete metas[doctype];
+  });
+
+  afterEach(() => {
+    for (const controller of controllers.splice(0)) controller.leave();
+    metaHeld.until = Promise.resolve();
+  });
+
+  async function drawn(handlers: AuthoredHandlers, perms: Record<string, number>) {
+    await withRegisteringSource("crm", async () => registerRecordPage("CRM Lead", handlers));
+    const controller = createRecordPage({
+      doctype: "CRM Lead",
+      docname: "CRM-LEAD-1",
+      doc: ref({}),
+      saved: ref({}),
+      meta: ref({ name: "CRM Lead", fields: [] }),
+      perms: () => perms,
+      isDirty: () => false,
+      activeTab: () => "details",
+      activateTab: () => {},
+      save: async () => {},
+      reload: async () => {},
+      router: {} as any,
+      activityRows: () => [],
+      scrollToActivity: async () => true,
+      reloadActivity: async () => {},
+      fileRows: () => [],
+      reloadFiles: async () => {},
+    } as RecordPageHost);
+    controllers.push(controller);
+    await controller.refresh();
+    const projection = computed(() =>
+      projectRecordHeader(controller.header.resolve(), controller.allows)
+    );
+    const root = document.createElement("div");
+    document.body.appendChild(root);
+    const app = createApp(
+      defineComponent({ render: () => h(RecordHeader, { projection: projection.value, page }) })
+    );
+    app.mount(root);
+    mounted.push(app);
+    await nextTick();
+    return root;
+  }
+
+  const purge = {
+    onRefresh: (page: any) =>
+      page.header.add({ name: "purge", label: "Purge", display: "button", right: "delete", run: () => {} }),
+  };
+
+  it("draws a script's item only for a reader who holds its right", async () => {
+    expect(rightHand(await drawn(purge, { read: 1, delete: 0 }))).not.toContain("Purge");
+    expect(rightHand(await drawn(purge, { read: 1, delete: 1 }))).toContain("Purge");
+  });
+
+  it("hides a dropdown whose right fails, and its members from the dispatcher too", async () => {
+    const menu = {
+      onRefresh: (page: any) => {
+        page.header.add({ name: "more", label: "More", display: "dropdown", right: "delete" });
+        page.header.add({ name: "archive", label: "Archive", group: "more", run: () => {} });
+      },
+    };
+    expect(rightHand(await drawn(menu, { read: 1, delete: 0 }))).not.toContain("More");
+    expect(acts.find("header.archive")).toBeUndefined();
+    expect(rightHand(await drawn(menu, { read: 1, delete: 1 }))).toContain("More");
+    expect(acts.find("header.archive")).toBeDefined();
+  });
+
+  it("draws an item with a right on another doctype once that right settles and passes", async () => {
+    setSession({
+      user: { name: "sales@example.com", full_name: "Sales", email: "sales@example.com", user_image: null, document_follow_notify: false },
+      roles: ["Sales User"],
+      lang: "en",
+      timezone: "Asia/Kolkata",
+      defaults: {},
+    });
+    metas["CRM Deal"] = { name: "CRM Deal", permissions: [{ role: "Sales User", permlevel: 0, read: 1, create: 1 }] };
+    const convert = {
+      onRefresh: (page: any) =>
+        page.header.add({
+          name: "convert",
+          label: "Convert",
+          display: "button",
+          right: { doctype: "CRM Deal", ptype: "create" },
+          run: () => {},
+        }),
+    };
+    let release!: () => void;
+    metaHeld.until = new Promise((resolve) => (release = resolve));
+    const root = await drawn(convert, { read: 1 });
+    expect(rightHand(root)).not.toContain("Convert");
+
+    release();
+    await vi.waitFor(() => expect(rightHand(root)).toContain("Convert"));
   });
 });

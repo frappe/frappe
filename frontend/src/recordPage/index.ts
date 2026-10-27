@@ -34,7 +34,7 @@ export type { RecordPageController } from "./createRecordPage";
 
 export type { AuthoredHandlers, Handler, PostedRow, RecordPageHandlers } from "./types";
 
-export { isEmptyHeader, projectHeader, zoneOf } from "./headerRenderings";
+export { hidingDenied, isEmptyHeader, projectHeader, zoneOf } from "./headerRenderings";
 export { projectFrame } from "./frame";
 export type { FrameProjection } from "./frame";
 export { columnBounds, dragOutcome, isDrawn, projectBody, STRIP_WIDTH } from "./body";
