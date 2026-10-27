@@ -1,11 +1,12 @@
 // What an island build was made from, so a later build with the same inputs can
 // reuse its output instead of compiling it again.
 //
-// The key covers the entries, the mode, the toolchain's lockfile, the preset's
-// own source, and every file the last build read outside a node_modules. Files
-// inside one are covered by the lockfile instead, so the key can be checked on a
-// bench whose toolchain is not installed yet, such as one that downloaded
-// prebuilt assets. Paths are relative to the bench, for the same reason.
+// The key covers the entries, the mode, the options that reach the output, the
+// toolchain's lockfile, the preset's own source, and every file the last build
+// read outside the toolchain's node_modules. Files inside it are covered by the
+// lockfile instead, so the key can be checked on a bench whose toolchain is not
+// installed yet, such as one that downloaded prebuilt assets. Paths are relative
+// to the bench, for the same reason.
 //
 // The stamp sits inside the output directory, which vite empties on every build,
 // so output and stamp always go away together.
@@ -25,24 +26,26 @@ const presetDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..
  * Whether the output of the last build is still what these inputs would build,
  * and still registered in assets.json.
  *
- * Takes the same `app`, `subdir`, `root`, `entries` and `production` as
- * `buildIslands`, and resolves them the same way, so both sides agree on paths.
+ * Takes the options of `buildIslands`, and resolves them the same way, so both
+ * sides agree on paths.
  */
-export function islandsUnchanged({ app, subdir, root, entries, production }) {
-	root = fs.realpathSync(root);
-	const paths = benchPaths(findBenchRoot(root), app, subdir);
-	const stamp = readJson(path.join(paths.distDir, STAMP));
-	if (!stamp?.key || !Array.isArray(stamp.files) || !stamp.assets) return false;
-
+export function islandsUnchanged(options) {
+	const { app, subdir, production } = options;
+	let root, entries;
 	try {
+		root = fs.realpathSync(options.root);
 		entries = Object.fromEntries(
-			Object.entries(entries).map(([name, file]) => [name, fs.realpathSync(file)])
+			Object.entries(options.entries).map(([name, file]) => [name, fs.realpathSync(file)])
 		);
 	} catch {
 		return false;
 	}
 
-	const key = inputsKey({ paths, root, entries, production, files: stamp.files });
+	const paths = benchPaths(findBenchRoot(root), app, subdir);
+	const stamp = readJson(path.join(paths.distDir, STAMP));
+	if (!stamp?.key || !Array.isArray(stamp.files) || !stamp.assets) return false;
+
+	const key = inputsKey({ ...options, paths, root, entries, production, files: stamp.files });
 	if (key !== stamp.key) return false;
 
 	const registered = readJson(paths.assetsJsonPath) ?? {};
@@ -60,12 +63,12 @@ export function islandsUnchanged({ app, subdir, root, entries, production }) {
  */
 export function writeInputsStamp(context, moduleIds, assets) {
 	const { paths } = context;
-	const files = sourceFiles(paths.benchRoot, moduleIds);
+	const files = sourceFiles(paths.benchRoot, context.root, moduleIds);
 	const key = inputsKey({ ...context, production: context.mode === "production", files });
 	fs.writeFileSync(path.join(paths.distDir, STAMP), JSON.stringify({ key, files, assets }));
 }
 
-function inputsKey({ paths, root, entries, production, files }) {
+function inputsKey({ paths, root, entries, production, files, ...options }) {
 	const hash = crypto.createHash("sha256");
 	const add = (label, value) => {
 		hash.update(`${label}\0`);
@@ -76,6 +79,8 @@ function inputsKey({ paths, root, entries, production, files }) {
 	add("mode", production ? "production" : "development");
 	for (const name of Object.keys(entries).sort())
 		add("entry", `${name}=${path.relative(paths.benchRoot, entries[name])}`);
+	for (const option of ["tailwindPlugins", "forbiddenImports", "allowUnscanned"])
+		add(option, (options[option] ?? []).map(String).join("\n"));
 
 	const fixed = [
 		path.join(root, "yarn.lock"),
@@ -88,12 +93,13 @@ function inputsKey({ paths, root, entries, production, files }) {
 	return hash.digest("hex");
 }
 
-/** Module ids as bench-relative paths of real files outside any node_modules. */
-function sourceFiles(benchRoot, moduleIds) {
+/** Module ids as bench-relative paths of real files outside the toolchain's node_modules. */
+function sourceFiles(benchRoot, root, moduleIds) {
+	const toolchainModules = path.join(root, "node_modules") + path.sep;
 	const files = new Set();
 	for (const id of moduleIds) {
 		const file = id.split("?")[0];
-		if (!path.isAbsolute(file) || file.split(path.sep).includes("node_modules")) continue;
+		if (!path.isAbsolute(file) || file.startsWith(toolchainModules)) continue;
 		if (!fs.existsSync(file)) continue;
 		files.add(path.relative(benchRoot, file));
 	}

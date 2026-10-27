@@ -35,6 +35,7 @@ function builtBench() {
     "apps/frappe/frappe/desk/page/notifications/notifications.vue",
     "<template/>"
   );
+  write("apps/erpnext/node_modules/chart-lib/index.js", "export {}");
 
   const root = path.join(bench, "apps/frappe/island-toolchain");
   const options = {
@@ -62,6 +63,7 @@ function builtBench() {
       "apps/frappe/frappe/desk/page/notifications/notifications.vue"
     ) + "?vue&type=script",
     path.join(root, "node_modules/frappe-ui/index.js"),
+    path.join(bench, "apps/erpnext/node_modules/chart-lib/index.js"),
     "\0virtual:island.css",
   ];
   writeInputsStamp(
@@ -141,4 +143,26 @@ test("output built on another bench path is reused", () => {
     }),
     true
   );
+});
+
+test("a missing toolchain folder builds instead of throwing", () => {
+  const { bench, options } = builtBench();
+  fs.rmSync(path.join(bench, "apps/frappe/island-toolchain"), {
+    recursive: true,
+  });
+  assert.equal(islandsUnchanged(options), false);
+});
+
+test("new tailwind plugins build again", () => {
+  const { options } = builtBench();
+  assert.equal(
+    islandsUnchanged({ ...options, tailwindPlugins: ["@tailwindcss/forms"] }),
+    false
+  );
+});
+
+test("an edited package outside the toolchain builds again", () => {
+  const { options, write } = builtBench();
+  write("apps/erpnext/node_modules/chart-lib/index.js", "export const v = 2");
+  assert.equal(islandsUnchanged(options), false);
 });
