@@ -310,9 +310,14 @@ class Browser:
 			return
 		if not self.print_format or not frappe.db.exists("Print Format", self.print_format):
 			return
-		paper_size = frappe.get_cached_value("Print Format", self.print_format, "paper_size")
+		paper_size, width, height = frappe.get_cached_value(
+			"Print Format", self.print_format, ["paper_size", "paper_width", "paper_height"]
+		)
 		if receipt_width := RECEIPT_WIDTHS.get(paper_size):
 			self.options |= {"page-width": receipt_width, "page-height": "297mm", "fit-height": True}
+		elif paper_size == "Custom":
+			if width and height:
+				self.options |= {"page-width": f"{width}mm", "page-height": f"{height}mm"}
 		elif paper_size:
 			self.options["page-size"] = paper_size
 

@@ -1095,11 +1095,17 @@ class TestFile(IntegrationTestCase):
 class TestChunkedUpload(IntegrationTestCase):
 	def setUp(self):
 		self.enterContext(self.change_settings("System Settings", {"max_file_size": 1}))
-		self.temp_path = get_files_path(".temp-chunked_upload.txt", is_private=1)
 		self.addCleanup(frappe.set_user, "Administrator")
 		self.addCleanup(frappe.local.form_dict.clear)
-		self.addCleanup(lambda: os.path.exists(self.temp_path) and os.remove(self.temp_path))
 		frappe.set_user("test@example.com")
+		self.temp_path = self.use_temp_path()
+
+	def use_temp_path(self, is_private=1):
+		from frappe.handler import get_chunk_temp_path
+
+		path = get_chunk_temp_path("chunked_upload.txt", is_private)
+		self.addCleanup(lambda: os.path.exists(path) and os.remove(path))
+		return path
 
 	def upload_chunk(self, index, size, total_file_size):
 		from io import BytesIO
@@ -1130,6 +1136,60 @@ class TestChunkedUpload(IntegrationTestCase):
 		with self.assertRaises(MaxFileSizeReachedError):
 			self.upload_chunk(0, size=10, total_file_size=2 * 1024 * 1024)
 		self.assertFalse(os.path.exists(self.temp_path))
+
+	def test_partial_public_upload_is_not_left_in_public_files(self):
+		public_temp_path = get_files_path(".temp-chunked_upload.txt", is_private=0)
+		self.addCleanup(lambda: os.path.exists(public_temp_path) and os.remove(public_temp_path))
+
+		buffer_path = self.use_temp_path(is_private=0)
+
+		frappe.form_dict.is_private = 0
+		self.upload_chunk(0, size=10, total_file_size=20)
+
+		self.assertFalse(os.path.exists(public_temp_path))
+		self.assertTrue(os.path.exists(buffer_path))
+
+	def test_uploads_of_the_same_name_do_not_share_a_buffer(self):
+		self.upload_chunk(0, size=10, total_file_size=20)
+		frappe.set_user("test4@example.com")
+		other_temp_path = self.use_temp_path()
+		self.upload_chunk(1, size=10, total_file_size=20)
+
+		self.assertNotEqual(self.temp_path, other_temp_path)
+		self.assertEqual(os.path.getsize(self.temp_path), 10)
+
+	def test_buffer_name_does_not_depend_on_filename_length(self):
+		from frappe.handler import get_chunk_temp_path
+
+		self.assertEqual(len(get_chunk_temp_path("a", 1).name), len(get_chunk_temp_path("あ" * 200, 1).name))
+
+
+class TestPrivateFileDownload(IntegrationTestCase):
+	def download(self, file_name=None):
+		from frappe.utils.response import download_private_file
+
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc({"doctype": "File", "file_name": "note.txt", "content": "x", "is_private": 1})
+		file.insert()
+		self.addCleanup(frappe.delete_doc, "File", file.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.form_dict.clear)
+		self.addCleanup(setattr, frappe.local, "request", None)
+
+		if file_name:
+			file.file_name = file_name
+			file.save()
+		set_request(path=file.file_url)
+		frappe.form_dict.fid = file.name
+		return download_private_file(file.file_url)
+
+	def test_file_renamed_to_html_is_downloaded(self):
+		response = self.download("page.html")
+		self.assertTrue(response.headers["Content-Disposition"].startswith("attachment"))
+
+	def test_text_file_is_shown_inline(self):
+		response = self.download()
+		self.assertFalse(response.headers["Content-Disposition"].startswith("attachment"))
 
 
 @contextmanager

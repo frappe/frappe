@@ -6,7 +6,12 @@ from frappe.modules.import_file import import_file_by_path
 from frappe.modules.patch_handler import _patch_mode
 from frappe.studio.build import build_custom_apps
 from frappe.studio.doctype.studio_component.studio_component import mark_components_standard
-from frappe.studio.utils import get_app_file_path, get_exported_app_folders
+from frappe.studio.utils import (
+	get_app_file_path,
+	get_exported_app_folders,
+	get_exported_app_name,
+	get_studio_folder,
+)
 
 
 def after_migrate():
@@ -36,8 +41,8 @@ def sync_studio_apps(app_name: str | None = None):
 	apps = [app_name] if app_name else frappe.get_installed_apps()
 
 	for app in apps:
-		for app_folder in get_exported_app_folders(frappe.get_app_source_path(app, "studio")):
-			print(f"Syncing Studio App {os.path.basename(app_folder)} for {app}")
+		for app_folder in get_exported_app_folders(get_studio_folder(app)):
+			print(f"Syncing Studio App {get_exported_app_name(app_folder)} for {app}")
 			import_file_by_path(get_app_file_path(app_folder))
 			sync_pages(app_folder)
 			sync_components(app_folder)
@@ -63,8 +68,8 @@ def get_exported_docnames() -> tuple[set[str], set[str]]:
 	"""Docnames of every Studio App and Studio Page that has a file on disk, as (apps, pages)."""
 	apps, pages = set(), set()
 	for app in frappe.get_installed_apps():
-		for app_folder in get_exported_app_folders(frappe.get_app_source_path(app, "studio")):
-			apps.add(read_json_file(get_app_file_path(app_folder)).get("name"))
+		for app_folder in get_exported_app_folders(get_studio_folder(app)):
+			apps.add(get_exported_app_name(app_folder))
 			# exported page `name` is the scrubbed title; the docname is `page_name`
 			pages.update(read_json_file(path).get("page_name") for path in get_page_file_paths(app_folder))
 	return apps, pages

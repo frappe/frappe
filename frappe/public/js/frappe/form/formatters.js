@@ -476,6 +476,6 @@ frappe.get_format_helper = function (doc) {
 };
 
 frappe.form.link_formatters["User"] = function (value, doc, docfield) {
-	let full_name = doc && (doc.full_name || (docfield && doc[`${docfield.fieldname}_full_name`]));
+	let full_name = doc && docfield && doc[`${docfield.fieldname}_full_name`];
 	return full_name || value;
 };

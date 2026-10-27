@@ -22,6 +22,7 @@ from frappe.translate import print_language
 from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 
 no_cache = 1
 
@@ -277,6 +278,7 @@ def _download_multi_pdf(
 
 			from pypdf import PdfReader
 
+			from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 			from frappe.utils.print_format_generator import PrintFormatGenerator
 
 			doc = frappe.get_doc(print_doctype, print_name)
@@ -295,8 +297,10 @@ def _download_multi_pdf(
 				method="Print",
 				page=f"Print Format: {pf.name}",
 			)
-			for page in PdfReader(BytesIO(pdf)).pages:
-				pdf_writer.add_page(page)
+			reader = PdfReader(BytesIO(pdf))
+			first_new_page = len(pdf_writer.pages)
+			pdf_writer.append_pages_from_reader(reader)
+			PDFTransformer.resolve_internal_links(pdf_writer, reader, first_new_page)
 			return pdf_writer
 
 	if not isinstance(doctype, dict):
@@ -445,11 +449,15 @@ def download_pdf(
 
 @frappe.whitelist()
 @frappe.concurrent_limit()
-def report_to_pdf(html: str, orientation: str = "Landscape"):
+def report_to_pdf(html: str, orientation: str = "Landscape", print_format: str | None = None):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
 	)
 	frappe.local.response.type = "pdf"
 
@@ -487,7 +495,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		header = render_template(letter_head.content, {"doc": context_doc})
 		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
-			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
+			header += f"\n<style data-letter-head>\n{letter_head.custom_css}\n</style>\n"
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
 		rendered["header"] = header
@@ -706,7 +714,11 @@ def download_report_pdf(
 
 	frappe.local.response.filename = f"{report_name}.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
 	)
 	frappe.local.response.type = "pdf"
 

@@ -443,6 +443,15 @@ class PrintFormatGenerator:
 			layout = frappe.parse_json(self.print_format.format_data)
 		except ValueError:
 			return {}
+		if isinstance(layout, list):
+			pf = self.print_format
+			if pf.paper_size == "Custom" and pf.paper_width and pf.paper_height:
+				return {
+					"pdf_page_size": "Custom",
+					"pdf_page_width": pf.paper_width,
+					"pdf_page_height": pf.paper_height,
+				}
+			return layout_page_settings({"page": {"size": pf.paper_size}})
 		return layout_page_settings(layout)
 
 	def apply_page_overrides(self):

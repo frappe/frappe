@@ -96,6 +96,32 @@ class TestPreparedReport(IntegrationTestCase):
 			job = frappe.get_doc("RQ Job", job_id)
 			self.assertEqual(job.status, "stopped")
 
+	@unittest.skipIf(
+		frappe.conf.db_type == "sqlite",
+		"This test needs a database sleep function, which SQLite does not provide.",
+	)
+	def test_cancel_from_background_task_sidepanel(self):
+		from frappe.core.doctype.background_task.background_task import stop_task
+
+		if frappe.db.db_type == "postgres":
+			query = "select pg_sleep(5)"
+		elif frappe.db.db_type == "mariadb":
+			query = "select sleep(5)"
+		with test_report(report_type="Query Report", query=query) as report:
+			doc = self.create_prepared_report(report.name)
+			self.wait_for_status(doc, "Started")
+			bg_task = frappe.get_all(
+				"Background Task", {"ref_doctype": "Prepared Report", "ref_docname": doc.name}, pluck="name"
+			)
+			self.assertEqual(len(bg_task), 1)
+
+			stop_task(bg_task[0])
+
+			self.wait_for_status(doc, "Cancelled")
+			time.sleep(1)
+			job = frappe.get_doc("RQ Job", doc.job_id)
+			self.assertEqual(job.status, "stopped")
+
 
 @contextmanager
 def test_report(**args):
