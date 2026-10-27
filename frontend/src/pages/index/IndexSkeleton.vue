@@ -7,7 +7,7 @@
 				size="lg"
 				variant="subtle"
 				class="w-full"
-				:class="boxWidthClass(matching(boot.apps ?? [], '').length)"
+				:class="boxWidthClass(unfilteredTiles(boot.apps ?? [], boot.more_apps))"
 				:placeholder="__('Find an app')"
 				readonly
 				tabindex="-1"
@@ -37,7 +37,7 @@ import { Skeleton, TextInput } from "frappe-ui";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import LoadingStatus from "@/shell/LoadingStatus.vue";
-import { matching } from "./apps";
+import { unfilteredTiles } from "./apps";
 import { PAGE_COLUMN, boxWidthClass, gridClass } from "./grid";
 
 const TILES = 4;

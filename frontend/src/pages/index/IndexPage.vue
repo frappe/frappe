@@ -123,7 +123,7 @@ import { Button, Dropdown, ScrollArea, TextInput, toast, type TextInputExposed }
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { usePageMenuItems } from "@/shell/pageMenu";
-import { matching, type IndexApp } from "./apps";
+import { matching, unfilteredTiles, type IndexApp } from "./apps";
 import AppTile from "./AppTile.vue";
 import { favouriteKey } from "./favourites";
 import IndexFavourites from "./IndexFavourites.vue";
@@ -160,7 +160,7 @@ const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] :
 const boxWidth = computed(() =>
 	arranging.value
 		? arrangeBoxWidthClass(apps.value.length)
-		: boxWidthClass(matching(apps.value, "").length)
+		: boxWidthClass(unfilteredTiles(apps.value, boot.more_apps))
 );
 
 if (apps.value.length) {

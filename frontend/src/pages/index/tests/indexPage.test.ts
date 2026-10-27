@@ -4,6 +4,7 @@ import { createApp, nextTick, type App } from "vue";
 import type { Boot } from "@/boot";
 import { pageMenuItems } from "@/shell/pageMenu";
 import IndexPage from "../IndexPage.vue";
+import IndexSkeleton from "../IndexSkeleton.vue";
 
 const fake = vi.hoisted(() => ({ runMethod: vi.fn() }));
 
@@ -665,10 +666,22 @@ describe("the index's Get more apps tile", () => {
 		expect(moreApps(host)!.textContent?.trim()).toBe("Get more apps");
 	});
 
-	it("takes a column in the grid but none of the box's width", async () => {
+	it("takes a column in the grid and in the box's width, which typing does not change", async () => {
 		const host = await mount(APPS, [], [], CLOUD_SETTINGS);
 		expect(host.querySelector("ul[role='listbox']")!.className).toContain("grid-cols-[repeat(5,112px)]");
-		expect(box(host).parentElement!.className).toContain("max-w-[440px]");
+		expect(box(host).parentElement!.className).toContain("max-w-[568px]");
+		await type(host, "crm");
+		expect(box(host).parentElement!.className).toContain("max-w-[568px]");
+	});
+
+	it("is counted in the loading state's box too, so the box does not jump at load", async () => {
+		const host = document.createElement("div");
+		document.body.appendChild(host);
+		const skeleton = createApp(IndexSkeleton);
+		skeleton.provide("boot", { app: null, apps: APPS, more_apps: CLOUD_SETTINGS } as unknown as Boot);
+		skeleton.mount(host);
+		mounted.push(skeleton);
+		expect(host.querySelector("input")!.parentElement!.className).toContain("max-w-[568px]");
 	});
 
 	it("never matches the filter", async () => {
