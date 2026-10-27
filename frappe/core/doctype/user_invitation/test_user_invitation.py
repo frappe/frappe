@@ -49,10 +49,10 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 		IntegrationTestUserInvitation.delete_all_invitations()
 		IntegrationTestUserInvitation.delete_all_user_roles()
 		frappe.db.delete("Email Queue")
+		frappe.set_user("Administrator")
 		for user_email in emails:
 			if frappe.db.exists("User", user_email):
 				frappe.delete_doc("User", user_email)
-		frappe.set_user("Administrator")
 		# some of the code under test commit internally
 		frappe.db.commit()  # nosemgrep
 
@@ -278,7 +278,7 @@ class IntegrationTestUserInvitation(IntegrationTestCase):
 
 	def test_resend_invite_needs_write(self):
 		invitation = self.insert_invitation_without_mail()
-		frappe.local.request = frappe._dict(method="POST")
+		self.enterContext(patch.object(frappe.local, "request", frappe._dict(method="POST"), create=True))
 		reader = self.make_user("invitation-reader@example.com")
 		writer = self.make_user("invitation-writer@example.com")
 		frappe.share.add("User Invitation", invitation.name, reader, read=1, write=0)
