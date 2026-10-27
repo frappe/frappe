@@ -44,8 +44,14 @@ def global_variables_context(template: str | None, doc) -> dict:
 
 	if ".__" in template:
 		frappe.throw(_("Illegal template"))
-	with safe_render_flags():
-		module = get_jenv().from_string(template).make_module({"doc": doc})
+	try:
+		with safe_render_flags():
+			module = get_jenv().from_string(template).make_module({"doc": doc})
+	except Exception as e:
+		frappe.throw(
+			_("The global variables of this print format could not be set: {0}").format(str(e)),
+			title=_("Print Format Error"),
+		)
 	return {key: value for key, value in vars(module).items() if not key.startswith("_")}
 
 
