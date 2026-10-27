@@ -134,12 +134,11 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	manifest, apps, deps_changed = write_manifest(frontend_path)
 	lock_refreshed = refresh_lockfile(frontend_path)
 
-	# Install when the tree is missing or the composed dependency set changed. `--production=false`
-	# because yarn v1 skips devDependencies under NODE_ENV=production, and vite is one.
+	# Install when the tree is missing or the composed dependency set changed. devDependencies are
+	# the test and lint tools; `--production=false` because yarn v1 skips them under NODE_ENV=production.
 	if not os.path.exists(os.path.join(frontend_path, "node_modules")) or deps_changed or lock_refreshed:
-		frappe.commands.popen(
-			"yarn install --production=false", cwd=frontend_path, env=get_node_env(), raise_err=True
-		)
+		install = "yarn install --production" if production else "yarn install --production=false"
+		frappe.commands.popen(install, cwd=frontend_path, env=get_node_env(), raise_err=True)
 
 	for line in cost_report(manifest, frontend_path, apps):
 		click.echo(line)
@@ -153,7 +152,7 @@ def build_shell(frappe_app_path: str, production: bool = False):
 
 	command = f"yarn build --outDir {shlex.quote(staging)} --emptyOutDir"
 	if production:
-		command += " --mode production"
+		command += " --mode production --sourcemap false"
 	frappe.commands.popen(command, cwd=frontend_path, env=get_node_env(), raise_err=True)
 
 	if not os.path.exists(os.path.join(staging, "index.html")):
