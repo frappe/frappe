@@ -57,7 +57,9 @@ def sync_tools(_app: str | None = None) -> None:
 def hooked_tools() -> list[Tool]:
 	"""Each `@tool` the installed apps list under the `flow_tools` hook. One whose name another
 	tool holds, a builtin, a desk tool or another app's, is skipped with an Error Log, so an
-	app cannot fail migrate. One the app moved to another module takes its old row over."""
+	app cannot fail migrate. One the app moved to another module takes its old row over.
+	Ownership goes by the top-level package of the tool's module, not by the app whose hook lists it.
+	A row whose path no longer imports gives way, even when that import fails only for a moment."""
 	tools: dict[str, Tool] = {}
 	for path in frappe.get_hooks("flow_tools"):
 		hooked = frappe.get_attr(path)
