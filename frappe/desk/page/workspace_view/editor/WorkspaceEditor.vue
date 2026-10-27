@@ -1,6 +1,6 @@
 <script setup>
 import { computed, onMounted, ref, watch } from "vue";
-import { Alert, Button } from "frappe-ui";
+import { Alert } from "frappe-ui";
 import { post } from "../api.js";
 import WorkspaceGrid from "../WorkspaceGrid.vue";
 import EmptyWorkspace from "../EmptyWorkspace.vue";
@@ -88,6 +88,7 @@ const TITLES = {
 	quick_list: __("Quick List"),
 	onboarding: __("Onboarding"),
 	custom_block: __("Custom Block"),
+	text: __("Text"),
 };
 
 const ICONS = {
@@ -98,6 +99,7 @@ const ICONS = {
 	quick_list: "lucide-list",
 	onboarding: "lucide-list-checks",
 	custom_block: "lucide-code",
+	text: "lucide-type",
 };
 
 // A new block goes after the selected one, or last, and is selected.
@@ -334,14 +336,14 @@ const pane_open = computed(() => opened.value && !previewing.value);
 </script>
 
 <template>
-	<div class="h-full overflow-y-auto">
+	<div class="h-full">
 		<div
-			class="grid min-h-full transition-[grid-template-columns] duration-300 ease-out motion-reduce:transition-none"
+			class="grid h-full grid-rows-[minmax(0,1fr)] transition-[grid-template-columns] duration-300 ease-out motion-reduce:transition-none"
 			:class="
 				pane_open ? 'grid-cols-[minmax(0,1fr)_22rem]' : 'grid-cols-[minmax(0,1fr)_0rem]'
 			"
 		>
-			<div class="min-w-0 px-4 pt-4 pb-10">
+			<div class="min-w-0 overflow-y-auto px-4 pt-4 pb-10">
 				<div class="mx-auto max-w-4xl">
 					<Transition
 						enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
@@ -375,7 +377,7 @@ const pane_open = computed(() => opened.value && !previewing.value);
 					/>
 				</div>
 			</div>
-			<div class="min-w-0 overflow-clip">
+			<div class="flex min-w-0 flex-col overflow-clip">
 				<Transition
 					enter-active-class="transition duration-300 ease-out delay-75 motion-reduce:transition-none"
 					enter-from-class="translate-x-6 opacity-0"
@@ -384,55 +386,59 @@ const pane_open = computed(() => opened.value && !previewing.value);
 				>
 					<aside
 						v-if="pane_open"
-						class="sticky top-4 mt-4 mr-4 mb-10 flex w-[21rem] flex-col rounded-6 border border-outline-gray-2 bg-surface-base"
+						class="my-4 mr-4 flex min-h-0 w-[21rem] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
 					>
-						<Transition
-							mode="out-in"
-							enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
-							enter-from-class="translate-y-1 opacity-0"
-							leave-active-class="transition duration-100 ease-in motion-reduce:transition-none"
-							leave-to-class="opacity-0"
+						<section
+							class="flex flex-col gap-2 border-b border-outline-gray-2 px-3 pt-4 pb-2"
 						>
-							<BlockPanel
-								v-if="selected"
-								:key="selected.id"
-								class="border-b border-outline-gray-2"
-								:block="selected"
-								:widget="selected_widget"
-								@change="touched.add(selected.id)"
-								@resize="(preset) => set_size(selected, preset)"
-								@remove="remove"
-								@close="selected_id = null"
-							/>
-						</Transition>
-						<section class="flex flex-col gap-3 p-5">
-							<div class="flex flex-col gap-1">
+							<div class="flex flex-col gap-1 px-2">
 								<span class="text-base font-medium text-ink-gray-8">
 									{{ __("Add blocks") }}
 								</span>
 								<p class="text-p-sm text-ink-gray-5">
+									{{ __("Put numbers, charts, links and lists on this page.") }}
 									{{
-										__(
-											"Add a block or some text, or select one on the canvas to edit it."
-										)
+										selected
+											? __("New blocks go after the selected one.")
+											: __("New blocks go at the end.")
 									}}
 								</p>
 							</div>
-							<div class="flex flex-wrap gap-2">
-								<Button
-									v-for="type in BLOCK_TYPES"
+							<div class="grid grid-cols-4 gap-1">
+								<button
+									v-for="type in [...BLOCK_TYPES, 'text']"
 									:key="type"
-									:icon-left="ICONS[type]"
-									:label="TITLES[type]"
-									@click="add_block(type)"
-								/>
-								<Button
-									icon-left="lucide-type"
-									:label="__('Text')"
-									@click="add_text"
-								/>
+									type="button"
+									class="flex w-full flex-col items-center gap-1 rounded-4 px-0.5 py-2 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+									@click="type === 'text' ? add_text() : add_block(type)"
+								>
+									<span :class="ICONS[type]" class="size-4" aria-hidden="true" />
+									<span class="whitespace-nowrap text-2xs">{{
+										TITLES[type]
+									}}</span>
+								</button>
 							</div>
 						</section>
+						<div class="min-h-0 overflow-y-auto">
+							<Transition
+								mode="out-in"
+								enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
+								enter-from-class="translate-y-1 opacity-0"
+								leave-active-class="transition duration-100 ease-in motion-reduce:transition-none"
+								leave-to-class="opacity-0"
+							>
+								<BlockPanel
+									v-if="selected"
+									:key="selected.id"
+									:block="selected"
+									:widget="selected_widget"
+									@change="touched.add(selected.id)"
+									@resize="(preset) => set_size(selected, preset)"
+									@remove="remove"
+									@close="selected_id = null"
+								/>
+							</Transition>
+						</div>
 						<section
 							v-if="hint"
 							class="flex items-start gap-2 border-t border-outline-gray-2 p-5 text-p-sm text-ink-gray-5"
