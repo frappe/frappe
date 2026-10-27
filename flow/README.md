@@ -89,12 +89,14 @@ flow_agents = ["myapp.ai.agents"]
 agent.run("Draft a reply to ticket 42", on_complete="myapp.ai.save_draft")
 ```
 
-### Share a tool with agents made in the desk
+### Share a tool with the assistant and agents made in the desk
 
 ```python
 # hooks.py
 flow_tools = ["myapp.ai.get_open_todos"]
 ```
+
+The built-in assistant gets every listed tool, so every Flow User can call it. A tool runs as that user: check permissions in it, never write with `ignore_permissions`.
 
 ### Ship skills with your app
 

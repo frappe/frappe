@@ -5,6 +5,7 @@ import shutil
 from unittest.mock import patch
 
 import frappe
+from frappe.flow import ToolContext, tool
 from frappe.flow.assistant import (
 	ASSISTANT_AGENT_TITLE,
 	ASSISTANT_INSTRUCTIONS,
@@ -17,6 +18,23 @@ from frappe.flow.doctype.flow_skill.test_flow_skill import AppSkills
 from frappe.flow.tools.builtins import BUILTIN_TOOLS
 from frappe.tests import IntegrationTestCase
 from frappe.utils import get_weekday, today
+
+
+@tool
+def probe_app_tool(*, ctx: ToolContext) -> str:
+	"""A tool an app ships through the flow_tools hook."""
+	return "ok"
+
+
+def with_probe_app_tool(get_hooks):
+	"""frappe.get_hooks, as if an installed app listed probe_app_tool under flow_tools."""
+
+	def patched(hook=None, *args, **kwargs):
+		if hook == "flow_tools":
+			return ["frappe.flow.tests.test_ai_assistant.probe_app_tool"]
+		return get_hooks(hook, *args, **kwargs)
+
+	return patched
 
 
 class TestSyncBuiltinAssistant(IntegrationTestCase):
@@ -148,6 +166,19 @@ class TestSyncBuiltinAssistant(IntegrationTestCase):
 		sync_assistant_skills("myapp")
 		doc.reload()
 		self.assertEqual([row.skill for row in doc.skills], [house.name])
+
+	def test_the_assistant_gains_an_apps_flow_tools_and_drops_them_with_the_app(self):
+		builtins = {t.name for t in BUILTIN_TOOLS}
+		with patch("frappe.get_hooks", side_effect=with_probe_app_tool(frappe.get_hooks)):
+			sync_builtin_assistant(model=self.model.name)
+		tools = {row.tool for row in frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).tools}
+		self.assertIn("probe_app_tool", tools)
+		self.assertTrue(builtins <= tools)
+
+		sync_builtin_assistant(model=self.model.name)
+		tools = {row.tool for row in frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE).tools}
+		self.assertNotIn("probe_app_tool", tools)
+		self.assertTrue(builtins <= tools)
 
 	def test_a_new_model_replaces_only_one_the_assistant_lost(self):
 		with patch("frappe.flow.assistant.assistant.sync_builtin_assistant") as sync:
