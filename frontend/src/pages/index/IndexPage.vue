@@ -64,7 +64,7 @@
 				role="listbox"
 				:aria-label="__('Apps')"
 				class="mt-12 grid gap-x-4 gap-y-6"
-				:class="gridClass(matches.length)"
+				:class="gridClass(tileCount)"
 			>
 				<li v-for="app in matches" :key="app.app" role="none" class="group/tile relative">
 					<AppTile
@@ -87,6 +87,13 @@
 							</button>
 						</Dropdown>
 					</div>
+				</li>
+				<li v-if="moreApps" role="none">
+					<MoreAppsTile
+						:id="selectableId(MORE_APPS_KEY)"
+						:href="moreApps"
+						:selected="selection.isSelected(MORE_APPS_KEY)"
+					/>
 				</li>
 			</ul>
 
@@ -123,6 +130,7 @@ import IndexFavourites from "./IndexFavourites.vue";
 import IndexRecent from "./IndexRecent.vue";
 import { PAGE_COLUMN, arrangeBoxWidthClass, boxWidthClass, columnsFor, gridClass } from "./grid";
 import { saveLayer } from "./layer";
+import MoreAppsTile from "./MoreAppsTile.vue";
 import { recentKey } from "./recent";
 import { Selection, selectableId, type SelectionSection } from "./selection";
 
@@ -131,6 +139,7 @@ const ArrangeApps = defineAsyncComponent(() => import("./ArrangeApps.vue"));
 const TILES_ID = "index-apps";
 const FAVOURITES_ID = "index-favourites";
 const RECENT_ID = "index-recent";
+const MORE_APPS_KEY = "more-apps";
 
 const boot = inject<Boot>("boot")!;
 const apps = ref<IndexApp[]>(boot.apps ?? []);
@@ -141,6 +150,11 @@ const box = ref<TextInputExposed | null>(null);
 const query = ref("");
 const arranging = ref(false);
 const matches = computed(() => (arranging.value ? [] : matching(apps.value, query.value)));
+// Not an app, so the filter never matches it: it shows only beside the unfiltered grid.
+const moreApps = computed(() =>
+	matches.value.length && !query.value.trim() ? boot.more_apps ?? null : null
+);
+const tileCount = computed(() => matches.value.length + (moreApps.value ? 1 : 0));
 const shownFavourites = computed(() => (query.value.trim() || arranging.value ? [] : favourites));
 const shownRecent = computed(() => (query.value.trim() || arranging.value ? [] : recent));
 const boxWidth = computed(() =>
@@ -158,8 +172,11 @@ if (apps.value.length) {
 // In page order. A later section appends its items here and draws `selection.isSelected(key)`.
 const sections = computed<SelectionSection[]>(() => [
 	{
-		items: matches.value.map((app) => ({ key: tileKey(app), href: app.route })),
-		columns: columnsFor(matches.value.length),
+		items: [
+			...matches.value.map((app) => ({ key: tileKey(app), href: app.route })),
+			...(moreApps.value ? [{ key: MORE_APPS_KEY, href: moreApps.value }] : []),
+		],
+		columns: columnsFor(tileCount.value),
 	},
 	{
 		items: shownFavourites.value.map((favourite) => ({

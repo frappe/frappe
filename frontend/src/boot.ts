@@ -107,6 +107,10 @@ export type Boot = {
 		app_logo?: string | null;
 	}[];
 
+	// Present on the index only: where "Get more apps" links out, for a System Manager on a site
+	// that can install apps from Cloud Settings; none elsewhere.
+	more_apps?: string | null;
+
 	// --- the declaring app's contribution, merged under core ---
 	[appKey: string]: unknown;
 };

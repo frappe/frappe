@@ -11,6 +11,7 @@ from frappe.core.doctype.installed_applications.installed_applications import (
 	get_setup_wizard_not_required_apps,
 )
 from frappe.desk.link_title import get_link_titles
+from frappe.integrations.frappe_providers.cloud_settings import is_cloud_settings_enabled
 from frappe.sessions import get_session_info
 from frappe.translate import get_translation_version
 from frappe.utils import cstr, orjson_dumps, strip_html
@@ -35,6 +36,8 @@ BUDGET_LOG_TITLE = "Boot key over budget"
 
 FAVOURITES_LIMIT = 8
 RECENT_LIMIT = 5
+
+CLOUD_SETTINGS_ROUTE = "/desk?cloud_settings=1"
 
 
 def core_boot() -> dict:
@@ -95,6 +98,7 @@ def index_boot() -> dict:
 		"apps": arrange(tiles),
 		"favourites": index_favourites(),
 		"recent": index_recent(),
+		"more_apps": CLOUD_SETTINGS_ROUTE if is_cloud_settings_enabled() else None,
 	}
 
 

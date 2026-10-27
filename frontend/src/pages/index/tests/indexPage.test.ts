@@ -94,13 +94,14 @@ afterEach(() => {
 async function mount(
 	apps: BootApp[] = APPS,
 	favourites: BootFavourite[] = [],
-	recent: BootVisit[] = []
+	recent: BootVisit[] = [],
+	moreApps: string | null = null
 ) {
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	const app = createApp(IndexPage);
 	const session = { timezone: "Asia/Kolkata" };
-	app.provide("boot", { app: null, apps, favourites, recent, session } as unknown as Boot);
+	app.provide("boot", { app: null, apps, favourites, recent, more_apps: moreApps, session } as unknown as Boot);
 	app.mount(host);
 	mounted.push(app);
 	await nextTick();
@@ -639,5 +640,66 @@ describe("the person's layer", () => {
 		await flush();
 		expect(host.querySelector("[data-arrange-strip]")).not.toBeNull();
 		expect(arrangeGrid(host)).toHaveLength(4);
+	});
+});
+
+describe("the index's Get more apps tile", () => {
+	const CLOUD_SETTINGS = "/desk?cloud_settings=1";
+
+	beforeAll(() => import("../ArrangeApps.vue"));
+
+	function moreApps(host: HTMLElement) {
+		return host.querySelector<HTMLAnchorElement>("a[data-more-apps]");
+	}
+
+	it("draws no tile when boot names no place to get apps", async () => {
+		const host = await mount();
+		expect(moreApps(host)).toBeNull();
+	});
+
+	it("draws the dashed tile after the last app, a link out to Cloud Settings", async () => {
+		const host = await mount(APPS, [], [], CLOUD_SETTINGS);
+		const items = [...host.querySelectorAll<HTMLAnchorElement>("ul[role='listbox'] a")];
+		expect(items.at(-1)).toBe(moreApps(host));
+		expect(moreApps(host)!.getAttribute("href")).toBe(CLOUD_SETTINGS);
+		expect(moreApps(host)!.textContent?.trim()).toBe("Get more apps");
+	});
+
+	it("takes a column in the grid but none of the box's width", async () => {
+		const host = await mount(APPS, [], [], CLOUD_SETTINGS);
+		expect(host.querySelector("ul[role='listbox']")!.className).toContain("grid-cols-[repeat(5,112px)]");
+		expect(box(host).parentElement!.className).toContain("max-w-[440px]");
+	});
+
+	it("never matches the filter", async () => {
+		const host = await mount(APPS, [], [], CLOUD_SETTINGS);
+		await type(host, "e");
+		expect(moreApps(host)).toBeNull();
+		await type(host, "get more");
+		expect(host.querySelector("[data-index-state='no-match']")).not.toBeNull();
+		await press(host, "Escape");
+		expect(moreApps(host)).not.toBeNull();
+	});
+
+	it("joins the arrow keys as the last tile, and Enter links out", async () => {
+		const host = await mount(APPS, FAVOURITES, [], CLOUD_SETTINGS);
+		for (let step = 0; step < 5; step++) await press(host, "ArrowRight");
+		expect(moreApps(host)!.getAttribute("aria-selected")).toBe("true");
+		expect(box(host).getAttribute("aria-activedescendant")).toBe(moreApps(host)!.id);
+		await press(host, "ArrowRight");
+		expect(selected(host)).toEqual(["favourite:CRM Deal:CRM-DEAL-0001"]);
+		await press(host, "ArrowLeft");
+		await press(host, "Enter");
+		expect(assign).toHaveBeenCalledWith(CLOUD_SETTINGS);
+	});
+
+	it("is not in the arrange grid", async () => {
+		const host = await mount(APPS, [], [], CLOUD_SETTINGS);
+		pageMenuItems.value.find((item) => item.label === "Arrange apps")!.onClick();
+		for (let tick = 0; tick < 5; tick++) await new Promise((resolve) => setTimeout(resolve));
+		await nextTick();
+		expect(host.querySelectorAll("li[data-app]")).toHaveLength(4);
+		expect(moreApps(host)).toBeNull();
+		expect(host.textContent).not.toContain("Get more apps");
 	});
 });

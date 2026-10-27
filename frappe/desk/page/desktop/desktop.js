@@ -158,6 +158,18 @@ class DesktopPage {
 		$button.off("click.cloud-settings").on("click.cloud-settings", () => {
 			this.open_cloud_settings(settings);
 		});
+
+		this.open_cloud_settings_from_url(settings);
+	}
+
+	// `?cloud_settings=1` is how desk v2's index opens the dialog; drop it so a reload does not reopen it.
+	open_cloud_settings_from_url(settings) {
+		const url = new URL(window.location.href);
+		if (!url.searchParams.has("cloud_settings")) return;
+
+		url.searchParams.delete("cloud_settings");
+		history.replaceState(history.state, "", url);
+		this.open_cloud_settings(settings);
 	}
 
 	prefetch_cloud_settings_bundle(bundle) {
