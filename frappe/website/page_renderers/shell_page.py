@@ -67,11 +67,8 @@ class ShellPage(BaseRenderer):
 		# user's document to the next. Invisible in development, where `can_cache()` is False.
 		frappe.local.no_cache = 1
 
-		if self.app:
-			guard_prefix(self.app, self.request_path())
-		elif frappe.session.user == "Guest":
-			# The index lists what you may open; there is nothing on it for a signed-out user.
-			guard_prefix("frappe", self.request_path())
+		# The index is frappe's: its boot is gated on frappe, so the document must be too.
+		guard_prefix(self.app or "frappe", self.request_path())
 
 		document = get_shell_document()
 		if document is None:

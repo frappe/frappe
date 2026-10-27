@@ -8,6 +8,8 @@ from frappe import _
 
 from .registry import get_prefix_registry
 
+WEBSITE_USER_HOME = "/me"
+
 
 def default_app_permission() -> bool:
 	"""What `/desk` has always meant: "Is a System User"."""
@@ -15,12 +17,7 @@ def default_app_permission() -> bool:
 	if frappe.session.user == "Guest":
 		return False
 
-	# `user_type` is on the session in a request and absent off-request (jobs, tests, `bench execute`).
-	user_type = frappe.session.data.get("user_type") if frappe.session.data else None
-	if not user_type:
-		user_type = frappe.get_cached_value("User", frappe.session.user, "user_type")
-
-	return user_type == "System User"
+	return session_user_type() == "System User"
 
 
 def has_app_permission(app: str) -> bool:
@@ -42,7 +39,7 @@ def may_enter_any_prefix() -> bool:
 
 
 def guard_prefix(app: str, path: str):
-	"""Raise the right refusal: Guest is bounced to login, anyone else gets a 403."""
+	"""Raise the right refusal: Guest is bounced to login, a Website User to `/me`, anyone else gets a 403."""
 	if has_app_permission(app):
 		return
 
@@ -51,4 +48,15 @@ def guard_prefix(app: str, path: str):
 		frappe.msgprint(_("Log in to access this page."))
 		frappe.redirect(f"/login?{urlencode({'redirect-to': path})}")
 
+	if session_user_type() == "Website User":
+		# 302: a browser keeps a 301, and the user may be given a desk role later.
+		frappe.flags.redirect_location = WEBSITE_USER_HOME
+		raise frappe.Redirect(302)
+
 	frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
+
+
+def session_user_type() -> str | None:
+	# `user_type` is on the session in a request and absent off-request (jobs, tests, `bench execute`).
+	user_type = frappe.session.data.get("user_type") if frappe.session.data else None
+	return user_type or frappe.get_cached_value("User", frappe.session.user, "user_type")
