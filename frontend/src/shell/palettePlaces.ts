@@ -8,7 +8,7 @@ import { __ } from "@/i18n";
 import { itemContext } from "@/navigation/context";
 import { labelOf } from "@/navigation/registry";
 import type { ItemContext } from "@/navigation/types";
-import { urlFor } from "@/router/routeFor";
+import { canRoute, urlFor } from "@/router/routeFor";
 import type { PaletteRow } from "./palette";
 import type { PaletteContext, PaletteGroup } from "./paletteGroups";
 import { rank } from "./paletteRanking";
@@ -245,8 +245,7 @@ class PlaceRows {
 
 	/** Under this app's prefix, as a sidebar row opens it; the index has no doctype routes, so the owner's. */
 	private addressOf(doctype: DoctypePlace) {
-		const known = this.context.addresses.addressOf(doctype.name);
-		return known && this.opensRecords() ? urlFor(doctype.name) : doctype.route;
+		return this.opensRecords() && canRoute(doctype.name) ? urlFor(doctype.name) : doctype.route;
 	}
 
 	/** Tab narrows only where this router opens the records it finds. */

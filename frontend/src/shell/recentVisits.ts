@@ -6,7 +6,7 @@ import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { forgetMemory } from "@/browserMemory";
 import { __ } from "@/i18n";
-import { urlFor } from "@/router/routeFor";
+import { canRoute, urlFor } from "@/router/routeFor";
 import { visitedRoute } from "./routeHistory";
 
 /** One list or record visit, as `places` returns it. */
@@ -48,7 +48,6 @@ class RecentVisits {
 	);
 	private base = "";
 	private router: Router | null = null;
-	private addresses: Addresses | null = null;
 
 	/** Keeps this tab's list and record visits, the first one too, as `Route History` gets them. */
 	track(router: Router, boot: Boot, addresses: Addresses) {
@@ -56,7 +55,6 @@ class RecentVisits {
 		forgetMemory("recents");
 		this.base = boot.shell_base;
 		this.router = router;
-		this.addresses = addresses;
 		this.tab.value = [];
 		const app = boot.app_title ?? boot.app ?? undefined;
 		router.afterEach((to, from, failure) => {
@@ -92,8 +90,8 @@ class RecentVisits {
 
 	/** In an app, its own address for the place; on the index, where the place was visited last. */
 	private addressOf(visit: RecentVisit) {
-		const inApp = this.router?.hasRoute("record") && this.addresses?.addressOf(visit.doctype);
-		return inApp ? urlFor(visit.doctype, visit.name) : visit.route;
+		const here = this.router?.hasRoute("record") && canRoute(visit.doctype);
+		return here ? urlFor(visit.doctype, visit.name) : visit.route;
 	}
 
 	private keep(visit: TabVisit) {
