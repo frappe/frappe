@@ -26,7 +26,7 @@
 						@mousedown="dragHandleIndex = index"
 						@mouseup="resetDrag"
 					>
-						<LucideGripVertical class="size-3" />
+						<span class="lucide-grip-vertical size-3" />
 					</button>
 					<Radio :value="String(index)" :title="`Show ${option} on the canvas`" />
 					<Input
@@ -75,7 +75,6 @@ import { computed, nextTick, ref } from "vue"
 import { Dropdown, Radio, RadioGroup } from "frappe-ui"
 import Input from "@/components/Input.vue"
 import InputLabel from "@/components/InputLabel.vue"
-import LucideGripVertical from "~icons/lucide/grip-vertical"
 import Block from "@/utils/block"
 import { variantOption } from "@/utils/blockTemplate/familyTemplates"
 import { getBlockCopy } from "@/utils/serializer"
@@ -120,7 +119,7 @@ function showOption(index: number) {
 // version of what you see
 function addOption() {
 	const index = props.block.children.length
-	const name = `Option ${index + 1}`
+	const name = unusedOptionName(options.value)
 	const shown = props.block.children[shownIndex.value]
 	const added = props.block.addChild(shown ? getBlockCopy(shown) : variantOption(name), index, false)
 	if (added) {
@@ -129,6 +128,13 @@ function addOption() {
 	}
 	showOption(index)
 	startRename(index)
+}
+
+// a URL resolves an option by name, so a generated name must not repeat one a delete left behind
+function unusedOptionName(taken: string[]) {
+	let n = taken.length + 1
+	while (taken.includes(`Option ${n}`)) n++
+	return `Option ${n}`
 }
 
 // the option's layer name, "option-cards" for a "Cards" option; default names like

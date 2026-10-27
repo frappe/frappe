@@ -86,6 +86,10 @@ class TestStudioPage(IntegrationTestCase):
 		]
 		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/variants")
 
+		# an index the block never offered must be refused, not clamped onto a neighbour
+		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", -1)
+		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", 5)
+
 		keep_variant(app.name, page.name, "Variants-hero", 1)
 
 		kept = frappe.parse_json(frappe.db.get_value("Studio Page", page.name, "blocks"))

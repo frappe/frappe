@@ -517,7 +517,9 @@ def replace_variants_block(blocks, block_id: str, option_index: int) -> bool:
 				options = child.get("children") or []
 				if not options:
 					return False
-				kept = options[min(option_index, len(options) - 1)]
+				if not 0 <= option_index < len(options):
+					frappe.throw(_("This variants block has no option {0}.").format(option_index))
+				kept = options[option_index]
 				if not isinstance(kept, dict):
 					return False
 				# the block leaves the set, so it is no longer an option of anything
