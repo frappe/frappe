@@ -188,7 +188,7 @@ def get_diff(old, new, for_child=False, compare_cancelled=False):
 
 	# name & docstatus
 	if not for_child:
-		for key in sorted(STANDARD_VERSIONED_FIELDS):
+		for key in STANDARD_VERSIONED_FIELDS:
 			old_value = getattr(old, key)
 			new_value = getattr(new, key)
 
