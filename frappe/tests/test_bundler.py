@@ -1,13 +1,22 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 import os
 import tempfile
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
+from pathlib import Path
 from unittest.mock import patch
 
 import click
+from click.testing import CliRunner
 
-from frappe.bundler import build_framework_islands, build_page_islands, remove_stale_island_toolchain
+import frappe
+from frappe.bundler import (
+	build_framework_islands,
+	build_page_islands,
+	framework_islands_built,
+	remove_stale_island_toolchain,
+)
 from frappe.tests import UnitTestCase
 
 
@@ -52,6 +61,44 @@ def failing_island_builds():
 
 
 class TestIslandBuilds(UnitTestCase):
+	def test_unreadable_framework_manifest_is_not_built(self):
+		with patch("frappe.read_file", return_value='{"frappe.chart":'):
+			self.assertFalse(framework_islands_built())
+		with patch("frappe.read_file", side_effect=OSError("Manifest unavailable")):
+			self.assertFalse(framework_islands_built())
+
+	def test_framework_islands_follow_build_app_selection(self):
+		from frappe.commands.utils import build
+
+		for app, assets_present, builds_framework in (
+			("example_app", True, False),
+			("frappe", True, True),
+			("example_app", False, True),
+		):
+			with (
+				self.subTest(app=app, assets_present=assets_present),
+				tempfile.TemporaryDirectory() as sites,
+				patch("frappe.init"),
+				patch("frappe.local.conf", frappe._dict(developer_mode=0)),
+				patch("frappe.local.sites_path", sites),
+				patch("frappe.utils.synchronization.filelock", return_value=nullcontext()),
+				patch("frappe.bundler.bundle"),
+				patch("frappe.bundler.build_framework_islands") as framework_build,
+				patch("frappe.gettext.translate.compile_translations"),
+				patch("frappe.commands.utils.run_after_build_hook"),
+			):
+				assets = Path(sites) / "assets"
+				assets.mkdir()
+				manifest = {}
+				for extension in ("js", "css"):
+					manifest[f"frappe.chart.island.{extension}"] = f"/assets/chart.{extension}"
+					if assets_present:
+						(assets / f"chart.{extension}").touch()
+				(assets / "assets.json").write_text(json.dumps(manifest))
+				result = CliRunner().invoke(build, ["--app", app])
+				self.assertEqual(result.exit_code, 0, result.output)
+				self.assertEqual(framework_build.called, builds_framework)
+
 	def test_failed_framework_island_build_fails_bench_build(self):
 		with failing_island_builds():
 			self.assertRaises(click.ClickException, build_framework_islands)

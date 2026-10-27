@@ -1,5 +1,6 @@
 # Copyright (c) 2022, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 import os
 import re
 import shlex
@@ -166,6 +167,21 @@ def island_build_command(script: str, production: bool = False, watch: bool = Fa
 	if watch:
 		command += " --watch"
 	return command
+
+
+def framework_islands_built() -> bool:
+	"""Whether Desk's chart scripts and styles are registered and present on disk."""
+	try:
+		assets = json.loads(
+			frappe.read_file(os.path.join(frappe.local.sites_path, "assets/assets.json")) or "{}"
+		)
+	except (OSError, json.JSONDecodeError):
+		return False
+	return all(
+		(url := assets.get(f"frappe.chart.island.{extension}"))
+		and os.path.isfile(os.path.join(frappe.local.sites_path, url.lstrip("/")))
+		for extension in ("js", "css")
+	)
 
 
 def build_framework_islands(production: bool = False):
