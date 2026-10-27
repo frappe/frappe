@@ -53,6 +53,16 @@ frappe.ui.form.on("Print Format", {
 					frappe.set_route("print-format-builder", frm.doc.name);
 				});
 			}
+			if (frm.doc.print_designer && frappe.user.has_role("System Manager")) {
+				frm.add_custom_button(__("Convert to Editor Format"), () =>
+					frappe
+						.call(
+							"frappe.printing.doctype.print_format.print_designer_converter.create_editor_format",
+							{ print_format: frm.doc.name }
+						)
+						.then((r) => frappe.set_route("print-format-builder", r.message))
+				);
+			}
 			if (frappe.model.can_write("Customize Form")) {
 				frappe.model.with_doctype(frm.doc.doc_type, function () {
 					let current_format = frappe.get_meta(frm.doc.doc_type).default_print_format;
