@@ -1,24 +1,11 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createApp, defineComponent, h, nextTick, ref } from "vue";
+import { createApp, h, nextTick, ref } from "vue";
 import type { App } from "vue";
 
-// The real menu opens in a portal on pointer events; the stub draws its items as buttons.
-vi.mock("frappe-ui", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("frappe-ui")>();
-  const Dropdown = defineComponent({
-    props: ["options"],
-    setup(props, { slots }) {
-      return () =>
-        h("div", { "data-dropdown": "" }, [
-          slots.default?.(),
-          ...props.options.map((o: any) =>
-            h("button", { "data-menu-item": o.label, onClick: o.onClick }, o.label)
-          ),
-        ]);
-    },
-  });
-  return { ...actual, Dropdown };
-});
+vi.mock("frappe-ui", async (importOriginal) => ({
+  ...(await importOriginal<typeof import("frappe-ui")>()),
+  ...(await import("./menuStubs")),
+}));
 
 import Grid from "../Grid.vue";
 import { ROW_ID } from "../../Fields/rowIdentity";
@@ -94,6 +81,19 @@ function paste(el: HTMLElement, text: string): Event {
 function menuItem(row: number, label: string): HTMLElement | undefined {
   const rowEl = host!.querySelectorAll(".grid-row")[row];
   return rowEl?.querySelector<HTMLElement>(`[data-menu-item="${label}"]`) ?? undefined;
+}
+
+function menuLabels(row: number): string[] {
+  const rowEl = host!.querySelectorAll(".grid-row")[row];
+  return [...rowEl.querySelectorAll("[data-menu-item]")].map((el) => el.textContent!);
+}
+
+function rightClick(el: Element) {
+  el.dispatchEvent(new MouseEvent("contextmenu", { bubbles: true, cancelable: true }));
+}
+
+function contextItem(label: string): HTMLElement | null {
+  return host!.querySelector(`[data-context-menu] [data-menu-item="${label}"]`);
 }
 
 const twoRows = () => [
@@ -241,6 +241,48 @@ describe("Grid paste", () => {
   });
 });
 
+describe("Grid row menu", () => {
+  it("holds Edit, Insert Above, Insert Below and Duplicate, with no separate Edit button", () => {
+    render(twoRows());
+    expect(menuLabels(0)).toEqual(["Edit", "Insert Above", "Insert Below", "Duplicate"]);
+    const endCol = host!.querySelectorAll(".grid-row")[0].lastElementChild!;
+    expect(endCol.querySelectorAll("button:not([data-menu-item])")).toHaveLength(1);
+    expect(host!.querySelector('[aria-label="Edit Row"]')).toBeNull();
+  });
+
+  it("emits edit with the row and its index", () => {
+    const onEdit = vi.fn();
+    const initial = twoRows();
+    render(initial, { onEdit });
+    menuItem(1, "Edit")!.click();
+    expect(onEdit).toHaveBeenCalledWith({ row: initial[1], index: 1 });
+  });
+
+  it("opens the same menu on a right-click, for the row under the pointer", async () => {
+    const onEdit = vi.fn();
+    const { rows } = render(twoRows(), { onEdit });
+    rightClick(input(1, 2));
+    await nextTick();
+    const labels = [...host!.querySelectorAll("[data-context-menu] [data-menu-item]")];
+    expect(labels.map((el) => el.textContent)).toEqual(menuLabels(1));
+    contextItem("Duplicate")!.click();
+    await nextTick();
+    expect(rows.value.map((r) => r.name ?? `copy of ${r.a}`)).toEqual(["r1", "r2", "copy of 4"]);
+    rightClick(input(0, 0));
+    await nextTick();
+    contextItem("Edit")!.click();
+    expect(onEdit).toHaveBeenCalledWith(expect.objectContaining({ index: 0 }));
+  });
+
+  it("keeps the menu in a read-only grid, with Edit only", async () => {
+    render(twoRows(), { disabled: true });
+    expect(menuLabels(0)).toEqual(["Edit"]);
+    rightClick(host!.querySelectorAll(".grid-row")[1]);
+    await nextTick();
+    expect(host!.querySelectorAll("[data-context-menu] [data-menu-item]")).toHaveLength(1);
+  });
+});
+
 describe("Grid insert and duplicate", () => {
   it("inserts a row above and below from the row's menu, with the new-row defaults", async () => {
     const { rows } = render(twoRows());
@@ -288,10 +330,9 @@ describe("Grid insert and duplicate", () => {
 });
 
 describe("Grid fast entry under cannotAddRows", () => {
-  it("shows no row menu", () => {
+  it("keeps only Edit in the row menu", () => {
     render(twoRows(), { cannotAddRows: true });
-    expect(host!.querySelector("[data-dropdown]")).toBeNull();
-    expect(host!.querySelector('[aria-label="Edit Row"]')).not.toBeNull();
+    expect(menuLabels(0)).toEqual(["Edit"]);
   });
 
   it("refuses the insert and duplicate keys without building a row", async () => {

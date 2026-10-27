@@ -81,9 +81,9 @@ export type GridEmits = {
   /** Rows were deleted, carrying them as they last were. */
   remove: [payload: { rows: Record<string, any>[] }];
   /**
-   * The user clicked a row's edit action (last column). Carries the row and its
-   * index. `Grid` stays oblivious to *how* a row is edited — the consumer (e.g.
-   * `TableField`) opens a dialog and renders the row however it likes.
+   * The user picked Edit in a row's menu (the ⋯ button or a right-click). Carries
+   * the row and its index. `Grid` stays oblivious to *how* a row is edited — the
+   * consumer (e.g. `TableField`) opens a dialog and renders the row however it likes.
    */
   edit: [payload: { row: Record<string, any>; index: number }];
 };
