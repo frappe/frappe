@@ -160,14 +160,26 @@ class DesktopPage {
 		});
 	}
 
+	// Warm the module only; a pilot without it then warms the classic script instead.
 	prefetch_cloud_settings(bundle) {
 		if (this._cloud_settings_prefetched) return;
 		this._cloud_settings_prefetched = true;
 
+		if (!bundle.module) {
+			this.preload_cloud_settings("prefetch", bundle.js);
+			return;
+		}
+		const link = this.preload_cloud_settings("modulepreload", bundle.module);
+		link.onerror = () => this.preload_cloud_settings("prefetch", bundle.js);
+	}
+
+	preload_cloud_settings(rel, url) {
 		const link = document.createElement("link");
-		link.rel = bundle.module ? "modulepreload" : "prefetch";
-		link.href = bundle.module || bundle.js;
+		link.rel = rel;
+		link.href = this.cloud_settings_url(url);
+		link.dataset.cloudSettingsBundle = "1";
 		document.head.appendChild(link);
+		return link;
 	}
 
 	async open_cloud_settings(settings) {
@@ -234,13 +246,12 @@ class DesktopPage {
 
 	invalidate_cloud_settings() {
 		this._cloud_settings_loaded = null;
+		this._cloud_settings_prefetched = false;
 		this._cloud_settings_cache_bust = Date.now();
 		// Drop any partial global left by an API-less evaluation so a retry can
 		// re-register cleanly.
 		delete frappe.cloudSettings;
-		document
-			.querySelectorAll("script[data-cloud-settings-bundle]")
-			.forEach((el) => el.remove());
+		document.querySelectorAll("[data-cloud-settings-bundle]").forEach((el) => el.remove());
 	}
 
 	cloud_settings_url(url) {
