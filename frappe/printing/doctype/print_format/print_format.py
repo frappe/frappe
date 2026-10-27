@@ -72,7 +72,11 @@ class PrintFormat(Document):
 		page_number: DF.Literal[
 			"Hide", "Top Left", "Top Center", "Top Right", "Bottom Left", "Bottom Center", "Bottom Right"
 		]
-		paper_size: DF.Literal["", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm"]
+		paper_height: DF.Float
+		paper_size: DF.Literal[
+			"", "A4", "A5", "A3", "Letter", "Legal", "Receipt 80 mm", "Receipt 58 mm", "Custom"
+		]
+		paper_width: DF.Float
 		pdf_generator: DF.Literal["chrome", "PlutoPrint", "Typst"]
 		print_format_builder: DF.Check
 		print_format_builder_beta: DF.Check
@@ -160,6 +164,8 @@ class PrintFormat(Document):
 		if self.html and self.print_format_type != "JS":
 			validate_template(self.html)
 
+		self.validate_paper_size()
+
 		if self.custom_format and self.raw_printing and not self.raw_commands:
 			frappe.throw(_("{0} are required").format(frappe.bold(_("Raw Commands"))), frappe.MandatoryError)
 
@@ -173,6 +179,15 @@ class PrintFormat(Document):
 		self.validate_conditions()
 		self.validate_typst_renderer()
 		self.validate_plutoprint_renderer()
+
+	def validate_paper_size(self):
+		if self.paper_size != "Custom" or self.print_format_builder_beta or self.raw_printing:
+			return
+		if frappe.utils.flt(self.paper_width) <= 0 or frappe.utils.flt(self.paper_height) <= 0:
+			frappe.throw(
+				_("Enter a Paper Width and Paper Height above 0 for a Custom paper size."),
+				title=_("Invalid Paper Size"),
+			)
 
 	def validate_plutoprint_renderer(self):
 		from frappe.utils.pdf_generator.pluto import plutoprint_blockers

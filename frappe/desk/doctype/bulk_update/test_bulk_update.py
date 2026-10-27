@@ -58,11 +58,14 @@ class TestBulkUpdate(IntegrationTestCase):
 
 		unsubmitted = frappe.get_all(self.doctype, {"docstatus": 0}, limit=20, pluck="name")
 		submit_cancel_or_update_docs(self.doctype, unsubmitted, action="submit")
+		# enqueue_task only queues the job on frappe.db.after_commit.
+		frappe.db.commit()  # nosemgrep
 
 		self.wait_for_assertion(lambda: check_docstatus(unsubmitted, 1))
 
 		submitted = frappe.get_all(self.doctype, {"docstatus": 1}, limit=20, pluck="name")
 		submit_cancel_or_update_docs(self.doctype, submitted, action="cancel")
+		frappe.db.commit()  # nosemgrep
 		self.wait_for_assertion(lambda: check_docstatus(submitted, 2))
 
 	@requires_test_service(TestService.BACKGROUND_WORKER)
@@ -82,6 +85,8 @@ class TestBulkUpdate(IntegrationTestCase):
 		submit_cancel_or_update_docs(
 			self.doctype, docnames_bg, action="update", data={"some_fieldname": "_Test Background"}
 		)
+		# enqueue_task only queues the job on frappe.db.after_commit.
+		frappe.db.commit()  # nosemgrep
 
 		self.wait_for_assertion(lambda: check_field_values(docnames_bg, "_Test Background"))
 
@@ -123,6 +128,8 @@ class TestBulkUpdate(IntegrationTestCase):
 
 		docnames_bg = frappe.get_all(self.doctype, {"docstatus": 0}, limit=20, pluck="name")
 		submit_cancel_or_update_docs(self.doctype, docnames_bg, action="update", data=update_data)
+		# enqueue_task only queues the job on frappe.db.after_commit.
+		frappe.db.commit()  # nosemgrep
 		self.wait_for_assertion(lambda: check_child_field(docnames_bg, "_Test Child Updated"))
 
 	def test_bulk_update_conditions(self):

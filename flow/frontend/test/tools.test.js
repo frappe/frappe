@@ -166,15 +166,6 @@ test("update shows the values it applies to its targets", (t) => {
 	assert.equal(presentTool("update", args, json({ updated: ["INV-001"] })).stat, "1 updated");
 });
 
-async function openDetails(el) {
-	const details = el.querySelector("details");
-	assert.ok(details, "structured values must have inspectable details");
-	details.open = true;
-	details.dispatchEvent(new Event("toggle"));
-	await nextTick();
-	return JSON.parse(details.querySelector("pre").textContent);
-}
-
 // A child table unfolds under its row on a click; in a values list it is already open.
 async function childTable(el) {
 	const toggle = el.querySelector("td button");
@@ -214,8 +205,16 @@ test("run_action names its verb and shows what each record did, structured retur
 			arguments: { doctype: "Sales Invoice", names: ["INV-1"], action: "make_payment" },
 			result: json({ results: [{ name: "INV-1", result: outcome }] }),
 		});
-	const record = { payment_entry: "PAY-1", amount: 123 };
-	assert.deepEqual(await openDetails(returning(record)), record);
+	// a returned record fills the row's columns; one under another name is what amend made
+	for (const [outcome, columns, cells] of [
+		[{ name: "INV-1", action: "Approve" }, ["Name", "Action"], ["INV-1", "Approve"]],
+		[{ name: "INV-1-1" }, ["Name", "Renamed To"], ["INV-1", "INV-1-1"]],
+	]) {
+		const el = returning(outcome);
+		assert.deepEqual(texts(el, "th"), columns);
+		assert.deepEqual(texts(el, "tbody td"), cells);
+		assert.equal(el.querySelector("pre"), null, "no JSON dump");
+	}
 	assert.deepEqual(await childTable(returning([{ name: "PAY-1", amount: 123 }])), {
 		columns: ["Name", "Amount"],
 		cells: ["PAY-1", "123"],

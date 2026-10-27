@@ -32,7 +32,7 @@
 				title="Back"
 				@click="emit('back')"
 			>
-				<FeatherIcon name="arrow-left" class="h-3.5 w-3.5" />
+				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
 			</button>
 			<span class="min-w-0 truncate text-2xs font-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
 				{{ title }}
@@ -46,7 +46,6 @@
 
 <script setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { nextNavigationIndex } from "../paletteNav.js"
 

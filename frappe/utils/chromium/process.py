@@ -358,7 +358,7 @@ class ChromiumManager:
 
 	def _close_browser_locked(self):
 		if self._browsers:
-			frappe.log("Cannot close Chromium as there are active browser instances.")
+			frappe.logger("pdf").info("Cannot close Chromium as there are active browser instances.")
 			return
 		if getattr(self, "USE_PERSISTENT_CHROMIUM", False):
 			return
@@ -367,7 +367,7 @@ class ChromiumManager:
 		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
-		frappe.log("Headless Chromium closed successfully.")
+		frappe.logger("pdf").info("Headless Chromium closed successfully.")
 
 	def detach_debug_browser(self):
 		"""

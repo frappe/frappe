@@ -143,7 +143,8 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			fieldtype: "Select",
 			fieldname: "print_format",
 			label: __("Print Format"),
-			options: [{ label: __("Standard"), value: "" }, ...names],
+			options: ["", ...names],
+			placeholder: __("None"),
 			default:
 				[print_format, this.report.report_doc.default_print_format].find((name) =>
 					names.includes(name)

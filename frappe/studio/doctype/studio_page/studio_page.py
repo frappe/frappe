@@ -28,7 +28,7 @@ from frappe.studio.export import (
 	write_document_file,
 )
 from frappe.studio.realtime import publish_doc_change
-from frappe.studio.utils import camel_case_to_kebab_case, validate_file_name
+from frappe.studio.utils import camel_case_to_kebab_case, get_export_folder, validate_file_name
 from frappe.utils import get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
@@ -224,8 +224,8 @@ class StudioPage(Document):
 			return
 
 		old_stem = frappe.scrub(doc_before_save.page_title)
-		old_folder = frappe.get_app_source_path(
-			self.frappe_app, "studio", self.studio_app, "studio_page", old_stem
+		old_folder = os.path.join(
+			get_export_folder(self.frappe_app, self.studio_app), "studio_page", old_stem
 		)
 		if old_folder == self.get_folder_path():
 			return
@@ -405,10 +405,10 @@ class StudioPage(Document):
 
 	def get_folder_path(self, with_filename: bool = False) -> str:
 		# each page exports to its own folder: studio/<app>/studio_page/<scrubbed_title>/
-		path = ["studio", self.studio_app, "studio_page", self.get_export_docname()]
+		path = [get_export_folder(self.frappe_app, self.studio_app), "studio_page", self.get_export_docname()]
 		if with_filename:
 			path.append(self.get_file_name())
-		return frappe.get_app_source_path(self.frappe_app, *path)
+		return os.path.join(*path)
 
 	def export_components(self):
 		components = get_components_for_blocks(get_blocks(self))
@@ -432,11 +432,11 @@ class StudioPage(Document):
 		blocks = [block for page in pages for block in get_blocks(page)]
 		used = {frappe.scrub(component.name) for component in get_components_for_blocks(blocks)}
 		for file in os.listdir(folder):
-			if file.removesuffix(".json") not in used:
+			if file.endswith(".json") and file.removesuffix(".json") not in used:
 				delete_file(folder, file)
 
 	def get_component_folder_path(self) -> str:
-		return frappe.get_app_source_path(self.frappe_app, "studio", self.studio_app, "studio_components")
+		return os.path.join(get_export_folder(self.frappe_app, self.studio_app), "studio_components")
 
 	def get_file_name(self):
 		return f"{self.get_export_docname()}.json"
