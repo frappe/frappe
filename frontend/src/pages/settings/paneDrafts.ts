@@ -88,10 +88,11 @@ export class PaneDrafts {
 		this.saving = computed(() => buttons.some((bound) => marked(bound, "saving")));
 	}
 
-	/** An `auto` block's commit: its binding's changed `auto` fields; one that failed is sent again only by its own block. */
+	/** In `auto` mode it saves; a failed field is sent again only by its own block. */
 	async commit(bound: BoundBlock) {
-		if (bound.block.save_mode !== "auto") return;
 		const { draft } = bound;
+		draft.clearReverted(bound.fieldnames.value);
+		if (bound.block.save_mode !== "auto") return;
 		const own = new Set(bound.fieldnames.value);
 		const fieldnames = this.fieldnamesOf(draft, "auto").filter(
 			(fieldname) =>

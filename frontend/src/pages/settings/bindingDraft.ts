@@ -9,6 +9,7 @@ import {
 	type DocumentRecord,
 	type Envelope,
 } from "@framework/ui/api";
+import { evaluateDependsOn } from "@framework/ui/FormLayout";
 import { fieldnameOfErrorKey, type FieldAddress } from "@framework/ui/fields/types";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
@@ -83,6 +84,16 @@ export class BindingDraft {
 		this.fieldErrors.clear(fieldname);
 		if (!this.dirty(fieldname) && this.state.marks[fieldname] === "error")
 			delete this.state.marks[fieldname];
+	}
+
+	/** Drops the refusal of each field set back to its saved value, as `edit` does for a typed one. */
+	clearReverted(fieldnames: string[]) {
+		for (const fieldname of fieldnames) {
+			if (this.state.marks[fieldname] !== "error" || this.dirty(fieldname)) continue;
+			if (this.sending.has(fieldname)) continue;
+			delete this.state.marks[fieldname];
+			this.unmark(fieldname);
+		}
 	}
 
 	/** Queues the changed fields, and any field a save in flight carries; that save is followed by one more. */
@@ -162,21 +173,33 @@ export class BindingDraft {
 		}
 	}
 
+	/** An insert also carries each required value filled in another block. */
+	private withRequired(fieldnames: string[]): string[] {
+		if (!this.state.isNew) return fieldnames;
+		const { doc, saved, meta } = this.state;
+		const required = (meta?.fields ?? [])
+			.filter((field) => isRequired(field, doc))
+			.map(({ fieldname }) => fieldname)
+			.filter((fieldname) => isEmpty(saved[fieldname]) && !isEmpty(doc[fieldname]));
+		return [...new Set([...fieldnames, ...required])];
+	}
+
 	private async send(fieldnames: string[]) {
 		if (fieldnames.some((fieldname) => this.stale.has(fieldname)))
 			return this.resolveConflict(fieldnames, null);
 		const values = Object.fromEntries(
-			fieldnames.map((fieldname) => [fieldname, clone(this.state.doc[fieldname])])
+			this.withRequired(fieldnames).map((fieldname) => [fieldname, clone(this.state.doc[fieldname])])
 		);
 		try {
 			const reply = (await this.write(values)).data;
 			this.land(reply, values);
 			this.settle(fieldnames, "saved");
-			runAfterSave({ doctype: this.doctype, name: this.name, doc: reply, changed: fieldnames });
+			this.settleAdded(Object.keys(values), fieldnames);
+			runAfterSave({ doctype: this.doctype, name: this.name, doc: reply, changed: Object.keys(values) });
 		} catch (error) {
 			if (isApiError(error) && error.isTimestampMismatch)
 				await this.resolveConflict(fieldnames, error);
-			else this.refuse(fieldnames, error);
+			else this.refuse(fieldnames, error, Object.keys(values));
 		}
 	}
 
@@ -196,6 +219,15 @@ export class BindingDraft {
 		replace(this.state.saved, { ...saved, modified: reply.modified });
 		replace(this.state.doc, { ...doc, modified: reply.modified });
 		this.state.isNew = false;
+	}
+
+	/** An insert's added required values: no Saved mark, and an older refusal goes. */
+	private settleAdded(sent: string[], fieldnames: string[]) {
+		for (const fieldname of sent) {
+			if (fieldnames.includes(fieldname) || this.dirty(fieldname)) continue;
+			delete this.state.marks[fieldname];
+			this.unmark(fieldname);
+		}
 	}
 
 	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses, and Reload sends the rest. */
@@ -246,18 +278,40 @@ export class BindingDraft {
 		for (const fieldname of this.stale) if (!this.dirty(fieldname)) this.stale.delete(fieldname);
 	}
 
-	private refuse(fieldnames: string[], error: unknown) {
-		if (isApiError(error) && error.fieldErrors?.length)
-			this.fieldErrors.markRefused(error.fieldErrors, this.state.doc);
-		else for (const fieldname of fieldnames) this.fieldErrors.mark(fieldname, messageOf(error));
-		this.settle(fieldnames, "error");
-		if (this.host.closed()) this.host.lost();
+	/** A field set back before the reply landed keeps no refusal, and a hold placed meanwhile stays. */
+	private refuse(fieldnames: string[], error: unknown, sent: string[] = fieldnames) {
+		const refusals = (isApiError(error) && error.fieldErrors) || [];
+		const named = refusals.map((refused) => refused.parentfield ?? refused.fieldname);
+		const added = sent.filter((fieldname) => !fieldnames.includes(fieldname) && named.includes(fieldname));
+		const failed = [...fieldnames, ...added].filter((fieldname) => this.dirty(fieldname));
+		const held = fieldnames.filter(
+			(fieldname) => !failed.includes(fieldname) && this.state.marks[fieldname] === "error"
+		);
+		if (refusals.length)
+			this.fieldErrors.markRefused(
+				refusals.filter((refused) => !held.includes(refused.parentfield ?? refused.fieldname)),
+				this.state.doc
+			);
+		else for (const fieldname of failed) this.fieldErrors.mark(fieldname, messageOf(error));
+		for (const fieldname of fieldnames) {
+			if (failed.includes(fieldname) || held.includes(fieldname)) continue;
+			this.unmark(fieldname);
+			if (!this.queued.has(fieldname)) delete this.state.marks[fieldname];
+		}
+		this.settle(failed, "error");
+		if (failed.length && this.host.closed()) this.host.lost();
 	}
 
-	/** A field queued again keeps its Saving… mark; Saved fades on its own. */
+	/** A field queued again keeps Saving…, and one changed since it was sent keeps its hold or none; Saved fades on its own. */
 	private settle(fieldnames: string[], mark: RowMark) {
 		for (const fieldname of fieldnames) {
 			if (this.queued.has(fieldname)) continue;
+			if (mark === "saved" && this.dirty(fieldname)) {
+				if (this.state.marks[fieldname] === "error") continue;
+				delete this.state.marks[fieldname];
+				this.unmark(fieldname);
+				continue;
+			}
 			this.state.marks[fieldname] = mark;
 			if (mark !== "saved") continue;
 			this.unmark(fieldname);
@@ -290,6 +344,14 @@ function nameField(meta: DoctypeMeta): string {
 
 function messageOf(error: unknown): string {
 	return stripTags(error instanceof Error ? error.message : String(error));
+}
+
+function isRequired(field: RawMetaField, doc: Values): boolean {
+	return !!field.reqd || (!!field.mandatory_depends_on && evaluateDependsOn(field.mandatory_depends_on, doc));
+}
+
+function isEmpty(value: unknown): boolean {
+	return Array.isArray(value) ? value.length === 0 : value == null || value === "";
 }
 
 function pick(values: Values, fieldnames: string[]): Values {

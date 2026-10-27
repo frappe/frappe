@@ -509,6 +509,25 @@ describe("failures", () => {
 
 		expect(toast.error).toHaveBeenCalledWith("System did not save");
 	});
+
+	it("names no pane when every refused field was set back before the pane closed", async () => {
+		const drafts = await opened(block("general", "auto", ["country"]));
+		const general = drafts.bound.get("general")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		general.draft.edit("country", "France");
+		drafts.close();
+		server.refusal = { entry: { type: "ValidationError", message: "No" }, status: 417 };
+		server.held = null;
+		release();
+		await settled();
+
+		expect(toast.error).not.toHaveBeenCalled();
+	});
 });
 
 describe("a Record that does not exist yet", () => {
@@ -578,6 +597,280 @@ describe("a Record that does not exist yet", () => {
 		expect(bound.draft.fieldErrors.drawn.value.extension).toBe("Extension is required");
 		expect(bound.draft.state.marks.mobile_no).toBe("error");
 	});
+
+	it("sends a value made required by mandatory_depends_on with the insert", async () => {
+		server.metas["Telephony Agent"] = {
+			...TELEPHONY_AGENT,
+			fields: TELEPHONY_AGENT.fields.map((field) =>
+				field.fieldname === "extension" ? { ...field, mandatory_depends_on: "eval:doc.mobile_no" } : field
+			),
+		};
+		const drafts = await opened(agent, { ...agent, key: "extension", save_mode: "button", fields: ["extension"] });
+		const bound = drafts.bound.get("agent")!;
+
+		bound.draft.edit("extension", "101");
+		bound.draft.edit("mobile_no", "+91 98");
+		drafts.commit(bound);
+		await settled();
+
+		expect(server.writes.map(({ body }) => body)).toEqual([
+			{ mobile_no: "+91 98", extension: "101", user: USER },
+		]);
+	});
+
+	it("leaves out a value whose mandatory_depends_on is false", async () => {
+		server.metas["Telephony Agent"] = {
+			...TELEPHONY_AGENT,
+			fields: TELEPHONY_AGENT.fields.map((field) =>
+				field.fieldname === "extension" ? { ...field, mandatory_depends_on: "eval:!doc.mobile_no" } : field
+			),
+		};
+		const drafts = await opened(agent, { ...agent, key: "extension", save_mode: "button", fields: ["extension"] });
+		const bound = drafts.bound.get("agent")!;
+
+		bound.draft.edit("extension", "101");
+		bound.draft.edit("mobile_no", "+91 98");
+		drafts.commit(bound);
+		await settled();
+
+		expect(server.writes.map(({ body }) => body)).toEqual([{ mobile_no: "+91 98", user: USER }]);
+	});
+
+	describe("with a required field filled in another block", () => {
+		beforeEach(() => {
+			server.metas["Telephony Agent"] = {
+				...TELEPHONY_AGENT,
+				fields: TELEPHONY_AGENT.fields.map((field) =>
+					field.fieldname === "extension" ? { ...field, reqd: 1 } : field
+				),
+			};
+		});
+
+		it("sends a button block's unsaved value with the insert", async () => {
+			const drafts = await opened(agent, {
+				...agent,
+				key: "extension",
+				save_mode: "button",
+				fields: ["extension"],
+			});
+			const bound = drafts.bound.get("agent")!;
+			const extension = drafts.bound.get("extension")!;
+
+			extension.draft.edit("extension", "101");
+			bound.draft.edit("mobile_no", "+91 98");
+			drafts.commit(bound);
+			await settled();
+
+			expect(server.writes.map(({ method, body }) => [method, body])).toEqual([
+				["POST", { mobile_no: "+91 98", extension: "101", user: USER }],
+			]);
+			expect(drafts.unsavedCount.value).toBe(0);
+			expect(drafts.unsaved()).toBe(false);
+		});
+
+		it("sends a component's value with the insert, and only with the insert", async () => {
+			const drafts = await opened(agent, {
+				...component("extension", { agent: agent.binding! }),
+				save_mode: "button",
+			});
+			const bound = drafts.bound.get("agent")!;
+			const { agent: owned } = drafts.components.get("extension")!;
+
+			owned.doc.extension = "101";
+			bound.draft.edit("mobile_no", "+91 98");
+			drafts.commit(bound);
+			await settled();
+			owned.doc.extension = "102";
+			bound.draft.edit("mobile_no", "+91 99");
+			drafts.commit(bound);
+			await settled();
+
+			expect(server.writes.map(({ method, body }) => [method, body])).toEqual([
+				["POST", { mobile_no: "+91 98", extension: "101", user: USER }],
+				["PATCH", { mobile_no: "+91 99", modified: expect.any(String) }],
+			]);
+			expect(drafts.unsaved()).toBe(true);
+		});
+
+		it("leaves the values it added unmarked when the insert is refused", async () => {
+			const drafts = await opened(agent, {
+				...agent,
+				key: "extension",
+				save_mode: "button",
+				fields: ["extension"],
+			});
+			const bound = drafts.bound.get("agent")!;
+			server.refusal = { entry: { type: "ValidationError", message: "Server down" }, status: 417 };
+
+			bound.draft.edit("extension", "101");
+			bound.draft.edit("mobile_no", "+91 98");
+			drafts.commit(bound);
+			await settled();
+
+			expect(bound.draft.state.marks).toEqual({ mobile_no: "error" });
+			expect(bound.draft.fieldErrors.drawn.value).toEqual({ mobile_no: "Server down" });
+			expect(drafts.failedCount.value).toBe(0);
+		});
+
+		it("drops a refusal on a value it added once the insert saves", async () => {
+			const drafts = await opened(agent, {
+				...component("extension", { agent: agent.binding! }),
+				save_mode: "button",
+			});
+			const bound = drafts.bound.get("agent")!;
+			const { agent: owned } = drafts.components.get("extension")!;
+			server.refusal = {
+				entry: {
+					type: "ValidationError",
+					message: "Bad extension",
+					field_errors: [{ fieldname: "extension", message: "Bad extension" }],
+				},
+				status: 417,
+			};
+
+			owned.doc.extension = "101";
+			bound.draft.edit("mobile_no", "+91 98");
+			drafts.commit(bound);
+			await settled();
+			expect(owned.error).toBe("Bad extension");
+
+			owned.doc.extension = "102";
+			drafts.commit(bound);
+			await settled();
+
+			expect(server.writes.at(-1)!.body).toEqual({ mobile_no: "+91 98", extension: "102", user: USER });
+			expect(owned.error).toBe("");
+		});
+
+		it("marks an added value the refused insert names", async () => {
+			const drafts = await opened(agent, {
+				...agent,
+				key: "extension",
+				save_mode: "button",
+				fields: ["extension"],
+			});
+			const bound = drafts.bound.get("agent")!;
+			server.refusal = {
+				entry: {
+					type: "ValidationError",
+					message: "Bad extension",
+					field_errors: [{ fieldname: "extension", message: "Bad extension" }],
+				},
+				status: 417,
+			};
+
+			bound.draft.edit("extension", "101");
+			bound.draft.edit("mobile_no", "+91 98");
+			drafts.commit(bound);
+			await settled();
+
+			expect(bound.draft.state.marks).toEqual({ mobile_no: "error", extension: "error" });
+			expect(bound.draft.fieldErrors.drawn.value).toEqual({ extension: "Bad extension" });
+			expect(drafts.failedCount.value).toBe(1);
+		});
+
+		it("clears the Save bar's refusal on a value a later insert saved", async () => {
+			const drafts = await opened(agent, {
+				...agent,
+				key: "extension",
+				save_mode: "button",
+				fields: ["extension"],
+			});
+			const bound = drafts.bound.get("agent")!;
+			server.refusal = {
+				entry: {
+					type: "ValidationError",
+					message: "Bad extension",
+					field_errors: [{ fieldname: "extension", message: "Bad extension" }],
+				},
+				status: 417,
+			};
+
+			bound.draft.edit("extension", "101");
+			await drafts.saveButtons();
+			expect(drafts.failedCount.value).toBe(1);
+			bound.draft.edit("mobile_no", "+91 98");
+			drafts.commit(bound);
+			await settled();
+
+			expect(server.writes.at(-1)!.body).toEqual({ mobile_no: "+91 98", extension: "101", user: USER });
+			expect(bound.draft.state.marks.extension).toBeUndefined();
+			expect(bound.draft.fieldErrors.drawn.value.extension).toBeUndefined();
+			expect(drafts.failedCount.value).toBe(0);
+		});
+
+		it("keeps a hold placed while a refused insert was out", async () => {
+			const drafts = await opened({ ...agent, fields: ["mobile_no", "extension"] });
+			const bound = drafts.bound.get("agent")!;
+			let release!: () => void;
+			server.held = new Promise((resolve) => (release = resolve));
+
+			bound.draft.edit("extension", "101");
+			drafts.commit(bound);
+			await settled();
+			bound.draft.edit("extension", "");
+			drafts.commit(bound);
+			await settled();
+			server.refusal = {
+				entry: {
+					type: "ValidationError",
+					message: "Bad extension",
+					field_errors: [{ fieldname: "extension", message: "Bad extension" }],
+				},
+				status: 417,
+			};
+			server.held = null;
+			release();
+			await settled();
+
+			expect(bound.draft.state.marks.extension).toBe("error");
+			expect(bound.draft.fieldErrors.drawn.value.extension).toBe("Extension is required");
+		});
+
+		it("keeps a hold through another commit while the insert is out", async () => {
+			const drafts = await opened({ ...agent, fields: ["mobile_no", "extension"] });
+			const bound = drafts.bound.get("agent")!;
+			let release!: () => void;
+			server.held = new Promise((resolve) => (release = resolve));
+
+			bound.draft.edit("extension", "101");
+			drafts.commit(bound);
+			await settled();
+			bound.draft.edit("extension", "");
+			drafts.commit(bound);
+			await settled();
+			drafts.commit(bound);
+			await settled();
+			server.held = null;
+			release();
+			await settled();
+
+			expect(bound.draft.state.saved.extension).toBe("101");
+			expect(bound.draft.state.marks.extension).toBe("error");
+			expect(bound.draft.fieldErrors.drawn.value.extension).toBe("Extension is required");
+		});
+
+		it("keeps the hold on a field cleared while the insert was out", async () => {
+			const drafts = await opened({ ...agent, fields: ["mobile_no", "extension"] });
+			const bound = drafts.bound.get("agent")!;
+			let release!: () => void;
+			server.held = new Promise((resolve) => (release = resolve));
+
+			bound.draft.edit("extension", "101");
+			drafts.commit(bound);
+			await settled();
+			bound.draft.edit("extension", "");
+			drafts.commit(bound);
+			await settled();
+			server.held = null;
+			release();
+			await settled();
+
+			expect(server.writes.map(({ method }) => method)).toEqual(["POST"]);
+			expect(bound.draft.state.marks.extension).toBe("error");
+			expect(bound.draft.fieldErrors.drawn.value.extension).toBe("Extension is required");
+		});
+	});
 });
 
 describe("a required field another block leaves empty", () => {
@@ -588,6 +881,82 @@ describe("a required field another block leaves empty", () => {
 				field.fieldname === "country" ? { ...field, reqd: 1 } : field
 			),
 		};
+	});
+
+	it("keeps the hold on a field cleared while its save was out", async () => {
+		const drafts = await opened(block("region", "auto", ["country"]));
+		const region = drafts.bound.get("region")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		region.draft.edit("country", "India");
+		drafts.commit(region);
+		await settled();
+		region.draft.edit("country", "");
+		drafts.commit(region);
+		await settled();
+		server.held = null;
+		release();
+		await settled();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ country: "India", modified: expect.any(String) },
+		]);
+		expect(region.draft.state.saved.country).toBe("India");
+		expect(region.draft.state.marks.country).toBe("error");
+		expect(region.draft.fieldErrors.drawn.value.country).toBe("Country is required");
+		expect(drafts.unsaved()).toBe(true);
+	});
+
+	it("keeps a held table's own message when a refusal names one of its cells", async () => {
+		const drafts = await opened(block("general", "auto", ["country", "rules"]));
+		const general = drafts.bound.get("general")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		general.draft.edit("rules", [{ name: "r1", rule: "new" }]);
+		drafts.commit(general);
+		await settled();
+		general.draft.edit("rules", [{ name: "r1", rule: "old" }]);
+		general.draft.edit("country", "");
+		drafts.commit(general);
+		await settled();
+		server.refusal = {
+			entry: {
+				type: "ValidationError",
+				message: "Bad rule",
+				field_errors: [{ parentfield: "rules", row: "r1", fieldname: "rule", message: "Bad rule" }],
+			},
+			status: 417,
+		};
+		server.held = null;
+		release();
+		await settled();
+
+		expect(general.draft.state.marks).toMatchObject({ rules: "error", country: "error" });
+		expect(general.draft.fieldErrors.drawn.value).toEqual({ country: "Country is required" });
+	});
+
+	it("does not mark Saved a value typed back while its save was out", async () => {
+		const drafts = await opened(block("region", "auto", ["country"]));
+		const region = drafts.bound.get("region")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		region.draft.edit("country", "India");
+		drafts.commit(region);
+		await settled();
+		region.draft.edit("country", "");
+		drafts.commit(region);
+		region.draft.edit("country", "France");
+		drafts.commit(region);
+		server.held = null;
+		release();
+		await settled();
+
+		expect(region.draft.state.saved.country).toBe("India");
+		expect(region.draft.state.marks.country).toBeUndefined();
+		expect(drafts.unsaved()).toBe(true);
 	});
 
 	it("autosaves a block while a button block holds the empty field, and still holds that block's Save", async () => {
@@ -823,6 +1192,127 @@ describe("a generated block's refused save", () => {
 		await system.commit();
 
 		expect(system.error).toBe("Not a zone");
+	});
+});
+
+describe("a component's field set back to its saved value", () => {
+	it("loses its refusal on the next commit, so a later save shows no error", async () => {
+		const drafts = await opened(component("zone", { system: SYSTEM }));
+		const { system } = drafts.components.get("zone")!;
+		server.refusal = {
+			entry: {
+				type: "ValidationError",
+				message: "Mars is not a time zone",
+				field_errors: [{ fieldname: "time_zone", message: "Mars is not a time zone" }],
+			},
+			status: 417,
+		};
+
+		system.doc.time_zone = "Mars";
+		await system.commit();
+		expect(system.error).toBe("Mars is not a time zone");
+
+		system.doc.time_zone = "Europe/Paris";
+		await system.commit();
+		expect(system.error).toBe("");
+		expect(drafts.unsaved()).toBe(false);
+
+		system.doc.country = "India";
+		await system.commit();
+
+		expect(server.writes.map((write) => write.body)).toEqual([
+			{ time_zone: "Mars", modified: expect.any(String) },
+			{ country: "India", modified: expect.any(String) },
+		]);
+		expect(system.error).toBe("");
+	});
+
+	it("loses a refusal that lands after it was set back", async () => {
+		const drafts = await opened(component("zone", { system: SYSTEM }));
+		const { system } = drafts.components.get("zone")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		system.doc.time_zone = "Mars";
+		const first = system.commit();
+		await settled();
+		system.doc.time_zone = "Europe/Paris";
+		const second = system.commit();
+		server.refusal = {
+			entry: {
+				type: "ValidationError",
+				message: "Mars is not a time zone",
+				field_errors: [{ fieldname: "time_zone", message: "Mars is not a time zone" }],
+			},
+			status: 417,
+		};
+		server.held = null;
+		release();
+		await Promise.all([first, second]);
+
+		expect(system.error).toBe("");
+		system.doc.country = "India";
+		await system.commit();
+		expect(system.error).toBe("");
+	});
+
+	it("loses a button component's refusal on its next commit", async () => {
+		const drafts = await opened({ ...component("zone", { system: SYSTEM }), save_mode: "button" });
+		const { system } = drafts.components.get("zone")!;
+		server.refusal = { entry: { type: "ValidationError", message: "Not a zone" }, status: 417 };
+
+		system.doc.time_zone = "Mars";
+		await drafts.saveButtons();
+		expect(system.error).toBe("Not a zone");
+		expect(drafts.failedCount.value).toBe(1);
+
+		system.doc.time_zone = "Europe/Paris";
+		await system.commit();
+
+		expect(system.error).toBe("");
+		expect(drafts.failedCount.value).toBe(0);
+	});
+
+	it("loses an older refusal once a later value saves, though it changed again meanwhile", async () => {
+		const drafts = await opened(component("zone", { system: SYSTEM }));
+		const { system } = drafts.components.get("zone")!;
+		server.refusal = { entry: { type: "ValidationError", message: "Not a zone" }, status: 417 };
+		system.doc.time_zone = "Mars";
+		await system.commit();
+		expect(system.error).toBe("Not a zone");
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		system.doc.time_zone = "Asia/Kolkata";
+		const saving = system.commit();
+		await settled();
+		system.doc.time_zone = "Asia/Tokyo";
+		server.held = null;
+		release();
+		await saving;
+
+		expect(system.error).toBe("");
+		expect(drafts.unsaved()).toBe(true);
+	});
+
+	it("keeps no refusal for a button component's field set back while the Save bar's save was out", async () => {
+		const drafts = await opened({ ...component("zone", { system: SYSTEM }), save_mode: "button" });
+		const { system } = drafts.components.get("zone")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		system.doc.time_zone = "Mars";
+		const saving = drafts.saveButtons();
+		await settled();
+		system.doc.time_zone = "Europe/Paris";
+		await system.commit();
+		server.refusal = { entry: { type: "ValidationError", message: "Not a zone" }, status: 417 };
+		server.held = null;
+		release();
+		await saving;
+
+		expect(system.error).toBe("");
+		expect(drafts.failedCount.value).toBe(0);
 	});
 });
 
