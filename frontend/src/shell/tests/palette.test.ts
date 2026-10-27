@@ -6,7 +6,7 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 import { getMeta } from "@framework/ui/api";
 import { resetDoctypeMeta, useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 
-import { acts, type ActEntry, type ActScope } from "@/acts/dispatcher";
+import { acts, type ActArgument, type ActEntry, type ActOption, type ActScope } from "@/acts/dispatcher";
 import { Addresses } from "@/addresses";
 import type { Boot, NavigationItem } from "@/boot";
 import { registerContributions, registerStandardPages } from "@/contributions/registry";
@@ -16,7 +16,8 @@ import { resetNavigationReports } from "@/navigation/registry";
 import { standardPages } from "@/pages/standardPages";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
-import { paletteOpen, registerPageRows, type PaletteRow } from "../palette";
+import { closeCreates, createRequests, registerCreateDialog } from "../create";
+import { openArgumentStep, paletteOpen, registerPageRows, type PaletteRow } from "../palette";
 import { pinnedRows } from "../paletteGroups";
 import { recents } from "../recents";
 
@@ -330,7 +331,7 @@ describe("the groups", () => {
 
 		expect(drawn()).toEqual([
 			["Recent", "CRM Deal CRM", "DEAL-1 CRM Deal", "CRM Lead CRM"],
-			["This page", "Save", "Send an email", "Go to tab: Activity"],
+			["This page", "Save", "Assign to…", "Send an email", "Go to tab: Activity"],
 		]);
 	});
 
@@ -359,7 +360,7 @@ describe("the groups", () => {
 		await type("s");
 
 		expect(drawn()).toEqual([
-			["This page", "Save", "Send an email"],
+			["This page", "Save", "Send an email", "Assign to…"],
 			["Desk", "Toggle sidebar"],
 			["Go to", "System Settings Desk", "Users Desk", "Deals CRM", "Desk", "ToDo Desk"],
 			["Create", "New ToDo Desk"],
@@ -383,7 +384,7 @@ describe("the groups", () => {
 		]);
 	});
 
-	it("draws the shell's own acts in Desk, but not Create or Theme until they can ask for a value", async () => {
+	it("draws the shell's own acts in Desk, those that ask for a value too", async () => {
 		await shell("/crm-deal");
 		await open();
 
@@ -391,23 +392,23 @@ describe("the groups", () => {
 		expect(drawn()).toEqual([["Desk", "Customize sidebar"]]);
 		await type("log");
 		expect(drawn()).toEqual([["Desk", "Log out"]]);
-		for (const query of ["create", "theme"]) {
-			await type(query);
-			expect(drawn()).toEqual([]);
-		}
+		await type("create");
+		expect(drawn()).toEqual([["Desk", "Create"]]);
+		await type("theme");
+		expect(drawn()).toEqual([["Desk", "Theme"]]);
 	});
 
-	it("never draws a denied, hidden, opted-out or argument act", async () => {
+	it("never draws a denied, hidden or opted-out act", async () => {
 		// Off a list or record, so no Find row is pinned and the empty state shows.
 		await shell("/");
 		await open();
 
-		for (const query of ["delete", "gone", "secret", "assign"]) {
+		for (const query of ["delete", "gone", "secret"]) {
 			await type(query);
 			expect(drawn()).toEqual([]);
 		}
 		expect(document.body.querySelector("[data-slot='command-palette-empty']")?.textContent).toContain(
-			"No results for “assign”"
+			"No results for “secret”"
 		);
 	});
 
@@ -581,7 +582,7 @@ describe("Tab on a doctype row", () => {
 	}
 
 	function chip() {
-		return document.body.querySelector("[data-slot='palette-scope-chip']");
+		return document.body.querySelector("[data-slot='palette-chip']");
 	}
 
 	function empty() {
@@ -1103,5 +1104,285 @@ describe("Ask Flow", () => {
 		await type("p");
 		expect(row("ask-flow")).toBeNull();
 		expect(empty()).toBe("Type to search CRM Deal");
+	});
+});
+
+describe("the argument step", () => {
+	const sarah = { value: "sarah@example.com", label: "Sarah Connor", description: "sarah@example.com" };
+	const john = { value: "john@example.com", label: "John Parker", description: "john@example.com" };
+	const picked: unknown[] = [];
+
+	/** An "Assign to…" act on the page's header, whose options come from `options`. */
+	function assignAct(options: ActArgument["options"], extra: Partial<ActEntry["item"]> = {}) {
+		const run = (_page: unknown, value: unknown) => void picked.push(value);
+		register({
+			header: [act("assign", "Assign to…", { icon: "lucide-user-plus", argument: { label: "Users", options }, run, ...extra })],
+		});
+	}
+
+	/** An async source whose replies the test sends, in any order. */
+	function heldOptions() {
+		const held: { query: string; answer: (options: ActOption[]) => void; refuse: () => void }[] = [];
+		const options = vi.fn(
+			(_context: unknown, query: string) =>
+				new Promise<ActOption[]>((resolve, reject) =>
+					held.push({ query, answer: resolve, refuse: () => reject(new Error("refused")) })
+				)
+		);
+		return { held, options };
+	}
+
+	async function enterAssign() {
+		await open();
+		await type("assign");
+		await press("Enter");
+	}
+
+	function chip() {
+		return document.body.querySelector("[data-slot='palette-chip']");
+	}
+
+	beforeEach(() => {
+		picked.length = 0;
+	});
+
+	it("keeps the palette open on an act with an argument, with the act as a chip and its options as the list", async () => {
+		assignAct(() => [sarah, john]);
+		await shell();
+		await enterAssign();
+
+		expect(paletteOpen.value).toBe(true);
+		expect(chip()?.textContent).toContain("Assign to…");
+		expect(input()!.value).toBe("");
+		expect(input()!.placeholder).toBe("Search Users");
+		expect(drawn()).toEqual([["Users", "Sarah Connor sarah@example.com", "John Parker john@example.com"]]);
+		expect(document.body.querySelector("[data-slot='palette-pinned']")).toBeNull();
+		expect(picked).toEqual([]);
+	});
+
+	it("filters the options as the user types, and Enter runs the act with the picked value", async () => {
+		assignAct(() => [sarah, john]);
+		await shell();
+		await enterAssign();
+
+		await type("jo");
+		expect(drawn()).toEqual([["Users", "John Parker john@example.com"]]);
+		await press("Enter");
+
+		expect(picked).toEqual(["john@example.com"]);
+		expect(paletteOpen.value).toBe(false);
+	});
+
+	it("goes back one step on Backspace in an empty input and on the chip's ×", async () => {
+		assignAct(() => [sarah]);
+		await shell();
+		await enterAssign();
+
+		await press("Backspace");
+		expect(chip()).toBeNull();
+		expect(input()!.placeholder).toBe("Search or run an action");
+		expect(paletteOpen.value).toBe(true);
+
+		await type("assign");
+		await press("Enter");
+		chip()!.querySelector("button")!.click();
+		await flush();
+		expect(chip()).toBeNull();
+		expect(paletteOpen.value).toBe(true);
+		expect(picked).toEqual([]);
+	});
+
+	it("goes back one step on Esc, and the second Esc closes the palette", async () => {
+		assignAct(() => [sarah]);
+		await shell();
+		await enterAssign();
+
+		await press("Escape");
+		expect(chip()).toBeNull();
+		expect(paletteOpen.value).toBe(true);
+		await press("Escape");
+		expect(paletteOpen.value).toBe(false);
+	});
+
+	it("asks an async source after a pause, and drops an older reply that lands late", async () => {
+		const { held, options } = heldOptions();
+		assignAct(options);
+		await shell();
+		await enterAssign();
+
+		expect(drawn()).toEqual([["Users", "Searching…"]]);
+		held[0].answer([sarah, john]);
+		await flush();
+		expect(drawn()).toEqual([["Users", "Sarah Connor sarah@example.com", "John Parker john@example.com"]]);
+
+		await type("s");
+		await type("sa");
+		await vi.waitFor(() => expect(held).toHaveLength(2));
+		await type("jo");
+		await vi.waitFor(() => expect(held).toHaveLength(3));
+		held[2].answer([john]);
+		await flush();
+		held[1].answer([sarah]);
+		await flush();
+
+		expect(options.mock.calls.map(([, query]) => query)).toEqual(["", "sa", "jo"]);
+		expect(drawn()).toEqual([["Users", "John Parker john@example.com"]]);
+	});
+
+	it("shows Searching… while nothing it holds matches the query and the source has not answered", async () => {
+		const { held, options } = heldOptions();
+		assignAct(options);
+		await shell();
+		await enterAssign();
+		held[0].answer([sarah]);
+		await flush();
+
+		await type("emily");
+		expect(drawn()).toEqual([["Users", "Searching…"]]);
+		await vi.waitFor(() => expect(held).toHaveLength(2));
+		held[1].answer([{ value: "emily@example.com", label: "Emily Chen" }]);
+		await flush();
+
+		expect(drawn()).toEqual([["Users", "Emily Chen"]]);
+		await vi.waitFor(() => expect(row("option:emily@example.com")!.dataset.state).toBe("active"));
+	});
+
+	it("says so when the options cannot be read", async () => {
+		const { held, options } = heldOptions();
+		assignAct(options);
+		await shell();
+		await enterAssign();
+		held[0].refuse();
+		await flush();
+
+		expect(drawn()).toEqual([]);
+		expect(document.body.querySelector("[data-slot='command-palette-empty']")?.textContent?.trim()).toBe(
+			"Could not load Users"
+		);
+	});
+
+	it("says so when there is nothing to choose from", async () => {
+		assignAct(() => []);
+		await shell();
+		await enterAssign();
+
+		expect(drawn()).toEqual([]);
+		expect(document.body.querySelector("[data-slot='command-palette-empty']")?.textContent?.trim()).toBe(
+			"Nothing to choose from"
+		);
+	});
+
+	it("opens at the act's argument step from its key", async () => {
+		assignAct(() => [sarah, john], { key: "Mod+Shift+Y" });
+		await shell();
+		await import("../actKeys");
+		await flush();
+
+		document.body.dispatchEvent(
+			new KeyboardEvent("keydown", { key: "y", ctrlKey: true, shiftKey: true, bubbles: true, cancelable: true })
+		);
+		await vi.waitFor(() => expect(input()).not.toBeNull(), { timeout: 10000 });
+		await flush();
+
+		expect(chip()?.textContent).toContain("Assign to…");
+		expect(drawn()).toEqual([["Users", "Sarah Connor sarah@example.com", "John Parker john@example.com"]]);
+		expect(picked).toEqual([]);
+
+		await press("Escape");
+		expect(chip()).toBeNull();
+		expect(paletteOpen.value).toBe(true);
+	});
+
+	it("starts afresh on each open, and leaves the step when the page lets go of the act", async () => {
+		const options = vi.fn(() => [sarah, john]);
+		assignAct(options);
+		await shell();
+		await enterAssign();
+		await type("jo");
+		paletteOpen.value = false;
+		await flush();
+
+		openArgumentStep("header.assign");
+		await flush();
+		expect(input()!.value).toBe("");
+		expect(drawn()).toEqual([["Users", "Sarah Connor sarah@example.com", "John Parker john@example.com"]]);
+
+		releases.splice(0, 1).forEach((release) => release());
+		await flush();
+		expect(chip()).toBeNull();
+		expect(paletteOpen.value).toBe(true);
+	});
+
+	it("matches an option's value as well as its label", async () => {
+		assignAct(() => [{ value: "sarah@example.com", label: "Sarah Connor" }, john]);
+		await shell();
+		await enterAssign();
+
+		await type("sarah@");
+		expect(drawn()).toEqual([["Users", "Sarah Connor"]]);
+	});
+
+	it("asks nothing more once the palette closes on a pick", async () => {
+		const options = vi.fn(() => [sarah, john]);
+		assignAct(options);
+		await shell();
+		await enterAssign();
+		await type("jo");
+		await vi.waitFor(() => expect(options).toHaveBeenCalledTimes(2));
+		await press("Enter");
+		await new Promise((resolve) => setTimeout(resolve, 300));
+
+		expect(options).toHaveBeenCalledTimes(2);
+		expect(picked).toEqual(["john@example.com"]);
+	});
+
+	it("opens at the first step after closing at a step, and Mod+K at a step goes there too", async () => {
+		assignAct(() => [sarah, john]);
+		await shell();
+		await enterAssign();
+		paletteOpen.value = false;
+		await flush();
+		await open();
+		expect(chip()).toBeNull();
+
+		await type("assign");
+		await press("Enter");
+		await type("jo");
+		pressModK(input()!);
+		await flush();
+		expect(chip()).toBeNull();
+		expect(input()!.value).toBe("");
+	});
+
+	it("opens the settings pane picked at shell.open_settings' step", async () => {
+		const router = await shell();
+		await open();
+		await type("settings");
+		expect(row("act:shell.open_settings")!.dataset.state).toBe("active");
+		await press("Enter");
+
+		await vi.waitFor(() => expect(drawn()).toEqual([["Settings panes", "Users Desk"]]));
+		await press("Enter");
+		await flush();
+
+		expect(router.currentRoute.value.hash).toBe("#settings/desk/users");
+	});
+
+	it("runs shell.create with the doctype picked from the places", async () => {
+		registerCreateDialog({ render: () => null });
+		await shell();
+		await open();
+		await type("create");
+		await press("Enter");
+
+		await vi.waitFor(() => expect(drawn()[0]?.[0]).toBe("DocTypes"));
+		expect(drawn()[0].slice(1, 3)).toEqual(["CRM Deal CRM", "ToDo Desk"]);
+		await type("todo");
+		expect(drawn()).toEqual([["DocTypes", "ToDo Desk"]]);
+		await press("Enter");
+		await flush();
+
+		expect(createRequests.value.map((request) => request.doctype)).toEqual(["ToDo"]);
+		closeCreates();
 	});
 });

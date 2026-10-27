@@ -12,26 +12,26 @@
 	>
 		<template #default="{ active }">
 			<CommandPaletteInput
-				:placeholder="
-					scope.doctype.value
-						? __('Search {0}', [__(scope.doctype.value)])
-						: __('Search or run an action')
-				"
+				:placeholder="step?.placeholder ?? __('Search or run an action')"
 				@keydown="(event: KeyboardEvent) => onKeydown(event, active as Row | undefined)"
 			>
-				<template v-if="scope.doctype.value" #prefix>
+				<template v-if="step" #prefix>
 					<span
-						data-slot="palette-scope-chip"
+						data-slot="palette-chip"
 						class="inline-flex h-6 shrink-0 items-center gap-1.5 rounded-4 bg-surface-gray-3 pl-2 pr-1 text-sm text-ink-gray-8"
 					>
-						<span class="lucide-list size-3.5 text-ink-gray-6" aria-hidden="true" />
-						{{ __("in {0}", [__(scope.doctype.value)]) }}
+						<span
+							:class="[step.icon, 'size-3.5 text-ink-gray-6']"
+							aria-hidden="true"
+						/>
+						{{ step.chip }}
 						<button
 							type="button"
 							class="flex size-4 items-center justify-center rounded-2 text-ink-gray-5 hover:bg-surface-gray-4 hover:text-ink-gray-8"
 							tabindex="-1"
 							:aria-label="__('Back')"
-							@click="scope.leave()"
+							@mousedown.prevent
+							@click="step.leave()"
 						>
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
@@ -65,7 +65,7 @@
 
 			<CommandPaletteEmpty v-slot="{ query: text }">
 				{{
-					scope.prompt.value ??
+					step?.prompt ??
 					(text.trim()
 						? __("No results for “{0}”", [text.trim()])
 						: __("Type to search"))
@@ -92,7 +92,7 @@
 				</span>
 				<span class="ml-auto flex items-center gap-1.5">
 					<KeyboardShortcut combo="Escape" bg class="[&_kbd]:leading-none" />
-					{{ scope.doctype.value ? __("back") : __("to close") }}
+					{{ step ? __("back") : __("to close") }}
 				</span>
 			</CommandPaletteFooter>
 		</template>
@@ -110,11 +110,13 @@ import {
 	CommandPaletteGroup,
 	CommandPaletteInput,
 	CommandPaletteList,
+	type CommandPaletteSelectEvent,
 } from "frappe-ui/experimental";
 import type { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { paletteOpen, type PaletteRow as Row } from "./palette";
+import { usePaletteArgument } from "./paletteArgument";
 import { paletteGroups, pinnedRows, type PaletteContext } from "./paletteGroups";
 import { loadPlaces } from "./palettePlaces";
 import { usePaletteScope } from "./paletteScope";
@@ -128,12 +130,40 @@ const context: PaletteContext = {
 };
 const query = ref("");
 const scope = usePaletteScope(query, context);
+const argument = usePaletteArgument(query);
 
-// A closed or narrowed palette asks nothing more of the groups' server searches.
+/** The palette's second step, if it is in one: an act's argument, or a doctype Tab narrowed to. */
+const step = computed(() => {
+	const act = argument.act.value;
+	if (act?.argument)
+		return {
+			chip: act.label ?? act.name,
+			icon: act.icon ?? "lucide-chevron-right",
+			placeholder: __("Search {0}", [act.argument.label]),
+			heading: act.argument.label,
+			rows: argument.rows.value,
+			prompt: argument.prompt.value,
+			leave: argument.leave,
+		};
+	const doctype = scope.doctype.value;
+	if (doctype)
+		return {
+			chip: __("in {0}", [__(doctype)]),
+			icon: "lucide-list",
+			placeholder: __("Search {0}", [__(doctype)]),
+			heading: __("Records"),
+			rows: scope.rows.value,
+			prompt: scope.prompt.value,
+			leave: scope.leave,
+		};
+	return null;
+});
+
+// A closed palette, or one in a second step, asks nothing more of the groups' server searches.
 watch(
-	[query, () => context.router.currentRoute.value.path, scope.doctype, paletteOpen],
-	([text, , narrowed, isOpen]) => {
-		const asked = isOpen && !narrowed ? text : "";
+	[query, () => context.router.currentRoute.value.path, () => Boolean(step.value), paletteOpen],
+	([text, , stepped, isOpen]) => {
+		const asked = isOpen && !stepped ? text : "";
 		paletteGroups.forEach((group) => group.follow?.(asked, context));
 	}
 );
@@ -150,16 +180,18 @@ watch(
 );
 
 const groups = computed(() => {
-	if (scope.doctype.value)
-		return scope.rows.value.length ? [{ label: __("Records"), rows: scope.rows.value }] : [];
+	if (step.value)
+		return step.value.rows.length
+			? [{ label: step.value.heading, rows: step.value.rows }]
+			: [];
 	return paletteGroups
 		.map((group) => ({ label: group.label, rows: group.rows(query.value, context) }))
 		.filter((group) => group.rows.length);
 });
 
-// A narrowed palette pins nothing, so its own prompts stay in view.
+// A second step pins nothing, so its own prompts stay in view.
 const pinned = computed(() =>
-	scope.doctype.value ? [] : pinnedRows.flatMap((rows) => rows(query.value, context))
+	step.value ? [] : pinnedRows.flatMap((rows) => rows(query.value, context))
 );
 
 const drawnRows = computed(() => [
@@ -167,12 +199,14 @@ const drawnRows = computed(() => [
 	...pinned.value,
 ]);
 
-function select(value: unknown) {
-	(value as Row).run();
+function select(value: unknown, event: CommandPaletteSelectEvent) {
+	const row = value as Row;
+	if (row.stays) event.preventDefault();
+	row.run();
 }
 
 function narrowable(row: Row | undefined): row is Row & { doctype: string } {
-	return !scope.doctype.value && !!row?.doctype;
+	return !step.value && !!row?.doctype;
 }
 
 // Tab, Esc and Backspace are stopped here, or the dialog moves the focus out or closes.
@@ -185,10 +219,10 @@ function onKeydown(event: KeyboardEvent, active: Row | undefined) {
 		return;
 	}
 	const back = event.key === "Escape" || (event.key === "Backspace" && !query.value);
-	if (back && scope.doctype.value) {
+	if (back && step.value) {
 		event.preventDefault();
 		event.stopPropagation();
-		scope.leave();
+		step.value.leave();
 	}
 }
 </script>

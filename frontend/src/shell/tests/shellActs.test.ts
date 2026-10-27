@@ -13,11 +13,12 @@ import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
 import { closeCreates, createRequests, registerCreateDialog } from "../create";
 
-const fake = vi.hoisted(() => ({ logout: vi.fn() }));
+const fake = vi.hoisted(() => ({ logout: vi.fn(), runMethod: vi.fn() }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
 	logout: fake.logout,
+	runMethod: fake.runMethod,
 }));
 
 vi.mock("frappe-ui", async (importOriginal) => ({
@@ -168,9 +169,31 @@ describe("the acts the shell holds", () => {
 		await expect(acts.run("shell.toggle_sidebar")).rejects.toMatchObject({ reason: "missing" });
 	});
 
-	it("keeps Create out of the palette until it can ask for the doctype", async () => {
+	it("asks Create for a doctype and Settings for a pane, from the palette's places", async () => {
 		await shell();
-		expect(acts.available().find((act) => act.name === "shell.create")?.palette).toBe(false);
+		const find = (name: string) => acts.available().find((act) => act.name === name)!;
+
+		expect(find("shell.create").palette).toBeUndefined();
+		fake.runMethod.mockImplementation(async (method: string) => ({
+			data:
+				method === "frappe.shell.palette.places"
+					? {
+							doctypes: [
+								{ name: "Sales Invoice", app: "crm", route: `${inApp.shell_base}/sales-invoice`, can_create: true },
+								{ name: "Lead", app: "crm", route: `${inApp.shell_base}/lead`, can_create: false },
+							],
+							apps: [],
+							titles: { crm: "CRM" },
+					  }
+					: { panes: [{ app: "crm", key: "deals", label: "Deals", blocks: [] }], index: [], titles: { crm: "CRM" } },
+		}));
+
+		expect(await find("shell.create").argument!.options("")).toEqual([
+			{ value: "Sales Invoice", label: "Sales Invoice", description: "CRM" },
+		]);
+		expect(await find("shell.open_settings").argument!.options("")).toEqual([
+			{ value: { prefix: "crm", pane: "deals" }, label: "Deals", description: "CRM" },
+		]);
 	});
 
 	it("lets go of the surface when the shell unmounts", async () => {
