@@ -632,7 +632,7 @@ frappe.request.report_error = function (xhr, request_opts) {
 			"<pre>" + JSON.stringify(data, null, "\t") + "</pre>",
 		].join("\n");
 
-		var communication_composer = new frappe.views.CommunicationComposer({
+		new frappe.views.CommunicationComposer({
 			subject: "Error Report [" + frappe.datetime.nowdate() + "]",
 			recipients: error_report_email,
 			message: error_report_message,
@@ -641,10 +641,6 @@ frappe.request.report_error = function (xhr, request_opts) {
 				name: frappe.session.user,
 			},
 		});
-		communication_composer.dialog.$wrapper.css(
-			"z-index",
-			cint(frappe.msg_dialog.$wrapper.css("z-index")) + 1
-		);
 	};
 
 	if (exc) {

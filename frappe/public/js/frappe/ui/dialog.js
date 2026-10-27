@@ -126,6 +126,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				me.display = true;
 				window.cur_dialog = me;
 				frappe.ui.open_dialogs.push(me);
+				// dialogs that were still fading in when show() ran are only listed now
+				me.stack_above_open_dialogs();
 				// Bootstrap's focus guard goes before the first focus, so a combobox
 				// panel (mounted in <body>) can take it
 				$(document).off("focusin.modal");
@@ -324,7 +326,9 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		} else {
 			this.$wrapper.removeClass("fade");
 		}
+		const opening = !this.display;
 		this.$wrapper.modal("show");
+		if (opening) this.stack_above_open_dialogs();
 
 		this.$wrapper.removeClass("modal-minimize");
 
@@ -344,6 +348,17 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	hide() {
 		this.$wrapper.modal("hide");
 		this.is_visible = false;
+	}
+
+	stack_above_open_dialogs() {
+		const below = frappe.ui.open_dialogs.filter(
+			(d) => d !== this && d.display && !d.is_minimized
+		);
+		if (!below.length) return;
+
+		const top = Math.max(...below.map((d) => cint(d.$wrapper.css("z-index"))));
+		this.$wrapper.css("z-index", Math.max(top + 2, cint(this.$wrapper.css("z-index"))));
+		$(this.$wrapper.data("bs.modal")._backdrop).css("z-index", top + 1);
 	}
 
 	handle_focus() {
