@@ -37,6 +37,9 @@ function builtBench() {
   );
   write("apps/erpnext/yarn.lock", "chart-lib@1");
   write("apps/erpnext/node_modules/chart-lib/index.js", "export {}");
+  write("apps/erpnext/frontend/node_modules/hoisted/index.js", "export {}");
+  write("apps/node_modules/shared-lib/package.json", '{"version":"1.0.0"}');
+  write("apps/node_modules/shared-lib/index.js", "export {}");
 
   const root = path.join(bench, "apps/frappe/island-toolchain");
   const options = {
@@ -65,6 +68,8 @@ function builtBench() {
     ) + "?vue&type=script",
     path.join(root, "node_modules/frappe-ui/index.js"),
     path.join(bench, "apps/erpnext/node_modules/chart-lib/index.js"),
+    path.join(bench, "apps/erpnext/frontend/node_modules/hoisted/index.js"),
+    path.join(bench, "apps/node_modules/shared-lib/index.js"),
     "\0virtual:island.css",
   ];
   writeInputsStamp(
@@ -172,4 +177,35 @@ test("no app node_modules still reuses prebuilt output", () => {
   const { bench, options } = builtBench();
   fs.rmSync(path.join(bench, "apps/erpnext/node_modules"), { recursive: true });
   assert.equal(islandsUnchanged(options), true);
+});
+
+test("a package with no lockfile counts as its version", () => {
+  const { bench, options, write } = builtBench();
+  const stamp = JSON.parse(
+    fs.readFileSync(
+      path.join(bench, "sites/assets/frappe/dist/page-island/.inputs.json"),
+      "utf-8"
+    )
+  );
+  assert.ok(!stamp.files.some((file) => file.includes("node_modules")));
+  assert.deepEqual(stamp.packages, { "apps/node_modules/shared-lib": "1.0.0" });
+
+  write("apps/node_modules/shared-lib/package.json", '{"version":"2.0.0"}');
+  assert.equal(islandsUnchanged(options), false);
+});
+
+test("no bench node_modules still reuses prebuilt output", () => {
+  const { bench, options } = builtBench();
+  fs.rmSync(path.join(bench, "apps/node_modules"), { recursive: true });
+  assert.equal(islandsUnchanged(options), true);
+});
+
+test("a lockfile above a nested node_modules covers it", () => {
+  const { bench, options, write } = builtBench();
+  fs.rmSync(path.join(bench, "apps/erpnext/frontend/node_modules"), {
+    recursive: true,
+  });
+  assert.equal(islandsUnchanged(options), true);
+  write("apps/erpnext/yarn.lock", "chart-lib@1\nhoisted@2");
+  assert.equal(islandsUnchanged(options), false);
 });

@@ -3,10 +3,10 @@
 //
 // The key covers the entries, the mode, the options that reach the output, the
 // toolchain's lockfile, the preset's own source, and every file the last build
-// read. A file inside a node_modules is covered by the lockfile that installed
-// it instead, so the key can be checked on a bench whose packages are not
-// installed, such as one that downloaded prebuilt assets. Paths are relative to
-// the bench, for the same reason.
+// read. A file inside a node_modules is covered by the nearest lockfile above it,
+// or by its package's version, so the key can be checked on a bench whose
+// packages are not installed, such as one that downloaded prebuilt assets. Paths
+// are relative to the bench, for the same reason.
 //
 // The stamp sits inside the output directory, which vite empties on every build,
 // so output and stamp always go away together.
@@ -45,7 +45,22 @@ export function islandsUnchanged(options) {
 	const stamp = readJson(path.join(paths.distDir, STAMP));
 	if (!stamp?.key || !Array.isArray(stamp.files) || !stamp.assets) return false;
 
-	const key = inputsKey({ ...options, paths, root, entries, production, files: stamp.files });
+	const packages = stamp.packages ?? {};
+	const reinstalled = Object.entries(packages).some(([dir, version]) => {
+		const manifest = readJson(path.join(paths.benchRoot, dir, "package.json"));
+		return manifest && manifest.version !== version;
+	});
+	if (reinstalled) return false;
+
+	const key = inputsKey({
+		...options,
+		paths,
+		root,
+		entries,
+		production,
+		files: stamp.files,
+		packages,
+	});
 	if (key !== stamp.key) return false;
 
 	const registered = readJson(paths.assetsJsonPath) ?? {};
@@ -63,12 +78,16 @@ export function islandsUnchanged(options) {
  */
 export function writeInputsStamp(context, moduleIds, assets) {
 	const { paths } = context;
-	const files = sourceFiles(paths.benchRoot, context.root, moduleIds);
-	const key = inputsKey({ ...context, production: context.mode === "production", files });
-	fs.writeFileSync(path.join(paths.distDir, STAMP), JSON.stringify({ key, files, assets }));
+	const { files, packages } = sourceFiles(paths.benchRoot, context.root, moduleIds);
+	const production = context.mode === "production";
+	const key = inputsKey({ ...context, production, files, packages });
+	fs.writeFileSync(
+		path.join(paths.distDir, STAMP),
+		JSON.stringify({ key, files, packages, assets })
+	);
 }
 
-function inputsKey({ paths, root, entries, production, files, ...options }) {
+function inputsKey({ paths, root, entries, production, files, packages, ...options }) {
 	const hash = crypto.createHash("sha256");
 	const add = (label, value) => {
 		hash.update(`${label}\0`);
@@ -89,40 +108,67 @@ function inputsKey({ paths, root, entries, production, files, ...options }) {
 	];
 	for (const file of fixed) add(path.relative(paths.benchRoot, file), contents(file));
 	for (const file of files) add(file, contents(path.join(paths.benchRoot, file)));
+	for (const dir of Object.keys(packages).sort()) add(`package ${dir}`, packages[dir]);
 
 	return hash.digest("hex");
 }
 
 /**
- * Module ids as bench-relative paths of the files that decide them. A package
- * stands for the lockfile of the folder that installed it, which a bench without
- * that node_modules still has. The toolchain's packages are covered already.
+ * The bench-relative files and packages that decide the build's modules.
+ *
+ * A file inside a node_modules is never listed, since a bench that downloaded
+ * prebuilt assets may not have it. It stands for the nearest lockfile above that
+ * node_modules, or, where none exists, for its package's version. The toolchain's
+ * packages are covered by its own lockfile already.
  */
 function sourceFiles(benchRoot, root, moduleIds) {
 	const toolchainModules = path.join(root, "node_modules") + path.sep;
 	const files = new Set();
+	const packages = {};
 	for (const id of moduleIds) {
 		const file = id.split("?")[0];
 		if (!path.isAbsolute(file) || file.startsWith(toolchainModules)) continue;
 		if (!fs.existsSync(file)) continue;
-		files.add(path.relative(benchRoot, owningLockfile(file) ?? file));
+
+		const installed = installedPackage(file);
+		if (!installed) {
+			files.add(path.relative(benchRoot, file));
+			continue;
+		}
+		const lockfile = nearestLockfile(installed.owner, benchRoot);
+		if (lockfile) files.add(path.relative(benchRoot, lockfile));
+		else {
+			const manifest = readJson(path.join(installed.dir, "package.json"));
+			packages[path.relative(benchRoot, installed.dir)] = manifest?.version ?? "";
+		}
 	}
-	return [...files].sort();
+	return { files: [...files].sort(), packages };
+}
+
+/** The outermost package a file sits in, and the folder whose node_modules holds it. */
+function installedPackage(file) {
+	const parts = file.split(path.sep);
+	const index = parts.indexOf("node_modules");
+	if (index === -1 || index + 1 >= parts.length - 1) return null;
+	const nameParts = parts[index + 1].startsWith("@") ? 2 : 1;
+	return {
+		owner: parts.slice(0, index).join(path.sep),
+		dir: parts.slice(0, index + 1 + nameParts).join(path.sep),
+	};
 }
 
 const LOCKFILES = ["yarn.lock", "package-lock.json", "pnpm-lock.yaml"];
 
-/** The lockfile beside the outermost node_modules a file sits in, if any. */
-function owningLockfile(file) {
-	const parts = file.split(path.sep);
-	const index = parts.indexOf("node_modules");
-	if (index === -1) return null;
-	const owner = parts.slice(0, index).join(path.sep);
-	for (const name of LOCKFILES) {
-		const lockfile = path.join(owner, name);
-		if (fs.existsSync(lockfile)) return lockfile;
+/** The first lockfile in `dir` or a folder above it, up to the bench root. */
+function nearestLockfile(dir, benchRoot) {
+	for (;;) {
+		for (const name of LOCKFILES) {
+			const lockfile = path.join(dir, name);
+			if (fs.existsSync(lockfile)) return lockfile;
+		}
+		if (dir === benchRoot || path.dirname(dir) === dir) return null;
+		dir = path.dirname(dir);
 	}
-	return null;
 }
 
 /** The preset's own source: its output changes when this code does. */
