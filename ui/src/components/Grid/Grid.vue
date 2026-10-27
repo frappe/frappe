@@ -185,6 +185,7 @@
 										<div
 											class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
 											:style="{ right: '0' }"
+											@click.stop
 										>
 											<Dropdown :options="rowMenu(row, rowIndex)">
 												<Button
@@ -265,7 +266,7 @@ import {
 import Draggable from "vuedraggable";
 import { ROW_ID, copyRow, identify, rowKey } from "../Fields/rowIdentity";
 import { arrowStep, cellAt, focusCell, moveFocus, rowShortcut } from "./cellNavigation";
-import type { CellAt, RowShortcut } from "./cellNavigation";
+import type { CellAt, RowAction } from "./cellNavigation";
 import { acceptsPaste, isBlock, parseBlock, planPaste } from "./pasteBlock";
 import type { PastePlan } from "./pasteBlock";
 import { translate as __ } from "../../utils/translate";
@@ -349,7 +350,7 @@ const SIDE_COL_WIDTH = "2.5rem";
 const numberColLeft = computed(() => (props.disabled ? "0" : SIDE_COL_WIDTH));
 
 // Width of the frozen-left region the left shadow hugs: `#` alone, plus the
-// checkbox column when selection is on. (The right shadow hugs the edit column.)
+// checkbox column when selection is on. (The right shadow hugs the row menu column.)
 const leftShadowOffset = computed(() => (props.disabled ? "2.5rem" : "5rem"));
 
 // Show each side's shadow while there's content scrolled off that way, so it's clear
@@ -515,16 +516,20 @@ function rowMenu(row: Record<string, any>, index: number) {
 	if (!canAddRows.value) return [edit];
 	return [
 		edit,
-		{ label: __("Insert Above"), icon: "lucide-arrow-up", onClick: () => insertRow(index) },
+		{
+			label: __("Insert Above"),
+			icon: "lucide-arrow-up",
+			onClick: () => runRowAction("insertAbove", index),
+		},
 		{
 			label: __("Insert Below"),
 			icon: "lucide-arrow-down",
-			onClick: () => insertRow(index + 1),
+			onClick: () => runRowAction("insertBelow", index),
 		},
 		{
 			label: __("Duplicate"),
 			icon: "lucide-copy",
-			onClick: () => insertRow(index + 1, copyRow(row)),
+			onClick: () => runRowAction("duplicate", index),
 		},
 	];
 }
@@ -551,13 +556,19 @@ function onCellKeydown(e: KeyboardEvent) {
 	e.stopPropagation();
 }
 
-function runRowShortcut(shortcut: RowShortcut, at: CellAt): boolean {
-	if (!canAddRows.value) return false;
-	const index = shortcut === "insertAbove" ? at.rowIndex : at.rowIndex + 1;
-	const row = shortcut === "duplicate" ? copyRow(rows.value[at.rowIndex]) : freshRow();
-	if (!insertRow(index, row)) return false;
+function runRowShortcut(shortcut: RowAction, at: CellAt): boolean {
+	const index = runRowAction(shortcut, at.rowIndex);
+	if (index == null) return false;
 	nextTick(() => focusCell(scroller.value!, { rowIndex: index, columnIndex: at.columnIndex }));
 	return true;
+}
+
+/** Inserts a fresh row or a copy beside `rowIndex`; returns the new row's index. */
+function runRowAction(action: RowAction, rowIndex: number): number | null {
+	if (!canAddRows.value) return null;
+	const index = action === "insertAbove" ? rowIndex : rowIndex + 1;
+	const row = action === "duplicate" ? copyRow(rows.value[rowIndex]) : freshRow();
+	return insertRow(index, row) ? index : null;
 }
 
 function onCellPaste(e: ClipboardEvent) {

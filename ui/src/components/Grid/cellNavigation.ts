@@ -5,7 +5,7 @@ export interface CellAt {
 
 type Step = [rows: number, columns: number];
 
-export type RowShortcut = "insertAbove" | "insertBelow" | "duplicate";
+export type RowAction = "insertAbove" | "insertBelow" | "duplicate";
 
 const FOCUSABLE = [
   'input:not([type="hidden"]):not(:disabled)',
@@ -41,7 +41,7 @@ export function arrowStep(e: KeyboardEvent): Step | null {
 }
 
 /** Desk v1's keys: Ctrl/Cmd+Up or Down inserts a row, Shift+Alt+Down duplicates. */
-export function rowShortcut(e: KeyboardEvent): RowShortcut | null {
+export function rowShortcut(e: KeyboardEvent): RowAction | null {
   if (e.isComposing || (e.target as HTMLElement).tagName === "TEXTAREA") return null;
   const mod = e.ctrlKey || e.metaKey;
   if (mod && !e.shiftKey && !e.altKey) {
