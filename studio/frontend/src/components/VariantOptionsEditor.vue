@@ -80,6 +80,7 @@ import { variantOption } from "@/utils/blockTemplate/familyTemplates"
 import { getBlockCopy } from "@/utils/serializer"
 import { getEditorVariantChoice, setEditorVariantChoice, slug, variantOptionNames } from "@/utils/variants"
 import { confirmKeepVariantOption } from "@/utils/variantsEditor"
+import { useDragReorder } from "@/utils/useDragReorder"
 
 // The option blocks are the single source of truth: each child carries its own
 // `variantOptionName`, so names follow the blocks through delete, duplicate, paste and
@@ -181,20 +182,9 @@ function commitRename(index: number, name: string) {
 	}
 }
 
-// -- drag reorder, the ArrayInput pattern: draggable only while the grip is pressed --
-const dragIndex = ref<number | null>(null)
-const dragHandleIndex = ref<number | null>(null)
-
-function onDragStart(index: number, event: DragEvent) {
-	dragIndex.value = index
-	event.dataTransfer?.setData("text/plain", String(index))
-	if (event.dataTransfer) event.dataTransfer.effectAllowed = "move"
-}
-
-function onDrop(to: number) {
-	const from = dragIndex.value
-	resetDrag()
-	if (from === null || from === to) return
+// the option blocks carry the order, so moving one moves the block and the canvas
+// keeps showing the same option wherever it landed
+function moveOption(from: number, to: number) {
 	const children = props.block.children
 	const shownChild = children[shownIndex.value]
 	const [movedChild] = children.splice(from, 1)
@@ -203,8 +193,5 @@ function onDrop(to: number) {
 	if (shownAt !== -1) setEditorVariantChoice(props.block.componentId, shownAt)
 }
 
-function resetDrag() {
-	dragIndex.value = null
-	dragHandleIndex.value = null
-}
+const { dragIndex, dragHandleIndex, onDragStart, onDrop, resetDrag } = useDragReorder(moveOption)
 </script>
