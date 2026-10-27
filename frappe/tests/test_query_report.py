@@ -802,7 +802,7 @@ data = columns, result
 			result = run(report.name, {"allocated_to": user, "count": "5", "show_all": "1"})["result"]
 
 		self.assertEqual(
-			result, [{"status": "Open", "count": 5, "show_all": 1, "from_date": datetime.date.today()}]
+			result, [{"status": "Open", "count": 5, "show_all": 1, "from_date": frappe.utils.getdate()}]
 		)
 		self.assertEqual(report.get_validated_filters({}, user).allocated_to, user)
 
