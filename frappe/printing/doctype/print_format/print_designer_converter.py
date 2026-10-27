@@ -147,14 +147,16 @@ class PrintDesignerConverter:
 		return pages[0] or []
 
 	def page_settings(self) -> dict | None:
+		page = {}
 		size = (self.settings.get("currentPageSize") or "").upper()
-		sizes = {"A4", "A5", "A3", "LETTER", "LEGAL", "TABLOID"}
-		if size in sizes:
-			return {"size": size.title() if size not in ("A4", "A5", "A3") else size}
+		if size in ("A4", "A5", "A3"):
+			page["size"] = size
+		elif size in ("LETTER", "LEGAL", "TABLOID"):
+			page["size"] = size.title()
 		width, height = flt(self.page.get("width")), flt(self.page.get("height"))
 		if width and height and width > height:
-			return {"orientation": "Landscape"}
-		return None
+			page["orientation"] = "Landscape"
+		return page or None
 
 	def content_width(self) -> float:
 		width = flt(self.page.get("width")) or 793.7
