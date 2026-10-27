@@ -2071,11 +2071,19 @@ class TestFileRoutesV2(FrappeAPITestCase):
 		kept = self.upload(self.attachments_path(self.todo.name), b"hello", "kept.txt", is_private="1")
 		self.assertEqual(photo.status_code, 200, photo.json)
 		self.assertEqual(kept.status_code, 200, kept.json)
+		files = (photo.json["data"]["file"], kept.json["data"]["file"])
 		frappe.db.rollback()
-		self.addCleanup(frappe.delete_doc_if_exists, "File", photo.json["data"]["file"], force=True)
+		self.addCleanup(self.drop_files, *files)
 
-		self.assertEqual(frappe.db.get_value("File", photo.json["data"]["file"], "is_private"), 0)
-		self.assertEqual(frappe.db.get_value("File", kept.json["data"]["file"], "is_private"), 1)
+		self.assertEqual(frappe.db.get_value("File", files[0], "is_private"), 0)
+		self.assertEqual(frappe.db.get_value("File", files[1], "is_private"), 1)
+
+	def drop_files(self, *names: str):
+		frappe.db.rollback()
+		frappe.set_user("Administrator")
+		for name in names:
+			frappe.delete_doc_if_exists("File", name, force=True)
+		frappe.db.commit()  # nosemgrep
 
 	def test_a_chunk_that_is_not_the_last_answers_with_no_file(self):
 		response = self.upload(

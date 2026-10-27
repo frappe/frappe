@@ -36,6 +36,7 @@
 		v-model:open="uploading"
 		image-only
 		crop
+		:is-private="false"
 		progress-mode="field"
 		:attach-to="{ doctype: 'User', docname: user.doc.name, fieldname: 'user_image' }"
 		@uploading="(active: boolean) => (busy = active)"

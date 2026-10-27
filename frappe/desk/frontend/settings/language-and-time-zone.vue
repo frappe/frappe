@@ -27,18 +27,17 @@
 </template>
 
 <script lang="ts">
-import { runMethod } from "@framework/ui/api";
+import { getDocumentFields, runMethod } from "@framework/ui/api";
 
 let zones: Promise<string[]> | undefined;
 
-/** A language code's name in the desk's language, or the code when the browser cannot name it. */
-function languageName(code: unknown, displayIn = "en"): string {
+/** The site's default language, named by its Language record's title as the Link control names it. */
+async function siteLanguageName(code: unknown): Promise<string> {
 	if (typeof code !== "string" || !code) return "";
-	try {
-		return new Intl.DisplayNames([displayIn], { type: "language" }).of(code) || code;
-	} catch {
-		return code;
-	}
+	const read = await getDocumentFields<{ language_name?: string }>("Language", code, [
+		"language_name",
+	]).catch(() => null);
+	return read?.data?.language_name || code;
 }
 
 /** The server's time zones, read once while the desk is open; a failed read is not kept. */
@@ -56,7 +55,7 @@ function zoneList(): Promise<string[]> {
 </script>
 
 <script setup lang="ts">
-import { computed, reactive, ref } from "vue";
+import { computed, reactive, ref, watch } from "vue";
 import { ErrorMessage, SettingsRow, Skeleton } from "frappe-ui";
 import { getFieldComponent } from "@framework/ui/FormLayout";
 import { useSession } from "@framework/ui/useSession";
@@ -74,7 +73,12 @@ const props = defineProps<{ bindings: { user: Binding } }>();
 const user = props.bindings.user;
 
 const { session } = useSession();
-const siteLanguage = languageName(session.value?.defaults.language, session.value?.lang);
+const siteLanguage = ref("");
+watch(
+	() => !user.loading && !user.doc.language && session.value?.defaults.language,
+	async (code) => code && (siteLanguage.value = await siteLanguageName(code)),
+	{ immediate: true }
+);
 
 const timeZones = ref<string[]>([]);
 zoneList().then((zones) => (timeZones.value = zones));
@@ -85,7 +89,9 @@ const fields = computed(() => [
 		fieldtype: "Link",
 		options: "Language",
 		label: __("Language"),
-		placeholder: siteLanguage ? __("{0} (site default)", [siteLanguage]) : undefined,
+		placeholder: siteLanguage.value
+			? __("{0} (site default)", [siteLanguage.value])
+			: undefined,
 	},
 	{
 		fieldname: "time_zone",

@@ -54,7 +54,10 @@ beforeEach(() => {
 	vi.stubGlobal(
 		"fetch",
 		vi.fn(async (url: string, init?: RequestInit) => {
-			const method = decodeURIComponent(new URL(url, "http://x").pathname).split("/method/")[1];
+			const path = decodeURIComponent(new URL(url, "http://x").pathname);
+			if (path === "/api/v2/document/Language")
+				return new Response(JSON.stringify({ data: [{ name: "en", language_name: "English" }] }));
+			const method = path.split("/method/")[1];
 			const body = init?.body ? JSON.parse(String(init.body)) : {};
 			return new Response(JSON.stringify({ data: methods[method]?.(body) ?? null }));
 		})
