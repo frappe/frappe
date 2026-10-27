@@ -1,6 +1,7 @@
 # Copyright (c) 2019, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 import frappe
+from frappe.core.doctype.data_import.data_import import get_export_count
 from frappe.core.doctype.data_import.exporter import Exporter
 from frappe.core.doctype.data_import.import_provider import ImportProvider
 from frappe.core.doctype.data_import.importer import build_fields_dict_for_column_matching
@@ -202,11 +203,14 @@ class TestExporter(IntegrationTestCase):
 				export_data=True,
 				export_filters={"owner": ["!=", "test2@example.com"]},
 			)
+			frappe.form_dict.export_filters = {"title": ["in", [own_doc, other_doc]]}
+			count = get_export_count(doctype_name, frappe.form_dict.export_filters)
 
 		titles = [row[0] for row in exporter.get_csv_array()[1:]]
 		self.assertIn(own_doc, titles)
 		self.assertNotIn(other_doc, titles)
 		self.assertEqual(excluding_own.get_csv_array()[1:], [])
+		self.assertEqual(count, 1)
 
 	def test_template_includes_import_provider_tables(self):
 		test_doc = "_Test Provider Export"

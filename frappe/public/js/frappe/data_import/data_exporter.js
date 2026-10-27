@@ -227,11 +227,8 @@ frappe.data_import.DataExporter = class DataExporter {
 		let local_count = this.local_source?.rows.length;
 		let count_method = {
 			all: () =>
-				this.local_source ? Promise.resolve(local_count) : frappe.db.count(this.doctype),
-			by_filter: () =>
-				frappe.db.count(this.doctype, {
-					filters: this.get_filters(),
-				}),
+				this.local_source ? Promise.resolve(local_count) : this.get_export_count(),
+			by_filter: () => this.get_export_count(this.get_filters()),
 			blank_template: () => Promise.resolve(0),
 			"5_records": () => Promise.resolve(this.local_source ? Math.min(5, local_count) : 5),
 		};
@@ -253,6 +250,13 @@ frappe.data_import.DataExporter = class DataExporter {
 			this.dialog.set_df_property("export_records", "description", message);
 
 			this.update_primary_action(value);
+		});
+	}
+
+	get_export_count(filters) {
+		return frappe.xcall("frappe.core.doctype.data_import.data_import.get_export_count", {
+			doctype: this.doctype,
+			export_filters: filters,
 		});
 	}
 
