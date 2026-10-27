@@ -181,5 +181,11 @@ class TestPalettePlaces(IntegrationTestCase):
 
 		self.assertEqual(
 			(row["doctype"], row["name"], row["title"], row["kind"], row["description"]),
-			("System Settings", "System Settings", "System Settings", "record", app_screen("frappe")["title"]),
+			(
+				"System Settings",
+				"System Settings",
+				"System Settings",
+				"record",
+				app_screen("frappe")["title"],
+			),
 		)
