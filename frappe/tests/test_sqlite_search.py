@@ -5,7 +5,12 @@ from typing import ClassVar
 from unittest.mock import patch
 
 import frappe
-from frappe.search.sqlite_search import SQLiteSearch, SQLiteSearchIndexMissingError
+from frappe.search.sqlite_search import (
+	SQLiteSearch,
+	SQLiteSearchIndexMissingError,
+	delete_doc_index,
+	update_doc_index,
+)
 from frappe.tests.utils import FrappeTestCase
 
 
@@ -39,6 +44,12 @@ class TestSQLiteSearch(SQLiteSearch):
 			return {}
 		# Simulate user-specific filtering
 		return {"owner": frappe.session.user}
+
+
+class UnindexedSearch(TestSQLiteSearch):
+	"""Another app's search whose index is never built."""
+
+	INDEX_NAME = "test_unindexed_search.db"
 
 
 class TestSQLiteSearchAPI(FrappeTestCase):
@@ -305,6 +316,31 @@ class TestSQLiteSearchAPI(FrappeTestCase):
 		results = self.search.search("xyzabc123nonexistent")
 		# Should return empty results or minimal results
 		self.assertLessEqual(len(results["results"]), 1)
+
+	def test_a_search_without_an_index_does_not_block_the_others(self):
+		self.search.build_index()
+		note = frappe.get_doc(
+			{"doctype": "Note", "title": "Added After Build", "content": "Late note"}
+		).insert()
+		self.test_notes.append(note)
+		doc_id = f"Note:{note.name}"
+
+		with patch(
+			"frappe.search.sqlite_search.get_search_classes",
+			return_value=[UnindexedSearch, TestSQLiteSearch],
+		):
+			update_doc_index(note)
+			self.assertEqual(self.count_indexed(doc_id), 1)
+
+			delete_doc_index(note)
+			self.assertEqual(self.count_indexed(doc_id), 0)
+
+	def count_indexed(self, doc_id):
+		conn = sqlite3.connect(self.search.db_path)
+		try:
+			return conn.execute("SELECT COUNT(*) FROM search_fts WHERE doc_id = ?", (doc_id,)).fetchone()[0]
+		finally:
+			conn.close()
 
 	def test_document_indexing_operations(self):
 		"""Test individual document indexing and removal operations."""
