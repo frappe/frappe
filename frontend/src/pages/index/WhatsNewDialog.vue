@@ -2,6 +2,9 @@
 <template>
 	<Dialog v-model="open" :title="__('What\'s new')" size="2xl">
 		<LoadingText v-if="!entries" />
+		<p v-else-if="!entries.length" class="text-p-base text-ink-gray-6" data-whats-new-empty>
+			{{ __("Nothing new since you last looked.") }}
+		</p>
 		<div v-else class="flex flex-col gap-8" data-whats-new>
 			<section v-for="entry in entries" :key="entry.title" class="flex flex-col gap-4">
 				<h3 class="text-xl-semibold text-ink-gray-9">

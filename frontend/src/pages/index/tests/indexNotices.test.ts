@@ -157,6 +157,18 @@ describe("the index's notices", () => {
 		expect(bell(foot)?.getAttribute("aria-label")).toBe("1 notice");
 	});
 
+	it("says so when another tab already read the notes", async () => {
+		fake.runMethod.mockResolvedValue({ data: [] });
+		const { host } = await mountNotices();
+
+		button(card(host, "whats_new"), "See what's new").click();
+		await flush();
+
+		expect(document.querySelector("[data-whats-new-empty]")?.textContent?.trim()).toBe(
+			"Nothing new since you last looked."
+		);
+	});
+
 	it("brings the card back when the notes cannot be read", async () => {
 		fake.runMethod.mockRejectedValue(new Error("offline"));
 		const { host } = await mountNotices();

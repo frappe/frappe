@@ -7,9 +7,9 @@ import frappe
 from frappe.desk.page.setup_wizard.setup_wizard import get_setup_wizard_url
 from frappe.shell import SHELL_ROOT
 from frappe.shell.boot import get_boot
-from frappe.shell.index_notices import index_notices, read_whats_new
+from frappe.shell.index_notices import WHATS_NEW_CACHE_PREFIX, index_notices, read_whats_new
 from frappe.tests import IntegrationTestCase
-from frappe.utils.change_log import get_versions
+from frappe.utils.change_log import get_change_log, get_versions
 
 ROLE = "Shell Notices Probe"
 USER = "shell-notices-probe@example.com"
@@ -32,6 +32,9 @@ class TestIndexNotices(IntegrationTestCase):
 		self.addCleanup(frappe.clear_document_cache, "Installed Applications", "Installed Applications")
 		self.addCleanup(frappe.clear_document_cache, "System Settings", "System Settings")
 		self.addCleanup(setattr, frappe.local, "system_settings", None)
+		frappe.cache.delete_keys(WHATS_NEW_CACHE_PREFIX)
+		self.addCleanup(frappe.cache.delete_keys, WHATS_NEW_CACHE_PREFIX)
+		self.addCleanup(setattr, frappe.local.flags, "commit", False)
 
 	def probe_user(self, email: str, role: str):
 		if not frappe.db.exists("Role", role):
@@ -47,9 +50,9 @@ class TestIndexNotices(IntegrationTestCase):
 			).insert()
 		self.saw_old_frappe(email)
 
-	def saw_old_frappe(self, email: str):
+	def saw_old_frappe(self, email: str, version: str = OLD_FRAPPE):
 		versions = get_versions()
-		versions["frappe"]["version"] = OLD_FRAPPE
+		versions["frappe"]["version"] = version
 		frappe.db.set_value("User", email, "last_known_versions", json.dumps(versions))
 
 	def leave_setup_unfinished(self):
@@ -108,6 +111,24 @@ class TestIndexNotices(IntegrationTestCase):
 		frappe.set_user(USER)
 
 		self.assertRaises(frappe.PermissionError, read_whats_new)
+
+	def test_a_first_boot_records_the_versions_and_asks_the_get_to_commit(self):
+		frappe.db.set_value("User", SYSTEM_MANAGER, "last_known_versions", None)
+
+		self.assertNotIn("whats_new", self.notices(SYSTEM_MANAGER))
+
+		self.assertTrue(frappe.db.get_value("User", SYSTEM_MANAGER, "last_known_versions"))
+		self.assertTrue(frappe.local.flags.commit)
+
+	def test_the_updated_apps_are_read_once_until_a_version_moves(self):
+		with patch("frappe.shell.index_notices.get_change_log", wraps=get_change_log) as change_log:
+			first = self.notices(SYSTEM_MANAGER)["whats_new"]
+			self.assertEqual(self.notices(SYSTEM_MANAGER)["whats_new"], first)
+			self.assertEqual(change_log.call_count, 1)
+
+			self.saw_old_frappe(SYSTEM_MANAGER, version="8.0.0")
+			self.notices(SYSTEM_MANAGER)
+			self.assertEqual(change_log.call_count, 2)
 
 	def test_a_manager_who_has_seen_every_version_pays_no_git_call(self):
 		frappe.set_user(SYSTEM_MANAGER)
