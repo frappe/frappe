@@ -34,24 +34,19 @@
 		</div>
 	</div>
 
-	<!-- The hovered set's rendered option, in the editor's block-selection ring
-	     (ComponentEditor: ring-2 ring-inset ring-outline-blue-4) -->
-	<div
-		v-if="box && hovered"
-		class="pointer-events-none fixed z-50 ring-2 ring-inset ring-outline-blue-4"
-		:style="{ left: `${box.left}px`, top: `${box.top}px`, width: `${box.width}px`, height: `${box.height}px` }"
-		aria-hidden="true"
-	/>
+	<BlockOutline :rect="outlineRect" />
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, onMounted, ref, shallowRef, watch } from "vue"
+import { computed, nextTick, ref, watch } from "vue"
 import { useRoute, useRouter } from "vue-router"
 import { onClickOutside, useEventListener } from "@vueuse/core"
 import { Button, call, dialog, toast } from "frappe-ui"
+import BlockOutline from "@/components/BlockOutline.vue"
 import VariantRows from "@/components/VariantRows.vue"
+import { useBlockOutline } from "@/utils/useBlockOutline"
 import {
-	choiceIndex,
+	activeVariantIndex,
 	keepDialogText,
 	useMountedVariantSets,
 	withChoice,
@@ -59,39 +54,32 @@ import {
 	type VariantSet,
 } from "@/utils/variants"
 
-// The viewer's variants pill, bottom right. One mounted set renders inline; more collapse
+// The variants pill on the live app, bottom right. One rendered set shows inline; more collapse
 // behind a count and expand into a panel. Every choice is mirrored to the URL, so the
 // current combination is a link.
 const route = useRoute()
 const router = useRouter()
 const sets = useMountedVariantSets()
 
-const canKeep = ref(false)
-onMounted(async () => {
-	if ((window as any).is_guest) return
-	try {
-		canKeep.value = Boolean(await call("frappe.studio.api.check_app_permission"))
-	} catch {
-		canKeep.value = false
-	}
-})
+// answered server side with the rest of the renderer boot, so a page view costs no round trip
+const canKeep = Boolean((window as any).can_edit_app)
 
 // Rows in page order (top to bottom, then left to right), worked out when the panel
 // opens and when the page's sets change, not continuously.
 const order = ref<string[]>([])
 const orderedSets = computed(() => {
 	const o = order.value
-	return [...sets.value].sort((a, b) => (o.indexOf(a.key) + 1 || 99) - (o.indexOf(b.key) + 1 || 99))
+	return [...sets.value].sort((a, b) => (o.indexOf(a.blockId) + 1 || 99) - (o.indexOf(b.blockId) + 1 || 99))
 })
 const rows = computed<VariantRow[]>(() =>
 	orderedSets.value.map((s) => ({
-		key: s.key,
+		key: s.blockId,
 		name: s.name,
 		options: s.options,
 		activeIndex: activeIndex(s),
 	})),
 )
-const setOf = (row: VariantRow) => sets.value.find((s) => s.key === row.key)
+const setOf = (row: VariantRow) => sets.value.find((s) => s.blockId === row.key)
 function pickRow(row: VariantRow, option: string) {
 	const set = setOf(row)
 	if (set) pick(set, option)
@@ -105,7 +93,9 @@ function hoverRow(row: VariantRow | null) {
 }
 function sortRows() {
 	const at = (set: VariantSet) => elementOf(set)?.getBoundingClientRect() ?? { top: 1e9, left: 0 }
-	order.value = [...sets.value].sort((a, b) => at(a).top - at(b).top || at(a).left - at(b).left).map((s) => s.key)
+	order.value = [...sets.value]
+		.sort((a, b) => at(a).top - at(b).top || at(a).left - at(b).left)
+		.map((s) => s.blockId)
 }
 watch(() => sets.value.length, () => nextTick(sortRows), { flush: "post" })
 
@@ -129,12 +119,12 @@ useEventListener(document, "keydown", (e: KeyboardEvent) => {
 function pick(set: VariantSet, value: string) {
 	const index = set.options.indexOf(value)
 	if (index < 0) return
-	const serialized = withChoice(String(route.query.v ?? ""), set.key, set.options, index)
+	const serialized = withChoice(String(route.query.v ?? ""), set.token, set.options, index)
 	router.replace({ query: { ...route.query, v: serialized || undefined } })
 }
 
 function activeIndex(set: VariantSet) {
-	return choiceIndex(String(route.query.v ?? ""), set.key, set.options)
+	return activeVariantIndex(set, String(route.query.v ?? ""))
 }
 
 function keepVariant(set: VariantSet) {
@@ -160,25 +150,20 @@ function keepVariant(set: VariantSet) {
 }
 
 // -- hover outline over the hovered set's rendered option --
+const { rect: outlineRect, outline, measure } = useBlockOutline(true)
 const hovered = ref<VariantSet | null>(null)
-const box = shallowRef<DOMRect | null>(null)
 
 function elementOf(set: VariantSet) {
 	// the Variants block renders no element of its own, so find its rendered option
-	const blockId = set.optionIds?.[activeIndex(set)] || set.blockId
-	return blockId ? document.querySelector(`[data-component-id="${blockId}"]`) : null
+	const optionId = set.optionIds[activeIndex(set)]
+	return optionId ? document.querySelector(`[data-component-id="${optionId}"]`) : null
 }
 function hover(set: VariantSet | null) {
 	hovered.value = set
-	box.value = set ? (elementOf(set)?.getBoundingClientRect() ?? null) : null
+	outline(set ? () => elementOf(set) : null)
 }
 // A row can go away under the pointer without a mouseleave: the panel closes, the route changes.
 watch([() => route.path, open], () => hover(null))
 // A switch replaces the outlined element and reflows the page; re-measure once the swap has landed.
-watch(
-	() => route.query.v,
-	() => nextTick(() => hovered.value && hover(hovered.value)),
-)
-useEventListener(window, "resize", () => hovered.value && hover(hovered.value))
-useEventListener(window, "scroll", () => hovered.value && hover(hovered.value), { capture: true, passive: true })
+watch(() => route.query.v, () => hovered.value && nextTick(measure))
 </script>

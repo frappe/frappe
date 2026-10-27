@@ -25,24 +25,13 @@
 			</div>
 		</template>
 	</Popover>
-	<!-- outline over the hovered row's shown option; fixed and outside any transform,
-	     so the measured viewport rect lands where it was measured -->
-	<div
-		v-if="outlineRect"
-		class="pointer-events-none fixed z-50 ring-2 ring-inset ring-outline-blue-4"
-		:style="{
-			left: `${outlineRect.left}px`,
-			top: `${outlineRect.top}px`,
-			width: `${outlineRect.width}px`,
-			height: `${outlineRect.height}px`,
-		}"
-		aria-hidden="true"
-	/>
+	<BlockOutline :rect="outlineRect" />
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from "vue"
+import { computed, ref, watch } from "vue"
 import { call, dialog, Popover } from "frappe-ui"
+import BlockOutline from "@/components/BlockOutline.vue"
 import VariantRows from "@/components/VariantRows.vue"
 import Block from "@/utils/block"
 import useCanvasStore from "@/stores/canvasStore"
@@ -50,6 +39,7 @@ import useComponentEditorStore from "@/stores/componentEditorStore"
 import useComponentStore from "@/stores/componentStore"
 import useStudioStore from "@/stores/studioStore"
 import { confirmKeepVariantOption } from "@/utils/keepVariant"
+import { useBlockOutline } from "@/utils/useBlockOutline"
 import {
 	getEditorVariantChoice,
 	keepDialogText,
@@ -58,9 +48,9 @@ import {
 	type VariantRow,
 } from "@/utils/variants"
 
-// The editor's variants pill, beside the zoom chip — the collapsed form the preview
-// pill uses, so both surfaces read the same. Rows come from the canvas block tree;
-// which option each set shows lives in the editor choice map.
+// The editor's variants pill, beside the zoom chip — the collapsed form the live app's pill
+// uses, so both surfaces read the same. Rows come from the canvas block tree; which option
+// each set shows lives in the editor choice map.
 const props = defineProps<{
 	// true while the canvas is panned or zoomed: the host hides the pill then, and a
 	// panel whose anchor is hidden gets flung to the viewport edge
@@ -177,19 +167,11 @@ function selectRow(row: VariantRow) {
 }
 
 // -- outline over the hovered set's shown option, so the row can be spotted on canvas --
-const outlineRect = ref<DOMRect | null>(null)
+const { rect: outlineRect, outline } = useBlockOutline()
 
 function outlineVariant(variantsBlock: Block | null) {
-	if (!variantsBlock) {
-		outlineRect.value = null
-		return
-	}
-	nextTick(() => {
-		const optionId = variantsBlock.children[shownVariantIndex(variantsBlock)]?.componentId
-		const host = optionId
-			? document.querySelector(`.__studio_component__[data-component-id="${optionId}"]`)
-			: null
-		outlineRect.value = host ? host.getBoundingClientRect() : null
-	})
+	// the set draws no element of its own; the shown option's block owns the one on canvas
+	const shownOption = () => variantsBlock?.children[shownVariantIndex(variantsBlock)] ?? null
+	outline(variantsBlock ? () => shownOption()?.getRenderedElement() ?? null : null)
 }
 </script>

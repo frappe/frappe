@@ -1,6 +1,12 @@
 <script lang="ts">
 import { Comment, Fragment, defineComponent, onBeforeUnmount, type VNode } from "vue"
-import { releaseVariantSet, useVariantSet } from "@/utils/variants"
+import { useRoute } from "vue-router"
+import {
+	activeVariantIndex,
+	registerVariantSet,
+	releaseVariantSet,
+	retainVariantSet,
+} from "@/utils/variants"
 
 /**
  * One container holding N named alternative subtrees and rendering one. Children are the
@@ -15,27 +21,33 @@ export default defineComponent({
 		name: { type: String, default: "Variant" },
 	},
 	setup(props, { slots, attrs }) {
+		const route = useRoute()
 		// the rendered block's id, so "Keep" can resolve this set back to its editor node
 		const blockId = String(attrs["data-component-id"] || "")
-		const optionBlocks = flattenSlot(slots.default?.() || []).map(
-			(vnode) => (vnode.props as any)?.block as { componentId?: string; variantOptionName?: string } | undefined,
-		)
-		// the option blocks' ids, so the pill can outline the rendered option on hover
-		const optionIds = optionBlocks.map((block) => block?.componentId)
-		const options = optionBlocks.map(
-			(block, index) => block?.variantOptionName || `Option ${index + 1}`,
-		)
-		const { key, activeIndex } = useVariantSet({ name: props.name, options, blockId, optionIds })
-		onBeforeUnmount(() => releaseVariantSet(key))
+		retainVariantSet(blockId)
+		onBeforeUnmount(() => releaseVariantSet(blockId))
 
 		return () => {
-			// child blocks arrive wrapped in a fragment; the options are its children
-			const children = flattenSlot(slots.default?.() || [])
-			if (!children.length) return null
-			return children[Math.min(activeIndex.value, children.length - 1)]
+			// child blocks arrive wrapped in a fragment; the options are its children. Read here
+			// and not in setup: a slot read outside the render function warns, and freezes the
+			// options as they were when the block mounted.
+			const options = flattenSlot(slots.default?.() || [])
+			if (!options.length) return null
+			const set = registerVariantSet({
+				blockId,
+				name: props.name,
+				options: options.map((option, index) => optionBlock(option)?.variantOptionName || `Option ${index + 1}`),
+				// the option blocks' ids, so the pill can outline the rendered option on hover
+				optionIds: options.map((option) => optionBlock(option)?.componentId),
+			})
+			return options[Math.min(activeVariantIndex(set, String(route?.query?.v ?? "")), options.length - 1)]
 		}
 	},
 })
+
+function optionBlock(vnode: VNode) {
+	return (vnode.props as any)?.block as { componentId?: string; variantOptionName?: string } | undefined
+}
 
 function flattenSlot(vnodes: VNode[]): VNode[] {
 	const flattened: VNode[] = []
@@ -49,5 +61,4 @@ function flattenSlot(vnodes: VNode[]): VNode[] {
 	}
 	return flattened
 }
-
 </script>
