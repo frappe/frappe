@@ -4,7 +4,7 @@
  * combination of options is a shareable link.
  */
 
-import { computed, reactive } from "vue"
+import { computed, reactive, toRaw } from "vue"
 
 export interface VariantSet {
 	blockId: string
@@ -58,8 +58,23 @@ export function releaseVariantSet(blockId: string) {
 function, so a rename or an added option reaches the pill. */
 export function registerVariantSet(set: Omit<VariantSet, "token">): VariantSet {
 	const registered = { ...set, token: variantToken(set.blockId, set.name) }
+	// a render writing an unchanged set would invalidate every pill reading the registry,
+	// and the raw read keeps the comparison from making the renderer depend on it
+	const current = toRaw(mountedSets).get(set.blockId)
+	if (current && sameSet(current, registered)) return current
 	mountedSets.set(set.blockId, registered)
 	return registered
+}
+
+function sameSet(one: VariantSet, other: VariantSet): boolean {
+	const sameNames = (a: (string | undefined)[], b: (string | undefined)[]) =>
+		a.length === b.length && a.every((name, index) => name === b[index])
+	return (
+		one.name === other.name &&
+		one.token === other.token &&
+		sameNames(one.options, other.options) &&
+		sameNames(one.optionIds, other.optionIds)
+	)
 }
 
 /** The option a set shows: the editor's canvas choice when one is set, the URL otherwise. */
