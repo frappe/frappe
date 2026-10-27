@@ -209,7 +209,7 @@ describe("a place another app owns", () => {
 		assign.mockRestore();
 	});
 
-	it("keeps the owner's address for a doctype with no module under a modular prefix", () => {
+	it("keeps the owner's address, and offers no Tab, for a doctype with no module under a modular prefix", () => {
 		const modularBoot = { ...boot, prefixes: { ...boot.prefixes, crm: { app: "crm", modular: true } } } as Boot;
 		const modular: PaletteContext = {
 			...context,
@@ -218,7 +218,7 @@ describe("a place another app owns", () => {
 		};
 		registerShell(modular);
 
-		expect(goTo.rows("todo", modular).map((row) => row.href)).toEqual([`${deskBase}/todo`]);
+		expect(goTo.rows("todo", modular).map((row) => [row.href, row.doctype])).toEqual([[`${deskBase}/todo`, undefined]]);
 	});
 
 	it("is one Recent row when visited under two prefixes, and opens here", async () => {

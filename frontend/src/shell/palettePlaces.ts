@@ -142,7 +142,8 @@ class PlaceRows {
 		return reply.doctypes.map((doctype) => {
 			const app = reply.titles[doctype.app] ?? doctype.app;
 			const single = addresses.isSingle(doctype.name);
-			const href = this.addressOf(doctype);
+			const here = this.routable(doctype.name);
+			const href = here ? urlFor(doctype.name) : doctype.route;
 			return {
 				id: `doctype:${doctype.name}`,
 				label: __(doctype.name),
@@ -150,7 +151,7 @@ class PlaceRows {
 				keywords: [doctype.name, app],
 				icon: single ? ROUTE_ICONS.record : ROUTE_ICONS.list,
 				href,
-				doctype: !single && this.opensRecords() ? doctype.name : undefined,
+				doctype: !single && here ? doctype.name : undefined,
 				run: () => openPlace(href, this.context),
 			};
 		});
@@ -243,9 +244,9 @@ class PlaceRows {
 		};
 	}
 
-	/** Under this app's prefix, as a sidebar row opens it; the index has no doctype routes, so the owner's. */
-	private addressOf(doctype: DoctypePlace) {
-		return this.opensRecords() && canRoute(doctype.name) ? urlFor(doctype.name) : doctype.route;
+	/** Opened under this app's prefix, as a sidebar row is; else, as on the index, at the owner's address. */
+	private routable(doctype: string) {
+		return this.opensRecords() && canRoute(doctype);
 	}
 
 	/** Tab narrows only where this router opens the records it finds. */
