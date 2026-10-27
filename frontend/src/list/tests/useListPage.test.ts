@@ -41,7 +41,7 @@ import { setSession } from "@framework/ui/useSession";
 import { resetUserRoles } from "@framework/ui/useUserRoles";
 import type { Session } from "@framework/ui/api";
 import { clearDataCache, feedListRead, settleTicket, takeTicket } from "@framework/ui/cache";
-import { forgetRows, readListMemory, recallRows, writeListMemory } from "../pageState";
+import { readListMemory, recallRows, rememberRows, writeListMemory } from "../pageState";
 import { useListPage, type ListPage } from "../useListPage";
 import { markListSettingsStale, resetListSettings, useListSettings } from "../useListSettings";
 
@@ -155,7 +155,8 @@ beforeEach(() => {
 	resetUserRoles();
 	setSession(SESSION);
 	resetListSettings();
-	forgetRows("Lead");
+	// No list query is empty, so nothing is recalled from a test before.
+	rememberRows("Lead", { query: "", pageSize: 20 });
 	clearDataCache();
 	history.replaceState(null, "");
 	fake.meta = { name: "Lead", title_field: "title", sort_field: "amount", sort_order: "ASC", fields: FIELDS };

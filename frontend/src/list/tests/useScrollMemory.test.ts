@@ -2,7 +2,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { effectScope, nextTick, ref } from "vue";
 
-import { forgetRows, readListMemory, recallRows, rememberRows } from "../pageState";
+import { readListMemory, recallRows, rememberRows } from "../pageState";
 import { useScrollMemory } from "../useScrollMemory";
 
 let scope = effectScope();
@@ -16,7 +16,6 @@ beforeEach(() => {
 
 afterEach(() => {
 	scope.stop();
-	forgetRows("Lead");
 	vi.restoreAllMocks();
 	vi.useRealTimers();
 });

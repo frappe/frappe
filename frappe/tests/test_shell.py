@@ -15,7 +15,7 @@ from frappe.bundler import swap_shell_assets
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.shell import SHELL_ROOT
 from frappe.shell.address_clash import page_files
-from frappe.shell.doctypes import build_address_table, clear_doctype_owners
+from frappe.shell.doctypes import OWNER_CACHE_KEY, build_address_table
 from frappe.shell.install import PrefixCollisionError, before_app_install
 from frappe.shell.manifest import (
 	FRAMEWORK_NAMES,
@@ -99,7 +99,7 @@ def a_second_app(app: str = SECOND_APP, prefix: str | None = SECOND_PREFIX, acti
 
 	def clear():
 		clear_prefix_registry()
-		clear_doctype_owners()
+		frappe.client_cache.delete_value(OWNER_CACHE_KEY)
 
 	clear()
 	with ExitStack() as stack:
@@ -1007,7 +1007,7 @@ class TestShellBoot(IntegrationTestCase):
 
 			with patch.object(frappe.local, "module_app", stale):
 				self.assertNotIn(frappe.scrub(module.name), frappe.local.module_app)
-				clear_doctype_owners()
+				frappe.client_cache.delete_value(OWNER_CACHE_KEY)
 				self.assertEqual(get_doctype_owners().get("Shell Module Probe"), owner)
 
 

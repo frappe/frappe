@@ -49,10 +49,6 @@ def get_doctype_owners() -> dict[str, str]:
 	return owners
 
 
-def clear_doctype_owners():
-	frappe.client_cache.delete_value(OWNER_CACHE_KEY)
-
-
 def metadata_version() -> str:
 	"""The framework's own schema-change signal; every cache here hangs off it."""
 	return frappe.client_cache.get_value("metadata_version") or reset_metadata_version()
@@ -120,10 +116,6 @@ def get_address_table() -> dict:
 	table = build_address_table()
 	frappe.client_cache.set_value(ADDRESS_CACHE_KEY, {"version": version, "table": table})
 	return table
-
-
-def clear_address_table():
-	frappe.client_cache.delete_value(ADDRESS_CACHE_KEY)
 
 
 @frappe.whitelist(methods=["GET"])

@@ -169,7 +169,7 @@ describe("the endpoint client", () => {
     });
   });
 
-  it("defaults to a person's own layer, and never names a user", async () => {
+  it("writes a person's own layer, and never names a user", async () => {
     runMethod.mockResolvedValue({ data: { rail: [], sidebars: {} } });
 
     await saveArrangement({ container: "Rail", address: "frappe" }, []);

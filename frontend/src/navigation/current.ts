@@ -115,14 +115,3 @@ export function currentFrom(
 
 	return best;
 }
-
-/** Both halves, for a caller with no reason to hold the destinations. */
-export function currentNavigation(
-	rail: NavigationItem[],
-	sidebars: Record<string, NavigationItem[]>,
-	contexts: NavigationContexts,
-	path: string,
-	prefer: string[] = []
-): CurrentNavigation {
-	return currentFrom(navigationDestinations(rail, sidebars, contexts), path, prefer);
-}

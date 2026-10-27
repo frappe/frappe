@@ -89,12 +89,6 @@ export function replacedClientScripts(doctype: string): ReadonlySet<string> {
   return waits.has(doctype) ? new Set(sources.get(doctype)) : new Set();
 }
 
-/** Builds the tier again, keeping the registered one until it lands: a saved or deleted script. */
-export function reloadClientScripts(doctype: string): Promise<void> {
-  stale.add(doctype);
-  return loadClientScripts(doctype);
-}
-
 export function resetClientScripts() {
   for (const doctype of sources.keys()) clearTier(doctype);
   sources.clear();

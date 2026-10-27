@@ -6,7 +6,7 @@ import { Addresses } from "@/addresses";
 import type { Boot, NavigationItem } from "@/boot";
 import { registerShell } from "@/router/routeFor";
 import { itemContext } from "@/navigation/context";
-import { coverage, currentNavigation } from "@/navigation/current";
+import { coverage, currentFrom, navigationDestinations } from "@/navigation/current";
 import { registerContributions } from "@/contributions/registry";
 
 const addresses = new Addresses({
@@ -46,18 +46,14 @@ function at(
 	const compose = (items: NavigationItem[]) =>
 		itemContext(boot, addresses, router, items, sidebars);
 
-	return currentNavigation(
-		rail,
-		sidebars,
-		{
-			rail: compose(rail),
-			sidebars: Object.fromEntries(
-				Object.entries(sidebars).map(([address, rows]) => [address, compose(rows)])
-			),
-		},
-		path,
-		prefer
-	);
+	const contexts = {
+		rail: compose(rail),
+		sidebars: Object.fromEntries(
+			Object.entries(sidebars).map(([address, rows]) => [address, compose(rows)])
+		),
+	};
+
+	return currentFrom(navigationDestinations(rail, sidebars, contexts), path, prefer);
 }
 
 const deal: NavigationItem = { key: "deal", item_type: "DocType", link_to: "CRM Deal" };

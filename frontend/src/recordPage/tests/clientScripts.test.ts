@@ -20,7 +20,6 @@ import {
   clientScriptWait,
   invalidateClientScripts,
   loadClientScripts,
-  reloadClientScripts,
   replacedClientScripts,
   resetClientScripts,
   watchClientScripts,
@@ -39,6 +38,12 @@ function respond(scripts: string[], canWrite = true) {
 
 function sources(doctype = "CRM Deal") {
   return registrationsFor(doctype).map((registration) => registration.source);
+}
+
+/** A saved or deleted script, as the client_script_changed listener and the next load see it. */
+function reload(doctype: string) {
+  invalidateClientScripts(doctype);
+  return loadClientScripts(doctype);
 }
 
 /** Holds the named script's evaluation until `release`; the rest evaluate at once. */
@@ -120,15 +125,15 @@ describe("the Client Script tier", () => {
     expect(toast.error).not.toHaveBeenCalled();
 
     respond(["broken"], true);
-    await reloadClientScripts("CRM Deal");
-    await reloadClientScripts("CRM Deal");
+    await reload("CRM Deal");
+    await reload("CRM Deal");
     expect(toast.error).toHaveBeenCalledTimes(1);
   });
 
   it("re-registers the whole tier on reload, so creation order survives a save", async () => {
     respond(["oldest", "newest"]);
     await loadClientScripts("CRM Deal");
-    await reloadClientScripts("CRM Deal");
+    await reload("CRM Deal");
     expect(sources()).toEqual(["client-script:oldest", "client-script:newest"]);
   });
 
@@ -136,7 +141,7 @@ describe("the Client Script tier", () => {
     respond(["kept", "deleted"]);
     await loadClientScripts("CRM Deal");
     respond(["kept"]);
-    await reloadClientScripts("CRM Deal");
+    await reload("CRM Deal");
     expect(sources()).toEqual(["client-script:kept"]);
   });
 
@@ -148,10 +153,10 @@ describe("the Client Script tier", () => {
     call.mockReturnValueOnce(
       new Promise((resolve) => (releaseStale = resolve)),
     );
-    const slow = reloadClientScripts("CRM Deal");
+    const slow = reload("CRM Deal");
 
     respond(["fresh"]);
-    await reloadClientScripts("CRM Deal");
+    await reload("CRM Deal");
     releaseStale({
       data: { scripts: [{ name: "stale", script: "export default {}" }], can_write: true },
     });
@@ -166,11 +171,11 @@ describe("the Client Script tier", () => {
 
     respond(["older"]);
     const held = holdEvaluation("older");
-    const slow = reloadClientScripts("CRM Deal");
+    const slow = reload("CRM Deal");
     await held.reached();
 
     respond(["newer"]);
-    await reloadClientScripts("CRM Deal");
+    await reload("CRM Deal");
     held.release();
     await slow;
 
@@ -204,7 +209,7 @@ describe("the Client Script tier", () => {
 
     respond(["new"]);
     const held = holdEvaluation("new");
-    const loading = reloadClientScripts("CRM Deal");
+    const loading = reload("CRM Deal");
     await held.reached();
 
     expect([...replacedClientScripts("CRM Deal")]).toEqual(["client-script:old"]);
@@ -235,7 +240,7 @@ describe("the Client Script tier", () => {
     await loadClientScripts("CRM Deal");
 
     call.mockRejectedValueOnce(new Error("offline"));
-    await reloadClientScripts("CRM Deal");
+    await reload("CRM Deal");
 
     expect(sources()).toEqual(["client-script:kept"]);
     expect(clientScriptWait("CRM Deal")).toBeNull();
@@ -259,7 +264,7 @@ describe("the Client Script tier", () => {
     expect(canWriteClientScripts.value).toBe(true);
 
     respond(["one"], false);
-    await reloadClientScripts("CRM Deal");
+    await reload("CRM Deal");
     expect(canWriteClientScripts.value).toBe(false);
   });
 
