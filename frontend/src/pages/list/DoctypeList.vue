@@ -198,7 +198,7 @@ const listActs = useListActs({
 	confirmDelete: () => (confirmingDelete.value = true),
 	customizing: () => customizing.value,
 	selected: () => selection.value.length,
-	starsLoaded: () => settings.loaded.value,
+	starsLoaded: () => settings.favourites.value !== null,
 	favourited: () => favourited.value,
 	toggleFavourite: () => settings.toggleFavourite(props.view ?? null),
 });

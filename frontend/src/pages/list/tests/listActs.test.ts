@@ -401,6 +401,18 @@ describe("the list surface", () => {
     expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("true");
   });
 
+  it("draws no star when the settings read fails, since it cannot say what is starred", async () => {
+    const real = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (url, init) =>
+      String(url).includes(SETTINGS)
+        ? new Response(JSON.stringify({ errors: [{ type: "Error", message: "down" }] }), { status: 500 })
+        : real(url, init)
+    );
+    const root = await mount();
+    expect(root.querySelector("header [data-favourite]")).toBeNull();
+    expect(listActNames()).not.toContain("list.favourite");
+  });
+
   it("keeps the star as it was when the server refuses", async () => {
     const root = await mount();
     vi.mocked(fetch).mockImplementationOnce(

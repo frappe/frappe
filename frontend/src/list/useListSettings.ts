@@ -36,7 +36,8 @@ export interface ListSettingsHandle {
 	refreshing: ComputedRef<boolean>;
 	/** Resolves once the fresh read of stale settings has arrived, shown or held. */
 	refreshed: () => Promise<void>;
-	favourites: ComputedRef<ListFavourites>;
+	/** Null until a settings read succeeds: the star cannot be drawn without it. */
+	favourites: ComputedRef<ListFavourites | null>;
 	/** Stars or unstars the list, or the saved view `view`; rejects with the server's refusal. */
 	toggleFavourite: (view: string | null) => Promise<void>;
 }
@@ -48,7 +49,7 @@ interface Tiers {
 
 interface Entry {
 	tiers: Ref<Tiers>;
-	favourites: Ref<ListFavourites>;
+	favourites: Ref<ListFavourites | null>;
 	loaded: Ref<boolean>;
 	pending: ListSettings | null;
 	/** How many times each key was reset; a failed patch comes back only for keys reset no further. */
@@ -133,7 +134,7 @@ function entryFor(doctype: string): Entry {
 	const seeded = existing?.loaded.value ?? false;
 	const entry: Entry = {
 		tiers: ref(seeded ? existing!.tiers.value : { site: null, user: null }),
-		favourites: ref(seeded ? existing!.favourites.value : { list: false, views: [] }),
+		favourites: ref(seeded ? existing!.favourites.value : null),
 		loaded: ref(seeded),
 		pending: null,
 		resets: {},
@@ -201,7 +202,8 @@ function write(entry: Entry, send: () => Promise<unknown>, onFailure?: () => voi
 }
 
 /** Whether `view`, or the list itself when null, is starred. */
-export function isFavourite(favourites: ListFavourites, view: string | null): boolean {
+export function isFavourite(favourites: ListFavourites | null, view: string | null): boolean {
+	if (!favourites) return false;
 	return view === null ? favourites.list : favourites.views.includes(view);
 }
 
@@ -218,7 +220,7 @@ function toggleFavourite(entry: Entry, doctype: string, view: string | null): Pr
 }
 
 function markFavourite(entry: Entry, view: string | null, favourited: boolean) {
-	const { list, views } = entry.favourites.value;
+	const { list, views } = entry.favourites.value ?? { list: false, views: [] };
 	if (view === null) entry.favourites.value = { list: favourited, views };
 	else {
 		const others = views.filter((name) => name !== view);

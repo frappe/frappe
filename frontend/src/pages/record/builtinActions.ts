@@ -4,6 +4,7 @@ import { deleteDocument } from "@framework/ui/api";
 import type { HeaderItem, QuickAction, RecordPageApi } from "@/recordPage";
 import type { TabCreateAction } from "@/recordPage/types";
 import { routeFor } from "@/router/routeFor";
+import { favouriteWording } from "@/pages/favourite/favouriteWording";
 
 export function quickActionBuiltins(
   perms: Record<string, any>,
@@ -56,9 +57,7 @@ export function headerMenuBuiltins(
       name: "favourite_row",
       group: "favourite_band",
       run: favourite.toggle,
-      ...(favourite.favourited
-        ? { label: "Remove from favourites", icon: "lucide-star-off" }
-        : { label: "Add to favourites", icon: "lucide-star" }),
+      ...favouriteWording(favourite.favourited),
     },
   ];
   if (options.follow)

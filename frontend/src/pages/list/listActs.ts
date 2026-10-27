@@ -12,6 +12,7 @@ import {
 import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
 import { whenLoaded } from "@/acts/doctypeRight";
+import { favouriteWording } from "@/pages/favourite/favouriteWording";
 import { errorMessage } from "@/recordPage/errorMessage";
 
 export interface ListActsHost {
@@ -21,7 +22,7 @@ export interface ListActsHost {
   confirmDelete: () => void;
   customizing: () => boolean;
   selected: () => number;
-  /** False until the list settings read says what is starred. */
+  /** False until a list settings read says what is starred. */
   starsLoaded: () => boolean;
   favourited: () => boolean;
   toggleFavourite: () => unknown;
@@ -68,9 +69,7 @@ function listEntries(host: ListActsHost): ActEntry[] {
     {
       item: {
         name: "favourite",
-        ...(host.favourited()
-          ? { label: __("Remove from favourites"), icon: "lucide-star-off" }
-          : { label: __("Add to favourites"), icon: "lucide-star" }),
+        ...favouriteWording(host.favourited()),
         run: () => host.toggleFavourite(),
       },
       hidden: !host.starsLoaded(),
