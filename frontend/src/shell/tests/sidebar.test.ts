@@ -152,6 +152,108 @@ describe("what opens the panel", () => {
 	});
 });
 
+describe("a move to another sidebar", () => {
+	const deal: NavigationItem = { key: "deal", item_type: "DocType", link_to: "CRM Deal" };
+	const crm: NavigationItem = {
+		key: "crm",
+		item_type: "Sidebar",
+		link_to: "module_def_fcrm",
+		label: "CRM",
+	};
+	const section = (keep_closed?: 1): NavigationItem => ({
+		key: "shared",
+		item_type: "Section Break",
+		label: "Shared",
+		collapsible: 1,
+		keep_closed,
+	});
+	const inside = (item: NavigationItem): NavigationItem => ({ ...item, parent_key: "shared" });
+
+	it("keeps the panel built and draws the other sidebar's rows and heading", async () => {
+		const { host, router } = await shell(
+			[accounts, crm],
+			{ ...sidebars, module_def_fcrm: [deal] },
+			"/sales-invoice"
+		);
+		const before = panel(host);
+
+		await router.push("/crm-deal");
+		await flush();
+
+		expect(panel(host)).toBe(before);
+		expect(panel(host)?.textContent).toContain("CRM Deal");
+		expect(panel(host)?.textContent).not.toContain("Sales Invoice");
+		expect(panel(host)?.querySelector("p")?.textContent?.trim()).toBe("CRM");
+		expect(marked(panel(host))).toEqual(["deal"]);
+	});
+
+	it("opens the other sidebar at its top", async () => {
+		const { host, router } = await shell(
+			[accounts, crm],
+			{ ...sidebars, module_def_fcrm: [deal] },
+			"/sales-invoice"
+		);
+		const viewport = panel(host)!.querySelector<HTMLElement>("[data-slot='scroll-area-viewport']")!;
+		viewport.scrollTop = 120;
+
+		await router.push("/crm-deal");
+		await flush();
+
+		expect(viewport.scrollTop).toBe(0);
+	});
+
+	it("rests a section of the same key where the other sidebar has it", async () => {
+		localStorage.clear();
+		const { host, router } = await shell(
+			[accounts, crm],
+			{
+				module_def_accounts: [invoice, section(), inside(lead)],
+				module_def_fcrm: [deal, section(), inside(lead)],
+			},
+			"/sales-invoice"
+		);
+		const toggle = () => panel(host)?.querySelector("[data-key='shared'] button[aria-expanded]");
+
+		toggle()!.dispatchEvent(new Event("click"));
+		await flush();
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("false");
+
+		await router.push("/crm-deal");
+		await flush();
+		expect(toggle()?.getAttribute("aria-expanded")).toBe("true");
+	});
+
+	it("reports a cycle once in each sidebar it opens", async () => {
+		const errors: string[] = [];
+		const original = console.error;
+		console.error = (...args: unknown[]) => errors.push(String(args[0]));
+		const loop = (key: string, parent_key: string): NavigationItem => ({
+			key,
+			item_type: "DocType",
+			link_to: "CRM Lead",
+			parent_key,
+		});
+
+		try {
+			const { router } = await shell(
+				[accounts, crm],
+				{
+					module_def_accounts: [invoice, loop("a", "b"), loop("b", "a")],
+					module_def_fcrm: [deal, loop("a", "b"), loop("b", "a")],
+				},
+				"/sales-invoice"
+			);
+			await router.push("/crm-deal");
+			await flush();
+		} finally {
+			console.error = original;
+		}
+
+		expect(errors.filter((line) => line.includes("module_def_accounts sidebar")).length).toBe(2);
+		expect(errors.filter((line) => line.includes("module_def_fcrm sidebar")).length).toBe(2);
+	});
+});
+
 describe("the empty case", () => {
 	it("draws no panel and no rail item when the sidebar has no rows", async () => {
 		// A linked rail item whose sidebar is empty renders as independent, and a `Sidebar` item's

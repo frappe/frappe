@@ -19,7 +19,6 @@
 		<template v-if="boot.app" #sidebar>
 			<SidebarPanel
 				v-if="panel"
-				:key="panel.address"
 				:address="panel.address"
 				:items="panel.items"
 				:context="panel.context"
