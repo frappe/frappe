@@ -56,6 +56,14 @@
 				{{ __("No results for “{0}”", [query.trim()]) }}
 			</p>
 
+			<p
+				v-else-if="searchBroken"
+				class="mt-16 text-base text-ink-gray-5"
+				data-index-state="search-failed"
+			>
+				{{ __("Could not search for “{0}”", [query.trim()]) }}
+			</p>
+
 			<ul
 				v-if="matches.length"
 				:id="TILES_ID"
@@ -176,10 +184,9 @@ const results = computed(() => search.value?.groups.value ?? []);
 // Not before the places answer: the rows still on their way would contradict it.
 const nothingFound = computed(
 	() =>
-		!matches.value.length &&
-		!search.value?.found.value.length &&
-		(search.value ? search.value.settled.value : searchFailed.value)
+		!matches.value.length && !search.value?.found.value.length && !!search.value?.settled.value
 );
+const searchBroken = computed(() => !matches.value.length && !search.value && searchFailed.value);
 // Arranging draws every app, hidden ones too, and no "Get more apps" tile.
 const boxWidth = computed(() =>
 	boxWidthClass(
