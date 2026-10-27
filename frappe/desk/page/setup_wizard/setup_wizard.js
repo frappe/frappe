@@ -689,9 +689,15 @@ frappe.setup.utils = {
 					frappe.wizard.values.language =
 						frappe.wizard.values.language || r.message.language;
 
+					// Administrator has no identity of its own; keep the fallback.
+					const user =
+						frappe.session.user === "Administrator"
+							? { name: ["not in", ["Administrator", "Guest"]] }
+							: frappe.session.user;
+
 					frappe.db.get_value(
 						"User",
-						{ name: ["not in", ["Administrator", "Guest"]] },
+						user,
 						["full_name", "email"],
 						(r) => {
 							if (r) {
