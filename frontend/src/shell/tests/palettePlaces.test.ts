@@ -37,6 +37,7 @@ const placesReply = {
 	],
 	apps: [],
 	titles: { frappe: "Desk", crm: "CRM" },
+	recent: [],
 };
 
 const panesReply = {

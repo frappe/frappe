@@ -1,7 +1,7 @@
 // The palette's own search: no fuzzy matching, three tiers, then recency, then the alphabet.
 import { matchTier } from "./matchTier";
 import type { PaletteRow } from "./palette";
-import { recents } from "./recents";
+import { recentVisits } from "./recentVisits";
 
 const MISS = 3;
 
@@ -27,7 +27,7 @@ function tierOf(row: PaletteRow, needle: string): number {
 }
 
 function recencyOf(row: PaletteRow) {
-	return row.href ? recents.recency(row.href) : Infinity;
+	return row.href ? recentVisits.recency(row.href) : Infinity;
 }
 
 // Two rows never opened tie here, and `Infinity - Infinity` would not.

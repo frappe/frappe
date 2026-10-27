@@ -9,7 +9,7 @@ import { askFlow } from "./paletteFlow";
 import { create, goTo, openPlace } from "./palettePlaces";
 import { rank } from "./paletteRanking";
 import { findRow, records } from "./paletteRecords";
-import { recents, type Recent } from "./recents";
+import { recentVisits, type RecentVisit } from "./recentVisits";
 
 export interface PaletteContext {
 	boot: Boot;
@@ -27,10 +27,9 @@ export interface PaletteGroup {
 }
 
 const RECENT_CAP = 5;
-const RECENT_ICONS: Record<Recent["kind"], string> = {
+const RECENT_ICONS: Record<RecentVisit["kind"], string> = {
 	record: "lucide-file-text",
 	list: "lucide-list",
-	page: "lucide-app-window",
 };
 
 const recent: PaletteGroup = {
@@ -38,7 +37,7 @@ const recent: PaletteGroup = {
 		return __("Recent");
 	},
 	rows: (query, context) =>
-		query.trim() ? [] : recents.list().slice(0, RECENT_CAP).map((one) => recentRow(one, context)),
+		query.trim() ? [] : recentVisits.list().slice(0, RECENT_CAP).map((one) => recentRow(one, context)),
 };
 
 const thisPage: PaletteGroup = {
@@ -61,14 +60,14 @@ export const paletteGroups: PaletteGroup[] = [recent, thisPage, desk, goTo, crea
 /** Rows below the scrolling list, which never scroll away; the arrow keys reach them last. */
 export const pinnedRows: PaletteGroup["rows"][] = [findRow, askFlow];
 
-function recentRow(one: Recent, context: PaletteContext): PaletteRow {
+function recentRow(one: RecentVisit, context: PaletteContext): PaletteRow {
 	return {
-		id: `recent:${one.href}`,
-		label: one.label,
-		description: one.kind === "record" && one.description ? __(one.description) : one.description,
+		id: `recent:${one.route}`,
+		label: one.title,
+		description: one.description,
 		icon: RECENT_ICONS[one.kind],
-		href: one.href,
-		run: () => openPlace(one.href, context),
+		href: one.route,
+		run: () => openPlace(one.route, context),
 	};
 }
 

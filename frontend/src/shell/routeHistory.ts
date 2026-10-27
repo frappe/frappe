@@ -1,6 +1,6 @@
 // Writes each list and record visit to `Route History`, as desk v1 does; the index's Recent reads it.
 import { debounce } from "frappe-ui";
-import type { Router } from "vue-router";
+import type { NavigationFailure, RouteLocationNormalized, Router } from "vue-router";
 import { runMethod } from "@framework/ui/api";
 
 const INSERT_METHOD = "frappe.desk.doctype.route_history.route_history.deferred_insert";
@@ -22,8 +22,9 @@ export function recordRouteHistory(router: Router, base: string) {
 	const sendLater = debounce(send, QUIET_MS);
 
 	router.afterEach((to, from, failure) => {
-		if (failure || !RECORDED_ROUTES.has(String(to.name)) || to.path === from.path) return;
-		queue.push({ route: `${base}${to.path}` });
+		const route = visitedRoute(base, to, from, failure);
+		if (!route) return;
+		queue.push({ route });
 		sendLater();
 	});
 
@@ -33,4 +34,15 @@ export function recordRouteHistory(router: Router, base: string) {
 		sendLater.cancel();
 		send();
 	});
+}
+
+/** The address `Route History` keeps for a navigation, or `null` for one that is no list or record visit. */
+export function visitedRoute(
+	base: string,
+	to: RouteLocationNormalized,
+	from: RouteLocationNormalized,
+	failure?: NavigationFailure | void
+) {
+	if (failure || !RECORDED_ROUTES.has(String(to.name)) || to.path === from.path) return null;
+	return `${base}${to.path}`;
 }

@@ -32,6 +32,11 @@ export function tabMemory<T>(
 	return memoryIn(() => sessionStorage, name, user, is);
 }
 
+/** Drops a name's entry for every user, once the desk no longer keeps it in the browser. */
+export function forgetMemory(name: string) {
+	remove(() => localStorage, PREFIX + name);
+}
+
 function memoryIn<T>(
 	area: Area,
 	name: string,

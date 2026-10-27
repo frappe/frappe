@@ -19,7 +19,7 @@ import AppShell from "../AppShell.vue";
 import { closeCreates, createRequests, registerCreateDialog } from "../create";
 import { openArgumentStep, paletteOpen, registerPageRows, type PaletteRow } from "../palette";
 import { pinnedRows } from "../paletteGroups";
-import { recents } from "../recents";
+import { recentVisits } from "../recentVisits";
 
 registerStandardPages(standardPages);
 
@@ -70,6 +70,11 @@ const placesReply = {
 		{ app: "frappe", title: "Desk", route: deskBase },
 	],
 	titles: { crm: "CRM", frappe: "Desk" },
+	// `Route History` as the server reads it: a deal this tab also visits, and a task under another prefix.
+	recent: [
+		{ route: `${crmBase}/crm-deal/DEAL-1`, title: "Acme deal", kind: "record", description: "CRM Deal", visited: 2 },
+		{ route: `${deskBase}/todo/T-9`, title: "Call back Acme", kind: "record", description: "ToDo", visited: 1 },
+	],
 };
 
 const panesReply = {
@@ -128,7 +133,7 @@ async function shell(path = "/crm-deal", shellBoot: Boot = boot): Promise<Router
 		],
 	});
 	registerShell({ boot: shellBoot, addresses, router });
-	recents.track(router, shellBoot, addresses);
+	recentVisits.track(router, shellBoot, addresses);
 
 	const host = document.createElement("div");
 	document.body.appendChild(host);
@@ -289,12 +294,15 @@ describe("opening the palette", () => {
 	it("draws the acts of a page that registers while it is open", async () => {
 		await shell();
 		await open();
-		expect(drawn()).toEqual([["Recent", "CRM Deal CRM"]]);
+		expect(drawn()).toEqual([["Recent", "CRM Deal CRM", "Acme deal CRM Deal", "Call back Acme ToDo"]]);
 
 		register({ header: [act("save", "Save")] });
 		await flush();
 
-		expect(drawn()).toEqual([["Recent", "CRM Deal CRM"], ["This page", "Save"]]);
+		expect(drawn()).toEqual([
+			["Recent", "CRM Deal CRM", "Acme deal CRM Deal", "Call back Acme ToDo"],
+			["This page", "Save"],
+		]);
 	});
 
 	it("opens from the rail's search item", async () => {
@@ -329,10 +337,27 @@ describe("the groups", () => {
 		await router.push("/crm-deal");
 		await open();
 
+		// This tab's visits first, newest first, one row per address, the server's title on its deal.
 		expect(drawn()).toEqual([
-			["Recent", "CRM Deal CRM", "DEAL-1 CRM Deal", "CRM Lead CRM"],
+			["Recent", "CRM Deal CRM", "Acme deal CRM Deal", "CRM Lead CRM", "Call back Acme ToDo"],
 			["This page", "Save", "Assign to…", "Send an email", "Go to tab: Activity"],
 		]);
+	});
+
+	it("draws a visit from this tab before the server has it, by the title its page read", async () => {
+		await shell("/crm-deal/DEAL-2");
+		recentVisits.retitle("/crm-deal/DEAL-2", "Globex deal");
+		await open();
+
+		expect(drawn()[0]).toEqual(["Recent", "Globex deal CRM Deal", "Acme deal CRM Deal", "Call back Acme ToDo"]);
+	});
+
+	it("drops the recents the desk once kept in this browser", async () => {
+		const kept = [{ href: `${crmBase}/crm-deal/DEAL-1`, label: "Acme deal", kind: "record" }];
+		localStorage.setItem("frappe:desk:recents", JSON.stringify({ "reader@example.com": kept }));
+		await shell();
+
+		expect(localStorage.getItem("frappe:desk:recents")).toBeNull();
 	});
 
 	it("draws an act's key on the right", async () => {
@@ -437,20 +462,9 @@ describe("the groups", () => {
 });
 
 describe("a recent of another prefix", () => {
-	/** A recent kept under another app's prefix, as that app's own shell would keep it. */
-	async function keptElsewhere() {
-		const elsewhere = { ...boot, app: "helpdesk", shell_base: boot.shell_base.replace("crm", "helpdesk") };
-		const router = createRouter({
-			history: createMemoryHistory(elsewhere.shell_base),
-			routes: [{ path: "/:doctype/:name", name: "record", component: page }],
-		});
-		recents.track(router, elsewhere, addresses);
-		await router.push("/todo/T-1");
-		return router.resolve("/todo/T-1").href;
-	}
+	const href = `${deskBase}/todo/T-9`;
 
 	it("loads the other prefix's document, not a route of this one", async () => {
-		const href = await keptElsewhere();
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 		const router = await shell();
 		await open();
@@ -464,7 +478,6 @@ describe("a recent of another prefix", () => {
 	});
 
 	it("loads it from the index, which has no app routes", async () => {
-		const href = await keptElsewhere();
 		const assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
 		const index = { ...boot, app: null, app_title: undefined, shell_base: boot.shell_base.replace("/crm", "") };
 		await shell("/", index as unknown as Boot);
@@ -744,7 +757,8 @@ describe("the pinned area", () => {
 		const list = document.body.querySelector("[data-slot='palette-pinned']");
 		expect(list?.textContent).toContain("Pinned row");
 
-		await press("ArrowDown");
+		// Past Recent's three rows, the first of which holds the keyboard.
+		for (let step = 0; step < 3; step++) await press("ArrowDown");
 		expect(row("act:header.save")!.dataset.state).toBe("active");
 		await press("ArrowDown");
 		expect(row("pinned")!.dataset.state).toBe("active");
