@@ -78,7 +78,9 @@ class TestPalettePlaces(IntegrationTestCase):
 		doctypes = {row["name"]: row for row in reply["doctypes"]}
 
 		self.assertTrue(doctypes["DocType"]["can_create"])
-		self.assertEqual(doctypes["System Settings"]["route"], canonical_path("System Settings", "System Settings"))
+		self.assertEqual(
+			doctypes["System Settings"]["route"], canonical_path("System Settings", "System Settings")
+		)
 		self.assertFalse(doctypes["System Settings"]["can_create"])
 		self.assertNotIn("DocField", doctypes)
 		self.assertEqual(list(doctypes), sorted(doctypes))

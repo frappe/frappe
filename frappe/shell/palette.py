@@ -16,9 +16,7 @@ def places() -> dict:
 		frappe.throw(_("You are not permitted to access this page."), frappe.PermissionError)
 
 	doctypes = place_doctypes()
-	apps = [
-		{"app": tile["app"], "title": tile["title"], "route": tile["route"]} for tile in index_tiles()
-	]
+	apps = [{"app": tile["app"], "title": tile["title"], "route": tile["route"]} for tile in index_tiles()]
 	owners = {doctype["app"] for doctype in doctypes}
 	return {
 		"doctypes": doctypes,
