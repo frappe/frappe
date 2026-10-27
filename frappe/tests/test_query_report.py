@@ -895,6 +895,10 @@ data = columns, result
 			)
 			result = run(report.name, {"prepared_report_name": prepared_report.name})
 
+			prepared_report.db_set("filters", "null")
+			with self.assertRaisesRegex(frappe.ValidationError, "Allocated To"):
+				run(report.name, {"prepared_report_name": prepared_report.name})
+
 		self.assertEqual(result["doc"].name, prepared_report.name)
 
 	def test_filters_without_validation_reach_the_report_unchanged(self):
