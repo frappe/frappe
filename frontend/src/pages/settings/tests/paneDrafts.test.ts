@@ -356,7 +356,7 @@ describe("a conflict with a save made elsewhere", () => {
 		await settled();
 
 		expect(server.writes).toHaveLength(1);
-		expect(server.doc("System Settings", "System Settings").time_zone).not.toBe("Asia/Kolkata");
+		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Europe/Paris");
 		expect(regional.draft.state.marks).toMatchObject({ country: "error", time_zone: "error" });
 		expect(regional.draft.dirty("time_zone")).toBe(true);
 	});

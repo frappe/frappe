@@ -214,7 +214,7 @@ export class BindingDraft {
 			(fieldname) => touched(fieldname) && !same(this.state.doc[fieldname], fresh[fieldname])
 		);
 		if (!conflicting.length) {
-			if (fresh.modified === this.state.saved.modified) return this.refuse(fieldnames, refusal);
+			if (refusal && fresh.modified === this.state.saved.modified) return this.refuse(fieldnames, refusal);
 			this.adopt(fresh, touched);
 			for (const fieldname of fieldnames) this.queued.add(fieldname);
 			return;
