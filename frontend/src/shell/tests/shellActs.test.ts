@@ -184,6 +184,7 @@ describe("the acts the shell holds", () => {
 							],
 							apps: [],
 							titles: { crm: "CRM" },
+							recent: [],
 					  }
 					: { panes: [{ app: "crm", key: "deals", label: "Deals", blocks: [] }], index: [], titles: { crm: "CRM" } },
 		}));

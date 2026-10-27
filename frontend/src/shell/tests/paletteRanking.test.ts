@@ -1,12 +1,12 @@
 // The palette's ranking: three tiers on the label and the hidden keywords, then recency, then the alphabet.
 import { beforeEach, describe, expect, it } from "vitest";
-import { createMemoryHistory, createRouter } from "vue-router";
+import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import type { PaletteRow } from "../palette";
 import { rank } from "../paletteRanking";
-import { recents } from "../recents";
+import { recentVisits } from "../recentVisits";
 
 const boot = {
 	app: "crm",
@@ -27,7 +27,17 @@ function labels(rows: PaletteRow[]) {
 	return rows.map((one) => one.label);
 }
 
-beforeEach(() => localStorage.clear());
+let router: Router;
+
+// Tracking anew forgets the last test's visits; the server's are replaced whole.
+beforeEach(() => {
+	router = createRouter({
+		history: createMemoryHistory(boot.shell_base),
+		routes: [{ path: "/:doctype", name: "list", component: { render: () => null } }],
+	});
+	recentVisits.track(router, boot, addresses);
+	recentVisits.heard([]);
+});
 
 describe("rank", () => {
 	it("puts a label that starts with the query first, then a word that does, then any match", () => {
@@ -49,23 +59,26 @@ describe("rank", () => {
 		expect(labels(rank(rows, "crm"))).toEqual(["Log a call", "Scrm"]);
 	});
 
-	it("breaks a tie by the row opened last, then by the alphabet", async () => {
-		const router = createRouter({
-			history: createMemoryHistory(boot.shell_base),
-			routes: [{ path: "/:doctype", name: "list", component: { render: () => null } }],
-		});
-		recents.track(router, boot, addresses);
+	it("breaks a tie by the row opened last, here or on the server, then by the alphabet", async () => {
+		recentVisits.heard([{ route: `${boot.shell_base}/crm-note`, title: "CRM Note", kind: "list", visited: 0 }]);
 		await router.push("/crm-lead");
 		await router.push("/crm-deal");
 		const href = (path: string) => router.resolve(path).href;
 		const rows = [
+			row("CRM Note", { href: `${boot.shell_base}/crm-note` }),
 			row("CRM Lead", { href: href("/crm-lead") }),
 			row("CRM Contact"),
 			row("CRM Deal", { href: href("/crm-deal") }),
 			row("CRM Activity"),
 		];
 
-		expect(labels(rank(rows, "crm"))).toEqual(["CRM Deal", "CRM Lead", "CRM Activity", "CRM Contact"]);
+		expect(labels(rank(rows, "crm"))).toEqual([
+			"CRM Deal",
+			"CRM Lead",
+			"CRM Note",
+			"CRM Activity",
+			"CRM Contact",
+		]);
 	});
 
 	it("keeps the given order on an empty query", () => {

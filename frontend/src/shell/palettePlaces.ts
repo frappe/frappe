@@ -11,6 +11,7 @@ import type { ItemContext } from "@/navigation/types";
 import type { PaletteRow } from "./palette";
 import type { PaletteContext, PaletteGroup } from "./paletteGroups";
 import { rank } from "./paletteRanking";
+import { recentVisits, type RecentVisit } from "./recentVisits";
 import { SettingsAddressBook } from "./settingsAddress";
 import { fetchPanes, type PanesReply } from "./settingsPanes";
 
@@ -26,6 +27,7 @@ export interface PlacesReply {
 	doctypes: DoctypePlace[];
 	apps: { app: string; title: string; route: string }[];
 	titles: Record<string, string>;
+	recent: RecentVisit[];
 }
 
 const GO_TO_CAP = 8;
@@ -104,6 +106,7 @@ export function openPlace(href: string, { boot, router }: PaletteContext) {
 
 async function fetchPlaces(): Promise<PlacesReply> {
 	const envelope = await runMethod<PlacesReply>("frappe.shell.palette.places", {}, { http: "GET" });
+	recentVisits.heard(envelope.data.recent);
 	return envelope.data;
 }
 

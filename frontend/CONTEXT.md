@@ -344,8 +344,9 @@ One line in the palette, showing an act, a place or a record. Not a child table'
 **Words that collide**.
 
 **Recent**: <a id="recent"></a>
-A place or record this user opened lately, by any route, kept in this browser. The palette
-shows the last few on the empty query.
+A list or record this user opened lately, on any device, read from `Route History` with this
+tab's own visits on top. Nothing is kept in the browser. The palette shows the last few on the
+empty query, and the index shows its own.
 
 **Shell surface**: <a id="shell-surface"></a>
 The surface for acts that outlive a page: the shell's own acts, named `shell.<item>`, and an

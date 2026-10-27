@@ -217,7 +217,7 @@ import {
 } from "./record/saveResponse";
 import PageFrame from "@/shell/PageFrame.vue";
 import { failedState, type PageStateValue } from "@/shell/pageState";
-import { recents } from "@/shell/recents";
+import { recentVisits } from "@/shell/recentVisits";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
 
@@ -265,7 +265,7 @@ watch(controller, (created, _, onCleanup) => created && onCleanup(registerTabRow
 
 watch(
 	() => saved.value.name === docname.value && saved.value[meta.value?.title_field],
-	(title) => title && recents.retitle(route.path, String(title))
+	(title) => title && recentVisits.retitle(route.path, String(title))
 );
 
 // Off the sidecar, like the people rows: a favourite is never part of the draft.
