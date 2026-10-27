@@ -10,7 +10,7 @@
 					<Breadcrumbs class="-ml-0.5" :items="crumbs" />
 					<Tooltip v-if="favouriteAct" :text="favouriteAct.label">
 						<FavouriteStar
-							:favourited="favourite.favourited.value"
+							:favourited="favourited"
 							@click="listActs.perform(favouriteAct)"
 						/>
 					</Tooltip>
@@ -109,8 +109,8 @@ import { useRouter } from "vue-router";
 import { __ } from "@/i18n";
 import { routeFor } from "@/router/routeFor";
 import { openCreate } from "@/shell/create";
-import { useListFavourite } from "@/list/useListFavourite";
 import { useListPage } from "@/list/useListPage";
+import { isFavourite, useListSettings } from "@/list/useListSettings";
 import { useScrollMemory } from "@/list/useScrollMemory";
 import FavouriteStar from "@/pages/favourite/FavouriteStar.vue";
 import PageFrame, { pageGutter } from "@/shell/PageFrame.vue";
@@ -120,7 +120,6 @@ import { createdMessage } from "./createdMessage";
 import DeleteDialog from "./DeleteDialog.vue";
 import { useListActs } from "./listActs";
 
-/** `view` is the saved view in the address, if any. */
 const props = defineProps<{ doctype: string; view?: string | null }>();
 
 const router = useRouter();
@@ -189,7 +188,8 @@ useScrollMemory(
 	{ doctype: props.doctype, query: rowsKey }
 );
 
-const favourite = useListFavourite(props.doctype, () => props.view ?? null);
+const settings = useListSettings(props.doctype);
+const favourited = computed(() => isFavourite(settings.favourites.value, props.view ?? null));
 
 const listActs = useListActs({
 	doctype: props.doctype,
@@ -198,8 +198,9 @@ const listActs = useListActs({
 	confirmDelete: () => (confirmingDelete.value = true),
 	customizing: () => customizing.value,
 	selected: () => selection.value.length,
-	favourited: () => favourite.favourited.value,
-	toggleFavourite: favourite.toggle,
+	starsLoaded: () => settings.loaded.value,
+	favourited: () => favourited.value,
+	toggleFavourite: () => settings.toggleFavourite(props.view ?? null),
 });
 
 const createAct = computed(() => listActs.drawn("create"));

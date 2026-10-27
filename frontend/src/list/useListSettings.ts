@@ -1,12 +1,13 @@
 // One doctype's stored list settings: the site row and the person's own, fetched beside meta once
 // and again after a DocType change, written back silently. A write's response replaces both rows.
-// The same read says which of the list and its saved views the person starred.
+// The same read says which of the list and its saved views the person starred; a star toggles in turn with the writes.
 import { runMethod } from "@framework/ui/api";
 import { landFresh } from "@framework/ui/utils";
 import { computed, getCurrentScope, onScopeDispose, ref, type ComputedRef, type Ref } from "vue";
 import type { ListSettings, ListSettingsKey } from "./storedSettings";
 
 const API = "frappe.desk.doctype.doctype_view.api";
+const TOGGLE_FAVOURITE = "frappe.desk.doctype.favourite.favourite.toggle_favourite";
 export const VIEW_TYPE = "List";
 /** Column edits in the popover come in bursts; one write carries the burst. */
 export const WRITE_DEBOUNCE_MS = 500;
@@ -36,8 +37,8 @@ export interface ListSettingsHandle {
 	/** Resolves once the fresh read of stale settings has arrived, shown or held. */
 	refreshed: () => Promise<void>;
 	favourites: ComputedRef<ListFavourites>;
-	/** Records a star the server already took: the list's when `view` is null. */
-	markFavourite: (view: string | null, favourited: boolean) => void;
+	/** Stars or unstars the list, or the saved view `view`; rejects with the server's refusal. */
+	toggleFavourite: (view: string | null) => Promise<void>;
 }
 
 interface Tiers {
@@ -108,7 +109,7 @@ export function useListSettings(doctype: string): ListSettingsHandle {
 		refreshing: computed(() => entry.refreshing.value),
 		refreshed: () => entry.refreshed,
 		favourites: computed(() => entry.favourites.value),
-		markFavourite: (view, favourited) => markFavourite(entry, view, favourited),
+		toggleFavourite: (view) => toggleFavourite(entry, doctype, view),
 	};
 }
 
@@ -197,6 +198,23 @@ function write(entry: Entry, send: () => Promise<unknown>, onFailure?: () => voi
 		}
 	});
 	return entry.queue;
+}
+
+/** Whether `view`, or the list itself when null, is starred. */
+export function isFavourite(favourites: ListFavourites, view: string | null): boolean {
+	return view === null ? favourites.list : favourites.views.includes(view);
+}
+
+function toggleFavourite(entry: Entry, doctype: string, view: string | null): Promise<void> {
+	const turn = entry.queue.then(async () => {
+		const adding = !isFavourite(entry.favourites.value, view);
+		const target =
+			view === null ? { doctype: "DocType", name: doctype } : { doctype: "Doctype View", name: view };
+		await runMethod(TOGGLE_FAVOURITE, { ...target, add: adding }, { nullable: true });
+		markFavourite(entry, view, adding);
+	});
+	entry.queue = turn.catch(() => undefined);
+	return turn;
 }
 
 function markFavourite(entry: Entry, view: string | null, favourited: boolean) {

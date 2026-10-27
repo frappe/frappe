@@ -11,8 +11,7 @@ SCOPES = ("user", "site")
 
 @frappe.whitelist()
 def get(doctype: str, type: str = "List") -> dict:
-	"""The site row's and the caller's own `settings` for this view, either `None` when absent,
-	and which of the list and its saved views the caller starred."""
+	"""Both scopes' `settings`, either `None` when absent, and which of the list and its saved views the caller starred."""
 	_check(doctype, type)
 
 	return {**_rows(doctype, type), "favourites": list_favourites(doctype)}

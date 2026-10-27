@@ -187,6 +187,13 @@ class TestApi(DoctypeViewTestCase):
 			toggle_favourite("Doctype View", other_view, add=True)
 			self.assertEqual(get(DOCTYPE)["favourites"], {"list": False, "views": [other_view]})
 
+	def test_a_starred_view_of_another_doctype_is_not_this_list_s(self):
+		elsewhere = make_view(reference_doctype="ToDo", label="Elsewhere", settings={}).insert().name
+		with set_user(self.person):
+			toggle_favourite("Doctype View", elsewhere, add=True)
+			toggle_favourite("DocType", "ToDo", add=True)
+			self.assertEqual(get(DOCTYPE)["favourites"], {"list": False, "views": []})
+
 	def test_a_bad_argument_is_refused_before_anything_is_read(self):
 		with set_user(self.person):
 			self.assertRaises(frappe.ValidationError, get, "No Such Doctype")

@@ -21,6 +21,8 @@ export interface ListActsHost {
   confirmDelete: () => void;
   customizing: () => boolean;
   selected: () => number;
+  /** False until the list settings read says what is starred. */
+  starsLoaded: () => boolean;
   favourited: () => boolean;
   toggleFavourite: () => unknown;
 }
@@ -71,7 +73,7 @@ function listEntries(host: ListActsHost): ActEntry[] {
           : { label: __("Add to favourites"), icon: "lucide-star" }),
         run: () => host.toggleFavourite(),
       },
-      hidden: false,
+      hidden: !host.starsLoaded(),
     },
     {
       item: {

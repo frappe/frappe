@@ -319,8 +319,7 @@ component group, with its main names.
 | --- | --- |
 | `useListPage` | Everything a list page needs: meta, columns, filters, sort, rows, settings, delete, and the values a new record starts with |
 | `useListRows` | Rows and a total for one query, a page at a time |
-| List settings (`useListSettings`, `markListSettingsStale`) | Saved columns, sort and quick filters, per user or site, and in the same read which of the list and its saved views the person starred. On `doctype_update` it keeps the old rows on show and reads fresh ones |
-| List favourite (`useListFavourite`) | Whether the person starred the list, or the saved view in the address, from the list settings read, and the toggle: `toggle_favourite` on `DocType` <doctype> for a list and on `Doctype View` <view> for a saved view. Clicks queue |
+| List settings (`useListSettings`, `markListSettingsStale`, `isFavourite`) | Saved columns, sort and quick filters, per user or site. The same read says which of the list and its saved views the person starred, and its star toggle (`toggle_favourite` on `DocType` <doctype> or `Doctype View` <view>) queues with the writes. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Stored settings | Converts saved settings to live columns, sort and quick filters, and drops fields the user cannot read |
 | List address (`queryFromAddress`, `addressFromQuery`) | How filters and sort are written into the address |
 | List defaults | Default columns and sort for a doctype, with app columns |
@@ -372,7 +371,7 @@ component group, with its main names.
 | Index notices (`IndexNotices`, `WhatsNewDialog`, `tuckedNotices`, `readWhatsNew`) | One frappe-ui `Alert` card in the bottom-right corner per `boot.notices` entry: the site's setup nudge, which opens the setup wizard by a full load, and what's new, which opens a dialog that reads the release notes, and so records them seen. Closing a card tucks it into a bell above the avatar for the tab, in `sessionStorage`; a click on the bell brings the cards back. The chunk loads only when boot sends a notice |
 | `MainPage` | Shows the registered page for a list or record address |
 | Standard pages (`standardPages`) | The framework's own page for each address, which `main.ts` registers as the default |
-| `List`, `DoctypeList`, list acts (`useListActs`) | The standard list page, built on `useListPage`. Its built-ins are acts on one `list` surface: `list.create` (the create right), `list.favourite` (the star beside the title), `list.customize_quick_filter`, and `list.delete` while rows are selected (the delete right). Its buttons and menus draw from those items, and draw an item only when its right passes. Scripts get no verbs on it yet |
+| `List`, `DoctypeList`, list acts (`useListActs`) | The standard list page, built on `useListPage`. Its built-ins are acts on one `list` surface: `list.create` (the create right), `list.favourite` (the star beside the title, once the settings read says what is starred), `list.customize_quick_filter`, and `list.delete` while rows are selected (the delete right). Its buttons and menus draw from those items, and draw an item only when its right passes. Scripts get no verbs on it yet |
 | `DeleteDialog` | Confirm a bulk delete and report failures |
 | `FavouriteStar` | The star button the record header and the list header draw, filled while favourited |
 | `CreateDialog` | One Create request: the Quick Entry form in a dialog that inserts on save, or the full-page new record when the server says the doctype gets no dialog |

@@ -77,9 +77,9 @@ def toggle_favourite(doctype: str, name: str, add: str | bool = False):
 	"""Add or remove the current user's favourite on a record, a list or a saved view; `add` truthy adds."""
 	from frappe.utils.data import sbool
 
-	check_read(doctype, name)
+	name = readable_target(doctype, name)
 
-	key = {"user": frappe.session.user, "reference_doctype": doctype, "reference_name": str(name)}
+	key = {"user": frappe.session.user, "reference_doctype": doctype, "reference_name": name}
 	if not sbool(add):
 		# A document delete, not a row delete, so `on_trash` announces the change.
 		if name := frappe.db.get_value("Favourite", key):
@@ -97,25 +97,27 @@ def toggle_favourite(doctype: str, name: str, add: str | bool = False):
 		frappe.db.rollback(save_point="favourite")
 
 
-def check_read(doctype: str, name: str):
-	"""Refuse unless the person may read what the row points at."""
+def readable_target(doctype: str, name: str) -> str:
+	"""The name to store for what the row points at; refuses unless the person may read it."""
 	if doctype == LIST:
-		return check_list_read(name)
+		return readable_list(name)
 
 	if doctype == SAVED_VIEW:
-		view_doctype = frappe.db.get_value(SAVED_VIEW, name, "reference_doctype")
-		if not view_doctype:
-			raise frappe.DoesNotExistError(_("{0} {1} not found").format(_(SAVED_VIEW), name))
 		frappe.has_permission(SAVED_VIEW, "read", doc=name, throw=True)
-		return check_list_read(view_doctype)
+		readable_list(frappe.db.get_value(SAVED_VIEW, name, "reference_doctype"))
+		return str(name)
 
 	frappe.has_permission(doctype, "read", doc=name, throw=True)
+	return str(name)
 
 
-def check_list_read(doctype: str):
-	if not frappe.db.exists("DocType", doctype):
+def readable_list(doctype: str) -> str:
+	"""The doctype's own spelling of its name, so a list has one row whatever case the caller sent."""
+	stored = frappe.db.get_value("DocType", doctype)
+	if not stored:
 		raise frappe.DoesNotExistError(_("{0} {1} not found").format(_("DocType"), doctype))
-	frappe.has_permission(doctype, "read", throw=True)
+	frappe.has_permission(stored, "read", throw=True)
+	return stored
 
 
 def list_favourites(doctype: str) -> dict:

@@ -6,6 +6,7 @@ import {
   defineComponent,
   h,
   nextTick,
+  ref,
   type App,
   type Ref,
 } from "vue";
@@ -216,7 +217,10 @@ async function settle() {
   }
 }
 
+const shownView = ref<string | null>(null);
+
 async function mount(whileLoading?: () => void, view: string | null = null) {
+  shownView.value = view;
   const router = createRouter({
     history: createMemoryHistory(),
     routes: [
@@ -233,7 +237,9 @@ async function mount(whileLoading?: () => void, view: string | null = null) {
   const root = document.createElement("div");
   document.body.appendChild(root);
   const app = createApp(
-    defineComponent({ render: () => h(DoctypeList, { doctype: "Contact", view }) })
+    defineComponent({
+      render: () => h(DoctypeList, { doctype: "Contact", view: shownView.value }),
+    })
   );
   app.use(router).provide("addresses", addresses).provide("boot", boot);
   app.mount(root);
@@ -352,6 +358,47 @@ describe("the list surface", () => {
     await settle();
     expect(toggles).toEqual([{ doctype: "Doctype View", name: "open-contacts", add: false }]);
     expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("toggles twice on two quick clicks, each turn reading the state the one before left", async () => {
+    const root = await mount();
+    const star = root.querySelector("header [data-favourite]") as HTMLElement;
+    star.click();
+    star.click();
+    await settle();
+    expect(toggles.map((call) => call.add)).toEqual([true, false]);
+    expect(star.getAttribute("aria-pressed")).toBe("false");
+  });
+
+  it("follows the address from one saved view to the next without a remount", async () => {
+    starred = { list: false, views: ["open-contacts"] };
+    const root = await mount(undefined, "open-contacts");
+    const star = () => root.querySelector("header [data-favourite]")!;
+    expect(star().getAttribute("aria-pressed")).toBe("true");
+
+    shownView.value = "closed-contacts";
+    await settle();
+    expect(star().getAttribute("aria-pressed")).toBe("false");
+    await acts.run("list.favourite");
+    await settle();
+    expect(toggles).toEqual([{ doctype: "Doctype View", name: "closed-contacts", add: true }]);
+  });
+
+  it("draws no star until the settings read says what is starred", async () => {
+    let answer: (response: Response) => void = () => {};
+    const real = vi.mocked(fetch).getMockImplementation()!;
+    vi.mocked(fetch).mockImplementation(async (url, init) =>
+      String(url).includes(SETTINGS)
+        ? new Promise<Response>((resolve) => (answer = resolve))
+        : real(url, init)
+    );
+    const root = await mount();
+    expect(root.querySelector("header [data-favourite]")).toBeNull();
+    expect(listActNames()).not.toContain("list.favourite");
+
+    answer(new Response(JSON.stringify({ data: { site: null, user: null, favourites: { list: true, views: [] } } })));
+    await settle();
+    expect(root.querySelector("header [data-favourite]")!.getAttribute("aria-pressed")).toBe("true");
   });
 
   it("keeps the star as it was when the server refuses", async () => {
