@@ -137,7 +137,7 @@ let html_seq = 0;
 let template_seq = 0;
 
 watch(
-	[preview_doc, () => props.df.html],
+	[preview_doc, () => props.df.html, () => store.layout.value?.global_variables],
 	async ([doc]) => {
 		const html = props.df.html;
 		const seq = ++html_seq;
@@ -149,7 +149,8 @@ watch(
 		const rendered = await render_jinja_html(
 			html,
 			store.meta.value?.name,
-			store.preview_doc_name.value
+			store.preview_doc_name.value,
+			store.layout.value?.global_variables
 		);
 		if (seq !== html_seq) return;
 		rendered_html.value = rendered;

@@ -475,14 +475,14 @@ export function thumb_hue(text) {
 	return ((idx < 0 ? 0 : idx) * 37) % 360;
 }
 
-export async function render_jinja_html(html, doctype, docname) {
+export async function render_jinja_html(html, doctype, docname, global_variables) {
 	if (!html) return html;
 	if (!html.includes("{{") && !html.includes("{%")) return html;
 	if (!doctype || !docname) return html;
 	try {
 		const r = await frappe.call({
 			method: "frappe.utils.print_format_generator.render_jinja_template",
-			args: { template: html, doctype, docname },
+			args: { template: html, doctype, docname, global_variables },
 			silent: 1,
 		});
 		return r.message ?? html;
