@@ -371,7 +371,6 @@ describe("the groups", () => {
 			["Desk", "Log a call CRM"],
 			[
 				"Go to",
-				"CRM Deal CRM",
 				"Deals CRM",
 				"CRM",
 				"CRM Lead CRM",
@@ -379,6 +378,7 @@ describe("the groups", () => {
 				"Probe 1 CRM",
 				"Probe 2 CRM",
 				"Probe 3 CRM",
+				"Probe 4 CRM",
 			],
 			["Create", "New CRM Deal CRM", "New Probe 0 CRM", "New Probe 1 CRM", "New Probe 2 CRM", "New Probe 3 CRM"],
 		]);
@@ -500,13 +500,13 @@ describe("places", () => {
 		expect(asked).toHaveLength(1);
 	});
 
-	it("goes to a sidebar row, a doctype, and New X for a doctype the user may create", async () => {
+	it("goes to a sidebar row in place of its doctype, and New X for a doctype the user may create", async () => {
 		await shell("/todo");
 		await open();
 		await type("deal");
 
 		expect(drawn()).toEqual([
-			["Go to", "Deals CRM", "CRM Deal CRM"],
+			["Go to", "Deals CRM"],
 			["Create", "New CRM Deal CRM"],
 		]);
 	});
