@@ -16,12 +16,15 @@ from frappe.desk.reportview import (
 	get_aggregate_fieldname,
 	normalize_group_by_settings,
 )
+from frappe.model.create_new import get_static_default_value
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cint, cstr
+from frappe.utils import cast, cint, cstr
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 from frappe.utils.xlsxutils import XLSXMetadata
+
+FRAMEWORK_FILTER_KEYS = ("translate_data", "prepared_report_name")
 
 
 class Report(Document):
@@ -64,6 +67,7 @@ class Report(Document):
 		roles: DF.Table[HasRole]
 		snapshot_report: DF.Check
 		timeout: DF.Int
+		validate_filters: DF.Check
 	# end: auto-generated types
 
 	def validate(self):
@@ -511,6 +515,35 @@ class Report(Document):
 
 		self.db_set("disabled", cint(disable))
 
+	def get_validated_filters(self, filters: dict, user: str) -> frappe._dict:
+		"""Return the filter values with defaults applied, checked against the Report Filter rows and cast to their fieldtypes."""
+		allowed_keys = {row.fieldname for row in self.filters} | set(FRAMEWORK_FILTER_KEYS)
+		if unknown_keys := set(filters) - allowed_keys:
+			frappe.throw(
+				_("Unknown filters: {0}").format(", ".join(sorted(unknown_keys))), title=_("Invalid Filters")
+			)
+
+		validated = frappe._dict({key: filters[key] for key in FRAMEWORK_FILTER_KEYS if key in filters})
+		for row in self.filters:
+			value = filters[row.fieldname] if row.fieldname in filters else get_filter_default(row, user)
+			if value in (None, ""):
+				if row.mandatory:
+					frappe.throw(
+						_("{0} is mandatory").format(frappe.bold(_(row.label))), title=_("Missing Filters")
+					)
+				continue
+
+			if not isinstance(value, str | int | float):
+				frappe.throw(
+					_("{0} must be a single value").format(frappe.bold(_(row.label))),
+					title=_("Invalid Filters"),
+				)
+
+			validate_filter_value(row, value, user)
+			validated[row.fieldname] = cast(row.fieldtype, value)
+
+		return validated
+
 	def get_xlsx_styles_from_module(self, metadata: XLSXMetadata) -> dict:
 		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
 			return
@@ -522,6 +555,43 @@ class Report(Document):
 			return
 
 		return method(metadata)
+
+
+def get_filter_default(row, user):
+	if row.default == "__user":
+		return user
+
+	if row.fieldtype == "Link" and (user_default := frappe.defaults.get_user_default(row.fieldname, user)):
+		return user_default
+
+	return get_static_default_value(row, [], [])
+
+
+def validate_filter_value(row, value, user):
+	if row.fieldtype == "Select" and value not in (options := (row.options or "").split("\n")):
+		frappe.throw(
+			_('{0} {1} cannot be "{2}". It should be one of "{3}"').format(
+				_("Filter"), frappe.bold(_(row.label)), value, '", "'.join(_(option) for option in options)
+			),
+			title=_("Invalid Filters"),
+		)
+
+	if row.fieldtype == "Link" and not row.wildcard_filter:
+		if not frappe.db.exists(row.options, value):
+			frappe.throw(
+				_("{0} {1} not found").format(_(row.options), value),
+				frappe.DoesNotExistError,
+				title=_("Invalid Filters"),
+			)
+
+		if not frappe.has_permission(row.options, "read", value, user=user) and not frappe.has_permission(
+			row.options, "select", value, user=user
+		):
+			frappe.throw(
+				_("You do not have permission to access {0}: {1}.").format(_(row.options), value),
+				frappe.PermissionError,
+				title=_("Invalid Filters"),
+			)
 
 
 def is_prepared_report_enabled(report):

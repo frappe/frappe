@@ -795,6 +795,98 @@ data = columns, result
 		frappe.delete_doc("Report", REPORT_NAME, delete_permanently=True)
 		frappe.db.commit()
 
+	def test_validated_filters_are_defaulted_and_cast(self):
+		report, user = self.make_filtered_report()
+
+		with self.set_user(user):
+			result = run(report.name, {"allocated_to": user, "count": "5", "show_all": "1"})["result"]
+
+		self.assertEqual(
+			result, [{"status": "Open", "count": 5, "show_all": 1, "from_date": datetime.date.today()}]
+		)
+		self.assertEqual(report.get_validated_filters({}, user).allocated_to, user)
+
+	def test_validated_filters_keep_cleared_values(self):
+		report, user = self.make_filtered_report()
+
+		with self.set_user(user):
+			result = run(report.name, {"allocated_to": user, "status": "", "from_date": ""})["result"]
+
+		self.assertEqual(result, [{"status": None, "count": None, "show_all": None, "from_date": None}])
+
+	def test_validated_filters_reject_invalid_values(self):
+		report, user = self.make_filtered_report()
+		frappe.set_user("Administrator")
+		job_type = frappe.db.get_value("Scheduled Job Type", {})
+
+		with self.set_user(user):
+			with self.assertRaisesRegex(frappe.ValidationError, "Allocated To"):
+				run(report.name, {"allocated_to": "", "count": 1})
+			with self.assertRaisesRegex(frappe.ValidationError, "single value"):
+				run(report.name, {"allocated_to": {}})
+			with self.assertRaisesRegex(frappe.ValidationError, "Pending"):
+				run(report.name, {"allocated_to": user, "status": "Pending"})
+			with self.assertRaises(frappe.PermissionError):
+				run(report.name, {"allocated_to": user, "job_type": job_type})
+			with self.assertRaisesRegex(frappe.ValidationError, "priority"):
+				run(report.name, {"allocated_to": user, "priority": "High"})
+
+	def test_filters_without_validation_reach_the_report_unchanged(self):
+		report, user = self.make_filtered_report(validate_filters=0)
+
+		with self.set_user(user):
+			result = run(report.name, {"count": "5", "priority": "High"})["result"]
+
+		self.assertEqual(result, [{"status": None, "count": "5", "show_all": None, "from_date": None}])
+
+	def make_filtered_report(self, validate_filters=1):
+		from frappe.core.doctype.user_permission.test_user_permission import create_user
+
+		frappe.set_user("Administrator")
+		user = create_user("test_report_filters@example.com", "Website Manager").name
+		report = frappe.get_doc(
+			{
+				"doctype": "Report",
+				"ref_doctype": "ToDo",
+				"report_name": "Filtered ToDos " + frappe.generate_hash(length=6),
+				"report_type": "Script Report",
+				"is_standard": "No",
+				"validate_filters": validate_filters,
+				"roles": [{"role": "Website Manager"}],
+				"filters": [
+					dict(
+						fieldname="allocated_to",
+						label="Allocated To",
+						fieldtype="Link",
+						options="User",
+						mandatory=1,
+						default="__user",
+					),
+					dict(
+						fieldname="status",
+						label="Status",
+						fieldtype="Select",
+						options="Open\nClosed",
+						default="Open",
+					),
+					dict(fieldname="count", label="Count", fieldtype="Int"),
+					dict(fieldname="show_all", label="Show All", fieldtype="Check"),
+					dict(fieldname="from_date", label="From Date", fieldtype="Date", default="Today"),
+					dict(
+						fieldname="job_type", label="Job Type", fieldtype="Link", options="Scheduled Job Type"
+					),
+				],
+				"columns": [
+					dict(fieldname="status", label="Status", fieldtype="Data"),
+					dict(fieldname="count", label="Count", fieldtype="Data"),
+					dict(fieldname="show_all", label="Show All", fieldtype="Data"),
+					dict(fieldname="from_date", label="From Date", fieldtype="Data"),
+				],
+				"report_script": "result = [{key: filters.get(key) for key in ('status', 'count', 'show_all', 'from_date')}]",
+			}
+		).insert(ignore_permissions=True)
+		return report, user
+
 	def test_run_sends_link_titles(self):
 		report = self.make_link_column_report()
 		self.enable_link_titles("User")

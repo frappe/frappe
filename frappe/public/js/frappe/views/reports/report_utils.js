@@ -131,6 +131,12 @@ frappe.report_utils = {
 			.then((r) => {
 				frappe.dom.eval(r.script);
 				return frappe.after_ajax(() => {
+					if (frappe.query_reports[report_name] && r.validate_filters) {
+						frappe.report_utils.merge_server_filters(
+							frappe.query_reports[report_name],
+							r.filters
+						);
+					}
 					if (
 						frappe.query_reports[report_name] &&
 						!frappe.query_reports[report_name].filters &&
@@ -144,6 +150,21 @@ frappe.report_utils = {
 					);
 				});
 			});
+	},
+
+	merge_server_filters(report_settings, report_filters) {
+		const js_filters = report_settings.filters || [];
+		report_settings.filters = report_filters.map((row) => ({
+			default: row.default,
+			...js_filters.find((filter) => filter.fieldname === row.fieldname),
+			fieldname: row.fieldname,
+			label: __(row.label),
+			fieldtype: row.fieldtype,
+			options: row.options,
+			reqd: row.mandatory,
+			wildcard_filter: row.wildcard_filter,
+		}));
+		report_settings.validate_filters = 1;
 	},
 
 	get_filter_values(filters) {
