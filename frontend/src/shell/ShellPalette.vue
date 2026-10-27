@@ -39,25 +39,27 @@
 				</template>
 			</CommandPaletteInput>
 
-			<CommandPaletteList>
-				<CommandPaletteGroup
-					v-for="group in groups"
-					:key="group.label"
-					:label="group.label"
+			<!-- One listbox: reka orders the rows of a second one by when they mounted, not by place. -->
+			<CommandPaletteList class="flex flex-col">
+				<div role="none" tabindex="-1" class="min-h-0 overflow-y-auto overscroll-contain">
+					<CommandPaletteGroup
+						v-for="group in groups"
+						:key="group.label"
+						:label="group.label"
+					>
+						<PaletteRow v-for="row in group.rows" :key="row.id" :row="row" />
+					</CommandPaletteGroup>
+				</div>
+				<div
+					v-if="pinned.length"
+					role="none"
+					data-slot="palette-pinned"
+					class="shrink-0 border-t border-outline-gray-1 py-2 dark:border-outline-gray-2"
 				>
-					<PaletteRow v-for="row in group.rows" :key="row.id" :row="row" />
-				</CommandPaletteGroup>
+					<PaletteRow v-for="row in pinned" :key="row.id" :row="row" />
+				</div>
 			</CommandPaletteList>
 			<PaletteHighlight :rows="drawnRows" />
-
-			<!-- A second listbox, so the arrow keys reach these rows and they never scroll away. -->
-			<CommandPaletteList
-				v-if="pinned.length"
-				data-slot="palette-pinned"
-				class="shrink-0 border-t border-outline-gray-1 py-2 dark:border-outline-gray-2"
-			>
-				<PaletteRow v-for="row in pinned" :key="row.id" :row="row" />
-			</CommandPaletteList>
 
 			<CommandPaletteEmpty v-slot="{ query: text }">
 				{{
@@ -125,6 +127,15 @@ const context: PaletteContext = {
 const query = ref("");
 const scope = usePaletteScope(query, context);
 
+// A closed or narrowed palette asks nothing more of the groups' server searches.
+watch(
+	[query, () => context.router.currentRoute.value.path, scope.doctype, paletteOpen],
+	([text, , narrowed, isOpen]) => {
+		const asked = isOpen && !narrowed ? text : "";
+		paletteGroups.forEach((group) => group.follow?.(asked, context));
+	}
+);
+
 // The scope is left on the next open, so the closing palette keeps its rows as it fades.
 watch(
 	paletteOpen,
@@ -144,7 +155,10 @@ const groups = computed(() => {
 		.filter((group) => group.rows.length);
 });
 
-const pinned = computed(() => pinnedRows.flatMap((rows) => rows(query.value, context)));
+// A narrowed palette pins nothing, so its own prompts stay in view.
+const pinned = computed(() =>
+	scope.doctype.value ? [] : pinnedRows.flatMap((rows) => rows(query.value, context))
+);
 
 const drawnRows = computed(() => [
 	...groups.value.flatMap((group) => group.rows),

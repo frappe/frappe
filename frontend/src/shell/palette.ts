@@ -18,6 +18,8 @@ export interface PaletteRow {
 	href?: string;
 	/** A stand-in while rows load, such as "Searching…": drawn with a spinner, never picked. */
 	pending?: boolean;
+	/** A note that is not an act, such as a failed search: drawn gray, never picked. */
+	disabled?: boolean;
 	/** The doctype Tab narrows the search to, on a row that opens its list. */
 	doctype?: string;
 	run: () => unknown;

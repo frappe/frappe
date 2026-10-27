@@ -1,6 +1,11 @@
 <!-- One palette row: icon, label, gray description, and the act's key on the right. -->
 <template>
-	<CommandPaletteItem :value="row" :disabled="row.pending" class="gap-2.5" :data-row="row.id">
+	<CommandPaletteItem
+		:value="row"
+		:disabled="row.pending || row.disabled"
+		class="gap-2.5"
+		:data-row="row.id"
+	>
 		<template #prefix>
 			<LoadingIndicator v-if="row.pending" class="size-4 shrink-0 text-ink-gray-5" />
 			<span
