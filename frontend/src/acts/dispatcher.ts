@@ -51,6 +51,8 @@ export interface ActScope<Context = any> {
 	passes: (right: ActRight) => boolean;
 	/** A promise while `passes` cannot answer for the right yet; else nothing. */
 	settled: (right: ActRight) => Promise<void> | undefined;
+	/** A promise while some of its acts are still loading; a name it does not hold yet waits for it. */
+	loading?: () => Promise<void> | undefined;
 	hold: <T>(work: () => T | Promise<T>) => Promise<T>;
 	/** An act the reader asked for threw; the scope shows it and recovers. */
 	failed: (error: unknown) => void | Promise<void>;
@@ -150,6 +152,8 @@ export class ActDispatcher {
 	// Synchronous unless a right must settle, so a click's act starts in the click's own tick.
 	private check(name: string): Checked | Promise<Checked> {
 		const found = this.lookup(name);
+		const loading = found ? undefined : this.scopes.get(surfaceOf(name))?.loading?.();
+		if (loading) return loading.then(() => this.check(name));
 		const right = found?.entry.item.right;
 		const settling = found && right ? found.scope.settled(right) : undefined;
 		if (settling) return settling.then(() => this.allowed(name, this.sameScope(name, found)));
@@ -171,11 +175,11 @@ export class ActDispatcher {
 	}
 
 	private lookup(name: string): Found | null {
-		const dot = name.indexOf(".");
-		const scope = dot > 0 ? this.scopes.get(name.slice(0, dot)) : undefined;
+		const surface = surfaceOf(name);
+		const scope = this.scopes.get(surface);
 		if (!scope) return null;
-		const item = name.slice(dot + 1);
-		const entry = scope.surfaces[name.slice(0, dot)]().find(
+		const item = name.slice(surface.length + 1);
+		const entry = scope.surfaces[surface]().find(
 			(candidate) => candidate.item.name === item && isAct(candidate.item)
 		);
 		return entry ? { scope, entry } : null;
@@ -184,6 +188,11 @@ export class ActDispatcher {
 
 /** The desk's one dispatcher. */
 export const acts = new ActDispatcher();
+
+function surfaceOf(name: string) {
+	const dot = name.indexOf(".");
+	return dot > 0 ? name.slice(0, dot) : "";
+}
 
 function isAct(item: ActItem) {
 	return typeof item.run === "function";

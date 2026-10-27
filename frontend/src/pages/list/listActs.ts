@@ -11,8 +11,8 @@ import {
 } from "@/acts/dispatcher";
 import { useCreateRight } from "@/createRight";
 import { __ } from "@/i18n";
+import { whenLoaded } from "@/acts/doctypeRight";
 import { errorMessage } from "@/recordPage/errorMessage";
-import { whenLoaded } from "@/recordPage/pagePermissions";
 
 export interface ListActsHost {
   doctype: string;

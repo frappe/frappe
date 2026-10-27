@@ -5,8 +5,10 @@ import type { Router } from "vue-router";
 import { toast, useColorScheme, type ColorScheme } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { acts, type ActItem, type AvailableAct } from "@/acts/dispatcher";
+import { doctypeRight } from "@/acts/doctypeRight";
 import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
+import type { AppActs } from "./appActs";
 import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
 
 /** Opens `#settings/<prefix>/<pane>/<block>`; each segment is optional, in order. */
@@ -37,6 +39,7 @@ interface ShellActsHost {
 	router: Router;
 	openSettings: OpenSettings;
 	confirmLogout: () => void;
+	appActs: AppActs;
 	/** The rail's acts, present only while the rail draws. */
 	rail?: RailActsHost;
 }
@@ -65,12 +68,17 @@ export function useShellActs(host: ShellActsHost) {
 	const { setColorScheme } = useColorScheme();
 	const release = acts.register({
 		surfaces: {
-			shell: () => shellItems(host, setColorScheme).map((item) => ({ item, hidden: false })),
+			shell: () =>
+				[...shellItems(host, setColorScheme), ...host.appActs.items()].map((item) => ({
+					item,
+					hidden: false,
+				})),
 		},
 		context: () => shell,
-		// No built-in shell act carries a right.
-		passes: () => false,
-		settled: () => undefined,
+		// The shell has no doctype of its own, so only a right that names one can pass.
+		passes: (right) => typeof right !== "string" && doctypeRight.passes(right),
+		settled: (right) => (typeof right === "string" ? undefined : doctypeRight.settled(right)),
+		loading: host.appActs.pending,
 		hold: async (work) => work(),
 		failed: (error) => void toast.error(error instanceof Error ? error.message : String(error)),
 	});
