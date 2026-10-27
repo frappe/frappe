@@ -235,14 +235,11 @@ commands.register({
 	},
 })
 
-// the same tab rule as clicking a block (StudioCanvas selectBlock); a restored
-// selection should land the user on the restored block's panel
+// a restored selection should land the user on the restored block's panel, as clicking it does
 function refocusRightPanel() {
 	nextTick(() => {
 		const block = blockController.getSelectedBlocks()[0]
-		if (!block) return
-		store.studioLayout.rightPanelActiveTab =
-			block.isRoot() || block.isText() || block.isContainer() ? "Styles" : "Properties"
+		if (block) store.focusRightPanelFor(block)
 	})
 }
 

@@ -272,12 +272,7 @@ function selectBlock(block: Block, e: MouseEvent | null, setBreakpoint = true) {
 		setActiveBreakpoint(breakpoint)
 	}
 
-	if (block.isRoot() || block.isText() || block.isContainer()) {
-		// combined props and styles
-		store.studioLayout.rightPanelActiveTab = "Styles"
-	} else {
-		store.studioLayout.rightPanelActiveTab = "Properties"
-	}
+	store.focusRightPanelFor(block)
 }
 
 function selectBlockById(blockId: string) {

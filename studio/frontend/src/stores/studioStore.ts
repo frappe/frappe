@@ -53,6 +53,12 @@ const useStudioStore = defineStore("store", () => {
 		localStorage,
 		{ mergeDefaults: true },
 	)
+	/** The right panel tab a block opens on: a container's props and styles are one combined tab. */
+	function focusRightPanelFor(block: Block) {
+		studioLayout.value.rightPanelActiveTab =
+			block.isRoot() || block.isText() || block.isContainer() ? "Styles" : "Properties"
+	}
+
 	const isDark = useDark({ attribute: "data-theme" })
 	const toggleTheme = useToggle(isDark)
 	const isCanvasDark = useStorage("studioCanvasDarkMode", false)
@@ -799,6 +805,7 @@ const useStudioStore = defineStore("store", () => {
 	return {
 		// layout
 		studioLayout,
+		focusRightPanelFor,
 		isDark,
 		toggleTheme,
 		isCanvasDark,
