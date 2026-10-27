@@ -164,21 +164,22 @@ class SettingsDialog(Document):
 
 	def refuse_mixed_save_modes_on_a_binding(self):
 		"""Component blocks on one draft own the same fields, so an `auto` commit would send a `button` block's edits."""
-		blocks = list(self.blocks)
-		if self.standard:
-			blocks += shipped_blocks(self.extends or self.app, exclude=self.name)
+		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
 
 		first = {}
-		for block in blocks:
+		for block in [*shipped, *self.blocks]:
 			mode = block.save_mode or "auto"
 			for address in component_binding_addresses(block):
-				key, other_mode = first.setdefault(address, (block.key, mode))
+				key, app, other_mode = first.setdefault(
+					address, (block.key, block.get("app") or self.app, mode)
+				)
 				if other_mode != mode:
 					frappe.throw(
 						_(
-							"Component blocks {0} and {1} in pane {2} both edit {3}, so they need one save mode."
+							"Component blocks {0} from {1} and {2} in pane {3} both edit {4}, so they need one save mode."
 						).format(
 							frappe.bold(key),
+							frappe.bold(app),
 							frappe.bold(block.key),
 							frappe.bold(block.pane),
 							frappe.bold(address[1]),

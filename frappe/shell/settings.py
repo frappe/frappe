@@ -98,6 +98,13 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 				)
 				continue
 
+			if _mixes_save_modes(pane, block):
+				_warn(
+					f"block {row.key!r} from {record.app!r} differs in save mode from a component block"
+					f" on the same binding in pane {pane['app']}/{pane['key']}"
+				)
+				continue
+
 			pane["blocks"].append(block)
 
 			if record.extends and (attempts := _placements(row.anchors)):
@@ -105,6 +112,19 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 
 	for key, placed in anchored.items():
 		_place(by_key[key]["blocks"], placed)
+
+
+def _mixes_save_modes(pane: dict, block: dict) -> bool:
+	"""Component blocks on one draft own the same fields, so an `auto` commit would send a `button` block's edits."""
+	addresses = _component_addresses(block)
+	return any(
+		other["save_mode"] != block["save_mode"] and addresses & _component_addresses(other)
+		for other in pane["blocks"]
+	)
+
+
+def _component_addresses(block: dict) -> set[tuple]:
+	return {(binding["doctype"], binding.get("resolver")) for binding in block.get("bindings", {}).values()}
 
 
 def _place(blocks: list[dict], placed: list[tuple[dict, list[dict]]]):

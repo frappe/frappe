@@ -216,6 +216,12 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			)
 			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
 
+	def test_the_host_is_refused_a_save_mode_an_extension_already_holds(self):
+		with authoring():
+			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
+			self.assertRaises(frappe.ValidationError, ship, ["general"], [bound("photo")])
+			ship(["general"], [bound("photo", save_mode="button")])
+
 	def test_a_generated_block_may_differ_from_a_component_on_its_binding(self):
 		with authoring():
 			ship(
