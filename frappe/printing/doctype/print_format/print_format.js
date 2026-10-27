@@ -66,10 +66,12 @@ frappe.ui.form.on("Print Format", {
 		await frappe.model.with_doctype(doc_type);
 		let name = doc_type;
 		if (!frappe.get_meta(doc_type).issingle) {
-			const [sample] = await frappe.db.get_list(doc_type, {
-				limit: 1,
-				order_by: "modified desc",
-			});
+			const latest = (filters) =>
+				frappe.db.get_list(doc_type, { limit: 1, order_by: "modified desc", filters });
+			let [sample] = frappe.get_meta(doc_type).is_submittable
+				? await latest({ docstatus: 1 })
+				: [];
+			if (!sample) [sample] = await latest({});
 			name = sample?.name;
 		}
 		if (request !== frm._html_preview_request) return;
