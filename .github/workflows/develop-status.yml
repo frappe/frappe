@@ -46,7 +46,7 @@ jobs:
       ${{ github.event.action != 'closed'
       && (github.event_name != 'workflow_run' || github.event.workflow_run.event == 'pull_request')
       && (!contains(fromJSON('["labeled", "unlabeled"]'), github.event.action)
-      || contains(fromJSON('["fixes-develop", "run-full-ci"]'), github.event.label.name)) }}
+      || contains(fromJSON('["fixes-develop", "run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name)) }}
     runs-on: ubuntu-latest
     timeout-minutes: 180
     concurrency:
@@ -57,7 +57,7 @@ jobs:
         with:
           ref: ${{ github.event.repository.default_branch }}
           sparse-checkout: .github/helper
-      - name: Restart the suites when a full CI label is added
+      - name: Restart the suites when a test label is added
         if: ${{ github.event.action == 'labeled' }}
         run: |
           for workflow in server-tests.yml ui-tests.yml; do
