@@ -12,10 +12,10 @@
 	<!-- the switch centred on the label and its description, not on the label alone -->
 	<label v-else-if="field.type === 'check'" class="flex items-center justify-between gap-4">
 		<span class="flex flex-col gap-1">
-			<span data-slot="label" class="text-sm leading-tighter text-ink-gray-6">{{
+			<span data-slot="label" class="text-base leading-tighter text-ink-gray-6">{{
 				field.label
 			}}</span>
-			<span v-if="field.description" class="text-xs text-ink-gray-5">{{
+			<span v-if="field.description" class="text-sm text-ink-gray-5">{{
 				field.description
 			}}</span>
 		</span>
@@ -36,7 +36,7 @@
 			:disabled="disabled"
 			@update:model-value="(value) => (doc[field.name] = value)"
 		/>
-		<span v-if="field.description" class="text-2xs text-ink-gray-5">{{
+		<span v-if="field.description" class="text-xs text-ink-gray-5">{{
 			field.description
 		}}</span>
 	</div>
@@ -69,7 +69,7 @@
 				v-if="doc[field.name]"
 				:href="doc[field.name]"
 				target="_blank"
-				class="truncate text-xs text-ink-gray-7 underline"
+				class="truncate text-sm text-ink-gray-7 underline"
 			>
 				{{ fileName }}
 			</a>
@@ -147,7 +147,7 @@
 		v-else-if="field.type === 'textarea'"
 		type="textarea"
 		variant="outline"
-		class="[&_textarea]:text-base [&_textarea]:leading-normal"
+		class="[&_textarea]:text-md [&_textarea]:leading-normal"
 		:label="field.label"
 		:description="field.description"
 		:required="field.required"

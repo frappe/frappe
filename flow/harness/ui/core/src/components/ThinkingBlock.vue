@@ -18,13 +18,13 @@
 					aria-hidden="true"
 				/>
 			</span>
-			<span class="flex-none text-sm font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
+			<span class="flex-none text-base font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
 				live ? "Thinking" : "Thought"
 			}}</span>
 		</button>
 		<div
 			v-if="open"
-			class="mt-2 border-l-2 border-outline-gray-2 pl-3 text-sm leading-relaxed text-ink-gray-6"
+			class="mt-2 border-l-2 border-outline-gray-2 pl-3 text-base leading-relaxed text-ink-gray-6"
 		>
 			<span v-if="block.redacted" class="italic">Thinking is encrypted for this model.</span>
 			<MarkdownContent v-else :text="block.thinking" />

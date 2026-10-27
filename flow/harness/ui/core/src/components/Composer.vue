@@ -31,7 +31,7 @@
 					<template v-for="(m, i) in menuItems" :key="m.name">
 						<!-- a heading takes a row's height, and a gap above it sets its section off; the
 						     first sits in the list's top padding -->
-						<div v-if="m.section" class="flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
+						<div v-if="m.section" class="flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
 							{{ m.section }}
 						</div>
 						<button data-palette-item class="flow-palette-row" @click="pick(m)">
@@ -86,12 +86,12 @@
 				class="mx-3.5 -mb-1.5 flex flex-col divide-y divide-outline-gray-2 rounded-t-[10px] border border-b-0 border-outline-gray-2 bg-surface-gray-2 px-3 pb-2.5 pt-1"
 			>
 				<div v-for="item in flow.state.queued" :key="item.key" class="flex min-h-5 items-center gap-2 py-1">
-					<span class="flex-none text-2xs font-medium text-ink-gray-6">Queued</span>
-					<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-7">{{ item.label }}</span>
+					<span class="flex-none text-base font-medium text-ink-gray-6">Queued</span>
+					<span class="min-w-0 flex-1 truncate text-base text-ink-gray-7">{{ item.label }}</span>
 					<!-- a compaction takes no steering: the queue waits for it to end -->
 					<button
 						v-if="!compacting"
-						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-2xs font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
+						class="flex h-6 flex-none items-center gap-1 rounded-4 px-2 text-base font-medium text-ink-gray-7 hover:bg-surface-gray-3 hover:text-ink-gray-9"
 						:title="running ? 'Add it to the running turn' : 'Send it now'"
 						:disabled="disabled"
 						@click="steerQueued(item)"
@@ -111,17 +111,19 @@
 			</div>
 
 			<!-- a new chat's folder, branch and preset, or a host's own pickers, until its first message
-			     goes out; out of the flow, so a list opening over the box covers it. The icon lines up with
-			     the box's text. A phone leaves the branch out -->
+			     goes out: a bar tucked under the box, as the queue is, its buttons the box's own size
+			     with an even margin round them. Out of the flow, so a list opening over the box covers it,
+			     and hidden meanwhile. A phone leaves the branch out -->
 			<div
 				v-if="$slots.start ? starting : startCwd"
 				ref="startRow"
-				class="start-row absolute bottom-full left-0 mb-1.5 flex min-w-0 max-w-full items-center gap-1 px-[9px] text-xs text-ink-gray-7 dark:text-ink-gray-8"
+				class="flow-start-surface absolute inset-x-3.5 bottom-full -mb-1.5 flex min-w-0 items-center gap-1 rounded-t-7 px-1.5 pb-3 pt-1.5 text-base text-ink-gray-7 dark:text-ink-gray-8"
+				:class="listOpen ? 'invisible' : ''"
 			>
 				<!-- a host's picker puts a word in the draft at the caret with `insert`, as the "/" list does -->
 				<slot name="start" :insert="replaceSlash">
 					<button
-						class="flex min-w-0 items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+						class="flex h-6 min-w-0 items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
 						title="Change working directory"
 						:disabled="disabled"
 						@click="chooseFolder"
@@ -142,10 +144,11 @@
 				</slot>
 			</div>
 
-			<!-- a fieldset: disabling it disables every control inside, a host's pickers included -->
+			<!-- a fieldset: disabling it disables every control inside, a host's pickers included.
+			     Positioned, so it covers the start row's foot -->
 			<fieldset
 				:disabled="disabled"
-				class="flow-composer-surface flow-composer-edge flex min-w-0 flex-col gap-2 rounded-7 border p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
+				class="flow-composer-surface flow-composer-edge relative flex min-w-0 flex-col gap-2 rounded-7 border p-2 shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
 			>
 				<button
 					v-if="needsCwd"
@@ -156,8 +159,8 @@
 						class="lucide-folder size-3.5 flex-none text-ink-gray-5"
 						aria-hidden="true"
 					/>
-					<span class="min-w-0 flex-1 text-xs font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
-					<span class="flex-none text-2xs font-medium text-ink-gray-6">Browse…</span>
+					<span class="min-w-0 flex-1 text-base font-medium leading-4 text-ink-gray-9">Choose a project folder to start</span>
+					<span class="flex-none text-base font-medium text-ink-gray-6">Browse…</span>
 				</button>
 				<div v-if="imageTiles.length" class="flex flex-wrap gap-1.5 px-1 pt-0.5">
 					<figure
@@ -194,14 +197,14 @@
 						:title="`${ref.rel}:${ref.start}-${ref.end}`"
 					>
 						<span :class="chipIconClass"><span class="lucide-code size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
+						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ codeRefLabel(ref) }}</span>
 						<button :class="chipRemoveClass" title="Remove reference" :disabled="locked" @click="flow.removeCodeRef(i)">
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
 					</span>
 					<span v-for="(quote, i) in quotes" :key="`quote:${i}`" :class="chipClass" :title="quote">
 						<span :class="chipIconClass"><span class="lucide-align-left size-3.5" aria-hidden="true" /></span>
-						<span class="min-w-0 truncate text-xs font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
+						<span class="min-w-0 truncate text-base font-medium text-ink-gray-8">{{ quoteLabel(quote) }}</span>
 						<button :class="chipRemoveClass" title="Remove quote" :disabled="locked" @click="flow.removeQuote(i)">
 							<span class="lucide-x size-3" aria-hidden="true" />
 						</button>
@@ -220,7 +223,7 @@
 								aria-hidden="true"
 							/>
 						</span>
-						<span class="min-w-0 flex-1 truncate text-xs font-medium text-ink-gray-8">{{ item.name }}</span>
+						<span class="min-w-0 flex-1 truncate text-base font-medium text-ink-gray-8">{{ item.name }}</span>
 						<button
 							:class="chipRemoveClass"
 							title="Remove attachment"
@@ -232,17 +235,17 @@
 						</button>
 					</span>
 				</div>
-				<div v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-xs text-ink-red-6">
+				<div v-for="item in attachments.filter((item) => item.error)" :key="item.key" class="px-1 text-base text-ink-red-6">
 					Could not prepare {{ item.name }}: {{ item.error }}
 					<button class="underline" :disabled="locked" :aria-label="`Retry ${item.name}`" @click="prepareAttachment(item)">Retry</button>
 				</div>
-				<!-- 16px on phones (iPhone Safari zooms into smaller fields), 15px in a narrow mouse frame.
-				     It rises over an open list's click-catcher, so clicking back into it keeps the list. -->
+				<!-- 16px on phones (iPhone Safari zooms into smaller fields), the chat's text size in a narrow
+				     mouse frame. It rises over an open list's click-catcher, so clicking back into it keeps the list. -->
 				<div class="flow-draft relative" :class="listOpen ? 'z-20' : ''">
 					<div
 						v-if="skillParts"
 						aria-hidden="true"
-						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-base leading-relaxed text-transparent"
+						class="pointer-events-none absolute inset-0 overflow-hidden whitespace-pre-wrap break-words px-1.5 pt-1 text-md leading-relaxed text-transparent"
 						:class="draftSize"
 					>
 						<div :style="{ transform: `translateY(-${textScrollTop}px)` }">
@@ -256,7 +259,7 @@
 						:disabled="locked"
 						:placeholder="placeholder"
 						style="caret-color: var(--ink-gray-9)"
-						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-base leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 dark:placeholder:text-ink-gray-6"
+						class="relative max-h-40 min-h-[62px] w-full resize-none border-0 bg-transparent px-1.5 pt-1 text-md leading-relaxed outline-none placeholder:text-ink-gray-4 focus:ring-0 dark:placeholder:text-ink-gray-6"
 						:class="[skillParts ? 'text-transparent' : 'text-ink-gray-9', draftSize]"
 						@keydown="onKey"
 						@paste="onPaste"
@@ -275,10 +278,10 @@
 					class="hidden"
 					@change="onFilesPicked"
 				/>
-				<div v-if="visionWarning" class="px-1 text-2xs text-ink-amber-6">
+				<div v-if="visionWarning" class="px-1 text-base text-ink-amber-6">
 					The selected model cannot view images. Switch to a vision-capable model before sending.
 				</div>
-				<div v-if="modelWarning" class="px-1 text-2xs text-ink-gray-5">{{ modelWarning }}</div>
+				<div v-if="modelWarning" class="px-1 text-base text-ink-gray-5">{{ modelWarning }}</div>
 				<div class="flex min-w-0 items-center gap-1">
 					<!-- attach files -->
 					<button
@@ -295,7 +298,7 @@
 					<span class="relative flex-none">
 						<button
 							ref="modeButton"
-							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+							class="flex h-7 items-center gap-1.5 whitespace-nowrap rounded-5 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
 							:class="[modeMenu ? 'bg-surface-gray-2' : '', layout.narrow ? 'w-7 justify-center' : 'px-2']"
 							:title="layout.narrow ? `Approval mode: ${modeLabel}` : 'Approval mode'"
 							:aria-expanded="modeMenu"
@@ -317,7 +320,7 @@
 							</template>
 						</button>
 						<!-- a row a mode, what it does under its name and the tick centred beside both; wide
-						     enough for a description to keep to one line by the tick. The corners nest in the panel's -->
+						     enough for a description to keep to one line by the tick -->
 						<PalettePanel v-if="modeMenu" title="Approval mode" dropdown align="left" :width="344" @close="closeModeMenu">
 							<div class="p-1">
 								<button
@@ -325,7 +328,7 @@
 									:key="m.id"
 									data-palette-item
 									:aria-current="currentMode === m.id ? 'true' : undefined"
-									class="flow-palette-row h-auto rounded-[16px] py-1.5"
+									class="flow-palette-row h-auto py-1.5"
 									@click="chooseMode(m.id)"
 								>
 									<span
@@ -336,7 +339,7 @@
 									/>
 									<span class="min-w-0 flex-1">
 										<span class="block truncate">{{ m.label }}</span>
-										<span class="flow-palette-hint block text-xs leading-snug">{{ m.desc }}</span>
+										<span class="flow-palette-hint block text-sm leading-snug">{{ m.desc }}</span>
 									</span>
 									<span
 										v-if="currentMode === m.id"
@@ -772,7 +775,9 @@ const skillParts = computed(() => {
 	const parts = skillSegments(text.value, (flow.state.skills ?? []).map((skill) => skill.name))
 	return parts.some((part) => part.skill) ? parts : null
 })
-const draftSize = computed(() => (layout.phone ? "max-sm:text-[16px]" : "max-sm:text-[15px]"))
+const draftSize = computed(() =>
+	layout.phone ? "max-sm:text-lg max-sm:leading-relaxed" : "max-sm:text-[length:var(--flow-chat-text,15px)]",
+)
 const running = computed(() => flow.state.conversation.running)
 const compacting = computed(() => flow.state.conversation.compacting)
 const approval = computed(() => {
@@ -1141,10 +1146,3 @@ function prefill(value) {
 
 defineExpose({ prefill, startRow })
 </script>
-
-<style scoped>
-/* the new chat's folder row: half a step over text-xs, keeping its weight and spacing */
-.start-row {
-	font-size: 13.5px;
-}
-</style>

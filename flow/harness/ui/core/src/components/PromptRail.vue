@@ -35,7 +35,7 @@
 			class="pointer-events-none absolute right-full mr-1.5 w-max max-w-[300px] rounded-6 border border-outline-gray-2 bg-surface-base px-3 py-2 shadow-md"
 			:style="{ top: cardTop + 'px' }"
 		>
-			<p class="line-clamp-6 whitespace-pre-wrap break-words text-xs leading-relaxed text-ink-gray-8">
+			<p class="line-clamp-6 whitespace-pre-wrap break-words text-sm leading-relaxed text-ink-gray-8">
 				{{ hovered.text }}
 			</p>
 		</div>
