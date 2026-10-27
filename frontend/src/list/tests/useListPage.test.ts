@@ -155,7 +155,7 @@ beforeEach(() => {
 	resetUserRoles();
 	setSession(SESSION);
 	resetListSettings();
-	// No list query is empty, so nothing is recalled from a test before.
+	// A rows key is never empty, so this clears the last test's memory.
 	rememberRows("Lead", { query: "", pageSize: 20 });
 	clearDataCache();
 	history.replaceState(null, "");

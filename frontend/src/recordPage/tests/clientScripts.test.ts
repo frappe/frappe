@@ -40,7 +40,6 @@ function sources(doctype = "CRM Deal") {
   return registrationsFor(doctype).map((registration) => registration.source);
 }
 
-/** A saved or deleted script, as the client_script_changed listener and the next load see it. */
 function reload(doctype: string) {
   invalidateClientScripts(doctype);
   return loadClientScripts(doctype);

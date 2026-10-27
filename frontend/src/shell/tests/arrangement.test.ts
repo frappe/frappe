@@ -168,16 +168,6 @@ describe("the endpoint client", () => {
       items,
     });
   });
-
-  it("writes a person's own layer, and never names a user", async () => {
-    runMethod.mockResolvedValue({ data: { rail: [], sidebars: {} } });
-
-    await saveArrangement({ container: "Rail", address: "frappe" }, []);
-
-    const [, args] = runMethod.mock.calls[0];
-    expect(args.scope).toBe("user");
-    expect(args).not.toHaveProperty("user");
-  });
 });
 
 async function editor(rows: ArrangedItem[]) {

@@ -11,6 +11,8 @@ beforeEach(() => {
 	scope = effectScope();
 	vi.useFakeTimers();
 	history.replaceState({ position: 3, list: { scrollTop: 240 } }, "");
+	// A rows key is never empty, so this clears the last test's memory.
+	rememberRows("Lead", { query: "", pageSize: 20 });
 	rememberRows("Lead", { query: "a", pageSize: 20 });
 });
 
