@@ -1047,6 +1047,8 @@ def backup(
 		try:
 			frappe.init(site)
 			frappe.connect()
+			if stream and frappe.conf.db_type == "sqlite":
+				raise frappe.ValidationError("Streaming backups are not supported for SQLite databases")
 			rollback_callback = CallbackManager()
 			# Resolved per site: whatever wasn't passed on the command line falls
 			# back to that site's own `offsite_backup_config`.
