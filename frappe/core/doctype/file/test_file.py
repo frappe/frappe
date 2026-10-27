@@ -2103,6 +2103,7 @@ class TestFileUtils(IntegrationTestCase):
 			"/private/files/./alias_victim.txt",
 			"/private/files//alias_victim.txt",
 			f"{site_url}/private/files/./alias_victim.txt",
+			"/private/files/%2e/alias_victim.txt",
 		):
 			doc = frappe.get_doc(
 				{"doctype": "File", "file_name": "alias.txt", "file_url": alias, "is_private": 1}

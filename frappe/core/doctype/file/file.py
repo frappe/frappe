@@ -156,7 +156,6 @@ class File(Document):
 		self.validate_attachment_limit()
 		self.set_file_type()
 		self.validate_file_extension()
-		self.validate_remote_file()
 		self.validate_canonical_file_url()
 		self.validate_private_file_access()
 		# before ingestion, which may read the linked blob's bytes
@@ -220,7 +219,7 @@ class File(Document):
 
 		# must run before handle_is_private_changed, which legitimately rewrites file_url
 		if not self.is_new() and self.has_value_changed("file_url"):
-			self.validate_remote_file()
+			self.file_url = unquote(self.file_url) if self.file_url else ""
 			self.validate_canonical_file_url()
 			self.validate_private_file_access()
 
@@ -266,10 +265,17 @@ class File(Document):
 	def validate_canonical_file_url(self):
 		"""Reject a local file_url with `.` or empty segments: it reaches the same file as the plain
 		path, but is not matched by the access check, which compares the URL as written."""
-		if not self.file_url or self.is_remote_file:
+		if not self.file_url:
 			return
 
-		if posixpath.normpath(self.file_url) != self.file_url:
+		url = self.file_url
+		site_url = get_url()
+		if url.startswith(site_url):
+			url = url.split(site_url, 1)[1]
+		elif self.is_remote_file:
+			return
+
+		if posixpath.normpath(url) != url:
 			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
 
 	def validate_private_file_access(self):
