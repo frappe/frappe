@@ -1,5 +1,5 @@
 // What the rail draws. Mounted with Vue's own `createApp`: this package has no `@vue/test-utils`.
-import { beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, defineComponent, h, nextTick, ref, type App, type Ref } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
 
@@ -16,6 +16,7 @@ import RailColumn from "../RailColumn.vue";
 import { useColorScheme } from "frappe-ui";
 import { pageMenuItems } from "../pageMenu";
 import { useShellActs } from "../shellActs";
+import { loadTranslations } from "@/i18n";
 
 registerStandardPages(standardPages);
 
@@ -24,11 +25,13 @@ const fake = vi.hoisted(() => ({
 	openSettings: vi.fn(),
 	customize: vi.fn(),
 	confirmLogout: vi.fn(),
+	getTranslations: vi.fn(),
 }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
 	...(await importOriginal<typeof import("@framework/ui/api")>()),
 	logout: fake.logout,
+	getTranslations: fake.getTranslations,
 }));
 
 // A toast needs a provider the rail lacks.
@@ -181,6 +184,21 @@ beforeEach(() => {
 	// `restoreAllMocks` leaves a `vi.fn()`'s call history alone.
 	vi.clearAllMocks();
 });
+
+const FRENCH = {
+	"{0} menu": "Menu {0}",
+	Search: "Rechercher",
+	"All apps": "Toutes les applications",
+	"Log out": "Se déconnecter",
+};
+
+/** Loads a catalog the way `main.ts` does; `{}` puts English back. */
+async function speak(messages: Record<string, string>) {
+	fake.getTranslations.mockResolvedValue({ data: messages });
+	await loadTranslations("v1", "fr");
+}
+
+afterEach(() => speak({}));
 
 describe("the kinds the rail draws", () => {
 	it("draws every kind that resolves to a destination", () => {
@@ -352,6 +370,15 @@ describe("the app tile", () => {
 		const image = host.querySelector("[data-key='app-menu'] img");
 		expect(image?.getAttribute("src")).toBe("/assets/crm/logo.svg");
 	});
+
+	it("names the tile and the search trigger in the reader's language", async () => {
+		await speak(FRENCH);
+		const host = rail([]);
+
+		const label = (key: string) => host.querySelector(`[data-key='${key}']`)!.getAttribute("aria-label");
+		expect(label("app-menu")).toBe("Menu CRM");
+		expect(label("palette-trigger")).toBe("Rechercher");
+	});
 });
 
 describe("the app menu", () => {
@@ -401,6 +428,14 @@ describe("the app menu", () => {
 		await flush();
 		expect(fake.openSettings).toHaveBeenCalledOnce();
 		expect(fake.openSettings).toHaveBeenLastCalledWith();
+	});
+
+	it("redraws its rows when the reader's language lands after it opened", async () => {
+		expect(await opened({})).toContain("All apps");
+
+		await speak(FRENCH);
+		await flush();
+		expect(document.body.textContent).toContain("Toutes les applications");
 	});
 });
 
@@ -571,4 +606,11 @@ describe("the user menu", () => {
 		expect(fake.confirmLogout).toHaveBeenCalledOnce();
 		expect(fake.logout).not.toHaveBeenCalled();
 	});
+
+	it("draws its rows in the reader's language", async () => {
+		await speak(FRENCH);
+
+		expect(rows(await opened())).toContain("Se déconnecter");
+	});
 });
+

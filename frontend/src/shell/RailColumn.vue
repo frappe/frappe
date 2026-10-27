@@ -11,7 +11,7 @@
 					type="button"
 					data-key="app-menu"
 					:class="[TILE, boot.app_logo ? 'hover:opacity-90' : LETTER_TILE]"
-					:aria-label="`${appTitle} menu`"
+					:aria-label="__('{0} menu', [appTitle])"
 				>
 					<img
 						v-if="boot.app_logo"
@@ -29,14 +29,14 @@
 			<Tooltip side="right">
 				<template #content>
 					<span class="flex items-center gap-2 [&_[data-slot=key]]:text-ink-gray-4">
-						Search <KeyboardShortcut combo="Mod+K" />
+						{{ __("Search") }} <KeyboardShortcut combo="Mod+K" />
 					</span>
 				</template>
 				<button
 					type="button"
 					data-key="palette-trigger"
 					:class="TRIGGER"
-					aria-label="Search"
+					:aria-label="__('Search')"
 					aria-keyshortcuts="Control+K Meta+K"
 					@click="openPalette"
 				>
@@ -108,6 +108,7 @@ import {
 	type DropdownOptions,
 } from "frappe-ui";
 import type { Boot, NavigationItem } from "@/boot";
+import { __ } from "@/i18n";
 import Icon from "@/icons/Icon.vue";
 import { labelOf, renderingOf } from "@/navigation/registry";
 import type { ItemNode } from "@/navigation/tree";

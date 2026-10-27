@@ -78,6 +78,7 @@ import { keepInHistory } from "@framework/ui/utils";
 import type { Addresses } from "@/addresses";
 import { browserMemory } from "@/browserMemory";
 import type { Boot, Navigation, NavigationItem } from "@/boot";
+import { __ } from "@/i18n";
 import { itemContext } from "@/navigation/context";
 import {
 	currentFrom,
@@ -254,9 +255,9 @@ const customize = useHashDialog("customize");
 const customizing = computed<CustomizeTarget | null>(() => {
 	const [what, address] = customize.segments.value;
 	if (what === "rail" && boot.app)
-		return { container: "Rail", address: boot.app, title: "Customize sidebar" };
+		return { container: "Rail", address: boot.app, title: __("Customize sidebar") };
 	if (what === "sidebar" && address && navigation.value.sidebars[address])
-		return { container: "Sidebar", address, title: "Customize this sidebar" };
+		return { container: "Sidebar", address, title: __("Customize this sidebar") };
 	return null;
 });
 

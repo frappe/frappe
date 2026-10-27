@@ -23,7 +23,7 @@
 					class="ml-auto"
 					variant="ghost"
 					icon="lucide-settings-2"
-					label="Customize this sidebar"
+					:label="__('Customize this sidebar')"
 					@click="emit('customize')"
 				/>
 			</div>
@@ -57,6 +57,7 @@ import { computed } from "vue";
 import { Button, ScrollArea, Sidebar } from "frappe-ui";
 import { acts } from "@/acts/dispatcher";
 import type { NavigationItem } from "@/boot";
+import { __ } from "@/i18n";
 import type { SectionMemory } from "@/navigation/sectionMemory";
 import { useItemTree } from "@/navigation/useItemTree";
 import type { ItemContext } from "@/navigation/types";

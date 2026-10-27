@@ -2,30 +2,32 @@
 <template>
 	<Dialog
 		v-model="open"
-		title="Log out?"
-		message="You will need to sign in again."
+		:title="__('Log out?')"
+		:message="__('You will need to sign in again.')"
 		size="sm"
 		:actions="actions"
 	/>
 </template>
 
 <script setup lang="ts">
+import { computed } from "vue";
 import { Dialog, toast } from "frappe-ui";
+import { __ } from "@/i18n";
 import { logout } from "./session";
 
 const open = defineModel<boolean>({ default: false });
 
 // `Dialog` awaits an action and shows its loading state itself.
-const actions = [
-	{ label: "Cancel", onClick: () => (open.value = false) },
-	{ label: "Log out", variant: "outline", theme: "red", onClick: confirm },
-];
+const actions = computed(() => [
+	{ label: __("Cancel"), onClick: () => (open.value = false) },
+	{ label: __("Log out"), variant: "outline", theme: "red", onClick: confirm },
+]);
 
 async function confirm() {
 	try {
 		await logout();
 	} catch {
-		toast.error("Could not log out");
+		toast.error(__("Could not log out"));
 	}
 }
 </script>
