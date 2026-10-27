@@ -17,6 +17,7 @@ export function assignItem(state: AssignState): HeaderItem {
     label: __("Assign to…"),
     icon: "lucide-user-plus",
     group: "assign_band",
+    right: "write",
     argument: {
       label: __("Users"),
       options: (_page: RecordPageApi, query: string) => assignOptions(state.assignees, query),

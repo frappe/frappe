@@ -197,8 +197,8 @@ describe("Assign to…", () => {
   const assignRow = (perms: Record<string, any>, state = assignState()) =>
     headerMenuBuiltins(perms, off, { assign: state }).find((item) => item.name === "assign");
 
-  it("sits in its own band above the copies, only with the write right", () => {
-    expect(assignRow({})).toBeUndefined();
+  it("sits in its own band above the copies, behind the write right", () => {
+    expect(assignRow({})).toMatchObject({ right: "write" });
     const rows = headerMenuBuiltins({ write: 1 }, off, { assign: assignState() });
     expect(rows.map((item) => [item.name, item.group])).toEqual([
       ["favourite_row", "favourite_band"],

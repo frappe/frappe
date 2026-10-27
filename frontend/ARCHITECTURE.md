@@ -409,7 +409,7 @@ component group, with its main names.
 | Panel context (`PanelContextKey`, `DocInfo`) | What the built-in panel sections read |
 | [Panel](./CONTEXT.md#panel) entries | Joins panel items with the Side Panel layout |
 | Panel [disclosure](./CONTEXT.md#disclosure) | *Changed.* Which panel sections are open. It reports them as shown and takes them back for the record view |
-| [Built-in](./CONTEXT.md#built-in) actions (`assignItem`, `assignOptions`, `AssignState`) | Framework quick actions and menu rows, offered by right. With the write right, `⋯` holds `header.assign`, "Assign to…", in its own band above the copies: its step lists the link search's users and the assignees, each with an avatar, the assignees marked "Assigned" |
+| [Built-in](./CONTEXT.md#built-in) actions (`assignItem`, `assignOptions`, `AssignState`) | Framework quick actions and menu rows, offered by right. `⋯` holds `header.assign`, "Assign to…", in its own band above the copies, behind its act right `write`, so `passesRight` hides it from a reader without it: its step lists the link search's users and the assignees, each with an avatar, the assignees marked "Assigned" |
 | Composer host (`composerHost`, `openWriterContext`) | Joins `page.composer` to the shell's composer, and gives a writer its record |
 | Writers | *Changed.* One pipeline for the comment and email writers and their drafts |
 | Body columns | Column widths and collapse, per user |

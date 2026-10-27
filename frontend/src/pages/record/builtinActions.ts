@@ -68,7 +68,7 @@ export function headerMenuBuiltins(
       run: options.follow.toggle,
       ...followWording(options.follow),
     });
-  if (perms.write && options.assign) items.push(assignItem(options.assign));
+  if (options.assign) items.push(assignItem(options.assign));
   items.push(
     { name: "copy_url", label: "Copy record URL", icon: "lucide-link", group: "copies", run: copyLink },
     { name: "copy_id", label: "Copy record ID", icon: "lucide-hash", group: "copies", run: copyId }
