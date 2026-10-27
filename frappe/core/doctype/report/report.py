@@ -574,7 +574,7 @@ def get_validated_value(row, value, user):
 			)
 
 		if row.fieldtype == "DateRange":
-			if len(value) != 2:
+			if len(value) != 2 or not all(value):
 				frappe.throw(
 					_("{0} must have a start and an end date").format(frappe.bold(_(row.label))),
 					title=_("Invalid Filters"),

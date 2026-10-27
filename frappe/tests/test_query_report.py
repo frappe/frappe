@@ -854,6 +854,8 @@ data = columns, result
 			report.get_validated_filters({"allocated_to": user, "users": user}, user)
 		with self.assertRaisesRegex(frappe.ValidationError, "start and an end date"):
 			report.get_validated_filters({"allocated_to": user, "period": ["2026-01-01"]}, user)
+		with self.assertRaisesRegex(frappe.ValidationError, "start and an end date"):
+			report.get_validated_filters({"allocated_to": user, "period": ["", ""]}, user)
 		with self.assertRaises(frappe.PermissionError):
 			report.get_validated_filters({"allocated_to": user, "users": [user, "Administrator"]}, user)
 
