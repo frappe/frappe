@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.record_title import RecordTitles
 from frappe.shell import SHELL_ROOT
 from frappe.shell.doctypes import get_shell_doctypes, slug
 from frappe.shell.links import canonical_path
@@ -48,6 +49,12 @@ class PaletteRecordsCase(IntegrationTestCase):
 				},
 			],
 		)
+		cls.restricted_title = readable_doctype(
+			title_field="some_fieldname",
+			fields=[
+				{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data", "permlevel": 1}
+			],
+		)
 		cls.single = readable_doctype(issingle=1)
 		cls.closed = new_doctype(autoname="Prompt").insert().name
 		frappe.db.commit()  # nosemgrep
@@ -61,6 +68,7 @@ class PaletteRecordsCase(IntegrationTestCase):
 			cls.rich_titled,
 			cls.translated,
 			cls.virtual_titled,
+			cls.restricted_title,
 			cls.single,
 			cls.closed,
 		]:
@@ -290,13 +298,29 @@ class TestRecentAndRecordsAgree(PaletteRecordsCase):
 
 		self.assertEqual(self.titles_of(self.virtual_titled, "Kestrel Ridge"), ["KESTREL HAWK"] * 2)
 
+	def test_a_title_field_the_person_may_not_read_gives_the_name(self):
+		frappe.get_doc(doctype=self.restricted_title, name="Kestrel Ridge", some_fieldname="Secret").insert()
+		self.visit(self.restricted_title, "Kestrel Ridge")
+
+		with self.set_user(READER):
+			[recent] = places()["recent"]
+			# search_widget refuses this doctype, so a row that carries the column stands in for Records
+			record = RecordTitles(self.restricted_title).of(
+				[{"name": "Kestrel Ridge", "some_fieldname": "Secret"}]
+			)
+
+		self.assertEqual([recent["title"], record["Kestrel Ridge"]], ["Kestrel Ridge"] * 2)
+
 	def titles_of(self, doctype: str, name: str) -> list[str]:
 		"""The record's title in the palette's Recent, after one visit, and in its Records."""
-		frappe.get_doc(doctype="Route History", route=canonical_path(doctype, name), user=READER).db_insert()
+		self.visit(doctype, name)
 		with listed([doctype]), self.set_user(READER):
 			[recent] = places()["recent"]
 			[record] = search_records(name)
 		return [recent["title"], record["label"]]
+
+	def visit(self, doctype: str, name: str):
+		frappe.get_doc(doctype="Route History", route=canonical_path(doctype, name), user=READER).db_insert()
 
 
 def clear_visits():
