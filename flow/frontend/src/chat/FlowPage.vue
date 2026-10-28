@@ -2,9 +2,14 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so on the /flow page the chat stands on it as a raised
 	     panel; the launcher's panel keeps it flat at any size. The chat's text and its steps are
-	     the composer's size, the text a size up in a wide frame -->
+	     the composer's size, the text a size up in a wide frame or on a phone -->
 	<div
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-chat-text:theme(fontSize.base)] [--flow-step-text:theme(fontSize.base)] md:[--flow-chat-text:theme(fontSize.md)]"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-step-text:theme(fontSize.base)]"
+		:class="
+			layout.phone
+				? '[--flow-chat-text:theme(fontSize.md)]'
+				: '[--flow-chat-text:theme(fontSize.base)] md:[--flow-chat-text:theme(fontSize.md)]'
+		"
 	>
 		<SessionSidebar
 			v-if="!noSidebar"

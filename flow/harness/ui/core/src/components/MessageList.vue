@@ -85,7 +85,7 @@
 						:text="item.text"
 						:ts="item.ts"
 					/>
-					<span v-if="formatTime(item.ts)" class="flow-turn-time text-xs text-ink-gray-4 md:text-sm">{{ formatTime(item.ts) }}</span>
+					<span v-if="formatTime(item.ts)" class="flow-turn-time text-ink-gray-4" :class="layout.phone ? 'text-sm' : 'text-xs md:text-sm'">{{ formatTime(item.ts) }}</span>
 				</div>
 				<TurnFiles v-else-if="item.kind === 'turn-files'" class="flow-turn-files -mt-1" :files="item.files" />
 				<div
@@ -161,6 +161,7 @@
 <script setup>
 import { computed, inject, nextTick, onBeforeUnmount, onMounted, provide, reactive, ref, watch } from "vue"
 
+import { layout } from "../layout.js"
 import { buildItems, formatTime, panelIds, suggestedReplies, userAttachments, userText } from "../transcript.js"
 import AddToChat from "./AddToChat.vue"
 import AssistantText from "./AssistantText.vue"

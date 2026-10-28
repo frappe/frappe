@@ -132,6 +132,13 @@ body {
 .flow-palette-row + .flow-palette-row {
 	margin-top: 2px;
 }
+/* a phone's menus and lists at the chat's text size */
+@media (max-width: 767px) and (pointer: coarse) {
+	.menu-content [data-slot="item-list-row"],
+	.flow-palette-row {
+		font-size: theme(fontSize.md);
+	}
+}
 .flow-palette-hint {
 	color: var(--ink-gray-4);
 }
@@ -370,8 +377,7 @@ body {
 .flow-thread .text-base {
 	font-size: var(--flow-step-text, calc(var(--flow-chat-text, 15px) - 1px));
 }
-/* the draft (its box and the highlight under it) follows too, its size only from 640px:
-   phones keep the 16px that stops iPhone Safari zooming into the box */
+/* the draft (its box and the highlight under it) follows too, its size only from 640px */
 .flow-draft > textarea,
 .flow-draft > div {
 	font-weight: var(--flow-chat-weight, 420);
@@ -380,17 +386,6 @@ body {
 	.flow-draft > textarea,
 	.flow-draft > div {
 		font-size: var(--flow-chat-text, 15px);
-	}
-}
-/* an iPhone's other fields too (searches, settings forms); only iOS knows -webkit-touch-callout,
-   so other phones keep the fields as drawn */
-@supports (-webkit-touch-callout: none) {
-	@media (max-width: 767px) {
-		input:not([type="checkbox"], [type="radio"], [type="range"]),
-		textarea:not(.flow-draft > *),
-		select {
-			font-size: 16px !important;
-		}
 	}
 }
 
