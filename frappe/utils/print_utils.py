@@ -137,6 +137,7 @@ def get_print(
 
 			doc_obj = doc if isinstance(doc, Document) else frappe.get_doc(doctype, name)
 			validate_print(doc_obj)
+			_run_print_pdf_hooks(doctype, name, print_format)
 			pdf = _render_builder_pdf(
 				pf_doc, doc_obj, letterhead, no_letterhead, pdf_options.get("password"), style, settings
 			)
