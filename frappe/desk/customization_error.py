@@ -24,6 +24,7 @@ REPEAT_WINDOW_SECONDS = 10 * 60
 REPORTS_PER_MINUTE = 30
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 @rate_limit(limit=REPORTS_PER_MINUTE, seconds=60, methods="POST")
 def report_customization_error(

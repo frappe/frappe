@@ -9,6 +9,7 @@ from .doctype_view import PLAIN_VIEW, SITE_ROW, VIEW_TYPES, DuplicateViewError, 
 SCOPES = ("user", "site")
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def get(doctype: str, type: str = "List") -> dict:
 	"""Both scopes' `settings`, either `None` when absent, and which of the list and its saved views the caller starred."""
@@ -17,6 +18,7 @@ def get(doctype: str, type: str = "List") -> dict:
 	return {**_rows(doctype, type), "favourites": list_favourites(doctype)}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def save(doctype: str, type: str, scope: str, settings: dict) -> dict:
 	"""Patch the keys given onto one scope's row, creating it, and hand back both scopes."""
@@ -29,6 +31,7 @@ def save(doctype: str, type: str, scope: str, settings: dict) -> dict:
 	return _rows(doctype, type)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def reset(doctype: str, type: str, scope: str, key: str) -> dict:
 	"""Clear one key on one scope's row, deleting the row when nothing is left."""

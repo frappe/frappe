@@ -565,6 +565,7 @@ whitelisted: set[Callable] = set()
 guest_methods: set[Callable] = set()
 xss_safe_methods: set[Callable] = set()
 allowed_http_methods_for_whitelisted_func: dict[Callable, tuple[str, ...]] = {}
+desk_v2_methods: set[Callable] = set()
 
 
 def _in_request_or_test():
@@ -626,6 +627,15 @@ def whitelist(allow_guest=False, xss_safe=False, methods=None, force_types=None)
 	return innerfn
 
 
+def desk_v2_only(fn):
+	"""Refuse the whitelisted `fn` over HTTP while desk v2 is off. Goes above `@frappe.whitelist()`."""
+	if fn not in whitelisted:
+		raise TypeError(f"@frappe.desk_v2_only must sit above @frappe.whitelist() on {fn.__qualname__}")
+
+	desk_v2_methods.add(fn)
+	return fn
+
+
 def is_whitelisted(method):
 	from frappe.utils import sanitize_html_payload
 
@@ -644,6 +654,12 @@ def is_whitelisted(method):
 		detail = _("Function {0} is not whitelisted.").format(bold(f"{method.__module__}.{method.__name__}"))
 		msg = f"<details><summary>{summary}</summary>{detail}</details>"
 		throw(msg, PermissionError, title=_("Method Not Allowed"))
+
+	if method in desk_v2_methods:
+		from frappe.utils.data import is_desk_v2_enabled
+
+		if not is_desk_v2_enabled():
+			throw(_("Desk v2 is not enabled on this site."), DeskV2DisabledError, title=_("Desk v2 Disabled"))
 
 	if is_guest and method not in xss_safe_methods:
 		# strictly sanitize form_dict

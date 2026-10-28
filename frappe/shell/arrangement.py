@@ -32,6 +32,7 @@ BELOW = {"user": "site", "site": "base"}
 OVERRIDABLE = ("label", "icon", "collapsible", "keep_closed")
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def get_arrangement(container: str, address: str, scope: str = "user") -> list[dict]:
 	"""The list to arrange: resolved up to and including `scope`, hidden rows kept."""
@@ -39,6 +40,7 @@ def get_arrangement(container: str, address: str, scope: str = "user") -> list[d
 	return _target(container, address, scope).resolve(upto=scope, keep_hidden=True)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def save_arrangement(container: str, address: str, items: str | list, scope: str = "user") -> dict:
 	"""Store one layer's arrangement and hand back the whole prefix's navigation."""
@@ -65,6 +67,7 @@ def save_arrangement(container: str, address: str, items: str | list, scope: str
 	return resolve_navigation(target.app)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def reset_arrangement(container: str, address: str, scope: str = "user") -> dict:
 	"""Delete one layer and hand back what the prefix resolves to without it."""

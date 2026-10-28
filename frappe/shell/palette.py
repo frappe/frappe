@@ -25,6 +25,7 @@ SHORTEST_QUERY = 2
 RICH_TEXT = {"Text Editor", "HTML Editor"}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def places() -> dict:
 	"""The readable doctypes with their app, address and create right; the apps; each app's title; the recent visits."""
@@ -42,6 +43,7 @@ def places() -> dict:
 	}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def search_records(txt: str, doctype: str | None = None) -> list[dict]:
 	"""Up to 10 records matching `txt`, 3 per readable doctype, any named exactly `txt` first."""
@@ -53,6 +55,7 @@ def search_records(txt: str, doctype: str | None = None) -> list[dict]:
 	return exact_first(found, txt)[:RECORDS_IN_ALL]
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def search_doctype_records(doctype: str, txt: str) -> list[dict]:
 	"""Up to 10 records of one readable doctype matching `txt`, any named exactly `txt` first."""

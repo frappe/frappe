@@ -39,6 +39,7 @@ def get_email_accounts(user=None):
 	return {"email_accounts": email_accounts, "all_accounts": all_accounts}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def get_outgoing_senders() -> dict:
 	"""The session user's outgoing addresses and the address of the default outgoing account."""

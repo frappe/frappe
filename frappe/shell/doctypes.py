@@ -112,6 +112,7 @@ def claim(holders: dict[str, str], doctype: str, name: str) -> bool:
 	return True
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 @http_cache(max_age=31536000)
 def get_addresses(v: str | None = None) -> dict:
@@ -166,6 +167,7 @@ def contents_for_app(app: str, module: str | None = None) -> list[dict]:
 	return entries
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def get_contents(app: str, module: str | None = None) -> list[dict]:
 	"""An app's contents, or one module's, fetched when a `Module Contents` row expands."""

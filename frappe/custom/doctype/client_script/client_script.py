@@ -129,6 +129,7 @@ class ClientScript(Document):
 		)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def get_client_scripts(dt: str, view: str = "Record"):
 	"""Return the enabled scripts a Record page of `dt` runs, in run order."""
@@ -162,6 +163,7 @@ def served_copy(result: dict | CompilerUnavailable) -> dict:
 	return {"script": result["code"]}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def reorder(dt: str, view: str, names: list[str]) -> None:
 	"""Renumber `names` densely from 1 in the given order, in one transaction."""

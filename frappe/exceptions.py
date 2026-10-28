@@ -205,6 +205,10 @@ class AppDisabledError(AppNotInstalledError):
 	pass
 
 
+class DeskV2DisabledError(PermissionError):
+	pass
+
+
 class IncorrectSitePath(NotFound):
 	pass
 

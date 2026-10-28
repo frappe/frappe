@@ -61,6 +61,7 @@ def getdoc(doctype: str, name: str | int):
 	frappe.response.docs.append(doc)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def get_new_doc(doctype: str) -> dict:
 	"""A new `doctype` document with defaults filled by the insert's own rules; nothing is saved."""

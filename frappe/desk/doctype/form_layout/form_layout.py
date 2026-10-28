@@ -102,6 +102,7 @@ class FormLayout(Document):
 			)
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def get_form_layouts(dt: str, type: str):
 	validate_target(dt, type)
@@ -118,6 +119,7 @@ def get_form_layouts(dt: str, type: str):
 	return {"layouts": layouts, "fallback": get_quick_entry_layout(dt), "dialog": opens_in_dialog(dt, rows)}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, condition: str | None = None):
 	validate_target(dt, type)
