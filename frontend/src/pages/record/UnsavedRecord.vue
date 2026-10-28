@@ -290,7 +290,14 @@ function headerBuiltins(): HeaderItem[] {
 		},
 		{ name: "record", label: title.value, zone: "left", display: "crumb" },
 		{ name: "notSaved", label: __("Not Saved"), zone: "left", component: NotSavedBadge },
-		{ name: "save", label: __("Save"), display: "button", key: "Mod+S", run: save },
+		{
+			name: "save",
+			label: __("Save"),
+			icon: "lucide-save",
+			display: "button",
+			key: "Mod+S",
+			run: save,
+		},
 	];
 }
 

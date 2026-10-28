@@ -196,6 +196,11 @@ async function editTitle(root: HTMLElement, value: string) {
   await settle();
 }
 
+it("draws Save with the save icon", async () => {
+  const root = await mount();
+  expect(saveButton(root).querySelector(".lucide-save")).not.toBeNull();
+});
+
 describe.each([
   ["Ctrl+S", () => document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "s", ctrlKey: true, bubbles: true }))],
   ["the Save button", (root: HTMLElement) => saveButton(root).click()],

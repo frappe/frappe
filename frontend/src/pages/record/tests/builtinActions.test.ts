@@ -141,6 +141,14 @@ describe("quickActionBuiltins", () => {
     expect(requestUpload).toHaveBeenCalledOnce();
   });
 
+  it("keeps the star's and Attach's copies out of the palette, and their own rows in", () => {
+    const filesCreate = recordTabBuiltins({ requestUpload: vi.fn() }).find((tab) => tab.name === FILES_TAB)!.create!;
+    const attach = quickActionBuiltins({}, true, undefined, filesCreate).find((a) => a.name === "attach")!;
+    expect(menuRow({}, "favourite_row").palette).toBe(false);
+    expect(filesCreate.palette).toBe(false);
+    expect(attach.palette).toBeUndefined();
+  });
+
   it("gives attach the Files tab entry's right, so the two hide together", () => {
     const create = { name: "attach_file", label: "Attach a file", icon: "lucide-paperclip", right: "delete", run: () => {} };
     const attach = quickActionBuiltins({}, true, undefined, create).find((a) => a.name === "attach");

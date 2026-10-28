@@ -395,7 +395,14 @@ function headerBuiltins(): HeaderItem[] {
 			display: "button",
 			run: toggleFavourite,
 		},
-		{ name: "save", label: "Save", display: "button", key: "Mod+S", run: saveFromHeader },
+		{
+			name: "save",
+			label: "Save",
+			icon: "lucide-save",
+			display: "button",
+			key: "Mod+S",
+			run: saveFromHeader,
+		},
 		...headerMenuBuiltins(
 			docinfo.value?.permissions ?? {},
 			{ favourited: favourited.value, toggle: toggleFavourite },
