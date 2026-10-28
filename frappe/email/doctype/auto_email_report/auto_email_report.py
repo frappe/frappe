@@ -79,6 +79,25 @@ class AutoEmailReport(Document):
 		self.validate_emails()
 		self.validate_report_format()
 		self.validate_mandatory_fields()
+		self.validate_user_permission()
+
+	def validate_user_permission(self):
+		user = frappe.session.user
+		if not self.user or self.user == user:
+			return
+
+		if "System Manager" in frappe.get_roles(user) or frappe.has_permission(
+			"User", "impersonate", user=user
+		):
+			return
+
+		frappe.throw(
+			_("{0} is not allowed to generate this report based on the permissions of {1}.").format(
+				frappe.bold(user), frappe.bold(self.user)
+			),
+			frappe.PermissionError,
+			title=_("Not Permitted"),
+		)
 
 	@property
 	def sender_email(self):
@@ -307,6 +326,7 @@ def download(name: str):
 	"""Download report locally"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
+	auto_email_report.validate_user_permission()
 	data = auto_email_report.get_report_content()
 
 	if not data:
@@ -323,6 +343,7 @@ def send_now(name: str):
 	"""Send Auto Email report now"""
 	auto_email_report = frappe.get_doc("Auto Email Report", name)
 	auto_email_report.check_permission()
+	auto_email_report.validate_user_permission()
 	auto_email_report.send()
 
 
