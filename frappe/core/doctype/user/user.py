@@ -1148,7 +1148,8 @@ def update_password(
 		redirect_url = redirect_to
 		frappe.cache.hdel("redirect_after_login", user)
 
-	frappe.local.login_manager.login_as(user)
+	if frappe.session.user != user:
+		frappe.local.login_manager.login_as(user)
 
 	if user_doc.user_type == "System User":
 		return get_default_path() or "/desk"

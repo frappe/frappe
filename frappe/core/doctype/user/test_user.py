@@ -889,6 +889,48 @@ class TestUser(IntegrationTestCase):
 			probe.assert_called_once()
 			frappe.set_user("Administrator")
 
+	def test_update_password_keeps_the_session_of_a_logged_in_user(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		# starting and ending a session commits, leave it to the class rollback
+		with (
+			patch.object(frappe.db, "commit"),
+			test_user(roles=[], new_password="Eastern_43A1W") as user,
+		):
+			set_request(path="/random")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			frappe.local.login_manager.login_as(user.name)
+			sid = frappe.session.sid
+
+			update_password("Western_43A1W", old_password="Eastern_43A1W")
+			update_password("Northern_43A1W", key=self.reset_password(user))
+
+			self.assertEqual(frappe.session.sid, sid)
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+			frappe.set_user("Administrator")
+
+	def test_update_password_with_reset_key_logs_in_a_guest(self):
+		from frappe.auth import CookieManager, LoginManager
+		from frappe.utils import set_request
+
+		# starting and ending a session commits, leave it to the class rollback
+		with (
+			patch.object(frappe.db, "commit"),
+			test_user(roles=[], new_password="Eastern_43A1W") as user,
+		):
+			set_request(path="/random")
+			frappe.local.cookie_manager = CookieManager()
+			frappe.local.login_manager = LoginManager()
+			self.assertEqual(frappe.session.user, "Guest")
+
+			update_password("Western_43A1W", key=self.reset_password(user))
+
+			self.assertEqual(frappe.session.user, user.name)
+			self.assertEqual(frappe.db.count("Sessions", {"user": user.name}), 1)
+			frappe.set_user("Administrator")
+
 	@contextmanager
 	def outgoing_email_account(self):
 		exists = frappe.db.exists
