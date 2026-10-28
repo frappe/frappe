@@ -360,8 +360,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	open_sheet() {
 		const actions = this.footer.children();
-		const buttons = actions.find(".es-button");
-		frappe.ui.button.dress(buttons, { size: "md" });
+		const buttons = actions.find(".es-button").attr("data-size", "md");
 		this.sheet = new frappe.ui.BottomSheet({
 			title: this.$wrapper.find(".modal-title").text(),
 			show_close: true,
@@ -373,7 +372,7 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				// moved back on the next show: now, the sheet would slide out empty
 				this.restore_from_sheet = () => {
 					this.restore_from_sheet = null;
-					frappe.ui.button.dress(buttons, { size: "sm" });
+					buttons.removeAttr("data-size");
 					this.header.after(this.modal_body);
 					this.footer.append(actions);
 				};
