@@ -8,6 +8,7 @@ import {
 	updateDocument,
 	type DocumentRecord,
 	type Envelope,
+	type FieldError as RefusedField,
 } from "@framework/ui/api";
 import { evaluateDependsOn } from "@framework/ui/FormLayout";
 import { fieldErrorKey, fieldnameOfErrorKey, type FieldAddress } from "@framework/ui/fields/types";
@@ -53,6 +54,8 @@ export class BindingDraft {
 	private sending = new Map<string, unknown>();
 	/** Fields a hold marked while a save was out; that save's refusal leaves them as the hold drew them. */
 	private heldMeanwhile = new Set<string>();
+	/** The message keys those holds drew; an older refusal on the same field is not one of them. */
+	private heldKeys = new Set<string>();
 	/** Unsent fields found changed elsewhere since their edit; their own save asks first. */
 	private stale = new Set<string>();
 	private running: Promise<void> | null = null;
@@ -116,7 +119,11 @@ export class BindingDraft {
 		for (const fieldname of fieldnames) this.state.marks[fieldname] = "error";
 		if (!this.sending.size) return;
 		for (const fieldname of fieldnames) this.heldMeanwhile.add(fieldname);
-		for (const { address } of refusals) this.heldMeanwhile.add(fieldnameOfErrorKey(fieldErrorKey(address)));
+		for (const { address } of refusals) {
+			const key = fieldErrorKey(address);
+			this.heldKeys.add(key);
+			this.heldMeanwhile.add(fieldnameOfErrorKey(key));
+		}
 	}
 
 	discard(fieldnames: string[]) {
@@ -176,6 +183,7 @@ export class BindingDraft {
 			} finally {
 				this.sending.clear();
 				this.heldMeanwhile.clear();
+				this.heldKeys.clear();
 			}
 		}
 	}
@@ -291,16 +299,16 @@ export class BindingDraft {
 		const failed = sent.filter(
 			(fieldname) => (fieldnames.includes(fieldname) || named.includes(fieldname)) && this.dirty(fieldname)
 		);
-		const quiet = sent.filter((fieldname) => this.holding(fieldname) || !this.dirty(fieldname));
+		const setBack = sent.filter((fieldname) => !this.dirty(fieldname));
 		if (refusals.length)
 			this.fieldErrors.markRefused(
-				refusals.filter((refused) => !quiet.includes(refused.parentfield ?? refused.fieldname)),
+				refusals.filter((refused) => !this.quiet(refused, setBack)),
 				this.state.doc
 			);
 		else
 			for (const fieldname of failed)
-				if (!this.holding(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
-		for (const fieldname of quiet) {
+				if (!this.holds(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
+		for (const fieldname of setBack) {
 			if (this.heldMeanwhile.has(fieldname)) continue;
 			this.unmark(fieldname);
 			if (!this.queued.has(fieldname)) delete this.state.marks[fieldname];
@@ -309,12 +317,17 @@ export class BindingDraft {
 		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
 	}
 
+	private quiet(refused: RefusedField, setBack: string[]): boolean {
+		const fieldname = refused.parentfield ?? refused.fieldname;
+		if (!this.sending.has(fieldname)) return false;
+		if (setBack.includes(fieldname)) return true;
+		const address = this.fieldErrors.addressOf(refused, this.state.doc);
+		return !!address && this.holds(fieldErrorKey(address));
+	}
+
 	/** Only while the hold's message is still drawn: an edit, or a component's own change, may have cleared it. */
-	private holding(fieldname: string): boolean {
-		return (
-			this.heldMeanwhile.has(fieldname) &&
-			Object.keys(this.fieldErrors.drawn.value).some((key) => fieldnameOfErrorKey(key) === fieldname)
-		);
+	private holds(key: string): boolean {
+		return this.heldKeys.has(key) && key in this.fieldErrors.drawn.value;
 	}
 
 	/** A field queued again keeps Saving…, and one changed since it was sent keeps its hold or none; Saved fades on its own. */
