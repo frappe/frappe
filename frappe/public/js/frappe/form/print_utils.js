@@ -316,5 +316,5 @@ frappe.ui.show_print_preview = function (field, out) {
 	frame
 		.off("load")
 		.on("load", () => frappe.ui.form.ControlBarcode.render_svgs(frame.get(0).contentDocument));
-	frame.prop("srcdoc", frappe.ui.get_print_preview_document(out));
+	frame.prop("srcdoc", frappe.ui.get_print_preview_document(out, out.lang));
 };
