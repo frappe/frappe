@@ -140,7 +140,7 @@ export class PaneDrafts {
 				draft,
 				layout: computed(() => []),
 				fieldnames: computed(() =>
-					block.fields?.length ? declaredFields(block.fields, draft) : this.unclaimedFields(draft)
+					block.fields?.length ? this.declaredFields(block.fields, draft) : this.unclaimedFields(draft)
 				),
 			};
 			this.claims.push(claim);
@@ -156,7 +156,13 @@ export class PaneDrafts {
 		return Object.fromEntries(named);
 	}
 
-	/** The fields of the draft's doctype that no generated block draws and no component declares. */
+	/** A component with several bindings lists their fields in one list; each binding claims its doctype's. */
+	private declaredFields(declared: string[], draft: BindingDraft): string[] {
+		const present = new Set(metaFieldnames(draft));
+		const drawn = new Set(this.drawnFields(draft));
+		return declared.filter((fieldname) => present.has(fieldname) && !drawn.has(fieldname));
+	}
+
 	private unclaimedFields(draft: BindingDraft): string[] {
 		const claimed = new Set(
 			this.claims
@@ -164,6 +170,12 @@ export class PaneDrafts {
 				.flatMap((claim) => claim.fieldnames.value)
 		);
 		return metaFieldnames(draft).filter((fieldname) => !claimed.has(fieldname));
+	}
+
+	private drawnFields(draft: BindingDraft): string[] {
+		return this.claims
+			.filter((claim) => claim.draft === draft && claim.block.binding)
+			.flatMap((claim) => claim.fieldnames.value);
 	}
 
 	/** An insert checks every block's required fields; a patch only those of the blocks in its mode that send a field. */
@@ -202,12 +214,6 @@ function bind(block: SettingsBlock, draft: BindingDraft): BoundBlock {
 	);
 	const fieldnames = computed(() => layoutFields(layout.value).map((field) => field.fieldname));
 	return { block, draft, layout, fieldnames };
-}
-
-/** A component with several bindings lists their fields in one list; each binding claims its doctype's. */
-function declaredFields(declared: string[], draft: BindingDraft): string[] {
-	const present = new Set(metaFieldnames(draft));
-	return declared.filter((fieldname) => present.has(fieldname));
 }
 
 function metaFieldnames(draft: BindingDraft): string[] {

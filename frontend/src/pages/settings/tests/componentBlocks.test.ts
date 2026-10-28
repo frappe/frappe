@@ -236,6 +236,24 @@ describe("two component blocks on one binding", () => {
 		expect(locale.error).toBe("");
 	});
 
+	it("leaves a declared field a generated block draws to that block's save", async () => {
+		const drafts = await opened(
+			{ key: "region", app: "frappe", save_mode: "button", binding: SYSTEM, fields: ["country"] },
+			component("locale", "auto", { system: SYSTEM }, ["country", "time_zone"])
+		);
+		const region = drafts.bound.get("region")!;
+		const { system: locale } = drafts.components.get("locale")!;
+
+		region.draft.edit("country", "India");
+		locale.doc.time_zone = "Asia/Kolkata";
+		await locale.commit();
+
+		expect(server.writes.map((write) => Object.keys(write.body).sort())).toEqual([
+			["modified", "time_zone"],
+		]);
+		expect(drafts.unsavedCount.value).toBe(1);
+	});
+
 	it("leaves a block that lists no fields the ones no generated block draws and no component declares", async () => {
 		const drafts = await opened(
 			{ key: "zone", app: "frappe", save_mode: "auto", binding: SYSTEM, fields: ["time_zone"] },

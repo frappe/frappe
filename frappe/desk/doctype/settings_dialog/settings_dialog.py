@@ -164,7 +164,7 @@ class SettingsDialog(Document):
 				)
 
 	def refuse_mixed_save_modes_on_a_binding(self):
-		"""Component blocks on one draft own the same fields, so an `auto` commit would send a `button` block's edits."""
+		"""A component block without a declared list owns every unclaimed field, so an `auto` commit would send a `button` block's edits."""
 		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
 
 		first = {}
