@@ -65,6 +65,7 @@
   "search_index",
   "allow_in_quick_entry",
   "allow_bulk_edit",
+  "make_attachment_public",
   "ignore_xss_filter",
   "translatable",
   "hide_border",
@@ -541,14 +542,21 @@
    "fieldname": "mask",
    "fieldtype": "Check",
    "label": "Mask"
+  },
+  {
+   "default": "0",
+   "depends_on": "eval:['Attach', 'Attach Image', 'Attachment Gallery'].includes(doc.fieldtype)",
+   "fieldname": "make_attachment_public",
+   "fieldtype": "Check",
+   "label": "Make Attachment Public (by default)"
   }
  ],
  "grid_page_length": 50,
  "icon": "fa fa-glass",
  "idx": 1,
- "index_web_pages_for_search": 1,
+ "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-23 16:52:20.730244",
+ "modified": "2026-10-28 13:16:28.215001",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Custom Field",
