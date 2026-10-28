@@ -368,8 +368,14 @@ class TestSettingsFilter(SettingsDialogTestCase):
 		for block in record.blocks:
 			if not block.fields:
 				continue
-			meta = frappe.get_meta(block.document_type)
-			missing = [field for field in json.loads(block.fields) if not meta.has_field(field)]
+			bindings = json.loads(block.bindings or "{}").values()
+			doctypes = [binding["doctype"] for binding in bindings] or [block.document_type]
+			metas = [frappe.get_meta(doctype) for doctype in doctypes]
+			missing = [
+				field
+				for field in json.loads(block.fields)
+				if not any(meta.has_field(field) for meta in metas)
+			]
 			with self.subTest(block=block.key):
 				self.assertEqual(missing, [])
 

@@ -96,8 +96,8 @@
    "fieldtype": "Column Break"
   },
   {
-   "depends_on": "binding_type",
-   "description": "JSON list of fieldnames to show. Empty shows the doctype's whole layout.",
+   "depends_on": "eval:doc.binding_type || doc.component",
+   "description": "JSON list of fieldnames. A generated block shows them; empty shows the doctype's whole layout. A component block saves them; empty saves the fields no other block claims.",
    "fieldname": "fields",
    "fieldtype": "Code",
    "label": "Fields",
@@ -152,7 +152,7 @@
  "istable": 1,
  "link_display_mode": "Search",
  "links": [],
- "modified": "2026-10-26 15:36:54.445897",
+ "modified": "2026-10-28 10:31:46.306851",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Settings Block",

@@ -105,6 +105,13 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 				)
 				continue
 
+			if _declares_a_declared_field(pane, block):
+				_warn(
+					f"block {row.key!r} from {record.app!r} declares a field another component block"
+					f" on the same binding declares in pane {pane['app']}/{pane['key']}"
+				)
+				continue
+
 			pane["blocks"].append(block)
 
 			if record.extends and (attempts := _placements(row.anchors)):
@@ -115,10 +122,22 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 
 
 def _mixes_save_modes(pane: dict, block: dict) -> bool:
-	"""Component blocks on one draft own the same fields, so an `auto` commit would send a `button` block's edits."""
+	"""Component blocks on one draft can own the same fields, so an `auto` commit would send a `button` block's edits."""
 	addresses = _component_addresses(block)
 	return any(
 		other["save_mode"] != block["save_mode"] and addresses & _component_addresses(other)
+		for other in pane["blocks"]
+	)
+
+
+def _declares_a_declared_field(pane: dict, block: dict) -> bool:
+	"""A component block saves and shows refusals for the fields it declares, so one field has one owner per draft."""
+	addresses = _component_addresses(block)
+	fields = set(block.get("fields", [])) if "component" in block else set()
+	return any(
+		"component" in other
+		and fields & set(other.get("fields", []))
+		and addresses & _component_addresses(other)
 		for other in pane["blocks"]
 	)
 
@@ -190,11 +209,13 @@ def _block(app: str, row) -> dict | None:
 		block["component"] = row.component
 		bindings = _json(row.bindings, dict)
 		block["bindings"] = bindings and {name: _binding(spec) for name, spec in bindings.items()}
+		block["fields"] = _json(row.fields, list, str)
 		block["settings"] = _search_settings(row.settings)
 		readable = (
 			bool(row.component)
 			and bindings is not None
 			and None not in block["bindings"].values()
+			and block["fields"] is not None
 			and block["settings"] is not None
 		)
 
