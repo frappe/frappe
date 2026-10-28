@@ -23,8 +23,12 @@ function block(key: string, save_mode: "auto" | "button", fields: string[], extr
 	return { key, app: "frappe", save_mode, binding: SYSTEM, fields, ...extra } as SettingsBlock;
 }
 
-function component(key: string, bindings: SettingsBlock["bindings"]) {
-	return { key, app: "frappe", save_mode: "auto", component: "probe", bindings } as SettingsBlock;
+function component(
+	key: string,
+	bindings: SettingsBlock["bindings"],
+	fields = ["country", "time_zone", "extension"]
+) {
+	return { key, app: "frappe", save_mode: "auto", component: "probe", bindings, fields } as SettingsBlock;
 }
 
 function pane(...blocks: SettingsBlock[]): SettingsPane {

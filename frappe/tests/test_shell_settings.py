@@ -154,18 +154,22 @@ class TestSettingsMerge(SettingsDialogTestCase):
 
 		self.assertIn("'calls'", logged.output[0])
 
-	def test_a_second_component_block_listing_no_fields_on_its_binding_is_dropped_and_warns(self):
+	def test_a_bound_component_block_listing_no_fields_or_a_missing_one_is_dropped_and_warns(self):
 		with authoring():
-			ship(blocks=[bound("calls")], app=EXTENDER, extends=HOST)
 			unchecked(
-				ship(["general"], [bound("profile"), bound("photo", fields='["user_image"]')], insert=False)
+				ship(
+					["general"],
+					[bound("unlisted", fields=None), bound("typo", fields='["user_imag"]'), bound("photo")],
+					insert=False,
+				)
 			)
 
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
-			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["profile", "photo"]})
+			self.assertEqual(block_keys(HOST, HOST), {"general": ["photo"]})
 
-		self.assertIn("'calls'", logged.output[0])
-		self.assertIn("list none", logged.output[0])
+		self.assertEqual(len(logged.output), 2)
+		self.assertIn("'unlisted'", logged.output[0])
+		self.assertIn("'typo'", logged.output[1])
 
 	def test_an_anchor_naming_a_parent_does_not_nest_the_block(self):
 		with authoring():
@@ -243,7 +247,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 				[
 					single("system"),
 					single("agent", doctype="Telephony Agent"),
-					component("dialer", bindings=missing),
+					component("dialer", bindings=missing, fields='["extension"]'),
 				],
 				insert=False,
 			)

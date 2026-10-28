@@ -86,8 +86,8 @@ def binding(type_: str, doctype: str) -> dict:
 	return {**spec, "resolver": "session_user"} if type_ == "Record" else spec
 
 
-def bound(key: str, **bindings: dict) -> dict:
-	return component(key, bindings=json.dumps(bindings))
+def bound(key: str, fields: list[str], **bindings: dict) -> dict:
+	return component(key, bindings=json.dumps(bindings), fields=json.dumps(fields))
 
 
 def visible(user: str = READER, gate=None) -> dict:
@@ -240,16 +240,19 @@ class TestSettingsFilter(SettingsDialogTestCase):
 			ship(
 				["general"],
 				[
-					bound("readable", me=binding("Record", "User"), mine=binding("Single", SINGLE)),
-					{
-						**bound(
-							"half",
-							mine=binding("Single", SINGLE),
-							system=binding("Single", "System Settings"),
-						),
-						"fields": '["half"]',
-					},
-					bound("uncreated", agent=binding("Record", RECORD)),
+					bound(
+						"readable",
+						["user_image"],
+						me=binding("Record", "User"),
+						mine=binding("Single", SINGLE),
+					),
+					bound(
+						"half",
+						["alpha"],
+						mine=binding("Single", SINGLE),
+						system=binding("Single", "System Settings"),
+					),
+					bound("uncreated", ["note"], agent=binding("Record", RECORD)),
 				],
 			)
 
@@ -326,6 +329,7 @@ class TestSettingsFilter(SettingsDialogTestCase):
 						pane="system",
 						settings=settings,
 						bindings=json.dumps({"smtp": binding("Single", "System Settings")}),
+						fields='["app_name"]',
 					),
 				],
 			)

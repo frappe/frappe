@@ -62,7 +62,7 @@ const REPLY: PanesReply = {
 			label: "Calls",
 			icon: "phone",
 			blocks: [
-				{ key: "dialer", app: "frappe", save_mode: "auto", component: "dialer", bindings: { system: SYSTEM } },
+				{ key: "dialer", app: "frappe", save_mode: "auto", component: "dialer", bindings: { system: SYSTEM }, fields: ["country"] },
 				{ key: "theme", app: "frappe", save_mode: "auto", component: "theme" },
 				{ key: "gone", app: "frappe", save_mode: "auto", component: "gone", label: "Gone" },
 			],

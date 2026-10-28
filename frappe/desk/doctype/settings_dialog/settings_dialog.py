@@ -15,8 +15,6 @@ KEBAB_CASE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 BINDING_TYPES = ("Single", "Record")
 NAME_RESOLVERS = ("session_user",)
 
-EVERY_UNCLAIMED_FIELD = None
-
 
 class SettingsDialog(Document):
 	"""One layer of one app's settings panes; the layers are merged in `frappe.shell.settings`."""
@@ -217,21 +215,12 @@ class SettingsDialog(Document):
 
 
 def refuse_shared_fields(
-	first: tuple[str, str], second: tuple[str, str], pane: str, doctype: str, fieldname: str | None
+	first: tuple[str, str], second: tuple[str, str], pane: str, doctype: str, fieldname: str
 ):
-	names = [frappe.bold(part) for part in (*first, *second, pane, doctype)]
-	if fieldname is EVERY_UNCLAIMED_FIELD:
-		frappe.throw(
-			_(
-				"Component blocks {0} from {1} and {2} from {3} in pane {4} both list no fields of {5}, so both would own every unclaimed field. List the fields of one of them."
-			).format(*names),
-			title=_("Fields Not Listed"),
-		)
-
 	frappe.throw(
 		_(
 			"Component blocks {0} from {1} and {2} from {3} in pane {4} both declare {6} of {5}. List each field in one block only."
-		).format(*names, frappe.bold(fieldname)),
+		).format(*[frappe.bold(part) for part in (*first, *second, pane, doctype, fieldname)]),
 		title=_("Field Declared Twice"),
 	)
 
@@ -260,6 +249,7 @@ def validate_binding_shape(block):
 	elif block.component:
 		validate_named_bindings(block)
 		validate_json_list(block, "fields", str)
+		validate_component_fields(block)
 		validate_search_settings(block)
 	else:
 		frappe.throw(
@@ -305,6 +295,36 @@ def validate_named_bindings(block):
 		validate_binding(block.idx, binding.get("type"), binding.get("doctype"), binding.get("resolver"))
 
 
+def validate_component_fields(block):
+	"""A bound component saves only the fields it lists, so it lists some and each is on one of its doctypes."""
+	doctypes = [binding["doctype"] for binding in parse_json(block, "bindings", {}).values()]
+	fields = parse_json(block, "fields", [])
+	if doctypes and not fields:
+		frappe.throw(
+			_("Block row {0}: component {1} has a binding, so it lists the fields it saves.").format(
+				block.idx, frappe.bold(block.component)
+			),
+			title=_("Fields Not Listed"),
+		)
+
+	if missing := fields_missing_from(fields, doctypes):
+		frappe.throw(
+			_("Block row {0}: {1} is not a field of {2}.").format(
+				block.idx, frappe.bold(", ".join(missing)), frappe.bold(", ".join(doctypes))
+			),
+			title=_("Unknown Field"),
+		)
+
+
+def fields_missing_from(fields: list[str], doctypes: list[str]) -> list[str]:
+	"""The listed fields none of the doctypes has; none while one is not installed, since the merge drops that block."""
+	if not doctypes or not all(frappe.db.exists("DocType", doctype) for doctype in doctypes):
+		return []
+
+	metas = [frappe.get_meta(doctype) for doctype in doctypes]
+	return [field for field in fields if not any(meta.has_field(field) for meta in metas)]
+
+
 def validate_anchors(block):
 	"""Each anchor names one block to sit `after` or `before`, and nothing else."""
 	validate_json_list(block, "anchors", dict)
@@ -345,8 +365,8 @@ def component_binding_addresses(block) -> list[tuple[str, str, str]]:
 	]
 
 
-def owned_fields(block) -> set[str | None]:
-	"""A component block's `fields`, or every unclaimed field when it lists none. Empty for JSON the merge drops."""
+def owned_fields(block) -> set[str]:
+	"""A component block's `fields`; none for JSON the merge drops."""
 	try:
 		fields = json.loads(block.get("fields") or "[]")
 	except ValueError:
@@ -355,7 +375,7 @@ def owned_fields(block) -> set[str | None]:
 	if not isinstance(fields, list) or not all(isinstance(field, str) for field in fields):
 		return set()
 
-	return set(fields) or {EVERY_UNCLAIMED_FIELD}
+	return set(fields)
 
 
 def parse_json(block, fieldname: str, default):
