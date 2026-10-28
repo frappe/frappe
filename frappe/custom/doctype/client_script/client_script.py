@@ -15,6 +15,8 @@ from frappe.model.document import Document
 
 RECORD_PAGE_VIEWS = ("Record", "App Page")
 APP_PAGE = "App Page"
+# The name of a `pages/<name>.js` file.
+PAGE_NAME = re.compile(r"^[\w-]+$")
 CLIENT_SCRIPT_CHANGED = "client_script_changed"
 # `run_order` is a sort key, not a unique one; `creation` breaks the ties.
 RECORD_SCRIPT_ORDER = "run_order asc, creation asc"
@@ -84,6 +86,8 @@ class ClientScript(Document):
 			frappe.throw(_("Name the app page this script runs on"), frappe.MandatoryError)
 		else:
 			self.page = self.page.strip()
+			if not PAGE_NAME.match(self.page):
+				frappe.throw(_("Page must be the name of the page's file, without .js"))
 
 	def warn_on_unknown_classes(self):
 		"""Name every class the script uses that the desk stylesheet has no rule for; never block."""
@@ -150,11 +154,13 @@ def get_client_scripts(dt: str, view: str = "Record", page: str | None = None):
 	rows = frappe.get_all(
 		"Client Script",
 		filters={**target_filters(dt, view, page), "enabled": 1},
-		fields=["name", "script", "module"],
+		fields=["name", "script", "module", "page"],
 		order_by=RECORD_SCRIPT_ORDER,
 	)
+	# The database may compare case-insensitively; the page's realtime key does not.
+	rows = [row for row in rows if row.page == page and not is_module_disabled(row.module)]
 	return {
-		"scripts": served_scripts([row for row in rows if not is_module_disabled(row.module)]),
+		"scripts": served_scripts(rows),
 		"can_write": bool(frappe.has_permission("Client Script", "write")),
 	}
 

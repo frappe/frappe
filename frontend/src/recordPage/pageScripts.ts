@@ -31,9 +31,10 @@ export function pageScriptsFor(app: string, doctype: string, page: string): Regi
   return [...(file ? [file] : []), ...scripts];
 }
 
-export function unregisterPageSource(source: string) {
+export function unregisterPageSource(source: string, doctype: string, page: string) {
+  const target = targetKey(doctype, page);
   for (let index = stored.length - 1; index >= 0; index--)
-    if (stored[index].source === source) stored.splice(index, 1);
+    if (stored[index].source === source && stored[index].target === target) stored.splice(index, 1);
 }
 
 export function resetPageScripts() {
@@ -43,9 +44,11 @@ export function resetPageScripts() {
 
 // An app page has no nested blocks, so a member that is no function is no handler.
 function functionsOf(handlers: Handlers): Record<string, Handler> {
-  return Object.fromEntries(
-    Object.entries(handlers).filter(([, value]) => typeof value === "function"),
-  ) as Record<string, Handler>;
+  const entries = Object.entries(handlers);
+  const functions = entries.filter(([, value]) => typeof value === "function");
+  if (import.meta.env.DEV && functions.length < entries.length)
+    console.warn(`[page] ${registeringSource()} has members that are not handlers, ignored on an app page`);
+  return Object.fromEntries(functions) as Record<string, Handler>;
 }
 
 function fileKey(app: string, doctype: string, page: string) {

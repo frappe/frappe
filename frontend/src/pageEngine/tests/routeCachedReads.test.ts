@@ -71,12 +71,9 @@ describe("RouteCachedReads", () => {
     expect(fetch).toHaveBeenCalledTimes(2);
   });
 
-  it("keeps the last value when a fetch fails, with a warning", async () => {
+  it("answers no value when a fetch fails, with a warning", async () => {
     const { reads, landed } = makeReads();
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
-    reads.read("acme", "count", () => 1);
-    await landed();
-    reads.clear();
     reads.read("acme", "count", () => Promise.reject(new Error("down")));
     await landed();
 

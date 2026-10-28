@@ -201,6 +201,24 @@ class TestClientScriptsForAnAppPage(IntegrationTestCase):
 	def test_an_app_page_script_needs_a_page(self):
 		self.assertRaises(frappe.MandatoryError, make_script("pageless", view="App Page").insert)
 
+	def test_the_page_is_a_file_name_without_surrounding_spaces(self):
+		make_script("board-script", view="App Page", page=" board ").insert()
+
+		self.assertEqual(frappe.db.get_value("Client Script", "board-script", "page"), "board")
+		self.assertRaises(
+			frappe.ValidationError, make_script("dotted", view="App Page", page="board.js").insert
+		)
+
+	def test_matches_the_page_name_exactly(self):
+		make_script("board-script", view="App Page", page="Board").insert()
+
+		self.assertEqual(page_script_names("board"), [])
+		self.assertEqual(page_script_names("Board"), ["board-script"])
+
+	def test_rejects_a_page_filter_posing_as_a_name(self):
+		self.assertRaises(frappe.FrappeTypeError, get_client_scripts, "Note", "App Page", ["!=", ""])
+		self.assertRaises(frappe.FrappeTypeError, reorder, "Note", "App Page", [], ["!=", ""])
+
 	def test_another_view_drops_the_page(self):
 		make_script("note-record-script", page="board").insert()
 

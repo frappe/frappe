@@ -14,9 +14,9 @@ vi.mock("../evaluateClientScript", () => ({ evaluateClientScript }));
 import { createPageEngine } from "@/pageEngine/createPageEngine";
 import { setAppPageScripts } from "@/pageEngine/appPageScripts";
 import { Surface } from "@/pageEngine/surface";
-import { invalidateClientScripts, resetClientScripts } from "../clientScripts";
+import { invalidateClientScripts, loadClientScripts, resetClientScripts } from "../clientScripts";
 import { appPageScriptSource } from "../appPageScriptSource";
-import { addPageFile, resetPageScripts } from "../pageScripts";
+import { addPageFile, pageScriptsFor, resetPageScripts } from "../pageScripts";
 
 const DOCTYPE = "Widget Board";
 
@@ -81,13 +81,14 @@ describe("an app page", () => {
     stored.board = { "hide-a": { onRefresh: (page) => page.widgets.hide("a") } };
     const engine = makeEngine();
     const paints: string[][] = [];
-    watchEffect(() => paints.push(drawn(engine)));
+    watchEffect(() => {
+      if (engine.ready.value) paints.push(drawn(engine));
+    });
 
     await engine.refresh();
     await nextTick();
 
-    expect(drawn(engine)).toEqual(["b", "c"]);
-    expect(paints).toEqual([["a", "b"], ["b", "c"]]);
+    expect(paints).toEqual([["b", "c"]]);
     expect(call).toHaveBeenCalledWith(
       "frappe.custom.doctype.client_script.client_script.get_client_scripts",
       { dt: DOCTYPE, view: "App Page", page: "board" },
@@ -132,5 +133,29 @@ describe("an app page", () => {
 
   it("must name itself, so another app's same-named page cannot lend it scripts", () => {
     expect(() => makeEngine("acme", "")).toThrow(/must name itself with pageName/);
+  });
+
+  it("refuses sources of its own, which would leave its app's scripts unrun", () => {
+    const spec = { doctype: DOCTYPE, name: "Board", pageName: "board", app: "acme", lists: {} };
+    const rest = { extras: () => ({}), meta: () => null, perms: () => ({}), roles: () => [] };
+    expect(() =>
+      createPageEngine({ ...spec, ...rest, sources: () => [], router: {} as any }),
+    ).toThrow(/gets its sources from its app/);
+  });
+
+  it("keeps a script that moved to another page when the old page's tier is rebuilt", async () => {
+    stored.board = { moved: { onRefresh: (page) => page.widgets.hide("a") } };
+    await loadClientScripts(DOCTYPE, "board");
+    stored.kanban = { moved: stored.board.moved };
+    delete stored.board;
+    await loadClientScripts(DOCTYPE, "kanban");
+
+    invalidateClientScripts(DOCTYPE, "board");
+    await loadClientScripts(DOCTYPE, "board");
+
+    expect(pageScriptsFor("acme", DOCTYPE, "kanban").map((one) => one.source)).toEqual([
+      "client-script:moved",
+    ]);
+    expect(pageScriptsFor("acme", DOCTYPE, "board")).toEqual([]);
   });
 });

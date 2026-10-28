@@ -115,6 +115,8 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
   const label = `[${spec.pageName ?? "app"} page]`;
   if (spec.app && !spec.pageName)
     throw new Error(`${label} an app page of ${spec.doctype} must name itself with pageName`);
+  if (spec.app && spec.sources)
+    throw new Error(`${label} an app page of ${spec.doctype} gets its sources from its app; drop sources`);
   const scripts = spec.app ? appPageScripts(spec.app, spec.doctype, spec.pageName!) : null;
   const sources = spec.sources ?? scripts?.sources ?? (() => []);
   const routeReads = spec.cached ? null : new RouteCachedReads(spec.router, label);

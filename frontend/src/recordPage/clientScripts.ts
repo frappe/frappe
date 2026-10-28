@@ -205,7 +205,7 @@ function swapTier(tier: Tier, compiled: CompiledScript[], canWrite: boolean) {
       );
       registered.push(source);
     } catch (error) {
-      unregisterTierSource(key, source);
+      unregisterTierSource(tier, source);
       reportFailure(doctype, row.name, error, canWrite);
     }
   }
@@ -230,11 +230,12 @@ function reportFailure(
 }
 
 function clearTier(key: string) {
-  for (const source of sources.get(key) ?? []) unregisterTierSource(key, source);
+  const [doctype, page] = key.split(PAGE_SEPARATOR);
+  for (const source of sources.get(key) ?? []) unregisterTierSource({ key, doctype, page }, source);
 }
 
-function unregisterTierSource(key: string, source: string) {
-  if (key.includes(PAGE_SEPARATOR)) unregisterPageSource(source);
+function unregisterTierSource({ doctype, page }: Tier, source: string) {
+  if (page) unregisterPageSource(source, doctype, page);
   else unregisterSource(source);
 }
 

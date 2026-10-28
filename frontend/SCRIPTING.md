@@ -29,8 +29,9 @@ An app page also gives the builder its `app` and its `pageName`, the name of its
 `pages/<name>.js` file. The builder then runs two tiers of handlers on it, in this order:
 
 1. The page's handler file: `<name>.js` in the same folder as `pages/<name>.js`, which
-   `pages.json` declares. Only the app that ships the page runs it. A `<name>.js` with no
-   declared page beside it is ignored with a build warning.
+   `pages.json` declares. Only the app that ships the page runs it. A `<name>.js` beside a
+   page that `pages.json` does not declare, or under `custom/` with no page beside it, is
+   ignored with a build warning.
 2. The `Client Script` rows with `view = App Page`, `dt` set to the page's doctype and
    `page` set to its name, in `run_order`. When one is saved, reordered or deleted, an open
    page re-runs its handlers.

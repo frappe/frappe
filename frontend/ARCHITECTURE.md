@@ -340,7 +340,7 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `createPageEngine` (`PageEngine`, `PageEngineSpec`, `CachedProvider`) | Builds a page from the caller's own lists, events, sources and extra `page` members. It adds the `frame`, `header` and `body` lists, the paint gate, the replay, `onOpen`, the held acts and the dialogs. The record page is built on it; an app page imports it from `@shell` and names its app and its `pages/<name>.js` name, and the builder then runs that page's scripts. Its console messages name the page, as `[record page]` |
+| `createPageEngine` (`PageEngine`, `PageEngineSpec`, `CachedProvider`) | Builds a page from the caller's own lists, events, sources and extra `page` members. It adds the `frame`, `header` and `body` lists, the paint gate, the replay, `onOpen`, the held acts and the dialogs. The record page is built on it; an app page imports it from `@shell` and names its app and its `pages/<name>.js` name, and the builder then runs that page's scripts. The builder's own console messages name the page, as `[record page]`; the surfaces it adds say `[page]` |
 | App page scripts (`setAppPageScripts`, `AppPageScriptSource`) | What an app page runs: its own app's handler file, then the stored scripts that name its doctype and page. The builder waits for them as for a record page's, and replays when one changes on the server. The record page engine hands the source over at boot, as it does the icon lookup |
 | Route cached reads | The default behind `page.cached` when a page gives no provider: one fetch per key while the route stays on one path. Another path drops the values, and so does leaving the page |
 | Base page (`PageApi`, `PageToast`) | The `page` every engine hands its handlers: `doctype`, `meta`, `perms`, `roles`, `frame`, `header`, `body`, `refresh()`, `toast`, `dialog`, `call`, `cached` and `router`. A page adds its own members |
@@ -440,7 +440,7 @@ the reference for each `page` member.
 | --- | --- |
 | File script (`record.js`) | An app's `export default { ... }` handlers for a doctype |
 | Stored script | A [`Client Script`](./CONTEXT.md#client-script) row: the same module shape as a file script, run from the database. A row with `view = App Page` names a page in `page` and runs on that page of its doctype, whichever app ships it |
-| Page handler file (`<name>.js` beside `pages/<name>.js`) | An app page's handlers, in the same folder as `pages.json`. It runs only on that page of the same app, before the page's stored scripts. One with no declared page beside it is ignored with a warning |
+| Page handler file (`<name>.js` beside `pages/<name>.js`) | An app page's handlers, in the same folder as `pages.json`. It runs only on that page of the same app, before the page's stored scripts. One beside an undeclared page, or one under `custom/` with no page beside it, is ignored with a warning |
 | Tiers and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
 | `*` doctype key | Handlers that run on every record, before the doctype's own |
 | [Handlers](./CONTEXT.md#handler) and `Handler` | `Handler` is the type of one handler |
