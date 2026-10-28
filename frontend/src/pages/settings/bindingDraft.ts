@@ -244,7 +244,7 @@ export class BindingDraft {
 		}
 	}
 
-	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses, and Reload sends the rest. */
+	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses, and taking theirs sends the rest. */
 	private async resolveConflict(fieldnames: string[], refusal: unknown) {
 		let latest: Envelope<Values>;
 		try {
@@ -270,10 +270,7 @@ export class BindingDraft {
 		}
 		const setBack = fieldnames.filter((fieldname) => !this.dirty(fieldname));
 		this.clearSetBack(setBack);
-		this.settle(
-			fieldnames.filter((fieldname) => !setBack.includes(fieldname)),
-			"error"
-		);
+		this.settle(fieldnames.filter((fieldname) => this.dirty(fieldname)), "error");
 		if (this.host.closed()) return this.host.lost();
 		const editor = users?.[fresh.modified_by]?.full_name || fresh.modified_by;
 		const changed = changedFields(

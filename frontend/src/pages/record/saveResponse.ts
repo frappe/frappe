@@ -54,7 +54,7 @@ export async function confirmConflict(
 ): Promise<boolean> {
   const labels = changed.map((label) => __(label)).join(", ");
   const mine = changed.length ? __("your changes to {0}", [labels]) : __("your changes");
-  const reload = await confirm({
+  const confirmed = await confirm({
     title: __("Saved by someone else"),
     message: useTheirs
       ? __(
@@ -68,7 +68,7 @@ export async function confirmConflict(
     confirmLabel: useTheirs ?? __("Reload and lose my changes"),
     cancelLabel: __("Keep editing"),
   });
-  return !!reload;
+  return !!confirmed;
 }
 
 export function conflictError(): Error {
