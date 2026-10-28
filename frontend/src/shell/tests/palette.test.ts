@@ -25,8 +25,8 @@ registerStandardPages(standardPages);
 
 const server = vi.hoisted(() => ({
 	runMethod: vi.fn(),
-	searchDocuments: vi.fn(),
 	searchRecords: vi.fn(),
+	searchDoctypeRecords: vi.fn(),
 }));
 
 vi.mock("@framework/ui/api", async (importOriginal) => ({
@@ -34,7 +34,6 @@ vi.mock("@framework/ui/api", async (importOriginal) => ({
 	getTranslations: vi.fn(),
 	getMeta: vi.fn(),
 	runMethod: server.runMethod,
-	searchDocuments: server.searchDocuments,
 }));
 
 const searchRecords = server.searchRecords;
@@ -226,6 +225,11 @@ async function press(key: string) {
 	await flush();
 }
 
+/** A row's gray text. */
+function description(drawnRow: HTMLElement) {
+	return drawnRow.querySelector("[data-slot='palette-description']")?.textContent?.trim() ?? "";
+}
+
 function row(id: string) {
 	return document.body.querySelector<HTMLElement>(`[data-row='${CSS.escape(id)}']`);
 }
@@ -237,9 +241,11 @@ beforeAll(async () => {
 beforeEach(() => {
 	server.runMethod.mockImplementation(async (method: string, ...rest: unknown[]) => {
 		if (method === "frappe.desk.palette.search_records") return searchRecords(method, ...rest);
+		if (method === "frappe.desk.palette.search_doctype_records")
+			return server.searchDoctypeRecords(method, ...rest);
 		return { data: method === "frappe.shell.palette.places" ? placesReply : panesReply };
 	});
-	server.searchDocuments.mockReset();
+	server.searchDoctypeRecords.mockReset();
 	document.body.innerHTML = "";
 	localStorage.clear();
 	paletteOpen.value = false;
@@ -613,7 +619,7 @@ describe("Tab on a doctype row", () => {
 	}
 
 	function deal(name: string, label: string) {
-		return { value: name, label, description: "" };
+		return { doctype: "CRM Deal", name, label, route: `${crmBase}/crm-deal/${name}` };
 	}
 
 	it("says Tab searches in the active row's doctype", async () => {
@@ -658,7 +664,7 @@ describe("Tab on a doctype row", () => {
 	});
 
 	it("says so when the search fails, and searches again on the next pause", async () => {
-		server.searchDocuments
+		server.searchDoctypeRecords
 			.mockRejectedValueOnce(new Error("refused"))
 			.mockResolvedValueOnce({ data: [deal("DEAL-3", "PivotTech Solutions")] });
 		await narrowToDeals();
@@ -671,7 +677,7 @@ describe("Tab on a doctype row", () => {
 	});
 
 	it("asks no cross-doctype record search and pins no Find while narrowed", async () => {
-		server.searchDocuments.mockResolvedValue({ data: [] });
+		server.searchDoctypeRecords.mockResolvedValue({ data: [] });
 		await narrowToDeals();
 		await type("piv");
 		await new Promise((resolve) => setTimeout(resolve, 250));
@@ -693,7 +699,7 @@ describe("Tab on a doctype row", () => {
 	});
 
 	it("searches the doctype after a pause, from two characters, and Enter opens the record", async () => {
-		server.searchDocuments.mockResolvedValue({ data: [deal("DEAL-3", "PivotTech Solutions")] });
+		server.searchDoctypeRecords.mockResolvedValue({ data: [deal("DEAL-3", "PivotTech Solutions")] });
 		const router = await narrowToDeals();
 
 		await type("p");
@@ -703,11 +709,11 @@ describe("Tab on a doctype row", () => {
 		await type("piv");
 		await vi.waitFor(() => expect(drawn()).toEqual([["Records", "PivotTech Solutions DEAL-3"]]));
 
-		expect(server.searchDocuments).toHaveBeenCalledTimes(1);
-		expect(server.searchDocuments).toHaveBeenCalledWith(
-			"CRM Deal",
-			{ txt: "piv", filters: {}, limit: 10 },
-			{}
+		expect(server.searchDoctypeRecords).toHaveBeenCalledTimes(1);
+		expect(server.searchDoctypeRecords).toHaveBeenCalledWith(
+			"frappe.desk.palette.search_doctype_records",
+			{ txt: "piv", doctype: "CRM Deal" },
+			expect.objectContaining({ http: "GET" })
 		);
 		// The keyboard was on "Searching…", which cannot be picked; the record takes it.
 		await vi.waitFor(() => expect(row("record:CRM Deal/DEAL-3")!.dataset.state).toBe("active"));
@@ -715,15 +721,27 @@ describe("Tab on a doctype row", () => {
 		expect(router.currentRoute.value.fullPath).toBe("/crm-deal/DEAL-3");
 	});
 
+	it("draws the title with the name alone in gray, and no gray text where the name is the title", async () => {
+		server.searchDoctypeRecords.mockResolvedValue({
+			data: [deal("DEAL-3", "PivotTech Solutions"), deal("DEAL-4", "DEAL-4")],
+		});
+		await narrowToDeals();
+		await type("deal");
+
+		await vi.waitFor(() => expect(row("record:CRM Deal/DEAL-3")).not.toBeNull());
+		expect(description(row("record:CRM Deal/DEAL-3")!)).toBe("DEAL-3");
+		expect(description(row("record:CRM Deal/DEAL-4")!)).toBe("");
+	});
+
 	it("drops an answer to an older query", async () => {
 		let answerFirst: (value: unknown) => void = () => {};
-		server.searchDocuments
+		server.searchDoctypeRecords
 			.mockImplementationOnce(() => new Promise((resolve) => (answerFirst = resolve)))
 			.mockResolvedValueOnce({ data: [deal("DEAL-5", "Meridian Systems")] });
 		await narrowToDeals();
 
 		await type("pi");
-		await vi.waitFor(() => expect(server.searchDocuments).toHaveBeenCalledTimes(1));
+		await vi.waitFor(() => expect(server.searchDoctypeRecords).toHaveBeenCalledTimes(1));
 		await type("me");
 		await vi.waitFor(() => expect(drawn()).toEqual([["Records", "Meridian Systems DEAL-5"]]));
 		answerFirst({ data: [deal("DEAL-3", "PivotTech Solutions")] });
@@ -853,7 +871,7 @@ describe("records", () => {
 		held[0].answer([acme, { doctype: "ToDo", name: "T-1", label: "Call Acme" }]);
 		await flush();
 
-		expect(drawn()).toEqual([["Records", "Acme Corp CRM Deal", "Call Acme ToDo"]]);
+		expect(drawn()).toEqual([["Records", "Acme Corp DEAL-1 · CRM Deal", "Call Acme T-1 · ToDo"]]);
 	});
 
 	it("drops a question still unanswered when the text changes", async () => {
@@ -871,7 +889,20 @@ describe("records", () => {
 		held[0].answer([{ doctype: "ToDo", name: "T-1", label: "Stale" }]);
 		await flush();
 
-		expect(drawn()).toEqual([["Records", "Acme Corp CRM Deal"]]);
+		expect(drawn()).toEqual([["Records", "Acme Corp DEAL-1 · CRM Deal"]]);
+	});
+
+	it("draws the title, then the name and doctype in gray, and no name where it is the title", async () => {
+		searchRecords.mockResolvedValue({
+			data: [acme, { doctype: "ToDo", name: "Call Acme", label: "Call Acme" }],
+		});
+		await shell("/");
+		await open();
+		await type("acme");
+
+		expect(drawn()).toEqual([["Records", "Acme Corp DEAL-1 · CRM Deal", "Call Acme ToDo"]]);
+		expect(description(row("record:CRM Deal/DEAL-1")!)).toBe("DEAL-1 · CRM Deal");
+		expect(description(row("record:ToDo/Call Acme")!)).toBe("ToDo");
 	});
 
 	it("searches nothing under two characters, and no doctype off a list or record", async () => {

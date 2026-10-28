@@ -10,9 +10,10 @@ import type { PaletteRow } from "./palette";
 import type { PaletteContext, PaletteGroup } from "./paletteGroups";
 import { openPlace } from "./palettePlaces";
 
-interface FoundRecord {
+export interface FoundRecord {
 	doctype: string;
 	name: string;
+	/** The title field's value, else the name. */
 	label: string;
 	/** Its address in its own app's prefix. */
 	route: string;
@@ -23,11 +24,13 @@ const QUIET_MS = 200;
 const PAGE_ROUTES = new Set(["list", "standard-list", "saved-view", "record", "standard-record"]);
 
 /** The server's records for the query typed last, or where the question stands. */
-class RecordSearch {
+export class RecordSearch {
 	readonly found = shallowRef<FoundRecord[] | "searching" | "failed">([]);
 	private timer: ReturnType<typeof setTimeout> | undefined;
 	private asking: AbortController | undefined;
 	private question = "";
+
+	constructor(private method = "frappe.desk.palette.search_records") {}
 
 	/** Asks once the typing has paused, and drops the question asked before. */
 	follow(query: string, doctype: string | null) {
@@ -49,7 +52,7 @@ class RecordSearch {
 		const asking = (this.asking = new AbortController());
 		try {
 			const { data } = await runMethod<FoundRecord[]>(
-				"frappe.desk.palette.search_records",
+				this.method,
 				doctype ? { txt, doctype } : { txt },
 				{ http: "GET", signal: asking.signal }
 			);
@@ -119,11 +122,16 @@ function recordRow(record: FoundRecord, context: PaletteContext): PaletteRow {
 	return {
 		id: `record:${record.doctype}/${record.name}`,
 		label: String(record.label),
-		description: __(record.doctype),
+		description: [nameUnlessTitle(record), __(record.doctype)].filter(Boolean).join(" · "),
 		icon: "lucide-file-text",
 		href,
 		run: () => openPlace(href, context),
 	};
+}
+
+/** The record's name, or nothing where it is its title. */
+export function nameUnlessTitle({ name, label }: FoundRecord): string {
+	return String(label) === String(name) ? "" : String(name);
 }
 
 /** The doctype of the list or record on screen; a Single has no list to find in. */

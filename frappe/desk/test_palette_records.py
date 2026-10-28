@@ -5,7 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.palette import search_records
+from frappe.desk.palette import search_doctype_records, search_records
 from frappe.shell.links import canonical_path
 from frappe.tests import IntegrationTestCase
 
@@ -13,7 +13,9 @@ READER = "palette-reader@example.com"
 ROLE = "Palette Reader"
 
 
-class TestSearchRecords(IntegrationTestCase):
+class PaletteRecordsCase(IntegrationTestCase):
+	"""The reader, the doctypes it can and cannot read, and a rollback after each test."""
+
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
@@ -24,13 +26,14 @@ class TestSearchRecords(IntegrationTestCase):
 			).insert()
 		cls.readable = [readable_doctype() for _ in range(4)]
 		cls.titled = readable_doctype(title_field="some_fieldname", show_title_field_in_link=1)
+		cls.titled_plain_links = readable_doctype(title_field="some_fieldname")
 		cls.single = readable_doctype(issingle=1)
 		cls.closed = new_doctype(autoname="Prompt").insert().name
 		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
-		for doctype in [*cls.readable, cls.titled, cls.single, cls.closed]:
+		for doctype in [*cls.readable, cls.titled, cls.titled_plain_links, cls.single, cls.closed]:
 			frappe.delete_doc("DocType", doctype, force=True)
 		frappe.delete_doc("User", READER, force=True)
 		frappe.delete_doc("Role", ROLE, force=True)
@@ -40,6 +43,8 @@ class TestSearchRecords(IntegrationTestCase):
 	def tearDown(self):
 		frappe.db.rollback()
 
+
+class TestSearchRecords(PaletteRecordsCase):
 	def test_unreadable_doctype_is_never_searched(self):
 		first = self.readable[0]
 		add_records(self.closed, "Kestrel")
@@ -103,6 +108,43 @@ class TestSearchRecords(IntegrationTestCase):
 			without_route(found), [{"doctype": self.titled, "name": "KES-0001", "label": "Kestrel Ridge"}]
 		)
 
+	def test_label_is_the_title_where_links_show_names(self):
+		titled = self.titled_plain_links
+		frappe.get_doc(doctype=titled, name="KES-0002", some_fieldname="Kestrel Hollow").insert()
+		frappe.get_doc(doctype=titled, name="Kestrel Untitled").insert()
+
+		with listed([titled]), self.set_user(READER):
+			found = search_records("Kestrel")
+
+		self.assertEqual(
+			sorted(without_route(found), key=lambda row: row["name"]),
+			[
+				{"doctype": titled, "name": "KES-0002", "label": "Kestrel Hollow"},
+				{"doctype": titled, "name": "Kestrel Untitled", "label": "Kestrel Untitled"},
+			],
+		)
+
+	def test_a_rich_text_title_is_plain_text(self):
+		with patch.object(
+			frappe.get_meta(self.titled_plain_links).get_field("some_fieldname"), "fieldtype", "Text Editor"
+		):
+			frappe.get_doc(
+				doctype=self.titled_plain_links, name="KES-0003", some_fieldname="<p>Kestrel &amp; Hawk</p>"
+			).insert()
+			with listed([self.titled_plain_links]), self.set_user(READER):
+				found = search_records("Kestrel")
+
+		self.assertEqual([row["label"] for row in found], ["Kestrel & Hawk"])
+
+	def test_label_is_the_name_without_a_title_field(self):
+		first = self.readable[0]
+		add_records(first, "Kestrel Ridge")
+
+		with listed([first]), self.set_user(READER):
+			found = search_records("Kestrel")
+
+		self.assertEqual([(row["name"], row["label"]) for row in found], [("Kestrel Ridge", "Kestrel Ridge")])
+
 	def test_a_record_carries_its_v2_address_without_the_host(self):
 		first = self.readable[0]
 		add_records(first, "Kestrel Ridge")
@@ -131,6 +173,37 @@ class TestSearchRecords(IntegrationTestCase):
 
 		with listed(self.readable), self.set_user(READER):
 			self.assertEqual(search_records(" K "), [])
+
+
+class TestSearchDoctypeRecords(PaletteRecordsCase):
+	def test_ten_of_one_doctype_titled_and_exact_name_first(self):
+		titled = self.titled_plain_links
+		for n in range(11):
+			frappe.get_doc(doctype=titled, name=f"KES-{n:02}", some_fieldname=f"Kestrel {n}").insert()
+		frappe.get_doc(doctype=titled, name="kestrel").insert()
+
+		with self.set_user(READER):
+			found = search_doctype_records(titled, "Kestrel")
+
+		self.assertEqual(len(found), 10)
+		self.assertEqual(found[0]["name"], "kestrel")
+		self.assertEqual({row["doctype"] for row in found}, {titled})
+		self.assertEqual(
+			[row["label"] for row in found[1:]], [f"Kestrel {int(row['name'][4:])}" for row in found[1:]]
+		)
+
+	def test_unreadable_or_single_doctype_finds_nothing(self):
+		add_records(self.closed, "Kestrel")
+
+		with self.set_user(READER):
+			self.assertEqual(search_doctype_records(self.closed, "Kestrel"), [])
+			self.assertEqual(search_doctype_records(self.single, "Kestrel"), [])
+
+	def test_short_query_finds_nothing(self):
+		add_records(self.readable[0], "K9")
+
+		with self.set_user(READER):
+			self.assertEqual(search_doctype_records(self.readable[0], " K "), [])
 
 
 def readable_doctype(**properties) -> str:
