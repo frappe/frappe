@@ -93,6 +93,7 @@ async function shownAt(path: string) {
 	const app = createApp(defineComponent({ render: () => h(RouterView) }));
 	app.use(router);
 	app.provide("addresses", addresses);
+	app.provide("boot", boot);
 	app.mount(root);
 	apps.push(app);
 	for (let turn = 0; turn < 5; turn++) {

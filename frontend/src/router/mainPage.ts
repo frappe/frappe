@@ -15,12 +15,12 @@ type Route = Pick<RouteLocationNormalized, "name" | "params">;
 const pages = new Map<Loader, Component>();
 
 /** The loader a main address opens and, for a declared page, its props; null on other routes. */
-export function mainPageFor(route: Route, addresses: Addresses) {
+export function mainPageFor(route: Route, addresses: Addresses, app: string | null) {
 	const key = route.name;
 	const doctype = addresses.doctypeOf(String(route.params.doctype));
 	if ((key !== "list" && key !== "record") || !doctype) return null;
 
-	const declared = replacementFor(doctype, key);
+	const declared = replacementFor(doctype, key, app);
 	if (!declared) return { loader: standardPage(key), props: null };
 	const props = key === "record" ? { doctype, name: String(route.params.name) } : { doctype };
 	return { loader: declared.component, props };

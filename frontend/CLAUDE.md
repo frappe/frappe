@@ -181,10 +181,10 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
 | --- | --- |
 | `<app>/<module>/doctype/<scrubbed>/frontend/record.js` | record page, owning app |
 | `<app>/<module>/doctype/<scrubbed>/frontend/list.js` | list, owning app |
-| `<app>/<module>/doctype/<scrubbed>/frontend/pages.json` | which page replaces the record or list, owning app |
+| `<app>/<module>/doctype/<scrubbed>/frontend/pages.json` | which page replaces the record or list, in every app or the apps an entry names, owning app |
 | `<app>/<module>/doctype/<scrubbed>/frontend/pages/<name>.js` | a replacement page, owning app |
 | `<app>/<module>/custom/<scrubbed>/record.js` | record page, *foreign* doctype |
-| `<app>/<module>/custom/<scrubbed>/pages.json` | which page replaces the record or list, *foreign* doctype |
+| `<app>/<module>/custom/<scrubbed>/pages.json` | which page replaces the record or list, in every app or the apps an entry names, *foreign* doctype |
 | `<app>/<module>/custom/<scrubbed>/pages/<name>.js` | a replacement page, *foreign* doctype |
 | `<app>/<module>/frontend/pages/<slug>.js` | a standalone page |
 | `<app>/<module>/navigation_item_type/<scrubbed>/frontend/item.js` | a navigation item kind |
@@ -209,6 +209,11 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
   throw.** `registry.ts` is imported by `main.ts` before anything renders, so one app's
   typo must not fail the mount bench-wide. If your contribution "isn't running", check the
   console for that warning first.
+- **A `pages.json` key is a page name, a `{ "page", "apps" }` entry, or a list of
+  entries.** An entry with no `apps` applies in every app; `apps` names apps by app name
+  (`frappe` for `/apps/desk`). In an app, an entry that names it beats one that names none.
+  The build drops an app that is not on the bench, an entry with `"apps": []`, and a key
+  that names one app twice or has two entries with no `apps`, each with a warning.
 - **Run order is per-doctype**: the owning app first, then the site's `app_order`.
   Ownership is structural, derived from which folder the file is in, with no registry
   lookup.

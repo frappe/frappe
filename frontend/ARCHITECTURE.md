@@ -275,7 +275,7 @@ component group, with its main names.
 | `virtual:frappe/contributions` | The build's index of every app's contributed files |
 | [Contributions](./CONTEXT.md#contribution) (`Contributions`, `DoctypeContribution`, `RecordHandlers`, `ActsContribution`, `actsFiles`) | Everything an app may add: doctype handlers, pages, item kinds, replacements, global acts. `actsFiles` holds each active app's `acts.js` loader in the site's app order |
 | List handlers (`listHandlersFor`) | Per-doctype list changes, such as extra columns |
-| Page registrations (`pages`, `replacementFor`, `registerStandardPages`, `standardPage`, `StandardPages`) | The page for each address. Standard pages are the default registration; an app's page replaces one. The last app wins |
+| Page registrations (`pages`, `replacementFor`, `reportReplacementClashes`, `registerStandardPages`, `standardPage`, `StandardPages`) | The page for each address. Standard pages are the default registration; an app's page replaces one, in every app or in the apps its entry names. In an app, an entry that names it beats one that names none; among equals the last app wins, and the router logs that clash in the current app once |
 | Item kinds and the item contract (`itemRenderers`, `ItemRenderer`, `Rendering`, `ItemContext`) | What an app's `item.js` implements to draw a navigation item. The last app wins |
 | After-save registry (`registerAfterSave`, `runAfterSave`, `askReload`, `AfterSave`, `SavedBinding`) | What runs after a settings binding of a doctype saves, with the saved record and the fields sent. Apps register their own doctypes through `@shell`; a handler that throws is logged and the others still run. `askReload` shows the one "Reload to apply" toast when a save changed any of the fields given |
 | Settings components (`settingsComponentFor`, `SettingsComponentContribution`) | The lazy component a settings block names, by app and name. A name with no file gives nothing and a warning, and the block is dropped |
@@ -491,7 +491,7 @@ A script reaches the rest of the desk only through the `page` object it is hande
 | Shared packages ([singletons](./CONTEXT.md#singleton)) | `enforce_singletons` checks them at build time |
 | `desk.package.json` | An app's declared frontend packages, merged into one `package.json` and lockfile |
 | [Contribution layout](./CONTEXT.md#kind) and discovery | The file paths that count as contributions, and the walk that finds them |
-| Replacement pages (`pages.json`) | A doctype's `pages.json` replaces its standard list or record page |
+| Replacement pages (`pages.json`) | A doctype's `pages.json` replaces its standard list or record page, in every app or in the apps an entry names |
 | Page clash warnings | Warns when a page slug equals a doctype or module slug |
 | Shared `node_modules` | An app's bare imports resolve from the framework's `node_modules`, only if the app declares them |
 | Import map | Points each name on the import list at a built file |
@@ -521,7 +521,7 @@ Every way an app, a site admin or a user changes the desk, with the layer that h
 | acts.js acts file | App | 9 | `<module>/frontend/acts.js`, found by the build | Global acts on the shell surface, for the palette, keys and `page.run` |  |  |
 | item.js item file | App | 9 | A file in the app's frontend folder | How one kind of navigation item draws | navigation_item_resolvers hook | Winner rule differs today: first app wins the renderer, last app wins the visibility hook |
 | App page | App | 8 | A page file the build registers | Adds a page under the app's prefix |  |  |
-| Replacement page (pages.json) | App | 8 | pages.json beside a doctype | Replaces the standard list or record page for a doctype |  |  |
+| Replacement page (pages.json) | App | 8 | pages.json beside a doctype | Replaces the standard list or record page for a doctype, in every app or in the apps an entry names |  |  |
 | @shell import alias | App | build | Vite alias | Desk names an app file may import | import_map hook | Two import lists; the target has one |
 | import_map hook | App | build | hooks.py | Names a stored script may import | @shell import alias | Two import lists; the target has one |
 | desk.package.json | App | build | A file in the app | The app's frontend packages |  |  |

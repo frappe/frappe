@@ -107,6 +107,7 @@ const addresses = new Addresses({
 		"Journal Entry": ["journal-entry", "accounts"],
 		"Payment Entry": ["payment-entry", "accounts"],
 		"Delivery Note": ["delivery-note", "accounts"],
+		Quotation: ["quotation", "accounts"],
 	},
 	modules: { accounts: "Accounts" },
 	singles: ["Accounts Settings"],
@@ -133,6 +134,8 @@ beforeAll(async () => {
 		}),
 		declared("Payment Entry", "record", flakyPage),
 		declared("Delivery Note", "record", () => slow.load),
+		{ ...declared("Quotation", "record"), apps: ["crm"] },
+		{ ...declared("Quotation", "list"), apps: ["erpnext", "crm"] },
 	];
 	await registerContributions(["frappe", "erpnext"]);
 });
@@ -169,6 +172,7 @@ async function mount(modular: boolean, path: string) {
 	const app = createApp(defineComponent({ render: () => h(RouterView) }));
 	app.use(router);
 	app.provide("addresses", addresses);
+	app.provide("boot", boot(modular));
 	app.mount(root);
 	apps.push(app);
 	await settle();
@@ -420,6 +424,17 @@ describe.each([
 			`${base}/purchase-invoice/PI-001`
 		);
 		expect(urlFor("Purchase Invoice", null, { standard: true })).toBe(`${base}/purchase-invoice`);
+	});
+
+	it("opens the declared page only in the apps it names", async () => {
+		const list = await mount(modular, `${prefix}/quotation`);
+		const record = await mount(modular, `${prefix}/quotation/Q-001`);
+		const base = `/apps/erpnext${prefix}`;
+
+		expect(shown(list.root)).toEqual({ page: "declared", doctype: "Quotation" });
+		expect(shown(record.root)).toEqual({ page: "record" });
+		expect(urlFor("Quotation", null, { standard: true })).toBe(`${base}/quotation/view/list`);
+		expect(urlFor("Quotation", "Q-001", { standard: true })).toBe(`${base}/quotation/Q-001`);
 	});
 
 	it("leaves every other link at the main address", async () => {

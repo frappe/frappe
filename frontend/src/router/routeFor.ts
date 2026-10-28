@@ -104,7 +104,8 @@ function doctypeParams(doctype: string): Record<string, string> {
 
 /** The standard page's route name when it was asked for and an app replaced the page. */
 function standardOr(doctype: string, key: "record" | "list", options: RouteOptions) {
-	return options.standard && replacementFor(doctype, key) ? `standard-${key}` : key;
+	if (!options.standard) return key;
+	return replacementFor(doctype, key, current().boot.app) ? `standard-${key}` : key;
 }
 
 /** The full-page new record, `/<doctype>/new`, prefilled from the query; a table is JSON. */

@@ -30,12 +30,26 @@ function page(
   return { app, doctype, key, foreign, component: async () => ({}) }
 }
 
-async function resolve(replacements: ReplacementContribution[], appOrder: string[]) {
+function scoped(page: ReplacementContribution, apps: string[]) {
+  return { ...page, apps }
+}
+
+async function load(replacements: ReplacementContribution[], appOrder: string[]) {
   fake.replacements = replacements
   vi.resetModules()
   const registry = await import('../registry')
   await registry.registerContributions(appOrder)
-  return registry.replacementFor
+  return registry
+}
+
+/** `replacementFor` in the shell of `app`, by default the desk's. */
+async function resolve(
+  replacements: ReplacementContribution[],
+  appOrder: string[],
+  app = 'frappe',
+) {
+  const { replacementFor } = await load(replacements, appOrder)
+  return (doctype: string, key: 'record' | 'list') => replacementFor(doctype, key, app)
 }
 
 describe('replacementFor', () => {
@@ -91,8 +105,8 @@ describe('replacementFor', () => {
     expect(error).not.toHaveBeenCalled()
   })
 
-  it('logs one error naming the doctype, the key, the winner and every loser', async () => {
-    await resolve(
+  it('logs one error naming the doctype, the key, the app, the winner and every loser', async () => {
+    const { reportReplacementClashes } = await load(
       [
         page('crm', 'Lead', 'record'),
         page('hrms', 'Lead', 'record', true),
@@ -100,10 +114,94 @@ describe('replacementFor', () => {
       ],
       ['frappe', 'helpdesk', 'crm', 'hrms'],
     )
+    reportReplacementClashes('frappe')
     expect(error).toHaveBeenCalledOnce()
     expect(error).toHaveBeenCalledWith(
-      "[frappe] 3 apps replace the record page of 'Lead': 'hrms' is used and " +
+      "[frappe] 3 apps replace the record page of 'Lead' in 'frappe': 'hrms' is used and " +
         "'crm', 'helpdesk' ignored.",
     )
+  })
+
+  it('applies an entry that names apps only in the apps it names', async () => {
+    const { replacementFor } = await load(
+      [scoped(page('crm', 'Note', 'list', true), ['crm'])],
+      ['frappe', 'erpnext', 'crm'],
+    )
+    expect(replacementFor('Note', 'list', 'crm')?.app).toBe('crm')
+    expect(replacementFor('Note', 'list', 'erpnext')).toBeUndefined()
+    expect(replacementFor('Note', 'list', 'frappe')).toBeUndefined()
+  })
+
+  it('lets an entry that names the app beat one that names none, whatever the run order', async () => {
+    const { replacementFor, reportReplacementClashes } = await load(
+      [scoped(page('crm', 'Note', 'list', true), ['crm']), page('erpnext', 'Note', 'list', true)],
+      ['frappe', 'crm', 'erpnext'],
+    )
+    expect(replacementFor('Note', 'list', 'crm')?.app).toBe('crm')
+    expect(replacementFor('Note', 'list', 'erpnext')?.app).toBe('erpnext')
+    expect(replacementFor('Note', 'list', 'frappe')?.app).toBe('erpnext')
+    reportReplacementClashes('crm')
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  it('lets any app name any apps, so one app can give two apps two pages', async () => {
+    const { replacementFor } = await load(
+      [
+        { ...scoped(page('custom', 'Contact', 'record', true), ['crm']), title: 'sales' },
+        { ...scoped(page('custom', 'Contact', 'record', true), ['helpdesk']), title: 'support' },
+        { ...page('custom', 'Contact', 'record', true), title: 'card' },
+      ],
+      ['frappe', 'crm', 'helpdesk', 'custom'],
+    )
+    expect(replacementFor('Contact', 'record', 'crm')?.title).toBe('sales')
+    expect(replacementFor('Contact', 'record', 'helpdesk')?.title).toBe('support')
+    expect(replacementFor('Contact', 'record', 'frappe')?.title).toBe('card')
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  it('gives the last of two entries naming one app the key, and logs it in that app only', async () => {
+    const { replacementFor, reportReplacementClashes } = await load(
+      [
+        scoped(page('crm', 'Note', 'list', true), ['crm']),
+        scoped(page('erpnext', 'Note', 'list', true), ['crm', 'erpnext']),
+      ],
+      ['frappe', 'crm', 'erpnext'],
+    )
+    expect(replacementFor('Note', 'list', 'erpnext')?.app).toBe('erpnext')
+    expect(replacementFor('Note', 'list', 'crm')?.app).toBe('erpnext')
+    reportReplacementClashes('erpnext')
+    expect(error).not.toHaveBeenCalled()
+
+    reportReplacementClashes('crm')
+    expect(error).toHaveBeenCalledOnce()
+    expect(error).toHaveBeenCalledWith(
+      "[frappe] 2 apps replace the list page of 'Note' in 'crm': 'erpnext' is used and 'crm' ignored.",
+    )
+  })
+
+  it('logs no clash among entries naming no apps in an app that an entry names', async () => {
+    const { replacementFor, reportReplacementClashes } = await load(
+      [
+        page('crm', 'Note', 'list', true),
+        page('erpnext', 'Note', 'list', true),
+        scoped(page('helpdesk', 'Note', 'list', true), ['helpdesk']),
+      ],
+      ['frappe', 'crm', 'erpnext', 'helpdesk'],
+    )
+    expect(replacementFor('Note', 'list', 'helpdesk')?.app).toBe('helpdesk')
+    reportReplacementClashes('helpdesk')
+    expect(error).not.toHaveBeenCalled()
+  })
+
+  it('lists the pages that win in the app, for the address checks', async () => {
+    const { declaredReplacements } = await load(
+      [
+        scoped(page('crm', 'Note', 'list', true), ['crm']),
+        page('erpnext', 'Report', 'record', true),
+      ],
+      ['frappe', 'crm', 'erpnext'],
+    )
+    expect(declaredReplacements('crm').map((c) => c.doctype)).toEqual(['Note', 'Report'])
+    expect(declaredReplacements('frappe').map((c) => c.doctype)).toEqual(['Report'])
   })
 })

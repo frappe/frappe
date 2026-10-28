@@ -4,7 +4,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
-import { declaredReplacements } from "@/contributions/registry";
+import { declaredReplacements, reportReplacementClashes } from "@/contributions/registry";
 import { generatedRoutes, indexRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { isModular } from "./routeFor";
@@ -15,7 +15,8 @@ const RECORD_ROUTES = new Set(["record", "standard-record"]);
 
 export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
-	warnIgnoredListPages(addresses);
+	warnIgnoredListPages(addresses, boot.app);
+	reportReplacementClashes(boot.app);
 
 	const router = createRouter({
 		history: createWebHistory(boot.shell_base),
@@ -110,8 +111,8 @@ function flatAddress(to: any, addresses: Addresses) {
 }
 
 /** A single has no list, so a list page declared for one never opens. */
-function warnIgnoredListPages(addresses: Addresses) {
-	for (const page of declaredReplacements()) {
+function warnIgnoredListPages(addresses: Addresses, app: string | null) {
+	for (const page of declaredReplacements(app)) {
 		if (page.key !== "list" || !addresses.isSingle(page.doctype)) continue;
 		console.warn(
 			`[frappe] '${page.app}' replaces the list page of '${page.doctype}', a single with no ` +

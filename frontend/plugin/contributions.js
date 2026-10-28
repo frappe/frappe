@@ -56,6 +56,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 	// owned by an app that contributes nothing.
 	const definitions = readDoctypes(allSourceDirs);
 	const unscrub = (scrubbed) => definitions.get(scrubbed)?.name ?? titleCase(scrubbed);
+	const benchApps = allSourceDirs.map((dir) => basename(dir));
 
 	for (const { app, source_dir } of manifest) {
 		for (const module of directories(source_dir)) {
@@ -73,7 +74,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 				// A replaced standard page: <module>/doctype/<scrubbed>/frontend/pages.json
 				const frontend = join(doctypeRoot, scrubbed, "frontend");
 				const declarer = { app, doctype: unscrub(scrubbed), foreign: false };
-				const owned = declaredPages(frontend, declarer);
+				const owned = declaredPages(frontend, declarer, benchApps);
 				replacements.push(...owned.found);
 				warnings.push(...owned.warnings);
 				if (owned.declaration) declarations.push(owned.declaration);
@@ -88,7 +89,7 @@ export function discover(manifest, allSourceDirs = manifest.map((entry) => entry
 					doctypes.push({ kind: "custom", app, doctype: unscrub(scrubbed), file });
 
 				const declarer = { app, doctype: unscrub(scrubbed), foreign: true };
-				const custom = declaredPages(folder, declarer);
+				const custom = declaredPages(folder, declarer, benchApps);
 				replacements.push(...custom.found);
 				warnings.push(...custom.warnings);
 				if (custom.declaration) declarations.push(custom.declaration);
@@ -281,6 +282,7 @@ function generate({ doctypes, pages, itemTypes, settings, acts, replacements, wa
 		lines.push(
 			`    { app: ${JSON.stringify(entry.app)}, ` +
 				`doctype: ${JSON.stringify(entry.doctype)}, key: ${JSON.stringify(entry.key)}, ` +
+				(entry.apps ? `apps: ${JSON.stringify(entry.apps)}, ` : "") +
 				`foreign: ${entry.foreign}, ` +
 				`title: r${index}?.title, component: r${index}?.component, ` +
 				`handlers: r${index}?.component, __file: ${JSON.stringify(entry.file)} },`
