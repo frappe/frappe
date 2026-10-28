@@ -162,6 +162,7 @@ describe("an app's acts", () => {
 		const [context, value] = run.mock.calls[0];
 		expect(context.router).toBe(router);
 		expect(typeof context.create).toBe("function");
+		expect(Object.keys(context.dialog)).toEqual(["confirm", "danger"]);
 		expect(value).toBe("+91 98200 00000");
 		expect(acts.available().find((act) => act.name === "shell.crm.log_a_call")?.label).toBe(
 			"Log a call"

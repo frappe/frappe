@@ -10,6 +10,7 @@ import type { Boot } from "@/boot";
 import { __ } from "@/i18n";
 import { useAppActs } from "./appActs";
 import { openCreate, type CreatedDoc, type CreateOptions } from "./create";
+import { shellDialog, type ShellDialog } from "./dialog";
 
 /** Opens `#settings/<prefix>/<pane>/<block>`; each segment is optional, in order. */
 export type OpenSettings = (prefix?: string, pane?: string, block?: string) => void;
@@ -22,6 +23,7 @@ export interface Shell {
 	run: (name: string, value?: unknown) => Promise<unknown>;
 	create: (doctype: string, options?: CreateOptions) => Promise<CreatedDoc | null>;
 	openSettings: OpenSettings;
+	dialog: ShellDialog;
 }
 
 /** `shell.create`'s value: a doctype, or a doctype with the values its record starts with. */
@@ -120,6 +122,7 @@ function shellFor(host: ShellActsHost): Shell {
 		run: (name, value) => acts.run(name, value),
 		create: (doctype, options) => openCreate(doctype, options),
 		openSettings: host.openSettings,
+		dialog: shellDialog(),
 	};
 }
 
