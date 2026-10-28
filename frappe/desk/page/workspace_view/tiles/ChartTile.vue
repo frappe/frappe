@@ -308,7 +308,10 @@ watch(
 				<span class="max-w-sm text-p-sm text-ink-gray-5">{{ error }}</span>
 			</template>
 			<div class="flex h-full flex-col gap-2">
-				<div v-if="state.summary?.length" class="flex flex-wrap gap-4">
+				<div
+					v-if="state.summary?.length"
+					class="grid grid-cols-[repeat(auto-fit,minmax(8rem,1fr))] gap-x-4 gap-y-3"
+				>
 					<div v-for="item in state.summary" :key="item.label" class="flex flex-col">
 						<span class="text-sm text-ink-gray-5">{{ item.label }}</span>
 						<span class="text-base font-medium text-ink-gray-8">
