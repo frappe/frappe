@@ -3,6 +3,7 @@
 from unittest import skipIf
 
 import frappe
+from frappe.api.v2 import create_doc
 from frappe.contacts.doctype.contact.contact import contact_query, get_full_name
 from frappe.email import get_contact_list, get_recipient_avatars
 from frappe.permissions import add_permission, update_permission_property
@@ -286,6 +287,7 @@ class TestContactFlatValues(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
 		frappe.set_user(a_contact_owner())
 
 	def tearDown(self):
@@ -318,13 +320,13 @@ class TestContactFlatValues(IntegrationTestCase):
 		)
 
 	def test_rows_win_over_flat_values_on_insert(self):
-		contact = create_contact("Table Wins", "Mr", save=False)
-		contact.add_email("row@example.com", is_primary=1)
-		contact.add_phone("+91 0000000023", is_primary_phone=1)
-		contact.update(
-			{"email_id": "flat@example.com", "phone": "+91 0000000024", "mobile_no": "+91 0000000025"}
+		contact = flat_contact(
+			email_ids=[{"email_id": "row@example.com", "is_primary": 1}],
+			phone_nos=[{"phone": "+91 0000000023", "is_primary_phone": 1}],
+			email_id="flat@example.com",
+			phone="+91 0000000024",
+			mobile_no="+91 0000000025",
 		)
-		contact.insert()
 
 		self.assertEqual([row.email_id for row in contact.email_ids], ["row@example.com"])
 		self.assertEqual([row.phone for row in contact.phone_nos], ["+91 0000000023"])
@@ -334,12 +336,25 @@ class TestContactFlatValues(IntegrationTestCase):
 	def test_flat_values_do_nothing_on_update(self):
 		contact = create_contact("Flat Update", "Mr")
 		contact.update({"email_id": "flat@example.com", "phone": "+91 0000000026"})
+		contact.flags.flat_values_as_rows = True
 		contact.save()
 
 		self.assertEqual(contact.email_ids, [])
 		self.assertEqual(contact.phone_nos, [])
 		self.assertEqual(contact.email_id, "")
 		self.assertEqual(contact.phone, "")
+
+	def test_other_inserts_drop_flat_values(self):
+		plain = frappe.get_doc(
+			{"doctype": "Contact", "first_name": "A", "email_id": "a@b.c", "phone": "+91 0000000027"}
+		).insert()
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			rest = flat_contact(email_id="a@b.c", phone="+91 0000000027")
+
+		for contact in (plain, rest):
+			with self.subTest(contact=contact.name):
+				self.assertEqual((contact.email_id, contact.phone), ("", ""))
+				self.assertEqual((contact.email_ids, contact.phone_nos), ([], []))
 
 
 def create_contact(name, salutation, emails=None, phones=None, save=True):
@@ -362,10 +377,9 @@ def create_contact(name, salutation, emails=None, phones=None, save=True):
 
 
 def flat_contact(**values):
-	contact = frappe.get_doc(
-		{"doctype": "Contact", "first_name": "Flat", "status": "Open", **values}
-	).insert()
-	return frappe.get_doc("Contact", contact.name)
+	"""Insert through REST v2, the route desk v2's Create dialog and new record page post to."""
+	frappe.local.form_dict = frappe._dict(first_name="Flat", status="Open", **values)
+	return frappe.get_doc("Contact", create_doc("Contact")["name"])
 
 
 def a_contact_owner() -> str:
