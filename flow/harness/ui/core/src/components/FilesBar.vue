@@ -12,7 +12,7 @@
 		>
 			<div
 				v-if="mode === 'diff'"
-				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-xs font-medium text-ink-gray-5"
+				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-sm font-medium text-ink-gray-5"
 			>
 				{{ gitFiles.length }} {{ gitFiles.length === 1 ? "file" : "files" }} changed
 			</div>
@@ -26,7 +26,7 @@
 						v-model="fileQuery"
 						placeholder="Search files"
 						spellcheck="false"
-						class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+						class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 					/>
 					<button
 						v-if="fileQuery"
@@ -46,7 +46,7 @@
 						:key="file.path"
 						role="button"
 						tabindex="0"
-						class="flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pl-2 pr-1.5 text-sm hover:bg-surface-gray-2"
+						class="flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pl-2 pr-1.5 text-base hover:bg-surface-gray-2"
 						:class="
 							activeTab?.path === file.path
 								? 'bg-surface-gray-3 font-medium text-ink-gray-9'
@@ -64,20 +64,20 @@
 						</span>
 						<span class="min-w-0 truncate">{{ fileName(file.path) }}</span>
 						<span class="flex-1" />
-						<span class="flex-none font-mono text-2xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
-						<span class="flex-none font-mono text-2xs text-ink-red-6">-{{ file.removed }}</span>
+						<span class="flex-none font-mono text-xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
+						<span class="flex-none font-mono text-xs text-ink-red-6">-{{ file.removed }}</span>
 					</div>
-					<div v-if="changes && !changes.root" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<div v-if="changes && !changes.root" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						Not a git repository
 					</div>
-					<div v-else-if="changes && !gitFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<div v-else-if="changes && !gitFiles.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						No uncommitted changes
 					</div>
-					<LoadingState v-else-if="changesPending" class="px-1.5 py-2 text-2xs text-ink-gray-4" />
+					<LoadingState v-else-if="changesPending" class="px-1.5 py-2 text-xs text-ink-gray-4" />
 				</template>
 				<!-- searching: a pruned tree of matches only, branches open until folded -->
 				<template v-else-if="searchActive">
-					<LoadingState v-if="searchMatches === null" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<LoadingState v-if="searchMatches === null" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						Searching…
 					</LoadingState>
 					<template v-else>
@@ -94,7 +94,7 @@
 								role="button"
 								tabindex="0"
 								:aria-expanded="row.type === 'dir' ? row.open : undefined"
-								class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
+								class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-base text-ink-gray-8 hover:bg-surface-gray-2"
 								:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
 								:title="row.path"
 								@click="activateRow(row)"
@@ -117,10 +117,10 @@
 								<span class="min-w-0 truncate">{{ row.name }}</span>
 							</div>
 						</template>
-						<div v-if="!searchRows.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						<div v-if="!searchRows.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
 							No matches
 						</div>
-						<div v-else-if="searchTruncated" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						<div v-else-if="searchTruncated" class="px-1.5 py-2 text-xs text-ink-gray-4">
 							More matches not shown — narrow the search
 						</div>
 					</template>
@@ -128,13 +128,13 @@
 				<!-- hidden, not unmounted, while searching: opened folders survive a search -->
 				<div v-if="mode === 'files' && rootDir" v-show="!searchActive">
 					<FileTree v-for="entry in rootEntries" :key="entry.name" :entry="entry" :dir="rootDir" />
-					<div v-if="!rootEntries.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<div v-if="!rootEntries.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						Empty folder
 					</div>
 				</div>
 				<LoadingState
 					v-else-if="mode === 'files' && rootLoading && !searchActive"
-					class="px-1.5 py-2 text-2xs text-ink-gray-4"
+					class="px-1.5 py-2 text-xs text-ink-gray-4"
 				/>
 			</div>
 		</div>

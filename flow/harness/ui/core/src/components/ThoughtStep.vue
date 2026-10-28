@@ -2,7 +2,7 @@
 	<div>
 		<component
 			:is="expandable ? 'button' : 'div'"
-			class="flex w-full items-baseline gap-2.5 py-2.5 text-left"
+			class="flex w-full items-baseline gap-2.5 py-2 text-left md:py-2.5"
 			:class="expandable ? 'group cursor-pointer' : ''"
 			@click="expandable && (open = !open)"
 		>
@@ -19,18 +19,18 @@
 					aria-hidden="true"
 				/>
 			</span>
-			<span class="flex-none text-sm font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
+			<span class="flex-none text-base font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
 				live ? "Thinking" : "Thought"
 			}}</span>
-			<span class="min-w-0 flex-1 truncate text-sm text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>
+			<span class="min-w-0 flex-1 truncate text-base text-ink-gray-5 group-hover:text-ink-gray-7">{{ preview }}</span>
 		</component>
 
 		<div
 			v-if="open && expandable"
-			class="mb-1.5 mt-1 rounded-[10px] border border-outline-gray-1 bg-surface-base px-3.5 py-3"
+			class="mb-1.5 rounded-[10px] border border-outline-gray-1 bg-surface-base px-3.5 py-3"
 		>
 			<div ref="panelEl" class="max-h-[260px] overflow-y-auto" @scroll="onPanelScroll">
-				<MarkdownContent :text="block.thinking" class="text-sm leading-relaxed text-ink-gray-6" />
+				<MarkdownContent :text="block.thinking" class="text-base leading-relaxed text-ink-gray-6" />
 			</div>
 		</div>
 	</div>
