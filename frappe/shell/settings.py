@@ -122,7 +122,7 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 
 
 def _mixes_save_modes(pane: dict, block: dict) -> bool:
-	"""A component block without a declared list owns every unclaimed field, so an `auto` commit would send a `button` block's edits."""
+	"""Component blocks on one draft can own the same fields, so an `auto` commit would send a `button` block's edits."""
 	addresses = _component_addresses(block)
 	return any(
 		other["save_mode"] != block["save_mode"] and addresses & _component_addresses(other)

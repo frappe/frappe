@@ -164,7 +164,7 @@ class SettingsDialog(Document):
 				)
 
 	def refuse_mixed_save_modes_on_a_binding(self):
-		"""A component block without a declared list owns every unclaimed field, so an `auto` commit would send a `button` block's edits."""
+		"""Component blocks on one draft can own the same fields, so an `auto` commit would send a `button` block's edits."""
 		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
 
 		first = {}
@@ -198,7 +198,7 @@ class SettingsDialog(Document):
 			for address in component_binding_addresses(block):
 				for fieldname in declared_fields(block):
 					key, app = owners.setdefault((address, fieldname), owner)
-					if (key, app) != owner:
+					if (key, app) != owner and block in self.blocks:
 						frappe.throw(
 							_(
 								"Component blocks {0} from {1} and {2} in pane {3} both declare {4} of {5}. List each field in one block only."
