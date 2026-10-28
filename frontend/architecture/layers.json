@@ -334,9 +334,6 @@
       "ArrangedItem",
       "dropOn"
     ],
-    "frontend/src/contributions/registry.ts": [
-      "declaredReplacements"
-    ],
     "frontend/src/contributions/types.ts": [
       "ListHandlers",
       "PageContribution"

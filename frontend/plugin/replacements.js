@@ -52,7 +52,7 @@ export function clashes(replacements) {
 
 /**
  * A key's entries, each `{ page, apps }` with `apps` null for every app. A malformed or
- * ambiguous key gives none; an app not on the bench is dropped from its entry.
+ * ambiguous key gives none; an app not on the bench is kept, so it applies once installed.
  */
 function keyEntries(key, value, pageNames, benchApps) {
 	const entries = typeof value === "string" ? [{ page: value }] : [value].flat();
@@ -66,17 +66,18 @@ function keyEntries(key, value, pageNames, benchApps) {
 			scoped.push({ page, apps: null });
 			continue;
 		}
+		if (!apps.length) {
+			warnings.push(
+				`"${key}" gives "${page}" an empty "apps", and "apps" never means every app; that entry is ignored`
+			);
+			continue;
+		}
 		const named = [...new Set(apps)];
-		const known = named.filter((app) => benchApps.includes(app));
 		for (const app of named.filter((app) => !benchApps.includes(app)))
 			warnings.push(
-				`"${key}" names app "${app}" for "${page}", but it is not on the bench; it is dropped from that entry`
+				`"${key}" names app "${app}" for "${page}", but it is not on the bench; it applies there once that app is installed`
 			);
-		if (known.length) scoped.push({ page, apps: known });
-		else
-			warnings.push(
-				`"${key}" gives "${page}" no app on the bench, and "apps" never means every app; that entry is ignored`
-			);
+		scoped.push({ page, apps: named });
 	}
 	return { entries: scoped, warnings };
 }

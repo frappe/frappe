@@ -57,7 +57,7 @@ export function declaredReplacements(app: string | null) {
 }
 
 /** One error per page that more than one entry of equal standing replaces in `app`. */
-export function reportReplacementClashes(app: string | null) {
+export function reportReplacementClashes(app: string) {
   for (const all of claims.values()) {
     const contenders = contendersIn(all, app)
     if (contenders.length < 2) continue
@@ -66,7 +66,7 @@ export function reportReplacementClashes(app: string | null) {
     const losers = contenders.slice(0, -1).map((c) => `'${c.app}'`)
     console.error(
       `[frappe] ${contenders.length} apps replace the ${winner.key} page of '${winner.doctype}'` +
-        `${app ? ` in '${app}'` : ''}: '${winner.app}' is used and ${losers.join(', ')} ignored.`,
+        ` in '${app}': '${winner.app}' is used and ${losers.join(', ')} ignored.`,
     )
   }
 }
