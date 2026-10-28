@@ -21,7 +21,10 @@ test.describe("Form docinfo updates", () => {
 					}
 				}
 			};
+			const docinfo = frappe.model.docinfo.ToDo[name];
 			const reference = { reference_doctype: "ToDo", reference_name: name };
+			const tags = docinfo.tags;
+			const shared = JSON.stringify(docinfo.shared);
 			send({
 				doc: { ...reference, name: "tag-row", tag: "urgent" },
 				key: "tags",
@@ -32,15 +35,37 @@ test.describe("Form docinfo updates", () => {
 				key: "favourites",
 				action: "add",
 			});
-			const share = { ...reference, name: "share-row", user: "Guest", read: 1 };
-			send({ doc: share, key: "shared", action: "add" });
-			send({ doc: share, key: "shared", action: "add" });
-			const shared = frappe.model.docinfo.ToDo[name].shared;
-			return { errors, shares: shared.filter((row) => row.name === "share-row").length };
+			send({
+				doc: { ...reference, name: "share-row", user: "Guest", read: 1 },
+				key: "shared",
+				action: "add",
+			});
+			const comment = {
+				...reference,
+				doctype: "Comment",
+				name: "comment-row",
+				comment_type: "Comment",
+				comment_email: frappe.session.user,
+				owner: frappe.session.user,
+				content: "Docinfo listener comment",
+				creation: frappe.datetime.now_datetime(),
+			};
+			send({ doc: comment, key: "comments", action: "add" });
+			send({ doc: comment, key: "comments", action: "add" });
+			return {
+				errors,
+				tags_unchanged: docinfo.tags === tags,
+				has_favourites: "favourites" in docinfo,
+				shared_unchanged: JSON.stringify(docinfo.shared) === shared,
+				comments: docinfo.comments.filter((row) => row.name === "comment-row").length,
+			};
 		}, todo.name);
 
 		expect(result.errors).toEqual([]);
-		expect(result.shares).toBe(1);
+		expect(result.tags_unchanged).toBe(true);
+		expect(result.has_favourites).toBe(false);
+		expect(result.shared_unchanged).toBe(true);
+		expect(result.comments).toBe(1);
 
 		await api.remove_doc("ToDo", todo.name, true);
 	});
