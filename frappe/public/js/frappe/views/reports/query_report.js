@@ -1611,7 +1611,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 
 		raise && this.toggle_message(false);
 
-		const send_empty_values = this.report_settings.validate_filters;
+		const send_empty_values = this.report_settings?.validate_filters;
 		return this.filters
 			.filter((f) => f.get_value && (send_empty_values || f.get_value()))
 			.map((f) => {
