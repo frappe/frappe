@@ -10,6 +10,8 @@ import json
 from functools import cached_property
 from unittest.mock import patch
 
+from werkzeug.datastructures import Headers
+
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.assign_to import add as add_assignment
@@ -70,7 +72,6 @@ class TestValidationErrorParity(FrappeAPITestCase):
 
 	@classmethod
 	def tearDownClass(cls):
-		frappe.db.commit()  # nosemgrep
 		cls.parent.delete()
 		cls.child.delete()
 		frappe.delete_doc_if_exists("User", DESK_USER, force=True)
@@ -135,26 +136,33 @@ class TestValidationErrorParity(FrappeAPITestCase):
 			self.assertEqual(response.status_code, 417, exc_type)
 			self.assertEqual(set(response.json) - TRACEBACK_KEYS, {"exc_type", "_server_messages"}, exc_type)
 			self.assertEqual(response.json["exc_type"], exc_type)
-			sent = [json.loads(m)["message"] for m in json.loads(response.json["_server_messages"])]
-			self.assertEqual(sent, expected)
+			sent = [json.loads(m) for m in json.loads(response.json["_server_messages"])]
+			self.assertEqual([m["message"] for m in sent], expected)
+			for message in sent:
+				self.assertLessEqual(set(message), SERVER_MESSAGE_KEYS)
 
 
 class TestDocinfoParity(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
-		make_user(DESK_USER, "Report Manager")
-		make_user(WORKSPACE_MANAGER, "Workspace Manager")
 		cls.doctype = new_doctype(
 			track_changes=1,
 			track_views=1,
 			fields=[{"fieldname": "subject", "label": "Subject", "fieldtype": "Data"}],
 			permissions=[DESK_PERMISSION],
 		).insert()
-		cls.addClassCleanup(cls.doctype.delete)
+		make_user(DESK_USER, "Report Manager")
+		make_user(WORKSPACE_MANAGER, "Workspace Manager")
+
+	@classmethod
+	def tearDownClass(cls):
+		drop_committed_doctype(cls.doctype)
+		super().tearDownClass()
 
 	def test_docinfo_keys_and_values(self):
 		with self.set_user(DESK_USER):
+			self.make_doc_with_history()
 			doc = self.make_doc_with_history()
 			frappe.response.docs = []
 			getdoc(self.doctype.name, doc.name)
@@ -175,18 +183,23 @@ class TestDocinfoParity(IntegrationTestCase):
 		self.assertEqual([a.file_name for a in docinfo.attachments], ["parity.txt"])
 		self.assertEqual([c.content for c in docinfo.communications], ["Parity email"])
 		self.assertEqual([m.value for m in docinfo.milestones], ["Closed"])
-		self.assertEqual(len(docinfo.versions), 1)
-		self.assertEqual(len(docinfo.views), 2)
+		self.assertEqual(len(docinfo.versions), 10)
+		self.assertEqual(len(docinfo.views), VIEWS + 1)
+		for key in ("versions", "views"):
+			created = [row.creation for row in docinfo[key]]
+			self.assertEqual(created, sorted(created, reverse=True), key)
 		self.assertEqual(docinfo.tags, "parity")
 		self.assertFalse(docinfo.is_document_followed)
 
 	def make_doc_with_history(self):
 		doc = frappe.get_doc(doctype=self.doctype.name, subject="Open").insert()
-		doc.subject = "Closed"
-		doc.save(ignore_version=False)
+		for edit in range(11):
+			doc.subject = f"Edit {edit}"
+			doc.save(ignore_version=False)
 		doc.add_comment("Comment", "Parity comment")
 		doc.add_tag("parity")
-		doc.add_viewed(user=WORKSPACE_MANAGER)
+		for _ in range(VIEWS):
+			doc.add_viewed(user=WORKSPACE_MANAGER)
 		add_share(self.doctype.name, doc.name, WORKSPACE_MANAGER, read=1)
 		add_assignment({"assign_to": [WORKSPACE_MANAGER], "doctype": doc.doctype, "name": doc.name})
 		save_file("parity.txt", b"parity", doc.doctype, doc.name)
@@ -211,13 +224,21 @@ class TestGetCountParity(IntegrationTestCase):
 	@classmethod
 	def setUpClass(cls):
 		super().setUpClass()
+		cls.virtual = new_doctype(is_virtual=1, permissions=[DESK_PERMISSION]).insert()
 		make_user(DESK_USER, "Report Manager")
 		with cls.set_user(DESK_USER):
 			for _ in range(3):
 				frappe.get_doc(doctype="ToDo", description="parity count").insert()
 
+	@classmethod
+	def tearDownClass(cls):
+		drop_committed_doctype(cls.virtual)
+		super().tearDownClass()
+
 	def setUp(self):
-		frappe.local.response_headers = frappe.local.response_headers.__class__()
+		frappe.local.response_headers = Headers()
+		self.addCleanup(setattr, frappe.local, "response_headers", Headers())
+		self.addCleanup(setattr, frappe.local, "form_dict", frappe._dict())
 
 	def count(self, **params):
 		with self.set_user(DESK_USER):
@@ -228,22 +249,33 @@ class TestGetCountParity(IntegrationTestCase):
 
 	def test_count_that_hits_the_limit_is_cacheable(self):
 		self.assertEqual(self.count(limit=3), 3)
-		self.assertEqual(
-			frappe.local.response_headers.get("Cache-Control"),
-			"private,max-age=600,stale-while-revalidate=10800",
-		)
+		self.assertEqual(frappe.local.response_headers.get("Cache-Control"), CACHE_CONTROL)
 
 	def test_count_under_the_limit_is_not_cacheable(self):
 		self.assertEqual(self.count(limit=5), 3)
 		self.assertIsNone(frappe.local.response_headers.get("Cache-Control"))
+
+	def test_count_that_times_out_is_cacheable(self):
+		run_sql = frappe.db.sql
+
+		def time_out_the_count(query, *args, **kwargs):
+			if query.lower().lstrip().startswith(("select count", "set statement")):
+				raise TimeoutError
+			return run_sql(query, *args, **kwargs)
+
+		with (
+			patch.object(frappe.db, "sql", side_effect=time_out_the_count),
+			patch.object(frappe.db, "is_statement_timeout", return_value=True),
+		):
+			self.assertIsNone(self.count(limit=3))
+		self.assertEqual(frappe.local.response_headers.get("Cache-Control"), CACHE_CONTROL)
 
 	def test_count_without_limit_is_exact_and_not_cacheable(self):
 		self.assertEqual(self.count(), 3)
 		self.assertIsNone(frappe.local.response_headers.get("Cache-Control"))
 
 	def test_virtual_doctype_counts_itself(self):
-		virtual = new_doctype(is_virtual=1, permissions=[DESK_PERMISSION]).insert()
-		self.addCleanup(virtual.delete)
+		virtual = self.virtual
 		calls = []
 
 		class Controller(frappe.model.document.Document):
@@ -388,8 +420,18 @@ PERMISSION_KEYS = {
 	"export",
 	"share",
 }
+SERVER_MESSAGE_KEYS = {"message", "title", "as_table", "indicator", "raise_exception", "__frappe_exc_id"}
+CACHE_CONTROL = "private,max-age=600,stale-while-revalidate=10800"
+VIEWS = 25
 LINK_MESSAGE = "Could not find Ref User: nobody@example.com, Row #1: Row User: ghost@example.com"
 TRACEBACK_KEYS = {"exception", "exc"}
+
+
+def drop_committed_doctype(doctype):
+	"""Delete a test DocType; its insert committed, as every table change does."""
+	frappe.db.rollback()
+	doctype.delete()
+	frappe.db.commit()  # nosemgrep
 
 
 def make_user(email: str, *roles: str):
