@@ -168,6 +168,7 @@ function edit_html() {
 		initial_html: props.df.html || "",
 		doctype: store.meta.value?.name,
 		docname: store.preview_doc_name.value,
+		global_variables: store.layout.value?.global_variables,
 		on_save: (html) => (props.df.html = html),
 	});
 }

@@ -4,7 +4,7 @@
 		<form v-if="doc" ref="form" class="mt-2 flex flex-col gap-4.5" @submit.prevent="save">
 			<div
 				v-if="doc.is_system_generated"
-				class="rounded-6 border border-outline-gray-2 bg-surface-gray-1 px-3 py-2 text-xs text-ink-gray-7"
+				class="rounded-6 border border-outline-gray-2 bg-surface-gray-1 px-3 py-2 text-sm text-ink-gray-7"
 			>
 				Comes with an app, so greyed-out fields can't be changed.
 			</div>
@@ -16,10 +16,10 @@
 				:disabled="!canWrite || isLocked(field)"
 			/>
 		</form>
-		<div v-else-if="error" class="py-8 text-center text-xs text-ink-gray-5">
+		<div v-else-if="error" class="py-8 text-center text-sm text-ink-gray-5">
 			{{ error }}
 		</div>
-		<LoadingState v-else class="justify-center py-8 text-xs text-ink-gray-5" />
+		<LoadingState v-else class="justify-center py-8 text-sm text-ink-gray-5" />
 		<template v-if="doc" #footer>
 			<Button
 				v-for="action in actions"

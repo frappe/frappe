@@ -3,7 +3,7 @@
 		<!-- row metrics and typography mirror ThoughtStep exactly: when this block
 		     merges into a tool group it swaps components without moving a pixel -->
 		<button
-			class="group flex w-full cursor-pointer items-baseline gap-2.5 py-2.5 text-left"
+			class="group flex w-full cursor-pointer items-baseline gap-2.5 py-2 text-left md:py-2.5"
 			@click="open = !open"
 		>
 			<!-- leading slot doubles as the disclosure control (see ToolStep) -->
@@ -18,13 +18,13 @@
 					aria-hidden="true"
 				/>
 			</span>
-			<span class="flex-none text-sm font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
+			<span class="flex-none text-base font-medium" :class="live ? 'flow-shimmer' : 'text-ink-gray-9'">{{
 				live ? "Thinking" : "Thought"
 			}}</span>
 		</button>
 		<div
 			v-if="open"
-			class="mt-2 border-l-2 border-outline-gray-2 pl-3 text-sm leading-relaxed text-ink-gray-6"
+			class="mt-2 border-l-2 border-outline-gray-2 pl-3 text-base leading-relaxed text-ink-gray-6"
 		>
 			<span v-if="block.redacted" class="italic">Thinking is encrypted for this model.</span>
 			<MarkdownContent v-else :text="block.thinking" />

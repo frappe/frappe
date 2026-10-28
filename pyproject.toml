@@ -88,7 +88,7 @@ dependencies = [
     "litellm==1.103.2",
     "json_repair~=0.59",
     # flow
-    "frappe-flow==0.1.20",
+    "frappe-flow==0.1.21",
     "lancedb~=0.33",
     "onnxruntime~=1.27",
     "pdfplumber~=0.11",

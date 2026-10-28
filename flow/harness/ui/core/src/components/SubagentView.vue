@@ -1,8 +1,8 @@
 <template>
 	<!-- the child's thread, drawn by the same list as the session's -->
 	<MessageList v-if="thread" :key="id" :conversation="thread" />
-	<LoadingState v-else-if="flow.state.loading" class="flex-1 justify-center text-xs text-ink-gray-4" />
-	<div v-else class="flex flex-1 items-center justify-center text-xs text-ink-gray-4">Starting…</div>
+	<LoadingState v-else-if="flow.state.loading" class="flex-1 justify-center text-sm text-ink-gray-4" />
+	<div v-else class="flex flex-1 items-center justify-center text-sm text-ink-gray-4">Starting…</div>
 </template>
 
 <script setup>
