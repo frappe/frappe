@@ -69,16 +69,9 @@ def methods() -> dict[str, Any]:
 def method(method: str) -> dict[str, Any]:
 	frappe.only_for(SYSTEM_USER_ROLE)
 	method = frappe.override_whitelisted_method(method)
-	server_script = {
-		path: script
-		for path, script in get_server_script_map().get("_api", {}).items()
-		if isinstance(path, str) and path
-	}.get(method)
-	if server_script:
-		if not frappe.has_permission("Server Script", "read"):
-			frappe.throw(
-				_("Method {0} is not available for discovery").format(method), frappe.PermissionError
-			)
+	server_script = _get_api_server_scripts().get(method)
+	# A different error for hidden scripts would tell the user that the script exists.
+	if server_script and frappe.has_permission("Server Script", "read", doc=server_script):
 		return {
 			"type": "method",
 			"kind": "rpc",
@@ -336,11 +329,28 @@ def _method_source(fn: Callable) -> str | None:
 def _visible_server_scripts() -> list[tuple[str, str]]:
 	if not frappe.has_permission("Server Script", "read"):
 		return []
-	return sorted(
-		(path, script)
+
+	scripts = _get_api_server_scripts()
+	if not scripts:
+		return []
+
+	# Role permission alone is not sufficient, user permissions can restrict access to specific scripts.
+	paths = {script: path for path, script in scripts.items()}
+	permitted = frappe.get_list(
+		"Server Script",
+		filters={"name": ("in", list(paths))},
+		pluck="name",
+		limit_page_length=0,
+	)
+	return sorted((paths[script], script) for script in permitted)
+
+
+def _get_api_server_scripts() -> dict[str, str]:
+	return {
+		path: script
 		for path, script in get_server_script_map().get("_api", {}).items()
 		if isinstance(path, str) and path
-	)
+	}
 
 
 def _get_whitelisted_method(path: str, ignore_cache: bool = False) -> Callable | None:
