@@ -14,6 +14,9 @@ const PHONE_WIDTH = 640; // narrower windows show the panel full screen
 const NOTE_TIME = 8000; // ms the hide note and its Undo stay
 // under the page's dialogs and toasts, which start at 1040 on Desk and 50 in frappe-ui apps
 const LAYER = location.pathname.startsWith("/desk") ? 1035 : 45;
+// desk v2's palette opens a chat as its dialog closes, so the panel goes over its dialogs
+// (not its popovers, at 100)
+const PANEL_LAYER = location.pathname.startsWith("/apps") ? 55 : LAYER;
 const EDGES = ["n", "e", "s", "w", "ne", "nw", "se", "sw"];
 // Cmd/Ctrl keys a text box uses, kept in the chat; other shortcuts go to the page
 const TEXT_KEYS = new Set([
@@ -24,6 +27,7 @@ const TEXT_KEYS = new Set([
 
 // the launcher's words, in the user's language (sent by frappe/flow/launcher.py)
 const LABELS = JSON.parse(document.currentScript.dataset.labels);
+const READY = "ready" in document.currentScript.dataset;
 const escape = (text) => text.replace(/[&<>"]/g, (char) => `&#${char.charCodeAt(0)};`);
 // "Turn it back on in Flow › Settings", with a link to /flow
 const TURN_ON = escape(LABELS.turn_on).replace(
@@ -55,6 +59,7 @@ class FlowLauncher {
 		this.make();
 		this.bind();
 		this.place();
+		this.mark_ready();
 		if (this.state.open) this.open({ focus: false });
 	}
 
@@ -116,6 +121,7 @@ class FlowLauncher {
 		this.note.addEventListener("pointerenter", () => clearTimeout(this.note_timer));
 		this.note.addEventListener("pointerleave", () => this.time_note());
 		window.addEventListener("keydown", (event) => this.toggle_by_key(event), true);
+		window.addEventListener("flow:ask", (event) => this.ask(event.detail.text));
 		// a chat loading behind the closed panel takes the keyboard: give it back where it was
 		const stolen = () =>
 			!this.state.open && this.host.shadowRoot.activeElement === this.iframe;
@@ -161,6 +167,24 @@ class FlowLauncher {
 			this.iframe.focus();
 			this.chat_focus?.focus();
 		}
+	}
+
+	// a new chat with the text in its box, not sent. The palette sends this and then closes,
+	// taking the focus back as it goes: a chat loaded sooner loses its box's focus to it
+	ask(text) {
+		if (!READY || this.turned_off) return;
+		after_dialogs(() => {
+			this.iframe?.remove();
+			this.chat_focus = null;
+			this.state.src = NEW_CHAT;
+			this.make_iframe(`${NEW_CHAT}&q=${encodeURIComponent(text)}`);
+			this.open();
+		});
+	}
+
+	mark_ready() {
+		if (READY && !this.turned_off) document.documentElement.dataset.flow = "ready";
+		else delete document.documentElement.dataset.flow;
 	}
 
 	// hidden, not removed, so the chat doesn't lay itself out and animate in again
@@ -214,6 +238,7 @@ class FlowLauncher {
 		this.menu.hidePopover();
 		this.turned_off = true;
 		this.icon.hidden = true;
+		this.mark_ready();
 		this.show_note();
 		save_hidden(true).then((saved) => saved || this.show_icon());
 	}
@@ -241,6 +266,7 @@ class FlowLauncher {
 		this.note.hidden = true;
 		this.turned_off = false;
 		this.icon.hidden = false;
+		this.mark_ready();
 		this.icon.focus();
 		save_hidden(false);
 	}
@@ -259,11 +285,11 @@ class FlowLauncher {
 		this.save();
 	}
 
-	make_iframe() {
+	// the chat open on the last page
+	make_iframe(src = FLOW_PATH.test(this.state.src) ? this.state.src : "/flow") {
 		this.iframe = document.createElement("iframe");
 		this.iframe.title = "Flow";
-		// the chat open on the last page
-		this.iframe.src = FLOW_PATH.test(this.state.src) ? this.state.src : "/flow";
+		this.iframe.src = src;
 		this.iframe.addEventListener("load", (event) => {
 			const chat = event.target.contentDocument?.defaultView;
 			if (!chat) return; // an error page, which the page can't reach into
@@ -271,7 +297,10 @@ class FlowLauncher {
 			on_theme_change(chat.document.documentElement, () => this.sync_theme());
 			this.handle_keys(chat);
 			// /flow's Settings › Flow icon
-			chat.addEventListener("flow-launcher", (e) => (this.turned_off = e.detail.hidden));
+			chat.addEventListener("flow-launcher", (e) => {
+				this.turned_off = e.detail.hidden;
+				this.mark_ready();
+			});
 		});
 		this.bar.after(this.iframe);
 	}
@@ -537,7 +566,10 @@ class FlowLauncher {
 		// the chat open in the panel, for the next page to open
 		const location = this.iframe?.contentDocument?.location;
 		if (location && FLOW_PATH.test(location.pathname)) {
-			this.state.src = location.pathname + location.search;
+			// the palette's text, until the chat has taken it, comes back on every page
+			const query = new URLSearchParams(location.search);
+			query.delete("q");
+			this.state.src = location.pathname + (query.toString() ? `?${query}` : "");
 		}
 		try {
 			localStorage.setItem(STORE_KEY, JSON.stringify(this.state));
@@ -606,6 +638,16 @@ function set_button(button, icon, label) {
 	button.innerHTML = svg(ICONS[icon]);
 }
 
+// Calls back once no frappe-ui dialog is on the page and the closed one has given its focus
+// back (a task after it leaves), or after a second if one stays.
+function after_dialogs(callback, frames = 60) {
+	if (frames && document.querySelector('[role="dialog"][data-state]')) {
+		requestAnimationFrame(() => after_dialogs(callback, frames - 1));
+	} else {
+		setTimeout(callback);
+	}
+}
+
 // Calls back now and whenever an <html>'s data-theme changes.
 function on_theme_change(root, callback) {
 	callback();
@@ -635,7 +677,7 @@ const STYLE = `
 /* :host outranks the display the elements set below */
 :host [hidden] { display: none; }
 .icon, .panel, .preview, .note { position: fixed; z-index: ${LAYER}; box-sizing: border-box; }
-.panel { left: var(--left); top: var(--top); width: var(--width); height: var(--height); }
+.panel { left: var(--left); top: var(--top); width: var(--width); height: var(--height); z-index: ${PANEL_LAYER}; }
 .panel[inert] { visibility: hidden; }
 .mark { fill: currentColor; }
 /* Flow's logo: its mark on gray */

@@ -12,7 +12,7 @@ import frappe
 from frappe.flow.api import boot
 from frappe.flow.launcher import HIDDEN_KEY, add_to_page, set_hidden
 from frappe.flow.permissions import FLOW_USER_ROLE, ensure_flow_role
-from frappe.flow.tests.test_permissions import _user
+from frappe.flow.tests.test_permissions import _agent, _user
 from frappe.tests import IntegrationTestCase
 from frappe.utils import set_request
 from frappe.www.flow import index
@@ -52,12 +52,6 @@ class TestFlowPage(IntegrationTestCase):
 		frappe.get_doc({**translation, "translated_text": "Flow-Symbol ausblenden"}).insert()
 		self.addCleanup(frappe.translate.clear_cache)  # translations cached before the rollback
 
-		def page(path):
-			set_request(path=path)
-			response = Response("<html><body><p>page</p></body></html>", mimetype="text/html")
-			add_to_page(response, frappe.local.request)
-			return response.get_data(as_text=True)
-
 		frappe.set_user(member)
 		self.assertRegex(
 			page("/desk/user"),
@@ -84,9 +78,52 @@ class TestFlowPage(IntegrationTestCase):
 			frappe.set_user(user)
 			self.assertNotIn("flow_launcher", page("/desk/user"))
 
+	def test_the_launcher_says_flow_is_ready_once_a_chat_can_start(self):
+		self.addCleanup(setattr, frappe.local, "request", getattr(frappe.local, "request", None))
+		ensure_flow_role()
+		member = _user("flow-ready-member@example.com", FLOW_USER_ROLE)
+		outsider = _user("flow-ready-none@example.com")
+		agent = _agent()
+		model = frappe.db.get_value("Flow Agent", agent, "model")
+		# only these two, not the site's own nor the assistant a new model brings (rolled back)
+		for doctype in ("Flow Model", "Flow Agent"):
+			frappe.db.set_value(doctype, {"enabled": 1}, "enabled", 0)
+		frappe.db.set_value("Flow Agent", agent, "enabled", 1)
+		frappe.db.set_value("Flow Model", model, "enabled", 1)
+
+		def ready(path="/apps/desk"):
+			return re.search(r"<script [^>]*flow_launcher[^>]*>", page(path))[0].endswith(
+				" data-ready defer>"
+			)
+
+		frappe.set_user(member)
+		self.assertTrue(ready("/apps/desk"))
+		self.assertTrue(ready("/desk/user"))
+		frappe.db.set_value("Flow Model", model, "enabled", 0)
+		self.assertFalse(ready())
+		frappe.db.set_value("Flow Model", model, "enabled", 1)
+		frappe.db.set_value("Flow Agent", agent, "enabled", 0)
+		self.assertFalse(ready())
+		frappe.db.set_value("Flow Agent", agent, "enabled", 1)
+		self.assertTrue(ready())
+		self.addCleanup(frappe.defaults.clear_user_default, HIDDEN_KEY, member)
+		set_hidden(True)
+		self.assertNotIn("flow_launcher", page("/apps/desk"))
+		set_hidden(False)
+		frappe.set_user(outsider)
+		self.assertNotIn("flow_launcher", page("/apps/desk"))
+
 	def test_the_dev_boot_needs_developer_mode(self):
 		with patch.dict(frappe.local.conf, {"developer_mode": 0}):
 			with self.assertRaises(frappe.PermissionError):
 				index.get_context_for_dev()
 		with patch.dict(frappe.local.conf, {"developer_mode": 1}):
 			self.assertIn("flow_boot", index.get_context_for_dev())
+
+
+def page(path: str) -> str:
+	"""An app page at path, as the launcher's hook leaves it."""
+	set_request(path=path)
+	response = Response("<html><body><p>page</p></body></html>", mimetype="text/html")
+	add_to_page(response, frappe.local.request)
+	return response.get_data(as_text=True)
