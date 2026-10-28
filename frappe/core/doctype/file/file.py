@@ -9,6 +9,7 @@ import copyreg
 import io
 import mimetypes
 import os
+import posixpath
 import re
 import zipfile
 from typing import TYPE_CHECKING
@@ -148,6 +149,7 @@ class File(Document):
 			self.attached_to_field = None
 		# Ensure correct formatting and type
 		self.file_url = unquote(self.file_url) if self.file_url else ""
+		self.normalize_file_url()
 
 		self.set_folder_name()
 		self.set_is_private()
@@ -257,6 +259,27 @@ class File(Document):
 				frappe.only_for("System Manager")
 			except PermissionError:
 				frappe.throw(_("Only System Managers can make this file public."))
+
+	def normalize_file_url(self):
+		"""Collapse `.`, `..` and `//` segments in a local file URL.
+
+		The private-file access check matches `file_url` literally, but the path is
+		resolved on disk after normalization. Without this, `/private/files/./secret.pdf`
+		slips past the check as a new URL while still reading `secret.pdf` from disk.
+		Pinning every row to the canonical URL keeps the two views in step.
+		"""
+		if not self.file_url or self.is_remote_file:
+			return
+
+		for prefix in ("/private/files/", "/files/"):
+			if not self.file_url.startswith(prefix):
+				continue
+			# Anchor at root so `..` collapses instead of escaping, then drop the anchor.
+			name = posixpath.normpath("/" + self.file_url[len(prefix) :].lstrip("/")).lstrip("/")
+			if not name or name == ".":
+				frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+			self.file_url = prefix + name
+			return
 
 	def validate_private_file_access(self):
 		"""Validate that the user has permission to access an existing private file."""

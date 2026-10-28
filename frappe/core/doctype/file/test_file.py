@@ -1668,6 +1668,39 @@ class TestChildTableAttachments(IntegrationTestCase):
 		other.file_url = file.file_url
 		self.assertRaises(frappe.PermissionError, other.save)
 
+	def test_dot_segment_cannot_bypass_private_file_access(self):
+		# A "./" segment resolves to the same file on disk but reads as a different URL.
+		# It must be normalised before the access check so it still points at the victim's row.
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"dot-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		attacker = frappe.get_doc(
+			doctype="File",
+			file_url=f"/private/files/./{name}",
+			file_name=name,
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attacker.insert)
+
+	def test_file_url_is_normalised_on_insert(self):
+		frappe.set_user("Administrator")
+		file = frappe.get_doc(
+			doctype="File", content=b"normalise-bytes", file_name="normalise_me.txt", is_private=1
+		).insert(ignore_permissions=True)
+		name = file.file_url.rsplit("/", 1)[1]
+
+		for messy in (
+			f"/private/files/./{name}",
+			f"/private/files/.//{name}",
+			f"/private/files/foo/../{name}",
+		):
+			candidate = frappe.new_doc("File")
+			candidate.file_url = messy
+			candidate.normalize_file_url()
+			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
