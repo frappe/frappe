@@ -216,10 +216,15 @@
 		<!-- No columns (e.g. child meta absent). -->
 		<div v-else class="text-sm text-ink-gray-4">No columns to display</div>
 
-		<div v-if="!disabled && columns.length" class="flex gap-2">
-			<Button label="Add Row" icon-left="lucide-plus" @click="addRow" />
+		<div v-if="showActions" class="flex gap-2">
 			<Button
-				v-if="selectedCount"
+				v-if="!cannotAddRows"
+				label="Add Row"
+				icon-left="lucide-plus"
+				@click="addRow"
+			/>
+			<Button
+				v-if="canDeleteSelected"
 				theme="red"
 				variant="subtle"
 				:label="`Delete (${selectedCount})`"
@@ -419,6 +424,14 @@ const selectedCount = computed(() => {
 });
 const allSelected = computed(
 	() => rows.value.length > 0 && rows.value.every((row) => selected.value.has(keyOf(row)))
+);
+
+const canDeleteSelected = computed(() => !props.cannotDeleteRows && selectedCount.value > 0);
+const showActions = computed(
+	() =>
+		!props.disabled &&
+		props.columns.length > 0 &&
+		(!props.cannotAddRows || canDeleteSelected.value)
 );
 
 function isSelected(row: Record<string, any>): boolean {

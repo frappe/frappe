@@ -37,6 +37,10 @@ export interface GridProps {
   columns: GridColumn[];
   /** Disable structural actions (add/delete/reorder/select) and render read-only. */
   disabled?: boolean;
+  /** Hide every way to add a row. Existing rows stay editable. */
+  cannotAddRows?: boolean;
+  /** Hide every way to delete a row. Rows can still be added and edited. */
+  cannotDeleteRows?: boolean;
   /** Optional heading shown above the grid. */
   label?: string;
   /** Helper text rendered below the grid. Hidden while an error is shown. */
