@@ -45,23 +45,30 @@ export function changedFields(
   return [...labelled, ...changed];
 }
 
-/** Asks whether to reload over a save someone else made first; true for Reload. */
+/** Asks whether to reload over a save someone else made first, or, given `useTheirs`, to take their values; true for that button. */
 export async function confirmConflict(
   confirm: Confirm,
   editor: string,
   changed: string[],
+  useTheirs?: string,
 ): Promise<boolean> {
-  const mine = changed.length ? __("your changes to {0}", [changed.join(", ")]) : __("your changes");
-  const reload = await confirm({
+  const labels = changed.map((label) => __(label)).join(", ");
+  const mine = changed.length ? __("your changes to {0}", [labels]) : __("your changes");
+  const confirmed = await confirm({
     title: __("Saved by someone else"),
-    message: __(
-      "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.",
-      [editor, mine],
-    ),
-    confirmLabel: __("Reload and lose my changes"),
+    message: useTheirs
+      ? __(
+          "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Use theirs, or keep editing to copy your values out first.",
+          [editor, mine],
+        )
+      : __(
+          "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.",
+          [editor, mine],
+        ),
+    confirmLabel: useTheirs ?? __("Reload and lose my changes"),
     cancelLabel: __("Keep editing"),
   });
-  return !!reload;
+  return !!confirmed;
 }
 
 export function conflictError(): Error {

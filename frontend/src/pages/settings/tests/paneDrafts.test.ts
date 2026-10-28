@@ -298,7 +298,7 @@ describe("a conflict with a save made elsewhere", () => {
 			expect.objectContaining({
 				title: "Saved by someone else",
 				message: expect.stringContaining("Ada Admin saved this record after you opened it, so your changes to Country"),
-				confirmLabel: "Reload and lose my changes",
+				confirmLabel: "Use their Country",
 			})
 		);
 		expect(server.writes).toHaveLength(1);
@@ -474,6 +474,117 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(confirm.mock.calls[1][0].message).toContain("your changes to Time Zone");
 		expect(server.doc("System Settings", "System Settings").time_zone).toBe("Asia/Tokyo");
 		expect(zone.draft.state.marks.time_zone).toBe("error");
+	});
+
+	it("names their changes on the button when the other save changed several fields this save sends", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		confirm.mockResolvedValue(null);
+
+		await drafts.saveButtons();
+		await settled();
+
+		expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ confirmLabel: "Use their changes" }));
+	});
+
+	it("leaves no mark on a field set back while its save was out when the reader keeps editing the other", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		confirm.mockResolvedValue(null);
+
+		const saving = drafts.saveButtons();
+		await settled();
+		regional.draft.edit("country", "France");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		server.held = null;
+		release();
+		await saving;
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(confirm.mock.calls[0][0].message).toContain("your changes to Time Zone cannot");
+		expect(regional.draft.dirty("country")).toBe(false);
+		expect(regional.draft.state.marks.country).toBeUndefined();
+		expect(regional.draft.state.marks.time_zone).toBe("error");
+	});
+
+	it("takes their value for a field set back while its save was out when the reader uses theirs for the other", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		confirm.mockResolvedValue(true);
+
+		const saving = drafts.saveButtons();
+		await settled();
+		regional.draft.edit("country", "France");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		server.held = null;
+		release();
+		await saving;
+		await settled();
+
+		expect(server.writes).toHaveLength(1);
+		expect(regional.draft.state.doc).toMatchObject({ country: "Spain", time_zone: "Asia/Tokyo" });
+		expect(regional.draft.state.marks).toEqual({});
+	});
+
+	it("does not ask about an autosaved field set back while its save was out", async () => {
+		const drafts = await opened(block("general", "auto", ["country"]));
+		const general = drafts.bound.get("general")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		general.draft.edit("country", "India");
+		drafts.commit(general);
+		await settled();
+		general.draft.edit("country", "France");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		server.held = null;
+		release();
+		await settled();
+
+		expect(confirm).not.toHaveBeenCalled();
+		expect(server.writes).toHaveLength(1);
+		expect(general.draft.state.doc.country).toBe("Spain");
+		expect(general.draft.dirty("country")).toBe(false);
+		expect(general.draft.state.marks.country).toBeUndefined();
+	});
+
+	it("saves the rest of a Save bar batch and leaves no mark on a field set back while it was out", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+
+		const saving = drafts.saveButtons();
+		await settled();
+		regional.draft.edit("country", "France");
+		server.put("System Settings", "System Settings", { country: "Spain" });
+		server.held = null;
+		release();
+		await saving;
+		await settled();
+
+		expect(confirm).not.toHaveBeenCalled();
+		expect(server.doc("System Settings", "System Settings")).toMatchObject({
+			country: "Spain",
+			time_zone: "Asia/Kolkata",
+		});
+		expect(regional.draft.state.marks.country).toBeUndefined();
+		expect(regional.draft.state.marks.time_zone).toBe("saved");
+		expect(drafts.unsavedCount.value).toBe(0);
 	});
 });
 

@@ -14,6 +14,7 @@ import { evaluateDependsOn } from "@framework/ui/FormLayout";
 import { fieldErrorKey, fieldnameOfErrorKey, type FieldAddress } from "@framework/ui/fields/types";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
+import { __ } from "@/i18n";
 import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
 import { FieldErrors } from "@/recordPage";
 import { runAfterSave } from "@/afterSave";
@@ -243,7 +244,7 @@ export class BindingDraft {
 		}
 	}
 
-	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses, and Reload sends the rest. */
+	/** Sent again with the new `modified` when the other save left these fields alone; else the reader chooses, and taking theirs sends the rest. */
 	private async resolveConflict(fieldnames: string[], refusal: unknown) {
 		let latest: Envelope<Values>;
 		try {
@@ -256,7 +257,10 @@ export class BindingDraft {
 		const touched = (fieldname: string) =>
 			this.stale.has(fieldname) || !sameContent(fresh[fieldname], this.state.saved[fieldname]);
 		const conflicting = fieldnames.filter(
-			(fieldname) => touched(fieldname) && !sameContent(this.state.doc[fieldname], fresh[fieldname])
+			(fieldname) =>
+				this.dirty(fieldname) &&
+				touched(fieldname) &&
+				!sameContent(this.state.doc[fieldname], fresh[fieldname])
 		);
 		if (!conflicting.length) {
 			if (refusal && fresh.modified === this.state.saved.modified) return this.refuse(fieldnames, refusal);
@@ -264,7 +268,9 @@ export class BindingDraft {
 			for (const fieldname of fieldnames) this.queued.add(fieldname);
 			return;
 		}
-		this.settle(fieldnames, "error");
+		const setBack = fieldnames.filter((fieldname) => !this.dirty(fieldname));
+		this.clearSetBack(setBack);
+		this.settle(fieldnames.filter((fieldname) => this.dirty(fieldname)), "error");
 		if (this.host.closed()) return this.host.lost();
 		const editor = users?.[fresh.modified_by]?.full_name || fresh.modified_by;
 		const changed = changedFields(
@@ -272,7 +278,7 @@ export class BindingDraft {
 			pick(this.state.saved, conflicting),
 			this.state.meta?.fields
 		);
-		if (!(await confirmConflict(this.host.confirm, editor, changed))) return;
+		if (!(await confirmConflict(this.host.confirm, editor, changed, theirsLabel(changed)))) return;
 		this.discard(conflicting);
 		this.adopt(fresh, touched);
 		for (const fieldname of fieldnames.filter((fieldname) => !conflicting.includes(fieldname))) {
@@ -308,13 +314,18 @@ export class BindingDraft {
 		else
 			for (const fieldname of failed)
 				if (!this.holdsUnder(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
-		for (const fieldname of setBack) {
+		this.clearSetBack(setBack);
+		this.settle(failed, "error");
+		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
+	}
+
+	/** A hold placed while the save was out keeps its mark. */
+	private clearSetBack(fieldnames: string[]) {
+		for (const fieldname of fieldnames) {
 			if (this.heldMeanwhile.has(fieldname)) continue;
 			this.unmark(fieldname);
 			if (!this.queued.has(fieldname)) delete this.state.marks[fieldname];
 		}
-		this.settle(failed, "error");
-		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
 	}
 
 	private quiet(refused: RefusedField, setBack: string[]): boolean {
@@ -373,6 +384,10 @@ export class BindingDraft {
 /** The field a record's name comes from: `<f>` for `field:<f>` naming, else `name`. */
 function nameField(meta: DoctypeMeta): string {
 	return meta.autoname?.startsWith("field:") ? meta.autoname.slice("field:".length).trim() : "name";
+}
+
+function theirsLabel(changed: string[]): string {
+	return changed.length === 1 ? __("Use their {0}", [__(changed[0])]) : __("Use their changes");
 }
 
 function messageOf(error: unknown): string {

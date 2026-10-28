@@ -1,8 +1,9 @@
 // What the page makes of a failed save: the message it shows and the fields the reader would lose.
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import {
   changedFields,
   codeErrorsError,
+  confirmConflict,
   conflictError,
   SAVE_CONFLICT,
   shownInDialog,
@@ -48,6 +49,22 @@ describe("changedFields", () => {
     const row = (modified: string) => ({ name: "a", parentfield: "items", qty: 1, modified });
     const saved = { items: [row("2026-10-01 11:00:00")] };
     expect(changedFields({ items: [row("2026-10-01 10:00:00")] }, saved, [])).toEqual([]);
+  });
+});
+
+describe("confirmConflict", () => {
+  it("keeps the record page's Reload wording unless the caller names the button", async () => {
+    const confirm = vi.fn().mockResolvedValue(true);
+
+    expect(await confirmConflict(confirm, "Ada", ["Status"])).toBe(true);
+    await confirmConflict(confirm, "Ada", ["Status"], "Use their Status");
+
+    expect(confirm.mock.calls.map(([options]) => options.confirmLabel)).toEqual([
+      "Reload and lose my changes",
+      "Use their Status",
+    ]);
+    expect(confirm.mock.calls[0][0].message).toContain("Reload to see their version");
+    expect(confirm.mock.calls[1][0].message).toContain("Use theirs, or keep editing");
   });
 });
 
