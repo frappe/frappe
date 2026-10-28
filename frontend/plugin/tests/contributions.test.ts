@@ -243,7 +243,7 @@ describe("a pages.json entry that names apps", () => {
   });
 
   it("drops an app that is not on the bench from its entry, and keeps the others", () => {
-    const manifest = scoped({ record: { page: "runner", apps: ["crm", "hrms"] } });
+    const manifest = scoped({ record: { page: "runner", apps: ["crm", "hrms", "hrms"] } });
     const { replacements, warnings } = discover(manifest);
 
     expect(found(replacements)).toEqual([
@@ -289,6 +289,14 @@ describe("a pages.json entry that names apps", () => {
         { page: "card", apps: ["frappe", "crm"] },
       ],
       `"record" names app "crm" in more than one entry`,
+    ],
+    [
+      "names one app in two entries, even one not on the bench",
+      [
+        { page: "runner", apps: ["hrms"] },
+        { page: "card", apps: ["hrms"] },
+      ],
+      `"record" names app "hrms" in more than one entry`,
     ],
     [
       "has two entries with no apps",

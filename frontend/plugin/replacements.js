@@ -66,8 +66,9 @@ function keyEntries(key, value, pageNames, benchApps) {
 			scoped.push({ page, apps: null });
 			continue;
 		}
-		const known = [...new Set(apps)].filter((app) => benchApps.includes(app));
-		for (const app of apps.filter((app) => !benchApps.includes(app)))
+		const named = [...new Set(apps)];
+		const known = named.filter((app) => benchApps.includes(app));
+		for (const app of named.filter((app) => !benchApps.includes(app)))
 			warnings.push(
 				`"${key}" names app "${app}" for "${page}", but it is not on the bench; it is dropped from that entry`
 			);

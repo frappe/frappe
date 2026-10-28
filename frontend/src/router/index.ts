@@ -4,7 +4,7 @@
 import { createRouter, createWebHistory } from "vue-router";
 import type { Boot } from "@/boot";
 import type { Addresses } from "@/addresses";
-import { declaredReplacements } from "@/contributions/registry";
+import { declaredReplacements, reportReplacementClashes } from "@/contributions/registry";
 import { generatedRoutes, indexRoutes } from "./generated";
 import { contributedRoutes } from "./contributed";
 import { isModular } from "./routeFor";
@@ -16,6 +16,7 @@ const RECORD_ROUTES = new Set(["record", "standard-record"]);
 export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
 	warnIgnoredListPages(addresses, boot.app);
+	reportReplacementClashes(boot.app);
 
 	const router = createRouter({
 		history: createWebHistory(boot.shell_base),

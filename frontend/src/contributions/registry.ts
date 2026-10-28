@@ -38,24 +38,37 @@ export function standardPage<Key extends keyof StandardPages>(key: Key) {
 
 /** Page key and doctype -> the active apps' replacements in run order; see `registerContributions`. */
 const claims = new Map<string, ReplacementContribution[]>()
-const reportedClashes = new Set<string>()
 
 /**
  * The page that replaces a doctype's page in `app`: an entry naming `app` beats every entry
- * naming no apps, and among equals the last in run order wins, with a contested pick logged.
+ * naming no apps, and among equals the last in run order wins.
  */
 export function replacementFor(
   doctype: string,
   key: ReplacementContribution['key'],
   app: string | null,
 ) {
-  const all = claims.get(`${key}:${doctype}`)
-  return all && winnerIn(all, app)
+  return contendersIn(claims.get(`${key}:${doctype}`) ?? [], app).at(-1)
 }
 
 /** Every page that wins in `app`, for checks that need the address table. */
 export function declaredReplacements(app: string | null) {
-  return [...claims.values()].flatMap((all) => winnerIn(all, app) ?? [])
+  return [...claims.values()].flatMap((all) => contendersIn(all, app).slice(-1))
+}
+
+/** One error per page that more than one entry of equal standing replaces in `app`. */
+export function reportReplacementClashes(app: string | null) {
+  for (const all of claims.values()) {
+    const contenders = contendersIn(all, app)
+    if (contenders.length < 2) continue
+
+    const winner = contenders[contenders.length - 1]
+    const losers = contenders.slice(0, -1).map((c) => `'${c.app}'`)
+    console.error(
+      `[frappe] ${contenders.length} apps replace the ${winner.key} page of '${winner.doctype}'` +
+        `${app ? ` in '${app}'` : ''}: '${winner.app}' is used and ${losers.join(', ')} ignored.`,
+    )
+  }
 }
 
 /** The component a settings block names, or nothing, with a warning, when no such file ships. */
@@ -162,26 +175,7 @@ function registerReplacements(appOrder: string[]) {
   }
 }
 
-function winnerIn(all: ReplacementContribution[], app: string | null) {
+function contendersIn(all: ReplacementContribution[], app: string | null) {
   const scoped = all.filter((c) => app !== null && c.apps?.includes(app))
-  const contenders = scoped.length ? scoped : all.filter((c) => !c.apps)
-  const winner = contenders.at(-1)
-  if (winner && contenders.length > 1) reportClash(winner, contenders, app)
-  return winner
-}
-
-function reportClash(
-  winner: ReplacementContribution,
-  contenders: ReplacementContribution[],
-  app: string | null,
-) {
-  const clash = `${winner.key}:${winner.doctype}:${app}`
-  if (reportedClashes.has(clash)) return
-  reportedClashes.add(clash)
-
-  const losers = contenders.slice(0, -1).map((c) => `'${c.app}'`)
-  console.error(
-    `[frappe] ${contenders.length} apps replace the ${winner.key} page of '${winner.doctype}': ` +
-      `'${winner.app}' is used and ${losers.join(', ')} ignored.`,
-  )
+  return scoped.length ? scoped : all.filter((c) => !c.apps)
 }
