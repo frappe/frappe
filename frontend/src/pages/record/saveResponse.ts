@@ -50,6 +50,7 @@ export async function confirmConflict(
   confirm: Confirm,
   editor: string,
   changed: string[],
+  confirmLabel = __("Reload and lose my changes"),
 ): Promise<boolean> {
   const mine = changed.length ? __("your changes to {0}", [changed.join(", ")]) : __("your changes");
   const reload = await confirm({
@@ -58,7 +59,7 @@ export async function confirmConflict(
       "{0} saved this record after you opened it, so {1} cannot be saved over theirs. Reload to see their version, or keep editing to copy your values out first.",
       [editor, mine],
     ),
-    confirmLabel: __("Reload and lose my changes"),
+    confirmLabel,
     cancelLabel: __("Keep editing"),
   });
   return !!reload;
