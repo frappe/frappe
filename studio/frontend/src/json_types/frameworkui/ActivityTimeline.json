@@ -44,6 +44,12 @@
                       "string"
                     ]
                   },
+                  "pending": {
+                    "type": "boolean"
+                  },
+                  "renderKey": {
+                    "type": "string"
+                  },
                   "data": {
                     "type": "object",
                     "properties": {
@@ -148,6 +154,12 @@
                       "string"
                     ]
                   },
+                  "pending": {
+                    "type": "boolean"
+                  },
+                  "renderKey": {
+                    "type": "string"
+                  },
                   "data": {
                     "type": "object",
                     "properties": {
@@ -233,6 +245,12 @@
                       "string"
                     ]
                   },
+                  "pending": {
+                    "type": "boolean"
+                  },
+                  "renderKey": {
+                    "type": "string"
+                  },
                   "data": {
                     "type": "object",
                     "properties": {
@@ -307,6 +325,12 @@
                     "type": [
                       "string"
                     ]
+                  },
+                  "pending": {
+                    "type": "boolean"
+                  },
+                  "renderKey": {
+                    "type": "string"
                   },
                   "data": {
                     "type": "object",
@@ -393,6 +417,12 @@
                       "string"
                     ]
                   },
+                  "pending": {
+                    "type": "boolean"
+                  },
+                  "renderKey": {
+                    "type": "string"
+                  },
                   "data": {
                     "anyOf": [
                       {
@@ -448,8 +478,7 @@
                                         },
                                         "required": [
                                           "from",
-                                          "to",
-                                          "timestamp"
+                                          "to"
                                         ],
                                         "additionalProperties": false
                                       }
@@ -538,8 +567,7 @@
                               },
                               "required": [
                                 "from",
-                                "to",
-                                "timestamp"
+                                "to"
                               ],
                               "additionalProperties": false
                             }
@@ -605,8 +633,7 @@
                                         },
                                         "required": [
                                           "from",
-                                          "to",
-                                          "timestamp"
+                                          "to"
                                         ],
                                         "additionalProperties": false
                                       }
@@ -723,6 +750,12 @@
                   "icon": {
                     "type": "string"
                   },
+                  "pending": {
+                    "type": "boolean"
+                  },
+                  "renderKey": {
+                    "type": "string"
+                  },
                   "data": {}
                 },
                 "required": [
@@ -748,9 +781,6 @@
             "fetchNextPage": {
               "type": "object"
             },
-            "isPagedRow": {
-              "type": "object"
-            },
             "loadMore": {
               "type": "object",
               "properties": {
@@ -758,8 +788,7 @@
                   "type": "string",
                   "enum": [
                     "top",
-                    "bottom",
-                    "inline"
+                    "bottom"
                   ]
                 },
                 "label": {
@@ -780,6 +809,9 @@
             "fetchNextPage"
           ],
           "additionalProperties": false
+        },
+        "scrolls": {
+          "type": "boolean"
         }
       },
       "required": [
