@@ -6,6 +6,7 @@ import re
 
 import frappe
 from frappe import _
+from frappe.model.naming import append_number_if_name_exists
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
@@ -58,7 +59,9 @@ def create_editor_format(print_format: str, name: str | None = None) -> str:
 		frappe.throw(_("{0} is not a Print Designer format.").format(frappe.bold(print_format)))
 	layout, notes = convert_print_designer_format(source)
 	target = frappe.new_doc("Print Format")
-	target.__newname = name or _("{0} (Editor)").format(source.name)
+	target.__newname = append_number_if_name_exists(
+		"Print Format", name or _("{0} (Editor)").format(source.name), separator=" "
+	)
 	target.update(
 		{
 			"doc_type": source.doc_type,
