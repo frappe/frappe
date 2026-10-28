@@ -13,18 +13,18 @@
 		<div
 			v-if="empty"
 			ref="emptyState"
-			class="flex h-full flex-col items-center justify-center gap-5 text-center"
+			class="flex h-full flex-col items-center justify-center gap-3 text-center"
 			:style="{ paddingBottom: composerHeight + 'px' }"
 		>
 			<slot name="empty">
 				<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
-				<BrandMark :size="52" class="min-h-0 shrink max-sm:!h-10 max-sm:!w-10" />
-				<h2 class="text-balance text-4xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
+				<BrandMark line :size="32" class="min-h-0 shrink max-sm:!h-7 max-sm:!w-7" />
+				<h2 class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl">What would you like to build?</h2>
 			</slot>
 		</div>
 		<LoadingState
 			v-else-if="loading"
-			class="h-full justify-center text-sm text-ink-gray-5"
+			class="h-full justify-center text-base text-ink-gray-5"
 			:style="{ paddingBottom: composerHeight + 'px' }"
 		/>
 		<div
@@ -85,19 +85,19 @@
 						:text="item.text"
 						:ts="item.ts"
 					/>
-					<span v-if="formatTime(item.ts)" class="text-2xs text-ink-gray-4">{{ formatTime(item.ts) }}</span>
+					<span v-if="formatTime(item.ts)" class="flow-turn-time text-xs text-ink-gray-4 md:text-sm">{{ formatTime(item.ts) }}</span>
 				</div>
 				<TurnFiles v-else-if="item.kind === 'turn-files'" class="flow-turn-files -mt-1" :files="item.files" />
 				<div
 					v-else-if="item.kind === 'compaction'"
-					class="flex items-center gap-2.5 text-sm text-ink-gray-5"
+					class="flex items-center gap-2.5 text-base text-ink-gray-5"
 				>
 					<span class="lucide-archive size-3.5 flex-none" aria-hidden="true" />
 					<span>Context compacted ({{ item.entry.reason }})</span>
 				</div>
 				<div
 					v-else-if="item.kind === 'notice'"
-					class="flex items-center gap-3 py-1 text-2xs text-ink-gray-4"
+					class="flex items-center gap-3 py-1 text-xs text-ink-gray-4"
 				>
 					<span class="h-px flex-1 bg-surface-gray-3" />
 					<span>{{ item.text }}</span>
@@ -105,7 +105,7 @@
 				</div>
 				<div
 					v-else-if="item.kind === 'error'"
-					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-sm text-ink-red-6"
+					class="break-words rounded-6 border border-outline-red-1 bg-surface-red-1 px-3.5 py-2.5 text-base text-ink-red-6"
 				>
 					{{ item.error.message }}
 				</div>
@@ -123,12 +123,12 @@
 
 			<!-- Before the first streamed block (or during retry/compaction), no
 			     transcript item owns the live status, so render one fallback line.
-			     py-2.5 keeps it on the same rhythm as the rows that replace it; after
+			     Its padding keeps it on the same rhythm as the rows that replace it; after
 			     a thinking block the thread gap collapses too, so the status sits
 			     exactly where the upcoming tool row will render. -->
 			<div
 				v-if="showStandaloneStatus"
-				class="py-2.5 text-sm font-medium"
+				class="py-2 text-base font-medium md:py-2.5"
 				:class="lastItem?.kind === 'thinking' ? '-mt-5' : ''"
 			>
 				<span class="flow-shimmer">{{ liveLabel }}</span>

@@ -43,11 +43,10 @@ SETTINGS_DOCTYPES = (
 def boot() -> dict[str, Any]:
 	"""What a client needs before its first call: agents (with their models) and models to pick
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
-	signed in, what they may manage and whether they hid the launcher's icon."""
+	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
 	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
-	from frappe.flow.launcher import is_hidden
 
 	agents = frappe.get_list(
 		"Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"], order_by="title"
@@ -75,7 +74,6 @@ def boot() -> dict[str, Any]:
 			]
 			for doctype in SETTINGS_DOCTYPES
 		},
-		"launcher_hidden": is_hidden(),
 	}
 
 

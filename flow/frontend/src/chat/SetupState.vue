@@ -2,7 +2,7 @@
 	<div class="flex flex-col items-center gap-3">
 		<BrandMark :size="40" />
 		<div class="text-4xl font-medium text-ink-gray-9">Finish setup to start</div>
-		<div v-if="hasModels" class="max-w-sm text-sm text-ink-gray-6">
+		<div v-if="hasModels" class="max-w-sm text-base text-ink-gray-6">
 			Every model is set, but no agent is enabled.
 		</div>
 		<div v-if="canManage" class="mt-4 flex flex-wrap justify-center gap-2">
@@ -33,7 +33,7 @@
 				@click="router.push('/agents')"
 			/>
 		</div>
-		<div v-else class="text-xs text-ink-gray-5">Ask an administrator to finish the setup.</div>
+		<div v-else class="text-sm text-ink-gray-5">Ask an administrator to finish the setup.</div>
 	</div>
 </template>
 

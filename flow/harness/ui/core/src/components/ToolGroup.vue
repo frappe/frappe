@@ -6,7 +6,7 @@
 		</template>
 		<!-- results landed but the run continues (model deciding the next step):
 		     no row carries the live signal, so a trailing status line does -->
-		<div v-if="tailLabel" class="py-2.5 text-sm font-medium">
+		<div v-if="tailLabel" class="py-2 text-base font-medium md:py-2.5">
 			<span class="flow-shimmer">{{ tailLabel }}</span>
 		</div>
 	</div>

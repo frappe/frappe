@@ -3,8 +3,8 @@
 		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
-			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-			:class="open ? 'bg-surface-gray-2' : ''"
+			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
+			:class="open ? 'text-ink-gray-9' : ''"
 			title="Agent"
 			:aria-expanded="open"
 			@click="open ? close() : show()"
@@ -31,7 +31,7 @@
 					ref="field"
 					v-model="search"
 					placeholder="Search agents…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">

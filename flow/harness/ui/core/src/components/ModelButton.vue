@@ -4,7 +4,7 @@
 		     hang from it -->
 		<button
 			ref="trigger"
-			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 text-xs font-medium text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
+			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 text-base text-ink-gray-7 hover:bg-surface-gray-2 dark:text-ink-gray-8"
 			:class="pane ? 'bg-surface-gray-2' : ''"
 			:title="`${currentModel ?? modelLabel} · thinking ${effortLabel}`"
 			:aria-expanded="!!pane"
@@ -13,7 +13,7 @@
 			<span class="min-w-0 truncate">{{ modelLabel }}</span>
 			<template v-if="currentEffort !== 'default'">
 				<span class="h-[3px] w-[3px] flex-none self-center rounded-full bg-surface-gray-4" />
-				<span class="flex-none font-normal text-ink-gray-5 dark:text-ink-gray-6">{{ effortLabel }}</span>
+				<span class="flex-none text-ink-gray-5 dark:text-ink-gray-6">{{ effortLabel }}</span>
 			</template>
 			<span
 				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"

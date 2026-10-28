@@ -1,8 +1,13 @@
 <template>
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
-	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
-	<div class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8">
+	     The root is the sidebar's colour, so on the /flow page the chat stands on it as a raised
+	     panel; the launcher's panel keeps it flat at any size. The chat's text and its steps are
+	     the composer's size, the text a size up in a wide frame -->
+	<div
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-chat-text:theme(fontSize.base)] [--flow-step-text:theme(fontSize.base)] md:[--flow-chat-text:theme(fontSize.md)]"
+	>
 		<SessionSidebar
+			v-if="!noSidebar"
 			:open="sidebarOpen"
 			:chat-in-view="!pageKind"
 			:before-switch="leavePage"
@@ -12,7 +17,7 @@
 			<template #nav>
 				<h3
 					v-if="pages.length"
-					class="mt-[7px] flex h-8 items-center pl-2 text-xs font-medium text-ink-gray-5"
+					class="mt-[7px] flex h-8 items-center pl-2 text-sm font-medium text-ink-gray-5"
 				>
 					Build
 				</h3>
@@ -25,14 +30,15 @@
 					class="h-8 data-[state=active]:bg-surface-gray-3 data-[state=active]:shadow-none"
 					@click="layout.narrow && store.setSidebarOpen(false)"
 				>
-					<span class="truncate text-xs font-medium text-ink-gray-8">{{
+					<span class="truncate text-base text-ink-gray-8">{{
 						SPECS[item.key].label
 					}}</span>
 				</SidebarItem>
 			</template>
 		</SessionSidebar>
 		<div
-			class="flex min-w-0 flex-1 overflow-clip bg-surface-base md:m-1 md:rounded-5 md:shadow-sm"
+			class="flex min-w-0 flex-1 overflow-clip bg-surface-base"
+			:class="inPanel ? '' : 'md:m-1 md:rounded-5 md:shadow-sm'"
 		>
 			<RecordPage v-if="pageKind" :kind="pageKind" />
 			<!-- hidden under a page, not taken away: the chat waits as it was, its box's draft and
@@ -47,19 +53,34 @@
 					:workspace="false"
 					:actions="chatActions"
 					:crumb="agentCrumb"
+					:history="noSidebar"
+					:nav="pageLinks"
+					:manage="!inPanel"
+					:beside-navbar="panelHost"
+					:transcript="!inPanel"
 					@open-sidebar="store.setSidebarOpen(true)"
-				/>
+				>
+					<template v-if="inPanel" #end>
+						<button class="flow-icon-btn" title="Open in new tab" @click="openInTab">
+							<span class="lucide-external-link size-3.5" aria-hidden="true" />
+						</button>
+						<button class="flow-icon-btn" title="Close" @click="closePanel">
+							<span class="lucide-x size-3.5" aria-hidden="true" />
+						</button>
+					</template>
+				</ChatHeader>
 				<MessageList :suggestions="!readOnly">
 					<template #empty>
 						<SetupState v-if="needsSetup" />
 						<template v-else>
-							<!-- a step smaller on a phone, and smaller still where the heading would run out of room -->
+							<!-- a step smaller in a narrow frame, and smaller still where the heading would run out of room -->
 							<BrandMark
-								:size="52"
-								class="min-h-0 shrink max-sm:!h-10 max-sm:!w-10"
+								line
+								:size="32"
+								class="min-h-0 shrink max-md:!h-7 max-md:!w-7"
 							/>
 							<h2
-								class="text-balance text-4xl font-normal leading-snug tracking-[-0.01em] text-ink-gray-9 sm:text-6xl"
+								class="text-balance text-4xl leading-snug tracking-[-0.01em] text-ink-gray-9 md:text-6xl"
 							>
 								What can I help you with?
 							</h2>
@@ -90,14 +111,14 @@
 				</Composer>
 				<p
 					v-else-if="readOnly"
-					class="absolute inset-x-0 bottom-0 px-5 pb-5 text-center text-xs text-ink-gray-5"
+					class="absolute inset-x-0 bottom-0 px-5 pb-5 text-center text-sm text-ink-gray-5"
 				>
 					{{ readOnlyNote }}
 				</p>
 			</main>
 			<WorkspacePanel v-if="!pageKind">
 				<template #empty>
-					<p class="text-xs text-ink-gray-4">A sub-agent's thread opens here.</p>
+					<p class="text-sm text-ink-gray-4">A sub-agent's thread opens here.</p>
 				</template>
 			</WorkspacePanel>
 		</div>
@@ -133,6 +154,7 @@ import { FrappeClient } from "../api/client.js";
 import * as transport from "../api/frappe.js";
 import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
+import { inPanel, panelHost } from "../panel.js";
 import RecordPage from "../pages/RecordPage.vue";
 import { PAGES } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
@@ -223,7 +245,12 @@ watch(
 	{ immediate: true }
 );
 
-const sidebarOpen = computed(() => store.state.sidebarOpen);
+// the launcher's panel, and a narrow frame worked by a mouse, have no sidebar: the chat's menu
+// lists the chats, and a narrow tab's gear leads to the pages and settings, which the panel leaves
+// to Desk and the /flow tab. A phone keeps the sidebar as a drawer
+const noSidebar = computed(() => !layout.phone && (layout.narrow || inPanel));
+provide("noSidebar", noSidebar);
+const sidebarOpen = computed(() => !noSidebar.value && store.state.sidebarOpen);
 // the composer asks in the name of the agent that answers
 const placeholder = computed(() => {
 	const name = store.state.session?.agent ?? page.state.agent;
@@ -259,6 +286,13 @@ const needsSetup = computed(
 	() => !page.state.boot.models?.length || !page.state.boot.agents?.length
 );
 
+// the launcher listens for the header's ×; a new tab takes the chat over from the panel
+const closePanel = () => window.dispatchEvent(new CustomEvent("flow-close"));
+function openInTab() {
+	window.open(location.href, "_blank", "noopener");
+	closePanel();
+}
+
 // the composer floats over the list, which pads by its measured height
 const composer = ref(null);
 provideComposerHeight(composer);
@@ -277,6 +311,13 @@ const route = useRoute();
 const router = useRouter();
 // the pages beside the chats, each for whoever may read its records
 const pages = computed(() => PAGES.filter((item) => page.can(SPECS[item.key].doctype, "read")));
+const pageLinks = computed(() =>
+	pages.value.map((item) => ({
+		label: SPECS[item.key].label,
+		icon: item.icon,
+		onClick: () => router.push(`/${item.key}`),
+	}))
+);
 const pageKind = computed(() =>
 	pages.value.some((item) => item.key === route.params.kind) ? route.params.kind : null
 );
@@ -333,8 +374,7 @@ let uninstallShortcuts = null;
 let uninstallFocusRings = null;
 let uninstallViewport = null;
 onMounted(async () => {
-	// in the launcher's panel, the app around the page keeps the keyboard's shortcuts
-	if (window.top === window) uninstallShortcuts = installShortcuts(store);
+	if (!inPanel) uninstallShortcuts = installShortcuts(store);
 	uninstallFocusRings = installFocusRings();
 	uninstallViewport = installViewport();
 	store.refreshModels();
@@ -343,7 +383,7 @@ onMounted(async () => {
 	// and a page keeps its place
 	if (store.state.sessionId || store.state.conversation.sending.length || route.params.kind)
 		return;
-	// an address asking for a new chat (?new=1, as the launcher's panel does after a close) gets one
+	// an address asking for a new chat (?new=1) gets one
 	const wanted =
 		route.params.session ?? (route.query.new ? null : store.state.prefs.lastSession);
 	if (

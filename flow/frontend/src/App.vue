@@ -2,9 +2,9 @@
 	<FlowPage v-if="boot" :boot="boot" />
 	<div v-else class="flex h-full items-center justify-center bg-surface-base px-6 text-center">
 		<div v-if="error" class="max-w-md">
-			<div class="text-lg font-medium text-ink-gray-9">Flow could not start</div>
-			<div class="mt-2 text-sm text-ink-gray-6">{{ error }}</div>
-			<a href="/app" class="mt-4 inline-block text-sm font-medium text-ink-gray-8 underline"
+			<div class="text-xl font-medium text-ink-gray-9">Flow could not start</div>
+			<div class="mt-2 text-base text-ink-gray-6">{{ error }}</div>
+			<a href="/app" class="mt-4 inline-block text-base font-medium text-ink-gray-8 underline"
 				>Open the Desk</a
 			>
 		</div>

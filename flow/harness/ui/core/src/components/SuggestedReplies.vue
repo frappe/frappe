@@ -6,7 +6,7 @@
 				v-for="reply in replies"
 				:key="reply"
 				type="button"
-				class="flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-full border px-3 text-sm"
+				class="flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-full border px-3 text-base"
 				:class="
 					picked.includes(reply)
 						? 'border-outline-gray-4 bg-surface-gray-2 text-ink-gray-9'
@@ -29,7 +29,7 @@
 		<button
 			v-if="multiSelect"
 			type="button"
-			class="-mb-[30px] flex h-8 flex-none items-center gap-1.5 rounded-full bg-surface-gray-10 px-3 text-sm font-medium text-ink-base hover:opacity-90"
+			class="-mb-[30px] flex h-8 flex-none items-center gap-1.5 rounded-full bg-surface-gray-10 px-3 text-base font-medium text-ink-base hover:opacity-90"
 			:class="{ invisible: !picked.length }"
 			@click="$emit('send', replies.filter((reply) => picked.includes(reply)).join(', '))"
 		>

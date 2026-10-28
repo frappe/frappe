@@ -28,7 +28,7 @@
 				ref="field"
 				v-model="typed"
 				placeholder="Search models…"
-				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 			/>
 			<button
 				class="grid h-6 w-6 flex-none place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
@@ -46,7 +46,7 @@
 		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<template v-for="(group, i) in groups" :key="group.provider">
 				<!-- a heading takes a row's height; the first sits in the list's top padding -->
-				<div class="flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
+				<div class="flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5" :class="i ? 'mt-1' : '-mt-1'">
 					{{ group.provider }}
 				</div>
 				<button
@@ -72,7 +72,7 @@
 			</button>
 			<LoadingState
 				v-if="!groups.length && !custom && flow.state.modelsLoading"
-				class="justify-center px-3 py-8 text-xs text-ink-gray-5"
+				class="justify-center px-3 py-8 text-base text-ink-gray-5"
 			/>
 			<div v-else-if="!groups.length && !custom && flow.state.models.length" class="flow-palette-empty">
 				No matching models

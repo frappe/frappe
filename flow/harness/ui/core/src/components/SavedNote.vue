@@ -1,6 +1,6 @@
 <template>
 	<span
-		class="flex items-center gap-1 text-xs text-ink-gray-5 transition-opacity"
+		class="flex items-center gap-1 text-sm text-ink-gray-5 transition-opacity"
 		:class="shown ? 'opacity-100 duration-150' : 'opacity-0 duration-500'"
 		aria-hidden="true"
 	>

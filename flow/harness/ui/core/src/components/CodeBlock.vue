@@ -7,7 +7,7 @@
 			class="flex items-center justify-between gap-2 border-b border-outline-gray-1 py-1 pl-3 pr-1"
 			:class="bare ? '' : 'bg-surface-gray-2'"
 		>
-			<span class="min-w-0 truncate font-mono text-2xs text-ink-gray-5">{{ lang ?? "text" }}</span>
+			<span class="min-w-0 truncate font-mono text-xs text-ink-gray-5">{{ lang ?? "text" }}</span>
 			<CopyButton
 				:text="code"
 				title="Copy code"

@@ -3,16 +3,16 @@
 		class="flex max-h-[min(500px,72vh)] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base shadow-[0_1px_2px_rgba(0,0,0,0.06),0_8px_24px_-10px_rgba(0,0,0,0.18)]"
 	>
 		<div class="flex items-start gap-3 px-3.5 py-2.5">
-			<div class="min-w-0 flex-1 text-base leading-snug text-ink-gray-9">{{ title }}</div>
+			<div class="min-w-0 flex-1 text-md leading-snug text-ink-gray-9">{{ title }}</div>
 			<span
 				v-if="subagent != null"
-				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-2xs font-medium text-ink-gray-6"
+				class="max-w-[45%] flex-none truncate rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs font-medium text-ink-gray-6"
 			>
 				Sub-agent{{ subagent ? `: ${subagent}` : "" }}
 			</span>
 			<span
 				v-if="total > 1"
-				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-2xs font-medium text-ink-gray-6"
+				class="flex-none rounded-full bg-surface-gray-2 px-2 py-0.5 text-xs font-medium text-ink-gray-6"
 			>
 				{{ position }} of {{ total }}
 			</span>
@@ -24,12 +24,12 @@
 		</div>
 		<pre
 			v-else-if="body"
-			class="m-0 max-h-[260px] overflow-auto border-y border-outline-gray-1 bg-surface-gray-1 px-3.5 py-2 font-mono text-2xs leading-[1.7] text-ink-gray-6"
+			class="m-0 max-h-[260px] overflow-auto border-y border-outline-gray-1 bg-surface-gray-1 px-3.5 py-2 font-mono text-xs leading-[1.7] text-ink-gray-6"
 		>{{ body }}</pre>
 		<div v-else-if="edits" class="max-h-[260px] overflow-auto border-y border-outline-gray-1 bg-surface-gray-1">
 			<div v-for="(r, i) in edits" :key="i" :class="i > 0 ? 'border-t border-outline-gray-1' : ''">
 				<pre
-					class="m-0 grid overflow-auto px-3.5 py-1 font-mono text-2xs leading-[1.7]"
+					class="m-0 grid overflow-auto px-3.5 py-1 font-mono text-xs leading-[1.7]"
 				><span v-for="(line, j) in r.old.split('\n')" :key="'o' + j" class="block bg-surface-red-1 text-ink-red-6">- {{ line }}</span><span v-for="(line, j) in r.new.split('\n')" :key="'n' + j" class="block bg-surface-green-1 text-ink-green-6">+ {{ line }}</span></pre>
 			</div>
 		</div>
@@ -47,11 +47,11 @@
 				v-model="askText"
 				rows="2"
 				placeholder="Describe what you want instead…"
-				class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-xs leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
+				class="w-full resize-none rounded-6 border border-outline-gray-2 bg-surface-base px-2.5 py-2 text-sm leading-normal text-ink-gray-9 outline-none focus:border-outline-gray-3 focus:ring-0"
 				@keydown="onAskKey"
 			/>
 			<div class="mt-2 flex items-center gap-2">
-				<span class="min-w-0 flex-1 truncate text-2xs text-ink-gray-4">⏎ send · esc cancel</span>
+				<span class="min-w-0 flex-1 truncate text-xs text-ink-gray-4">⏎ send · esc cancel</span>
 				<button class="flow-btn-ghost" @click="cancelAsk">Cancel</button>
 				<button
 					class="flow-btn-primary"

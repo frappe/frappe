@@ -25,7 +25,7 @@
 	>
 		<div class="flex h-12 flex-none items-center gap-2.5 pl-3.5 pr-2">
 			<BrandMark :size="22" />
-			<span class="text-sm font-semibold text-ink-gray-9">Flow</span>
+			<span class="text-base font-semibold text-ink-gray-9">Flow</span>
 			<span class="flex-1" />
 			<button class="flow-icon-btn" title="Hide sidebar" @click="emit('close')">
 				<span class="lucide-panel-left size-3.5" aria-hidden="true" />
@@ -36,7 +36,7 @@
 		     it and the header (or search) are as tall as a workspace row -->
 		<div class="mt-[7px] flex flex-none flex-col gap-0.5 px-2">
 			<SidebarItem icon="lucide-square-pen" class="h-8" @click="startNewChat()">
-				<span class="truncate text-xs font-medium text-ink-gray-8">New chat</span>
+				<span class="truncate text-base text-ink-gray-8">New chat</span>
 			</SidebarItem>
 			<!-- the host's own rows, like links to its pages -->
 			<slot name="nav" />
@@ -56,7 +56,7 @@
 					placeholder="Search chats"
 					aria-label="Search chats"
 					spellcheck="false"
-					class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-full min-w-0 flex-1 border-0 bg-transparent p-0 text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 					@keydown.esc="closeSearch"
 					@blur="query || closeSearch()"
 				/>
@@ -69,7 +69,7 @@
 				</button>
 			</label>
 			<template v-else>
-				<h3 class="min-w-0 flex-1 truncate pl-2 text-xs font-medium text-ink-gray-5">
+				<h3 class="min-w-0 flex-1 truncate pl-2 text-sm font-medium text-ink-gray-5">
 					{{ grouped ? "Workspaces" : "Sessions" }}
 				</h3>
 				<button
@@ -139,14 +139,14 @@
 							@update:open="(open) => showCard(group.cwd, open)"
 						>
 							<template #trigger>
-								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug text-ink-gray-8">
+								<span class="row-title folder-name min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug text-ink-gray-8">
 									{{ group.name }}
 								</span>
 							</template>
 							<!-- no wider than the room beside the row, which a narrow window's drawer cuts short -->
 							<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-								<p class="break-words text-sm leading-snug text-ink-gray-8">{{ group.name }}</p>
-								<p class="flex items-start gap-1.5 text-xs leading-4 text-ink-gray-6">
+								<p class="break-words text-base leading-snug text-ink-gray-8">{{ group.name }}</p>
+								<p class="flex items-start gap-1.5 text-sm leading-4 text-ink-gray-6">
 									<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 									<span class="break-all">{{ group.cwd }}</span>
 								</p>
@@ -186,7 +186,7 @@
 							</button>
 						</template>
 					</SidebarItem>
-					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-2xs font-medium text-ink-gray-5">
+					<h3 v-else-if="grouped" class="flex h-7 items-center pl-2 text-sm font-medium text-ink-gray-5">
 						Ungrouped
 					</h3>
 					<!-- while a workspace is dragged only the workspaces show, so it drops between them -->
@@ -225,15 +225,15 @@
 									>
 										<template #trigger>
 											<span
-												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-xs leading-snug"
+												class="row-title min-w-0 flex-1 overflow-hidden whitespace-nowrap text-base leading-snug"
 												:class="!group.cwd && '-ml-2'"
 											>
 												<span class="inline-block">{{ flow.sessionTitle(s) }}</span>
 											</span>
 										</template>
 										<div class="row-card flex max-w-[min(20rem,var(--reka-hover-card-content-available-width,20rem))] flex-col gap-1.5 px-3 py-2.5">
-											<p class="break-words text-sm leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
-											<p v-if="s.cwd" class="flex items-center gap-1.5 text-xs text-ink-gray-6">
+											<p class="break-words text-base leading-snug text-ink-gray-8">{{ flow.sessionTitle(s) }}</p>
+											<p v-if="s.cwd" class="flex items-center gap-1.5 text-sm text-ink-gray-6">
 												<span class="lucide-folder size-4 flex-none text-ink-gray-5" aria-hidden="true" />
 												<span class="truncate">{{ flow.folderName(s.workspace ?? s.cwd) }}</span>
 											</p>
@@ -259,7 +259,7 @@
 								</SidebarItem>
 								<SidebarItem v-if="group.toggle" :label="group.toggle" @click="toggleShowAll(group.cwd)">
 									<template #prefix><span class="size-4" /></template>
-									<span class="text-xs leading-snug text-ink-gray-5">{{ group.toggle }}</span>
+									<span class="text-sm leading-snug text-ink-gray-5">{{ group.toggle }}</span>
 								</SidebarItem>
 							</div>
 						</div>
@@ -268,16 +268,16 @@
 			</div>
 			<LoadingState
 				v-if="filtered.length === 0 && flow.state.sessionsLoading"
-				class="justify-center px-2.5 py-8 text-xs text-ink-gray-5"
+				class="justify-center px-2.5 py-8 text-sm text-ink-gray-5"
 			/>
-			<div v-else-if="filtered.length === 0" class="px-2.5 py-8 text-center text-xs text-ink-gray-5">
+			<div v-else-if="filtered.length === 0" class="px-2.5 py-8 text-center text-sm text-ink-gray-5">
 				{{ emptyMessage }}
 			</div>
 			<button
 				v-if="flow.state.sessionsMore"
 				ref="sentinel"
 				type="button"
-				class="w-full px-2.5 py-2 text-center text-2xs text-ink-gray-4 hover:text-ink-gray-6"
+				class="w-full px-2.5 py-2 text-center text-sm text-ink-gray-4 hover:text-ink-gray-6"
 				:disabled="flow.state.sessionsLoading"
 				@click="flow.loadMoreSessions()"
 			>
@@ -295,7 +295,7 @@
 
 		<footer class="flex flex-col gap-0.5 border-t border-outline-gray-1 p-2">
 			<SidebarItem icon="lucide-settings" @click="flow.setSettingsOpen(true)">
-				<span class="truncate text-xs font-medium text-ink-gray-8">Settings</span>
+				<span class="truncate text-base text-ink-gray-8">Settings</span>
 			</SidebarItem>
 		</footer>
 	</aside>
@@ -778,7 +778,7 @@ const emptyMessage = computed(() => {
 	translate: 0 -0.625rem;
 }
 
-/* a phone's drawer: rows and buttons a finger can take, titles a half step over the chat's text */
+/* a phone's drawer: rows and buttons a finger can take, titles a size up */
 @media (max-width: 767px) and (pointer: coarse) {
 	aside :deep([data-slot="sidebar-item"]),
 	.list-head {
@@ -789,8 +789,8 @@ const emptyMessage = computed(() => {
 		height: 2.25rem;
 	}
 	.row-title,
-	aside :deep([data-slot="sidebar-item"]) .text-xs {
-		font-size: 15.5px;
+	aside :deep([data-slot="sidebar-item"]) .text-base {
+		font-size: theme(fontSize.lg);
 	}
 }
 
@@ -800,11 +800,8 @@ const emptyMessage = computed(() => {
 	color: color-mix(in srgb, var(--ink-gray-7) 50%, var(--ink-gray-8));
 }
 
-/* chat and workspace names a half step over text-xs in size and weight, keeping its spacing; a
-   long one fades out at the row's end */
+/* a long chat or workspace name fades out at the row's end */
 .row-title {
-	font-size: 13.5px;
-	font-weight: 460;
 	-webkit-mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
 	mask-image: linear-gradient(to right, #000 calc(100% - 1.5rem), transparent);
 }

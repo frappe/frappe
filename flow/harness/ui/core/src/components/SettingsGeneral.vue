@@ -5,8 +5,8 @@
 				<Select :model-value="flow.state.prefs.mode" :options="MODES" @update:model-value="flow.setMode($event)" />
 			</SettingsRow>
 			<div class="py-4">
-				<div class="text-sm font-medium text-ink-gray-9">Custom instructions</div>
-				<p class="mt-1.5 text-xs leading-5 text-ink-gray-6">Added to the prompt of every new chat.</p>
+				<div class="text-base font-medium text-ink-gray-9">Custom instructions</div>
+				<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Added to the prompt of every new chat.</p>
 				<Textarea
 					v-model="draft"
 					class="mt-4"

@@ -31,11 +31,11 @@
 		</div>
 		<LoadingState
 			v-if="loading && !loaded"
-			class="justify-center py-8 text-xs text-ink-gray-5"
+			class="justify-center py-8 text-sm text-ink-gray-5"
 		/>
 		<div
 			v-else-if="!rows.length && !error"
-			class="rounded-6 border border-dashed border-outline-gray-2 py-10 text-center text-xs text-ink-gray-5"
+			class="rounded-6 border border-dashed border-outline-gray-2 py-10 text-center text-sm text-ink-gray-5"
 		>
 			No {{ spec.label.toLowerCase() }} yet.
 		</div>
@@ -49,12 +49,12 @@
 					@click="edit(row.name)"
 				>
 					<span class="min-w-0 flex-1">
-						<span class="block truncate text-sm font-medium text-ink-gray-9">{{
+						<span class="block truncate text-base font-medium text-ink-gray-9">{{
 							row[spec.titleField] || row.name
 						}}</span>
 						<span
 							v-if="spec.subtitle?.(row)"
-							class="mt-1 block truncate text-2xs text-ink-gray-5"
+							class="mt-1 block truncate text-xs text-ink-gray-5"
 							>{{ spec.subtitle(row) }}</span
 						>
 					</span>
