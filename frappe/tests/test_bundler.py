@@ -1,6 +1,8 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
+import json
 import os
+import re
 import subprocess
 import tempfile
 from contextlib import contextmanager, nullcontext
@@ -9,8 +11,14 @@ from unittest.mock import patch
 import click
 from click.testing import CliRunner
 
-from frappe.bundler import build_framework_islands, build_page_islands, remove_stale_island_toolchain
+from frappe.bundler import (
+	build_framework_islands,
+	build_page_islands,
+	build_shell,
+	remove_stale_island_toolchain,
+)
 from frappe.commands.utils import build
+from frappe.shell.manifest import frontend_dir, package_name
 from frappe.tests import UnitTestCase
 
 
@@ -107,3 +115,98 @@ class TestBuildOrder(UnitTestCase):
 			self.assertEqual(steps, ["esbuild", "islands", "translations", "after_build", "shell"])
 			self.assertTrue(os.path.exists(v1_asset))
 			swap.assert_not_called()
+
+
+def shell_build_commands(production: bool, installed_flags: list[str] | None = None) -> list[str]:
+	"""The commands `build_shell` runs, with yarn stubbed; `installed_flags` stands for an installed tree."""
+	with tempfile.TemporaryDirectory() as source:
+		frontend = os.path.join(source, "frontend")
+		os.makedirs(frontend)
+		open(os.path.join(frontend, "package.base.json"), "w").close()
+		if installed_flags is not None:
+			os.makedirs(os.path.join(frontend, "node_modules"))
+			with open(os.path.join(frontend, "node_modules", ".yarn-integrity"), "w") as f:
+				json.dump({"flags": installed_flags}, f)
+		staging = os.path.join(source, "frappe", "public", "frontend.staging")
+		commands = []
+
+		def popen(command, **kwargs):
+			commands.append(command)
+			if command.startswith("yarn build"):
+				os.makedirs(staging)
+				open(os.path.join(staging, "index.html"), "w").close()
+
+		with (
+			patch("frappe.shell.manifest.write", return_value=([], [], False)),
+			patch("frappe.bundler.refresh_lockfile", return_value=False),
+			patch("frappe.shell.manifest.cost_report", return_value=[]),
+			patch("frappe.get_app_path", return_value=os.path.join(source, "frappe")),
+			patch("frappe.commands.popen", popen),
+			patch("frappe.bundler.swap_shell_assets"),
+		):
+			build_shell(source, production=production)
+		return commands
+
+
+class TestShellBuildWeight(UnitTestCase):
+	def test_production_build_skips_test_tools_and_source_maps(self):
+		install, build = shell_build_commands(production=True)
+		self.assertEqual(install, "yarn install --production")
+		self.assertTrue(build.endswith(" --mode production --sourcemap false"))
+
+	def test_development_build_keeps_test_tools_and_source_maps(self):
+		install, build = shell_build_commands(production=False)
+		self.assertEqual(install, "yarn install --production=false")
+		self.assertNotIn("--sourcemap", build)
+
+	def test_development_build_reinstalls_a_tree_installed_without_test_tools(self):
+		install, _build = shell_build_commands(production=False, installed_flags=["production"])
+		self.assertEqual(install, "yarn install --production=false")
+
+	def test_unchanged_tree_is_not_reinstalled(self):
+		self.assertEqual(len(shell_build_commands(production=False, installed_flags=[])), 1)
+		self.assertEqual(len(shell_build_commands(production=True, installed_flags=["production"])), 1)
+
+	def test_build_files_import_no_dev_dependency(self):
+		frontend = frontend_dir()
+		with open(os.path.join(frontend, "package.base.json")) as f:
+			dev_dependencies = set(json.load(f)["devDependencies"])
+
+		for path in build_files(frontend):
+			with self.subTest(path=os.path.relpath(path, frontend)):
+				imported = {package_name(specifier) for specifier in bare_imports(path)}
+				self.assertFalse(imported & dev_dependencies)
+
+
+IMPORT = re.compile(r"""(?:from|import)\s*\(?\s*["']([^"']+)["']""")
+# postcss loads each plugin by its key's package name.
+POSTCSS_PLUGIN = re.compile(r"^\s*([\w@/-]+): \{[^{}]*\}", re.MULTILINE)
+
+
+def build_files(frontend: str) -> set[str]:
+	"""The build configs and every local module they load, followed through relative imports."""
+	pending = [
+		os.path.join(frontend, name) for name in ("vite.config.js", "postcss.config.js", "tailwind.config.js")
+	]
+	seen = set()
+	while pending:
+		path = pending.pop()
+		if path in seen:
+			continue
+		seen.add(path)
+		with open(path) as f:
+			for specifier in IMPORT.findall(f.read()):
+				if specifier.startswith("."):
+					target = os.path.normpath(os.path.join(os.path.dirname(path), specifier))
+					if target.endswith((".js", ".mjs")):
+						pending.append(target)
+	return seen
+
+
+def bare_imports(path: str) -> list[str]:
+	with open(path) as f:
+		source = f.read()
+	imported = [s for s in IMPORT.findall(source) if not s.startswith((".", "/", "node:"))]
+	if os.path.basename(path) == "postcss.config.js":
+		imported += POSTCSS_PLUGIN.findall(source)
+	return imported

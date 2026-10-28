@@ -563,8 +563,8 @@ class TestAppDeclaration(IntegrationTestCase):
 		self.assertIn("desk.package.json holds `dependencies` and nothing else", message)
 
 	def test_the_framework_reads_its_base_file_with_dev_dependencies(self):
-		self.assertIn("vite", app_deps("frappe"))
-		self.assertNotIn("vite", app_runtime_deps("frappe"))
+		self.assertIn("vitest", app_deps("frappe"))
+		self.assertNotIn("vitest", app_runtime_deps("frappe"))
 
 	def test_the_import_map_refusal_names_the_declaration_file(self):
 		entry = {
