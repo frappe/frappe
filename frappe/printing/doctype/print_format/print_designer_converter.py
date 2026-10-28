@@ -9,6 +9,7 @@ from frappe import _
 from frappe.utils import cint, escape_html, flt
 
 PX_PER_MM = 96 / 25.4
+TABLE_TEXT_SCALE = 0.9
 JINJA = re.compile(r"{{|{%")
 CSS_PROPERTIES = {
 	"fontSize": "font-size",
@@ -68,6 +69,7 @@ def create_editor_format(print_format: str, name: str | None = None) -> str:
 			"default_print_language": source.default_print_language,
 			"pdf_generator": "chrome",
 			"page_number": source.page_number,
+			"font": converted_font(source),
 			**converted_margins(source),
 		}
 	)
@@ -92,6 +94,12 @@ def converted_margins(doc) -> dict:
 	return margins
 
 
+def converted_font(doc) -> str | None:
+	settings = load_json(doc.get("print_designer_settings")) or {}
+	text = ((settings.get("globalStyles") or {}).get("staticText") or {}).get("style") or {}
+	return text.get("fontFamily") or None
+
+
 def load_json(value):
 	if not value:
 		return None
@@ -109,6 +117,7 @@ class PrintDesignerConverter:
 		self.meta = frappe.get_meta(doc.doc_type)
 		self.settings = load_json(doc.get("print_designer_settings")) or {}
 		self.page = self.settings.get("page") or {}
+		self.global_styles = self.settings.get("globalStyles") or {}
 		self.notes = []
 		self.counter = 0
 
@@ -125,9 +134,9 @@ class PrintDesignerConverter:
 			self.notes.append(_("No row and column layout was saved, so rows were grouped by position."))
 
 		layout = {
-			"header": self.zone(header),
+			"header": self.zone(header, flt(self.page.get("headerHeight"))),
 			"sections": self.sections(body),
-			"footer": self.zone(footer),
+			"footer": self.zone(footer, flt(self.page.get("footerHeight"))),
 		}
 		if setup := (self.settings.get("userProvidedJinja") or "").strip():
 			layout["global_variables"] = setup
@@ -158,37 +167,94 @@ class PrintDesignerConverter:
 			page["orientation"] = "Landscape"
 		return page or None
 
+	def styled(self, element, part="style") -> dict:
+		"""The element's style on top of Print Designer's default style for its kind."""
+		kind = element.get("type")
+		if kind == "text":
+			kind = "dynamicText" if element.get("isDynamic") else "staticText"
+		return {**((self.global_styles.get(kind) or {}).get(part) or {}), **(element.get(part) or {})}
+
+	def rule(self, element) -> tuple[str, str] | None:
+		"""The side and colour of the one border a drawn box shows, when it is a line."""
+		if element.get("type") != "rectangle" or element.get("layoutType"):
+			return None
+		style = {
+			**((self.global_styles.get("rectangle") or {}).get("style") or {}),
+			**(element.get("style") or {}),
+		}
+		if flt(re.sub(r"[^\d.]", "", str(style.get("borderWidth") or "0")) or 0) <= 0:
+			return None
+		visible = [
+			side
+			for side in ("Top", "Right", "Bottom", "Left")
+			if style.get(f"border{side}Style", style.get("borderStyle")) not in ("hidden", "none")
+		]
+		if len(visible) != 1 or visible[0] not in ("Top", "Bottom"):
+			if len(visible) > 1:
+				self.notes.append(_("A box border was left out; add it again in the editor."))
+			return None
+		return visible[0].lower(), style.get("borderColor") or "#000000"
+
+	def divider(self, color, gap=0) -> dict:
+		return {
+			"label": "Divider",
+			"fieldname": self.name("divider"),
+			"fieldtype": "Divider",
+			"custom": 1,
+			"custom_style": f"margin: {round(max(gap, 0))}px 0 0; border-bottom-color: {color};",
+		}
+
 	def content_width(self) -> float:
 		width = flt(self.page.get("width")) or 793.7
 		return max(width - flt(self.page.get("marginLeft")) - flt(self.page.get("marginRight")), 1)
 
 	# ----- structure ------------------------------------------------------------
 
-	def zone(self, elements) -> dict:
+	def zone(self, elements, height=0) -> dict:
 		sections = self.sections(elements)
 		if len(sections) == 1:
-			return {"columns": sections[0]["columns"]}
-		if all(len(s["columns"]) == 1 for s in sections):
-			return {
-				"columns": [{"label": "", "fields": [f for s in sections for f in s["columns"][0]["fields"]]}]
-			}
-		rows = self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))))
-		html = "".join(self.row_html(row) for row in rows)
-		return {"columns": [{"label": "", "fields": [self.html_node(html)]}]}
+			columns = sections[0]["columns"]
+		elif all(len(s["columns"]) == 1 for s in sections):
+			columns = [{"label": "", "fields": [f for s in sections for f in s["columns"][0]["fields"]]}]
+		else:
+			rows = self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))))
+			html = "".join(self.row_html(row) for row in rows)
+			columns = [{"label": "", "fields": [self.html_node(html)]}]
+		bottom = max((flt(e.get("startY")) + flt(e.get("height")) for e in elements), default=0)
+		if elements and height - bottom > 2:
+			for column in columns:
+				column["fields"].append(
+					{
+						"label": "Spacer",
+						"fieldname": self.name("spacer"),
+						"fieldtype": "Spacer",
+						"custom": 1,
+						"height": round(height - bottom),
+					}
+				)
+		return {"columns": columns}
 
 	def row_html(self, row) -> str:
 		total = self.content_width()
-		children = (
-			row[0].get("childrens") or [] if len(row) == 1 and row[0].get("layoutType") == "row" else row
+		compiled = len(row) == 1 and row[0].get("layoutType") == "row"
+		children = row[0].get("childrens") or [] if compiled else row
+		top = 0 if compiled else min(flt(e.get("startY")) for e in row)
+		height = (
+			flt(row[0].get("height"))
+			if compiled
+			else max(flt(e.get("startY")) + flt(e.get("height")) for e in row) - top
 		)
 		parts = []
 		for child in sorted(children, key=lambda c: flt(c.get("startX"))):
 			inner = "".join(self.element_html(e) for e in self.flatten([child]))
+			nested = child.get("childrens") if child.get("layoutType") == "column" else None
+			offset = min(flt(c.get("startY")) for c in nested) if nested else flt(child.get("startY")) - top
 			parts.append(
-				f'<div style="flex: 0 1 {round(flt(child.get("width")) / total * 100, 1)}%; min-width: 0; overflow-wrap: anywhere;">{inner}</div>'
+				f'<div style="flex: 0 1 {round(flt(child.get("width")) / total * 100, 1)}%; min-width: 0; '
+				f'overflow-wrap: anywhere; padding-top: {round(max(offset, 0))}px;">{inner}</div>'
 			)
 		return (
-			'<div style="display: flex; justify-content: space-between; align-items: center;">'
+			f'<div style="display: flex; justify-content: space-between; min-height: {round(height)}px;">'
 			+ "".join(parts)
 			+ "</div>"
 		)
@@ -234,7 +300,7 @@ class PrintDesignerConverter:
 					{
 						"label": "",
 						"width": round(flt(c.get("width")) / total * 100, 1),
-						"fields": self.stack(c.get("childrens") or [], flt(c.get("width"))),
+						"fields": self.free_layout(c.get("childrens") or [], flt(c.get("width"))),
 					}
 					for c in sorted(children, key=lambda c: flt(c.get("startX")))
 				]
@@ -272,20 +338,24 @@ class PrintDesignerConverter:
 			cursor = group["right"]
 		return columns
 
-	def stack(self, elements, width) -> list[dict]:
-		fields, bottom = [], 0
-		for element in sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))):
-			produced = self.element_fields(element, width)
-			if produced:
-				add_gap(produced[0], flt(element.get("startY")) - bottom)
-				fields.extend(produced)
-			bottom = flt(element.get("startY")) + flt(element.get("height"))
-		return fields
-
-	def element_fields(self, element, width) -> list[dict]:
+	def element_fields(self, element, width, ruled=True) -> list[dict]:
 		if element.get("type") != "rectangle":
 			node = self.node(element)
+			if node and element.get("type") == "text" and not element.get("isDynamicHeight"):
+				node["custom_style"] = (
+					node.get("custom_style") or ""
+				) + f" min-height: {round(flt(element.get('height')))}px;"
 			return [node] if node else []
+		if ruled and (line := self.rule(element)):
+			inner = self.element_fields(element, width, ruled=False)
+			if line[0] == "top":
+				return [self.divider(line[1]), *inner]
+			content = max(
+				(flt(c.get("startY")) + flt(c.get("height")) for c in element.get("childrens") or []),
+				default=0,
+			)
+			divider = self.divider(line[1], flt(element.get("height")) - content)
+			return [*inner, divider]
 		children = element.get("childrens") or []
 		if (
 			element.get("layoutType") == "row"
@@ -295,12 +365,13 @@ class PrintDesignerConverter:
 			return [self.side_by_side(children)]
 		if element.get("layoutType") != "column" and children:
 			return self.free_layout(children, flt(element.get("width")) or width)
-		return self.stack(children, width)
+		return self.free_layout(children, width)
 
 	def free_layout(self, elements, width, offset=0) -> list[dict]:
 		"""Elements placed freely inside a box: a band holding several of them side by
 		side becomes one flex row, a band holding one keeps its own block."""
 		fields, bottom = [], 0
+		width = width or self.content_width()
 		for band in self.rows(sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX"))))):
 			top = min(flt(e.get("startY")) for e in band)
 			if len(band) == 1:
@@ -313,17 +384,16 @@ class PrintDesignerConverter:
 			else:
 				parts, cursor = [], offset
 				ordered = sorted(band, key=lambda e: flt(e.get("startX")))
-				for i, element in enumerate(ordered):
+				for element in ordered:
 					left = flt(element.get("startX"))
-					end = flt(ordered[i + 1].get("startX")) if i + 1 < len(ordered) else offset + width
-					share = round(max(end - left, flt(element.get("width"))) / width * 100, 1)
-					gap = round(max(left - cursor, 0) / width * 100, 1)
+					share = round(flt(element.get("width")), 1)
+					gap = round(max(left - cursor, 0), 1)
 					inner = "".join(self.element_html(e) for e in self.flatten([element]))
 					parts.append(
-						f'<div style="flex: 0 1 {share}%; min-width: 0; overflow-wrap: anywhere; margin-left: {gap}%; '
+						f'<div style="flex: 0 0 {share}px; min-width: 0; margin-left: {gap}px; '
 						f'padding-top: {round(flt(element.get("startY")) - top)}px;">{inner}</div>'
 					)
-					cursor = left + max(end - left, flt(element.get("width")))
+					cursor = left + flt(element.get("width"))
 				produced = [self.html_node('<div style="display: flex;">' + "".join(parts) + "</div>")]
 			if produced:
 				add_gap(produced[0], top - bottom)
@@ -344,7 +414,11 @@ class PrintDesignerConverter:
 		flat = []
 		for element in sorted(elements, key=lambda e: (flt(e.get("startY")), flt(e.get("startX")))):
 			if element.get("type") == "rectangle":
-				flat.extend(self.flatten(element.get("childrens") or []))
+				inner = self.flatten(element.get("childrens") or [])
+				if line := self.rule(element):
+					mark = {"type": "line", "color": line[1]}
+					inner = [mark, *inner] if line[0] == "top" else [*inner, mark]
+				flat.extend(inner)
 			else:
 				flat.append(element)
 		return flat
@@ -396,7 +470,7 @@ class PrintDesignerConverter:
 			"text": text,
 			"custom": 1,
 		}
-		node.update(self.style_props(element.get("style") or {}))
+		node.update(self.style_props(self.styled(element)))
 		return node
 
 	def field_node(self, element) -> dict | None:
@@ -426,7 +500,7 @@ class PrintDesignerConverter:
 		if df and df.options:
 			node["options"] = df.options
 		node["show_label"] = "inline" if item.get("is_labelled") else "hide"
-		node.update(self.style_props({**(element.get("style") or {}), **(item.get("style") or {})}))
+		node.update(self.style_props({**self.styled(element), **(item.get("style") or {})}))
 		return node
 
 	def table_node(self, element) -> dict:
@@ -458,8 +532,13 @@ class PrintDesignerConverter:
 					for f in fields[1:]
 				]
 			columns.append(col)
-		style = element.get("style") or {}
-		header = element.get("headerStyle") or {}
+		style = self.styled(element)
+		header = self.styled(element, "headerStyle")
+		bordered = (
+			flt(re.sub(r"[^\d.]", "", str(style.get("borderWidth") or "0")) or 0) > 0
+			and style.get("borderStyle") not in ("none", "hidden")
+			and not is_white(style.get("borderColor"))
+		)
 		node = {
 			"label": "",
 			"fieldname": table.get("fieldname"),
@@ -467,13 +546,29 @@ class PrintDesignerConverter:
 			"options": table.get("options"),
 			"table_columns": columns,
 			"show_label": "hide",
-			"table_bordered": cint(re.sub(r"[^\d]", "", str(style.get("borderWidth") or "0")) or 0) > 0
-			and not is_white(style.get("borderColor")),
+			"table_style": "grid" if bordered else "lined",
+			"table_bordered": bordered,
+			"table_radius": 0,
 		}
+		if not bordered and flt(element.get("height")):
+			node["table_min_height"] = round(flt(element.get("height")))
+		if (padding := style.get("paddingTop")) is not None:
+			node["table_cell_padding"] = round(flt(re.sub(r"[^\d.]", "", str(padding)) or 0))
+		text = {
+			k: v
+			for k, v in style.items()
+			if k in ("fontSize", "fontFamily", "color", "lineHeight", "letterSpacing")
+		}
+		if size := flt(re.sub(r"[^\d.]", "", str(text.get("fontSize") or "")) or 0):
+			text["fontSize"] = f"{round(size / TABLE_TEXT_SCALE, 2)}px"
+		if text:
+			node["custom_style"] = css(text)
 		if flt(re.sub(r"[^\d.]", "", str(header.get("fontSize") or "")) or 99) <= 2 or is_white(
 			header.get("color")
 		):
 			node["table_header"] = "none"
+		elif is_white(header.get("backgroundColor")):
+			node["table_header"] = "plain"
 		elif header.get("backgroundColor"):
 			node["table_header_bg"] = header["backgroundColor"]
 		if (color := style.get("borderColor") or header.get("borderColor")) and not is_white(color):
@@ -539,7 +634,9 @@ class PrintDesignerConverter:
 	# ----- html -----------------------------------------------------------------
 
 	def element_html(self, element) -> str:
-		style = css(element.get("style") or {})
+		if element.get("type") == "line":
+			return f'<div style="border-top: 1px solid {element["color"]};"></div>'
+		style = css(self.styled(element))
 		if element.get("type") == "text" and element.get("isDynamic"):
 			inner = "".join(self.dynamic_part(item) for item in element.get("dynamicContent") or [])
 		elif element.get("type") == "text":
@@ -562,13 +659,13 @@ class PrintDesignerConverter:
 		return f'<div style="{style}">{inner}</div>' if style else f"<div>{inner}</div>"
 
 	def table_html(self, element, node) -> str:
-		cell = css(element.get("style") or {})
+		cell = css(self.styled(element))
 		header = (
 			""
 			if node.get("table_header") == "none"
 			else "<tr>"
 			+ "".join(
-				f'<th style="{css(element.get("headerStyle") or {})}">{escape_html(c["label"])}</th>'
+				f'<th style="{css(self.styled(element, "headerStyle"))}">{escape_html(c["label"])}</th>'
 				for c in node["table_columns"]
 			)
 			+ "</tr>"
@@ -598,11 +695,12 @@ class PrintDesignerConverter:
 		else:
 			value = f"{{{{ doc.get_formatted({fieldname!r}) }}}}"
 		if item.get("is_labelled") and item.get("label"):
-			label_style = css(item.get("labelStyle") or {})
+			base = (self.global_styles.get("dynamicText") or {}).get("labelStyle") or {}
+			label_style = css({**base, **(item.get("labelStyle") or {})})
 			value = f'<span style="{label_style}">{escape_html(item["label"])}</span> {value}'
 		if style:
 			value = f'<span style="{style}">{value}</span>'
-		return ("<br>" if item.get("nextLine") else "") + value
+		return value + ("<br>" if item.get("nextLine") else "")
 
 	def style_props(self, style) -> dict:
 		props = {}
@@ -626,7 +724,14 @@ def is_white(color) -> bool:
 
 def css(style: dict) -> str:
 	parts = []
+	draws_border = flt(re.sub(r"[^\d.]", "", str(style.get("borderWidth") or "0")) or 0) > 0 and style.get(
+		"borderStyle"
+	) not in ("none", "hidden")
 	for key, value in style.items():
+		if key == "backgroundColor" and is_white(value):
+			continue
+		if key.startswith("border") and not draws_border:
+			continue
 		prop = CSS_PROPERTIES.get(key)
 		if prop and value not in (None, ""):
 			parts.append(f"{prop}: {value};")
