@@ -9,6 +9,7 @@ from frappe.utils import escape_html
 from frappe.utils.jinja_globals import bundled_asset
 
 HIDDEN_KEY = "hide_flow_launcher"  # a user default, set while the user hides the icon
+DESK_V2_ROOT = "apps"  # frappe.shell's SHELL_ROOT, which the framework server may not import
 
 
 def add_to_page(response, request):
@@ -27,7 +28,8 @@ def add_to_page(response, request):
 	if body_end:
 		src = bundled_asset("flow_launcher.bundle.js")
 		labels = escape_html(frappe.as_json(get_labels(), indent=None))
-		script = f'<script src="{src}" data-labels="{labels}" defer></script>'
+		ready = " data-ready" if is_ready() else ""
+		script = f'<script src="{src}" data-labels="{labels}"{ready} defer></script>'
 		response.set_data(head + script + body_end + tail)
 
 
@@ -41,9 +43,20 @@ def set_hidden(hidden: bool) -> None:
 
 
 def get_app_roots() -> set[str]:
-	"""The first path segment of each apps screen route; Frappe's own is the Desk."""
+	"""The first path segment of each apps screen route; Frappe's own is the Desk. Desk v2's
+	pages are under its own root."""
 	routes = (app.get("route") or "" for app in frappe.get_hooks("add_to_apps_screen"))
-	return {route.strip("/").split("/")[0] for route in routes} - {""}
+	return ({route.strip("/").split("/")[0] for route in routes} - {""}) | {DESK_V2_ROOT}
+
+
+def is_ready() -> bool:
+	"""Whether the user sees an enabled model and agent, so a chat can start (the palette's
+	"Ask Flow" waits for it)."""
+	return all(
+		frappe.has_permission(doctype, "read")
+		and frappe.get_list(doctype, filters={"enabled": 1}, pluck="name", limit=1)
+		for doctype in ("Flow Model", "Flow Agent")
+	)
 
 
 def is_hidden() -> bool:
