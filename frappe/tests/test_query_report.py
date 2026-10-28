@@ -832,6 +832,9 @@ data = columns, result
 				run(report.name, {"allocated_to": user, "job_type": "missing"})
 			with self.assertRaisesRegex(frappe.ValidationError, "priority"):
 				run(report.name, {"allocated_to": user, "priority": "High"})
+			for filters in ('[["allocated_to", "=", "x"]]', "5", '"abc"'):
+				with self.assertRaisesRegex(frappe.ValidationError, "Filters must be"):
+					run(report.name, filters)
 
 	def test_validated_filters_reject_invalid_dates(self):
 		report, user = self.make_filtered_report()

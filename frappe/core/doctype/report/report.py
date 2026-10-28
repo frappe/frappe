@@ -531,6 +531,9 @@ class Report(Document):
 
 	def get_validated_filters(self, filters: dict, user: str) -> frappe._dict:
 		"""Return the filter values with defaults applied, checked against the Report Filter rows and cast to their fieldtypes."""
+		if not isinstance(filters, dict):
+			frappe.throw(_("Filters must be an object of field names and values"), title=_("Invalid Filters"))
+
 		rows_by_fieldname = {row.fieldname: row for row in self.filters}
 		allowed_keys = set(rows_by_fieldname) | set(FRAMEWORK_FILTER_KEYS)
 		if unknown_keys := set(filters) - allowed_keys:
