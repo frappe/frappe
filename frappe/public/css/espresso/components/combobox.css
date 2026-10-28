@@ -82,13 +82,6 @@ input.es-combobox__value:disabled {
     max-height: max(calc(var(--spacing) * 60), min(calc(var(--spacing) * 105), 60vh));
 }
 
-/* rows are buttons, which would take the browser's own font weight and spacing */
-.es-combobox__panel .es-menu__item {
-    font-family: inherit;
-    font-weight: inherit;
-    letter-spacing: inherit;
-}
-
 .es-combobox__list {
     overflow-y: auto;
     /* desk's scrollbar-width / scrollbar-color make Chrome ignore the
