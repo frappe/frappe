@@ -828,6 +828,8 @@ data = columns, result
 				run(report.name, {"allocated_to": user, "status": "Pending"})
 			with self.assertRaises(frappe.PermissionError):
 				run(report.name, {"allocated_to": user, "job_type": job_type})
+			with self.assertRaises(frappe.LinkValidationError):
+				run(report.name, {"allocated_to": user, "job_type": "missing"})
 			with self.assertRaisesRegex(frappe.ValidationError, "priority"):
 				run(report.name, {"allocated_to": user, "priority": "High"})
 
@@ -881,6 +883,8 @@ data = columns, result
 			report.get_validated_filters({"allocated_to": user, "period": ["", ""]}, user)
 		with self.assertRaises(frappe.PermissionError):
 			report.get_validated_filters({"allocated_to": user, "users": [user, "Administrator"]}, user)
+		with self.assertRaises(frappe.LinkValidationError):
+			report.get_validated_filters({"allocated_to": user, "users": [user, "missing"]}, user)
 
 	def test_validated_link_filter_user_defaults(self):
 		report, user = self.make_filtered_report()

@@ -651,7 +651,7 @@ def validate_link_value(doctype, value, user):
 	if not frappe.db.exists(doctype, value):
 		frappe.throw(
 			_("{0} {1} not found").format(_(doctype), value),
-			frappe.DoesNotExistError,
+			frappe.LinkValidationError,
 			title=_("Invalid Filters"),
 		)
 
