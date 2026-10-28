@@ -369,23 +369,26 @@ onBeforeUnmount(detachObserver);
 
 // Live edits keep `doc` reactive while typing.
 function onInput(v: string) {
-	emit("update:modelValue", v);
+	emit("update:modelValue", props.field.fieldtype === "JSON" && v === "" ? null : v);
 }
 
 // Commit (blur). JSON is pretty-printed at the component edge; on parse failure
 // the raw text is kept. The rewritten value flows back into the editor via its
 // `modelValue` watch.
 function onCommit(v: string) {
-	let out = v;
-	if (props.field.fieldtype === "JSON") {
-		try {
-			out = JSON.stringify(JSON.parse(v), null, 2);
-		} catch {
-			out = v;
-		}
-	}
+	const out = props.field.fieldtype === "JSON" ? jsonCommit(v) : v;
 	emit("update:modelValue", out);
 	emit("change", out);
+}
+
+// The JSON column refuses `""`, so an empty field commits `null`.
+function jsonCommit(v: string): string | null {
+	if (!v.trim()) return null;
+	try {
+		return JSON.stringify(JSON.parse(v), null, 2);
+	} catch {
+		return v;
+	}
 }
 </script>
 

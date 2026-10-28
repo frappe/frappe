@@ -85,10 +85,12 @@ function defaultValue(field: FieldNode): any {
  * The date-ish types are `""` rather than the `null` the server sends
  * (`get_valid_dict` nulls an empty datetime on every write), as ticket 56
  * decided. The difference is only ever visible before the first save.
+ * JSON is `null`: the JSON column refuses `""`.
  */
 function emptyValue(field: FieldNode): any {
   if (COLLECTIONS.has(field.fieldtype)) return [];
   if (NUMBERS.has(field.fieldtype)) return 0;
+  if (field.fieldtype === "JSON") return null;
   return "";
 }
 

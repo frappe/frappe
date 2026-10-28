@@ -64,6 +64,12 @@ describe("newRowValues", () => {
     ).toEqual({ notes: "", item: "", due: "", at: "" });
   });
 
+  it("empties a JSON field to null", () => {
+    expect(
+      newRowValues([field({ fieldname: "payload", fieldtype: "JSON" })])
+    ).toEqual({ payload: null });
+  });
+
   it("empties a Select with no options rather than dropping it", () => {
     expect(
       newRowValues([field({ fieldname: "status", fieldtype: "Select" })])
