@@ -22,8 +22,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 				auto_make: true,
 				centered: false,
 				keep_grid_form_open: false,
-				// on a phone, show as a frappe.ui.BottomSheet: for dialogs that are not static
-				// or minimizable and set their actions before show()
+				// on a phone, show as a frappe.ui.BottomSheet (static and minimizable dialogs
+				// stay dialogs); set the actions before show()
 				sheet_on_mobile: false,
 			},
 			opts
@@ -319,7 +319,8 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 
 	show() {
 		this.restore_from_sheet?.();
-		if (this.sheet_on_mobile && frappe.is_mobile()) return this.show_as_sheet();
+		if (this.sheet_on_mobile && !this.static && !this.minimizable && frappe.is_mobile())
+			return this.show_as_sheet();
 
 		// show it
 		if (window.location.pathname.startsWith("/desk")) {
