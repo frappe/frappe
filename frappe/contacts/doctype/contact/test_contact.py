@@ -1,6 +1,7 @@
 # Copyright (c) 2017, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 from unittest import skipIf
+from unittest.mock import patch
 
 import frappe
 from frappe.api.v2 import create_doc
@@ -287,7 +288,9 @@ class TestContactFlatValues(IntegrationTestCase):
 
 	def setUp(self):
 		super().setUp()
-		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
+		# Patched, not change_settings: CI's worker refills the shared System Settings cache
+		# from the committed value, so an uncommitted enable_desk_v2 can read back as 0.
+		self.enterContext(patch("frappe.api.v2.is_desk_v2_enabled", return_value=True))
 		frappe.set_user(a_contact_owner())
 
 	def tearDown(self):
@@ -348,7 +351,7 @@ class TestContactFlatValues(IntegrationTestCase):
 		plain = frappe.get_doc(
 			{"doctype": "Contact", "first_name": "A", "email_id": "a@b.c", "phone": "+91 0000000027"}
 		).insert()
-		with self.change_settings("System Settings", enable_desk_v2=0):
+		with patch("frappe.api.v2.is_desk_v2_enabled", return_value=False):
 			rest = flat_contact(email_id="a@b.c", phone="+91 0000000027")
 
 		for contact in (plain, rest):
