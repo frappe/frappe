@@ -458,6 +458,15 @@ class TestEmailAccount(IntegrationTestCase):
 		self.assertIsNone(result)
 		mocked_handler.assert_called_once()
 
+	def test_background_receive_raises_connection_error(self):
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+
+		server = MagicMock()
+		server.connect.side_effect = OSError("timed out")
+
+		with self.set_user("test@example.com"), self.assertRaises(OSError):
+			email_account.check_email_server_connection(server, in_receive=True)
+
 	def test_append_to(self):
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		mail_content = self.get_test_mail(fname="incoming-2.raw")
