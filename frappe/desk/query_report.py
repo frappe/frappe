@@ -252,7 +252,8 @@ def get_script(report_name: str):
 		from frappe.core.doctype.report.report import get_filter_default
 
 		filters = [
-			row.as_dict() | {"default": get_filter_default(row, frappe.session.user)} for row in filters
+			frappe._dict(row.as_dict(), default=get_filter_default(row, frappe.session.user))
+			for row in filters
 		]
 
 	return {
