@@ -1,4 +1,3 @@
-// Studio apps on develop set `redirectable`; it must still draw the arrow next to `href`.
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createApp, h, nextTick } from "vue";
 import type { App } from "vue";

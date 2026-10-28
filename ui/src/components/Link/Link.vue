@@ -47,7 +47,7 @@
 			</button>
 			<RecordAnchor
 				v-if="showRedirect && href"
-				:href="href!"
+				:href="href"
 				:aria-label="openLabel"
 				:title="openLabel"
 				data-slot="redirect"

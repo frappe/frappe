@@ -53,7 +53,7 @@ const configMap: Record<string, any> = {
 	frameworkui: {
 		srcFolders: ["../../../frappe/ui/src/components"],
 		destFolder: "src/json_types/frameworkui",
-		// ui/ has no node_modules of its own; this maps its `frappe-ui` imports to ours.
+		// frappe-ui is a peer dependency of ui/; resolve it from Studio's node_modules.
 		tsconfigPath: "tsconfig.frameworkui.json",
 		skipFolders: ["stories", "tests"],
 		// ComposerEditor is the private editing core shared by Email/CommentComposer —
