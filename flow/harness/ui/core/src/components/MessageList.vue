@@ -85,7 +85,7 @@
 						:text="item.text"
 						:ts="item.ts"
 					/>
-					<span v-if="formatTime(item.ts)" class="flow-turn-time text-sm text-ink-gray-4 md:text-base">{{ formatTime(item.ts) }}</span>
+					<span v-if="formatTime(item.ts)" class="flow-turn-time text-xs text-ink-gray-4 md:text-sm">{{ formatTime(item.ts) }}</span>
 				</div>
 				<TurnFiles v-else-if="item.kind === 'turn-files'" class="flow-turn-files -mt-1" :files="item.files" />
 				<div
