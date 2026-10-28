@@ -90,7 +90,7 @@ function applicable_badge(row) {
 		return frappe.ui.badge.html({ label: __("All DocTypes"), theme: "blue" });
 	}
 	if (row.applicable_for) {
-		return frappe.ui.badge.html({ label: frappe.utils.escape_html(row.applicable_for) });
+		return frappe.ui.badge.html({ label: __(row.applicable_for) });
 	}
 	return "";
 }
