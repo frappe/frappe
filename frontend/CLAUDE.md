@@ -212,7 +212,8 @@ fall out of the path. Enumerated in both languages, in `frappe/shell/manifest.py
 - **A `pages.json` key is a page name, a `{ "page", "apps" }` entry, or a list of
   entries.** An entry with no `apps` applies in every app; `apps` names apps by app name
   (`frappe` for `/apps/desk`). In an app, an entry that names it beats one that names none.
-  The build drops an app that is not on the bench, an entry with `"apps": []`, and a key
+  The build warns about an app that is not on the bench and keeps it, so the entry applies
+  once that app is installed, with no rebuild. It drops an entry with `"apps": []`, and a key
   that names one app twice or has two entries with no `apps`, each with a warning.
 - **Run order is per-doctype**: the owning app first, then the site's `app_order`.
   Ownership is structural, derived from which folder the file is in, with no registry

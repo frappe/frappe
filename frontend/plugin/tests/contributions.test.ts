@@ -242,29 +242,30 @@ describe("a pages.json entry that names apps", () => {
     expect(code).toContain(`key: "list", foreign: false, title: r1?.title`);
   });
 
-  it("drops an app that is not on the bench from its entry, and keeps the others", () => {
+  it("keeps an app that is not on the bench in its entry, with a warning", () => {
     const manifest = scoped({ record: { page: "runner", apps: ["crm", "hrms", "hrms"] } });
     const { replacements, warnings } = discover(manifest);
 
     expect(found(replacements)).toEqual([
-      { key: "record", page: "runner", apps: ["crm"] },
+      { key: "record", page: "runner", apps: ["crm", "hrms"] },
     ]);
     expect(warnings).toEqual([
-      `[frappe] ${path(manifest)}: "record" names app "hrms" for "runner", but it is not on the bench; it is dropped from that entry.`,
+      `[frappe] ${path(manifest)}: "record" names app "hrms" for "runner", but it is not on the bench; it applies there once that app is installed.`,
     ]);
   });
 
-  it("drops an entry left with no app on the bench, never widening it to every app", () => {
+  it("keeps an entry that names only apps not on the bench, and drops one with no apps", () => {
     const manifest = scoped({
       record: [{ page: "runner", apps: ["hrms"] }, { page: "card", apps: [] }],
     });
     const { replacements, warnings } = discover(manifest);
 
-    expect(replacements).toEqual([]);
+    expect(found(replacements)).toEqual([
+      { key: "record", page: "runner", apps: ["hrms"] },
+    ]);
     expect(warnings).toEqual([
-      `[frappe] ${path(manifest)}: "record" names app "hrms" for "runner", but it is not on the bench; it is dropped from that entry.`,
-      `[frappe] ${path(manifest)}: "record" gives "runner" no app on the bench, and "apps" never means every app; that entry is ignored.`,
-      `[frappe] ${path(manifest)}: "record" gives "card" no app on the bench, and "apps" never means every app; that entry is ignored.`,
+      `[frappe] ${path(manifest)}: "record" names app "hrms" for "runner", but it is not on the bench; it applies there once that app is installed.`,
+      `[frappe] ${path(manifest)}: "record" gives "card" an empty "apps", and "apps" never means every app; that entry is ignored.`,
     ]);
   });
 

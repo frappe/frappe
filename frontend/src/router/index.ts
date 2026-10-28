@@ -16,7 +16,7 @@ const RECORD_ROUTES = new Set(["record", "standard-record"]);
 export function createShellRouter(boot: Boot, addresses: Addresses) {
 	const modular = isModular(boot);
 	warnIgnoredListPages(addresses, boot.app);
-	reportReplacementClashes(boot.app);
+	if (boot.app) reportReplacementClashes(boot.app);
 
 	const router = createRouter({
 		history: createWebHistory(boot.shell_base),
