@@ -466,9 +466,12 @@ def get_letter_head_preview(
 ) -> dict[str, str]:
 	"""Render a Letter Head's header and footer as printing does, without a document."""
 	frappe.has_permission("Letter Head", "write", throw=True)
-	jenv = frappe.get_jenv()
 	try:
-		parts = [jenv.from_string(source).render(doc=BlankDoc()) for source in (content, footer) if source]
+		parts = [
+			frappe.utils.jinja.render_template(source, {"doc": BlankDoc()})
+			for source in (content, footer)
+			if source
+		]
 	except PREVIEW_ERRORS as e:
 		frappe.clear_last_message()
 		return {"error": str(e)}
