@@ -5,6 +5,7 @@ const API = "frappe.desk.doctype.sidebar.sidebar";
 
 frappe.ui.form.on("Sidebar", {
 	refresh(frm) {
+		frm.events.hide_desk_v2_fields(frm);
 		if (frm.is_new()) return;
 
 		// Both actions are gated on developer mode, because both write to the app on disk: one
@@ -42,5 +43,10 @@ frappe.ui.form.on("Sidebar", {
 						.then(() => frm.reload_doc())
 			);
 		});
+	},
+
+	hide_desk_v2_fields(frm) {
+		if (cint(frappe.boot.sysdefaults.enable_desk_v2)) return;
+		frm.toggle_display(["link_doctype", "link_to", "user", "navigation_items"], false);
 	},
 });
