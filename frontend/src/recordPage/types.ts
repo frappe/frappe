@@ -249,8 +249,9 @@ export interface PageFieldPatch {
   link_filters?: Record<string, unknown>;
   /** Decimal places for a numeric field. */
   precision?: number | string;
-  /** A Table field's grid offers no way to add a row, or to delete one. */
+  /** A Table field's grid offers no way to add a row. */
   cannot_add_rows?: boolean | 0 | 1;
+  /** A Table field's grid offers no way to delete a row. */
   cannot_delete_rows?: boolean | 0 | 1;
   /** Renders this component in the field's slot instead of the default one. */
   component?: Component;
