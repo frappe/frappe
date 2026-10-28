@@ -1,6 +1,5 @@
 strictness = 2
 comment_types = ["logic", "syntax"]
-auto_review = ["open", "push", "rebase"]
 review_drafts = false
 disabled_labels = ["conflicts", "skip-guard"]
 exclude_authors = ["mergify[bot]", "dependabot[bot]", "github-actions[bot]"]
