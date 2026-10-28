@@ -506,6 +506,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	get_report_settings() {
+		const report_name = this.report_name;
 		return new Promise((resolve, reject) => {
 			// other screens load only the report script, without the rest of get_script's settings
 			if (frappe.query_reports[this.report_name]?.has_python_formatter !== undefined) {
@@ -517,12 +518,12 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 						report_name: this.report_name,
 					})
 					.then((settings) => {
-						if (
-							!frappe.query_reports[settings.custom_report_name || this.report_name]
-						) {
+						if (!frappe.query_reports[settings.custom_report_name || report_name]) {
 							frappe.dom.eval(settings.script);
 						}
 						frappe.after_ajax(() => {
+							if (this.report_name !== report_name) return;
+
 							this.report_settings = this.get_local_report_settings(
 								settings.custom_report_name
 							);
