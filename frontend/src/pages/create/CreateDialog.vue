@@ -45,7 +45,7 @@
 import { computed, nextTick, provide, ref, useTemplateRef, watch } from "vue";
 import { useRouter } from "vue-router";
 import { useEventListener } from "@vueuse/core";
-import { Button, Dialog, ErrorMessage } from "frappe-ui";
+import { Button, Dialog, ErrorMessage, toast } from "frappe-ui";
 import { createDocument, isApiError } from "@framework/ui/api";
 import { FormLayout } from "@framework/ui/FormLayout";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
@@ -198,7 +198,11 @@ async function handOver(carried: Record<string, any>) {
 	props.request.settle(null);
 	if (router.hasRoute("new-record")) return void router.push(routeForNew(doctype, carried));
 	// The index's router holds no doctype route: the new record opens in its owner's app.
-	const { newRecordHref } = await import("@/shell/palettePlaces");
-	window.location.assign(await newRecordHref(doctype, carried));
+	try {
+		const { newRecordHref } = await import("@/shell/palettePlaces");
+		window.location.assign(await newRecordHref(doctype, carried));
+	} catch {
+		toast.error(__("Could not open a new {0}", [__(doctype)]));
+	}
 }
 </script>

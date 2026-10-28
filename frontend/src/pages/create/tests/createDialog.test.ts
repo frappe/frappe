@@ -321,6 +321,16 @@ describe("on the index", () => {
 		expect(answer).toEqual({ settled: true, doc: null });
 		await vi.waitFor(() => expect(assign).toHaveBeenCalledExactlyOnceWith(`${CRM}/lead/new?company=Acme`));
 	});
+
+	it("says so, and loads nothing, when places gives the doctype no address", async () => {
+		const { toast } = await import("frappe-ui");
+		server.meta = { ...server.meta, name: "Territory" };
+		server.layouts = { ...server.layouts, dialog: false };
+		await open("Territory", {}, INDEX_ROUTES);
+
+		await vi.waitFor(() => expect(toast.error).toHaveBeenCalledWith("Could not open a new Territory"));
+		expect(assign).not.toHaveBeenCalled();
+	});
 });
 
 describe("saving", () => {
