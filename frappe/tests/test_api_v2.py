@@ -2648,6 +2648,7 @@ class TestFieldErrorsEntryV2(FrappeAPITestCase):
 				{"fieldname": "email", "label": "Email", "fieldtype": "Data", "options": "Email"},
 				{"fieldname": "code", "label": "Code", "fieldtype": "Data", "length": 5},
 				{"fieldname": "phone", "label": "Phone", "fieldtype": "Phone"},
+				{"fieldname": "settings", "label": "Settings", "fieldtype": "JSON"},
 				{"fieldname": "user", "label": "User", "fieldtype": "Link", "options": "User"},
 				{"fieldname": "items", "label": "Items", "fieldtype": "Table", "options": child.name},
 			],
@@ -2735,6 +2736,14 @@ class TestFieldErrorsEntryV2(FrappeAPITestCase):
 				self.assertEqual(field_error["fieldname"], fieldname)
 				self.assertIn(value, field_error["message"])
 				self.assertNotIn("<", field_error["message"])
+
+	def test_invalid_json_names_its_field(self):
+		response = self.send("post", self.resource(self.parent.name), {"title": "JSON", "settings": "{a: 1}"})
+
+		[entry] = self.errors(response, "ValidationError")
+		self.assertEqual(
+			entry["field_errors"], [{"fieldname": "settings", "message": "Settings is not valid JSON"}]
+		)
 
 	def test_v1_has_no_field_errors(self):
 		self.version = ""

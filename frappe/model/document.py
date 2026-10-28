@@ -1382,6 +1382,7 @@ class Document(_DocumentBase):
 		self._validate_min_max_value()
 		self._fix_rating_value()
 		self._validate_code_fields()
+		self._validate_json_fields()
 		self._sync_autoname_field()
 		self._extract_images_from_text_editor()
 		self._sanitize_content()
@@ -1396,6 +1397,7 @@ class Document(_DocumentBase):
 			d._validate_min_max_value()
 			d._fix_rating_value()
 			d._validate_code_fields()
+			d._validate_json_fields()
 			d._sync_autoname_field()
 			d._extract_images_from_text_editor()
 			d._sanitize_content()
@@ -3090,6 +3092,9 @@ class Document(_DocumentBase):
 				elif fieldtype == "JSON" and isinstance(value, (dict, list)):
 					value = json.dumps(value, separators=(",", ":"))
 
+				elif fieldtype == "JSON" and isinstance(value, str) and not value.strip():
+					value = None
+
 				elif fieldtype in float_like_fields and not isinstance(value, float):
 					value = flt(value)
 
@@ -3806,6 +3811,19 @@ class Document(_DocumentBase):
 
 			elif language == "PythonExpression":
 				frappe.utils.validate_python_code(code_string, fieldname=field.label)
+
+	def _validate_json_fields(self):
+		for df in self.meta.get_json_fields():
+			value = self.get(df.fieldname)
+			if not isinstance(value, str) or not value.strip() or is_database_json(value):
+				continue
+
+			prefix = _("Row #{0}:").format(self.idx) if self.get("parentfield") else ""
+			label = self.meta.get_translated_label(df.fieldname)
+			with self._naming_field(df.fieldname):
+				frappe.throw(
+					_("{0} {1} is not valid JSON").format(prefix, label).strip(), title=_("Invalid JSON")
+				)
 
 	def _sync_autoname_field(self):
 		"""Keep autoname field in sync with `name`"""
@@ -4591,6 +4609,19 @@ def get_last_doc(
 def get_single(doctype):
 	"""Return a `frappe.model.document.Document` object of the given Single doctype."""
 	return get_doc(doctype, doctype)
+
+
+def is_database_json(text: str) -> bool:
+	"""Whether a JSON column accepts `text`: unlike `json.loads`, refuses NaN and Infinity."""
+	try:
+		json.loads(text, parse_constant=_refuse_constant)
+	except ValueError:
+		return False
+	return True
+
+
+def _refuse_constant(constant: str):
+	raise ValueError(constant)
 
 
 # backward compatibility: `BaseDocument` was merged into `Document`

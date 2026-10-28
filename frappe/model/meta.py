@@ -227,6 +227,9 @@ class Meta(Document):
 	def get_code_fields(self):
 		return self.get("fields", {"fieldtype": "Code"})
 
+	def get_json_fields(self):
+		return self.get("fields", {"fieldtype": "JSON"})
+
 	def get_set_only_once_fields(self):
 		"""Return fields with `set_only_once` set"""
 		return self._set_only_once_fields
