@@ -1,6 +1,7 @@
 import base64
 import copy
 import importlib.util
+import math
 import mimetypes
 import os
 import re
@@ -154,7 +155,7 @@ class PlutoPage:
 
 	def get_element_height(self, selector="body"):
 		book = self._book(self.viewport_width * POINTS_PER_PX, None, user_style=MEASURE_STYLE)
-		return round(book.get_document_height())
+		return math.ceil(book.get_document_height())
 
 	def repeat_for_pages(self, total_pages):
 		from bs4 import BeautifulSoup
