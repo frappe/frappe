@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import math
 import threading
 
 import frappe
@@ -20,7 +21,7 @@ from frappe.model.create_new import get_static_default_value
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cast, cint, cstr, get_datetime, get_timedelta, now, nowtime
+from frappe.utils import cast, cint, cstr, get_datetime, get_timedelta, now, nowtime, sbool
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 from frappe.utils.xlsxutils import XLSXMetadata
 
@@ -607,7 +608,13 @@ def get_validated_value(row, value, user):
 					_("{0} must have a start and an end date").format(frappe.bold(_(row.label))),
 					title=_("Invalid Filters"),
 				)
-			return [get_validated_date(row, "Date", item) for item in value]
+			start, end = (get_validated_date(row, "Date", item) for item in value)
+			if start > end:
+				frappe.throw(
+					_("{0} must not start after its end date").format(frappe.bold(_(row.label))),
+					title=_("Invalid Filters"),
+				)
+			return [start, end]
 
 		if row.options:
 			for item in value:
@@ -631,10 +638,34 @@ def get_validated_value(row, value, user):
 			title=_("Invalid Filters"),
 		)
 
+	if row.fieldtype in ("Int", "Float", "Currency"):
+		return get_validated_number(row, value)
+
+	if row.fieldtype == "Check" and sbool(value) not in (0, 1):
+		frappe.throw(
+			_("{0} must be 0 or 1").format(frappe.bold(_(row.label))),
+			title=_("Invalid Filters"),
+		)
+
 	if row.fieldtype == "Link" and not row.wildcard_filter:
 		validate_link_value(row.options, value, user)
 
 	return cast(row.fieldtype, value)
+
+
+def get_validated_number(row, value):
+	try:
+		number = float(value)
+	except ValueError:
+		number = math.nan
+
+	if not math.isfinite(number) or (row.fieldtype == "Int" and not number.is_integer()):
+		frappe.throw(
+			_("{0} must be a valid {1}").format(frappe.bold(_(row.label)), _(row.fieldtype)),
+			title=_("Invalid Filters"),
+		)
+
+	return int(number) if row.fieldtype == "Int" else number
 
 
 def get_validated_date(row, fieldtype, value):

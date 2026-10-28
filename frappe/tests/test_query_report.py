@@ -856,6 +856,30 @@ data = columns, result
 			with self.assertRaisesRegex(frappe.ValidationError, label):
 				report.get_validated_filters({"allocated_to": user, fieldname: value}, user)
 
+	def test_validated_filters_check_numbers(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="amount", label="Amount", fieldtype="Float"))
+
+		filters = report.get_validated_filters(
+			{"allocated_to": user, "count": 5, "amount": "1.5", "show_all": "true"}, user
+		)
+		self.assertEqual((filters.count, filters.amount, filters.show_all), (5, 1.5, 1))
+		self.assertEqual(
+			report.get_validated_filters({"allocated_to": user, "show_all": 0}, user).show_all, 0
+		)
+
+		for fieldname, label, value in (
+			("count", "Count", "abc"),
+			("count", "Count", "5.7"),
+			("amount", "Amount", "abc"),
+			("amount", "Amount", "1,5"),
+			("show_all", "Show All", 2),
+			("show_all", "Show All", "yes"),
+			("period", "Period", ["2026-02-01", "2026-01-01"]),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, label):
+				report.get_validated_filters({"allocated_to": user, fieldname: value}, user)
+
 	def test_validated_filters_resolve_now_defaults(self):
 		report, user = self.make_filtered_report()
 		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime", default="Now"))
