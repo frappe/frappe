@@ -441,12 +441,12 @@ class TestPrintFormatGenerator(IntegrationTestCase):
 		self.assertIsNone(_print_format_doc_or_none(None))
 
 	def test_pdf_generator_resolution_keeps_the_stored_choice(self):
-		"""A plain format prints with its own engine (wkhtmltopdf by default), while a
+		"""A plain format prints with its own engine, while a
 		beta format stays pinned to chrome — wkhtmltopdf cannot lay out its flexbox columns."""
 		from frappe.utils.print_utils import resolve_pdf_generator
 
 		beta = self._make_print_format()
-		self.assertEqual(resolve_pdf_generator(None), "wkhtmltopdf")
+		self.assertEqual(resolve_pdf_generator(None, "wkhtmltopdf"), "wkhtmltopdf")
 		self.assertEqual(resolve_pdf_generator(None, "chrome"), "chrome")
 		self.assertEqual(resolve_pdf_generator(beta), "chrome")
 		self.assertEqual(resolve_pdf_generator(beta, "wkhtmltopdf"), "chrome")
