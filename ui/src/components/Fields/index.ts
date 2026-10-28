@@ -15,6 +15,7 @@ export { default as ReadValue } from "./ReadValue.vue";
 export { dataHref, groupIban } from "./dataOptions";
 export type { DataHref } from "./dataOptions";
 export { default as DataOpenLink } from "./DataOpenLink.vue";
+export { default as ColorSwatch } from "./ColorSwatch.vue";
 
 // The field contract every value-input satisfies, plus the form-context
 // injection keys the deep-injection inputs (Table/Number/Image/DynamicLink) read.

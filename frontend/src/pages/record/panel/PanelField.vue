@@ -47,7 +47,11 @@
 					@click.stop
 					>{{ display }}</a
 				>
-				<template v-else>{{ display || placeholder }}</template>
+				<template v-else>
+					<ColorSwatch :field="field" :value="doc[field.fieldname]" class="me-1.5" />{{
+						display || placeholder
+					}}
+				</template>
 			</span>
 			<span
 				v-if="summary"
@@ -87,7 +91,13 @@ import {
 import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { RecordAnchor } from "@framework/ui/Link";
-import { DataOpenLink, dataHref, focusField, useRecordLink } from "@framework/ui/fields";
+import {
+	ColorSwatch,
+	DataOpenLink,
+	dataHref,
+	focusField,
+	useRecordLink,
+} from "@framework/ui/fields";
 import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import { PanelContextKey } from "./context";

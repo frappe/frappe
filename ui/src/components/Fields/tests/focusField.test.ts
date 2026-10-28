@@ -1,4 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
+import { createApp, h, nextTick } from "vue";
+import ColorField from "../ColorField.vue";
 import { focusField } from "../focusField";
 
 afterEach(() => {
@@ -25,6 +27,18 @@ describe("focusField", () => {
     const el = cell("<label>Qty</label><input />");
     focusField(el);
     expect(document.activeElement).toBe(el.querySelector("input"));
+  });
+
+  it("puts the cursor in a Color field's hex box, not its swatch", async () => {
+    const el = cell("");
+    const field = { fieldname: "color", fieldtype: "Color", label: "Color" };
+    const app = createApp({ render: () => h(ColorField, { field, modelValue: "#171717" }) });
+    app.mount(el);
+    await nextTick();
+    expect(el.querySelector("button[data-slot=swatch]")).not.toBeNull();
+    focusField(el);
+    expect(document.activeElement).toBe(el.querySelector("input"));
+    app.unmount();
   });
 
   it("waits for a lazy control to draw its input", async () => {
