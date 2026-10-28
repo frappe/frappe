@@ -4,12 +4,7 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.user_permission import (
 	add_user_permissions,
-<<<<<<< HEAD
-=======
-	get_applicable_for_doctype_list,
-	get_user_permission_list,
 	get_user_permissions,
->>>>>>> ca80e16 (test(permissions): user permissions on a deleted doctype still load)
 	remove_applicable,
 )
 from frappe.permissions import add_permission, has_user_permission
