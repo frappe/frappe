@@ -165,6 +165,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["profile", "photo"]})
 
 		self.assertIn("'calls'", logged.output[0])
+		self.assertIn("list none", logged.output[0])
 
 	def test_an_anchor_naming_a_parent_does_not_nest_the_block(self):
 		with authoring():

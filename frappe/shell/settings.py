@@ -133,9 +133,6 @@ def _mixes_save_modes(pane: dict, block: dict) -> bool:
 
 def _claims_a_claimed_field(pane: dict, block: dict) -> bool:
 	"""A component block saves and shows refusals for the fields it owns, so one field has one owner per draft."""
-	if "component" not in block:
-		return False
-
 	addresses = _component_addresses(block)
 	return any(
 		"component" in other
@@ -145,7 +142,7 @@ def _claims_a_claimed_field(pane: dict, block: dict) -> bool:
 	)
 
 
-def _owned_fields(block: dict) -> set:
+def _owned_fields(block: dict) -> set[str | None]:
 	return set(block.get("fields") or [EVERY_UNCLAIMED_FIELD])
 
 

@@ -271,6 +271,7 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				ship(blocks=[bound("calls")], app=EXTENDER, extends=HOST)
 			self.assertIn(f"<strong>{HOST}</strong>", str(refused.exception))
 			self.assertIn(f"<strong>{EXTENDER}</strong>", str(refused.exception))
+			self.assertIn("list no fields", str(refused.exception))
 			ship(blocks=[bound("calls", fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
 
 	def test_the_host_is_refused_a_second_block_that_lists_no_fields(self):
@@ -280,6 +281,7 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				ship(["general"], [bound("profile")])
 			self.assertIn(f"<strong>{HOST}</strong>", str(refused.exception))
 			self.assertIn(f"<strong>{EXTENDER}</strong>", str(refused.exception))
+			self.assertIn("list no fields", str(refused.exception))
 			ship(["general"], [bound("profile", fields='["phone"]')])
 
 	def test_a_generated_block_may_differ_from_a_component_on_its_binding(self):
