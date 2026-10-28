@@ -104,12 +104,26 @@ def pdf_footer_html(soup, head, content, styles, html_id, css, path=None):
 	)
 
 
-def get_pdf(html, options=None, output: PdfWriter | None = None, smart_shrinking: bool = False):
-	"""Render `html` to PDF.
+def get_pdf(
+	html,
+	options=None,
+	output: PdfWriter | None = None,
+	smart_shrinking: bool = False,
+	pdf_generator: str | None = None,
+):
+	"""Render `html` to PDF with the engine set in Print Settings, unless `pdf_generator` is given.
 
 	:param smart_shrinking: scale content that is wider than the page down to fit it, instead of
 	        clipping the overflow.
 	"""
+	from frappe.utils.print_utils import resolve_pdf_generator
+
+	if (pdf_generator or resolve_pdf_generator()) == "chrome":
+		options = dict(options or {})
+		if smart_shrinking:
+			options["shrink-to-fit"] = True
+		return get_chrome_pdf(None, html, options, output, pdf_generator="chrome")
+
 	html = scrub_urls(html)
 	html, options = prepare_options(html, options)
 
