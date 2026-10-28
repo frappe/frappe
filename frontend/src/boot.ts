@@ -83,16 +83,21 @@ export type Boot = {
 		hidden: boolean;
 	}[];
 
-	// Present on the index only: the person's latest favourite records, newest first.
+	// Present on the index only: the person's 8 latest favourites, newest first. A list's
+	// `doctype` is "DocType" and a saved view's "Doctype View", as the Favourite row stores them.
 	favourites?: {
 		doctype: string;
 		name: string;
+		kind: "record" | "list" | "view";
 		title: string;
 		route: string;
 		app: string;
 		app_title: string;
 		app_logo?: string | null;
 	}[];
+
+	// Present on the index only: whether the person has favourites past the first 8.
+	more_favourites?: boolean;
 
 	// Present on the index only: the person's last list and record addresses, newest first.
 	recent?: {

@@ -1,10 +1,11 @@
-# The index boot's Favourites: the person's latest favourite records they can still read.
+# The index boot's Favourites: the person's latest favourite records, lists and views they can still read.
 
 from unittest.mock import patch
 
 import frappe
 from frappe.shell import SHELL_ROOT
-from frappe.shell.boot import get_boot, index_favourites
+from frappe.shell.boot import get_boot
+from frappe.shell.index_favourites import MORE_LIMIT, index_favourites, more_favourites
 from frappe.shell.links import canonical_path
 from frappe.tests import IntegrationTestCase
 from frappe.utils import add_to_date, now_datetime
@@ -56,6 +57,20 @@ class TestIndexFavourites(IntegrationTestCase):
 		frappe.set_user(user)
 		return get_boot(f"/{SHELL_ROOT}")["favourites"]
 
+	def view(self, doctype: str = "ToDo", label: str = "Probe view", user: str = "") -> str:
+		return (
+			frappe.get_doc(
+				doctype="Doctype View",
+				reference_doctype=doctype,
+				type="List",
+				label=label,
+				user=user,
+				settings={},
+			)
+			.insert(ignore_permissions=True)
+			.name
+		)
+
 	def test_no_favourites_is_an_empty_list(self):
 		self.assertEqual(self.favourites(), [])
 
@@ -73,6 +88,7 @@ class TestIndexFavourites(IntegrationTestCase):
 			{
 				"doctype": "ToDo",
 				"name": names[-1],
+				"kind": "record",
 				"title": "Probe task 8",
 				"route": canonical_path("ToDo", names[-1]),
 				"app": "frappe",
@@ -89,22 +105,106 @@ class TestIndexFavourites(IntegrationTestCase):
 
 		self.assertEqual([row["name"] for row in self.favourites()], [mine])
 
-	def test_starred_lists_and_saved_views_have_no_chip_and_take_no_slot(self):
-		"""The index draws records only for now; a list or view row would open its DocType or view record."""
-		view = frappe.get_doc(
-			doctype="Doctype View", reference_doctype="ToDo", type="List", label="Probe view", settings={}
-		).insert(ignore_permissions=True)
-		names = [self.todo(f"Probe task {number}", allocated_to="Administrator") for number in range(8)]
-		for name in names:
-			self.favourite("ToDo", name, user="Administrator")
-		self.favourite("DocType", "ToDo", user="Administrator")
-		self.favourite("Doctype View", view.name, user="Administrator")
+	def test_a_starred_list_is_a_chip_at_its_list_address(self):
+		self.favourite("DocType", "ToDo")
 
-		favourites = self.favourites("Administrator")
+		[chip] = self.favourites()
 
 		self.assertEqual(
-			[(row["doctype"], row["name"]) for row in favourites], [("ToDo", n) for n in names[::-1]]
+			{key: chip[key] for key in ("doctype", "name", "kind", "title", "route", "app")},
+			{
+				"doctype": "DocType",
+				"name": "ToDo",
+				"kind": "list",
+				"title": "ToDo",
+				"route": canonical_path("ToDo"),
+				"app": "frappe",
+			},
 		)
+
+	def test_a_starred_saved_view_is_a_chip_at_its_view_address(self):
+		view = self.view(label="Probe open tasks")
+		self.favourite("Doctype View", view)
+
+		[chip] = self.favourites()
+
+		self.assertEqual(
+			{key: chip[key] for key in ("doctype", "name", "kind", "title", "route")},
+			{
+				"doctype": "Doctype View",
+				"name": view,
+				"kind": "view",
+				"title": "Probe open tasks",
+				"route": f"{canonical_path('ToDo')}/view/list/{view}",
+			},
+		)
+
+	def test_a_list_the_person_cannot_read_is_left_out(self):
+		self.favourite("DocType", "Error Log")
+		self.favourite("DocType", "ToDo")
+
+		self.assertEqual([chip["name"] for chip in self.favourites()], ["ToDo"])
+		self.assertEqual([chip["name"] for chip in self.favourites("Administrator")], [])
+
+	def test_a_view_of_someone_else_or_of_an_unreadable_list_is_left_out(self):
+		mine, site = self.view(label="Probe mine", user=USER), self.view(label="Probe site")
+		theirs = self.view(label="Probe theirs", user="Administrator")
+		private = self.view(doctype="Error Log", label="Probe errors")
+		for name in (mine, site, theirs, private):
+			self.favourite("Doctype View", name)
+
+		self.assertEqual([chip["name"] for chip in self.favourites()], [site, mine])
+
+	def test_records_lists_and_views_share_one_newest_first_order(self):
+		todo, view = self.todo("Probe task", allocated_to=USER), self.view()
+		self.favourite("ToDo", todo)
+		self.favourite("Doctype View", view)
+		self.favourite("DocType", "Note")
+
+		self.assertEqual([chip["kind"] for chip in self.favourites()], ["list", "view", "record"])
+
+	def test_eight_favourites_draw_no_more_chip_and_a_ninth_does(self):
+		names = [self.todo(f"Probe task {number}", allocated_to=USER) for number in range(9)]
+		for name in names[:8]:
+			self.favourite("ToDo", name)
+		frappe.set_user(USER)
+		self.assertFalse(index_favourites()["more_favourites"])
+
+		self.favourite("ToDo", names[8])
+		self.assertTrue(index_favourites()["more_favourites"])
+
+	def test_more_lists_the_rows_after_the_eighth_newest_first_with_the_same_checks(self):
+		names = [self.todo(f"Probe task {number}", allocated_to=USER) for number in range(10)]
+		hidden = self.todo("Probe task of someone else's")
+		self.favourite("DocType", "Error Log")
+		self.favourite("ToDo", hidden)
+		self.favourite("DocType", "Note")
+		for name in names:
+			self.favourite("ToDo", name)
+		frappe.set_user(USER)
+
+		shown = [chip["name"] for chip in index_favourites()["favourites"]]
+		more = [chip["name"] for chip in more_favourites()]
+
+		self.assertEqual(shown, names[::-1][:8])
+		self.assertEqual(more, [names[1], names[0], "Note"])
+
+	def test_more_reads_at_most_fifty_rows(self):
+		for number in range(8 + MORE_LIMIT + 1):
+			self.favourite("ToDo", self.todo(f"Probe task {number}", allocated_to=USER))
+		frappe.set_user(USER)
+
+		self.assertEqual(len(more_favourites()), MORE_LIMIT)
+
+	def test_more_refuses_a_website_user(self):
+		website_user = "shell-favourites-website@example.com"
+		if not frappe.db.exists("User", website_user):
+			frappe.get_doc(
+				doctype="User", email=website_user, first_name="Website", user_type="Website User"
+			).insert(ignore_permissions=True)
+		frappe.set_user(website_user)
+
+		self.assertRaises(frappe.PermissionError, more_favourites)
 
 	def test_a_single_is_titled_by_its_doctype(self):
 		self.favourite("System Settings", "System Settings", user="Administrator")
@@ -162,10 +262,28 @@ class TestIndexFavourites(IntegrationTestCase):
 		frappe.set_user(USER)
 
 		with patch(
-			"frappe.shell.boot.get_doctype_owners", return_value={"ToDo": "probe_app", "Note": "frappe"}
+			"frappe.shell.index_favourites.get_doctype_owners",
+			return_value={"ToDo": "probe_app", "Note": "frappe"},
 		):
-			with patch("frappe.shell.boot.has_app_permission", side_effect=lambda app: app == "frappe"):
-				self.assertEqual([row["doctype"] for row in index_favourites()], ["Note"])
+			with patch(
+				"frappe.shell.index_favourites.has_app_permission", side_effect=lambda app: app == "frappe"
+			):
+				self.assertEqual([row["doctype"] for row in index_favourites()["favourites"]], ["Note"])
+
+	def test_a_list_or_view_in_an_app_the_person_cannot_enter_is_left_out(self):
+		self.favourite("DocType", "ToDo")
+		self.favourite("Doctype View", self.view())
+		self.favourite("DocType", "Note")
+		frappe.set_user(USER)
+
+		with patch(
+			"frappe.shell.index_favourites.get_doctype_owners",
+			return_value={"ToDo": "probe_app", "Note": "frappe"},
+		):
+			with patch(
+				"frappe.shell.index_favourites.has_app_permission", side_effect=lambda app: app == "frappe"
+			):
+				self.assertEqual([row["name"] for row in index_favourites()["favourites"]], ["Note"])
 
 	def test_the_index_reads_favourites_in_one_query_plus_a_share_and_a_list_read_per_doctype(self):
 		self.favourite("ToDo", self.todo("Probe task", allocated_to=USER))
@@ -175,4 +293,17 @@ class TestIndexFavourites(IntegrationTestCase):
 		index_favourites()
 
 		with self.assertQueryCount(5):
-			self.assertEqual(len(index_favourites()), 3)
+			self.assertEqual(len(index_favourites()["favourites"]), 3)
+
+	def test_lists_cost_no_query_and_views_two_between_them(self):
+		self.favourite("ToDo", self.todo("Probe task", allocated_to=USER))
+		self.favourite("DocType", "ToDo")
+		self.favourite("DocType", "Note")
+		self.favourite("Doctype View", self.view(label="Probe one"))
+		self.favourite("Doctype View", self.view(doctype="Note", label="Probe two"))
+		frappe.set_user(USER)
+		index_favourites()
+
+		# The rows, then a share read and a row read for ToDo titles, and the same for the views.
+		with self.assertQueryCount(5):
+			self.assertEqual(len(index_favourites()["favourites"]), 5)

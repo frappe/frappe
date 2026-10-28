@@ -30,6 +30,7 @@ const FAVOURITES: BootFavourite[] = [
 	{
 		doctype: "CRM Deal",
 		name: "CRM-DEAL-0001",
+		kind: "record",
 		title: "Globex Corporation",
 		route: "/deal/CRM-DEAL-0001",
 		app: "crm",
@@ -39,6 +40,7 @@ const FAVOURITES: BootFavourite[] = [
 	{
 		doctype: "ToDo",
 		name: "t1",
+		kind: "record",
 		title: "Call Globex",
 		route: "/todo/t1",
 		app: "frappe",
@@ -109,13 +111,14 @@ async function mount(
 	apps: BootApp[] = APPS,
 	favourites: BootFavourite[] = [],
 	recent: BootVisit[] = [],
-	moreApps: string | null = null
+	moreApps: string | null = null,
+	moreFavourites = false
 ) {
 	const host = document.createElement("div");
 	document.body.appendChild(host);
 	const app = createApp(IndexPage);
 	const session = { timezone: "Asia/Kolkata", user: { name: "reader@example.com" } };
-	app.provide("boot", { app: null, apps, favourites, recent, more_apps: moreApps, session, prefixes: {} } as unknown as Boot);
+	app.provide("boot", { app: null, apps, favourites, recent, more_apps: moreApps, more_favourites: moreFavourites, session, prefixes: {} } as unknown as Boot);
 	app.provide("addresses", new Addresses({ doctypes: {}, modules: {}, singles: [] }));
 	app.use(createRouter({ history: createMemoryHistory(), routes: [{ path: "/", component: {} }] }));
 	app.mount(host);
@@ -378,6 +381,160 @@ describe("the index's Favourites", () => {
 		expect(chips(host)).toHaveLength(2);
 		await press(host, "Enter");
 		expect(assign).toHaveBeenCalledWith("/deal/CRM-DEAL-0001");
+	});
+});
+
+function favourite(number: number): BootFavourite {
+	return {
+		doctype: "ToDo",
+		name: `t${number}`,
+		kind: "record",
+		title: `Task ${number}`,
+		route: `/todo/t${number}`,
+		app: "frappe",
+		app_title: "Framework",
+		app_logo: null,
+	};
+}
+
+const LIST_AND_VIEW: BootFavourite[] = [
+	{
+		doctype: "DocType",
+		name: "CRM Deal",
+		kind: "list",
+		title: "CRM Deal",
+		route: "/crm/crm-deal",
+		app: "crm",
+		app_title: "CRM",
+		app_logo: "/assets/crm/logo.svg",
+	},
+	{
+		doctype: "Doctype View",
+		name: "v1",
+		kind: "view",
+		title: "Open deals",
+		route: "/crm/crm-deal/view/list/v1",
+		app: "crm",
+		app_title: "CRM",
+		app_logo: "/assets/crm/logo.svg",
+	},
+];
+
+describe("the index's Favourites past the first eight", () => {
+	const EIGHT = Array.from({ length: 8 }, (_, number) => favourite(number + 1));
+	const REST = [favourite(9), favourite(10)];
+
+	beforeEach(() => {
+		fake.runMethod.mockImplementation(async (method: string) => ({
+			data: method === "frappe.shell.index_favourites.more_favourites" ? REST : NOTHING_FOUND[method] ?? [],
+		}));
+	});
+
+	function more(host: HTMLElement) {
+		return host.querySelector<HTMLButtonElement>("button[data-favourite='favourites:more']");
+	}
+
+	function moreCalls() {
+		return fake.runMethod.mock.calls.filter(([method]) => method === "frappe.shell.index_favourites.more_favourites");
+	}
+
+	async function settle() {
+		await new Promise((resolve) => setTimeout(resolve));
+		await nextTick();
+	}
+
+	it("draws a list and a saved view as chips at their own addresses", async () => {
+		const host = await mount(APPS, LIST_AND_VIEW);
+		expect(chips(host).map((chip) => [chip.dataset.kind, chip.lastElementChild?.textContent, chip.getAttribute("href")])).toEqual([
+			["list", "CRM Deal", "/crm/crm-deal"],
+			["view", "Open deals", "/crm/crm-deal/view/list/v1"],
+		]);
+	});
+
+	it("draws no More chip when boot has no favourites past the eighth", async () => {
+		const host = await mount(APPS, EIGHT);
+		expect(more(host)).toBeNull();
+	});
+
+	it("loads /apps with no request for the rest", async () => {
+		await mount(APPS, EIGHT, [], null, true);
+		expect(moreCalls()).toHaveLength(0);
+	});
+
+	it("draws More last; a click fetches the rest once, draws it under the eight and turns into Less", async () => {
+		const host = await mount(APPS, EIGHT, [], null, true);
+		expect(more(host)?.parentElement).toBe(host.querySelector("[data-index-favourites] ul")?.lastElementChild);
+		expect(more(host)?.textContent?.trim()).toBe("More");
+
+		more(host)!.click();
+		await settle();
+		expect(moreCalls()).toEqual([["frappe.shell.index_favourites.more_favourites", {}, { http: "GET" }]]);
+		expect(chips(host).map((chip) => chip.getAttribute("href"))).toEqual([...EIGHT, ...REST].map((chip) => chip.route));
+		expect(more(host)?.textContent?.trim()).toBe("Less");
+
+		more(host)!.click();
+		await settle();
+		expect(chips(host)).toHaveLength(8);
+		expect(more(host)?.textContent?.trim()).toBe("More");
+
+		more(host)!.click();
+		await settle();
+		expect(chips(host)).toHaveLength(10);
+		expect(moreCalls()).toHaveLength(1);
+	});
+
+	it("reaches More by the arrow keys, runs it with Enter, then reaches the rest, and Less keeps the selection", async () => {
+		const host = await mount([], EIGHT, [], null, true);
+		for (let step = 0; step < 9; step++) await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["favourites:more"]);
+		expect(box(host).getAttribute("aria-activedescendant")).toBe(more(host)?.id);
+
+		await press(host, "Enter");
+		await settle();
+		expect(more(host)?.textContent?.trim()).toBe("Less");
+		await press(host, "ArrowUp");
+		expect(selected(host)).toEqual(["favourite:ToDo:t10"]);
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["favourites:more"]);
+
+		await press(host, "Enter");
+		await settle();
+		expect(chips(host)).toHaveLength(8);
+		expect(selected(host)).toEqual(["favourites:more"]);
+		expect(assign).not.toHaveBeenCalled();
+	});
+
+	it("keeps More when the fetch fails, and fetches again on the next click", async () => {
+		fake.runMethod.mockImplementationOnce(async () => {
+			throw new Error("offline");
+		});
+		const host = await mount(APPS, EIGHT, [], null, true);
+		more(host)!.click();
+		await settle();
+		expect(more(host)?.textContent?.trim()).toBe("More");
+		expect(chips(host)).toHaveLength(8);
+
+		more(host)!.click();
+		await settle();
+		expect(chips(host)).toHaveLength(10);
+		expect(moreCalls()).toHaveLength(2);
+	});
+
+	it("ignores a second click while the rest is loading", async () => {
+		const host = await mount(APPS, EIGHT, [], null, true);
+		more(host)!.click();
+		more(host)!.click();
+		await settle();
+		expect(moreCalls()).toHaveLength(1);
+		expect(more(host)?.textContent?.trim()).toBe("Less");
+	});
+
+	it("draws no chip twice when the rest repeats one boot drew", async () => {
+		fake.runMethod.mockImplementation(async () => ({ data: [EIGHT[7], ...REST] }));
+		const host = await mount(APPS, EIGHT, [], null, true);
+		more(host)!.click();
+		await settle();
+		expect(chips(host)).toHaveLength(10);
 	});
 });
 
