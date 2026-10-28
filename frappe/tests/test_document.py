@@ -1481,6 +1481,80 @@ class TestDocsCollection(IntegrationTestCase):
 			todo.docs
 
 
+class TestJSONFieldValues(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		json_field = {"fieldname": "payload", "fieldtype": "JSON", "label": "Payload"}
+		cls.child_dt = new_doctype(istable=1, fields=[json_field]).insert().name
+		cls.parent_dt = (
+			new_doctype(
+				fields=[
+					json_field,
+					{"fieldname": "rows", "fieldtype": "Table", "options": cls.child_dt, "label": "Rows"},
+				],
+			)
+			.insert()
+			.name
+		)
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.delete_doc("DocType", cls.parent_dt, force=True)
+		frappe.delete_doc("DocType", cls.child_dt, force=True)
+		super().tearDownClass()
+
+	def stored(self, doc, doctype=None):
+		return frappe.db.get_value(doctype or self.parent_dt, doc.name, "payload")
+
+	def test_a_blank_value_is_stored_as_null(self):
+		for value in ("", "   ", "\n\t "):
+			with self.subTest(value=value):
+				doc = frappe.get_doc(
+					{"doctype": self.parent_dt, "payload": value, "rows": [{"payload": value}]}
+				).insert()
+				self.assertIsNone(self.stored(doc))
+				self.assertIsNone(self.stored(doc.rows[0], self.child_dt))
+
+	def test_a_blank_value_clears_a_saved_one(self):
+		doc = frappe.get_doc({"doctype": self.parent_dt, "payload": '{"a":1}'}).insert()
+		doc.payload = "  "
+		doc.save()
+		self.assertIsNone(self.stored(doc))
+
+	def test_invalid_json_is_refused_naming_the_field(self):
+		for value in ("{a: 1}", "NaN", "[Infinity]"):
+			with self.subTest(value=value):
+				doc = frappe.get_doc({"doctype": self.parent_dt, "payload": value})
+				with self.assertRaises(frappe.ValidationError) as caught:
+					doc.insert()
+				self.assertIn("Payload is not valid JSON", str(caught.exception))
+				[field_error] = caught.exception.field_errors
+				self.assertEqual(field_error["fieldname"], "payload")
+
+	def test_invalid_json_in_a_row_names_the_row(self):
+		doc = frappe.get_doc({"doctype": self.parent_dt, "rows": [{"payload": "{}"}, {"payload": "[1,"}]})
+		with self.assertRaises(frappe.ValidationError) as caught:
+			doc.insert()
+		[field_error] = caught.exception.field_errors
+		self.assertEqual(
+			(field_error["fieldname"], field_error["parentfield"], field_error["idx"]), ("payload", "rows", 2)
+		)
+		self.assertEqual(field_error["message"], "Row #2: Payload is not valid JSON")
+
+	def test_valid_json_is_stored_unchanged(self):
+		for value, stored in (
+			('"text"', '"text"'),
+			('{"a": 1}', '{"a": 1}'),
+			("[1, 2]", "[1, 2]"),
+			({"a": 1}, '{"a":1}'),
+			([1, 2], "[1,2]"),
+		):
+			with self.subTest(value=value):
+				doc = frappe.get_doc({"doctype": self.parent_dt, "payload": value}).insert()
+				self.assertEqual(self.stored(doc), stored)
+
+
 def clear_todo_controller_cache():
 	"""Helper method to clear controller cache for ToDo"""
 	if hasattr(frappe, "controllers") and frappe.local.site in frappe.controllers:
