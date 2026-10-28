@@ -127,7 +127,7 @@ def _target(container: str, address: str, scope: str) -> Target:
 				title=_("Nothing to Arrange"),
 			)
 
-	# Before the gate: `has_app_permission` falls back to "is a System User" for an app with
+	# Before the gate: `has_app_permission` falls back to "not a Website User" for an app with
 	# no hook, and an app not on the bench declares nothing.
 	if app not in frappe.get_active_apps():
 		frappe.throw(_("{0} is not an app on this site.").format(app))

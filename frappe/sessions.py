@@ -232,7 +232,7 @@ def get_session_info() -> dict:
 	user = frappe.get_cached_doc("User", frappe.session.user)
 	# the site's merged defaults (company, currency, fiscal year, anything an app set) are
 	# desk data, and this route also answers a Guest and a Website User
-	is_desk_user = user.user_type == "System User"
+	is_desk_user = user.name != "Guest" and user.user_type != "Website User"
 	return {
 		"user": {
 			"name": user.name,

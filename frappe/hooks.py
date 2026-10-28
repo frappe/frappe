@@ -15,7 +15,7 @@ app_home = "/desk/build"
 # The desk claims its prefix through the mechanism it is building; `desk` names the product.
 app_prefix = "desk"
 
-# No `app_permission` on purpose: its absence means "is a System User", which `/desk` has always meant.
+# No `app_permission` on purpose: its absence means "not a Website User", which `/desk` has always meant.
 
 # What a stored Client Script imports by bare name; the rule is in frontend/COMPATIBILITY.md.
 import_map = {

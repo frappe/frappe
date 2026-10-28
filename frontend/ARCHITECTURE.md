@@ -158,7 +158,7 @@ cut or a `ui/` change reshapes them.
 | `app_modular` hook | Whether an app's record addresses include the module |
 | Prefix registry | Map of prefix to app, cached per site, cleared on app install |
 | Shell path helpers | Split an `/apps/...` path into prefix and rest, and find its app |
-| `app_permission` hook | Who may enter an app's prefix. Missing means "is a System User" |
+| `app_permission` hook | Who may enter an app's prefix. Missing means "signed in and not a Website User", as `/desk` |
 | `guard_prefix` | Sends a guest to login and a Website User to `/me`, and refuses anyone else without app permission. `/apps` is checked as frappe's |
 | [Boot](./CONTEXT.md#boot) payload | Built by the server for each prefix |
 | `app_boot` hook | An app adds its own boot keys. A failing one is dropped and logged |
