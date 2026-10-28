@@ -107,3 +107,60 @@ test.describe("Client Script", () => {
 		await expect.poll(() => logs).toContain("todo form script 2");
 	});
 });
+
+async function apply_to_options(page) {
+	const select = page.locator('.frappe-control[data-fieldname="view"] select');
+	return select.locator("option").evaluateAll((options) => options.map((o) => o.value));
+}
+
+test.describe("Client Script Apply To", () => {
+	const record_script = "Todo record script";
+
+	test.beforeAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+	});
+
+	test.afterAll(async ({ admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 0 });
+		await admin.remove_doc("Client Script", record_script, true);
+	});
+
+	test("offers only List and Form while desk v2 is off", async ({ page }) => {
+		await page.goto("/desk/client-script/new");
+		await expect.poll(() => apply_to_options(page)).toEqual(["List", "Form"]);
+	});
+
+	test("keeps Record on a Record script but hides Run Order while desk v2 is off", async ({
+		page,
+		api,
+	}) => {
+		await api.insert_doc(
+			"Client Script",
+			{
+				name: record_script,
+				dt: "ToDo",
+				view: "Record",
+				enabled: 0,
+				script: "export default {};",
+			},
+			true
+		);
+		await page.goto(`/desk/client-script/${encodeURIComponent(record_script)}`);
+		await expect(
+			page.locator('.frappe-control[data-fieldname="view"] .control-value')
+		).toHaveText("Record");
+		await expect(page.locator('.frappe-control[data-fieldname="run_order"]')).toBeHidden();
+
+		await page.evaluate(() => frappe.new_doc("Client Script", { dt: "ToDo", view: "Record" }));
+		await expect.poll(() => apply_to_options(page)).toEqual(["List", "Form", "Record"]);
+		await expect(page.locator('.frappe-control[data-fieldname="view"] select')).toHaveValue(
+			"Record"
+		);
+	});
+
+	test("offers Record while desk v2 is on", async ({ page, admin }) => {
+		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
+		await page.goto("/desk/client-script/new");
+		await expect.poll(() => apply_to_options(page)).toEqual(["List", "Form", "Record"]);
+	});
+});
