@@ -1,6 +1,7 @@
 # Copyright (c) 2026, Frappe Technologies Pvt. Ltd. and Contributors
 # License: MIT. See LICENSE
 
+from contextlib import contextmanager
 from unittest.mock import patch
 
 import frappe
@@ -260,6 +261,62 @@ class TestSearchDoctypeRecords(PaletteRecordsCase):
 			self.assertEqual(search_doctype_records(self.readable[0], " K "), [])
 
 
+class TestRecordsFollowGoTo(PaletteRecordsCase):
+	"""A doctype whose owner app the person may not enter is neither listed by Go to nor searched."""
+
+	def test_search_records_leaves_out_a_doctype_of_an_app_the_person_may_not_enter(self):
+		first, second = self.readable[:2]
+		add_records(first, "Kestrel Ridge")
+		add_records(second, "Kestrel Moor")
+
+		with listed([first, second]), self.set_user(READER), owned_by_acme(second, may_enter=False):
+			found = search_records("Kestrel", doctype=second)
+			goes_to = {row["name"] for row in places()["doctypes"]}
+
+		self.assertEqual([row["name"] for row in found], ["Kestrel Ridge"])
+		self.assertIn(first, goes_to)
+		self.assertNotIn(second, goes_to)
+
+	def test_search_doctype_records_refuses_a_doctype_of_an_app_the_person_may_not_enter(self):
+		first = self.readable[0]
+		add_records(first, "Kestrel Ridge")
+
+		with self.set_user(READER), owned_by_acme(first, may_enter=False):
+			self.assertEqual(search_doctype_records(first, "Kestrel"), [])
+
+	def test_a_person_who_may_enter_the_owner_app_still_finds_its_records(self):
+		first = self.readable[0]
+		add_records(first, "Kestrel Ridge")
+
+		with listed([first]), self.set_user(READER), owned_by_acme(first, may_enter=True):
+			found = search_records("Kestrel")
+			narrowed = search_doctype_records(first, "Kestrel")
+
+		self.assertEqual([row["name"] for row in found], ["Kestrel Ridge"])
+		self.assertEqual([row["name"] for row in narrowed], ["Kestrel Ridge"])
+
+	def test_a_doctype_without_an_address_is_not_searched(self):
+		first, second = self.readable[:2]
+		add_records(first, "Kestrel Ridge")
+		add_records(second, "Kestrel Moor")
+		shell = get_shell_doctypes()
+		addressed = {
+			doctype: path for doctype, path in shell["table"]["doctypes"].items() if doctype != second
+		}
+		unaddressed = {**shell, "table": {**shell["table"], "doctypes": addressed}}
+
+		with (
+			listed([first, second]),
+			self.set_user(READER),
+			patch("frappe.shell.palette.get_shell_doctypes", return_value=unaddressed),
+		):
+			found = search_records("Kestrel")
+			narrowed = search_doctype_records(second, "Kestrel")
+
+		self.assertEqual([row["name"] for row in found], ["Kestrel Ridge"])
+		self.assertEqual(narrowed, [])
+
+
 class TestRecentAndRecordsAgree(PaletteRecordsCase):
 	"""One record has one title, whether the palette's Recent or its Records lists it."""
 
@@ -343,6 +400,34 @@ def add_records(doctype: str, *names: str):
 
 def listed(doctypes: list[str]):
 	return patch("frappe.shell.palette.get_doctypes_for_global_search", return_value=doctypes)
+
+
+@contextmanager
+def owned_by_acme(doctype: str, may_enter: bool):
+	"""`doctype` owned by the app `acme`, whose `app_permission` hook lets the person in or not."""
+	shell = get_shell_doctypes()
+	owned = {**shell, "owners": {**shell["owners"], doctype: "acme"}}
+	gate = f"{__name__}.{'acme_lets_in' if may_enter else 'acme_keeps_out'}"
+	get_hooks = frappe.get_hooks
+
+	def hooks(hook=None, default=None, app_name=None):
+		if hook == "app_permission" and app_name == "acme":
+			return [gate]
+		return get_hooks(hook, default, app_name)
+
+	with (
+		patch("frappe.shell.palette.get_shell_doctypes", return_value=owned),
+		patch("frappe.get_hooks", side_effect=hooks),
+	):
+		yield
+
+
+def acme_lets_in() -> bool:
+	return True
+
+
+def acme_keeps_out() -> bool:
+	return False
 
 
 def without_route(found: list[dict]) -> list[dict]:
