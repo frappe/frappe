@@ -13,6 +13,8 @@ import { registerContributions, registerStandardPages } from "@/contributions/re
 import { installTranslate } from "@/i18n";
 import { resetSprite } from "@/icons/sprite";
 import { resetNavigationReports } from "@/navigation/registry";
+import { headerMenuBuiltins, quickActionBuiltins } from "@/pages/record/builtinActions";
+import { FILES_TAB, recordTabBuiltins } from "@/pages/record/tabs/recordTabs";
 import { standardPages } from "@/pages/standardPages";
 import { registerShell } from "@/router/routeFor";
 import AppShell from "../AppShell.vue";
@@ -320,6 +322,33 @@ describe("opening the palette", () => {
 		await shell();
 		document.body.querySelector<HTMLElement>("[data-key='palette-trigger']")!.click();
 		await vi.waitFor(() => expect(input()).not.toBeNull(), { timeout: 10000 });
+	});
+});
+
+describe("This page on a record page", () => {
+	it("draws one row per act: the star, not its menu copy, and Attach, not the Files tab's entry", async () => {
+		const shown = (item: ActEntry["item"]): ActEntry => ({ item, hidden: false });
+		const files = recordTabBuiltins({ requestUpload: () => {} }).find((tab) => tab.name === FILES_TAB)!;
+		register({
+			header: [
+				act("favourite", "Favourite", { icon: "lucide-star" }),
+				...headerMenuBuiltins({}, { favourited: false, toggle: () => {} }).map(shown),
+			],
+			quickActions: quickActionBuiltins({}, true, undefined, files.create).map(shown),
+			tabs: [shown(files.create!)],
+		});
+		await shell();
+		await open();
+
+		expect(drawn().find(([group]) => group === "This page")).toEqual([
+			"This page",
+			"Favourite",
+			"Copy record URL",
+			"Copy record ID",
+			"Comment",
+			"Attach",
+			"Copy link",
+		]);
 	});
 });
 

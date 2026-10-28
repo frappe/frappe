@@ -58,6 +58,8 @@ export function headerMenuBuiltins(
       name: "favourite_row",
       group: "favourite_band",
       run: favourite.toggle,
+      // The star is this act's palette row.
+      palette: false,
       ...favouriteWording(favourite.favourited),
     },
   ];

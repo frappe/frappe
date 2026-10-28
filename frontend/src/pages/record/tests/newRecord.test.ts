@@ -293,6 +293,7 @@ describe("opening /<doctype>/new", () => {
     expect(header(root)).toContain("New Note");
     expect(header(root)).toContain("Not Saved");
     expect(saveButton(root).disabled).toBe(false);
+    expect(saveButton(root).querySelector(".lucide-save")).not.toBeNull();
     expect(input(root, "title")!.value).toBe("Hello");
     expect(input(root, "status")!.value).toBe("Open");
     expect(server.layoutTypes).toContain("New Record");
