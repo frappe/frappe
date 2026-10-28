@@ -236,6 +236,24 @@ class TestSearchRecords(PaletteRecordsCase):
 		self.assertEqual(by_hidden_value, [])
 		self.assertEqual(frappe.message_log[messages:], [])
 
+	def test_an_exact_name_behind_a_full_page_is_found_under_an_unreadable_title_field(self):
+		for name in ["Ak kestrel", "Bk kestrel", "Ck kestrel", "kestrel"]:
+			frappe.get_doc(doctype=self.restricted_title, name=name, some_fieldname="Secret").insert()
+
+		with listed([self.restricted_title]), self.set_user(READER):
+			found = search_records("kestrel")
+
+		self.assertEqual([row["label"] for row in found], ["kestrel", "Ak kestrel", "Bk kestrel"])
+
+	def test_an_exact_name_behind_a_full_page_of_users_is_looked_up_through_the_hooked_query(self):
+		for n in range(3):
+			frappe.get_doc(doctype="User", email=f"kestrel{n}@example.com", first_name="Kestrel").insert()
+
+		with listed([]):
+			found = search_records("kestrel", doctype="User")
+
+		self.assertEqual(len(found), 3)
+
 	def test_single_is_skipped(self):
 		first = self.readable[0]
 		add_records(first, "Kestrel")

@@ -12,6 +12,7 @@ from frappe.desk.doctype.global_search_settings.global_search_settings import (
 from frappe.desk.record_title import RecordTitles
 from frappe.desk.search import search_widget
 from frappe.utils import get_datetime, get_system_timezone
+from frappe.utils.data import make_filter_tuple
 
 from .boot import index_tiles, titled_visits
 from .doctypes import get_shell_doctypes
@@ -150,7 +151,7 @@ def records_of(doctype: str, txt: str, limit: int = RECORDS_PER_DOCTYPE) -> list
 	results = found_rows(doctype, txt, page_length=limit)
 	if len(results) == limit and not any(is_exact(row.name, txt) for row in results):
 		# a prefix match ties with the exact name, so a full page may have left it out
-		named = found_rows(doctype, txt, filters=[["name", "like", escape_like(txt)]], page_length=1)
+		named = found_rows(doctype, txt, filters={"name": ["like", escape_like(txt)]}, page_length=1)
 		results = [*(row for row in named if is_exact(row.name, txt)), *results][:limit]
 	titles = RecordTitles(doctype).of(results)
 	return [
@@ -164,26 +165,40 @@ def records_of(doctype: str, txt: str, limit: int = RECORDS_PER_DOCTYPE) -> list
 	]
 
 
-def found_rows(doctype: str, txt: str, page_length: int, filters: list | None = None) -> list[frappe._dict]:
+def found_rows(doctype: str, txt: str, page_length: int, filters: dict | None = None) -> list[frappe._dict]:
 	messages = len(frappe.message_log)
 	try:
 		found = search_widget(doctype, txt, page_length=page_length, filters=filters, as_dict=True)
 	except frappe.PermissionError:
 		# search_widget matches on the title and search fields, and refuses one the person may not read
 		del frappe.message_log[messages:]
-		return named_rows(doctype, txt, page_length, filters or [])
+		return named_rows(doctype, txt, page_length, filters or {})
 
 	# a hooked standard query (User's) may ignore as_dict and return tuples, name first
 	return [row if isinstance(row, dict) else frappe._dict(name=row[0]) for row in found]
 
 
-def named_rows(doctype: str, txt: str, page_length: int, filters: list) -> list[frappe._dict]:
+def named_rows(doctype: str, txt: str, page_length: int, filters: dict) -> list[frappe._dict]:
+	"""Records matching `txt` by name alone, leaving out disabled ones as `search_widget` does."""
 	return frappe.get_list(
 		doctype,
-		filters=[["name", "like", f"%{escape_like(txt)}%"], *filters],
+		filters=[
+			["name", "like", f"%{txt}%"],
+			*enabled_only(frappe.get_meta(doctype)),
+			*(make_filter_tuple(doctype, key, value) for key, value in filters.items()),
+		],
 		order_by="name asc",
 		limit_page_length=page_length,
 	)
+
+
+def enabled_only(meta) -> list[list]:
+	shown = []
+	if meta.get("fields", {"fieldname": "enabled", "fieldtype": "Check"}):
+		shown.append(["enabled", "=", 1])
+	if meta.get("fields", {"fieldname": "disabled", "fieldtype": "Check"}):
+		shown.append(["disabled", "!=", 1])
+	return shown
 
 
 def escape_like(txt: str) -> str:
