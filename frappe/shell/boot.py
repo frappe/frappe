@@ -92,6 +92,7 @@ def index_boot() -> dict:
 	}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def save_index_layer(order: list[str], hidden: list[str]) -> list[dict]:
 	"""Store the session user's order and hidden apps on the index; two empty lists reset it. Returns the tiles."""
@@ -251,6 +252,7 @@ def report_oversized_keys(boot: dict, prefix: str | None, reply: str | None = No
 		pass
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def get_boot(path: str | None = None) -> dict:
 	"""Boot for the prefix this request arrived at; the path is the client's only input."""

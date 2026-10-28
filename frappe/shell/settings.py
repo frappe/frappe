@@ -20,6 +20,7 @@ from .settings_filter import SettingsFilter
 PANES_CACHE_KEY = "shell_settings_panes"
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def get_panes() -> dict:
 	"""The panes this user may see, their search label index and their apps' titles, read on first open."""

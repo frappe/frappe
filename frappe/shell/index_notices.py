@@ -79,6 +79,7 @@ def record_first_versions():
 	frappe.local.flags.commit = True
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
 def read_whats_new() -> list[dict]:
 	"""The release notes of each app updated since the session user last looked, then recorded as seen."""

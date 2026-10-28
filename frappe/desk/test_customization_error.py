@@ -82,6 +82,7 @@ class TestCustomizationError(IntegrationTestCase):
 		self.assertNotIn("y" * 4001, row.error)
 
 	def test_whitelist_admits_a_user_and_refuses_guest(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
 		with self.set_user("test@example.com"):
 			frappe.is_whitelisted(report_customization_error)
 		with self.set_user("Guest"):

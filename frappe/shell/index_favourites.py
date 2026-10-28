@@ -29,6 +29,7 @@ def index_favourites() -> dict:
 	return {"favourites": Chips(rows[:SHOWN]).draw(), "more_favourites": len(rows) > SHOWN}
 
 
+@frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def more_favourites() -> list[dict]:
 	"""The chips after the first `SHOWN`, at most `MORE_LIMIT` rows, with boot's read checks."""

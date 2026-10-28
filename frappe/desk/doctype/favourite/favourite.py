@@ -72,6 +72,7 @@ def has_permission(doc, ptype="read", user=None):
 	return doc.user == user
 
 
+@frappe.desk_v2_only
 @frappe.whitelist()
 def toggle_favourite(doctype: str, name: str, add: str | bool = False):
 	"""Add or remove the current user's favourite on a record, a list or a saved view; `add` truthy adds."""
