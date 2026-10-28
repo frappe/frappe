@@ -58,11 +58,7 @@ ASSISTANT_INSTRUCTIONS = (
 	"call main() yourself. Same sandbox rules as execute.\n\n"
 	"STYLE: one short sentence before each tool call on what you're doing and why; never call a tool "
 	"silently. If a result changes your plan, say so. When you need a decision you cannot discover, ask "
-	"a short plain-text question and stop. When done, reply in plain text.\n\n"
-	"NEXT REPLIES: in a chat, end almost every reply with a suggest_replies call, whether it asks the "
-	"user something or just finishes a task: two to four short replies in the user's words, its likely "
-	"answers or the next steps they would want. Set multi_select when more than one answer can apply. "
-	"Skip it only when you cannot guess any."
+	"a short plain-text question and stop. When done, reply in plain text."
 )
 
 

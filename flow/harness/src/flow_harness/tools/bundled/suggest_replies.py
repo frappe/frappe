@@ -18,10 +18,11 @@ async def suggest_replies(
 ) -> ToolResult:
 	"""Offer the user two to four next messages, shown as buttons under your reply.
 
-	Call it last, once your reply is written: it ends your turn. Each is a message the user
-	would send, in their words and only a few of them: the next steps they are likely to want
-	or, when your reply asks a question, its likely answers. Set multi_select when they may pick
-	several. They can always type something else. Skip it when no next step is clear.
+	End almost every reply with it, whether the reply asks the user something or finishes a
+	task. Call it last, once your reply is written: it ends your turn. Each is a short message
+	the user would send, in their words: the next steps they are likely to want or, when your
+	reply asks a question, its likely answers. Set multi_select when more than one can apply.
+	They can always type something else. Skip it only when you cannot guess any.
 	"""
 	replies = [reply.strip() for reply in replies]
 	if not MIN_REPLIES <= len(replies) <= MAX_REPLIES or "" in replies or len(set(replies)) < len(replies):
