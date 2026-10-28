@@ -2378,8 +2378,11 @@ class TestSidebarForDeskV2(IntegrationTestCase):
 		"""The database holds this, not a hook, because a bulk write skips the document entirely."""
 		self.layer()
 
+		# postgres aborts the transaction on a failed statement, so recover to a savepoint
+		frappe.db.savepoint("shared_address")
 		with self.assertRaises(frappe.UniqueValidationError):
 			self.layer()
+		frappe.db.rollback(save_point="shared_address")
 
 	def test_desk_v1s_sidebars_all_sit_under_the_index(self):
 		"""Every one of them has an empty address, and a `NULL` is distinct from every other `NULL`.
