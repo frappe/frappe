@@ -965,11 +965,27 @@ data = columns, result
 		report.append(
 			"filters", dict(fieldname="doc_type", label="Document Type", fieldtype="Select", options="User")
 		)
+		report.append(
+			"filters",
+			dict(fieldname="document", label="Document", fieldtype="Dynamic Link", options="doc_type"),
+		)
+		report.append("filters", dict(fieldname="tag", label="Tag", fieldtype="Autocomplete"))
 
 		filters = report.get_validated_filters(
-			{"allocated_to": user, "doc_type": "User", "documents": [user]}, user
+			{
+				"allocated_to": user,
+				"doc_type": "User",
+				"documents": [user],
+				"document": "missing",
+				"tag": "a",
+			},
+			user,
 		)
 		self.assertEqual(filters.documents, [user])
+		self.assertEqual((filters.document, filters.tag), ("missing", "a"))
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Tag"):
+			report.get_validated_filters({"allocated_to": user, "tag": ["a"]}, user)
 
 		with self.assertRaises(frappe.PermissionError):
 			report.get_validated_filters(
