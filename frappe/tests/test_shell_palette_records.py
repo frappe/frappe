@@ -5,8 +5,8 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.palette import search_doctype_records, search_records
 from frappe.shell.links import canonical_path
+from frappe.shell.palette import search_doctype_records, search_records
 from frappe.tests import IntegrationTestCase
 
 READER = "palette-reader@example.com"
@@ -160,19 +160,20 @@ class TestSearchRecords(PaletteRecordsCase):
 
 		self.assertEqual([(row["name"], row["label"]) for row in found], [("Kestrel Ridge", "Kestrel Ridge")])
 
-	def test_a_record_carries_its_v2_address_without_the_host(self):
+	def test_a_record_carries_its_address_on_its_owners_app_without_the_host(self):
 		first = self.readable[0]
 		add_records(first, "Kestrel Ridge")
 
+		# with desk v2 off, get_url_to_form would give a /desk/ address
 		with (
 			listed([first]),
 			self.set_user(READER),
-			patch("frappe.utils.data.is_desk_v2_enabled", return_value=True),
+			patch("frappe.utils.data.is_desk_v2_enabled", return_value=False),
 		):
 			found = search_records("Kestrel")
 
 		self.assertEqual([row["route"] for row in found], [canonical_path(first, "Kestrel Ridge")])
-		self.assertTrue(found[0]["route"].startswith("/apps/"))
+		self.assertTrue(found[0]["route"].startswith(f"{canonical_path(first)}/"))
 
 	def test_single_is_skipped(self):
 		first = self.readable[0]
@@ -233,7 +234,7 @@ def add_records(doctype: str, *names: str):
 
 
 def listed(doctypes: list[str]):
-	return patch("frappe.desk.palette.get_doctypes_for_global_search", return_value=doctypes)
+	return patch("frappe.shell.palette.get_doctypes_for_global_search", return_value=doctypes)
 
 
 def without_route(found: list[dict]) -> list[dict]:

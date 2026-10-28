@@ -43,6 +43,13 @@ const PALMER = {
 	route: `${ERPNEXT}/customer/Palmer%20Productions`,
 };
 
+const PALMER_DEAL = {
+	doctype: "CRM Deal",
+	name: "CRM-DEAL-0007",
+	label: "Palmer renewal",
+	route: `${CRM}/crm-deal/CRM-DEAL-0007`,
+};
+
 const mounted: App[] = [];
 const releases: (() => void)[] = [];
 let assign: ReturnType<typeof vi.fn>;
@@ -54,7 +61,7 @@ beforeEach(() => {
 	fake.runMethod.mockReset().mockImplementation(async (method: string, args: { txt?: string }) => {
 		if (method === "frappe.shell.palette.places") return { data: PLACES };
 		if (method === "frappe.shell.settings.get_panes") return { data: { panes: [], index: [], titles: {} } };
-		return { data: args.txt?.toLowerCase().startsWith("palmer") ? [PALMER] : [] };
+		return { data: args.txt?.toLowerCase().startsWith("palmer") ? [PALMER, PALMER_DEAL] : [] };
 	});
 	assign = vi.fn();
 	vi.stubGlobal("location", { ...window.location, assign });
@@ -178,15 +185,21 @@ describe("the index's search", () => {
 		expect(assign).toHaveBeenCalledWith(`${CRM}/crm-deal`);
 	});
 
-	it("finds a record by name and opens it at its own app's address", async () => {
+	it("opens each record at the address the server gives on its owner's app", async () => {
 		const host = await mount();
 		await type(host, "Palmer");
-		await vi.waitFor(() => expect(rows(host)).toEqual(["record:Customer/Palmer Productions"]));
+		await vi.waitFor(() =>
+			expect(rows(host)).toEqual(["record:Customer/Palmer Productions", "record:CRM Deal/CRM-DEAL-0007"])
+		);
 		expect(headings(host)).toEqual(["Records"]);
-		expect(asked("frappe.desk.palette.search_records").at(-1)?.[1]).toEqual({ txt: "Palmer" });
+		expect(asked("frappe.shell.palette.search_records").at(-1)?.[1]).toEqual({ txt: "Palmer" });
+		const deal = host.querySelector<HTMLElement>("[data-result='record:CRM Deal/CRM-DEAL-0007']")!;
+		expect(deal.getAttribute("href")).toBe(PALMER_DEAL.route);
 
+		await press(host, "ArrowDown");
+		expect(selected(host)).toEqual(["record:CRM Deal/CRM-DEAL-0007"]);
 		await press(host, "Enter");
-		expect(assign).toHaveBeenCalledWith(PALMER.route);
+		expect(assign).toHaveBeenCalledWith(PALMER_DEAL.route);
 	});
 
 	it("runs Create through the shell act, by Enter and by a click", async () => {
