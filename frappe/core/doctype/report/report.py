@@ -517,7 +517,7 @@ class Report(Document):
 
 		try:
 			method = self.get_module_method("get_xlsx_styles")
-		except AttributeError:
+		except (AttributeError, ModuleNotFoundError):
 			# Ignore if hook(method) is not defined
 			return
 
