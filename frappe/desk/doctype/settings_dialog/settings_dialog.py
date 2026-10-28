@@ -296,31 +296,30 @@ def validate_named_bindings(block):
 
 
 def validate_component_fields(block):
-	"""A bound component saves only the fields it lists, so it lists some and each is on one of its doctypes."""
+	"""A bound component saves only the fields it lists. Their names go unchecked while a bound doctype is not installed."""
 	doctypes = [binding["doctype"] for binding in parse_json(block, "bindings", {}).values()]
 	fields = parse_json(block, "fields", [])
 	if doctypes and not fields:
 		frappe.throw(
-			_("Block row {0}: component {1} has a binding, so it lists the fields it saves.").format(
-				block.idx, frappe.bold(block.component)
+			_("Block row {0}: component {1} has a binding. List the fields it saves in {2}.").format(
+				block.idx, frappe.bold(block.component), frappe.bold(block.meta.get_label("fields"))
 			),
 			title=_("Fields Not Listed"),
 		)
 
+	if not doctypes or not all(frappe.db.exists("DocType", doctype) for doctype in doctypes):
+		return
+
 	if missing := fields_missing_from(fields, doctypes):
 		frappe.throw(
-			_("Block row {0}: {1} is not a field of {2}.").format(
-				block.idx, frappe.bold(", ".join(missing)), frappe.bold(", ".join(doctypes))
+			_("Block row {0}: not a field of {1}: {2}.").format(
+				block.idx, frappe.bold(", ".join(doctypes)), frappe.bold(", ".join(missing))
 			),
 			title=_("Unknown Field"),
 		)
 
 
 def fields_missing_from(fields: list[str], doctypes: list[str]) -> list[str]:
-	"""The listed fields none of the doctypes has; none while one is not installed, since the merge drops that block."""
-	if not doctypes or not all(frappe.db.exists("DocType", doctype) for doctype in doctypes):
-		return []
-
 	metas = [frappe.get_meta(doctype) for doctype in doctypes]
 	return [field for field in fields if not any(meta.has_field(field) for meta in metas)]
 

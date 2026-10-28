@@ -255,14 +255,18 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			)
 			ship(["general"], [bound("phone", fields='["phone"]')])
 
-	def test_a_bound_component_block_lists_fields_its_doctype_has(self):
+	def test_a_bound_component_block_lists_fields_its_doctypes_have(self):
+		user = {"type": "Record", "doctype": "User", "resolver": "session_user"}
+		two = json.dumps({"user": user, "system": {"type": "Single", "doctype": "System Settings"}})
 		with authoring():
-			for fields in (None, "[]", '["user_imag"]', '["user_image", "app_name"]'):
+			for fields in (None, "[]", '["user_imag"]', '["user_image", "nope"]'):
 				with self.subTest(fields=fields):
-					self.assertRaises(
-						frappe.ValidationError, ship, ["general"], [bound("photo", fields=fields)]
-					)
-			ship(["general"], [bound("photo"), component("theme")])
+					block = component("both", bindings=two, fields=fields)
+					self.assertRaises(frappe.ValidationError, ship, ["general"], [block])
+			ship(
+				["general"],
+				[component("both", bindings=two, fields='["user_image", "app_name"]'), component("theme")],
+			)
 
 	def test_a_generated_block_may_differ_from_a_component_on_its_binding(self):
 		with authoring():

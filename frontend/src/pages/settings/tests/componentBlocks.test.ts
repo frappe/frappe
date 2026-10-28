@@ -253,7 +253,6 @@ describe("two component blocks on one binding", () => {
 		]);
 		expect(drafts.unsavedCount.value).toBe(1);
 	});
-
 });
 
 describe("a component block with no binding", () => {

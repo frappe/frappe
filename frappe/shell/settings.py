@@ -150,7 +150,7 @@ def _claims_a_claimed_field(pane: dict, block: dict) -> bool:
 
 
 def _lists_its_fields(block: dict) -> bool:
-	"""A bound component saves only the fields it lists, as `Settings Dialog` checks on save."""
+	"""As `Settings Dialog` checks on save."""
 	fields = block.get("fields")
 	return "bindings" not in block or bool(fields and not fields_missing_from(fields, _bound_doctypes(block)))
 

@@ -97,7 +97,7 @@
   },
   {
    "depends_on": "eval:doc.binding_type || doc.component",
-   "description": "JSON list of fieldnames. A generated block shows them; empty shows the doctype's whole layout. A component block with a binding saves them, and must list them.",
+   "description": "JSON list of fieldnames. A generated block shows them; empty shows the doctype's whole layout. A component block with a binding saves only these, so it lists at least one, each a field of one of its doctypes.",
    "fieldname": "fields",
    "fieldtype": "Code",
    "label": "Fields",
