@@ -29,6 +29,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
 from frappe.mcp import handle as handle_mcp
+from frappe.utils.data import is_desk_v2_enabled
 
 SEARCH_PAGE_LENGTH = 10
 
@@ -280,6 +281,7 @@ def create_doc(doctype: str):
 	data.pop("doctype", None)
 
 	doc = frappe.new_doc(doctype, **data)
+	doc.flags.attach_text_editor_files = is_desk_v2_enabled()
 
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True
@@ -305,6 +307,7 @@ def update_doc(doctype: str, name: str):
 	doc.check_permission("write")
 	data.pop("flags", None)
 	doc.update(data)
+	doc.flags.attach_text_editor_files = is_desk_v2_enabled()
 	doc.save()
 	doc.apply_fieldlevel_read_permissions()
 

@@ -13,6 +13,7 @@ from unittest.mock import MagicMock, call, patch
 
 import frappe
 from frappe import _
+from frappe.api.v2 import create_doc, update_doc
 from frappe.core.api.file import (
 	create_new_folder,
 	get_attached_images,
@@ -26,6 +27,7 @@ from frappe.core.doctype.file.utils import (
 	get_extension,
 	get_web_image,
 )
+from frappe.desk.form.save import savedocs
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
 from frappe.tests import IntegrationTestCase, UnitTestCase
@@ -1828,7 +1830,7 @@ class TestChildTableAttachments(IntegrationTestCase):
 
 
 class TestTextEditorFileAdoption(IntegrationTestCase):
-	"""A detached File a Text Editor field shows is attached to the record when its uploader saves."""
+	"""A detached File a Text Editor field shows is attached when its uploader saves in desk v2."""
 
 	@classmethod
 	def setUpClass(cls):
@@ -1865,6 +1867,7 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		super().tearDownClass()
 
 	def setUp(self):
+		self.enterContext(self.change_settings("System Settings", enable_desk_v2=1))
 		frappe.set_user("test@example.com")
 		set_request(method="POST", path="/api/v2/document/Test Text Editor Parent")
 
@@ -1884,7 +1887,14 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		).insert(ignore_permissions=True)
 
 	def make_record(self, doctype=None, **values):
-		return frappe.get_doc({"doctype": doctype or self.parent_doctype, **values}).insert()
+		doctype = doctype or self.parent_doctype
+		frappe.local.form_dict = frappe._dict(values)
+		return frappe.get_doc(doctype, create_doc(doctype)["name"])
+
+	def save_record(self, record, **values):
+		frappe.local.form_dict = frappe._dict(values)
+		update_doc(record.doctype, record.name)
+		return frappe.get_doc(record.doctype, record.name)
 
 	def attachment_of(self, file):
 		return frappe.db.get_value(
@@ -1942,8 +1952,7 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		record = self.make_record(self.public_doctype, body="<p>Plan</p>")
 		file = self.make_file(b"later-public-image")
 
-		record.body = f'<img src="{file.file_url}">'
-		record.save()
+		record = self.save_record(record, body=f'<img src="{file.file_url}">')
 
 		attached = self.attachment_of(file)
 		self.assertEqual((attached.is_private, attached.attached_to_name), (0, record.name))
@@ -1989,8 +1998,7 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		file = self.make_file(b"later-image")
 		record = self.make_record(body="<p>Plan</p>")
 
-		record.body = f'<p>Plan</p><img src="{file.file_url}">'
-		record.save()
+		self.save_record(record, body=f'<p>Plan</p><img src="{file.file_url}">')
 
 		self.assertEqual(self.attachment_of(file).attached_to_name, record.name)
 
@@ -2015,9 +2023,9 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		frappe.set_user("Guest")
 		file = self.make_file(b"guest-image")
 
-		frappe.get_doc({"doctype": self.parent_doctype, "body": f'<img src="{file.file_url}">'}).insert(
-			ignore_permissions=True
-		)
+		doc = frappe.get_doc({"doctype": self.parent_doctype, "body": f'<img src="{file.file_url}">'})
+		doc.flags.attach_text_editor_files = True
+		doc.insert(ignore_permissions=True)
 
 		self.assertIsNone(self.attachment_of(file).attached_to_doctype)
 
@@ -2031,6 +2039,34 @@ class TestTextEditorFileAdoption(IntegrationTestCase):
 		self.make_record(body=f'<img src="{file.file_url}">')
 
 		self.assertEqual(self.attachment_of(file).attached_to_name, first.name)
+
+	def test_leaves_the_file_on_a_desk_v1_save(self):
+		record = self.make_record(self.public_doctype, body="<p>Plan</p>")
+		file = self.make_file(b"desk-v1-image")
+		doc = frappe.get_doc(self.public_doctype, record.name).as_dict()
+		doc.body = f'<img src="{file.file_url}">'
+
+		for save in (frappe.client.save, lambda doc: savedocs(frappe.as_json(doc), "Save")):
+			with self.subTest(save=save):
+				save(doc)
+				doc.modified = frappe.db.get_value(self.public_doctype, record.name, "modified")
+
+				attached = self.attachment_of(file)
+				self.assertEqual((attached.attached_to_doctype, attached.is_private), (None, 1))
+
+		self.save_record(record, body=f'<p>Plan</p><img src="{file.file_url}">')
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.attached_to_name, attached.is_private), (record.name, 0))
+
+	def test_leaves_the_file_on_a_rest_save_with_desk_v2_off(self):
+		file = self.make_file(b"desk-v2-off-image")
+
+		with self.change_settings("System Settings", enable_desk_v2=0):
+			record = self.make_record(self.public_doctype, body=f'<img src="{file.file_url}">')
+
+		attached = self.attachment_of(file)
+		self.assertEqual((attached.attached_to_doctype, attached.is_private), (None, 1))
+		self.assertEqual(record.body, f'<img src="{file.file_url}">')
 
 
 class TestAttachmentsAccess(IntegrationTestCase):
