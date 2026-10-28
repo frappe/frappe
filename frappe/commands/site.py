@@ -1460,7 +1460,8 @@ def start_ngrok(context: CliCtxObj, bind_tls, use_default_authtoken):
 	if not port and frappe.conf.developer_mode:
 		port = frappe.conf.webserver_port
 
-	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls)
+	ngrok_domain = frappe.conf.ngrok_domain
+	tunnel = ngrok.connect(addr=str(port), host_header=site, bind_tls=bind_tls, domain=ngrok_domain)
 	print(f"Public URL: {tunnel.public_url}")
 	print("Inspect logs at http://127.0.0.1:4040")
 
