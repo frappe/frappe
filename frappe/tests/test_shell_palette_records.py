@@ -410,10 +410,10 @@ def owned_by_acme(doctype: str, may_enter: bool):
 	gate = f"{__name__}.{'acme_lets_in' if may_enter else 'acme_keeps_out'}"
 	get_hooks = frappe.get_hooks
 
-	def hooks(hook=None, default=None, app_name=None):
-		if hook == "app_permission" and app_name == "acme":
+	def hooks(hook=None, *args, **kwargs):
+		if hook == "app_permission" and kwargs.get("app_name") == "acme":
 			return [gate]
-		return get_hooks(hook, default, app_name)
+		return get_hooks(hook, *args, **kwargs)
 
 	with (
 		patch("frappe.shell.palette.get_shell_doctypes", return_value=owned),
