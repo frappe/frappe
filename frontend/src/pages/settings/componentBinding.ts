@@ -48,15 +48,18 @@ export function componentBinding(
 	};
 }
 
-/** The owned fields' errors, else, on a save that marked an owned field, a refused field no block claims. */
+/** Owned fields' errors first; else the refused save behind an owned mark, unless it named only other blocks' fields. */
 function refusal(draft: BindingDraft, owned: string[], claimed: string[]): string {
 	const drawn = Object.entries(draft.fieldErrors.drawn.value);
-	const messageOn = (matches: (fieldname: string) => boolean) => {
-		const [, message] = drawn.find(([key]) => matches(fieldnameOfErrorKey(key))) ?? [];
-		return message ? [message].flat().join(" ") : "";
-	};
-	const own = messageOn((fieldname) => owned.includes(fieldname));
-	if (own) return own;
-	if (!owned.some((fieldname) => draft.state.marks[fieldname] === "error")) return "";
-	return messageOn((fieldname) => !claimed.includes(fieldname)) || __("Did not save");
+	const [, message] = drawn.find(([key]) => owned.includes(fieldnameOfErrorKey(key))) ?? [];
+	if (message) return [message].flat().join(" ");
+	const failed = owned.filter((fieldname) => draft.state.marks[fieldname] === "error");
+	if (!failed.length) return "";
+	const behind = failed.map((fieldname) => draft.state.refusals[fieldname]).find(Boolean);
+	if (!behind) return __("Did not save");
+	if (!behind.named.length) return behind.message;
+	const notOthers = behind.named.find(
+		({ fieldname }) => owned.includes(fieldname) || !claimed.includes(fieldname)
+	);
+	return notOthers?.message ?? __("Did not save");
 }
