@@ -8,6 +8,8 @@ frappe.ui.form.on("Client Script", {
 		frappe.utils.highlight_pre(sample_field.$wrapper);
 	},
 	refresh(frm) {
+		frm.events.hide_desk_v2_options(frm);
+
 		if (frm.doc.dt && frm.doc.script) {
 			frm.add_custom_button(__("Go to {0}", [frm.doc.dt]), () => {
 				if (frappe.model.is_single(frm.doc.dt)) {
@@ -68,6 +70,16 @@ frappe.ui.form.on("Client Script", {
 				istable: 0,
 			},
 		});
+	},
+
+	hide_desk_v2_options(frm) {
+		if (cint(frappe.boot.sysdefaults.enable_desk_v2)) return;
+		frm.toggle_display("run_order", false);
+		// Record scripts run only in desk v2. A Record doc (say, a duplicate)
+		// keeps the option so its value shows.
+		if (frm.doc.view !== "Record") {
+			frm.set_df_property("view", "options", ["List", "Form"]);
+		}
 	},
 
 	dt(frm) {
