@@ -101,7 +101,7 @@ class FileUploader {
 				let all_private = files.every((file) => file.private);
 				if (this.dialog && this.can_toggle_private) {
 					this.dialog.set_secondary_action_label(
-						all_private ? __("Set all public") : __("Set all private")
+						all_private ? __("Set all public") : __("Set all restricted")
 					);
 				}
 			},
@@ -162,7 +162,7 @@ class FileUploader {
 
 		// Only add secondary action if user is allowed to toggle privacy
 		if (this.can_toggle_private) {
-			dialog_opts.secondary_action_label = __("Set all private");
+			dialog_opts.secondary_action_label = __("Set all restricted");
 			dialog_opts.secondary_action = () => {
 				this.uploader.toggle_all_private();
 			};
