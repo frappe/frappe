@@ -225,7 +225,7 @@ class File(Document):
 				frappe.throw(_("Only System Managers can make this file public."))
 
 	def normalize_file_url(self):
-		"""Collapse `.`, `..` and `//` segments in a local file URL.
+		"""Collapse `.` and `//` segments in a local file URL; reject `..`.
 
 		The private-file access check matches `file_url` literally, but the path is
 		resolved on disk after normalization. Without this, `/private/files/./secret.pdf`
@@ -235,10 +235,12 @@ class File(Document):
 		if not self.file_url or self.is_remote_file:
 			return
 
+		if ".." in self.file_url.split("/"):
+			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
+
 		for prefix in ("/private/files/", "/files/"):
 			if not self.file_url.startswith(prefix):
 				continue
-			# Anchor at root so `..` collapses instead of escaping, then drop the anchor.
 			name = posixpath.normpath("/" + self.file_url[len(prefix) :].lstrip("/")).lstrip("/")
 			if not name or name == ".":
 				frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))

@@ -1225,12 +1225,15 @@ class TestAttachmentsAccess(IntegrationTestCase):
 		for messy in (
 			f"/private/files/./{name}",
 			f"/private/files/.//{name}",
-			f"/private/files/foo/../{name}",
 		):
 			candidate = frappe.new_doc("File")
 			candidate.file_url = messy
 			candidate.normalize_file_url()
 			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
+		candidate = frappe.new_doc("File")
+		candidate.file_url = f"/private/files/foo/../{name}"
+		self.assertRaisesRegex(ValidationError, "File URL", candidate.normalize_file_url)
 
 	def tearDown(self) -> None:
 		frappe.set_user("Administrator")
