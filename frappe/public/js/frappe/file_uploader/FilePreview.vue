@@ -25,6 +25,7 @@
 						role="radiogroup"
 						id="uploader-visibility-toggle"
 						:aria-label="__('Visibility')"
+						:title="visibility_title"
 					>
 						<button
 							v-for="option in visibility_options"
@@ -35,7 +36,7 @@
 							:aria-checked="option.private === is_private"
 							:data-state="option.private === is_private ? 'active' : 'inactive'"
 							:disabled="!can_toggle_visibility"
-							:title="visibility_locked_title || option.title"
+							:title="option.title"
 							@click="option.private !== is_private && emit('toggle_private')"
 							v-html="option.html"
 						></button>
@@ -169,11 +170,14 @@ let visibility_options = [
 		true
 	)}<span>${frappe.utils.escape_html(option.label)}</span>`,
 }));
-let visibility_locked_title = computed(() => {
+let visibility_title = computed(() => {
+	if (can_toggle_visibility.value) {
+		return null;
+	}
 	if (!uploaded.value && !frappe.utils.can_upload_public_files()) {
 		return __("Only System Managers can upload public files");
 	}
-	return null;
+	return visibility_options.find((option) => option.private === is_private.value).title;
 });
 
 let is_cropable = computed(() => {
