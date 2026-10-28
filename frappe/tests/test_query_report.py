@@ -816,7 +816,6 @@ data = columns, result
 
 	def test_validated_filters_reject_invalid_values(self):
 		report, user = self.make_filtered_report()
-		frappe.set_user("Administrator")
 		job_type = frappe.db.get_value("Scheduled Job Type", {})
 
 		with self.set_user(user):
