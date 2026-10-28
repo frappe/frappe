@@ -633,7 +633,11 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				} else {
 					f = this.page.add_field(df, filter_area);
 				}
-				if (df.default && df.fieldtype === "MultiSelectList") {
+				if (
+					df.default &&
+					df.fieldtype === "MultiSelectList" &&
+					this.report_settings.validate_filters
+				) {
 					f.set_value(df.default);
 				} else if (df.default) {
 					f.set_input(df.default);
