@@ -77,7 +77,7 @@ class TestLoad(IntegrationTestCase):
 	def test_get_document_email(self):
 		with patch(
 			"frappe.email.doctype.email_account.email_account.get_automatic_email_link",
-			return_value="erpnext@example.com",
+			return_value=["erpnext@example.com"],
 		):
 			address = get_document_email("Purchase Order", "PO-26465-002")
 			address_with_separator_in_name = get_document_email("Purchase Order", "PO/2026/002")

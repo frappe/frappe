@@ -11,7 +11,12 @@ from unittest.mock import MagicMock, patch
 import frappe
 from frappe.core.doctype.communication.email import make
 from frappe.desk.form.load import get_attachments
-from frappe.email.doctype.email_account.email_account import notify_unreplied
+from frappe.email.doctype.email_account.email_account import (
+	clear_automatic_linking_cache,
+	get_automatic_email_link,
+	get_automatic_linking_domains,
+	notify_unreplied,
+)
 from frappe.email.email_body import get_message_id
 from frappe.email.receive import Email, InboundMail, SentEmailInInboxError
 from frappe.tests import IntegrationTestCase
@@ -60,6 +65,40 @@ class TestEmailAccount(IntegrationTestCase):
 		self.assertTrue("test_receiver@example.com" in comm.recipients)
 		# check if todo is created
 		self.assertTrue(frappe.db.get_value(comm.reference_doctype, comm.reference_name, "name"))
+
+	def test_multiple_accounts_can_enable_automatic_linking(self):
+		"""Automatic linking is no longer limited to a single Email Account."""
+		names = ("_Test Auto Link One", "_Test Auto Link Two")
+		for name in names:
+			frappe.delete_doc_if_exists("Email Account", name)
+			self.addCleanup(frappe.delete_doc_if_exists, "Email Account", name)
+
+		for name, email_id in zip(names, ("auto1@link.example.org", "auto2@link.example.org"), strict=True):
+			frappe.get_doc(
+				{
+					"doctype": "Email Account",
+					"email_account_name": name,
+					"email_id": email_id,
+					"enable_incoming": 1,
+					"enable_automatic_linking": 1,
+					"awaiting_password": 1,
+				}
+			).insert(ignore_permissions=True)
+
+		clear_automatic_linking_cache()
+		email_ids = get_automatic_email_link()
+		self.assertIn("auto1@link.example.org", email_ids)
+		self.assertIn("auto2@link.example.org", email_ids)
+		self.assertTrue(
+			{"link.example.org"}.issubset(get_automatic_linking_domains()),
+			get_automatic_linking_domains(),
+		)
+
+		# incoming must stay enabled on a flagged account
+		account = frappe.get_doc("Email Account", names[0])
+		account.enable_incoming = 0
+		with self.assertRaises(frappe.ValidationError):
+			account.save()
 
 	def test_unread_notification(self):
 		todo = frappe.get_last_doc("ToDo")
@@ -674,6 +713,39 @@ class TestInboundMail(IntegrationTestCase):
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		reference_doc = inbound_mail.reference_document()
+		self.assertEqual(todo.name, reference_doc.name)
+
+	def test_reference_document_via_automatic_linking_domain(self):
+		"""Reply to a Message-ID anchored on an automatic linking account's own
+		domain (not frappe.local.site) still inherits the reference document."""
+		frappe.delete_doc_if_exists("Email Account", "_Test Auto Link Mailbox")
+		self.addCleanup(frappe.delete_doc_if_exists, "Email Account", "_Test Auto Link Mailbox")
+		frappe.get_doc(
+			{
+				"doctype": "Email Account",
+				"email_account_name": "_Test Auto Link Mailbox",
+				"email_id": "user@mailbox.example.org",
+				"enable_incoming": 1,
+				"enable_automatic_linking": 1,
+				"awaiting_password": 1,
+			}
+		).insert(ignore_permissions=True)
+		clear_automatic_linking_cache()
+
+		todo = self.new_todo()
+		queue_record = self.new_email_queue(
+			message_id="queue-on-custom-domain@mailbox.example.org",
+			reference_doctype="ToDo",
+			reference_name=todo.name,
+		)
+		mail_content = self.get_test_mail(fname="reply-4.raw").replace(
+			"{{ message_id }}", f"<{queue_record.message_id}>"
+		)
+
+		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
+		inbound_mail = InboundMail(mail_content, email_account, 12345, 1)
+		self.assertTrue(inbound_mail.is_reply_to_system_sent_mail())
 		reference_doc = inbound_mail.reference_document()
 		self.assertEqual(todo.name, reference_doc.name)
 

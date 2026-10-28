@@ -349,7 +349,7 @@ class EmailAccount(Document):
 
 	def clear_cache(self):
 		super().clear_cache()
-		frappe.client_cache.delete_value("automatic_linking_email")
+		clear_automatic_linking_cache()
 
 	def there_must_be_only_one_default(self):
 		"""If current Email Account is default, un-default all other accounts."""
@@ -865,15 +865,8 @@ class EmailAccount(Document):
 			return self.email_sync_option or "UNSEEN"
 
 	def check_automatic_linking_email_account(self):
-		if self.enable_automatic_linking:
-			if not self.enable_incoming:
-				frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
-
-			if frappe.db.exists(
-				"Email Account",
-				{"enable_automatic_linking": 1, "name": ("!=", self.name)},
-			):
-				frappe.throw(_("Automatic Linking can be activated only for one Email Account."))
+		if self.enable_automatic_linking and not self.enable_incoming:
+			frappe.throw(_("Automatic Linking can be activated only if Incoming is enabled."))
 
 	def append_email_to_sent_folder(self, message):
 		if not (self.enable_incoming and self.use_imap):
@@ -1159,12 +1152,49 @@ def set_email_password(email_account: str, password: str):
 
 
 def get_automatic_email_link():
+	"""Return email ids of incoming Email Accounts with automatic linking enabled."""
+
 	def check_db():
-		return frappe.db.get_value(
-			"Email Account", {"enable_incoming": 1, "enable_automatic_linking": 1}, "email_id"
+		return frappe.db.get_all(
+			"Email Account",
+			filters={"enable_incoming": 1, "enable_automatic_linking": 1},
+			pluck="email_id",
 		)
 
-	return frappe.client_cache.get_value("automatic_linking_email", generator=check_db)
+	return frappe.client_cache.get_value("automatic_linking_emails", generator=check_db) or []
+
+
+def clear_automatic_linking_cache():
+	for key in ("automatic_linking_emails", "automatic_linking_email_domains"):
+		frappe.client_cache.delete_value(key)
+
+
+def get_automatic_linking_domains() -> set[str]:
+	"""Domains of Email Accounts with automatic linking enabled.
+
+	Mail Message-IDs are anchored on `frappe.local.site`, but automatic linking
+	accounts can live on other domains (e.g. user mailboxes) and send with the
+	configured reply-to addresses. Replies to mails sent from any of those
+	domains must still be threaded to their reference documents.
+	"""
+
+	def check_db():
+		accounts = frappe.db.get_all(
+			"Email Account",
+			filters={"enable_incoming": 1, "enable_automatic_linking": 1},
+			fields=["name", "email_id"],
+		)
+		domains = {cstr(email_id).rpartition("@")[2].lower() for email_id in (a.email_id for a in accounts)}
+		if account_names := [a.name for a in accounts]:
+			reply_to_emails = frappe.db.get_all(
+				"Reply To Address",
+				filters={"parenttype": "Email Account", "parent": ("in", account_names)},
+				pluck="email",
+			)
+			domains.update(cstr(email).rpartition("@")[2].lower() for email in reply_to_emails)
+		return {domain for domain in domains if domain}
+
+	return frappe.client_cache.get_value("automatic_linking_email_domains", generator=check_db) or set()
 
 
 def on_doctype_update() -> None:

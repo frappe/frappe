@@ -450,11 +450,12 @@ def get_tags(doctype: str, name: str) -> str:
 def get_document_email(doctype, name):
 	from frappe.email.doctype.email_account.email_account import get_automatic_email_link
 
-	email = get_automatic_email_link()
-	if not email:
+	email_ids = get_automatic_email_link()
+	if not email_ids:
 		return None
 
-	email = email.split("@")
+	# any flagged account works for the document address, use the first one
+	email = email_ids[0].split("@")
 	return f"{email[0]}+{quote(doctype, safe='')}={quote(cstr(name), safe='')}@{email[1]}"
 
 

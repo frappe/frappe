@@ -779,8 +779,24 @@ class InboundMail(Email):
 		return self.from_email == self.email_account.email_id
 
 	def is_reply_to_system_sent_mail(self):
-		"""Is it a reply to already sent mail."""
-		return self.is_reply() and frappe.local.site in self.in_reply_to
+		"""Is it a reply to already sent mail.
+
+		Outgoing Message-IDs are anchored on the site hostname, but automatic
+		linking accounts can live on their own domains, so the domain of the
+		`In-Reply-To` message-id must match the site or any account with
+		automatic linking enabled (including their reply-to addresses).
+		"""
+		if not self.is_reply():
+			return False
+
+		in_reply_to = self.in_reply_to.lower()
+		if "@" not in in_reply_to:
+			return False
+
+		from frappe.email.doctype.email_account.email_account import get_automatic_linking_domains
+
+		domain = in_reply_to.rpartition("@")[2]
+		return domain == frappe.local.site.lower() or domain in get_automatic_linking_domains()
 
 	def parent_email_queue(self):
 		"""Get parent record from `Email Queue`.
