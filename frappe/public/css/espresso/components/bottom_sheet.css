@@ -163,7 +163,14 @@ html.es-bottom-sheet-open.es-bottom-sheet-gutter {
     transform: scaleX(-1);
 }
 
+/* a long title (say, a record's description) stops at two lines */
 .es-bottom-sheet__title {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    overflow: hidden;
+    overflow-wrap: anywhere;
     font-size: var(--text-lg);
     font-weight: var(--font-weight-semibold);
     line-height: 1.3;
