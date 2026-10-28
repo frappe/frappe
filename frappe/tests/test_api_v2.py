@@ -1312,6 +1312,36 @@ class TestListPartsV2(FrappeAPITestCase):
 		self.assertEqual(len(response.json["data"]), 2)
 		self.assertEqual(response.json["count"], 2)
 
+	def test_group_by_with_sum_and_count(self):
+		aggregates = [{"COUNT": "name", "as": "_aggregate_0"}, {"SUM": "idx", "as": "_aggregate_1"}]
+		closed = self.todos[2].name
+		for todo, idx in zip(self.todos, (1, 2, 4), strict=True):
+			frappe.db.set_value("ToDo", todo.name, "idx", idx, update_modified=False)
+		frappe.db.set_value("ToDo", closed, "status", "Closed", update_modified=False)
+		frappe.db.commit()  # nosemgrep
+		try:
+			grouped = self.list(
+				fields=json.dumps(["status", *aggregates]),
+				group_by="status",
+				order_by="_aggregate_0 desc, status asc",
+			)
+			totals = self.list(fields=json.dumps(aggregates), limit=1)
+		finally:
+			for todo in self.todos:
+				frappe.db.set_value("ToDo", todo.name, {"idx": 0, "status": "Open"}, update_modified=False)
+			frappe.db.commit()  # nosemgrep
+		self.assertEqual(grouped.status_code, 200, grouped.json)
+		self.assertEqual(
+			grouped.json["data"],
+			[
+				{"status": "Open", "_aggregate_0": 2, "_aggregate_1": 3},
+				{"status": "Closed", "_aggregate_0": 1, "_aggregate_1": 4},
+			],
+		)
+		self.assertFalse(grouped.json["has_next_page"])
+		self.assertEqual(totals.status_code, 200, totals.json)
+		self.assertEqual(totals.json["data"], [{"_aggregate_0": 3, "_aggregate_1": 7}])
+
 	def test_no_count_without_include(self):
 		for params in ({}, {"include": ""}):
 			response = self.list(**params)

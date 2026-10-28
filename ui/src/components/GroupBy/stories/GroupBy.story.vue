@@ -53,7 +53,7 @@
 
 		<div class="flex flex-col gap-1 text-xs text-ink-gray-6">
 			<div>GroupBySettings = {{ groupBy }}</div>
-			<div v-if="groupBy">get_list args = {{ serializeGroupBy(groupBy) }}</div>
+			<div v-if="groupBy">listAggregates query = {{ serializeGroupBy(groupBy) }}</div>
 		</div>
 	</div>
 </template>

@@ -229,7 +229,7 @@ function orderBy(groupBy: GroupBySettings): string {
   return [`${column} ${sort.direction}`, ...tieBreakers].join(", ");
 }
 
-/** The arguments for `frappe.client.get_list` that fetch one row per group: the
+/** The `listAggregates` query that fetches one row per group: the
  *  group fields, one aliased aggregate per Aggregate, the `group_by`
  *  clause, and the `order_by` of the chosen sort, tie-broken by the group fields.
  *  Count runs on `name`, as desk's report view does, so `export_query` can label
@@ -246,7 +246,7 @@ export function serializeGroupBy(groupBy: GroupBySettings): {
   };
 }
 
-/** The `frappe.client.get_list` fields for the totals row: the same aggregates over
+/** The `listAggregates` fields for the totals row: the same aggregates over
  *  every matching record, ungrouped, so an average or a max is the true one rather
  *  than a sum of the groups'. `null` when there's nothing to total. */
 export function serializeGroupByTotals(

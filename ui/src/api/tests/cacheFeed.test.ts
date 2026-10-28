@@ -9,6 +9,7 @@ import {
   createDocument,
   deleteDocument,
   getDocument,
+  listAggregates,
   listDocuments,
   removeTag,
   runDocumentMethod,
@@ -120,6 +121,32 @@ describe("reads", () => {
     await listDocuments("ToDo", query);
     expect(JSON.parse(sentQuery().get("fields")!)).toEqual(query.fields);
     expect(readCachedList("ToDo", query)).toBeUndefined();
+  });
+
+  it("listAggregates sends a group_by with SUM and COUNT as they are, and feeds nothing", async () => {
+    const query = {
+      fields: ["status", { COUNT: "name", as: "_aggregate_0" }, { SUM: "idx", as: "_aggregate_1" }],
+      filters: { owner: "a@example.com" },
+      group_by: "status",
+      order_by: "_aggregate_0 desc, status asc",
+      limit: 20,
+    };
+    const rows = [{ status: "Open", _aggregate_0: 2, _aggregate_1: 3 }];
+    respond({ data: rows, has_next_page: false });
+    const reply = await listAggregates("ToDo", query);
+
+    expect(String(fetchMock.mock.calls[0][0])).toMatch(/^\/api\/v2\/document\/ToDo\?/);
+    const sent = sentQuery();
+    expect(JSON.parse(sent.get("fields")!)).toEqual(query.fields);
+    expect(JSON.parse(sent.get("filters")!)).toEqual(query.filters);
+    expect([sent.get("group_by"), sent.get("order_by"), sent.get("limit")]).toEqual([
+      "status",
+      "_aggregate_0 desc, status asc",
+      "20",
+    ]);
+    expect(reply).toMatchObject({ data: rows, has_next_page: false });
+    expect(cache.feedListRead).not.toHaveBeenCalled();
+    expect(readCachedList("ToDo", query as never)).toBeUndefined();
   });
 
   it("leaves a star read's fields alone", async () => {

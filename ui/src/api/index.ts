@@ -143,6 +143,29 @@ export function listDocuments<T = DocumentRecord>(
   ) as Promise<ListEnvelope<T>>;
 }
 
+/** A column, or an aggregate named by `as`, such as `{ SUM: "grand_total", as: "total" }`. */
+export type AggregateField = string | Readonly<Record<string, string>>;
+
+export interface AggregateQuery extends Query {
+  fields: readonly AggregateField[];
+  filters?: unknown;
+  or_filters?: unknown;
+  group_by?: string;
+  order_by?: string;
+  start?: number;
+  limit?: number;
+}
+
+/** Grouped or aggregate rows over the list route. They are not documents: no `modified`, no cache. */
+export function listAggregates<T = Record<string, unknown>>(
+  doctype: string,
+  query: AggregateQuery,
+  { signal }: CallOptions = {}
+): Promise<ListEnvelope<T>> {
+  const path = `/document/${segment(doctype)}`;
+  return request<T[]>("GET", path, { query, signal }) as Promise<ListEnvelope<T>>;
+}
+
 /** Some fields of one record, over the list route; feeds its document entry and no list entry. */
 export async function getDocumentFields<T = DocumentRecord>(
   doctype: string,
