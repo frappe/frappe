@@ -150,7 +150,7 @@ def records_of(doctype: str, txt: str, limit: int = RECORDS_PER_DOCTYPE) -> list
 	results = found_rows(doctype, txt, page_length=limit)
 	if len(results) == limit and not any(is_exact(row.name, txt) for row in results):
 		# a prefix match ties with the exact name, so a full page may have left it out
-		named = found_rows(doctype, txt, filters={"name": ["like", escape_like(txt)]}, page_length=1)
+		named = found_rows(doctype, txt, filters=[["name", "like", escape_like(txt)]], page_length=1)
 		results = [*(row for row in named if is_exact(row.name, txt)), *results][:limit]
 	titles = RecordTitles(doctype).of(results)
 	return [
@@ -164,12 +164,26 @@ def records_of(doctype: str, txt: str, limit: int = RECORDS_PER_DOCTYPE) -> list
 	]
 
 
-def found_rows(doctype: str, txt: str, **kwargs) -> list[frappe._dict]:
+def found_rows(doctype: str, txt: str, page_length: int, filters: list | None = None) -> list[frappe._dict]:
+	messages = len(frappe.message_log)
+	try:
+		found = search_widget(doctype, txt, page_length=page_length, filters=filters, as_dict=True)
+	except frappe.PermissionError:
+		# search_widget matches on the title and search fields, and refuses one the person may not read
+		del frappe.message_log[messages:]
+		return named_rows(doctype, txt, page_length, filters or [])
+
 	# a hooked standard query (User's) may ignore as_dict and return tuples, name first
-	return [
-		row if isinstance(row, dict) else frappe._dict(name=row[0])
-		for row in search_widget(doctype, txt, as_dict=True, **kwargs)
-	]
+	return [row if isinstance(row, dict) else frappe._dict(name=row[0]) for row in found]
+
+
+def named_rows(doctype: str, txt: str, page_length: int, filters: list) -> list[frappe._dict]:
+	return frappe.get_list(
+		doctype,
+		filters=[["name", "like", f"%{escape_like(txt)}%"], *filters],
+		order_by="name asc",
+		limit_page_length=page_length,
+	)
 
 
 def escape_like(txt: str) -> str:

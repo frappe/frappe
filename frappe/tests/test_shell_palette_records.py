@@ -6,7 +6,6 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.desk.record_title import RecordTitles
 from frappe.shell import SHELL_ROOT
 from frappe.shell.doctypes import get_shell_doctypes, slug
 from frappe.shell.links import canonical_path
@@ -214,6 +213,29 @@ class TestSearchRecords(PaletteRecordsCase):
 			},
 		)
 
+	def test_a_title_field_the_person_may_not_read_titles_by_name_and_spares_the_rest(self):
+		first = self.readable[0]
+		frappe.get_doc(
+			doctype=self.restricted_title, name="Kestrel Ridge", some_fieldname="Secret Hawk"
+		).insert()
+		add_records(first, "Kestrel Alpha")
+		messages = len(frappe.message_log)
+
+		with listed([self.restricted_title, first]), self.set_user(READER):
+			found = search_records("Kestrel")
+			by_hidden_value = search_records("Secret")
+
+		self.assertEqual(
+			without_route(found),
+			[
+				{"doctype": self.restricted_title, "name": "Kestrel Ridge", "label": "Kestrel Ridge"},
+				{"doctype": first, "name": "Kestrel Alpha", "label": "Kestrel Alpha"},
+			],
+		)
+		self.assertNotIn("Secret", frappe.as_json(found))
+		self.assertEqual(by_hidden_value, [])
+		self.assertEqual(frappe.message_log[messages:], [])
+
 	def test_single_is_skipped(self):
 		first = self.readable[0]
 		add_records(first, "Kestrel")
@@ -246,6 +268,17 @@ class TestSearchDoctypeRecords(PaletteRecordsCase):
 		self.assertEqual(
 			[row["label"] for row in found[1:]], [f"Kestrel {int(row['name'][4:])}" for row in found[1:]]
 		)
+
+	def test_a_title_field_the_person_may_not_read_titles_by_name(self):
+		frappe.get_doc(
+			doctype=self.restricted_title, name="Kestrel Ridge", some_fieldname="Secret Hawk"
+		).insert()
+		frappe.get_doc(doctype=self.restricted_title, name="Kestrel", some_fieldname="Secret Kite").insert()
+
+		with self.set_user(READER):
+			found = search_doctype_records(self.restricted_title, "kestrel")
+
+		self.assertEqual([row["label"] for row in found], ["Kestrel", "Kestrel Ridge"])
 
 	def test_unreadable_or_single_doctype_finds_nothing(self):
 		add_records(self.closed, "Kestrel")
@@ -357,16 +390,8 @@ class TestRecentAndRecordsAgree(PaletteRecordsCase):
 
 	def test_a_title_field_the_person_may_not_read_gives_the_name(self):
 		frappe.get_doc(doctype=self.restricted_title, name="Kestrel Ridge", some_fieldname="Secret").insert()
-		self.visit(self.restricted_title, "Kestrel Ridge")
 
-		with self.set_user(READER):
-			[recent] = places()["recent"]
-			# search_widget refuses this doctype, so a row that carries the column stands in for Records
-			record = RecordTitles(self.restricted_title).of(
-				[{"name": "Kestrel Ridge", "some_fieldname": "Secret"}]
-			)
-
-		self.assertEqual([recent["title"], record["Kestrel Ridge"]], ["Kestrel Ridge"] * 2)
+		self.assertEqual(self.titles_of(self.restricted_title, "Kestrel Ridge"), ["Kestrel Ridge"] * 2)
 
 	def titles_of(self, doctype: str, name: str) -> list[str]:
 		"""The record's title in the palette's Recent, after one visit, and in its Records."""
