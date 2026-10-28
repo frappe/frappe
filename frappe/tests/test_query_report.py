@@ -829,6 +829,8 @@ data = columns, result
 				run(report.name, {"allocated_to": user, "job_type": job_type})
 			with self.assertRaises(frappe.LinkValidationError):
 				run(report.name, {"allocated_to": user, "job_type": "missing"})
+			with self.assertRaises(frappe.LinkValidationError):
+				run(report.name, {"allocated_to": 0})
 			with self.assertRaisesRegex(frappe.ValidationError, "priority"):
 				run(report.name, {"allocated_to": user, "priority": "High"})
 			for filters in ('[["allocated_to", "=", "x"]]', "5", '"abc"'):

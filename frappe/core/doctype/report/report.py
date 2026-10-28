@@ -664,7 +664,7 @@ def get_validated_value(row, value, user):
 		)
 
 	if row.fieldtype == "Link" and not row.wildcard_filter:
-		validate_link_value(row.options, value, user)
+		validate_link_value(row.options, cstr(value), user)
 
 	return cast(row.fieldtype, value)
 
