@@ -102,6 +102,14 @@ import CreateDialog from "../CreateDialog.vue";
 
 const LAYOUTS = "/api/v2/method/frappe.desk.doctype.form_layout.form_layout.get_form_layouts";
 const NEW_DOC = "/api/v2/method/frappe.desk.form.load.get_new_doc";
+const PLACES = "/api/v2/method/frappe.shell.palette.places";
+const CRM = "/apps/crm";
+const PLACES_REPLY = {
+	doctypes: [{ name: "Lead", app: "crm", route: `${CRM}/lead`, can_create: true }],
+	apps: [],
+	titles: { crm: "CRM" },
+	recent: [],
+};
 
 const SESSION: Session = {
 	user: { name: "test@example.com", full_name: "Test", email: "test@example.com", user_image: null, document_follow_notify: false },
@@ -180,6 +188,7 @@ beforeEach(() => {
 			return server.layoutsFail
 				? json({ errors: [{ type: "ServerError", message: "Layouts are down" }] }, 500)
 				: json({ data: server.layouts });
+		if (path === PLACES) return json({ data: PLACES_REPLY });
 		if (path === NEW_DOC)
 			return server.newDocFails
 				? json({ errors: [{ type: "PermissionError", message: "No create right" }] }, 403)
@@ -206,18 +215,19 @@ async function settle() {
 	}
 }
 
+const APP_ROUTES = [
+	{ path: "/:doctype", name: "list", component: { render: () => null } },
+	{ path: "/:doctype/new", name: "new-record", component: { render: () => null } },
+	{ path: "/:doctype/:name", name: "record", component: { render: () => null } },
+];
+// The index's router: it belongs to no app, so it holds no doctype route.
+const INDEX_ROUTES = [{ path: "/", name: "home", component: { render: () => null } }];
+
 /** Opens Create the way a caller does and mounts the dialog the shell would draw for it. */
-async function open(doctype: string, values?: Record<string, unknown>) {
-	router = createRouter({
-		history: createMemoryHistory(),
-		routes: [
-			{ path: "/:doctype", name: "list", component: { render: () => null } },
-			{ path: "/:doctype/new", name: "new-record", component: { render: () => null } },
-			{ path: "/:doctype/:name", name: "record", component: { render: () => null } },
-		],
-	});
+async function open(doctype: string, values?: Record<string, unknown>, routes = APP_ROUTES) {
+	router = createRouter({ history: createMemoryHistory(), routes });
 	registerShell({ boot, addresses, router });
-	await router.push(routeFor(doctype));
+	await router.push(router.hasRoute("list") ? routeFor(doctype) : "/");
 	const answer = { settled: false, doc: undefined as CreatedDoc | null | undefined };
 	void openCreate(doctype, { values }).then((doc) => Object.assign(answer, { settled: true, doc }));
 	const request = createRequests.value.at(-1)!;
@@ -282,6 +292,34 @@ describe("dialog or full page", () => {
 		expect(createRequests.value).toEqual([]);
 		expect(router.currentRoute.value.fullPath).toBe("/lead/new?company=Acme");
 		expect(inserts()).toEqual([]);
+	});
+});
+
+describe("on the index", () => {
+	let assign: ReturnType<typeof vi.spyOn>;
+	beforeEach(() => {
+		assign = vi.spyOn(window.location, "assign").mockImplementation(() => {});
+	});
+	afterEach(() => assign.mockRestore());
+
+	it("Edit full form loads the new record at its app's address from places, with the typed values", async () => {
+		const { root, answer } = await open("Lead", { company: "Acme" }, INDEX_ROUTES);
+
+		await type(root, "title", "Big deal");
+		await click(root, "Edit full form");
+
+		expect(answer).toEqual({ settled: true, doc: null });
+		await vi.waitFor(() => expect(assign).toHaveBeenCalledExactlyOnceWith(`${CRM}/lead/new?company=Acme&title=Big+deal`));
+		expect(router.currentRoute.value.path).toBe("/");
+	});
+
+	it("loads the new record at once when the server says no dialog", async () => {
+		server.layouts = { ...server.layouts, dialog: false };
+		const { root, answer } = await open("Lead", { company: "Acme" }, INDEX_ROUTES);
+
+		expect(root.querySelector("[data-dialog]")).toBeNull();
+		expect(answer).toEqual({ settled: true, doc: null });
+		await vi.waitFor(() => expect(assign).toHaveBeenCalledExactlyOnceWith(`${CRM}/lead/new?company=Acme`));
 	});
 });
 

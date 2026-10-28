@@ -191,11 +191,14 @@ const landing = {
 function editFullForm() {
 	const typed = typedValues(values, formData(layout.value, doc.value), defaults.value);
 	isOpen.value = false;
-	handOver(typed);
+	void handOver(typed);
 }
 
-function handOver(carried: Record<string, any>) {
+async function handOver(carried: Record<string, any>) {
 	props.request.settle(null);
-	void router.push(routeForNew(doctype, carried));
+	if (router.hasRoute("new-record")) return void router.push(routeForNew(doctype, carried));
+	// The index's router holds no doctype route: the new record opens in its owner's app.
+	const { newRecordHref } = await import("@/shell/palettePlaces");
+	window.location.assign(await newRecordHref(doctype, carried));
 }
 </script>

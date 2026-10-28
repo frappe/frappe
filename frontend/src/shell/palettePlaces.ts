@@ -8,7 +8,7 @@ import { __ } from "@/i18n";
 import { itemContext } from "@/navigation/context";
 import { labelOf } from "@/navigation/registry";
 import type { ItemContext } from "@/navigation/types";
-import { canRoute, urlFor } from "@/router/routeFor";
+import { canRoute, hrefForNew, urlFor } from "@/router/routeFor";
 import type { PaletteRow } from "./palette";
 import type { PaletteContext, PaletteGroup } from "./paletteGroups";
 import { rank } from "./paletteRanking";
@@ -71,6 +71,13 @@ export async function createOptions(): Promise<ActOption[]> {
 		label: __(doctype.name),
 		description: app,
 	}));
+}
+
+/** A doctype's new record at its owner's address, from `places`, for the index's router. */
+export async function newRecordHref(doctype: string, values: Record<string, unknown>): Promise<string> {
+	const place = (await places.ask(fetchPlaces)).doctypes.find((one) => one.name === doctype);
+	if (!place) throw new Error(`newRecordHref: no address for doctype '${doctype}'`);
+	return hrefForNew(place.route, values);
 }
 
 /** `shell.open_settings`'s options: each settings pane the user may open, at its address. */
