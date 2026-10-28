@@ -640,11 +640,13 @@ function onRowClick(row: Record<string, any>, index: number) {
  * as a flat table, not a stack of bordered inputs.
  * `[data-slot="trigger"]` is frappe-ui's stable hook for the Combobox/Select/
  * Autocomplete/MultiSelect trigger (a `div`, not a `button`), so it needs targeting.
- * An Attach Image thumbnail is a HoverCard trigger too, and keeps its own size. */
+ * An Attach Image thumbnail is a HoverCard trigger too, and keeps its own size,
+ * as does a Color swatch. */
 .grid-cell :deep(input:not([type="checkbox"])),
 .grid-cell :deep(textarea),
 .grid-cell :deep(select),
-.grid-cell :deep(button:not([data-slot="clear"]):not([data-slot="edit"])),
+.grid-cell
+	:deep(button:not([data-slot="clear"]):not([data-slot="edit"]):not([data-slot="swatch"])),
 .grid-cell :deep(.combobox),
 .grid-cell :deep([data-slot="trigger"]:not(img)),
 .grid-cell :deep([data-slot="link-value"]),
