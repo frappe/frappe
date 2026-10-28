@@ -1,4 +1,5 @@
-// The shell surface: each shell act run by name, which acts the shell holds where, and the log out it confirms.
+// The shell surface: each shell act run by name, which acts the shell holds where, the log out it confirms,
+// and the dialogs a shell act opens through `shell.dialog`.
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import { createApp, nextTick, type App } from "vue";
 import { createMemoryHistory, createRouter, type Router } from "vue-router";
@@ -6,12 +7,13 @@ import { createMemoryHistory, createRouter, type Router } from "vue-router";
 import { acts, ActDenied } from "@/acts/dispatcher";
 import { Addresses } from "@/addresses";
 import type { Boot, NavigationItem } from "@/boot";
-import { registerContributions } from "@/contributions/registry";
+import { actsFiles, registerContributions } from "@/contributions/registry";
 import { registerShell } from "@/router/routeFor";
 import { resetNavigationReports } from "@/navigation/registry";
 import { resetSprite } from "@/icons/sprite";
 import AppShell from "../AppShell.vue";
 import { closeCreates, createRequests, registerCreateDialog } from "../create";
+import type { Shell } from "../shellActs";
 
 const fake = vi.hoisted(() => ({ logout: vi.fn(), runMethod: vi.fn() }));
 
@@ -366,5 +368,58 @@ describe("log_out", () => {
 		expect(document.body.querySelector("[role='dialog']")).not.toBeNull();
 		expect(toast.error).toHaveBeenCalledWith("Could not log out");
 		expect(assign).not.toHaveBeenCalled();
+	});
+});
+
+describe("shell.dialog", () => {
+	// The shell reads the list of acts files as it mounts, so the probe ships before each test's shell.
+	let work: (shell: Shell) => unknown = () => {};
+	const probe = { app: "probe", load: async () => ({ default: [{ name: "act", run: (shell: Shell) => work(shell) }] }) };
+
+	beforeEach(() => void actsFiles.push(probe));
+	afterEach(() => void actsFiles.splice(actsFiles.indexOf(probe), 1));
+
+	/** Runs `run` as an app act's `run`, with the `shell` every shell act receives. */
+	async function asShellAct(run: (shell: Shell) => unknown) {
+		work = run;
+		const result = acts.run("shell.probe.act");
+		await settle();
+		return { result };
+	}
+
+	function button(label: string) {
+		return Array.from(document.body.querySelectorAll("[role='dialog'] button")).find(
+			(node) => node.textContent?.trim() === label
+		) as HTMLButtonElement;
+	}
+
+	it("has confirm and danger only, no open or form", async () => {
+		await shell();
+		const { result } = await asShellAct((shell) => Object.keys(shell.dialog));
+		expect(await result).toEqual(["confirm", "danger"]);
+	});
+
+	it("confirm gives the act true when confirmed, and null when dismissed", async () => {
+		await shell();
+		const confirmed = await asShellAct((shell) => shell.dialog.confirm({ title: "Send the reminder?" }));
+		expect(document.body.querySelector("[role='dialog']")!.textContent).toContain("Send the reminder?");
+		button("Confirm").click();
+		expect(await confirmed.result).toBe(true);
+
+		const dismissed = await asShellAct((shell) => shell.dialog.confirm({ title: "Send it again?" }));
+		button("Cancel").click();
+		expect(await dismissed.result).toBeNull();
+	});
+
+	it("danger warns on a theme or an icon, which frappe-ui forces, and asks with Delete", async () => {
+		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+		await shell();
+		const { result } = await asShellAct((shell) =>
+			shell.dialog.danger({ title: "Remove the call log?", theme: "blue", icon: "lucide-flag" } as any)
+		);
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("shell.dialog.danger called with 'theme'"));
+		expect(warn).toHaveBeenCalledWith(expect.stringContaining("shell.dialog.danger called with 'icon'"));
+		button("Delete").click();
+		expect(await result).toBe(true);
 	});
 });
