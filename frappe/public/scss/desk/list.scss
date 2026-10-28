@@ -652,6 +652,13 @@ input.list-header-checkbox {
 
 	.filter-selector {
 		margin: var(--margin-xs);
+
+		// room for the count and ×, so a filter does not resize the quick filters
+		@include media-breakpoint-up(md) {
+			&:has(.filter-x-button.hidden) {
+				padding-inline-start: calc(var(--spacing) * 14);
+			}
+		}
 	}
 
 	.sort-selector {
