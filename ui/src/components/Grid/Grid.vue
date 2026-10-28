@@ -38,6 +38,8 @@
 					ref="scroller"
 					class="grid-scroller overflow-x-auto"
 					@scroll="updateScrollShadows"
+					@keydown.capture="onCellKeydown"
+					@paste="onCellPaste"
 				>
 					<!-- Header -->
 					<div
@@ -89,104 +91,115 @@
 					</div>
 
 					<!-- Rows -->
-					<Draggable
-						v-if="rows.length"
-						:modelValue="rows"
-						:item-key="keyOf"
-						:disabled="disabled"
-						handle=".grid-drag-handle"
-						tag="div"
-						@update:modelValue="reorder"
-					>
-						<template #item="{ element: row, index: rowIndex }">
-							<div
-								class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-base"
-								:class="{ 'cursor-pointer': disabled }"
-								:data-name="row.name || row[ROW_ID]"
-								:data-idx="rowIndex + 1"
-								:style="{
-									gridTemplateColumns: templateColumns,
-									minWidth: gridMinWidth,
-								}"
-								@click="onRowClick(row, rowIndex)"
+					<ContextMenu v-if="rows.length" :options="contextMenu">
+						<div>
+							<Draggable
+								:modelValue="rows"
+								:item-key="keyOf"
+								:disabled="disabled"
+								handle=".grid-drag-handle"
+								tag="div"
+								@update:modelValue="reorder"
 							>
-								<div
-									v-if="!disabled"
-									class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base"
-									:style="{ left: '0' }"
-								>
-									<Checkbox
-										:modelValue="isSelected(row)"
-										:aria-label="`Select row ${rowIndex + 1}`"
-										@update:modelValue="
-											(checked: unknown) => setRow(row, checked as boolean)
-										"
-									/>
-								</div>
-								<div
-									class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base py-2 text-sm text-ink-gray-7"
-									:class="{ 'grid-drag-handle cursor-grab': !disabled }"
-									:style="{ left: numberColLeft }"
-									:title="disabled ? undefined : 'Drag to reorder'"
-								>
-									{{ rowIndex + 1 }}
-								</div>
-								<Tooltip v-for="(col, i) in columns" :key="col.fieldname">
+								<template #item="{ element: row, index: rowIndex }">
 									<div
-										class="grid-cell flex min-w-0 items-stretch"
-										:data-fieldname="col.fieldname"
-										:data-fieldtype="col.fieldtype"
-										:data-invalid="
-											cellErrorLines(row, col).length ? '' : undefined
-										"
-										:class="[
-											alignClass(col.align),
-											{
-												'border-r border-outline-gray-2':
-													i < columns.length - 1,
-											},
-										]"
+										class="grid-row grid items-stretch border-t border-outline-gray-2 bg-surface-base"
+										:class="{ 'cursor-pointer': disabled }"
+										:data-name="row.name || row[ROW_ID]"
+										:data-idx="rowIndex + 1"
+										:style="{
+											gridTemplateColumns: templateColumns,
+											minWidth: gridMinWidth,
+										}"
+										@click="onRowClick(row, rowIndex)"
+										@contextmenu="contextRowIndex = rowIndex"
 									>
-										<slot
-											name="cell"
-											:row="row"
-											:column="col"
-											:index="rowIndex"
-											:value="row[col.fieldname]"
-											:update="(v: any) => updateCell(rowIndex, col, v)"
-											:commit="(v: any) => commitCell(rowIndex, col, v)"
-										>
-											<span
-												class="truncate px-2 py-1 text-sm text-ink-gray-7"
-											>
-												{{ row[col.fieldname] }}
-											</span>
-										</slot>
-									</div>
-									<template v-if="cellErrorLines(row, col).length" #content>
 										<div
-											v-for="(line, n) in cellErrorLines(row, col)"
-											:key="n"
+											v-if="!disabled"
+											class="sticky left-0 z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base"
+											:style="{ left: '0' }"
 										>
-											{{ line }}
+											<Checkbox
+												:modelValue="isSelected(row)"
+												:aria-label="`Select row ${rowIndex + 1}`"
+												@update:modelValue="
+													(checked: unknown) =>
+														setRow(row, checked as boolean)
+												"
+											/>
 										</div>
-									</template>
-								</Tooltip>
-								<div
-									class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
-									:style="{ right: '0' }"
-								>
-									<Button
-										variant="ghost"
-										icon="lucide-square-pen"
-										:tooltip="'Edit Row'"
-										:aria-label="'Edit Row'"
-										@click="emit('edit', { row, index: rowIndex })"
-									/>
-								</div>
-							</div>
-						</template>
-					</Draggable>
+										<div
+											class="sticky z-10 flex items-center justify-center border-r border-outline-gray-2 bg-surface-base py-2 text-sm text-ink-gray-7"
+											:class="{ 'grid-drag-handle cursor-grab': !disabled }"
+											:style="{ left: numberColLeft }"
+											:title="disabled ? undefined : 'Drag to reorder'"
+										>
+											{{ rowIndex + 1 }}
+										</div>
+										<Tooltip v-for="(col, i) in columns" :key="col.fieldname">
+											<div
+												class="grid-cell flex min-w-0 items-stretch"
+												:data-fieldname="col.fieldname"
+												:data-fieldtype="col.fieldtype"
+												:data-invalid="
+													cellErrorLines(row, col).length
+														? ''
+														: undefined
+												"
+												:class="[
+													alignClass(col.align),
+													{
+														'border-r border-outline-gray-2':
+															i < columns.length - 1,
+													},
+												]"
+											>
+												<slot
+													name="cell"
+													:row="row"
+													:column="col"
+													:index="rowIndex"
+													:value="row[col.fieldname]"
+													:update="(v: any) => updateCell(rowIndex, col, v)"
+													:commit="(v: any) => commitCell(rowIndex, col, v)"
+												>
+													<span
+														class="truncate px-2 py-1 text-sm text-ink-gray-7"
+													>
+														{{ row[col.fieldname] }}
+													</span>
+												</slot>
+											</div>
+											<template
+												v-if="cellErrorLines(row, col).length"
+												#content
+											>
+												<div
+													v-for="(line, n) in cellErrorLines(row, col)"
+													:key="n"
+												>
+													{{ line }}
+												</div>
+											</template>
+										</Tooltip>
+										<div
+											class="sticky right-0 z-10 flex items-center justify-center border-l border-outline-gray-2 bg-surface-base"
+											:style="{ right: '0' }"
+											@click.stop
+										>
+											<Dropdown :options="rowMenu(row, rowIndex)">
+												<Button
+													variant="ghost"
+													icon="lucide-ellipsis"
+													:aria-label="__('Row Actions')"
+												/>
+											</Dropdown>
+										</div>
+									</div>
+								</template>
+							</Draggable>
+						</div>
+					</ContextMenu>
 				</div>
 
 				<!-- Scroll shadows: full-height strips pinned just inside the frozen
@@ -242,7 +255,7 @@
 
 <script setup lang="ts" generic="T extends GridColumn">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from "vue";
-import { Button, Checkbox, Tooltip } from "frappe-ui";
+import { Button, Checkbox, ContextMenu, Dropdown, Tooltip } from "frappe-ui";
 import {
 	InputLabel,
 	InputDescription,
@@ -251,7 +264,12 @@ import {
 } from "frappe-ui/experimental";
 // @ts-ignore — vuedraggable ships no bundled types
 import Draggable from "vuedraggable";
-import { ROW_ID, identify, rowKey } from "../Fields/rowIdentity";
+import { ROW_ID, copyRow, identify, rowKey } from "../Fields/rowIdentity";
+import { arrowStep, cellAt, focusCell, moveFocus, rowShortcut } from "./cellNavigation";
+import type { CellAt, RowAction } from "./cellNavigation";
+import { acceptsPaste, isBlock, parseBlock, planPaste } from "./pasteBlock";
+import type { PastePlan } from "./pasteBlock";
+import { translate as __ } from "../../utils/translate";
 import type { GridColumn, GridEmits, GridProps, GridSlots } from "./types";
 
 // Mirrors frappe-ui's `FrappeUIError` (an `Error` whose `messages?: string[]`
@@ -306,19 +324,22 @@ watch(
 // Header and rows are one css grid spanning every column, so there's no flex seam.
 // A field track is `minmax(FLEX_COL_MIN, 1fr)` while flexible and a fixed `${w}px`
 // once resized — fixed (not `minmax(w, 1fr)`) so a resized column stays put and can shrink.
-const FIXED_COL = "2.5rem"; // checkbox / `#` / edit — matches `w-10`
+const FIXED_COL = "2.5rem"; // checkbox / `#` / row menu — matches `w-10`
+const canAddRows = computed(
+	() => !props.disabled && !props.cannotAddRows && props.columns.length > 0
+);
 const templateColumns = computed(() => {
 	const fields = colWidths.value.map((w) =>
 		w == null ? `minmax(${FLEX_COL_MIN}px, 1fr)` : `${w}px`
 	);
 	const lead = props.disabled ? [FIXED_COL] : [FIXED_COL, FIXED_COL]; // (checkbox) + `#`
-	return [...lead, ...fields, FIXED_COL].join(" "); // + edit
+	return [...lead, ...fields, FIXED_COL].join(" "); // + row menu
 });
 
 // Floor the grid box at the sum of every track's minimum, so the row/header
 // backgrounds span the full content when the columns overflow.
 const gridMinWidth = computed(() => {
-	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + edit
+	const fixedCount = (props.disabled ? 1 : 2) + 1; // lead tracks + row menu
 	const fieldPx = colWidths.value.reduce<number>((sum, w) => sum + (w ?? FLEX_COL_MIN), 0);
 	return `calc(${fixedCount * 2.5}rem + ${fieldPx}px)`;
 });
@@ -329,7 +350,7 @@ const SIDE_COL_WIDTH = "2.5rem";
 const numberColLeft = computed(() => (props.disabled ? "0" : SIDE_COL_WIDTH));
 
 // Width of the frozen-left region the left shadow hugs: `#` alone, plus the
-// checkbox column when selection is on. (The right shadow hugs the edit column.)
+// checkbox column when selection is on. (The right shadow hugs the row menu column.)
 const leftShadowOffset = computed(() => (props.disabled ? "2.5rem" : "5rem"));
 
 // Show each side's shadow while there's content scrolled off that way, so it's clear
@@ -465,14 +486,124 @@ function commitCell(index: number, col: T, value: any) {
 	emit("change", rows.value);
 }
 
+function addRow() {
+	insertRow(rows.value.length);
+}
+
 // `newRow` seeds the child doctype's docfield defaults; the caller supplies it
 // because the grid sees only the columns, not the whole child form.
-function addRow() {
-	const row = identify(props.newRow?.() ?? {});
-	const next = [...rows.value, row];
+function freshRow(): Record<string, any> {
+	return identify(props.newRow?.() ?? {});
+}
+
+function insertRow(index: number, row = freshRow()): boolean {
+	if (!canAddRows.value) return false;
+	const next = [...rows.value];
+	next.splice(index, 0, row);
 	rows.value = next;
 	emit("add", { row });
 	emit("change", next);
+	return true;
+}
+
+// Without `canAddRows` only Edit is left, as v1's row form drops its insert buttons.
+function rowMenu(row: Record<string, any>, index: number) {
+	const edit = {
+		label: __("Edit"),
+		icon: "lucide-square-pen",
+		onClick: () => emit("edit", { row, index }),
+	};
+	if (!canAddRows.value) return [edit];
+	return [
+		edit,
+		{
+			label: __("Insert Above"),
+			icon: "lucide-arrow-up",
+			onClick: () => runRowAction("insertAbove", index),
+		},
+		{
+			label: __("Insert Below"),
+			icon: "lucide-arrow-down",
+			onClick: () => runRowAction("insertBelow", index),
+		},
+		{
+			label: __("Duplicate"),
+			icon: "lucide-copy",
+			onClick: () => runRowAction("duplicate", index),
+		},
+	];
+}
+
+// One context menu serves every row; the row under the pointer sets its items
+// before reka's trigger, on the wrapper, opens it.
+const contextRowIndex = ref<number | null>(null);
+const contextMenu = computed(() => {
+	const index = contextRowIndex.value;
+	const row = index == null ? undefined : rows.value[index];
+	return row ? rowMenu(row, index!) : [];
+});
+
+// Capture phase: an arrow must move cells before a closed picker opens on it.
+function onCellKeydown(e: KeyboardEvent) {
+	const at = props.disabled ? null : cellAt(e.target);
+	if (!at) return;
+	const shortcut = rowShortcut(e);
+	const step = shortcut ? null : arrowStep(e);
+	if (shortcut) {
+		if (!runRowShortcut(shortcut, at)) return;
+	} else if (!step || !moveFocus(scroller.value!, at, step)) return;
+	e.preventDefault();
+	e.stopPropagation();
+}
+
+function runRowShortcut(shortcut: RowAction, at: CellAt): boolean {
+	const index = runRowAction(shortcut, at.rowIndex);
+	if (index == null) return false;
+	nextTick(() => focusCell(scroller.value!, { rowIndex: index, columnIndex: at.columnIndex }));
+	return true;
+}
+
+/** Inserts a fresh row or a copy beside `rowIndex`; returns the new row's index. */
+function runRowAction(action: RowAction, rowIndex: number): number | null {
+	if (!canAddRows.value) return null;
+	const index = action === "insertAbove" ? rowIndex : rowIndex + 1;
+	const row = action === "duplicate" ? copyRow(rows.value[rowIndex]) : freshRow();
+	return insertRow(index, row) ? index : null;
+}
+
+function onCellPaste(e: ClipboardEvent) {
+	const at = props.disabled ? null : cellAt(e.target);
+	if (!at || !acceptsPaste(e.target)) return;
+	const block = parseBlock(e.clipboardData?.getData("text/plain") ?? "");
+	if (!isBlock(block)) return;
+	e.preventDefault();
+	// A focused control keeps its own draft and would commit it back on blur.
+	(e.target as HTMLElement).blur();
+	const target = { ...at, rowCount: rows.value.length, columns: props.columns };
+	applyPaste(planPaste(block, { ...target, canAddRows: canAddRows.value }));
+	nextTick(() => focusCell(scroller.value!, at));
+}
+
+// Rows are added first, so a cell commits on a row its consumer already knows.
+function applyPaste({ addRows, writes }: PastePlan) {
+	const added = Array.from({ length: addRows }, freshRow);
+	const next = [...rows.value, ...added];
+	if (added.length) {
+		rows.value = next;
+		for (const row of added) emit("add", { row });
+	}
+	// Every write and the `change` land before any commit, whose handlers may reshape the rows.
+	const written: { row: Record<string, any>; column: T }[] = [];
+	for (const { rowIndex, columnIndex, text } of writes) {
+		const row = next[rowIndex];
+		const column = props.columns[columnIndex];
+		const parsed = props.parsePaste ? props.parsePaste(row, column, text) : { value: text };
+		if (!parsed || row[column.fieldname] === parsed.value) continue;
+		row[column.fieldname] = parsed.value;
+		written.push({ row, column });
+	}
+	if (added.length || written.length) emit("change", next);
+	for (const { row, column } of written) emit("commit", { row, column, pasted: true });
 }
 
 function deleteSelected() {
@@ -497,8 +628,8 @@ function cellErrorLines(row: Record<string, any>, column: T): string[] {
 }
 
 // In a read-only grid a row click opens the dialog (a cell's content is inert,
-// so the click reaches the row). Editable grids keep inline editing — only the edit
-// button opens the dialog there.
+// so the click reaches the row). Editable grids keep inline editing — only the row
+// menu's Edit opens the dialog there.
 function onRowClick(row: Record<string, any>, index: number) {
 	if (props.disabled) emit("edit", { row, index });
 }

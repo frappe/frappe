@@ -54,6 +54,13 @@ export interface GridProps {
   /** Seeds a newly added row. The grid sees only the columns, so whoever knows
    *  the whole child form supplies its docfield defaults. */
   newRow?: () => Record<string, any>;
+  /** The value a pasted cell commits, or `null` to leave the cell alone.
+   *  Without it a pasted cell commits its text. */
+  parsePaste?: (
+    row: Record<string, any>,
+    column: GridColumn,
+    text: string
+  ) => { value: unknown } | null;
 }
 
 export type GridEmits = {
@@ -68,15 +75,15 @@ export type GridEmits = {
    * rows array moved: this names the row and the column, so a consumer can
    * dispatch a per-row event without diffing to work out what moved.
    */
-  commit: [payload: { row: Record<string, any>; column: GridColumn }];
+  commit: [payload: { row: Record<string, any>; column: GridColumn; pasted?: boolean }];
   /** A row was added, carrying the row so a consumer can address it. */
   add: [payload: { row: Record<string, any> }];
   /** Rows were deleted, carrying them as they last were. */
   remove: [payload: { rows: Record<string, any>[] }];
   /**
-   * The user clicked a row's edit action (last column). Carries the row and its
-   * index. `Grid` stays oblivious to *how* a row is edited — the consumer (e.g.
-   * `TableField`) opens a dialog and renders the row however it likes.
+   * The user picked Edit in a row's menu (the ⋯ button or a right-click). Carries
+   * the row and its index. `Grid` stays oblivious to *how* a row is edited — the
+   * consumer (e.g. `TableField`) opens a dialog and renders the row however it likes.
    */
   edit: [payload: { row: Record<string, any>; index: number }];
 };
