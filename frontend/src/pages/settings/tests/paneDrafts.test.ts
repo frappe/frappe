@@ -892,6 +892,36 @@ describe("a Record that does not exist yet", () => {
 		});
 	});
 
+	it("leaves a component block at Did not save when its refusal names only a field set back while the save was out", async () => {
+		server.put("Telephony Agent", USER, { user: USER, mobile_no: "1", extension: "1" });
+		const drafts = await opened({
+			...component("telephony", { agent: agent.binding! }),
+			fields: ["mobile_no", "extension"],
+		} as SettingsBlock);
+		const { agent: binding } = drafts.components.get("telephony")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+		server.refusal = {
+			entry: {
+				type: "ValidationError",
+				message: "Mobile No is invalid",
+				field_errors: [{ fieldname: "mobile_no", message: "Mobile No is invalid" }],
+			},
+			status: 417,
+		};
+
+		binding.doc.mobile_no = "2";
+		binding.doc.extension = "2";
+		const saving = binding.commit();
+		await settled();
+		binding.doc.mobile_no = "1";
+		release();
+		await saving;
+		await settled();
+
+		expect(binding.error).toBe("Did not save");
+	});
+
 	describe("with a required field filled in another block", () => {
 		beforeEach(() => {
 			server.metas["Telephony Agent"] = {

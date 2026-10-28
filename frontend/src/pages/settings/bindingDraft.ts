@@ -25,7 +25,6 @@ import { changedFields, confirmConflict, stripTags } from "../record/saveRespons
 
 export type RowMark = "saving" | "saved" | "error";
 
-/** The refused save behind a field's `error` mark: the fields it named, and its own message. */
 export interface Refusal {
 	named: { fieldname: string; message: string }[];
 	message: string;

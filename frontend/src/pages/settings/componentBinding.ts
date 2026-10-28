@@ -2,7 +2,7 @@
 import { fieldnameOfErrorKey } from "@framework/ui/fields/types";
 import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
-import type { BindingDraft } from "./bindingDraft";
+import type { BindingDraft, Refusal } from "./bindingDraft";
 
 export interface ComponentBinding {
 	/** The shared draft: edit it in place, then `commit()` once a value is final. */
@@ -55,11 +55,13 @@ function refusal(draft: BindingDraft, owned: string[], claimed: string[]): strin
 	if (message) return [message].flat().join(" ");
 	const failed = owned.filter((fieldname) => draft.state.marks[fieldname] === "error");
 	if (!failed.length) return "";
-	const behind = failed.map((fieldname) => draft.state.refusals[fieldname]).find(Boolean);
-	if (!behind) return __("Did not save");
-	if (!behind.named.length) return behind.message;
-	const notOthers = behind.named.find(
-		({ fieldname }) => owned.includes(fieldname) || !claimed.includes(fieldname)
-	);
-	return notOthers?.message ?? __("Did not save");
+	const reasons = failed.map((fieldname) => reasonOf(draft.state.refusals[fieldname], claimed));
+	return reasons.find(Boolean) || __("Did not save");
+}
+
+/** An owned field the save named but did not draw was set back while it was out; only unclaimed ones count. */
+function reasonOf(refused: Refusal | undefined, claimed: string[]): string {
+	if (!refused) return "";
+	if (!refused.named.length) return refused.message;
+	return refused.named.find(({ fieldname }) => !claimed.includes(fieldname))?.message ?? "";
 }
