@@ -136,12 +136,6 @@ def skips_test_suites(pr_number, repo="frappe/frappe"):
 	return base in ("develop", "desk-v2") or base.endswith("-hotfix")
 
 
-def runs_desk_server_tests(pr_number, files_list, repo="frappe/frappe"):
-	"""Does a desk-v2 PR change the desk-v2 frontend? Server tests such as `test_shell.py` read it."""
-	base = fetch_pr_data(pr_number, repo)["base"]["ref"]
-	return base == "desk-v2" and any(is_desk_frontend(f) for f in files_list)
-
-
 def has_label(pr_number, label, repo="frappe/frappe"):
 	"""
 	Check if the pull request has a specific label.
@@ -253,9 +247,7 @@ if __name__ == "__main__":
 	run_postgres = has_label(pr_number, "postgres", repo)
 
 	if build_type == "server":
-		tests_requested = has_run_server_tests_label(pr_number, repo) or runs_desk_server_tests(
-			pr_number, files_list, repo
-		)
+		tests_requested = has_run_server_tests_label(pr_number, repo)
 	else:
 		tests_requested = has_run_ui_tests_label(pr_number, repo)
 
