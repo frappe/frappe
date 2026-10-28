@@ -1694,12 +1694,15 @@ class TestChildTableAttachments(IntegrationTestCase):
 		for messy in (
 			f"/private/files/./{name}",
 			f"/private/files/.//{name}",
-			f"/private/files/foo/../{name}",
 		):
 			candidate = frappe.new_doc("File")
 			candidate.file_url = messy
 			candidate.normalize_file_url()
 			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
+		candidate = frappe.new_doc("File")
+		candidate.file_url = f"/private/files/foo/../{name}"
+		self.assertRaisesRegex(ValidationError, "File URL", candidate.normalize_file_url)
 
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
