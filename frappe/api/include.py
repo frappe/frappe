@@ -141,7 +141,8 @@ def get_users(doc: Document, include: list[str]) -> dict:
 
 def users_named_by(doc: Document, parts: dict[str, list]) -> dict:
 	"""Names and images keyed by user; the v2 keys are `full_name` and `user_image`, not v1's `fullname`/`image`."""
-	names = {doc.owner, doc.modified_by}
+	# a never-saved Single has no modified_by
+	names = {user for user in (doc.owner, doc.modified_by) if user}
 	for part, rows in parts.items():
 		key = USER_ROW_KEY[part]
 		for row in rows or []:
