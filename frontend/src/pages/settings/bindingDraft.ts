@@ -333,7 +333,8 @@ export class BindingDraft {
 			message: messageOf(error),
 		};
 		for (const fieldname of failed)
-			if (this.state.marks[fieldname] === "error") this.state.refusals[fieldname] = refusal;
+			if (this.state.marks[fieldname] === "error" && !this.heldMeanwhile.has(fieldname))
+				this.state.refusals[fieldname] = refusal;
 		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
 	}
 

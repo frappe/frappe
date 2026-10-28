@@ -892,6 +892,44 @@ describe("a Record that does not exist yet", () => {
 		});
 	});
 
+	it("keeps a refused insert's message off a component field held while it was out", async () => {
+		server.metas["Telephony Agent"] = {
+			...TELEPHONY_AGENT,
+			fields: TELEPHONY_AGENT.fields.map((field) =>
+				field.fieldname === "extension" ? { ...field, reqd: 1 } : field
+			),
+		};
+		const drafts = await opened(
+			{ ...agent, fields: ["extension"] },
+			{ ...component("telephony", { agent: agent.binding! }), fields: ["mobile_no"] } as SettingsBlock
+		);
+		const extension = drafts.bound.get("agent")!;
+		const { agent: binding } = drafts.components.get("telephony")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+		server.refusal = {
+			entry: {
+				type: "MandatoryError",
+				message: "Phone Numbers is required",
+				field_errors: [{ fieldname: "phone_nos", message: "Phone Numbers is required" }],
+			},
+			status: 417,
+		};
+
+		extension.draft.edit("extension", "101");
+		binding.doc.mobile_no = "+91 98";
+		const saving = binding.commit();
+		await settled();
+		extension.draft.edit("extension", "");
+		await binding.commit();
+		release();
+		await saving;
+		await settled();
+
+		expect(extension.draft.fieldErrors.drawn.value.extension).toBe("Extension is required");
+		expect(binding.error).toBe("Did not save");
+	});
+
 	it("leaves a component block at Did not save when its refusal names only a field set back while the save was out", async () => {
 		server.put("Telephony Agent", USER, { user: USER, mobile_no: "1", extension: "1" });
 		const drafts = await opened({

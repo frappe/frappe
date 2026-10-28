@@ -48,7 +48,6 @@ export function componentBinding(
 	};
 }
 
-/** Owned fields' errors first; else the refused save behind an owned mark, unless it named only other blocks' fields. */
 function refusal(draft: BindingDraft, owned: string[], claimed: string[]): string {
 	const drawn = Object.entries(draft.fieldErrors.drawn.value);
 	const [, message] = drawn.find(([key]) => owned.includes(fieldnameOfErrorKey(key))) ?? [];
@@ -59,7 +58,7 @@ function refusal(draft: BindingDraft, owned: string[], claimed: string[]): strin
 	return reasons.find(Boolean) || __("Did not save");
 }
 
-/** An owned field the save named but did not draw was set back while it was out; only unclaimed ones count. */
+/** Not an owned field it named: refuse() left that one undrawn because it was set back while the save was out. */
 function reasonOf(refused: Refusal | undefined, claimed: string[]): string {
 	if (!refused) return "";
 	if (!refused.named.length) return refused.message;
