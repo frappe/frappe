@@ -281,7 +281,9 @@ def create_doc(doctype: str):
 	data.pop("doctype", None)
 
 	doc = frappe.new_doc(doctype, **data)
-	doc.flags.attach_text_editor_files = is_desk_v2_enabled()
+	desk_v2 = is_desk_v2_enabled()
+	doc.flags.attach_text_editor_files = desk_v2
+	doc.flags.flat_values_as_rows = desk_v2
 
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True

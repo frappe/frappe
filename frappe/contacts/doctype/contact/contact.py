@@ -67,7 +67,7 @@ class Contact(Document):
 
 	def validate(self):
 		self.full_name = self._get_full_name()
-		if self.is_new():
+		if self.is_new() and self.flags.flat_values_as_rows:
 			self.add_flat_values_as_rows()
 		self.set_primary_email()
 		self.set_primary("phone")
