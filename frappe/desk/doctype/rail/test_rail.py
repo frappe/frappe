@@ -207,8 +207,11 @@ class TestRail(IntegrationTestCase):
 		first.insert()
 		self.addCleanup(first.delete)
 
+		# postgres aborts the transaction on a failed statement, so recover to a savepoint
+		frappe.db.savepoint("shared_address")
 		with self.assertRaises(frappe.UniqueValidationError):
 			make_rail().insert()
+		frappe.db.rollback(save_point="shared_address")
 
 	def test_a_person_lists_only_their_own_layer(self):
 		"""The list query is the half `has_permission` does not cover."""

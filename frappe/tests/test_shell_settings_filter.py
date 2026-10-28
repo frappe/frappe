@@ -3,6 +3,7 @@
 
 import contextlib
 import json
+import unittest
 from unittest.mock import patch
 
 import frappe
@@ -413,6 +414,10 @@ class TestSettingsFilter(SettingsDialogTestCase):
 
 		self.assertEqual(blocks_of(visible()), {})
 
+	@unittest.skipIf(
+		frappe.conf.db_type == "postgres",
+		"Postgres connections run at READ COMMITTED after their first commit",
+	)
 	def test_a_merge_read_in_a_snapshot_older_than_a_save_is_not_kept(self):
 		visible()
 

@@ -140,7 +140,8 @@ def count_rows(
 	fieldname = f"`tab{doctype}`.name"
 	args.order_by = None
 
-	args.fields = [fieldname]
+	# Postgres refuses a column that is neither grouped nor aggregated
+	args.fields = [{"MAX": "name"} if group_by and frappe.db.db_type == "postgres" else fieldname]
 	partial_query = execute(**args, run=0)
 	count_query = frappe.qb.from_(partial_query).select(Count("*"))
 

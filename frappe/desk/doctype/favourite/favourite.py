@@ -6,6 +6,7 @@
 import frappe
 from frappe import _
 from frappe.model.document import Document
+from frappe.query_builder.functions import Lower
 
 # A list is stored as its DocType record and a saved view as its view row, so these two
 # doctypes' rows are never records: read rights come from the list's doctype instead.
@@ -114,12 +115,27 @@ def readable_target(doctype: str, name: str) -> str:
 
 def readable_list(doctype: str) -> str:
 	"""The doctype's own spelling of its name, so a list has one row whatever case the caller sent."""
-	stored = frappe.db.get_value("DocType", doctype)
+	stored = frappe.db.get_value("DocType", doctype) or doctype_in_any_case(doctype)
 	if not stored:
 		raise frappe.DoesNotExistError(_("{0} {1} not found").format(_("DocType"), doctype))
 	if not may_read_list(stored):
 		frappe.throw(_("You are not permitted to read {0}.").format(_(stored)), frappe.PermissionError)
 	return stored
+
+
+def doctype_in_any_case(doctype: str | None) -> str | None:
+	"""The DocType named `doctype` in another case, on Postgres, whose name lookup does not ignore case."""
+	if not doctype or frappe.db.db_type != "postgres":
+		return None
+	table = frappe.qb.DocType("DocType")
+	names = (
+		frappe.qb.from_(table)
+		.select(table.name)
+		.where(Lower(table.name) == doctype.lower())
+		.limit(1)
+		.run(pluck=True)
+	)
+	return names[0] if names else None
 
 
 def may_read_list(doctype: str) -> bool:
