@@ -856,6 +856,18 @@ data = columns, result
 			with self.assertRaisesRegex(frappe.ValidationError, label):
 				report.get_validated_filters({"allocated_to": user, fieldname: value}, user)
 
+	def test_validated_filters_resolve_now_defaults(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime", default="Now"))
+		report.append("filters", dict(fieldname="at", label="At", fieldtype="Time", default="Now"))
+
+		filters = report.get_validated_filters({"allocated_to": user}, user)
+		one_minute = datetime.timedelta(minutes=1)
+		self.assertAlmostEqual(filters.since, frappe.utils.now_datetime(), delta=one_minute)
+		self.assertAlmostEqual(
+			filters.at, frappe.utils.get_timedelta(frappe.utils.nowtime()), delta=one_minute
+		)
+
 	def test_validated_list_filters(self):
 		report, user = self.make_filtered_report()
 

@@ -20,7 +20,7 @@ from frappe.model.create_new import get_static_default_value
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cast, cint, cstr, get_datetime, get_timedelta
+from frappe.utils import cast, cint, cstr, get_datetime, get_timedelta, now, nowtime
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 from frappe.utils.xlsxutils import XLSXMetadata
 
@@ -568,6 +568,10 @@ def get_filter_default(row, user):
 		default = user
 	elif not row.default and row.fieldtype == "Link" and row.options != "User":
 		default = get_link_user_default(row, user)
+	elif row.fieldtype == "Datetime" and cstr(row.default).lower() == "now":
+		default = now()
+	elif row.fieldtype == "Time" and cstr(row.default).lower() == "now":
+		default = nowtime()
 	else:
 		default = get_static_default_value(row, [], [])
 
