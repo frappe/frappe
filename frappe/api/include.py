@@ -150,6 +150,8 @@ def users_named_by(doc: Document, parts: dict[str, list]) -> dict:
 			if user:
 				names.add(user)
 	names.discard("everyone")
+	# a single that was never saved has no `modified_by`
+	names.discard(None)
 	users = frappe.get_all(
 		"User",
 		fields=["name", "full_name", "user_image"],

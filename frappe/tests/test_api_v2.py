@@ -1176,6 +1176,14 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertEqual(response.json["data"]["name"], single.name)
 		self.assertEqual(set(response.json["users"]), {"Administrator"})
 
+	def test_users_skips_a_missing_modified_by(self):
+		from frappe.api.include import users_named_by
+
+		# a single that was never saved reads with an owner and no `modified_by`
+		doc = frappe.new_doc("ToDo")
+		doc.owner, doc.modified_by = "Administrator", None
+		self.assertEqual(set(users_named_by(doc, {})), {"Administrator"})
+
 	def test_include_must_be_a_string(self):
 		with suppress_stdout():
 			response = self.get(self.resource("ToDo", self.todo.name), {"sid": self.sid, "include": ["seen"]})
