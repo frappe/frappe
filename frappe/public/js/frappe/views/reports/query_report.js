@@ -1156,7 +1156,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	generate_background_report() {
 		this.toggle_primary_button_disabled(true);
 		let mandatory = this.filters.filter((f) => f.df.reqd);
-		let missing_mandatory = mandatory.filter((f) => !f.get_value());
+		let missing_mandatory = mandatory.filter((f) => {
+			const value = f.get_value();
+			return !value || value.length === 0;
+		});
 		if (!missing_mandatory.length) {
 			let filters = this.get_filter_values(true);
 			return new Promise((resolve) =>
@@ -1600,7 +1603,10 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		// check for mandatory property for filters added via UI
 		if (raise) {
 			const mandatory = this.filters.filter((f) => f.df.reqd || f.df.mandatory);
-			const missing_mandatory = mandatory.filter((f) => !f.get_value());
+			const missing_mandatory = mandatory.filter((f) => {
+				const value = f.get_value();
+				return !value || value.length === 0;
+			});
 			if (missing_mandatory.length > 0) {
 				let message = __("Please set filters");
 				this.hide_loading_screen();
