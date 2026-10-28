@@ -1,5 +1,5 @@
 <script setup>
-import { computed, defineAsyncComponent, provide, ref } from "vue";
+import { computed, defineAsyncComponent, onBeforeUpdate, onUpdated, provide, ref } from "vue";
 import { block_size, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
 import TextBlock from "./TextBlock.vue";
@@ -24,6 +24,46 @@ function drop(target) {
 	if (dragged.value && dragged.value !== target.id) emit("move", dragged.value, target);
 	dragged.value = null;
 }
+
+// A block that changes place or size, even between a heading and the grid, glides there from
+// where it was.
+const root = ref(null);
+let before = new Map();
+
+function rects() {
+	const found = new Map();
+	for (const el of root.value?.querySelectorAll("[data-block]") || []) {
+		found.set(el.dataset.block, el.getBoundingClientRect());
+	}
+	return found;
+}
+
+onBeforeUpdate(() => {
+	before = props.editing ? rects() : new Map();
+});
+
+onUpdated(() => {
+	if (!before.size || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	for (const el of root.value.querySelectorAll("[data-block]")) {
+		const from = before.get(el.dataset.block);
+		if (!from) continue;
+		const to = el.getBoundingClientRect();
+		const dx = from.left - to.left;
+		const dy = from.top - to.top;
+		// its content reflows at once, so a resized block fades in over the change
+		const resized =
+			Math.abs(from.width - to.width) > 1 || Math.abs(from.height - to.height) > 1;
+		if (!dx && !dy && !resized) continue;
+		el.animate(
+			[
+				{ transform: `translate(${dx}px, ${dy}px)`, opacity: resized ? 0 : 1 },
+				{ transform: "none", opacity: 1 },
+			],
+			{ duration: 250, easing: "cubic-bezier(0.2, 0, 0, 1)" }
+		);
+	}
+	before = new Map();
+});
 
 // a tile that hides itself for its viewer, like a dismissed onboarding, stays on show to edit
 provide(
@@ -68,9 +108,19 @@ function tile_for(block) {
 </script>
 
 <template>
-	<div class="flex flex-col gap-6">
+	<div ref="root" class="flex flex-col gap-6">
 		<section v-for="(section, index) in sections" :key="index" class="flex flex-col gap-3">
-			<div v-if="section.heading" class="relative" :class="{ 'min-h-8': editing }">
+			<div
+				v-if="section.heading"
+				class="ws-frame relative"
+				:data-block="section.heading.id"
+				:class="
+					editing && [
+						'min-h-8 px-3',
+						section.heading.type === 'header' ? 'pb-1.5' : 'py-1.5',
+					]
+				"
+			>
 				<TextBlock :block="section.heading" />
 				<div
 					v-if="editing"
@@ -89,7 +139,15 @@ function tile_for(block) {
 					:key="block.id"
 					:size="size"
 				>
-					<div class="relative h-full">
+					<div
+						class="relative"
+						:data-block="block.id"
+						:class="
+							block.type === 'paragraph'
+								? ['ws-frame', editing && 'px-3 py-1.5']
+								: 'ws-block h-full'
+						"
+					>
 						<component :is="tile.component" v-if="tile" v-bind="tile.props" />
 						<div
 							v-else-if="editing"
@@ -128,13 +186,37 @@ function tile_for(block) {
 	border-radius: 12px;
 }
 
-.ws-pick:hover {
-	box-shadow: inset 0 0 0 1px var(--outline-gray-3);
+.ws-pick:active {
+	cursor: grabbing;
 }
 
-.ws-picked,
-.ws-picked:hover {
-	box-shadow: inset 0 0 0 2px var(--outline-gray-5);
+.ws-frame > .ws-pick {
+	border-radius: 10px;
+	transition-property: box-shadow;
+	transition-duration: 150ms;
+	transition-timing-function: ease-out;
+}
+
+.ws-frame > .ws-pick:hover {
+	box-shadow: 0 0 0 1px var(--outline-gray-2), var(--elevation-sm);
+}
+
+.ws-block > :first-child {
+	transition-property: box-shadow;
+	transition-duration: 150ms;
+	transition-timing-function: ease-out;
+}
+
+.ws-block:has(> .ws-pick:hover) > :first-child {
+	box-shadow: 0 0 0 1px var(--outline-gray-2), var(--elevation-md);
+}
+
+.ws-block:has(> .ws-pick.ws-picked) > :first-child {
+	box-shadow: 0 0 0 1px var(--outline-gray-4), var(--elevation-lg);
+}
+
+.ws-frame > .ws-pick.ws-picked {
+	box-shadow: 0 0 0 1px var(--outline-gray-4), var(--elevation-md);
 }
 
 .ws-grid {
