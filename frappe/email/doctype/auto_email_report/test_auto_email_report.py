@@ -93,22 +93,16 @@ class TestAutoEmailReport(IntegrationTestCase):
 
 	def test_system_manager_can_run_report_as_other_user(self):
 		system_manager = create_user_with_role("system_manager_81414@example.com", "System Manager")
+		report_manager = create_user_with_role("report_manager_81414@example.com", "Report Manager")
 
 		frappe.set_user(system_manager)
 		self.addCleanup(frappe.set_user, "Administrator")
 
-		report = frappe.get_doc(
-			doctype="Auto Email Report",
-			report="Permitted Documents For User",
-			report_type="Script Report",
-			user="Administrator",
-			enabled=0,
-			email_to="admin@example.com",
-			format="CSV",
-			frequency="Daily",
-			filters=json.dumps(dict(user="Administrator", doctype="DocType")),
-		).insert()
-		self.assertEqual(report.user, "Administrator")
+		report = get_run_as_report(report_manager).insert()
+		self.assertEqual(report.user, report_manager)
+
+		with self.assertRaises(frappe.PermissionError):
+			get_run_as_report("Administrator").insert()
 
 	def test_dynamic_date_filters(self):
 		auto_email_report = get_auto_email_report()
@@ -121,6 +115,20 @@ class TestAutoEmailReport(IntegrationTestCase):
 
 		self.assertEqual(auto_email_report.filters["from_date"], add_to_date(today(), weeks=-1))
 		self.assertEqual(auto_email_report.filters["to_date"], today())
+
+
+def get_run_as_report(user):
+	return frappe.get_doc(
+		doctype="Auto Email Report",
+		report="Permitted Documents For User",
+		report_type="Script Report",
+		user=user,
+		enabled=0,
+		email_to="test@example.com",
+		format="CSV",
+		frequency="Daily",
+		filters=json.dumps(dict(user=user, doctype="DocType")),
+	)
 
 
 def create_user_with_role(email, role):

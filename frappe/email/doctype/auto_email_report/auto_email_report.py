@@ -7,7 +7,7 @@ from datetime import timedelta
 from email.utils import formataddr
 
 import frappe
-from frappe import _
+from frappe import STANDARD_USERS, _
 from frappe.desk.query_report import build_xlsx_data
 from frappe.email.email_body import get_formatted_html
 from frappe.model.document import Document
@@ -86,9 +86,10 @@ class AutoEmailReport(Document):
 		if not self.user or self.user == user:
 			return
 
-		if "System Manager" in frappe.get_roles(user) or frappe.has_permission(
-			"User", "impersonate", user=user
-		):
+		if self.user not in STANDARD_USERS and "System Manager" in frappe.get_roles(user):
+			return
+
+		if frappe.has_permission("User", "impersonate", user=user):
 			return
 
 		frappe.throw(
