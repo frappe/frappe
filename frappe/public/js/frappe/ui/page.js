@@ -498,13 +498,14 @@ frappe.ui.Page = class Page {
 		});
 	}
 
-	add_actions_menu_item(label, click, standard, shortcut, icon = null) {
+	add_actions_menu_item(label, click, standard, shortcut, icon = null, theme = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			shortcut,
 			icon,
+			theme,
 			parent: this.actions,
 			show_parent: false,
 		});
@@ -535,6 +536,7 @@ frappe.ui.Page = class Page {
 		show_parent = true,
 		icon = null,
 		icon_right = null,
+		theme = null,
 	}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide hidden-xl");
@@ -582,6 +584,7 @@ frappe.ui.Page = class Page {
 		$li.data("menu_click", click);
 		if (icon) $li.data("menu_icon", icon);
 		if (icon_right) $li.data("menu_icon_right", icon_right);
+		if (theme) $li.data("menu_theme", theme);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -685,6 +688,7 @@ frappe.ui.Page = class Page {
 				label,
 				icon: $li.data("menu_icon") || undefined,
 				icon_right: $li.data("menu_icon_right") || undefined,
+				theme: $li.data("menu_theme") || undefined,
 				shortcut: $li.data("menu_shortcut") || undefined,
 				disabled: a.classList.contains("disabled"),
 				css_class: css_class || undefined,

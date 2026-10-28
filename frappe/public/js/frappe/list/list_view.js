@@ -320,7 +320,8 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 				item.action,
 				item.standard,
 				null,
-				item.icon
+				item.icon,
+				item.theme
 			);
 			if (item.class) {
 				$item.addClass(item.class);
@@ -3130,6 +3131,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 			return {
 				label: __("Delete", null, "Button in list view actions menu"),
 				icon: "trash-2",
+				theme: "red",
 				action: () => {
 					const docnames = this.get_checked_items(true).map((docname) =>
 						docname.toString()
