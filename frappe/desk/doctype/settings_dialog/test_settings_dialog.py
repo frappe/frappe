@@ -172,6 +172,7 @@ class TestSettingsDialog(SettingsDialogTestCase):
 	def test_a_json_column_holds_its_own_shape(self):
 		cases = {
 			"fields": single("system", fields='{"a": 1}'),
+			"component fields": bound("photo", fields='["user_image", 1]'),
 			"bindings": component("theme", bindings='["user"]'),
 			"settings": component("theme", settings='"Theme"'),
 			"settings label": component("theme", settings='[{"keywords": "dark"}]'),
@@ -221,6 +222,35 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
 			self.assertRaises(frappe.ValidationError, ship, ["general"], [bound("photo")])
 			ship(["general"], [bound("photo", save_mode="button")])
+
+	def test_component_blocks_on_one_binding_declare_each_field_once(self):
+		with authoring():
+			self.assertRaises(
+				frappe.ValidationError,
+				ship,
+				["general"],
+				[
+					bound("photo", fields='["user_image"]'),
+					bound("locale", fields='["language", "user_image"]'),
+				],
+			)
+			ship(
+				["general", "other"],
+				[
+					bound("photo", fields='["user_image"]'),
+					bound("locale", fields='["language", "time_zone"]'),
+					bound("rest"),
+					bound("avatar", pane="other", fields='["user_image"]'),
+				],
+			)
+
+	def test_the_host_is_refused_a_field_an_extension_already_declares(self):
+		with authoring():
+			ship(blocks=[bound("calls", fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
+			self.assertRaises(
+				frappe.ValidationError, ship, ["general"], [bound("phone", fields='["mobile_no"]')]
+			)
+			ship(["general"], [bound("phone", fields='["phone"]')])
 
 	def test_a_generated_block_may_differ_from_a_component_on_its_binding(self):
 		with authoring():
