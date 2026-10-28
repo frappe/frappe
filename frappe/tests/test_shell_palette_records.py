@@ -5,7 +5,8 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
-from frappe.shell.links import canonical_path
+from frappe.shell import SHELL_ROOT
+from frappe.shell.doctypes import get_shell_doctypes, slug
 from frappe.shell.palette import search_doctype_records, search_records
 from frappe.tests import IntegrationTestCase
 
@@ -160,20 +161,31 @@ class TestSearchRecords(PaletteRecordsCase):
 
 		self.assertEqual([(row["name"], row["label"]) for row in found], [("Kestrel Ridge", "Kestrel Ridge")])
 
-	def test_a_record_carries_its_address_on_its_owners_app_without_the_host(self):
-		first = self.readable[0]
+	def test_each_record_carries_its_address_on_its_owners_app_without_the_host(self):
+		first, second = self.readable[:2]
 		add_records(first, "Kestrel Ridge")
+		add_records(second, "Kestrel Moor")
+		shell = get_shell_doctypes()
+		owned = {**shell, "owners": {**shell["owners"], second: "acme"}}
 
 		# with desk v2 off, get_url_to_form would give a /desk/ address
 		with (
-			listed([first]),
+			listed([first, second]),
 			self.set_user(READER),
 			patch("frappe.utils.data.is_desk_v2_enabled", return_value=False),
+			patch("frappe.shell.links.get_shell_doctypes", return_value=owned),
+			patch("frappe.shell.links.declared_prefix", side_effect=lambda app: f"{app}-prefix"),
+			patch("frappe.shell.links.is_modular", return_value=False),
 		):
 			found = search_records("Kestrel")
 
-		self.assertEqual([row["route"] for row in found], [canonical_path(first, "Kestrel Ridge")])
-		self.assertTrue(found[0]["route"].startswith(f"{canonical_path(first)}/"))
+		self.assertEqual(
+			{row["name"]: row["route"] for row in found},
+			{
+				"Kestrel Ridge": f"/{SHELL_ROOT}/frappe-prefix/{slug(first)}/Kestrel%20Ridge",
+				"Kestrel Moor": f"/{SHELL_ROOT}/acme-prefix/{slug(second)}/Kestrel%20Moor",
+			},
+		)
 
 	def test_single_is_skipped(self):
 		first = self.readable[0]
