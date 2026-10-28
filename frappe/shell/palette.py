@@ -8,21 +8,21 @@ from frappe import _
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	get_doctypes_for_global_search,
 )
+from frappe.desk.record_title import RecordTitles
 from frappe.desk.search import search_widget
-from frappe.utils import cstr, get_datetime, get_system_timezone, strip_html_tags
-from frappe.utils.html_utils import unescape_html
+from frappe.utils import get_datetime, get_system_timezone
 
-from .boot import app_screen, index_tiles, titled_visits
+from .boot import index_tiles, titled_visits
 from .doctypes import get_shell_doctypes
 from .links import canonical_path
 from .permissions import has_app_permission, may_enter_any_prefix
 from .route_history import Visit
+from .titles import app_screen
 
 RECENT_VISITS_LIMIT = 20
 RECORDS_PER_DOCTYPE = 3
 RECORDS_IN_ALL = 10
 SHORTEST_QUERY = 2
-RICH_TEXT = {"Text Editor", "HTML Editor"}
 
 
 @frappe.desk_v2_only
@@ -138,12 +138,12 @@ def records_of(doctype: str, txt: str, limit: int = RECORDS_PER_DOCTYPE) -> list
 		# a prefix match ties with the exact name, so a full page may have left it out
 		named = found_rows(doctype, txt, filters={"name": ["like", escape_like(txt)]}, page_length=1)
 		results = [*(row for row in named if is_exact(row.name, txt)), *results][:limit]
-	title = RecordTitle(doctype, results)
+	titles = RecordTitles(doctype).of(results)
 	return [
 		{
 			"doctype": doctype,
 			"name": row.name,
-			"label": title.of(row),
+			"label": titles[row.name],
 			"route": canonical_path(doctype, row.name),
 		}
 		for row in results
@@ -156,47 +156,6 @@ def found_rows(doctype: str, txt: str, **kwargs) -> list[frappe._dict]:
 		row if isinstance(row, dict) else frappe._dict(name=row[0])
 		for row in search_widget(doctype, txt, as_dict=True, **kwargs)
 	]
-
-
-class RecordTitle:
-	"""A record's title field value, or its name where the doctype has none or it is empty."""
-
-	def __init__(self, doctype: str, rows: list[frappe._dict]):
-		self.meta = frappe.get_meta(doctype)
-		self.field = self.meta.get_field(self.meta.title_field) if self.meta.title_field else None
-		self.fetched = self.fetch_missing(rows)
-
-	def fetch_missing(self, rows: list[frappe._dict]) -> dict:
-		"""Title values, in one query, for the rows a hooked query returned without them."""
-		if not self.field or self.field.is_virtual:
-			return {}
-		missing = [row.name for row in rows if self.field.fieldname not in row]
-		if not missing:
-			return {}
-		return dict(
-			frappe.get_all(
-				self.meta.name,
-				filters={"name": ("in", missing)},
-				fields=["name", self.field.fieldname],
-				as_list=True,
-			)
-		)
-
-	def of(self, row: frappe._dict) -> str:
-		if not self.field:
-			value = None
-		elif self.field.is_virtual:
-			value = frappe.get_doc(self.meta.name, row.name).get_virtual_field_value(self.field)
-		elif self.field.fieldtype in RICH_TEXT:
-			value = unescape_html(strip_html_tags(cstr(self.stored(row))))
-		else:
-			value = self.stored(row)
-		title = cstr(value).strip() or cstr(row.name)
-		return _(title) if self.meta.translated_doctype else title
-
-	def stored(self, row: frappe._dict):
-		fieldname = self.field.fieldname
-		return row[fieldname] if fieldname in row else self.fetched.get(row.name)
 
 
 def escape_like(txt: str) -> str:

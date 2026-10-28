@@ -12,10 +12,11 @@ from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
 from frappe.desk.doctype.settings_dialog.settings_dialog import fields_missing_from
 from frappe.desk.layers import anchor_attempts, place_by_anchors
 
-from .boot import app_screen, report_oversized_keys
+from .boot import report_oversized_keys
 from .doctypes import metadata_version
 from .permissions import may_enter_any_prefix
 from .settings_filter import SettingsFilter
+from .titles import app_screen
 
 PANES_CACHE_KEY = "shell_settings_panes"
 

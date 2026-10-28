@@ -5,10 +5,13 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.desk.record_title import RecordTitles
 from frappe.shell import SHELL_ROOT
 from frappe.shell.doctypes import get_shell_doctypes, slug
-from frappe.shell.palette import search_doctype_records, search_records
+from frappe.shell.links import canonical_path
+from frappe.shell.palette import places, search_doctype_records, search_records
 from frappe.tests import IntegrationTestCase
+from frappe.utils.logging import get_log_db, log_table
 
 READER = "palette-reader@example.com"
 ROLE = "Palette Reader"
@@ -32,6 +35,26 @@ class PaletteRecordsCase(IntegrationTestCase):
 			title_field="some_fieldname",
 			fields=[{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Text Editor"}],
 		)
+		cls.translated = readable_doctype(title_field="some_fieldname", translated_doctype=1)
+		cls.virtual_titled = readable_doctype(
+			title_field="loud_title",
+			fields=[
+				{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data"},
+				{
+					"label": "Loud Title",
+					"fieldname": "loud_title",
+					"fieldtype": "Data",
+					"is_virtual": 1,
+					"options": "(doc.some_fieldname or '').upper()",
+				},
+			],
+		)
+		cls.restricted_title = readable_doctype(
+			title_field="some_fieldname",
+			fields=[
+				{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Data", "permlevel": 1}
+			],
+		)
 		cls.single = readable_doctype(issingle=1)
 		cls.closed = new_doctype(autoname="Prompt").insert().name
 		frappe.db.commit()  # nosemgrep
@@ -43,6 +66,9 @@ class PaletteRecordsCase(IntegrationTestCase):
 			cls.titled,
 			cls.titled_plain_links,
 			cls.rich_titled,
+			cls.translated,
+			cls.virtual_titled,
+			cls.restricted_title,
 			cls.single,
 			cls.closed,
 		]:
@@ -232,6 +258,76 @@ class TestSearchDoctypeRecords(PaletteRecordsCase):
 
 		with self.set_user(READER):
 			self.assertEqual(search_doctype_records(self.readable[0], " K "), [])
+
+
+class TestRecentAndRecordsAgree(PaletteRecordsCase):
+	"""One record has one title, whether the palette's Recent or its Records lists it."""
+
+	def setUp(self):
+		super().setUp()
+		clear_visits()
+		self.addCleanup(clear_visits)
+
+	def test_a_rich_text_title(self):
+		frappe.get_doc(
+			doctype=self.rich_titled, name="Kestrel Ridge", some_fieldname="<p>Kestrel &amp; Hawk</p>"
+		).insert()
+
+		self.assertEqual(self.titles_of(self.rich_titled, "Kestrel Ridge"), ["Kestrel & Hawk"] * 2)
+
+	def test_a_data_title_holding_markup(self):
+		# saving sanitises a Data value that holds tags, so it is stored as "Kestrel <b>&amp;</b> Hawk"
+		frappe.get_doc(
+			doctype=self.titled, name="Kestrel Ridge", some_fieldname="Kestrel <b>&</b> Hawk"
+		).insert()
+
+		self.assertEqual(self.titles_of(self.titled, "Kestrel Ridge"), ["Kestrel & Hawk"] * 2)
+
+	def test_a_translated_doctypes_title(self):
+		frappe.get_doc(doctype=self.translated, name="Kestrel Ridge", some_fieldname="Kestrel Hawk").insert()
+
+		with patch("frappe.desk.record_title._", side_effect=lambda text: f"Turmfalke ({text})"):
+			titles = self.titles_of(self.translated, "Kestrel Ridge")
+
+		self.assertEqual(titles, ["Turmfalke (Kestrel Hawk)"] * 2)
+
+	def test_a_virtual_title_field(self):
+		frappe.get_doc(
+			doctype=self.virtual_titled, name="Kestrel Ridge", some_fieldname="Kestrel Hawk"
+		).insert()
+
+		self.assertEqual(self.titles_of(self.virtual_titled, "Kestrel Ridge"), ["KESTREL HAWK"] * 2)
+
+	def test_a_title_field_the_person_may_not_read_gives_the_name(self):
+		frappe.get_doc(doctype=self.restricted_title, name="Kestrel Ridge", some_fieldname="Secret").insert()
+		self.visit(self.restricted_title, "Kestrel Ridge")
+
+		with self.set_user(READER):
+			[recent] = places()["recent"]
+			# search_widget refuses this doctype, so a row that carries the column stands in for Records
+			record = RecordTitles(self.restricted_title).of(
+				[{"name": "Kestrel Ridge", "some_fieldname": "Secret"}]
+			)
+
+		self.assertEqual([recent["title"], record["Kestrel Ridge"]], ["Kestrel Ridge"] * 2)
+
+	def titles_of(self, doctype: str, name: str) -> list[str]:
+		"""The record's title in the palette's Recent, after one visit, and in its Records."""
+		self.visit(doctype, name)
+		with listed([doctype]), self.set_user(READER):
+			[recent] = places()["recent"]
+			[record] = search_records(name)
+		return [recent["title"], record["label"]]
+
+	def visit(self, doctype: str, name: str):
+		frappe.get_doc(doctype="Route History", route=canonical_path(doctype, name), user=READER).db_insert()
+
+
+def clear_visits():
+	qb, table = log_table("Route History")
+	db = get_log_db()
+	db.sql(qb.from_(table).where(table.user == READER).delete())
+	db.commit()
 
 
 def readable_doctype(**properties) -> str:
