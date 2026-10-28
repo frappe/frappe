@@ -1274,6 +1274,30 @@ describe("a required field another block leaves empty", () => {
 		});
 	});
 
+	it("keeps a refusal with no field off a table whose cell a hold marked meanwhile", async () => {
+		server.metas["Walk Rule"] = { ...WALK_RULE, fields: [{ ...WALK_RULE.fields[0], reqd: 1 }] };
+		const drafts = await opened(block("general", "auto", ["rules"]));
+		const general = drafts.bound.get("general")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		general.draft.edit("rules", [{ name: "r1", rule: "new" }]);
+		drafts.commit(general);
+		await settled();
+		general.draft.edit("rules", [{ name: "r1", rule: "" }]);
+		drafts.commit(general);
+		await settled();
+		server.refusal = { entry: { type: "ValidationError", message: "Server down" }, status: 417 };
+		server.held = null;
+		release();
+		await settled();
+
+		expect(general.draft.state.marks.rules).toBe("error");
+		expect(general.draft.fieldErrors.drawn.value).toEqual({
+			[JSON.stringify(["rules", "name:r1", "rule"])]: "Rule is required",
+		});
+	});
+
 	it("does not mark Saved a value typed back while its save was out", async () => {
 		const drafts = await opened(block("region", "auto", ["country"]));
 		const region = drafts.bound.get("region")!;

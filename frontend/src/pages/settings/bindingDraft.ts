@@ -52,7 +52,7 @@ export class BindingDraft {
 	private queued = new Set<string>();
 	/** Each field a save in flight carries, with the value it sent. */
 	private sending = new Map<string, unknown>();
-	/** Fields a hold marked while a save was out; that save's refusal leaves them as the hold drew them. */
+	/** Fields a hold marked while a save was out; that save's refusal keeps their marks even when set back. */
 	private heldMeanwhile = new Set<string>();
 	/** The message keys those holds drew; an older refusal on the same field is not one of them. */
 	private heldKeys = new Set<string>();
@@ -307,7 +307,7 @@ export class BindingDraft {
 			);
 		else
 			for (const fieldname of failed)
-				if (!this.holds(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
+				if (!this.holdsUnder(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
 		for (const fieldname of setBack) {
 			if (this.heldMeanwhile.has(fieldname)) continue;
 			this.unmark(fieldname);
@@ -328,6 +328,11 @@ export class BindingDraft {
 	/** Only while the hold's message is still drawn: an edit, or a component's own change, may have cleared it. */
 	private holds(key: string): boolean {
 		return this.heldKeys.has(key) && key in this.fieldErrors.drawn.value;
+	}
+
+	/** A message with no field lands on the table itself, so a held cell keeps it off. */
+	private holdsUnder(fieldname: string): boolean {
+		return [...this.heldKeys].some((key) => fieldnameOfErrorKey(key) === fieldname && this.holds(key));
 	}
 
 	/** A field queued again keeps Saving…, and one changed since it was sent keeps its hold or none; Saved fades on its own. */
