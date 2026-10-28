@@ -1,6 +1,7 @@
 # The command palette's places (the doctypes a person can go to or create, and the apps they can open)
 # and its records.
 
+from collections.abc import Iterable
 from zoneinfo import ZoneInfo
 
 import frappe
@@ -46,7 +47,7 @@ def places() -> dict:
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def search_records(txt: str, doctype: str | None = None) -> list[dict]:
-	"""Up to 10 records matching `txt`, 3 per readable doctype, any named exactly `txt` first."""
+	"""Up to 10 records matching `txt`, 3 per doctype Go to lists, any named exactly `txt` first."""
 	txt = txt.strip()
 	if len(txt) < SHORTEST_QUERY:
 		return []
@@ -58,7 +59,7 @@ def search_records(txt: str, doctype: str | None = None) -> list[dict]:
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["GET"])
 def search_doctype_records(doctype: str, txt: str) -> list[dict]:
-	"""Up to 10 records of one readable doctype matching `txt`, any named exactly `txt` first."""
+	"""Up to 10 records of one doctype Go to lists, matching `txt`, any named exactly `txt` first."""
 	txt = txt.strip()
 	if len(txt) < SHORTEST_QUERY or not is_searchable(doctype):
 		return []
@@ -70,23 +71,28 @@ def place_doctypes() -> list[dict]:
 	"""Each doctype the user can read that has an address in an app they may enter, by name."""
 	# `can_read` and `can_create` are desk v1's own lists: no "User Cannot Search", no single to create.
 	user = frappe.get_user()
-	readable = user.get_can_read()
+	goes_to = enterable_owners(sorted(user.get_can_read()))
 	creatable = set(user.can_create)
-	doctypes = get_shell_doctypes()
-	table, owners = doctypes["table"], doctypes["owners"]
-	singles = set(table["singles"])
-	enterable = {app: has_app_permission(app) for app in set(owners.values())}
+	singles = set(get_shell_doctypes()["table"]["singles"])
 
 	return [
 		{
 			"name": doctype,
-			"app": owners.get(doctype, "frappe"),
+			"app": app,
 			"route": canonical_path(doctype, doctype if doctype in singles else None),
 			"can_create": doctype in creatable,
 		}
-		for doctype in sorted(readable)
-		if doctype in table["doctypes"] and enterable.get(owners.get(doctype, "frappe"))
+		for doctype, app in goes_to.items()
 	]
+
+
+def enterable_owners(doctypes: Iterable[str]) -> dict[str, str]:
+	"""Each of `doctypes` with an address in an app the person may enter, by its owner app, in order."""
+	shell = get_shell_doctypes()
+	addressed, owners = shell["table"]["doctypes"], shell["owners"]
+	owned = {doctype: owners.get(doctype, "frappe") for doctype in doctypes if doctype in addressed}
+	entered = {app for app in set(owned.values()) if has_app_permission(app)}
+	return {doctype: app for doctype, app in owned.items() if app in entered}
 
 
 def recent_places() -> list[dict]:
@@ -115,15 +121,23 @@ def exact_first(found: list[dict], txt: str) -> list[dict]:
 
 
 def searchable_doctypes(current: str | None) -> list[str]:
-	"""The current page's doctype, then the Global Search doctypes in their order, all readable."""
+	"""The current page's doctype, then the Global Search doctypes in their order, each one Go to lists."""
 	readable = set(frappe.get_user().get_can_read())
 	listed = get_doctypes_for_global_search()
 	wanted = dict.fromkeys([current, *listed] if current else listed)
-	return [doctype for doctype in wanted if doctype in readable and has_rows(doctype)]
+	return [
+		doctype
+		for doctype in enterable_owners(doctype for doctype in wanted if doctype in readable)
+		if has_rows(doctype)
+	]
 
 
 def is_searchable(doctype: str) -> bool:
-	return doctype in frappe.get_user().get_can_read() and has_rows(doctype)
+	return (
+		doctype in frappe.get_user().get_can_read()
+		and bool(enterable_owners([doctype]))
+		and has_rows(doctype)
+	)
 
 
 def has_rows(doctype: str) -> bool:
