@@ -27,7 +27,8 @@ class TestDeskV2OnlyMethods(FrappeAPITestCase):
 		api_secret = generate_keys(DESK_USER)["api_secret"]
 		api_key = frappe.db.get_value("User", DESK_USER, "api_key")
 		cls.auth = {"Authorization": f"token {api_key}:{api_secret}"}
-		frappe.db.commit()
+		# The test client serves each request on its own connection, which must see the keys.
+		frappe.db.commit()  # nosemgrep
 
 	def call(self, method: str):
 		if method == FRAMEWORK_UI:
