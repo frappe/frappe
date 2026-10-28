@@ -954,6 +954,28 @@ data = columns, result
 		with self.assertRaises(frappe.LinkValidationError):
 			report.get_validated_filters({"allocated_to": user, "users": [user, "missing"]}, user)
 
+	def test_validated_list_filter_with_doctype_from_another_filter(self):
+		report, user = self.make_filtered_report()
+		report.append(
+			"filters",
+			dict(fieldname="documents", label="Documents", fieldtype="MultiSelectList", options="doc_type"),
+		)
+		report.append(
+			"filters", dict(fieldname="doc_type", label="Document Type", fieldtype="Select", options="User")
+		)
+
+		filters = report.get_validated_filters(
+			{"allocated_to": user, "doc_type": "User", "documents": [user]}, user
+		)
+		self.assertEqual(filters.documents, [user])
+
+		with self.assertRaises(frappe.PermissionError):
+			report.get_validated_filters(
+				{"allocated_to": user, "doc_type": "User", "documents": [user, "Administrator"]}, user
+			)
+		with self.assertRaisesRegex(frappe.ValidationError, "Document Type"):
+			report.get_validated_filters({"allocated_to": user, "doc_type": "", "documents": [user]}, user)
+
 	def test_validated_link_filter_user_defaults(self):
 		report, user = self.make_filtered_report()
 		report.append("filters", dict(fieldname="user", label="User", fieldtype="Link", options="User"))

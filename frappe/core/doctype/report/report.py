@@ -531,14 +531,15 @@ class Report(Document):
 
 	def get_validated_filters(self, filters: dict, user: str) -> frappe._dict:
 		"""Return the filter values with defaults applied, checked against the Report Filter rows and cast to their fieldtypes."""
-		allowed_keys = {row.fieldname for row in self.filters} | set(FRAMEWORK_FILTER_KEYS)
+		rows_by_fieldname = {row.fieldname: row for row in self.filters}
+		allowed_keys = set(rows_by_fieldname) | set(FRAMEWORK_FILTER_KEYS)
 		if unknown_keys := set(filters) - allowed_keys:
 			frappe.throw(
 				_("Unknown filters: {0}").format(", ".join(sorted(unknown_keys))), title=_("Invalid Filters")
 			)
 
 		validated = frappe._dict({key: filters[key] for key in FRAMEWORK_FILTER_KEYS if key in filters})
-		for row in self.filters:
+		for row in sorted(self.filters, key=lambda row: row.options in rows_by_fieldname):
 			value = filters[row.fieldname] if row.fieldname in filters else get_filter_default(row, user)
 			if value in (None, "", []):
 				if row.mandatory:
@@ -546,6 +547,17 @@ class Report(Document):
 						_("{0} is mandatory").format(frappe.bold(_(row.label))), title=_("Missing Filters")
 					)
 				continue
+
+			if row.fieldtype == "MultiSelectList" and row.options in rows_by_fieldname:
+				doctype_row = rows_by_fieldname[row.options]
+				if not validated.get(doctype_row.fieldname):
+					frappe.throw(
+						_("{0} needs a value for {1}").format(
+							frappe.bold(_(row.label)), frappe.bold(_(doctype_row.label))
+						),
+						title=_("Missing Filters"),
+					)
+				row = frappe._dict(row.as_dict(), options=validated[doctype_row.fieldname])
 
 			validated[row.fieldname] = get_validated_value(row, value, user)
 

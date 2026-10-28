@@ -176,7 +176,12 @@ frappe.report_utils = {
 				wildcard_filter: row.wildcard_filter,
 			};
 			if (filter.fieldtype === "MultiSelectList" && row.options && !filter.get_data) {
-				filter.get_data = (txt) => frappe.db.get_link_options(row.options, txt);
+				filter.get_data = (txt) => {
+					const doctype = server_fieldnames.includes(row.options)
+						? frappe.query_report?.get_filter_value(row.options)
+						: row.options;
+					return doctype ? frappe.db.get_link_options(doctype, txt) : [];
+				};
 			}
 			return filter;
 		});
