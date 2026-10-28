@@ -1163,6 +1163,19 @@ class TestIncludePartsV2(FrappeAPITestCase):
 		self.assertEqual(response.json["tags"], ["read"])
 		self.assertEqual(set(response.json["users"]), {"Administrator"})
 
+	def test_users_of_a_never_saved_single(self):
+		frappe.set_user("Administrator")
+		single = new_doctype(issingle=1).insert()
+		frappe.db.commit()  # nosemgrep
+		self.addCleanup(frappe.db.commit)  # nosemgrep
+		self.addCleanup(frappe.delete_doc, "DocType", single.name, force=True)
+		self.assertEqual(frappe.db.get_singles_dict(single.name), {})
+
+		response = self.get(self.resource(single.name, single.name), {"sid": self.sid, "include": "users"})
+		self.assertEqual(response.status_code, 200, response.json)
+		self.assertEqual(response.json["data"]["name"], single.name)
+		self.assertEqual(set(response.json["users"]), {"Administrator"})
+
 	def test_include_must_be_a_string(self):
 		with suppress_stdout():
 			response = self.get(self.resource("ToDo", self.todo.name), {"sid": self.sid, "include": ["seen"]})
