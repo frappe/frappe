@@ -45,7 +45,7 @@ def get_settings_map(doctype: str) -> list[dict]:
 	# `doctype` could still learn it has a settings map and read every mapped Single field
 	# they happen to have access to (matches the guard `has_settings_map` applies).
 	if not frappe.has_permission(doctype, "read"):
-		frappe.throw(_("You are not permitted to access {0}.".format(doctype)), frappe.PermissionError)
+		frappe.throw(_("You are not permitted to access {0}.").format(_(doctype)), frappe.PermissionError)
 
 	# Exactly one map per doctype is active (enforced by the controller). `is_standard asc`
 	# is a defensive tie-break (custom before standard) in case of inconsistent data.
