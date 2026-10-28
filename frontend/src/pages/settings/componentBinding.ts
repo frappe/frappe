@@ -2,7 +2,7 @@
 import { fieldnameOfErrorKey } from "@framework/ui/fields/types";
 import type { DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { __ } from "@/i18n";
-import type { BindingDraft } from "./bindingDraft";
+import type { BindingDraft, Refusal } from "./bindingDraft";
 
 export interface ComponentBinding {
 	/** The shared draft: edit it in place, then `commit()` once a value is final. */
@@ -21,6 +21,7 @@ export interface ComponentBinding {
 export function componentBinding(
 	draft: BindingDraft,
 	owned: () => string[],
+	claimed: () => string[],
 	commit: () => Promise<void>
 ): ComponentBinding {
 	const { state } = draft;
@@ -38,7 +39,7 @@ export function componentBinding(
 			return state.loading;
 		},
 		get error() {
-			return state.failed || refusal(draft, owned());
+			return state.failed || refusal(draft, owned(), claimed());
 		},
 		get isNew() {
 			return state.isNew;
@@ -47,10 +48,18 @@ export function componentBinding(
 	};
 }
 
-/** Only the owned fields' errors: another block's refusal stays on its own row. */
-function refusal(draft: BindingDraft, owned: string[]): string {
+function refusal(draft: BindingDraft, owned: string[], claimed: string[]): string {
 	const drawn = Object.entries(draft.fieldErrors.drawn.value);
 	const [, message] = drawn.find(([key]) => owned.includes(fieldnameOfErrorKey(key))) ?? [];
 	if (message) return [message].flat().join(" ");
-	return owned.some((fieldname) => draft.state.marks[fieldname] === "error") ? __("Did not save") : "";
+	const failed = owned.filter((fieldname) => draft.state.marks[fieldname] === "error");
+	if (!failed.length) return "";
+	const reasons = failed.map((fieldname) => reasonOf(draft.state.refusals[fieldname], claimed));
+	return reasons.find(Boolean) || __("Did not save");
+}
+
+function reasonOf(refused: Refusal | undefined, claimed: string[]): string {
+	if (!refused) return "";
+	if (!refused.named.length) return refused.message;
+	return refused.named.find(({ fieldname }) => !claimed.includes(fieldname))?.message ?? "";
 }

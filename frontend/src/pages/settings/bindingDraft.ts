@@ -25,6 +25,11 @@ import { changedFields, confirmConflict, stripTags } from "../record/saveRespons
 
 export type RowMark = "saving" | "saved" | "error";
 
+export interface Refusal {
+	named: { fieldname: string; message: string }[];
+	message: string;
+}
+
 type Values = Record<string, any>;
 
 /** What a draft asks of its open pane. */
@@ -47,6 +52,7 @@ export class BindingDraft {
 		failed: "",
 		isNew: false,
 		marks: {} as Record<string, RowMark>,
+		refusals: {} as Record<string, Refusal>,
 	});
 	readonly fieldErrors = new FieldErrors();
 	readonly loaded: Promise<void>;
@@ -117,7 +123,10 @@ export class BindingDraft {
 	/** Marks fields not saved without sending them, as a missing mandatory value does. */
 	hold(fieldnames: string[], refusals: { address: FieldAddress; message: string }[]) {
 		for (const { address, message } of refusals) this.fieldErrors.mark(address, message);
-		for (const fieldname of fieldnames) this.state.marks[fieldname] = "error";
+		for (const fieldname of fieldnames) {
+			this.state.marks[fieldname] = "error";
+			delete this.state.refusals[fieldname];
+		}
 		if (!this.sending.size) return;
 		for (const fieldname of fieldnames) this.heldMeanwhile.add(fieldname);
 		for (const { address } of refusals) {
@@ -316,6 +325,16 @@ export class BindingDraft {
 				if (!this.holdsUnder(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
 		this.clearSetBack(setBack);
 		this.settle(failed, "error");
+		const refusal: Refusal = {
+			named: refusals.map((refused) => ({
+				fieldname: refused.parentfield ?? refused.fieldname,
+				message: refused.message,
+			})),
+			message: messageOf(error),
+		};
+		for (const fieldname of failed)
+			if (this.state.marks[fieldname] === "error" && !this.heldMeanwhile.has(fieldname))
+				this.state.refusals[fieldname] = refusal;
 		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
 	}
 
@@ -350,6 +369,7 @@ export class BindingDraft {
 	private settle(fieldnames: string[], mark: RowMark) {
 		for (const fieldname of fieldnames) {
 			if (this.queued.has(fieldname)) continue;
+			delete this.state.refusals[fieldname];
 			if (mark === "saved" && this.dirty(fieldname)) {
 				if (this.state.marks[fieldname] === "error") continue;
 				delete this.state.marks[fieldname];
