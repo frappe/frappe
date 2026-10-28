@@ -79,7 +79,6 @@ class PrintViewTest(IntegrationTestCase):
 		with (
 			patch.dict(frappe.conf, {"domains": domains}),
 			patch("frappe.utils.print_format.get_pdf", return_value=b"pdf") as get_pdf,
-			patch("frappe.utils.print_format.resolve_pdf_generator", return_value="wkhtmltopdf"),
 			patch.object(frappe.local, "response", frappe._dict()),
 		):
 			report_to_pdf("<p>Report</p>")

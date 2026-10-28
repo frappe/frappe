@@ -335,10 +335,10 @@ class TestPdf(IntegrationTestCase):
 			patch.object(pdfgen.pdfkit, "from_string", side_effect=capture_options),
 			patch.object(pdfgen, "get_wkhtmltopdf_version", return_value="0.12.6"),
 		):
-			pdfgen.get_pdf(self.html, pdf_generator="wkhtmltopdf")
+			pdfgen.get_pdf(self.html)
 			self.assertIn("disable-smart-shrinking", captured)
 
-			pdfgen.get_pdf(self.html, smart_shrinking=True, pdf_generator="wkhtmltopdf")
+			pdfgen.get_pdf(self.html, smart_shrinking=True)
 			self.assertNotIn("disable-smart-shrinking", captured)
 
 	def test_report_pdf_is_scaled_to_fit_the_page(self):
@@ -346,21 +346,10 @@ class TestPdf(IntegrationTestCase):
 
 		from frappe.utils import print_format
 
-		with (
-			patch.object(print_format, "get_pdf", return_value=blank_pdf()) as get_report_pdf,
-			patch.object(print_format, "resolve_pdf_generator", return_value="wkhtmltopdf"),
-		):
+		with patch.object(print_format, "get_pdf", return_value=blank_pdf()) as get_report_pdf:
 			print_format.report_to_pdf("<table><tr><td>a wide report</td></tr></table>")
-		self.assertTrue(get_report_pdf.call_args.kwargs["smart_shrinking"])
 
-		with (
-			patch.object(print_format, "get_pdf", return_value=blank_pdf()) as get_report_pdf,
-			patch.object(print_format, "resolve_pdf_generator", return_value="chrome"),
-		):
-			print_format.report_to_pdf("<table><tr><td>a wide report</td></tr></table>")
-		options = get_report_pdf.call_args.args[1]
-		self.assertTrue(options["shrink-to-fit"])
-		self.assertTrue(options["block-external-requests"])
+		self.assertTrue(get_report_pdf.call_args.kwargs["smart_shrinking"])
 
 	def test_network_print_raises_the_pdf_generation_error(self):
 		import sys

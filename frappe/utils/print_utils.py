@@ -205,7 +205,7 @@ def get_print(
 
 		_run_print_pdf_hooks(doctype, name, print_format)
 
-		return get_pdf(html, options=pdf_options, output=output, pdf_generator=generator)
+		return get_pdf(html, options=pdf_options, output=output)
 	finally:
 		local.form_dict = original_form_dict
 
