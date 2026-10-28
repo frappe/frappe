@@ -63,6 +63,8 @@ describe("confirmConflict", () => {
       "Reload and lose my changes",
       "Use their Status",
     ]);
+    expect(confirm.mock.calls[0][0].message).toContain("Reload to see their version");
+    expect(confirm.mock.calls[1][0].message).toContain("Use theirs, or keep editing");
   });
 });
 

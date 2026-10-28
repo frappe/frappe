@@ -490,6 +490,31 @@ describe("a conflict with a save made elsewhere", () => {
 		expect(confirm).toHaveBeenCalledWith(expect.objectContaining({ confirmLabel: "Use their changes" }));
 	});
 
+	it("leaves no mark on a field set back while its save was out when the reader keeps editing the other", async () => {
+		const drafts = await opened(block("regional", "button", ["country", "time_zone"]));
+		const regional = drafts.bound.get("regional")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+		regional.draft.edit("country", "India");
+		regional.draft.edit("time_zone", "Asia/Kolkata");
+		confirm.mockResolvedValue(null);
+
+		const saving = drafts.saveButtons();
+		await settled();
+		regional.draft.edit("country", "France");
+		server.put("System Settings", "System Settings", { country: "Spain", time_zone: "Asia/Tokyo" });
+		server.held = null;
+		release();
+		await saving;
+		await settled();
+
+		expect(confirm).toHaveBeenCalledTimes(1);
+		expect(confirm.mock.calls[0][0].message).toContain("your changes to Time Zone cannot");
+		expect(regional.draft.dirty("country")).toBe(false);
+		expect(regional.draft.state.marks.country).toBeUndefined();
+		expect(regional.draft.state.marks.time_zone).toBe("error");
+	});
+
 	it("does not ask about an autosaved field set back while its save was out", async () => {
 		const drafts = await opened(block("general", "auto", ["country"]));
 		const general = drafts.bound.get("general")!;

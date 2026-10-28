@@ -268,7 +268,12 @@ export class BindingDraft {
 			for (const fieldname of fieldnames) this.queued.add(fieldname);
 			return;
 		}
-		this.settle(fieldnames, "error");
+		const setBack = fieldnames.filter((fieldname) => !this.dirty(fieldname));
+		this.clearSetBack(setBack);
+		this.settle(
+			fieldnames.filter((fieldname) => !setBack.includes(fieldname)),
+			"error"
+		);
 		if (this.host.closed()) return this.host.lost();
 		const editor = users?.[fresh.modified_by]?.full_name || fresh.modified_by;
 		const changed = changedFields(
@@ -312,13 +317,18 @@ export class BindingDraft {
 		else
 			for (const fieldname of failed)
 				if (!this.holdsUnder(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
-		for (const fieldname of setBack) {
+		this.clearSetBack(setBack);
+		this.settle(failed, "error");
+		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
+	}
+
+	/** A hold placed while the save was out keeps its mark. */
+	private clearSetBack(fieldnames: string[]) {
+		for (const fieldname of fieldnames) {
 			if (this.heldMeanwhile.has(fieldname)) continue;
 			this.unmark(fieldname);
 			if (!this.queued.has(fieldname)) delete this.state.marks[fieldname];
 		}
-		this.settle(failed, "error");
-		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
 	}
 
 	private quiet(refused: RefusedField, setBack: string[]): boolean {
