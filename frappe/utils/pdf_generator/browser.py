@@ -6,7 +6,12 @@ from bs4 import BeautifulSoup
 import frappe
 from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
-from frappe.utils.print_utils import _print_format_doc_or_none, convert_uom, parse_float_and_unit
+from frappe.utils.print_utils import (
+	_print_format_doc_or_none,
+	convert_uom,
+	parse_float_and_unit,
+	resolve_pdf_generator,
+)
 
 RECEIPT_WIDTHS = {"Receipt 80 mm": "80mm", "Receipt 58 mm": "58mm"}
 
@@ -37,6 +42,7 @@ class Browser:
 			self.try_async_header_footer_pdf()
 			# now wait for page to load as we need DOM to generate pdf
 			self.body_page.wait_for_set_content()
+			self.fit_body_to_page()
 			self.fit_body_height()
 			self.body_pdf = self.body_page.generate_pdf(raw=not self.header_page and not self.footer_page)
 			self.update_header_footer_page()
@@ -113,14 +119,30 @@ class Browser:
 
 		page = Page(self.session, self.browser_context_id, page_type)
 		page.is_print_designer = self.is_print_designer
+		page.block_external_requests = bool(self.options.get("block-external-requests"))
 
 		return page
 
 	def setup_body_page(self):
 		self.body_page = self.new_page("body")
+		if self.options.get("block-external-requests"):
+			self.body_page.send("Emulation.setScriptExecutionDisabled", {"value": True})
 		self.body_page.set_tab_url(get_host_url())
 		self.body_page.wait_for_navigate()
 		self.body_page.set_content(str(self.soup))
+
+	def fit_body_to_page(self):
+		if not self.options.get("shrink-to-fit"):
+			return
+		options = self.body_page.options
+		printable = 96 * (
+			options["paperWidth"] - options.get("marginLeft", 0) - options.get("marginRight", 0)
+		)
+		self.body_page.set_device_metrics(width=int(printable), height=1000)
+		result = self.body_page.evaluate("document.documentElement.scrollWidth")
+		content_width = (result or {}).get("result", {}).get("value") or 0
+		if content_width > printable:
+			options["scale"] = max(0.1, printable / content_width)
 
 	def fit_body_height(self):
 		if not self.options.get("fit-height"):
@@ -159,6 +181,12 @@ class Browser:
 		# code is structured like this to improve performance by running commands in chrome as soon as possible.
 		soup = self.soup
 		options = self.options
+		if options.get("block-external-requests"):
+			for script in soup.find_all("script"):
+				script.decompose()
+			for tag in soup.find_all(True):
+				for attr in [attr for attr in tag.attrs if attr.lower().startswith("on")]:
+					del tag[attr]
 		self._add_page_number(soup)
 		# open header and footer pages
 		self._open_header_footer_pages()
@@ -301,7 +329,7 @@ class Browser:
 			not print_format
 			or not print_format.css
 			or uses_beta_renderer(print_format)
-			or print_format.pdf_generator != "chrome"
+			or (print_format.pdf_generator or resolve_pdf_generator()) != "chrome"
 		):
 			return {}
 		return get_page_rule_margins(print_format.css)

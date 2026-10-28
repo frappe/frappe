@@ -15,6 +15,7 @@ from frappe.translate import print_language
 from frappe.utils import get_link_to_form
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 
 no_cache = 1
 
@@ -425,16 +426,24 @@ def download_pdf(
 def report_to_pdf(html: str, orientation: str = "Landscape"):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
-	frappe.local.response.filecontent = get_pdf(
-		html,
-		{
-			"orientation": orientation,
-			"proxy": "http://0.0.0.0:0",
-			"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
-			"load-error-handling": "ignore",
-		},
-		smart_shrinking=True,
-	)
+	if resolve_pdf_generator() == "chrome":
+		frappe.local.response.filecontent = get_pdf(
+			html,
+			{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+			pdf_generator="chrome",
+		)
+	else:
+		frappe.local.response.filecontent = get_pdf(
+			html,
+			{
+				"orientation": orientation,
+				"proxy": "http://0.0.0.0:0",
+				"bypass-proxy-for": _pdf_bypass_proxy_hosts(),
+				"load-error-handling": "ignore",
+			},
+			smart_shrinking=True,
+			pdf_generator="wkhtmltopdf",
+		)
 	frappe.local.response.type = "pdf"
 
 
