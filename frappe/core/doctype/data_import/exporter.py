@@ -15,6 +15,7 @@ def get_export_filters(doctype, filters=None):
 		return filters
 
 	frappe.permissions.can_export(doctype, raise_exception=True, is_owner=True)
+	filters = frappe.parse_json(filters)
 	if isinstance(filters, dict):
 		filters = [make_filter_tuple(doctype, k, v) for k, v in filters.items()]
 	return [*(filters or []), ["owner", "=", frappe.session.user]]
