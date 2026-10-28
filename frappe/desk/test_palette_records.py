@@ -27,13 +27,24 @@ class PaletteRecordsCase(IntegrationTestCase):
 		cls.readable = [readable_doctype() for _ in range(4)]
 		cls.titled = readable_doctype(title_field="some_fieldname", show_title_field_in_link=1)
 		cls.titled_plain_links = readable_doctype(title_field="some_fieldname")
+		cls.rich_titled = readable_doctype(
+			title_field="some_fieldname",
+			fields=[{"label": "Some Field", "fieldname": "some_fieldname", "fieldtype": "Text Editor"}],
+		)
 		cls.single = readable_doctype(issingle=1)
 		cls.closed = new_doctype(autoname="Prompt").insert().name
 		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
-		for doctype in [*cls.readable, cls.titled, cls.titled_plain_links, cls.single, cls.closed]:
+		for doctype in [
+			*cls.readable,
+			cls.titled,
+			cls.titled_plain_links,
+			cls.rich_titled,
+			cls.single,
+			cls.closed,
+		]:
 			frappe.delete_doc("DocType", doctype, force=True)
 		frappe.delete_doc("User", READER, force=True)
 		frappe.delete_doc("Role", ROLE, force=True)
@@ -125,16 +136,20 @@ class TestSearchRecords(PaletteRecordsCase):
 		)
 
 	def test_a_rich_text_title_is_plain_text(self):
-		with patch.object(
-			frappe.get_meta(self.titled_plain_links).get_field("some_fieldname"), "fieldtype", "Text Editor"
-		):
-			frappe.get_doc(
-				doctype=self.titled_plain_links, name="KES-0003", some_fieldname="<p>Kestrel &amp; Hawk</p>"
-			).insert()
-			with listed([self.titled_plain_links]), self.set_user(READER):
-				found = search_records("Kestrel")
+		frappe.get_doc(
+			doctype=self.rich_titled, name="KES-0003", some_fieldname="<p>Kestrel &amp; Hawk</p>"
+		).insert()
+
+		with listed([self.rich_titled]), self.set_user(READER):
+			found = search_records("Kestrel")
 
 		self.assertEqual([row["label"] for row in found], ["Kestrel & Hawk"])
+
+	def test_a_hooked_query_is_titled_too(self):
+		with listed(["User"]):
+			found = search_records(READER)
+
+		self.assertEqual(without_route(found), [{"doctype": "User", "name": READER, "label": "Palette"}])
 
 	def test_label_is_the_name_without_a_title_field(self):
 		first = self.readable[0]
