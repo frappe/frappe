@@ -831,6 +831,29 @@ data = columns, result
 			with self.assertRaisesRegex(frappe.ValidationError, "priority"):
 				run(report.name, {"allocated_to": user, "priority": "High"})
 
+	def test_validated_filters_reject_invalid_dates(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime"))
+		report.append("filters", dict(fieldname="at", label="At", fieldtype="Time"))
+
+		filters = report.get_validated_filters(
+			{"allocated_to": user, "since": "2026-01-01 10:30:00", "at": "10:30:00"}, user
+		)
+		self.assertEqual(filters.since, datetime.datetime(2026, 1, 1, 10, 30))
+		self.assertEqual(filters.at, datetime.timedelta(hours=10, minutes=30))
+
+		for fieldname, label, value in (
+			("from_date", "From Date", 5),
+			("from_date", "From Date", 0),
+			("from_date", "From Date", "garbage"),
+			("from_date", "From Date", "0001-01-01"),
+			("since", "Since", "garbage"),
+			("at", "At", "garbage"),
+			("period", "Period", ["0001-01-01", "2026-01-31"]),
+		):
+			with self.assertRaisesRegex(frappe.ValidationError, label):
+				report.get_validated_filters({"allocated_to": user, fieldname: value}, user)
+
 	def test_validated_list_filters(self):
 		report, user = self.make_filtered_report()
 

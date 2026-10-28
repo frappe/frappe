@@ -20,7 +20,7 @@ from frappe.model.create_new import get_static_default_value
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cast, cint, cstr
+from frappe.utils import cast, cint, cstr, get_datetime, get_timedelta
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 from frappe.utils.xlsxutils import XLSXMetadata
 
@@ -592,7 +592,7 @@ def get_validated_value(row, value, user):
 					_("{0} must have a start and an end date").format(frappe.bold(_(row.label))),
 					title=_("Invalid Filters"),
 				)
-			return [cast("Date", item) for item in value]
+			return [get_validated_date(row, "Date", item) for item in value]
 
 		if row.options:
 			for item in value:
@@ -604,6 +604,9 @@ def get_validated_value(row, value, user):
 			_("{0} must be a single value").format(frappe.bold(_(row.label))),
 			title=_("Invalid Filters"),
 		)
+
+	if row.fieldtype in ("Date", "Datetime", "Time"):
+		return get_validated_date(row, row.fieldtype, value)
 
 	if row.fieldtype == "Select" and value not in (options := (row.options or "").split("\n")):
 		frappe.throw(
@@ -617,6 +620,21 @@ def get_validated_value(row, value, user):
 		validate_link_value(row.options, value, user)
 
 	return cast(row.fieldtype, value)
+
+
+def get_validated_date(row, fieldtype, value):
+	try:
+		parsed = get_timedelta(value) if fieldtype == "Time" else get_datetime(value)
+	except (ValueError, OverflowError):
+		parsed = None
+
+	if not isinstance(value, str) or parsed is None:
+		frappe.throw(
+			_("{0} must be a valid {1}").format(frappe.bold(_(row.label)), _(fieldtype)),
+			title=_("Invalid Filters"),
+		)
+
+	return parsed.date() if fieldtype == "Date" else parsed
 
 
 def validate_link_value(doctype, value, user):
