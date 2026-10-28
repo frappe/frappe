@@ -73,7 +73,7 @@ async function deskBoot(request) {
 	const addresses = await getMethod(request, "frappe.shell.doctypes.get_addresses", {
 		v: boot.metadata_version,
 	});
-	const { modular } = boot.prefixes[desk.prefix];
+	const { modular } = Object.values(boot.prefixes).find((entry) => entry.app === desk.app);
 	return { route: desk.route, modular, navigation: boot.navigation, addresses };
 }
 
