@@ -203,6 +203,12 @@ class TestExporter(IntegrationTestCase):
 				export_data=True,
 				export_filters={"owner": ["!=", "test2@example.com"]},
 			)
+			from_json_filters = Exporter(
+				doctype_name,
+				export_fields={doctype_name: ["title"]},
+				export_data=True,
+				export_filters=frappe.as_json({"title": ["in", [own_doc, other_doc]]}),
+			)
 			frappe.form_dict.export_filters = {"title": ["in", [own_doc, other_doc]]}
 			count = get_export_count(doctype_name, frappe.form_dict.export_filters)
 
@@ -211,6 +217,7 @@ class TestExporter(IntegrationTestCase):
 		self.assertNotIn(other_doc, titles)
 		self.assertEqual(excluding_own.get_csv_array()[1:], [])
 		self.assertEqual(count, 1)
+		self.assertEqual([row[0] for row in from_json_filters.get_csv_array()[1:]], [own_doc])
 
 	def test_template_includes_import_provider_tables(self):
 		test_doc = "_Test Provider Export"
