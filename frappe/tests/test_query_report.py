@@ -856,6 +856,34 @@ data = columns, result
 			with self.assertRaisesRegex(frappe.ValidationError, label):
 				report.get_validated_filters({"allocated_to": user, fieldname: value}, user)
 
+	def test_validated_filters_accept_native_values(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime"))
+		report.append("filters", dict(fieldname="at", label="At", fieldtype="Time"))
+
+		filters = report.get_validated_filters(
+			{
+				"allocated_to": user,
+				"count": "5",
+				"show_all": "1",
+				"from_date": datetime.datetime(2026, 1, 1, 10, 30),
+				"since": datetime.date(2026, 1, 1),
+				"at": datetime.timedelta(hours=10),
+				"users": (user,),
+				"period": (datetime.date(2026, 1, 1), "2026-01-31"),
+			},
+			user,
+		)
+		self.assertEqual(filters.from_date, datetime.date(2026, 1, 1))
+		self.assertEqual(filters.since, datetime.datetime(2026, 1, 1))
+		self.assertEqual(filters.at, datetime.timedelta(hours=10))
+		self.assertEqual(filters.users, [user])
+		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
+		self.assertEqual(report.get_validated_filters(filters, user), filters)
+
+		with self.assertRaisesRegex(frappe.ValidationError, "At"):
+			report.get_validated_filters({"allocated_to": user, "at": datetime.date(2026, 1, 1)}, user)
+
 	def test_validated_filters_check_numbers(self):
 		report, user = self.make_filtered_report()
 		report.append("filters", dict(fieldname="amount", label="Amount", fieldtype="Float"))

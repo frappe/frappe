@@ -596,7 +596,8 @@ def get_link_user_default(row, user):
 
 def get_validated_value(row, value, user):
 	if row.fieldtype in ("MultiSelectList", "DateRange"):
-		if not isinstance(value, list) or not all(isinstance(item, str) for item in value):
+		item_type = str | datetime.date if row.fieldtype == "DateRange" else str
+		if not isinstance(value, list | tuple) or not all(isinstance(item, item_type) for item in value):
 			frappe.throw(
 				_("{0} must be a list of values").format(frappe.bold(_(row.label))),
 				title=_("Invalid Filters"),
@@ -619,16 +620,16 @@ def get_validated_value(row, value, user):
 		if row.options:
 			for item in value:
 				validate_link_value(row.options, item, user)
-		return value
+		return list(value)
+
+	if row.fieldtype in ("Date", "Datetime", "Time"):
+		return get_validated_date(row, row.fieldtype, value)
 
 	if not isinstance(value, str | int | float):
 		frappe.throw(
 			_("{0} must be a single value").format(frappe.bold(_(row.label))),
 			title=_("Invalid Filters"),
 		)
-
-	if row.fieldtype in ("Date", "Datetime", "Time"):
-		return get_validated_date(row, row.fieldtype, value)
 
 	if row.fieldtype == "Select" and value not in (options := (row.options or "").split("\n")):
 		frappe.throw(
@@ -669,12 +670,15 @@ def get_validated_number(row, value):
 
 
 def get_validated_date(row, fieldtype, value):
-	try:
-		parsed = get_timedelta(value) if fieldtype == "Time" else get_datetime(value)
-	except (ValueError, OverflowError):
-		parsed = None
+	native_type = datetime.timedelta if fieldtype == "Time" else datetime.date
+	parsed = None
+	if isinstance(value, str | native_type):
+		try:
+			parsed = get_timedelta(value) if fieldtype == "Time" else get_datetime(value)
+		except (ValueError, OverflowError):
+			pass
 
-	if not isinstance(value, str) or parsed is None:
+	if parsed is None:
 		frappe.throw(
 			_("{0} must be a valid {1}").format(frappe.bold(_(row.label)), _(fieldtype)),
 			title=_("Invalid Filters"),
