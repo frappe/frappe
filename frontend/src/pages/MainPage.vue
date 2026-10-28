@@ -16,9 +16,11 @@
 import { computed, inject } from "vue";
 import { useRoute } from "vue-router";
 import type { Addresses } from "@/addresses";
+import type { Boot } from "@/boot";
 import { loadedPage, mainPageFor } from "@/router/mainPage";
 
 const addresses = inject<Addresses>("addresses")!;
+const boot = inject<Boot>("boot")!;
 const route = useRoute();
-const page = computed(() => mainPageFor(route, addresses));
+const page = computed(() => mainPageFor(route, addresses, boot.app));
 </script>

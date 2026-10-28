@@ -69,7 +69,9 @@ One of the routes every app gets with **no declaration at all** — home, list,
 standard-list, saved-view, record, standard-record, and module on a modular app. `doctype` is
 a param, so the same routes serve any number of doctypes.
 There is no per-doctype route and no opt-out.
-The list and record routes open a doctype's declared replacement page when one exists.
+The list and record routes open the replacement page that applies in the current app
+(`boot.app`), else the standard page. A `pages.json` key takes a page name (every app), one
+`{ "page", "apps" }` entry, or a list of them; an entry with no `apps` applies in every app.
 _Avoid_: default route, implicit route.
 
 **Index**: <a id="index"></a>
@@ -170,6 +172,8 @@ foreign doctype does not move it into your prefix.
 **Run order**: <a id="run-order"></a>
 Per doctype: the owning app first, then every other app in `app_order`. The rule is
 *baseline first, more-specific intent last* — derived, not declared.
+For a replacement page it breaks ties only: an entry that names the current app beats every
+entry that names none, whatever the run order.
 
 **Source**: <a id="source"></a>
 Who is speaking, for attribution and for removal. `host` is the app's own bundled code;

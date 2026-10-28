@@ -8,7 +8,7 @@ import { files, isFile } from "./folders.js";
 export const STANDARD_PAGES = ["record", "list"];
 
 /** The pages a folder's `pages.json` names from the `pages/` folder beside it. */
-export function declaredPages(folder, declarer) {
+export function declaredPages(folder, declarer, benchApps) {
 	const pagesRoot = join(folder, "pages");
 	const pageNames = files(pagesRoot).map((file) => basename(file, ".js"));
 	const warnings = handlerFileWarnings(folder, pageNames, declarer.foreign);
@@ -17,23 +17,25 @@ export function declaredPages(folder, declarer) {
 	const read = readDeclaration(path);
 	warnings.push(...read.warnings);
 	const found = [];
-	for (const [key, page] of Object.entries(read.declaration)) {
-		const problem = declarationProblem(key, page, pageNames);
-		if (problem) {
-			warnings.push(`[frappe] ${path}: ${problem}; that key is ignored.`);
-			continue;
+	for (const [key, value] of Object.entries(read.declaration)) {
+		const declared = keyEntries(key, value, pageNames, benchApps);
+		warnings.push(...declared.warnings.map((warning) => `[frappe] ${path}: ${warning}.`));
+		for (const { page, apps } of declared.entries) {
+			const file = join(pagesRoot, `${page}.js`);
+			found.push({ ...declarer, key, page, ...(apps && { apps }), file });
 		}
-		found.push({ ...declarer, key, page, file: join(pagesRoot, `${page}.js`) });
 	}
 	return { found, warnings, declaration: isFile(path) ? path : null };
 }
 
-/** One warning per doctype and key that more than one app replaces. */
+/** One warning per doctype, key and app that more than one app replaces; "every app" is one more. */
 export function clashes(replacements) {
 	const byTarget = new Map();
 	for (const entry of replacements) {
-		const target = `${entry.doctype}'s ${entry.key} page`;
-		byTarget.set(target, [...(byTarget.get(target) ?? []), entry]);
+		for (const app of entry.apps ?? [null]) {
+			const target = `${entry.doctype}'s ${entry.key} page${app ? ` in ${app}` : ""}`;
+			byTarget.set(target, [...(byTarget.get(target) ?? []), entry]);
+		}
 	}
 
 	const warnings = [];
@@ -46,6 +48,80 @@ export function clashes(replacements) {
 		);
 	}
 	return warnings;
+}
+
+/**
+ * A key's entries, each `{ page, apps }` with `apps` null for every app. A malformed or
+ * ambiguous key gives none; an app not on the bench is dropped from its entry.
+ */
+function keyEntries(key, value, pageNames, benchApps) {
+	const entries = typeof value === "string" ? [{ page: value }] : [value].flat();
+	const problem = keyProblem(key, value, entries, pageNames);
+	if (problem) return { entries: [], warnings: [`${problem}; that key is ignored`] };
+
+	const warnings = [];
+	const scoped = [];
+	for (const { page, apps } of entries) {
+		if (!apps) {
+			scoped.push({ page, apps: null });
+			continue;
+		}
+		const known = [...new Set(apps)].filter((app) => benchApps.includes(app));
+		for (const app of apps.filter((app) => !benchApps.includes(app)))
+			warnings.push(
+				`"${key}" names app "${app}" for "${page}", but it is not on the bench; it is dropped from that entry`
+			);
+		if (known.length) scoped.push({ page, apps: known });
+		else
+			warnings.push(
+				`"${key}" gives "${page}" no app on the bench, and "apps" never means every app; that entry is ignored`
+			);
+	}
+	return { entries: scoped, warnings };
+}
+
+function keyProblem(key, value, entries, pageNames) {
+	if (!STANDARD_PAGES.includes(key))
+		return `unknown key ${JSON.stringify(key)}, only "record" and "list" are read`;
+	if (!entries.length) return `"${key}" is an empty list`;
+	for (const entry of entries) {
+		const problem = entryProblem(key, entry, pageNames);
+		if (problem) return problem;
+	}
+	return scopeClash(key, entries);
+}
+
+function entryProblem(key, entry, pageNames) {
+	if (entry === null || typeof entry !== "object" || Array.isArray(entry))
+		return `"${key}" is not a page name, a { "page", "apps" } entry or a list of entries`;
+	const unknown = Object.keys(entry).find((field) => field !== "page" && field !== "apps");
+	if (unknown) return `"${key}" has an entry with the unknown field "${unknown}"`;
+	const { page, apps } = entry;
+	if (typeof page !== "string") return `"${key}" has an entry with no page name`;
+	if (
+		apps !== undefined &&
+		!(Array.isArray(apps) && apps.every((app) => typeof app === "string"))
+	)
+		return `"${key}" gives "${page}" an "apps" that is not a list of app names`;
+	if (STANDARD_PAGES.includes(page))
+		return `"${key}" names "${page}", a name reserved for the standard pages`;
+	if (!pageNames.includes(page))
+		return `"${key}" names "${page}", but there is no pages/${page}.js`;
+	return null;
+}
+
+/** Two entries for every app, or one app named in two entries: no entry can win. */
+function scopeClash(key, entries) {
+	if (entries.filter((entry) => !entry.apps).length > 1)
+		return `"${key}" has more than one entry with no "apps"`;
+	const named = new Set();
+	for (const { apps = [] } of entries) {
+		for (const app of new Set(apps)) {
+			if (named.has(app)) return `"${key}" names app "${app}" in more than one entry`;
+			named.add(app);
+		}
+	}
+	return null;
 }
 
 /** A `.js` file beside `pages/` is a page's reserved handler file or, under `custom/`, a stray. */
@@ -83,15 +159,4 @@ function readDeclaration(path) {
 		return { declaration: {}, warnings: [warning] };
 	}
 	return { declaration, warnings: [] };
-}
-
-function declarationProblem(key, page, pageNames) {
-	if (!STANDARD_PAGES.includes(key))
-		return `unknown key ${JSON.stringify(key)}, only "record" and "list" are read`;
-	if (typeof page !== "string") return `"${key}" is not a page name`;
-	if (STANDARD_PAGES.includes(page))
-		return `"${key}" names "${page}", a name reserved for the standard pages`;
-	if (!pageNames.includes(page))
-		return `"${key}" names "${page}", but there is no pages/${page}.js`;
-	return null;
 }

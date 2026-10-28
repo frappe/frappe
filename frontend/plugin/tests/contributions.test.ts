@@ -182,7 +182,7 @@ describe("a pages.json key that cannot be used", () => {
 
     expect(replacements).toEqual([]);
     expect(warnings).toEqual([
-      `[frappe] ${path(manifest)}: "record" is not a page name; that key is ignored.`,
+      `[frappe] ${path(manifest)}: "record" is not a page name, a { "page", "apps" } entry or a list of entries; that key is ignored.`,
     ]);
   });
 
@@ -198,6 +198,138 @@ describe("a pages.json key that cannot be used", () => {
     expect(replacements).toEqual([]);
     expect(warnings).toEqual([
       `[frappe] ${path(manifest)}: "list" names "record", a name reserved for the standard pages; that key is ignored.`,
+    ]);
+  });
+});
+
+describe("a pages.json entry that names apps", () => {
+  const path = (manifest: { source_dir: string }[]) =>
+    join(manifest[0].source_dir, TICKET, "frontend/pages.json");
+  const scoped = (declaration: unknown, extra: Record<string, string> = {}) =>
+    bench({
+      helpdesk: owner(declaration, {
+        [`${TICKET}/frontend/pages/card.js`]: PAGE,
+        ...extra,
+      }),
+      crm: {},
+      frappe: {},
+    });
+  const found = (replacements: (Replacement & { apps?: string[] })[]) =>
+    replacements.map(({ key, page, apps }) => ({ key, page, apps }));
+
+  it("carries the apps of one object, and an array's entry with no apps applies in every app", () => {
+    const manifest = scoped({
+      record: { page: "runner", apps: ["crm"] },
+      list: [{ page: "runner", apps: ["frappe", "helpdesk"] }, { page: "card" }],
+    });
+    const { replacements, warnings } = discover(manifest);
+
+    expect(found(replacements)).toEqual([
+      { key: "record", page: "runner", apps: ["crm"] },
+      { key: "list", page: "runner", apps: ["frappe", "helpdesk"] },
+      { key: "list", page: "card", apps: undefined },
+    ]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("emits the apps of a scoped entry only", () => {
+    const manifest = scoped({
+      list: [{ page: "runner", apps: ["crm"] }, { page: "card" }],
+    });
+    const code = load(contributions(manifest));
+
+    expect(code).toContain(`key: "list", apps: ["crm"], foreign: false, title: r0?.title`);
+    expect(code).toContain(`key: "list", foreign: false, title: r1?.title`);
+  });
+
+  it("drops an app that is not on the bench from its entry, and keeps the others", () => {
+    const manifest = scoped({ record: { page: "runner", apps: ["crm", "hrms"] } });
+    const { replacements, warnings } = discover(manifest);
+
+    expect(found(replacements)).toEqual([
+      { key: "record", page: "runner", apps: ["crm"] },
+    ]);
+    expect(warnings).toEqual([
+      `[frappe] ${path(manifest)}: "record" names app "hrms" for "runner", but it is not on the bench; it is dropped from that entry.`,
+    ]);
+  });
+
+  it("drops an entry left with no app on the bench, never widening it to every app", () => {
+    const manifest = scoped({
+      record: [{ page: "runner", apps: ["hrms"] }, { page: "card", apps: [] }],
+    });
+    const { replacements, warnings } = discover(manifest);
+
+    expect(replacements).toEqual([]);
+    expect(warnings).toEqual([
+      `[frappe] ${path(manifest)}: "record" names app "hrms" for "runner", but it is not on the bench; it is dropped from that entry.`,
+      `[frappe] ${path(manifest)}: "record" gives "runner" no app on the bench, and "apps" never means every app; that entry is ignored.`,
+      `[frappe] ${path(manifest)}: "record" gives "card" no app on the bench, and "apps" never means every app; that entry is ignored.`,
+    ]);
+  });
+
+  it("warns about no app that is on the bench but not in the bundle", () => {
+    const manifest = scoped({ record: { page: "runner", apps: ["crm"] } });
+    const { replacements, warnings } = discover(
+      manifest.slice(0, 1),
+      manifest.map((entry) => entry.source_dir),
+    );
+
+    expect(found(replacements)).toEqual([
+      { key: "record", page: "runner", apps: ["crm"] },
+    ]);
+    expect(warnings).toEqual([]);
+  });
+
+  it.each([
+    [
+      "names one app in two entries",
+      [
+        { page: "runner", apps: ["crm"] },
+        { page: "card", apps: ["frappe", "crm"] },
+      ],
+      `"record" names app "crm" in more than one entry`,
+    ],
+    [
+      "has two entries with no apps",
+      [{ page: "runner" }, { page: "card" }],
+      `"record" has more than one entry with no "apps"`,
+    ],
+    [
+      "has an entry with an unknown field",
+      { page: "runner", app: ["crm"] },
+      `"record" has an entry with the unknown field "app"`,
+    ],
+    [
+      "has an entry with no page",
+      [{ apps: ["crm"] }],
+      `"record" has an entry with no page name`,
+    ],
+    [
+      "gives apps that are not a list of names",
+      { page: "runner", apps: "crm" },
+      `"record" gives "runner" an "apps" that is not a list of app names`,
+    ],
+    [
+      "lists a bare page name",
+      ["runner"],
+      `"record" is not a page name, a { "page", "apps" } entry or a list of entries`,
+    ],
+    ["is an empty list", [], `"record" is an empty list`],
+    [
+      "has an entry naming no file in pages/",
+      [{ page: "runner", apps: ["crm"] }, { page: "missing" }],
+      `"record" names "missing", but there is no pages/missing.js`,
+    ],
+  ])("drops a key that %s", (_, record, problem) => {
+    const manifest = scoped({ record, list: "card" });
+    const { replacements, warnings } = discover(manifest);
+
+    expect(found(replacements)).toEqual([
+      { key: "list", page: "card", apps: undefined },
+    ]);
+    expect(warnings).toEqual([
+      `[frappe] ${path(manifest)}: ${problem}; that key is ignored.`,
     ]);
   });
 });
@@ -292,6 +424,44 @@ describe("one doctype's page replaced by two apps", () => {
         `The owner's comes first, then custom/ ones in the site's app order, ` +
         `and the last one wins at runtime.`,
     ]);
+  });
+});
+
+describe("one doctype's page replaced by two apps, per app", () => {
+  const twoApps = (helpdesk: unknown, crm: unknown) =>
+    bench({
+      helpdesk: owner(helpdesk),
+      crm: {
+        "fcrm/custom/hd_ticket/pages/desk.js": PAGE,
+        "fcrm/custom/hd_ticket/pages.json": JSON.stringify(crm),
+      },
+      frappe: {},
+    });
+
+  it("warns about two entries that name one app, naming that app", () => {
+    const manifest = twoApps(
+      { record: { page: "runner", apps: ["frappe", "crm"] } },
+      { record: { page: "desk", apps: ["crm"] } },
+    );
+    const { warnings } = discover(manifest);
+    const [helpdesk, crm] = manifest.map((entry) => entry.source_dir);
+
+    expect(warnings).toEqual([
+      `[frappe] HD Ticket's record page in crm is replaced by more than one app: ` +
+        `helpdesk (${join(helpdesk, TICKET, "frontend/pages/runner.js")}), ` +
+        `crm (${join(crm, "fcrm/custom/hd_ticket/pages/desk.js")}). ` +
+        `The owner's comes first, then custom/ ones in the site's app order, ` +
+        `and the last one wins at runtime.`,
+    ]);
+  });
+
+  it.each([
+    ["an entry that names an app and one that names none", { record: "runner" }],
+    ["entries that name different apps", { record: { page: "runner", apps: ["frappe"] } }],
+  ])("warns about nothing for %s", (_, helpdesk) => {
+    const manifest = twoApps(helpdesk, { record: { page: "desk", apps: ["crm"] } });
+
+    expect(discover(manifest).warnings).toEqual([]);
   });
 });
 
