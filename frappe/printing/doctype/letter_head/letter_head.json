@@ -34,6 +34,7 @@
   "custom_css",
   "footer_section",
   "footer",
+  "preview_section",
   "preview",
   "scripts_section",
   "header_script",
@@ -118,6 +119,12 @@
    "fieldname": "footer",
    "fieldtype": "HTML Editor",
    "label": "Footer HTML"
+  },
+  {
+   "depends_on": "eval:doc.source === 'HTML' || doc.footer_source === 'HTML'",
+   "fieldname": "preview_section",
+   "fieldtype": "Section Break",
+   "label": "Preview"
   },
   {
    "depends_on": "eval:doc.source === 'HTML' || doc.footer_source === 'HTML'",
@@ -248,7 +255,7 @@
  "links": [],
  "make_attachments_public": 1,
  "max_attachments": 3,
- "modified": "2026-10-25 12:33:15.486732",
+ "modified": "2026-10-28 19:38:35.322795",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Letter Head",
