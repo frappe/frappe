@@ -1,11 +1,8 @@
 # What the index draws for an app and a record: the app's title and logo, a record's plain title.
 
-from html import unescape
-
 import frappe
 from frappe import _
-from frappe.desk.link_title import get_link_titles
-from frappe.utils import cstr, strip_html
+from frappe.desk.record_title import RecordTitles
 
 
 def app_screen(app: str, screen: dict | None = None) -> dict:
@@ -27,15 +24,13 @@ def readable_titles(doctype: str, names: list[str]) -> dict[str, str]:
 	if meta.issingle:
 		return {doctype: _(doctype)} if doctype in names else {}
 
+	names = list(set(names))
+	titles = RecordTitles(doctype)
 	try:
-		titles = get_link_titles(doctype, meta.title_field or "name", set(names))
+		rows = frappe.get_list(
+			doctype, filters={"name": ("in", names)}, fields=["name", *titles.columns], limit=len(names)
+		)
+		return titles.of(rows)
 	except Exception:
 		frappe.log_error(title=f"Readable titles failed for {doctype}")
 		return {}
-
-	return {name: plain_text(title) or name for name, title in titles.items()}
-
-
-def plain_text(value) -> str:
-	"""A title field may be a Text Editor; a chip draws text."""
-	return unescape(strip_html(cstr(value))).strip()

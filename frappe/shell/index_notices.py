@@ -9,6 +9,8 @@ from frappe.desk.page.setup_wizard.setup_wizard import get_setup_wizard_url
 from frappe.utils import md_to_html, sha256_hash
 from frappe.utils.change_log import get_change_log, update_last_known_versions
 
+from .titles import app_screen
+
 SETUP_ROLE = "System Manager"
 WHATS_NEW_ROLES = {"System Manager", "Workspace Manager"}
 WHATS_NEW_CACHE_PREFIX = "index_whats_new::"
@@ -40,7 +42,7 @@ def setup_nudge() -> dict | None:
 	if not pending:
 		return None
 
-	return {"apps": [app_title(app) for app in pending], "route": get_setup_wizard_url()}
+	return {"apps": [app_screen(app)["title"] for app in pending], "route": get_setup_wizard_url()}
 
 
 def whats_new() -> list[dict]:
@@ -105,7 +107,3 @@ def app_version(app: str) -> str:
 		return frappe.get_attr(f"{app}.__version__")
 	except AttributeError:
 		return "0.0.1"
-
-
-def app_title(app: str) -> str:
-	return _((frappe.get_hooks("app_title", app_name=app) or [app])[0])

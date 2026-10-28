@@ -87,7 +87,16 @@ class TestIndexNotices(IntegrationTestCase):
 
 		notices = self.notices(SYSTEM_MANAGER)
 
-		self.assertEqual(notices, {"setup": {"apps": ["Frappe Framework"], "route": get_setup_wizard_url()}})
+		self.assertEqual(notices, {"setup": {"apps": ["Framework"], "route": get_setup_wizard_url()}})
+
+	def test_the_setup_nudge_names_an_app_as_its_tile_does(self):
+		self.leave_setup_unfinished()
+		frappe.set_user(SYSTEM_MANAGER)
+
+		boot = get_boot(f"/{SHELL_ROOT}")
+
+		[tile] = [tile for tile in boot["apps"] if tile["app"] == "frappe"]
+		self.assertEqual(boot["notices"]["setup"]["apps"], [tile["title"]])
 
 	def test_a_workspace_manager_gets_whats_new_but_never_the_setup_nudge(self):
 		self.assertIn("whats_new", self.notices(WORKSPACE_MANAGER))
