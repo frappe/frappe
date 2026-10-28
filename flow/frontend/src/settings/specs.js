@@ -1,3 +1,5 @@
+import { formatTokens } from "@flow/ui-core/transcript.js";
+
 // What each settings screen and record page edits. A field's `when` hides it, `locked` disables
 // it; both mirror the doctype's own depends_on rules. `child` maps a multi-link to its child
 // table. `rename` marks the field a record is named after: changing it renames the record. A
@@ -66,8 +68,11 @@ export const SPECS = {
 		label: "Models",
 		singular: "model",
 		titleField: "title",
-		listFields: ["name", "title", "model_id"],
-		subtitle: (doc) => doc.model_id,
+		listFields: ["name", "title", "model_id", "context_window"],
+		subtitle: (doc) =>
+			[doc.model_id, doc.context_window && `${formatTokens(doc.context_window)} context`]
+				.filter(Boolean)
+				.join(" · "),
 		fields: [
 			{ name: "title", label: "Title", type: "text", required: true, rename: true },
 			enabled,
@@ -86,12 +91,6 @@ export const SPECS = {
 				placeholder: "claude-sonnet-4-6",
 				description:
 					"Pick one of the provider's models, or type any other id. Without a provider, add its prefix: anthropic/claude-sonnet-4-6.",
-			},
-			{
-				name: "context_window",
-				label: "Context window",
-				type: "readonly",
-				description: "Filled in when you save.",
 			},
 			{ name: "api_key", label: "API key", type: "password", when: (doc) => !doc.provider },
 			{
@@ -117,7 +116,7 @@ export const SPECS = {
 				link: "Role",
 				child: "role",
 				description:
-					"Who can use this model; empty means every Flow user. Others pick another model for agents that run on it, but a sub-agent on it works for anyone using its agent. Disabling a role also drops it here, which can leave the model open to every Flow user.",
+					"Who can use this model; empty means every Flow user. A sub-agent on it still works for anyone using its agent.",
 			},
 		],
 		actions: [
