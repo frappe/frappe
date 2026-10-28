@@ -1,7 +1,11 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+import importlib
+import pkgutil
+
 import frappe
+import frappe.shell
 from frappe.core.doctype.user.user import generate_keys
 from frappe.tests import IntegrationTestCase
 from frappe.tests.test_api import FrappeAPITestCase
@@ -31,14 +35,14 @@ class TestDeskV2OnlyMethods(FrappeAPITestCase):
 		return self.get(self.method(method), headers=self.auth)
 
 	def test_switch_off_refuses_shell_only_methods(self):
-		with self.change_settings("System Settings", enable_desk_v2=0):
+		with self.change_settings("System Settings", commit=True, enable_desk_v2=0):
 			response = self.call(SHELL_ONLY)
 			self.assertEqual(response.status_code, 403)
 			self.assertEqual(response.json["exc_type"], "DeskV2DisabledError")
 			self.assertEqual(self.call(FRAMEWORK_UI).status_code, 200)
 
 	def test_switch_on_answers_both(self):
-		with self.change_settings("System Settings", enable_desk_v2=1):
+		with self.change_settings("System Settings", commit=True, enable_desk_v2=1):
 			self.assertEqual(self.call(SHELL_ONLY).status_code, 200)
 			self.assertEqual(self.call(FRAMEWORK_UI).status_code, 200)
 
@@ -49,3 +53,14 @@ class TestDeskV2OnlyDecorator(IntegrationTestCase):
 			pass
 
 		self.assertRaises(TypeError, frappe.desk_v2_only, method)
+
+	def test_every_shell_method_is_gated(self):
+		for module in pkgutil.walk_packages(frappe.shell.__path__, "frappe.shell."):
+			importlib.import_module(module.name)
+
+		open_shell_methods = [
+			f"{fn.__module__}.{fn.__qualname__}"
+			for fn in frappe.whitelisted
+			if fn.__module__.startswith("frappe.shell.") and fn not in frappe.desk_v2_methods
+		]
+		self.assertEqual(open_shell_methods, [])
