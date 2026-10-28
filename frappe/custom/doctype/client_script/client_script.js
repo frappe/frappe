@@ -76,10 +76,9 @@ frappe.ui.form.on("Client Script", {
 		if (cint(frappe.boot.sysdefaults.enable_desk_v2)) return;
 		frm.toggle_display("run_order", false);
 		// Record and App Page scripts run only in desk v2. Such a doc (say, a duplicate)
-		// keeps its option so its value shows.
-		if (!["Record", "App Page"].includes(frm.doc.view)) {
-			frm.set_df_property("view", "options", ["List", "Form"]);
-		}
+		// keeps its own option so its value shows.
+		const own = ["Record", "App Page"].includes(frm.doc.view) ? [frm.doc.view] : [];
+		frm.set_df_property("view", "options", ["List", "Form", ...own]);
 	},
 
 	dt(frm) {

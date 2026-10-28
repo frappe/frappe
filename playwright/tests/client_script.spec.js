@@ -158,9 +158,25 @@ test.describe("Client Script Apply To", () => {
 		);
 	});
 
-	test("offers Record while desk v2 is on", async ({ page, admin }) => {
+	test("keeps App Page but not Record on an App Page script while desk v2 is off", async ({
+		page,
+	}) => {
+		await page.goto("/desk/client-script/new");
+		await expect.poll(() => apply_to_options(page)).toEqual(["List", "Form"]);
+		await page.evaluate(() =>
+			frappe.new_doc("Client Script", { dt: "ToDo", view: "App Page" })
+		);
+		await expect.poll(() => apply_to_options(page)).toEqual(["List", "Form", "App Page"]);
+		await expect(page.locator('.frappe-control[data-fieldname="view"] select')).toHaveValue(
+			"App Page"
+		);
+	});
+
+	test("offers Record and App Page while desk v2 is on", async ({ page, admin }) => {
 		await admin.call("frappe.tests.ui_test_helpers.set_desk_v2", { enabled: 1 });
 		await page.goto("/desk/client-script/new");
-		await expect.poll(() => apply_to_options(page)).toEqual(["List", "Form", "Record"]);
+		await expect
+			.poll(() => apply_to_options(page))
+			.toEqual(["List", "Form", "Record", "App Page"]);
 	});
 });
