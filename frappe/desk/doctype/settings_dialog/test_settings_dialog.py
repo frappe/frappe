@@ -55,10 +55,10 @@ def component(key: str, pane: str = "general", **kwargs) -> dict:
 	return {"key": key, "pane": pane, "component": key, **kwargs}
 
 
-def bound(key: str, pane: str = "general", **kwargs) -> dict:
+def bound(key: str, pane: str = "general", fields: str | None = '["user_image"]', **kwargs) -> dict:
 	"""A component block on the session `User`."""
 	binding = {"type": "Record", "doctype": "User", "resolver": "session_user"}
-	return component(key, pane, bindings=json.dumps({"user": binding}), **kwargs)
+	return component(key, pane, bindings=json.dumps({"user": binding}), fields=fields, **kwargs)
 
 
 class SettingsDialogTestCase(IntegrationTestCase):
@@ -143,7 +143,7 @@ class TestSettingsDialog(SettingsDialogTestCase):
 	def test_a_named_binding_takes_the_same_closed_list(self):
 		def named(resolver):
 			binding = {"type": "Record", "doctype": "User", "resolver": resolver}
-			return component("me", bindings=json.dumps({"user": binding}))
+			return component("me", bindings=json.dumps({"user": binding}), fields='["user_image"]')
 
 		with authoring():
 			self.assertRaises(frappe.ValidationError, ship, ["general"], [named("owner")])
@@ -222,8 +222,8 @@ class TestSettingsDialog(SettingsDialogTestCase):
 
 	def test_the_host_is_refused_a_save_mode_an_extension_already_holds(self):
 		with authoring():
-			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
-			photo = bound("photo", fields='["user_image"]')
+			ship(blocks=[bound("calls", fields='["phone"]', save_mode="button")], app=EXTENDER, extends=HOST)
+			photo = bound("photo")
 			self.assertRaises(frappe.ValidationError, ship, ["general"], [photo])
 			ship(["general"], [{**photo, "save_mode": "button"}])
 
@@ -243,7 +243,6 @@ class TestSettingsDialog(SettingsDialogTestCase):
 				[
 					bound("photo", fields='["user_image"]'),
 					bound("locale", fields='["language", "time_zone"]'),
-					bound("rest"),
 					bound("avatar", pane="other", fields='["user_image"]'),
 				],
 			)
@@ -256,33 +255,18 @@ class TestSettingsDialog(SettingsDialogTestCase):
 			)
 			ship(["general"], [bound("phone", fields='["phone"]')])
 
-	def test_component_blocks_on_one_binding_list_fields_in_all_but_one(self):
+	def test_a_bound_component_block_lists_fields_its_doctypes_have(self):
+		user = {"type": "Record", "doctype": "User", "resolver": "session_user"}
+		two = json.dumps({"user": user, "system": {"type": "Single", "doctype": "System Settings"}})
 		with authoring():
-			self.assertRaises(frappe.ValidationError, ship, ["general"], [bound("photo"), bound("rest")])
+			for fields in (None, "[]", '["user_imag"]', '["user_image", "nope"]'):
+				with self.subTest(fields=fields):
+					block = component("both", bindings=two, fields=fields)
+					self.assertRaises(frappe.ValidationError, ship, ["general"], [block])
 			ship(
-				["general", "other"],
-				[bound("photo"), bound("locale", fields='["language"]'), bound("avatar", pane="other")],
+				["general"],
+				[component("both", bindings=two, fields='["user_image", "app_name"]'), component("theme")],
 			)
-
-	def test_an_extension_is_refused_a_second_block_that_lists_no_fields(self):
-		with authoring():
-			ship(["general"], [bound("profile")])
-			with self.assertRaises(frappe.ValidationError) as refused:
-				ship(blocks=[bound("calls")], app=EXTENDER, extends=HOST)
-			self.assertIn(f"<strong>{HOST}</strong>", str(refused.exception))
-			self.assertIn(f"<strong>{EXTENDER}</strong>", str(refused.exception))
-			self.assertIn("list no fields", str(refused.exception))
-			ship(blocks=[bound("calls", fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
-
-	def test_the_host_is_refused_a_second_block_that_lists_no_fields(self):
-		with authoring():
-			ship(blocks=[bound("calls")], app=EXTENDER, extends=HOST)
-			with self.assertRaises(frappe.ValidationError) as refused:
-				ship(["general"], [bound("profile")])
-			self.assertIn(f"<strong>{HOST}</strong>", str(refused.exception))
-			self.assertIn(f"<strong>{EXTENDER}</strong>", str(refused.exception))
-			self.assertIn("list no fields", str(refused.exception))
-			ship(["general"], [bound("profile", fields='["phone"]')])
 
 	def test_a_generated_block_may_differ_from_a_component_on_its_binding(self):
 		with authoring():

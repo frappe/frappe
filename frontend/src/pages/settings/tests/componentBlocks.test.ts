@@ -27,7 +27,7 @@ function component(
 	key: string,
 	save_mode: "auto" | "button",
 	bindings: SettingsBlock["bindings"],
-	fields?: string[]
+	fields = ["country", "enable_onboarding", "time_zone", "app_name", "rules", "mobile_no"]
 ) {
 	return {
 		key,
@@ -252,21 +252,6 @@ describe("two component blocks on one binding", () => {
 			["modified", "time_zone"],
 		]);
 		expect(drafts.unsavedCount.value).toBe(1);
-	});
-
-	it("leaves a block that lists no fields the ones no generated block draws and no component declares", async () => {
-		const drafts = await opened(
-			{ key: "zone", app: "frappe", save_mode: "auto", binding: SYSTEM, fields: ["time_zone"] },
-			component("locale", "auto", { system: SYSTEM }, ["country"]),
-			component("rest", "auto", { system: SYSTEM })
-		);
-		const claims = drafts["claims"].map((claim) => [claim.block.key, claim.fieldnames.value]);
-
-		expect(Object.fromEntries(claims)).toEqual({
-			zone: ["time_zone"],
-			locale: ["country"],
-			rest: ["enable_onboarding", "app_name", "rules"],
-		});
 	});
 });
 

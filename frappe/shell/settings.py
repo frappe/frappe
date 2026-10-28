@@ -9,7 +9,7 @@ import json
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
-from frappe.desk.doctype.settings_dialog.settings_dialog import EVERY_UNCLAIMED_FIELD
+from frappe.desk.doctype.settings_dialog.settings_dialog import fields_missing_from
 from frappe.desk.layers import anchor_attempts, place_by_anchors
 
 from .boot import app_screen, report_oversized_keys
@@ -99,6 +99,13 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 				)
 				continue
 
+			if not _lists_its_fields(block):
+				_warn(
+					f"component block {row.key!r} from {record.app!r} lists no fields, or a field its doctypes lack,"
+					f" in pane {pane['app']}/{pane['key']}"
+				)
+				continue
+
 			if _mixes_save_modes(pane, block):
 				_warn(
 					f"block {row.key!r} from {record.app!r} differs in save mode from a component block"
@@ -109,7 +116,7 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 			if _claims_a_claimed_field(pane, block):
 				_warn(
 					f"block {row.key!r} from {record.app!r} shares its fields with another component block on the"
-					f" same binding in pane {pane['app']}/{pane['key']} (both declare one, or both list none)"
+					f" same binding in pane {pane['app']}/{pane['key']}"
 				)
 				continue
 
@@ -136,14 +143,16 @@ def _claims_a_claimed_field(pane: dict, block: dict) -> bool:
 	addresses = _component_addresses(block)
 	return any(
 		"component" in other
-		and _owned_fields(block) & _owned_fields(other)
+		and set(block.get("fields", [])) & set(other.get("fields", []))
 		and addresses & _component_addresses(other)
 		for other in pane["blocks"]
 	)
 
 
-def _owned_fields(block: dict) -> set[str | None]:
-	return set(block.get("fields") or [EVERY_UNCLAIMED_FIELD])
+def _lists_its_fields(block: dict) -> bool:
+	"""As `Settings Dialog` checks on save."""
+	fields = block.get("fields")
+	return "bindings" not in block or bool(fields and not fields_missing_from(fields, _bound_doctypes(block)))
 
 
 def _component_addresses(block: dict) -> set[tuple]:

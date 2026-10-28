@@ -131,7 +131,7 @@ export class PaneDrafts {
 		this.isClosed = true;
 	}
 
-	/** A component's named bindings; each claims the declared fields its doctype has, else the unclaimed ones. */
+	/** A component's named bindings; each claims the declared fields its doctype has. */
 	private bindComponent(block: SettingsBlock, draftOf: (binding: SettingsBinding) => BindingDraft) {
 		const named = Object.entries(block.bindings!).map(([name, binding]) => {
 			const draft = draftOf(binding);
@@ -139,9 +139,7 @@ export class PaneDrafts {
 				block,
 				draft,
 				layout: computed(() => []),
-				fieldnames: computed(() =>
-					block.fields?.length ? this.declaredFields(block.fields, draft) : this.unclaimedFields(draft)
-				),
+				fieldnames: computed(() => this.declaredFields(block.fields ?? [], draft)),
 			};
 			this.claims.push(claim);
 			return [
@@ -158,24 +156,13 @@ export class PaneDrafts {
 
 	/** A component with several bindings lists their fields in one list; each binding claims its doctype's. */
 	private declaredFields(declared: string[], draft: BindingDraft): string[] {
-		const present = new Set(metaFieldnames(draft));
-		const drawn = new Set(this.drawnFields(draft));
-		return declared.filter((fieldname) => present.has(fieldname) && !drawn.has(fieldname));
-	}
-
-	private unclaimedFields(draft: BindingDraft): string[] {
-		const claimed = new Set(
+		const present = new Set((draft.state.meta?.fields ?? []).map((field) => field.fieldname));
+		const drawn = new Set(
 			this.claims
-				.filter((claim) => claim.draft === draft && (claim.block.binding || claim.block.fields?.length))
+				.filter((claim) => claim.draft === draft && claim.block.binding)
 				.flatMap((claim) => claim.fieldnames.value)
 		);
-		return metaFieldnames(draft).filter((fieldname) => !claimed.has(fieldname));
-	}
-
-	private drawnFields(draft: BindingDraft): string[] {
-		return this.claims
-			.filter((claim) => claim.draft === draft && claim.block.binding)
-			.flatMap((claim) => claim.fieldnames.value);
+		return declared.filter((fieldname) => present.has(fieldname) && !drawn.has(fieldname));
 	}
 
 	/** An insert checks every block's required fields; a patch only those of the blocks in its mode that send a field. */
@@ -214,10 +201,6 @@ function bind(block: SettingsBlock, draft: BindingDraft): BoundBlock {
 	);
 	const fieldnames = computed(() => layoutFields(layout.value).map((field) => field.fieldname));
 	return { block, draft, layout, fieldnames };
-}
-
-function metaFieldnames(draft: BindingDraft): string[] {
-	return (draft.state.meta?.fields ?? []).map((field) => field.fieldname);
 }
 
 function sends(bound: BoundBlock, mode: SaveMode, fieldnames: string[]): boolean {
