@@ -4,6 +4,7 @@ import { NUMBER_FIELDTYPES, formatField, formatRating } from "./formatNumber";
 import type { FormatFieldOptions } from "./formatNumber";
 import type { FieldMeta } from "../Fields/types";
 import { htmlToText } from "../RichText/html";
+import { groupIban } from "../Fields/dataOptions";
 
 export interface DisplayOptions extends FormatFieldOptions {
   /** The record, for a fieldtype that reads a sibling field: Image, Dynamic Link. */
@@ -94,6 +95,8 @@ function formatValue(
       return formatDatetime(String(value));
     case "Password":
       return PASSWORD_MASK;
+    case "Data":
+      return field.options === "IBAN" ? groupIban(String(value)) : String(value);
     default:
       return String(value);
   }

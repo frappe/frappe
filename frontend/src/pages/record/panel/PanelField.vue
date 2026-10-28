@@ -38,7 +38,16 @@
 				class="min-w-0 flex-1 truncate text-base"
 				:class="error ? 'text-ink-red-4' : display ? 'text-ink-gray-8' : 'text-ink-gray-4'"
 			>
-				{{ display || placeholder }}
+				<!-- An editable row's click opens its editor, so its address waits on the arrow. -->
+				<a
+					v-if="address?.kind === 'mail' && !interactive"
+					:href="address.href"
+					data-slot="mail-link"
+					class="underline-offset-2 hover:underline"
+					@click.stop
+					>{{ display }}</a
+				>
+				<template v-else>{{ display || placeholder }}</template>
 			</span>
 			<span
 				v-if="summary"
@@ -52,6 +61,11 @@
 				:title="openLabel"
 				class="lucide-arrow-up-right ml-auto size-3.5 shrink-0 text-ink-gray-5 opacity-0 hover:text-ink-gray-7 focus-visible:opacity-100 group-hover:opacity-100"
 				@open="record.open"
+			/>
+			<DataOpenLink
+				v-else-if="address && (address.kind === 'web' || interactive)"
+				:address="address"
+				class="ml-auto grid shrink-0 opacity-0 focus-visible:opacity-100 group-hover:opacity-100"
 			/>
 			<span v-if="message" class="w-full truncate text-sm text-ink-red-4" :title="message">
 				{{ message }}
@@ -73,7 +87,7 @@ import {
 import { FieldErrorsKey, fieldErrorKey } from "@framework/ui/fields/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
 import { RecordAnchor } from "@framework/ui/Link";
-import { focusField, useRecordLink } from "@framework/ui/fields";
+import { DataOpenLink, dataHref, focusField, useRecordLink } from "@framework/ui/fields";
 import { isSummaryField, useFieldDisplay } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import { PanelContextKey } from "./context";
@@ -132,6 +146,8 @@ const placeholder = computed(() =>
 const display = computed(() =>
 	displayField(props.field, doc.value[props.field.fieldname], { doc: doc.value })
 );
+
+const address = computed(() => dataHref(props.field, doc.value[props.field.fieldname]));
 
 const record = useRecordLink(linkedDoctype, () => doc.value[props.field.fieldname] || null);
 const openLabel = computed(() => {
