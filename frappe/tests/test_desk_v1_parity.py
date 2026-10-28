@@ -280,8 +280,8 @@ class TestGetCountParity(IntegrationTestCase):
 
 		class Controller(frappe.model.document.Document):
 			@staticmethod
-			def get_count(args):
-				calls.append(dict(args))
+			def get_count(doctype, args):
+				calls.append({**args, "doctype": doctype})
 				return 3
 
 		with patch("frappe.controllers", new={frappe.local.site: {virtual.name: Controller}}):
