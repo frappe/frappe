@@ -18,7 +18,7 @@ export interface SettingsBlock {
 	label?: string;
 	description?: string;
 	binding?: SettingsBinding;
-	/** A generated block's fields; with none, the doctype's whole layout. */
+	/** A generated block's fields (none: the doctype's whole layout), or the fields a component saves (none: the unclaimed ones). */
 	fields?: string[];
 	left_out_fields?: string[];
 	read_only_fields?: string[];

@@ -58,6 +58,7 @@ class SettingsDialog(Document):
 		self.validate_blocks()
 		self.refuse_block_keys_taken_on_the_site()
 		self.refuse_mixed_save_modes_on_a_binding()
+		self.refuse_a_field_two_components_declare()
 
 	def validate_app_content(self):
 		"""Only developer mode or a system write may set or clear `standard`, which is app content."""
@@ -187,6 +188,31 @@ class SettingsDialog(Document):
 						title=_("Mixed Save Modes"),
 					)
 
+	def refuse_a_field_two_components_declare(self):
+		"""A component block saves and shows refusals for the fields it declares, so one field has one owner per draft."""
+		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
+
+		owners = {}
+		for block in [*shipped, *self.blocks]:
+			owner = (block.key, block.get("app") or self.app)
+			for address in component_binding_addresses(block):
+				for fieldname in declared_fields(block):
+					key, app = owners.setdefault((address, fieldname), owner)
+					if (key, app) != owner:
+						frappe.throw(
+							_(
+								"Component blocks {0} from {1} and {2} in pane {3} both declare {4} of {5}. List each field in one block only."
+							).format(
+								frappe.bold(key),
+								frappe.bold(app),
+								frappe.bold(block.key),
+								frappe.bold(block.pane),
+								frappe.bold(fieldname),
+								frappe.bold(address[1]),
+							),
+							title=_("Field Declared Twice"),
+						)
+
 	def on_update(self):
 		self.export_settings_dialog()
 
@@ -223,6 +249,7 @@ def validate_binding_shape(block):
 		validate_json_list(block, "fields", str)
 	elif block.component:
 		validate_named_bindings(block)
+		validate_json_list(block, "fields", str)
 		validate_search_settings(block)
 	else:
 		frappe.throw(
@@ -308,6 +335,16 @@ def component_binding_addresses(block) -> list[tuple[str, str, str]]:
 	]
 
 
+def declared_fields(block) -> set[str]:
+	"""A component block's `fields`. Skips JSON a shipped record holds unvalidated."""
+	try:
+		fields = json.loads(block.get("fields") or "[]")
+	except ValueError:
+		return set()
+
+	return {field for field in fields if isinstance(field, str)} if isinstance(fields, list) else set()
+
+
 def parse_json(block, fieldname: str, default):
 	raw = block.get(fieldname)
 	if not raw:
@@ -348,7 +385,7 @@ def shipped_blocks(host: str, exclude: str) -> list[frappe._dict]:
 	blocks = frappe.get_all(
 		"Settings Block",
 		filters={"parenttype": "Settings Dialog", "parent": ("in", list(owners))},
-		fields=["parent", "pane", "key", "save_mode", "component", "bindings"],
+		fields=["parent", "pane", "key", "save_mode", "component", "bindings", "fields"],
 	)
 	for block in blocks:
 		block.app = owners[block.parent]

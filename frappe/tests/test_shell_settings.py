@@ -129,6 +129,25 @@ class TestSettingsMerge(SettingsDialogTestCase):
 
 		self.assertIn("'calls'", logged.output[0])
 
+	def test_a_component_block_declaring_a_field_already_declared_on_its_binding_is_dropped_and_warns(self):
+		with authoring():
+			ship(blocks=[bound("calls", fields='["mobile_no"]')], app=EXTENDER, extends=HOST)
+			unchecked(
+				ship(
+					["general"],
+					[
+						bound("phone", fields='["mobile_no", "phone"]'),
+						bound("photo", fields='["user_image"]'),
+					],
+					insert=False,
+				)
+			)
+
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["phone", "photo"]})
+
+		self.assertIn("'calls'", logged.output[0])
+
 	def test_an_anchor_naming_a_parent_does_not_nest_the_block(self):
 		with authoring():
 			ship(["general"], [single("system"), component("theme"), component("defaults")])
@@ -162,6 +181,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 						component("listy", bindings='{"u": {"type": "Single", "doctype": ["User"]}}'),
 						single("nested", fields='[["alpha"]]'),
 						component("unlabelled", settings='[{"keywords": ["dark"]}]'),
+						bound("declared", fields='{"user_image": 1}'),
 					],
 					insert=False,
 				)
@@ -170,7 +190,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST), {"general": ["system"]})
 
-		self.assertEqual(len(logged.output), 7)
+		self.assertEqual(len(logged.output), 8)
 
 	def test_an_anchor_whose_target_is_not_a_name_leaves_the_block_in_run_order(self):
 		with authoring():
@@ -259,7 +279,12 @@ class TestSettingsMerge(SettingsDialogTestCase):
 				[
 					single("system", label="System", fields='["language"]', save_mode="button"),
 					single("me", binding_type="Record", document_type="User", name_resolver="session_user"),
-					component("theme", bindings=json.dumps(bindings), settings=json.dumps(settings)),
+					component(
+						"theme",
+						bindings=json.dumps(bindings),
+						fields='["user_image"]',
+						settings=json.dumps(settings),
+					),
 				],
 			)
 
@@ -293,6 +318,7 @@ class TestSettingsMerge(SettingsDialogTestCase):
 							"save_mode": "auto",
 							"component": "theme",
 							"bindings": bindings,
+							"fields": ["user_image"],
 							"settings": settings,
 						},
 					],

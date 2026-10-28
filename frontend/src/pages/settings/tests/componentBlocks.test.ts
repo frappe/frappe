@@ -1,5 +1,5 @@
 // A component block's named bindings against a faked server: `commit()` in each save mode, the
-// draft it shares with a generated block, a block with no binding, and the after-save registry.
+// draft it shares with a generated block or another component, a block with no binding, and the after-save registry.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { nextTick } from "vue";
 
@@ -26,7 +26,8 @@ const AGENT = {
 function component(
 	key: string,
 	save_mode: "auto" | "button",
-	bindings: SettingsBlock["bindings"]
+	bindings: SettingsBlock["bindings"],
+	fields?: string[]
 ) {
 	return {
 		key,
@@ -34,6 +35,7 @@ function component(
 		save_mode,
 		component: "probe",
 		bindings,
+		fields,
 	} as SettingsBlock;
 }
 
@@ -181,6 +183,72 @@ describe("a refused save", () => {
 
 		expect(server.writes).toHaveLength(2);
 		expect(system.error).toBe("");
+	});
+});
+
+describe("two component blocks on one binding", () => {
+	const twoComponents = () =>
+		opened(
+			component("locale", "auto", { system: SYSTEM }, ["country", "time_zone"]),
+			component("branding", "auto", { system: SYSTEM }, ["app_name"])
+		);
+
+	it.each([
+		["names the field", [{ fieldname: "country", message: "Not a country" }]],
+		["names no field", undefined],
+	])(
+		"keeps a refusal that %s off the other block's save and error",
+		async (_case, field_errors) => {
+			const drafts = await twoComponents();
+			const { system: locale } = drafts.components.get("locale")!;
+			const { system: branding } = drafts.components.get("branding")!;
+			server.refusal = {
+				entry: { type: "ValidationError", message: "Not a country", field_errors },
+				status: 417,
+			};
+
+			locale.doc.country = "Atlantis";
+			await locale.commit();
+			branding.doc.app_name = "Desk";
+			await branding.commit();
+
+			expect(server.writes.map((write) => Object.keys(write.body).sort())).toEqual([
+				["country", "modified"],
+				["app_name", "modified"],
+			]);
+			expect(server.doc("System Settings", "System Settings").app_name).toBe("Desk");
+			expect(locale.error).toBe("Not a country");
+			expect(branding.error).toBe("");
+		}
+	);
+
+	it("re-sends a refused field from the block that declares it", async () => {
+		const drafts = await twoComponents();
+		const { system: locale } = drafts.components.get("locale")!;
+		server.refusal = { entry: { type: "ValidationError", message: "Not a country" }, status: 417 };
+
+		locale.doc.country = "Atlantis";
+		await locale.commit();
+		locale.doc.country = "India";
+		await locale.commit();
+
+		expect(server.writes.map((write) => write.body.country)).toEqual(["Atlantis", "India"]);
+		expect(locale.error).toBe("");
+	});
+
+	it("leaves a block that lists no fields the ones no generated block draws and no component declares", async () => {
+		const drafts = await opened(
+			{ key: "zone", app: "frappe", save_mode: "auto", binding: SYSTEM, fields: ["time_zone"] },
+			component("locale", "auto", { system: SYSTEM }, ["country"]),
+			component("rest", "auto", { system: SYSTEM })
+		);
+		const claims = drafts["claims"].map((claim) => [claim.block.key, claim.fieldnames.value]);
+
+		expect(Object.fromEntries(claims)).toEqual({
+			zone: ["time_zone"],
+			locale: ["country"],
+			rest: ["enable_onboarding", "app_name", "rules"],
+		});
 	});
 });
 
