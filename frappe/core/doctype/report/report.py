@@ -574,7 +574,8 @@ def get_filter_default(row, user):
 	if default and row.fieldtype == "MultiSelectList":
 		return [default]
 	if default and row.fieldtype == "DateRange":
-		return default.split(",")
+		start, _sep, end = default.partition(",")
+		return [start, end or start]
 	return default
 
 

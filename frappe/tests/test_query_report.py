@@ -872,6 +872,10 @@ data = columns, result
 		self.assertEqual(filters.users, [user])
 		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
 
+		report.filters[-1].default = "Today"
+		today = frappe.utils.getdate()
+		self.assertEqual(report.get_validated_filters({"allocated_to": user}, user).period, [today, today])
+
 		report.filters[-2].default = "__user"
 		self.assertEqual(report.get_validated_filters({"allocated_to": user}, user).users, [user])
 
