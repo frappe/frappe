@@ -646,7 +646,7 @@ def get_validated_value(row, value, user):
 			title=_("Invalid Filters"),
 		)
 
-	if row.fieldtype == "Select" and value not in (options := (row.options or "").split("\n")):
+	if row.fieldtype == "Select" and cstr(value) not in (options := (row.options or "").split("\n")):
 		frappe.throw(
 			_('Filter {0} cannot be "{1}". It should be one of "{2}"').format(
 				frappe.bold(_(row.label)), value, '", "'.join(_(option) for option in options)

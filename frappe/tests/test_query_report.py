@@ -862,10 +862,12 @@ data = columns, result
 		report, user = self.make_filtered_report()
 		report.append("filters", dict(fieldname="since", label="Since", fieldtype="Datetime"))
 		report.append("filters", dict(fieldname="at", label="At", fieldtype="Time"))
+		report.append("filters", dict(fieldname="level", label="Level", fieldtype="Select", options="1\n2"))
 
 		filters = report.get_validated_filters(
 			{
 				"allocated_to": user,
+				"level": 1,
 				"count": "5",
 				"show_all": "1",
 				"from_date": datetime.datetime(2026, 1, 1, 10, 30),
@@ -879,6 +881,7 @@ data = columns, result
 		self.assertEqual(filters.from_date, datetime.date(2026, 1, 1))
 		self.assertEqual(filters.since, datetime.datetime(2026, 1, 1))
 		self.assertEqual(filters.at, datetime.timedelta(hours=10))
+		self.assertEqual(filters.level, "1")
 		self.assertEqual(filters.users, [user])
 		self.assertEqual(filters.period, [datetime.date(2026, 1, 1), datetime.date(2026, 1, 31)])
 		self.assertEqual(report.get_validated_filters(filters, user), filters)
