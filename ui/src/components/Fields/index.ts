@@ -12,6 +12,9 @@ export { useRecordLink } from "./useRecordLink";
 export { drawsReadValue } from "./readView";
 export { default as ReadOnlyField } from "./ReadOnlyField.vue";
 export { default as ReadValue } from "./ReadValue.vue";
+export { dataHref, groupIban } from "./dataOptions";
+export type { DataHref } from "./dataOptions";
+export { default as DataOpenLink } from "./DataOpenLink.vue";
 
 // The field contract every value-input satisfies, plus the form-context
 // injection keys the deep-injection inputs (Table/Number/Image/DynamicLink) read.
