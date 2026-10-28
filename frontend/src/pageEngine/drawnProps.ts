@@ -69,14 +69,14 @@ function warnOnce(source: string, name: string, key: string, because: string) {
   if (said.has(once)) return;
   said.add(once);
   console.warn(
-    `[record-page] header: '${name}' from ${source} has props.${key}, which ${because} — dropped.`,
+    `[page] header: '${name}' from ${source} has props.${key}, which ${because} — dropped.`,
   );
 }
 
 function warnNoList() {
   if (warnedNoList) return;
   warnedNoList = true;
-  console.warn("[record-page] no declared-prop list; header props are forwarded unfiltered");
+  console.warn("[page] no declared-prop list; header props are forwarded unfiltered");
 }
 
 /** Test seam: the warn-once memory is module state. */

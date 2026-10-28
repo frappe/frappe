@@ -344,10 +344,10 @@ describe("a pages.json entry that names apps", () => {
 });
 
 describe("a .js file beside pages/", () => {
-  it("is a reserved handler file in the owner's frontend/ when the page exists", () => {
+  it("is the handler file of a declared page in the owner's frontend/", () => {
     const manifest = bench({
       helpdesk: owner(
-        { record: "runner" },
+        { record: "runner", list: "runner" },
         {
           [`${TICKET}/frontend/list.js`]: "export default {}",
           [`${TICKET}/frontend/runner.js`]: "export default {}",
@@ -355,16 +355,36 @@ describe("a .js file beside pages/", () => {
         },
       ),
     });
-    const { replacements, warnings } = discover(manifest);
+    const { pageScripts, warnings } = discover(manifest);
     const handler = join(manifest[0].source_dir, TICKET, "frontend/runner.js");
 
-    expect(replacements).toHaveLength(1);
-    expect(warnings).toEqual([
-      `[frappe] ${handler} is reserved for the handlers of pages/runner.js; it is ignored.`,
+    expect(pageScripts).toEqual([
+      { app: "helpdesk", doctype: "HD Ticket", page: "runner", file: handler },
     ]);
+    expect(warnings).toEqual([]);
   });
 
-  it("is a reserved handler file under custom/ when the page exists", () => {
+  it("is the handler file of a declared page under custom/", () => {
+    const manifest = bench({
+      crm: {
+        "fcrm/custom/hd_ticket/inbox.js": "export default {}",
+        "fcrm/custom/hd_ticket/pages/inbox.js": PAGE,
+        "fcrm/custom/hd_ticket/pages.json": JSON.stringify({ record: "inbox" }),
+      },
+    });
+    const { pageScripts, warnings } = discover(manifest);
+    const handler = join(
+      manifest[0].source_dir,
+      "fcrm/custom/hd_ticket/inbox.js",
+    );
+
+    expect(pageScripts).toEqual([
+      { app: "crm", doctype: "Hd Ticket", page: "inbox", file: handler },
+    ]);
+    expect(warnings).toEqual([]);
+  });
+
+  it("is ignored with a warning when pages.json does not declare its page", () => {
     const manifest = bench({
       crm: {
         "fcrm/custom/hd_ticket/record.js": "export default {}",
@@ -372,13 +392,15 @@ describe("a .js file beside pages/", () => {
         "fcrm/custom/hd_ticket/pages/inbox.js": PAGE,
       },
     });
+    const { pageScripts, warnings } = discover(manifest);
     const handler = join(
       manifest[0].source_dir,
       "fcrm/custom/hd_ticket/inbox.js",
     );
 
-    expect(discover(manifest).warnings).toEqual([
-      `[frappe] ${handler} is reserved for the handlers of pages/inbox.js; it is ignored.`,
+    expect(pageScripts).toEqual([]);
+    expect(warnings).toEqual([
+      `[frappe] ${handler} is the handler file of pages/inbox.js, which pages.json does not declare; it is ignored.`,
     ]);
   });
 
@@ -395,7 +417,10 @@ describe("a .js file beside pages/", () => {
       "fcrm/custom/hd_ticket/inbox.js",
     );
 
-    expect(discover(manifest).warnings).toEqual([
+    const { pageScripts, warnings } = discover(manifest);
+
+    expect(pageScripts).toEqual([]);
+    expect(warnings).toEqual([
       `[frappe] ${stray} has no pages/inbox.js beside it; it is ignored.`,
     ]);
   });
@@ -500,6 +525,25 @@ describe("the generated module", () => {
         `    { app: "helpdesk", doctype: "HD Ticket", key: "record", foreign: false, ` +
         `title: r0?.title, component: r0?.component, handlers: r0?.component, ` +
         `__file: ${JSON.stringify(file)} },\n` +
+        `  ].filter(usable),`,
+    );
+  });
+
+  it("imports each page's handler file and drops one with no default export at runtime", () => {
+    const manifest = bench({
+      helpdesk: owner(
+        { record: "runner" },
+        { [`${TICKET}/frontend/runner.js`]: "export default {}" },
+      ),
+    });
+    const file = join(manifest[0].source_dir, TICKET, "frontend/runner.js");
+
+    const code = load(contributions(manifest));
+    expect(code).toContain(`import s0 from ${JSON.stringify(file)}`);
+    expect(code).toContain(
+      `  pageScripts: [\n` +
+        `    { app: "helpdesk", doctype: "HD Ticket", page: "runner", ` +
+        `handlers: s0, __file: ${JSON.stringify(file)} },\n` +
         `  ].filter(usable),`,
     );
   });

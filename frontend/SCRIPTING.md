@@ -15,15 +15,38 @@ The record page is built on `createPageEngine`. An app file imports it from `@sh
 Every page made with it gives its handlers a `page` with these members: `doctype`,
 `meta`, `perms`, `roles`, `frame`, `header`, `body`, `refresh()`, `toast`, `dialog`,
 `call`, `cached` and `router`. They work as this document describes them for the record
-page, except `cached`. `page.cached` keeps values only through a `cached` provider
+page, except `cached`. `page.cached` keeps values through the `cached` provider
 (`CachedProvider`) that the page gives the builder. The record page gives its per-record
-cache. An app page that gives no provider gets `undefined` from `page.cached` every time,
-and no fetch runs.
+cache. An app page that gives no provider gets the default one: a value is fetched once per
+key while the route stays on one path, and is dropped when the path changes or the reader
+leaves the page. Nothing is kept for the next visit.
 
 An app page builds its own engine. It gives the builder its own lists, its own event
 names and its own `page` members, and the builder adds the rest. The record page's own
-members, such as `doc`, `fields` and `save()`, are the record page's additions. The file
-an app page's handlers go in is not built yet.
+members, such as `doc`, `fields` and `save()`, are the record page's additions.
+
+An app page also gives the builder its `app` and its `pageName`, the name of its
+`pages/<name>.js` file. The builder then runs two tiers of handlers on it, in this order:
+
+1. The page's handler file: `<name>.js` in the same folder as `pages/<name>.js`, which
+   `pages.json` declares. Only the app that ships the page runs it. A `<name>.js` with no
+   declared page beside it is ignored with a build warning.
+2. The `Client Script` rows with `view = App Page`, `dt` set to the page's doctype and
+   `page` set to its name, in `run_order`. When one is saved, reordered or deleted, an open
+   page re-runs its handlers.
+
+```js
+// helpdesk/support/doctype/hd_ticket/frontend/pages.json: { "list": "inbox" }
+// helpdesk/support/doctype/hd_ticket/frontend/pages/inbox.js builds the page:
+const engine = createPageEngine({ doctype: "HD Ticket", name: "Inbox", app: "helpdesk", pageName: "inbox", ... });
+
+// helpdesk/support/doctype/hd_ticket/frontend/inbox.js holds its handlers:
+export default {
+	onRefresh(page) {
+		page.header.add({ name: "assign", label: "Assign" });
+	},
+};
+```
 
 ## Where a script runs
 

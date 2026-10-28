@@ -245,7 +245,7 @@ describe("a key the engine does not read", () => {
 			expect(surface.find("x")).toEqual({ name: "x", label: "X" });
 			expect(warn).toHaveBeenCalledTimes(1);
 			expect(warn.mock.calls[0][0]).toBe(
-				`[record-page] ${name}.add('x'): key 'variant' is not one the engine reads — dropped.`,
+				`[page] ${name}.add('x'): key 'variant' is not one the engine reads — dropped.`,
 			);
 		});
 
@@ -290,8 +290,8 @@ describe("a key the engine does not read", () => {
 		surface.commit();
 		expect(surface.find("x")).toEqual({ name: "x", label: "Z" });
 		expect(warn.mock.calls.map((call) => call[0])).toEqual([
-			"[record-page] tabs.add('y'): key 'variant' is not one the engine reads — dropped.",
-			"[record-page] tabs.update('x'): key 'variant' is not one the engine reads — dropped.",
+			"[page] tabs.add('y'): key 'variant' is not one the engine reads — dropped.",
+			"[page] tabs.update('x'): key 'variant' is not one the engine reads — dropped.",
 		]);
 	});
 

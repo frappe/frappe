@@ -1,7 +1,7 @@
 // The contribution seam: an index over the module `plugin/contributions.js` generates at build time.
 
 import contributions from 'virtual:frappe/contributions'
-import { addFileScript } from '@/recordPage'
+import { addFileScript, addPageFile } from '@/recordPage'
 import type { ItemRenderer } from '@/navigation/types'
 import type {
   ActsContribution,
@@ -114,6 +114,7 @@ function ordered<T extends { app: string }>(
 export function registerContributions(appOrder: string[]) {
   registerItemTypes(appOrder)
   registerReplacements(appOrder)
+  registerPageScripts(appOrder)
   registerActs(appOrder)
 
   const byDoctype = new Map<string, DoctypeContribution[]>()
@@ -172,6 +173,13 @@ function registerReplacements(appOrder: string[]) {
     if (!appOrder.includes(contribution.app)) continue
     const slot = `${contribution.key}:${contribution.doctype}`
     claims.set(slot, [...(claims.get(slot) ?? []), contribution])
+  }
+}
+
+/** Only an active app's handler files; each runs on its own app's page alone. */
+function registerPageScripts(appOrder: string[]) {
+  for (const { app, doctype, page, handlers } of contributions.pageScripts ?? []) {
+    if (appOrder.includes(app)) addPageFile(app, doctype, page, handlers)
   }
 }
 

@@ -142,7 +142,7 @@ describe("ensureIconClass with a failing source", () => {
 
 		expect(document.getElementById(STYLE_ID)).toBeNull();
 		expect(warn).toHaveBeenCalledOnce();
-		expect(warn.mock.calls[0][0]).toContain("[record-page]");
+		expect(warn.mock.calls[0][0]).toContain("[page]");
 		warn.mockRestore();
 	});
 });

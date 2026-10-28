@@ -1,5 +1,6 @@
 // Reads a folder's `pages.json` and `pages/` into replacement pages for a doctype's record or
-// list address, with a warning for each broken declaration and each clash across apps.
+// list address, and each page's handler file, with a warning for each broken declaration, each
+// stray handler file and each clash across apps.
 
 import { readFileSync } from "node:fs";
 import { basename, join } from "node:path";
@@ -7,15 +8,14 @@ import { files, isFile } from "./folders.js";
 
 export const STANDARD_PAGES = ["record", "list"];
 
-/** The pages a folder's `pages.json` names from the `pages/` folder beside it. */
+/** The pages a folder's `pages.json` names from the `pages/` folder beside it, and their handler files. */
 export function declaredPages(folder, declarer, benchApps) {
 	const pagesRoot = join(folder, "pages");
 	const pageNames = files(pagesRoot).map((file) => basename(file, ".js"));
-	const warnings = handlerFileWarnings(folder, pageNames, declarer.foreign);
 
 	const path = join(folder, "pages.json");
 	const read = readDeclaration(path);
-	warnings.push(...read.warnings);
+	const warnings = [...read.warnings];
 	const found = [];
 	for (const [key, value] of Object.entries(read.declaration)) {
 		const declared = keyEntries(key, value, pageNames, benchApps);
@@ -25,7 +25,15 @@ export function declaredPages(folder, declarer, benchApps) {
 			found.push({ ...declarer, key, page, ...(apps && { apps }), file });
 		}
 	}
-	return { found, warnings, declaration: isFile(path) ? path : null };
+	const declared = new Set(found.map((entry) => entry.page));
+	const handlers = handlerFiles(folder, pageNames, declared, declarer);
+	warnings.unshift(...handlers.warnings);
+	return {
+		found,
+		pageScripts: handlers.pageScripts,
+		warnings,
+		declaration: isFile(path) ? path : null,
+	};
 }
 
 /** One warning per doctype, key and app that more than one app replaces; "every app" is one more. */
@@ -126,23 +134,26 @@ function scopeClash(key, entries) {
 	return null;
 }
 
-/** A `.js` file beside `pages/` is a page's reserved handler file or, under `custom/`, a stray. */
-function handlerFileWarnings(folder, pageNames, foreign) {
+/** A `.js` file beside `pages/` is the handler file of a declared page, or, if not, ignored with a warning. */
+function handlerFiles(folder, pageNames, declared, { app, doctype, foreign }) {
+	const pageScripts = [];
 	const warnings = [];
 	for (const handler of files(folder)) {
 		const name = basename(handler, ".js");
 		if (STANDARD_PAGES.includes(name)) continue;
 
 		const file = join(folder, handler);
-		if (pageNames.includes(name)) {
+		if (declared.has(name)) {
+			pageScripts.push({ app, doctype, page: name, file });
+		} else if (pageNames.includes(name)) {
 			warnings.push(
-				`[frappe] ${file} is reserved for the handlers of pages/${handler}; it is ignored.`
+				`[frappe] ${file} is the handler file of pages/${handler}, which pages.json does not declare; it is ignored.`
 			);
 		} else if (foreign) {
 			warnings.push(`[frappe] ${file} has no pages/${handler} beside it; it is ignored.`);
 		}
 	}
-	return warnings;
+	return { pageScripts, warnings };
 }
 
 /** A `pages.json` as an object; `{}` if absent or unreadable. */

@@ -33,7 +33,7 @@ export function ensureIconClass(icon?: string) {
 	bridged.add(icon);
 	if (!source) {
 		if (!warnedNoSource)
-			console.warn("[record-page] no icon source; script-named icons will not render");
+			console.warn("[page] no icon source; script-named icons will not render");
 		warnedNoSource = true;
 		return;
 	}
@@ -41,9 +41,9 @@ export function ensureIconClass(icon?: string) {
 	source(name)
 		.then((geometry) => {
 			if (geometry) addRule(icon, dataUri(geometry));
-			else console.warn(`[record-page] unknown lucide icon '${icon}'`);
+			else console.warn(`[page] unknown lucide icon '${icon}'`);
 		})
-		.catch((error) => console.warn(`[record-page] icon source failed for '${icon}'`, error));
+		.catch((error) => console.warn(`[page] icon source failed for '${icon}'`, error));
 }
 
 // The sprite's symbols carry geometry only, so rebuild the wrapper Icon.vue draws.

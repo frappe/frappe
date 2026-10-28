@@ -305,6 +305,7 @@ export function createRecordPage(host: RecordPageHost): RecordPageController {
   const engine = createPageEngine({
     doctype: host.doctype,
     name: host.docname,
+    pageName: "record",
     lists: {
       quickActions,
       tabs: tabs as Surface<TabItem> & TabsApi,

@@ -41,6 +41,15 @@ export type ReplacementContribution = {
   component: () => Promise<unknown>
 }
 
+// A replacement page's handler file: <name>.js beside its pages/<name>.js. It runs only on
+// that page of its own app.
+export type PageScriptContribution = {
+  app: string
+  doctype: string
+  page: string
+  handlers: Record<string, unknown>
+}
+
 export type StandardPages = {
   /** The page at a main list or record address: the declared page, else the standard one. */
   main: Component
@@ -85,4 +94,5 @@ export type Contributions = {
   settings: SettingsComponentContribution[]
   acts: ActsContribution[]
   replacements: ReplacementContribution[]
+  pageScripts: PageScriptContribution[]
 }

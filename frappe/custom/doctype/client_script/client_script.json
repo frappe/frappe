@@ -11,6 +11,7 @@
  "field_order": [
   "dt",
   "view",
+  "page",
   "column_break_3",
   "module",
   "enabled",
@@ -41,7 +42,7 @@
    "options": "JS"
   },
   {
-   "depends_on": "eval:doc.view != \"Record\"",
+   "depends_on": "eval:![\"Record\", \"App Page\"].includes(doc.view)",
    "fieldname": "sample",
    "fieldtype": "HTML",
    "label": "Sample"
@@ -54,8 +55,8 @@
   },
   {
    "default": "0",
-   "depends_on": "eval:doc.view == \"Record\"",
-   "description": "Record scripts run low to high; equal values run in creation order.",
+   "depends_on": "eval:[\"Record\", \"App Page\"].includes(doc.view)",
+   "description": "Record and App Page scripts run low to high; equal values run in creation order.",
    "fieldname": "run_order",
    "fieldtype": "Int",
    "label": "Run Order"
@@ -66,7 +67,16 @@
    "fieldtype": "Select",
    "in_list_view": 1,
    "label": "Apply To",
-   "options": "List\nForm\nRecord",
+   "options": "List\nForm\nRecord\nApp Page",
+   "set_only_once": 1
+  },
+  {
+   "depends_on": "eval:doc.view == \"App Page\"",
+   "description": "The name of the app page's file in pages/, without .js.",
+   "fieldname": "page",
+   "fieldtype": "Data",
+   "label": "Page",
+   "mandatory_depends_on": "eval:doc.view == \"App Page\"",
    "set_only_once": 1
   },
   {
@@ -88,7 +98,7 @@
  "idx": 1,
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-09-07 12:00:00.000000",
+ "modified": "2026-10-28 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Custom",
  "name": "Client Script",

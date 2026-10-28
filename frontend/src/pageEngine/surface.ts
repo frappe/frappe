@@ -152,7 +152,7 @@ export class Surface<Item extends SurfaceItem = SurfaceItem>
 		if (this.saidKeys.has(once)) return;
 		this.saidKeys.add(once);
 		console.warn(
-			`[record-page] ${surface}.${verb}('${name}'): key '${key}' is not one the engine reads — dropped.`,
+			`[page] ${surface}.${verb}('${name}'): key '${key}' is not one the engine reads — dropped.`,
 		);
 	}
 
@@ -250,6 +250,6 @@ function warnCollision(existing: ResolvedItem<any>, op: { source: string; item: 
 	if (!import.meta.env.DEV) return;
 	if (existing.source === op.source) return;
 	console.warn(
-		`[record-page] '${op.item.name}' from ${existing.source} overwritten by ${op.source}`,
+		`[page] '${op.item.name}' from ${existing.source} overwritten by ${op.source}`,
 	);
 }

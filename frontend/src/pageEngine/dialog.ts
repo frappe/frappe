@@ -70,7 +70,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
   function warn(verb: string, reason: string) {
     if (!import.meta.env.DEV) return;
     console.warn(
-      `[record-page] ${runningSource()} called page.dialog.${verb} ${reason}`,
+      `[page] ${runningSource()} called page.dialog.${verb} ${reason}`,
     );
   }
 
@@ -144,7 +144,7 @@ export function createPageDialogs(host: PageDialogHost): PageDialogs {
       warn: (reason) => warn(verb, reason),
       failed: (exception) =>
         console.error(
-          `[record-page] ${source} page.dialog.${verb} onCancel threw`,
+          `[page] ${source} page.dialog.${verb} onCancel threw`,
           exception,
         ),
       track,
