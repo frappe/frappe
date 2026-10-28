@@ -549,7 +549,7 @@ class PrintDesignerConverter:
 			"options": table.get("options"),
 			"table_columns": columns,
 			"show_label": "hide",
-			"table_style": "grid" if bordered else "lined",
+			"table_style": "lined",
 			"table_bordered": bordered,
 			"table_radius": 0,
 		}
