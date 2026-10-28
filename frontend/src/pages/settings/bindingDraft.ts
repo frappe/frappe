@@ -10,7 +10,7 @@ import {
 	type Envelope,
 } from "@framework/ui/api";
 import { evaluateDependsOn } from "@framework/ui/FormLayout";
-import { fieldnameOfErrorKey, type FieldAddress } from "@framework/ui/fields/types";
+import { fieldErrorKey, fieldnameOfErrorKey, type FieldAddress } from "@framework/ui/fields/types";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import { useDoctypeMeta, type DoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { fetchNewDocument, fieldDefaults } from "@/newRecordValues";
@@ -51,6 +51,8 @@ export class BindingDraft {
 	private queued = new Set<string>();
 	/** Each field a save in flight carries, with the value it sent. */
 	private sending = new Map<string, unknown>();
+	/** Fields a hold marked while a save was out; that save's refusal leaves them as the hold drew them. */
+	private heldMeanwhile = new Set<string>();
 	/** Unsent fields found changed elsewhere since their edit; their own save asks first. */
 	private stale = new Set<string>();
 	private running: Promise<void> | null = null;
@@ -88,7 +90,6 @@ export class BindingDraft {
 			delete this.state.marks[fieldname];
 	}
 
-	/** Drops the refusal of each field set back to its saved value, as `edit` does for a typed one. */
 	clearReverted(fieldnames: string[]) {
 		for (const fieldname of fieldnames) {
 			if (this.state.marks[fieldname] !== "error" || this.dirty(fieldname)) continue;
@@ -113,6 +114,9 @@ export class BindingDraft {
 	hold(fieldnames: string[], refusals: { address: FieldAddress; message: string }[]) {
 		for (const { address, message } of refusals) this.fieldErrors.mark(address, message);
 		for (const fieldname of fieldnames) this.state.marks[fieldname] = "error";
+		if (!this.sending.size) return;
+		for (const fieldname of fieldnames) this.heldMeanwhile.add(fieldname);
+		for (const { address } of refusals) this.heldMeanwhile.add(fieldnameOfErrorKey(fieldErrorKey(address)));
 	}
 
 	discard(fieldnames: string[]) {
@@ -165,17 +169,17 @@ export class BindingDraft {
 				if (!fieldnames.includes(fieldname)) delete this.state.marks[fieldname];
 			this.queued.clear();
 			if (!fieldnames.length) continue;
-			for (const fieldname of fieldnames)
+			for (const fieldname of this.withRequired(fieldnames))
 				this.sending.set(fieldname, clone(this.state.doc[fieldname]));
 			try {
 				await this.send(fieldnames);
 			} finally {
 				this.sending.clear();
+				this.heldMeanwhile.clear();
 			}
 		}
 	}
 
-	/** An insert also carries each required value filled in another block. */
 	private withRequired(fieldnames: string[]): string[] {
 		if (!this.state.isNew) return fieldnames;
 		const { doc, saved, meta } = this.state;
@@ -190,18 +194,18 @@ export class BindingDraft {
 		if (fieldnames.some((fieldname) => this.stale.has(fieldname)))
 			return this.resolveConflict(fieldnames, null);
 		const values = Object.fromEntries(
-			this.withRequired(fieldnames).map((fieldname) => [fieldname, clone(this.state.doc[fieldname])])
+			[...this.sending].map(([fieldname, value]) => [fieldname, clone(value)])
 		);
 		try {
 			const reply = (await this.write(values)).data;
 			this.land(reply, values);
 			this.settle(fieldnames, "saved");
-			this.settleAdded(Object.keys(values), fieldnames);
+			this.settleAdded(fieldnames);
 			runAfterSave({ doctype: this.doctype, name: this.name, doc: reply, changed: Object.keys(values) });
 		} catch (error) {
 			if (isApiError(error) && error.isTimestampMismatch)
 				await this.resolveConflict(fieldnames, error);
-			else this.refuse(fieldnames, error, Object.keys(values));
+			else this.refuse(fieldnames, error);
 		}
 	}
 
@@ -223,9 +227,8 @@ export class BindingDraft {
 		this.state.isNew = false;
 	}
 
-	/** An insert's added required values: no Saved mark, and an older refusal goes. */
-	private settleAdded(sent: string[], fieldnames: string[]) {
-		for (const fieldname of sent) {
+	private settleAdded(fieldnames: string[]) {
+		for (const fieldname of this.sending.keys()) {
 			if (fieldnames.includes(fieldname) || this.dirty(fieldname)) continue;
 			delete this.state.marks[fieldname];
 			this.unmark(fieldname);
@@ -281,27 +284,37 @@ export class BindingDraft {
 	}
 
 	/** A field set back before the reply landed keeps no refusal, and a hold placed meanwhile stays. */
-	private refuse(fieldnames: string[], error: unknown, sent: string[] = fieldnames) {
+	private refuse(fieldnames: string[], error: unknown) {
+		const sent = [...this.sending.keys()];
 		const refusals = (isApiError(error) && error.fieldErrors) || [];
 		const named = refusals.map((refused) => refused.parentfield ?? refused.fieldname);
-		const added = sent.filter((fieldname) => !fieldnames.includes(fieldname) && named.includes(fieldname));
-		const failed = [...fieldnames, ...added].filter((fieldname) => this.dirty(fieldname));
-		const held = fieldnames.filter(
-			(fieldname) => !failed.includes(fieldname) && this.state.marks[fieldname] === "error"
+		const failed = sent.filter(
+			(fieldname) => (fieldnames.includes(fieldname) || named.includes(fieldname)) && this.dirty(fieldname)
 		);
+		const quiet = sent.filter((fieldname) => this.holding(fieldname) || !this.dirty(fieldname));
 		if (refusals.length)
 			this.fieldErrors.markRefused(
-				refusals.filter((refused) => !held.includes(refused.parentfield ?? refused.fieldname)),
+				refusals.filter((refused) => !quiet.includes(refused.parentfield ?? refused.fieldname)),
 				this.state.doc
 			);
-		else for (const fieldname of failed) this.fieldErrors.mark(fieldname, messageOf(error));
-		for (const fieldname of fieldnames) {
-			if (failed.includes(fieldname) || held.includes(fieldname)) continue;
+		else
+			for (const fieldname of failed)
+				if (!this.holding(fieldname)) this.fieldErrors.mark(fieldname, messageOf(error));
+		for (const fieldname of quiet) {
+			if (this.heldMeanwhile.has(fieldname)) continue;
 			this.unmark(fieldname);
 			if (!this.queued.has(fieldname)) delete this.state.marks[fieldname];
 		}
 		this.settle(failed, "error");
-		if (failed.length && this.host.closed()) this.host.lost();
+		if (sent.some((fieldname) => this.dirty(fieldname)) && this.host.closed()) this.host.lost();
+	}
+
+	/** Only while the hold's message is still drawn: an edit, or a component's own change, may have cleared it. */
+	private holding(fieldname: string): boolean {
+		return (
+			this.heldMeanwhile.has(fieldname) &&
+			Object.keys(this.fieldErrors.drawn.value).some((key) => fieldnameOfErrorKey(key) === fieldname)
+		);
 	}
 
 	/** A field queued again keeps Saving…, and one changed since it was sent keeps its hold or none; Saved fades on its own. */
