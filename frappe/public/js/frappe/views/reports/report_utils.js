@@ -156,7 +156,7 @@ frappe.report_utils = {
 		const js_filters = report_settings.filters || [];
 		const server_fieldnames = report_filters.map((row) => row.fieldname);
 		for (const filter of js_filters) {
-			if (!server_fieldnames.includes(filter.fieldname)) {
+			if (filter.fieldname && !server_fieldnames.includes(filter.fieldname)) {
 				console.warn(
 					`[Query Report] Filter without a Report Filter row: ${filter.fieldname}`
 				);
