@@ -4133,7 +4133,8 @@ class Document(_DocumentBase):
 	def _attach_text_editor_files(self):
 		from frappe.core.doctype.file.utils import attach_text_editor_files
 
-		if self.doctype != "DocType":
+		# Off unless a desk v2 save asks: a desk v1 save must not adopt the user's Files.
+		if self.flags.attach_text_editor_files and self.doctype != "DocType":
 			attach_text_editor_files(self)
 
 
