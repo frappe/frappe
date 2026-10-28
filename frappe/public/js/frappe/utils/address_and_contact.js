@@ -9,8 +9,24 @@ frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends (
 			this.dialog.doc.links = [
 				{ link_doctype: this.source_frm.doctype, link_name: this.source_frm.docname },
 			];
+		} else if (!this.dialog.doc.links?.length) {
+			const link = this.get_link_from_calling_field();
+			if (link) this.dialog.doc.links = [link];
 		}
 		return super.insert();
+	}
+
+	get_link_from_calling_field() {
+		const field = frappe._from_link?.field_obj;
+		// _from_link stays behind when a dialog is closed, so the field must still be on screen
+		if (field?.get_options() !== this.doctype || !field.$input?.is(":visible")) return;
+
+		const { link_doctype, link_name } = field.get_search_args("")?.filters || {};
+		const is_name = (value) => value && typeof value === "string";
+		if (!is_name(link_doctype) || !is_name(link_name)) return;
+		if (frappe.get_doc(link_doctype, link_name)?.__islocal) return;
+
+		return { link_doctype, link_name };
 	}
 
 	open_form_if_not_list() {
