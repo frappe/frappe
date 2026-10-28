@@ -436,11 +436,11 @@ def get_unsaved_format_preview(
 	frappe.has_permission("Print Format", "write", throw=True)
 	print_format = frappe.get_doc(frappe.parse_json(print_format))
 	document = frappe.get_doc(doctype, name)
-	document.check_permission("print")
 	try:
+		document.check_permission("print")
 		with print_language(document.get("language") or lang):
 			html = get_rendered_template(doc=document, print_format=print_format, meta=document.meta)
-	except PREVIEW_ERRORS as e:
+	except (*PREVIEW_ERRORS, frappe.PermissionError) as e:
 		frappe.clear_last_message()
 		return {"error": str(e)}
 	return {
