@@ -2,7 +2,7 @@ frappe.doctype_settings.register("user-permissions", function (panel, doctype) {
 	let list;
 	panel.set_view({
 		title: __("User Permissions"),
-		description: __("Restrict specific users to specific {0} records.", [doctype]),
+		description: __("Restrict specific users to specific {0} records.", [__(doctype)]),
 		// Add sits top-right by the title (like the Roles tab); the list keeps its search box.
 		actions: [
 			{
