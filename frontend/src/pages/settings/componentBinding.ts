@@ -58,7 +58,6 @@ function refusal(draft: BindingDraft, owned: string[], claimed: string[]): strin
 	return reasons.find(Boolean) || __("Did not save");
 }
 
-/** Not an owned field it named: refuse() left that one undrawn because it was set back while the save was out. */
 function reasonOf(refused: Refusal | undefined, claimed: string[]): string {
 	if (!refused) return "";
 	if (!refused.named.length) return refused.message;
