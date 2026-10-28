@@ -6,6 +6,7 @@
 # The app list is `sites/apps.txt` as bench wrote it, never a scan of `apps/`: desk v1's esbuild scans
 # while its Python half reads the file, and the two halves disagree on a bench where it is stale.
 
+import glob
 import json
 import os
 import re
@@ -21,6 +22,7 @@ from .registry import declared_prefix, is_modular
 SINGLETONS = ("vue", "vue-router", "frappe-ui", "@framework/ui", "reka-ui", "dompurify")
 
 MANIFEST_FILENAME = "manifest.json"
+PUBLISHED_FILENAME = "published.json"
 BASE_LOCKFILE = "yarn.lock.base"
 BUMP_MAP = 'the map "Keep frappe-ui current" (frappe/frappe#42719)'
 
@@ -70,9 +72,54 @@ def contribution_globs(source_dir: str) -> list[str]:
 
 
 def contributes(source_dir: str) -> bool:
-	import glob
-
 	return any(glob.glob(pattern) for pattern in contribution_globs(source_dir))
+
+
+def adds_to_shell(apps: list[str], frontend: str) -> bool:
+	"""Whether a build of only `apps` can change the shell: they shape it now, or shaped the last build."""
+	last = read_package(os.path.join(frontend, PUBLISHED_FILENAME)).get("shaping_apps")
+	if last is None:
+		return True
+	return bool(set(apps) & {*shaping_apps(apps), *last})
+
+
+def record_published(frontend: str, shaping: list[str]):
+	"""Note which apps the published shell was built from; written only once a build is swapped in."""
+	# Bench-internal path, composed from `frontend_dir()`; never request-derived.
+	with open(os.path.join(frontend, PUBLISHED_FILENAME), "w") as f:  # nosemgrep
+		json.dump({"shaping_apps": shaping}, f)
+
+
+def shaping_apps(apps: list[str], manifest: list[dict] | None = None) -> list[str]:
+	"""The apps whose files the shell is built from."""
+	in_manifest = {entry["app"] for entry in (assemble(apps) if manifest is None else manifest)}
+	# The plugin reads presets and doctype names from every app, contributor or not.
+	customised = {doctype for app in frappe.get_all_apps() for doctype in customised_doctypes(app)}
+	return [
+		app
+		for app in apps
+		if app in in_manifest
+		or os.path.exists(os.path.join(frappe.get_app_path(app), "frontend", "tailwind.preset.js"))
+		or owned_doctypes(app) & customised
+	]
+
+
+def customised_doctypes(app: str) -> set[str]:
+	"""The doctype folders an app's `custom/` contributions name."""
+	source_dir = frappe.get_app_path(app)
+	return {
+		os.path.relpath(path, source_dir).split(os.sep)[2]
+		for pattern in contribution_globs(source_dir)
+		if f"{os.sep}custom{os.sep}" in pattern
+		for path in glob.glob(pattern)
+	}
+
+
+def owned_doctypes(app: str) -> set[str]:
+	return {
+		os.path.basename(path)
+		for path in glob.glob(os.path.join(frappe.get_app_path(app), "*", "doctype", "*"))
+	}
 
 
 def read_package(path: str) -> dict:
