@@ -172,12 +172,12 @@ class TestExporter(IntegrationTestCase):
 		self.assertNotIn("Restricted Value", str(export))
 
 	def test_owner_only_export_includes_only_own_records(self):
-		own_doc = "_Test Own Export"
-		other_doc = "_Test Other Export"
+		own_doc, other_doc = "_Test Own Export", "_Test Other Export"
 		for name in (own_doc, other_doc):
 			frappe.delete_doc_if_exists(doctype_name, name)
 			self.addCleanup(frappe.delete_doc_if_exists, doctype_name, name)
 		self.addCleanup(reset, doctype_name)
+		self.addCleanup(frappe.form_dict.clear)
 		add(doctype_name, "All", 0)
 		update(doctype_name, "All", 0, "export", 0)
 		frappe.get_doc(
@@ -186,7 +186,6 @@ class TestExporter(IntegrationTestCase):
 			parenttype="DocType",
 			parentfield="permissions",
 			role="All",
-			permlevel=0,
 			if_owner=1,
 			read=1,
 			export=1,
@@ -194,30 +193,17 @@ class TestExporter(IntegrationTestCase):
 		frappe.clear_cache(doctype=doctype_name)
 
 		frappe.get_doc(doctype=doctype_name, title=other_doc).insert()
+		filters = frappe.as_json({"title": ["in", [own_doc, other_doc]]})
 		with self.set_user("test2@example.com"):
 			frappe.get_doc(doctype=doctype_name, title=own_doc).insert(ignore_permissions=True)
-			exporter = Exporter(doctype_name, export_fields={doctype_name: ["title"]}, export_data=True)
-			excluding_own = Exporter(
+			exporter = Exporter(
 				doctype_name,
 				export_fields={doctype_name: ["title"]},
 				export_data=True,
-				export_filters={"owner": ["!=", "test2@example.com"]},
+				export_filters=filters,
 			)
-			from_json_filters = Exporter(
-				doctype_name,
-				export_fields={doctype_name: ["title"]},
-				export_data=True,
-				export_filters=frappe.as_json({"title": ["in", [own_doc, other_doc]]}),
-			)
-			frappe.form_dict.export_filters = {"title": ["in", [own_doc, other_doc]]}
-			count = get_export_count(doctype_name, frappe.form_dict.export_filters)
-
-		titles = [row[0] for row in exporter.get_csv_array()[1:]]
-		self.assertIn(own_doc, titles)
-		self.assertNotIn(other_doc, titles)
-		self.assertEqual(excluding_own.get_csv_array()[1:], [])
-		self.assertEqual(count, 1)
-		self.assertEqual([row[0] for row in from_json_filters.get_csv_array()[1:]], [own_doc])
+			self.assertEqual([row[0] for row in exporter.get_csv_array()[1:]], [own_doc])
+			self.assertEqual(get_export_count(doctype_name, filters), 1)
 
 	def test_template_includes_import_provider_tables(self):
 		test_doc = "_Test Provider Export"

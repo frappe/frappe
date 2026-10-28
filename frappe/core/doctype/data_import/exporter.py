@@ -160,9 +160,7 @@ class Exporter:
 
 	def get_data_to_export(self):
 		table_fields = [f for f in self.exportable_fields if f != self.doctype]
-		filters = get_export_filters(self.doctype, self.export_filters)
-
-		for doc in self.get_data_as_docs(filters):
+		for doc in self.get_data_as_docs():
 			rows = []
 			rows = self.add_data_row(None, doc, rows, 0)
 			# add child table data
@@ -197,12 +195,11 @@ class Exporter:
 			row[i] = value
 		return rows
 
-	def get_data_as_docs(self, filters=None):
+	def get_data_as_docs(self):
 		def format_column_name(df):
 			return f"`tab{df.parent}`.`{df.fieldname}`"
 
-		if filters is None:
-			filters = self.export_filters
+		filters = get_export_filters(self.doctype, self.export_filters)
 
 		if self.meta.is_nested_set():
 			order_by = "lft ASC"
