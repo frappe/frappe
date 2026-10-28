@@ -242,8 +242,8 @@ beforeAll(async () => {
 
 beforeEach(() => {
 	server.runMethod.mockImplementation(async (method: string, ...rest: unknown[]) => {
-		if (method === "frappe.desk.palette.search_records") return searchRecords(method, ...rest);
-		if (method === "frappe.desk.palette.search_doctype_records")
+		if (method === "frappe.shell.palette.search_records") return searchRecords(method, ...rest);
+		if (method === "frappe.shell.palette.search_doctype_records")
 			return server.searchDoctypeRecords(method, ...rest);
 		return { data: method === "frappe.shell.palette.places" ? placesReply : panesReply };
 	});
@@ -740,7 +740,7 @@ describe("Tab on a doctype row", () => {
 
 		expect(server.searchDoctypeRecords).toHaveBeenCalledTimes(1);
 		expect(server.searchDoctypeRecords).toHaveBeenCalledWith(
-			"frappe.desk.palette.search_doctype_records",
+			"frappe.shell.palette.search_doctype_records",
 			{ txt: "piv", doctype: "CRM Deal" },
 			expect.objectContaining({ http: "GET" })
 		);
@@ -893,7 +893,7 @@ describe("records", () => {
 
 		await vi.waitFor(() => expect(held).toHaveLength(1));
 		expect(searchRecords).toHaveBeenCalledWith(
-			"frappe.desk.palette.search_records",
+			"frappe.shell.palette.search_records",
 			{ txt: "acm", doctype: "CRM Deal" },
 			expect.objectContaining({ http: "GET" })
 		);
@@ -941,14 +941,14 @@ describe("records", () => {
 		await type("a", { settle: false });
 		await new Promise((resolve) => setTimeout(resolve, 250));
 		expect(searchRecords).not.toHaveBeenCalledWith(
-			"frappe.desk.palette.search_records",
+			"frappe.shell.palette.search_records",
 			expect.anything(),
 			expect.anything()
 		);
 
 		await type("ac");
 		expect(searchRecords).toHaveBeenCalledWith(
-			"frappe.desk.palette.search_records",
+			"frappe.shell.palette.search_records",
 			{ txt: "ac" },
 			expect.anything()
 		);
@@ -1014,7 +1014,7 @@ describe("records", () => {
 		await vi.waitFor(() => expect(row("records:searching")).toBeNull());
 
 		expect(searchRecords).toHaveBeenLastCalledWith(
-			"frappe.desk.palette.search_records",
+			"frappe.shell.palette.search_records",
 			{ txt: "acme", doctype: "CRM Lead" },
 			expect.anything()
 		);

@@ -30,7 +30,7 @@ export class RecordSearch {
 	private asking: AbortController | undefined;
 	private question = "";
 
-	constructor(private method = "frappe.desk.palette.search_records") {}
+	constructor(private method = "frappe.shell.palette.search_records") {}
 
 	/** Asks once the typing has paused, and drops the question asked before. */
 	follow(query: string, doctype: string | null) {

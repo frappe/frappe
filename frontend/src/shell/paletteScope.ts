@@ -13,7 +13,7 @@ const SHORTEST_QUERY = 2;
 export function usePaletteScope(query: Ref<string>, context: PaletteContext) {
 	const doctype = ref<string | null>(null);
 	const text = computed(() => query.value.trim());
-	const search = new RecordSearch("frappe.desk.palette.search_doctype_records");
+	const search = new RecordSearch("frappe.shell.palette.search_doctype_records");
 
 	watch([text, doctype], () => search.follow(doctype.value ? text.value : "", doctype.value));
 
