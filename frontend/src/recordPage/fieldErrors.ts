@@ -58,19 +58,22 @@ export class FieldErrors implements Staging {
     if (this.shown.size) this.draw(new Map());
   }
 
-  /** Marks each field a refused save names; a row is found by its name, then by its position. */
+  /** Marks each field a refused save names. */
   markRefused(refused: RefusedField[] | undefined, doc: Record<string, any>) {
-    for (const { fieldname, parentfield, row, idx, message } of refused ?? []) {
-      if (!parentfield) {
-        this.mark(fieldname, message);
-        continue;
-      }
-      const table: Record<string, any>[] = Array.isArray(doc[parentfield]) ? doc[parentfield] : [];
-      const atIdx = idx ? table[idx - 1] : undefined;
-      // A row named by the server's own insert is still unnamed in the draft.
-      const found = row ? (table.find((one) => one.name === row) ?? (atIdx?.name ? undefined : atIdx)) : atIdx;
-      if (found) this.mark({ parentfield, key: rowKey(identify(found))!, fieldname }, message);
+    for (const one of refused ?? []) {
+      const address = this.addressOf(one, doc);
+      if (address) this.mark(address, one.message);
     }
+  }
+
+  /** Where a refused field's mark goes; a row is found by its name, then by its position. */
+  addressOf({ fieldname, parentfield, row, idx }: RefusedField, doc: Record<string, any>): FieldAddress | undefined {
+    if (!parentfield) return fieldname;
+    const table: Record<string, any>[] = Array.isArray(doc[parentfield]) ? doc[parentfield] : [];
+    const atIdx = idx ? table[idx - 1] : undefined;
+    // A row named by the server's own insert is still unnamed in the draft.
+    const found = row ? (table.find((one) => one.name === row) ?? (atIdx?.name ? undefined : atIdx)) : atIdx;
+    return found ? { parentfield, key: rowKey(identify(found))!, fieldname } : undefined;
   }
 
   /** The first shown field, in form order, that holds a mark or a marked row cell. */

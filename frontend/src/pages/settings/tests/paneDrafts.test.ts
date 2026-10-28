@@ -1067,6 +1067,52 @@ describe("a Record that does not exist yet", () => {
 			expect(drafts.failedCount.value).toBe(0);
 		});
 	});
+
+	it("draws a new refusal over the older one on a component's field held while the insert is out", async () => {
+		server.metas["Telephony Agent"] = {
+			...TELEPHONY_AGENT,
+			fields: TELEPHONY_AGENT.fields.map((field) =>
+				field.fieldname === "mobile_no" ? { ...field, reqd: 1 } : field
+			),
+		};
+		const drafts = await opened(agent, component("extension", { agent: agent.binding! }));
+		const bound = drafts.bound.get("agent")!;
+		const { agent: owned } = drafts.components.get("extension")!;
+		const badExtension = (message: string) => ({
+			entry: {
+				type: "ValidationError",
+				message,
+				field_errors: [{ fieldname: "extension", message }],
+			},
+			status: 417,
+		});
+		bound.draft.edit("mobile_no", "+91 98");
+		server.refusal = badExtension("Bad extension");
+		owned.doc.extension = "1";
+		await owned.commit();
+		expect(owned.error).toBe("Bad extension");
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		owned.doc.extension = "2";
+		owned.commit();
+		await settled();
+		bound.draft.edit("mobile_no", "");
+		drafts.commit(bound);
+		await settled();
+		server.refusal = badExtension("Extension taken");
+		server.held = null;
+		release();
+		await settled();
+
+		expect(server.writes.at(-1)!.body).toEqual({ extension: "2", mobile_no: "+91 98", user: USER });
+		expect(bound.draft.state.marks.extension).toBe("error");
+		expect(bound.draft.fieldErrors.drawn.value).toEqual({
+			mobile_no: "Mobile No is required",
+			extension: "Extension taken",
+		});
+		expect(owned.error).toBe("Extension taken");
+	});
 });
 
 describe("a required field another block leaves empty", () => {
@@ -1188,6 +1234,68 @@ describe("a required field another block leaves empty", () => {
 
 		expect(general.draft.state.marks).toMatchObject({ rules: "error", country: "error" });
 		expect(general.draft.fieldErrors.drawn.value).toEqual({ country: "Country is required" });
+	});
+
+	it("draws a new refusal over a held table cell's older one", async () => {
+		const drafts = await opened(block("general", "auto", ["country", "rules"]));
+		const general = drafts.bound.get("general")!;
+		const cell = JSON.stringify(["rules", "name:r1", "rule"]);
+		const badRule = (message: string) => ({
+			entry: {
+				type: "ValidationError",
+				message,
+				field_errors: [{ parentfield: "rules", row: "r1", fieldname: "rule", message }],
+			},
+			status: 417,
+		});
+		server.refusal = badRule("Bad rule");
+		general.draft.edit("rules", [{ name: "r1", rule: "new" }]);
+		drafts.commit(general);
+		await settled();
+		expect(general.draft.fieldErrors.drawn.value).toEqual({ [cell]: "Bad rule" });
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		general.draft.edit("rules", [{ name: "r1", rule: "newer" }]);
+		drafts.commit(general);
+		await settled();
+		general.draft.edit("country", "");
+		drafts.commit(general);
+		await settled();
+		server.refusal = badRule("Rule taken");
+		server.held = null;
+		release();
+		await settled();
+
+		expect(general.draft.state.marks).toMatchObject({ rules: "error", country: "error" });
+		expect(general.draft.fieldErrors.drawn.value).toEqual({
+			country: "Country is required",
+			[cell]: "Rule taken",
+		});
+	});
+
+	it("keeps a refusal with no field off a table whose cell a hold marked meanwhile", async () => {
+		server.metas["Walk Rule"] = { ...WALK_RULE, fields: [{ ...WALK_RULE.fields[0], reqd: 1 }] };
+		const drafts = await opened(block("general", "auto", ["rules"]));
+		const general = drafts.bound.get("general")!;
+		let release!: () => void;
+		server.held = new Promise((resolve) => (release = resolve));
+
+		general.draft.edit("rules", [{ name: "r1", rule: "new" }]);
+		drafts.commit(general);
+		await settled();
+		general.draft.edit("rules", [{ name: "r1", rule: "" }]);
+		drafts.commit(general);
+		await settled();
+		server.refusal = { entry: { type: "ValidationError", message: "Server down" }, status: 417 };
+		server.held = null;
+		release();
+		await settled();
+
+		expect(general.draft.state.marks.rules).toBe("error");
+		expect(general.draft.fieldErrors.drawn.value).toEqual({
+			[JSON.stringify(["rules", "name:r1", "rule"])]: "Rule is required",
+		});
 	});
 
 	it("does not mark Saved a value typed back while its save was out", async () => {
