@@ -46,7 +46,7 @@
 				<span class="lucide-square-pen size-3.5" />
 			</button>
 			<RecordAnchor
-				v-if="showRedirect"
+				v-if="showRedirect && href"
 				:href="href!"
 				:aria-label="openLabel"
 				:title="openLabel"
@@ -57,6 +57,18 @@
 			>
 				<span class="lucide-arrow-up-right size-3.5" />
 			</RecordAnchor>
+			<button
+				v-else-if="showRedirect"
+				type="button"
+				:aria-label="openLabel"
+				:title="openLabel"
+				data-slot="redirect"
+				class="group-hover:grid group-focus:grid group-focus-within:grid hidden size-4 place-items-center rounded-1 text-ink-gray-5 hover:bg-surface-gray-3 hover:text-ink-gray-7 focus:outline-none focus-visible:ring-2 focus-visible:ring-outline-gray-3"
+				@click.stop="emit('redirect', model!)"
+				@pointerdown.stop
+			>
+				<span class="lucide-arrow-up-right size-3.5" />
+			</button>
 		</template>
 
 		<template v-if="slots['item-create']" #item-create="slotProps">
@@ -88,6 +100,7 @@ const props = withDefaults(defineProps<LinkProps>(), {
 	filters: () => ({}),
 	creatable: false,
 	href: null,
+	redirectable: false,
 	editable: false,
 	disabled: false,
 });
@@ -134,7 +147,7 @@ const linkOptions = computed<ComboboxOption[]>(() => {
 });
 
 const showClear = computed(() => !props.disabled && !!model.value);
-const showRedirect = computed(() => !!props.href && !!model.value);
+const showRedirect = computed(() => (!!props.href || props.redirectable) && !!model.value);
 const openLabel = computed(() => {
 	const option: any = linkOptions.value.find((option: any) => option.value === model.value);
 	return __("Open {0}", [option?.label ?? model.value]);

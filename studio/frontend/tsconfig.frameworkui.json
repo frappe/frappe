@@ -1,0 +1,7 @@
+{
+	"extends": "./node_modules/frappe-ui/tsconfig.base.json",
+	"compilerOptions": {
+		"baseUrl": ".",
+		"paths": { "frappe-ui": ["./node_modules/frappe-ui/src/index.ts"] }
+	}
+}

@@ -8,6 +8,8 @@ export interface LinkProps extends Omit<InputLabelingProps, "error"> {
   creatable?: boolean;
   /** The current record's address; with one, the field shows an arrow to it whose plain click emits `redirect`. */
   href?: string | null;
+  /** @deprecated Pass `href`. Shows the arrow with no address; its click emits `redirect`. */
+  redirectable?: boolean;
   editable?: boolean;
   disabled?: boolean;
   placeholder?: string;

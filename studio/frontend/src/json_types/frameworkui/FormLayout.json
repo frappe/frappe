@@ -145,11 +145,11 @@
                                 "childFields": {
                                   "type": "array",
                                   "items": {
-                                    "$ref": "#/definitions/alias-1952944880-2597-3003-1952944880-0-7083"
+                                    "$ref": "#/definitions/alias-76664263-2597-3003-76664263-0-7556"
                                   }
                                 },
                                 "childLayout": {
-                                  "$ref": "#/definitions/alias-1952944880-6455-6494-1952944880-0-7083"
+                                  "$ref": "#/definitions/alias-76664263-6644-6683-76664263-0-7556"
                                 },
                                 "reqd": {
                                   "type": "boolean"
@@ -159,6 +159,9 @@
                                 },
                                 "precision": {
                                   "type": "number"
+                                },
+                                "maxHeight": {
+                                  "type": "string"
                                 },
                                 "width": {
                                   "type": "number"
@@ -270,6 +273,9 @@
             ],
             "additionalProperties": false
           }
+        },
+        "autofocus": {
+          "type": "boolean"
         }
       },
       "required": [
@@ -277,7 +283,7 @@
       ],
       "additionalProperties": false
     },
-    "alias-1952944880-2597-3003-1952944880-0-7083": {
+    "alias-76664263-2597-3003-76664263-0-7556": {
       "type": "object",
       "additionalProperties": false,
       "properties": {
@@ -344,11 +350,11 @@
         "childFields": {
           "type": "array",
           "items": {
-            "$ref": "#/definitions/alias-1952944880-2597-3003-1952944880-0-7083"
+            "$ref": "#/definitions/alias-76664263-2597-3003-76664263-0-7556"
           }
         },
         "childLayout": {
-          "$ref": "#/definitions/alias-1952944880-6455-6494-1952944880-0-7083"
+          "$ref": "#/definitions/alias-76664263-6644-6683-76664263-0-7556"
         },
         "reqd": {
           "type": "boolean"
@@ -358,6 +364,9 @@
         },
         "precision": {
           "type": "number"
+        },
+        "maxHeight": {
+          "type": "string"
         },
         "width": {
           "type": "number"
@@ -395,7 +404,7 @@
         "fieldtype"
       ]
     },
-    "alias-1952944880-6455-6494-1952944880-0-7083": {
+    "alias-76664263-6644-6683-76664263-0-7556": {
       "type": "array",
       "items": {
         "type": "object",
@@ -536,11 +545,11 @@
                             "childFields": {
                               "type": "array",
                               "items": {
-                                "$ref": "#/definitions/alias-1952944880-2597-3003-1952944880-0-7083"
+                                "$ref": "#/definitions/alias-76664263-2597-3003-76664263-0-7556"
                               }
                             },
                             "childLayout": {
-                              "$ref": "#/definitions/alias-1952944880-6455-6494-1952944880-0-7083"
+                              "$ref": "#/definitions/alias-76664263-6644-6683-76664263-0-7556"
                             },
                             "reqd": {
                               "type": "boolean"
@@ -550,6 +559,9 @@
                             },
                             "precision": {
                               "type": "number"
+                            },
+                            "maxHeight": {
+                              "type": "string"
                             },
                             "width": {
                               "type": "number"

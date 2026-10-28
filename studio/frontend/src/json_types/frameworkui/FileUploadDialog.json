@@ -7,6 +7,25 @@
         "open": {
           "type": "boolean"
         },
+        "attachTo": {
+          "type": "object",
+          "properties": {
+            "doctype": {
+              "type": "string"
+            },
+            "docname": {
+              "type": "string"
+            },
+            "fieldname": {
+              "type": "string"
+            }
+          },
+          "required": [
+            "doctype",
+            "docname"
+          ],
+          "additionalProperties": false
+        },
         "multiple": {
           "type": "boolean"
         },
@@ -60,6 +79,9 @@
         },
         "folder": {
           "type": "string"
+        },
+        "isPrivate": {
+          "type": "boolean"
         },
         "title": {
           "type": "string"
