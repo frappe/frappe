@@ -127,25 +127,26 @@ import { layout } from "@flow/ui-core/layout.js";
 import FieldControl from "../settings/FieldControl.vue";
 import { useRecord } from "../settings/records.js";
 import PageHeader from "./PageHeader.vue";
+import { PAGES } from "./pages.js";
 
 // A record's page: its fields in the column, by section, its actions in the bar. Leaving it
 // with edits unsaved asks first.
 const props = defineProps({
 	spec: { type: Object, required: true },
-	info: { type: Object, required: true }, // the page's entry in PAGES
+	info: { type: Object, required: true }, // the page's entry in PAGES or FORMS
 	name: { type: String, default: null }, // null for a new record
 });
 const flow = inject("flow");
 const page = inject("flowPage");
 const leavePage = inject("leavePage");
 const router = useRouter();
-// the list it was opened from, with its search and filters
+// the list it was opened from, with its search and filters; a setup form has none, and leads
+// back to the chat
 const listPath = `/${props.spec.key}`;
 const opener = router.options.history.state.back;
-const list = {
-	to: opener?.split("?")[0] === listPath ? opener : listPath,
-	label: props.spec.label,
-};
+const list = PAGES.some((item) => item.key === props.spec.key)
+	? { to: opener?.split("?")[0] === listPath ? opener : listPath, label: props.spec.label }
+	: null;
 
 let leaving = false; // a deleted record's page goes without asking
 const {
@@ -216,6 +217,7 @@ async function chat() {
 // back to the list it came from, its filters and all; else to the list, in a deleted record's
 // place (`replace`) so Back doesn't return to it
 function toList(replace = true) {
+	if (!list) return leavePage();
 	const back = router.options.history.state.back;
 	if (back?.split("?")[0] === listPath) router.back();
 	else if (replace) router.replace(listPath);

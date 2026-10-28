@@ -161,7 +161,7 @@ import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
 import { inPanel, panelHost } from "../panel.js";
 import RecordPage from "../pages/RecordPage.vue";
-import { PAGES } from "../pages/pages.js";
+import { FORMS, PAGES } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
 import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
@@ -323,9 +323,13 @@ const pageLinks = computed(() =>
 		onClick: () => router.push(`/${item.key}`),
 	}))
 );
-const pageKind = computed(() =>
-	pages.value.some((item) => item.key === route.params.kind) ? route.params.kind : null
-);
+// a setup form has a record's page alone, no list
+const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
+const pageKind = computed(() => {
+	const { kind, record } = route.params;
+	const shown = pages.value.some((item) => item.key === kind);
+	return shown || (record && forms.value.some((item) => item.key === kind)) ? kind : null;
+});
 watch(
 	() => store.state.sessionId,
 	(id) => {
