@@ -112,12 +112,13 @@ export function routeForNew(
 	doctype: string,
 	values: Record<string, unknown> = {}
 ): RouteLocationRaw {
-	const query: Record<string, string> = {};
-	for (const [fieldname, value] of Object.entries(values)) {
-		if (value == null || value === "") continue;
-		query[fieldname] = typeof value === "object" ? JSON.stringify(value) : String(value);
-	}
-	return { name: "new-record", params: doctypeParams(doctype), query };
+	return { name: "new-record", params: doctypeParams(doctype), query: newRecordQuery(values) };
+}
+
+/** `routeForNew` as an address under a list address another app gave, for a router with no doctype routes. */
+export function hrefForNew(listPath: string, values: Record<string, unknown> = {}): string {
+	const query = new URLSearchParams(newRecordQuery(values)).toString();
+	return `${listPath}/new${query ? `?${query}` : ""}`;
 }
 
 /** The route for a module's address, which lands on its sidebar's first row. Modular only. */
@@ -134,4 +135,14 @@ export function urlFor(
 	options: RouteOptions = {}
 ): string {
 	return current().router.resolve(routeFor(doctype, name, options)).href;
+}
+
+/** The new record's prefill values as a query: empty ones left out, a table as JSON. */
+function newRecordQuery(values: Record<string, unknown>): Record<string, string> {
+	const query: Record<string, string> = {};
+	for (const [fieldname, value] of Object.entries(values)) {
+		if (value == null || value === "") continue;
+		query[fieldname] = typeof value === "object" ? JSON.stringify(value) : String(value);
+	}
+	return query;
 }

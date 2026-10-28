@@ -1,13 +1,13 @@
 // The full-page new record and the values it carries in its query.
 import { describe, expect, it, vi } from "vitest";
-import type { RouteLocationRaw } from "vue-router";
+import { createMemoryHistory, createRouter, type RouteLocationRaw } from "vue-router";
 
 import { Addresses } from "@/addresses";
 import type { Boot } from "@/boot";
 import { registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
 import { createShellRouter } from "@/router";
-import { registerShell, routeFor, routeForNew } from "@/router/routeFor";
+import { hrefForNew, registerShell, routeFor, routeForNew } from "@/router/routeFor";
 
 registerStandardPages(standardPages);
 
@@ -121,5 +121,20 @@ describe("routeForNew", () => {
 		const route = routeForNew("Sales Invoice", { customer: "Acme" });
 
 		expect(router.resolve(route).fullPath).toBe("/accounts/sales-invoice/new?customer=Acme");
+	});
+});
+
+describe("hrefForNew", () => {
+	it("spells the new record under a list address, and the page's router reads the values back", () => {
+		const values = { title: "A + B & C", items: [{ qty: 1 }], empty: "", none: null };
+		const href = hrefForNew("/sales-invoice", values);
+		const page = createRouter({
+			history: createMemoryHistory(),
+			routes: [{ path: "/:doctype/new", name: "new-record", component: { render: () => null } }],
+		});
+
+		expect(page.resolve(href).name).toBe("new-record");
+		expect(page.resolve(href).query).toEqual({ title: "A + B & C", items: '[{"qty":1}]' });
+		expect(hrefForNew("/sales-invoice")).toBe("/sales-invoice/new");
 	});
 });
