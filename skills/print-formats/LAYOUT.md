@@ -19,11 +19,11 @@
 
 | Key | Value |
 | --- | --- |
-| `header`, `footer` | A zone: `{"columns": [...]}`. Printed at the top and bottom of the page. Takes the same columns and fields as a section. |
+| `header`, `footer` | A zone: `{"columns": [...]}`. Printed at the top and bottom of every page. Takes the same columns (with `width`) and fields as a section. |
 | `sections` | List of sections, printed in order. |
 | `page` | `size`: a Print Settings `pdf_page_size` value such as `A4`, `A5`, `Letter`, `Legal`. `orientation`: `Portrait` or `Landscape`. Leave it out to use Print Settings. |
 | `letter_head` | Name of a Letter Head. An empty string prints none. Leave the key out to follow the document. |
-| `global_variables` | Jinja with top level `{% set name = ... %}` statements. Rendered once per print with `doc`, and every name it sets is available in every HTML block. Do slow lookups here, not in each block. |
+| `global_variables` | Jinja with top level `{% set name = ... %}` statements. Rendered once per print with `doc` and the usual print Jinja globals such as `frappe`, and every name it sets is available in every HTML block. Guard against empty values: `{% set greeting = 'Dear ' ~ (doc.customer_name or '') %}`. Do slow lookups here, not in each block. |
 | `background` | `{"image": "/files/example.png", "opacity": 30}`. A page background image. |
 
 ## Sections
@@ -31,13 +31,13 @@
 | Key | Value |
 | --- | --- |
 | `label`, `show_label` | Section heading. `show_label: "hide"` keeps the label for the editor but does not print it. A section with a label and no values is skipped. |
-| `columns` | List of columns. `width` is a relative weight (flex grow), so `[50, 50]` and `[1, 1]` are the same. |
+| `columns` | List of columns. `width` is a relative weight (flex grow), so `[50, 50]` and `[1, 1]` are the same. To push a block to the right, put an empty column before it, as the totals in the full example do. |
 | `gap` | Space between columns in px. Default 20. |
 | `justify` | `space-between`, `space-evenly`, `center` or `right-end`. |
 | `field_orientation` | `left-right` prints each label beside its value. Default is label above value. |
 | `margin`, `padding` | `{"top": 0, "right": 0, "bottom": 0, "left": 0}` in px. |
 | `background`, `radius` | A CSS colour, and a corner radius in px. |
-| `field_borders` | `1` prints the section as a grid of bordered cells. With it: `cell_padding` (px, default 8), `border_color`, `grid_borders`. |
+| `field_borders` | `1` prints the section as a grid of bordered cells. With it: `cell_padding` (px, default 8), `border_color`, and `grid_borders`: `all` (default), `rows` (no lines between columns) or `columns` (no lines between rows). This is for fields, not tables; a table has its own borders. |
 | `page_break` | `true` starts a new page before the section. |
 | `keep_together` | `true` keeps the section on one page. |
 | `visible_if` | Python expression on `doc`, for example `doc.discount_amount > 0`. |
@@ -45,13 +45,13 @@
 
 ## Fields
 
-Every field is a dict in a column's `fields`. Blocks that are not DocType fields carry `"custom": 1` and a unique `fieldname`.
+Every field is a dict in a column's `fields`. Every block that is not a DocType field (Static Text, HTML, Divider, Spacer, Image, Barcode, Repeater) carries `"custom": 1` and a `fieldname` that is unique in the layout. `label` is optional for these.
 
 ### Props every field takes
 
 | Key | Value |
 | --- | --- |
-| `fieldname`, `fieldtype`, `label` | For a DocType field, copy them from the DocType meta. |
+| `fieldname`, `fieldtype`, `label` | For a DocType field, copy `fieldname` and `fieldtype` from the DocType meta. `label` is the printed label, so write your own or copy the meta label. |
 | `show_label` | `show` (default), `hide`, or `inline` (label beside the value). |
 | `align` | `left`, `center` or `right`. |
 | `font_size` | px. |
@@ -71,7 +71,7 @@ Every field is a dict in a column's `fields`. Blocks that are not DocType fields
 | --- | --- | --- |
 | Any DocType field type | `fieldname` of the document | The formatted value, through `doc.get_formatted`. |
 | `Linked Field` | `link_path: "customer.customer_group"` | A field of the linked document, one hop. Respects permissions. |
-| `Static Text` | `text` | Fixed text. `{fieldname}` and `{link_field.fieldname}` in the text become the document's values, for example `"Invoice {name} for {customer_name}"`. New lines print as line breaks. |
+| `Static Text` | `text` | Fixed text. `{fieldname}` and `{link_field.fieldname}` in the text become the document's values, for example `"Invoice {name} for {customer_name}"`. `{name}` is the document name. New lines print as line breaks. |
 | `HTML` | `html` | A Jinja template rendered with `doc` and the `global_variables` names. Use it for anything the other blocks cannot express. Not printable with Typst. |
 | `Table` | `fieldname` and `options` of the child table, `table_columns` | The child table. See below. |
 | `Repeater` | `source` (child table fieldname), `repeater_columns` | Child rows with your own cell text. Each column: `template` (list of `{"t": "f", "v": "<fieldname>"}` for a value or `{"t": "t", "v": "text"}` for text), `align`, `color` (hex), `width` (percent). |
@@ -99,8 +99,7 @@ Every field is a dict in a column's `fields`. Blocks that are not DocType fields
 | Key | Value |
 | --- | --- |
 | `table_columns` | Columns in order. `width` is a percent. A column takes `date_format`, `column_condition` (Python on `doc`, hides the column), and `merged_fields` (more fields stacked in the same cell, with `merge_direction` and `image_size`). |
-| `table_style` | `lined` (default), `striped` or `plain`. |
-| `table_bordered` | `true` (default) draws cell borders. |
+| `table_style`, `table_bordered` | Together they set the look the editor offers. Grid (every cell boxed): `lined` and `true`. Rows (lines between rows only): `lined` and `false`. Striped: `striped` and `false`. None: `plain` and `false`. Defaults are `lined` and `true`. |
 | `table_header` | `styled` (default, shaded), `plain`, or `none` (no header row). |
 | `table_header_bg`, `table_border_color` | CSS colours. |
 | `table_cell_padding`, `table_radius`, `table_min_height` | px. |

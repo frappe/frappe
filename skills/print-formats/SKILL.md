@@ -39,8 +39,9 @@ pf.insert()
 ```
 
 - `before_save` sets `print_format_builder_beta = 1` on any new format that is not custom, standard or a Print Designer format, but set it anyway.
-- Margins are in mm. `font` is a Google Fonts family name; empty or `Default` prints Inter. `font_size` is in px.
-- `page_number` is one of `Hide`, `Top Left`, `Top Center`, `Top Right`, `Bottom Left`, `Bottom Center`, `Bottom Right`.
+- Only `name` and `doc_type` are needed. `module` is filled from the DocType when left out. Everything else in the example is optional.
+- Margins are in mm. `font` is a Google Fonts family name; empty or `Default` prints Inter. `font_size` is in px, default 14.
+- `page_number` is one of `Hide`, `Top Left`, `Top Center`, `Top Right`, `Bottom Left`, `Bottom Center`, `Bottom Right`. Default `Hide`.
 - Write `format_data` only. `draft_data` holds unsaved editor edits and must stay empty.
 - In an app, export the format as a standard format (`standard = "Yes"`, developer mode) so its JSON lands in `<app>/<module>/print_format/<name>/`.
 
