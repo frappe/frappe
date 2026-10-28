@@ -126,6 +126,8 @@ def _download_multi_pdf(
 	if isinstance(options, str):
 		options = json.loads(options)
 
+	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
+
 	if not isinstance(doctype, dict):
 		result = json.loads(name)
 		total_docs = len(result)
@@ -134,16 +136,17 @@ def _download_multi_pdf(
 		# Concatenating pdf files
 		for idx, ss in enumerate(result):
 			try:
-				pdf_writer = frappe.get_print(
-					doctype,
-					ss,
-					format,
-					as_pdf=True,
-					output=pdf_writer,
-					no_letterhead=no_letterhead,
-					letterhead=letterhead,
-					pdf_options=options,
-				)
+				with print_language(format_language):
+					pdf_writer = frappe.get_print(
+						doctype,
+						ss,
+						format,
+						as_pdf=True,
+						output=pdf_writer,
+						no_letterhead=no_letterhead,
+						letterhead=letterhead,
+						pdf_options=options,
+					)
 			except Exception:
 				if task_id:
 					frappe.publish_realtime(task_id=task_id, message={"message": "Failed"})
@@ -171,16 +174,17 @@ def _download_multi_pdf(
 			filename += f"{doctype_name}_"
 			for doc_name in doctype[doctype_name]:
 				try:
-					pdf_writer = frappe.get_print(
-						doctype_name,
-						doc_name,
-						format,
-						as_pdf=True,
-						output=pdf_writer,
-						no_letterhead=no_letterhead,
-						letterhead=letterhead,
-						pdf_options=options,
-					)
+					with print_language(format_language):
+						pdf_writer = frappe.get_print(
+							doctype_name,
+							doc_name,
+							format,
+							as_pdf=True,
+							output=pdf_writer,
+							no_letterhead=no_letterhead,
+							letterhead=letterhead,
+							pdf_options=options,
+						)
 				except Exception:
 					if task_id:
 						frappe.publish_realtime(task_id=task_id, message="Failed")
