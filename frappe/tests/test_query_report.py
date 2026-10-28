@@ -902,14 +902,23 @@ data = columns, result
 		self.assertEqual(result["doc"].name, prepared_report.name)
 
 	def test_filters_without_validation_reach_the_report_unchanged(self):
-		report, user = self.make_filtered_report(validate_filters=0)
+		report, user = self.make_filtered_report()
+		report.validate_filters = 0
+		report.filters = [
+			row for row in report.filters if row.fieldtype not in ("MultiSelectList", "DateRange")
+		]
+		report.save()
 
 		with self.set_user(user):
 			result = run(report.name, {"count": "5", "priority": "High"})["result"]
 
 		self.assertEqual(result, [{"status": None, "count": "5", "show_all": None, "from_date": None}])
 
-	def make_filtered_report(self, validate_filters=1):
+		report.append("filters", dict(fieldname="users", label="Users", fieldtype="MultiSelectList"))
+		with self.assertRaisesRegex(frappe.ValidationError, "Validate Filters"):
+			report.save()
+
+	def make_filtered_report(self):
 		from frappe.core.doctype.user_permission.test_user_permission import create_user
 
 		frappe.set_user("Administrator")
@@ -921,7 +930,7 @@ data = columns, result
 				"report_name": "Filtered ToDos " + frappe.generate_hash(length=6),
 				"report_type": "Script Report",
 				"is_standard": "No",
-				"validate_filters": validate_filters,
+				"validate_filters": 1,
 				"roles": [{"role": "Website Manager"}],
 				"filters": [
 					dict(

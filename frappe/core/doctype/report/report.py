@@ -103,6 +103,19 @@ class Report(Document):
 		if self.default_letter_head and self.has_value_changed("letter_head"):
 			self.validate_default_letter_head()
 
+		if not self.validate_filters:
+			self.validate_list_filter_types()
+
+	def validate_list_filter_types(self):
+		for row in self.filters:
+			if row.fieldtype in ("MultiSelectList", "DateRange"):
+				frappe.throw(
+					_("Row #{0}: Filter type {1} needs {2} to be enabled").format(
+						row.idx, _(row.fieldtype), frappe.bold(_("Validate Filters"))
+					),
+					title=_("Invalid Filters"),
+				)
+
 	def before_insert(self):
 		self.set_doctype_roles()
 
