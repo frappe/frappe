@@ -57,6 +57,8 @@ const PATCH_KEYS: Record<string, Landing> = {
   options: { on: "meta", as: "options" },
   link_filters: { on: "meta", as: "filters" },
   precision: { on: "meta", as: "precision", coerce: asPrecision },
+  cannot_add_rows: { on: "meta", as: "cannotAddRows", coerce: asBoolean },
+  cannot_delete_rows: { on: "meta", as: "cannotDeleteRows", coerce: asBoolean },
   // The stamp is what tells the outbound read-only wrapper to leave the component alone.
   component: { on: "ui", as: "component", coerce: markRaw, opaque: true },
   props: { on: "ui", as: "props" },

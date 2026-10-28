@@ -933,6 +933,7 @@ both. A part beside a field is `page.form`'s to add, above.
 | `options` | A Link target, or a Select's newline-separated choices. |
 | `link_filters` | Search filters for a Link field. |
 | `precision` | Decimal places for a numeric field. |
+| `cannot_add_rows`, `cannot_delete_rows` | Booleans, or `0`/`1`. A Table field's grid hides every way to add a row (Add Row, insert, duplicate, a paste past the last row), or to delete one. A script can still add or remove rows. |
 | `component`, `props` | Another control in the field's slot, and what to bind onto it. |
 
 A key not named here is dropped with a development warning. `get(fieldname)` answers the

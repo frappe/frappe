@@ -27,6 +27,8 @@ const FIELDS: RawMetaField[] = [
   { fieldname: "secret", fieldtype: "Data", permlevel: 1 },
 ];
 
+const TABLE: RawMetaField = { fieldname: "items", fieldtype: "Table", options: "Deal Item" };
+
 function makeSurface(
   host: Partial<FieldsSurfaceHost> = {},
 ): FieldsSurface {
@@ -64,6 +66,13 @@ describe("the patch vocabulary", () => {
     const fields = makeSurface();
     fields.update("qty", { precision: "2" });
     expect(fields.resolve().qty.meta).toEqual({ precision: 2 });
+  });
+
+  it("takes a Table field's row limits as booleans, or 0/1 as v1's set_df_property spells them", () => {
+    const fields = makeSurface({ fields: () => [...FIELDS, TABLE] });
+    fields.update("items", { cannot_add_rows: 1, cannot_delete_rows: 0 });
+    expect(fields.resolve().items.meta).toEqual({ cannotAddRows: true, cannotDeleteRows: false });
+    expect(fields.get("items")).toMatchObject({ cannot_add_rows: true, cannot_delete_rows: false });
   });
 
   it("carries a patch's payload through by identity, not deep-proxied", () => {
