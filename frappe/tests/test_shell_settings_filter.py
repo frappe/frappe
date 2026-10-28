@@ -241,9 +241,14 @@ class TestSettingsFilter(SettingsDialogTestCase):
 				["general"],
 				[
 					bound("readable", me=binding("Record", "User"), mine=binding("Single", SINGLE)),
-					bound(
-						"half", mine=binding("Single", SINGLE), system=binding("Single", "System Settings")
-					),
+					{
+						**bound(
+							"half",
+							mine=binding("Single", SINGLE),
+							system=binding("Single", "System Settings"),
+						),
+						"fields": '["half"]',
+					},
 					bound("uncreated", agent=binding("Record", RECORD)),
 				],
 			)

@@ -121,8 +121,14 @@ class TestSettingsMerge(SettingsDialogTestCase):
 
 	def test_a_component_block_in_another_save_mode_on_the_same_binding_is_dropped_and_warns(self):
 		with authoring():
-			ship(blocks=[bound("calls", save_mode="button")], app=EXTENDER, extends=HOST)
-			unchecked(ship(["general"], [bound("photo"), bound("name")], insert=False))
+			ship(
+				blocks=[bound("calls", fields='["mobile_no"]', save_mode="button")],
+				app=EXTENDER,
+				extends=HOST,
+			)
+			unchecked(
+				ship(["general"], [bound("photo"), bound("name", fields='["full_name"]')], insert=False)
+			)
 
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["photo", "name"]})
@@ -145,6 +151,18 @@ class TestSettingsMerge(SettingsDialogTestCase):
 
 		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
 			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["phone", "photo"]})
+
+		self.assertIn("'calls'", logged.output[0])
+
+	def test_a_second_component_block_listing_no_fields_on_its_binding_is_dropped_and_warns(self):
+		with authoring():
+			ship(blocks=[bound("calls")], app=EXTENDER, extends=HOST)
+			unchecked(
+				ship(["general"], [bound("profile"), bound("photo", fields='["user_image"]')], insert=False)
+			)
+
+		with self.assertLogs(frappe.logger("shell"), "WARNING") as logged:
+			self.assertEqual(block_keys(HOST, HOST, EXTENDER), {"general": ["profile", "photo"]})
 
 		self.assertIn("'calls'", logged.output[0])
 
