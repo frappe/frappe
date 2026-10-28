@@ -263,7 +263,7 @@ def listed_run(
 			return commands, json.load(f)["shaping_apps"]
 
 
-def listed_apps_given_to_shell(args: list[str]) -> list[str] | None:
+def listed_apps_given_to_shell(cli_args: list[str]) -> list[str] | None:
 	with (
 		patch("frappe.init"),
 		patch("frappe.get_all_apps", return_value=["frappe", "crm", "plain"]),
@@ -275,7 +275,7 @@ def listed_apps_given_to_shell(args: list[str]) -> list[str] | None:
 		patch("frappe.commands.utils.run_after_build_hook"),
 		patch("frappe.bundler.build_shell") as build_shell,
 	):
-		result = CliRunner().invoke(build, args)
+		result = CliRunner().invoke(build, cli_args)
 	if result.exception:
 		raise result.exception
 	return build_shell.call_args.kwargs["listed_apps"]
