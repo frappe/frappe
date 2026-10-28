@@ -221,7 +221,7 @@ def _get_required_cache_value(key: str) -> Any:
 	if value is None:
 		_trigger_cache_build()
 		frappe.throw(
-			_("API discovery cache is being generated. Please try again in a few seconds."),
+			_("API discovery cache is being generated. Please try again in 10 seconds."),
 			DiscoveryCacheUnavailable,
 		)
 	return value
