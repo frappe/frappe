@@ -21,6 +21,7 @@ export interface ComponentBinding {
 export function componentBinding(
 	draft: BindingDraft,
 	owned: () => string[],
+	claimed: () => string[],
 	commit: () => Promise<void>
 ): ComponentBinding {
 	const { state } = draft;
@@ -38,7 +39,7 @@ export function componentBinding(
 			return state.loading;
 		},
 		get error() {
-			return state.failed || refusal(draft, owned());
+			return state.failed || refusal(draft, owned(), claimed());
 		},
 		get isNew() {
 			return state.isNew;
@@ -47,10 +48,15 @@ export function componentBinding(
 	};
 }
 
-/** Only the owned fields' errors: another block's refusal stays on its own row. */
-function refusal(draft: BindingDraft, owned: string[]): string {
+/** The owned fields' errors, else, on a save that marked an owned field, a refused field no block claims. */
+function refusal(draft: BindingDraft, owned: string[], claimed: string[]): string {
 	const drawn = Object.entries(draft.fieldErrors.drawn.value);
-	const [, message] = drawn.find(([key]) => owned.includes(fieldnameOfErrorKey(key))) ?? [];
-	if (message) return [message].flat().join(" ");
-	return owned.some((fieldname) => draft.state.marks[fieldname] === "error") ? __("Did not save") : "";
+	const messageOn = (matches: (fieldname: string) => boolean) => {
+		const [, message] = drawn.find(([key]) => matches(fieldnameOfErrorKey(key))) ?? [];
+		return message ? [message].flat().join(" ") : "";
+	};
+	const own = messageOn((fieldname) => owned.includes(fieldname));
+	if (own) return own;
+	if (!owned.some((fieldname) => draft.state.marks[fieldname] === "error")) return "";
+	return messageOn((fieldname) => !claimed.includes(fieldname)) || __("Did not save");
 }

@@ -149,6 +149,7 @@ export class PaneDrafts {
 				componentBinding(
 					draft,
 					() => claim.fieldnames.value,
+					() => this.claimedFields(draft),
 					() => this.commit(claim)
 				),
 			] as const;
@@ -205,6 +206,10 @@ export class PaneDrafts {
 			.filter(({ block, draft: other }) => other === draft && block.save_mode === mode)
 			.flatMap((bound) => bound.fieldnames.value);
 		return [...new Set(fieldnames)];
+	}
+
+	private claimedFields(draft: BindingDraft): string[] {
+		return this.claims.filter((claim) => claim.draft === draft).flatMap((claim) => claim.fieldnames.value);
 	}
 }
 

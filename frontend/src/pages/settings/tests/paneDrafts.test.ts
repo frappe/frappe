@@ -798,6 +798,54 @@ describe("a Record that does not exist yet", () => {
 		expect(server.writes.map(({ body }) => body)).toEqual([{ mobile_no: "+91 98", user: USER }]);
 	});
 
+	describe("refused on a field no block claims", () => {
+		const telephony = {
+			...component("telephony", { agent: agent.binding! }),
+			fields: ["mobile_no"],
+		} as SettingsBlock;
+		const phoneNumbers = { fieldname: "phone_nos", fieldtype: "Data", label: "Phone Numbers" };
+
+		beforeEach(() => {
+			server.metas["Telephony Agent"] = {
+				...TELEPHONY_AGENT,
+				fields: [...TELEPHONY_AGENT.fields, phoneNumbers],
+			};
+			server.refusal = {
+				entry: {
+					type: "MandatoryError",
+					message: "Phone Numbers is required",
+					field_errors: [{ fieldname: "phone_nos", message: "Phone Numbers is required" }],
+				},
+				status: 417,
+			};
+		});
+
+		it("shows the server's message on the component block that sent the save", async () => {
+			const drafts = await opened(telephony);
+			const { agent: binding } = drafts.components.get("telephony")!;
+
+			binding.doc.mobile_no = "+91 98";
+			await binding.commit();
+
+			expect(server.writes.map(({ method }) => method)).toEqual(["POST"]);
+			expect(binding.error).toBe("Phone Numbers is required");
+		});
+
+		it("stays off a component block whose fields another block's save left out", async () => {
+			const drafts = await opened({ ...agent, fields: ["extension"] }, telephony);
+			const extension = drafts.bound.get("agent")!;
+			const { agent: binding } = drafts.components.get("telephony")!;
+
+			extension.draft.edit("extension", "101");
+			drafts.commit(extension);
+			await settled();
+
+			expect(server.writes.map(({ body }) => body)).toEqual([{ extension: "101", user: USER }]);
+			expect(extension.draft.fieldErrors.drawn.value.phone_nos).toBe("Phone Numbers is required");
+			expect(binding.error).toBe("");
+		});
+	});
+
 	describe("with a required field filled in another block", () => {
 		beforeEach(() => {
 			server.metas["Telephony Agent"] = {
