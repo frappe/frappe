@@ -251,6 +251,8 @@ The important half of this policy is not the verb list. It is the boundary betwe
 callback argument straight to a dependency.** Everything a script hands `page` is
 picked apart by the engine and forwarded key by key; everything the engine hands a
 script's callback is the engine's own object.
+`shell.dialog`'s `confirm` and `danger` follow the same rule, through the same
+narrowing as `page.dialog`'s.
 
 There is one shaped hand-through, and it is shaped on purpose. A header item's `props`
 goes to whatever draws the item, and only to the props that thing declares:

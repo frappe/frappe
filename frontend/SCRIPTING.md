@@ -231,10 +231,11 @@ list of acts. Each joins the shell surface under the app's name, so CRM's `log_a
 `router`, `toast`, `call`, `run`, `create`, `openSettings` and `dialog`, and nothing that
 needs a record. `shell.dialog` has `confirm` and `danger` only, which take the options
 `page.dialog.confirm` and `page.dialog.danger` take and resolve `true` when confirmed and
-`null` when dismissed. The desk imports the file at idle after the first paint, and `page.run` and the
-palette wait for it when asked sooner. A shell act's `right` is `{ doctype, ptype }`; an act
-whose right is a bare ptype such as `'create'` is ignored, with a warning. Give `label` as a
-getter, so it is translated each time it is read, also when the messages arrive late.
+`null` when dismissed. The desk imports the file at idle after the first paint, and
+`page.run` and the palette wait for it when asked sooner. A shell act's `right` is `{
+doctype, ptype }`; an act whose right is a bare ptype such as `'create'` is ignored, with
+a warning. Give `label` as a getter, so it is translated each time it is read, also when
+the messages arrive late.
 
 ```js
 // crm/fcrm/frontend/acts.js

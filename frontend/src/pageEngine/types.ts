@@ -210,7 +210,6 @@ export interface PageDialogOpenOptions {
   dismissible?: boolean;
 }
 
-// `confirm` and `danger` are narrowed below the page, where `shell.dialog` shares them.
 export type PageDialogControl = DialogControl;
 export type PageDialogConfirmAction = DialogConfirmAction;
 export type PageDialogConfirmOptions = DialogConfirmOptions;
