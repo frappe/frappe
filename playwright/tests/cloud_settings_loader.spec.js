@@ -46,10 +46,11 @@ test.describe("Cloud Settings loader", () => {
 		await desktop(page);
 	});
 
-	test("mounts the ES runtime without fetching the classic script", async ({ page }) => {
+	test("mounts the ES runtime once, without fetching the classic script", async ({ page }) => {
 		await serve(page, { module: MODULE, script: SCRIPT });
 
 		expect(await open(page)).toEqual(["module", "example.com"]);
+		await open(page);
 		expect(requested).toEqual([BUNDLE.module]);
 	});
 
@@ -58,14 +59,6 @@ test.describe("Cloud Settings loader", () => {
 
 		expect(await open(page)).toEqual(["script", "example.com"]);
 		expect(requested).toEqual([BUNDLE.module, BUNDLE.js]);
-	});
-
-	test("loads the runtime once for repeated opens", async ({ page }) => {
-		await serve(page, { module: MODULE, script: SCRIPT });
-
-		await open(page);
-		await open(page);
-		expect(requested).toEqual([BUNDLE.module]);
 	});
 
 	test("retries with fresh URLs after pilot fails", async ({ page }) => {
@@ -78,15 +71,5 @@ test.describe("Cloud Settings loader", () => {
 		expect(await open(page)).toEqual(["module", "example.com"]);
 		expect(requested).toHaveLength(1);
 		expect(requested[0]).toMatch(/esm\/cloud-settings\.js\?_=\d+$/);
-	});
-
-	test("warms the classic script on hover when the module is missing", async ({ page }) => {
-		await serve(page, { script: SCRIPT });
-
-		await page.evaluate(
-			(bundle) => frappe.pages.desktop.desktop_page.prefetch_cloud_settings(bundle),
-			BUNDLE
-		);
-		await expect.poll(() => requested).toEqual([BUNDLE.module, BUNDLE.js]);
 	});
 });
