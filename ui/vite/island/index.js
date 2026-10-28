@@ -24,6 +24,7 @@ import {
 	writeIslandAssets,
 } from "./assets.js";
 import deskFonts from "./desk-fonts.js";
+import { writeInputsStamp } from "./inputs.js";
 import rootToHost from "./root-to-host.js";
 import { bundleSources, unscannedSources } from "./tailwind-scan.js";
 import { writeIslandTailwindConfig } from "./tailwind.js";
@@ -66,6 +67,8 @@ const TAILWIND_ENTRY = "virtual:island.css";
  * @param {import('vite').PluginOption[]} [options.plugins]  extra plugins
  * @param {boolean} [options.production]
  * @param {boolean} [options.watch]
+ * @param {boolean} [options.stampInputs]  record the build's inputs beside its
+ *        output, for `islandsUnchanged` in ./inputs.js
  */
 export async function buildIslands(options) {
 	const context = await islandContext(options);
@@ -319,7 +322,9 @@ function emitIslands(context) {
 			}
 
 			assertSheetScannedTheBundle(context, bundle, this);
-			await notifyRebuild(paths, await writeIslandAssets(paths, relMap), context.watch);
+			const urls = await writeIslandAssets(paths, relMap);
+			if (context.stampInputs) writeInputsStamp(context, this.getModuleIds(), urls);
+			await notifyRebuild(paths, urls, context.watch);
 		},
 	};
 }

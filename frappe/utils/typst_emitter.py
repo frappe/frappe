@@ -960,10 +960,10 @@ class TypstEmitter:
 		return self._data_field(section, df)
 
 	def _static_text(self, df) -> str:
-		text = (df.get("text") or "").strip()
+		text = (df.get("_text") if "_text" in df else _(df.get("text") or "")).strip()
 		if not text:
 			return ""
-		out = self._text_props(df, typst_escape(_(text)).replace("\n", " \\\n"))
+		out = self._text_props(df, typst_escape(text).replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out
