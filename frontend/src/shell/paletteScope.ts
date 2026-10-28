@@ -1,44 +1,34 @@
-// Tab on a doctype row narrows the palette to that doctype: its records, from the link search.
+// Tab on a doctype row narrows the palette to that doctype: its records, titled as Records titles them.
 import { computed, ref, watch, type Ref } from "vue";
-import { refDebounced } from "@vueuse/core";
-import { useLinkSearch } from "@framework/ui/Link";
 import { __ } from "@/i18n";
 import { urlFor } from "@/router/routeFor";
 import type { PaletteRow } from "./palette";
 import type { PaletteContext } from "./paletteGroups";
 import { openPlace } from "./palettePlaces";
+import { nameUnlessTitle, RecordSearch } from "./paletteRecords";
 
 const SHORTEST_QUERY = 2;
-const PAUSE_MS = 200;
-const RECORDS_CAP = 10;
 
 /** The doctype the palette is narrowed to, and the records the query finds in it. */
 export function usePaletteScope(query: Ref<string>, context: PaletteContext) {
 	const doctype = ref<string | null>(null);
 	const text = computed(() => query.value.trim());
-	const settled = refDebounced(text, PAUSE_MS);
-	const search = useLinkSearch(() => doctype.value ?? undefined, {}, RECORDS_CAP);
+	const search = new RecordSearch("frappe.desk.palette.search_doctype_records");
 
-	watch([settled, doctype], () => {
-		if (asks(settled.value)) search.search(settled.value);
-	});
-
-	const searching = computed(
-		() => asks(text.value) && (settled.value !== text.value || search.loading.value)
-	);
+	watch([text, doctype], () => search.follow(doctype.value ? text.value : "", doctype.value));
 
 	const rows = computed<PaletteRow[]>(() => {
 		const narrowed = doctype.value;
-		if (!narrowed || !asks(text.value)) return [];
-		if (searching.value)
+		const found = search.found.value;
+		if (!narrowed || !asks(text.value) || found === "failed") return [];
+		if (found === "searching")
 			return [{ id: "searching", label: __("Searching…"), pending: true, run: () => {} }];
-		if (search.error.value) return [];
-		return (search.data.value ?? []).map((option) => {
-			const href = urlFor(narrowed, option.value);
+		return found.map((record) => {
+			const href = urlFor(narrowed, String(record.name));
 			return {
-				id: `record:${narrowed}/${option.value}`,
-				label: option.label,
-				description: option.label === option.value ? option.description : option.value,
+				id: `record:${narrowed}/${record.name}`,
+				label: String(record.label),
+				description: nameUnlessTitle(record),
 				icon: "lucide-file-text",
 				href,
 				run: () => openPlace(href, context),
@@ -51,7 +41,7 @@ export function usePaletteScope(query: Ref<string>, context: PaletteContext) {
 		const narrowed = doctype.value;
 		if (!narrowed) return null;
 		if (!asks(text.value)) return __("Type to search {0}", [__(narrowed)]);
-		if (search.error.value && !searching.value) return __("Could not search {0}", [__(narrowed)]);
+		if (search.found.value === "failed") return __("Could not search {0}", [__(narrowed)]);
 		return null;
 	});
 

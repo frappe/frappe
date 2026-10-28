@@ -5,15 +5,18 @@
 from urllib.parse import urlsplit
 
 import frappe
+from frappe import _
 from frappe.desk.doctype.global_search_settings.global_search_settings import (
 	get_doctypes_for_global_search,
 )
-from frappe.desk.search import build_for_autosuggest, search_widget
-from frappe.utils import get_url_to_form
+from frappe.desk.search import search_widget
+from frappe.utils import cstr, get_url_to_form, strip_html_tags
+from frappe.utils.html_utils import unescape_html
 
 RECORDS_PER_DOCTYPE = 3
 RECORDS_IN_ALL = 10
 SHORTEST_QUERY = 2
+RICH_TEXT = {"Text Editor", "HTML Editor"}
 
 
 @frappe.whitelist(methods=["GET"])
@@ -24,9 +27,22 @@ def search_records(txt: str, doctype: str | None = None) -> list[dict]:
 		return []
 
 	found = [row for each in searchable_doctypes(doctype) for row in records_of(each, txt)]
+	return exact_first(found, txt)[:RECORDS_IN_ALL]
+
+
+@frappe.whitelist(methods=["GET"])
+def search_doctype_records(doctype: str, txt: str) -> list[dict]:
+	"""Up to 10 records of one readable doctype matching `txt`, any named exactly `txt` first."""
+	txt = txt.strip()
+	if len(txt) < SHORTEST_QUERY or not is_searchable(doctype):
+		return []
+
+	return exact_first(records_of(doctype, txt, RECORDS_IN_ALL), txt)
+
+
+def exact_first(found: list[dict], txt: str) -> list[dict]:
 	# stable, so the rest keep their doctype order
-	found.sort(key=lambda row: not is_exact(row["name"], txt))
-	return found[:RECORDS_IN_ALL]
+	return sorted(found, key=lambda row: not is_exact(row["name"], txt))
 
 
 def searchable_doctypes(current: str | None) -> list[str]:
@@ -37,27 +53,81 @@ def searchable_doctypes(current: str | None) -> list[str]:
 	return [doctype for doctype in wanted if doctype in readable and has_rows(doctype)]
 
 
+def is_searchable(doctype: str) -> bool:
+	return doctype in frappe.get_user().get_can_read() and has_rows(doctype)
+
+
 def has_rows(doctype: str) -> bool:
 	meta = frappe.get_meta(doctype)
 	return not (meta.issingle or meta.istable or meta.is_virtual)
 
 
-def records_of(doctype: str, txt: str) -> list[dict]:
-	"""Labelled as a Link field shows them, with the address in its own app's prefix."""
-	results = search_widget(doctype, txt, page_length=RECORDS_PER_DOCTYPE)
-	if len(results) == RECORDS_PER_DOCTYPE and not any(is_exact(row[0], txt) for row in results):
+def records_of(doctype: str, txt: str, limit: int = RECORDS_PER_DOCTYPE) -> list[dict]:
+	"""Titled by the title field, whatever Link fields show, with the address in its own app's prefix."""
+	results = found_rows(doctype, txt, page_length=limit)
+	if len(results) == limit and not any(is_exact(row.name, txt) for row in results):
 		# a prefix match ties with the exact name, so a full page may have left it out
-		named = search_widget(doctype, txt, filters={"name": ["like", escape_like(txt)]}, page_length=1)
-		results = [*(row for row in named if is_exact(row[0], txt)), *results][:RECORDS_PER_DOCTYPE]
+		named = found_rows(doctype, txt, filters={"name": ["like", escape_like(txt)]}, page_length=1)
+		results = [*(row for row in named if is_exact(row.name, txt)), *results][:limit]
+	title = RecordTitle(doctype, results)
 	return [
 		{
 			"doctype": doctype,
-			"name": row["value"],
-			"label": row.get("label") or row["value"],
-			"route": record_path(doctype, row["value"]),
+			"name": row.name,
+			"label": title.of(row),
+			"route": record_path(doctype, row.name),
 		}
-		for row in build_for_autosuggest(results, doctype=doctype)
+		for row in results
 	]
+
+
+def found_rows(doctype: str, txt: str, **kwargs) -> list[frappe._dict]:
+	# a hooked standard query (User's) may ignore as_dict and return tuples, name first
+	return [
+		row if isinstance(row, dict) else frappe._dict(name=row[0])
+		for row in search_widget(doctype, txt, as_dict=True, **kwargs)
+	]
+
+
+class RecordTitle:
+	"""A record's title field value, or its name where the doctype has none or it is empty."""
+
+	def __init__(self, doctype: str, rows: list[frappe._dict]):
+		self.meta = frappe.get_meta(doctype)
+		self.field = self.meta.get_field(self.meta.title_field) if self.meta.title_field else None
+		self.fetched = self.fetch_missing(rows)
+
+	def fetch_missing(self, rows: list[frappe._dict]) -> dict:
+		"""Title values, in one query, for the rows a hooked query returned without them."""
+		if not self.field or self.field.is_virtual:
+			return {}
+		missing = [row.name for row in rows if self.field.fieldname not in row]
+		if not missing:
+			return {}
+		return dict(
+			frappe.get_all(
+				self.meta.name,
+				filters={"name": ("in", missing)},
+				fields=["name", self.field.fieldname],
+				as_list=True,
+			)
+		)
+
+	def of(self, row: frappe._dict) -> str:
+		if not self.field:
+			value = None
+		elif self.field.is_virtual:
+			value = frappe.get_doc(self.meta.name, row.name).get_virtual_field_value(self.field)
+		elif self.field.fieldtype in RICH_TEXT:
+			value = unescape_html(strip_html_tags(cstr(self.stored(row))))
+		else:
+			value = self.stored(row)
+		title = cstr(value).strip() or cstr(row.name)
+		return _(title) if self.meta.translated_doctype else title
+
+	def stored(self, row: frappe._dict):
+		fieldname = self.field.fieldname
+		return row[fieldname] if fieldname in row else self.fetched.get(row.name)
 
 
 def record_path(doctype: str, name: str) -> str:
