@@ -7,7 +7,7 @@ export type { RegisterFieldTypeOptions } from "./fieldTypes";
 
 export { fieldtypeToLanguage } from "./fieldtypeToLanguage";
 export { focusField } from "./focusField";
-export { holdsChildRows, identify, ROW_ID, rowKey } from "./rowIdentity";
+export { copyRow, holdsChildRows, identify, ROW_ID, rowKey } from "./rowIdentity";
 export { useRecordLink } from "./useRecordLink";
 export { drawsReadValue } from "./readView";
 export { default as ReadOnlyField } from "./ReadOnlyField.vue";

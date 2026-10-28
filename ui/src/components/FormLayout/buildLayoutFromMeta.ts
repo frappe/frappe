@@ -191,7 +191,11 @@ export function mapField(
     // The row-edit dialog renders the full child form; `Table MultiSelect` has
     // no row dialog, so only `Table` carries a `childLayout`.
     ...(field.fieldtype === TABLE
-      ? { childLayout: resolveChildLayout(field, childMetas, decorate) }
+      ? {
+          childLayout: resolveChildLayout(field, childMetas, decorate),
+          cannotAddRows: !!field.cannot_add_rows,
+          cannotDeleteRows: !!field.cannot_delete_rows,
+        }
       : {}),
   };
   // Attach the app's per-field overlay (presentation/behavior); plain when absent.

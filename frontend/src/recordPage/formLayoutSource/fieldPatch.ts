@@ -7,7 +7,14 @@ import type { FieldMeta, FieldNode, FieldOverride, FieldUI } from "@framework/ui
  */
 export type FieldMetaPatch = Pick<
 	FieldMeta,
-	"label" | "options" | "placeholder" | "description" | "precision" | "filters"
+	| "label"
+	| "options"
+	| "placeholder"
+	| "description"
+	| "precision"
+	| "filters"
+	| "cannotAddRows"
+	| "cannotDeleteRows"
 >;
 
 /** Everything an app may override on one field, split by when it applies. Plain data throughout. */

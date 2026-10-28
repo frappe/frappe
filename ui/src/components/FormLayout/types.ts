@@ -119,6 +119,8 @@ export interface RawMetaField {
   mandatory_depends_on?: string;
   read_only_depends_on?: string;
   filters?: Record<string, unknown>;
+  cannot_add_rows?: boolean | 0 | 1;
+  cannot_delete_rows?: boolean | 0 | 1;
 }
 
 /** A component a host places in the form; `label` frames it, none draws it bare. */

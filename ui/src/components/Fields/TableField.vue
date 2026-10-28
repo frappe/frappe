@@ -3,12 +3,15 @@
 		v-model="rows"
 		:columns="columns"
 		:disabled="field.readOnly"
+		:cannotAddRows="field.cannotAddRows"
+		:cannotDeleteRows="field.cannotDeleteRows"
 		:label="field.label"
 		:description="field.description"
 		:required="field.reqd"
 		:error="error"
 		:cellError="cellError"
 		:newRow="newRow"
+		:parsePaste="pasteCell"
 		@change="(r: Record<string, any>[]) => emit('change', r)"
 		@commit="onCellCommit"
 		@add="onRowAdd"
@@ -121,6 +124,7 @@ import {
 	fieldErrorKey,
 } from "./types";
 import { identify, rowKey } from "./rowIdentity";
+import { parsePastedText } from "./parseText";
 import { ResolveFieldKey } from "../FormLayout/types";
 import type { CommitChannel, FieldError, RowAddress } from "./types";
 import type { FieldComponentEmits, FieldComponentProps } from "./types";
@@ -200,6 +204,16 @@ function newRow(): Record<string, any> {
 	return newRowValues(fields);
 }
 
+// A pasted cell takes only what its control would: never a cell the reader cannot edit.
+function pasteCell(row: Record<string, any>, column: GridColumn, text: string) {
+	const f = cellField(column.fieldname, row);
+	if (f.hidden || f.readOnly || f.permDenied || isSummaryField(f) || f.fieldtype === "Button") {
+		return null;
+	}
+	const options = typeof f.options === "string" ? f.options : undefined;
+	return { value: parsePastedText(f.fieldtype, text, options) };
+}
+
 // A cell being typed owes a commit too: a save mid-edit must fire its handler.
 function editCell(
 	update: (value: any) => void,
@@ -211,8 +225,19 @@ function editCell(
 	commit.pending(field.fieldname, value, addressOf(row));
 }
 
-function onCellCommit({ row, column }: { row: Record<string, any>; column: GridColumn }) {
-	commit.commit(column.fieldname, row[column.fieldname], addressOf(row));
+function onCellCommit({
+	row,
+	column,
+	pasted,
+}: {
+	row: Record<string, any>;
+	column: GridColumn;
+	pasted?: boolean;
+}) {
+	const value = row[column.fieldname];
+	commit.commit(column.fieldname, value, addressOf(row));
+	// A typed value reaches `ui.on.change` through its control; a pasted one has none.
+	if (pasted) cellListeners(cellField(column.fieldname, row), row).change?.(value);
 }
 
 function onRowAdd({ row }: { row: Record<string, any> }) {
