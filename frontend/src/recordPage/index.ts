@@ -22,7 +22,7 @@ export type { RecordCommitChannel } from "./commitChannel";
 export { errorMessage } from "./errorMessage";
 export { FieldErrors } from "./fieldErrors";
 export { missingRequired } from "./requiredFields";
-export { setIconSource } from "@/pageEngine";
+export { setAppPageScripts, setIconSource } from "@/pageEngine";
 export type { IconSource } from "@/pageEngine";
 export {
   clientScriptChanges,
@@ -30,6 +30,8 @@ export {
   watchClientScripts,
 } from "./clientScripts";
 export { addFileScript, loadRecordScripts } from "./scriptLoader";
+export { addPageFile } from "./pageScripts";
+export { appPageScriptSource } from "./appPageScriptSource";
 export type { RecordPageController } from "./createRecordPage";
 
 export type { AuthoredHandlers, Handler, PostedRow, RecordPageHandlers } from "./types";

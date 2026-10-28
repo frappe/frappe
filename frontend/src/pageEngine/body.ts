@@ -209,5 +209,5 @@ function isBuiltin(name: string) {
 }
 
 function warn(message: string) {
-  if (import.meta.env.DEV) console.warn(`[record-page] ${message}`);
+  if (import.meta.env.DEV) console.warn(`[page] ${message}`);
 }

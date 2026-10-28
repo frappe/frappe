@@ -430,7 +430,7 @@ export class HeaderSurface extends Surface<HeaderItem> {
       if (renderingOf(item, items) === `container:${claim.anchor}`) continue;
       if (renderingOf(anchor, items) === `container:${claim.name}`) continue;
       const message =
-        `[record-page] header.${claim.verb}('${claim.name}'): anchor ` +
+        `[page] header.${claim.verb}('${claim.name}'): anchor ` +
         `'${claim.anchor}' renders as ${describe(anchor, items)}, but ` +
         `'${claim.name}' renders as ${describe(
           item,
@@ -465,7 +465,7 @@ const warned = new Set<string>();
 function warnOnce(message: string) {
   if (!import.meta.env.DEV || warned.has(message)) return;
   warned.add(message);
-  console.warn(`[record-page] ${message}`);
+  console.warn(`[page] ${message}`);
 }
 
 /** Test seam: the warn-once memory is module state. */

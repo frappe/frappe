@@ -340,7 +340,9 @@ component group, with its main names.
 
 | Concept | What it is |
 | --- | --- |
-| `createPageEngine` (`PageEngine`, `PageEngineSpec`, `CachedProvider`) | Builds a page from the caller's own lists, events, sources and extra `page` members. It adds the `frame`, `header` and `body` lists, the paint gate, the replay, `onOpen`, the held acts and the dialogs. The record page is built on it; an app page imports it from `@shell` |
+| `createPageEngine` (`PageEngine`, `PageEngineSpec`, `CachedProvider`) | Builds a page from the caller's own lists, events, sources and extra `page` members. It adds the `frame`, `header` and `body` lists, the paint gate, the replay, `onOpen`, the held acts and the dialogs. The record page is built on it; an app page imports it from `@shell` and names its app and its `pages/<name>.js` name, and the builder then runs that page's scripts. The builder's own console messages name the page, as `[record page]`; the surfaces it adds say `[page]` |
+| App page scripts (`setAppPageScripts`, `AppPageScriptSource`) | What an app page runs: its own app's handler file, then the stored scripts that name its doctype and page. The builder waits for them as for a record page's, and replays when one changes on the server. The record page engine hands the source over at boot, as it does the icon lookup |
+| Route cached reads | The default behind `page.cached` when a page gives no provider: one fetch per key while the route stays on one path. Another path drops the values, and so does leaving the page |
 | Base page (`PageApi`, `PageToast`) | The `page` every engine hands its handlers: `doctype`, `meta`, `perms`, `roles`, `frame`, `header`, `body`, `refresh()`, `toast`, `dialog`, `call`, `cached` and `router`. A page adds its own members |
 | Item schemas (`SurfaceItem`, `Position`, `HeaderItem`, `HeaderZone`, `FrameItem`, `BodyItem`, `ACT_KEYS`, `HEADER_ITEM_KEYS`, `FRAME_ITEM_KEYS`, `BODY_ITEM_KEYS`) | The items the three built-in lists take, and the keys each list reads |
 | [Source](./CONTEXT.md#source) context (`HOST_SOURCE`, `registeringSource`, `runningSource`, `withRegisteringSource`, `withRunningSource`, `Registration`, `Handler`) | Which source is registering or running now, and a source's handlers |
@@ -366,6 +368,7 @@ component group, with its main names.
 | Form join | Joins the Details layout with the parts a script adds |
 | Form layout source (`useFormLayout`, `markFormLayoutsStale`) | One fetch per doctype and layout type; picks the matching row. On `doctype_update` it keeps the old rows on show and reads fresh ones |
 | Script loader (`loadRecordScripts`, `addFileScript`) | One loader per doctype for file scripts and stored scripts. When a stored script changes, it keeps the old scripts until the new ones have all compiled, then swaps them in one step |
+| App page script registry (`addPageFile`, `appPageScriptSource`) | Page handler files by app, doctype and page, and stored scripts by doctype and page. The stored-script loader loads an app page's scripts per doctype and page, as it loads a record page's per doctype |
 | Page permissions | Rights, roles and field access, ready before handlers run |
 | Read-only guard | The proxy behind the [read-only view](./CONTEXT.md#read-only-view) |
 | Error reports | One Error Log row per script failure, by tier |
@@ -436,7 +439,8 @@ the reference for each `page` member.
 | Concept | What it is |
 | --- | --- |
 | File script (`record.js`) | An app's `export default { ... }` handlers for a doctype |
-| Stored script | A [`Client Script`](./CONTEXT.md#client-script) row: the same module shape as a file script, run from the database |
+| Stored script | A [`Client Script`](./CONTEXT.md#client-script) row: the same module shape as a file script, run from the database. A row with `view = App Page` names a page in `page` and runs on that page of its doctype, whichever app ships it |
+| Page handler file (`<name>.js` beside `pages/<name>.js`) | An app page's handlers, in the same folder as `pages.json`. It runs only on that page of the same app, before the page's stored scripts. One beside an undeclared page, or one under `custom/` with no page beside it, is ignored with a warning |
 | Tiers and [run order](./CONTEXT.md#run-order) | The owner app's handlers, then other apps' file scripts, then stored scripts. Later tiers win |
 | `*` doctype key | Handlers that run on every record, before the doctype's own |
 | [Handlers](./CONTEXT.md#handler) and `Handler` | `Handler` is the type of one handler |
@@ -448,7 +452,7 @@ the reference for each `page` member.
 | `page.meta` | The doctype meta, read-only |
 | Rights (`page.perms`, `page.roles`, `page.fieldAccess()`) | The user's rights, roles, and field access |
 | Page acts (`page.save()`, `page.reload()`, `page.refresh()`, `page.call()`, `page.create()`, `page.openSettings()`, `page.run()`, `page.router`, `page.toast`) | Save, re-read, re-run `onRefresh`, call a method, open Create for any doctype, open the settings dialog, run an act by name, navigate, show a toast. `page.create()` and `page.openSettings()` run the shell acts `shell.create` and `shell.open_settings`. `page.create()` gives the saved record, or `null` |
-| `page.cached()` | *New.* Server data for `onRefresh`: the kept value at once, fetched once per visit |
+| `page.cached()` | *New.* Server data for `onRefresh`: the kept value at once, fetched once per visit. On an app page with no provider, fetched once per route path and visit, with no kept value |
 | [Surface](./CONTEXT.md#surface) verbs (`add`, `hide`, `show`, `update`, `move`, `has`, `order`, `clear`, `Position`) | The same verbs on every list surface |
 | [Built-in](./CONTEXT.md#built-in) item names | The names a script hides or moves: frame, body, tabs, panel sections, actions, writers |
 | `page.quickActions`, `page.header`, `page.frame`, `page.body`, `page.tabs`, `page.panelSections` | The regions of the page around the form |
@@ -652,6 +656,8 @@ For the dialog, the requests on its first open. The numbers are an open question
 
 ### Load a stored script onto a record page
 
+An app page loads its stored scripts the same way, per doctype and page name, from the `App Page` view.
+
 | # | Step | Layer | Permission check | Cache and key |
 | --- | --- | --- | --- | --- |
 | 1 | A record visit asks the script loader for its doctype's scripts, beside the record read. The first visit to a doctype registers its file scripts, before any stored script | 8, 7 | None | One entry per doctype; the latest load wins |
@@ -764,7 +770,7 @@ ruled. The hand-off ticket that files each cut on its map can change an owner.
 | The shell page renderer is in `frappe/website/page_renderers/` and imports `frappe/shell/` | It moves into `frappe/shell/`, found through the `page_renderer` hook | New map |
 | `routeFor` is in `router/` and the item contract is in `navigation/types.ts` | Both move to layer 5 | New map |
 | `public.ts` (`@shell`, layer 5) gives app pages `createPageEngine` from layer 7 | The one import list names it with no layer break | Build and publishing |
-| `contributions/registry.ts` imports `@/recordPage` to hand over record handlers | The registry no longer imports the engine | Build and publishing |
+| `contributions/registry.ts` imports `@/recordPage` to hand over record and app page handlers | The registry no longer imports the engine | Build and publishing |
 | `shell/ComposerWindow.vue` imports the writers from `pages/record/composer/`; `shell/composer.ts` imports types from `@/recordPage` | The record page registers its writers | Activity column |
 | `shell/doctypeUpdates.ts` imports the layout and list settings caches | Each cache marks itself stale on `doctype_update` | Build and publishing |
 | `main.ts` sets the record page's icon and prop hooks | The record page sets them when it registers | Build and publishing |

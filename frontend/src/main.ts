@@ -18,7 +18,13 @@ import { registerShell } from "@/router/routeFor";
 import { recordLink } from "@/router/recordLink";
 import { installTranslate, loadTranslations } from "@/i18n";
 import { loadSprite, symbolGeometry } from "@/icons/sprite";
-import { setDrawnProps, setIconSource, watchClientScripts } from "@/recordPage";
+import {
+	appPageScriptSource,
+	setAppPageScripts,
+	setDrawnProps,
+	setIconSource,
+	watchClientScripts,
+} from "@/recordPage";
 import { recordDrawnProps } from "@/pages/record/drawnProps";
 import { registerContributions, registerStandardPages } from "@/contributions/registry";
 import { standardPages } from "@/pages/standardPages";
@@ -50,6 +56,7 @@ async function start() {
 	loadTranslations(boot.translations_version, boot.session.lang);
 	loadSprite();
 	setIconSource(symbolGeometry);
+	setAppPageScripts(appPageScriptSource);
 	setDrawnProps(recordDrawnProps());
 	registerCreateDialog(defineAsyncComponent(() => import("@/pages/create/CreateDialog.vue")));
 	registerSettingsBlocks(() => import("@/pages/settings/SettingsBlocks.vue"));

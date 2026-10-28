@@ -207,7 +207,7 @@ describe("paintNow", () => {
     await controller.refresh();
 
     const said =
-      "[record-page] awaiting.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.";
+      "[record page] awaiting.onRefresh on CRM Deal returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.";
     expect(warnings).toEqual([said, said]);
     const reports = vi
       .mocked(runMethod)
@@ -237,7 +237,7 @@ describe("paintNow", () => {
 
     expect(drawn(controller)).toEqual(["one", "two"]);
     expect(errors).toHaveBeenCalledWith(
-      "[record-page] failing.onRefresh on CRM Deal threw",
+      "[record page] failing.onRefresh on CRM Deal threw",
       expect.any(Error),
     );
   });
@@ -617,7 +617,7 @@ describe("refresh({ background: true })", () => {
 });
 
 describe("an onRefresh part that never settles", () => {
-  const stopped = "[record-page] hung.onRefresh on CRM Deal did not settle within 5 s; the page stopped waiting for it.";
+  const stopped = "[record page] hung.onRefresh on CRM Deal did not settle within 5 s; the page stopped waiting for it.";
 
   it("holds the page's paints until the limit, then stops waiting with one warning", async () => {
     let calls = 0;

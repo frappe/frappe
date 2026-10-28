@@ -180,6 +180,72 @@ class TestReorder(IntegrationTestCase):
 		self.assertEqual(run_order("a-note-script"), 0)
 
 
+def page_script_names(page, dt="Note"):
+	return [row["name"] for row in get_client_scripts(dt, "App Page", page)["scripts"]]
+
+
+class TestClientScriptsForAnAppPage(IntegrationTestCase):
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def test_returns_only_the_named_pages_scripts_in_run_order(self):
+		make_script("board-first", view="App Page", page="board").insert()
+		make_script("board-second", view="App Page", page="board").insert()
+		make_script("kanban-script", view="App Page", page="kanban").insert()
+		make_script("note-record-script").insert()
+		reorder("Note", "App Page", ["board-second", "board-first"], page="board")
+
+		self.assertEqual(page_script_names("board"), ["board-second", "board-first"])
+		self.assertEqual(script_names(), ["note-record-script"])
+
+	def test_an_app_page_script_needs_a_page(self):
+		self.assertRaises(frappe.MandatoryError, make_script("pageless", view="App Page").insert)
+
+	def test_the_page_is_a_file_name_without_surrounding_spaces(self):
+		make_script("board-script", view="App Page", page=" board ").insert()
+
+		self.assertEqual(frappe.db.get_value("Client Script", "board-script", "page"), "board")
+		self.assertRaises(
+			frappe.ValidationError, make_script("dotted", view="App Page", page="board.js").insert
+		)
+
+	def test_matches_the_page_name_exactly(self):
+		make_script("board-script", view="App Page", page="Board").insert()
+
+		self.assertEqual(page_script_names("board"), [])
+		self.assertEqual(page_script_names("Board"), ["board-script"])
+
+	def test_rejects_a_page_filter_posing_as_a_name(self):
+		self.assertRaises(frappe.FrappeTypeError, get_client_scripts, "Note", "App Page", ["!=", ""])
+		self.assertRaises(frappe.FrappeTypeError, reorder, "Note", "App Page", [], ["!=", ""])
+
+	def test_another_view_drops_the_page(self):
+		make_script("note-record-script", page="board").insert()
+
+		self.assertIsNone(frappe.db.get_value("Client Script", "note-record-script", "page"))
+
+	def test_rejects_a_fetch_or_reorder_without_a_page(self):
+		self.assertRaises(frappe.ValidationError, get_client_scripts, "Note", "App Page")
+		self.assertRaises(frappe.ValidationError, reorder, "Note", "App Page", [])
+
+	def test_reorder_rejects_a_name_from_another_page(self):
+		make_script("board-script", view="App Page", page="board").insert()
+		make_script("kanban-script", view="App Page", page="kanban").insert()
+
+		with self.assertRaises(frappe.ValidationError):
+			reorder("Note", "App Page", ["board-script", "kanban-script"], page="board")
+
+	def test_a_save_tells_the_open_page_by_name(self):
+		with patch("frappe.publish_realtime") as publish:
+			make_script("board-script", view="App Page", page="board").insert()
+
+		publish.assert_any_call(
+			client_script.CLIENT_SCRIPT_CHANGED,
+			{"dt": "Note", "view": "App Page", "page": "board"},
+			after_commit=True,
+		)
+
+
 class TestUnknownClassWarning(IntegrationTestCase):
 	def setUp(self):
 		frappe.clear_messages()

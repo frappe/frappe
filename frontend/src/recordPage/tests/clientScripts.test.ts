@@ -319,6 +319,26 @@ describe("the client_script_changed listener", () => {
     expect(clientScriptsLoaded("CRM Deal")).toBe(true);
   });
 
+  it("routes an App Page change to that page's tier alone", async () => {
+    respond(["only"]);
+    watchClientScripts(socket);
+    await loadClientScripts("CRM Deal");
+    await loadClientScripts("CRM Deal", "board");
+    socket.fire("client_script_changed", { dt: "CRM Deal", view: "App Page", page: "board" });
+
+    expect(clientScriptChanges("CRM Deal", "board")).toBe(1);
+    expect(clientScriptChanges("CRM Deal")).toBe(0);
+    await loadClientScripts("CRM Deal");
+    await loadClientScripts("CRM Deal", "board");
+    expect(call).toHaveBeenCalledTimes(3);
+    expect(call).toHaveBeenLastCalledWith(
+      GET_CLIENT_SCRIPTS,
+      { dt: "CRM Deal", view: "App Page", page: "board" },
+      { http: "GET" },
+    );
+    expect(sources()).toEqual(["client-script:only"]);
+  });
+
   it("leaves every other doctype's tier cached", async () => {
     respond(["only"]);
     watchClientScripts(socket);

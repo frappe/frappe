@@ -3,12 +3,14 @@ import type { Router } from "vue-router";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import { BodySurface } from "./body";
+import { appPageScripts } from "./appPageScripts";
 import { runningSource, withRunningSource } from "./context";
 import { createPageDialogs, type PageDialogEntry } from "./dialog";
 import { FrameSurface } from "./frame";
 import { HeaderSurface } from "./headerRenderings";
 import { createHeldActs } from "./heldActs";
 import { createPaintGate, type LateRefresh, type RefreshOptions } from "./paintGate";
+import { RouteCachedReads } from "./routeCachedReads";
 import type { Staging } from "./staging";
 import type { Handler, PageApi, Registration } from "./types";
 
@@ -27,21 +29,25 @@ export interface PageEngineSpec<Lists extends PageEngineLists, Extras extends ob
   doctype: string;
   /** The record's or the page's name, for messages. */
   name: string;
+  /** The page's kind in messages: `record`, or an app page's `pages/<name>.js` name. */
+  pageName?: string;
+  /** The app an app page ships in; the builder then runs the scripts the page's own app and Client Scripts give it. */
+  app?: string;
   /** The page's own lists, each on `page` under its name. */
   lists: Lists;
   /** Overlays every replay and hold stages that are not on `page` under a name. */
   overlays?: Staging[];
   /** The page's own events, for the default check of handler keys. */
   events?: string[];
-  /** Every source's handlers, in run order. */
-  sources: () => Registration[];
+  /** Every source's handlers, in run order; with `app`, the app page's scripts. */
+  sources?: () => Registration[];
   /** The page's own members; a getter stays a getter. */
   extras: (engine: PageEngineParts) => Extras;
   meta: () => Record<string, any> | null;
   perms: () => Record<string, any>;
   roles: () => string[];
   router: Router;
-  /** Absent, `page.cached` holds nothing and fetches nothing. */
+  /** Absent, `page.cached` keeps each read for the route's path, and drops it when the page is left. */
   cached?: CachedProvider;
   /** Resolves when sources that register after mount are in. */
   sourcesReady?: () => Promise<void>;
@@ -106,6 +112,15 @@ const INERT: any = new Proxy(() => {}, {
 export function createPageEngine<Lists extends PageEngineLists, Extras extends object>(
   spec: PageEngineSpec<Lists, Extras>,
 ): PageEngine<Lists, Extras> {
+  const label = `[${spec.pageName ?? "app"} page]`;
+  if (spec.app && !spec.pageName)
+    throw new Error(`${label} an app page of ${spec.doctype} must name itself with pageName`);
+  if (spec.app && spec.sources)
+    throw new Error(`${label} an app page of ${spec.doctype} gets its sources from its app; drop sources`);
+  const scripts = spec.app ? appPageScripts(spec.app, spec.doctype, spec.pageName!) : null;
+  const sources = spec.sources ?? scripts?.sources ?? (() => []);
+  const routeReads = spec.cached ? null : new RouteCachedReads(spec.router, label);
+  const cached = spec.cached ?? routeReads!;
   const frame = new FrameSurface();
   const header = new HeaderSurface();
   const body = new BodySurface();
@@ -118,18 +133,22 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
   const gate = createPaintGate({
     doctype: spec.doctype,
     name: spec.name,
+    label,
     surfaces: [frame, header, body, ...Object.values(spec.lists), ...(spec.overlays ?? [])],
-    sourcesReady: spec.sourcesReady,
+    sourcesReady: spec.sourcesReady ?? scripts?.sourcesReady,
     permissionsReady: spec.permissionsReady ?? (() => Promise.resolve()),
-    loaded: spec.loaded ?? (() => true),
+    loaded: () => (spec.loaded?.() ?? true) && (scripts?.loaded() ?? true),
     runRefresh: (ran, beforeSources) =>
-      runRefresh(ran, beforeSources ? spec.skippedBeforeSources?.() : undefined),
-    fetchCached: () => spec.cached?.fetchUnfetched() ?? [],
+      runRefresh(
+        ran,
+        beforeSources ? (spec.skippedBeforeSources ?? scripts?.skippedBeforeSources)?.() : undefined,
+      ),
+    fetchCached: () => cached.fetchUnfetched(),
     runOpen: (registrations) => runOpen(registrations),
     warnUnknownHandlers: spec.warnUnknownHandlers ?? warnUnknownHandlers,
     deliverHeldActs: heldActs.release,
     closeDialogs: () => dialogs.closeAll(),
-    lateLabel: spec.lateLabel ?? (() => "the page's scripts"),
+    lateLabel: spec.lateLabel ?? scripts?.lateLabel ?? (() => "the page's scripts"),
   });
   const { hold } = gate;
 
@@ -158,7 +177,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
     call: (method: string, params?: Record<string, any>) =>
       runMethod(method, params).then((envelope) => envelope.data),
     cached: <T>(key: string, fetch: () => Promise<T> | T) =>
-      spec.cached?.read(runningSource(), key, fetch) as T | undefined,
+      cached.read(runningSource(), key, fetch) as T | undefined,
     // The one member handed straight through, and the only one; see frontend/CLAUDE.md.
     router: spec.router,
   } as EnginePage<Lists, Extras>;
@@ -183,11 +202,14 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
     dialogs: dialogs.entries,
     hasLeft: gate.hasLeft,
     leave: () => {
+      stopRerun?.();
       refreshView.close();
       gate.leave();
+      routeReads?.clear();
     },
   };
   addMembers(spec.extras(engine), "extra member");
+  const stopRerun = scripts?.rerunOnChange(gate);
   return engine;
 
   function addMembers(members: object, kind: string) {
@@ -195,7 +217,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
     const descriptors = Object.getOwnPropertyDescriptors(members);
     for (const key of Object.keys(descriptors))
       if (Object.hasOwn(page, key))
-        throw new Error(`[record-page] the ${kind} "${key}" on ${spec.doctype} would replace the page's own "${key}"`);
+        throw new Error(`${label} the ${kind} "${key}" on ${spec.doctype} would replace the page's own "${key}"`);
     Object.defineProperties(page, descriptors);
   }
 
@@ -204,7 +226,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
   }
 
   async function dispatch(event: string, detail?: unknown) {
-    for (const { source, handlers } of spec.sources()) {
+    for (const { source, handlers } of sources()) {
       const handler = handlers[event];
       if (!handler) continue;
       const run = () =>
@@ -222,7 +244,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
   /** A replay's pass, synchronous; `ran` carries its first pass into its second, so no source runs twice. */
   function runRefresh(ran: Set<Registration>, skipping?: ReadonlySet<string>) {
     const late: LateRefresh[] = [];
-    for (const registration of spec.sources()) {
+    for (const registration of sources()) {
       if (ran.has(registration) || skipping?.has(registration.source)) continue;
       ran.add(registration);
       const { source, handlers } = registration;
@@ -272,7 +294,7 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
 
   // Filed in production too, so an admin sees which scripts to move to a cached read.
   function warnAsyncRefresh(source: string) {
-    const message = `[record-page] ${source}.onRefresh on ${spec.doctype} returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.`;
+    const message = `${label} ${source}.onRefresh on ${spec.doctype} returned a promise; onRefresh should be synchronous, and read server data with page.cached(key, fetcher). The first paint waits up to 500 ms for what it does after its first await; after that it lands as a later paint.`;
     if (import.meta.env.DEV) console.warn(message);
     spec.report?.(new Error(message), source, "onRefresh (async)");
   }
@@ -280,20 +302,20 @@ export function createPageEngine<Lists extends PageEngineLists, Extras extends o
   function reportHandlerError(source: string, event: string, error: unknown) {
     // A veto is not reported: the reader is looking straight at what it refused.
     if (spec.vetoes?.includes(event)) throw error;
-    console.error(`[record-page] ${source}.${event} on ${spec.doctype} threw`, error);
+    console.error(`${label} ${source}.${event} on ${spec.doctype} threw`, error);
     spec.report?.(error, source, event);
   }
 
   function warnUnknownHandlers() {
     if (!import.meta.env.DEV || vocabularyChecked) return;
-    const registrations = spec.sources();
+    const registrations = sources();
     if (!registrations.length) return;
     vocabularyChecked = true;
     const known = new Set([...ENGINE_EVENTS, ...(spec.events ?? [])]);
     for (const { source, handlers } of registrations)
       for (const key of Object.keys(handlers))
         if (!known.has(key))
-          console.warn(`[record-page] ${source}.${key} on ${spec.doctype} is not an event of this page — it will never fire`);
+          console.warn(`${label} ${source}.${key} on ${spec.doctype} is not an event of this page — it will never fire`);
   }
 }
 

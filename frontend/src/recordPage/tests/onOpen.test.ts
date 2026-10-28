@@ -338,7 +338,7 @@ describe("onOpen's errors and awaits", () => {
 
     expect(seen).toEqual(["fine"]);
     expect(console.error).toHaveBeenCalledWith(
-      "[record-page] broken.onOpen on CRM Deal threw",
+      "[record page] broken.onOpen on CRM Deal threw",
       expect.any(Error),
     );
   });

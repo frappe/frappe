@@ -13,7 +13,10 @@ from frappe.app_state import is_module_disabled
 from frappe.exceptions import TemplateCompileError
 from frappe.model.document import Document
 
-RECORD_PAGE_VIEWS = ("Record",)
+RECORD_PAGE_VIEWS = ("Record", "App Page")
+APP_PAGE = "App Page"
+# The name of a `pages/<name>.js` file.
+PAGE_NAME = re.compile(r"^[\w-]+$")
 CLIENT_SCRIPT_CHANGED = "client_script_changed"
 # `run_order` is a sort key, not a unique one; `creation` breaks the ties.
 RECORD_SCRIPT_ORDER = "run_order asc, creation asc"
@@ -58,9 +61,10 @@ class ClientScript(Document):
 		dt: DF.Link
 		enabled: DF.Check
 		module: DF.Link | None
+		page: DF.Data | None
 		run_order: DF.Int
 		script: DF.Code | None
-		view: DF.Literal["List", "Form", "Record"]
+		view: DF.Literal["List", "Form", "Record", "App Page"]
 	# end: auto-generated types
 
 	def before_validate(self):
@@ -68,11 +72,22 @@ class ClientScript(Document):
 		self.check_templates()
 
 	def validate(self):
+		self.validate_page()
 		self.warn_on_unknown_classes()
 
 	def on_update(self):
 		frappe.clear_cache(doctype=self.dt)
 		self.notify_record_pages()
+
+	def validate_page(self):
+		if self.view != APP_PAGE:
+			self.page = None
+		elif not (self.page or "").strip():
+			frappe.throw(_("Name the app page this script runs on"), frappe.MandatoryError)
+		else:
+			self.page = self.page.strip()
+			if not PAGE_NAME.match(self.page):
+				frappe.throw(_("Page must be the name of the page's file, without .js"))
 
 	def warn_on_unknown_classes(self):
 		"""Name every class the script uses that the desk stylesheet has no rule for; never block."""
@@ -125,25 +140,27 @@ class ClientScript(Document):
 		if self.view not in RECORD_PAGE_VIEWS:
 			return
 		frappe.publish_realtime(  # nosemgrep
-			CLIENT_SCRIPT_CHANGED, {"dt": self.dt, "view": self.view}, after_commit=True
+			CLIENT_SCRIPT_CHANGED, {"dt": self.dt, "view": self.view, "page": self.page}, after_commit=True
 		)
 
 
 @frappe.desk_v2_only
 @frappe.whitelist()
-def get_client_scripts(dt: str, view: str = "Record"):
-	"""Return the enabled scripts a Record page of `dt` runs, in run order."""
-	validate_target(dt, view)
+def get_client_scripts(dt: str, view: str = "Record", page: str | None = None):
+	"""Return the enabled scripts a Record page, or the app page `page`, of `dt` runs, in run order."""
+	validate_target(dt, view, page)
 	frappe.has_permission(dt, "read", throw=True)
 
 	rows = frappe.get_all(
 		"Client Script",
-		filters={"dt": dt, "view": view, "enabled": 1},
-		fields=["name", "script", "module"],
+		filters={**target_filters(dt, view, page), "enabled": 1},
+		fields=["name", "script", "module", "page"],
 		order_by=RECORD_SCRIPT_ORDER,
 	)
+	# The database may compare case-insensitively; the page's realtime key does not.
+	rows = [row for row in rows if row.page == page and not is_module_disabled(row.module)]
 	return {
-		"scripts": served_scripts([row for row in rows if not is_module_disabled(row.module)]),
+		"scripts": served_scripts(rows),
 		"can_write": bool(frappe.has_permission("Client Script", "write")),
 	}
 
@@ -165,38 +182,48 @@ def served_copy(result: dict | CompilerUnavailable) -> dict:
 
 @frappe.desk_v2_only
 @frappe.whitelist(methods=["POST"])
-def reorder(dt: str, view: str, names: list[str]) -> None:
+def reorder(dt: str, view: str, names: list[str], page: str | None = None) -> None:
 	"""Renumber `names` densely from 1 in the given order, in one transaction."""
-	validate_target(dt, view)
+	validate_target(dt, view, page)
 	if not isinstance(names, list) or not all(isinstance(name, str) for name in names):
 		frappe.throw(_("Scripts must be a list of names"))
 	frappe.has_permission("Client Script", "write", throw=True)
-	reject_foreign_names(dt, view, names)
+	reject_foreign_names(target_filters(dt, view, page), names)
 
 	# `modified` stays put: the editor's lock on it means "this script's text changed".
 	positions = {name: {"run_order": position} for position, name in enumerate(names, start=1)}
 	frappe.db.bulk_update("Client Script", positions, update_modified=False)
 
-	frappe.publish_realtime(CLIENT_SCRIPT_CHANGED, {"dt": dt, "view": view}, after_commit=True)  # nosemgrep
+	frappe.publish_realtime(  # nosemgrep
+		CLIENT_SCRIPT_CHANGED, {"dt": dt, "view": view, "page": page}, after_commit=True
+	)
 
 
-def validate_target(dt: str, view: str) -> None:
-	# A non-str `dt` would reach `get_all` as a filter operator and read every doctype's scripts.
+def validate_target(dt: str, view: str, page: str | None) -> None:
+	# A non-str `dt` or `page` would reach `get_all` as a filter operator and read other scripts.
 	if not isinstance(dt, str):
 		frappe.throw(_("Document Type must be a name"))
 	if view not in RECORD_PAGE_VIEWS:
-		frappe.throw(_("Client Scripts for the {0} view are not served to a record page").format(view))
+		frappe.throw(_("Client Scripts for the {0} view are not served to a desk page").format(view))
+	if view == APP_PAGE and not (isinstance(page, str) and page):
+		frappe.throw(_("App Page scripts need the name of the page"))
 
 
-def reject_foreign_names(dt: str, view: str, names: list[str]) -> None:
-	"""Refuse a duplicate or a name outside this doctype's list; a missing name is tolerated."""
+def target_filters(dt: str, view: str, page: str | None) -> dict:
+	if view == APP_PAGE:
+		return {"dt": dt, "view": view, "page": page}
+	return {"dt": dt, "view": view}
+
+
+def reject_foreign_names(target: dict, names: list[str]) -> None:
+	"""Refuse a duplicate or a name outside this page's list; a missing name is tolerated."""
 	if len(set(names)) != len(names):
 		frappe.throw(_("A script cannot appear twice in the run order"))
 
-	known = set(frappe.get_all("Client Script", filters={"dt": dt, "view": view}, pluck="name"))
+	known = set(frappe.get_all("Client Script", filters=target, pluck="name"))
 	unknown = sorted(set(names) - known)
 	if unknown:
-		frappe.throw(_("Not Client Scripts of {0}: {1}").format(dt, ", ".join(unknown)))
+		frappe.throw(_("Not Client Scripts of {0}: {1}").format(target["dt"], ", ".join(unknown)))
 
 
 def read_class_list() -> set[str] | None:

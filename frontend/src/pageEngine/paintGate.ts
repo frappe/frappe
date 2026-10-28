@@ -14,6 +14,8 @@ export interface PaintGateHost {
   doctype: string;
   /** The record's or the page's name, for the first paint's warning. */
   name: string;
+  /** The page's kind for console messages, as `[record page]`. */
+  label: string;
   /** Every overlay a replay or a hold stages. */
   surfaces: Staging[];
   /** Resolves when sources that register after mount (Client Scripts) are in. */
@@ -241,7 +243,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
       timer = setTimeout(() => {
         if (import.meta.env.DEV)
           console.warn(
-            `[record-page] ${label} on ${host.doctype} did not settle within ${LATE_LIMIT_MS / 1000} s; the page stopped waiting for it.`,
+            `${host.label} ${label} on ${host.doctype} did not settle within ${LATE_LIMIT_MS / 1000} s; the page stopped waiting for it.`,
           );
         resolve();
       }, LATE_LIMIT_MS);
@@ -293,7 +295,7 @@ export function createPaintGate(host: PaintGateHost): PaintGate {
     releaseEarlyActs();
     ready.value = true;
     console.warn(
-      `[record-page] ${host.doctype} ${host.name} painted after ${FIRST_PAINT_LIMIT_MS} ms without waiting for ${late}; its changes land when it finishes.`,
+      `${host.label} ${host.doctype} ${host.name} painted after ${FIRST_PAINT_LIMIT_MS} ms without waiting for ${late}; its changes land when it finishes.`,
     );
   }
 

@@ -172,10 +172,10 @@ describe("a surface item key the engine does not read", () => {
     expect(seen).toBe(true);
     expect(controller.quickActions.find("x")).toEqual({ name: "x", label: "X" });
     expect(warn.mock.calls.map((call) => call[0])).toEqual([
-      "[record-page] quickActions.add('x'): key 'variant' is not one the engine reads — dropped.",
-      "[record-page] tabs.add('t'): key 'closable' is not one the engine reads — dropped.",
-      "[record-page] panelSections.add('s'): key 'collapsible' is not one the engine reads — dropped.",
-      "[record-page] header.add('h'): key 'theme' is not one the engine reads — dropped.",
+      "[page] quickActions.add('x'): key 'variant' is not one the engine reads — dropped.",
+      "[page] tabs.add('t'): key 'closable' is not one the engine reads — dropped.",
+      "[page] panelSections.add('s'): key 'collapsible' is not one the engine reads — dropped.",
+      "[page] header.add('h'): key 'theme' is not one the engine reads — dropped.",
     ]);
     warn.mockRestore();
   });

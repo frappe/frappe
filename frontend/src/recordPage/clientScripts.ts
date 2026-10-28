@@ -1,10 +1,11 @@
-// The Client Script tier: the doctype's stored scripts, fetched once per doctype,
-// evaluated as modules and registered as sources after file scripts and extensions.
+// The Client Script tier: the stored scripts of a doctype's record page, or of one app page,
+// fetched once per tier, evaluated as modules and registered as sources after file scripts.
 import { reactive, readonly, ref } from "vue";
 import { toast } from "frappe-ui";
 import { runMethod } from "@framework/ui/api";
 import type { RealtimeSocket } from "@framework/ui/socket";
 import { withRegisteringSource } from "@/pageEngine/context";
+import { registerPageScript, unregisterPageSource } from "./pageScripts";
 import { evaluateClientScript } from "./evaluateClientScript";
 import { CLIENT_SCRIPT_CHANGED, GET_CLIENT_SCRIPTS } from "./clientScriptTypes";
 import type { ClientScriptRow, ClientScriptsResponse } from "./clientScriptTypes";
@@ -17,10 +18,13 @@ import {
 
 // The tier's own fetch has no script to blame, so it reports under its own name.
 const TIER_SOURCE = "client-scripts";
+const APP_PAGE = "App Page";
+const PAGE_SEPARATOR = "\u0000";
 
-// The doctype's latest build; when two saves overlap, only the build still held here registers.
+// Every map is keyed by tier: the doctype, or the doctype and an app page's name (see `tierKey`).
+// The tier's latest build; when two saves overlap, only the build still held here registers.
 const tiers = new Map<string, Promise<void>>();
-// The sources each doctype's registered tier holds; a doctype is absent until its first tier lands.
+// The sources each registered tier holds; a tier is absent until it first lands.
 const sources = new Map<string, string[]>();
 // Changed on the server: the registered tier stays until a fresh one replaces it.
 const stale = new Set<string>();
@@ -36,22 +40,25 @@ const waits = new Map<string, string>();
 
 export const canWriteClientScripts = readonly(writable);
 
-/** A count that moves when the doctype's stored scripts change; a page on screen watches its own. */
-export function clientScriptChanges(doctype: string): number {
-  return changes.get(doctype) ?? 0;
+/** A count that moves when the tier's stored scripts change; a page on screen watches its own. */
+export function clientScriptChanges(doctype: string, page?: string): number {
+  return changes.get(tierKey(doctype, page)) ?? 0;
 }
 
-/** Marks the tier stale so the next load re-reads, and moves the doctype's change count. */
-export function invalidateClientScripts(doctype: string) {
-  stale.add(doctype);
-  changes.set(doctype, clientScriptChanges(doctype) + 1);
+/** Marks the tier stale so the next load re-reads, and moves its change count. */
+export function invalidateClientScripts(doctype: string, page?: string) {
+  const key = tierKey(doctype, page);
+  stale.add(key);
+  changes.set(key, clientScriptChanges(doctype, page) + 1);
 }
 
-/** A Client Script saved, reordered or deleted anywhere invalidates its doctype's tier; returns the stop. */
+/** A Client Script saved, reordered or deleted anywhere invalidates its tier; returns the stop. */
 export function watchClientScripts(socket: RealtimeSocket | undefined) {
   const onChanged = (...args: unknown[]) => {
-    const { dt, view } = (args[0] ?? {}) as { dt?: unknown; view?: unknown };
-    if (typeof dt === "string" && dt && view === "Record") invalidateClientScripts(dt);
+    const { dt, view, page } = (args[0] ?? {}) as { dt?: unknown; view?: unknown; page?: unknown };
+    if (typeof dt !== "string" || !dt) return;
+    if (view === "Record") invalidateClientScripts(dt);
+    else if (view === APP_PAGE && typeof page === "string" && page) invalidateClientScripts(dt, page);
   };
   socket?.on(CLIENT_SCRIPT_CHANGED, onChanged);
   return () => socket?.off(CLIENT_SCRIPT_CHANGED, onChanged);
@@ -64,33 +71,36 @@ export function toastScriptError(key: string, message: string) {
   toast.error(message);
 }
 
-/** What the doctype's tier is still fetching or evaluating, or null once it is in. */
-export function clientScriptWait(doctype: string): string | null {
-  return waits.get(doctype) ?? null;
+/** What the tier is still fetching or evaluating, or null once it is in. */
+export function clientScriptWait(doctype: string, page?: string): string | null {
+  return waits.get(tierKey(doctype, page)) ?? null;
 }
 
-/** Resolves when the doctype's fresh tier has registered; one fetch per doctype until it goes stale. */
-export function loadClientScripts(doctype: string): Promise<void> {
-  const current = tiers.get(doctype);
-  if (current && !stale.has(doctype)) return current;
-  stale.delete(doctype);
-  const loading: Promise<void> = buildTier(doctype, () => tiers.get(doctype) === loading);
-  tiers.set(doctype, loading);
+/** Resolves when the fresh tier has registered; one fetch per tier until it goes stale. */
+export function loadClientScripts(doctype: string, page?: string): Promise<void> {
+  const key = tierKey(doctype, page);
+  const current = tiers.get(key);
+  if (current && !stale.has(key)) return current;
+  stale.delete(key);
+  const tier = { key, doctype, page };
+  const loading: Promise<void> = buildTier(tier, () => tiers.get(key) === loading);
+  tiers.set(key, loading);
   return loading;
 }
 
-/** True once a tier of the doctype has registered, stale or fresh. */
-export function clientScriptsLoaded(doctype: string): boolean {
-  return sources.has(doctype);
+/** True once the tier has registered, stale or fresh. */
+export function clientScriptsLoaded(doctype: string, page?: string): boolean {
+  return sources.has(tierKey(doctype, page));
 }
 
 /** The sources of a registered tier that a build in flight will replace; a replay waiting for it skips them. */
-export function replacedClientScripts(doctype: string): ReadonlySet<string> {
-  return waits.has(doctype) ? new Set(sources.get(doctype)) : new Set();
+export function replacedClientScripts(doctype: string, page?: string): ReadonlySet<string> {
+  const key = tierKey(doctype, page);
+  return waits.has(key) ? new Set(sources.get(key)) : new Set();
 }
 
 export function resetClientScripts() {
-  for (const doctype of sources.keys()) clearTier(doctype);
+  for (const key of sources.keys()) clearTier(key);
   sources.clear();
   stale.clear();
   tiers.clear();
@@ -102,20 +112,28 @@ export function resetClientScripts() {
   writable.value = false;
 }
 
+interface Tier {
+  key: string;
+  doctype: string;
+  /** The app page's name; absent for the record page's tier. */
+  page?: string;
+}
+
 interface CompiledScript {
   row: ClientScriptRow;
   handlers: AuthoredHandlers;
 }
 
 // Every script compiles before any registers, so a replay meets the old tier or the new one, never a mix.
-async function buildTier(doctype: string, current: () => boolean) {
-  waits.set(doctype, `the Client Script list for ${doctype}`);
-  const response = await fetchScripts(doctype);
+async function buildTier(tier: Tier, current: () => boolean) {
+  const { key, doctype } = tier;
+  waits.set(key, `the Client Script list for ${tierLabel(tier)}`);
+  const response = await fetchScripts(tier);
   if (!current()) return;
-  if (!response && sources.has(doctype)) {
+  if (!response && sources.has(key)) {
     // A failed re-read keeps the registered tier, and the next load tries again.
-    stale.add(doctype);
-    waits.delete(doctype);
+    stale.add(key);
+    waits.delete(key);
     return;
   }
   // Only an answer the server actually gave: a failed fetch must not read as
@@ -124,28 +142,26 @@ async function buildTier(doctype: string, current: () => boolean) {
   const compiled: CompiledScript[] = [];
   for (const row of response?.scripts ?? []) {
     if (!current()) return;
-    waits.set(doctype, `${sourceName(row.name)} to load`);
+    waits.set(key, `${sourceName(row.name)} to load`);
     const handlers = await compileScript(doctype, row, response!.can_write);
     if (handlers) compiled.push({ row, handlers });
   }
   if (!current()) return;
-  swapTier(doctype, compiled, response?.can_write ?? false);
-  waits.delete(doctype);
+  swapTier(tier, compiled, response?.can_write ?? false);
+  waits.delete(key);
 }
 
 /** Null when the tier could not be fetched — distinct from an empty tier. */
-async function fetchScripts(
-  doctype: string,
-): Promise<ClientScriptsResponse | null> {
+async function fetchScripts(tier: Tier): Promise<ClientScriptsResponse | null> {
+  const { doctype, page } = tier;
+  const params = page ? { dt: doctype, view: APP_PAGE, page } : { dt: doctype, view: "Record" };
   try {
-    const { data } = await runMethod<ClientScriptsResponse>(
-      GET_CLIENT_SCRIPTS,
-      { dt: doctype, view: "Record" },
-      { http: "GET" },
-    );
+    const { data } = await runMethod<ClientScriptsResponse>(GET_CLIENT_SCRIPTS, params, {
+      http: "GET",
+    });
     return data;
   } catch (error) {
-    console.error(`[client-script] could not load scripts for ${doctype}`, error);
+    console.error(`[client-script] could not load scripts for ${tierLabel(tier)}`, error);
     reportCustomizationError(error, {
       source: TIER_SOURCE,
       tier: "client_script",
@@ -175,20 +191,25 @@ async function compileScript(
 }
 
 /** The old tier's sources go and the new tier's register, in one synchronous step. */
-function swapTier(doctype: string, compiled: CompiledScript[], canWrite: boolean) {
-  clearTier(doctype);
+function swapTier(tier: Tier, compiled: CompiledScript[], canWrite: boolean) {
+  const { key, doctype, page } = tier;
+  clearTier(key);
   const registered: string[] = [];
   for (const { row, handlers } of compiled) {
     const source = sourceName(row.name);
     try {
-      withRegisteringSource(source, () => registerRecordPage(doctype, handlers));
+      withRegisteringSource(source, () =>
+        page
+          ? registerPageScript(doctype, page, handlers)
+          : registerRecordPage(doctype, handlers),
+      );
       registered.push(source);
     } catch (error) {
-      unregisterSource(source);
+      unregisterTierSource(tier, source);
       reportFailure(doctype, row.name, error, canWrite);
     }
   }
-  sources.set(doctype, registered);
+  sources.set(key, registered);
 }
 
 function reportFailure(
@@ -208,8 +229,22 @@ function reportFailure(
   toast.error(`Client Script '${name}' failed to load`);
 }
 
-function clearTier(doctype: string) {
-  for (const source of sources.get(doctype) ?? []) unregisterSource(source);
+function clearTier(key: string) {
+  const [doctype, page] = key.split(PAGE_SEPARATOR);
+  for (const source of sources.get(key) ?? []) unregisterTierSource({ key, doctype, page }, source);
+}
+
+function unregisterTierSource({ doctype, page }: Tier, source: string) {
+  if (page) unregisterPageSource(source, doctype, page);
+  else unregisterSource(source);
+}
+
+function tierKey(doctype: string, page?: string) {
+  return page ? `${doctype}${PAGE_SEPARATOR}${page}` : doctype;
+}
+
+function tierLabel({ doctype, page }: Tier) {
+  return page ? `the ${page} page of ${doctype}` : doctype;
 }
 
 function sourceName(name: string) {

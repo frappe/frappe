@@ -14,6 +14,8 @@ export {
 } from "./context";
 
 export { setIconSource } from "./iconClasses";
+export { setAppPageScripts } from "./appPageScripts";
+export type { AppPageScriptSource } from "./appPageScripts";
 export type { IconSource } from "./iconClasses";
 export { hidingDenied, isEmptyHeader, projectHeader, zoneOf } from "./headerRenderings";
 export type {

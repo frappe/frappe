@@ -68,5 +68,5 @@ function isBuiltin(name: string) {
 
 function warnBuiltin(verb: string, name: string, because: string) {
   if (!import.meta.env.DEV) return;
-  console.warn(`[record-page] page.frame.${verb}('${name}') — '${name}' is a built-in region: ${because}.`);
+  console.warn(`[page] page.frame.${verb}('${name}') — '${name}' is a built-in region: ${because}.`);
 }
