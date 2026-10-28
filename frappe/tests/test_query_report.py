@@ -882,6 +882,30 @@ data = columns, result
 		with self.assertRaises(frappe.PermissionError):
 			report.get_validated_filters({"allocated_to": user, "users": [user, "Administrator"]}, user)
 
+	def test_validated_link_filter_user_defaults(self):
+		report, user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="user", label="User", fieldtype="Link", options="User"))
+		report.append(
+			"filters", dict(fieldname="language", label="Language", fieldtype="Link", options="Language")
+		)
+		job_type = frappe.db.get_value("Scheduled Job Type", {})
+		frappe.defaults.set_user_default("job_type", job_type, user)
+		frappe.defaults.set_user_default("language", "de", user)
+		self.addCleanup(frappe.defaults.clear_user_default, "job_type", user)
+		self.addCleanup(frappe.defaults.clear_user_default, "language", user)
+
+		filters = report.get_validated_filters({"allocated_to": user}, user)
+		self.assertNotIn("user", filters)
+		self.assertNotIn("job_type", filters)
+		self.assertEqual(filters.language, "de")
+
+		report.filters[-1].default = "en"
+		self.assertEqual(report.get_validated_filters({"allocated_to": user}, user).language, "en")
+
+		report.filters[-1].default = None
+		frappe.defaults.set_user_default("language", "missing-language", user)
+		self.assertNotIn("language", report.get_validated_filters({"allocated_to": user}, user))
+
 	def test_get_script_resolves_validated_filter_defaults(self):
 		report, user = self.make_filtered_report()
 		report.filters[-2].default = "__user"

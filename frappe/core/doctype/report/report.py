@@ -566,8 +566,8 @@ class Report(Document):
 def get_filter_default(row, user):
 	if row.default == "__user":
 		default = user
-	elif row.fieldtype == "Link" and (user_default := frappe.defaults.get_user_default(row.fieldname, user)):
-		return user_default
+	elif not row.default and row.fieldtype == "Link" and row.options != "User":
+		default = get_link_user_default(row, user)
 	else:
 		default = get_static_default_value(row, [], [])
 
@@ -576,6 +576,16 @@ def get_filter_default(row, user):
 	if default and row.fieldtype == "DateRange":
 		return default.split(",")
 	return default
+
+
+def get_link_user_default(row, user):
+	user_default = frappe.defaults.get_user_default(row.fieldname, user)
+	if (
+		user_default
+		and frappe.db.exists(row.options, user_default)
+		and has_link_permission(row.options, user_default, user)
+	):
+		return user_default
 
 
 def get_validated_value(row, value, user):
@@ -645,14 +655,18 @@ def validate_link_value(doctype, value, user):
 			title=_("Invalid Filters"),
 		)
 
-	if not frappe.has_permission(doctype, "read", value, user=user) and not frappe.has_permission(
-		doctype, "select", value, user=user
-	):
+	if not has_link_permission(doctype, value, user):
 		frappe.throw(
 			_("You do not have permission to access {0}: {1}.").format(_(doctype), value),
 			frappe.PermissionError,
 			title=_("Invalid Filters"),
 		)
+
+
+def has_link_permission(doctype, value, user):
+	return frappe.has_permission(doctype, "read", value, user=user) or frappe.has_permission(
+		doctype, "select", value, user=user
+	)
 
 
 def is_prepared_report_enabled(report):
