@@ -3,6 +3,7 @@
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.tag_link.tag_link import notify_tag_change
 from frappe.model.document import Document
 from frappe.query_builder import DocType
 from frappe.utils import unique
@@ -179,14 +180,11 @@ def update_tags(doc, tags):
 
 	deleted_tags = list(set(existing_tags) - set(new_tags))
 	if deleted_tags:
-		# A document delete, not a row delete, so the link's `on_trash` announces the change.
-		links = frappe.get_all(
-			"Tag Link",
-			filters={"document_type": doc.doctype, "document_name": doc.name, "tag": ("in", deleted_tags)},
-			pluck="name",
-		)
+		filters = {"document_type": doc.doctype, "document_name": doc.name, "tag": ("in", deleted_tags)}
+		links = frappe.get_all("Tag Link", filters=filters, fields=["*"])
+		frappe.db.delete("Tag Link", filters)
 		for link in links:
-			frappe.delete_doc("Tag Link", link, ignore_permissions=True, delete_permanently=True)
+			notify_tag_change(link, "delete")
 
 
 @frappe.whitelist()
