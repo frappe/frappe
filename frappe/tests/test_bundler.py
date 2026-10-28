@@ -18,7 +18,7 @@ from frappe.bundler import (
 	remove_stale_island_toolchain,
 )
 from frappe.commands.utils import build
-from frappe.shell.manifest import frontend_dir, package_name
+from frappe.shell.manifest import frontend_dir, package_name, shaping_apps
 from frappe.tests import UnitTestCase
 
 
@@ -127,25 +127,38 @@ def shell_build_commands(production: bool, installed_flags: list[str] | None = N
 			os.makedirs(os.path.join(frontend, "node_modules"))
 			with open(os.path.join(frontend, "node_modules", ".yarn-integrity"), "w") as f:
 				json.dump({"flags": installed_flags}, f)
-		staging = os.path.join(source, "frappe", "public", "frontend.staging")
-		commands = []
-
-		def popen(command, **kwargs):
-			commands.append(command)
-			if command.startswith("yarn build"):
-				os.makedirs(staging)
-				open(os.path.join(staging, "index.html"), "w").close()
-
 		with (
-			patch("frappe.shell.manifest.write", return_value=([], [], False)),
-			patch("frappe.bundler.refresh_lockfile", return_value=False),
-			patch("frappe.shell.manifest.cost_report", return_value=[]),
 			patch("frappe.get_app_path", return_value=os.path.join(source, "frappe")),
-			patch("frappe.commands.popen", popen),
-			patch("frappe.bundler.swap_shell_assets"),
+			stubbed_yarn(os.path.join(source, "frappe")) as commands,
 		):
 			build_shell(source, production=production)
 		return commands
+
+
+@contextmanager
+def stubbed_yarn(frappe_path: str, stub_manifest: bool = True, fail_build: bool = False):
+	"""Record the commands a shell build runs; `yarn build` leaves a built tree as vite would."""
+	staging = os.path.join(frappe_path, "public", "frontend.staging")
+	commands = []
+
+	def popen(command, **kwargs):
+		commands.append(command)
+		if command.startswith("yarn build"):
+			if fail_build:
+				raise subprocess.CalledProcessError(1, command)
+			os.makedirs(staging)
+			open(os.path.join(staging, "index.html"), "w").close()
+
+	with (
+		patch("frappe.shell.manifest.write", return_value=([], [], False))
+		if stub_manifest
+		else nullcontext(),
+		patch("frappe.bundler.refresh_lockfile", return_value=False),
+		patch("frappe.shell.manifest.cost_report", return_value=[]),
+		patch("frappe.commands.popen", popen),
+		patch("frappe.bundler.swap_shell_assets"),
+	):
+		yield commands
 
 
 class TestShellBuildWeight(UnitTestCase):
@@ -176,6 +189,141 @@ class TestShellBuildWeight(UnitTestCase):
 			with self.subTest(path=os.path.relpath(path, frontend)):
 				imported = {package_name(specifier) for specifier in bare_imports(path)}
 				self.assertFalse(imported & dev_dependencies)
+
+
+class TestShellBuildForListedApps(UnitTestCase):
+	PLAIN = ("plain_module/doctype/thing/thing.json",)
+	CRM = ("crm_module/doctype/deal/frontend/record.js",)
+
+	def test_app_run_adding_nothing_skips_the_shell(self):
+		commands, recorded = listed_run(["plain"], last_shaping=["frappe", "crm"])
+		self.assertEqual(commands, [])
+		self.assertEqual(recorded, ["frappe", "crm"])
+
+	def test_app_run_adding_to_the_shell_builds_and_records_it(self):
+		commands, recorded = listed_run(["plain", "crm"], last_shaping=["frappe"])
+		self.assertTrue(commands[-1].startswith("yarn build"))
+		self.assertEqual(recorded, ["frappe", "crm"])
+
+	def test_app_run_whose_app_shaped_the_last_build_builds_it(self):
+		commands, recorded = listed_run(["plain"], last_shaping=["frappe", "plain"])
+		self.assertTrue(commands)
+		self.assertEqual(recorded, ["frappe", "crm"])
+
+	def test_failed_build_keeps_the_record_of_the_published_shell(self):
+		commands, recorded = listed_run(["crm"], last_shaping=["frappe", "plain"], fail_build=True)
+		self.assertTrue(commands[-1].startswith("yarn build"))
+		self.assertEqual(recorded, ["frappe", "plain"])
+
+	def test_app_run_with_no_record_of_the_last_build_builds_it(self):
+		self.assertTrue(listed_run(["plain"], last_shaping=None)[0])
+
+	def test_app_run_builds_a_shell_never_published(self):
+		self.assertTrue(listed_run(["plain"], last_shaping=["frappe"], published=False)[0])
+
+	def test_full_build_builds_the_shell(self):
+		self.assertTrue(shell_build_commands(production=True)[-1].startswith("yarn build"))
+
+	def test_build_command_passes_only_the_listed_apps(self):
+		self.assertEqual(listed_apps_given_to_shell(["--apps", "crm,plain"]), ["crm", "plain"])
+		self.assertIsNone(listed_apps_given_to_shell([]))
+
+
+def listed_run(
+	listed: list[str], last_shaping: list[str] | None, published: bool = True, fail_build: bool = False
+) -> tuple[list[str], list[str] | None]:
+	"""A `--apps` shell build on a bench of frappe, `plain` and a contributing `crm`: its commands and record."""
+	apps = {
+		"frappe": ["public/frontend/index.html"] if published else [],
+		"plain": TestShellBuildForListedApps.PLAIN,
+		"crm": TestShellBuildForListedApps.CRM,
+	}
+	with tempfile.TemporaryDirectory() as source, bench_of(apps) as bench:
+		frontend = os.path.join(source, "frontend")
+		os.makedirs(frontend)
+		with open(os.path.join(frontend, "package.base.json"), "w") as f:
+			f.write("{}")
+		open(os.path.join(frontend, "yarn.lock.base"), "w").close()
+		record = os.path.join(frontend, "published.json")
+		if last_shaping is not None:
+			with open(record, "w") as f:
+				json.dump({"shaping_apps": last_shaping}, f)
+
+		try:
+			with stubbed_yarn(
+				os.path.join(bench, "frappe"), stub_manifest=False, fail_build=fail_build
+			) as commands:
+				build_shell(source, production=True, listed_apps=listed)
+		except subprocess.CalledProcessError:
+			if not fail_build:
+				raise
+		if not os.path.exists(record):
+			return commands, None
+		with open(record) as f:
+			return commands, json.load(f)["shaping_apps"]
+
+
+def listed_apps_given_to_shell(args: list[str]) -> list[str] | None:
+	with (
+		patch("frappe.init"),
+		patch("frappe.get_all_apps", return_value=["frappe", "crm", "plain"]),
+		patch("frappe.get_app_source_path", return_value="/nowhere"),
+		patch("frappe.utils.synchronization.filelock", lambda *a, **kw: nullcontext()),
+		patch("frappe.bundler.bundle"),
+		patch("frappe.bundler.build_framework_islands"),
+		patch("frappe.gettext.translate.compile_translations"),
+		patch("frappe.commands.utils.run_after_build_hook"),
+		patch("frappe.bundler.build_shell") as build_shell,
+	):
+		result = CliRunner().invoke(build, args)
+	if result.exception:
+		raise result.exception
+	return build_shell.call_args.kwargs["listed_apps"]
+
+
+@contextmanager
+def bench_of(apps: dict[str, tuple[str, ...] | list[str]]):
+	"""A bench whose apps hold the given files, each path relative to the app's source dir; yields its root."""
+	with tempfile.TemporaryDirectory() as bench:
+		for app, files in apps.items():
+			for path in files:
+				path = os.path.join(bench, app, path)
+				os.makedirs(os.path.dirname(path), exist_ok=True)
+				open(path, "w").close()
+
+		with (
+			patch("frappe.get_all_apps", return_value=list(apps)),
+			patch("frappe.get_app_path", side_effect=lambda app, *rest: os.path.join(bench, app, *rest)),
+			patch("frappe.shell.manifest.app_import_map", return_value={}),
+			patch("frappe.shell.manifest.declared_prefix", return_value=None),
+			patch("frappe.shell.manifest.is_modular", return_value=False),
+			patch("frappe.shell.manifest.read_declaration", return_value={}),
+		):
+			yield bench
+
+
+class TestShapingApps(UnitTestCase):
+	PLAIN = TestShellBuildForListedApps.PLAIN
+
+	def test_app_with_no_contribution_does_not_shape_the_shell(self):
+		with bench_of({"frappe": [], "plain": self.PLAIN}):
+			self.assertEqual(shaping_apps(["plain"]), [])
+
+	def test_frappe_always_shapes_the_shell(self):
+		with bench_of({"frappe": [], "plain": self.PLAIN}):
+			self.assertEqual(shaping_apps(["frappe", "plain"]), ["frappe"])
+
+	def test_contributing_app_shapes_the_shell(self):
+		with bench_of({"frappe": [], "plain": self.PLAIN, "crm": TestShellBuildForListedApps.CRM}):
+			self.assertEqual(shaping_apps(["plain", "crm"]), ["crm"])
+
+	def test_app_shipping_a_preset_shapes_the_shell(self):
+		with bench_of({"frappe": [], "themed": ["frontend/tailwind.preset.js"]}):
+			self.assertEqual(shaping_apps(["themed"]), ["themed"])
+
+	def test_app_owning_a_doctype_another_app_customises_shapes_the_shell(self):
+		with bench_of({"frappe": [], "plain": self.PLAIN, "other": ["other_module/custom/thing/record.js"]}):
+			self.assertEqual(shaping_apps(["plain"]), ["plain"])
 
 
 IMPORT = re.compile(r"""(?:from|import)\s*\(?\s*["']([^"']+)["']""")

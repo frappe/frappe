@@ -120,9 +120,12 @@ def bundle(
 		frappe.cache.flushdb()
 
 
-def build_shell(frappe_app_path: str, production: bool = False):
-	"""Assemble the manifest and run the framework's one vite build; `--app X` is accepted and ignored."""
-	from frappe.shell.manifest import cost_report
+def build_shell(frappe_app_path: str, production: bool = False, listed_apps: list[str] | None = None):
+	"""Assemble the manifest and run the framework's one vite build.
+
+	`listed_apps` are the apps a `--app`/`--apps` run lists; the build is skipped when none adds to the shell.
+	"""
+	from frappe.shell.manifest import adds_to_shell, cost_report, record_published, shaping_apps
 	from frappe.shell.manifest import write as write_manifest
 
 	frontend_path = os.path.join(frappe_app_path, "frontend")
@@ -131,8 +134,19 @@ def build_shell(frappe_app_path: str, production: bool = False):
 	if not os.path.exists(os.path.join(frontend_path, "package.base.json")):
 		return
 
+	published = os.path.join(frappe.get_app_path("frappe"), "public", "frontend")
+	# A bench with no shell built yet takes the first run that comes, whatever it lists.
+	if (
+		listed_apps
+		and os.path.exists(os.path.join(published, "index.html"))
+		and not adds_to_shell(listed_apps, frontend_path)
+	):
+		click.echo(f"Skipping the desk v2 shell build: nothing in {', '.join(listed_apps)} adds to it.")
+		return
+
 	# Raises `SingletonConflict`, naming the package, the shipped version and the app's range.
 	manifest, apps, deps_changed = write_manifest(frontend_path)
+	shaping = shaping_apps(apps, manifest)
 	lock_refreshed = refresh_lockfile(frontend_path)
 
 	# devDependencies are the test and lint tools. `--production=false` because yarn v1 skips them
@@ -152,7 +166,6 @@ def build_shell(frappe_app_path: str, production: bool = False):
 
 	# Build into a staging directory and swap it in on success: `emptyOutDir` would either take
 	# the running site's assets down on a failed build or leak every previous build.
-	published = os.path.join(frappe.get_app_path("frappe"), "public", "frontend")
 	staging = published + ".staging"
 
 	shutil.rmtree(staging, ignore_errors=True)
@@ -167,6 +180,7 @@ def build_shell(frappe_app_path: str, production: bool = False):
 		raise RuntimeError("The shell build produced no index.html; leaving the existing assets in place.")
 
 	swap_shell_assets(staging, published)
+	record_published(frontend_path, shaping)
 
 
 def refresh_lockfile(frontend_path: str) -> bool:
