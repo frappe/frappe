@@ -18,12 +18,16 @@
 			{{ text }}
 			<DataOpenLink :address="address" class="inline-grid align-middle" />
 		</template>
+		<template v-else-if="field.fieldtype === 'Color'" #default>
+			<ColorSwatch :field="field" :value="modelValue" class="me-2.5" />{{ text }}
+		</template>
 	</ReadValue>
 </template>
 
 <script setup lang="ts">
 import { computed, inject } from "vue";
 import ReadValue from "./ReadValue.vue";
+import ColorSwatch from "./ColorSwatch.vue";
 import DataOpenLink from "./DataOpenLink.vue";
 import { dataHref } from "./dataOptions";
 import { DocKey, ParentDocKey } from "./types";
