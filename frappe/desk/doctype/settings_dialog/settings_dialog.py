@@ -15,6 +15,8 @@ KEBAB_CASE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
 BINDING_TYPES = ("Single", "Record")
 NAME_RESOLVERS = ("session_user",)
 
+EVERY_UNCLAIMED_FIELD = None
+
 
 class SettingsDialog(Document):
 	"""One layer of one app's settings panes; the layers are merged in `frappe.shell.settings`."""
@@ -58,7 +60,7 @@ class SettingsDialog(Document):
 		self.validate_blocks()
 		self.refuse_block_keys_taken_on_the_site()
 		self.refuse_mixed_save_modes_on_a_binding()
-		self.refuse_a_field_two_components_declare()
+		self.refuse_two_owners_of_a_field()
 
 	def validate_app_content(self):
 		"""Only developer mode or a system write may set or clear `standard`, which is app content."""
@@ -188,30 +190,18 @@ class SettingsDialog(Document):
 						title=_("Mixed Save Modes"),
 					)
 
-	def refuse_a_field_two_components_declare(self):
-		"""A component block saves and shows refusals for the fields it declares, so one field has one owner per draft."""
+	def refuse_two_owners_of_a_field(self):
+		"""A component block saves and shows refusals for the fields it owns, so one field has one owner per draft."""
 		shipped = shipped_blocks(self.extends or self.app, exclude=self.name) if self.standard else []
 
 		owners = {}
 		for block in [*shipped, *self.blocks]:
 			owner = (block.key, block.get("app") or self.app)
 			for address in component_binding_addresses(block):
-				for fieldname in declared_fields(block):
-					key, app = owners.setdefault((address, fieldname), owner)
-					if (key, app) != owner and block in self.blocks:
-						frappe.throw(
-							_(
-								"Component blocks {0} from {1} and {2} in pane {3} both declare {4} of {5}. List each field in one block only."
-							).format(
-								frappe.bold(key),
-								frappe.bold(app),
-								frappe.bold(block.key),
-								frappe.bold(block.pane),
-								frappe.bold(fieldname),
-								frappe.bold(address[1]),
-							),
-							title=_("Field Declared Twice"),
-						)
+				for fieldname in owned_fields(block):
+					first = owners.setdefault((address, fieldname), owner)
+					if first != owner and block in self.blocks:
+						refuse_shared_fields(first, owner, block.pane, address[1], fieldname)
 
 	def on_update(self):
 		self.export_settings_dialog()
@@ -224,6 +214,26 @@ class SettingsDialog(Document):
 			return
 
 		export_to_files(record_list=[[self.doctype, self.name]], record_app=self.app)
+
+
+def refuse_shared_fields(
+	first: tuple[str, str], second: tuple[str, str], pane: str, doctype: str, fieldname: str | None
+):
+	names = [frappe.bold(part) for part in (*first, *second, pane, doctype)]
+	if fieldname is EVERY_UNCLAIMED_FIELD:
+		frappe.throw(
+			_(
+				"Component blocks {0} from {1} and {2} from {3} in pane {4} both list no fields of {5}, so both would own every unclaimed field. List the fields of one of them."
+			).format(*names),
+			title=_("Fields Not Listed"),
+		)
+
+	frappe.throw(
+		_(
+			"Component blocks {0} from {1} and {2} from {3} in pane {4} both declare {6} of {5}. List each field in one block only."
+		).format(*names, frappe.bold(fieldname)),
+		title=_("Field Declared Twice"),
+	)
 
 
 def validate_key(key: str, kind: str, idx: int):
@@ -335,14 +345,17 @@ def component_binding_addresses(block) -> list[tuple[str, str, str]]:
 	]
 
 
-def declared_fields(block) -> set[str]:
-	"""A component block's `fields`. Skips JSON a shipped record holds unvalidated."""
+def owned_fields(block) -> set[str | None]:
+	"""A component block's `fields`, or every unclaimed field when it lists none. Empty for JSON the merge drops."""
 	try:
 		fields = json.loads(block.get("fields") or "[]")
 	except ValueError:
 		return set()
 
-	return {field for field in fields if isinstance(field, str)} if isinstance(fields, list) else set()
+	if not isinstance(fields, list) or not all(isinstance(field, str) for field in fields):
+		return set()
+
+	return set(fields) or {EVERY_UNCLAIMED_FIELD}
 
 
 def parse_json(block, fieldname: str, default):

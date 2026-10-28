@@ -9,6 +9,7 @@ import json
 import frappe
 from frappe import _
 from frappe.desk.doctype.rail.rail import NO_HOST, SITE_LAYER
+from frappe.desk.doctype.settings_dialog.settings_dialog import EVERY_UNCLAIMED_FIELD
 from frappe.desk.layers import anchor_attempts, place_by_anchors
 
 from .boot import app_screen, report_oversized_keys
@@ -105,10 +106,10 @@ def _fill(pane_list: list[dict], contributors: list, blocks: dict[str, list], in
 				)
 				continue
 
-			if _declares_a_declared_field(pane, block):
+			if _claims_a_claimed_field(pane, block):
 				_warn(
-					f"block {row.key!r} from {record.app!r} declares a field another component block"
-					f" on the same binding declares in pane {pane['app']}/{pane['key']}"
+					f"block {row.key!r} from {record.app!r} shares its fields with another component block on the"
+					f" same binding in pane {pane['app']}/{pane['key']} (both declare one, or both list none)"
 				)
 				continue
 
@@ -130,16 +131,19 @@ def _mixes_save_modes(pane: dict, block: dict) -> bool:
 	)
 
 
-def _declares_a_declared_field(pane: dict, block: dict) -> bool:
-	"""A component block saves and shows refusals for the fields it declares, so one field has one owner per draft."""
+def _claims_a_claimed_field(pane: dict, block: dict) -> bool:
+	"""A component block saves and shows refusals for the fields it owns, so one field has one owner per draft."""
 	addresses = _component_addresses(block)
-	fields = set(block.get("fields", [])) if "component" in block else set()
 	return any(
 		"component" in other
-		and fields & set(other.get("fields", []))
+		and _owned_fields(block) & _owned_fields(other)
 		and addresses & _component_addresses(other)
 		for other in pane["blocks"]
 	)
+
+
+def _owned_fields(block: dict) -> set[str | None]:
+	return set(block.get("fields") or [EVERY_UNCLAIMED_FIELD])
 
 
 def _component_addresses(block: dict) -> set[tuple]:
