@@ -92,13 +92,15 @@ def change_settings(doctype, settings_dict=None, /, commit=False, **settings) ->
 	settings.save(ignore_permissions=True)
 	if commit:
 		frappe.db.commit()
-	yield
-	settings = frappe.get_doc(doctype)
-	for key, value in previous_settings.items():
-		setattr(settings, key, value)
-	settings.save(ignore_permissions=True)
-	if commit:
-		frappe.db.commit()
+	try:
+		yield
+	finally:
+		settings = frappe.get_doc(doctype)
+		for key, value in previous_settings.items():
+			setattr(settings, key, value)
+		settings.save(ignore_permissions=True)
+		if commit:
+			frappe.db.commit()
 
 
 @IntegrationTestCase.registerAs(staticmethod)
@@ -108,10 +110,12 @@ def switch_site(site: str) -> None:
 	old_site = frappe.local.site
 	frappe.init(site, force=True)
 	frappe.connect()
-	yield
-	frappe.destroy()
-	frappe.init(old_site, force=True)
-	frappe.connect()
+	try:
+		yield
+	finally:
+		frappe.destroy()
+		frappe.init(old_site, force=True)
+		frappe.connect()
 
 
 @UnitTestCase.registerAs(staticmethod)
@@ -173,8 +177,10 @@ def timeout_context(seconds=30, error_message="Operation timed out.") -> None:
 
 	signal.signal(signal.SIGALRM, _handle_timeout)
 	signal.alarm(30 if callable(seconds) else seconds)
-	yield
-	signal.alarm(0)
+	try:
+		yield
+	finally:
+		signal.alarm(0)
 
 
 def timeout(seconds=30, error_message="Operation timed out."):
@@ -249,15 +255,15 @@ def trace_fields(
 
 	doc_class.__init__ = new_init
 
-	yield doc_class
-
-	# Restore original attributes and init method
-	for f_name, original_attr in original_attrs.items():
-		if original_attr is not None:
-			setattr(doc_class, f_name, original_attr)
-		else:
-			delattr(doc_class, f_name)
-	doc_class.__init__ = original_init
+	try:
+		yield doc_class
+	finally:
+		for f_name, original_attr in original_attrs.items():
+			if original_attr is not None:
+				setattr(doc_class, f_name, original_attr)
+			else:
+				delattr(doc_class, f_name)
+		doc_class.__init__ = original_init
 
 
 # NOTE: declare those who should also be made available directly frappe.tests.* namespace
