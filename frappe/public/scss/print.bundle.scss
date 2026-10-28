@@ -60,6 +60,29 @@ svg[data-barcode-value] {
 .filter-row div {
 	display: inline-block;
 }
+<<<<<<< HEAD
+=======
+
+.print-grid {
+	tbody tr {
+		height: 30px;
+	}
+	tr.bold td {
+		font-weight: var(--font-weight-bold);
+	}
+}
+
+.print-format .table.print-grid {
+	> thead > tr > th,
+	> tbody > tr > td {
+		padding: 4px;
+	}
+}
+
+.print-format.smaller-font {
+	font-size: 4pt;
+}
+>>>>>>> 0781983 (fix: compact cell padding in default report print)
 // prevent <ol> numbering conflicts
 .ql-editor {
 	counter-reset: none;
