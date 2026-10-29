@@ -8,6 +8,7 @@
  "docstatus": 0,
  "doctype": "Report",
  "doctype_to_sync": [],
+ "documentation_url": "https://docs.frappe.io/framework/user/en/basics/users-and-permissions",
  "filters": [
   {
    "fieldname": "user",
@@ -36,7 +37,7 @@
  "generate_csv": 0,
  "idx": 3,
  "is_standard": "Yes",
- "modified": "2026-10-27 18:33:42.509255",
+ "modified": "2026-10-29 06:40:27.789333",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "Permitted Documents For User",
