@@ -21,6 +21,7 @@ from frappe.core.doctype.server_script.server_script_utils import get_server_scr
 from frappe.database.utils import DefaultOrderBy
 from frappe.handler import is_valid_http_method, resolve_method, run_server_script, upload_file
 from frappe.mcp import handle as handle_mcp
+from frappe.model.utils import is_virtual_doctype
 
 PERMISSION_MAP = {
 	"GET": "read",
@@ -116,6 +117,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	Controller Customization:
 		Doctype controllers can customize queries by implementing a static get_list(query) method
 		that receives a QueryBuilder object and returns a modified QueryBuilder.
+		Virtual DocTypes are listed through their own get_list, as frappe.get_list does.
 
 		Example:
 			class Project(Document):
@@ -149,6 +151,20 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 	if group_by and not isinstance(group_by, str):
 		raise FrappeValueError("'group_by' must be a string")
 
+	if is_virtual_doctype(doctype):
+		data = frappe.get_list(
+			doctype,
+			fields=fields,
+			filters=filters,
+			order_by=order_by,
+			start=start,
+			limit=limit + 1,
+			group_by=group_by,
+			as_list=not as_dict,
+		)
+		frappe.response["has_next_page"] = len(data) > limit
+		return data[:limit]
+
 	query = frappe.qb.get_query(
 		table=doctype,
 		fields=fields,
@@ -178,7 +194,7 @@ def document_list(doctype: str) -> list[dict[str, Any]]:
 				query = return_value
 
 		except Exception as e:
-			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e)))
+			frappe.throw(_("Error in {0}.get_list: {1}").format(doctype, str(e) or type(e).__name__))
 
 	data = query.run(as_dict=as_dict, debug=debug, as_list=not as_dict)
 	frappe.response["has_next_page"] = len(data) > limit
