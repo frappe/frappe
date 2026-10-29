@@ -199,7 +199,7 @@ export interface EmailItemSlots {
 export interface CommentItemProps {
   comment: CommentActivity;
   editable?: boolean;
-  /** classes on the editor content; default "prose-sm max-w-none" */
+  /** classes on the comment content, read or editing; default "prose-sm max-w-none" */
   editorClass?: string;
   /** image upload handler passed through to the editor while editing */
   uploadFunction?: (file: File) => Promise<UploadedMedia>;
