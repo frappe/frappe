@@ -94,7 +94,11 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 			setTimeout(() => {
 				let inputValue = this.get_input_value();
 
-				if (inputValue && validate_url(inputValue)) {
+				if (
+					inputValue &&
+					validate_url(inputValue) &&
+					!frappe.utils.has_unsafe_url_scheme(inputValue)
+				) {
 					this.$link.toggle(true);
 					this.$link_open.attr("href", this.get_input_value());
 				}
@@ -104,7 +108,11 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 		this.$input.bind("input", () => {
 			let inputValue = this.get_input_value();
 
-			if (inputValue && validate_url(inputValue)) {
+			if (
+				inputValue &&
+				validate_url(inputValue) &&
+				!frappe.utils.has_unsafe_url_scheme(inputValue)
+			) {
 				this.$link.toggle(true);
 				this.$link_open.attr("href", this.get_input_value());
 			} else {
