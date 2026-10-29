@@ -129,8 +129,6 @@ class Tool:
 	display_template: str | None = None
 	# May run alongside the other concurrent tools called in the same turn.
 	concurrent: bool = False
-	# A turn that calls only such tools, none failing, ends the run: no model turn follows.
-	ends_run: bool = False
 
 	def __post_init__(self) -> None:
 		if self.display_template is not None:
@@ -173,7 +171,6 @@ def tool(
 	prompt_guidelines: tuple[str, ...] = (),
 	display_template: str | None = None,
 	concurrent: bool = False,
-	ends_run: bool = False,
 ) -> Callable[[Callable[..., Awaitable[ToolResult]]], Tool]: ...
 
 
@@ -188,7 +185,6 @@ def tool(
 	prompt_guidelines: tuple[str, ...] = (),
 	display_template: str | None = None,
 	concurrent: bool = False,
-	ends_run: bool = False,
 ) -> Tool | Callable[[Callable[..., Awaitable[ToolResult]]], Tool]:
 	def wrap(f: Callable[..., Awaitable[ToolResult]]) -> Tool:
 		return Tool(
@@ -202,7 +198,6 @@ def tool(
 			prompt_guidelines=prompt_guidelines,
 			display_template=display_template,
 			concurrent=concurrent,
-			ends_run=ends_run,
 		)
 
 	return wrap(func) if func is not None else wrap

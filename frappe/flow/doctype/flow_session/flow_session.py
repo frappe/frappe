@@ -169,8 +169,10 @@ class FlowSession(Document):
 			"user_context": context,
 			"cwd": str(lifecycle.session_root()),
 		}
-		if self.source == "Trigger":  # nobody is there to tap a suggested reply
-			config["tools"] = [name for name in config["tools"] if name != "suggest_replies"]
+		config["suggest_replies"] = self.source != "Trigger"  # nobody is there to tap one
+		small_model = frappe.db.get_single_value("Flow Settings", "small_model")
+		if small_model and frappe.db.get_value("Flow Model", small_model, "enabled"):
+			config["small_model"] = model_config(small_model, check_permission=False)
 		if agent.token_budget:  # none: no cap
 			config["token_budget"] = agent.token_budget
 		if frappe.conf.flow_callback_timeout:

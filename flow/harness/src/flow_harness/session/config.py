@@ -54,6 +54,8 @@ class SessionConfig(BaseModel):
 			store. Redacted in API responses.
 		api_base: Endpoint override that travels with `api_key`.
 		model_params: Extra provider params sent with every model call.
+		small_model: The model for side jobs such as the title; None uses `model`.
+		suggest_replies: After a run ends, offer the user a few next messages.
 		confirm_tools: Extra tools that pause for approval, on top of each tool's own
 			default. `auto_approve` is the only way to switch approval off.
 		auto_approve: Unattended runs (triggers) skip approval.
@@ -95,6 +97,8 @@ class SessionConfig(BaseModel):
 	api_key: str | None = None
 	api_base: str | None = None
 	model_params: dict[str, Any] = Field(default_factory=dict)
+	small_model: SmallModelConfig | None = None
+	suggest_replies: bool = False
 	confirm_tools: list[str] = Field(default_factory=list)
 	auto_approve: bool = False
 	skills_enabled: bool = True
@@ -120,10 +124,29 @@ class SessionConfig(BaseModel):
 		for secret in ("callback_token", "api_key"):
 			if data.get(secret):
 				data[secret] = "***"
-		for agent in data["subagents"]:
+		for agent in [*data["subagents"], data["small_model"] or {}]:
 			if agent.get("api_key"):
 				agent["api_key"] = "***"
 		return data
+
+
+class SmallModelConfig(BaseModel):
+	"""A cheaper model for side jobs, with its own credentials.
+
+	Attributes:
+		model: The model to use.
+		api_key: Client-supplied model API key that replaces the daemon's credential
+			store. Redacted in API responses.
+		api_base: Endpoint override that travels with `api_key`.
+		model_params: Extra provider params for its calls.
+	"""
+
+	model_config = ConfigDict(extra="forbid")
+
+	model: str = Field(min_length=1)
+	api_key: str | None = None
+	api_base: str | None = None
+	model_params: dict[str, Any] = Field(default_factory=dict)
 
 
 class SubagentConfig(BaseModel):

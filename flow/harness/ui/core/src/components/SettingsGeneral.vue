@@ -4,6 +4,14 @@
 			<SettingsRow title="Approval mode" description="Applies to new chats and the current one.">
 				<Select :model-value="flow.state.prefs.mode" :options="MODES" @update:model-value="flow.setMode($event)" />
 			</SettingsRow>
+			<SettingsRow title="Small model" description="Titles new chats. A cheaper, faster model saves money.">
+				<Select
+					:model-value="flow.state.prefs.smallModel ?? ''"
+					:options="smallModels"
+					class="w-48"
+					@update:model-value="flow.setSmallModel($event)"
+				/>
+			</SettingsRow>
 			<div class="py-4">
 				<div class="text-base font-medium text-ink-gray-9">Custom instructions</div>
 				<p class="mt-1.5 text-sm leading-5 text-ink-gray-6">Added to the prompt of every new chat.</p>
@@ -27,12 +35,16 @@ import { Button } from "frappe-ui/src/components/Button"
 import { Select } from "frappe-ui/src/components/Select"
 import { Textarea } from "frappe-ui/src/components/Textarea"
 
-import { APPROVAL_MODES } from "../transcript.js"
+import { APPROVAL_MODES, modelTitle } from "../transcript.js"
 import SettingsPage from "./SettingsPage.vue"
 import SettingsRow from "./SettingsRow.vue"
 
 const flow = inject("flow")
 const MODES = APPROVAL_MODES.map((mode) => ({ label: mode.label, value: mode.id }))
+const smallModels = computed(() => [
+	{ label: "The chat's model", value: "" },
+	...flow.state.models.map((model) => ({ label: modelTitle(model.name, flow.state.models), value: model.name })),
+])
 
 // instructions are a draft until saved; reopening discards unsaved edits
 const draft = ref(flow.state.prefs.customInstructions)

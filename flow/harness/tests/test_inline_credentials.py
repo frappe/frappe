@@ -32,6 +32,7 @@ def test_local_default_refuses_inline_credentials(tmp_path):
 		{"api_base": "http://gw.localhost"},
 		{"model_params": params},
 		{"subagents": [{"name": "a", "model_params": params}]},
+		{"small_model": {"model": "mock", "api_key": KEY}},
 	):
 		r = c.post("/sessions", json={"cwd": str(tmp_path), **body})
 		assert r.status_code == 400, body
@@ -71,11 +72,13 @@ def test_inline_credentials_accepted_and_redacted(tmp_path):
 				"api_key": KEY,
 				"api_base": "http://gw.localhost/v1",
 				"model_params": params,
+				"small_model": {"model": "mock", "api_key": KEY},
 			},
 		)
 		assert r.status_code == 200, policy
 		sid = r.json()["session_id"]
 		assert r.json()["config"]["api_key"] == "***", policy
+		assert r.json()["config"]["small_model"]["api_key"] == "***", policy
 		assert r.json()["config"]["api_base"] == "http://gw.localhost/v1", policy
 		assert r.json()["config"]["model_params"] == params, policy
 		assert store.get(sid).config.api_key == KEY, policy

@@ -52,11 +52,7 @@ def _read_call(cid="c1", path="a.txt"):
 	return AssistantMessage(content=[ToolCall(id=cid, name="read", arguments={"path": path})])
 
 
-def _offer(cid, *replies):
-	return ToolCall(id=cid, name="suggest_replies", arguments={"replies": list(replies)})
-
-
-async def test_a_run_takes_turns_until_the_model_stops_or_calls_only_run_ending_tools(tmp_path):
+async def test_a_run_takes_turns_until_the_model_stops_calling_tools(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)
 	mock = MockModel(replies=[_read_call(), AssistantMessage(content="hello there")])
@@ -70,16 +66,6 @@ async def test_a_run_takes_turns_until_the_model_stops_or_calls_only_run_ending_
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 	assert session.transcript.messages[0].type == "user_message"
 	assert session.transcript.messages[0].content == "hi"
-
-	# offering replies ends the run, unless the turn also called another tool or the offer failed
-	session, events = _session(tmp_path, tools=["read", "suggest_replies"])
-	read, offer = _read_call().tool_calls[0], _offer("c2", "Yes", "No")
-	turns = [[read, offer], [_offer("c3", "Yes")], [_offer("c4", "Yes", "No")], "never asked"]
-	mock = MockModel(replies=[AssistantMessage(content=content) for content in turns])
-	await _run(session, "hi", model=mock)
-	assert [r["is_error"] for r in _of(events, "tool_result")] == [False, False, True, False]
-	assert len(_of(events, "assistant_message")) == 3
-	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
 
 async def test_the_model_request_carries_the_session_settings(tmp_path, monkeypatch):
@@ -295,19 +281,6 @@ async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
 	assert "use the other file" in tr["content"]
 	assert mock._turn == 2  # the model got a turn to adjust
 	assert _of(events, "run_ended")[-1]["reason"] == "done"
-
-	# an approved run-ending tool still ends the run; a redirect still gets the model's turn
-	for answer, model_turns in [("Approve", 1), ("shorter ones", 2)]:
-		session, events = _session(tmp_path, tools=["suggest_replies"], confirm_tools=["suggest_replies"])
-		replies = [
-			AssistantMessage(content=[_offer("c1", "Yes", "No")]),
-			AssistantMessage(content="adjusted"),
-		]
-		mock = MockModel(replies=replies)
-		await _run(session, "ask me", model=mock)
-		await _resume(session, {"c1": answer}, model=mock)
-		assert mock._turn == model_turns, answer
-		assert [e["reason"] for e in _of(events, "run_ended")] == ["paused", "done"]
 
 
 async def test_a_paused_session_refuses_runs_and_inexact_answers_until_cancelled(tmp_path):
