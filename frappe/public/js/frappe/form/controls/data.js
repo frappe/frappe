@@ -101,6 +101,8 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 				) {
 					this.$link.toggle(true);
 					this.$link_open.attr("href", this.get_input_value());
+				} else {
+					this.$link.toggle(false);
 				}
 			}, 500);
 		});
