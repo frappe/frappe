@@ -2672,8 +2672,15 @@ class Document(_DocumentBase):
 				frappe.utils.validate_phone_number(data, throw=True)
 
 			if data_field_options == "URL":
+<<<<<<< HEAD
 				if not data:
 					continue
+=======
+				validate_url(data, throw=True)
+				# browsers ignore control characters and spaces before the scheme
+				if re.sub(r"[\x00-\x20]", "", data).lower().startswith(("javascript:", "vbscript:", "data:")):
+					frappe.throw(_("'{0}' is not a valid URL").format(frappe.bold(data)))
+>>>>>>> e18e4d8 (fix: only link URL field values that have a web-safe scheme)
 
 				frappe.utils.validate_url(data, throw=True)
 
