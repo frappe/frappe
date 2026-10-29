@@ -685,7 +685,7 @@ frappe.ui.form.Form = class FrappeForm {
 				() => this._resolve_layout(),
 				() => this.refresh_header(switched),
 				() => $(document).trigger("form-refresh", [this]),
-				() => this.refresh_fields(),
+				() => this.render_fields(),
 				() => this.script_manager.trigger("refresh"),
 				() => this.apply_layout_defaults(),
 				() => {
@@ -868,6 +868,16 @@ frappe.ui.form.Form = class FrappeForm {
 	}
 
 	refresh_fields() {
+		if (this.layout === undefined || this.refresh_fields_frame) {
+			return;
+		}
+
+		this.refresh_fields_frame = requestAnimationFrame(() => this.render_fields());
+	}
+
+	render_fields() {
+		cancelAnimationFrame(this.refresh_fields_frame);
+		this.refresh_fields_frame = null;
 		if (this.layout === undefined) {
 			return;
 		}
