@@ -7,6 +7,7 @@ import requests
 import frappe
 from frappe.api import discovery
 from frappe.api.v2 import run_doc_method
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user.user import generate_keys
 from frappe.installer import update_site_config
 from frappe.permissions import add_permission, update_permission_property
@@ -236,6 +237,61 @@ class TestApiV2UpdatePermissions(FrappeAPITestCase):
 		response = self.update_document(name, {"description": "Permitted API update"})
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
+
+
+class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
+	version = "v2"
+
+	def setUp(self):
+		super().setUp()
+		frappe.set_user("Administrator")
+		self.user = "api.fieldlevel@example.com"
+		if not frappe.db.exists("User", self.user):
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Field Level",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		keys = generate_keys(self.user)
+		self.authorization = f"token {keys['api_key']}:{keys['api_secret']}"
+		self.doctype = (
+			new_doctype(
+				fields=[
+					{
+						"fieldname": "secret",
+						"fieldtype": "Data",
+						"label": "Secret",
+						"permlevel": 1,
+						"default": "hidden",
+					}
+				],
+				permissions=[{"role": "Desk User", "read": 1, "write": 1, "create": 1, "permlevel": 0}],
+			)
+			.insert()
+			.name
+		)
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			frappe.delete_doc("DocType", self.doctype)
+			frappe.delete_doc_if_exists("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def test_create_omits_fields_without_read_permission(self):
+		response = make_request(
+			get_test_client(use_cookies=False).post,
+			args=(self.resource(self.doctype),),
+			kwargs={"json": {}, "headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertIsNone(response.json["data"].get("secret"))
 
 
 class TestMethodAPIV2(FrappeAPITestCase):

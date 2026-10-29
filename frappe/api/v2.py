@@ -202,7 +202,9 @@ def create_doc(doctype: str):
 	if (name := data.get("name")) and isinstance(name, str | int):
 		doc.flags.name_set = True
 
-	return doc.insert().as_dict()
+	doc.insert()
+	doc.apply_fieldlevel_read_permissions()
+	return doc.as_dict()
 
 
 def copy_doc(doctype: str, name: str, ignore_no_copy: bool = True):
