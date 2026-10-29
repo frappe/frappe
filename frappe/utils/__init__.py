@@ -260,6 +260,11 @@ def validate_url(
 	return is_valid
 
 
+def has_unsafe_url_scheme(txt: str) -> bool:
+	"""Return True if `txt` has a scheme that runs code when the URL is opened."""
+	return urlparse(txt).scheme in ("javascript", "vbscript", "data")
+
+
 def validate_iban(iban: str, throw: bool = False) -> bool:
 	from frappe import _
 

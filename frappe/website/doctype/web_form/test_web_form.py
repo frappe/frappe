@@ -109,6 +109,22 @@ class TestWebForm(IntegrationTestCase):
 		)
 		self.assertTrue(frappe.db.exists("Event", {"subject": "someone@example.com"}))
 
+	def test_web_form_url_field_rejects_script_schemes(self):
+		frappe.set_user("Administrator")
+
+		# Event.subject carries no data field options; the Web Form types it as a URL
+		web_form = self.make_temp_web_form(
+			web_form_fields=[
+				{"fieldname": "subject", "fieldtype": "Data", "label": "Title", "reqd": 1, "options": "URL"}
+			]
+		)
+		doc = {"doctype": "Event", "subject": "javascript:alert(1)", "starts_on": "2014-09-09"}
+
+		self.assertRaises(frappe.ValidationError, accept, web_form=web_form.name, data=json.dumps(doc))
+
+		accept(web_form=web_form.name, data=json.dumps({**doc, "subject": "https://example.com/x"}))
+		self.assertTrue(frappe.db.exists("Event", {"subject": "https://example.com/x"}))
+
 	def test_web_form_phone_fieldtype_is_enforced_on_server(self):
 		"""`Phone` as a Web Form fieldtype is invisible to Meta.get_phone_fields(), which
 		only sees the DocType's own fields."""
