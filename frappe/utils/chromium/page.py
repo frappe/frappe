@@ -37,6 +37,23 @@ def read_blob_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str
 	return content, served_type(filename, blob.mime_type)[0]
 
 
+def read_file_for_url(clean_path: str, fid: str | None = None) -> tuple[str, str] | None:
+	"""Return the base64 body and Content-Type of a File the session user can
+	read whose ``file_url`` is this path, else None."""
+	if not (file := find_file_by_url("/" + clean_path, name=fid)):
+		return None
+	try:
+		content = file.get_content(encodings=[])
+	except FileNotFoundError:
+		return None
+	except Exception:
+		frappe.log_error(title="PDF Generator could not read a stored file")
+		return None
+	return base64.b64encode(frappe.safe_encode(content)).decode(), served_type(
+		file.file_name or clean_path, None
+	)[0]
+
+
 def read_local_resource(url: str) -> tuple[str, str | None] | None:
 	"""Return the base64 body and Content-Type of a site URL the session user may
 	read from disk or blob storage, else None."""
@@ -86,6 +103,8 @@ def read_local_resource(url: str) -> tuple[str, str | None] | None:
 			return content, "image/svg+xml" if clean_path.endswith(".svg") else None
 	elif stored := read_blob_for_url(clean_path, query_params.get("fid", [None])[0]):
 		# not on disk: a blob on another driver, or a v1 file relocated into a blob
+		return stored
+	elif stored := read_file_for_url(clean_path, query_params.get("fid", [None])[0]):
 		return stored
 	elif clean_path:
 		frappe.log_error(
@@ -439,6 +458,17 @@ class Page:
 
 	def get_content_width(self):
 		result = self.evaluate("document.documentElement.scrollWidth")
+		return (result or {}).get("result", {}).get("value") or 0
+
+	def get_content_height(self):
+		result = self.evaluate(
+			"""(() => {
+				const style = document.createElement("style");
+				style.textContent = "html, body, .print-format { height: auto !important; min-height: 0 !important; }";
+				document.head.appendChild(style);
+				return document.documentElement.scrollHeight;
+			})()"""
+		)
 		return (result or {}).get("result", {}).get("value") or 0
 
 	def capture_screenshot(self, image_format="jpeg", quality=30):

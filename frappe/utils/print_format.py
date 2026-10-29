@@ -19,9 +19,10 @@ from frappe.desk.query_report import (
 )
 from frappe.model.document import Document
 from frappe.translate import print_language
-from frappe.utils import cint, get_datetime, get_system_timezone
+from frappe.utils import cint, get_datetime, get_link_to_form, get_system_timezone
 from frappe.utils.jinja import render_template
 from frappe.utils.pdf import get_pdf
+from frappe.utils.print_utils import resolve_pdf_generator
 
 no_cache = 1
 
@@ -70,6 +71,7 @@ def _get_multi_pdf_doc_count(doctype: str | dict[str, list[str]], name: str | li
 
 
 @frappe.whitelist()
+@frappe.concurrent_limit()
 def download_multi_pdf(
 	doctype: str | dict[str, list[str]],
 	name: str | list[str],
@@ -231,6 +233,7 @@ def _download_multi_pdf(
 	format_language = format and frappe.db.get_value("Print Format", format, "default_print_language")
 
 	pdf_writer = PdfWriter()
+	failed = []
 
 	options = frappe.parse_json(options)
 
@@ -250,7 +253,11 @@ def _download_multi_pdf(
 				get_default_print_format,
 				uses_beta_renderer,
 			)
-			from frappe.utils.print_utils import _print_format_doc_or_none, resolve_pdf_generator
+			from frappe.utils.print_utils import (
+				_print_format_doc_or_none,
+				_run_print_pdf_hooks,
+				resolve_pdf_generator,
+			)
 			from frappe.www.printview import set_link_titles, validate_print
 
 			pf_doc = _print_format_doc_or_none(format, print_doctype)
@@ -271,18 +278,29 @@ def _download_multi_pdf(
 
 			from pypdf import PdfReader
 
+			from frappe.utils.pdf_generator.pdf_merge import PDFTransformer
 			from frappe.utils.print_format_generator import PrintFormatGenerator
 
 			doc = frappe.get_doc(print_doctype, print_name)
 			validate_print(doc)
 			set_link_titles(doc)
+			_run_print_pdf_hooks(print_doctype, print_name, format)
 			pf = pf_doc or get_default_print_format(print_doctype)
 			generator = PrintFormatGenerator(
 				pf, doc, letterhead, no_letterhead=no_letterhead, settings=page_settings(options)
 			)
 			pdf = generator.render_pdf()
-			for page in PdfReader(BytesIO(pdf)).pages:
-				pdf_writer.add_page(page)
+			make_access_log(
+				doctype=doc.doctype,
+				document=doc.name,
+				file_type="PDF",
+				method="Print",
+				page=f"Print Format: {pf.name}",
+			)
+			reader = PdfReader(BytesIO(pdf))
+			first_new_page = len(pdf_writer.pages)
+			pdf_writer.append_pages_from_reader(reader)
+			PDFTransformer.resolve_internal_links(pdf_writer, reader, first_new_page)
 			return pdf_writer
 
 	if not isinstance(doctype, dict):
@@ -304,10 +322,7 @@ def _download_multi_pdf(
 					reference_doctype=doctype,
 					reference_name=ss,
 				)
-				if task_id:
-					frappe.publish_realtime(
-						task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-					)
+				failed.append(get_link_to_form(doctype, ss))
 
 			# Publish progress
 			if task_id:
@@ -338,15 +353,12 @@ def _download_multi_pdf(
 						publish_failure(task_id, e)
 					raise
 				except Exception:
-					if task_id:
-						frappe.publish_realtime(
-							task_id=task_id, message={"message": "Failed"}, user=frappe.session.user
-						)
 					frappe.log_error(
 						title="Error in Multi PDF download",
 						reference_doctype=doctype_name,
 						reference_name=doc_name,
 					)
+					failed.append(get_link_to_form(doctype_name, doc_name))
 
 				count += 1
 
@@ -384,6 +396,16 @@ def _download_multi_pdf(
 		else:
 			frappe.local.response.filecontent = merged_pdf.getvalue()
 			frappe.local.response.type = "pdf"
+
+	# after task_complete, so the list view's "PDF is ready" message cannot overwrite this title
+	if failed:
+		frappe.msgprint(
+			failed,
+			as_list=True,
+			indicator="red",
+			realtime=True,
+			title=_("Failed to print {0} documents").format(len(failed)),
+		)
 
 
 from frappe.deprecation_dumpster import read_multi_pdf
@@ -427,11 +449,15 @@ def download_pdf(
 
 @frappe.whitelist()
 @frappe.concurrent_limit()
-def report_to_pdf(html: str, orientation: str = "Landscape"):
+def report_to_pdf(html: str, orientation: str = "Landscape", print_format: str | None = None):
 	make_access_log(file_type="PDF", method="PDF", page=html)
 	frappe.local.response.filename = "report.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
 	)
 	frappe.local.response.type = "pdf"
 
@@ -469,7 +495,7 @@ def render_letterhead_for_print(letterhead: str | None = None, doc: dict | str |
 		header = render_template(letter_head.content, {"doc": context_doc})
 		header = str(BeautifulSoup(header, "html.parser"))
 		if letter_head.custom_css:
-			header += f"\n<style>\n{letter_head.custom_css}\n</style>\n"
+			header += f"\n<style data-letter-head>\n{letter_head.custom_css}\n</style>\n"
 		if letter_head.header_script:
 			header += f"\n<script>\n{letter_head.header_script}\n</script>\n"
 		rendered["header"] = header
@@ -688,7 +714,11 @@ def download_report_pdf(
 
 	frappe.local.response.filename = f"{report_name}.pdf"
 	frappe.local.response.filecontent = get_pdf(
-		html, {"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True}
+		html,
+		{"orientation": orientation, "block-external-requests": True, "shrink-to-fit": True},
+		pdf_generator=resolve_pdf_generator(
+			print_format and frappe.get_cached_doc("Print Format", print_format)
+		),
 	)
 	frappe.local.response.type = "pdf"
 

@@ -14,7 +14,11 @@
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="flow.state.modelsLoading ? 'animate-spin' : ''" />
+				<span
+					class="lucide-refresh-cw size-3.5"
+					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
+					aria-hidden="true"
+				/>
 			</button>
 		</template>
 
@@ -24,21 +28,25 @@
 				ref="field"
 				v-model="typed"
 				placeholder="Search models…"
-				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+				class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 			/>
 			<button
 				class="grid h-6 w-6 flex-none place-items-center rounded-full text-ink-gray-5 hover:bg-surface-gray-2 hover:text-ink-gray-8"
 				title="Refresh models"
 				@click="flow.refreshModels()"
 			>
-				<FeatherIcon name="refresh-cw" class="h-3.5 w-3.5" :class="flow.state.modelsLoading ? 'animate-spin' : ''" />
+				<span
+					class="lucide-refresh-cw size-3.5"
+					:class="flow.state.modelsLoading ? 'animate-spin' : ''"
+					aria-hidden="true"
+				/>
 			</button>
 		</div>
 
 		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<template v-for="(group, i) in groups" :key="group.provider">
 				<!-- a heading takes a row's height; the first sits in the list's top padding -->
-				<div class="flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5" :class="i ? 'mt-2' : '-mt-1'">
+				<div class="flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5" :class="i ? 'mt-1' : '-mt-1'">
 					{{ group.provider }}
 				</div>
 				<button
@@ -51,7 +59,11 @@
 					@click="choose(m.name)"
 				>
 					<span class="min-w-0 truncate">{{ m.title }}</span>
-					<FeatherIcon v-if="m.name === currentModel" name="check" class="ml-auto h-4 w-4 flex-none" />
+					<span
+						v-if="m.name === currentModel"
+						class="lucide-check ml-auto size-4 flex-none"
+						aria-hidden="true"
+					/>
 				</button>
 			</template>
 			<!-- a typed provider/model not in the list is usable as-is: discovery is a suggestion, not a gate -->
@@ -60,7 +72,7 @@
 			</button>
 			<LoadingState
 				v-if="!groups.length && !custom && flow.state.modelsLoading"
-				class="justify-center px-3 py-8 text-xs text-ink-gray-5"
+				class="justify-center px-3 py-8 text-base text-ink-gray-5"
 			/>
 			<div v-else-if="!groups.length && !custom && flow.state.models.length" class="flow-palette-empty">
 				No matching models
@@ -69,7 +81,7 @@
 			<template v-else-if="!groups.length && !custom">
 				<div class="flow-palette-empty">{{ providers ? "No models yet" : "No models available" }}</div>
 				<button v-if="providers" data-palette-item class="flow-palette-row" @click="emit('providers')">
-					<FeatherIcon name="key" class="h-4 w-4 flex-none" />
+					<span class="lucide-key size-4 flex-none" aria-hidden="true" />
 					Connect a provider
 				</button>
 			</template>
@@ -79,7 +91,6 @@
 
 <script setup>
 import { computed, inject, onMounted, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import { layout } from "../layout.js"

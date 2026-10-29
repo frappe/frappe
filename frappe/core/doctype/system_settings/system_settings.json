@@ -802,7 +802,7 @@
   },
   {
    "default": "0",
-   "description": "Adds a clear (\u00d7) button to Link fields, allowing users to quickly remove the selected value.",
+   "description": "Adds a clear (\u00d7) button to Link fields when Combobox fields are off. Combobox fields always show it.",
    "fieldname": "allow_clearing_link_fields",
    "fieldtype": "Check",
    "label": "Allow Clearing Link Fields"
@@ -909,7 +909,7 @@
  "icon": "fa fa-cog",
  "issingle": 1,
  "links": [],
- "modified": "2026-10-25 12:00:00.000000",
+ "modified": "2026-10-28 19:51:33.748710",
  "modified_by": "Administrator",
  "module": "Core",
  "name": "System Settings",

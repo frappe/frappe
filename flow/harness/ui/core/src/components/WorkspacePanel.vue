@@ -48,7 +48,7 @@
 					role="tab"
 					tabindex="0"
 					:aria-selected="tab.path === workspace.active"
-					class="flow-tab group flex h-7 min-w-12 shrink basis-60 cursor-pointer items-center gap-1.5 rounded-5 pl-2.5 pr-1 text-xs"
+					class="flow-tab group flex h-7 min-w-12 shrink basis-60 cursor-pointer items-center gap-1.5 rounded-5 pl-2.5 pr-1 text-sm"
 					:class="
 						tab.path === workspace.active
 							? 'flow-tab-active bg-surface-gray-2 text-ink-gray-9'
@@ -66,7 +66,11 @@
 						@click.stop="requestClose(tab)"
 					>
 						<span v-if="tab.dirty" class="flow-dirty-dot h-2 w-2 rounded-full bg-ink-gray-6" />
-						<FeatherIcon name="x" class="h-3 w-3" :class="tab.dirty ? 'flow-dirty-x hidden' : ''" />
+						<span
+							class="lucide-x size-3"
+							:class="tab.dirty ? 'flow-dirty-x hidden' : ''"
+							aria-hidden="true"
+						/>
 					</button>
 				</div>
 				<!-- transient view tab: stands in until a file is picked, which replaces it -->
@@ -74,7 +78,7 @@
 					v-if="transientTab"
 					role="tab"
 					aria-selected="true"
-					class="flow-tab flow-tab-active flex h-7 min-w-12 shrink basis-60 cursor-default items-center gap-1.5 rounded-5 bg-surface-gray-2 pl-2.5 pr-1 text-xs text-ink-gray-9"
+					class="flow-tab flow-tab-active flex h-7 min-w-12 shrink basis-60 cursor-default items-center gap-1.5 rounded-5 bg-surface-gray-2 pl-2.5 pr-1 text-sm text-ink-gray-9"
 				>
 					<span class="flow-tab-label min-w-0 flex-1 text-left">{{ transientTab }}</span>
 					<button
@@ -82,7 +86,7 @@
 						title="Close"
 						@click="flow.closeFilesView()"
 					>
-						<FeatherIcon name="x" class="h-3 w-3" />
+						<span class="lucide-x size-3" aria-hidden="true" />
 					</button>
 				</div>
 				<!-- the host's additions to the strip: its "+" menu of the views it serves -->
@@ -95,14 +99,18 @@
 				:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
 				@click="flow.toggleWorkspaceMaximized()"
 			>
-				<FeatherIcon :name="workspace.maximized ? 'minimize-2' : 'maximize-2'" class="h-3.5 w-3.5" />
+				<span
+					class="size-3.5"
+					:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
+					aria-hidden="true"
+				/>
 			</button>
 			<button
 				class="flow-icon-btn my-1 mr-1 flex-none self-center"
 				title="Close panel"
 				@click="flow.setWorkspaceOpen(false)"
 			>
-				<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
+				<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
 			</button>
 		</div>
 
@@ -123,10 +131,14 @@
 					:title="workspace.maximized ? 'Exit full screen' : 'Full screen'"
 					@click="flow.toggleWorkspaceMaximized()"
 				>
-					<FeatherIcon :name="workspace.maximized ? 'minimize-2' : 'maximize-2'" class="h-3.5 w-3.5" />
+					<span
+						class="size-3.5"
+						:class="workspace.maximized ? 'lucide-minimize-2' : 'lucide-maximize-2'"
+						aria-hidden="true"
+					/>
 				</button>
 				<button class="flow-icon-btn" title="Close panel" @click="flow.setWorkspaceOpen(false)">
-					<FeatherIcon name="sidebar" class="h-3.5 w-3.5 -scale-x-100" />
+					<span class="lucide-panel-left size-3.5 -scale-x-100" aria-hidden="true" />
 				</button>
 			</span>
 			<slot name="empty" />
@@ -136,7 +148,6 @@
 
 <script setup>
 import { computed, inject, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 import { dialog } from "frappe-ui/src/utils/dialog"
 
 import SubagentView from "./SubagentView.vue"

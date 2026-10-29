@@ -340,7 +340,7 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	model.click()
 	await nextTick()
 	const picker = model.parentElement
-	const entries = [...picker.querySelectorAll("[data-palette-item]")].map((row) => [...row.querySelectorAll("span")].map((span) => span.textContent))
+	const entries = [...picker.querySelectorAll("[data-palette-item]")].map((row) => [...row.querySelectorAll("span:not([aria-hidden])")].map((span) => span.textContent))
 	assert.deepEqual(entries, [["Model", "Choose Model"], ["Thinking", "Default"]])
 	picker.querySelector("[data-palette-item]").click()
 	await nextTick()
@@ -357,7 +357,7 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	await nextTick()
 	// the host's command first, each row its label and what it does
 	const rows = [...el.querySelectorAll("[data-palette-item]")]
-	assert.deepEqual(rows.map((row) => [...row.querySelectorAll("span")].map((span) => span.textContent)), [
+	assert.deepEqual(rows.map((row) => [...row.querySelectorAll("span:not([aria-hidden])")].map((span) => span.textContent)), [
 		["Agent", "choose the agent"],
 		["Model", "Choose the model"],
 	])
@@ -438,12 +438,12 @@ test("a host fills the composer with its pickers, commands, palette pages and wo
 	layout.narrow = true
 	t.after(() => (layout.narrow = false))
 	await nextTick()
-	const icon = (node) => node.querySelector("[data-stub=FeatherIcon]")?.getAttribute("name")
+	const icon = (node) => [...(node.querySelector("[class*='lucide-']")?.classList ?? [])].find((name) => name.startsWith("lucide-"))
 	assert.equal(mode.title, "Approval mode: Just do it")
-	assert.deepEqual([mode.textContent.trim(), icon(mode)], ["", "unlock"])
+	assert.deepEqual([mode.textContent.trim(), icon(mode)], ["", "lucide-lock-open"])
 	mode.click()
 	await nextTick()
-	assert.deepEqual([...mode.parentElement.querySelectorAll("[data-palette-item]")].map(icon), ["lock", "unlock"])
+	assert.deepEqual([...mode.parentElement.querySelectorAll("[data-palette-item]")].map(icon), ["lucide-lock", "lucide-lock-open"])
 	mode.click()
 	layout.narrow = false
 	await nextTick()
@@ -591,7 +591,7 @@ test("the queue steers or takes back a waiting message", async (t) => {
 	const { el } = mount(t, Composer, { commands: [], mentions: false }, flow)
 	const button = (text) => [...el.querySelectorAll("button")].find((b) => b.textContent.trim() === text)
 	assert.match(el.textContent, /Queued\s*Also check this/)
-	assert.ok(button("Steer").querySelector("[data-stub=FeatherIcon][name=corner-down-left]"))
+	assert.ok(button("Steer").querySelector(".lucide-corner-down-left"))
 
 	const box = el.querySelector("fieldset textarea")
 	button("Steer").click()
@@ -1121,7 +1121,7 @@ test("a file removed, or left behind by a chat switch, while it is prepared is d
 	assert.ok(!el.textContent.includes("notes.pdf")) // a switch drops staged files, send or not
 })
 
-test("the settings shell renders a host's tabs and panels, as a page in a narrow frame", async (t) => {
+test("the settings shell renders a host's tabs and panels, as a page on a phone", async (t) => {
 	const groups = [{ label: "Settings", tabs: [{ id: "alpha", label: "Alpha", icon: "x" }, { id: "beta", label: "Beta", icon: "y" }] }]
 	const flow = { state: reactive({ settingsOpen: true }), setSettingsOpen() {} }
 	const { el, unmount } = mount(t, {
@@ -1134,7 +1134,14 @@ test("the settings shell renders a host's tabs and panels, as a page in a narrow
 	assert.deepEqual([...el.querySelectorAll("[data-stub=SettingsPanel]")].map((p) => `${p.dataset.value}:${p.textContent.trim()}`), ["alpha:A", "beta:B"])
 	unmount() // the page below has the browser's history to itself
 
-	// a narrow frame shows them as a page: a list whose rows open their panel, a way back, a close
+	// a narrow frame worked by a mouse, like the launcher's panel, keeps the dialog
+	layout.narrow = true
+	t.after(() => (layout.narrow = false))
+	const panel = mount(t, { render: () => h(SettingsDialog, { groups }) }, {}, flow)
+	assert.deepEqual([!!panel.el.querySelector("[data-stub=SettingsDialog]"), panel.el.querySelector("[role=dialog]")], [true, null])
+	panel.unmount()
+
+	// a phone shows them as a page: a list whose rows open their panel, a way back, a close
 	layout.narrow = layout.phone = true
 	t.after(() => (layout.narrow = layout.phone = false))
 	const narrow = { state: reactive({ settingsOpen: false }), setSettingsOpen: (open) => (narrow.state.settingsOpen = open) }
@@ -1960,7 +1967,7 @@ test("a folder in the file search results folds and unfolds, and stays folded un
 	assert.deepEqual(rows(), ["src", "a", "one.js", "two.js", "top.js"])
 	await toggle("src/a")
 	assert.deepEqual(rows(), ["src", "a", "two.js", "top.js"])
-	assert.equal(row("src/a").querySelector("[data-stub=FeatherIcon]").getAttribute("name"), "chevron-right")
+	assert.ok(row("src/a").querySelector(".lucide-chevron-right"))
 	// a screen reader hears whether a folder is open; a file has nothing to say
 	assert.equal(row("src/a").getAttribute("aria-expanded"), "false")
 	assert.equal(row("src").getAttribute("aria-expanded"), "true")
@@ -2514,17 +2521,17 @@ test("the file picker says it is loading until its first listing arrives, and op
 	await settle()
 	const rows = () =>
 		[...picker.el.querySelectorAll("[data-palette-item]")].map((row) => [
-			row.querySelector("[data-stub=FeatherIcon]").getAttribute("name"),
+			[...row.querySelector("[aria-hidden]").classList].find((name) => name.startsWith("lucide-")),
 			row.textContent.trim(),
 		])
-	assert.deepEqual(rows(), [["folder", "src/chat"], ["file-text", "src/chat/chat.js"]])
+	assert.deepEqual(rows(), [["lucide-folder", "src/chat"], ["lucide-file-text", "src/chat/chat.js"]])
 	picker.el.querySelector("[data-palette-item]").click()
 	await nextTick()
 	assert.equal(draft.query, "")
 	t.mock.timers.tick(150)
 	await settle()
 	assert.deepEqual(listed, ["src/chat"])
-	assert.deepEqual(rows(), [["corner-left-up", ".."], ["file-text", "send.js"]])
+	assert.deepEqual(rows(), [["lucide-corner-left-up", ".."], ["lucide-file-text", "send.js"]])
 	assert.ok(picker.el.textContent.includes("src/chat")) // its title
 })
 
@@ -2722,10 +2729,64 @@ test("the header says nothing in a new chat until its first message goes out, no
 	asked[1].actions.at(-1).onClick()
 	assert.deepEqual(done, [["rename", "s1", "Q3 report"], ["delete", "s1"]])
 
-	// a chat the user may only view has no menu
+	// a chat the user may only view has no Rename or Delete: its menu holds the host's items alone
 	flow.state.session = { title: "Their report", read_only: true }
 	await nextTick()
-	assert.equal(menu(), null)
+	assert.deepEqual(items().map((item) => item.textContent), ["Share"])
+})
+
+test("a header with its sidebar hidden leads with its button and, once the chat has started, New chat; with none at all, a clock lists the chats beside New chat, and a gear, not the chat's menu, leads to the host's pages and Settings", async (t) => {
+	const done = []
+	const flow = {
+		state: reactive({
+			loading: false, sessionId: null, session: null, conversation: initialConversation(), prefs: {}, workspace: {},
+			sessions: [{ session_id: "s1", title: "Quarterly report" }, { session_id: "s2", title: "Expense claims" }],
+			sessionsMore: false, sessionsLoading: false,
+		}),
+		sessionTitle: (session) => session.title,
+		searchSessions: () => {},
+		openSession: (sid) => done.push(sid),
+		startNewChat: () => done.push("new"),
+		setSettingsOpen: (open) => done.push(`settings:${open}`),
+	}
+	const buttons = (el) => [...el.querySelectorAll("header button[title]")].map((button) => button.title)
+	const hidden = mount(t, ChatHeader, { sidebarOpen: false, workspace: false }, flow).el
+	assert.deepEqual(buttons(hidden), ["Show sidebar"])
+
+	const nav = [{ label: "Agents", onClick: () => done.push("agents") }]
+	const { el } = mount(t, ChatHeader, { sidebarOpen: false, workspace: false, history: true, nav }, flow)
+	assert.deepEqual(buttons(el), ["Recent chats", "Manage"])
+	const items = () => [...el.querySelectorAll("[role=menuitem]")]
+	el.querySelector("button[title=Manage]").click()
+	await nextTick()
+	assert.deepEqual(items().map((item) => item.textContent), ["Agents", "Settings"])
+	items()[1].click()
+	el.querySelector("button[title=Manage]").click()
+	await nextTick()
+
+	// the clock's list narrows as a search is typed, and a pick opens that chat and puts the list away
+	el.querySelector("button[title='Recent chats']").click()
+	await nextTick()
+	const rows = () => [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent.trim())
+	assert.deepEqual(rows(), ["Quarterly report", "Expense claims"])
+	const field = el.querySelector("input[aria-label='Search chats']")
+	field.value = "exp"
+	field.dispatchEvent(new window.Event("input"))
+	await nextTick()
+	assert.deepEqual(rows(), ["Expense claims"])
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.deepEqual([rows(), done], [[], ["settings:true", "s2"]])
+
+	// an open chat's menu, by its title, holds its own items alone
+	flow.state.sessionId = "s2"
+	flow.state.session = { title: "Expense claims" }
+	await nextTick()
+	assert.deepEqual(buttons(hidden), ["Show sidebar", "New chat", "Chat options"])
+	assert.deepEqual(buttons(el), ["Chat options", "Recent chats", "New chat", "Manage"])
+	el.querySelector("button[title='Chat options']").click()
+	await nextTick()
+	assert.deepEqual(items().map((item) => item.textContent), ["Rename", "Delete"])
 })
 
 test("the model button names the chat's own model and thinking level, never the last one picked while a chat loads", async (t) => {
@@ -2971,10 +3032,10 @@ test("Copy says Copied only once the text reached the clipboard, in a host's own
 
 	// a host's label and icon, and the label it shows once copied
 	const label = ({ copied }) => (copied ? "Copied" : "Copy link")
-	const host = mount(t, { render: () => h(CopyButton, { text: "http://site/flow/s/1", icon: "link" }, label) }, {}, {})
+	const host = mount(t, { render: () => h(CopyButton, { text: "http://site/flow/s/1", icon: "lucide-link" }, label) }, {}, {})
 	const link = host.el.querySelector("button")
 	assert.equal(link.textContent.trim(), "Copy link")
-	assert.equal(host.el.querySelector("[data-stub=FeatherIcon]").getAttribute("name"), "link")
+	assert.ok(host.el.querySelector(".lucide-link"))
 	link.click()
 	await settle()
 	assert.equal(link.textContent.trim(), "Copied")

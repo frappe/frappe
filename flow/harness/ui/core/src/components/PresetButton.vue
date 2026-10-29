@@ -3,19 +3,19 @@
 		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
-			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-			:class="open ? 'bg-surface-gray-2' : ''"
+			class="flex h-7 max-w-full items-center gap-1.5 rounded-5 px-2 hover:bg-surface-gray-3 hover:text-ink-gray-8 dark:hover:bg-surface-gray-2"
+			:class="open ? 'bg-surface-gray-3 dark:bg-surface-gray-2' : ''"
 			title="Agent preset"
 			:aria-expanded="open"
 			:disabled="disabled"
 			@click="open ? close() : show()"
 		>
-			<FeatherIcon name="layers" class="h-3.5 w-3.5 flex-none" />
+			<span class="lucide-layers size-3.5 flex-none" aria-hidden="true" />
 			<span class="truncate">{{ flow.activePreset()?.name ?? "Standard" }}</span>
-			<FeatherIcon
-				name="chevron-down"
-				class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+			<span
+				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 				:class="open ? 'rotate-180' : ''"
+				aria-hidden="true"
 			/>
 		</button>
 		<PalettePanel v-if="open" title="Agent preset" dropdown align="left" :width="264" :query="search" @close="close">
@@ -24,7 +24,7 @@
 					ref="field"
 					v-model="search"
 					placeholder="Search presets…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
@@ -37,12 +37,16 @@
 					@click="choose(row.id)"
 				>
 					<span class="min-w-0 truncate">{{ row.name }}</span>
-					<FeatherIcon v-if="row.id === current" name="check" class="ml-auto h-4 w-4 flex-none" />
+					<span
+						v-if="row.id === current"
+						class="lucide-check ml-auto size-4 flex-none"
+						aria-hidden="true"
+					/>
 				</button>
 				<div v-if="!rows.length" class="flow-palette-empty">No matching presets</div>
 				<!-- a search that finds none: the way to a new one -->
 				<button v-if="!rows.length" data-palette-item class="flow-palette-row" @click="create">
-					<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
+					<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
 					Create a preset
 				</button>
 			</div>
@@ -52,7 +56,6 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { layout } from "../layout.js"
 import PalettePanel from "./PalettePanel.vue"

@@ -2,7 +2,7 @@
 	<div class="flex min-h-0 flex-1 flex-col">
 		<div class="flex h-11 flex-none items-center gap-2 border-b border-outline-gray-1 px-2.5">
 			<Breadcrumbs v-if="activeTab" class="flow-crumbs min-w-0" :items="crumbs" />
-			<span v-else class="text-[13.5px] text-ink-gray-5">/</span>
+			<span v-else class="text-base text-ink-gray-5">/</span>
 			<span class="flex-1" />
 			<Button
 				v-if="activeTab?.dirty"
@@ -23,7 +23,11 @@
 				@click="toggleDiffLayout"
 			>
 				<template #icon>
-					<FeatherIcon :name="diffSplit ? 'align-justify' : 'columns'" class="h-4 w-4" />
+					<span
+						class="size-4"
+						:class="diffSplit ? 'lucide-align-justify' : 'lucide-columns-2'"
+						aria-hidden="true"
+					/>
 				</template>
 			</Button>
 			<Button
@@ -47,7 +51,7 @@
 				@click="explorerOpen = !explorerOpen"
 			>
 				<template #icon>
-					<FeatherIcon name="folder" class="h-4 w-4" />
+					<span class="lucide-folder size-4" aria-hidden="true" />
 				</template>
 			</Button>
 		</div>
@@ -59,9 +63,9 @@
 					v-if="!activeTab"
 					class="flex flex-1 flex-col items-center justify-center gap-2 px-6 text-center"
 				>
-					<FeatherIcon name="file-text" class="h-6 w-6 text-ink-gray-3" />
-					<span class="text-sm text-ink-gray-5">No file open</span>
-					<span class="text-xs leading-5 text-ink-gray-4">
+					<span class="lucide-file-text size-6 text-ink-gray-3" aria-hidden="true" />
+					<span class="text-base text-ink-gray-5">No file open</span>
+					<span class="text-sm leading-5 text-ink-gray-4">
 						{{
 							workspace.view === "diff"
 								? "Select a changed file to review its diff"
@@ -73,7 +77,7 @@
 					v-else-if="activeTab.error"
 					class="flex flex-1 flex-col items-center justify-center gap-3 px-6 text-center"
 				>
-					<span class="text-xs text-ink-gray-5">{{ activeTab.error }}</span>
+					<span class="text-sm text-ink-gray-5">{{ activeTab.error }}</span>
 					<button
 						class="flow-btn-secondary"
 						@click="(activeTab.diff ? flow.openDiffFile : flow.openFile)(activeTab.path)"
@@ -83,7 +87,7 @@
 				</div>
 				<LoadingState
 					v-else-if="activeTab.content == null"
-					class="flex-1 justify-center text-xs text-ink-gray-4"
+					class="flex-1 justify-center text-sm text-ink-gray-4"
 				/>
 				<div v-show="showEditorHost" ref="editorEl" class="min-h-0 flex-1" />
 				<div v-show="showDiffHost" ref="diffEl" class="min-h-0 flex-1" />
@@ -99,7 +103,6 @@
 import { computed, inject, onBeforeUnmount, ref, watch } from "vue"
 import Breadcrumbs from "frappe-ui/src/components/Breadcrumbs/Breadcrumbs.vue"
 import Button from "frappe-ui/src/components/Button/Button.vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { compactDisplayText } from "../transcript.js"
 import FilesBar from "./FilesBar.vue"
@@ -442,13 +445,13 @@ async function save() {
 <style scoped>
 /* Breadcrumbs ships header-scale type; fit it to the path row */
 .flow-crumbs :deep(button) {
-	font-size: 13.5px;
+	font-size: theme(fontSize.base);
 	font-weight: 420;
 	padding-top: 0;
 	padding-bottom: 0;
 	cursor: default;
 }
 .flow-crumbs :deep(span[aria-hidden="true"]) {
-	font-size: 13.5px;
+	font-size: theme(fontSize.base);
 }
 </style>

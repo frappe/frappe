@@ -9,8 +9,9 @@
 </template>
 
 <script setup>
-import { computed, inject } from "vue";
+import { computed, inject, watch } from "vue";
 import SettingsDialog from "@flow/ui-core/components/SettingsDialog.vue";
+import { layout } from "@flow/ui-core/layout.js";
 
 import DocPanel from "./DocPanel.vue";
 import GeneralPanel from "./GeneralPanel.vue";
@@ -25,15 +26,16 @@ const DESCRIPTIONS = {
 	memories: "What agents have remembered.",
 };
 const ICONS = {
-	general: "settings",
-	tools: "tool",
-	models: "box",
-	providers: "key",
-	knowledge: "database",
-	memories: "bookmark",
+	general: "lucide-settings",
+	tools: "lucide-wrench",
+	models: "lucide-box",
+	providers: "lucide-key",
+	knowledge: "lucide-database",
+	memories: "lucide-bookmark",
 };
 
 const page = inject("flowPage");
+const flow = inject("flow");
 const docKeys = ["tools", "models", "providers", "memories"];
 const docSpecs = computed(() =>
 	docKeys.map((key) => SPECS[key]).filter((spec) => page.can(spec.doctype, "read"))
@@ -59,4 +61,19 @@ const groups = computed(() => {
 		.map((group) => ({ ...group, tabs: group.tabs.filter(Boolean) }))
 		.filter((group) => group.tabs.length);
 });
+
+// in the launcher's panel, the dialog fills the window while it's open (a phone's page fills the
+// panel already); the panel goes back once the dialog's 150ms exit has played
+let restore = null;
+watch(
+	() => flow.state.settingsOpen && !layout.phone,
+	(open) => {
+		if (window.top === window) return;
+		clearTimeout(restore);
+		const tell = () =>
+			window.dispatchEvent(new CustomEvent("flow-settings", { detail: { open } }));
+		if (open) tell();
+		else restore = setTimeout(tell, 150);
+	}
+);
 </script>

@@ -299,6 +299,17 @@ describe("buildLayoutFromMeta", () => {
       expect(tableFieldOf(layout).childLayout).toBeUndefined();
     });
 
+    it("maps cannot_add_rows and cannot_delete_rows to camelCase", () => {
+      const layout = buildLayoutFromMeta(
+        [tableField({ cannot_add_rows: 1, cannot_delete_rows: 1 })],
+        { childMetas: {} }
+      );
+      expect(tableFieldOf(layout)).toMatchObject({
+        cannotAddRows: true,
+        cannotDeleteRows: true,
+      });
+    });
+
     it("does not attach childLayout to Table MultiSelect (it has no row dialog)", () => {
       const layout = buildLayoutFromMeta(
         [

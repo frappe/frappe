@@ -17,6 +17,9 @@
   "custom_format",
   "disabled",
   "pdf_generator",
+  "paper_size",
+  "paper_width",
+  "paper_height",
   "section_break_6",
   "print_format_type",
   "raw_printing",
@@ -314,6 +317,29 @@
    "options": "chrome\nPlutoPrint\nTypst"
   },
   {
+   "depends_on": "eval:!doc.print_format_builder_beta && !doc.raw_printing",
+   "description": "Empty uses the size in Print Settings. A receipt size prints one page as tall as the content.",
+   "fieldname": "paper_size",
+   "fieldtype": "Select",
+   "label": "Paper Size",
+   "options": "\nA4\nA5\nA3\nLetter\nLegal\nReceipt 80 mm\nReceipt 58 mm\nCustom"
+  },
+  {
+   "depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing",
+   "fieldname": "paper_width",
+   "fieldtype": "Float",
+   "label": "Paper Width (in mm)",
+   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing"
+  },
+  {
+   "depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing",
+   "description": "Small sizes such as labels also need small page margins, for example @page { margin: 2mm; } in Custom CSS.",
+   "fieldname": "paper_height",
+   "fieldtype": "Float",
+   "label": "Paper Height (in mm)",
+   "mandatory_depends_on": "eval:doc.paper_size == \"Custom\" && !doc.print_format_builder_beta && !doc.raw_printing"
+  },
+  {
    "default": "DocType",
    "fieldname": "print_format_for",
    "fieldtype": "Select",
@@ -360,7 +386,7 @@
  "icon": "printer",
  "idx": 1,
  "links": [],
- "modified": "2026-10-18 12:00:00.000000",
+ "modified": "2026-10-26 19:45:28.002865",
  "modified_by": "Administrator",
  "module": "Printing",
  "name": "Print Format",

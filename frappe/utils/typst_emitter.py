@@ -34,6 +34,15 @@ MUTED = "#6b7280"
 DEFAULT_FONT = "Inter"
 SHRINK_JUSTIFY = ("center", "right-end", "space-between", "space-evenly")
 FULL_WIDTH_FIELDTYPES = ("Divider",)
+RATING_STAR_PATH = (
+	"M11.5516 2.90849C11.735 2.53687 12.265 2.53687 12.4484 2.90849L14.8226 7.71919C14.8954 7.86677 "
+	"15.0362 7.96905 15.1991 7.99271L20.508 8.76415C20.9181 8.82374 21.0818 9.32772 20.7851 "
+	"9.61699L16.9435 13.3616C16.8257 13.4765 16.7719 13.642 16.7997 13.8042L17.7066 19.0916C17.7766 "
+	"19.5001 17.3479 19.8116 16.9811 19.6187L12.2327 17.1223C12.087 17.0457 11.913 17.0457 11.7673 "
+	"17.1223L7.01888 19.6187C6.65207 19.8116 6.22335 19.5001 6.29341 19.0916L7.20028 13.8042C7.2281 "
+	"13.642 7.17433 13.4765 7.05648 13.3616L3.21491 9.61699C2.91815 9.32772 3.08191 8.82374 3.49202 "
+	"8.76415L8.80094 7.99271C8.9638 7.96905 9.10458 7.86677 9.17741 7.71919L11.5516 2.90849Z"
+)
 
 
 def pt(px, default=0.0) -> float:
@@ -518,7 +527,7 @@ class TypstEmitter:
 		lh_header = self._letterhead_image(lh, "header")
 		if lh_header:
 			self.header_src = "\n".join(p for p in (lh_header, self.header_src) if p)
-		parts = []
+		parts = [self._document_status()]
 		for s in self.layout.get("sections") or []:
 			body = self._section(s)
 			parts += [body, self._page_break(s, body)]
@@ -528,6 +537,18 @@ class TypstEmitter:
 		lh_footer = self._letterhead_image(lh, "footer")
 		if lh_footer:
 			self.footer_src = "\n".join(p for p in (self.footer_src, lh_footer) if p)
+
+	def _document_status(self) -> str:
+		print_settings = getattr(self.generator, "print_settings", None) or frappe.get_cached_doc(
+			"Print Settings"
+		)
+		if self.doc.meta.is_submittable and self.doc.docstatus == 0 and print_settings.add_draft_heading:
+			status = _("DRAFT")
+		elif self.doc.meta.is_submittable and self.doc.docstatus == 2:
+			status = _("CANCELLED")
+		else:
+			return ""
+		return f"#block(width: 100%, below: 5mm, align(center, text(size: 1.1em, weight: 500, {q(status)})))"
 
 	def _letterhead_image(self, lh, side) -> str:
 		if not lh:
@@ -703,8 +724,19 @@ class TypstEmitter:
 		grid = self._columns_grid(section, columns, rendered_columns)
 		body = grid
 		if section.get("label") and section.get("show_label") != "hide" and not zone:
-			label = f"#text(size: 0.9em, weight: 600, {q(_(section['label']))})"
-			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
+			label = f"#text(size: 1.1em, weight: 700, {q(_(section['label']))})"
+			if section.get("field_borders"):
+				pad = f"{pt(section.get('cell_padding'), 8)}pt"
+				color = safe_color(section.get("border_color")) or "#e2e2e2"
+				ruled = (
+					f'stroke: (bottom: 0.75pt + rgb("{color}")), inset: (bottom: {pad}), outset: (x: {pad})'
+				)
+				spacing = pad
+			else:
+				ruled = 'stroke: (bottom: 1.125pt + rgb("#e2e2e2")), inset: (bottom: 0.35em)'
+				spacing = "0.75em"
+			heading = f"#block(width: 100%, {ruled})[{label}]"
+			body = f"#stack(spacing: {spacing},\n[{heading}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
@@ -919,6 +951,8 @@ class TypstEmitter:
 			# Chrome prints the signature at its pixel size; without this, Typst prints it a third larger
 			image = f'#scale({PX_TO_PT:.0%}, reflow: true, image("{name}"))' if name else ""
 			return self._data_field(section, df, value_markup=image)
+		if fieldtype == "Rating":
+			return self._data_field(section, df, value_markup=self._rating(df))
 		if fieldtype == "Repeater":
 			return self._repeater(df)
 		if fieldtype == "Static Text":
@@ -926,10 +960,10 @@ class TypstEmitter:
 		return self._data_field(section, df)
 
 	def _static_text(self, df) -> str:
-		text = (df.get("text") or "").strip()
+		text = (df.get("_text") if "_text" in df else _(df.get("text") or "")).strip()
 		if not text:
 			return ""
-		out = self._text_props(df, typst_escape(_(text)).replace("\n", " \\\n"))
+		out = self._text_props(df, typst_escape(text).replace("\n", " \\\n"))
 		if df.get("align") in ("center", "right"):
 			out = f"#align({df['align']})[{out}]"
 		return out
@@ -996,11 +1030,11 @@ class TypstEmitter:
 			if gap_pt is None:
 				gap = df.get("label_gap")
 				gap_pt = pt(gap) if gap else 4
-			if align in ("right",):
-				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
-			else:
-				body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
-			return self._text_props(df, body)
+			if align in ("center", "right") and section.get("field_orientation") != "left-right":
+				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
+				return self._text_props(df, body)
+			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
+			return _aligned(self._text_props(df, body), align)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
@@ -1128,6 +1162,16 @@ class TypstEmitter:
 		name = self._asset("svg", data)
 		width = self._dimension(df.get("width")) or "35mm"
 		return _aligned(f'#image("{name}", width: {width})', df.get("align"))
+
+	def _rating(self, df) -> str:
+		total = frappe.utils.cint(df.get("options")) or 5
+		filled = min(int(frappe.utils.flt(self.doc.get(df.get("fieldname"))) * total + 0.5), total)
+		stars = "".join(
+			f'<path transform="translate({24 * i})" fill="{color}" stroke="{color}" d="{RATING_STAR_PATH}"/>'
+			for i, color in enumerate(["#f6c35e"] * filled + ["#dce0e3"] * (total - filled))
+		)
+		svg = f'<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {24 * total} 24">{stars}</svg>'
+		return f'#box(image("{self._asset("svg", svg.encode())}", height: 1.5em))'
 
 	def _repeater(self, df) -> str:
 		source = df.get("source")

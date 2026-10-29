@@ -1,6 +1,6 @@
 import { computed, inject, onBeforeUnmount, provide, shallowRef, watch } from "vue"
 
-// A narrow frame's settings page has one way back, in its header. A section's own sub-page
+// A phone's settings page has one way back, in its header. A section's own sub-page
 // (a record's form) lends it its back, so the header leads to the section's list, not to settings.
 // `narrow`: a ref, true while the shell is that page
 export function provideSettingsBack(narrow) {

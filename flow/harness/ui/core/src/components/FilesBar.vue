@@ -12,7 +12,7 @@
 		>
 			<div
 				v-if="mode === 'diff'"
-				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-xs font-medium text-ink-gray-5"
+				class="flex h-9 flex-none items-center border-b border-outline-gray-1 px-3 text-sm font-medium text-ink-gray-5"
 			>
 				{{ gitFiles.length }} {{ gitFiles.length === 1 ? "file" : "files" }} changed
 			</div>
@@ -20,13 +20,13 @@
 				<div
 					class="flex h-8 items-center gap-2 rounded-5 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-5 transition-colors focus-within:border-outline-gray-3"
 				>
-					<FeatherIcon name="search" class="h-3.5 w-3.5 flex-none" />
+					<span class="lucide-search size-3.5 flex-none" aria-hidden="true" />
 					<input
 						ref="searchInput"
 						v-model="fileQuery"
 						placeholder="Search files"
 						spellcheck="false"
-						class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-xs text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+						class="h-full w-full min-w-0 border-0 bg-transparent p-0 text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 					/>
 					<button
 						v-if="fileQuery"
@@ -34,7 +34,7 @@
 						title="Clear"
 						@click="fileQuery = ''"
 					>
-						<FeatherIcon name="x" class="h-3 w-3" />
+						<span class="lucide-x size-3" aria-hidden="true" />
 					</button>
 				</div>
 			</div>
@@ -46,7 +46,7 @@
 						:key="file.path"
 						role="button"
 						tabindex="0"
-						class="flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pl-2 pr-1.5 text-sm hover:bg-surface-gray-2"
+						class="flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pl-2 pr-1.5 text-base hover:bg-surface-gray-2"
 						:class="
 							activeTab?.path === file.path
 								? 'bg-surface-gray-3 font-medium text-ink-gray-9'
@@ -57,24 +57,27 @@
 						@keydown.enter.prevent="flow.openDiffFile(file.path)"
 					>
 						<span class="grid h-4 w-4 flex-none place-items-center">
-							<FeatherIcon name="file" class="h-3.5 w-3.5 text-ink-gray-5" />
+							<span
+								class="lucide-file size-3.5 text-ink-gray-5"
+								aria-hidden="true"
+							/>
 						</span>
 						<span class="min-w-0 truncate">{{ fileName(file.path) }}</span>
 						<span class="flex-1" />
-						<span class="flex-none font-mono text-2xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
-						<span class="flex-none font-mono text-2xs text-ink-red-6">-{{ file.removed }}</span>
+						<span class="flex-none font-mono text-xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
+						<span class="flex-none font-mono text-xs text-ink-red-6">-{{ file.removed }}</span>
 					</div>
-					<div v-if="changes && !changes.root" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<div v-if="changes && !changes.root" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						Not a git repository
 					</div>
-					<div v-else-if="changes && !gitFiles.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<div v-else-if="changes && !gitFiles.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						No uncommitted changes
 					</div>
-					<LoadingState v-else-if="changesPending" class="px-1.5 py-2 text-2xs text-ink-gray-4" />
+					<LoadingState v-else-if="changesPending" class="px-1.5 py-2 text-xs text-ink-gray-4" />
 				</template>
 				<!-- searching: a pruned tree of matches only, branches open until folded -->
 				<template v-else-if="searchActive">
-					<LoadingState v-if="searchMatches === null" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<LoadingState v-if="searchMatches === null" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						Searching…
 					</LoadingState>
 					<template v-else>
@@ -91,7 +94,7 @@
 								role="button"
 								tabindex="0"
 								:aria-expanded="row.type === 'dir' ? row.open : undefined"
-								class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-sm text-ink-gray-8 hover:bg-surface-gray-2"
+								class="relative flex cursor-pointer items-center gap-1.5 rounded-4 py-[5px] pr-1.5 text-base text-ink-gray-8 hover:bg-surface-gray-2"
 								:style="{ paddingLeft: row.depth * 16 + 8 + 'px' }"
 								:title="row.path"
 								@click="activateRow(row)"
@@ -105,18 +108,19 @@
 									:style="{ left: (level - 1) * 16 + 16 + 'px' }"
 								/>
 								<span class="grid h-4 w-4 flex-none place-items-center">
-									<FeatherIcon
-										:name="row.type === 'dir' ? (row.open ? 'chevron-down' : 'chevron-right') : 'file'"
-										class="h-3.5 w-3.5 text-ink-gray-5"
+									<span
+										class="size-3.5 text-ink-gray-5"
+										:class="row.type === 'dir' ? (row.open ? 'lucide-chevron-down' : 'lucide-chevron-right') : 'lucide-file'"
+										aria-hidden="true"
 									/>
 								</span>
 								<span class="min-w-0 truncate">{{ row.name }}</span>
 							</div>
 						</template>
-						<div v-if="!searchRows.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						<div v-if="!searchRows.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
 							No matches
 						</div>
-						<div v-else-if="searchTruncated" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+						<div v-else-if="searchTruncated" class="px-1.5 py-2 text-xs text-ink-gray-4">
 							More matches not shown — narrow the search
 						</div>
 					</template>
@@ -124,13 +128,13 @@
 				<!-- hidden, not unmounted, while searching: opened folders survive a search -->
 				<div v-if="mode === 'files' && rootDir" v-show="!searchActive">
 					<FileTree v-for="entry in rootEntries" :key="entry.name" :entry="entry" :dir="rootDir" />
-					<div v-if="!rootEntries.length" class="px-1.5 py-2 text-2xs text-ink-gray-4">
+					<div v-if="!rootEntries.length" class="px-1.5 py-2 text-xs text-ink-gray-4">
 						Empty folder
 					</div>
 				</div>
 				<LoadingState
 					v-else-if="mode === 'files' && rootLoading && !searchActive"
-					class="px-1.5 py-2 text-2xs text-ink-gray-4"
+					class="px-1.5 py-2 text-xs text-ink-gray-4"
 				/>
 			</div>
 		</div>
@@ -144,7 +148,6 @@
 
 <script setup>
 import { computed, inject, onBeforeUnmount, reactive, ref, watch } from "vue"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { useDebouncedValue } from "../debounce.js"
 import { fileName } from "../transcript.js"

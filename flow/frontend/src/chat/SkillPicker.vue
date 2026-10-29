@@ -3,18 +3,18 @@
 		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
-			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-			:class="open ? 'bg-surface-gray-2' : ''"
+			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
+			:class="open ? 'text-ink-gray-9' : ''"
 			title="Skills"
 			:aria-expanded="open"
 			@click="open ? close() : show()"
 		>
-			<FeatherIcon name="book-open" class="h-3.5 w-3.5 flex-none" />
+			<span class="lucide-book-open size-3.5 flex-none" aria-hidden="true" />
 			<span class="truncate">Skills</span>
-			<FeatherIcon
-				name="chevron-down"
-				class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+			<span
+				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 				:class="open ? 'rotate-180' : ''"
+				aria-hidden="true"
 			/>
 		</button>
 		<PalettePanel
@@ -31,7 +31,7 @@
 					ref="field"
 					v-model="search"
 					placeholder="Search skills…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
@@ -57,7 +57,7 @@
 					class="flow-palette-row"
 					@click="create"
 				>
-					<FeatherIcon name="plus" class="h-4 w-4 flex-none" />
+					<span class="lucide-plus size-4 flex-none" aria-hidden="true" />
 					Add a skill
 				</button>
 			</div>
@@ -68,7 +68,6 @@
 <script setup>
 import { computed, inject, nextTick, onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

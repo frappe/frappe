@@ -11,7 +11,7 @@ dependencies = [
     # core dependencies
     "Babel~=2.18.0",
     "Click~=8.5.0",
-    "filelock~=4.1.1",
+    "filelock~=4.2.4",
     "filetype~=1.2.0",
     "GitPython~=3.2.0",
     "Jinja2~=3.1.6",
@@ -88,7 +88,7 @@ dependencies = [
     "litellm==1.103.2",
     "json_repair~=0.59",
     # flow
-    "frappe-flow==0.1.20",
+    "frappe-flow==0.1.21",
     "lancedb~=0.33",
     "onnxruntime~=1.27",
     "pdfplumber~=0.11",

@@ -1,3 +1,4 @@
+import json
 import os
 import re
 from functools import wraps
@@ -55,9 +56,25 @@ def has_page_write_perm(message: str | None = None):
 	return decorator
 
 
+def get_studio_folder(frappe_app: str) -> str:
+	return frappe.get_app_source_path(frappe_app, "studio")
+
+
+def get_export_folder(frappe_app: str, app_name: str) -> str:
+	"""`my-app` exports to `studio/my_app` — app source folders carry scrubbed names, like a doctype's."""
+	return os.path.join(get_studio_folder(frappe_app), frappe.scrub(app_name))
+
+
 def get_app_file_path(app_folder: str) -> str:
-	"""The folder keeps the app's name as-is, but its JSON is written scrubbed (`my-app/my_app.json`)."""
+	"""The folder and its app JSON both carry the scrubbed name (`my-app` exports to `my_app/my_app.json`)."""
 	return os.path.join(app_folder, f"{frappe.scrub(os.path.basename(app_folder))}.json")
+
+
+def get_exported_app_name(app_folder: str) -> str:
+	"""The app's name from its exported JSON. The folder name is scrubbed
+	(`my-app` lives in `my_app`), so it cannot name the app."""
+	name = json.loads(frappe.read_file(get_app_file_path(app_folder))).get("name")
+	return name or os.path.basename(app_folder)
 
 
 def validate_installed_app(app_name: str) -> None:

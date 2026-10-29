@@ -2,13 +2,13 @@
 	<div class="min-h-0 flex-1 overflow-y-auto px-4 pb-6 pt-3 sm:px-8 md:pt-8">
 		<div class="flex items-center gap-2">
 			<button v-if="back && !headerBack" class="flow-icon-btn -my-1 -ml-1.5" :title="back" @click="emit('back')">
-				<FeatherIcon name="arrow-left" class="h-4 w-4" />
+				<span class="lucide-arrow-left size-4" aria-hidden="true" />
 			</button>
-			<h2 class="text-base font-semibold text-ink-gray-9">{{ title }}</h2>
+			<h2 class="text-md font-semibold text-ink-gray-9">{{ title }}</h2>
 			<!-- -my-1.5: a button doesn't grow the heading's row, so the heading sits as on other tabs -->
 			<div v-if="!layout.narrow" class="-my-1.5 ml-auto flex items-center gap-3"><slot name="actions" /></div>
 		</div>
-		<p v-if="description" class="mt-1 text-xs leading-5 text-ink-gray-6">{{ description }}</p>
+		<p v-if="description" class="mt-1 text-sm leading-5 text-ink-gray-6">{{ description }}</p>
 		<div class="pt-4"><slot /></div>
 		<!-- a narrow frame has no room beside the heading: the actions end the page -->
 		<div v-if="layout.narrow && $slots.actions" class="flex items-center gap-3 pt-4"><slot name="actions" /></div>
@@ -22,7 +22,6 @@
 </template>
 
 <script setup>
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { layout } from "../layout.js"
 import { useSettingsBack } from "../settingsBack.js"

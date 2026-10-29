@@ -8,7 +8,7 @@
 				:title="newLabel"
 				@click="create"
 			/>
-			<Button v-else variant="solid" icon-left="plus" :label="newLabel" @click="create" />
+			<Button v-else variant="solid" icon-left="lucide-plus" :label="newLabel" @click="create" />
 		</template>
 	</PageHeader>
 	<!-- the search and a menu per filter, once the list has loaded with something in it -->
@@ -18,7 +18,7 @@
 			type="text"
 			variant="subtle"
 			:placeholder="`Search ${spec.label.toLowerCase()}`"
-			class="w-64 max-md:w-full [&_input]:text-sm"
+			class="w-64 max-md:w-full [&_input]:text-base"
 		>
 			<template #prefix>
 				<span class="lucide-search size-4 text-ink-gray-5" aria-hidden="true" />
@@ -27,7 +27,7 @@
 		<Dropdown v-for="filter in filters" :key="filter.field" :options="choices(filter)">
 			<template #trigger>
 				<button
-					class="flex h-7 items-center gap-1.5 rounded-4 px-2.5 text-sm transition-colors"
+					class="flex h-7 items-center gap-1.5 rounded-4 px-2.5 text-base transition-colors"
 					:class="
 						chosen[filter.field] === undefined
 							? 'bg-surface-gray-2 text-ink-gray-7 hover:bg-surface-gray-3'
@@ -44,7 +44,7 @@
 		</Dropdown>
 		<button
 			v-if="narrowed"
-			class="h-7 px-1.5 text-sm text-ink-gray-5 hover:text-ink-gray-8"
+			class="h-7 px-1.5 text-base text-ink-gray-5 hover:text-ink-gray-8"
 			@click="clear"
 		>
 			Clear
@@ -53,19 +53,19 @@
 	<div class="min-h-0 flex-1 overflow-y-auto px-5 pb-10">
 		<LoadingState
 			v-if="loading && !loaded"
-			class="justify-center py-16 text-xs text-ink-gray-5"
+			class="h-full justify-center text-sm text-ink-gray-5"
 		/>
 		<!-- nothing yet: what the page is for, and the way to a first one -->
 		<div v-else-if="empty" class="flex flex-col items-center px-6 py-16 text-center">
 			<span :class="info.icon" class="size-6 text-ink-gray-4" aria-hidden="true" />
-			<p class="mt-3 text-sm font-medium text-ink-gray-8">
+			<p class="mt-3 text-base font-medium text-ink-gray-8">
 				No {{ spec.label.toLowerCase() }} yet
 			</p>
-			<p class="mt-1.5 max-w-sm text-xs leading-5 text-ink-gray-5">{{ info.description }}</p>
+			<p class="mt-1.5 max-w-sm text-sm leading-5 text-ink-gray-5">{{ info.description }}</p>
 			<Button
 				v-if="canCreate"
 				class="mt-4"
-				icon-left="plus"
+				icon-left="lucide-plus"
 				:label="newLabel"
 				@click="create"
 			/>
@@ -74,14 +74,14 @@
 			v-else-if="!rows.length && !error"
 			class="flex flex-col items-center gap-3 py-16 text-center"
 		>
-			<p class="text-sm text-ink-gray-5">No {{ spec.label.toLowerCase() }} match.</p>
+			<p class="text-base text-ink-gray-5">No {{ spec.label.toLowerCase() }} match.</p>
 			<Button label="Clear filters" @click="clear" />
 		</div>
 		<div v-else-if="rows.length" role="table" :aria-label="spec.label">
 			<!-- one line a row, every row as tall as the next; a narrow frame keeps the title and status -->
 			<div
 				role="row"
-				class="sticky top-0 z-[1] grid h-9 items-center gap-4 border-b border-outline-gray-1 bg-surface-base px-3 text-xs text-ink-gray-5 max-md:hidden"
+				class="sticky top-0 z-[1] grid h-9 items-center gap-4 border-b border-outline-gray-1 bg-surface-base px-3 text-sm text-ink-gray-5 max-md:hidden"
 				:style="grid"
 			>
 				<span role="columnheader">Name</span>
@@ -95,7 +95,7 @@
 				:key="row.name"
 				role="row"
 				:to="{ name: 'records', params: { kind: spec.key, record: row.name } }"
-				class="grid h-10 items-center gap-4 border-b border-outline-gray-1 px-3 text-sm hover:bg-surface-gray-1 max-md:h-12"
+				class="grid h-10 items-center gap-4 border-b border-outline-gray-1 px-3 text-base hover:bg-surface-gray-1 max-md:h-12"
 				:style="grid"
 			>
 				<span role="cell" class="truncate font-[450] text-ink-gray-9">{{

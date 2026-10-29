@@ -470,7 +470,6 @@ class EmailAccount(Document):
 				self.db_set("no_failed", self.no_failed + 1)
 				if self.no_failed > 2:
 					self.handle_incoming_connect_error(description=description)
-				return
 
 			raise
 

@@ -11,7 +11,13 @@ import click
 
 import frappe
 from frappe.bundler import get_node_env
-from frappe.studio.utils import get_exported_app_folders, walk_blocks
+from frappe.studio.utils import (
+	get_export_folder,
+	get_exported_app_folders,
+	get_exported_app_name,
+	get_studio_folder,
+	walk_blocks,
+)
 from frappe.utils import get_files_path
 
 ANSI_ESCAPE_REGEX = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
@@ -59,10 +65,15 @@ class StudioAppBuilder:
 
 	def build(self):
 		if self.is_standard:
+			self.app_folder = self.get_app_folder()
+			if not os.path.isdir(self.app_folder):
+				raise StudioAppBuildError(
+					f"No export folder found for app '{self.app_name}'",
+					f"Expected the exported app at {self.app_folder}.",
+				)
 			self.get_app_components_from_files()
 			self.get_page_scripts_from_files()
 			self.router_file = get_router_file(self.frappe_app, self.app_name)
-			self.app_folder = self.get_app_folder()
 			self.tailwind_content = get_tailwind_content(self.app_folder)
 			self._run_vite_build()
 		else:
@@ -79,7 +90,7 @@ class StudioAppBuilder:
 		return page_sources
 
 	def get_app_folder(self) -> str:
-		return os.path.join(get_studio_folder(self.frappe_app), self.app_name)
+		return get_export_folder(self.frappe_app, self.app_name)
 
 	def get_page_scripts_from_files(self):
 		"""Collect the <page>.ts code files for the app's published pages, so the build bundles a
@@ -319,7 +330,7 @@ def build_standard_apps(apps: list[str] | None = None) -> None:
 	failed_apps = []
 	for frappe_app in apps or frappe.get_all_apps():
 		for app_folder in get_exported_app_folders(get_studio_folder(frappe_app)):
-			studio_app = os.path.basename(app_folder)
+			studio_app = get_exported_app_name(app_folder)
 			click.echo(f"\nBuilding Studio App: {studio_app} (from {frappe_app})")
 
 			try:
@@ -367,13 +378,9 @@ def get_published_custom_apps() -> list[str]:
 	return custom_apps
 
 
-def get_studio_folder(frappe_app: str) -> str | None:
-	return frappe.get_app_source_path(frappe_app, "studio")
-
-
 def get_router_file(frappe_app: str, studio_app: str) -> str | None:
 	"""Path of the app's studio/<app>/router.ts, if it ships one."""
-	path = os.path.join(get_studio_folder(frappe_app), studio_app, "router.ts")
+	path = os.path.join(get_export_folder(frappe_app, studio_app), "router.ts")
 	return path if os.path.exists(path) else None
 
 

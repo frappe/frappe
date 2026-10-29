@@ -212,6 +212,27 @@ class TestPdf(IntegrationTestCase):
 			self.assertGreaterEqual(baselines[text], bottom, text)
 			self.assertLessEqual(baselines[text], top, text)
 
+	def test_internal_link_lands_on_its_target_with_footer(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		pdf = pdfgen.get_pdf(
+			'<a href="#totals">See totals</a>'
+			+ "<p>row</p>" * 80
+			+ '<p id="totals">Totals</p><div id="footer-html"><p style="height: 150px">BOTTOM</p></div>'
+		)
+		reader = PdfReader(io.BytesIO(pdf))
+		page, _, _, top, _ = reader.pages[0]["/Annots"][0].get_object()["/Dest"]
+		baselines = []
+
+		def record_baseline(text, cm, tm, *_):
+			if text.strip() == "Totals":
+				baselines.append(tm[4] * cm[1] + tm[5] * cm[3] + cm[5])
+
+		reader.pages[reader.get_page_number(page.get_object())].extract_text(visitor_text=record_baseline)
+		self.assertEqual(len(baselines), 1)
+		self.assertGreater(top, baselines[0])
+		self.assertLess(top, baselines[0] + 72)
+
 	def test_footer_is_measured_at_the_width_it_prints(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")
@@ -245,6 +266,32 @@ class TestPdf(IntegrationTestCase):
 
 		pdf = pdfgen.get_pdf("<p>body text</p>")
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
+
+	def test_two_pdfs_started_together_both_render(self):
+		import threading
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		site, sites_path = frappe.local.site, frappe.local.sites_path
+		pdfs = []
+		both_ready = threading.Barrier(2)
+
+		def render():
+			try:
+				frappe.init(site, sites_path=sites_path)
+				frappe.connect()
+				frappe.set_user("test@example.com")
+				both_ready.wait()
+				pdfs.append(pdfgen.get_pdf("<p>body text</p>"))
+			finally:
+				frappe.destroy()
+
+		renders = [threading.Thread(target=render, daemon=True) for _ in range(2)]
+		for thread in renders:
+			thread.start()
+		for thread in renders:
+			thread.join(timeout=60)
+		self.assertEqual(len(pdfs), 2)
 
 	def test_pages_merged_with_header_and_footer_are_compressed(self):
 		self.addCleanup(frappe.set_user, "Administrator")
@@ -315,6 +362,23 @@ class TestPdf(IntegrationTestCase):
 
 		file = frappe.get_doc("File", {"file_name": f"ToDo_{task_id}.pdf"})
 		self.assertEqual(len(PdfReader(io.BytesIO(file.get_content())).pages), 1)
+
+	def test_bulk_pdf_lists_the_documents_it_could_not_print(self):
+		from unittest.mock import ANY, patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "Call Northwind Traders"}).insert()
+		deleted = frappe.get_doc({"doctype": "ToDo", "description": "Follow up with Litware"}).insert()
+		deleted.delete()
+
+		with patch.object(frappe, "publish_realtime") as publish_realtime:
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name, deleted.name]))
+
+		publish_realtime.assert_called_with(event="msgprint", message=ANY)
+		self.assertIn(deleted.name, publish_realtime.call_args.kwargs["message"].message[0])
 
 	def test_large_pdf_is_optimized_before_encryption(self):
 		import os
@@ -391,6 +455,55 @@ class TestPdf(IntegrationTestCase):
 			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
 		):
 			frappe.get_print("ToDo", todo.name, as_pdf=True)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
+
+	def test_on_print_pdf_hook_runs_for_emailed_prints(self):
+		from unittest.mock import patch
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+			patch("frappe.utils.pdf.get_chrome_pdf", return_value=b"%PDF-"),
+		):
+			frappe.attach_print("ToDo", todo.name)
+
+		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
+
+	def test_on_print_pdf_hook_runs_for_bulk_prints(self):
+		from unittest.mock import patch
+
+		from frappe.utils.print_format import _download_multi_pdf
+
+		get_hooks = frappe.get_hooks
+		calls = []
+
+		def hooks(hook=None, *args, **kwargs):
+			if hook == "on_print_pdf":
+				return ["frappe.tests.test_pdf.record_print"]
+			return get_hooks(hook, *args, **kwargs)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		todo = frappe.get_doc({"doctype": "ToDo", "description": "print hook"}).insert()
+
+		with (
+			patch.object(frappe, "get_hooks", side_effect=hooks),
+			patch("frappe.tests.test_pdf.record_print", side_effect=lambda **kw: calls.append(kw)),
+		):
+			_download_multi_pdf("ToDo", frappe.as_json([todo.name]))
 
 		self.assertEqual(calls, [{"doctype": "ToDo", "name": todo.name, "print_format": None}])
 

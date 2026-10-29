@@ -1,4 +1,3 @@
-import contextlib
 import os
 import platform
 import signal
@@ -98,7 +97,7 @@ class ChromiumManager:
 		# TODO: Better Implement logic to support for persistent chrome proccess.
 		self.USE_PERSISTENT_CHROMIUM = site_config.get("use_persistent_chromium", False)
 		#  time to wait for chromium to start and provide dev tools url used in _set_devtools_url.
-		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 3)
+		self.START_TIMEOUT = site_config.get("chromium_start_timeout", 10)
 		# Allow a single PDF request to opt into interactive Chromium debugging in developer mode only.
 		self.debug_mode = frappe.conf.developer_mode and bool(frappe.form_dict.get("pdf_debug"))
 
@@ -230,13 +229,26 @@ class ChromiumManager:
 			)
 		return self._chromium_process
 
+	def _stop_chromium_process(self):
+		self._signal_chromium()
+		try:
+			self._chromium_process.wait(timeout=5)
+		except subprocess.TimeoutExpired:
+			self._signal_chromium(kill=True)
+			self._chromium_process.wait()
+		self._chromium_process.stderr.close()
+
 	def _signal_chromium(self, kill=False):
 		process = self._chromium_process
 		if platform.system().lower() == "windows":
 			process.kill() if kill else process.terminate()
 			return
-		with contextlib.suppress(ProcessLookupError):
+		try:
 			os.killpg(process.pid, signal.SIGKILL if kill else signal.SIGTERM)
+		except ProcessLookupError:
+			pass
+		except PermissionError:
+			process.kill() if kill else process.terminate()
 
 	def _reap_orphaned_chromium(self):
 		"""Kill chromium processes leaked by dead workers.
@@ -261,7 +273,12 @@ class ChromiumManager:
 			except (psutil.NoSuchProcess, psutil.AccessDenied):
 				continue
 
-	def _set_devtools_url(self):
+	def _set_devtools_url(self, retry=True):
+		with ChromiumManager._lock:
+			if not self._devtools_url:
+				self._set_devtools_url_locked(retry)
+
+	def _set_devtools_url_locked(self, retry):
 		"""
 		Monitor Chromium's stderr for the DevTools WebSocket URL
 		----------------
@@ -295,7 +312,14 @@ class ChromiumManager:
 			self._drain_stderr(stderr)
 			return
 
-		self._raise_start_failure(output)
+		try:
+			self._raise_start_failure(output)
+		except TimeoutError:
+			if not retry:
+				raise
+			self._stop_chromium_process()
+			self.start_chromium_process(debug=self.debug_mode)
+			self._set_devtools_url(retry=False)
 
 	def _drain_stderr(self, stderr):
 		"""Keep reading chromium's stderr for the rest of its lifetime.
@@ -339,21 +363,16 @@ class ChromiumManager:
 
 	def _close_browser_locked(self):
 		if self._browsers:
-			frappe.log("Cannot close Chromium as there are active browser instances.")
+			frappe.logger("pdf").info("Cannot close Chromium as there are active browser instances.")
 			return
 		if getattr(self, "USE_PERSISTENT_CHROMIUM", False):
 			return
 		if self._chromium_process:
-			self._signal_chromium()
-			try:
-				self._chromium_process.wait(timeout=5)
-			except subprocess.TimeoutExpired:
-				self._signal_chromium(kill=True)
-				self._chromium_process.wait()
+			self._stop_chromium_process()
 		ChromiumManager._instance = None
 		self._chromium_process = None
 		self._devtools_url = None
-		frappe.log("Headless Chromium closed successfully.")
+		frappe.logger("pdf").info("Headless Chromium closed successfully.")
 
 	def detach_debug_browser(self):
 		"""

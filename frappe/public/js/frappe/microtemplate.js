@@ -235,6 +235,9 @@ frappe.render_pdf = function (html, opts = {}) {
 	if (opts.orientation) {
 		formData.append("orientation", opts.orientation);
 	}
+	if (opts.print_format) {
+		formData.append("print_format", opts.print_format);
+	}
 	var blob = new Blob([], { type: "text/xml" });
 	formData.append("blob", blob);
 

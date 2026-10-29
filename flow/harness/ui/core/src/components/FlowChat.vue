@@ -2,7 +2,7 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8"
 		:style="{
 			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
 			'--flow-chat-weight': store.state.prefs.chatFontWeight,
@@ -21,7 +21,7 @@
 					<Dropdown class="flex-none" :options="addTabOptions">
 						<template #trigger>
 							<button class="flow-icon-btn" title="New tab">
-								<FeatherIcon name="plus" class="h-3.5 w-3.5" />
+								<span class="lucide-plus size-3.5" aria-hidden="true" />
 							</button>
 						</template>
 					</Dropdown>
@@ -29,17 +29,23 @@
 				<template #view><EditorView /></template>
 				<template #empty>
 					<button
-						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-base text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 						@click="store.showFilesView()"
 					>
-						<FeatherIcon name="folder" class="h-4 w-4 flex-none text-ink-gray-5" />
+						<span
+							class="lucide-folder size-4 flex-none text-ink-gray-5"
+							aria-hidden="true"
+						/>
 						Files
 					</button>
 					<button
-						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-base text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 						@click="store.showDiffView()"
 					>
-						<FeatherIcon name="columns" class="h-4 w-4 flex-none text-ink-gray-5" />
+						<span
+							class="lucide-columns-2 size-4 flex-none text-ink-gray-5"
+							aria-hidden="true"
+						/>
 						Diffs
 					</button>
 				</template>
@@ -61,12 +67,12 @@
 				v-if="toast"
 				class="fixed bottom-5 right-5 z-[9999] flex max-w-[360px] items-start gap-2 rounded-6 border border-outline-gray-2 bg-surface-base px-3.5 py-2.5 shadow-md max-md:inset-x-3 max-md:bottom-auto max-md:top-3 max-md:max-w-none"
 			>
-				<FeatherIcon
-					:name="toast.kind === 'error' ? 'alert-circle' : 'info'"
-					class="mt-1 h-3.5 w-3.5 flex-none"
-					:class="toast.kind === 'error' ? 'text-ink-red-6' : 'text-ink-gray-5'"
+				<span
+					class="mt-1 size-3.5 flex-none"
+					:class="toast.kind === 'error' ? 'lucide-circle-alert text-ink-red-6' : 'lucide-info text-ink-gray-5'"
+					aria-hidden="true"
 				/>
-				<span class="min-w-0 text-xs leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
+				<span class="min-w-0 text-sm leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
 			</div>
 		</Transition>
 	</div>
@@ -77,7 +83,6 @@ import { computed, onBeforeUnmount, onMounted, provide, ref, watch } from "vue"
 import Dialogs from "frappe-ui/src/components/Dialogs.vue"
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue"
 import { useColorScheme } from "frappe-ui/src/composables/useColorScheme"
-import FeatherIcon from "./FeatherIcon.vue"
 
 import { installShortcuts } from "../shortcuts.js"
 import { installFocusRings } from "../focusRings.js"
@@ -100,10 +105,10 @@ const SETTINGS = [
 	{
 		label: "Settings",
 		tabs: [
-			{ id: "general", label: "General", icon: "settings" },
-			{ id: "appearance", label: "Appearance", icon: "palette" },
-			{ id: "presets", label: "Agent presets", icon: "layers" },
-			{ id: "skills", label: "Skills", icon: "book-open" },
+			{ id: "general", label: "General", icon: "lucide-settings" },
+			{ id: "appearance", label: "Appearance", icon: "lucide-palette" },
+			{ id: "presets", label: "Agent presets", icon: "lucide-layers" },
+			{ id: "skills", label: "Skills", icon: "lucide-book-open" },
 		],
 	},
 ]

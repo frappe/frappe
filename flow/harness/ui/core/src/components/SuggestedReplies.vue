@@ -6,7 +6,7 @@
 				v-for="reply in replies"
 				:key="reply"
 				type="button"
-				class="flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-full border px-3 text-sm"
+				class="flex h-8 min-w-0 max-w-full items-center gap-1.5 rounded-full border px-3 text-base"
 				:class="
 					picked.includes(reply)
 						? 'border-outline-gray-4 bg-surface-gray-2 text-ink-gray-9'
@@ -16,10 +16,11 @@
 				:aria-pressed="multiSelect ? picked.includes(reply) : undefined"
 				@click="tap(reply)"
 			>
-				<FeatherIcon
+				<span
 					v-if="multiSelect"
-					:name="picked.includes(reply) ? 'check-square' : 'square'"
-					class="h-3.5 w-3.5 flex-none"
+					class="size-3.5 flex-none"
+					:class="picked.includes(reply) ? 'lucide-square-check' : 'lucide-square'"
+					aria-hidden="true"
 				/>
 				<span class="truncate">{{ reply }}</span>
 			</button>
@@ -28,12 +29,12 @@
 		<button
 			v-if="multiSelect"
 			type="button"
-			class="-mb-[30px] flex h-8 flex-none items-center gap-1.5 rounded-full bg-surface-gray-10 px-3 text-sm font-medium text-ink-base hover:opacity-90"
+			class="-mb-[30px] flex h-8 flex-none items-center gap-1.5 rounded-full bg-surface-gray-10 px-3 text-base font-medium text-ink-base hover:opacity-90"
 			:class="{ invisible: !picked.length }"
 			@click="$emit('send', replies.filter((reply) => picked.includes(reply)).join(', '))"
 		>
 			Send
-			<FeatherIcon name="arrow-up" class="h-3.5 w-3.5" />
+			<span class="lucide-arrow-up size-3.5" aria-hidden="true" />
 		</button>
 	</div>
 </template>
@@ -42,7 +43,6 @@
 import { ref } from "vue"
 
 import { layout } from "../layout.js"
-import FeatherIcon from "./FeatherIcon.vue"
 
 const props = defineProps({
 	replies: { type: Array, required: true },

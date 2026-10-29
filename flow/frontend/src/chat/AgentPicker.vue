@@ -3,18 +3,18 @@
 		<!-- its list hangs from it -->
 		<button
 			ref="trigger"
-			class="flex max-w-full items-center gap-1.5 rounded-4 px-1.5 py-1 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-			:class="open ? 'bg-surface-gray-2' : ''"
+			class="flex h-6 max-w-full items-center gap-1.5 rounded-5 px-2 hover:text-ink-gray-9"
+			:class="open ? 'text-ink-gray-9' : ''"
 			title="Agent"
 			:aria-expanded="open"
 			@click="open ? close() : show()"
 		>
-			<FeatherIcon name="bot" class="h-3.5 w-3.5 flex-none" />
+			<span class="lucide-bot size-3.5 flex-none" aria-hidden="true" />
 			<span class="truncate">{{ title }}</span>
-			<FeatherIcon
-				name="chevron-down"
-				class="h-3 w-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
+			<span
+				class="lucide-chevron-down size-3 flex-none text-ink-gray-4 transition-transform dark:text-ink-gray-6"
 				:class="open ? 'rotate-180' : ''"
+				aria-hidden="true"
 			/>
 		</button>
 		<PalettePanel
@@ -31,7 +31,7 @@
 					ref="field"
 					v-model="search"
 					placeholder="Search agents…"
-					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-sm text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
+					class="h-8 min-w-0 flex-1 border-0 bg-transparent px-[11px] text-base text-ink-gray-9 outline-none placeholder:text-ink-gray-4 focus:ring-0"
 				/>
 			</div>
 			<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
@@ -44,10 +44,10 @@
 					@click="choose(agent.name)"
 				>
 					<span class="min-w-0 truncate">{{ agent.title }}</span>
-					<FeatherIcon
+					<span
 						v-if="agent.name === current"
-						name="check"
-						class="ml-auto h-4 w-4 flex-none"
+						class="lucide-check ml-auto size-4 flex-none"
+						aria-hidden="true"
 					/>
 				</button>
 				<div v-if="!options.length" class="flow-palette-empty">No matching agents</div>
@@ -58,7 +58,6 @@
 
 <script setup>
 import { computed, inject, nextTick, ref } from "vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import PalettePanel from "@flow/ui-core/components/PalettePanel.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

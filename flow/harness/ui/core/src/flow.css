@@ -30,6 +30,14 @@ body {
 [data-theme="dark"] .flow-composer-edge {
 	border-color: var(--outline-gray-1);
 }
+/* a new chat's start bar under the box: a step off the page; in dark mode between the chat and
+   the box */
+.flow-start-surface {
+	background: var(--surface-gray-1);
+}
+[data-theme="dark"] .flow-start-surface {
+	background: color-mix(in srgb, var(--surface-base) 50%, var(--surface-gray-1));
+}
 
 /* the sidebar, and the frame the chat panel stands on; in dark mode the composer's colour,
    a step lighter than the chat */
@@ -54,16 +62,6 @@ body {
 	background-color: var(--surface-gray-3);
 }
 
-/* frappe-ui menus at the UI's size, a half step over the sidebar's 13.5px rows (their own
-   text-base is 15px) */
-.menu-content [data-slot="item-list-row"] {
-	font-size: 14px;
-}
-.menu-content [data-slot="group-label"] {
-	height: 1.5rem;
-	font-size: 13px;
-}
-
 /* Diff overview ruler: monaco paints the viewport overlay with the scrollbar
    slider color, which our editor theme makes opaque — that would hide the
    red/green marks under it. Keep just this overlay translucent. */
@@ -83,11 +81,10 @@ body {
 	border-radius: 8px;
 	background: var(--surface-elevation-2);
 	color: var(--ink-gray-8);
-	font-size: 13px;
+	font-size: theme(fontSize.sm);
 	font-weight: 500;
 	line-height: 16px;
 	white-space: nowrap;
-	box-shadow: var(--elevation-md);
 	cursor: pointer;
 	animation: flow-reveal 0.12s ease-out;
 }
@@ -117,9 +114,9 @@ body {
 	color: var(--ink-gray-9);
 }
 
-/* A row of the lists over the composer (PalettePanel): 14px on 32px, 2px apart, the active
-   row a pill. The pointer and the keyboard share that one highlight (PalettePanel), so a
-   row has no hover color. A description or other aside takes flow-palette-hint. */
+/* A row of the lists over the composer (PalettePanel): text-base on 32px, 2px apart, the active
+   row rounded as a frappe-ui menu's item. The pointer and the keyboard share that one highlight
+   (PalettePanel), so a row has no hover color. A description or other aside takes flow-palette-hint. */
 .flow-palette-row {
 	display: flex;
 	width: 100%;
@@ -127,8 +124,8 @@ body {
 	align-items: center;
 	gap: 8px;
 	padding: 0 11px;
-	border-radius: 9999px;
-	font-size: 14px;
+	border-radius: theme(borderRadius.4);
+	font-size: theme(fontSize.base);
 	color: var(--ink-gray-8);
 	text-align: left;
 }
@@ -144,7 +141,7 @@ body {
 	height: 32px;
 	align-items: center;
 	padding: 0 11px;
-	font-size: 14px;
+	font-size: theme(fontSize.base);
 	color: var(--ink-gray-5);
 }
 /* under a header or search field it rises into the gap their row leaves, midway to what follows */
@@ -181,7 +178,7 @@ body {
 	height: 30px;
 	border-radius: 7px;
 	cursor: pointer;
-	font-size: 13px;
+	font-size: theme(fontSize.sm);
 	font-weight: 500;
 	border: 0;
 }
@@ -189,7 +186,6 @@ body {
 	padding: 0 15px;
 	background: var(--surface-gray-10);
 	color: var(--ink-base);
-	box-shadow: 0px 1px 2px rgba(0, 0, 0, 0.1);
 }
 .flow-btn-primary:hover {
 	opacity: 0.88;
@@ -255,6 +251,17 @@ body {
 [data-flow-tabbing] .flow-turn-copy:focus-within {
 	opacity: 1;
 }
+/* the row's time, even in the latest turn's row that stays in view, reveals as the older rows do */
+.flow-turn-time {
+	opacity: 0;
+	transition: opacity 0.12s ease;
+}
+.flow-thread > :hover + * > .flow-turn-time,
+.flow-thread > :hover + .flow-turn-files + * > .flow-turn-time,
+.flow-thread > :hover > .flow-turn-time,
+[data-flow-tabbing] .flow-thread > :focus-within > .flow-turn-time {
+	opacity: 1;
+}
 /* a message's own actions (the user bubble's time, rewind and copy) reveal on hovering it */
 .flow-hover-reveal {
 	opacity: 0;
@@ -267,6 +274,7 @@ body {
 /* touch screens have no hover: everything hover-revealed stays visible */
 @media (hover: none) {
 	.flow-turn-copy,
+	.flow-turn-time,
 	.flow-hover-reveal {
 		opacity: 1;
 	}
@@ -349,23 +357,24 @@ body {
 }
 
 /* Conversation typography. --flow-chat-text and --flow-chat-weight are the chat text
-   settings, set on the chat's root; a host that doesn't set them gets 15px and 450. */
+   settings, set on the chat's root; a host that doesn't set them gets 15px and 420. */
 .flow-prose {
 	/* font-family: Inter; */
 	font-size: var(--flow-chat-text, 15px);
 	line-height: 1.6;
-	font-weight: var(--flow-chat-weight, 450);
+	font-weight: var(--flow-chat-weight, 420);
 	letter-spacing: normal;
 }
-/* the thread's step rows (tools, thinking, folds) sit one step under the chat text */
-.flow-thread .text-sm {
-	font-size: calc(var(--flow-chat-text, 15px) - 1px);
+/* the thread's step rows (tools, thinking, folds) sit one step under the chat text, or at
+   --flow-step-text where a host sets it */
+.flow-thread .text-base {
+	font-size: var(--flow-step-text, calc(var(--flow-chat-text, 15px) - 1px));
 }
 /* the draft (its box and the highlight under it) follows too, its size only from 640px:
    phones keep the 16px that stops iPhone Safari zooming into the box */
 .flow-draft > textarea,
 .flow-draft > div {
-	font-weight: var(--flow-chat-weight, 450);
+	font-weight: var(--flow-chat-weight, 420);
 }
 @media (min-width: 640px) {
 	.flow-draft > textarea,
@@ -407,6 +416,11 @@ body {
 	margin: 1em 0 0.4em;
 	font-weight: 600;
 	color: var(--ink-gray-9);
+}
+/* bold as the headings, not the browser's 700 */
+.flow-md strong,
+.flow-md b {
+	font-weight: 600;
 }
 .flow-md h1 {
 	font-size: 1.25em;
@@ -497,7 +511,7 @@ body {
 }
 .flow-md th {
 	background: var(--surface-gray-1);
-	font-weight: 600;
+	font-weight: 500;
 }
 .flow-md hr {
 	border: 0;

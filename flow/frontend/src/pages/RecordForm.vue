@@ -6,8 +6,8 @@
 		@back="toList(false)"
 	>
 		<template #actions>
-			<span v-if="doc && !canWrite" class="text-xs text-ink-gray-5">View only</span>
-			<span v-if="canWrite && dirty" class="text-xs text-ink-gray-5 max-sm:hidden"
+			<span v-if="doc && !canWrite" class="text-sm text-ink-gray-5">View only</span>
+			<span v-if="canWrite && dirty" class="text-sm text-ink-gray-5 max-sm:hidden"
 				>Unsaved changes</span
 			>
 			<Button
@@ -35,7 +35,7 @@
 			<Dropdown v-if="canDelete" align="end" :options="menu">
 				<template #trigger>
 					<button class="flow-icon-btn" title="More">
-						<FeatherIcon name="more-horizontal" class="h-4 w-4" />
+						<span class="lucide-ellipsis size-4" aria-hidden="true" />
 					</button>
 				</template>
 			</Dropdown>
@@ -58,7 +58,7 @@
 		>
 			<p
 				v-if="doc.is_system_generated && canWrite"
-				class="mb-5 rounded-5 bg-surface-gray-2 px-3 py-2 text-xs leading-5 text-ink-gray-7"
+				class="mb-5 rounded-5 bg-surface-gray-2 px-3 py-2 text-sm leading-5 text-ink-gray-7"
 			>
 				Comes with an app, so greyed-out fields can't be changed.
 			</p>
@@ -66,7 +66,7 @@
 			<section v-for="(group, i) in groups" :key="i">
 				<h2
 					v-if="group.title"
-					class="mb-5 mt-10 border-t border-outline-gray-1 pt-8 text-lg font-semibold text-ink-gray-9"
+					class="mb-5 mt-10 border-t border-outline-gray-1 pt-8 text-xl font-semibold text-ink-gray-9"
 				>
 					{{ group.title }}
 				</h2>
@@ -85,7 +85,7 @@
 						/>
 						<!-- one who may only read it sees its values, not disabled inputs -->
 						<div v-else class="flex flex-col gap-1.5">
-							<span class="text-xs text-ink-gray-5">{{ field.label }}</span>
+							<span class="text-sm text-ink-gray-5">{{ field.label }}</span>
 							<span
 								v-if="field.type === 'multilink' && doc[field.name]?.length"
 								class="flex flex-wrap gap-1.5"
@@ -93,16 +93,16 @@
 								<span
 									v-for="item in doc[field.name]"
 									:key="item"
-									class="rounded-4 bg-surface-gray-2 px-2 py-0.5 text-sm text-ink-gray-8"
+									class="rounded-4 bg-surface-gray-2 px-2 py-0.5 text-base text-ink-gray-8"
 									>{{ item }}</span
 								>
 							</span>
 							<span
 								v-else
-								class="whitespace-pre-wrap break-words text-sm leading-6"
+								class="whitespace-pre-wrap break-words text-base leading-6"
 								:class="[
 									shown(field) ? 'text-ink-gray-8' : 'text-ink-gray-4',
-									field.type === 'code' && 'font-mono text-xs',
+									field.type === 'code' && 'font-mono text-sm',
 								]"
 								>{{ shown(field) || "None" }}</span
 							>
@@ -111,8 +111,8 @@
 				</div>
 			</section>
 		</form>
-		<p v-else-if="error" class="px-6 py-16 text-center text-sm text-ink-gray-5">{{ error }}</p>
-		<LoadingState v-else class="justify-center py-16 text-xs text-ink-gray-5" />
+		<p v-else-if="error" class="px-6 py-16 text-center text-base text-ink-gray-5">{{ error }}</p>
+		<LoadingState v-else class="h-full justify-center text-sm text-ink-gray-5" />
 	</div>
 </template>
 
@@ -121,7 +121,6 @@ import { computed, inject, onBeforeUnmount, watch } from "vue";
 import { useRouter } from "vue-router";
 import { Button, dialog, toast } from "frappe-ui";
 import Dropdown from "frappe-ui/src/components/Dropdown/Dropdown.vue";
-import FeatherIcon from "@flow/ui-core/components/FeatherIcon.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { layout } from "@flow/ui-core/layout.js";
 

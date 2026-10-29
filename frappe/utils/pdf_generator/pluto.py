@@ -18,6 +18,7 @@ POINTS_PER_PX = 0.75
 VIEWPORT_WIDTH = 800
 MAX_SHRINK = 0.5
 SCRIPT = re.compile(r"<script|\son[a-z]+\s*=", re.IGNORECASE)
+JINJA_TAG = re.compile(r"{%.*?%}|{{.*?}}|{#.*?#}", re.DOTALL)
 BASE_STYLE = "* { font-variant-ligatures: no-contextual; }"
 BREAK_WORD = re.compile(r"((?:overflow|word)-wrap\s*:\s*)(?:break-word|anywhere)", re.IGNORECASE)
 CSS_IN_HTML = re.compile(
@@ -76,7 +77,7 @@ def plutoprint_blockers(print_format=None) -> list[str]:
 		blockers.append(_("PlutoPrint is not installed on this server"))
 	if print_format:
 		source = "\n".join(cstr(print_format.get(field)) for field in ("html", "css", "format_data"))
-		if SCRIPT.search(source):
+		if SCRIPT.search(JINJA_TAG.sub("", source)):
 			blockers.append(_("JavaScript"))
 		if GRID.search(source):
 			blockers.append(_("CSS grid"))
@@ -147,6 +148,10 @@ class PlutoPage:
 
 	def get_content_width(self):
 		return self._book(self.viewport_width * POINTS_PER_PX, None).get_document_width()
+
+	def get_content_height(self):
+		self.html += f"<style>{MEASURE_STYLE}</style>"
+		return self._book(self.viewport_width * POINTS_PER_PX, None).get_document_height()
 
 	def get_element_height(self, selector="body"):
 		book = self._book(self.viewport_width * POINTS_PER_PX, None, user_style=MEASURE_STYLE)
