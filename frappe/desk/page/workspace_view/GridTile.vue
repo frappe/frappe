@@ -55,6 +55,7 @@ const style = computed(() => ({
 
 <style scoped>
 .ws-tile {
+	position: relative;
 	min-width: 0;
 	grid-column: span var(--span-2);
 	grid-row: span var(--tracks);

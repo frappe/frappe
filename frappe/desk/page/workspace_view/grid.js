@@ -76,10 +76,11 @@ export function block_rects(root) {
 
 // Every block glides from where it was to where it is now, and a block that was not on the page
 // fades in. A resized block's content reflows at once, so with `fade_resized` it fades in over
-// the change.
-export function glide(root, before, { duration, easing, fade_resized = false }) {
+// the change. The block in `held` is under the pointer and is left where it is.
+export function glide(root, before, { duration, easing, fade_resized = false, held = null }) {
 	if (!root || !before.size || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
 	for (const el of root.querySelectorAll("[data-block]")) {
+		if (el.dataset.block === held) continue;
 		const from = before.get(el.dataset.block);
 		if (!from) {
 			el.animate([{ opacity: 0 }, { opacity: 1 }], { duration, easing });
