@@ -2,9 +2,14 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so on the /flow page the chat stands on it as a raised
 	     panel; the launcher's panel keeps it flat at any size. The chat's text and its steps are
-	     the composer's size, the text a size up in a wide frame -->
+	     the composer's size, the text a size up in a wide frame or on a phone -->
 	<div
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-chat-text:theme(fontSize.base)] [--flow-step-text:theme(fontSize.base)] md:[--flow-chat-text:theme(fontSize.md)]"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8 [--flow-step-text:theme(fontSize.base)]"
+		:class="
+			layout.phone
+				? '[--flow-chat-text:theme(fontSize.md)]'
+				: '[--flow-chat-text:theme(fontSize.base)] md:[--flow-chat-text:theme(fontSize.md)]'
+		"
 	>
 		<SessionSidebar
 			v-if="!noSidebar"
@@ -156,7 +161,7 @@ import { connectSocket } from "../api/socket.js";
 import { createPage } from "../page.js";
 import { inPanel, panelHost } from "../panel.js";
 import RecordPage from "../pages/RecordPage.vue";
-import { PAGES } from "../pages/pages.js";
+import { FORMS, PAGES } from "../pages/pages.js";
 import FlowSettings from "../settings/FlowSettings.vue";
 import { SPECS } from "../settings/specs.js";
 import AgentPalette from "./AgentPalette.vue";
@@ -318,9 +323,13 @@ const pageLinks = computed(() =>
 		onClick: () => router.push(`/${item.key}`),
 	}))
 );
-const pageKind = computed(() =>
-	pages.value.some((item) => item.key === route.params.kind) ? route.params.kind : null
-);
+// a setup form has a record's page alone, no list
+const forms = computed(() => FORMS.filter((item) => page.can(SPECS[item.key].doctype, "read")));
+const pageKind = computed(() => {
+	const { kind, record } = route.params;
+	const shown = pages.value.some((item) => item.key === kind);
+	return shown || (record && forms.value.some((item) => item.key === kind)) ? kind : null;
+});
 watch(
 	() => store.state.sessionId,
 	(id) => {

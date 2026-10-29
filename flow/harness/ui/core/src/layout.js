@@ -16,6 +16,12 @@ measure()
 wide?.addEventListener("change", measure)
 finger?.addEventListener("change", measure)
 
+// iPhone Safari zooms into a field under 16px unless the page caps its scale; it still pinch-zooms.
+// Only iOS knows -webkit-touch-callout: elsewhere the cap would stop pinch zoom
+if (globalThis.CSS?.supports?.("-webkit-touch-callout", "none")) {
+	document.querySelector('meta[name="viewport"]').content += ", maximum-scale=1"
+}
+
 // a side panel slides only as `open()` changes, not on load or as the frame crosses the narrow width
 export function useSlide(open) {
 	const sliding = ref(false)

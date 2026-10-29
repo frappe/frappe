@@ -46,7 +46,7 @@
 		<div class="flow-palette-list min-h-0 flex-1 overflow-y-auto p-1">
 			<template v-for="(group, i) in groups" :key="group.provider">
 				<!-- a heading takes a row's height; the first sits in the list's top padding -->
-				<div class="flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5" :class="i ? 'mt-1' : '-mt-1'">
+				<div class="flex h-8 items-center px-[11px] text-base text-ink-gray-5" :class="i ? 'mt-1' : '-mt-1'">
 					{{ group.provider }}
 				</div>
 				<button

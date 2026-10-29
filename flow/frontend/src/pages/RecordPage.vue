@@ -16,7 +16,7 @@ import { computed } from "vue";
 import { useRoute } from "vue-router";
 
 import { SPECS } from "../settings/specs.js";
-import { PAGES } from "./pages.js";
+import { FORMS, PAGES } from "./pages.js";
 import RecordForm from "./RecordForm.vue";
 import RecordList from "./RecordList.vue";
 
@@ -26,7 +26,7 @@ const props = defineProps({ kind: { type: String, required: true } });
 const route = useRoute();
 
 const spec = computed(() => SPECS[props.kind]);
-const info = computed(() => PAGES.find((page) => page.key === props.kind));
+const info = computed(() => [...PAGES, ...FORMS].find((page) => page.key === props.kind));
 // null for the list, "" for a blank record
 const record = computed(() => {
 	const name = route.params.record;

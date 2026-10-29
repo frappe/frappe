@@ -778,7 +778,7 @@ const emptyMessage = computed(() => {
 	translate: 0 -0.625rem;
 }
 
-/* a phone's drawer: rows and buttons a finger can take, titles a size up */
+/* a phone's drawer: rows and buttons a finger can take, titles at the chat's text size */
 @media (max-width: 767px) and (pointer: coarse) {
 	aside :deep([data-slot="sidebar-item"]),
 	.list-head {
@@ -790,7 +790,7 @@ const emptyMessage = computed(() => {
 	}
 	.row-title,
 	aside :deep([data-slot="sidebar-item"]) .text-base {
-		font-size: theme(fontSize.lg);
+		font-size: theme(fontSize.md);
 	}
 }
 

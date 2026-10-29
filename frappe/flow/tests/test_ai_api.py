@@ -298,9 +298,9 @@ class TestSessionEndpoints(ApiCase):
 		self.assertIn("full_name", data["user"])
 		self.assertEqual(data["permissions"]["Flow Provider"], ["read", "write", "create", "delete"])
 		frappe.db.delete("Flow Provider")  # tearDown rolls it back
-		self.assertFalse(api.boot()["has_provider"])
-		frappe.get_doc({"doctype": "Flow Provider", "provider": "openai"}).insert()
-		self.assertTrue(api.boot()["has_provider"])
+		self.assertIsNone(api.boot()["provider"])
+		provider = frappe.get_doc({"doctype": "Flow Provider", "provider": "openai"}).insert()
+		self.assertEqual(api.boot()["provider"], provider.name)
 		frappe.set_user(_ensure_user(OTHER))
 		data = api.boot()
 		self.assertEqual(data["user"]["name"], OTHER)
