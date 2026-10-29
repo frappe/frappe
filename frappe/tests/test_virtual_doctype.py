@@ -187,6 +187,16 @@ class TestVirtualDoctypes(IntegrationTestCase):
 		listed_docs = {d.name for d in frappe.get_list(TEST_DOCTYPE_NAME)}
 		self.assertIn(doc.name, listed_docs)
 
+	def test_get_list_without_order_by_keeps_controller_default(self):
+		def get_list(order_by="name asc"):
+			return [frappe._dict(order_by=order_by)]
+
+		with patch.object(VirtualDoctypeTest, "get_list", staticmethod(get_list)):
+			self.assertEqual(frappe.get_list(TEST_DOCTYPE_NAME)[0].order_by, "name asc")
+			self.assertEqual(
+				frappe.get_list(TEST_DOCTYPE_NAME, order_by="creation desc")[0].order_by, "creation desc"
+			)
+
 	def test_guest_cannot_delete_virtual_doctype(self):
 		doc = frappe.get_doc(doctype=TEST_DOCTYPE_NAME).insert()
 
