@@ -106,7 +106,7 @@ const SUBJECT_KEYS = [
 ];
 
 // the flow server's own tools keep the core's rows, which fold a read's file text
-const CORE_TOOLS = new Set(["read", "grep", "web_fetch"]);
+const CORE_TOOLS = new Set(["read", "grep", "web_fetch", "web_search"]);
 
 export function presentTool(name, args = {}, result = null) {
 	if (CORE_TOOLS.has(name)) return {};

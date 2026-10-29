@@ -4,7 +4,10 @@
  "doctype": "DocType",
  "engine": "InnoDB",
  "field_order": [
-  "small_model"
+  "small_model",
+  "web_search_section",
+  "search_provider",
+  "search_api_key"
  ],
  "fields": [
   {
@@ -13,11 +16,31 @@
    "fieldtype": "Link",
    "label": "Small Model",
    "options": "Flow Model"
+  },
+  {
+   "fieldname": "web_search_section",
+   "fieldtype": "Section Break",
+   "label": "Web Search"
+  },
+  {
+   "default": "DuckDuckGo",
+   "description": "DuckDuckGo needs no key but may refuse searches when used a lot. Brave, Tavily and Exa need an API key.",
+   "fieldname": "search_provider",
+   "fieldtype": "Select",
+   "label": "Search Provider",
+   "options": "DuckDuckGo\nBrave\nTavily\nExa"
+  },
+  {
+   "depends_on": "eval:doc.search_provider && doc.search_provider !== \"DuckDuckGo\"",
+   "fieldname": "search_api_key",
+   "fieldtype": "Password",
+   "label": "Search API Key",
+   "mandatory_depends_on": "eval:doc.search_provider && doc.search_provider !== \"DuckDuckGo\""
   }
  ],
  "issingle": 1,
  "links": [],
- "modified": "2026-10-29 10:35:18.236713",
+ "modified": "2026-10-29 22:00:00.000000",
  "modified_by": "Administrator",
  "module": "Flow",
  "name": "Flow Settings",
