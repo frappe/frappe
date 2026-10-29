@@ -377,6 +377,7 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 				"permlevel": 1,
 				"default": "hidden",
 			},
+			{"fieldname": "token", "fieldtype": "Data", "label": "Token", "mask": 1, "default": "abc123"},
 		]
 		perms = [
 			{
@@ -403,6 +404,7 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 			.name
 		)
 		self.name = frappe.get_doc(doctype=self.doctype, rows=[{}]).insert().name
+		self.row = frappe.db.get_value(self.child, {"parent": self.name})
 		frappe.db.commit()  # nosemgrep
 
 	def tearDown(self):
@@ -426,9 +428,9 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 		return response.json.get("data") or response.json["message"]
 
 	def assertMasked(self, doc):
-		self.assertIsNone(doc.get("secret"))
-		for row in doc.get("rows") or []:
-			self.assertIsNone(row.get("secret"))
+		for d in (doc, *(doc.get("rows") or [])):
+			self.assertIsNone(d.get("secret"))
+			self.assertNotEqual(d.get("token"), "abc123")
 
 	def saved_doc(self):
 		return frappe.get_doc(self.doctype, self.name).as_dict()
@@ -440,6 +442,11 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 
 	def test_v1_update_doc(self):
 		doc = self.request("put", f"/api/resource/{self.doctype}/{self.name}", {"title": "x"})
+		self.assertEqual(doc["title"], "x")
+		self.assertMasked(doc)
+
+	def test_v1_update_doc_child_row(self):
+		doc = self.request("put", f"/api/resource/{self.child}/{self.row}", {"title": "x"})
 		self.assertEqual(doc["title"], "x")
 		self.assertMasked(doc)
 
@@ -482,6 +489,16 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 			"post", "/api/method/frappe.client.cancel", {"doctype": self.doctype, "name": self.name}
 		)
 		self.assertEqual(doc["docstatus"], 2)
+		self.assertMasked(doc)
+
+	def test_client_set_value_child_row(self):
+		doc = self.request(
+			"post",
+			"/api/method/frappe.client.set_value",
+			{"doctype": self.child, "name": self.row, "fieldname": "title", "value": "z"},
+		)
+		self.assertEqual(doc["doctype"], self.doctype)
+		self.assertEqual(doc["rows"][0]["title"], "z")
 		self.assertMasked(doc)
 
 	def test_client_set_value(self):
