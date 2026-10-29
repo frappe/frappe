@@ -59,6 +59,7 @@ frappe.provide("frappe.ui");
 
 const EXIT_MS = 140; // keep in sync with es-menu-out in menu.css
 const DEBOUNCE_MS = 300;
+const RESIZE_MS = 150;
 const PANEL_OFFSET = 4;
 // grid cells can be very narrow, so keep the panel at least this wide
 const MIN_PANEL_WIDTH = 240;
@@ -167,23 +168,6 @@ function matches(option, query) {
 	const q = query.toLowerCase();
 	return [option.label, option.description, option.value].some(
 		(text) => text != null && String(text).toLowerCase().includes(q)
-	);
-}
-
-// text nodes only, never innerHTML
-function fill_label(el, text, query) {
-	const index = query ? text.toLowerCase().indexOf(query.toLowerCase()) : -1;
-	if (index === -1) {
-		el.textContent = text;
-		return;
-	}
-	const mark = document.createElement("span");
-	mark.className = "es-combobox__match text-ink-gray-9";
-	mark.textContent = text.slice(index, index + query.length);
-	el.append(
-		document.createTextNode(text.slice(0, index)),
-		mark,
-		document.createTextNode(text.slice(index + query.length))
 	);
 }
 
@@ -299,10 +283,14 @@ frappe.ui.Combobox = class Combobox {
 				size: "xs",
 				title: __("Clear"),
 				attrs: { "data-role": "clear", tabindex: "-1" },
+				// applies at once; Backspace clears and opens the list to type a new value
 				onclick: (e) => {
 					e.stopPropagation();
-					this.clear();
+					this.set_value(null, { silent: false });
+					// focus stays on the field without opening its list
+					this.returning_focus = true;
 					this.focus();
+					this.returning_focus = false;
 				},
 			})[0];
 		}
@@ -675,7 +663,11 @@ frappe.ui.Combobox = class Combobox {
 			{ passive: true }
 		);
 		// macOS hides scrollbars, so show a hint that the list scrolls
-		this.scroll_observer = new ResizeObserver(() => this.update_scroll_cue());
+		// a list that grows to show every row gets no scroll to load the next page
+		this.scroll_observer = new ResizeObserver(() => {
+			this.update_scroll_cue();
+			this.maybe_load_more();
+		});
 		this.scroll_observer.observe(this.list_el);
 		// close the panel when the field gets hidden
 		this.trigger_observer = new ResizeObserver(() => this.onreposition());
@@ -754,7 +746,7 @@ frappe.ui.Combobox = class Combobox {
 		this.opts.on_open && this.opts.on_open(this);
 	}
 
-	reposition() {
+	reposition(from = null) {
 		if (!this.panel) return;
 		const t = this.trigger_el;
 		const rect = t.getBoundingClientRect();
@@ -777,6 +769,9 @@ frappe.ui.Combobox = class Combobox {
 		this.panel.style.width = `${width}px`;
 		this.panel.classList.toggle("es-combobox__panel--narrow", width < NARROW_PANEL_WIDTH);
 
+		const placed = this.panel.hasAttribute("data-side");
+		this.resize_animation?.cancel();
+
 		// limit the height so the panel doesn't cover the field
 		this.panel.style.maxHeight = "";
 		const natural = this.panel.offsetHeight;
@@ -784,26 +779,35 @@ frappe.ui.Combobox = class Combobox {
 			bottom: window.innerHeight - rect.bottom - VIEWPORT_PAD - PANEL_OFFSET,
 			top: rect.top - VIEWPORT_PAD - PANEL_OFFSET,
 		};
-		const side = natural > room.bottom && room.top > room.bottom ? "top" : "bottom";
+		// it stays on the side it opened on, or the search box jumps as the rows change
+		if (!placed || room[this.side] < MIN_PANEL_HEIGHT) {
+			// rows still loading: pick the side for a full list
+			const wanted = this.rows_pending
+				? parseFloat(getComputedStyle(this.panel).maxHeight) || natural
+				: natural;
+			this.side = wanted > room.bottom && room.top > room.bottom ? "top" : "bottom";
+		}
+		const side = this.side;
 		if (natural > room[side]) {
 			this.panel.style.maxHeight = `${Math.max(Math.round(room[side]), MIN_PANEL_HEIGHT)}px`;
 		}
-		// position again after the open animation
-		const running = (this.panel.getAnimations?.() || []).filter(
-			(a) => a.playState === "running"
-		);
-		if (running.length) {
-			if (!this.reposition_pending) {
-				this.reposition_pending = Promise.all(running.map((a) => a.finished))
-					.catch(() => {})
-					.then(() => {
-						this.reposition_pending = null;
-						this.reposition();
-					});
-			}
-			return;
-		}
 		place(this.panel, rect, side, "start", PANEL_OFFSET);
+		this.ease_resize(from);
+	}
+
+	ease_resize(from) {
+		if (!from || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+		const to = this.panel.getBoundingClientRect();
+		// a scroll only moves it, and the panel must keep up with the field
+		if (Math.abs(from.height - to.height) < 1) return;
+		this.resize_animation = this.panel.animate(
+			[
+				{ top: `${from.top}px`, height: `${from.height}px` },
+				{ top: `${to.top}px`, height: `${to.height}px` },
+			],
+			// the curve menus open with (es-menu-in in menu.css)
+			{ duration: RESIZE_MS, easing: "cubic-bezier(0.23, 1, 0.32, 1)" }
+		);
 	}
 
 	close(reason = "owner") {
@@ -822,7 +826,6 @@ frappe.ui.Combobox = class Combobox {
 		clearTimeout(this.debounce_timer);
 		cancelAnimationFrame(this.reposition_frame);
 		this.reposition_frame = null;
-		this.reposition_pending = null;
 		this.pending_typeahead = "";
 		this.scroll_observer && this.scroll_observer.disconnect();
 		this.trigger_observer && this.trigger_observer.disconnect();
@@ -991,12 +994,14 @@ frappe.ui.Combobox = class Combobox {
 				console.error(error);
 				this.has_more = false;
 				this.update_more_row();
+				this.reposition();
 			}
 		);
 	}
 
 	// append rows so scroll and highlight stay
 	append_rows(groups) {
+		const from = this.panel.getBoundingClientRect();
 		// remove the empty message when later rows arrive
 		if (groups.length) this.list_el.querySelector(".es-menu__empty")?.remove();
 		for (const group of groups) {
@@ -1014,6 +1019,8 @@ frappe.ui.Combobox = class Combobox {
 			}
 		}
 		this.update_more_row();
+		// a list above the field grows upward
+		this.reposition(from);
 	}
 
 	make_group_el(group) {
@@ -1069,7 +1076,10 @@ frappe.ui.Combobox = class Combobox {
 						)}${frappe.ui.skeleton.html({ width, height: "12px" })}</div>`
 				)
 				.join("");
+			const from =
+				this.panel.hasAttribute("data-side") && this.panel.getBoundingClientRect();
 			this.list_el.innerHTML = `<div class="es-menu__group">${rows}</div>`;
+			this.reposition(from);
 		}
 	}
 
@@ -1153,6 +1163,8 @@ frappe.ui.Combobox = class Combobox {
 		this.highlighted = null;
 		this.group_els = [];
 		this.more_el = null;
+		// its size before the new rows, so the change can ease from there
+		const from = this.panel.hasAttribute("data-side") && this.panel.getBoundingClientRect();
 		this.list_el.replaceChildren();
 		for (const group of this.view_groups(groups)) {
 			// a group's name finds its rows too
@@ -1200,9 +1212,9 @@ frappe.ui.Combobox = class Combobox {
 			this.pending_typeahead = "";
 			this.typeahead(text);
 		}
-		this.reposition();
-		this.update_scroll_cue();
 		this.update_more_row();
+		this.reposition(from);
+		this.update_scroll_cue();
 
 		// Enter pressed while loading: pick a row, not a custom row
 		if (this.pending_activate) {
@@ -1250,7 +1262,7 @@ frappe.ui.Combobox = class Combobox {
 
 		const label = document.createElement("span");
 		label.className = "es-menu__label";
-		fill_label(label, option.label || "", row.custom ? "" : query);
+		label.textContent = option.label || "";
 		if (option.badge && option.badge.label) {
 			// the badge checks the theme
 			label.insertAdjacentHTML(
