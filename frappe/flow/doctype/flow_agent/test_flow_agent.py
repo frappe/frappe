@@ -271,7 +271,7 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 				"is_system_generated": 1,
 			}
 		).insert()
-		for slug in ("update_memory", "read", "grep", "subagent", "suggest_replies", "helpdesk_ticket"):
+		for slug in ("update_memory", "read", "grep", "subagent", "helpdesk_ticket"):
 			self.agent_doc.append("tools", {"tool": slug})
 		self.agent_doc.save()
 
@@ -285,7 +285,7 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		self.assertEqual(config["confirm_tools"], ["execute"])
 		self.assertEqual(
 			(config["tools"], config["extension_tools"]),
-			(["read", "grep", "subagent", "suggest_replies"], ["helpdesk_ticket"]),
+			(["read", "grep", "subagent"], ["helpdesk_ticket"]),
 		)
 		self.assertIn("Use read, grep to inspect", config["system_prompt"])
 
@@ -295,13 +295,11 @@ class TestFlowAgentClientTools(IntegrationTestCase):
 		self.assertEqual(
 			[tool["function"]["name"] for tool in config["client_tools"]], ["execute", "update_memory"]
 		)
-		self.assertEqual(
-			(config["tools"], config["extension_tools"]), (["read", "subagent", "suggest_replies"], [])
-		)
+		self.assertEqual((config["tools"], config["extension_tools"]), (["read", "subagent"], []))
 
 		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
 		config = self.agent_doc.session_tool_config()
-		self.assertEqual(config["tools"], ["subagent", "suggest_replies"])
+		self.assertEqual(config["tools"], ["subagent"])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])
 
 	def test_changing_tools_or_sub_agents_warns_that_existing_sessions_keep_theirs(self):

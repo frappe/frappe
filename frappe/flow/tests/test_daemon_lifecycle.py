@@ -161,7 +161,7 @@ class TestDaemonLifecycle(UnitTestCase):
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS": json.dumps(template),
 				# the same tool in two sites is allowed once
-				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "suggest_replies", "helpdesk_ticket"]}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "helpdesk_ticket"]}',
 				"FLOW_REDIS_URL": "redis://q",
 			},
 		)
@@ -365,7 +365,7 @@ class TestDaemonLifecycle(UnitTestCase):
 			{
 				"PATH": "/usr/bin",
 				"FLOW_TENANTS": json.dumps(lifecycle.tenant_template()),
-				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent", "suggest_replies"]}',
+				"FLOW_POLICY": '{"tool_allowlist": ["read", "grep", "subagent"]}',
 			},
 		)
 		chdir.assert_called_once_with(self.runtime)

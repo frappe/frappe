@@ -36,6 +36,7 @@ SETTINGS_DOCTYPES = (
 	"Flow Knowledge Source",
 	"Flow Knowledge Settings",
 	"Flow Agent Memory",
+	"Flow Settings",
 )
 
 

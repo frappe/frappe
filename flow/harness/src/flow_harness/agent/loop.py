@@ -1,5 +1,5 @@
 """The agent loop: ask the model, run the tools it asks for, repeat — until it stops
-calling tools or calls only tools that end the run, a cap trips, or a gated tool pauses the run.
+calling tools, a cap trips, or a gated tool pauses the run.
 
 `run` and `resume` only yield events and raise errors. The session saves them as they
 arrive, so the transcript the loop reads for the next model call is always current.
@@ -204,8 +204,7 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 async def resume(
 	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs
 ) -> AsyncIterator[AnyEvent]:
-	"""Continue a paused run by settling its approval batch, then take turns unless that
-	turn ends the run.
+	"""Continue a paused run by settling its approval batch, then take turns.
 
 	The session validates ``answers`` against the pending batch before calling this.
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
@@ -214,7 +213,7 @@ async def resume(
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	tools = inputs.server_tools or {}
 	ctx = _tool_context(inputs)
-	denied = redirected = False
+	denied = False
 	for pending in approval.calls:
 		_raise_if_aborted(inputs.abort)
 		call = ToolCall(id=pending.id, name=pending.name, arguments=pending.args)
@@ -232,23 +231,22 @@ async def resume(
 			denied = True
 		else:
 			result = _result(call, _redirect(answer))
-			redirected = True
 		_raise_if_aborted(inputs.abort)
 		yield result
 
 	if denied:  # a rejected action stops the run rather than continuing
 		yield RunEnded(reason="denied")
 		return
-	if not redirected and _turn_ends_run(inputs.messages, tools):
-		steered = False
-		for message in _drain(inputs.next_steering):
-			steered = True
-			yield message
-		if not steered:
-			yield RunEnded(reason="done")
-			return
 	async for event in _loop(inputs):
 		yield event
+
+
+def tool_schemas(tools: dict[str, Tool], config: SessionConfig) -> list[dict]:
+	"""The tools offered to the model; a client tool's display template stays out."""
+	schemas = [tool.to_schema() for tool in tools.values()]
+	for client_tool in config.client_tools:
+		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	return schemas
 
 
 async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
@@ -259,12 +257,11 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	if config.auto_compact:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
-	schemas = [tool.to_schema() for tool in tools.values()]
+	schemas = tool_schemas(tools, config)
 	tool_display_templates = {
 		tool.name: tool.display_template for tool in tools.values() if tool.display_template is not None
 	}
-	for client_tool in config.client_tools:  # its display template is for the UI, not the model
-		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	for client_tool in config.client_tools:
 		if template := client_tool.get("display_template"):
 			try:
 				display_template_variables(template)
@@ -321,23 +318,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			yield RunEnded(reason="aborted")
 			return
 
-		ends_run = not assistant.tool_calls
-		if assistant.tool_calls and assistant.stop_reason == "length":
-			# truncated arguments can still parse, so no call in this turn is safe to run
-			for call in assistant.tool_calls:
-				yield _result(call, _TRUNCATED, is_error=True)
-		elif assistant.tool_calls:
-			gated: list[PendingCall] = []
-			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
-				yield event
-			if gated:  # free tools already ran; now wait for the human
-				_raise_if_aborted(abort)
-				yield ApprovalRequired(calls=gated)
-				yield RunEnded(reason="paused")
-				return
-			ends_run = _turn_ends_run(inputs.messages, tools)
-
-		if ends_run:
+		if not assistant.tool_calls:
 			steered = False
 			for message in _drain(inputs.next_steering):
 				steered = True
@@ -346,6 +327,20 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				continue
 			yield RunEnded(reason="length" if assistant.stop_reason == "length" else "done")
 			return
+
+		if assistant.stop_reason == "length":
+			# truncated arguments can still parse, so no call in this turn is safe to run
+			for call in assistant.tool_calls:
+				yield _result(call, _TRUNCATED, is_error=True)
+		else:
+			gated: list[PendingCall] = []
+			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
+				yield event
+			if gated:  # free tools already ran; now wait for the human
+				_raise_if_aborted(abort)
+				yield ApprovalRequired(calls=gated)
+				yield RunEnded(reason="paused")
+				return
 
 		if budget.exhausted:
 			yield RunEnded(reason="budget")
@@ -765,16 +760,6 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		# the runner needs this run's inputs; a tool only names the call, task, agent and child
 		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
 	)
-
-
-def _turn_ends_run(messages: list[TranscriptMessage], tools: dict[str, Tool]) -> bool:
-	"""Whether the newest turn called only tools that end the run, none of them failing."""
-	for message in reversed(messages):
-		if isinstance(message, ToolResult) and message.is_error:
-			return False
-		if isinstance(message, AssistantMessage):
-			return all(call.name in tools and tools[call.name].ends_run for call in message.tool_calls)
-	return False
 
 
 def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:
