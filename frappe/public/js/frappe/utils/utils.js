@@ -3,7 +3,7 @@
 
 import deep_equal from "fast-deep-equal";
 import number_systems from "./number_systems";
-import { CHART_PALETTE } from "../ui/components/utils.js";
+import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 
 frappe.provide("frappe.utils");
 
@@ -277,11 +277,7 @@ Object.assign(frappe.utils, {
 		return String(txt).replace(/[&<>"'`=]/g, (char) => escape_html_mapping[char] || char);
 	},
 
-	has_unsafe_url_scheme: function (url) {
-		// browsers ignore control characters and spaces before the scheme
-		const cleaned = String(url ?? "").replace(/[\u0000-\u0020]/g, "");
-		return /^(javascript|vbscript|data):/i.test(cleaned);
-	},
+	has_unsafe_url_scheme: has_unsafe_scheme,
 
 	// Escape text and wrap in <strong> — use this instead of String.prototype.bold()
 	// so user-supplied values are safely escaped before being injected into HTML.
