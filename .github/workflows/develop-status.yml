@@ -44,7 +44,8 @@ jobs:
     name: Update Pull Requests
     if: >-
       ${{ github.event.action != 'closed'
-      && (github.event_name != 'workflow_run' || github.event.workflow_run.event == 'pull_request')
+      && (github.event_name != 'workflow_run'
+      || (github.event.workflow_run.event == 'pull_request' && github.event.workflow_run.run_attempt > 1))
       && (!contains(fromJSON('["labeled", "unlabeled"]'), github.event.action)
       || contains(fromJSON('["fixes-develop", "run-full-ci", "Run Server Tests", "Run UI Tests"]'), github.event.label.name)) }}
     runs-on: ubuntu-latest
@@ -71,7 +72,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
       - run: |
-          if [ "$ACTION" = labeled ]; then python .github/helper/develop_status.py wait "$PR"
+          if [ -n "$PR" ] && { [ "$ACTION" = labeled ] || [ "$FIX" = true ]; }; then python .github/helper/develop_status.py wait "$PR"
           elif [ -n "$PR" ]; then python .github/helper/develop_status.py pr "$PR"
           elif [ -n "$RUN_SHA" ]; then python .github/helper/develop_status.py commit "$RUN_SHA"
           else python .github/helper/develop_status.py refresh
@@ -79,5 +80,6 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ACTION: ${{ github.event.action }}
+          FIX: ${{ contains(github.event.pull_request.labels.*.name, 'fixes-develop') }}
           PR: ${{ github.event.pull_request.number }}
           RUN_SHA: ${{ github.event.workflow_run.head_sha }}

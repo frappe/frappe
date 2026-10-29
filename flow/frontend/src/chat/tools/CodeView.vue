@@ -2,11 +2,11 @@
 	<div>
 		<CodeBlock :code="code" lang="python" bare />
 		<template v-if="output">
-			<div class="border-y border-outline-gray-1 px-3 py-1.5 text-2xs text-ink-gray-4">
+			<div class="border-y border-outline-gray-1 px-3 py-1.5 text-xs text-ink-gray-4">
 				Result
 			</div>
 			<pre
-				class="m-0 max-h-[200px] overflow-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-xs leading-[1.65] text-ink-gray-6"
+				class="m-0 max-h-[200px] overflow-auto whitespace-pre-wrap break-words px-3 py-2 font-mono text-sm leading-[1.65] text-ink-gray-6"
 				>{{ output }}</pre
 			>
 		</template>

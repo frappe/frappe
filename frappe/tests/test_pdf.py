@@ -267,6 +267,32 @@ class TestPdf(IntegrationTestCase):
 		pdf = pdfgen.get_pdf("<p>body text</p>")
 		self.assertIn("body text", PdfReader(io.BytesIO(pdf)).pages[0].extract_text())
 
+	def test_two_pdfs_started_together_both_render(self):
+		import threading
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		site, sites_path = frappe.local.site, frappe.local.sites_path
+		pdfs = []
+		both_ready = threading.Barrier(2)
+
+		def render():
+			try:
+				frappe.init(site, sites_path=sites_path)
+				frappe.connect()
+				frappe.set_user("test@example.com")
+				both_ready.wait()
+				pdfs.append(pdfgen.get_pdf("<p>body text</p>"))
+			finally:
+				frappe.destroy()
+
+		renders = [threading.Thread(target=render, daemon=True) for _ in range(2)]
+		for thread in renders:
+			thread.start()
+		for thread in renders:
+			thread.join(timeout=60)
+		self.assertEqual(len(pdfs), 2)
+
 	def test_pages_merged_with_header_and_footer_are_compressed(self):
 		self.addCleanup(frappe.set_user, "Administrator")
 		frappe.set_user("test@example.com")

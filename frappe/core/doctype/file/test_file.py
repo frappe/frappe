@@ -1202,6 +1202,34 @@ class TestChunkedUpload(IntegrationTestCase):
 		self.assertEqual(len(get_chunk_temp_path("a", 1).name), len(get_chunk_temp_path("あ" * 200, 1).name))
 
 
+class TestPrivateFileDownload(IntegrationTestCase):
+	def download(self, file_name=None):
+		from frappe.utils.response import download_private_file
+
+		frappe.set_user("test@example.com")
+		file = frappe.get_doc({"doctype": "File", "file_name": "note.txt", "content": "x", "is_private": 1})
+		file.insert()
+		self.addCleanup(frappe.delete_doc, "File", file.name, force=True)
+		self.addCleanup(frappe.set_user, "Administrator")
+		self.addCleanup(frappe.local.form_dict.clear)
+		self.addCleanup(setattr, frappe.local, "request", None)
+
+		if file_name:
+			file.file_name = file_name
+			file.save()
+		set_request(path=file.file_url)
+		frappe.form_dict.fid = file.name
+		return download_private_file(file.file_url)
+
+	def test_file_renamed_to_html_is_downloaded(self):
+		response = self.download("page.html")
+		self.assertTrue(response.headers["Content-Disposition"].startswith("attachment"))
+
+	def test_text_file_is_shown_inline(self):
+		response = self.download()
+		self.assertFalse(response.headers["Content-Disposition"].startswith("attachment"))
+
+
 @contextmanager
 def convert_to_symlink(directory):
 	"""Moves a directory to temp directory and symlinks original path for testing"""
@@ -1677,6 +1705,42 @@ class TestChildTableAttachments(IntegrationTestCase):
 
 		other.file_url = file.file_url
 		self.assertRaises(frappe.PermissionError, other.save)
+
+	def test_dot_segment_cannot_bypass_private_file_access(self):
+		# A "./" segment resolves to the same file on disk but reads as a different URL.
+		# It must be normalised before the access check so it still points at the victim's row.
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"dot-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		attacker = frappe.get_doc(
+			doctype="File",
+			file_url=f"/private/files/./{name}",
+			file_name=name,
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attacker.insert)
+
+	def test_file_url_is_normalised_on_insert(self):
+		frappe.set_user("Administrator")
+		file = frappe.get_doc(
+			doctype="File", content=b"normalise-bytes", file_name="normalise_me.txt", is_private=1
+		).insert(ignore_permissions=True)
+		name = file.file_url.rsplit("/", 1)[1]
+
+		for messy in (
+			f"/private/files/./{name}",
+			f"/private/files/.//{name}",
+		):
+			candidate = frappe.new_doc("File")
+			candidate.file_url = messy
+			candidate.normalize_file_url()
+			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
+		candidate = frappe.new_doc("File")
+		candidate.file_url = f"/private/files/foo/../{name}"
+		self.assertRaisesRegex(ValidationError, "File URL", candidate.normalize_file_url)
 
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")

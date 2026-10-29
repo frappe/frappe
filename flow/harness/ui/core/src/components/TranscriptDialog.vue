@@ -17,8 +17,8 @@
 				<header class="sticky top-0 z-10 flex-none bg-surface-base p-4 sm:static sm:px-6 sm:pb-0 sm:pt-5">
 					<div class="flex items-start justify-between gap-4">
 						<div class="min-w-0">
-							<h2 class="text-base font-semibold leading-5 text-ink-gray-9">Transcript</h2>
-							<div v-if="title" class="mt-1.5 truncate text-sm text-ink-gray-6">{{ title }}</div>
+							<h2 class="text-md font-semibold leading-5 text-ink-gray-9">Transcript</h2>
+							<div v-if="title" class="mt-1.5 truncate text-base text-ink-gray-6">{{ title }}</div>
 						</div>
 						<button ref="closeEl" class="flow-icon-btn flex-none" title="Close" @click="close">
 							<span class="lucide-x size-3.5" aria-hidden="true" />
@@ -31,29 +31,29 @@
 						:key="stat.label"
 						class="min-w-[132px] flex-1 rounded-5 border border-outline-gray-1 px-3.5 py-3"
 					>
-						<div class="text-2xs text-ink-gray-5">{{ stat.label }}</div>
+						<div class="text-xs text-ink-gray-5">{{ stat.label }}</div>
 						<div class="mt-2 flex items-baseline gap-1.5">
-							<span class="text-sm font-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
-							<span v-if="stat.sub" class="truncate text-2xs text-ink-gray-4">{{ stat.sub }}</span>
+							<span class="text-base font-semibold tabular-nums text-ink-gray-9">{{ stat.value }}</span>
+							<span v-if="stat.sub" class="truncate text-xs text-ink-gray-4">{{ stat.sub }}</span>
 						</div>
 					</div>
 				</div>
 
 				<div class="px-4 pb-2 sm:min-h-0 sm:flex-1 sm:overflow-y-auto sm:px-6">
-					<div v-if="!rows.length" class="py-10 text-center text-xs text-ink-gray-5">Nothing sent yet.</div>
+					<div v-if="!rows.length" class="py-10 text-center text-sm text-ink-gray-5">Nothing sent yet.</div>
 					<div
 						v-for="row in rows"
 						:key="row.key"
 						class="grid grid-cols-[4.5rem_minmax(0,1fr)] gap-x-4 border-b border-outline-gray-1 py-3.5 last:border-0 sm:grid-cols-[5.5rem_minmax(0,1fr)]"
 					>
-						<span class="font-mono text-2xs font-medium leading-5 text-ink-gray-5">{{ ROLES[row.kind] }}</span>
-						<div class="min-w-0 space-y-2 text-xs leading-5">
+						<span class="font-mono text-xs font-medium leading-5 text-ink-gray-5">{{ ROLES[row.kind] }}</span>
+						<div class="min-w-0 space-y-2 text-sm leading-5">
 							<p v-if="row.body" class="max-h-[280px] overflow-auto whitespace-pre-wrap break-words text-ink-gray-8">{{ row.body }}</p>
 							<!-- a tool's call and result, and a request's usage, are labelled -->
 							<div v-for="part in PARTS.filter((name) => row[name])" :key="part">
-								<div v-if="part !== 'entry'" class="mb-1 font-mono text-2xs text-ink-gray-4">{{ part }}</div>
+								<div v-if="part !== 'entry'" class="mb-1 font-mono text-xs text-ink-gray-4">{{ part }}</div>
 								<pre
-									class="m-0 max-h-[280px] overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-1 px-3 py-2 font-mono text-2xs leading-5 text-ink-gray-6"
+									class="m-0 max-h-[280px] overflow-auto whitespace-pre-wrap break-words rounded-4 bg-surface-gray-1 px-3 py-2 font-mono text-xs leading-5 text-ink-gray-6"
 								>{{ JSON.stringify(row[part], null, 2) }}</pre>
 							</div>
 						</div>
