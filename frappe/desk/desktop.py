@@ -512,8 +512,8 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 	for card in widgets["cards"].values():
 		card["links"] = [{field: link.get(field) for field in LINK_FIELDS} for link in card["links"]]
 
-	content = loads(doc.content or "[]")
-	content = [block for block in content if is_drawable(block, widgets)]
+	stored = loads(doc.content or "[]")
+	content = [block for block in stored if is_drawable(block, widgets)]
 	customization = get_customization(name) if doc.standard else None
 
 	return {
@@ -524,6 +524,7 @@ def get_workspace(name: str, variant: str | None = None) -> dict:
 		"content": content,
 		"widgets": widgets,
 		"can_edit": can_edit,
+		"no_access": has_widget(stored) and not has_widget(content),
 		"is_hidden": bool(doc.is_hidden),
 		"standard": bool(doc.standard),
 		"is_layout_customized": is_layout_customized(customization, workspace.variant),
@@ -616,6 +617,10 @@ def is_drawable(block: dict, widgets: dict) -> bool:
 		return True
 	key, _fields = WIDGET_FIELDS[block_type]
 	return (block.get("data") or {}).get(f"{block_type}_name") in widgets[key]
+
+
+def has_widget(content: list) -> bool:
+	return any(block.get("type") in WIDGET_FIELDS for block in content)
 
 
 def _fold_chart_settings(charts: dict) -> None:
