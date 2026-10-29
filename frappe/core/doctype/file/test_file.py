@@ -21,9 +21,11 @@ from frappe.core.api.file import (
 )
 from frappe.core.doctype.file.exceptions import FileTypeNotAllowed, MaxFileSizeReachedError
 from frappe.core.doctype.file.utils import (
+	find_file_by_url,
 	get_corrupted_image_msg,
 	get_extension,
 	get_web_image,
+	remove_file_by_url,
 )
 from frappe.desk.form.utils import add_comment, remove_attach
 from frappe.exceptions import ValidationError
@@ -902,6 +904,45 @@ class TestFile(IntegrationTestCase):
 			)
 		finally:
 			frappe.set_user("Administrator")
+
+	def insert_case_variant_files(self, **attached_to):
+		files = []
+		for owner, file_url in (
+			("test@example.com", "/private/files/CaseCheck.txt"),
+			("test4@example.com", "/private/files/casecheck.txt"),
+		):
+			with self.set_user(owner):
+				file = frappe.new_doc("File")
+				file.update(
+					{
+						"file_name": file_url.split("/")[-1],
+						"file_url": file_url,
+						"is_private": 1,
+						**attached_to,
+					}
+				)
+				file.set_new_name()
+				file.db_insert()
+			self.addCleanup(frappe.delete_doc, "File", file.name, force=True, ignore_permissions=True)
+			files.append(file)
+		return files
+
+	def test_find_file_by_url_ignores_urls_that_differ_in_case(self):
+		self.insert_case_variant_files()
+
+		with self.set_user("test4@example.com"):
+			self.assertIsNone(find_file_by_url("/private/files/CaseCheck.txt"))
+			self.assertEqual(find_file_by_url("/private/files/casecheck.txt").owner, "test4@example.com")
+
+	def test_remove_file_by_url_ignores_urls_that_differ_in_case(self):
+		note = frappe.get_doc(doctype="Note", title="Case check", public=1).insert()
+		self.addCleanup(note.delete)
+		upper, lower = self.insert_case_variant_files(attached_to_doctype="Note", attached_to_name=note.name)
+
+		remove_file_by_url("/private/files/CaseCheck.txt", doctype="Note", name=note.name)
+
+		self.assertFalse(frappe.db.exists("File", upper.name))
+		self.assertTrue(frappe.db.exists("File", lower.name))
 
 	def test_zip_files_adds_a_repeated_file_once(self):
 		from frappe.core.doctype.file.file import File
