@@ -142,10 +142,14 @@ def get(
 
 @frappe.whitelist()
 def create_dashboard_chart(args: str | dict[str, Any]):
+	frappe.has_permission("Dashboard Chart", "read", throw=True)
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc("Dashboard Chart")
 
 	doc.update(args)
+	if not frappe.has_permission("Dashboard Chart", "create"):
+		# users who cannot create charts only get private ones
+		doc.update({"is_public": 0, "is_standard": 0, "module": None, "roles": []})
 
 	if args.get("custom_options"):
 		doc.custom_options = json.dumps(args.get("custom_options"))

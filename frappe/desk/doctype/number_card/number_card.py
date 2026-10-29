@@ -208,10 +208,14 @@ def calculate_previous_result(doc, filters):
 
 @frappe.whitelist()
 def create_number_card(args: str | dict[str, Any]):
+	frappe.has_permission("Number Card", "read", throw=True)
 	args = frappe.parse_json(args)
 	doc = frappe.new_doc("Number Card")
 
 	doc.update(args)
+	if not frappe.has_permission("Number Card", "create"):
+		# users who cannot create cards only get private ones
+		doc.update({"is_public": 0, "is_standard": 0, "module": None})
 	doc.insert(ignore_permissions=True)
 	return doc
 
