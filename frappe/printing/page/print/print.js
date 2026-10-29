@@ -122,7 +122,7 @@ frappe.ui.form.PrintView = class {
 				]);
 		}
 		const print_view = this;
-		this.letterhead_selector = this.add_sidebar_item({
+		this.letterhead_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "letterhead",
 			options: "Letter Head",
@@ -132,7 +132,14 @@ frappe.ui.form.PrintView = class {
 				this.set_description(this.get_value() ? description : "");
 				print_view.preview();
 			},
+<<<<<<< HEAD
 		}).$input;
+=======
+		});
+		this.letterhead_selector = this.letterhead_field.$input;
+		this.setup_style_picker();
+		this.setup_page_settings();
+>>>>>>> 252cc33 (fix(print): translated print format or letter head breaks the print view)
 		this.sidebar_dynamic_section = $(`<div class="dynamic-settings"></div>`).appendTo(
 			this.sidebar
 		);
@@ -302,8 +309,33 @@ frappe.ui.form.PrintView = class {
 
 	refresh_print_format() {
 		this.set_default_print_language();
+<<<<<<< HEAD
 		this.toggle_raw_printing();
 		this.preview();
+=======
+		this.update_letterhead_for_print_format().then(() => this.preview());
+	}
+
+	async update_letterhead_for_print_format() {
+		const format_name = this.selected_format();
+		if (!format_name || format_name === "Standard") {
+			return this.set_default_letterhead();
+		}
+		const { format_data } = this.get_print_format(format_name);
+		let letter_head = null;
+		try {
+			letter_head = format_data ? JSON.parse(format_data)?.letter_head : null;
+		} catch (_) {
+			// malformed format_data — fall through to default letterhead
+		}
+		if (letter_head) {
+			this.set_letterhead_value(letter_head);
+		} else if (letter_head === "") {
+			this.set_letterhead_value("");
+		} else {
+			return this.set_default_letterhead();
+		}
+>>>>>>> 252cc33 (fix(print): translated print format or letter head breaks the print view)
 	}
 
 	// bind_events () {
@@ -348,6 +380,75 @@ frappe.ui.form.PrintView = class {
 		});
 	}
 
+<<<<<<< HEAD
+=======
+	on_preview_load(iframe) {
+		const doc = iframe.contentDocument;
+		if (!doc?.body) return;
+		this.preview_bar.attach(iframe);
+		doc.addEventListener("keydown", (e) => this.handle_print_keys(e));
+	}
+
+	get_page_metrics(doc) {
+		const body = doc.body;
+		const body_rect = body.getBoundingClientRect();
+		const scale = body.offsetHeight / (body_rect.height || 1);
+		const bottom_of = (el) => (el.getBoundingClientRect().bottom - body_rect.top) * scale;
+		const height_of = (el) => (el ? el.getBoundingClientRect().height * scale : 0);
+		const header = doc.querySelector(".document-header-content");
+		const repeated = this.print_settings?.repeat_header_footer
+			? (header ? bottom_of(header) - parseFloat(getComputedStyle(body).paddingTop) : 0) +
+			  height_of(doc.querySelector(".document-footer-content"))
+			: 0;
+		return {
+			top: body.offsetTop,
+			width: body.offsetWidth,
+			starts: frappe.ui.PrintPreviewBar.measure_pages({
+				page: body,
+				page_height: parseFloat(getComputedStyle(body).minHeight) || body.offsetHeight,
+				breaks: ".section.page-break, .print-format > .page-break:not(:last-child)",
+				repeated,
+			}),
+		};
+	}
+
+	handle_print_keys(e) {
+		if (!(e.ctrlKey || e.metaKey) || e.altKey) return;
+		const key = e.key.toLowerCase();
+		if (key === "p") {
+			e.preventDefault();
+			e.shiftKey ? this.render_pdf() : this.printit();
+		} else if (key === "e" && e.shiftKey) {
+			e.preventDefault();
+			this.email_doc();
+		}
+	}
+
+	email_doc() {
+		const settings = this.get_print_settings_param();
+		const print_options = {
+			print_format: this.selected_format(),
+			letter_head: this.selected_letterhead() || "",
+			print_style: this.get_print_style() || undefined,
+			print_settings: Object.keys(settings).length ? settings : undefined,
+		};
+		const set_print_options = (composer) => {
+			if (this.lang_code) composer.dialog.set_value("print_language", this.lang_code);
+		};
+		const form = this.frm.email_doc
+			? this.frm
+			: frappe.views.formview?.[this.frm.doctype]?.frm;
+		if (form && form.docname === this.frm.docname) {
+			set_print_options(form.email_doc(undefined, print_options));
+			return;
+		}
+		frappe.set_route("Form", this.frm.doctype, this.frm.docname).then(() => {
+			const frm = frappe.views.formview?.[this.frm.doctype]?.frm;
+			frm && set_print_options(frm.email_doc(undefined, print_options));
+		});
+	}
+
+>>>>>>> 252cc33 (fix(print): translated print format or letter head breaks the print view)
 	setup_keyboard_shortcuts() {
 		this.wrapper.find(".print-toolbar a.btn-default").each((i, el) => {
 			frappe.ui.keys.get_shortcut_group(this.frm.page).add($(el));
@@ -355,6 +456,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	set_default_letterhead() {
+<<<<<<< HEAD
 		if (this.frm.doc.letter_head) {
 			this.letterhead_selector.val(this.frm.doc.letter_head);
 			return;
@@ -363,6 +465,26 @@ frappe.ui.form.PrintView = class {
 		return frappe.db
 			.get_value("Letter Head", { disabled: 0, is_default: 1 }, "name")
 			.then(({ message }) => this.letterhead_selector.val(message.name));
+=======
+		const get_default = () =>
+			frappe.db
+				.get_value(
+					"Letter Head",
+					{ disabled: 0, is_default: 1, letter_head_for: "DocType" },
+					"name"
+				)
+				.then(({ message }) => {
+					if (message?.name) this.set_letterhead_value(message.name);
+				});
+
+		if (!this.frm.doc.letter_head) return get_default();
+
+		return frappe.db
+			.get_value("Letter Head", { name: this.frm.doc.letter_head, disabled: 0 }, "name")
+			.then(({ message }) =>
+				message?.name ? this.set_letterhead_value(message.name) : get_default()
+			);
+>>>>>>> 252cc33 (fix(print): translated print format or letter head breaks the print view)
 	}
 
 	set_user_lang() {
@@ -703,7 +825,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	get_letterhead() {
-		return this.letterhead_selector.val() || __("No Letterhead");
+		return this.selected_letterhead() || __("No Letterhead");
 	}
 
 	get_no_preview_html() {
@@ -762,8 +884,25 @@ frappe.ui.form.PrintView = class {
 		this.print_format_selector.val(this.frm.meta.default_print_format || "");
 	}
 
+	set_letterhead_value(value) {
+		if (this.letterhead_field) {
+			this.letterhead_field.set_input(value);
+		} else {
+			this.letterhead_selector.val(value);
+		}
+	}
+
 	selected_format() {
-		return this.print_format_selector.val() || "Standard";
+		const format = this.print_format_field
+			? this.print_format_field.get_value()
+			: this.print_format_selector.val();
+		return format || "Standard";
+	}
+
+	selected_letterhead() {
+		return this.letterhead_field
+			? this.letterhead_field.get_value()
+			: this.letterhead_selector.val();
 	}
 
 	is_raw_printing(format) {
