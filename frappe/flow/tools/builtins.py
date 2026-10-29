@@ -292,12 +292,13 @@ def _report_filters(report_name: str) -> str:
 
 	script = get_script(report_name)
 	names = [f.fieldname + ("*" if f.mandatory else "") for f in script["filters"]]
-	# a JS filter runs to the next fieldname
-	parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
-	names += [
-		name + ("*" if re.search(r"""reqd["']?\s*:\s*(1|true)""", rest) else "")
-		for name, rest in zip(parts[1::2], parts[2::2], strict=True)
-	]
+	if not script["validate_filters"]:
+		# a JS filter runs to the next fieldname
+		parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
+		names += [
+			name + ("*" if re.search(r"""reqd["']?\s*:\s*(1|true)""", rest) else "")
+			for name, rest in zip(parts[1::2], parts[2::2], strict=True)
+		]
 	# legend first; long errors get cut
 	return "(* = required) " + ", ".join(dict.fromkeys(names)) if names else "none found (may be incomplete)"
 

@@ -2,6 +2,7 @@
 # License: MIT. See LICENSE
 import datetime
 import json
+import math
 import threading
 
 import frappe
@@ -16,12 +17,15 @@ from frappe.desk.reportview import (
 	get_aggregate_fieldname,
 	normalize_group_by_settings,
 )
+from frappe.model.create_new import get_static_default_value
 from frappe.model.document import Document
 from frappe.modules import make_boilerplate
 from frappe.modules.export_file import export_to_files
-from frappe.utils import cint, cstr
+from frappe.utils import cast, cint, cstr, get_datetime, get_timedelta, now, nowtime, sbool
 from frappe.utils.safe_exec import check_safe_sql_query, safe_exec
 from frappe.utils.xlsxutils import XLSXMetadata
+
+FRAMEWORK_FILTER_KEYS = ("translate_data", "prepared_report_name")
 
 
 class Report(Document):
@@ -64,6 +68,7 @@ class Report(Document):
 		roles: DF.Table[HasRole]
 		snapshot_report: DF.Check
 		timeout: DF.Int
+		validate_filters: DF.Check
 	# end: auto-generated types
 
 	def validate(self):
@@ -98,6 +103,38 @@ class Report(Document):
 
 		if self.default_letter_head and self.has_value_changed("letter_head"):
 			self.validate_default_letter_head()
+
+		if self.validate_filters:
+			self.validate_filter_rows()
+		else:
+			self.validate_list_filter_types()
+
+	def validate_filter_rows(self):
+		for row in self.filters:
+			if row.fieldtype == "Link" and not row.options:
+				frappe.throw(
+					_("Row #{0}: Link filter {1} needs a DocType in Options").format(
+						row.idx, frappe.bold(_(row.label))
+					),
+					title=_("Invalid Filters"),
+				)
+			if row.wildcard_filter and row.fieldtype in ("MultiSelectList", "DateRange"):
+				frappe.throw(
+					_("Row #{0}: Wildcard Filter does not work for filter type {1}").format(
+						row.idx, _(row.fieldtype)
+					),
+					title=_("Invalid Filters"),
+				)
+
+	def validate_list_filter_types(self):
+		for row in self.filters:
+			if row.fieldtype in ("MultiSelectList", "DateRange"):
+				frappe.throw(
+					_("Row #{0}: Filter type {1} needs {2} to be enabled").format(
+						row.idx, _(row.fieldtype), frappe.bold(_("Validate Filters"))
+					),
+					title=_("Invalid Filters"),
+				)
 
 	def before_insert(self):
 		self.set_doctype_roles()
@@ -511,6 +548,43 @@ class Report(Document):
 
 		self.db_set("disabled", cint(disable))
 
+	def get_validated_filters(self, filters: dict, user: str) -> frappe._dict:
+		"""Return the filter values with defaults applied, checked against the Report Filter rows and cast to their fieldtypes."""
+		if not isinstance(filters, dict):
+			frappe.throw(_("Filters must be an object of field names and values"), title=_("Invalid Filters"))
+
+		rows_by_fieldname = {row.fieldname: row for row in self.filters}
+		allowed_keys = set(rows_by_fieldname) | set(FRAMEWORK_FILTER_KEYS)
+		if unknown_keys := set(filters) - allowed_keys:
+			frappe.throw(
+				_("Unknown filters: {0}").format(", ".join(sorted(unknown_keys))), title=_("Invalid Filters")
+			)
+
+		validated = frappe._dict({key: filters[key] for key in FRAMEWORK_FILTER_KEYS if key in filters})
+		for row in sorted(self.filters, key=lambda row: row.options in rows_by_fieldname):
+			value = filters[row.fieldname] if row.fieldname in filters else get_filter_default(row, user)
+			if value in (None, "", []):
+				if row.mandatory:
+					frappe.throw(
+						_("{0} is mandatory").format(frappe.bold(_(row.label))), title=_("Missing Filters")
+					)
+				continue
+
+			if row.fieldtype == "MultiSelectList" and row.options in rows_by_fieldname:
+				doctype_row = rows_by_fieldname[row.options]
+				if not validated.get(doctype_row.fieldname):
+					frappe.throw(
+						_("{0} needs a value for {1}").format(
+							frappe.bold(_(row.label)), frappe.bold(_(doctype_row.label))
+						),
+						title=_("Missing Filters"),
+					)
+				row = frappe._dict(row.as_dict(), options=validated[doctype_row.fieldname])
+
+			validated[row.fieldname] = get_validated_value(row, value, user)
+
+		return validated
+
 	def get_xlsx_styles_from_module(self, metadata: XLSXMetadata) -> dict:
 		if self.is_standard != "Yes" or self.report_type not in ("Query Report", "Script Report"):
 			return
@@ -522,6 +596,151 @@ class Report(Document):
 			return
 
 		return method(metadata)
+
+
+def get_filter_default(row, user):
+	if row.default == "__user":
+		default = user
+	elif not row.default and row.fieldtype == "Link" and row.options != "User":
+		default = get_link_user_default(row, user)
+	elif row.fieldtype == "Datetime" and cstr(row.default).lower() == "now":
+		default = now()
+	elif row.fieldtype == "Time" and cstr(row.default).lower() == "now":
+		default = nowtime()
+	else:
+		default = get_static_default_value(row, [], [])
+
+	if default and row.fieldtype == "MultiSelectList":
+		return [default]
+	if default and row.fieldtype == "DateRange":
+		start, _sep, end = default.partition(",")
+		return [start, end or start]
+	return default
+
+
+def get_link_user_default(row, user):
+	user_default = frappe.defaults.get_user_default(row.fieldname, user)
+	if (
+		user_default
+		and frappe.db.exists(row.options, user_default)
+		and has_link_permission(row.options, user_default, user)
+	):
+		return user_default
+
+
+def get_validated_value(row, value, user):
+	if row.fieldtype in ("MultiSelectList", "DateRange"):
+		item_type = str | datetime.date if row.fieldtype == "DateRange" else str
+		if not isinstance(value, list | tuple) or not all(isinstance(item, item_type) for item in value):
+			frappe.throw(
+				_("{0} must be a list of values").format(frappe.bold(_(row.label))),
+				title=_("Invalid Filters"),
+			)
+
+		if row.fieldtype == "DateRange":
+			if len(value) != 2 or not all(value):
+				frappe.throw(
+					_("{0} must have a start and an end date").format(frappe.bold(_(row.label))),
+					title=_("Invalid Filters"),
+				)
+			start, end = (get_validated_date(row, "Date", item) for item in value)
+			if start > end:
+				frappe.throw(
+					_("{0} must not start after its end date").format(frappe.bold(_(row.label))),
+					title=_("Invalid Filters"),
+				)
+			return [start, end]
+
+		if row.options:
+			for item in value:
+				validate_link_value(row.options, item, user)
+		return list(value)
+
+	if row.fieldtype in ("Date", "Datetime", "Time"):
+		return get_validated_date(row, row.fieldtype, value)
+
+	if not isinstance(value, str | int | float):
+		frappe.throw(
+			_("{0} must be a single value").format(frappe.bold(_(row.label))),
+			title=_("Invalid Filters"),
+		)
+
+	if row.fieldtype == "Select" and cstr(value) not in (options := (row.options or "").split("\n")):
+		frappe.throw(
+			_('Filter {0} cannot be "{1}". It should be one of "{2}"').format(
+				frappe.bold(_(row.label)), value, '", "'.join(_(option) for option in options)
+			),
+			title=_("Invalid Filters"),
+		)
+
+	if row.fieldtype in ("Int", "Float", "Currency"):
+		return get_validated_number(row, value)
+
+	if row.fieldtype == "Check" and sbool(value) not in (0, 1):
+		frappe.throw(
+			_("{0} must be 0 or 1").format(frappe.bold(_(row.label))),
+			title=_("Invalid Filters"),
+		)
+
+	if row.fieldtype == "Link" and not row.wildcard_filter:
+		validate_link_value(row.options, cstr(value), user)
+
+	return cast(row.fieldtype, value)
+
+
+def get_validated_number(row, value):
+	try:
+		number = float(value)
+	except ValueError:
+		number = math.nan
+
+	if not math.isfinite(number) or (row.fieldtype == "Int" and not number.is_integer()):
+		frappe.throw(
+			_("{0} must be a valid {1}").format(frappe.bold(_(row.label)), _(row.fieldtype)),
+			title=_("Invalid Filters"),
+		)
+
+	return int(number) if row.fieldtype == "Int" else number
+
+
+def get_validated_date(row, fieldtype, value):
+	native_type = datetime.timedelta if fieldtype == "Time" else datetime.date
+	parsed = None
+	if isinstance(value, str | native_type):
+		try:
+			parsed = get_timedelta(value) if fieldtype == "Time" else get_datetime(value)
+		except (ValueError, OverflowError):
+			pass
+
+	if parsed is None:
+		frappe.throw(
+			_("{0} must be a valid {1}").format(frappe.bold(_(row.label)), _(fieldtype)),
+			title=_("Invalid Filters"),
+		)
+
+	return parsed.date() if fieldtype == "Date" else parsed
+
+
+def validate_link_value(doctype, value, user):
+	if not frappe.db.exists(doctype, value):
+		frappe.throw(
+			_("{0} {1} not found").format(_(doctype), value),
+			frappe.LinkValidationError,
+			title=_("Invalid Filters"),
+		)
+
+	if not has_link_permission(doctype, value, user):
+		frappe.throw(
+			_("You do not have permission to access {0}: {1}.").format(_(doctype), value),
+			frappe.PermissionError,
+			title=_("Invalid Filters"),
+		)
+
+
+def has_link_permission(doctype, value, user):
+	return frappe.has_permission(doctype, "read", value, user=user) or frappe.has_permission(
+		doctype, "select", value, user=user
+	)
 
 
 def is_prepared_report_enabled(report):
