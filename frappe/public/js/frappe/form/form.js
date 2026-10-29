@@ -486,11 +486,6 @@ frappe.ui.form.Form = class FrappeForm {
 				return;
 			}
 
-			// update grids with new permissions
-			this.grids.forEach((table) => {
-				table.grid.refresh();
-			});
-
 			// read only (workflow)
 			this.read_only = frappe.workflow.is_read_only(this.doctype, this.docname);
 			if (this.read_only) {
