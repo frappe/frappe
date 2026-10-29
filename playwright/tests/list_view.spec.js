@@ -256,18 +256,12 @@ test.describe("List View", () => {
 
 		const order = page.locator(".sort-selector .btn-order");
 		await expect(order).toHaveAttribute("title", "descending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
-			"href",
-			"#icon-arrow-down-wide-narrow"
-		);
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-down-wide-narrow");
 
 		await order.click();
 		await expect(order).toHaveAttribute("data-value", "asc");
 		await expect(order).toHaveAttribute("title", "ascending");
-		await expect(order.locator(".sort-order use")).toHaveAttribute(
-			"href",
-			"#icon-arrow-up-narrow-wide"
-		);
+		await expect(order.locator("use")).toHaveAttribute("href", "#icon-arrow-up-narrow-wide");
 	});
 
 	test("sorts from a sheet on phones", async ({ page, desk }) => {
