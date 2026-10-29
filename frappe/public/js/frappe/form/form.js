@@ -366,8 +366,7 @@ frappe.ui.form.Form = class FrappeForm {
 						field.validate &&
 						field.validate(value);
 
-					me.layout.refresh_dependency();
-					me.layout.refresh_sections();
+					me.layout.schedule_refresh_dependency();
 					return me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 				}
 			}
@@ -1812,8 +1811,7 @@ frappe.ui.form.Form = class FrappeForm {
 	refresh_field(fname) {
 		if (this.fields_dict[fname] && this.fields_dict[fname].refresh) {
 			this.fields_dict[fname].refresh();
-			this.layout.refresh_dependency();
-			this.layout.refresh_sections();
+			this.layout.schedule_refresh_dependency();
 		}
 	}
 
