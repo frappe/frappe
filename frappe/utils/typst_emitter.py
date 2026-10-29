@@ -696,8 +696,19 @@ class TypstEmitter:
 		grid = self._columns_grid(section, columns, rendered_columns)
 		body = grid
 		if section.get("label") and section.get("show_label") != "hide" and not zone:
-			label = f"#text(size: 0.9em, weight: 600, {q(_(section['label']))})"
-			body = f"#stack(spacing: 8pt,\n[{label}],\n[{body}])"
+			label = f"#text(size: 1.1em, weight: 700, {q(_(section['label']))})"
+			if section.get("field_borders"):
+				pad = f"{pt(section.get('cell_padding'), 8)}pt"
+				color = safe_color(section.get("border_color")) or "#e2e2e2"
+				ruled = (
+					f'stroke: (bottom: 0.75pt + rgb("{color}")), inset: (bottom: {pad}), outset: (x: {pad})'
+				)
+				spacing = pad
+			else:
+				ruled = 'stroke: (bottom: 1.125pt + rgb("#e2e2e2")), inset: (bottom: 0.35em)'
+				spacing = "0.75em"
+			heading = f"#block(width: 100%, {ruled})[{label}]"
+			body = f"#stack(spacing: {spacing},\n[{heading}],\n[{body}])"
 
 		block_args = self._section_block_args(section)
 		if section.get("keep_together"):
@@ -991,11 +1002,11 @@ class TypstEmitter:
 			if gap_pt is None:
 				gap = df.get("label_gap")
 				gap_pt = pt(gap) if gap else 4
-			if align in ("right",):
-				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
-			else:
-				body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
-			return self._text_props(df, body)
+			if align in ("center", "right") and section.get("field_orientation") != "left-right":
+				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
+				return self._text_props(df, body)
+			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
+			return _aligned(self._text_props(df, body), align)
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")

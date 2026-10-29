@@ -677,6 +677,27 @@ data = columns, result
 			header_merged.update(registry[sid])
 		self.assertTrue(header_merged.get("bold"))
 
+	def test_xlsx_styles_for_standard_query_report_without_module(self):
+		"""a standard Query Report with no python module exports with the default styles"""
+		frappe.get_doc(
+			{
+				"doctype": "Report",
+				"name": "Pending ToDos",
+				"report_name": "Pending ToDos",
+				"report_type": "Query Report",
+				"is_standard": "Yes",
+				"ref_doctype": "ToDo",
+				"module": "Desk",
+			}
+		).db_insert()
+		data = create_mock_data()
+		data.report_name = "Pending ToDos"
+
+		with self.set_user("test@example.com"):
+			_, _, styles = build_xlsx_data(data, build_styles=True)
+
+		self.assertIsNotNone(styles)
+
 	def test_xlsx_style_builder_fieldtype_column_styles(self):
 		"""XLSXStyleBuilder applies column styles for Float/Percent/Date but not Data"""
 		column_map = {
