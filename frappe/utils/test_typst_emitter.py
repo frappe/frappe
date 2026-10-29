@@ -462,7 +462,7 @@ class TestTypstGate(IntegrationTestCase):
 		)
 		self.addCleanup(todo.delete, ignore_permissions=True)
 		source, _assets = TypstEmitter(PrintFormatGenerator(pf_doc, frappe.get_doc("ToDo", todo.name))).emit()
-		self.assertIn("column-gutter: 6.0pt", source)
+		self.assertIn("grid(columns: (1fr, 1fr), inset: 6.0pt", source)
 		self.assertIn('stroke: (left: 0.6pt + rgb("#e5e7eb"))', source)
 
 	def test_inline_label_gap_precedence_matches_html(self):
