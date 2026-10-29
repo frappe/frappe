@@ -364,7 +364,6 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 		const buttons = actions.find(".es-button").attr("data-size", "md");
 		this.sheet = new frappe.ui.BottomSheet({
 			title: this.$wrapper.find(".modal-title").text(),
-			show_close: true,
 			content: this.modal_body.get(0),
 			footer: this.footer.hasClass("hide") ? null : actions.get(),
 			on_close: () => {
