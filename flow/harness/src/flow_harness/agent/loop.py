@@ -28,6 +28,7 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import logging
 import os
 import re
 import uuid
@@ -79,6 +80,9 @@ from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
+
+_logger = logging.getLogger(__name__)
+MAX_SAVED_BYTES = 5 * 1024 * 1024
 
 
 @dataclass
@@ -642,10 +646,13 @@ async def _finished_call(
 		if rewritten is not None:
 			result = result.model_copy(update={"content": rewritten})
 	changed = result.content != dispatched
-	saved_to = None
+	saved = None
 	if inputs.results_dir and "read" in (inputs.server_tools or {}) and _over_cap(result, changed=changed):
-		saved_to = await asyncio.to_thread(_save_result, inputs.results_dir, call.id, result.content)
-	return _capped(result, changed=changed, saved_to=saved_to)
+		try:
+			saved = await asyncio.to_thread(_save_result, inputs.results_dir, call.id, result.content)
+		except OSError:
+			_logger.warning("Could not save the whole result of call %s", call.id, exc_info=True)
+	return _capped(result, changed=changed, saved=saved)
 
 
 async def _dispatch(
@@ -679,21 +686,31 @@ def _over_cap(result: ToolResult, *, changed: bool) -> bool:
 	return content.count("\n") >= DEFAULT_MAX_LINES or len(content.encode()) > DEFAULT_MAX_BYTES
 
 
-def _save_result(directory: str, call_id: str, content: str) -> str:
-	"""Write a whole result where read and grep can reach it; JSON goes one value per line,
-	since a tool's JSON arrives as a single line that read cannot page through."""
+def _save_result(directory: str, call_id: str, content: str) -> tuple[str, bool]:
+	"""Write a result, up to MAX_SAVED_BYTES, where read and grep can reach it; return its path
+	and whether it is whole. JSON goes one value per line, since a tool's JSON arrives as a
+	single line that read cannot page through."""
 	os.makedirs(directory, mode=0o700, exist_ok=True)
-	path = os.path.join(directory, re.sub(r"[^A-Za-z0-9_-]", "_", call_id) + ".txt")
-	try:
-		content = json.dumps(json.loads(content), indent=1, ensure_ascii=False)
-	except ValueError:
-		pass
-	with open(path, "w", encoding="utf-8") as file:
-		file.write(content)
-	return path
+	# providers may reuse a call id across turns, or send none
+	name = re.sub(r"[^A-Za-z0-9_-]", "_", call_id)
+	path = os.path.join(directory, f"{name}-{uuid.uuid4().hex[:8]}.txt")
+	if len(content) <= MAX_SAVED_BYTES:
+		try:
+			content = json.dumps(json.loads(content), indent=1, ensure_ascii=False)
+		except ValueError:
+			pass
+	data = content.encode()
+	whole = len(data) <= MAX_SAVED_BYTES
+	if not whole:
+		data = data[:MAX_SAVED_BYTES].rsplit(b"\n", 1)[0]
+	with open(path, "wb") as file:
+		file.write(data)
+	return path, whole
 
 
-def _capped(result: ToolResult, *, changed: bool = False, saved_to: str | None = None) -> ToolResult:
+def _capped(
+	result: ToolResult, *, changed: bool = False, saved: tuple[str, bool] | None = None
+) -> ToolResult:
 	"""Cut an oversized result to its start and end, unless its tool already cut it and
 	no hook changed it."""
 	if not _over_cap(result, changed=changed):
@@ -706,9 +723,10 @@ def _capped(result: ToolResult, *, changed: bool = False, saved_to: str | None =
 		f"[Cut the middle: showing the first {_size(len(head.encode()))} and the last "
 		f"{_size(len(tail.encode()))} of {_size(truncation['total_bytes'])}. "
 		+ (
-			f"The whole result is saved in {saved_to}: read it in parts with read's offset and limit, "
+			f"{'The whole result' if saved[1] else f'The first {_size(MAX_SAVED_BYTES)} of the result'} "
+			f"is saved in {saved[0]}: read it in parts with read's offset and limit, "
 			"or find lines in it with grep. "
-			if saved_to
+			if saved
 			else "To see more, call again asking for less: fewer fields, filters, a limit or a count. "
 		)
 		+ "Don't repeat a call that changed data.]"
