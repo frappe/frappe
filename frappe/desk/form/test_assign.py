@@ -5,6 +5,7 @@ import frappe
 from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.form.assign_to import add, get, remove_multiple
 from frappe.tests import IntegrationTestCase
+from frappe.utils import set_request
 
 
 class TestAssign(IntegrationTestCase):
@@ -36,8 +37,12 @@ class TestAssign(IntegrationTestCase):
 				todo = frappe.get_doc(doctype="ToDo", description="assign scope").insert()
 				args = {"doctype": "ToDo", "name": todo.name}
 
+				set_request(method="POST", path="/api/method/frappe.desk.form.assign_to.add")
+				self.addCleanup(setattr, frappe.local, "request", None)
 				with self.assertRaises(frappe.LinkValidationError):
 					add({**args, "assign_to": [hidden.name]})
 
+				frappe.local.request = None
+				add({**args, "assign_to": [hidden.name]})
 				add({**args, "assign_to": [actor.name]})
-				self.assertEqual(len(get(args)), 1)
+				self.assertEqual(len(get(args)), 2)
