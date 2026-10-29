@@ -651,7 +651,7 @@ class TestLoginAttemptTracker(IntegrationTestCase):
 		self.assertFalse(tracker.is_user_allowed())
 
 		# Sleep for lock_interval of time, so that next request con unlock the user access.
-		time.sleep(lock_interval)
+		time.sleep(lock_interval + 1)
 
 		tracker.add_failure_attempt()
 		self.assertTrue(tracker.is_user_allowed())
