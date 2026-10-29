@@ -99,7 +99,7 @@ def registry() -> tuple[Tool, ...]:
 	)
 	from frappe.mcp.tools.methods import CALL_DOCUMENT_METHOD, CALL_METHOD
 
-	return (
+	tools = (
 		SEARCH_DOCTYPES,
 		GET_DOCTYPE_SCHEMA,
 		SEARCH_METHODS,
@@ -114,6 +114,9 @@ def registry() -> tuple[Tool, ...]:
 		CALL_METHOD,
 		CALL_DOCUMENT_METHOD,
 	)
+	if not frappe.get_system_settings("disable_mcp_delete"):
+		return tools
+	return tuple(tool for tool in tools if tool is not DELETE_DOCUMENT)
 
 
 def definitions() -> list[dict]:

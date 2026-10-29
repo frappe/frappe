@@ -13,7 +13,10 @@ class TestSettings(McpTestCase):
 	@contextmanager
 	def settings(self, **values):
 		doc = frappe.get_doc("System Settings")
-		original = {field: doc.get(field) for field in ("enable_mcp", "server_name", "agent_instructions")}
+		original = {
+			field: doc.get(field)
+			for field in ("enable_mcp", "server_name", "agent_instructions", "disable_mcp_delete")
+		}
 		try:
 			doc.update(values)
 			doc.save()
@@ -86,6 +89,25 @@ class TestSettings(McpTestCase):
 	def test_enable_setting_controls_endpoint_even_with_legacy_site_config(self):
 		with self.settings(enable_mcp=1), patch.dict(frappe.conf, {"disable_mcp_server": True}):
 			self.assertEqual(self.ping().status_code, 200)
+
+	def test_delete_setting_hides_and_blocks_delete_tool(self):
+		def tool_names():
+			response = self.request({"jsonrpc": "2.0", "id": 1, "method": "tools/list"})
+			return {tool["name"] for tool in response.json["result"]["tools"]}
+
+		with self.settings(enable_mcp=1, disable_mcp_delete=0):
+			self.assertIn("delete_document", tool_names())
+		with self.settings(enable_mcp=1, disable_mcp_delete=1):
+			self.assertNotIn("delete_document", tool_names())
+			response = self.request(
+				{
+					"jsonrpc": "2.0",
+					"id": 1,
+					"method": "tools/call",
+					"params": {"name": "delete_document", "arguments": {"doctype": "ToDo", "name": "x"}},
+				}
+			)
+			self.assertEqual(response.json["error"]["code"], protocol.METHOD_NOT_FOUND)
 
 	def test_normal_user_cannot_change_settings(self):
 		doc = frappe.get_doc("System Settings")

@@ -10,6 +10,8 @@ import frappe
 from frappe.api import v2
 from frappe.mcp.tools import DocumentName, Tool, ToolArguments, form_dict
 
+LIST_LIMIT = 100
+
 
 class GetDocumentArguments(ToolArguments):
 	doctype: str = Field(min_length=1)
@@ -27,7 +29,7 @@ class ListDocumentsArguments(ToolArguments):
 	fields: list[str] | None = None
 	order_by: str | None = None
 	start: int = Field(default=0, ge=0)
-	limit: int = Field(default=20, ge=1)
+	limit: int = Field(default=20, ge=1, le=LIST_LIMIT)
 
 
 class CreateDocumentArguments(ToolArguments):
@@ -87,7 +89,7 @@ def delete_document(doctype: str, name: str) -> None:
 
 LIST_DOCUMENTS = Tool(
 	name="list_documents",
-	description="List documents like frappe.get_list.",
+	description="List documents like frappe.get_list. Returns up to 100 per call; page with start.",
 	arguments=ListDocumentsArguments,
 	handler=list_documents,
 	annotations={"readOnlyHint": True},
@@ -103,6 +105,7 @@ GET_DOCUMENT = Tool(
 
 COUNT_DOCUMENTS = Tool(
 	name="count_documents",
+	description="Count documents that match the filters.",
 	arguments=CountDocumentsArguments,
 	handler=count_documents,
 	annotations={"readOnlyHint": True},
@@ -110,6 +113,7 @@ COUNT_DOCUMENTS = Tool(
 
 CREATE_DOCUMENT = Tool(
 	name="create_document",
+	description="Create one document from field values, including child table rows.",
 	arguments=CreateDocumentArguments,
 	handler=create_document,
 	annotations={"destructiveHint": False},
@@ -117,6 +121,7 @@ CREATE_DOCUMENT = Tool(
 
 UPDATE_DOCUMENT = Tool(
 	name="update_document",
+	description="Update fields of one document. Only the given fields change.",
 	arguments=UpdateDocumentArguments,
 	handler=update_document,
 	annotations={"destructiveHint": True},
@@ -124,6 +129,7 @@ UPDATE_DOCUMENT = Tool(
 
 DELETE_DOCUMENT = Tool(
 	name="delete_document",
+	description="Permanently delete one document. Confirm with the user first.",
 	arguments=DeleteDocumentArguments,
 	handler=delete_document,
 	annotations={"destructiveHint": True},
