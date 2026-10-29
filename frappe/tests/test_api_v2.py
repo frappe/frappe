@@ -278,6 +278,15 @@ class TestApiV2UpdatePermissions(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
 
+	def test_virtual_doctype_list_checks_permission(self):
+		response = make_request(
+			get_test_client(use_cookies=False).get,
+			args=(self.resource("Error Log"),),
+			kwargs={"headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 403)
+
 
 class TestMethodAPIV2(FrappeAPITestCase):
 	version = "v2"
