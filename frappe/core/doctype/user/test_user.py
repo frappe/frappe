@@ -50,8 +50,17 @@ class TestUser(IntegrationTestCase):
 		frappe.set_user("Administrator")
 
 	def test_role_listing_requires_role_read(self):
-		# test1 is a System User with no roles, i.e. no read on Role
-		frappe.set_user("test1@example.com")
+		blogger = frappe.get_doc(
+			doctype="User",
+			email="roles_blogger@example.com",
+			first_name="Blogger",
+			roles=[{"role": "Blogger"}],
+			send_welcome_email=0,
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "User", blogger.name, force=True)
+
+		# a desk user without read on Role
+		frappe.set_user(blogger.name)
 		self.assertRaises(frappe.PermissionError, get_all_roles)
 		self.assertRaises(frappe.PermissionError, get_perm_info, "System Manager")
 
