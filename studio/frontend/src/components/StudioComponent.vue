@@ -292,7 +292,10 @@ watch(
 
 // Show component editor only on the first instance; the rest render as faint outlines
 const isPrimaryInstance = computed(() => {
-	if (!props.block.isRepeated()) return true
+	// a component instance renders the definition's own root, whose parents are the
+	// component; the page block is the one that can sit inside a repeater
+	const placedBlock = props.block.extendedFromComponent || props.block
+	if (!placedBlock.isRepeated()) return true
 	const instanceIndex = slotScope?.value?.dataIndex
 	return instanceIndex === undefined || instanceIndex === 0
 })
