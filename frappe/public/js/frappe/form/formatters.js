@@ -36,7 +36,6 @@ frappe.form.formatters = {
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
 			if (!value) return "";
-			// callers may or may not have escaped the value; decoding first keeps it from being escaped twice
 			const plain = frappe.utils.unescape_html(value);
 			const safe = frappe.utils.escape_html(plain);
 			if (frappe.utils.has_unsafe_url_scheme(plain)) return safe;
