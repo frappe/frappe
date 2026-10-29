@@ -476,6 +476,15 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		small.db_set("enabled", 0)
 		self.assertNotIn("small_model", self.config())
 
+	def test_the_sites_search_provider_travels_with_its_key(self):
+		self.assertEqual(self.config()["web_search"], {"provider": "duckduckgo"})
+		brave = {"search_provider": "Brave"}
+		self.assertRaises(frappe.ValidationError, frappe.get_doc("Flow Settings").update(brave).save)
+		frappe.get_doc("Flow Settings").update({**brave, "search_api_key": "brave-key"}).save()
+		config = self.config()
+		SessionConfig.model_validate(config)
+		self.assertEqual(config["web_search"], {"provider": "brave", "api_key": "brave-key"})
+
 	def test_sub_agents_travel_with_their_own_model_and_callback_identity(self):
 		child_model = frappe.get_doc(
 			{

@@ -73,12 +73,14 @@ def test_inline_credentials_accepted_and_redacted(tmp_path):
 				"api_base": "http://gw.localhost/v1",
 				"model_params": params,
 				"small_model": {"model": "mock", "api_key": KEY},
+				"web_search": {"provider": "brave", "api_key": KEY},
 			},
 		)
 		assert r.status_code == 200, policy
 		sid = r.json()["session_id"]
 		assert r.json()["config"]["api_key"] == "***", policy
 		assert r.json()["config"]["small_model"]["api_key"] == "***", policy
+		assert r.json()["config"]["web_search"] == {"provider": "brave", "api_key": "***"}, policy
 		assert r.json()["config"]["api_base"] == "http://gw.localhost/v1", policy
 		assert r.json()["config"]["model_params"] == params, policy
 		assert store.get(sid).config.api_key == KEY, policy

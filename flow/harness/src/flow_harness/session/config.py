@@ -4,7 +4,7 @@ importing the session lifecycle (which imports the loop)."""
 from __future__ import annotations
 
 from collections.abc import Iterable
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -56,6 +56,7 @@ class SessionConfig(BaseModel):
 		model_params: Extra provider params sent with every model call.
 		small_model: The model for side jobs such as the title; None uses `model`.
 		suggest_replies: After a run ends, offer the user a few next messages.
+		web_search: The search provider `web_search` queries, with its key.
 		confirm_tools: Extra tools that pause for approval, on top of each tool's own
 			default. `auto_approve` is the only way to switch approval off.
 		auto_approve: Unattended runs (triggers) skip approval.
@@ -99,6 +100,7 @@ class SessionConfig(BaseModel):
 	model_params: dict[str, Any] = Field(default_factory=dict)
 	small_model: SmallModelConfig | None = None
 	suggest_replies: bool = False
+	web_search: WebSearchConfig = Field(default_factory=lambda: WebSearchConfig())
 	confirm_tools: list[str] = Field(default_factory=list)
 	auto_approve: bool = False
 	skills_enabled: bool = True
@@ -124,7 +126,7 @@ class SessionConfig(BaseModel):
 		for secret in ("callback_token", "api_key"):
 			if data.get(secret):
 				data[secret] = "***"
-		for agent in [*data["subagents"], data["small_model"] or {}]:
+		for agent in [*data["subagents"], data["small_model"] or {}, data["web_search"]]:
 			if agent.get("api_key"):
 				agent["api_key"] = "***"
 		return data
@@ -187,6 +189,26 @@ class SubagentConfig(BaseModel):
 	confirm_tools: list[str] | None = None
 	max_turns: int | None = Field(default=None, ge=1)
 	user_context: dict | None = None
+
+
+class WebSearchConfig(BaseModel):
+	"""Where `web_search` sends a query.
+
+	Attributes:
+		provider: The search service; duckduckgo is the one that needs no key.
+		api_key: The provider's key. Redacted in API responses.
+	"""
+
+	model_config = ConfigDict(extra="forbid")
+
+	provider: Literal["duckduckgo", "brave", "tavily", "exa"] = "duckduckgo"
+	api_key: str | None = None
+
+	@model_validator(mode="after")
+	def _check_key(self) -> WebSearchConfig:
+		if self.provider != "duckduckgo" and not self.api_key:
+			raise ValueError(f"web search with {self.provider} needs an api_key")
+		return self
 
 
 GENERAL_SUBAGENT = SubagentConfig(name=GENERAL_AGENT, description="a copy of you with a fresh context")

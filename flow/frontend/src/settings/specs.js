@@ -645,6 +645,20 @@ export const SPECS = {
 				description:
 					"Writes chat titles. A cheaper, faster model saves money. Empty uses each chat's own model.",
 			},
+			{
+				name: "search_provider",
+				label: "Web search",
+				type: "select",
+				options: ["DuckDuckGo", "Brave", "Tavily", "Exa"],
+				description:
+					"DuckDuckGo needs no key but may refuse searches when used a lot. Brave, Tavily and Exa need an API key.",
+			},
+			{
+				name: "search_api_key",
+				label: "Search API key",
+				type: "password",
+				when: (doc) => doc.search_provider && doc.search_provider !== "DuckDuckGo",
+			},
 		],
 	},
 	memories: {

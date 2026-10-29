@@ -24,6 +24,7 @@ from typing import Any, Literal, Union, get_args, get_origin, get_type_hints, ov
 from pydantic import BaseModel, ConfigDict, validate_call
 
 from flow_harness.events import AttachmentContent, DisplaySegment
+from flow_harness.session.config import WebSearchConfig
 
 _DISPLAY_VARIABLE = re.compile(r"{{\s*([A-Za-z_][A-Za-z0-9_]*)\s*}}")
 DISPLAY_VALUE_CHARS = 512
@@ -85,6 +86,8 @@ class ToolContext:
 	run_subagent: Callable[[str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None = None
 	# the call being executed, set per dispatch
 	tool_call_id: str = ""
+	# where web_search sends a query; None searches DuckDuckGo
+	web_search: WebSearchConfig | None = None
 
 
 @dataclass

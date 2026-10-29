@@ -810,6 +810,7 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		store_image=inputs.store_image,
 		# the runner needs this run's inputs; a tool only names the call, task, agent and child
 		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
+		web_search=inputs.config.web_search,
 	)
 
 

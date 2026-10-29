@@ -181,6 +181,7 @@ _SKIP_BUILTINS = frozenset(
 		"read",
 		"subagent",
 		"web_fetch",
+		"web_search",
 		"search_knowledge",
 		"search_attachments",
 		"update_memory",

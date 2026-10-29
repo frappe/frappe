@@ -95,7 +95,7 @@ dependencies = [
     "litellm==1.103.2",
     "json_repair~=0.59",
     # flow
-    "frappe-flow==0.1.21",
+    "frappe-flow==0.1.22",
     "lancedb~=0.33",
     "onnxruntime~=1.27",
     "pdfplumber~=0.11",
@@ -253,7 +253,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { pypdf = false, filelock = false, frappe-flow = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10, frappe-flow after 2026-10-30
+exclude-newer-package = { pypdf = false, filelock = false, frappe-flow = false } # drop pypdf after 2026-11-04, filelock after 2026-11-10, frappe-flow after 2026-11-05
 
 [tool.mypy]
 strict = false
