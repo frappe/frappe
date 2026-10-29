@@ -505,10 +505,98 @@ class TestEmailAccount(IntegrationTestCase):
 
 		self.assertEqual(email_account.build_email_sync_rule(), "UID 1:101")
 
+<<<<<<< HEAD
+=======
+	def make_imap_account(self, sync_from_uids):
+		email_account = frappe.get_doc(
+			doctype="Email Account",
+			email_account_name="Test IMAP Folders Account",
+			email_id="test_imap_folders@example.com",
+			email_server="imap.example.com",
+			enable_incoming=1,
+			use_imap=1,
+			email_sync_option="ALL",
+			create_contact=0,
+			imap_folder=[
+				{"folder_name": folder_name, "uidvalidity": "1", "sync_from_uid": sync_from_uid}
+				for folder_name, sync_from_uid in sync_from_uids.items()
+			],
+		).insert(ignore_permissions=True)
+
+		def delete_account():
+			for name in frappe.get_all("Communication", {"email_account": email_account.name}, pluck="name"):
+				frappe.delete_doc("Communication", name, force=True)
+			frappe.delete_doc("Email Account", email_account.name, force=True)
+
+		self.addCleanup(delete_account)
+		return email_account.name
+
+	def get_sync_from_uids(self, email_account):
+		return dict(
+			frappe.get_all(
+				"IMAP Folder", {"parent": email_account}, ["folder_name", "sync_from_uid"], as_list=True
+			)
+		)
+
+	def test_each_folder_syncs_from_its_own_position(self):
+		email_account = self.make_imap_account({"RFQ": 0, "INBOX": 0, "Sales": 0})
+		frappe.get_doc(
+			doctype="Communication",
+			communication_medium="Email",
+			sent_or_received="Received",
+			email_account=email_account,
+			subject="Quotation request rfq-6806",
+			sender="sender@example.com",
+			message_id="rfq-6806@example.com",
+			uid=6806,
+		).insert(ignore_permissions=True)
+		mailbox = IMAPMailbox({"RFQ": {6806: "rfq-6806"}, "INBOX": {6035: "inbox-6035"}, "Sales": {}})
+		receive_from_mailbox(mailbox, email_account)
+
+		mailbox.folders["RFQ"][6807] = "rfq-6807"
+		mailbox.folders["INBOX"][6036] = "quotation-42"
+		mailbox.folders["Sales"][1] = "quotation-42"
+		receive_from_mailbox(mailbox, email_account)
+
+		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-6807@example.com"}))
+		self.assertEqual(frappe.db.count("Communication", {"message_id": "quotation-42@example.com"}), 1)
+		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 6808, "INBOX": 6037, "Sales": 2})
+
+	def test_uidvalidity_change_keeps_other_folder_position(self):
+		email_account = self.make_imap_account({"RFQ": 6807, "INBOX": 6036})
+		mailbox = IMAPMailbox(
+			{"RFQ": {6806: "rfq-6806"}, "INBOX": {1: "inbox-1", 2: "inbox-2"}}, uidvalidity={"INBOX": 9}
+		)
+		receive_from_mailbox(mailbox, email_account)
+
+		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 6807, "INBOX": 3})
+
+	def test_failed_mail_keeps_folder_position_behind_it(self):
+		email_account = self.make_imap_account({"RFQ": 7})
+		mailbox = IMAPMailbox({"RFQ": {7: "rfq-7", 8: "rfq-8"}})
+		process = InboundMail.process
+
+		def process_or_fail(mail):
+			if mail.uid == "8":
+				raise ValueError("attachment could not be saved")
+			return process(mail)
+
+		with patch.object(InboundMail, "process", process_or_fail), self.assertRaises(Exception):
+			receive_from_mailbox(mailbox, email_account)
+
+		self.assertTrue(frappe.db.exists("Communication", {"message_id": "rfq-7@example.com"}))
+		self.assertEqual(self.get_sync_from_uids(email_account), {"RFQ": 8})
+
+	@patch("frappe.email.receive.EmailServer.connect", return_value=True)
+>>>>>>> bfa213c (fix(test): mock the imap connect in email receive test helpers)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
-		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
+		email_account,
+		messages=None,
+		mocked_logout=None,
+		mocked_select_imap_folder=None,
+		mocked_connect=None,
 	):
 		from frappe.email.receive import EmailServer
 
@@ -523,10 +611,15 @@ class TestEmailAccount(IntegrationTestCase):
 
 		return mails
 
+	@patch("frappe.email.receive.EmailServer.connect", return_value=True)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_email_receive(
-		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
+		email_account,
+		messages=None,
+		mocked_logout=None,
+		mocked_select_imap_folder=None,
+		mocked_connect=None,
 	):
 		if messages is None:
 			messages = {}
