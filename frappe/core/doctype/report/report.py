@@ -104,8 +104,20 @@ class Report(Document):
 		if self.default_letter_head and self.has_value_changed("letter_head"):
 			self.validate_default_letter_head()
 
-		if not self.validate_filters:
+		if self.validate_filters:
+			self.validate_filter_rows()
+		else:
 			self.validate_list_filter_types()
+
+	def validate_filter_rows(self):
+		for row in self.filters:
+			if row.fieldtype == "Link" and not row.options:
+				frappe.throw(
+					_("Row #{0}: Link filter {1} needs a DocType in Options").format(
+						row.idx, frappe.bold(_(row.label))
+					),
+					title=_("Invalid Filters"),
+				)
 
 	def validate_list_filter_types(self):
 		for row in self.filters:

@@ -1082,6 +1082,12 @@ data = columns, result
 		with self.assertRaisesRegex(frappe.ValidationError, "Validate Filters"):
 			report.save()
 
+	def test_validated_filter_rows_are_checked_on_save(self):
+		report, _user = self.make_filtered_report()
+		report.append("filters", dict(fieldname="owner", label="Owner", fieldtype="Link"))
+		with self.assertRaisesRegex(frappe.ValidationError, "Options"):
+			report.save()
+
 	def make_filtered_report(self):
 		from frappe.core.doctype.user_permission.test_user_permission import create_user
 
