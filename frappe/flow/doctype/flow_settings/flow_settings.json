@@ -11,10 +11,10 @@
  ],
  "fields": [
   {
-   "description": "Writes chat titles. A cheaper, faster model saves money. Empty uses each chat's own model.",
+   "description": "Does quick side jobs, like chat titles. A cheaper model saves credits.",
    "fieldname": "small_model",
    "fieldtype": "Link",
-   "label": "Small Model",
+   "label": "Helper Model",
    "options": "Flow Model"
   },
   {
@@ -24,7 +24,7 @@
   },
   {
    "default": "DuckDuckGo",
-   "description": "DuckDuckGo needs no key but may refuse searches when used a lot. Brave, Tavily and Exa need an API key.",
+   "description": "The service agents use to search the web.",
    "fieldname": "search_provider",
    "fieldtype": "Select",
    "label": "Search Provider",
