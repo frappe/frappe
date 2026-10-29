@@ -54,11 +54,13 @@ import TimeAgo from "./TimeAgo.vue";
 import TimelineCard from "./TimelineCard.vue";
 import type { CommentItemProps } from "./types";
 
-// The editor chunk loads only to edit; the saved comment holds its place meanwhile.
+// While the editor's chunk loads, or if it fails to, the saved comment holds its place.
+const SavedComment = (props: { content: string; editorClass?: string }) =>
+	h(RichTextView, { html: props.content, class: props.editorClass });
 const CommentEditor = defineAsyncComponent({
 	loader: () => import("./CommentEditor.vue"),
-	loadingComponent: (props: { content: string; editorClass?: string }) =>
-		h(RichTextView, { html: props.content, class: props.editorClass }),
+	loadingComponent: SavedComment,
+	errorComponent: SavedComment,
 	delay: 0,
 });
 

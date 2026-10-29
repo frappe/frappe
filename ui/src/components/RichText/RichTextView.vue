@@ -6,28 +6,36 @@
 // Stored rich text drawn without the editor, so it costs none of the editor's chunk.
 import { computed, shallowRef, watchEffect } from "vue";
 import { sanitizeHtml } from "../../utils/sanitize";
-import { drawCodeBlocks, hasCodeBlock, loadHighlighter, type Highlighter } from "./codeBlocks";
+import { drawHtml, hasCodeBlock, loadHighlighter, type Highlighter } from "./drawHtml";
 
 const props = defineProps<{ html: string | null | undefined }>();
 
 const highlighter = shallowRef<Highlighter | null>(null);
 
-// A `<style>` element in a stored value would restyle the whole page.
-const safe = computed(() => {
-	const html = hasCodeBlock(props.html)
-		? drawCodeBlocks(props.html!, highlighter.value)
-		: props.html;
-	return sanitizeHtml(html, { FORBID_TAGS: ["style"] });
-});
+// A stored `<style>` would restyle the whole page; a stored form could post off-site.
+const safe = computed(() =>
+	sanitizeHtml(props.html ? drawHtml(props.html, highlighter.value) : props.html, {
+		FORBID_TAGS: ["style", "form"],
+		FORBID_ATTR: ["form", "formaction"],
+		ADD_ATTR: ["target"],
+	})
+);
 
-watchEffect(async () => {
-	if (!highlighter.value && hasCodeBlock(props.html))
-		highlighter.value = await loadHighlighter();
+watchEffect(() => {
+	if (highlighter.value || !hasCodeBlock(props.html)) return;
+	loadHighlighter().then(
+		(loaded) => (highlighter.value = loaded),
+		() => {}
+	);
 });
 </script>
 
 <style>
-/* The editor's node views, drawn as plain markup: mentions, media, and code blocks. */
+/* Stored inline styles can position content; keep it inside the view. */
+.rich-text-view {
+	contain: paint;
+}
+/* Desk v1 wrapped every value in one div, so prose's own first and last child rules miss. */
 .rich-text-view .ql-editor > :first-child {
 	@apply mt-0;
 }
@@ -54,6 +62,18 @@ watchEffect(async () => {
 }
 .rich-text-view :is(img, video)[data-float="right"] {
 	@apply float-right m-2 ml-5;
+}
+.rich-text-view [data-type="image-group"] {
+	@apply my-2 grid grid-cols-4 gap-2;
+}
+.rich-text-view [data-type="image-group"][data-columns="2"] {
+	@apply grid-cols-2;
+}
+.rich-text-view [data-type="image-group"][data-columns="3"] {
+	@apply grid-cols-3;
+}
+.rich-text-view [data-type="image-group"] img {
+	@apply m-0 aspect-square h-full w-full rounded-4 object-cover;
 }
 
 .rich-text-view pre.code-block {

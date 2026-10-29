@@ -5,6 +5,8 @@ const PROBE = [
 	'<img src="/missing.png" onerror="window.__commentXss = \'img\'">',
 	"<script>window.__commentXss = 'script'</script>",
 	"<style>body { display: none }</style>",
+	'<a href="https://example.com" style="position: fixed; inset: 0; z-index: 9999">cover</a>',
+	'<form action="https://example.com"><input name="pwd"><button formaction="https://example.com">Go</button></form>',
 	'<pre><code class="language-javascript">function add(a, b) {\n\treturn a + b;\n}</code></pre>',
 ].join("");
 
@@ -49,9 +51,16 @@ test.describe("Desk v2 comment view", () => {
 		expect(await page.evaluate(() => window.__commentXss)).toBeUndefined();
 		await expect(page.locator("body")).toBeVisible();
 
+		await expect(view.locator("form, [formaction]")).toHaveCount(0);
+		const cover = view.getByRole("link", { name: "cover" });
+		await expect(cover).toHaveAttribute("target", "_blank");
+		const [coverBox, viewBox] = [await cover.boundingBox(), await view.boundingBox()];
+		expect(coverBox.width).toBeLessThanOrEqual(viewBox.width + 1);
+		expect(coverBox.height).toBeLessThanOrEqual(viewBox.height + 1);
+
 		await expect(view.locator("pre .hljs-keyword").first()).toHaveText("function");
 		await expect(view.locator("pre .code-block-lines > span")).toHaveText(["1", "2", "3"]);
-		await expect(view.locator(".ProseMirror")).toHaveCount(0);
+		await expect(page.locator(".ProseMirror")).toHaveCount(0);
 		expect(editorChunks).toEqual([]);
 	});
 });

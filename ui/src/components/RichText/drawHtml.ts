@@ -1,29 +1,28 @@
-/** Code blocks in stored rich text drawn as the editor draws them, without loading the editor. */
-import type { ElementContent } from "hast";
+/** Stored rich text drawn as the editor draws it, without loading the editor. */
 import type { createLowlight } from "lowlight";
 
 export type Highlighter = ReturnType<typeof createLowlight>;
+type HastNode = ReturnType<Highlighter["highlight"]>["children"][number];
 
-let loading: Promise<Highlighter> | undefined;
+/** Parsed in a detached document; the caller still sanitises the result. */
+export function drawHtml(html: string, highlighter: Highlighter | null): string {
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  for (const link of doc.body.querySelectorAll("a[href]")) openInNewTab(link);
+  for (const pre of doc.body.querySelectorAll("pre")) drawCodeBlock(pre, highlighter);
+  return doc.body.innerHTML;
+}
 
-/** The highlighter and its colours, fetched once, on the first code block. */
 export function loadHighlighter(): Promise<Highlighter> {
-  loading ??= import("./highlighter").then((module) => module.highlighter);
-  return loading;
+  return import("./highlighter").then((module) => module.highlighter);
 }
 
 export function hasCodeBlock(html: string | null | undefined): boolean {
   return Boolean(html && /<pre[\s>]/i.test(html));
 }
 
-/**
- * `html` with a line-number gutter in each `<pre>`, and its code highlighted when a
- * `highlighter` is given. Parsed in a detached document, so the caller still sanitises the result.
- */
-export function drawCodeBlocks(html: string, highlighter: Highlighter | null): string {
-  const doc = new DOMParser().parseFromString(html, "text/html");
-  for (const pre of doc.body.querySelectorAll("pre")) drawCodeBlock(pre, highlighter);
-  return doc.body.innerHTML;
+function openInNewTab(link: Element) {
+  link.setAttribute("target", "_blank");
+  link.setAttribute("rel", "noopener noreferrer nofollow");
 }
 
 function drawCodeBlock(pre: HTMLPreElement, highlighter: Highlighter | null) {
@@ -55,7 +54,7 @@ function highlight(highlighter: Highlighter, code: HTMLElement, text: string): N
     language && highlighter.registered(language)
       ? highlighter.highlight(language, text)
       : highlighter.highlightAuto(text);
-  return toNodes(code.ownerDocument, tree.children as ElementContent[]);
+  return toNodes(code.ownerDocument, tree.children);
 }
 
 function lineNumbers(doc: Document, count: number): HTMLElement {
@@ -70,7 +69,7 @@ function lineNumbers(doc: Document, count: number): HTMLElement {
   return gutter;
 }
 
-function toNodes(doc: Document, nodes: ElementContent[]): Node[] {
+function toNodes(doc: Document, nodes: HastNode[]): Node[] {
   return nodes.map((node) => {
     if (node.type === "text") return doc.createTextNode(node.value);
     if (node.type !== "element") return doc.createTextNode("");
