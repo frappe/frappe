@@ -23,18 +23,6 @@ class DuplicateToDoError(frappe.ValidationError):
 	pass
 
 
-def validate_assignee_access(assign_to: str):
-	"""Raise the same error as for a missing user when User Permissions hide the assignee."""
-	from frappe.core.doctype.user_permission.user_permission import get_user_permissions
-	from frappe.permissions import get_allowed_docs_for_doctype
-
-	allowed = get_allowed_docs_for_doctype(get_user_permissions().get("User", []), "User")
-	if allowed and assign_to not in allowed:
-		frappe.throw(
-			_("Could not find {0}").format(f"{_('Allocated To')}: {assign_to}"), frappe.LinkValidationError
-		)
-
-
 def get(args=None):
 	"""get assigned to"""
 	if not args:
@@ -83,7 +71,7 @@ def _add(args=None, *, ignore_permissions=False):
 		}
 		if not ignore_permissions:
 			frappe.get_doc(args["doctype"], args["name"]).check_permission()
-			validate_assignee_access(assign_to)
+			frappe.share.validate_user_access(assign_to, _("Allocated To"))
 
 		if frappe.get_all("ToDo", filters=filters):
 			users_with_duplicate_todo.append(assign_to)
@@ -127,7 +115,7 @@ def _add(args=None, *, ignore_permissions=False):
 					)
 					frappe.throw(msg, title=_("Missing Permission"))
 				else:
-					frappe.share.add(doc.doctype, str(doc.name), assign_to)
+					frappe.share.add_docshare(doc.doctype, str(doc.name), assign_to)
 					shared_with_users.append(assign_to)
 
 			# make this document followed by assigned user

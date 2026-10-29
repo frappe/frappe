@@ -4,7 +4,12 @@
 import frappe
 import frappe.share
 from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
+<<<<<<< HEAD
 from frappe.tests.utils import FrappeTestCase, change_settings
+=======
+from frappe.core.doctype.user.test_user import test_user
+from frappe.tests import IntegrationTestCase
+>>>>>>> f9a72cf (fix: honour user permissions on the target when sharing a document)
 
 test_dependencies = ["User"]
 
@@ -30,6 +35,19 @@ class TestDocShare(FrappeTestCase):
 		self.assertTrue(self.event.name not in frappe.share.get_shared("Event", self.user))
 		frappe.share.add("Event", self.event.name, self.user)
 		self.assertTrue(self.event.name in frappe.share.get_shared("Event", self.user))
+
+	def test_share_respects_user_permissions_on_target(self):
+		with test_user(roles=["Desk User"]) as actor:
+			frappe.get_doc(
+				doctype="User Permission", user=actor.name, allow="User", for_value=actor.name
+			).insert()
+			with self.set_user(actor.name):
+				todo = frappe.get_doc(doctype="ToDo", description="share scope").insert()
+
+				with self.assertRaises(frappe.LinkValidationError):
+					frappe.share.add("ToDo", todo.name, self.user)
+
+				frappe.share.add("ToDo", todo.name, actor.name)
 
 	def test_doc_permission(self):
 		frappe.set_user(self.user)
