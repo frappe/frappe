@@ -36,10 +36,11 @@ frappe.form.formatters = {
 	Data: function (value, df) {
 		if (df && df.options == "URL") {
 			if (!value) return "";
-			if (frappe.utils.has_unsafe_url_scheme(value)) return value;
-			// callers may already have escaped the value, so only the quote that ends the attribute
-			const href = String(value).replace(/"/g, "&quot;");
-			return `<a href="${href}" title="Open Link" target="_blank">${value}</a>`;
+			// callers may or may not have escaped the value; decoding first keeps it from being escaped twice
+			const plain = frappe.utils.unescape_html(value);
+			const safe = frappe.utils.escape_html(plain);
+			if (frappe.utils.has_unsafe_url_scheme(plain)) return safe;
+			return `<a href="${safe}" title="Open Link" target="_blank">${safe}</a>`;
 		}
 		if (df && df.options == "IBAN") {
 			if (!value) return "";
