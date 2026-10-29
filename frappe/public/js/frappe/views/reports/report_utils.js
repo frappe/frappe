@@ -131,6 +131,12 @@ frappe.report_utils = {
 			.then((r) => {
 				frappe.dom.eval(r.script);
 				return frappe.after_ajax(() => {
+					if (frappe.query_reports[report_name] && r.validate_filters) {
+						frappe.report_utils.merge_server_filters(
+							frappe.query_reports[report_name],
+							r.filters
+						);
+					}
 					if (
 						frappe.query_reports[report_name] &&
 						!frappe.query_reports[report_name].filters &&
@@ -144,6 +150,51 @@ frappe.report_utils = {
 					);
 				});
 			});
+	},
+
+	merge_server_filters(report_settings, report_filters) {
+		const js_filters = report_settings.filters || [];
+		const server_fieldnames = report_filters.map((row) => row.fieldname);
+		for (const filter of js_filters) {
+			if (filter.fieldname && !server_fieldnames.includes(filter.fieldname)) {
+				console.warn(
+					`[Query Report] Filter without a Report Filter row: ${filter.fieldname}`
+				);
+			}
+		}
+
+		report_settings.filters = report_filters.map((row) => {
+			const js_filter = js_filters.find((filter) => filter.fieldname === row.fieldname);
+			const filter = {
+				default: row.default,
+				...js_filter,
+				fieldname: row.fieldname,
+				label: __(row.label),
+				fieldtype: row.fieldtype,
+				options: row.options || js_filter?.options,
+				reqd: row.mandatory,
+				wildcard_filter: row.wildcard_filter,
+			};
+			if (filter.fieldtype === "MultiSelectList" && row.options && !filter.get_data) {
+				filter.get_data = (txt) => {
+					const doctype = server_fieldnames.includes(row.options)
+						? frappe.query_report?.get_filter_value(row.options)
+						: row.options;
+					return doctype ? frappe.db.get_link_options(doctype, txt) : [];
+				};
+			}
+			return filter;
+		});
+		report_settings.validate_filters = 1;
+	},
+
+	add_cleared_filter_values(report_settings, dialog, values) {
+		if (report_settings?.validate_filters) {
+			for (const fieldname in dialog.fields_dict) {
+				values[fieldname] ??= "";
+			}
+		}
+		return values;
 	},
 
 	get_filter_values(filters) {
