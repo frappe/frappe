@@ -1511,8 +1511,9 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			return el;
 		}
 
-		const plain_text = ["Data", "Long Text", "Small Text", "Text", "Password", "MultiSelect"];
-		const html_val = plain_text.includes(df.fieldtype) ? frappe.utils.escape_html(val) : val;
+		const html_val = frappe.model.plain_text_fieldtypes.includes(df.fieldtype)
+			? frappe.utils.escape_html(val)
+			: val;
 		el.innerHTML = frappe.format(html_val, df, { inline: true }, card);
 		this.tip_if_long(el, this.plain_text(val, df.fieldtype) || String(val));
 		return el;

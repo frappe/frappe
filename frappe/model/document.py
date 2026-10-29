@@ -5,9 +5,30 @@ import hashlib
 import json
 import time
 import weakref
+<<<<<<< HEAD
 from collections.abc import Generator, Iterable
 from functools import cached_property
 from typing import TYPE_CHECKING, Any, Optional, TypeVar
+=======
+from collections.abc import Callable, Generator, Iterable
+from contextlib import contextmanager
+from functools import cached_property, wraps
+from types import MappingProxyType
+from typing import (
+	TYPE_CHECKING,
+	Any,
+	ClassVar,
+	Literal,
+	Optional,
+	Self,
+	TypeAlias,
+	TypeVar,
+	Union,
+	overload,
+	override,
+)
+from urllib.parse import urlparse
+>>>>>>> c608898 (refactor: reuse existing scheme and fieldtype helpers for URL fields)
 
 from werkzeug.exceptions import NotFound
 
@@ -2677,10 +2698,17 @@ class Document(_DocumentBase):
 					continue
 =======
 				validate_url(data, throw=True)
+<<<<<<< HEAD
 				# browsers ignore control characters and spaces before the scheme
 				if re.sub(r"[\x00-\x20]", "", data).lower().startswith(("javascript:", "vbscript:", "data:")):
 					frappe.throw(_("'{0}' is not a valid URL").format(frappe.bold(data)))
 >>>>>>> e18e4d8 (fix: only link URL field values that have a web-safe scheme)
+=======
+				if urlparse(data).scheme in ("javascript", "vbscript", "data"):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+					)
+>>>>>>> c608898 (refactor: reuse existing scheme and fieldtype helpers for URL fields)
 
 				frappe.utils.validate_url(data, throw=True)
 

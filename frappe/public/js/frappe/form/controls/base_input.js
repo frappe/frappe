@@ -146,7 +146,11 @@ frappe.ui.form.ControlInput = class ControlInput extends frappe.ui.form.Control 
 		} else {
 			value = this.value || value;
 		}
+<<<<<<< HEAD
 		if (this.df.fieldtype === "Data") {
+=======
+		if (frappe.model.plain_text_fieldtypes.includes(this.df.fieldtype)) {
+>>>>>>> c608898 (refactor: reuse existing scheme and fieldtype helpers for URL fields)
 			value = frappe.utils.escape_html(value);
 		}
 		let doc = this.doc || (this.frm && this.frm.doc);
