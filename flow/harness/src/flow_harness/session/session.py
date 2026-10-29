@@ -202,6 +202,7 @@ class Session:
 		allowed_roots: tuple[str, ...] = (),
 		ignore_hidden_files: bool = False,
 		attachment_store: AttachmentStore | None = None,
+		results_dir: str | None = None,
 		skill_catalog: SkillCatalog | None = None,
 		server_tools: dict[str, Tool] | None = None,
 		extension_runtime: ExtensionRuntime | None = None,
@@ -223,6 +224,7 @@ class Session:
 		self.allowed_roots = allowed_roots
 		self.ignore_hidden_files = ignore_hidden_files
 		self.attachment_store = attachment_store
+		self.results_dir = results_dir
 		self.skill_catalog = skill_catalog or SkillCatalog()
 		self.server_tools = server_tools
 		self.extension_runtime = extension_runtime
@@ -607,6 +609,7 @@ class Session:
 		late abort of the previous run cannot leak into this one."""
 		self.abort_signal = asyncio.Event()
 		skill_dirs = (skill.base_dir for skill in self.skill_catalog.skills)
+		results_dirs = (self.results_dir,) if self.results_dir else ()
 		return loop.LoopInputs(
 			config=self.config,
 			messages=self.transcript.messages,
@@ -617,7 +620,7 @@ class Session:
 			reasoning_effort=self.reasoning_effort,
 			allowed_roots=self.allowed_roots,
 			ignore_hidden_files=self.ignore_hidden_files,
-			read_only_roots=tuple(dict.fromkeys((*skill_dirs, *doc_roots()))),
+			read_only_roots=tuple(dict.fromkeys((*skill_dirs, *doc_roots(), *results_dirs))),
 			session_id=self.id,
 			model=model,
 			context_tokens=self.transcript.context_tokens,
@@ -627,6 +630,7 @@ class Session:
 			after_tool_call=after_tool_call,
 			resolve_attachment=self.attachment_store.read if self.attachment_store is not None else None,
 			store_image=self._store_tool_image if self.attachment_store is not None else None,
+			results_dir=self.results_dir,
 			run_subagent=self._subagent_runner.run,
 			server_tools=self.server_tools,
 			extension_runtime=self.extension_runtime,

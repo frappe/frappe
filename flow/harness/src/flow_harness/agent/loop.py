@@ -28,6 +28,9 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import logging
+import os
+import re
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass, replace
@@ -77,6 +80,9 @@ from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
+
+_logger = logging.getLogger(__name__)
+MAX_SAVED_BYTES = 5 * 1024 * 1024
 
 
 @dataclass
@@ -148,6 +154,8 @@ class LoopInputs:
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
+	# where a result too big to show whole is saved for read and grep
+	results_dir: str | None = None
 	run_subagent: (
 		Callable[[LoopInputs, str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None
 	) = None
@@ -637,7 +645,14 @@ async def _finished_call(
 		_raise_if_aborted(inputs.abort)
 		if rewritten is not None:
 			result = result.model_copy(update={"content": rewritten})
-	return _capped(result, changed=result.content != dispatched)
+	changed = result.content != dispatched
+	saved = None
+	if inputs.results_dir and "read" in (inputs.server_tools or {}) and _over_cap(result, changed=changed):
+		try:
+			saved = await asyncio.to_thread(_save_result, inputs.results_dir, call.id, result.content)
+		except OSError:
+			_logger.warning("Could not save the whole result of call %s", call.id, exc_info=True)
+	return _capped(result, changed=changed, saved=saved)
 
 
 async def _dispatch(
@@ -663,22 +678,58 @@ async def _dispatch(
 		return _result(call, f"[tool error: {error}]", is_error=True)
 
 
-def _capped(result: ToolResult, *, changed: bool = False) -> ToolResult:
+def _over_cap(result: ToolResult, *, changed: bool) -> bool:
+	"""Too big to show whole, and not already cut by its tool unless a hook changed it."""
+	if "truncation" in result.details and not changed:
+		return False
+	content = result.content
+	return content.count("\n") >= DEFAULT_MAX_LINES or len(content.encode()) > DEFAULT_MAX_BYTES
+
+
+def _save_result(directory: str, call_id: str, content: str) -> tuple[str, bool]:
+	"""Write a result, up to MAX_SAVED_BYTES, where read and grep can reach it; return its path
+	and whether it is whole. JSON goes one value per line, since a tool's JSON arrives as a
+	single line that read cannot page through."""
+	os.makedirs(directory, mode=0o700, exist_ok=True)
+	# providers may reuse a call id across turns, or send none
+	name = re.sub(r"[^A-Za-z0-9_-]", "_", call_id)
+	path = os.path.join(directory, f"{name}-{uuid.uuid4().hex[:8]}.txt")
+	if len(content) <= MAX_SAVED_BYTES:
+		try:
+			content = json.dumps(json.loads(content), indent=1, ensure_ascii=False)
+		except ValueError:
+			pass
+	data = content.encode()
+	whole = len(data) <= MAX_SAVED_BYTES
+	if not whole:
+		data = data[:MAX_SAVED_BYTES].rsplit(b"\n", 1)[0]
+	with open(path, "wb") as file:
+		file.write(data)
+	return path, whole
+
+
+def _capped(
+	result: ToolResult, *, changed: bool = False, saved: tuple[str, bool] | None = None
+) -> ToolResult:
 	"""Cut an oversized result to its start and end, unless its tool already cut it and
 	no hook changed it."""
-	if "truncation" in result.details and not changed:
+	if not _over_cap(result, changed=changed):
 		return result
 	_, truncation = truncate(result.content, keep="head")
-	if not truncation["truncated"]:
-		return result
 	lines, size = DEFAULT_MAX_LINES // 5, DEFAULT_MAX_BYTES // 5  # the end gets a fifth of the budget
 	head, head_cut = truncate(result.content, keep="head", max_lines=lines * 4, max_bytes=size * 4)
 	tail, tail_cut = truncate(result.content, keep="tail", max_lines=lines, max_bytes=size)
 	note = (
 		f"[Cut the middle: showing the first {_size(len(head.encode()))} and the last "
 		f"{_size(len(tail.encode()))} of {_size(truncation['total_bytes'])}. "
-		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
-		"Don't repeat a call that changed data.]"
+		+ (
+			f"{'The whole result' if saved[1] else f'The first {_size(MAX_SAVED_BYTES)} of the result'} "
+			f"is saved in {saved[0]}: read it in parts with read's offset and limit, "
+			"or find lines in it with grep. "
+			if saved
+			else "To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		)
+		+ "Don't repeat a call that changed data.]"
 	)
 	shown = head_cut["output_lines"] + tail_cut["output_lines"]
 	truncation["output_lines"] = min(shown, truncation["total_lines"])  # both ends may hold part of one line

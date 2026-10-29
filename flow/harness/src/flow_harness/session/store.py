@@ -11,6 +11,7 @@ import json
 import logging
 import os
 import re
+import shutil
 import uuid
 from collections.abc import Callable, Collection, Iterator, Mapping
 from dataclasses import dataclass
@@ -70,6 +71,7 @@ class _SessionPaths:
 	meta: str
 	skills: str
 	attachments: str
+	results: str
 	run_end_marker: str
 
 
@@ -415,6 +417,7 @@ class SessionStore:
 			attachment_store.remove_all()
 		elif os.path.exists(paths.attachments):
 			AttachmentStore(paths.attachments).remove_all()
+		shutil.rmtree(paths.results, ignore_errors=True)
 		for path in (paths.log, paths.meta, paths.skills, paths.run_end_marker):
 			try:
 				os.unlink(path)
@@ -519,6 +522,7 @@ class SessionStore:
 			allowed_roots=self.allowed_roots,
 			ignore_hidden_files=self.ignore_hidden_files,
 			attachment_store=AttachmentStore(paths.attachments),
+			results_dir=paths.results,
 			skill_catalog=skill_catalog,
 			server_tools=server_tools,
 			extension_runtime=self.extension_runtime,
@@ -643,6 +647,7 @@ def _session_paths(directory: str, sid: str) -> _SessionPaths:
 		meta=os.path.join(directory, f"{sid}.meta.json"),
 		skills=os.path.join(directory, f"{sid}{_SKILLS_SUFFIX}"),
 		attachments=os.path.join(directory, f"{sid}.attachments"),
+		results=os.path.join(directory, f"{sid}.results"),
 		run_end_marker=os.path.join(directory, f"{sid}.run_end_pending"),
 	)
 
