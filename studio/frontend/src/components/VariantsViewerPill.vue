@@ -61,7 +61,8 @@ const route = useRoute()
 const router = useRouter()
 const sets = useMountedVariantSets()
 
-// answered server side with the rest of the renderer boot, so a page view costs no round trip
+// Keep needs a developer bench and write access, so a hosted site without developer mode
+// shows the switcher without it; answered server side, so a page view costs no round trip
 const canKeep = Boolean((window as any).can_edit_app)
 
 // Rows in page order (top to bottom, then left to right), worked out when the panel
