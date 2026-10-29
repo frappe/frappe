@@ -2059,8 +2059,11 @@ frappe.ui.form.Form = class FrappeForm {
 			var fieldname = fnames[i];
 			var field = frappe.meta.get_docfield(this.doctype, fieldname, this.docname);
 			if (field) {
+				const before = { ...field };
 				fn(field);
-				this.refresh_field(fieldname);
+				if (Object.keys(field).some((key) => field[key] !== before[key])) {
+					this.refresh_field(fieldname);
+				}
 			}
 		}
 	}
