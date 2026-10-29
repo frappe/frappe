@@ -1535,7 +1535,8 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			return el;
 		}
 
-		el.innerHTML = frappe.format(val, df, { inline: true }, card);
+		const html_val = df.fieldtype === "Data" ? frappe.utils.escape_html(val) : val;
+		el.innerHTML = frappe.format(html_val, df, { inline: true }, card);
 		this.tip_if_long(el, this.plain_text(val, df.fieldtype) || String(val));
 		return el;
 	}
