@@ -64,3 +64,40 @@ function is_full_width_text(block) {
 	if (block.type === "header") return true;
 	return block.type === "paragraph" && block_size(block).name === "Full";
 }
+
+// Where each block is on screen, by id, to glide from after the page redraws.
+export function block_rects(root) {
+	const found = new Map();
+	for (const el of root?.querySelectorAll("[data-block]") || []) {
+		found.set(el.dataset.block, el.getBoundingClientRect());
+	}
+	return found;
+}
+
+// Every block glides from where it was to where it is now, and a block that was not on the page
+// fades in. A resized block's content reflows at once, so with `fade_resized` it fades in over
+// the change.
+export function glide(root, before, { duration, easing, fade_resized = false }) {
+	if (!root || !before.size || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+	for (const el of root.querySelectorAll("[data-block]")) {
+		const from = before.get(el.dataset.block);
+		if (!from) {
+			el.animate([{ opacity: 0 }, { opacity: 1 }], { duration, easing });
+			continue;
+		}
+		const to = el.getBoundingClientRect();
+		const dx = from.left - to.left;
+		const dy = from.top - to.top;
+		const resized =
+			fade_resized &&
+			(Math.abs(from.width - to.width) > 1 || Math.abs(from.height - to.height) > 1);
+		if (!dx && !dy && !resized) continue;
+		el.animate(
+			[
+				{ transform: `translate(${dx}px, ${dy}px)`, opacity: resized ? 0 : 1 },
+				{ transform: "none", opacity: 1 },
+			],
+			{ duration, easing }
+		);
+	}
+}

@@ -1,9 +1,6 @@
 <script setup>
-import { computed, onMounted, ref, watch } from "vue";
-import { Alert } from "frappe-ui";
+import { computed, ref, watch } from "vue";
 import { post } from "../api.js";
-import WorkspaceGrid from "../WorkspaceGrid.vue";
-import EmptyWorkspace from "../EmptyWorkspace.vue";
 import BlockPanel from "./BlockPanel.vue";
 import {
 	BLOCK_TYPES,
@@ -18,7 +15,8 @@ import {
 	with_ids,
 } from "./editor.js";
 
-// One layout, edited in place on the grid it is read on.
+// One layout, edited in place on the grid it is read on. The page draws that grid from what this
+// pane exposes, so the tiles stay mounted going in and out of edit mode.
 const props = defineProps({
 	workspace: { type: Object, required: true },
 });
@@ -329,130 +327,66 @@ watch(
 	{ immediate: true }
 );
 
-// The pane opens once the canvas has painted closed, so it slides in instead of arriving drawn.
-const opened = ref(false);
-onMounted(() => requestAnimationFrame(() => requestAnimationFrame(() => (opened.value = true))));
-const pane_open = computed(() => opened.value && !previewing.value);
+defineExpose({ blocks, widgets, selected_id, previewing, variant, on_move, add_text });
 </script>
 
 <template>
-	<div class="h-full">
-		<div
-			class="grid h-full grid-rows-[minmax(0,1fr)] transition-[grid-template-columns] duration-300 ease-out motion-reduce:transition-none"
-			:class="
-				pane_open ? 'grid-cols-[minmax(0,1fr)_22rem]' : 'grid-cols-[minmax(0,1fr)_0rem]'
-			"
-		>
-			<div class="min-w-0 overflow-y-auto px-4 pt-4 pb-10">
-				<div class="mx-auto max-w-4xl">
-					<Transition
-						enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
-						enter-from-class="-translate-y-1 opacity-0"
-						leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
-						leave-to-class="-translate-y-1 opacity-0"
-					>
-						<Alert
-							v-if="previewing"
-							class="mb-4"
-							icon="lucide-eye"
-							:title="
-								variant
-									? __('Previewing the {0} layout with your data.', [
-											__(variant),
-									  ])
-									: __('Previewing the default layout with your data.')
-							"
-						/>
-					</Transition>
-					<WorkspaceGrid v-if="previewing" :content="blocks" :widgets="widgets" />
-					<EmptyWorkspace v-else-if="!blocks.length" editing @add-text="add_text" />
-					<WorkspaceGrid
-						v-else
-						:content="blocks"
-						:widgets="widgets"
-						editing
-						:selected="selected_id"
-						@select="(block) => (selected_id = block.id)"
-						@move="on_move"
-					/>
-				</div>
+	<aside
+		class="my-4 mr-4 flex min-h-0 w-[21rem] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
+	>
+		<section class="flex flex-col gap-2 border-b border-outline-gray-2 px-3 pt-4 pb-2">
+			<div class="flex flex-col gap-1 px-2">
+				<span class="text-base font-medium text-ink-gray-8">
+					{{ __("Add blocks") }}
+				</span>
+				<p class="text-p-sm text-ink-gray-5">
+					{{ __("Put numbers, charts, links and lists on this page.") }}
+					{{
+						selected
+							? __("New blocks go after the selected one.")
+							: __("New blocks go at the end.")
+					}}
+				</p>
 			</div>
-			<div class="flex min-w-0 flex-col overflow-clip">
-				<Transition
-					enter-active-class="transition duration-300 ease-out delay-75 motion-reduce:transition-none"
-					enter-from-class="translate-x-6 opacity-0"
-					leave-active-class="transition duration-150 ease-in motion-reduce:transition-none"
-					leave-to-class="translate-x-6 opacity-0"
+			<div class="grid grid-cols-4 gap-1">
+				<button
+					v-for="type in [...BLOCK_TYPES, 'text']"
+					:key="type"
+					type="button"
+					class="flex w-full flex-col items-center gap-1 rounded-4 px-0.5 py-2 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
+					@click="type === 'text' ? add_text() : add_block(type)"
 				>
-					<aside
-						v-if="pane_open"
-						class="my-4 mr-4 flex min-h-0 w-[21rem] flex-col overflow-hidden rounded-6 border border-outline-gray-2 bg-surface-base"
-					>
-						<section
-							class="flex flex-col gap-2 border-b border-outline-gray-2 px-3 pt-4 pb-2"
-						>
-							<div class="flex flex-col gap-1 px-2">
-								<span class="text-base font-medium text-ink-gray-8">
-									{{ __("Add blocks") }}
-								</span>
-								<p class="text-p-sm text-ink-gray-5">
-									{{ __("Put numbers, charts, links and lists on this page.") }}
-									{{
-										selected
-											? __("New blocks go after the selected one.")
-											: __("New blocks go at the end.")
-									}}
-								</p>
-							</div>
-							<div class="grid grid-cols-4 gap-1">
-								<button
-									v-for="type in [...BLOCK_TYPES, 'text']"
-									:key="type"
-									type="button"
-									class="flex w-full flex-col items-center gap-1 rounded-4 px-0.5 py-2 text-ink-gray-6 hover:bg-surface-gray-2 hover:text-ink-gray-8"
-									@click="type === 'text' ? add_text() : add_block(type)"
-								>
-									<span :class="ICONS[type]" class="size-4" aria-hidden="true" />
-									<span class="whitespace-nowrap text-2xs">{{
-										TITLES[type]
-									}}</span>
-								</button>
-							</div>
-						</section>
-						<div class="min-h-0 overflow-y-auto">
-							<Transition
-								mode="out-in"
-								enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
-								enter-from-class="translate-y-1 opacity-0"
-								leave-active-class="transition duration-100 ease-in motion-reduce:transition-none"
-								leave-to-class="opacity-0"
-							>
-								<BlockPanel
-									v-if="selected"
-									:key="selected.id"
-									:block="selected"
-									:widget="selected_widget"
-									@change="touched.add(selected.id)"
-									@resize="(preset) => set_size(selected, preset)"
-									@remove="remove"
-									@close="selected_id = null"
-								/>
-							</Transition>
-						</div>
-						<section
-							v-if="hint"
-							class="flex items-start gap-2 border-t border-outline-gray-2 p-5 text-p-sm text-ink-gray-5"
-						>
-							<span
-								:class="hint.icon"
-								class="mt-0.5 size-4 shrink-0"
-								aria-hidden="true"
-							/>
-							<span class="min-w-0 [overflow-wrap:anywhere]">{{ hint.text }}</span>
-						</section>
-					</aside>
-				</Transition>
+					<span :class="ICONS[type]" class="size-4" aria-hidden="true" />
+					<span class="whitespace-nowrap text-2xs">{{ TITLES[type] }}</span>
+				</button>
 			</div>
+		</section>
+		<div class="min-h-0 overflow-y-auto">
+			<Transition
+				mode="out-in"
+				enter-active-class="transition duration-200 ease-out motion-reduce:transition-none"
+				enter-from-class="translate-y-1 opacity-0"
+				leave-active-class="transition duration-100 ease-in motion-reduce:transition-none"
+				leave-to-class="opacity-0"
+			>
+				<BlockPanel
+					v-if="selected"
+					:key="selected.id"
+					:block="selected"
+					:widget="selected_widget"
+					@change="touched.add(selected.id)"
+					@resize="(preset) => set_size(selected, preset)"
+					@remove="remove"
+					@close="selected_id = null"
+				/>
+			</Transition>
 		</div>
-	</div>
+		<section
+			v-if="hint"
+			class="flex items-start gap-2 border-t border-outline-gray-2 p-5 text-p-sm text-ink-gray-5"
+		>
+			<span :class="hint.icon" class="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+			<span class="min-w-0 [overflow-wrap:anywhere]">{{ hint.text }}</span>
+		</section>
+	</aside>
 </template>

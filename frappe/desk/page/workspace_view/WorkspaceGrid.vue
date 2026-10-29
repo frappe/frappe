@@ -1,6 +1,6 @@
 <script setup>
 import { computed, defineAsyncComponent, onBeforeUpdate, onUpdated, provide, ref } from "vue";
-import { block_size, split_sections } from "./grid.js";
+import { block_rects, block_size, glide, split_sections } from "./grid.js";
 import GridTile from "./GridTile.vue";
 import TextBlock from "./TextBlock.vue";
 import NumberCardTile from "./tiles/NumberCardTile.vue";
@@ -25,43 +25,23 @@ function drop(target) {
 	dragged.value = null;
 }
 
-// A block that changes place or size, even between a heading and the grid, glides there from
-// where it was.
+// A block that changes place or size while editing, even between a heading and the grid, glides
+// there from where it was. Going in and out of edit mode glides from the page that holds the grid.
 const root = ref(null);
 let before = new Map();
-
-function rects() {
-	const found = new Map();
-	for (const el of root.value?.querySelectorAll("[data-block]") || []) {
-		found.set(el.dataset.block, el.getBoundingClientRect());
-	}
-	return found;
-}
+let was_editing = props.editing;
 
 onBeforeUpdate(() => {
-	before = props.editing ? rects() : new Map();
+	before = props.editing && was_editing ? block_rects(root.value) : new Map();
 });
 
 onUpdated(() => {
-	if (!before.size || matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-	for (const el of root.value.querySelectorAll("[data-block]")) {
-		const from = before.get(el.dataset.block);
-		if (!from) continue;
-		const to = el.getBoundingClientRect();
-		const dx = from.left - to.left;
-		const dy = from.top - to.top;
-		// its content reflows at once, so a resized block fades in over the change
-		const resized =
-			Math.abs(from.width - to.width) > 1 || Math.abs(from.height - to.height) > 1;
-		if (!dx && !dy && !resized) continue;
-		el.animate(
-			[
-				{ transform: `translate(${dx}px, ${dy}px)`, opacity: resized ? 0 : 1 },
-				{ transform: "none", opacity: 1 },
-			],
-			{ duration: 250, easing: "cubic-bezier(0.2, 0, 0, 1)" }
-		);
-	}
+	was_editing = props.editing;
+	glide(root.value, before, {
+		duration: 250,
+		easing: "cubic-bezier(0.2, 0, 0, 1)",
+		fade_resized: true,
+	});
 	before = new Map();
 });
 
@@ -116,8 +96,8 @@ function tile_for(block) {
 				:data-block="section.heading.id"
 				:class="
 					editing && [
-						'min-h-8 px-3',
-						section.heading.type === 'header' ? 'pb-1.5' : 'py-1.5',
+						'-mx-3 min-h-8 px-3',
+						section.heading.type === 'header' ? '-mb-1.5 pb-1.5' : '-my-1.5 py-1.5',
 					]
 				"
 			>
@@ -144,7 +124,7 @@ function tile_for(block) {
 						:data-block="block.id"
 						:class="
 							block.type === 'paragraph'
-								? ['ws-frame', editing && 'px-3 py-1.5']
+								? ['ws-frame', editing && '-mx-3 -my-1.5 px-3 py-1.5']
 								: 'ws-block h-full'
 						"
 					>
