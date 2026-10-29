@@ -421,6 +421,30 @@ class TestCustomizeForm(IntegrationTestCase):
 			frappe.db.get_value("Property Setter", property_setter_filters, "value"), "Test Description"
 		)
 
+	def test_docfield_properties_exist_on_custom_field_and_customize_form_field(self):
+		from frappe.custom.doctype.customize_form.customize_form import docfield_properties
+
+		custom_field_meta = frappe.get_meta("Custom Field")
+		customize_form_field_meta = frappe.get_meta("Customize Form Field")
+
+		# idx is a standard field present on all doctypes, skip it
+		properties_to_check = set(docfield_properties.keys()) - {"idx"}
+
+		custom_field_fieldnames = {df.fieldname for df in custom_field_meta.fields}
+		customize_form_field_fieldnames = {df.fieldname for df in customize_form_field_meta.fields}
+
+		missing_in_custom_field = properties_to_check - custom_field_fieldnames
+		missing_in_customize_form_field = properties_to_check - customize_form_field_fieldnames
+
+		self.assertFalse(
+			missing_in_custom_field,
+			f"Properties in docfield_properties missing from Custom Field: {missing_in_custom_field}",
+		)
+		self.assertFalse(
+			missing_in_customize_form_field,
+			f"Properties in docfield_properties missing from Customize Form Field: {missing_in_customize_form_field}",
+		)
+
 	def test_custom_field_order(self):
 		# shuffle fields
 		customize_form = self.get_customize_form(doctype="ToDo")
