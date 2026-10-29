@@ -6,6 +6,7 @@ import frappe
 import frappe.modules.utils
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.desk.form.save import savedocs
+from frappe.model.db_query import DatabaseQuery
 from frappe.model.document import Document
 from frappe.model.virtual_doctype import validate_controller
 from frappe.tests import IntegrationTestCase
@@ -195,6 +196,11 @@ class TestVirtualDoctypes(IntegrationTestCase):
 			self.assertEqual(frappe.get_list(TEST_DOCTYPE_NAME)[0].order_by, "name asc")
 			self.assertEqual(
 				frappe.get_list(TEST_DOCTYPE_NAME, order_by="creation desc")[0].order_by, "creation desc"
+			)
+			self.assertEqual(DatabaseQuery(TEST_DOCTYPE_NAME).execute()[0].order_by, "name asc")
+			self.assertEqual(
+				DatabaseQuery(TEST_DOCTYPE_NAME).execute(order_by="creation desc")[0].order_by,
+				"creation desc",
 			)
 
 	def test_guest_cannot_delete_virtual_doctype(self):
