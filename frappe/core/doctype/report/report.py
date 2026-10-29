@@ -118,6 +118,13 @@ class Report(Document):
 					),
 					title=_("Invalid Filters"),
 				)
+			if row.wildcard_filter and row.fieldtype in ("MultiSelectList", "DateRange"):
+				frappe.throw(
+					_("Row #{0}: Wildcard Filter does not work for filter type {1}").format(
+						row.idx, _(row.fieldtype)
+					),
+					title=_("Invalid Filters"),
+				)
 
 	def validate_list_filter_types(self):
 		for row in self.filters:

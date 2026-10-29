@@ -1088,6 +1088,11 @@ data = columns, result
 		with self.assertRaisesRegex(frappe.ValidationError, "Options"):
 			report.save()
 
+		report.reload()
+		report.filters[-1].wildcard_filter = 1
+		with self.assertRaisesRegex(frappe.ValidationError, "Wildcard Filter"):
+			report.save()
+
 	def make_filtered_report(self):
 		from frappe.core.doctype.user_permission.test_user_permission import create_user
 
