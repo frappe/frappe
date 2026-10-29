@@ -1324,6 +1324,28 @@ class TestAttachment(IntegrationTestCase):
 
 		self.assertTrue(exists)
 
+	def test_unchanged_private_attachment_is_not_reattached_on_save(self):
+		file = frappe.get_doc(
+			{
+				"doctype": "File",
+				"file_name": "test_unchanged.txt",
+				"content": "Unchanged Content",
+				"is_private": 1,
+			}
+		).insert()
+		doc = frappe.get_doc(doctype=self.test_doctype, title="test unchanged private attachment").insert()
+		frappe.db.set_value(self.test_doctype, doc.name, "attachment", file.file_url)
+
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.get_doc(self.test_doctype, doc.name).save(ignore_permissions=True)
+
+		self.assertFalse(
+			frappe.get_all(
+				"Error Log", filters={"reference_doctype": self.test_doctype, "reference_name": doc.name}
+			)
+		)
+
 	def test_url_attachment_is_attached_to_duplicated_document(self):
 		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
 		doc.attachment = "https://example.com/spec.pdf"
