@@ -196,11 +196,12 @@ rendered only when you supply it — neither ships default buttons).
 | `EmailItem`   | `{ email }`                                             | —                            | `#header` (`{ email }`), `#actions`, `#footer` (`{ email }`)     |
 | `CommentItem` | `{ comment, editable?, editorClass?, uploadFunction? }` | `save(content)`, `discard()` | `#header` (`{ comment }`), `#actions`, `#footer` (`{ comment }`) |
 
-`CommentItem` renders through frappe-ui's `Editor` + `CommentKit` (from
-`frappe-ui/editor`). While editing it autofocuses at the end of the text and saves on
-Ctrl/⌘-Enter; Discard reverts to the saved content. `editorClass` (default
-`"prose-sm max-w-none"`) lands on the editor content, `uploadFunction` (image uploads)
-passes through to the editor.
+`CommentItem` draws a saved comment as sanitised HTML through `RichTextView`, with no
+editor loaded. Only while `editable` does it load frappe-ui's `Editor` + `CommentKit`
+(from `frappe-ui/editor`); it then autofocuses at the end of the text and saves on
+Ctrl/⌘-Enter, and Discard reverts to the saved content. `editorClass` (default
+`"prose-sm max-w-none"`) lands on the comment content in both modes, `uploadFunction`
+(image uploads) passes through to the editor.
 
 `EmailItem`'s default header is responsive: from `sm` up it's one row (name, status,
 time, actions); below that the time moves to its own line under the name, with

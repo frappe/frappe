@@ -1,0 +1,101 @@
+/* highlight.js, GitHub light and dark, as the editor's code block colours it. */
+.rich-text-view {
+	--hl-keyword: #d73a49;
+	--hl-title: #6f42c1;
+	--hl-constant: #005cc5;
+	--hl-string: #032f62;
+	--hl-built-in: #e36209;
+	--hl-comment: #6a737d;
+	--hl-name: #22863a;
+	--hl-section: #005cc5;
+	--hl-bullet: #735c0f;
+	--hl-addition-fg: #22863a;
+	--hl-addition-bg: #f0fff4;
+	--hl-deletion-fg: #b31d28;
+	--hl-deletion-bg: #ffeef0;
+}
+[data-theme="dark"] .rich-text-view {
+	--hl-keyword: #ff7b72;
+	--hl-title: #d2a8ff;
+	--hl-constant: #79c0ff;
+	--hl-string: #a5d6ff;
+	--hl-built-in: #ffa657;
+	--hl-comment: #8b949e;
+	--hl-name: #7ee787;
+	--hl-section: #1f6feb;
+	--hl-bullet: #f2cc60;
+	--hl-addition-fg: #aff5b4;
+	--hl-addition-bg: #033a16;
+	--hl-deletion-fg: #ffdcd7;
+	--hl-deletion-bg: #67060c;
+}
+.rich-text-view pre .hljs-doctag,
+.rich-text-view pre .hljs-keyword,
+.rich-text-view pre .hljs-meta .hljs-keyword,
+.rich-text-view pre .hljs-template-tag,
+.rich-text-view pre .hljs-template-variable,
+.rich-text-view pre .hljs-type,
+.rich-text-view pre .hljs-variable.language_ {
+	color: var(--hl-keyword);
+}
+.rich-text-view pre .hljs-title {
+	color: var(--hl-title);
+}
+.rich-text-view pre .hljs-attr,
+.rich-text-view pre .hljs-attribute,
+.rich-text-view pre .hljs-literal,
+.rich-text-view pre .hljs-meta,
+.rich-text-view pre .hljs-number,
+.rich-text-view pre .hljs-operator,
+.rich-text-view pre .hljs-variable,
+.rich-text-view pre .hljs-selector-attr,
+.rich-text-view pre .hljs-selector-class,
+.rich-text-view pre .hljs-selector-id {
+	color: var(--hl-constant);
+}
+.rich-text-view pre .hljs-regexp,
+.rich-text-view pre .hljs-string,
+.rich-text-view pre .hljs-meta .hljs-string {
+	color: var(--hl-string);
+}
+.rich-text-view pre .hljs-built_in,
+.rich-text-view pre .hljs-symbol {
+	color: var(--hl-built-in);
+}
+.rich-text-view pre .hljs-comment,
+.rich-text-view pre .hljs-code,
+.rich-text-view pre .hljs-formula {
+	color: var(--hl-comment);
+}
+.rich-text-view pre .hljs-name,
+.rich-text-view pre .hljs-quote,
+.rich-text-view pre .hljs-selector-tag,
+.rich-text-view pre .hljs-selector-pseudo {
+	color: var(--hl-name);
+}
+.rich-text-view pre .hljs-subst,
+.rich-text-view pre .hljs-emphasis,
+.rich-text-view pre .hljs-strong {
+	color: inherit;
+}
+.rich-text-view pre .hljs-section {
+	color: var(--hl-section);
+	font-weight: bold;
+}
+.rich-text-view pre .hljs-bullet {
+	color: var(--hl-bullet);
+}
+.rich-text-view pre .hljs-emphasis {
+	font-style: italic;
+}
+.rich-text-view pre .hljs-strong {
+	font-weight: 700;
+}
+.rich-text-view pre .hljs-addition {
+	color: var(--hl-addition-fg);
+	background-color: var(--hl-addition-bg);
+}
+.rich-text-view pre .hljs-deletion {
+	color: var(--hl-deletion-fg);
+	background-color: var(--hl-deletion-bg);
+}
