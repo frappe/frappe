@@ -152,6 +152,13 @@ def evaluate_workflow_value(value, evaluate_as_expression, doc):
 @frappe.whitelist()
 def apply_workflow(doc: Document | str | dict, action: str):
 	"""Allow workflow action on the current doc"""
+	doc = run_workflow_transition(doc, action)
+	doc.apply_fieldlevel_read_permissions()
+	return doc
+
+
+def run_workflow_transition(doc: Document | str | dict, action: str) -> Document:
+	"""Apply `action` to `doc` and return the document, without masking fields the user cannot read."""
 	doc = frappe.get_doc(frappe.parse_json(doc))
 	doc.load_from_db()
 	workflow = get_workflow(doc.doctype, doc)
@@ -406,7 +413,7 @@ def _bulk_workflow_action(docnames, doctype, action):
 		message_dict = {}
 		try:
 			show_progress(docnames, _("Applying: {0}").format(action), idx, docname)
-			apply_workflow(frappe.get_doc(doctype, docname), action)
+			run_workflow_transition(frappe.get_doc(doctype, docname), action)
 			frappe.db.commit()
 		except Exception as e:
 			if not frappe.message_log:
