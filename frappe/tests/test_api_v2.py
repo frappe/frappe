@@ -101,7 +101,10 @@ class TestResourceAPIV2(FrappeAPITestCase):
 	def test_get_list_virtual_doctype_v2(self):
 		response = self.get(self.resource("RQ Worker"), {"sid": self.sid, "limit": 1})
 		self.assertEqual(response.status_code, 200)
-		self.assertLessEqual(len(response.json["data"]), 1)
+		self.assertEqual(
+			[row["name"] for row in response.json["data"]],
+			[row.name for row in frappe.get_list("RQ Worker", limit=1)],
+		)
 
 	def test_get_list_log_doctype_v2(self):
 		method = frappe.generate_hash()
