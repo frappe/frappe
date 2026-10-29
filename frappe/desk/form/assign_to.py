@@ -52,10 +52,32 @@ def add(args: dict[str, Any] | None = None):
 	}
 
 	"""
-	return _add(args, ignore_permissions=False)
+	return _add(
+		args,
+		ignore_permissions=False,
+		validate_assignees=is_endpoint_call("frappe.desk.form.assign_to.add"),
+	)
 
 
+<<<<<<< HEAD
 def _add(args=None, *, ignore_permissions=False):
+=======
+def is_endpoint_call(method: str) -> bool:
+	"""True when `method` is the API endpoint being served, not a Python call from other code."""
+	request = getattr(frappe.local, "request", None)
+	return bool(request) and method in {
+		request.path.removesuffix("/").rpartition("/")[2],
+		frappe.form_dict.cmd,
+	}
+
+
+def _add(
+	args: dict[str, Any] | None = None,
+	*,
+	ignore_permissions: bool | int = False,
+	validate_assignees: bool = False,
+):
+>>>>>>> fffde37 (fix: apply the assignee check to assignments made through the API only)
 	if not args:
 		args = frappe.local.form_dict
 
@@ -71,6 +93,8 @@ def _add(args=None, *, ignore_permissions=False):
 		}
 		if not ignore_permissions:
 			frappe.get_doc(args["doctype"], args["name"]).check_permission()
+
+		if validate_assignees:
 			frappe.share.validate_user_access(assign_to, _("Allocated To"))
 
 		if frappe.get_all("ToDo", filters=filters):
@@ -154,7 +178,7 @@ def add_multiple(args: dict[str, Any] | None = None):
 
 	for docname in docname_list:
 		args.update({"name": docname})
-		add(args)
+		_add(args, ignore_permissions=False, validate_assignees=True)
 
 
 def close_all_assignments(doctype, name, ignore_permissions=False):
