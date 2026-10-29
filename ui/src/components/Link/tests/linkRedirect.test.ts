@@ -8,6 +8,7 @@ vi.mock("../../../composables/useLinkSearch", async () => {
     useLinkSearch: () => ({
       data: ref([{ label: "Administrator", value: "Administrator" }]),
       loading: ref(false),
+      error: ref(null),
       search: () => {},
     }),
   };

@@ -12,8 +12,8 @@
 		:disabled="disabled"
 		:placeholder="placeholder ?? `Search ${doctype.toLowerCase()}`"
 		:loading="options.loading.value && !options.data.value"
-		@update:query="handleInputChange"
-		@focus="() => loadOptions('')"
+		@input="handleInputChange(($event.target as HTMLInputElement).value)"
+		@focus="showAllOptions"
 	>
 		<template v-for="(_, name) in forwardedSlots" #[name]="slotProps" :key="name">
 			<slot :name="name" v-bind="slotProps" />
@@ -88,7 +88,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, ref, useSlots, watch } from "vue";
+import { computed, onBeforeUnmount, ref, useSlots, watch } from "vue";
 import { Combobox, debounce } from "frappe-ui";
 import type { ComboboxOption, ComboboxCustomOption } from "frappe-ui";
 import { useLinkSearch } from "../../composables/useLinkSearch";
@@ -154,8 +154,23 @@ const openLabel = computed(() => {
 });
 const showEdit = computed(() => props.editable && !!model.value);
 
-const loadOptions = (txt: string = "", fresh = false) => void options.search(txt, { fresh });
+// The server lets the browser keep a search answer this long; an open after it asks again.
+const OPTIONS_MAX_AGE_MS = 60_000;
+let searched: string | null = null;
+let searchedAt = 0;
 
+const loadOptions = (txt: string = "", fresh = false) => {
+	searched = txt;
+	searchedAt = Date.now();
+	void options.search(txt, { fresh });
+};
+
+const showAllOptions = () => {
+	const expired = Date.now() - searchedAt > OPTIONS_MAX_AGE_MS;
+	if (searched !== "" || expired || options.error.value) loadOptions("");
+};
+
+// The input's native event, not `update:query`: the Combobox also sets the query to the shown value.
 const handleInputChange = debounce((value: string) => {
 	loadOptions(value || "");
 }, 300);
@@ -166,10 +181,18 @@ const clearValue = () => {
 	comboboxRef.value?.focus();
 };
 
-watch([() => props.doctype, () => props.filters], () => loadOptions(""), {
-	immediate: true,
-	deep: true,
-});
+watch(open, (isOpen) => isOpen && showAllOptions(), { immediate: true });
+
+watch(
+	[() => props.doctype, () => props.filters],
+	() => {
+		searched = null;
+		if (open.value) loadOptions("");
+	},
+	{ deep: true }
+);
+
+onBeforeUnmount(() => handleInputChange.cancel());
 
 defineExpose<LinkExposed>({
 	reload: () => loadOptions(""),
