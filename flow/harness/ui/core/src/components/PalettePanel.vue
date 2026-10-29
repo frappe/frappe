@@ -2,16 +2,20 @@
      slash commands, model picker, thinking, providers. Overlay + panel +
      header; the composer's own text is the search. A `dropdown` hangs from
      a toolbar button instead, the model and approval mode buttons' own
-     lists, moved along to stay on the page. -->
+     lists, moved along to stay on the page; `below`, under a header's. -->
 <template>
 	<div class="fixed inset-0 z-10" @click="emit('close')" />
 	<section
 		ref="panel"
 		:aria-label="title"
-		class="flow-palette-panel absolute z-20 flex flex-col overflow-hidden rounded-8 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
+		class="flow-palette-panel absolute z-20 flex flex-col overflow-hidden rounded-6 border border-outline-gray-1 flow-composer-surface shadow-[0_6px_20px_rgba(0,0,0,0.05)]"
 		:class="
 			dropdown
-				? ['flow-dropdown bottom-[calc(100%+8px)] w-[var(--dropdown-width)]', align === 'right' ? 'right-0' : 'left-0']
+				? [
+						'flow-dropdown w-[var(--dropdown-width)]',
+						below ? 'top-[calc(100%+4px)]' : 'bottom-[calc(100%+8px)]',
+						align === 'right' ? 'right-0' : 'left-0',
+					]
 				: 'bottom-[calc(100%+4px)] left-0 w-full'
 		"
 		:style="{
@@ -34,7 +38,7 @@
 			>
 				<span class="lucide-arrow-left size-3.5" aria-hidden="true" />
 			</button>
-			<span class="min-w-0 truncate text-2xs font-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
+			<span class="min-w-0 truncate text-base font-medium text-ink-gray-5" :class="back ? '' : 'pl-1'">
 				{{ title }}
 			</span>
 			<span class="flex-1" />
@@ -63,11 +67,12 @@ const props = defineProps({
 	dropdown: { type: Boolean, default: false },
 	align: { type: String, default: "right" },
 	width: { type: Number, default: 304 },
+	below: { type: Boolean, default: false },
 })
 const emit = defineEmits(["close", "back"])
 const panel = ref(null)
-// 352px tall at most, and no taller than the room above it, 8px short of the page's top: a
-// phone's keyboard can leave less
+// 352px tall at most, and no taller than the room above it (under it, `below`), 8px short of the
+// page's edge: a phone's keyboard can leave less
 const cap = ref(352)
 // a dropdown whose button sits near the page's side moves along, to stay 8px inside it
 const shift = ref(0)
@@ -79,7 +84,8 @@ let topWaits = false
 
 function fit() {
 	const rect = panel.value.getBoundingClientRect()
-	cap.value = Math.min(352, Math.floor(rect.bottom) - 8)
+	const tall = props.below ? document.documentElement.clientHeight - Math.ceil(rect.top) : Math.floor(rect.bottom)
+	cap.value = Math.min(352, tall - 8)
 	if (!props.dropdown) return
 	const left = rect.left - shift.value
 	const room = document.documentElement.clientWidth - 8 - (rect.right - shift.value)

@@ -5,7 +5,7 @@ frappe.doctype_settings.register("roles", function (panel, doctype) {
 	const reload = () => draw(panel, doctype);
 	panel.set_view({
 		title: __("Roles"),
-		description: __("Control who can access {0}, by role.", [doctype]),
+		description: __("Control who can access {0}, by role.", [__(doctype)]),
 		actions: [
 			{
 				label: __("Add role"),
@@ -200,7 +200,7 @@ function customized_banner(panel, doctype, reload) {
 	const reset = () =>
 		frappe.confirm(
 			__("Reset {0} permissions to their default? This removes all customizations.", [
-				doctype,
+				__(doctype),
 			]),
 			() =>
 				perm_call("reset", { doctype }).then(() => {

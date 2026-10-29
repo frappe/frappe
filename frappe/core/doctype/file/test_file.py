@@ -1668,6 +1668,64 @@ class TestChildTableAttachments(IntegrationTestCase):
 		other.file_url = file.file_url
 		self.assertRaises(frappe.PermissionError, other.save)
 
+	def test_dot_segment_cannot_bypass_private_file_access(self):
+		# A "./" segment resolves to the same file on disk but reads as a different URL.
+		# It must be normalised before the access check so it still points at the victim's row.
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"dot-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		attacker = frappe.get_doc(
+			doctype="File",
+			file_url=f"/private/files/./{name}",
+			file_name=name,
+			is_private=1,
+		)
+		self.assertRaises(frappe.PermissionError, attacker.insert)
+
+	def test_site_url_and_update_cannot_bypass_private_file_access(self):
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"site-url-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		own = self.make_unattached_file(b"site-url-own-bytes", is_private=1)
+		site_url = frappe.utils.get_url()
+
+		for url in (
+			f"{site_url}/private/files/{name}",
+			f"{site_url}/private/files/./{name}",
+			f"/private/files/./{name}",
+			f"/private/files/%2e/{name}",
+		):
+			attacker = frappe.get_doc(doctype="File", file_url=url, file_name=name, is_private=1)
+			self.assertRaises(frappe.PermissionError, attacker.insert)
+
+			own.reload()
+			own.file_url = url
+			self.assertRaises(frappe.PermissionError, own.save)
+
+	def test_file_url_is_normalised_on_insert(self):
+		frappe.set_user("Administrator")
+		file = frappe.get_doc(
+			doctype="File", content=b"normalise-bytes", file_name="normalise_me.txt", is_private=1
+		).insert(ignore_permissions=True)
+		name = file.file_url.rsplit("/", 1)[1]
+
+		for messy in (
+			f"/private/files/./{name}",
+			f"/private/files/.//{name}",
+		):
+			candidate = frappe.new_doc("File")
+			candidate.file_url = messy
+			candidate.normalize_file_url()
+			self.assertEqual(candidate.file_url, f"/private/files/{name}")
+
+		candidate = frappe.new_doc("File")
+		candidate.file_url = f"/private/files/foo/../{name}"
+		self.assertRaisesRegex(ValidationError, "File URL", candidate.normalize_file_url)
+
 	def test_batched_attach_does_not_duplicate_already_attached_files(self):
 		file = self.make_unattached_file(b"child-resave-bytes")
 		doc = self.make_parent_doc(cards=[{"image": file.file_url}])
@@ -2083,47 +2141,6 @@ class TestFileUtils(IntegrationTestCase):
 				self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
 		finally:
 			victim.delete()
-
-	def test_file_url_with_dot_or_empty_segments_cannot_reach_other_private_file(self):
-		self.addCleanup(frappe.set_user, "Administrator")
-		frappe.set_user("test@example.com")
-		victim = frappe.get_doc(
-			{"doctype": "File", "file_name": "alias_victim.txt", "content": "secret", "is_private": 1}
-		).insert()
-		self.addCleanup(frappe.delete_doc, "File", victim.name, force=True, ignore_permissions=True)
-
-		frappe.set_user("test4@example.com")
-		own = frappe.get_doc(
-			{"doctype": "File", "file_name": "alias_own.txt", "content": "mine", "is_private": 1}
-		).insert()
-		self.addCleanup(frappe.delete_doc, "File", own.name, force=True, ignore_permissions=True)
-
-		site_url = frappe.utils.get_url()
-		for alias in (
-			"/private/files/./alias_victim.txt",
-			"/private/files//alias_victim.txt",
-			f"{site_url}/private/files/./alias_victim.txt",
-			"/private/files/%2e/alias_victim.txt",
-		):
-			doc = frappe.get_doc(
-				{"doctype": "File", "file_name": "alias.txt", "file_url": alias, "is_private": 1}
-			)
-			self.assertRaisesRegex(ValidationError, "File URL", doc.insert)
-
-			own.reload()
-			own.file_url = alias
-			self.assertRaisesRegex(ValidationError, "File URL", own.save)
-
-		# the plain URL of this site is the same file as the local one
-		alias = f"{site_url}/private/files/alias_victim.txt"
-		doc = frappe.get_doc(
-			{"doctype": "File", "file_name": "alias.txt", "file_url": alias, "is_private": 1}
-		)
-		self.assertRaises(frappe.PermissionError, doc.insert)
-
-		own.reload()
-		own.file_url = alias
-		self.assertRaises(frappe.PermissionError, own.save)
 
 	def test_resolved_file_path_rejects_sibling_directory_prefix_match(self):
 		from frappe.utils.file_manager import get_file_path

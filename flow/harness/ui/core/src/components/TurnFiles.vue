@@ -1,6 +1,6 @@
 <template>
 	<div class="overflow-hidden rounded-6 border border-outline-gray-1">
-		<div class="flex h-9 items-center border-b border-outline-gray-1 bg-surface-gray-1 px-3 text-xs font-medium text-ink-gray-5">
+		<div class="flex h-9 items-center border-b border-outline-gray-1 bg-surface-gray-1 px-3 text-sm font-medium text-ink-gray-5">
 			{{ files.length }} {{ files.length === 1 ? "file" : "files" }} changed
 		</div>
 		<div class="divide-y divide-outline-gray-1">
@@ -12,15 +12,15 @@
 				@click="flow.openDiffFile(file.path)"
 			>
 				<span class="lucide-file size-4 flex-none text-ink-gray-5" aria-hidden="true" />
-				<span class="flex-none text-sm font-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
-				<span class="min-w-0 truncate text-xs text-ink-gray-4">{{ dirPath(file.path) }}</span>
+				<span class="flex-none text-base font-medium text-ink-gray-9">{{ fileName(file.path) }}</span>
+				<span class="min-w-0 truncate text-sm text-ink-gray-4">{{ dirPath(file.path) }}</span>
 				<span class="flex-1" />
-				<span class="flex-none font-mono text-xs text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
-				<span class="flex-none font-mono text-xs text-ink-red-6">-{{ file.removed }}</span>
+				<span class="flex-none font-mono text-sm text-ink-green-5 dark:text-ink-green-7">+{{ file.added }}</span>
+				<span class="flex-none font-mono text-sm text-ink-red-6">-{{ file.removed }}</span>
 			</button>
 			<button
 				v-if="files.length > VISIBLE"
-				class="w-full py-2 text-center text-xs text-ink-gray-5 transition-colors hover:bg-surface-gray-1 hover:text-ink-gray-8"
+				class="w-full py-2 text-center text-sm text-ink-gray-5 transition-colors hover:bg-surface-gray-1 hover:text-ink-gray-8"
 				@click="expanded = !expanded"
 			>
 				{{ expanded ? "Show less" : `Show all ${files.length} files` }}

@@ -1121,7 +1121,7 @@ test("a file removed, or left behind by a chat switch, while it is prepared is d
 	assert.ok(!el.textContent.includes("notes.pdf")) // a switch drops staged files, send or not
 })
 
-test("the settings shell renders a host's tabs and panels, as a page in a narrow frame", async (t) => {
+test("the settings shell renders a host's tabs and panels, as a page on a phone", async (t) => {
 	const groups = [{ label: "Settings", tabs: [{ id: "alpha", label: "Alpha", icon: "x" }, { id: "beta", label: "Beta", icon: "y" }] }]
 	const flow = { state: reactive({ settingsOpen: true }), setSettingsOpen() {} }
 	const { el, unmount } = mount(t, {
@@ -1134,7 +1134,14 @@ test("the settings shell renders a host's tabs and panels, as a page in a narrow
 	assert.deepEqual([...el.querySelectorAll("[data-stub=SettingsPanel]")].map((p) => `${p.dataset.value}:${p.textContent.trim()}`), ["alpha:A", "beta:B"])
 	unmount() // the page below has the browser's history to itself
 
-	// a narrow frame shows them as a page: a list whose rows open their panel, a way back, a close
+	// a narrow frame worked by a mouse, like the launcher's panel, keeps the dialog
+	layout.narrow = true
+	t.after(() => (layout.narrow = false))
+	const panel = mount(t, { render: () => h(SettingsDialog, { groups }) }, {}, flow)
+	assert.deepEqual([!!panel.el.querySelector("[data-stub=SettingsDialog]"), panel.el.querySelector("[role=dialog]")], [true, null])
+	panel.unmount()
+
+	// a phone shows them as a page: a list whose rows open their panel, a way back, a close
 	layout.narrow = layout.phone = true
 	t.after(() => (layout.narrow = layout.phone = false))
 	const narrow = { state: reactive({ settingsOpen: false }), setSettingsOpen: (open) => (narrow.state.settingsOpen = open) }
@@ -2722,10 +2729,64 @@ test("the header says nothing in a new chat until its first message goes out, no
 	asked[1].actions.at(-1).onClick()
 	assert.deepEqual(done, [["rename", "s1", "Q3 report"], ["delete", "s1"]])
 
-	// a chat the user may only view has no menu
+	// a chat the user may only view has no Rename or Delete: its menu holds the host's items alone
 	flow.state.session = { title: "Their report", read_only: true }
 	await nextTick()
-	assert.equal(menu(), null)
+	assert.deepEqual(items().map((item) => item.textContent), ["Share"])
+})
+
+test("a header with its sidebar hidden leads with its button and, once the chat has started, New chat; with none at all, a clock lists the chats beside New chat, and a gear, not the chat's menu, leads to the host's pages and Settings", async (t) => {
+	const done = []
+	const flow = {
+		state: reactive({
+			loading: false, sessionId: null, session: null, conversation: initialConversation(), prefs: {}, workspace: {},
+			sessions: [{ session_id: "s1", title: "Quarterly report" }, { session_id: "s2", title: "Expense claims" }],
+			sessionsMore: false, sessionsLoading: false,
+		}),
+		sessionTitle: (session) => session.title,
+		searchSessions: () => {},
+		openSession: (sid) => done.push(sid),
+		startNewChat: () => done.push("new"),
+		setSettingsOpen: (open) => done.push(`settings:${open}`),
+	}
+	const buttons = (el) => [...el.querySelectorAll("header button[title]")].map((button) => button.title)
+	const hidden = mount(t, ChatHeader, { sidebarOpen: false, workspace: false }, flow).el
+	assert.deepEqual(buttons(hidden), ["Show sidebar"])
+
+	const nav = [{ label: "Agents", onClick: () => done.push("agents") }]
+	const { el } = mount(t, ChatHeader, { sidebarOpen: false, workspace: false, history: true, nav }, flow)
+	assert.deepEqual(buttons(el), ["Recent chats", "Manage"])
+	const items = () => [...el.querySelectorAll("[role=menuitem]")]
+	el.querySelector("button[title=Manage]").click()
+	await nextTick()
+	assert.deepEqual(items().map((item) => item.textContent), ["Agents", "Settings"])
+	items()[1].click()
+	el.querySelector("button[title=Manage]").click()
+	await nextTick()
+
+	// the clock's list narrows as a search is typed, and a pick opens that chat and puts the list away
+	el.querySelector("button[title='Recent chats']").click()
+	await nextTick()
+	const rows = () => [...el.querySelectorAll("[data-palette-item]")].map((row) => row.textContent.trim())
+	assert.deepEqual(rows(), ["Quarterly report", "Expense claims"])
+	const field = el.querySelector("input[aria-label='Search chats']")
+	field.value = "exp"
+	field.dispatchEvent(new window.Event("input"))
+	await nextTick()
+	assert.deepEqual(rows(), ["Expense claims"])
+	el.querySelector("[data-palette-item]").click()
+	await nextTick()
+	assert.deepEqual([rows(), done], [[], ["settings:true", "s2"]])
+
+	// an open chat's menu, by its title, holds its own items alone
+	flow.state.sessionId = "s2"
+	flow.state.session = { title: "Expense claims" }
+	await nextTick()
+	assert.deepEqual(buttons(hidden), ["Show sidebar", "New chat", "Chat options"])
+	assert.deepEqual(buttons(el), ["Chat options", "Recent chats", "New chat", "Manage"])
+	el.querySelector("button[title='Chat options']").click()
+	await nextTick()
+	assert.deepEqual(items().map((item) => item.textContent), ["Rename", "Delete"])
 })
 
 test("the model button names the chat's own model and thinking level, never the last one picked while a chat loads", async (t) => {
