@@ -9,7 +9,7 @@ from flow_harness.tools.tool import ToolContext, ToolResult, tool
 MIN_REPLIES, MAX_REPLIES = 2, 4
 
 
-@tool(prompt_snippet="Offer the user a few short next messages, sent with a tap", ends_run=True)
+@tool(prompt_snippet="Offer the user a few short next messages, sent with a tap")
 async def suggest_replies(
 	replies: Annotated[list[str], "two to four short messages, in the user's voice"],
 	multi_select: Annotated[bool, "let the user pick several and send them together"] = False,
@@ -19,7 +19,8 @@ async def suggest_replies(
 	"""Offer the user two to four next messages, shown as buttons under your reply.
 
 	End almost every reply with it, whether the reply asks the user something or finishes a
-	task. Call it last, once your reply is written: it ends your turn. Each is a short message
+	task. Call it after your reply's text, in the same message; it does not end your turn, and
+	only your last call before the turn ends is shown. Each is a short message
 	the user would send, in their words: the next steps they are likely to want or, when your
 	reply asks a question, its likely answers. Set multi_select when more than one can apply.
 	They can always type something else. Skip it only when you cannot guess any.
