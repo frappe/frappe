@@ -7,7 +7,6 @@ from typing import Any
 import frappe
 
 # import frappe
-from frappe import _
 from frappe.model.document import Document
 
 
@@ -31,13 +30,11 @@ class DashboardSettings(Document):
 
 @frappe.whitelist()
 def create_dashboard_settings(user: str):
-	frappe.has_permission("Dashboard Settings", "write", throw=True)
-	if user != frappe.session.user:
-		frappe.throw(_("Not permitted"), frappe.PermissionError)
+	doc = frappe.new_doc("Dashboard Settings")
+	doc.name = user
+	doc.check_permission("write")
 
 	if not frappe.db.exists("Dashboard Settings", user):
-		doc = frappe.new_doc("Dashboard Settings")
-		doc.name = user
 		doc.insert(ignore_permissions=True)
 		frappe.db.commit()
 		return doc

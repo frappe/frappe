@@ -148,7 +148,6 @@ def create_dashboard_chart(args: str | dict[str, Any]):
 
 	doc.update(args)
 	if not frappe.has_permission("Dashboard Chart", "create"):
-		# users who cannot create charts only get private ones
 		doc.update({"is_public": 0, "is_standard": 0, "module": None, "roles": []})
 
 	if args.get("custom_options"):

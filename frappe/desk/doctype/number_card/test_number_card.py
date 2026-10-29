@@ -3,6 +3,7 @@
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.user.test_user import test_user
 from frappe.desk.doctype.number_card.number_card import create_number_card, get_cards_for_user
 from frappe.tests import IntegrationTestCase
 
@@ -138,22 +139,7 @@ class TestNumberCard(IntegrationTestCase):
 		self.assertEqual([row[0] for row in blocked_results], [])
 		self.assertEqual([row[0] for row in allowed_results], [allowed_card_name])
 
-	def make_user(self, email, roles=(), user_type="System User"):
-		frappe.get_doc(
-			{
-				"doctype": "User",
-				"email": email,
-				"first_name": "Test",
-				"user_type": user_type,
-				"send_welcome_email": 0,
-				"roles": [{"role": role} for role in roles],
-			}
-		).insert(ignore_permissions=True)
-		self.addCleanup(frappe.delete_doc, "User", email, force=True, ignore_missing=True)
-		return email
-
 	def test_create_number_card_is_private_without_create_permission(self):
-		user = self.make_user("card_creator@example.com", roles=["Blogger"])
 		args = {
 			"label": "Test Private Card",
 			"type": "Document Type",
@@ -163,7 +149,11 @@ class TestNumberCard(IntegrationTestCase):
 			"is_standard": 1,
 		}
 
-		with self.set_user(user), patch.dict(frappe.conf, {"developer_mode": 0}):
+		with (
+			test_user(roles=["Desk User"]) as user,
+			self.set_user(user.name),
+			patch.dict(frappe.conf, {"developer_mode": 0}),
+		):
 			card = create_number_card(args)
 		self.addCleanup(frappe.delete_doc, "Number Card", card.name, force=True)
 		self.assertEqual((card.is_public, card.is_standard), (0, 0))
@@ -174,7 +164,6 @@ class TestNumberCard(IntegrationTestCase):
 		self.assertEqual(card.is_public, 1)
 
 	def test_create_number_card_requires_desk_user(self):
-		user = self.make_user("card_web_user@example.com", user_type="Website User")
 		args = {
 			"label": "Test Web Card",
 			"type": "Document Type",
@@ -182,5 +171,5 @@ class TestNumberCard(IntegrationTestCase):
 			"function": "Count",
 		}
 
-		with self.set_user(user):
+		with test_user(roles=[], user_type="Website User") as user, self.set_user(user.name):
 			self.assertRaises(frappe.PermissionError, create_number_card, args)

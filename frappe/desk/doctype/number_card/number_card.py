@@ -214,7 +214,6 @@ def create_number_card(args: str | dict[str, Any]):
 
 	doc.update(args)
 	if not frappe.has_permission("Number Card", "create"):
-		# users who cannot create cards only get private ones
 		doc.update({"is_public": 0, "is_standard": 0, "module": None})
 	doc.insert(ignore_permissions=True)
 	return doc
