@@ -567,12 +567,11 @@ async function update_assets_json_in_cache() {
 	// handle error event to avoid printing stack traces
 	try {
 		await client.connect();
+		await client.del("assets_json");
+		await client.quit();
 	} catch (e) {
 		log_warn("Cannot connect to redis_cache to update assets_json");
 	}
-	client.del("assets_json", (err) => {
-		client.unref();
-	});
 }
 
 function get_assets_json_path(is_rtl) {
