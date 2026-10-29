@@ -751,7 +751,7 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 			(this.filters || []).forEach(([, fn, cond, val]) => {
 				if (!set.has(fn)) return;
 				const field = this.page.fields_dict[fn];
-				if (!field) return;
+				if (!field || !this.fits_quick_filter(field, cond)) return;
 				let v = val;
 				if (cond === "like" && typeof v === "string") v = v.replace(/^%+|%+$/g, "");
 				field.df.match_type = cond === "like" ? "like" : "=";
@@ -760,6 +760,12 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		} finally {
 			this._seeding_quick = false;
 		}
+	}
+
+	/** A box shows its value as "=" or "like"; other conditions stay popover filters. */
+	fits_quick_filter(field, condition) {
+		if (condition === "like") return field.df.fieldtype !== "Link";
+		return condition === "=";
 	}
 
 	get_quick_filters() {
@@ -785,11 +791,13 @@ frappe.views.KanbanV2Page = class KanbanV2Page {
 		return out;
 	}
 
-	/** A quick filter replaces a popover filter on the same field only when it has a value. */
+	/** A quick filter replaces a popover filter it can hold on the same field, only when it has a value. */
 	get_effective_filters(extra) {
 		const quick = this.get_quick_filters();
 		const active = new Set(quick.map((f) => f[1]));
-		const base = (this.filters || []).filter((f) => !active.has(f[1]));
+		const base = (this.filters || []).filter(
+			(f) => !active.has(f[1]) || !this.fits_quick_filter(this.page.fields_dict[f[1]], f[2])
+		);
 		const eff = base.concat(quick);
 		return extra && extra.length ? eff.concat(extra) : eff;
 	}
