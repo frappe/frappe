@@ -147,6 +147,7 @@ def test_tools_list_every_builtin_up_to_the_allowlist(tmp_path, monkeypatch):
 		"subagent",
 		"grep",
 		"web_fetch",
+		"web_search",
 	]
 	assert all(t["description"] for t in tools)
 

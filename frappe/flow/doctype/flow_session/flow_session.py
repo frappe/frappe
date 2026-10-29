@@ -25,6 +25,7 @@ from frappe.flow.lib.session import (
 	sync_with_retry,
 )
 from frappe.model.document import Document
+from frappe.utils.password import get_decrypted_password
 
 if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_run.flow_run import FlowRun
@@ -170,6 +171,12 @@ class FlowSession(Document):
 			"cwd": str(lifecycle.session_root()),
 		}
 		config["suggest_replies"] = self.source != "Trigger"  # nobody is there to tap one
+		search_provider = frappe.db.get_single_value("Flow Settings", "search_provider") or "DuckDuckGo"
+		config["web_search"] = {"provider": search_provider.lower()}
+		if search_provider != "DuckDuckGo":
+			config["web_search"]["api_key"] = get_decrypted_password(
+				"Flow Settings", "Flow Settings", "search_api_key"
+			)
 		small_model = frappe.db.get_single_value("Flow Settings", "small_model")
 		if small_model and frappe.db.get_value("Flow Model", small_model, "enabled"):
 			config["small_model"] = model_config(small_model, check_permission=False)
