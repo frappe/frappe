@@ -823,7 +823,13 @@ def get_page_size_mm(overrides: dict | None = None) -> tuple[float, float]:
 
 
 def get_page_margin(print_format: "PrintFormat" | None = None) -> str:
-	if not print_format or not print_format.css or print_format.pdf_generator != "chrome":
+	from frappe.utils.print_utils import resolve_pdf_generator
+
+	if (
+		not print_format
+		or not print_format.css
+		or (print_format.pdf_generator or resolve_pdf_generator()) != "chrome"
+	):
 		return " ".join(["15mm"] * 4)
 
 	margins = get_page_rule_margins(print_format.css)

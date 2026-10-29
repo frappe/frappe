@@ -6,7 +6,12 @@ from bs4 import BeautifulSoup
 import frappe
 from frappe.utils.data import cint, cstr, flt
 from frappe.utils.pdf import get_host_url
-from frappe.utils.print_utils import _print_format_doc_or_none, convert_uom, parse_float_and_unit
+from frappe.utils.print_utils import (
+	_print_format_doc_or_none,
+	convert_uom,
+	parse_float_and_unit,
+	resolve_pdf_generator,
+)
 
 RECEIPT_WIDTHS = {"Receipt 80 mm": "80mm", "Receipt 58 mm": "58mm"}
 
@@ -186,7 +191,10 @@ class Browser:
 			self.header_height = self.header_page.get_element_height()
 			self.is_header_dynamic = self.is_page_no_used(self.header_content)
 			del self.header_content
-		else:
+			if not self.header_height:
+				self.header_page.close()
+				self.header_page = None
+		if not self.header_page:
 			# bad implicit setting of margin #backwards-compatibility
 			options["margin-top"] = "15mm"
 
@@ -195,7 +203,10 @@ class Browser:
 			self.footer_height = self.footer_page.get_element_height()
 			self.is_footer_dynamic = self.is_page_no_used(self.footer_content)
 			del self.footer_content
-		else:
+			if not self.footer_height:
+				self.footer_page.close()
+				self.footer_page = None
+		if not self.footer_page:
 			# bad implicit setting of margin #backwards-compatibility
 			options["margin-bottom"] = "15mm"
 
@@ -301,7 +312,7 @@ class Browser:
 			not print_format
 			or not print_format.css
 			or uses_beta_renderer(print_format)
-			or print_format.pdf_generator != "chrome"
+			or (print_format.pdf_generator or resolve_pdf_generator()) != "chrome"
 		):
 			return {}
 		return get_page_rule_margins(print_format.css)
