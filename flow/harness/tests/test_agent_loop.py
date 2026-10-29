@@ -2,6 +2,8 @@
 steering, abort at every await point, and typed failure settlement."""
 
 import asyncio
+import json
+import os
 
 import pytest
 
@@ -201,7 +203,8 @@ async def test_oversized_tool_results_keep_their_start_and_end(tmp_path):
 	result = await _dump(session, events, "a" * 100_000 + "b" * 100_000)
 	assert result["content"] == (
 		"a" * 40_960 + "\n\n[Cut the middle: showing the first 40 KB and the last 10 KB of 195 KB. "
-		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		f"The whole result is saved in {session.results_dir}/c1.txt: read it in parts with read's "
+		"offset and limit, or find lines in it with grep. "
 		"Don't repeat a call that changed data.]\n\n" + "b" * 10_240
 	)
 	assert result["details"]["truncation"]["truncated"] is True
@@ -240,6 +243,41 @@ async def test_oversized_tool_results_keep_their_start_and_end(tmp_path):
 	assert content.startswith("z" * 40_960 + "\n\n[Cut the middle") and content.endswith(
 		"]\n\n" + "z" * 10_240
 	)
+
+
+async def test_an_oversized_result_is_saved_whole_for_read(tmp_path):
+	rows = [{"name": f"INV-{i:05}", "customer": "Acme" if i == 4321 else "Other"} for i in range(6000)]
+	workspace = tmp_path / "work"
+	workspace.mkdir()
+	events: list[dict] = []
+	store = SessionStore(
+		str(tmp_path / "data"),
+		event_sink=lambda _sid, ev: events.append(ev),
+		credential_store=CredentialStore(str(tmp_path / "credentials.json")),
+		allowed_roots=[str(workspace)],  # as deployed: read reaches the saved result, nothing else
+	)
+	session = store.create(SessionConfig(cwd=str(workspace), tools=["read", "grep"]))
+	result = await _dump(session, events, json.dumps(rows))  # one line, as a client tool's JSON arrives
+	saved = f"{session.results_dir}/c1.txt"
+	assert f"The whole result is saved in {saved}" in result["content"]
+
+	# the saved JSON has one value per line, so read can page it and grep can find a row
+	grep_call = ToolCall(id="c2", name="grep", arguments={"pattern": "Acme", "path": saved})
+	read_call = ToolCall(id="c3", name="read", arguments={"path": saved, "offset": 17286, "limit": 4})
+	calls = AssistantMessage(content=[grep_call, read_call])
+	await _run(session, "find", model=MockModel(replies=[calls, AssistantMessage(content="ok")]))
+	found, page = (r["content"] for r in _of(events, "tool_result")[-2:])
+	assert found.endswith(':17288:  "customer": "Acme"')
+	assert '"name": "INV-04321"' in page
+
+	# without read there is nothing to open it with, so nothing is saved
+	no_read = store.create(SessionConfig(cwd=str(workspace), tools=["grep"]))
+	result = await _dump(no_read, events, "x" * 200_000)
+	assert "call again asking for less" in result["content"]
+	assert not os.path.exists(no_read.results_dir)
+
+	store.delete(session.id)
+	assert not os.path.exists(session.results_dir)
 
 
 async def test_resume_approves_denies_or_redirects_the_paused_call(tmp_path):
