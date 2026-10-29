@@ -23,6 +23,14 @@ def block_cancel_while_child2_submitted(doc, method=None):
 		frappe.throw(frappe._("Cancel the referencing document first"))
 
 
+def require_reference_cancelled_before_attempt(doc, method=None):
+	assert frappe.db.get_value(doc.reference_doctype, doc.reference_name, "docstatus") == 2
+
+
+def ignore_child1_on_cancel(doc, method=None):
+	doc.ignore_linked_doctypes = ("Child DocType1",)
+
+
 @contextmanager
 def linked_entry_target():
 	"""Yield a target that `Linked Entry` links directly and through its rows,
@@ -517,6 +525,91 @@ class TestLinkedWith(IntegrationTestCase):
 
 		self.assertTrue(child1.reload().docstatus.is_cancelled())
 		self.assertTrue(child2.reload().docstatus.is_cancelled())
+
+	def test_cancel_all_cancels_root_before_its_referenced_document(self):
+		self.check_root_before_referenced_document(background=False)
+
+	def test_background_cancel_all_cancels_root_before_its_referenced_document(self):
+		self.check_root_before_referenced_document(background=True)
+
+	def test_cancel_all_rolls_back_root_when_referenced_document_is_not_permitted(self):
+		from frappe.permissions import add_permission, reset_perms, update_permission_property
+
+		root = frappe.get_doc({"doctype": "Child DocType2"}).insert()
+		child = (
+			frappe.get_doc(
+				{"doctype": "Child DocType1", "reference_doctype": root.doctype, "reference_name": root.name}
+			)
+			.insert()
+			.submit()
+		)
+		root.child_doctype1 = child.name
+		root.submit()
+		for doctype in (root.doctype, child.doctype):
+			add_permission(doctype, "All")
+			self.addCleanup(reset_perms, doctype)
+		for permission in ("write", "submit", "cancel"):
+			update_permission_property(root.doctype, "All", 0, permission, 1, validate=False)
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": f"cancel-order-{frappe.generate_hash(length=8)}@example.com",
+				"first_name": "Cancel Order",
+				"user_type": "System User",
+				"send_welcome_email": 0,
+			}
+		).insert(ignore_permissions=True)
+		hooks = {"doc_events": {root.doctype: {"before_cancel": [f"{__name__}.ignore_child1_on_cancel"]}}}
+		self.addCleanup(setattr, frappe.local, "doc_events_hooks", None)
+		with self.patch_hooks(hooks), self.set_user(user.name), savepoint(frappe.PermissionError):
+			frappe.local.doc_events_hooks = None
+			self.assertTrue(frappe.has_permission(root.doctype, "cancel", doc=root))
+			self.assertFalse(frappe.has_permission(child.doctype, "cancel", doc=child))
+			linked_with.cancel_all_linked_docs(
+				docs=[{"doctype": child.doctype, "name": child.name, "docstatus": 1}],
+				root_doctype=root.doctype,
+				root_name=root.name,
+			)
+			self.fail("Cancellation should require permission for the referenced document")
+		self.assertTrue(root.reload().docstatus.is_submitted())
+		self.assertTrue(child.reload().docstatus.is_submitted())
+
+	def check_root_before_referenced_document(self, background):
+		root = frappe.get_doc({"doctype": "Child DocType2"}).insert()
+		child = (
+			frappe.get_doc(
+				{
+					"doctype": "Child DocType1",
+					"reference_doctype": root.doctype,
+					"reference_name": root.name,
+				}
+			)
+			.insert()
+			.submit()
+		)
+		root.child_doctype1 = child.name
+		root.submit()
+		hooks = {
+			"doc_events": {
+				"Child DocType1": {
+					"before_cancel": [f"{__name__}.require_reference_cancelled_before_attempt"]
+				},
+				"Child DocType2": {"before_cancel": [f"{__name__}.ignore_child1_on_cancel"]},
+			}
+		}
+		self.addCleanup(setattr, frappe.local, "doc_events_hooks", None)
+		with (
+			self.patch_hooks(hooks),
+			patch.object(linked_with, "is_cancelled_in_background", return_value=background),
+		):
+			frappe.local.doc_events_hooks = None
+			linked_with.cancel_all_linked_docs(
+				docs=[{"doctype": child.doctype, "name": child.name, "docstatus": 1}],
+				root_doctype=root.doctype,
+				root_name=root.name,
+			)
+		self.assertTrue(root.reload().docstatus.is_cancelled())
+		self.assertTrue(child.reload().docstatus.is_cancelled())
 
 	def test_cancel_all_linked_docs_queues_large_sets(self):
 		"""A set above the synchronous limit moves to a background job that also

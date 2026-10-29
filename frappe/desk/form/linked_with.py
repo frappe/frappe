@@ -434,7 +434,7 @@ def cancel_all_linked_docs(
 	root_doctype: str | None = None,
 	root_name: str | None = None,
 ):
-	"""Cancel the linked documents in dependency order, then the root, all or
+	"""Cancel the linked documents and root in dependency order, all or
 	nothing; large sets, roots that queue their cancellations, and docs=None
 	past the listing cap move to a job instead."""
 	ignore_doctypes_on_cancel_all = frappe.parse_json(ignore_doctypes_on_cancel_all) or []
@@ -460,9 +460,23 @@ def cancel_all_linked_docs(
 			)
 		except LinkedDocumentsOverflow:
 			return enqueue_discovery("cancel", root_doctype, root_name, ignore_doctypes_on_cancel_all)
-		# the root goes last, in the same transaction as its links
-		to_cancel = [*to_cancel, frappe._dict(doctype=root_doctype, name=root_name)]
+		to_cancel = order_cancellation_with_root(to_cancel, root_doctype, root_name)
 	process_linked_docs_in_dependency_order(to_cancel, cancel_linked_doc, _("Cancelling documents"))
+
+
+def order_cancellation_with_root(docs, root_doctype, root_name):
+	root = frappe.get_doc(root_doctype, root_name)
+	references = set()
+	for doc in [root, *root.get_all_children()]:
+		for field in doc.meta.get_link_fields():
+			if value := doc.get(field.fieldname):
+				references.add((field.options, value))
+		for field in doc.meta.get_dynamic_link_fields():
+			if value := doc.get(field.fieldname):
+				references.add((doc.get(field.options), value))
+	before = [doc for doc in docs if (doc.get("doctype"), doc.get("name")) not in references]
+	after = [doc for doc in docs if (doc.get("doctype"), doc.get("name")) in references]
+	return [*before, frappe._dict(doctype=root_doctype, name=root_name), *after]
 
 
 def cancel_linked_doc(docinfo):
@@ -613,7 +627,7 @@ def enqueue_linked_docs_processing(
 def process_linked_docs_in_background(
 	docs, action, root=None, discover=False, ignore_doctypes_on_cancel_all=None
 ):
-	"""Process the docs, root last, all or nothing, and notify the user; the
+	"""Process the docs and root, all or nothing, and notify the user; the
 	queued list is refreshed, or discovered uncapped, before processing."""
 	if not frappe.db.get_value("User", frappe.session.user, "enabled"):
 		# the initiating account was disabled after this job was queued
@@ -626,7 +640,10 @@ def process_linked_docs_in_background(
 			docs, _truncated = collect_deletion_blockers(*root)
 		else:
 			docs = keep_currently_linked(docs, action, *root, ignore_doctypes_on_cancel_all)
-		docs = [*docs, frappe._dict(doctype=root[0], name=root[1])]
+		if action == "cancel":
+			docs = order_cancellation_with_root(docs, *root)
+		else:
+			docs = [*docs, frappe._dict(doctype=root[0], name=root[1])]
 
 	process = cancel_linked_doc if action == "cancel" else delete_linked_doc
 	side_effect_counts = capture_pending_side_effects()
