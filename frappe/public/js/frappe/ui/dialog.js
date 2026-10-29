@@ -354,8 +354,14 @@ frappe.ui.Dialog = class Dialog extends frappe.ui.FieldGroup {
 	}
 
 	stack_above_open_dialogs() {
+		// messages and progress sit at 2000; stacking over them would put a dialog
+		// above the freeze, toasts and menus
 		const below = frappe.ui.open_dialogs.filter(
-			(d) => d !== this && d.display && !d.is_minimized
+			(d) =>
+				d !== this &&
+				d.display &&
+				!d.is_minimized &&
+				cint(d.$wrapper.css("z-index")) < 2000
 		);
 		if (!below.length) return;
 

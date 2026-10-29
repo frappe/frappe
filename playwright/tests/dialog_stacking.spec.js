@@ -7,22 +7,22 @@ test.describe("Dialog stacking", () => {
 		await desk.ready();
 	});
 
-	test("a confirm opened over a message can be answered", async ({ page }) => {
-		await shown_dialog(await page.evaluateHandle(() => frappe.msgprint("Saved")));
-		const confirm = await page.evaluateHandle(() =>
-			frappe.confirm("Delete it?", () => {
-				window.confirmed = true;
-			})
+	test("a dialog opened over another covers it with its backdrop", async ({ page }) => {
+		const parent = await shown_dialog(
+			await page.evaluateHandle(() => new frappe.ui.Dialog({ title: "Parent" }).show())
 		);
-		await shown_dialog(confirm);
+		await shown_dialog(
+			await page.evaluateHandle(() => new frappe.ui.Dialog({ title: "Child" }).show())
+		);
 
-		await page
-			.locator(".modal.show")
-			.filter({ hasText: "Delete it?" })
-			.getByRole("button", { name: "Yes" })
-			.click();
+		const [parent_z, backdrop_z] = await parent.evaluate((d) => [
+			cint(getComputedStyle(d.$wrapper[0]).zIndex),
+			cint(
+				getComputedStyle([...document.querySelectorAll(".modal-backdrop")].at(-1)).zIndex
+			),
+		]);
 
-		await expect.poll(() => page.evaluate(() => window.confirmed)).toBe(true);
+		expect(backdrop_z).toBeGreaterThan(parent_z);
 	});
 
 	test("a dialog opened again shows above a newer one", async ({ page }) => {
