@@ -219,6 +219,8 @@ class File(Document):
 
 		# must run before handle_is_private_changed, which legitimately rewrites file_url
 		if not self.is_new() and self.has_value_changed("file_url"):
+			self.file_url = unquote(self.file_url) if self.file_url else ""
+			self.normalize_file_url()
 			self.validate_private_file_access()
 
 		# when dict is passed to get_doc for creation of new_doc, is_new returns None
@@ -268,27 +270,37 @@ class File(Document):
 		slips past the check as a new URL while still reading `secret.pdf` from disk.
 		Pinning every row to the canonical URL keeps the two views in step.
 		"""
-		if not self.file_url or self.is_remote_file:
+		if not self.file_url:
 			return
 
-		if ".." in self.file_url.split("/"):
+		site_url = self.get_site_url_prefix()
+		url = self.file_url[len(site_url) :]
+		if not site_url and self.is_remote_file:
+			return
+
+		if ".." in url.split("/"):
 			frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
 
 		for prefix in ("/private/files/", "/files/"):
-			if not self.file_url.startswith(prefix):
+			if not url.startswith(prefix):
 				continue
-			name = posixpath.normpath("/" + self.file_url[len(prefix) :].lstrip("/")).lstrip("/")
+			name = posixpath.normpath("/" + url[len(prefix) :].lstrip("/")).lstrip("/")
 			if not name or name == ".":
 				frappe.throw(_("The File URL you've entered is incorrect"), title=_("Invalid File URL"))
-			self.file_url = prefix + name
+			self.file_url = site_url + prefix + name
 			return
+
+	def get_site_url_prefix(self) -> str:
+		"""This site's URL if file_url starts with it (it is stripped later), else an empty string."""
+		site_url = get_url()
+		return site_url if self.file_url.startswith(site_url + "/") else ""
 
 	def validate_private_file_access(self):
 		"""Validate that the user has permission to access an existing private file."""
 		if not self.file_url:
 			return
 
-		filters = {"file_url": self.file_url, "is_private": 1}
+		filters = {"file_url": self.file_url[len(self.get_site_url_prefix()) :], "is_private": 1}
 		if not self.is_new():
 			filters["name"] = ["!=", self.name]
 

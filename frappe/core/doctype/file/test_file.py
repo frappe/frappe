@@ -1725,6 +1725,28 @@ class TestChildTableAttachments(IntegrationTestCase):
 		)
 		self.assertRaises(frappe.PermissionError, attacker.insert)
 
+	def test_site_url_and_update_cannot_bypass_private_file_access(self):
+		frappe.set_user("test@example.com")
+		victim = self.make_unattached_file(b"site-url-bypass-bytes", is_private=1)
+		name = victim.file_url.rsplit("/", 1)[1]
+
+		frappe.set_user("test4@example.com")
+		own = self.make_unattached_file(b"site-url-own-bytes", is_private=1)
+		site_url = frappe.utils.get_url()
+
+		for url in (
+			f"{site_url}/private/files/{name}",
+			f"{site_url}/private/files/./{name}",
+			f"/private/files/./{name}",
+			f"/private/files/%2e/{name}",
+		):
+			attacker = frappe.get_doc(doctype="File", file_url=url, file_name=name, is_private=1)
+			self.assertRaises(frappe.PermissionError, attacker.insert)
+
+			own.reload()
+			own.file_url = url
+			self.assertRaises(frappe.PermissionError, own.save)
+
 	def test_file_url_is_normalised_on_insert(self):
 		frappe.set_user("Administrator")
 		file = frappe.get_doc(
