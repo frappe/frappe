@@ -18,7 +18,6 @@ frappe.ui.form.AddressQuickEntryForm = class AddressQuickEntryForm extends (
 
 	get_link_from_calling_field() {
 		const field = frappe._from_link?.field_obj;
-		// _from_link stays behind when a dialog is closed, so the field must still be on screen
 		if (field?.get_options() !== this.doctype || !field.$input?.is(":visible")) return;
 
 		const { link_doctype, link_name } = field.get_search_args("")?.filters || {};
