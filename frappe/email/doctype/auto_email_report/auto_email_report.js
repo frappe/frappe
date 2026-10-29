@@ -184,6 +184,11 @@ frappe.ui.form.on("Auto Email Report", {
 					fields: dialog_filter_fields,
 					primary_action: function (values) {
 						this.hide();
+						frappe.report_utils.add_cleared_filter_values(
+							reference_report,
+							this,
+							values
+						);
 						frm.set_value("filters", JSON.stringify(values));
 						frm.trigger("show_filters");
 					},

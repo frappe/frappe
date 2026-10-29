@@ -188,6 +188,15 @@ frappe.report_utils = {
 		report_settings.validate_filters = 1;
 	},
 
+	add_cleared_filter_values(report_settings, dialog, values) {
+		if (report_settings?.validate_filters) {
+			for (const fieldname in dialog.fields_dict) {
+				values[fieldname] ??= "";
+			}
+		}
+		return values;
+	},
+
 	get_filter_values(filters) {
 		return filters
 			.map((f) => {
