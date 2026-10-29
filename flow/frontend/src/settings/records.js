@@ -260,6 +260,7 @@ export function useRecord(props, emit) {
 
 	return {
 		doc,
+		original,
 		form,
 		error,
 		saving,
