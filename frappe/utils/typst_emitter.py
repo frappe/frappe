@@ -788,19 +788,19 @@ class TypstEmitter:
 
 		if len(cells) == 1:
 			return cells[0][1:-1]
-		if section.get("field_borders") and section.get("grid_borders") != "rows":
+		if section.get("field_borders"):
 			pad = pt(section.get("cell_padding"), 8)
 			# both HTML surfaces force gap to 0 in bordered mode — spacing comes
 			# from the cell padding on either side of the divider
 			gutter = pad
+			rule = "none" if section.get("grid_borders") == "rows" else hairline(section.get("border_color"))
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				rule = hairline(section.get("border_color"))
 				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
 			return (
-				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
+				f"#pad(y: -{pad}pt, grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, inset: (y: {pad}pt), align: top,\n"
 				+ ",\n".join(divided)
-				+ ")"
+				+ "))"
 			)
 		return (
 			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt}pt, align: top,\n"
@@ -818,7 +818,7 @@ class TypstEmitter:
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
 			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
-				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt))[{p}]"
+				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt), outset: (x: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
 			body = f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
