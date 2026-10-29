@@ -505,10 +505,15 @@ class TestEmailAccount(IntegrationTestCase):
 
 		self.assertEqual(email_account.build_email_sync_rule(), "UID 1:101")
 
+	@patch("frappe.email.receive.EmailServer.connect", return_value=True)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_get_inbound_mails(
-		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
+		email_account,
+		messages=None,
+		mocked_logout=None,
+		mocked_select_imap_folder=None,
+		mocked_connect=None,
 	):
 		from frappe.email.receive import EmailServer
 
@@ -523,10 +528,15 @@ class TestEmailAccount(IntegrationTestCase):
 
 		return mails
 
+	@patch("frappe.email.receive.EmailServer.connect", return_value=True)
 	@patch("frappe.email.receive.EmailServer.select_imap_folder", return_value=True)
 	@patch("frappe.email.receive.EmailServer.logout", side_effect=lambda: None)
 	def mocked_email_receive(
-		email_account, messages=None, mocked_logout=None, mocked_select_imap_folder=None
+		email_account,
+		messages=None,
+		mocked_logout=None,
+		mocked_select_imap_folder=None,
+		mocked_connect=None,
 	):
 		if messages is None:
 			messages = {}
