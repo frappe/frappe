@@ -714,7 +714,10 @@ class TypstEmitter:
 		if not columns:
 			return ""
 		shrink = section.get("justify") in SHRINK_JUSTIFY
-		rendered = [self._column(section, c, shrink=shrink) for c in columns]
+		rendered = [
+			self._column(section, c, shrink=shrink, first_column=i == 0, last_column=i == len(columns) - 1)
+			for i, c in enumerate(columns)
+		]
 		rendered_columns = [body for body, _printed in rendered]
 		if not any(rendered_columns):
 			return ""
@@ -847,9 +850,14 @@ class TypstEmitter:
 			+ ")"
 		)
 
-	def _column(self, section, column, shrink=False) -> str:
+	def _column(self, section, column, shrink=False, first_column=False, last_column=False) -> str:
 		rendered = [(df, self._field(section, df)) for df in column.get("fields") or []]
 		rendered = [(df, body) for df, body in rendered if body]
+		padding = section.get("padding") if section.get("field_borders") else None
+		if padding:
+			left = pt(padding.get("left")) if first_column else 0
+			right = pt(padding.get("right")) if last_column else 0
+			rendered = [(df, f"#pad(left: {left}pt, right: {right}pt)[{body}]") for df, body in rendered]
 		parts = [body for _, body in rendered]
 		if not parts:
 			return "", False
@@ -865,6 +873,8 @@ class TypstEmitter:
 			body = parts[0]
 		else:
 			body = "#stack(spacing: 8pt,\n" + ",\n".join(f"[{p}]" for p in parts) + ")"
+		if padding:
+			body = f"#pad(top: {pt(padding.get('top'))}pt, bottom: {pt(padding.get('bottom'))}pt)[{body}]"
 		return (self._shrink_to_content(rendered, body) if shrink else body), printed
 
 	def _is_placeholder(self, df) -> bool:
