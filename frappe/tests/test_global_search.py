@@ -5,6 +5,9 @@ import unittest
 
 import frappe
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
+from frappe.desk.doctype.global_search_settings.global_search_settings import (
+	get_doctypes_for_global_search,
+)
 from frappe.desk.page.setup_wizard.install_fixtures import update_global_search_doctypes
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_objects
@@ -22,8 +25,11 @@ class TestGlobalSearch(IntegrationTestCase):
 		make_property_setter(doctype, "event_type", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "roles", "in_global_search", 1, "Int")
 		make_property_setter(doctype, "repeat_on", "in_global_search", 0, "Int")
+		self.global_search_priorities = get_doctypes_for_global_search()
 
 	def tearDown(self):
+		self.set_global_search_priorities(self.global_search_priorities)
+		frappe.db.delete("ToDo", {"description": "Quarterly roadmap review"})
 		frappe.db.delete("Property Setter", {"doc_type": "Event"})
 		frappe.clear_cache(doctype="Event")
 		frappe.db.delete("Event")
@@ -78,6 +84,24 @@ class TestGlobalSearch(IntegrationTestCase):
 
 		self.assertEqual(results, [])
 		self.assertEqual(frappe.get_message_log(), [])
+
+	def test_search_results_follow_configured_doctype_priority(self):
+		frappe.get_doc(doctype="ToDo", description="Quarterly roadmap review").insert()
+		frappe.get_doc(doctype="Event", subject="Quarterly roadmap review", starts_on=now_datetime()).insert()
+		global_search.sync_global_search()
+
+		self.set_global_search_priorities(["ToDo", "Event"])
+		self.assertEqual([r.doctype for r in global_search.search("roadmap")], ["ToDo", "Event"])
+
+		self.set_global_search_priorities(["Event", "ToDo"])
+		self.assertEqual([r.doctype for r in global_search.search("roadmap")], ["Event", "ToDo"])
+
+	def set_global_search_priorities(self, doctypes):
+		settings = frappe.get_doc("Global Search Settings")
+		settings.allowed_in_global_search = []
+		for doctype in doctypes:
+			settings.append("allowed_in_global_search", {"document_type": doctype})
+		settings.save()
 
 	def test_update_doc(self):
 		self.insert_test_events()
