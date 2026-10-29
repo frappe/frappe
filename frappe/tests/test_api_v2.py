@@ -800,6 +800,44 @@ class TestDiscoveryAPIV2(FrappeAPITestCase):
 			"frappe.tests.test_api.test", [item.get("path") for item in response.json["data"]["results"]]
 		)
 
+	def test_cache_lasts_a_day_or_an_hour_in_developer_mode_v2(self):
+		key = frappe.cache.make_key(discovery.PYTHON_METHOD_CACHE_KEY)
+		for developer_mode, ttl in ((0, discovery.CACHE_TTL), (1, discovery.DEVELOPER_MODE_CACHE_TTL)):
+			with (
+				self.subTest(developer_mode=developer_mode),
+				patch.dict(frappe.conf, developer_mode=developer_mode),
+			):
+				discovery.build_cache()
+				self.assertAlmostEqual(frappe.cache.ttl(key), ttl, delta=60)
+
+	def test_server_script_changes_show_on_a_warm_cache_v2(self):
+		def paths():
+			return [item.get("path") for item in discovery.search("test_discovery_server_script")["results"]]
+
+		with patch.object(discovery, "build_cache") as build_cache:
+			script = frappe.get_doc(
+				doctype="Server Script",
+				name="test_discovery_server_script",
+				script_type="API",
+				api_method="test_discovery_server_script",
+				script="frappe.response['message'] = 'ok'",
+			).insert()
+			self.addCleanup(frappe.delete_doc_if_exists, "Server Script", script.name, force=True)
+			self.assertIn("test_discovery_server_script", paths())
+
+			script.disabled = 1
+			script.save()
+			self.assertNotIn("test_discovery_server_script", paths())
+
+			script.disabled = 0
+			script.save()
+			self.assertIn("test_discovery_server_script", paths())
+
+			script.delete()
+			self.assertNotIn("test_discovery_server_script", paths())
+
+		build_cache.assert_not_called()
+
 	def test_search_v2(self):
 		response = self.get(
 			self.discovery_path("search"),
