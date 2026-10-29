@@ -493,7 +493,8 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 	results = []
 	sorted_results = []
 
-	allowed_doctypes = set(get_doctypes_for_global_search()) & set(frappe.get_user().get_can_read())
+	can_read = set(frappe.get_user().get_can_read())
+	allowed_doctypes = [d for d in get_doctypes_for_global_search() if d in can_read]
 	if not allowed_doctypes or (doctype and doctype not in allowed_doctypes):
 		return []
 
@@ -524,26 +525,39 @@ def search(text: str, start: int = 0, limit: int = 20, doctype: str = ""):
 
 		results.extend(result)
 
-	# sort results based on allowed_doctype's priority
-	for doctype in allowed_doctypes:
-		for r in results:
-			if r.doctype == doctype and r.rank > 0.0:
-				try:
-					meta = frappe.get_meta(r.doctype)
-					doc = frappe.get_lazy_doc(r.doctype, r.name)
-					if meta.image_field:
-						r.image = doc.get(meta.image_field)
-					if meta.title_field:
-						r.title = doc.get(meta.title_field)
-					if frappe.has_permission(r.doctype, doc=doc):
-						sorted_results.append(r)
-				except Exception:
-					frappe.clear_messages()
+	for r in sort_search_results(results, allowed_doctypes):
+		if r.rank > 0.0:
+			try:
+				meta = frappe.get_meta(r.doctype)
+				doc = frappe.get_lazy_doc(r.doctype, r.name)
+				if meta.image_field:
+					r.image = doc.get(meta.image_field)
+				if meta.title_field:
+					r.title = doc.get(meta.title_field)
+				if frappe.has_permission(r.doctype, doc=doc):
+					sorted_results.append(r)
+			except Exception:
+				frappe.clear_messages()
 
 	return sorted_results
 
 
+<<<<<<< HEAD
 @frappe.whitelist(allow_guest=True)
+=======
+def sort_search_results(results: list, doctypes: list[str]) -> list:
+	"""Order hits by the DocType priority from Global Search Settings, then by relevance."""
+	priority = {doctype: idx for idx, doctype in enumerate(doctypes)}
+	return sorted(results, key=lambda r: (priority[r.doctype], -r.rank))
+
+
+WEB_SEARCH_MAX_SEGMENTS = 5
+WEB_SEARCH_MAX_LIMIT = 100
+WEB_SEARCH_MAX_TEXT_LENGTH = 1000
+
+
+@frappe.whitelist(allow_guest=True)  # nosemgrep
+>>>>>>> 26f942d (fix(global_search): honour the configured DocType priority when ordering results)
 def web_search(text: str, scope: str | None = None, start: int = 0, limit: int = 20):
 	"""
 	Search for given text in __global_search where published = 1
