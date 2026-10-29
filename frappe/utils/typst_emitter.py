@@ -818,7 +818,7 @@ class TypstEmitter:
 		if section.get("field_borders") and section.get("grid_borders") != "columns" and len(parts) > 1:
 			pad = pt(section.get("cell_padding"), 8)
 			ruled = [
-				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt))[{p}]"
+				f"#block(width: 100%, stroke: (bottom: {hairline(section.get('border_color'))}), inset: (bottom: {pad}pt), outset: (x: {pad}pt))[{p}]"
 				for p in parts[:-1]
 			] + [parts[-1]]
 			body = f"#stack(spacing: {pad}pt,\n" + ",\n".join(f"[{p}]" for p in ruled) + ")"
