@@ -837,9 +837,9 @@ class TypstEmitter:
 			for cell in cells[1:]:
 				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
 			return (
-				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
+				f"#pad(y: -{pad}pt, grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, inset: (y: {pad}pt), align: top,\n"
 				+ ",\n".join(divided)
-				+ ")"
+				+ "))"
 			)
 		return (
 			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt}pt, align: top,\n"
