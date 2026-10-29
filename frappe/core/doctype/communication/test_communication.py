@@ -565,6 +565,39 @@ class TestCommunication(IntegrationTestCase):
 			self.assertFalse(frappe.has_permission("Communication", ptype, doc=email, user=user.name))
 			self.assertTrue(frappe.has_permission("Communication", ptype, doc=phone, user=user.name))
 
+	def test_single_document_access_with_linked_email_account(self):
+		account = create_email_account()
+		user = frappe.get_doc(
+			{
+				"doctype": "User",
+				"email": "comm_linked@example.com",
+				"first_name": "Comm Linked",
+				"roles": [{"role": "Inbox User"}],
+				"user_emails": [{"email_account": account.name}],
+			}
+		).insert(ignore_permissions=True)
+		self.addCleanup(user.delete)
+
+		def new_communication(**kwargs):
+			return frappe.get_doc(
+				{
+					"doctype": "Communication",
+					"communication_type": "Communication",
+					"sent_or_received": "Received",
+					"sender": "sender@example.com",
+					"subject": "scope test",
+					**kwargs,
+				}
+			).insert(ignore_permissions=True)
+
+		linked = new_communication(communication_medium="Email", email_account=account.name)
+		unlinked = new_communication(communication_medium="Email")
+		phone = new_communication(communication_medium="Phone")
+		for ptype in ("read", "delete", "export"):
+			self.assertTrue(frappe.has_permission("Communication", ptype, doc=linked, user=user.name))
+			self.assertFalse(frappe.has_permission("Communication", ptype, doc=unlinked, user=user.name))
+			self.assertTrue(frappe.has_permission("Communication", ptype, doc=phone, user=user.name))
+
 	def test_mark_as_spam(self):
 		frappe.get_doc(
 			{

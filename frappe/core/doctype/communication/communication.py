@@ -520,19 +520,15 @@ def has_permission(doc, ptype, user=None, debug=False):
 
 
 def has_email_account_access(doc, user):
-	"""Single-document counterpart of `get_permission_query_conditions_for_communication`."""
-	if doc.owner == user:
+	"""Emails are limited to the user's linked email accounts, as in list queries."""
+	if doc.communication_medium != "Email" or doc.owner == user:
 		return True
 
 	roles = frappe.get_roles(user)
 	if "Super Email User" in roles or "System Manager" in roles:
 		return True
 
-	accounts = get_user_email_accounts(user)
-	if not accounts:
-		return doc.communication_medium != "Email"
-
-	return doc.email_account in accounts
+	return doc.email_account in get_user_email_accounts(user)
 
 
 def get_permission_query_conditions_for_communication(user):
