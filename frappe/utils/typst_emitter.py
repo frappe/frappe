@@ -844,8 +844,9 @@ class TypstEmitter:
 				+ ",\n".join(divided)
 				+ "))"
 			)
+		# HTML columns carry 15px of padding on either side of the gap
 		return (
-			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt}pt, align: top,\n"
+			f"#grid(columns: ({', '.join(widths)}), column-gutter: {gap_pt + pt(30)}pt, align: top,\n"
 			+ ",\n".join(cells)
 			+ ")"
 		)
