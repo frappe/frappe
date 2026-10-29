@@ -14,7 +14,24 @@ from collections.abc import Callable, Generator, Iterable
 from contextlib import contextmanager
 from functools import wraps
 from types import MappingProxyType
+<<<<<<< HEAD
 from typing import TYPE_CHECKING, Any, Literal, Optional, Self, TypeAlias, TypeVar, Union, overload, override
+=======
+from typing import (
+	TYPE_CHECKING,
+	Any,
+	ClassVar,
+	Literal,
+	Optional,
+	Self,
+	TypeAlias,
+	TypeVar,
+	Union,
+	overload,
+	override,
+)
+from urllib.parse import urlparse
+>>>>>>> c608898 (refactor: reuse existing scheme and fieldtype helpers for URL fields)
 
 from werkzeug.exceptions import NotFound
 
@@ -3182,9 +3199,10 @@ class Document(_DocumentBase):
 
 			if data_field_options == "URL":
 				validate_url(data, throw=True)
-				# browsers ignore control characters and spaces before the scheme
-				if re.sub(r"[\x00-\x20]", "", data).lower().startswith(("javascript:", "vbscript:", "data:")):
-					frappe.throw(_("'{0}' is not a valid URL").format(frappe.bold(data)))
+				if urlparse(data).scheme in ("javascript", "vbscript", "data"):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+					)
 
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
