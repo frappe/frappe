@@ -274,13 +274,14 @@ test("a streamed thought and call hand over to the durable message, keeping thei
 	assert.deepEqual(toolGroups(conversation)[0].steps[1].call.display, display)
 
 	// the durable message replaces the preview; a text-less (redacted) thought that never
-	// streamed takes no ordinal, and whitespace-only text renders nothing
+	// streamed takes no ordinal, an omitted one and whitespace-only text render nothing
 	const call = { type: "tool_call", id: "call-1", name: "read", arguments: { path: "src/app.js" }, display }
 	applyEvent(conversation, {
 		type: "assistant_message",
 		seq: 2,
 		content: [
 			{ type: "thinking", thinking: "", redacted: true },
+			{ type: "thinking", thinking: "", thinking_signature: "sig" },
 			{ type: "thinking", thinking: "let me see" },
 			{ type: "text", text: "  " },
 			call,

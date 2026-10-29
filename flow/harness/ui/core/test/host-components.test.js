@@ -167,14 +167,13 @@ test("an opened tool row shows its output, or a host's views of its arguments an
 	assert.equal(el.querySelector("pre").textContent, "/project")
 	assert.equal(el.querySelector("[data-test=args]"), null)
 
-	// a host's argument view shows before the result, and stays above the output once it lands
+	// a call opens once its result lands: a host's argument view above the output
 	const step = reactive({ call: { id: "c1", name: "update_document", arguments: args } })
 	const host = mount(t, ToolGroup, { steps: [step] }, { options: { presentTool: () => ({ argsComponent: ArgsView }) }, state: {} })
-	host.el.querySelector("button").click()
-	await nextTick()
-	assert.equal(host.el.querySelector("[data-test=args] dd").textContent, "Paid")
-	assert.equal(host.el.querySelector("pre"), null)
+	assert.equal(host.el.querySelector("button"), null)
 	step.result = { content: "Document updated" }
+	await nextTick()
+	host.el.querySelector("button").click()
 	await nextTick()
 	assert.equal(host.el.querySelector("[data-test=args] dd").textContent, "Paid")
 	assert.equal(host.el.querySelector("pre").textContent, "Document updated")
@@ -187,10 +186,9 @@ test("an opened tool row shows its output, or a host's views of its arguments an
 		stat: result ? "3 updated" : "",
 	})
 	const own = mount(t, ToolGroup, { steps: [viewed] }, { options: { presentTool }, state: {} })
-	own.el.querySelector("button").click()
-	await nextTick()
-	assert.equal(own.el.querySelector("[data-test=args] dd").textContent, "Paid")
 	viewed.result = { content: "3 records" }
+	await nextTick()
+	own.el.querySelector("button").click()
 	await nextTick()
 	assert.equal(own.el.querySelector("[data-test=result] td").textContent, "Paid")
 	assert.equal(own.el.querySelector("[data-test=args]"), null)
