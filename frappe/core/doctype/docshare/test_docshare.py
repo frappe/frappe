@@ -45,6 +45,18 @@ class TestDocShare(IntegrationTestCase):
 
 				frappe.share.add("ToDo", todo.name, actor.name)
 
+	def test_share_can_be_revoked_for_user_hidden_by_user_permissions(self):
+		with test_user(roles=["Desk User"]) as actor:
+			frappe.get_doc(
+				doctype="User Permission", user=actor.name, allow="User", for_value=actor.name
+			).insert()
+			with self.set_user(actor.name):
+				todo = frappe.get_doc(doctype="ToDo", description="share scope").insert()
+				frappe.share.add_docshare("ToDo", todo.name, self.user)
+
+				frappe.share.set_permission("ToDo", todo.name, self.user, "read", 0)
+				self.assertNotIn(todo.name, frappe.share.get_shared("ToDo", self.user))
+
 	def test_doc_permission(self):
 		frappe.set_user(self.user)
 

@@ -118,7 +118,8 @@ def set_permission(
 	everyone: str | bool | int = 0,
 ):
 	"""Expose function without flags to the client-side"""
-	validate_user_access(user, _("User"))
+	if cint(value):
+		validate_user_access(user, _("User"))
 	return set_docshare_permission(doctype, name, user, permission_to, value=value, everyone=everyone)
 
 
