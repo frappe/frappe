@@ -315,7 +315,7 @@ frappe.ui.form.ControlData = class ControlData extends frappe.ui.form.ControlInp
 				return v;
 			}
 		} else if (this.df.options == "URL") {
-			this.df.invalid = !validate_url(v);
+			this.df.invalid = !validate_url(v) || frappe.utils.has_unsafe_url_scheme(v);
 			return v;
 		} else {
 			return v;
