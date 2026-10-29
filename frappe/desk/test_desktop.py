@@ -88,6 +88,16 @@ class TestGetWorkspace(IntegrationTestCase):
 		self.assertIsNone(payload["variant"])
 		self.assertFalse(payload["can_edit"])
 
+	def test_no_access_when_every_widget_is_dropped(self):
+		make_workspace(
+			"GW Locked",
+			content=[block("header", text="Errors"), block("chart", "Errors")],
+			charts=[{"chart_name": "GW Error Chart", "label": "Errors"}],
+		)
+		frappe.set_user(DESK_USER)
+		self.assertTrue(get_workspace("GW Locked")["no_access"])
+		self.assertFalse(get_workspace("GW Test")["no_access"])
+
 	def test_manager_can_edit(self):
 		frappe.set_user(MANAGER)
 		self.assertTrue(get_workspace("GW Test")["can_edit"])

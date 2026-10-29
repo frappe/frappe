@@ -48,7 +48,14 @@ const canvas = computed(() => {
 		};
 	}
 	const page = workspace.value;
-	return page && { content: page.content, widgets: page.widgets, hidden: page.is_hidden };
+	return (
+		page && {
+			content: page.content,
+			widgets: page.widgets,
+			hidden: page.is_hidden,
+			no_access: page.no_access,
+		}
+	);
 });
 const pane_open = computed(() => !!canvas.value?.editing);
 
@@ -228,8 +235,12 @@ watch(
 							"
 						/>
 						<EmptyWorkspace
-							v-if="!canvas.content.length && !canvas.previewing"
+							v-if="
+								canvas.no_access || (!canvas.content.length && !canvas.previewing)
+							"
 							:editing="canvas.editing"
+							:no_access="canvas.no_access"
+							:title="workspace.title"
 							:can_edit="workspace.can_edit"
 							@edit="edit()"
 							@add-text="editor.add_text()"
