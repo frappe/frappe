@@ -1,7 +1,7 @@
 <template>
 	<Dialog v-model:open="open" :title="heading">
 		<div class="mb-5 flex flex-col items-start border-b border-outline-gray-1 pb-5">
-			<h4 class="mb-2 text-xs text-ink-gray-5">General access</h4>
+			<h4 class="mb-2 text-sm text-ink-gray-5">General access</h4>
 			<Select
 				:model-value="access"
 				:options="ACCESS"
@@ -9,7 +9,7 @@
 				@update:model-value="setAccess"
 			/>
 		</div>
-		<h4 class="mb-2 text-xs text-ink-gray-5">Members</h4>
+		<h4 class="mb-2 text-sm text-ink-gray-5">Members</h4>
 		<!-- a phone's field waits for a tap, rather than raise the keyboard over the dialog -->
 		<FormControl
 			v-model:query="query"
@@ -33,15 +33,15 @@
 			<li v-for="user in members" :key="user.name" class="flex items-center gap-2.5">
 				<Avatar :image="user.user_image" :label="nameOf(user)" size="xl" />
 				<div class="min-w-0 flex-1">
-					<p class="truncate text-sm font-medium text-ink-gray-9">{{ nameOf(user) }}</p>
+					<p class="truncate text-base font-medium text-ink-gray-9">{{ nameOf(user) }}</p>
 					<p
 						v-if="nameOf(user) !== user.name"
-						class="mt-1 truncate text-2xs text-ink-gray-5"
+						class="mt-1 truncate text-xs text-ink-gray-5"
 					>
 						{{ user.name }}
 					</p>
 				</div>
-				<span v-if="user.name === me.name" class="flex-none text-sm text-ink-gray-5">
+				<span v-if="user.name === me.name" class="flex-none text-base text-ink-gray-5">
 					Owner (you)
 				</span>
 				<button
@@ -53,14 +53,15 @@
 					<span class="lucide-x size-3.5" aria-hidden="true" />
 				</button>
 			</li>
-			<li v-if="loading"><LoadingState class="py-1 text-xs text-ink-gray-5" /></li>
+			<li v-if="loading"><LoadingState class="py-1 text-sm text-ink-gray-5" /></li>
 		</ul>
 		<div class="mt-5 flex justify-end">
 			<CopyButton
 				:text="link"
 				icon="lucide-link"
 				title="Copy link"
-				class="flex h-7 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2 text-base text-ink-gray-8 hover:border-outline-gray-3 active:bg-surface-gray-4"
+				class="flex h-7 items-center gap-1.5 rounded-4 border border-outline-gray-2 bg-surface-base px-2 text-ink-gray-8 hover:border-outline-gray-3 active:bg-surface-gray-4"
+				:class="inPanel ? 'text-base' : 'text-md'"
 			>
 				<template #default="{ copied }">{{ copied ? "Copied" : "Copy link" }}</template>
 			</CopyButton>
@@ -76,6 +77,7 @@ import CopyButton from "@flow/ui-core/components/CopyButton.vue";
 import LoadingState from "@flow/ui-core/components/LoadingState.vue";
 import { useDebouncedValue } from "@flow/ui-core/debounce.js";
 import { layout } from "@flow/ui-core/layout.js";
+import { inPanel } from "../panel.js";
 
 // The Share dialog, which the chat's owner opens from its menu: whoever is added may
 // view the chat, never write to it, since its tools run as the owner.

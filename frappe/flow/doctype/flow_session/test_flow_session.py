@@ -452,6 +452,12 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		SessionConfig.model_validate(untitled)
 		self.assertIsNone(untitled["title"])
 
+	def test_only_a_chat_offers_suggested_replies(self):
+		self.agent.append("tools", {"tool": "suggest_replies"})
+		self.agent.save()
+		self.assertIn("suggest_replies", self.config()["tools"])
+		self.assertEqual(self.config(source="Trigger")["tools"], ["read", "grep", "subagent"])
+
 	def test_sub_agents_travel_with_their_own_model_and_callback_identity(self):
 		child_model = frappe.get_doc(
 			{

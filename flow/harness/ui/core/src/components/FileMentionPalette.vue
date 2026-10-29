@@ -7,7 +7,7 @@
 		@close="emit('close')"
 	>
 		<div class="flow-palette-list overflow-y-auto p-1">
-			<div class="-mt-1 flex h-8 items-center px-[11px] text-2xs font-medium text-ink-gray-5">
+			<div class="-mt-1 flex h-8 items-center px-[11px] text-base font-medium text-ink-gray-5">
 				<span class="truncate">{{ title }}</span>
 			</div>
 			<button
@@ -33,11 +33,11 @@
 				/>
 				<span class="min-w-0 flex-1 truncate">{{ row.label }}</span>
 			</button>
-			<LoadingState v-if="rows === null" class="justify-center px-3 py-8 text-xs text-ink-gray-5" />
+			<LoadingState v-if="rows === null" class="justify-center px-3 py-8 text-base text-ink-gray-5" />
 			<div v-else-if="!rows.length" class="flow-palette-empty">
 				{{ searchActive ? "No matching files" : "No files here" }}
 			</div>
-			<div v-if="truncated" class="px-3 pb-1 pt-2 text-center text-2xs text-ink-gray-5">
+			<div v-if="truncated" class="px-3 pb-1 pt-2 text-center text-base text-ink-gray-5">
 				More matches than shown — keep typing to narrow.
 			</div>
 		</div>
