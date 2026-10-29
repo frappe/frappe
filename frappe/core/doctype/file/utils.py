@@ -320,14 +320,15 @@ def update_existing_file_docs(doc: "File") -> None:
 
 def attach_files_to_document(doc: "Document", event) -> None:
 	"""Runs on on_update hook of all documents.
-	Goes through every file linked with the Attach and Attach Image field and attaches
-	the file to the document if not already attached. If no file is found, a new file
-	is created.
+	Goes through every file set or changed in the Attach and Attach Image fields on this save
+	and attaches the file to the document if not already attached. If no file is found, a
+	new file is created.
 	"""
 
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
 
 	for df in attach_fields:
+<<<<<<< HEAD
 		# this method runs in on_update hook of all documents
 		# we dont want the update to fail if file cannot be attached for some reason
 		value = doc.get(df.fieldname)
@@ -335,6 +336,43 @@ def attach_files_to_document(doc: "Document", event) -> None:
 			continue
 
 		if frappe.db.exists(
+=======
+		if doc.has_value_changed(df.fieldname):
+			candidates.append((df, doc.get(df.fieldname)))
+
+	table_fields = doc.meta.get("fields", {"fieldtype": "Table"})
+	for table_df in table_fields:
+		child_rows = doc.get(table_df.fieldname) or []
+		if not child_rows:
+			continue
+
+		child_meta = frappe.get_meta(table_df.options)
+		child_attach_fields = child_meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
+		if not child_attach_fields:
+			continue
+
+		for child_row in child_rows:
+			for child_df in child_attach_fields:
+				if child_row.has_value_changed(child_df.fieldname):
+					candidates.append((child_df, child_row.get(child_df.fieldname)))
+
+	_attach_field_values(doc, candidates)
+
+
+def _attach_field_values(doc: "Document", candidates: list[tuple["DocField", Any]]) -> None:
+	valid = [
+		(df, value)
+		for df, value in candidates
+		if (value or "").startswith(("/files", "/private/files", "http://", "https://"))
+	]
+	if not valid:
+		return
+
+	values = list({value for _, value in valid})
+	already_attached = {
+		(row.file_url, row.attached_to_field)
+		for row in frappe.get_all(
+>>>>>>> ddf105a (fix(file): ldap logins log a permission error for private user photos)
 			"File",
 			{
 				"file_url": value,
