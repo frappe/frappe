@@ -349,6 +349,151 @@ class TestResourceAPI(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 403)
 
 
+class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
+	def setUp(self):
+		super().setUp()
+		from frappe.core.doctype.doctype.test_doctype import new_doctype
+		from frappe.core.doctype.user.user import generate_keys
+
+		frappe.set_user("Administrator")
+		self.user = "api.writeresponse@example.com"
+		if not frappe.db.exists("User", self.user):
+			frappe.get_doc(
+				doctype="User",
+				email=self.user,
+				first_name="API Write Response",
+				roles=[{"role": "Desk User"}],
+				send_welcome_email=0,
+			).insert()
+		keys = generate_keys(self.user)
+		self.headers = {"Authorization": f"token {keys['api_key']}:{keys['api_secret']}"}
+
+		fields = [
+			{"fieldname": "title", "fieldtype": "Data", "label": "Title"},
+			{
+				"fieldname": "secret",
+				"fieldtype": "Data",
+				"label": "Secret",
+				"permlevel": 1,
+				"default": "hidden",
+			},
+		]
+		perms = [
+			{
+				"role": "Desk User",
+				"read": 1,
+				"write": 1,
+				"create": 1,
+				"submit": 1,
+				"cancel": 1,
+				"permlevel": 0,
+			}
+		]
+		self.child = new_doctype(fields=fields, istable=1, permissions=[]).insert().name
+		self.doctype = (
+			new_doctype(
+				fields=[
+					*fields,
+					{"fieldname": "rows", "fieldtype": "Table", "label": "Rows", "options": self.child},
+				],
+				is_submittable=1,
+				permissions=perms,
+			)
+			.insert()
+			.name
+		)
+		self.name = frappe.get_doc(doctype=self.doctype, rows=[{}]).insert().name
+		frappe.db.commit()  # nosemgrep
+
+	def tearDown(self):
+		try:
+			frappe.set_user("Administrator")
+			frappe.delete_doc("DocType", self.doctype, force=True)
+			frappe.delete_doc("DocType", self.child, force=True)
+			frappe.delete_doc_if_exists("User", self.user)
+			frappe.db.commit()  # nosemgrep
+		finally:
+			super().tearDown()
+
+	def request(self, method, path, data):
+		response = make_request(
+			getattr(get_test_client(use_cookies=False), method),
+			args=(path,),
+			kwargs={"json": data, "headers": self.headers},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 200, response.text)
+		return response.json.get("data") or response.json["message"]
+
+	def assertMasked(self, doc):
+		self.assertIsNone(doc.get("secret"))
+		for row in doc.get("rows") or []:
+			self.assertIsNone(row.get("secret"))
+
+	def saved_doc(self):
+		return frappe.get_doc(self.doctype, self.name).as_dict()
+
+	def test_v1_create_doc(self):
+		doc = self.request("post", f"/api/resource/{self.doctype}", {"rows": [{}]})
+		self.assertEqual(len(doc["rows"]), 1)
+		self.assertMasked(doc)
+
+	def test_v1_update_doc(self):
+		doc = self.request("put", f"/api/resource/{self.doctype}/{self.name}", {"title": "x"})
+		self.assertEqual(doc["title"], "x")
+		self.assertMasked(doc)
+
+	def test_client_insert(self):
+		doc = self.request(
+			"post", "/api/method/frappe.client.insert", {"doc": {"doctype": self.doctype, "rows": [{}]}}
+		)
+		self.assertEqual(len(doc["rows"]), 1)
+		self.assertMasked(doc)
+
+	def test_client_insert_child_returns_masked_parent(self):
+		child = {
+			"doctype": self.child,
+			"parenttype": self.doctype,
+			"parent": self.name,
+			"parentfield": "rows",
+		}
+		doc = self.request("post", "/api/method/frappe.client.insert", {"doc": child})
+		self.assertEqual(doc["doctype"], self.doctype)
+		self.assertEqual(len(doc["rows"]), 2)
+		self.assertMasked(doc)
+
+	def test_client_save(self):
+		doc = self.request(
+			"post", "/api/method/frappe.client.save", {"doc": frappe.as_json(self.saved_doc())}
+		)
+		self.assertMasked(doc)
+
+	def test_client_submit(self):
+		doc = self.request(
+			"post", "/api/method/frappe.client.submit", {"doc": frappe.as_json(self.saved_doc())}
+		)
+		self.assertEqual(doc["docstatus"], 1)
+		self.assertMasked(doc)
+
+	def test_client_cancel(self):
+		frappe.get_doc(self.doctype, self.name).submit()
+		frappe.db.commit()  # nosemgrep
+		doc = self.request(
+			"post", "/api/method/frappe.client.cancel", {"doctype": self.doctype, "name": self.name}
+		)
+		self.assertEqual(doc["docstatus"], 2)
+		self.assertMasked(doc)
+
+	def test_client_set_value(self):
+		doc = self.request(
+			"post",
+			"/api/method/frappe.client.set_value",
+			{"doctype": self.doctype, "name": self.name, "fieldname": "title", "value": "y"},
+		)
+		self.assertEqual(doc["title"], "y")
+		self.assertMasked(doc)
+
+
 class TestMethodAPI(FrappeAPITestCase):
 	def test_ping_v1(self):
 		# test 2: test for /api/method/ping

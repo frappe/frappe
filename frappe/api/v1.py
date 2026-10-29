@@ -47,7 +47,9 @@ def handle_rpc_call(method: str):
 def create_doc(doctype: str):
 	data = get_request_form_data()
 	data.pop("doctype", None)
-	return frappe.new_doc(doctype, **data).insert()
+	doc = frappe.new_doc(doctype, **data).insert()
+	doc.apply_fieldlevel_read_permissions()
+	return doc
 
 
 def update_doc(doctype: str, name: str):
@@ -65,6 +67,7 @@ def update_doc(doctype: str, name: str):
 	if doc.get("parenttype"):
 		frappe.get_doc(doc.parenttype, doc.parent).save()
 
+	doc.apply_fieldlevel_read_permissions()
 	return doc
 
 

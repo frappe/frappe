@@ -221,6 +221,7 @@ def set_value(doctype: str, name: str | int, fieldname: str | dict[str, Any], va
 		child.update(values)
 
 	doc.save()
+	doc.apply_fieldlevel_read_permissions()
 
 	return doc.as_dict()
 
@@ -232,7 +233,10 @@ def insert(doc: str | dict[str, Any] | None = None):
 	:param doc: JSON or dict object to be inserted"""
 	doc = frappe.parse_json(doc)
 
-	return insert_doc(doc).as_dict()
+	doc = insert_doc(doc)
+	doc.apply_fieldlevel_read_permissions()
+
+	return doc.as_dict()
 
 
 @frappe.whitelist(methods=["POST", "PUT"])
@@ -257,6 +261,7 @@ def save(doc: str | dict[str, Any]):
 
 	doc = frappe.get_doc(doc)
 	doc.save()
+	doc.apply_fieldlevel_read_permissions()
 
 	return doc.as_dict()
 
@@ -281,6 +286,7 @@ def submit(doc: str | dict[str, Any]):
 
 	doc = frappe.get_doc(doc)
 	doc.submit()
+	doc.apply_fieldlevel_read_permissions()
 
 	return doc.as_dict()
 
@@ -293,6 +299,7 @@ def cancel(doctype: str, name: str | int):
 	:param name: name of the document to be cancelled"""
 	wrapper = frappe.get_doc(doctype, name)
 	wrapper.cancel()
+	wrapper.apply_fieldlevel_read_permissions()
 
 	return wrapper.as_dict()
 
