@@ -821,6 +821,8 @@ class Session:
 	# --- suggested replies ------------------------------------------------
 
 	def _start_suggesting(self) -> None:
+		if self._replies_task is not None:
+			self._replies_task.cancel()  # its replies answer an older turn
 		task = asyncio.create_task(self._suggest_replies(self._run_model))
 		task.add_done_callback(_mark_retrieved)
 		task.add_done_callback(self._settled)

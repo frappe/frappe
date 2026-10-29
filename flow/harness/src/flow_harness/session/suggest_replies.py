@@ -20,6 +20,8 @@ REPLIES_PROMPT = (
 )
 
 _OBJECT_RE = re.compile(r"\{.*\}", re.DOTALL)
+# reasoning some hosts leave in the text, often with braces of its own
+_THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 
 async def suggest_replies(
@@ -39,7 +41,7 @@ async def suggest_replies(
 
 
 def parse_replies(text: str) -> RepliesSuggested | None:
-	match = _OBJECT_RE.search(text)
+	match = _OBJECT_RE.search(_THINK_RE.sub("", text))
 	try:
 		data = json.loads(match.group()) if match else None
 	except ValueError:

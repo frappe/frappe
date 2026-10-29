@@ -5,7 +5,7 @@ import asyncio
 from flow_harness.events import AssistantMessage, ToolCall
 from flow_harness.model.mock import MockModel
 from flow_harness.session.config import SessionConfig
-from flow_harness.session.replies import REPLIES_PROMPT, parse_replies
+from flow_harness.session.suggest_replies import REPLIES_PROMPT, parse_replies
 from flow_harness.session.store import SessionStore
 
 OFFER = AssistantMessage(
@@ -101,17 +101,26 @@ async def test_replies_come_only_after_a_finished_run_and_only_while_they_still_
 		assert _of(events, "replies_suggested") == [], reply
 		assert [event.get("purpose") for event in _of(events, "usage")] == [None, "replies"]
 
-	# a message sent before they land: they answer the old turn, so they are dropped
+	# a rewind before they land: they answer the old turn, so they are dropped
+	session, events = _session(tmp_path)
+	model = RecordingModel(replies=[AssistantMessage(content="done"), OFFER])
+	model.gate.clear()
+	await _run(session, "hi", model)
+	await session.rewind(0)
+	model.gate.set()
+	await session._replies_task
+	assert _of(events, "replies_suggested") == []
+
+	# a newer run's replies cancel the older call
 	session, events = _session(tmp_path)
 	model = RecordingModel(replies=[AssistantMessage(content="done"), OFFER])
 	model.gate.clear()
 	await _run(session, "hi", model)
 	late = session._replies_task
-	await _run(session, "and now?", MockModel(replies=[AssistantMessage(content="ok")]))
-	model.gate.set()
-	await late
+	await _run(session, "and now?", MockModel(replies=[AssistantMessage(content="ok"), OFFER]))
 	await session._replies_task
-	assert _of(events, "replies_suggested") == []
+	assert late.cancelled()
+	assert len(_of(events, "replies_suggested")) == 1
 
 
 def test_parse_replies_takes_two_to_four_distinct_short_messages():
@@ -120,6 +129,8 @@ def test_parse_replies_takes_two_to_four_distinct_short_messages():
 		"replies": ["Yes", "No"],
 		"multi_select": True,
 	}
+	thought = '<think>Answer as {"replies": [...]} only.</think>\n{"replies": ["Yes", "No"]}'
+	assert parse_replies(thought).replies == ["Yes", "No"]
 	for text in (
 		'{"replies": []}',
 		'{"replies": ["a", "b", "c", "d", "e"]}',
