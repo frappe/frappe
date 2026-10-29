@@ -50,6 +50,7 @@ def linked_entry_target():
 	try:
 		yield frappe.new_doc("Linked Entry Target").insert(), user.name
 	finally:
+		frappe.delete_doc("User", user.name)
 		for doctype in ("Linked Entry", "Linked Entry Row", "Linked Entry Target"):
 			frappe.delete_doc("DocType", doctype)
 
@@ -850,6 +851,7 @@ class TestLinkedWith(IntegrationTestCase):
 
 		with self.set_user(restricted_user.name):
 			docs = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)["docs"]
+		frappe.delete_doc("User", restricted_user.name)
 
 		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name}])
 
