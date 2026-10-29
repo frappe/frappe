@@ -1,4 +1,4 @@
-exclude: 'node_modules|.git'
+exclude: 'node_modules'
 default_stages: [pre-commit]
 default_install_hook_types: [pre-commit, commit-msg]
 fail_fast: false
