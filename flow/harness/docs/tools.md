@@ -65,7 +65,6 @@ Shipped with the harness but off by default: the default `tools` list is `bash`,
 | Tool | Arguments | Default confirmation | Behavior |
 | --- | --- | --- | --- |
 | `grep` | `pattern`, `path?`, `include?` | No | Searches with ripgrep when available, otherwise `grep`. `include` limits the search to matching file names (`*.py`, `*.{js,vue}`), with at most one `{a,b}` group. Skips `node_modules` and binary files. Keeps the head of the output. |
-| `suggest_replies` | `replies`, `multi_select?` | No | Offers the user two to four next messages after a reply, in `details`. The web UI shows them as buttons under the reply: a tap sends one, or, with `multi_select`, ticks several to send together. Only the run's last call is shown. |
 
 ## Extensions
 

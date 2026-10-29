@@ -23,7 +23,7 @@ _BATCH_SAVEPOINT = "flow_batch"
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
 SOURCE_TOOL_SLUGS = frozenset({"read", "grep"})
 SUBAGENT_TOOL_SLUG = "subagent"
-SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG, "suggest_replies"}
+SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG}
 
 
 def _server_only_tool() -> None:
@@ -52,12 +52,6 @@ def subagent(
 	ctx: ToolContext,
 ) -> str:
 	"""Hand a self-contained task to a sub-agent with a fresh context and get back only its final answer."""
-	_server_only_tool()
-
-
-@tool
-def suggest_replies(replies: list[str], multi_select: bool = False, *, ctx: ToolContext) -> str:
-	"""Offer the user two to four next messages after a reply, sent with a tap."""
 	_server_only_tool()
 
 
@@ -745,7 +739,6 @@ BUILTIN_TOOLS: list[Tool] = [
 	read,
 	grep,
 	subagent,
-	suggest_replies,
 	search_knowledge,
 	search_attachments,
 	update_memory,

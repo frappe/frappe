@@ -52,10 +52,6 @@ def _read_call(cid="c1", path="a.txt"):
 	return AssistantMessage(content=[ToolCall(id=cid, name="read", arguments={"path": path})])
 
 
-def _offer(cid, *replies):
-	return ToolCall(id=cid, name="suggest_replies", arguments={"replies": list(replies)})
-
-
 async def test_a_run_takes_turns_until_the_model_stops_calling_tools(tmp_path):
 	(tmp_path / "a.txt").write_text("FILE-A")
 	session, events = _session(tmp_path)
@@ -70,14 +66,6 @@ async def test_a_run_takes_turns_until_the_model_stops_calling_tools(tmp_path):
 	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 	assert session.transcript.messages[0].type == "user_message"
 	assert session.transcript.messages[0].content == "hi"
-
-	# offering replies does not end it: the model goes on to answer
-	session, events = _session(tmp_path, tools=["suggest_replies"])
-	turns = [[_offer("c1", "Yes", "No")], "the answer"]
-	mock = MockModel(replies=[AssistantMessage(content=content) for content in turns])
-	await _run(session, "hi", model=mock)
-	assert _of(events, "assistant_message")[-1]["content"][0]["text"] == "the answer"
-	assert [e["reason"] for e in _of(events, "run_ended")] == ["done"]
 
 
 async def test_the_model_request_carries_the_session_settings(tmp_path, monkeypatch):

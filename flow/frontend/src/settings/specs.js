@@ -631,6 +631,22 @@ export const SPECS = {
 			{ name: "chunk_overlap", label: "Chunk overlap", type: "int" },
 		],
 	},
+	flow_settings: {
+		key: "flow_settings",
+		doctype: "Flow Settings",
+		label: "Flow settings",
+		single: true,
+		fields: [
+			{
+				name: "small_model",
+				label: "Small model",
+				type: "link",
+				link: "Flow Model",
+				description:
+					"Writes chat titles. A cheaper, faster model saves money. Empty uses each chat's own model.",
+			},
+		],
+	},
 	memories: {
 		key: "memories",
 		doctype: "Flow Agent Memory",

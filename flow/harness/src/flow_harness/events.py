@@ -208,6 +208,8 @@ class Usage(_Event):
 	context_window: int | None = None
 	# the summarizer's own call: count its tokens as spend, not as the context size
 	standalone: bool = False
+	# a side call, such as the title, outside the conversation
+	purpose: Literal["title", "replies"] | None = None
 
 
 class PendingCall(BaseModel):
@@ -271,6 +273,14 @@ class Compaction(_Event):
 	reason: CompactionReason
 	summary: str
 	compact_up_to_seq: int
+
+
+class RepliesSuggested(_Event):
+	"""Next messages offered to the user after a run."""
+
+	type: Literal["replies_suggested"] = "replies_suggested"
+	replies: list[str]
+	multi_select: bool = False
 
 
 # --- live-only events -----------------------------------------------------
@@ -359,6 +369,7 @@ AnyEvent = (
 	| Rewind
 	| ModelChanged
 	| Compaction
+	| RepliesSuggested
 	| RunEnded
 	| RunError
 	| TextDelta

@@ -409,7 +409,7 @@ class SessionStore:
 		if session is not None and session.is_running:
 			raise SessionConflict("cannot delete a session with an active run")
 		if session is not None:
-			session.cancel_titling()  # a late title write must not resurrect the meta file
+			session.cancel_side_calls()  # a late title write must not resurrect the meta file
 		attachment_store = session.attachment_store if session is not None else None
 		if attachment_store is not None:
 			attachment_store.remove_all()

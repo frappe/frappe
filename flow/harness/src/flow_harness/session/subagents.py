@@ -25,10 +25,6 @@ from flow_harness.session.prompt import strip_tool_from_prompt
 from flow_harness.session.transcript import PendingApproval, Transcript, active_path
 from flow_harness.tools import SubagentOutcome, Tool
 from flow_harness.tools.builtins.subagent import subagent
-from flow_harness.tools.bundled.suggest_replies import suggest_replies
-
-# a child cannot delegate, and nobody reads its replies to tap one
-_PARENT_ONLY = (subagent.name, suggest_replies.name)
 
 CANCELLED = json.dumps({"status": "cancelled", "message": "User cancelled this pending tool call."})
 
@@ -221,9 +217,7 @@ def _child_inputs(
 	}
 	prompt = agent.system_prompt
 	if prompt is None and config.system_prompt is not None:
-		prompt = config.system_prompt
-		for name in _PARENT_ONLY:
-			prompt = strip_tool_from_prompt(prompt, name)
+		prompt = strip_tool_from_prompt(config.system_prompt, subagent.name)
 	own_model = (agent.model, agent.api_key, agent.api_base, agent.model_params) != (None,) * 4
 	if own_model:
 		config = config.model_copy(
@@ -247,7 +241,7 @@ def _child_inputs(
 		context_tokens=child.context_tokens,
 		context_message_count=child.context_message_count,
 		next_steering=None,
-		server_tools={name: tool for name, tool in tools.items() if name not in _PARENT_ONLY},
+		server_tools={name: tool for name, tool in tools.items() if name != subagent.name},
 		run_subagent=None,  # nothing inside a child can delegate
 		model=None if own_model else inputs.model,
 		model_name=agent.model or inputs.model_name,

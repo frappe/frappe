@@ -241,6 +241,14 @@ async def resume(
 		yield event
 
 
+def tool_schemas(tools: dict[str, Tool], config: SessionConfig) -> list[dict]:
+	"""The tools offered to the model; a client tool's display template stays out."""
+	schemas = [tool.to_schema() for tool in tools.values()]
+	for client_tool in config.client_tools:
+		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	return schemas
+
+
 async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	"""The turn core shared by `run` and `resume`."""
 	config, abort = inputs.config, inputs.abort
@@ -249,12 +257,11 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	if config.auto_compact:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
-	schemas = [tool.to_schema() for tool in tools.values()]
+	schemas = tool_schemas(tools, config)
 	tool_display_templates = {
 		tool.name: tool.display_template for tool in tools.values() if tool.display_template is not None
 	}
-	for client_tool in config.client_tools:  # its display template is for the UI, not the model
-		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	for client_tool in config.client_tools:
 		if template := client_tool.get("display_template"):
 			try:
 				display_template_variables(template)
