@@ -788,14 +788,14 @@ class TypstEmitter:
 
 		if len(cells) == 1:
 			return cells[0][1:-1]
-		if section.get("field_borders") and section.get("grid_borders") != "rows":
+		if section.get("field_borders"):
 			pad = pt(section.get("cell_padding"), 8)
 			# both HTML surfaces force gap to 0 in bordered mode — spacing comes
 			# from the cell padding on either side of the divider
 			gutter = pad
+			rule = "none" if section.get("grid_borders") == "rows" else hairline(section.get("border_color"))
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				rule = hairline(section.get("border_color"))
 				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
 			return (
 				f"#grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, align: top,\n"
