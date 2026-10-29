@@ -3745,6 +3745,9 @@ class Document(_DocumentBase):
 
 			if data_field_options == "URL":
 				validate_url(data, throw=True)
+				# browsers ignore control characters and spaces before the scheme
+				if re.sub(r"[\x00-\x20]", "", data).lower().startswith(("javascript:", "vbscript:", "data:")):
+					frappe.throw(_("'{0}' is not a valid URL").format(frappe.bold(data)))
 
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
