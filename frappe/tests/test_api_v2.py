@@ -8,6 +8,7 @@ import frappe
 from frappe.api import discovery
 from frappe.api.v2 import run_doc_method
 from frappe.core.doctype.user.user import generate_keys
+from frappe.desk.doctype.todo.todo import ToDo
 from frappe.installer import update_site_config
 from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
@@ -96,6 +97,46 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
+
+	def test_get_list_virtual_doctype_v2(self):
+		response = self.get(self.resource("RQ Worker"), {"sid": self.sid, "limit": 1})
+		self.assertEqual(response.status_code, 200)
+		self.assertLessEqual(len(response.json["data"]), 1)
+
+	def test_get_list_log_doctype_v2(self):
+		method = frappe.generate_hash()
+		for _ in range(3):
+			frappe.log_error(title=method, message="test")
+		frappe.db.commit()
+		names = frappe.get_all("Error Log", filters={"method": method}, pluck="name")
+		for name in names:
+			self.addCleanup(frappe.delete_doc, "Error Log", name)
+
+		response = self.get(
+			self.resource("Error Log"),
+			{"sid": self.sid, "filters": frappe.as_json({"method": method}), "limit": 2},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual([row["name"] for row in response.json["data"]], names[:2])
+		self.assertTrue(response.json["has_next_page"])
+
+	def test_get_list_controller_hook_v2(self):
+		name = self.GENERATED_DOCUMENTS[0]
+
+		def get_list(query):
+			return query.where(frappe.qb.DocType(self.DOCTYPE).name == name)
+
+		with patch.object(ToDo, "get_list", staticmethod(get_list), create=True):
+			response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual([row["name"] for row in response.json["data"]], [name])
+
+		def failing_get_list(query):
+			raise NotImplementedError
+
+		with patch.object(ToDo, "get_list", staticmethod(failing_get_list), create=True), suppress_stdout():
+			response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid})
+		self.assertIn("NotImplementedError", response.json["errors"][0]["message"])
 
 	def test_create_document_v2(self):
 		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
