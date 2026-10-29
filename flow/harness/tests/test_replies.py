@@ -5,8 +5,8 @@ import asyncio
 from flow_harness.events import AssistantMessage, ToolCall
 from flow_harness.model.mock import MockModel
 from flow_harness.session.config import SessionConfig
-from flow_harness.session.suggest_replies import REPLIES_PROMPT, parse_replies
 from flow_harness.session.store import SessionStore
+from flow_harness.session.suggest_replies import REPLIES_PROMPT, parse_replies
 
 OFFER = AssistantMessage(
 	content='{"replies": ["Show me the deals", "Add more leads"], "multi_select": false}'
