@@ -336,7 +336,7 @@ wheels = [
 
 [[package]]
 name = "frappe-flow"
-version = "0.1.22"
+version = "0.1.23"
 source = { editable = "." }
 dependencies = [
     { name = "fastapi" },

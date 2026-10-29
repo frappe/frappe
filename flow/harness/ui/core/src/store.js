@@ -61,6 +61,7 @@ const SYNCED_PREFS = [
 	"lastModel",
 	"lastEffort",
 	"smallModel",
+	"webSearch",
 	"sidebarGroup",
 	"sidebarOrder",
 	"chatOrder",
@@ -120,6 +121,7 @@ export function createFlowStore(client, options = {}) {
 		lastModel: null,
 		lastEffort: null,
 		smallModel: null, // titles new chats; null uses the chat's own model
+		webSearch: null, // { provider, api_key } for new chats; null uses DuckDuckGo
 		cwd: null,
 		sidebarOpen: true,
 		sidebarWidth: 288,
@@ -743,6 +745,7 @@ export function createFlowStore(client, options = {}) {
 			suggest_replies: true,
 		}
 		if (state.prefs.smallModel) config.small_model = { model: state.prefs.smallModel }
+		if (state.prefs.webSearch) config.web_search = state.prefs.webSearch
 		if (picked?.tools) config.tools = picked.tools
 		if (picked?.extensionTools) config.extension_tools = picked.extensionTools
 		if (preset) config.preset = preset.id // the chat keeps it, for the settings tab
@@ -1589,6 +1592,11 @@ export function createFlowStore(client, options = {}) {
 		savePrefs()
 	}
 
+	function setWebSearch(search) {
+		state.prefs.webSearch = search
+		savePrefs()
+	}
+
 	// to the hundredth: stepping 15.01 by 1 would otherwise land on 16.009999999999998
 	function setChatFontSize(px) {
 		const size = Math.min(CHAT_FONT_SIZE.max, Math.max(CHAT_FONT_SIZE.min, px))
@@ -1795,6 +1803,7 @@ export function createFlowStore(client, options = {}) {
 		setSidebarView,
 		setCustomInstructions,
 		setSmallModel,
+		setWebSearch,
 		setChatFontSize,
 		setChatFontWeight,
 		setSettingsOpen,

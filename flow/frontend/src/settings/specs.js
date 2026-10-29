@@ -639,24 +639,28 @@ export const SPECS = {
 		fields: [
 			{
 				name: "small_model",
-				label: "Small model",
+				label: "Helper model",
 				type: "link",
 				link: "Flow Model",
-				description:
-					"Writes chat titles. A cheaper, faster model saves money. Empty uses each chat's own model.",
+				description: "Does quick side jobs, like chat titles. A cheaper model saves credits.",
 			},
 			{
 				name: "search_provider",
 				label: "Web search",
 				type: "select",
 				options: ["DuckDuckGo", "Brave", "Tavily", "Exa"],
-				description:
-					"DuckDuckGo needs no key but may refuse searches when used a lot. Brave, Tavily and Exa need an API key.",
+				description: "The service agents use to search the web.",
 			},
 			{
 				name: "search_api_key",
 				label: "Search API key",
 				type: "password",
+				beside: "search_provider", // a key button beside it, in a form of rows
+				links: {
+					Brave: "https://brave.com/search/api/",
+					Tavily: "https://app.tavily.com",
+					Exa: "https://dashboard.exa.ai/api-keys",
+				},
 				when: (doc) => doc.search_provider && doc.search_provider !== "DuckDuckGo",
 			},
 		],

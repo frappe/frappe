@@ -2,8 +2,7 @@
 	<SettingsDialog v-model:tab="page.state.settingsTab" :groups="groups">
 		<template #general><GeneralPanel /></template>
 		<template v-for="spec in docSpecs" #[spec.key]>
-			<ModelsPanel v-if="spec.key === 'models'" :description="DESCRIPTIONS.models" />
-			<DocPanel v-else :spec="spec" :description="DESCRIPTIONS[spec.key]" />
+			<DocPanel :spec="spec" :description="DESCRIPTIONS[spec.key]" />
 		</template>
 		<template #knowledge><KnowledgePanel /></template>
 	</SettingsDialog>
@@ -17,7 +16,6 @@ import { layout } from "@flow/ui-core/layout.js";
 import DocPanel from "./DocPanel.vue";
 import GeneralPanel from "./GeneralPanel.vue";
 import KnowledgePanel from "./KnowledgePanel.vue";
-import ModelsPanel from "./ModelsPanel.vue";
 import { SPECS } from "./specs.js";
 
 // Agents, skills and triggers have pages of their own, beside the chats.
