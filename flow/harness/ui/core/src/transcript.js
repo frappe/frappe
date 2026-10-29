@@ -325,6 +325,7 @@ const STEP_LABELS = {
 	bash: "Running command",
 	edit: "Editing file",
 	write: "Writing file",
+	web_fetch: "Reading web page",
 }
 
 export function stepLabel(name) {
@@ -340,6 +341,7 @@ const STEP_ICONS = {
 	edit: "lucide-pen-line",
 	write: "lucide-file-plus",
 	websearch: "lucide-globe",
+	web_fetch: "lucide-globe",
 }
 
 export function stepIcon(name) {

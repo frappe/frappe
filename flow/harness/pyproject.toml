@@ -20,6 +20,7 @@ dependencies = [
     "pillow>=11.0",
     "python-multipart>=0.0.20",
     "pyyaml>=6.0",
+    "markdownify>=1.2,<2",
 ]
 
 [project.optional-dependencies]
