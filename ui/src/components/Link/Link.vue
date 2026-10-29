@@ -154,16 +154,20 @@ const openLabel = computed(() => {
 });
 const showEdit = computed(() => props.editable && !!model.value);
 
-// The text the shown options answer; null until a search, and after a doctype or filter change.
+// The server lets the browser keep a search answer this long; an open after it asks again.
+const OPTIONS_MAX_AGE_MS = 60_000;
 let searched: string | null = null;
+let searchedAt = 0;
 
 const loadOptions = (txt: string = "", fresh = false) => {
 	searched = txt;
+	searchedAt = Date.now();
 	void options.search(txt, { fresh });
 };
 
 const showAllOptions = () => {
-	if (searched !== "" || options.error.value) loadOptions("");
+	const expired = Date.now() - searchedAt > OPTIONS_MAX_AGE_MS;
+	if (searched !== "" || expired || options.error.value) loadOptions("");
 };
 
 // The input's native event, not `update:query`: the Combobox also sets the query to the shown value.

@@ -77,24 +77,73 @@ describe("Link search", () => {
     expect(searchedTexts()).toEqual(["", "adm"]);
   });
 
-  it("searches again on the next open after a doctype or filter change", async () => {
-    const { state } = await mountLink();
+  it("sends nothing when a picked value fills the input", async () => {
+    const { state, input } = await mountLink({ modelValue: null });
+    state.open = true;
+    await nextTick();
+    await vi.waitFor(() => expect(document.querySelector("[role=option]")).not.toBeNull());
+    state.modelValue = "Administrator";
+    state.open = false;
+    await nextTick();
+    await pastDebounce();
+    expect(input.value).toBe("Administrator");
+    expect(searchedTexts()).toEqual([""]);
+  });
+
+  it("searches again on the next open or focus after a doctype or filter change", async () => {
+    const { state, input } = await mountLink();
     state.open = true;
     await nextTick();
     state.open = false;
     await nextTick();
     state.open = true;
     await nextTick();
+    await pastDebounce();
     expect(searchedTexts()).toEqual([""]);
 
     state.open = false;
     state.filters = { enabled: 1 };
     await nextTick();
+    await pastDebounce();
     expect(api.searchDocuments).toHaveBeenCalledTimes(1);
     state.open = true;
     await nextTick();
     expect(api.searchDocuments).toHaveBeenCalledTimes(2);
     expect(api.searchDocuments.mock.calls[1][1].filters).toEqual({ enabled: 1 });
+
+    state.open = false;
+    state.doctype = "Role";
+    await nextTick();
+    input.dispatchEvent(new FocusEvent("focus"));
+    expect(api.searchDocuments.mock.calls.map(([doctype]) => doctype)).toEqual(["User", "User", "Role"]);
+  });
+
+  it("searches again on the next open once the answer is a minute old", async () => {
+    const now = vi.spyOn(Date, "now").mockReturnValue(1_000_000);
+    const { state } = await mountLink();
+    state.open = true;
+    await nextTick();
+    state.open = false;
+    await nextTick();
+    now.mockReturnValue(1_000_000 + 61_000);
+    state.open = true;
+    await nextTick();
+    now.mockRestore();
+    expect(searchedTexts()).toEqual(["", ""]);
+  });
+
+  it("searches again on the next open after a failed search", async () => {
+    api.searchDocuments.mockRejectedValueOnce(new Error("offline"));
+    const { state } = await mountLink();
+    state.open = true;
+    await nextTick();
+    await vi.waitFor(() => expect(api.searchDocuments).toHaveBeenCalledTimes(1));
+    await new Promise((resolve) => setTimeout(resolve));
+    state.open = false;
+    await nextTick();
+    state.open = true;
+    await nextTick();
+    expect(api.searchDocuments).toHaveBeenCalledTimes(2);
   });
 
   it("searches at once when the doctype changes while the picker is open", async () => {
@@ -102,6 +151,7 @@ describe("Link search", () => {
     await nextTick();
     state.doctype = "Role";
     await nextTick();
+    await pastDebounce();
     expect(api.searchDocuments.mock.calls.map(([doctype]) => doctype)).toEqual(["User", "Role"]);
   });
 });
