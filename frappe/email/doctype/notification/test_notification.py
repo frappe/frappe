@@ -742,6 +742,8 @@ class TestNotification(IntegrationTestCase):
 		self.assertEqual(attachment["lang"], "de")
 
 	def test_attach_print_without_print_format_sets_no_language(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
 		user = frappe.get_doc("User", "test@example.com")
 		user.language = None
 
