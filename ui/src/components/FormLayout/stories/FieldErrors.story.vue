@@ -46,6 +46,7 @@ const VALUE_FIELDTYPES: [string, string?][] = [
 	["Attach"],
 	["Attach Image"],
 	["Geolocation"],
+	["Color"],
 	["Read Only"],
 ];
 

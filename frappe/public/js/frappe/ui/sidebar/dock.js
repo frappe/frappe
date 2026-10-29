@@ -144,6 +144,17 @@ frappe.ui.Dock = class Dock {
 			$flow.on("click", () => window.flow?.toggle());
 			$utilities.append($flow);
 		}
+
+		// BackgroundTasks shows and hides every `.sidebar-background-tasks`, but the rail may be
+		// built after its first fetch, so this one is seeded from that list.
+		const $tasks = this.make_utility({
+			label: __("Background Tasks"),
+			icon: "server",
+			css_class: "sidebar-background-tasks",
+		});
+		$tasks.toggleClass("hidden", !this.sidebar.background_tasks?.db_tasks?.length);
+		$tasks.on("click", () => frappe.ui.sidebar_panels.toggle("background-tasks"));
+		$utilities.append($tasks);
 	}
 
 	make_utility({ label, icon, css_class, badge = "" }) {
