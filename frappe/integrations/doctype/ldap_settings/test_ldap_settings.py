@@ -13,6 +13,7 @@ from ldap3 import MOCK_SYNC, OFFLINE_AD_2012_R2, OFFLINE_SLAPD_2_4, Connection, 
 import frappe
 from frappe.exceptions import MandatoryError, ValidationError
 from frappe.integrations.doctype.ldap_settings.ldap_settings import LDAPSettings
+from frappe.tests.classes.context_managers import change_settings
 
 
 class LDAP_TestCase:
@@ -589,6 +590,40 @@ class LDAP_TestCase:
 					"posix.user1@unit.testing", "posix_user_password"
 				)  # Change Password
 			connect_to_ldap.assert_called_with(self.base_dn, self.base_password, read_only=False)
+
+	def test_reset_password_logs_out_when_setting_or_caller_asks(self):
+		self.test_class = LDAPSettings(self.doc)
+		user = "posix.user1@unit.testing"
+		sessions = frappe.qb.DocType("Sessions")
+		connection = Connection(
+			self.server,
+			user=self.base_dn,
+			password=self.base_password,
+			read_only=False,
+			client_strategy=MOCK_SYNC,
+		)
+		connection.strategy.entries_from_json(
+			f"{os.path.abspath(os.path.dirname(__file__))}/{self.LDAP_LDIF_JSON}"
+		)
+		connection.bind()
+
+		with mock.patch(
+			"frappe.integrations.doctype.ldap_settings.ldap_settings.LDAPSettings.connect_to_ldap",
+			return_value=connection,
+		):
+			for setting, asked, logged_out in ((1, 0, True), (0, 0, False), (0, 1, True)):
+				sid = frappe.generate_hash()
+				frappe.qb.into(sessions).columns(
+					sessions.sid, sessions.user, sessions.status, sessions.lastupdate, sessions.sessiondata
+				).insert(sid, user, "Active", frappe.utils.now(), "{}").run()
+				self.addCleanup(frappe.db.delete, "Sessions", {"sid": sid})
+
+				with (
+					self.subTest(setting=setting, asked=asked),
+					change_settings("System Settings", logout_on_password_reset=setting),
+				):
+					self.test_class.reset_password(user, "posix_user_password", logout_sessions=asked)
+					self.assertEqual(bool(frappe.db.count("Sessions", {"sid": sid})), not logged_out)
 
 	@mock_ldap_connection
 	def test_convert_ldap_entry_to_dict(self):

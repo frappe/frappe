@@ -355,7 +355,7 @@ class LDAPSettings(Document):
 				hashed_password = hashed(HASHED_SALTED_SHA, safe_encode(password))
 				changes = {"userPassword": [(MODIFY_REPLACE, [hashed_password])]}
 				if conn.modify(entry_dn, changes=changes):
-					if logout_sessions:
+					if logout_sessions or frappe.get_system_settings("logout_on_password_reset"):
 						from frappe.sessions import clear_sessions
 
 						clear_sessions(user=user, force=True)
