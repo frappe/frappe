@@ -267,7 +267,10 @@ $.extend(frappe.meta, {
 	get_restricted_print_formats: function (doctype) {
 		return frappe
 			.get_list(":Print Format", { doc_type: doctype })
-			.filter((d) => d.__roles?.length && !frappe.user.has_role(d.__roles))
+			.filter((d) => {
+				const roles = d.__roles || (d.roles || []).map((r) => r.role);
+				return roles.length && !frappe.user.has_role(roles);
+			})
 			.map((d) => d.name);
 	},
 
