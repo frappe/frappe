@@ -45,6 +45,7 @@ import { Button, call, dialog, toast } from "frappe-ui"
 import BlockOutline from "@/components/BlockOutline.vue"
 import VariantRows from "@/components/VariantRows.vue"
 import { useBlockOutline } from "@/utils/useBlockOutline"
+import { refreshPageKey } from "@/page/pageLoader"
 import {
 	activeVariantIndex,
 	keepDialogText,
@@ -59,7 +60,8 @@ import {
 // current combination is a link.
 const route = useRoute()
 const router = useRouter()
-const refreshPage = inject("refreshPage") as () => Promise<void>
+const refreshPage = inject(refreshPageKey)
+if (!refreshPage) throw new Error("VariantsViewerPill must render inside the app renderer")
 const sets = useMountedVariantSets()
 
 // Keep needs a developer bench and write access, so a hosted site without developer mode

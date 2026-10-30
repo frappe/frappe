@@ -1,4 +1,4 @@
-import { shallowRef, watch, type ShallowRef } from "vue"
+import { ref, shallowRef, watch, type InjectionKey, type ShallowRef } from "vue"
 import { useRouter, type Router, type RouteLocationNormalized } from "vue-router"
 import { fetchAppPage } from "@/utils/helpers"
 import { getBlockInstance } from "@/utils/serializer"
@@ -15,7 +15,16 @@ export type LoadedPage = {
 }
 
 const loadedPages = new Map<string, LoadedPage>()
+const refreshing = new Map<string, Promise<void>>()
 let latestNavigation = 0
+
+// Bumped only where a page is staged, so a remount always finds one. The renderer keys the
+// page component on it: re-reading a page leaves the fresh copy here, this makes it mount.
+export const pageRevision = ref(0)
+
+/** Provided by the renderer root: re-read the open page. A component that changed the page on
+ * the server injects this; nothing else can remount the page, so there is no sensible fallback. */
+export const refreshPageKey: InjectionKey<() => Promise<void>> = Symbol("refreshPage")
 
 // beforeResolve guard: load the next page before the navigation completes. The page being left
 // stays untouched meanwhile, and the new page mounts with every binding already resolved.
@@ -27,11 +36,19 @@ export async function loadPage(router: Router, to: RouteLocationNormalized, from
 	return preparePage(router, to)
 }
 
-/** Read the open page again and leave the fresh copy for the next mount — for a caller that
- * changed it on the server. The caller remounts the page; see `usePageRefresh`. */
-export async function reloadCurrentPage(router: Router) {
-	const redirect = await preparePage(router, router.currentRoute.value, true)
-	if (redirect) await router.replace(redirect)
+/** Read the open page again, for a caller that changed it on the server. A Keep and the save
+ * notice it triggers both ask for the same re-read, so callers share the one in flight. */
+export function reloadCurrentPage(router: Router): Promise<void> {
+	const { fullPath } = router.currentRoute.value
+	const running = refreshing.get(fullPath)
+	if (running) return running
+
+	const refresh = (async () => {
+		const redirect = await preparePage(router, router.currentRoute.value, true)
+		if (redirect) await router.replace(redirect)
+	})().finally(() => refreshing.delete(fullPath))
+	refreshing.set(fullPath, refresh)
+	return refresh
 }
 
 async function preparePage(router: Router, route: RouteLocationNormalized, fresh = false) {
@@ -54,6 +71,7 @@ async function preparePage(router: Router, route: RouteLocationNormalized, fresh
 		useComponentStore().setComponents(page.components || [])
 		const root = getBlockInstance(JSON.parse(page.blocks)[0])
 		loadedPages.set(route.fullPath, { page, scope, pageRoute, root })
+		pageRevision.value++
 	} catch (error) {
 		scope.teardownPage()
 		throw error
