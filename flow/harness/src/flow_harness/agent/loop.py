@@ -1,5 +1,5 @@
 """The agent loop: ask the model, run the tools it asks for, repeat — until it stops
-calling tools or calls only tools that end the run, a cap trips, or a gated tool pauses the run.
+calling tools, a cap trips, or a gated tool pauses the run.
 
 `run` and `resume` only yield events and raise errors. The session saves them as they
 arrive, so the transcript the loop reads for the next model call is always current.
@@ -28,6 +28,9 @@ from __future__ import annotations
 import asyncio
 import inspect
 import json
+import logging
+import os
+import re
 import uuid
 from collections.abc import AsyncIterator, Awaitable, Callable, Iterator
 from dataclasses import dataclass, replace
@@ -77,6 +80,9 @@ from flow_harness.tools.tool import display_template_variables
 
 if TYPE_CHECKING:
 	from flow_harness.extensions import ExtensionRuntime
+
+_logger = logging.getLogger(__name__)
+MAX_SAVED_BYTES = 5 * 1024 * 1024
 
 
 @dataclass
@@ -148,6 +154,8 @@ class LoopInputs:
 	after_tool_call: AfterHook | None = None
 	resolve_attachment: Callable[[str], bytes] | None = None
 	store_image: Callable[[str, bytes], Awaitable[AttachmentContent]] | None = None
+	# where a result too big to show whole is saved for read and grep
+	results_dir: str | None = None
 	run_subagent: (
 		Callable[[LoopInputs, str, str, str | None, str | None], Awaitable[SubagentOutcome]] | None
 	) = None
@@ -204,8 +212,7 @@ async def compact(instructions: str | None, inputs: LoopInputs) -> AsyncIterator
 async def resume(
 	approval: PendingApproval, answers: dict[str, str], inputs: LoopInputs
 ) -> AsyncIterator[AnyEvent]:
-	"""Continue a paused run by settling its approval batch, then take turns unless that
-	turn ends the run.
+	"""Continue a paused run by settling its approval batch, then take turns.
 
 	The session validates ``answers`` against the pending batch before calling this.
 	Each answer maps a tool_call_id to a decision: "Approve" runs the tool, "Deny"
@@ -214,7 +221,7 @@ async def resume(
 	yield RunStarted(run_id=uuid.uuid4().hex[:12])
 	tools = inputs.server_tools or {}
 	ctx = _tool_context(inputs)
-	denied = redirected = False
+	denied = False
 	for pending in approval.calls:
 		_raise_if_aborted(inputs.abort)
 		call = ToolCall(id=pending.id, name=pending.name, arguments=pending.args)
@@ -232,23 +239,22 @@ async def resume(
 			denied = True
 		else:
 			result = _result(call, _redirect(answer))
-			redirected = True
 		_raise_if_aborted(inputs.abort)
 		yield result
 
 	if denied:  # a rejected action stops the run rather than continuing
 		yield RunEnded(reason="denied")
 		return
-	if not redirected and _turn_ends_run(inputs.messages, tools):
-		steered = False
-		for message in _drain(inputs.next_steering):
-			steered = True
-			yield message
-		if not steered:
-			yield RunEnded(reason="done")
-			return
 	async for event in _loop(inputs):
 		yield event
+
+
+def tool_schemas(tools: dict[str, Tool], config: SessionConfig) -> list[dict]:
+	"""The tools offered to the model; a client tool's display template stays out."""
+	schemas = [tool.to_schema() for tool in tools.values()]
+	for client_tool in config.client_tools:
+		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	return schemas
 
 
 async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
@@ -259,12 +265,11 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 	if config.auto_compact:
 		await model.load_model_limits(abort)
 	tools = inputs.server_tools or {}
-	schemas = [tool.to_schema() for tool in tools.values()]
+	schemas = tool_schemas(tools, config)
 	tool_display_templates = {
 		tool.name: tool.display_template for tool in tools.values() if tool.display_template is not None
 	}
-	for client_tool in config.client_tools:  # its display template is for the UI, not the model
-		schemas.append({key: value for key, value in client_tool.items() if key != "display_template"})
+	for client_tool in config.client_tools:
 		if template := client_tool.get("display_template"):
 			try:
 				display_template_variables(template)
@@ -321,23 +326,7 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 			yield RunEnded(reason="aborted")
 			return
 
-		ends_run = not assistant.tool_calls
-		if assistant.tool_calls and assistant.stop_reason == "length":
-			# truncated arguments can still parse, so no call in this turn is safe to run
-			for call in assistant.tool_calls:
-				yield _result(call, _TRUNCATED, is_error=True)
-		elif assistant.tool_calls:
-			gated: list[PendingCall] = []
-			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
-				yield event
-			if gated:  # free tools already ran; now wait for the human
-				_raise_if_aborted(abort)
-				yield ApprovalRequired(calls=gated)
-				yield RunEnded(reason="paused")
-				return
-			ends_run = _turn_ends_run(inputs.messages, tools)
-
-		if ends_run:
+		if not assistant.tool_calls:
 			steered = False
 			for message in _drain(inputs.next_steering):
 				steered = True
@@ -346,6 +335,20 @@ async def _loop(inputs: LoopInputs) -> AsyncIterator[AnyEvent]:
 				continue
 			yield RunEnded(reason="length" if assistant.stop_reason == "length" else "done")
 			return
+
+		if assistant.stop_reason == "length":
+			# truncated arguments can still parse, so no call in this turn is safe to run
+			for call in assistant.tool_calls:
+				yield _result(call, _TRUNCATED, is_error=True)
+		else:
+			gated: list[PendingCall] = []
+			async for event in _settle_calls(assistant.tool_calls, tools, ctx, inputs, gated):
+				yield event
+			if gated:  # free tools already ran; now wait for the human
+				_raise_if_aborted(abort)
+				yield ApprovalRequired(calls=gated)
+				yield RunEnded(reason="paused")
+				return
 
 		if budget.exhausted:
 			yield RunEnded(reason="budget")
@@ -642,7 +645,14 @@ async def _finished_call(
 		_raise_if_aborted(inputs.abort)
 		if rewritten is not None:
 			result = result.model_copy(update={"content": rewritten})
-	return _capped(result, changed=result.content != dispatched)
+	changed = result.content != dispatched
+	saved = None
+	if inputs.results_dir and "read" in (inputs.server_tools or {}) and _over_cap(result, changed=changed):
+		try:
+			saved = await asyncio.to_thread(_save_result, inputs.results_dir, call.id, result.content)
+		except OSError:
+			_logger.warning("Could not save the whole result of call %s", call.id, exc_info=True)
+	return _capped(result, changed=changed, saved=saved)
 
 
 async def _dispatch(
@@ -668,22 +678,58 @@ async def _dispatch(
 		return _result(call, f"[tool error: {error}]", is_error=True)
 
 
-def _capped(result: ToolResult, *, changed: bool = False) -> ToolResult:
+def _over_cap(result: ToolResult, *, changed: bool) -> bool:
+	"""Too big to show whole, and not already cut by its tool unless a hook changed it."""
+	if "truncation" in result.details and not changed:
+		return False
+	content = result.content
+	return content.count("\n") >= DEFAULT_MAX_LINES or len(content.encode()) > DEFAULT_MAX_BYTES
+
+
+def _save_result(directory: str, call_id: str, content: str) -> tuple[str, bool]:
+	"""Write a result, up to MAX_SAVED_BYTES, where read and grep can reach it; return its path
+	and whether it is whole. JSON goes one value per line, since a tool's JSON arrives as a
+	single line that read cannot page through."""
+	os.makedirs(directory, mode=0o700, exist_ok=True)
+	# providers may reuse a call id across turns, or send none
+	name = re.sub(r"[^A-Za-z0-9_-]", "_", call_id)
+	path = os.path.join(directory, f"{name}-{uuid.uuid4().hex[:8]}.txt")
+	if len(content) <= MAX_SAVED_BYTES:
+		try:
+			content = json.dumps(json.loads(content), indent=1, ensure_ascii=False)
+		except ValueError:
+			pass
+	data = content.encode()
+	whole = len(data) <= MAX_SAVED_BYTES
+	if not whole:
+		data = data[:MAX_SAVED_BYTES].rsplit(b"\n", 1)[0]
+	with open(path, "wb") as file:
+		file.write(data)
+	return path, whole
+
+
+def _capped(
+	result: ToolResult, *, changed: bool = False, saved: tuple[str, bool] | None = None
+) -> ToolResult:
 	"""Cut an oversized result to its start and end, unless its tool already cut it and
 	no hook changed it."""
-	if "truncation" in result.details and not changed:
+	if not _over_cap(result, changed=changed):
 		return result
 	_, truncation = truncate(result.content, keep="head")
-	if not truncation["truncated"]:
-		return result
 	lines, size = DEFAULT_MAX_LINES // 5, DEFAULT_MAX_BYTES // 5  # the end gets a fifth of the budget
 	head, head_cut = truncate(result.content, keep="head", max_lines=lines * 4, max_bytes=size * 4)
 	tail, tail_cut = truncate(result.content, keep="tail", max_lines=lines, max_bytes=size)
 	note = (
 		f"[Cut the middle: showing the first {_size(len(head.encode()))} and the last "
 		f"{_size(len(tail.encode()))} of {_size(truncation['total_bytes'])}. "
-		"To see more, call again asking for less: fewer fields, filters, a limit or a count. "
-		"Don't repeat a call that changed data.]"
+		+ (
+			f"{'The whole result' if saved[1] else f'The first {_size(MAX_SAVED_BYTES)} of the result'} "
+			f"is saved in {saved[0]}: read it in parts with read's offset and limit, "
+			"or find lines in it with grep. "
+			if saved
+			else "To see more, call again asking for less: fewer fields, filters, a limit or a count. "
+		)
+		+ "Don't repeat a call that changed data.]"
 	)
 	shown = head_cut["output_lines"] + tail_cut["output_lines"]
 	truncation["output_lines"] = min(shown, truncation["total_lines"])  # both ends may hold part of one line
@@ -764,17 +810,8 @@ def _tool_context(inputs: LoopInputs) -> ToolContext:
 		store_image=inputs.store_image,
 		# the runner needs this run's inputs; a tool only names the call, task, agent and child
 		run_subagent=partial(inputs.run_subagent, inputs) if inputs.run_subagent is not None else None,
+		web_search=inputs.config.web_search,
 	)
-
-
-def _turn_ends_run(messages: list[TranscriptMessage], tools: dict[str, Tool]) -> bool:
-	"""Whether the newest turn called only tools that end the run, none of them failing."""
-	for message in reversed(messages):
-		if isinstance(message, ToolResult) and message.is_error:
-			return False
-		if isinstance(message, AssistantMessage):
-			return all(call.name in tools and tools[call.name].ends_run for call in message.tool_calls)
-	return False
 
 
 def _drain(next_steering: NextSteering | None) -> Iterator[UserMessage]:

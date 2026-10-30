@@ -1513,15 +1513,7 @@ export default class GridRow {
 	// Escape plain-text field values before passing to frappe.format(), so the formatted
 	// output is safe to inject via .html(). Mirrors the same pre-escaping in base_input.js.
 	_escape_for_format(value, df) {
-		const PLAIN_TEXT_FIELDTYPES = [
-			"Data",
-			"Long Text",
-			"Small Text",
-			"Text",
-			"Password",
-			"MultiSelect",
-		];
-		if (df && PLAIN_TEXT_FIELDTYPES.includes(df.fieldtype)) {
+		if (df && frappe.model.plain_text_fieldtypes.includes(df.fieldtype)) {
 			return frappe.utils.escape_html(cstr(value));
 		}
 		return value;

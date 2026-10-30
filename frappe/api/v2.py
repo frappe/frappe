@@ -79,6 +79,17 @@ def logout():
 
 
 def read_doc(doctype: str, name: str):
+	"""
+	GET /api/v2/document/<doctype>/<name>?fields=[...]
+
+	Query Parameters (accessible via frappe.form_dict):
+		fields: JSON string of field names to return; a table field as
+		        {"<table field>": ["<child field>", ...]}, as for the list. Default: all.
+	"""
+	fields: list | None = frappe.parse_json(frappe.form_dict.get("fields", None))
+	if fields and not isinstance(fields, list):
+		raise FrappeValueError("'fields' must be a list")
+
 	doc = frappe.get_doc(doctype, name)
 	doc.check_permission("read")
 	doc.apply_fieldlevel_read_permissions()
@@ -89,7 +100,24 @@ def read_doc(doctype: str, name: str):
 		if df and df.fieldtype == "Link" and isinstance(_doc.get(key), int):
 			_doc[key] = cstr(_doc.get(key))
 
-	return _doc
+	return select_fields(_doc, fields) if fields else _doc
+
+
+def select_fields(doc: dict, fields: list) -> dict:
+	"""Pick `fields` from a document dict. Like the list, fields the dict does not have are left out."""
+	selected = dict(doc) if "*" in fields else {}
+	for field in fields:
+		if isinstance(field, dict):
+			for fieldname, child_fields in field.items():
+				if not isinstance(child_fields, list):
+					raise FrappeValueError(f"Fields for '{fieldname}' must be a list")
+				if isinstance(rows := doc.get(fieldname), list):
+					selected[fieldname] = [select_fields(row, child_fields) for row in rows]
+		elif not isinstance(field, str) or not (field == "*" or field.isidentifier()):
+			raise FrappeValueError(f"Invalid field for a document: {field}")
+		elif field in doc:
+			selected[field] = doc[field]
+	return selected
 
 
 def document_list(doctype: str) -> list[dict[str, Any]]:

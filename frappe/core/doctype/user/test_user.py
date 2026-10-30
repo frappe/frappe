@@ -17,6 +17,8 @@ from frappe.core.doctype.user.user import (
 	bulk_add_roles,
 	bulk_remove_roles,
 	change_password,
+	get_all_roles,
+	get_perm_info,
 	handle_password_test_fail,
 	reset_password,
 	rewrite_owner_fields,
@@ -49,6 +51,25 @@ class TestUser(IntegrationTestCase):
 		frappe.db.set_single_value("System Settings", "minimum_password_score", "")
 		frappe.db.set_single_value("System Settings", "password_reset_limit", 3)
 		frappe.set_user("Administrator")
+
+	def test_role_listing_requires_role_read(self):
+		desk_user = frappe.get_doc(
+			doctype="User",
+			email="roles_desk_user@example.com",
+			first_name="Desk",
+			roles=[{"role": "_Test Role"}],
+			send_welcome_email=0,
+		).insert(ignore_permissions=True)
+		self.addCleanup(frappe.delete_doc, "User", desk_user.name, force=True)
+
+		# a desk user without read on Role
+		frappe.set_user(desk_user.name)
+		self.assertRaises(frappe.PermissionError, get_all_roles)
+		self.assertRaises(frappe.PermissionError, get_perm_info, "System Manager")
+
+		frappe.set_user("test@example.com")
+		self.assertIn("System Manager", get_all_roles())
+		self.assertTrue(get_perm_info("System Manager"))
 
 	@staticmethod
 	def reset_password(user) -> str:
@@ -842,6 +863,24 @@ class TestUser(IntegrationTestCase):
 			update_password(new_password, key=key),
 			"The reset password link has been expired",
 		)
+
+	def test_update_password_needs_a_reset_key_or_old_password(self):
+		for user in ("Guest", "testpassword@example.com"):
+			frappe.set_user(user)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+			)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+				key="",
+				old_password="",
+			)
 
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):

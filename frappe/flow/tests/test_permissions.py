@@ -106,6 +106,19 @@ class TestFlowAccess(IntegrationTestCase):
 			with self.subTest(name), self.assertRaises(frappe.PermissionError):
 				getattr(api, name)(**kwargs)
 
+	def test_the_desk_shows_flow_only_to_those_who_can_use_it(self):
+		from frappe.boot import get_module_sidebars
+
+		cases = {
+			_user("flow-desk-none@example.com", "Desk User"): False,
+			_user("flow-desk-member@example.com", FLOW_USER_ROLE): True,
+			_user("flow-desk-manager@example.com", "System Manager"): True,
+		}
+		for user, sees_flow in cases.items():
+			with self.subTest(user), self.set_user(user):
+				frappe.local.request_cache.clear()
+				self.assertEqual("Flow" in get_module_sidebars(), sees_flow)
+
 	def test_sessions_runs_and_personal_memories_stay_private_to_their_owner(self):
 		self.addCleanup(memory_store.drop_table)
 		owner = _user("flow-private-owner@example.com", FLOW_USER_ROLE)

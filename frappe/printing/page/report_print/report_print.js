@@ -161,6 +161,11 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			get_query: () => ({ filters: { letter_head_for: "Report", disabled: 0 } }),
 			change: () => this.refresh(),
 		});
+		this.in_background_field = this.add_control({
+			fieldtype: "Check",
+			fieldname: "in_background",
+			label: __("Generate PDF in background"),
+		});
 
 		const $page = $(`<div class="print-page-settings">
 			<div class="print-sidebar-heading">${__("Page")}</div>
@@ -287,6 +292,7 @@ frappe.views.ReportPrintView = class ReportPrintView {
 		this.format = out.format;
 		this.html = out.html.replace("</body>", `<style>@page { size: ${size}; }</style></body>`);
 		this.include_filters_field.toggle(out.format.type !== "jinja");
+		this.in_background_field.toggle(this.builds_pdf_on_server());
 		this.pick_columns_field.toggle(!print_settings.print_format);
 		this.$columns.toggle(
 			!print_settings.print_format && !!this.pick_columns_field.get_value()
@@ -405,12 +411,12 @@ frappe.views.ReportPrintView = class ReportPrintView {
 
 	download_pdf() {
 		if (!this.html) return;
-		if (
-			!this.report.tree_report &&
-			(this.format.type === "jinja" ||
-				(this.format.type === "grid" && !this.report.report_settings.formatter))
-		) {
-			return this.report.download_pdf_from_server(this.print_settings, this.format);
+		if (this.builds_pdf_on_server()) {
+			return this.report.download_pdf_from_server(
+				this.print_settings,
+				this.format,
+				this.in_background_field.get_value()
+			);
 		}
 
 		this.report.make_access_log("Print", "PDF");
@@ -418,5 +424,13 @@ frappe.views.ReportPrintView = class ReportPrintView {
 			...this.print_settings,
 			report_name: this.report.get_pdf_filename(),
 		});
+	}
+
+	builds_pdf_on_server() {
+		return (
+			!this.report.tree_report &&
+			(this.format.type === "jinja" ||
+				(this.format.type === "grid" && !this.report.report_settings.formatter))
+		);
 	}
 };

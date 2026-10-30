@@ -96,6 +96,7 @@ class CustomField(Document):
 		ignore_versioning: DF.Check
 		ignore_xss_filter: DF.Check
 		in_global_search: DF.Check
+		in_import_template: DF.Check
 		in_list_view: DF.Check
 		in_preview: DF.Check
 		in_standard_filter: DF.Check
@@ -106,6 +107,7 @@ class CustomField(Document):
 		label: DF.Data | None
 		length: DF.Int
 		link_filters: DF.JSON | None
+		make_attachment_public: DF.Check
 		mandatory_depends_on: DF.Code | None
 		mask: DF.Check
 		max_value: DF.Float
@@ -122,6 +124,7 @@ class CustomField(Document):
 		print_width: DF.Data | None
 		read_only: DF.Check
 		read_only_depends_on: DF.Code | None
+		remember_last_selected_value: DF.Check
 		report_hide: DF.Check
 		reqd: DF.Check
 		search_index: DF.Check

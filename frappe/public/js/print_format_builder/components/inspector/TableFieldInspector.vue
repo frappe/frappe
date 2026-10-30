@@ -91,7 +91,11 @@
 									class="pfb-col-label-input"
 									type="text"
 									v-model="col.label"
-									:placeholder="col.fieldname"
+									:placeholder="
+										col.fieldtype === 'Blank'
+											? __('Blank column')
+											: col.fieldname
+									"
 									:title="col.fieldname"
 								/>
 								<button
@@ -201,7 +205,12 @@
 										</div>
 									</template>
 								</draggable>
-								<div class="pfb-col-add-row" v-if="merge_field_opts(col).length">
+								<div
+									class="pfb-col-add-row"
+									v-if="
+										col.fieldtype !== 'Blank' && merge_field_opts(col).length
+									"
+								>
 									<Autocomplete
 										:options="merge_field_opts(col)"
 										:placeholder="__('Add field...')"
@@ -360,7 +369,8 @@ let available_columns = computed(() => {
 	const standard = [{ label: __("Sr No."), fieldname: "idx", fieldtype: "Data" }];
 	return standard
 		.concat(child_value_fields.value.filter((f) => f.fieldname !== "name"))
-		.filter((f) => !existing.has(f.fieldname));
+		.filter((f) => !existing.has(f.fieldname))
+		.concat({ label: __("Blank column"), fieldname: "__blank", fieldtype: "Blank" });
 });
 
 let available_column_opts = computed(() => to_field_opts(available_columns.value));
@@ -370,6 +380,13 @@ function pick_column(opt) {
 	let entry;
 	if (opt.value === "idx") {
 		entry = { label: __("Sr No."), fieldname: "idx", fieldtype: "Data", width: 10 };
+	} else if (opt.value === "__blank") {
+		entry = {
+			label: "",
+			fieldname: `blank_${frappe.utils.get_random(6)}`,
+			fieldtype: "Blank",
+			width: 10,
+		};
 	} else {
 		const df = meta?.fields.find((f) => f.fieldname === opt.value);
 		if (!df) return;

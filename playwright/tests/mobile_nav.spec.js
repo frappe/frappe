@@ -18,6 +18,10 @@ async function show_seeded_todos(page) {
 		await cur_list.filter_area.clear(false);
 		await cur_list.filter_area.add([["ToDo", "description", "like", `${tag}%`]]);
 	}, TODO_TAG);
+	await page.waitForFunction(
+		(tag) => cur_list.data.length && cur_list.data.every((d) => d.description.startsWith(tag)),
+		TODO_TAG
+	);
 }
 
 test.describe("Phone tab bar", () => {

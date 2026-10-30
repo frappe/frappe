@@ -36,6 +36,7 @@ SETTINGS_DOCTYPES = (
 	"Flow Knowledge Source",
 	"Flow Knowledge Settings",
 	"Flow Agent Memory",
+	"Flow Settings",
 )
 
 
@@ -61,7 +62,7 @@ def boot() -> dict[str, Any]:
 		"agents": agents,
 		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_TITLE), None),
 		"models": models,
-		"has_provider": bool(frappe.db.exists("Flow Provider", {"enabled": 1})),
+		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
 		"file_types": sorted(FILE_EXTENSIONS),
 		"user": frappe.db.get_value(
 			"User", frappe.session.user, ["name", "full_name", "user_image"], as_dict=True

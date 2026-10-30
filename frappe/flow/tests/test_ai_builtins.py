@@ -276,6 +276,12 @@ class TestRunReport(IntegrationTestCase):
 			run_report(report_name=self.report.name, filters={"company": "Acme"}, ctx=CTX)
 		self.assertTrue(str(caught.exception).startswith("'owner'\n"))
 
+		self.report.db_set("validate_filters", 1)
+		with patch("frappe.log_error"), self.assertRaises(ValueError) as caught:
+			run_report(report_name=self.report.name, filters={"warehouse": "Main"}, ctx=CTX)
+		self.assertIn("Company is mandatory", str(caught.exception))
+		self.assertTrue(str(caught.exception).endswith("The report's filters (* = required) warehouse*"))
+
 	def test_an_empty_run_lists_the_filters(self):
 		filters = "(* = required) warehouse*, company*, item"
 		result = run_report(report_name=self.report.name, filters={"company": "Other"}, ctx=CTX)

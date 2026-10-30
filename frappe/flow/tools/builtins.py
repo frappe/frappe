@@ -23,7 +23,7 @@ _BATCH_SAVEPOINT = "flow_batch"
 _LIFECYCLE_BY_DOCSTATUS = {0: "submit", 1: "cancel", 2: "amend"}
 SOURCE_TOOL_SLUGS = frozenset({"read", "grep"})
 SUBAGENT_TOOL_SLUG = "subagent"
-SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG, "suggest_replies"}
+SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG, "web_fetch", "web_search"}
 
 
 def _server_only_tool() -> None:
@@ -56,8 +56,14 @@ def subagent(
 
 
 @tool
-def suggest_replies(replies: list[str], multi_select: bool = False, *, ctx: ToolContext) -> str:
-	"""Offer the user two to four next messages after a reply, sent with a tap."""
+def web_fetch(url: str, *, ctx: ToolContext) -> str:
+	"""Fetch a public web page and read it as markdown. Pages drawn by JavaScript come back nearly empty."""
+	_server_only_tool()
+
+
+@tool
+def web_search(query: str, *, ctx: ToolContext) -> str:
+	"""Search the web and return the top results, each with its title, URL and a short snippet."""
 	_server_only_tool()
 
 
@@ -292,12 +298,13 @@ def _report_filters(report_name: str) -> str:
 
 	script = get_script(report_name)
 	names = [f.fieldname + ("*" if f.mandatory else "") for f in script["filters"]]
-	# a JS filter runs to the next fieldname
-	parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
-	names += [
-		name + ("*" if re.search(r"""reqd["']?\s*:\s*(1|true)""", rest) else "")
-		for name, rest in zip(parts[1::2], parts[2::2], strict=True)
-	]
+	if not script["validate_filters"]:
+		# a JS filter runs to the next fieldname
+		parts = re.split(r"""fieldname["']?\s*:\s*["'](\w+)""", script["script"])
+		names += [
+			name + ("*" if re.search(r"""reqd["']?\s*:\s*(1|true)""", rest) else "")
+			for name, rest in zip(parts[1::2], parts[2::2], strict=True)
+		]
 	# legend first; long errors get cut
 	return "(* = required) " + ", ".join(dict.fromkeys(names)) if names else "none found (may be incomplete)"
 
@@ -745,7 +752,8 @@ BUILTIN_TOOLS: list[Tool] = [
 	read,
 	grep,
 	subagent,
-	suggest_replies,
+	web_fetch,
+	web_search,
 	search_knowledge,
 	search_attachments,
 	update_memory,

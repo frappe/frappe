@@ -39,7 +39,6 @@ class TestFlowSafeExec(IntegrationTestCase):
 			"read",
 			"grep",
 			"subagent",
-			"suggest_replies",
 			"update_memory",
 		):
 			self.assertNotIn(name, g)

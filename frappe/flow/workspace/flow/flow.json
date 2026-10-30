@@ -1,6 +1,6 @@
 {
  "charts": [],
- "content": "[{\"id\":\"flowHeader1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Flow</b></span>\",\"col\":12}},{\"id\":\"scAgent0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Agent\",\"col\":3}},{\"id\":\"scKnow00001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Knowledge Base\",\"col\":3}},{\"id\":\"scSession01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Session\",\"col\":3}},{\"id\":\"scModel0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Model\",\"col\":3}},{\"id\":\"flowManage1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Manage</b></span>\",\"col\":12}},{\"id\":\"cardAgents1\",\"type\":\"card\",\"data\":{\"card_name\":\"Agents\",\"col\":3}},{\"id\":\"cardKnow001\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge\",\"col\":3}},{\"id\":\"cardConvo01\",\"type\":\"card\",\"data\":{\"card_name\":\"Conversations\",\"col\":3}},{\"id\":\"cardConfig1\",\"type\":\"card\",\"data\":{\"card_name\":\"Configuration\",\"col\":3}}]",
+ "content": "[{\"id\":\"flowHeader1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Flow</b></span>\",\"col\":12}},{\"id\":\"scChat00001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Chat\",\"col\":3}},{\"id\":\"scAgent0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Agent\",\"col\":3}},{\"id\":\"scKnow00001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Knowledge Base\",\"col\":3}},{\"id\":\"scSession01\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Session\",\"col\":3}},{\"id\":\"scModel0001\",\"type\":\"shortcut\",\"data\":{\"shortcut_name\":\"Flow Model\",\"col\":3}},{\"id\":\"flowManage1\",\"type\":\"header\",\"data\":{\"text\":\"<span class=\\\"h4\\\"><b>Manage</b></span>\",\"col\":12}},{\"id\":\"cardAgents1\",\"type\":\"card\",\"data\":{\"card_name\":\"Agents\",\"col\":3}},{\"id\":\"cardKnow001\",\"type\":\"card\",\"data\":{\"card_name\":\"Knowledge\",\"col\":3}},{\"id\":\"cardConvo01\",\"type\":\"card\",\"data\":{\"card_name\":\"Conversations\",\"col\":3}},{\"id\":\"cardConfig1\",\"type\":\"card\",\"data\":{\"card_name\":\"Configuration\",\"col\":3}}]",
  "custom_blocks": [],
  "docstatus": 0,
  "doctype": "Workspace",
@@ -168,9 +168,22 @@
  "parent_page": "",
  "public": 1,
  "quick_lists": [],
- "roles": [],
+ "roles": [
+  {
+   "role": "Flow User"
+  },
+  {
+   "role": "System Manager"
+  }
+ ],
  "sequence_id": 1.0,
  "shortcuts": [
+  {
+   "color": "Grey",
+   "label": "Chat",
+   "type": "URL",
+   "url": "/flow"
+  },
   {
    "color": "Blue",
    "doc_view": "List",

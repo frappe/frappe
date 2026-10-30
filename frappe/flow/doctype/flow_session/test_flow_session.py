@@ -453,10 +453,37 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		self.assertIsNone(untitled["title"])
 
 	def test_only_a_chat_offers_suggested_replies(self):
-		self.agent.append("tools", {"tool": "suggest_replies"})
-		self.agent.save()
-		self.assertIn("suggest_replies", self.config()["tools"])
-		self.assertEqual(self.config(source="Trigger")["tools"], ["read", "grep", "subagent"])
+		self.assertTrue(self.config()["suggest_replies"])
+		self.assertFalse(self.config(source="Trigger")["suggest_replies"])
+
+	def test_the_sites_small_model_travels_with_its_own_credentials(self):
+		self.assertNotIn("small_model", self.config())
+		small = frappe.get_doc(
+			{
+				"doctype": "Flow Model",
+				"title": "Small Model",
+				"model_id": "openai/gpt-4o-mini",
+				"api_key": "sk-small",
+				"enabled": 1,
+			}
+		).insert()
+		frappe.db.set_single_value("Flow Settings", "small_model", small.name)
+		config = self.config()
+		SessionConfig.model_validate(config)
+		self.assertEqual(config["small_model"]["model"], "openai/gpt-4o-mini")
+		self.assertEqual(config["small_model"]["api_key"], "sk-small")
+		# a disabled one leaves the side jobs to the chat's model
+		small.db_set("enabled", 0)
+		self.assertNotIn("small_model", self.config())
+
+	def test_the_sites_search_provider_travels_with_its_key(self):
+		self.assertEqual(self.config()["web_search"], {"provider": "duckduckgo"})
+		brave = {"search_provider": "Brave"}
+		self.assertRaises(frappe.ValidationError, frappe.get_doc("Flow Settings").update(brave).save)
+		frappe.get_doc("Flow Settings").update({**brave, "search_api_key": "brave-key"}).save()
+		config = self.config()
+		SessionConfig.model_validate(config)
+		self.assertEqual(config["web_search"], {"provider": "brave", "api_key": "brave-key"})
 
 	def test_sub_agents_travel_with_their_own_model_and_callback_identity(self):
 		child_model = frappe.get_doc(

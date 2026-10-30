@@ -29,13 +29,23 @@ TEST_JOBS = {"server-tests.yml": "Integration", "ui-tests.yml": "UI Test"}
 STATUS_JOB = "Update Develop Status"
 
 
-def gh(*args):
-	return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
+def gh(*args, attempts=3):
+	"""A GitHub API call, tried again after a failure such as a dropped connection."""
+	for attempt in range(attempts):
+		try:
+			return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
+		except subprocess.CalledProcessError:
+			if attempt == attempts - 1:
+				raise
+			time.sleep(10)
 
 
 def gate_conclusion(run, gate_job):
-	"""The gate job's result, or None for a run that hasn't finished or was cancelled."""
-	jobs = gh(f"repos/{REPO}/actions/runs/{run['id']}/jobs")["jobs"]
+	"""The gate job's result, or None for a run that hasn't finished or was cancelled. A re-run still going counts as its previous attempt."""
+	path = f"repos/{REPO}/actions/runs/{run['id']}"
+	if run["status"] != "completed" and run["run_attempt"] > 1:
+		path += f"/attempts/{run['run_attempt'] - 1}"
+	jobs = gh(f"{path}/jobs")["jobs"]
 	if any(job["conclusion"] == "cancelled" and job["name"] != STATUS_JOB for job in jobs):
 		return None
 	return next((job["conclusion"] for job in jobs if job["name"] == gate_job), None)

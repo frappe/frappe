@@ -265,7 +265,10 @@ def check_node_executable():
 
 
 def get_node_env():
-	return {"NODE_OPTIONS": f"--max_old_space_size={get_safe_max_old_space_size()}"}
+	node_options = os.environ.get("NODE_OPTIONS", "")
+	if "--max-old-space-size" not in node_options and "--max_old_space_size" not in node_options:
+		node_options = f"{node_options} --max_old_space_size={get_safe_max_old_space_size()}".strip()
+	return {"NODE_OPTIONS": node_options}
 
 
 def get_safe_max_old_space_size():
