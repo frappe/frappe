@@ -32,9 +32,9 @@ principle text usually points at the tiebreaker.
 - **`CONTEXT.md`** is the *vocabulary*: what a **Sort**, **Filter**, **Column**,
   **Controlled component**, **View Snapshot** mean. PHILOSOPHY is the *rules* that use
   the vocabulary.
-- **`docs/adr/`** are *decisions* — specific applications of principles to specific
-  questions (e.g. ADR-0007, persistence deferred to the host). ADRs cite principles;
-  principles don't cite ADRs.
+- **Tickets** hold *decisions*. A ticket that settles a question puts the rule it
+  makes in this file, `CONTEXT.md` or the component's own doc. Its reasoning stays in
+  the ticket. `island/decisions/` holds the decision records of the island build.
 
 ---
 
@@ -66,8 +66,7 @@ and never owns a saved View entity.
 
 **Why:** Keeping controls stateless-of-IO makes them reusable across apps with different
 data and persistence models, and keeps CRM's "Views" concept out of the shared library.
-See `CONTEXT.md` (**Controlled component**, **View Snapshot**) and
-[ADR-0007](docs/adr/0007-persistence-deferred-to-host-library-tops-out-at-view-snapshot.md).
+See `CONTEXT.md` (**Controlled component**, **View Snapshot**).
 
 ---
 

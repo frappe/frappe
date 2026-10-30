@@ -2,7 +2,7 @@
   ColumnSettings — a controlled, meta-driven list-view control. Its `v-model` is
   an ordered list of Columns (`{ fieldname, label, width? }[]`): presence means
   shown, array order is display order, and `width` is the slice a column resize
-  co-writes (the host wires that sync via `useListView`, see ADR-0006). The
+  co-writes (the host wires that sync via `useListView`). The
   control owns no data resource and never persists — changes go live into the
   model with no apply button; reset / reset-to-defaults are host concerns.
 
@@ -48,7 +48,7 @@
 		</template>
 		<template #default>
 			<!-- Reorder / rename / remove the shown columns, add more. Width is
-			     not edited here — drag-resize in the table owns it (ADR-0006). -->
+			     not edited here — drag-resize in the table owns it. -->
 			<div class="min-w-60 p-2">
 				<Draggable
 					v-if="model.length"
@@ -116,7 +116,7 @@
 							/>
 						</template>
 					</Combobox>
-					<!-- Reset to the Meta defaults. The host owns the defaults (ADR-0006),
+					<!-- Reset to the Meta defaults. The host owns the defaults,
 					     so this only emits; `canReset` hides it when nothing to undo. The
 					     first click arms an inline confirm, the second emits. -->
 					<Button
@@ -146,7 +146,7 @@ const props = withDefaults(defineProps<ColumnSettingsProps>(), {
 	synthetic: () => [],
 });
 
-// Reset is the host's job (ADR-0006): the controlled popover holds no defaults, so
+// Reset is the host's job: the controlled popover holds no defaults, so
 // it only signals intent and the host restores them.
 const emit = defineEmits<{ reset: [] }>();
 
@@ -189,7 +189,7 @@ watch(
 const { meta } = useDoctypeMeta(props.doctype);
 
 // Field Options derived client-side from Meta, unioned with the host's synthetic
-// columns (ADR-0033) — no CRM endpoint.
+// columns — no CRM endpoint.
 const allOptions = computed<ColumnOption[]>(() =>
 	getColumnOptions(meta.value?.fields ?? [], props.synthetic)
 );
@@ -228,7 +228,7 @@ function reorder(next: Column[]) {
 
 // Inline rename holds a component-local draft so Esc discards the edit without
 // touching the model; only commit writes it back. Width is never edited here —
-// drag-resize in the table owns it (ADR-0006). An empty/whitespace label is
+// drag-resize in the table owns it. An empty/whitespace label is
 // rejected so a column never loses its header.
 const editIndex = ref<number | null>(null);
 const draft = ref("");

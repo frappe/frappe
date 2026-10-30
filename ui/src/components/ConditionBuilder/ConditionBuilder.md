@@ -9,7 +9,6 @@ a slot, so it fits doctype field conditions and domain-specific rules alike.
 operator tables and value controls from the same modules, so they cannot drift.
 `ConditionOperator` is `Filter`'s operator union minus `timespan`, and `ConditionField`
 is `FilterField`, both derived rather than copied, so there is nothing to keep in step.
-See [ADR-0008](../../../docs/adr/0008-conditionbuilder-composes-filter-rules.md).
 
 ```ts
 import { ConditionBuilder } from "@framework/ui/ConditionBuilder";

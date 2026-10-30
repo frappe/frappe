@@ -1,7 +1,7 @@
 import type { Component, InjectionKey, Ref } from "vue";
 // The field contract (`FieldMeta`, `FieldComponentProps`, `FieldComponentEmits`)
 // and the form-context injection keys (`DocKey`/`ParentDocKey`/`UpdateKey`) now
-// live with the shared value-inputs (ADR-0004). Re-exported here so existing
+// live with the shared value-inputs. Re-exported here so existing
 // `from ".../FormLayout/types"` and `@framework/ui/FormLayout` imports keep working.
 import type { FieldMeta } from "../Fields/types";
 export type {

@@ -36,7 +36,7 @@ const toOption = (label: string, fieldname: string): ColumnOption => ({
  * Derive a doctype's available column Field Options from its Meta fields,
  * client-side: drop the layout/no-data fieldtypes and child tables, keep only
  * fields with both a label and fieldname, then append the standard fields and any
- * host-declared synthetic columns (ADR-0033) — the union so a hidden synthetic
+ * host-declared synthetic columns — the union so a hidden synthetic
  * column stays re-addable, since it is not a Meta field. The component filters out
  * already-selected columns; this stays a pure Meta→options map. See CONTEXT.md
  * ("Field Options").

@@ -1,7 +1,7 @@
 import type { RawMetaField } from "../FormLayout/types";
 import type { Column, SyntheticColumn, WireColumn } from "./types";
 
-/** The leading character reserved for a synthetic column's `key` (ADR-0033), so it
+/** The leading character reserved for a synthetic column's `key`, so it
  *  can never collide with a docfield. A `_`-prefixed column in a persisted layout is
  *  only valid while a live declaration still claims it — see
  *  {@link dropOrphanedSyntheticColumns}. */
@@ -40,7 +40,7 @@ export function getColumnAlign(fieldtype: string): "left" | "right" {
  * resized column carries a fixed px `width`. A Column with no Meta field — a
  * standard field like `name` that isn't in `meta.fields` — falls back to a
  * left-aligned `Data` column. A Column whose `fieldname` matches a host-declared
- * synthetic column (ADR-0033) takes its render metadata from the declaration instead
+ * synthetic column takes its render metadata from the declaration instead
  * of Meta. The inverse of {@link parseColumns}.
  */
 export function serializeColumns(
@@ -67,7 +67,7 @@ export function serializeColumns(
   });
 }
 
-/** The wire form of a synthetic column (ADR-0033): its `type`/`align` come from the
+/** The wire form of a synthetic column: its `type`/`align` come from the
  *  host declaration (never Meta), while a user resize (`column.width`) still overrides
  *  the declaration's default width, falling back to the auto `fr` when neither is set. */
 function syntheticWireColumn(
@@ -105,7 +105,7 @@ export function parseColumns(wire: WireColumn[]): Column[] {
 /**
  * Write a resized column's new `width` back into the matching Column by
  * `fieldname`, returning a new list (others untouched; a no-op if nothing
- * matches). This is the resize→settings half of the ADR-0006 sync: the `ListView`
+ * matches). This is the resize→settings half of the column-width sync: the `ListView`
  * composite's `columnWidthUpdated` handler calls this on the shared `columns` ref,
  * which ColumnSettings also `v-model`s — so the popover's width follows a drag
  * with no event plumbing.
@@ -138,7 +138,7 @@ export function clearColumnWidth(
 
 /**
  * Drop **orphaned synthetic columns** from a persisted layout: any `_`-prefixed
- * column (a synthetic `key`, ADR-0033) no longer claimed by a live declaration. A
+ * column (a synthetic `key`) no longer claimed by a live declaration. A
  * customized layout can outlive the declaration that seeded it — the host stops
  * declaring the Record indicator, yet `_indicator` still sits in the stored
  * `Column[]`. Left in, it names no docfield, so `serializeColumns` mistakes it for a
@@ -159,7 +159,7 @@ export function dropOrphanedSyntheticColumns(
 
 /**
  * The field set `get_list` fetches for a set of wire columns: `name` plus each
- * column's key, minus the host-declared synthetic columns (ADR-0033). A synthetic
+ * column's key, minus the host-declared synthetic columns. A synthetic
  * key (`_indicator`) names no docfield, so requesting it would error the fetch —
  * the real fields its cell reads are the host's concern, fetched separately. Deduped.
  * With no synthetic declarations it is `name` + every key (byte-identical default).

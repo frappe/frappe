@@ -6,9 +6,9 @@
 
   Field Options come from the doctype's Meta (`useDoctypeMeta` → `getFilterableFields`),
   and the per-fieldtype operator table from `getOperators` — both pure ports of CRM's
-  `crm.api.doc.get_filterable_fields` + `getOperators` (ADR-0001, ADR-0003).
+  `crm.api.doc.get_filterable_fields` + `getOperators`.
 
-  The value inputs are the shared `Fields` module's components (ADR-0004), not CRM's
+  The value inputs are the shared `Fields` module's components, not CRM's
   bespoke Link/Duration/Rating trio. Which control a condition gets — the
   operator-driven swaps as well as the fieldtype ones — is decided by
   `valueControl.ts`, a sibling module rather than this file, so the nested

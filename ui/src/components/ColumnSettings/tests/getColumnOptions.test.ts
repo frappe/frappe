@@ -40,7 +40,7 @@ describe("getColumnOptions", () => {
     ]);
   });
 
-  it("appends declared synthetic columns so a hidden one is re-addable (ADR-0033)", () => {
+  it("appends declared synthetic columns so a hidden one is re-addable", () => {
     expect(
       getColumnOptions(
         [{ fieldname: "status", fieldtype: "Select", label: "Status" }],

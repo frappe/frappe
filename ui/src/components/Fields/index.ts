@@ -1,7 +1,7 @@
 // Fields — the shared, fieldtype-aware value-input components plus the registry
 // that dispatches a fieldtype to its control. Consumed by both `FormLayout`
 // (form fields) and the ListView `Filter` / `Quick Filter` controls, so neither
-// reaches across a module boundary for the other's value inputs (ADR-0004).
+// reaches across a module boundary for the other's value inputs.
 export { registerFieldType, getFieldComponent } from "./fieldTypes";
 export type { RegisterFieldTypeOptions } from "./fieldTypes";
 

@@ -43,7 +43,7 @@ export function getDefaultColumns(
 /** Convert a synthetic declaration to its persisted {@link Column} form: the `key`
  *  rides the `fieldname` slot, the declaration's default `width` seeds the column
  *  (dropped when unset so it flexes). Render metadata (`type`/`align`) is never
- *  stored — `serializeColumns` re-derives it from the declaration (ADR-0033). */
+ *  stored — `serializeColumns` re-derives it from the declaration. */
 function toColumn(declaration: SyntheticColumn): Column {
   const column: Column = {
     fieldname: declaration.key,
@@ -54,7 +54,7 @@ function toColumn(declaration: SyntheticColumn): Column {
 }
 
 /**
- * Fold host-declared synthetic columns (ADR-0033) into a Meta-derived default seed:
+ * Fold host-declared synthetic columns into a Meta-derived default seed:
  * each declaration is inserted at its `place` anchor (`'start'` | `'after-title'`
  * [right after the leading title/name column] | `'end'`, default `'end'`), and any
  * docfield it `subsumes` is dropped from the seed (default-only, so it stays

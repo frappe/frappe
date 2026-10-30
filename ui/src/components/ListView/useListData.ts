@@ -6,13 +6,13 @@ import { usePagedList } from "../../composables/usePagedList";
 import type { UseListView } from "./useListView";
 
 /**
- * The list-data layer — the half ADR-0001 deferred to the *host*: the shared
+ * The list-data layer — the half the controls leave to the *host*: the shared
  * composables own filter/sort/column STATE and emit wire projections, but never
  * fetch. This turns those projections into live rows.
  *
  * It's the optional fetching companion to `useListView`: any host that wants
  * doctype-agnostic data out of the box can opt in, while hosts with their own
- * data layer keep the controls fetch-free (ADR-0001). It reads the rows and the
+ * data layer keep the controls fetch-free. It reads the rows and the
  * total in one list request and refetches from the first page whenever a wire
  * projection or the page length changes. `loadMore` is the only thing that grows
  * `start`, so paging append survives a filter edit.
@@ -43,8 +43,8 @@ export interface UseListData {
 export function useListData(doctype: string, view: UseListView): UseListData {
   const pageLength = ref(20);
 
-  // The row key plus every shown column's field, skipping synthetic columns
-  // (ADR-0033) — their keys name no docfield, so the host draws those cells.
+  // The row key plus every shown column's field, skipping synthetic columns: their
+  // keys name no docfield, so the host draws those cells.
   const fields = computed(() =>
     fetchFields(view.columns.wire.value, view.columns.synthetic.value)
   );

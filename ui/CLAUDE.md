@@ -44,8 +44,19 @@ frappe-ui's fetch primitives (`call`, `createResource`, `createListResource`,
 `createDocumentResource`, `useCall`, `useList`, `useDoc`, `useNewDoc`, `useDoctype`),
 and no literal starts with `/api/method`, `/api/resource` or `/api/v1`. The lint in
 `../frontend/eslint.config.js` fails CI on either; run it with `yarn --cwd frontend lint`
-after the install in [`../frontend/CLAUDE.md`](../frontend/CLAUDE.md). The rule and its
-reasons are [ADR 0010](./docs/adr/0010-server-calls-go-through-one-v2-wrapper.md).
+after the install in [`../frontend/CLAUDE.md`](../frontend/CLAUDE.md).
+
+What the wrapper does for every caller:
+
+- **Nothing is reshaped.** `const { data, has_next_page } = await listDocuments(...)`.
+- **A save sends `modified`.** `updateDocument` refuses a document without it, before any
+  request, so the server can refuse a save over a newer version (`TimestampMismatchError`).
+- **`filters`, `or_filters` and `include` pass through.** The wrapper JSON-encodes the two
+  filter lists, joins `include` with commas, and models no filter grammar.
+- **Every failure except an abort is an `ApiError`.** Its `type` is the server's error type,
+  or one the wrapper sets, such as `NetworkError`, `HTTPError` (a failed status with no
+  `errors` list) or `MissingData` (a 200 with no `data`). A caller whose method returns
+  nothing passes `nullable`, and then gets `data: null`.
 
 ## Formatting
 

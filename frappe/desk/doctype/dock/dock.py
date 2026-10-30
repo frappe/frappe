@@ -92,7 +92,7 @@ class Dock(Document):
 	the only difference, and the parent says who an entry belongs to. `Custom Sidebar` layers the
 	sidebar the same way, in its own table.
 
-	This uses one table rather than a doctype per layer, which amends ADR 0004. `Workspace`,
+	This uses one table rather than a doctype per layer. `Workspace`,
 	`Report`, `Print Format`, `Notification` and `Dashboard Chart` all mix exported and
 	site-created rows in one table, and the app layer is kept read-only by a code guard
 	(`validate_app_content`) rather than by permissions.
