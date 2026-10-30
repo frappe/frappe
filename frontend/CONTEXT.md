@@ -262,22 +262,26 @@ _Avoid_: row form, grid form.
 **Anchor**: <a id="anchor"></a>
 A custom field's `insert_after`, resolved against the layout in use on Details and New
 Record. An unplaced custom field renders right after its anchor field, in the same column,
-or at the top of the container whose `name` its anchor is. Anchors chain in meta order. The
+or at the top of the container whose `name` its anchor is. Anchors chain in meta order, also
+through a hidden field or one the person cannot read. The
 anchor does not resolve when the row omits that field, does not place it, or places it only
 in the Side Panel; the field then goes to "More fields". A row that places or omits the
 field wins over its anchor.
 
 **App layout**: <a id="app-layout"></a>
-A layout an app ships as a file, `<doctype>/frontend/layouts/<type>.json`.
+A layout an app ships as a file in its DocType's folder, such as
+`<doctype>/frontend/layouts/details.json`.
 _Avoid_: fork, override, copy.
 
 **Site layout**: <a id="site-layout"></a>
-A site's `Form Layout` row. It replaces the app layout of its type whole.
+A site's `Form Layout` row. A row with no condition replaces the app layout of its type
+whole; a row with a condition is chosen before the app layout when its condition matches.
 _Avoid_: fork, override, copy.
 
 **Fallback layout**: <a id="fallback-layout"></a>
-The layout built from a DocType's Tab, Section and Column Breaks when there is neither a
-site layout nor an app layout.
+The layout that renders when there is neither a site layout nor an app layout: built from
+the DocType's Tab, Section and Column Breaks, or for Quick Entry from its mandatory and Quick
+Entry fields.
 _Avoid_: fork, override, copy.
 
 **Disclosure**: <a id="disclosure"></a>

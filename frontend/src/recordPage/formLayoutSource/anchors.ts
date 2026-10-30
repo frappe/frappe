@@ -7,9 +7,9 @@ export interface Anchored {
 	rest: RawMetaField[];
 }
 
-/** Draws each unplaced custom field right after its anchor, or at the top of the container its anchor names. */
-export function withAnchors(tree: LayoutTree, unplaced: RawMetaField[]): Anchored {
-	const anchors = new AnchorIndex(unplaced);
+/** Draws each unplaced custom field after its anchor field, or atop the container it names; a chain runs through `loose`. */
+export function withAnchors(tree: LayoutTree, unplaced: RawMetaField[], loose: RawMetaField[]): Anchored {
+	const anchors = new AnchorIndex(unplaced, loose);
 	const anchored = tree.map((tab) => anchors.placeInTab(tab));
 	return { tree: anchored, rest: unplaced.filter((field) => !anchors.taken.has(field.fieldname)) };
 }
@@ -17,9 +17,11 @@ export function withAnchors(tree: LayoutTree, unplaced: RawMetaField[]): Anchore
 class AnchorIndex {
 	readonly taken = new Set<string>();
 	private followers = new Map<string, string[]>();
+	private drawn: Set<string>;
 
-	constructor(unplaced: RawMetaField[]) {
-		for (const field of unplaced) {
+	constructor(unplaced: RawMetaField[], loose: RawMetaField[]) {
+		this.drawn = new Set(unplaced.map((field) => field.fieldname));
+		for (const field of loose) {
 			if (!field.insert_after) continue;
 			const list = this.followers.get(field.insert_after) ?? [];
 			list.push(field.fieldname);
@@ -29,10 +31,13 @@ class AnchorIndex {
 
 	placeInTab(tab: LayoutTreeTab): LayoutTreeTab {
 		const sections = tab.sections ?? [];
-		const top = hasColumn(sections[0]) ? this.follow(tab.name) : [];
+		const opener = sections.findIndex(hasColumn);
+		const top = opener < 0 ? [] : this.follow(tab.name);
 		return {
 			...tab,
-			sections: sections.map((section, index) => this.placeInSection(section, index ? [] : top)),
+			sections: sections.map((section, index) =>
+				this.placeInSection(section, index === opener ? top : [])
+			),
 		};
 	}
 
@@ -51,19 +56,20 @@ class AnchorIndex {
 		return { ...column, fields: [...top, ...fields] };
 	}
 
-	/** The fields anchored to `name` in meta order, each followed by its own chain; a cycle stops at a taken field. */
+	/** The drawn fields anchored to `name`, depth first in meta order; a name the tree lists twice draws them once. */
 	private follow(name: string | undefined): string[] {
 		if (!name) return [];
 		return (this.followers.get(name) ?? []).flatMap((fieldname) => {
 			if (this.taken.has(fieldname)) return [];
 			this.taken.add(fieldname);
-			return [fieldname, ...this.follow(fieldname)];
+			const chain = this.follow(fieldname);
+			return this.drawn.has(fieldname) ? [fieldname, ...chain] : chain;
 		});
 	}
 }
 
-function hasColumn(section: LayoutTreeSection | undefined): boolean {
-	return Boolean(section?.columns?.length);
+function hasColumn(section: LayoutTreeSection): boolean {
+	return Boolean(section.columns?.length);
 }
 
 function fieldnameOf(entry: string | InlineField): string {

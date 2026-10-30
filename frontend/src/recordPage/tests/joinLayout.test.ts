@@ -529,9 +529,39 @@ describe("joinLayout anchors", () => {
 		]);
 	});
 
-	it("does not anchor on Quick Entry or with no rule", () => {
-		const quick = joinLayout(treeWith(["title"]), meta, { unplaced: { mode: "mandatory" } });
-		expect(columns(quick).col_1).toEqual(["title"]);
-		expect(columns(joinLayout(treeWith(["title"]), meta)).col_1).toEqual(["title"]);
+	it("chains through a field the person cannot see, without drawing it", () => {
+		const fields = meta.map((field) =>
+			field.fieldname === "region" ? { ...field, permlevel: 1 } : field
+		);
+		const denied = (field: RawMetaField) => (field.permlevel ? "none" : "write");
+		const drawn = columns(joinLayout(tree, fields, { ...sectionMode(), fieldAccess: denied }));
+		expect(drawn.left).toEqual(["title", "zone", "district", "status"]);
+		expect(drawn.column_1).toEqual(["plain"]);
+	});
+
+	it("opens a tab at its first section that has a column", () => {
+		const tabbed: LayoutTree = [
+			{
+				name: "details_tab",
+				sections: [
+					{ name: "bare", columns: [] },
+					{ name: "main", columns: [{ name: "left", fields: ["title", "status", "code"] }] },
+				],
+			},
+		];
+		const fields = anchoredTo({ region: "details_tab", zone: "", district: "" });
+		expect(columns(joinLayout(tabbed, fields, sectionMode())).left).toEqual([
+			"region",
+			"title",
+			"status",
+			"code",
+		]);
+	});
+
+	it("does not anchor on Quick Entry", () => {
+		const fields = meta.map((field) => (field.fieldname === "region" ? { ...field, reqd: 1 } : field));
+		const drawn = columns(joinLayout(treeWith(["title"]), fields, { unplaced: { mode: "mandatory" } }));
+		expect(drawn.col_1).toEqual(["title"]);
+		expect(drawn.column_1).toEqual(["region"]);
 	});
 });
