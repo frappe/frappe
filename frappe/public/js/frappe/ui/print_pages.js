@@ -133,6 +133,11 @@ frappe.ui.PrintPages = class PrintPages {
 
 	static paginate({ sheet, breaks }) {
 		const doc = sheet.ownerDocument;
+		doc.querySelectorAll(".preview-pages").forEach((el) => el.remove());
+		doc.querySelectorAll(".preview-source").forEach((el) =>
+			el.classList.remove("preview-source")
+		);
+		doc.body.classList.remove("preview-paginated");
 		const layout = this.find_breaks({ sheet, breaks });
 		if (!layout || layout.pages.length < 2) return [];
 
@@ -227,7 +232,10 @@ frappe.ui.PrintPages = class PrintPages {
 			sheet.classList.add("preview-source");
 			sheet.after(container);
 		}
-		doc.head.appendChild(doc.createElement("style")).textContent = `
+		if (doc.getElementById("preview-pages-style")) return pages;
+		const css = doc.head.appendChild(doc.createElement("style"));
+		css.id = "preview-pages-style";
+		css.textContent = `
 			@media screen {
 				.preview-source { display: none; }
 				body.preview-paginated {

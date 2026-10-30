@@ -39,6 +39,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		const doc = frame.contentDocument;
 		this.frame = frame;
 		this.pages = [];
+		this.paginate = null;
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
 		doc.addEventListener("scroll", () => this.update_page_label());
 		if (fit && !this.zoom_set_by_user) this.fit(1);
@@ -52,8 +53,11 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		);
 		await frappe.require("print_pages.bundle.js");
 		if (frame.contentDocument !== doc) return;
-		const sheet = this.get_sheet(doc);
-		if (sheet?.sheet) this.pages = frappe.ui.PrintPages.paginate(sheet);
+		this.paginate = () => {
+			const sheet = this.get_sheet(doc);
+			this.pages = sheet?.sheet ? frappe.ui.PrintPages.paginate(sheet) : [];
+		};
+		this.paginate();
 		this.update_page_label();
 	}
 
@@ -107,6 +111,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		if (this.zoom_style) {
 			this.zoom_style.textContent = `@media screen { :root { zoom: ${this.zoom}; } }`;
 		}
+		this.paginate?.();
 		this.$wrapper.find(".zoom-label").text(`${Math.round(this.zoom * 100)}%`);
 		this.update_page_label();
 	}
