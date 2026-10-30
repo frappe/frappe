@@ -65,11 +65,13 @@ jobs:
           curl -fsSL https://raw.githubusercontent.com/frappe/pilot/v0.0.94-pre-alpha/install.sh | sh
           echo "$HOME/pilot/bin" >> "$GITHUB_PATH"
           echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+          uv tool install frappe-bench
 
       - name: Init Bench
         run: |
           pilot new trial --frappe-branch ci-trial
           sed -i "s|https://github.com/frappe/frappe|$GITHUB_WORKSPACE|" "$BENCH/bench.toml"
+          sed -i '/^\[lite_mode\]/,/^\[/ s/^enabled = true/enabled = false/' "$BENCH/bench.toml"
           cat "$BENCH/bench.toml"
           pilot -b trial init
 
@@ -91,6 +93,7 @@ jobs:
           pilot -b trial frappe set-config -g server_script_enabled 1 --parse
           pilot -b trial new-site test_site --admin-password admin --apps frappe
           pilot -b trial frappe --site test_site set-config allow_tests 1 --parse
+          pilot -b trial frappe --site test_site set-config db_port 3310 --parse
           pilot -b trial frappe --site test_site set-config host_name http://test_site:8000
           pilot -b trial frappe --site test_site set-config auto_email_id test@example.com
           pilot -b trial frappe --site test_site set-config mail_server localhost
