@@ -1325,6 +1325,28 @@ class TestQuery(IntegrationTestCase):
 		frappe.clear_cache()
 		frappe.hooks.permission_query_conditions = original_hooks
 
+	def test_permission_query_condition_supports_pypika(self):
+		"""A permission_query_conditions hook may return a pypika criterion, not just a SQL string."""
+		from frappe.desk.doctype.dashboard_settings.dashboard_settings import create_dashboard_settings
+
+		self.user = "test@example.com"
+		create_dashboard_settings(self.user)
+
+		with self.patch_hooks(
+			{
+				"permission_query_conditions": {
+					"Dashboard Settings": ["frappe.tests.test_query.test_permission_hook_criterion"]
+				}
+			}
+		):
+			query = frappe.qb.get_query("Dashboard Settings", user=self.user, ignore_permissions=False)
+
+			# The criterion must render to valid SQL that matches the user's own record.
+			# Before pypika support, the term was str()-coerced into a string-literal
+			# comparison (e.g. "name"='...') that never matched, so the row went missing.
+			names = [d.name for d in query.run(as_dict=True)]
+			self.assertIn(self.user, names)
+
 	def test_link_field_target_permission(self):
 		"""Test that accessing link_field.target_field respects target field's permlevel."""
 		target_dt_name = "TargetDocForLinkPerm"
@@ -3012,3 +3034,10 @@ def test_deny_all_permission_hook(user, doctype=None):
 # to the aliased link table when fetched via dot-notation.
 def allow_named_target_hook(user, doctype=None):
 	return f"`tab{doctype}`.`value` = 'Allowed tab{doctype} batch'"
+
+
+# This hook returns a pypika criterion instead of a raw SQL string.
+# Permission query conditions must accept both forms.
+def test_permission_hook_criterion(user):
+	DashboardSettings = frappe.qb.DocType("Dashboard Settings")
+	return DashboardSettings.name == user
