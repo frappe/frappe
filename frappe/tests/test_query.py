@@ -1347,6 +1347,24 @@ class TestQuery(IntegrationTestCase):
 			names = [d.name for d in query.run(as_dict=True)]
 			self.assertIn(self.user, names)
 
+	def test_match_conditions_escape_hook_values(self):
+		frappe.get_doc(doctype="ToDo", description="_Test Unrelated").insert()
+		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_breakout_hook"), [])
+
+	def test_match_conditions_keep_hook_values(self):
+		todo = frappe.get_doc(doctype="ToDo", description="back\\slash' 100%").insert()
+		self.assertEqual(self.get_todos_matching("frappe.tests.test_query.todo_backslash_hook"), [todo.name])
+
+	def get_todos_matching(self, hook):
+		from frappe.database.query import Engine
+
+		with self.patch_hooks({"permission_query_conditions": {"ToDo": [hook]}}):
+			engine = Engine()
+			engine.get_query("ToDo", user="test@example.com", db_query_compat=True)
+			condition = engine.build_match_conditions()
+
+		return frappe.db.sql(f"select name from `tabToDo` where {condition}", pluck=True)
+
 	def test_link_field_target_permission(self):
 		"""Test that accessing link_field.target_field respects target field's permlevel."""
 		target_dt_name = "TargetDocForLinkPerm"
@@ -3041,3 +3059,11 @@ def allow_named_target_hook(user, doctype=None):
 def test_permission_hook_criterion(user):
 	DashboardSettings = frappe.qb.DocType("Dashboard Settings")
 	return DashboardSettings.name == user
+
+
+def todo_breakout_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").description.isin(["%(param2)s", "x\\') OR 1=1 -- "])
+
+
+def todo_backslash_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").description == "back\\slash' 100%"
