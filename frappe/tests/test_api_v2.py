@@ -8,6 +8,7 @@ import frappe
 from frappe.api import discovery
 from frappe.api.v2 import run_doc_method
 from frappe.core.doctype.user.user import generate_keys
+from frappe.desk.doctype.todo.todo import ToDo
 from frappe.installer import update_site_config
 from frappe.permissions import add_permission, update_permission_property
 from frappe.tests.test_api import FrappeAPITestCase, make_request, suppress_stdout
@@ -96,6 +97,49 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		self.assertEqual(response.status_code, 200)
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
+
+	def test_get_list_virtual_doctype_v2(self):
+		response = self.get(self.resource("RQ Worker"), {"sid": self.sid, "limit": 1})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(
+			[row["name"] for row in response.json["data"]],
+			[row.name for row in frappe.get_list("RQ Worker", limit=1)],
+		)
+
+	def test_get_list_log_doctype_v2(self):
+		method = frappe.generate_hash()
+		for _ in range(3):
+			frappe.log_error(title=method, message="test")
+		frappe.db.commit()
+		names = frappe.get_all("Error Log", filters={"method": method}, pluck="name")
+		for name in names:
+			self.addCleanup(frappe.delete_doc, "Error Log", name)
+
+		response = self.get(
+			self.resource("Error Log"),
+			{"sid": self.sid, "filters": frappe.as_json({"method": method}), "limit": 2},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual([row["name"] for row in response.json["data"]], names[:2])
+		self.assertTrue(response.json["has_next_page"])
+
+	def test_get_list_controller_hook_v2(self):
+		name = self.GENERATED_DOCUMENTS[0]
+
+		def get_list(query):
+			return query.where(frappe.qb.DocType(self.DOCTYPE).name == name)
+
+		with patch.object(ToDo, "get_list", staticmethod(get_list), create=True):
+			response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid})
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual([row["name"] for row in response.json["data"]], [name])
+
+		def failing_get_list(query):
+			raise NotImplementedError
+
+		with patch.object(ToDo, "get_list", staticmethod(failing_get_list), create=True), suppress_stdout():
+			response = self.get(self.resource(self.DOCTYPE), {"sid": self.sid})
+		self.assertIn("NotImplementedError", response.json["errors"][0]["message"])
 
 	def test_get_document_fields_v2(self):
 		name = self.GENERATED_DOCUMENTS[0]
@@ -282,6 +326,15 @@ class TestApiV2UpdatePermissions(FrappeAPITestCase):
 		response = self.update_document(name, {"description": "Permitted API update"})
 		self.assertEqual(response.status_code, 200)
 		self.assertEqual(frappe.db.get_value("ToDo", name, "description"), "Permitted API update")
+
+	def test_virtual_doctype_list_checks_permission(self):
+		response = make_request(
+			get_test_client(use_cookies=False).get,
+			args=(self.resource("Error Log"),),
+			kwargs={"headers": {"Authorization": self.authorization}},
+			site=frappe.local.site,
+		)
+		self.assertEqual(response.status_code, 403)
 
 
 class TestMethodAPIV2(FrappeAPITestCase):

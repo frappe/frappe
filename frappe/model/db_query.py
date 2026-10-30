@@ -233,6 +233,8 @@ class DatabaseQuery:
 				"pluck": pluck,
 				"parent_doctype": parent_doctype,
 			} | self.__dict__
+			if self.order_by == DefaultOrderBy:
+				del kwargs["order_by"]
 			return frappe.call(controller.get_list, args=kwargs, **kwargs)
 
 		self.with_comment_count = sbool(with_comment_count) and not as_list and bool(self.doctype)
