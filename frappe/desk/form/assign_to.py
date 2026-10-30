@@ -59,9 +59,6 @@ def add(args: dict[str, Any] | None = None):
 	)
 
 
-<<<<<<< HEAD
-def _add(args=None, *, ignore_permissions=False):
-=======
 def is_endpoint_call(method: str) -> bool:
 	"""True when `method` is the API endpoint being served, not a Python call from other code."""
 	request = getattr(frappe.local, "request", None)
@@ -71,13 +68,7 @@ def is_endpoint_call(method: str) -> bool:
 	}
 
 
-def _add(
-	args: dict[str, Any] | None = None,
-	*,
-	ignore_permissions: bool | int = False,
-	validate_assignees: bool = False,
-):
->>>>>>> fffde37 (fix: apply the assignee check to assignments made through the API only)
+def _add(args=None, *, ignore_permissions=False, validate_assignees=False):
 	if not args:
 		args = frappe.local.form_dict
 
