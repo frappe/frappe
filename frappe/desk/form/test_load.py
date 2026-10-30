@@ -14,6 +14,7 @@ from frappe.desk.form.load import (
 	get_document_email,
 	get_filtered_attachments,
 	get_user_info_for_viewers,
+	getdoc,
 	getdoctype,
 )
 from frappe.tests import IntegrationTestCase
@@ -212,4 +213,54 @@ class TestLoad(IntegrationTestCase):
 		self.assertEqual([("Purchase Order", "PO-26465-002")], list(parse_email([address])))
 		self.assertEqual(
 			[("Purchase Order", "PO/2026/002")], list(parse_email([address_with_separator_in_name]))
+		)
+
+	def test_getdoc_sends_link_titles_only_for_permitted_doctypes(self):
+		role = frappe.new_doc("Role", role_name=frappe.generate_hash()).insert().name
+
+		def make_linked_doctype(title, permissions):
+			doctype = new_doctype(
+				title_field="some_fieldname", show_title_field_in_link=1, permissions=permissions
+			).insert()
+			return frappe.get_doc(doctype=doctype.name, some_fieldname=title).insert()
+
+		def link_field(options):
+			return {"fieldname": "reference", "label": "Reference", "fieldtype": "Link", "options": options}
+
+		selectable = make_linked_doctype("Selectable Title", [{"role": role, "select": 1}])
+		hidden = make_linked_doctype("Hidden Title", [{"role": "System Manager", "read": 1}])
+		child_doctype = new_doctype(istable=1, fields=[link_field(hidden.doctype)]).insert()
+		doctype = new_doctype(
+			fields=[
+				link_field(selectable.doctype),
+				{
+					"fieldname": "entries",
+					"label": "Entries",
+					"fieldtype": "Table",
+					"options": child_doctype.name,
+				},
+			],
+			permissions=[{"role": role, "read": 1}],
+		).insert()
+		doc = frappe.get_doc(
+			doctype=doctype.name, reference=selectable.name, entries=[{"reference": hidden.name}]
+		).insert()
+		user = frappe.get_doc(
+			doctype="User",
+			email=f"link-titles-{frappe.generate_hash(length=8)}@example.com",
+			first_name="Link Titles",
+			send_welcome_email=0,
+			roles=[{"role": role}],
+		).insert()
+
+		frappe.local.response = frappe._dict(docs=[])
+		with self.set_user(user.name):
+			getdoc(doctype.name, doc.name)
+
+		self.assertEqual(
+			frappe.response._link_titles,
+			{
+				f"{selectable.doctype}::{selectable.name}": "Selectable Title",
+				f"{hidden.doctype}::{hidden.name}": hidden.name,
+			},
 		)
