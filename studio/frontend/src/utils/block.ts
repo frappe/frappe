@@ -234,7 +234,6 @@ class Block implements BlockOptions {
 		return clamp(index, 0, arrayLength)
 	  }
 
-	// Keep finds an option by name, so a set can hold neither two of the same nor an unnamed one
 	nameVariantOption(child: BlockOptions | Block) {
 		if (this.componentName !== "Variants") return
 		const taken = variantOptionNames(this).filter((_, at) => this.children[at] !== child)

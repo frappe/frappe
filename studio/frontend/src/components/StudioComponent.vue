@@ -111,7 +111,6 @@ import {
 	useAttrs,
 	inject,
 	ComputedRef,
-	nextTick,
 	onErrorCaptured,
 	h,
 	getCurrentInstance,
@@ -292,8 +291,6 @@ watch(
 
 // Show component editor only on the first instance; the rest render as faint outlines
 const isPrimaryInstance = computed(() => {
-	// a component instance renders the definition's root, whose parents are inside the
-	// component. The page block is the one that can sit in a repeater.
 	const placedBlock = props.block.extendedFromComponent || props.block
 	if (!placedBlock.isRepeated()) return true
 	const instanceIndex = slotScope?.value?.dataIndex
@@ -301,19 +298,19 @@ const isPrimaryInstance = computed(() => {
 })
 
 const isVariantsBlock = props.block.componentName === "Variants"
-
 // A Variants block swaps its rendered option in place. The instance stays, but its root
 // element is replaced, and `target` cannot see that on its own.
 const targetRevision = ref(0)
 if (isVariantsBlock) {
 	watch(
 		() => getEditorVariantChoice(props.block.componentId, props.block.children.length),
-		() => nextTick(() => targetRevision.value++),
+		() => targetRevision.value++,
+		{ flush: "post" },
 	)
 }
 
 const target = computed<HTMLElement | null>(() => {
-	targetRevision.value
+	void targetRevision.value
 	if (!componentRef.value) return null
 	const root = getComponentRoot(componentRef)
 	// after a swap the instance can still hold the root it has just removed
