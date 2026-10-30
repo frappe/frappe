@@ -7,6 +7,7 @@ Thus providing a better UI from user perspective
 """
 
 import json
+from dataclasses import dataclass
 
 from pypika.functions import Length
 from pypika.terms import Function
@@ -28,6 +29,22 @@ from frappe.model.docfield import supports_translation
 from frappe.model.document import Document
 from frappe.model.meta import trim_table
 from frappe.utils import cint
+
+
+@dataclass
+class PropertyChangeRefusal:
+	fieldname: str
+	property: str
+	message: str
+	blocks_save: bool = False
+	title: str | None = None
+	is_minimizable: bool = False
+
+	def report(self):
+		"""Throw if the refusal blocks the save, else show it so the caller can skip the change."""
+		if self.blocks_save:
+			frappe.throw(self.message, title=self.title, is_minimizable=self.is_minimizable)
+		frappe.msgprint(self.message)
 
 
 class CustomizeForm(Document):
@@ -336,15 +353,24 @@ class CustomizeForm(Document):
 				self.make_property_setter(prop, df.get(prop), prop_type, fieldname=df.fieldname)
 
 	def allow_property_change(self, prop, meta_df, df, meta):
+		refusal = self.check_property_change(prop, meta_df, df, meta)
+		if refusal:
+			refusal.report()
+		return not refusal
+
+	def check_property_change(self, prop, meta_df, df, meta) -> PropertyChangeRefusal | None:
+		"""Return why changing `prop` on the standard field `df` is refused, or None.
+
+		An allowed change can set `update_db` or `rebuild_doctype_for_global_search` on `self.flags`."""
 		if prop == "fieldtype":
-			self.validate_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
+			return self.check_fieldtype_change(df, meta_df[0].get(prop), df.get(prop))
 
 		elif prop == "length":
 			old_value_length = cint(meta_df[0].get(prop))
 			new_value_length = cint(df.get(prop))
 
 			if new_value_length and (old_value_length > new_value_length):
-				self.validate_fieldtype_length(df)
+				return self.check_fieldtype_length(df, prop)
 			else:
 				self.flags.update_db = True
 
@@ -352,10 +378,11 @@ class CustomizeForm(Document):
 			if not frappe.db.get_value(
 				"DocField", {"parent": self.doc_type, "fieldname": df.fieldname}, "allow_on_submit"
 			):
-				frappe.msgprint(
-					_("Row {0}: Not allowed to enable Allow on Submit for standard fields").format(df.idx)
+				return PropertyChangeRefusal(
+					df.fieldname,
+					prop,
+					_("Row {0}: Not allowed to enable Allow on Submit for standard fields").format(df.idx),
 				)
-				return False
 
 		elif prop == "reqd" and (
 			(
@@ -364,18 +391,22 @@ class CustomizeForm(Document):
 			)
 			and (df.get(prop) == 0)
 		):
-			frappe.msgprint(_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx))
-			return False
+			return PropertyChangeRefusal(
+				df.fieldname,
+				prop,
+				_("Row {0}: Not allowed to disable Mandatory for standard fields").format(df.idx),
+			)
 
 		elif (
 			prop == "in_list_view"
 			and df.get(prop)
 			and df.fieldtype in get_fields_not_allowed_in_list_view(meta)
 		):
-			frappe.msgprint(
-				_("'In List View' not allowed for type {0} in row {1}").format(df.fieldtype, df.idx)
+			return PropertyChangeRefusal(
+				df.fieldname,
+				prop,
+				_("'In List View' not allowed for type {0} in row {1}").format(df.fieldtype, df.idx),
 			)
-			return False
 
 		elif (
 			prop == "precision"
@@ -396,25 +427,29 @@ class CustomizeForm(Document):
 			== 1
 		):
 			# if docfield has read_only checked and user is trying to make it editable, don't allow it
-			frappe.msgprint(_("You cannot unset 'Read Only' for field {0}").format(df.label))
-			return False
+			return PropertyChangeRefusal(
+				df.fieldname, prop, _("You cannot unset 'Read Only' for field {0}").format(df.label)
+			)
 
 		elif prop == "options" and df.get("fieldtype") not in ALLOWED_OPTIONS_CHANGE:
-			frappe.msgprint(_("You can't set 'Options' for field {0}").format(df.label))
-			return False
+			return PropertyChangeRefusal(
+				df.fieldname, prop, _("You can't set 'Options' for field {0}").format(df.label)
+			)
 
 		elif prop == "translatable" and not supports_translation(df.get("fieldtype")):
-			frappe.msgprint(_("You can't set 'Translatable' for field {0}").format(df.label))
-			return False
+			return PropertyChangeRefusal(
+				df.fieldname, prop, _("You can't set 'Translatable' for field {0}").format(df.label)
+			)
 
 		elif prop == "in_global_search" and df.in_global_search != meta_df[0].get("in_global_search"):
 			self.flags.rebuild_doctype_for_global_search = True
 
 		elif prop == "is_virtual" and meta_df[0].get("is_virtual") == 0 and df.get("is_virtual") == 1:
-			frappe.msgprint(_("You can't set standard field {0} as virtual").format(frappe.bold(df.label)))
-			return False
-
-		return True
+			return PropertyChangeRefusal(
+				df.fieldname,
+				prop,
+				_("You can't set standard field {0} as virtual").format(frappe.bold(df.label)),
+			)
 
 	def set_property_setters_for_actions_and_links(self, meta):
 		"""
@@ -585,6 +620,10 @@ class CustomizeForm(Document):
 		return property_value
 
 	def validate_fieldtype_change(self, df, old_value, new_value):
+		if refusal := self.check_fieldtype_change(df, old_value, new_value):
+			refusal.report()
+
+	def check_fieldtype_change(self, df, old_value, new_value) -> PropertyChangeRefusal | None:
 		if df.is_virtual:
 			return
 
@@ -596,18 +635,21 @@ class CustomizeForm(Document):
 			# Ignore fieldtype check validation if new field type has unspecified maxlength
 			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
 			if new_value_length and (old_value_length > new_value_length):
-				self.validate_fieldtype_length(df)
+				return self.check_fieldtype_length(df, "fieldtype")
 			else:
 				self.flags.update_db = True
 
 		else:
-			frappe.throw(
+			return PropertyChangeRefusal(
+				df.fieldname,
+				"fieldtype",
 				_("Fieldtype cannot be changed from {0} to {1} in row {2}").format(
 					old_value, new_value, df.idx
-				)
+				),
+				blocks_save=True,
 			)
 
-	def validate_fieldtype_length(self, df):
+	def check_fieldtype_length(self, df, prop) -> PropertyChangeRefusal | None:
 		max_length = cint(df.length) or cint(frappe.db.type_map.get(df.fieldtype)[1])
 		field = frappe.qb.DocType(self.doc_type)[df.fieldname]
 		# MariaDB's LENGTH counts bytes; SQLite has no CHAR_LENGTH and its LENGTH counts characters
@@ -617,10 +659,13 @@ class CustomizeForm(Document):
 		links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
 		if docs:
-			frappe.throw(
+			return PropertyChangeRefusal(
+				df.fieldname,
+				prop,
 				_(
 					"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
 				).format(frappe.bold(label), links_str, frappe.bold(max_length)),
+				blocks_save=True,
 				title=_("Data Too Long"),
 				is_minimizable=len(docs) > 1,
 			)
