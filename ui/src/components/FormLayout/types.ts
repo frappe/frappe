@@ -196,6 +196,8 @@ export interface FormLayoutProps {
   layout: FormLayoutSchema;
   /** Marks the first editable field `[autofocus]`, which a frappe-ui `Dialog` focuses on open. */
   autofocus?: boolean;
+  /** The DocType whose translations the tab, section and column labels are looked up in. */
+  doctype?: string;
 }
 
 /** Resolves a fieldtype to its component (falls back to the text component). */
@@ -205,6 +207,10 @@ export const ResolveFieldKey: InjectionKey<(fieldtype: string) => Component> =
 /** Whether the layout renders a visible tab strip (drives section padding). */
 export const HasTabsKey: InjectionKey<Ref<boolean>> =
   Symbol("FormLayoutHasTabs");
+
+/** The context `FormLayout` translates its container labels in: its DocType. */
+export const LabelContextKey: InjectionKey<Ref<string | undefined>> =
+  Symbol("FormLayoutLabelContext");
 
 /** The fieldname `FormLayout` marks `[autofocus]`, or `""` for none. */
 export const AutofocusKey: InjectionKey<Ref<string>> =

@@ -16,6 +16,7 @@
 				v-model:doc="doc"
 				v-model:tab="formTab"
 				:layout="layout"
+				:doctype="doctype"
 				autofocus
 				@update:doc="typed = true"
 			/>

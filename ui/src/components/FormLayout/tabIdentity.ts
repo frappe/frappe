@@ -1,3 +1,4 @@
+import { translate } from "../../utils/translate";
 import type { Tab } from "./types";
 
 /**
@@ -24,7 +25,7 @@ function baseIdentity(tab: Pick<Tab, "name" | "label">, index: number): string {
  * to agree with the button the reader is looking at.
  */
 export function tabStripLabel(label: string, multipleTabs: boolean): string {
-  return label || (multipleTabs ? "Details" : "");
+  return label || (multipleTabs ? translate("Details") : "");
 }
 
 function slug(label: string): string {

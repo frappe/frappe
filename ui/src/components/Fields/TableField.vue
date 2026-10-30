@@ -97,7 +97,12 @@
 	     The row object itself is the model — the dialog writes through, the way a
 	     grid cell already does. -->
 	<Dialog v-model:open="showEdit" :title="dialogTitle" size="3xl">
-		<FormLayout v-if="editRow" v-model:doc="editRow" :layout="editLayout" />
+		<FormLayout
+			v-if="editRow"
+			v-model:doc="editRow"
+			:layout="editLayout"
+			:doctype="field.options"
+		/>
 	</Dialog>
 </template>
 

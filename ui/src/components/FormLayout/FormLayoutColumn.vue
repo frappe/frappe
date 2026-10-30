@@ -1,7 +1,7 @@
 <template>
 	<div class="column flex flex-col gap-4 min-w-0 flex-1">
 		<div v-if="column.label && !column.hideLabel" class="text-ink-gray-9 max-w-fit text-base">
-			{{ column.label }}
+			{{ __(column.label, [], labelContext) }}
 		</div>
 		<template v-for="entry in entries" :key="entry.key">
 			<FormLayoutPart v-if="entry.part" :part="entry.part" />
@@ -11,12 +11,16 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, inject } from "vue";
 import FormLayoutField from "./FormLayoutField.vue";
 import FormLayoutPart from "./FormLayoutPart.vue";
+import { translate as __ } from "../../utils/translate";
+import { LabelContextKey } from "./types";
 import type { Column, ColumnPart, FieldNode } from "./types";
 
 const props = defineProps<{ column: Column }>();
+
+const labelContext = inject(LabelContextKey, undefined);
 
 type Entry = { key: string; name: string; field?: FieldNode; part?: ColumnPart };
 

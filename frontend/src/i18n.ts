@@ -51,6 +51,8 @@ declare module "vue" {
 export function installTranslate(app: App) {
   app.config.globalProperties.__ = __;
   app.config.globalProperties.__n = __n;
+  // `ui/`'s translate function reads `__` off the global.
+  (globalThis as { __?: typeof __ }).__ = __;
 }
 
 function lookup(text: string, context?: string | null) {

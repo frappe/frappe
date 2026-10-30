@@ -40,19 +40,21 @@
 
 <script setup lang="ts">
 import { Tabs } from "frappe-ui";
-import { computed, inject, provide, watch } from "vue";
+import { computed, inject, provide, toRef, watch } from "vue";
 import type { ComponentPublicInstance } from "vue";
 import FormLayoutSection from "./FormLayoutSection.vue";
 import { useFieldTypes } from "./useFieldTypes";
 import { applyTabOverride, resolveLayout } from "./resolveLayout";
 import { identifyTabs, tabStripLabel } from "./tabIdentity";
 import { NO_VALUE } from "./newRowValues";
+import { translate } from "../../utils/translate";
 import { FieldErrorsKey, markedFieldnames } from "../Fields/types";
 import {
 	AutofocusKey,
 	CommitKey,
 	DocKey,
 	HasTabsKey,
+	LabelContextKey,
 	ParentDocKey,
 	ResolveFieldKey,
 	UpdateKey,
@@ -111,7 +113,7 @@ const visibleTabs = computed(() => {
 	return tabs.map((tab) => ({
 		...tab,
 		value: tab.identity,
-		label: tabStripLabel(tab.label, multipleTabs),
+		label: tabStripLabel(tab.label && translate(tab.label, [], props.doctype), multipleTabs),
 		sections: tab.sections.filter((section) => !section.hidden),
 	}));
 });
@@ -216,6 +218,7 @@ provide(UpdateKey, update);
 provide(ResolveFieldKey, resolve);
 provide(HasTabsKey, hasTabs);
 provide(AutofocusKey, autofocusField);
+provide(LabelContextKey, toRef(props, "doctype"));
 </script>
 
 <style scoped>
