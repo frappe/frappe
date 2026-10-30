@@ -38,8 +38,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{ "update:modelValue": [value: string[]] }>();
 
-// `name` holds IDs, so its chips show the ID rather than the title. Search still
-// matches titles server-side, so the client-side label filter is off.
+// `name` stores IDs; server search still matches titles, so client filter is off.
 const isName = computed(() => props.field.fieldname === "name");
 
 interface LinkOption {

@@ -19,9 +19,7 @@ export function toLinkOption(row: {
   };
 }
 
-/** A `search_link` row labelled by the record's name (its ID), with its title
- *  and the rest of the description beneath. For a picker whose value is the ID
- *  itself, so the picked option reads the same as the stored value. */
+/** A `search_link` row labelled by its ID, with the title beneath. */
 export function toIdOption(row: {
   value: string;
   label?: string;

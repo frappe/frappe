@@ -12,8 +12,7 @@ export interface LinkProps extends Omit<InputLabelingProps, "error"> {
   placeholder?: string;
   /** What the current value displays as until the search returns it. */
   title?: string;
-  /** Label options by the record's name (its ID) rather than its title. The
-   *  search still matches titles server-side, so client filtering is off. */
+  /** Label options by ID, not title; disables client-side filtering. */
   idLabels?: boolean;
 }
 

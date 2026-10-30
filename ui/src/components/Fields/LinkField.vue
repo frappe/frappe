@@ -30,8 +30,7 @@ const emit = defineEmits<FieldComponentEmits>();
 
 const titles = inject(LinkTitlesKey, null);
 
-// `name` links to its own doctype and its value is the ID, so it shows the ID, not
-// the title: the picked option then reads the same as the stored filter.
+// `name` stores the ID, so show the ID, not the title.
 const isName = computed(() => props.field.fieldname === "name");
 
 const title = computed(() =>
