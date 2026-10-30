@@ -252,32 +252,25 @@ def get_filtered_attachments(dt: str, dn: str | int, filters: str):
 def get_versions(doc: "Document") -> list[dict]:
 	if not doc.meta.track_changes:
 		return []
-<<<<<<< HEAD
-	return frappe.get_all(
-=======
 
 	from frappe.core.doctype.version.version import STANDARD_VERSIONED_FIELDS
 	from frappe.desk.form.activity import readable_permlevels
-	from frappe.model.utils.mask import mask_version_data
 
 	versions = frappe.get_all(
->>>>>>> eb3c578 (refactor: Filter versions based on user's permitted fields)
 		"Version",
 		filters=dict(ref_doctype=doc.doctype, docname=str(doc.name)),
 		fields=["name", "owner", "creation", "data"],
 		limit=10,
 		order_by="creation desc",
 	)
-<<<<<<< HEAD
-=======
 
 	if frappe.session.user == "Administrator":
-		return mask_version_data(versions, doc.doctype)
+		return versions
 
 	# child tables are governed by the parent's permission rows, so one set covers both
 	permitted = readable_permlevels(doc.meta)
 	if permitted is None:
-		return mask_version_data(versions, doc.doctype)
+		return versions
 
 	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in permitted}
 	allowed_parent_fields.update(STANDARD_VERSIONED_FIELDS)
@@ -332,15 +325,10 @@ def get_versions(doc: "Document") -> list[dict]:
 		data["added"] = filter_rows(data.get("added"))
 		data["removed"] = filter_rows(data.get("removed"))
 		data["row_changed"] = filter_row_changed(data.get("row_changed"))
-		version.data = frappe.utils.orjson_dumps(data)
+		version.data = json.dumps(data)
 		readable_versions.append(version)
 
-<<<<<<< HEAD
-	return mask_version_data(versions, doc.doctype)
->>>>>>> eb3c578 (refactor: Filter versions based on user's permitted fields)
-=======
-	return mask_version_data(readable_versions, doc.doctype)
->>>>>>> 3a038db (fix: keep version field order and skip unreadable version data)
+	return readable_versions
 
 
 @frappe.whitelist()

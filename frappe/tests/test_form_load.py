@@ -4,15 +4,9 @@ import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.page.permission_manager.permission_manager import add, reset, update
 from frappe.custom.doctype.property_setter.property_setter import make_property_setter
-<<<<<<< HEAD
-from frappe.desk.form.load import get_docinfo, getdoc, getdoctype
-from frappe.tests.utils import FrappeTestCase
-=======
 from frappe.desk.form.load import get_docinfo, get_versions, getdoc, getdoctype
 from frappe.share import add as add_share
-from frappe.tests import IntegrationTestCase
-from frappe.tests.test_helpers import setup_for_tests
->>>>>>> ca313e2 (chore: Add relevant test cases for get_versions)
+from frappe.tests.utils import FrappeTestCase
 from frappe.utils.file_manager import save_file
 
 test_dependencies = ["Blog Category", "Blogger"]
@@ -202,7 +196,7 @@ class TestFormLoad(FrappeTestCase):
 		note.delete()
 
 
-class TestVersionPermlevelFiltering(IntegrationTestCase):
+class TestVersionPermlevelFiltering(FrappeTestCase):
 	"""get_versions() must honour permlevels the same way the live document does.
 
 	Set up on Contact via property setters:
@@ -390,7 +384,7 @@ class TestVersionPermlevelFiltering(IntegrationTestCase):
 		self.assertIn("is_primary", self._child_fields(versions, "email_ids"))
 
 
-class TestStandardFieldsInVersions(IntegrationTestCase):
+class TestStandardFieldsInVersions(FrappeTestCase):
 	"""get_diff records `name` and `docstatus` in `changed`, but neither is a DocField, so
 	the permlevel filter in get_versions has to allow them through on its own. Without that
 	a submit-only version carries no changes at all and drops out of the timeline."""
