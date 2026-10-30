@@ -53,6 +53,12 @@ const useStudioStore = defineStore("store", () => {
 		localStorage,
 		{ mergeDefaults: true },
 	)
+	/** The right panel tab a block opens on: a container's props and styles are one combined tab. */
+	function focusRightPanelFor(block: Block) {
+		studioLayout.value.rightPanelActiveTab =
+			block.isRoot() || block.isText() || block.isContainer() ? "Styles" : "Properties"
+	}
+
 	const isDark = useDark({ attribute: "data-theme" })
 	const toggleTheme = useToggle(isDark)
 	const isCanvasDark = useStorage("studioCanvasDarkMode", false)
@@ -438,7 +444,8 @@ const useStudioStore = defineStore("store", () => {
 					},
 				},
 			)
-			.then(async () => {
+			.then(async (response: any) => {
+				warnAboutUnresolvedVariants(response?.message?.unresolved_variants)
 				const buildError = await generateAppBuild()
 				activePage.value = await fetchPage(selectedPage.value!)
 				if (!activeApp.value || !activePage.value) return
@@ -516,6 +523,13 @@ const useStudioStore = defineStore("store", () => {
 		})
 	}
 
+	function warnAboutUnresolvedVariants(names: string[] | undefined) {
+		if (!names?.length) return
+		toast.warning("Published with unresolved variants", {
+			description: `${names.join(", ")} — open the page and use Keep to settle on one option.`,
+		})
+	}
+
 	async function publishApp() {
 		// the publish button and the command palette both publish; one at a time
 		if (!activeApp.value || publishingApp.value) return
@@ -529,6 +543,7 @@ const useStudioStore = defineStore("store", () => {
 				async onSuccess(data: any) {
 					activePage.value = await fetchPage(selectedPage.value!)
 					setAppPages(activeApp.value!.name)
+					warnAboutUnresolvedVariants(data?.message?.unresolved_variants)
 					const buildError = data?.message?.build_error
 					if (buildError) {
 						showBuildErrorDialog(
@@ -790,6 +805,7 @@ const useStudioStore = defineStore("store", () => {
 	return {
 		// layout
 		studioLayout,
+		focusRightPanelFor,
 		isDark,
 		toggleTheme,
 		isCanvasDark,

@@ -118,6 +118,8 @@ class StudioApp(WebsiteGenerator):
 	)
 
 	def get_context(self, context):
+		from frappe.studio.api import check_app_permission
+
 		csrf_token = frappe.sessions.get_csrf_token()
 		frappe.db.commit()  # nosemgrep
 		context.csrf_token = csrf_token
@@ -137,6 +139,9 @@ class StudioApp(WebsiteGenerator):
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
+		context.can_edit_app = bool(
+			(context.is_developer_mode or not self.is_standard) and check_app_permission()
+		)
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
 		context.router_script = self.get_router_script()
 
@@ -282,11 +287,16 @@ class StudioApp(WebsiteGenerator):
 	@frappe.whitelist()
 	def publish_app(self):
 		pages = self.pages
+		unresolved_variants = []
 		for page in pages:
 			page_doc = frappe.get_doc("Studio Page", page)
-			page_doc.publish()
+			unresolved_variants += page_doc.publish()["unresolved_variants"]
 
-		return {"published_pages": len(pages), **self.generate_app_build()}
+		return {
+			"published_pages": len(pages),
+			"unresolved_variants": unresolved_variants,
+			**self.generate_app_build(),
+		}
 
 	@frappe.whitelist()
 	def unpublish_app(self):
