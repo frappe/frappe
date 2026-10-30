@@ -41,6 +41,7 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 		this.pages = [];
 		this.zoom_style = doc.head.appendChild(doc.createElement("style"));
 		doc.addEventListener("scroll", () => this.update_page_label());
+		doc.defaultView.addEventListener("resize", () => this.apply_zoom());
 		if (fit && !this.zoom_set_by_user) this.fit(1);
 		this.apply_zoom();
 
@@ -107,11 +108,16 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 	apply_zoom() {
 		const container = this.pages?.[0]?.parentElement;
 		if (container) {
-			const width = this.pages[0].offsetWidth;
+			const width = parseFloat(this.pages[0].style.width);
 			const height = container.offsetHeight;
+			const left =
+				container.getBoundingClientRect().left -
+				parseFloat(getComputedStyle(container).marginLeft);
+			const frame_width = container.ownerDocument.documentElement.clientWidth;
+			const margin_left = Math.max(-left, (frame_width - width * this.zoom) / 2 - left);
 			this.zoom_style.textContent = `@media screen { .preview-pages {
 				width: ${width}px;
-				margin: 0 0 ${height * (this.zoom - 1)}px max(0px, calc((100% - ${width * this.zoom}px) / 2));
+				margin: 0 0 ${height * (this.zoom - 1)}px ${margin_left}px;
 				transform: scale(${this.zoom});
 				transform-origin: 0 0;
 			} }`;
