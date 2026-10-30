@@ -77,6 +77,7 @@ def search_link(
 	start: int = 0,
 	include_image: bool = False,
 	keep_order: bool = False,
+	query_args: str | dict | None = None,
 ) -> list[LinkSearchResults]:
 	"""Rows for a Link field's dropdown, one page from `start`."""
 	results = search_widget(
@@ -91,6 +92,7 @@ def search_link(
 		ignore_user_permissions=ignore_user_permissions,
 		link_fieldname=link_fieldname,
 		keep_order=sbool(keep_order),
+		query_args=query_args,
 	)
 	rows = build_for_autosuggest(results, doctype=doctype)
 	if sbool(include_image):
@@ -168,6 +170,8 @@ def search_widget(
 	query_filters_as_dict: bool = False,
 	# skip the relevance re-sort so paged results keep one order
 	keep_order: bool = False,
+	# the custom query's own arguments, kept apart from the filters a Link field adds
+	query_args: str | dict | None = None,
 ):
 	if ignore_user_permissions:
 		if reference_doctype and link_fieldname:
@@ -189,6 +193,9 @@ def search_widget(
 
 	if isinstance(filters, str):
 		filters = json.loads(filters)
+
+	if isinstance(query_args, str):
+		query_args = json.loads(query_args)
 
 	if searchfield:
 		sanitize_searchfield(searchfield)
@@ -235,6 +242,7 @@ def search_widget(
 				reference_doctype=reference_doctype,
 				ignore_user_permissions=ignore_user_permissions,
 				link_fieldname=link_fieldname,
+				query_args=query_args,
 			)
 		except (frappe.PermissionError, frappe.AppNotInstalledError, ImportError):
 			if frappe.local.conf.developer_mode:
