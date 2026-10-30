@@ -257,6 +257,7 @@ def get_versions(doc: "Document") -> list[dict]:
 =======
 
 	from frappe.core.doctype.version.version import STANDARD_VERSIONED_FIELDS
+	from frappe.desk.form.activity import readable_permlevels
 	from frappe.model.utils.mask import mask_version_data
 
 	versions = frappe.get_all(
@@ -270,21 +271,15 @@ def get_versions(doc: "Document") -> list[dict]:
 <<<<<<< HEAD
 =======
 
-	has_read_permission = doc.get_permlevel_access(permission_type="read")
-
-	if 0 not in has_read_permission and frappe.share.get_shared(
-		doc.doctype,
-		frappe.session.user,
-		rights=["read"],
-		filters=[["share_name", "=", str(doc.name)]],
-		limit=1,
-	):
-		has_read_permission = [*has_read_permission, 0]
-
 	if frappe.session.user == "Administrator":
 		return mask_version_data(versions, doc.doctype)
 
-	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in has_read_permission}
+	# child tables are governed by the parent's permission rows, so one set covers both
+	permitted = readable_permlevels(doc.meta)
+	if permitted is None:
+		return mask_version_data(versions, doc.doctype)
+
+	allowed_parent_fields = {df.fieldname for df in doc.meta.fields if df.permlevel in permitted}
 	allowed_parent_fields.update(STANDARD_VERSIONED_FIELDS)
 	allowed_child_fields = {}
 	for table_field in doc.meta.get_table_fields():
@@ -294,7 +289,7 @@ def get_versions(doc: "Document") -> list[dict]:
 		allowed_child_fields[table_field.fieldname] = {
 			df.fieldname
 			for df in (frappe.get_meta(table_field.options).fields or [])
-			if df.permlevel in has_read_permission
+			if df.permlevel in permitted
 		}
 
 	def filter_changed(logs):
