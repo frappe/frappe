@@ -531,7 +531,7 @@
  "grid_page_length": 50,
  "icon": "fa fa-glass",
  "idx": 1,
- "link_display_mode": "Search",
+ "index_web_pages_for_search": 1,
  "links": [],
  "modified": "2026-10-28 10:46:40.512837",
  "modified_by": "Administrator",
