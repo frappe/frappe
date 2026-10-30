@@ -2,11 +2,12 @@ import { DROPPED_FIELDTYPES } from "@framework/ui/FormLayout";
 import { __ } from "@/i18n";
 import type { RawMetaField } from "@framework/ui/FormLayout/types";
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
+import { withAnchors } from "./anchors";
 import type { LayoutTree, LayoutTreeSection } from "./types";
 
 /** What a row in use does with the fields it neither places nor omits. */
 export interface UnplacedRule {
-	/** `section`: Details and New Record draw them in "More fields" at the end of the first tab.
+	/** `section`: Details and New Record draw them at their anchor, else in "More fields" at the end of the first tab.
 	 *  `mandatory`: Quick Entry adds only the mandatory ones at the end of the dialog. */
 	mode: "section" | "mandatory";
 	/** Fieldnames the row keeps off on purpose; a stale one matches nothing. */
@@ -23,8 +24,12 @@ export function withUnplaced(
 	rule: UnplacedRule,
 	fieldAccess?: (field: RawMetaField) => FieldAccess
 ): LayoutTree {
-	const unplaced = unplacedFields(tree, fields, rule, fieldAccess);
-	if (rule.mode === "section") return withMoreFieldsSection(tree, unplaced, fields);
+	const loose = looseFields(tree, fields, rule);
+	const unplaced = loose.filter((field) => isDrawn(field, fieldAccess));
+	if (rule.mode === "section") {
+		const anchored = withAnchors(tree, unplaced, loose);
+		return withMoreFieldsSection(anchored.tree, anchored.rest, fields);
+	}
 	return withMandatorySections(tree, unplaced.filter(isMandatory), fields);
 }
 
@@ -35,16 +40,19 @@ export function unplacedFields(
 	rule: UnplacedRule,
 	fieldAccess?: (field: RawMetaField) => FieldAccess
 ): RawMetaField[] {
+	return looseFields(tree, fields, rule).filter((field) => isDrawn(field, fieldAccess));
+}
+
+/** Meta fields the row neither places nor omits, drawable or not. */
+function looseFields(tree: LayoutTree, fields: RawMetaField[], rule: UnplacedRule): RawMetaField[] {
 	const placed = new Set([...placedFieldnames(tree), ...(rule.placedElsewhere ?? [])]);
 	if (rule.mode === "section")
 		for (const fieldname of omittable(rule.omitted, fields)) placed.add(fieldname);
-	return fields.filter(
-		(field) =>
-			!placed.has(field.fieldname) &&
-			!DROPPED_FIELDTYPES.has(field.fieldtype) &&
-			!field.hidden &&
-			fieldAccess?.(field) !== "none"
-	);
+	return fields.filter((field) => !placed.has(field.fieldname));
+}
+
+function isDrawn(field: RawMetaField, fieldAccess?: (field: RawMetaField) => FieldAccess): boolean {
+	return !DROPPED_FIELDTYPES.has(field.fieldtype) && !field.hidden && fieldAccess?.(field) !== "none";
 }
 
 /** Every fieldname a tree lists, by name or as an inline field. */

@@ -239,10 +239,11 @@ _Avoid_: break (the meta field that encoded a container in desk v1), layout fiel
 
 **Unplaced field**: <a id="unplaced-field"></a>
 A data field that the Form Layout row in use neither places nor omits. On Details and New
-Record it renders in the automatic "More fields" section, the last section of the first tab;
-on Quick Entry only a mandatory one renders, at the end of the dialog. A field the Side Panel
-row in use places is placed. A break, a `hidden` field and a field the person cannot read
-are never unplaced. With no row, the fallback places every field.
+Record it renders at its **anchor** when the anchor resolves, otherwise in the automatic
+"More fields" section, the last section of the first tab; on Quick Entry only a mandatory one
+renders, at the end of the dialog. A field the Side Panel row in use places is placed. A
+break, a `hidden` field and a field the person cannot read are never unplaced. With no row,
+the fallback places every field.
 _Avoid_: missing field, orphan field.
 
 **Omitted field**: <a id="omitted-field"></a>
@@ -257,6 +258,31 @@ row is the `doc` a conditional row is chosen against, so two rows of one table c
 dialogs. With no row it draws every child field from the breaks; the grid's columns stay the
 `in_list_view` fields either way.
 _Avoid_: row form, grid form.
+
+**Anchor**: <a id="anchor"></a>
+A custom field's `insert_after`, resolved against the layout in use on Details and New
+Record. An unplaced custom field renders right after its anchor field, in the same column,
+or at the top of the container whose `name` its anchor is. Anchors chain in meta order, also
+through a hidden field or one the person cannot read. The
+anchor does not resolve when the row omits that field, does not place it, or places it only
+in the Side Panel; the field then goes to "More fields". A row that places or omits the
+field wins over its anchor.
+
+**App layout**: <a id="app-layout"></a>
+A layout an app ships as a file in its DocType's folder, such as
+`<doctype>/frontend/layouts/details.json`.
+_Avoid_: fork, override, copy.
+
+**Site layout**: <a id="site-layout"></a>
+A site's `Form Layout` row. A row with no condition replaces the app layout of its type
+whole; a row with a condition is chosen before the app layout when its condition matches.
+_Avoid_: fork, override, copy.
+
+**Fallback layout**: <a id="fallback-layout"></a>
+The layout that renders when there is neither a site layout nor an app layout: built from
+the DocType's Tab, Section and Column Breaks, or for Quick Entry from its mandatory and Quick
+Entry fields.
+_Avoid_: fork, override, copy.
 
 **Disclosure**: <a id="disclosure"></a>
 The reader's view state of a section: open or shut. It lives in the browser through the
