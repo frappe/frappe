@@ -365,9 +365,9 @@ def update_existing_file_docs(doc: "File") -> None:
 
 def attach_files_to_document(doc: "Document", event) -> None:
 	"""Runs on on_update hook of all documents.
-	Goes through every file linked with the Attach and Attach Image field and attaches
-	the file to the document if not already attached. If no file is found, a new file
-	is created.
+	Goes through every file set or changed in the Attach and Attach Image fields on this save
+	and attaches the file to the document if not already attached. If no file is found, a
+	new file is created.
 	"""
 	candidates: list[tuple["DocField", Any]] = []
 
@@ -375,7 +375,8 @@ def attach_files_to_document(doc: "Document", event) -> None:
 	# we dont want the update to fail if file cannot be attached for some reason
 	attach_fields = doc.meta.get("fields", {"fieldtype": ["in", ["Attach", "Attach Image"]]})
 	for df in attach_fields:
-		candidates.append((df, doc.get(df.fieldname)))
+		if doc.has_value_changed(df.fieldname):
+			candidates.append((df, doc.get(df.fieldname)))
 
 	table_fields = doc.meta.get("fields", {"fieldtype": "Table"})
 	for table_df in table_fields:
@@ -390,7 +391,8 @@ def attach_files_to_document(doc: "Document", event) -> None:
 
 		for child_row in child_rows:
 			for child_df in child_attach_fields:
-				candidates.append((child_df, child_row.get(child_df.fieldname)))
+				if child_row.has_value_changed(child_df.fieldname):
+					candidates.append((child_df, child_row.get(child_df.fieldname)))
 
 	_attach_field_values(doc, candidates)
 
