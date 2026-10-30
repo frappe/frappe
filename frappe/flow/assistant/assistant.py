@@ -6,6 +6,7 @@ from __future__ import annotations
 import frappe
 
 ASSISTANT_AGENT_TITLE = "Flow"
+ASSISTANT_AGENT_NAME = f"frappe/{ASSISTANT_AGENT_TITLE}"
 ASSISTANT_MAX_ITERATIONS = 500
 
 ASSISTANT_INSTRUCTIONS = (
@@ -64,7 +65,7 @@ ASSISTANT_INSTRUCTIONS = (
 def ensure_builtin_assistant(model: str) -> None:
 	"""Give the Assistant its first model, or a new one when its own is gone. Otherwise a
 	new model changes nothing: keeping the Assistant current is migrate's job."""
-	current = frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_TITLE, "model")
+	current = frappe.db.get_value("Flow Agent", ASSISTANT_AGENT_NAME, "model")
 	if current and frappe.db.exists("Flow Model", current):
 		return
 	sync_builtin_assistant(model=model)
@@ -91,8 +92,8 @@ def sync_builtin_assistant(model: str | None = None) -> None:
 		return
 
 	knowledge = []
-	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
-		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_TITLE)
+	if frappe.db.exists("Flow Agent", ASSISTANT_AGENT_NAME):
+		doc = frappe.get_doc("Flow Agent", ASSISTANT_AGENT_NAME)
 		if not doc.is_system_generated:
 			return
 		skills += [row.skill for row in doc.skills if row.skill not in skills]

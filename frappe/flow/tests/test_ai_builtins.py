@@ -10,6 +10,7 @@ from frappe.desk.doctype.todo.todo import ToDo
 from frappe.flow import ToolContext
 from frappe.flow.tools.builtins import (
 	BUILTIN_TOOLS,
+	builtin_name,
 	create,
 	delete,
 	describe,
@@ -471,20 +472,20 @@ class TestSyncBuiltinTools(IntegrationTestCase):
 		sync_builtin_tools()
 		sync_builtin_tools()  # a second run updates the rows in place
 
-		names = [builtin.name for builtin in BUILTIN_TOOLS]
+		names = [builtin_name(builtin.name) for builtin in BUILTIN_TOOLS]
 		self.assertEqual(
 			sorted(frappe.get_all("Flow Tool", {"name": ["in", names]}, pluck="name")), sorted(names)
 		)
-		runtime = frappe.get_doc("Flow Tool", "describe").to_tool()
+		runtime = frappe.get_doc("Flow Tool", "frappe/describe").to_tool()
 		self.assertEqual(runtime.name, "describe")
 		self.assertIn("doctype", runtime.parameters["properties"])
 		# writes wait for the user's approval
 		confirmed = frappe.get_all(
 			"Flow Tool", {"name": ["in", names], "requires_confirmation": 1}, pluck="name"
 		)
-		self.assertLessEqual({"create", "update", "delete"}, set(confirmed))
+		self.assertLessEqual({"frappe/create", "frappe/update", "frappe/delete"}, set(confirmed))
 		# a per-call background rule stays in code
-		report = frappe.get_doc("Flow Tool", "run_report")
+		report = frappe.get_doc("Flow Tool", "frappe/run_report")
 		self.assertEqual(report.background, 0)
 		self.assertTrue(callable(report.to_tool().background))
 

@@ -46,7 +46,7 @@ def boot() -> dict[str, Any]:
 	from, the default agent, whether a provider is set up, the file types it may attach, who is
 	signed in and what they may manage."""
 	frappe.has_permission("Flow Session", "read", throw=True)
-	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
 	agents = frappe.get_list(
@@ -60,7 +60,7 @@ def boot() -> dict[str, Any]:
 	)
 	return {
 		"agents": agents,
-		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_TITLE), None),
+		"default_agent": next((a.name for a in agents if a.name == ASSISTANT_AGENT_NAME), None),
 		"models": models,
 		"provider": frappe.db.get_value("Flow Provider", {"enabled": 1}),
 		"file_types": sorted(FILE_EXTENSIONS),

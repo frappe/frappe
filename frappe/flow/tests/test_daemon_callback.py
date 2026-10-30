@@ -85,11 +85,11 @@ class TestToolCallback(IntegrationTestCase):
 			}
 		).insert()
 		attached = (
-			"read_records",
-			"delete",
-			"execute",
-			"update_memory",
-			"search_attachments",
+			"frappe/read_records",
+			"frappe/delete",
+			"frappe/execute",
+			"frappe/update_memory",
+			"frappe/search_attachments",
 			"whoami",
 			"whoami_later",
 			"maybe_later",

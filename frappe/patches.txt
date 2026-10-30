@@ -314,6 +314,7 @@ frappe.studio.doctype.studio_page.patches.migrate_get_icon_calls
 execute:frappe.db.set_single_value("System Settings", "enable_mcp", 1)
 frappe.patches.v17_0.remove_flow_suggest_replies_tool
 execute:frappe.db.get_single_value("Flow Settings", "search_provider") or frappe.db.set_single_value("Flow Settings", "search_provider", "DuckDuckGo")
+frappe.patches.v17_0.name_flow_app_rows_after_their_app
 
 
 [post_fixture_sync]

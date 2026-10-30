@@ -68,7 +68,8 @@ class TestFlowSkillSystemGenerated(IntegrationTestCase):
 		frappe.db.rollback()
 
 	def test_the_desk_cannot_change_a_system_generated_skill_but_may_disable_it(self):
-		skill = frappe.get_doc(_skill(is_system_generated=1)).insert()
+		name = frappe.get_doc(_skill(is_system_generated=1)).insert(ignore_permissions=True).name
+		skill = frappe.get_doc("Flow Skill", name)
 		for label, error, change in (
 			("delete", "Cannot delete system-generated", lambda: frappe.delete_doc("Flow Skill", skill.name)),
 			(
@@ -92,6 +93,22 @@ class TestFlowSkillSystemGenerated(IntegrationTestCase):
 		skill.enabled = 0
 		skill.save()
 		self.assertEqual(frappe.db.get_value("Flow Skill", skill.name, "enabled"), 0)
+
+	def test_only_an_app_creates_a_skill_named_after_it(self):
+		for overrides in ({"app": "frappe"}, {"is_system_generated": 1}):
+			with (
+				self.subTest(overrides),
+				self.assertRaisesRegex(frappe.ValidationError, "Only an app can create"),
+			):
+				frappe.get_doc(_skill(**overrides)).insert()
+		with self.subTest("a new name"), self.assertRaisesRegex(frappe.ValidationError, "cannot contain /"):
+			frappe.get_doc(_skill(title="frappe/expense-approval")).insert()
+		skill = frappe.get_doc(_skill()).insert()
+		with self.subTest("a rename"), self.assertRaisesRegex(frappe.ValidationError, "cannot contain /"):
+			frappe.rename_doc("Flow Skill", skill.name, "frappe/expense-approval")
+
+		frappe.rename_doc("Flow Skill", skill.name, "Expense Review", rebuild_search=False)
+		self.assertEqual(frappe.db.get_value("Flow Skill", "Expense Review", "title"), "Expense Review")
 
 
 class TestFlowSkillGlobalLimit(IntegrationTestCase):
@@ -158,25 +175,33 @@ class AppSkills:
 class TestAppSkills(IntegrationTestCase):
 	def setUp(self):
 		self.skills = AppSkills(self)
+		self.started = frappe.utils.now()
 
 	def tearDown(self):
 		frappe.db.rollback()
 
+	def skipped(self, title: str) -> list[str]:
+		"""The reasons this test's syncs logged under `title`. Error Logs live in the log database,
+		which a rollback does not undo."""
+		return frappe.get_all("Error Log", {"method": title, "creation": [">=", self.started]}, pluck="error")
+
 	def test_sync_mirrors_each_app_skill_and_keeps_site_choices(self):
 		folder = self.skills.write("close-todos")
-		self.assertEqual(sync_skills(), ["close-todos"])
-		doc = frappe.get_doc("Flow Skill", "close-todos")
+		self.assertEqual(sync_skills(), ["frappe/close-todos"])
+		doc = frappe.get_doc("Flow Skill", "frappe/close-todos")
 		with self.subTest("a new skill is locked to its app"):
 			self.assertEqual(
-				(doc.app, doc.description, doc.instructions, doc.is_system_generated),
-				("frappe", "Close overdue ToDos.", "Close each one.", 1),
+				(doc.title, doc.app, doc.description, doc.instructions, doc.is_system_generated),
+				("frappe/close-todos", "frappe", "Close overdue ToDos.", "Close each one.", 1),
 			)
 			self.assertEqual((doc.enabled, doc.is_global, doc.user_invocable), (1, 0, 0))
 		with self.subTest("an unchanged skill is not saved again"):
 			sync_skills()
-			self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "modified"), doc.modified)
+			self.assertEqual(
+				frappe.db.get_value("Flow Skill", "frappe/close-todos", "modified"), doc.modified
+			)
 
-		frappe.db.set_value("Flow Skill", "close-todos", {"enabled": 0, "user_invocable": 1})
+		frappe.db.set_value("Flow Skill", "frappe/close-todos", {"enabled": 0, "user_invocable": 1})
 		self.skills.write("close-todos", description="Changed.", body="New body.")
 		sync_skills()
 		doc.reload()
@@ -199,51 +224,59 @@ class TestAppSkills(IntegrationTestCase):
 				"title": "App Skill Agent",
 				"model": model.name,
 				"instructions": "Help with todos.",
-				"skills": [{"skill": "close-todos"}],
+				"skills": [{"skill": "frappe/close-todos"}],
 			}
 		).insert()
 		shutil.rmtree(folder)
 
 		self.assertEqual(sync_skills(), [])
-		self.assertFalse(frappe.db.exists("Flow Skill", "close-todos"))
+		self.assertFalse(frappe.db.exists("Flow Skill", "frappe/close-todos"))
 		self.assertEqual(frappe.get_all("Flow Agent Skill", {"parent": agent.name}, pluck="skill"), [])
 
-	def test_sync_refuses_a_folder_it_cannot_mirror_safely(self):
-		with self.subTest("a Desk skill of the same name is left alone"):
-			frappe.get_doc(_skill(title="close-todos")).insert()
-			self.skills.write("close-todos")
-			with self.assertRaisesRegex(frappe.ValidationError, "not owned by an app"):
-				sync_skills()
-			self.assertEqual(frappe.db.get_value("Flow Skill", "close-todos", "is_system_generated"), 0)
+	def test_a_skill_is_named_after_its_app_so_no_other_takes_its_name(self):
+		frappe.get_doc(_skill(title="close-todos")).insert()
+		self.skills.write("close-todos")
+		self.skills.write("close-todos", app="other_app", description="Theirs.")
+		with patch("frappe.get_installed_apps", return_value=["frappe", "other_app"]):
+			self.assertEqual(sync_skills(), ["frappe/close-todos", "other_app/close-todos"])
 
-		# each case below starts from empty skills folders
-		with self.subTest("two apps cannot ship the same skill"):
+		self.assertEqual(
+			frappe.get_all(
+				"Flow Skill", {"name": ["like", "%close-todos"]}, ["name", "description"], order_by="name"
+			),
+			[
+				{"name": "close-todos", "description": "How to review and approve an expense claim."},
+				{"name": "frappe/close-todos", "description": "Close overdue ToDos."},
+				{"name": "other_app/close-todos", "description": "Theirs."},
+			],
+		)
+
+	def test_sync_skips_a_folder_it_cannot_mirror_safely(self):
+		# each case starts from empty skills folders
+		with self.subTest("a skill named unlike its folder keeps its row as it was"):
 			skills = AppSkills(self)
-			skills.write("open-todos", app="frappe")
-			skills.write("open-todos", app="other_app")
-			with (
-				patch("frappe.get_installed_apps", return_value=["frappe", "other_app"]),
-				self.assertRaisesRegex(frappe.ValidationError, "shipped by both frappe and other_app"),
-			):
-				sync_skills()
-			self.assertFalse(frappe.db.exists("Flow Skill", "open-todos"))
+			skills.write("odd-todos")
+			sync_skills()
+			skills.write("odd-todos", text="---\nname: other\ndescription: Wrong name.\n---\nBody\n")
+			skills.write("open-todos")
+			self.assertEqual(sync_skills(), ["frappe/open-todos"])
+			self.assertEqual(
+				frappe.db.get_value("Flow Skill", "frappe/odd-todos", "description"), "Close overdue ToDos."
+			)
+			[reason] = self.skipped("Flow Skill frappe/odd-todos skipped")
+			self.assertIn("odd-todos/SKILL.md: skill name 'other'", reason)
 
-		with self.subTest("a skill named unlike its folder is refused with its path"):
-			AppSkills(self).write("odd-todos", text="---\nname: other\ndescription: Wrong name.\n---\nBody\n")
-			with self.assertRaisesRegex(frappe.ValidationError, "odd-todos/SKILL.md: skill name 'other'"):
-				sync_skills()
-
-		with self.subTest("a cut-off scan stops before deleting anything"):
+		with self.subTest("a cut-off scan skips the app before deleting anything"):
 			skills = AppSkills(self)
 			skills.write("first-todos")
 			sync_skills()
 			skills.write("second-todos")
-			with (
-				patch("flow_harness.session.skills.MAX_SKILL_DIRECTORY_ENTRIES", 1),
-				self.assertRaisesRegex(frappe.ValidationError, "has more than 1 entries"),
-			):
-				sync_skills()
-			self.assertTrue(frappe.db.exists("Flow Skill", "first-todos"))
+			with patch("flow_harness.session.skills.MAX_SKILL_DIRECTORY_ENTRIES", 1):
+				self.assertEqual(sync_skills(), [])
+			self.assertTrue(frappe.db.exists("Flow Skill", "frappe/first-todos"))
+			self.assertFalse(frappe.db.exists("Flow Skill", "frappe/second-todos"))
+			[reason] = self.skipped("Flow Skills of frappe skipped")
+			self.assertIn("has more than 1 entries", reason)
 
 	def test_a_file_or_folder_of_an_app_skill_is_read_by_its_path(self):
 		folder = self.skills.write("close-todos")
@@ -265,7 +298,7 @@ class TestAppSkills(IntegrationTestCase):
 			("examples/tabs/block.json", "Example."),
 		):
 			with self.subTest(path=path):
-				self.assertEqual(skill_file("close-todos", path), content)
+				self.assertEqual(skill_file("frappe/close-todos", path), content)
 
 	def test_only_small_text_files_inside_an_app_skill_folder_are_read(self):
 		folder = self.skills.write("close-todos")
@@ -280,18 +313,18 @@ class TestAppSkills(IntegrationTestCase):
 		sync_skills()
 		# rows can be written by hand: a Desk skill, a name that is no folder, an app not installed
 		for title, app in (("Expense Approval", None), ("..", "frappe"), ("os-skill", "os")):
-			frappe.get_doc(_skill(title=title, app=app)).insert()
+			frappe.get_doc(_skill(title=title, app=app)).insert(ignore_permissions=True)
 
 		for name, path, error in (
-			("close-todos", "../other-skill/notes.md", "has no file"),
-			("close-todos", os.path.join(other, "notes.md"), "has no file"),
-			("close-todos", ".env", "has no file"),
-			("close-todos", "link.md", "has no file"),
-			("close-todos", "missing.md", "has no file"),
+			("frappe/close-todos", "../other-skill/notes.md", "has no file"),
+			("frappe/close-todos", os.path.join(other, "notes.md"), "has no file"),
+			("frappe/close-todos", ".env", "has no file"),
+			("frappe/close-todos", "link.md", "has no file"),
+			("frappe/close-todos", "missing.md", "has no file"),
 			("Expense Approval", "forms.md", "has no files"),
-			("..", "hooks.py", "has no files"),
-			("os-skill", "hooks.py", "has no files"),
-			("close-todos", "logo.png", "not a text file"),
+			("frappe/..", "hooks.py", "has no files"),
+			("os/os-skill", "hooks.py", "has no files"),
+			("frappe/close-todos", "logo.png", "not a text file"),
 		):
 			with self.subTest(name=name, path=path), self.assertRaisesRegex(frappe.ValidationError, error):
 				skill_file(name, path)
@@ -300,4 +333,4 @@ class TestAppSkills(IntegrationTestCase):
 			patch("frappe.flow.doctype.flow_skill.flow_skill.MAX_SKILL_FILE_BYTES", 4),
 			self.assertRaisesRegex(frappe.ValidationError, "larger than"),
 		):
-			skill_file("close-todos", "SKILL.md")
+			skill_file("frappe/close-todos", "SKILL.md")

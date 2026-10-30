@@ -9,6 +9,7 @@ from typing import TYPE_CHECKING, Any
 import frappe
 from frappe import _
 from frappe.flow.lib.tool import Tool, ToolContext, build_schema
+from frappe.flow.tools.builtins import tool_call_name
 from frappe.utils.safe_exec import safe_exec
 
 if TYPE_CHECKING:
@@ -83,7 +84,7 @@ def _build_tool(
 	display_template: str | None = None,
 ) -> Tool:
 	return Tool(
-		name=doc.slug,
+		name=tool_call_name(doc.name),
 		description=doc.description,
 		parameters=parameters,
 		func=func,

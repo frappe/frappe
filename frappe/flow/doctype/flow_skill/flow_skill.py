@@ -9,7 +9,15 @@ from pathlib import Path
 
 import frappe
 from frappe import _
-from frappe.flow.utils.system_generated import block_delete, block_rename, validate_immutable
+from frappe.flow.utils.system_generated import (
+	block_delete,
+	block_insert,
+	block_rename,
+	block_slash_in_name,
+	log_skipped,
+	skip_if_invalid,
+	validate_immutable,
+)
 from frappe.model.document import Document
 
 MAX_DESCRIPTION_LENGTH = 1024
@@ -49,7 +57,11 @@ class FlowSkill(Document):
 		user_invocable: DF.Check
 	# end: auto-generated types
 
+	def before_insert(self):
+		block_insert(self)
+
 	def validate(self):
+		block_slash_in_name(self)
 		self._validate_description()
 		self._validate_global_limit()
 		self._validate_command()
@@ -60,6 +72,7 @@ class FlowSkill(Document):
 
 	def before_rename(self, old: str, new: str, merge: bool = False) -> None:
 		block_rename(self, old)
+		block_slash_in_name(self, new)
 		if not merge:
 			self._validate_command(new)
 
@@ -71,11 +84,11 @@ class FlowSkill(Document):
 				title=_("Description Too Long"),
 			)
 
-	def _validate_command(self, title: str | None = None):
+	def _validate_command(self, name: str | None = None):
 		"""A user-invocable skill answers to /skill:<command>, so its command must be typable and its own."""
 		if not self.user_invocable:
 			return
-		command = skill_command(title or self.title or "")
+		command = skill_command(name or self.name or "")
 		if not command:
 			frappe.throw(
 				_("A user-invocable skill needs a letter or digit in its title."), title=_("Invalid Title")
@@ -142,49 +155,55 @@ def _skill_block(row: dict) -> str:
 	)
 
 
-def skill_command(title: str) -> str:
-	"""What a user types after `/skill:` to start the skill: the title lowercased, each run of
+def skill_command(name: str) -> str:
+	"""What a user types after `/skill:` to start the skill: its name lowercased, each run of
 	other characters as one hyphen."""
-	return re.sub(r"[^a-z0-9]+", "-", title.lower()).strip("-")
+	return re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-")
 
 
 def sync_skills() -> list[str]:
-	"""Write each installed app's skills/<name>/SKILL.md as a locked Flow Skill and delete the app
-	skills gone from disk. Returns their names."""
+	"""Write each installed app's skills/<name>/SKILL.md as a locked Flow Skill named `<app>/<name>`
+	and delete the app skills gone from disk. Returns the names written. A skill that cannot be
+	written is skipped and logged, and its row kept as it was."""
 	from flow_harness.session.skills import MAX_SKILL_DIRECTORY_ENTRIES, list_skill_files, load_skill
 
 	shipped: dict[str, tuple[str, str, str]] = {}
+	skills_to_keep: set[str] = set()
 	for app in frappe.get_installed_apps(_ensure_on_bench=True):
 		folder = frappe.get_app_source_path(app, "skills")
 		paths, truncated = list_skill_files(folder)
 		# a cut-off scan would delete the skills it missed
 		if truncated:
-			frappe.throw(
+			log_skipped(
+				f"Flow Skills of {app} skipped",
 				_("Skills folder {0} has more than {1} entries.").format(folder, MAX_SKILL_DIRECTORY_ENTRIES),
-				title=_("Too Many Skills"),
 			)
+			skills_to_keep.update(
+				frappe.get_all("Flow Skill", {"is_system_generated": 1, "app": app}, pluck="name")
+			)
+			continue
 		for path in paths:
+			name = f"{app}/{Path(path).parent.name}"
+			skills_to_keep.add(name)
 			try:
 				skill = load_skill(path)
 				with open(path, encoding="utf-8") as file:  # nosemgrep: frappe-security-file-traversal
 					instructions = _FRONTMATTER_RE.sub("", file.read(), count=1).strip()
 			except ValueError as e:  # a SkillError, or a body that is not UTF-8
-				frappe.throw(_("Invalid skill {0}: {1}").format(path, str(e)), title=_("Invalid Skill"))
-			if skill.name in shipped:
-				frappe.throw(
-					_("Skill {0} is shipped by both {1} and {2}.").format(
-						skill.name, shipped[skill.name][0], app
-					),
-					title=_("Skill Conflict"),
-				)
-			shipped[skill.name] = (app, skill.description, instructions)
+				log_skipped(f"Flow Skill {name} skipped", _("Invalid skill {0}: {1}").format(path, str(e)))
+				continue
+			shipped[name] = (app, skill.description, instructions)
+	synced = []
 	for name, (app, description, instructions) in shipped.items():
-		_ensure_skill(name, app, description, instructions)
-	for name in set(frappe.get_all("Flow Skill", {"is_system_generated": 1}, pluck="name")) - shipped.keys():
-		# unlink first: delete_doc refuses a skill an agent still uses
-		frappe.db.delete("Flow Agent Skill", {"skill": name})
-		frappe.delete_doc("Flow Skill", name, ignore_permissions=True)
-	return sorted(shipped)
+		with skip_if_invalid(f"Flow Skill {name} skipped"):
+			_ensure_skill(name, app, description, instructions)
+			synced.append(name)
+	for name in frappe.get_all("Flow Skill", {"is_system_generated": 1}, pluck="name"):
+		if name not in skills_to_keep:
+			# unlink first: delete_doc refuses a skill an agent still uses
+			frappe.db.delete("Flow Agent Skill", {"skill": name})
+			frappe.delete_doc("Flow Skill", name, ignore_permissions=True)
+	return sorted(synced)
 
 
 def _ensure_skill(name: str, app: str, description: str, instructions: str) -> None:
@@ -196,11 +215,6 @@ def _ensure_skill(name: str, app: str, description: str, instructions: str) -> N
 		"is_system_generated": 1,
 	}
 	row = frappe.db.get_value("Flow Skill", name, list(definition), as_dict=True)
-	if row and not row.is_system_generated:
-		frappe.throw(
-			_("Flow Skill {0} already exists and is not owned by an app.").format(name),
-			title=_("Skill Conflict"),
-		)
 	if row and all(row[key] == value for key, value in definition.items()):
 		return
 	if row:
@@ -217,10 +231,11 @@ def skill_file(name: str, file: str) -> str:
 	from flow_harness.session.skills import valid_skill_name
 
 	app = frappe.db.get_value("Flow Skill", name, "app")
+	folder_name = name.removeprefix(f"{app}/")
 	# rows can be written by hand, so trust only an installed app and a plain folder name
-	if app not in frappe.get_installed_apps() or not valid_skill_name(name):
+	if app not in frappe.get_installed_apps() or not valid_skill_name(folder_name):
 		frappe.throw(_("Skill {0} has no files.").format(name), title=_("Unknown File"))
-	folder = Path(frappe.get_app_source_path(app, "skills"), name).resolve()
+	folder = Path(frappe.get_app_source_path(app, "skills"), folder_name).resolve()
 	path = (folder / file).resolve()
 	hidden = any(part.startswith(".") for part in Path(file).parts)
 	if hidden or not path.is_relative_to(folder) or not (path.is_file() or path.is_dir()):
