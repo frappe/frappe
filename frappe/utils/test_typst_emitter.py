@@ -809,6 +809,10 @@ class TestTypstRender(IntegrationTestCase):
 		space_evenly = emitter._data_field(section, {**df, "label_justify": "space-evenly"})
 		self.assertTrue(space_between.startswith("#grid(columns: (auto, 1fr)"))
 		self.assertTrue(space_evenly.startswith("#grid(columns: (1fr, auto, 1fr, auto, 1fr)"))
+		hidden_label = emitter._data_field(
+			section, {**df, "show_label": "hide", "label_justify": "space-evenly"}
+		)
+		self.assertTrue(hidden_label.startswith("#align(center)["))
 
 >>>>>>> 879c0fc (test(print): cover the spacing setting in typst pdfs)
 	@unittest.skipUnless(has_typst(), "typst not installed")
