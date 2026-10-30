@@ -994,8 +994,22 @@ class TypstEmitter:
 			if align in ("center", "right") and section.get("field_orientation") != "left-right":
 				body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align({align})[{value_text}]])"
 				return self._text_props(df, body)
+			if section.get("field_orientation") == "left-right" and align not in ("center", "right"):
+				if df.get("label_justify") == "space-between":
+					body = f"#grid(columns: (auto, 1fr), column-gutter: {gap_pt}pt, [{label}], [#align(right)[{value_text}]])"
+					return self._text_props(df, body)
+				if df.get("label_justify") == "space-evenly":
+					body = f"#grid(columns: (1fr, auto, 1fr, auto, 1fr), column-gutter: {gap_pt}pt, [], [{label}], [], [{value_text}], [])"
+					return self._text_props(df, body)
 			body = f"#grid(columns: (auto, auto), column-gutter: {gap_pt}pt, [{label}], [{value_text}])"
 			return _aligned(self._text_props(df, body), align)
+		if (
+			show_label == "hide"
+			and section.get("field_orientation") == "left-right"
+			and align not in ("center", "right")
+			and df.get("label_justify") == "space-evenly"
+		):
+			return _aligned(self._text_props(df, value_text), "center")
 		spacing = gap_effect if gap_effect is not None else 4
 		parts = [f"[{label}]"] if label else []
 		parts.append(f"[{value_text}]")
