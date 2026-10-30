@@ -594,18 +594,19 @@ class GetFieldsDialog {
 		const rows = this.frm.doc.web_form_fields;
 		const position = this.fields.indexOf(df);
 		const row_index = (fieldname) => rows.findIndex((d) => d.fieldname === fieldname);
+		const nearest = (step) => {
+			for (let i = position + step; i >= 0 && i < this.fields.length; i += step) {
+				const at = row_index(this.fields[i].fieldname);
+				if (at !== -1) return { at, distance: Math.abs(i - position) };
+			}
+		};
+		const before = nearest(-1);
+		const after = nearest(1);
 
-		for (let i = position - 1; i >= 0; i--) {
-			const at = row_index(this.fields[i].fieldname);
-			if (at !== -1) return at + 1;
-		}
-		// nothing before it: sit before the nearest one after, so a new opening field stays
-		// inside the form's first section
-		for (let i = position + 1; i < this.fields.length; i++) {
-			const at = row_index(this.fields[i].fieldname);
-			if (at !== -1) return at;
-		}
-		return rows.length;
+		// with a break between the two neighbours, the closer one decides the page
+		if (before && after && after.distance < before.distance) return after.at;
+		if (before) return before.at + 1;
+		return after ? after.at : rows.length;
 	}
 
 	rebuild_layout(selected) {
