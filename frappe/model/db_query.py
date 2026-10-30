@@ -1318,19 +1318,14 @@ from {tables}
 		"""Render a pypika permission criterion to a namespaced SQL string.
 
 		The legacy query path concatenates conditions into a single WHERE string, so any
-		embedded value must be inlined. We collect values via a parameter wrapper and inline
-		them with `frappe.db.escape` (the driver's escaping) rather than pypika's bare
+		embedded value must be inlined. A parameter wrapper inlines each value with
+		`frappe.db.escape` (the driver's escaping) rather than pypika's bare
 		quote-doubling, which is unsafe on MariaDB where backslash is an escape character.
 		"""
-		from frappe.query_builder.terms import NamedParameterWrapper
-
 		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
-		param_wrapper = NamedParameterWrapper()
 		sql = criterion.get_sql(
-			with_namespace=True, quote_char=quote_char, param_wrapper=param_wrapper, subquery=True
+			with_namespace=True, quote_char=quote_char, param_wrapper=EscapedValueWrapper(), subquery=True
 		)
-		for key, value in param_wrapper.get_parameters().items():
-			sql = sql.replace(f"%({key})s", frappe.db.escape(value))
 		return f"({sql})"
 
 	def set_order_by(self, args):
@@ -1649,3 +1644,10 @@ def strip_alias(field: str) -> str:
 	if " as " in field.lower():
 		return field.split(" as ", 1)[0]
 	return field
+
+
+class EscapedValueWrapper:
+	"""Parameter wrapper that inlines each value as an escaped SQL literal."""
+
+	def get_sql(self, param_value, **kwargs) -> str:
+		return frappe.db.escape(param_value, percent=False)
