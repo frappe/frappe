@@ -7,6 +7,7 @@ import re
 
 import frappe
 from frappe import _
+from frappe.desk.doctype.form_layout.app_layout import read_app_layout
 from frappe.model import child_table_fields, data_fieldtypes, default_fields, optional_fields
 from frappe.model.document import Document
 from frappe.model.meta import Meta
@@ -20,6 +21,9 @@ STANDARD_FIELDS = frozenset(default_fields + child_table_fields + optional_field
 class FormLayout(Document):
 	def validate(self):
 		self.validate_single_default()
+		self.validate_layout()
+
+	def validate_layout(self):
 		self.name_layout()
 		tabs = parse_layout(self.layout)
 		self.validate_inline_fields(tabs)
@@ -108,15 +112,16 @@ def get_form_layouts(dt: str, type: str):
 	validate_target(dt, type)
 	check_layout_access(dt, type)
 
-	rows = get_layout_rows(dt, type)
-	if not rows and type == "New Record":
-		rows = get_layout_rows(dt, "Details")
-	layouts = [
-		{"name": row.name, "condition": row.condition, "layout": parse_layout(row.layout)} for row in rows
-	]
+	layouts = get_layouts(dt, type)
+	if not layouts and type == "New Record":
+		layouts = get_layouts(dt, "Details")
 	if type != "Quick Entry":
 		return {"layouts": layouts, "fallback": get_meta_layout(dt)}
-	return {"layouts": layouts, "fallback": get_quick_entry_layout(dt), "dialog": opens_in_dialog(dt, rows)}
+	return {
+		"layouts": layouts,
+		"fallback": get_quick_entry_layout(dt),
+		"dialog": opens_in_dialog(dt, layouts),
+	}
 
 
 @frappe.desk_v2_only
@@ -138,6 +143,27 @@ def check_layout_access(dt: str, type: str) -> None:
 	frappe.has_permission(dt, "read", throw=True)
 
 
+def get_layouts(dt: str, type: str) -> list[dict]:
+	"""The site's rows, then the app's file unless a row has no condition: that row replaces the file whole."""
+	layouts = [
+		{"name": row.name, "condition": row.condition, "layout": parse_layout(row.layout)}
+		for row in get_layout_rows(dt, type)
+	]
+	if any(not layout["condition"] for layout in layouts):
+		return layouts
+	app_layout = read_app_layout(dt, type)
+	if app_layout:
+		layouts.append(
+			{
+				"name": None,
+				"condition": None,
+				"layout": parse_layout(app_layout.layout),
+				"omitted": list(app_layout.omitted),
+			}
+		)
+	return layouts
+
+
 def get_layout_rows(dt: str, type: str) -> list:
 	return frappe.get_all(
 		"Form Layout",
@@ -147,9 +173,9 @@ def get_layout_rows(dt: str, type: str) -> list:
 	)
 
 
-def opens_in_dialog(dt: str, rows: list) -> bool:
+def opens_in_dialog(dt: str, layouts: list) -> bool:
 	"""Whether Create opens a dialog; a person who gets `False` gets the full-page new record."""
-	if rows:
+	if layouts:
 		return True
 	meta = frappe.get_meta(dt)
 	if not meta.quick_entry:

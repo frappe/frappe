@@ -178,9 +178,9 @@ the reader dismissed it or picked "Edit full form", the route changed, or the pa
 `values` is its one option, the values the new record starts with, over the server's
 defaults. The title is always "New {doctype}", and the layout is the doctype's Quick Entry
 Form Layout row whose condition holds. The server decides whether a dialog opens: it does
-for a doctype with a Quick Entry Form Layout row, or with Quick Entry set, mandatory fields
+for a doctype with a Quick Entry Form Layout row or [app file](#an-apps-layouts), or with Quick Entry set, mandatory fields
 and no mandatory table. Otherwise the full-page new record opens with
-`values` in its query string, and the promise resolves `null`. With no Form Layout row the
+`values` in its query string, and the promise resolves `null`. With no Form Layout row or file the
 dialog shows the mandatory fields and those marked for Quick Entry. A doctype named by
 prompt gets a name field at the top. Ctrl/Cmd+Enter and Ctrl/Cmd+S save it, and never the page
 under it.
@@ -338,6 +338,73 @@ export default {
   },
 }
 ```
+
+## An app's layouts
+
+An app ships a `Form Layout` for one of its doctypes as a file in the doctype's folder:
+`<app>/<module>/doctype/<doctype>/frontend/layouts/<type>.json`. `<type>` is `details`,
+`side_panel`, `quick_entry` or `new_record`. Contact ships `quick_entry.json` and
+`new_record.json`.
+
+The file holds two keys. `layout` is the tree that a `Form Layout` row stores. `omitted`
+lists the fieldnames that the layout leaves out on purpose.
+
+```json
+{
+ "layout": [
+  {
+   "name": "first_tab",
+   "sections": [
+    {
+     "columns": [
+      {
+       "fields": [
+        "first_name",
+        {"fieldname": "email_id", "fieldtype": "Data", "label": "Email Address", "options": "Email"}
+       ],
+       "name": "column_1"
+      }
+     ],
+     "name": "contact"
+    }
+   ]
+  }
+ ],
+ "omitted": []
+}
+```
+
+The file is the lowest tier. The site's rows of the same doctype and type come first. A row
+with no condition replaces the file whole, and the rows and the file never merge. A row with
+a condition wins only when its condition holds. With no New Record layout, New Record uses
+the Details rows and file. A Quick Entry file makes Create open a dialog, as a Quick Entry
+row does.
+
+The server reads the file on each layout call. Its cache key is the file's path, modified
+time and size, so an edit applies on the next call without a build or a migrate. An open
+desk keeps the layout it has until the page loads again.
+
+Write the file as a server save writes it: `frappe.as_json` and a final newline. Then the same
+tree and `omitted` always give the same bytes and the same hash. Give each tab, section and
+column a `name`. The server names an unnamed one when it reads the file, but a stored name
+keeps a script's address when a label changes. The file passes the same checks as a row,
+and an inline field is allowed only in `quick_entry` and `new_record`.
+
+The translation extractor reads every file that `**/doctype/*/frontend/layouts/*.json`
+names. It takes each container's `label` and `description`, and the label, description and
+options of each inline field.
+
+A New Record file lists every field of its doctype in `layout` or in `omitted`. A release
+that adds a field to the doctype also updates the file. Contact's test checks this.
+
+Limits:
+
+- A site row made before the upgrade keeps winning. Its admin does not get the fields that a
+  later file adds.
+- When a doctype that rendered from its breaks gets a `details` or `new_record` file, the
+  site's Property Setters on breaks (a section label, `collapsible`) and its `field_order` no
+  longer apply on desk v2. They still apply on desk v1. A custom field stays in place through
+  its `insert_after` anchor ([#45894](https://github.com/frappe/frappe/issues/45894)).
 
 ## Writing a component
 

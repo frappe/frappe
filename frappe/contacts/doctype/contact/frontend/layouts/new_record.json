@@ -1,0 +1,116 @@
+{
+ "layout": [
+  {
+   "name": "first_tab",
+   "sections": [
+    {
+     "columns": [
+      {
+       "fields": [
+        "first_name",
+        "middle_name",
+        "last_name",
+        "full_name",
+        {
+         "fieldname": "email_id",
+         "fieldtype": "Data",
+         "label": "Email Address",
+         "options": "Email"
+        },
+        "user",
+        "address",
+        "sync_with_google_contacts"
+       ],
+       "name": "column_1"
+      },
+      {
+       "fields": [
+        "status",
+        "salutation",
+        "designation",
+        "gender",
+        {
+         "fieldname": "phone",
+         "fieldtype": "Data",
+         "label": "Phone",
+         "options": "Phone"
+        },
+        {
+         "fieldname": "mobile_no",
+         "fieldtype": "Data",
+         "label": "Mobile No",
+         "options": "Phone"
+        },
+        "company_name",
+        "image"
+       ],
+       "name": "cb00"
+      }
+     ],
+     "name": "contact_section"
+    },
+    {
+     "collapsible": true,
+     "columns": [
+      {
+       "fields": [
+        "google_contacts",
+        "google_contacts_id"
+       ],
+       "name": "column_1"
+      },
+      {
+       "fields": [
+        "pulled_from_google_contacts"
+       ],
+       "name": "cb_00"
+      }
+     ],
+     "dependsOn": "eval:doc.sync_with_google_contacts || doc.pulled_from_google_contacts",
+     "label": "Google Contacts",
+     "name": "sb_00"
+    },
+    {
+     "columns": [
+      {
+       "fields": [
+        "email_ids",
+        "phone_nos"
+       ],
+       "name": "column_1"
+      }
+     ],
+     "label": "Contact Details",
+     "name": "sb_01"
+    },
+    {
+     "columns": [
+      {
+       "fields": [
+        "links",
+        "is_primary_contact"
+       ],
+       "name": "column_1"
+      }
+     ],
+     "label": "Reference",
+     "name": "contact_details"
+    },
+    {
+     "columns": [
+      {
+       "fields": [
+        "department",
+        "unsubscribed"
+       ],
+       "name": "column_1"
+      }
+     ],
+     "label": "More Information",
+     "name": "more_info"
+    }
+   ]
+  }
+ ],
+ "omitted": []
+}
