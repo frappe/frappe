@@ -264,6 +264,18 @@ class TestWorkspaceAccessLevels(IntegrationTestCase):
 
 		self.assertFalse(frappe.db.exists("Workspace", "Test Desk User Public Page"))
 
+	def test_a_desk_user_cannot_edit_a_public_page(self):
+		from frappe.desk.doctype.workspace.workspace import new_page, update_page
+
+		frappe.set_user(self.MANAGER)
+		new_page(self.page("Test Manager Public Page", public=1))
+
+		frappe.set_user(self.DESK_USER)
+		with self.assertRaises(frappe.PermissionError):
+			update_page("Test Manager Public Page", "Stolen", "", "", "", 0)
+
+		self.assertEqual(frappe.db.get_value("Workspace", "Test Manager Public Page", "public"), 1)
+
 	def test_a_workspace_manager_creates_both_shared_levels(self):
 		"""Group and public are one field apart: a shared page with roles is the group, a
 		shared page without them is everyone."""
