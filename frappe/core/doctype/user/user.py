@@ -1121,6 +1121,13 @@ def update_password(
 	else:
 		user = res["user"]
 
+	if key and frappe.session.user != "Guest":
+		frappe.throw(
+			_(
+				"You are logged in as {0}. Log out and open the reset link again to set a new password for {1}."
+			).format(frappe.session.user, user)
+		)
+
 	if is_password_reused(user, new_password):
 		frappe.throw(
 			_(
@@ -1148,7 +1155,7 @@ def update_password(
 		redirect_url = redirect_to
 		frappe.cache.hdel("redirect_after_login", user)
 
-	if frappe.session.user != user:
+	if key:
 		frappe.local.login_manager.login_as(user)
 
 	if user_doc.user_type == "System User":
