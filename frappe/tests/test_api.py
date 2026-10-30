@@ -15,6 +15,7 @@ from werkzeug.test import TestResponse
 
 import frappe
 from frappe.installer import update_site_config
+from frappe.model.document import Document
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import whitelist_for_tests
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
@@ -427,6 +428,22 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 		send.start()
 		self.addCleanup(send.stop)
 
+		def save_and_return_self(doc: Document) -> Document:
+			doc.save()
+			return doc
+
+		def save_and_return_rows(doc: Document) -> dict:
+			doc.save()
+			return {"rows": doc.rows}
+
+		for name, fn in (
+			("save_and_return_self", save_and_return_self),
+			("save_and_return_rows", save_and_return_rows),
+		):
+			method = patch.object(Document, name, create=True, new=whitelist_for_tests(methods=["POST"])(fn))
+			method.start()
+			self.addCleanup(method.stop)
+
 	def tearDown(self):
 		try:
 			frappe.set_user("Administrator")
@@ -461,8 +478,8 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 			self.assertIsNone(d.get("secret"))
 			self.assertNotEqual(d.get("token"), "abc123")
 
-	def saved_doc(self):
-		return frappe.get_doc(self.doctype, self.name).as_dict()
+	def saved_doc(self, **kwargs):
+		return frappe.get_doc(self.doctype, self.name).as_dict(**kwargs)
 
 	def test_v1_create_doc(self):
 		doc = self.request("post", f"/api/resource/{self.doctype}", {"rows": [{}]})
@@ -519,6 +536,22 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 		)
 		self.assertEqual(doc["docstatus"], 2)
 		self.assertMasked(doc)
+
+	def test_v2_execute_doc_method_returning_the_document(self):
+		path = f"/api/v2/document/{self.doctype}/{self.name}/method/save_and_return_self"
+		self.assertMasked(self.request("post", path, {}))
+
+	def test_v2_execute_doc_method_returning_child_rows(self):
+		path = f"/api/v2/document/{self.doctype}/{self.name}/method/save_and_return_rows"
+		self.assertMasked({"rows": self.request("post", path, {})["rows"]})
+
+	def test_v2_run_doc_method_returning_the_document(self):
+		data = {"document": self.saved_doc(convert_dates_to_str=True), "method": "save_and_return_self"}
+		self.assertMasked(self.request("post", "/api/v2/method/run_doc_method", data))
+
+	def test_v2_run_doc_method_returning_child_rows(self):
+		data = {"document": self.saved_doc(convert_dates_to_str=True), "method": "save_and_return_rows"}
+		self.assertMasked({"rows": self.request("post", "/api/v2/method/run_doc_method", data)["rows"]})
 
 	def test_client_set_value_child_row(self):
 		doc = self.request(

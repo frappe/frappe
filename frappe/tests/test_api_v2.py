@@ -337,6 +337,8 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 		response = self.request("post", self.name, "method", "submit")
 		self.assertEqual(response["docs"][0]["docstatus"], 1)
 		self.assertIsNone(response["docs"][0].get("secret"))
+		self.assertEqual(response["data"]["name"], self.name)
+		self.assertIsNone(response["data"].get("secret"))
 
 	def test_bulk_update_docs_omits_fields_without_read_permission(self):
 		response = self.request("post", "bulk_update", data={"docs": [{"name": self.name, "title": "y"}]})
@@ -355,6 +357,8 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 			"post", data={"document": document, "method": "submit"}, url=self.method("run_doc_method")
 		)
 		self.assertIsNone(response["docs"][0].get("secret"))
+		self.assertEqual(response["data"]["name"], self.name)
+		self.assertIsNone(response["data"].get("secret"))
 
 
 class TestMethodAPIV2(FrappeAPITestCase):
