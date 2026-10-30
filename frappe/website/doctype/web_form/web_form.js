@@ -620,7 +620,7 @@ class GetFieldsDialog {
 		this.frm.dirty();
 	}
 
-	// existing rows are reused, so their edits survive. An empty break is kept anyway:
+	// only field rows are reused: breaks have no fieldname to match. An empty break is kept anyway:
 	// the portal skips the empty page and the save says so
 	get_ordered_rows(selected) {
 		const rows = this.doctype_fields
