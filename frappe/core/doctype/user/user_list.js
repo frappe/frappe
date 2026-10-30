@@ -67,21 +67,33 @@ frappe.listview_settings["User"] = {
 			dialog.show();
 		};
 
-		listview.page.add_actions_menu_item(__("Add Roles"), () =>
+		const add_roles = () =>
 			open_role_dialog({
 				title: __("Add Roles"),
 				get_action_label: (count) => __("Add to {0} Users", [count]),
 				method: "frappe.core.doctype.user.user.bulk_add_roles",
-			})
+			});
+		listview.page.add_actions_menu_item(
+			__("Add Roles"),
+			add_roles,
+			false,
+			null,
+			"shield-plus"
 		);
 
-		listview.page.add_actions_menu_item(__("Remove Roles"), () =>
+		const remove_roles = () =>
 			open_role_dialog({
 				title: __("Remove Roles"),
 				get_action_label: (count) => __("Remove from {0} Users", [count]),
 				method: "frappe.core.doctype.user.user.bulk_remove_roles",
 				destructive: true,
-			})
+			});
+		listview.page.add_actions_menu_item(
+			__("Remove Roles"),
+			remove_roles,
+			false,
+			null,
+			"shield-minus"
 		);
 	},
 	set_default_app_options(listview) {

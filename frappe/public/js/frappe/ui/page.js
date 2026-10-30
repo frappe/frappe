@@ -489,11 +489,12 @@ frappe.ui.Page = class Page {
 		this.actions_btn_group.addClass("hide");
 	}
 
-	add_action_item(label, click, standard) {
+	add_action_item(label, click, standard, icon = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
+			icon,
 			parent: this.actions,
 		});
 	}
