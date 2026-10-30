@@ -445,17 +445,19 @@ class TestEmailAccount(IntegrationTestCase):
 			email_account.check_email_server_connection(server, in_receive=True)
 
 	def test_background_receive_auth_error_disables_account(self):
-		# auth failure during background receive disables incoming instead of raising
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
 		email_account.flags.validate_imap_pop_connection = False
 
 		server = MagicMock()
 		server.connect.side_effect = imaplib.IMAP4.error("[AUTHENTICATIONFAILED] Invalid credentials")
 
-		with patch.object(email_account, "handle_incoming_connect_error") as mocked_handler:
-			result = email_account.check_email_server_connection(server, in_receive=True)
+		with (
+			self.set_user("test@example.com"),
+			patch.object(email_account, "handle_incoming_connect_error") as mocked_handler,
+			self.assertRaises(imaplib.IMAP4.error),
+		):
+			email_account.check_email_server_connection(server, in_receive=True)
 
-		self.assertIsNone(result)
 		mocked_handler.assert_called_once()
 
 	def test_background_receive_raises_connection_error(self):
