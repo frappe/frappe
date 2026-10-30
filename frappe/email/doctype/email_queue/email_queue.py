@@ -821,6 +821,11 @@ class QueueBuilder:
 					attachments.append(att)
 				elif att.get("print_format_attachment") == 1:
 					if not att.get("lang", None):
+						# a background job resolves its user's language only on the first translation
+						job = getattr(frappe.local, "job", None)
+						if job is not None and not job.lang_resolved:
+							frappe.set_user_lang(job.user)
+							job.lang_resolved = True
 						att["lang"] = frappe.local.lang
 					att["print_letterhead"] = self.print_letterhead
 					attachments.append(att)

@@ -166,3 +166,21 @@ class TestEmailQueue(IntegrationTestCase):
 
 		attach_print.assert_called_once()
 		self.assertIn(b'filename="test.pdf"', frappe.flags.sent_mail)
+
+	def test_print_attachment_queued_in_job_uses_user_language(self):
+		self.addCleanup(frappe.set_user, "Administrator")
+		frappe.set_user("test@example.com")
+		frappe.local.job = frappe._dict(user="test@example.com")
+		self.addCleanup(delattr, frappe.local, "job")
+		self.addCleanup(setattr, frappe.local, "lang", frappe.local.lang)
+		frappe.local.lang = "en"
+
+		with patch("frappe.translate.get_user_lang", return_value="de"):
+			email_record = frappe.sendmail(
+				recipients=["test_to@example.com"],
+				subject="Print attachment",
+				message="Test message",
+				attachments=[{"print_format_attachment": 1, "doctype": "User", "name": "test@example.com"}],
+			)
+
+		self.assertEqual(email_record.attachments_list[0]["lang"], "de")
