@@ -15,7 +15,16 @@ from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
+<<<<<<< HEAD
 from frappe.permissions import check_doctype_permission, get_doc_permissions
+=======
+from frappe.permissions import (
+	check_doctype_permission,
+	get_doc_permissions,
+	has_permission,
+	validate_desk_user,
+)
+>>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 from frappe.utils.data import cstr
 
 
@@ -66,6 +75,7 @@ def getdoc(doctype: str, name: str | int):
 @frappe.whitelist()
 def getdoctype(doctype: str, with_parent: int | bool = False, cached_timestamp: str | None = None):
 	"""load doctype"""
+	validate_desk_user()
 
 	docs = []
 	parent_dt = None
@@ -554,7 +564,13 @@ def update_user_info(docinfo, doc=None):
 
 
 @frappe.whitelist()
+<<<<<<< HEAD
 def get_user_info_for_viewers(users: str | list[str]):
+=======
+def get_user_info_for_viewers(users: str | list):
+	validate_desk_user()
+
+>>>>>>> 7183ec6 (test: use _Test Role for the role listing test)
 	user_info = {}
 	for user in frappe.parse_json(users):
 		frappe.utils.add_user_info(user, user_info)

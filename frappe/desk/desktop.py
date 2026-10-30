@@ -686,4 +686,19 @@ def update_onboarding_step(name: str | int, field: str, value: int | str):
 
 	frappe.db.set_value("Onboarding Step", name, field, value)
 
+<<<<<<< HEAD
 	capture(frappe.scrub(name), app="frappe_onboarding", properties={field: value})
+=======
+	if field == "is_complete" and cint(value):
+		frappe.get_doc("Onboarding Step", name).throw_if_unfinished()
+
+	frappe.db.set_value("Onboarding Step", name, field, cint(value))
+	capture_step_update(name, field, cint(value))
+	update_completion(name)
+
+
+@frappe.whitelist()
+def get_installed_apps():
+	frappe.permissions.validate_desk_user()
+	return frappe.get_active_apps()
+>>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)

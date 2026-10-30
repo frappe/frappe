@@ -22,7 +22,7 @@ def get_change_log(user=None):
 	last_known_versions = frappe._dict(
 		json.loads(frappe.db.get_value("User", user, "last_known_versions") or "{}")
 	)
-	current_versions = get_versions()
+	current_versions = get_app_versions()
 
 	if not last_known_versions:
 		update_last_known_versions()
@@ -88,6 +88,7 @@ def get_change_log_for_app(app, from_version, to_version):
 
 @frappe.whitelist()
 def update_last_known_versions():
+<<<<<<< HEAD
 	frappe.db.set_value(
 		"User",
 		frappe.session.user,
@@ -100,6 +101,28 @@ def update_last_known_versions():
 @frappe.whitelist()
 def get_versions():
 	"""Get versions of all installed apps.
+=======
+	with suppress(frappe.QueryDeadlockError):
+		frappe.db.set_value(
+			"User",
+			frappe.session.user,
+			"last_known_versions",
+			json.dumps(get_app_versions()),
+			update_modified=False,
+		)
+
+
+@frappe.whitelist()
+def get_versions(include_disabled: bool = False):
+	frappe.permissions.validate_desk_user()
+	return get_app_versions(include_disabled)
+
+
+def get_app_versions(include_disabled: bool = False):
+	"""Get versions of apps active on this site.
+
+	:param include_disabled: Also return apps that are installed but disabled.
+>>>>>>> d1c87ed (fix: limit desk metadata endpoints to desk users)
 
 	Example:
 
@@ -169,7 +192,7 @@ def check_for_update():
 		return
 
 	updates = frappe._dict(major=[], minor=[], patch=[])
-	apps = get_versions()
+	apps = get_app_versions()
 
 	for app in apps:
 		remote_url = get_source_url(app)
