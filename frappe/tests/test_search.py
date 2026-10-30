@@ -568,6 +568,28 @@ class TestSearch(IntegrationTestCase):
 		)
 		self.assertListEqual(results, [])
 
+	def test_custom_query_gets_query_args(self):
+		"""query_args reach a custom query as sent, apart from the filters a Link field adds"""
+		from frappe.client import validate_link_and_fetch
+
+		search = partial(
+			search_link, doctype="Role", txt="", query="frappe.tests.test_search.query_with_query_args"
+		)
+		for query_args in ({"role": "System Manager"}, '{"role": "System Manager"}'):
+			results = search(query_args=query_args, filters={"role": ["=", "Guest"]})
+			self.assertEqual([row["value"] for row in results], ["System Manager"])
+
+		self.assertEqual(search(), [])
+		self.assertEqual(
+			validate_link_and_fetch(
+				"Role",
+				"System Manager",
+				query="frappe.tests.test_search.query_with_query_args",
+				query_args={"role": "System Manager"},
+			),
+			{"name": "System Manager"},
+		)
+
 	def test_search_relevance(self):
 		frappe.db.set_value("Language", {"name": ("like", "e%")}, "enabled", 1)
 
@@ -1389,6 +1411,21 @@ def query_with_reference_doctype(
 	reference_doctype: str | None = None,
 ):
 	return []
+
+
+@whitelist_for_tests()
+@frappe.validate_and_sanitize_search_inputs
+def query_with_query_args(
+	doctype: str,
+	txt: str,
+	searchfield: str,
+	start: int,
+	page_len: int,
+	filters: str | list | dict[str, Any],
+	query_args: dict | None = None,
+):
+	"""The role named in `query_args`."""
+	return [(query_args["role"],)] if query_args else []
 
 
 @whitelist_for_tests()
