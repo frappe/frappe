@@ -1663,6 +1663,17 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn(open_todo.name, names)
 		self.assertNotIn(closed_todo.name, names)
 
+	def test_permission_criterion_values_are_inlined_as_is(self):
+		from frappe.model.db_query import DatabaseQuery
+
+		todo = frappe.get_doc(doctype="ToDo", description="100% %(param2)s").insert()
+		with self.patch_hooks(
+			{"permission_query_conditions": {"ToDo": ["frappe.tests.test_db_query.todo_placeholder_hook"]}}
+		):
+			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+
+		self.assertEqual(names, [todo.name])
+
 	def test_virtual_doctype(self):
 		"""Test that virtual doctypes can be queried using get_all"""
 
@@ -2200,3 +2211,8 @@ def todo_description_hook(user, doctype=None):
 
 def todo_open_hook(user, doctype=None):
 	return frappe.qb.DocType("ToDo").status == "Open"
+
+
+def todo_placeholder_hook(user, doctype=None):
+	ToDo = frappe.qb.DocType("ToDo")
+	return (ToDo.description == "100% %(param2)s") | (ToDo.description == "_Test OR Other")
