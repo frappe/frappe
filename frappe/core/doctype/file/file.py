@@ -890,7 +890,13 @@ class File(Document):
 				file_exists = True
 
 		if not file_exists:
-			if not overwrite:
+			# rewrite in place only the file this record alone points to; file_name can differ from file_url
+			in_place = (
+				overwrite
+				and self.file_url
+				and not frappe.db.exists("File", {"file_url": self.file_url, "name": ("!=", self.name)})
+			)
+			if not in_place:
 				self.file_name = generate_file_name(
 					name=self.file_name,
 					suffix=self.content_hash[-6:],
@@ -900,6 +906,9 @@ class File(Document):
 			write_file_method = get_hook_method("write_file")
 			if write_file_method:
 				return write_file_method(self)
+			if in_place:
+				self.write_file()
+				return {"file_name": self.file_name, "file_url": self.file_url}
 			return self.save_file_on_filesystem()
 
 	def save_file_on_filesystem(self):
