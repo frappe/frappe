@@ -360,7 +360,12 @@ lists the fieldnames that the layout leaves out on purpose.
       {
        "fields": [
         "first_name",
-        {"fieldname": "email_id", "fieldtype": "Data", "label": "Email Address", "options": "Email"}
+        {
+         "fieldname": "email_id",
+         "fieldtype": "Data",
+         "label": "Email Address",
+         "options": "Email"
+        }
        ],
        "name": "column_1"
       }
@@ -376,9 +381,10 @@ lists the fieldnames that the layout leaves out on purpose.
 
 The file is the lowest tier. The site's rows of the same doctype and type come first. A row
 with no condition replaces the file whole, and the rows and the file never merge. A row with
-a condition wins only when its condition holds. With no New Record layout, New Record uses
-the Details rows and file. A Quick Entry file makes Create open a dialog, as a Quick Entry
-row does.
+a condition wins only when its condition holds. New Record with no row of its own uses the
+Details rows, and every site row comes before any file. So New Record reads its rows, then
+the Details rows, then the `new_record` file, then the `details` file. A Quick Entry file
+makes Create open a dialog, as a Quick Entry row does.
 
 The server reads the file on each layout call. Its cache key is the file's path, modified
 time and size, so an edit applies on the next call without a build or a migrate. An open
@@ -387,8 +393,9 @@ desk keeps the layout it has until the page loads again.
 Write the file as a server save writes it: `frappe.as_json` and a final newline. Then the same
 tree and `omitted` always give the same bytes and the same hash. Give each tab, section and
 column a `name`. The server names an unnamed one when it reads the file, but a stored name
-keeps a script's address when a label changes. The file passes the same checks as a row,
-and an inline field is allowed only in `quick_entry` and `new_record`.
+keeps a script's address when a label changes. The server does not check the file when it
+reads it. Frappe's tests check every installed app's file with the checks a row gets on save,
+so an inline field is allowed only in `quick_entry` and `new_record`.
 
 The translation extractor reads every file that `**/doctype/*/frontend/layouts/*.json`
 names. It takes each container's `label` and `description`, and the label, description and

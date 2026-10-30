@@ -113,8 +113,6 @@ def get_form_layouts(dt: str, type: str):
 	check_layout_access(dt, type)
 
 	layouts = get_layouts(dt, type)
-	if not layouts and type == "New Record":
-		layouts = get_layouts(dt, "Details")
 	if type != "Quick Entry":
 		return {"layouts": layouts, "fallback": get_meta_layout(dt)}
 	return {
@@ -144,14 +142,15 @@ def check_layout_access(dt: str, type: str) -> None:
 
 
 def get_layouts(dt: str, type: str) -> list[dict]:
-	"""The site's rows, then the app's file unless a row has no condition: that row replaces the file whole."""
-	layouts = [
-		{"name": row.name, "condition": row.condition, "layout": parse_layout(row.layout)}
-		for row in get_layout_rows(dt, type)
-	]
+	"""Every site row comes before any app file, and a row with no condition drops the file."""
+	layouts = get_row_layouts(dt, type)
+	if not layouts and type == "New Record":
+		layouts = get_row_layouts(dt, "Details")
 	if any(not layout["condition"] for layout in layouts):
 		return layouts
 	app_layout = read_app_layout(dt, type)
+	if not app_layout and type == "New Record":
+		app_layout = read_app_layout(dt, "Details")
 	if app_layout:
 		layouts.append(
 			{
@@ -162,6 +161,13 @@ def get_layouts(dt: str, type: str) -> list[dict]:
 			}
 		)
 	return layouts
+
+
+def get_row_layouts(dt: str, type: str) -> list[dict]:
+	return [
+		{"name": row.name, "condition": row.condition, "layout": parse_layout(row.layout)}
+		for row in get_layout_rows(dt, type)
+	]
 
 
 def get_layout_rows(dt: str, type: str) -> list:

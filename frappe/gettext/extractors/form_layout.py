@@ -34,11 +34,12 @@ def extract_from_nodes(nodes: list, doctype: str, text: str):
 			continue
 		children, kind = next(((key, kind) for key, kind in CONTAINERS if key in node), (None, None))
 		if not kind:
-			yield from extract_messages_from_docfield(doctype, node, text)
+			if node.get("fieldname"):
+				yield from extract_messages_from_docfield(doctype, node, text)
 			continue
 		name = node.get("name") or kind
 		for key in ("label", "description"):
-			if message := node.get(key):
+			if isinstance(message := node.get(key), str) and message:
 				comment = f"{key.title()} of the {name} {kind} of DocType '{doctype}'"
 				yield get_line_number(text, key, message), message, comment
 		yield from extract_from_nodes(node[children] or [], doctype, text)

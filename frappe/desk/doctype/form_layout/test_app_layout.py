@@ -1,18 +1,25 @@
 # Copyright (c) 2026, Frappe Technologies and Contributors
 # License: MIT. See LICENSE
 
+import glob
 import json
 import os
 import shutil
 import tempfile
 from io import BytesIO
+from pathlib import Path
 from unittest.mock import patch
 
 from babel.util import pathmatch
 
 import frappe
 from frappe.desk.doctype.form_layout.app_layout import app_layout_key, app_layout_path, read_app_layout
-from frappe.desk.doctype.form_layout.form_layout import LAYOUT_BREAKS, get_form_layouts, layout_entries
+from frappe.desk.doctype.form_layout.form_layout import (
+	FORM_LAYOUT_TYPES,
+	LAYOUT_BREAKS,
+	get_form_layouts,
+	layout_entries,
+)
 from frappe.desk.doctype.form_layout.test_form_layout import a_manager, make_layout
 from frappe.gettext.extractors.form_layout import extract
 from frappe.tests import IntegrationTestCase
@@ -77,6 +84,12 @@ class TestAppLayout(IntegrationTestCase):
 		layouts = get_form_layouts("Note", "New Record")["layouts"]
 		self.assertEqual(layouts[0]["layout"][0]["sections"][0]["columns"][0]["fields"], ["title"])
 
+	def test_a_details_row_beats_a_new_record_file(self):
+		self.write_file("New Record", a_tree("title"))
+		row = make_layout(layout=json.dumps(a_tree("content"))).insert()
+		layouts = get_form_layouts("Note", "New Record")["layouts"]
+		self.assertEqual([layout["name"] for layout in layouts], [row.name])
+
 	def test_a_quick_entry_file_opens_the_dialog(self):
 		frappe.db.delete("Form Layout", {"dt": "Event"})
 		self.assertFalse(get_form_layouts("Event", "Quick Entry")["dialog"])
@@ -112,22 +125,6 @@ class TestContactLayoutFiles(IntegrationTestCase):
 			self.assertTrue(os.path.exists(path))
 		self.assertIsNone(read_app_layout("Contact", "Details"))
 
-	def test_the_files_pass_the_checks_a_row_gets_and_need_no_naming(self):
-		for type in ("Quick Entry", "New Record"):
-			app_layout = read_app_layout("Contact", type)
-			row = make_layout(dt="Contact", type=type, layout=app_layout.layout)
-			row.validate_layout()
-			self.assertEqual(json.loads(row.layout), json.loads(app_layout.layout), type)
-			self.assertEqual(app_layout.omitted, (), type)
-
-	def test_the_files_are_written_as_a_server_save_writes_them(self):
-		for type in ("Quick Entry", "New Record"):
-			with open(app_layout_path("Contact", type)) as f:
-				text = f.read()
-			data = json.loads(text)
-			self.assertEqual(text, frappe.as_json(data) + "\n", type)
-			self.assertEqual(set(data), {"layout", "omitted"}, type)
-
 	def test_both_files_carry_email_phone_and_mobile_as_inline_fields(self):
 		for type in ("Quick Entry", "New Record"):
 			tabs = json.loads(read_app_layout("Contact", type).layout)
@@ -154,6 +151,43 @@ class TestContactLayoutFiles(IntegrationTestCase):
 		self.assertEqual([layout["name"] for layout in response["layouts"]], [None])
 
 
+class TestEveryAppLayoutFile(IntegrationTestCase):
+	def test_every_installed_file_passes_the_checks_a_row_gets(self):
+		files = installed_layout_files()
+		self.assertIn(
+			os.path.realpath(app_layout_path("Contact", "New Record")), [path for path, _dt, _type in files]
+		)
+		for path, dt, type in files:
+			with self.subTest(path=path):
+				self.assert_file_is_a_valid_row(path, dt, type)
+
+	def assert_file_is_a_valid_row(self, path: str, dt: str, type: str):
+		with open(path) as f:
+			text = f.read()
+		data = json.loads(text)
+		self.assertEqual(text, frappe.as_json(data) + "\n", "not written as a server save writes it")
+		self.assertEqual(set(data), {"layout", "omitted"})
+		self.assertIsInstance(data["layout"], list)
+		self.assertTrue(all(isinstance(fieldname, str) for fieldname in data["omitted"]))
+		row = make_layout(dt=dt, type=type, layout=json.dumps(data["layout"]))
+		row.validate_layout()
+		self.assertEqual(json.loads(row.layout), data["layout"], "a container has no name")
+
+
+def installed_layout_files() -> list[tuple[str, str, str]]:
+	"""`(path, doctype, layout type)` for each layout file of every installed app."""
+	files = []
+	for app in frappe.get_installed_apps():
+		pattern = os.path.join(frappe.get_app_path(app), "*", "doctype", "*", "frontend", "layouts", "*.json")
+		for path in glob.glob(pattern):
+			folder = Path(path).parents[2]
+			with open(folder / f"{folder.name}.json") as f:
+				dt = json.load(f)["name"]
+			type = next(type for type in FORM_LAYOUT_TYPES if frappe.scrub(type) == Path(path).stem)
+			files.append((os.path.realpath(path), dt, type))
+	return files
+
+
 class TestFormLayoutExtractor(IntegrationTestCase):
 	def test_one_glob_names_the_files_and_the_doctype_glob_does_not(self):
 		path = "frappe/contacts/doctype/contact/frontend/layouts/new_record.json"
@@ -175,10 +209,14 @@ class TestFormLayoutExtractor(IntegrationTestCase):
 			labels = {message for _lineno, _function, message, _comments in extract(f)}
 		self.assertEqual(labels, {"Email Address", "Phone", "Mobile No"})
 
-	def test_extracts_a_description_and_a_tabless_layout(self):
-		layout = {"layout": [{"name": "main", "description": "Who to call", "columns": [{"fields": []}]}]}
-		messages = [
-			message
-			for _lineno, _function, message, _comments in extract(BytesIO(frappe.as_json(layout).encode()))
-		]
+	def test_extracts_a_description_and_skips_what_is_not_a_message(self):
+		layout = {
+			"layout": [
+				{"name": "main", "description": "Who to call", "columns": [{"fields": []}]},
+				{"name": "numbered", "label": 5, "columns": []},
+				{"name": "no_children", "label": "Not a field"},
+			]
+		}
+		text = frappe.as_json(layout).encode()
+		messages = [message for _lineno, _function, message, _comments in extract(BytesIO(text))]
 		self.assertEqual(messages, ["Who to call"])
