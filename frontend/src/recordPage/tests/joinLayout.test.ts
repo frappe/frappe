@@ -334,6 +334,15 @@ describe("joinLayout unplaced fields", () => {
 		expect(sections([tab])[1].fields).toEqual(["status", "items"]);
 	});
 
+	it("draws an omitted field that is now mandatory with no default", () => {
+		const [tab] = joinLayout(
+			treeWith(["title", "city", "region", "items"]),
+			meta,
+			sectionMode({ omitted: ["code", "status"] })
+		);
+		expect(sections([tab])[1].fields).toEqual(["code"]);
+	});
+
 	it("counts a field the Side Panel row places as placed", () => {
 		const [tab] = joinLayout(
 			treeWith(["title", "code"]),
@@ -386,6 +395,14 @@ describe("joinLayout unplaced fields", () => {
 			{ name: "more_fields_2", label: undefined, hideBorder: true, dependsOn: "eval:doc.city", fields: ["region"] },
 			{ name: "more_fields_3", label: undefined, hideBorder: true, dependsOn: undefined, fields: ["code"] },
 		]);
+	});
+
+	it("shows a Quick Entry field with a default only under its mandatory condition", () => {
+		const withDefault: RawMetaField[] = [
+			{ fieldname: "kind", fieldtype: "Data", reqd: 1, default: "A", mandatory_depends_on: "eval:doc.x" },
+		];
+		const schema = joinLayout(treeWith([]), withDefault, { unplaced: { mode: "mandatory" } });
+		expect(sections(schema)[1]).toMatchObject({ dependsOn: "eval:doc.x", fields: ["kind"] });
 	});
 
 	it("adds nothing to a Quick Entry row that places every mandatory field", () => {

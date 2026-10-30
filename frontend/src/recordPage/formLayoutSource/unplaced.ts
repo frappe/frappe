@@ -24,8 +24,8 @@ export function withUnplaced(
 	fieldAccess?: (field: RawMetaField) => FieldAccess
 ): LayoutTree {
 	const unplaced = unplacedFields(tree, fields, rule, fieldAccess);
-	if (rule.mode === "mandatory") return withMandatorySections(tree, unplaced.filter(isMandatory), fields);
-	return withMoreFieldsSection(tree, unplaced, fields);
+	if (rule.mode === "section") return withMoreFieldsSection(tree, unplaced, fields);
+	return withMandatorySections(tree, unplaced.filter(isMandatory), fields);
 }
 
 /** Meta fields, in meta (`idx`) order, that the row neither places nor omits and the person can see. */
@@ -36,7 +36,8 @@ export function unplacedFields(
 	fieldAccess?: (field: RawMetaField) => FieldAccess
 ): RawMetaField[] {
 	const placed = new Set([...placedFieldnames(tree), ...(rule.placedElsewhere ?? [])]);
-	if (rule.mode === "section") for (const fieldname of rule.omitted ?? []) placed.add(fieldname);
+	if (rule.mode === "section")
+		for (const fieldname of omittable(rule.omitted, fields)) placed.add(fieldname);
 	return fields.filter(
 		(field) =>
 			!placed.has(field.fieldname) &&
@@ -51,7 +52,9 @@ export function placedFieldnames(tree: LayoutTree | null): string[] {
 	return (tree ?? []).flatMap((tab) =>
 		(tab.sections ?? []).flatMap((section) =>
 			(section.columns ?? []).flatMap((column) =>
-				(column.fields ?? []).map((entry) => (typeof entry === "string" ? entry : entry.fieldname))
+				(column.fields ?? []).map((entry) =>
+					typeof entry === "string" ? entry : entry.fieldname
+				)
 			)
 		)
 	);
@@ -72,7 +75,7 @@ function withMoreFieldsSection(
 	return [{ ...first, sections: [...(first.sections ?? []), section] }, ...rest];
 }
 
-/** Mirrors the server's Quick Entry fallback: a conditional field gets a section of its own. */
+/** Sectioned as the server's Quick Entry fallback is: a conditional field gets a section of its own. */
 function withMandatorySections(
 	tree: LayoutTree,
 	mandatory: RawMetaField[],
@@ -87,7 +90,8 @@ function withMandatorySections(
 		if (condition || !last || last.dependsOn) {
 			sections.push({
 				name: freeSectionName(taken),
-				hideBorder: true, dependsOn: condition,
+				hideBorder: true,
+				dependsOn: condition,
 				columns: [{ name: "column_1", fields: [] }],
 			});
 		}
@@ -100,11 +104,21 @@ function withMandatorySections(
 
 /** `reqd` with no `default`, or required under a condition. */
 function isMandatory(field: RawMetaField): boolean {
-	return Boolean((field.reqd && !field.default) || field.mandatory_depends_on);
+	return Boolean(alwaysMandatory(field) || field.mandatory_depends_on);
+}
+
+function alwaysMandatory(field: RawMetaField): boolean {
+	return Boolean(field.reqd && !field.default);
 }
 
 function mandatoryCondition(field: RawMetaField): string | undefined {
-	return field.reqd ? undefined : field.mandatory_depends_on;
+	return alwaysMandatory(field) ? undefined : field.mandatory_depends_on;
+}
+
+/** A field that became mandatory after the row omitted it renders anyway: no row may omit one. */
+function omittable(omitted: string[] = [], fields: RawMetaField[]): string[] {
+	const mandatory = new Set(fields.filter(alwaysMandatory).map((field) => field.fieldname));
+	return omitted.filter((fieldname) => !mandatory.has(fieldname));
 }
 
 function withTab(tree: LayoutTree): LayoutTree {

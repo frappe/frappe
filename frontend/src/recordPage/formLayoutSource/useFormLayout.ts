@@ -97,7 +97,9 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 			decorate: options.decorate,
 			overrides: toValue(options.overrides),
 			tabOverrides: toValue(options.tabOverrides),
-			unplaced: row.value ? unplacedRule(options.type, row.value, toValue(options.placedElsewhere)) : undefined,
+			unplaced: row.value
+				? unplacedRule(options.type, row.value, toValue(options.placedElsewhere))
+				: undefined,
 		});
 	});
 
