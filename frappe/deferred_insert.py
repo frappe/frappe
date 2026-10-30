@@ -55,7 +55,16 @@ def save_to_db(doctype: str | None = None):
 def insert_record(record: dict | "Document", doctype: str):
 	try:
 		record.update({"doctype": doctype})
-		frappe.get_doc(record).insert()
+		audit_fields = {
+			fieldname: value
+			for fieldname in ("creation", "modified", "owner", "modified_by")
+			if (value := record.get(fieldname))
+		}
+		doc = frappe.get_doc(record)
+		doc.insert()
+		if audit_fields and not doc.meta.issingle:
+			# `insert` re-stamps these fields, so the queued values are written back directly.
+			doc.db_set(audit_fields, update_modified=False)
 		return True
 	except (frappe.QueryDeadlockError, frappe.QueryTimeoutError):
 		raise

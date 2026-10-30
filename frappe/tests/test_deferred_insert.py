@@ -4,6 +4,7 @@ import frappe
 from frappe.core.doctype.error_log.error_log import flush_error_logs, get_queued_error_log_count
 from frappe.deferred_insert import deferred_insert, queue_prefix, save_to_db
 from frappe.tests import IntegrationTestCase
+from frappe.utils import get_datetime
 from frappe.utils.logging import ensure_log_table, get_log_db
 
 
@@ -76,3 +77,44 @@ class TestDeferredInsert(IntegrationTestCase):
 		save_to_db(doctype="Route History")
 		for record in records:
 			self.assertTrue(_route_history_exists(record))
+
+	def test_flush_preserves_queued_audit_fields(self):
+		record = {
+			"route": frappe.generate_hash(),
+			"user": "Administrator",
+			"creation": "2020-06-15 10:30:00",
+			"modified": "2020-06-15 10:30:00",
+			"owner": "Guest",
+			"modified_by": "Guest",
+		}
+		deferred_insert("Route History", [record])
+		save_to_db(doctype="Route History")
+
+		ensure_log_table("Route History")
+		row = get_log_db().get_value(
+			"Route History",
+			filters={"route": record["route"]},
+			fieldname="*",
+			as_dict=True,
+		)
+		self.assertTrue(row)
+		self.assertEqual(get_datetime(row["creation"]), get_datetime(record["creation"]))
+		self.assertEqual(get_datetime(row["modified"]), get_datetime(record["modified"]))
+		self.assertEqual(row["owner"], record["owner"])
+		self.assertEqual(row["modified_by"], record["modified_by"])
+
+	def test_flush_stamps_audit_fields_when_none_queued(self):
+		record = {"route": frappe.generate_hash(), "user": "Administrator"}
+		deferred_insert("Route History", [record])
+		save_to_db(doctype="Route History")
+
+		ensure_log_table("Route History")
+		row = get_log_db().get_value(
+			"Route History",
+			filters={"route": record["route"]},
+			fieldname="*",
+			as_dict=True,
+		)
+		self.assertTrue(row)
+		self.assertEqual(row["owner"], frappe.session.user)
+		self.assertGreater(get_datetime(row["creation"]), get_datetime("2020-01-01 00:00:00"))
