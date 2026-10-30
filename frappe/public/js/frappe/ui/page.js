@@ -211,6 +211,8 @@ frappe.ui.Page = class Page {
 			trigger: this.actions_btn_group.find("button"),
 			align: "end",
 			options: () => this.build_dropdown_options(this.actions),
+			sheet_on_mobile: true,
+			sheet_title: () => this.actions_sheet_title?.() || __("Actions"),
 		});
 		// the menus body-portal, so one left open would float over the next
 		// page — the container fires "hide" on the page element on switch
@@ -487,21 +489,24 @@ frappe.ui.Page = class Page {
 		this.actions_btn_group.addClass("hide");
 	}
 
-	add_action_item(label, click, standard) {
+	add_action_item(label, click, standard, icon = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
+			icon,
 			parent: this.actions,
 		});
 	}
 
-	add_actions_menu_item(label, click, standard, shortcut) {
+	add_actions_menu_item(label, click, standard, shortcut, icon = null, theme = null) {
 		return this.add_dropdown_item({
 			label,
 			click,
 			standard,
 			shortcut,
+			icon,
+			theme,
 			parent: this.actions,
 			show_parent: false,
 		});
@@ -532,6 +537,7 @@ frappe.ui.Page = class Page {
 		show_parent = true,
 		icon = null,
 		icon_right = null,
+		theme = null,
 	}) {
 		if (show_parent) {
 			parent.parent().removeClass("hide hidden-xl");
@@ -579,6 +585,7 @@ frappe.ui.Page = class Page {
 		$li.data("menu_click", click);
 		if (icon) $li.data("menu_icon", icon);
 		if (icon_right) $li.data("menu_icon_right", icon_right);
+		if (theme) $li.data("menu_theme", theme);
 
 		$link = $li.find("a").on("click", (e) => {
 			if (e.ctrlKey || e.metaKey) {
@@ -616,6 +623,8 @@ frappe.ui.Page = class Page {
 		const responsive_hidden = (el) =>
 			(el.classList.contains("visible-xs") &&
 				window.matchMedia("(min-width: 576px)").matches) ||
+			(el.classList.contains("hidden-xs") &&
+				window.matchMedia("(max-width: 767.98px)").matches) ||
 			(el.classList.contains("hidden-xl") &&
 				window.matchMedia("(min-width: 992px)").matches);
 		const segments = [[]];
@@ -680,6 +689,7 @@ frappe.ui.Page = class Page {
 				label,
 				icon: $li.data("menu_icon") || undefined,
 				icon_right: $li.data("menu_icon_right") || undefined,
+				theme: $li.data("menu_theme") || undefined,
 				shortcut: $li.data("menu_shortcut") || undefined,
 				disabled: a.classList.contains("disabled"),
 				css_class: css_class || undefined,

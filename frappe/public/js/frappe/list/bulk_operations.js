@@ -46,6 +46,7 @@ export default class BulkOperations {
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Print Documents"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "Select",
@@ -254,6 +255,7 @@ export default class BulkOperations {
 				callback: done,
 			});
 			assign_to.dialog.clear();
+			assign_to.dialog.sheet_on_mobile = true;
 			assign_to.dialog.show();
 		} else {
 			frappe.msgprint(__("Select records for assignment"));
@@ -345,6 +347,7 @@ export default class BulkOperations {
 
 		const dialog = new frappe.ui.Dialog({
 			title: __("Bulk Edit"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "Autocomplete",
@@ -468,6 +471,7 @@ export default class BulkOperations {
 	add_tags(docnames, done) {
 		const dialog = new frappe.ui.Dialog({
 			title: __("Add Tags"),
+			sheet_on_mobile: true,
 			fields: [
 				{
 					fieldtype: "MultiSelectPills",
