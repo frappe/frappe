@@ -1,6 +1,7 @@
 from werkzeug.wrappers import Response
 
 import frappe
+from frappe import _
 from frappe.permissions import handle_does_not_exist_error
 from frappe.website.page_renderers.error_page import ErrorPage
 from frappe.website.page_renderers.not_found_page import NotFoundPage
@@ -33,6 +34,13 @@ def handle_exception(e, endpoint, path, http_status_code):
 
 	if isinstance(e, frappe.PageDoesNotExistError):
 		return NotFoundPage(endpoint, http_status_code).render()
+
+	if isinstance(e, frappe.DoesNotExistError):
+		return ErrorPage(
+			exception=e,
+			title=_("Not Found"),
+			message=_("The resource you are looking for is not available"),
+		).render()
 
 	return ErrorPage(exception=e).render()
 
