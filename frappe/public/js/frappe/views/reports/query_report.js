@@ -1754,7 +1754,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 		return { html, format };
 	}
 
-	download_pdf_from_server(print_settings, format) {
+	download_pdf_from_server(print_settings, format, in_background = false) {
 		const filters = this.get_filter_values(true);
 		let applied_filters = null;
 		if (print_settings.include_filters) {
@@ -1780,29 +1780,32 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 			visible_idx = [];
 		}
 
-		frappe.download_report_pdf(
-			{
-				report_name: this.report_name,
-				filters,
-				orientation: print_settings.orientation,
-				print_format: format.print_format,
-				letterhead: print_settings.with_letter_head
-					? print_settings.letter_head_name
+		const args = {
+			report_name: this.report_name,
+			filters,
+			orientation: print_settings.orientation,
+			print_format: format.print_format,
+			letterhead: print_settings.with_letter_head ? print_settings.letter_head_name : null,
+			no_letterhead: print_settings.with_letter_head ? 0 : 1,
+			columns:
+				format.type === "grid"
+					? this.get_columns_for_print(print_settings, format).map(
+							(column) => column.fieldname
+					  )
 					: null,
-				no_letterhead: print_settings.with_letter_head ? 0 : 1,
-				columns:
-					format.type === "grid"
-						? this.get_columns_for_print(print_settings, format).map(
-								(column) => column.fieldname
-						  )
-						: null,
-				visible_idx,
-				custom_columns: this.custom_columns,
-				applied_filters,
-				ignore_prepared_report: this.ignore_prepared_report ? 1 : 0,
-			},
-			this.get_pdf_filename()
-		);
+			visible_idx,
+			custom_columns: this.custom_columns,
+			applied_filters,
+			ignore_prepared_report: this.ignore_prepared_report ? 1 : 0,
+		};
+		if (in_background) {
+			frappe.call({
+				method: "frappe.utils.print_format.download_report_pdf",
+				args: { ...args, in_background: 1 },
+			});
+		} else {
+			frappe.download_report_pdf(args, this.get_pdf_filename());
+		}
 	}
 
 	async build_print_opts(print_settings, format) {
