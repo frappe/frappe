@@ -16,6 +16,12 @@ from frappe.desk.doctype.notification_settings.notification_settings import (
 )
 from frappe.utils import get_fullname, unique
 
+<<<<<<< HEAD
+=======
+COUNT_SAVEPOINT = "linked_document_count"
+LINK_COUNT_LIMIT = 100
+
+>>>>>>> 36e46be (fix: route connection badge by field once linked names exceed the cap)
 
 @frappe.whitelist()
 @frappe.read_only()
@@ -392,6 +398,7 @@ def get_external_links(doctype, name, links, fieldname=None):
 
 def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes, filters):
 	"""A filter on a fieldname that several child tables share resolves to whichever of them
+<<<<<<< HEAD
 	is scanned first, so match the link in any of them and let the client route by name."""
 	try:
 		names = frappe.get_list(
@@ -408,18 +415,32 @@ def get_external_links_in_child_tables(doctype, name, fieldname, child_doctypes,
 		if frappe.db.is_statement_timeout(e):
 			return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
 		raise
+=======
+	is scanned first, so match the link in any of them and let the client route by name.
+	Past the cap the names are left out and the client filters on the field instead."""
+	names = get_list_unless_timed_out(
+		frappe.get_list,
+		doctype,
+		filters=filters,
+		or_filters=[[child_doctype, fieldname, "=", name] for child_doctype in child_doctypes],
+		limit=LINK_COUNT_LIMIT,
+		distinct=True,
+		ignore_ifnull=True,
+		order_by=None,
+		pluck="name",
+	)
+	if names is None:
+		return {"doctype": doctype, "fieldname": fieldname, "count": "?", "open_count": 0}
+>>>>>>> 36e46be (fix: route connection badge by field once linked names exceed the cap)
 
 	open_count = 0
 	if names and (open_count_filters := get_filters_for(doctype)):
 		open_count = get_doc_count(doctype, {"name": ("in", names), **open_count_filters})
 
-	return {
-		"doctype": doctype,
-		"fieldname": fieldname,
-		"count": len(names),
-		"open_count": open_count,
-		"names": names,
-	}
+	data = {"doctype": doctype, "fieldname": fieldname, "count": len(names), "open_count": open_count}
+	if len(names) < LINK_COUNT_LIMIT:
+		data["names"] = names
+	return data
 
 
 def get_doc_count(doctype, filters) -> int | Literal["?"]:
