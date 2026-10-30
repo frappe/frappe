@@ -341,8 +341,7 @@ class CustomizeForm(Document):
 			new_value_length = cint(df.get(prop))
 
 			if new_value_length and (old_value_length > new_value_length):
-				self.check_length_for_fieldtypes.append({"df": df, "old_value": meta_df[0].get(prop)})
-				self.validate_fieldtype_length()
+				self.validate_fieldtype_length(df)
 			else:
 				self.flags.update_db = True
 
@@ -594,8 +593,7 @@ class CustomizeForm(Document):
 			# Ignore fieldtype check validation if new field type has unspecified maxlength
 			# Changes like DATA to TEXT, where new_value_lenth equals 0 will not be validated
 			if new_value_length and (old_value_length > new_value_length):
-				self.check_length_for_fieldtypes.append({"df": df, "old_value": old_value})
-				self.validate_fieldtype_length()
+				self.validate_fieldtype_length(df)
 			else:
 				self.flags.update_db = True
 
@@ -606,30 +604,30 @@ class CustomizeForm(Document):
 				)
 			)
 
-	def validate_fieldtype_length(self):
-		for field in self.check_length_for_fieldtypes:
-			df = field.get("df")
-			max_length = cint(frappe.db.type_map.get(df.fieldtype)[1])
-			fieldname = df.fieldname
-			docs = frappe.db.sql(
-				f"""
-				SELECT name, {fieldname}, LENGTH({fieldname}) AS len
-				FROM `tab{self.doc_type}`
-				WHERE LENGTH({fieldname}) > {max_length}
-			""",
-				as_dict=True,
-			)
-			label = df.label
-			links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
+	def validate_fieldtype_length(self, df):
+		max_length = cint(df.length) or cint(frappe.db.type_map.get(df.fieldtype)[1])
+		fieldname = df.fieldname
+		# MariaDB's LENGTH counts bytes; SQLite has no CHAR_LENGTH and its LENGTH counts characters
+		char_length = "LENGTH" if frappe.db.db_type == "sqlite" else "CHAR_LENGTH"
+		docs = frappe.db.sql(
+			f"""
+			SELECT name, `{fieldname}`, {char_length}(`{fieldname}`) AS len
+			FROM `tab{self.doc_type}`
+			WHERE {char_length}(`{fieldname}`) > {max_length}
+		""",
+			as_dict=True,
+		)
+		label = df.label
+		links_str = ", ".join(frappe.utils.get_link_to_form(self.doc_type, doc.name) for doc in docs)
 
-			if docs:
-				frappe.throw(
-					_(
-						"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
-					).format(frappe.bold(label), links_str, frappe.bold(max_length)),
-					title=_("Data Too Long"),
-					is_minimizable=len(docs) > 1,
-				)
+		if docs:
+			frappe.throw(
+				_(
+					"Value for field {0} is too long in {1}. Length should be lesser than {2} characters"
+				).format(frappe.bold(label), links_str, frappe.bold(max_length)),
+				title=_("Data Too Long"),
+				is_minimizable=len(docs) > 1,
+			)
 
 		self.flags.update_db = True
 
