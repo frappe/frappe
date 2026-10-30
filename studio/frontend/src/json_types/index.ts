@@ -60,6 +60,7 @@ export { default as HTML } from "./studio/HTML.json"
 export { default as ImageView } from "./studio/ImageView.json"
 export { default as Repeater } from "./studio/Repeater.json"
 export { default as TextBlock } from "./studio/TextBlock.json"
+export { default as Variants } from "./studio/Variants.json"
 // end of studio components
 
 // frameworkui components
