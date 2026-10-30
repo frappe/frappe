@@ -530,7 +530,7 @@ describe("joinLayout anchors", () => {
 	});
 
 	it("chains through a field the person cannot see, without drawing it", () => {
-		const fields = meta.map((field) =>
+		const fields = meta.map((field): RawMetaField =>
 			field.fieldname === "region" ? { ...field, permlevel: 1 } : field
 		);
 		const denied = (field: RawMetaField) => (field.permlevel ? "none" : "write");
@@ -559,7 +559,7 @@ describe("joinLayout anchors", () => {
 	});
 
 	it("does not anchor on Quick Entry", () => {
-		const fields = meta.map((field) => (field.fieldname === "region" ? { ...field, reqd: 1 } : field));
+		const fields = meta.map((field): RawMetaField => (field.fieldname === "region" ? { ...field, reqd: 1 } : field));
 		const drawn = columns(joinLayout(treeWith(["title"]), fields, { unplaced: { mode: "mandatory" } }));
 		expect(drawn.col_1).toEqual(["title"]);
 		expect(drawn.column_1).toEqual(["region"]);
