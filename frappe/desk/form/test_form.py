@@ -25,23 +25,11 @@ class TestForm(IntegrationTestCase):
 		self.assertEqual(comment.comment_email, user)
 		self.assertEqual(comment.comment_by, frappe.utils.get_fullname(user))
 
-<<<<<<< HEAD
-=======
-	def test_savedocs_accepts_native_dict(self):
-		from frappe.desk.form.save import savedocs
-
-		frappe.local.form_dict = frappe._dict()
-		# doc as a native dict instead of a JSON string (frappe.parse_json passthrough, L18)
-		savedocs(doc={"doctype": "ToDo", "description": "via dict"}, action="Save")
-		self.assertTrue(frappe.local.response.docs)
-		self.assertEqual(frappe.local.response.docs[0].description, "via dict")
-		frappe.delete_doc("ToDo", frappe.local.response.docs[0].name)
-
 	def test_savedocs_cancel_keeps_stored_values(self):
 		from frappe.desk.form.save import savedocs
 
 		doc = self.make_submitted_doc()
-		savedocs(doc=doc.as_dict() | {"test": "changed"}, action="Cancel")
+		savedocs(doc=frappe.as_json(doc.as_dict() | {"test": "changed"}), action="Cancel")
 
 		doc.reload()
 		self.assertEqual((doc.docstatus, doc.test), (2, "original"))
@@ -64,7 +52,6 @@ class TestForm(IntegrationTestCase):
 		doc.submit()
 		return doc
 
->>>>>>> 8ae47a5 (fix: cancel a document using its stored values)
 	def test_sort_field_fallback(self):
 		self.assertIsNone(_sort_field_fallback("Note", "name"))
 		self.assertIsNone(_sort_field_fallback("Note", "creation"))
