@@ -1014,8 +1014,6 @@ class TestAttachment(FrappeTestCase):
 
 		self.assertTrue(exists)
 
-<<<<<<< HEAD
-=======
 	def test_unchanged_private_attachment_is_not_reattached_on_save(self):
 		file = frappe.get_doc(
 			{
@@ -1038,11 +1036,6 @@ class TestAttachment(FrappeTestCase):
 			)
 		)
 
-	def test_url_attachment_is_attached_to_duplicated_document(self):
-		doc = frappe.get_doc(doctype=self.test_doctype, title="test url attachment on duplicate")
-		doc.attachment = "https://example.com/spec.pdf"
-		doc.insert()
->>>>>>> ec3d593 (test(file): unchanged private attachment is not reattached on save)
 
 class TestAttachmentsAccess(FrappeTestCase):
 	def setUp(self) -> None:
