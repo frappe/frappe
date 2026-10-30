@@ -5,6 +5,7 @@ from unittest.mock import patch
 
 import frappe
 from frappe.core.doctype.doctype.test_doctype import new_doctype
+from frappe.core.doctype.user.test_user import delete_contact
 from frappe.core.doctype.user_permission.user_permission import get_applicable_for_doctype_list
 from frappe.database import savepoint
 from frappe.desk.form import linked_with
@@ -50,6 +51,7 @@ def linked_entry_target():
 	try:
 		yield frappe.new_doc("Linked Entry Target").insert(), user.name
 	finally:
+		delete_contact(user.name)
 		frappe.delete_doc("User", user.name)
 		for doctype in ("Linked Entry", "Linked Entry Row", "Linked Entry Target"):
 			frappe.delete_doc("DocType", doctype)
@@ -851,6 +853,7 @@ class TestLinkedWith(IntegrationTestCase):
 
 		with self.set_user(restricted_user.name):
 			docs = linked_with.get_linked_docs_to_delete(parent.doctype, parent.name)["docs"]
+		delete_contact(restricted_user.name)
 		frappe.delete_doc("User", restricted_user.name)
 
 		self.assertEqual(docs, [{"doctype": "Child DocType1", "name": child1.name}])
