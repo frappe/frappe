@@ -1544,7 +1544,7 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 	}
 
 	get_mobile_amount_column() {
-		if (!window.matchMedia(PHONE_CARD_QUERY).matches) return;
+		if (!this.phone_card) return;
 		return this.columns.find(
 			(col) => col.type === "Field" && col.df?.fieldtype === "Currency"
 		);
@@ -2364,7 +2364,10 @@ frappe.views.ListView = class ListView extends frappe.views.BaseList {
 
 	// the phone card puts the amount on the title's line, so turning the phone redraws the rows
 	setup_phone_card_change() {
-		window.matchMedia(PHONE_CARD_QUERY).addEventListener("change", () => {
+		const query = window.matchMedia(PHONE_CARD_QUERY);
+		this.phone_card = query.matches;
+		query.addEventListener("change", () => {
+			this.phone_card = query.matches;
 			if (frappe.get_route_str() === this.page_name) this.render_list();
 		});
 	}
