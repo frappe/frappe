@@ -10,6 +10,7 @@ import frappe
 from frappe import _, cstr, get_module_path
 from frappe.core.doctype.access_log.access_log import make_access_log
 from frappe.core.doctype.document_share_key.document_share_key import is_expired
+from frappe.desk.link_title import get_doc_link_titles
 from frappe.utils import cint, escape_html, flt, strip_html
 from frappe.utils.jinja_globals import is_rtl
 from frappe.utils.print_utils import HTML_PDF_GENERATORS, resolve_pdf_generator
@@ -294,50 +295,7 @@ def get_rendered_template(
 
 
 def set_link_titles(doc: "Document") -> None:
-	# Adds name with title of link field doctype to __link_titles
-	if not doc.get("__link_titles"):
-		setattr(doc, "__link_titles", {})
-
-	meta = frappe.get_meta(doc.doctype)
-	set_title_values_for_link_and_dynamic_link_fields(meta, doc)
-	set_title_values_for_table_and_multiselect_fields(meta, doc)
-
-
-def set_title_values_for_link_and_dynamic_link_fields(
-	meta: "Meta", doc: "Document", parent_doc: "Document" | None = None
-) -> None:
-	if parent_doc and not parent_doc.get("__link_titles"):
-		setattr(parent_doc, "__link_titles", {})
-	elif doc and not doc.get("__link_titles"):
-		setattr(doc, "__link_titles", {})
-
-	for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
-		if not doc.get(field.fieldname):
-			continue
-
-		# If link field, then get doctype from options
-		# If dynamic link field, then get doctype from dependent field
-		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
-
-		meta = frappe.get_meta(doctype)
-		if not meta or not meta.title_field or not meta.show_title_field_in_link:
-			continue
-
-		link_title = frappe.get_cached_value(doctype, doc.get(field.fieldname), meta.title_field)
-		if parent_doc:
-			parent_doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
-		elif doc:
-			doc.__link_titles[f"{doctype}::{doc.get(field.fieldname)}"] = link_title
-
-
-def set_title_values_for_table_and_multiselect_fields(meta: "Meta", doc: "Document") -> None:
-	for field in meta.get_table_fields(include_computed=True):
-		if not doc.get(field.fieldname):
-			continue
-
-		_meta = frappe.get_meta(field.options)
-		for value in doc.get(field.fieldname):
-			set_title_values_for_link_and_dynamic_link_fields(_meta, value, doc)
+	setattr(doc, "__link_titles", get_doc_link_titles(doc))
 
 
 def convert_markdown(doc: "Document") -> None:
