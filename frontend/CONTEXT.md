@@ -231,6 +231,12 @@ stays a list of fieldnames, so a part has no record form.
 _Avoid_: custom field (a part holds no value and `page.fields` never sees it), widget,
 custom tab (a whole view belongs on the record strip, `page.tabs`).
 
+**Container**: <a id="container"></a>
+A tab, section or column of a form layout. It holds fields and other containers, and carries
+only its own presentation: label, description, condition, border, fold. A field's own
+properties (label, `reqd`, `depends_on` and the rest) live on the field, never on a container.
+_Avoid_: break (the meta field that encoded a container in desk v1), layout field property.
+
 **Disclosure**: <a id="disclosure"></a>
 The reader's view state of a section: open or shut. It lives in the browser through the
 shell's section memory, keyed by user and per doctype, never on the server. A script's
