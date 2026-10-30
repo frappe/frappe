@@ -69,9 +69,9 @@ function layoutOf(...fields: Record<string, any>[]): FormLayoutSchema {
   return [{ name: "first_tab", sections: [{ name: "main", columns: [{ fields }] }] }];
 }
 
-/** A service row's dialog has no Qty; every other row's has no Kind; neither places Unit. */
+/** A service row's dialog has no Qty; neither places Unit. */
 const rowLayout = (row: Record<string, any>) =>
-  row.kind === "Service" ? layoutOf(kind) : layoutOf(qty);
+  row.kind === "Service" ? layoutOf(kind) : layoutOf(qty, kind);
 
 function render(initial: Record<string, any>[]) {
   const rows = ref(initial);
@@ -135,7 +135,17 @@ describe("the row dialog's layout", () => {
       { name: "b", kind: "Goods" },
     ]);
     await openRow(1);
-    expect(dialogFields()).toEqual(["qty"]);
+    expect(dialogFields()).toEqual(["qty", "kind"]);
+  });
+
+  it("keeps the layout it opened with while the field a condition reads is typed", async () => {
+    render([{ name: "a", kind: "Goods" }]);
+    await openRow(0);
+    const input = host!.querySelector<HTMLInputElement>('[data-dialog] input[data-fieldname="kind"]')!;
+    input.value = "Service";
+    input.dispatchEvent(new Event("input"));
+    await flush();
+    expect(dialogFields()).toEqual(["qty", "kind"]);
   });
 
   it("gives a new row the default of a child field no row layout places", async () => {

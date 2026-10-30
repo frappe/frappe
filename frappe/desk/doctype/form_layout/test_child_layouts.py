@@ -14,7 +14,7 @@ from frappe.desk.doctype.form_layout.form_layout import (
 	get_form_layouts,
 	save_form_layout,
 )
-from frappe.desk.doctype.form_layout.test_form_layout import a_user_with_role, data, make_layout
+from frappe.desk.doctype.form_layout.test_form_layout import a_manager, a_user_with_role, data, make_layout
 from frappe.tests import IntegrationTestCase
 from frappe.tests.classes.context_managers import set_user
 
@@ -103,7 +103,7 @@ class TestChildLayouts(IntegrationTestCase):
 		self.assertEqual([one["name"] for one in self.children()[ROW_DT]], [row.name])
 
 	def test_a_doctype_with_no_table_has_no_children(self):
-		with set_user("Administrator"):
+		with set_user(a_manager()):
 			self.assertEqual(get_form_layouts(SINGLE_DT, "Details")["children"], {})
 
 	def test_a_child_app_file_comes_after_its_rows(self):
@@ -125,6 +125,7 @@ class TestChildLayouts(IntegrationTestCase):
 		self.assertEqual([one["name"] for one in self.children()[ROW_DT]], [row.name])
 
 	def test_a_child_doctype_saves_only_details(self):
+		self.enterContext(set_user(a_manager()))
 		self.assertTrue(save_form_layout(ROW_DT, "Details", a_tree("item")))
 		for type in ("Side Panel", "Quick Entry", "New Record"):
 			frappe.clear_messages()
@@ -133,6 +134,7 @@ class TestChildLayouts(IntegrationTestCase):
 			self.assertFalse(frappe.db.exists("Form Layout", {"dt": ROW_DT, "type": type}))
 
 	def test_a_single_saves_details_and_side_panel_only(self):
+		self.enterContext(set_user(a_manager()))
 		for type in ("Details", "Side Panel"):
 			self.assertTrue(save_form_layout(SINGLE_DT, type, a_tree("setting")))
 		for type in ("Quick Entry", "New Record"):

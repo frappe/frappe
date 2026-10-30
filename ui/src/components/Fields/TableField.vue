@@ -107,7 +107,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, defineAsyncComponent, inject, provide, ref, watch } from "vue";
+import { computed, defineAsyncComponent, inject, provide, ref, shallowRef, watch } from "vue";
 import type { Component } from "vue";
 import { Dialog } from "frappe-ui";
 import { Grid } from "../Grid";
@@ -402,6 +402,8 @@ const editKey = ref<string | null>(null);
 // arrived at more confidently. A save replaces every row object, so this goes
 // stale by design; the key is what survives it.
 let openedRow: Record<string, any> | null = null;
+// The row as it opened: a layout chosen against the live row would swap while a condition's field is typed.
+const openedValues = shallowRef<Record<string, any> | null>(null);
 
 const editIndex = computed(() => {
 	if (editKey.value === null) return -1;
@@ -470,6 +472,7 @@ watch(editRow, (row) => {
 function closeEdit() {
 	editKey.value = null;
 	openedRow = null;
+	openedValues.value = null;
 }
 
 const dialogTitle = computed(() =>
@@ -479,9 +482,9 @@ const dialogTitle = computed(() =>
 // Dialog renders the row's layout, else the child's full form via `childLayout`; fall back
 // to a flat form of the visible columns when absent. A read-only table forces every field read-only.
 const editLayout = computed(() => {
-	const row = editRow.value;
+	const opened = openedValues.value;
 	const base =
-		(row && props.field.rowLayout?.(row)) ??
+		(opened && props.field.rowLayout?.(opened)) ??
 		props.field.childLayout ??
 		fieldsToLayout(columns.value);
 	return props.field.readOnly ? readOnlyLayout(base) : base;
@@ -509,6 +512,7 @@ function openEdit({ row, index }: { row: Record<string, any>; index: number }) {
 	// server (`rowIdentity.ts`).
 	editKey.value = addressOf(row).key;
 	openedRow = row;
+	openedValues.value = { ...row };
 }
 
 // There is no write-back: `FormLayout` mutates `doc.value[fieldname]` and never

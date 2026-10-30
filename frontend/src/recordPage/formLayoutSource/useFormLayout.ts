@@ -142,10 +142,13 @@ export function whenSettled(loading: { value: boolean }): Promise<void> {
 	});
 }
 
-/** Marks the doctype's rows of every type stale, and every parent's that carries them as a child's. */
+/** Marks the doctype's rows of every type stale, every parent's that carries them as a child's, and every first read in flight. */
 export function markFormLayoutsStale(doctype: string): void {
 	entries.stale(
-		(key, entry) => key.startsWith(`${doctype}:`) || Boolean(entry.data?.children?.[doctype])
+		(key, entry) =>
+			key.startsWith(`${doctype}:`) ||
+			entry.loading ||
+			Boolean(entry.data?.children?.[doctype])
 	);
 }
 

@@ -120,6 +120,19 @@ describe("watchDoctypeUpdates", () => {
 		]);
 	});
 
+	it("reads again a layout whose first read was in flight, which may predate the change", async () => {
+		watchDoctypeUpdates(socket);
+		fake.runMethod.mockReturnValueOnce(new Promise(() => {}));
+		useFormLayout({ doctype: "Sales Order", type: "Details" });
+		socket.fire({ doctype: "Sales Order Item" });
+		useFormLayout({ doctype: "Sales Order", type: "Details" });
+		await settle();
+		expect(fetched().filter((read) => read.startsWith("layout"))).toEqual([
+			"layout Sales Order:Details",
+			"layout Sales Order:Details",
+		]);
+	});
+
 	it("shows a later caller the old meta, then the new one, while an earlier handle keeps the old", async () => {
 		watchDoctypeUpdates(socket);
 		const before = useDoctypeMeta("Lead");

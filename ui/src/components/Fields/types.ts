@@ -25,11 +25,7 @@ export interface FieldMeta {
    * carry a `ui` overlay too — back-compatible since `FieldNode extends FieldMeta`.
    */
   childFields?: FieldNode[];
-  /**
-   * Full render-ready layout of the child doctype from its meta: every field, not
-   * just the `in_list_view` columns in `childFields`. The row dialog draws it when
-   * `rowLayout` is absent, and a new row takes its defaults from it.
-   */
+  /** Every child field from the meta; the row dialog draws it without a `rowLayout`, and a new row takes its defaults. */
   childLayout?: FormLayoutSchema;
   /** The row dialog's layout for one row, from the child doctype's Details layouts; absent when it has none. */
   rowLayout?: (row: Record<string, any>) => FormLayoutSchema;
