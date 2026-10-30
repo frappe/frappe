@@ -5,6 +5,7 @@ import json
 from unittest.mock import patch
 
 import frappe
+from frappe.core.doctype.doctype.test_doctype import new_doctype
 from frappe.core.doctype.user_permission.test_user_permission import create_user
 from frappe.desk.reportview import (
 	_reorder_by_visible_names,
@@ -507,6 +508,35 @@ class TestReportview(IntegrationTestCase):
 
 		self.assertEqual(result["keys"], ["user_type", "enabled", "_aggregate_column", "_aggregate_column_1"])
 		self.assertEqual(sorted(map(tuple, result["values"])), sorted(map(tuple, expected)))
+
+	def test_get_group_by_parent_field_with_sum_of_child_field(self):
+		child = new_doctype(
+			istable=1, fields=[{"fieldname": "qty", "fieldtype": "Float", "label": "Qty"}]
+		).insert()
+		parent = new_doctype(
+			fields=[
+				{"fieldname": "category", "fieldtype": "Data", "label": "Category"},
+				{"fieldname": "items", "fieldtype": "Table", "label": "Items", "options": child.name},
+			]
+		).insert()
+		for category, quantities in (("A", (2, 3)), ("B", (4,))):
+			frappe.get_doc(
+				doctype=parent.name, category=category, items=[{"qty": qty} for qty in quantities]
+			).insert()
+
+		frappe.local.form_dict = frappe._dict(
+			doctype=parent.name,
+			fields=[f"`tab{parent.name}`.`category`"],
+			group_by=f"`tab{parent.name}`.`category`",
+			aggregate_on_doctype=child.name,
+			aggregate_on_field="qty",
+			aggregate_function="sum",
+			order_by="_aggregate_column desc",
+		)
+		result = get()
+
+		self.assertEqual(result["keys"], ["category", "_aggregate_column"])
+		self.assertEqual(sorted(map(tuple, result["values"])), [("A", 5), ("B", 4)])
 
 	def test_delete_bulk_reports_reason_per_document(self):
 		email_queue = frappe.get_doc(
