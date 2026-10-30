@@ -2,9 +2,11 @@
 # License: MIT. See LICENSE
 import os
 import random
+import shutil
 import string
 import unittest
 from contextlib import contextmanager
+from pathlib import Path
 from unittest.case import skipIf
 from unittest.mock import patch
 
@@ -22,6 +24,7 @@ from frappe.core.doctype.doctype.doctype import (
 	validate_fields,
 	validate_links_table_fieldnames,
 	validate_permissions,
+	write_doctype_files,
 )
 from frappe.core.doctype.rq_job.test_rq_job import wait_for_completion
 from frappe.custom.doctype.custom_field.custom_field import create_custom_fields
@@ -35,7 +38,7 @@ from frappe.shell.address_clash import AddressClashError
 from frappe.tests import IntegrationTestCase
 from frappe.tests.utils import make_test_records
 from frappe.tests.utils.test_capabilities import TestService, requires_test_service
-from frappe.utils import get_table_name
+from frappe.utils import CallbackManager, get_table_name
 
 
 class TestDocType(IntegrationTestCase):
@@ -1220,6 +1223,105 @@ class TestDocTypeAddressClash(IntegrationTestCase):
 			):
 				self.insert(name)
 			self.assertIn(f"DocType {name} would take the address", logged.output[0])
+
+
+@unittest.skipUnless(
+	os.access(frappe.get_app_path("frappe"), os.W_OK), "Only run if frappe app paths is writable"
+)
+class TestDocTypeExportReport(IntegrationTestCase):
+	"""A deferred export tells the user who saved how it ended, and can be run again."""
+
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		make_test_records("User")
+
+	def setUp(self):
+		self.enterContext(patch.dict(frappe.conf, {"developer_mode": 1}))
+		frappe.set_user("test@example.com")
+		self.addCleanup(frappe.set_user, "Administrator")
+		previous_request = getattr(frappe.local, "request", None)
+		frappe.local.request = frappe._dict(after_response=CallbackManager())
+		self.addCleanup(setattr, frappe.local, "request", previous_request)
+
+	def new_standard_doctype(self) -> tuple["DocType", Path]:
+		doctype = new_doctype(custom=0)
+		folder = Path(frappe.get_module_path("Core", "doctype", frappe.scrub(doctype.name)))
+		self.addCleanup(shutil.rmtree, folder, ignore_errors=True)
+		self.addCleanup(frappe.db.commit)
+		self.addCleanup(frappe.delete_doc, "DocType", doctype.name, force=True, ignore_missing=True)
+		# Only the Administrator can delete a standard DocType.
+		self.addCleanup(frappe.set_user, "Administrator")
+		return doctype, folder
+
+	def run_after_response(self) -> list[tuple]:
+		with patch.object(frappe, "publish_realtime") as publish:
+			try:
+				frappe.local.request.after_response.run()
+			finally:
+				self.published = [
+					(*c.args, c.kwargs) for c in publish.call_args_list if c.args[:1] == ("doctype_export",)
+				]
+		return self.published
+
+	def test_a_deferred_export_reports_success_to_the_saving_user(self):
+		doctype, folder = self.new_standard_doctype()
+		doctype.insert()
+
+		self.assertEqual(
+			self.run_after_response(),
+			[
+				(
+					"doctype_export",
+					{"doctype": doctype.name, "ok": True, "error": None},
+					{"user": "test@example.com"},
+				)
+			],
+		)
+		self.assertTrue((folder / f"{folder.name}.json").exists())
+
+	@skipIf(os.geteuid() == 0, "root writes to a read-only folder")
+	def test_a_failed_deferred_export_reports_its_error_and_can_run_again(self):
+		doctype, folder = self.new_standard_doctype()
+		folder.mkdir()
+		folder.chmod(0o555)
+		self.addCleanup(folder.chmod, 0o755)
+		doctype.insert()
+
+		with self.assertRaises(PermissionError):
+			self.run_after_response()
+		[(_event, message, kwargs)] = self.published
+		self.assertEqual(kwargs, {"user": "test@example.com"})
+		self.assertEqual((message["doctype"], message["ok"]), (doctype.name, False))
+		self.assertIn("Permission denied", message["error"])
+
+		with self.assertRaisesRegex(frappe.ValidationError, "Permission denied"):
+			write_doctype_files(doctype.name)
+		folder.chmod(0o755)
+		write_doctype_files(doctype.name)
+		self.assertTrue((folder / f"{folder.name}.json").exists())
+
+	def test_a_save_outside_a_request_publishes_nothing(self):
+		frappe.local.request = None
+		doctype, _folder = self.new_standard_doctype()
+		with patch.object(frappe, "publish_realtime") as publish:
+			doctype.insert()
+		self.assertNotIn(("doctype_export",), [c.args[:1] for c in publish.call_args_list])
+
+	def test_writing_files_again_needs_a_system_manager_in_developer_mode(self):
+		self.assertEqual(frappe.allowed_http_methods_for_whitelisted_func[write_doctype_files], ("POST",))
+		with patch.dict(frappe.conf, {"developer_mode": 0}):
+			self.assertRaises(frappe.PermissionError, write_doctype_files, "ToDo")
+
+		frappe.set_user("test1@example.com")
+		self.assertRaises(frappe.PermissionError, write_doctype_files, "ToDo")
+
+		frappe.set_user("test@example.com")
+		custom = new_doctype(custom=1)
+		self.addCleanup(frappe.delete_doc, "DocType", custom.name, force=True, ignore_missing=True)
+		custom.insert()
+		with self.assertRaisesRegex(frappe.ValidationError, "custom DocType"):
+			write_doctype_files(custom.name)
 
 
 def new_doctype(

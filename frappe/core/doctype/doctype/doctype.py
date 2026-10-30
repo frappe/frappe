@@ -597,19 +597,22 @@ class DocType(Document):
 		if allow_doctype_export:
 			self.warn_on_module_change()
 
-			def export_doctype_files():
-				self.export_doc()
-				self.make_controller_template()
-				self.set_base_class_for_controller()
-				self.export_types_to_controller()
-				if defer_module_methods:
-					run_doctype_module_methods()
-
 			# Defer file writes until after the response so the client can sync the saved doc first.
 			if defer_doctype_export:
-				request.after_response.add(export_doctype_files)
+				saving_user = frappe.session.user
+
+				def export_and_report():
+					try:
+						self.export_files()
+						run_doctype_module_methods()
+					except Exception as e:
+						publish_export_result(self.name, saving_user, e)
+						raise
+					publish_export_result(self.name, saving_user)
+
+				request.after_response.add(export_and_report)
 			else:
-				export_doctype_files()
+				self.export_files()
 
 		# update index
 		if not self.custom and not defer_module_methods:
@@ -945,6 +948,13 @@ class DocType(Document):
 			).format(frappe.bold(self.module), frappe.bold(str(old_path))),
 			alert=True,
 		)
+
+	def export_files(self):
+		"""Write the app files of a standard DocType: its JSON, controller and type hints."""
+		self.export_doc()
+		self.make_controller_template()
+		self.set_base_class_for_controller()
+		self.export_types_to_controller()
 
 	def export_doc(self):
 		"""Export to standard folder `[module]/doctype/[name]/[name].json`."""
@@ -2213,6 +2223,32 @@ def get_field(doc, fieldname):
 	for field in doc.fields:
 		if field.fieldname == fieldname:
 			return field
+
+
+def publish_export_result(doctype: str, user: str, error: Exception | None = None) -> None:
+	frappe.publish_realtime(
+		"doctype_export",
+		{"doctype": doctype, "ok": error is None, "error": (str(error) or repr(error)) if error else None},
+		user=user,
+	)
+
+
+@frappe.whitelist(methods=["POST"])
+def write_doctype_files(doctype: str) -> None:
+	"""Run the export of a standard DocType again. It writes `.py` files, so a dev server may restart."""
+	frappe.only_for("System Manager")
+	if not frappe.conf.developer_mode:
+		frappe.throw(_("Writing DocType files needs developer mode."), frappe.PermissionError)
+
+	doc = frappe.get_doc("DocType", doctype)
+	if doc.custom:
+		frappe.throw(_("{0} is a custom DocType and has no app files.").format(frappe.bold(doctype)))
+
+	try:
+		doc.export_files()
+		doc.run_module_method("on_doctype_update")
+	except Exception as e:
+		frappe.throw(str(e) or repr(e), title=_("DocType files not written"))
 
 
 @frappe.whitelist()
