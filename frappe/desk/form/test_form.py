@@ -59,6 +59,7 @@ class TestForm(IntegrationTestCase):
 		from frappe.automation.doctype.auto_repeat.test_auto_repeat import create_submittable_doctype
 
 		create_submittable_doctype("Test Cancel Scope")
+		self.addCleanup(frappe.response.docs.clear)
 		doc = frappe.get_doc(doctype="Test Cancel Scope", test="original").insert()
 		doc.submit()
 		return doc
