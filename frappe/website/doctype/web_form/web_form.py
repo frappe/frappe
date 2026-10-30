@@ -735,6 +735,7 @@ def get_context(context):
 		get the check their DocType counterpart would get, not one merged check.
 		"""
 		from frappe.utils import (
+			has_unsafe_url_scheme,
 			split_emails,
 			validate_email_address,
 			validate_name,
@@ -775,6 +776,10 @@ def get_context(context):
 
 			elif field.options == "URL":
 				validate_url(value, throw=True)
+				if has_unsafe_url_scheme(value):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(value)), title=_("Invalid URL")
+					)
 
 	def has_web_form_permission(self, doctype, name, ptype="read"):
 		if frappe.session.user == "Guest":

@@ -3705,6 +3705,7 @@ class Document(_DocumentBase):
 
 	def _validate_data_fields(self):
 		from frappe.utils import (
+			has_unsafe_url_scheme,
 			split_emails,
 			validate_email_address,
 			validate_iban,
@@ -3745,6 +3746,10 @@ class Document(_DocumentBase):
 
 			if data_field_options == "URL":
 				validate_url(data, throw=True)
+				if has_unsafe_url_scheme(data):
+					frappe.throw(
+						_("'{0}' is not a valid URL").format(frappe.bold(data)), title=_("Invalid URL")
+					)
 
 			if data_field_options == "IBAN":
 				validate_iban(data, throw=True)
