@@ -140,6 +140,9 @@ frappe.ui.PrintPages = class PrintPages {
 		if (!layout || layout.pages.length < 2) return [];
 
 		const style = getComputedStyle(sheet);
+		const layers = ["::before", "::after"]
+			.map((pseudo) => getComputedStyle(sheet, pseudo))
+			.filter((layer) => layer.content !== "none" && layer.backgroundImage !== "none");
 		const content = [...sheet.childNodes].filter(
 			(node) => !(node.nodeType === Node.ELEMENT_NODE && node.matches("script"))
 		);
@@ -195,6 +198,23 @@ frappe.ui.PrintPages = class PrintPages {
 				boxShadow: style.boxShadow,
 				borderRadius: style.borderRadius,
 				overflow: "hidden",
+				position: "relative",
+				isolation: "isolate",
+			});
+			layers.forEach((layer) => {
+				const el = page.appendChild(doc.createElement("div"));
+				Object.assign(el.style, {
+					position: "absolute",
+					inset: "0",
+					zIndex: "-1",
+					pointerEvents: "none",
+					opacity: layer.opacity,
+					backgroundImage: layer.backgroundImage,
+					backgroundPosition: layer.backgroundPosition,
+					backgroundSize: layer.backgroundSize,
+					backgroundRepeat: layer.backgroundRepeat,
+					backgroundColor: layer.backgroundColor,
+				});
 			});
 			if (i && layout.frame?.tHead) page.append(band(layout.frame.tHead));
 
@@ -239,6 +259,8 @@ frappe.ui.PrintPages = class PrintPages {
 					padding: 0;
 					min-height: 0;
 				}
+				body.preview-paginated::before,
+				body.preview-paginated::after { display: none; }
 				.preview-pages .preview-page { margin: 0 auto 24px; }
 			}
 			@media print { .preview-pages { display: none; } }
