@@ -39,7 +39,7 @@ export interface FormLayoutRow {
 	name: string | number | null;
 	condition?: string | null;
 	layout: LayoutTree;
-	/** The app's layout file only: fields kept off this layout on purpose. */
+	/** Fieldnames the row keeps off its layout on purpose; Details and New Record read it. */
 	omitted?: string[];
 }
 

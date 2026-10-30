@@ -1,10 +1,10 @@
-import type { FormLayoutRow, LayoutTree } from "./types";
+import type { FormLayoutRow } from "./types";
 
 /** The first matching conditional row (rows arrive `creation asc`), else the default row, else `null`. */
-export function chooseLayout(
+export function chooseRow(
 	rows: FormLayoutRow[],
 	doc: Record<string, any>
-): LayoutTree | null {
+): FormLayoutRow | null {
 	const matches = rows.filter(
 		(row) => row.condition && matchesCondition(row.condition, doc)
 	);
@@ -13,8 +13,7 @@ export function chooseLayout(
 			`[form-layout] ${matches.length} conditional layouts match; using the earliest.`
 		);
 	}
-	const chosen = matches[0] ?? rows.find((row) => !row.condition);
-	return chosen?.layout ?? null;
+	return matches[0] ?? rows.find((row) => !row.condition) ?? null;
 }
 
 /**

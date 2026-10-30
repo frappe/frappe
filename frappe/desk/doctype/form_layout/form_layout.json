@@ -11,7 +11,8 @@
   "condition_section",
   "condition",
   "layout_section",
-  "layout"
+  "layout",
+  "omitted"
  ],
  "fields": [
   {
@@ -56,11 +57,18 @@
    "fieldtype": "Code",
    "label": "Layout",
    "options": "JSON"
+  },
+  {
+   "description": "Fieldnames this layout keeps off the form on purpose. On Details and New Record, a field it neither places nor omits shows in \"More fields\".",
+   "fieldname": "omitted",
+   "fieldtype": "Code",
+   "label": "Omitted Fields",
+   "options": "JSON"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2026-10-22 12:00:00.000000",
+ "modified": "2026-10-30 12:00:00.000000",
  "modified_by": "Administrator",
  "module": "Desk",
  "name": "Form Layout",

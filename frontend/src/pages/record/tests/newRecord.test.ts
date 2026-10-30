@@ -113,6 +113,7 @@ const server = {
   inserts: [] as Record<string, any>[],
   layoutTypes: [] as string[],
   rows: {} as Record<string, unknown[]>,
+  omitted: {} as Record<string, string[]>,
   newDocReads: 0,
   insertFails: false,
   insertFieldErrors: null as Record<string, unknown>[] | null,
@@ -133,7 +134,8 @@ async function answer(url: URL, init?: RequestInit): Promise<[unknown, number]> 
     const type = url.searchParams.get("type")!;
     server.layoutTypes.push(type);
     const layout = server.rows[type] ?? LAYOUT;
-    return [{ data: { layouts: [{ name: 1, condition: null, layout }], fallback: LAYOUT } }, 200];
+    const row = { name: 1, condition: null, layout, omitted: server.omitted[type] };
+    return [{ data: { layouts: [row], fallback: LAYOUT } }, 200];
   }
   if (path === `/api/v2/method/${GET_NEW_DOC}`) {
     server.newDocReads++;
@@ -196,6 +198,7 @@ beforeEach(() => {
   server.inserts = [];
   server.layoutTypes = [];
   server.rows = {};
+  server.omitted = {};
   server.newDocReads = 0;
   server.insertFails = false;
   server.insertFieldErrors = null;
@@ -404,6 +407,21 @@ describe("when a read fails", () => {
 function tryAgain(root: HTMLElement) {
   return [...root.querySelectorAll("button")].find((button) => button.textContent?.trim() === "Try again")!;
 }
+
+describe("unplaced fields", () => {
+  it("draws the fields a New Record row neither places nor omits in More fields, and inserts them", async () => {
+    server.rows["New Record"] = [{ sections: [{ columns: [{ fields: ["title"] }] }] }];
+    server.omitted["New Record"] = ["status"];
+    const { root } = await mount("/note/new");
+
+    expect(root.textContent).toContain("More fields");
+    expect(input(root, "status")).toBeNull();
+    await type(root, "priority", "High");
+    await save(root);
+
+    expect(server.inserts[0]).toMatchObject({ priority: "High" });
+  });
+});
 
 describe("inline fields", () => {
   const nickname = { fieldname: "nickname", fieldtype: "Data", label: "Nickname" };

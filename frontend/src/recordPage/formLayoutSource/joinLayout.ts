@@ -18,6 +18,7 @@ import { withAccess } from "./fieldAccess";
 import { applyFieldPatch, type FieldPatch } from "./fieldPatch";
 import { buildColumn, buildSection } from "./section";
 import type { InlineField, LayoutTree, LayoutTreeColumn, LayoutTreeSection } from "./types";
+import { withUnplaced, type UnplacedRule } from "./unplaced";
 
 export interface JoinLayoutOptions {
 	/** Child doctype name → its flat meta `fields`, for `Table` columns. */
@@ -30,6 +31,8 @@ export interface JoinLayoutOptions {
 	overrides?: Record<string, FieldPatch>;
 	/** Per-render tab overrides by identity; carried, not applied, since `FormLayout` draws the strip. */
 	tabOverrides?: Record<string, TabOverride>;
+	/** How the row in use draws the meta fields it neither places nor omits; unset draws none. */
+	unplaced?: UnplacedRule;
 }
 
 /** Joins a tree of fieldnames against the meta into a `FormLayoutSchema`; unknown fields and `DROPPED_FIELDTYPES` drop. */
@@ -39,7 +42,10 @@ export function joinLayout(
 	options: JoinLayoutOptions = {}
 ): FormLayoutSchema {
 	const byName = new Map(fields.map((field) => [field.fieldname, field]));
-	return identifyTabs(tree ?? []).map(
+	const drawn = options.unplaced
+		? withUnplaced(tree ?? [], fields, options.unplaced, options.fieldAccess)
+		: tree ?? [];
+	return identifyTabs(drawn).map(
 		(tab): Tab => ({
 			name: tab.name,
 			label: tab.label,

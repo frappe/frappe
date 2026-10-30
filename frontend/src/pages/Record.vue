@@ -539,6 +539,13 @@ async function load({ fromMemory = false } = {}) {
 	// Scripts and layouts need only the doctype, so they ride beside the record read and meta.
 	void loadRecordScripts(target.doctype);
 	// Against the saved document, so a keystroke cannot switch a layout under the reader.
+	const panel = useFormLayout({
+		doctype: target.doctype,
+		type: "Side Panel",
+		doc: saved,
+		fallback: "none",
+		overrides: () => controller.value?.fields.resolve() ?? {},
+	});
 	const details = useFormLayout({
 		doctype: target.doctype,
 		type: "Details",
@@ -546,13 +553,7 @@ async function load({ fromMemory = false } = {}) {
 		fallback: "meta",
 		overrides: () => controller.value?.fields.resolve() ?? {},
 		tabOverrides: () => controller.value?.form.tabs.resolve() ?? {},
-	});
-	const panel = useFormLayout({
-		doctype: target.doctype,
-		type: "Side Panel",
-		doc: saved,
-		fallback: "none",
-		overrides: () => controller.value?.fields.resolve() ?? {},
+		placedElsewhere: () => panel.placed.value,
 	});
 	const opening = { visit: currentVisit, target, pointer, details, panel, view };
 	const fromCache = fromMemory ? openFromMemory(opening) : null;

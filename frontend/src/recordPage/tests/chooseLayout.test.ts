@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { chooseLayout, matchesCondition } from "../formLayoutSource/chooseLayout";
+import { chooseRow, matchesCondition } from "../formLayoutSource/chooseLayout";
 import type { FormLayoutRow, LayoutTree } from "../formLayoutSource/types";
 
 function tree(name: string): LayoutTree {
@@ -36,7 +36,7 @@ describe("matchesCondition", () => {
 	});
 });
 
-describe("chooseLayout", () => {
+describe("chooseRow", () => {
 	const doc = { status: "Open" };
 
 	it("picks the first matching conditional row", () => {
@@ -45,22 +45,22 @@ describe("chooseLayout", () => {
 			row("open", "doc.status == 'Open'"),
 			row("also-open", "doc.status == 'Open'"),
 		];
-		expect(chooseLayout(rows, doc)).toEqual(tree("open"));
+		expect(chooseRow(rows, doc)?.layout).toEqual(tree("open"));
 	});
 
 	it("falls back to the default row when no condition matches", () => {
 		const rows = [row("closed", "doc.status == 'Closed'"), row("default")];
-		expect(chooseLayout(rows, doc)).toEqual(tree("default"));
+		expect(chooseRow(rows, doc)?.layout).toEqual(tree("default"));
 	});
 
 	it("returns null with no rows or no default", () => {
-		expect(chooseLayout([], doc)).toBeNull();
-		expect(chooseLayout([row("closed", "doc.status == 'Closed'")], doc)).toBeNull();
+		expect(chooseRow([], doc)).toBeNull();
+		expect(chooseRow([row("closed", "doc.status == 'Closed'")], doc)).toBeNull();
 	});
 
 	it("re-picks as the doc changes", () => {
 		const rows = [row("default"), row("vip", "doc.tier == 'VIP'")];
-		expect(chooseLayout(rows, { tier: "" })).toEqual(tree("default"));
-		expect(chooseLayout(rows, { tier: "VIP" })).toEqual(tree("vip"));
+		expect(chooseRow(rows, { tier: "" })?.layout).toEqual(tree("default"));
+		expect(chooseRow(rows, { tier: "VIP" })?.layout).toEqual(tree("vip"));
 	});
 });

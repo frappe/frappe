@@ -57,6 +57,7 @@ vi.mock("@/recordPage", async (importOriginal) => {
       layout: computed(() => (type === "Details" ? load.details : [])),
       loading: computed(() => false),
       error: computed(() => null),
+      placed: computed(() => []),
       reload: () => {},
       settled: async () => {},
       refreshed: async () => {},
