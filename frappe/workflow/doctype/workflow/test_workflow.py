@@ -975,7 +975,10 @@ class TestWorkflowFieldLevelRead(IntegrationTestCase):
 	def tearDown(self):
 		try:
 			frappe.set_user("Administrator")
-			frappe.db.delete("Workflow Action", {"reference_doctype": self.doctype})
+			for action in frappe.get_all(
+				"Workflow Action", {"reference_doctype": self.doctype}, pluck="name"
+			):
+				frappe.delete_doc("Workflow Action", action, force=True)
 			frappe.delete_doc("Workflow", self.workflow.name, force=True)
 			frappe.delete_doc("DocType", self.doctype, force=True)
 			frappe.delete_doc_if_exists("User", self.user)
