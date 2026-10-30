@@ -1369,7 +1369,7 @@ class TypstEmitter:
 				return f"#grid(columns: (auto, 1fr), column-gutter: 6pt, align: top, [{thumb}], [{body}])"
 			return body
 		fieldname = col.get("fieldname")
-		if not fieldname:
+		if not fieldname or col.get("fieldtype") == "Blank":
 			return ""
 		if fieldname == "idx":
 			return f"#text({q(row.get('idx'))})"
