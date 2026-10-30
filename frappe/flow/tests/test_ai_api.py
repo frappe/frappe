@@ -147,7 +147,7 @@ class TestSubmitFeedback(IntegrationTestCase):
 	def setUp(self):
 		self.model = frappe.get_doc(_model_doc(title="Feedback Test Model")).insert()
 		self.agent = frappe.get_doc(
-			_agent_doc(self.model.name, title="Feedback Test Agent", tools=[{"tool": "update_memory"}])
+			_agent_doc(self.model.name, title="Feedback Test Agent", tools=[{"tool": "frappe/update_memory"}])
 		).insert()
 
 	def tearDown(self):
@@ -280,8 +280,22 @@ class TestSessionEndpoints(ApiCase):
 		for name in api.__all__:
 			frappe.is_whitelisted(frappe.get_attr(f"frappe.flow.api.{name}"))
 
+	def test_boot_names_an_apps_agent_after_its_app_only_when_another_app_shares_its_name(self):
+		for name in ("crm/Support", "helpdesk/Support", "crm/Sales Coach"):
+			app = name.split("/")[0]
+			agent = _agent_doc(self.model.name, title=name, app=app, is_system_generated=1)
+			frappe.get_doc(agent).insert(ignore_permissions=True)
+
+		titles = {row.name: row.title for row in api.boot()["agents"]}
+
+		self.assertEqual(
+			[titles[name] for name in ("crm/Support", "helpdesk/Support", "crm/Sales Coach")],
+			["Support (crm)", "Support (helpdesk)", "Sales Coach"],
+		)
+		self.assertEqual(titles[self.agent.name], "Endpoint Agent")
+
 	def test_boot_lists_what_a_client_needs_and_the_users_rights(self):
-		from frappe.flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+		from frappe.flow.assistant import ASSISTANT_AGENT_NAME, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		hidden = frappe.get_doc(_agent_doc(self.model.name, title="Hidden Agent", enabled=0)).insert()
@@ -289,7 +303,10 @@ class TestSessionEndpoints(ApiCase):
 		agents = {row.name: row.model for row in data["agents"]}
 		self.assertEqual(agents.get(self.agent.name), self.model.name)
 		self.assertNotIn(hidden.name, agents)
-		self.assertEqual(data["default_agent"], ASSISTANT_AGENT_TITLE)
+		self.assertEqual(data["default_agent"], ASSISTANT_AGENT_NAME)
+		self.assertEqual(
+			next(row.title for row in data["agents"] if row.name == ASSISTANT_AGENT_NAME), "Flow"
+		)
 		model = next(row for row in data["models"] if row.name == self.model.name)
 		self.assertEqual(model.model_id, "openai/gpt-4o-mini")
 		self.assertIn("context_window", model)

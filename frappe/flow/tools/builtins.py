@@ -26,6 +26,17 @@ SUBAGENT_TOOL_SLUG = "subagent"
 SERVER_TOOL_SLUGS = SOURCE_TOOL_SLUGS | {SUBAGENT_TOOL_SLUG, "web_fetch", "web_search"}
 
 
+def builtin_name(slug: str) -> str:
+	"""The Flow Tool of one of Flow's own tools, named like any app's."""
+	return f"frappe/{slug}"
+
+
+def tool_call_name(name: str) -> str:
+	"""What the model calls the Flow Tool `name`: `crm__read_records` for `crm/read_records`.
+	Flow's own and the site's go by their function name."""
+	return name.removeprefix("frappe/").replace("/", "__")
+
+
 def _server_only_tool() -> None:
 	raise RuntimeError("This tool runs on the Flow server")
 
@@ -767,33 +778,8 @@ BUILTIN_TOOLS: list[Tool] = [
 
 
 def sync_builtin_tools() -> None:
-	"""Upsert builtin tools as Flow Tool rows. Uses db.set_value to bypass the immutability
-	guard in FlowTool.validate (which protects user edits, not system migration)."""
+	"""Write Flow's own tools as locked Imported Flow Tools, the way an app's are written."""
+	from frappe.flow.lib.agent import _ensure_tool
+
 	for builtin in BUILTIN_TOOLS:
-		import_path = f"frappe.flow.tools.builtins.{builtin.name}"
-		if frappe.db.exists("Flow Tool", builtin.name):
-			frappe.db.set_value(
-				"Flow Tool",
-				builtin.name,
-				{
-					"import_path": import_path,
-					"description": builtin.description,
-					"requires_confirmation": int(builtin.requires_confirmation),
-					"background": int(builtin.background is True),
-					"is_system_generated": 1,
-				},
-			)
-		else:
-			frappe.get_doc(
-				{
-					"doctype": "Flow Tool",
-					"slug": builtin.name,
-					"title": builtin.name.replace("_", " ").title(),
-					"type": "Imported",
-					"import_path": import_path,
-					"description": builtin.description,
-					"is_system_generated": 1,
-					"requires_confirmation": int(builtin.requires_confirmation),
-					"background": int(builtin.background is True),
-				}
-			).insert(ignore_permissions=True)
+		_ensure_tool(builtin)

@@ -304,13 +304,13 @@ def _dump(value: Any) -> str:
 
 
 def _default_agent_name() -> str:
-	from frappe.flow.assistant import ASSISTANT_AGENT_TITLE
+	from frappe.flow.assistant import ASSISTANT_AGENT_NAME, ASSISTANT_AGENT_TITLE
 
-	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_TITLE):
+	if not frappe.db.exists("Flow Agent", ASSISTANT_AGENT_NAME):
 		frappe.throw(
 			_("The {0} agent is missing. Create a Flow Model first to auto-provision it.").format(
 				ASSISTANT_AGENT_TITLE
 			),
 			title=_("Missing Default Agent"),
 		)
-	return ASSISTANT_AGENT_TITLE
+	return ASSISTANT_AGENT_NAME
