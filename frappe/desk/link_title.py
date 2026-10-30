@@ -45,6 +45,32 @@ def get_permitted_link_titles(doctype: str, names: set[str]) -> dict[str, str]:
 	return get_link_titles(doctype, title_field, names) if title_field else {}
 
 
+def get_doc_link_titles(doc) -> dict[str, str]:
+	"""Titles for the Link and Dynamic Link values of `doc` and its rows, keyed `doctype::name`."""
+	link_titles = {}
+	for doctype, names in get_link_values_by_doctype(doc).items():
+		titles = get_permitted_link_titles(doctype, names)
+		link_titles.update({f"{doctype}::{name}": titles.get(name) or name for name in names})
+	return link_titles
+
+
+def get_link_values_by_doctype(doc) -> dict[str, set]:
+	"""Link and Dynamic Link values of `doc` and its rows, grouped by linked doctypes that show titles."""
+	values_by_doctype = {}
+	for row in [doc, *doc.get_all_children(include_computed=True)]:
+		meta = frappe.get_meta(row.doctype)
+		for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
+			if not (value := row.get(field.fieldname)):
+				continue
+
+			doctype = field.options if field.fieldtype == "Link" else row.get(field.options)
+			link_meta = frappe.get_meta(doctype) if doctype else None
+			if link_meta and link_meta.title_field and link_meta.show_title_field_in_link:
+				values_by_doctype.setdefault(doctype, set()).add(value)
+
+	return values_by_doctype
+
+
 def send_link_titles(link_titles: dict[str, str]):
 	"""Append link titles dict in `frappe.local.response`."""
 	if "_link_titles" not in frappe.local.response:
