@@ -376,7 +376,10 @@ per-person layer over the site's.
 _Avoid_: standard view, default view.
 
 **Default view**: <a id="default-view"></a>
-A pointer to the saved view that opens first for a doctype. Not a fourth kind of view.
+A pointer to the view a doctype's own address opens. Each layer holds at most one per
+doctype: a person's wins over the site's, and the site's over the app's. With none, the
+plain List view opens. It may point at any saved view, or at the plain view of any type. A
+pointer that no longer resolves for the person is passed over. Not a fourth kind of view.
 
 **View key**: <a id="view-key"></a>
 A saved view's address within its doctype: `/<doctype>/view/<key>`. Set once when the view
