@@ -225,6 +225,22 @@
 	object-fit: contain;
 }
 
+.pfb-image-upload-inline {
+	position: relative;
+	min-width: 0;
+}
+
+.pfb-image-upload-inline .pfb-insp-input {
+	padding-right: 28px;
+}
+
+.pfb-image-upload-inline .es-button {
+	position: absolute;
+	top: 50%;
+	right: 2px;
+	transform: translateY(-50%);
+}
+
 .pfb-image-upload-actions {
 	display: flex;
 	align-items: center;

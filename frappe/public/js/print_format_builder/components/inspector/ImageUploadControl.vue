@@ -1,5 +1,22 @@
 <template>
-	<div class="pfb-image-upload">
+	<div v-if="inline" class="pfb-image-upload-inline">
+		<input
+			type="text"
+			class="form-control form-control-sm pfb-insp-input"
+			:placeholder="__('Image URL')"
+			:value="modelValue"
+			@change="$emit('update:modelValue', $event.target.value.trim())"
+		/>
+		<button
+			class="es-button"
+			data-size="xs"
+			data-variant="ghost"
+			:title="__('Upload Image')"
+			@click="upload"
+			v-html="frappe.utils.icon('upload', 'xs')"
+		></button>
+	</div>
+	<div v-else class="pfb-image-upload">
 		<div v-if="modelValue" class="pfb-image-upload-preview">
 			<img :src="modelValue" :alt="alt || ''" />
 		</div>
@@ -33,6 +50,7 @@
 defineProps({
 	modelValue: { type: String, default: "" },
 	alt: { type: String, default: "" },
+	inline: { type: Boolean, default: false },
 });
 
 const emit = defineEmits(["update:modelValue"]);
