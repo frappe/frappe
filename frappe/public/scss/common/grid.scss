@@ -999,6 +999,30 @@ body.grid-col-resizing {
 	min-height: 0;
 }
 
+.grid-import-file-pane > .file-uploader .file-browser {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.grid-import-file-pane > .file-uploader .file-browser-list {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: auto;
+	display: flex;
+	flex-direction: column;
+	overflow: visible;
+	margin-top: var(--padding-xs);
+}
+
+.grid-import-file-pane > .file-uploader .file-browser-list .tree {
+	flex: 1 1 auto;
+	min-height: 0;
+	height: auto;
+	padding-bottom: 0;
+}
+
 .grid-import-step-panel {
 	flex: 1 1 auto;
 	min-height: 0;
