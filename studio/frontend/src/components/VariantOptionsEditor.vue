@@ -82,9 +82,9 @@ import { getEditorVariantChoice, setEditorVariantChoice, slug, variantOptionName
 import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 import { useDragReorder } from "@/utils/useDragReorder"
 
-// The option blocks are the single source of truth: each child carries its own
-// `variantOptionName`, so names follow the blocks through delete, duplicate, paste and
-// reorder from anywhere. The radio picks what the canvas shows.
+// The option blocks hold the names. Each child carries its own `variantOptionName`, so a name
+// follows its block through delete, duplicate, paste and reorder, wherever that happens. The
+// radio picks what the canvas shows.
 const props = defineProps<{ label?: string; block: Block }>()
 
 const options = computed(() => variantOptionNames(props.block))
@@ -110,14 +110,10 @@ function rowMenu(index: number) {
 	]
 }
 
-// the selection ring follows the swap (ComponentEditor re-anchors to the new
-// element), so switching needs no extra highlight here
 function showOption(index: number) {
 	setEditorVariantChoice(props.block.componentId, index)
 }
 
-// a new option starts as a copy of the shown one — a variant is an alternative
-// version of what you see
 function addOption() {
 	const index = props.block.children.length
 	const name = unusedOptionName(options.value)
@@ -131,15 +127,15 @@ function addOption() {
 	startRename(index)
 }
 
-// a URL resolves an option by name, so a generated name must not repeat one a delete left behind
+// a URL finds an option by name, so a new name must not repeat one that a delete freed
 function unusedOptionName(taken: string[]) {
 	let n = taken.length + 1
 	while (taken.includes(`Option ${n}`)) n++
 	return `Option ${n}`
 }
 
-// the option's layer name, "option-cards" for a "Cards" option; default names like
-// "Option 3" already carry the prefix in their slug
+// the option's layer name: "option-cards" for a "Cards" option. A default name like
+// "Option 3" already has the prefix in its slug.
 function optionBlockName(name: string) {
 	const base = slug(name)
 	if (!base) return "option"
@@ -170,20 +166,19 @@ function commitRename(index: number, name: string) {
 	if (!child || !name.trim()) return
 	const previous = options.value[index]
 	const renamed = name.trim()
-	// a URL resolves an option by the slug of its name, so two options cannot share one
+	// a URL finds an option by the slug of its name, so two options cannot share a slug
 	if (options.value.some((option, at) => at !== index && slug(option) === slug(renamed))) {
 		toast.error(`Another option is already named "${renamed}"`)
 		return
 	}
 	child.variantOptionName = renamed
-	// keep the option's layer name in step, unless it was renamed by hand in the tree
+	// follow the rename, unless the layer name was set by hand in the tree
 	if (!child.blockName || child.blockName === optionBlockName(previous)) {
 		child.blockName = optionBlockName(renamed)
 	}
 }
 
-// the option blocks carry the order, so moving one moves the block and the canvas
-// keeps showing the same option wherever it landed
+// the canvas keeps showing the same option wherever it lands
 function moveOption(from: number, to: number) {
 	const children = props.block.children
 	const shownChild = children[shownIndex.value]

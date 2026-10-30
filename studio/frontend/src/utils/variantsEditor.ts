@@ -1,6 +1,6 @@
 /**
- * Variants helpers that only the editor uses. They reach into the canvas — the block tree, the
- * selection, the undo history — so they stay out of `variants.ts`, which the renderer imports.
+ * Variants helpers that only the editor uses. They work on the canvas: the block tree, the
+ * selection and the undo history. They stay out of `variants.ts`, which the renderer imports.
  */
 
 import { dialog, toast } from "frappe-ui"
@@ -8,9 +8,8 @@ import useCanvasStore from "@/stores/canvasStore"
 import type Block from "@/utils/block"
 import { keepDialogText, setEditorVariantChoice, variantOptionNames } from "@/utils/variants"
 
-/** Confirm and collapse a Variants block to one of its options — a local canvas edit,
-unlike the viewer pill's server call, so undo and autosave treat it like any other
-block change. */
+/** Confirm, then collapse a Variants block to one of its options. This edits the canvas, not
+the server, so undo and autosave treat it like any other block change. */
 export function confirmKeepVariantOption(target: Block, index: number) {
 	const options = variantOptionNames(target)
 	const kept = options[index]
@@ -24,13 +23,12 @@ export function confirmKeepVariantOption(target: Block, index: number) {
 			const childIndex = parentBlock.getChildIndex(target)
 			const keep = () => {
 				parentBlock.removeChild(target)
-				// the block leaves the set, so it is no longer an option of anything
 				chosen.variantOptionName = undefined
 				parentBlock.insertChild(chosen, childIndex, target.parentSlotName)
 				chosen.selectBlock()
 			}
-			// batched, so selecting the kept block doesn't bleed into the pre-keep
-			// history record and undo reselects the Variants block
+			// batched, so the new selection joins this record and not the one before it.
+			// Undo then reselects the Variants block
 			const history = useCanvasStore().activeCanvas?.history
 			history ? history.batch(keep) : keep()
 			toast.success(`Kept "${kept}"`)
@@ -38,8 +36,8 @@ export function confirmKeepVariantOption(target: Block, index: number) {
 	})
 }
 
-/** Keep the selection visible: when the selected block sits inside a Variants option that
-isn't the one on canvas, switch that Variants block to the option holding it. */
+/** Keep the selected block visible. If it sits in an option the canvas does not show, switch
+that Variants block to the option that holds it. */
 export function revealVariantOption(block: Block) {
 	let child = block
 	let parent = child.getParentBlock?.()

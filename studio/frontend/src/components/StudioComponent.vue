@@ -292,8 +292,8 @@ watch(
 
 // Show component editor only on the first instance; the rest render as faint outlines
 const isPrimaryInstance = computed(() => {
-	// a component instance renders the definition's own root, whose parents are the
-	// component; the page block is the one that can sit inside a repeater
+	// a component instance renders the definition's root, whose parents are inside the
+	// component. The page block is the one that can sit in a repeater.
 	const placedBlock = props.block.extendedFromComponent || props.block
 	if (!placedBlock.isRepeated()) return true
 	const instanceIndex = slotScope?.value?.dataIndex
@@ -302,8 +302,8 @@ const isPrimaryInstance = computed(() => {
 
 const isVariantsBlock = props.block.componentName === "Variants"
 
-// A Variants block swaps its rendered option in place: the instance survives but its root
-// element is replaced, which `target` cannot observe on its own.
+// A Variants block swaps its rendered option in place. The instance stays, but its root
+// element is replaced, and `target` cannot see that on its own.
 const targetRevision = ref(0)
 if (isVariantsBlock) {
 	watch(
@@ -326,8 +326,7 @@ const target = computed<HTMLElement | null>(() => {
 	) as HTMLElement | null
 })
 
-// A Variants block has no element of its own; its shown option carries the id to anchor
-// to. Clamp like the runtime does, so a stale choice still points at a rendered option.
+// clamped like the runtime does, so a stale choice still points at a rendered option
 function targetBlockId() {
 	if (!isVariantsBlock || !props.block.children.length) return props.block.componentId
 	const index = getEditorVariantChoice(props.block.componentId, props.block.children.length)
@@ -430,7 +429,7 @@ watch(
 	() => {
 		if (!componentRef.value) return
 		// set data attrs for the components which only bind styles and class to the actual root
-		// element; a Variants block's root is the shown option's element, which keeps its own
+		// element. A Variants block's root is the shown option's element, which keeps its own id.
 		if (!isVariantsBlock && target.value && target.value instanceof Element) {
 			target.value?.setAttribute("data-component-id", props.block.componentId)
 			target.value?.setAttribute("data-breakpoint", props.breakpoint)

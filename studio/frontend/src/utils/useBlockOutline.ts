@@ -2,10 +2,10 @@ import { nextTick, ref } from "vue"
 import { useEventListener } from "@vueuse/core"
 
 /**
- * A viewport rect for an element, to draw an outline over it. The element comes from a getter
- * re-read on every measure, so a caller whose target is replaced never has to hand over the new
- * element. `follow` tracks scroll and resize, for a target that moves with the page; a target
- * inside its own transformed surface re-measures on demand instead.
+ * A viewport rect for an element, to draw an outline over it. The caller passes a getter, read
+ * again on every measure, so a replaced element needs no new call. Pass `follow` for a target
+ * that moves with the page: it measures again on scroll and on resize. A target inside its own
+ * transformed surface measures on demand instead.
  */
 export function useBlockOutline(follow = false) {
 	const rect = ref<DOMRect | null>(null)
@@ -21,7 +21,7 @@ export function useBlockOutline(follow = false) {
 			rect.value = null
 			return
 		}
-		// the target can be replaced in this same tick; measure once the new one is in the DOM
+		// the target can be replaced in this same tick, so measure after the new one is in the DOM
 		nextTick(measure)
 	}
 

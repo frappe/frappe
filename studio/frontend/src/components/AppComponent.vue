@@ -268,8 +268,7 @@ const handleError = (event: any) => (error: any) => {
 }
 
 onMounted(() => {
-	// a Variants block has no element of its own: its root is the shown option's element,
-	// which stays the option's to identify
+	// the shown option's element is the root here, and it keeps its own id
 	if (props.block.componentName === "Variants") return
 	const componentRoot = getComponentRoot(componentRef)
 	if (componentRoot) {

@@ -1,9 +1,9 @@
 import { ref } from "vue"
 
 /**
- * Reorder a list of rows by dragging a grip handle. A row is draggable only while its own
- * grip is pressed (`dragHandleIndex`), so text selection inside the row's inputs keeps
- * working. `move` applies the reorder; how the list is stored is the caller's business.
+ * Reorder a list of rows by dragging a grip handle. A row is draggable only while its grip is
+ * pressed (`dragHandleIndex`), so text selection in the row's inputs still works. `move` applies
+ * the new order. The caller decides how the list is stored.
  */
 export function useDragReorder(move: (from: number, to: number) => void) {
 	const dragIndex = ref<number | null>(null)

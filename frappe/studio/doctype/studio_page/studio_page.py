@@ -381,9 +381,9 @@ class StudioPage(Document):
 		return {"unresolved_variants": self.unresolved_variants()}
 
 	def unresolved_variants(self) -> list[str]:
-		"""Names of Variants blocks the published page still carries: drafts nobody resolved
-		with Keep, served to viewers as their first option. Components the page uses are
-		scanned too — their variants render on the page just the same."""
+		"""Names of the Variants blocks the published page still carries. Nobody resolved these
+		with Keep, so viewers get their first option. Components the page uses are scanned too,
+		because their variants render on the page the same way."""
 		blocks = parse_json(self.blocks) or []
 		if not blocks:
 			return []
@@ -475,10 +475,10 @@ def get_blocks(page) -> list[dict]:
 @frappe.whitelist()
 @has_page_write_perm()
 def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int) -> None:
-	"""Collapse a Variants block to its chosen child and delete the other options — the viewer
-	pill's "Keep". Applied to every copy of the block (draft and published), so what the
-	reviewer sees is what remains."""
-	# get_app_page serves the cached doc; the write goes through its own copy
+	"""Collapse a Variants block to its chosen child and delete the other options. This is the
+	viewer pill's "Keep". It is applied to the draft and the published copy, so the reviewer
+	keeps what they see."""
+	# get_app_page returns the cached doc, so load a copy of it to write to
 	page = frappe.get_doc("Studio Page", get_app_page(app_name, page_name).name)
 	option_index = cint(option_index)
 
@@ -492,7 +492,6 @@ def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int
 		page._skip_validate = True
 		page.save()
 	elif not keep_component_variant(page, str(block_id), option_index):
-		# the block may be gone or the option may be, and the caller reloads either way
 		frappe.throw(
 			_("Could not keep option {0} of variants block {1}. Reload the page and try again.").format(
 				option_index, block_id
@@ -501,7 +500,7 @@ def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int
 
 
 def keep_component_variant(page: "StudioPage", block_id: str, option_index: int) -> bool:
-	"""The block can live inside a studio component the page uses; keeping it edits the
+	"""The block can live inside a studio component the page uses. Keeping it edits the
 	component, so every instance on every page follows."""
 	for component in get_components_for_blocks(get_blocks(page)):
 		block = parse_json(component["block"])
@@ -525,15 +524,13 @@ def replace_variants_block(blocks, block_id: str, option_index: int) -> bool:
 					continue
 				if child.get("componentName") != "Variants":
 					continue
-				# the draft and the published copy can hold different numbers of options, so a copy
-				# without this one is left alone instead of failing the whole request
+				# the draft and the published copy can hold different numbers of options
 				options = child.get("children") or []
 				if not 0 <= option_index < len(options):
 					return False
 				kept = options[option_index]
 				if not isinstance(kept, dict):
 					return False
-				# the block leaves the set, so it is no longer an option of anything
 				kept.pop("variantOptionName", None)
 				children[index] = kept
 				return True

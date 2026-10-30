@@ -139,8 +139,6 @@ class StudioApp(WebsiteGenerator):
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
-		# Keep saves the page, so it needs what a page save needs: write access, and a developer
-		# bench only for a standard app, whose pages are files on disk
 		context.can_edit_app = bool(
 			(context.is_developer_mode or not self.is_standard) and check_app_permission()
 		)

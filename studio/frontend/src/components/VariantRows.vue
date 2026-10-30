@@ -55,12 +55,12 @@ import { createReusableTemplate } from "@vueuse/core"
 import { TabButtons } from "frappe-ui"
 import type { VariantRow } from "@/utils/variants"
 
-// The switcher rows both pills share: name · options · Keep. Purely visual —
-// each pill wires the emits to its own state.
+// The switcher rows both pills share: name, options, Keep. The rows only render. Each pill
+// handles the emits with its own state.
 defineProps<{
 	rows: VariantRow[]
 	canKeep?: boolean
-	// render only the first row, inline — the viewer pill's single-set mode
+	// render only the first row, inline: the viewer pill's single-set mode
 	solo?: boolean
 	// the editor's rows: clicking a name selects the Variants block
 	selectable?: boolean
@@ -75,7 +75,7 @@ const emit = defineEmits<{
 
 const [DefineRow, Row] = createReusableTemplate<{ row: VariantRow; soloRow?: boolean }>({
 	inheritAttrs: false,
-	// Declared, so a bare `soloRow` arrives as true rather than as an empty attribute.
+	// Declared, so a bare `soloRow` arrives as true and not as an empty attribute.
 	props: { row: { type: Object, required: true }, soloRow: Boolean },
 })
 </script>

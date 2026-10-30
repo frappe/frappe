@@ -54,19 +54,18 @@ import {
 	type VariantSet,
 } from "@/utils/variants"
 
-// The variants pill on the live app, bottom right. One rendered set shows inline; more collapse
-// behind a count and expand into a panel. Every choice is mirrored to the URL, so the
-// current combination is a link.
+// The variants pill on the live app, bottom right. One set shows inline. Two or more collapse
+// behind a count and open in a panel. Every choice is written to the URL, so the current
+// combination is a link.
 const route = useRoute()
 const router = useRouter()
 const sets = useMountedVariantSets()
 
-// Keep needs a developer bench and write access, so a hosted site without developer mode
-// shows the switcher without it; answered server side, so a page view costs no round trip
+// answered server side with the renderer boot, so a page view costs no round trip
 const canKeep = Boolean((window as any).can_edit_app)
 
-// Rows in page order (top to bottom, then left to right), worked out when the panel
-// opens and when the page's sets change, not continuously.
+// Rows in page order: top to bottom, then left to right. The order is worked out when the
+// panel opens and when the page's sets change, not on every render.
 const order = ref<string[]>([])
 const orderedSets = computed(() => {
 	const o = order.value
@@ -145,8 +144,8 @@ function keepVariant(set: VariantSet) {
 				throw new Error(error?.messages?.join(", ") || "Could not keep the variant")
 			}
 			toast.success(`Kept ${set.options[option]}`)
-			// the preview re-reads the page over the socket, but a published one is cached until
-			// the next publish, so only a reload can show the block going away
+			// the preview re-reads the page over the socket. A published page is cached until the
+			// next publish, so only a reload shows the block gone
 			if (!window.is_preview) window.location.reload()
 		},
 	})
@@ -156,7 +155,6 @@ const { rect: outlineRect, outline, measure } = useBlockOutline(true)
 const hovered = ref<VariantSet | null>(null)
 
 function elementOf(set: VariantSet) {
-	// the Variants block renders no element of its own, so find its rendered option
 	const optionId = set.optionIds[activeIndex(set)]
 	return optionId ? document.querySelector(`[data-component-id="${optionId}"]`) : null
 }
@@ -164,8 +162,8 @@ function hover(set: VariantSet | null) {
 	hovered.value = set
 	outline(set ? () => elementOf(set) : null)
 }
-// A row can go away under the pointer without a mouseleave: the panel closes, the route changes.
+// A row can disappear under the pointer with no mouseleave, when the panel closes or the route changes.
 watch([() => route.path, open], () => hover(null))
-// A switch replaces the outlined element and reflows the page; re-measure once the swap has landed.
+// A switch replaces the outlined element and reflows the page, so measure again after the swap.
 watch(() => route.query.v, () => hovered.value && nextTick(measure))
 </script>

@@ -257,7 +257,6 @@ const contextMenuOptions: ContextMenuOption[] = [
 	},
 ]
 
-// "try a different version of this": the block and a copy of it become the two options
 function addVariantOf(target: Block) {
 	const parentBlock = target.getParentBlock()
 	if (!parentBlock) return

@@ -10,27 +10,26 @@ import {
 } from "@/utils/variants"
 
 /**
- * One container holding N named alternative subtrees and rendering one. Children are the
- * options, in order, each named by its own block (`variantOptionName`); the choice is mirrored
- * to the URL (?v=<set>.<option>) so any combination is a shareable link.
+ * One container that holds several named alternatives and renders one of them. The children
+ * are the options, in order, and each one is named by its own block (`variantOptionName`). The
+ * choice is kept in the URL (?v=<set>.<option>), so any combination is a link.
  */
 export default defineComponent({
 	name: "Variants",
-	// the options keep their own data-component-id; this block exists only in the registry
+	// the options keep their own data-component-id. This block exists only in the registry.
 	inheritAttrs: false,
 	props: {
 		name: { type: String, default: "Variant" },
 	},
 	setup(props, { slots, attrs }) {
 		const route = useRoute()
-		// the rendered block's id, so "Keep" can resolve this set back to its editor node
 		const blockId = String(attrs["data-component-id"] || "")
 		retainVariantSet(blockId)
 		onBeforeUnmount(() => releaseVariantSet(blockId))
 
 		return () => {
-			// child blocks arrive wrapped in a fragment; the options are its children. Vue warns
-			// on a slot read outside the render function, so the set is resolved here.
+			// child blocks arrive in a fragment, and the options are its children. Vue warns when a
+			// slot is read outside the render function, so the set is resolved here.
 			const options = flattenSlot(slots.default?.() || [])
 			if (!options.length) return null
 			const optionBlocks = options.map(optionBlock)

@@ -86,7 +86,6 @@ class TestStudioPage(IntegrationTestCase):
 		]
 		page = make_studio_page(app.name, blocks=frappe.as_json(blocks), route="/variants")
 
-		# an index the block never offered must be refused, not clamped onto a neighbour
 		self.assertRaises(frappe.ValidationError, keep_variant, app.name, page.name, "Variants-hero", -1)
 		# the message names the option, so a bad index is not reported as a missing block
 		with self.assertRaises(frappe.ValidationError) as refused:

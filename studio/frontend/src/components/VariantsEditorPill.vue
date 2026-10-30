@@ -1,7 +1,7 @@
 <template>
 	<Popover v-if="variantRows.length" v-model:open="open" side="top" align="end" :offset="8" :autoFocus="false">
 		<template #trigger>
-			<!-- sized exactly like the zoom chip, so the two read as one row of controls -->
+			<!-- sized like the zoom chip, so the two look like one row of controls -->
 			<button
 				class="flex cursor-pointer items-center gap-1.5 rounded-6 bg-surface-base px-3 py-2 text-sm text-ink-gray-8 shadow-md"
 				@click.stop
@@ -48,12 +48,12 @@ import {
 } from "@/utils/variants"
 import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 
-// The editor's variants pill, beside the zoom chip — the collapsed form the live app's pill
-// uses, so both surfaces read the same. Rows come from the canvas block tree; which option
-// each set shows lives in the editor choice map.
+// The editor's variants pill, beside the zoom chip. It uses the collapsed form of the live
+// app's pill, so both look the same. Rows come from the canvas block tree, and the option each
+// set shows comes from the editor choice map.
 const props = defineProps<{
-	// true while the canvas is panned or zoomed: the host hides the pill then, and a
-	// panel whose anchor is hidden gets flung to the viewport edge
+	// true while the canvas is panned or zoomed. The host hides the pill then, and a panel
+	// with a hidden anchor jumps to the edge of the viewport.
 	suspended?: boolean
 }>()
 
@@ -70,9 +70,9 @@ const componentStore = useComponentStore()
 const componentEditorStore = useComponentEditorStore()
 const store = useStudioStore()
 
-// a set can live in the page tree or inside a studio component the page uses; a
-// component's set is listed once, however many instances render it, and one choice
-// drives them all — instances share the definition's block ids
+// A set can live in the page tree, or in a studio component the page uses. A component's set
+// is listed once, however many instances render it. One choice drives them all, because the
+// instances share the definition's block ids.
 interface VariantSource {
 	block: Block
 	ownerComponent?: string
@@ -131,7 +131,7 @@ function pickRow(row: VariantRow, option: string) {
 	if (!block) return
 	const index = variantOptionNames(block).indexOf(option)
 	if (index > -1) setEditorVariantChoice(block.componentId, index)
-	// re-measure after the swap so the outline hugs the new option
+	// measure again after the swap, so the outline fits the new option
 	outlineVariant(block)
 }
 function keepRow(row: VariantRow) {
@@ -142,8 +142,8 @@ function keepRow(row: VariantRow) {
 		confirmKeepVariantOption(source.block, shownVariantIndex(source.block))
 		return
 	}
-	// the set lives in a studio component, so keeping edits the component itself:
-	// saved on the server, every instance on every page follows, no page undo
+	// the set lives in a studio component, so Keep edits the component. It is saved on the
+	// server, every instance on every page follows it, and the page cannot undo it
 	const ownerComponent = source.ownerComponent
 	dialog.confirm({
 		...keepDialogText(row.options, shownVariantIndex(source.block)),
@@ -165,16 +165,14 @@ function hoverRow(row: VariantRow | null) {
 function selectRow(row: VariantRow) {
 	const source = variantSourceOf(row)
 	if (!source) return
-	// a component's blocks cannot be selected on the page canvas — edit the component
+	// a component's blocks cannot be selected on the page canvas, so open the component
 	if (source.ownerComponent) componentEditorStore.editComponent(source.ownerComponent)
 	else source.block.selectBlock()
 }
 
-// outlining the shown option lets a row be spotted on canvas
 const { rect: outlineRect, outline } = useBlockOutline()
 
 function outlineVariant(variantsBlock: Block | null) {
-	// the set draws no element of its own; the shown option's block owns the one on canvas
 	const shownOption = () => variantsBlock?.children[shownVariantIndex(variantsBlock)] ?? null
 	outline(variantsBlock ? () => shownOption()?.getRenderedElement() ?? null : null)
 }
