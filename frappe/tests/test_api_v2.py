@@ -333,6 +333,20 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 	def test_update_omits_fields_without_read_permission(self):
 		self.assertIsNone(self.request("put", self.name)["data"].get("secret"))
 
+	def test_copy_only_when_fields_are_hidden(self):
+		doc = frappe.get_doc(self.doctype, self.name)
+		frappe.set_user(self.user)
+		masked = doc.copy_with_fieldlevel_read_permissions()
+		self.assertIsNot(masked, doc)
+		self.assertIsNone(masked.get("secret"))
+		self.assertEqual(doc.secret, "hidden")
+
+		with patch.object(type(doc), "get_permlevel_access", return_value=[0, 1]):
+			self.assertIs(doc.copy_with_fieldlevel_read_permissions(), doc)
+
+		todo = frappe.get_doc(doctype="ToDo", description="x")
+		self.assertIs(todo.copy_with_fieldlevel_read_permissions(), todo)
+
 	def test_execute_doc_method_omits_fields_without_read_permission(self):
 		response = self.request("post", self.name, "method", "submit")
 		self.assertEqual(response["docs"][0]["docstatus"], 1)
