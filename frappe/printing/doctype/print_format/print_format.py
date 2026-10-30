@@ -34,6 +34,7 @@ BUILDER_DRAFT_FIELDS = (
 	"print_format_builder",
 	"print_format_builder_beta",
 	"pdf_generator",
+	"roles",
 )
 
 

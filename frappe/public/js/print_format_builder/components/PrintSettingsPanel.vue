@@ -135,6 +135,17 @@
 			</InspectorRow>
 		</InspectorSection>
 
+		<InspectorSection :label="__('Access')">
+			<DeskControl
+				:df="roles_df"
+				:model-value="print_format.roles || []"
+				@update:model-value="set_roles"
+			/>
+			<span class="pfb-insp-hint text-muted">
+				{{ __("If set, only users with one of these roles can print with this format.") }}
+			</span>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Custom CSS')" :init-open="false">
 			<textarea
 				class="form-control form-control-sm pfb-css-input"
@@ -260,6 +271,17 @@ const letterhead_df = {
 	options: "Letter Head",
 	placeholder: __("No letter head"),
 };
+const roles_df = {
+	fieldname: "roles",
+	fieldtype: "Table MultiSelect",
+	options: "Has Role",
+};
+function set_roles(rows) {
+	const roles = (rows || []).map((row) => row.role).filter(Boolean);
+	const current = (print_format.value.roles || []).map((row) => row.role);
+	if (roles.join("\n") === current.join("\n")) return;
+	print_format.value.roles = roles.map((role) => ({ role }));
+}
 function set_letterhead(name) {
 	if (name === (letterhead.value?.name || "")) return;
 	name ? store.change_letterhead(name) : store.remove_letterhead();
