@@ -887,6 +887,7 @@ function render_form_builder(frm) {
 	frappe
 		.require("form_builder.bundle.js")
 		.then(() => {
+			if (frappe.get_current_page() !== frm.page) return;
 			frappe.web_form_builder = new frappe.ui.FormBuilder({
 				wrapper: wrapper,
 				frm: frm,
