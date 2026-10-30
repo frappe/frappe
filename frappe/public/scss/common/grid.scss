@@ -1062,14 +1062,6 @@ body.grid-col-resizing {
 	flex-direction: column;
 }
 
-.modal.show:has(> .grid-import-dialog) ~ .modal-backdrop {
-	z-index: $zindex-modal + 1;
-}
-
-.modal.show:has(> .grid-import-dialog) ~ .modal.show {
-	z-index: $zindex-modal + 2;
-}
-
 .grid-import-preview-head-actions {
 	display: flex;
 	align-items: center;
