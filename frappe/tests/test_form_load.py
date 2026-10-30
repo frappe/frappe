@@ -408,8 +408,10 @@ class TestStandardFieldsInVersions(IntegrationTestCase):
 			{"doctype": self.dt.name, "public_field": "visible", "secret_field": "hidden"}
 		).insert()
 		# submit() skips version tracking under tests (Document._save defaults ignore_version
-		# to frappe.in_test), so take the same path by hand with versioning left on
+		# to frappe.in_test), so take the same path by hand with versioning left on; the
+		# secret changes in the same save, otherwise the version has nothing to filter
 		doc.docstatus = 1
+		doc.secret_field = "changed"
 		doc.save(ignore_version=False)
 		return doc
 
