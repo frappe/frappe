@@ -104,6 +104,12 @@ class TestBackgroundJobs(IntegrationTestCase):
 			frappe.enqueue("frappe.ping", job_id="test-dedup-without-redis", deduplicate=True)
 		self.assertEqual(calls, ["frappe.ping"])
 
+		with (
+			patch("frappe.utils.background_jobs.get_redis_conn", side_effect=ConnectionError),
+			self.assertRaises(ConnectionError),
+		):
+			frappe.enqueue("frappe.ping", job_id="test-dedup-without-redis", deduplicate=True)
+
 	def test_enqueue_passes_retry_kwarg_to_method(self):
 		job = frappe.enqueue("frappe.tests.test_background_jobs.echo_retry", queue="short", retry=3)
 		self.assertEqual(job.kwargs["kwargs"]["retry"], 3)
