@@ -35,7 +35,7 @@ def get_link_titles(doctype: str, title_field: str, names: set[str]) -> dict[str
 			fields=["name", title_field],
 			limit=len(names_batch),
 		)
-		titles.update({row.name: row.get(title_field) for row in rows})
+		titles.update({str(row.name): row.get(title_field) for row in rows})
 	return titles
 
 
