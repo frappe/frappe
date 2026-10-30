@@ -108,18 +108,22 @@ frappe.ui.PrintPreviewBar = class PrintPreviewBar {
 	apply_zoom() {
 		const container = this.pages?.[0]?.parentElement;
 		if (container) {
+			const doc = container.ownerDocument;
+			const style = getComputedStyle(container);
+			const rect = container.getBoundingClientRect();
+			const rtl = style.direction === "rtl";
 			const width = parseFloat(this.pages[0].style.width);
-			const height = container.offsetHeight;
-			const left =
-				container.getBoundingClientRect().left -
-				parseFloat(getComputedStyle(container).marginLeft);
-			const frame_width = container.ownerDocument.documentElement.clientWidth;
-			const margin_left = Math.max(-left, (frame_width - width * this.zoom) / 2 - left);
+			const frame_width = doc.documentElement.clientWidth;
+			const scroll = doc.scrollingElement.scrollLeft;
+			const offset = rtl
+				? frame_width - rect.right - scroll - parseFloat(style.marginRight)
+				: rect.left + scroll - parseFloat(style.marginLeft);
+			const side = `${Math.max(-offset, (frame_width - width * this.zoom) / 2 - offset)}px`;
 			this.zoom_style.textContent = `@media screen { .preview-pages {
 				width: ${width}px;
-				margin: 0 0 ${height * (this.zoom - 1)}px ${margin_left}px;
+				margin: 0 ${rtl ? side : 0} ${container.offsetHeight * (this.zoom - 1)}px ${rtl ? 0 : side};
 				transform: scale(${this.zoom});
-				transform-origin: 0 0;
+				transform-origin: ${rtl ? "100% 0" : "0 0"};
 			} }`;
 		} else if (this.zoom_style) {
 			this.zoom_style.textContent = `@media screen { :root { zoom: ${this.zoom}; } }`;
