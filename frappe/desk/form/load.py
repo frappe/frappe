@@ -14,7 +14,7 @@ import frappe.utils
 from frappe import _, _dict
 from frappe.core.doctype.comment.comment import get_document_comments
 from frappe.desk.form.document_follow import is_document_followed
-from frappe.desk.link_title import send_link_titles
+from frappe.desk.link_title import get_permitted_link_titles, send_link_titles
 from frappe.model.document import Document
 from frappe.model.utils.user_settings import get_user_settings
 from frappe.permissions import (
@@ -597,50 +597,35 @@ def get_additional_timeline_content(doctype, docname):
 
 def set_link_titles(doc):
 	link_titles = {}
-	link_titles.update(get_title_values_for_link_and_dynamic_link_fields(doc))
-	link_titles.update(get_title_values_for_table_and_multiselect_fields(doc))
+	for doctype, names in get_link_values_by_doctype(doc).items():
+		titles = get_permitted_link_titles(doctype, names)
+		link_titles.update({f"{doctype}::{name}": titles.get(name) or name for name in names})
 
 	send_link_titles(link_titles)
 
 
-def get_title_values_for_link_and_dynamic_link_fields(doc, link_fields=None):
-	link_titles = {}
+def get_link_values_by_doctype(doc) -> dict[str, set]:
+	"""Link and Dynamic Link values of `doc` and its rows, grouped by linked doctypes that show titles."""
+	values_by_doctype = {}
+	for row in get_doc_and_rows(doc):
+		meta = frappe.get_meta(row.doctype)
+		for field in meta.get_link_fields() + meta.get_dynamic_link_fields():
+			if not (value := row.get(field.fieldname)):
+				continue
 
-	if not link_fields:
-		meta = frappe.get_meta(doc.doctype)
-		link_fields = meta.get_link_fields() + meta.get_dynamic_link_fields()
+			doctype = field.options if field.fieldtype == "Link" else row.get(field.options)
+			link_meta = frappe.get_meta(doctype) if doctype else None
+			if link_meta and link_meta.title_field and link_meta.show_title_field_in_link:
+				values_by_doctype.setdefault(doctype, set()).add(value)
 
-	for field in link_fields:
-		if not (doc_fieldvalue := getattr(doc, field.fieldname, None)):
-			continue
-
-		doctype = field.options if field.fieldtype == "Link" else doc.get(field.options)
-
-		meta = frappe.get_meta(doctype) if doctype else None
-		if not meta or not meta.title_field or not meta.show_title_field_in_link:
-			continue
-
-		link_title = frappe.db.get_value(doctype, doc_fieldvalue, meta.title_field, cache=True, order_by=None)
-		link_titles.update({doctype + "::" + doc_fieldvalue: link_title or doc_fieldvalue})
-
-	return link_titles
+	return values_by_doctype
 
 
-def get_title_values_for_table_and_multiselect_fields(doc, table_fields=None):
-	link_titles = {}
-
-	if not table_fields:
-		meta = frappe.get_meta(doc.doctype)
-		table_fields = meta.get_table_fields(include_computed=True)
-
-	for field in table_fields:
-		if not doc.get(field.fieldname):
-			continue
-
-		for value in doc.get(field.fieldname):
-			link_titles.update(get_title_values_for_link_and_dynamic_link_fields(value))
-
-	return link_titles
+def get_doc_and_rows(doc) -> list:
+	rows = [doc]
+	for field in frappe.get_meta(doc.doctype).get_table_fields(include_computed=True):
+		rows.extend(doc.get(field.fieldname) or [])
+	return rows
 
 
 def update_user_info(docinfo, doc=None):

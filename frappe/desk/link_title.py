@@ -39,6 +39,12 @@ def get_link_titles(doctype: str, title_field: str, names: set[str]) -> dict[str
 	return titles
 
 
+def get_permitted_link_titles(doctype: str, names: set[str]) -> dict[str, str]:
+	"""Titles of `names` the user may see, keyed by document name."""
+	title_field = get_link_title_field(doctype)
+	return get_link_titles(doctype, title_field, names) if title_field else {}
+
+
 def send_link_titles(link_titles: dict[str, str]):
 	"""Append link titles dict in `frappe.local.response`."""
 	if "_link_titles" not in frappe.local.response:
@@ -52,10 +58,7 @@ def get_report_link_titles(columns, rows) -> dict[str, str]:
 	titles = {}
 	names_by_doctype = get_link_names_by_doctype(columns or [], rows or [])
 	for doctype, names in names_by_doctype.items():
-		title_field = get_link_title_field(doctype)
-		if not title_field:
-			continue
-		for name, title in get_link_titles(doctype, title_field, names).items():
+		for name, title in get_permitted_link_titles(doctype, names).items():
 			titles[f"{doctype}::{name}"] = title
 	return titles
 
