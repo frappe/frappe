@@ -29,8 +29,15 @@ TEST_JOBS = {"server-tests.yml": "Integration", "ui-tests.yml": "UI Test"}
 STATUS_JOB = "Update Develop Status"
 
 
-def gh(*args):
-	return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
+def gh(*args, attempts=3):
+	"""A GitHub API call, tried again after a failure such as a dropped connection."""
+	for attempt in range(attempts):
+		try:
+			return json.loads(subprocess.check_output(["gh", "api", *args], text=True))
+		except subprocess.CalledProcessError:
+			if attempt == attempts - 1:
+				raise
+			time.sleep(10)
 
 
 def gate_conclusion(run, gate_job):
