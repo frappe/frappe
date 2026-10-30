@@ -29,4 +29,33 @@ test.describe("Grid dropdown position", () => {
 		expect(gap, "gap between field and dropdown").toBeGreaterThanOrEqual(-20);
 		expect(gap, "gap between field and dropdown").toBeLessThanOrEqual(20);
 	});
+
+	test("moves the dropdown back when a filled cell is left without opening it", async ({
+		page,
+		desk,
+	}) => {
+		await desk.login("Administrator");
+		await page.goto("/test-grid-dropdown/new");
+
+		const cell = page
+			.locator('.grid-body .rows .grid-row .col[data-fieldname="item"]')
+			.first();
+		const input = cell.locator("input").first();
+		const parked = page.locator(".grid-field > .awesomplete");
+		await page.locator(".grid-add-row").click();
+		await cell.click();
+		await input.pressSequentially("a");
+		await page.locator(".awesomplete > ul:visible li").first().click();
+		await expect(input).not.toHaveValue("");
+		await input.blur();
+		await expect(parked).toHaveCount(0);
+
+		await input.focus();
+		await expect(parked).toHaveCount(1);
+		await expect(page.locator(".awesomplete > ul:visible")).toHaveCount(0);
+
+		await input.blur();
+		await expect(parked).toHaveCount(0);
+		await expect(cell.locator(".awesomplete > ul")).toHaveCount(1);
+	});
 });

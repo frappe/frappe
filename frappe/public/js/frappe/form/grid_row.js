@@ -1025,12 +1025,18 @@ export default class GridRow {
 							width: `${element_position.width}px`,
 						});
 
-						$(event.target).one("awesomplete-close", () => {
-							$home.append($dropdown);
-							$wrapper.remove();
-							// let the next focus park and re-measure it
-							is_focused = false;
-						});
+						let $target = $(event.target);
+						// a filled cell does not open the list, so it never fires close
+						$target.on(
+							"awesomplete-close.grid_dropdown focusout.grid_dropdown",
+							() => {
+								$target.off(".grid_dropdown");
+								$home.append($dropdown);
+								$wrapper.remove();
+								// let the next focus park and re-measure it
+								is_focused = false;
+							}
+						);
 					}
 				}
 			})
