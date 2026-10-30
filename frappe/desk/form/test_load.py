@@ -264,3 +264,27 @@ class TestLoad(IntegrationTestCase):
 				f"{hidden.doctype}::{hidden.name}": hidden.name,
 			},
 		)
+
+	def test_getdoc_sends_link_titles_for_autoincrement_doctypes(self):
+		linked_doctype = new_doctype(
+			autoname="autoincrement", title_field="some_fieldname", show_title_field_in_link=1
+		).insert()
+		linked = frappe.get_doc(doctype=linked_doctype.name, some_fieldname="Autoincrement Title").insert()
+		doctype = new_doctype(
+			fields=[
+				{
+					"fieldname": "reference",
+					"label": "Reference",
+					"fieldtype": "Link",
+					"options": linked_doctype.name,
+				}
+			]
+		).insert()
+		doc = frappe.get_doc(doctype=doctype.name, reference=linked.name).insert()
+
+		frappe.local.response = frappe._dict(docs=[])
+		getdoc(doctype.name, doc.name)
+
+		self.assertEqual(
+			frappe.response._link_titles, {f"{linked_doctype.name}::{linked.name}": "Autoincrement Title"}
+		)
