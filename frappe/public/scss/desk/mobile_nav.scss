@@ -173,3 +173,37 @@ frappe-mobile-nav.desk-mobile-nav {
 		color: var(--ink-gray-9);
 	}
 }
+
+.desk-back-to-top {
+	display: none;
+}
+
+@include media-breakpoint-down(sm) {
+	// the pill sits over the tab bar, or over the screen edge on a form
+	body.has-back-to-top {
+		--desk-back-to-top-floor: env(safe-area-inset-bottom);
+	}
+
+	body.has-mobile-nav.has-back-to-top {
+		--desk-back-to-top-floor: var(--desk-mobile-nav-height);
+	}
+
+	body.has-back-to-top .desk-back-to-top {
+		display: inline-flex;
+		position: fixed;
+		left: 50%;
+		bottom: calc(var(--desk-back-to-top-floor) + var(--spacing) * 3);
+		transform: translateX(-50%);
+		z-index: 1010;
+	}
+
+	html.es-bottom-sheet-open .desk-back-to-top,
+	body.modal-open .desk-back-to-top {
+		display: none;
+	}
+
+	// room for the last row to scroll clear of the pill: 32px tall, 12px off the edge, 12px gap
+	body.has-back-to-top .main-section {
+		padding-bottom: calc(var(--desk-back-to-top-floor) + var(--spacing) * 14);
+	}
+}

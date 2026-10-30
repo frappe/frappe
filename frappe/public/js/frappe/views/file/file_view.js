@@ -145,14 +145,21 @@ frappe.views.FileView = class FileView extends frappe.views.ListView {
 			.add_button(__("Paste"), () => frappe.file_manager.paste(this.current_folder))
 			.hide();
 
-		this.page.add_actions_menu_item(__("Export as zip"), () => {
+		const export_zip = () => {
 			let docnames = this.get_checked_items(true);
 			if (docnames.length) {
 				open_url_post("/api/method/frappe.core.api.file.zip_files", {
 					files: JSON.stringify(docnames),
 				});
 			}
-		});
+		};
+		this.page.add_actions_menu_item(
+			__("Export as zip"),
+			export_zip,
+			false,
+			null,
+			"folder-down"
+		);
 	}
 
 	set_fields() {

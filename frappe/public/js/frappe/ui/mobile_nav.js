@@ -35,6 +35,7 @@ frappe.ui.MobileNav = class MobileNav {
 			this.set_active();
 			this.route_changed = true;
 			this.close_sheet();
+			this.update_back_to_top?.();
 		});
 		this.set_active();
 
@@ -53,6 +54,36 @@ frappe.ui.MobileNav = class MobileNav {
 
 		// A form on a phone has a back button in place of the tab bar (see apply_page_visibility).
 		$(document).on("click", ".page-head .page-back-button", () => this.go_back());
+
+		this.make_back_to_top();
+	}
+
+	// Desk scrolls every page inside .main-section, which the phone's tap-the-clock gesture
+	// does not reach.
+	make_back_to_top() {
+		const main_section = document.querySelector(".main-section");
+		if (!main_section) return;
+		const button = frappe.ui.button({
+			label: __("Back to top"),
+			icon: "arrow-up",
+			variant: "outline",
+			size: "md",
+			css_class: "desk-back-to-top rounded-full shadow-md",
+			onclick: () => {
+				const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+				main_section.scrollTo({ top: 0, behavior: reduce ? "auto" : "smooth" });
+			},
+		});
+		document.body.appendChild(button[0]);
+
+		let frame = null;
+		const update = () => {
+			frame = null;
+			const shown = main_section.scrollTop > main_section.clientHeight * 2;
+			document.body.classList.toggle("has-back-to-top", shown);
+		};
+		this.update_back_to_top = () => (frame ??= requestAnimationFrame(update));
+		main_section.addEventListener("scroll", this.update_back_to_top, { passive: true });
 	}
 
 	get_tabs() {

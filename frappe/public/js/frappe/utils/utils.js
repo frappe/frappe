@@ -8,6 +8,7 @@ import { CHART_PALETTE, has_unsafe_scheme } from "../ui/components/utils.js";
 frappe.provide("frappe.utils");
 
 const eval_function_cache = new Map();
+let haptic_switch = null;
 
 // Array de duplicate
 if (!Array.prototype.uniqBy) {
@@ -1172,6 +1173,32 @@ Object.assign(frappe.utils, {
 			show_success_alert();
 			input.remove();
 		}
+	},
+	/**
+	 * A light tick on a touch screen. iOS has no vibration, so a hidden switch is flipped; iOS 26.5+
+	 * ignores that from a script, and capture-phase click listeners still see the flip.
+	 */
+	haptic() {
+		if (!window.matchMedia("(hover: none)").matches) return;
+		if (navigator.vibrate) {
+			navigator.vibrate(10);
+			return;
+		}
+		if (!haptic_switch) {
+			haptic_switch = document.createElement("label");
+			haptic_switch.hidden = true;
+			haptic_switch.setAttribute("aria-hidden", "true");
+			const input = document.createElement("input");
+			input.type = "checkbox";
+			input.setAttribute("switch", "");
+			haptic_switch.append(input);
+			// keeps the flip from bubbling to the page's handlers
+			for (const type of ["click", "change"]) {
+				haptic_switch.addEventListener(type, (e) => e.stopPropagation());
+			}
+			document.body.append(haptic_switch);
+		}
+		haptic_switch.click();
 	},
 	is_rtl(lang = null) {
 		// Keep this list in sync with rtl_languages in the Python twin at

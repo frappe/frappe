@@ -128,7 +128,6 @@ import "./frappe/views/workspace/blocks/index.js";
 
 import "./frappe/widgets/widget_group.js";
 
-import "./frappe/ui/sort_selector.html";
 import "./frappe/ui/sort_selector.js";
 
 import "./frappe/change_log.html";
