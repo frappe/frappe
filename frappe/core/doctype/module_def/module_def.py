@@ -187,4 +187,5 @@ class ModuleDef(Document):
 
 @frappe.whitelist()
 def get_installed_apps():
+	frappe.permissions.validate_desk_user()
 	return json.dumps(frappe.get_installed_apps())

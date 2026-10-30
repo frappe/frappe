@@ -2403,7 +2403,7 @@ class TestChangeLog(IntegrationTestCase):
 		with (
 			patch("frappe.get_system_settings", return_value=0),
 			patch("frappe.is_setup_complete", return_value=True),
-			patch("frappe.utils.change_log.get_versions", return_value=versions),
+			patch("frappe.utils.change_log.get_app_versions", return_value=versions),
 			patch("frappe.utils.change_log.get_source_url", return_value="https://github.com/frappe/app"),
 			patch(
 				"frappe.utils.change_log.check_release_on_github", return_value=(Version("2.0.0"), "frappe")
