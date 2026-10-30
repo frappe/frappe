@@ -139,9 +139,11 @@ class StudioApp(WebsiteGenerator):
 		context.app_pages = frappe.get_all("Studio Page", page_filters, ["name", "page_title", "route"])
 
 		context.is_developer_mode = frappe.utils.cint(frappe.conf.developer_mode)
-		# Keep needs a developer bench and write access; developer mode short-circuits, so a
-		# hosted site without it pays no permission check for a flag every route now reads
-		context.can_edit_app = bool(context.is_developer_mode and check_app_permission())
+		# Keep saves the page, so it needs what a page save needs: write access, and a developer
+		# bench only for a standard app, whose pages are files on disk
+		context.can_edit_app = bool(
+			(context.is_developer_mode or not self.is_standard) and check_app_permission()
+		)
 		context.router_file = self.get_router_file() if context.is_developer_mode else None
 		context.router_script = self.get_router_script()
 
