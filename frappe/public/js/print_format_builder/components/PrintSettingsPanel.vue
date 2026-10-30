@@ -1,6 +1,6 @@
 <template>
 	<div class="pfb-settings">
-		<InspectorSection :label="__('Typography')">
+		<InspectorSection :label="__('Text')">
 			<InspectorRow :label="__('Font')">
 				<Autocomplete
 					:options="font_options"
@@ -18,9 +18,6 @@
 					@change="(e) => (print_format.font_size = parseFloat(e.target.value) || 14)"
 				/>
 			</InspectorRow>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Style')">
 			<InspectorRow v-for="c in color_settings" :key="c.fieldname" :label="c.label">
 				<ColorInput
 					:fieldname="c.fieldname"
@@ -58,21 +55,17 @@
 					<option value="Landscape">{{ __("Landscape") }}</option>
 				</select>
 			</InspectorRow>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Spacing (mm)')">
 			<SpacingRow
-				:label="__('Margins')"
+				:label="__('Margins (mm)')"
 				:model-value="page_margins"
 				@update:model-value="set_margins"
 			/>
-		</InspectorSection>
-
-		<InspectorSection :label="__('Page background')">
-			<ImageUploadControl
-				:model-value="layout.background?.image || ''"
-				@update:model-value="set_background_image"
-			/>
+			<InspectorRow :label="__('Background')">
+				<ImageUploadControl
+					:model-value="layout.background?.image || ''"
+					@update:model-value="set_background_image"
+				/>
+			</InspectorRow>
 			<SliderRow
 				v-if="layout.background?.image"
 				:label="__('Opacity')"
@@ -87,7 +80,7 @@
 			</SliderRow>
 		</InspectorSection>
 
-		<InspectorSection :label="__('Document')">
+		<InspectorSection :label="__('Output')">
 			<InspectorRow :label="__('PDF renderer')">
 				<template #label>
 					<span class="pfb-label-with-hint">
@@ -262,8 +255,8 @@ let page_number_positions = computed(() => [
 
 // ── colors ─────────────────────────────────────────────────
 const color_settings = [
-	{ fieldname: "label_color", label: __("Label") },
-	{ fieldname: "value_color", label: __("Value") },
+	{ fieldname: "label_color", label: __("Label color") },
+	{ fieldname: "value_color", label: __("Value color") },
 ];
 const letterhead_df = {
 	fieldname: "letter_head",
