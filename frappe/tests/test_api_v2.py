@@ -315,7 +315,6 @@ class TestApiV2CreateFieldLevelRead(FrappeAPITestCase):
 			site=frappe.local.site,
 		)
 		self.assertEqual(response.status_code, 200)
-		# Webhooks are queued with the saved document and must keep the values the user cannot read.
 		self.assertTrue(self.sent)
 		for payload in self.sent:
 			self.assertEqual(payload, {"secret": "hidden"})

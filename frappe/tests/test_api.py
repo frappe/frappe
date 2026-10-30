@@ -448,7 +448,6 @@ class TestWriteResponsesFieldLevelRead(FrappeAPITestCase):
 			site=frappe.local.site,
 		)
 		self.assertEqual(response.status_code, 200, response.text)
-		# Webhooks are queued with the saved document and run after the response is built.
 		self.assertTrue(self.sent)
 		for payload in self.sent:
 			self.assertEqual(payload, {"secret": "hidden", "token": "abc123"})
