@@ -237,6 +237,20 @@ only its own presentation: label, description, condition, border, fold. A field'
 properties (label, `reqd`, `depends_on` and the rest) live on the field, never on a container.
 _Avoid_: break (the meta field that encoded a container in desk v1), layout field property.
 
+**Unplaced field**: <a id="unplaced-field"></a>
+A data field that the Form Layout row in use neither places nor omits. On Details and New
+Record it renders in the automatic "More fields" section, the last section of the first tab;
+on Quick Entry only a mandatory one renders, at the end of the dialog. A field the Side Panel
+row in use places is placed. A break, a `hidden` field and a field the person cannot read
+are never unplaced. With no row, the fallback places every field.
+_Avoid_: missing field, orphan field.
+
+**Omitted field**: <a id="omitted-field"></a>
+A field that a row keeps off its layout on purpose, listed in the row's `omitted`. A
+mandatory field with no default cannot be omitted. Omitting places nothing and changes no
+field property: `hidden` stays on the field.
+_Avoid_: missing field, orphan field, hidden field (a field property, not a placement).
+
 **Disclosure**: <a id="disclosure"></a>
 The reader's view state of a section: open or shut. It lives in the browser through the
 shell's section memory, keyed by user and per doctype, never on the server. A script's

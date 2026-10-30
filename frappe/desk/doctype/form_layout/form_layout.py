@@ -28,6 +28,7 @@ class FormLayout(Document):
 		tabs = parse_layout(self.layout)
 		self.validate_inline_fields(tabs)
 		self.validate_names_are_not_fields(tabs)
+		self.validate_omitted()
 
 	def on_update(self):
 		publish_doctype_update(self.dt)
@@ -47,6 +48,26 @@ class FormLayout(Document):
 			refuse_field_name(_("Tab"), tab["name"], fieldnames, self.dt)
 			for section in tab["sections"]:
 				refuse_field_name(_("Section"), section["name"], fieldnames, self.dt)
+
+	def validate_omitted(self):
+		"""Drop each new entry that names no field or a mandatory one, with a message; old entries stay."""
+		omitted = self.omitted_fields()
+		previous = self.get_doc_before_save()
+		kept = set(parse_omitted(previous.omitted)) if previous and previous.dt == self.dt else set()
+		meta = frappe.get_meta(self.dt)
+		allowed = [
+			fieldname for fieldname in omitted if fieldname in kept or not refuse_omitted(fieldname, meta)
+		]
+		self.omitted = frappe.as_json(allowed) if allowed else None
+
+	def omitted_fields(self) -> list[str]:
+		try:
+			omitted = json.loads(self.omitted) if self.omitted else []
+		except (json.JSONDecodeError, TypeError) as e:
+			frappe.throw(_("Omitted Fields is not valid JSON: {0}").format(str(e)), title=_("Invalid Layout"))
+		if not isinstance(omitted, list) or not all(isinstance(entry, str) for entry in omitted):
+			frappe.throw(_("Omitted Fields must be a list of fieldnames."), title=_("Invalid Layout"))
+		return list(dict.fromkeys(omitted))
 
 	def validate_inline_fields(self, tabs: list):
 		fields = inline_fields(tabs)
@@ -124,13 +145,22 @@ def get_form_layouts(dt: str, type: str):
 
 @frappe.desk_v2_only
 @frappe.whitelist()
-def save_form_layout(dt: str, type: str, layout: str, name: str | None = None, condition: str | None = None):
+def save_form_layout(
+	dt: str,
+	type: str,
+	layout: str,
+	name: str | None = None,
+	condition: str | None = None,
+	omitted: str | None = None,
+):
 	validate_target(dt, type)
 	if name is not None and not isinstance(name, str):
 		frappe.throw(_("Form Layout name must be a string"))
 	frappe.has_permission("Form Layout", "write", throw=True)
 	doc = find_layout_doc(dt, type, name)
 	doc.update({"dt": dt, "type": type, "layout": layout, "condition": condition})
+	if omitted is not None:
+		doc.omitted = omitted
 	doc.save()
 	return doc.name
 
@@ -165,7 +195,12 @@ def get_layouts(dt: str, type: str) -> list[dict]:
 
 def get_row_layouts(dt: str, type: str) -> list[dict]:
 	return [
-		{"name": row.name, "condition": row.condition, "layout": parse_layout(row.layout)}
+		{
+			"name": row.name,
+			"condition": row.condition,
+			"layout": parse_layout(row.layout),
+			"omitted": parse_omitted(row.omitted),
+		}
 		for row in get_layout_rows(dt, type)
 	]
 
@@ -174,7 +209,7 @@ def get_layout_rows(dt: str, type: str) -> list:
 	return frappe.get_all(
 		"Form Layout",
 		filters={"dt": dt, "type": type},
-		fields=["name", "condition", "layout"],
+		fields=["name", "condition", "layout", "omitted"],
 		order_by="creation asc",
 	)
 
@@ -271,6 +306,30 @@ def parse_layout(layout: str | None) -> list:
 	tabs = wrap_tabless(tree)
 	name_layout_containers(tabs)
 	return tabs
+
+
+def parse_omitted(omitted: str | None) -> list[str]:
+	"""Read a stored `omitted` list; the save checked its shape, so anything else reads as none."""
+	try:
+		entries = json.loads(omitted) if omitted else []
+	except json.JSONDecodeError:
+		return []
+	return [entry for entry in entries if isinstance(entry, str)] if isinstance(entries, list) else []
+
+
+def refuse_omitted(fieldname: str, meta: Meta) -> bool:
+	"""Tell the person why `fieldname` cannot be omitted, and return whether it was refused."""
+	field = meta.get_field(fieldname)
+	if not field or field.fieldtype in LAYOUT_BREAKS:
+		message = _("{0} is not a field of {1}, so this layout cannot omit it.")
+	elif field.reqd and not field.default:
+		message = _("{0} is mandatory with no default in {1}, so every layout must show it.")
+	else:
+		return False
+	frappe.msgprint(
+		message.format(frappe.bold(fieldname), meta.name), title=_("Field Not Omitted"), indicator="orange"
+	)
+	return True
 
 
 def wrap_tabless(tree: list) -> list:

@@ -7,9 +7,10 @@ import type { FieldPatch } from "./fieldPatch";
 import { useDoctypeMeta } from "@framework/ui/useDoctypeMeta";
 import { useDocPermissions } from "@framework/ui/useDocPermissions";
 import { landFresh, memoizedState } from "@framework/ui/utils";
-import { chooseLayout } from "./chooseLayout";
+import { chooseRow } from "./chooseLayout";
 import { joinLayout } from "./joinLayout";
-import type { FormLayoutsResponse, FormLayoutType } from "./types";
+import type { FormLayoutRow, FormLayoutsResponse, FormLayoutType } from "./types";
+import { placedFieldnames, type UnplacedRule } from "./unplaced";
 
 export interface UseFormLayoutOptions {
 	doctype: MaybeRefOrGetter<string>;
@@ -26,6 +27,8 @@ export interface UseFormLayoutOptions {
 	overrides?: MaybeRefOrGetter<Record<string, FieldPatch>>;
 	/** Per-render tab overrides by identity; reactive on `overrides`' terms. */
 	tabOverrides?: MaybeRefOrGetter<Record<string, TabOverride>>;
+	/** Fieldnames another layout on the page places, so "More fields" does not draw them twice. */
+	placedElsewhere?: MaybeRefOrGetter<string[]>;
 }
 
 export interface UseFormLayout {
@@ -36,6 +39,8 @@ export interface UseFormLayout {
 	error: ComputedRef<unknown>;
 	/** `Quick Entry` only: the server's answer to whether Create opens a dialog. */
 	dialog: ComputedRef<boolean>;
+	/** Fieldnames the row in use places; empty when no row applies. */
+	placed: ComputedRef<string[]>;
 	/** Re-fetch the layout rows (the meta reloads through `useDoctypeMeta`). */
 	reload: () => void;
 	/** Resolves once the fresh rows and meta have both landed or failed, so a first replay sees the layout. */
@@ -69,15 +74,17 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		return held.entry;
 	});
 
-	const layout = computed<FormLayoutSchema>(() => {
-		const response = entry.value.data as FormLayoutsResponse | null;
-		const fields = meta.value?.fields;
-		if (!response || !fields) return [];
+	const response = computed(() => entry.value.data as FormLayoutsResponse | null);
+	const row = computed(() =>
+		response.value ? chooseRow(response.value.layouts, options.doc?.value ?? {}) : null
+	);
 
-		const doc = options.doc?.value ?? {};
-		const chosen = chooseLayout(response.layouts, doc);
+	const layout = computed<FormLayoutSchema>(() => {
+		const fields = meta.value?.fields;
+		if (!response.value || !fields) return [];
+
 		const tree =
-			chosen ?? (options.fallback === "none" ? null : response.fallback);
+			row.value?.layout ?? (options.fallback === "none" ? null : response.value.fallback);
 		if (!tree) return [];
 
 		const childMetas: Record<string, RawMetaField[]> = {};
@@ -90,6 +97,9 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 			decorate: options.decorate,
 			overrides: toValue(options.overrides),
 			tabOverrides: toValue(options.tabOverrides),
+			unplaced: row.value
+				? unplacedRule(options.type, row.value, toValue(options.placedElsewhere))
+				: undefined,
 		});
 	});
 
@@ -100,11 +110,23 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 		layout,
 		loading: busy,
 		error: computed(() => error.value ?? entry.value.error),
-		dialog: computed(() => Boolean((entry.value.data as FormLayoutsResponse | null)?.dialog)),
+		dialog: computed(() => Boolean(response.value?.dialog)),
+		placed: computed(() => placedFieldnames(row.value?.layout ?? null)),
 		reload: () => entry.value.reload(),
 		settled: () => whenSettled(stale),
 		refreshed: () => Promise.all([refreshed(), entry.value.refreshed]).then(() => {}),
 	};
+}
+
+/** With no row, the fallback already draws every field, so only a row gets a rule. */
+function unplacedRule(
+	type: FormLayoutType,
+	row: FormLayoutRow,
+	placedElsewhere?: string[]
+): UnplacedRule | undefined {
+	if (type === "Quick Entry") return { mode: "mandatory" };
+	if (type === "Side Panel") return undefined;
+	return { mode: "section", omitted: row.omitted, placedElsewhere };
 }
 
 /** Answers now when nothing is loading; the entry raises its flag synchronously at fetch, so this cannot miss it. */

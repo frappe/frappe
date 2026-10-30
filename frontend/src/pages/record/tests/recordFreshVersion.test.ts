@@ -110,7 +110,8 @@ async function answerData(url: URL, path: string): Promise<unknown> {
     await server.holdLayouts?.opened;
     if (url.searchParams.get("type") !== "Details") return { data: { layouts: [], fallback: [] } };
     const layout = layoutOf(server.details);
-    return { data: { layouts: [{ name: 1, condition: null, layout }], fallback: layout } };
+    const omitted = server.meta.fields.map((field) => field.fieldname).filter((name) => !server.details.includes(name));
+    return { data: { layouts: [{ name: 1, condition: null, layout, omitted }], fallback: layout } };
   }
   if (path.endsWith("/activity")) return { data: { activities: [], next: null } };
   if (path.startsWith("/api/v2/document/Note/")) {

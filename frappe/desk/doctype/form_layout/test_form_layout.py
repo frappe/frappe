@@ -31,6 +31,7 @@ HIDDEN_DT = "Test Create Hidden"
 HIDDEN_PROMPT_DT = "Test Create Hidden Prompt"
 HIDDEN_TABLE_DT = "Test Create Hidden Table"
 HIDDEN_DOCTYPES = (HIDDEN_DT, HIDDEN_PROMPT_DT, HIDDEN_TABLE_DT)
+OMITTED_DT = "Test Form Layout Omitted"
 
 
 def make_layout(**kwargs):
@@ -295,6 +296,90 @@ class TestFormLayout(IntegrationTestCase):
 		self.assertEqual(sorted(published_doctypes(publish)), ["Note", "ToDo"])
 
 
+class TestOmittedFields(IntegrationTestCase):
+	@classmethod
+	def setUpClass(cls):
+		super().setUpClass()
+		fields = [
+			data("title", reqd=1),
+			{"label": "Notes", "fieldname": "notes", "fieldtype": "Small Text"},
+			{
+				"label": "Status",
+				"fieldname": "status",
+				"fieldtype": "Select",
+				"options": "Open\nClosed",
+				"default": "Open",
+				"reqd": 1,
+			},
+		]
+		new_doctype(OMITTED_DT, fields=fields).insert(ignore_if_duplicate=True)
+		# SQLite rolls back DDL, so each test's rollback would drop the DocType.
+		frappe.db.commit()  # nosemgrep
+
+	@classmethod
+	def tearDownClass(cls):
+		frappe.db.rollback()
+		frappe.delete_doc_if_exists("DocType", OMITTED_DT)
+		frappe.db.commit()  # nosemgrep
+		super().tearDownClass()
+
+	def setUp(self):
+		super().setUp()
+		frappe.clear_messages()
+
+	def tearDown(self):
+		frappe.db.rollback()
+
+	def save(self, omitted: list | None, name: str | int | None = None) -> str:
+		return save_form_layout(
+			OMITTED_DT,
+			"Details",
+			"[]",
+			name=None if name is None else str(name),
+			omitted=None if omitted is None else json.dumps(omitted),
+		)
+
+	def stored(self, name: str) -> list:
+		return json.loads(frappe.db.get_value("Form Layout", name, "omitted") or "[]")
+
+	def test_omits_optional_fields_and_mandatory_fields_with_a_default(self):
+		name = self.save(["notes", "status"])
+		self.assertEqual(self.stored(name), ["notes", "status"])
+		self.assertEqual(
+			get_form_layouts(OMITTED_DT, "Details")["layouts"][0]["omitted"], ["notes", "status"]
+		)
+		self.assertFalse(frappe.message_log)
+
+	def test_refuses_a_mandatory_field_with_no_default_with_a_message(self):
+		name = self.save(["title", "notes"])
+		self.assertEqual(self.stored(name), ["notes"])
+		self.assertIn("title", frappe.message_log[0]["message"])
+
+	def test_refuses_an_entry_that_is_not_a_data_field(self):
+		name = self.save(["gone", "notes"])
+		self.assertEqual(self.stored(name), ["notes"])
+		self.assertEqual(len(frappe.message_log), 1)
+
+	def test_a_stale_entry_is_kept(self):
+		name = self.save(["notes"])
+		frappe.db.set_value("Form Layout", name, "omitted", json.dumps(["gone", "notes"]))
+		self.save(["gone", "notes", "status"], name=name)
+		self.assertEqual(self.stored(name), ["gone", "notes", "status"])
+		self.assertFalse(frappe.message_log)
+
+	def test_a_save_without_omitted_keeps_the_stored_list(self):
+		name = self.save(["notes"])
+		self.save(None, name=name)
+		self.assertEqual(self.stored(name), ["notes"])
+		self.save([], name=name)
+		self.assertEqual(self.stored(name), [])
+
+	def test_refuses_an_omitted_list_that_is_not_fieldnames(self):
+		for omitted in ("{", '{"notes": 1}', "[1]"):
+			with self.assertRaises(frappe.ValidationError):
+				save_form_layout(OMITTED_DT, "Details", "[]", omitted=omitted)
+
+
 class TestInlineFields(IntegrationTestCase):
 	def setUp(self):
 		super().setUp()
@@ -448,7 +533,7 @@ class TestCreateLayouts(IntegrationTestCase):
 			frappe.delete_doc_if_exists("User", user)
 		for role in (CREATE_ONLY_ROLE, READ_ONLY_ROLE):
 			frappe.delete_doc_if_exists("Role", role)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
 	def tearDown(self):

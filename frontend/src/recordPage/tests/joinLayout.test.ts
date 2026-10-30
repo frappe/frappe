@@ -271,3 +271,145 @@ describe("joinLayout + resolveLayout — the permlevel floor, end to end", () =>
 		expect(fieldOf(resolveLayout(joined, {})).hidden).toBe(true);
 	});
 });
+
+describe("joinLayout unplaced fields", () => {
+	const meta: RawMetaField[] = [
+		{ fieldname: "title", fieldtype: "Data", reqd: 1 },
+		{ fieldname: "a_break", fieldtype: "Section Break" },
+		{ fieldname: "city", fieldtype: "Data", depends_on: "eval:doc.title" },
+		{ fieldname: "status", fieldtype: "Select", reqd: 1, default: "Open" },
+		{ fieldname: "region", fieldtype: "Data", mandatory_depends_on: "eval:doc.city" },
+		{ fieldname: "gallery", fieldtype: "Attachment Gallery" },
+		{ fieldname: "internal", fieldtype: "Data", hidden: 1 },
+		{ fieldname: "salary", fieldtype: "Currency", permlevel: 1 },
+		{ fieldname: "code", fieldtype: "Data", reqd: 1 },
+		{ fieldname: "items", fieldtype: "Table", options: "Item Row" },
+	];
+	const access = (field: RawMetaField) => (field.permlevel ? "none" : "write");
+	const sectionMode = (rest = {}) => ({ fieldAccess: access, unplaced: { mode: "section" as const, ...rest } });
+
+	function sections(schema: ReturnType<typeof joinLayout>) {
+		return schema.flatMap((tab) =>
+			tab.sections.map((section) => ({
+				name: section.name,
+				label: section.label,
+				hideBorder: section.hideBorder,
+				dependsOn: section.dependsOn,
+				fields: section.columns.flatMap((column) => column.fields.map((field) => field.fieldname)),
+			}))
+		);
+	}
+
+	it("draws the data fields a row leaves out in More fields, last on the first tab, in meta order", () => {
+		const tree: LayoutTree = [
+			{ name: "one", sections: [{ name: "main", columns: [{ fields: ["title"] }] }] },
+			{ name: "two", sections: [{ name: "later", columns: [{ fields: ["code"] }] }] },
+		];
+		const [first, second] = joinLayout(tree, meta, sectionMode());
+		expect(first.sections.map((section) => section.name)).toEqual(["main", "more_fields"]);
+		expect(sections([first])[1]).toEqual({
+			name: "more_fields",
+			label: "More fields",
+			hideBorder: false,
+			dependsOn: undefined,
+			fields: ["city", "status", "region", "items"],
+		});
+		expect(first.sections[1].columns).toHaveLength(1);
+		expect(first.sections[1].opened).toBe(true);
+		expect(second.sections.map((section) => section.name)).toEqual(["later"]);
+	});
+
+	it("keeps each unplaced field's own depends_on", () => {
+		const [tab] = joinLayout(treeWith(["title"]), meta, sectionMode());
+		const city = tab.sections[1].columns[0].fields.find((field) => field.fieldname === "city");
+		expect(city?.dependsOn).toBe("eval:doc.title");
+	});
+
+	it("skips the fields the row omits, and ignores an omitted name the meta no longer has", () => {
+		const [tab] = joinLayout(
+			treeWith(["title", "code"]),
+			meta,
+			sectionMode({ omitted: ["city", "region", "gone"] })
+		);
+		expect(sections([tab])[1].fields).toEqual(["status", "items"]);
+	});
+
+	it("draws an omitted field that is now mandatory with no default", () => {
+		const [tab] = joinLayout(
+			treeWith(["title", "city", "region", "items"]),
+			meta,
+			sectionMode({ omitted: ["code", "status"] })
+		);
+		expect(sections([tab])[1].fields).toEqual(["code"]);
+	});
+
+	it("counts a field the Side Panel row places as placed", () => {
+		const [tab] = joinLayout(
+			treeWith(["title", "code"]),
+			meta,
+			sectionMode({ placedElsewhere: ["status", "items"] })
+		);
+		expect(sections([tab])[1].fields).toEqual(["city", "region"]);
+	});
+
+	it("counts an inline field with a meta fieldname as placed", () => {
+		const inline = { fieldname: "city", fieldtype: "Data", label: "Town" };
+		const [tab] = joinLayout(treeWith(["title", "code", inline]), meta, sectionMode());
+		expect(sections([tab])[1].fields).toEqual(["status", "region", "items"]);
+	});
+
+	it("draws no section when every field is placed or omitted", () => {
+		const [tab] = joinLayout(
+			treeWith(["title", "code", "city"]),
+			meta,
+			sectionMode({ omitted: ["status", "region", "items"] })
+		);
+		expect(tab.sections.map((section) => section.name)).toEqual(["main"]);
+	});
+
+	it("adds nothing without a rule, as for the meta fallback", () => {
+		const [tab] = joinLayout(treeWith(["title"]), meta, { fieldAccess: access });
+		expect(tab.sections.map((section) => section.name)).toEqual(["main"]);
+	});
+
+	it("names the section clear of a field or a section already named more_fields", () => {
+		const tree: LayoutTree = [
+			{ name: "one", sections: [{ name: "more_fields", columns: [{ fields: ["title"] }] }] },
+		];
+		const [tab] = joinLayout(tree, meta, sectionMode());
+		expect(tab.sections.map((section) => section.name)).toEqual(["more_fields", "more_fields_2"]);
+	});
+
+	it("opens a tab for a row with none", () => {
+		const [tab] = joinLayout([], meta, sectionMode());
+		expect(sections([tab])[0].fields).toEqual(["title", "city", "status", "region", "code", "items"]);
+	});
+
+	it("adds only the mandatory fields a Quick Entry row leaves out, a conditional one under its condition", () => {
+		const schema = joinLayout(treeWith(["city"]), meta, {
+			fieldAccess: access,
+			unplaced: { mode: "mandatory", omitted: ["title"] },
+		});
+		expect(sections(schema).slice(1)).toEqual([
+			{ name: "more_fields", label: undefined, hideBorder: true, dependsOn: undefined, fields: ["title"] },
+			{ name: "more_fields_2", label: undefined, hideBorder: true, dependsOn: "eval:doc.city", fields: ["region"] },
+			{ name: "more_fields_3", label: undefined, hideBorder: true, dependsOn: undefined, fields: ["code"] },
+		]);
+	});
+
+	it("shows a Quick Entry field with a default only under its mandatory condition", () => {
+		const withDefault: RawMetaField[] = [
+			{ fieldname: "kind", fieldtype: "Data", reqd: 1, default: "A", mandatory_depends_on: "eval:doc.x" },
+		];
+		const schema = joinLayout(treeWith([]), withDefault, { unplaced: { mode: "mandatory" } });
+		expect(sections(schema)[1]).toMatchObject({ dependsOn: "eval:doc.x", fields: ["kind"] });
+	});
+
+	it("adds nothing to a Quick Entry row that places every mandatory field", () => {
+		const schema = joinLayout(treeWith(["title", "region", "code"]), meta, {
+			fieldAccess: access,
+			unplaced: { mode: "mandatory" },
+		});
+		expect(sections(schema).map((section) => section.name)).toEqual(["main"]);
+	});
+});
