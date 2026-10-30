@@ -104,16 +104,16 @@ def read_doc(doctype: str, name: str):
 
 def select_fields(doc: dict, fields: list) -> dict:
 	"""Pick `fields` from a document dict. Like the list, fields the dict does not have are left out."""
-	selected = {}
+	selected = dict(doc) if "*" in fields else {}
 	for field in fields:
-		if field == "*":
-			selected.update(doc)
-		elif isinstance(field, dict):
+		if isinstance(field, dict):
 			for fieldname, child_fields in field.items():
 				if not isinstance(child_fields, list):
 					raise FrappeValueError(f"Fields for '{fieldname}' must be a list")
 				if isinstance(rows := doc.get(fieldname), list):
 					selected[fieldname] = [select_fields(row, child_fields) for row in rows]
+		elif not isinstance(field, str) or not (field == "*" or field.isidentifier()):
+			raise FrappeValueError(f"Invalid field for a document: {field}")
 		elif field in doc:
 			selected[field] = doc[field]
 	return selected

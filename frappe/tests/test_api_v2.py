@@ -120,6 +120,10 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		roles = frappe.get_all("Has Role", {"parent": "Administrator", "parenttype": "User"}, pluck="role")
 		self.assertEqual(sorted(row["role"] for row in data["roles"]), sorted(roles))
 		self.assertTrue(all(set(row) == {"role"} for row in data["roles"]))
+		response = self.get(
+			self.resource("User", "Administrator"), {"sid": self.sid, "fields": '[{"roles": ["role"]}, "*"]'}
+		)
+		self.assertTrue(all(set(row) == {"role"} for row in response.json["data"]["roles"]))
 		response = self.get(self.resource("User", "Administrator"), {"sid": self.sid, "fields": '["*"]'})
 		self.assertEqual(
 			response.json["data"],
@@ -128,7 +132,13 @@ class TestResourceAPIV2(FrappeAPITestCase):
 
 	def test_get_document_invalid_fields_v2(self):
 		name = self.GENERATED_DOCUMENTS[0]
-		for fields in ('{"description": 1}', '[{"roles": "role"}]'):
+		for fields in (
+			'{"description": 1}',
+			'[{"roles": "role"}]',
+			'[["name"]]',
+			'["name as n"]',
+			'["owner.full_name"]',
+		):
 			with self.subTest(fields=fields), suppress_stdout():
 				response = self.get(self.resource(self.DOCTYPE, name), {"sid": self.sid, "fields": fields})
 				self.assertEqual(response.status_code, 417)
