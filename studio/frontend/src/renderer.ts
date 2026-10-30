@@ -25,6 +25,7 @@ window.__APP_COMPONENTS__ = app._context.components
 declare global {
 	interface Window {
 		is_preview?: boolean
+		can_edit_app?: boolean
 		__APP_COMPONENTS__: any
 		[key: string]: string
 	}

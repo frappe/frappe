@@ -62,7 +62,7 @@ const router = useRouter()
 const sets = useMountedVariantSets()
 
 // answered server side with the renderer boot, so a page view costs no round trip
-const canKeep = Boolean((window as any).can_edit_app)
+const canKeep = Boolean(window.can_edit_app)
 
 // Rows in page order: top to bottom, then left to right. The order is worked out when the
 // panel opens and when the page's sets change, not on every render.
@@ -135,7 +135,7 @@ function keepVariant(set: VariantSet) {
 		onConfirm: async () => {
 			try {
 				await call("frappe.studio.doctype.studio_page.studio_page.keep_variant", {
-					app_name: (window as any).app_name,
+					app_name: window.app_name,
 					page_name: route.meta.pageName,
 					block_id: set.blockId,
 					option_name: set.options[option],
