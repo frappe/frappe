@@ -1,6 +1,7 @@
 import base64
 import copy
 import importlib.util
+import math
 import mimetypes
 import os
 import re
@@ -34,7 +35,6 @@ MULTI_PAGE_STYLE = (
 )
 MEASURE_STYLE = "html, body, .print-format { height: auto !important; min-height: 0 !important; }"
 USER_SCRIPT = re.compile(r"<script(?![^>]*(data-frappe-print|/print\.bundle\.))", re.IGNORECASE)
-LETTER_HEAD_STYLE = re.compile(r"<style data-letter-head>(.*?)</style>", re.IGNORECASE | re.DOTALL)
 GRID = re.compile(r"display\W+(inline-)?grid\b", re.IGNORECASE)
 INTER_WOFF2 = re.compile(r"/assets/frappe/css/fonts/inter/Inter-(\w+)\.woff2")
 FONT_FACE = re.compile(r"@font-face\s*\{[^}]*\}", re.IGNORECASE)
@@ -68,7 +68,7 @@ def plutoprint_can_render(html: str) -> bool:
 	html = html or ""
 	if "data-barcode-value=" in html or USER_SCRIPT.search(html):
 		return False
-	return not any(GRID.search(css) for css in LETTER_HEAD_STYLE.findall(html))
+	return not GRID.search(html)
 
 
 def plutoprint_blockers(print_format=None) -> list[str]:
@@ -155,7 +155,7 @@ class PlutoPage:
 
 	def get_element_height(self, selector="body"):
 		book = self._book(self.viewport_width * POINTS_PER_PX, None, user_style=MEASURE_STYLE)
-		return round(book.get_document_height())
+		return math.ceil(book.get_document_height())
 
 	def repeat_for_pages(self, total_pages):
 		from bs4 import BeautifulSoup
@@ -302,6 +302,8 @@ def local_resource_fetcher(block_external_requests=False):
 			return self.cache[url]
 
 		def fetch(self, url):
+			if url.lower().startswith("file:"):
+				raise plutoprint.Error(f"Blocked {url}")
 			if url.startswith(get_host_url()):
 				if ttf := inter_ttf_path(url):
 					return plutoprint.default_resource_fetcher.fetch_url(ttf.resolve().as_uri())

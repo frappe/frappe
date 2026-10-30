@@ -702,7 +702,7 @@ test("boot is refetched only for the records it lists, skills when a skill or an
 	dom.window.Storage.prototype.setItem = setItem;
 });
 
-test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's next step is the primary one and Add opens a blank record", async (t) => {
+test("without a model the normal page shows the setup state and no composer, and keeps to the screen a phone's keyboard leaves; the setup's steps are numbered and Add opens a blank record", async (t) => {
 	// the keyboard shrinks only the visible part of the page; a pinch zoom does too, by its scale
 	const viewport = Object.assign(new dom.window.EventTarget(), { height: 844, scale: 1 });
 	const { scrollTo } = dom.window;
@@ -742,14 +742,14 @@ test("without a model the normal page shows the setup state and no composer, and
 	t.after(() => app.unmount());
 	const step = (label) =>
 		[...setup.querySelectorAll("button")].find((b) => b.textContent === label);
-	assert.equal(step("Add a provider").getAttribute("variant"), "solid");
 	step("Add a provider").click();
 	assert.equal(opened, 1);
 	assert.ok(page.takeNewRecord("providers"), "settings open on a blank provider, not the list");
-	page.onBoot({ ...page.state.boot, has_provider: true });
+	page.onBoot({ ...page.state.boot, provider: "openai" });
 	await nextTick();
 	assert.equal(step("Add a provider"), undefined, "a provider in place is a step done");
-	assert.equal(step("Add a model").getAttribute("variant"), "solid");
+	assert.ok(step("Provider added"));
+	assert.ok(step("Add a model"));
 });
 
 test("an explicit conversation URL opens even outside the recent session list, syncing a run that ended as it opened", async (t) => {

@@ -2,7 +2,7 @@
 	<!-- clip, not hidden: a hidden root still scrolls when focus lands in the closed panel.
 	     The root is the sidebar's colour, so the chat stands on it as a raised panel -->
 	<div
-		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-base text-ink-gray-8"
+		class="flow-sidebar-surface flex h-full min-h-0 overflow-clip text-md text-ink-gray-8"
 		:style="{
 			'--flow-chat-text': `${store.state.prefs.chatFontSize}px`,
 			'--flow-chat-weight': store.state.prefs.chatFontWeight,
@@ -29,7 +29,7 @@
 				<template #view><EditorView /></template>
 				<template #empty>
 					<button
-						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-base text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 						@click="store.showFilesView()"
 					>
 						<span
@@ -39,7 +39,7 @@
 						Files
 					</button>
 					<button
-						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-sm text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
+						class="flex w-44 items-center gap-2.5 rounded-6 border border-outline-gray-2 px-3 py-2.5 text-base text-ink-gray-8 transition-colors hover:bg-surface-gray-1"
 						@click="store.showDiffView()"
 					>
 						<span
@@ -72,7 +72,7 @@
 					:class="toast.kind === 'error' ? 'lucide-circle-alert text-ink-red-6' : 'lucide-info text-ink-gray-5'"
 					aria-hidden="true"
 				/>
-				<span class="min-w-0 text-xs leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
+				<span class="min-w-0 text-sm leading-relaxed text-ink-gray-8">{{ toast.message }}</span>
 			</div>
 		</Transition>
 	</div>

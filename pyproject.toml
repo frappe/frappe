@@ -88,7 +88,7 @@ dependencies = [
     "litellm==1.103.2",
     "json_repair~=0.59",
     # flow
-    "frappe-flow==0.1.20",
+    "frappe-flow==0.1.23",
     "lancedb~=0.33",
     "onnxruntime~=1.27",
     "pdfplumber~=0.11",
@@ -243,7 +243,7 @@ nixpkgs-deps = [
 
 [tool.uv]
 exclude-newer = "7 days"
-exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false, frappe-flow = false, pypdf = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06, frappe-flow after 2026-10-30, pypdf after 2026-10-28
+exclude-newer-package = { sqlparse = false, pyjwt = false, oauthlib = false, frappe-flow = false, pypdf = false } # drop sqlparse after 2026-08-20, pyjwt and oauthlib after 2026-10-06, frappe-flow after 2026-11-05, pypdf after 2026-10-28
 
 [tool.mypy]
 strict = false

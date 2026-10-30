@@ -10,12 +10,14 @@ import frappe
 from frappe import _
 from frappe.printing.fieldtypes import CONTENT_FIELDTYPES
 from frappe.printing.layout import iter_fields, iter_layout_columns, iter_zones
-from frappe.utils.data import cint
+from frappe.utils.data import cint, cstr
 from frappe.utils.jinja_globals import is_rtl
 
 
 @frappe.whitelist()
-def render_jinja_template(template: str, doctype: str, docname: str) -> str:
+def render_jinja_template(
+	template: str, doctype: str, docname: str, global_variables: str | None = None
+) -> str:
 	"""Render a raw Jinja2 template string with doc context (used by the print format builder preview)."""
 	frappe.only_for("System Manager")
 	doc = frappe.get_doc(doctype, docname)
@@ -23,14 +25,34 @@ def render_jinja_template(template: str, doctype: str, docname: str) -> str:
 	# template is rendered inside frappe's SandboxedEnvironment (Jinja2 sandbox).
 	# The caller must hold the "print" permission on the document before reaching this line.
 	try:
-		return frappe.render_template(
-			template, {"doc": doc}
-		)  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+		context = {**global_variables_context(global_variables, doc), "doc": doc}
+		return frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+			template, context
+		)
 	except Exception as e:
 		# fail with 417 instead of 500 so the canvas can degrade inline
 		# rather than the client popping the error-report dialog
 		frappe.clear_last_message()
 		frappe.throw(_("Failed to render template: {0}").format(str(e)), frappe.ValidationError)
+
+
+def global_variables_context(template: str | None, doc) -> dict:
+	"""The global variables a format sets, rendered once for all of its HTML blocks."""
+	if not template:
+		return {}
+	from frappe.utils.jinja import get_jenv, safe_render_flags
+
+	if ".__" in template:
+		frappe.throw(_("Illegal template"))
+	try:
+		with safe_render_flags():
+			module = get_jenv().from_string(template).make_module({"doc": doc})
+	except Exception as e:
+		frappe.throw(
+			_("The global variables of this print format could not be set: {0}").format(str(e)),
+			title=_("Print Format Error"),
+		)
+	return {key: value for key, value in vars(module).items() if not key.startswith("_")}
 
 
 @frappe.whitelist()
@@ -353,6 +375,8 @@ def get_page_size_mm(page: dict | str | None = None) -> tuple[float, float]:
 	width, height = page_size_mm(settings)
 	return (height, width) if settings.get("page_orientation") == "Landscape" else (width, height)
 
+
+STATIC_TEXT_FIELD = re.compile(r"\{([A-Za-z_]\w*(?:\.[A-Za-z_]\w*)?)\}")
 
 MAX_CONDITIONS = 200
 
@@ -1048,6 +1072,7 @@ class PrintFormatGenerator:
 					if (
 						rows
 						and col.get("fieldname") != "idx"
+						and col.get("fieldtype") != "Blank"
 						and not column_has_value(rows, col.get("fieldname"), frappe._dict(col))
 					):
 						continue
@@ -1093,13 +1118,19 @@ class PrintFormatGenerator:
 		fieldtype = df.get("fieldtype", "Data")
 		df["renderer"] = self._FIELD_RENDERERS.get(fieldtype) or fieldtype.replace(" ", "")
 		df["section"] = section
+		self.prepare_html(df)
 		self.prepare_barcode(df)
 		self.prepare_linked_field(df)
+		self.prepare_static_text(df)
 		self.prepare_date_format(df)
 		self.filter_conditional_rows(df)
 
 	def set_field_renderers(self, layout):
 		eval_locals = {"doc": self.doc, "print_settings": self.print_settings}
+		self.jinja_context = {
+			**global_variables_context(layout.get("global_variables"), self.doc),
+			"doc": self.doc,
+		}
 		for section in layout["sections"]:
 			if section.get("visible_if"):
 				section["_hidden"] = not self.eval_condition(
@@ -1129,6 +1160,13 @@ class PrintFormatGenerator:
 			if self.eval_condition(condition, {**eval_locals, "row": row}, f"rows of {source}"):
 				kept.append(row)
 		df["_rows"] = kept
+
+	def prepare_html(self, df):
+		if df.get("fieldtype") == "HTML" and not df.get("_hidden"):
+			rendered = frappe.render_template(  # nosemgrep: frappe-semgrep-rules.rules.security.frappe-ssti
+				df.get("html") or "", self.jinja_context
+			)
+			df["_html"] = rendered
 
 	def prepare_barcode(self, df):
 		"""Resolve JsBarcode options / QR data URI for Barcode layout elements."""
@@ -1166,34 +1204,82 @@ class PrintFormatGenerator:
 		formatted value from the linked document."""
 		if df.get("fieldtype") != "Linked Field" or not df.get("link_path"):
 			return
-		path = df["link_path"]
-		if "." not in path:
+		resolved = self.resolve_linked_path(df["link_path"])
+		if resolved is None:
 			return
-		link_fieldname, target_fieldname = path.split(".", 1)
-		link_df = self.doc.meta.get_field(link_fieldname)
-		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
-			return
-		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
-			return
-		name = self.doc.get(link_fieldname)
-		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
-			return
-		target_meta = frappe.get_meta(link_df.options)
-		target_df = target_meta.get_field(target_fieldname)
-		if not target_df:
-			return
-		if target_df.permlevel:
-			target_doc = frappe.get_doc(link_df.options, name)
-			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
-				return
-		value = frappe.db.get_value(link_df.options, name, target_fieldname)
-		if value is None:
-			return
+		value, target_df = resolved
 		if target_df.fieldtype == "Attach Image":
 			df["renderer"] = "AttachImage"
 			df["_value"] = value
 			return
 		df["_value"] = frappe.format_value(value, df=target_df, doc=self.doc)
+
+	def resolve_linked_path(self, path):
+		"""The raw value and docfield behind link_field.target_field, or None when the
+		reader may not see it."""
+		if "." not in path:
+			return None
+		link_fieldname, target_fieldname = path.split(".", 1)
+		link_df = self.doc.meta.get_field(link_fieldname)
+		if not link_df or link_df.fieldtype != "Link" or not link_df.options:
+			return None
+		if not self.has_field_access(self.doc, self.doc.meta, link_fieldname):
+			return None
+		name = self.doc.get(link_fieldname)
+		if not name or not frappe.has_permission(link_df.options, "read", doc=name):
+			return None
+		target_meta = frappe.get_meta(link_df.options)
+		target_df = target_meta.get_field(target_fieldname)
+		if not target_df:
+			return None
+		if target_df.permlevel:
+			target_doc = frappe.get_doc(link_df.options, name)
+			if not target_doc.has_permlevel_access_to(target_fieldname, target_df):
+				return None
+		value = frappe.db.get_value(link_df.options, name, target_fieldname)
+		if value is None:
+			return None
+		return value, target_df
+
+	def prepare_static_text(self, df):
+		"""Fill the {field} and {link_field.field} placeholders of a Static Text block."""
+		text = df.get("text") or ""
+		if df.get("fieldtype") != "Static Text" or "{" not in text:
+			return
+		lines = [STATIC_TEXT_FIELD.sub(self.static_text_value, _(line)) for line in text.split("\n")]
+		df["_text"] = "\n".join(lines)
+
+	def static_text_value(self, match) -> str:
+		from html import unescape
+
+		from frappe.utils import strip_html
+
+		path = match.group(1)
+		if "." in path:
+			link_fieldname, target_fieldname = path.split(".", 1)
+			link_df = self.doc.meta.get_field(link_fieldname)
+			if not link_df or link_df.fieldtype != "Link" or not link_df.options:
+				return match.group(0)
+			target_df = frappe.get_meta(link_df.options).get_field(target_fieldname)
+			if not target_df:
+				return match.group(0)
+			resolved = self.resolve_linked_path(path)
+			if not resolved:
+				return ""
+			value = frappe.format_value(resolved[0], df=resolved[1], doc=self.doc)
+			fieldtype = target_df.fieldtype
+		else:
+			field = self.doc.meta.get_field(path)
+			if not field and path != "name":
+				return match.group(0)
+			if field and not self.has_field_access(self.doc, self.doc.meta, path):
+				return ""
+			value = self.doc.get_formatted(path) if field else self.doc.name
+			fieldtype = field.fieldtype if field else "Data"
+		value = re.sub(r"<br\s*/?>|</(?:p|div|li)>", " ", cstr(value), flags=re.IGNORECASE)
+		if fieldtype in ("Text Editor", "HTML Editor", "Markdown Editor"):
+			value = unescape(strip_html(value))
+		return " ".join(value.split())
 
 	def prepare_date_format(self, df):
 		if (

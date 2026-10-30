@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-from flow_harness.events import AssistantMessage, UserMessage
+from flow_harness.events import AssistantMessage, Usage, UserMessage
 from flow_harness.model.base import Model, ModelRequest
 
 MAX_TITLE_CHARS = 50
@@ -26,11 +26,11 @@ TITLE_SYSTEM_PROMPT = (
 _THINK_RE = re.compile(r"<think>.*?</think>", re.DOTALL)
 
 
-async def generate_title(model: Model, first_message: str) -> str | None:
+async def generate_title(model: Model, first_message: str) -> tuple[str | None, Usage | None]:
 	"""Ask the model to title the session; None when it produced nothing usable."""
 	text = first_message.strip()
 	if not text:
-		return None
+		return None, None
 	request = ModelRequest(
 		messages=[UserMessage(content=f"Title this session:\n\n{text[:MAX_INPUT_CHARS]}")],
 		system_prompt=TITLE_SYSTEM_PROMPT,
@@ -38,12 +38,15 @@ async def generate_title(model: Model, first_message: str) -> str | None:
 		max_output_tokens=MAX_TITLE_OUTPUT_TOKENS,
 	)
 	response: AssistantMessage | None = None
+	usage: Usage | None = None
 	async for event in model.run(request):
 		if isinstance(event, AssistantMessage):
 			response = event
+		elif isinstance(event, Usage):
+			usage = event.model_copy(update={"standalone": True, "purpose": "title"})
 	if response is None or response.stop_reason != "stop":
-		return None
-	return sanitize_title(response.text)
+		return None, usage
+	return sanitize_title(response.text), usage
 
 
 def sanitize_title(text: str) -> str | None:

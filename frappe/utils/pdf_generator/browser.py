@@ -243,7 +243,9 @@ class Browser:
 		from frappe.printing.doctype.print_format.classic_converter import uses_beta_renderer
 		from frappe.utils.print_format_generator import page_number_html
 
-		if self.is_print_designer or not self.print_format or soup.find(class_=["page", "topage"]):
+		if self.is_print_designer or not self.print_format:
+			return
+		if any(el.find(class_=["page", "topage"]) for el in soup.find_all(id=["header-html", "footer-html"])):
 			return
 		if not frappe.db.exists("Print Format", self.print_format):
 			return

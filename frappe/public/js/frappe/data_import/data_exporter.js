@@ -240,7 +240,9 @@ frappe.data_import.DataExporter = class DataExporter {
 
 		if (!export_records || !count_method[export_records]) return;
 
+		const count_request_id = (this.count_request_id = (this.count_request_id || 0) + 1);
 		count_method[export_records]().then((value) => {
+			if (count_request_id !== this.count_request_id) return;
 			let message = "";
 			value = parseInt(value, 10);
 			if (value === 0) {

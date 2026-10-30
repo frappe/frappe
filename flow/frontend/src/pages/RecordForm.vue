@@ -6,8 +6,8 @@
 		@back="toList(false)"
 	>
 		<template #actions>
-			<span v-if="doc && !canWrite" class="text-xs text-ink-gray-5">View only</span>
-			<span v-if="canWrite && dirty" class="text-xs text-ink-gray-5 max-sm:hidden"
+			<span v-if="doc && !canWrite" class="text-sm text-ink-gray-5">View only</span>
+			<span v-if="canWrite && dirty" class="text-sm text-ink-gray-5 max-sm:hidden"
 				>Unsaved changes</span
 			>
 			<Button
@@ -58,7 +58,7 @@
 		>
 			<p
 				v-if="doc.is_system_generated && canWrite"
-				class="mb-5 rounded-5 bg-surface-gray-2 px-3 py-2 text-xs leading-5 text-ink-gray-7"
+				class="mb-5 rounded-5 bg-surface-gray-2 px-3 py-2 text-sm leading-5 text-ink-gray-7"
 			>
 				Comes with an app, so greyed-out fields can't be changed.
 			</p>
@@ -66,7 +66,7 @@
 			<section v-for="(group, i) in groups" :key="i">
 				<h2
 					v-if="group.title"
-					class="mb-5 mt-10 border-t border-outline-gray-1 pt-8 text-lg font-semibold text-ink-gray-9"
+					class="mb-5 mt-10 border-t border-outline-gray-1 pt-8 text-xl font-semibold text-ink-gray-9"
 				>
 					{{ group.title }}
 				</h2>
@@ -85,7 +85,7 @@
 						/>
 						<!-- one who may only read it sees its values, not disabled inputs -->
 						<div v-else class="flex flex-col gap-1.5">
-							<span class="text-xs text-ink-gray-5">{{ field.label }}</span>
+							<span class="text-sm text-ink-gray-5">{{ field.label }}</span>
 							<span
 								v-if="field.type === 'multilink' && doc[field.name]?.length"
 								class="flex flex-wrap gap-1.5"
@@ -93,16 +93,16 @@
 								<span
 									v-for="item in doc[field.name]"
 									:key="item"
-									class="rounded-4 bg-surface-gray-2 px-2 py-0.5 text-sm text-ink-gray-8"
+									class="rounded-4 bg-surface-gray-2 px-2 py-0.5 text-base text-ink-gray-8"
 									>{{ item }}</span
 								>
 							</span>
 							<span
 								v-else
-								class="whitespace-pre-wrap break-words text-sm leading-6"
+								class="whitespace-pre-wrap break-words text-base leading-6"
 								:class="[
 									shown(field) ? 'text-ink-gray-8' : 'text-ink-gray-4',
-									field.type === 'code' && 'font-mono text-xs',
+									field.type === 'code' && 'font-mono text-sm',
 								]"
 								>{{ shown(field) || "None" }}</span
 							>
@@ -111,8 +111,8 @@
 				</div>
 			</section>
 		</form>
-		<p v-else-if="error" class="px-6 py-16 text-center text-sm text-ink-gray-5">{{ error }}</p>
-		<LoadingState v-else class="h-full justify-center text-xs text-ink-gray-5" />
+		<p v-else-if="error" class="px-6 py-16 text-center text-base text-ink-gray-5">{{ error }}</p>
+		<LoadingState v-else class="h-full justify-center text-sm text-ink-gray-5" />
 	</div>
 </template>
 
@@ -127,25 +127,26 @@ import { layout } from "@flow/ui-core/layout.js";
 import FieldControl from "../settings/FieldControl.vue";
 import { useRecord } from "../settings/records.js";
 import PageHeader from "./PageHeader.vue";
+import { PAGES } from "./pages.js";
 
 // A record's page: its fields in the column, by section, its actions in the bar. Leaving it
 // with edits unsaved asks first.
 const props = defineProps({
 	spec: { type: Object, required: true },
-	info: { type: Object, required: true }, // the page's entry in PAGES
+	info: { type: Object, required: true }, // the page's entry in PAGES or FORMS
 	name: { type: String, default: null }, // null for a new record
 });
 const flow = inject("flow");
 const page = inject("flowPage");
 const leavePage = inject("leavePage");
 const router = useRouter();
-// the list it was opened from, with its search and filters
+// the list it was opened from, with its search and filters; a setup form has none, and leads
+// back to the chat
 const listPath = `/${props.spec.key}`;
 const opener = router.options.history.state.back;
-const list = {
-	to: opener?.split("?")[0] === listPath ? opener : listPath,
-	label: props.spec.label,
-};
+const list = PAGES.some((item) => item.key === props.spec.key)
+	? { to: opener?.split("?")[0] === listPath ? opener : listPath, label: props.spec.label }
+	: null;
 
 let leaving = false; // a deleted record's page goes without asking
 const {
@@ -216,6 +217,7 @@ async function chat() {
 // back to the list it came from, its filters and all; else to the list, in a deleted record's
 // place (`replace`) so Back doesn't return to it
 function toList(replace = true) {
+	if (!list) return leavePage();
 	const back = router.options.history.state.back;
 	if (back?.split("?")[0] === listPath) router.back();
 	else if (replace) router.replace(listPath);

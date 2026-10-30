@@ -140,6 +140,24 @@
 			</span>
 		</InspectorSection>
 
+		<InspectorSection :label="__('Global variables')" :init-open="!!layout.global_variables">
+			<textarea
+				class="form-control form-control-sm pfb-css-input"
+				:placeholder="__('{% set total_qty = doc.items | sum(attribute=\'qty\') %}')"
+				spellcheck="false"
+				rows="8"
+				:value="layout.global_variables || ''"
+				@input="(e) => (layout.global_variables = e.target.value)"
+			></textarea>
+			<div class="pfb-insp-hint text-muted">
+				{{
+					__("Set them with {0}. Every HTML block in this format can use them.", [
+						"{% set %}",
+					])
+				}}
+			</div>
+		</InspectorSection>
+
 		<InspectorSection :label="__('Custom CSS')" :init-open="false">
 			<textarea
 				class="form-control form-control-sm pfb-css-input"

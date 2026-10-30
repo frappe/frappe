@@ -274,6 +274,11 @@ class ChromiumManager:
 				continue
 
 	def _set_devtools_url(self, retry=True):
+		with ChromiumManager._lock:
+			if not self._devtools_url:
+				self._set_devtools_url_locked(retry)
+
+	def _set_devtools_url_locked(self, retry):
 		"""
 		Monitor Chromium's stderr for the DevTools WebSocket URL
 		----------------

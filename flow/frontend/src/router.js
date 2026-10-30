@@ -1,10 +1,10 @@
 import { createMemoryHistory, createRouter, createWebHistory } from "vue-router";
 
-import { PAGES } from "./pages/pages.js";
+import { FORMS, PAGES } from "./pages/pages.js";
 
 // One page; the route names the open conversation, or the records shown in its place (a list,
 // a record, or "new" for a blank one), so links and reloads keep it.
-const kinds = PAGES.map((page) => page.key).join("|");
+const kinds = [...PAGES, ...FORMS].map((page) => page.key).join("|");
 export const router = createRouter({
 	history: window.top === window ? createWebHistory("/flow") : framedHistory("/flow"),
 	routes: [

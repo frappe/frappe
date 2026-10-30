@@ -384,6 +384,27 @@ body.pfb-dragging * {
 	margin-bottom: 6px;
 }
 
+.pfb-static-text {
+	position: relative;
+}
+.pfb-tpl-menu {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	max-height: 200px;
+	overflow-x: hidden;
+	overflow-y: auto;
+}
+.pfb-tpl-menu .dropdown-item {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+.pfb-tpl-menu .dropdown-item.highlighted {
+	background: var(--surface-gray-2);
+}
+
 /* column rows shared by the child table and custom table inspectors */
 .pfb-col-list {
 	padding: 4px 0;

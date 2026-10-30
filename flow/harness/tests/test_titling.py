@@ -5,7 +5,7 @@ from types import SimpleNamespace
 
 import pytest
 
-from flow_harness.events import AssistantMessage, TitleChanged
+from flow_harness.events import AssistantMessage, TitleChanged, Usage
 from flow_harness.model.mock import MockModel
 from flow_harness.session.config import SessionConfig
 from flow_harness.session.store import SessionStore
@@ -38,7 +38,7 @@ async def test_generate_title_returns_a_clean_first_line_or_none():
 		),
 	]
 	for message, reply, title in cases:
-		assert await generate_title(MockModel(replies=[reply]), message) == title, reply
+		assert (await generate_title(MockModel(replies=[reply]), message))[0] == title, reply
 
 
 def _titling_session(tmp_path, monkeypatch, replies):
@@ -148,3 +148,32 @@ async def test_delete_cancels_in_flight_titling(tmp_path, monkeypatch):
 	with pytest.raises(asyncio.CancelledError):
 		await session._title_task
 	assert not store.exists(session.id)
+
+
+async def test_the_small_model_writes_the_title_and_its_spend_is_kept(tmp_path, monkeypatch):
+	store = SessionStore(str(tmp_path / "state"))
+	small = {"model": "small/model", "api_key": "sk-small"}
+	session = store.create(SessionConfig(model="titled/model", small_model=small, cwd=str(tmp_path)))
+	asked = []
+
+	async def fake_auth(name, *_args, **kwargs):
+		asked.append((name, kwargs["api_key"]))
+		return SimpleNamespace(api_key=kwargs["api_key"], base_url=None, headers={}, refresh=None)
+
+	monkeypatch.setattr("flow_harness.session.session.resolve_model_auth", fake_auth)
+	monkeypatch.setattr(
+		"flow_harness.session.session.get_model",
+		lambda name, **_kwargs: MockModel(replies=[AssistantMessage(content="Fix login flow")]),
+	)
+	queue = session.subscribe()
+	handle = await session.run("the login page 500s", model=MockModel())
+	await handle.task
+	await session._title_task
+
+	assert asked == [("small/model", "sk-small")]
+	assert session.config.title == "Fix login flow"
+	events = []
+	while not queue.empty():
+		events.append(queue.get_nowait())
+	[usage] = [e for e in events if isinstance(e, Usage) and e.purpose == "title"]
+	assert usage.standalone and usage.seq is not None

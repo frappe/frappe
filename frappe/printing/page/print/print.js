@@ -157,7 +157,7 @@ frappe.ui.form.PrintView = class {
 			]);
 		}
 		const print_view = this;
-		this.letterhead_selector = this.add_sidebar_item({
+		this.letterhead_field = this.add_sidebar_item({
 			fieldtype: "Link",
 			fieldname: "letterhead",
 			options: "Letter Head",
@@ -170,7 +170,8 @@ frappe.ui.form.PrintView = class {
 				this.set_description(this.get_value() ? description : "");
 				print_view.preview();
 			},
-		}).$input;
+		});
+		this.letterhead_selector = this.letterhead_field.$input;
 		this.setup_style_picker();
 		this.setup_page_settings();
 		this.sidebar_dynamic_section = $(`<div class="dynamic-settings"></div>`).appendTo(
@@ -523,33 +524,25 @@ frappe.ui.form.PrintView = class {
 		this.update_letterhead_for_print_format().then(() => this.preview());
 	}
 
-	update_letterhead_for_print_format() {
+	async update_letterhead_for_print_format() {
 		const format_name = this.selected_format();
 		if (!format_name || format_name === "Standard") {
 			return this.set_default_letterhead();
 		}
-		return frappe
-			.call({
-				method: "frappe.client.get",
-				args: { doctype: "Print Format", name: format_name },
-			})
-			.then((r) => {
-				let letter_head = null;
-				try {
-					letter_head = r.message?.format_data
-						? JSON.parse(r.message.format_data)?.letter_head
-						: null;
-				} catch (_) {
-					// malformed format_data — fall through to default letterhead
-				}
-				if (letter_head) {
-					this.letterhead_selector.val(letter_head);
-				} else if (letter_head === "") {
-					this.letterhead_selector.val("");
-				} else {
-					return this.set_default_letterhead();
-				}
-			});
+		const { format_data } = this.get_print_format(format_name);
+		let letter_head = null;
+		try {
+			letter_head = format_data ? JSON.parse(format_data)?.letter_head : null;
+		} catch (_) {
+			// malformed format_data — fall through to default letterhead
+		}
+		if (letter_head) {
+			this.set_letterhead_value(letter_head);
+		} else if (letter_head === "") {
+			this.set_letterhead_value("");
+		} else {
+			return this.set_default_letterhead();
+		}
 	}
 
 	// bind_events () {
@@ -646,7 +639,7 @@ frappe.ui.form.PrintView = class {
 		const settings = this.get_print_settings_param();
 		const print_options = {
 			print_format: this.selected_format(),
-			letter_head: this.letterhead_selector.val() || "",
+			letter_head: this.selected_letterhead() || "",
 			print_style: this.get_print_style() || undefined,
 			print_settings: Object.keys(settings).length ? settings : undefined,
 		};
@@ -698,7 +691,7 @@ frappe.ui.form.PrintView = class {
 					"name"
 				)
 				.then(({ message }) => {
-					if (message?.name) this.letterhead_selector.val(message.name);
+					if (message?.name) this.set_letterhead_value(message.name);
 				});
 
 		if (!this.frm.doc.letter_head) return get_default();
@@ -706,7 +699,7 @@ frappe.ui.form.PrintView = class {
 		return frappe.db
 			.get_value("Letter Head", { name: this.frm.doc.letter_head, disabled: 0 }, "name")
 			.then(({ message }) =>
-				message?.name ? this.letterhead_selector.val(message.name) : get_default()
+				message?.name ? this.set_letterhead_value(message.name) : get_default()
 			);
 	}
 
@@ -1197,7 +1190,7 @@ frappe.ui.form.PrintView = class {
 	}
 
 	get_letterhead() {
-		return this.letterhead_selector.val() || __("No Letterhead");
+		return this.selected_letterhead() || __("No Letterhead");
 	}
 
 	get_no_preview_html() {
@@ -1261,8 +1254,25 @@ frappe.ui.form.PrintView = class {
 		}
 	}
 
+	set_letterhead_value(value) {
+		if (this.letterhead_field) {
+			this.letterhead_field.set_input(value);
+		} else {
+			this.letterhead_selector.val(value);
+		}
+	}
+
 	selected_format() {
-		return this.print_format_selector.val() || "Standard";
+		const format = this.print_format_field
+			? this.print_format_field.get_value()
+			: this.print_format_selector.val();
+		return format || "Standard";
+	}
+
+	selected_letterhead() {
+		return this.letterhead_field
+			? this.letterhead_field.get_value()
+			: this.letterhead_selector.val();
 	}
 
 	is_raw_printing(format) {
