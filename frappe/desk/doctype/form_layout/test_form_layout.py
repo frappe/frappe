@@ -313,6 +313,7 @@ class TestOmittedFields(IntegrationTestCase):
 			},
 		]
 		new_doctype(OMITTED_DT, fields=fields).insert(ignore_if_duplicate=True)
+		# SQLite rolls back DDL, so each test's rollback would drop the DocType.
 		frappe.db.commit()  # nosemgrep
 
 	@classmethod
@@ -532,7 +533,7 @@ class TestCreateLayouts(IntegrationTestCase):
 			frappe.delete_doc_if_exists("User", user)
 		for role in (CREATE_ONLY_ROLE, READ_ONLY_ROLE):
 			frappe.delete_doc_if_exists("Role", role)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
 	def tearDown(self):
