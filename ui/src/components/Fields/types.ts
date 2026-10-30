@@ -26,11 +26,13 @@ export interface FieldMeta {
    */
   childFields?: FieldNode[];
   /**
-   * Full render-ready layout of the child doctype, for the `Table` row-edit
-   * dialog which shows every field (desk grid-row form), not just the
-   * `in_list_view` columns in `childFields`.
+   * Full render-ready layout of the child doctype from its meta: every field, not
+   * just the `in_list_view` columns in `childFields`. The row dialog draws it when
+   * `rowLayout` is absent, and a new row takes its defaults from it.
    */
   childLayout?: FormLayoutSchema;
+  /** The row dialog's layout for one row, from the child doctype's Details layouts; absent when it has none. */
+  rowLayout?: (row: Record<string, any>) => FormLayoutSchema;
   /** Whether the field is mandatory. */
   reqd?: boolean;
   /** Raw DocField default, carried verbatim; `newRowValues` resolves it. */

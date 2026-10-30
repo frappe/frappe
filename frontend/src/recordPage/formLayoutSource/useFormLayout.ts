@@ -93,6 +93,7 @@ export function useFormLayout(options: UseFormLayoutOptions): UseFormLayout {
 
 		return joinLayout(tree, fields, {
 			childMetas,
+			childLayouts: response.value.children,
 			fieldAccess,
 			decorate: options.decorate,
 			overrides: toValue(options.overrides),
@@ -141,9 +142,11 @@ export function whenSettled(loading: { value: boolean }): Promise<void> {
 	});
 }
 
-/** Marks the doctype's rows of every type stale; the next caller shows them and fetches fresh ones. */
+/** Marks the doctype's rows of every type stale, and every parent's that carries them as a child's. */
 export function markFormLayoutsStale(doctype: string): void {
-	entries.stale((key) => key.startsWith(`${doctype}:`));
+	entries.stale(
+		(key, entry) => key.startsWith(`${doctype}:`) || Boolean(entry.data?.children?.[doctype])
+	);
 }
 
 /** Drops every memoised fetch, so one test's rows cannot reach the next. */

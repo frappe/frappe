@@ -476,10 +476,14 @@ const dialogTitle = computed(() =>
 	editIndex.value === -1 ? "" : `${props.field.label ?? "Row"} — Row ${editIndex.value + 1}`
 );
 
-// Dialog renders the child's full form via `childLayout`; fall back to a flat form of
-// the visible columns when absent. A read-only table forces every field read-only.
+// Dialog renders the row's layout, else the child's full form via `childLayout`; fall back
+// to a flat form of the visible columns when absent. A read-only table forces every field read-only.
 const editLayout = computed(() => {
-	const base = props.field.childLayout ?? fieldsToLayout(columns.value);
+	const row = editRow.value;
+	const base =
+		(row && props.field.rowLayout?.(row)) ??
+		props.field.childLayout ??
+		fieldsToLayout(columns.value);
 	return props.field.readOnly ? readOnlyLayout(base) : base;
 });
 

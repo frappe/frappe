@@ -101,6 +101,25 @@ describe("watchDoctypeUpdates", () => {
 		expect(fake.getMeta).toHaveBeenCalledTimes(2);
 	});
 
+	it("reads again the layouts of a DocType whose response carries the changed one's rows", async () => {
+		watchDoctypeUpdates(socket);
+		fake.runMethod.mockImplementation(async (_method: string, args: { dt: string }) => ({
+			data: { layouts: [], fallback: [], children: args.dt === "Sales Order" ? { "Sales Order Item": [] } : {} },
+		}));
+		warm("Sales Order");
+		warm("Lead");
+		await settle();
+		fake.runMethod.mockClear();
+		socket.fire({ doctype: "Sales Order Item" });
+		warm("Sales Order");
+		warm("Lead");
+		await settle();
+		expect(fetched().filter((read) => read.startsWith("layout")).sort()).toEqual([
+			"layout Sales Order:Details",
+			"layout Sales Order:Side Panel",
+		]);
+	});
+
 	it("shows a later caller the old meta, then the new one, while an earlier handle keeps the old", async () => {
 		watchDoctypeUpdates(socket);
 		const before = useDoctypeMeta("Lead");

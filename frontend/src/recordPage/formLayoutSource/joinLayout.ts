@@ -16,13 +16,22 @@ import type {
 import type { FieldAccess } from "@framework/ui/useDocPermissions";
 import { withAccess } from "./fieldAccess";
 import { applyFieldPatch, type FieldPatch } from "./fieldPatch";
+import { chooseRow } from "./chooseLayout";
 import { buildColumn, buildSection } from "./section";
-import type { InlineField, LayoutTree, LayoutTreeColumn, LayoutTreeSection } from "./types";
+import type {
+	FormLayoutRow,
+	InlineField,
+	LayoutTree,
+	LayoutTreeColumn,
+	LayoutTreeSection,
+} from "./types";
 import { withUnplaced, type UnplacedRule } from "./unplaced";
 
 export interface JoinLayoutOptions {
 	/** Child doctype name → its flat meta `fields`, for `Table` columns. */
 	childMetas?: Record<string, RawMetaField[]>;
+	/** Child doctype name → its Details rows; a `Table` field whose child has one gets a `rowLayout`. */
+	childLayouts?: Record<string, FormLayoutRow[]>;
 	/** Permlevel gate per field; `read` demotes to read-only, `none` hides. */
 	fieldAccess?: (field: RawMetaField) => FieldAccess;
 	/** Per-field UI overlay hook, inherited by nested grid columns; an undecorated `Button` field has no handler. */
@@ -96,7 +105,40 @@ function joinField(
 		options.childMetas ?? {},
 		options.decorate
 	);
-	return [applyFieldPatch(node, options.overrides?.[raw.fieldname])];
+	const patch = options.overrides?.[raw.fieldname];
+	return [applyFieldPatch(withRowLayout(node, raw, options), patch)];
+}
+
+function withRowLayout(node: FieldNode, raw: RawMetaField, options: JoinLayoutOptions): FieldNode {
+	if (raw.fieldtype !== "Table" || !raw.options) return node;
+	const rows = options.childLayouts?.[raw.options];
+	const fields = options.childMetas?.[raw.options];
+	if (!rows?.length || !fields) return node;
+	return { ...node, rowLayout: rowLayoutOf(rows, fields, options, node.childLayout ?? []) };
+}
+
+/** Each row is joined once, so the dialog keeps its form while the row it edits stays on one layout. */
+function rowLayoutOf(
+	rows: FormLayoutRow[],
+	fields: RawMetaField[],
+	options: JoinLayoutOptions,
+	fallback: FormLayoutSchema
+): (row: Record<string, any>) => FormLayoutSchema {
+	const joined = new Map<FormLayoutRow, FormLayoutSchema>();
+	return (row) => {
+		const chosen = chooseRow(rows, row);
+		if (!chosen) return fallback;
+		if (!joined.has(chosen))
+			joined.set(
+				chosen,
+				joinLayout(chosen.layout, fields, {
+					childMetas: options.childMetas,
+					decorate: options.decorate,
+					unplaced: { mode: "section", omitted: chosen.omitted },
+				})
+			);
+		return joined.get(chosen)!;
+	};
 }
 
 /** An inline field that replaces a meta field keeps its permlevel, which the insert enforces. */

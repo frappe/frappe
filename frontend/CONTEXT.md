@@ -251,6 +251,13 @@ mandatory field with no default cannot be omitted. Omitting places nothing and c
 field property: `hidden` stays on the field.
 _Avoid_: missing field, orphan field, hidden field (a field property, not a placement).
 
+**Row dialog**: <a id="row-dialog"></a>
+The dialog that edits one child-table row, built from the child DocType's Details layout. Its
+row is the `doc` a conditional row is chosen against, so two rows of one table can get two
+dialogs. With no row it draws every child field from the breaks; the grid's columns stay the
+`in_list_view` fields either way.
+_Avoid_: row form, grid form.
+
 **Disclosure**: <a id="disclosure"></a>
 The reader's view state of a section: open or shut. It lives in the browser through the
 shell's section memory, keyed by user and per doctype, never on the server. A script's
@@ -429,7 +436,8 @@ tab.
 
 **Block**: <a id="block"></a>
 One part of a pane, with one **binding**, or a component's named bindings, or none. A
-**generated** block draws a doctype's fields; a **component** block is an app's
+**generated** block draws a doctype's fields: the ones it lists, or else a Single's whole
+Details layout in one column; a **component** block is an app's
 `<module>/frontend/settings/<name>.vue`. Its key is unique in the merged pane, across apps.
 
 **Binding**: <a id="binding"></a>
