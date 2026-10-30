@@ -14,6 +14,7 @@ frappe.views.InteractionComposer = class InteractionComposer {
 		me.dialog = new frappe.ui.Dialog({
 			title: me.title || me.subject || __("New Activity"),
 			no_submit_on_enter: true,
+			sheet_on_mobile: true,
 			fields: me.get_fields(),
 			primary_action_label: __("Create"),
 			primary_action: function () {
