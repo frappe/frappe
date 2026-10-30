@@ -187,7 +187,8 @@ class TestEmailAccount(IntegrationTestCase):
 			subject="test-mail-001",
 			now=True,
 		)
-		frappe.db.commit()  # now=True requires commit
+		with patch.object(frappe.db, "commit"):
+			frappe.db.after_commit.run()
 
 		sent_mail = email.message_from_string(frappe.safe_decode(frappe.flags.sent_mail))
 		self.assertTrue("test-mail-001" in sent_mail.get("Subject"))
@@ -367,7 +368,8 @@ class TestEmailAccount(IntegrationTestCase):
 		message_id = Email(mail_content).mail.get("Message-ID")
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
+		with patch.object(frappe.db, "commit"):
+			email_account.handle_bad_emails(uid=-1, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {"message_id": message_id}))
 
 	def test_handle_bad_encoding(self):
@@ -376,7 +378,8 @@ class TestEmailAccount(IntegrationTestCase):
 		mail_content = b"\x80"  # invalid byte
 
 		email_account = frappe.get_doc("Email Account", "_Test Email Account 1")
-		email_account.handle_bad_emails(uid=uid, raw=mail_content, reason="Testing")
+		with patch.object(frappe.db, "commit"):
+			email_account.handle_bad_emails(uid=uid, raw=mail_content, reason="Testing")
 		self.assertTrue(frappe.db.get_value("Unhandled Email", {"uid": uid}))
 
 	def test_imap_folder(self):
@@ -671,7 +674,11 @@ class TestEmailAccount(IntegrationTestCase):
 
 		from frappe.email.receive import EmailServer
 
-		with patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages):
+		with (
+			patch.object(EmailServer, "get_messages", side_effect=get_mocked_messages),
+			patch.object(frappe.db, "commit"),
+			patch.object(frappe.db, "rollback"),
+		):
 			email_account.receive()
 
 
