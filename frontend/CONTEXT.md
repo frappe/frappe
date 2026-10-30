@@ -357,6 +357,34 @@ The surface for acts that outlive a page: the shell's own acts, named `shell.<it
 app's global acts from its `acts.js`, named `shell.<app>.<item>`. Same item shape as a page surface, with no
 verbs for scripts yet; `run` receives `(shell, value)`.
 
+### Views
+
+**View type**: <a id="view-type"></a>
+How a doctype's records are drawn: List, Kanban and so on. Each saved view has one type, and
+the type is read from the view, never from its address.
+_Avoid_: view mode, layout (a record page word).
+
+**Saved view**: <a id="saved-view"></a>
+One labelled view of one doctype at one layer: a person's own, the site's, or an app's. It
+holds the type's settings (for List: columns, sort, filters, group by), and the URL query is a
+layer on top of it. A person's views are private until a site administrator publishes them.
+_Avoid_: saved filter, list setting, view setting.
+
+**Plain view**: <a id="plain-view"></a>
+The unlabelled view: the doctype's own settings for one type. It is the only view with a
+per-person layer over the site's.
+_Avoid_: standard view, default view.
+
+**Default view**: <a id="default-view"></a>
+A pointer to the saved view that opens first for a doctype. Not a fourth kind of view.
+
+**View key**: <a id="view-key"></a>
+A saved view's address within its doctype: `/<doctype>/view/<key>`. Set once when the view
+is made, from its label or the app's file name, and never changed, so a rename keeps every
+link, star and sidebar row. Unique per doctype across every layer. A view is identified by
+its doctype and its key.
+_Avoid_: view name, view slug (a **slug** is a doctype's address), view id.
+
 ### The settings dialog
 
 **Settings dialog**: <a id="settings-dialog"></a>
@@ -432,7 +460,7 @@ reach for the unambiguous alternative.
   *exported* API may use it as a verb — say `push` or `append`.
 - **`tier`** — a customization tier (`client_script | extension | file_script`); the
   per-doctype set of loaded Client Scripts; and "the declarative tier" for `page.dialog.form`.
-  Never for the settings dialog's app, site and user **layers**.
+  Never for the settings dialog's or a saved view's app, site and user **layers**.
 - **`name`** — a `SurfaceItem`'s address; a route param meaning docname; a `ClientScriptRow`
   name; and `PageFormTab.name`, which is explicitly *not* the address — that is `identity`.
 - **`actions`** — the contribution type's bag of `{name, label, run}`; dialog buttons; the
@@ -443,6 +471,9 @@ reach for the unambiguous alternative.
 - **`overlay`** — (a) the **field overlay**, a script's render-time override of a field;
   (b) the per-user **overlay**, a server record that customizes what the page holds. Say
   which; neither is disclosure.
+- **`view`** — a **saved view**; a **view type**; the reserved `?view=` query on a record;
+  a Client Script's `view` field (`List`, `Record` and others); and the **read-only view** of a
+  document. Say *saved view* or *view type* in prose about lists.
 - **`prefix`** and **`claim`** — a URL prefix an app claims, versus a dotted-path prefix in
   the compatibility guard, versus a header item's recorded anchor claim.
 
