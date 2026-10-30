@@ -7,7 +7,7 @@ import frappe
 from frappe.core.doctype.submission_queue.submission_queue import queue_submission
 from frappe.desk.form.load import run_onload
 from frappe.model.docstatus import DocStatus
-from frappe.model.workflow import get_workflow_names, get_workflow_state_field
+from frappe.model.workflow import get_workflow_name, get_workflow_state_field
 from frappe.monitor import add_data_to_monitor
 from frappe.utils.scheduler import is_scheduler_inactive
 from frappe.utils.telemetry import capture_doc
@@ -16,14 +16,10 @@ from frappe.utils.telemetry import capture_doc
 @frappe.whitelist(methods=["POST", "PUT"])
 def savedocs(doc: str, action: str):
 	"""save / submit / update doclist"""
-<<<<<<< HEAD
 	doc = frappe.get_doc(json.loads(doc))
-=======
-	doc = frappe.get_doc(frappe.parse_json(doc))
 	if action == "Cancel":
 		doc = frappe.get_doc(doc.doctype, doc.name)
 
->>>>>>> 8ae47a5 (fix: cancel a document using its stored values)
 	capture_doc(doc, action)
 	if doc.get("__islocal") and doc.name.startswith("new-" + doc.doctype.lower().replace(" ", "-")):
 		# required to relink missing attachments if they exist.
@@ -67,8 +63,8 @@ def cancel(
 	capture_doc(doc, "Cancel")
 
 	if workflow_state_fieldname and workflow_state:
-		state_fields = {get_workflow_state_field(name) for name in get_workflow_names(doc.doctype)}
-		if workflow_state_fieldname in state_fields:
+		workflow = get_workflow_name(doc.doctype)
+		if workflow and workflow_state_fieldname == get_workflow_state_field(workflow):
 			doc.set(workflow_state_fieldname, workflow_state)
 
 	if doc.meta.queue_in_background and not is_scheduler_inactive():
