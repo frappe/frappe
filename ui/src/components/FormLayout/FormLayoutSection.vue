@@ -10,7 +10,7 @@
 				class="section-header flex max-w-fit items-center gap-2 text-ink-gray-9"
 				:class="{ 'cursor-pointer': collapsible, 'px-3 sm:px-5': hasTabs }"
 			>
-				<span class="text-base-medium">{{ section.label }}</span>
+				<span class="text-base-medium">{{ __(section.label!, [], labelContext) }}</span>
 				<span
 					v-if="collapsible"
 					class="lucide-chevron-right size-4"
@@ -56,7 +56,8 @@ import { computed, inject, ref, watch } from "vue";
 import { CollapsibleContent, CollapsibleRoot, CollapsibleTrigger } from "reka-ui";
 import FormLayoutColumn from "./FormLayoutColumn.vue";
 import FormLayoutPart from "./FormLayoutPart.vue";
-import { HasTabsKey } from "./types";
+import { translate as __ } from "../../utils/translate";
+import { HasTabsKey, LabelContextKey } from "./types";
 import type { Section } from "./types";
 
 // `undefined`, not Vue's `false` for a missing boolean: absent means the layout decides.
@@ -67,6 +68,7 @@ const props = withDefaults(defineProps<{ section: Section; open?: boolean }>(), 
 const emit = defineEmits<{ "update:open": [open: boolean] }>();
 
 const hasTabs = inject(HasTabsKey);
+const labelContext = inject(LabelContextKey, undefined);
 
 const showHeader = computed(() => !props.section.hideLabel && !!props.section.label);
 

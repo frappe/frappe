@@ -9,10 +9,12 @@ import { renderToString } from "vue/server-renderer";
 import { compileScript } from "../../../templateCompiler/compileScript.mjs";
 
 vi.mock("@framework/ui/api", () => ({
-  getTranslations: async () => ({ data: { "Save {0}": "Enregistrer {0}" } }),
+  getTranslations: async () => ({
+    data: { "Save {0}": "Enregistrer {0}", "Billing:Contact": "Facturation" },
+  }),
 }));
 
-import { installTranslate, loadTranslations } from "@/i18n";
+import { __, installTranslate, loadTranslations } from "@/i18n";
 
 const folder = path.dirname(fileURLToPath(import.meta.url));
 const scratch = path.join(folder, "../../../node_modules/.template-translate-test");
@@ -56,5 +58,13 @@ describe("installTranslate", () => {
     );
 
     expect(html).toBe("<p>SAVE</p>");
+  });
+
+  it("puts __ on the global, where ui/'s translate function reads it", async () => {
+    await render(`template: "<p></p>",`);
+    const global = (globalThis as { __?: typeof __ }).__!;
+
+    expect(global).toBe(__);
+    expect(global("Billing", [], "Contact")).toBe("Facturation");
   });
 });

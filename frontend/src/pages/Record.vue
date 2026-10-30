@@ -54,6 +54,7 @@
 									v-model:doc="doc"
 									v-model:sections="formSections"
 									:layout="form"
+									:doctype="doctype"
 									:tab="formTab"
 									:class="FORM_CLASSES"
 									@update:tab="chooseFormTab"

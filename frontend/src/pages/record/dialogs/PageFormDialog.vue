@@ -15,6 +15,7 @@
 				v-model:doc="doc"
 				v-model:tab="formTab"
 				:layout="layout"
+				:doctype="options.doctype"
 			/>
 			<FormSkeleton v-else-if="layoutLoading" :columns="1" :fields="4" />
 		</div>

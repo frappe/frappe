@@ -5,7 +5,7 @@
 		<template v-for="(entry, index) in numbered" :key="entry.name">
 			<PanelSection
 				:name="entry.name"
-				:label="entry.label"
+				:label="entry.label && __(entry.label, null, doctype)"
 				:fields="entry.fields"
 				:index="index"
 				:headerIndex="entry.headerIndex"
@@ -33,6 +33,7 @@ import { computed, inject, provide } from "vue";
 import { useFieldTypes, warnMissingCommit } from "@framework/ui/FormLayout";
 import { CommitKey, DocKey, ResolveFieldKey, UpdateKey } from "@framework/ui/FormLayout/types";
 import type { FieldNode } from "@framework/ui/FormLayout/types";
+import { __ } from "@/i18n";
 import { BUILTIN, type Surface } from "@/pageEngine/surface";
 import type { PanelSectionItem, RecordPageApi } from "@/recordPage";
 import PanelSectionsSkeleton from "../skeletons/PanelSectionsSkeleton.vue";
@@ -48,6 +49,8 @@ const props = defineProps<{
 	surface: Surface<PanelSectionItem>;
 	/** The Side Panel layout's sections as they resolve now, by the name a script addresses. */
 	sections: LayoutSection[];
+	/** The DocType whose translations the headers are looked up in. */
+	doctype?: string;
 	/** The curated page a script's component mounts with; a built-in injects what it needs. */
 	page?: RecordPageApi;
 	isOpen: (name: string) => boolean;

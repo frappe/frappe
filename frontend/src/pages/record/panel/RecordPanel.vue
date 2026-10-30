@@ -12,6 +12,7 @@
 			v-model:doc="doc"
 			:surface="controller.panelSections"
 			:sections="sections"
+			:doctype="doctype"
 			:page="controller.page"
 			:isOpen="disclosure.isOpen"
 			:loading="layoutLoading"

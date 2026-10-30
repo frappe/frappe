@@ -9,13 +9,17 @@ vi.mock("frappe-ui", () => ({
 	createResource: () => ({ data: null, loading: false, fetch() {}, reload() {} }),
 	frappeRequest: vi.fn(),
 }));
+const catalog = vi.hoisted(() => ({ messages: {} as Record<string, string> }));
+
 vi.mock("@framework/ui/api", () => ({
 	runMethod: vi.fn(async () => ({ data: null })),
 	getMeta: vi.fn(async () => ({ data: null })),
+	getTranslations: vi.fn(async () => ({ data: catalog.messages })),
 }));
 
 import type { FormLayoutSchema } from "@framework/ui/FormLayout/types";
 import { CommitKey, NO_COMMIT } from "@framework/ui/FormLayout/types";
+import { loadTranslations } from "@/i18n";
 import { Surface } from "@/pageEngine/surface";
 import type { PanelSectionItem } from "@/recordPage";
 import PanelLayout from "../PanelLayout.vue";
@@ -57,7 +61,11 @@ beforeEach(() => {
 	vi.spyOn(console, "warn").mockImplementation(() => {});
 });
 
-async function mount(surface: Surface<PanelSectionItem>, opened: Record<string, boolean> = {}) {
+async function mount(
+	surface: Surface<PanelSectionItem>,
+	opened: Record<string, boolean> = {},
+	doctype?: string
+) {
 	const doc = ref({ organization: "Frappe" });
 	const sections = layoutSections(LAYOUT, doc.value);
 	surface.provideBuiltins(() => [
@@ -75,6 +83,7 @@ async function mount(surface: Surface<PanelSectionItem>, opened: Record<string, 
 				h(PanelLayout, {
 					surface,
 					sections,
+					doctype,
 					page: { doc: doc.value } as any,
 					doc: doc.value,
 					isOpen: (name: string) => opened[name] ?? true,
@@ -201,5 +210,24 @@ describe("a header comes from a label", () => {
 		surface.update("people", { label: "People" });
 		const { root } = await mount(surface);
 		expect(root.querySelectorAll("button[aria-expanded]")).toHaveLength(2);
+	});
+});
+
+describe("a header translates with the DocType as context", () => {
+	afterEach(async () => {
+		catalog.messages = {};
+		await loadTranslations("reset", "en");
+	});
+
+	it("draws the label from the catalog, else the text without context", async () => {
+		catalog.messages = { "Organization:Contact": "Organisation" };
+		await loadTranslations("test", "fr");
+
+		const contact = await mount(new Surface<PanelSectionItem>(), {}, "Contact");
+		expect(contact.root.textContent).toContain("Organisation");
+
+		const lead = await mount(new Surface<PanelSectionItem>(), {}, "Lead");
+		expect(lead.root.textContent).not.toContain("Organisation");
+		expect(lead.root.textContent).toContain("Organization");
 	});
 });
