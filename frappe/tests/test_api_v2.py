@@ -97,6 +97,52 @@ class TestResourceAPIV2(FrappeAPITestCase):
 		json = frappe._dict(response.json)
 		self.assertIn("description", json.data[0])
 
+	def test_get_document_fields_v2(self):
+		name = self.GENERATED_DOCUMENTS[0]
+		response = self.get(
+			self.resource(self.DOCTYPE, name),
+			{"sid": self.sid, "fields": '["description", "status", "lable"]'},
+		)
+		self.assertEqual(response.status_code, 200)
+		self.assertEqual(
+			response.json["data"],
+			dict(frappe.db.get_value(self.DOCTYPE, name, ["description", "status"], as_dict=True)),
+		)
+
+	def test_get_document_child_table_fields_v2(self):
+		response = self.get(
+			self.resource("User", "Administrator"),
+			{"sid": self.sid, "fields": '["name", {"roles": ["role"]}]'},
+		)
+		self.assertEqual(response.status_code, 200)
+		data = response.json["data"]
+		self.assertEqual(set(data), {"name", "roles"})
+		roles = frappe.get_all("Has Role", {"parent": "Administrator", "parenttype": "User"}, pluck="role")
+		self.assertEqual(sorted(row["role"] for row in data["roles"]), sorted(roles))
+		self.assertTrue(all(set(row) == {"role"} for row in data["roles"]))
+		response = self.get(
+			self.resource("User", "Administrator"), {"sid": self.sid, "fields": '[{"roles": ["role"]}, "*"]'}
+		)
+		self.assertTrue(all(set(row) == {"role"} for row in response.json["data"]["roles"]))
+		response = self.get(self.resource("User", "Administrator"), {"sid": self.sid, "fields": '["*"]'})
+		self.assertEqual(
+			response.json["data"],
+			self.get(self.resource("User", "Administrator"), {"sid": self.sid}).json["data"],
+		)
+
+	def test_get_document_invalid_fields_v2(self):
+		name = self.GENERATED_DOCUMENTS[0]
+		for fields in (
+			'{"description": 1}',
+			'[{"roles": "role"}]',
+			'[["name"]]',
+			'["name as n"]',
+			'["owner.full_name"]',
+		):
+			with self.subTest(fields=fields), suppress_stdout():
+				response = self.get(self.resource(self.DOCTYPE, name), {"sid": self.sid, "fields": fields})
+				self.assertEqual(response.status_code, 417)
+
 	def test_create_document_v2(self):
 		data = {"description": frappe.mock("paragraph"), "sid": self.sid}
 		response = self.post(self.resource(self.DOCTYPE), data)
