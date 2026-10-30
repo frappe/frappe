@@ -10,7 +10,7 @@ from frappe.model.document import Document
 from frappe.utils import cstr
 
 FIELDTYPES_TO_IGNORE = frozenset(fieldtype for fieldtype in no_value_fields if fieldtype not in table_fields)
-STANDARD_VERSIONED_FIELDS = frozenset({"name", "docstatus"})
+STANDARD_VERSIONED_FIELDS = ("name", "docstatus")
 
 
 class Version(Document):
