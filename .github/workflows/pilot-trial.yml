@@ -1,0 +1,115 @@
+name: Pilot Trial
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/pilot-trial.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: pilot-trial-${{ github.event.number || github.ref_name }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Pilot Integration (mariadb, 1)
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      NODE_ENV: "production"
+      PYTHONWARNINGS: "module,ignore:::babel.messages.extract"
+      FRAPPE_TEST_WEB_SERVER: "1"
+      FRAPPE_TEST_BACKGROUND_WORKER: "1"
+      BENCH: /home/runner/pilot/benches/trial
+    services:
+      smtp_server:
+        image: rnwood/smtp4dev:3.7.1
+        ports:
+          - 2525:25
+          - 3000:80
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Prepare Runner
+        run: |
+          echo "127.0.0.1 test_site" | sudo tee -a /etc/hosts
+          git config --global init.defaultBranch main
+          git config --global advice.detachedHead false
+          git -C "$GITHUB_WORKSPACE" checkout -b ci-trial
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          cache: yarn
+          cache-dependency-path: |
+            yarn.lock
+            studio/frontend/yarn.lock
+            flow/yarn.lock
+
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: |
+            **/pyproject.toml
+            **/requirements*.txt
+
+      - name: Setup Pilot
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/frappe/pilot/v0.0.94-pre-alpha/install.sh | sh
+          echo "$HOME/pilot/bin" >> "$GITHUB_PATH"
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Init Bench
+        run: |
+          pilot new trial --frappe-branch ci-trial
+          sed -i "s|https://github.com/frappe/frappe|$GITHUB_WORKSPACE|" "$BENCH/bench.toml"
+          cat "$BENCH/bench.toml"
+          pilot -b trial init
+
+      - name: Install Test Dependencies
+        working-directory: ${{ env.BENCH }}
+        run: |
+          uv pip install --python env/bin/python -e "apps/frappe[test]"
+          pilot -b trial frappe setup-chrome
+
+      - name: Start Pilot
+        run: |
+          pilot -b trial start > "$RUNNER_TEMP/pilot.log" 2>&1 &
+          curl --fail --silent --show-error --retry 60 --retry-connrefused --retry-delay 1 http://127.0.0.1:7000/api/v1/health
+
+      - name: Create Site
+        working-directory: ${{ env.BENCH }}
+        run: |
+          pilot -b trial frappe set-config -g admin_password admin
+          pilot -b trial frappe set-config -g server_script_enabled 1 --parse
+          pilot -b trial new-site test_site --admin-password admin --apps frappe
+          pilot -b trial frappe --site test_site set-config allow_tests 1 --parse
+          pilot -b trial frappe --site test_site set-config host_name http://test_site:8000
+          pilot -b trial frappe --site test_site set-config auto_email_id test@example.com
+          pilot -b trial frappe --site test_site set-config mail_server localhost
+          pilot -b trial frappe --site test_site set-config mail_port 2525 --parse
+          pilot -b trial frappe --site test_site set-config mail_login test@example.com
+          pilot -b trial frappe --site test_site set-config mail_password test
+          pilot -b trial frappe --site test_site set-config disable_mail_smtp_authentication 1 --parse
+          pilot -b trial frappe --site test_site set-config monitor 1 --parse
+          pilot -b trial frappe --site test_site set-config use_mysqlclient 1 --parse
+
+      - name: Run Tests
+        working-directory: ${{ env.BENCH }}/sites
+        run: ../env/bin/python3 ../apps/frappe/.github/helper/ci.py
+        env:
+          DB: mariadb
+          CAPTURE_COVERAGE: true
+          BUILD_NUMBER: 1
+          TOTAL_BUILDS: 2
+
+      - name: Show Pilot Output
+        if: ${{ always() }}
+        run: cat "$RUNNER_TEMP/pilot.log" || true
