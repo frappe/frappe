@@ -843,6 +843,24 @@ class TestUser(IntegrationTestCase):
 			"The reset password link has been expired",
 		)
 
+	def test_update_password_needs_a_reset_key_or_old_password(self):
+		for user in ("Guest", "testpassword@example.com"):
+			frappe.set_user(user)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+			)
+			self.assertRaisesRegex(
+				frappe.ValidationError,
+				"Either a password reset key or old password is required",
+				update_password,
+				"Western_43A1W",
+				key="",
+				old_password="",
+			)
+
 	@unimplemented_for(db_type_is.SQLITE)
 	def test_reset_password_key_cannot_be_used_by_a_concurrent_request(self):
 		from frappe.auth import CookieManager, LoginManager
