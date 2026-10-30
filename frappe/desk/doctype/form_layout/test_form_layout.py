@@ -313,13 +313,13 @@ class TestOmittedFields(IntegrationTestCase):
 			},
 		]
 		new_doctype(OMITTED_DT, fields=fields).insert(ignore_if_duplicate=True)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 
 	@classmethod
 	def tearDownClass(cls):
 		frappe.db.rollback()
 		frappe.delete_doc_if_exists("DocType", OMITTED_DT)
-		frappe.db.commit()
+		frappe.db.commit()  # nosemgrep
 		super().tearDownClass()
 
 	def setUp(self):
