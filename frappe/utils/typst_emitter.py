@@ -831,13 +831,12 @@ class TypstEmitter:
 			pad = pt(section.get("cell_padding"), 8)
 			# both HTML surfaces force gap to 0 in bordered mode — spacing comes
 			# from the cell padding on either side of the divider
-			gutter = pad
 			rule = "none" if section.get("grid_borders") == "rows" else hairline(section.get("border_color"))
 			divided = [cells[0]]
 			for cell in cells[1:]:
-				divided.append(f"grid.cell(stroke: (left: {rule}), inset: (left: {pad}pt))" + cell)
+				divided.append(f"grid.cell(stroke: (left: {rule}))" + cell)
 			return (
-				f"#pad(y: -{pad}pt, grid(columns: ({', '.join(widths)}), column-gutter: {gutter}pt, inset: (y: {pad}pt), align: top,\n"
+				f"#pad(x: -{pad}pt, y: -{pad}pt, grid(columns: ({', '.join(widths)}), inset: {pad}pt, align: top,\n"
 				+ ",\n".join(divided)
 				+ "))"
 			)
