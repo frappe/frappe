@@ -2696,6 +2696,8 @@ class SQLFunctionParser:
 		elif "`" in arg:
 			if parsed := self.engine._parse_backtick_field_notation(arg):
 				table_name, field_name = parsed
+				if table_name != self.engine.doctype and self._is_child_table(table_name):
+					return self._join_child_table_field(table_name, field_name)
 				self.engine.check_select_field_permission(table_name, field_name)
 				return Table(f"tab{table_name}")[field_name]
 			else:
@@ -2721,6 +2723,17 @@ class SQLFunctionParser:
 				).format(arg),
 				frappe.ValidationError,
 			)
+
+	def _is_child_table(self, doctype: str) -> bool:
+		table_fields = frappe.get_meta(self.engine.doctype).get_table_fields()
+		return any(df.options == doctype for df in table_fields)
+
+	def _join_child_table_field(self, doctype: str, fieldname: str) -> Field:
+		"""Join the child table, as the select list does for a child table field."""
+		child_field = ChildTableField(doctype, fieldname, self.engine.doctype)
+		self.engine.check_select_field_permission(doctype, fieldname, self.engine.doctype)
+		self.engine.query = child_field.apply_join(self.engine.query, engine=self.engine)
+		return child_field.field
 
 	def _is_valid_field_name(self, name: str) -> bool:
 		"""Check if a string is a valid field name."""
