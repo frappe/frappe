@@ -49,9 +49,13 @@ def boot() -> dict[str, Any]:
 	from frappe.flow.assistant.assistant import ASSISTANT_AGENT_NAME
 	from frappe.flow.knowledge.extract import FILE_EXTENSIONS
 
-	agents = frappe.get_list(
-		"Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"], order_by="title"
-	)
+	agents = frappe.get_list("Flow Agent", filters={"enabled": 1}, fields=["name", "title", "model"])
+	# an app's agent shows without its app, unless another app's agent is named the same
+	short = [agent.name.rpartition("/")[2] for agent in agents]
+	for agent, name in zip(agents, short, strict=True):
+		app = agent.name.rpartition("/")[0]
+		agent.title = f"{name} ({app})" if app and short.count(name) > 1 else name
+	agents.sort(key=lambda agent: agent.title.lower())
 	models = frappe.get_list(
 		"Flow Model",
 		filters={"enabled": 1},
