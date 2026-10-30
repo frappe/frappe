@@ -139,9 +139,11 @@ def _running_run(session: str | None) -> str | None:
 
 
 def _has_memory_tool(agent: str) -> bool:
+	from frappe.flow.tools.builtins import builtin_name
+
 	return bool(
 		frappe.db.exists(
 			"Flow Agent Tool",
-			{"parenttype": "Flow Agent", "parent": agent, "tool": MEMORY_TOOL_SLUG},
+			{"parenttype": "Flow Agent", "parent": agent, "tool": builtin_name(MEMORY_TOOL_SLUG)},
 		)
 	)

@@ -215,10 +215,10 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 				"model": self.model.name,
 				"instructions": "Be terse.",
 				"tools": [
-					{"tool": "read_records"},
-					{"tool": "execute"},
-					{"tool": "read"},
-					{"tool": "grep"},
+					{"tool": "frappe/read_records"},
+					{"tool": "frappe/execute"},
+					{"tool": "frappe/read"},
+					{"tool": "frappe/grep"},
 				],
 				"enabled": 1,
 			}
@@ -245,7 +245,7 @@ class TestFlowSessionOnTheServer(IntegrationTestCase):
 		self.addCleanup(memory_store.drop_table)
 		frappe.db.set_single_value("Flow Knowledge Settings", "embedding_model", "")
 		frappe.clear_document_cache("Flow Knowledge Settings", "Flow Knowledge Settings")
-		self.agent.append("tools", {"tool": "update_memory"})
+		self.agent.append("tools", {"tool": "frappe/update_memory"})
 		self.agent.save()
 		memory = frappe.get_doc(
 			{
@@ -377,11 +377,11 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 				"instructions": "Be terse.",
 				"max_iterations": 7,
 				"tools": [
-					{"tool": "read_records"},
-					{"tool": "execute"},
-					{"tool": "read"},
-					{"tool": "grep"},
-					{"tool": "subagent"},
+					{"tool": "frappe/read_records"},
+					{"tool": "frappe/execute"},
+					{"tool": "frappe/read"},
+					{"tool": "frappe/grep"},
+					{"tool": "frappe/subagent"},
 				],
 				"enabled": 1,
 			}
@@ -501,7 +501,7 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 				"title": "Config Child",
 				"model": child_model.name,
 				"instructions": "Look it up.",
-				"tools": [{"tool": "read_records"}],
+				"tools": [{"tool": "frappe/read_records"}],
 				"enabled": 1,
 			}
 		).insert()
@@ -529,8 +529,8 @@ class TestFlowSessionServerConfig(IntegrationTestCase):
 		frappe.db.set_value("Flow Agent", self.agent.name, "instructions", "")
 		# an empty prompt is still verbatim
 		self.assertEqual(self.config()["system_prompt"], lifecycle.app_source_prompt(["read", "grep"]))
-		frappe.db.set_value("Flow Tool", "read", "enabled", 0)
-		frappe.db.set_value("Flow Tool", "grep", "enabled", 0)
+		frappe.db.set_value("Flow Tool", "frappe/read", "enabled", 0)
+		frappe.db.set_value("Flow Tool", "frappe/grep", "enabled", 0)
 		config = self.config()
 		self.assertEqual(config["tools"], ["subagent"])
 		self.assertNotIn("APP SOURCE CODE", config["system_prompt"])

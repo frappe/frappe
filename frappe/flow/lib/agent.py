@@ -6,10 +6,13 @@
 from __future__ import annotations
 
 import importlib
+import sys
 from typing import TYPE_CHECKING
 
 import frappe
 from frappe import _
+from frappe.flow.lib.tool import Tool
+from frappe.flow.utils.system_generated import log_skipped, skip_if_invalid
 
 if TYPE_CHECKING:
 	from collections.abc import Iterator
@@ -17,27 +20,33 @@ if TYPE_CHECKING:
 	from frappe.flow.doctype.flow_run.flow_run import FlowRun
 	from frappe.flow.doctype.flow_session.flow_session import FlowSession
 	from frappe.flow.knowledge import Knowledge
-	from frappe.flow.lib.tool import Tool
 
 DEFAULT_MAX_ITERATIONS = 100
 
 
 def sync_agents(_app: str | None = None) -> None:
 	"""Write every agent the installed apps declare through the `flow_agents` hook, whose
-	entries name functions returning a list of Agents. Runs after migrate and app installs."""
+	entries name functions returning a list of Agents. Runs after migrate and app installs.
+	An agent that cannot be written, or named like one declared before it, is skipped and logged,
+	along with its sub-agents and tools."""
 	hooked: list[Agent] = []
 	for path in frappe.get_hooks("flow_agents"):
-		hooked.extend(frappe.get_attr(path)())
+		with skip_if_invalid(f"Flow Agents of {path} skipped"):
+			hooked.extend(frappe.get_attr(path)())
 	declared: dict[str, Agent] = {}
 	for agent in hooked:
 		for item in _with_sub_agents(agent):
-			if declared.setdefault(item.name, item) is not item:  # one definition may be listed twice
-				frappe.throw(
-					_("Flow Agent {0} is declared more than once.").format(item.name),
-					title=_("Agent Conflict"),
-				)
-	for agent in hooked:
-		agent.sync()
+			declared.setdefault(item.name, item)
+		# one definition may be listed twice
+		duplicate = next((item for item in _with_sub_agents(agent) if declared[item.name] is not item), None)
+		if duplicate:
+			log_skipped(
+				f"Flow Agent {agent.name} skipped",
+				_("Flow Agent {0} is declared more than once.").format(duplicate.name),
+			)
+			continue
+		with skip_if_invalid(f"Flow Agent {agent.name} skipped"):
+			agent.sync()
 
 
 def _with_sub_agents(agent: Agent) -> Iterator[Agent]:
@@ -49,9 +58,11 @@ def _with_sub_agents(agent: Agent) -> Iterator[Agent]:
 
 def sync_tools(_app: str | None = None) -> None:
 	"""Write each `@tool` the installed apps list under the `flow_tools` hook as a locked Imported
-	Flow Tool, for any agent to attach. Runs after migrate and app installs."""
+	Flow Tool, for any agent to attach. Runs after migrate and app installs. A tool that cannot be
+	written is skipped and logged."""
 	for path in frappe.get_hooks("flow_tools"):
-		_ensure_tool(frappe.get_attr(path))
+		with skip_if_invalid(f"Flow Tool {path} skipped"):
+			_ensure_tool(frappe.get_attr(path))
 
 
 class Agent:
@@ -62,8 +73,10 @@ class Agent:
 	Flow does that for the agents listed under the `flow_agents` hook. The desk can enable or
 	disable them and switch the agent's model, nothing else. Tools must be module-level
 	functions in an installed app, since the flow server calls them back by import path.
+	The model calls them `<app>__<tool name>`, like `crm__read_records`.
 	`sub_agents` are Agents this one may hand a task to; they are synced before it.
-	`skills` are Flow Skill names.
+	`skills` are Flow Skill names, like `crm/onboarding` for a skill an app ships.
+	The doc is named and titled `<app>/<name>`, after the app whose code builds the Agent.
 	"""
 
 	def __init__(
@@ -82,7 +95,9 @@ class Agent:
 	):
 		if knowledge and not isinstance(knowledge, list):
 			knowledge = [knowledge]
-		self.name = name
+		# the calling module's app, found the way namedtuple finds its module
+		self.app = sys._getframe(1).f_globals["__name__"].split(".", 1)[0]
+		self.name = f"{self.app}/{name}"
 		self.model = model
 		self.instructions = instructions
 		self.description = description
@@ -108,7 +123,9 @@ class Agent:
 			if not frappe.db.exists("Flow Model", doc.model):
 				doc.model = self.model
 		else:
-			doc = frappe.get_doc({"doctype": "Flow Agent", "title": self.name, "model": self.model})
+			doc = frappe.get_doc(
+				{"doctype": "Flow Agent", "title": self.name, "app": self.app, "model": self.model}
+			)
 		doc.description = self.description
 		doc.instructions = self.instructions
 		doc.max_iterations = self.max_iterations
@@ -132,37 +149,53 @@ class Agent:
 
 
 def _ensure_tool(tool: Tool) -> str:
-	"""The Flow Tool slug for `tool`, with its Imported row created or brought up to date."""
+	"""The name of `tool`'s Imported Flow Tool, created or brought up to date: `<app>/<tool name>`.
+	A tool moved to another module keeps its row."""
 	import_path = _tool_import_path(tool)
+	name = f"{import_path.split('.', 1)[0]}/{tool.name}"
 	definition = {
+		"import_path": import_path,
 		"description": tool.description,
 		"requires_confirmation": int(tool.requires_confirmation),
 		"background": int(tool.background is True),
 		"is_system_generated": 1,
 	}
-	row = frappe.db.get_value("Flow Tool", tool.name, ["import_path", *definition], as_dict=True)
-	if row and row.import_path != import_path:
+	row = frappe.db.get_value("Flow Tool", name, list(definition), as_dict=True)
+	if row and row.import_path != import_path and _exports_another(row.import_path, tool):
 		frappe.throw(
-			_("Flow Tool {0} already exists with a different definition.").format(tool.name),
+			_("Tools {0} and {1} are both named {2}. Name one differently with @tool(name=...).").format(
+				row.import_path, import_path, tool.name
+			),
 			title=_("Tool Conflict"),
 		)
 	if row and all(row.get(key) == value for key, value in definition.items()):
-		return tool.name
+		return name
 	if row:
-		doc = frappe.get_doc("Flow Tool", tool.name)
+		doc = frappe.get_doc("Flow Tool", name)
+		doc.update(definition)
+		doc.save(ignore_permissions=True)
 	else:
 		doc = frappe.get_doc(
 			{
 				"doctype": "Flow Tool",
-				"slug": tool.name,
+				"slug": name,
 				"title": tool.name.replace("_", " ").title(),
 				"type": "Imported",
-				"import_path": import_path,
+				**definition,
 			}
 		)
-	doc.update(definition)
-	doc.save(ignore_permissions=True)
-	return tool.name
+		doc.insert(ignore_permissions=True)
+	return name
+
+
+def _exports_another(import_path: str, tool: Tool) -> bool:
+	"""Whether `import_path` still exports a Tool named like `tool` but other than it, rather than
+	`tool` having moved away from there."""
+	try:
+		other = frappe.get_attr(import_path)
+	except (ImportError, AttributeError):
+		return False
+	return isinstance(other, Tool) and other is not tool and other.name == tool.name
 
 
 def _tool_import_path(tool: Tool) -> str:

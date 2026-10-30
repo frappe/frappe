@@ -53,7 +53,7 @@ class ServerCase(IntegrationTestCase):
 				"title": "Session Lib Agent",
 				"model": self.model.name,
 				"instructions": "Be terse.",
-				"tools": [{"tool": "read_records"}, {"tool": "execute"}],
+				"tools": [{"tool": "frappe/read_records"}, {"tool": "frappe/execute"}],
 				"enabled": 1,
 			}
 		).insert()
@@ -86,11 +86,11 @@ class TestNewSession(ServerCase):
 			new_session(self.agent.name)
 
 	def test_new_session_defaults_to_the_assistant_under_the_same_read_checks(self):
-		from frappe.flow.assistant import ASSISTANT_AGENT_TITLE, sync_builtin_assistant
+		from frappe.flow.assistant import ASSISTANT_AGENT_NAME, sync_builtin_assistant
 
 		sync_builtin_assistant(self.model.name)
 		session = new_session()
-		self.assertEqual(session.agent, ASSISTANT_AGENT_TITLE)
+		self.assertEqual(session.agent, ASSISTANT_AGENT_NAME)
 		self.assertIn(session.name, self.daemon.configs)
 		_ensure_other()
 		frappe.get_doc(

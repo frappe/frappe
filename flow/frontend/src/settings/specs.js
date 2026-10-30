@@ -9,7 +9,7 @@ import { formatTokens } from "@flow/ui-core/transcript.js";
 const enabled = { name: "enabled", label: "Enabled", type: "check" };
 const system = (doc) => !!doc.is_system_generated;
 // the site may add skills and knowledge to the built-in assistant
-const systemButAssistant = (doc) => system(doc) && doc.name !== "Flow";
+const systemButAssistant = (doc) => system(doc) && doc.name !== "frappe/Flow";
 const saved = (doc) => !!doc.name;
 // the harness's /providers list, then two ways to reach any other endpoint
 const PROVIDERS = [
@@ -303,7 +303,7 @@ export const SPECS = {
 			{ name: "title", label: "Title", type: "text", required: true },
 			{
 				name: "slug",
-				label: "Slug",
+				label: "Function name",
 				type: "text",
 				required: true,
 				placeholder: "close_overdue_orders",

@@ -61,7 +61,7 @@ class MemoryCase(IntegrationTestCase):
 				"enabled": 1,
 			}
 		).insert()
-		self.agent = self.insert_agent("Memory Test Agent", tools=[{"tool": "update_memory"}])
+		self.agent = self.insert_agent("Memory Test Agent", tools=[{"tool": "frappe/update_memory"}])
 		self.user = frappe.session.user
 
 	def tearDown(self):
@@ -195,7 +195,7 @@ class TestKeywordRetrieval(MemoryCase):
 		frappe.get_doc(
 			_memory(self.agent.name, scope="User", user=OTHER_USER, content="Acme invoices go to Ravi.")
 		).insert()
-		other = self.insert_agent("Other Memory Agent", tools=[{"tool": "update_memory"}])
+		other = self.insert_agent("Other Memory Agent", tools=[{"tool": "frappe/update_memory"}])
 		frappe.get_doc(_memory(other.name, content="Acme is billed in Pune.")).insert()
 
 		block = self.block("Where do we bill Acme?")
