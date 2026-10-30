@@ -777,7 +777,7 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 	}
 
 	add_prepared_report_buttons(doc) {
-		if (doc) {
+		if (doc && frappe.model.can_read("Prepared Report")) {
 			this.page.add_inner_button(
 				__("Download Report"),
 				function () {
@@ -791,7 +791,9 @@ frappe.views.QueryReport = class QueryReport extends frappe.views.BaseList {
 				},
 				__("Actions")
 			);
+		}
 
+		if (doc) {
 			let pretty_diff = frappe.datetime.comment_when(doc.report_end_time);
 			const days_old = frappe.datetime.get_day_diff(
 				frappe.datetime.now_datetime(),
