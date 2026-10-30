@@ -1643,6 +1643,26 @@ class TestDBQuery(IntegrationTestCase):
 		self.assertIn(frappe.db.escape(payload), rendered)
 		self.assertNotIn("slash' OR", rendered)
 
+	def test_permission_criterion_or_stays_grouped(self):
+		from frappe.model.db_query import DatabaseQuery
+
+		open_todo = frappe.get_doc(doctype="ToDo", description="_Test OR Group", status="Open").insert()
+		closed_todo = frappe.get_doc(doctype="ToDo", description="_Test OR Group", status="Closed").insert()
+		with self.patch_hooks(
+			{
+				"permission_query_conditions": {
+					"ToDo": [
+						"frappe.tests.test_db_query.todo_description_hook",
+						"frappe.tests.test_db_query.todo_open_hook",
+					]
+				}
+			}
+		):
+			names = DatabaseQuery("ToDo").execute(pluck="name", user="test@example.com")
+
+		self.assertIn(open_todo.name, names)
+		self.assertNotIn(closed_todo.name, names)
+
 	def test_virtual_doctype(self):
 		"""Test that virtual doctypes can be queried using get_all"""
 
@@ -2171,3 +2191,12 @@ def create_nested_doctype_records():
 		d = frappe.new_doc("Nested DocType")
 		d.update(r)
 		d.insert(ignore_permissions=True, ignore_if_duplicate=True)
+
+
+def todo_description_hook(user, doctype=None):
+	ToDo = frappe.qb.DocType("ToDo")
+	return (ToDo.description == "_Test OR Group") | (ToDo.description == "_Test OR Other")
+
+
+def todo_open_hook(user, doctype=None):
+	return frappe.qb.DocType("ToDo").status == "Open"
