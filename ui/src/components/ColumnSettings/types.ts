@@ -14,7 +14,7 @@ export interface Column {
 }
 
 /** A **synthetic column**: a list column the *host* declares instead of resolving
- *  from doctype Meta, carrying its own render metadata (ADR-0033). It is a first-class
+ *  from doctype Meta, carrying its own render metadata. It is a first-class
  *  member of the column state — it lives in `shown`, persists in the View Snapshot, and
  *  appears in ColumnSettings — but the library only *declares* it; the host draws its
  *  cell (via the `#cell` slot's `type` hint). Declaration (static, host-authored) and
@@ -69,6 +69,6 @@ export interface ColumnSettingsProps {
   hideLabel?: boolean;
   /** Show a reset-to-default action. */
   canReset?: boolean;
-  /** Host-declared synthetic columns offered in union with Meta fields (ADR-0033). */
+  /** Host-declared synthetic columns offered in union with Meta fields. */
   synthetic?: SyntheticColumn[];
 }

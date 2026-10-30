@@ -125,7 +125,7 @@
 import { computed, provide, useId } from "vue";
 import { Button, Combobox, Select, TextInput } from "frappe-ui";
 // Composed, not re-exported: none of `Filter`'s names reach this component's
-// exports. See ADR-0008.
+// exports.
 import { carryOver, defaultValueFor } from "../Filter/operators";
 import type { Filter } from "../Filter/types";
 import { valueControl } from "../Filter/valueControl";

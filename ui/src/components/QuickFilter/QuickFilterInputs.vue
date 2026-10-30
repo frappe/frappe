@@ -1,7 +1,7 @@
 <!--
   QuickFilterInputs — the normal-mode face of the QuickFilter strip: one inline
   value input per surfaced field, projecting over the SAME `Filter[]` the Filter
-  control binds (ADR-0005). It owns no data resource; setting a quick input upserts
+  control binds. It owns no data resource; setting a quick input upserts
   a condition in the shared list and reading reflects whichever condition that
   input owns, so Filter ↔ QuickFilter stay in sync with no cross-control events.
 
@@ -13,7 +13,7 @@
   field) own BOTH `like` (default) and `equals`, surfaced as a `≈`/`=` toggle glued
   to the front of the input — substring-search by default, click to flip to an exact
   match. Link fields are an exact pick (`equals`, no toggle). The value inputs are
-  the shared `Fields` components (ADR-0004); the `name` field swaps its text box for
+  the shared `Fields` components; the `name` field swaps its text box for
   a Link picker when flipped to `equals`.
 -->
 <template>
@@ -104,7 +104,7 @@ import {
 	quickValue,
 } from "./quickFilters";
 import type { Filter, FilterField, FilterOperator, FilterValue } from "../Filter/types";
-// Shared, fieldtype-aware value inputs (ADR-0004), same subset the Filter control
+// Shared, fieldtype-aware value inputs, same subset the Filter control
 // mounts. No form-context injections are provided, so deep-injection inputs fall
 // back to site defaults — fine for a bare filter input.
 import SelectField from "../Fields/SelectField.vue";

@@ -221,7 +221,7 @@ describe("fetchFields", () => {
     { key: "status", label: "Status", width: 1, align: "left", type: "Select" },
   ];
 
-  it("is `name` plus each column key, skipping declared synthetic keys (ADR-0033)", () => {
+  it("is `name` plus each column key, skipping declared synthetic keys", () => {
     // `_indicator` names no docfield, so requesting it would error get_list; the real
     // fields its cell reads are the host's concern (fetched separately). A re-added
     // subsumed field like `status` is a real docfield and stays.

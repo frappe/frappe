@@ -7,7 +7,7 @@
 
   Story chrome (the doctype picker) uses frappe-ui components, not raw HTML, per
   the workspace convention. The "Synthetic column" switch declares a host Record-
-  indicator column (ADR-0033) and folds it into the list — it appears after the
+  indicator column and folds it into the list — it appears after the
   title (subsuming the raw `status` field), shows in ColumnSettings (toggle / re-add),
   rides the wire `columns` readout, and is never requested from `get_list`; its cell
   is drawn by the host (a representative badge here — see ListViewToolbar).

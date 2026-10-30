@@ -3,7 +3,7 @@
   mounts the extracted controls into the `ListViewShell`. Filter and QuickFilter both
   bind the SAME `filters` ref (the composable's SoT), so setting a quick input updates
   the matching filter condition and vice versa with no wiring here. ColumnSettings and
-  the table's drag-resize likewise share the SAME `columns` ref (ADR-0006): editing a
+  the table's drag-resize likewise share the SAME `columns` ref: editing a
   width in the popover resizes the header track, and dragging the header writes the
   width back into the popover — both via `view.columns`, no event plumbing here beyond
   handing the frappe-ui `columnWidthUpdated` event to the composite's handler.
@@ -17,7 +17,7 @@
   Selection and the footer are the host's job too — `selectable` turns on row
   checkboxes, `ListSelectBanner` surfaces bulk actions over the live selection, and
   `ListFooter` renders the count + Load More + page-length selector, paging through
-  `useListData`. The shared composables stay fetch-free (ADR-0001); this surface owns
+  `useListData`. The shared composables stay fetch-free; this surface owns
   the data + chrome around them.
 
   Mounted under the Shell story's `:key="doctype"`, so it (and `useListView`)
@@ -77,7 +77,7 @@
 					@dblclick="onResizerDoubleClick"
 				/>
 				<ListRows />
-				<!-- The synthetic column (ADR-0033) carries no docfield value — the HOST draws
+				<!-- The synthetic column carries no docfield value — the HOST draws
 				     its cell. A production host (frappe-os) resolves a per-row Record indicator
 				     here; this story renders a representative badge to show the "library carries
 				     the column, host owns the cell" half of the seam. Every other cell renders
@@ -145,7 +145,7 @@ import type { SyntheticColumn } from "../../ColumnSettings";
 
 const props = defineProps<{ doctype: string; syntheticDemo?: boolean }>();
 
-// A demo synthetic column (ADR-0033) — the Record indicator, the OS's first synthetic
+// A demo synthetic column — the Record indicator, the OS's first synthetic
 // column — declared by the host and folded into the column state: after the title,
 // subsuming the raw `status` docfield. Reactive, so the Shell's toggle folds it in/out
 // live; `useColumns` takes it as a getter. Off ⇒ no declaration ⇒ identical behaviour.
@@ -170,7 +170,7 @@ const view = useListView(props.doctype, { synthetic });
 // live `get_list` rows + total, and pages via the footer.
 const data = useListData(props.doctype, view);
 
-// Layout persistence via the `snapshot` / `restore()` seam (ADR-0007). The library
+// Layout persistence via the `snapshot` / `restore()` seam. The library
 // owns no saving; the host picks when and where. Restore on mount seeds every control
 // at once (filters, sort, columns + widths, quick-filter fields) from one object.
 const storageKey = `listview:${props.doctype}`;
@@ -207,7 +207,7 @@ function bulkActions(selected: Set<string>, unselectAll: () => void) {
 }
 
 // frappe-ui's `ListHeaderItem` emits `{ key, width, save }` as a column is dragged.
-// The composite owns the handler (ADR-0006); we ignore the `save` debounce flag —
+// The composite owns the handler; we ignore the `save` debounce flag —
 // persistence is the host's job — and just write the width into the shared ref.
 function onColumnWidthUpdated(event: { key: string; width: string }) {
 	view.columns.setWidth(event.key, event.width);

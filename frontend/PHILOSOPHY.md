@@ -46,9 +46,10 @@ exist to prevent. This doc adds only the `DP*` principles specific to the desk l
 - **`COMPATIBILITY.md`** is the *promise* — what a script author can rely on across an
   upgrade of the host: which `page` verbs and events are meant to outlive the
   implementation, which are not, and how a removal announces itself.
-- **`docs/adr/`** are *decisions* — specific applications of a principle to a specific
-  question. **ADRs cite principles; principles never cite ADRs.** That direction is what
-  stops this file growing a paragraph every time something is settled. Not yet written.
+- **Tickets** hold *decisions*. A ticket that settles a question puts the rule it makes
+  in the file that owns it, and its reasoning stays in the ticket. **A decision cites
+  principles; principles never cite a decision.** That direction stops this file growing
+  a paragraph every time something is settled.
 - **The wayfinder maps** (frappe/frappe#42061 and its children) hold **charter points**.
   A charter point is map-scoped and expires when its map wraps; a principle is what
   survives the wrap. See below.
@@ -62,7 +63,7 @@ load-bearing. Every `DP` below is a rule that was already fought over.
 A candidate earns a slot only if it passes all four:
 
 1. **Generative.** It answers cases it does not mention. If it only answers the case that
-   prompted it, it is an ADR.
+   prompted it, it is a decision, and belongs in its ticket.
 2. **It has a real counter-pull.** The text must name what tugs the other way. A rule
    nobody could plausibly violate is decoration, and decoration is not free — it pads the
    file until the load-bearing rules stop being read.

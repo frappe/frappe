@@ -1,6 +1,6 @@
 <!--
   QuickFilter — a controlled, meta-driven list-view control that projects over the
-  SAME `Filter[]` list the Filter control binds (ADR-0005). It owns no data
+  SAME `Filter[]` list the Filter control binds. It owns no data
   resource; its two faces are split into focused children and this component just
   derives the shared field state and dispatches between them:
 

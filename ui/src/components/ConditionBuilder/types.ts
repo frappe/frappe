@@ -5,7 +5,7 @@ import type { FilterField, FilterOperator, FilterValue } from "../Filter/types";
 export type Conjunction = "and" | "or";
 
 /**
- * Derived from the rules it composes (ADR-0008), so the two cannot drift.
+ * Derived from the rules it composes, so the two cannot drift.
  * `timespan` is excluded: no expression compiles from one.
  */
 export type ConditionOperator = Exclude<FilterOperator, "timespan">;

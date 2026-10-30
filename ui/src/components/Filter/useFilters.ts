@@ -7,7 +7,7 @@ import type { FilterCondition } from "./types";
 export interface UseFilters {
   /** The single source of truth for filter conditions — both the Filter and the
    *  QuickFilter controls `v-model` this same array, so they stay in sync with no
-   *  cross-control events (ADR-0005). */
+   *  cross-control events. */
   conditions: Ref<FilterCondition[]>;
   /** The Frappe wire filter list a host fetches with (`serializeFilters`). */
   wire: Ref<WireFilters>;
