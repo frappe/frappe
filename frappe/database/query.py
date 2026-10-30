@@ -24,6 +24,7 @@ from frappe.model import OPTIONAL_FIELDS, get_permitted_fields, numeric_fieldtyp
 from frappe.model.document import DOCTYPES_FOR_DOCTYPE, Document
 from frappe.query_builder import Criterion, Field, Order, functions
 from frappe.query_builder.custom import Month, MonthName, Quarter, Year
+from frappe.query_builder.utils import render_criterion
 
 CORE_DOCTYPES = DOCTYPES_FOR_DOCTYPE | frozenset(
 	(
@@ -1777,10 +1778,7 @@ class Engine:
 		"""Build permission-based conditions for the doctype."""
 		if as_condition:
 			condition = self.get_permission_conditions(self.doctype, self.table)
-			if condition:
-				quote_char = "`" if self.is_mariadb else '"'
-				return condition.get_sql(with_namespace=True, quote_char=quote_char, subquery=True)
-			return ""
+			return render_criterion(condition) if condition else ""
 
 		if not self.ignore_user_permissions:
 			match_filters = []
