@@ -24,7 +24,7 @@ from frappe.model import OPTIONAL_FIELDS, get_permitted_fields
 from frappe.model.meta import get_table_columns
 from frappe.model.utils import is_virtual_doctype
 from frappe.model.utils.user_settings import get_user_settings, update_user_settings
-from frappe.query_builder.utils import Column
+from frappe.query_builder.utils import Column, render_criterion
 from frappe.types import Filters, FilterSignature, FilterTuple
 from frappe.utils import (
 	cint,
@@ -1201,18 +1201,8 @@ from {tables}
 		return " and ".join(conditions) if conditions else ""
 
 	def _render_permission_criterion(self, criterion) -> str:
-		"""Render a pypika permission criterion to a namespaced SQL string.
-
-		The legacy query path concatenates conditions into a single WHERE string, so any
-		embedded value must be inlined. A parameter wrapper inlines each value with
-		`frappe.db.escape` (the driver's escaping) rather than pypika's bare
-		quote-doubling, which is unsafe on MariaDB where backslash is an escape character.
-		"""
-		quote_char = "`" if frappe.db.db_type == "mariadb" else '"'
-		sql = criterion.get_sql(
-			with_namespace=True, quote_char=quote_char, param_wrapper=EscapedValueWrapper(), subquery=True
-		)
-		return f"({sql})"
+		"""Render a pypika permission criterion to a namespaced SQL string."""
+		return f"({render_criterion(criterion)})"
 
 	def set_order_by(self, args):
 		if self.order_by and self.order_by != DefaultOrderBy:
@@ -1530,10 +1520,3 @@ def strip_alias(field: str) -> str:
 	if " as " in field.lower():
 		return field.split(" as ", 1)[0]
 	return field
-
-
-class EscapedValueWrapper:
-	"""Parameter wrapper that inlines each value as an escaped SQL literal."""
-
-	def get_sql(self, param_value, **kwargs) -> str:
-		return frappe.db.escape(param_value, percent=False)
