@@ -138,7 +138,7 @@ function keepVariant(set: VariantSet) {
 					app_name: (window as any).app_name,
 					page_name: route.meta.pageName,
 					block_id: set.blockId,
-					option_index: option,
+					option_name: set.options[option],
 				})
 			} catch (error: any) {
 				throw new Error(error?.messages?.join(", ") || "Could not keep the variant")

@@ -10,6 +10,7 @@ import LucideBox from "~icons/lucide/box"
 import LucideCode from "~icons/lucide/code"
 
 import { generateId, isObjectEmpty, kebabToCamelCase, numberToPx } from "./helpers";
+import { unusedOptionName, variantOptionNames } from "./variants"
 import { copyObject, getBlockCopy, getComponentBlock } from "@/utils/serializer"
 import { componentHasDefaultSlot, getComponentSlots } from "@/utils/components"
 import { mergeLegacyRawStyles } from "@/patches/mergeLegacyRawStyles"
@@ -148,6 +149,7 @@ class Block implements BlockOptions {
 			return this.updateSlot(child.parentSlotName, child, index)
 		}
 
+		this.nameVariantOption(child)
 		index = this.getValidIndex(index, this.children.length)
 		const childBlock = reactive(new Block(child))
 		childBlock.parentBlock = this
@@ -204,6 +206,7 @@ class Block implements BlockOptions {
 	insertChild(child: Block, index?: number | null, slotName?: string | null) {
 		const siblings = slotName ? this.getSlotContent(slotName) : this.children
 		if (!siblings) return
+		if (!slotName) this.nameVariantOption(child)
 		child.parentBlock = this
 		if (slotName) {
 			child.parentSlotName = slotName
@@ -230,6 +233,13 @@ class Block implements BlockOptions {
 		}
 		return clamp(index, 0, arrayLength)
 	  }
+
+	// Keep finds an option by name, so a set can hold neither two of the same nor an unnamed one
+	nameVariantOption(child: BlockOptions | Block) {
+		if (this.componentName !== "Variants") return
+		const taken = variantOptionNames(this).filter((_, at) => this.children[at] !== child)
+		child.variantOptionName = unusedOptionName(taken, child.variantOptionName)
+	}
 
 	addChildAfter(child: BlockOptions, siblingBlock: Block) {
 		const siblingIndex = this.getChildIndex(siblingBlock)

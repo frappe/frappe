@@ -153,7 +153,7 @@ function keepRow(row: VariantRow) {
 				app_name: store.activeApp?.name,
 				page_name: store.activePage?.name,
 				block_id: source.block.componentId,
-				option_index: shownVariantIndex(source.block),
+				option_name: row.options[shownVariantIndex(source.block)],
 			})
 			await componentStore.reloadComponent(ownerComponent)
 		},

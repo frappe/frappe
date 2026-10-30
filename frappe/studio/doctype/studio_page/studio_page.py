@@ -35,7 +35,7 @@ from frappe.studio.utils import (
 	validate_file_name,
 	walk_blocks,
 )
-from frappe.utils import cint, get_datetime
+from frappe.utils import get_datetime
 
 # A variable is referenced as {{ name }} and spread into the page's JS eval context, so its
 # name must be a bare JS identifier.
@@ -378,12 +378,10 @@ class StudioPage(Document):
 			self.blocks = self.draft_blocks
 			self.draft_blocks = None
 		self.save()
-		return {"unresolved_variants": self.unresolved_variants()}
+		return {"unresolved_variants": self.get_unresolved_variants()}
 
-	def unresolved_variants(self) -> list[str]:
-		"""Names of the Variants blocks the published page still carries. Nobody resolved these
-		with Keep, so viewers get their first option. Components the page uses are scanned too,
-		because their variants render on the page the same way."""
+	def get_unresolved_variants(self) -> list[str]:
+		"""Names of the Variants blocks (including those in components) the published page still carries"""
 		blocks = parse_json(self.blocks) or []
 		if not blocks:
 			return []
@@ -474,37 +472,34 @@ def get_blocks(page) -> list[dict]:
 
 @frappe.whitelist()
 @has_page_write_perm()
-def keep_variant(app_name: str, page_name: str, block_id: str, option_index: int) -> None:
-	"""Collapse a Variants block to its chosen child and delete the other options. This is the
-	viewer pill's "Keep". It is applied to the draft and the published copy, so the reviewer
-	keeps what they see."""
-	# get_app_page returns the cached doc, so load a copy of it to write to
-	page = frappe.get_doc("Studio Page", get_app_page(app_name, page_name).name)
-	option_index = cint(option_index)
+def keep_variant(app_name: str, page_name: str, block_id: str, option_name: str) -> None:
+	"""Collapse a Variants block to its chosen child and delete the other options."""
+	page = get_app_page(app_name, page_name, cached=False)
+	option_name = str(option_name)
 
 	kept = False
 	for field in ("draft_blocks", "blocks"):
 		blocks = parse_json(page.get(field)) or []
-		if blocks and replace_variants_block(blocks, str(block_id), option_index):
+		if blocks and replace_variants_block(blocks, str(block_id), option_name):
 			page.set(field, frappe.as_json(blocks, indent=None))
 			kept = True
 	if kept:
 		page._skip_validate = True
 		page.save()
-	elif not keep_component_variant(page, str(block_id), option_index):
+	elif not keep_component_variant(page, str(block_id), option_name):
 		frappe.throw(
-			_("Could not keep option {0} of variants block {1}. Reload the page and try again.").format(
-				option_index, block_id
+			_('Could not keep option "{0}" of variants block {1}. Reload the page and try again.').format(
+				option_name, block_id
 			)
 		)
 
 
-def keep_component_variant(page: "StudioPage", block_id: str, option_index: int) -> bool:
+def keep_component_variant(page: "StudioPage", block_id: str, option_name: str) -> bool:
 	"""The block can live inside a studio component the page uses. Keeping it edits the
 	component, so every instance on every page follows."""
 	for component in get_components_for_blocks(get_blocks(page)):
 		block = parse_json(component["block"])
-		if not block or not replace_variants_block(block, block_id, option_index):
+		if not block or not replace_variants_block(block, block_id, option_name):
 			continue
 		component_doc = frappe.get_doc("Studio Component", component["name"])
 		component_doc.block = frappe.as_json(block, indent=None)
@@ -515,8 +510,8 @@ def keep_component_variant(page: "StudioPage", block_id: str, option_index: int)
 	return False
 
 
-def replace_variants_block(blocks, block_id: str, option_index: int) -> bool:
-	"""Swap the matching Variants block for its chosen option, anywhere in the tree."""
+def replace_variants_block(blocks, block_id: str, option_name: str) -> bool:
+	"""Swap the matching Variants block for the option of that name, anywhere in the tree."""
 	for parent in walk_blocks(blocks):
 		for children in child_lists(parent):
 			for index, child in enumerate(children):
@@ -524,13 +519,18 @@ def replace_variants_block(blocks, block_id: str, option_index: int) -> bool:
 					continue
 				if child.get("componentName") != "Variants":
 					continue
-				# the draft and the published copy can hold different numbers of options
+				# two options of the same name are indistinguishable, so refuse the keep
+				# rather than delete the wrong one
 				options = child.get("children") or []
-				if not 0 <= option_index < len(options):
+				matches = [
+					option
+					for position, option in enumerate(options)
+					if isinstance(option, dict)
+					and (option.get("variantOptionName") or f"Option {position + 1}") == option_name
+				]
+				if len(matches) != 1:
 					return False
-				kept = options[option_index]
-				if not isinstance(kept, dict):
-					return False
+				kept = matches[0]
 				kept.pop("variantOptionName", None)
 				children[index] = kept
 				return True
@@ -546,10 +546,10 @@ def child_lists(block: dict):
 			yield slot["slotContent"]
 
 
-def get_app_page(app_name: str, page_name: str) -> "StudioPage":
-	"""The cached page, or the same 404 whether it is missing or belongs to another app."""
+def get_app_page(app_name: str, page_name: str, cached: bool = True) -> "StudioPage":
 	try:
-		page = frappe.get_cached_doc("Studio Page", page_name) if page_name else None
+		get_page_doc = frappe.get_cached_doc if cached else frappe.get_doc
+		page = get_page_doc("Studio Page", page_name) if page_name else None
 	except frappe.DoesNotExistError:
 		# get_doc queues "Studio Page <name> not found" for the client; keep the reply to "Page not found"
 		frappe.clear_last_message()

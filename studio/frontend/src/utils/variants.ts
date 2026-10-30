@@ -135,6 +135,15 @@ export function variantOptionNames(block: {
 	)
 }
 
+/** A name no option in the set is using: the one it came with when that is free, else "Option N".
+A URL finds an option by name, so a name a delete freed must not come back on another block. */
+export function unusedOptionName(taken: string[], preferred?: string): string {
+	if (preferred && !taken.includes(preferred)) return preferred
+	let n = taken.length + 1
+	while (taken.includes(`Option ${n}`)) n++
+	return `Option ${n}`
+}
+
 /** The Keep confirmation copy, shared by the viewer pill and the editor panel. */
 export function keepDialogText(options: string[], keptIndex: number) {
 	const others = options.filter((_, index) => index !== keptIndex).map((name) => `"${name}"`)

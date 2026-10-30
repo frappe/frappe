@@ -78,7 +78,13 @@ import InputLabel from "@/components/InputLabel.vue"
 import Block from "@/utils/block"
 import { variantOption } from "@/utils/blockTemplate/familyTemplates"
 import { getBlockCopy } from "@/utils/serializer"
-import { getEditorVariantChoice, setEditorVariantChoice, slug, variantOptionNames } from "@/utils/variants"
+import {
+	getEditorVariantChoice,
+	setEditorVariantChoice,
+	slug,
+	unusedOptionName,
+	variantOptionNames,
+} from "@/utils/variants"
 import { confirmKeepVariantOption } from "@/utils/variantsEditor"
 import { useDragReorder } from "@/utils/useDragReorder"
 
@@ -125,13 +131,6 @@ function addOption() {
 	}
 	showOption(index)
 	startRename(index)
-}
-
-// a URL finds an option by name, so a new name must not repeat one that a delete freed
-function unusedOptionName(taken: string[]) {
-	let n = taken.length + 1
-	while (taken.includes(`Option ${n}`)) n++
-	return `Option ${n}`
 }
 
 // the option's layer name: "option-cards" for a "Cards" option. A default name like
